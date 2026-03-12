@@ -38,7 +38,7 @@ exec "$KVIKDOS" \
     --drive=c \
     $CWD_ARG \
     --env="PATH=c:\\TOOLS" \
-    --env="INCLUDE=c:\\TOOLS\\INC" \
+    --env="INCLUDE=c:\\TOOLS\\BLD\\INC" \
     --env="LIB=c:\\TOOLS\\LIB" \
     --env="INIT=c:\\TOOLS" \
     --env="COUNTRY=usa-ms" \

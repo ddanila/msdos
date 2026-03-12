@@ -102,40 +102,45 @@ INC_DIR  := $(SRC)/INC
 HINC_DIR := $(SRC)/H
 DOS_DIR  := $(SRC)/DOS
 
-INC_OBJS := errtst.obj sysvar.obj cds.obj dpb.obj nibdos.obj \
-            const2.obj msdata.obj msdosme.obj mstable.obj
+# msdos.cl1 is generated in DOS/ by NOSRVBLD and included by INC/DIVMES.ASM
+# (via the -I..\\DOS path). It must be built before assembling MSDOSME.OBJ.
+$(DOS_DIR)/MSDOS.CL1: $(DOS_DIR)/MSDOS.SKL $(MESSAGES_OUT)
+	cd $(DOS_DIR) && $(NOSRVBLD) MSDOS.SKL "..\MESSAGES\USA-MS.MSG"
+
+INC_OBJS := ERRTST.OBJ SYSVAR.OBJ CDS.OBJ DPB.OBJ NIBDOS.OBJ \
+            CONST2.OBJ MSDATA.OBJ MSDOSME.OBJ MSTABLE.OBJ
 INC_OBJ_PATHS := $(addprefix $(INC_DIR)/,$(INC_OBJS))
 
 inc: $(INC_OBJ_PATHS)
 
 # C source objects
-$(INC_DIR)/errtst.obj: $(INC_DIR)/errtst.c
-	cd $(INC_DIR) && $(CL) "-AS -Od -Zp -I. -I..\\H -c -Foerrtst.obj errtst.c"
+$(INC_DIR)/ERRTST.OBJ: $(INC_DIR)/ERRTST.C
+	cd $(INC_DIR) && $(CL) "-AS -Od -Zp -I. -I..\\H -c -FoERRTST.OBJ ERRTST.C"
 
-$(INC_DIR)/sysvar.obj: $(INC_DIR)/sysvar.c
-	cd $(INC_DIR) && $(CL) "-AS -Od -Zp -I. -I..\\H -c -Fosysvar.obj sysvar.c"
+$(INC_DIR)/SYSVAR.OBJ: $(INC_DIR)/SYSVAR.C
+	cd $(INC_DIR) && $(CL) "-AS -Od -Zp -I. -I..\\H -c -FoSYSVAR.OBJ SYSVAR.C"
 
-$(INC_DIR)/cds.obj: $(INC_DIR)/cds.c
-	cd $(INC_DIR) && $(CL) "-AS -Od -Zp -I. -I..\\H -c -Focds.obj cds.c"
+$(INC_DIR)/CDS.OBJ: $(INC_DIR)/CDS.C
+	cd $(INC_DIR) && $(CL) "-AS -Od -Zp -I. -I..\\H -c -FoCDS.OBJ CDS.C"
 
-$(INC_DIR)/dpb.obj: $(INC_DIR)/dpb.c
-	cd $(INC_DIR) && $(CL) "-AS -Od -Zp -I. -I..\\H -c -Fodpb.obj dpb.c"
+$(INC_DIR)/DPB.OBJ: $(INC_DIR)/DPB.C
+	cd $(INC_DIR) && $(CL) "-AS -Od -Zp -I. -I..\\H -c -FoDPB.OBJ DPB.C"
 
 # ASM source objects
-$(INC_DIR)/nibdos.obj: $(INC_DIR)/nibdos.asm
-	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "nibdos.asm,nibdos.obj;"
+$(INC_DIR)/NIBDOS.OBJ: $(INC_DIR)/NIBDOS.ASM
+	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "NIBDOS.ASM,NIBDOS.OBJ;"
 
-$(INC_DIR)/const2.obj: $(INC_DIR)/const2.asm
-	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "const2.asm,const2.obj;"
+$(INC_DIR)/CONST2.OBJ: $(INC_DIR)/CONST2.ASM
+	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "CONST2.ASM,CONST2.OBJ;"
 
-$(INC_DIR)/msdata.obj: $(INC_DIR)/msdata.asm
-	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "msdata.asm,msdata.obj;"
+$(INC_DIR)/MSDATA.OBJ: $(INC_DIR)/MSDATA.ASM
+	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "MSDATA.ASM,MSDATA.OBJ;"
 
-$(INC_DIR)/msdosme.obj: $(INC_DIR)/msdosme.asm
-	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "msdosme.asm,msdosme.obj;"
+$(INC_DIR)/MSDOSME.OBJ: $(INC_DIR)/MSDOSME.ASM $(DOS_DIR)/MSDOS.CL1
+	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "MSDOSME.ASM,MSDOSME.OBJ;"
 
-$(INC_DIR)/mstable.obj: $(INC_DIR)/mstable.asm
-	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "mstable.asm,mstable.obj;"
+$(INC_DIR)/MSTABLE.OBJ: $(INC_DIR)/MSTABLE.ASM
+	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "MSTABLE.ASM,MSTABLE.OBJ;"
 
 # ---------------------------------------------------------------------------
 # BIOS (io.sys)
