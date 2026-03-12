@@ -79,21 +79,21 @@ BOOT_INC  := $(SRC)/INC/boot.inc
 
 boot: $(BOOT_INC)
 
-$(BOOT_DIR)/boot.cl1: $(BOOT_DIR)/boot.skl $(MESSAGES_OUT)
-	cd $(BOOT_DIR) && $(NOSRVBLD) boot.skl "..\MESSAGES\$(COUNTRY).msg"
+$(BOOT_DIR)/BOOT.CL1: $(BOOT_DIR)/BOOT.SKL $(MESSAGES_OUT)
+	cd $(BOOT_DIR) && $(NOSRVBLD) BOOT.SKL "..\MESSAGES\USA-MS.MSG"
 
-$(BOOT_DIR)/msboot.obj: $(BOOT_DIR)/msboot.asm $(BOOT_DIR)/boot.cl1
-	cd $(BOOT_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\INC" "msboot.asm,msboot.obj;"
+$(BOOT_DIR)/MSBOOT.OBJ: $(BOOT_DIR)/MSBOOT.ASM $(BOOT_DIR)/BOOT.CL1
+	cd $(BOOT_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\INC" "MSBOOT.ASM,MSBOOT.OBJ;"
 
-$(BOOT_DIR)/msboot.exe: $(BOOT_DIR)/msboot.obj
-	cd $(BOOT_DIR) && $(LINK) "msboot;"
+$(BOOT_DIR)/MSBOOT.EXE: $(BOOT_DIR)/MSBOOT.OBJ
+	cd $(BOOT_DIR) && $(LINK) "MSBOOT;"
 
-$(BOOT_DIR)/msboot.bin: $(BOOT_DIR)/msboot.exe
-	cd $(BOOT_DIR) && $(EXE2BIN) "msboot.exe msboot.bin"
+$(BOOT_DIR)/MSBOOT.BIN: $(BOOT_DIR)/MSBOOT.EXE
+	cd $(BOOT_DIR) && $(EXE2BIN) "MSBOOT.EXE MSBOOT.BIN"
 
-$(BOOT_INC): $(BOOT_DIR)/msboot.bin
-	cd $(BOOT_DIR) && $(DBOF) "msboot.bin boot.inc 7c00 200"
-	cp $(BOOT_DIR)/boot.inc $(SRC)/INC/boot.inc
+$(BOOT_INC): $(BOOT_DIR)/MSBOOT.BIN
+	cd $(BOOT_DIR) && $(DBOF) "MSBOOT.BIN BOOT.INC 7c00 200"
+	cp $(BOOT_DIR)/BOOT.INC $(SRC)/INC/boot.inc
 
 # ---------------------------------------------------------------------------
 # INC (shared kernel objects)

@@ -3,28 +3,44 @@
 # Usage: dos-run <DOS-tool-path> [args...]
 #
 # Mounts:
-#   C: -> current working directory (so relative paths work)
-#   D: -> MS-DOS 4.0 source root (D:\TOOLS has the compilers)
+#   C: -> MS-DOS 4.0 source root (uppercase mode)
+#   --cwd sets initial DOS current directory to the current Linux subdir
 #
-# All relative paths passed as args are interpreted relative to C: (cwd).
+# This allows DOS relative paths like ..\INC to work correctly from
+# any subdirectory of the source tree.
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 KVIKDOS="$SCRIPT_DIR/../kvikdos/kvikdos"
-SRC_ROOT="$SCRIPT_DIR/../MS-DOS/v4.0/src"
+SRC_ROOT="$(cd "$SCRIPT_DIR/../MS-DOS/v4.0/src" && pwd)"
 
 TOOL="$1"
 shift
 
+# Compute the DOS current directory (subdir relative to source root)
+CWD="$(pwd)"
+if [[ "$CWD" == "$SRC_ROOT"* ]]; then
+    DOSREL="${CWD#$SRC_ROOT}"
+    DOSREL="${DOSREL#/}"   # strip leading /
+    DOSREL="${DOSREL//\//\\}" # convert / to backslash
+    if [ -n "$DOSREL" ]; then
+        CWD_ARG="--cwd=C:\\${DOSREL}\\"
+    else
+        CWD_ARG=""
+    fi
+else
+    CWD_ARG=""
+fi
+
 exec "$KVIKDOS" \
-    --mount=c:"$(pwd)"/ \
-    --mount=d:"$SRC_ROOT"/ \
+    --mount=c:"$SRC_ROOT"/ \
     --drive=c \
-    --env="PATH=d:\\TOOLS" \
-    --env="INCLUDE=d:\\TOOLS\\INC" \
-    --env="LIB=d:\\TOOLS\\LIB" \
-    --env="INIT=d:\\TOOLS" \
+    $CWD_ARG \
+    --env="PATH=c:\\TOOLS" \
+    --env="INCLUDE=c:\\TOOLS\\INC" \
+    --env="LIB=c:\\TOOLS\\LIB" \
+    --env="INIT=c:\\TOOLS" \
     --env="COUNTRY=usa-ms" \
     "$TOOL" \
     "$@"
