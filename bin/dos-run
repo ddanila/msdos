@@ -1,0 +1,30 @@
+#!/bin/bash
+# Generic kvikdos runner.
+# Usage: dos-run <DOS-tool-path> [args...]
+#
+# Mounts:
+#   C: -> current working directory (so relative paths work)
+#   D: -> MS-DOS 4.0 source root (D:\TOOLS has the compilers)
+#
+# All relative paths passed as args are interpreted relative to C: (cwd).
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+KVIKDOS="$SCRIPT_DIR/../kvikdos/kvikdos"
+SRC_ROOT="$SCRIPT_DIR/../MS-DOS/v4.0/src"
+
+TOOL="$1"
+shift
+
+exec "$KVIKDOS" \
+    --mount=c:"$(pwd)"/ \
+    --mount=d:"$SRC_ROOT"/ \
+    --drive=c \
+    --env="PATH=d:\\TOOLS" \
+    --env="INCLUDE=d:\\TOOLS\\INC" \
+    --env="LIB=d:\\TOOLS\\LIB" \
+    --env="INIT=d:\\TOOLS" \
+    --env="COUNTRY=usa-ms" \
+    "$TOOL" \
+    "$@"
