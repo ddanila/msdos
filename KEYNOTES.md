@@ -58,7 +58,12 @@ Without it, git may normalize CRLF→LF on checkout, causing `buildidx` to produ
 | ATTRIB        | ✅ done | CMD/ATTRIB/ATTRIB.EXE          |
 | EDLIN         | ✅ done | CMD/EDLIN/EDLIN.COM            |
 | FC            | ✅ done | CMD/FC/FC.EXE                  |
-| 22 others     | ❌ todo | see TODO.md                    |
+| NLSFUNC       | ✅ done | CMD/NLSFUNC/NLSFUNC.EXE        |
+| ASSIGN        | ✅ done | CMD/ASSIGN/ASSIGN.COM          |
+| XCOPY         | ✅ done | CMD/XCOPY/XCOPY.EXE            |
+| DISKCOMP      | ✅ done | CMD/DISKCOMP/DISKCOMP.COM      |
+| DISKCOPY      | ✅ done | CMD/DISKCOPY/DISKCOPY.COM      |
+| 17 others     | ❌ todo | see TODO.md                    |
 
 ### DEV (device drivers)
 | Module        | Status  | Output                         |

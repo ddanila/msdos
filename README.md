@@ -46,8 +46,13 @@ Build MS-DOS 4.0 from source on Linux using original DOS compilers running under
 | ATTRIB   | `CMD/ATTRIB/ATTRIB.EXE`        |
 | EDLIN    | `CMD/EDLIN/EDLIN.COM`          |
 | FC       | `CMD/FC/FC.EXE`                |
+| NLSFUNC  | `CMD/NLSFUNC/NLSFUNC.EXE`      |
+| ASSIGN   | `CMD/ASSIGN/ASSIGN.COM`        |
+| XCOPY    | `CMD/XCOPY/XCOPY.EXE`          |
+| DISKCOMP | `CMD/DISKCOMP/DISKCOMP.COM`    |
+| DISKCOPY | `CMD/DISKCOPY/DISKCOPY.COM`    |
 
-22 more CMD utilities are listed in [TODO.md](TODO.md).
+17 more CMD utilities are listed in [TODO.md](TODO.md).
 
 ### DEV (device drivers — all 11 built)
 
