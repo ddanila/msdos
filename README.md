@@ -37,8 +37,14 @@ Build MS-DOS 4.0 from source on Linux using original DOS compilers running under
 | DEBUG    | `CMD/DEBUG/DEBUG.COM`          |
 | MEM      | `CMD/MEM/MEM.EXE`              |
 | FDISK    | `CMD/FDISK/FDISK.EXE`          |
+| MORE     | `CMD/MORE/MORE.COM`            |
+| SORT     | `CMD/SORT/SORT.EXE`            |
+| LABEL    | `CMD/LABEL/LABEL.COM`          |
+| FIND     | `CMD/FIND/FIND.EXE`            |
+| TREE     | `CMD/TREE/TREE.COM`            |
+| COMP     | `CMD/COMP/COMP.COM`            |
 
-31 more CMD utilities are listed in [TODO.md](TODO.md).
+25 more CMD utilities are listed in [TODO.md](TODO.md).
 
 ### DEV (device drivers — all 11 built)
 

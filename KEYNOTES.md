@@ -49,7 +49,13 @@ Without it, git may normalize CRLF→LF on checkout, causing `buildidx` to produ
 | DEBUG         | ✅ done | CMD/DEBUG/DEBUG.COM            |
 | MEM           | ✅ done | CMD/MEM/MEM.EXE                |
 | FDISK         | ✅ done | CMD/FDISK/FDISK.EXE            |
-| 31 others     | ❌ todo | see TODO.md                    |
+| MORE          | ✅ done | CMD/MORE/MORE.COM              |
+| SORT          | ✅ done | CMD/SORT/SORT.EXE              |
+| LABEL         | ✅ done | CMD/LABEL/LABEL.COM            |
+| FIND          | ✅ done | CMD/FIND/FIND.EXE              |
+| TREE          | ✅ done | CMD/TREE/TREE.COM              |
+| COMP          | ✅ done | CMD/COMP/COMP.COM              |
+| 25 others     | ❌ todo | see TODO.md                    |
 
 ### DEV (device drivers)
 | Module        | Status  | Output                         |

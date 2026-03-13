@@ -23,7 +23,27 @@ MEM_OUT    := $(MEM_DIR)/MEM.EXE
 FDISK_DIR  := $(CMD_DIR)/FDISK
 FDISK_OUT  := $(FDISK_DIR)/FDISK.EXE
 
-cmd: $(COMMAND_OUT) $(SYS_OUT) $(FORMAT_OUT) $(CHKDSK_OUT) $(DEBUG_OUT) $(MEM_OUT) $(FDISK_OUT)
+MORE_DIR   := $(CMD_DIR)/MORE
+MORE_OUT   := $(MORE_DIR)/MORE.COM
+
+SORT_DIR   := $(CMD_DIR)/SORT
+SORT_OUT   := $(SORT_DIR)/SORT.EXE
+
+LABEL_DIR  := $(CMD_DIR)/LABEL
+LABEL_OUT  := $(LABEL_DIR)/LABEL.COM
+
+FIND_DIR   := $(CMD_DIR)/FIND
+FIND_OUT   := $(FIND_DIR)/FIND.EXE
+
+TREE_DIR   := $(CMD_DIR)/TREE
+TREE_OUT   := $(TREE_DIR)/TREE.COM
+
+COMP_DIR   := $(CMD_DIR)/COMP
+COMP_OUT   := $(COMP_DIR)/COMP.COM
+
+cmd: $(COMMAND_OUT) $(SYS_OUT) $(FORMAT_OUT) $(CHKDSK_OUT) $(DEBUG_OUT) \
+     $(MEM_OUT) $(FDISK_OUT) \
+     $(MORE_OUT) $(SORT_OUT) $(LABEL_OUT) $(FIND_OUT) $(TREE_OUT) $(COMP_OUT)
 
 # COMMAND include paths (two levels up from CMD/COMMAND/)
 COMMAND_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC -I..\\..\\DOS
@@ -531,3 +551,119 @@ FDISK_ASM_OBJS := $(addprefix $(FDISK_DIR)/,\
 
 $(FDISK_OUT): $(FDISK_C_OBJS) $(FDISK_ASM_OBJS) $(MAPPER_LIB)
 	cd $(FDISK_DIR) && $(LINK) "@FDISK.LNK"
+
+# ---------------------------------------------------------------------------
+# MORE (more.com) — single ASM file, EXE2BIN
+# ---------------------------------------------------------------------------
+$(MORE_DIR)/MORE.CTL: $(MORE_DIR)/MORE.SKL $(MESSAGES_OUT)
+	cd $(MORE_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" MORE.SKL
+
+$(MORE_DIR)/MORE.OBJ: $(MORE_DIR)/MORE.ASM $(MORE_DIR)/MORE.CTL
+	cd $(MORE_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "MORE.ASM,MORE.OBJ;"
+
+$(MORE_DIR)/MORE.EXE: $(MORE_DIR)/MORE.OBJ
+	cd $(MORE_DIR) && $(LINK) "@MORE.LNK"
+
+$(MORE_OUT): $(MORE_DIR)/MORE.EXE
+	cd $(MORE_DIR) && $(EXE2BIN) "MORE.EXE MORE.COM"
+
+# ---------------------------------------------------------------------------
+# SORT (sort.exe) — 2 ASM files, stays EXE
+# ---------------------------------------------------------------------------
+$(SORT_DIR)/SORT.CTL: $(SORT_DIR)/SORT.SKL $(MESSAGES_OUT)
+	cd $(SORT_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" SORT.SKL
+
+$(SORT_DIR)/SORT.OBJ: $(SORT_DIR)/SORT.ASM $(SORT_DIR)/SORT.CTL
+	cd $(SORT_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "SORT.ASM,SORT.OBJ;"
+
+$(SORT_DIR)/SORTMES.OBJ: $(SORT_DIR)/SORTMES.ASM $(SORT_DIR)/SORT.CTL
+	cd $(SORT_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "SORTMES.ASM,SORTMES.OBJ;"
+
+$(SORT_OUT): $(SORT_DIR)/SORT.OBJ $(SORT_DIR)/SORTMES.OBJ
+	cd $(SORT_DIR) && $(LINK) "SORT+SORTMES,SORT.EXE;"
+
+# ---------------------------------------------------------------------------
+# LABEL (label.com) — 2 ASM files, EXE2BIN
+# ---------------------------------------------------------------------------
+$(LABEL_DIR)/LABL.CTL: $(LABEL_DIR)/LABL.SKL $(MESSAGES_OUT)
+	cd $(LABEL_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" LABL.SKL
+
+$(LABEL_DIR)/LABEL.OBJ: $(LABEL_DIR)/LABEL.ASM $(LABEL_DIR)/LABL.CTL
+	cd $(LABEL_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "LABEL.ASM,LABEL.OBJ;"
+
+$(LABEL_DIR)/LABELM.OBJ: $(LABEL_DIR)/LABELM.ASM $(LABEL_DIR)/LABL.CTL
+	cd $(LABEL_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "LABELM.ASM,LABELM.OBJ;"
+
+$(LABEL_DIR)/LABEL.EXE: $(LABEL_DIR)/LABEL.OBJ $(LABEL_DIR)/LABELM.OBJ
+	cd $(LABEL_DIR) && $(LINK) "@LABEL.LNK"
+
+$(LABEL_OUT): $(LABEL_DIR)/LABEL.EXE
+	cd $(LABEL_DIR) && $(EXE2BIN) "LABEL.EXE LABEL.COM"
+
+# ---------------------------------------------------------------------------
+# FIND (find.exe) — 2 ASM files, stays EXE
+# ---------------------------------------------------------------------------
+$(FIND_DIR)/FIND.CTL: $(FIND_DIR)/FIND.SKL $(MESSAGES_OUT)
+	cd $(FIND_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" FIND.SKL
+
+$(FIND_DIR)/FIND.OBJ: $(FIND_DIR)/FIND.ASM $(FIND_DIR)/FIND.CTL
+	cd $(FIND_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "FIND.ASM,FIND.OBJ;"
+
+$(FIND_DIR)/FINDMES.OBJ: $(FIND_DIR)/FINDMES.ASM $(FIND_DIR)/FIND.CTL
+	cd $(FIND_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "FINDMES.ASM,FINDMES.OBJ;"
+
+$(FIND_OUT): $(FIND_DIR)/FIND.OBJ $(FIND_DIR)/FINDMES.OBJ
+	cd $(FIND_DIR) && $(LINK) "FIND+FINDMES,FIND.EXE/EX;"
+
+# ---------------------------------------------------------------------------
+# TREE (tree.com) — 4 ASM files, EXE2BIN
+# ---------------------------------------------------------------------------
+$(TREE_DIR)/TREE.CTL: $(TREE_DIR)/TREE.SKL $(MESSAGES_OUT)
+	cd $(TREE_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" TREE.SKL
+
+$(TREE_DIR)/TREE.OBJ: $(TREE_DIR)/TREE.ASM $(TREE_DIR)/TREE.CTL
+	cd $(TREE_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "TREE.ASM,TREE.OBJ;"
+
+$(TREE_DIR)/TREEPAR.OBJ: $(TREE_DIR)/TREEPAR.ASM
+	cd $(TREE_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "TREEPAR.ASM,TREEPAR.OBJ;"
+
+$(TREE_DIR)/TREESYSP.OBJ: $(TREE_DIR)/TREESYSP.ASM $(TREE_DIR)/TREE.CTL
+	cd $(TREE_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "TREESYSP.ASM,TREESYSP.OBJ;"
+
+$(TREE_DIR)/TREESYSM.OBJ: $(TREE_DIR)/TREESYSM.ASM $(TREE_DIR)/TREE.CTL
+	cd $(TREE_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "TREESYSM.ASM,TREESYSM.OBJ;"
+
+$(TREE_DIR)/TREE.EXE: $(TREE_DIR)/TREE.OBJ $(TREE_DIR)/TREEPAR.OBJ \
+    $(TREE_DIR)/TREESYSP.OBJ $(TREE_DIR)/TREESYSM.OBJ
+	cd $(TREE_DIR) && $(LINK) "@TREE.LNK"
+
+$(TREE_OUT): $(TREE_DIR)/TREE.EXE
+	cd $(TREE_DIR) && $(EXE2BIN) "TREE.EXE TREE.COM"
+
+# ---------------------------------------------------------------------------
+# COMP (comp.com) — 5 ASM files, EXE2BIN
+# ---------------------------------------------------------------------------
+$(COMP_DIR)/COMP.CTL: $(COMP_DIR)/COMP.SKL $(MESSAGES_OUT)
+	cd $(COMP_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" COMP.SKL
+
+$(COMP_DIR)/COMP1.OBJ: $(COMP_DIR)/COMP1.ASM $(COMP_DIR)/COMP.CTL
+	cd $(COMP_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "COMP1.ASM,COMP1.OBJ;"
+
+$(COMP_DIR)/COMPPAR.OBJ: $(COMP_DIR)/COMPPAR.ASM
+	cd $(COMP_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "COMPPAR.ASM,COMPPAR.OBJ;"
+
+$(COMP_DIR)/COMPP.OBJ: $(COMP_DIR)/COMPP.ASM $(COMP_DIR)/COMP.CTL
+	cd $(COMP_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "COMPP.ASM,COMPP.OBJ;"
+
+$(COMP_DIR)/COMPSM.OBJ: $(COMP_DIR)/COMPSM.ASM $(COMP_DIR)/COMP.CTL
+	cd $(COMP_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "COMPSM.ASM,COMPSM.OBJ;"
+
+$(COMP_DIR)/COMP2.OBJ: $(COMP_DIR)/COMP2.ASM $(COMP_DIR)/COMP.CTL
+	cd $(COMP_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "COMP2.ASM,COMP2.OBJ;"
+
+$(COMP_DIR)/COMP.EXE: $(COMP_DIR)/COMP1.OBJ $(COMP_DIR)/COMPPAR.OBJ \
+    $(COMP_DIR)/COMPP.OBJ $(COMP_DIR)/COMPSM.OBJ $(COMP_DIR)/COMP2.OBJ
+	cd $(COMP_DIR) && $(LINK) "@COMP.LNK"
+
+$(COMP_OUT): $(COMP_DIR)/COMP.EXE
+	cd $(COMP_DIR) && $(EXE2BIN) "COMP.EXE COMP.COM"

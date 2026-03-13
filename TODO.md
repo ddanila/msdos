@@ -13,7 +13,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 | ATTRIB     | attrib.exe      | |
 | BACKUP     | backup.com      | depends on RESTORE message set |
 | ~~CHKDSK~~ | ~~chkdsk.com~~  | ✅ done |
-| COMP       | comp.com        | |
+| ~~COMP~~   | ~~comp.com~~    | ✅ done |
 | ~~DEBUG~~  | ~~debug.com~~   | ✅ done — 11 ASM files, BUILDMSG generates all CL files including CL1/CL2 |
 | DISKCOMP   | diskcomp.com    | |
 | DISKCOPY   | diskcopy.com    | |
@@ -23,25 +23,25 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 | FC         | fc.exe          | |
 | ~~FDISK~~  | ~~fdisk.exe~~   | ✅ done — NOSRVBLD+BUILDMSG+MENUBLD, 20 C files + 4 ASM, links MAPPER.LIB+COMSUBS.LIB; FDBOOT.OBJ/INC reused from SELECT |
 | FILESYS    | filesys.exe     | |
-| FIND       | find.exe        | |
+| ~~FIND~~   | ~~find.exe~~    | ✅ done |
 | GRAFTABL   | graftabl.com    | needs CPI/font data |
 | GRAPHICS   | graphics.com    | needs graphics profile data files |
 | IFSFUNC    | ifsfunc.exe     | IFS (Installable File System) support |
 | JOIN       | join.exe        | shared code with SUBST |
 | KEYB       | keyb.com        | needs keyboard layout data (KEYBOARD.SYS already built) |
-| LABEL      | label.com       | |
+| ~~LABEL~~  | ~~label.com~~   | ✅ done |
 | ~~MEM~~    | ~~mem.exe~~     | ✅ done — C + 2 ASM, links against LIB/MEM.LIB; output is EXE (no CONVERT) |
 | MODE       | mode.com        | large, handles serial/parallel/display/codepage |
-| MORE       | more.com        | |
+| ~~MORE~~   | ~~more.com~~    | ✅ done |
 | NLSFUNC    | nlsfunc.exe     | NLS (National Language Support) |
 | PRINT      | print.com       | |
 | RECOVER    | recover.com     | |
 | REPLACE    | replace.exe     | |
 | RESTORE    | restore.com     | counterpart to BACKUP |
 | SHARE      | share.exe       | file sharing / locking |
-| SORT       | sort.exe        | |
+| ~~SORT~~   | ~~sort.exe~~    | ✅ done |
 | SUBST      | subst.exe       | shared code with JOIN |
-| TREE       | tree.com        | |
+| ~~TREE~~   | ~~tree.com~~    | ✅ done |
 | XCOPY      | xcopy.exe       | |
 
 ## DEV Extras
@@ -52,7 +52,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 
 ## Floppy Image
 
-- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM, MEM.EXE, FDISK.EXE.
+- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM, MEM.EXE, FDISK.EXE, MORE.COM, SORT.EXE, LABEL.COM, FIND.EXE, TREE.COM, COMP.COM.
 - As more utilities are built, decide which ones to include on the boot floppy.
 
 ## Testing
