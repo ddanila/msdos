@@ -104,6 +104,9 @@ KEYB_OUT     := $(KEYB_DIR)/KEYB.COM
 SHARE_DIR    := $(CMD_DIR)/SHARE
 SHARE_OUT    := $(SHARE_DIR)/SHARE.EXE
 
+EXE2BIN_DIR  := $(CMD_DIR)/EXE2BIN
+EXE2BIN_SRC_OUT := $(EXE2BIN_DIR)/EXE2BIN.EXE
+
 cmd: $(COMMAND_OUT) $(SYS_OUT) $(FORMAT_OUT) $(CHKDSK_OUT) $(DEBUG_OUT) \
      $(MEM_OUT) $(FDISK_OUT) \
      $(MORE_OUT) $(SORT_OUT) $(LABEL_OUT) $(FIND_OUT) $(TREE_OUT) $(COMP_OUT) \
@@ -111,7 +114,8 @@ cmd: $(COMMAND_OUT) $(SYS_OUT) $(FORMAT_OUT) $(CHKDSK_OUT) $(DEBUG_OUT) \
      $(NLSFUNC_OUT) $(ASSIGN_OUT) $(XCOPY_OUT) $(DISKCOMP_OUT) $(DISKCOPY_OUT) \
      $(APPEND_OUT) $(RECOVER_OUT) $(FASTOPEN_OUT) $(PRINT_OUT) \
      $(FILESYS_OUT) $(REPLACE_OUT) $(JOIN_OUT) $(SUBST_OUT) \
-     $(BACKUP_OUT) $(RESTORE_OUT) $(GRAFTABL_OUT) $(KEYB_OUT) $(SHARE_OUT)
+     $(BACKUP_OUT) $(RESTORE_OUT) $(GRAFTABL_OUT) $(KEYB_OUT) $(SHARE_OUT) \
+     $(EXE2BIN_SRC_OUT)
 
 # COMMAND include paths (two levels up from CMD/COMMAND/)
 COMMAND_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC -I..\\..\\DOS
@@ -1312,3 +1316,20 @@ $(SHARE_DIR)/SHARELNK.OBJ: $(SHARE_DIR)/SHARELNK.ASM
 $(SHARE_OUT): $(SHARE_DIR)/GSHARE.OBJ $(SHARE_DIR)/GSHARE2.OBJ \
     $(SHARE_DIR)/SHARESR.OBJ $(SHARE_DIR)/SHARELNK.OBJ $(INC_OBJ_PATHS)
 	cd $(SHARE_DIR) && $(LINK) "@SHARE.LNK"
+
+# ---------------------------------------------------------------------------
+# EXE2BIN (exe2bin.exe) — 2 ASM, stays EXE
+# Note: the build system uses the pre-built exe2bin from TOOLS/; this builds
+# the source version for inclusion on the floppy image.
+# ---------------------------------------------------------------------------
+$(EXE2BIN_DIR)/EXE2BIN.CTL: $(EXE2BIN_DIR)/EXE2BIN.SKL $(MESSAGES_OUT)
+	cd $(EXE2BIN_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" EXE2BIN.SKL
+
+$(EXE2BIN_DIR)/E2BINIT.OBJ: $(EXE2BIN_DIR)/E2BINIT.ASM $(EXE2BIN_DIR)/EXE2BIN.CTL
+	cd $(EXE2BIN_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "E2BINIT.ASM,E2BINIT.OBJ;"
+
+$(EXE2BIN_DIR)/DISPLAY.OBJ: $(EXE2BIN_DIR)/DISPLAY.ASM
+	cd $(EXE2BIN_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "DISPLAY.ASM,DISPLAY.OBJ;"
+
+$(EXE2BIN_SRC_OUT): $(EXE2BIN_DIR)/E2BINIT.OBJ $(EXE2BIN_DIR)/DISPLAY.OBJ
+	cd $(EXE2BIN_DIR) && $(LINK) "@EXE2BIN.LNK"

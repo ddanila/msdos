@@ -64,8 +64,9 @@ Build MS-DOS 4.0 from source on Linux using original DOS compilers running under
 | GRAFTABL | `CMD/GRAFTABL/GRAFTABL.COM`    |
 | KEYB     | `CMD/KEYB/KEYB.COM`            |
 | SHARE    | `CMD/SHARE/SHARE.EXE`          |
+| EXE2BIN  | `CMD/EXE2BIN/EXE2BIN.EXE`      |
 
-4 more CMD utilities are listed in [TODO.md](TODO.md).
+3 more CMD utilities are listed in [TODO.md](TODO.md).
 
 ### DEV (device drivers — all 11 built)
 
