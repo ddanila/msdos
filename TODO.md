@@ -17,7 +17,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 | ~~DEBUG~~  | ~~debug.com~~   | ✅ done — 11 ASM files, BUILDMSG generates all CL files including CL1/CL2 |
 | DISKCOMP   | diskcomp.com    | |
 | DISKCOPY   | diskcopy.com    | |
-| EDLIN      | edlin.com       | |
+| ~~EDLIN~~  | ~~edlin.com~~   | ✅ done |
 | EXE2BIN    | exe2bin.exe     | we use the pre-built one in TOOLS/ |
 | FASTOPEN   | fastopen.exe    | |
 | FC         | fc.exe          | |
@@ -52,7 +52,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 
 ## Floppy Image
 
-- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM, MEM.EXE, FDISK.EXE, MORE.COM, SORT.EXE, LABEL.COM, FIND.EXE, TREE.COM, COMP.COM, ATTRIB.EXE.
+- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM, MEM.EXE, FDISK.EXE, MORE.COM, SORT.EXE, LABEL.COM, FIND.EXE, TREE.COM, COMP.COM, ATTRIB.EXE, EDLIN.COM.
 - As more utilities are built, decide which ones to include on the boot floppy.
 
 ## Testing
