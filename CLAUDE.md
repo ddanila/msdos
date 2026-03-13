@@ -30,7 +30,7 @@
 | BOOT     | ✅ done    | INC/boot.inc     |
 | INC      | ✅ done    | *.OBJ in INC/    |
 | BIOS     | ✅ done    | BIOS/IO.SYS      |
-| DOS      | pending   | msdos.sys        |
+| DOS      | ✅ done    | DOS/MSDOS.SYS    |
 | CMD      | pending   | command.com      |
 | DEV      | pending   |                  |
 | SELECT   | pending   |                  |
