@@ -10,7 +10,20 @@ Build MS-DOS 4.0 from source on Linux using original DOS compilers running under
 
 ## Status
 
-Currently building the kernel modules using a Linux GNU Makefile that invokes kvikdos for each individual compilation step. BIOS (io.sys) and DOS (msdos.sys) modules are next.
+All 10 modules build successfully:
+
+| Module   | Output                        |
+|----------|-------------------------------|
+| MESSAGES | `MESSAGES/USA-MS.IDX`         |
+| MAPPER   | `MAPPER/MAPPER.LIB`           |
+| BOOT     | `INC/boot.inc`                |
+| INC      | shared kernel objects         |
+| BIOS     | `BIOS/IO.SYS`                 |
+| DOS      | `DOS/MSDOS.SYS`               |
+| CMD      | `CMD/COMMAND/COMMAND.COM`     |
+| DEV      | `DEV/*/\*.SYS` (10 drivers)   |
+| SELECT   | `SELECT/SELECT.{EXE,COM,HLP,DAT}` |
+| MEMM     | `MEMM/MEMM/EMM386.SYS`        |
 
 ## Repository layout
 
@@ -19,19 +32,19 @@ Currently building the kernel modules using a Linux GNU Makefile that invokes kv
 - `bin/` — wrapper scripts that invoke kvikdos for each DOS tool (masm, cl, link, lib, …)
 - `mk/` — per-module Makefile fragments
 - `Makefile` — Linux GNU Makefile orchestrating the full build
+- `tests/` — integration tests (file existence, SHA256 golden checksums, kvikdos smoke tests)
 
 ## Building
 
 ```sh
-make          # build all modules
-make messages # MESSAGES module (USA-MS.IDX)
-make mapper   # MAPPER module (MAPPER.LIB)
-make boot     # BOOT module (INC/boot.inc)
-make inc      # INC module (shared kernel objects)
+make           # build all modules
+make test      # build + run integration tests
+make clean     # remove all generated files
 ```
+
+Individual module targets: `messages`, `mapper`, `boot`, `inc`, `bios`, `dos`, `cmd`, `dev`, `select`, `memm`.
 
 ## Future plans
 
-- BIOS (io.sys), DOS (msdos.sys), CMD (command.com) modules
 - Boot in headless QEMU and verify via COM1
-- More tests after boot
+- CI integration for `make test`
