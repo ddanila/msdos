@@ -34,7 +34,7 @@
 | CMD      | ✅ done    | CMD/COMMAND/COMMAND.COM |
 | DEV      | ✅ done    | DEV/*/\*.SYS     |
 | SELECT   | ✅ done    | SELECT.{EXE,DAT,COM,HLP} |
-| MEMM     | pending   |                  |
+| MEMM     | ✅ done    | MEMM/EMM386.SYS  |
 
 ## kvikdos Modifications (in kvikdos/kvikdos.c)
 - `current_dir[DRIVE_COUNT]` expanded from 1 to 64 bytes per drive.
@@ -69,3 +69,7 @@
 - FDBOOT.INC chain: NOSRVBLD(FDISK5.SKL)→CL1 → MASM FDBOOT.OBJ → LINK FDBOOT → EXE2BIN → DBOF(600 200).
 - SELECT.LNK uses /EXEPACK option (supported by LINK 3.65) and /noe flag (pass as `link /noe @SELECT.LNK`).
 - COMPRESS.COM hardcoded: reads SEL-PAN.DAT, writes SELECT.DAT (must run in SELECT/ dir).
+- MEMM: two sub-dirs: EMM/ (EMMLIB.LIB) and MEMM/ (EMM386.SYS).
+- EMM AFLAGS: -Mx -t -DI386 -DNOHIMEM -I..\\MEMM; CFLAGS: /ASw /G2 /Oat /Gs /Ze /Zl /c.
+- MEMM AFLAGS: -Mx -t -DI386 -DNoBugMode -DNOHIMEM -I..\\EMM; MAPDMA.C needs -I..\\EMM.
+- EMM386.SYS: link /NOI @EMM386.LNK → emm386.exe, then rename to emm386.sys (no exe2bin).
