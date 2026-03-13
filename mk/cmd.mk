@@ -47,10 +47,13 @@ ATTRIB_OUT := $(ATTRIB_DIR)/ATTRIB.EXE
 EDLIN_DIR  := $(CMD_DIR)/EDLIN
 EDLIN_OUT  := $(EDLIN_DIR)/EDLIN.COM
 
+FC_DIR     := $(CMD_DIR)/FC
+FC_OUT     := $(FC_DIR)/FC.EXE
+
 cmd: $(COMMAND_OUT) $(SYS_OUT) $(FORMAT_OUT) $(CHKDSK_OUT) $(DEBUG_OUT) \
      $(MEM_OUT) $(FDISK_OUT) \
      $(MORE_OUT) $(SORT_OUT) $(LABEL_OUT) $(FIND_OUT) $(TREE_OUT) $(COMP_OUT) \
-     $(ATTRIB_OUT) $(EDLIN_OUT)
+     $(ATTRIB_OUT) $(EDLIN_OUT) $(FC_OUT)
 
 # COMMAND include paths (two levels up from CMD/COMMAND/)
 COMMAND_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC -I..\\..\\DOS
@@ -738,3 +741,57 @@ $(EDLIN_DIR)/EDLIN.EXE: $(EDLIN_DIR)/EDLIN.OBJ $(EDLIN_DIR)/EDLCMD1.OBJ \
 
 $(EDLIN_OUT): $(EDLIN_DIR)/EDLIN.EXE
 	cd $(EDLIN_DIR) && $(CONVERT) "EDLIN.EXE"
+
+# ---------------------------------------------------------------------------
+# FC (fc.exe) — 5 C files + 7 ASM files + INC/KSTRING.OBJ, stays EXE
+# No SKL/BUILDMSG — uses its own MESSAGES.ASM.
+# Requires INC/KSTRING.OBJ built from INC/KSTRING.C.
+# ---------------------------------------------------------------------------
+KSTRING_OBJ := $(SRC)/INC/KSTRING.OBJ
+
+$(KSTRING_OBJ): $(SRC)/INC/KSTRING.C
+	cd $(SRC)/INC && $(CL) "-AS -Os -Zp -I. -I..\\H -c -FoKSTRING.OBJ KSTRING.C"
+
+$(FC_DIR)/FC.OBJ: $(FC_DIR)/FC.C
+	cd $(FC_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoFC.OBJ FC.C"
+
+$(FC_DIR)/ERROR.OBJ: $(FC_DIR)/ERROR.C
+	cd $(FC_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoERROR.OBJ ERROR.C"
+
+$(FC_DIR)/FGETL.OBJ: $(FC_DIR)/FGETL.C
+	cd $(FC_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoFGETL.OBJ FGETL.C"
+
+$(FC_DIR)/NTOI.OBJ: $(FC_DIR)/NTOI.C
+	cd $(FC_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoNTOI.OBJ NTOI.C"
+
+$(FC_DIR)/UPDATE.OBJ: $(FC_DIR)/UPDATE.C
+	cd $(FC_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoUPDATE.OBJ UPDATE.C"
+
+$(FC_DIR)/GETL.OBJ: $(FC_DIR)/GETL.ASM
+	cd $(FC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "GETL.ASM,GETL.OBJ;"
+
+$(FC_DIR)/ITOUPPER.OBJ: $(FC_DIR)/ITOUPPER.ASM
+	cd $(FC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "ITOUPPER.ASM,ITOUPPER.OBJ;"
+
+$(FC_DIR)/MAXMIN.OBJ: $(FC_DIR)/MAXMIN.ASM
+	cd $(FC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "MAXMIN.ASM,MAXMIN.OBJ;"
+
+$(FC_DIR)/MOVE.OBJ: $(FC_DIR)/MOVE.ASM
+	cd $(FC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "MOVE.ASM,MOVE.OBJ;"
+
+$(FC_DIR)/STRING.OBJ: $(FC_DIR)/STRING.ASM
+	cd $(FC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "STRING.ASM,STRING.OBJ;"
+
+$(FC_DIR)/XTAB.OBJ: $(FC_DIR)/XTAB.ASM
+	cd $(FC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "XTAB.ASM,XTAB.OBJ;"
+
+$(FC_DIR)/MESSAGES.OBJ: $(FC_DIR)/MESSAGES.ASM
+	cd $(FC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "MESSAGES.ASM,MESSAGES.OBJ;"
+
+FC_OBJS := $(addprefix $(FC_DIR)/,\
+    FC.OBJ ERROR.OBJ FGETL.OBJ GETL.OBJ ITOUPPER.OBJ \
+    MAXMIN.OBJ MOVE.OBJ NTOI.OBJ STRING.OBJ UPDATE.OBJ \
+    XTAB.OBJ MESSAGES.OBJ)
+
+$(FC_OUT): $(FC_OBJS) $(KSTRING_OBJ)
+	cd $(FC_DIR) && $(LINK) "@FC.LNK"

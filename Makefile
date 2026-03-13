@@ -210,6 +210,7 @@ ARTIFACTS := \
     CMD/COMP/COMP.COM \
     CMD/ATTRIB/ATTRIB.EXE \
     CMD/EDLIN/EDLIN.COM \
+    CMD/FC/FC.EXE \
     MEMM/MEMM/EMM386.SYS
 
 test: all
@@ -247,10 +248,11 @@ TREE_COM    := $(SRC)/CMD/TREE/TREE.COM
 COMP_COM    := $(SRC)/CMD/COMP/COMP.COM
 ATTRIB_EXE  := $(SRC)/CMD/ATTRIB/ATTRIB.EXE
 EDLIN_COM   := $(SRC)/CMD/EDLIN/EDLIN.COM
+FC_EXE      := $(SRC)/CMD/FC/FC.EXE
 
 $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT_COM) $(CHKDSK_COM) $(DEBUG_COM) $(MEM_EXE) $(FDISK_EXE) \
            $(MORE_COM) $(SORT_EXE) $(LABEL_COM) $(FIND_EXE) $(TREE_COM) $(COMP_COM) \
-           $(ATTRIB_EXE) $(EDLIN_COM)
+           $(ATTRIB_EXE) $(EDLIN_COM) $(FC_EXE)
 	mkdir -p $(OUT)
 	# blank 1.44MB image
 	dd if=/dev/zero of=$@ bs=512 count=2880 status=none
@@ -280,6 +282,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
 	mcopy -i $@ $(COMP_COM) ::COMP.COM
 	mcopy -i $@ $(ATTRIB_EXE) ::ATTRIB.EXE
 	mcopy -i $@ $(EDLIN_COM) ::EDLIN.COM
+	mcopy -i $@ $(FC_EXE) ::FC.EXE
 
 deploy: all $(FLOPPY)
 
