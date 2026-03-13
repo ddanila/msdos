@@ -71,7 +71,12 @@ Without it, git may normalize CRLF→LF on checkout, causing `buildidx` to produ
 | REPLACE       | ✅ done | CMD/REPLACE/REPLACE.EXE        |
 | JOIN          | ✅ done | CMD/JOIN/JOIN.EXE              |
 | SUBST         | ✅ done | CMD/SUBST/SUBST.EXE            |
-| 9 others      | ❌ todo | see TODO.md                    |
+| BACKUP        | ✅ done | CMD/BACKUP/BACKUP.COM          |
+| RESTORE       | ✅ done | CMD/RESTORE/RESTORE.COM        |
+| GRAFTABL      | ✅ done | CMD/GRAFTABL/GRAFTABL.COM      |
+| KEYB          | ✅ done | CMD/KEYB/KEYB.COM              |
+| SHARE         | ✅ done | CMD/SHARE/SHARE.EXE            |
+| 4 others      | ❌ todo | see TODO.md                    |
 
 ### DEV (device drivers)
 | Module        | Status  | Output                         |
@@ -139,6 +144,11 @@ Key notes:
 - FDISK.EXE is the most complex CMD utility: NOSRVBLD (FDISK5.SKL→CL1, already done for SELECT), BUILDMSG (FDISK.SKL→CTL+CL files), MENUBLD (FDISK.MSG + USA-MS.MSG → FDISKM.C), 20 C files compiled with `-AS -Os -Zp -I. -I..\\..\\H -c`, 4 ASM files (_MSGRET, _PARSE, BOOTREC, REBOOT), linked against MAPPER.LIB + INC/COMSUBS.LIB. FDBOOT.OBJ and FDBOOT.INC reused from the SELECT build.
 - MEM.EXE is built from `CMD/MEM/` source (BUILDMSG → CL + 2 MASM → LINK against `LIB/MEM.LIB`). Output stays as EXE — no CONVERT needed. MEM.EXE calls `sysloadmsg` which checks for DOS 4.0; it exits with "Incorrect DOS version" under kvikdos (which reports an older version) — this is expected, it works fine on the real floppy.
 - DEBUG.COM is built from `CMD/DEBUG/` source (BUILDMSG → 11 MASM files → LINK → CONVERT). Unlike CHKDSK, BUILDMSG generates all CL files including CL1/CL2 — no empty stubs needed. DEBMES.ASM includes `SYSVER.INC` (local to DEBUG dir) and `sysmsg.inc`/`msgdcl.inc` from INC/.
+- BACKUP.COM: 1 large C file + 2 ASM, `-AS -Od -Zp` (debug opts). Link: `/NOE BACKUP+_PARSE+_MSGRET,,,MAPPER+COMSUBS;` → CONVERT. BUILDMSG generates CL1/CL2/CLA.
+- RESTORE.COM: 12 C files + 2 ASM, same flags/pattern as BACKUP. LNK uses `/STACK:50000`. Link via @RESTORE.LNK → CONVERT.
+- GRAFTABL.COM: 10 ASM, no external libs, EXE2BIN. BUILDMSG generates CL1/CL2/CLA (no stubs needed).
+- KEYB.COM: 10 ASM, no external libs, EXE2BIN. BUILDMSG generates CL1/CL2/CLA. Handles keyboard layout via INT 9/9C/2F/48 handlers; data tables in KEYBTBBL.ASM/KEYBI9.ASM/KEYBI9C.ASM.
+- SHARE.EXE: 4 ASM + INC kernel objs (NIBDOS, CONST2, MSDATA, MSDOSME — same as JOIN/SUBST). BUILDMSG generates CL1/CL2/CLA. Link via @SHARE.LNK. Stays EXE (TSR file-sharing/locking).
 - APPEND.EXE: 1 ASM file (no SKL/BUILDMSG), `link APPEND;`. Stays EXE.
 - RECOVER.COM: 4 ASM files, no SKL. Linked then CONVERT to COM.
 - FASTOPEN.EXE: 5 ASM files (no SKL), `link FASTOPEN+FASTOPC+FASTOPM+FASTOPS+FASTOPN;`. Stays EXE.

@@ -7,15 +7,10 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 
 | Directory | Output        | Notes |
 |-----------|---------------|-------|
-| BACKUP    | backup.com    | depends on RESTORE message set |
 | EXE2BIN   | exe2bin.exe   | we use the pre-built one in TOOLS/ — skip |
-| GRAFTABL  | graftabl.com  | needs CPI/font data |
-| GRAPHICS  | graphics.com  | needs graphics profile data files |
-| IFSFUNC   | ifsfunc.exe   | IFS (Installable File System) support |
-| KEYB      | keyb.com      | needs keyboard layout data (KEYBOARD.SYS already built) |
-| MODE      | mode.com      | large — handles serial/parallel/display/codepage |
-| RESTORE   | restore.com   | counterpart to BACKUP |
-| SHARE     | share.exe     | file sharing / locking |
+| GRAPHICS  | graphics.com  | 14 ASM, complex — .EXT/.STR aux files, 3 SKL classes |
+| IFSFUNC   | ifsfunc.exe   | 10 ASM, links 7 INC/DOS kernel objects |
+| MODE      | mode.com      | 16 ASM, 4 SKL classes — large, handles serial/parallel/display/codepage |
 
 ## DEV Extras
 
@@ -25,7 +20,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 
 ## Floppy Image
 
-- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM, MEM.EXE, FDISK.EXE, MORE.COM, SORT.EXE, LABEL.COM, FIND.EXE, TREE.COM, COMP.COM, ATTRIB.EXE, EDLIN.COM, FC.EXE, NLSFUNC.EXE, ASSIGN.COM, XCOPY.EXE, DISKCOMP.COM, DISKCOPY.COM, APPEND.EXE, RECOVER.COM, FASTOPEN.EXE, PRINT.COM, FILESYS.EXE, REPLACE.EXE, JOIN.EXE, SUBST.EXE.
+- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM, MEM.EXE, FDISK.EXE, MORE.COM, SORT.EXE, LABEL.COM, FIND.EXE, TREE.COM, COMP.COM, ATTRIB.EXE, EDLIN.COM, FC.EXE, NLSFUNC.EXE, ASSIGN.COM, XCOPY.EXE, DISKCOMP.COM, DISKCOPY.COM, APPEND.EXE, RECOVER.COM, FASTOPEN.EXE, PRINT.COM, FILESYS.EXE, REPLACE.EXE, JOIN.EXE, SUBST.EXE, BACKUP.COM, RESTORE.COM, GRAFTABL.COM, KEYB.COM, SHARE.EXE.
 - As more utilities are built, decide which ones to include on the boot floppy.
 
 ## Testing

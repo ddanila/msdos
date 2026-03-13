@@ -59,8 +59,13 @@ Build MS-DOS 4.0 from source on Linux using original DOS compilers running under
 | REPLACE  | `CMD/REPLACE/REPLACE.EXE`      |
 | JOIN     | `CMD/JOIN/JOIN.EXE`            |
 | SUBST    | `CMD/SUBST/SUBST.EXE`          |
+| BACKUP   | `CMD/BACKUP/BACKUP.COM`        |
+| RESTORE  | `CMD/RESTORE/RESTORE.COM`      |
+| GRAFTABL | `CMD/GRAFTABL/GRAFTABL.COM`    |
+| KEYB     | `CMD/KEYB/KEYB.COM`            |
+| SHARE    | `CMD/SHARE/SHARE.EXE`          |
 
-9 more CMD utilities are listed in [TODO.md](TODO.md).
+4 more CMD utilities are listed in [TODO.md](TODO.md).
 
 ### DEV (device drivers — all 11 built)
 
