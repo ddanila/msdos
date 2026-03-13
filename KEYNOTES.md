@@ -42,6 +42,26 @@ Without it, git may normalize CRLF→LF on checkout, causing `buildidx` to produ
 | DEPLOY   | ✅ done    | out/floppy.img   |
 | VERIFY   | ✅ done    | headless QEMU boot confirmed |
 
+## Manual Testing (Interactive QEMU)
+
+Run the floppy image in a graphical QEMU window for manual testing:
+
+```bash
+# Build the image first (if not already built):
+make deploy
+
+# Launch QEMU with SDL display:
+./run-qemu.sh
+
+# Or pass a custom image path:
+./run-qemu.sh out/floppy-test.img
+```
+
+- Uses `-display sdl` (graphical window); requires `qemu-system-i386` and SDL libraries.
+- Memory: 4 MB (matches the headless verify target).
+- Equivalent `make` target: `make run-boot` (same image, same flags, but no SDL forcing).
+- To quit QEMU: `Ctrl+Alt+Q` or close the window, or use the QEMU monitor (`Ctrl+Alt+2`, then `quit`).
+
 ## Floppy Image (deploy / verify)
 
 ### MSBOOT.BIN layout
