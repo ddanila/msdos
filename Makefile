@@ -27,9 +27,9 @@ CFLAGS   := -AS -Os -Zp
 # Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean
+.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums
 
-all: messages mapper boot inc bios
+all: messages mapper boot inc bios dos cmd dev select memm
 
 # ---------------------------------------------------------------------------
 # MESSAGES
@@ -171,6 +171,39 @@ include mk/select.mk
 # MEMM (emm386.sys)
 # ---------------------------------------------------------------------------
 include mk/memm.mk
+
+# ---------------------------------------------------------------------------
+# TESTS
+# ---------------------------------------------------------------------------
+ARTIFACTS := \
+    MESSAGES/USA-MS.IDX \
+    MAPPER/MAPPER.LIB \
+    INC/boot.inc \
+    BIOS/IO.SYS \
+    DOS/MSDOS.SYS \
+    CMD/COMMAND/COMMAND.COM \
+    DEV/ANSI/ANSI.SYS \
+    DEV/VDISK/VDISK.SYS \
+    DEV/COUNTRY/COUNTRY.SYS \
+    DEV/RAMDRIVE/RAMDRIVE.SYS \
+    DEV/KEYBOARD/KEYBOARD.SYS \
+    DEV/PRINTER/PRINTER.SYS \
+    DEV/DISPLAY/DISPLAY.SYS \
+    DEV/SMARTDRV/SMARTDRV.SYS \
+    DEV/XMA2EMS/XMA2EMS.SYS \
+    DEV/XMAEM/XMAEM.SYS \
+    SELECT/SELECT.EXE \
+    SELECT/SELECT.COM \
+    SELECT/SELECT.HLP \
+    SELECT/SELECT.DAT \
+    MEMM/MEMM/EMM386.SYS
+
+test: all
+	bash tests/run_tests.sh
+
+gen-checksums: all
+	cd $(SRC) && sha256sum $(ARTIFACTS) > $(CURDIR)/tests/golden.sha256
+	@echo "Checksums written to tests/golden.sha256"
 
 # ---------------------------------------------------------------------------
 clean:
