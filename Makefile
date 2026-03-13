@@ -163,6 +163,11 @@ include mk/cmd.mk
 include mk/dev.mk
 
 # ---------------------------------------------------------------------------
+# SELECT (select.exe, select.dat, select.com, select.hlp)
+# ---------------------------------------------------------------------------
+include mk/select.mk
+
+# ---------------------------------------------------------------------------
 clean:
 	find $(SRC) -name "*.obj" -o -name "*.exe" -o -name "*.bin" \
 	    -o -name "*.com" -o -name "*.sys" -o -name "*.lib" \
