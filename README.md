@@ -66,8 +66,10 @@ Build MS-DOS 4.0 from source on Linux using original DOS compilers running under
 | SHARE    | `CMD/SHARE/SHARE.EXE`          |
 | EXE2BIN  | `CMD/EXE2BIN/EXE2BIN.EXE`      |
 | GRAPHICS | `CMD/GRAPHICS/GRAPHICS.COM`     |
+| IFSFUNC  | `CMD/IFSFUNC/IFSFUNC.EXE`       |
+| MODE     | `CMD/MODE/MODE.COM`             |
 
-2 more CMD utilities are listed in [TODO.md](TODO.md).
+All CMD utilities built from source.
 
 ### DEV (device drivers — all 11 built)
 
