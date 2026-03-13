@@ -36,8 +36,9 @@ Build MS-DOS 4.0 from source on Linux using original DOS compilers running under
 | CHKDSK   | `CMD/CHKDSK/CHKDSK.COM`        |
 | DEBUG    | `CMD/DEBUG/DEBUG.COM`          |
 | MEM      | `CMD/MEM/MEM.EXE`              |
+| FDISK    | `CMD/FDISK/FDISK.EXE`          |
 
-32 more CMD utilities are listed in [TODO.md](TODO.md).
+31 more CMD utilities are listed in [TODO.md](TODO.md).
 
 ### DEV (device drivers — all 11 built)
 

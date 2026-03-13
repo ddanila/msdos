@@ -21,7 +21,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 | EXE2BIN    | exe2bin.exe     | we use the pre-built one in TOOLS/ |
 | FASTOPEN   | fastopen.exe    | |
 | FC         | fc.exe          | |
-| FDISK      | fdisk.exe       | already partially built (FDBOOT.BIN + BOOTREC.OBJ) for SELECT |
+| ~~FDISK~~  | ~~fdisk.exe~~   | ✅ done — NOSRVBLD+BUILDMSG+MENUBLD, 20 C files + 4 ASM, links MAPPER.LIB+COMSUBS.LIB; FDBOOT.OBJ/INC reused from SELECT |
 | FILESYS    | filesys.exe     | |
 | FIND       | find.exe        | |
 | GRAFTABL   | graftabl.com    | needs CPI/font data |
@@ -52,7 +52,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 
 ## Floppy Image
 
-- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM, MEM.EXE.
+- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM, MEM.EXE, FDISK.EXE.
 - As more utilities are built, decide which ones to include on the boot floppy.
 
 ## Testing
