@@ -29,7 +29,7 @@
 | MAPPER   | ✅ done    | MAPPER.LIB       |
 | BOOT     | ✅ done    | INC/boot.inc     |
 | INC      | ✅ done    | *.OBJ in INC/    |
-| BIOS     | pending   | io.sys           |
+| BIOS     | ✅ done    | BIOS/IO.SYS      |
 | DOS      | pending   | msdos.sys        |
 | CMD      | pending   | command.com      |
 | DEV      | pending   |                  |
