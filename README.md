@@ -51,8 +51,16 @@ Build MS-DOS 4.0 from source on Linux using original DOS compilers running under
 | XCOPY    | `CMD/XCOPY/XCOPY.EXE`          |
 | DISKCOMP | `CMD/DISKCOMP/DISKCOMP.COM`    |
 | DISKCOPY | `CMD/DISKCOPY/DISKCOPY.COM`    |
+| APPEND   | `CMD/APPEND/APPEND.EXE`        |
+| RECOVER  | `CMD/RECOVER/RECOVER.COM`      |
+| FASTOPEN | `CMD/FASTOPEN/FASTOPEN.EXE`    |
+| PRINT    | `CMD/PRINT/PRINT.COM`          |
+| FILESYS  | `CMD/FILESYS/FILESYS.EXE`      |
+| REPLACE  | `CMD/REPLACE/REPLACE.EXE`      |
+| JOIN     | `CMD/JOIN/JOIN.EXE`            |
+| SUBST    | `CMD/SUBST/SUBST.EXE`          |
 
-17 more CMD utilities are listed in [TODO.md](TODO.md).
+9 more CMD utilities are listed in [TODO.md](TODO.md).
 
 ### DEV (device drivers — all 11 built)
 

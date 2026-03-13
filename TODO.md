@@ -8,7 +8,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 
 | Directory  | Output          | Notes |
 |------------|-----------------|-------|
-| APPEND     | append.exe      | |
+| ~~APPEND~~ | ~~append.exe~~  | ✅ done — 1 ASM, `link APPEND;` |
 | ~~ASSIGN~~ | ~~assign.com~~  | ✅ done |
 | ~~ATTRIB~~ | ~~attrib.exe~~  | ✅ done |
 | BACKUP     | backup.com      | depends on RESTORE message set |
@@ -19,28 +19,28 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 | ~~DISKCOPY~~ | ~~diskcopy.com~~ | ✅ done |
 | ~~EDLIN~~  | ~~edlin.com~~   | ✅ done |
 | EXE2BIN    | exe2bin.exe     | we use the pre-built one in TOOLS/ |
-| FASTOPEN   | fastopen.exe    | |
+| ~~FASTOPEN~~ | ~~fastopen.exe~~ | ✅ done — 5 ASM, `link FASTOPEN+FASTOPC+FASTOPM+FASTOPS+FASTOPN;` |
 | ~~FC~~     | ~~fc.exe~~      | ✅ done — no SKL, own MESSAGES.ASM; needs INC/KSTRING.OBJ from INC/KSTRING.C |
 | ~~FDISK~~  | ~~fdisk.exe~~   | ✅ done — NOSRVBLD+BUILDMSG+MENUBLD, 20 C files + 4 ASM, links MAPPER.LIB+COMSUBS.LIB; FDBOOT.OBJ/INC reused from SELECT |
-| FILESYS    | filesys.exe     | |
+| ~~FILESYS~~ | ~~filesys.exe~~ | ✅ done — 1C + 2ASM, `link FILESYS+_PARSE+_MSGRET; /NOI` |
 | ~~FIND~~   | ~~find.exe~~    | ✅ done |
 | GRAFTABL   | graftabl.com    | needs CPI/font data |
 | GRAPHICS   | graphics.com    | needs graphics profile data files |
 | IFSFUNC    | ifsfunc.exe     | IFS (Installable File System) support |
-| JOIN       | join.exe        | shared code with SUBST |
+| ~~JOIN~~   | ~~join.exe~~    | ✅ done — 1C + 2ASM + INC kernel objs, MAPPER.LIB + COMSUBS.LIB |
 | KEYB       | keyb.com        | needs keyboard layout data (KEYBOARD.SYS already built) |
 | ~~LABEL~~  | ~~label.com~~   | ✅ done |
 | ~~MEM~~    | ~~mem.exe~~     | ✅ done — C + 2 ASM, links against LIB/MEM.LIB; output is EXE (no CONVERT) |
 | MODE       | mode.com        | large, handles serial/parallel/display/codepage |
 | ~~MORE~~   | ~~more.com~~    | ✅ done |
 | ~~NLSFUNC~~ | ~~nlsfunc.exe~~ | ✅ done |
-| PRINT      | print.com       | |
-| RECOVER    | recover.com     | |
-| REPLACE    | replace.exe     | |
+| ~~PRINT~~  | ~~print.com~~   | ✅ done — 4 ASM, CONVERT |
+| ~~RECOVER~~ | ~~recover.com~~ | ✅ done — 4 ASM, CONVERT |
+| ~~REPLACE~~ | ~~replace.exe~~ | ✅ done — 1C + 3ASM, MAPPER.LIB + COMSUBS.LIB |
 | RESTORE    | restore.com     | counterpart to BACKUP |
 | SHARE      | share.exe       | file sharing / locking |
 | ~~SORT~~   | ~~sort.exe~~    | ✅ done |
-| SUBST      | subst.exe       | shared code with JOIN |
+| ~~SUBST~~  | ~~subst.exe~~   | ✅ done — 1C + 2ASM + INC kernel objs, MAPPER.LIB + COMSUBS.LIB |
 | ~~TREE~~   | ~~tree.com~~    | ✅ done |
 | ~~XCOPY~~  | ~~xcopy.exe~~   | ✅ done |
 
@@ -52,7 +52,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 
 ## Floppy Image
 
-- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM, MEM.EXE, FDISK.EXE, MORE.COM, SORT.EXE, LABEL.COM, FIND.EXE, TREE.COM, COMP.COM, ATTRIB.EXE, EDLIN.COM, FC.EXE, NLSFUNC.EXE, ASSIGN.COM, XCOPY.EXE, DISKCOMP.COM, DISKCOPY.COM.
+- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM, MEM.EXE, FDISK.EXE, MORE.COM, SORT.EXE, LABEL.COM, FIND.EXE, TREE.COM, COMP.COM, ATTRIB.EXE, EDLIN.COM, FC.EXE, NLSFUNC.EXE, ASSIGN.COM, XCOPY.EXE, DISKCOMP.COM, DISKCOPY.COM, APPEND.EXE, RECOVER.COM, FASTOPEN.EXE, PRINT.COM, FILESYS.EXE, REPLACE.EXE, JOIN.EXE, SUBST.EXE.
 - As more utilities are built, decide which ones to include on the boot floppy.
 
 ## Testing

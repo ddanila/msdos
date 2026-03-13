@@ -63,7 +63,15 @@ Without it, git may normalize CRLF→LF on checkout, causing `buildidx` to produ
 | XCOPY         | ✅ done | CMD/XCOPY/XCOPY.EXE            |
 | DISKCOMP      | ✅ done | CMD/DISKCOMP/DISKCOMP.COM      |
 | DISKCOPY      | ✅ done | CMD/DISKCOPY/DISKCOPY.COM      |
-| 17 others     | ❌ todo | see TODO.md                    |
+| APPEND        | ✅ done | CMD/APPEND/APPEND.EXE          |
+| RECOVER       | ✅ done | CMD/RECOVER/RECOVER.COM        |
+| FASTOPEN      | ✅ done | CMD/FASTOPEN/FASTOPEN.EXE      |
+| PRINT         | ✅ done | CMD/PRINT/PRINT.COM            |
+| FILESYS       | ✅ done | CMD/FILESYS/FILESYS.EXE        |
+| REPLACE       | ✅ done | CMD/REPLACE/REPLACE.EXE        |
+| JOIN          | ✅ done | CMD/JOIN/JOIN.EXE              |
+| SUBST         | ✅ done | CMD/SUBST/SUBST.EXE            |
+| 9 others      | ❌ todo | see TODO.md                    |
 
 ### DEV (device drivers)
 | Module        | Status  | Output                         |
@@ -131,6 +139,13 @@ Key notes:
 - FDISK.EXE is the most complex CMD utility: NOSRVBLD (FDISK5.SKL→CL1, already done for SELECT), BUILDMSG (FDISK.SKL→CTL+CL files), MENUBLD (FDISK.MSG + USA-MS.MSG → FDISKM.C), 20 C files compiled with `-AS -Os -Zp -I. -I..\\..\\H -c`, 4 ASM files (_MSGRET, _PARSE, BOOTREC, REBOOT), linked against MAPPER.LIB + INC/COMSUBS.LIB. FDBOOT.OBJ and FDBOOT.INC reused from the SELECT build.
 - MEM.EXE is built from `CMD/MEM/` source (BUILDMSG → CL + 2 MASM → LINK against `LIB/MEM.LIB`). Output stays as EXE — no CONVERT needed. MEM.EXE calls `sysloadmsg` which checks for DOS 4.0; it exits with "Incorrect DOS version" under kvikdos (which reports an older version) — this is expected, it works fine on the real floppy.
 - DEBUG.COM is built from `CMD/DEBUG/` source (BUILDMSG → 11 MASM files → LINK → CONVERT). Unlike CHKDSK, BUILDMSG generates all CL files including CL1/CL2 — no empty stubs needed. DEBMES.ASM includes `SYSVER.INC` (local to DEBUG dir) and `sysmsg.inc`/`msgdcl.inc` from INC/.
+- APPEND.EXE: 1 ASM file (no SKL/BUILDMSG), `link APPEND;`. Stays EXE.
+- RECOVER.COM: 4 ASM files, no SKL. Linked then CONVERT to COM.
+- FASTOPEN.EXE: 5 ASM files (no SKL), `link FASTOPEN+FASTOPC+FASTOPM+FASTOPS+FASTOPN;`. Stays EXE.
+- PRINT.COM: 4 ASM files, no SKL. Linked then CONVERT to COM.
+- FILESYS.EXE: 1 C file + 2 ASM, no SKL. Link: `link FILESYS+_PARSE+_MSGRET; /NOI` (note space before `/NOI`). Stays EXE.
+- REPLACE.EXE: 1 C + 3 ASM, BUILDMSG for SKL. Links MAPPER.LIB + INC/COMSUBS.LIB. Stays EXE.
+- JOIN.EXE / SUBST.EXE: 1C + 2ASM + INC kernel objects (ERRTST.OBJ, SYSVAR.OBJ, CDS.OBJ, DPB.OBJ already built by `inc` target). Links MAPPER.LIB + INC/COMSUBS.LIB. LNK files reference INC objs by relative path `..\..\inc\*.OBJ`. Stays EXE.
 - CHKDSK.COM is built from `CMD/CHKDSK/` source (BUILDMSG → 9 MASM files → LINK → CONVERT). Key quirk: `CHKDISP.ASM` uses the `Msg_Services` macro which includes `CHKDSK.CL1` and `CHKDSK.CL2` — but CHKDSK.SKL has no class 1 or 2, so BUILDMSG doesn't generate them. Fix: `touch CHKDSK.CL1 CHKDSK.CL2` after BUILDMSG to create empty stubs. CHKDSK also uses `CONVERT.EXE` (not EXE2BIN).
 - `-serial stdio` with a piped subshell feeds FORMAT's interactive prompts (press ENTER, volume label, format another) at timed intervals. QEMU stdout (COM1 output) is captured via `tee`. The blank target image is all-zeros — no pre-formatting needed; FORMAT.COM does it from scratch.
 
