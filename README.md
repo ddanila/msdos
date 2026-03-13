@@ -65,8 +65,9 @@ Build MS-DOS 4.0 from source on Linux using original DOS compilers running under
 | KEYB     | `CMD/KEYB/KEYB.COM`            |
 | SHARE    | `CMD/SHARE/SHARE.EXE`          |
 | EXE2BIN  | `CMD/EXE2BIN/EXE2BIN.EXE`      |
+| GRAPHICS | `CMD/GRAPHICS/GRAPHICS.COM`     |
 
-3 more CMD utilities are listed in [TODO.md](TODO.md).
+2 more CMD utilities are listed in [TODO.md](TODO.md).
 
 ### DEV (device drivers — all 11 built)
 
