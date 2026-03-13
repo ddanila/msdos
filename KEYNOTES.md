@@ -35,6 +35,33 @@
 | DEV      | ✅ done    | DEV/*/\*.SYS     |
 | SELECT   | ✅ done    | SELECT.{EXE,DAT,COM,HLP} |
 | MEMM     | ✅ done    | MEMM/EMM386.SYS  |
+| DEPLOY   | ✅ done    | out/floppy.img   |
+| VERIFY   | ✅ done    | headless QEMU boot confirmed |
+
+## Floppy Image (deploy / verify)
+
+### MSBOOT.BIN layout
+- EXE2BIN produces a flat binary with code ORG'd at `0x7c00`; file is 32256 bytes (= 0x7c00 padding + 512 bytes boot sector).
+- Extract boot sector: `dd if=MSBOOT.BIN bs=1 skip=31744 count=512`.
+
+### BPB patching (`bin/patch-bpb`)
+- MSBOOT.BIN's built-in BPB targets a fixed disk (media `0xF8`); patch it to 1.44MB floppy geometry before calling `mformat -k`.
+- 1.44MB parameters: 512 B/sec, 1 sec/cluster, 2 FATs, 224 root entries, 2880 total sectors, media `0xF0`, 9 sec/FAT, 18 sec/track, 2 heads.
+- Extended BPB (DOS 4.0): drive `0x00` (floppy), ext_boot_sig `0x29`, volume label 11 bytes, FS type `"FAT12   "`.
+- BPB occupies bytes 11–61 of the boot sector; bootstrap code starts at byte 62 (`0x3E`).
+
+### mformat -k
+- `mformat -i floppy.img -k ::` — formats FAT12 *keeping* the existing boot sector (reads BPB from it to build consistent FAT tables).
+
+### File copy order
+- `IO.SYS` **must** be the first directory entry; `MSDOS.SYS` must be second.
+- Use `mcopy` (not loop-mount) to guarantee insertion order; then `mattrib +h +s +r` both files.
+
+### verify target
+- `floppy-test.img` = `floppy.img` + `AUTOEXEC.BAT` with `CTTY AUX\r\nVER\r\n`.
+- `CTTY AUX` redirects DOS console to COM1; `VER` prints `MS-DOS Version 4.00` to COM1.
+- QEMU flags: `-display none -serial file:out/serial.log`; `timeout 15` kills QEMU after output is captured.
+- Pass condition: `grep -q "MS-DOS" out/serial.log`.
 
 ## kvikdos Modifications (in kvikdos/kvikdos.c)
 - `current_dir[DRIVE_COUNT]` expanded from 1 to 64 bytes per drive.

@@ -6,12 +6,12 @@ Build MS-DOS 4.0 from source on Linux using original DOS compilers running under
 
 1. **Build**: Run the original MS-DOS 4.0 compilers (MASM, CL, LINK, LIB, etc.) under kvikdos to compile and link the OS from source — producing `io.sys`, `msdos.sys`, and `command.com`.
 2. **Test**: Validate build outputs with integration tests — file existence checks, SHA256 golden checksums, and COMMAND.COM smoke tests.
+3. **Deploy**: Assemble a bootable 1.44MB floppy image (`out/floppy.img`) from the build outputs.
+4. **Verify**: Boot the floppy headlessly in QEMU and confirm MS-DOS reports its version via COM1.
 
 ### Future goals
 
-3. **Deploy**: Boot the result in headless QEMU.
-4. **Verify**: Check that MS-DOS boots successfully via COM1 output.
-5. **CI**: Automated `make test` in CI pipeline.
+5. **CI**: Automated `make test` + `make verify` in CI pipeline.
 
 ## Status
 
@@ -39,12 +39,28 @@ All 10 modules build successfully:
 - `Makefile` — Linux GNU Makefile orchestrating the full build
 - `tests/` — integration tests (file existence, SHA256 golden checksums, kvikdos smoke tests)
 
+## Dependencies
+
+```sh
+# Build tools
+sudo apt install nasm gcc make python3
+
+# DOS emulator (kvikdos uses KVM — requires /dev/kvm access)
+# kvikdos is built from the kvikdos/ submodule (see kvikdos/Makefile)
+
+# Deploy and verify
+sudo apt install qemu-system-x86 mtools
+```
+
 ## Building
 
 ```sh
 make           # build all modules
 make test      # build + run integration tests
-make clean     # remove all generated files
+make deploy    # create bootable floppy image at out/floppy.img
+make run-boot  # boot floppy interactively in QEMU (graphical)
+make verify    # headless QEMU boot — checks COM1 output for "MS-DOS"
+make clean     # remove all generated files and floppy images
 ```
 
 Individual module targets: `messages`, `mapper`, `boot`, `inc`, `bios`, `dos`, `cmd`, `dev`, `select`, `memm`.
