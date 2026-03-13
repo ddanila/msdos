@@ -12,7 +12,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 | ASSIGN     | assign.com      | |
 | ATTRIB     | attrib.exe      | |
 | BACKUP     | backup.com      | depends on RESTORE message set |
-| CHKDSK     | chkdsk.com      | |
+| ~~CHKDSK~~ | ~~chkdsk.com~~  | ✅ done |
 | COMP       | comp.com        | |
 | DEBUG      | debug.com       | large, multi-ASM |
 | DISKCOMP   | diskcomp.com    | |
@@ -52,7 +52,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 
 ## Floppy Image
 
-- Currently only boots a minimal disk (IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM).
+- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM.
 - As more utilities are built, decide which ones to include on the boot floppy.
 
 ## Testing
