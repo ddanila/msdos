@@ -1,6 +1,7 @@
 # ---------------------------------------------------------------------------
 # DEV (device drivers)
-# Built sub-modules: DRIVER, ANSI
+# Built sub-modules: DRIVER, ANSI, VDISK, COUNTRY, RAMDRIVE, KEYBOARD,
+#                    PRINTER, DISPLAY, SMARTDRV, XMA2EMS, XMAEM
 # Include path for all DEV sub-dirs (2 levels deep: DEV/SUBDIR/)
 # ---------------------------------------------------------------------------
 DEV_DIR  := $(SRC)/DEV
@@ -14,7 +15,10 @@ dev: \
     $(DEV_DIR)/RAMDRIVE/RAMDRIVE.SYS \
     $(DEV_DIR)/KEYBOARD/KEYBOARD.SYS \
     $(DEV_DIR)/PRINTER/PRINTER.SYS \
-    $(DEV_DIR)/DISPLAY/DISPLAY.SYS
+    $(DEV_DIR)/DISPLAY/DISPLAY.SYS \
+    $(DEV_DIR)/SMARTDRV/SMARTDRV.SYS \
+    $(DEV_DIR)/XMA2EMS/XMA2EMS.SYS \
+    $(DEV_DIR)/XMAEM/XMAEM.SYS
 
 # ---------------------------------------------------------------------------
 # DEV/DRIVER
@@ -189,3 +193,80 @@ $(DISPLAY_DIR)/DISPLAY.EXE: \
 
 $(DISPLAY_DIR)/DISPLAY.SYS: $(DISPLAY_DIR)/DISPLAY.EXE
 	cd $(DISPLAY_DIR) && $(EXE2BIN) "DISPLAY.EXE DISPLAY.SYS" <ZERO.DAT
+
+# ---------------------------------------------------------------------------
+# DEV/SMARTDRV
+# ---------------------------------------------------------------------------
+SMARTDRV_DIR := $(DEV_DIR)/SMARTDRV
+
+$(SMARTDRV_DIR)/SMARTDRV.OBJ: $(SMARTDRV_DIR)/SMARTDRV.ASM
+	cd $(SMARTDRV_DIR) && $(MASM) "$(AFLAGS) -I." "SMARTDRV.ASM,SMARTDRV.OBJ;"
+
+$(SMARTDRV_DIR)/SMARTDRV.EXE: $(SMARTDRV_DIR)/SMARTDRV.OBJ
+	cd $(SMARTDRV_DIR) && $(LINK) "SMARTDRV,,SMARTDRV/M;"
+
+$(SMARTDRV_DIR)/SMARTDRV.SYS: $(SMARTDRV_DIR)/SMARTDRV.EXE
+	cd $(SMARTDRV_DIR) && $(EXE2BIN) "SMARTDRV.EXE SMARTDRV.SYS"
+
+# ---------------------------------------------------------------------------
+# DEV/XMA2EMS
+# ---------------------------------------------------------------------------
+XMA2EMS_DIR := $(DEV_DIR)/XMA2EMS
+
+$(XMA2EMS_DIR)/XMA2EMS.CL1: $(XMA2EMS_DIR)/XMA2EMS.SKL $(MESSAGES_OUT)
+	cd $(XMA2EMS_DIR) && $(NOSRVBLD) XMA2EMS.SKL "..\\..\\MESSAGES\\USA-MS.MSG"
+
+$(XMA2EMS_DIR)/XMA2EMS.OBJ: $(XMA2EMS_DIR)/XMA2EMS.ASM $(XMA2EMS_DIR)/XMA2EMS.CL1
+	cd $(XMA2EMS_DIR) && $(MASM) "$(AFLAGS) -I. -I..\\..\\INC" "XMA2EMS.ASM,XMA2EMS.OBJ;"
+
+$(XMA2EMS_DIR)/XMA2EMS.EXE: $(XMA2EMS_DIR)/XMA2EMS.OBJ
+	cd $(XMA2EMS_DIR) && $(LINK) "XMA2EMS;"
+
+$(XMA2EMS_DIR)/XMA2EMS.SYS: $(XMA2EMS_DIR)/XMA2EMS.EXE
+	cd $(XMA2EMS_DIR) && $(EXE2BIN) "XMA2EMS.EXE XMA2EMS.SYS"
+
+# ---------------------------------------------------------------------------
+# DEV/XMAEM
+# ---------------------------------------------------------------------------
+XMAEM_DIR := $(DEV_DIR)/XMAEM
+
+$(XMAEM_DIR)/XMAEM.CL1: $(XMAEM_DIR)/XMAEM.SKL $(MESSAGES_OUT)
+	cd $(XMAEM_DIR) && $(NOSRVBLD) XMAEM.SKL "..\\..\\MESSAGES\\USA-MS.MSG"
+
+$(XMAEM_DIR)/INDEINI.OBJ: $(XMAEM_DIR)/INDEINI.ASM
+	cd $(XMAEM_DIR) && $(MASM) "$(AFLAGS) -I." "INDEINI.ASM,INDEINI.OBJ;"
+
+$(XMAEM_DIR)/INDEEMU.OBJ: $(XMAEM_DIR)/INDEEMU.ASM
+	cd $(XMAEM_DIR) && $(MASM) "$(AFLAGS) -I." "INDEEMU.ASM,INDEEMU.OBJ;"
+
+$(XMAEM_DIR)/INDEEXC.OBJ: $(XMAEM_DIR)/INDEEXC.ASM
+	cd $(XMAEM_DIR) && $(MASM) "$(AFLAGS) -I." "INDEEXC.ASM,INDEEXC.OBJ;"
+
+$(XMAEM_DIR)/INDEXMA.OBJ: $(XMAEM_DIR)/INDEXMA.ASM
+	cd $(XMAEM_DIR) && $(MASM) "$(AFLAGS) -I." "INDEXMA.ASM,INDEXMA.OBJ;"
+
+$(XMAEM_DIR)/INDEDMA.OBJ: $(XMAEM_DIR)/INDEDMA.ASM
+	cd $(XMAEM_DIR) && $(MASM) "$(AFLAGS) -I." "INDEDMA.ASM,INDEDMA.OBJ;"
+
+$(XMAEM_DIR)/INDEIDT.OBJ: $(XMAEM_DIR)/INDEIDT.ASM
+	cd $(XMAEM_DIR) && $(MASM) "$(AFLAGS) -I." "INDEIDT.ASM,INDEIDT.OBJ;"
+
+$(XMAEM_DIR)/INDEGDT.OBJ: $(XMAEM_DIR)/INDEGDT.ASM
+	cd $(XMAEM_DIR) && $(MASM) "$(AFLAGS) -I." "INDEGDT.ASM,INDEGDT.OBJ;"
+
+$(XMAEM_DIR)/INDEI15.OBJ: $(XMAEM_DIR)/INDEI15.ASM
+	cd $(XMAEM_DIR) && $(MASM) "$(AFLAGS) -I." "INDEI15.ASM,INDEI15.OBJ;"
+
+$(XMAEM_DIR)/INDEMSG.OBJ: $(XMAEM_DIR)/INDEMSG.ASM $(XMAEM_DIR)/XMAEM.CL1
+	cd $(XMAEM_DIR) && $(MASM) "$(AFLAGS) -I." "INDEMSG.ASM,INDEMSG.OBJ;"
+
+$(XMAEM_DIR)/INDEPAT.OBJ: $(XMAEM_DIR)/INDEPAT.ASM
+	cd $(XMAEM_DIR) && $(MASM) "$(AFLAGS) -I." "INDEPAT.ASM,INDEPAT.OBJ;"
+
+$(XMAEM_DIR)/XMAEM.SYS: \
+    $(XMAEM_DIR)/INDEINI.OBJ $(XMAEM_DIR)/INDEEXC.OBJ \
+    $(XMAEM_DIR)/INDEEMU.OBJ $(XMAEM_DIR)/INDEXMA.OBJ \
+    $(XMAEM_DIR)/INDEDMA.OBJ $(XMAEM_DIR)/INDEI15.OBJ \
+    $(XMAEM_DIR)/INDEIDT.OBJ $(XMAEM_DIR)/INDEGDT.OBJ \
+    $(XMAEM_DIR)/INDEMSG.OBJ $(XMAEM_DIR)/INDEPAT.OBJ
+	cd $(XMAEM_DIR) && $(LINK) "@XMAEM.LNK"

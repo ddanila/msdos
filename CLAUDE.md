@@ -32,7 +32,7 @@
 | BIOS     | ✅ done    | BIOS/IO.SYS      |
 | DOS      | ✅ done    | DOS/MSDOS.SYS    |
 | CMD      | ✅ done    | CMD/COMMAND/COMMAND.COM |
-| DEV      | pending   |                  |
+| DEV      | ✅ done    | DEV/*/\*.SYS     |
 | SELECT   | pending   |                  |
 | MEMM     | pending   |                  |
 
@@ -56,3 +56,7 @@
   - Rule: `buildmsg ..\..\MESSAGES\USA-MS COMMAND.SKL` (basename without .msg, then SKL file)
   - NOSRVBLD generates `.cl1` for kernel modules; BUILDMSG generates `.ctl` for utilities.
 - CMD AINC: `-I. -ID:\\TOOLS\\INC -I..\\..\\INC -I..\\..\\DOS` (two levels up from CMD/COMMAND/).
+- DEV AINC: same as CMD AINC for most modules; RAMDRIVE/KEYBOARD use `-I. -I..\\..\\INC` (no DOS dir); SMARTDRV/XMAEM use `-I.` only; XMA2EMS uses `-I. -I..\\..\\INC`.
+- SKL files with `:class 1` header use NOSRVBLD (generates `.cl1`); SKLs with `:util` header use BUILDMSG (generates `.ctl` + `.cl*`). Check first line of .skl to decide.
+- XMAEM.MAKEFILE bug: target named `xmaem.ctl` but SKL is class 1, so NOSRVBLD generates `xmaem.cl1`. Use NOSRVBLD and target CL1.
+- XMAEM.SYS: produced directly by LINK (output named `.sys` in LNK file) — no EXE2BIN needed.
