@@ -55,7 +55,8 @@ Without it, git may normalize CRLF→LF on checkout, causing `buildidx` to produ
 | FIND          | ✅ done | CMD/FIND/FIND.EXE              |
 | TREE          | ✅ done | CMD/TREE/TREE.COM              |
 | COMP          | ✅ done | CMD/COMP/COMP.COM              |
-| 25 others     | ❌ todo | see TODO.md                    |
+| ATTRIB        | ✅ done | CMD/ATTRIB/ATTRIB.EXE          |
+| 24 others     | ❌ todo | see TODO.md                    |
 
 ### DEV (device drivers)
 | Module        | Status  | Output                         |

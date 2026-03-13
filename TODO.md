@@ -10,7 +10,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 |------------|-----------------|-------|
 | APPEND     | append.exe      | |
 | ASSIGN     | assign.com      | |
-| ATTRIB     | attrib.exe      | |
+| ~~ATTRIB~~ | ~~attrib.exe~~  | ✅ done |
 | BACKUP     | backup.com      | depends on RESTORE message set |
 | ~~CHKDSK~~ | ~~chkdsk.com~~  | ✅ done |
 | ~~COMP~~   | ~~comp.com~~    | ✅ done |
@@ -52,7 +52,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 
 ## Floppy Image
 
-- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM, MEM.EXE, FDISK.EXE, MORE.COM, SORT.EXE, LABEL.COM, FIND.EXE, TREE.COM, COMP.COM.
+- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM, MEM.EXE, FDISK.EXE, MORE.COM, SORT.EXE, LABEL.COM, FIND.EXE, TREE.COM, COMP.COM, ATTRIB.EXE.
 - As more utilities are built, decide which ones to include on the boot floppy.
 
 ## Testing

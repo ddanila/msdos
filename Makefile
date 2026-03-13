@@ -208,6 +208,7 @@ ARTIFACTS := \
     CMD/FIND/FIND.EXE \
     CMD/TREE/TREE.COM \
     CMD/COMP/COMP.COM \
+    CMD/ATTRIB/ATTRIB.EXE \
     MEMM/MEMM/EMM386.SYS
 
 test: all
@@ -243,9 +244,11 @@ LABEL_COM   := $(SRC)/CMD/LABEL/LABEL.COM
 FIND_EXE    := $(SRC)/CMD/FIND/FIND.EXE
 TREE_COM    := $(SRC)/CMD/TREE/TREE.COM
 COMP_COM    := $(SRC)/CMD/COMP/COMP.COM
+ATTRIB_EXE  := $(SRC)/CMD/ATTRIB/ATTRIB.EXE
 
 $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT_COM) $(CHKDSK_COM) $(DEBUG_COM) $(MEM_EXE) $(FDISK_EXE) \
-           $(MORE_COM) $(SORT_EXE) $(LABEL_COM) $(FIND_EXE) $(TREE_COM) $(COMP_COM)
+           $(MORE_COM) $(SORT_EXE) $(LABEL_COM) $(FIND_EXE) $(TREE_COM) $(COMP_COM) \
+           $(ATTRIB_EXE)
 	mkdir -p $(OUT)
 	# blank 1.44MB image
 	dd if=/dev/zero of=$@ bs=512 count=2880 status=none
@@ -273,6 +276,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
 	mcopy -i $@ $(FIND_EXE) ::FIND.EXE
 	mcopy -i $@ $(TREE_COM) ::TREE.COM
 	mcopy -i $@ $(COMP_COM) ::COMP.COM
+	mcopy -i $@ $(ATTRIB_EXE) ::ATTRIB.EXE
 
 deploy: all $(FLOPPY)
 

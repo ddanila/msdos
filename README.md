@@ -43,8 +43,9 @@ Build MS-DOS 4.0 from source on Linux using original DOS compilers running under
 | FIND     | `CMD/FIND/FIND.EXE`            |
 | TREE     | `CMD/TREE/TREE.COM`            |
 | COMP     | `CMD/COMP/COMP.COM`            |
+| ATTRIB   | `CMD/ATTRIB/ATTRIB.EXE`        |
 
-25 more CMD utilities are listed in [TODO.md](TODO.md).
+24 more CMD utilities are listed in [TODO.md](TODO.md).
 
 ### DEV (device drivers — all 11 built)
 
