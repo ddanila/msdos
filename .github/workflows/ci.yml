@@ -1,0 +1,40 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repo with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Verify KVM is available
+        run: ls -la /dev/kvm
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y gcc nasm python3 qemu-system-x86 mtools
+
+      - name: Build kvikdos
+        run: make -C kvikdos kvikdos
+
+      - name: Build all modules (make)
+        run: make
+
+      - name: Run integration tests (make test)
+        run: make test
+
+      - name: Build bootable floppy (make deploy)
+        run: make deploy
+
+      - name: Verify headless boot (make verify)
+        run: make verify
