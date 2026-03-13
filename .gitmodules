@@ -1,0 +1,6 @@
+[submodule "MS-DOS"]
+	path = MS-DOS
+	url = https://github.com/ddanila/MS-DOS.git
+[submodule "kvikdos"]
+	path = kvikdos
+	url = https://github.com/ddanila/kvikdos.git
