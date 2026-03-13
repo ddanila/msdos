@@ -31,7 +31,7 @@
 | INC      | ✅ done    | *.OBJ in INC/    |
 | BIOS     | ✅ done    | BIOS/IO.SYS      |
 | DOS      | ✅ done    | DOS/MSDOS.SYS    |
-| CMD      | pending   | command.com      |
+| CMD      | ✅ done    | CMD/COMMAND/COMMAND.COM |
 | DEV      | pending   |                  |
 | SELECT   | pending   |                  |
 | MEMM     | pending   |                  |
