@@ -1,12 +1,14 @@
 # ---------------------------------------------------------------------------
 # CMD (command.com + utilities)
-# Currently: COMMAND only; other utilities to be added later.
 # ---------------------------------------------------------------------------
 CMD_DIR  := $(SRC)/CMD
 COMMAND_DIR := $(CMD_DIR)/COMMAND
 COMMAND_OUT := $(COMMAND_DIR)/COMMAND.COM
 
-cmd: $(COMMAND_OUT)
+SYS_DIR  := $(CMD_DIR)/SYS
+SYS_OUT  := $(SYS_DIR)/SYS.COM
+
+cmd: $(COMMAND_OUT) $(SYS_OUT)
 
 # COMMAND include paths (two levels up from CMD/COMMAND/)
 COMMAND_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC -I..\\..\\DOS
@@ -153,3 +155,38 @@ $(COMMAND_DIR)/COMMAND.EXE: $(COMMAND_OBJ_PATHS)
 
 $(COMMAND_OUT): $(COMMAND_DIR)/COMMAND.EXE
 	cd $(COMMAND_DIR) && $(EXE2BIN) "COMMAND.EXE COMMAND.COM"
+
+# ---------------------------------------------------------------------------
+# SYS (sys.com)
+# ---------------------------------------------------------------------------
+# Include paths: current dir (for SYSHDR.INC, generated SYSMSG.INC/CL*) + INC/
+SYS_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC
+
+# Step 1: BUILDMSG generates SYS.CTL + SYS.CL[1,2,A-D]
+$(SYS_DIR)/SYS.CTL: $(SYS_DIR)/SYS.SKL $(MESSAGES_OUT)
+	cd $(SYS_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" SYS.SKL
+
+$(SYS_DIR)/SYS.CL1 $(SYS_DIR)/SYS.CL2 \
+$(SYS_DIR)/SYS.CLA $(SYS_DIR)/SYS.CLB \
+$(SYS_DIR)/SYS.CLC $(SYS_DIR)/SYS.CLD: \
+    $(SYS_DIR)/SYS.CTL
+
+# Step 2: Assemble objects
+$(SYS_DIR)/SYS1.OBJ: $(SYS_DIR)/SYS1.ASM $(SYS_DIR)/SYS.CTL
+	cd $(SYS_DIR) && $(MASM) "$(AFLAGS) $(SYS_AINC)" "SYS1.ASM,SYS1.OBJ;"
+
+$(SYS_DIR)/SYS2.OBJ: $(SYS_DIR)/SYS2.ASM $(SYS_DIR)/SYS.CTL
+	cd $(SYS_DIR) && $(MASM) "$(AFLAGS) $(SYS_AINC)" "SYS2.ASM,SYS2.OBJ;"
+
+$(SYS_DIR)/SYSSR.OBJ: $(SYS_DIR)/SYSSR.ASM \
+    $(SYS_DIR)/SYS.CTL $(SYS_DIR)/SYS.CL1 $(SYS_DIR)/SYS.CL2 \
+    $(SYS_DIR)/SYS.CLA $(SYS_DIR)/SYS.CLB \
+    $(SYS_DIR)/SYS.CLC $(SYS_DIR)/SYS.CLD
+	cd $(SYS_DIR) && $(MASM) "$(AFLAGS) $(SYS_AINC)" "SYSSR.ASM,SYSSR.OBJ;"
+
+# Step 3: Link -> SYS.EXE -> EXE2BIN -> SYS.COM
+$(SYS_DIR)/SYS.EXE: $(SYS_DIR)/SYS1.OBJ $(SYS_DIR)/SYS2.OBJ $(SYS_DIR)/SYSSR.OBJ
+	cd $(SYS_DIR) && $(LINK) "@SYS.LNK"
+
+$(SYS_OUT): $(SYS_DIR)/SYS.EXE
+	cd $(SYS_DIR) && $(EXE2BIN) "SYS.EXE SYS.COM"

@@ -27,7 +27,7 @@ CFLAGS   := -AS -Os -Zp
 # Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy run-boot verify
+.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy run-boot verify test-sys
 
 all: messages mapper boot inc bios dos cmd dev select memm
 
@@ -182,6 +182,7 @@ ARTIFACTS := \
     BIOS/IO.SYS \
     DOS/MSDOS.SYS \
     CMD/COMMAND/COMMAND.COM \
+    CMD/SYS/SYS.COM \
     DEV/ANSI/ANSI.SYS \
     DEV/VDISK/VDISK.SYS \
     DEV/COUNTRY/COUNTRY.SYS \
@@ -205,6 +206,9 @@ gen-checksums: all
 	cd $(SRC) && sha256sum $(ARTIFACTS) > $(CURDIR)/tests/golden.sha256
 	@echo "Checksums written to tests/golden.sha256"
 
+test-sys: deploy
+	bash tests/test_sys.sh
+
 # ---------------------------------------------------------------------------
 # DEPLOY — bootable 1.44MB floppy image
 # ---------------------------------------------------------------------------
@@ -216,8 +220,9 @@ BOOT_OFF    := 31744   # boot sector lives at offset 0x7c00 in MSBOOT.BIN
 IO_SYS      := $(SRC)/BIOS/IO.SYS
 MSDOS_SYS   := $(SRC)/DOS/MSDOS.SYS
 COMMAND_COM := $(SRC)/CMD/COMMAND/COMMAND.COM
+SYS_COM     := $(SRC)/CMD/SYS/SYS.COM
 
-$(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM)
+$(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM)
 	mkdir -p $(OUT)
 	# blank 1.44MB image
 	dd if=/dev/zero of=$@ bs=512 count=2880 status=none
@@ -233,6 +238,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM)
 	mcopy -i $@ $(COMMAND_COM) ::COMMAND.COM
 	mattrib +h +s +r -i $@ ::IO.SYS
 	mattrib +h +s +r -i $@ ::MSDOS.SYS
+	mcopy -i $@ $(SYS_COM) ::SYS.COM
 
 deploy: all $(FLOPPY)
 

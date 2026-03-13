@@ -36,11 +36,13 @@ Without it, git may normalize CRLF→LF on checkout, causing `buildidx` to produ
 | BIOS     | ✅ done    | BIOS/IO.SYS      |
 | DOS      | ✅ done    | DOS/MSDOS.SYS    |
 | CMD      | ✅ done    | CMD/COMMAND/COMMAND.COM |
+| SYS      | ✅ done    | CMD/SYS/SYS.COM         |
 | DEV      | ✅ done    | DEV/*/\*.SYS     |
 | SELECT   | ✅ done    | SELECT.{EXE,DAT,COM,HLP} |
 | MEMM     | ✅ done    | MEMM/EMM386.SYS  |
 | DEPLOY   | ✅ done    | out/floppy.img   |
 | VERIFY   | ✅ done    | headless QEMU boot confirmed |
+| SYS e2e  | ✅ done    | `make test-sys`              |
 
 ## Manual Testing (Interactive QEMU)
 
@@ -61,6 +63,25 @@ make deploy
 - Memory: 4 MB (matches the headless verify target).
 - Equivalent `make` target: `make run-boot` (same image, same flags, but no SDL forcing).
 - To quit QEMU: `Ctrl+Alt+Q` or close the window, or use the QEMU monitor (`Ctrl+Alt+2`, then `quit`).
+
+### SYS.COM e2e test (`make test-sys`)
+
+Tests that `SYS B:` correctly transfers system files to a blank floppy and that the result boots.
+
+```bash
+make test-sys
+```
+
+Steps performed by `tests/test_sys.sh`:
+1. Copies `out/floppy.img` → `out/floppy-sys-boot.img`, adds `AUTOEXEC.BAT`: `CTTY AUX` + `SYS B:`.
+2. Creates blank FAT12 `out/floppy-sys-target.img` with `dd` + `mformat -f 1440`.
+3. Boots QEMU with A: = boot img, B: = target img; checks COM1 for `"System transferred"`.
+4. Adds `AUTOEXEC.BAT` (`CTTY AUX` + `VER`) to target via `mcopy -o` on the host.
+5. Boots QEMU from target img alone; checks COM1 for `"MS-DOS"`.
+
+Key notes:
+- `cache=writethrough` on QEMU floppy drives ensures B: writes are flushed to the file before QEMU is killed by `timeout`.
+- SYS.COM is built from `CMD/SYS/` source (BUILDMSG → CL* → MASM → LINK → EXE2BIN) and included on the floppy image.
 
 ## Floppy Image (deploy / verify)
 
