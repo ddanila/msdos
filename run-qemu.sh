@@ -14,7 +14,7 @@ fi
 
 echo "Booting: $FLOPPY"
 exec qemu-system-i386 \
-    -fda "$FLOPPY" \
+    -drive if=floppy,format=raw,file="$FLOPPY" \
     -boot a \
     -m 4 \
     -display sdl \
