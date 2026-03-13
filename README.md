@@ -9,9 +9,7 @@ Build MS-DOS 4.0 from source on Linux using original DOS compilers running under
 3. **Deploy**: Assemble a bootable 1.44MB floppy image (`out/floppy.img`) from the build outputs.
 4. **Verify**: Boot the floppy headlessly in QEMU and confirm MS-DOS reports its version via COM1.
 
-### Future goals
-
-5. **CI**: Automated `make test` + `make verify` in CI pipeline.
+5. **CI**: Automated `make test` + `make verify` in GitHub Actions on every push.
 
 ## Status
 
@@ -55,12 +53,13 @@ sudo apt install qemu-system-x86 mtools
 ## Building
 
 ```sh
-make           # build all modules
-make test      # build + run integration tests
-make deploy    # create bootable floppy image at out/floppy.img
-make run-boot  # boot floppy interactively in QEMU (graphical)
-make verify    # headless QEMU boot — checks COM1 output for "MS-DOS"
-make clean     # remove all generated files and floppy images
+make               # build all modules
+make test          # build + run integration tests
+make deploy        # create bootable floppy image at out/floppy.img
+make run-boot      # boot floppy interactively in QEMU (graphical)
+make verify        # headless QEMU boot — checks COM1 output for "MS-DOS"
+make gen-checksums # regenerate tests/golden.sha256 (always run make clean first!)
+make clean         # remove all generated files and floppy images
 ```
 
 Individual module targets: `messages`, `mapper`, `boot`, `inc`, `bios`, `dos`, `cmd`, `dev`, `select`, `memm`.

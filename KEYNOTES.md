@@ -11,6 +11,10 @@
 **LF only** (source code — CRLF corrupts MASM THEADR records in .OBJ output):
 - ASM, C, H, INC files
 
+These rules are enforced by `.gitattributes` in the MS-DOS submodule (`MS-DOS/.gitattributes`).
+Without it, git may normalize CRLF→LF on checkout, causing `buildidx` to produce a different
+`USA-MS.IDX` and breaking SHA256 checks in CI.
+
 ## Build Architecture
 - kvikdos cannot spawn subprocesses (exec replaces process), so NMAKE is unusable.
 - Linux GNU Makefile calls kvikdos for each individual DOS tool invocation.
@@ -62,6 +66,22 @@
 - `CTTY AUX` redirects DOS console to COM1; `VER` prints `MS-DOS Version 4.00` to COM1.
 - QEMU flags: `-display none -serial file:out/serial.log`; `timeout 15` kills QEMU after output is captured.
 - Pass condition: `grep -q "MS-DOS" out/serial.log`.
+
+## Golden Checksums (tests/golden.sha256)
+
+- **Always run `make clean` before `make gen-checksums`**, otherwise `buildidx` may report
+  "not changed" and reuse a stale `USA-MS.IDX`, capturing a wrong checksum.
+- Lesson learned: the `USA-MS.IDX` checksum was captured from a pre-CRLF-conversion build,
+  causing CI to fail even though the fresh build was correct. Only fresh builds tell the truth.
+
+## CI (GitHub Actions)
+
+- Workflow: `.github/workflows/ci.yml`, runs on every push/PR to `master`.
+- Runner: `ubuntu-latest` — has `/dev/kvm` but not accessible by default.
+- KVM fix: add udev rule `KERNEL=="kvm", GROUP="kvm", MODE="0666"` before building.
+- Steps: grant KVM → install deps (`gcc nasm python3 qemu-system-x86 mtools`) →
+  build kvikdos → `make` → `make test` → `make deploy` → `make verify`.
+- Free tier: unlimited minutes for public repos on GitHub Actions.
 
 ## kvikdos Modifications (in kvikdos/kvikdos.c)
 - `current_dir[DRIVE_COUNT]` expanded from 1 to 64 bytes per drive.
