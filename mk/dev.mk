@@ -8,7 +8,9 @@ DEV_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC -I..\\..\\DOS
 
 dev: \
     $(DEV_DIR)/DRIVER/DRIVER.SYS \
-    $(DEV_DIR)/ANSI/ANSI.SYS
+    $(DEV_DIR)/ANSI/ANSI.SYS \
+    $(DEV_DIR)/VDISK/VDISK.SYS \
+    $(DEV_DIR)/COUNTRY/COUNTRY.SYS
 
 # ---------------------------------------------------------------------------
 # DEV/DRIVER
@@ -54,3 +56,34 @@ $(ANSI_DIR)/ANSI.EXE: \
 
 $(ANSI_DIR)/ANSI.SYS: $(ANSI_DIR)/ANSI.EXE
 	cd $(ANSI_DIR) && $(EXE2BIN) "ANSI.EXE ANSI.SYS"
+
+# ---------------------------------------------------------------------------
+# DEV/VDISK
+# ---------------------------------------------------------------------------
+VDISK_DIR := $(DEV_DIR)/VDISK
+
+$(VDISK_DIR)/VDISK.CTL: $(VDISK_DIR)/VDISK.SKL $(MESSAGES_OUT)
+	cd $(VDISK_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" VDISK.SKL
+
+$(VDISK_DIR)/VDISKSYS.OBJ: $(VDISK_DIR)/VDISKSYS.ASM $(VDISK_DIR)/VDISK.CTL
+	cd $(VDISK_DIR) && $(MASM) "$(AFLAGS) $(DEV_AINC)" "VDISKSYS.ASM,VDISKSYS.OBJ;"
+
+$(VDISK_DIR)/VDISK.EXE: $(VDISK_DIR)/VDISKSYS.OBJ
+	cd $(VDISK_DIR) && $(LINK) "@VDISK.LNK"
+
+$(VDISK_DIR)/VDISK.SYS: $(VDISK_DIR)/VDISK.EXE
+	cd $(VDISK_DIR) && $(EXE2BIN) "VDISK.EXE VDISK.SYS"
+
+# ---------------------------------------------------------------------------
+# DEV/COUNTRY  (runs the built MKCNTRY.EXE tool to generate COUNTRY.SYS)
+# ---------------------------------------------------------------------------
+COUNTRY_DIR := $(DEV_DIR)/COUNTRY
+
+$(COUNTRY_DIR)/MKCNTRY.OBJ: $(COUNTRY_DIR)/MKCNTRY.ASM
+	cd $(COUNTRY_DIR) && $(MASM) "$(AFLAGS) $(DEV_AINC)" "MKCNTRY.ASM,MKCNTRY.OBJ;"
+
+$(COUNTRY_DIR)/MKCNTRY.EXE: $(COUNTRY_DIR)/MKCNTRY.OBJ
+	cd $(COUNTRY_DIR) && $(LINK) "MKCNTRY;"
+
+$(COUNTRY_DIR)/COUNTRY.SYS: $(COUNTRY_DIR)/MKCNTRY.EXE
+	cd $(COUNTRY_DIR) && $(BIN)/dos-run $(COUNTRY_DIR)/MKCNTRY.EXE
