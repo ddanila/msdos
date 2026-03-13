@@ -14,7 +14,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 | BACKUP     | backup.com      | depends on RESTORE message set |
 | ~~CHKDSK~~ | ~~chkdsk.com~~  | ✅ done |
 | COMP       | comp.com        | |
-| DEBUG      | debug.com       | large, multi-ASM |
+| ~~DEBUG~~  | ~~debug.com~~   | ✅ done — 11 ASM files, BUILDMSG generates all CL files including CL1/CL2 |
 | DISKCOMP   | diskcomp.com    | |
 | DISKCOPY   | diskcopy.com    | |
 | EDLIN      | edlin.com       | |
@@ -52,7 +52,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 
 ## Floppy Image
 
-- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM.
+- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM.
 - As more utilities are built, decide which ones to include on the boot floppy.
 
 ## Testing
