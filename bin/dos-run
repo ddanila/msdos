@@ -39,7 +39,7 @@ exec "$KVIKDOS" \
     $CWD_ARG \
     --env="PATH=c:\\TOOLS" \
     --env="INCLUDE=c:\\TOOLS\\BLD\\INC" \
-    --env="LIB=c:\\TOOLS\\LIB" \
+    --env="LIB=c:\\TOOLS\\BLD\\LIB" \
     --env="INIT=c:\\TOOLS" \
     --env="COUNTRY=usa-ms" \
     "$TOOL" \

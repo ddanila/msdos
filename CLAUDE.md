@@ -33,7 +33,7 @@
 | DOS      | ✅ done    | DOS/MSDOS.SYS    |
 | CMD      | ✅ done    | CMD/COMMAND/COMMAND.COM |
 | DEV      | ✅ done    | DEV/*/\*.SYS     |
-| SELECT   | pending   |                  |
+| SELECT   | ✅ done    | SELECT.{EXE,DAT,COM,HLP} |
 | MEMM     | pending   |                  |
 
 ## kvikdos Modifications (in kvikdos/kvikdos.c)
@@ -60,3 +60,12 @@
 - SKL files with `:class 1` header use NOSRVBLD (generates `.cl1`); SKLs with `:util` header use BUILDMSG (generates `.ctl` + `.cl*`). Check first line of .skl to decide.
 - XMAEM.MAKEFILE bug: target named `xmaem.ctl` but SKL is class 1, so NOSRVBLD generates `xmaem.cl1`. Use NOSRVBLD and target CL1.
 - XMAEM.SYS: produced directly by LINK (output named `.sys` in LNK file) — no EXE2BIN needed.
+- SELECT AINC: `-I. -I..\\INC` (one level deep from SRC/SELECT/). BRIDGE/CASERVIC use CASVAR.INC and CASRN.INC from INC/.
+- SELECT C objects: compile with `-AS -Od -Zp -I. -c`; LIB env must point to `c:\\TOOLS\\BLD\\LIB` for SLIBCE.LIB.
+- CASSFAR.LIB: pre-built, already in SELECT/ dir (no need to build from SHELL/CASSFAR).
+- ASC2HLP.EXE: pre-built in TOOLS/; uses ah=5Bh (Create New File) — needed in kvikdos.
+- COMPRESS.COM: pre-built in TOOLS/; uses INT 3 (breakpoint) as no-op — needs kvikdos INT 3 handler.
+- BOOTREC.OBJ: built in CMD/FDISK/ (needs FDBOOT.INC from FDBOOT.BIN via DBOF), then copied to SELECT/.
+- FDBOOT.INC chain: NOSRVBLD(FDISK5.SKL)→CL1 → MASM FDBOOT.OBJ → LINK FDBOOT → EXE2BIN → DBOF(600 200).
+- SELECT.LNK uses /EXEPACK option (supported by LINK 3.65) and /noe flag (pass as `link /noe @SELECT.LNK`).
+- COMPRESS.COM hardcoded: reads SEL-PAN.DAT, writes SELECT.DAT (must run in SELECT/ dir).
