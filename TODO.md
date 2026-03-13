@@ -6,17 +6,12 @@ All 38 CMD utilities have been built from source. ✅
 
 ## DEV Device Drivers
 
-All 11 device drivers have been built from source. ✅
+All 11 device drivers built from source. ✅
+DEV/SMARTDRV/FLUSH13.EXE (auxiliary cache control utility) also built. ✅
 
 ## Core Modules
 
 All core modules built from source: BIOS/IO.SYS, DOS/MSDOS.SYS, BOOT, INC, MAPPER, MESSAGES, SELECT, MEMM/EMM386.SYS. ✅
-
-## Remaining: DEV Extras
-
-| Item                      | Notes |
-|---------------------------|-------|
-| DEV/SMARTDRV/FLUSH13.EXE | Auxiliary control utility for SMARTDRV cache. 1C + 2ASM (FLUSH13.C + FL13.ASM + FLMES.ASM), link via FLUSH13.LNK → EXE. Only needs `<stdio.h>`. Not shipped with DOS — a developer/debug tool. |
 
 ## Source Audit Notes
 

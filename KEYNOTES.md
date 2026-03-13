@@ -92,6 +92,7 @@ Without it, git may normalize CRLF→LF on checkout, causing `buildidx` to produ
 | PRINTER       | ✅ done | DEV/PRINTER/PRINTER.SYS        |
 | RAMDRIVE      | ✅ done | DEV/RAMDRIVE/RAMDRIVE.SYS      |
 | SMARTDRV      | ✅ done | DEV/SMARTDRV/SMARTDRV.SYS      |
+| FLUSH13       | ✅ done | DEV/SMARTDRV/FLUSH13.EXE       |
 | VDISK         | ✅ done | DEV/VDISK/VDISK.SYS            |
 | XMA2EMS       | ✅ done | DEV/XMA2EMS/XMA2EMS.SYS        |
 | XMAEM         | ✅ done | DEV/XMAEM/XMAEM.SYS            |
