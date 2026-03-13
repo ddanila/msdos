@@ -47,7 +47,8 @@ Without it, git may normalize CRLF→LF on checkout, causing `buildidx` to produ
 | SYS           | ✅ done | CMD/SYS/SYS.COM                |
 | CHKDSK        | ✅ done | CMD/CHKDSK/CHKDSK.COM          |
 | DEBUG         | ✅ done | CMD/DEBUG/DEBUG.COM            |
-| 33 others     | ❌ todo | see TODO.md                    |
+| MEM           | ✅ done | CMD/MEM/MEM.EXE                |
+| 32 others     | ❌ todo | see TODO.md                    |
 
 ### DEV (device drivers)
 | Module        | Status  | Output                         |
@@ -111,6 +112,7 @@ Key notes:
 - `cache=writethrough` on QEMU floppy drives ensures B: writes are flushed to the file before QEMU is killed by `timeout`.
 - SYS.COM is built from `CMD/SYS/` source (BUILDMSG → CL* → MASM → LINK → EXE2BIN) and included on the floppy image.
 - FORMAT.COM is built from `CMD/FORMAT/` source (BUILDMSG → CL* → MASM × 7 → LINK → CONVERT). Uses `CONVERT.EXE` (not EXE2BIN) to produce COM. MSFOR.ASM needs `BOOT.CL1` copied from `BOOT/` dir (`include BOOT.CL1`) and `BOOT11.INC` from `INC/`.
+- MEM.EXE is built from `CMD/MEM/` source (BUILDMSG → CL + 2 MASM → LINK against `LIB/MEM.LIB`). Output stays as EXE — no CONVERT needed. MEM.EXE calls `sysloadmsg` which checks for DOS 4.0; it exits with "Incorrect DOS version" under kvikdos (which reports an older version) — this is expected, it works fine on the real floppy.
 - DEBUG.COM is built from `CMD/DEBUG/` source (BUILDMSG → 11 MASM files → LINK → CONVERT). Unlike CHKDSK, BUILDMSG generates all CL files including CL1/CL2 — no empty stubs needed. DEBMES.ASM includes `SYSVER.INC` (local to DEBUG dir) and `sysmsg.inc`/`msgdcl.inc` from INC/.
 - CHKDSK.COM is built from `CMD/CHKDSK/` source (BUILDMSG → 9 MASM files → LINK → CONVERT). Key quirk: `CHKDISP.ASM` uses the `Msg_Services` macro which includes `CHKDSK.CL1` and `CHKDSK.CL2` — but CHKDSK.SKL has no class 1 or 2, so BUILDMSG doesn't generate them. Fix: `touch CHKDSK.CL1 CHKDSK.CL2` after BUILDMSG to create empty stubs. CHKDSK also uses `CONVERT.EXE` (not EXE2BIN).
 - `-serial stdio` with a piped subshell feeds FORMAT's interactive prompts (press ENTER, volume label, format another) at timed intervals. QEMU stdout (COM1 output) is captured via `tee`. The blank target image is all-zeros — no pre-formatting needed; FORMAT.COM does it from scratch.

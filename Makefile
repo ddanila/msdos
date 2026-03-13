@@ -200,6 +200,7 @@ ARTIFACTS := \
     SELECT/SELECT.HLP \
     SELECT/SELECT.DAT \
     CMD/DEBUG/DEBUG.COM \
+    CMD/MEM/MEM.EXE \
     MEMM/MEMM/EMM386.SYS
 
 test: all
@@ -227,8 +228,9 @@ SYS_COM     := $(SRC)/CMD/SYS/SYS.COM
 FORMAT_COM  := $(SRC)/CMD/FORMAT/FORMAT.COM
 CHKDSK_COM  := $(SRC)/CMD/CHKDSK/CHKDSK.COM
 DEBUG_COM   := $(SRC)/CMD/DEBUG/DEBUG.COM
+MEM_EXE     := $(SRC)/CMD/MEM/MEM.EXE
 
-$(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT_COM) $(CHKDSK_COM) $(DEBUG_COM)
+$(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT_COM) $(CHKDSK_COM) $(DEBUG_COM) $(MEM_EXE)
 	mkdir -p $(OUT)
 	# blank 1.44MB image
 	dd if=/dev/zero of=$@ bs=512 count=2880 status=none
@@ -248,6 +250,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
 	mcopy -i $@ $(FORMAT_COM) ::FORMAT.COM
 	mcopy -i $@ $(CHKDSK_COM) ::CHKDSK.COM
 	mcopy -i $@ $(DEBUG_COM) ::DEBUG.COM
+	mcopy -i $@ $(MEM_EXE) ::MEM.EXE
 
 deploy: all $(FLOPPY)
 

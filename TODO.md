@@ -30,7 +30,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 | JOIN       | join.exe        | shared code with SUBST |
 | KEYB       | keyb.com        | needs keyboard layout data (KEYBOARD.SYS already built) |
 | LABEL      | label.com       | |
-| MEM        | mem.exe         | |
+| ~~MEM~~    | ~~mem.exe~~     | ✅ done — C + 2 ASM, links against LIB/MEM.LIB; output is EXE (no CONVERT) |
 | MODE       | mode.com        | large, handles serial/parallel/display/codepage |
 | MORE       | more.com        | |
 | NLSFUNC    | nlsfunc.exe     | NLS (National Language Support) |
@@ -52,7 +52,7 @@ Add rules to `mk/cmd.mk`, add the output to the floppy image in `Makefile`.
 
 ## Floppy Image
 
-- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM.
+- Currently boots with: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM, MEM.EXE.
 - As more utilities are built, decide which ones to include on the boot floppy.
 
 ## Testing

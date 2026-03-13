@@ -17,7 +17,10 @@ CHKDSK_OUT := $(CHKDSK_DIR)/CHKDSK.COM
 DEBUG_DIR  := $(CMD_DIR)/DEBUG
 DEBUG_OUT  := $(DEBUG_DIR)/DEBUG.COM
 
-cmd: $(COMMAND_OUT) $(SYS_OUT) $(FORMAT_OUT) $(CHKDSK_OUT) $(DEBUG_OUT)
+MEM_DIR    := $(CMD_DIR)/MEM
+MEM_OUT    := $(MEM_DIR)/MEM.EXE
+
+cmd: $(COMMAND_OUT) $(SYS_OUT) $(FORMAT_OUT) $(CHKDSK_OUT) $(DEBUG_OUT) $(MEM_OUT)
 
 # COMMAND include paths (two levels up from CMD/COMMAND/)
 COMMAND_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC -I..\\..\\DOS
@@ -380,3 +383,37 @@ $(DEBUG_DIR)/DEBUG.EXE: $(DEBUG_OBJS)
 
 $(DEBUG_OUT): $(DEBUG_DIR)/DEBUG.EXE
 	cd $(DEBUG_DIR) && $(CONVERT) "DEBUG.EXE"
+
+# ---------------------------------------------------------------------------
+# MEM (mem.exe)
+# ---------------------------------------------------------------------------
+# C + 2 ASM files. Output is EXE (not COM) — no CONVERT needed.
+# Links against src/LIB/MEM.LIB (pre-built small-model C runtime subset).
+# Note: MEM.EXE checks for DOS 4.0 via sysloadmsg — won't run under kvikdos.
+MEM_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC
+
+# Step 1: BUILDMSG generates MEM.CTL + MEM.CL[1,2,A,B]
+$(MEM_DIR)/MEM.CTL: $(MEM_DIR)/MEM.SKL $(MESSAGES_OUT)
+	cd $(MEM_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" MEM.SKL
+
+$(MEM_DIR)/MEM.CL1 $(MEM_DIR)/MEM.CL2 \
+$(MEM_DIR)/MEM.CLA $(MEM_DIR)/MEM.CLB: \
+    $(MEM_DIR)/MEM.CTL
+
+# Step 2: Assemble _MSGRET.OBJ and _PARSE.OBJ
+$(MEM_DIR)/_MSGRET.OBJ: $(MEM_DIR)/_MSGRET.ASM \
+    $(MEM_DIR)/MEM.CTL \
+    $(MEM_DIR)/MEM.CLA $(MEM_DIR)/MEM.CLB \
+    $(MEM_DIR)/MEM.CL1 $(MEM_DIR)/MEM.CL2
+	cd $(MEM_DIR) && $(MASM) "$(AFLAGS) $(MEM_AINC)" "_MSGRET.ASM,_MSGRET.OBJ;"
+
+$(MEM_DIR)/_PARSE.OBJ: $(MEM_DIR)/_PARSE.ASM
+	cd $(MEM_DIR) && $(MASM) "$(AFLAGS) $(MEM_AINC)" "_PARSE.ASM,_PARSE.OBJ;"
+
+# Step 3: Compile MEM.C
+$(MEM_DIR)/MEM.OBJ: $(MEM_DIR)/MEM.C $(MEM_DIR)/MEM.CTL
+	cd $(MEM_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoMEM.OBJ MEM.C"
+
+# Step 4: Link → MEM.EXE
+$(MEM_OUT): $(MEM_DIR)/MEM.OBJ $(MEM_DIR)/_MSGRET.OBJ $(MEM_DIR)/_PARSE.OBJ
+	cd $(MEM_DIR) && $(LINK) "MEM+_MSGRET+_PARSE,,,..\\..\\LIB\\MEM;"
