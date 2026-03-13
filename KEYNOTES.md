@@ -27,23 +27,48 @@ Without it, git may normalize CRLF→LF on checkout, causing `buildidx` to produ
 - The `MESSAGES_OUT` target is `USA-MS.IDX` (uppercase), not `usa-ms.idx`.
 
 ## Build Status
-| Module   | Status     | Output           |
-|----------|-----------|-----------------|
-| MESSAGES | ✅ done    | USA-MS.IDX       |
-| MAPPER   | ✅ done    | MAPPER.LIB       |
-| BOOT     | ✅ done    | INC/boot.inc     |
-| INC      | ✅ done    | *.OBJ in INC/    |
-| BIOS     | ✅ done    | BIOS/IO.SYS      |
-| DOS      | ✅ done    | DOS/MSDOS.SYS    |
-| CMD      | ✅ done    | CMD/COMMAND/COMMAND.COM |
-| SYS      | ✅ done    | CMD/SYS/SYS.COM         |
-| FORMAT   | ✅ done    | CMD/FORMAT/FORMAT.COM   |
-| DEV      | ✅ done    | DEV/*/\*.SYS     |
-| SELECT   | ✅ done    | SELECT.{EXE,DAT,COM,HLP} |
-| MEMM     | ✅ done    | MEMM/EMM386.SYS  |
-| DEPLOY   | ✅ done    | out/floppy.img   |
-| VERIFY   | ✅ done    | headless QEMU boot confirmed |
-| SYS e2e  | ✅ done    | `make test-sys`              |
+
+### Core (libraries, kernel, boot)
+| Module   | Status  | Output                    |
+|----------|---------|---------------------------|
+| MESSAGES | ✅ done | USA-MS.IDX                |
+| MAPPER   | ✅ done | MAPPER.LIB                |
+| BOOT     | ✅ done | INC/boot.inc              |
+| INC      | ✅ done | *.OBJ in INC/             |
+| BIOS     | ✅ done | BIOS/IO.SYS               |
+| DOS      | ✅ done | DOS/MSDOS.SYS             |
+| MEMM     | ✅ done | MEMM/EMM386.SYS           |
+
+### CMD utilities
+| Utility       | Status  | Output                         |
+|---------------|---------|--------------------------------|
+| COMMAND       | ✅ done | CMD/COMMAND/COMMAND.COM        |
+| FORMAT        | ✅ done | CMD/FORMAT/FORMAT.COM          |
+| SYS           | ✅ done | CMD/SYS/SYS.COM                |
+| 35 others     | ❌ todo | see TODO.md                    |
+
+### DEV (device drivers)
+| Module        | Status  | Output                         |
+|---------------|---------|--------------------------------|
+| ANSI          | ✅ done | DEV/ANSI/ANSI.SYS              |
+| COUNTRY       | ✅ done | DEV/COUNTRY/COUNTRY.SYS        |
+| DISPLAY       | ✅ done | DEV/DISPLAY/DISPLAY.SYS        |
+| DRIVER        | ✅ done | DEV/DRIVER/DRIVER.SYS          |
+| KEYBOARD      | ✅ done | DEV/KEYBOARD/KEYBOARD.SYS      |
+| PRINTER       | ✅ done | DEV/PRINTER/PRINTER.SYS        |
+| RAMDRIVE      | ✅ done | DEV/RAMDRIVE/RAMDRIVE.SYS      |
+| SMARTDRV      | ✅ done | DEV/SMARTDRV/SMARTDRV.SYS      |
+| VDISK         | ✅ done | DEV/VDISK/VDISK.SYS            |
+| XMA2EMS       | ✅ done | DEV/XMA2EMS/XMA2EMS.SYS        |
+| XMAEM         | ✅ done | DEV/XMAEM/XMAEM.SYS            |
+
+### Other
+| Module        | Status  | Output                         |
+|---------------|---------|--------------------------------|
+| SELECT        | ✅ done | SELECT.{EXE,DAT,COM,HLP}       |
+| DEPLOY        | ✅ done | out/floppy.img                 |
+| VERIFY        | ✅ done | headless QEMU boot confirmed   |
+| SYS e2e test  | ✅ done | `make test-sys`                |
 
 ## Manual Testing (Interactive QEMU)
 
