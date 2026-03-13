@@ -2,13 +2,28 @@
 
 ## CMD Utilities
 
-All CMD utilities have been built from source. ✅
+All 38 CMD utilities have been built from source. ✅
 
-## DEV Extras
+## DEV Device Drivers
+
+All 11 device drivers have been built from source. ✅
+
+## Core Modules
+
+All core modules built from source: BIOS/IO.SYS, DOS/MSDOS.SYS, BOOT, INC, MAPPER, MESSAGES, SELECT, MEMM/EMM386.SYS. ✅
+
+## Remaining: DEV Extras
 
 | Item                      | Notes |
 |---------------------------|-------|
-| DEV/SMARTDRV/FLUSH13.EXE | Auxiliary utility for SMARTDRV; not currently built |
+| DEV/SMARTDRV/FLUSH13.EXE | Auxiliary control utility for SMARTDRV cache. 1C + 2ASM (FLUSH13.C + FL13.ASM + FLMES.ASM), link via FLUSH13.LNK → EXE. Only needs `<stdio.h>`. Not shipped with DOS — a developer/debug tool. |
+
+## Source Audit Notes
+
+- `INC/STRING.C` — not a build target; referenced only as a comment in KSTRING.C; superseded code.
+- `INC/KSTRING.C` — built on-demand for FC.EXE (not a standalone `inc` target); covered.
+- `TOOLS/` — pre-built compiler toolchain (MASM, CL, LINK, etc.), not MS-DOS OS source.
+- `DEV/SMARTDRV/SMARTDRV.SYS` — already built by `dev` target. ✅
 
 ## Floppy Image
 
@@ -16,5 +31,5 @@ All CMD utilities have been built from source. ✅
 
 ## Testing
 
-- Extend `make test-sys` / add more e2e tests as more utilities are built.
+- Extend `make test-sys` / add more e2e tests.
 - Add CI step for `make test-sys`.
