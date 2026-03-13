@@ -5,8 +5,13 @@ Build MS-DOS 4.0 from source on Linux using original DOS compilers running under
 ## What this does
 
 1. **Build**: Run the original MS-DOS 4.0 compilers (MASM, CL, LINK, LIB, etc.) under kvikdos to compile and link the OS from source — producing `io.sys`, `msdos.sys`, and `command.com`.
-2. **Deploy**: Boot the result in headless QEMU.
-3. **Verify**: Check that MS-DOS boots successfully via COM1 output.
+2. **Test**: Validate build outputs with integration tests — file existence checks, SHA256 golden checksums, and COMMAND.COM smoke tests.
+
+### Future goals
+
+3. **Deploy**: Boot the result in headless QEMU.
+4. **Verify**: Check that MS-DOS boots successfully via COM1 output.
+5. **CI**: Automated `make test` in CI pipeline.
 
 ## Status
 
@@ -44,7 +49,3 @@ make clean     # remove all generated files
 
 Individual module targets: `messages`, `mapper`, `boot`, `inc`, `bios`, `dos`, `cmd`, `dev`, `select`, `memm`.
 
-## Future plans
-
-- Boot in headless QEMU and verify via COM1
-- CI integration for `make test`
