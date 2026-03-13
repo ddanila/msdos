@@ -1,0 +1,212 @@
+# ---------------------------------------------------------------------------
+# DOS (msdos.sys)
+# ---------------------------------------------------------------------------
+DOS_DIR  := $(SRC)/DOS
+DOS_OUT  := $(DOS_DIR)/MSDOS.SYS
+
+dos: $(DOS_OUT)
+
+# DOS include paths
+DOS_AINC := -I. -ID:\\TOOLS\\INC -I..\\INC
+
+# MSDOS.CL1 / CL3 are already built during the INC step (NOSRVBLD MSDOS.SKL)
+# Re-run only if SKL or message file changed.
+$(DOS_DIR)/MSDOS.CL1: $(DOS_DIR)/MSDOS.SKL $(MESSAGES_OUT)
+	cd $(DOS_DIR) && $(NOSRVBLD) MSDOS.SKL "..\MESSAGES\USA-MS.MSG"
+
+$(DOS_DIR)/MSDOS.CL3: $(DOS_DIR)/MSDOS.CL1
+
+# ---------------------------------------------------------------------------
+# Batch 1: core dispatcher / data objects
+# ---------------------------------------------------------------------------
+$(DOS_DIR)/MSDISP.OBJ: $(DOS_DIR)/MSDISP.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "MSDISP.ASM,MSDISP.OBJ;"
+
+$(DOS_DIR)/MSCODE.OBJ: $(DOS_DIR)/MSCODE.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "MSCODE.ASM,MSCODE.OBJ;"
+
+$(DOS_DIR)/TIME.OBJ: $(DOS_DIR)/TIME.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "TIME.ASM,TIME.OBJ;"
+
+$(DOS_DIR)/GETSET.OBJ: $(DOS_DIR)/GETSET.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "GETSET.ASM,GETSET.OBJ;"
+
+$(DOS_DIR)/PARSE.OBJ: $(DOS_DIR)/PARSE.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "PARSE.ASM,PARSE.OBJ;"
+
+$(DOS_DIR)/MISC.OBJ: $(DOS_DIR)/MISC.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "MISC.ASM,MISC.OBJ;"
+
+$(DOS_DIR)/MISC2.OBJ: $(DOS_DIR)/MISC2.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "MISC2.ASM,MISC2.OBJ;"
+
+$(DOS_DIR)/CRIT.OBJ: $(DOS_DIR)/CRIT.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "CRIT.ASM,CRIT.OBJ;"
+
+# ---------------------------------------------------------------------------
+# Batch 2: I/O and FCB objects
+# ---------------------------------------------------------------------------
+$(DOS_DIR)/CPMIO.OBJ: $(DOS_DIR)/CPMIO.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "CPMIO.ASM,CPMIO.OBJ;"
+
+$(DOS_DIR)/CPMIO2.OBJ: $(DOS_DIR)/CPMIO2.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "CPMIO2.ASM,CPMIO2.OBJ;"
+
+$(DOS_DIR)/FCBIO.OBJ: $(DOS_DIR)/FCBIO.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "FCBIO.ASM,FCBIO.OBJ;"
+
+$(DOS_DIR)/FCBIO2.OBJ: $(DOS_DIR)/FCBIO2.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "FCBIO2.ASM,FCBIO2.OBJ;"
+
+# ---------------------------------------------------------------------------
+# Batch 3: search / path / ioctl
+# ---------------------------------------------------------------------------
+$(DOS_DIR)/SEARCH.OBJ: $(DOS_DIR)/SEARCH.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "SEARCH.ASM,SEARCH.OBJ;"
+
+$(DOS_DIR)/PATH.OBJ: $(DOS_DIR)/PATH.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "PATH.ASM,PATH.OBJ;"
+
+$(DOS_DIR)/IOCTL.OBJ: $(DOS_DIR)/IOCTL.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "IOCTL.ASM,IOCTL.OBJ;"
+
+# ---------------------------------------------------------------------------
+# Batch 4: file operations
+# ---------------------------------------------------------------------------
+$(DOS_DIR)/DELETE.OBJ: $(DOS_DIR)/DELETE.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "DELETE.ASM,DELETE.OBJ;"
+
+$(DOS_DIR)/RENAME.OBJ: $(DOS_DIR)/RENAME.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "RENAME.ASM,RENAME.OBJ;"
+
+$(DOS_DIR)/FINFO.OBJ: $(DOS_DIR)/FINFO.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "FINFO.ASM,FINFO.OBJ;"
+
+$(DOS_DIR)/DUP.OBJ: $(DOS_DIR)/DUP.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "DUP.ASM,DUP.OBJ;"
+
+$(DOS_DIR)/CREATE.OBJ: $(DOS_DIR)/CREATE.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "CREATE.ASM,CREATE.OBJ;"
+
+$(DOS_DIR)/OPEN.OBJ: $(DOS_DIR)/OPEN.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "OPEN.ASM,OPEN.OBJ;"
+
+$(DOS_DIR)/DINFO.OBJ: $(DOS_DIR)/DINFO.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "DINFO.ASM,DINFO.OBJ;"
+
+$(DOS_DIR)/ISEARCH.OBJ: $(DOS_DIR)/ISEARCH.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "ISEARCH.ASM,ISEARCH.OBJ;"
+
+$(DOS_DIR)/ABORT.OBJ: $(DOS_DIR)/ABORT.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "ABORT.ASM,ABORT.OBJ;"
+
+$(DOS_DIR)/CLOSE.OBJ: $(DOS_DIR)/CLOSE.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "CLOSE.ASM,CLOSE.OBJ;"
+
+# ---------------------------------------------------------------------------
+# Batch 5: directory / disk
+# ---------------------------------------------------------------------------
+$(DOS_DIR)/DIRCALL.OBJ: $(DOS_DIR)/DIRCALL.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "DIRCALL.ASM,DIRCALL.OBJ;"
+
+$(DOS_DIR)/DISK.OBJ: $(DOS_DIR)/DISK.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "DISK.ASM,DISK.OBJ;"
+
+$(DOS_DIR)/DISK2.OBJ: $(DOS_DIR)/DISK2.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "DISK2.ASM,DISK2.OBJ;"
+
+$(DOS_DIR)/DISK3.OBJ: $(DOS_DIR)/DISK3.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "DISK3.ASM,DISK3.OBJ;"
+
+$(DOS_DIR)/DIR.OBJ: $(DOS_DIR)/DIR.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "DIR.ASM,DIR.OBJ;"
+
+$(DOS_DIR)/DIR2.OBJ: $(DOS_DIR)/DIR2.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "DIR2.ASM,DIR2.OBJ;"
+
+$(DOS_DIR)/DEV.OBJ: $(DOS_DIR)/DEV.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "DEV.ASM,DEV.OBJ;"
+
+$(DOS_DIR)/MKNODE.OBJ: $(DOS_DIR)/MKNODE.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "MKNODE.ASM,MKNODE.OBJ;"
+
+$(DOS_DIR)/ROM.OBJ: $(DOS_DIR)/ROM.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "ROM.ASM,ROM.OBJ;"
+
+$(DOS_DIR)/FCB.OBJ: $(DOS_DIR)/FCB.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "FCB.ASM,FCB.OBJ;"
+
+$(DOS_DIR)/MSCTRLC.OBJ: $(DOS_DIR)/MSCTRLC.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "MSCTRLC.ASM,MSCTRLC.OBJ;"
+
+$(DOS_DIR)/FAT.OBJ: $(DOS_DIR)/FAT.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "FAT.ASM,FAT.OBJ;"
+
+$(DOS_DIR)/BUF.OBJ: $(DOS_DIR)/BUF.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "BUF.ASM,BUF.OBJ;"
+
+$(DOS_DIR)/PROC.OBJ: $(DOS_DIR)/PROC.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "PROC.ASM,PROC.OBJ;"
+
+$(DOS_DIR)/ALLOC.OBJ: $(DOS_DIR)/ALLOC.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "ALLOC.ASM,ALLOC.OBJ;"
+
+$(DOS_DIR)/SRVCALL.OBJ: $(DOS_DIR)/SRVCALL.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "SRVCALL.ASM,SRVCALL.OBJ;"
+
+$(DOS_DIR)/UTIL.OBJ: $(DOS_DIR)/UTIL.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "UTIL.ASM,UTIL.OBJ;"
+
+$(DOS_DIR)/HANDLE.OBJ: $(DOS_DIR)/HANDLE.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "HANDLE.ASM,HANDLE.OBJ;"
+
+$(DOS_DIR)/MACRO.OBJ: $(DOS_DIR)/MACRO.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "MACRO.ASM,MACRO.OBJ;"
+
+$(DOS_DIR)/MACRO2.OBJ: $(DOS_DIR)/MACRO2.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "MACRO2.ASM,MACRO2.OBJ;"
+
+$(DOS_DIR)/FILE.OBJ: $(DOS_DIR)/FILE.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "FILE.ASM,FILE.OBJ;"
+
+$(DOS_DIR)/LOCK.OBJ: $(DOS_DIR)/LOCK.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "LOCK.ASM,LOCK.OBJ;"
+
+$(DOS_DIR)/SHARE.OBJ: $(DOS_DIR)/SHARE.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "SHARE.ASM,SHARE.OBJ;"
+
+$(DOS_DIR)/EXTATTR.OBJ: $(DOS_DIR)/EXTATTR.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "EXTATTR.ASM,EXTATTR.OBJ;"
+
+$(DOS_DIR)/IFS.OBJ: $(DOS_DIR)/IFS.ASM
+	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "IFS.ASM,IFS.OBJ;"
+
+# ---------------------------------------------------------------------------
+# Link + EXE2BIN -> MSDOS.SYS
+# ---------------------------------------------------------------------------
+# INC objects (already built by the inc target)
+INC_NIBDOS  := $(INC_DIR)/NIBDOS.OBJ
+INC_CONST2  := $(INC_DIR)/CONST2.OBJ
+INC_MSDATA  := $(INC_DIR)/MSDATA.OBJ
+INC_MSTABLE := $(INC_DIR)/MSTABLE.OBJ
+INC_MSDOSME := $(INC_DIR)/MSDOSME.OBJ
+
+DOS_OBJS := MSDISP.OBJ MSCODE.OBJ TIME.OBJ GETSET.OBJ PARSE.OBJ \
+            MISC.OBJ MISC2.OBJ CRIT.OBJ CPMIO.OBJ CPMIO2.OBJ \
+            FCBIO.OBJ FCBIO2.OBJ SEARCH.OBJ PATH.OBJ IOCTL.OBJ \
+            DELETE.OBJ RENAME.OBJ FINFO.OBJ DUP.OBJ CREATE.OBJ \
+            OPEN.OBJ DINFO.OBJ ISEARCH.OBJ ABORT.OBJ CLOSE.OBJ \
+            DIRCALL.OBJ DISK.OBJ DISK2.OBJ DISK3.OBJ DIR.OBJ \
+            DIR2.OBJ DEV.OBJ MKNODE.OBJ ROM.OBJ FCB.OBJ \
+            MSCTRLC.OBJ FAT.OBJ BUF.OBJ PROC.OBJ ALLOC.OBJ \
+            SRVCALL.OBJ UTIL.OBJ HANDLE.OBJ MACRO.OBJ MACRO2.OBJ \
+            FILE.OBJ LOCK.OBJ SHARE.OBJ EXTATTR.OBJ IFS.OBJ
+
+DOS_OBJ_PATHS := $(addprefix $(DOS_DIR)/,$(DOS_OBJS))
+
+$(DOS_DIR)/MSDOS.EXE: $(INC_NIBDOS) $(INC_CONST2) $(INC_MSDATA) \
+    $(INC_MSTABLE) $(INC_MSDOSME) $(DOS_OBJ_PATHS)
+	cd $(DOS_DIR) && $(LINK) "@MSDOS.LNK"
+
+$(DOS_OUT): $(DOS_DIR)/MSDOS.EXE
+	cd $(DOS_DIR) && $(EXE2BIN) "MSDOS.EXE MSDOS.SYS"
