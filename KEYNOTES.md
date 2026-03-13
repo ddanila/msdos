@@ -37,6 +37,7 @@ Without it, git may normalize CRLF→LF on checkout, causing `buildidx` to produ
 | DOS      | ✅ done    | DOS/MSDOS.SYS    |
 | CMD      | ✅ done    | CMD/COMMAND/COMMAND.COM |
 | SYS      | ✅ done    | CMD/SYS/SYS.COM         |
+| FORMAT   | ✅ done    | CMD/FORMAT/FORMAT.COM   |
 | DEV      | ✅ done    | DEV/*/\*.SYS     |
 | SELECT   | ✅ done    | SELECT.{EXE,DAT,COM,HLP} |
 | MEMM     | ✅ done    | MEMM/EMM386.SYS  |
@@ -82,6 +83,8 @@ Steps performed by `tests/test_sys.sh`:
 Key notes:
 - `cache=writethrough` on QEMU floppy drives ensures B: writes are flushed to the file before QEMU is killed by `timeout`.
 - SYS.COM is built from `CMD/SYS/` source (BUILDMSG → CL* → MASM → LINK → EXE2BIN) and included on the floppy image.
+- FORMAT.COM is built from `CMD/FORMAT/` source (BUILDMSG → CL* → MASM × 7 → LINK → CONVERT). Uses `CONVERT.EXE` (not EXE2BIN) to produce COM. MSFOR.ASM needs `BOOT.CL1` copied from `BOOT/` dir (`include BOOT.CL1`) and `BOOT11.INC` from `INC/`.
+- `-serial stdio` with a piped subshell feeds FORMAT's interactive prompts (press ENTER, volume label, format another) at timed intervals. QEMU stdout (COM1 output) is captured via `tee`. The blank target image is all-zeros — no pre-formatting needed; FORMAT.COM does it from scratch.
 
 ## Floppy Image (deploy / verify)
 

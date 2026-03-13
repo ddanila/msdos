@@ -183,6 +183,7 @@ ARTIFACTS := \
     DOS/MSDOS.SYS \
     CMD/COMMAND/COMMAND.COM \
     CMD/SYS/SYS.COM \
+    CMD/FORMAT/FORMAT.COM \
     DEV/ANSI/ANSI.SYS \
     DEV/VDISK/VDISK.SYS \
     DEV/COUNTRY/COUNTRY.SYS \
@@ -221,8 +222,9 @@ IO_SYS      := $(SRC)/BIOS/IO.SYS
 MSDOS_SYS   := $(SRC)/DOS/MSDOS.SYS
 COMMAND_COM := $(SRC)/CMD/COMMAND/COMMAND.COM
 SYS_COM     := $(SRC)/CMD/SYS/SYS.COM
+FORMAT_COM  := $(SRC)/CMD/FORMAT/FORMAT.COM
 
-$(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM)
+$(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT_COM)
 	mkdir -p $(OUT)
 	# blank 1.44MB image
 	dd if=/dev/zero of=$@ bs=512 count=2880 status=none
@@ -239,6 +241,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM)
 	mattrib +h +s +r -i $@ ::IO.SYS
 	mattrib +h +s +r -i $@ ::MSDOS.SYS
 	mcopy -i $@ $(SYS_COM) ::SYS.COM
+	mcopy -i $@ $(FORMAT_COM) ::FORMAT.COM
 
 deploy: all $(FLOPPY)
 
