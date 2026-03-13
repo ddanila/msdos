@@ -10,7 +10,9 @@ dev: \
     $(DEV_DIR)/DRIVER/DRIVER.SYS \
     $(DEV_DIR)/ANSI/ANSI.SYS \
     $(DEV_DIR)/VDISK/VDISK.SYS \
-    $(DEV_DIR)/COUNTRY/COUNTRY.SYS
+    $(DEV_DIR)/COUNTRY/COUNTRY.SYS \
+    $(DEV_DIR)/RAMDRIVE/RAMDRIVE.SYS \
+    $(DEV_DIR)/KEYBOARD/KEYBOARD.SYS
 
 # ---------------------------------------------------------------------------
 # DEV/DRIVER
@@ -87,3 +89,44 @@ $(COUNTRY_DIR)/MKCNTRY.EXE: $(COUNTRY_DIR)/MKCNTRY.OBJ
 
 $(COUNTRY_DIR)/COUNTRY.SYS: $(COUNTRY_DIR)/MKCNTRY.EXE
 	cd $(COUNTRY_DIR) && $(BIN)/dos-run $(COUNTRY_DIR)/MKCNTRY.EXE
+
+# ---------------------------------------------------------------------------
+# DEV/RAMDRIVE (uses -I../../inc forward-slash style; no DOS dir needed)
+# ---------------------------------------------------------------------------
+RAMDRIVE_DIR := $(DEV_DIR)/RAMDRIVE
+
+$(RAMDRIVE_DIR)/RAMDRIVE.OBJ: $(RAMDRIVE_DIR)/RAMDRIVE.ASM
+	cd $(RAMDRIVE_DIR) && $(MASM) "$(AFLAGS) -I. -I..\\..\\INC" "RAMDRIVE.ASM,RAMDRIVE.OBJ;"
+
+$(RAMDRIVE_DIR)/MESSAGES.OBJ: $(RAMDRIVE_DIR)/MESSAGES.ASM
+	cd $(RAMDRIVE_DIR) && $(MASM) "$(AFLAGS) -I. -I..\\..\\INC" "MESSAGES.ASM,MESSAGES.OBJ;"
+
+$(RAMDRIVE_DIR)/RAMDRIVE.EXE: \
+    $(RAMDRIVE_DIR)/RAMDRIVE.OBJ $(RAMDRIVE_DIR)/MESSAGES.OBJ
+	cd $(RAMDRIVE_DIR) && $(LINK) "@RAMDRIVE.LNK"
+
+$(RAMDRIVE_DIR)/RAMDRIVE.SYS: $(RAMDRIVE_DIR)/RAMDRIVE.EXE
+	cd $(RAMDRIVE_DIR) && $(EXE2BIN) "RAMDRIVE.EXE RAMDRIVE.SYS"
+
+# ---------------------------------------------------------------------------
+# DEV/KEYBOARD (20 KDF files)
+# ---------------------------------------------------------------------------
+KEYBOARD_DIR := $(DEV_DIR)/KEYBOARD
+KB_AINC := -I. -I..\\..\\INC
+
+KEYBOARD_OBJS := KDFNOW.OBJ KDFFR120.OBJ KDFFR189.OBJ KDFEOF.OBJ \
+    KDFUK166.OBJ KDFUK168.OBJ KDFIT141.OBJ KDFIT142.OBJ \
+    KDFGE.OBJ KDFSP.OBJ KDFNL.OBJ KDFNO.OBJ KDFDK.OBJ \
+    KDFSG.OBJ KDFSF.OBJ KDFPO.OBJ KDFBE.OBJ KDFCF.OBJ \
+    KDFLA.OBJ KDFSV.OBJ
+
+KEYBOARD_OBJ_PATHS := $(addprefix $(KEYBOARD_DIR)/,$(KEYBOARD_OBJS))
+
+$(KEYBOARD_DIR)/%.OBJ: $(KEYBOARD_DIR)/%.ASM
+	cd $(KEYBOARD_DIR) && $(MASM) "$(AFLAGS) $(KB_AINC)" "$*.ASM,$*.OBJ;"
+
+$(KEYBOARD_DIR)/KEYBOARD.EXE: $(KEYBOARD_OBJ_PATHS)
+	cd $(KEYBOARD_DIR) && $(LINK) "@KEYBOARD.LNK"
+
+$(KEYBOARD_DIR)/KEYBOARD.SYS: $(KEYBOARD_DIR)/KEYBOARD.EXE
+	cd $(KEYBOARD_DIR) && $(EXE2BIN) "KEYBOARD.EXE KEYBOARD.SYS"
