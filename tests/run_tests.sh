@@ -170,6 +170,7 @@ check_help "RECOVER"  "CMD/RECOVER/RECOVER.COM"      "RECOVER"
 check_help "CHKDSK"   "CMD/CHKDSK/CHKDSK.COM"        "CHKDSK"
 check_help "FILESYS"  "CMD/FILESYS/FILESYS.EXE"      "FILESYS"
 check_help "DEBUG"    "CMD/DEBUG/DEBUG.COM"           "DEBUG"
+check_help "FDISK"    "CMD/FDISK/FDISK.EXE"           "FDISK"
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
