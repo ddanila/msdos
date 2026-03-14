@@ -135,10 +135,15 @@ check_help() {
     fi
 }
 
-check_help "MEM"    "CMD/MEM/MEM.EXE"       "MEM"
-check_help "ATTRIB" "CMD/ATTRIB/ATTRIB.EXE" "ATTRIB"
-check_help "XCOPY"  "CMD/XCOPY/XCOPY.EXE"   "XCOPY"
-check_help "FORMAT" "CMD/FORMAT/FORMAT.COM"  "FORMAT"
+check_help "MEM"     "CMD/MEM/MEM.EXE"         "MEM"
+check_help "ATTRIB"  "CMD/ATTRIB/ATTRIB.EXE"  "ATTRIB"
+check_help "XCOPY"   "CMD/XCOPY/XCOPY.EXE"    "XCOPY"
+check_help "FORMAT"  "CMD/FORMAT/FORMAT.COM"   "FORMAT"
+check_help "FC"      "CMD/FC/FC.EXE"           "FC"
+check_help "JOIN"    "CMD/JOIN/JOIN.EXE"        "JOIN"
+check_help "SUBST"   "CMD/SUBST/SUBST.EXE"     "SUBST"
+check_help "REPLACE" "CMD/REPLACE/REPLACE.EXE" "REPLACE"
+check_help "SORT"    "CMD/SORT/SORT.EXE"       "SORT"
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
