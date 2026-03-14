@@ -15,6 +15,23 @@ These rules are enforced by `.gitattributes` in the MS-DOS submodule (`MS-DOS/.g
 Without it, git may normalize CRLF→LF on checkout, causing `buildidx` to produce a different
 `USA-MS.IDX` and breaking SHA256 checks in CI.
 
+### CRLF-in-blob pitfall (perpetually "modified" MSG files)
+
+Commit `18eeeab` in the upstream MS-DOS repo converted data files to CRLF **and stored CRLF
+bytes directly in the git object store** (blobs). This conflicts with `text eol=crlf` in
+`.gitattributes`, which tells git to store LF in blobs and convert LF→CRLF on checkout.
+Result: git normalizes the working-tree CRLF to LF for comparison, finds it doesn't match the
+CRLF blob, and permanently reports `v4.0/src/MESSAGES/USA-MS.MSG` (and similar files) as
+"modified" even when the content is byte-for-byte identical to HEAD.
+
+**Impact:** cosmetic only — `git diff --ignore-cr-at-eol` shows zero real differences, the
+build is unaffected (working-tree files are still CRLF as DOS tools require).
+
+**Correct long-term fix:** change `*.MSG text eol=crlf` → `*.MSG binary` in `.gitattributes`.
+`binary` stores files as-is (CRLF blobs stay CRLF blobs) and disables normalization entirely,
+which is semantically correct since BUILDIDX treats these files as byte-addressed binary data.
+Avoided for now to not diverge from upstream with a large no-content-change commit.
+
 ## Build Architecture
 - kvikdos cannot spawn subprocesses (exec replaces process), so NMAKE is unusable.
 - Linux GNU Makefile calls kvikdos for each individual DOS tool invocation.
