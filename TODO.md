@@ -661,6 +661,14 @@ Internal TSR utilities — no user-facing `/?` help planned.
 - [x] **ATTRIB** — `inmain(line)` in `ATTRIB.C`; scan raw command tail, insert before `main(line)` call.
 - [x] **XCOPY** — `MAIN PROC FAR` in `XCOPY.ASM`; scan DS:81h at EXE startup (DS=PSP), `MOV AX,DGROUP; MOV DS,AX` to reach help string, print+exit.
 - [x] **FORMAT** — `Main_Init` in `FORINIT.ASM`; after `Set_Data_Segment`+`GetCurrentPSP`, push ES, set ES=PSP, scan ES:81h, pop ES, print+exit.
+- [x] **FC** — `main(c, v)` in `FC.C`; insert before version check. `stdio.h` already included via `tools.h`.
+- [x] **JOIN** — `main(c, v)` in `JOIN.C`; insert before `load_msg()`. Compile with `-IC:\H` for `cds.h`.
+- [x] **SUBST** — `main(c, v)` in `SUBST.C`; insert before `load_msg()`. Compile with `-IC:\H`.
+- [x] **REPLACE** — `main(argc, argv)` in `REPLACE.C`; added `stdio.h`+`stdlib.h` includes, insert before `load_msg()`.
+- [x] **SORT** — `SORT:` in `SORT.ASM`; EXE, DS=PSP at entry. Help string before entry label; `push cs/pop ds` before print. Build needs `-I. -IC:\INC` and separate `SORTMES.ASM` assembly.
+- [x] **FIND** — `START:` in `FIND.ASM`; EXE, DS=PSP at entry (DS changed to CS immediately after). Check before `mov ax,cs`. Build needs `-I. -IC:\INC` (for `find.inc` macros like `ljc`).
+- [x] **NLSFUNC** — `MAIN PROC FAR` in `NLSFUNC.ASM`; EXE, DS=PSP at entry. Help string in `NLS_DATA` segment; switch DS to `NLS_DATA` before print.
+- [x] **TREE** — `BEGIN PROC` in `TREE.ASM`; COM via EXE2BIN, CS=DS=PSP throughout. `OFFSET label` gives correct segment-relative address directly.
 - [ ] **CHKDSK** — **SKIPPED** (see note below).
 
 #### CHKDSK /? implementation — blocked by convert tool format
