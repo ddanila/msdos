@@ -397,34 +397,12 @@ Internal TSR utilities — no user-facing `/?` help planned.
 - [ ] **RECOVER** — pending (same CONVERT COM pattern).
 - [ ] **EDLIN** — pending (same CONVERT COM pattern).
 
-#### CHKDSK / RECOVER / EDLIN /? — CONVERT COM pattern (unblocked by PRINT)
+#### CHKDSK / RECOVER / EDLIN /? — use CONVERT COM pattern from KEYNOTES.md
 
-CHKDSK, RECOVER, EDLIN, and PRINT all use `CONVERT.EXE`. CONVERT's init code does a FAR JMP
-to the actual entry, so CS=DG (not PSP) when the entry procedure runs.
-
-**Working pattern (proven in PRINT):**
-1. `MOV AH, 062H; INT 21H; MOV ES, BX` — get PSP segment into ES
-2. Skip spaces: `CMP BYTE PTR ES:[SI], ' '`
-3. Check `ES:[SI]` for `'/'` and `ES:[SI+1]` for `'?'`
-4. `JMP NEAR` relay for no-match; `CALL PT_HELP_END` / `PT_HELP_STR DB "...$"` / `PT_HELP_END: POP DX`
-5. `PUSH CS; POP DS` — CS=DG at runtime (segment containing the help string)
-6. `INT 21h/09h` → `INT 21h/4Ch`
-
-Use SHORT relay (`JNE PT_NO_HELP_J; JMP NEAR PT_CONTINUE`) to avoid MASM SHORT-jump range errors when help string is large.
-
-CHKDSK entry: `CHKMAIN:` in `CHKDSK.ASM` (search for the DG:0x45D8 entry label in the source).
-RECOVER entry: `RECSEG.INC`, DG:0x136F.
-EDLIN entry: `EDLIN.ASM`, entry label in DG group.
-
-### Implementation approach
-
-1. For each tool: add a `/?` check at the very start of `main`/init.
-   - ASM tools: check PSP command tail for `/?`, print help via DOS int 21h
-     function 09h (print $-terminated string), then `int 21h` AH=4Ch.
-   - C tools: `strcmp` argv[1] with `"/?"`; print via `printf`; `exit(0)`.
-2. Keep help strings compact (≤24 lines) to fit a standard 25-line screen.
-3. Build and test each tool after adding help.
-4. Update `tests/golden.sha256` after all changes.
+Entry points:
+- CHKDSK: `CHKMAIN:` in `CHKDSK.ASM` (DG:0x45D8)
+- RECOVER: entry label in `RECSEG.INC` (DG:0x136F)
+- EDLIN: entry label in `EDLIN.ASM` (DG group)
 
 ## Known Issues
 

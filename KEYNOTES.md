@@ -161,6 +161,62 @@ Key notes:
 - RECOVER.COM: 4 ASM files, no SKL. Linked then CONVERT to COM.
 - FASTOPEN.EXE: 5 ASM files (no SKL), `link FASTOPEN+FASTOPC+FASTOPM+FASTOPS+FASTOPN;`. Stays EXE.
 - PRINT.COM: 4 ASM files, no SKL. Linked then CONVERT to COM.
+
+## CONVERT.EXE COM Runtime Environment
+
+**All** of CHKDSK, RECOVER, EDLIN, PRINT, FORMAT, DEBUG, RESTORE, and BACKUP are built
+with `CONVERT.EXE` (not `EXE2BIN`). Any modification to these tools must account for the
+runtime environment CONVERT creates:
+
+**How CONVERT works:** Wraps the linked EXE in a COM file with a 3-byte JMP at offset 0 that jumps to
+CONVERT's own init code (appended at the END of the COM file). The init code:
+1. Gets current IP via `CALL $+3; POP BX` (position-independent)
+2. Reads relocation offsets from the COM header (around bytes 0x116–0x128)
+3. Computes runtime segment addresses and patches far-jump targets in the init code itself
+4. Copies code/data to final memory location
+5. Does a **FAR JMP** to the actual EXE entry point
+
+After the FAR JMP: **CS = the EXE's code segment (DG or similar), not PSP**.
+
+**Implications for any code modification:**
+- `OFFSET label` gives the assembler's DG-relative value. At runtime CS=DG, so `CS:[DG_offset]`
+  is valid. But DS is NOT PSP — do not use DS:[81h] to access the command line.
+- PSP is still accessible via `INT 21h / AH=62h` (returns BX=PSP segment).
+- For position-independent string addresses: use the `CALL/POP` trick — CALL pushes the
+  runtime IP of the next byte (the string start), bypassing DG-relative OFFSET entirely.
+- `PUSH CS; POP DS` sets DS=DG (CS at runtime), so `DS:DX` from CALL/POP is correct for
+  INT 21h/09h string output.
+
+**SHORT-jump range:** MASM 5.x conditional jumps (`JNE`, `JE`) are always SHORT (±127 bytes).
+Use a relay: `JNE short_relay_label; [long code block]; short_relay_label: JMP NEAR far_target`.
+Unconditional `JMP far_target` auto-promotes to NEAR (3 bytes) across MASM's two passes.
+
+**Proven pattern for /? (implemented in PRINT, applicable to CHKDSK/RECOVER/EDLIN):**
+```asm
+   MOV   AH, 062H
+   INT   21H          ; BX = PSP segment
+   MOV   ES, BX       ; ES = PSP
+   MOV   SI, 081H
+SKIP_SP: CMP BYTE PTR ES:[SI],' ' | JNE CHK_SL | INC SI | JMP SHORT SKIP_SP
+CHK_SL:
+   CMP   BYTE PTR ES:[SI], '/'
+   JNE   NO_HELP          ; SHORT (target right below)
+   CMP   BYTE PTR ES:[SI+1], '?'
+   JE    DO_HELP           ; SHORT (target right below — 3 bytes past JMP)
+NO_HELP:
+   JMP   CONTINUE          ; NEAR unconditional — skips the whole help block
+DO_HELP:
+   CALL  HELP_END          ; pushes runtime addr of string, jumps to HELP_END
+HELP_STR DB "...$"
+HELP_END:
+   POP   DX               ; DX = runtime CS-relative address of HELP_STR
+   PUSH  CS | POP DS      ; DS = CS = DG
+   MOV   AH, 09H | INT 21H
+   MOV   AX, 4C00H | INT 21H
+CONTINUE:
+   ; original entry code
+```
+
 - FILESYS.EXE: 1 C file + 2 ASM, no SKL. Link: `link FILESYS+_PARSE+_MSGRET; /NOI` (note space before `/NOI`). Stays EXE.
 - REPLACE.EXE: 1 C + 3 ASM, BUILDMSG for SKL. Links MAPPER.LIB + INC/COMSUBS.LIB. Stays EXE.
 - JOIN.EXE / SUBST.EXE: 1C + 2ASM + INC kernel objects (ERRTST.OBJ, SYSVAR.OBJ, CDS.OBJ, DPB.OBJ already built by `inc` target). Links MAPPER.LIB + INC/COMSUBS.LIB. LNK files reference INC objs by relative path `..\..\inc\*.OBJ`. Stays EXE.
