@@ -198,6 +198,11 @@ Key notes:
   "not changed" and reuse a stale `USA-MS.IDX`, capturing a wrong checksum.
 - Lesson learned: the `USA-MS.IDX` checksum was captured from a pre-CRLF-conversion build,
   causing CI to fail even though the fresh build was correct. Only fresh builds tell the truth.
+- **FC.EXE is excluded** from golden.sha256. Local builds produce `4e36dad...` while CI
+  produces `0494a906...` despite identical source and tools. Root cause unknown — likely
+  KSTRING.OBJ (the only shared INC object, used only by FC) or C runtime resolution differs
+  between environments. FC.EXE is still covered by Section 1 (file exists) and Section 4
+  (/? smoke test). Do not add FC.EXE back to golden.sha256 without resolving this.
 
 ## CI (GitHub Actions)
 
