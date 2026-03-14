@@ -165,6 +165,7 @@ check_help "KEYB"     "CMD/KEYB/KEYB.COM"           "KEYB"
 check_help "GRAPHICS" "CMD/GRAPHICS/GRAPHICS.COM"   "GRAPHICS"
 check_help "MODE"     "CMD/MODE/MODE.COM"            "MODE"
 check_help "PRINT"    "CMD/PRINT/PRINT.COM"          "PRINT"
+check_help "EDLIN"    "CMD/EDLIN/EDLIN.COM"          "EDLIN"
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
