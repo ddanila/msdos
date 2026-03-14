@@ -13,63 +13,15 @@ Build MS-DOS 4.0 from source on Linux using original DOS compilers running under
 
 ## Status
 
+All modules built from source. Full source audit complete.
+
 ### Core (kernel, boot)
 
-| Module   | Output                            |
-|----------|-----------------------------------|
-| MESSAGES | `MESSAGES/USA-MS.IDX`             |
-| MAPPER   | `MAPPER/MAPPER.LIB`               |
-| BOOT     | `INC/boot.inc`                    |
-| INC      | shared kernel objects             |
-| BIOS     | `BIOS/IO.SYS`                     |
-| DOS      | `DOS/MSDOS.SYS`                   |
-| MEMM     | `MEMM/MEMM/EMM386.SYS`            |
-| SELECT   | `SELECT/SELECT.{EXE,COM,HLP,DAT}` |
+`IO.SYS`, `MSDOS.SYS`, `EMM386.SYS`, `MAPPER.LIB`, `boot.inc`, shared kernel objects, `SELECT.{EXE,COM,HLP,DAT}`, `USA-MS.IDX`
 
-### CMD utilities (built so far)
+### CMD utilities (all 36 built)
 
-| Utility  | Output                         |
-|----------|--------------------------------|
-| COMMAND  | `CMD/COMMAND/COMMAND.COM`      |
-| FORMAT   | `CMD/FORMAT/FORMAT.COM`        |
-| SYS      | `CMD/SYS/SYS.COM`              |
-| CHKDSK   | `CMD/CHKDSK/CHKDSK.COM`        |
-| DEBUG    | `CMD/DEBUG/DEBUG.COM`          |
-| MEM      | `CMD/MEM/MEM.EXE`              |
-| FDISK    | `CMD/FDISK/FDISK.EXE`          |
-| MORE     | `CMD/MORE/MORE.COM`            |
-| SORT     | `CMD/SORT/SORT.EXE`            |
-| LABEL    | `CMD/LABEL/LABEL.COM`          |
-| FIND     | `CMD/FIND/FIND.EXE`            |
-| TREE     | `CMD/TREE/TREE.COM`            |
-| COMP     | `CMD/COMP/COMP.COM`            |
-| ATTRIB   | `CMD/ATTRIB/ATTRIB.EXE`        |
-| EDLIN    | `CMD/EDLIN/EDLIN.COM`          |
-| FC       | `CMD/FC/FC.EXE`                |
-| NLSFUNC  | `CMD/NLSFUNC/NLSFUNC.EXE`      |
-| ASSIGN   | `CMD/ASSIGN/ASSIGN.COM`        |
-| XCOPY    | `CMD/XCOPY/XCOPY.EXE`          |
-| DISKCOMP | `CMD/DISKCOMP/DISKCOMP.COM`    |
-| DISKCOPY | `CMD/DISKCOPY/DISKCOPY.COM`    |
-| APPEND   | `CMD/APPEND/APPEND.EXE`        |
-| RECOVER  | `CMD/RECOVER/RECOVER.COM`      |
-| FASTOPEN | `CMD/FASTOPEN/FASTOPEN.EXE`    |
-| PRINT    | `CMD/PRINT/PRINT.COM`          |
-| FILESYS  | `CMD/FILESYS/FILESYS.EXE`      |
-| REPLACE  | `CMD/REPLACE/REPLACE.EXE`      |
-| JOIN     | `CMD/JOIN/JOIN.EXE`            |
-| SUBST    | `CMD/SUBST/SUBST.EXE`          |
-| BACKUP   | `CMD/BACKUP/BACKUP.COM`        |
-| RESTORE  | `CMD/RESTORE/RESTORE.COM`      |
-| GRAFTABL | `CMD/GRAFTABL/GRAFTABL.COM`    |
-| KEYB     | `CMD/KEYB/KEYB.COM`            |
-| SHARE    | `CMD/SHARE/SHARE.EXE`          |
-| EXE2BIN  | `CMD/EXE2BIN/EXE2BIN.EXE`      |
-| GRAPHICS | `CMD/GRAPHICS/GRAPHICS.COM`     |
-| IFSFUNC  | `CMD/IFSFUNC/IFSFUNC.EXE`       |
-| MODE     | `CMD/MODE/MODE.COM`             |
-
-All CMD utilities built from source.
+`COMMAND.COM`, `FORMAT.COM`, `SYS.COM`, `CHKDSK.COM`, `DEBUG.COM`, `MEM.EXE`, `FDISK.EXE`, `MORE.COM`, `SORT.EXE`, `LABEL.COM`, `FIND.EXE`, `TREE.COM`, `COMP.COM`, `ATTRIB.EXE`, `EDLIN.COM`, `FC.EXE`, `NLSFUNC.EXE`, `ASSIGN.COM`, `XCOPY.EXE`, `DISKCOMP.COM`, `DISKCOPY.COM`, `APPEND.EXE`, `RECOVER.COM`, `FASTOPEN.EXE`, `PRINT.COM`, `FILESYS.EXE`, `REPLACE.EXE`, `JOIN.EXE`, `SUBST.EXE`, `BACKUP.COM`, `RESTORE.COM`, `GRAFTABL.COM`, `KEYB.COM`, `SHARE.EXE`, `EXE2BIN.EXE`, `GRAPHICS.COM`, `IFSFUNC.EXE`, `MODE.COM`
 
 ### DEV (device drivers — all 11 built)
 
@@ -85,7 +37,7 @@ All CMD utilities built from source.
 - `tests/` — integration tests (file existence, SHA256 golden checksums, kvikdos smoke tests, SYS e2e)
 - `run-qemu.sh` — launch the floppy image in a graphical QEMU window for manual testing
 - `KEYNOTES.md` — build notes, tips, and architecture decisions
-- `TODO.md` — remaining utilities to build from source
+- `TODO.md` — build notes and completed tasks log
 
 ## Dependencies
 
