@@ -176,6 +176,23 @@ CONVERT's own init code (appended at the END of the COM file). The init code:
 4. Copies code/data to final memory location
 5. Does a **FAR JMP** to the actual EXE entry point
 
+**CONVERT COM file layout** (verified on RECOVER.COM, CHKDSK.COM, etc.):
+- COM byte 0–2: `E9 xx xx` — NEAR JMP to CONVERT init code at end of file
+- COM byte 3–0xF: `"Converted\0"` marker + padding
+- COM byte 0x10: embedded MZ EXE header starts here (512 bytes = 0x200 for these tools)
+- COM byte 0x210 (= 0x10 + header_size): actual EXE data starts here
+- True COM entry = `EXE_data_offset + EXE_IP` (e.g. RECOVER: 0x210 + 0x136F = 0x157F)
+
+**MAP vs COM offset:** The `.MAP` file shows `Program entry point at 0000:NNNN` — this is the
+EXE IP, NOT the COM file byte offset. To find the actual byte where execution begins in the COM
+file: `COM_entry = 0x210 + EXE_IP` (for tools with the standard 512-byte header). Confirmed by
+parsing the embedded MZ header: `header_paras * 16 = 0x200`, data offset `= 0x10 + 0x200 = 0x210`.
+
+**Analyzing COM binaries:** `objdump` can disassemble raw COM/EXE bytes (`-b binary -m i8086`),
+but for CONVERT COM files it doesn't understand the embedded MZ structure. Python is more flexible
+for: (1) parsing OMF OBJ segment/symbol tables to verify code placement, (2) locating the embedded
+MZ header and computing true entry offsets, (3) searching for byte patterns across segments.
+
 After the FAR JMP: **CS = the EXE's code segment (DG or similar), not PSP**.
 
 **Implications for any code modification:**
@@ -262,6 +279,10 @@ CONTINUE:
 
 ## CI (GitHub Actions)
 
+- **Submodule pointer pitfall:** When committing changes to both the submodule and
+  `tests/` (golden.sha256, run_tests.sh), always `git add MS-DOS` in the parent repo too.
+  If only `tests/` is staged, CI will check out the OLD submodule commit and fail the
+  smoke tests because the new binaries are missing. Verify with `git ls-tree HEAD MS-DOS`.
 - Workflow: `.github/workflows/ci.yml`, runs on every push/PR to `master`.
 - Runner: `ubuntu-latest` — has `/dev/kvm` but not accessible by default.
 - KVM fix: add udev rule `KERNEL=="kvm", GROUP="kvm", MODE="0666"` before building.
