@@ -316,13 +316,6 @@ Changes go in the `dos4-enhancements` branch of the MS-DOS fork.
 
 ### Pending usage strings
 
-#### EDLIN (EDLPARSE.ASM)
-```
-EDLIN [drive:][path]filename [/B]
-
-  /B    Ignore Ctrl-Z (EOF) characters — treat file as binary text
-```
-
 #### RECOVER (RECOVER.ASM)
 ```
 RECOVER [drive:][path]filename
@@ -395,14 +388,13 @@ Internal TSR utilities — no user-facing `/?` help planned.
 - [x] **PRINT** — `TRANSIENT:` in `PRINT_T.ASM`; CONVERT COM. CONVERT init does FAR JMP so CS=DG at entry (not PSP). Pattern: `INT 21h/62h` → ES=PSP, check `ES:[81h]` for `/?`; `CALL/POP` → DX=runtime addr of help string; `PUSH CS/POP DS` (CS=DG=string segment) for INT 21h/09h print.
 - [ ] **CHKDSK** — pending (CONVERT COM; same pattern as PRINT should work; see note below).
 - [ ] **RECOVER** — pending (same CONVERT COM pattern).
-- [ ] **EDLIN** — pending (same CONVERT COM pattern).
+- [x] **EDLIN** — `EDLIN:` in `EDLIN.ASM`; CONVERT COM. Same pattern as PRINT: INT 21h/62h → ES=PSP, ES:[81h] check, CALL/POP + PUSH CS/POP DS for print.
 
-#### CHKDSK / RECOVER / EDLIN /? — use CONVERT COM pattern from KEYNOTES.md
+#### CHKDSK / RECOVER /? — use CONVERT COM pattern from KEYNOTES.md
 
 Entry points:
 - CHKDSK: `CHKMAIN:` in `CHKDSK.ASM` (DG:0x45D8)
 - RECOVER: entry label in `RECSEG.INC` (DG:0x136F)
-- EDLIN: entry label in `EDLIN.ASM` (DG group)
 
 ## Known Issues
 
