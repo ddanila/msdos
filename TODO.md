@@ -669,6 +669,11 @@ Internal TSR utilities — no user-facing `/?` help planned.
 - [x] **FIND** — `START:` in `FIND.ASM`; EXE, DS=PSP at entry (DS changed to CS immediately after). Check before `mov ax,cs`. Build needs `-I. -IC:\INC` (for `find.inc` macros like `ljc`).
 - [x] **NLSFUNC** — `MAIN PROC FAR` in `NLSFUNC.ASM`; EXE, DS=PSP at entry. Help string in `NLS_DATA` segment; switch DS to `NLS_DATA` before print.
 - [x] **TREE** — `BEGIN PROC` in `TREE.ASM`; COM via EXE2BIN, CS=DS=PSP throughout. `OFFSET label` gives correct segment-relative address directly.
+- [x] **BACKUP** — `main(argc, argv)` in `BACKUP.C`; added `stdio.h` include; insert after no local vars, before `init()`. Uses `printf`+`exit(0)`.
+- [x] **RESTORE** — `void main(argc, argv)` in `RESTORE.C`; added `stdio.h`, `string.h`, `stdlib.h` includes; insert after local variable declarations, before `sysloadmsg()`. Uses `printf`+`exit(0)`.
+- [x] **DISKCOMP** — `BEGIN PROC NEAR` in `DISKCOMP.ASM`; COM file (ORG 100H), CS=DS=PSP. Help string in data area; scan PSP:81h before `MOV SP, OFFSET MY_STACK_PTR`.
+- [x] **DISKCOPY** — `BEGIN PROC NEAR` in `DISKCOPY.ASM`; COM file (ORG 100H), CS=DS=PSP. Help string in data area; scan PSP:81h before `MOV SP, OFFSET MY_STACK_PTR`.
+- [x] **GRAFTABL** — `MAIN PROC NEAR / ENTRY_POINT` in `GRTAB.ASM`; COM file, jumped to from ORG 100H in `GRTABHAN.ASM`. CS=DS=PSP at entry. Help string in data area before `MAIN PROC`.
 - [ ] **CHKDSK** — **SKIPPED** (see note below).
 
 #### CHKDSK /? implementation — blocked by convert tool format
