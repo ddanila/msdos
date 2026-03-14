@@ -152,6 +152,11 @@ check_help "RESTORE"  "CMD/RESTORE/RESTORE.COM"    "RESTORE"
 check_help "DISKCOMP" "CMD/DISKCOMP/DISKCOMP.COM"  "DISKCOMP"
 check_help "DISKCOPY" "CMD/DISKCOPY/DISKCOPY.COM"  "DISKCOPY"
 check_help "GRAFTABL" "CMD/GRAFTABL/GRAFTABL.COM"  "GRAFTABL"
+check_help "LABEL"    "CMD/LABEL/LABEL.COM"         "LABEL"
+check_help "COMP"     "CMD/COMP/COMP.COM"           "COMP"
+check_help "ASSIGN"   "CMD/ASSIGN/ASSIGN.COM"       "ASSIGN"
+check_help "SHARE"    "CMD/SHARE/SHARE.EXE"         "SHARE"
+check_help "APPEND"   "CMD/APPEND/APPEND.EXE"       "APPEND"
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""

@@ -326,22 +326,6 @@ KEYB [xx[,[yyy][,[drive:][path]filename]]] [/ID:nnn]
   /ID:nnn                  Keyboard hardware ID (for countries with multiple layouts)
 ```
 
-#### APPEND (APPENDP.INC)
-```
-APPEND [[drive:]path[;...]] [/X[:ON|OFF]] [/PATH:ON|OFF] [/E]
-
-  /X[:ON|OFF]      Extend search to EXEC and file search
-  /PATH:ON|OFF     Search appended dirs for files with explicit paths
-  /E               Store appended path list in PATH environment variable
-```
-
-#### ASSIGN (ASSGPARM.INC)
-```
-ASSIGN [x[:]=y[:] [...]] [/STATUS]
-
-  /STATUS   Display current drive assignments
-```
-
 #### PRINT (PRINT_T.ASM)
 ```
 PRINT [/D:device] [/B:bufsiz] [/U:busytick] [/M:maxtick]
@@ -357,14 +341,6 @@ PRINT [/D:device] [/B:bufsiz] [/U:busytick] [/M:maxtick]
   /T            Terminate all files (cancel queue)
   /C            Remove preceding file(s) from queue
   /P            Add preceding file(s) to queue
-```
-
-#### SHARE (GSHARE2.ASM)
-```
-SHARE [/F:filespace] [/L:locks]
-
-  /F:n    Space in bytes for file-sharing info (default 2048)
-  /L:n    Number of simultaneous file locks (default 20)
 ```
 
 #### GRAPHICS (GRPARMS.ASM)
@@ -396,16 +372,6 @@ EDLIN [drive:][path]filename [/B]
 #### EXE2BIN (E2BPARSE.INC)
 ```
 EXE2BIN [drive:][path]input[.EXE] [[drive:][path]output[.BIN]]
-```
-
-#### LABEL (LABEL.ASM)
-```
-LABEL [drive:][label]
-```
-
-#### COMP (COMPPAR.ASM)
-```
-COMP [data1] [data2]
 ```
 
 #### RECOVER (RECOVER.ASM)
@@ -490,6 +456,11 @@ Internal TSR utilities — no user-facing `/?` help planned.
 - [x] **DISKCOMP** — `BEGIN PROC NEAR` in `DISKCOMP.ASM`; COM file (ORG 100H), CS=DS=PSP. Help string in data area; scan PSP:81h before `MOV SP, OFFSET MY_STACK_PTR`.
 - [x] **DISKCOPY** — `BEGIN PROC NEAR` in `DISKCOPY.ASM`; COM file (ORG 100H), CS=DS=PSP. Help string in data area; scan PSP:81h before `MOV SP, OFFSET MY_STACK_PTR`.
 - [x] **GRAFTABL** — `MAIN PROC NEAR / ENTRY_POINT` in `GRTAB.ASM`; COM file, jumped to from ORG 100H in `GRTABHAN.ASM`. CS=DS=PSP at entry. Help string in data area before `MAIN PROC`.
+- [x] **LABEL** — `Main_Begin Proc Near` in `LABEL.ASM`; COM file. Help string before `HEADER` macro invocation; scan before `mov sp,offset End_Stack_Area`.
+- [x] **COMP** — `init proc near` in `COMP2.ASM`; COM file, jumped to from `START:` in `COMP1.ASM`. Help string before `init proc`; scan at start of `init`.
+- [x] **ASSIGN** — `INITIALIZATION:` in `ASSGMAIN.ASM`; COM file, jumped to from `ENTRY_POINT:` at ORG 100H. Help string before `INITIALIZATION:`; scan checks DS:[SI], uses `PUSH CS / POP DS` pattern (but COM so CS=DS — safe either way).
+- [x] **SHARE** — `Procedure SHAREINIT,NEAR` in `GSHARE2.ASM`; EXE file. DS=PSP at entry, CS=SHARE segment. Check DS:[SI]; `PUSH CS / POP DS` to access help string before `MOV DX, OFFSET SHARE_HELP_STR`.
+- [x] **APPEND** — `main_begin:` in `APPEND.ASM`; EXE file (cseg segment). DS=PSP at entry, CS=cseg. Help string in cseg data area; `PUSH CS / POP DS` before printing.
 - [ ] **CHKDSK** — **SKIPPED** (see note below).
 
 #### CHKDSK /? implementation — blocked by convert tool format
