@@ -489,3 +489,23 @@ can be patched to embed a plain `ORG 100h` COM structure instead.
 2. Keep help strings compact (≤24 lines) to fit a standard 25-line screen.
 3. Build and test each tool after adding help.
 4. Update `tests/golden.sha256` after all changes.
+
+## Known Issues
+
+### USA-MS.MSG spurious git diff
+
+After any `make` build, `v4.0/src/MESSAGES/USA-MS.MSG` always shows as modified in
+the MS-DOS submodule even though file content (and SHA256) is identical to HEAD.
+
+**Root cause (suspected):** `.gitattributes` sets `*.MSG text eol=crlf`, so git
+internally normalizes the blob to LF but checks out CRLF to the working tree.
+Something in the build pipeline (possibly `make clean` + re-checkout, or a tool
+that touches the file) causes the index to diverge from HEAD's blob, producing a
+spurious 1186-line diff that is purely a CRLF↔LF conversion with no real changes.
+
+**Impact:** Cosmetic only — `git status` in the submodule always shows the file as
+dirty. Does not affect builds or CI.
+
+**To fix:** Investigate whether the build rewrites the file (check makefiles for
+any rule targeting `USA-MS.MSG`). If not, the gitattribute may need adjustment
+(e.g., `*.MSG -text` to store as-is without normalization).
