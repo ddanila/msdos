@@ -98,6 +98,15 @@ if [[ -f "$GOLDEN" ]]; then
     if (cd "$SRC" && sha256sum --check "$GOLDEN" --quiet 2>&1); then
         ok "all checksums match"
     else
+        echo "  Actual checksums of mismatched files:"
+        while IFS= read -r line; do
+            expected_hash="${line%% *}"
+            filepath="${line##* }"
+            actual_hash=$(cd "$SRC" && sha256sum "$filepath" 2>/dev/null | cut -d' ' -f1)
+            if [[ "$actual_hash" != "$expected_hash" ]]; then
+                echo "    $filepath: expected=$expected_hash actual=$actual_hash"
+            fi
+        done < "$GOLDEN"
         fail "checksum mismatch (run 'make gen-checksums' to regenerate)"
     fi
 else
