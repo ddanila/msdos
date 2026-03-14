@@ -196,12 +196,12 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 #### FDISK
 - [ ] `FDISK` — interactive (smoke test: launches and exits)
 - [ ] `FDISK /PRI` — create primary partition
-- [ ] `FDISK /?` — usage
+- [x] `FDISK /?` — usage
 
 #### DEBUG
 - [ ] `DEBUG` — launch and quit (`Q` command)
 - [ ] `DEBUG file` — load file
-- [ ] `DEBUG /?` — usage
+- [x] `DEBUG /?` — usage
 
 #### MORE
 - [ ] `MORE < file` — page through file
@@ -300,11 +300,11 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 
 #### IFSFUNC
 - [ ] `IFSFUNC` — load IFS driver (smoke test)
-- [ ] `IFSFUNC /?` — usage
+- [x] `IFSFUNC /?` — usage
 
 #### FILESYS
 - [ ] `FILESYS` — load (smoke test, internal tool)
-- [ ] `FILESYS /?` — usage
+- [x] `FILESYS /?` — usage
 
 ## Add /? Usage Strings to CMD Tools
 
@@ -316,12 +316,6 @@ Changes go in the `dos4-enhancements` branch of the MS-DOS fork.
 
 ### Pending usage strings
 
-#### RECOVER (RECOVER.ASM)
-```
-RECOVER [drive:][path]filename
-RECOVER drive:
-```
-
 #### COMMAND (INIT.ASM / CPARSE.ASM)
 ```
 COMMAND [[drive:]path] [device] [/E:nnnnn] [/P] [/MSG] [/C string]
@@ -331,26 +325,6 @@ COMMAND [[drive:]path] [device] [/E:nnnnn] [/P] [/MSG] [/C string]
   /MSG       Store error messages in memory (for floppy use)
   /C string  Run command string then return
 ```
-
-#### FDISK (PARSE.H / _PARSE.ASM)
-```
-FDISK [/PRI[:n]] [/EXT[:n]] [/LOG[:n]] [/Q]
-
-  /PRI[:n]   Create primary DOS partition (size in MB or %)
-  /EXT[:n]   Create extended DOS partition
-  /LOG[:n]   Create logical drive in extended partition
-  /Q         Quiet (no prompts); used with above switches
-```
-
-#### DEBUG
-```
-DEBUG [[drive:][path]filename [arglist]]
-```
-Interactive debugger — no command-line switches; all control via
-interactive commands (A, D, E, G, N, P, Q, R, T, U, W, etc.).
-
-#### FILESYS / IFSFUNC
-Internal TSR utilities — no user-facing `/?` help planned.
 
 #### CHKDSK — SKIPPED (see note below)
 
@@ -389,6 +363,10 @@ Internal TSR utilities — no user-facing `/?` help planned.
 - [x] **CHKDSK** — `Main_Init` in `CHKINIT.ASM`; CONVERT COM. Same pattern as PRINT/EDLIN/RECOVER: INT 21h/62h → ES=PSP, ES:[81h] check, CALL/POP + PUSH CS/POP DS for print. File has CP437 non-ASCII bytes → binary-safe Python edit.
 - [x] **RECOVER** — `Main_Init` in `RECINIT.ASM`; CONVERT COM. Same pattern as PRINT/EDLIN: INT 21h/62h → ES=PSP, ES:[81h] check, CALL/POP + PUSH CS/POP DS for print.
 - [x] **EDLIN** — `EDLIN:` in `EDLIN.ASM`; CONVERT COM. Same pattern as PRINT: INT 21h/62h → ES=PSP, ES:[81h] check, CALL/POP + PUSH CS/POP DS for print.
+- [x] **FILESYS** — `void main(argc,argv)` in `FILESYS.C`; EXE. Check `argv[1]` for `/?` before `sysloadmsg`. Uses `printf`+`exit(0)`.
+- [x] **DEBUG** — `DSTRT:` in `DEBUG.ASM`; CONVERT COM. INT 21h/62h → ES=PSP, check ES:[81h] before `PRE_LOAD_MESSAGE`. JE/JMP relay to avoid short-jump range limit (string is ~104 bytes).
+- [x] **FDISK** — `void main(argc,argv)` in `MAIN.C`; EXE. Check `argv[1]` for `/?` before `signal()`+`preload_messages()`. Uses `printf`+`exit(0)`.
+- [x] **IFSFUNC** — `IFSFUNCINIT:` in `IFSINIT.ASM`; EXE, DS=PSP at entry. Check DS:[81h] before `SYSLOADMSG`. JE/JMP relay pattern; `PUSH CS/POP DS` + CALL/POP for print.
 
 
 ## Known Issues
