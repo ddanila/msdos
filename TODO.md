@@ -29,6 +29,313 @@ All core modules built from source: BIOS/IO.SYS, DOS/MSDOS.SYS, BOOT, INC, MAPPE
 - Extend `make test-sys` / add more e2e tests.
 - Add CI step for `make test-sys`.
 
+## E2E Tests — Per-Command, Per-Option Coverage
+
+Goal: every command (external tool and COMMAND.COM built-in) and every
+recognized option gets at least one integration test. Tests run the real
+DOS binary under kvikdos or QEMU, check exit code and/or COM1/stdout output.
+
+**Test harness notes:**
+- External tools (MEM, XCOPY, etc.): invoke via kvikdos directly where
+  possible; fall back to QEMU+COM1 for disk-heavy operations.
+- Built-ins: invoke as `COMMAND /C "CMD args"` via kvikdos or QEMU.
+- For `/? ` tests: just check that the tool prints something and exits 0.
+- For functional tests: set up a minimal disk image with known files/state,
+  run command, inspect result (file presence, content, exit code, output).
+
+---
+
+### COMMAND.COM built-in commands
+
+Built-ins extracted from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
+
+| Command | Options / forms to test |
+|---------|------------------------|
+| DIR | no args (list CWD), path, `*` wildcard, `/W` (wide), `/P` (pause/page) |
+| COPY | src dest, src+src2 dest (concat), `/A` (ASCII), `/B` (binary), `/V` (verify) |
+| DEL / ERASE | single file, wildcard `*.*`, read-only file (should fail) |
+| REN / RENAME | simple rename, rename to existing (should fail) |
+| TYPE | text file, binary file (^Z mid-file with /B) |
+| MD / MKDIR | new dir, nested path, already-exists (should fail) |
+| CD / CHDIR | relative, absolute, drive-rooted, no-arg (print CWD) |
+| RD / RMDIR | empty dir, non-empty dir (should fail) |
+| SET | set new var, overwrite var, clear var (`SET VAR=`), no-arg (print env) |
+| PATH | set path, clear path (`PATH ;`), no-arg (print current) |
+| PROMPT | set prompt string, clear prompt |
+| DATE | no-arg (show date), set date |
+| TIME | no-arg (show time), set time |
+| VER | no args (shows version) |
+| VOL | no-arg (current drive), `drive:` |
+| BREAK | `BREAK ON`, `BREAK OFF`, no-arg (show state) |
+| VERIFY | `VERIFY ON`, `VERIFY OFF`, no-arg (show state) |
+| ECHO | `ECHO message`, `ECHO ON`, `ECHO OFF`, `ECHO.` (blank line) |
+| CLS | no args |
+| EXIT | exits secondary COMMAND shell |
+| CTTY | redirect to device (e.g., `CTTY COM1`) |
+| PAUSE | no-arg (waits for keypress) |
+| REM | comment — no output |
+| CHCP | no-arg (show code page), `CHCP nnn` (set code page) |
+| TRUENAME | path (returns canonical full path) |
+| CALL | `CALL batchfile [args]` — calls sub-batch, returns |
+| GOTO | `GOTO label` in batch |
+| SHIFT | shift batch `%1..%9` arguments left |
+| IF | `IF EXIST file cmd`, `IF ERRORLEVEL n cmd`, `IF str==str cmd`, `IF NOT ...` |
+| FOR | `FOR %%v IN (set) DO cmd` |
+
+---
+
+### External CMD tools
+
+#### FORMAT
+- [ ] `FORMAT A: /V:LABEL` — format with volume label
+- [ ] `FORMAT A: /S` — format + system files
+- [ ] `FORMAT A: /B` — format + reserve space
+- [ ] `FORMAT A: /F:720` — format specific size
+- [ ] `FORMAT A: /T:80 /N:9` — explicit tracks+sectors
+- [ ] `FORMAT A: /4` — 360K in 1.2MB drive
+- [ ] `FORMAT A: /1` — single-sided
+- [ ] `FORMAT A: /8` — 8 sectors/track
+- [ ] `FORMAT A: /?` — usage
+
+#### MEM
+- [ ] `MEM` — basic output (totals)
+- [ ] `MEM /PROGRAM` — show loaded programs
+- [ ] `MEM /DEBUG` — show internal drivers
+- [ ] `MEM /?` — usage
+
+#### CHKDSK
+- [ ] `CHKDSK` — check current drive
+- [ ] `CHKDSK A:` — check specific drive
+- [ ] `CHKDSK A: /F` — fix errors
+- [ ] `CHKDSK A: /V` — verbose (all paths)
+- [ ] `CHKDSK A:*.* ` — check specific files
+- [ ] `CHKDSK /?` — usage
+
+#### XCOPY
+- [ ] `XCOPY src dest` — basic copy
+- [ ] `XCOPY src dest /S` — include subdirs
+- [ ] `XCOPY src dest /S /E` — include empty subdirs
+- [ ] `XCOPY src dest /A` — archive flag only
+- [ ] `XCOPY src dest /M` — archive flag, then clear
+- [ ] `XCOPY src dest /D:01-01-88` — by date
+- [ ] `XCOPY src dest /P` — prompt per file
+- [ ] `XCOPY src dest /V` — verify
+- [ ] `XCOPY src dest /W` — wait before start
+- [ ] `XCOPY /?` — usage
+
+#### ATTRIB
+- [ ] `ATTRIB file` — show attributes
+- [ ] `ATTRIB +R file` — set read-only
+- [ ] `ATTRIB -R file` — clear read-only
+- [ ] `ATTRIB +A file` — set archive
+- [ ] `ATTRIB -A file` — clear archive
+- [ ] `ATTRIB +R +A file /S` — recursive subdirs
+- [ ] `ATTRIB /?` — usage
+
+#### FIND
+- [ ] `FIND "string" file` — basic search
+- [ ] `FIND /V "string" file` — non-matching lines
+- [ ] `FIND /C "string" file` — count only
+- [ ] `FIND /N "string" file` — with line numbers
+- [ ] `FIND /?` — usage
+
+#### SORT
+- [ ] `SORT < file` — sort stdin
+- [ ] `SORT /R < file` — reverse sort
+- [ ] `SORT /+3 < file` — sort by column 3
+- [ ] `SORT /?` — usage
+
+#### TREE
+- [ ] `TREE` — directory tree
+- [ ] `TREE /F` — include filenames
+- [ ] `TREE /A` — ASCII chars (no line-drawing)
+- [ ] `TREE /?` — usage
+
+#### REPLACE
+- [ ] `REPLACE src dest` — replace existing
+- [ ] `REPLACE src dest /A` — add new files only
+- [ ] `REPLACE src dest /P` — prompt
+- [ ] `REPLACE src dest /R` — overwrite read-only
+- [ ] `REPLACE src dest /S` — recurse subdirs
+- [ ] `REPLACE src dest /U` — only if dest older
+- [ ] `REPLACE src dest /W` — wait before start
+- [ ] `REPLACE /?` — usage
+
+#### BACKUP
+- [ ] `BACKUP C: A:` — basic backup
+- [ ] `BACKUP C: A: /S` — include subdirs
+- [ ] `BACKUP C: A: /M` — modified only
+- [ ] `BACKUP C: A: /A` — append to existing set
+- [ ] `BACKUP C: A: /D:01-01-88` — since date
+- [ ] `BACKUP C: A: /T:00:00:00` — since time
+- [ ] `BACKUP C: A: /L:backup.log` — write log
+- [ ] `BACKUP C: A: /F` — format target if needed
+- [ ] `BACKUP /?` — usage
+
+#### RESTORE
+- [ ] `RESTORE A: C:` — restore all
+- [ ] `RESTORE A: C: /S` — include subdirs
+- [ ] `RESTORE A: C: /P` — prompt on conflicts
+- [ ] `RESTORE A: C: /M` — modified only
+- [ ] `RESTORE A: C: /N` — missing files only
+- [ ] `RESTORE A: C: /B:01-01-88` — on or before date
+- [ ] `RESTORE A: C: /A:01-01-88` — on or after date
+- [ ] `RESTORE A: C: /E:12:00:00` — on or before time
+- [ ] `RESTORE A: C: /L:12:00:00` — on or after time
+- [ ] `RESTORE /?` — usage
+
+#### FC
+- [ ] `FC file1 file2` — ASCII diff
+- [ ] `FC /B file1 file2` — binary diff
+- [ ] `FC /C file1 file2` — case-insensitive
+- [ ] `FC /L file1 file2` — explicit ASCII mode
+- [ ] `FC /N file1 file2` — line numbers
+- [ ] `FC /T file1 file2` — no tab expansion
+- [ ] `FC /W file1 file2` — compress whitespace
+- [ ] `FC /5 file1 file2` — custom resync count
+- [ ] `FC /?` — usage
+
+#### DISKCOMP
+- [ ] `DISKCOMP A: A:` — compare floppies
+- [ ] `DISKCOMP A: A: /1` — single-sided only
+- [ ] `DISKCOMP A: A: /8` — 8 sectors/track only
+- [ ] `DISKCOMP /?` — usage
+
+#### DISKCOPY
+- [ ] `DISKCOPY A: A:` — copy floppy
+- [ ] `DISKCOPY A: A: /1` — single-sided
+- [ ] `DISKCOPY A: A: /V` — verify after
+- [ ] `DISKCOPY /?` — usage
+
+#### COMP
+- [ ] `COMP file1 file2` — compare files (same)
+- [ ] `COMP file1 file2` — compare files (different)
+- [ ] `COMP /?` — usage
+
+#### LABEL
+- [ ] `LABEL` — prompt for label
+- [ ] `LABEL A:MYLABEL` — set label directly
+- [ ] `LABEL A:` — remove label (empty)
+- [ ] `LABEL /?` — usage
+
+#### EDLIN
+- [ ] `EDLIN file` — open file for editing
+- [ ] `EDLIN file /B` — binary (ignore ^Z)
+- [ ] `EDLIN /?` — usage
+
+#### FDISK
+- [ ] `FDISK` — interactive (smoke test: launches and exits)
+- [ ] `FDISK /PRI` — create primary partition
+- [ ] `FDISK /?` — usage
+
+#### DEBUG
+- [ ] `DEBUG` — launch and quit (`Q` command)
+- [ ] `DEBUG file` — load file
+- [ ] `DEBUG /?` — usage (if /? added)
+
+#### MORE
+- [ ] `MORE < file` — page through file
+- [ ] `command | MORE` — piped input
+- [ ] `MORE /?` — usage
+
+#### PRINT
+- [ ] `PRINT /D:PRN file` — print to device
+- [ ] `PRINT /T` — cancel queue
+- [ ] `PRINT file /P` — add to queue
+- [ ] `PRINT file /C` — remove from queue
+- [ ] `PRINT /Q:5 file` — set queue size
+- [ ] `PRINT /?` — usage
+
+#### SYS
+- [ ] `SYS A:` — transfer system files
+- [ ] `SYS /?` — usage
+
+#### KEYB
+- [ ] `KEYB US` — load US keyboard
+- [ ] `KEYB GR,,KEYBOARD.SYS` — explicit file
+- [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with ID
+- [ ] `KEYB` — show current layout
+- [ ] `KEYB /?` — usage
+
+#### NLSFUNC
+- [ ] `NLSFUNC` — load with default COUNTRY.SYS
+- [ ] `NLSFUNC C:\COUNTRY.SYS` — explicit path
+- [ ] `NLSFUNC /?` — usage
+
+#### GRAFTABL
+- [ ] `GRAFTABL 437` — load code page 437
+- [ ] `GRAFTABL 850` — load code page 850
+- [ ] `GRAFTABL /STATUS` — show current
+- [ ] `GRAFTABL /?` — usage
+
+#### APPEND
+- [ ] `APPEND /E` — init with environment
+- [ ] `APPEND C:\DOS` — set append path
+- [ ] `APPEND ;` — clear append path
+- [ ] `APPEND /PATH:ON` — search appended dirs for explicit paths
+- [ ] `APPEND /X` — extend to EXEC search
+- [ ] `APPEND` — show current path
+- [ ] `APPEND /?` — usage
+
+#### ASSIGN
+- [ ] `ASSIGN A=B` — redirect A: to B:
+- [ ] `ASSIGN` — clear all assignments
+- [ ] `ASSIGN /STATUS` — show assignments
+- [ ] `ASSIGN /?` — usage
+
+#### JOIN
+- [ ] `JOIN A: C:\FLOPPY` — join drive to path
+- [ ] `JOIN A: /D` — remove join
+- [ ] `JOIN` — show current joins
+- [ ] `JOIN /?` — usage
+
+#### SUBST
+- [ ] `SUBST X: C:\LONGPATH` — create substitution
+- [ ] `SUBST X: /D` — remove substitution
+- [ ] `SUBST` — show substitutions
+- [ ] `SUBST /?` — usage
+
+#### SHARE
+- [ ] `SHARE` — load with defaults
+- [ ] `SHARE /F:4096 /L:40` — custom file space and locks
+- [ ] `SHARE /?` — usage
+
+#### FASTOPEN
+- [ ] `FASTOPEN C:=50` — cache 50 entries
+- [ ] `FASTOPEN C:=50 /X` — use expanded memory
+- [ ] `FASTOPEN /?` — usage
+
+#### GRAPHICS
+- [ ] `GRAPHICS` — load default (GRAPHICS.PRO)
+- [ ] `GRAPHICS COLOR4 /R` — color4 reversed
+- [ ] `GRAPHICS HPDEFAULT /B` — with background
+- [ ] `GRAPHICS /?` — usage
+
+#### MODE
+- [ ] `MODE COM1: 9600,N,8,1` — configure serial
+- [ ] `MODE LPT1: 80,66` — configure parallel
+- [ ] `MODE CON COLS=80 LINES=25` — configure console
+- [ ] `MODE CON RATE=30 DELAY=1` — typematic rate
+- [ ] `MODE CON /STATUS` — show console status
+- [ ] `MODE /?` — usage
+
+#### RECOVER
+- [ ] `RECOVER A:file` — recover bad-sector file
+- [ ] `RECOVER A:` — recover entire disk
+- [ ] `RECOVER /?` — usage
+
+#### EXE2BIN
+- [ ] `EXE2BIN prog.exe prog.bin` — basic conversion
+- [ ] `EXE2BIN /?` — usage
+
+#### IFSFUNC
+- [ ] `IFSFUNC` — load IFS driver (smoke test)
+- [ ] `IFSFUNC /?` — usage
+
+#### FILESYS
+- [ ] `FILESYS` — load (smoke test, internal tool)
+- [ ] `FILESYS /?` — usage
+
 ## Add /? Usage Strings to CMD Tools
 
 All tools should print usage when invoked with `/?`, like MS-DOS 6.22.
