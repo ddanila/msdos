@@ -168,6 +168,7 @@ check_help "PRINT"    "CMD/PRINT/PRINT.COM"          "PRINT"
 check_help "EDLIN"    "CMD/EDLIN/EDLIN.COM"          "EDLIN"
 check_help "RECOVER"  "CMD/RECOVER/RECOVER.COM"      "RECOVER"
 check_help "CHKDSK"   "CMD/CHKDSK/CHKDSK.COM"        "CHKDSK"
+check_help "FILESYS"  "CMD/FILESYS/FILESYS.EXE"      "FILESYS"
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
