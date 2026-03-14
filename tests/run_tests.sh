@@ -115,6 +115,31 @@ else
     fail "COMMAND.COM /C EXIT  (exit code $?)"
 fi
 
+# ── Section 4: /? help smoke tests ──────────────────────────────────────────
+echo ""
+echo "=== Section 4: /? help smoke tests ==="
+
+# Run a tool with /? and check that expected text appears in stdout.
+# Exit code is ignored (|| true) because some tools (e.g. ATTRIB) trigger a
+# kvikdos warning about unsupported INT 00 restore — cosmetic on real DOS.
+check_help() {
+    local name="$1"
+    local tool="$2"
+    local expected="$3"
+    local output
+    output=$("$BIN/dos-run" "$SRC/$tool" /? 2>/dev/null) || true
+    if echo "$output" | grep -q "$expected"; then
+        ok "$name /?"
+    else
+        fail "$name /?  (expected '$expected' in output, got: $(echo "$output" | head -3))"
+    fi
+}
+
+check_help "MEM"    "CMD/MEM/MEM.EXE"       "MEM"
+check_help "ATTRIB" "CMD/ATTRIB/ATTRIB.EXE" "ATTRIB"
+check_help "XCOPY"  "CMD/XCOPY/XCOPY.EXE"   "XCOPY"
+check_help "FORMAT" "CMD/FORMAT/FORMAT.COM"  "FORMAT"
+
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

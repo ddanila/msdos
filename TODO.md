@@ -11,7 +11,7 @@ DOS binary under kvikdos or QEMU, check exit code and/or COM1/stdout output.
 - External tools (MEM, XCOPY, etc.): invoke via kvikdos directly where
   possible; fall back to QEMU+COM1 for disk-heavy operations.
 - Built-ins: invoke as `COMMAND /C "CMD args"` via kvikdos or QEMU.
-- For `/?` tests: check that the tool prints something and exits 0.
+- For `/?` tests: check that the tool prints something and exits 0. Add as fast smoke tests in CI (kvikdos invocation, very cheap to run).
 - For functional tests: set up a minimal disk image with known files/state,
   run command, inspect result (file presence, content, exit code, output).
 - [ ] Add CI job that pins `MS-DOS` submodule to `main` and verifies
@@ -654,6 +654,31 @@ interactive commands (A, D, E, G, N, P, Q, R, T, U, W, etc.).
 
 ### FILESYS / IFSFUNC
 Internal TSR utilities — no user-facing `/?` help planned.
+
+### Implementation status (dos4-enhancements branch)
+
+- [x] **MEM** — `main(argc, argv)` in `MEM.C`; insert before `sysloadmsg`. Uses `printf`+`exit(0)`.
+- [x] **ATTRIB** — `inmain(line)` in `ATTRIB.C`; scan raw command tail, insert before `main(line)` call.
+- [x] **XCOPY** — `MAIN PROC FAR` in `XCOPY.ASM`; scan DS:81h at EXE startup (DS=PSP), `MOV AX,DGROUP; MOV DS,AX` to reach help string, print+exit.
+- [x] **FORMAT** — `Main_Init` in `FORINIT.ASM`; after `Set_Data_Segment`+`GetCurrentPSP`, push ES, set ES=PSP, scan ES:81h, pop ES, print+exit.
+- [ ] **CHKDSK** — **SKIPPED** (see note below).
+
+#### CHKDSK /? implementation — blocked by convert tool format
+
+CHKDSK uses a custom `CONVERT.EXE` tool (not standard EXE2BIN) that produces a non-standard COM file:
+the output is `[3-byte JMP] + "Converted" label + [embedded MZ EXE]`. The JMP jumps to the entry
+within the embedded EXE (offset 0x45D8 in CS space). Labels in CHKDSK1.ASM (CODE segment in DG group)
+have DG-relative offsets. At runtime CS=DS=PSP segment. DG base is at paragraph 0x0007 = image offset 0x70.
+
+Addressing works correctly for jumps (near JMP displacement is relative, cancels the DG offset difference).
+But `lea dx, string_label` gives the DG-relative offset which, when used with DS=PSP, resolves to a
+DIFFERENT memory location than the string actually occupies at runtime (off by the DG base + COM embed
+offset). The `call/pop` position-independent trick also fails for the same reason — the pushed IP is
+correct (actual runtime IP), but DS doesn't align with it.
+
+**To implement CHKDSK /?**: The help string would need to be accessed via `CS:` override (not DS),
+OR find the exact runtime offset formula for this embed format. Alternatively, check if CHKDSK
+can be patched to embed a plain `ORG 100h` COM structure instead.
 
 ### Implementation approach
 
