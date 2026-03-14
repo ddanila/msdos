@@ -160,6 +160,7 @@ check_help "APPEND"   "CMD/APPEND/APPEND.EXE"       "APPEND"
 check_help "MORE"     "CMD/MORE/MORE.COM"            "MORE"
 check_help "SYS"      "CMD/SYS/SYS.COM"             "SYS"
 check_help "EXE2BIN"  "CMD/EXE2BIN/EXE2BIN.EXE"    "EXE2BIN"
+check_help "FASTOPEN" "CMD/FASTOPEN/FASTOPEN.EXE"   "FASTOPEN"
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""

@@ -47,3 +47,6 @@ jobs:
 
       - name: Verify headless boot (make verify)
         run: make verify
+
+      - name: SYS e2e test (make test-sys)
+        run: make test-sys

@@ -7,7 +7,7 @@ recognized option gets at least one integration test. Tests run the real
 DOS binary under kvikdos or QEMU, check exit code and/or COM1/stdout output.
 
 **Harness setup:**
-- [ ] Add CI step for `make test-sys`.
+- [x] Add CI step for `make test-sys`.
 - External tools (MEM, XCOPY, etc.): invoke via kvikdos directly where
   possible; fall back to QEMU+COM1 for disk-heavy operations.
 - Built-ins: invoke as `COMMAND /C "CMD args"` via kvikdos or QEMU.
@@ -461,14 +461,24 @@ Internal TSR utilities — no user-facing `/?` help planned.
 - [x] **ASSIGN** — `INITIALIZATION:` in `ASSGMAIN.ASM`; COM file, jumped to from `ENTRY_POINT:` at ORG 100H. Help string before `INITIALIZATION:`; scan checks DS:[SI], uses `PUSH CS / POP DS` pattern (but COM so CS=DS — safe either way).
 - [x] **SHARE** — `Procedure SHAREINIT,NEAR` in `GSHARE2.ASM`; EXE file. DS=PSP at entry, CS=SHARE segment. Check DS:[SI]; `PUSH CS / POP DS` to access help string before `MOV DX, OFFSET SHARE_HELP_STR`.
 - [x] **APPEND** — `main_begin:` in `APPEND.ASM`; EXE file (cseg segment). DS=PSP at entry, CS=cseg. Help string in cseg data area; `PUSH CS / POP DS` before printing.
+- [x] **MORE** — `START:` in `MORE.ASM`; COM via EXE2BIN, single CODE segment, CS=DS=PSP throughout. Help string in data area after check code, before existing querylist data; scan PSP:81h, jump to `START1`.
+- [x] **SYS** — `START:` in `SYS1.ASM`; COM via EXE2BIN, `ORG 80H` (PSP overlap trick). At entry CS=DS=PSP. Check DS:81h; `PUSH CS/POP DS` not needed since CS=DS. Help string placed after check code, before `BEGIN`.
+- [x] **EXE2BIN** — `Main_Init` in `E2BINIT.ASM`; EXE, DS=PSP at entry (CS=CODE). Check DS:81h before `PUSH DS`; `PUSH CS/POP DS` to access help string in CODE segment.
+- [x] **FASTOPEN** — `START:` in `FASTINIT.ASM`; EXE, DS=PSP at entry (CS=CSEG_INIT). Check DS:81h before `push cs/pop ds` setup. Help string placed before `START:` in CSEG_INIT data area; `PUSH CS/POP DS` to access.
 - [ ] **CHKDSK** — **SKIPPED** (see note below).
+- [ ] **RECOVER** — **SKIPPED** (same CONVERT+DG group issue as CHKDSK; see note below).
+- [ ] **EDLIN** — **SKIPPED** (same CONVERT+DG group issue as CHKDSK; see note below).
 
-#### CHKDSK /? implementation — blocked by convert tool format
+#### CHKDSK / RECOVER / EDLIN /? implementation — blocked by CONVERT tool format
 
-CHKDSK uses a custom `CONVERT.EXE` tool (not standard EXE2BIN) that produces a non-standard COM file:
+CHKDSK, RECOVER, and EDLIN all use a custom `CONVERT.EXE` tool (not standard EXE2BIN) that produces a non-standard COM file:
 the output is `[3-byte JMP] + "Converted" label + [embedded MZ EXE]`. The JMP jumps to the entry
-within the embedded EXE (offset 0x45D8 in CS space). Labels in CHKDSK1.ASM (CODE segment in DG group)
-have DG-relative offsets. At runtime CS=DS=PSP segment. DG base is at paragraph 0x0007 = image offset 0x70.
+within the embedded EXE (offset 0x45D8 in CS space). Labels in the CODE segment (in a DG group)
+have DG-relative offsets. At runtime CS=DS=PSP segment. DG base is at ~paragraph 0x0007 = image offset ~0x70.
+
+- CHKDSK: entry at DG:0x45D8, 9 ASM modules, DG group CODE first
+- RECOVER: entry at DG:0x136F, 4 ASM modules, DG group DATA first (DATA at 0x000, CODE at 0x570)
+- EDLIN: entry at DG:entry, 5 ASM modules, DG GROUP CODE,CONST,cstack,DATA
 
 Addressing works correctly for jumps (near JMP displacement is relative, cancels the DG offset difference).
 But `lea dx, string_label` gives the DG-relative offset which, when used with DS=PSP, resolves to a
