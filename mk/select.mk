@@ -226,6 +226,7 @@ SELECT_OBJS := \
 
 $(SELECT_DIR)/SELECT.EXE: $(SELECT_OBJS)
 	cd $(SELECT_DIR) && $(LINK) "/noe @SELECT.LNK"
+	$(BIN)/fix-exepack $(SELECT_DIR)/SELECT.EXE
 
 # ---------------------------------------------------------------------------
 # SELECT.DAT  (SEL-PAN objects → link → exe2bin → compress)

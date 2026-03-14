@@ -633,6 +633,7 @@ FDISK_ASM_OBJS := $(addprefix $(FDISK_DIR)/,\
 
 $(FDISK_OUT): $(FDISK_C_OBJS) $(FDISK_ASM_OBJS) $(MAPPER_LIB)
 	cd $(FDISK_DIR) && $(LINK) "@FDISK.LNK"
+	$(BIN)/fix-exepack $(FDISK_OUT)
 
 # ---------------------------------------------------------------------------
 # MORE (more.com) — single ASM file, EXE2BIN
@@ -696,6 +697,7 @@ $(FIND_DIR)/FINDMES.OBJ: $(FIND_DIR)/FINDMES.ASM $(FIND_DIR)/FIND.CTL
 
 $(FIND_OUT): $(FIND_DIR)/FIND.OBJ $(FIND_DIR)/FINDMES.OBJ
 	cd $(FIND_DIR) && $(LINK) "FIND+FINDMES,FIND.EXE/EX;"
+	$(BIN)/fix-exepack $(FIND_OUT)
 
 # ---------------------------------------------------------------------------
 # TREE (tree.com) — 4 ASM files, EXE2BIN
@@ -1343,6 +1345,7 @@ $(EXE2BIN_DIR)/DISPLAY.OBJ: $(EXE2BIN_DIR)/DISPLAY.ASM
 
 $(EXE2BIN_SRC_OUT): $(EXE2BIN_DIR)/E2BINIT.OBJ $(EXE2BIN_DIR)/DISPLAY.OBJ
 	cd $(EXE2BIN_DIR) && $(LINK) "@EXE2BIN.LNK"
+	$(BIN)/fix-exepack $(EXE2BIN_SRC_OUT)
 
 # ---------------------------------------------------------------------------
 # GRAPHICS (graphics.com) — 13 ASM, EXE2BIN
@@ -1447,6 +1450,7 @@ $(IFSFUNC_OUT): $(IFSFUNC_DIR)/IFSSESS.OBJ $(IFSFUNC_DIR)/IFSDIR.OBJ \
     $(IFSFUNC_DIR)/IFSINIT.OBJ $(IFSFUNC_DIR)/IFSFLINK.OBJ \
     $(INC_OBJ_PATHS) $(DOS_DIR)/MSDISP.OBJ $(DOS_DIR)/MSCODE.OBJ
 	cd $(IFSFUNC_DIR) && $(LINK) "@IFSFUNC.LNK"
+	$(BIN)/fix-exepack $(IFSFUNC_OUT)
 
 # ---------------------------------------------------------------------------
 # MODE (mode.com) — 16 ASM, EXE2BIN

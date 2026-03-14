@@ -1,0 +1,154 @@
+#!/usr/bin/env python3
+"""
+fix-exepack: Replace the buggy Microsoft LINK EXEPACK decompressor stub
+with a fixed one (from exepack-1.3.0) that avoids the A20 gate bug which
+causes "Packed file is corrupt" on real DOS hardware/QEMU.
+
+kvikdos does the same fix in memory at load time.  This tool patches the
+EXE file itself so the binary is correct for real DOS.
+
+Usage: fix-exepack <file.exe>   (patches in-place)
+
+Reference:
+  https://www.bamsoftware.com/software/exepack/
+  https://github.com/joncampbell123/dosbox-x/issues/7#issuecomment-667653041
+"""
+
+import sys
+import struct
+
+# Fixed stub from exepack-1.3.0/src/stub.bin (same bytes kvikdos uses)
+FIXED_STUB = bytes([
+    0x89, 0xc5, 0x8c, 0xc3, 0x83, 0xc3, 0x10, 0x0e, 0x1f, 0x8b, 0x0e, 0x06,
+    0x00, 0x89, 0xc8, 0x83, 0xc0, 0x0f, 0xd1, 0xd8, 0xd0, 0xe8, 0xd0, 0xe8,
+    0xd0, 0xe8, 0x8c, 0xda, 0x01, 0xd0, 0x89, 0xda, 0x03, 0x16, 0x0c, 0x00,
+    0x39, 0xd0, 0x73, 0x02, 0x89, 0xd0, 0x8e, 0xc0, 0x31, 0xf6, 0x31, 0xff,
+    0xf3, 0xa4, 0x8e, 0xc2, 0x50, 0xb8, 0x6e, 0x00, 0x50, 0xcb, 0x83, 0xee,
+    0x01, 0x73, 0x08, 0x8c, 0xde, 0x4e, 0x8e, 0xde, 0xbe, 0x0f, 0x00, 0x3e,
+    0x8a, 0x04, 0xc3, 0x83, 0xef, 0x01, 0x73, 0x08, 0x8c, 0xc7, 0x4f, 0x8e,
+    0xc7, 0xbf, 0x0f, 0x00, 0x26, 0x88, 0x05, 0xc3, 0x31, 0xf6, 0xe8, 0xd9,
+    0xff, 0x3c, 0xff, 0x74, 0xf9, 0x46, 0x31, 0xff, 0xe8, 0xcf, 0xff, 0x88,
+    0xc2, 0xe8, 0xca, 0xff, 0x88, 0xc5, 0xe8, 0xc5, 0xff, 0x88, 0xc1, 0x88,
+    0xd0, 0x24, 0xfe, 0x3c, 0xb0, 0x75, 0x0c, 0xe8, 0xb8, 0xff, 0xe3, 0x15,
+    0xe8, 0xc4, 0xff, 0xe2, 0xfb, 0xeb, 0x0e, 0x3c, 0xb2, 0x75, 0x60, 0xe3,
+    0x08, 0xe8, 0xa6, 0xff, 0xe8, 0xb4, 0xff, 0xe2, 0xf8, 0xf6, 0xc2, 0x01,
+    0x74, 0xca, 0x0e, 0x1f, 0xbe, 0x2d, 0x01, 0x31, 0xd2, 0xad, 0x89, 0xc1,
+    0xe3, 0x19, 0xad, 0x89, 0xc7, 0x83, 0xe7, 0x0f, 0xd1, 0xe8, 0xd1, 0xe8,
+    0xd1, 0xe8, 0xd1, 0xe8, 0x01, 0xd0, 0x01, 0xd8, 0x8e, 0xc0, 0x26, 0x01,
+    0x1d, 0xe2, 0xe7, 0x80, 0xc6, 0x10, 0x75, 0xdd, 0x8b, 0x36, 0x0a, 0x00,
+    0x01, 0xde, 0x8b, 0x3e, 0x08, 0x00, 0x01, 0x1e, 0x02, 0x00, 0x83, 0xeb,
+    0x10, 0x8e, 0xdb, 0x8e, 0xc3, 0xfa, 0x8e, 0xd6, 0x89, 0xfc, 0xfb, 0x89,
+    0xe8, 0xbb, 0x00, 0x00, 0x2e, 0xff, 0x2f, 0x90, 0x90, 0x90, 0x90, 0xb4,
+    0x40, 0xbb, 0x02, 0x00, 0xb9, 0x16, 0x00, 0x8c, 0xca, 0x8e, 0xda, 0xba,
+    0x17, 0x01, 0xcd, 0x21, 0xb8, 0xff, 0x4c, 0xcd, 0x21, 0x50, 0x61, 0x63,
+    0x6b, 0x65, 0x64, 0x20, 0x66, 0x69, 0x6c, 0x65, 0x20, 0x69, 0x73, 0x20,
+    0x63, 0x6f, 0x72, 0x72, 0x75, 0x70, 0x74,
+])  # 283 bytes
+
+# Error sequence used to locate the old stub boundary
+ERROR_SEQ = b'\xcd\x21\xb8\xff\x4c\xcd\x21'
+PACKED_STR = b'Packed file is corrupt'  # 22 bytes after error seq
+
+def fix_exepack(path):
+    with open(path, 'rb') as f:
+        data = bytearray(f.read())
+
+    if data[:2] not in (b'MZ', b'ZM'):
+        return False  # not an EXE
+
+    # Parse EXE header (word array)
+    def word(offset): return struct.unpack_from('<H', data, offset)[0]
+    def set_word(offset, val): struct.pack_into('<H', data, offset, val)
+
+    init_ip  = word(20)
+    init_cs  = word(22)
+    hdr_para = word(8)
+
+    # Detect EXEPACK: entry point is at CS:16 (or 18/20) and 'RB' signature
+    # lives 2 bytes before the stub code.
+    if init_ip not in (16, 18, 20):
+        return False
+
+    hdr_size   = hdr_para * 16
+    load_off   = hdr_size
+    ex_seg_off = load_off + init_cs * 16   # file offset of EXEPACK segment
+
+    if ex_seg_off + init_ip < 2 or ex_seg_off + init_ip > len(data):
+        return False
+
+    sig_off = ex_seg_off + init_ip - 2     # 'RB' should be here
+    if struct.unpack_from('<H', data, sig_off)[0] != 0x4252:  # 'RB'
+        return False
+
+    exepack_size          = word(ex_seg_off + 6)   # packhdr[3]
+    stub_code_off         = ex_seg_off + init_ip   # where old stub code starts
+    ex_stub_plus_reloc    = exepack_size - init_ip  # stub code + reloc table
+
+    # Sanity
+    if ex_stub_plus_reloc < 258 or stub_code_off + ex_stub_plus_reloc > len(data):
+        return False
+
+    # Find error sequence to locate old stub boundary
+    stub_area = bytes(data[stub_code_off : stub_code_off + ex_stub_plus_reloc])
+    pos = stub_area.find(ERROR_SEQ)
+    if pos < 0:
+        return False
+
+    old_stub_size = pos + len(ERROR_SEQ) + len(PACKED_STR)
+    if not (258 <= old_stub_size <= 290):
+        return False
+
+    reloc_size = ex_stub_plus_reloc - old_stub_size   # relocation table size
+
+    # Build new EXEPACK segment:
+    #   18-byte header | fixed_stub (283 bytes) | relocation table
+    new_header_size = 18
+    new_stub_size   = len(FIXED_STUB)
+    new_exepack_size = new_header_size + new_stub_size + reloc_size
+
+    # Extract relocation table (follows the old stub)
+    reloc_table = bytes(data[stub_code_off + old_stub_size :
+                              stub_code_off + ex_stub_plus_reloc])
+
+    # Patch the EXEPACK header (first 16 bytes of EXEPACK segment stay as-is
+    # except skip_len and signature which move):
+    #   [0] real_ip, [2] real_cs, [4] mem_start, [6] exepack_size,
+    #   [8] real_sp, [10] real_ss, [12] dest_len,
+    #   [14] skip_len (was 'RB', now 1), [16] 'RB' signature (new)
+    set_word(ex_seg_off + 6,  new_exepack_size)   # update exepack_size
+    set_word(ex_seg_off + 14, 1)                  # skip_len = 1
+    # Extend EXEPACK segment by 2 bytes (header grows 16→18)
+    # Insert 2 bytes before stub code
+    data = data[:stub_code_off] + bytearray(2) + data[stub_code_off:]
+    # Re-derive offset (shifted by 2)
+    stub_code_off += 2
+    set_word(ex_seg_off + 16, 0x4252)             # 'RB' signature at new pos
+
+    # Replace stub + reloc
+    new_region = bytearray(FIXED_STUB) + bytearray(reloc_table)
+    data[stub_code_off : stub_code_off + old_stub_size + reloc_size] = new_region
+
+    # Update EXE init_ip to 18
+    set_word(20, 18)
+
+    # Update EXE file-size fields (pages + last_page_bytes)
+    file_size = len(data)
+    pages = (file_size + 511) // 512
+    last  = file_size % 512
+    set_word(2, last)
+    set_word(4, pages)
+
+    with open(path, 'wb') as f:
+        f.write(data)
+
+    return True
+
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        sys.exit(f'Usage: {sys.argv[0]} <file.exe>')
+    path = sys.argv[1]
+    if fix_exepack(path):
+        print(f'fix-exepack: patched {path}')
+    else:
+        print(f'fix-exepack: {path} is not EXEPACK or already fixed')

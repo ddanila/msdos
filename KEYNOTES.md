@@ -218,6 +218,41 @@ The MS-DOS submodule (`MS-DOS/`) has two branches:
 Workflow: develop on `dos4-enhancements`; merge upstream changes into `main` first,
 then rebase `dos4-enhancements` on top.
 
+## EXEPACK A20 Gate Bug
+
+**Symptom:** "Packed file is corrupt" on real DOS hardware / QEMU when running tools
+linked with Microsoft LINK 3.65 `/EXEPACK` (or `/EX`, `/E+`).
+
+**Root cause:** The EXEPACK decompressor stub embedded by LINK 3.65 has an A20 gate bug:
+when the relocation fixup loop accesses memory near the 1 MB boundary (segment ~0x10000),
+A20 wrap-around causes the wrong memory to be read/written, triggering the error message
+that is embedded in the stub itself.
+
+**Affected binaries (built by our Makefile):**
+| Tool | Link flag | Makefile |
+|------|-----------|----------|
+| FIND.EXE | `/EX` | `mk/cmd.mk` |
+| FDISK.EXE | `/E+` | `mk/cmd.mk` |
+| IFSFUNC.EXE | `/EX` | `mk/cmd.mk` |
+| EXE2BIN.EXE | `/E+` | `mk/cmd.mk` |
+| SELECT.EXE | `/EXEPACK` | `mk/select.mk` |
+
+**Why smoke tests don't catch it:** kvikdos automatically detects EXEPACK at load time
+(detection: `EXE_IP ∈ {16,18,20}` AND `'RB'` signature at `EXE_IP-2`) and replaces the
+buggy stub with a fixed 283-byte version from exepack-1.3.0 (see `kvikdos/kvikdos.c`
+lines ~1351–1391). This means `make test` passes, but the output EXE is still broken
+for real DOS.
+
+**Fix:** `bin/fix-exepack` patches the stub in-place at build time (same logic kvikdos
+does at runtime). Called automatically after each affected LINK step in the Makefile.
+- Detection: `EXE_IP ∈ {16,18,20}` AND `'RB'` sig at `EXE_IP-2`
+- Old stub boundary found via `\xcd\x21\xb8\xff\x4c\xcd\x21` + 22-byte error string
+- New header grows 16→18 bytes: adds `skip_len=1` at offset 14, moves `'RB'` to offset 16
+- References: https://www.bamsoftware.com/software/exepack/
+
+**Lesson:** Always test on real DOS or QEMU after linking with EXEPACK. kvikdos masks
+this class of bug entirely.
+
 ## kvikdos Modifications (in kvikdos/kvikdos.c)
 - `current_dir[DRIVE_COUNT]` expanded from 1 to 64 bytes per drive.
 - `ah=0x3b` (CHDIR) implemented.
