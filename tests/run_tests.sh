@@ -144,6 +144,9 @@ check_help "JOIN"    "CMD/JOIN/JOIN.EXE"        "JOIN"
 check_help "SUBST"   "CMD/SUBST/SUBST.EXE"     "SUBST"
 check_help "REPLACE" "CMD/REPLACE/REPLACE.EXE" "REPLACE"
 check_help "SORT"    "CMD/SORT/SORT.EXE"       "SORT"
+check_help "FIND"    "CMD/FIND/FIND.EXE"       "FIND"
+check_help "NLSFUNC" "CMD/NLSFUNC/NLSFUNC.EXE" "NLSFUNC"
+check_help "TREE"    "CMD/TREE/TREE.COM"        "TREE"
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
