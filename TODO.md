@@ -310,40 +310,13 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 
 All tools should print usage when invoked with `/?`, like MS-DOS 6.22.
 Changes go in the `dos4-enhancements` branch of the MS-DOS fork.
-Each tool needs a `/?` check at startup that prints usage and exits 0.
+- ASM tools: check PSP:81h for `/?`, print $-terminated string via INT 21h/09h, exit via INT 21h/4Ch.
+- C tools: `strcmp` argv[1] with `"/?"`; print via `printf`; `exit(0)`.
+- Keep help strings compact (≤24 lines) to fit a standard 25-line screen.
 
-Switches are extracted directly from each tool's parser source,
-including undocumented ones that are actually parsed and handled.
+### Pending usage strings
 
-### FORMAT (FORPARSE.INC)
-```
-FORMAT drive: [/V[:label]] [/S] [/B] [/F:size]
-             [/T:tracks /N:sectors] [/4] [/1] [/8]
-             [/SELECT] [/BACKUP] [/AUTOTEST]
-
-  /V[:label]   Volume label
-  /S           Copy system files (make bootable)
-  /B           Reserve space for system files (don't copy)
-  /F:size      Disk size (160, 180, 320, 360, 720, 1200, 1440 [K/KB/M/MB])
-  /T:n         Tracks per side
-  /N:n         Sectors per track
-  /4           Format 360K disk in 1.2MB drive
-  /1           Single-sided format
-  /8           8 sectors per track
-  /SELECT      Shell integration (SELECT utility)
-  /BACKUP      Shell integration (BACKUP utility)
-  /AUTOTEST    Non-interactive format (no prompts)
-```
-
-### MEM (MEM.C)
-```
-MEM [/PROGRAM | /DEBUG]
-
-  /PROGRAM   Display loaded programs and their memory use
-  /DEBUG     Display loaded programs, internal drivers, and other info
-```
-
-### KEYB (PARSER.ASM)
+#### KEYB (PARSER.ASM)
 ```
 KEYB [xx[,[yyy][,[drive:][path]filename]]] [/ID:nnn]
 
@@ -353,102 +326,7 @@ KEYB [xx[,[yyy][,[drive:][path]filename]]] [/ID:nnn]
   /ID:nnn                  Keyboard hardware ID (for countries with multiple layouts)
 ```
 
-### XCOPY (XCOPYPAR.ASM)
-```
-XCOPY source [dest] [/A] [/D:date] [/E] [/M] [/P] [/S] [/V] [/W]
-
-  /A        Copy only files with archive attribute set (don't clear it)
-  /D:date   Copy files changed on or after date
-  /E        Copy subdirectories even if empty (used with /S)
-  /M        Like /A but clears archive attribute after copy
-  /P        Prompt before creating each destination file
-  /S        Copy subdirectories (except empty ones)
-  /V        Verify each written file
-  /W        Wait for keypress before starting
-```
-
-### BACKUP (BACKUP.C)
-```
-BACKUP source dest: [/S] [/M] [/A] [/F[:size]] [/D:date] [/T:time] [/L:[path]logfile]
-
-  /S             Back up subdirectories
-  /M             Back up only files modified since last backup
-  /A             Add to existing backup set (don't reformat)
-  /F[:size]      Format target disk if needed (size optional)
-  /D:date        Back up files modified on or after date
-  /T:time        Back up files modified at or after time
-  /L:[path]file  Write backup log to file
-```
-
-### RESTORE (RESTPARS.C)
-```
-RESTORE source: dest [/S] [/P] [/M] [/N] [/B:date] [/A:date] [/E:time] [/L:time]
-
-  /S        Restore subdirectories
-  /P        Prompt before restoring over read-only or changed files
-  /M        Restore only files modified since backup
-  /N        Restore only files that no longer exist on destination
-  /B:date   Restore only files last modified on or before date
-  /A:date   Restore only files last modified on or after date
-  /E:time   Restore only files last modified at or before time
-  /L:time   Restore only files last modified at or after time
-```
-
-### REPLACE (REPLACE.C)
-```
-REPLACE source [dest] [/A] [/P] [/R] [/S] [/U] [/W]
-
-  /A    Add new files (cannot be used with /U or /S)
-  /P    Prompt before replacing/adding each file
-  /R    Replace read-only files
-  /S    Search subdirectories (not with /A)
-  /U    Replace only files older than source
-  /W    Wait for keypress before starting
-```
-
-### ATTRIB (ATTRIBA.ASM)
-```
-ATTRIB [+R|-R] [+A|-A] [[drive:][path]filename] [/S]
-
-  +R / -R   Set or clear Read-Only attribute
-  +A / -A   Set or clear Archive attribute
-  /S        Process files in subdirectories
-```
-
-### CHKDSK (CHKPARSE.INC)
-```
-CHKDSK [drive:][[path]filename] [/F] [/V]
-
-  /F    Fix errors on disk
-  /V    Display full path of every file on disk
-```
-
-### SORT (SORT.ASM)
-```
-SORT [/R] [/+n]
-
-  /R    Sort in reverse order
-  /+n   Sort starting at column n
-```
-
-### FIND (FIND.ASM)
-```
-FIND [/V] [/C] [/N] "string" [drive:][path]filename [...]
-
-  /V    Display lines not containing string
-  /C    Count matching lines only
-  /N    Display line numbers
-```
-
-### TREE (TREEPAR.ASM)
-```
-TREE [drive:][path] [/F] [/A]
-
-  /F    Display filenames in each directory
-  /A    Use ASCII characters (not extended graphics) for tree lines
-```
-
-### APPEND (APPENDP.INC)
+#### APPEND (APPENDP.INC)
 ```
 APPEND [[drive:]path[;...]] [/X[:ON|OFF]] [/PATH:ON|OFF] [/E]
 
@@ -457,14 +335,14 @@ APPEND [[drive:]path[;...]] [/X[:ON|OFF]] [/PATH:ON|OFF] [/E]
   /E               Store appended path list in PATH environment variable
 ```
 
-### ASSIGN (ASSGPARM.INC)
+#### ASSIGN (ASSGPARM.INC)
 ```
 ASSIGN [x[:]=y[:] [...]] [/STATUS]
 
   /STATUS   Display current drive assignments
 ```
 
-### PRINT (PRINT_T.ASM)
+#### PRINT (PRINT_T.ASM)
 ```
 PRINT [/D:device] [/B:bufsiz] [/U:busytick] [/M:maxtick]
       [/S:timeslice] [/Q:queuelen] [/T] [/C] [/P]
@@ -481,15 +359,7 @@ PRINT [/D:device] [/B:bufsiz] [/U:busytick] [/M:maxtick]
   /P            Add preceding file(s) to queue
 ```
 
-### GRAFTABL (GRTABPAR.ASM)
-```
-GRAFTABL [nnn] [/STATUS]
-
-  nnn       Code page number to load (e.g., 437, 850, 860, 863, 865)
-  /STATUS   Display currently loaded code page
-```
-
-### SHARE (GSHARE2.ASM)
+#### SHARE (GSHARE2.ASM)
 ```
 SHARE [/F:filespace] [/L:locks]
 
@@ -497,7 +367,7 @@ SHARE [/F:filespace] [/L:locks]
   /L:n    Number of simultaneous file locks (default 20)
 ```
 
-### GRAPHICS (GRPARMS.ASM)
+#### GRAPHICS (GRPARMS.ASM)
 ```
 GRAPHICS [type] [[drive:][path]filename] [/R] [/B] [/LCD] [/PB[:STD|LCD]]
 
@@ -508,7 +378,7 @@ GRAPHICS [type] [[drive:][path]filename] [/R] [/B] [/LCD] [/PB[:STD|LCD]]
   /PB[:STD|LCD]    Select print box (STD or LCD)
 ```
 
-### FASTOPEN (FASTINIT.ASM)
+#### FASTOPEN (FASTINIT.ASM)
 ```
 FASTOPEN drive:[=n] [...] [/X]
 
@@ -516,102 +386,46 @@ FASTOPEN drive:[=n] [...] [/X]
   /X           Create name cache in expanded memory
 ```
 
-### NLSFUNC (NLSPARM.ASM)
-```
-NLSFUNC [[drive:][path]filename]
-
-  filename   National Language Support definition file (default: COUNTRY.SYS)
-```
-
-### DISKCOMP (DCOMPPAR.ASM)
-```
-DISKCOMP [d1:] [d2:] [/1] [/8]
-
-  /1    Compare only first side
-  /8    Compare only 8 sectors per track
-```
-
-### DISKCOPY (DCOPYPAR.ASM)
-```
-DISKCOPY [d1:] [d2:] [/1] [/V]
-
-  /1    Copy only first side
-  /V    Verify after copy
-```
-
-### FC (FC.C)
-```
-FC [/A] [/B] [/C] [/L] [/LBn] [/N] [/T] [/W] [/nnnn] file1 file2
-
-  /A     Display only first and last lines of differing sections (ASCII)
-  /B     Binary comparison
-  /C     Case-insensitive comparison
-  /L     Compare as ASCII text (default)
-  /LBn   Set line buffer to n lines
-  /N     Display line numbers (ASCII mode)
-  /T     Don't expand tabs to spaces
-  /W     Compress whitespace for comparison
-  /nnnn  Number of consecutive matching lines to resync
-```
-
-### EDLIN (EDLPARSE.ASM)
+#### EDLIN (EDLPARSE.ASM)
 ```
 EDLIN [drive:][path]filename [/B]
 
   /B    Ignore Ctrl-Z (EOF) characters — treat file as binary text
 ```
 
-### JOIN (JOIN.C)
-```
-JOIN [drive1:] [drive2:]path
-JOIN drive1: /D
-JOIN (no args: display current joins)
-
-  /D    Delete (remove) a JOIN
-```
-
-### SUBST (SUBST.C)
-```
-SUBST [drive1: [drive2:]path]
-SUBST drive1: /D
-SUBST (no args: display current substitutions)
-
-  /D    Delete a substitution
-```
-
-### EXE2BIN (E2BPARSE.INC)
+#### EXE2BIN (E2BPARSE.INC)
 ```
 EXE2BIN [drive:][path]input[.EXE] [[drive:][path]output[.BIN]]
 ```
 
-### LABEL (LABEL.ASM)
+#### LABEL (LABEL.ASM)
 ```
 LABEL [drive:][label]
 ```
 
-### COMP (COMPPAR.ASM)
+#### COMP (COMPPAR.ASM)
 ```
 COMP [data1] [data2]
 ```
 
-### RECOVER (RECOVER.ASM)
+#### RECOVER (RECOVER.ASM)
 ```
 RECOVER [drive:][path]filename
 RECOVER drive:
 ```
 
-### SYS (SYS1.ASM)
+#### SYS (SYS1.ASM)
 ```
 SYS [source] drive:
 ```
 
-### MORE (MORE.CLA)
+#### MORE (MORE.CLA)
 ```
 MORE
 (reads stdin, displays one screenful at a time)
 ```
 
-### COMMAND (INIT.ASM / CPARSE.ASM)
+#### COMMAND (INIT.ASM / CPARSE.ASM)
 ```
 COMMAND [[drive:]path] [device] [/E:nnnnn] [/P] [/MSG] [/C string]
 
@@ -621,7 +435,7 @@ COMMAND [[drive:]path] [device] [/E:nnnnn] [/P] [/MSG] [/C string]
   /C string  Run command string then return
 ```
 
-### FDISK (PARSE.H / _PARSE.ASM)
+#### FDISK (PARSE.H / _PARSE.ASM)
 ```
 FDISK [/PRI[:n]] [/EXT[:n]] [/LOG[:n]] [/Q]
 
@@ -631,7 +445,7 @@ FDISK [/PRI[:n]] [/EXT[:n]] [/LOG[:n]] [/Q]
   /Q         Quiet (no prompts); used with above switches
 ```
 
-### MODE
+#### MODE
 ```
 MODE COMn[:] [baud[,parity[,databits[,stopbits[,P]]]]]
 MODE LPTn[:] [cols[,lines[,retry]]]
@@ -645,15 +459,17 @@ MODE drive: CODEPAGE REFRESH
 MODE drive: CODEPAGE [/STATUS]
 ```
 
-### DEBUG
+#### DEBUG
 ```
 DEBUG [[drive:][path]filename [arglist]]
 ```
 Interactive debugger — no command-line switches; all control via
 interactive commands (A, D, E, G, N, P, Q, R, T, U, W, etc.).
 
-### FILESYS / IFSFUNC
+#### FILESYS / IFSFUNC
 Internal TSR utilities — no user-facing `/?` help planned.
+
+#### CHKDSK — SKIPPED (see note below)
 
 ### Implementation status (dos4-enhancements branch)
 
