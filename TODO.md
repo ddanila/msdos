@@ -316,23 +316,6 @@ Changes go in the `dos4-enhancements` branch of the MS-DOS fork.
 
 ### Pending usage strings
 
-#### PRINT (PRINT_T.ASM)
-```
-PRINT [/D:device] [/B:bufsiz] [/U:busytick] [/M:maxtick]
-      [/S:timeslice] [/Q:queuelen] [/T] [/C] [/P]
-      [[drive:][path]filename [...]]
-
-  /D:device     Print device (default PRN)
-  /B:n          Internal buffer size in bytes
-  /U:n          Busy-wait tick count
-  /M:n          Max ticks per time slice
-  /S:n          Time-slice scheduler quantum
-  /Q:n          Max files in print queue
-  /T            Terminate all files (cancel queue)
-  /C            Remove preceding file(s) from queue
-  /P            Add preceding file(s) to queue
-```
-
 #### EDLIN (EDLPARSE.ASM)
 ```
 EDLIN [drive:][path]filename [/B]
@@ -409,30 +392,29 @@ Internal TSR utilities — no user-facing `/?` help planned.
 - [x] **KEYB** — `START:` in `KEYB.ASM`; COM via EXE2BIN, single `CODE` segment, CS=DS=PSP throughout. Help string inline after /? check; jump to `KEYB_COMMAND` if no help.
 - [x] **GRAPHICS** — `START:` in `GRAPHICS.ASM`; COM via EXE2BIN, single `CODE` segment, CS=DS=PSP throughout. Help string inline after /? check; jump to `GRAPHICS_INSTALL` if no help.
 - [x] **MODE** — `ENTPT:` in `RESCODE.ASM` (ORG 100H); COM via EXE2BIN. At entry CS=DS=PSP. Check DS:81h, print help string in same segment, then `JMP MAIN`.
-- [ ] **CHKDSK** — **SKIPPED** (see note below).
-- [ ] **RECOVER** — **SKIPPED** (same CONVERT+DG group issue as CHKDSK; see note below).
-- [ ] **EDLIN** — **SKIPPED** (same CONVERT+DG group issue as CHKDSK; see note below).
+- [x] **PRINT** — `TRANSIENT:` in `PRINT_T.ASM`; CONVERT COM. CONVERT init does FAR JMP so CS=DG at entry (not PSP). Pattern: `INT 21h/62h` → ES=PSP, check `ES:[81h]` for `/?`; `CALL/POP` → DX=runtime addr of help string; `PUSH CS/POP DS` (CS=DG=string segment) for INT 21h/09h print.
+- [ ] **CHKDSK** — pending (CONVERT COM; same pattern as PRINT should work; see note below).
+- [ ] **RECOVER** — pending (same CONVERT COM pattern).
+- [ ] **EDLIN** — pending (same CONVERT COM pattern).
 
-#### CHKDSK / RECOVER / EDLIN /? implementation — blocked by CONVERT tool format
+#### CHKDSK / RECOVER / EDLIN /? — CONVERT COM pattern (unblocked by PRINT)
 
-CHKDSK, RECOVER, and EDLIN all use a custom `CONVERT.EXE` tool (not standard EXE2BIN) that produces a non-standard COM file:
-the output is `[3-byte JMP] + "Converted" label + [embedded MZ EXE]`. The JMP jumps to the entry
-within the embedded EXE (offset 0x45D8 in CS space). Labels in the CODE segment (in a DG group)
-have DG-relative offsets. At runtime CS=DS=PSP segment. DG base is at ~paragraph 0x0007 = image offset ~0x70.
+CHKDSK, RECOVER, EDLIN, and PRINT all use `CONVERT.EXE`. CONVERT's init code does a FAR JMP
+to the actual entry, so CS=DG (not PSP) when the entry procedure runs.
 
-- CHKDSK: entry at DG:0x45D8, 9 ASM modules, DG group CODE first
-- RECOVER: entry at DG:0x136F, 4 ASM modules, DG group DATA first (DATA at 0x000, CODE at 0x570)
-- EDLIN: entry at DG:entry, 5 ASM modules, DG GROUP CODE,CONST,cstack,DATA
+**Working pattern (proven in PRINT):**
+1. `MOV AH, 062H; INT 21H; MOV ES, BX` — get PSP segment into ES
+2. Skip spaces: `CMP BYTE PTR ES:[SI], ' '`
+3. Check `ES:[SI]` for `'/'` and `ES:[SI+1]` for `'?'`
+4. `JMP NEAR` relay for no-match; `CALL PT_HELP_END` / `PT_HELP_STR DB "...$"` / `PT_HELP_END: POP DX`
+5. `PUSH CS; POP DS` — CS=DG at runtime (segment containing the help string)
+6. `INT 21h/09h` → `INT 21h/4Ch`
 
-Addressing works correctly for jumps (near JMP displacement is relative, cancels the DG offset difference).
-But `lea dx, string_label` gives the DG-relative offset which, when used with DS=PSP, resolves to a
-DIFFERENT memory location than the string actually occupies at runtime (off by the DG base + COM embed
-offset). The `call/pop` position-independent trick also fails for the same reason — the pushed IP is
-correct (actual runtime IP), but DS doesn't align with it.
+Use SHORT relay (`JNE PT_NO_HELP_J; JMP NEAR PT_CONTINUE`) to avoid MASM SHORT-jump range errors when help string is large.
 
-**To implement CHKDSK /?**: The help string would need to be accessed via `CS:` override (not DS),
-OR find the exact runtime offset formula for this embed format. Alternatively, check if CHKDSK
-can be patched to embed a plain `ORG 100h` COM structure instead.
+CHKDSK entry: `CHKMAIN:` in `CHKDSK.ASM` (search for the DG:0x45D8 entry label in the source).
+RECOVER entry: `RECSEG.INC`, DG:0x136F.
+EDLIN entry: `EDLIN.ASM`, entry label in DG group.
 
 ### Implementation approach
 
