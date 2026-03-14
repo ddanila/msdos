@@ -387,7 +387,7 @@ Internal TSR utilities — no user-facing `/?` help planned.
 - [x] **MODE** — `ENTPT:` in `RESCODE.ASM` (ORG 100H); COM via EXE2BIN. At entry CS=DS=PSP. Check DS:81h, print help string in same segment, then `JMP MAIN`.
 - [x] **PRINT** — `TRANSIENT:` in `PRINT_T.ASM`; CONVERT COM. CONVERT init does FAR JMP so CS=DG at entry (not PSP). Pattern: `INT 21h/62h` → ES=PSP, check `ES:[81h]` for `/?`; `CALL/POP` → DX=runtime addr of help string; `PUSH CS/POP DS` (CS=DG=string segment) for INT 21h/09h print.
 - [ ] **CHKDSK** — pending (CONVERT COM; same pattern as PRINT should work; see note below).
-- [ ] **RECOVER** — pending (same CONVERT COM pattern).
+- [x] **RECOVER** — `Main_Init` in `RECINIT.ASM`; CONVERT COM. Same pattern as PRINT/EDLIN: INT 21h/62h → ES=PSP, ES:[81h] check, CALL/POP + PUSH CS/POP DS for print.
 - [x] **EDLIN** — `EDLIN:` in `EDLIN.ASM`; CONVERT COM. Same pattern as PRINT: INT 21h/62h → ES=PSP, ES:[81h] check, CALL/POP + PUSH CS/POP DS for print.
 
 #### CHKDSK / RECOVER /? — use CONVERT COM pattern from KEYNOTES.md
