@@ -336,6 +336,22 @@ Built-ins extracted from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `FILESYS` — load (smoke test, internal tool)
 - [ ] `FILESYS /?` — usage
 
+## MS-DOS Fork Branch Strategy
+
+The MS-DOS submodule (`MS-DOS/`) has two branches:
+- `main` — minimal patches to make the source build (CRLF fixes, UTF-8, `.gitattributes`).
+  Stays close to original Microsoft source; should always produce binary-identical output.
+- `dos4-enhancements` — our additions (help strings, etc.). Branches off `main`.
+
+**Ensuring toolchain works with `main`:**
+- Add a CI job that pins `MS-DOS` submodule to `main`, runs `make`, and verifies
+  `tests/golden.sha256` still passes. This catches any accidental dependency on
+  enhancement-branch changes in the build system.
+- Run the current CI job against `dos4-enhancements` (with updated golden checksums
+  after help strings change the binaries).
+- Workflow: develop on `dos4-enhancements`; periodically merge upstream Microsoft
+  changes into `main` first, then rebase `dos4-enhancements` on top.
+
 ## Add /? Usage Strings to CMD Tools
 
 All tools should print usage when invoked with `/?`, like MS-DOS 6.22.
