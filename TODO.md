@@ -316,16 +316,6 @@ Changes go in the `dos4-enhancements` branch of the MS-DOS fork.
 
 ### Pending usage strings
 
-#### KEYB (PARSER.ASM)
-```
-KEYB [xx[,[yyy][,[drive:][path]filename]]] [/ID:nnn]
-
-  xx                       Two-letter keyboard code (e.g., US, UK, GR)
-  yyy                      Code page for the character set (e.g., 437, 850)
-  [drive:][path]filename   Keyboard definition file (default: KEYBOARD.SYS)
-  /ID:nnn                  Keyboard hardware ID (for countries with multiple layouts)
-```
-
 #### PRINT (PRINT_T.ASM)
 ```
 PRINT [/D:device] [/B:bufsiz] [/U:busytick] [/M:maxtick]
@@ -343,25 +333,6 @@ PRINT [/D:device] [/B:bufsiz] [/U:busytick] [/M:maxtick]
   /P            Add preceding file(s) to queue
 ```
 
-#### GRAPHICS (GRPARMS.ASM)
-```
-GRAPHICS [type] [[drive:][path]filename] [/R] [/B] [/LCD] [/PB[:STD|LCD]]
-
-  type             Printer type (e.g., COLOR1, COLOR4, COLOR8, HPDEFAULT, ...)
-  /R               Print image in reverse (black on white)
-  /B               Print background color (COLOR4/COLOR8 only)
-  /LCD             Use LCD aspect ratio
-  /PB[:STD|LCD]    Select print box (STD or LCD)
-```
-
-#### FASTOPEN (FASTINIT.ASM)
-```
-FASTOPEN drive:[=n] [...] [/X]
-
-  drive:[=n]   Drive to cache, with optional entry count (10–999)
-  /X           Create name cache in expanded memory
-```
-
 #### EDLIN (EDLPARSE.ASM)
 ```
 EDLIN [drive:][path]filename [/B]
@@ -369,26 +340,10 @@ EDLIN [drive:][path]filename [/B]
   /B    Ignore Ctrl-Z (EOF) characters — treat file as binary text
 ```
 
-#### EXE2BIN (E2BPARSE.INC)
-```
-EXE2BIN [drive:][path]input[.EXE] [[drive:][path]output[.BIN]]
-```
-
 #### RECOVER (RECOVER.ASM)
 ```
 RECOVER [drive:][path]filename
 RECOVER drive:
-```
-
-#### SYS (SYS1.ASM)
-```
-SYS [source] drive:
-```
-
-#### MORE (MORE.CLA)
-```
-MORE
-(reads stdin, displays one screenful at a time)
 ```
 
 #### COMMAND (INIT.ASM / CPARSE.ASM)
@@ -409,20 +364,6 @@ FDISK [/PRI[:n]] [/EXT[:n]] [/LOG[:n]] [/Q]
   /EXT[:n]   Create extended DOS partition
   /LOG[:n]   Create logical drive in extended partition
   /Q         Quiet (no prompts); used with above switches
-```
-
-#### MODE
-```
-MODE COMn[:] [baud[,parity[,databits[,stopbits[,P]]]]]
-MODE LPTn[:] [cols[,lines[,retry]]]
-MODE CON[:] [COLS=c] [LINES=n]
-MODE CON[:] [RATE=r DELAY=d]
-MODE device [/STATUS]
-MODE display[,shift[,T]]
-MODE drive: CODEPAGE PREPARE=((cp[,...]) [path]filename)
-MODE drive: CODEPAGE SELECT=cp
-MODE drive: CODEPAGE REFRESH
-MODE drive: CODEPAGE [/STATUS]
 ```
 
 #### DEBUG
@@ -465,6 +406,9 @@ Internal TSR utilities — no user-facing `/?` help planned.
 - [x] **SYS** — `START:` in `SYS1.ASM`; COM via EXE2BIN, `ORG 80H` (PSP overlap trick). At entry CS=DS=PSP. Check DS:81h; `PUSH CS/POP DS` not needed since CS=DS. Help string placed after check code, before `BEGIN`.
 - [x] **EXE2BIN** — `Main_Init` in `E2BINIT.ASM`; EXE, DS=PSP at entry (CS=CODE). Check DS:81h before `PUSH DS`; `PUSH CS/POP DS` to access help string in CODE segment.
 - [x] **FASTOPEN** — `START:` in `FASTINIT.ASM`; EXE, DS=PSP at entry (CS=CSEG_INIT). Check DS:81h before `push cs/pop ds` setup. Help string placed before `START:` in CSEG_INIT data area; `PUSH CS/POP DS` to access.
+- [x] **KEYB** — `START:` in `KEYB.ASM`; COM via EXE2BIN, single `CODE` segment, CS=DS=PSP throughout. Help string inline after /? check; jump to `KEYB_COMMAND` if no help.
+- [x] **GRAPHICS** — `START:` in `GRAPHICS.ASM`; COM via EXE2BIN, single `CODE` segment, CS=DS=PSP throughout. Help string inline after /? check; jump to `GRAPHICS_INSTALL` if no help.
+- [x] **MODE** — `ENTPT:` in `RESCODE.ASM` (ORG 100H); COM via EXE2BIN. At entry CS=DS=PSP. Check DS:81h, print help string in same segment, then `JMP MAIN`.
 - [ ] **CHKDSK** — **SKIPPED** (see note below).
 - [ ] **RECOVER** — **SKIPPED** (same CONVERT+DG group issue as CHKDSK; see note below).
 - [ ] **EDLIN** — **SKIPPED** (same CONVERT+DG group issue as CHKDSK; see note below).
