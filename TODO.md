@@ -1,53 +1,25 @@
 # MS-DOS 4.0 Build — TODO
 
-## CMD Utilities
-
-All 38 CMD utilities have been built from source. ✅
-
-## DEV Device Drivers
-
-All 11 device drivers built from source. ✅
-DEV/SMARTDRV/FLUSH13.EXE (auxiliary cache control utility) also built. ✅
-
-## Core Modules
-
-All core modules built from source: BIOS/IO.SYS, DOS/MSDOS.SYS, BOOT, INC, MAPPER, MESSAGES, SELECT, MEMM/EMM386.SYS. ✅
-
-## Source Audit Notes
-
-- `INC/STRING.C` — not a build target; referenced only as a comment in KSTRING.C; superseded code.
-- `INC/KSTRING.C` — built on-demand for FC.EXE (not a standalone `inc` target); covered.
-- `TOOLS/` — pre-built compiler toolchain (MASM, CL, LINK, etc.), not MS-DOS OS source.
-- `DEV/SMARTDRV/SMARTDRV.SYS` — already built by `dev` target. ✅
-
-## Floppy Image
-
-- Currently boots with all built utilities: IO.SYS, MSDOS.SYS, COMMAND.COM, SYS.COM, FORMAT.COM, CHKDSK.COM, DEBUG.COM, MEM.EXE, FDISK.EXE, MORE.COM, SORT.EXE, LABEL.COM, FIND.EXE, TREE.COM, COMP.COM, ATTRIB.EXE, EDLIN.COM, FC.EXE, NLSFUNC.EXE, ASSIGN.COM, XCOPY.EXE, DISKCOMP.COM, DISKCOPY.COM, APPEND.EXE, RECOVER.COM, FASTOPEN.EXE, PRINT.COM, FILESYS.EXE, REPLACE.EXE, JOIN.EXE, SUBST.EXE, BACKUP.COM, RESTORE.COM, GRAFTABL.COM, KEYB.COM, SHARE.EXE, EXE2BIN.EXE, GRAPHICS.COM + GRAPHICS.PRO, IFSFUNC.EXE, MODE.COM.
-
-## Testing
-
-- Extend `make test-sys` / add more e2e tests.
-- Add CI step for `make test-sys`.
-
 ## E2E Tests — Per-Command, Per-Option Coverage
 
 Goal: every command (external tool and COMMAND.COM built-in) and every
 recognized option gets at least one integration test. Tests run the real
 DOS binary under kvikdos or QEMU, check exit code and/or COM1/stdout output.
 
-**Test harness notes:**
+**Harness setup:**
+- [ ] Add CI step for `make test-sys`.
 - External tools (MEM, XCOPY, etc.): invoke via kvikdos directly where
   possible; fall back to QEMU+COM1 for disk-heavy operations.
 - Built-ins: invoke as `COMMAND /C "CMD args"` via kvikdos or QEMU.
-- For `/? ` tests: just check that the tool prints something and exits 0.
+- For `/?` tests: check that the tool prints something and exits 0.
 - For functional tests: set up a minimal disk image with known files/state,
   run command, inspect result (file presence, content, exit code, output).
-
----
+- [ ] Add CI job that pins `MS-DOS` submodule to `main` and verifies
+  `tests/golden.sha256` still passes (ensures toolchain works with unmodified source).
 
 ### COMMAND.COM built-in commands
 
-Built-ins extracted from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
+Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 
 | Command | Options / forms to test |
 |---------|------------------------|
@@ -55,7 +27,7 @@ Built-ins extracted from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 | COPY | src dest, src+src2 dest (concat), `/A` (ASCII), `/B` (binary), `/V` (verify) |
 | DEL / ERASE | single file, wildcard `*.*`, read-only file (should fail) |
 | REN / RENAME | simple rename, rename to existing (should fail) |
-| TYPE | text file, binary file (^Z mid-file with /B) |
+| TYPE | text file, binary file (^Z mid-file) |
 | MD / MKDIR | new dir, nested path, already-exists (should fail) |
 | CD / CHDIR | relative, absolute, drive-rooted, no-arg (print CWD) |
 | RD / RMDIR | empty dir, non-empty dir (should fail) |
@@ -82,8 +54,6 @@ Built-ins extracted from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 | IF | `IF EXIST file cmd`, `IF ERRORLEVEL n cmd`, `IF str==str cmd`, `IF NOT ...` |
 | FOR | `FOR %%v IN (set) DO cmd` |
 
----
-
 ### External CMD tools
 
 #### FORMAT
@@ -108,7 +78,7 @@ Built-ins extracted from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `CHKDSK A:` — check specific drive
 - [ ] `CHKDSK A: /F` — fix errors
 - [ ] `CHKDSK A: /V` — verbose (all paths)
-- [ ] `CHKDSK A:*.* ` — check specific files
+- [ ] `CHKDSK A:*.*` — check specific files
 - [ ] `CHKDSK /?` — usage
 
 #### XCOPY
@@ -231,7 +201,7 @@ Built-ins extracted from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 #### DEBUG
 - [ ] `DEBUG` — launch and quit (`Q` command)
 - [ ] `DEBUG file` — load file
-- [ ] `DEBUG /?` — usage (if /? added)
+- [ ] `DEBUG /?` — usage
 
 #### MORE
 - [ ] `MORE < file` — page through file
@@ -336,35 +306,16 @@ Built-ins extracted from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `FILESYS` — load (smoke test, internal tool)
 - [ ] `FILESYS /?` — usage
 
-## MS-DOS Fork Branch Strategy
-
-The MS-DOS submodule (`MS-DOS/`) has two branches:
-- `main` — minimal patches to make the source build (CRLF fixes, UTF-8, `.gitattributes`).
-  Stays close to original Microsoft source; should always produce binary-identical output.
-- `dos4-enhancements` — our additions (help strings, etc.). Branches off `main`.
-
-**Ensuring toolchain works with `main`:**
-- Add a CI job that pins `MS-DOS` submodule to `main`, runs `make`, and verifies
-  `tests/golden.sha256` still passes. This catches any accidental dependency on
-  enhancement-branch changes in the build system.
-- Run the current CI job against `dos4-enhancements` (with updated golden checksums
-  after help strings change the binaries).
-- Workflow: develop on `dos4-enhancements`; periodically merge upstream Microsoft
-  changes into `main` first, then rebase `dos4-enhancements` on top.
-
 ## Add /? Usage Strings to CMD Tools
 
 All tools should print usage when invoked with `/?`, like MS-DOS 6.22.
-Changes go in a dedicated branch in the MS-DOS fork (`dos4-enhancements`)
-to keep the original source clean. Each tool needs a `/? ` check at startup
-that prints usage to stdout (or stderr) and exits with errorlevel 0.
+Changes go in the `dos4-enhancements` branch of the MS-DOS fork.
+Each tool needs a `/?` check at startup that prints usage and exits 0.
 
-Switches below are extracted directly from each tool's parser source —
-including undocumented ones, all of which are actually parsed and handled.
+Switches are extracted directly from each tool's parser source,
+including undocumented ones that are actually parsed and handled.
 
----
-
-### FORMAT (FORPARSE.INC — verified)
+### FORMAT (FORPARSE.INC)
 ```
 FORMAT drive: [/V[:label]] [/S] [/B] [/F:size]
              [/T:tracks /N:sectors] [/4] [/1] [/8]
@@ -384,7 +335,7 @@ FORMAT drive: [/V[:label]] [/S] [/B] [/F:size]
   /AUTOTEST    Non-interactive format (no prompts)
 ```
 
-### MEM (MEM.C — verified)
+### MEM (MEM.C)
 ```
 MEM [/PROGRAM | /DEBUG]
 
@@ -392,7 +343,7 @@ MEM [/PROGRAM | /DEBUG]
   /DEBUG     Display loaded programs, internal drivers, and other info
 ```
 
-### KEYB (PARSER.ASM — verified)
+### KEYB (PARSER.ASM)
 ```
 KEYB [xx[,[yyy][,[drive:][path]filename]]] [/ID:nnn]
 
@@ -402,7 +353,7 @@ KEYB [xx[,[yyy][,[drive:][path]filename]]] [/ID:nnn]
   /ID:nnn                  Keyboard hardware ID (for countries with multiple layouts)
 ```
 
-### XCOPY (XCOPYPAR.ASM — verified)
+### XCOPY (XCOPYPAR.ASM)
 ```
 XCOPY source [dest] [/A] [/D:date] [/E] [/M] [/P] [/S] [/V] [/W]
 
@@ -416,7 +367,7 @@ XCOPY source [dest] [/A] [/D:date] [/E] [/M] [/P] [/S] [/V] [/W]
   /W        Wait for keypress before starting
 ```
 
-### BACKUP (BACKUP.C — verified; 7 switches)
+### BACKUP (BACKUP.C)
 ```
 BACKUP source dest: [/S] [/M] [/A] [/F[:size]] [/D:date] [/T:time] [/L:[path]logfile]
 
@@ -429,7 +380,7 @@ BACKUP source dest: [/S] [/M] [/A] [/F[:size]] [/D:date] [/T:time] [/L:[path]log
   /L:[path]file  Write backup log to file
 ```
 
-### RESTORE (RESTPARS.C — verified; 8 switches)
+### RESTORE (RESTPARS.C)
 ```
 RESTORE source: dest [/S] [/P] [/M] [/N] [/B:date] [/A:date] [/E:time] [/L:time]
 
@@ -443,7 +394,7 @@ RESTORE source: dest [/S] [/P] [/M] [/N] [/B:date] [/A:date] [/E:time] [/L:time]
   /L:time   Restore only files last modified at or after time
 ```
 
-### REPLACE (REPLACE.C — verified)
+### REPLACE (REPLACE.C)
 ```
 REPLACE source [dest] [/A] [/P] [/R] [/S] [/U] [/W]
 
@@ -455,7 +406,7 @@ REPLACE source [dest] [/A] [/P] [/R] [/S] [/U] [/W]
   /W    Wait for keypress before starting
 ```
 
-### ATTRIB (ATTRIBA.ASM / PARSE.H — verified)
+### ATTRIB (ATTRIBA.ASM)
 ```
 ATTRIB [+R|-R] [+A|-A] [[drive:][path]filename] [/S]
 
@@ -464,7 +415,7 @@ ATTRIB [+R|-R] [+A|-A] [[drive:][path]filename] [/S]
   /S        Process files in subdirectories
 ```
 
-### CHKDSK (CHKPARSE.INC — agent-verified)
+### CHKDSK (CHKPARSE.INC)
 ```
 CHKDSK [drive:][[path]filename] [/F] [/V]
 
@@ -472,7 +423,7 @@ CHKDSK [drive:][[path]filename] [/F] [/V]
   /V    Display full path of every file on disk
 ```
 
-### SORT (SORT.ASM — agent-verified)
+### SORT (SORT.ASM)
 ```
 SORT [/R] [/+n]
 
@@ -480,7 +431,7 @@ SORT [/R] [/+n]
   /+n   Sort starting at column n
 ```
 
-### FIND (FIND.ASM — agent-verified)
+### FIND (FIND.ASM)
 ```
 FIND [/V] [/C] [/N] "string" [drive:][path]filename [...]
 
@@ -489,7 +440,7 @@ FIND [/V] [/C] [/N] "string" [drive:][path]filename [...]
   /N    Display line numbers
 ```
 
-### TREE (TREEPAR.ASM — agent-verified)
+### TREE (TREEPAR.ASM)
 ```
 TREE [drive:][path] [/F] [/A]
 
@@ -497,23 +448,23 @@ TREE [drive:][path] [/F] [/A]
   /A    Use ASCII characters (not extended graphics) for tree lines
 ```
 
-### APPEND (APPENDP.INC — agent-verified)
+### APPEND (APPENDP.INC)
 ```
 APPEND [[drive:]path[;...]] [/X[:ON|OFF]] [/PATH:ON|OFF] [/E]
 
-  /X[:ON|OFF]      Extend search to EXEC and file search (DOS 5+: /X:ON/OFF)
+  /X[:ON|OFF]      Extend search to EXEC and file search
   /PATH:ON|OFF     Search appended dirs for files with explicit paths
   /E               Store appended path list in PATH environment variable
 ```
 
-### ASSIGN (ASSGPARM.INC — agent-verified)
+### ASSIGN (ASSGPARM.INC)
 ```
 ASSIGN [x[:]=y[:] [...]] [/STATUS]
 
   /STATUS   Display current drive assignments
 ```
 
-### PRINT (PRINT_T.ASM — agent-verified)
+### PRINT (PRINT_T.ASM)
 ```
 PRINT [/D:device] [/B:bufsiz] [/U:busytick] [/M:maxtick]
       [/S:timeslice] [/Q:queuelen] [/T] [/C] [/P]
@@ -530,7 +481,7 @@ PRINT [/D:device] [/B:bufsiz] [/U:busytick] [/M:maxtick]
   /P            Add preceding file(s) to queue
 ```
 
-### GRAFTABL (GRTABPAR.ASM — agent-verified)
+### GRAFTABL (GRTABPAR.ASM)
 ```
 GRAFTABL [nnn] [/STATUS]
 
@@ -538,7 +489,7 @@ GRAFTABL [nnn] [/STATUS]
   /STATUS   Display currently loaded code page
 ```
 
-### SHARE (GSHARE2.ASM — agent-verified)
+### SHARE (GSHARE2.ASM)
 ```
 SHARE [/F:filespace] [/L:locks]
 
@@ -546,7 +497,7 @@ SHARE [/F:filespace] [/L:locks]
   /L:n    Number of simultaneous file locks (default 20)
 ```
 
-### GRAPHICS (GRPARMS.ASM — agent-verified)
+### GRAPHICS (GRPARMS.ASM)
 ```
 GRAPHICS [type] [[drive:][path]filename] [/R] [/B] [/LCD] [/PB[:STD|LCD]]
 
@@ -557,7 +508,7 @@ GRAPHICS [type] [[drive:][path]filename] [/R] [/B] [/LCD] [/PB[:STD|LCD]]
   /PB[:STD|LCD]    Select print box (STD or LCD)
 ```
 
-### FASTOPEN (FASTINIT.ASM — agent-verified)
+### FASTOPEN (FASTINIT.ASM)
 ```
 FASTOPEN drive:[=n] [...] [/X]
 
@@ -565,14 +516,14 @@ FASTOPEN drive:[=n] [...] [/X]
   /X           Create name cache in expanded memory
 ```
 
-### NLSFUNC (NLSPARM.ASM — agent-verified)
+### NLSFUNC (NLSPARM.ASM)
 ```
 NLSFUNC [[drive:][path]filename]
 
   filename   National Language Support definition file (default: COUNTRY.SYS)
 ```
 
-### DISKCOMP (DCOMPPAR.ASM — agent-verified)
+### DISKCOMP (DCOMPPAR.ASM)
 ```
 DISKCOMP [d1:] [d2:] [/1] [/8]
 
@@ -580,7 +531,7 @@ DISKCOMP [d1:] [d2:] [/1] [/8]
   /8    Compare only 8 sectors per track
 ```
 
-### DISKCOPY (DCOPYPAR.ASM — agent-verified)
+### DISKCOPY (DCOPYPAR.ASM)
 ```
 DISKCOPY [d1:] [d2:] [/1] [/V]
 
@@ -588,7 +539,7 @@ DISKCOPY [d1:] [d2:] [/1] [/V]
   /V    Verify after copy
 ```
 
-### FC (FC.C — agent-verified)
+### FC (FC.C)
 ```
 FC [/A] [/B] [/C] [/L] [/LBn] [/N] [/T] [/W] [/nnnn] file1 file2
 
@@ -603,14 +554,14 @@ FC [/A] [/B] [/C] [/L] [/LBn] [/N] [/T] [/W] [/nnnn] file1 file2
   /nnnn  Number of consecutive matching lines to resync
 ```
 
-### EDLIN (EDLPARSE.ASM — agent-verified)
+### EDLIN (EDLPARSE.ASM)
 ```
 EDLIN [drive:][path]filename [/B]
 
   /B    Ignore Ctrl-Z (EOF) characters — treat file as binary text
 ```
 
-### JOIN (JOIN.C — agent-verified)
+### JOIN (JOIN.C)
 ```
 JOIN [drive1:] [drive2:]path
 JOIN drive1: /D
@@ -619,7 +570,7 @@ JOIN (no args: display current joins)
   /D    Delete (remove) a JOIN
 ```
 
-### SUBST (SUBST.C — agent-verified)
+### SUBST (SUBST.C)
 ```
 SUBST [drive1: [drive2:]path]
 SUBST drive1: /D
@@ -628,28 +579,28 @@ SUBST (no args: display current substitutions)
   /D    Delete a substitution
 ```
 
-### EXE2BIN (E2BPARSE.INC — agent-verified)
+### EXE2BIN (E2BPARSE.INC)
 ```
 EXE2BIN [drive:][path]input[.EXE] [[drive:][path]output[.BIN]]
 ```
 
-### LABEL (LABEL.ASM — agent-verified)
+### LABEL (LABEL.ASM)
 ```
 LABEL [drive:][label]
 ```
 
-### COMP (COMPPAR.ASM — agent-verified)
+### COMP (COMPPAR.ASM)
 ```
 COMP [data1] [data2]
 ```
 
-### RECOVER (RECOVER.ASM — agent-verified)
+### RECOVER (RECOVER.ASM)
 ```
 RECOVER [drive:][path]filename
 RECOVER drive:
 ```
 
-### SYS (SYS1.ASM — agent-verified)
+### SYS (SYS1.ASM)
 ```
 SYS [source] drive:
 ```
@@ -660,7 +611,7 @@ MORE
 (reads stdin, displays one screenful at a time)
 ```
 
-### COMMAND (INIT.ASM / CPARSE.ASM — agent-verified)
+### COMMAND (INIT.ASM / CPARSE.ASM)
 ```
 COMMAND [[drive:]path] [device] [/E:nnnnn] [/P] [/MSG] [/C string]
 
@@ -670,7 +621,7 @@ COMMAND [[drive:]path] [device] [/E:nnnnn] [/P] [/MSG] [/C string]
   /C string  Run command string then return
 ```
 
-### FDISK (PARSE.H / _PARSE.ASM — agent-verified)
+### FDISK (PARSE.H / _PARSE.ASM)
 ```
 FDISK [/PRI[:n]] [/EXT[:n]] [/LOG[:n]] [/Q]
 
@@ -681,7 +632,6 @@ FDISK [/PRI[:n]] [/EXT[:n]] [/LOG[:n]] [/Q]
 ```
 
 ### MODE
-MODE is complex with multiple sub-commands. Usage per sub-command:
 ```
 MODE COMn[:] [baud[,parity[,databits[,stopbits[,P]]]]]
 MODE LPTn[:] [cols[,lines[,retry]]]
@@ -696,24 +646,21 @@ MODE drive: CODEPAGE [/STATUS]
 ```
 
 ### DEBUG
-DEBUG is an interactive debugger. Usage:
 ```
 DEBUG [[drive:][path]filename [arglist]]
 ```
-No command-line switches; all control is via interactive commands (A, D, E, G, N, P, Q, R, T, U, W, etc.).
+Interactive debugger — no command-line switches; all control via
+interactive commands (A, D, E, G, N, P, Q, R, T, U, W, etc.).
 
 ### FILESYS / IFSFUNC
-Internal TSR utilities — no user-facing `/? ` help planned.
-
----
+Internal TSR utilities — no user-facing `/?` help planned.
 
 ### Implementation approach
 
-1. Create branch `dos4-enhancements` in the MS-DOS fork submodule.
-2. For each tool: add a `/? ` check at the very start of `main`/init.
-   - For ASM tools: check PSP command tail for `/?`, print help via DOS int 21h
+1. For each tool: add a `/?` check at the very start of `main`/init.
+   - ASM tools: check PSP command tail for `/?`, print help via DOS int 21h
      function 09h (print $-terminated string), then `int 21h` AH=4Ch.
-   - For C tools: `strcmp` argv[1] with `"/?"`; print via `printf`; `exit(0)`.
-3. Keep help strings compact (≤24 lines) to fit a standard 25-line screen.
-4. Build and test each tool after adding help.
-5. Update `tests/golden.sha256` after all changes.
+   - C tools: `strcmp` argv[1] with `"/?"`; print via `printf`; `exit(0)`.
+2. Keep help strings compact (≤24 lines) to fit a standard 25-line screen.
+3. Build and test each tool after adding help.
+4. Update `tests/golden.sha256` after all changes.

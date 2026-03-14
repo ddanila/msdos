@@ -208,6 +208,16 @@ Key notes:
   build kvikdos → `make` → `make test` → `make deploy` → `make verify`.
 - Free tier: unlimited minutes for public repos on GitHub Actions.
 
+## MS-DOS Fork Branch Strategy
+
+The MS-DOS submodule (`MS-DOS/`) has two branches:
+- `main` — minimal patches to make the source build (CRLF fixes, UTF-8, `.gitattributes`).
+  Stays close to original Microsoft source; should always produce binary-identical output.
+- `dos4-enhancements` — our additions (help strings, etc.). Branches off `main`.
+
+Workflow: develop on `dos4-enhancements`; merge upstream changes into `main` first,
+then rebase `dos4-enhancements` on top.
+
 ## kvikdos Modifications (in kvikdos/kvikdos.c)
 - `current_dir[DRIVE_COUNT]` expanded from 1 to 64 bytes per drive.
 - `ah=0x3b` (CHDIR) implemented.
