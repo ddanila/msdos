@@ -339,6 +339,14 @@ Pattern for built-in /? (all commands use this):
 - `pipefail` in run_tests.sh: capture `strings` output into a variable first, then grep; avoids SIGPIPE false negative.
 
 - [x] **VER** — `VERSION:` in `TCMD2A.ASM`
+- [x] **DIR** — `CATALOG:` in `TCMD1A.ASM`; /? check before DMA setup
+- [x] **COPY** — `COPY:` in `COPY.ASM`; /? check before init block
+- [x] **SET** — `ADD_NAME_TO_ENVIRONMENT:` in `TENV.ASM`; fixed `JMP SHORT ADD_NAME` range issue (SET_HELP_STR between ADD_PROMPT2 and ADD_NAME)
+- [x] **PROMPT** — `ADD_PROMPT:` in `TENV.ASM`
+- [x] **PATH** — `PATH:` in `TCMD2A.ASM`; /? check before PGetarg
+- [x] **CD/CHDIR** — `$CHDIR:` in `TENV2.ASM`
+- [x] **MD/MKDIR** — `$MKDIR:` in `TENV2.ASM`; /? check before SETRMMK
+- [x] **RD/RMDIR** — `$RMDIR:` in `TENV2.ASM`; /? check before SETRMMK
 - [x] **PAUSE** — `PAUSE:` in `TCMD1B.ASM`
 - [x] **ERASE/DEL** — `ERASE:` in `TCMD1B.ASM`; relay labels added for out-of-range backward jumps in CRENAME
 - [x] **RENAME/REN** — `CRENAME:` in `TCMD1B.ASM`
