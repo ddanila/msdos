@@ -326,6 +326,18 @@ COMMAND [[drive:]path] [device] [/E:nnnnn] [/P] [/MSG] [/C string]
   /C string  Run command string then return
 ```
 
+#### COMMAND.COM built-in commands — VER done, others pending
+
+Built-in /? is different from external tool /?: built-ins are dispatched via COMTAB in `TDATA.ASM`. Testing requires QEMU (COMMAND.COM fails sysloadmsg under kvikdos due to DOS version mismatch 5.0 vs 4.0). Static binary check used in CI instead.
+
+Pattern for built-in /? (implemented for VER):
+- Set `fSwitchAllowed` flag in COMTAB entry (TDATA.ASM) to avoid "Invalid switch" rejection.
+- In the handler: scan DS:[81H] (command tail set up by `cmd_copy`) for '/?' after skipping spaces.
+- Print help via INT 21h/09h (direct, not std_printf which requires message framework).
+- Use `return` to exit cleanly.
+
+- [x] **VER** — `VERSION:` in `TCMD2A.ASM`; `fSwitchAllowed` in COMTAB; scan DS:[81H] for `/?`; help string in TRANCODE data area; print via INT 21h/09h.
+
 #### CHKDSK — SKIPPED (see note below)
 
 ### Implementation status (dos4-enhancements branch)

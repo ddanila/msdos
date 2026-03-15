@@ -173,6 +173,25 @@ check_help "DEBUG"    "CMD/DEBUG/DEBUG.COM"           "DEBUG"
 check_help "FDISK"    "CMD/FDISK/FDISK.EXE"           "FDISK"
 check_help "IFSFUNC"  "CMD/IFSFUNC/IFSFUNC.EXE"       "IFSFUNC"
 
+# ── Section 5: COMMAND.COM built-in /? help (static binary check) ────────────
+# Built-in commands run through COMMAND.COM which fails sysloadmsg under kvikdos
+# (version mismatch 5.0 vs 4.0). Functional testing requires QEMU. As a lighter
+# alternative we verify the help string is present in the COMMAND.COM binary.
+echo ""
+echo "=== Section 5: COMMAND.COM built-in /? help (static check) ==="
+
+check_builtin_help() {
+    local name="$1"
+    local expected="$2"
+    if strings "$SRC/CMD/COMMAND/COMMAND.COM" | grep -q "$expected"; then
+        ok "$name /? (static)"
+    else
+        fail "$name /?  (expected '$expected' in COMMAND.COM binary)"
+    fi
+}
+
+check_builtin_help "VER" "Displays the MS-DOS version."
+
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
