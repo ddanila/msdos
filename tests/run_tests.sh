@@ -109,10 +109,15 @@ echo ""
 echo "=== Section 3: kvikdos smoke tests ==="
 
 # COMMAND.COM /C EXIT — should return exit code 0
-if (cd "$SRC/CMD/COMMAND" && "$BIN/dos-run" "$SRC/CMD/COMMAND/COMMAND.COM" /C EXIT) 2>&1; then
+if (cd "$SRC/CMD/COMMAND" && timeout 30 "$BIN/dos-run" "$SRC/CMD/COMMAND/COMMAND.COM" /C EXIT) 2>&1; then
     ok "COMMAND.COM /C EXIT"
 else
-    fail "COMMAND.COM /C EXIT  (exit code $?)"
+    rc=$?
+    if [[ $rc -eq 124 ]]; then
+        fail "COMMAND.COM /C EXIT  (timed out after 30s)"
+    else
+        fail "COMMAND.COM /C EXIT  (exit code $rc)"
+    fi
 fi
 
 # ── Section 4: /? help smoke tests ──────────────────────────────────────────
@@ -127,7 +132,13 @@ check_help() {
     local tool="$2"
     local expected="$3"
     local output
-    output=$("$BIN/dos-run" "$SRC/$tool" /? 2>/dev/null) || true
+    output=$(timeout 30 "$BIN/dos-run" "$SRC/$tool" /? 2>/dev/null) || {
+        rc=$?
+        if [[ $rc -eq 124 ]]; then
+            fail "$name /?  (timed out after 30s)"
+            return
+        fi
+    }
     if echo "$output" | grep -q "$expected"; then
         ok "$name /?"
     else
