@@ -174,10 +174,10 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [x] `ATTRIB /?` — usage
 
 #### FIND
-- [ ] `FIND "string" file` — basic search
-- [ ] `FIND /V "string" file` — non-matching lines
-- [ ] `FIND /C "string" file` — count only
-- [ ] `FIND /N "string" file` — with line numbers
+- [x] `FIND "string" file` — basic search (QEMU e2e: case-sensitive match)
+- [x] `FIND /V "string" file` — non-matching lines (QEMU e2e)
+- [x] `FIND /C "string" file` — count only (QEMU e2e: verified count=2)
+- [x] `FIND /N "string" file` — with line numbers (QEMU e2e: verified [4])
 - [x] `FIND /?` — usage
 
 #### SORT

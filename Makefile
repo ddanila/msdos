@@ -254,6 +254,9 @@ test-exepack: deploy
 test-help-qemu: deploy
 	bash tests/test_help_qemu.sh
 
+test-tools-qemu: deploy
+	bash tests/test_tools_qemu.sh
+
 # ---------------------------------------------------------------------------
 # DEPLOY — bootable 1.44MB floppy image
 # ---------------------------------------------------------------------------
