@@ -6,9 +6,8 @@
 #
 # Known limitations (hang batch processing):
 #   - SET FOO=BAR / PROMPT — hangs (not env size — tested /E:4096, not CTTY AUX)
-#   - FOR %%F IN (set) DO cmd — hangs after expansion
 #   - TYPE <file> without ^Z — hangs (DOS text mode reads until ^Z; fixed by adding ^Z)
-# SET/PROMPT/FOR likely related to COMMAND.COM transient segment reload.
+# SET/PROMPT likely related to COMMAND.COM transient segment reload.
 #
 # Run via: make test-builtins  (requires 'make deploy' first)
 
@@ -50,7 +49,7 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
 # Build AUTOEXEC.BAT with all test commands.
 # ECHO markers between sections help identify output in the serial log.
 #
-# Skipped (hang batch processing):  FOR, SET assignment, PROMPT
+# Skipped (hang batch processing):  SET assignment, PROMPT
 {
     printf 'CTTY AUX\r\n'
 
@@ -132,6 +131,12 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
 
     printf 'ECHO ---RMDIR---\r\n'
     printf 'RD TESTDIR\r\n'
+
+    # ── FOR (bare error + valid loop) ──────────────────────────────────
+    printf 'ECHO ---FOR---\r\n'
+    printf 'FOR\r\n'
+    printf 'ECHO FOR_BARE_SURVIVED\r\n'
+    printf 'FOR %%%%X IN (AAA BBB CCC) DO ECHO FOR_GOT_%%%%X\r\n'
 
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$TEST_IMG" - ::AUTOEXEC.BAT
@@ -314,6 +319,21 @@ if grep -q "TESTDIR" "$SERIAL_LOG"; then
     ok "MD + CD (created and entered)"
 else
     fail "MD + CD (expected 'TESTDIR' in CD output)"
+fi
+
+echo ""
+echo "--- FOR command ---"
+
+if grep -q "FOR_BARE_SURVIVED" "$SERIAL_LOG"; then
+    ok "FOR (bare syntax error recovery)"
+else
+    fail "FOR (bare FOR should print 'Syntax error' and continue)"
+fi
+
+if grep -q "FOR_GOT_AAA" "$SERIAL_LOG" && grep -q "FOR_GOT_BBB" "$SERIAL_LOG" && grep -q "FOR_GOT_CCC" "$SERIAL_LOG"; then
+    ok "FOR (loop iterates all items)"
+else
+    fail "FOR (expected FOR_GOT_AAA, FOR_GOT_BBB, FOR_GOT_CCC)"
 fi
 
 echo ""

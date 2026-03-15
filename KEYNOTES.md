@@ -469,6 +469,38 @@ cat out/serial.log  # should show "MS-DOS Version 4.00"
 Use MTOOLSRC drive mapping instead (as shown above). Also needs `MTOOLS_NO_VFAT=1`.
 `timeout` is not available on macOS — use `gtimeout` from `brew install coreutils`.
 
+## COMMAND.COM FOR Command Hang (FIXED)
+
+### Root cause
+
+The `$for` handler in `TFOR.ASM` sets `ES` to `RESGROUP` via `mov ES, [RESSEG]` at
+`FOR_NORM` (needed to access resident data like `ForFlag`, `SINGLECOM`). Two bugs:
+
+1. **Error paths**: `forerrorj`, `forerrorjj`, `fornesterrj`, and `for_alloc_err`
+   all jumped to `CERROR`/`TCOMMAND` without restoring `ES` to `TRANGROUP`. Since
+   `TCOMMAND` uses `CALL ES:[HEADCALL]` (MASM generates ES: override because
+   `HEADCALL` is in `TRANSPACE`/`TRANGROUP` and `DS` is assumed `RESGROUP`), having
+   `ES=RESGROUP` caused the far call to read a garbage address from the resident
+   segment instead of the real `HEADCALL` pointer. Result: bare `FOR` printed
+   "Syntax error" then hung.
+
+2. **Success path**: `for_ret` returned with `ES=RESGROUP` (popped at line 514 after
+   the for-info structure was initialized). The caller (`Cmd_done`) doesn't touch ES
+   before jumping to `TCOMMAND`, so the same `HEADCALL` corruption occurred on the
+   first `forproc` iteration. Result: valid `FOR %%X IN (set) DO cmd` hung without
+   executing any iterations.
+
+**Fix**: Added `push cs; pop es` (restore `ES=TRANGROUP`) to all four error
+trampolines and to `for_ret` before the `ret` instruction.
+
+**Diagnostic**: `IF` (handler `$IF` in `TBATCH2.ASM`) never changes `ES`, so it
+works fine through the same `CERROR` path. This proved the hang was FOR-specific,
+not a general `CERROR`/`TCOMMAND` problem.
+
+**Testing**: FOR cannot be tested under kvikdos (COMMAND.COM fails `TSYSLOADMSG`
+due to version mismatch). Tested via QEMU E2E in `test_builtins.sh`: bare FOR
+error recovery + valid FOR loop iteration (3 items).
+
 ## kvikdos Modifications (in kvikdos/kvikdos.c)
 - `current_dir[DRIVE_COUNT]` expanded from 1 to 64 bytes per drive.
 - `ah=0x3b` (CHDIR) implemented.
