@@ -1,10 +1,10 @@
 # MS-DOS 4.0 Reproducible Build
 
-Build MS-DOS 4.0 from source on Linux using original DOS compilers running under [kvikdos](https://github.com/pts/kvikdos) (a headless KVM-based DOS emulator).
+Build MS-DOS 4.0 from source on Linux and macOS using original DOS compilers running under [kvikdos](https://github.com/pts/kvikdos) (a headless DOS emulator — KVM on Linux, software 8086 CPU on macOS).
 
 ## What this does
 
-1. **Build**: Run the original MS-DOS 4.0 compilers (MASM, CL, LINK, LIB, etc.) under kvikdos to compile and link the OS from source — producing `IO.SYS`, `MSDOS.SYS`, `COMMAND.COM`, `SYS.COM`, `FORMAT.COM`, all 11 device drivers, and more.
+1. **Build**: Run the original MS-DOS 4.0 compilers (MASM, CL, LINK, LIB, etc.) under kvikdos to compile and link the OS from source — producing `IO.SYS`, `MSDOS.SYS`, `COMMAND.COM` (with `/?' help for all built-in commands), `SYS.COM`, `FORMAT.COM`, all 11 device drivers, and more.
 2. **Test**: Validate build outputs with integration tests — file existence checks, SHA256 golden checksums, and COMMAND.COM smoke tests.
 3. **Deploy**: Assemble a bootable 1.44MB floppy image (`out/floppy.img`) from the build outputs.
 4. **Verify**: Boot the floppy headlessly in QEMU and confirm MS-DOS reports its version via COM1.
@@ -13,7 +13,7 @@ Build MS-DOS 4.0 from source on Linux using original DOS compilers running under
 
 ## Status
 
-All modules built from source. Full source audit complete.
+All modules built from source. Full source audit complete. Builds and tests pass on both Linux (KVM) and macOS (software CPU backend).
 
 ### Core (kernel, boot)
 
@@ -30,7 +30,7 @@ All modules built from source. Full source audit complete.
 ## Repository layout
 
 - `MS-DOS/` — fork of [microsoft/MS-DOS](https://github.com/microsoft/MS-DOS) (v4.0 source)
-- `kvikdos/` — fork of [pts/kvikdos](https://github.com/pts/kvikdos) with modifications for this build
+- `kvikdos/` — fork of [pts/kvikdos](https://github.com/pts/kvikdos) with modifications for this build (GETPID stub, `--dos-version`, macOS support)
 - `bin/` — wrapper scripts that invoke kvikdos for each DOS tool (masm, cl, link, lib, …)
 - `mk/` — per-module Makefile fragments
 - `Makefile` — Linux GNU Makefile orchestrating the full build
@@ -41,6 +41,8 @@ All modules built from source. Full source audit complete.
 
 ## Dependencies
 
+### Linux
+
 ```sh
 # Build tools
 sudo apt install nasm gcc make python3
@@ -50,6 +52,13 @@ sudo apt install nasm gcc make python3
 
 # Deploy and verify
 sudo apt install qemu-system-x86 mtools
+```
+
+### macOS
+
+```sh
+brew install nasm gcc make python3 qemu mtools
+# kvikdos uses the software 8086 CPU backend (XTulator) — no KVM required
 ```
 
 ## Building

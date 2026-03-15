@@ -416,6 +416,79 @@ does at runtime). Called automatically after each affected LINK step in the Make
 **Lesson:** Always test on real DOS or QEMU after linking with EXEPACK. kvikdos masks
 this class of bug entirely.
 
+## COMMAND.COM /? Help — Transient Corruption Bug (OPEN — CI broken)
+
+### Symptom
+Adding /? help strings to COMMAND.COM built-ins (CLS, EXIT, CTTY, CHCP, TRUENAME,
+REM, GOTO, SHIFT, IF, FOR, CALL, and COMMAND itself — commits 5d10cef + 58a0bb4)
+causes ALL built-in commands to silently fail at runtime. `CTTY AUX` and `VER`
+produce no output to serial. DOS boots, prompt appears, but every internal command
+is dead.
+
+### What works
+- Commits up to c08f024 (DIR, COPY, SET, PROMPT, PATH, CD, MD, RD help) produce a
+  working COMMAND.COM (41,719 bytes).
+- The /? check code pattern is correct (DS:[81H] scan, print via INT 21h/09h, return).
+- COMTAB entries in the broken binary look structurally correct (35 entries, valid
+  handler offsets, matching flag bytes).
+
+### What's broken
+- Full 58a0bb4 COMMAND.COM (43,991 bytes): all built-ins fail silently.
+- Earlier bisection (in the prior session) pointed to TFOR.ASM as the critical file,
+  and suggested a pure size boundary at 43,312→43,313 bytes where TRANTAIL PARA
+  alignment causes a 16-byte gap (TRANSPACEEND crosses from 0x83F0 to 0x83F1,
+  SetSize jumps from 2111 to 2112 paragraphs).
+
+### Size theory — DISPROVEN (partially)
+- Adding 2,300 bytes of zero padding at ORG 100H in TCODE.ASM (before SETDRV) to the
+  c08f024 base produces a 44,019-byte COMMAND.COM that **works correctly** under QEMU.
+  This is LARGER than the broken 43,991-byte binary.
+- **Conclusion**: total binary size alone does not cause the failure. The bug is in the
+  SPECIFIC code or data changes, not a generic size boundary. The earlier "size theory"
+  from the prior session's bisection with TFOR.ASM dummy padding was a coincidence —
+  the padding happened to be at a location that triggers the same symptom.
+- The issue is likely related to code placement, jump ranges, or data corruption in
+  the transient portion caused by one of the specific changes in 5d10cef/58a0bb4.
+
+### Investigation status
+- Need to bisect which specific file's changes (from the 5d10cef+58a0bb4 delta)
+  cause the failure: TCODE.ASM, TDATA.ASM, TCMD2A.ASM, TCMD2B.ASM, TBATCH2.ASM,
+  TFOR.ASM, or INIT.ASM.
+- The TDATA.ASM changes include: REM handler → REM_HANDLER (new), EXIT/CLS flags
+  0 → fSwitchAllowed. These are worth testing in isolation.
+- INIT.ASM adds COMMAND /? help to the RESIDENT portion (before SYSLOADMSG) — this
+  shifts TRANGROUP origin by 0x200 but shouldn't affect transient internals.
+
+### How to test locally (macOS)
+```bash
+# Requires: brew install qemu mtools coreutils
+# Build floppy image:
+dd if=/dev/zero of=out/floppy-test.img bs=512 count=2880 status=none
+dd if=MS-DOS/v4.0/src/BOOT/MSBOOT.BIN of=out/floppy-test.img \
+   bs=1 skip=31744 count=512 conv=notrunc status=none
+bin/patch-bpb out/floppy-test.img
+export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
+echo 'drive a: file="out/floppy-test.img"' > /tmp/mtoolsrc
+export MTOOLSRC=/tmp/mtoolsrc
+mformat -k a:
+mcopy MS-DOS/v4.0/src/BIOS/IO.SYS a:IO.SYS
+mattrib +h +s +r a:IO.SYS
+mcopy MS-DOS/v4.0/src/DOS/MSDOS.SYS a:MSDOS.SYS
+mattrib +h +s +r a:MSDOS.SYS
+mcopy MS-DOS/v4.0/src/CMD/COMMAND/COMMAND.COM a:COMMAND.COM
+printf "CTTY AUX\r\nVER\r\n" > /tmp/autoexec.bat
+mcopy -o /tmp/autoexec.bat a:AUTOEXEC.BAT
+# Boot and check:
+rm -f out/serial.log
+gtimeout 15 qemu-system-i386 -display none -fda out/floppy-test.img \
+   -boot a -m 4 -serial file:out/serial.log 2>/dev/null; true
+cat out/serial.log  # should show "MS-DOS Version 4.00"
+```
+
+**macOS mtools note**: `mattrib -i image.img` does not work on mtools 4.0.49.
+Use MTOOLSRC drive mapping instead (as shown above). Also needs `MTOOLS_NO_VFAT=1`.
+`timeout` is not available on macOS — use `gtimeout` from `brew install coreutils`.
+
 ## kvikdos Modifications (in kvikdos/kvikdos.c)
 - `current_dir[DRIVE_COUNT]` expanded from 1 to 64 bytes per drive.
 - `ah=0x3b` (CHDIR) implemented.
