@@ -307,6 +307,8 @@ CONTINUE:
 - Steps: grant KVM → install deps (`gcc nasm python3 qemu-system-x86 mtools`) →
   build kvikdos → `make` → `make test` → `make deploy` → `make verify`.
 - Free tier: unlimited minutes for public repos on GitHub Actions.
+- kvikdos now builds and runs on macOS via software 8086 CPU backend (XTulator).
+  Linux CI uses KVM (unchanged); macOS builds use the same codebase with `#ifdef __linux__` guards.
 
 ## MS-DOS Fork Branch Strategy
 
@@ -359,6 +361,7 @@ Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits ea
 | INT 15h/AH=C1h | Get EBDA Segment | Returns CF=1 (no EBDA). Needed by MEM.EXE. |
 | INT 2Fh/AH=B7h | APPEND (any sub-function) | Returns AX=BX=0 (not installed). Needed by TREE.COM. |
 | INT 67h/AH=40h..62h | EMS functions | Returns AH=0x86 (EMM not present). Needed by MEM.EXE EMS check. |
+| INT 21h/AH=87h | GETPID (MS-DOS 4.0 multitasking) | Returns PID=1, parent PID=0. MS C 5.10 `getpid()` calls this during compilation. |
 | MMIO 0xA0000–0x110000 reads | High memory / ROM area | Returns zeros. Needed for MEM.EXE reading INVARS ExtendedMemory via segment 0xFFF0. |
 
 ### Static data placed in low-memory readonly region (re-initialized on each run)
@@ -426,6 +429,8 @@ this class of bug entirely.
 - `--cwd=<drive>:\<path>\` flag added to set initial DOS current directory.
 - is_args_normal check now accepts both `\0` and `\r` as args terminator.
 - `INT 3` (software breakpoint) handled as no-op — needed by COMPRESS.COM.
+- INT 21h/AH=87h GETPID stub — returns PID=1 (MS-DOS 4.0 multitasking API, called by MS C 5.10 getpid()).
+- macOS: `MADV_DONTNEED` does not zero pages (unlike Linux); spawn/re-exec path uses memset instead.
 
 ## Paths
 - C standard headers (dos.h, stdio.h, etc.) are in `TOOLS/BLD/INC/`, not `TOOLS/INC/`.
