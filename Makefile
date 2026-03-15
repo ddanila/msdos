@@ -245,6 +245,9 @@ gen-checksums: all
 test-sys: deploy
 	bash tests/test_sys.sh
 
+test-builtins: deploy
+	bash tests/test_builtins.sh
+
 # ---------------------------------------------------------------------------
 # DEPLOY — bootable 1.44MB floppy image
 # ---------------------------------------------------------------------------

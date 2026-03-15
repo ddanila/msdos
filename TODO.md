@@ -4,7 +4,7 @@
 
 1. ~~**COMMAND /?**~~ — done. Added to `INIT.ASM` before `sysloadmsg`; works under kvikdos too.
 2. ~~**E2E functional tests for read-only external tools**~~ — done (partial). MEM, FIND, FC, TREE wired into `run_tests.sh` Section 6. kvikdos extended with INT 21h/33h/AL=03h (boot drive) and INT 21h/69h (disk serial number) stubs. **Remaining:** SORT (insufficient memory — C runtime can't shrink allocation under kvikdos), COMP (uses INT 21h/11h FCB search — not implemented in kvikdos).
-3. **E2E functional tests for COMMAND.COM built-ins via QEMU** — VER, ECHO, DIR, SET, PATH: boot a floppy with `AUTOEXEC.BAT` running `CTTY AUX` + the command, capture COM1 output. Validates actual built-in logic (not just binary string presence).
+3. ~~**E2E functional tests for COMMAND.COM built-ins via QEMU**~~ — done. VER, ECHO, SET, PATH, DIR, VOL tested via `make test-builtins` (single QEMU boot, CTTY AUX + COM1 capture). **Known issue:** `SET FOO=BAR` (environment write) hangs batch processing on floppy boot — likely environment resize issue with minimal env space. Read-only SET (no args) works fine.
 4. **CI job: pin submodule to `main` and verify golden checksums** — the one remaining `[ ]` in harness setup. Guards against regressions where toolchain changes break unmodified upstream source.
 5. **CHKDSK /?** — was skipped (CP437 non-ASCII bytes in source). Pattern now solved via Python binary edit (same as DEBUG). Just needs someone to sit down and do it.
 6. **Verify EXEPACK fix on real DOS/QEMU** — FIND, FDISK, IFSFUNC, EXE2BIN, SELECT all have the A20 gate bug patched at build time by `bin/fix-exepack`; worth an end-to-end smoke run on QEMU to confirm patched binaries actually work.

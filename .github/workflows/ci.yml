@@ -55,3 +55,7 @@ jobs:
       - name: SYS e2e test (make test-sys)
         run: make test-sys
         timeout-minutes: 10
+
+      - name: Built-in commands e2e test (make test-builtins)
+        run: make test-builtins
+        timeout-minutes: 5
