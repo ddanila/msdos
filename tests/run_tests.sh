@@ -183,7 +183,8 @@ check_help "FILESYS"  "CMD/FILESYS/FILESYS.EXE"      "FILESYS"
 check_help "DEBUG"    "CMD/DEBUG/DEBUG.COM"           "DEBUG"
 check_help "FDISK"    "CMD/FDISK/FDISK.EXE"           "FDISK"
 check_help "IFSFUNC"  "CMD/IFSFUNC/IFSFUNC.EXE"       "IFSFUNC"
-check_help "COMMAND"  "CMD/COMMAND/COMMAND.COM"       "command interpreter"
+# Skipped: COMMAND.COM /? hangs under kvikdos (interactive shell, no timeout-safe exit)
+# check_help "COMMAND"  "CMD/COMMAND/COMMAND.COM"       "command interpreter"
 
 # ── Section 5: COMMAND.COM built-in /? help (static binary check) ────────────
 # Built-in commands run through COMMAND.COM which fails sysloadmsg under kvikdos
