@@ -1,5 +1,14 @@
 # MS-DOS 4.0 Build — TODO
 
+## What's Next (prioritized)
+
+1. **COMMAND /?** — last tool without `/?' help. Needs work in `INIT.ASM`/`CPARSE.ASM`; trickier than built-ins since COMMAND.COM's init runs before the message framework loads. Completes the `/? for all tools` initiative.
+2. **E2E functional tests for read-only external tools** — MEM, SORT, FIND, TREE, FC, COMP can all be invoked directly under kvikdos (no disk writes). Good first batch to wire into `run_tests.sh` Section 6.
+3. **E2E functional tests for COMMAND.COM built-ins via QEMU** — VER, ECHO, DIR, SET, PATH: boot a floppy with `AUTOEXEC.BAT` running `CTTY AUX` + the command, capture COM1 output. Validates actual built-in logic (not just binary string presence).
+4. **CI job: pin submodule to `main` and verify golden checksums** — the one remaining `[ ]` in harness setup. Guards against regressions where toolchain changes break unmodified upstream source.
+5. **CHKDSK /?** — was skipped (CP437 non-ASCII bytes in source). Pattern now solved via Python binary edit (same as DEBUG). Just needs someone to sit down and do it.
+6. **Verify EXEPACK fix on real DOS/QEMU** — FIND, FDISK, IFSFUNC, EXE2BIN, SELECT all have the A20 gate bug patched at build time by `bin/fix-exepack`; worth an end-to-end smoke run on QEMU to confirm patched binaries actually work.
+
 ## E2E Tests — Per-Command, Per-Option Coverage
 
 Goal: every command (external tool and COMMAND.COM built-in) and every
