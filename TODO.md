@@ -357,6 +357,17 @@ Pattern for built-in /? (all commands use this):
 - [x] **VERIFY** — `VERIFY:` in `TUCODE.ASM`; relay for CERRORJ out-of-range; `JMP SHORT PYN` → `JMP PYN`
 - [x] **DATE** — `DATE:` in `TPIPE.ASM`
 - [x] **TIME** — `CTIME:` in `TPIPE.ASM`
+- [x] **CLS** — `CLS:` in `TCMD2A.ASM`; added `fSwitchAllowed` in TDATA.ASM (was 0)
+- [x] **EXIT** — `$EXIT:` in `TCMD2B.ASM`; added `fSwitchAllowed` in TDATA.ASM (was 0)
+- [x] **CTTY** — `CTTY:` in `TCMD2B.ASM`; /? check before push ds/pop es/mov si,81H
+- [x] **CHCP** — `CHCP:` in `TCMD2B.ASM`; /? check before push ds/pop es/mov si,81H
+- [x] **TRUENAME** — `TRUENAME:` in `TCMD2B.ASM`; /? check before push ds/pop es/mov si,81H
+- [x] **REM** — New `REM_HANDLER` in `TCODE.ASM`; checks for /? then falls through to TCOMMAND; TDATA.ASM updated to point to REM_HANDLER instead of TCOMMAND
+- [x] **GOTO** — `GOTO:` in `TBATCH2.ASM`; /? check before MOV DS,[RESSEG]
+- [x] **SHIFT** — `Shift:` in `TBATCH2.ASM`; /? check before MOV DS,[RESSEG]; relay label for FIRST_STRING JZ IFERRORP (extended by check code)
+- [x] **IF** — `$IF:` in `TBATCH2.ASM`; IF_HELP_STR placed before IFERRORP/IFERROR (after EndProc GetBatByt `return`) to avoid extending backward jumps in $IF handler
+- [x] **FOR** — `$for:` in `TFOR.ASM`; FOR_HELP_STR placed after `jmp docom1` before `fornesterrj:` (safe from fall-through); relay label for for_paren_token JC forerrorj
+- [x] **CALL** — `$CALL:` in `TBATCH2.ASM`; /? check at handler entry
 
 #### CHKDSK — SKIPPED (see note below)
 
