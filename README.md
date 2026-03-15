@@ -4,7 +4,7 @@ Build MS-DOS 4.0 from source on Linux and macOS using original DOS compilers run
 
 ## What this does
 
-1. **Build**: Run the original MS-DOS 4.0 compilers (MASM, CL, LINK, LIB, etc.) under kvikdos to compile and link the OS from source — producing `IO.SYS`, `MSDOS.SYS`, `COMMAND.COM` (with `/?' help for most built-in commands), `SYS.COM`, `FORMAT.COM`, all 11 device drivers, and more.
+1. **Build**: Run the original MS-DOS 4.0 compilers (MASM, CL, LINK, LIB, etc.) under kvikdos to compile and link the OS from source — producing `IO.SYS`, `MSDOS.SYS`, `COMMAND.COM` (with `/?' help for all built-in commands), `SYS.COM`, `FORMAT.COM`, all 11 device drivers, and more.
 2. **Test**: Validate build outputs with integration tests — file existence checks, SHA256 golden checksums, and COMMAND.COM smoke tests.
 3. **Deploy**: Assemble a bootable 1.44MB floppy image (`out/floppy.img`) from the build outputs.
 4. **Verify**: Boot the floppy headlessly in QEMU and confirm MS-DOS reports its version via COM1.
