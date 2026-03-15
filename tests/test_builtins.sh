@@ -86,6 +86,8 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
     printf 'IF NOT EXIST NOFILE.XYZ ECHO IF_NOT_EXIST_OK\r\n'
     printf 'IF abc==abc ECHO IF_EQUAL_OK\r\n'
     printf 'IF NOT abc==xyz ECHO IF_NOT_EQUAL_OK\r\n'
+    printf 'FIND "NONEXISTENT" COMMAND.COM\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO IF_ERRORLEVEL_OK\r\n'
 
     # ── GOTO ──────────────────────────────────────────────────────────────
     printf 'ECHO ---GOTO---\r\n'
@@ -249,6 +251,12 @@ if grep -q "IF_NOT_EQUAL_OK" "$SERIAL_LOG"; then
     ok "IF NOT string==string"
 else
     fail "IF NOT string==string (expected 'IF_NOT_EQUAL_OK')"
+fi
+
+if grep -q "IF_ERRORLEVEL_OK" "$SERIAL_LOG"; then
+    ok "IF ERRORLEVEL (after failed FIND)"
+else
+    fail "IF ERRORLEVEL (expected 'IF_ERRORLEVEL_OK')"
 fi
 
 echo ""
