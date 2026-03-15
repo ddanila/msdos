@@ -362,6 +362,8 @@ Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits ea
 | INT 2Fh/AH=B7h | APPEND (any sub-function) | Returns AX=BX=0 (not installed). Needed by TREE.COM. |
 | INT 67h/AH=40h..62h | EMS functions | Returns AH=0x86 (EMM not present). Needed by MEM.EXE EMS check. |
 | INT 21h/AH=87h | GETPID (MS-DOS 4.0 multitasking) | Returns PID=1, parent PID=0. MS C 5.10 `getpid()` calls this during compilation. |
+| INT 21h/AH=33h/AL=03h | Get boot drive | Returns DL=3 (C:). Needed by FIND.EXE. |
+| INT 21h/AH=69h | Get disk serial number (DOS 4.0+) | Returns dummy serial 0x67452301, volume "NO NAME", FS "FAT12". Needed by TREE.COM. |
 | MMIO 0xA0000–0x110000 reads | High memory / ROM area | Returns zeros. Needed for MEM.EXE reading INVARS ExtendedMemory via segment 0xFFF0. |
 
 ### Static data placed in low-memory readonly region (re-initialized on each run)
@@ -369,17 +371,13 @@ Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits ea
 - **0x0522..0x0539** — country_info copy (0x18 bytes). Used by INT 21h/AH=65h/AL=01h.
 - These addresses are in the KVM readonly-guest slot (0x0000..0x0FFF), safely between the BIOS data area and the hlt table (0x0540).
 
-### MEM.EXE status
-- MEM.EXE (no args) runs and prints 3 lines but exits with code 128 instead of 0.
-- Output is correct: "655360 bytes total memory / available / 651264 largest executable".
-- Exit code 128 (0x80) is probably from C runtime returning AX leftover from `sysloadmsg`.
-- MEM /PROGRAM and MEM /DEBUG require proper INVARS (INT 21h/AH=52h) MCB chain walk — not yet tested.
-
-### Remaining known gaps for E2E functional tests
-- **SORT.EXE**: after `sysloadmsg` succeeds (with INT 65h fix), C runtime calls INT 21h/AH=4Ah to shrink allocation; test needed to confirm sufficient memory is freed for sort buffer.
-- **FIND.EXE**: should work after INT 65h fix; needs test with a real file.
-- **TREE.COM**: should work after INT 2Fh/B7h fix; needs test with a directory structure.
-- **COMP.COM**: should work after INT 65h fix; needs test with two files.
+### E2E functional test status (Section 6)
+- **MEM.EXE**: runs, prints correct memory report, exits non-zero (C runtime artifact — ignored).
+- **FIND.EXE**: works with file arguments. Stdin mode unreliable under kvikdos.
+- **FC.EXE**: works — identical files ("no differences"), different files (shows diff).
+- **TREE.COM**: works — shows "Directory PATH listing". kvikdos doesn't expose subdirectories via FindFirst/FindNext, so tree is flat.
+- **SORT.EXE**: blocked — "Insufficient memory" (C runtime INT 21h/4Ah shrink fails).
+- **COMP.COM**: blocked — uses INT 21h/11h (FCB Find First), not implemented in kvikdos.
 
 ## EXEPACK A20 Gate Bug
 

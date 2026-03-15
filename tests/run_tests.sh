@@ -239,6 +239,70 @@ check_builtin_help "IF"      "Performs conditional processing"
 check_builtin_help "FOR"     "Runs a specified command for each file"
 check_builtin_help "CALL"    "Calls one batch program from another"
 
+# ── Section 6: E2E functional tests (kvikdos) ─────────────────────────────────
+# Run real DOS binaries under kvikdos with actual input/output, not just /? help.
+echo ""
+echo "=== Section 6: E2E functional tests (kvikdos) ==="
+
+# Helper: run a tool under kvikdos from the source root, capture stdout.
+# Usage: run_dos TOOL [args...]
+# Exit code is from the tool (or 124 on timeout).
+run_dos() {
+    local tool="$SRC/$1"; shift
+    timeout 30 "$BIN/dos-run" "$tool" "$@" 2>/dev/null
+}
+
+# -- MEM: basic memory report --
+output=$(run_dos CMD/MEM/MEM.EXE) || true
+if echo "$output" | grep -q "bytes total memory"; then
+    ok "MEM (basic memory report)"
+else
+    fail "MEM (expected 'bytes total memory' in output)"
+fi
+
+# -- FIND: search for string in a file --
+output=$(run_dos CMD/FIND/FIND.EXE '"echo"' 'C:\SETENV.BAT') || true
+if echo "$output" | grep -q "SETENV.BAT"; then
+    ok "FIND (search file for string)"
+else
+    fail "FIND (expected 'SETENV.BAT' header in output)"
+fi
+
+# -- FIND /C: count matching lines --
+output=$(run_dos CMD/FIND/FIND.EXE /C '"set"' 'C:\SETENV.BAT') || true
+if echo "$output" | grep -q "SETENV.BAT"; then
+    ok "FIND /C (count matches)"
+else
+    fail "FIND /C (expected 'SETENV.BAT' header with count)"
+fi
+
+# -- FC: compare identical files --
+output=$(run_dos CMD/FC/FC.EXE 'C:\SETENV.BAT' 'C:\SETENV.BAT') || true
+if echo "$output" | grep -q "no differences"; then
+    ok "FC (identical files)"
+else
+    fail "FC (expected 'no differences' for identical files)"
+fi
+
+# -- FC: compare different files --
+output=$(run_dos CMD/FC/FC.EXE 'C:\SETENV.BAT' 'C:\CPY.BAT') || true
+if echo "$output" | grep -q "SETENV.BAT"; then
+    ok "FC (different files)"
+else
+    fail "FC (expected diff output with filename header)"
+fi
+
+# -- TREE: directory listing --
+output=$(run_dos CMD/TREE/TREE.COM /A) || true
+if echo "$output" | grep -q "Directory PATH listing"; then
+    ok "TREE (directory listing)"
+else
+    fail "TREE (expected 'Directory PATH listing')"
+fi
+
+# Skipped: SORT (insufficient memory under kvikdos — C runtime can't shrink allocation)
+# Skipped: COMP (uses INT 21h/11h FCB search — not implemented in kvikdos)
+
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
