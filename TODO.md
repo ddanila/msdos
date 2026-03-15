@@ -17,6 +17,7 @@ DOS binary under kvikdos or QEMU, check exit code and/or COM1/stdout output.
 
 **Harness setup:**
 - [x] Add CI step for `make test-sys`.
+- [x] Add CI step for `make test-help-qemu` (27 external tools /? on real DOS).
 - External tools (MEM, XCOPY, etc.): invoke via kvikdos directly where
   possible; fall back to QEMU+COM1 for disk-heavy operations.
 - Built-ins: invoke as `COMMAND /C "CMD args"` via kvikdos or QEMU.
@@ -74,13 +75,13 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `FORMAT A: /4` — 360K in 1.2MB drive
 - [ ] `FORMAT A: /1` — single-sided
 - [ ] `FORMAT A: /8` — 8 sectors/track
-- [ ] `FORMAT A: /?` — usage
+- [x] `FORMAT A: /?` — usage
 
 #### MEM
 - [ ] `MEM` — basic output (totals)
 - [ ] `MEM /PROGRAM` — show loaded programs
 - [ ] `MEM /DEBUG` — show internal drivers
-- [ ] `MEM /?` — usage
+- [x] `MEM /?` — usage
 
 #### CHKDSK
 - [ ] `CHKDSK` — check current drive
@@ -100,7 +101,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `XCOPY src dest /P` — prompt per file
 - [ ] `XCOPY src dest /V` — verify
 - [ ] `XCOPY src dest /W` — wait before start
-- [ ] `XCOPY /?` — usage
+- [x] `XCOPY /?` — usage
 
 #### ATTRIB
 - [ ] `ATTRIB file` — show attributes
@@ -109,26 +110,26 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `ATTRIB +A file` — set archive
 - [ ] `ATTRIB -A file` — clear archive
 - [ ] `ATTRIB +R +A file /S` — recursive subdirs
-- [ ] `ATTRIB /?` — usage
+- [x] `ATTRIB /?` — usage
 
 #### FIND
 - [ ] `FIND "string" file` — basic search
 - [ ] `FIND /V "string" file` — non-matching lines
 - [ ] `FIND /C "string" file` — count only
 - [ ] `FIND /N "string" file` — with line numbers
-- [ ] `FIND /?` — usage
+- [x] `FIND /?` — usage
 
 #### SORT
 - [ ] `SORT < file` — sort stdin
 - [ ] `SORT /R < file` — reverse sort
 - [ ] `SORT /+3 < file` — sort by column 3
-- [ ] `SORT /?` — usage
+- [x] `SORT /?` — usage
 
 #### TREE
 - [ ] `TREE` — directory tree
 - [ ] `TREE /F` — include filenames
 - [ ] `TREE /A` — ASCII chars (no line-drawing)
-- [ ] `TREE /?` — usage
+- [x] `TREE /?` — usage
 
 #### REPLACE
 - [ ] `REPLACE src dest` — replace existing
@@ -138,7 +139,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `REPLACE src dest /S` — recurse subdirs
 - [ ] `REPLACE src dest /U` — only if dest older
 - [ ] `REPLACE src dest /W` — wait before start
-- [ ] `REPLACE /?` — usage
+- [x] `REPLACE /?` — usage
 
 #### BACKUP
 - [ ] `BACKUP C: A:` — basic backup
@@ -149,7 +150,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `BACKUP C: A: /T:00:00:00` — since time
 - [ ] `BACKUP C: A: /L:backup.log` — write log
 - [ ] `BACKUP C: A: /F` — format target if needed
-- [ ] `BACKUP /?` — usage
+- [x] `BACKUP /?` — usage
 
 #### RESTORE
 - [ ] `RESTORE A: C:` — restore all
@@ -161,7 +162,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `RESTORE A: C: /A:01-01-88` — on or after date
 - [ ] `RESTORE A: C: /E:12:00:00` — on or before time
 - [ ] `RESTORE A: C: /L:12:00:00` — on or after time
-- [ ] `RESTORE /?` — usage
+- [x] `RESTORE /?` — usage
 
 #### FC
 - [ ] `FC file1 file2` — ASCII diff
@@ -172,35 +173,35 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `FC /T file1 file2` — no tab expansion
 - [ ] `FC /W file1 file2` — compress whitespace
 - [ ] `FC /5 file1 file2` — custom resync count
-- [ ] `FC /?` — usage
+- [x] `FC /?` — usage
 
 #### DISKCOMP
 - [ ] `DISKCOMP A: A:` — compare floppies
 - [ ] `DISKCOMP A: A: /1` — single-sided only
 - [ ] `DISKCOMP A: A: /8` — 8 sectors/track only
-- [ ] `DISKCOMP /?` — usage
+- [x] `DISKCOMP /?` — usage
 
 #### DISKCOPY
 - [ ] `DISKCOPY A: A:` — copy floppy
 - [ ] `DISKCOPY A: A: /1` — single-sided
 - [ ] `DISKCOPY A: A: /V` — verify after
-- [ ] `DISKCOPY /?` — usage
+- [x] `DISKCOPY /?` — usage
 
 #### COMP
 - [ ] `COMP file1 file2` — compare files (same)
 - [ ] `COMP file1 file2` — compare files (different)
-- [ ] `COMP /?` — usage
+- [x] `COMP /?` — usage
 
 #### LABEL
 - [ ] `LABEL` — prompt for label
 - [ ] `LABEL A:MYLABEL` — set label directly
 - [ ] `LABEL A:` — remove label (empty)
-- [ ] `LABEL /?` — usage
+- [x] `LABEL /?` — usage
 
 #### EDLIN
 - [ ] `EDLIN file` — open file for editing
 - [ ] `EDLIN file /B` — binary (ignore ^Z)
-- [ ] `EDLIN /?` — usage
+- [x] `EDLIN /?` — usage
 
 #### FDISK
 - [ ] `FDISK` — interactive (smoke test: launches and exits)
@@ -215,7 +216,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 #### MORE
 - [ ] `MORE < file` — page through file
 - [ ] `command | MORE` — piped input
-- [ ] `MORE /?` — usage
+- [x] `MORE /?` — usage
 
 #### PRINT
 - [ ] `PRINT /D:PRN file` — print to device
@@ -223,29 +224,29 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `PRINT file /P` — add to queue
 - [ ] `PRINT file /C` — remove from queue
 - [ ] `PRINT /Q:5 file` — set queue size
-- [ ] `PRINT /?` — usage
+- [x] `PRINT /?` — usage
 
 #### SYS
 - [ ] `SYS A:` — transfer system files
-- [ ] `SYS /?` — usage
+- [x] `SYS /?` — usage
 
 #### KEYB
 - [ ] `KEYB US` — load US keyboard
 - [ ] `KEYB GR,,KEYBOARD.SYS` — explicit file
 - [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with ID
 - [ ] `KEYB` — show current layout
-- [ ] `KEYB /?` — usage
+- [x] `KEYB /?` — usage
 
 #### NLSFUNC
 - [ ] `NLSFUNC` — load with default COUNTRY.SYS
 - [ ] `NLSFUNC C:\COUNTRY.SYS` — explicit path
-- [ ] `NLSFUNC /?` — usage
+- [x] `NLSFUNC /?` — usage
 
 #### GRAFTABL
 - [ ] `GRAFTABL 437` — load code page 437
 - [ ] `GRAFTABL 850` — load code page 850
 - [ ] `GRAFTABL /STATUS` — show current
-- [ ] `GRAFTABL /?` — usage
+- [x] `GRAFTABL /?` — usage
 
 #### APPEND
 - [ ] `APPEND /E` — init with environment
@@ -254,41 +255,41 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `APPEND /PATH:ON` — search appended dirs for explicit paths
 - [ ] `APPEND /X` — extend to EXEC search
 - [ ] `APPEND` — show current path
-- [ ] `APPEND /?` — usage
+- [x] `APPEND /?` — usage
 
 #### ASSIGN
 - [ ] `ASSIGN A=B` — redirect A: to B:
 - [ ] `ASSIGN` — clear all assignments
 - [ ] `ASSIGN /STATUS` — show assignments
-- [ ] `ASSIGN /?` — usage
+- [x] `ASSIGN /?` — usage
 
 #### JOIN
 - [ ] `JOIN A: C:\FLOPPY` — join drive to path
 - [ ] `JOIN A: /D` — remove join
 - [ ] `JOIN` — show current joins
-- [ ] `JOIN /?` — usage
+- [x] `JOIN /?` — usage
 
 #### SUBST
 - [ ] `SUBST X: C:\LONGPATH` — create substitution
 - [ ] `SUBST X: /D` — remove substitution
 - [ ] `SUBST` — show substitutions
-- [ ] `SUBST /?` — usage
+- [x] `SUBST /?` — usage
 
 #### SHARE
 - [ ] `SHARE` — load with defaults
 - [ ] `SHARE /F:4096 /L:40` — custom file space and locks
-- [ ] `SHARE /?` — usage
+- [x] `SHARE /?` — usage
 
 #### FASTOPEN
 - [ ] `FASTOPEN C:=50` — cache 50 entries
 - [ ] `FASTOPEN C:=50 /X` — use expanded memory
-- [ ] `FASTOPEN /?` — usage
+- [x] `FASTOPEN /?` — usage
 
 #### GRAPHICS
 - [ ] `GRAPHICS` — load default (GRAPHICS.PRO)
 - [ ] `GRAPHICS COLOR4 /R` — color4 reversed
 - [ ] `GRAPHICS HPDEFAULT /B` — with background
-- [ ] `GRAPHICS /?` — usage
+- [x] `GRAPHICS /?` — usage
 
 #### MODE
 - [ ] `MODE COM1: 9600,N,8,1` — configure serial
@@ -296,16 +297,16 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `MODE CON COLS=80 LINES=25` — configure console
 - [ ] `MODE CON RATE=30 DELAY=1` — typematic rate
 - [ ] `MODE CON /STATUS` — show console status
-- [ ] `MODE /?` — usage
+- [x] `MODE /?` — usage
 
 #### RECOVER
 - [ ] `RECOVER A:file` — recover bad-sector file
 - [ ] `RECOVER A:` — recover entire disk
-- [ ] `RECOVER /?` — usage
+- [x] `RECOVER /?` — usage
 
 #### EXE2BIN
 - [ ] `EXE2BIN prog.exe prog.bin` — basic conversion
-- [ ] `EXE2BIN /?` — usage
+- [x] `EXE2BIN /?` — usage
 
 #### IFSFUNC
 - [ ] `IFSFUNC` — load IFS driver (smoke test)

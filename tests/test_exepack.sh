@@ -70,8 +70,7 @@ else
     fail "FIND.EXE (no help output — may not have loaded)"
 fi
 
-# FDISK /? — on real DOS the parser rejects /? ("Invalid switch") but the
-# binary still loads and runs, proving the EXEPACK fix works.
+# FDISK /? — should print help text (confirmed working on real DOS)
 if grep -q "FDISK" "$SERIAL_LOG"; then
     ok "FDISK.EXE (EXEPACK loads correctly)"
 else

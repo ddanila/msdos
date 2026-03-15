@@ -305,7 +305,7 @@ CONTINUE:
 - Runner: `ubuntu-latest` — has `/dev/kvm` but not accessible by default.
 - KVM fix: add udev rule `KERNEL=="kvm", GROUP="kvm", MODE="0666"` before building.
 - Steps: grant KVM → install deps (`gcc nasm python3 qemu-system-x86 mtools`) →
-  build kvikdos → `make` → `make test` → `make deploy` → `make verify` → `make test-sys` → `make test-builtins`.
+  build kvikdos → `make` → `make test` → `make deploy` → `make verify` → `make test-sys` → `make test-builtins` → `make test-exepack` → `make test-help-qemu`.
 - Free tier: unlimited minutes for public repos on GitHub Actions.
 - kvikdos now builds and runs on macOS via software 8086 CPU backend (XTulator).
   Linux CI uses KVM (unchanged); macOS builds use the same codebase with `#ifdef __linux__` guards.
@@ -371,13 +371,19 @@ Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits ea
 - **0x0522..0x0539** — country_info copy (0x18 bytes). Used by INT 21h/AH=65h/AL=01h.
 - These addresses are in the KVM readonly-guest slot (0x0000..0x0FFF), safely between the BIOS data area and the hlt table (0x0540).
 
-### E2E functional test status (Section 6)
+### E2E functional test status (Section 6, kvikdos)
 - **MEM.EXE**: runs, prints correct memory report, exits non-zero (C runtime artifact — ignored).
 - **FIND.EXE**: works with file arguments. Stdin mode unreliable under kvikdos.
 - **FC.EXE**: works — identical files ("no differences"), different files (shows diff).
 - **TREE.COM**: works — shows "Directory PATH listing". kvikdos doesn't expose subdirectories via FindFirst/FindNext, so tree is flat.
 - **SORT.EXE**: blocked — "Insufficient memory" (C runtime INT 21h/4Ah shrink fails).
 - **COMP.COM**: blocked — uses INT 21h/11h (FCB Find First), not implemented in kvikdos.
+
+### QEMU /? help test status (`make test-help-qemu`)
+27 external CMD tools tested with /? on real DOS (single QEMU boot). All 27 print
+correct help text — both C-based tools (argv pattern) and ASM-based tools (PSP check)
+work identically under real DOS and kvikdos. Skipped: TSRs (NLSFUNC, SHARE, APPEND,
+PRINT, GRAPHICS, FASTOPEN), interactive (DEBUG, EDLIN), filters (MORE, SORT).
 
 ## EXEPACK A20 Gate Bug
 
