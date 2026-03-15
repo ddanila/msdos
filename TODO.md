@@ -391,6 +391,36 @@ All external CMD tools now have /? help implemented.
 
 ## Known Issues
 
+### COMMAND.COM batch processing hangs on floppy boot
+
+Several built-in commands hang batch processing when run from AUTOEXEC.BAT on
+a floppy boot under QEMU. Batch file execution stops after the command and never
+continues to the next line.
+
+**Affected commands:**
+- `TYPE <file>` — outputs file content then hangs (batch read position lost?)
+- `FOR %%F IN (set) DO cmd` — expands variable then hangs
+- `SET FOO=BAR` — environment variable assignment hangs
+- `PROMPT <string>` — prompt change hangs (also writes environment)
+
+**Not affected:** SET (no args, read-only), COPY, REN, DEL, MD, CD, RD, IF, GOTO,
+REM, CALL, VER, VOL, DIR, ECHO, BREAK, VERIFY, CHCP, TRUENAME, PATH (read-only).
+
+**Common thread:** The three env-writing commands (SET assignment, PROMPT, possibly FOR
+internal state) all hang. TYPE is the odd one out — may be a separate issue related to
+file handle/buffer interaction with the batch file reader.
+
+**Possible root cause:** COMMAND.COM's transient portion reloads from disk when it needs
+more memory. On a floppy with minimal free space, environment resize or transient reload
+may fail silently, leaving the batch interpreter in a broken state. The "Memory allocation
+error" seen during CALL supports this theory.
+
+**Impact:** Limits E2E test coverage. TYPE, FOR, SET assignment, and PROMPT cannot be
+tested in AUTOEXEC.BAT on floppy boot. All other built-ins are tested and pass.
+
+**To investigate:** Try with a CONFIG.SYS that sets `SHELL=COMMAND.COM /E:1024` (larger
+environment) or test on a hard disk image with more free memory.
+
 ### USA-MS.MSG spurious git diff
 
 After any `make` build, `v4.0/src/MESSAGES/USA-MS.MSG` always shows as modified in
