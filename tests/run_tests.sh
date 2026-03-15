@@ -183,14 +183,25 @@ echo "=== Section 5: COMMAND.COM built-in /? help (static check) ==="
 check_builtin_help() {
     local name="$1"
     local expected="$2"
-    if strings "$SRC/CMD/COMMAND/COMMAND.COM" | grep -q "$expected"; then
+    local bin_str
+    bin_str=$(strings "$SRC/CMD/COMMAND/COMMAND.COM")
+    if echo "$bin_str" | grep -q "$expected"; then
         ok "$name /? (static)"
     else
         fail "$name /?  (expected '$expected' in COMMAND.COM binary)"
     fi
 }
 
-check_builtin_help "VER" "Displays the MS-DOS version."
+check_builtin_help "VER"    "Displays the MS-DOS version."
+check_builtin_help "PAUSE"  "Suspends processing of a batch program"
+check_builtin_help "ERASE"  "Deletes one or more files."
+check_builtin_help "DEL"    "Deletes one or more files."
+check_builtin_help "RENAME" "Renames a file or files."
+check_builtin_help "TYPE"   "Displays the contents of a text file."
+check_builtin_help "VOL"    "Displays the disk volume label"
+check_builtin_help "ECHO"   "Displays messages, or turns command echoing on or off."
+check_builtin_help "BREAK"  "Sets or clears extended CTRL"
+check_builtin_help "VERIFY" "Tells MS-DOS whether to verify"
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
