@@ -4,12 +4,11 @@
 # Boots a floppy with AUTOEXEC.BAT that runs CTTY AUX + built-in commands,
 # then checks COM1 serial output for expected strings.
 #
-# Known limitations (hang batch processing on floppy boot):
-#   - TYPE <file>  — hangs after output (batch file read position lost?)
+# Known limitations (hang batch processing):
+#   - SET FOO=BAR / PROMPT — hangs (not env size — tested /E:4096, not CTTY AUX)
 #   - FOR %%F IN (set) DO cmd — hangs after expansion
-#   - SET FOO=BAR / PROMPT — environment write causes hang (resize issue?)
-# These are likely related to COMMAND.COM transient segment reload or
-# environment management with minimal memory on floppy boot.
+#   - TYPE <file> without ^Z — hangs (DOS text mode reads until ^Z; fixed by adding ^Z)
+# SET/PROMPT/FOR likely related to COMMAND.COM transient segment reload.
 #
 # Run via: make test-builtins  (requires 'make deploy' first)
 
@@ -41,8 +40,9 @@ cp "$FLOPPY" "$TEST_IMG"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
-# Add a test file for COPY/REN/DEL tests
-printf 'HELLO_TYPE_TEST\r\n' | mcopy -o -i "$TEST_IMG" - ::TEST.TXT
+# Add a test file for TYPE/COPY/REN/DEL tests.
+# Must end with ^Z (0x1A) — TYPE reads in text mode and hangs without it.
+printf 'HELLO_TYPE_TEST\r\n\x1a' | mcopy -o -i "$TEST_IMG" - ::TEST.TXT
 
 # Add a sub-batch for CALL test
 printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
@@ -50,7 +50,7 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
 # Build AUTOEXEC.BAT with all test commands.
 # ECHO markers between sections help identify output in the serial log.
 #
-# Skipped (hang batch processing):  TYPE, FOR, SET assignment, PROMPT
+# Skipped (hang batch processing):  FOR, SET assignment, PROMPT
 {
     printf 'CTTY AUX\r\n'
 
@@ -71,6 +71,10 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
     # ── CHCP (code page) ─────────────────────────────────────────────────
     printf 'ECHO ---CHCP---\r\n'
     printf 'CHCP\r\n'
+
+    # ── TYPE (needs ^Z terminated file) ─────────────────────────────────
+    printf 'ECHO ---TYPE---\r\n'
+    printf 'TYPE TEST.TXT\r\n'
 
     # ── TRUENAME ──────────────────────────────────────────────────────────
     printf 'ECHO ---TRUENAME---\r\n'
@@ -206,6 +210,12 @@ if grep -q "[Cc]ode [Pp]age" "$SERIAL_LOG"; then
     ok "CHCP"
 else
     fail "CHCP (expected 'code page')"
+fi
+
+if grep -q "HELLO_TYPE_TEST" "$SERIAL_LOG"; then
+    ok "TYPE"
+else
+    fail "TYPE (expected 'HELLO_TYPE_TEST')"
 fi
 
 if grep -q "A:" "$SERIAL_LOG"; then

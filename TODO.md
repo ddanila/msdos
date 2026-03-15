@@ -391,35 +391,45 @@ All external CMD tools now have /? help implemented.
 
 ## Known Issues
 
-### COMMAND.COM batch processing hangs on floppy boot
+### COMMAND.COM batch processing hangs (SET=, PROMPT, FOR)
 
-Several built-in commands hang batch processing when run from AUTOEXEC.BAT on
-a floppy boot under QEMU. Batch file execution stops after the command and never
-continues to the next line.
+`SET FOO=BAR`, `PROMPT <string>`, and `FOR %%F IN (set) DO cmd` all hang batch
+processing — the command executes but the batch interpreter never reads the next line.
 
-**Affected commands:**
-- `TYPE <file>` — outputs file content then hangs (batch read position lost?)
-- `FOR %%F IN (set) DO cmd` — expands variable then hangs
-- `SET FOO=BAR` — environment variable assignment hangs
-- `PROMPT <string>` — prompt change hangs (also writes environment)
+**Ruled out:**
+- Not CTTY AUX — same hang without CTTY AUX (verified via marker file check).
+- Not environment size — same hang with `SHELL=COMMAND.COM /E:4096 /P`.
+- Not QEMU memory — same hang with `-m 16`.
+- Not floppy write caching — same hang with `cache=writethrough`.
 
 **Not affected:** SET (no args, read-only), COPY, REN, DEL, MD, CD, RD, IF, GOTO,
-REM, CALL, VER, VOL, DIR, ECHO, BREAK, VERIFY, CHCP, TRUENAME, PATH (read-only).
+REM, CALL, VER, VOL, DIR, ECHO, BREAK, VERIFY, CHCP, TRUENAME, PATH (read-only),
+TYPE (with ^Z terminated files).
 
-**Common thread:** The three env-writing commands (SET assignment, PROMPT, possibly FOR
-internal state) all hang. TYPE is the odd one out — may be a separate issue related to
-file handle/buffer interaction with the batch file reader.
+**Clue:** CALL sub-batch prints "Memory allocation error / Cannot start COMMAND, exiting"
+but still works. This suggests COMMAND.COM's transient portion struggles with memory on
+floppy boot. SET/PROMPT/FOR may trigger a transient reload that fails silently.
 
-**Possible root cause:** COMMAND.COM's transient portion reloads from disk when it needs
-more memory. On a floppy with minimal free space, environment resize or transient reload
-may fail silently, leaving the batch interpreter in a broken state. The "Memory allocation
-error" seen during CALL supports this theory.
+**Impact:** SET assignment, PROMPT, and FOR cannot be tested in batch files on floppy boot.
 
-**Impact:** Limits E2E test coverage. TYPE, FOR, SET assignment, and PROMPT cannot be
-tested in AUTOEXEC.BAT on floppy boot. All other built-ins are tested and pass.
+**To investigate:** Test on a hard disk image with more free memory. Debug COMMAND.COM
+transient reload path — check if the batch file position (file handle + seek offset)
+survives transient reloads after these commands.
 
-**To investigate:** Try with a CONFIG.SYS that sets `SHELL=COMMAND.COM /E:1024` (larger
-environment) or test on a hard disk image with more free memory.
+### TYPE hangs without ^Z EOF marker in text files
+
+`TYPE <file>` hangs batch processing if the file does not end with a ^Z (0x1A) byte.
+With ^Z, TYPE works correctly and batch processing continues.
+
+**Root cause:** TYPE reads in text mode, which uses ^Z as the EOF sentinel. Without ^Z,
+TYPE reads past the file content (DOS read calls may return data beyond the logical file
+end in the final cluster, or TYPE keeps reading expecting more). This blocks indefinitely.
+
+**Workaround:** Always terminate text files with ^Z (0x1A) when used with TYPE in batch
+scripts. The E2E test harness creates test files with `printf 'content\r\n\x1a'`.
+
+**Impact:** Minor — standard DOS convention is to include ^Z in text files. Test files
+are generated with ^Z and TYPE is tested successfully.
 
 ### USA-MS.MSG spurious git diff
 
