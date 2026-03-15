@@ -4,7 +4,7 @@
 
 1. ~~**COMMAND /?**~~ — done. Added to `INIT.ASM` before `sysloadmsg`; works under kvikdos too.
 2. ~~**E2E functional tests for read-only external tools**~~ — done (partial). MEM, FIND, FC, TREE, SORT wired into `run_tests.sh` Section 6. kvikdos extended with INT 21h/33h/AL=03h (boot drive) and INT 21h/69h (disk serial number) stubs. SORT fixed by adding missing `exefix sort.exe 1 1` step (sets MAXALLOC=1 so INT 21h/48h malloc has free memory). **Remaining:** COMP (uses INT 21h/11h FCB search — not implemented in kvikdos).
-3. ~~**E2E functional tests for COMMAND.COM built-ins via QEMU**~~ — done. 27 tests covering VER, ECHO, SET, PATH, DIR, VOL, BREAK, VERIFY, CHCP, TYPE, TRUENAME, IF (5 variants), GOTO, REM, CALL, COPY, REN, DEL, MD+CD, FOR (bare error recovery + loop iteration) via `make test-builtins` (single QEMU boot, CTTY AUX + COM1 capture). **Known issue:** `SET FOO=BAR` (environment write) hangs batch processing on floppy boot — likely environment resize issue with minimal env space. Read-only SET (no args) works fine.
+3. ~~**E2E functional tests for COMMAND.COM built-ins via QEMU**~~ — done. 29 tests covering VER, ECHO, SET (read + write), PATH, DIR, VOL, BREAK, VERIFY, CHCP, TYPE, TRUENAME, IF (5 variants), GOTO, REM, CALL, COPY, REN, DEL, MD+CD, SET assignment, PROMPT, FOR (bare error recovery + loop iteration) via `make test-builtins` (single QEMU boot, CTTY AUX + COM1 capture). All previously-hanging commands (SET=, PROMPT, FOR) fixed.
 4. ~~**CI job: pin submodule to `main` and verify golden checksums**~~ — dropped. Would need separate golden checksums for `main` (no /? help) vs `dos4-enhancements`, plus skipping /? tests. Not worth the maintenance — normal CI on `dos4-enhancements` already validates the toolchain end-to-end.
 5. ~~**CHKDSK /?**~~ — done. Added using CONVERT COM pattern (CALL/POP trick), same as DEBUG/PRINT.
 6. ~~**Verify EXEPACK fix on real DOS/QEMU**~~ — done. FIND, FDISK, IFSFUNC, EXE2BIN verified via `make test-exepack` (QEMU boot, /? invocation, no "Packed file is corrupt"). SELECT.EXE not on floppy (tested implicitly via make test-sys).
@@ -391,38 +391,24 @@ All external CMD tools now have /? help implemented.
 
 ## Known Issues
 
-### COMMAND.COM batch processing hangs (SET=, PROMPT)
+### COMMAND.COM batch processing hangs (FIXED)
 
-`SET FOO=BAR` and `PROMPT <string>` hang batch processing — the command executes
-but the batch interpreter never reads the next line.
+All three commands that hung batch processing — `FOR`, `SET FOO=BAR`, and `PROMPT` —
+have been fixed. Root cause: ES segment register not restored to TRANGROUP before
+returning to TCOMMAND.
 
-**Fixed:** `FOR` — was hanging due to ES segment register not being restored to
-TRANGROUP in `$for`'s error paths and success path (TFOR.ASM). Two bugs:
-1. Error trampolines (forerrorj, forerrorjj, fornesterrj, for_alloc_err) reached
-   CERROR/TCOMMAND with ES=RESGROUP instead of TRANGROUP → `CALL ES:[HEADCALL]`
-   read garbage address → hang after "Syntax error".
-2. Success path (`for_ret`) returned with ES=RESGROUP → same HEADCALL corruption
-   on re-entry to TCOMMAND → hang during FOR loop iteration.
+**FOR** (TFOR.ASM): `$for` sets ES=RESGROUP for resident data access. Error
+trampolines and success path (`for_ret`) returned with ES=RESGROUP.
 
-**Ruled out:**
-- Not CTTY AUX — same hang without CTTY AUX (verified via marker file check).
-- Not environment size — same hang with `SHELL=COMMAND.COM /E:4096 /P`.
-- Not QEMU memory — same hang with `-m 16`.
-- Not floppy write caching — same hang with `cache=writethrough`.
+**SET/PROMPT** (TENV.ASM): `SCAN_DOUBLE_NULL` sets ES=ENVIRSEG (environment segment).
+COMSPEC handling further sets ES=RESGROUP. Neither path restored ES before returning.
 
-**Not affected:** SET (no args, read-only), COPY, REN, DEL, MD, CD, RD, IF, GOTO,
-REM, CALL, VER, VOL, DIR, ECHO, BREAK, VERIFY, CHCP, TRUENAME, PATH (read-only),
-TYPE (with ^Z terminated files), FOR.
+**Why it hung:** TCOMMAND uses `CALL ES:[HEADCALL]` where MASM generates an ES:
+segment override (HEADCALL is in TRANSPACE/TRANGROUP, DS is assumed RESGROUP).
+With ES pointing to the wrong segment, the far call loaded a garbage address.
 
-**Clue:** CALL sub-batch prints "Memory allocation error / Cannot start COMMAND, exiting"
-but still works. This suggests COMMAND.COM's transient portion struggles with memory on
-floppy boot. SET/PROMPT may trigger a transient reload that fails silently.
-
-**Impact:** SET assignment and PROMPT cannot be tested in batch files on floppy boot.
-
-**To investigate:** Test on a hard disk image with more free memory. Debug COMMAND.COM
-transient reload path — check if the batch file position (file handle + seek offset)
-survives transient reloads after these commands.
+**Defensive fix:** TCODE.ASM now sets ES=TRANGROUP before `CALL [HEADCALL]`
+at TCOMMAND, catching any handler that forgets to restore ES.
 
 ### TYPE hangs without ^Z EOF marker in text files
 

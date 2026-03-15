@@ -4,10 +4,8 @@
 # Boots a floppy with AUTOEXEC.BAT that runs CTTY AUX + built-in commands,
 # then checks COM1 serial output for expected strings.
 #
-# Known limitations (hang batch processing):
-#   - SET FOO=BAR / PROMPT — hangs (not env size — tested /E:4096, not CTTY AUX)
+# Known limitations:
 #   - TYPE <file> without ^Z — hangs (DOS text mode reads until ^Z; fixed by adding ^Z)
-# SET/PROMPT likely related to COMMAND.COM transient segment reload.
 #
 # Run via: make test-builtins  (requires 'make deploy' first)
 
@@ -49,7 +47,7 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
 # Build AUTOEXEC.BAT with all test commands.
 # ECHO markers between sections help identify output in the serial log.
 #
-# Skipped (hang batch processing):  SET assignment, PROMPT
+# All previously-hanging commands (SET=, PROMPT, FOR) are now fixed and tested.
 {
     printf 'CTTY AUX\r\n'
 
@@ -131,6 +129,16 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
 
     printf 'ECHO ---RMDIR---\r\n'
     printf 'RD TESTDIR\r\n'
+
+    # ── SET assignment ────────────────────────────────────────────────
+    printf 'ECHO ---SET-ASSIGN---\r\n'
+    printf 'SET TESTVAR=SET_VALUE_OK\r\n'
+    printf 'ECHO SET_ASSIGN_SURVIVED\r\n'
+
+    # ── PROMPT ──────────────────────────────────────────────────────────
+    printf 'ECHO ---PROMPT---\r\n'
+    printf 'PROMPT $P$G\r\n'
+    printf 'ECHO PROMPT_SURVIVED\r\n'
 
     # ── FOR (bare error + valid loop) ──────────────────────────────────
     printf 'ECHO ---FOR---\r\n'
@@ -319,6 +327,24 @@ if grep -q "TESTDIR" "$SERIAL_LOG"; then
     ok "MD + CD (created and entered)"
 else
     fail "MD + CD (expected 'TESTDIR' in CD output)"
+fi
+
+echo ""
+echo "--- SET assignment ---"
+
+if grep -q "SET_ASSIGN_SURVIVED" "$SERIAL_LOG"; then
+    ok "SET assignment (batch continues)"
+else
+    fail "SET assignment (batch hung after SET TESTVAR=value)"
+fi
+
+echo ""
+echo "--- PROMPT ---"
+
+if grep -q "PROMPT_SURVIVED" "$SERIAL_LOG"; then
+    ok "PROMPT (batch continues)"
+else
+    fail "PROMPT (batch hung after PROMPT change)"
 fi
 
 echo ""

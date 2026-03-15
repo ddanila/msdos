@@ -501,6 +501,26 @@ not a general `CERROR`/`TCOMMAND` problem.
 due to version mismatch). Tested via QEMU E2E in `test_builtins.sh`: bare FOR
 error recovery + valid FOR loop iteration (3 items).
 
+## COMMAND.COM SET/PROMPT Hang (FIXED)
+
+Same class of bug as the FOR hang. Both `ADD_NAME_TO_ENVIRONMENT` (SET) and
+`ADD_PROMPT` (PROMPT) in `TENV.ASM` corrupt ES without restoring it:
+
+- `SCAN_DOUBLE_NULL` (called by both) sets `ES = [ENVIRSEG]` (environment segment)
+- The COMSPEC path (only for `SET COMSPEC=...`) further sets `ES = [RESSEG]` (RESGROUP)
+- Neither path restores ES to TRANGROUP before returning
+
+**Fix (TENV.ASM):** Added `push cs; pop es` at 5 return points:
+1. `add_name_ret` `retz` — normal SET/PROMPT return (ES=ENVIRSEG)
+2. `ONEQ` `retz` — `SET FOO=` clearing a variable (ES=ENVIRSEG via FIND)
+3. COMSPEC `ret` — `SET COMSPEC=...` path (ES=RESGROUP)
+4. `ADD_PROMPT2` `retz` — bare PROMPT with no args (ES=ENVIRSEG)
+5. `STORE_CHAR` `JMP CERROR` — out of environment space (ES=ENVIRSEG)
+
+**Fix (TCODE.ASM):** Defensive: added `PUSH CS; POP ES` before `CALL [HEADCALL]`
+at TCOMMAND. This catches any command handler that forgets to restore ES —
+TCOMMAND's own comment says "Nothing is known here. No registers, no flags, nothing."
+
 ## kvikdos Modifications (in kvikdos/kvikdos.c)
 - `current_dir[DRIVE_COUNT]` expanded from 1 to 64 bytes per drive.
 - `ah=0x3b` (CHDIR) implemented.
