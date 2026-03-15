@@ -416,7 +416,7 @@ does at runtime). Called automatically after each affected LINK step in the Make
 **Lesson:** Always test on real DOS or QEMU after linking with EXEPACK. kvikdos masks
 this class of bug entirely.
 
-## COMMAND.COM /? Help — Transient Corruption Bug (OPEN — CI broken)
+## COMMAND.COM /? Help — Transient Corruption Bug (OPEN — workaround in place)
 
 ### Symptom
 Adding /? help strings to COMMAND.COM built-ins (CLS, EXIT, CTTY, CHCP, TRUENAME,
