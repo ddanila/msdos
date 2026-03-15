@@ -317,6 +317,31 @@ The MS-DOS submodule (`MS-DOS/`) has two branches:
 Workflow: develop on `dos4-enhancements`; merge upstream changes into `main` first,
 then rebase `dos4-enhancements` on top.
 
+## Adding /? Help Strings to CMD Tools
+
+### General pattern (external tools)
+- **C tools** (`argv`-based): check `argv[1]` for `"/?"`; `printf` the help string; `exit(0)`. Add `#include <stdio.h>` and `#include <stdlib.h>` if not already present.
+- **ASM EXE tools** (DS=PSP at entry): scan `DS:[81H]`, skip spaces/tabs, check `'/'` then `'?'`; `PUSH CS / POP DS` to reach help string in code segment; `INT 21H/09H` to print; `INT 21H/4CH` to exit.
+- **COM tools** (CS=DS=PSP): same as ASM EXE but no `PUSH CS / POP DS` needed — CS already equals DS.
+- **CONVERT COM tools** (CS=DG, not PSP): use `INT 21H/62H` → ES=PSP, check `ES:[81H]`; `CALL HELP_END / DB "...$" / HELP_END: POP DX; PUSH CS / POP DS; INT 21H/09H` (CALL/POP trick for position-independent string address). See detailed example under "## CONVERT.EXE COM Runtime Environment".
+
+### COMMAND.COM built-in /? pattern
+- **`fSwitchAllowed` flag** (TDATA.ASM COMTAB): bit 1 must be set or the dispatcher rejects `/` as "Invalid switch" before the handler is called. Commands with flag `0` need it changed to `fSwitchAllowed`.
+- **Handler entry**: DS=CS=TRANGROUP. Scan `DS:[81H]` (command tail set up by `cmd_copy`), skip spaces/tabs, check `'/'` then `'?'`.
+- **Print**: `MOV DX, OFFSET TRANGROUP:HELP_STR; MOV AH, 09H; INT int_command`. No `PUSH CS / POP DS` needed — DS already equals CS at handler entry.
+- **Exit**: `return` (maps to `ret`; dispatcher uses `call BX` so `ret` returns correctly).
+- **REM special case**: REM was mapped directly to `TCOMMAND` (not a callable handler). Fix: new `REM_HANDLER` proc in TCODE.ASM that checks `/?` and `return`s, or `jmp TCOMMAND` for normal REM. Add `PUBLIC REM_HANDLER` + `EXTRN REM_HANDLER:NEAR` in TDATA.ASM.
+- **Help string placement**: place `DB "...$"` data only where execution cannot fall through — after a `ret`/`return`, or after an unconditional `jmp`. Never between two executable labels unless preceded by `jmp`.
+- **Short-jump range**: MASM 5.x conditional jumps (`JZ`, `JNZ`, etc.) are always ±127 bytes. A large help string (e.g., FOR_HELP_STR = 284 bytes) placed before a handler's body pushes all backward jumps to labels before the string out of range. Fix: move the string to *after* a `jmp` that exits the flow; or add relay labels (`JNZ short_relay; JMP far_target; short_relay:`).
+
+### pipefail / SIGPIPE fix in run_tests.sh
+Capture `strings` output into a variable first, then grep — avoids SIGPIPE false negative under `set -o pipefail`:
+```bash
+bin_str=$(strings "$SRC/CMD/COMMAND/COMMAND.COM")
+if echo "$bin_str" | grep -q "$expected"; then ...
+```
+Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits early, which `pipefail` treats as a failure.
+
 ## EXEPACK A20 Gate Bug
 
 **Symptom:** "Packed file is corrupt" on real DOS hardware / QEMU when running tools
