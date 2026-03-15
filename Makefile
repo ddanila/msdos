@@ -248,6 +248,9 @@ test-sys: deploy
 test-builtins: deploy
 	bash tests/test_builtins.sh
 
+test-exepack: deploy
+	bash tests/test_exepack.sh
+
 # ---------------------------------------------------------------------------
 # DEPLOY — bootable 1.44MB floppy image
 # ---------------------------------------------------------------------------

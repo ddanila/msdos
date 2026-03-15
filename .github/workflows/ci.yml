@@ -59,3 +59,7 @@ jobs:
       - name: Built-in commands e2e test (make test-builtins)
         run: make test-builtins
         timeout-minutes: 5
+
+      - name: EXEPACK verification (make test-exepack)
+        run: make test-exepack
+        timeout-minutes: 5

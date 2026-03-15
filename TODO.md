@@ -7,7 +7,7 @@
 3. ~~**E2E functional tests for COMMAND.COM built-ins via QEMU**~~ — done. VER, ECHO, SET, PATH, DIR, VOL tested via `make test-builtins` (single QEMU boot, CTTY AUX + COM1 capture). **Known issue:** `SET FOO=BAR` (environment write) hangs batch processing on floppy boot — likely environment resize issue with minimal env space. Read-only SET (no args) works fine.
 4. **CI job: pin submodule to `main` and verify golden checksums** — the one remaining `[ ]` in harness setup. Guards against regressions where toolchain changes break unmodified upstream source.
 5. ~~**CHKDSK /?**~~ — done. Added using CONVERT COM pattern (CALL/POP trick), same as DEBUG/PRINT.
-6. **Verify EXEPACK fix on real DOS/QEMU** — FIND, FDISK, IFSFUNC, EXE2BIN, SELECT all have the A20 gate bug patched at build time by `bin/fix-exepack`; worth an end-to-end smoke run on QEMU to confirm patched binaries actually work.
+6. ~~**Verify EXEPACK fix on real DOS/QEMU**~~ — done. FIND, FDISK, IFSFUNC, EXE2BIN verified via `make test-exepack` (QEMU boot, /? invocation, no "Packed file is corrupt"). SELECT.EXE not on floppy (tested implicitly via make test-sys).
 
 ## E2E Tests — Per-Command, Per-Option Coverage
 
