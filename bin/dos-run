@@ -34,6 +34,7 @@ else
 fi
 
 exec "$KVIKDOS" \
+    --dos-version=4 \
     --mount=c:"$SRC_ROOT"/ \
     --drive=c \
     $CWD_ARG \

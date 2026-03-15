@@ -342,6 +342,41 @@ if echo "$bin_str" | grep -q "$expected"; then ...
 ```
 Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits early, which `pipefail` treats as a failure.
 
+## kvikdos Emulation Notes (for running MS-DOS 4.0 tools)
+
+### DOS version
+- kvikdos upstream default is version 5. MS-DOS 4.0 tools call `sysloadmsg` which checks
+  for DOS 4.x via INT 21h/AH=30h; getting 5 causes "Incorrect DOS version" exit.
+- **Fix:** use `--dos-version=4` flag (added to kvikdos fork). `bin/dos-run` passes it
+  automatically so all tools work correctly.
+
+### INT stubs added to kvikdos fork (needed for functional MS-DOS 4.0 tool testing)
+| INT / Function | Purpose | kvikdos behavior |
+|---|---|---|
+| INT 21h/AH=65h | GetExtendedCountryInfo (NLS) | Returns identity collating table (0x0420) and country_info (0x0522); handles AL=01h,02h,04h,05h,06h,07h. Needed by `sysloadmsg`. |
+| INT 12h | BIOS Get Conventional Memory Size | Returns AX=640 (KB). Needed by MEM.EXE. |
+| INT 15h/AH=C1h | Get EBDA Segment | Returns CF=1 (no EBDA). Needed by MEM.EXE. |
+| INT 2Fh/AH=B7h | APPEND (any sub-function) | Returns AX=BX=0 (not installed). Needed by TREE.COM. |
+| INT 67h/AH=40h..62h | EMS functions | Returns AH=0x86 (EMM not present). Needed by MEM.EXE EMS check. |
+| MMIO 0xA0000–0x110000 reads | High memory / ROM area | Returns zeros. Needed for MEM.EXE reading INVARS ExtendedMemory via segment 0xFFF0. |
+
+### Static data placed in low-memory readonly region (re-initialized on each run)
+- **0x0420..0x0521** — identity collating table (word 0x0100 = 256 length + 256 identity bytes). Used by INT 21h/AH=65h.
+- **0x0522..0x0539** — country_info copy (0x18 bytes). Used by INT 21h/AH=65h/AL=01h.
+- These addresses are in the KVM readonly-guest slot (0x0000..0x0FFF), safely between the BIOS data area and the hlt table (0x0540).
+
+### MEM.EXE status
+- MEM.EXE (no args) runs and prints 3 lines but exits with code 128 instead of 0.
+- Output is correct: "655360 bytes total memory / available / 651264 largest executable".
+- Exit code 128 (0x80) is probably from C runtime returning AX leftover from `sysloadmsg`.
+- MEM /PROGRAM and MEM /DEBUG require proper INVARS (INT 21h/AH=52h) MCB chain walk — not yet tested.
+
+### Remaining known gaps for E2E functional tests
+- **SORT.EXE**: after `sysloadmsg` succeeds (with INT 65h fix), C runtime calls INT 21h/AH=4Ah to shrink allocation; test needed to confirm sufficient memory is freed for sort buffer.
+- **FIND.EXE**: should work after INT 65h fix; needs test with a real file.
+- **TREE.COM**: should work after INT 2Fh/B7h fix; needs test with a directory structure.
+- **COMP.COM**: should work after INT 65h fix; needs test with two files.
+
 ## EXEPACK A20 Gate Bug
 
 **Symptom:** "Packed file is corrupt" on real DOS hardware / QEMU when running tools
