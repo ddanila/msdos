@@ -6,7 +6,7 @@
 2. ~~**E2E functional tests for read-only external tools**~~ — done (partial). MEM, FIND, FC, TREE wired into `run_tests.sh` Section 6. kvikdos extended with INT 21h/33h/AL=03h (boot drive) and INT 21h/69h (disk serial number) stubs. **Remaining:** SORT (insufficient memory — C runtime can't shrink allocation under kvikdos), COMP (uses INT 21h/11h FCB search — not implemented in kvikdos).
 3. ~~**E2E functional tests for COMMAND.COM built-ins via QEMU**~~ — done. VER, ECHO, SET, PATH, DIR, VOL tested via `make test-builtins` (single QEMU boot, CTTY AUX + COM1 capture). **Known issue:** `SET FOO=BAR` (environment write) hangs batch processing on floppy boot — likely environment resize issue with minimal env space. Read-only SET (no args) works fine.
 4. **CI job: pin submodule to `main` and verify golden checksums** — the one remaining `[ ]` in harness setup. Guards against regressions where toolchain changes break unmodified upstream source.
-5. **CHKDSK /?** — was skipped (CP437 non-ASCII bytes in source). Pattern now solved via Python binary edit (same as DEBUG). Just needs someone to sit down and do it.
+5. ~~**CHKDSK /?**~~ — done. Added using CONVERT COM pattern (CALL/POP trick), same as DEBUG/PRINT.
 6. **Verify EXEPACK fix on real DOS/QEMU** — FIND, FDISK, IFSFUNC, EXE2BIN, SELECT all have the A20 gate bug patched at build time by `bin/fix-exepack`; worth an end-to-end smoke run on QEMU to confirm patched binaries actually work.
 
 ## E2E Tests — Per-Command, Per-Option Coverage
@@ -88,7 +88,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `CHKDSK A: /F` — fix errors
 - [ ] `CHKDSK A: /V` — verbose (all paths)
 - [ ] `CHKDSK A:*.*` — check specific files
-- [ ] `CHKDSK /?` — usage
+- [x] `CHKDSK /?` — usage
 
 #### XCOPY
 - [ ] `XCOPY src dest` — basic copy
@@ -325,7 +325,7 @@ Changes go in the `dos4-enhancements` branch of the MS-DOS fork.
 
 ### Pending usage strings
 
-#### CHKDSK — SKIPPED (see note below)
+All external CMD tools now have /? help implemented.
 
 ## Known Issues
 
