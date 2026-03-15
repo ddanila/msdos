@@ -326,17 +326,29 @@ COMMAND [[drive:]path] [device] [/E:nnnnn] [/P] [/MSG] [/C string]
   /C string  Run command string then return
 ```
 
-#### COMMAND.COM built-in commands — VER done, others pending
+#### COMMAND.COM built-in commands
 
 Built-in /? is different from external tool /?: built-ins are dispatched via COMTAB in `TDATA.ASM`. Testing requires QEMU (COMMAND.COM fails sysloadmsg under kvikdos due to DOS version mismatch 5.0 vs 4.0). Static binary check used in CI instead.
 
-Pattern for built-in /? (implemented for VER):
-- Set `fSwitchAllowed` flag in COMTAB entry (TDATA.ASM) to avoid "Invalid switch" rejection.
-- In the handler: scan DS:[81H] (command tail set up by `cmd_copy`) for '/?' after skipping spaces.
+Pattern for built-in /? (all commands use this):
+- Set `fSwitchAllowed` flag in COMTAB entry (TDATA.ASM) to avoid "Invalid switch" rejection before handler runs.
+- In the handler: scan DS:[81H] (command tail set up by `cmd_copy`) for `/?' after skipping spaces/tabs.
 - Print help via INT 21h/09h (direct, not std_printf which requires message framework).
 - Use `return` to exit cleanly.
+- When adding help string preamble causes existing short jumps to go out of range, use relay labels (conditional jump inverted + `JMP` long target) to fix.
+- `pipefail` in run_tests.sh: capture `strings` output into a variable first, then grep; avoids SIGPIPE false negative.
 
-- [x] **VER** — `VERSION:` in `TCMD2A.ASM`; `fSwitchAllowed` in COMTAB; scan DS:[81H] for `/?`; help string in TRANCODE data area; print via INT 21h/09h.
+- [x] **VER** — `VERSION:` in `TCMD2A.ASM`
+- [x] **PAUSE** — `PAUSE:` in `TCMD1B.ASM`
+- [x] **ERASE/DEL** — `ERASE:` in `TCMD1B.ASM`; relay labels added for out-of-range backward jumps in CRENAME
+- [x] **RENAME/REN** — `CRENAME:` in `TCMD1B.ASM`
+- [x] **TYPE** — `TYPEFIL:` in `TCMD1B.ASM`
+- [x] **VOL** — `VOLUME:` in `TCMD1B.ASM`
+- [x] **ECHO** — `ECHO:` in `TUCODE.ASM`
+- [x] **BREAK** — `CNTRLC:` in `TUCODE.ASM`; relay for CERRORJ out-of-range
+- [x] **VERIFY** — `VERIFY:` in `TUCODE.ASM`; relay for CERRORJ out-of-range; `JMP SHORT PYN` → `JMP PYN`
+- [x] **DATE** — `DATE:` in `TPIPE.ASM`
+- [x] **TIME** — `CTIME:` in `TPIPE.ASM`
 
 #### CHKDSK — SKIPPED (see note below)
 
