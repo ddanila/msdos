@@ -193,6 +193,17 @@ check_builtin_help() {
 }
 
 check_builtin_help "VER"    "Displays the MS-DOS version."
+check_builtin_help "DIR"    "Displays a list of files and subdirectories"
+check_builtin_help "COPY"   "Copies one or more files to another location."
+check_builtin_help "SET"    "Displays, sets, or removes MS-DOS environment"
+check_builtin_help "PROMPT" "Changes the MS-DOS command prompt."
+check_builtin_help "PATH"   "Displays or sets a search path"
+check_builtin_help "CD"     "Displays the name of or changes the current directory."
+check_builtin_help "CHDIR"  "Displays the name of or changes the current directory."
+check_builtin_help "MD"     "Creates a directory."
+check_builtin_help "MKDIR"  "Creates a directory."
+check_builtin_help "RD"     "Removes (deletes) a directory."
+check_builtin_help "RMDIR"  "Removes (deletes) a directory."
 check_builtin_help "PAUSE"  "Suspends processing of a batch program"
 check_builtin_help "ERASE"  "Deletes one or more files."
 check_builtin_help "DEL"    "Deletes one or more files."
