@@ -376,7 +376,7 @@ Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits ea
 - **FIND.EXE**: works with file arguments. Stdin mode unreliable under kvikdos.
 - **FC.EXE**: works — identical files ("no differences"), different files (shows diff).
 - **TREE.COM**: works — shows "Directory PATH listing". kvikdos doesn't expose subdirectories via FindFirst/FindNext, so tree is flat.
-- **SORT.EXE**: blocked — "Insufficient memory" (C runtime INT 21h/4Ah shrink fails).
+- **SORT.EXE**: works — sorts stdin lines correctly. Was blocked by "Insufficient memory" until build was fixed to include `exefix sort.exe 1 1` (sets MAXALLOC=1 so INT 21h/48h malloc has free memory). The original MAKEFILE had this step but our build was missing it.
 - **COMP.COM**: blocked — uses INT 21h/11h (FCB Find First), not implemented in kvikdos.
 
 ### QEMU /? help test status (`make test-help-qemu`)

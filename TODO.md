@@ -3,7 +3,7 @@
 ## What's Next (prioritized)
 
 1. ~~**COMMAND /?**~~ — done. Added to `INIT.ASM` before `sysloadmsg`; works under kvikdos too.
-2. ~~**E2E functional tests for read-only external tools**~~ — done (partial). MEM, FIND, FC, TREE wired into `run_tests.sh` Section 6. kvikdos extended with INT 21h/33h/AL=03h (boot drive) and INT 21h/69h (disk serial number) stubs. **Remaining:** SORT (insufficient memory — C runtime can't shrink allocation under kvikdos), COMP (uses INT 21h/11h FCB search — not implemented in kvikdos).
+2. ~~**E2E functional tests for read-only external tools**~~ — done (partial). MEM, FIND, FC, TREE, SORT wired into `run_tests.sh` Section 6. kvikdos extended with INT 21h/33h/AL=03h (boot drive) and INT 21h/69h (disk serial number) stubs. SORT fixed by adding missing `exefix sort.exe 1 1` step (sets MAXALLOC=1 so INT 21h/48h malloc has free memory). **Remaining:** COMP (uses INT 21h/11h FCB search — not implemented in kvikdos).
 3. ~~**E2E functional tests for COMMAND.COM built-ins via QEMU**~~ — done. VER, ECHO, SET, PATH, DIR, VOL tested via `make test-builtins` (single QEMU boot, CTTY AUX + COM1 capture). **Known issue:** `SET FOO=BAR` (environment write) hangs batch processing on floppy boot — likely environment resize issue with minimal env space. Read-only SET (no args) works fine.
 4. ~~**CI job: pin submodule to `main` and verify golden checksums**~~ — dropped. Would need separate golden checksums for `main` (no /? help) vs `dos4-enhancements`, plus skipping /? tests. Not worth the maintenance — normal CI on `dos4-enhancements` already validates the toolchain end-to-end.
 5. ~~**CHKDSK /?**~~ — done. Added using CONVERT COM pattern (CALL/POP trick), same as DEBUG/PRINT.
@@ -119,7 +119,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [x] `FIND /?` — usage
 
 #### SORT
-- [ ] `SORT < file` — sort stdin
+- [x] `SORT < file` — sort stdin (fixed: added missing `exefix sort.exe 1 1` to build)
 - [ ] `SORT /R < file` — reverse sort
 - [ ] `SORT /+3 < file` — sort by column 3
 - [x] `SORT /?` — usage

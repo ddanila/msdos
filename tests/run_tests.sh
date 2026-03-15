@@ -300,7 +300,14 @@ else
     fail "TREE (expected 'Directory PATH listing')"
 fi
 
-# Skipped: SORT (insufficient memory under kvikdos — C runtime can't shrink allocation)
+# -- SORT: sort lines from stdin (piped via host stdin) --
+output=$(printf "banana\r\ncherry\r\napple\r\n" | run_dos CMD/SORT/SORT.EXE) || true
+if echo "$output" | grep -q "apple" && echo "$output" | grep -q "banana"; then
+    ok "SORT (sort lines from stdin)"
+else
+    fail "SORT (expected sorted output with 'apple' and 'banana')"
+fi
+
 # Skipped: COMP (uses INT 21h/11h FCB search — not implemented in kvikdos)
 
 # ── Summary ──────────────────────────────────────────────────────────────────

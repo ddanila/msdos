@@ -664,6 +664,7 @@ $(SORT_DIR)/SORTMES.OBJ: $(SORT_DIR)/SORTMES.ASM $(SORT_DIR)/SORT.CTL
 
 $(SORT_OUT): $(SORT_DIR)/SORT.OBJ $(SORT_DIR)/SORTMES.OBJ
 	cd $(SORT_DIR) && $(LINK) "SORT+SORTMES,SORT.EXE;"
+	$(BIN)/exefix $(SORT_OUT) 1 1
 
 # ---------------------------------------------------------------------------
 # LABEL (label.com) — 2 ASM files, EXE2BIN

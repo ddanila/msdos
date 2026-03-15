@@ -1,0 +1,43 @@
+#!/usr/bin/env python3
+"""
+exefix: Set MINALLOC and MAXALLOC fields in a DOS MZ EXE header.
+
+Replaces the DOS EXEFIX.EXE tool (TOOLS/EXEFIX.EXE) with a host-native
+script that does the same thing without needing kvikdos.
+
+Usage: exefix <file.exe> <minalloc> <maxalloc>
+
+MINALLOC/MAXALLOC are in paragraphs (16-byte units).  These fields tell
+the DOS EXE loader how much extra memory (beyond the program image) to
+allocate.  Programs that call INT 21h/48h (malloc) need MAXALLOC set low
+so free memory is available for allocation.
+
+Example: exefix SORT.EXE 1 1
+"""
+
+import sys
+import struct
+
+if len(sys.argv) != 4:
+    sys.exit(f'Usage: {sys.argv[0]} <file.exe> <minalloc> <maxalloc>')
+
+path = sys.argv[1]
+minalloc = int(sys.argv[2])
+maxalloc = int(sys.argv[3])
+
+with open(path, 'rb') as f:
+    data = bytearray(f.read())
+
+if data[:2] not in (b'MZ', b'ZM'):
+    sys.exit(f'{path}: not a DOS MZ executable')
+
+old_min = struct.unpack_from('<H', data, 10)[0]
+old_max = struct.unpack_from('<H', data, 12)[0]
+
+struct.pack_into('<H', data, 10, minalloc)
+struct.pack_into('<H', data, 12, maxalloc)
+
+with open(path, 'wb') as f:
+    f.write(data)
+
+print(f'exefix: {path} MINALLOC 0x{old_min:04x}→0x{minalloc:04x} MAXALLOC 0x{old_max:04x}→0x{maxalloc:04x}')
