@@ -27,7 +27,7 @@ CFLAGS   := -AS -Os -Zp
 # Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy run-boot verify test-sys
+.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy run-boot verify test-sys test-help-qemu
 
 all: messages mapper boot inc bios dos cmd dev select memm
 
@@ -250,6 +250,9 @@ test-builtins: deploy
 
 test-exepack: deploy
 	bash tests/test_exepack.sh
+
+test-help-qemu: deploy
+	bash tests/test_help_qemu.sh
 
 # ---------------------------------------------------------------------------
 # DEPLOY — bootable 1.44MB floppy image

@@ -63,3 +63,7 @@ jobs:
       - name: EXEPACK verification (make test-exepack)
         run: make test-exepack
         timeout-minutes: 5
+
+      - name: External CMD /? help on real DOS (make test-help-qemu)
+        run: make test-help-qemu
+        timeout-minutes: 5
