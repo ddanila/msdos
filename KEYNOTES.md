@@ -299,7 +299,8 @@ CONTINUE:
 - **Submodule pointer pitfall:** When committing changes to both the submodule and
   `tests/` (golden.sha256, run_tests.sh), always `git add MS-DOS` in the parent repo too.
   If only `tests/` is staged, CI will check out the OLD submodule commit and fail the
-  smoke tests because the new binaries are missing. Verify with `git ls-tree HEAD MS-DOS`.
+  smoke tests because the new binaries are missing. Verify with `git ls-tree HEAD MS-DOS`
+  and confirm the hash matches the submodule's latest commit before pushing.
 - Workflow: `.github/workflows/ci.yml`, runs on every push/PR to `master`.
 - Runner: `ubuntu-latest` — has `/dev/kvm` but not accessible by default.
 - KVM fix: add udev rule `KERNEL=="kvm", GROUP="kvm", MODE="0666"` before building.
