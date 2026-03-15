@@ -2,7 +2,7 @@
 
 ## What's Next (prioritized)
 
-1. **COMMAND /?** — last tool without `/?' help. Needs work in `INIT.ASM`/`CPARSE.ASM`; trickier than built-ins since COMMAND.COM's init runs before the message framework loads. Completes the `/? for all tools` initiative.
+1. ~~**COMMAND /?**~~ — done. Added to `INIT.ASM` before `sysloadmsg`; works under kvikdos too.
 2. **E2E functional tests for read-only external tools** — MEM, SORT, FIND, TREE, FC, COMP can all be invoked directly under kvikdos (no disk writes). Good first batch to wire into `run_tests.sh` Section 6.
 3. **E2E functional tests for COMMAND.COM built-ins via QEMU** — VER, ECHO, DIR, SET, PATH: boot a floppy with `AUTOEXEC.BAT` running `CTTY AUX` + the command, capture COM1 output. Validates actual built-in logic (not just binary string presence).
 4. **CI job: pin submodule to `main` and verify golden checksums** — the one remaining `[ ]` in harness setup. Guards against regressions where toolchain changes break unmodified upstream source.
@@ -324,16 +324,6 @@ Changes go in the `dos4-enhancements` branch of the MS-DOS fork.
 - Keep help strings compact (≤24 lines) to fit a standard 25-line screen.
 
 ### Pending usage strings
-
-#### COMMAND (INIT.ASM / CPARSE.ASM)
-```
-COMMAND [[drive:]path] [device] [/E:nnnnn] [/P] [/MSG] [/C string]
-
-  /E:nnnnn   Set environment size in bytes
-  /P         Make permanent (no EXIT)
-  /MSG       Store error messages in memory (for floppy use)
-  /C string  Run command string then return
-```
 
 #### CHKDSK — SKIPPED (see note below)
 
