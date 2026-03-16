@@ -308,7 +308,21 @@ else
     fail "SORT (expected sorted output with 'apple' and 'banana')"
 fi
 
-# Skipped: COMP (uses INT 21h/11h FCB search — not implemented in kvikdos)
+# -- COMP: compare identical files (COMP loops on Y/N prompt at EOF; capture first 20 lines) --
+output=$(timeout 5 "$BIN/dos-run" "$SRC/CMD/COMP/COMP.COM" SETENV.BAT SETENV.BAT </dev/null 2>/dev/null | head -20) || true
+if echo "$output" | grep -q "Files compare OK"; then
+    ok "COMP (identical files)"
+else
+    fail "COMP (expected 'Files compare OK')"
+fi
+
+# -- COMP: compare different files --
+output=$(timeout 5 "$BIN/dos-run" "$SRC/CMD/COMP/COMP.COM" SETENV.BAT CPY.BAT </dev/null 2>/dev/null | head -20) || true
+if echo "$output" | grep -q "different sizes"; then
+    ok "COMP (different files)"
+else
+    fail "COMP (expected 'different sizes')"
+fi
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
