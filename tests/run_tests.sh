@@ -459,6 +459,49 @@ else
     fail "LABEL (expected 'Serial Number' in output)"
 fi
 
+# -- EDLIN: open existing file, list lines, quit --
+# EDLIN triggers division-by-zero warnings (screen width calc); pipe through head to limit output.
+output=$(printf "1L\r\nQ\r\nY\r\n" | timeout 30 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" SETENV.BAT 2>/dev/null | head -20 || true)
+if echo "$output" | grep -q "End of input file"; then
+    ok "EDLIN (open + list)"
+else
+    fail "EDLIN (expected 'End of input file')"
+fi
+
+# -- EDLIN: open new file --
+output=$(printf "Q\r\nY\r\n" | timeout 30 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" NEWFILE.TXT 2>/dev/null | head -5 || true)
+if echo "$output" | grep -q "New file"; then
+    ok "EDLIN (new file)"
+else
+    fail "EDLIN (expected 'New file')"
+fi
+
+# -- REPLACE /A: add file to destination --
+rm -f "$SRC/CMD/REPLACE/SETENV.BAT"
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\SETENV.BAT' 'C:\CMD\REPLACE\' /A 2>/dev/null || true)
+if echo "$output" | grep -q "file(s) added"; then
+    ok "REPLACE /A (add mode)"
+else
+    fail "REPLACE /A (expected 'file(s) added')"
+fi
+rm -f "$SRC/CMD/REPLACE/SETENV.BAT"
+
+# -- REPLACE: no source path → error message (stderr) --
+output=$(timeout 10 "$BIN/dos-run" "$SRC/CMD/REPLACE/REPLACE.EXE" 2>&1 || true)
+if echo "$output" | grep -q "Source path required"; then
+    ok "REPLACE (no args error)"
+else
+    fail "REPLACE (expected 'Source path required')"
+fi
+
+# -- XCOPY: no args → error message (stderr) --
+output=$(timeout 10 "$BIN/dos-run" "$SRC/CMD/XCOPY/XCOPY.EXE" 2>&1 || true)
+if echo "$output" | grep -q "Invalid number of parameters"; then
+    ok "XCOPY (no args error)"
+else
+    fail "XCOPY (expected 'Invalid number of parameters')"
+fi
+
 # -- GRAFTABL /STATUS: show active code page --
 output=$(run_dos CMD/GRAFTABL/GRAFTABL.COM /STATUS) || true
 if echo "$output" | grep -q "Code Page"; then
