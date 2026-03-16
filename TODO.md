@@ -129,11 +129,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `FORMAT A: /8` — 8 sectors/track
 - [x] `FORMAT A: /?` — usage
 
-#### MEM
-- [x] `MEM` — basic output (totals) — tested in Section 6
-- [ ] `MEM /PROGRAM` — needs full INVARS/MCB chain (loops under kvikdos)
-- [ ] `MEM /DEBUG` — needs full INVARS/MCB chain (loops under kvikdos)
-- [x] `MEM /?` — usage
+#### ~~MEM~~ — done (basic totals, /?). Remaining: /PROGRAM, /DEBUG (need QEMU — kvikdos lacks full MCB chain)
 
 #### CHKDSK
 - [ ] `CHKDSK` — check current drive
@@ -226,7 +222,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `FDISK /PRI` — create primary partition
 - [x] `FDISK /?` — usage
 
-#### ~~DEBUG~~ — done (launch+quit, register dump, /?). Remaining: load file
+#### ~~DEBUG~~ — done (launch+quit, register dump, /?). Remaining: load file (needs QEMU)
 #### ~~MORE~~ — done (piped stdin, /?)
 
 #### PRINT
