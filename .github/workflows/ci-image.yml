@@ -1,0 +1,33 @@
+name: CI image
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/ci.Dockerfile'
+  workflow_dispatch:
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}/ci
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .github
+          file: .github/ci.Dockerfile
+          push: true
+          tags: ${{ env.IMAGE }}:latest
