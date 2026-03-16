@@ -153,7 +153,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `XCOPY src dest /W` — wait before start
 - [x] `XCOPY /?` — usage
 
-#### ~~ATTRIB~~ — done (show, +R, -R, /?). Remaining: +A/-A (archive), /S (recursive)
+#### ~~ATTRIB~~ — done (show, +R, -R, +R+A combined, /?). Remaining: -A (needs QEMU — kvikdos hardcodes archive bit), /S (needs QEMU — kvikdos FindFirst doesn't recurse subdirs)
 
 #### ~~FIND~~ — done (all options: basic, /V, /C, /N, /?)
 #### ~~SORT~~ — done (all options: basic, /R, /+N, /?)
