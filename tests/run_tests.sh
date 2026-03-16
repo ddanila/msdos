@@ -402,6 +402,55 @@ else
     fail "COMP (expected 'different sizes')"
 fi
 
+# -- ATTRIB: show file attributes --
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\SETENV.BAT') || true
+if echo "$output" | grep -q "SETENV.BAT"; then
+    ok "ATTRIB (show attributes)"
+else
+    fail "ATTRIB (expected filename in output)"
+fi
+
+# -- ATTRIB +R / -R: set and clear read-only --
+run_dos CMD/ATTRIB/ATTRIB.EXE '+R' 'C:\SETENV.BAT' > /dev/null 2>&1 || true
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\SETENV.BAT') || true
+if echo "$output" | grep -q "R"; then
+    ok "ATTRIB +R (set read-only)"
+else
+    fail "ATTRIB +R (expected 'R' in attribute display)"
+fi
+# Clean up: remove read-only
+run_dos CMD/ATTRIB/ATTRIB.EXE '-R' 'C:\SETENV.BAT' > /dev/null 2>&1 || true
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\SETENV.BAT') || true
+if ! echo "$output" | grep -q " R "; then
+    ok "ATTRIB -R (clear read-only)"
+else
+    fail "ATTRIB -R (R flag still present after -R)"
+fi
+
+# -- MORE: page through piped stdin --
+output=$(printf "line1\r\nline2\r\nline3\r\n" | run_dos CMD/MORE/MORE.COM) || true
+if echo "$output" | grep -q "line1" && echo "$output" | grep -q "line3"; then
+    ok "MORE (piped stdin)"
+else
+    fail "MORE (expected 'line1' and 'line3' in output)"
+fi
+
+# -- DEBUG: launch and quit --
+output=$(printf "Q\r\n" | run_dos CMD/DEBUG/DEBUG.COM) || true
+if echo "$output" | grep -q "^-"; then
+    ok "DEBUG (launch and quit)"
+else
+    fail "DEBUG (expected '-' prompt)"
+fi
+
+# -- DEBUG: register dump --
+output=$(printf "R\r\nQ\r\n" | run_dos CMD/DEBUG/DEBUG.COM) || true
+if echo "$output" | grep -q "AX="; then
+    ok "DEBUG R (register dump)"
+else
+    fail "DEBUG R (expected 'AX=' in register output)"
+fi
+
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

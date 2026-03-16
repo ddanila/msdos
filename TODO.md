@@ -155,14 +155,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `XCOPY src dest /W` — wait before start
 - [x] `XCOPY /?` — usage
 
-#### ATTRIB
-- [ ] `ATTRIB file` — show attributes
-- [ ] `ATTRIB +R file` — set read-only
-- [ ] `ATTRIB -R file` — clear read-only
-- [ ] `ATTRIB +A file` — set archive
-- [ ] `ATTRIB -A file` — clear archive
-- [ ] `ATTRIB +R +A file /S` — recursive subdirs
-- [x] `ATTRIB /?` — usage
+#### ~~ATTRIB~~ — done (show, +R, -R, /?). Remaining: +A/-A (archive), /S (recursive)
 
 #### ~~FIND~~ — done (all options: basic, /V, /C, /N, /?)
 #### ~~SORT~~ — done (all options: basic, /R, /+N, /?)
@@ -233,15 +226,8 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `FDISK /PRI` — create primary partition
 - [x] `FDISK /?` — usage
 
-#### DEBUG
-- [ ] `DEBUG` — launch and quit (`Q` command)
-- [ ] `DEBUG file` — load file
-- [x] `DEBUG /?` — usage
-
-#### MORE
-- [ ] `MORE < file` — page through file
-- [ ] `command | MORE` — piped input
-- [x] `MORE /?` — usage
+#### ~~DEBUG~~ — done (launch+quit, register dump, /?). Remaining: load file
+#### ~~MORE~~ — done (piped stdin, /?)
 
 #### PRINT
 - [ ] `PRINT /D:PRN file` — print to device
