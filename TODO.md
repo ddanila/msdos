@@ -248,8 +248,8 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [x] `NLSFUNC /?` — usage
 
 #### GRAFTABL
-- [ ] `GRAFTABL 437` — load code page 437
-- [ ] `GRAFTABL 850` — load code page 850
+- [x] `GRAFTABL 437` — load code page 437
+- [x] `GRAFTABL 850` — load code page 850
 - [x] `GRAFTABL /STATUS` — show current
 - [x] `GRAFTABL /?` — usage
 

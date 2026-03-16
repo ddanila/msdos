@@ -528,6 +528,22 @@ else
     fail "JOIN (expected exit 0, got $exit_code)"
 fi
 
+# -- GRAFTABL 437: load code page 437 --
+output=$(run_dos CMD/GRAFTABL/GRAFTABL.COM 437) || true
+if echo "$output" | grep -q "Active Code Page: 437"; then
+    ok "GRAFTABL 437 (load code page)"
+else
+    fail "GRAFTABL 437 (expected 'Active Code Page: 437')"
+fi
+
+# -- GRAFTABL 850: load code page 850 --
+output=$(run_dos CMD/GRAFTABL/GRAFTABL.COM 850) || true
+if echo "$output" | grep -q "Active Code Page: 850"; then
+    ok "GRAFTABL 850 (load code page)"
+else
+    fail "GRAFTABL 850 (expected 'Active Code Page: 850')"
+fi
+
 # -- ASSIGN /STATUS: show drive assignments (none → silent exit 0) --
 output=$(run_dos CMD/ASSIGN/ASSIGN.COM /STATUS 2>/dev/null) || true
 exit_code=$?
