@@ -32,6 +32,12 @@ build is unaffected (working-tree files are still CRLF as DOS tools require).
 which is semantically correct since BUILDIDX treats these files as byte-addressed binary data.
 Avoided for now to not diverge from upstream with a large no-content-change commit.
 
+## TYPE ^Z Requirement
+
+`TYPE <file>` in batch mode hangs if the file doesn't end with ^Z (0x1A). DOS text-mode
+reads use ^Z as EOF sentinel. Always terminate text files with `\x1a` when used with TYPE
+in batch scripts: `printf 'content\r\n\x1a'`.
+
 ## Build Architecture
 - kvikdos cannot spawn subprocesses (exec replaces process), so NMAKE is unusable.
 - Linux GNU Makefile calls kvikdos for each individual DOS tool invocation.

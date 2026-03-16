@@ -1,13 +1,13 @@
 # MS-DOS 4.0 Build — TODO
 
-## What's Next (prioritized)
+## Done
 
-1. ~~**COMMAND /?**~~ — done. Added to `INIT.ASM` before `sysloadmsg`; works under kvikdos too.
-2. ~~**E2E functional tests for read-only external tools**~~ — done (partial). MEM, FIND, FC, TREE, SORT wired into `run_tests.sh` Section 6. kvikdos extended with INT 21h/33h/AL=03h (boot drive) and INT 21h/69h (disk serial number) stubs. SORT fixed by adding missing `exefix sort.exe 1 1` step (sets MAXALLOC=1 so INT 21h/48h malloc has free memory). **Remaining:** COMP (uses INT 21h/11h FCB search — not implemented in kvikdos).
-3. ~~**E2E functional tests for COMMAND.COM built-ins via QEMU**~~ — done. 29 tests covering VER, ECHO, SET (read + write), PATH, DIR, VOL, BREAK, VERIFY, CHCP, TYPE, TRUENAME, IF (5 variants), GOTO, REM, CALL, COPY, REN, DEL, MD+CD, SET assignment, PROMPT, FOR (bare error recovery + loop iteration) via `make test-builtins` (single QEMU boot, CTTY AUX + COM1 capture). All previously-hanging commands (SET=, PROMPT, FOR) fixed.
-4. ~~**CI job: pin submodule to `main` and verify golden checksums**~~ — dropped. Would need separate golden checksums for `main` (no /? help) vs `dos4-enhancements`, plus skipping /? tests. Not worth the maintenance — normal CI on `dos4-enhancements` already validates the toolchain end-to-end.
-5. ~~**CHKDSK /?**~~ — done. Added using CONVERT COM pattern (CALL/POP trick), same as DEBUG/PRINT.
-6. ~~**Verify EXEPACK fix on real DOS/QEMU**~~ — done. FIND, FDISK, IFSFUNC, EXE2BIN verified via `make test-exepack` (QEMU boot, /? invocation, no "Packed file is corrupt"). SELECT.EXE not on floppy (tested implicitly via make test-sys).
+- ~~COMMAND /?~~ — added to `INIT.ASM`
+- ~~E2E functional tests (external tools)~~ — MEM, FIND, FC, TREE, SORT, COMP in `run_tests.sh` Section 6
+- ~~E2E functional tests (built-ins via QEMU)~~ — 29 tests in `test_builtins.sh`
+- ~~CI golden checksums~~ — dropped (not worth maintenance)
+- ~~CHKDSK /?~~ — added
+- ~~EXEPACK fix verification~~ — verified via `make test-exepack`
 
 ## UMB Support (Upper Memory Blocks)
 
@@ -77,16 +77,7 @@ Goal: every command (external tool and COMMAND.COM built-in) and every
 recognized option gets at least one integration test. Tests run the real
 DOS binary under kvikdos or QEMU, check exit code and/or COM1/stdout output.
 
-**Harness setup:**
-- [x] Add CI step for `make test-sys`.
-- [x] Add CI step for `make test-help-qemu` (27 external tools /? on real DOS).
-- External tools (MEM, XCOPY, etc.): invoke via kvikdos directly where
-  possible; fall back to QEMU+COM1 for disk-heavy operations.
-- Built-ins: invoke as `COMMAND /C "CMD args"` via kvikdos or QEMU.
-- For `/?` tests: check that the tool prints something and exits 0. Add as fast smoke tests in CI (kvikdos invocation, very cheap to run).
-- For functional tests: set up a minimal disk image with known files/state,
-  run command, inspect result (file presence, content, exit code, output).
-- ~~Add CI job that pins submodule to `main` and verifies golden checksums~~ — dropped (would need separate checksums and skip /? tests; normal CI already validates the toolchain).
+**Harness:** kvikdos for fast tests, QEMU+COM1 for disk-heavy ops. CI runs `make test-sys` and `make test-help-qemu`.
 
 ### COMMAND.COM built-in commands
 
@@ -173,24 +164,9 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `ATTRIB +R +A file /S` — recursive subdirs
 - [x] `ATTRIB /?` — usage
 
-#### FIND
-- [x] `FIND "string" file` — basic search (QEMU e2e: case-sensitive match)
-- [x] `FIND /V "string" file` — non-matching lines (QEMU e2e)
-- [x] `FIND /C "string" file` — count only (QEMU e2e: verified count=2)
-- [x] `FIND /N "string" file` — with line numbers (QEMU e2e: verified [4])
-- [x] `FIND /?` — usage
-
-#### SORT
-- [x] `SORT < file` — sort stdin (fixed: added missing `exefix sort.exe 1 1` to build)
-- [ ] `SORT /R < file` — reverse sort
-- [ ] `SORT /+3 < file` — sort by column 3
-- [x] `SORT /?` — usage
-
-#### TREE
-- [ ] `TREE` — directory tree
-- [ ] `TREE /F` — include filenames
-- [ ] `TREE /A` — ASCII chars (no line-drawing)
-- [x] `TREE /?` — usage
+#### ~~FIND~~ — done (all options: basic, /V, /C, /N, /?)
+#### ~~SORT~~ — done (all options: basic, /R, /+N, /?)
+#### ~~TREE~~ — done (all options: basic, /F, /A, /?)
 
 #### REPLACE
 - [ ] `REPLACE src dest` — replace existing
@@ -225,16 +201,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `RESTORE A: C: /L:12:00:00` — on or after time
 - [x] `RESTORE /?` — usage
 
-#### FC
-- [ ] `FC file1 file2` — ASCII diff
-- [ ] `FC /B file1 file2` — binary diff
-- [ ] `FC /C file1 file2` — case-insensitive
-- [ ] `FC /L file1 file2` — explicit ASCII mode
-- [ ] `FC /N file1 file2` — line numbers
-- [ ] `FC /T file1 file2` — no tab expansion
-- [ ] `FC /W file1 file2` — compress whitespace
-- [ ] `FC /5 file1 file2` — custom resync count
-- [x] `FC /?` — usage
+#### ~~FC~~ — done (basic, /B, /C, /L, /N, /W, /?). Remaining: /T (tab expansion), /5 (resync count)
 
 #### DISKCOMP
 - [ ] `DISKCOMP A: A:` — compare floppies
@@ -248,10 +215,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `DISKCOPY A: A: /V` — verify after
 - [x] `DISKCOPY /?` — usage
 
-#### COMP
-- [ ] `COMP file1 file2` — compare files (same)
-- [ ] `COMP file1 file2` — compare files (different)
-- [x] `COMP /?` — usage
+#### ~~COMP~~ — done (same files, different files, /?)
 
 #### LABEL
 - [ ] `LABEL` — prompt for label
@@ -377,68 +341,5 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `FILESYS` — load (smoke test, internal tool)
 - [x] `FILESYS /?` — usage
 
-## Add /? Usage Strings to CMD Tools
+## ~~Add /? Usage Strings~~ — done (all external CMD tools)
 
-All tools should print usage when invoked with `/?`, like MS-DOS 6.22.
-Changes go in the `dos4-enhancements` branch of the MS-DOS fork.
-- ASM tools: check PSP:81h for `/?`, print $-terminated string via INT 21h/09h, exit via INT 21h/4Ch.
-- C tools: `strcmp` argv[1] with `"/?"`; print via `printf`; `exit(0)`.
-- Keep help strings compact (≤24 lines) to fit a standard 25-line screen.
-
-### Pending usage strings
-
-All external CMD tools now have /? help implemented.
-
-## Known Issues
-
-### COMMAND.COM batch processing hangs (FIXED)
-
-All three commands that hung batch processing — `FOR`, `SET FOO=BAR`, and `PROMPT` —
-have been fixed. Root cause: ES segment register not restored to TRANGROUP before
-returning to TCOMMAND.
-
-**FOR** (TFOR.ASM): `$for` sets ES=RESGROUP for resident data access. Error
-trampolines and success path (`for_ret`) returned with ES=RESGROUP.
-
-**SET/PROMPT** (TENV.ASM): `SCAN_DOUBLE_NULL` sets ES=ENVIRSEG (environment segment).
-COMSPEC handling further sets ES=RESGROUP. Neither path restored ES before returning.
-
-**Why it hung:** TCOMMAND uses `CALL ES:[HEADCALL]` where MASM generates an ES:
-segment override (HEADCALL is in TRANSPACE/TRANGROUP, DS is assumed RESGROUP).
-With ES pointing to the wrong segment, the far call loaded a garbage address.
-
-**Defensive fix:** TCODE.ASM now sets ES=TRANGROUP before `CALL [HEADCALL]`
-at TCOMMAND, catching any handler that forgets to restore ES.
-
-### TYPE hangs without ^Z EOF marker in text files
-
-`TYPE <file>` hangs batch processing if the file does not end with a ^Z (0x1A) byte.
-With ^Z, TYPE works correctly and batch processing continues.
-
-**Root cause:** TYPE reads in text mode, which uses ^Z as the EOF sentinel. Without ^Z,
-TYPE reads past the file content (DOS read calls may return data beyond the logical file
-end in the final cluster, or TYPE keeps reading expecting more). This blocks indefinitely.
-
-**Workaround:** Always terminate text files with ^Z (0x1A) when used with TYPE in batch
-scripts. The E2E test harness creates test files with `printf 'content\r\n\x1a'`.
-
-**Impact:** Minor — standard DOS convention is to include ^Z in text files. Test files
-are generated with ^Z and TYPE is tested successfully.
-
-### USA-MS.MSG spurious git diff
-
-After any `make` build, `v4.0/src/MESSAGES/USA-MS.MSG` always shows as modified in
-the MS-DOS submodule even though file content (and SHA256) is identical to HEAD.
-
-**Root cause (suspected):** `.gitattributes` sets `*.MSG text eol=crlf`, so git
-internally normalizes the blob to LF but checks out CRLF to the working tree.
-Something in the build pipeline (possibly `make clean` + re-checkout, or a tool
-that touches the file) causes the index to diverge from HEAD's blob, producing a
-spurious 1186-line diff that is purely a CRLF↔LF conversion with no real changes.
-
-**Impact:** Cosmetic only — `git status` in the submodule always shows the file as
-dirty. Does not affect builds or CI.
-
-**To fix:** Investigate whether the build rewrites the file (check makefiles for
-any rule targeting `USA-MS.MSG`). If not, the gitattribute may need adjustment
-(e.g., `*.MSG -text` to store as-is without normalization).

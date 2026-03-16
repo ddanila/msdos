@@ -292,6 +292,54 @@ else
     fail "FC (expected diff output with filename header)"
 fi
 
+# -- FC /N: line numbers in diff --
+output=$(run_dos CMD/FC/FC.EXE /N 'C:\SETENV.BAT' 'C:\CPY.BAT') || true
+if echo "$output" | grep -q "1:"; then
+    ok "FC /N (line numbers)"
+else
+    fail "FC /N (expected numbered lines like '1:')"
+fi
+
+# -- FC /B: binary compare (different files) --
+output=$(run_dos CMD/FC/FC.EXE /B 'C:\SETENV.BAT' 'C:\CPY.BAT') || true
+if echo "$output" | grep -q "00000000:" && echo "$output" | grep -q "longer than"; then
+    ok "FC /B (binary diff)"
+else
+    fail "FC /B (expected hex offsets and 'longer than')"
+fi
+
+# -- FC /B: binary compare (identical files) --
+output=$(run_dos CMD/FC/FC.EXE /B 'C:\SETENV.BAT' 'C:\SETENV.BAT') || true
+if echo "$output" | grep -q "no differences"; then
+    ok "FC /B (identical, binary)"
+else
+    fail "FC /B (expected 'no differences' for identical files)"
+fi
+
+# -- FC /C: case-insensitive compare (identical files) --
+output=$(run_dos CMD/FC/FC.EXE /C 'C:\SETENV.BAT' 'C:\SETENV.BAT') || true
+if echo "$output" | grep -q "no differences"; then
+    ok "FC /C (case-insensitive)"
+else
+    fail "FC /C (expected 'no differences')"
+fi
+
+# -- FC /W: compress whitespace compare (identical files) --
+output=$(run_dos CMD/FC/FC.EXE /W 'C:\SETENV.BAT' 'C:\SETENV.BAT') || true
+if echo "$output" | grep -q "no differences"; then
+    ok "FC /W (compress whitespace)"
+else
+    fail "FC /W (expected 'no differences')"
+fi
+
+# -- FC /L: explicit ASCII mode (different files) --
+output=$(run_dos CMD/FC/FC.EXE /L 'C:\SETENV.BAT' 'C:\CPY.BAT') || true
+if echo "$output" | grep -q "SETENV.BAT"; then
+    ok "FC /L (explicit ASCII)"
+else
+    fail "FC /L (expected diff output with filename header)"
+fi
+
 # -- TREE: directory listing --
 output=$(run_dos CMD/TREE/TREE.COM /A) || true
 if echo "$output" | grep -q "Directory PATH listing"; then
@@ -300,12 +348,42 @@ else
     fail "TREE (expected 'Directory PATH listing')"
 fi
 
+# -- TREE /F: include filenames in listing --
+output=$(run_dos CMD/TREE/TREE.COM /F /A 2>/dev/null) || true
+if echo "$output" | grep -q "Directory PATH listing"; then
+    ok "TREE /F (filenames mode runs)"
+else
+    fail "TREE /F (expected 'Directory PATH listing')"
+fi
+
 # -- SORT: sort lines from stdin (piped via host stdin) --
 output=$(printf "banana\r\ncherry\r\napple\r\n" | run_dos CMD/SORT/SORT.EXE) || true
 if echo "$output" | grep -q "apple" && echo "$output" | grep -q "banana"; then
     ok "SORT (sort lines from stdin)"
 else
     fail "SORT (expected sorted output with 'apple' and 'banana')"
+fi
+
+# -- SORT /R: reverse sort --
+output=$(printf "banana\r\ncherry\r\napple\r\n" | run_dos CMD/SORT/SORT.EXE /R) || true
+# In reverse order: cherry, banana, apple.  Verify cherry comes before apple.
+cherry_line=$(echo "$output" | grep -n "cherry" | head -1 | cut -d: -f1)
+apple_line=$(echo "$output" | grep -n "apple" | head -1 | cut -d: -f1)
+if [[ -n "$cherry_line" && -n "$apple_line" && "$cherry_line" -lt "$apple_line" ]]; then
+    ok "SORT /R (reverse sort)"
+else
+    fail "SORT /R (expected cherry before apple in reverse sort)"
+fi
+
+# -- SORT /+2: sort by column 2 --
+output=$(printf "xbb\r\nxaa\r\nxcc\r\n" | run_dos CMD/SORT/SORT.EXE /+2) || true
+# Sorted by 2nd char: xaa, xbb, xcc.  Verify xaa comes before xcc.
+aa_line=$(echo "$output" | grep -n "xaa" | head -1 | cut -d: -f1)
+cc_line=$(echo "$output" | grep -n "xcc" | head -1 | cut -d: -f1)
+if [[ -n "$aa_line" && -n "$cc_line" && "$aa_line" -lt "$cc_line" ]]; then
+    ok "SORT /+2 (sort by column)"
+else
+    fail "SORT /+2 (expected xaa before xcc when sorting by column 2)"
 fi
 
 # -- COMP: compare identical files (COMP loops on Y/N prompt at EOF; capture first 20 lines) --
