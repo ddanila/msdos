@@ -4,7 +4,7 @@
 
 - ~~COMMAND /?~~ — added to `INIT.ASM`
 - ~~E2E functional tests (kvikdos)~~ — 167 tests in `run_tests.sh` (artifacts, checksums, /? help, functional: MEM, FIND, FC, TREE, SORT, COMP, ATTRIB, MORE, DEBUG, LABEL, EDLIN, REPLACE, XCOPY, GRAFTABL 437/850/STATUS, SUBST, JOIN, ASSIGN)
-- ~~E2E functional tests (QEMU, built-ins + FIND)~~ — 51 tests in `test_builtins.sh` (built-in commands + FIND functional: basic, /C, /N, /V, case-sensitivity, errorlevel)
+- ~~E2E functional tests (QEMU, built-ins + FIND)~~ — 67 tests in `test_builtins.sh` (built-in commands + FIND functional: basic, /C, /N, /V, case-sensitivity, errorlevel + DIR path/wildcard, COPY concat/binary, DEL wildcard/read-only, ERASE, REN-to-existing, TYPE ^Z, MD nested, CD forms, CLS, CHKDSK)
 - ~~CI golden checksums~~ — dropped (not worth maintenance)
 - ~~CHKDSK /?~~ — added
 - ~~EXEPACK fix verification~~ — verified via `make test-help-qemu` (EXEPACK corruption check)
@@ -85,38 +85,38 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 
 | Command | Options / forms to test |
 |---------|------------------------|
-| DIR | no args (list CWD), path, `*` wildcard, `/W` (wide), `/P` (pause/page) |
-| COPY | src dest, src+src2 dest (concat), `/A` (ASCII), `/B` (binary), `/V` (verify) |
-| DEL / ERASE | single file, wildcard `*.*`, read-only file (should fail) |
-| REN / RENAME | simple rename, rename to existing (should fail) |
-| TYPE | text file, binary file (^Z mid-file) |
-| MD / MKDIR | new dir, nested path, already-exists (should fail) |
-| CD / CHDIR | relative, absolute, drive-rooted, no-arg (print CWD) |
-| RD / RMDIR | empty dir, non-empty dir (should fail) |
-| SET | set new var, overwrite var, clear var (`SET VAR=`), no-arg (print env) |
-| PATH | set path, clear path (`PATH ;`), no-arg (print current) |
-| PROMPT | set prompt string, clear prompt |
-| DATE | no-arg (show date), set date |
-| TIME | no-arg (show time), set time |
-| VER | no args (shows version) |
-| VOL | no-arg (current drive), `drive:` |
-| BREAK | `BREAK ON`, `BREAK OFF`, no-arg (show state) |
-| VERIFY | `VERIFY ON`, `VERIFY OFF`, no-arg (show state) |
-| ECHO | `ECHO message`, `ECHO ON`, `ECHO OFF`, `ECHO.` (blank line) |
-| CLS | no args |
+| ~~DIR~~ | ~~no args (list CWD)~~, ~~path~~, ~~`*` wildcard~~, ~~`/W` (wide)~~, `/P` (pause/page — interactive) |
+| ~~COPY~~ | ~~src dest~~, ~~src+src2 dest (concat)~~, `/A` (ASCII), ~~`/B` (binary)~~, ~~`/V` (verify)~~ |
+| ~~DEL / ERASE~~ | ~~single file~~, ~~wildcard `*.*`~~, ~~read-only file (should fail)~~, ~~ERASE synonym~~ |
+| ~~REN / RENAME~~ | ~~simple rename~~, ~~rename to existing (should fail)~~ |
+| ~~TYPE~~ | ~~text file~~, ~~binary file (^Z mid-file)~~ |
+| ~~MD / MKDIR~~ | ~~new dir~~, ~~nested path~~, ~~already-exists (should fail)~~ |
+| ~~CD / CHDIR~~ | ~~relative~~, ~~absolute~~, ~~drive-rooted~~, ~~no-arg (print CWD)~~ |
+| ~~RD / RMDIR~~ | ~~empty dir~~, ~~non-empty dir (should fail)~~ |
+| ~~SET~~ | ~~set new var~~, ~~overwrite var~~, ~~clear var (`SET VAR=`)~~, ~~no-arg (print env)~~ |
+| ~~PATH~~ | ~~set path~~, ~~clear path (`PATH ;`)~~, ~~no-arg (print current)~~ |
+| ~~PROMPT~~ | ~~set prompt string~~, clear prompt |
+| DATE | no-arg (show date), set date — interactive |
+| TIME | no-arg (show time), set time — interactive |
+| ~~VER~~ | ~~no args (shows version)~~ |
+| ~~VOL~~ | ~~no-arg (current drive)~~, `drive:` |
+| ~~BREAK~~ | ~~`BREAK ON`~~, ~~`BREAK OFF`~~, ~~no-arg (show state)~~ |
+| ~~VERIFY~~ | ~~`VERIFY ON`~~, ~~`VERIFY OFF`~~, ~~no-arg (show state)~~ |
+| ~~ECHO~~ | ~~`ECHO message`~~, ~~`ECHO ON`~~, ~~`ECHO OFF`~~, ~~`ECHO.` (blank line)~~ |
+| ~~CLS~~ | ~~no args~~ |
 | EXIT | exits secondary COMMAND shell |
-| CTTY | redirect to device (e.g., `CTTY COM1`) |
-| PAUSE | no-arg (waits for keypress) |
-| REM | comment — no output |
-| CHCP | no-arg (show code page), `CHCP nnn` (set code page) |
-| TRUENAME | path (returns canonical full path) |
-| CALL | `CALL batchfile [args]` — calls sub-batch, returns |
-| GOTO | `GOTO label` in batch |
-| SHIFT | shift batch `%1..%9` arguments left |
-| IF | `IF EXIST file cmd`, `IF ERRORLEVEL n cmd`, `IF str==str cmd`, `IF NOT ...` |
+| ~~CTTY~~ | ~~redirect to device (used by test harness)~~ |
+| PAUSE | no-arg (waits for keypress) — interactive |
+| ~~REM~~ | ~~comment — no output~~ |
+| ~~CHCP~~ | ~~no-arg (show code page)~~, `CHCP nnn` (set — needs DISPLAY.SYS) |
+| ~~TRUENAME~~ | ~~path (returns canonical full path)~~ |
+| ~~CALL~~ | ~~`CALL batchfile [args]` — calls sub-batch, returns~~ |
+| ~~GOTO~~ | ~~`GOTO label` in batch~~ |
+| ~~SHIFT~~ | ~~shift batch `%1..%9` arguments left~~ |
+| ~~IF~~ | ~~`IF EXIST file cmd`~~, ~~`IF ERRORLEVEL n cmd`~~, ~~`IF str==str cmd`~~, ~~`IF NOT ...`~~ |
 
 #### ~~Strengthen Tier 1 built-in tests~~ — done (all 6 items verified functionally)
-| FOR | `FOR %%v IN (set) DO cmd` |
+| ~~FOR~~ | ~~`FOR %%v IN (set) DO cmd`~~ |
 
 ### External CMD tools
 
