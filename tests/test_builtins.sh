@@ -229,6 +229,16 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
     printf 'DEL CVTEST.TXT\r\n'
 
     # ── FIND functional tests ──────────────────────────────────────────────────
+    # ── CHKDSK A: (check boot floppy) ──────────────────────────────────────────
+    printf 'ECHO ---CHKDSK---\r\n'
+    printf 'CHKDSK A:\r\n'
+    printf 'ECHO CHKDSK_DONE\r\n'
+
+    # ── CHKDSK /V (verbose — list all files) ─────────────────────────────────
+    printf 'ECHO ---CHKDSK-V---\r\n'
+    printf 'CHKDSK A: /V\r\n'
+    printf 'ECHO CHKDSK_V_DONE\r\n'
+
     printf 'ECHO ---FIND-BASIC---\r\n'
     printf 'FIND "alpha" FIND.DAT\r\n'
 
@@ -589,6 +599,29 @@ if grep -q "COPY_V_OK" "$SERIAL_LOG"; then
     ok "COPY /V"
 else
     fail "COPY /V (expected 'COPY_V_OK')"
+fi
+
+echo ""
+echo "--- CHKDSK ---"
+
+# CHKDSK A: should report disk stats (total bytes, free bytes)
+if grep -q "bytes total disk space" "$SERIAL_LOG"; then
+    ok "CHKDSK A: (disk stats reported)"
+else
+    fail "CHKDSK A: (expected 'bytes total disk space')"
+fi
+
+if grep -q "bytes available on disk" "$SERIAL_LOG"; then
+    ok "CHKDSK A: (free space reported)"
+else
+    fail "CHKDSK A: (expected 'bytes available on disk')"
+fi
+
+# CHKDSK /V should list files — COMMAND.COM must appear
+if sed -n '/---CHKDSK-V---/,/CHKDSK_V_DONE/p' "$SERIAL_LOG" | grep -q "COMMAND"; then
+    ok "CHKDSK /V (verbose lists COMMAND.COM)"
+else
+    fail "CHKDSK /V (expected 'COMMAND' in verbose file listing)"
 fi
 
 echo ""

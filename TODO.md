@@ -135,9 +135,9 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 
 #### CHKDSK
 - [ ] `CHKDSK` — check current drive
-- [ ] `CHKDSK A:` — check specific drive
+- [x] `CHKDSK A:` — check specific drive (QEMU)
 - [ ] `CHKDSK A: /F` — fix errors
-- [ ] `CHKDSK A: /V` — verbose (all paths)
+- [x] `CHKDSK A: /V` — verbose (all paths) (QEMU)
 - [ ] `CHKDSK A:*.*` — check specific files
 - [x] `CHKDSK /?` — usage
 
