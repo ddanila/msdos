@@ -98,21 +98,21 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `REPLACE src dest /W` — wait before start (interactive)
 
 #### BACKUP
-- [ ] `BACKUP C: A:` — basic backup
-- [ ] `BACKUP C: A: /S` — include subdirs
-- [ ] `BACKUP C: A: /M` — modified only
-- [ ] `BACKUP C: A: /A` — append to existing set
+- [x] `BACKUP A:path\*.TXT B:` — basic backup (`test_backup_restore.sh`)
+- [x] `BACKUP A:path B: /S` — include subdirs
+- [x] `BACKUP A:path B: /M` — modified only (archive bit)
+- [x] `BACKUP A:path B: /A` — append to existing set
 - [ ] `BACKUP C: A: /D:01-01-88` — since date
 - [ ] `BACKUP C: A: /T:00:00:00` — since time
 - [ ] `BACKUP C: A: /L:backup.log` — write log
 - [ ] `BACKUP C: A: /F` — format target if needed
 
 #### RESTORE
-- [ ] `RESTORE A: C:` — restore all
-- [ ] `RESTORE A: C: /S` — include subdirs
-- [ ] `RESTORE A: C: /P` — prompt on conflicts
+- [x] `RESTORE B: A:path\file` — basic restore (`test_backup_restore.sh`)
+- [x] `RESTORE B: A:path /S` — include subdirs
+- [ ] `RESTORE A: C: /P` — prompt on conflicts (interactive)
 - [ ] `RESTORE A: C: /M` — modified only
-- [ ] `RESTORE A: C: /N` — missing files only
+- [x] `RESTORE B: A:path /N` — missing files only
 - [ ] `RESTORE A: C: /B:01-01-88` — on or before date
 - [ ] `RESTORE A: C: /A:01-01-88` — on or after date
 - [ ] `RESTORE A: C: /E:12:00:00` — on or before time
