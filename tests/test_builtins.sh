@@ -229,10 +229,15 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
     printf 'DEL CVTEST.TXT\r\n'
 
     # ── FIND functional tests ──────────────────────────────────────────────────
-    # ── CHKDSK A: (check boot floppy) ──────────────────────────────────────────
+    # ── CHKDSK (check current drive = A:) ──────────────────────────────────────
     printf 'ECHO ---CHKDSK---\r\n'
-    printf 'CHKDSK A:\r\n'
+    printf 'CHKDSK\r\n'
     printf 'ECHO CHKDSK_DONE\r\n'
+
+    # ── CHKDSK A: (check specific drive) ─────────────────────────────────────
+    printf 'ECHO ---CHKDSK-A---\r\n'
+    printf 'CHKDSK A:\r\n'
+    printf 'ECHO CHKDSK_A_DONE\r\n'
 
     # ── CHKDSK /V (verbose — list all files) ─────────────────────────────────
     printf 'ECHO ---CHKDSK-V---\r\n'
@@ -604,14 +609,15 @@ fi
 echo ""
 echo "--- CHKDSK ---"
 
-# CHKDSK A: should report disk stats (total bytes, free bytes)
-if grep -q "bytes total disk space" "$SERIAL_LOG"; then
-    ok "CHKDSK A: (disk stats reported)"
+# CHKDSK (no args) — should report disk stats for current drive
+if sed -n '/---CHKDSK---/,/CHKDSK_DONE/p' "$SERIAL_LOG" | grep -q "bytes total disk space"; then
+    ok "CHKDSK (current drive — disk stats reported)"
 else
-    fail "CHKDSK A: (expected 'bytes total disk space')"
+    fail "CHKDSK (expected 'bytes total disk space')"
 fi
 
-if grep -q "bytes available on disk" "$SERIAL_LOG"; then
+# CHKDSK A: — should report disk stats for explicit drive
+if sed -n '/---CHKDSK-A---/,/CHKDSK_A_DONE/p' "$SERIAL_LOG" | grep -q "bytes available on disk"; then
     ok "CHKDSK A: (free space reported)"
 else
     fail "CHKDSK A: (expected 'bytes available on disk')"

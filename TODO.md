@@ -134,7 +134,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 #### ~~MEM~~ — done (basic totals, /?). Remaining: /PROGRAM, /DEBUG (need QEMU — kvikdos lacks full MCB chain)
 
 #### CHKDSK
-- [ ] `CHKDSK` — check current drive
+- [x] `CHKDSK` — check current drive (QEMU)
 - [x] `CHKDSK A:` — check specific drive (QEMU)
 - [ ] `CHKDSK A: /F` — fix errors
 - [x] `CHKDSK A: /V` — verbose (all paths) (QEMU)
