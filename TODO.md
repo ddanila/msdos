@@ -140,7 +140,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [x] `CHKDSK /?` — usage
 
 #### XCOPY
-- [ ] `XCOPY src dest` — basic copy
+- [ ] `XCOPY src dest` — basic copy (copies 0 files under kvikdos; needs investigation)
 - [ ] `XCOPY src dest /S` — include subdirs
 - [ ] `XCOPY src dest /S /E` — include empty subdirs
 - [ ] `XCOPY src dest /A` — archive flag only
@@ -158,8 +158,8 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 #### ~~TREE~~ — done (all options: basic, /F, /A, /?)
 
 #### REPLACE
-- [ ] `REPLACE src dest` — replace existing
-- [ ] `REPLACE src dest /A` — add new files only
+- [ ] `REPLACE src dest` — replace existing (needs wildcard FindFirst on absolute paths)
+- [x] `REPLACE src dest /A` — add new files only
 - [ ] `REPLACE src dest /P` — prompt
 - [ ] `REPLACE src dest /R` — overwrite read-only
 - [ ] `REPLACE src dest /S` — recurse subdirs
@@ -209,7 +209,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 #### ~~LABEL~~ — done (show volume info, /?). Remaining: set/remove label (needs FCB delete, QEMU)
 
 #### EDLIN
-- [ ] `EDLIN file` — open file for editing
+- [x] `EDLIN file` — open file (list + quit tested; insert mode needs Ctrl+C pipe fix)
 - [ ] `EDLIN file /B` — binary (ignore ^Z)
 - [x] `EDLIN /?` — usage
 
