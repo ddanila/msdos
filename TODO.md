@@ -158,8 +158,8 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `KEYB` — show current layout
 
 #### NLSFUNC
-- [ ] `NLSFUNC` — load with default COUNTRY.SYS
-- [ ] `NLSFUNC C:\COUNTRY.SYS` — explicit path
+- [x] `NLSFUNC` — load with default COUNTRY.SYS (`test_share_nlsfunc_exe2bin.sh`)
+- [x] `NLSFUNC C:\COUNTRY.SYS` — second call → errorlevel 128 (already installed; message goes to STDERR, not visible via CTTY AUX) (`test_share_nlsfunc_exe2bin.sh`)
 
 #### APPEND
 - [ ] `APPEND /E` — init with environment
@@ -182,8 +182,8 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `SUBST X: /D` — remove substitution (needs QEMU)
 
 #### SHARE
-- [ ] `SHARE` — load with defaults
-- [ ] `SHARE /F:4096 /L:40` — custom file space and locks
+- [x] `SHARE` — load with defaults (`test_share_nlsfunc_exe2bin.sh`)
+- [x] `SHARE /F:4096 /L:40` — second call → "SHARE already installed" + errorlevel 255 (`test_share_nlsfunc_exe2bin.sh`)
 
 #### FASTOPEN
 - [ ] `FASTOPEN C:=50` — cache 50 entries
@@ -206,7 +206,7 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `RECOVER A:` — recover entire disk
 
 #### EXE2BIN
-- [ ] `EXE2BIN prog.exe prog.bin` — basic conversion
+- [x] `EXE2BIN prog.exe prog.bin` — basic conversion; IP=0 → BINFIX (no prompt), verifies output file exists (`test_share_nlsfunc_exe2bin.sh`)
 
 #### IFSFUNC
 - [ ] `IFSFUNC` — load IFS driver (smoke test)
