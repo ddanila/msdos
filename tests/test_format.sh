@@ -154,7 +154,7 @@ MONITOR_PID=$!
 echo "Booting QEMU (single boot, 8 FORMAT variants via QMP disk swapping)..."
 echo "Estimated time: ~5 min"
 rm -f "$SERIAL_LOG"
-(while true; do sleep 0.2; printf '\r\n'; done) | \
+(while true; do sleep 0.2; printf 'N\r\n'; done) | \
 timeout 480 qemu-system-i386 \
     -display none \
     -drive if=floppy,index=0,format=raw,file="$BOOT_IMG",cache=writethrough \
