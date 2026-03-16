@@ -248,7 +248,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 #### GRAFTABL
 - [ ] `GRAFTABL 437` — load code page 437
 - [ ] `GRAFTABL 850` — load code page 850
-- [ ] `GRAFTABL /STATUS` — show current
+- [x] `GRAFTABL /STATUS` — show current
 - [x] `GRAFTABL /?` — usage
 
 #### APPEND
@@ -261,21 +261,21 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [x] `APPEND /?` — usage
 
 #### ASSIGN
-- [ ] `ASSIGN A=B` — redirect A: to B:
-- [ ] `ASSIGN` — clear all assignments
-- [ ] `ASSIGN /STATUS` — show assignments
+- [ ] `ASSIGN A=B` — redirect A: to B: (TSR operation, needs QEMU)
+- [ ] `ASSIGN` — clear all assignments (TSR operation, needs QEMU)
+- [x] `ASSIGN /STATUS` — show assignments
 - [x] `ASSIGN /?` — usage
 
 #### JOIN
-- [ ] `JOIN A: C:\FLOPPY` — join drive to path
-- [ ] `JOIN A: /D` — remove join
-- [ ] `JOIN` — show current joins
+- [ ] `JOIN A: C:\FLOPPY` — join drive to path (needs QEMU)
+- [ ] `JOIN A: /D` — remove join (needs QEMU)
+- [x] `JOIN` — show current joins
 - [x] `JOIN /?` — usage
 
 #### SUBST
-- [ ] `SUBST X: C:\LONGPATH` — create substitution
-- [ ] `SUBST X: /D` — remove substitution
-- [ ] `SUBST` — show substitutions
+- [ ] `SUBST X: C:\LONGPATH` — create substitution (needs QEMU)
+- [ ] `SUBST X: /D` — remove substitution (needs QEMU)
+- [x] `SUBST` — show substitutions
 - [x] `SUBST /?` — usage
 
 #### SHARE
