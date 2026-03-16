@@ -350,6 +350,57 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
     printf 'IF EXIST BINCOPY.TXT ECHO COPY_B_OK\r\n'
     printf 'DEL BINCOPY.TXT\r\n'
 
+    # ── VOL with explicit drive ────────────────────────────────────────────────
+    printf 'ECHO ---VOL-DRIVE---\r\n'
+    printf 'VOL A:\r\n'
+    printf 'ECHO VOL_DRIVE_DONE\r\n'
+
+    # ── PROMPT clear (no args resets to default) ───────────────────────────────
+    printf 'ECHO ---PROMPT-CLEAR---\r\n'
+    printf 'PROMPT $P$G\r\n'
+    printf 'PROMPT\r\n'
+    printf 'ECHO PROMPT_CLEAR_DONE\r\n'
+
+    # ── EXIT from secondary COMMAND shell ──────────────────────────────────────
+    printf 'ECHO ---EXIT---\r\n'
+    printf 'COMMAND /C ECHO EXIT_INNER_OK\r\n'
+    printf 'ECHO EXIT_RETURNED\r\n'
+
+    # ── COPY /A (ASCII mode — appends ^Z) ─────────────────────────────────────
+    printf 'ECHO ---COPY-A---\r\n'
+    printf 'COPY /A TEST.TXT ACOPY.TXT\r\n'
+    printf 'IF EXIST ACOPY.TXT ECHO COPY_A_OK\r\n'
+    printf 'DEL ACOPY.TXT\r\n'
+
+    # ── RENAME synonym ─────────────────────────────────────────────────────────
+    printf 'ECHO ---RENAME---\r\n'
+    printf 'COPY TEST.TXT RNSRC.TXT\r\n'
+    printf 'RENAME RNSRC.TXT RNDST.TXT\r\n'
+    printf 'IF EXIST RNDST.TXT ECHO RENAME_OK\r\n'
+    printf 'DEL RNDST.TXT\r\n'
+
+    # ── MKDIR / RMDIR synonyms ─────────────────────────────────────────────────
+    printf 'ECHO ---MKDIR-RMDIR---\r\n'
+    printf 'MKDIR SYNDIR\r\n'
+    printf 'IF EXIST SYNDIR\\NUL ECHO MKDIR_OK\r\n'
+    printf 'RMDIR SYNDIR\r\n'
+    printf 'IF NOT EXIST SYNDIR\\NUL ECHO RMDIR_OK\r\n'
+
+    # ── CHDIR synonym ─────────────────────────────────────────────────────────
+    printf 'ECHO ---CHDIR---\r\n'
+    printf 'MD CHDSYN\r\n'
+    printf 'CHDIR CHDSYN\r\n'
+    printf 'CHDIR\r\n'
+    printf 'CHDIR A:\\\r\n'
+    printf 'ECHO CHDIR_DONE\r\n'
+    printf 'RD CHDSYN\r\n'
+
+    # ── COPY /A+/B concat (ASCII + binary in same command) ─────────────────────
+    printf 'ECHO ---COPY-AB---\r\n'
+    printf 'COPY /A TEST.TXT + /B TEST2.TXT ABCOPY.TXT\r\n'
+    printf 'IF EXIST ABCOPY.TXT ECHO COPY_AB_OK\r\n'
+    printf 'DEL ABCOPY.TXT\r\n'
+
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$TEST_IMG" - ::AUTOEXEC.BAT
 
@@ -883,6 +934,90 @@ if grep -q "COPY_B_OK" "$SERIAL_LOG"; then
     ok "COPY /B (binary copy)"
 else
     fail "COPY /B (expected 'COPY_B_OK')"
+fi
+
+echo ""
+echo "--- VOL drive ---"
+
+if sed -n '/---VOL-DRIVE---/,/VOL_DRIVE_DONE/p' "$SERIAL_LOG" | grep -q "Serial Number\|Volume in drive"; then
+    ok "VOL A: (explicit drive)"
+else
+    fail "VOL A: (expected volume info for drive A:)"
+fi
+
+echo ""
+echo "--- PROMPT clear ---"
+
+if grep -q "PROMPT_CLEAR_DONE" "$SERIAL_LOG"; then
+    ok "PROMPT clear (no-arg reset, batch continues)"
+else
+    fail "PROMPT clear (expected 'PROMPT_CLEAR_DONE')"
+fi
+
+echo ""
+echo "--- EXIT ---"
+
+if grep -q "EXIT_INNER_OK" "$SERIAL_LOG"; then
+    ok "EXIT (secondary COMMAND /C executed)"
+else
+    fail "EXIT (expected 'EXIT_INNER_OK')"
+fi
+
+if grep -q "EXIT_RETURNED" "$SERIAL_LOG"; then
+    ok "EXIT (returned to parent after COMMAND /C)"
+else
+    fail "EXIT (expected 'EXIT_RETURNED')"
+fi
+
+echo ""
+echo "--- COPY /A ---"
+
+if grep -q "COPY_A_OK" "$SERIAL_LOG"; then
+    ok "COPY /A (ASCII mode)"
+else
+    fail "COPY /A (expected 'COPY_A_OK')"
+fi
+
+echo ""
+echo "--- RENAME synonym ---"
+
+if grep -q "RENAME_OK" "$SERIAL_LOG"; then
+    ok "RENAME (synonym for REN)"
+else
+    fail "RENAME (expected 'RENAME_OK')"
+fi
+
+echo ""
+echo "--- MKDIR/RMDIR synonyms ---"
+
+if grep -q "MKDIR_OK" "$SERIAL_LOG"; then
+    ok "MKDIR (synonym for MD)"
+else
+    fail "MKDIR (expected 'MKDIR_OK')"
+fi
+
+if grep -q "RMDIR_OK" "$SERIAL_LOG"; then
+    ok "RMDIR (synonym for RD)"
+else
+    fail "RMDIR (expected 'RMDIR_OK')"
+fi
+
+echo ""
+echo "--- CHDIR synonym ---"
+
+if sed -n '/---CHDIR---/,/CHDIR_DONE/p' "$SERIAL_LOG" | grep -q "CHDSYN"; then
+    ok "CHDIR (synonym for CD, entered dir)"
+else
+    fail "CHDIR (expected 'CHDSYN' in output)"
+fi
+
+echo ""
+echo "--- COPY /A+/B concat ---"
+
+if grep -q "COPY_AB_OK" "$SERIAL_LOG"; then
+    ok "COPY /A+/B (mixed ASCII+binary concat)"
+else
+    fail "COPY /A+/B (expected 'COPY_AB_OK')"
 fi
 
 # ── Summary ──────────────────────────────────────────────────────────────────
