@@ -206,11 +206,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 
 #### ~~COMP~~ — done (same files, different files, /?)
 
-#### LABEL
-- [ ] `LABEL` — prompt for label
-- [ ] `LABEL A:MYLABEL` — set label directly
-- [ ] `LABEL A:` — remove label (empty)
-- [x] `LABEL /?` — usage
+#### ~~LABEL~~ — done (show volume info, /?). Remaining: set/remove label (needs FCB delete, QEMU)
 
 #### EDLIN
 - [ ] `EDLIN file` — open file for editing

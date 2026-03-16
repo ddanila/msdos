@@ -451,6 +451,14 @@ else
     fail "DEBUG R (expected 'AX=' in register output)"
 fi
 
+# -- LABEL: show volume info (read-only; write needs FCB delete, not implemented) --
+output=$(printf "\r\n" | timeout 5 "$BIN/dos-run" "$SRC/CMD/LABEL/LABEL.COM" 2>/dev/null) || true
+if echo "$output" | grep -q "Serial Number"; then
+    ok "LABEL (show volume info)"
+else
+    fail "LABEL (expected 'Serial Number' in output)"
+fi
+
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
