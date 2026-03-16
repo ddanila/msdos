@@ -261,7 +261,7 @@ CONTINUE:
 - REPLACE.EXE: 1 C + 3 ASM, BUILDMSG for SKL. Links MAPPER.LIB + INC/COMSUBS.LIB. Stays EXE.
 - JOIN.EXE / SUBST.EXE: 1C + 2ASM + INC kernel objects (ERRTST.OBJ, SYSVAR.OBJ, CDS.OBJ, DPB.OBJ already built by `inc` target). Links MAPPER.LIB + INC/COMSUBS.LIB. LNK files reference INC objs by relative path `..\..\inc\*.OBJ`. Stays EXE.
 - CHKDSK.COM is built from `CMD/CHKDSK/` source (BUILDMSG → 9 MASM files → LINK → CONVERT). Key quirk: `CHKDISP.ASM` uses the `Msg_Services` macro which includes `CHKDSK.CL1` and `CHKDSK.CL2` — but CHKDSK.SKL has no class 1 or 2, so BUILDMSG doesn't generate them. Fix: `touch CHKDSK.CL1 CHKDSK.CL2` after BUILDMSG to create empty stubs. CHKDSK also uses `CONVERT.EXE` (not EXE2BIN).
-- `-serial stdio` with a piped subshell feeds FORMAT's interactive prompts (press ENTER, volume label, format another) at timed intervals. QEMU stdout (COM1 output) is captured via `tee`. The blank target image is all-zeros — no pre-formatting needed; FORMAT.COM does it from scratch.
+- FORMAT.COM is tested via `test_format.sh` — see "## FORMAT E2E Tests (QMP disk swapping)" section below.
 
 ## Floppy Image (deploy / verify)
 
@@ -456,6 +456,53 @@ DISKCOMP flow is similar: INSERT FIRST/SECOND messages (no wait) → `PRESS_ANY_
       | mcopy -o -i "$BOOT_IMG" - ::TEST.EXE
   ```
   Layout: MZ header (28 bytes) + 4-byte pad = 32-byte header (e_cparhdr=2 paragraphs); e_ip=0, e_crlc=0, e_cp=1, e_cblp=33; 1 byte code (0xC3 RET).
+
+## FORMAT E2E Tests (QMP disk swapping)
+
+### Prompt sequence (FORMAT.SKL verified)
+1. msg 7: "Insert new diskette for drive B:" — display only, no wait
+2. msg 28 (ContinueMsg): "and press ENTER when ready..." — waits via USER_STRING (reads one CR-terminated line)
+3. Format runs, prints `%1 percent of disk formatted` (CR overwrites same line)
+4. msg 4: "Format complete" (CR,LF — stays visible)
+5. msg 30: "System transferred" (only for /S, via COMMON30)
+6. COMMON35: "Volume label (11 characters, ENTER for none)?" — waits for input; skipped if /V:label given on command line
+7. msg 46: "Format another (Y/N)?" — reads one char; anything except Y/y exits
+
+**Feed:** continuous `\r\n` satisfies all waits. CR is not Y/y so FORMAT exits at "Format another?".
+
+### QMP disk swapping — single QEMU boot for all 8 FORMAT variants
+Instead of 8 separate QEMU boots (which would take ~12 min), all FORMAT variants run in one QEMU session. After each FORMAT completes:
+1. Background bash process detects DONE marker via a named FIFO + `stdbuf -oL tee`
+2. Copies the current B: image to a saved path (image is already flushed due to `cache=writethrough`)
+3. Sends QMP command: `{"execute":"human-monitor-command","arguments":{"command-line":"change floppy1 <path>"}}` via Python3 + Unix socket
+4. QEMU's floppy emulation sets the disk-change line; DOS detects the new medium on the next B: access
+
+**stdbuf -oL:** forces line-buffering on `tee`'s stdout so the FIFO reader sees each line immediately (without it, tee buffers 4 KB and the swapper would miss DONE markers until QEMU exits).
+
+**QEMU startup flag:** `-qmp unix:$QMP_SOCK,server,nowait` — creates QMP socket without blocking.
+
+**Timing:** After DONE marker appears, host has ~1 second before next FORMAT accesses B: (DOS reads the next batch lines + loads FORMAT.COM from A: floppy). QMP swap takes ~150 ms. Plenty of margin.
+
+### BPB geometry verification (Python3)
+Post-QEMU: read BPB from each saved image at fixed offsets (boot sector bytes):
+- `0x18-0x19`: sectors per track
+- `0x1A-0x1B`: number of heads
+- `0x13-0x14`: total sectors 16-bit (use `0x20-0x23` 32-bit if this is 0)
+
+Expected values per variant:
+| Switch | spt | heads | total |
+|--------|-----|-------|-------|
+| default (1.44MB) | 18 | 2 | 2880 |
+| /F:720 | 9 | 2 | 1440 |
+| /T:80 /N:9 | 9 | 2 | 1440 |
+| /4 (360K on 1.2MB) | 9 | 2 | 720 |
+| /1 (single-sided) | 18 | 1 | — |
+| /8 | 8 | 2 | — |
+
+The /4 test uses a 2400-sector target image (1.2MB) — QEMU auto-detects drive type from image size.
+
+### Volume label
+`mlabel -i img -s ::` reads the label from the FAT12 root directory / BPB. For /V:TEST, grep output for "TEST".
 
 ## BACKUP / RESTORE Interactive Prompts
 

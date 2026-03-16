@@ -79,14 +79,14 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 ### External CMD tools
 
 #### FORMAT
-- [ ] `FORMAT A: /V:LABEL` — format with volume label
-- [ ] `FORMAT A: /S` — format + system files
-- [ ] `FORMAT A: /B` — format + reserve space
-- [ ] `FORMAT A: /F:720` — format specific size
-- [ ] `FORMAT A: /T:80 /N:9` — explicit tracks+sectors
-- [ ] `FORMAT A: /4` — 360K in 1.2MB drive
-- [ ] `FORMAT A: /1` — single-sided
-- [ ] `FORMAT A: /8` — 8 sectors/track
+- [x] `FORMAT B: /V:LABEL` — format with volume label (`test_format.sh`)
+- [x] `FORMAT B: /S` — format + system files (`test_format.sh`)
+- [x] `FORMAT B: /B` — format + reserve space (`test_format.sh`)
+- [x] `FORMAT B: /F:720` — format specific size (`test_format.sh`)
+- [x] `FORMAT B: /T:80 /N:9` — explicit tracks+sectors (`test_format.sh`)
+- [x] `FORMAT B: /4` — 360K in 1.2MB drive (`test_format.sh`)
+- [x] `FORMAT B: /1` — single-sided (`test_format.sh`)
+- [x] `FORMAT B: /8` — 8 sectors/track (`test_format.sh`)
 
 #### XCOPY — remaining (interactive)
 - [ ] `XCOPY src dest /P` — prompt per file (interactive)
