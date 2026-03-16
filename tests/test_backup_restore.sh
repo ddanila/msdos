@@ -181,6 +181,53 @@ printf 'DEEP_FILE\r\n\x1a'       | mcopy -o -i "$BOOT_IMG" - ::BAKDEEP.TXT
     printf 'IF EXIST A:\\BACKUP.LOG ECHO BACKUP_L_LOG_EXISTS\r\n'
     printf 'ECHO BACKUP_L_DONE\r\n'
 
+    # ── RESTORE /M: archive bit cleared on both → both skipped → "no files" ───
+    # /M restores only dest files whose archive bit is SET (= modified since backup).
+    # After ATTRIB -A on both files, /M skips both → "Warning! No files were found".
+    # errorlevel = 2 (ERROR_FILE_NOT_FOUND). Single-disk RESTORE → no prompts.
+    # BACKUP first to populate B: with current FILE1+FILE2. 3 keypresses.
+    printf 'ECHO ---RESTORE-M---\r\n'
+    printf 'BACKUP A:BAKSRC\\*.TXT B:\r\n'
+    printf 'ATTRIB -A BAKSRC\\FILE1.TXT\r\n'
+    printf 'ATTRIB -A BAKSRC\\FILE2.TXT\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /M\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO RESTORE_M_NO_MATCH\r\n'
+    printf 'ECHO RESTORE_M_DONE\r\n'
+
+    # ── RESTORE /B: before-date (1999 cutoff excludes 2026 files → "no files") ─
+    # /B:12-31-99 → restore files with write_date <= 12/31/1999.
+    # Files created in 2026 have FAT date year=46 (2026-1980) → excluded.
+    # B: backup from /M test is reused (FILE1+FILE2 backed up).
+    printf 'ECHO ---RESTORE-B---\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /B:12-31-99\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO RESTORE_B_NO_MATCH\r\n'
+    printf 'ECHO RESTORE_B_DONE\r\n'
+
+    # ── RESTORE /A: after-date (2050 cutoff excludes 2026 files → "no files") ──
+    # /A:12-31-50 → restore files with write_date >= 12/31/2050 (year 50 = 2050).
+    # Files from 2026 have date < 2050 → excluded.
+    printf 'ECHO ---RESTORE-A---\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /A:12-31-50\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO RESTORE_A_NO_MATCH\r\n'
+    printf 'ECHO RESTORE_A_DONE\r\n'
+
+    # ── RESTORE /E: at-or-before time (00:00:00 → only midnight files → "no files") ─
+    # /E:00:00:00 → restore files with write_time <= 00:00:00.
+    # Files created during QEMU runtime have hour > 0 → RTOLD1.C: hh > 0 → excluded.
+    # (ss = FAT 2-sec units 0-29; parser seconds=0 so ss > 0 also excludes exact-midnight files)
+    printf 'ECHO ---RESTORE-E---\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /E:00:00:00\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO RESTORE_E_NO_MATCH\r\n'
+    printf 'ECHO RESTORE_E_DONE\r\n'
+
+    # ── RESTORE /L: at-or-after time (23:59:58 → only end-of-day files → "no files") ─
+    # /L:23:59:58 → restore files with write_time >= 23:59:58.
+    # RTOLD1.C: hh < 23 → excluded for most files. Even at 23:59, FAT ss (0-29) < 58 always.
+    printf 'ECHO ---RESTORE-L---\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /L:23:59:58\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO RESTORE_L_NO_MATCH\r\n'
+    printf 'ECHO RESTORE_L_DONE\r\n'
+
     # ── Cleanup ────────────────────────────────────────────────────────────────
     printf 'DEL BAKSRC\\FILE1.TXT\r\n'
     printf 'DEL BAKSRC\\FILE2.TXT\r\n'
@@ -382,6 +429,76 @@ if grep -q "BACKUP_L_DONE" "$SERIAL_LOG"; then
     ok "BACKUP /L (batch continued)"
 else
     fail "BACKUP /L (batch hung or crashed)"
+fi
+
+echo ""
+echo "--- RESTORE /M /B /A /E /L tests ---"
+
+# /M: archive=0 on both → both skipped → "Warning! No files were found to restore"
+if grep -qi "no files were found to restore" "$SERIAL_LOG"; then
+    ok "RESTORE /M /B /A /E /L (at least one 'no files found' message appeared)"
+else
+    fail "RESTORE /M /B /A /E /L (expected 'No files were found to restore' at least once)"
+fi
+
+if grep -q "RESTORE_M_NO_MATCH" "$SERIAL_LOG"; then
+    ok "RESTORE /M (errorlevel set — archive=0 files excluded)"
+else
+    fail "RESTORE /M (expected errorlevel >= 1 when all dest files have archive=0)"
+fi
+
+if grep -q "RESTORE_M_DONE" "$SERIAL_LOG"; then
+    ok "RESTORE /M (batch continued)"
+else
+    fail "RESTORE /M (batch hung or crashed)"
+fi
+
+if grep -q "RESTORE_B_NO_MATCH" "$SERIAL_LOG"; then
+    ok "RESTORE /B:12-31-99 (errorlevel set — 2026 files newer than 1999 cutoff)"
+else
+    fail "RESTORE /B:12-31-99 (expected errorlevel >= 1 — before-date should exclude 2026 files)"
+fi
+
+if grep -q "RESTORE_B_DONE" "$SERIAL_LOG"; then
+    ok "RESTORE /B (batch continued)"
+else
+    fail "RESTORE /B (batch hung or crashed)"
+fi
+
+if grep -q "RESTORE_A_NO_MATCH" "$SERIAL_LOG"; then
+    ok "RESTORE /A:12-31-50 (errorlevel set — 2026 files older than 2050 cutoff)"
+else
+    fail "RESTORE /A:12-31-50 (expected errorlevel >= 1 — after-date should exclude 2026 files)"
+fi
+
+if grep -q "RESTORE_A_DONE" "$SERIAL_LOG"; then
+    ok "RESTORE /A (batch continued)"
+else
+    fail "RESTORE /A (batch hung or crashed)"
+fi
+
+if grep -q "RESTORE_E_NO_MATCH" "$SERIAL_LOG"; then
+    ok "RESTORE /E:00:00:00 (errorlevel set — daytime files excluded by midnight cutoff)"
+else
+    fail "RESTORE /E:00:00:00 (expected errorlevel >= 1 — files with hour > 0 should be excluded)"
+fi
+
+if grep -q "RESTORE_E_DONE" "$SERIAL_LOG"; then
+    ok "RESTORE /E (batch continued)"
+else
+    fail "RESTORE /E (batch hung or crashed)"
+fi
+
+if grep -q "RESTORE_L_NO_MATCH" "$SERIAL_LOG"; then
+    ok "RESTORE /L:23:59:58 (errorlevel set — non-end-of-day files excluded)"
+else
+    fail "RESTORE /L:23:59:58 (expected errorlevel >= 1 — files with hour < 23 should be excluded)"
+fi
+
+if grep -q "RESTORE_L_DONE" "$SERIAL_LOG"; then
+    ok "RESTORE /L (batch continued)"
+else
+    fail "RESTORE /L (batch hung or crashed)"
 fi
 
 echo ""

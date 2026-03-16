@@ -111,12 +111,12 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [x] `RESTORE B: A:path\file` — basic restore (`test_backup_restore.sh`)
 - [x] `RESTORE B: A:path /S` — include subdirs
 - [ ] `RESTORE A: C: /P` — prompt on conflicts (interactive)
-- [ ] `RESTORE A: C: /M` — modified only
+- [x] `RESTORE B: A:path /M` — modified only (`test_backup_restore.sh`)
 - [x] `RESTORE B: A:path /N` — missing files only
-- [ ] `RESTORE A: C: /B:01-01-88` — on or before date
-- [ ] `RESTORE A: C: /A:01-01-88` — on or after date
-- [ ] `RESTORE A: C: /E:12:00:00` — on or before time
-- [ ] `RESTORE A: C: /L:12:00:00` — on or after time
+- [x] `RESTORE B: A:path /B:12-31-99` — on or before date (`test_backup_restore.sh`)
+- [x] `RESTORE B: A:path /A:12-31-50` — on or after date (`test_backup_restore.sh`)
+- [x] `RESTORE B: A:path /E:00:00:00` — on or before time (`test_backup_restore.sh`)
+- [x] `RESTORE B: A:path /L:23:59:58` — on or after time (`test_backup_restore.sh`)
 
 #### DISKCOMP
 - [ ] `DISKCOMP A: A:` — compare floppies
