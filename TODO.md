@@ -88,34 +88,12 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `FORMAT A: /1` — single-sided
 - [ ] `FORMAT A: /8` — 8 sectors/track
 
-#### MEM — remaining
-- [ ] `MEM /PROGRAM` — needs QEMU (kvikdos lacks full MCB chain)
-- [ ] `MEM /DEBUG` — needs QEMU
-
-#### CHKDSK — remaining
-- [ ] `CHKDSK A: /F` — fix errors
-- [ ] `CHKDSK A:*.*` — check specific files
-
-#### XCOPY
-- [x] `XCOPY src dest` — basic copy (QEMU E2E)
-- [x] `XCOPY src dest /S` — include subdirs (QEMU E2E)
-- [x] `XCOPY src dest /S /E` — include empty subdirs (QEMU E2E)
-- [x] `XCOPY src dest /A` — archive flag only (QEMU E2E)
-- [x] `XCOPY src dest /M` — archive flag, then clear (QEMU E2E)
-- [ ] `XCOPY src dest /D:01-01-88` — by date
+#### XCOPY — remaining (interactive)
 - [ ] `XCOPY src dest /P` — prompt per file (interactive)
-- [x] `XCOPY src dest /V` — verify (QEMU E2E)
 - [ ] `XCOPY src dest /W` — wait before start (interactive)
 
-#### ATTRIB — remaining
-- [ ] `ATTRIB -A` — needs QEMU (kvikdos hardcodes archive bit)
-- [ ] `ATTRIB /S` — needs QEMU (kvikdos FindFirst doesn't recurse subdirs)
-
 #### REPLACE — remaining
-- [x] `REPLACE src dest` — replace existing (QEMU E2E)
 - [ ] `REPLACE src dest /P` — prompt (interactive)
-- [ ] `REPLACE src dest /R` — overwrite read-only
-- [x] `REPLACE src dest /S` — recurse subdirs (QEMU E2E)
 - [ ] `REPLACE src dest /U` — only if dest older
 - [ ] `REPLACE src dest /W` — wait before start (interactive)
 
@@ -151,7 +129,6 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `DISKCOPY A: A: /V` — verify after
 
 #### LABEL — remaining
-- [x] Set volume label (QEMU E2E — LABEL A:TESTLABEL + VOL verify)
 - [ ] Remove volume label (needs FCB delete, QEMU)
 
 #### EDLIN — remaining

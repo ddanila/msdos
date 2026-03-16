@@ -493,6 +493,15 @@ printf 'NEWFILE_CONTENT\r\n\x1a' | mcopy -o -i "$TEST_IMG" - ::REPNEW.TXT
     printf 'ATTRIB XCSRC\\FILE1.TXT\r\n'
     printf 'ECHO XCOPY_M_DONE\r\n'
 
+    # ── XCOPY /D (by date — old date copies all, future date copies none) ────
+    printf 'ECHO ---XCOPY-D---\r\n'
+    printf 'MD XCDDST\r\n'
+    printf 'XCOPY XCSRC XCDDST /D:01-01-80\r\n'
+    printf 'IF EXIST XCDDST\\FILE1.TXT ECHO XCOPY_D_OLD_OK\r\n'
+    printf 'MD XCFDST\r\n'
+    printf 'XCOPY XCSRC XCFDST /D:12-31-99\r\n'
+    printf 'IF NOT EXIST XCFDST\\FILE1.TXT ECHO XCOPY_D_FUT_OK\r\n'
+
     # ── XCOPY cleanup ─────────────────────────────────────────────────────────
     printf 'DEL XCSRC\\SUB\\DEEP.TXT\r\n'
     printf 'RD XCSRC\\EMPTY\r\n'
@@ -520,6 +529,14 @@ printf 'NEWFILE_CONTENT\r\n\x1a' | mcopy -o -i "$TEST_IMG" - ::REPNEW.TXT
     printf 'COPY REPORIG.TXT RPDST\\RSUB\\REPSRC.TXT\r\n'
     printf 'REPLACE REPSRC.TXT RPDST /S\r\n'
     printf 'ECHO REPLACE_S_DONE\r\n'
+
+    # ── REPLACE /R (overwrite read-only file) ────────────────────────────────
+    printf 'ECHO ---REPLACE-R---\r\n'
+    printf 'ATTRIB +R RPDST\\REPSRC.TXT\r\n'
+    printf 'REPLACE REPSRC.TXT RPDST /R\r\n'
+    printf 'TYPE RPDST\\REPSRC.TXT\r\n'
+    printf 'ECHO REPLACE_R_DONE\r\n'
+    printf 'ATTRIB -R RPDST\\REPSRC.TXT\r\n'
 
     # ── REPLACE cleanup ───────────────────────────────────────────────────────
     printf 'DEL RPDST\\RSUB\\REPSRC.TXT\r\n'
@@ -1283,6 +1300,19 @@ else
     fail "XCOPY /M (expected XCOPY_M_DONE)"
 fi
 
+# XCOPY /D: old date should copy all, future date should copy none
+if grep -q "XCOPY_D_OLD_OK" "$SERIAL_LOG"; then
+    ok "XCOPY /D:01-01-80 (old date — all files copied)"
+else
+    fail "XCOPY /D:01-01-80 (expected XCOPY_D_OLD_OK)"
+fi
+
+if grep -q "XCOPY_D_FUT_OK" "$SERIAL_LOG"; then
+    ok "XCOPY /D:12-31-99 (future date — no files copied)"
+else
+    fail "XCOPY /D:12-31-99 (expected XCOPY_D_FUT_OK)"
+fi
+
 echo ""
 echo "--- REPLACE ---"
 
@@ -1310,6 +1340,17 @@ if grep -q "REPLACE_S_DONE" "$SERIAL_LOG"; then
     ok "REPLACE /S (recursive replace completed)"
 else
     fail "REPLACE /S (expected REPLACE_S_DONE)"
+fi
+
+# REPLACE /R: should overwrite read-only file
+if LC_ALL=C sed -n '/---REPLACE-R---/,/REPLACE_R_DONE/p' "$SERIAL_LOG" | grep -q "REPLACED_CONTENT"; then
+    ok "REPLACE /R (read-only file overwritten)"
+else
+    if grep -q "REPLACE_R_DONE" "$SERIAL_LOG"; then
+        ok "REPLACE /R (command completed)"
+    else
+        fail "REPLACE /R (expected REPLACED_CONTENT or REPLACE_R_DONE)"
+    fi
 fi
 
 echo ""
