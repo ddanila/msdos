@@ -97,27 +97,27 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `CHKDSK A:*.*` — check specific files
 
 #### XCOPY
-- [ ] `XCOPY src dest` — basic copy (copies 0 files under kvikdos; needs investigation)
-- [ ] `XCOPY src dest /S` — include subdirs
-- [ ] `XCOPY src dest /S /E` — include empty subdirs
-- [ ] `XCOPY src dest /A` — archive flag only
-- [ ] `XCOPY src dest /M` — archive flag, then clear
+- [x] `XCOPY src dest` — basic copy (QEMU E2E)
+- [x] `XCOPY src dest /S` — include subdirs (QEMU E2E)
+- [x] `XCOPY src dest /S /E` — include empty subdirs (QEMU E2E)
+- [x] `XCOPY src dest /A` — archive flag only (QEMU E2E)
+- [x] `XCOPY src dest /M` — archive flag, then clear (QEMU E2E)
 - [ ] `XCOPY src dest /D:01-01-88` — by date
-- [ ] `XCOPY src dest /P` — prompt per file
-- [ ] `XCOPY src dest /V` — verify
-- [ ] `XCOPY src dest /W` — wait before start
+- [ ] `XCOPY src dest /P` — prompt per file (interactive)
+- [x] `XCOPY src dest /V` — verify (QEMU E2E)
+- [ ] `XCOPY src dest /W` — wait before start (interactive)
 
 #### ATTRIB — remaining
 - [ ] `ATTRIB -A` — needs QEMU (kvikdos hardcodes archive bit)
 - [ ] `ATTRIB /S` — needs QEMU (kvikdos FindFirst doesn't recurse subdirs)
 
 #### REPLACE — remaining
-- [ ] `REPLACE src dest` — replace existing (needs wildcard FindFirst on absolute paths)
-- [ ] `REPLACE src dest /P` — prompt
+- [x] `REPLACE src dest` — replace existing (QEMU E2E)
+- [ ] `REPLACE src dest /P` — prompt (interactive)
 - [ ] `REPLACE src dest /R` — overwrite read-only
-- [ ] `REPLACE src dest /S` — recurse subdirs
+- [x] `REPLACE src dest /S` — recurse subdirs (QEMU E2E)
 - [ ] `REPLACE src dest /U` — only if dest older
-- [ ] `REPLACE src dest /W` — wait before start
+- [ ] `REPLACE src dest /W` — wait before start (interactive)
 
 #### BACKUP
 - [ ] `BACKUP C: A:` — basic backup
@@ -151,7 +151,8 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `DISKCOPY A: A: /V` — verify after
 
 #### LABEL — remaining
-- [ ] Set/remove volume label (needs FCB delete, QEMU)
+- [x] Set volume label (QEMU E2E — LABEL A:TESTLABEL + VOL verify)
+- [ ] Remove volume label (needs FCB delete, QEMU)
 
 #### EDLIN — remaining
 - [ ] `EDLIN file /B` — binary (ignore ^Z) — needs QEMU
