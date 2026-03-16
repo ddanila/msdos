@@ -46,7 +46,7 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
 
 # Add a sub-batch for SHIFT test: echoes %1, shifts, echoes new %1
 { printf 'ECHO SHIFT_ARG1=%%1\r\n'; printf 'SHIFT\r\n'; printf 'ECHO SHIFT_AFTER=%%1\r\n'; } \
-    | mcopy -o -i "$TEST_IMG" - ::SHIFTTEST.BAT
+    | mcopy -o -i "$TEST_IMG" - ::SHIFTSUB.BAT
 
 # Build AUTOEXEC.BAT with all test commands.
 # ECHO markers between sections help identify output in the serial log.
@@ -173,7 +173,7 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
 
     # ── SHIFT ─────────────────────────────────────────────────────────────────
     printf 'ECHO ---SHIFT---\r\n'
-    printf 'CALL SHIFTTEST.BAT FIRST SECOND\r\n'
+    printf 'CALL SHIFTSUB.BAT FIRST SECOND\r\n'
 
     # ── DIR /W ────────────────────────────────────────────────────────────────
     printf 'ECHO ---DIR-W---\r\n'
