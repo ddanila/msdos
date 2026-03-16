@@ -45,9 +45,10 @@ OUT="$REPO_ROOT/out"
 FLOPPY="$OUT/floppy.img"
 
 BOOT_IMG="$OUT/format-boot.img"
+SERIAL_IN="$OUT/format-serial.in"
+SERIAL_OUT="$OUT/format-serial.out"
 SERIAL_LOG="$OUT/format-serial.log"
 QMP_SOCK="$OUT/format-qmp.sock"
-SERIAL_FIFO="$OUT/format-serial.fifo"
 
 PASS=0
 FAIL=0
@@ -60,28 +61,9 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
-trap 'rm -f "$SERIAL_FIFO" "$QMP_SOCK" 2>/dev/null; true' EXIT
+trap 'rm -f "$SERIAL_IN" "$SERIAL_OUT" "$QMP_SOCK" 2>/dev/null; true' EXIT
 
 echo "=== FORMAT E2E tests (QEMU, QMP disk swapping) ==="
-
-# ── QMP helper: swap B: floppy to a new image via QEMU Monitor Protocol ──────
-# Python3 is used instead of socat/nc for portability (python3 is in CI image).
-qmp_change_floppy() {
-    python3 - "$QMP_SOCK" "$1" <<'PYEOF'
-import socket, json, sys
-sock_path, new_img = sys.argv[1], sys.argv[2]
-with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
-    s.settimeout(5.0)
-    s.connect(sock_path)
-    s.recv(4096)   # greeting / capabilities announcement
-    s.sendall(b'{"execute":"qmp_capabilities"}\n')
-    s.recv(4096)
-    cmd = json.dumps({"execute": "human-monitor-command",
-                      "arguments": {"command-line": f"change floppy1 {new_img}"}})
-    s.sendall(cmd.encode() + b'\n')
-    s.recv(4096)
-PYEOF
-}
 
 # ── Test definitions ──────────────────────────────────────────────────────────
 # NAMES must be uppercase (used verbatim in AUTOEXEC.BAT ECHO markers).
@@ -123,48 +105,40 @@ for i in "${!NAMES[@]}"; do
     dd if=/dev/zero bs=512 count="${B_SECTORS[$i]}" of="${B_IMGS[$i]}" status=none
 done
 
-# ── Step 2: background serial monitor — save images and swap B: after each FORMAT
-# Reads the serial FIFO line by line.  On each FORMAT_X_DONE marker:
-#   a) copies the current B: image to a saved path for post-QEMU inspection
-#   b) swaps B: to the next blank image via QMP
-# stdbuf -oL (see Step 3) ensures each serial line reaches the FIFO immediately.
-mkfifo "$SERIAL_FIFO"
-
-monitor_and_swap() {
-    local next_idx=0
-    while IFS= read -r line; do
-        [[ $next_idx -ge ${#NAMES[@]} ]] && continue
-        if [[ "$line" == *"FORMAT_${NAMES[$next_idx]}_DONE"* ]]; then
-            cp "${B_IMGS[$next_idx]}" "${SAVED_IMGS[$next_idx]}"
-            next_idx=$((next_idx + 1))
-            if [[ $next_idx -lt ${#NAMES[@]} ]]; then
-                qmp_change_floppy "${B_IMGS[$next_idx]}"
-            fi
-        fi
-    done < "$SERIAL_FIFO"
-}
-
-monitor_and_swap &
-MONITOR_PID=$!
+# ── Step 2: set up serial FIFOs ───────────────────────────────────────────────
+# format_coordinator.py acts as both serial coordinator and disk-swap manager.
+# It processes each FORMAT prompt in strict order, swaps B: via QMP right before
+# sending "press ENTER when ready", and saves each image on its DONE marker.
+# See tests/format_coordinator.py for the full design rationale.
+mkfifo "$SERIAL_IN" "$SERIAL_OUT"
+exec 3<>"$SERIAL_IN"   # O_RDWR: keeps read-end open so QEMU's O_RDONLY won't block
 
 # ── Step 3: boot QEMU ─────────────────────────────────────────────────────────
-# -qmp unix:…,server,nowait: QMP socket for disk swapping (no wait = non-blocking)
-# stdbuf -oL tee: line-buffers tee stdout so the FIFO reader sees each line live
-# cache=writethrough: guarantees B: writes reach the image file before we copy it
+# -serial pipe: splits serial into .in/.out FIFOs consumed by the coordinator.
+# cache=writethrough: guarantees B: writes reach the image file before we save it.
 echo "Booting QEMU (single boot, 8 FORMAT variants via QMP disk swapping)..."
 echo "Estimated time: ~5 min"
 rm -f "$SERIAL_LOG"
-(while true; do sleep 0.2; printf 'N\r\n'; done) | \
 timeout 480 qemu-system-i386 \
     -display none \
     -drive if=floppy,index=0,format=raw,file="$BOOT_IMG",cache=writethrough \
     -drive if=floppy,index=1,format=raw,file="${B_IMGS[0]}",cache=writethrough \
     -qmp unix:"$QMP_SOCK",server,nowait \
     -boot a -m 4 \
-    -serial stdio \
-    2>/dev/null | stdbuf -oL tee "$SERIAL_LOG" > "$SERIAL_FIFO"; true
+    -serial pipe:"$OUT/format-serial" \
+    2>/dev/null &
+QEMU_PID=$!
 
-wait $MONITOR_PID || true
+# ── Step 4: run coordinator ────────────────────────────────────────────────────
+# Blocks until QEMU exits (serial pipe EOF).
+python3 "$REPO_ROOT/tests/format_coordinator.py" \
+    "$SERIAL_IN" "$SERIAL_OUT" "$SERIAL_LOG" "$QMP_SOCK" \
+    "${#NAMES[@]}" \
+    "${B_IMGS[@]}" \
+    "${SAVED_IMGS[@]}"
+
+wait $QEMU_PID || true
+exec 3>&-
 
 if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
     echo "ERROR: serial log is empty — QEMU may have failed to boot"
