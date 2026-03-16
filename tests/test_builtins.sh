@@ -44,6 +44,10 @@ printf 'HELLO_TYPE_TEST\r\n\x1a' | mcopy -o -i "$TEST_IMG" - ::TEST.TXT
 # Add a sub-batch for CALL test
 printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
 
+# Add a sub-batch for SHIFT test: echoes %1, shifts, echoes new %1
+{ printf 'ECHO SHIFT_ARG1=%%1\r\n'; printf 'SHIFT\r\n'; printf 'ECHO SHIFT_AFTER=%%1\r\n'; } \
+    | mcopy -o -i "$TEST_IMG" - ::SHIFTTEST.BAT
+
 # Build AUTOEXEC.BAT with all test commands.
 # ECHO markers between sections help identify output in the serial log.
 #
@@ -145,6 +149,73 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
     printf 'FOR\r\n'
     printf 'ECHO FOR_BARE_SURVIVED\r\n'
     printf 'FOR %%%%X IN (AAA BBB CCC) DO ECHO FOR_GOT_%%%%X\r\n'
+
+    # ── BREAK ON/OFF toggle ───────────────────────────────────────────────────
+    printf 'ECHO ---BREAK-TOGGLE---\r\n'
+    printf 'BREAK ON\r\n'
+    printf 'BREAK OFF\r\n'
+    printf 'ECHO BREAK_TOGGLE_OK\r\n'
+
+    # ── VERIFY ON/OFF toggle ──────────────────────────────────────────────────
+    printf 'ECHO ---VERIFY-TOGGLE---\r\n'
+    printf 'VERIFY ON\r\n'
+    printf 'VERIFY OFF\r\n'
+    printf 'ECHO VERIFY_TOGGLE_OK\r\n'
+
+    # ── ECHO ON / OFF / ECHO. ─────────────────────────────────────────────────
+    printf 'ECHO ---ECHO-FORMS---\r\n'
+    printf 'ECHO.\r\n'
+    printf 'ECHO ECHO_DOT_OK\r\n'
+    printf 'ECHO OFF\r\n'
+    printf 'ECHO ECHO_OFF_OK\r\n'
+    printf 'ECHO ON\r\n'
+    printf 'ECHO ECHO_ON_OK\r\n'
+
+    # ── SHIFT ─────────────────────────────────────────────────────────────────
+    printf 'ECHO ---SHIFT---\r\n'
+    printf 'CALL SHIFTTEST.BAT FIRST SECOND\r\n'
+
+    # ── DIR /W ────────────────────────────────────────────────────────────────
+    printf 'ECHO ---DIR-W---\r\n'
+    printf 'DIR /W\r\n'
+    printf 'ECHO DIR_W_OK\r\n'
+
+    # ── PATH set + clear ──────────────────────────────────────────────────────
+    printf 'ECHO ---PATH-FORMS---\r\n'
+    printf 'PATH A:\\DOS\r\n'
+    printf 'PATH\r\n'
+    printf 'PATH ;\r\n'
+    printf 'PATH\r\n'
+    printf 'ECHO PATH_FORMS_OK\r\n'
+
+    # ── SET overwrite + clear ─────────────────────────────────────────────────
+    printf 'ECHO ---SET-FORMS---\r\n'
+    printf 'SET SETVAR=ORIGINAL\r\n'
+    printf 'SET SETVAR=UPDATED\r\n'
+    printf 'SET SETVAR=\r\n'
+    printf 'ECHO SET_FORMS_OK\r\n'
+
+    # ── MD already-exists (should print error but batch continues) ────────────
+    printf 'ECHO ---MD-EXISTS---\r\n'
+    printf 'MD DUPDIR\r\n'
+    printf 'MD DUPDIR\r\n'
+    printf 'ECHO MD_EXISTS_SURVIVED\r\n'
+    printf 'RD DUPDIR\r\n'
+
+    # ── RD non-empty (should refuse) ──────────────────────────────────────────
+    printf 'ECHO ---RD-NONEMPTY---\r\n'
+    printf 'MD NEDIR\r\n'
+    printf 'COPY TEST.TXT NEDIR\\INNER.TXT\r\n'
+    printf 'RD NEDIR\r\n'
+    printf 'IF EXIST NEDIR\\INNER.TXT ECHO RD_REFUSED_OK\r\n'
+    printf 'DEL NEDIR\\INNER.TXT\r\n'
+    printf 'RD NEDIR\r\n'
+
+    # ── COPY /V (verify flag) ─────────────────────────────────────────────────
+    printf 'ECHO ---COPY-V---\r\n'
+    printf 'COPY TEST.TXT CVTEST.TXT /V\r\n'
+    printf 'IF EXIST CVTEST.TXT ECHO COPY_V_OK\r\n'
+    printf 'DEL CVTEST.TXT\r\n'
 
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$TEST_IMG" - ::AUTOEXEC.BAT
@@ -369,6 +440,108 @@ if grep -q "===DONE===" "$SERIAL_LOG"; then
     ok "AUTOEXEC.BAT ran to completion"
 else
     fail "AUTOEXEC.BAT did not reach ===DONE==="
+fi
+
+echo ""
+echo "--- BREAK/VERIFY toggles ---"
+
+if grep -q "BREAK_TOGGLE_OK" "$SERIAL_LOG"; then
+    ok "BREAK ON/OFF toggle"
+else
+    fail "BREAK ON/OFF toggle (expected 'BREAK_TOGGLE_OK')"
+fi
+
+if grep -q "VERIFY_TOGGLE_OK" "$SERIAL_LOG"; then
+    ok "VERIFY ON/OFF toggle"
+else
+    fail "VERIFY ON/OFF toggle (expected 'VERIFY_TOGGLE_OK')"
+fi
+
+echo ""
+echo "--- ECHO forms ---"
+
+if grep -q "ECHO_DOT_OK" "$SERIAL_LOG"; then
+    ok "ECHO. (blank line)"
+else
+    fail "ECHO. (expected 'ECHO_DOT_OK')"
+fi
+
+if grep -q "ECHO_OFF_OK" "$SERIAL_LOG"; then
+    ok "ECHO OFF"
+else
+    fail "ECHO OFF (expected 'ECHO_OFF_OK')"
+fi
+
+if grep -q "ECHO_ON_OK" "$SERIAL_LOG"; then
+    ok "ECHO ON"
+else
+    fail "ECHO ON (expected 'ECHO_ON_OK')"
+fi
+
+echo ""
+echo "--- SHIFT ---"
+
+if grep -q "SHIFT_ARG1=FIRST" "$SERIAL_LOG" && grep -q "SHIFT_AFTER=SECOND" "$SERIAL_LOG"; then
+    ok "SHIFT (%1 shifted to next arg)"
+else
+    fail "SHIFT (expected 'SHIFT_ARG1=FIRST' and 'SHIFT_AFTER=SECOND')"
+fi
+
+echo ""
+echo "--- DIR /W ---"
+
+if grep -q "DIR_W_OK" "$SERIAL_LOG"; then
+    ok "DIR /W"
+else
+    fail "DIR /W (expected 'DIR_W_OK')"
+fi
+
+echo ""
+echo "--- PATH forms ---"
+
+if grep -q 'A:\\DOS\|A:/DOS' "$SERIAL_LOG"; then
+    ok "PATH set (A:\\DOS visible in PATH output)"
+else
+    fail "PATH set (expected 'A:\\DOS' in PATH output)"
+fi
+
+if grep -q "PATH_FORMS_OK" "$SERIAL_LOG"; then
+    ok "PATH set/clear (batch continues)"
+else
+    fail "PATH set/clear (expected 'PATH_FORMS_OK')"
+fi
+
+echo ""
+echo "--- SET forms ---"
+
+if grep -q "SET_FORMS_OK" "$SERIAL_LOG"; then
+    ok "SET overwrite + clear (batch continues)"
+else
+    fail "SET overwrite/clear (expected 'SET_FORMS_OK')"
+fi
+
+echo ""
+echo "--- MD/RD edge cases ---"
+
+if grep -q "MD_EXISTS_SURVIVED" "$SERIAL_LOG"; then
+    ok "MD already-exists (error printed, batch continues)"
+else
+    fail "MD already-exists (expected 'MD_EXISTS_SURVIVED')"
+fi
+
+if grep -q "RD_REFUSED_OK" "$SERIAL_LOG"; then
+    ok "RD non-empty dir (refused, file still exists)"
+else
+    fail "RD non-empty dir (expected 'RD_REFUSED_OK')"
+fi
+
+echo ""
+echo "--- COPY /V ---"
+
+if grep -q "COPY_V_OK" "$SERIAL_LOG"; then
+    ok "COPY /V"
+else
+    fail "COPY /V (expected 'COPY_V_OK')"
 fi
 
 # ── Summary ──────────────────────────────────────────────────────────────────
