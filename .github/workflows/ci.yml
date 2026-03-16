@@ -249,3 +249,28 @@ jobs:
 
       - name: FORMAT e2e tests (QMP disk swapping)
         run: bash tests/test_format.sh
+
+  e2e-label:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}/ci:latest
+      options: --device /dev/kvm
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repo with submodules
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Grant KVM access
+        run: chmod 666 /dev/kvm
+
+      - name: Download floppy image
+        uses: actions/download-artifact@v5
+        with:
+          name: floppy
+
+      - name: LABEL interactive e2e tests (serial expect)
+        run: bash tests/test_label.sh

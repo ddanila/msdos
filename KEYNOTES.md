@@ -504,6 +504,64 @@ The /4 test uses a 2400-sector target image (1.2MB) — QEMU auto-detects drive 
 ### Volume label
 `mlabel -i img -s ::` reads the label from the FAT12 root directory / BPB. For /V:TEST, grep output for "TEST".
 
+## Interactive QEMU Tests — serial_expect.py Pattern
+
+### Problem
+Programs like LABEL, XCOPY /P, REPLACE /P, FDISK prompt the user mid-execution.
+`-serial stdio` with a uniform `\r\n` or `N\r\n` feed cannot send DIFFERENT characters
+at different prompts (e.g., ENTER to clear the label field, then Y to confirm deletion).
+
+### Solution: serial pipe + Python expect coordinator
+Use `-serial pipe:<prefix>` instead of `-serial stdio`.  QEMU creates:
+- `<prefix>.in`  — QEMU reads serial input from this FIFO (host → DOS)
+- `<prefix>.out` — QEMU writes serial output to this FIFO (DOS → host)
+
+`tests/serial_expect.py` acts as an expect-like coordinator:
+1. Opens `.in` for writing, `.out` for reading
+2. Scans raw byte buffer for each pattern in order
+3. When pattern is found, writes the corresponding response to `.in`
+4. Exits on EOF (QEMU exits / pipe closes)
+
+### FIFO open deadlock prevention
+`mkfifo serial.in serial.out` creates blocked FIFOs (open blocks until both ends open).
+Fix: `exec 3<>"$SERIAL_IN"` in bash opens `.in` with O_RDWR (both ends in one fd).
+This ensures QEMU's O_RDONLY open of `.in` doesn't block (write-end already exists).
+Python's O_WRONLY open of `.in` also doesn't block for the same reason.
+Python's O_RDONLY open of `.out` blocks until QEMU opens `.out` for O_WRONLY — they
+unblock each other since QEMU is running in background at that point.
+Close the bash fd after the coordinator exits: `exec 3>&-`.
+
+### Template (bash)
+```bash
+mkfifo "$SERIAL_IN" "$SERIAL_OUT"
+exec 3<>"$SERIAL_IN"    # O_RDWR trick
+
+timeout 120 qemu-system-i386 \
+    ... \
+    -serial pipe:"$OUT/foo-serial" \
+    2>/dev/null &
+QEMU_PID=$!
+
+python3 "$REPO_ROOT/tests/serial_expect.py" \
+    "$SERIAL_IN" "$SERIAL_OUT" "$SERIAL_LOG" \
+    "prompt text 1" $'response1\\r\\n' \
+    "prompt text 2" $'Y\\r\\n'
+
+wait $QEMU_PID || true
+exec 3>&-
+```
+
+### Prompt text notes
+- Prompts often end with `? ` (no `\n`). serial_expect.py scans raw bytes, not lines — works fine.
+- `CTTY AUX` redirects DOS handle 0 (stdin) and 1 (stdout) to COM1 = the serial pipe. Interactive programs using INT 21h for I/O go through COM1.
+- SYSDISPMSG Y/N reads (INT 21h passthrough) also go through COM1 when CTTY AUX is active.
+
+### LABEL remove (implemented in test_label.sh)
+Prompts:
+- COMMON35: `"Volume label (11 characters, ENTER for none)? "` — response: `\r\n`
+- msg 9: `CR,LF,"Delete current volume label (Y/N)? "` — response: `Y\r\n`
+Y/N logic: Y → delete (does NOT set NO_DELETE flag), N → keep (sets NO_DELETE).
+
 ## BACKUP / RESTORE Interactive Prompts
 
 BACKUP.COM has `display_it(..., WAIT)` calls (not `wait_for_keystroke()`) embedded

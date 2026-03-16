@@ -108,7 +108,7 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [x] `DISKCOMP A: B: /8` — 8 sectors/track only (`test_diskcomp_diskcopy.sh`)
 
 #### LABEL — remaining
-- [ ] Remove volume label (interactive — prompts Y/N, can't automate in batch)
+- [x] Remove volume label (`test_label.sh` — interactive via serial_expect.py)
 
 #### EDLIN — remaining
 - [ ] `EDLIN file /B` — binary (ignore ^Z) — needs QEMU
