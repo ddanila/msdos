@@ -102,9 +102,9 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [x] `BACKUP A:path B: /S` — include subdirs
 - [x] `BACKUP A:path B: /M` — modified only (archive bit)
 - [x] `BACKUP A:path B: /A` — append to existing set
-- [ ] `BACKUP C: A: /D:01-01-88` — since date
-- [ ] `BACKUP C: A: /T:00:00:00` — since time
-- [ ] `BACKUP C: A: /L:backup.log` — write log
+- [x] `BACKUP A:path B: /D:01-01-80` — since date (`test_backup_restore.sh`)
+- [x] `BACKUP A:path B: /T:00:00:00` — since time (`test_backup_restore.sh`)
+- [x] `BACKUP A:path B: /L` — write log (`test_backup_restore.sh`)
 - [ ] `BACKUP C: A: /F` — format target if needed
 
 #### RESTORE

@@ -145,6 +145,42 @@ printf 'DEEP_FILE\r\n\x1a'       | mcopy -o -i "$BOOT_IMG" - ::BAKDEEP.TXT
     printf 'IF EXIST BAKSRC\\FILE2.TXT ECHO RESTORE_N_OK\r\n'
     printf 'ECHO RESTORE_N_DONE\r\n'
 
+    # ── BACKUP /D: date filter — include all files (cutoff Jan 1, 1980) ───────
+    # /D:01-01-80 → back up files modified on or after Jan 1, 1980.
+    # All test files (created in 2026 by QEMU real-time clock) pass this filter.
+    # Verifies the /D flag is parsed, validated, and applied to the file scan.
+    # Prompts: INSERTSOURCE + INSERTTARGET + ERASEMSG = 3 keypresses.
+    printf 'ECHO ---BACKUP-D---\r\n'
+    printf 'BACKUP A:BAKSRC\\*.TXT B: /D:01-01-80\r\n'
+    printf 'DEL BAKSRC\\FILE1.TXT\r\n'
+    printf 'DEL BAKSRC\\FILE2.TXT\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT\r\n'
+    printf 'IF EXIST BAKSRC\\FILE1.TXT ECHO BACKUP_D_FILE1_OK\r\n'
+    printf 'IF EXIST BAKSRC\\FILE2.TXT ECHO BACKUP_D_FILE2_OK\r\n'
+    printf 'ECHO BACKUP_D_DONE\r\n'
+
+    # ── BACKUP /T: time filter — include all files (cutoff 00:00:00) ─────────
+    # /T:00:00:00 → back up files modified at or after midnight.
+    # All files qualify (write_time >= 0 always true). Verifies /T is parsed.
+    # Prompts: INSERTSOURCE + INSERTTARGET + ERASEMSG = 3 keypresses.
+    printf 'ECHO ---BACKUP-T---\r\n'
+    printf 'BACKUP A:BAKSRC\\*.TXT B: /T:00:00:00\r\n'
+    printf 'DEL BAKSRC\\FILE1.TXT\r\n'
+    printf 'DEL BAKSRC\\FILE2.TXT\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT\r\n'
+    printf 'IF EXIST BAKSRC\\FILE1.TXT ECHO BACKUP_T_FILE1_OK\r\n'
+    printf 'IF EXIST BAKSRC\\FILE2.TXT ECHO BACKUP_T_FILE2_OK\r\n'
+    printf 'ECHO BACKUP_T_DONE\r\n'
+
+    # ── BACKUP /L: log file — default path A:\BACKUP.LOG ─────────────────────
+    # /L (no path) → writes log to A:\BACKUP.LOG (default: src_drive:\BACKUP.LOG).
+    # Log contains date/time header + one line per backed-up file.
+    # Prompts: INSERTSOURCE + INSERTTARGET + ERASEMSG = 3 keypresses.
+    printf 'ECHO ---BACKUP-L---\r\n'
+    printf 'BACKUP A:BAKSRC\\*.TXT B: /L\r\n'
+    printf 'IF EXIST A:\\BACKUP.LOG ECHO BACKUP_L_LOG_EXISTS\r\n'
+    printf 'ECHO BACKUP_L_DONE\r\n'
+
     # ── Cleanup ────────────────────────────────────────────────────────────────
     printf 'DEL BAKSRC\\FILE1.TXT\r\n'
     printf 'DEL BAKSRC\\FILE2.TXT\r\n'
@@ -295,6 +331,57 @@ if grep -q "RESTORE_N_OK" "$SERIAL_LOG"; then
     ok "RESTORE /N (restored only missing FILE2)"
 else
     fail "RESTORE /N (expected FILE2 to be restored)"
+fi
+
+echo ""
+echo "--- BACKUP /D /T /L tests ---"
+
+if grep -q "BACKUP_D_FILE1_OK" "$SERIAL_LOG"; then
+    ok "BACKUP /D (FILE1 backed up with /D:01-01-80)"
+else
+    fail "BACKUP /D (FILE1 not found after restore — date filter may have excluded it)"
+fi
+
+if grep -q "BACKUP_D_FILE2_OK" "$SERIAL_LOG"; then
+    ok "BACKUP /D (FILE2 backed up with /D:01-01-80)"
+else
+    fail "BACKUP /D (FILE2 not found after restore — date filter may have excluded it)"
+fi
+
+if grep -q "BACKUP_D_DONE" "$SERIAL_LOG"; then
+    ok "BACKUP /D (batch continued)"
+else
+    fail "BACKUP /D (batch hung or crashed)"
+fi
+
+if grep -q "BACKUP_T_FILE1_OK" "$SERIAL_LOG"; then
+    ok "BACKUP /T (FILE1 backed up with /T:00:00:00)"
+else
+    fail "BACKUP /T (FILE1 not found after restore — time filter may have excluded it)"
+fi
+
+if grep -q "BACKUP_T_FILE2_OK" "$SERIAL_LOG"; then
+    ok "BACKUP /T (FILE2 backed up with /T:00:00:00)"
+else
+    fail "BACKUP /T (FILE2 not found after restore — time filter may have excluded it)"
+fi
+
+if grep -q "BACKUP_T_DONE" "$SERIAL_LOG"; then
+    ok "BACKUP /T (batch continued)"
+else
+    fail "BACKUP /T (batch hung or crashed)"
+fi
+
+if grep -q "BACKUP_L_LOG_EXISTS" "$SERIAL_LOG"; then
+    ok "BACKUP /L (A:\\BACKUP.LOG created)"
+else
+    fail "BACKUP /L (A:\\BACKUP.LOG not found — log file was not created)"
+fi
+
+if grep -q "BACKUP_L_DONE" "$SERIAL_LOG"; then
+    ok "BACKUP /L (batch continued)"
+else
+    fail "BACKUP /L (batch hung or crashed)"
 fi
 
 echo ""
