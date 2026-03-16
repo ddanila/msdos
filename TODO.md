@@ -97,36 +97,15 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `REPLACE src dest /U` — only if dest older
 - [ ] `REPLACE src dest /W` — wait before start (interactive)
 
-#### BACKUP
-- [x] `BACKUP A:path\*.TXT B:` — basic backup (`test_backup_restore.sh`)
-- [x] `BACKUP A:path B: /S` — include subdirs
-- [x] `BACKUP A:path B: /M` — modified only (archive bit)
-- [x] `BACKUP A:path B: /A` — append to existing set
-- [x] `BACKUP A:path B: /D:01-01-80` — since date (`test_backup_restore.sh`)
-- [x] `BACKUP A:path B: /T:00:00:00` — since time (`test_backup_restore.sh`)
-- [x] `BACKUP A:path B: /L` — write log (`test_backup_restore.sh`)
+#### BACKUP — remaining
 - [ ] `BACKUP C: A: /F` — format target if needed
 
-#### RESTORE
-- [x] `RESTORE B: A:path\file` — basic restore (`test_backup_restore.sh`)
-- [x] `RESTORE B: A:path /S` — include subdirs
+#### RESTORE — remaining
 - [ ] `RESTORE A: C: /P` — prompt on conflicts (interactive)
-- [x] `RESTORE B: A:path /M` — modified only (`test_backup_restore.sh`)
-- [x] `RESTORE B: A:path /N` — missing files only
-- [x] `RESTORE B: A:path /B:12-31-99` — on or before date (`test_backup_restore.sh`)
-- [x] `RESTORE B: A:path /A:12-31-50` — on or after date (`test_backup_restore.sh`)
-- [x] `RESTORE B: A:path /E:00:00:00` — on or before time (`test_backup_restore.sh`)
-- [x] `RESTORE B: A:path /L:23:59:58` — on or after time (`test_backup_restore.sh`)
 
-#### DISKCOMP
-- [x] `DISKCOMP A: B:` — compare floppies (`test_diskcomp_diskcopy.sh`)
+#### DISKCOMP — remaining
 - [ ] `DISKCOMP A: A: /1` — single-sided only
 - [ ] `DISKCOMP A: A: /8` — 8 sectors/track only
-
-#### DISKCOPY
-- [x] `DISKCOPY A: B:` — copy floppy (`test_diskcomp_diskcopy.sh`)
-- [x] `DISKCOPY A: B: /1` — single-sided (`test_diskcomp_diskcopy.sh`)
-- [x] `DISKCOPY A: B: /V` — parse error ("Invalid switch") — /V defined in .EQU/help but not implemented in parser (`test_diskcomp_diskcopy.sh`)
 
 #### LABEL — remaining
 - [ ] Remove volume label (interactive — prompts Y/N, can't automate in batch)
@@ -157,10 +136,6 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with ID
 - [ ] `KEYB` — show current layout
 
-#### NLSFUNC
-- [x] `NLSFUNC` — load with default COUNTRY.SYS (`test_share_nlsfunc_exe2bin.sh`)
-- [x] `NLSFUNC C:\COUNTRY.SYS` — second call → errorlevel 128 (already installed; message goes to STDERR, not visible via CTTY AUX) (`test_share_nlsfunc_exe2bin.sh`)
-
 #### APPEND
 - [ ] `APPEND /E` — init with environment
 - [ ] `APPEND C:\DOS` — set append path
@@ -181,10 +156,6 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `SUBST X: C:\LONGPATH` — create substitution (needs QEMU)
 - [ ] `SUBST X: /D` — remove substitution (needs QEMU)
 
-#### SHARE
-- [x] `SHARE` — load with defaults (`test_share_nlsfunc_exe2bin.sh`)
-- [x] `SHARE /F:4096 /L:40` — second call → "SHARE already installed" + errorlevel 255 (`test_share_nlsfunc_exe2bin.sh`)
-
 #### FASTOPEN
 - [ ] `FASTOPEN C:=50` — cache 50 entries
 - [ ] `FASTOPEN C:=50 /X` — use expanded memory
@@ -204,9 +175,6 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 #### RECOVER
 - [ ] `RECOVER A:file` — recover bad-sector file
 - [ ] `RECOVER A:` — recover entire disk
-
-#### EXE2BIN
-- [x] `EXE2BIN prog.exe prog.bin` — basic conversion; IP=0 → BINFIX (no prompt), verifies output file exists (`test_share_nlsfunc_exe2bin.sh`)
 
 #### IFSFUNC
 - [ ] `IFSFUNC` — load IFS driver (smoke test)

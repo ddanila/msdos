@@ -410,6 +410,53 @@ correct help text — both C-based tools (argv pattern) and ASM-based tools (PSP
 work identically under real DOS and kvikdos. Skipped: TSRs (NLSFUNC, SHARE, APPEND,
 PRINT, GRAPHICS, FASTOPEN), interactive (DEBUG, EDLIN), filters (MORE, SORT).
 
+## DISKCOPY / DISKCOMP Two-Drive QEMU E2E Patterns
+
+### Prompt sequencing
+Two-drive (A:≠B:) DISKCOPY flow per invocation:
+1. "Insert SOURCE diskette in drive A:" — display only, no wait
+2. "Insert TARGET diskette in drive B:" — display only, no wait
+3. `PRESS_ANY_KEY`: `CLEAR_BUF` (INT 21h/AH=0Ch) + `KEY_IN` — any single char accepted
+4. Copy tracks, print "Copying %1 tracks / %2 Sectors/Track, %3 Side(s)"
+5. "Copy another diskette (Y/N)?" — `CLEAR_BUF` + `KEY_IN_ECHO` — **must feed 'N', not bare CR** (bare CR is not a valid Y/N response)
+
+DISKCOMP flow is similar: INSERT FIRST/SECOND messages (no wait) → `PRESS_ANY_KEY` → compare → result → "Compare another diskette (Y/N)?".
+
+**Test feed:** `(while true; do sleep 0.2; printf 'N\r\n'; done)` satisfies both PRESS_ANY_KEY (any char) and Y/N prompts, because `CLEAR_BUF` flushes the type-ahead buffer before each read.
+
+### Key quirks
+- **"Copy process ended" (msg 21) = MSGNUM_FATAL_ERROR** — printed ONLY on fatal errors (e.g., unformatted disk that DISKCOPY cannot format). NOT printed on success. Success goes directly to "Copy another diskette (Y/N)?". Do NOT use "Copy process ended" as a success oracle.
+- **DISKCOPY /V is unimplemented**: `VERIFY_FUNC EQU 62H` is defined in `DISKCOPY.EQU` and appears in help text, but never called in `DISKCOPY.ASM`. `DCOPYPAR.ASM` defines only one switch descriptor: `/1`. SYSPARSE rejects `/V` as unknown → "Invalid switch - /V". Test oracle: grep for "Invalid switch".
+- **DISKCOPY /1**: Sets `NO_OF_SIDES=0` at `CS_OPTION_1` in `CHECK_SOURCE` → `MSG_SIDES=1` → output says "1 Side(s)". Test oracle: grep for "1 Side(s)".
+- **FORMAT_FLAG**: Only set on IOCTL hard write failure. A mformatted B: disk passes IOCTL writes directly → FORMAT_FLAG never set → "Formatting while copying" (msg 7) never printed for mformatted targets.
+- **DISKCOMP compare errors**: `EXITFL` is never set when compare errors occur → errorlevel always 0 even on mismatches. Test oracle is "Compare error on" text in serial log, not errorlevel.
+- **Mismatch test**: After DISKCOPY A:→B:, write a file to A: with `ECHO DISKTEST > DISKTEST.TXT`. This changes FAT + directory + data sectors on A:. DISKCOMP A: B: then finds "Compare error on" on those sectors.
+
+## SHARE / NLSFUNC / EXE2BIN TSR and Tool Behaviors
+
+### SHARE
+- **First call**: installs silently as TSR (INT 2Fh hook + INT 21h/31h Keep_Process). No output.
+- **Second call**: INT 2Fh check returns AL=0FFh (already loaded) → `ShDispMsg` prints "SHARE already installed" → `ShDispMsg` calls `INT 21h/AH=4Ch/AL=0FFh` → exits with **errorlevel 255**.
+- `ShDispMsg` always calls INT 21h/4Ch after printing — the batch continues after errorlevel 255 exits.
+
+### NLSFUNC
+- **First call (no args)**: NO_PARMS=1 → installs silently via INT 2Fh + Keep_Process. COUNTRY.SYS is NOT opened at install time.
+- **Second call**: INT 2Fh/AH=MULT_NLSFUNC check returns AL≠0 → "NLSFUNC already installed" printed to **STDERR** (handle 2, via `bx=STDERR` in SYSDISPMSG call). ERROR_CODE=80h → exits with **errorlevel 128**.
+- **STDERR routing**: `CTTY AUX` only redirects handles 0 (stdin) and 1 (stdout). STDERR (handle 2) is unaffected. "NLSFUNC already installed" message does NOT appear on COM1 serial output — verify via errorlevel check only.
+
+### EXE2BIN
+- **Always exits errorlevel 0** (`xor al,al; Dos_call Exit` at end of `E2BINIT.ASM` regardless of path).
+- **IP=0 → BINFIX path**: binary conversion, no "Fix-ups needed" prompt. Test oracle: `IF EXIST outputfile`.
+- **IP=0x100 → COM path**: same (no prompts).
+- **IP≠0 + relocations → interactive**: prompts "Fix-ups needed - base segment (hex):" — can't automate.
+- **File not found**: DosError → INT 21h/AH=59h extended error → `extend_message` → "File not found" printed. Still exits errorlevel 0.
+- **Minimal test EXE** (33 bytes, IP=0, BINFIX path):
+  ```bash
+  printf '\115\132\041\000\001\000\000\000\002\000\000\000\377\377\000\000\000\000\000\000\000\000\000\000\034\000\000\000\000\000\000\000\303' \
+      | mcopy -o -i "$BOOT_IMG" - ::TEST.EXE
+  ```
+  Layout: MZ header (28 bytes) + 4-byte pad = 32-byte header (e_cparhdr=2 paragraphs); e_ip=0, e_crlc=0, e_cp=1, e_cblp=33; 1 byte code (0xC3 RET).
+
 ## BACKUP / RESTORE Interactive Prompts
 
 BACKUP.COM has `display_it(..., WAIT)` calls (not `wait_for_keystroke()`) embedded
