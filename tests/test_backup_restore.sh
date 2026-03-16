@@ -77,19 +77,37 @@ printf 'DEEP_FILE\r\n\x1a'       | mcopy -o -i "$BOOT_IMG" - ::BAKDEEP.TXT
     printf 'ECHO BACKUP_S_DONE\r\n'
 
     # ── BACKUP /M: only files with archive bit set ────────────────────────────
-    # Clear archive on FILE1, set on FILE2 — only FILE2 should be backed up.
+    # Clear archive on FILE1, set on FILE2 — only FILE2 backed up.
+    # Verify by deleting both files and restoring: FILE2 must come back, FILE1 must not.
     printf 'ECHO ---BACKUP-M---\r\n'
     printf 'ATTRIB -A BAKSRC\\FILE1.TXT\r\n'
     printf 'ATTRIB -A BAKSRC\\FILE2.TXT\r\n'
     printf 'ATTRIB +A BAKSRC\\FILE2.TXT\r\n'
     printf 'BACKUP A:BAKSRC\\*.TXT B: /M\r\n'
+    printf 'DEL BAKSRC\\FILE1.TXT\r\n'
+    printf 'DEL BAKSRC\\FILE2.TXT\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT\r\n'
+    printf 'IF EXIST BAKSRC\\FILE2.TXT ECHO BACKUP_M_FILE2_IN_BACKUP\r\n'
+    printf 'IF NOT EXIST BAKSRC\\FILE1.TXT ECHO BACKUP_M_FILE1_EXCLUDED\r\n'
     printf 'ECHO BACKUP_M_DONE\r\n'
+    printf 'COPY BAKF1.TXT BAKSRC\\FILE1.TXT\r\n'
 
     # ── BACKUP /A: append to existing backup, do not erase B:\BACKUP ─────────
-    # Prompts: INSERTSOURCE (1) + LASTDISKMSG (1) = 2 keypresses.
+    # Verify /A by: fresh backup of FILE1+FILE2, then /A of EXTRA.TXT, then
+    # delete all three and restore — all must come back.
+    # Prompts per BACKUP call: INSERTSOURCE (1) + INSERTTARGET+ERASEMSG (2)
+    #   or LASTDISKMSG (1) for /A first disk = 2 keypresses.
     printf 'ECHO ---BACKUP-A---\r\n'
+    printf 'BACKUP A:BAKSRC\\*.TXT B:\r\n'
     printf 'COPY BAKF1.TXT BAKSRC\\EXTRA.TXT\r\n'
     printf 'BACKUP A:BAKSRC\\EXTRA.TXT B: /A\r\n'
+    printf 'DEL BAKSRC\\FILE1.TXT\r\n'
+    printf 'DEL BAKSRC\\FILE2.TXT\r\n'
+    printf 'DEL BAKSRC\\EXTRA.TXT\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT\r\n'
+    printf 'IF EXIST BAKSRC\\FILE1.TXT ECHO BACKUP_A_FILE1_PRESERVED\r\n'
+    printf 'IF EXIST BAKSRC\\FILE2.TXT ECHO BACKUP_A_FILE2_PRESERVED\r\n'
+    printf 'IF EXIST BAKSRC\\EXTRA.TXT ECHO BACKUP_A_EXTRA_ADDED\r\n'
     printf 'ECHO BACKUP_A_DONE\r\n'
     printf 'DEL BAKSRC\\EXTRA.TXT\r\n'
 
@@ -190,14 +208,44 @@ else
     fail "BACKUP /S (batch hung or crashed)"
 fi
 
+if grep -q "BACKUP_M_FILE2_IN_BACKUP" "$SERIAL_LOG"; then
+    ok "BACKUP /M (archive-set FILE2 was backed up)"
+else
+    fail "BACKUP /M (expected FILE2 with +A to be in backup)"
+fi
+
+if grep -q "BACKUP_M_FILE1_EXCLUDED" "$SERIAL_LOG"; then
+    ok "BACKUP /M (archive-cleared FILE1 was excluded)"
+else
+    fail "BACKUP /M (expected FILE1 without +A to be excluded)"
+fi
+
 if grep -q "BACKUP_M_DONE" "$SERIAL_LOG"; then
     ok "BACKUP /M (batch continued)"
 else
     fail "BACKUP /M (batch hung or crashed)"
 fi
 
+if grep -q "BACKUP_A_FILE1_PRESERVED" "$SERIAL_LOG"; then
+    ok "BACKUP /A (FILE1 from pre-/A backup restored)"
+else
+    fail "BACKUP /A (FILE1 not restored — /A may have erased existing backup)"
+fi
+
+if grep -q "BACKUP_A_FILE2_PRESERVED" "$SERIAL_LOG"; then
+    ok "BACKUP /A (FILE2 from pre-/A backup restored)"
+else
+    fail "BACKUP /A (FILE2 not restored — /A may have erased existing backup)"
+fi
+
+if grep -q "BACKUP_A_EXTRA_ADDED" "$SERIAL_LOG"; then
+    ok "BACKUP /A (EXTRA.TXT appended to backup set)"
+else
+    fail "BACKUP /A (EXTRA.TXT not in backup — append may not have worked)"
+fi
+
 if grep -q "BACKUP_A_DONE" "$SERIAL_LOG"; then
-    ok "BACKUP /A (append mode — batch continued)"
+    ok "BACKUP /A (batch continued)"
 else
     fail "BACKUP /A (batch hung or crashed)"
 fi
