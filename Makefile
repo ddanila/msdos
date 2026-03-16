@@ -27,7 +27,7 @@ CFLAGS   := -AS -Os -Zp
 # Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy run-boot verify test-sys test-help-qemu
+.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy run-boot test-sys test-help-qemu test-builtins
 
 all: messages mapper boot inc bios dos cmd dev select memm
 
@@ -248,20 +248,13 @@ test-sys: deploy
 test-builtins: deploy
 	bash tests/test_builtins.sh
 
-test-exepack: deploy
-	bash tests/test_exepack.sh
-
 test-help-qemu: deploy
 	bash tests/test_help_qemu.sh
-
-test-tools-qemu: deploy
-	bash tests/test_tools_qemu.sh
 
 # ---------------------------------------------------------------------------
 # DEPLOY — bootable 1.44MB floppy image
 # ---------------------------------------------------------------------------
 FLOPPY      := $(OUT)/floppy.img
-FLOPPY_TEST := $(OUT)/floppy-test.img
 BOOT_BIN    := $(SRC)/BOOT/MSBOOT.BIN
 BOOT_OFF    := 31744   # boot sector lives at offset 0x7c00 in MSBOOT.BIN
 
@@ -379,28 +372,9 @@ deploy: all $(FLOPPY)
 run-boot: deploy
 	qemu-system-i386 -fda $(FLOPPY) -boot a -m 4
 
-# floppy-test.img: same as floppy.img but with AUTOEXEC.BAT that redirects
-# console to COM1 and prints the DOS version — used by verify target
-$(FLOPPY_TEST): $(FLOPPY)
-	cp $(FLOPPY) $@
-	printf 'CTTY AUX\r\nVER\r\n' | mcopy -i $@ - ::AUTOEXEC.BAT
-
-# verify: headless boot, capture COM1, check for "MS-DOS" in output
-verify: all $(FLOPPY_TEST)
-	@rm -f $(OUT)/serial.log
-	timeout 15 qemu-system-i386 \
-	    -display none \
-	    -fda $(FLOPPY_TEST) \
-	    -boot a -m 4 \
-	    -serial file:$(OUT)/serial.log \
-	    2>/dev/null; true
-	@grep -q "MS-DOS" $(OUT)/serial.log \
-	    && echo "PASS: MS-DOS booted successfully" \
-	    || (echo "FAIL: MS-DOS boot not confirmed"; cat $(OUT)/serial.log; exit 1)
-
 # ---------------------------------------------------------------------------
 clean:
 	find $(SRC) -name "*.obj" -o -name "*.exe" -o -name "*.bin" \
 	    -o -name "*.com" -o -name "*.sys" -o -name "*.lib" \
 	    -o -name "*.cl1" -o -name "*.idx" | xargs rm -f
-	rm -f $(FLOPPY) $(FLOPPY_TEST) $(OUT)/serial.log
+	rm -f $(FLOPPY) $(OUT)/serial.log

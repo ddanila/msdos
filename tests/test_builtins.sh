@@ -41,6 +41,10 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 # Must end with ^Z (0x1A) — TYPE reads in text mode and hangs without it.
 printf 'HELLO_TYPE_TEST\r\n\x1a' | mcopy -o -i "$TEST_IMG" - ::TEST.TXT
 
+# Add a multi-line test file for FIND functional tests.
+printf 'alpha one\r\nBETA TWO\r\nalpha three\r\ngamma four\r\nALPHA FIVE\r\n\x1a' \
+    | mcopy -o -i "$TEST_IMG" - ::FIND.DAT
+
 # Add a sub-batch for CALL test
 printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
 
@@ -224,14 +228,31 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
     printf 'IF EXIST CVTEST.TXT ECHO COPY_V_OK\r\n'
     printf 'DEL CVTEST.TXT\r\n'
 
+    # ── FIND functional tests ──────────────────────────────────────────────────
+    printf 'ECHO ---FIND-BASIC---\r\n'
+    printf 'FIND "alpha" FIND.DAT\r\n'
+
+    printf 'ECHO ---FIND-COUNT---\r\n'
+    printf 'FIND /C "alpha" FIND.DAT\r\n'
+
+    printf 'ECHO ---FIND-LINENUM---\r\n'
+    printf 'FIND /N "gamma" FIND.DAT\r\n'
+
+    printf 'ECHO ---FIND-INVERSE---\r\n'
+    printf 'FIND /V "alpha" FIND.DAT\r\n'
+
+    printf 'ECHO ---FIND-NOMATCH---\r\n'
+    printf 'FIND "zzzzz" FIND.DAT\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO FIND_NOMATCH_ERRORLEVEL\r\n'
+
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$TEST_IMG" - ::AUTOEXEC.BAT
 
 # ── Boot QEMU and capture serial output ──────────────────────────────────────
 # Use cache=writethrough so floppy writes are flushed (needed for COPY/REN/DEL/MD).
-echo "Booting QEMU (headless, ~30s)..."
+echo "Booting QEMU (headless, ~40s)..."
 rm -f "$SERIAL_LOG"
-timeout 45 qemu-system-i386 \
+timeout 60 qemu-system-i386 \
     -display none \
     -drive if=floppy,index=0,format=raw,file="$TEST_IMG",cache=writethrough \
     -boot a -m 4 \
@@ -568,6 +589,51 @@ if grep -q "COPY_V_OK" "$SERIAL_LOG"; then
     ok "COPY /V"
 else
     fail "COPY /V (expected 'COPY_V_OK')"
+fi
+
+echo ""
+echo "--- FIND functional ---"
+
+# Basic search: should find "alpha one" and "alpha three" (case-sensitive)
+if grep -q "alpha one" "$SERIAL_LOG" && grep -q "alpha three" "$SERIAL_LOG"; then
+    ok "FIND basic (found 'alpha' lines)"
+else
+    fail "FIND basic (expected 'alpha one' and 'alpha three')"
+fi
+
+# Basic search should NOT match uppercase ALPHA (case-sensitive)
+if sed -n '/---FIND-BASIC---/,/---FIND-COUNT---/p' "$SERIAL_LOG" | grep -q "ALPHA FIVE"; then
+    fail "FIND basic (matched 'ALPHA FIVE' — should be case-sensitive)"
+else
+    ok "FIND basic (case-sensitive, skipped 'ALPHA FIVE')"
+fi
+
+# /C count: should show count of 2 (two lowercase "alpha" lines)
+if grep -q ": 2" "$SERIAL_LOG" || grep -q ":2" "$SERIAL_LOG"; then
+    ok "FIND /C (count = 2)"
+else
+    fail "FIND /C (expected count of 2)"
+fi
+
+# /N line numbers: should show [4] for "gamma four" (line 4)
+if grep -q "\[4\]" "$SERIAL_LOG"; then
+    ok "FIND /N (line number [4] for 'gamma')"
+else
+    fail "FIND /N (expected '[4]' line number)"
+fi
+
+# /V inverse: should show lines NOT containing "alpha" — BETA, gamma, ALPHA
+if grep -q "BETA TWO" "$SERIAL_LOG" && grep -q "gamma four" "$SERIAL_LOG"; then
+    ok "FIND /V (shows non-matching lines)"
+else
+    fail "FIND /V (expected 'BETA TWO' and 'gamma four')"
+fi
+
+# No match: FIND should set errorlevel >= 1
+if grep -q "FIND_NOMATCH_ERRORLEVEL" "$SERIAL_LOG"; then
+    ok "FIND no-match errorlevel"
+else
+    fail "FIND no-match (expected errorlevel >= 1)"
 fi
 
 # ── Summary ──────────────────────────────────────────────────────────────────
