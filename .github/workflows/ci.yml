@@ -10,9 +10,6 @@ on:
     paths-ignore:
       - '**.md'
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -45,7 +42,7 @@ jobs:
         timeout-minutes: 5
 
       - name: Upload floppy image
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: floppy
           path: |
@@ -71,7 +68,7 @@ jobs:
         run: chmod 666 /dev/kvm
 
       - name: Download floppy image
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: floppy
 
@@ -96,7 +93,7 @@ jobs:
         run: chmod 666 /dev/kvm
 
       - name: Download floppy image
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: floppy
 
@@ -121,7 +118,7 @@ jobs:
         run: chmod 666 /dev/kvm
 
       - name: Download floppy image
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: floppy
 
