@@ -104,8 +104,8 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `RESTORE A: C: /P` — prompt on conflicts (interactive)
 
 #### DISKCOMP — remaining
-- [ ] `DISKCOMP A: A: /1` — single-sided only
-- [ ] `DISKCOMP A: A: /8` — 8 sectors/track only
+- [x] `DISKCOMP A: B: /1` — single-sided only (`test_diskcomp_diskcopy.sh`)
+- [x] `DISKCOMP A: B: /8` — 8 sectors/track only (`test_diskcomp_diskcopy.sh`)
 
 #### LABEL — remaining
 - [ ] Remove volume label (interactive — prompts Y/N, can't automate in batch)
@@ -137,12 +137,11 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `KEYB` — show current layout
 
 #### APPEND
-- [ ] `APPEND /E` — init with environment
-- [ ] `APPEND C:\DOS` — set append path
-- [ ] `APPEND ;` — clear append path
-- [ ] `APPEND /PATH:ON` — search appended dirs for explicit paths
-- [ ] `APPEND /X` — extend to EXEC search
-- [ ] `APPEND` — show current path
+- [x] `APPEND /E /X` — first-time install with environment + extended search (`test_append.sh`)
+- [x] `APPEND C:\DOS` — set append path (`test_append.sh`)
+- [x] `APPEND ;` — clear append path (`test_append.sh`)
+- [x] `APPEND /PATH:ON` — search appended dirs for explicit paths (`test_append.sh`)
+- [x] `APPEND` — show current path → "APPEND=C:\DOS" to STDOUT (`test_append.sh`)
 
 #### ASSIGN — remaining
 - [ ] `ASSIGN A=B` — redirect A: to B: (TSR operation, needs QEMU)

@@ -27,7 +27,7 @@ CFLAGS   := -AS -Os -Zp
 # Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy run-boot test-sys test-help-qemu test-builtins test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin
+.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy run-boot test-sys test-help-qemu test-builtins test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append
 
 all: messages mapper boot inc bios dos cmd dev select memm
 
@@ -259,6 +259,9 @@ test-diskcomp-diskcopy: deploy
 
 test-share-nlsfunc-exe2bin: deploy
 	bash tests/test_share_nlsfunc_exe2bin.sh
+
+test-append: deploy
+	bash tests/test_append.sh
 
 # ---------------------------------------------------------------------------
 # DEPLOY — bootable 1.44MB floppy image

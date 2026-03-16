@@ -110,6 +110,21 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'DISKCOPY A: B: /V\r\n'
     printf 'ECHO DISKCOPY_V_DONE\r\n'
 
+    # ── DISKCOMP A: B: /1 — single-sided compare ──────────────────────────────
+    # /1 sets NO_OF_SIDES=0 → MSG_SIDES=1 → output says "1 Side(s)".
+    # Prompts: PRESS_ANY_KEY (any char) + COMP_ANOTHER (Y/N = 'N').
+    printf 'ECHO ---DISKCOMP-1---\r\n'
+    printf 'DISKCOMP A: B: /1\r\n'
+    printf 'ECHO DISKCOMP_1_DONE\r\n'
+
+    # ── DISKCOMP A: B: /8 — 8-sector compare ──────────────────────────────────
+    # /8 sets END_OF_TRACK=8 → MSG_SECTRK=8 → output says "8 Sectors/Track".
+    # On a 1.44MB floppy (18 sec/track), 18>=8 so cap is applied normally.
+    # Prompts: PRESS_ANY_KEY (any char) + COMP_ANOTHER (Y/N = 'N').
+    printf 'ECHO ---DISKCOMP-8---\r\n'
+    printf 'DISKCOMP A: B: /8\r\n'
+    printf 'ECHO DISKCOMP_8_DONE\r\n'
+
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
@@ -234,6 +249,38 @@ if grep -q "DISKCOPY_V_DONE" "$SERIAL_LOG"; then
     ok "DISKCOPY A: B: /V (batch continued after error)"
 else
     fail "DISKCOPY A: B: /V (batch hung or crashed)"
+fi
+
+echo ""
+echo "--- DISKCOMP /1 tests ---"
+
+# "1 Side(s)" — /1 sets NO_OF_SIDES=0 → MSG_SIDES=1 → printed in Comparing message
+if grep -qi "1 Side(s)" "$SERIAL_LOG"; then
+    ok "DISKCOMP A: B: /1 (single-sided compare: '1 Side(s)' in output)"
+else
+    fail "DISKCOMP A: B: /1 (expected '1 Side(s)' in Comparing message)"
+fi
+
+if grep -q "DISKCOMP_1_DONE" "$SERIAL_LOG"; then
+    ok "DISKCOMP A: B: /1 (batch continued)"
+else
+    fail "DISKCOMP A: B: /1 (batch hung or crashed)"
+fi
+
+echo ""
+echo "--- DISKCOMP /8 tests ---"
+
+# "8 Sectors/Track" — /8 caps END_OF_TRACK=8 → MSG_SECTRK=8 in Comparing message
+if grep -qi "8 Sectors/Track" "$SERIAL_LOG"; then
+    ok "DISKCOMP A: B: /8 (8-sector compare: '8 Sectors/Track' in output)"
+else
+    fail "DISKCOMP A: B: /8 (expected '8 Sectors/Track' in Comparing message)"
+fi
+
+if grep -q "DISKCOMP_8_DONE" "$SERIAL_LOG"; then
+    ok "DISKCOMP A: B: /8 (batch continued)"
+else
+    fail "DISKCOMP A: B: /8 (batch hung or crashed)"
 fi
 
 echo ""
