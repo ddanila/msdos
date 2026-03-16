@@ -60,7 +60,7 @@ cp "$FLOPPY" "$BOOT_IMG"
 # Build target floppy with label "TESTLABEL" — this is what LABEL will remove
 dd if=/dev/zero bs=512 count=2880 of="$TARGET_IMG" status=none
 mformat -i "$TARGET_IMG" -f 1440 ::
-mlabel  -i "$TARGET_IMG" :: "TESTLABEL"
+mlabel  -i "$TARGET_IMG" ::TESTLABEL
 
 # Verify label was written before the test
 prelabel=$(mlabel -i "$TARGET_IMG" -s :: 2>/dev/null || echo "")
