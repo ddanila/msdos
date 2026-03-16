@@ -115,6 +115,17 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 | GOTO | `GOTO label` in batch |
 | SHIFT | shift batch `%1..%9` arguments left |
 | IF | `IF EXIST file cmd`, `IF ERRORLEVEL n cmd`, `IF str==str cmd`, `IF NOT ...` |
+
+#### Strengthen Tier 1 built-in tests (currently survival-only)
+
+Several tests added in `test_builtins.sh` only verify batch continuation, not actual command behavior:
+
+- [ ] BREAK ON/OFF: after `BREAK ON`, run `BREAK` (no-arg) and verify "BREAK is on" in output
+- [ ] VERIFY ON/OFF: same — verify "VERIFY is on" after `VERIFY ON`
+- [ ] SET overwrite: after `SET SETVAR=UPDATED`, dump `SET` and verify `SETVAR=UPDATED` appears
+- [ ] SET clear: after `SET SETVAR=`, dump `SET` and verify `SETVAR` is absent
+- [ ] PATH clear: after `PATH ;`, run `PATH` and verify "No Path" appears
+- [ ] DIR /W: verify wide-format output (multiple filenames on one line)
 | FOR | `FOR %%v IN (set) DO cmd` |
 
 ### External CMD tools
