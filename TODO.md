@@ -119,12 +119,12 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [x] `RESTORE B: A:path /L:23:59:58` — on or after time (`test_backup_restore.sh`)
 
 #### DISKCOMP
-- [ ] `DISKCOMP A: A:` — compare floppies
+- [x] `DISKCOMP A: B:` — compare floppies (`test_diskcomp_diskcopy.sh`)
 - [ ] `DISKCOMP A: A: /1` — single-sided only
 - [ ] `DISKCOMP A: A: /8` — 8 sectors/track only
 
 #### DISKCOPY
-- [ ] `DISKCOPY A: A:` — copy floppy
+- [x] `DISKCOPY A: B:` — copy floppy (`test_diskcomp_diskcopy.sh`)
 - [ ] `DISKCOPY A: A: /1` — single-sided
 - [ ] `DISKCOPY A: A: /V` — verify after
 

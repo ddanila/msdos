@@ -125,6 +125,31 @@ jobs:
       - name: External CMD /? help + EXEPACK tests
         run: bash tests/test_help_qemu.sh
 
+  e2e-diskcomp-diskcopy:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}/ci:latest
+      options: --device /dev/kvm
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repo with submodules
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Grant KVM access
+        run: chmod 666 /dev/kvm
+
+      - name: Download floppy image
+        uses: actions/download-artifact@v5
+        with:
+          name: floppy
+
+      - name: DISKCOPY / DISKCOMP e2e tests
+        run: bash tests/test_diskcomp_diskcopy.sh
+
   e2e-backup-restore:
     needs: build
     runs-on: ubuntu-latest
