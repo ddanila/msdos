@@ -130,9 +130,9 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [x] `FORMAT A: /?` — usage
 
 #### MEM
-- [ ] `MEM` — basic output (totals)
-- [ ] `MEM /PROGRAM` — show loaded programs
-- [ ] `MEM /DEBUG` — show internal drivers
+- [x] `MEM` — basic output (totals) — tested in Section 6
+- [ ] `MEM /PROGRAM` — needs full INVARS/MCB chain (loops under kvikdos)
+- [ ] `MEM /DEBUG` — needs full INVARS/MCB chain (loops under kvikdos)
 - [x] `MEM /?` — usage
 
 #### CHKDSK
