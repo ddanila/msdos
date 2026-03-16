@@ -4,11 +4,10 @@
 
 - ~~COMMAND /?~~ — added to `INIT.ASM`
 - ~~E2E functional tests (kvikdos)~~ — 165 tests in `run_tests.sh` (artifacts, checksums, /? help, functional: MEM, FIND, FC, TREE, SORT, COMP, ATTRIB, MORE, DEBUG, LABEL, EDLIN, REPLACE, XCOPY, GRAFTABL, SUBST, JOIN, ASSIGN)
-- ~~E2E functional tests (QEMU, built-ins)~~ — 29 tests in `test_builtins.sh`
-- ~~E2E functional tests (QEMU, FIND)~~ — 7 tests in `test_tools_qemu.sh` (basic, /C, /N, /V, case-sensitivity, errorlevel)
+- ~~E2E functional tests (QEMU, built-ins + FIND)~~ — 51 tests in `test_builtins.sh` (built-in commands + FIND functional: basic, /C, /N, /V, case-sensitivity, errorlevel)
 - ~~CI golden checksums~~ — dropped (not worth maintenance)
 - ~~CHKDSK /?~~ — added
-- ~~EXEPACK fix verification~~ — verified via `make test-exepack`
+- ~~EXEPACK fix verification~~ — verified via `make test-help-qemu` (EXEPACK corruption check)
 
 ## UMB Support (Upper Memory Blocks)
 
@@ -78,7 +77,7 @@ Goal: every command (external tool and COMMAND.COM built-in) and every
 recognized option gets at least one integration test. Tests run the real
 DOS binary under kvikdos or QEMU, check exit code and/or COM1/stdout output.
 
-**Harness:** kvikdos for fast tests (`run_tests.sh`), QEMU+COM1 for disk-heavy ops (`test_builtins.sh`, `test_tools_qemu.sh`). CI runs `make test` → `test-sys` → `test-builtins` → `test-exepack` → `test-tools-qemu` → `test-help-qemu`.
+**Harness:** kvikdos for fast tests (`run_tests.sh`), QEMU+COM1 for disk-heavy ops (`test_builtins.sh`). CI runs `make test` → `test-sys` → `test-builtins` → `test-help-qemu`.
 
 ### COMMAND.COM built-in commands
 

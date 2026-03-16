@@ -311,7 +311,7 @@ CONTINUE:
 - Runner: `ubuntu-latest` — has `/dev/kvm` but not accessible by default.
 - KVM fix: add udev rule `KERNEL=="kvm", GROUP="kvm", MODE="0666"` before building.
 - Steps: grant KVM → install deps (`gcc nasm python3 qemu-system-x86 mtools`) →
-  build kvikdos → `make` → `make test` → `make deploy` → `make verify` → `make test-sys` → `make test-builtins` → `make test-exepack` → `make test-tools-qemu` → `make test-help-qemu`.
+  build kvikdos → `make` → `make test` → `make deploy` → `make test-sys` → `make test-builtins` → `make test-help-qemu`.
 - Free tier: unlimited minutes for public repos on GitHub Actions.
 - kvikdos now builds and runs on macOS via software 8086 CPU backend (XTulator).
   Linux CI uses KVM (unchanged); macOS builds use the same codebase with `#ifdef __linux__` guards.
