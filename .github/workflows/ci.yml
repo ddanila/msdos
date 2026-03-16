@@ -10,6 +10,9 @@ on:
     paths-ignore:
       - '**.md'
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -72,8 +75,8 @@ jobs:
         with:
           name: floppy
 
-      - name: SYS e2e test (make test-sys)
-        run: make test-sys
+      - name: SYS e2e test
+        run: bash tests/test_sys.sh
 
   e2e-builtins:
     needs: build
@@ -97,8 +100,8 @@ jobs:
         with:
           name: floppy
 
-      - name: Built-in + FIND e2e tests (make test-builtins)
-        run: make test-builtins
+      - name: Built-in + FIND e2e tests
+        run: bash tests/test_builtins.sh
 
   e2e-help:
     needs: build
@@ -122,5 +125,5 @@ jobs:
         with:
           name: floppy
 
-      - name: External CMD /? help + EXEPACK tests (make test-help-qemu)
-        run: make test-help-qemu
+      - name: External CMD /? help + EXEPACK tests
+        run: bash tests/test_help_qemu.sh
