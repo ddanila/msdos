@@ -459,6 +459,41 @@ else
     fail "LABEL (expected 'Serial Number' in output)"
 fi
 
+# -- GRAFTABL /STATUS: show active code page --
+output=$(run_dos CMD/GRAFTABL/GRAFTABL.COM /STATUS) || true
+if echo "$output" | grep -q "Code Page"; then
+    ok "GRAFTABL /STATUS (code page info)"
+else
+    fail "GRAFTABL /STATUS (expected 'Code Page' in output)"
+fi
+
+# -- SUBST (no args): list drive substitutions (none → silent exit 0) --
+output=$(run_dos CMD/SUBST/SUBST.EXE 2>/dev/null) || true
+exit_code=$?
+if [[ $exit_code -eq 0 ]]; then
+    ok "SUBST (no args, lists substitutions)"
+else
+    fail "SUBST (expected exit 0, got $exit_code)"
+fi
+
+# -- JOIN (no args): list drive joins (none → silent exit 0) --
+output=$(run_dos CMD/JOIN/JOIN.EXE 2>/dev/null) || true
+exit_code=$?
+if [[ $exit_code -eq 0 ]]; then
+    ok "JOIN (no args, lists joins)"
+else
+    fail "JOIN (expected exit 0, got $exit_code)"
+fi
+
+# -- ASSIGN /STATUS: show drive assignments (none → silent exit 0) --
+output=$(run_dos CMD/ASSIGN/ASSIGN.COM /STATUS 2>/dev/null) || true
+exit_code=$?
+if [[ $exit_code -eq 0 ]]; then
+    ok "ASSIGN /STATUS (lists assignments)"
+else
+    fail "ASSIGN /STATUS (expected exit 0, got $exit_code)"
+fi
+
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
