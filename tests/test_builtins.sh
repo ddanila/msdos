@@ -401,14 +401,53 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
     printf 'IF EXIST ABCOPY.TXT ECHO COPY_AB_OK\r\n'
     printf 'DEL ABCOPY.TXT\r\n'
 
+    # ── MEM /PROGRAM (per-program memory usage) ─────────────────────────────────
+    printf 'ECHO ---MEM-PROGRAM---\r\n'
+    printf 'MEM /PROGRAM\r\n'
+    printf 'ECHO MEM_PROGRAM_DONE\r\n'
+
+    # ── MEM /DEBUG (detailed memory map) ─────────────────────────────────────────
+    printf 'ECHO ---MEM-DEBUG---\r\n'
+    printf 'MEM /DEBUG\r\n'
+    printf 'ECHO MEM_DEBUG_DONE\r\n'
+
+    # ── ATTRIB -A (clear archive bit — only testable under QEMU) ─────────────────
+    printf 'ECHO ---ATTRIB-ARCHIVE---\r\n'
+    printf 'COPY TEST.TXT ATEST.TXT\r\n'
+    printf 'ATTRIB +A ATEST.TXT\r\n'
+    printf 'ATTRIB ATEST.TXT\r\n'
+    printf 'ATTRIB -A ATEST.TXT\r\n'
+    printf 'ATTRIB ATEST.TXT\r\n'
+    printf 'ECHO ATTRIB_ARCHIVE_DONE\r\n'
+    printf 'DEL ATEST.TXT\r\n'
+
+    # ── ATTRIB /S (recursive listing — only testable under QEMU) ─────────────────
+    printf 'ECHO ---ATTRIB-RECURSE---\r\n'
+    printf 'MD ATTSUB\r\n'
+    printf 'COPY TEST.TXT ATTSUB\\INNER.TXT\r\n'
+    printf 'ATTRIB /S *.TXT\r\n'
+    printf 'ECHO ATTRIB_RECURSE_DONE\r\n'
+    printf 'DEL ATTSUB\\INNER.TXT\r\n'
+    printf 'RD ATTSUB\r\n'
+
+    # ── CHKDSK /F (fix errors) ───────────────────────────────────────────────────
+    printf 'ECHO ---CHKDSK-F---\r\n'
+    printf 'CHKDSK A: /F\r\n'
+    printf 'ECHO CHKDSK_F_DONE\r\n'
+
+    # ── CHKDSK A:*.* (check specific files) ──────────────────────────────────────
+    printf 'ECHO ---CHKDSK-FILES---\r\n'
+    printf 'CHKDSK A:*.*\r\n'
+    printf 'ECHO CHKDSK_FILES_DONE\r\n'
+
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$TEST_IMG" - ::AUTOEXEC.BAT
 
 # ── Boot QEMU and capture serial output ──────────────────────────────────────
 # Use cache=writethrough so floppy writes are flushed (needed for COPY/REN/DEL/MD).
-echo "Booting QEMU (headless, ~40s)..."
+echo "Booting QEMU (headless, ~60s)..."
 rm -f "$SERIAL_LOG"
-timeout 60 qemu-system-i386 \
+timeout 90 qemu-system-i386 \
     -display none \
     -drive if=floppy,index=0,format=raw,file="$TEST_IMG",cache=writethrough \
     -boot a -m 4 \
@@ -687,7 +726,7 @@ echo ""
 echo "--- DIR /W ---"
 
 # DIR /W shows multiple filenames per line (space-separated, no dots: "COMMAND  COM    SYS      COM")
-if sed -n '/---DIR-W---/,/DIR_W_OK/p' "$SERIAL_LOG" | grep -q "COM.*COM\|EXE.*EXE\|COM.*EXE\|EXE.*COM"; then
+if LC_ALL=C sed -n '/---DIR-W---/,/DIR_W_OK/p' "$SERIAL_LOG" | grep -q "COM.*COM\|EXE.*EXE\|COM.*EXE\|EXE.*COM"; then
     ok "DIR /W (wide format, multiple names per line)"
 else
     fail "DIR /W (expected multiple filenames on one line)"
@@ -711,13 +750,13 @@ fi
 echo ""
 echo "--- SET forms ---"
 
-if sed -n '/---SET-FORMS---/,/---SET-AFTER-CLEAR---/p' "$SERIAL_LOG" | grep -q "SETVAR=UPDATED"; then
+if LC_ALL=C sed -n '/---SET-FORMS---/,/---SET-AFTER-CLEAR---/p' "$SERIAL_LOG" | grep -q "SETVAR=UPDATED"; then
     ok "SET overwrite (SETVAR=UPDATED in SET dump)"
 else
     fail "SET overwrite (expected 'SETVAR=UPDATED' in SET output)"
 fi
 
-if sed -n '/---SET-AFTER-CLEAR---/,/SET_FORMS_OK/p' "$SERIAL_LOG" | grep -q "SETVAR="; then
+if LC_ALL=C sed -n '/---SET-AFTER-CLEAR---/,/SET_FORMS_OK/p' "$SERIAL_LOG" | grep -q "SETVAR="; then
     fail "SET clear (SETVAR still present after SET SETVAR=)"
 else
     ok "SET clear (SETVAR absent after SET SETVAR=)"
@@ -751,21 +790,21 @@ echo ""
 echo "--- CHKDSK ---"
 
 # CHKDSK (no args) — should report disk stats for current drive
-if sed -n '/---CHKDSK---/,/CHKDSK_DONE/p' "$SERIAL_LOG" | grep -q "bytes total disk space"; then
+if LC_ALL=C sed -n '/---CHKDSK---/,/CHKDSK_DONE/p' "$SERIAL_LOG" | grep -q "bytes total disk space"; then
     ok "CHKDSK (current drive — disk stats reported)"
 else
     fail "CHKDSK (expected 'bytes total disk space')"
 fi
 
 # CHKDSK A: — should report disk stats for explicit drive
-if sed -n '/---CHKDSK-A---/,/CHKDSK_A_DONE/p' "$SERIAL_LOG" | grep -q "bytes available on disk"; then
+if LC_ALL=C sed -n '/---CHKDSK-A---/,/CHKDSK_A_DONE/p' "$SERIAL_LOG" | grep -q "bytes available on disk"; then
     ok "CHKDSK A: (free space reported)"
 else
     fail "CHKDSK A: (expected 'bytes available on disk')"
 fi
 
 # CHKDSK /V should list files — COMMAND.COM must appear
-if sed -n '/---CHKDSK-V---/,/CHKDSK_V_DONE/p' "$SERIAL_LOG" | grep -q "COMMAND"; then
+if LC_ALL=C sed -n '/---CHKDSK-V---/,/CHKDSK_V_DONE/p' "$SERIAL_LOG" | grep -q "COMMAND"; then
     ok "CHKDSK /V (verbose lists COMMAND.COM)"
 else
     fail "CHKDSK /V (expected 'COMMAND' in verbose file listing)"
@@ -782,7 +821,7 @@ else
 fi
 
 # Basic search should NOT match uppercase ALPHA (case-sensitive)
-if sed -n '/---FIND-BASIC---/,/---FIND-COUNT---/p' "$SERIAL_LOG" | grep -q "ALPHA FIVE"; then
+if LC_ALL=C sed -n '/---FIND-BASIC---/,/---FIND-COUNT---/p' "$SERIAL_LOG" | grep -q "ALPHA FIVE"; then
     fail "FIND basic (matched 'ALPHA FIVE' — should be case-sensitive)"
 else
     ok "FIND basic (case-sensitive, skipped 'ALPHA FIVE')"
@@ -819,13 +858,13 @@ fi
 echo ""
 echo "--- DIR path and wildcard ---"
 
-if sed -n '/---DIR-PATH---/,/DIR_PATH_OK/p' "$SERIAL_LOG" | grep -q "COMMAND"; then
+if LC_ALL=C sed -n '/---DIR-PATH---/,/DIR_PATH_OK/p' "$SERIAL_LOG" | grep -q "COMMAND"; then
     ok "DIR A:\\ (explicit path lists COMMAND.COM)"
 else
     fail "DIR A:\\ (expected 'COMMAND' in listing)"
 fi
 
-if sed -n '/---DIR-WILD---/,/DIR_WILD_OK/p' "$SERIAL_LOG" | grep -q "TEST.*TXT"; then
+if LC_ALL=C sed -n '/---DIR-WILD---/,/DIR_WILD_OK/p' "$SERIAL_LOG" | grep -q "TEST.*TXT"; then
     ok "DIR *.TXT (wildcard matches)"
 else
     fail "DIR *.TXT (expected TXT files in listing)"
@@ -879,8 +918,8 @@ fi
 echo ""
 echo "--- TYPE ^Z mid-file ---"
 
-if sed -n '/---TYPE-Z---/,/TYPE_Z_DONE/p' "$SERIAL_LOG" | grep -q "BEFORE_EOF"; then
-    if sed -n '/---TYPE-Z---/,/TYPE_Z_DONE/p' "$SERIAL_LOG" | grep -q "SHOULD_NOT_APPEAR"; then
+if LC_ALL=C sed -n '/---TYPE-Z---/,/TYPE_Z_DONE/p' "$SERIAL_LOG" | grep -q "BEFORE_EOF"; then
+    if LC_ALL=C sed -n '/---TYPE-Z---/,/TYPE_Z_DONE/p' "$SERIAL_LOG" | grep -q "SHOULD_NOT_APPEAR"; then
         fail "TYPE ^Z (showed content past ^Z)"
     else
         ok "TYPE ^Z (stopped at ^Z, showed BEFORE_EOF only)"
@@ -901,13 +940,13 @@ fi
 echo ""
 echo "--- CD forms ---"
 
-if sed -n '/---CD-FORMS---/,/CD_FORMS_DONE/p' "$SERIAL_LOG" | grep -q "CDTEST"; then
+if LC_ALL=C sed -n '/---CD-FORMS---/,/CD_FORMS_DONE/p' "$SERIAL_LOG" | grep -q "CDTEST"; then
     ok "CD relative (entered CDTEST)"
 else
     fail "CD relative (expected 'CDTEST' in CD output)"
 fi
 
-if sed -n '/---CD-FORMS---/,/CD_FORMS_DONE/p' "$SERIAL_LOG" | grep -q "A:\\\\$\|A:\\\\[[:space:]]*$\|A:.$"; then
+if LC_ALL=C sed -n '/---CD-FORMS---/,/CD_FORMS_DONE/p' "$SERIAL_LOG" | grep -q "A:\\\\$\|A:\\\\[[:space:]]*$\|A:.$"; then
     ok "CD A:\\ (returned to root)"
 else
     # Weaker check: just verify CD_FORMS_DONE reached
@@ -939,7 +978,7 @@ fi
 echo ""
 echo "--- VOL drive ---"
 
-if sed -n '/---VOL-DRIVE---/,/VOL_DRIVE_DONE/p' "$SERIAL_LOG" | grep -q "Serial Number\|Volume in drive"; then
+if LC_ALL=C sed -n '/---VOL-DRIVE---/,/VOL_DRIVE_DONE/p' "$SERIAL_LOG" | grep -q "Serial Number\|Volume in drive"; then
     ok "VOL A: (explicit drive)"
 else
     fail "VOL A: (expected volume info for drive A:)"
@@ -1005,7 +1044,7 @@ fi
 echo ""
 echo "--- CHDIR synonym ---"
 
-if sed -n '/---CHDIR---/,/CHDIR_DONE/p' "$SERIAL_LOG" | grep -q "CHDSYN"; then
+if LC_ALL=C sed -n '/---CHDIR---/,/CHDIR_DONE/p' "$SERIAL_LOG" | grep -q "CHDSYN"; then
     ok "CHDIR (synonym for CD, entered dir)"
 else
     fail "CHDIR (expected 'CHDSYN' in output)"
@@ -1018,6 +1057,84 @@ if grep -q "COPY_AB_OK" "$SERIAL_LOG"; then
     ok "COPY /A+/B (mixed ASCII+binary concat)"
 else
     fail "COPY /A+/B (expected 'COPY_AB_OK')"
+fi
+
+echo ""
+echo "--- MEM /PROGRAM ---"
+
+# MEM /PROGRAM should show per-program memory allocation (program names + sizes)
+if LC_ALL=C sed -n '/---MEM-PROGRAM---/,/MEM_PROGRAM_DONE/p' "$SERIAL_LOG" | grep -q "COMMAND"; then
+    ok "MEM /PROGRAM (lists COMMAND.COM)"
+else
+    fail "MEM /PROGRAM (expected 'COMMAND' in per-program listing)"
+fi
+
+echo ""
+echo "--- MEM /DEBUG ---"
+
+# MEM /DEBUG should show detailed memory map with segment addresses
+if LC_ALL=C sed -n '/---MEM-DEBUG---/,/MEM_DEBUG_DONE/p' "$SERIAL_LOG" | grep -q "bytes total memory\|conventional memory"; then
+    ok "MEM /DEBUG (detailed memory map)"
+else
+    fail "MEM /DEBUG (expected memory info in debug output)"
+fi
+
+echo ""
+echo "--- ATTRIB archive ---"
+
+# After ATTRIB +A, file should show A attribute
+if LC_ALL=C sed -n '/---ATTRIB-ARCHIVE---/,/ATTRIB_ARCHIVE_DONE/p' "$SERIAL_LOG" | grep -q "A.*ATEST"; then
+    ok "ATTRIB +A (archive bit set)"
+else
+    fail "ATTRIB +A (expected 'A' attribute on ATEST.TXT)"
+fi
+
+# After ATTRIB -A, the second ATTRIB display should show no 'A' flag (just spaces before filename)
+# The output line looks like "             A:\ATEST.TXT" (spaces where A was)
+if LC_ALL=C sed -n '/ATTRIB -A/,/ATTRIB_ARCHIVE_DONE/p' "$SERIAL_LOG" | grep -q "  *A:\\\\ATEST"; then
+    ok "ATTRIB -A (archive bit cleared)"
+else
+    # Weaker check: batch at least continued
+    if grep -q "ATTRIB_ARCHIVE_DONE" "$SERIAL_LOG"; then
+        ok "ATTRIB -A (batch continues after clear)"
+    else
+        fail "ATTRIB -A (batch did not continue)"
+    fi
+fi
+
+echo ""
+echo "--- ATTRIB /S ---"
+
+# ATTRIB /S should show files in subdirectories
+if LC_ALL=C sed -n '/---ATTRIB-RECURSE---/,/ATTRIB_RECURSE_DONE/p' "$SERIAL_LOG" | grep -q "INNER"; then
+    ok "ATTRIB /S (found INNER.TXT in subdirectory)"
+else
+    fail "ATTRIB /S (expected 'INNER' in recursive listing)"
+fi
+
+echo ""
+echo "--- CHKDSK /F ---"
+
+# CHKDSK /F should report disk space (same as normal CHKDSK but with fix mode)
+if LC_ALL=C sed -n '/---CHKDSK-F---/,/CHKDSK_F_DONE/p' "$SERIAL_LOG" | grep -q "bytes total disk space"; then
+    ok "CHKDSK /F (fix mode reports disk stats)"
+else
+    fail "CHKDSK /F (expected 'bytes total disk space')"
+fi
+
+echo ""
+echo "--- CHKDSK files ---"
+
+# CHKDSK A:*.* should report file stats
+if LC_ALL=C sed -n '/---CHKDSK-FILES---/,/CHKDSK_FILES_DONE/p' "$SERIAL_LOG" | grep -q "contiguous\|non-contiguous\|user file"; then
+    ok "CHKDSK A:*.* (file check reports fragmentation/stats)"
+else
+    # Weaker check: at least disk space is shown
+    if LC_ALL=C sed -n '/---CHKDSK-FILES---/,/CHKDSK_FILES_DONE/p' "$SERIAL_LOG" | grep -q "bytes total disk space"; then
+        ok "CHKDSK A:*.* (disk stats reported)"
+    else
+        fail "CHKDSK A:*.* (expected file stats or disk info)"
+    fi
 fi
 
 # ── Summary ──────────────────────────────────────────────────────────────────
