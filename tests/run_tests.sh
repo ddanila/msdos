@@ -427,6 +427,17 @@ else
     fail "ATTRIB -R (R flag still present after -R)"
 fi
 
+# -- ATTRIB +R +A: combined flags --
+run_dos CMD/ATTRIB/ATTRIB.EXE '+R' '+A' 'C:\SETENV.BAT' > /dev/null 2>&1 || true
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\SETENV.BAT') || true
+if echo "$output" | grep -q "A" && echo "$output" | grep -q "R"; then
+    ok "ATTRIB +R +A (combined flags)"
+else
+    fail "ATTRIB +R +A (expected both A and R in display)"
+fi
+# Clean up: remove read-only (archive persists in kvikdos)
+run_dos CMD/ATTRIB/ATTRIB.EXE '-R' 'C:\SETENV.BAT' > /dev/null 2>&1 || true
+
 # -- MORE: page through piped stdin --
 output=$(printf "line1\r\nline2\r\nline3\r\n" | run_dos CMD/MORE/MORE.COM) || true
 if echo "$output" | grep -q "line1" && echo "$output" | grep -q "line3"; then
