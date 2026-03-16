@@ -1,14 +1,5 @@
 # MS-DOS 4.0 Build — TODO
 
-## Done
-
-- ~~COMMAND /?~~ — added to `INIT.ASM`
-- ~~E2E functional tests (kvikdos)~~ — 167 tests in `run_tests.sh` (artifacts, checksums, /? help, functional: MEM, FIND, FC, TREE, SORT, COMP, ATTRIB, MORE, DEBUG, LABEL, EDLIN, REPLACE, XCOPY, GRAFTABL 437/850/STATUS, SUBST, JOIN, ASSIGN)
-- ~~E2E functional tests (QEMU, built-ins + FIND)~~ — 77 tests in `test_builtins.sh` (built-in commands + FIND functional + CHKDSK + VOL drive, PROMPT clear, EXIT/COMMAND /C, COPY /A//B/concat/A+B, RENAME/MKDIR/RMDIR/CHDIR synonyms)
-- ~~CI golden checksums~~ — dropped (not worth maintenance)
-- ~~CHKDSK /?~~ — added
-- ~~EXEPACK fix verification~~ — verified via `make test-help-qemu` (EXEPACK corruption check)
-
 ## UMB Support (Upper Memory Blocks)
 
 Goal: add UMB support to our MS-DOS 4.0 fork so that device drivers and TSRs
@@ -71,52 +62,19 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - The existing EMM386.SYS in our build already does V86 mode and EMS page mapping — UMB and HMA support extend this, don't replace it.
 - Testing strategy: QEMU with ≥1MB RAM, verify via MEM output and actual program loading.
 
-## E2E Tests — Per-Command, Per-Option Coverage
-
-Goal: every command (external tool and COMMAND.COM built-in) and every
-recognized option gets at least one integration test. Tests run the real
-DOS binary under kvikdos or QEMU, check exit code and/or COM1/stdout output.
+## E2E Tests — Remaining Per-Command Coverage
 
 **Harness:** kvikdos for fast tests (`run_tests.sh`), QEMU+COM1 for disk-heavy ops (`test_builtins.sh`). CI runs `make test` → `test-sys` → `test-builtins` → `test-help-qemu`.
 
-### COMMAND.COM built-in commands
+### COMMAND.COM built-ins — remaining (interactive / needs special setup)
 
-Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
-
-| Command | Options / forms to test |
-|---------|------------------------|
-| ~~DIR~~ | ~~no args (list CWD)~~, ~~path~~, ~~`*` wildcard~~, ~~`/W` (wide)~~, `/P` (pause/page — interactive) |
-| ~~COPY~~ | ~~src dest~~, ~~src+src2 dest (concat)~~, ~~`/A` (ASCII)~~, ~~`/B` (binary)~~, ~~`/V` (verify)~~, ~~`/A+/B` mixed concat~~ |
-| ~~DEL / ERASE~~ | ~~single file~~, ~~wildcard `*.*`~~, ~~read-only file (should fail)~~, ~~ERASE synonym~~ |
-| ~~REN / RENAME~~ | ~~simple rename~~, ~~rename to existing (should fail)~~, ~~RENAME synonym~~ |
-| ~~TYPE~~ | ~~text file~~, ~~binary file (^Z mid-file)~~ |
-| ~~MD / MKDIR~~ | ~~new dir~~, ~~nested path~~, ~~already-exists (should fail)~~, ~~MKDIR synonym~~ |
-| ~~CD / CHDIR~~ | ~~relative~~, ~~absolute~~, ~~drive-rooted~~, ~~no-arg (print CWD)~~, ~~CHDIR synonym~~ |
-| ~~RD / RMDIR~~ | ~~empty dir~~, ~~non-empty dir (should fail)~~, ~~RMDIR synonym~~ |
-| ~~SET~~ | ~~set new var~~, ~~overwrite var~~, ~~clear var (`SET VAR=`)~~, ~~no-arg (print env)~~ |
-| ~~PATH~~ | ~~set path~~, ~~clear path (`PATH ;`)~~, ~~no-arg (print current)~~ |
-| ~~PROMPT~~ | ~~set prompt string~~, ~~clear prompt (no-arg reset)~~ |
+| Command | Remaining options |
+|---------|-------------------|
+| DIR | `/P` (pause/page — interactive) |
 | DATE | no-arg (show date), set date — interactive |
 | TIME | no-arg (show time), set time — interactive |
-| ~~VER~~ | ~~no args (shows version)~~ |
-| ~~VOL~~ | ~~no-arg (current drive)~~, ~~`drive:`~~ |
-| ~~BREAK~~ | ~~`BREAK ON`~~, ~~`BREAK OFF`~~, ~~no-arg (show state)~~ |
-| ~~VERIFY~~ | ~~`VERIFY ON`~~, ~~`VERIFY OFF`~~, ~~no-arg (show state)~~ |
-| ~~ECHO~~ | ~~`ECHO message`~~, ~~`ECHO ON`~~, ~~`ECHO OFF`~~, ~~`ECHO.` (blank line)~~ |
-| ~~CLS~~ | ~~no args~~ |
-| ~~EXIT~~ | ~~exits secondary COMMAND shell (COMMAND /C)~~ |
-| ~~CTTY~~ | ~~redirect to device (used by test harness)~~ |
 | PAUSE | no-arg (waits for keypress) — interactive |
-| ~~REM~~ | ~~comment — no output~~ |
-| ~~CHCP~~ | ~~no-arg (show code page)~~, `CHCP nnn` (set — needs DISPLAY.SYS) |
-| ~~TRUENAME~~ | ~~path (returns canonical full path)~~ |
-| ~~CALL~~ | ~~`CALL batchfile [args]` — calls sub-batch, returns~~ |
-| ~~GOTO~~ | ~~`GOTO label` in batch~~ |
-| ~~SHIFT~~ | ~~shift batch `%1..%9` arguments left~~ |
-| ~~IF~~ | ~~`IF EXIST file cmd`~~, ~~`IF ERRORLEVEL n cmd`~~, ~~`IF str==str cmd`~~, ~~`IF NOT ...`~~ |
-
-#### ~~Strengthen Tier 1 built-in tests~~ — done (all 6 items verified functionally)
-| ~~FOR~~ | ~~`FOR %%v IN (set) DO cmd`~~ |
+| CHCP | `CHCP nnn` (set — needs DISPLAY.SYS) |
 
 ### External CMD tools
 
@@ -129,17 +87,14 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `FORMAT A: /4` — 360K in 1.2MB drive
 - [ ] `FORMAT A: /1` — single-sided
 - [ ] `FORMAT A: /8` — 8 sectors/track
-- [x] `FORMAT A: /?` — usage
 
-#### ~~MEM~~ — done (basic totals, /?). Remaining: /PROGRAM, /DEBUG (need QEMU — kvikdos lacks full MCB chain)
+#### MEM — remaining
+- [ ] `MEM /PROGRAM` — needs QEMU (kvikdos lacks full MCB chain)
+- [ ] `MEM /DEBUG` — needs QEMU
 
-#### CHKDSK
-- [x] `CHKDSK` — check current drive (QEMU)
-- [x] `CHKDSK A:` — check specific drive (QEMU)
+#### CHKDSK — remaining
 - [ ] `CHKDSK A: /F` — fix errors
-- [x] `CHKDSK A: /V` — verbose (all paths) (QEMU)
 - [ ] `CHKDSK A:*.*` — check specific files
-- [x] `CHKDSK /?` — usage
 
 #### XCOPY
 - [ ] `XCOPY src dest` — basic copy (copies 0 files under kvikdos; needs investigation)
@@ -151,23 +106,18 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `XCOPY src dest /P` — prompt per file
 - [ ] `XCOPY src dest /V` — verify
 - [ ] `XCOPY src dest /W` — wait before start
-- [x] `XCOPY /?` — usage
 
-#### ~~ATTRIB~~ — done (show, +R, -R, +R+A combined, /?). Remaining: -A (needs QEMU — kvikdos hardcodes archive bit), /S (needs QEMU — kvikdos FindFirst doesn't recurse subdirs)
+#### ATTRIB — remaining
+- [ ] `ATTRIB -A` — needs QEMU (kvikdos hardcodes archive bit)
+- [ ] `ATTRIB /S` — needs QEMU (kvikdos FindFirst doesn't recurse subdirs)
 
-#### ~~FIND~~ — done (all options: basic, /V, /C, /N, /?)
-#### ~~SORT~~ — done (all options: basic, /R, /+N, /?)
-#### ~~TREE~~ — done (all options: basic, /F, /A, /?)
-
-#### REPLACE
+#### REPLACE — remaining
 - [ ] `REPLACE src dest` — replace existing (needs wildcard FindFirst on absolute paths)
-- [x] `REPLACE src dest /A` — add new files only
 - [ ] `REPLACE src dest /P` — prompt
 - [ ] `REPLACE src dest /R` — overwrite read-only
 - [ ] `REPLACE src dest /S` — recurse subdirs
 - [ ] `REPLACE src dest /U` — only if dest older
 - [ ] `REPLACE src dest /W` — wait before start
-- [x] `REPLACE /?` — usage
 
 #### BACKUP
 - [ ] `BACKUP C: A:` — basic backup
@@ -178,7 +128,6 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `BACKUP C: A: /T:00:00:00` — since time
 - [ ] `BACKUP C: A: /L:backup.log` — write log
 - [ ] `BACKUP C: A: /F` — format target if needed
-- [x] `BACKUP /?` — usage
 
 #### RESTORE
 - [ ] `RESTORE A: C:` — restore all
@@ -190,38 +139,29 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `RESTORE A: C: /A:01-01-88` — on or after date
 - [ ] `RESTORE A: C: /E:12:00:00` — on or before time
 - [ ] `RESTORE A: C: /L:12:00:00` — on or after time
-- [x] `RESTORE /?` — usage
-
-#### ~~FC~~ — done (all options: basic, /B, /C, /L, /N, /W, /T, /5, /?)
 
 #### DISKCOMP
 - [ ] `DISKCOMP A: A:` — compare floppies
 - [ ] `DISKCOMP A: A: /1` — single-sided only
 - [ ] `DISKCOMP A: A: /8` — 8 sectors/track only
-- [x] `DISKCOMP /?` — usage
 
 #### DISKCOPY
 - [ ] `DISKCOPY A: A:` — copy floppy
 - [ ] `DISKCOPY A: A: /1` — single-sided
 - [ ] `DISKCOPY A: A: /V` — verify after
-- [x] `DISKCOPY /?` — usage
 
-#### ~~COMP~~ — done (same files, different files, /?)
+#### LABEL — remaining
+- [ ] Set/remove volume label (needs FCB delete, QEMU)
 
-#### ~~LABEL~~ — done (show volume info, /?). Remaining: set/remove label (needs FCB delete, QEMU)
+#### EDLIN — remaining
+- [ ] `EDLIN file /B` — binary (ignore ^Z) — needs QEMU
 
-#### EDLIN
-- [x] `EDLIN file` — open file (list + quit tested; insert mode needs Ctrl+C pipe fix)
-- [ ] `EDLIN file /B` — binary (ignore ^Z) — needs QEMU (kvikdos file reads don't pass ^Z content to EDLIN even in binary mode)
-- [x] `EDLIN /?` — usage
+#### DEBUG — remaining
+- [ ] Load file (needs QEMU)
 
 #### FDISK
 - [ ] `FDISK` — interactive (smoke test: launches and exits)
 - [ ] `FDISK /PRI` — create primary partition
-- [x] `FDISK /?` — usage
-
-#### ~~DEBUG~~ — done (launch+quit, register dump, /?). Remaining: load file (needs QEMU)
-#### ~~MORE~~ — done (piped stdin, /?)
 
 #### PRINT
 - [ ] `PRINT /D:PRN file` — print to device
@@ -229,29 +169,19 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `PRINT file /P` — add to queue
 - [ ] `PRINT file /C` — remove from queue
 - [ ] `PRINT /Q:5 file` — set queue size
-- [x] `PRINT /?` — usage
 
 #### SYS
 - [ ] `SYS A:` — transfer system files
-- [x] `SYS /?` — usage
 
 #### KEYB
 - [ ] `KEYB US` — load US keyboard
 - [ ] `KEYB GR,,KEYBOARD.SYS` — explicit file
 - [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with ID
 - [ ] `KEYB` — show current layout
-- [x] `KEYB /?` — usage
 
 #### NLSFUNC
 - [ ] `NLSFUNC` — load with default COUNTRY.SYS
 - [ ] `NLSFUNC C:\COUNTRY.SYS` — explicit path
-- [x] `NLSFUNC /?` — usage
-
-#### GRAFTABL
-- [x] `GRAFTABL 437` — load code page 437
-- [x] `GRAFTABL 850` — load code page 850
-- [x] `GRAFTABL /STATUS` — show current
-- [x] `GRAFTABL /?` — usage
 
 #### APPEND
 - [ ] `APPEND /E` — init with environment
@@ -260,41 +190,31 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `APPEND /PATH:ON` — search appended dirs for explicit paths
 - [ ] `APPEND /X` — extend to EXEC search
 - [ ] `APPEND` — show current path
-- [x] `APPEND /?` — usage
 
-#### ASSIGN
+#### ASSIGN — remaining
 - [ ] `ASSIGN A=B` — redirect A: to B: (TSR operation, needs QEMU)
 - [ ] `ASSIGN` — clear all assignments (TSR operation, needs QEMU)
-- [x] `ASSIGN /STATUS` — show assignments
-- [x] `ASSIGN /?` — usage
 
-#### JOIN
+#### JOIN — remaining
 - [ ] `JOIN A: C:\FLOPPY` — join drive to path (needs QEMU)
 - [ ] `JOIN A: /D` — remove join (needs QEMU)
-- [x] `JOIN` — show current joins
-- [x] `JOIN /?` — usage
 
-#### SUBST
+#### SUBST — remaining
 - [ ] `SUBST X: C:\LONGPATH` — create substitution (needs QEMU)
 - [ ] `SUBST X: /D` — remove substitution (needs QEMU)
-- [x] `SUBST` — show substitutions
-- [x] `SUBST /?` — usage
 
 #### SHARE
 - [ ] `SHARE` — load with defaults
 - [ ] `SHARE /F:4096 /L:40` — custom file space and locks
-- [x] `SHARE /?` — usage
 
 #### FASTOPEN
 - [ ] `FASTOPEN C:=50` — cache 50 entries
 - [ ] `FASTOPEN C:=50 /X` — use expanded memory
-- [x] `FASTOPEN /?` — usage
 
 #### GRAPHICS
 - [ ] `GRAPHICS` — load default (GRAPHICS.PRO)
 - [ ] `GRAPHICS COLOR4 /R` — color4 reversed
 - [ ] `GRAPHICS HPDEFAULT /B` — with background
-- [x] `GRAPHICS /?` — usage
 
 #### MODE
 - [ ] `MODE COM1: 9600,N,8,1` — configure serial
@@ -302,24 +222,16 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `MODE CON COLS=80 LINES=25` — configure console
 - [ ] `MODE CON RATE=30 DELAY=1` — typematic rate
 - [ ] `MODE CON /STATUS` — show console status
-- [x] `MODE /?` — usage
 
 #### RECOVER
 - [ ] `RECOVER A:file` — recover bad-sector file
 - [ ] `RECOVER A:` — recover entire disk
-- [x] `RECOVER /?` — usage
 
 #### EXE2BIN
 - [ ] `EXE2BIN prog.exe prog.bin` — basic conversion
-- [x] `EXE2BIN /?` — usage
 
 #### IFSFUNC
 - [ ] `IFSFUNC` — load IFS driver (smoke test)
-- [x] `IFSFUNC /?` — usage
 
 #### FILESYS
 - [ ] `FILESYS` — load (smoke test, internal tool)
-- [x] `FILESYS /?` — usage
-
-## ~~Add /? Usage Strings~~ — done (all external CMD tools)
-
