@@ -48,26 +48,14 @@ jobs:
         run: make deploy
         timeout-minutes: 5
 
-      - name: Verify headless boot (make verify)
-        run: make verify
-        timeout-minutes: 5
-
       - name: SYS e2e test (make test-sys)
         run: make test-sys
         timeout-minutes: 10
 
-      - name: Built-in commands e2e test (make test-builtins)
+      - name: Built-in + FIND e2e tests (make test-builtins)
         run: make test-builtins
         timeout-minutes: 5
 
-      - name: EXEPACK verification (make test-exepack)
-        run: make test-exepack
-        timeout-minutes: 5
-
-      - name: External CMD tool functional tests on real DOS (make test-tools-qemu)
-        run: make test-tools-qemu
-        timeout-minutes: 5
-
-      - name: External CMD /? help on real DOS (make test-help-qemu)
+      - name: External CMD /? help + EXEPACK tests (make test-help-qemu)
         run: make test-help-qemu
         timeout-minutes: 5
