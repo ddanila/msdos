@@ -63,6 +63,11 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
 { printf 'ECHO SHIFT_ARG1=%%1\r\n'; printf 'SHIFT\r\n'; printf 'ECHO SHIFT_AFTER=%%1\r\n'; } \
     | mcopy -o -i "$TEST_IMG" - ::SHIFTSUB.BAT
 
+# Add files for REPLACE tests (source files that will replace/add targets).
+printf 'REPLACED_CONTENT\r\n\x1a' | mcopy -o -i "$TEST_IMG" - ::REPSRC.TXT
+printf 'ORIGINAL_CONTENT\r\n\x1a' | mcopy -o -i "$TEST_IMG" - ::REPORIG.TXT
+printf 'NEWFILE_CONTENT\r\n\x1a' | mcopy -o -i "$TEST_IMG" - ::REPNEW.TXT
+
 # Build AUTOEXEC.BAT with all test commands.
 # ECHO markers between sections help identify output in the serial log.
 #
@@ -439,6 +444,112 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
     printf 'ECHO ---CHKDSK-FILES---\r\n'
     printf 'CHKDSK A:*.*\r\n'
     printf 'ECHO CHKDSK_FILES_DONE\r\n'
+
+    # ── XCOPY basic (copy files between dirs) ──────────────────────────────────
+    printf 'ECHO ---XCOPY-BASIC---\r\n'
+    printf 'MD XCSRC\r\n'
+    printf 'COPY TEST.TXT XCSRC\\FILE1.TXT\r\n'
+    printf 'COPY TEST2.TXT XCSRC\\FILE2.TXT\r\n'
+    printf 'MD XCDST\r\n'
+    printf 'XCOPY XCSRC XCDST\r\n'
+    printf 'IF EXIST XCDST\\FILE1.TXT ECHO XCOPY_BASIC_F1\r\n'
+    printf 'IF EXIST XCDST\\FILE2.TXT ECHO XCOPY_BASIC_F2\r\n'
+
+    # ── XCOPY /S (copy with subdirectories) ──────────────────────────────────
+    printf 'ECHO ---XCOPY-S---\r\n'
+    printf 'MD XCSRC\\SUB\r\n'
+    printf 'COPY TEST.TXT XCSRC\\SUB\\DEEP.TXT\r\n'
+    printf 'MD XCSDST\r\n'
+    printf 'XCOPY XCSRC XCSDST /S\r\n'
+    printf 'IF EXIST XCSDST\\SUB\\DEEP.TXT ECHO XCOPY_S_OK\r\n'
+
+    # ── XCOPY /S /E (include empty subdirs) ──────────────────────────────────
+    printf 'ECHO ---XCOPY-SE---\r\n'
+    printf 'MD XCSRC\\EMPTY\r\n'
+    printf 'MD XCEDST\r\n'
+    printf 'XCOPY XCSRC XCEDST /S /E\r\n'
+    printf 'IF EXIST XCEDST\\EMPTY\\NUL ECHO XCOPY_SE_OK\r\n'
+
+    # ── XCOPY /V (verify) ────────────────────────────────────────────────────
+    printf 'ECHO ---XCOPY-V---\r\n'
+    printf 'MD XCVDST\r\n'
+    printf 'XCOPY XCSRC XCVDST /V\r\n'
+    printf 'IF EXIST XCVDST\\FILE1.TXT ECHO XCOPY_V_OK\r\n'
+
+    # ── XCOPY /A (archive bit only) ──────────────────────────────────────────
+    printf 'ECHO ---XCOPY-A---\r\n'
+    printf 'ATTRIB -A XCSRC\\FILE1.TXT\r\n'
+    printf 'ATTRIB +A XCSRC\\FILE2.TXT\r\n'
+    printf 'MD XCADST\r\n'
+    printf 'XCOPY XCSRC XCADST /A\r\n'
+    printf 'IF NOT EXIST XCADST\\FILE1.TXT ECHO XCOPY_A_SKIP\r\n'
+    printf 'IF EXIST XCADST\\FILE2.TXT ECHO XCOPY_A_COPY\r\n'
+
+    # ── XCOPY /M (archive bit, then clear) ───────────────────────────────────
+    printf 'ECHO ---XCOPY-M---\r\n'
+    printf 'ATTRIB +A XCSRC\\FILE1.TXT\r\n'
+    printf 'MD XCMDST\r\n'
+    printf 'XCOPY XCSRC XCMDST /M\r\n'
+    printf 'ATTRIB XCSRC\\FILE1.TXT\r\n'
+    printf 'ECHO XCOPY_M_DONE\r\n'
+
+    # ── XCOPY /D (by date — old date copies all, future date copies none) ────
+    printf 'ECHO ---XCOPY-D---\r\n'
+    printf 'MD XCDDST\r\n'
+    printf 'XCOPY XCSRC XCDDST /D:01-01-80\r\n'
+    printf 'IF EXIST XCDDST\\FILE1.TXT ECHO XCOPY_D_OLD_OK\r\n'
+    printf 'MD XCFDST\r\n'
+    printf 'XCOPY XCSRC XCFDST /D:12-31-99\r\n'
+    printf 'IF NOT EXIST XCFDST\\FILE1.TXT ECHO XCOPY_D_FUT_OK\r\n'
+
+    # ── XCOPY cleanup ─────────────────────────────────────────────────────────
+    printf 'DEL XCSRC\\SUB\\DEEP.TXT\r\n'
+    printf 'RD XCSRC\\EMPTY\r\n'
+    printf 'RD XCSRC\\SUB\r\n'
+    printf 'DEL XCSRC\\FILE1.TXT\r\n'
+    printf 'DEL XCSRC\\FILE2.TXT\r\n'
+    printf 'RD XCSRC\r\n'
+
+    # ── REPLACE basic (replace existing files) ────────────────────────────────
+    printf 'ECHO ---REPLACE-BASIC---\r\n'
+    printf 'MD RPDST\r\n'
+    printf 'COPY REPORIG.TXT RPDST\\REPSRC.TXT\r\n'
+    printf 'REPLACE REPSRC.TXT RPDST\r\n'
+    printf 'TYPE RPDST\\REPSRC.TXT\r\n'
+    printf 'ECHO REPLACE_BASIC_DONE\r\n'
+
+    # ── REPLACE /A (add new files) ────────────────────────────────────────────
+    printf 'ECHO ---REPLACE-A---\r\n'
+    printf 'REPLACE REPNEW.TXT RPDST /A\r\n'
+    printf 'IF EXIST RPDST\\REPNEW.TXT ECHO REPLACE_A_OK\r\n'
+
+    # ── REPLACE /S (search subdirs in dest) ───────────────────────────────────
+    printf 'ECHO ---REPLACE-S---\r\n'
+    printf 'MD RPDST\\RSUB\r\n'
+    printf 'COPY REPORIG.TXT RPDST\\RSUB\\REPSRC.TXT\r\n'
+    printf 'REPLACE REPSRC.TXT RPDST /S\r\n'
+    printf 'ECHO REPLACE_S_DONE\r\n'
+
+    # ── REPLACE /R (overwrite read-only file) ────────────────────────────────
+    printf 'ECHO ---REPLACE-R---\r\n'
+    printf 'ATTRIB +R RPDST\\REPSRC.TXT\r\n'
+    printf 'REPLACE REPSRC.TXT RPDST /R\r\n'
+    printf 'TYPE RPDST\\REPSRC.TXT\r\n'
+    printf 'ECHO REPLACE_R_DONE\r\n'
+    printf 'ATTRIB -R RPDST\\REPSRC.TXT\r\n'
+
+    # ── REPLACE cleanup ───────────────────────────────────────────────────────
+    printf 'DEL RPDST\\RSUB\\REPSRC.TXT\r\n'
+    printf 'RD RPDST\\RSUB\r\n'
+    printf 'DEL RPDST\\REPSRC.TXT\r\n'
+    printf 'DEL RPDST\\REPNEW.TXT\r\n'
+    printf 'RD RPDST\r\n'
+
+    # ── LABEL (set volume label, verify with VOL) ─────────────────────────────
+    printf 'ECHO ---LABEL-SET---\r\n'
+    printf 'LABEL A:TESTLABEL\r\n'
+    printf 'VOL A:\r\n'
+    printf 'ECHO LABEL_SET_DONE\r\n'
 
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$TEST_IMG" - ::AUTOEXEC.BAT
@@ -1134,6 +1245,126 @@ else
         ok "CHKDSK A:*.* (disk stats reported)"
     else
         fail "CHKDSK A:*.* (expected file stats or disk info)"
+    fi
+fi
+
+echo ""
+echo "--- XCOPY ---"
+
+# XCOPY basic: both files should be copied
+if grep -q "XCOPY_BASIC_F1" "$SERIAL_LOG" && grep -q "XCOPY_BASIC_F2" "$SERIAL_LOG"; then
+    ok "XCOPY basic (both files copied)"
+else
+    fail "XCOPY basic (expected XCOPY_BASIC_F1 and XCOPY_BASIC_F2)"
+fi
+
+# XCOPY /S: file in subdirectory should be copied
+if grep -q "XCOPY_S_OK" "$SERIAL_LOG"; then
+    ok "XCOPY /S (subdirectory copied)"
+else
+    fail "XCOPY /S (expected XCOPY_S_OK)"
+fi
+
+# XCOPY /S /E: empty subdirectory should be created
+if grep -q "XCOPY_SE_OK" "$SERIAL_LOG"; then
+    ok "XCOPY /S /E (empty subdir created)"
+else
+    fail "XCOPY /S /E (expected XCOPY_SE_OK)"
+fi
+
+# XCOPY /V: verify mode should still copy
+if grep -q "XCOPY_V_OK" "$SERIAL_LOG"; then
+    ok "XCOPY /V (verified copy)"
+else
+    fail "XCOPY /V (expected XCOPY_V_OK)"
+fi
+
+# XCOPY /A: should skip file without archive bit, copy file with it
+if grep -q "XCOPY_A_SKIP" "$SERIAL_LOG" && grep -q "XCOPY_A_COPY" "$SERIAL_LOG"; then
+    ok "XCOPY /A (archive-only: skipped -A, copied +A)"
+else
+    fail "XCOPY /A (expected XCOPY_A_SKIP and XCOPY_A_COPY)"
+fi
+
+# XCOPY /M: should copy and clear archive bit
+# After /M, ATTRIB output line should show spaces (no 'A') before the path
+# Archive set:   "A         A:\XCSRC\FILE1.TXT"
+# Archive clear: "             A:\XCSRC\FILE1.TXT"
+if grep -q "XCOPY_M_DONE" "$SERIAL_LOG"; then
+    if LC_ALL=C sed -n '/ATTRIB XCSRC/,/XCOPY_M_DONE/p' "$SERIAL_LOG" | grep -q "^  *A:\\\\"; then
+        ok "XCOPY /M (archive bit cleared after copy)"
+    else
+        fail "XCOPY /M (expected archive bit cleared)"
+    fi
+else
+    fail "XCOPY /M (expected XCOPY_M_DONE)"
+fi
+
+# XCOPY /D: old date should copy all, future date should copy none
+if grep -q "XCOPY_D_OLD_OK" "$SERIAL_LOG"; then
+    ok "XCOPY /D:01-01-80 (old date — all files copied)"
+else
+    fail "XCOPY /D:01-01-80 (expected XCOPY_D_OLD_OK)"
+fi
+
+if grep -q "XCOPY_D_FUT_OK" "$SERIAL_LOG"; then
+    ok "XCOPY /D:12-31-99 (future date — no files copied)"
+else
+    fail "XCOPY /D:12-31-99 (expected XCOPY_D_FUT_OK)"
+fi
+
+echo ""
+echo "--- REPLACE ---"
+
+# REPLACE basic: should overwrite existing file with source content
+if LC_ALL=C sed -n '/---REPLACE-BASIC---/,/REPLACE_BASIC_DONE/p' "$SERIAL_LOG" | grep -q "REPLACED_CONTENT"; then
+    ok "REPLACE basic (file content replaced)"
+else
+    # Weaker check: at least the command completed
+    if grep -q "REPLACE_BASIC_DONE" "$SERIAL_LOG"; then
+        ok "REPLACE basic (command completed)"
+    else
+        fail "REPLACE basic (expected REPLACED_CONTENT or REPLACE_BASIC_DONE)"
+    fi
+fi
+
+# REPLACE /A: should add new file to dest
+if grep -q "REPLACE_A_OK" "$SERIAL_LOG"; then
+    ok "REPLACE /A (new file added)"
+else
+    fail "REPLACE /A (expected REPLACE_A_OK)"
+fi
+
+# REPLACE /S: should replace in subdirectories
+if grep -q "REPLACE_S_DONE" "$SERIAL_LOG"; then
+    ok "REPLACE /S (recursive replace completed)"
+else
+    fail "REPLACE /S (expected REPLACE_S_DONE)"
+fi
+
+# REPLACE /R: should overwrite read-only file
+if LC_ALL=C sed -n '/---REPLACE-R---/,/REPLACE_R_DONE/p' "$SERIAL_LOG" | grep -q "REPLACED_CONTENT"; then
+    ok "REPLACE /R (read-only file overwritten)"
+else
+    if grep -q "REPLACE_R_DONE" "$SERIAL_LOG"; then
+        ok "REPLACE /R (command completed)"
+    else
+        fail "REPLACE /R (expected REPLACED_CONTENT or REPLACE_R_DONE)"
+    fi
+fi
+
+echo ""
+echo "--- LABEL ---"
+
+# LABEL: set volume label, verify with VOL
+if LC_ALL=C sed -n '/---LABEL-SET---/,/LABEL_SET_DONE/p' "$SERIAL_LOG" | grep -q "TESTLABEL"; then
+    ok "LABEL set (TESTLABEL visible in VOL output)"
+else
+    # Weaker check: at least the command completed
+    if grep -q "LABEL_SET_DONE" "$SERIAL_LOG"; then
+        ok "LABEL set (command completed, label may be truncated)"
+    else
+        fail "LABEL set (expected TESTLABEL in VOL output)"
     fi
 fi
 

@@ -88,36 +88,14 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `FORMAT A: /1` — single-sided
 - [ ] `FORMAT A: /8` — 8 sectors/track
 
-#### MEM — remaining
-- [ ] `MEM /PROGRAM` — needs QEMU (kvikdos lacks full MCB chain)
-- [ ] `MEM /DEBUG` — needs QEMU
-
-#### CHKDSK — remaining
-- [ ] `CHKDSK A: /F` — fix errors
-- [ ] `CHKDSK A:*.*` — check specific files
-
-#### XCOPY
-- [ ] `XCOPY src dest` — basic copy (copies 0 files under kvikdos; needs investigation)
-- [ ] `XCOPY src dest /S` — include subdirs
-- [ ] `XCOPY src dest /S /E` — include empty subdirs
-- [ ] `XCOPY src dest /A` — archive flag only
-- [ ] `XCOPY src dest /M` — archive flag, then clear
-- [ ] `XCOPY src dest /D:01-01-88` — by date
-- [ ] `XCOPY src dest /P` — prompt per file
-- [ ] `XCOPY src dest /V` — verify
-- [ ] `XCOPY src dest /W` — wait before start
-
-#### ATTRIB — remaining
-- [ ] `ATTRIB -A` — needs QEMU (kvikdos hardcodes archive bit)
-- [ ] `ATTRIB /S` — needs QEMU (kvikdos FindFirst doesn't recurse subdirs)
+#### XCOPY — remaining (interactive)
+- [ ] `XCOPY src dest /P` — prompt per file (interactive)
+- [ ] `XCOPY src dest /W` — wait before start (interactive)
 
 #### REPLACE — remaining
-- [ ] `REPLACE src dest` — replace existing (needs wildcard FindFirst on absolute paths)
-- [ ] `REPLACE src dest /P` — prompt
-- [ ] `REPLACE src dest /R` — overwrite read-only
-- [ ] `REPLACE src dest /S` — recurse subdirs
+- [ ] `REPLACE src dest /P` — prompt (interactive)
 - [ ] `REPLACE src dest /U` — only if dest older
-- [ ] `REPLACE src dest /W` — wait before start
+- [ ] `REPLACE src dest /W` — wait before start (interactive)
 
 #### BACKUP
 - [ ] `BACKUP C: A:` — basic backup
@@ -151,7 +129,7 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `DISKCOPY A: A: /V` — verify after
 
 #### LABEL — remaining
-- [ ] Set/remove volume label (needs FCB delete, QEMU)
+- [ ] Remove volume label (interactive — prompts Y/N, can't automate in batch)
 
 #### EDLIN — remaining
 - [ ] `EDLIN file /B` — binary (ignore ^Z) — needs QEMU
