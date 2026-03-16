@@ -308,10 +308,9 @@ CONTINUE:
   smoke tests because the new binaries are missing. Verify with `git ls-tree HEAD MS-DOS`
   and confirm the hash matches the submodule's latest commit before pushing.
 - Workflow: `.github/workflows/ci.yml`, runs on every push/PR to `master`.
-- Runner: `ubuntu-latest` — has `/dev/kvm` but not accessible by default.
-- KVM fix: add udev rule `KERNEL=="kvm", GROUP="kvm", MODE="0666"` before building.
-- Steps: grant KVM → install deps (`gcc nasm python3 qemu-system-x86 mtools`) →
-  build kvikdos → `make` → `make test` → `make deploy` → `make test-sys` → `make test-builtins` → `make test-help-qemu`.
+- Runner: `ubuntu-latest` with pre-built Docker container image (`ghcr.io/<repo>/ci:latest`).
+- KVM fix: `chmod 666 /dev/kvm` in the container.
+- Steps: grant KVM → build kvikdos → `make` → `make test` → `make deploy` → upload floppy artifact → parallel e2e jobs: `test_sys.sh`, `test_builtins.sh`, `test_help_qemu.sh` (includes EXEPACK verification).
 - Free tier: unlimited minutes for public repos on GitHub Actions.
 - kvikdos now builds and runs on macOS via software 8086 CPU backend (XTulator).
   Linux CI uses KVM (unchanged); macOS builds use the same codebase with `#ifdef __linux__` guards.
@@ -388,19 +387,19 @@ Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits ea
 
 ### E2E functional test status (Section 6, kvikdos)
 - **MEM.EXE**: runs, prints correct memory report, exits non-zero (C runtime artifact — ignored).
-- **FIND.EXE**: works with file arguments. Stdin mode unreliable under kvikdos. Full option coverage (basic, /V, /C, /N) tested via QEMU in `test_tools_qemu.sh`.
+- **FIND.EXE**: works with file arguments. Stdin mode unreliable under kvikdos. Full option coverage (basic, /V, /C, /N) tested via QEMU in `test_builtins.sh`.
 - **FC.EXE**: works — all major modes tested (identical, different, /N, /B, /C, /W, /L).
 - **TREE.COM**: works — shows "Directory PATH listing". kvikdos doesn't expose subdirectories via FindFirst/FindNext, so tree is flat. /F mode also tested.
 - **SORT.EXE**: works — sorts stdin lines correctly, /R (reverse) and /+N (column sort) tested. Was blocked by "Insufficient memory" until build was fixed to include `exefix sort.exe 1 1` (sets MAXALLOC=1 so INT 21h/48h malloc has free memory).
 - **COMP.COM**: works — identical files ("Files compare OK") and different files ("different sizes") tested. Uses `timeout 5` with piped `/dev/null` to avoid interactive Y/N loop at EOF.
-- **ATTRIB.EXE**: works — show attributes, +R (set read-only), -R (clear read-only) tested.
+- **ATTRIB.EXE**: works — show attributes, +R (set read-only), -R (clear read-only) tested. +A/-A (archive) cannot be tested under kvikdos — only read-only is mapped to Unix chmod; archive/hidden/system are silently ignored (kvikdos.c INT 21h/43h handler).
 - **MORE.COM**: works — piped stdin pagination tested.
 - **DEBUG.COM**: works — launch+quit (`-` prompt) and register dump (`R` command) tested. Required INT 21h/26h (Create PSP), /50h (Set PSP), INT 01/02/03 whitelist additions.
 - **LABEL.COM**: works — show volume info tested. Write operations need FCB delete (QEMU only).
 - **EDLIN.COM**: works — open existing file + list, open new file tested. Insert mode can't be tested via pipe (Ctrl+C handling). Needs INT 21h/6Ch (Extended Open/Create).
 - **REPLACE.EXE**: /A (add mode) works. Basic replace fails (needs wildcard FindFirst on absolute paths).
 - **XCOPY.EXE**: launches but copies 0 files under kvikdos. No-args error message tested.
-- **GRAFTABL.COM**: /STATUS works — prints "Active Code Page: None".
+- **GRAFTABL.COM**: /STATUS, 437, 850 all work. /STATUS prints "Active Code Page: None"; 437/850 load the code page and print "Active Code Page: NNN" (crashes after on INT 1F set-vector, but output is correct on stdout).
 - **SUBST.EXE**: no-args (list substitutions) works — silent exit 0.
 - **JOIN.EXE**: no-args (list joins) works — silent exit 0.
 - **ASSIGN.COM**: /STATUS works — silent exit 0. No-args (clear assignments) is TSR operation, fails.

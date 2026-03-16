@@ -3,7 +3,7 @@
 ## Done
 
 - ~~COMMAND /?~~ — added to `INIT.ASM`
-- ~~E2E functional tests (kvikdos)~~ — 165 tests in `run_tests.sh` (artifacts, checksums, /? help, functional: MEM, FIND, FC, TREE, SORT, COMP, ATTRIB, MORE, DEBUG, LABEL, EDLIN, REPLACE, XCOPY, GRAFTABL, SUBST, JOIN, ASSIGN)
+- ~~E2E functional tests (kvikdos)~~ — 167 tests in `run_tests.sh` (artifacts, checksums, /? help, functional: MEM, FIND, FC, TREE, SORT, COMP, ATTRIB, MORE, DEBUG, LABEL, EDLIN, REPLACE, XCOPY, GRAFTABL 437/850/STATUS, SUBST, JOIN, ASSIGN)
 - ~~E2E functional tests (QEMU, built-ins + FIND)~~ — 51 tests in `test_builtins.sh` (built-in commands + FIND functional: basic, /C, /N, /V, case-sensitivity, errorlevel)
 - ~~CI golden checksums~~ — dropped (not worth maintenance)
 - ~~CHKDSK /?~~ — added
@@ -248,8 +248,8 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [x] `NLSFUNC /?` — usage
 
 #### GRAFTABL
-- [ ] `GRAFTABL 437` — load code page 437
-- [ ] `GRAFTABL 850` — load code page 850
+- [x] `GRAFTABL 437` — load code page 437
+- [x] `GRAFTABL 850` — load code page 850
 - [x] `GRAFTABL /STATUS` — show current
 - [x] `GRAFTABL /?` — usage
 
