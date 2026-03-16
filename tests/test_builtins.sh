@@ -153,13 +153,17 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
     # ── BREAK ON/OFF toggle ───────────────────────────────────────────────────
     printf 'ECHO ---BREAK-TOGGLE---\r\n'
     printf 'BREAK ON\r\n'
+    printf 'BREAK\r\n'
     printf 'BREAK OFF\r\n'
+    printf 'BREAK\r\n'
     printf 'ECHO BREAK_TOGGLE_OK\r\n'
 
     # ── VERIFY ON/OFF toggle ──────────────────────────────────────────────────
     printf 'ECHO ---VERIFY-TOGGLE---\r\n'
     printf 'VERIFY ON\r\n'
+    printf 'VERIFY\r\n'
     printf 'VERIFY OFF\r\n'
+    printf 'VERIFY\r\n'
     printf 'ECHO VERIFY_TOGGLE_OK\r\n'
 
     # ── ECHO ON / OFF / ECHO. ─────────────────────────────────────────────────
@@ -192,7 +196,10 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
     printf 'ECHO ---SET-FORMS---\r\n'
     printf 'SET SETVAR=ORIGINAL\r\n'
     printf 'SET SETVAR=UPDATED\r\n'
+    printf 'SET\r\n'
     printf 'SET SETVAR=\r\n'
+    printf 'ECHO ---SET-AFTER-CLEAR---\r\n'
+    printf 'SET\r\n'
     printf 'ECHO SET_FORMS_OK\r\n'
 
     # ── MD already-exists (should print error but batch continues) ────────────
@@ -445,16 +452,28 @@ fi
 echo ""
 echo "--- BREAK/VERIFY toggles ---"
 
-if grep -q "BREAK_TOGGLE_OK" "$SERIAL_LOG"; then
-    ok "BREAK ON/OFF toggle"
+if grep -q "BREAK is on" "$SERIAL_LOG"; then
+    ok "BREAK ON (state confirmed)"
 else
-    fail "BREAK ON/OFF toggle (expected 'BREAK_TOGGLE_OK')"
+    fail "BREAK ON (expected 'BREAK is on')"
 fi
 
-if grep -q "VERIFY_TOGGLE_OK" "$SERIAL_LOG"; then
-    ok "VERIFY ON/OFF toggle"
+if grep -q "BREAK is off" "$SERIAL_LOG"; then
+    ok "BREAK OFF (state confirmed)"
 else
-    fail "VERIFY ON/OFF toggle (expected 'VERIFY_TOGGLE_OK')"
+    fail "BREAK OFF (expected 'BREAK is off')"
+fi
+
+if grep -q "VERIFY is on" "$SERIAL_LOG"; then
+    ok "VERIFY ON (state confirmed)"
+else
+    fail "VERIFY ON (expected 'VERIFY is on')"
+fi
+
+if grep -q "VERIFY is off" "$SERIAL_LOG"; then
+    ok "VERIFY OFF (state confirmed)"
+else
+    fail "VERIFY OFF (expected 'VERIFY is off')"
 fi
 
 echo ""
@@ -490,10 +509,11 @@ fi
 echo ""
 echo "--- DIR /W ---"
 
-if grep -q "DIR_W_OK" "$SERIAL_LOG"; then
-    ok "DIR /W"
+# DIR /W shows multiple filenames per line (space-separated, no dots: "COMMAND  COM    SYS      COM")
+if sed -n '/---DIR-W---/,/DIR_W_OK/p' "$SERIAL_LOG" | grep -q "COM.*COM\|EXE.*EXE\|COM.*EXE\|EXE.*COM"; then
+    ok "DIR /W (wide format, multiple names per line)"
 else
-    fail "DIR /W (expected 'DIR_W_OK')"
+    fail "DIR /W (expected multiple filenames on one line)"
 fi
 
 echo ""
@@ -505,19 +525,25 @@ else
     fail "PATH set (expected 'A:\\DOS' in PATH output)"
 fi
 
-if grep -q "PATH_FORMS_OK" "$SERIAL_LOG"; then
-    ok "PATH set/clear (batch continues)"
+if grep -q "No Path" "$SERIAL_LOG"; then
+    ok "PATH clear (No Path after PATH ;)"
 else
-    fail "PATH set/clear (expected 'PATH_FORMS_OK')"
+    fail "PATH clear (expected 'No Path' after PATH ;)"
 fi
 
 echo ""
 echo "--- SET forms ---"
 
-if grep -q "SET_FORMS_OK" "$SERIAL_LOG"; then
-    ok "SET overwrite + clear (batch continues)"
+if sed -n '/---SET-FORMS---/,/---SET-AFTER-CLEAR---/p' "$SERIAL_LOG" | grep -q "SETVAR=UPDATED"; then
+    ok "SET overwrite (SETVAR=UPDATED in SET dump)"
 else
-    fail "SET overwrite/clear (expected 'SET_FORMS_OK')"
+    fail "SET overwrite (expected 'SETVAR=UPDATED' in SET output)"
+fi
+
+if sed -n '/---SET-AFTER-CLEAR---/,/SET_FORMS_OK/p' "$SERIAL_LOG" | grep -q "SETVAR="; then
+    fail "SET clear (SETVAR still present after SET SETVAR=)"
+else
+    ok "SET clear (SETVAR absent after SET SETVAR=)"
 fi
 
 echo ""
