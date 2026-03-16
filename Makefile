@@ -329,8 +329,11 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
 	mcopy -i $@ $(IO_SYS) ::IO.SYS
 	mcopy -i $@ $(MSDOS_SYS) ::MSDOS.SYS
 	mcopy -i $@ $(COMMAND_COM) ::COMMAND.COM
-	mattrib +h +s +r -i $@ ::IO.SYS
-	mattrib +h +s +r -i $@ ::MSDOS.SYS
+	# mattrib -i is broken in mtools >=4.0.49; use MTOOLSRC drive mapping
+	echo 'drive a: file="$@"' > $(OUT)/.mtoolsrc
+	MTOOLSRC=$(OUT)/.mtoolsrc mattrib +h +s +r a:/IO.SYS
+	MTOOLSRC=$(OUT)/.mtoolsrc mattrib +h +s +r a:/MSDOS.SYS
+	rm -f $(OUT)/.mtoolsrc
 	mcopy -i $@ $(SYS_COM) ::SYS.COM
 	mcopy -i $@ $(FORMAT_COM) ::FORMAT.COM
 	mcopy -i $@ $(CHKDSK_COM) ::CHKDSK.COM
