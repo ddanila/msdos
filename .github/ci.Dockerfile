@@ -2,6 +2,8 @@ FROM ubuntu:24.04
 
 RUN apt-get update -q \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      ca-certificates \
+      git \
       gcc \
       libc6-dev \
       make \
