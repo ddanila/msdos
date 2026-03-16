@@ -410,6 +410,35 @@ correct help text — both C-based tools (argv pattern) and ASM-based tools (PSP
 work identically under real DOS and kvikdos. Skipped: TSRs (NLSFUNC, SHARE, APPEND,
 PRINT, GRAPHICS, FASTOPEN), interactive (DEBUG, EDLIN), filters (MORE, SORT).
 
+## BACKUP / RESTORE Interactive Prompts
+
+BACKUP.COM has `display_it(..., WAIT)` calls (not `wait_for_keystroke()`) embedded
+in the `display_msg()` switch for these message codes:
+
+| Message | Condition | Waits? |
+|---------|-----------|--------|
+| INSERTSOURCE (msg 25) | source is a floppy | always — 1 wait |
+| INSERTTARGET (msg 26) | target used, not /A | 1 wait |
+| ERASEMSG (msg 20) | target used, not /A | 1 wait |
+| LASTDISKMSG (msg 28) | /A first target | 1 wait |
+| FERASEMSG (msg 21) | hardfile target has existing backup | 1 wait |
+
+Total keypresses per BACKUP call to a floppy target:
+- Normal (not /A): 3 (INSERTSOURCE + INSERTTARGET + ERASEMSG)
+- /A first disk: 2 (INSERTSOURCE + LASTDISKMSG)
+- No files found: 1 (INSERTSOURCE only — `get_diskette()` never called)
+
+`format_target()` in `get_diskette()` calls FORMAT.COM only if `disk_free_space()`
+fails (unformatted disk). A mformatted B: passes the check → no FORMAT spawned.
+
+**Test approach:** feed continuous `\r\n` through `-serial stdio` via a subshell
+(`while true; do sleep 0.2; printf '\r\n'; done`). COMMAND.COM reads batch
+commands from the .BAT file (not stdin), so extra buffered newlines are harmless.
+
+RESTORE single-disk is prompt-free (`NO_RESPTYPE` on all messages except the
+multi-disk case at RTDO.C:358 which requires `ANY_KEY_RESPTYPE` — only triggered
+when multiple backup diskettes must be swapped, not needed for single-disk tests).
+
 ## EXEPACK A20 Gate Bug
 
 **Symptom:** "Packed file is corrupt" on real DOS hardware / QEMU when running tools
