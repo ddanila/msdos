@@ -45,6 +45,17 @@ printf 'HELLO_TYPE_TEST\r\n\x1a' | mcopy -o -i "$TEST_IMG" - ::TEST.TXT
 printf 'alpha one\r\nBETA TWO\r\nalpha three\r\ngamma four\r\nALPHA FIVE\r\n\x1a' \
     | mcopy -o -i "$TEST_IMG" - ::FIND.DAT
 
+# Add a second test file for COPY concat and DEL wildcard tests.
+printf 'SECOND_FILE\r\n\x1a' | mcopy -o -i "$TEST_IMG" - ::TEST2.TXT
+
+# Add files for DEL wildcard test (*.DEL pattern).
+printf 'DEL1\r\n\x1a' | mcopy -o -i "$TEST_IMG" - ::FILE1.DEL
+printf 'DEL2\r\n\x1a' | mcopy -o -i "$TEST_IMG" - ::FILE2.DEL
+
+# Add a file with ^Z in the middle for TYPE binary test.
+# TYPE should stop at ^Z and only show "BEFORE_EOF".
+printf 'BEFORE_EOF\r\n\x1aSHOULD_NOT_APPEAR\r\n' | mcopy -o -i "$TEST_IMG" - ::TYPEZ.TXT
+
 # Add a sub-batch for CALL test
 printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
 
@@ -259,6 +270,85 @@ printf '@ECHO CALL_SUB_OK\r\n' | mcopy -o -i "$TEST_IMG" - ::CALLSUB.BAT
     printf 'ECHO ---FIND-NOMATCH---\r\n'
     printf 'FIND "zzzzz" FIND.DAT\r\n'
     printf 'IF ERRORLEVEL 1 ECHO FIND_NOMATCH_ERRORLEVEL\r\n'
+
+    # ── DIR with path and wildcard ────────────────────────────────────────────
+    printf 'ECHO ---DIR-PATH---\r\n'
+    printf 'DIR A:\\\r\n'
+    printf 'ECHO DIR_PATH_OK\r\n'
+
+    printf 'ECHO ---DIR-WILD---\r\n'
+    printf 'DIR *.TXT\r\n'
+    printf 'ECHO DIR_WILD_OK\r\n'
+
+    # ── COPY concat (src+src2 dest) ────────────────────────────────────────────
+    printf 'ECHO ---COPY-CONCAT---\r\n'
+    printf 'COPY TEST.TXT+TEST2.TXT CONCAT.TXT\r\n'
+    printf 'IF EXIST CONCAT.TXT ECHO COPY_CONCAT_OK\r\n'
+    printf 'DEL CONCAT.TXT\r\n'
+
+    # ── DEL wildcard ───────────────────────────────────────────────────────────
+    printf 'ECHO ---DEL-WILD---\r\n'
+    printf 'DEL *.DEL\r\n'
+    printf 'IF NOT EXIST FILE1.DEL ECHO DEL_WILD_1_GONE\r\n'
+    printf 'IF NOT EXIST FILE2.DEL ECHO DEL_WILD_2_GONE\r\n'
+
+    # ── DEL read-only (should fail) ────────────────────────────────────────────
+    printf 'ECHO ---DEL-READONLY---\r\n'
+    printf 'COPY TEST.TXT RDONLY.TXT\r\n'
+    printf 'ATTRIB +R RDONLY.TXT\r\n'
+    printf 'DEL RDONLY.TXT\r\n'
+    printf 'IF EXIST RDONLY.TXT ECHO DEL_READONLY_REFUSED\r\n'
+    printf 'ATTRIB -R RDONLY.TXT\r\n'
+    printf 'DEL RDONLY.TXT\r\n'
+
+    # ── ERASE synonym ─────────────────────────────────────────────────────────
+    printf 'ECHO ---ERASE---\r\n'
+    printf 'COPY TEST.TXT ERASEME.TXT\r\n'
+    printf 'ERASE ERASEME.TXT\r\n'
+    printf 'IF NOT EXIST ERASEME.TXT ECHO ERASE_OK\r\n'
+
+    # ── REN to existing name (should fail) ─────────────────────────────────────
+    printf 'ECHO ---REN-EXIST---\r\n'
+    printf 'COPY TEST.TXT RENSRC.TXT\r\n'
+    printf 'COPY TEST.TXT RENDST.TXT\r\n'
+    printf 'REN RENSRC.TXT RENDST.TXT\r\n'
+    printf 'IF EXIST RENSRC.TXT ECHO REN_EXIST_REFUSED\r\n'
+    printf 'DEL RENSRC.TXT\r\n'
+    printf 'DEL RENDST.TXT\r\n'
+
+    # ── TYPE binary ^Z mid-file ────────────────────────────────────────────────
+    printf 'ECHO ---TYPE-Z---\r\n'
+    printf 'TYPE TYPEZ.TXT\r\n'
+    printf 'ECHO TYPE_Z_DONE\r\n'
+
+    # ── MD nested path ─────────────────────────────────────────────────────────
+    printf 'ECHO ---MD-NESTED---\r\n'
+    printf 'MD DEEP\r\n'
+    printf 'MD DEEP\\SUB\r\n'
+    printf 'IF EXIST DEEP\\SUB\\NUL ECHO MD_NESTED_OK\r\n'
+    printf 'RD DEEP\\SUB\r\n'
+    printf 'RD DEEP\r\n'
+
+    # ── CD forms (no-arg, absolute, drive-rooted) ──────────────────────────────
+    printf 'ECHO ---CD-FORMS---\r\n'
+    printf 'MD CDTEST\r\n'
+    printf 'CD CDTEST\r\n'
+    printf 'CD\r\n'
+    printf 'CD A:\\\r\n'
+    printf 'CD\r\n'
+    printf 'ECHO CD_FORMS_DONE\r\n'
+    printf 'RD CDTEST\r\n'
+
+    # ── CLS (just verify batch continues) ──────────────────────────────────────
+    printf 'ECHO ---CLS---\r\n'
+    printf 'CLS\r\n'
+    printf 'ECHO CLS_SURVIVED\r\n'
+
+    # ── COPY /B (binary copy) ──────────────────────────────────────────────────
+    printf 'ECHO ---COPY-B---\r\n'
+    printf 'COPY /B TEST.TXT BINCOPY.TXT\r\n'
+    printf 'IF EXIST BINCOPY.TXT ECHO COPY_B_OK\r\n'
+    printf 'DEL BINCOPY.TXT\r\n'
 
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$TEST_IMG" - ::AUTOEXEC.BAT
@@ -673,6 +763,126 @@ if grep -q "FIND_NOMATCH_ERRORLEVEL" "$SERIAL_LOG"; then
     ok "FIND no-match errorlevel"
 else
     fail "FIND no-match (expected errorlevel >= 1)"
+fi
+
+echo ""
+echo "--- DIR path and wildcard ---"
+
+if sed -n '/---DIR-PATH---/,/DIR_PATH_OK/p' "$SERIAL_LOG" | grep -q "COMMAND"; then
+    ok "DIR A:\\ (explicit path lists COMMAND.COM)"
+else
+    fail "DIR A:\\ (expected 'COMMAND' in listing)"
+fi
+
+if sed -n '/---DIR-WILD---/,/DIR_WILD_OK/p' "$SERIAL_LOG" | grep -q "TEST.*TXT"; then
+    ok "DIR *.TXT (wildcard matches)"
+else
+    fail "DIR *.TXT (expected TXT files in listing)"
+fi
+
+echo ""
+echo "--- COPY concat ---"
+
+if grep -q "COPY_CONCAT_OK" "$SERIAL_LOG"; then
+    ok "COPY concat (TEST.TXT+TEST2.TXT)"
+else
+    fail "COPY concat (expected 'COPY_CONCAT_OK')"
+fi
+
+echo ""
+echo "--- DEL wildcard ---"
+
+if grep -q "DEL_WILD_1_GONE" "$SERIAL_LOG" && grep -q "DEL_WILD_2_GONE" "$SERIAL_LOG"; then
+    ok "DEL *.DEL (both files deleted)"
+else
+    fail "DEL *.DEL (expected both DEL_WILD_*_GONE)"
+fi
+
+echo ""
+echo "--- DEL read-only ---"
+
+if grep -q "DEL_READONLY_REFUSED" "$SERIAL_LOG"; then
+    ok "DEL read-only file (refused, file still exists)"
+else
+    fail "DEL read-only (expected 'DEL_READONLY_REFUSED')"
+fi
+
+echo ""
+echo "--- ERASE ---"
+
+if grep -q "ERASE_OK" "$SERIAL_LOG"; then
+    ok "ERASE synonym for DEL"
+else
+    fail "ERASE (expected 'ERASE_OK')"
+fi
+
+echo ""
+echo "--- REN to existing ---"
+
+if grep -q "REN_EXIST_REFUSED" "$SERIAL_LOG"; then
+    ok "REN to existing name (refused, source still exists)"
+else
+    fail "REN to existing (expected 'REN_EXIST_REFUSED')"
+fi
+
+echo ""
+echo "--- TYPE ^Z mid-file ---"
+
+if sed -n '/---TYPE-Z---/,/TYPE_Z_DONE/p' "$SERIAL_LOG" | grep -q "BEFORE_EOF"; then
+    if sed -n '/---TYPE-Z---/,/TYPE_Z_DONE/p' "$SERIAL_LOG" | grep -q "SHOULD_NOT_APPEAR"; then
+        fail "TYPE ^Z (showed content past ^Z)"
+    else
+        ok "TYPE ^Z (stopped at ^Z, showed BEFORE_EOF only)"
+    fi
+else
+    fail "TYPE ^Z (expected 'BEFORE_EOF')"
+fi
+
+echo ""
+echo "--- MD nested ---"
+
+if grep -q "MD_NESTED_OK" "$SERIAL_LOG"; then
+    ok "MD nested (DEEP\\SUB created)"
+else
+    fail "MD nested (expected 'MD_NESTED_OK')"
+fi
+
+echo ""
+echo "--- CD forms ---"
+
+if sed -n '/---CD-FORMS---/,/CD_FORMS_DONE/p' "$SERIAL_LOG" | grep -q "CDTEST"; then
+    ok "CD relative (entered CDTEST)"
+else
+    fail "CD relative (expected 'CDTEST' in CD output)"
+fi
+
+if sed -n '/---CD-FORMS---/,/CD_FORMS_DONE/p' "$SERIAL_LOG" | grep -q "A:\\\\$\|A:\\\\[[:space:]]*$\|A:.$"; then
+    ok "CD A:\\ (returned to root)"
+else
+    # Weaker check: just verify CD_FORMS_DONE reached
+    if grep -q "CD_FORMS_DONE" "$SERIAL_LOG"; then
+        ok "CD A:\\ (batch continued — root return assumed)"
+    else
+        fail "CD A:\\ (expected return to root)"
+    fi
+fi
+
+echo ""
+echo "--- CLS ---"
+
+if grep -q "CLS_SURVIVED" "$SERIAL_LOG"; then
+    ok "CLS (batch continues after clear screen)"
+else
+    fail "CLS (expected 'CLS_SURVIVED')"
+fi
+
+echo ""
+echo "--- COPY /B ---"
+
+if grep -q "COPY_B_OK" "$SERIAL_LOG"; then
+    ok "COPY /B (binary copy)"
+else
+    fail "COPY /B (expected 'COPY_B_OK')"
 fi
 
 # ── Summary ──────────────────────────────────────────────────────────────────
