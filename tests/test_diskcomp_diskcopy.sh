@@ -32,6 +32,9 @@
 #   2 = Ctrl-Break. Compare errors do NOT set non-zero errorlevel.
 #   "Compare OK" vs "Compare error on" in output is the test oracle.
 #
+# Tests: DISKCOPY A: B: (full copy), DISKCOMP A: B: (match + mismatch),
+#        DISKCOPY A: B: /1 (single-sided), DISKCOPY A: B: /V (parse error — unimplemented)
+#
 # Run via: make test-diskcomp-diskcopy  (requires 'make deploy' first)
 
 set -uo pipefail
@@ -91,6 +94,21 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'ECHO ---DISKCOMP-DIFF---\r\n'
     printf 'DISKCOMP A: B:\r\n'
     printf 'ECHO DISKCOMP_DIFF_DONE\r\n'
+
+    # ── DISKCOPY A: B: /1 — single-sided copy ─────────────────────────────────
+    # /1 sets NO_OF_SIDES=0 → MSG_SIDES=1 → "Sectors/Track, 1 Side(s)" in output.
+    # Prompts: PRESS_ANY_KEY (1 char) + COPY_ANOTHER (Y/N = 'N'). Same as normal.
+    printf 'ECHO ---DISKCOPY-1---\r\n'
+    printf 'DISKCOPY A: B: /1\r\n'
+    printf 'ECHO DISKCOPY_1_DONE\r\n'
+
+    # ── DISKCOPY A: B: /V — /V is not implemented ─────────────────────────────
+    # DCOPYPAR.ASM only defines the /1 switch; /V is in the help text but the
+    # parser (SYSPARSE) rejects it as an unknown switch → "Invalid switch - /V".
+    # No interactive prompts — the tool exits immediately at parse time.
+    printf 'ECHO ---DISKCOPY-V---\r\n'
+    printf 'DISKCOPY A: B: /V\r\n'
+    printf 'ECHO DISKCOPY_V_DONE\r\n'
 
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
@@ -184,6 +202,38 @@ if grep -q "DISKCOMP_DIFF_DONE" "$SERIAL_LOG"; then
     ok "DISKCOMP A: B: mismatch (batch continued)"
 else
     fail "DISKCOMP A: B: mismatch (batch hung or crashed)"
+fi
+
+echo ""
+echo "--- DISKCOPY /1 tests ---"
+
+# "1 Side(s)" — /1 sets NO_OF_SIDES=0 → MSG_SIDES=1 → printed in Copying message
+if grep -qi "1 Side(s)" "$SERIAL_LOG"; then
+    ok "DISKCOPY A: B: /1 (single-sided copy: '1 Side(s)' in output)"
+else
+    fail "DISKCOPY A: B: /1 (expected '1 Side(s)' in Copying message)"
+fi
+
+if grep -q "DISKCOPY_1_DONE" "$SERIAL_LOG"; then
+    ok "DISKCOPY A: B: /1 (batch continued)"
+else
+    fail "DISKCOPY A: B: /1 (batch hung or crashed)"
+fi
+
+echo ""
+echo "--- DISKCOPY /V tests ---"
+
+# "Invalid switch - /V" — SYSPARSE rejects /V since DCOPYPAR only defines /1
+if grep -qi "Invalid switch" "$SERIAL_LOG"; then
+    ok "DISKCOPY A: B: /V (rejected with 'Invalid switch' — /V not implemented in parser)"
+else
+    fail "DISKCOPY A: B: /V (expected 'Invalid switch' — /V is undocumented stub)"
+fi
+
+if grep -q "DISKCOPY_V_DONE" "$SERIAL_LOG"; then
+    ok "DISKCOPY A: B: /V (batch continued after error)"
+else
+    fail "DISKCOPY A: B: /V (batch hung or crashed)"
 fi
 
 echo ""

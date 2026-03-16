@@ -125,8 +125,8 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 
 #### DISKCOPY
 - [x] `DISKCOPY A: B:` — copy floppy (`test_diskcomp_diskcopy.sh`)
-- [ ] `DISKCOPY A: A: /1` — single-sided
-- [ ] `DISKCOPY A: A: /V` — verify after
+- [x] `DISKCOPY A: B: /1` — single-sided (`test_diskcomp_diskcopy.sh`)
+- [x] `DISKCOPY A: B: /V` — parse error ("Invalid switch") — /V defined in .EQU/help but not implemented in parser (`test_diskcomp_diskcopy.sh`)
 
 #### LABEL — remaining
 - [ ] Remove volume label (interactive — prompts Y/N, can't automate in batch)
