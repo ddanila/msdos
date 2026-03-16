@@ -311,7 +311,7 @@ CONTINUE:
 - Runner: `ubuntu-latest` — has `/dev/kvm` but not accessible by default.
 - KVM fix: add udev rule `KERNEL=="kvm", GROUP="kvm", MODE="0666"` before building.
 - Steps: grant KVM → install deps (`gcc nasm python3 qemu-system-x86 mtools`) →
-  build kvikdos → `make` → `make test` → `make deploy` → `make verify` → `make test-sys` → `make test-builtins` → `make test-exepack` → `make test-help-qemu`.
+  build kvikdos → `make` → `make test` → `make deploy` → `make verify` → `make test-sys` → `make test-builtins` → `make test-exepack` → `make test-tools-qemu` → `make test-help-qemu`.
 - Free tier: unlimited minutes for public repos on GitHub Actions.
 - kvikdos now builds and runs on macOS via software 8086 CPU backend (XTulator).
   Linux CI uses KVM (unchanged); macOS builds use the same codebase with `#ifdef __linux__` guards.
@@ -362,14 +362,23 @@ Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits ea
 ### INT stubs added to kvikdos fork (needed for functional MS-DOS 4.0 tool testing)
 | INT / Function | Purpose | kvikdos behavior |
 |---|---|---|
-| INT 21h/AH=65h | GetExtendedCountryInfo (NLS) | Returns identity collating table (0x0420) and country_info (0x0522); handles AL=01h,02h,04h,05h,06h,07h. Needed by `sysloadmsg`. |
+| INT 21h/AH=65h | GetExtendedCountryInfo (NLS) | Returns identity collating table (0x0420) and country_info (0x0522); handles AL=01h–07h,20h–23h. Needed by `sysloadmsg`, XCOPY (capitalize). |
+| INT 21h/AH=43h | Get/set file attributes | GET returns attrs in CX (archive+readonly from chmod). SET maps DOS readonly to chmod. Needed by ATTRIB. |
+| INT 21h/AH=6Ch | Extended open/create (DOS 4.0+) | DS:SI filename, BX=mode, DX=action flags. Needed by EDLIN, REPLACE, XCOPY. |
+| INT 21h/AH=26h | Create new PSP (legacy) | Copies current PSP to DX segment. Needed by DEBUG.COM. |
+| INT 21h/AH=50h/51h | Set/Get PSP address | Tracks `current_psp_para` variable. Needed by DEBUG.COM. |
+| INT 21h/AH=44h/AL=09h | IOCTL: block device remote check | Returns DX=0 (local). Needed by LABEL.COM. |
+| INT 21h/AH=44h/AL=0Ch | IOCTL: generic char I/O | No-op stub. Needed by MORE.COM. |
+| INT 21h/AH=35h whitelist | Get interrupt vector | Extended: INT 01/02/03 (DEBUG), INT 21/25/26 (ASSIGN), INT 2F (GRAFTABL). |
+| INT 2Fh/AH=06h | ASSIGN installation check | Returns AL=0 (not installed). Needed by ASSIGN /STATUS. |
+| INT 2Fh/AH=B7h | APPEND (any sub-function) | Returns AX=BX=0 (not installed). Needed by TREE.COM. |
 | INT 12h | BIOS Get Conventional Memory Size | Returns AX=640 (KB). Needed by MEM.EXE. |
 | INT 15h/AH=C1h | Get EBDA Segment | Returns CF=1 (no EBDA). Needed by MEM.EXE. |
-| INT 2Fh/AH=B7h | APPEND (any sub-function) | Returns AX=BX=0 (not installed). Needed by TREE.COM. |
 | INT 67h/AH=40h..62h | EMS functions | Returns AH=0x86 (EMM not present). Needed by MEM.EXE EMS check. |
 | INT 21h/AH=87h | GETPID (MS-DOS 4.0 multitasking) | Returns PID=1, parent PID=0. MS C 5.10 `getpid()` calls this during compilation. |
 | INT 21h/AH=33h/AL=03h | Get boot drive | Returns DL=3 (C:). Needed by FIND.EXE. |
 | INT 21h/AH=69h | Get disk serial number (DOS 4.0+) | Returns dummy serial 0x67452301, volume "NO NAME", FS "FAT12". Needed by TREE.COM. |
+| MMIO INVARS region | List of Lists (INT 21h/52h) | MCB chain pointer + NUL device header with FFFF:FFFF terminator. Needed by MEM.EXE. |
 | MMIO 0xA0000–0x110000 reads | High memory / ROM area | Returns zeros. Needed for MEM.EXE reading INVARS ExtendedMemory via segment 0xFFF0. |
 
 ### Static data placed in low-memory readonly region (re-initialized on each run)
@@ -379,11 +388,22 @@ Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits ea
 
 ### E2E functional test status (Section 6, kvikdos)
 - **MEM.EXE**: runs, prints correct memory report, exits non-zero (C runtime artifact — ignored).
-- **FIND.EXE**: works with file arguments. Stdin mode unreliable under kvikdos.
-- **FC.EXE**: works — identical files ("no differences"), different files (shows diff).
-- **TREE.COM**: works — shows "Directory PATH listing". kvikdos doesn't expose subdirectories via FindFirst/FindNext, so tree is flat.
-- **SORT.EXE**: works — sorts stdin lines correctly. Was blocked by "Insufficient memory" until build was fixed to include `exefix sort.exe 1 1` (sets MAXALLOC=1 so INT 21h/48h malloc has free memory). The original MAKEFILE had this step but our build was missing it.
-- **COMP.COM**: blocked — uses INT 21h/11h (FCB Find First), not implemented in kvikdos.
+- **FIND.EXE**: works with file arguments. Stdin mode unreliable under kvikdos. Full option coverage (basic, /V, /C, /N) tested via QEMU in `test_tools_qemu.sh`.
+- **FC.EXE**: works — all major modes tested (identical, different, /N, /B, /C, /W, /L).
+- **TREE.COM**: works — shows "Directory PATH listing". kvikdos doesn't expose subdirectories via FindFirst/FindNext, so tree is flat. /F mode also tested.
+- **SORT.EXE**: works — sorts stdin lines correctly, /R (reverse) and /+N (column sort) tested. Was blocked by "Insufficient memory" until build was fixed to include `exefix sort.exe 1 1` (sets MAXALLOC=1 so INT 21h/48h malloc has free memory).
+- **COMP.COM**: works — identical files ("Files compare OK") and different files ("different sizes") tested. Uses `timeout 5` with piped `/dev/null` to avoid interactive Y/N loop at EOF.
+- **ATTRIB.EXE**: works — show attributes, +R (set read-only), -R (clear read-only) tested.
+- **MORE.COM**: works — piped stdin pagination tested.
+- **DEBUG.COM**: works — launch+quit (`-` prompt) and register dump (`R` command) tested. Required INT 21h/26h (Create PSP), /50h (Set PSP), INT 01/02/03 whitelist additions.
+- **LABEL.COM**: works — show volume info tested. Write operations need FCB delete (QEMU only).
+- **EDLIN.COM**: works — open existing file + list, open new file tested. Insert mode can't be tested via pipe (Ctrl+C handling). Needs INT 21h/6Ch (Extended Open/Create).
+- **REPLACE.EXE**: /A (add mode) works. Basic replace fails (needs wildcard FindFirst on absolute paths).
+- **XCOPY.EXE**: launches but copies 0 files under kvikdos. No-args error message tested.
+- **GRAFTABL.COM**: /STATUS works — prints "Active Code Page: None".
+- **SUBST.EXE**: no-args (list substitutions) works — silent exit 0.
+- **JOIN.EXE**: no-args (list joins) works — silent exit 0.
+- **ASSIGN.COM**: /STATUS works — silent exit 0. No-args (clear assignments) is TSR operation, fails.
 
 ### QEMU /? help test status (`make test-help-qemu`)
 27 external CMD tools tested with /? on real DOS (single QEMU boot). All 27 print
