@@ -129,7 +129,7 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `DISKCOPY A: A: /V` — verify after
 
 #### LABEL — remaining
-- [ ] Remove volume label (needs FCB delete, QEMU)
+- [ ] Remove volume label (interactive — prompts Y/N, can't automate in batch)
 
 #### EDLIN — remaining
 - [ ] `EDLIN file /B` — binary (ignore ^Z) — needs QEMU
