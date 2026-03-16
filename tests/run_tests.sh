@@ -340,6 +340,41 @@ else
     fail "FC /L (expected diff output with filename header)"
 fi
 
+# -- FC /T: do not expand tabs (files with tab vs spaces differ) --
+printf "hello\tworld\r\n" > "$SRC/FCTAB1.TXT"
+printf "hello   world\r\n" > "$SRC/FCTAB2.TXT"
+output=$(run_dos CMD/FC/FC.EXE /T 'C:\FCTAB1.TXT' 'C:\FCTAB2.TXT') || true
+if echo "$output" | grep -q "FCTAB1.TXT"; then
+    ok "FC /T (tabs preserved, files differ)"
+else
+    fail "FC /T (expected diff output when tabs not expanded)"
+fi
+# Verify without /T the same files match (tab expanded to spaces)
+output=$(run_dos CMD/FC/FC.EXE 'C:\FCTAB1.TXT' 'C:\FCTAB2.TXT') || true
+if echo "$output" | grep -q "no differences"; then
+    ok "FC /T control (tabs expanded, files match)"
+else
+    fail "FC /T control (expected 'no differences' without /T)"
+fi
+rm -f "$SRC/FCTAB1.TXT" "$SRC/FCTAB2.TXT"
+
+# -- FC /5: resync requires 5 consecutive matching lines --
+# With /2 (default): FC resyncs after 2 matching lines → two separate diff blocks
+# With /5: only 2 matching lines between diffs → cannot resync → one large block
+printf "aaa\r\nDIFF1\r\nm1\r\nm2\r\nDIFF2\r\nm3\r\nm4\r\n" > "$SRC/FCSYN1.TXT"
+printf "aaa\r\nALT1\r\nm1\r\nm2\r\nALT2\r\nm3\r\nm4\r\n" > "$SRC/FCSYN2.TXT"
+output_default=$(run_dos CMD/FC/FC.EXE 'C:\FCSYN1.TXT' 'C:\FCSYN2.TXT') || true
+output_five=$(run_dos CMD/FC/FC.EXE /5 'C:\FCSYN1.TXT' 'C:\FCSYN2.TXT') || true
+# Default resync: two diff blocks → DIFF1 and DIFF2 in separate ***** sections
+blocks_default=$(echo "$output_default" | grep -c '^\*\*\*\*\*')
+blocks_five=$(echo "$output_five" | grep -c '^\*\*\*\*\*')
+if [[ "$blocks_default" -gt "$blocks_five" ]]; then
+    ok "FC /5 (higher resync count merges diff blocks)"
+else
+    fail "FC /5 (expected fewer separator blocks with /5 than default; got default=$blocks_default, /5=$blocks_five)"
+fi
+rm -f "$SRC/FCSYN1.TXT" "$SRC/FCSYN2.TXT"
+
 # -- TREE: directory listing --
 output=$(run_dos CMD/TREE/TREE.COM /A) || true
 if echo "$output" | grep -q "Directory PATH listing"; then

@@ -192,7 +192,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 - [ ] `RESTORE A: C: /L:12:00:00` — on or after time
 - [x] `RESTORE /?` — usage
 
-#### ~~FC~~ — done (basic, /B, /C, /L, /N, /W, /?). Remaining: /T (tab expansion), /5 (resync count)
+#### ~~FC~~ — done (all options: basic, /B, /C, /L, /N, /W, /T, /5, /?)
 
 #### DISKCOMP
 - [ ] `DISKCOMP A: A:` — compare floppies
@@ -212,7 +212,7 @@ Built-ins from `COMTAB` in `CMD/COMMAND/TDATA.ASM`.
 
 #### EDLIN
 - [x] `EDLIN file` — open file (list + quit tested; insert mode needs Ctrl+C pipe fix)
-- [ ] `EDLIN file /B` — binary (ignore ^Z)
+- [ ] `EDLIN file /B` — binary (ignore ^Z) — needs QEMU (kvikdos file reads don't pass ^Z content to EDLIN even in binary mode)
 - [x] `EDLIN /?` — usage
 
 #### FDISK
