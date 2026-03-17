@@ -82,7 +82,11 @@ no disk hardware dependencies.
     AH=5Ah (create unique temp file), INT 2Fh/AX=1902h-1903h (shell multiplex).
     Working built-ins: VER, DIR, SET, PATH, VOL, VERIFY, BREAK, IF, FOR, GOTO, CALL,
     SHIFT, TYPE, COPY, REN, DEL, MD, RD, ECHO, REM and batch control flow.
-- [ ] Port test_builtins.sh test cases to run_tests.sh kvikdos E2E section
+- [x] Port test_builtins.sh test cases to run_tests.sh kvikdos E2E section
+  - **Result: DONE** — 33 tests in Section 7 covering VER, ECHO, SET, PATH, DIR, DIR/W, VOL,
+    BREAK, VERIFY, TYPE, GOTO, REM, IF EXIST/NOT EXIST/==, CALL, SHIFT, FOR, ECHO./OFF/ON,
+    BREAK/VERIFY ON/OFF toggle, PATH/SET assign+clear, COPY, COPY/V, REN, DEL, ERASE,
+    DEL wildcard, MD+RD, MD nested. All 33 pass under kvikdos.
 - [ ] Remove or slim down the QEMU e2e-builtins CI job
 
 ### Priority 2: test_help_qemu.sh — slim to EXEPACK-only
