@@ -640,10 +640,20 @@ fi
 printf 'C:\\CMD\\KEYB\\KEYB.COM US,,C:\\DEV\\KEYBOARD\\KEYBOARD.SYS\r\nC:\\CMD\\KEYB\\KEYB.COM\r\n' > "$SRC/KEYBTEST.BAT"
 output=$(timeout 30 "$BIN/dos-run" "$SRC/CMD/COMMAND/COMMAND.COM" /C 'C:\KEYBTEST.BAT' 2>/dev/null || true)
 rm -f "$SRC/KEYBTEST.BAT"
-if echo "$output" | grep -q "Current keyboard code"; then
+if echo "$output" | grep -q "Current keyboard code: US"; then
     ok "KEYB US (load and query status)"
 else
-    fail "KEYB US (expected 'Current keyboard code' in output)"
+    fail "KEYB US (expected 'Current keyboard code: US' in output)"
+fi
+
+# -- KEYB UK /ID:166: load UK keyboard with code page 850 and hardware ID --
+printf 'C:\\CMD\\KEYB\\KEYB.COM UK,850,C:\\DEV\\KEYBOARD\\KEYBOARD.SYS /ID:166\r\nC:\\CMD\\KEYB\\KEYB.COM\r\n' > "$SRC/KEYBTEST.BAT"
+output=$(timeout 30 "$BIN/dos-run" "$SRC/CMD/COMMAND/COMMAND.COM" /C 'C:\KEYBTEST.BAT' 2>/dev/null || true)
+rm -f "$SRC/KEYBTEST.BAT"
+if echo "$output" | grep -q "Current keyboard code: UK"; then
+    ok "KEYB UK /ID:166 (load with code page and hardware ID)"
+else
+    fail "KEYB UK /ID:166 (expected 'Current keyboard code: UK' in output)"
 fi
 
 # ── Summary ──────────────────────────────────────────────────────────────────

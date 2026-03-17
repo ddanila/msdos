@@ -116,7 +116,7 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 #### KEYB
 - [x] `KEYB US` — load US keyboard
 - [x] `KEYB GR,,KEYBOARD.SYS` — explicit file (covered by US test with explicit path)
-- [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with ID
+- [x] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with ID
 - [x] `KEYB` — show current layout
 
 #### ASSIGN — remaining
