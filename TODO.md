@@ -62,6 +62,58 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - The existing EMM386.SYS in our build already does V86 mode and EMS page mapping — UMB and HMA support extend this, don't replace it.
 - Testing strategy: QEMU with ≥1MB RAM, verify via MEM output and actual program loading.
 
+## E2E Tests — Migrate QEMU Tests to kvikdos
+
+Goal: reduce expensive QEMU CI jobs by moving tests that only need INT 21h file I/O
+to the fast kvikdos harness. Keep QEMU for disk hardware (INT 13h), boot, TSRs,
+and interactive prompt flows.
+
+### Priority 1: test_builtins.sh → kvikdos
+
+Best candidate. Tests COMMAND.COM built-ins (VER, DIR, SET, PATH, VOL, TYPE, COPY,
+DEL, RENAME, FIND, VERIFY, BREAK, CHCP, TRUENAME, MD/RD) and batch control flow
+(IF, FOR, CALL, SHIFT, GOTO, REM). All are pure file I/O and string operations —
+no disk hardware dependencies.
+
+- [ ] Verify COMMAND.COM batch file execution works reliably in kvikdos
+- [ ] Port test_builtins.sh test cases to run_tests.sh kvikdos E2E section
+- [ ] Remove or slim down the QEMU e2e-builtins CI job
+
+### Priority 2: test_help_qemu.sh — slim to EXEPACK-only
+
+run_tests.sh Section 4 already tests `/?` help for all tools under kvikdos.
+The only unique QEMU value is verifying EXEPACK decompression with the real DOS loader.
+
+- [ ] Reduce test_help_qemu.sh to EXEPACK integrity verification only
+- [ ] Drop the duplicated `/?` checks that kvikdos already covers
+
+### Priority 3: EXE2BIN from test_share_nlsfunc_exe2bin.sh → kvikdos
+
+EXE2BIN is pure file conversion (EXE→BIN), no TSR state needed. SHARE and NLSFUNC
+must stay on QEMU (TSR persistence, INT 2Fh hooks).
+
+- [ ] Move EXE2BIN test cases to run_tests.sh kvikdos E2E section
+
+### Priority 4: Expand kvikdos E2E coverage
+
+Add more test scenarios for tools already supported in kvikdos, avoiding QEMU cost:
+
+- [ ] More XCOPY scenarios (copy trees, /S subdirectory recursion)
+- [ ] SUBST/JOIN with actual drive operations (requires kvikdos multi-drive support)
+- [ ] COMP with larger files, binary mode
+- [ ] EDLIN editing operations (insert, delete, search, replace)
+
+### Won't migrate (must stay QEMU)
+
+| Test | Reason |
+|------|--------|
+| test_format.sh | INT 13h sector formatting, BPB geometry, QMP disk swapping |
+| test_sys.sh | Boot verification — SYS transfers system files, QEMU boots from result |
+| test_diskcomp_diskcopy.sh | Track-by-track INT 13h read/write |
+| test_label.sh | FCB delete (INT 21h/13h not in kvikdos), interactive prompts |
+| test_backup_restore.sh | Multi-disk flow, interactive prompts, archive bit across drives |
+| test_append.sh | TSR persistence (INT 2Fh hooks, KEEP_PROCESS) |
+
 ## E2E Tests — Remaining Per-Command Coverage
 
 **Harness:** kvikdos for fast tests (`run_tests.sh`), QEMU+COM1 for disk-heavy ops. CI runs parallel E2E jobs for each test target; see `.github/workflows/ci.yml` for the full list.
