@@ -64,7 +64,7 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 
 ## E2E Tests — Remaining Per-Command Coverage
 
-**Harness:** kvikdos for fast tests (`run_tests.sh`), QEMU+COM1 for disk-heavy ops. CI runs 11 parallel E2E jobs: `test-sys`, `test-builtins`, `test-help-qemu`, `test-format` (4-way parallel), `test-backup-restore`, `test-diskcomp-diskcopy`, `test-share-nlsfunc-exe2bin`, `test-append`, `test-label`.
+**Harness:** kvikdos for fast tests (`run_tests.sh`), QEMU+COM1 for disk-heavy ops. CI runs parallel E2E jobs for each test target; see `.github/workflows/ci.yml` for the full list.
 
 ### COMMAND.COM built-ins — remaining (interactive / needs special setup)
 
