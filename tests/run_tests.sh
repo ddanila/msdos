@@ -301,6 +301,14 @@ else
     fail "FIND (expected headers for both SETENV.BAT and CPY.BAT)"
 fi
 
+# -- FIND: no matches (header only, no content lines) --
+output=$(run_dos CMD/FIND/FIND.EXE '"ZZZNONEXISTENT"' 'C:\SETENV.BAT') || true
+if echo "$output" | grep -q "SETENV.BAT" && ! echo "$output" | grep -q "ZZZNONEXISTENT"; then
+    ok "FIND (no matches)"
+else
+    fail "FIND (expected header only, no matching lines)"
+fi
+
 # -- FIND /V /C: count non-matching lines --
 output=$(run_dos CMD/FIND/FIND.EXE /V /C '"echo"' 'C:\SETENV.BAT') || true
 if echo "$output" | grep -qE "SETENV\.BAT:.*[0-9]"; then
@@ -424,6 +432,14 @@ else
     fail "TREE /F (expected 'Directory PATH listing')"
 fi
 
+# -- TREE: specific path --
+output=$(run_dos CMD/TREE/TREE.COM 'C:\CMD\EDLIN' /A) || true
+if echo "$output" | grep -q "CMD.EDLIN"; then
+    ok "TREE (specific path)"
+else
+    fail "TREE (expected 'CMD.EDLIN' in path listing)"
+fi
+
 # -- SORT: sort lines from stdin (piped via host stdin) --
 output=$(printf "banana\r\ncherry\r\napple\r\n" | run_dos CMD/SORT/SORT.EXE) || true
 if echo "$output" | grep -q "apple" && echo "$output" | grep -q "banana"; then
@@ -452,6 +468,18 @@ if [[ -n "$aa_line" && -n "$cc_line" && "$aa_line" -lt "$cc_line" ]]; then
     ok "SORT /+2 (sort by column)"
 else
     fail "SORT /+2 (expected xaa before xcc when sorting by column 2)"
+fi
+
+# -- SORT: sort from file via stdin redirection --
+printf "banana\r\ncherry\r\napple\r\n" > "$SRC/SORTTEST.TXT"
+output=$(run_dos CMD/SORT/SORT.EXE < "$SRC/SORTTEST.TXT") || true
+rm -f "$SRC/SORTTEST.TXT"
+apple_line=$(echo "$output" | grep -n "apple" | head -1 | cut -d: -f1)
+cherry_line=$(echo "$output" | grep -n "cherry" | head -1 | cut -d: -f1)
+if [[ -n "$apple_line" && -n "$cherry_line" && "$apple_line" -lt "$cherry_line" ]]; then
+    ok "SORT (from file)"
+else
+    fail "SORT (expected apple before cherry when sorting from file)"
 fi
 
 # -- COMP: compare identical files (COMP loops on Y/N prompt at EOF; capture first 20 lines) --
@@ -586,6 +614,14 @@ if echo "$output" | grep -q "line1" && echo "$output" | grep -q "line3"; then
     ok "MORE (piped stdin)"
 else
     fail "MORE (expected 'line1' and 'line3' in output)"
+fi
+
+# -- MORE: from file via stdin redirection --
+output=$(run_dos CMD/MORE/MORE.COM < "$SRC/SETENV.BAT") || true
+if echo "$output" | grep -q "echo" && echo "$output" | grep -q "COUNTRY"; then
+    ok "MORE (from file)"
+else
+    fail "MORE (expected SETENV.BAT content via file redirection)"
 fi
 
 # -- DEBUG: launch and quit --
