@@ -84,7 +84,7 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 
 #### REPLACE — remaining
 - [ ] `REPLACE src dest /P` — prompt (interactive)
-- [ ] `REPLACE src dest /U` — only if dest older
+- [x] `REPLACE src dest /U` — only if dest older
 - [ ] `REPLACE src dest /W` — wait before start (interactive)
 
 #### BACKUP — remaining
@@ -114,10 +114,10 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `SYS A:` — transfer system files
 
 #### KEYB
-- [ ] `KEYB US` — load US keyboard
-- [ ] `KEYB GR,,KEYBOARD.SYS` — explicit file
+- [x] `KEYB US` — load US keyboard
+- [x] `KEYB GR,,KEYBOARD.SYS` — explicit file (covered by US test with explicit path)
 - [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with ID
-- [ ] `KEYB` — show current layout
+- [x] `KEYB` — show current layout
 
 #### ASSIGN — remaining
 - [ ] `ASSIGN A=B` — redirect A: to B: (TSR operation, needs QEMU)

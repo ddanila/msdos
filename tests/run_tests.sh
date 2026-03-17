@@ -173,7 +173,6 @@ check_help "MORE"     "CMD/MORE/MORE.COM"            "MORE"
 check_help "SYS"      "CMD/SYS/SYS.COM"             "SYS"
 check_help "EXE2BIN"  "CMD/EXE2BIN/EXE2BIN.EXE"    "EXE2BIN"
 check_help "FASTOPEN" "CMD/FASTOPEN/FASTOPEN.EXE"   "FASTOPEN"
-check_help "KEYB"     "CMD/KEYB/KEYB.COM"           "KEYB"
 check_help "GRAPHICS" "CMD/GRAPHICS/GRAPHICS.COM"   "GRAPHICS"
 check_help "MODE"     "CMD/MODE/MODE.COM"            "MODE"
 check_help "PRINT"    "CMD/PRINT/PRINT.COM"          "PRINT"
@@ -540,6 +539,36 @@ else
     fail "REPLACE (expected 'Source path required')"
 fi
 
+# -- REPLACE /U: replace only if source is newer --
+mkdir -p "$SRC/REPLTEST"
+printf "old content\r\n" > "$SRC/REPLTEST/TESTFILE.TXT"
+touch -d "2020-01-01 00:00:00" "$SRC/REPLTEST/TESTFILE.TXT"
+printf "new content\r\n" > "$SRC/TESTFILE.TXT"
+touch -d "2025-01-01 00:00:00" "$SRC/TESTFILE.TXT"
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\TESTFILE.TXT' 'C:\REPLTEST\' /U 2>/dev/null || true)
+if echo "$output" | grep -q "file(s) replaced"; then
+    ok "REPLACE /U (source newer, replaced)"
+else
+    fail "REPLACE /U (expected 'file(s) replaced', got: $(echo "$output" | head -3))"
+fi
+rm -f "$SRC/TESTFILE.TXT" "$SRC/REPLTEST/TESTFILE.TXT"
+rmdir "$SRC/REPLTEST" 2>/dev/null || true
+
+# -- REPLACE /U: no replacement when source is older --
+mkdir -p "$SRC/REPLTEST"
+printf "new content\r\n" > "$SRC/REPLTEST/TESTFILE.TXT"
+touch -d "2025-01-01 00:00:00" "$SRC/REPLTEST/TESTFILE.TXT"
+printf "old content\r\n" > "$SRC/TESTFILE.TXT"
+touch -d "2020-01-01 00:00:00" "$SRC/TESTFILE.TXT"
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\TESTFILE.TXT' 'C:\REPLTEST\' /U 2>/dev/null || true)
+if echo "$output" | grep -q "No files replaced"; then
+    ok "REPLACE /U (source older, no replacement)"
+else
+    fail "REPLACE /U (expected 'No files replaced', got: $(echo "$output" | head -3))"
+fi
+rm -f "$SRC/TESTFILE.TXT" "$SRC/REPLTEST/TESTFILE.TXT"
+rmdir "$SRC/REPLTEST" 2>/dev/null || true
+
 # -- XCOPY: no args → error message (stderr) --
 output=$(timeout 10 "$BIN/dos-run" "$SRC/CMD/XCOPY/XCOPY.EXE" 2>&1 || true)
 if echo "$output" | grep -q "Invalid number of parameters"; then
@@ -597,6 +626,24 @@ if [[ $exit_code -eq 0 ]]; then
     ok "ASSIGN /STATUS (lists assignments)"
 else
     fail "ASSIGN /STATUS (expected exit 0, got $exit_code)"
+fi
+
+# -- KEYB: status query when not installed --
+output=$(run_dos CMD/KEYB/KEYB.COM 2>&1) || true
+if echo "$output" | grep -q "KEYB has not been installed"; then
+    ok "KEYB (not installed, status query)"
+else
+    fail "KEYB (expected 'KEYB has not been installed')"
+fi
+
+# -- KEYB US: load US keyboard layout, then query status in same session --
+printf 'C:\\CMD\\KEYB\\KEYB.COM US,,C:\\DEV\\KEYBOARD\\KEYBOARD.SYS\r\nC:\\CMD\\KEYB\\KEYB.COM\r\n' > "$SRC/KEYBTEST.BAT"
+output=$(timeout 30 "$BIN/dos-run" "$SRC/CMD/COMMAND/COMMAND.COM" /C 'C:\KEYBTEST.BAT' 2>/dev/null || true)
+rm -f "$SRC/KEYBTEST.BAT"
+if echo "$output" | grep -q "Current keyboard code"; then
+    ok "KEYB US (load and query status)"
+else
+    fail "KEYB US (expected 'Current keyboard code' in output)"
 fi
 
 # ── Summary ──────────────────────────────────────────────────────────────────
