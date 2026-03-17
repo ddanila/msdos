@@ -29,7 +29,15 @@ AINC     := -I. -ID:\\TOOLS\\INC
 
 .PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy run-boot test-sys test-help-qemu test-builtins test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-label
 
+# Build kvikdos-soft (software CPU) if /dev/kvm is unavailable.
+# dos-run automatically selects the right binary at runtime.
+ifeq ($(wildcard /dev/kvm),)
+all: kvikdos-soft messages mapper boot inc bios dos cmd dev select memm
+kvikdos-soft:
+	$(MAKE) -C kvikdos kvikdos-soft
+else
 all: messages mapper boot inc bios dos cmd dev select memm
+endif
 
 # ---------------------------------------------------------------------------
 # MESSAGES
