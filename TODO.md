@@ -110,9 +110,6 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `PRINT file /C` — remove from queue
 - [ ] `PRINT /Q:5 file` — set queue size
 
-#### SYS
-- [ ] `SYS A:` — transfer system files
-
 #### ASSIGN — remaining
 - [ ] `ASSIGN A=B` — redirect A: to B: (TSR operation, needs QEMU)
 - [ ] `ASSIGN` — clear all assignments (TSR operation, needs QEMU)
