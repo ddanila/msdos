@@ -112,6 +112,7 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 
 #### KEYB — needs QEMU
 - [ ] `KEYB US` — load US keyboard (kvikdos: SYSLOADMSG fails before KEYB_COMMAND runs)
+- [ ] `KEYB GR,,KEYBOARD.SYS` — explicit file, non-US layout
 - [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with code page and ID
 - [ ] `KEYB` — show current layout
 
