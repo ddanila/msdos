@@ -84,7 +84,7 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 
 #### REPLACE — remaining
 - [ ] `REPLACE src dest /P` — prompt (interactive)
-- [x] `REPLACE src dest /U` — only if dest older
+- [ ] `REPLACE src dest /U` — only if dest older (needs wildcard FindFirst in kvikdos; test cases produce empty output because kvikdos hits `fatal: unsupported wildcards in findfirst`)
 - [ ] `REPLACE src dest /W` — wait before start (interactive)
 
 #### BACKUP — remaining
