@@ -27,7 +27,7 @@ CFLAGS   := -AS -Os -Zp
 # Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy run-boot test-sys test-help-qemu test-builtins test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-label
+.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy run-boot test-sys test-help-qemu test-builtins test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label
 
 # Build kvikdos-soft (software CPU) if /dev/kvm is unavailable.
 # dos-run automatically selects the right binary at runtime.
@@ -287,6 +287,28 @@ test-append: deploy
 
 test-format: deploy
 	bash tests/test_format.sh
+
+# Run a single FORMAT variant for quick debugging, e.g.: make test-format-one VARIANT=VLABEL
+test-format-one: deploy
+	bash tests/test_format.sh $(VARIANT)
+
+# Run FORMAT variants in parallel (4 groups, each in its own QEMU + workdir).
+# Much faster than test-format (sequential).  Results: out/format-parallel-*.log
+test-format-parallel: deploy
+	@mkdir -p $(OUT)
+	@echo "=== FORMAT parallel test (4 groups) ==="
+	@FAIL=0; \
+	FORMAT_WORKDIR=$(OUT)/format-p-vlabel bash tests/test_format.sh VLABEL        > $(OUT)/format-parallel-vlabel.log 2>&1 & P1=$$!; \
+	FORMAT_WORKDIR=$(OUT)/format-p-s      bash tests/test_format.sh S             > $(OUT)/format-parallel-s.log     2>&1 & P2=$$!; \
+	FORMAT_WORKDIR=$(OUT)/format-p-b      bash tests/test_format.sh B             > $(OUT)/format-parallel-b.log     2>&1 & P3=$$!; \
+	FORMAT_WORKDIR=$(OUT)/format-p-rest   bash tests/test_format.sh F720 TN FOUR ONE EIGHT > $(OUT)/format-parallel-rest.log 2>&1 & P4=$$!; \
+	for JOB in "vlabel:$$P1" "s:$$P2" "b:$$P3" "rest:$$P4"; do \
+	    NAME=$${JOB%%:*}; PID=$${JOB##*:}; \
+	    if wait $$PID; then echo "  PASS group: $$NAME"; \
+	    else echo "  FAIL group: $$NAME (see out/format-parallel-$$NAME.log)"; FAIL=$$((FAIL+1)); fi; \
+	done; \
+	echo "=== FORMAT parallel done: $$FAIL group(s) failed ==="; \
+	exit $$FAIL
 
 test-label: deploy
 	bash tests/test_label.sh

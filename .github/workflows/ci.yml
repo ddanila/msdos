@@ -231,7 +231,19 @@ jobs:
     container:
       image: ghcr.io/${{ github.repository }}/ci:latest
       options: --device /dev/kvm
-    timeout-minutes: 15
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - group: vlabel
+            variants: "VLABEL"
+          - group: s
+            variants: "S"
+          - group: b
+            variants: "B"
+          - group: rest
+            variants: "F720 TN FOUR ONE EIGHT"
 
     steps:
       - name: Check out repo with submodules
@@ -247,8 +259,8 @@ jobs:
         with:
           name: floppy
 
-      - name: FORMAT e2e tests (QMP disk swapping)
-        run: bash tests/test_format.sh
+      - name: FORMAT e2e tests — ${{ matrix.group }}
+        run: bash tests/test_format.sh ${{ matrix.variants }}
 
   e2e-label:
     needs: build

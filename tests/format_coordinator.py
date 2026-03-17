@@ -31,19 +31,18 @@ Why bare CR (not CR/LF) matters for line-input prompts:
 Usage:
     python3 format_coordinator.py \\
         <serial_in> <serial_out> <serial_log> <qmp_sock> \\
-        <n_variants> \\
+        <n_variants> <names_csv> <no_label_csv> \\
         <b_img_0> ... <b_img_{n-1}> \\
         <saved_img_0> ... <saved_img_{n-1}>
+
+    names_csv      : comma-separated variant names matching AUTOEXEC.BAT ECHO
+                     markers (e.g. "VLABEL,S,B")
+    no_label_csv   : comma-separated names of variants whose FORMAT command
+                     includes /V:<label> so FORMAT skips the volume-label prompt
+                     (e.g. "VLABEL"); use "" for none
 """
 
-import os, select, socket, json, sys, shutil
-
-# Names must match AUTOEXEC.BAT ECHO markers exactly.
-NAMES = ["VLABEL", "S", "B", "F720", "TN", "FOUR", "ONE", "EIGHT"]
-
-# Indices of variants that have /V:<label> on the command line — FORMAT skips
-# the interactive "Volume label (11 characters, ENTER for none)?" prompt.
-NO_LABEL_PROMPT = {0}   # index 0 = FORMAT B: /V:TEST
+import os, select, socket, json, sys, shutil, time
 
 
 def qmp_change_floppy(sock_path: str, img_path: str) -> None:
@@ -62,7 +61,8 @@ def qmp_change_floppy(sock_path: str, img_path: str) -> None:
     print(f"  QMP: swapped B: → {img_path}", flush=True)
 
 
-def build_rules(n: int, b_imgs: list, saved_imgs: list) -> list:
+def build_rules(n: int, names: list, no_label_prompt: set,
+                b_imgs: list, saved_imgs: list) -> list:
     """Return an ordered list of (pattern, response, hook, skip_to) tuples.
 
     pattern  : bytes to scan for in the serial buffer
@@ -82,7 +82,7 @@ def build_rules(n: int, b_imgs: list, saved_imgs: list) -> list:
         rules.append([b"press ENTER when ready", b'\r', hook, None])  # skip_to filled below
 
         # Interactive volume label prompt — absent when /V: given on command line
-        if i not in NO_LABEL_PROMPT:
+        if i not in no_label_prompt:
             rules.append([b"ENTER for none", b'\r', None, None])
 
         # "Format another (Y/N)?" — N + CR only (no LF).
@@ -95,7 +95,7 @@ def build_rules(n: int, b_imgs: list, saved_imgs: list) -> list:
 
         # Batch DONE marker — save image, no serial response, no skip_to
         rules.append([
-            f"FORMAT_{NAMES[i]}_DONE".encode(),
+            f"FORMAT_{names[i]}_DONE".encode(),
             None,
             ('save', b_imgs[i], saved_imgs[i]),
             None,
@@ -111,23 +111,28 @@ def build_rules(n: int, b_imgs: list, saved_imgs: list) -> list:
 
 def main() -> None:
     args = sys.argv[1:]
-    if len(args) < 5:
+    if len(args) < 7:
         sys.exit("usage: format_coordinator.py serial_in serial_out serial_log "
-                 "qmp_sock n b_img_0..n-1 saved_img_0..n-1")
+                 "qmp_sock n names_csv no_label_csv b_img_0..n-1 saved_img_0..n-1")
 
-    serial_in  = args[0]
-    serial_out = args[1]
-    serial_log = args[2]
-    qmp_sock   = args[3]
-    n          = int(args[4])
-    b_imgs     = args[5:5 + n]
-    saved_imgs = args[5 + n:5 + 2 * n]
+    serial_in     = args[0]
+    serial_out    = args[1]
+    serial_log    = args[2]
+    qmp_sock      = args[3]
+    n             = int(args[4])
+    names         = args[5].split(',')
+    no_label_set  = set(args[6].split(',')) if args[6] else set()
+    no_label_prompt = {i for i, name in enumerate(names) if name in no_label_set}
+    b_imgs        = args[7:7 + n]
+    saved_imgs    = args[7 + n:7 + 2 * n]
 
+    if len(names) != n:
+        sys.exit(f"Expected {n} names, got {len(names)}: {names}")
     if len(b_imgs) != n or len(saved_imgs) != n:
         sys.exit(f"Expected {n} b_imgs and {n} saved_imgs, "
                  f"got {len(b_imgs)} and {len(saved_imgs)}")
 
-    rules    = build_rules(n, b_imgs, saved_imgs)
+    rules    = build_rules(n, names, no_label_prompt, b_imgs, saved_imgs)
     rule_idx = 0
 
     fin  = open(serial_in,  'wb', buffering=0)
@@ -179,6 +184,20 @@ def main() -> None:
                 if response:
                     fin.write(response); fin.flush()
                 rule_idx += 1
+
+            # All rules processed — read trailing output briefly (for ===DONE===
+            # and any other trailing serial data), then exit without waiting for
+            # QEMU to time out.  The caller kills QEMU after we return.
+            if rule_idx >= len(rules):
+                deadline = time.monotonic() + 3.0
+                while time.monotonic() < deadline:
+                    r, _, _ = select.select([fout], [], [], 0.1)
+                    if r:
+                        chunk2 = os.read(fout.fileno(), 512)
+                        if not chunk2:
+                            break
+                        log.write(chunk2); log.flush()
+                break
 
     finally:
         fin.close()

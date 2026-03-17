@@ -44,11 +44,22 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
 FLOPPY="$OUT/floppy.img"
 
-BOOT_IMG="$OUT/format-boot.img"
-SERIAL_IN="$OUT/format-serial.in"
-SERIAL_OUT="$OUT/format-serial.out"
-SERIAL_LOG="$OUT/format-serial.log"
-QMP_SOCK="$OUT/format-qmp.sock"
+# Optional: pass variant names as arguments to run a subset, e.g.:
+#   bash tests/test_format.sh VLABEL S
+# With no arguments, all 8 variants run.
+SELECTED_VARIANTS=("$@")
+
+# FORMAT_WORKDIR: directory for per-session temp files (boot img, serial FIFOs,
+# QMP socket).  Override when running multiple instances in parallel so they
+# don't collide.  Defaults to $OUT.
+WORKDIR="${FORMAT_WORKDIR:-$OUT}"
+mkdir -p "$WORKDIR"
+
+BOOT_IMG="$WORKDIR/format-boot.img"
+SERIAL_IN="$WORKDIR/format-serial.in"
+SERIAL_OUT="$WORKDIR/format-serial.out"
+SERIAL_LOG="$WORKDIR/format-serial.log"
+QMP_SOCK="$WORKDIR/format-qmp.sock"
 
 PASS=0
 FAIL=0
@@ -61,7 +72,7 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
-trap 'rm -f "$SERIAL_IN" "$SERIAL_OUT" "$QMP_SOCK" 2>/dev/null; true' EXIT
+trap 'rm -f "$SERIAL_IN" "$SERIAL_OUT" "$QMP_SOCK" 2>/dev/null; [[ "$WORKDIR" != "$OUT" ]] && rm -rf "$WORKDIR" 2>/dev/null; true' EXIT
 
 echo "=== FORMAT E2E tests (QEMU, QMP disk swapping) ==="
 
@@ -85,6 +96,27 @@ FORMAT_CMDS=(
     "FORMAT B: /8"
 )
 B_SECTORS=(2880 2880 2880 2880 2880 2400 2880 2880)
+# Which NAMES have /V:<label> on the command line → FORMAT skips volume-label prompt.
+NO_LABEL_NAMES=(VLABEL)
+
+# ── Filter to selected variants (if arguments given) ──────────────────────────
+if [[ ${#SELECTED_VARIANTS[@]} -gt 0 ]]; then
+    _SEL_NAMES=() _SEL_CMDS=() _SEL_SECTORS=()
+    for sel in "${SELECTED_VARIANTS[@]}"; do
+        found=0
+        for i in "${!NAMES[@]}"; do
+            if [[ "${NAMES[$i]}" == "$sel" ]]; then
+                _SEL_NAMES+=("${NAMES[$i]}")
+                _SEL_CMDS+=("${FORMAT_CMDS[$i]}")
+                _SEL_SECTORS+=("${B_SECTORS[$i]}")
+                found=1; break
+            fi
+        done
+        [[ $found -eq 0 ]] && { echo "ERROR: unknown variant '$sel'"; exit 1; }
+    done
+    NAMES=("${_SEL_NAMES[@]}"); FORMAT_CMDS=("${_SEL_CMDS[@]}"); B_SECTORS=("${_SEL_SECTORS[@]}")
+    echo "(Running subset: ${NAMES[*]})"
+fi
 
 B_IMGS=()
 SAVED_IMGS=()
@@ -130,18 +162,24 @@ timeout 480 qemu-system-i386 \
     -drive if=floppy,index=1,format=raw,file="${B_IMGS[0]}",cache=writethrough \
     -qmp unix:"$QMP_SOCK",server,nowait \
     -boot a -m 4 \
-    -serial pipe:"$OUT/format-serial" \
+    -serial pipe:"$WORKDIR/format-serial" \
     2>/dev/null &
 QEMU_PID=$!
 
 # ── Step 4: run coordinator ────────────────────────────────────────────────────
 # Blocks until QEMU exits (serial pipe EOF).
+# Build CSV args for the coordinator: names and no_label_names.
+_NAMES_CSV=$(IFS=,; echo "${NAMES[*]}")
+_NO_LABEL_CSV=$(IFS=,; echo "${NO_LABEL_NAMES[*]}")
 python3 "$REPO_ROOT/tests/format_coordinator.py" \
     "$SERIAL_IN" "$SERIAL_OUT" "$SERIAL_LOG" "$QMP_SOCK" \
-    "${#NAMES[@]}" \
+    "${#NAMES[@]}" "$_NAMES_CSV" "$_NO_LABEL_CSV" \
     "${B_IMGS[@]}" \
     "${SAVED_IMGS[@]}"
 
+# Coordinator is done (all rules processed); QEMU may still be idling.
+# Kill it now — images are already saved and writes are flushed (cache=writethrough).
+kill $QEMU_PID 2>/dev/null || true
 wait $QEMU_PID || true
 exec 3>&-
 
@@ -163,19 +201,30 @@ done
 
 echo ""
 echo "--- FORMAT complete messages ---"
-count=$(grep -ic "Format complete" "$SERIAL_LOG" || echo 0)
-if [[ $count -ge 3 ]]; then
-    ok "FORMAT /V:TEST /S /B printed 'Format complete' ($count found)"
-else
-    fail "Expected at least 3 'Format complete' messages, got $count"
+# Count how many full-format variants (VLABEL, S, B) were selected.
+_full_count=0
+for _fn in VLABEL S B; do
+    for _n in "${NAMES[@]}"; do [[ "$_n" == "$_fn" ]] && _full_count=$((_full_count+1)) && break; done
+done
+if [[ $_full_count -gt 0 ]]; then
+    count=$(grep -ic "Format complete" "$SERIAL_LOG" || echo 0)
+    if [[ $count -ge $_full_count ]]; then
+        ok "FORMAT full-format variants printed 'Format complete' ($count found, expected >=$_full_count)"
+    else
+        fail "Expected at least $_full_count 'Format complete' messages, got $count"
+    fi
 fi
 
 echo ""
 echo "--- FORMAT /S: System transferred ---"
-if grep -qi "System transferred" "$SERIAL_LOG"; then
-    ok "FORMAT /S (printed 'System transferred')"
-else
-    fail "FORMAT /S (expected 'System transferred' in serial log)"
+_s_selected=0
+for _n in "${NAMES[@]}"; do [[ "$_n" == "S" ]] && _s_selected=1 && break; done
+if [[ $_s_selected -eq 1 ]]; then
+    if grep -qi "System transferred" "$SERIAL_LOG"; then
+        ok "FORMAT /S (printed 'System transferred')"
+    else
+        fail "FORMAT /S (expected 'System transferred' in serial log)"
+    fi
 fi
 
 echo ""
@@ -206,53 +255,48 @@ PYEOF
 echo ""
 echo "--- Post-QEMU BPB geometry checks ---"
 
-# /V:TEST — standard 1.44MB: spt=18, heads=2, total=2880
-if bpb=$(read_bpb "${SAVED_IMGS[0]}" 2>/dev/null); then
-    if [[ "$bpb" == *"spt=18"* && "$bpb" == *"heads=2"* && "$bpb" == *"total=2880"* ]]; then
-        ok "FORMAT /V:TEST BPB ($bpb)"
-    else
-        fail "FORMAT /V:TEST BPB: expected spt=18 heads=2 total=2880, got: $bpb"
-    fi
-else
-    fail "FORMAT /V:TEST (saved image missing or unreadable)"
-fi
+# Expected BPB geometry per variant name.  Variants not listed here (F720, TN,
+# FOUR, ONE, EIGHT) exit with "Parameters not supported" and produce no image.
+declare -A _EXP_SPT _EXP_HEADS _EXP_TOTAL
+_EXP_SPT=( [VLABEL]=18 [S]=18 [B]=18 )
+_EXP_HEADS=( [VLABEL]=2  [S]=2  [B]=2  )
+_EXP_TOTAL=( [VLABEL]=2880 [S]=2880 [B]=2880 )
 
-# /V:TEST — check volume label written to the disk
-label=$(mlabel -i "${SAVED_IMGS[0]}" -s :: 2>/dev/null || echo "")
-if echo "$label" | grep -qi "TEST"; then
-    ok "FORMAT /V:TEST volume label ('TEST' found in: $label)"
-else
-    fail "FORMAT /V:TEST volume label (expected 'TEST', got: '$label')"
-fi
-
-# /S — standard 1.44MB
-if bpb=$(read_bpb "${SAVED_IMGS[1]}" 2>/dev/null); then
-    if [[ "$bpb" == *"spt=18"* && "$bpb" == *"heads=2"* && "$bpb" == *"total=2880"* ]]; then
-        ok "FORMAT /S BPB ($bpb)"
+for i in "${!NAMES[@]}"; do
+    name="${NAMES[$i]}"
+    if [[ -z "${_EXP_SPT[$name]+x}" ]]; then continue; fi   # no BPB check for this variant
+    img="${SAVED_IMGS[$i]}"
+    es="${_EXP_SPT[$name]}"; eh="${_EXP_HEADS[$name]}"; et="${_EXP_TOTAL[$name]}"
+    if bpb=$(read_bpb "$img" 2>/dev/null); then
+        if [[ "$bpb" == *"spt=$es"* && "$bpb" == *"heads=$eh"* && "$bpb" == *"total=$et"* ]]; then
+            ok "FORMAT $name BPB ($bpb)"
+        else
+            fail "FORMAT $name BPB: expected spt=$es heads=$eh total=$et, got: $bpb"
+        fi
     else
-        fail "FORMAT /S BPB: expected spt=18 heads=2 total=2880, got: $bpb"
+        fail "FORMAT $name (saved image missing or unreadable)"
     fi
-else
-    fail "FORMAT /S (saved image missing or unreadable)"
-fi
-
-# /B — standard 1.44MB
-if bpb=$(read_bpb "${SAVED_IMGS[2]}" 2>/dev/null); then
-    if [[ "$bpb" == *"spt=18"* && "$bpb" == *"heads=2"* && "$bpb" == *"total=2880"* ]]; then
-        ok "FORMAT /B BPB ($bpb)"
-    else
-        fail "FORMAT /B BPB: expected spt=18 heads=2 total=2880, got: $bpb"
+    # VLABEL: also verify volume label was written
+    if [[ "$name" == "VLABEL" ]]; then
+        label=$(mlabel -i "$img" -s :: 2>/dev/null || echo "")
+        if echo "$label" | grep -qi "TEST"; then
+            ok "FORMAT /V:TEST volume label ('TEST' found in: $label)"
+        else
+            fail "FORMAT /V:TEST volume label (expected 'TEST', got: '$label')"
+        fi
     fi
-else
-    fail "FORMAT /B (saved image missing or unreadable)"
-fi
+done
 
 # /F:720, /T:80 /N:9, /4, /1, /8 — skipped: FORMAT exits with "Parameters not supported
 # [by drive]" in this single-session QEMU setup.  IO.SYS caches the B: drive type from
 # boot (initial image is 1.44MB → DEV_OTHER); /F:720 and /T:80 /N:9 need DEV_3INCH720KB
 # (720KB from boot), and /1, /4, /8 require 5.25" drive types that QEMU does not emulate.
 # The batch completion checks above confirm all 8 FORMAT runs reached their DONE markers.
-echo "  NOTE: /F:720 /T:80 /N:9 /4 /1 /8 BPB checks skipped (drive type mismatch in QEMU)"
+_skipped_bpb=()
+for _n in F720 TN FOUR ONE EIGHT; do
+    for _sel in "${NAMES[@]}"; do [[ "$_sel" == "$_n" ]] && _skipped_bpb+=("$_n") && break; done
+done
+[[ ${#_skipped_bpb[@]} -gt 0 ]] && echo "  NOTE: ${_skipped_bpb[*]} BPB checks skipped (drive type mismatch in QEMU)"
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
