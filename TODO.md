@@ -100,8 +100,6 @@ Add more test scenarios for tools already supported in kvikdos, avoiding QEMU co
 
 - [ ] More XCOPY scenarios (copy trees, /S subdirectory recursion)
 - [ ] SUBST/JOIN with actual drive operations (requires kvikdos multi-drive support)
-- [x] COMP extended tests (byte diffs, hex values, multiple errors, 10-mismatch limit, file not found)
-- [x] EDLIN editing operations (insert, delete, search, replace, copy, move, transfer, edit line)
 
 ### Won't migrate (must stay QEMU)
 
@@ -136,7 +134,6 @@ Add more test scenarios for tools already supported in kvikdos, avoiding QEMU co
 
 #### REPLACE — remaining
 - [ ] `REPLACE src dest /P` — prompt (interactive)
-- [x] `REPLACE src dest /U` — only if dest older (wildcard FindFirst/FindNext now supported in kvikdos)
 - [ ] `REPLACE src dest /W` — wait before start (interactive)
 
 #### BACKUP — remaining
@@ -149,9 +146,7 @@ Add more test scenarios for tools already supported in kvikdos, avoiding QEMU co
 - [ ] `EDLIN file /B` — binary (ignore ^Z) — needs QEMU
 
 #### DEBUG — remaining
-- [x] Load file — works under kvikdos (N+L)
-- [x] Enter/dump bytes, fill, compare, move, search memory
-- [x] Hex arithmetic, assemble+unassemble, set register, write file
+- [ ] `G` (go/execute) — kvikdos lacks INT 21h/AH=5Dh, needed by DEBUG internally; needs QEMU
 
 #### FDISK
 - [ ] `FDISK` — interactive (smoke test: launches and exits)
