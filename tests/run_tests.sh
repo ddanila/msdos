@@ -563,6 +563,93 @@ else
     fail "DEBUG R (expected 'AX=' in register output)"
 fi
 
+# -- DEBUG: set register --
+output=$(printf "R AX\r\n1234\r\nR\r\nQ\r\n" | run_dos CMD/DEBUG/DEBUG.COM) || true
+if echo "$output" | grep -q "AX=1234"; then
+    ok "DEBUG R AX (set register)"
+else
+    fail "DEBUG R AX (expected 'AX=1234')"
+fi
+
+# -- DEBUG: enter bytes + dump --
+output=$(printf "E 100 48 65 6C 6C 6F\r\nD 100 L5\r\nQ\r\n" | run_dos CMD/DEBUG/DEBUG.COM) || true
+if echo "$output" | grep -q "48 65 6C 6C 6F" && echo "$output" | grep -q "Hello"; then
+    ok "DEBUG E+D (enter + dump bytes)"
+else
+    fail "DEBUG E+D (expected hex '48 65 6C 6C 6F' and ASCII 'Hello')"
+fi
+
+# -- DEBUG: fill memory + dump --
+output=$(printf "F 100 L10 AA\r\nD 100 L10\r\nQ\r\n" | run_dos CMD/DEBUG/DEBUG.COM) || true
+if echo "$output" | grep -q "AA AA AA AA AA AA AA AA"; then
+    ok "DEBUG F+D (fill memory)"
+else
+    fail "DEBUG F+D (expected filled AA bytes)"
+fi
+
+# -- DEBUG: hex arithmetic --
+output=$(printf "H 1234 0010\r\nQ\r\n" | run_dos CMD/DEBUG/DEBUG.COM) || true
+if echo "$output" | grep -q "1244  1224"; then
+    ok "DEBUG H (hex add/subtract: 1244 1224)"
+else
+    fail "DEBUG H (expected '1244  1224' for 1234+10, 1234-10)"
+fi
+
+# -- DEBUG: compare memory --
+output=$(printf "E 100 41 42 43 44\r\nE 200 41 42 58 44\r\nC 100 L4 200\r\nQ\r\n" | run_dos CMD/DEBUG/DEBUG.COM) || true
+if echo "$output" | grep -q "43  58"; then
+    ok "DEBUG C (compare memory — found difference)"
+else
+    fail "DEBUG C (expected '43  58' difference at offset 2)"
+fi
+
+# -- DEBUG: move (copy) memory --
+output=$(printf "E 100 DE AD BE EF\r\nM 100 L4 200\r\nD 200 L4\r\nQ\r\n" | run_dos CMD/DEBUG/DEBUG.COM) || true
+if echo "$output" | grep -q "DE AD BE EF"; then
+    ok "DEBUG M+D (move memory)"
+else
+    fail "DEBUG M+D (expected 'DE AD BE EF' at 200)"
+fi
+
+# -- DEBUG: search memory --
+output=$(printf "E 100 48 65 6C 6C 6F\r\nS 100 L20 6C 6C\r\nQ\r\n" | run_dos CMD/DEBUG/DEBUG.COM) || true
+if echo "$output" | grep -q ":0102"; then
+    ok "DEBUG S (search memory — found 'll' at 102)"
+else
+    fail "DEBUG S (expected match at offset 0102)"
+fi
+
+# -- DEBUG: assemble + unassemble --
+output=$(printf "A 100\r\nNOP\r\nNOP\r\nINT 20\r\n\r\nU 100 L4\r\nQ\r\n" | run_dos CMD/DEBUG/DEBUG.COM) || true
+if echo "$output" | grep -q "NOP" && echo "$output" | grep -q "INT.*20"; then
+    ok "DEBUG A+U (assemble + unassemble)"
+else
+    fail "DEBUG A+U (expected NOP and INT 20)"
+fi
+
+# -- DEBUG: name + write file --
+output=$(printf "E 100 48 65 6C 6C 6F\r\nR CX\r\n5\r\nN DBGTEST.BIN\r\nW\r\nQ\r\n" | run_dos CMD/DEBUG/DEBUG.COM) || true
+if echo "$output" | grep -q "Writing 0005 bytes"; then
+    ok "DEBUG N+W (write file)"
+else
+    fail "DEBUG N+W (expected 'Writing 0005 bytes')"
+fi
+# Verify file content
+if [ -f "$SRC/DBGTEST.BIN" ] && [ "$(xxd -p "$SRC/DBGTEST.BIN")" = "48656c6c6f" ]; then
+    ok "DEBUG N+W (file content verified)"
+else
+    fail "DEBUG N+W (expected file with 'Hello' bytes)"
+fi
+
+# -- DEBUG: name + load file --
+output=$(printf "N DBGTEST.BIN\r\nL\r\nD 100 L5\r\nQ\r\n" | run_dos CMD/DEBUG/DEBUG.COM) || true
+if echo "$output" | grep -q "Hello"; then
+    ok "DEBUG N+L (load file)"
+else
+    fail "DEBUG N+L (expected 'Hello' in dump after load)"
+fi
+rm -f "$SRC/DBGTEST.BIN"
+
 # -- LABEL: show volume info (read-only; write needs FCB delete, not implemented) --
 output=$(printf "\r\n" | timeout 5 "$BIN/dos-run" "$SRC/CMD/LABEL/LABEL.COM" 2>/dev/null) || true
 if echo "$output" | grep -q "Serial Number"; then

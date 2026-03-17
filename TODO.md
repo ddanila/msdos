@@ -149,7 +149,9 @@ Add more test scenarios for tools already supported in kvikdos, avoiding QEMU co
 - [ ] `EDLIN file /B` — binary (ignore ^Z) — needs QEMU
 
 #### DEBUG — remaining
-- [ ] Load file (needs QEMU)
+- [x] Load file — works under kvikdos (N+L)
+- [x] Enter/dump bytes, fill, compare, move, search memory
+- [x] Hex arithmetic, assemble+unassemble, set register, write file
 
 #### FDISK
 - [ ] `FDISK` — interactive (smoke test: launches and exits)
