@@ -293,6 +293,22 @@ else
     fail "FIND /C (expected 'SETENV.BAT' header with count)"
 fi
 
+# -- FIND: multiple files --
+output=$(run_dos CMD/FIND/FIND.EXE '"echo"' 'C:\SETENV.BAT' 'C:\CPY.BAT') || true
+if echo "$output" | grep -q "SETENV.BAT" && echo "$output" | grep -q "CPY.BAT"; then
+    ok "FIND (multiple files)"
+else
+    fail "FIND (expected headers for both SETENV.BAT and CPY.BAT)"
+fi
+
+# -- FIND /V /C: count non-matching lines --
+output=$(run_dos CMD/FIND/FIND.EXE /V /C '"echo"' 'C:\SETENV.BAT') || true
+if echo "$output" | grep -qE "SETENV\.BAT:.*[0-9]"; then
+    ok "FIND /V /C (count non-matching)"
+else
+    fail "FIND /V /C (expected 'SETENV.BAT: N' count)"
+fi
+
 # -- FC: compare identical files --
 output=$(run_dos CMD/FC/FC.EXE 'C:\SETENV.BAT' 'C:\SETENV.BAT') || true
 if echo "$output" | grep -q "no differences"; then
@@ -539,6 +555,14 @@ else
 fi
 # Clean up: remove read-only (archive persists in kvikdos)
 run_dos CMD/ATTRIB/ATTRIB.EXE '-R' 'C:\SETENV.BAT' > /dev/null 2>&1 || true
+
+# -- ATTRIB /S: recursive listing --
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\CMD\EDLIN\*.*' /S) || true
+if echo "$output" | grep -q "EDLIN.COM" && echo "$output" | grep -q "EDLIN.ASM"; then
+    ok "ATTRIB /S (recursive listing)"
+else
+    fail "ATTRIB /S (expected EDLIN.COM and EDLIN.ASM in recursive output)"
+fi
 
 # -- MORE: page through piped stdin --
 output=$(printf "line1\r\nline2\r\nline3\r\n" | run_dos CMD/MORE/MORE.COM) || true
