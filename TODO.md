@@ -113,12 +113,6 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 #### SYS
 - [ ] `SYS A:` — transfer system files
 
-#### KEYB
-- [x] `KEYB US` — load US keyboard
-- [x] `KEYB GR,,KEYBOARD.SYS` — explicit file (covered by US test with explicit path)
-- [x] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with ID
-- [x] `KEYB` — show current layout
-
 #### ASSIGN — remaining
 - [ ] `ASSIGN A=B` — redirect A: to B: (TSR operation, needs QEMU)
 - [ ] `ASSIGN` — clear all assignments (TSR operation, needs QEMU)
