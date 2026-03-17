@@ -12,7 +12,12 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-KVIKDOS="$SCRIPT_DIR/../kvikdos/kvikdos"
+# Use kvikdos-soft (software CPU) when /dev/kvm is not available.
+if [ -r /dev/kvm ]; then
+    KVIKDOS="$SCRIPT_DIR/../kvikdos/kvikdos"
+else
+    KVIKDOS="$SCRIPT_DIR/../kvikdos/kvikdos-soft"
+fi
 SRC_ROOT="$(cd "$SCRIPT_DIR/../MS-DOS/v4.0/src" && pwd)"
 
 TOOL="$1"

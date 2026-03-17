@@ -11,9 +11,12 @@
 #   COMMON35: "Volume label (11 characters, ENTER for none)? "  — no trailing \n
 #   msg 9:    CR,LF,"Delete current volume label (Y/N)? "       — no trailing \n
 # Responses:
-#   → \r\n  (empty label — triggers delete prompt)
-#   → Y\r\n (confirm deletion)
-# Y/N input is read via SYSDISPMSG through DOS handle 0 (= COM1 with CTTY AUX).
+#   → \r    (bare CR — empty label.  INT 21h/3Fh cooked read stops at CR;
+#             sending \r\n would leave \n in UART FIFO which function 8 would
+#             consume as the Y/N char before we get a chance to send 'Y')
+#   → Y     (bare Y — function 8 reads one char; no trailing CR/LF to pollute
+#             subsequent reads, matching format_coordinator.py's pattern)
+# Y/N input is read via SYSDISPMSG/function-8 through DOS handle 0 (COM1 with CTTY AUX).
 # Y = proceed to delete, N = set NO_DELETE flag (skip deletion).
 #
 # FIFO ordering trick (see serial_expect.py header):
@@ -101,12 +104,13 @@ QEMU_PID=$!
 # blocks until QEMU opens it).  Coordinator exits on EOF (QEMU exits).
 #
 # Interactions in order:
-#   1. "ENTER for none"              → \r\n  (submit empty label → triggers delete prompt)
-#   2. "Delete current volume label" → Y\r\n (confirm deletion)
+#   1. "ENTER for none"              → \r   (bare CR — cooked INT 21h/3Fh stops at CR;
+#                                            no trailing LF to pollute function-8 Y/N read)
+#   2. "Delete current volume label" → Y    (bare Y — function 8 reads one char)
 python3 "$REPO_ROOT/tests/serial_expect.py" \
     "$SERIAL_IN" "$SERIAL_OUT" "$SERIAL_LOG" \
-    "ENTER for none"              $'\\r\\n' \
-    "Delete current volume label" $'Y\\r\\n'
+    "ENTER for none"              $'\\r' \
+    "Delete current volume label" 'Y'
 
 wait $QEMU_PID || true
 exec 3>&-    # close our O_RDWR fd on SERIAL_IN

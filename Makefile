@@ -29,7 +29,29 @@ AINC     := -I. -ID:\\TOOLS\\INC
 
 .PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy run-boot test-sys test-help-qemu test-builtins test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-label
 
+# Build kvikdos-soft (software CPU) if /dev/kvm is unavailable.
+# dos-run automatically selects the right binary at runtime.
+#
+# kvikdos/mini_kvm.h's non-Linux __u64 typedef uses uint64_t (= unsigned long
+# on x86-64) which conflicts with Linux kernel headers' unsigned long long.
+# Fix: inject mk/mini_kvm_compat.h via -include; its MINI_KVM_H guard
+# prevents the real mini_kvm.h from being processed.
+KVIKDOS_SOFT_SRCS := kvikdos/kvikdos.c kvikdos/cpu8086.c
+KVIKDOS_SOFT_DEPS := $(KVIKDOS_SOFT_SRCS) kvikdos/mini_kvm.h kvikdos/cpu8086.h \
+                     kvikdos/cpu8086_xt.h kvikdos/XTulator/XTulator/cpu/cpu.c \
+                     mk/mini_kvm_compat.h
+KVIKDOS_SOFT_BIN  := kvikdos/kvikdos-soft
+
+ifeq ($(wildcard /dev/kvm),)
+all: $(KVIKDOS_SOFT_BIN) messages mapper boot inc bios dos cmd dev select memm
+$(KVIKDOS_SOFT_BIN): $(KVIKDOS_SOFT_DEPS)
+	gcc -std=c99 -O2 -W -Wall -Wextra -fno-strict-aliasing \
+	    -U__linux__ -include $(CURDIR)/mk/mini_kvm_compat.h \
+	    -I kvikdos/ \
+	    -o $@ $(KVIKDOS_SOFT_SRCS)
+else
 all: messages mapper boot inc bios dos cmd dev select memm
+endif
 
 # ---------------------------------------------------------------------------
 # MESSAGES
