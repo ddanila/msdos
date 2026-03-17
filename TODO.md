@@ -87,18 +87,7 @@ The only unique QEMU value is verifying EXEPACK decompression with the real DOS 
 - [ ] Reduce test_help_qemu.sh to EXEPACK integrity verification only
 - [ ] Drop the duplicated `/?` checks that kvikdos already covers
 
-### Priority 3: EXE2BIN from test_share_nlsfunc_exe2bin.sh → kvikdos
-
-EXE2BIN is pure file conversion (EXE→BIN), no TSR state needed. SHARE and NLSFUNC
-must stay on QEMU (TSR persistence, INT 2Fh hooks).
-
-- [x] Move EXE2BIN test cases to run_tests.sh kvikdos E2E section
-  - Successful conversion (minimal EXE → 1-byte BIN) using source-built CMD/EXE2BIN
-  - Missing-file error message ("File not found") using TOOLS/EXE2BIN.EXE (pre-built)
-  - Note: source-built CMD/EXE2BIN.EXE (8KB) hangs in SYSDISPMSG error path due to
-    different MSGSERV linkage; TOOLS/EXE2BIN.EXE (3KB, pre-built) works correctly
-
-### Priority 4: Expand kvikdos E2E coverage
+### Priority 3: Expand kvikdos E2E coverage
 
 Add more test scenarios for tools already supported in kvikdos, avoiding QEMU cost:
 

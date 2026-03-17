@@ -449,7 +449,9 @@ DISKCOMP flow is similar: INSERT FIRST/SECOND messages (no wait) → `PRESS_ANY_
 - **IP=0 → BINFIX path**: binary conversion, no "Fix-ups needed" prompt. Test oracle: `IF EXIST outputfile`.
 - **IP=0x100 → COM path**: same (no prompts).
 - **IP≠0 + relocations → interactive**: prompts "Fix-ups needed - base segment (hex):" — can't automate.
-- **File not found**: DosError → INT 21h/AH=59h extended error → `extend_message` → "File not found" printed. Still exits errorlevel 0.
+- **File not found**: DosError → INT 21h/AH=59h extended error → `extend_message` → SYSDISPMSG → `$M_GET_MSG_ADDRESS` → "File not found" printed. Still exits errorlevel 0.
+- **SYSDISPMSG quirk**: SYSLOADMSG calls `$M_GET_DBCS_VEC` (INT 21h/AH=63h) during init. Without a valid DBCS table, the message retriever corrupts memory and infinite-loops in `$M_GET_MSG_ADDRESS`. kvikdos DBCS fix (returning empty table at 0x053A) resolved this.
+- **Source-built vs pre-built**: CMD/EXE2BIN/EXE2BIN.EXE (8KB, source-built) still hangs in SYSDISPMSG error path — different MSGSERV linkage from TOOLS/EXE2BIN.EXE (3KB, pre-built) which works. The kvikdos E2E error test uses TOOLS/ version.
 - **Minimal test EXE** (33 bytes, IP=0, BINFIX path):
   ```bash
   printf '\115\132\041\000\001\000\000\000\002\000\000\000\377\377\000\000\000\000\000\000\000\000\000\000\034\000\000\000\000\000\000\000\303' \
