@@ -1028,6 +1028,37 @@ fi
 # The /? smoke test in Section 4 passes because the PARSER intercepts /? before
 # KEYB_COMMAND is ever entered.  Functional KEYB tests require QEMU.
 
+# -- EXE2BIN: convert a minimal EXE to BIN --
+# Build a 513-byte test EXE: 512-byte MZ header (cparhdr=0x20) + 1 byte of code (0xC3=RET).
+# EXE2BIN requires SS=SP=CS=0 and IP=0 for binary output (no fixups).
+E2B_DIR="$SRC/CMD/EXE2BIN"
+E2B_TEST_EXE="$E2B_DIR/E2BTEST.EXE"
+E2B_TEST_BIN="$E2B_DIR/E2BTEST.BIN"
+python3 -c "
+import struct, sys
+h = bytearray(512)
+h[0:2] = b'MZ'
+struct.pack_into('<H', h, 2, 1)      # e_cblp: 513 % 512 = 1
+struct.pack_into('<H', h, 4, 2)      # e_cp: 2 pages
+struct.pack_into('<H', h, 8, 0x20)   # e_cparhdr: 32 paragraphs = 512 bytes
+struct.pack_into('<H', h, 12, 0xFFFF)# e_maxalloc
+struct.pack_into('<H', h, 24, 0x1C)  # e_lfarlc
+sys.stdout.buffer.write(h + b'\xC3')
+" > "$E2B_TEST_EXE"
+rm -f "$E2B_TEST_BIN"
+run_dos CMD/EXE2BIN/EXE2BIN.EXE 'C:\CMD\EXE2BIN\E2BTEST' 'C:\CMD\EXE2BIN\E2BTEST.BIN' > /dev/null 2>&1 || true
+if [[ -f "$E2B_TEST_BIN" ]] && [[ $(wc -c < "$E2B_TEST_BIN") -eq 1 ]]; then
+    ok "EXE2BIN (minimal EXE to 1-byte BIN)"
+else
+    fail "EXE2BIN (expected 1-byte BIN output)"
+fi
+rm -f "$E2B_TEST_EXE" "$E2B_TEST_BIN"
+
+# Skipped: EXE2BIN error handling (missing file) — hangs in SYSDISPMSG extended
+# error path.  The error display calls $M_GET_MSG_ADDRESS for class 1 (extended
+# errors from DOS kernel) which needs INT 2Fh or kernel message table support
+# not yet implemented in kvikdos.
+
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
