@@ -7,8 +7,8 @@ Build MS-DOS 4.0 from source on Linux and macOS using original DOS compilers run
 1. **Build**: Run the original MS-DOS 4.0 compilers (MASM, CL, LINK, LIB, etc.) under kvikdos to compile and link the OS from source — producing `IO.SYS`, `MSDOS.SYS`, `COMMAND.COM` (with `/?' help for all built-in commands), `SYS.COM`, `FORMAT.COM`, all 11 device drivers, and more.
 2. **Test**: Validate build outputs with integration tests — file existence checks, SHA256 golden checksums, COMMAND.COM smoke tests, /? help smoke tests for all 38 CMD tools under kvikdos, and E2E functional tests (MEM, FIND, FC, TREE, SORT, COMP, ATTRIB, MORE, DEBUG, LABEL, EDLIN, GRAFTABL, etc.) under kvikdos.
 3. **Deploy**: Assemble a bootable 1.44MB floppy image (`out/floppy.img`) from the build outputs.
-4. **E2E test**: Boot the floppy in QEMU and test built-in commands (VER, ECHO, SET, PATH, DIR, VOL, IF, FOR, COPY, REN, DEL, MD/CD/RD, TYPE, CLS, ERASE, ATTRIB, FIND, CHKDSK, etc. via `make test-builtins`), /? help + EXEPACK binary integrity for 27 external tools on real DOS (`make test-help-qemu`), and `FORMAT B:` → `SYS B:` on a blank image to verify it boots independently (`make test-sys`).
-5. **CI**: Automated `make test` + `make deploy` + `make test-sys` + `make test-builtins` + `make test-help-qemu` in GitHub Actions on every push.
+4. **E2E test**: Boot the floppy in QEMU and run a suite of functional tests — built-in commands (VER, ECHO, SET, PATH, DIR, VOL, IF, FOR, COPY, REN, DEL, MD/CD/RD, TYPE, CLS, ERASE, ATTRIB, FIND, CHKDSK, etc.) via `make test-builtins`; /? help + EXEPACK integrity for 27 external tools via `make test-help-qemu`; FORMAT variants via `make test-format`; BACKUP/RESTORE, DISKCOMP/DISKCOPY, SHARE/NLSFUNC/EXE2BIN, APPEND, and LABEL interactive via dedicated test targets; and `FORMAT B:` → `SYS B:` boot verification via `make test-sys`.
+5. **CI**: GitHub Actions on every push — build + `make test` (kvikdos integration tests), then parallel E2E jobs covering all of the above test targets.
 
 ## Status
 
@@ -69,6 +69,12 @@ make deploy        # create bootable floppy image at out/floppy.img
 make test-sys      # e2e: FORMAT + SYS a blank floppy, verify it boots
 make test-builtins  # e2e: QEMU boot, test built-in commands via COM1
 make test-help-qemu # e2e: QEMU boot, /? help for 27 external CMD tools + EXEPACK check
+make test-format    # e2e: FORMAT B: with all flag variants (8 tests, 4 parallel QEMU jobs)
+make test-backup-restore       # e2e: BACKUP and RESTORE with all flag variants
+make test-diskcomp-diskcopy    # e2e: DISKCOPY and DISKCOMP
+make test-share-nlsfunc-exe2bin # e2e: SHARE, NLSFUNC, EXE2BIN
+make test-append    # e2e: APPEND flag variants
+make test-label     # e2e: LABEL interactive (serial_expect.py)
 make gen-checksums  # regenerate tests/golden.sha256 (always run make clean first!)
 make clean         # remove all generated files and floppy images
 ./run-qemu.sh      # boot floppy interactively in QEMU (graphical window)

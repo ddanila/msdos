@@ -64,7 +64,7 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 
 ## E2E Tests — Remaining Per-Command Coverage
 
-**Harness:** kvikdos for fast tests (`run_tests.sh`), QEMU+COM1 for disk-heavy ops (`test_builtins.sh`). CI runs `make test` → `test-sys` → `test-builtins` → `test-help-qemu`.
+**Harness:** kvikdos for fast tests (`run_tests.sh`), QEMU+COM1 for disk-heavy ops. CI runs parallel E2E jobs for each test target; see `.github/workflows/ci.yml` for the full list.
 
 ### COMMAND.COM built-ins — remaining (interactive / needs special setup)
 
@@ -77,16 +77,6 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 | CHCP | `CHCP nnn` (set — needs DISPLAY.SYS) |
 
 ### External CMD tools
-
-#### FORMAT
-- [x] `FORMAT B: /V:LABEL` — format with volume label (`test_format.sh`)
-- [x] `FORMAT B: /S` — format + system files (`test_format.sh`)
-- [x] `FORMAT B: /B` — format + reserve space (`test_format.sh`)
-- [x] `FORMAT B: /F:720` — format specific size (`test_format.sh`)
-- [x] `FORMAT B: /T:80 /N:9` — explicit tracks+sectors (`test_format.sh`)
-- [x] `FORMAT B: /4` — 360K in 1.2MB drive (`test_format.sh`)
-- [x] `FORMAT B: /1` — single-sided (`test_format.sh`)
-- [x] `FORMAT B: /8` — 8 sectors/track (`test_format.sh`)
 
 #### XCOPY — remaining (interactive)
 - [ ] `XCOPY src dest /P` — prompt per file (interactive)
@@ -102,13 +92,6 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 
 #### RESTORE — remaining
 - [ ] `RESTORE A: C: /P` — prompt on conflicts (interactive)
-
-#### DISKCOMP — remaining
-- [x] `DISKCOMP A: B: /1` — single-sided only (`test_diskcomp_diskcopy.sh`)
-- [x] `DISKCOMP A: B: /8` — 8 sectors/track only (`test_diskcomp_diskcopy.sh`)
-
-#### LABEL — remaining
-- [x] Remove volume label (`test_label.sh` — interactive via serial_expect.py)
 
 #### EDLIN — remaining
 - [ ] `EDLIN file /B` — binary (ignore ^Z) — needs QEMU
@@ -135,13 +118,6 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `KEYB GR,,KEYBOARD.SYS` — explicit file
 - [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with ID
 - [ ] `KEYB` — show current layout
-
-#### APPEND
-- [x] `APPEND /E /X` — first-time install with environment + extended search (`test_append.sh`)
-- [x] `APPEND C:\DOS` — set append path (`test_append.sh`)
-- [x] `APPEND ;` — clear append path (`test_append.sh`)
-- [x] `APPEND /PATH:ON` — search appended dirs for explicit paths (`test_append.sh`)
-- [x] `APPEND` — show current path → "APPEND=C:\DOS" to STDOUT (`test_append.sh`)
 
 #### ASSIGN — remaining
 - [ ] `ASSIGN A=B` — redirect A: to B: (TSR operation, needs QEMU)
