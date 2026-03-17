@@ -268,6 +268,22 @@ else
     fail "FIND (expected 'SETENV.BAT' header in output)"
 fi
 
+# -- FIND /V: lines NOT containing string --
+output=$(run_dos CMD/FIND/FIND.EXE /V '"echo"' 'C:\SETENV.BAT') || true
+if echo "$output" | grep -q "SETENV.BAT" && echo "$output" | grep -q "COUNTRY"; then
+    ok "FIND /V (inverted match)"
+else
+    fail "FIND /V (expected non-matching lines like 'COUNTRY')"
+fi
+
+# -- FIND /N: show line numbers --
+output=$(run_dos CMD/FIND/FIND.EXE /N '"echo"' 'C:\SETENV.BAT') || true
+if echo "$output" | grep -q "\[.*\]"; then
+    ok "FIND /N (line numbers)"
+else
+    fail "FIND /N (expected [N] line number prefix)"
+fi
+
 # -- FIND /C: count matching lines --
 output=$(run_dos CMD/FIND/FIND.EXE /C '"set"' 'C:\SETENV.BAT') || true
 if echo "$output" | grep -q "SETENV.BAT"; then
