@@ -547,12 +547,16 @@ cp "$SRC/SETENV.BAT" "$SRC/REPLU.BAT"
 touch -d "2025-01-01 00:00:00" "$SRC/REPLU.BAT"              # src: 2025 (newer)
 cp "$SRC/SETENV.BAT" "$SRC/CMD/REPLACE/REPLU.BAT"
 touch -d "2020-01-01 00:00:00" "$SRC/CMD/REPLACE/REPLU.BAT"  # dest: 2020 (older)
-output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\REPLU.BAT' 'C:\CMD\REPLACE\' /U 2>/dev/null || true)
+_stderr_tmp=$(mktemp)
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\REPLU.BAT' 'C:\CMD\REPLACE\' /U 2>"$_stderr_tmp"); _rc=$?; true
+_stderr=$(cat "$_stderr_tmp"); rm -f "$_stderr_tmp"
 rm -f "$SRC/REPLU.BAT" "$SRC/CMD/REPLACE/REPLU.BAT"
 if echo "$output" | grep -q "file(s) replaced"; then
     ok "REPLACE /U (source newer, replaced)"
 else
     fail "REPLACE /U (expected 'file(s) replaced', got: $(echo "$output" | head -3))"
+    echo "    exit code: $_rc"
+    [ -n "$_stderr" ] && echo "    stderr: $(echo "$_stderr" | head -5)"
 fi
 
 # -- REPLACE /U: no replacement when source is older --
@@ -560,12 +564,16 @@ cp "$SRC/SETENV.BAT" "$SRC/REPLU.BAT"
 touch -d "2020-01-01 00:00:00" "$SRC/REPLU.BAT"              # src: 2020 (older)
 cp "$SRC/SETENV.BAT" "$SRC/CMD/REPLACE/REPLU.BAT"
 touch -d "2025-01-01 00:00:00" "$SRC/CMD/REPLACE/REPLU.BAT"  # dest: 2025 (newer)
-output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\REPLU.BAT' 'C:\CMD\REPLACE\' /U 2>/dev/null || true)
+_stderr_tmp=$(mktemp)
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\REPLU.BAT' 'C:\CMD\REPLACE\' /U 2>"$_stderr_tmp"); _rc=$?; true
+_stderr=$(cat "$_stderr_tmp"); rm -f "$_stderr_tmp"
 rm -f "$SRC/REPLU.BAT" "$SRC/CMD/REPLACE/REPLU.BAT"
 if echo "$output" | grep -q "No files replaced"; then
     ok "REPLACE /U (source older, no replacement)"
 else
     fail "REPLACE /U (expected 'No files replaced', got: $(echo "$output" | head -3))"
+    echo "    exit code: $_rc"
+    [ -n "$_stderr" ] && echo "    stderr: $(echo "$_stderr" | head -5)"
 fi
 
 # -- XCOPY: no args → error message (stderr) --
