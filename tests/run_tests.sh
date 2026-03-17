@@ -189,9 +189,8 @@ check_help "IFSFUNC"  "CMD/IFSFUNC/IFSFUNC.EXE"       "IFSFUNC"
 # check_help "COMMAND"  "CMD/COMMAND/COMMAND.COM"       "command interpreter"
 
 # ── Section 5: COMMAND.COM built-in /? help (static binary check) ────────────
-# Built-in commands run through COMMAND.COM which fails sysloadmsg under kvikdos
-# (version mismatch 5.0 vs 4.0). Functional testing requires QEMU. As a lighter
-# alternative we verify the help string is present in the COMMAND.COM binary.
+# Verify the help string is present in the COMMAND.COM binary.
+# (Functional built-in testing is in Section 6 below, using kvikdos.)
 echo ""
 echo "=== Section 5: COMMAND.COM built-in /? help (static check) ==="
 
@@ -1062,6 +1061,337 @@ if echo "$E2B_ERR_OUT" | grep -qi "file not found"; then
     ok "EXE2BIN (missing file error message)"
 else
     fail "EXE2BIN (expected 'File not found', got: $E2B_ERR_OUT)"
+fi
+
+# ── Section 7: COMMAND.COM built-in E2E tests (kvikdos) ──────────────────────
+echo ""
+echo "=== Section 7: COMMAND.COM built-in E2E tests (kvikdos) ==="
+
+KVBAT="$SRC/CMD/COMMAND/KVTEST.BAT"
+KVSUB="$SRC/CMD/COMMAND/KVSUB.BAT"
+KVTXT="$SRC/CMD/COMMAND/KVTST.TXT"
+
+# -- VER --
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C VER) || true
+if echo "$out" | grep -qi "MS-DOS"; then
+    ok "COMMAND.COM VER"
+else
+    fail "COMMAND.COM VER (expected 'MS-DOS', got: $out)"
+fi
+
+# -- ECHO --
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'ECHO HELLO_KVIKDOS_TEST') || true
+if echo "$out" | grep -q "HELLO_KVIKDOS_TEST"; then
+    ok "COMMAND.COM ECHO"
+else
+    fail "COMMAND.COM ECHO (expected 'HELLO_KVIKDOS_TEST', got: $out)"
+fi
+
+# -- SET (list env) --
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C SET) || true
+if echo "$out" | grep -qi "COMSPEC="; then
+    ok "COMMAND.COM SET (lists env)"
+else
+    fail "COMMAND.COM SET (expected 'COMSPEC=' in output, got: $out)"
+fi
+
+# -- PATH (show) --
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C PATH) || true
+if echo "$out" | grep -qi "PATH=\|No Path"; then
+    ok "COMMAND.COM PATH (show)"
+else
+    fail "COMMAND.COM PATH (expected 'PATH=' or 'No Path', got: $out)"
+fi
+
+# -- DIR --
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'DIR C:\CMD\COMMAND') || true
+if echo "$out" | grep -qi "COMMAND"; then
+    ok "COMMAND.COM DIR"
+else
+    fail "COMMAND.COM DIR (expected 'COMMAND' in listing, got: $out)"
+fi
+
+# -- DIR /W --
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'DIR C:\CMD\COMMAND /W') || true
+if echo "$out" | grep -qi "COMMAND"; then
+    ok "COMMAND.COM DIR /W"
+else
+    fail "COMMAND.COM DIR /W (expected 'COMMAND' in wide listing, got: $out)"
+fi
+
+# -- VOL --
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C VOL) || true
+if echo "$out" | grep -qi "Volume\|volume in drive"; then
+    ok "COMMAND.COM VOL"
+else
+    fail "COMMAND.COM VOL (expected 'Volume' in output, got: $out)"
+fi
+
+# -- BREAK (show state) --
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C BREAK) || true
+if echo "$out" | grep -qi "BREAK is"; then
+    ok "COMMAND.COM BREAK (show state)"
+else
+    fail "COMMAND.COM BREAK (expected 'BREAK is', got: $out)"
+fi
+
+# -- VERIFY (show state) --
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C VERIFY) || true
+if echo "$out" | grep -qi "VERIFY is"; then
+    ok "COMMAND.COM VERIFY (show state)"
+else
+    fail "COMMAND.COM VERIFY (expected 'VERIFY is', got: $out)"
+fi
+
+# -- TYPE --
+printf 'HELLO_TYPE_TEST\r\n' > "$KVTXT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'TYPE C:\CMD\COMMAND\KVTST.TXT') || true
+rm -f "$KVTXT"
+if echo "$out" | grep -q "HELLO_TYPE_TEST"; then
+    ok "COMMAND.COM TYPE"
+else
+    fail "COMMAND.COM TYPE (expected 'HELLO_TYPE_TEST', got: $out)"
+fi
+
+# -- GOTO --
+printf 'GOTO SKIP\r\nECHO SHOULD_NOT_APPEAR\r\n:SKIP\r\nECHO GOTO_OK\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q "GOTO_OK" && ! echo "$out" | grep -q "SHOULD_NOT_APPEAR"; then
+    ok "COMMAND.COM GOTO"
+else
+    fail "COMMAND.COM GOTO (expected 'GOTO_OK' and no 'SHOULD_NOT_APPEAR', got: $out)"
+fi
+
+# -- REM --
+printf 'REM This is a comment\r\nECHO REM_SURVIVED\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q "REM_SURVIVED"; then
+    ok "COMMAND.COM REM"
+else
+    fail "COMMAND.COM REM (expected 'REM_SURVIVED', got: $out)"
+fi
+
+# -- IF EXIST --
+printf 'dummy\r\n' > "$KVTXT"
+printf 'IF EXIST C:\CMD\COMMAND\KVTST.TXT ECHO IF_EXIST_OK\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT" "$KVTXT"
+if echo "$out" | grep -q "IF_EXIST_OK"; then
+    ok "COMMAND.COM IF EXIST"
+else
+    fail "COMMAND.COM IF EXIST (expected 'IF_EXIST_OK', got: $out)"
+fi
+
+# -- IF NOT EXIST --
+printf 'IF NOT EXIST C:\CMD\COMMAND\NOSUCH.TXT ECHO IF_NOT_EXIST_OK\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q "IF_NOT_EXIST_OK"; then
+    ok "COMMAND.COM IF NOT EXIST"
+else
+    fail "COMMAND.COM IF NOT EXIST (expected 'IF_NOT_EXIST_OK', got: $out)"
+fi
+
+# -- IF string==string --
+printf 'IF HELLO==HELLO ECHO IF_EQUAL_OK\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q "IF_EQUAL_OK"; then
+    ok "COMMAND.COM IF string==string"
+else
+    fail "COMMAND.COM IF string==string (expected 'IF_EQUAL_OK', got: $out)"
+fi
+
+# -- IF NOT string==string --
+printf 'IF NOT HELLO==WORLD ECHO IF_NOT_EQUAL_OK\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q "IF_NOT_EQUAL_OK"; then
+    ok "COMMAND.COM IF NOT string==string"
+else
+    fail "COMMAND.COM IF NOT string==string (expected 'IF_NOT_EQUAL_OK', got: $out)"
+fi
+
+# -- CALL --
+printf 'ECHO CALL_SUB_OK\r\n' > "$KVSUB"
+printf 'CALL C:\CMD\COMMAND\KVSUB.BAT\r\nECHO CALL_RETURNED\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT" "$KVSUB"
+if echo "$out" | grep -q "CALL_SUB_OK" && echo "$out" | grep -q "CALL_RETURNED"; then
+    ok "COMMAND.COM CALL"
+else
+    fail "COMMAND.COM CALL (expected 'CALL_SUB_OK' and 'CALL_RETURNED', got: $out)"
+fi
+
+# -- SHIFT -- (before shift %1=FIRST, after shift %1=SECOND; use %%1 so printf doesn't eat %)
+printf 'SHIFT\r\nECHO SHIFT_ARG1=%%1\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT FIRST SECOND') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q "SHIFT_ARG1=SECOND"; then
+    ok "COMMAND.COM SHIFT"
+else
+    fail "COMMAND.COM SHIFT (expected 'SHIFT_ARG1=SECOND' after shift, got: $out)"
+fi
+
+# -- FOR loop --
+printf 'FOR %%%%F IN (AAA BBB CCC) DO ECHO FOR_GOT_%%%%F\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q "FOR_GOT_AAA" && echo "$out" | grep -q "FOR_GOT_BBB" && echo "$out" | grep -q "FOR_GOT_CCC"; then
+    ok "COMMAND.COM FOR (loop iterates all items)"
+else
+    fail "COMMAND.COM FOR (expected FOR_GOT_AAA/BBB/CCC, got: $out)"
+fi
+
+# -- ECHO. (blank line) --
+printf 'ECHO.\r\nECHO ECHO_DOT_OK\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q "ECHO_DOT_OK"; then
+    ok "COMMAND.COM ECHO. (blank line)"
+else
+    fail "COMMAND.COM ECHO. (expected 'ECHO_DOT_OK', got: $out)"
+fi
+
+# -- ECHO OFF / ECHO ON --
+printf '@ECHO OFF\r\nECHO ECHO_OFF_OK\r\nECHO ON\r\nECHO ECHO_ON_OK\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q "ECHO_OFF_OK" && echo "$out" | grep -q "ECHO_ON_OK"; then
+    ok "COMMAND.COM ECHO OFF/ON"
+else
+    fail "COMMAND.COM ECHO OFF/ON (expected 'ECHO_OFF_OK' and 'ECHO_ON_OK', got: $out)"
+fi
+
+# -- BREAK ON/OFF toggle --
+printf 'BREAK ON\r\nBREAK\r\nBREAK OFF\r\nBREAK\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -qi "BREAK is on" && echo "$out" | grep -qi "BREAK is off"; then
+    ok "COMMAND.COM BREAK ON/OFF toggle"
+else
+    fail "COMMAND.COM BREAK ON/OFF (expected both states, got: $out)"
+fi
+
+# -- VERIFY ON/OFF toggle --
+printf 'VERIFY ON\r\nVERIFY\r\nVERIFY OFF\r\nVERIFY\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -qi "VERIFY is on" && echo "$out" | grep -qi "VERIFY is off"; then
+    ok "COMMAND.COM VERIFY ON/OFF toggle"
+else
+    fail "COMMAND.COM VERIFY ON/OFF (expected both states, got: $out)"
+fi
+
+# -- PATH set and clear --
+printf 'PATH A:\DOS\r\nPATH\r\nPATH ;\r\nPATH\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -qi "A:\\\\DOS" && echo "$out" | grep -qi "No Path\|PATH=;"; then
+    ok "COMMAND.COM PATH set and clear"
+else
+    fail "COMMAND.COM PATH set/clear (expected A:\\DOS and 'No Path', got: $out)"
+fi
+
+# -- SET assign and clear --
+printf 'SET SETVAR=TESTVAL\r\nSET SETVAR\r\nECHO SET_ASSIGN_DONE\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q "SETVAR=TESTVAL"; then
+    ok "COMMAND.COM SET assign"
+else
+    fail "COMMAND.COM SET assign (expected 'SETVAR=TESTVAL', got: $out)"
+fi
+
+# -- COPY --
+printf 'COPY_TEST_DATA\r\n' > "$KVTXT"
+printf 'COPY C:\CMD\COMMAND\KVTST.TXT C:\CMD\COMMAND\KVTST2.TXT\r\nTYPE C:\CMD\COMMAND\KVTST2.TXT\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT" "$KVTXT" "$SRC/CMD/COMMAND/KVTST2.TXT"
+if echo "$out" | grep -q "COPY_TEST_DATA"; then
+    ok "COMMAND.COM COPY"
+else
+    fail "COMMAND.COM COPY (expected copied content in dest, got: $out)"
+fi
+
+# -- COPY /V --
+printf 'COPYV_TEST_DATA\r\n' > "$KVTXT"
+printf 'COPY /V C:\CMD\COMMAND\KVTST.TXT C:\CMD\COMMAND\KVTST2.TXT\r\nTYPE C:\CMD\COMMAND\KVTST2.TXT\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT" "$KVTXT" "$SRC/CMD/COMMAND/KVTST2.TXT"
+if echo "$out" | grep -q "COPYV_TEST_DATA"; then
+    ok "COMMAND.COM COPY /V"
+else
+    fail "COMMAND.COM COPY /V (expected copied content in dest, got: $out)"
+fi
+
+# -- REN --
+printf 'REN_TEST_DATA\r\n' > "$KVTXT"
+printf 'REN C:\CMD\COMMAND\KVTST.TXT KVREN.TXT\r\nTYPE C:\CMD\COMMAND\KVREN.TXT\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT" "$KVTXT" "$SRC/CMD/COMMAND/KVREN.TXT"
+if echo "$out" | grep -q "REN_TEST_DATA"; then
+    ok "COMMAND.COM REN"
+else
+    fail "COMMAND.COM REN (expected renamed file content, got: $out)"
+fi
+
+# -- DEL --
+printf 'DEL_TEST_DATA\r\n' > "$KVTXT"
+printf 'DEL C:\CMD\COMMAND\KVTST.TXT\r\nIF NOT EXIST C:\CMD\COMMAND\KVTST.TXT ECHO DEL_OK\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT" "$KVTXT"
+if echo "$out" | grep -q "DEL_OK"; then
+    ok "COMMAND.COM DEL"
+else
+    fail "COMMAND.COM DEL (expected 'DEL_OK', got: $out)"
+fi
+
+# -- ERASE (synonym for DEL) --
+printf 'ERASE_TEST_DATA\r\n' > "$KVTXT"
+printf 'ERASE C:\CMD\COMMAND\KVTST.TXT\r\nIF NOT EXIST C:\CMD\COMMAND\KVTST.TXT ECHO ERASE_OK\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT" "$KVTXT"
+if echo "$out" | grep -q "ERASE_OK"; then
+    ok "COMMAND.COM ERASE (DEL synonym)"
+else
+    fail "COMMAND.COM ERASE (expected 'ERASE_OK', got: $out)"
+fi
+
+# -- DEL wildcard --
+printf 'W1\r\n' > "$SRC/CMD/COMMAND/KVW1.DEL"
+printf 'W2\r\n' > "$SRC/CMD/COMMAND/KVW2.DEL"
+printf 'DEL C:\CMD\COMMAND\*.DEL\r\nIF NOT EXIST C:\CMD\COMMAND\KVW1.DEL IF NOT EXIST C:\CMD\COMMAND\KVW2.DEL ECHO DEL_WILD_OK\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT" "$SRC/CMD/COMMAND/KVW1.DEL" "$SRC/CMD/COMMAND/KVW2.DEL"
+if echo "$out" | grep -q "DEL_WILD_OK"; then
+    ok "COMMAND.COM DEL wildcard"
+else
+    fail "COMMAND.COM DEL wildcard (expected 'DEL_WILD_OK', got: $out)"
+fi
+
+# -- MD + RD --
+KVTDIR="$SRC/CMD/COMMAND/KVTDIR"
+printf 'MD C:\CMD\COMMAND\KVTDIR\r\nIF EXIST C:\CMD\COMMAND\KVTDIR\ ECHO MD_OK\r\nRD C:\CMD\COMMAND\KVTDIR\r\nIF NOT EXIST C:\CMD\COMMAND\KVTDIR\ ECHO RD_OK\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"; rmdir "$KVTDIR" 2>/dev/null || true
+if echo "$out" | grep -q "MD_OK" && echo "$out" | grep -q "RD_OK"; then
+    ok "COMMAND.COM MD + RD"
+else
+    fail "COMMAND.COM MD + RD (expected 'MD_OK' and 'RD_OK', got: $out)"
+fi
+
+# -- MD nested --
+KVNDIR="$SRC/CMD/COMMAND/KVNEST"
+printf 'MD C:\CMD\COMMAND\KVNEST\r\nMD C:\CMD\COMMAND\KVNEST\SUB\r\nIF EXIST C:\CMD\COMMAND\KVNEST\SUB\ ECHO MD_NESTED_OK\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"; rm -rf "$KVNDIR" 2>/dev/null || true
+if echo "$out" | grep -q "MD_NESTED_OK"; then
+    ok "COMMAND.COM MD nested"
+else
+    fail "COMMAND.COM MD nested (expected 'MD_NESTED_OK', got: $out)"
 fi
 
 # ── Summary ──────────────────────────────────────────────────────────────────

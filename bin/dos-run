@@ -52,5 +52,6 @@ exec "$KVIKDOS" \
     --env="LIB=c:\\TOOLS\\BLD\\LIB" \
     --env="INIT=c:\\TOOLS" \
     --env="COUNTRY=usa-ms" \
+    --env="COMSPEC=c:\\CMD\\COMMAND\\COMMAND.COM" \
     "$TOOL" \
     "$@"

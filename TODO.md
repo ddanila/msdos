@@ -75,7 +75,13 @@ DEL, RENAME, FIND, VERIFY, BREAK, CHCP, TRUENAME, MD/RD) and batch control flow
 (IF, FOR, CALL, SHIFT, GOTO, REM). All are pure file I/O and string operations —
 no disk hardware dependencies.
 
-- [ ] Verify COMMAND.COM batch file execution works reliably in kvikdos
+- [x] Verify COMMAND.COM batch file execution works reliably in kvikdos
+  - **Result: WORKS** — requires COMSPEC env var pointing to COMMAND.COM on C: drive
+    (now set automatically by `bin/dos-run`). Added 6 new INT 21h/2Fh stubs to kvikdos:
+    AH=13h (FCB delete), AH=17h (FCB rename), AH=2Eh (set verify), AH=54h (get verify),
+    AH=5Ah (create unique temp file), INT 2Fh/AX=1902h-1903h (shell multiplex).
+    Working built-ins: VER, DIR, SET, PATH, VOL, VERIFY, BREAK, IF, FOR, GOTO, CALL,
+    SHIFT, TYPE, COPY, REN, DEL, MD, RD, ECHO, REM and batch control flow.
 - [ ] Port test_builtins.sh test cases to run_tests.sh kvikdos E2E section
 - [ ] Remove or slim down the QEMU e2e-builtins CI job
 
