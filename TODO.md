@@ -98,7 +98,6 @@ must stay on QEMU (TSR persistence, INT 2Fh hooks).
 
 Add more test scenarios for tools already supported in kvikdos, avoiding QEMU cost:
 
-- [ ] More XCOPY scenarios (copy trees, /S subdirectory recursion)
 - [ ] SUBST/JOIN with actual drive operations (requires kvikdos multi-drive support)
 
 ### Won't migrate (must stay QEMU)

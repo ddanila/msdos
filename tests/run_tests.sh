@@ -843,6 +843,54 @@ else
     fail "XCOPY (expected 'Invalid number of parameters')"
 fi
 
+# -- XCOPY: copy single file --
+printf "XcopyTest\r\n" > "$SRC/XCTEST1.TXT"
+mkdir -p "$SRC/XCPDEST"
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCTEST1.TXT' 'XCPDEST\' 2>/dev/null || true)
+if echo "$output" | grep -q "1 File(s) copied"; then
+    ok "XCOPY (copy single file)"
+else
+    fail "XCOPY (expected '1 File(s) copied')"
+fi
+# Verify destination file content
+if [ -f "$SRC/XCPDEST/XCTEST1.TXT" ] && grep -q "XcopyTest" "$SRC/XCPDEST/XCTEST1.TXT"; then
+    ok "XCOPY (file content verified)"
+else
+    fail "XCOPY (expected XCPDEST/XCTEST1.TXT with 'XcopyTest')"
+fi
+rm -rf "$SRC/XCPDEST" "$SRC/XCTEST1.TXT"
+
+# -- XCOPY /S: copy subdirectory tree --
+mkdir -p "$SRC/XCPTEST/SUB"
+printf "Root\r\n" > "$SRC/XCPTEST/FILE1.TXT"
+printf "SubFile\r\n" > "$SRC/XCPTEST/SUB/FILE2.TXT"
+mkdir -p "$SRC/XCPDEST"
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCPTEST\*.*' 'XCPDEST\' /S 2>/dev/null || true)
+if echo "$output" | grep -q "2 File(s) copied"; then
+    ok "XCOPY /S (copy subdirectory tree)"
+else
+    fail "XCOPY /S (expected '2 File(s) copied')"
+fi
+if [ -f "$SRC/XCPDEST/SUB/FILE2.TXT" ] && grep -q "SubFile" "$SRC/XCPDEST/SUB/FILE2.TXT"; then
+    ok "XCOPY /S (subdirectory file verified)"
+else
+    fail "XCOPY /S (expected XCPDEST/SUB/FILE2.TXT with 'SubFile')"
+fi
+rm -rf "$SRC/XCPDEST"
+
+# -- XCOPY /S /E: copy including empty subdirectories --
+mkdir -p "$SRC/XCPTEST/EMPTY"
+mkdir -p "$SRC/XCPDEST"
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCPTEST\*.*' 'XCPDEST\' /S /E 2>/dev/null || true)
+if echo "$output" | grep -q "2 File(s) copied" && [ -d "$SRC/XCPDEST/EMPTY" ]; then
+    ok "XCOPY /S /E (empty subdirectory created)"
+else
+    fail "XCOPY /S /E (expected XCPDEST/EMPTY directory to be created)"
+fi
+
+# Clean up XCOPY test files
+rm -rf "$SRC/XCPTEST" "$SRC/XCPDEST"
+
 # -- GRAFTABL /STATUS: show active code page --
 output=$(run_dos CMD/GRAFTABL/GRAFTABL.COM /STATUS) || true
 if echo "$output" | grep -q "Code Page"; then
