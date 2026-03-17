@@ -13,10 +13,14 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Use kvikdos-soft (software CPU) when /dev/kvm is not available.
-if [ -r /dev/kvm ]; then
-    KVIKDOS="$SCRIPT_DIR/../kvikdos/kvikdos"
-else
-    KVIKDOS="$SCRIPT_DIR/../kvikdos/kvikdos-soft"
+# Override with KVIKDOS env var for programs that need the software CPU
+# even when KVM is present (e.g. XCOPY triggers #GP on KVM).
+if [ -z "${KVIKDOS:-}" ]; then
+    if [ -r /dev/kvm ]; then
+        KVIKDOS="$SCRIPT_DIR/../kvikdos/kvikdos"
+    else
+        KVIKDOS="$SCRIPT_DIR/../kvikdos/kvikdos-soft"
+    fi
 fi
 SRC_ROOT="$(cd "$SCRIPT_DIR/../MS-DOS/v4.0/src" && pwd)"
 

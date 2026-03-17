@@ -44,14 +44,17 @@ KVIKDOS_SOFT_BIN  := kvikdos/kvikdos-soft
 
 ifeq ($(wildcard /dev/kvm),)
 all: $(KVIKDOS_SOFT_BIN) messages mapper boot inc bios dos cmd dev select memm
+else
+# Build kvikdos-soft alongside KVM binary so tests can fall back to software
+# CPU for programs that trigger #GP on KVM (e.g. XCOPY segment limit issues).
+all: $(KVIKDOS_SOFT_BIN) messages mapper boot inc bios dos cmd dev select memm
+endif
+
 $(KVIKDOS_SOFT_BIN): $(KVIKDOS_SOFT_DEPS)
 	gcc -std=c99 -O2 -W -Wall -Wextra -fno-strict-aliasing \
 	    -U__linux__ -include $(CURDIR)/mk/mini_kvm_compat.h \
 	    -I kvikdos/ \
 	    -o $@ $(KVIKDOS_SOFT_SRCS)
-else
-all: messages mapper boot inc bios dos cmd dev select memm
-endif
 
 # ---------------------------------------------------------------------------
 # MESSAGES
