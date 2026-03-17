@@ -1054,10 +1054,15 @@ else
 fi
 rm -f "$E2B_TEST_EXE" "$E2B_TEST_BIN"
 
-# Skipped: EXE2BIN error handling (missing file) — hangs in SYSDISPMSG extended
-# error path.  The error display calls $M_GET_MSG_ADDRESS for class 1 (extended
-# errors from DOS kernel) which needs INT 2Fh or kernel message table support
-# not yet implemented in kvikdos.
+# -- EXE2BIN: error handling (missing file) --
+# Use TOOLS/EXE2BIN.EXE (pre-built, 3KB) — the source-built CMD version (8KB)
+# has a different MSGSERV linkage that still hangs in the extended error path.
+E2B_ERR_OUT=$(run_dos TOOLS/EXE2BIN.EXE 'NONEXIST.EXE' 'NONEXIST.COM' 2>&1) || true
+if echo "$E2B_ERR_OUT" | grep -qi "file not found"; then
+    ok "EXE2BIN (missing file error message)"
+else
+    fail "EXE2BIN (expected 'File not found', got: $E2B_ERR_OUT)"
+fi
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
