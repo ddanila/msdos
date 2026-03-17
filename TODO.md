@@ -84,7 +84,7 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 
 #### REPLACE — remaining
 - [ ] `REPLACE src dest /P` — prompt (interactive)
-- [ ] `REPLACE src dest /U` — only if dest older
+- [x] `REPLACE src dest /U` — only if dest older (wildcard FindFirst/FindNext now supported in kvikdos)
 - [ ] `REPLACE src dest /W` — wait before start (interactive)
 
 #### BACKUP — remaining
@@ -110,13 +110,10 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `PRINT file /C` — remove from queue
 - [ ] `PRINT /Q:5 file` — set queue size
 
-#### SYS
-- [ ] `SYS A:` — transfer system files
-
-#### KEYB
-- [ ] `KEYB US` — load US keyboard
-- [ ] `KEYB GR,,KEYBOARD.SYS` — explicit file
-- [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with ID
+#### KEYB — needs QEMU
+- [ ] `KEYB US` — load US keyboard (kvikdos: SYSLOADMSG fails before KEYB_COMMAND runs)
+- [ ] `KEYB GR,,KEYBOARD.SYS` — explicit file, non-US layout
+- [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with code page and ID
 - [ ] `KEYB` — show current layout
 
 #### ASSIGN — remaining

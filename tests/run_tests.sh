@@ -540,6 +540,42 @@ else
     fail "REPLACE (expected 'Source path required')"
 fi
 
+# -- REPLACE /U: replace only if source is newer --
+# Uses C:\CMD\REPLACE\ (same dir as the /A test above) to stay on known-good ground.
+# REPLU.BAT is a temp copy; we never touch SETENV.BAT so other tests are unaffected.
+cp "$SRC/SETENV.BAT" "$SRC/REPLU.BAT"
+touch -d "2025-01-01 00:00:00" "$SRC/REPLU.BAT"              # src: 2025 (newer)
+cp "$SRC/SETENV.BAT" "$SRC/CMD/REPLACE/REPLU.BAT"
+touch -d "2020-01-01 00:00:00" "$SRC/CMD/REPLACE/REPLU.BAT"  # dest: 2020 (older)
+_stderr_tmp=$(mktemp)
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\REPLU.BAT' 'C:\CMD\REPLACE\' /U 2>"$_stderr_tmp"); _rc=$?; true
+_stderr=$(cat "$_stderr_tmp"); rm -f "$_stderr_tmp"
+rm -f "$SRC/REPLU.BAT" "$SRC/CMD/REPLACE/REPLU.BAT"
+if echo "$output" | grep -q "file(s) replaced"; then
+    ok "REPLACE /U (source newer, replaced)"
+else
+    fail "REPLACE /U (expected 'file(s) replaced', got: $(echo "$output" | head -3))"
+    echo "    exit code: $_rc"
+    [ -n "$_stderr" ] && echo "    stderr: $(echo "$_stderr" | head -5)"
+fi
+
+# -- REPLACE /U: no replacement when source is older --
+cp "$SRC/SETENV.BAT" "$SRC/REPLU.BAT"
+touch -d "2020-01-01 00:00:00" "$SRC/REPLU.BAT"              # src: 2020 (older)
+cp "$SRC/SETENV.BAT" "$SRC/CMD/REPLACE/REPLU.BAT"
+touch -d "2025-01-01 00:00:00" "$SRC/CMD/REPLACE/REPLU.BAT"  # dest: 2025 (newer)
+_stderr_tmp=$(mktemp)
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\REPLU.BAT' 'C:\CMD\REPLACE\' /U 2>"$_stderr_tmp"); _rc=$?; true
+_stderr=$(cat "$_stderr_tmp"); rm -f "$_stderr_tmp"
+rm -f "$SRC/REPLU.BAT" "$SRC/CMD/REPLACE/REPLU.BAT"
+if echo "$output" | grep -q "No files replaced"; then
+    ok "REPLACE /U (source older, no replacement)"
+else
+    fail "REPLACE /U (expected 'No files replaced', got: $(echo "$output" | head -3))"
+    echo "    exit code: $_rc"
+    [ -n "$_stderr" ] && echo "    stderr: $(echo "$_stderr" | head -5)"
+fi
+
 # -- XCOPY: no args → error message (stderr) --
 output=$(timeout 10 "$BIN/dos-run" "$SRC/CMD/XCOPY/XCOPY.EXE" 2>&1 || true)
 if echo "$output" | grep -q "Invalid number of parameters"; then
@@ -598,6 +634,12 @@ if [[ $exit_code -eq 0 ]]; then
 else
     fail "ASSIGN /STATUS (expected exit 0, got $exit_code)"
 fi
+
+# Skipped: KEYB functional tests (load, status query) cannot run under kvikdos.
+# KEYB_COMMAND calls SYSLOADMSG as its very first instruction and exits immediately
+# if the version check fails (same root cause as COMMAND.COM built-in failures).
+# The /? smoke test in Section 4 passes because the PARSER intercepts /? before
+# KEYB_COMMAND is ever entered.  Functional KEYB tests require QEMU.
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
