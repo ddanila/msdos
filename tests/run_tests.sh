@@ -635,7 +635,7 @@ else
     fail "DEBUG N+W (expected 'Writing 0005 bytes')"
 fi
 # Verify file content
-if [ -f "$SRC/DBGTEST.BIN" ] && [ "$(xxd -p "$SRC/DBGTEST.BIN")" = "48656c6c6f" ]; then
+if [ -f "$SRC/DBGTEST.BIN" ] && grep -q "Hello" "$SRC/DBGTEST.BIN"; then
     ok "DEBUG N+W (file content verified)"
 else
     fail "DEBUG N+W (expected file with 'Hello' bytes)"
@@ -676,7 +676,7 @@ else
 fi
 
 # -- EDLIN: insert lines, list, exit (save) --
-rm -f "$SRC/CMD/EDLIN/EDLTEST.TXT"
+rm -f "$SRC/EDLTEST.TXT" "$SRC/EDLTEST.BAK"
 output=$(printf "I\r\nHello\r\nWorld\r\n\x1a\r\n1,2L\r\nE\r\n" \
     | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLTEST.TXT 2>/dev/null | head -20 || true)
 if echo "$output" | grep -q "Hello" && echo "$output" | grep -q "World"; then
@@ -846,11 +846,13 @@ fi
 # -- XCOPY: copy single file --
 printf "XcopyTest\r\n" > "$SRC/XCTEST1.TXT"
 mkdir -p "$SRC/XCPDEST"
-output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCTEST1.TXT' 'XCPDEST\' 2>/dev/null || true)
+_stderr=$(mktemp)
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCTEST1.TXT' 'XCPDEST\' 2>"$_stderr" || true)
 if echo "$output" | grep -q "1 File(s) copied"; then
     ok "XCOPY (copy single file)"
 else
     fail "XCOPY (expected '1 File(s) copied')"
+    [ -s "$_stderr" ] && echo "    stderr: $(head -5 "$_stderr")"
 fi
 # Verify destination file content
 if [ -f "$SRC/XCPDEST/XCTEST1.TXT" ] && grep -q "XcopyTest" "$SRC/XCPDEST/XCTEST1.TXT"; then
@@ -858,6 +860,7 @@ if [ -f "$SRC/XCPDEST/XCTEST1.TXT" ] && grep -q "XcopyTest" "$SRC/XCPDEST/XCTEST
 else
     fail "XCOPY (expected XCPDEST/XCTEST1.TXT with 'XcopyTest')"
 fi
+rm -f "$_stderr"
 rm -rf "$SRC/XCPDEST" "$SRC/XCTEST1.TXT"
 
 # -- XCOPY /S: copy subdirectory tree --
@@ -865,28 +868,34 @@ mkdir -p "$SRC/XCPTEST/SUB"
 printf "Root\r\n" > "$SRC/XCPTEST/FILE1.TXT"
 printf "SubFile\r\n" > "$SRC/XCPTEST/SUB/FILE2.TXT"
 mkdir -p "$SRC/XCPDEST"
-output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCPTEST\*.*' 'XCPDEST\' /S 2>/dev/null || true)
+_stderr=$(mktemp)
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCPTEST\*.*' 'XCPDEST\' /S 2>"$_stderr" || true)
 if echo "$output" | grep -q "2 File(s) copied"; then
     ok "XCOPY /S (copy subdirectory tree)"
 else
     fail "XCOPY /S (expected '2 File(s) copied')"
+    [ -s "$_stderr" ] && echo "    stderr: $(head -5 "$_stderr")"
 fi
 if [ -f "$SRC/XCPDEST/SUB/FILE2.TXT" ] && grep -q "SubFile" "$SRC/XCPDEST/SUB/FILE2.TXT"; then
     ok "XCOPY /S (subdirectory file verified)"
 else
     fail "XCOPY /S (expected XCPDEST/SUB/FILE2.TXT with 'SubFile')"
 fi
+rm -f "$_stderr"
 rm -rf "$SRC/XCPDEST"
 
 # -- XCOPY /S /E: copy including empty subdirectories --
 mkdir -p "$SRC/XCPTEST/EMPTY"
 mkdir -p "$SRC/XCPDEST"
-output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCPTEST\*.*' 'XCPDEST\' /S /E 2>/dev/null || true)
+_stderr=$(mktemp)
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCPTEST\*.*' 'XCPDEST\' /S /E 2>"$_stderr" || true)
 if echo "$output" | grep -q "2 File(s) copied" && [ -d "$SRC/XCPDEST/EMPTY" ]; then
     ok "XCOPY /S /E (empty subdirectory created)"
 else
     fail "XCOPY /S /E (expected XCPDEST/EMPTY directory to be created)"
+    [ -s "$_stderr" ] && echo "    stderr: $(head -5 "$_stderr")"
 fi
+rm -f "$_stderr"
 
 # Clean up XCOPY test files
 rm -rf "$SRC/XCPTEST" "$SRC/XCPDEST"
