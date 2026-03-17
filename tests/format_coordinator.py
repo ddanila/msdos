@@ -5,18 +5,28 @@ Replaces the continuous N\\r\\n feed.  Processes FORMAT's interactive prompts
 in strict order, doing the QMP disk swap at exactly the right moment:
 
   For each FORMAT variant i:
-    1. "press ENTER when ready"  → [swap B: to b_imgs[i] if i > 0], send \\r\\n
-    2. "ENTER for none"          → send \\r\\n  (empty volume label)
+    1. "press ENTER when ready"  → [swap B: to b_imgs[i] if i > 0], send \\r
+    2. "ENTER for none"          → send \\r   (bare CR — empty volume label)
                                    (skipped for variants with /V: on cmd line)
-    3. "Format another (Y/N)?"  → send N  (single char — no CR/LF! avoids
-                                   leaving \\r\\n in stdin for the next prompt)
+    3. "Format another (Y/N)?"  → send N\\r  (N + bare CR, no LF)
     4. "FORMAT_{name}_DONE"     → save b_imgs[i] → saved_imgs[i], no response
 
-Why this order matters:
-  KEY_IN_ECHO (used by "Format another?") reads ONE character.  If we send
-  N\\r\\n, the \\r\\n remains in stdin and immediately satisfies the next
-  FORMAT's "press ENTER when ready" — before the QMP swap can happen.
-  Sending bare N leaves stdin empty; the next FORMAT waits until we respond.
+  If FORMAT exits early (e.g. "Parameters not supported") without printing
+  the label or Y/N prompts, the DONE marker appears before the expected
+  intermediate pattern.  The coordinator detects this via the skip_to field
+  and jumps directly to the DONE rule.
+
+Why bare CR (not CR/LF) matters for line-input prompts:
+  INT 21h cooked reads (3Fh / USER_STRING) stop at CR but do NOT consume the
+  following LF — it stays in the UART FIFO.  Sending \\r\\n would leave \\n in
+  the FIFO; a subsequent single-char read would consume it instead of our
+  intended response.  Same pattern as test_label.sh fix (commit e1b0f97).
+
+"Format another (Y/N)?" uses a line-input read (stops at CR), NOT a single-
+  char read.  Bare N leaves FORMAT waiting for CR and it never exits.  Sending
+  N\\r terminates the read cleanly.  CR is consumed as the line terminator so
+  the FIFO is empty — the coordinator's next rule sends \\r for "press ENTER
+  when ready" only after matching it in serial AND doing the QMP swap.
 
 Usage:
     python3 format_coordinator.py \\
@@ -53,32 +63,50 @@ def qmp_change_floppy(sock_path: str, img_path: str) -> None:
 
 
 def build_rules(n: int, b_imgs: list, saved_imgs: list) -> list:
-    """Return an ordered list of (pattern, response, hook) tuples.
+    """Return an ordered list of (pattern, response, hook, skip_to) tuples.
 
     pattern  : bytes to scan for in the serial buffer
     response : bytes to write to serial_in, or None
     hook     : ('swap', img_path) | ('save', src, dst) | None
+    skip_to  : index of the DONE rule for this variant, or None for the DONE
+               rule itself.  When looking for an intermediate prompt and the
+               DONE marker appears first (FORMAT exited early), the coordinator
+               jumps directly to skip_to without sending a response.
     """
     rules = []
     for i in range(n):
+        variant_start = len(rules)
+
         # "press ENTER when ready" — swap disk first (except for the very first FORMAT)
         hook = ('swap', b_imgs[i]) if i > 0 else None
-        rules.append((b"press ENTER when ready", b'\r\n', hook))
+        rules.append([b"press ENTER when ready", b'\r', hook, None])  # skip_to filled below
 
         # Interactive volume label prompt — absent when /V: given on command line
         if i not in NO_LABEL_PROMPT:
-            rules.append((b"ENTER for none", b'\r\n', None))
+            rules.append([b"ENTER for none", b'\r', None, None])
 
-        # "Format another (Y/N)?" — bare N, no trailing CR/LF
-        rules.append((b"Format another", b'N', None))
+        # "Format another (Y/N)?" — N + CR only (no LF).
+        # FORMAT uses a line-input read that stops at CR; bare N hangs waiting
+        # for CR.  Sending N\r terminates the read.  No \n so the FIFO is
+        # empty afterwards (CR is consumed as the line terminator).
+        rules.append([b"Format another", b'N\r', None, None])
 
-        # Batch DONE marker — save image, no serial response
-        rules.append((
+        done_idx = len(rules)
+
+        # Batch DONE marker — save image, no serial response, no skip_to
+        rules.append([
             f"FORMAT_{NAMES[i]}_DONE".encode(),
             None,
             ('save', b_imgs[i], saved_imgs[i]),
-        ))
-    return rules
+            None,
+        ])
+
+        # Back-fill skip_to for all rules of this variant (so if DONE appears
+        # before an intermediate prompt, the coordinator can jump ahead).
+        for j in range(variant_start, done_idx):
+            rules[j][3] = done_idx
+
+    return [tuple(r) for r in rules]
 
 
 def main() -> None:
@@ -123,7 +151,18 @@ def main() -> None:
 
             # Drain as many consecutive rules as the buffer satisfies
             while rule_idx < len(rules):
-                pattern, response, hook = rules[rule_idx]
+                pattern, response, hook, skip_to = rules[rule_idx]
+
+                # If FORMAT exited early (before this prompt), the DONE marker
+                # appears before the expected pattern.  Jump to the DONE rule.
+                if skip_to is not None:
+                    done_pattern = rules[skip_to][0]
+                    if buf.find(done_pattern) >= 0:
+                        print(f"  rule[{rule_idx}] SKIPPED (DONE marker appeared early)",
+                              flush=True)
+                        rule_idx = skip_to
+                        continue
+
                 idx = buf.find(pattern)
                 if idx < 0:
                     break   # current rule not in buffer yet — keep reading
