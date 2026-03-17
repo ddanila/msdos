@@ -844,10 +844,12 @@ else
 fi
 
 # -- XCOPY: copy single file --
-printf "XcopyTest\r\n" > "$SRC/XCTEST1.TXT"
-mkdir -p "$SRC/XCPDEST"
+# Place test files in CMD/XCOPY subdir and use --cwd to set DOS CWD there.
+# Using root C:\ as CWD triggers #GP on KVM (segment limit issue in XCOPY).
+mkdir -p "$SRC/CMD/XCOPY/XCPDEST"
+printf "XcopyTest\r\n" > "$SRC/CMD/XCOPY/XCTEST1.TXT"
 _stderr=$(mktemp)
-output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCTEST1.TXT' 'XCPDEST\' 2>"$_stderr" || true)
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\CMD\XCOPY\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCTEST1.TXT' 'XCPDEST\' 2>"$_stderr" || true)
 if echo "$output" | grep -q "1 File(s) copied"; then
     ok "XCOPY (copy single file)"
 else
@@ -855,41 +857,41 @@ else
     [ -s "$_stderr" ] && echo "    stderr: $(head -5 "$_stderr")"
 fi
 # Verify destination file content
-if [ -f "$SRC/XCPDEST/XCTEST1.TXT" ] && grep -q "XcopyTest" "$SRC/XCPDEST/XCTEST1.TXT"; then
+if [ -f "$SRC/CMD/XCOPY/XCPDEST/XCTEST1.TXT" ] && grep -q "XcopyTest" "$SRC/CMD/XCOPY/XCPDEST/XCTEST1.TXT"; then
     ok "XCOPY (file content verified)"
 else
     fail "XCOPY (expected XCPDEST/XCTEST1.TXT with 'XcopyTest')"
 fi
 rm -f "$_stderr"
-rm -rf "$SRC/XCPDEST" "$SRC/XCTEST1.TXT"
+rm -rf "$SRC/CMD/XCOPY/XCPDEST" "$SRC/CMD/XCOPY/XCTEST1.TXT"
 
 # -- XCOPY /S: copy subdirectory tree --
-mkdir -p "$SRC/XCPTEST/SUB"
-printf "Root\r\n" > "$SRC/XCPTEST/FILE1.TXT"
-printf "SubFile\r\n" > "$SRC/XCPTEST/SUB/FILE2.TXT"
-mkdir -p "$SRC/XCPDEST"
+mkdir -p "$SRC/CMD/XCOPY/XCPTEST/SUB"
+printf "Root\r\n" > "$SRC/CMD/XCOPY/XCPTEST/FILE1.TXT"
+printf "SubFile\r\n" > "$SRC/CMD/XCOPY/XCPTEST/SUB/FILE2.TXT"
+mkdir -p "$SRC/CMD/XCOPY/XCPDEST"
 _stderr=$(mktemp)
-output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCPTEST\*.*' 'XCPDEST\' /S 2>"$_stderr" || true)
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\CMD\XCOPY\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCPTEST\*.*' 'XCPDEST\' /S 2>"$_stderr" || true)
 if echo "$output" | grep -q "2 File(s) copied"; then
     ok "XCOPY /S (copy subdirectory tree)"
 else
     fail "XCOPY /S (expected '2 File(s) copied')"
     [ -s "$_stderr" ] && echo "    stderr: $(head -5 "$_stderr")"
 fi
-if [ -f "$SRC/XCPDEST/SUB/FILE2.TXT" ] && grep -q "SubFile" "$SRC/XCPDEST/SUB/FILE2.TXT"; then
+if [ -f "$SRC/CMD/XCOPY/XCPDEST/SUB/FILE2.TXT" ] && grep -q "SubFile" "$SRC/CMD/XCOPY/XCPDEST/SUB/FILE2.TXT"; then
     ok "XCOPY /S (subdirectory file verified)"
 else
     fail "XCOPY /S (expected XCPDEST/SUB/FILE2.TXT with 'SubFile')"
 fi
 rm -f "$_stderr"
-rm -rf "$SRC/XCPDEST"
+rm -rf "$SRC/CMD/XCOPY/XCPDEST"
 
 # -- XCOPY /S /E: copy including empty subdirectories --
-mkdir -p "$SRC/XCPTEST/EMPTY"
-mkdir -p "$SRC/XCPDEST"
+mkdir -p "$SRC/CMD/XCOPY/XCPTEST/EMPTY"
+mkdir -p "$SRC/CMD/XCOPY/XCPDEST"
 _stderr=$(mktemp)
-output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCPTEST\*.*' 'XCPDEST\' /S /E 2>"$_stderr" || true)
-if echo "$output" | grep -q "2 File(s) copied" && [ -d "$SRC/XCPDEST/EMPTY" ]; then
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\CMD\XCOPY\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCPTEST\*.*' 'XCPDEST\' /S /E 2>"$_stderr" || true)
+if echo "$output" | grep -q "2 File(s) copied" && [ -d "$SRC/CMD/XCOPY/XCPDEST/EMPTY" ]; then
     ok "XCOPY /S /E (empty subdirectory created)"
 else
     fail "XCOPY /S /E (expected XCPDEST/EMPTY directory to be created)"
