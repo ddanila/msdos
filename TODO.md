@@ -101,7 +101,7 @@ Add more test scenarios for tools already supported in kvikdos, avoiding QEMU co
 - [ ] More XCOPY scenarios (copy trees, /S subdirectory recursion)
 - [ ] SUBST/JOIN with actual drive operations (requires kvikdos multi-drive support)
 - [ ] COMP with larger files, binary mode
-- [ ] EDLIN editing operations (insert, delete, search, replace)
+- [x] EDLIN editing operations (insert, delete, search, replace, copy, move, transfer, edit line)
 
 ### Won't migrate (must stay QEMU)
 

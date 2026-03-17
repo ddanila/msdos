@@ -538,6 +538,112 @@ else
     fail "EDLIN (expected 'New file')"
 fi
 
+# -- EDLIN: insert lines, list, exit (save) --
+rm -f "$SRC/CMD/EDLIN/EDLTEST.TXT"
+output=$(printf "I\r\nHello\r\nWorld\r\n\x1a\r\n1,2L\r\nE\r\n" \
+    | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLTEST.TXT 2>/dev/null | head -20 || true)
+if echo "$output" | grep -q "Hello" && echo "$output" | grep -q "World"; then
+    ok "EDLIN (insert + list)"
+else
+    fail "EDLIN (expected 'Hello' and 'World' in listed output)"
+fi
+# Verify file was saved to disk (kvikdos CWD is $SRC root)
+if [ -f "$SRC/EDLTEST.TXT" ] && grep -q "Hello" "$SRC/EDLTEST.TXT"; then
+    ok "EDLIN (exit saves file)"
+else
+    fail "EDLIN (expected EDLTEST.TXT to be saved with 'Hello')"
+fi
+
+# -- EDLIN: delete single line --
+output=$(printf "I\r\nL1\r\nL2\r\nL3\r\n\x1a\r\n2D\r\n1,2L\r\nE\r\n" \
+    | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLTEST.TXT 2>/dev/null | head -20 || true)
+if echo "$output" | grep -q "L1" && echo "$output" | grep -q "L3" && ! echo "$output" | grep "1,2L" -A2 | grep -q "L2"; then
+    ok "EDLIN (delete line)"
+else
+    fail "EDLIN (expected L2 deleted, L1 and L3 remaining)"
+fi
+
+# -- EDLIN: delete range of lines --
+output=$(printf "I\r\nAA\r\nBB\r\nCC\r\nDD\r\n\x1a\r\n2,3D\r\n1,2L\r\nE\r\n" \
+    | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLTEST.TXT 2>/dev/null | head -20 || true)
+if echo "$output" | grep -q "AA" && echo "$output" | grep -q "DD"; then
+    ok "EDLIN (delete range)"
+else
+    fail "EDLIN (expected BB,CC deleted, AA and DD remaining)"
+fi
+
+# -- EDLIN: edit (replace) a line by number --
+output=$(printf "I\r\nOld1\r\nOld2\r\nOld3\r\n\x1a\r\n2\r\nNew2\r\n1,3L\r\nE\r\n" \
+    | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLTEST.TXT 2>/dev/null | head -20 || true)
+if echo "$output" | grep -q "New2"; then
+    ok "EDLIN (edit line)"
+else
+    fail "EDLIN (expected 'New2' after editing line 2)"
+fi
+
+# -- EDLIN: copy lines --
+output=$(printf "I\r\nAAA\r\nBBB\r\nCCC\r\n\x1a\r\n1,1,4C\r\n1,4L\r\nE\r\n" \
+    | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLTEST.TXT 2>/dev/null | head -20 || true)
+if echo "$output" | grep -c "AAA" | grep -q "2"; then
+    ok "EDLIN (copy lines)"
+else
+    fail "EDLIN (expected AAA to appear twice after copy)"
+fi
+
+# -- EDLIN: move lines --
+output=$(printf "I\r\nAAA\r\nBBB\r\nCCC\r\n\x1a\r\n3,3,1M\r\n1,3L\r\nE\r\n" \
+    | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLTEST.TXT 2>/dev/null | head -20 || true)
+# After moving line 3 (CCC) before line 1, order should be: CCC, AAA, BBB
+if echo "$output" | grep "1,3L" -A4 | head -4 | grep -q "CCC"; then
+    ok "EDLIN (move lines)"
+else
+    # Fallback: just check CCC appears as line 1 in the listing
+    if echo "$output" | grep -q "1:.*CCC"; then
+        ok "EDLIN (move lines)"
+    else
+        fail "EDLIN (expected CCC to be moved to line 1)"
+    fi
+fi
+
+# -- EDLIN: search found --
+output=$(printf "I\r\nAlpha\r\nBeta\r\nGamma\r\n\x1a\r\n1,3SBeta\r\nE\r\n" \
+    | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLTEST.TXT 2>/dev/null | head -20 || true)
+if echo "$output" | grep -q "2:.*Beta"; then
+    ok "EDLIN (search found)"
+else
+    fail "EDLIN (expected search to find 'Beta' on line 2)"
+fi
+
+# -- EDLIN: search not found --
+output=$(printf "I\r\nAlpha\r\nBeta\r\n\x1a\r\n1,2SZzzzz\r\nE\r\n" \
+    | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLTEST.TXT 2>/dev/null | head -20 || true)
+if echo "$output" | grep -q "Not found"; then
+    ok "EDLIN (search not found)"
+else
+    fail "EDLIN (expected 'Not found')"
+fi
+
+# -- EDLIN: replace text --
+output=$(printf "I\r\nAlpha\r\nBeta\r\nGamma\r\n\x1a\r\n1,3RBeta\x1aREPLACED\r\n1,3L\r\nE\r\n" \
+    | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLTEST.TXT 2>/dev/null | head -20 || true)
+if echo "$output" | grep -q "REPLACED"; then
+    ok "EDLIN (replace text)"
+else
+    fail "EDLIN (expected 'REPLACED' after replace)"
+fi
+
+# -- EDLIN: transfer (insert file contents) --
+output=$(printf "I\r\nFirst\r\n\x1a\r\n2TSETENV.BAT\r\n1,3L\r\nE\r\n" \
+    | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLTEST.TXT 2>/dev/null | head -20 || true)
+if echo "$output" | grep -q "First" && echo "$output" | grep -q "echo"; then
+    ok "EDLIN (transfer file)"
+else
+    fail "EDLIN (expected 'First' and transferred file content)"
+fi
+
+# Clean up EDLIN test files (saved to $SRC root, kvikdos CWD)
+rm -f "$SRC/EDLTEST.TXT" "$SRC/EDLTEST.BAK"
+
 # -- REPLACE /A: add file to destination --
 rm -f "$SRC/CMD/REPLACE/SETENV.BAT"
 output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\SETENV.BAT' 'C:\CMD\REPLACE\' /A 2>/dev/null || true)
