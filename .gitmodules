@@ -4,3 +4,4 @@
 [submodule "kvikdos"]
 	path = kvikdos
 	url = https://github.com/ddanila/kvikdos.git
+	ignore = untracked
