@@ -553,8 +553,24 @@ if echo "$output" | grep -q "A" && echo "$output" | grep -q "R"; then
 else
     fail "ATTRIB +R +A (expected both A and R in display)"
 fi
-# Clean up: remove read-only (archive persists in kvikdos)
+# Clean up: remove read-only
 run_dos CMD/ATTRIB/ATTRIB.EXE '-R' 'C:\SETENV.BAT' > /dev/null 2>&1 || true
+
+# -- ATTRIB -A / +A: clear and set archive flag --
+run_dos CMD/ATTRIB/ATTRIB.EXE '-A' 'C:\SETENV.BAT' > /dev/null 2>&1 || true
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\SETENV.BAT') || true
+if ! echo "$output" | grep -q " A "; then
+    ok "ATTRIB -A (clear archive)"
+else
+    fail "ATTRIB -A (A flag still present after -A)"
+fi
+run_dos CMD/ATTRIB/ATTRIB.EXE '+A' 'C:\SETENV.BAT' > /dev/null 2>&1 || true
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\SETENV.BAT') || true
+if echo "$output" | grep -q "A"; then
+    ok "ATTRIB +A (set archive)"
+else
+    fail "ATTRIB +A (expected 'A' in attribute display)"
+fi
 
 # -- ATTRIB /S: recursive listing --
 output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\CMD\EDLIN\*.*' /S) || true
