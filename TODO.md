@@ -92,7 +92,11 @@ The only unique QEMU value is verifying EXEPACK decompression with the real DOS 
 EXE2BIN is pure file conversion (EXE→BIN), no TSR state needed. SHARE and NLSFUNC
 must stay on QEMU (TSR persistence, INT 2Fh hooks).
 
-- [ ] Move EXE2BIN test cases to run_tests.sh kvikdos E2E section
+- [x] Move EXE2BIN test cases to run_tests.sh kvikdos E2E section
+  - Successful conversion (minimal EXE → 1-byte BIN) using source-built CMD/EXE2BIN
+  - Missing-file error message ("File not found") using TOOLS/EXE2BIN.EXE (pre-built)
+  - Note: source-built CMD/EXE2BIN.EXE (8KB) hangs in SYSDISPMSG error path due to
+    different MSGSERV linkage; TOOLS/EXE2BIN.EXE (3KB, pre-built) works correctly
 
 ### Priority 4: Expand kvikdos E2E coverage
 
