@@ -854,6 +854,7 @@ if echo "$output" | grep -q "1 File(s) copied"; then
     ok "XCOPY (copy single file)"
 else
     fail "XCOPY (expected '1 File(s) copied')"
+    echo "    stdout: $(echo "$output" | head -5)"
     [ -s "$_stderr" ] && echo "    stderr: $(head -5 "$_stderr")"
 fi
 # Verify destination file content
@@ -876,6 +877,7 @@ if echo "$output" | grep -q "2 File(s) copied"; then
     ok "XCOPY /S (copy subdirectory tree)"
 else
     fail "XCOPY /S (expected '2 File(s) copied')"
+    echo "    stdout: $(echo "$output" | head -5)"
     [ -s "$_stderr" ] && echo "    stderr: $(head -5 "$_stderr")"
 fi
 if [ -f "$SRC/CMD/XCOPY/XCPDEST/SUB/FILE2.TXT" ] && grep -q "SubFile" "$SRC/CMD/XCOPY/XCPDEST/SUB/FILE2.TXT"; then
@@ -895,6 +897,7 @@ if echo "$output" | grep -q "2 File(s) copied" && [ -d "$SRC/CMD/XCOPY/XCPDEST/E
     ok "XCOPY /S /E (empty subdirectory created)"
 else
     fail "XCOPY /S /E (expected XCPDEST/EMPTY directory to be created)"
+    echo "    stdout: $(echo "$output" | head -5)"
     [ -s "$_stderr" ] && echo "    stderr: $(head -5 "$_stderr")"
 fi
 rm -f "$_stderr"
