@@ -453,6 +453,56 @@ else
     fail "COMP (expected 'different sizes')"
 fi
 
+# -- COMP: same-size files with byte differences --
+printf "Hello World\r\n" > "$SRC/COMP_A.TXT"
+printf "Hello Xorld\r\n" > "$SRC/COMP_B.TXT"
+output=$(timeout 5 "$BIN/dos-run" "$SRC/CMD/COMP/COMP.COM" COMP_A.TXT COMP_B.TXT </dev/null 2>/dev/null | head -20) || true
+if echo "$output" | grep -q "Compare error at OFFSET"; then
+    ok "COMP (byte difference at offset)"
+else
+    fail "COMP (expected 'Compare error at OFFSET')"
+fi
+
+# -- COMP: verify hex values in mismatch output --
+# 'W' = 0x57, 'X' = 0x58 — COMP should show File 1 = 57, File 2 = 58
+if echo "$output" | grep -q "File 1 = 57" && echo "$output" | grep -q "File 2 = 58"; then
+    ok "COMP (hex byte values)"
+else
+    fail "COMP (expected hex values 57 vs 58 for W vs X)"
+fi
+
+# -- COMP: multiple differences show multiple errors --
+printf "AAAA\r\nBBBB\r\nCCCC\r\n" > "$SRC/COMP_A.TXT"
+printf "AAAA\r\nXXXX\r\nCCCC\r\n" > "$SRC/COMP_B.TXT"
+output=$(timeout 5 "$BIN/dos-run" "$SRC/CMD/COMP/COMP.COM" COMP_A.TXT COMP_B.TXT </dev/null 2>/dev/null | head -30) || true
+count=$(echo "$output" | grep -c "Compare error at OFFSET" || true)
+if [ "$count" -ge 4 ]; then
+    ok "COMP (multiple differences — $count errors)"
+else
+    fail "COMP (expected >=4 'Compare error' lines for BBBB vs XXXX, got $count)"
+fi
+
+# -- COMP: 10 mismatch limit --
+printf "ABCDEFGHIJKLMNOP" > "$SRC/COMP_A.TXT"
+printf "abcdefghijklmnop" > "$SRC/COMP_B.TXT"
+output=$(timeout 5 "$BIN/dos-run" "$SRC/CMD/COMP/COMP.COM" COMP_A.TXT COMP_B.TXT </dev/null 2>/dev/null | head -40) || true
+if echo "$output" | grep -q "10 Mismatches - ending compare"; then
+    ok "COMP (10 mismatch limit)"
+else
+    fail "COMP (expected '10 Mismatches - ending compare')"
+fi
+
+# -- COMP: file not found (stderr) --
+output=$(timeout 5 "$BIN/dos-run" "$SRC/CMD/COMP/COMP.COM" COMP_A.TXT NOEXIST.TXT </dev/null 2>&1 | head -10) || true
+if echo "$output" | grep -q "File not found"; then
+    ok "COMP (file not found)"
+else
+    fail "COMP (expected 'File not found')"
+fi
+
+# Clean up COMP test files
+rm -f "$SRC/COMP_A.TXT" "$SRC/COMP_B.TXT"
+
 # -- ATTRIB: show file attributes --
 output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\SETENV.BAT') || true
 if echo "$output" | grep -q "SETENV.BAT"; then
