@@ -110,6 +110,11 @@ freeing ~40-50K of conventional memory. Requires A20 gate control and an XMS dri
 - [ ] `PRINT file /C` — remove from queue
 - [ ] `PRINT /Q:5 file` — set queue size
 
+#### KEYB — needs QEMU
+- [ ] `KEYB US` — load US keyboard (kvikdos: SYSLOADMSG fails before KEYB_COMMAND runs)
+- [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with code page and ID
+- [ ] `KEYB` — show current layout
+
 #### ASSIGN — remaining
 - [ ] `ASSIGN A=B` — redirect A: to B: (TSR operation, needs QEMU)
 - [ ] `ASSIGN` — clear all assignments (TSR operation, needs QEMU)
