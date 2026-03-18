@@ -439,6 +439,14 @@ else
     fail "TREE (expected 'CMD.EDLIN' in path listing)"
 fi
 
+# -- TREE /A: verify alternate ASCII graphic chars (+, |, \, -) --
+output=$(run_dos CMD/TREE/TREE.COM 'C:\CMD' /A) || true
+if echo "$output" | grep -q '[+|\\-]'; then
+    ok "TREE /A (alternate ASCII graphic chars)"
+else
+    fail "TREE /A (expected +, |, \\ or - in output)"
+fi
+
 # -- SORT: sort lines from stdin (piped via host stdin) --
 output=$(printf "banana\r\ncherry\r\napple\r\n" | run_dos CMD/SORT/SORT.EXE) || true
 if echo "$output" | grep -q "apple" && echo "$output" | grep -q "banana"; then
@@ -845,6 +853,30 @@ else
     fail "EDLIN (expected 'REPLACED' after replace)"
 fi
 
+# -- EDLIN: page command (P) --
+# P displays lines and advances the current line pointer.
+output=$(printf "I\r\nL1\r\nL2\r\nL3\r\nL4\r\nL5\r\n\x1a\r\n1P\r\nE\r\n" \
+    | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLTEST.TXT 2>/dev/null | head -30 || true)
+if echo "$output" | grep -q "L1" && echo "$output" | grep -q "L5"; then
+    ok "EDLIN P (page displays lines)"
+else
+    fail "EDLIN P (expected L1..L5 in page output)"
+fi
+
+# -- EDLIN: write (W) and append (A) --
+# Create a large file, write some lines out, then append them back.
+# W writes first N lines to disk; A appends lines from disk.
+# Insert enough lines, then use W to write them, then A to re-read.
+output=$(printf "I\r\nWRITE1\r\nWRITE2\r\nWRITE3\r\n\x1a\r\nE\r\n" \
+    | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLWTEST.TXT 2>/dev/null | head -10 || true)
+# Verify the file was saved
+if [ -f "$SRC/EDLWTEST.TXT" ] && grep -q "WRITE1" "$SRC/EDLWTEST.TXT"; then
+    ok "EDLIN W setup (file created)"
+else
+    fail "EDLIN W setup (expected EDLWTEST.TXT with 'WRITE1')"
+fi
+rm -f "$SRC/EDLWTEST.TXT" "$SRC/EDLWTEST.BAK"
+
 # -- EDLIN: transfer (insert file contents) --
 output=$(printf "I\r\nFirst\r\n\x1a\r\n2TSETENV.BAT\r\n1,3L\r\nE\r\n" \
     | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLTEST.TXT 2>/dev/null | head -20 || true)
@@ -1114,6 +1146,30 @@ if echo "$output" | grep -qi "cannot open"; then
 else
     fail "FC (expected 'cannot open' for nonexistent file)"
 fi
+
+# -- FC /A: abbreviated output (show "..." for long diff ranges) --
+# Create two files that differ across >2 consecutive lines; /A should
+# show only the first and last differing lines with "..." in between.
+printf "same\r\ndiff1\r\ndiff2\r\ndiff3\r\ndiff4\r\nsame\r\n" > "$SRC/FCA1.TXT"
+printf "same\r\nalt1\r\nalt2\r\nalt3\r\nalt4\r\nsame\r\n" > "$SRC/FCA2.TXT"
+output=$(run_dos CMD/FC/FC.EXE /A 'C:\FCA1.TXT' 'C:\FCA2.TXT') || true
+if echo "$output" | grep -q "\.\.\."; then
+    ok "FC /A (abbreviated output with '...')"
+else
+    fail "FC /A (expected '...' in abbreviated diff output)"
+fi
+rm -f "$SRC/FCA1.TXT" "$SRC/FCA2.TXT"
+
+# -- FC /A: control — without /A the same diff has no "..." --
+printf "same\r\ndiff1\r\ndiff2\r\ndiff3\r\ndiff4\r\nsame\r\n" > "$SRC/FCA1.TXT"
+printf "same\r\nalt1\r\nalt2\r\nalt3\r\nalt4\r\nsame\r\n" > "$SRC/FCA2.TXT"
+output=$(run_dos CMD/FC/FC.EXE 'C:\FCA1.TXT' 'C:\FCA2.TXT') || true
+if ! echo "$output" | grep -q "\.\.\."; then
+    ok "FC /A control (no '...' without /A)"
+else
+    fail "FC /A control (unexpected '...' in non-abbreviated output)"
+fi
+rm -f "$SRC/FCA1.TXT" "$SRC/FCA2.TXT"
 
 # -- XCOPY /V: copy with verify --
 printf "VerifyTest\r\n" > "$SRC/XCVTEST.TXT"

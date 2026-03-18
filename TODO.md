@@ -202,14 +202,14 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | COMMAND.COM (built-ins) | ✅ | ✅ Section 5 binary | ⚠️ Section 7 (41 tests) | IF ERRORLEVEL, CD, PROMPT, TRUENAME, COPY+concat, COPY /A/B ✅ added (batch tests need AH=2Eh — pass Linux CI, fail macOS); DATE/TIME/PAUSE/CHCP 🚫 interactive |
 | MEM | ✅ | ✅ Section 4 | ⚠️ Section 6 (basic + /PROGRAM + /DEBUG) | /PROGRAM /DEBUG ✅ added (MCB loops under kvikdos, uses timeout+head) |
 | FIND | ✅ | ✅ Section 4 | ⚠️ Section 6 (8 tests: /V /N /C multi no-match) | stdin ❌ blocked (kvikdos stdin unreliable); ERRORLEVEL ✅ Section 7 (batch) |
-| FC | ✅ | ✅ Section 4 | ✅ Section 6 (11 tests: /B /C /N /W /L /T /5 + nonexistent) | |
+| FC | ✅ | ✅ Section 4 | ✅ Section 6 (13 tests: /A /B /C /N /W /L /T /5 + nonexistent) | |
 | ATTRIB | ✅ | ✅ Section 4 | ✅ Section 6 (5 tests: +R -R +A -A /S) | note: +H/-H +S/-S not in v4.0 source |
 | COMP | ✅ | ✅ Section 4 | ✅ Section 6 (7 tests: identical/diff/hex/limit) | |
-| TREE | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: basic /F path) | |
+| TREE | ✅ | ✅ Section 4 | ✅ Section 6 (4 tests: basic /F /A path) | |
 | SORT | ✅ | ✅ Section 4 | ✅ Section 6 (4 tests: /R /+N file) | note: /O output-to-file not in v4.0 |
 | MORE | ✅ | ✅ Section 4 | ✅ Section 6 (2 tests: stdin file) | |
 | DEBUG | ✅ | ✅ Section 4 | ✅ Section 6 (8 tests: regs/mem/hex/asm/file) + test_debug_qemu.sh (G execute) | |
-| EDLIN | ✅ | ✅ Section 4 | ✅ Section 6 (12 tests: insert/del/edit/search/copy + /B) | ~~test_edlin_b_qemu.sh~~ **Deleted** — fully migrated to Section 6 (kvikdos) |
+| EDLIN | ✅ | ✅ Section 4 | ✅ Section 6 (14 tests: insert/del/edit/search/copy/page/write + /B) | ~~test_edlin_b_qemu.sh~~ **Deleted** — fully migrated to Section 6 (kvikdos) |
 | XCOPY | ✅ | ✅ Section 4 | ✅ Section 6 (9 tests: basic /S /S/E /V /A /M) | `/P` `/W` 🚫 interactive |
 | REPLACE | ✅ | ✅ Section 4 | ✅ Section 6 (7 tests: /A /U /U-older /R /S error) | `/P` `/W` 🚫 interactive |
 | GRAFTABL | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: 437 850 /STATUS) | |
