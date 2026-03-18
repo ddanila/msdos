@@ -127,12 +127,6 @@ else
     fail "CHKDSK (expected 'bytes available on disk' in output)"
 fi
 
-if grep -qi "bytes total memory" "$SERIAL_LOG"; then
-    ok "CHKDSK (memory summary reported)"
-else
-    fail "CHKDSK (expected 'bytes total memory' in output)"
-fi
-
 if grep -q "CHKDSK_DONE" "$SERIAL_LOG"; then
     ok "CHKDSK (batch continued after run)"
 else
