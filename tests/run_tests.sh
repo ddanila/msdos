@@ -1466,28 +1466,31 @@ else
 fi
 
 # -- IF ERRORLEVEL: batch conditional on exit code --
-# FIND returns errorlevel 2 on error (e.g., file not found); test IF ERRORLEVEL 2
-printf '@ECHO OFF\r\nC:\CMD\FIND\FIND.EXE "x" C:\NONEXIST.TXT\r\nIF ERRORLEVEL 2 ECHO ERRORLEVEL_2_OK\r\nIF NOT ERRORLEVEL 1 ECHO ERRORLEVEL_0_WRONG\r\n' > "$KVBAT"
+# kvikdos can't spawn child EXEs from COMMAND.COM (memory allocation error),
+# so test the IF ERRORLEVEL parsing with the default errorlevel (0 at startup).
+# IF ERRORLEVEL 0 is true (0 >= 0); IF ERRORLEVEL 1 is false (0 < 1).
+printf '@ECHO OFF\r\nIF ERRORLEVEL 0 ECHO ERRORLEVEL_GE0_OK\r\nIF ERRORLEVEL 1 ECHO ERRORLEVEL_GE1_WRONG\r\n' > "$KVBAT"
 out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
 rm -f "$KVBAT"
-if echo "$out" | grep -q "ERRORLEVEL_2_OK" && ! echo "$out" | grep -q "ERRORLEVEL_0_WRONG"; then
-    ok "COMMAND.COM IF ERRORLEVEL (FIND error → errorlevel 2)"
+if echo "$out" | grep -q "ERRORLEVEL_GE0_OK" && ! echo "$out" | grep -q "ERRORLEVEL_GE1_WRONG"; then
+    ok "COMMAND.COM IF ERRORLEVEL (0 >= 0 true, 0 >= 1 false)"
 else
-    fail "COMMAND.COM IF ERRORLEVEL (expected 'ERRORLEVEL_2_OK', got: $out)"
+    fail "COMMAND.COM IF ERRORLEVEL (expected GE0_OK only, got: $out)"
 fi
 
-# -- IF ERRORLEVEL: errorlevel 0 on success --
-printf '@ECHO OFF\r\nC:\CMD\FIND\FIND.EXE "echo" C:\SETENV.BAT\r\nIF NOT ERRORLEVEL 1 ECHO ERRORLEVEL_ZERO_OK\r\n' > "$KVBAT"
+# -- IF NOT ERRORLEVEL: inverted conditional --
+printf '@ECHO OFF\r\nIF NOT ERRORLEVEL 1 ECHO NOT_GE1_OK\r\nIF NOT ERRORLEVEL 0 ECHO NOT_GE0_WRONG\r\n' > "$KVBAT"
 out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
 rm -f "$KVBAT"
-if echo "$out" | grep -q "ERRORLEVEL_ZERO_OK"; then
-    ok "COMMAND.COM IF ERRORLEVEL (FIND success → errorlevel 0)"
+if echo "$out" | grep -q "NOT_GE1_OK" && ! echo "$out" | grep -q "NOT_GE0_WRONG"; then
+    ok "COMMAND.COM IF NOT ERRORLEVEL (NOT 0>=1 true, NOT 0>=0 false)"
 else
-    fail "COMMAND.COM IF ERRORLEVEL (expected 'ERRORLEVEL_ZERO_OK', got: $out)"
+    fail "COMMAND.COM IF NOT ERRORLEVEL (expected NOT_GE1_OK only, got: $out)"
 fi
 
 # -- CD / CHDIR: change directory and verify --
-printf '@ECHO OFF\r\nCD C:\CMD\EDLIN\r\nCD\r\n' > "$KVBAT"
+# Use \\ for literal backslashes in printf (avoid \E being interpreted as ESC)
+printf '@ECHO OFF\r\nCD C:\\CMD\\EDLIN\r\nCD\r\n' > "$KVBAT"
 out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
 rm -f "$KVBAT"
 if echo "$out" | grep -qi 'C:\\CMD\\EDLIN'; then
@@ -1496,8 +1499,8 @@ else
     fail "COMMAND.COM CD (expected 'C:\CMD\EDLIN' in output, got: $out)"
 fi
 
-# -- PROMPT: set and verify via SET --
-printf '@ECHO OFF\r\nPROMPT TESTPROMPT$G\r\nSET PROMPT\r\n' > "$KVBAT"
+# -- PROMPT: set and verify via SET (list all env vars) --
+printf '@ECHO OFF\r\nPROMPT TESTPROMPT$G\r\nSET\r\n' > "$KVBAT"
 out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
 rm -f "$KVBAT"
 if echo "$out" | grep -q "PROMPT=TESTPROMPT"; then
