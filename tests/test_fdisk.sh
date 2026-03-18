@@ -1,16 +1,21 @@
 #!/bin/bash
-# tests/test_fdisk.sh — E2E test for FDISK creating a primary DOS partition.
+# tests/test_fdisk.sh — E2E test for FDISK partition operations.
 #
 # FDISK (FDISK.C) supports non-interactive command-line switches:
-#   FDISK 1 /PRI:5 /Q
-#   - 1:      operate on first hard disk (BIOS drive 0x80)
-#   - /PRI:5: create a 5 MB Primary DOS Partition
-#   - /Q:     suppress the "restart computer" reboot prompt after changes
+#   FDISK drivenum [/PRI:m] [/EXT:n] [/LOG:o] [/Q]
+#   - drivenum: 1 = first hard disk (BIOS drive 0x80)
+#   - /PRI:m:  create a Primary DOS Partition of m MB
+#   - /EXT:n:  create an Extended DOS Partition of n MB
+#   - /LOG:o:  create a Logical DOS Drive of o MB in the extended partition
+#   - /Q:      suppress the "restart computer" reboot prompt after changes
+#
+# Exit codes (with /Q):  0 = success, 1 = no valid DOS partition, 2 = /Q but
+# no partition creation switches given.
 #
 # FDISK writes directly to the screen via INT 10h, so only the batch markers
-# (FDISK_DONE, ===DONE===) are visible on serial (COM1 via CTTY AUX).
-# Partition creation is verified after QEMU exits by running 'fdisk -l' on
-# the host against the raw HDD image.
+# are visible on serial (COM1 via CTTY AUX).
+# Partition creation is verified after QEMU exits by inspecting the raw HDD
+# image (MBR partition table + Extended Boot Record).
 #
 # QEMU setup:
 #   - Boot floppy (A:) carries FDISK.EXE and the batch script.
@@ -42,7 +47,7 @@ fi
 
 trap 'rm -f "$HDD_IMG" 2>/dev/null; true' EXIT
 
-echo "=== FDISK E2E tests (QEMU, non-interactive /PRI switch) ==="
+echo "=== FDISK E2E tests (QEMU, non-interactive switches) ==="
 
 # ── Build test floppy and blank HDD ──────────────────────────────────────────
 echo "Building test image..."
@@ -53,13 +58,28 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 {
     printf 'CTTY AUX\r\n'
 
-    # ── FDISK 1 /PRI:5 /Q — create 5 MB primary DOS partition, no reboot ─────
-    # /Q suppresses the "restart computer" prompt so the batch continues.
-    # FDISK writes status to the screen (INT 10h), not to COM1, so only the
-    # FDISK_DONE echo is captured over serial.
-    printf 'ECHO ---FDISK---\r\n'
+    # ── Test 1: FDISK 1 /Q (no partition switches) → errorlevel 2 ────────────
+    # Source (MAIN.C): returns ERR_LEVEL_2 when /Q is set but no /PRI /EXT /LOG.
+    printf 'ECHO ---FDISK_ERRLEVEL---\r\n'
+    printf 'FDISK 1 /Q\r\n'
+    printf 'IF ERRORLEVEL 2 ECHO FDISK_ERRLEVEL_2\r\n'
+
+    # ── Test 2: FDISK 1 /PRI:5 /Q — create 5 MB primary DOS partition ────────
+    printf 'ECHO ---FDISK_PRI---\r\n'
     printf 'FDISK 1 /PRI:5 /Q\r\n'
-    printf 'ECHO FDISK_DONE\r\n'
+    printf 'ECHO FDISK_PRI_DONE\r\n'
+
+    # ── Test 3: FDISK 1 /EXT:10 /Q — create 10 MB extended partition ─────────
+    # Requires a primary partition to exist first.
+    printf 'ECHO ---FDISK_EXT---\r\n'
+    printf 'FDISK 1 /EXT:10 /Q\r\n'
+    printf 'ECHO FDISK_EXT_DONE\r\n'
+
+    # ── Test 4: FDISK 1 /LOG:10 /Q — create 10 MB logical drive ──────────────
+    # Requires an extended partition to exist first.
+    printf 'ECHO ---FDISK_LOG---\r\n'
+    printf 'FDISK 1 /LOG:10 /Q\r\n'
+    printf 'ECHO FDISK_LOG_DONE\r\n'
 
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
@@ -71,7 +91,7 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 # Retry once if FDISK_DONE is absent (crash or hang).
 run_qemu() {
     # Blank 20 MB HDD image for each attempt — FDISK writes a partition table.
-    # QEMU derives geometry from image size; 20 MB holds a 5 MB primary partition.
+    # QEMU derives geometry from image size; 20 MB holds 5 MB primary + 10 MB extended.
     dd if=/dev/zero bs=1M count=20 of="$HDD_IMG" status=none
     rm -f "$SERIAL_LOG"
     (while true; do sleep 0.5; printf '\r\n'; done) | \
@@ -86,8 +106,8 @@ run_qemu() {
 
 echo "Booting QEMU (may take ~60s)..."
 run_qemu
-if ! grep -q "FDISK_DONE" "$SERIAL_LOG" 2>/dev/null; then
-    echo "  FDISK did not complete (crash or hang); retrying..."
+if ! grep -q "FDISK_LOG_DONE" "$SERIAL_LOG" 2>/dev/null; then
+    echo "  FDISK did not complete all steps (crash or hang); retrying..."
     echo "  --- attempt 1 serial log ---"
     cat "$SERIAL_LOG" 2>/dev/null || echo "  (empty)"
     echo "  ---"
@@ -103,10 +123,32 @@ fi
 echo ""
 echo "--- FDISK serial log checks ---"
 
-if grep -q "FDISK_DONE" "$SERIAL_LOG"; then
-    ok "FDISK 1 /PRI:5 /Q (returned to batch without hang)"
+# Test 1: errorlevel 2 when /Q used without partition switches
+if grep -q "FDISK_ERRLEVEL_2" "$SERIAL_LOG"; then
+    ok "FDISK 1 /Q (no switches) returns errorlevel 2"
 else
-    fail "FDISK 1 /PRI:5 /Q (batch hung or crashed after FDISK)"
+    fail "FDISK 1 /Q (no switches) — expected errorlevel 2"
+fi
+
+# Test 2: /PRI completed
+if grep -q "FDISK_PRI_DONE" "$SERIAL_LOG"; then
+    ok "FDISK 1 /PRI:5 /Q completed"
+else
+    fail "FDISK 1 /PRI:5 /Q did not complete"
+fi
+
+# Test 3: /EXT completed
+if grep -q "FDISK_EXT_DONE" "$SERIAL_LOG"; then
+    ok "FDISK 1 /EXT:10 /Q completed"
+else
+    fail "FDISK 1 /EXT:10 /Q did not complete"
+fi
+
+# Test 4: /LOG completed
+if grep -q "FDISK_LOG_DONE" "$SERIAL_LOG"; then
+    ok "FDISK 1 /LOG:10 /Q completed"
+else
+    fail "FDISK 1 /LOG:10 /Q did not complete"
 fi
 
 if grep -q "===DONE===" "$SERIAL_LOG"; then
@@ -125,24 +167,58 @@ fi
 
 # ── Post-QEMU partition table check ───────────────────────────────────────────
 echo ""
-echo "--- FDISK partition table check ---"
+echo "--- FDISK partition table checks ---"
 
-# Read the MBR partition type byte directly via Python (no root required).
+# Read partition table via Python (no root required).
 # MBR layout: partition table starts at offset 446; each entry is 16 bytes.
-# Byte 4 of the first entry (offset 446+4 = 450) is the partition type.
-# FDISK creates type 0x04 (FAT16 <32 MB) for a 5 MB primary partition.
-type_hex=$(python3 -c "
+#   Entry byte 4 = partition type, entry bytes 8-11 = relative sector (LE).
+# Entry 1 (offset 446): primary partition  → type 0x01/0x04/0x06 (DOS FAT)
+# Entry 2 (offset 462): extended partition → type 0x05
+# Extended Boot Record (EBR): at the first sector of the extended partition,
+#   same layout — entry 1 has the logical drive (type 0x01/0x04/0x06).
+
+read -r pri_type ext_type ext_start_sec log_type < <(python3 -c "
+import struct, sys
+
 with open('$HDD_IMG', 'rb') as f:
-    f.seek(450)
-    b = f.read(1)
-    print('{:02x}'.format(b[0]) if b else '00')
+    # ── MBR ──
+    f.seek(446)
+    e1 = f.read(16)  # primary
+    e2 = f.read(16)  # extended
+
+    pri_type  = e1[4]
+    ext_type  = e2[4]
+    ext_start = struct.unpack_from('<I', e2, 8)[0]  # relative sector
+
+    # ── EBR (first sector of extended partition) ──
+    log_type = 0
+    if ext_start > 0:
+        f.seek(ext_start * 512 + 446)
+        le1 = f.read(16)
+        if len(le1) == 16:
+            log_type = le1[4]
+
+    print('{:02x} {:02x} {} {:02x}'.format(pri_type, ext_type, ext_start, log_type))
 " 2>/dev/null)
 
-if [[ -n "$type_hex" && "$type_hex" != "00" ]]; then
-    ok "FDISK partition table: DOS partition type 0x$type_hex written to MBR"
+# Check primary partition type (0x01=FAT12, 0x04=FAT16<32M, 0x06=FAT16>32M)
+case "$pri_type" in
+    01|04|06) ok "MBR entry 1: primary DOS partition type 0x$pri_type" ;;
+    *)        fail "MBR entry 1: expected DOS type (01/04/06), got 0x${pri_type:-?}" ;;
+esac
+
+# Check extended partition type (0x05)
+if [[ "$ext_type" == "05" ]]; then
+    ok "MBR entry 2: extended partition type 0x05"
 else
-    fail "FDISK partition table: no partition type in MBR (got '0x${type_hex:-?}')"
+    fail "MBR entry 2: expected type 0x05 (extended), got 0x${ext_type:-?}"
 fi
+
+# Check logical drive in EBR
+case "$log_type" in
+    01|04|06) ok "EBR entry 1: logical drive type 0x$log_type" ;;
+    *)        fail "EBR entry 1: expected DOS type (01/04/06), got 0x${log_type:-?}" ;;
+esac
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

@@ -229,7 +229,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | NLSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh | |
 | APPEND | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_append.sh (/E /X path set/clear) | |
 | KEYB | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (KEYB US install; KEYB shows current layout) | |
-| FDISK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_fdisk.sh (/PRI:5 /Q creates partition; verified via MBR) | |
+| FDISK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_fdisk.sh (/PRI:5 /EXT:10 /LOG:10 /Q; errorlevel 2; MBR+EBR verified) | |
 | PRINT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (/D:PRN install; queue status) | |
 | FASTOPEN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (C:=50 install smoke test) | |
 | GRAPHICS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (load GRAPHICS.PRO; reload) | |
@@ -358,7 +358,10 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 - [x] `G` (go/execute) — assemble tiny program, run with G, verify output + "Program terminated normally" (test_debug_qemu.sh)
 
 #### FDISK ✅ done
-- [x] `FDISK 1 /PRI:5 /Q` — create primary partition (test_fdisk.sh, partition verified via host fdisk -l)
+- [x] `FDISK 1 /PRI:5 /Q` — create primary partition (test_fdisk.sh, MBR type verified)
+- [x] `FDISK 1 /EXT:10 /Q` — create extended partition (test_fdisk.sh, MBR type 0x05 verified)
+- [x] `FDISK 1 /LOG:10 /Q` — create logical drive in extended partition (test_fdisk.sh, EBR verified)
+- [x] `FDISK 1 /Q` (no switches) — exit code 2 verified via IF ERRORLEVEL (test_fdisk.sh)
 
 #### PRINT
 - [ ] `PRINT /D:PRN file` — print to device
