@@ -157,7 +157,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | NLSFUNC | ✅ | ✅ Section 4 | ✅ test_share_nlsfunc_exe2bin.sh | |
 | APPEND | ✅ | ✅ Section 4 | ✅ test_append.sh (/E /X path set/clear) | |
 | KEYB | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (KEYB US install; KEYB shows current layout) | |
-| FDISK | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 interactive, hardware |
+| FDISK | ✅ | ✅ Section 4 | ✅ test_fdisk.sh (/PRI:5 /Q creates partition; verified via fdisk -l) | |
 | PRINT | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (/D:PRN install; queue status) | |
 | FASTOPEN | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (C:=50 install smoke test) | |
 | GRAPHICS | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (load GRAPHICS.PRO; reload) | |
@@ -200,9 +200,8 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 #### DEBUG — remaining
 - [ ] `G` (go/execute) — kvikdos lacks INT 21h/AH=5Dh, needed by DEBUG internally; needs QEMU
 
-#### FDISK
-- [ ] `FDISK` — interactive (smoke test: launches and exits)
-- [ ] `FDISK /PRI` — create primary partition
+#### FDISK ✅ done
+- [x] `FDISK 1 /PRI:5 /Q` — create primary partition (test_fdisk.sh, partition verified via host fdisk -l)
 
 #### PRINT
 - [ ] `PRINT /D:PRN file` — print to device

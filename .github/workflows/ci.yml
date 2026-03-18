@@ -286,3 +286,28 @@ jobs:
 
       - name: LABEL interactive e2e tests (serial expect)
         run: bash tests/test_label.sh
+
+  e2e-fdisk:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}/ci:latest
+      options: --device /dev/kvm
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repo with submodules
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Grant KVM access
+        run: chmod 666 /dev/kvm
+
+      - name: Download floppy image
+        uses: actions/download-artifact@v6
+        with:
+          name: floppy
+
+      - name: FDISK e2e test (non-interactive /PRI switch)
+        run: bash tests/test_fdisk.sh
