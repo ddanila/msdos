@@ -210,7 +210,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | MORE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (3 tests: stdin file from-file) | v4.0: no switches (filter utility) |
 | DEBUG | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (15 tests: R/E/D/F/H/C/M/S/A/U/N/W/L) + test_debug_qemu.sh (G execute) | |
 | EDLIN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (18 tests: open/new/insert/del/edit/copy/move/search/replace/transfer/page/write + /B) | |
-| XCOPY | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (13 tests: basic /S /S+E /V /A /M) | v4.0 flags: /A /D /E /M /P /S /V /W. `/P` `/W` 🚫 interactive, `/D` not tested |
+| XCOPY | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (15 tests: basic /S /S+E /V /A /M /D) | v4.0 flags: /A /D /E /M /P /S /V /W. `/P` `/W` 🚫 interactive |
 | REPLACE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (9 tests: /A /U /U-older /R /S error + content checks) | v4.0 flags: /A /P /R /S /U /W. `/P` `/W` 🚫 interactive |
 | GRAFTABL | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (4 tests: 437 850 /STATUS status) | |
 | LABEL | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (read-only); write/delete in test_label.sh | |
@@ -228,11 +228,11 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | SHARE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh | |
 | NLSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh | |
 | APPEND | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_append.sh (/E /X path set/clear) | |
-| KEYB | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (KEYB US install; KEYB shows current layout) | |
+| KEYB | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (KEYB US; KEYB GR,,KEYBOARD.SYS; KEYB status) | |
 | FDISK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_fdisk.sh (/PRI:5 /EXT:10 /LOG:10 /Q; errorlevel 2; MBR+EBR verified) | |
 | PRINT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (/D:PRN install; queue status) | |
 | FASTOPEN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (C:=50 install smoke test) | |
-| GRAPHICS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (load GRAPHICS.PRO; reload) | |
+| GRAPHICS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (load GRAPHICS.PRO; reload; /R reverse; /B background) | |
 | MODE | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ test_misc_qemu.sh (CON /STATUS only) | serial/parallel/console config 🚫 hardware |
 | RECOVER | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_recover.sh (file mode: keypress prompt + bytes recovered) | drive mode (destructive) skipped |
 | IFSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install + already-installed check) | |
@@ -258,7 +258,7 @@ Items here are either interactive (require keypress) or need hardware not availa
 ### External CMD tools
 
 #### XCOPY — remaining
-- [ ] `XCOPY src dest /D:date` — copy files modified on/after date (non-interactive but needs date setup)
+- [x] `XCOPY src dest /D:date` — copy files on/after date (Section 6, kvikdos: past date copies, future date skips)
 - [ ] `XCOPY src dest /P` — prompt per file (interactive)
 - [ ] `XCOPY src dest /W` — wait before start (interactive)
 
@@ -371,10 +371,10 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 - [ ] `PRINT /Q:5 file` — set queue size
 
 #### KEYB — needs QEMU
-- [ ] `KEYB US` — load US keyboard (kvikdos: SYSLOADMSG fails before KEYB_COMMAND runs)
-- [ ] `KEYB GR,,KEYBOARD.SYS` — explicit file, non-US layout
+- [x] `KEYB US` — load US keyboard (test_misc_qemu.sh)
+- [x] `KEYB GR,,KEYBOARD.SYS` — explicit file, non-US layout (test_misc_qemu.sh)
+- [x] `KEYB` — show current layout, verified for US and GR (test_misc_qemu.sh)
 - [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with code page and ID
-- [ ] `KEYB` — show current layout
 
 #### ASSIGN ✅ done
 - [x] `ASSIGN B=A` + `DIR B:` verify + `ASSIGN` clear (test_assign_subst_join.sh)
@@ -386,13 +386,14 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 - [x] `SUBST D: A:\SUBSTDIR` + `SUBST` list + `SUBST D: /D` (test_assign_subst_join.sh)
 
 #### FASTOPEN
-- [ ] `FASTOPEN C:=50` — cache 50 entries
-- [ ] `FASTOPEN C:=50 /X` — use expanded memory
+- [x] `FASTOPEN C:=50` — cache 50 entries (test_misc_qemu.sh)
+- Note: `/X` (expanded memory) does NOT exist in v4.0 source — that's a DOS 5.0+ addition.
 
 #### GRAPHICS
-- [ ] `GRAPHICS` — load default (GRAPHICS.PRO)
-- [ ] `GRAPHICS COLOR4 /R` — color4 reversed
-- [ ] `GRAPHICS HPDEFAULT /B` — with background
+- [x] `GRAPHICS` — load default GRAPHICS.PRO (test_misc_qemu.sh)
+- [x] `GRAPHICS /R` — reverse printing (test_misc_qemu.sh)
+- [x] `GRAPHICS /B` — background printing (test_misc_qemu.sh)
+- Note: v4.0 printer types are COLOR and BLACK_WHITE (not COLOR4/HPDEFAULT — those are DOS 5.0+ names).
 
 #### MODE
 - [ ] `MODE COM1: 9600,N,8,1` — configure serial

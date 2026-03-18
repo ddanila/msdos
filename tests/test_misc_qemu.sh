@@ -39,6 +39,8 @@
 #   - KEYBOARD.SYS is not on the base floppy; we copy it in test setup.
 #   - First call (KEYB US): installs INT 9h hook, loads US layout. Silent on success.
 #   - Second call (KEYB, no args): prints "Current keyboard code: US" + code page info.
+#   - Third call (KEYB GR,,KEYBOARD.SYS): loads German layout with explicit file path.
+#   - Fourth call (KEYB, no args): verifies "GR" is now the active layout.
 #
 # Run via: make test-misc-qemu  (requires 'make deploy' first)
 
@@ -164,6 +166,33 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'ECHO ---KEYB-STATUS---\r\n'
     printf 'KEYB\r\n'
     printf 'ECHO KEYB_STATUS_DONE\r\n'
+
+    # ── KEYB GR,,KEYBOARD.SYS — load German layout with explicit file ───────
+    # Syntax: KEYB lang[,[codepage][,[drive:][path]file]] [/ID:nnn]
+    # Tests non-US layout loading with explicit KEYBOARD.SYS path.
+    printf 'ECHO ---KEYB-GR---\r\n'
+    printf 'KEYB GR,,KEYBOARD.SYS\r\n'
+    printf 'ECHO KEYB_GR_DONE\r\n'
+
+    # ── KEYB (no args) — verify GR is now active ────────────────────────────
+    printf 'ECHO ---KEYB-GR-STATUS---\r\n'
+    printf 'KEYB\r\n'
+    printf 'ECHO KEYB_GR_STATUS_DONE\r\n'
+
+    # ── GRAPHICS /R — load with reverse printing ────────────────────────────
+    # /R reverses foreground/background when printing. Installs silently.
+    # (GRAPHICS already installed from earlier call; this reloads with /R.)
+    printf 'ECHO ---GRAPHICS-R---\r\n'
+    printf 'GRAPHICS /R\r\n'
+    printf 'ECHO GRAPHICS_R_DONE\r\n'
+
+    # ── GRAPHICS /B — load with background printing ─────────────────────────
+    # /B enables printing of background color. Reloads silently.
+    # Note: /B is invalid with BLACK_WHITE printers; default printer type may
+    # vary — if this fails, the batch marker still tells us it didn't hang.
+    printf 'ECHO ---GRAPHICS-B---\r\n'
+    printf 'GRAPHICS /B\r\n'
+    printf 'ECHO GRAPHICS_B_DONE\r\n'
 
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
@@ -332,6 +361,35 @@ if grep -q "KEYB_STATUS_DONE" "$SERIAL_LOG"; then
     ok "KEYB (no args: batch continued)"
 else
     fail "KEYB (batch hung or crashed after status query)"
+fi
+
+# KEYB GR — non-US layout with explicit KEYBOARD.SYS
+if grep -q "KEYB_GR_DONE" "$SERIAL_LOG"; then
+    ok "KEYB GR,,KEYBOARD.SYS (loaded German layout, batch continued)"
+else
+    fail "KEYB GR,,KEYBOARD.SYS (batch hung or crashed)"
+fi
+
+if grep -qi "Current keyboard code.*GR\|code.*GR" "$SERIAL_LOG" && grep -q "KEYB_GR_STATUS_DONE" "$SERIAL_LOG"; then
+    ok "KEYB (no args after GR: shows 'GR' as current layout)"
+else
+    fail "KEYB (no args after GR: expected 'Current keyboard code' with 'GR')"
+fi
+
+# ── GRAPHICS /R /B checks ────────────────────────────────────────────────────
+echo ""
+echo "--- GRAPHICS /R /B tests ---"
+
+if grep -q "GRAPHICS_R_DONE" "$SERIAL_LOG"; then
+    ok "GRAPHICS /R (loaded with reverse printing, batch continued)"
+else
+    fail "GRAPHICS /R (batch hung or crashed)"
+fi
+
+if grep -q "GRAPHICS_B_DONE" "$SERIAL_LOG"; then
+    ok "GRAPHICS /B (loaded with background printing, batch continued)"
+else
+    fail "GRAPHICS /B (batch hung or crashed)"
 fi
 
 # ── Completion check ──────────────────────────────────────────────────────────
