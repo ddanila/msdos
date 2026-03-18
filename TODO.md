@@ -279,9 +279,13 @@ deeper logical bug in SCANEOF itself. To isolate: hardcode `loadmod db 1` in EDL
 (bypass all parse logic) and test with kvikdos. If LINE3 appears → parse plumbing is the
 only problem. If LINE3 still absent → SCANEOF logic itself is broken too.
 
-**Hardcode loadmod=1 test (in progress):**
-Change `loadmod db 0` → `loadmod db 1` in EDLIN.ASM CONST segment, rebuild, run
-kvikdos /B test. Result: TBD.
+**Hardcode loadmod=1 test (DONE):**
+Changed `loadmod db 0` → `loadmod db 1` in EDLIN.ASM CONST segment, rebuilt, ran
+kvikdos test (without passing /B — parse is bypassed entirely).
+**Result: LINE3 appears. SCANEOF logic is correct.**
+Output: lines 1–4 all listed including `^Z` on line 3 and LINE3 on line 4.
+Conclusion: the core /B feature works. The bug is 100% in the parse plumbing
+(getting loadmod set to 1 when /B is passed), NOT in SCANEOF. Reverted afterwards.
 
 **kvikdos debug probes (temporary, in kvikdos.c):**
 - DS change tracker after KVM_GET_SREGS: logs every DS segment change
