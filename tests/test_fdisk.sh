@@ -64,9 +64,11 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
-# ── Boot QEMU (with retry on R6001 crash) ────────────────────────────────────
-# FDISK.C has an intermittent R6001 (null-pointer sentinel corruption) under
-# QEMU due to tight conventional memory. Retry once if that happens.
+# ── Boot QEMU (with retry on crash/hang) ──────────────────────────────────────
+# FDISK has an intermittent crash under QEMU (tight conventional memory).
+# FDISK writes to screen (INT 10h), not serial, so crash messages are NOT
+# visible in the serial log — we detect failure by missing FDISK_DONE marker.
+# Retry once if FDISK_DONE is absent (crash or hang).
 run_qemu() {
     # Blank 20 MB HDD image for each attempt — FDISK writes a partition table.
     # QEMU derives geometry from image size; 20 MB holds a 5 MB primary partition.
@@ -84,8 +86,11 @@ run_qemu() {
 
 echo "Booting QEMU (may take ~60s)..."
 run_qemu
-if grep -q "R6001" "$SERIAL_LOG" 2>/dev/null; then
-    echo "  FDISK crashed with R6001 (intermittent memory bug); retrying..."
+if ! grep -q "FDISK_DONE" "$SERIAL_LOG" 2>/dev/null; then
+    echo "  FDISK did not complete (crash or hang); retrying..."
+    echo "  --- attempt 1 serial log ---"
+    cat "$SERIAL_LOG" 2>/dev/null || echo "  (empty)"
+    echo "  ---"
     run_qemu
 fi
 
@@ -108,9 +113,14 @@ if grep -q "===DONE===" "$SERIAL_LOG"; then
     ok "Batch reached ===DONE==="
 else
     fail "Batch did NOT reach ===DONE=== (hung or crashed early)"
-    echo "--- last 20 lines of serial log ---"
-    tail -20 "$SERIAL_LOG"
-    echo "---"
+fi
+
+# Always dump serial log on any failure for CI debugging
+if [[ $FAIL -gt 0 ]]; then
+    echo ""
+    echo "--- full serial log (for debugging) ---"
+    cat "$SERIAL_LOG" 2>/dev/null || echo "(empty)"
+    echo "--- end serial log ---"
 fi
 
 # ── Post-QEMU partition table check ───────────────────────────────────────────
