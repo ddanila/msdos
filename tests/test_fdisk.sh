@@ -109,18 +109,21 @@ fi
 echo ""
 echo "--- FDISK partition table check ---"
 
-# Linux fdisk -l reads the MBR partition table from the raw image.
-# A 5 MB primary DOS partition shows as type 4 (FAT16 <32MB) or similar.
-part_output=$(fdisk -l "$HDD_IMG" 2>/dev/null || echo "")
+# Read the MBR partition type byte directly via Python (no root required).
+# MBR layout: partition table starts at offset 446; each entry is 16 bytes.
+# Byte 4 of the first entry (offset 446+4 = 450) is the partition type.
+# FDISK creates type 0x04 (FAT16 <32 MB) for a 5 MB primary partition.
+type_hex=$(python3 -c "
+with open('$HDD_IMG', 'rb') as f:
+    f.seek(450)
+    b = f.read(1)
+    print('{:02x}'.format(b[0]) if b else '00')
+" 2>/dev/null)
 
-if echo "$part_output" | grep -qi "FAT\|DOS\|W95"; then
-    ok "FDISK partition table: DOS/FAT partition type found"
-elif echo "$part_output" | grep -q "^${HDD_IMG}"; then
-    ok "FDISK partition table: partition entry present"
+if [[ -n "$type_hex" && "$type_hex" != "00" ]]; then
+    ok "FDISK partition table: DOS partition type 0x$type_hex written to MBR"
 else
-    fail "FDISK partition table: no DOS partition found in image"
-    echo "fdisk -l output:"
-    echo "$part_output"
+    fail "FDISK partition table: no partition type in MBR (got '0x${type_hex:-?}')"
 fi
 
 echo ""
