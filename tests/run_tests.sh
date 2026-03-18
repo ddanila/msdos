@@ -854,6 +854,33 @@ else
     fail "EDLIN (expected 'First' and transferred file content)"
 fi
 
+# -- EDLIN /B: binary mode — load past embedded ^Z --
+# Create a test file with an embedded ^Z (0x1a) byte in the middle:
+#   LINE1\r\n  LINE2\r\n  ^Z\r\n  LINE3\r\n
+printf 'LINE1\r\nLINE2\r\n\x1a\r\nLINE3\r\n' > "$SRC/EDLBTEST.TXT"
+output=$(printf '1,10L\r\nQ\r\nY\r\n' \
+    | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLBTEST.TXT /B 2>/dev/null | head -20 || true)
+if echo "$output" | grep -q "LINE3"; then
+    ok "EDLIN /B (LINE3 visible after embedded ^Z)"
+else
+    fail "EDLIN /B (LINE3 not found — /B flag did not suppress ^Z stop)"
+fi
+if echo "$output" | grep -q "LINE1" && echo "$output" | grep -q "LINE2"; then
+    ok "EDLIN /B (LINE1 and LINE2 also present)"
+else
+    fail "EDLIN /B (LINE1 or LINE2 missing)"
+fi
+
+# -- EDLIN (no /B): text mode — stop at embedded ^Z --
+output=$(printf '1,10L\r\nQ\r\nY\r\n' \
+    | timeout 10 "$BIN/dos-run" "$SRC/CMD/EDLIN/EDLIN.COM" EDLBTEST.TXT 2>/dev/null | head -20 || true)
+if ! echo "$output" | grep -q "LINE3"; then
+    ok "EDLIN (no /B: LINE3 absent — ^Z stops load)"
+else
+    fail "EDLIN (no /B: LINE3 should NOT appear — ^Z should stop load)"
+fi
+rm -f "$SRC/EDLBTEST.TXT"
+
 # Clean up EDLIN test files (saved to $SRC root, kvikdos CWD)
 rm -f "$SRC/EDLTEST.TXT" "$SRC/EDLTEST.BAK"
 

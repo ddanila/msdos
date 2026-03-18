@@ -196,27 +196,69 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 
 #### EDLIN — /B bug investigation in progress
 - [x] `EDLIN file /B` — binary (ignore ^Z) — QEMU E2E (test_edlin_b_qemu.sh)
-- [ ] Fix remaining /B bug — test still fails (LINE3 absent in both /B and non-/B modes)
+- [ ] Fix remaining /B bug — kvikdos test in run_tests.sh fails (LINE3 absent when /B passed)
+- [ ] kvikdos test already added to run_tests.sh (Section 6), passing requires the fix below
 
-**val_sw fix applied (necessary but not sufficient):**
+**Bug 1 — val_sw comparison always failed (FIXED):**
 `val_sw` in `EDLPARSE.ASM` had a broken `cmp es:parse_sw_syn, offset es:sw_b_switch` —
 MASM resolved the `offset` at assembly time to a local DG-group offset that doesn't match
 the actual runtime address after linking with EDLIN+EDLCMD1+EDLCMD2+EDLMES (no fixup emitted).
 Fixed by simplifying to unconditional `mov dg:parse_switch_b, true` (only one switch exists).
 Committed: submodule `52f514b`, top-level `03206cc`.
 
-**Binary verification (fix IS in the compiled binary):**
-- `val_sw` at 0x2E13: `mov byte [0x34e7], 0xff; ret` — correct
-- `parser_command` at 0x2DE4: calls `val_sw` when switch found and `parse_switch_b` still false — correct
-- `EDLIN_COMMAND` at 0x0B8D: `cmp byte [0x34e7], 0xff` → `mov byte [0x2b15], 0x01` (sets LOADMOD) — correct
-- `SCANEOF` at 0x1278: `cmp byte [0x2b15], 0x00` — correct branch on LOADMOD
+**Bug 2 — DS/ES segment mismatch (ROOT CAUSE, not yet fixed):**
+`parser_command` in EDLPARSE.ASM sets `DS = org_ds` (PSP segment = 0x0100) at line 170
+before calling sysparse in the parse loop. So val_sw executes with DS=0x0100. However
+EDLIN_COMMAND runs later with DS=0x0110 (changed by SYSLOADMSG during EDLIN init).
 
-**Next investigation steps:**
-1. Verify sysparse actually finds and returns the /B switch at runtime (command line parsing issue?)
-2. Use DEBUG to inspect LOADMOD value after EDLIN parses its command line
-3. Check if COMMAND.COM's `< EDLCMD.TXT` redirect interferes with command line arguments
-4. Check the CONVERT relocation stub — does it affect offsets at runtime?
-5. Trace the actual file read path in EDLCMD1/EDLCMD2 — how data reaches SCANEOF
+- `val_sw` writes `parse_switch_b = true` at DS:[0x34E7] with DS=0x0100 → linear 0x44E7
+- `EDLIN_COMMAND` reads `parse_switch_b` at DS:[0x34E7] with DS=0x0110 → linear 0x45E7
+- **Gap is exactly 0x100 bytes = 1 paragraph** — the write and read go to different memory!
+- The write IS happening (confirmed by kvikdos debug: `PSP:0x34E7 = 0xFF`), but
+  the read misses it (`DS:0x34E7 = 0x00`).
+
+**Root cause details:**
+- SIMPED in EDLIN.ASM: `push cs; pop ds` → DS=CS=0x0100 (PSP segment)
+- SYSLOADMSG (called from PRE_LOAD_MESSAGE before parser_command): changes DS to 0x0110
+  (SYSLOADMSG saves ES but NOT DS, so DS change persists)
+- parser_command saves DS on stack (`push ds`), sets `DS = org_ds = 0x0100`
+  (org_ds was saved at SIMPED time, = 0x0100)
+- After parse loop: `pop ds` restores DS = 0x0110 (the pre-parser_command value)
+- EDLIN_COMMAND runs with DS = 0x0110
+
+**Proposed fix (not yet applied):**
+In EDLIN.ASM's EDLIN_COMMAND, change the `cmp dg:parse_switch_b, true` to use CS: override:
+```asm
+cmp  cs:parse_switch_b, true   ; CS=0x0100=PSP segment = where val_sw wrote
+```
+CS is always 0x0100 (PSP segment) for the COM file. val_sw's write and this read would
+both target linear 0x44E7. The LOADMOD write after it can still use DS (correct for SCANEOF).
+
+Alternatively, check the binary directly first against the ORIGINAL MS-DOS 4.0 EDLIN.COM
+(no modifications from our fork) to bisect whether this is a pre-existing bug in the
+original EDLIN source, a bug introduced by our /? and val_sw modifications, or a kvikdos
+emulation issue (e.g. incorrect DS value during init).
+
+**Bisect plan:**
+1. Test original MS-DOS 4.0 EDLIN.COM (from git history before any of our modifications)
+   with kvikdos — does /B work? If yes → our changes broke it.
+2. Test the original EDLIN.COM with QEMU — does /B work? If different from kvikdos →
+   kvikdos emulation bug (e.g., wrong DS during SYSLOADMSG init).
+3. Test current modified EDLIN.COM with QEMU (test_edlin_b_qemu.sh) — does it pass?
+   If yes → only a kvikdos issue.
+
+**Binary addresses (in rebuilt EDLIN.COM with val_sw fix, DS=0x0110 at ExtOpen time):**
+- `val_sw` at CS:0x2E13 (binary 0x2D13): `mov byte [0x34E7], 0xFF; ret`
+- `EDLIN_COMMAND` at CS:0x0B8D (binary 0x0A8D): `cmp byte [0x34E7], 0xFF`
+  → with DS=0x0110 reads linear 0x45E7 (wrong: val_sw wrote to 0x44E7)
+- `LOADMOD` at CS:0x2B15 (binary 0x2A15): should be 0x01 when /B used
+- `SCANEOF` at CS:0x1278 (binary 0x1178): `cmp byte [LOADMOD], 0x00`
+
+**kvikdos debug probes (temporary, in kvikdos.c):**
+- DS change tracker after KVM_GET_SREGS: logs every DS segment change
+- ExtOpen (AH=0x6C) handler probe: logs DS/PSP values of parse_switch_b and LOADMOD
+  when EDLIN opens a file with "EDLB" in its name
+- Remove both probes once the fix is confirmed.
 
 #### DEBUG ✅ done
 - [x] `G` (go/execute) — assemble tiny program, run with G, verify output + "Program terminated normally" (test_debug_qemu.sh)
