@@ -1090,6 +1090,50 @@ else
     fail "EXE2BIN (expected 'File not found', got: $E2B_ERR_OUT)"
 fi
 
+# -- MEM /PROGRAM: show loaded programs --
+# MEM walks MCB chain which loops under kvikdos (no real MCB); use short timeout + head.
+output=$(timeout 5 "$BIN/dos-run" "$SRC/CMD/MEM/MEM.EXE" /PROGRAM 2>/dev/null | head -10) || true
+if echo "$output" | grep -q "Address" && echo "$output" | grep -q "Type"; then
+    ok "MEM /PROGRAM (program listing)"
+else
+    fail "MEM /PROGRAM (expected 'Address' and 'Type' column headers)"
+fi
+
+# -- MEM /DEBUG: show programs and internal drivers --
+output=$(timeout 5 "$BIN/dos-run" "$SRC/CMD/MEM/MEM.EXE" /DEBUG 2>/dev/null | head -10) || true
+if echo "$output" | grep -q "Address" && echo "$output" | grep -q "Type"; then
+    ok "MEM /DEBUG (debug listing)"
+else
+    fail "MEM /DEBUG (expected 'Address' and 'Type' headers)"
+fi
+
+# -- FC: nonexistent file error --
+output=$(run_dos CMD/FC/FC.EXE 'C:\NONEXIST.TXT' 'C:\SETENV.BAT' 2>&1) || true
+if echo "$output" | grep -qi "cannot open"; then
+    ok "FC (nonexistent file error)"
+else
+    fail "FC (expected 'cannot open' for nonexistent file)"
+fi
+
+# Skipped: XCOPY /V needs INT 21h/AH=54h (get verify state) which kvikdos-soft
+# does not implement. XCOPY must use kvikdos-soft due to #GP under KVM.
+
+# -- REPLACE /R: replace read-only file --
+mkdir -p "$SRC/RPLRDEST"
+printf "ORIGINAL\r\n" > "$SRC/RPLRDEST/RPLR.TXT"
+chmod 444 "$SRC/RPLRDEST/RPLR.TXT"
+# Also set DOS read-only attribute via ATTRIB
+run_dos CMD/ATTRIB/ATTRIB.EXE '+R' 'C:\RPLRDEST\RPLR.TXT' > /dev/null 2>&1 || true
+printf "REPLACED_DATA\r\n" > "$SRC/RPLR.TXT"
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\RPLR.TXT' 'C:\RPLRDEST\' /R 2>/dev/null || true)
+if echo "$output" | grep -q "file(s) replaced"; then
+    ok "REPLACE /R (replace read-only file)"
+else
+    fail "REPLACE /R (expected 'file(s) replaced')"
+fi
+chmod 644 "$SRC/RPLRDEST/RPLR.TXT" 2>/dev/null || true
+rm -rf "$SRC/RPLRDEST" "$SRC/RPLR.TXT"
+
 # ── Section 7: COMMAND.COM built-in E2E tests (kvikdos) ──────────────────────
 echo ""
 echo "=== Section 7: COMMAND.COM built-in E2E tests (kvikdos) ==="
@@ -1420,6 +1464,104 @@ if echo "$out" | grep -q "MD_NESTED_OK"; then
 else
     fail "COMMAND.COM MD nested (expected 'MD_NESTED_OK', got: $out)"
 fi
+
+# -- IF ERRORLEVEL: batch conditional on exit code --
+# FIND returns errorlevel 2 on error (e.g., file not found); test IF ERRORLEVEL 2
+printf '@ECHO OFF\r\nC:\CMD\FIND\FIND.EXE "x" C:\NONEXIST.TXT\r\nIF ERRORLEVEL 2 ECHO ERRORLEVEL_2_OK\r\nIF NOT ERRORLEVEL 1 ECHO ERRORLEVEL_0_WRONG\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q "ERRORLEVEL_2_OK" && ! echo "$out" | grep -q "ERRORLEVEL_0_WRONG"; then
+    ok "COMMAND.COM IF ERRORLEVEL (FIND error → errorlevel 2)"
+else
+    fail "COMMAND.COM IF ERRORLEVEL (expected 'ERRORLEVEL_2_OK', got: $out)"
+fi
+
+# -- IF ERRORLEVEL: errorlevel 0 on success --
+printf '@ECHO OFF\r\nC:\CMD\FIND\FIND.EXE "echo" C:\SETENV.BAT\r\nIF NOT ERRORLEVEL 1 ECHO ERRORLEVEL_ZERO_OK\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q "ERRORLEVEL_ZERO_OK"; then
+    ok "COMMAND.COM IF ERRORLEVEL (FIND success → errorlevel 0)"
+else
+    fail "COMMAND.COM IF ERRORLEVEL (expected 'ERRORLEVEL_ZERO_OK', got: $out)"
+fi
+
+# -- CD / CHDIR: change directory and verify --
+printf '@ECHO OFF\r\nCD C:\CMD\EDLIN\r\nCD\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -qi 'C:\\CMD\\EDLIN'; then
+    ok "COMMAND.COM CD (change and verify directory)"
+else
+    fail "COMMAND.COM CD (expected 'C:\CMD\EDLIN' in output, got: $out)"
+fi
+
+# -- PROMPT: set and verify via SET --
+printf '@ECHO OFF\r\nPROMPT TESTPROMPT$G\r\nSET PROMPT\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q "PROMPT=TESTPROMPT"; then
+    ok "COMMAND.COM PROMPT (set and verify)"
+else
+    fail "COMMAND.COM PROMPT (expected 'PROMPT=TESTPROMPT' in SET output, got: $out)"
+fi
+
+# -- TRUENAME: resolve canonical path --
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'TRUENAME C:\SETENV.BAT') || true
+if echo "$out" | grep -qi 'C:\\SETENV.BAT'; then
+    ok "COMMAND.COM TRUENAME (resolve path)"
+else
+    fail "COMMAND.COM TRUENAME (expected 'C:\SETENV.BAT', got: $out)"
+fi
+
+# -- COPY a+b c: file concatenation --
+printf 'PART_ONE\r\n' > "$SRC/CMD/COMMAND/KVCAT1.TXT"
+printf 'PART_TWO\r\n' > "$SRC/CMD/COMMAND/KVCAT2.TXT"
+printf '@ECHO OFF\r\nCOPY /B C:\CMD\COMMAND\KVCAT1.TXT+C:\CMD\COMMAND\KVCAT2.TXT C:\CMD\COMMAND\KVCAT3.TXT\r\nTYPE C:\CMD\COMMAND\KVCAT3.TXT\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT" "$SRC/CMD/COMMAND/KVCAT1.TXT" "$SRC/CMD/COMMAND/KVCAT2.TXT" "$SRC/CMD/COMMAND/KVCAT3.TXT"
+if echo "$out" | grep -q "PART_ONE" && echo "$out" | grep -q "PART_TWO"; then
+    ok "COMMAND.COM COPY a+b c (concatenation)"
+else
+    fail "COMMAND.COM COPY a+b c (expected both PART_ONE and PART_TWO, got: $out)"
+fi
+
+# -- COPY /B: binary mode (copies past ^Z) --
+printf 'BEFORE\x1aAFTER' > "$SRC/CMD/COMMAND/KVBIN.TXT"
+printf '@ECHO OFF\r\nCOPY /B C:\CMD\COMMAND\KVBIN.TXT C:\CMD\COMMAND\KVBOUT.TXT\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+# Check host file: /B should preserve content past ^Z (file should be 11 bytes: BEFORE + ^Z + AFTER)
+if [ -f "$SRC/CMD/COMMAND/KVBOUT.TXT" ]; then
+    size=$(wc -c < "$SRC/CMD/COMMAND/KVBOUT.TXT")
+    if [ "$size" -ge 11 ]; then
+        ok "COMMAND.COM COPY /B (binary: full file past ^Z, $size bytes)"
+    else
+        fail "COMMAND.COM COPY /B (expected >=11 bytes, got $size)"
+    fi
+else
+    fail "COMMAND.COM COPY /B (output file not created)"
+fi
+rm -f "$SRC/CMD/COMMAND/KVBIN.TXT" "$SRC/CMD/COMMAND/KVBOUT.TXT"
+
+# -- COPY /A: ASCII mode (stops at ^Z, appends ^Z) --
+printf 'BEFORE\x1aAFTER' > "$SRC/CMD/COMMAND/KVASCII.TXT"
+printf '@ECHO OFF\r\nCOPY /A C:\CMD\COMMAND\KVASCII.TXT C:\CMD\COMMAND\KVAOUT.TXT\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+# /A stops reading at ^Z, so output should be shorter than the /B copy
+if [ -f "$SRC/CMD/COMMAND/KVAOUT.TXT" ]; then
+    size=$(wc -c < "$SRC/CMD/COMMAND/KVAOUT.TXT")
+    # "BEFORE" = 6 bytes + appended ^Z = 7 bytes max (no AFTER)
+    if [ "$size" -le 8 ]; then
+        ok "COMMAND.COM COPY /A (ASCII: stopped at ^Z, $size bytes)"
+    else
+        fail "COMMAND.COM COPY /A (expected <=8 bytes without AFTER, got $size)"
+    fi
+else
+    fail "COMMAND.COM COPY /A (output file not created)"
+fi
+rm -f "$SRC/CMD/COMMAND/KVASCII.TXT" "$SRC/CMD/COMMAND/KVAOUT.TXT"
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""

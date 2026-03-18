@@ -9,59 +9,60 @@ Source-code audit identified these untested paths (all doable under kvikdos):
 
 ### COMMAND.COM — untested built-ins and batch features
 
-- [ ] `IF ERRORLEVEL n` — batch conditional on exit code; TBATCH2.ASM confirms it is implemented but completely absent from run_tests.sh. Test via FIND (exits 1 on no match) or XCOPY (exits 4 on error).
-- [ ] `CD` / `CHDIR` functional — change directory and verify the change (only static binary string check exists today)
-- [ ] `PROMPT` functional — set prompt string and verify it changed
-- [ ] `TRUENAME` functional — resolve canonical path (only static check today); `COMMAND.COM /C TRUENAME C:\CMD\EDLIN\EDLIN.COM`
-- [ ] `COPY a+b c` concatenation — COPY.ASM implements `+` multi-file concatenation; never tested
-- [ ] `COPY /A` / `COPY /B` — ASCII vs binary mode; `/A` appends ^Z in output, `/B` copies raw bytes
+- [x] `IF ERRORLEVEL n` — batch conditional on exit code; tests FIND error→errorlevel 2 and FIND success→errorlevel 0 (Section 7; requires batch — fails on macOS/kvikdos-soft due to missing AH=2Eh, passes on Linux CI)
+- [x] `CD` / `CHDIR` functional — change directory and verify via CD output (Section 7; batch, same macOS caveat)
+- [x] `PROMPT` functional — set prompt string, verify via SET (Section 7; batch, same macOS caveat)
+- [x] `TRUENAME` functional — resolve canonical path via `/C TRUENAME path` (Section 7; passes on all platforms)
+- [x] `COPY a+b c` concatenation — COPY /B with `+` multi-file, verify via TYPE (Section 7; batch, same macOS caveat)
+- [x] `COPY /A` / `COPY /B` — ASCII stops at ^Z (<=8 bytes), binary copies past ^Z (>=11 bytes); host file size verification (Section 7; batch, same macOS caveat)
 
 ### FIND — untested paths
 
-- [ ] `FIND "str"` from stdin (no filename argument) — FIND.ASM reads stdin when no files given; common pipe use case; never tested
-- [ ] Exit code via `IF ERRORLEVEL` — FIND exits 0 (match found), 1 (no match), 2 (error); none of these tested via ERRORLEVEL
+- [ ] `FIND "str"` from stdin (no filename argument) — kvikdos stdin passthrough is unreliable for FIND (works for SORT but not FIND; timing-dependent). Blocked until kvikdos stdin handling is improved.
+- [x] Exit code via `IF ERRORLEVEL` — FIND.ASM source audit: exits 0 (always, even no match) or 2 (error). Tested via IF ERRORLEVEL in Section 7 (batch, macOS caveat as above).
+  - Note: FIND v4.0 does NOT set errorlevel 1 for "no match" — only 0 or 2.
 
 ### MEM — untested switches
 
-- [ ] `MEM /PROGRAM` — show loaded programs and memory use (MEM.C confirms this switch exists in v4.0)
-- [ ] `MEM /DEBUG` — show programs, internal drivers, and other info (MEM.C confirms this switch exists in v4.0)
+- [x] `MEM /PROGRAM` — show loaded programs; verified "Address" and "Type" column headers (Section 6). Note: MEM walks MCB chain which loops under kvikdos, test uses timeout+head.
+- [x] `MEM /DEBUG` — same verification as /PROGRAM (Section 6). Note: EMS handle table not testable (no EMS under kvikdos).
 - Note: `/CLASSIFY`, `/FREE`, `/MODULE` do NOT exist in v4.0 — those are 5.0+ additions.
 
 ### XCOPY — untested flags (use kvikdos-soft)
 
 - [ ] `XCOPY src dest /A` — copy only files with archive bit set; archive bit unchanged on source
 - [ ] `XCOPY src dest /M` — copy archive-bit files and clear the archive bit on source after copy
-- [ ] `XCOPY src dest /V` — verify sectors written after each file copy
+- [ ] `XCOPY src dest /V` — blocked: kvikdos-soft does not implement INT 21h/AH=54h (get verify state); XCOPY must use kvikdos-soft due to #GP under KVM. Needs AH=54h stub in XTulator.
 
 ### REPLACE — untested flags
 
-- [ ] `REPLACE src dest /R` — replace read-only files at destination (set dest +R first, then run)
+- [x] `REPLACE src dest /R` — replace read-only files; verified "file(s) replaced" output (Section 6). Sets +R via ATTRIB, replaces with /R, confirms success.
 - [ ] `REPLACE src dest /S` — replace files in subdirectories recursively (REPLACE.C `dodir()`)
 
 ### FC — untested error paths
 
-- [ ] `FC nonexistent file` — error handling when a file argument does not exist
+- [x] `FC nonexistent file` — verified "cannot open" error message (Section 6)
 
 ### Summary table
 
-| Item | Tool | Effort |
-|------|------|--------|
-| `IF ERRORLEVEL n` | COMMAND.COM batch | Low |
-| CD/CHDIR functional | COMMAND.COM | Low |
-| PROMPT functional | COMMAND.COM | Low |
-| TRUENAME functional | COMMAND.COM | Low |
-| COPY concatenation (`a+b`) | COMMAND.COM | Low |
-| COPY /A /B | COMMAND.COM | Low |
-| FIND from stdin | FIND | Low |
-| FIND exit code via ERRORLEVEL | FIND | Low |
-| MEM /PROGRAM | MEM | Low |
-| MEM /DEBUG | MEM | Low |
-| XCOPY /A | XCOPY | Medium |
-| XCOPY /M | XCOPY | Medium |
-| XCOPY /V | XCOPY | Low |
-| REPLACE /R | REPLACE | Low |
-| REPLACE /S | REPLACE | Medium |
-| FC nonexistent file error | FC | Low |
+| Item | Tool | Effort | Status |
+|------|------|--------|--------|
+| `IF ERRORLEVEL n` | COMMAND.COM batch | Low | ✅ done (batch; macOS blocked) |
+| CD/CHDIR functional | COMMAND.COM | Low | ✅ done (batch; macOS blocked) |
+| PROMPT functional | COMMAND.COM | Low | ✅ done (batch; macOS blocked) |
+| TRUENAME functional | COMMAND.COM | Low | ✅ done |
+| COPY concatenation (`a+b`) | COMMAND.COM | Low | ✅ done (batch; macOS blocked) |
+| COPY /A /B | COMMAND.COM | Low | ✅ done (batch; macOS blocked) |
+| FIND from stdin | FIND | Low | ❌ blocked (kvikdos stdin unreliable) |
+| FIND exit code via ERRORLEVEL | FIND | Low | ✅ done (batch; macOS blocked) |
+| MEM /PROGRAM | MEM | Low | ✅ done |
+| MEM /DEBUG | MEM | Low | ✅ done |
+| XCOPY /A | XCOPY | Medium | |
+| XCOPY /M | XCOPY | Medium | |
+| XCOPY /V | XCOPY | Low | ❌ blocked (AH=54h missing in kvikdos-soft) |
+| REPLACE /R | REPLACE | Low | ✅ done |
+| REPLACE /S | REPLACE | Medium | |
+| FC nonexistent file error | FC | Low | ✅ done |
 
 ---
 
@@ -198,10 +199,10 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 
 | Tool | Build | /? help | Functional | Notes |
 |------|-------|---------|------------|-------|
-| COMMAND.COM (built-ins) | ✅ | ✅ Section 5 binary | ⚠️ Section 7 (33 tests) | IF ERRORLEVEL, CD, PROMPT, TRUENAME, COPY+concat, COPY /A/B ❌ not yet; DATE/TIME/PAUSE/CHCP 🚫 interactive |
-| MEM | ✅ | ✅ Section 4 | ⚠️ Section 6 (basic report only) | /PROGRAM /DEBUG ❌ not yet |
-| FIND | ✅ | ✅ Section 4 | ⚠️ Section 6 (8 tests: /V /N /C multi no-match) | stdin mode, ERRORLEVEL ❌ not yet |
-| FC | ✅ | ✅ Section 4 | ⚠️ Section 6 (10 tests: /B /C /N /W /L /T /5) | nonexistent file error ❌ not yet |
+| COMMAND.COM (built-ins) | ✅ | ✅ Section 5 binary | ⚠️ Section 7 (41 tests) | IF ERRORLEVEL, CD, PROMPT, TRUENAME, COPY+concat, COPY /A/B ✅ added (batch tests need AH=2Eh — pass Linux CI, fail macOS); DATE/TIME/PAUSE/CHCP 🚫 interactive |
+| MEM | ✅ | ✅ Section 4 | ⚠️ Section 6 (basic + /PROGRAM + /DEBUG) | /PROGRAM /DEBUG ✅ added (MCB loops under kvikdos, uses timeout+head) |
+| FIND | ✅ | ✅ Section 4 | ⚠️ Section 6 (8 tests: /V /N /C multi no-match) | stdin ❌ blocked (kvikdos stdin unreliable); ERRORLEVEL ✅ Section 7 (batch) |
+| FC | ✅ | ✅ Section 4 | ✅ Section 6 (11 tests: /B /C /N /W /L /T /5 + nonexistent) | |
 | ATTRIB | ✅ | ✅ Section 4 | ✅ Section 6 (5 tests: +R -R +A -A /S) | note: +H/-H +S/-S not in v4.0 source |
 | COMP | ✅ | ✅ Section 4 | ✅ Section 6 (7 tests: identical/diff/hex/limit) | |
 | TREE | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: basic /F path) | |
@@ -209,8 +210,8 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | MORE | ✅ | ✅ Section 4 | ✅ Section 6 (2 tests: stdin file) | |
 | DEBUG | ✅ | ✅ Section 4 | ✅ Section 6 (8 tests: regs/mem/hex/asm/file) + test_debug_qemu.sh (G execute) | |
 | EDLIN | ✅ | ✅ Section 4 | ✅ Section 6 (12 tests: insert/del/edit/search/copy + /B) | ~~test_edlin_b_qemu.sh~~ **Deleted** — fully migrated to Section 6 (kvikdos) |
-| XCOPY | ✅ | ✅ Section 4 | ⚠️ Section 6 (3 tests: basic /S /S/E) | /A /M /V ❌ not yet; `/P` `/W` 🚫 interactive |
-| REPLACE | ✅ | ✅ Section 4 | ⚠️ Section 6 (3 tests: /A /U error) | /R /S ❌ not yet; `/P` `/W` 🚫 interactive |
+| XCOPY | ✅ | ✅ Section 4 | ⚠️ Section 6 (3 tests: basic /S /S/E) | /A /M ❌ not yet; /V ❌ blocked (AH=54h); `/P` `/W` 🚫 interactive |
+| REPLACE | ✅ | ✅ Section 4 | ⚠️ Section 6 (4 tests: /A /U /R error) | /S ❌ not yet; `/P` `/W` 🚫 interactive |
 | GRAFTABL | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: 437 850 /STATUS) | |
 | LABEL | ✅ | ✅ Section 4 | ⚠️ Section 6 (read-only); write/delete in test_label.sh | |
 | ASSIGN | ✅ | ✅ Section 4 | ✅ test_assign_subst_join.sh (B=A redirect verified; clear) | |
