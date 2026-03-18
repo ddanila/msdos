@@ -261,7 +261,7 @@ ARTIFACTS := \
     CMD/MODE/MODE.COM \
     MEMM/MEMM/EMM386.SYS
 
-test: all
+test:
 	bash tests/run_tests.sh
 
 gen-checksums: all

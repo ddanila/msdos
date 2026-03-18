@@ -3,6 +3,18 @@
 ## Workflow Rules
 - Commit after every step that succeeds, push to remote (origin/master).
 
+## Checksums (tests/golden.sha256)
+
+**Always regenerate via `make gen-checksums`** — never compute SHA256 manually or copy hashes by hand.
+
+`make gen-checksums` runs `make all` first, then hashes the built artifacts in one atomic step.
+If you hash binaries by hand (e.g. after a manual `masm`/`link`/`convert` invocation), the result
+will differ because `make` runs `buildmsg` first, which regenerates EDLIN CL files → different
+EDLIN.OBJ → different EDLIN.COM hash.
+
+CI workflow: `make` (build), then `make test` (tests only — no rebuild). Do not rely on
+`make test` to build — `test` target no longer depends on `all`.
+
 ## Line Ending Rules
 
 **CRLF required** (DOS tools parse as text, BUILDIDX computes byte offsets):

@@ -282,12 +282,6 @@ val_sw    endp
 MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~line 1802:
 `mov ds, cs:[org_ds]` (Calc_Memory_Avail).
 
-**kvikdos debug probes (temporary, in kvikdos.c):**
-- DS change tracker after KVM_GET_SREGS: logs every DS segment change
-- ExtOpen (AH=0x6C) handler probe: logs DS/PSP values of parse_switch_b and LOADMOD
-  when EDLIN opens a file with "EDLB" in its name
-- Remove both probes once the fix is confirmed.
-
 #### DEBUG ✅ done
 - [x] `G` (go/execute) — assemble tiny program, run with G, verify output + "Program terminated normally" (test_debug_qemu.sh)
 
