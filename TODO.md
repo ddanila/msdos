@@ -199,44 +199,46 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 
 | Tool | Build | /? help | Functional | Notes |
 |------|-------|---------|------------|-------|
-| COMMAND.COM (built-ins) | ✅ | ✅ Section 5 binary | ⚠️ Section 7 (41 tests) | IF ERRORLEVEL, CD, PROMPT, TRUENAME, COPY+concat, COPY /A/B ✅ added (batch tests need AH=2Eh — pass Linux CI, fail macOS); DATE/TIME/PAUSE/CHCP 🚫 interactive |
-| MEM | ✅ | ✅ Section 4 | ⚠️ Section 6 (basic + /PROGRAM + /DEBUG) | /PROGRAM /DEBUG ✅ added (MCB loops under kvikdos, uses timeout+head) |
-| FIND | ✅ | ✅ Section 4 | ⚠️ Section 6 (8 tests: /V /N /C multi no-match) | stdin ❌ blocked (kvikdos stdin unreliable); ERRORLEVEL ✅ Section 7 (batch) |
-| FC | ✅ | ✅ Section 4 | ✅ Section 6 (13 tests: /A /B /C /N /W /L /T /5 + nonexistent) | |
-| ATTRIB | ✅ | ✅ Section 4 | ✅ Section 6 (5 tests: +R -R +A -A /S) | note: +H/-H +S/-S not in v4.0 source |
-| COMP | ✅ | ✅ Section 4 | ✅ Section 6 (7 tests: identical/diff/hex/limit) | |
-| TREE | ✅ | ✅ Section 4 | ✅ Section 6 (4 tests: basic /F /A path) | |
-| SORT | ✅ | ✅ Section 4 | ✅ Section 6 (4 tests: /R /+N file) | note: /O output-to-file not in v4.0 |
-| MORE | ✅ | ✅ Section 4 | ✅ Section 6 (2 tests: stdin file) | |
-| DEBUG | ✅ | ✅ Section 4 | ✅ Section 6 (8 tests: regs/mem/hex/asm/file) + test_debug_qemu.sh (G execute) | |
-| EDLIN | ✅ | ✅ Section 4 | ✅ Section 6 (14 tests: insert/del/edit/search/copy/page/write + /B) | ~~test_edlin_b_qemu.sh~~ **Deleted** — fully migrated to Section 6 (kvikdos) |
-| XCOPY | ✅ | ✅ Section 4 | ✅ Section 6 (9 tests: basic /S /S/E /V /A /M) | `/P` `/W` 🚫 interactive |
-| REPLACE | ✅ | ✅ Section 4 | ✅ Section 6 (7 tests: /A /U /U-older /R /S error) | `/P` `/W` 🚫 interactive |
-| GRAFTABL | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: 437 850 /STATUS) | |
-| LABEL | ✅ | ✅ Section 4 | ⚠️ Section 6 (read-only); write/delete in test_label.sh | |
-| ASSIGN | ✅ | ✅ Section 4 | ✅ test_assign_subst_join.sh (B=A redirect verified; clear) | |
-| SUBST | ✅ | ✅ Section 4 | ✅ test_assign_subst_join.sh (D: create/list/delete) | |
-| JOIN | ✅ | ✅ Section 4 | ✅ test_assign_subst_join.sh (B: join/list/verify/unjoin) | |
-| EXE2BIN | ✅ | ✅ Section 4 | ✅ Section 6 + test_share_nlsfunc_exe2bin.sh | |
-| CHKDSK | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (disk stats, /V file listing) | |
-| FORMAT | ✅ | ✅ Section 4 | ✅ test_format.sh (8 variants: geometry/BPB/label) | |
-| SYS | ✅ | ✅ Section 4 | ✅ test_sys.sh (boot verification) | |
-| DISKCOPY | ✅ | ✅ Section 4 | ✅ test_diskcomp_diskcopy.sh | |
-| DISKCOMP | ✅ | ✅ Section 4 | ✅ test_diskcomp_diskcopy.sh | |
-| BACKUP | ✅ | ✅ Section 4 | ✅ test_backup_restore.sh | `/F` ❌ not tested |
-| RESTORE | ✅ | ✅ Section 4 | ✅ test_backup_restore.sh | `/P` 🚫 interactive |
-| SHARE | ✅ | ✅ Section 4 | ✅ test_share_nlsfunc_exe2bin.sh | |
-| NLSFUNC | ✅ | ✅ Section 4 | ✅ test_share_nlsfunc_exe2bin.sh | |
-| APPEND | ✅ | ✅ Section 4 | ✅ test_append.sh (/E /X path set/clear) | |
-| KEYB | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (KEYB US install; KEYB shows current layout) | |
-| FDISK | ✅ | ✅ Section 4 | ✅ test_fdisk.sh (/PRI:5 /Q creates partition; verified via fdisk -l) | |
-| PRINT | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (/D:PRN install; queue status) | |
-| FASTOPEN | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (C:=50 install smoke test) | |
-| GRAPHICS | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (load GRAPHICS.PRO; reload) | |
-| MODE | ✅ | ✅ Section 4 | ⚠️ test_misc_qemu.sh (CON /STATUS only) | serial/parallel/console config 🚫 hardware |
-| RECOVER | ✅ | ✅ Section 4 | ✅ test_recover.sh (file mode: keypress prompt + bytes recovered) | drive mode (destructive) skipped |
-| IFSFUNC | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (install + already-installed check) | |
-| FILESYS | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (install smoke test, after IFSFUNC) | |
+| COMMAND.COM (built-ins) | ✅ | ⚠️ Section 5 binary (Linux CI only) | ⚠️ Section 7 (43 tests) | IF ERRORLEVEL, CD, PROMPT, TRUENAME, COPY+concat, COPY /A/B; DATE/TIME/PAUSE/CHCP 🚫 interactive |
+| MEM | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (3 tests: basic + /PROGRAM + /DEBUG) | MCB loops under kvikdos, uses timeout+head |
+| FIND | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (7 tests: /V /N /C multi no-match) | v4.0 flags: /V /C /N only. stdin ❌ blocked (kvikdos stdin unreliable) |
+| FC | ✅ | ✅ Section 4 (own parser, works everywhere) | ✅ Section 6 (14 tests: /A /B /C /N /W /L /T /5 + nonexistent) | v4.0 flags: /A /B /C /L /LB /W /T /N /NNNN |
+| ATTRIB | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (8 tests: show +R -R +R+A -A +A /S) | v4.0 flags: +R -R +A -A /S. No +H/-H +S/-S in v4.0 |
+| COMP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (7 tests: identical/diff/hex/limit/not-found) | v4.0 has NO switches (confirmed: COMPPAR.ASM defines 0 switch operands) |
+| TREE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (5 tests: basic /F /A path chars) | v4.0 flags: /F /A |
+| SORT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (5 tests: stdin /R /+N file reverse) | v4.0 flags: /R /+n only. No /T /C /L /O in v4.0 |
+| MORE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (3 tests: stdin file from-file) | v4.0: no switches (filter utility) |
+| DEBUG | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (15 tests: R/E/D/F/H/C/M/S/A/U/N/W/L) + test_debug_qemu.sh (G execute) | |
+| EDLIN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (18 tests: open/new/insert/del/edit/copy/move/search/replace/transfer/page/write + /B) | |
+| XCOPY | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (13 tests: basic /S /S+E /V /A /M) | v4.0 flags: /A /D /E /M /P /S /V /W. `/P` `/W` 🚫 interactive, `/D` not tested |
+| REPLACE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (9 tests: /A /U /U-older /R /S error + content checks) | v4.0 flags: /A /P /R /S /U /W. `/P` `/W` 🚫 interactive |
+| GRAFTABL | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (4 tests: 437 850 /STATUS status) | |
+| LABEL | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (read-only); write/delete in test_label.sh | |
+| ASSIGN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_assign_subst_join.sh (B=A redirect verified; clear) | |
+| SUBST | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_assign_subst_join.sh (D: create/list/delete) | |
+| JOIN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_assign_subst_join.sh (B: join/list/verify/unjoin) | |
+| EXE2BIN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (3 tests) + test_share_nlsfunc_exe2bin.sh | |
+| CHKDSK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (disk stats, /V file listing) | |
+| FORMAT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_format.sh (8 variants: geometry/BPB/label) | |
+| SYS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_sys.sh (boot verification) | |
+| DISKCOPY | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_diskcomp_diskcopy.sh | |
+| DISKCOMP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_diskcomp_diskcopy.sh | |
+| BACKUP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_backup_restore.sh (/S /M /A /D /T /L) | `/F` ❌ not tested |
+| RESTORE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_backup_restore.sh (/S /N /M /B /A /E /L) | `/P` 🚫 interactive |
+| SHARE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh | |
+| NLSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh | |
+| APPEND | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_append.sh (/E /X path set/clear) | |
+| KEYB | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (KEYB US install; KEYB shows current layout) | |
+| FDISK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_fdisk.sh (/PRI:5 /Q creates partition; verified via MBR) | |
+| PRINT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (/D:PRN install; queue status) | |
+| FASTOPEN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (C:=50 install smoke test) | |
+| GRAPHICS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (load GRAPHICS.PRO; reload) | |
+| MODE | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ test_misc_qemu.sh (CON /STATUS only) | serial/parallel/console config 🚫 hardware |
+| RECOVER | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_recover.sh (file mode: keypress prompt + bytes recovered) | drive mode (destructive) skipped |
+| IFSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install + already-installed check) | |
+| FILESYS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install smoke test, after IFSFUNC) | |
+
+**Note on /? help tests:** Section 4 uses SYSPARSE which returns "Parse Error 3" under kvikdos-soft (macOS). Tests pass under KVM (Linux CI). FC has its own parser and works everywhere.
 
 ## E2E Tests — Remaining Per-Command Coverage
 
@@ -255,7 +257,8 @@ Items here are either interactive (require keypress) or need hardware not availa
 
 ### External CMD tools
 
-#### XCOPY — remaining (interactive; non-interactive flags tracked in PREREQUISITE above)
+#### XCOPY — remaining
+- [ ] `XCOPY src dest /D:date` — copy files modified on/after date (non-interactive but needs date setup)
 - [ ] `XCOPY src dest /P` — prompt per file (interactive)
 - [ ] `XCOPY src dest /W` — wait before start (interactive)
 

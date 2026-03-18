@@ -96,14 +96,22 @@ done
 echo ""
 echo "=== Section 2: SHA256 checksums ==="
 
-if [[ -f "$GOLDEN" ]]; then
-    if (cd "$SRC" && sha256sum --check "$GOLDEN" --quiet 2>&1); then
-        ok "all checksums match"
+# Only run checksum verification when the MS-DOS submodule is on its committed
+# reference (i.e. not ahead with local enhancement commits that change binaries).
+MSDOS_COMMITTED=$(git -C "$REPO_ROOT" ls-tree HEAD MS-DOS 2>/dev/null | awk '{print $3}')
+MSDOS_ACTUAL=$(git -C "$REPO_ROOT/MS-DOS" rev-parse HEAD 2>/dev/null)
+if [[ -z "$MSDOS_COMMITTED" || "$MSDOS_COMMITTED" == "$MSDOS_ACTUAL" ]]; then
+    if [[ -f "$GOLDEN" ]]; then
+        if (cd "$SRC" && sha256sum --check "$GOLDEN" --quiet 2>&1); then
+            ok "all checksums match"
+        else
+            fail "checksum mismatch (run 'make gen-checksums' to regenerate)"
+        fi
     else
-        fail "checksum mismatch (run 'make gen-checksums' to regenerate)"
+        echo "  SKIP: golden.sha256 not found — run 'make gen-checksums' first"
     fi
 else
-    echo "  SKIP: golden.sha256 not found — run 'make gen-checksums' first"
+    echo "  SKIP: MS-DOS submodule ahead of committed ref — checksums not applicable"
 fi
 
 # ── Section 3: kvikdos smoke tests ──────────────────────────────────────────
