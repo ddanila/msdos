@@ -75,31 +75,6 @@ jobs:
       - name: SYS e2e test
         run: bash tests/test_sys.sh
 
-  e2e-builtins:
-    needs: build
-    runs-on: ubuntu-latest
-    container:
-      image: ghcr.io/${{ github.repository }}/ci:latest
-      options: --device /dev/kvm
-    timeout-minutes: 10
-
-    steps:
-      - name: Check out repo with submodules
-        uses: actions/checkout@v6
-        with:
-          submodules: recursive
-
-      - name: Grant KVM access
-        run: chmod 666 /dev/kvm
-
-      - name: Download floppy image
-        uses: actions/download-artifact@v5
-        with:
-          name: floppy
-
-      - name: Built-in + FIND e2e tests
-        run: bash tests/test_builtins.sh
-
   e2e-help:
     needs: build
     runs-on: ubuntu-latest

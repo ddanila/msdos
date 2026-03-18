@@ -87,7 +87,9 @@ no disk hardware dependencies.
     BREAK, VERIFY, TYPE, GOTO, REM, IF EXIST/NOT EXIST/==, CALL, SHIFT, FOR, ECHO./OFF/ON,
     BREAK/VERIFY ON/OFF toggle, PATH/SET assign+clear, COPY, COPY/V, REN, DEL, ERASE,
     DEL wildcard, MD+RD, MD nested. All 33 pass under kvikdos.
-- [ ] Remove or slim down the QEMU e2e-builtins CI job
+- [x] Remove or slim down the QEMU e2e-builtins CI job
+  - **Result: REMOVED** — `e2e-builtins` job deleted from ci.yml; `build` job already runs
+    `make test` (run_tests.sh) which covers all 33 built-in tests via kvikdos in Section 7.
 
 ### Priority 2: test_help_qemu.sh — slim to EXEPACK-only
 
