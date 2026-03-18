@@ -137,7 +137,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | SORT | ✅ | ✅ Section 4 | ✅ Section 6 (4 tests: /R /+N file) | |
 | MORE | ✅ | ✅ Section 4 | ✅ Section 6 (2 tests: stdin file) | |
 | DEBUG | ✅ | ✅ Section 4 | ✅ Section 6 (8 tests: regs/mem/hex/asm/file) + test_debug_qemu.sh (G execute) | |
-| EDLIN | ✅ | ✅ Section 4 | ✅ Section 6 (9 tests: insert/del/edit/search/copy) | `/B` 🚫 needs QEMU |
+| EDLIN | ✅ | ✅ Section 4 | ✅ Section 6 (9 tests: insert/del/edit/search/copy) + test_edlin_b_qemu.sh (/B binary mode) | |
 | XCOPY | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: basic /S /S/E) | `/P` `/W` 🚫 interactive |
 | REPLACE | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: /A /U error) | `/P` `/W` 🚫 interactive |
 | GRAFTABL | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: 437 850 /STATUS) | |
@@ -194,8 +194,8 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 #### RESTORE — remaining
 - [ ] `RESTORE A: C: /P` — prompt on conflicts (interactive)
 
-#### EDLIN — remaining
-- [ ] `EDLIN file /B` — binary (ignore ^Z) — needs QEMU
+#### EDLIN ✅ done
+- [x] `EDLIN file /B` — binary (ignore ^Z) — QEMU E2E (test_edlin_b_qemu.sh)
 
 #### DEBUG ✅ done
 - [x] `G` (go/execute) — assemble tiny program, run with G, verify output + "Program terminated normally" (test_debug_qemu.sh)
