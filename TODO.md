@@ -96,8 +96,10 @@ no disk hardware dependencies.
 run_tests.sh Section 4 already tests `/?` help for all tools under kvikdos.
 The only unique QEMU value is verifying EXEPACK decompression with the real DOS loader.
 
-- [ ] Reduce test_help_qemu.sh to EXEPACK integrity verification only
-- [ ] Drop the duplicated `/?` checks that kvikdos already covers
+- [x] Reduce test_help_qemu.sh to EXEPACK integrity verification only
+- [x] Drop the duplicated `/?` checks that kvikdos already covers
+  - **Result: DONE** — test_help_qemu.sh now runs 2 checks: EXEPACK corruption absent,
+    and QEMU boot reached ---DONE--- marker. All 27 per-tool `check_tool_help` calls removed.
 
 ### Priority 3: Expand kvikdos E2E coverage
 
