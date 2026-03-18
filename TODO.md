@@ -206,6 +206,20 @@ the actual runtime address after linking with EDLIN+EDLCMD1+EDLCMD2+EDLMES (no f
 Fixed by simplifying to unconditional `mov dg:parse_switch_b, true` (only one switch exists).
 Committed: submodule `52f514b`, top-level `03206cc`.
 
+**Bisect results:**
+
+| Experiment | Done | Result |
+|---|---|---|
+| Original EDLIN + kvikdos | ✅ | FAILS — LINE3 absent |
+| Original EDLIN + QEMU | ✅ | FAILS — LINE3 absent (only LINE1+LINE2 shown) |
+| Modified EDLIN + kvikdos | ✅ | FAILS — LINE3 absent |
+| Modified EDLIN + QEMU | ❌ | Not confirmed (CI blocked by kvikdos test failure) |
+
+Conclusion: the /B bug is **pre-existing in the original MS-DOS 4.0 source**. It is NOT a
+kvikdos emulation issue — QEMU also shows the bug on the original binary. `/B` was
+always intended (the parse structure is in EDLPARSE.ASM) but broken at the binary level
+due to Bug 1 (val_sw) and Bug 2 (segment mismatch) below.
+
 **Bug 2 — segment mismatch when reading parse_switch_b (ROOT CAUSE, fix attempted but not working):**
 
 `parser_command` in `EDLPARSE.ASM` (line 170) sets `DS = org_ds` (PSP segment) before calling
