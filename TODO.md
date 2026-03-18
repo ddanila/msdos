@@ -1,5 +1,70 @@
 # MS-DOS 4.0 Build — TODO
 
+## PREREQUISITE: Full E2E Test Coverage
+
+**Full kvikdos test coverage must be achieved before starting UMB work.**
+All items below must be `[x]` before any UMB phase begins.
+
+Source-code audit identified these untested paths (all doable under kvikdos):
+
+### COMMAND.COM — untested built-ins and batch features
+
+- [ ] `IF ERRORLEVEL n` — batch conditional on exit code; TBATCH2.ASM confirms it is implemented but completely absent from run_tests.sh. Test via FIND (exits 1 on no match) or XCOPY (exits 4 on error).
+- [ ] `CD` / `CHDIR` functional — change directory and verify the change (only static binary string check exists today)
+- [ ] `PROMPT` functional — set prompt string and verify it changed
+- [ ] `TRUENAME` functional — resolve canonical path (only static check today); `COMMAND.COM /C TRUENAME C:\CMD\EDLIN\EDLIN.COM`
+- [ ] `COPY a+b c` concatenation — COPY.ASM implements `+` multi-file concatenation; never tested
+- [ ] `COPY /A` / `COPY /B` — ASCII vs binary mode; `/A` appends ^Z in output, `/B` copies raw bytes
+
+### FIND — untested paths
+
+- [ ] `FIND "str"` from stdin (no filename argument) — FIND.ASM reads stdin when no files given; common pipe use case; never tested
+- [ ] Exit code via `IF ERRORLEVEL` — FIND exits 0 (match found), 1 (no match), 2 (error); none of these tested via ERRORLEVEL
+
+### MEM — untested switches
+
+- [ ] `MEM /PROGRAM` — show loaded programs and memory use (MEM.C confirms this switch exists in v4.0)
+- [ ] `MEM /DEBUG` — show programs, internal drivers, and other info (MEM.C confirms this switch exists in v4.0)
+- Note: `/CLASSIFY`, `/FREE`, `/MODULE` do NOT exist in v4.0 — those are 5.0+ additions.
+
+### XCOPY — untested flags (use kvikdos-soft)
+
+- [ ] `XCOPY src dest /A` — copy only files with archive bit set; archive bit unchanged on source
+- [ ] `XCOPY src dest /M` — copy archive-bit files and clear the archive bit on source after copy
+- [ ] `XCOPY src dest /V` — verify sectors written after each file copy
+
+### REPLACE — untested flags
+
+- [ ] `REPLACE src dest /R` — replace read-only files at destination (set dest +R first, then run)
+- [ ] `REPLACE src dest /S` — replace files in subdirectories recursively (REPLACE.C `dodir()`)
+
+### FC — untested error paths
+
+- [ ] `FC nonexistent file` — error handling when a file argument does not exist
+
+### Summary table
+
+| Item | Tool | Effort |
+|------|------|--------|
+| `IF ERRORLEVEL n` | COMMAND.COM batch | Low |
+| CD/CHDIR functional | COMMAND.COM | Low |
+| PROMPT functional | COMMAND.COM | Low |
+| TRUENAME functional | COMMAND.COM | Low |
+| COPY concatenation (`a+b`) | COMMAND.COM | Low |
+| COPY /A /B | COMMAND.COM | Low |
+| FIND from stdin | FIND | Low |
+| FIND exit code via ERRORLEVEL | FIND | Low |
+| MEM /PROGRAM | MEM | Low |
+| MEM /DEBUG | MEM | Low |
+| XCOPY /A | XCOPY | Medium |
+| XCOPY /M | XCOPY | Medium |
+| XCOPY /V | XCOPY | Low |
+| REPLACE /R | REPLACE | Low |
+| REPLACE /S | REPLACE | Medium |
+| FC nonexistent file error | FC | Low |
+
+---
+
 ## UMB Support (Upper Memory Blocks)
 
 Goal: add UMB support to our MS-DOS 4.0 fork so that device drivers and TSRs
@@ -133,19 +198,19 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 
 | Tool | Build | /? help | Functional | Notes |
 |------|-------|---------|------------|-------|
-| COMMAND.COM (built-ins) | ✅ | ✅ Section 5 binary | ✅ Section 7 (33 tests) | DATE/TIME/PAUSE/CHCP 🚫 interactive |
-| MEM | ✅ | ✅ Section 4 | ✅ Section 6 (basic report) | |
-| FIND | ✅ | ✅ Section 4 | ✅ Section 6 (8 tests: /V /N /C multi no-match) | |
-| FC | ✅ | ✅ Section 4 | ✅ Section 6 (10 tests: /B /C /N /W /L /T /5) | |
-| ATTRIB | ✅ | ✅ Section 4 | ✅ Section 6 (5 tests: +R -R +A -A /S) | |
+| COMMAND.COM (built-ins) | ✅ | ✅ Section 5 binary | ⚠️ Section 7 (33 tests) | IF ERRORLEVEL, CD, PROMPT, TRUENAME, COPY+concat, COPY /A/B ❌ not yet; DATE/TIME/PAUSE/CHCP 🚫 interactive |
+| MEM | ✅ | ✅ Section 4 | ⚠️ Section 6 (basic report only) | /PROGRAM /DEBUG ❌ not yet |
+| FIND | ✅ | ✅ Section 4 | ⚠️ Section 6 (8 tests: /V /N /C multi no-match) | stdin mode, ERRORLEVEL ❌ not yet |
+| FC | ✅ | ✅ Section 4 | ⚠️ Section 6 (10 tests: /B /C /N /W /L /T /5) | nonexistent file error ❌ not yet |
+| ATTRIB | ✅ | ✅ Section 4 | ✅ Section 6 (5 tests: +R -R +A -A /S) | note: +H/-H +S/-S not in v4.0 source |
 | COMP | ✅ | ✅ Section 4 | ✅ Section 6 (7 tests: identical/diff/hex/limit) | |
 | TREE | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: basic /F path) | |
-| SORT | ✅ | ✅ Section 4 | ✅ Section 6 (4 tests: /R /+N file) | |
+| SORT | ✅ | ✅ Section 4 | ✅ Section 6 (4 tests: /R /+N file) | note: /O output-to-file not in v4.0 |
 | MORE | ✅ | ✅ Section 4 | ✅ Section 6 (2 tests: stdin file) | |
 | DEBUG | ✅ | ✅ Section 4 | ✅ Section 6 (8 tests: regs/mem/hex/asm/file) + test_debug_qemu.sh (G execute) | |
 | EDLIN | ✅ | ✅ Section 4 | ✅ Section 6 (12 tests: insert/del/edit/search/copy + /B) | ~~test_edlin_b_qemu.sh~~ **Deleted** — fully migrated to Section 6 (kvikdos) |
-| XCOPY | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: basic /S /S/E) | `/P` `/W` 🚫 interactive |
-| REPLACE | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: /A /U error) | `/P` `/W` 🚫 interactive |
+| XCOPY | ✅ | ✅ Section 4 | ⚠️ Section 6 (3 tests: basic /S /S/E) | /A /M /V ❌ not yet; `/P` `/W` 🚫 interactive |
+| REPLACE | ✅ | ✅ Section 4 | ⚠️ Section 6 (3 tests: /A /U error) | /R /S ❌ not yet; `/P` `/W` 🚫 interactive |
 | GRAFTABL | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: 437 850 /STATUS) | |
 | LABEL | ✅ | ✅ Section 4 | ⚠️ Section 6 (read-only); write/delete in test_label.sh | |
 | ASSIGN | ✅ | ✅ Section 4 | ✅ test_assign_subst_join.sh (B=A redirect verified; clear) | |
@@ -174,6 +239,9 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 
 ## E2E Tests — Remaining Per-Command Coverage
 
+**Kvikdos-testable gaps are tracked in the PREREQUISITE section above.**
+Items here are either interactive (require keypress) or need hardware not available in kvikdos.
+
 ### COMMAND.COM built-ins — remaining (interactive / needs special setup)
 
 | Command | Remaining options |
@@ -186,11 +254,11 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 
 ### External CMD tools
 
-#### XCOPY — remaining (interactive)
+#### XCOPY — remaining (interactive; non-interactive flags tracked in PREREQUISITE above)
 - [ ] `XCOPY src dest /P` — prompt per file (interactive)
 - [ ] `XCOPY src dest /W` — wait before start (interactive)
 
-#### REPLACE — remaining
+#### REPLACE — remaining (interactive; non-interactive flags tracked in PREREQUISITE above)
 - [ ] `REPLACE src dest /P` — prompt (interactive)
 - [ ] `REPLACE src dest /W` — wait before start (interactive)
 
