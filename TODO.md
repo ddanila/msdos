@@ -206,53 +206,58 @@ the actual runtime address after linking with EDLIN+EDLCMD1+EDLCMD2+EDLMES (no f
 Fixed by simplifying to unconditional `mov dg:parse_switch_b, true` (only one switch exists).
 Committed: submodule `52f514b`, top-level `03206cc`.
 
-**Bug 2 — DS/ES segment mismatch (ROOT CAUSE, not yet fixed):**
-`parser_command` in EDLPARSE.ASM sets `DS = org_ds` (PSP segment = 0x0100) at line 170
-before calling sysparse in the parse loop. So val_sw executes with DS=0x0100. However
-EDLIN_COMMAND runs later with DS=0x0110 (changed by SYSLOADMSG during EDLIN init).
+**Bug 2 — segment mismatch when reading parse_switch_b (ROOT CAUSE, fix attempted but not working):**
 
-- `val_sw` writes `parse_switch_b = true` at DS:[0x34E7] with DS=0x0100 → linear 0x44E7
-- `EDLIN_COMMAND` reads `parse_switch_b` at DS:[0x34E7] with DS=0x0110 → linear 0x45E7
-- **Gap is exactly 0x100 bytes = 1 paragraph** — the write and read go to different memory!
-- The write IS happening (confirmed by kvikdos debug: `PSP:0x34E7 = 0xFF`), but
-  the read misses it (`DS:0x34E7 = 0x00`).
+`parser_command` in `EDLPARSE.ASM` (line 170) sets `DS = org_ds` (PSP segment) before calling
+sysparse, so `val_sw` writes `parse_switch_b=0xFF` with DS=org_ds. But `EDLIN_COMMAND` runs
+later with a DIFFERENT DS (changed by SYSLOADMSG), so a plain `cmp [parse_switch_b], true`
+reads from the wrong address.
 
-**Root cause details:**
-- SIMPED in EDLIN.ASM: `push cs; pop ds` → DS=CS=0x0100 (PSP segment)
-- SYSLOADMSG (called from PRE_LOAD_MESSAGE before parser_command): changes DS to 0x0110
-  (SYSLOADMSG saves ES but NOT DS, so DS change persists)
-- parser_command saves DS on stack (`push ds`), sets `DS = org_ds = 0x0100`
-  (org_ds was saved at SIMPED time, = 0x0100)
-- After parse loop: `pop ds` restores DS = 0x0110 (the pre-parser_command value)
-- EDLIN_COMMAND runs with DS = 0x0110
-
-**Proposed fix (not yet applied):**
-In EDLIN.ASM's EDLIN_COMMAND, change the `cmp dg:parse_switch_b, true` to use CS: override:
+**Attempted fix — CS:[BX] register-indirect (in EDLIN.ASM, current state):**
 ```asm
-cmp  cs:parse_switch_b, true   ; CS=0x0100=PSP segment = where val_sw wrote
+push  bx
+mov   bx, offset dg:parse_switch_b  ; BX = linker-resolved offset 0x34F7
+mov   al, cs:[bx]                   ; force 2E: CS: prefix
+pop   bx
+cmp   al, true
+JNZ $$IF20
+    mov [LOADMOD], 01h
+$$IF20:
 ```
-CS is always 0x0100 (PSP segment) for the COM file. val_sw's write and this read would
-both target linear 0x44E7. The LOADMOD write after it can still use DS (correct for SCANEOF).
+Binary confirmed: `2E 8A 07` at file_off=0x0A91 (CS:0x0B91). BX=0x34F7. MOV [LOADMOD=0x2B1F],01h
+at CS:0x0B99. kvikdos debug shows `PSP:0x34F7=0xFF` (val_sw wrote correctly) but
+`PSP:0x2B1F=0x00` (LOADMOD not set). The fix is NOT working.
 
-Alternatively, check the binary directly first against the ORIGINAL MS-DOS 4.0 EDLIN.COM
-(no modifications from our fork) to bisect whether this is a pre-existing bug in the
-original EDLIN source, a bug introduced by our /? and val_sw modifications, or a kvikdos
-emulation issue (e.g. incorrect DS value during init).
+**EDLIN.COM structure — convert stub complicates segment analysis:**
 
-**Bisect plan:**
-1. Test original MS-DOS 4.0 EDLIN.COM (from git history before any of our modifications)
-   with kvikdos — does /B work? If yes → our changes broke it.
-2. Test the original EDLIN.COM with QEMU — does /B work? If different from kvikdos →
-   kvikdos emulation bug (e.g., wrong DS during SYSLOADMSG init).
-3. Test current modified EDLIN.COM with QEMU (test_edlin_b_qemu.sh) — does it pass?
-   If yes → only a kvikdos issue.
+The `MAKEFILE` builds an EXE then runs `convert edlin.exe` to produce the COM. The convert
+tool adds a **0x210-byte prefix** to the COM:
+- File offset 0x0000: `E9 0F 37` — JMP to convert loader at CS:0x3812 (file_off 0x3712)
+- File offset 0x0003: `"Converted"` string + mini EXE header copy (has 8 relocation entries)
+- File offset 0x0210: EXE load module starts here (CS:0x0310 at runtime)
+- File offset 0x3712: convert PIC loader (`E8 00 00; POP BX; ...`) — applies EXE relocations,
+  sets up DS/SS to the EXE's base segment (CS+0x21 = 0x121 when PSP_PARA=0x100), then
+  jumps to EXE entry
 
-**Binary addresses (in rebuilt EDLIN.COM with val_sw fix, DS=0x0110 at ExtOpen time):**
-- `val_sw` at CS:0x2E13 (binary 0x2D13): `mov byte [0x34E7], 0xFF; ret`
-- `EDLIN_COMMAND` at CS:0x0B8D (binary 0x0A8D): `cmp byte [0x34E7], 0xFF`
-  → with DS=0x0110 reads linear 0x45E7 (wrong: val_sw wrote to 0x44E7)
-- `LOADMOD` at CS:0x2B15 (binary 0x2A15): should be 0x01 when /B used
-- `SCANEOF` at CS:0x1278 (binary 0x1178): `cmp byte [LOADMOD], 0x00`
+The convert loader sets **DS = CS + 0x21 = 0x121** (the EXE load module's paragraph base),
+NOT DS=CS=0x100 (PSP). This invalidates the earlier assumption that DS=0x100 at SIMPED time.
+
+**Binary addresses (current EDLIN.COM, measured directly):**
+- `2E 8A 07` (MOV AL, CS:[BX]) at file_off=0x0A91, CS:0x0B91
+- `MOV [0x2B1F], 01h` (LOADMOD set) at file_off=0x0A99, CS:0x0B99
+- `LOADMOD` (linker-resolved) at DG:0x2B1F = file_off 0x2A1F
+- `parse_switch_b` (linker-resolved) at DG:0x34F7 = file_off 0x33F7
+- BAK / CONST segment start at DG:0x2E24 = file_off 0x2D24
+- `CMP [0x2B1F], 0` (SCANEOF loadmod check) at file_off=0x1178, CS:0x1278
+- EXE load module: COM file_off=0x0210, runtime CS:0x0310
+
+**Next step — determine actual DS value at runtime:**
+The convert loader likely sets DS = CS+0x21 (the EXE's base segment). If so:
+- SIMPED saves org_ds = 0x121 (not 0x100 as assumed)
+- parser_command restores DS = 0x121 during the parse loop
+- val_sw writes parse_switch_b at DS:0x34F7 = 0x121:0x34F7 (linear 0x47C7), NOT 0x44F7
+- CS:[BX=0x34F7] reads CS:0x34F7 (linear 0x44F7) — MISS
+- Need to add a probe that logs DS at SIMPED / EDLIN entry to confirm the actual segment
 
 **kvikdos debug probes (temporary, in kvikdos.c):**
 - DS change tracker after KVM_GET_SREGS: logs every DS segment change
