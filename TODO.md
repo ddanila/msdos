@@ -194,118 +194,87 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 #### RESTORE — remaining
 - [ ] `RESTORE A: C: /P` — prompt on conflicts (interactive)
 
-#### EDLIN — /B bug investigation in progress
+#### EDLIN — /B bug (pre-existing in MS-DOS 4.0 source)
 - [x] `EDLIN file /B` — binary (ignore ^Z) — QEMU E2E (test_edlin_b_qemu.sh)
-- [ ] Fix remaining /B bug — kvikdos test in run_tests.sh fails (LINE3 absent when /B passed)
+- [ ] Fix /B bug — kvikdos test in run_tests.sh fails (LINE3 absent when /B passed)
 - [ ] kvikdos test already added to run_tests.sh (Section 6), passing requires the fix below
+
+The /B bug is **pre-existing in the original MS-DOS 4.0 source** — both kvikdos and QEMU
+reproduce it on the original binary. `/B` was always intended (the parse structure is in
+EDLPARSE.ASM) but broken at the binary level due to two MASM issues.
 
 **Bug 1 — val_sw comparison always failed (FIXED):**
 `val_sw` in `EDLPARSE.ASM` had a broken `cmp es:parse_sw_syn, offset es:sw_b_switch` —
 MASM resolved the `offset` at assembly time to a local DG-group offset that doesn't match
-the actual runtime address after linking with EDLIN+EDLCMD1+EDLCMD2+EDLMES (no fixup emitted).
+the actual runtime address after linking (no fixup emitted).
 Fixed by simplifying to unconditional `mov dg:parse_switch_b, true` (only one switch exists).
 Committed: submodule `52f514b`, top-level `03206cc`.
 
-**Bisect results:**
+**Bug 2 — MASM ASSUME vs runtime DS mismatch in val_sw (ROOT CAUSE):**
 
-| Experiment | Done | Result |
-|---|---|---|
-| Original EDLIN + kvikdos | ✅ | FAILS — LINE3 absent |
-| Original EDLIN + QEMU | ✅ | FAILS — LINE3 absent (only LINE1+LINE2 shown) |
-| Modified EDLIN + kvikdos | ✅ | FAILS — LINE3 absent |
-| Modified EDLIN + QEMU | ❌ | Not confirmed (CI blocked by kvikdos test failure) |
+`val_sw` writes `parse_switch_b` to the **wrong segment** because of a mismatch between
+MASM's positional `ASSUME` and the actual runtime DS value.
 
-Conclusion: the /B bug is **pre-existing in the original MS-DOS 4.0 source**. It is NOT a
-kvikdos emulation issue — QEMU also shows the bug on the original binary. `/B` was
-always intended (the parse structure is in EDLPARSE.ASM) but broken at the binary level
-due to Bug 1 (val_sw) and Bug 2 (segment mismatch) below.
-
-**Bug 2 — segment mismatch when reading parse_switch_b (ROOT CAUSE, fix attempted but not working):**
-
-`parser_command` in `EDLPARSE.ASM` (line 170) sets `DS = org_ds` (PSP segment) before calling
-sysparse, so `val_sw` writes `parse_switch_b=0xFF` with DS=org_ds. But `EDLIN_COMMAND` runs
-later with a DIFFERENT DS (changed by SYSLOADMSG), so a plain `cmp [parse_switch_b], true`
-reads from the wrong address.
-
-**Attempted fix — CS:[BX] register-indirect (DOES NOT WORK):**
-```asm
-push  bx
-mov   bx, offset dg:parse_switch_b  ; BX = 0x34F7
-mov   al, cs:[bx]                   ; reads CS:0x34F7
-cmp   al, true
-JNZ $$IF20
-    mov  bx, offset dg:loadmod      ; BX = 0x2B1F  ← WRONG: should be 0x2B15
-    mov  byte ptr cs:[bx], 01h      ; writes CS:0x2B1F ≠ where SCANEOF reads (0x2B15)
-$$IF20:
-pop   bx
+EDLPARSE.ASM source layout:
 ```
-Binary confirmed: `2E 8A 07` (CS:[BX] read) and `2E C6 07 01` (CS:[BX] write) are present.
-But SCANEOF reads from 0x2B15, not 0x2B1F — the write misses by 10 bytes.
-Additionally, the parse_switch_b read may also miss if DS at val_sw time ≠ CS:
-`offset dg:parse_switch_b` = 0x34F7, but the same discrepancy could apply there too.
-
-**Next fix — use direct named reference with cs: prefix:**
-Replace `offset dg:` register-indirect with direct `cs:[varname]` syntax:
-```asm
-mov  al, cs:[parse_switch_b]   ; direct named ref with CS: override
-cmp  al, true
-JNZ $$IF20
-    mov  byte ptr cs:[loadmod], 01h  ; direct named ref with CS: override
-$$IF20:
+line 145:  assume cs:dg, ds:dg, es:dg       ← code segment start
+line 158:  parser_command proc
+line 165:    mov dg:parse_switch_b, false    ← DS is DG here (correct write)
+line 170:    mov ds, dg:org_ds              ← DS := org_ds (PSP segment)
+line 171:    assume ds:nothing
+             ... parse loop, calls val_sw at line 190 ...
+line 209:    assume ds:dg                   ← restores ASSUME after pop ds
+line 214:  parser_command endp
+line 261:  val_sw proc                      ← ASSUME is ds:dg (from line 209!)
+line 266:    mov dg:parse_switch_b, true    ← MASM uses DS, NO segment override
+line 276:  val_sw endp
 ```
-This emits the same segment-relative fixup as EDLCMD2's `[loadmod]` reference but
-with 2E: prefix. MASM syntax confirmed valid by `mov ds, cs:[org_ds]` at line ~1841.
 
-**EDLIN.COM structure — convert stub complicates segment analysis:**
+MASM ASSUME is **positional in source text**, not call-chain-aware. At `val_sw`'s
+definition (line 261), the last ASSUME was `ds:dg` (line 209). So MASM generates
+`mov DS:[group_offset], 0xFF` — no CS: segment override prefix emitted.
 
-The `MAKEFILE` builds an EXE then runs `convert edlin.exe` to produce the COM. The convert
-tool adds a **0x210-byte prefix** to the COM:
-- File offset 0x0000: `E9 0F 37` — JMP to convert loader at CS:0x3812 (file_off 0x3712)
-- File offset 0x0003: `"Converted"` string + mini EXE header copy (has 8 relocation entries)
-- File offset 0x0210: EXE load module starts here (CS:0x0310 at runtime)
-- File offset 0x3712: convert PIC loader (`E8 00 00; POP BX; ...`) — applies EXE relocations,
-  sets up DS/SS to the EXE's base segment (CS+0x21 = 0x121 when PSP_PARA=0x100), then
-  jumps to EXE entry
+But `val_sw` is **called** from line 190, inside `parser_command`'s parse loop,
+where `DS = org_ds` (PSP segment, set at line 170). At runtime:
 
-The convert loader sets **DS = CS + 0x21 = 0x121** (the EXE load module's paragraph base),
-NOT DS=CS=0x100 (PSP). This invalidates the earlier assumption that DS=0x100 at SIMPED time.
+| Location | ASSUME | Actual DS | Override | Write target |
+|---|---|---|---|---|
+| Line 165 (init false) | ds:dg | CS (= DG) | none | DG group (correct) |
+| Line 266 (set true) | ds:dg | org_ds (PSP) | none | PSP segment (WRONG) |
 
-**Binary addresses (current EDLIN.COM after CS:[BX] fix, measured directly):**
-- `2E 8A 07` (MOV AL, CS:[BX]) at file_off=0x0A91 — reads parse_switch_b via CS:
-- `BB 1F 2B 2E C6 07 01` at file_off=0x0A98 — MOV BX,0x2B1F; MOV byte ptr CS:[BX],01h
-- `offset dg:loadmod` resolved to **0x2B1F** by linker (EDLIN.ASM EDLIN_COMMAND)
-- `parse_switch_b` resolved to DG:0x34F7 = file_off 0x33F7
-- `CMP [0x2B15], 0` (SCANEOF loadmod check) at file_off=0x1178 — loadmod at **0x2B15**
-- EXE load module: COM file_off=0x0210, runtime CS:0x0310
+Result: `true` (0xFF) is written to `PSP:[group_offset_of_parse_switch_b]` —
+a random location in the PSP segment. The DG group retains `false` from line 165.
 
-**Address discrepancy — `offset dg:loadmod` ≠ `[loadmod]` in SCANEOF:**
-- EDLIN_COMMAND (fix) writes CS:[**0x2B1F**] (from `offset dg:loadmod` in EDLIN.ASM)
-- SCANEOF reads DS:[**0x2B15**] (from direct `[loadmod]` extrn ref in EDLCMD2.ASM)
-- Difference: 10 bytes (0xA). These are DIFFERENT memory locations.
-- The fix compiles and runs, but writes to the wrong address.
-- Root cause of discrepancy: MASM's `offset dg:loadmod` computes the DG-group-relative
-  offset at assembly time using only EDLIN.ASM's CODE segment size, then applies a linker
-  fixup. The direct `[loadmod]` extrn reference in EDLCMD2.ASM gets the correct linker-
-  patched address. Something in the group fixup calculation differs by 0xA bytes.
-- **Correct approach**: use the same addressing mechanism as the original code and as
-  EDLCMD2 — a direct named reference with explicit `cs:` prefix: `mov cs:[loadmod], 01h`
-  (and `mov al, cs:[parse_switch_b]`). MASM emits the same fixup as a DS-relative
-  reference but with the 2E: CS: override byte prepended. The codebase already uses this
-  pattern: `mov ds, cs:[org_ds]` in Calc_Memory_Avail (EDLIN.ASM ~line 1841).
+`EDLIN_COMMAND` (EDLIN.ASM:1713) then reads `parse_switch_b` via DS, which is CS = DG
+(set at SIMPED line 355, preserved through SYSLOADMSG). It correctly reads from DG
+group, gets `false`, and never sets `loadmod = 1`. SCANEOF sees `loadmod = 0` → stops
+at ^Z → LINE3 absent.
 
-**Open question — is the core /B feature (SCANEOF with loadmod=1) even correct?**
-All failures so far could be parse plumbing bugs (val_sw, segment mismatch) masking a
-deeper logical bug in SCANEOF itself. To isolate: hardcode `loadmod db 1` in EDLIN.ASM
-(bypass all parse logic) and test with kvikdos. If LINE3 appears → parse plumbing is the
-only problem. If LINE3 still absent → SCANEOF logic itself is broken too.
+Note: SYSLOADMSG preserves DS (verified: it pushes AX,BX,DX,ES,DI; does not modify DS
+directly; subroutine `$M_GET_DBCS_VEC` saves/restores DS). So `EDLIN_COMMAND`'s
+DS-relative read is fine — the problem is purely on the val_sw write side.
 
-**Hardcode loadmod=1 test (DONE):**
-Changed `loadmod db 0` → `loadmod db 1` in EDLIN.ASM CONST segment, rebuilt, ran
-kvikdos test (without passing /B — parse is bypassed entirely).
-**Result: LINE3 appears. SCANEOF logic is correct.**
-Output: lines 1–4 all listed including `^Z` on line 3 and LINE3 on line 4.
-Conclusion: the core /B feature works. The bug is 100% in the parse plumbing
-(getting loadmod set to 1 when /B is passed), NOT in SCANEOF. Reverted afterwards.
+Note: the `offset dg:` vs `[name]` address discrepancy (0x2B1F vs 0x2B15 for loadmod)
+found in the earlier CS:[BX] fix attempt is a separate MASM quirk — `offset dg:` computes
+at assembly time from partial segment info, while `[name]` uses a linker fixup. This is
+NOT the root cause. The original `[LOADMOD]` and `[parse_switch_b]` references in
+EDLIN_COMMAND use linker fixups and resolve correctly. The bug is purely that val_sw's
+write goes to the wrong segment.
+
+**Hardcode loadmod=1 test (DONE):** confirmed SCANEOF logic is correct. With
+`loadmod db 1` hardcoded, LINE3 appears. The bug is 100% in the parse plumbing.
+
+**Fix:** add `assume ds:nothing` to `val_sw` so MASM generates a CS: segment override:
+```asm
+val_sw    proc  near
+    assume ds:nothing                          ; DS is org_ds at runtime, not DG
+    mov  byte ptr cs:[parse_switch_b], true    ; CS: override → writes to DG group
+    assume ds:dg                               ; restore for following code
+    ret
+val_sw    endp
+```
+MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~line 1802:
+`mov ds, cs:[org_ds]` (Calc_Memory_Avail).
 
 **kvikdos debug probes (temporary, in kvikdos.c):**
 - DS change tracker after KVM_GET_SREGS: logs every DS segment change
