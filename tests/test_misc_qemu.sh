@@ -72,8 +72,7 @@ cp "$FLOPPY" "$BOOT_IMG"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
-# KEYBOARD.SYS is not on the base floppy; copy it in for KEYB tests.
-mcopy -o -i "$BOOT_IMG" "$SRC/DEV/KEYBOARD/KEYBOARD.SYS" ::KEYBOARD.SYS
+# KEYBOARD.SYS is deployed to the floppy by make deploy (alongside KEYB.COM).
 
 {
     printf 'CTTY AUX\r\n'
