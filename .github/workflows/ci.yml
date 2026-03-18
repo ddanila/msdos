@@ -42,7 +42,7 @@ jobs:
         timeout-minutes: 5
 
       - name: Upload floppy image
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: floppy
           path: |
@@ -68,7 +68,7 @@ jobs:
         run: chmod 666 /dev/kvm
 
       - name: Download floppy image
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: floppy
 
@@ -93,7 +93,7 @@ jobs:
         run: chmod 666 /dev/kvm
 
       - name: Download floppy image
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: floppy
 
@@ -118,7 +118,7 @@ jobs:
         run: chmod 666 /dev/kvm
 
       - name: Download floppy image
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: floppy
 
@@ -143,7 +143,7 @@ jobs:
         run: chmod 666 /dev/kvm
 
       - name: Download floppy image
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: floppy
 
@@ -168,7 +168,7 @@ jobs:
         run: chmod 666 /dev/kvm
 
       - name: Download floppy image
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: floppy
 
@@ -193,7 +193,7 @@ jobs:
         run: chmod 666 /dev/kvm
 
       - name: Download floppy image
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: floppy
 
@@ -218,7 +218,7 @@ jobs:
         run: chmod 666 /dev/kvm
 
       - name: Download floppy image
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: floppy
 
@@ -255,7 +255,7 @@ jobs:
         run: chmod 666 /dev/kvm
 
       - name: Download floppy image
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: floppy
 
@@ -280,7 +280,7 @@ jobs:
         run: chmod 666 /dev/kvm
 
       - name: Download floppy image
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: floppy
 
