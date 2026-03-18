@@ -162,7 +162,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | FASTOPEN | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (C:=50 install smoke test) | |
 | GRAPHICS | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (load GRAPHICS.PRO; reload) | |
 | MODE | ✅ | ✅ Section 4 | ⚠️ test_misc_qemu.sh (CON /STATUS only) | serial/parallel/console config 🚫 hardware |
-| RECOVER | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 needs bad-sector disk |
+| RECOVER | ✅ | ✅ Section 4 | ✅ test_recover.sh (file mode: keypress prompt + bytes recovered) | drive mode (destructive) skipped |
 | IFSFUNC | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (install + already-installed check) | |
 | FILESYS | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (install smoke test, after IFSFUNC) | |
 
