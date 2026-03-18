@@ -146,7 +146,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | SUBST | ✅ | ✅ Section 4 | ⚠️ Section 6 (no-args only) | create/delete 🚫 TSR, needs QEMU |
 | JOIN | ✅ | ✅ Section 4 | ⚠️ Section 6 (no-args only) | join/unjoin 🚫 TSR, needs QEMU |
 | EXE2BIN | ✅ | ✅ Section 4 | ✅ Section 6 + test_share_nlsfunc_exe2bin.sh | |
-| CHKDSK | ✅ | ✅ Section 4 | ❌ no functional tests | needs QEMU (disk integrity) |
+| CHKDSK | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (disk stats, /V file listing) | |
 | FORMAT | ✅ | ✅ Section 4 | ✅ test_format.sh (8 variants: geometry/BPB/label) | |
 | SYS | ✅ | ✅ Section 4 | ✅ test_sys.sh (boot verification) | |
 | DISKCOPY | ✅ | ✅ Section 4 | ✅ test_diskcomp_diskcopy.sh | |
@@ -161,10 +161,10 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | PRINT | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 TSR, device spooler |
 | FASTOPEN | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 TSR, needs QEMU |
 | GRAPHICS | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 TSR, needs QEMU |
-| MODE | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 hardware (serial/parallel/console) |
+| MODE | ✅ | ✅ Section 4 | ⚠️ test_misc_qemu.sh (CON /STATUS only) | serial/parallel/console config 🚫 hardware |
 | RECOVER | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 needs bad-sector disk |
-| IFSFUNC | ✅ | ✅ Section 4 | ❌ no functional tests | smoke test possible (QEMU) |
-| FILESYS | ✅ | ✅ Section 4 | ❌ no functional tests | smoke test possible (QEMU) |
+| IFSFUNC | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (install + already-installed check) | |
+| FILESYS | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (install smoke test, after IFSFUNC) | |
 
 ## E2E Tests — Remaining Per-Command Coverage
 
@@ -246,9 +246,9 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 - [ ] `MODE CON /STATUS` — show console status
 
 #### CHKDSK — remaining
-- [ ] `CHKDSK` — current drive disk integrity report (needs QEMU: real FAT disk)
-- [ ] `CHKDSK /V` — verbose listing of all files
-- [ ] `CHKDSK /F` — fix errors (interactive on real errors)
+- [x] `CHKDSK` — disk stats (test_misc_qemu.sh)
+- [x] `CHKDSK /V` — verbose file listing (test_misc_qemu.sh)
+- [ ] `CHKDSK /F` — fix errors (interactive on real errors; needs corrupt disk image)
 
 #### RECOVER
 - [ ] `RECOVER A:file` — recover bad-sector file
