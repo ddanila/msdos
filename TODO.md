@@ -137,7 +137,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | SORT | ✅ | ✅ Section 4 | ✅ Section 6 (4 tests: /R /+N file) | |
 | MORE | ✅ | ✅ Section 4 | ✅ Section 6 (2 tests: stdin file) | |
 | DEBUG | ✅ | ✅ Section 4 | ✅ Section 6 (8 tests: regs/mem/hex/asm/file) + test_debug_qemu.sh (G execute) | |
-| EDLIN | ✅ | ✅ Section 4 | ✅ Section 6 (9 tests: insert/del/edit/search/copy) + test_edlin_b_qemu.sh (/B binary mode) | |
+| EDLIN | ✅ | ✅ Section 4 | ✅ Section 6 (12 tests: insert/del/edit/search/copy + /B fix) + test_edlin_b_qemu.sh (/B binary mode) | |
 | XCOPY | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: basic /S /S/E) | `/P` `/W` 🚫 interactive |
 | REPLACE | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: /A /U error) | `/P` `/W` 🚫 interactive |
 | GRAFTABL | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: 437 850 /STATUS) | |
@@ -196,8 +196,8 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 
 #### EDLIN — /B bug (pre-existing in MS-DOS 4.0 source)
 - [x] `EDLIN file /B` — binary (ignore ^Z) — QEMU E2E (test_edlin_b_qemu.sh)
-- [ ] Fix /B bug — kvikdos test in run_tests.sh fails (LINE3 absent when /B passed)
-- [ ] kvikdos test already added to run_tests.sh (Section 6), passing requires the fix below
+- [x] Fix /B bug — kvikdos test in run_tests.sh passes (LINE3 visible after embedded ^Z)
+- [x] kvikdos test in run_tests.sh (Section 6) now passes with the fix
 
 The /B bug is **pre-existing in the original MS-DOS 4.0 source** — both kvikdos and QEMU
 reproduce it on the original binary. `/B` was always intended (the parse structure is in
