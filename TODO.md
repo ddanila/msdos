@@ -273,6 +273,16 @@ The convert loader likely sets DS = CS+0x21 (the EXE's base segment). If so:
 - CS:[BX=0x34F7] reads CS:0x34F7 (linear 0x44F7) — MISS
 - Need to add a probe that logs DS at SIMPED / EDLIN entry to confirm the actual segment
 
+**Open question — is the core /B feature (SCANEOF with loadmod=1) even correct?**
+All failures so far could be parse plumbing bugs (val_sw, segment mismatch) masking a
+deeper logical bug in SCANEOF itself. To isolate: hardcode `loadmod db 1` in EDLIN.ASM
+(bypass all parse logic) and test with kvikdos. If LINE3 appears → parse plumbing is the
+only problem. If LINE3 still absent → SCANEOF logic itself is broken too.
+
+**Hardcode loadmod=1 test (in progress):**
+Change `loadmod db 0` → `loadmod db 1` in EDLIN.ASM CONST segment, rebuild, run
+kvikdos /B test. Result: TBD.
+
 **kvikdos debug probes (temporary, in kvikdos.c):**
 - DS change tracker after KVM_GET_SREGS: logs every DS segment change
 - ExtOpen (AH=0x6C) handler probe: logs DS/PSP values of parse_switch_b and LOADMOD
