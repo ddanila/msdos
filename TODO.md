@@ -114,10 +114,16 @@ Add more test scenarios for tools already supported in kvikdos, avoiding QEMU co
 | test_format.sh | INT 13h sector formatting, BPB geometry, QMP disk swapping |
 | test_sys.sh | Boot verification — SYS transfers system files, QEMU boots from result |
 | test_diskcomp_diskcopy.sh | Track-by-track INT 13h read/write |
-| test_label.sh | FCB delete (INT 21h/13h not in kvikdos), interactive prompts |
+| test_label.sh | FAT volume/boot-sector writes (not in kvikdos), interactive prompts |
 | test_backup_restore.sh | Multi-disk flow, interactive prompts, archive bit across drives |
-| test_append.sh | TSR persistence (INT 2Fh hooks, KEEP_PROCESS) |
+| test_append.sh | TSR persistence (INT 2Fh hooks, KEEP_PROCESS) — all 6 cases depend on residency |
+| test_assign_subst_join.sh | TSR-based drive table manipulation (INT 2Fh + KEEP_PROCESS), multi-disk |
+| test_share_nlsfunc_exe2bin.sh | SHARE/NLSFUNC: TSR persistence; EXE2BIN already covered in Section 6 |
+| test_misc_qemu.sh | CHKDSK: INT 13h; IFSFUNC/FILESYS/FASTOPEN/GRAPHICS/PRINT/KEYB: all TSRs |
+| test_debug_qemu.sh | DEBUG G needs INT 21h/AH=5Dh/AL=0Ah (save extended error state) — unsupported |
+| test_recover.sh | FAT chain walking + INT 13h disk hardware |
 | ~~test_builtins.sh~~ | **Deleted** — fully migrated to run_tests.sh Section 7 (kvikdos) |
+| ~~test_edlin_b_qemu.sh~~ | **Deleted** — EDLIN /B bug fixed + migrated to run_tests.sh Section 6 (kvikdos) |
 
 ## E2E Tests — Coverage Summary
 
