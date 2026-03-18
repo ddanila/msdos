@@ -336,3 +336,28 @@ jobs:
 
       - name: RECOVER e2e test (file mode)
         run: bash tests/test_recover.sh
+
+  e2e-assign-subst-join:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}/ci:latest
+      options: --device /dev/kvm
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repo with submodules
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Grant KVM access
+        run: chmod 666 /dev/kvm
+
+      - name: Download floppy image
+        uses: actions/download-artifact@v6
+        with:
+          name: floppy
+
+      - name: ASSIGN / SUBST / JOIN e2e tests
+        run: bash tests/test_assign_subst_join.sh

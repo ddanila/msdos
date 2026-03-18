@@ -142,9 +142,9 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | REPLACE | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: /A /U error) | `/P` `/W` 🚫 interactive |
 | GRAFTABL | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: 437 850 /STATUS) | |
 | LABEL | ✅ | ✅ Section 4 | ⚠️ Section 6 (read-only); write/delete in test_label.sh | |
-| ASSIGN | ✅ | ✅ Section 4 | ⚠️ Section 6 (/STATUS only) | A=B / clear 🚫 TSR, needs QEMU |
-| SUBST | ✅ | ✅ Section 4 | ⚠️ Section 6 (no-args only) | create/delete 🚫 TSR, needs QEMU |
-| JOIN | ✅ | ✅ Section 4 | ⚠️ Section 6 (no-args only) | join/unjoin 🚫 TSR, needs QEMU |
+| ASSIGN | ✅ | ✅ Section 4 | ✅ test_assign_subst_join.sh (B=A redirect verified; clear) | |
+| SUBST | ✅ | ✅ Section 4 | ✅ test_assign_subst_join.sh (D: create/list/delete) | |
+| JOIN | ✅ | ✅ Section 4 | ✅ test_assign_subst_join.sh (B: join/list/verify/unjoin) | |
 | EXE2BIN | ✅ | ✅ Section 4 | ✅ Section 6 + test_share_nlsfunc_exe2bin.sh | |
 | CHKDSK | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (disk stats, /V file listing) | |
 | FORMAT | ✅ | ✅ Section 4 | ✅ test_format.sh (8 variants: geometry/BPB/label) | |
@@ -216,17 +216,14 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 - [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with code page and ID
 - [ ] `KEYB` — show current layout
 
-#### ASSIGN — remaining
-- [ ] `ASSIGN A=B` — redirect A: to B: (TSR operation, needs QEMU)
-- [ ] `ASSIGN` — clear all assignments (TSR operation, needs QEMU)
+#### ASSIGN ✅ done
+- [x] `ASSIGN B=A` + `DIR B:` verify + `ASSIGN` clear (test_assign_subst_join.sh)
 
-#### JOIN — remaining
-- [ ] `JOIN A: C:\FLOPPY` — join drive to path (needs QEMU)
-- [ ] `JOIN A: /D` — remove join (needs QEMU)
+#### JOIN ✅ done
+- [x] `JOIN B: A:\JOINDIR` + list + verify BJOIN.TXT + `JOIN B: /D` (test_assign_subst_join.sh)
 
-#### SUBST — remaining
-- [ ] `SUBST X: C:\LONGPATH` — create substitution (needs QEMU)
-- [ ] `SUBST X: /D` — remove substitution (needs QEMU)
+#### SUBST ✅ done
+- [x] `SUBST D: A:\SUBSTDIR` + `SUBST` list + `SUBST D: /D` (test_assign_subst_join.sh)
 
 #### FASTOPEN
 - [ ] `FASTOPEN C:=50` — cache 50 entries
