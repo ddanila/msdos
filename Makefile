@@ -52,7 +52,8 @@ endif
 
 $(KVIKDOS_SOFT_BIN): $(KVIKDOS_SOFT_DEPS)
 	gcc -std=c99 -O2 -W -Wall -Wextra -fno-strict-aliasing \
-	    -U__linux__ -include $(CURDIR)/mk/mini_kvm_compat.h \
+	    -Wno-error=incompatible-pointer-types \
+	    -D_GNU_SOURCE -U__linux__ -include $(CURDIR)/mk/mini_kvm_compat.h \
 	    -I kvikdos/ \
 	    -o $@ $(KVIKDOS_SOFT_SRCS)
 

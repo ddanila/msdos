@@ -424,8 +424,8 @@ else
 fi
 
 # -- TREE /F: include filenames in listing --
-output=$(run_dos CMD/TREE/TREE.COM /F /A 2>/dev/null) || true
-if echo "$output" | grep -q "Directory PATH listing"; then
+output=$(run_dos CMD/TREE/TREE.COM /F /A) || true
+if echo "$output" | tr -d '\r' | grep -q "Directory PATH listing"; then
     ok "TREE /F (filenames mode runs)"
 else
     fail "TREE /F (expected 'Directory PATH listing')"
