@@ -137,7 +137,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | SORT | ✅ | ✅ Section 4 | ✅ Section 6 (4 tests: /R /+N file) | |
 | MORE | ✅ | ✅ Section 4 | ✅ Section 6 (2 tests: stdin file) | |
 | DEBUG | ✅ | ✅ Section 4 | ✅ Section 6 (8 tests: regs/mem/hex/asm/file) + test_debug_qemu.sh (G execute) | |
-| EDLIN | ✅ | ✅ Section 4 | ✅ Section 6 (12 tests: insert/del/edit/search/copy + /B fix) + test_edlin_b_qemu.sh (/B binary mode) | |
+| EDLIN | ✅ | ✅ Section 4 | ✅ Section 6 (12 tests: insert/del/edit/search/copy + /B) | ~~test_edlin_b_qemu.sh~~ **Deleted** — fully migrated to Section 6 (kvikdos) |
 | XCOPY | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: basic /S /S/E) | `/P` `/W` 🚫 interactive |
 | REPLACE | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: /A /U error) | `/P` `/W` 🚫 interactive |
 | GRAFTABL | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: 437 850 /STATUS) | |
@@ -195,7 +195,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 - [ ] `RESTORE A: C: /P` — prompt on conflicts (interactive)
 
 #### EDLIN — /B bug (pre-existing in MS-DOS 4.0 source)
-- [x] `EDLIN file /B` — binary (ignore ^Z) — QEMU E2E (test_edlin_b_qemu.sh)
+- [x] `EDLIN file /B` — binary (ignore ^Z) — kvikdos Section 6 (~~test_edlin_b_qemu.sh~~ **Deleted**)
 - [x] Fix /B bug — kvikdos test in run_tests.sh passes (LINE3 visible after embedded ^Z)
 - [x] kvikdos test in run_tests.sh (Section 6) now passes with the fix
 
