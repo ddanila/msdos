@@ -227,20 +227,34 @@ sysparse, so `val_sw` writes `parse_switch_b=0xFF` with DS=org_ds. But `EDLIN_CO
 later with a DIFFERENT DS (changed by SYSLOADMSG), so a plain `cmp [parse_switch_b], true`
 reads from the wrong address.
 
-**Attempted fix — CS:[BX] register-indirect (in EDLIN.ASM, current state):**
+**Attempted fix — CS:[BX] register-indirect (DOES NOT WORK):**
 ```asm
 push  bx
-mov   bx, offset dg:parse_switch_b  ; BX = linker-resolved offset 0x34F7
-mov   al, cs:[bx]                   ; force 2E: CS: prefix
-pop   bx
+mov   bx, offset dg:parse_switch_b  ; BX = 0x34F7
+mov   al, cs:[bx]                   ; reads CS:0x34F7
 cmp   al, true
 JNZ $$IF20
-    mov [LOADMOD], 01h
+    mov  bx, offset dg:loadmod      ; BX = 0x2B1F  ← WRONG: should be 0x2B15
+    mov  byte ptr cs:[bx], 01h      ; writes CS:0x2B1F ≠ where SCANEOF reads (0x2B15)
+$$IF20:
+pop   bx
+```
+Binary confirmed: `2E 8A 07` (CS:[BX] read) and `2E C6 07 01` (CS:[BX] write) are present.
+But SCANEOF reads from 0x2B15, not 0x2B1F — the write misses by 10 bytes.
+Additionally, the parse_switch_b read may also miss if DS at val_sw time ≠ CS:
+`offset dg:parse_switch_b` = 0x34F7, but the same discrepancy could apply there too.
+
+**Next fix — use direct named reference with cs: prefix:**
+Replace `offset dg:` register-indirect with direct `cs:[varname]` syntax:
+```asm
+mov  al, cs:[parse_switch_b]   ; direct named ref with CS: override
+cmp  al, true
+JNZ $$IF20
+    mov  byte ptr cs:[loadmod], 01h  ; direct named ref with CS: override
 $$IF20:
 ```
-Binary confirmed: `2E 8A 07` at file_off=0x0A91 (CS:0x0B91). BX=0x34F7. MOV [LOADMOD=0x2B1F],01h
-at CS:0x0B99. kvikdos debug shows `PSP:0x34F7=0xFF` (val_sw wrote correctly) but
-`PSP:0x2B1F=0x00` (LOADMOD not set). The fix is NOT working.
+This emits the same segment-relative fixup as EDLCMD2's `[loadmod]` reference but
+with 2E: prefix. MASM syntax confirmed valid by `mov ds, cs:[org_ds]` at line ~1841.
 
 **EDLIN.COM structure — convert stub complicates segment analysis:**
 
@@ -256,22 +270,28 @@ tool adds a **0x210-byte prefix** to the COM:
 The convert loader sets **DS = CS + 0x21 = 0x121** (the EXE load module's paragraph base),
 NOT DS=CS=0x100 (PSP). This invalidates the earlier assumption that DS=0x100 at SIMPED time.
 
-**Binary addresses (current EDLIN.COM, measured directly):**
-- `2E 8A 07` (MOV AL, CS:[BX]) at file_off=0x0A91, CS:0x0B91
-- `MOV [0x2B1F], 01h` (LOADMOD set) at file_off=0x0A99, CS:0x0B99
-- `LOADMOD` (linker-resolved) at DG:0x2B1F = file_off 0x2A1F
-- `parse_switch_b` (linker-resolved) at DG:0x34F7 = file_off 0x33F7
-- BAK / CONST segment start at DG:0x2E24 = file_off 0x2D24
-- `CMP [0x2B1F], 0` (SCANEOF loadmod check) at file_off=0x1178, CS:0x1278
+**Binary addresses (current EDLIN.COM after CS:[BX] fix, measured directly):**
+- `2E 8A 07` (MOV AL, CS:[BX]) at file_off=0x0A91 — reads parse_switch_b via CS:
+- `BB 1F 2B 2E C6 07 01` at file_off=0x0A98 — MOV BX,0x2B1F; MOV byte ptr CS:[BX],01h
+- `offset dg:loadmod` resolved to **0x2B1F** by linker (EDLIN.ASM EDLIN_COMMAND)
+- `parse_switch_b` resolved to DG:0x34F7 = file_off 0x33F7
+- `CMP [0x2B15], 0` (SCANEOF loadmod check) at file_off=0x1178 — loadmod at **0x2B15**
 - EXE load module: COM file_off=0x0210, runtime CS:0x0310
 
-**Next step — determine actual DS value at runtime:**
-The convert loader likely sets DS = CS+0x21 (the EXE's base segment). If so:
-- SIMPED saves org_ds = 0x121 (not 0x100 as assumed)
-- parser_command restores DS = 0x121 during the parse loop
-- val_sw writes parse_switch_b at DS:0x34F7 = 0x121:0x34F7 (linear 0x47C7), NOT 0x44F7
-- CS:[BX=0x34F7] reads CS:0x34F7 (linear 0x44F7) — MISS
-- Need to add a probe that logs DS at SIMPED / EDLIN entry to confirm the actual segment
+**Address discrepancy — `offset dg:loadmod` ≠ `[loadmod]` in SCANEOF:**
+- EDLIN_COMMAND (fix) writes CS:[**0x2B1F**] (from `offset dg:loadmod` in EDLIN.ASM)
+- SCANEOF reads DS:[**0x2B15**] (from direct `[loadmod]` extrn ref in EDLCMD2.ASM)
+- Difference: 10 bytes (0xA). These are DIFFERENT memory locations.
+- The fix compiles and runs, but writes to the wrong address.
+- Root cause of discrepancy: MASM's `offset dg:loadmod` computes the DG-group-relative
+  offset at assembly time using only EDLIN.ASM's CODE segment size, then applies a linker
+  fixup. The direct `[loadmod]` extrn reference in EDLCMD2.ASM gets the correct linker-
+  patched address. Something in the group fixup calculation differs by 0xA bytes.
+- **Correct approach**: use the same addressing mechanism as the original code and as
+  EDLCMD2 — a direct named reference with explicit `cs:` prefix: `mov cs:[loadmod], 01h`
+  (and `mov al, cs:[parse_switch_b]`). MASM emits the same fixup as a DS-relative
+  reference but with the 2E: CS: override byte prepended. The codebase already uses this
+  pattern: `mov ds, cs:[org_ds]` in Calc_Memory_Avail (EDLIN.ASM ~line 1841).
 
 **Open question — is the core /B feature (SCANEOF with loadmod=1) even correct?**
 All failures so far could be parse plumbing bugs (val_sw, segment mismatch) masking a
