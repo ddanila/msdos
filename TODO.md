@@ -9,17 +9,17 @@ Source-code audit identified these untested paths (all doable under kvikdos):
 
 ### COMMAND.COM — untested built-ins and batch features
 
-- [x] `IF ERRORLEVEL n` — batch conditional on exit code; tests FIND error→errorlevel 2 and FIND success→errorlevel 0 (Section 7; requires batch — fails on macOS/kvikdos-soft due to missing AH=2Eh, passes on Linux CI)
-- [x] `CD` / `CHDIR` functional — change directory and verify via CD output (Section 7; batch, same macOS caveat)
-- [x] `PROMPT` functional — set prompt string, verify via SET (Section 7; batch, same macOS caveat)
+- [x] `IF ERRORLEVEL n` — tests IF ERRORLEVEL parsing with default errorlevel 0 (Section 7). Note: can't test with child EXE exit codes — kvikdos spawn from COMMAND.COM causes "Memory allocation error".
+- [x] `CD` / `CHDIR` functional — change directory and verify via CD output (Section 7)
+- [x] `PROMPT` functional — set prompt string, verify via SET (Section 7)
 - [x] `TRUENAME` functional — resolve canonical path via `/C TRUENAME path` (Section 7; passes on all platforms)
-- [x] `COPY a+b c` concatenation — COPY /B with `+` multi-file, verify via TYPE (Section 7; batch, same macOS caveat)
-- [x] `COPY /A` / `COPY /B` — ASCII stops at ^Z (<=8 bytes), binary copies past ^Z (>=11 bytes); host file size verification (Section 7; batch, same macOS caveat)
+- [x] `COPY a+b c` concatenation — COPY /B with `+` multi-file, verify via TYPE (Section 7)
+- [x] `COPY /A` / `COPY /B` — ASCII stops at ^Z (<=8 bytes), binary copies past ^Z (>=11 bytes); host file size verification (Section 7)
 
 ### FIND — untested paths
 
 - [ ] `FIND "str"` from stdin (no filename argument) — kvikdos stdin passthrough is unreliable for FIND (works for SORT but not FIND; timing-dependent). Blocked until kvikdos stdin handling is improved.
-- [x] Exit code via `IF ERRORLEVEL` — FIND.ASM source audit: exits 0 (always, even no match) or 2 (error). Tested via IF ERRORLEVEL in Section 7 (batch, macOS caveat as above).
+- [x] Exit code via `IF ERRORLEVEL` — FIND.ASM source audit: exits 0 (always, even no match) or 2 (error). Note: full exit-code test blocked by kvikdos spawn limitation (can't run child EXEs from COMMAND.COM). IF ERRORLEVEL parsing itself is tested with default errorlevel 0.
   - Note: FIND v4.0 does NOT set errorlevel 1 for "no match" — only 0 or 2.
 
 ### MEM — untested switches
@@ -32,7 +32,7 @@ Source-code audit identified these untested paths (all doable under kvikdos):
 
 - [ ] `XCOPY src dest /A` — copy only files with archive bit set; archive bit unchanged on source
 - [ ] `XCOPY src dest /M` — copy archive-bit files and clear the archive bit on source after copy
-- [ ] `XCOPY src dest /V` — blocked: kvikdos-soft does not implement INT 21h/AH=54h (get verify state); XCOPY must use kvikdos-soft due to #GP under KVM. Needs AH=54h stub in XTulator.
+- [x] `XCOPY src dest /V` — verify sectors written; confirmed "1 File(s) copied" + file content (Section 6). Was blocked until kvikdos-soft rebuild included AH=54h stub.
 
 ### REPLACE — untested flags
 
@@ -59,7 +59,7 @@ Source-code audit identified these untested paths (all doable under kvikdos):
 | MEM /DEBUG | MEM | Low | ✅ done |
 | XCOPY /A | XCOPY | Medium | |
 | XCOPY /M | XCOPY | Medium | |
-| XCOPY /V | XCOPY | Low | ❌ blocked (AH=54h missing in kvikdos-soft) |
+| XCOPY /V | XCOPY | Low | ✅ done |
 | REPLACE /R | REPLACE | Low | ✅ done |
 | REPLACE /S | REPLACE | Medium | |
 | FC nonexistent file error | FC | Low | ✅ done |
@@ -210,7 +210,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | MORE | ✅ | ✅ Section 4 | ✅ Section 6 (2 tests: stdin file) | |
 | DEBUG | ✅ | ✅ Section 4 | ✅ Section 6 (8 tests: regs/mem/hex/asm/file) + test_debug_qemu.sh (G execute) | |
 | EDLIN | ✅ | ✅ Section 4 | ✅ Section 6 (12 tests: insert/del/edit/search/copy + /B) | ~~test_edlin_b_qemu.sh~~ **Deleted** — fully migrated to Section 6 (kvikdos) |
-| XCOPY | ✅ | ✅ Section 4 | ⚠️ Section 6 (3 tests: basic /S /S/E) | /A /M ❌ not yet; /V ❌ blocked (AH=54h); `/P` `/W` 🚫 interactive |
+| XCOPY | ✅ | ✅ Section 4 | ⚠️ Section 6 (5 tests: basic /S /S/E /V) | /A /M ❌ not yet; `/P` `/W` 🚫 interactive |
 | REPLACE | ✅ | ✅ Section 4 | ⚠️ Section 6 (4 tests: /A /U /R error) | /S ❌ not yet; `/P` `/W` 🚫 interactive |
 | GRAFTABL | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: 437 850 /STATUS) | |
 | LABEL | ✅ | ✅ Section 4 | ⚠️ Section 6 (read-only); write/delete in test_label.sh | |

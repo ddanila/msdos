@@ -1115,8 +1115,21 @@ else
     fail "FC (expected 'cannot open' for nonexistent file)"
 fi
 
-# Skipped: XCOPY /V needs INT 21h/AH=54h (get verify state) which kvikdos-soft
-# does not implement. XCOPY must use kvikdos-soft due to #GP under KVM.
+# -- XCOPY /V: copy with verify --
+printf "VerifyTest\r\n" > "$SRC/XCVTEST.TXT"
+mkdir -p "$SRC/XCVDEST"
+output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCVTEST.TXT' 'XCVDEST\' /V 2>/dev/null || true)
+if echo "$output" | grep -q "1 File(s) copied"; then
+    ok "XCOPY /V (copy with verify)"
+else
+    fail "XCOPY /V (expected '1 File(s) copied')"
+fi
+if [ -f "$SRC/XCVDEST/XCVTEST.TXT" ] && grep -q "VerifyTest" "$SRC/XCVDEST/XCVTEST.TXT"; then
+    ok "XCOPY /V (file content verified)"
+else
+    fail "XCOPY /V (expected XCVDEST/XCVTEST.TXT with 'VerifyTest')"
+fi
+rm -rf "$SRC/XCVDEST" "$SRC/XCVTEST.TXT"
 
 # -- REPLACE /R: replace read-only file --
 mkdir -p "$SRC/RPLRDEST"
