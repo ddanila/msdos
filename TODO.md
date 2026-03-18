@@ -156,11 +156,11 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | SHARE | ✅ | ✅ Section 4 | ✅ test_share_nlsfunc_exe2bin.sh | |
 | NLSFUNC | ✅ | ✅ Section 4 | ✅ test_share_nlsfunc_exe2bin.sh | |
 | APPEND | ✅ | ✅ Section 4 | ✅ test_append.sh (/E /X path set/clear) | |
-| KEYB | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 SYSLOADMSG fails before KEYB runs in kvikdos; needs QEMU |
+| KEYB | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (KEYB US install; KEYB shows current layout) | |
 | FDISK | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 interactive, hardware |
-| PRINT | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 TSR, device spooler |
-| FASTOPEN | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 TSR, needs QEMU |
-| GRAPHICS | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 TSR, needs QEMU |
+| PRINT | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (/D:PRN install; queue status) | |
+| FASTOPEN | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (C:=50 install smoke test) | |
+| GRAPHICS | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (load GRAPHICS.PRO; reload) | |
 | MODE | ✅ | ✅ Section 4 | ⚠️ test_misc_qemu.sh (CON /STATUS only) | serial/parallel/console config 🚫 hardware |
 | RECOVER | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 needs bad-sector disk |
 | IFSFUNC | ✅ | ✅ Section 4 | ✅ test_misc_qemu.sh (install + already-installed check) | |

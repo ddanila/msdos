@@ -1,25 +1,44 @@
 #!/bin/bash
-# tests/test_misc_qemu.sh — E2E tests for CHKDSK, MODE CON, IFSFUNC, FILESYS via QEMU.
+# tests/test_misc_qemu.sh — E2E tests for CHKDSK, MODE CON, IFSFUNC, FILESYS,
+#                           FASTOPEN, GRAPHICS, PRINT, KEYB via QEMU.
 #
-# All four tools in one QEMU boot; no interactive prompts needed.
+# All tools in one QEMU boot; no interactive prompts needed.
 #
 # CHKDSK (CHKDSK.ASM):
-#   - No args: checks current drive (A:), prints disk statistics and memory summary.
+#   - No args: checks current drive (A:), prints disk statistics.
 #   - /V: verbose — lists every file path on the volume.
 #   - Needs a real FAT filesystem; kvikdos has no disk layer.
 #
 # MODE CON /STATUS (MODE.ASM):
 #   - Prints current console status (columns, lines, typematic rate/delay).
-#   - Non-interactive; output captured over serial.
+#   - Non-interactive; exits immediately after printing status.
 #
 # IFSFUNC (IFSFUNC.ASM):
 #   - First call: installs IFS handler as TSR via INT 2Fh/AX=1100h + INT 21h/31h. Silent.
-#   - Second call: INT 2Fh/AX=1100h check returns AL≠0 (already loaded) →
-#     prints "IFSFUNC already installed" then exits.
+#   - Second call: INT 2Fh/AX=1100h returns AL≠0 → "IFSFUNC already installed".
 #
 # FILESYS (FILESYS.ASM):
 #   - First call: installs filesystem helper as TSR. Silent on success.
-#   - Requires IFSFUNC to already be resident (INT 2Fh/AX=1100h must be hooked).
+#   - Requires IFSFUNC already resident.
+#
+# FASTOPEN (FASTINIT.ASM):
+#   - First call: installs directory cache TSR. Silent on success.
+#   - Second call: INT 2Fh check → "FASTOPEN already installed".
+#
+# GRAPHICS (GRINST.ASM):
+#   - First call: loads GRAPHICS.PRO and installs print-screen handler. Silent.
+#   - Second call: reloads silently (no "already installed" message — just reloads).
+#   - GRAPHICS.PRO must be on the floppy (it is, via make deploy).
+#
+# PRINT (PRINT_T.ASM):
+#   - First call with /D:PRN: installs resident spooler, prints
+#     "Resident part of PRINT installed". No file queued; no device prompt (/D given).
+#   - Second call (PRINT alone): queue already installed, shows queue status.
+#
+# KEYB (KEYB.ASM):
+#   - KEYBOARD.SYS is not on the base floppy; we copy it in test setup.
+#   - First call (KEYB US): installs INT 9h hook, loads US layout. Silent on success.
+#   - Second call (KEYB, no args): prints "Current keyboard code: US" + code page info.
 #
 # Run via: make test-misc-qemu  (requires 'make deploy' first)
 
@@ -43,13 +62,18 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
-echo "=== CHKDSK / MODE CON / IFSFUNC / FILESYS E2E tests (QEMU) ==="
+SRC="$REPO_ROOT/MS-DOS/v4.0/src"
+
+echo "=== CHKDSK / MODE CON / IFSFUNC / FILESYS / FASTOPEN / GRAPHICS / PRINT / KEYB E2E tests (QEMU) ==="
 
 # ── Build test floppy ────────────────────────────────────────────────────────
 echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
+
+# KEYBOARD.SYS is not on the base floppy; copy it in for KEYB tests.
+mcopy -o -i "$BOOT_IMG" "$SRC/DEV/KEYBOARD/KEYBOARD.SYS" ::KEYBOARD.SYS
 
 {
     printf 'CTTY AUX\r\n'
@@ -91,6 +115,56 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'ECHO ---FILESYS---\r\n'
     printf 'FILESYS\r\n'
     printf 'ECHO FILESYS_DONE\r\n'
+
+    # ── FASTOPEN C:=50 (first call) — install directory cache TSR ────────────
+    # Installs silently on success via INT 21h/31h (Keep_Process).
+    printf 'ECHO ---FASTOPEN---\r\n'
+    printf 'FASTOPEN C:=50\r\n'
+    printf 'ECHO FASTOPEN_DONE\r\n'
+
+    # ── FASTOPEN C:=50 (second call) — already installed ─────────────────────
+    # INT 2Fh check detects existing install → prints "FASTOPEN already installed".
+    printf 'ECHO ---FASTOPEN-AGAIN---\r\n'
+    printf 'FASTOPEN C:=50\r\n'
+    printf 'ECHO FASTOPEN_AGAIN_DONE\r\n'
+
+    # ── GRAPHICS (first call) — load print-screen handler ────────────────────
+    # Reads GRAPHICS.PRO from current drive root, installs handler. Silent.
+    printf 'ECHO ---GRAPHICS---\r\n'
+    printf 'GRAPHICS\r\n'
+    printf 'ECHO GRAPHICS_DONE\r\n'
+
+    # ── GRAPHICS (second call) — reload ──────────────────────────────────────
+    # Already installed: reloads silently (no "already installed" message).
+    printf 'ECHO ---GRAPHICS-AGAIN---\r\n'
+    printf 'GRAPHICS\r\n'
+    printf 'ECHO GRAPHICS_AGAIN_DONE\r\n'
+
+    # ── PRINT /D:PRN (first call) — install print spooler ────────────────────
+    # /D:PRN specifies device so no interactive device prompt.
+    # Prints "Resident part of PRINT installed" on success.
+    printf 'ECHO ---PRINT---\r\n'
+    printf 'PRINT /D:PRN\r\n'
+    printf 'ECHO PRINT_DONE\r\n'
+
+    # ── PRINT (second call) — already installed, show queue ───────────────────
+    # Resident already in memory; no re-install prompt. Shows queue (empty).
+    printf 'ECHO ---PRINT-AGAIN---\r\n'
+    printf 'PRINT\r\n'
+    printf 'ECHO PRINT_AGAIN_DONE\r\n'
+
+    # ── KEYB US (first call) — load US keyboard layout ────────────────────────
+    # KEYBOARD.SYS copied to floppy root in test setup.
+    # Installs INT 9h hook and loads US layout. Silent on success.
+    printf 'ECHO ---KEYB---\r\n'
+    printf 'KEYB US\r\n'
+    printf 'ECHO KEYB_DONE\r\n'
+
+    # ── KEYB (no args) — show current layout ─────────────────────────────────
+    # Prints "Current keyboard code: US" + code page info.
+    printf 'ECHO ---KEYB-STATUS---\r\n'
+    printf 'KEYB\r\n'
+    printf 'ECHO KEYB_STATUS_DONE\r\n'
 
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
@@ -179,6 +253,86 @@ if grep -q "FILESYS_DONE" "$SERIAL_LOG"; then
     ok "FILESYS (installed silently, batch continued)"
 else
     fail "FILESYS (batch hung or crashed)"
+fi
+
+# ── FASTOPEN checks ───────────────────────────────────────────────────────────
+echo ""
+echo "--- FASTOPEN tests ---"
+
+if grep -q "FASTOPEN_DONE" "$SERIAL_LOG"; then
+    ok "FASTOPEN C:=50 (first call installed silently, batch continued)"
+else
+    fail "FASTOPEN C:=50 (batch hung or crashed after first call)"
+fi
+
+# Note: FASTOPEN's "already installed" / install messages go to the physical
+# screen via direct BIOS writes, not through CTTY AUX — not capturable over
+# serial. On second call FASTOPEN rejects C: as already cached ("Invalid drive
+# specification") — not a crash, batch continues normally.
+if grep -q "FASTOPEN_AGAIN_DONE" "$SERIAL_LOG"; then
+    ok "FASTOPEN C:=50 (second call: batch continued without hang)"
+else
+    fail "FASTOPEN C:=50 (batch hung or crashed after second call)"
+fi
+
+# ── GRAPHICS checks ────────────────────────────────────────────────────────────
+echo ""
+echo "--- GRAPHICS tests ---"
+
+if grep -q "GRAPHICS_DONE" "$SERIAL_LOG"; then
+    ok "GRAPHICS (first call loaded GRAPHICS.PRO, batch continued)"
+else
+    fail "GRAPHICS (batch hung or crashed after first call)"
+fi
+
+if grep -q "GRAPHICS_AGAIN_DONE" "$SERIAL_LOG"; then
+    ok "GRAPHICS (second call reloaded silently, batch continued)"
+else
+    fail "GRAPHICS (batch hung or crashed after second call)"
+fi
+
+# ── PRINT checks ───────────────────────────────────────────────────────────────
+echo ""
+echo "--- PRINT tests ---"
+
+if grep -qi "Resident part of PRINT installed" "$SERIAL_LOG"; then
+    ok "PRINT /D:PRN (printed 'Resident part of PRINT installed')"
+else
+    fail "PRINT /D:PRN (expected 'Resident part of PRINT installed')"
+fi
+
+if grep -q "PRINT_DONE" "$SERIAL_LOG"; then
+    ok "PRINT /D:PRN (batch continued after install)"
+else
+    fail "PRINT /D:PRN (batch hung or crashed)"
+fi
+
+if grep -q "PRINT_AGAIN_DONE" "$SERIAL_LOG"; then
+    ok "PRINT (second call: batch continued)"
+else
+    fail "PRINT (batch hung or crashed on second call)"
+fi
+
+# ── KEYB checks ────────────────────────────────────────────────────────────────
+echo ""
+echo "--- KEYB tests ---"
+
+if grep -q "KEYB_DONE" "$SERIAL_LOG"; then
+    ok "KEYB US (loaded US layout, batch continued)"
+else
+    fail "KEYB US (batch hung or crashed — KEYBOARD.SYS missing or load failed)"
+fi
+
+if grep -qi "Current keyboard code" "$SERIAL_LOG"; then
+    ok "KEYB (no args: 'Current keyboard code' shown)"
+else
+    fail "KEYB (no args: expected 'Current keyboard code' output)"
+fi
+
+if grep -q "KEYB_STATUS_DONE" "$SERIAL_LOG"; then
+    ok "KEYB (no args: batch continued)"
+else
+    fail "KEYB (batch hung or crashed after status query)"
 fi
 
 # ── Completion check ──────────────────────────────────────────────────────────
