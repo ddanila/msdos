@@ -136,7 +136,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | TREE | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: basic /F path) | |
 | SORT | ✅ | ✅ Section 4 | ✅ Section 6 (4 tests: /R /+N file) | |
 | MORE | ✅ | ✅ Section 4 | ✅ Section 6 (2 tests: stdin file) | |
-| DEBUG | ✅ | ✅ Section 4 | ✅ Section 6 (8 tests: regs/mem/hex/asm/file) | `G` (execute) 🚫 needs INT 21h/5Dh |
+| DEBUG | ✅ | ✅ Section 4 | ✅ Section 6 (8 tests: regs/mem/hex/asm/file) + test_debug_qemu.sh (G execute) | |
 | EDLIN | ✅ | ✅ Section 4 | ✅ Section 6 (9 tests: insert/del/edit/search/copy) | `/B` 🚫 needs QEMU |
 | XCOPY | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: basic /S /S/E) | `/P` `/W` 🚫 interactive |
 | REPLACE | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: /A /U error) | `/P` `/W` 🚫 interactive |
@@ -197,8 +197,8 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 #### EDLIN — remaining
 - [ ] `EDLIN file /B` — binary (ignore ^Z) — needs QEMU
 
-#### DEBUG — remaining
-- [ ] `G` (go/execute) — kvikdos lacks INT 21h/AH=5Dh, needed by DEBUG internally; needs QEMU
+#### DEBUG ✅ done
+- [x] `G` (go/execute) — assemble tiny program, run with G, verify output + "Program terminated normally" (test_debug_qemu.sh)
 
 #### FDISK ✅ done
 - [x] `FDISK 1 /PRI:5 /Q` — create primary partition (test_fdisk.sh, partition verified via host fdisk -l)
