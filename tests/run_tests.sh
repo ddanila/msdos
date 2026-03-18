@@ -96,11 +96,17 @@ done
 echo ""
 echo "=== Section 2: SHA256 checksums ==="
 
-# Only run checksum verification when the MS-DOS submodule is on its committed
-# reference (i.e. not ahead with local enhancement commits that change binaries).
-MSDOS_COMMITTED=$(git -C "$REPO_ROOT" ls-tree HEAD MS-DOS 2>/dev/null | awk '{print $3}')
+# Golden checksums match the original Microsoft MS-DOS 4.0 release binaries.
+# Skip verification when the MS-DOS submodule has local enhancement commits
+# (e.g. EDLIN /B fix, CRLF normalization) that change the built binaries.
+# Detect by checking if the submodule HEAD is the upstream Microsoft release
+# commit (2d04cac = "MZ is back!" — last upstream commit before our fork).
+MSDOS_UPSTREAM_HEAD="2d04cac"
 MSDOS_ACTUAL=$(git -C "$REPO_ROOT/MS-DOS" rev-parse HEAD 2>/dev/null)
-if [[ -z "$MSDOS_COMMITTED" || "$MSDOS_COMMITTED" == "$MSDOS_ACTUAL" ]]; then
+if [[ -n "$MSDOS_ACTUAL" ]] && git -C "$REPO_ROOT/MS-DOS" merge-base --is-ancestor "$MSDOS_UPSTREAM_HEAD" "$MSDOS_ACTUAL" 2>/dev/null \
+   && [[ "$(git -C "$REPO_ROOT/MS-DOS" rev-parse "$MSDOS_UPSTREAM_HEAD" 2>/dev/null)" != "$MSDOS_ACTUAL" ]]; then
+    echo "  SKIP: MS-DOS submodule has enhancement commits — golden checksums not applicable"
+else
     if [[ -f "$GOLDEN" ]]; then
         if (cd "$SRC" && sha256sum --check "$GOLDEN" --quiet 2>&1); then
             ok "all checksums match"
@@ -110,8 +116,6 @@ if [[ -z "$MSDOS_COMMITTED" || "$MSDOS_COMMITTED" == "$MSDOS_ACTUAL" ]]; then
     else
         echo "  SKIP: golden.sha256 not found — run 'make gen-checksums' first"
     fi
-else
-    echo "  SKIP: MS-DOS submodule ahead of committed ref — checksums not applicable"
 fi
 
 # ── Section 3: kvikdos smoke tests ──────────────────────────────────────────
