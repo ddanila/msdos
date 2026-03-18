@@ -117,10 +117,56 @@ Add more test scenarios for tools already supported in kvikdos, avoiding QEMU co
 | test_label.sh | FCB delete (INT 21h/13h not in kvikdos), interactive prompts |
 | test_backup_restore.sh | Multi-disk flow, interactive prompts, archive bit across drives |
 | test_append.sh | TSR persistence (INT 2Fh hooks, KEEP_PROCESS) |
+| ~~test_builtins.sh~~ | **Deleted** — fully migrated to run_tests.sh Section 7 (kvikdos) |
 
-## E2E Tests — Remaining Per-Command Coverage
+## E2E Tests — Coverage Summary
 
 **Harness:** kvikdos for fast tests (`run_tests.sh`), QEMU+COM1 for disk-heavy ops. CI runs parallel E2E jobs for each test target; see `.github/workflows/ci.yml` for the full list.
+
+Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (interactive/hardware)
+
+| Tool | Build | /? help | Functional | Notes |
+|------|-------|---------|------------|-------|
+| COMMAND.COM (built-ins) | ✅ | ✅ Section 5 binary | ✅ Section 7 (33 tests) | DATE/TIME/PAUSE/CHCP 🚫 interactive |
+| MEM | ✅ | ✅ Section 4 | ✅ Section 6 (basic report) | |
+| FIND | ✅ | ✅ Section 4 | ✅ Section 6 (8 tests: /V /N /C multi no-match) | |
+| FC | ✅ | ✅ Section 4 | ✅ Section 6 (10 tests: /B /C /N /W /L /T /5) | |
+| ATTRIB | ✅ | ✅ Section 4 | ✅ Section 6 (5 tests: +R -R +A -A /S) | |
+| COMP | ✅ | ✅ Section 4 | ✅ Section 6 (7 tests: identical/diff/hex/limit) | |
+| TREE | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: basic /F path) | |
+| SORT | ✅ | ✅ Section 4 | ✅ Section 6 (4 tests: /R /+N file) | |
+| MORE | ✅ | ✅ Section 4 | ✅ Section 6 (2 tests: stdin file) | |
+| DEBUG | ✅ | ✅ Section 4 | ✅ Section 6 (8 tests: regs/mem/hex/asm/file) | `G` (execute) 🚫 needs INT 21h/5Dh |
+| EDLIN | ✅ | ✅ Section 4 | ✅ Section 6 (9 tests: insert/del/edit/search/copy) | `/B` 🚫 needs QEMU |
+| XCOPY | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: basic /S /S/E) | `/P` `/W` 🚫 interactive |
+| REPLACE | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: /A /U error) | `/P` `/W` 🚫 interactive |
+| GRAFTABL | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: 437 850 /STATUS) | |
+| LABEL | ✅ | ✅ Section 4 | ⚠️ Section 6 (read-only); write/delete in test_label.sh | |
+| ASSIGN | ✅ | ✅ Section 4 | ⚠️ Section 6 (/STATUS only) | A=B / clear 🚫 TSR, needs QEMU |
+| SUBST | ✅ | ✅ Section 4 | ⚠️ Section 6 (no-args only) | create/delete 🚫 TSR, needs QEMU |
+| JOIN | ✅ | ✅ Section 4 | ⚠️ Section 6 (no-args only) | join/unjoin 🚫 TSR, needs QEMU |
+| EXE2BIN | ✅ | ✅ Section 4 | ✅ Section 6 + test_share_nlsfunc_exe2bin.sh | |
+| CHKDSK | ✅ | ✅ Section 4 | ❌ no functional tests | needs QEMU (disk integrity) |
+| FORMAT | ✅ | ✅ Section 4 | ✅ test_format.sh (8 variants: geometry/BPB/label) | |
+| SYS | ✅ | ✅ Section 4 | ✅ test_sys.sh (boot verification) | |
+| DISKCOPY | ✅ | ✅ Section 4 | ✅ test_diskcomp_diskcopy.sh | |
+| DISKCOMP | ✅ | ✅ Section 4 | ✅ test_diskcomp_diskcopy.sh | |
+| BACKUP | ✅ | ✅ Section 4 | ✅ test_backup_restore.sh | `/F` ❌ not tested |
+| RESTORE | ✅ | ✅ Section 4 | ✅ test_backup_restore.sh | `/P` 🚫 interactive |
+| SHARE | ✅ | ✅ Section 4 | ✅ test_share_nlsfunc_exe2bin.sh | |
+| NLSFUNC | ✅ | ✅ Section 4 | ✅ test_share_nlsfunc_exe2bin.sh | |
+| APPEND | ✅ | ✅ Section 4 | ✅ test_append.sh (/E /X path set/clear) | |
+| KEYB | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 SYSLOADMSG fails before KEYB runs in kvikdos; needs QEMU |
+| FDISK | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 interactive, hardware |
+| PRINT | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 TSR, device spooler |
+| FASTOPEN | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 TSR, needs QEMU |
+| GRAPHICS | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 TSR, needs QEMU |
+| MODE | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 hardware (serial/parallel/console) |
+| RECOVER | ✅ | ✅ Section 4 | ❌ no functional tests | 🚫 needs bad-sector disk |
+| IFSFUNC | ✅ | ✅ Section 4 | ❌ no functional tests | smoke test possible (QEMU) |
+| FILESYS | ✅ | ✅ Section 4 | ❌ no functional tests | smoke test possible (QEMU) |
+
+## E2E Tests — Remaining Per-Command Coverage
 
 ### COMMAND.COM built-ins — remaining (interactive / needs special setup)
 
@@ -198,6 +244,11 @@ Add more test scenarios for tools already supported in kvikdos, avoiding QEMU co
 - [ ] `MODE CON COLS=80 LINES=25` — configure console
 - [ ] `MODE CON RATE=30 DELAY=1` — typematic rate
 - [ ] `MODE CON /STATUS` — show console status
+
+#### CHKDSK — remaining
+- [ ] `CHKDSK` — current drive disk integrity report (needs QEMU: real FAT disk)
+- [ ] `CHKDSK /V` — verbose listing of all files
+- [ ] `CHKDSK /F` — fix errors (interactive on real errors)
 
 #### RECOVER
 - [ ] `RECOVER A:file` — recover bad-sector file
