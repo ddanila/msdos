@@ -194,8 +194,29 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 #### RESTORE — remaining
 - [ ] `RESTORE A: C: /P` — prompt on conflicts (interactive)
 
-#### EDLIN ✅ done
+#### EDLIN — /B bug investigation in progress
 - [x] `EDLIN file /B` — binary (ignore ^Z) — QEMU E2E (test_edlin_b_qemu.sh)
+- [ ] Fix remaining /B bug — test still fails (LINE3 absent in both /B and non-/B modes)
+
+**val_sw fix applied (necessary but not sufficient):**
+`val_sw` in `EDLPARSE.ASM` had a broken `cmp es:parse_sw_syn, offset es:sw_b_switch` —
+MASM resolved the `offset` at assembly time to a local DG-group offset that doesn't match
+the actual runtime address after linking with EDLIN+EDLCMD1+EDLCMD2+EDLMES (no fixup emitted).
+Fixed by simplifying to unconditional `mov dg:parse_switch_b, true` (only one switch exists).
+Committed: submodule `52f514b`, top-level `03206cc`.
+
+**Binary verification (fix IS in the compiled binary):**
+- `val_sw` at 0x2E13: `mov byte [0x34e7], 0xff; ret` — correct
+- `parser_command` at 0x2DE4: calls `val_sw` when switch found and `parse_switch_b` still false — correct
+- `EDLIN_COMMAND` at 0x0B8D: `cmp byte [0x34e7], 0xff` → `mov byte [0x2b15], 0x01` (sets LOADMOD) — correct
+- `SCANEOF` at 0x1278: `cmp byte [0x2b15], 0x00` — correct branch on LOADMOD
+
+**Next investigation steps:**
+1. Verify sysparse actually finds and returns the /B switch at runtime (command line parsing issue?)
+2. Use DEBUG to inspect LOADMOD value after EDLIN parses its command line
+3. Check if COMMAND.COM's `< EDLCMD.TXT` redirect interferes with command line arguments
+4. Check the CONVERT relocation stub — does it affect offsets at runtime?
+5. Trace the actual file read path in EDLCMD1/EDLCMD2 — how data reaches SCANEOF
 
 #### DEBUG ✅ done
 - [x] `G` (go/execute) — assemble tiny program, run with G, verify output + "Program terminated normally" (test_debug_qemu.sh)
