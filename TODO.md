@@ -30,14 +30,14 @@ Source-code audit identified these untested paths (all doable under kvikdos):
 
 ### XCOPY — untested flags (use kvikdos-soft)
 
-- [ ] `XCOPY src dest /A` — copy only files with archive bit set; archive bit unchanged on source
-- [ ] `XCOPY src dest /M` — copy archive-bit files and clear the archive bit on source after copy
+- [x] `XCOPY src dest /A` — copy only files with archive bit set; archive bit unchanged on source (Section 6). Required kvikdos fix: FindFirst/FindNext now reads xattr for real DOS attributes instead of hardcoding archive bit.
+- [x] `XCOPY src dest /M` — copy archive-bit files and clear the archive bit on source after copy (Section 6). Same kvikdos fix as /A.
 - [x] `XCOPY src dest /V` — verify sectors written; confirmed "1 File(s) copied" + file content (Section 6). Was blocked until kvikdos-soft rebuild included AH=54h stub.
 
 ### REPLACE — untested flags
 
 - [x] `REPLACE src dest /R` — replace read-only files; verified "file(s) replaced" output (Section 6). Sets +R via ATTRIB, replaces with /R, confirms success.
-- [ ] `REPLACE src dest /S` — replace files in subdirectories recursively (REPLACE.C `dodir()`)
+- [x] `REPLACE src dest /S` — replace files in subdirectories recursively (Section 6). Verified files replaced in SUB1/ and SUB2/ subdirectories.
 
 ### FC — untested error paths
 
@@ -57,11 +57,11 @@ Source-code audit identified these untested paths (all doable under kvikdos):
 | FIND exit code via ERRORLEVEL | FIND | Low | ✅ done (batch; macOS blocked) |
 | MEM /PROGRAM | MEM | Low | ✅ done |
 | MEM /DEBUG | MEM | Low | ✅ done |
-| XCOPY /A | XCOPY | Medium | |
-| XCOPY /M | XCOPY | Medium | |
+| XCOPY /A | XCOPY | Medium | ✅ done (kvikdos FindFirst xattr fix) |
+| XCOPY /M | XCOPY | Medium | ✅ done (kvikdos FindFirst xattr fix) |
 | XCOPY /V | XCOPY | Low | ✅ done |
 | REPLACE /R | REPLACE | Low | ✅ done |
-| REPLACE /S | REPLACE | Medium | |
+| REPLACE /S | REPLACE | Medium | ✅ done |
 | FC nonexistent file error | FC | Low | ✅ done |
 
 ---
@@ -210,8 +210,8 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | MORE | ✅ | ✅ Section 4 | ✅ Section 6 (2 tests: stdin file) | |
 | DEBUG | ✅ | ✅ Section 4 | ✅ Section 6 (8 tests: regs/mem/hex/asm/file) + test_debug_qemu.sh (G execute) | |
 | EDLIN | ✅ | ✅ Section 4 | ✅ Section 6 (12 tests: insert/del/edit/search/copy + /B) | ~~test_edlin_b_qemu.sh~~ **Deleted** — fully migrated to Section 6 (kvikdos) |
-| XCOPY | ✅ | ✅ Section 4 | ⚠️ Section 6 (5 tests: basic /S /S/E /V) | /A /M ❌ not yet; `/P` `/W` 🚫 interactive |
-| REPLACE | ✅ | ✅ Section 4 | ⚠️ Section 6 (4 tests: /A /U /R error) | /S ❌ not yet; `/P` `/W` 🚫 interactive |
+| XCOPY | ✅ | ✅ Section 4 | ✅ Section 6 (9 tests: basic /S /S/E /V /A /M) | `/P` `/W` 🚫 interactive |
+| REPLACE | ✅ | ✅ Section 4 | ✅ Section 6 (7 tests: /A /U /U-older /R /S error) | `/P` `/W` 🚫 interactive |
 | GRAFTABL | ✅ | ✅ Section 4 | ✅ Section 6 (3 tests: 437 850 /STATUS) | |
 | LABEL | ✅ | ✅ Section 4 | ⚠️ Section 6 (read-only); write/delete in test_label.sh | |
 | ASSIGN | ✅ | ✅ Section 4 | ✅ test_assign_subst_join.sh (B=A redirect verified; clear) | |

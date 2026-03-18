@@ -1131,6 +1131,52 @@ else
 fi
 rm -rf "$SRC/XCVDEST" "$SRC/XCVTEST.TXT"
 
+# -- XCOPY /A: copy only files with archive bit set (don't clear it) --
+# kvikdos persists DOS attributes via xattr, so ATTRIB in one session
+# is visible to XCOPY in the next session.
+printf "ArchiveFile\r\n" > "$SRC/XCATEST.TXT"
+printf "NoArchive\r\n" > "$SRC/XCATEST2.TXT"
+mkdir -p "$SRC/XCADEST"
+# Set archive bit on first file, clear on second (persisted via xattr)
+run_dos CMD/ATTRIB/ATTRIB.EXE '+A' 'C:\XCATEST.TXT' > /dev/null 2>&1 || true
+run_dos CMD/ATTRIB/ATTRIB.EXE '-A' 'C:\XCATEST2.TXT' > /dev/null 2>&1 || true
+output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'C:\XCATEST*.TXT' 'C:\XCADEST\' /A 2>/dev/null || true)
+if echo "$output" | grep -q "1 File(s) copied"; then
+    ok "XCOPY /A (copied only archived file)"
+else
+    fail "XCOPY /A (expected '1 File(s) copied', got: $(echo "$output" | head -3))"
+fi
+# /A should NOT clear the archive bit on the source
+attr_out=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\XCATEST.TXT') || true
+if echo "$attr_out" | grep -q "A"; then
+    ok "XCOPY /A (archive bit preserved on source)"
+else
+    fail "XCOPY /A (archive bit should still be set after /A)"
+fi
+rm -rf "$SRC/XCADEST" "$SRC/XCATEST.TXT" "$SRC/XCATEST2.TXT"
+
+# -- XCOPY /M: copy only files with archive bit set, then clear it --
+printf "MoveArchive\r\n" > "$SRC/XCMTEST.TXT"
+printf "NoArchive\r\n" > "$SRC/XCMTEST2.TXT"
+mkdir -p "$SRC/XCMDEST"
+# Set archive bit on first file, clear on second (persisted via xattr)
+run_dos CMD/ATTRIB/ATTRIB.EXE '+A' 'C:\XCMTEST.TXT' > /dev/null 2>&1 || true
+run_dos CMD/ATTRIB/ATTRIB.EXE '-A' 'C:\XCMTEST2.TXT' > /dev/null 2>&1 || true
+output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'C:\XCMTEST*.TXT' 'C:\XCMDEST\' /M 2>/dev/null || true)
+if echo "$output" | grep -q "1 File(s) copied"; then
+    ok "XCOPY /M (copied only archived file)"
+else
+    fail "XCOPY /M (expected '1 File(s) copied', got: $(echo "$output" | head -3))"
+fi
+# /M should CLEAR the archive bit on the source after copying
+attr_out=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\XCMTEST.TXT') || true
+if ! echo "$attr_out" | grep -q " A "; then
+    ok "XCOPY /M (archive bit cleared on source)"
+else
+    fail "XCOPY /M (archive bit should be cleared after /M)"
+fi
+rm -rf "$SRC/XCMDEST" "$SRC/XCMTEST.TXT" "$SRC/XCMTEST2.TXT"
+
 # -- REPLACE /R: replace read-only file --
 mkdir -p "$SRC/RPLRDEST"
 printf "ORIGINAL\r\n" > "$SRC/RPLRDEST/RPLR.TXT"
@@ -1146,6 +1192,33 @@ else
 fi
 chmod 644 "$SRC/RPLRDEST/RPLR.TXT" 2>/dev/null || true
 rm -rf "$SRC/RPLRDEST" "$SRC/RPLR.TXT"
+
+# -- REPLACE /S: replace files in subdirectories recursively --
+# Create a nested destination tree with matching filenames at different levels.
+mkdir -p "$SRC/RPLSDEST/SUB1" "$SRC/RPLSDEST/SUB2"
+printf "DEST_ROOT\r\n" > "$SRC/RPLSDEST/RPLS.TXT"
+printf "DEST_SUB1\r\n" > "$SRC/RPLSDEST/SUB1/RPLS.TXT"
+printf "DEST_SUB2\r\n" > "$SRC/RPLSDEST/SUB2/RPLS.TXT"
+# Source file (will replace all matching files in dest tree)
+printf "REPLACED_BY_S\r\n" > "$SRC/RPLS.TXT"
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\RPLS.TXT' 'C:\RPLSDEST\' /S 2>/dev/null || true)
+if echo "$output" | grep -q "file(s) replaced"; then
+    ok "REPLACE /S (recursive replacement)"
+else
+    fail "REPLACE /S (expected 'file(s) replaced', got: $(echo "$output" | head -3))"
+fi
+# Verify files in subdirectories were actually replaced
+if grep -q "REPLACED_BY_S" "$SRC/RPLSDEST/SUB1/RPLS.TXT" 2>/dev/null; then
+    ok "REPLACE /S (SUB1 file content verified)"
+else
+    fail "REPLACE /S (SUB1/RPLS.TXT not replaced)"
+fi
+if grep -q "REPLACED_BY_S" "$SRC/RPLSDEST/SUB2/RPLS.TXT" 2>/dev/null; then
+    ok "REPLACE /S (SUB2 file content verified)"
+else
+    fail "REPLACE /S (SUB2/RPLS.TXT not replaced)"
+fi
+rm -rf "$SRC/RPLSDEST" "$SRC/RPLS.TXT"
 
 # ── Section 7: COMMAND.COM built-in E2E tests (kvikdos) ──────────────────────
 echo ""
