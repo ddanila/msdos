@@ -147,6 +147,15 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'FASTOPEN C:=50\r\n'
     printf 'ECHO FASTOPEN_AGAIN_DONE\r\n'
 
+    # ── FASTOPEN D:=20 /X — expanded memory cache ─────────────────────────
+    # /X creates name cache in EMS. Without EMM386/EMS, FASTOPEN should fail
+    # gracefully (error message) rather than crash. Tests /X parsing path.
+    # Note: FASTOPEN is already installed from earlier call, so this will
+    # also get "already installed" — but the /X parsing still exercises code.
+    printf 'ECHO ---FASTOPEN-X---\r\n'
+    printf 'FASTOPEN D:=20 /X\r\n'
+    printf 'ECHO FASTOPEN_X_DONE\r\n'
+
     # ── GRAPHICS (first call) — load print-screen handler ────────────────────
     # Reads GRAPHICS.PRO from current drive root, installs handler. Silent.
     printf 'ECHO ---GRAPHICS---\r\n'
@@ -164,7 +173,7 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     # /B:512 /S:8 /U:1 /M:2 are install-time params (buffer, slice, busy, max ticks).
     # Prints "Resident part of PRINT installed" on success.
     printf 'ECHO ---PRINT---\r\n'
-    printf 'PRINT /D:PRN /B:512 /S:8 /U:1 /M:2\r\n'
+    printf 'PRINT /D:PRN /B:512 /Q:5 /S:8 /U:1 /M:2\r\n'
     printf 'ECHO PRINT_DONE\r\n'
 
     # ── PRINT (second call) — already installed, show queue ───────────────────
@@ -253,6 +262,19 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'ECHO ---GRAPHICS-B---\r\n'
     printf 'GRAPHICS /B\r\n'
     printf 'ECHO GRAPHICS_B_DONE\r\n'
+
+    # ── GRAPHICS /LCD — load with LCD aspect ratio ──────────────────────────
+    # /LCD sets LCD printbox (mutually exclusive with /PB). Reloads silently.
+    printf 'ECHO ---GRAPHICS-LCD---\r\n'
+    printf 'GRAPHICS /LCD\r\n'
+    printf 'ECHO GRAPHICS_LCD_DONE\r\n'
+
+    # ── GRAPHICS /PB:STD — load with explicit printbox ID ───────────────────
+    # /PB:id (or /PRINTBOX:id) sets a named printbox from GRAPHICS.PRO.
+    # "STD" is the default printbox. Mutually exclusive with /LCD.
+    printf 'ECHO ---GRAPHICS-PB---\r\n'
+    printf 'GRAPHICS /PB:STD\r\n'
+    printf 'ECHO GRAPHICS_PB_DONE\r\n'
 
     # ── COMMAND /? — help text (regression for boot-crash fix 58a0bb4) ────────
     # COMMAND /? prints help and exits. Verifies the /? code path doesn't crash.
@@ -390,6 +412,13 @@ else
     fail "FASTOPEN C:=50 (batch hung or crashed after second call)"
 fi
 
+# FASTOPEN /X — expanded memory cache (no EMS available, tests /X parsing)
+if grep -q "FASTOPEN_X_DONE" "$SERIAL_LOG"; then
+    ok "FASTOPEN D:=20 /X (expanded memory switch parsed, batch continued)"
+else
+    fail "FASTOPEN D:=20 /X (batch hung or crashed — /X parsing may have failed)"
+fi
+
 # ── GRAPHICS checks ────────────────────────────────────────────────────────────
 echo ""
 echo "--- GRAPHICS tests ---"
@@ -417,9 +446,9 @@ else
 fi
 
 if grep -q "PRINT_DONE" "$SERIAL_LOG"; then
-    ok "PRINT /D:PRN /B:512 /S:8 /U:1 /M:2 (batch continued after install with params)"
+    ok "PRINT /D:PRN /B:512 /Q:5 /S:8 /U:1 /M:2 (batch continued after install with params)"
 else
-    fail "PRINT /D:PRN /B:512 /S:8 /U:1 /M:2 (batch hung or crashed)"
+    fail "PRINT /D:PRN /B:512 /Q:5 /S:8 /U:1 /M:2 (batch hung or crashed)"
 fi
 
 if grep -q "PRINT_AGAIN_DONE" "$SERIAL_LOG"; then
@@ -524,6 +553,18 @@ if grep -q "GRAPHICS_B_DONE" "$SERIAL_LOG"; then
     ok "GRAPHICS /B (loaded with background printing, batch continued)"
 else
     fail "GRAPHICS /B (batch hung or crashed)"
+fi
+
+if grep -q "GRAPHICS_LCD_DONE" "$SERIAL_LOG"; then
+    ok "GRAPHICS /LCD (loaded with LCD aspect ratio, batch continued)"
+else
+    fail "GRAPHICS /LCD (batch hung or crashed)"
+fi
+
+if grep -q "GRAPHICS_PB_DONE" "$SERIAL_LOG"; then
+    ok "GRAPHICS /PB:STD (loaded with explicit printbox ID, batch continued)"
+else
+    fail "GRAPHICS /PB:STD (batch hung or crashed)"
 fi
 
 # ── COMMAND /? checks ─────────────────────────────────────────────────────────

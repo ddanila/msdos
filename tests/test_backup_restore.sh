@@ -118,6 +118,15 @@ printf 'DEEP_FILE\r\n\x1a'       | mcopy -o -i "$BOOT_IMG" - ::BAKDEEP.TXT
     printf 'IF ERRORLEVEL 1 ECHO BACKUP_NOFIL_ERRORLEVEL\r\n'
     printf 'ECHO BACKUP_NOFIL_DONE\r\n'
 
+    # ── BACKUP /F: format target if needed ─────────────────────────────────
+    # /F tells BACKUP to format the target disk before use. With a pre-formatted
+    # disk (B:), BACKUP detects free space exists and skips FORMAT. Tests /F
+    # switch parsing through the full code path.
+    # Prompts: INSERTSOURCE + INSERTTARGET + ERASEMSG = 3 keypresses.
+    printf 'ECHO ---BACKUP-F---\r\n'
+    printf 'BACKUP A:BAKSRC\\*.TXT B: /F\r\n'
+    printf 'ECHO BACKUP_F_DONE\r\n'
+
     # ── RESTORE basic: round-trip FILE1 ──────────────────────────────────────
     # Back up FILE1 fresh, delete it, restore, verify it exists.
     printf 'ECHO ---RESTORE-BASIC---\r\n'
@@ -344,6 +353,13 @@ if grep -q "BACKUP_NOFIL_ERRORLEVEL" "$SERIAL_LOG"; then
     ok "BACKUP no-match (errorlevel 1 set)"
 else
     fail "BACKUP no-match (expected errorlevel >= 1)"
+fi
+
+# BACKUP /F — format target if needed (pre-formatted disk, tests switch parsing)
+if grep -q "BACKUP_F_DONE" "$SERIAL_LOG"; then
+    ok "BACKUP /F (format switch parsed, batch continued with pre-formatted disk)"
+else
+    fail "BACKUP /F (batch hung or crashed — /F parsing may have failed)"
 fi
 
 echo ""

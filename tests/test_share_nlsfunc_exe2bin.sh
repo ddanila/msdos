@@ -68,10 +68,11 @@ printf '\115\132\041\000\001\000\000\000\002\000\000\000\377\377\000\000\000\000
 {
     printf 'CTTY AUX\r\n'
 
-    # ── SHARE (first call) — load file-sharing TSR ────────────────────────────
+    # ── SHARE /NC (first call) — load file-sharing TSR with no-compat mode ────
+    # /NC disables compatibility-mode checking (undocumented switch).
     # No output on success. Hooks INT 2Fh, calls INT 21h/31h (Keep_Process).
     printf 'ECHO ---SHARE---\r\n'
-    printf 'SHARE\r\n'
+    printf 'SHARE /NC\r\n'
     printf 'ECHO SHARE_DONE\r\n'
 
     # ── SHARE /F:4096 /L:40 (second call) — already installed ─────────────────
@@ -138,9 +139,9 @@ echo ""
 echo "--- SHARE tests ---"
 
 if grep -q "SHARE_DONE" "$SERIAL_LOG"; then
-    ok "SHARE (first call installed silently, batch continued)"
+    ok "SHARE /NC (first call installed silently with no-compat mode, batch continued)"
 else
-    fail "SHARE (batch hung or crashed after first SHARE call)"
+    fail "SHARE /NC (batch hung or crashed after first SHARE call)"
 fi
 
 if grep -qi "SHARE already installed" "$SERIAL_LOG"; then

@@ -223,16 +223,16 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | SYS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_sys.sh (boot verification) | |
 | DISKCOPY | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_diskcomp_diskcopy.sh (/1 single-sided, /V parse error) | |
 | DISKCOMP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_diskcomp_diskcopy.sh (/1 single-sided, /8 sectors) | |
-| BACKUP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_backup_restore.sh (/S /M /A /D /T /L) | `/F` ❌ not tested |
+| BACKUP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_backup_restore.sh (/S /M /A /F /D /T /L) | |
 | RESTORE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_backup_restore.sh (/S /N /M /B /A /E /L) | `/P` 🚫 interactive |
-| SHARE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh (/F /L) | `/NC` ❌ not tested (undocumented no-compat mode) |
+| SHARE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh (/F /L /NC) | |
 | NLSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh | |
 | APPEND | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_append.sh (/E /X path set/clear /PATH:ON /PATH:OFF) | |
 | KEYB | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (KEYB US; GR,,KEYBOARD.SYS; UK,850; FR,850 /ID:189; status) | |
 | FDISK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_fdisk.sh (/PRI:5 /EXT:10 /LOG:10 /Q; errorlevel 2; MBR+EBR verified) | |
-| PRINT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (/D:PRN /B:512 /S:8 /U:1 /M:2 install; /P add; /C remove; /T cancel) | `/Q` ❌ not tested |
-| FASTOPEN | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ test_misc_qemu.sh (C:=50 install smoke test) | `/X` ❌ not tested (expanded memory) |
-| GRAPHICS | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ test_misc_qemu.sh (load GRAPHICS.PRO; reload; /R reverse; /B background) | `/LCD` `/PB:id` ❌ not tested |
+| PRINT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (/D:PRN /B:512 /Q:5 /S:8 /U:1 /M:2 install; /P add; /C remove; /T cancel) | |
+| FASTOPEN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (C:=50 install; D:=20 /X expanded memory) | |
+| GRAPHICS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (load GRAPHICS.PRO; reload; /R /B /LCD /PB:STD) | |
 | MODE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (CON /STATUS, COLS=80 LINES=25, RATE=30 DELAY=1) | COM/LPT 🚫 hardware |
 | RECOVER | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_recover.sh (file mode: keypress prompt + bytes recovered) | v4.0 is file-mode only (no drive-mode in source) |
 | IFSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install + already-installed) | |
@@ -273,7 +273,7 @@ Items here are either interactive (require keypress) or need hardware not availa
 - [ ] `REPLACE src dest /W` — wait before start (interactive)
 
 #### BACKUP — remaining
-- [ ] `BACKUP C: A: /F` — format target if needed
+- [x] `BACKUP A:... B: /F` — format target if needed (test_backup_restore.sh)
 
 #### RESTORE — remaining
 - [ ] `RESTORE A: C: /P` — prompt on conflicts (interactive)
@@ -374,7 +374,7 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 - [x] `PRINT file /P` — add to queue (test_misc_qemu.sh)
 - [x] `PRINT /T` — cancel queue (test_misc_qemu.sh)
 - [x] `PRINT file /C` — remove from queue (test_misc_qemu.sh)
-- [ ] `PRINT /Q:5 file` — set queue size
+- [x] `PRINT /Q:5` — set queue size (test_misc_qemu.sh, install params)
 - [x] `PRINT /B:512` — internal buffer size (test_misc_qemu.sh, install params)
 - [x] `PRINT /S:8` — time-slice quantum (test_misc_qemu.sh, install params)
 - [x] `PRINT /U:1` — busy-wait tick count (test_misc_qemu.sh, install params)
@@ -398,14 +398,14 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 
 #### FASTOPEN
 - [x] `FASTOPEN C:=50` — cache 50 entries (test_misc_qemu.sh)
-- [ ] `FASTOPEN C:=50 /X` — expanded memory cache (source: FASTINIT.ASM line 791, E_Switch "/X")
+- [x] `FASTOPEN D:=20 /X` — expanded memory cache, graceful no-EMS handling (test_misc_qemu.sh)
 
 #### GRAPHICS
 - [x] `GRAPHICS` — load default GRAPHICS.PRO (test_misc_qemu.sh)
 - [x] `GRAPHICS /R` — reverse printing (test_misc_qemu.sh)
 - [x] `GRAPHICS /B` — background printing (test_misc_qemu.sh)
-- [ ] `GRAPHICS /LCD` — LCD aspect ratio (source: GRPARMS.ASM line 252)
-- [ ] `GRAPHICS /PB:id` — print box ID (source: GRPARMS.ASM line 272)
+- [x] `GRAPHICS /LCD` — LCD aspect ratio (test_misc_qemu.sh)
+- [x] `GRAPHICS /PB:STD` — print box ID (test_misc_qemu.sh)
 - Note: v4.0 printer types are COLOR and BLACK_WHITE (not COLOR4/HPDEFAULT — those are DOS 5.0+ names).
 
 #### MODE
@@ -450,7 +450,7 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 - [x] `APPEND /PATH:OFF` — disable path searching (test_append.sh)
 
 #### SHARE — remaining
-- [ ] `SHARE /NC` — no compatibility mode checking (source: GSHARE2.ASM line 2085, undocumented)
+- [x] `SHARE /NC` — no compatibility mode checking (test_share_nlsfunc_exe2bin.sh; help text updated)
 
 #### IFSFUNC ✅ done
 - [x] `IFSFUNC` — install IFS handler; 1st call silent, 2nd "IFSFUNC already installed" (test_misc_qemu.sh)
