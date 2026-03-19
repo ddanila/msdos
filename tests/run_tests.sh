@@ -1739,6 +1739,28 @@ else
     fail "COMMAND.COM PAUSE (expected 'Press any key' + PAUSE_DONE, got: $out)"
 fi
 
+# -- DATE: show current date, accept with empty input --
+# DATE uses INT 21h/AH=0Ah (buffered input) for the new date prompt.
+# Piping an empty line (just Enter) accepts the current date.
+printf '@ECHO OFF\r\nDATE\r\nECHO DATE_DONE\r\n' > "$KVBAT"
+out=$(echo "" | timeout 30 "$BIN/dos-run" "$SRC/CMD/COMMAND/COMMAND.COM" /C 'C:\CMD\COMMAND\KVTEST.BAT' 2>/dev/null) || true
+rm -f "$KVBAT"
+if echo "$out" | grep -qi "Current date" && echo "$out" | grep -q "DATE_DONE"; then
+    ok "COMMAND.COM DATE (showed current date, accepted empty input)"
+else
+    fail "COMMAND.COM DATE (expected 'Current date' + DATE_DONE, got: $out)"
+fi
+
+# -- TIME: show current time, accept with empty input --
+printf '@ECHO OFF\r\nTIME\r\nECHO TIME_DONE\r\n' > "$KVBAT"
+out=$(echo "" | timeout 30 "$BIN/dos-run" "$SRC/CMD/COMMAND/COMMAND.COM" /C 'C:\CMD\COMMAND\KVTEST.BAT' 2>/dev/null) || true
+rm -f "$KVBAT"
+if echo "$out" | grep -qi "Current time" && echo "$out" | grep -q "TIME_DONE"; then
+    ok "COMMAND.COM TIME (showed current time, accepted empty input)"
+else
+    fail "COMMAND.COM TIME (expected 'Current time' + TIME_DONE, got: $out)"
+fi
+
 # -- COPY a+b c: file concatenation --
 printf 'PART_ONE\r\n' > "$SRC/CMD/COMMAND/KVCAT1.TXT"
 printf 'PART_TWO\r\n' > "$SRC/CMD/COMMAND/KVCAT2.TXT"

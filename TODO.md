@@ -199,7 +199,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 
 | Tool | Build | /? help | Functional | Notes |
 |------|-------|---------|------------|-------|
-| COMMAND.COM (built-ins) | ✅ | ⚠️ Section 5 binary (Linux CI only) | ⚠️ Section 7 (44 tests) | IF ERRORLEVEL, CD, PROMPT, TRUENAME, COPY+concat, COPY /A/B, SET/PROMPT stress; COMMAND /? in test_misc_qemu.sh; CHCP show in test_drivers_qemu.sh; DATE/TIME/PAUSE 🚫 interactive; CHCP nnn needs EGA.CPI |
+| COMMAND.COM (built-ins) | ✅ | ⚠️ Section 5 binary (Linux CI only) | ⚠️ Section 7 (47 tests) | IF ERRORLEVEL, CD, PROMPT, TRUENAME, COPY+concat, COPY /A/B, SET/PROMPT stress, PAUSE, DATE, TIME (piped stdin); COMMAND /? in test_misc_qemu.sh; CHCP show in test_drivers_qemu.sh; CHCP nnn needs EGA.CPI |
 | MEM | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (3 tests: basic + /PROGRAM + /DEBUG) | MCB loops under kvikdos, uses timeout+head |
 | FIND | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (8 tests: /V /N /C multi no-match errorlevel-2) | v4.0 flags: /V /C /N only. stdin ❌ blocked (kvikdos stdin unreliable) |
 | FC | ✅ | ✅ Section 4 (own parser, works everywhere) | ✅ Section 6 (15 tests: /A /B /C /N /W /L /LB /T /5 + nonexistent) | v4.0 flags: /A /B /C /L /LB /W /T /N /NNNN |
@@ -256,9 +256,9 @@ Items here are either interactive (require keypress) or need hardware not availa
 | Command | Remaining options |
 |---------|-------------------|
 | DIR | `/P` (pause/page — interactive) |
-| DATE | no-arg (show date), set date — interactive |
-| TIME | no-arg (show time), set time — interactive |
-| PAUSE | no-arg (waits for keypress) — interactive |
+| DATE | ~~show/set~~ ✅ done (piped empty line via stdin, run_tests.sh Section 7) |
+| TIME | ~~show/set~~ ✅ done (piped empty line via stdin, run_tests.sh Section 7) |
+| PAUSE | ~~no-arg~~ ✅ done (piped keystroke via stdin, run_tests.sh Section 7) |
 | CHCP | `CHCP nnn` (set — needs EGA.CPI built; show tested in test_drivers_qemu.sh) |
 
 ### External CMD tools
