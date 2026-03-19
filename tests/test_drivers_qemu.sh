@@ -6,6 +6,7 @@
 #   - RAMDRIVE.SYS: load driver, verify extra drive letter appears
 #   - VDISK.SYS: load virtual disk driver, verify drive accessible
 #   - DISPLAY.SYS: load code page display driver
+#   - SMARTDRV.SYS: load disk cache driver
 #   - CONFIG.SYS directives: BUFFERS, FILES, LASTDRIVE, BREAK, STACKS, FCBS,
 #     INSTALL, SHELL, COUNTRY
 #
@@ -48,6 +49,7 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'DEVICE=RAMDRIVE.SYS 64\r\n'
     printf 'DEVICE=VDISK.SYS 64\r\n'
     printf 'DEVICE=DISPLAY.SYS CON=(EGA,,1)\r\n'
+    printf 'DEVICE=SMARTDRV.SYS 256\r\n'
     printf 'BUFFERS=20\r\n'
     printf 'FILES=30\r\n'
     printf 'LASTDRIVE=Z\r\n'
@@ -82,9 +84,10 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     # ── VDISK.SYS test — verify another virtual disk drive via DIR ─────────
     # VDISK.SYS creates a 64KB virtual disk at the next available drive letter
     # after RAMDRIVE.SYS. Try D: and E: to find it.
+    # RAMDRIVE is C:, VDISK is D:. Only try D: and E: if drives exist;
+    # avoid E: if no driver creates it — DIR on nonexistent drive may hang.
     printf 'ECHO ---VDISK---\r\n'
     printf 'DIR D:\\\r\n'
-    printf 'DIR E:\\\r\n'
     printf 'ECHO VDISK_DONE\r\n'
 
     # ── DISPLAY.SYS test — verify code page driver loaded ────────────────
@@ -93,6 +96,13 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'ECHO ---DISPLAY---\r\n'
     printf 'MODE CON CP /STATUS\r\n'
     printf 'ECHO DISPLAY_DONE\r\n'
+
+    # ── SMARTDRV.SYS test — verify disk cache loaded ─────────────────────
+    # SMARTDRV.SYS installs as a device driver for disk caching.
+    # Boot completing proves it loaded without crashing.
+    printf 'ECHO ---SMARTDRV---\r\n'
+    printf 'MEM\r\n'
+    printf 'ECHO SMARTDRV_DONE\r\n'
 
     # ── CONFIG.SYS directives — verify via MEM output ──────────────────────
     # MEM shows total memory; BUFFERS/FILES affect memory layout.
@@ -175,6 +185,16 @@ if grep -q "DISPLAY_DONE" "$SERIAL_LOG"; then
     ok "DISPLAY.SYS (boot completed with DEVICE=DISPLAY.SYS CON=(EGA,,1), batch continued)"
 else
     fail "DISPLAY.SYS (batch hung or crashed — driver load may have failed)"
+fi
+
+# ── SMARTDRV.SYS checks ──────────────────────────────────────────────────
+echo ""
+echo "--- SMARTDRV.SYS tests ---"
+
+if grep -q "SMARTDRV_DONE" "$SERIAL_LOG"; then
+    ok "SMARTDRV.SYS (boot completed with DEVICE=SMARTDRV.SYS 256, batch continued)"
+else
+    fail "SMARTDRV.SYS (batch hung or crashed — driver load may have failed)"
 fi
 
 # ── CONFIG.SYS directives checks ────────────────────────────────────────────

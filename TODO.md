@@ -199,10 +199,10 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 
 | Tool | Build | /? help | Functional | Notes |
 |------|-------|---------|------------|-------|
-| COMMAND.COM (built-ins) | ✅ | ⚠️ Section 5 binary (Linux CI only) | ⚠️ Section 7 (43 tests) | IF ERRORLEVEL, CD, PROMPT, TRUENAME, COPY+concat, COPY /A/B; DATE/TIME/PAUSE/CHCP 🚫 interactive |
+| COMMAND.COM (built-ins) | ✅ | ⚠️ Section 5 binary (Linux CI only) | ⚠️ Section 7 (44 tests) | IF ERRORLEVEL, CD, PROMPT, TRUENAME, COPY+concat, COPY /A/B, SET/PROMPT stress; COMMAND /? in test_misc_qemu.sh; DATE/TIME/PAUSE/CHCP 🚫 interactive |
 | MEM | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (3 tests: basic + /PROGRAM + /DEBUG) | MCB loops under kvikdos, uses timeout+head |
 | FIND | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (8 tests: /V /N /C multi no-match errorlevel-2) | v4.0 flags: /V /C /N only. stdin ❌ blocked (kvikdos stdin unreliable) |
-| FC | ✅ | ✅ Section 4 (own parser, works everywhere) | ✅ Section 6 (14 tests: /A /B /C /N /W /L /T /5 + nonexistent) | v4.0 flags: /A /B /C /L /LB /W /T /N /NNNN |
+| FC | ✅ | ✅ Section 4 (own parser, works everywhere) | ✅ Section 6 (15 tests: /A /B /C /N /W /L /LB /T /5 + nonexistent) | v4.0 flags: /A /B /C /L /LB /W /T /N /NNNN |
 | ATTRIB | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (8 tests: show +R -R +R+A -A +A /S) | v4.0 flags: +R -R +A -A /S. No +H/-H +S/-S in v4.0 |
 | COMP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (7 tests: identical/diff/hex/limit/not-found) | v4.0 has NO switches (confirmed: COMPPAR.ASM defines 0 switch operands) |
 | TREE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (5 tests: basic /F /A path chars) | v4.0 flags: /F /A |
@@ -218,28 +218,31 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | SUBST | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_assign_subst_join.sh (D: create/list/delete) | |
 | JOIN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_assign_subst_join.sh (B: join/list/verify/unjoin) | |
 | EXE2BIN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (3 tests) + test_share_nlsfunc_exe2bin.sh | |
-| CHKDSK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (disk stats, /V file listing) | |
+| CHKDSK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (disk stats, /V file listing, file alloc check) | |
 | FORMAT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_format.sh (8 variants: geometry/BPB/label) | |
 | SYS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_sys.sh (boot verification) | |
-| DISKCOPY | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_diskcomp_diskcopy.sh | |
-| DISKCOMP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_diskcomp_diskcopy.sh | |
+| DISKCOPY | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_diskcomp_diskcopy.sh (/1 single-sided, /V parse error) | |
+| DISKCOMP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_diskcomp_diskcopy.sh (/1 single-sided, /8 sectors) | |
 | BACKUP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_backup_restore.sh (/S /M /A /D /T /L) | `/F` ❌ not tested |
 | RESTORE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_backup_restore.sh (/S /N /M /B /A /E /L) | `/P` 🚫 interactive |
 | SHARE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh (/F /L) | `/NC` ❌ not tested (undocumented no-compat mode) |
 | NLSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh | |
-| APPEND | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_append.sh (/E /X path set/clear /PATH:ON) | `/PATH:OFF` ❌ not tested |
-| KEYB | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (KEYB US; KEYB GR,,KEYBOARD.SYS; KEYB UK,850; status) | |
+| APPEND | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_append.sh (/E /X path set/clear /PATH:ON /PATH:OFF) | |
+| KEYB | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (KEYB US; GR,,KEYBOARD.SYS; UK,850; FR,850 /ID:189; status) | |
 | FDISK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_fdisk.sh (/PRI:5 /EXT:10 /LOG:10 /Q; errorlevel 2; MBR+EBR verified) | |
-| PRINT | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ test_misc_qemu.sh (/D:PRN install; /P add; /T cancel) | `/C` `/Q` `/B` `/S` `/U` `/M` ❌ not tested |
+| PRINT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (/D:PRN /B:512 /S:8 /U:1 /M:2 install; /P add; /C remove; /T cancel) | `/Q` ❌ not tested |
 | FASTOPEN | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ test_misc_qemu.sh (C:=50 install smoke test) | `/X` ❌ not tested (expanded memory) |
 | GRAPHICS | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ test_misc_qemu.sh (load GRAPHICS.PRO; reload; /R reverse; /B background) | `/LCD` `/PB:id` ❌ not tested |
-| MODE | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ test_misc_qemu.sh (CON /STATUS only) | COM/LPT 🚫 hardware; CON COLS/LINES/RATE ❌ not tested |
+| MODE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (CON /STATUS, COLS=80 LINES=25, RATE=30 DELAY=1) | COM/LPT 🚫 hardware |
 | RECOVER | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_recover.sh (file mode: keypress prompt + bytes recovered) | v4.0 is file-mode only (no drive-mode in source) |
 | IFSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install + already-installed) | |
 | FILESYS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install after IFSFUNC) | |
 | ANSI.SYS | ✅ | n/a | ✅ test_drivers_qemu.sh (DEVICE= load, boot completes) | device driver |
 | RAMDRIVE.SYS | ✅ | n/a | ✅ test_drivers_qemu.sh (DEVICE= load 64KB, RAM disk DIR) | device driver |
-| CONFIG.SYS | n/a | n/a | ✅ test_drivers_qemu.sh (BUFFERS=20 FILES=30 LASTDRIVE=Z) | directives |
+| VDISK.SYS | ✅ | n/a | ✅ test_drivers_qemu.sh (DEVICE= load 64KB, virtual disk DIR) | device driver |
+| DISPLAY.SYS | ✅ | n/a | ✅ test_drivers_qemu.sh (DEVICE= CON=(EGA,,1), MODE CP /STATUS) | device driver |
+| SMARTDRV.SYS | ✅ | n/a | ✅ test_drivers_qemu.sh (DEVICE= 256KB cache, boot completes) | device driver |
+| CONFIG.SYS | n/a | n/a | ✅ test_drivers_qemu.sh (BUFFERS FILES LASTDRIVE BREAK STACKS FCBS INSTALL SHELL COUNTRY) | directives |
 
 **Note on /? help tests:** Section 4 uses SYSPARSE which returns "Parse Error 3" under kvikdos-soft (macOS). Tests pass under KVM (Linux CI). FC has its own parser and works everywhere.
 
@@ -370,19 +373,19 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 - [x] `PRINT /D:PRN` — install print spooler (test_misc_qemu.sh)
 - [x] `PRINT file /P` — add to queue (test_misc_qemu.sh)
 - [x] `PRINT /T` — cancel queue (test_misc_qemu.sh)
-- [ ] `PRINT file /C` — remove from queue
+- [x] `PRINT file /C` — remove from queue (test_misc_qemu.sh)
 - [ ] `PRINT /Q:5 file` — set queue size
-- [ ] `PRINT /B:1024` — internal buffer size (source: PRINT_T.ASM line 31, range 512–16K, default 512)
-- [ ] `PRINT /S:8` — time-slice quantum (source: PRINT_T.ASM line 33, range 1–255, default 8)
-- [ ] `PRINT /U:1` — busy-wait tick count (source: PRINT_T.ASM line 34, range 1–255, default 1)
-- [ ] `PRINT /M:2` — max ticks per time slice (source: PRINT_T.ASM line 35, range 1–255, default 2)
+- [x] `PRINT /B:512` — internal buffer size (test_misc_qemu.sh, install params)
+- [x] `PRINT /S:8` — time-slice quantum (test_misc_qemu.sh, install params)
+- [x] `PRINT /U:1` — busy-wait tick count (test_misc_qemu.sh, install params)
+- [x] `PRINT /M:2` — max ticks per time slice (test_misc_qemu.sh, install params)
 
 #### KEYB — needs QEMU
 - [x] `KEYB US` — load US keyboard (test_misc_qemu.sh)
 - [x] `KEYB GR,,KEYBOARD.SYS` — explicit file, non-US layout (test_misc_qemu.sh)
 - [x] `KEYB` — show current layout, verified for US and GR (test_misc_qemu.sh)
 - [x] `KEYB UK,850,KEYBOARD.SYS` — with code page (test_misc_qemu.sh)
-- [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with /ID switch
+- [x] `KEYB FR,850,KEYBOARD.SYS /ID:189` — with /ID switch (test_misc_qemu.sh)
 
 #### ASSIGN ✅ done
 - [x] `ASSIGN B=A` + `DIR B:` verify + `ASSIGN` clear (test_assign_subst_join.sh)
@@ -409,8 +412,8 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 - [x] `MODE CON /STATUS` — show console status (test_misc_qemu.sh)
 - [ ] `MODE COM1: 9600,N,8,1` — configure serial (🚫 hardware-dependent)
 - [ ] `MODE LPT1: 80,66` — configure parallel (🚫 hardware-dependent)
-- [ ] `MODE CON COLS=80 LINES=25` — configure console
-- [ ] `MODE CON RATE=30 DELAY=1` — typematic rate (source: TYPAMAT.ASM)
+- [x] `MODE CON COLS=80 LINES=25` — configure console (test_misc_qemu.sh)
+- [x] `MODE CON RATE=30 DELAY=1` — typematic rate (test_misc_qemu.sh)
 
 #### CHKDSK — remaining
 - [x] `CHKDSK` — disk stats (test_misc_qemu.sh)
@@ -428,19 +431,23 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 #### Device Drivers
 - [x] `DEVICE=ANSI.SYS` — load ANSI driver, boot completes (test_drivers_qemu.sh)
 - [x] `DEVICE=RAMDRIVE.SYS 64` — load RAM disk, DIR on new drive (test_drivers_qemu.sh)
-- [ ] `DEVICE=DISPLAY.SYS` — code page display driver (needed for CHCP)
-- [ ] `DEVICE=VDISK.SYS` — virtual disk
-- [ ] `DEVICE=SMARTDRV.SYS` — disk cache
+- [x] `DEVICE=DISPLAY.SYS CON=(EGA,,1)` — code page display driver (test_drivers_qemu.sh)
+- [x] `DEVICE=VDISK.SYS 64` — virtual disk, DIR verified (test_drivers_qemu.sh)
+- [x] `DEVICE=SMARTDRV.SYS 256` — disk cache (test_drivers_qemu.sh)
 
 #### CONFIG.SYS Directives
 - [x] `BUFFERS=20` — boot completes with custom buffer count (test_drivers_qemu.sh)
 - [x] `FILES=30` — boot completes with custom file handle count (test_drivers_qemu.sh)
 - [x] `LASTDRIVE=Z` — boot completes with extended drive table (test_drivers_qemu.sh)
-- [ ] `COUNTRY=` — locale configuration
-- [ ] `SHELL=` — custom command interpreter path
+- [x] `COUNTRY=001,,COUNTRY.SYS` — locale configuration (test_drivers_qemu.sh)
+- [x] `SHELL=COMMAND.COM /P` — custom command interpreter path (test_drivers_qemu.sh)
+- [x] `BREAK=ON` — break checking (test_drivers_qemu.sh)
+- [x] `STACKS=9,256` — interrupt stacks (test_drivers_qemu.sh)
+- [x] `FCBS=4` — file control blocks (test_drivers_qemu.sh)
+- [x] `INSTALL=FASTOPEN.EXE C:=10` — TSR install at boot (test_drivers_qemu.sh)
 
 #### APPEND — remaining
-- [ ] `APPEND /PATH:OFF` — disable path searching (source: APPEND.ASM line 2454 shows `/PATH:ON|OFF`)
+- [x] `APPEND /PATH:OFF` — disable path searching (test_append.sh)
 
 #### SHARE — remaining
 - [ ] `SHARE /NC` — no compatibility mode checking (source: GSHARE2.ASM line 2085, undocumented)
@@ -470,12 +477,12 @@ Source-code audit of dos4-enhancements branch bug fixes and their test coverage.
 |-----|--------|-------------------|-----|
 | EDLIN /B (2 fixes) | 52f514b + 61b2920 | ✅ YES — Section 6 ^Z test | |
 | FOR hang (ES corruption) | c70042b | ✅ YES — Section 7 FOR loop would timeout | |
-| SET/PROMPT hang (ES corruption) | ae75edf | ⚠️ Partial — basic smoke only | No stress test (multiple SET/PROMPT in sequence) |
+| SET/PROMPT hang (ES corruption) | ae75edf | ✅ YES — Section 7 stress test (10 alternating calls) | |
 | FDISK R6001 + semicolon | a5a02a9 | ⚠️ Partial — crash caught, logic edge case not | No test where extended partition absent |
 | COMMAND parser crash (signed cmp) | 4ed73cb | ⚠️ Indirect — most tests would fail | No test forcing transient near 0x8000 |
-| COMMAND boot crash (help in code path) | 58a0bb4 | ⚠️ Indirect — /C EXIT tests boot | COMMAND /? path not directly tested |
+| COMMAND boot crash (help in code path) | 58a0bb4 | ✅ YES — test_misc_qemu.sh COMMAND /? | |
 
 ### Regression hardening opportunities
-- [ ] SET/PROMPT stress: batch with multiple SET/PROMPT calls in sequence to exercise ES restore paths
+- [x] SET/PROMPT stress: batch with 10 alternating SET/PROMPT calls (run_tests.sh Section 7)
 - [ ] FDISK edge case: scenario where extended partition is absent, verify conditional block doesn't execute
 - [ ] COMMAND.COM parser boundary: test with large transient (near 0x8000) to trigger signed comparison

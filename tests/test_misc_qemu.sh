@@ -159,11 +159,12 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'GRAPHICS\r\n'
     printf 'ECHO GRAPHICS_AGAIN_DONE\r\n'
 
-    # ── PRINT /D:PRN (first call) — install print spooler ────────────────────
+    # ── PRINT /D:PRN (first call) — install print spooler with params ────────
     # /D:PRN specifies device so no interactive device prompt.
+    # /B:512 /S:8 /U:1 /M:2 are install-time params (buffer, slice, busy, max ticks).
     # Prints "Resident part of PRINT installed" on success.
     printf 'ECHO ---PRINT---\r\n'
-    printf 'PRINT /D:PRN\r\n'
+    printf 'PRINT /D:PRN /B:512 /S:8 /U:1 /M:2\r\n'
     printf 'ECHO PRINT_DONE\r\n'
 
     # ── PRINT (second call) — already installed, show queue ───────────────────
@@ -416,9 +417,9 @@ else
 fi
 
 if grep -q "PRINT_DONE" "$SERIAL_LOG"; then
-    ok "PRINT /D:PRN (batch continued after install)"
+    ok "PRINT /D:PRN /B:512 /S:8 /U:1 /M:2 (batch continued after install with params)"
 else
-    fail "PRINT /D:PRN (batch hung or crashed)"
+    fail "PRINT /D:PRN /B:512 /S:8 /U:1 /M:2 (batch hung or crashed)"
 fi
 
 if grep -q "PRINT_AGAIN_DONE" "$SERIAL_LOG"; then
