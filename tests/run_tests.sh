@@ -1258,10 +1258,12 @@ rm -rf "$SRC/XCDDEST"
 mkdir -p "$SRC/XCDDEST"
 output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' \
     "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCDTEST.TXT' 'XCDDEST\' '/D:12-31-90' 2>/dev/null || true)
-if echo "$output" | grep -q "0 File(s) copied"; then
+# XCOPY prints "0 File(s) copied" or just "Reading source file(s)..." with no
+# copy line when no files match the date. Verify file was NOT copied.
+if ! echo "$output" | grep -q "1 File(s) copied" && [ ! -f "$SRC/XCDDEST/XCDTEST.TXT" ]; then
     ok "XCOPY /D:12-31-90 (skipped file dated 06/15/90)"
 else
-    fail "XCOPY /D:12-31-90 (expected '0 File(s) copied', got: $(echo "$output" | head -3))"
+    fail "XCOPY /D:12-31-90 (file should not have been copied)"
 fi
 rm -rf "$SRC/XCDDEST" "$SRC/XCDTEST.TXT"
 
