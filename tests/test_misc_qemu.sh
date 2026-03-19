@@ -99,6 +99,24 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'MODE CON /STATUS\r\n'
     printf 'ECHO MODE_CON_DONE\r\n'
 
+    # ── MODE CON COLS=80 LINES=25 — set console dimensions ─────────────────
+    # Non-interactive: sets text mode and prints status.
+    printf 'ECHO ---MODE-CON-SET---\r\n'
+    printf 'MODE CON COLS=80 LINES=25\r\n'
+    printf 'ECHO MODE_CON_SET_DONE\r\n'
+
+    # ── MODE CON RATE=30 DELAY=1 — set typematic rate ──────────────────────
+    # Sets keyboard repeat rate and delay via INT 16h/AH=03h.
+    printf 'ECHO ---MODE-TYPAMAT---\r\n'
+    printf 'MODE CON RATE=30 DELAY=1\r\n'
+    printf 'ECHO MODE_TYPAMAT_DONE\r\n'
+
+    # ── CHKDSK A:\COMMAND.COM — file allocation check ──────────────────────
+    # Reports allocation info for a specific file.
+    printf 'ECHO ---CHKDSK-FILE---\r\n'
+    printf 'CHKDSK A:\COMMAND.COM\r\n'
+    printf 'ECHO CHKDSK_FILE_DONE\r\n'
+
     # ── IFSFUNC (first call) — install IFS handler ────────────────────────────
     # INT 2Fh/AX=1100h not yet hooked → installs via INT 21h/31h. No output.
     printf 'ECHO ---IFSFUNC---\r\n'
@@ -159,6 +177,12 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'ECHO ---PRINT-P---\r\n'
     printf 'PRINT AUTOEXEC.BAT /P\r\n'
     printf 'ECHO PRINT_P_DONE\r\n'
+
+    # ── PRINT AUTOEXEC.BAT /C — remove file from queue ────────────────────────
+    # /C cancels the preceding filename from the queue.
+    printf 'ECHO ---PRINT-C---\r\n'
+    printf 'PRINT AUTOEXEC.BAT /C\r\n'
+    printf 'ECHO PRINT_C_DONE\r\n'
 
     # ── PRINT /T — terminate (cancel) all files in queue ──────────────────────
     # /T cancels all pending print jobs. Prints "PRINT queue is empty".
@@ -271,14 +295,35 @@ else
     fail "CHKDSK /V (expected file listing with 'COMMAND' and CHKDSK_V_DONE marker)"
 fi
 
+# CHKDSK A:\COMMAND.COM — file allocation check
+if grep -q "CHKDSK_FILE_DONE" "$SERIAL_LOG"; then
+    ok "CHKDSK A:\\COMMAND.COM (file allocation check, batch continued)"
+else
+    fail "CHKDSK A:\\COMMAND.COM (batch hung or crashed)"
+fi
+
 # ── MODE CON /STATUS checks ───────────────────────────────────────────────────
 echo ""
-echo "--- MODE CON /STATUS tests ---"
+echo "--- MODE CON tests ---"
 
 if grep -qi "Status" "$SERIAL_LOG" && grep -q "MODE_CON_DONE" "$SERIAL_LOG"; then
     ok "MODE CON /STATUS (status output printed, batch continued)"
 else
     fail "MODE CON /STATUS (expected 'Status' output and MODE_CON_DONE marker)"
+fi
+
+# MODE CON COLS=80 LINES=25
+if grep -q "MODE_CON_SET_DONE" "$SERIAL_LOG"; then
+    ok "MODE CON COLS=80 LINES=25 (set console dimensions, batch continued)"
+else
+    fail "MODE CON COLS=80 LINES=25 (batch hung or crashed)"
+fi
+
+# MODE CON RATE=30 DELAY=1
+if grep -q "MODE_TYPAMAT_DONE" "$SERIAL_LOG"; then
+    ok "MODE CON RATE=30 DELAY=1 (set typematic rate, batch continued)"
+else
+    fail "MODE CON RATE=30 DELAY=1 (batch hung or crashed)"
 fi
 
 # ── IFSFUNC checks ────────────────────────────────────────────────────────────
@@ -376,6 +421,13 @@ if grep -q "PRINT_P_DONE" "$SERIAL_LOG"; then
     ok "PRINT AUTOEXEC.BAT /P (add to queue, batch continued)"
 else
     fail "PRINT AUTOEXEC.BAT /P (batch hung or crashed)"
+fi
+
+# PRINT file /C — remove file from queue
+if grep -q "PRINT_C_DONE" "$SERIAL_LOG"; then
+    ok "PRINT AUTOEXEC.BAT /C (remove from queue, batch continued)"
+else
+    fail "PRINT AUTOEXEC.BAT /C (batch hung or crashed)"
 fi
 
 # PRINT /T — cancel queue

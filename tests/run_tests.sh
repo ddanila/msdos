@@ -1178,6 +1178,17 @@ else
 fi
 rm -f "$SRC/FCA1.TXT" "$SRC/FCA2.TXT"
 
+# -- FC /LB:20: set line buffer to 20 lines (compare still works) --
+printf "line1\r\nline2\r\nline3\r\n" > "$SRC/FCLB1.TXT"
+printf "line1\r\nline2\r\nline3\r\n" > "$SRC/FCLB2.TXT"
+output=$(run_dos CMD/FC/FC.EXE /LB:20 'C:\FCLB1.TXT' 'C:\FCLB2.TXT') || true
+if echo "$output" | grep -qi "no differences"; then
+    ok "FC /LB:20 (line buffer size — identical files)"
+else
+    fail "FC /LB:20 (expected 'no differences' with /LB:20)"
+fi
+rm -f "$SRC/FCLB1.TXT" "$SRC/FCLB2.TXT"
+
 # -- FC /A: control — without /A the same diff has no "..." --
 printf "same\r\ndiff1\r\ndiff2\r\ndiff3\r\ndiff4\r\nsame\r\n" > "$SRC/FCA1.TXT"
 printf "same\r\nalt1\r\nalt2\r\nalt3\r\nalt4\r\nsame\r\n" > "$SRC/FCA2.TXT"

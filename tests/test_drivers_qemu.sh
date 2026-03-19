@@ -4,7 +4,7 @@
 # Tests CONFIG.SYS device driver loading and CONFIG.SYS directives:
 #   - ANSI.SYS: load driver, verify via escape sequence output
 #   - RAMDRIVE.SYS: load driver, verify extra drive letter appears
-#   - CONFIG.SYS directives: BUFFERS, FILES, LASTDRIVE, BREAK, STACKS, FCBS, INSTALL
+#   - CONFIG.SYS directives: BUFFERS, FILES, LASTDRIVE, BREAK, STACKS, FCBS, INSTALL, SHELL
 #
 # Run via: make test-drivers-qemu  (requires 'make deploy' first)
 
@@ -49,6 +49,7 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'STACKS=9,256\r\n'
     printf 'FCBS=4\r\n'
     printf 'INSTALL=FASTOPEN.EXE C:=10\r\n'
+    printf 'SHELL=COMMAND.COM /P\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 
 # AUTOEXEC.BAT: test each driver and directive
@@ -132,7 +133,7 @@ echo ""
 echo "--- CONFIG.SYS directive tests ---"
 
 if grep -q "CONFIG_DONE" "$SERIAL_LOG"; then
-    ok "CONFIG.SYS directives (BUFFERS=20 FILES=30 LASTDRIVE=Z BREAK=ON STACKS=9,256 FCBS=4 INSTALL=FASTOPEN — boot completed)"
+    ok "CONFIG.SYS directives (BUFFERS FILES LASTDRIVE BREAK STACKS FCBS INSTALL SHELL — boot completed)"
 else
     fail "CONFIG.SYS directives (batch did not reach CONFIG_DONE marker)"
 fi
