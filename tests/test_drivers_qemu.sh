@@ -17,8 +17,6 @@ FLOPPY="$OUT/floppy.img"
 BOOT_IMG="$OUT/floppy-drivers-qemu.img"
 SERIAL_LOG="$OUT/drivers-qemu-serial.log"
 
-SRC="$REPO_ROOT/MS-DOS/v4.0/src"
-
 PASS=0
 FAIL=0
 
@@ -38,9 +36,7 @@ cp "$FLOPPY" "$BOOT_IMG"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
-# Copy device drivers to floppy (not on base image)
-mcopy -o -i "$BOOT_IMG" "$SRC/DEV/ANSI/ANSI.SYS" ::ANSI.SYS
-mcopy -o -i "$BOOT_IMG" "$SRC/DEV/RAMDRIVE/RAMDRIVE.SYS" ::RAMDRIVE.SYS
+# ANSI.SYS and RAMDRIVE.SYS are already on the base floppy (added by make deploy).
 
 # Write CONFIG.SYS with device drivers and directives
 {
@@ -64,15 +60,12 @@ mcopy -o -i "$BOOT_IMG" "$SRC/DEV/RAMDRIVE/RAMDRIVE.SYS" ::RAMDRIVE.SYS
     printf 'ECHO ANSI_DONE\r\n'
 
     # ── RAMDRIVE.SYS test — verify extra drive letter via DIR ──────────────
-    # RAMDRIVE.SYS creates a 64KB RAM disk, typically as the next available drive
-    # letter after the last physical drive. With LASTDRIVE=Z and only A: physical,
-    # the RAM disk should be D: (after A:, B: reserved, C: may be aliased).
-    # Use DIR on multiple candidate drives to find the RAM disk.
+    # RAMDRIVE.SYS creates a 64KB RAM disk at the next available drive letter.
+    # With floppy-only boot (A:, B: reserved), the RAM disk is typically C: or D:.
+    # Try multiple candidates to be robust.
     printf 'ECHO ---RAMDRIVE---\r\n'
+    printf 'DIR C:\\\r\n'
     printf 'DIR D:\\\r\n'
-    printf 'ECHO RAMDRIVE_D_RC=%%ERRORLEVEL%%\r\n'
-    printf 'DIR E:\\\r\n'
-    printf 'ECHO RAMDRIVE_E_RC=%%ERRORLEVEL%%\r\n'
     printf 'ECHO RAMDRIVE_DONE\r\n'
 
     # ── CONFIG.SYS directives — verify via MEM output ──────────────────────
@@ -121,13 +114,13 @@ else
     fail "RAMDRIVE.SYS (batch hung or crashed — driver load may have failed)"
 fi
 
-# Check if DIR on D: or E: succeeded (shows "Volume" or "Directory of" header).
-# RAMDRIVE assigns the next available drive letter.
-if grep -qi "Directory of D:\|Volume in drive D" "$SERIAL_LOG" || \
-   grep -qi "Directory of E:\|Volume in drive E" "$SERIAL_LOG"; then
+# Check if DIR on C: or D: succeeded (shows "Volume" or "Directory of" header).
+# RAMDRIVE assigns the next available drive letter after physical drives.
+if grep -qi "Directory of C:\|Volume in drive C" "$SERIAL_LOG" || \
+   grep -qi "Directory of D:\|Volume in drive D" "$SERIAL_LOG"; then
     ok "RAMDRIVE.SYS (RAM disk drive accessible via DIR)"
 else
-    fail "RAMDRIVE.SYS (no RAM disk drive found on D: or E:)"
+    fail "RAMDRIVE.SYS (no RAM disk drive found on C: or D:)"
 fi
 
 # ── CONFIG.SYS directives checks ────────────────────────────────────────────
