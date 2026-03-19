@@ -1727,6 +1727,18 @@ else
     fail "COMMAND.COM SET/PROMPT stress (expected STRESS_DONE, got: $out)"
 fi
 
+# -- PAUSE: waits for keypress, continues after receiving one --
+# PAUSE uses INT 21h/AH=0Ch (flush+read) with AL=08h (read without echo).
+# Piping a character via stdin satisfies the read and batch continues.
+printf '@ECHO OFF\r\nPAUSE\r\nECHO PAUSE_DONE\r\n' > "$KVBAT"
+out=$(echo "x" | timeout 30 "$BIN/dos-run" "$SRC/CMD/COMMAND/COMMAND.COM" /C 'C:\CMD\COMMAND\KVTEST.BAT' 2>/dev/null) || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q "Press any key" && echo "$out" | grep -q "PAUSE_DONE"; then
+    ok "COMMAND.COM PAUSE (displayed prompt, continued after piped keystroke)"
+else
+    fail "COMMAND.COM PAUSE (expected 'Press any key' + PAUSE_DONE, got: $out)"
+fi
+
 # -- COPY a+b c: file concatenation --
 printf 'PART_ONE\r\n' > "$SRC/CMD/COMMAND/KVCAT1.TXT"
 printf 'PART_TWO\r\n' > "$SRC/CMD/COMMAND/KVCAT2.TXT"
