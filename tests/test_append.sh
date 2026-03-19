@@ -78,6 +78,12 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'APPEND /PATH:ON\r\n'
     printf 'ECHO APPEND_PATH_ON_DONE\r\n'
 
+    # ── APPEND /PATH:OFF — disable PATH mode ───────────────────────────────────
+    # Clears Path_mode flag in mode_flags. No output.
+    printf 'ECHO ---APPEND-PATH-OFF---\r\n'
+    printf 'APPEND /PATH:OFF\r\n'
+    printf 'ECHO APPEND_PATH_OFF_DONE\r\n'
+
     # ── APPEND ; (clear path) ─────────────────────────────────────────────────
     # Semicolon as null path list → sets app_dirs to ";". No output.
     printf 'ECHO ---APPEND-SEMI---\r\n'
@@ -156,6 +162,15 @@ if grep -q "APPEND_PATH_ON_DONE" "$SERIAL_LOG"; then
     ok "APPEND /PATH:ON (PATH mode set silently, batch continued)"
 else
     fail "APPEND /PATH:ON (batch hung or crashed)"
+fi
+
+echo ""
+echo "--- APPEND /PATH:OFF tests ---"
+
+if grep -q "APPEND_PATH_OFF_DONE" "$SERIAL_LOG"; then
+    ok "APPEND /PATH:OFF (PATH mode cleared silently, batch continued)"
+else
+    fail "APPEND /PATH:OFF (batch hung or crashed)"
 fi
 
 echo ""
