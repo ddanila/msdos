@@ -1704,6 +1704,18 @@ else
     fail "COMMAND.COM TRUENAME (expected 'C:\SETENV.BAT', got: $out)"
 fi
 
+# -- SET/PROMPT stress: multiple calls in sequence (ES corruption regression) --
+# Regression test for ae75edf — SET/PROMPT could corrupt ES register, causing
+# hangs on subsequent calls. 10 alternating SET+PROMPT calls exercises the path.
+printf '@ECHO OFF\r\nSET SV1=A1\r\nPROMPT P1$G\r\nSET SV2=A2\r\nPROMPT P2$G\r\nSET SV3=A3\r\nPROMPT P3$G\r\nSET SV4=A4\r\nPROMPT P4$G\r\nSET SV5=A5\r\nPROMPT P5$G\r\nSET SV6=A6\r\nPROMPT P6$G\r\nSET SV7=A7\r\nPROMPT P7$G\r\nSET SV8=A8\r\nPROMPT P8$G\r\nSET SV9=A9\r\nPROMPT P9$G\r\nSET SV10=A10\r\nPROMPT P10$G\r\nECHO STRESS_DONE\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q "STRESS_DONE"; then
+    ok "COMMAND.COM SET/PROMPT stress (10 alternating calls, no hang)"
+else
+    fail "COMMAND.COM SET/PROMPT stress (expected STRESS_DONE, got: $out)"
+fi
+
 # -- COPY a+b c: file concatenation --
 printf 'PART_ONE\r\n' > "$SRC/CMD/COMMAND/KVCAT1.TXT"
 printf 'PART_TWO\r\n' > "$SRC/CMD/COMMAND/KVCAT2.TXT"

@@ -218,6 +218,12 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'GRAPHICS /B\r\n'
     printf 'ECHO GRAPHICS_B_DONE\r\n'
 
+    # ── COMMAND /? — help text (regression for boot-crash fix 58a0bb4) ────────
+    # COMMAND /? prints help and exits. Verifies the /? code path doesn't crash.
+    printf 'ECHO ---COMMAND-HELP---\r\n'
+    printf 'COMMAND /?\r\n'
+    printf 'ECHO COMMAND_HELP_DONE\r\n'
+
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
@@ -441,6 +447,22 @@ if grep -q "GRAPHICS_B_DONE" "$SERIAL_LOG"; then
     ok "GRAPHICS /B (loaded with background printing, batch continued)"
 else
     fail "GRAPHICS /B (batch hung or crashed)"
+fi
+
+# ── COMMAND /? checks ─────────────────────────────────────────────────────────
+echo ""
+echo "--- COMMAND /? tests ---"
+
+if grep -qi "Starts a new instance" "$SERIAL_LOG"; then
+    ok "COMMAND /? (help text: 'Starts a new instance' printed)"
+else
+    fail "COMMAND /? (expected 'Starts a new instance' in help output)"
+fi
+
+if grep -q "COMMAND_HELP_DONE" "$SERIAL_LOG"; then
+    ok "COMMAND /? (batch continued — no crash in /? code path)"
+else
+    fail "COMMAND /? (batch hung or crashed — possible regression of 58a0bb4)"
 fi
 
 # ── Completion check ──────────────────────────────────────────────────────────
