@@ -225,18 +225,18 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | DISKCOMP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_diskcomp_diskcopy.sh | |
 | BACKUP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_backup_restore.sh (/S /M /A /D /T /L) | `/F` ❌ not tested |
 | RESTORE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_backup_restore.sh (/S /N /M /B /A /E /L) | `/P` 🚫 interactive |
-| SHARE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh | |
+| SHARE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh (/F /L) | `/NC` ❌ not tested (undocumented no-compat mode) |
 | NLSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh | |
-| APPEND | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_append.sh (/E /X path set/clear) | |
+| APPEND | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_append.sh (/E /X path set/clear /PATH:ON) | `/PATH:OFF` ❌ not tested |
 | KEYB | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (KEYB US; KEYB GR,,KEYBOARD.SYS; KEYB UK,850; status) | |
 | FDISK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_fdisk.sh (/PRI:5 /EXT:10 /LOG:10 /Q; errorlevel 2; MBR+EBR verified) | |
-| PRINT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (/D:PRN install; queue status; /P add; /T cancel) | |
-| FASTOPEN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (C:=50 install smoke test) | |
-| GRAPHICS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (load GRAPHICS.PRO; reload; /R reverse; /B background) | |
-| MODE | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ test_misc_qemu.sh (CON /STATUS only) | serial/parallel/console config 🚫 hardware |
-| RECOVER | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_recover.sh (file mode: keypress prompt + bytes recovered) | drive mode (destructive) skipped |
-| IFSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install + already-installed check) | |
-| FILESYS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install smoke test, after IFSFUNC) | |
+| PRINT | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ test_misc_qemu.sh (/D:PRN install; /P add; /T cancel) | `/C` `/Q` `/B` `/S` `/U` `/M` ❌ not tested |
+| FASTOPEN | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ test_misc_qemu.sh (C:=50 install smoke test) | `/X` ❌ not tested (expanded memory) |
+| GRAPHICS | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ test_misc_qemu.sh (load GRAPHICS.PRO; reload; /R reverse; /B background) | `/LCD` `/PB:id` ❌ not tested |
+| MODE | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ test_misc_qemu.sh (CON /STATUS only) | COM/LPT 🚫 hardware; CON COLS/LINES/RATE ❌ not tested |
+| RECOVER | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_recover.sh (file mode: keypress prompt + bytes recovered) | v4.0 is file-mode only (no drive-mode in source) |
+| IFSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install + already-installed) | |
+| FILESYS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install after IFSFUNC) | |
 | ANSI.SYS | ✅ | n/a | ✅ test_drivers_qemu.sh (DEVICE= load, boot completes) | device driver |
 | RAMDRIVE.SYS | ✅ | n/a | ✅ test_drivers_qemu.sh (DEVICE= load 64KB, RAM disk DIR) | device driver |
 | CONFIG.SYS | n/a | n/a | ✅ test_drivers_qemu.sh (BUFFERS=20 FILES=30 LASTDRIVE=Z) | directives |
@@ -372,6 +372,10 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 - [x] `PRINT /T` — cancel queue (test_misc_qemu.sh)
 - [ ] `PRINT file /C` — remove from queue
 - [ ] `PRINT /Q:5 file` — set queue size
+- [ ] `PRINT /B:1024` — internal buffer size (source: PRINT_T.ASM line 31, range 512–16K, default 512)
+- [ ] `PRINT /S:8` — time-slice quantum (source: PRINT_T.ASM line 33, range 1–255, default 8)
+- [ ] `PRINT /U:1` — busy-wait tick count (source: PRINT_T.ASM line 34, range 1–255, default 1)
+- [ ] `PRINT /M:2` — max ticks per time slice (source: PRINT_T.ASM line 35, range 1–255, default 2)
 
 #### KEYB — needs QEMU
 - [x] `KEYB US` — load US keyboard (test_misc_qemu.sh)
@@ -391,20 +395,22 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 
 #### FASTOPEN
 - [x] `FASTOPEN C:=50` — cache 50 entries (test_misc_qemu.sh)
-- Note: `/X` (expanded memory) does NOT exist in v4.0 source — that's a DOS 5.0+ addition.
+- [ ] `FASTOPEN C:=50 /X` — expanded memory cache (source: FASTINIT.ASM line 791, E_Switch "/X")
 
 #### GRAPHICS
 - [x] `GRAPHICS` — load default GRAPHICS.PRO (test_misc_qemu.sh)
 - [x] `GRAPHICS /R` — reverse printing (test_misc_qemu.sh)
 - [x] `GRAPHICS /B` — background printing (test_misc_qemu.sh)
+- [ ] `GRAPHICS /LCD` — LCD aspect ratio (source: GRPARMS.ASM line 252)
+- [ ] `GRAPHICS /PB:id` — print box ID (source: GRPARMS.ASM line 272)
 - Note: v4.0 printer types are COLOR and BLACK_WHITE (not COLOR4/HPDEFAULT — those are DOS 5.0+ names).
 
 #### MODE
-- [ ] `MODE COM1: 9600,N,8,1` — configure serial
-- [ ] `MODE LPT1: 80,66` — configure parallel
+- [x] `MODE CON /STATUS` — show console status (test_misc_qemu.sh)
+- [ ] `MODE COM1: 9600,N,8,1` — configure serial (🚫 hardware-dependent)
+- [ ] `MODE LPT1: 80,66` — configure parallel (🚫 hardware-dependent)
 - [ ] `MODE CON COLS=80 LINES=25` — configure console
-- [ ] `MODE CON RATE=30 DELAY=1` — typematic rate
-- [ ] `MODE CON /STATUS` — show console status
+- [ ] `MODE CON RATE=30 DELAY=1` — typematic rate (source: TYPAMAT.ASM)
 
 #### CHKDSK — remaining
 - [x] `CHKDSK` — disk stats (test_misc_qemu.sh)
@@ -412,8 +418,8 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 - [ ] `CHKDSK /F` — fix errors (interactive on real errors; needs corrupt disk image)
 
 #### RECOVER
-- [ ] `RECOVER A:file` — recover bad-sector file
-- [ ] `RECOVER A:` — recover entire disk
+- [x] `RECOVER A:TESTFILE.TXT` — file-mode recovery (test_recover.sh)
+- Note: v4.0 RECOVER is file-mode only — no drive-mode recovery (confirmed: RECINIT.ASM help string shows `RECOVER [drive:][path]filename` only, no whole-disk mode in source).
 
 #### LABEL — remaining
 - [x] `LABEL B:` — interactive remove (test_label.sh, serial_expect.py)
@@ -433,8 +439,43 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 - [ ] `COUNTRY=` — locale configuration
 - [ ] `SHELL=` — custom command interpreter path
 
-#### IFSFUNC
-- [ ] `IFSFUNC` — load IFS driver (smoke test)
+#### APPEND — remaining
+- [ ] `APPEND /PATH:OFF` — disable path searching (source: APPEND.ASM line 2454 shows `/PATH:ON|OFF`)
 
-#### FILESYS
-- [ ] `FILESYS` — load (smoke test, internal tool)
+#### SHARE — remaining
+- [ ] `SHARE /NC` — no compatibility mode checking (source: GSHARE2.ASM line 2085, undocumented)
+
+#### IFSFUNC ✅ done
+- [x] `IFSFUNC` — install IFS handler; 1st call silent, 2nd "IFSFUNC already installed" (test_misc_qemu.sh)
+
+#### FILESYS ✅ done
+- [x] `FILESYS` — install filesystem helper (requires IFSFUNC); silent install (test_misc_qemu.sh)
+
+#### FORMAT — undocumented switches (low priority)
+- [ ] `FORMAT /C` — check for bad sectors (undocumented, source: FORSWTCH.INC)
+- [ ] `FORMAT /SELECT` — select mode (undocumented, internal)
+- [ ] `FORMAT /AUTOTEST` — auto-test mode (undocumented, internal)
+- [ ] `FORMAT /Z` — 1 sector/cluster (undocumented, internal)
+
+#### SELECT
+- [ ] `SELECT` — MS-DOS installer utility (CMD/SELECT/); zero test coverage. Hard to automate.
+
+---
+
+## Bug Fix Regression Coverage
+
+Source-code audit of dos4-enhancements branch bug fixes and their test coverage.
+
+| Fix | Commit | Regression Caught? | Gap |
+|-----|--------|-------------------|-----|
+| EDLIN /B (2 fixes) | 52f514b + 61b2920 | ✅ YES — Section 6 ^Z test | |
+| FOR hang (ES corruption) | c70042b | ✅ YES — Section 7 FOR loop would timeout | |
+| SET/PROMPT hang (ES corruption) | ae75edf | ⚠️ Partial — basic smoke only | No stress test (multiple SET/PROMPT in sequence) |
+| FDISK R6001 + semicolon | a5a02a9 | ⚠️ Partial — crash caught, logic edge case not | No test where extended partition absent |
+| COMMAND parser crash (signed cmp) | 4ed73cb | ⚠️ Indirect — most tests would fail | No test forcing transient near 0x8000 |
+| COMMAND boot crash (help in code path) | 58a0bb4 | ⚠️ Indirect — /C EXIT tests boot | COMMAND /? path not directly tested |
+
+### Regression hardening opportunities
+- [ ] SET/PROMPT stress: batch with multiple SET/PROMPT calls in sequence to exercise ES restore paths
+- [ ] FDISK edge case: scenario where extended partition is absent, verify conditional block doesn't execute
+- [ ] COMMAND.COM parser boundary: test with large transient (near 0x8000) to trigger signed comparison
