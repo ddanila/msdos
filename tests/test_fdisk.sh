@@ -194,6 +194,9 @@ def chs_to_lba(entry):
         return 0
     return (cyl * HEADS + head) * SPT + (sec - 1)
 
+def hexdump(data, n=64):
+    return ' '.join('{:02x}'.format(b) for b in data[:n])
+
 with open('$HDD_IMG', 'rb') as f:
     # ── MBR ──
     f.seek(446)
@@ -205,19 +208,33 @@ with open('$HDD_IMG', 'rb') as f:
     ext_lba   = struct.unpack_from('<I', e2, 8)[0]
     ext_chs   = chs_to_lba(e2)
 
-    # ── Find EBR: try LBA field first, then CHS-computed LBA ──
+    # ── Find EBR: scan from ext_lba for up to 64 sectors ──
     log_type = 0
     used_method = 'none'
-    for method, start in [('lba', ext_lba), ('chs', ext_chs)]:
-        if start > 0 and start * 512 < IMG_SIZE:
-            f.seek(start * 512 + 446)
-            le1 = f.read(16)
-            if len(le1) == 16 and le1[4] in DOS_TYPES:
-                log_type = le1[4]
-                used_method = '{}@{}'.format(method, start)
-                break
+    ebr_hex = ''
+    start = ext_lba if ext_lba > 0 else ext_chs
+    if start > 0 and start * 512 < IMG_SIZE:
+        # Dump the partition table area of the EBR sector for diagnostics
+        f.seek(start * 512 + 446)
+        ebr_raw = f.read(66)  # 4 entries (64 bytes) + 2 byte signature
+        ebr_hex = hexdump(ebr_raw, 66)
+        if len(ebr_raw) >= 16 and ebr_raw[4] in DOS_TYPES:
+            log_type = ebr_raw[4]
+            used_method = 'direct@{}'.format(start)
+        else:
+            # Scan ahead: some FDISKs put the EBR one track in
+            for offset in range(1, 64):
+                sec = start + offset
+                if sec * 512 >= IMG_SIZE:
+                    break
+                f.seek(sec * 512 + 446)
+                le1 = f.read(16)
+                if len(le1) == 16 and le1[4] in DOS_TYPES:
+                    log_type = le1[4]
+                    used_method = 'scan@{}(+{})'.format(sec, offset)
+                    break
 
-    debug = 'lba={},chs={},method={}'.format(ext_lba, ext_chs, used_method)
+    debug = 'lba={},chs={},method={},ebr_hex=[{}]'.format(ext_lba, ext_chs, used_method, ebr_hex)
     print('{:02x} {:02x} {:02x} {}'.format(pri_type, ext_type, log_type, debug))
 " 2>/dev/null)
 
