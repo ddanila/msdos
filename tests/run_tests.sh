@@ -1241,32 +1241,27 @@ fi
 rm -rf "$SRC/XCMDEST" "$SRC/XCMTEST.TXT" "$SRC/XCMTEST2.TXT"
 
 # -- XCOPY /D:date — copy files modified on or after date --
-# XCOPY forces kvikdos-soft (KVM #GP). SYSPARSE date parsing may fail there.
-# Debug: capture both stdout+stderr and exit code to diagnose.
+# Touch file to Jun 15, 1990, then test with past and future dates.
+# Requires INT 21h/AH=2Bh (Set Date) stub in kvikdos — SYSPARSE calls it
+# to validate the /D date parameter.
 printf "DateTest\r\n" > "$SRC/XCDTEST.TXT"
 touch -t 199006150000 "$SRC/XCDTEST.TXT"
 mkdir -p "$SRC/XCDDEST"
-xcopy_d_rc=0
 output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' \
-    "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCDTEST.TXT' 'XCDDEST\' '/D:01-01-90' 2>&1) || xcopy_d_rc=$?
+    "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCDTEST.TXT' 'XCDDEST\' '/D:01-01-90' 2>/dev/null || true)
 if echo "$output" | grep -q "1 File(s) copied"; then
     ok "XCOPY /D:01-01-90 (copied file dated 06/15/90)"
 else
-    fail "XCOPY /D:01-01-90 (expected '1 File(s) copied')"
-    echo "    DEBUG exit=$xcopy_d_rc output=[$(echo "$output" | tr '\r\n' '|' | head -c 200)]"
-    echo "    DEBUG file mtime: $(stat -c '%y' "$SRC/XCDTEST.TXT" 2>/dev/null || stat -f '%Sm' "$SRC/XCDTEST.TXT" 2>/dev/null)"
-    echo "    DEBUG dest contents: $(ls -la "$SRC/XCDDEST/" 2>/dev/null)"
+    fail "XCOPY /D:01-01-90 (expected '1 File(s) copied', got: $(echo "$output" | head -3))"
 fi
 rm -rf "$SRC/XCDDEST"
 mkdir -p "$SRC/XCDDEST"
-xcopy_d_rc2=0
 output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' \
-    "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCDTEST.TXT' 'XCDDEST\' '/D:12-31-90' 2>&1) || xcopy_d_rc2=$?
+    "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCDTEST.TXT' 'XCDDEST\' '/D:12-31-90' 2>/dev/null || true)
 if echo "$output" | grep -q "0 File(s) copied"; then
     ok "XCOPY /D:12-31-90 (skipped file dated 06/15/90)"
 else
-    fail "XCOPY /D:12-31-90 (expected '0 File(s) copied')"
-    echo "    DEBUG exit=$xcopy_d_rc2 output=[$(echo "$output" | tr '\r\n' '|' | head -c 200)]"
+    fail "XCOPY /D:12-31-90 (expected '0 File(s) copied', got: $(echo "$output" | head -3))"
 fi
 rm -rf "$SRC/XCDDEST" "$SRC/XCDTEST.TXT"
 

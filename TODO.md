@@ -210,7 +210,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | MORE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (3 tests: stdin file from-file) | v4.0: no switches (filter utility) |
 | DEBUG | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (15 tests: R/E/D/F/H/C/M/S/A/U/N/W/L) + test_debug_qemu.sh (G execute) | |
 | EDLIN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (18 tests: open/new/insert/del/edit/copy/move/search/replace/transfer/page/write + /B) | |
-| XCOPY | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (13 tests: basic /S /S+E /V /A /M) | v4.0 flags: /A /D /E /M /P /S /V /W. `/P` `/W` 🚫 interactive, `/D` ❌ blocked (kvikdos-soft SYSPARSE) |
+| XCOPY | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (15 tests: basic /S /S+E /V /A /M /D) | v4.0 flags: /A /D /E /M /P /S /V /W. `/P` `/W` 🚫 interactive |
 | REPLACE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (9 tests: /A /U /U-older /R /S error + content checks) | v4.0 flags: /A /P /R /S /U /W. `/P` `/W` 🚫 interactive |
 | GRAFTABL | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (4 tests: 437 850 /STATUS status) | |
 | LABEL | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (read-only); write/delete in test_label.sh | |
@@ -258,7 +258,7 @@ Items here are either interactive (require keypress) or need hardware not availa
 ### External CMD tools
 
 #### XCOPY — remaining
-- [ ] `XCOPY src dest /D:date` — ⚠️ investigating: empty output under kvikdos-soft (SYSPARSE date parsing suspected). Debug output added.
+- [x] `XCOPY src dest /D:date` — required INT 21h/AH=2Bh (Set Date) stub in kvikdos; SYSPARSE calls it to validate dates. Section 6, kvikdos.
 - [ ] `XCOPY src dest /P` — prompt per file (interactive)
 - [ ] `XCOPY src dest /W` — wait before start (interactive)
 
