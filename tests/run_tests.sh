@@ -324,17 +324,15 @@ else
 fi
 
 # -- FIND errorlevel 2: bad arguments trigger error exit code --
-# FIND.ASM: exits 2 on errors (file not found, invalid params). No filename → error.
-# Use COMMAND.COM /C with a batch that checks IF ERRORLEVEL.
-FIND_ERR_BAT="$SRC/CMD/FIND/FNDERR.BAT"
-printf '@ECHO OFF\r\nFIND\r\nIF ERRORLEVEL 2 ECHO FIND_ERR2_OK\r\nIF ERRORLEVEL 1 ECHO FIND_ERR1_OK\r\n' > "$FIND_ERR_BAT"
-output=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\FIND\FNDERR.BAT') || true
-if echo "$output" | grep -q "FIND_ERR2_OK"; then
-    ok "FIND errorlevel 2 (no args triggers error exit)"
+# FIND.ASM: exits 2 on errors (no args → "Invalid number of parameters").
+# Run FIND directly (not via COMMAND.COM batch — kvikdos can't spawn child EXEs).
+# kvikdos propagates INT 21h/AH=4Ch exit code as process exit code.
+run_dos CMD/FIND/FIND.EXE 2>/dev/null; find_rc=$?
+if [[ "$find_rc" -eq 2 ]]; then
+    ok "FIND errorlevel 2 (no args → exit code 2)"
 else
-    fail "FIND errorlevel 2 (expected FIND_ERR2_OK via IF ERRORLEVEL 2)"
+    fail "FIND errorlevel 2 (expected exit code 2, got $find_rc)"
 fi
-rm -f "$FIND_ERR_BAT"
 
 # -- FC: compare identical files --
 output=$(run_dos CMD/FC/FC.EXE 'C:\SETENV.BAT' 'C:\SETENV.BAT') || true
