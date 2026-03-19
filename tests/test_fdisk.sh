@@ -177,8 +177,22 @@ echo "--- FDISK partition table checks ---"
 # Extended Boot Record (EBR): at the first sector of the extended partition,
 #   same layout — entry 1 has the logical drive (type 0x01/0x04/0x06).
 
-read -r pri_type ext_type ext_start_sec log_type < <(python3 -c "
+read -r pri_type ext_type log_type ebr_debug < <(python3 -c "
 import struct, sys
+
+DOS_TYPES = (0x01, 0x04, 0x06)
+IMG_SIZE = 20 * 1024 * 1024  # 20 MB
+# QEMU IDE geometry for 20 MB: 16 heads, 63 sectors/track
+HEADS, SPT = 16, 63
+
+def chs_to_lba(entry):
+    '''Compute LBA from CHS bytes in a partition entry (offsets 1-3).'''
+    head = entry[1]
+    sec  = entry[2] & 0x3F
+    cyl  = ((entry[2] & 0xC0) << 2) | entry[3]
+    if sec == 0:
+        return 0
+    return (cyl * HEADS + head) * SPT + (sec - 1)
 
 with open('$HDD_IMG', 'rb') as f:
     # ── MBR ──
@@ -188,17 +202,23 @@ with open('$HDD_IMG', 'rb') as f:
 
     pri_type  = e1[4]
     ext_type  = e2[4]
-    ext_start = struct.unpack_from('<I', e2, 8)[0]  # relative sector
+    ext_lba   = struct.unpack_from('<I', e2, 8)[0]
+    ext_chs   = chs_to_lba(e2)
 
-    # ── EBR (first sector of extended partition) ──
+    # ── Find EBR: try LBA field first, then CHS-computed LBA ──
     log_type = 0
-    if ext_start > 0:
-        f.seek(ext_start * 512 + 446)
-        le1 = f.read(16)
-        if len(le1) == 16:
-            log_type = le1[4]
+    used_method = 'none'
+    for method, start in [('lba', ext_lba), ('chs', ext_chs)]:
+        if start > 0 and start * 512 < IMG_SIZE:
+            f.seek(start * 512 + 446)
+            le1 = f.read(16)
+            if len(le1) == 16 and le1[4] in DOS_TYPES:
+                log_type = le1[4]
+                used_method = '{}@{}'.format(method, start)
+                break
 
-    print('{:02x} {:02x} {} {:02x}'.format(pri_type, ext_type, ext_start, log_type))
+    debug = 'lba={},chs={},method={}'.format(ext_lba, ext_chs, used_method)
+    print('{:02x} {:02x} {:02x} {}'.format(pri_type, ext_type, log_type, debug))
 " 2>/dev/null)
 
 # Check primary partition type (0x01=FAT12, 0x04=FAT16<32M, 0x06=FAT16>32M)
@@ -216,8 +236,8 @@ fi
 
 # Check logical drive in EBR
 case "$log_type" in
-    01|04|06) ok "EBR entry 1: logical drive type 0x$log_type" ;;
-    *)        fail "EBR entry 1: expected DOS type (01/04/06), got 0x${log_type:-?}" ;;
+    01|04|06) ok "EBR entry 1: logical drive type 0x$log_type (${ebr_debug:-})" ;;
+    *)        fail "EBR entry 1: expected DOS type (01/04/06), got 0x${log_type:-?} (${ebr_debug:-})" ;;
 esac
 
 echo ""

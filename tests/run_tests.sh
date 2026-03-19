@@ -1241,27 +1241,28 @@ fi
 rm -rf "$SRC/XCMDEST" "$SRC/XCMTEST.TXT" "$SRC/XCMTEST2.TXT"
 
 # -- XCOPY /D:date — copy files modified on or after date --
-# Touch file to a known date (Jun 15, 2024), then:
-#   /D:01-01-24 → file (06/15/24) is on/after Jan 1 2024 → should copy
-#   /D:12-31-24 → file (06/15/24) is before Dec 31 2024 → should NOT copy
+# DOS 4.0 SYSPARSE interprets 2-digit years as 19xx, so we use 1990s dates.
+# Touch file to Jun 15, 1990, then:
+#   /D:01-01-90 → file (06/15/90) is on/after Jan 1 1990 → should copy
+#   /D:12-31-90 → file (06/15/90) is before Dec 31 1990 → should NOT copy
 printf "DateTest\r\n" > "$SRC/XCDTEST.TXT"
-touch -t 202406150000 "$SRC/XCDTEST.TXT"
+touch -t 199006150000 "$SRC/XCDTEST.TXT"
 mkdir -p "$SRC/XCDDEST"
 output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' \
-    "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCDTEST.TXT' 'XCDDEST\' '/D:01-01-24' 2>/dev/null || true)
+    "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCDTEST.TXT' 'XCDDEST\' '/D:01-01-90' 2>/dev/null || true)
 if echo "$output" | grep -q "1 File(s) copied"; then
-    ok "XCOPY /D:01-01-24 (copied file dated 06/15/24)"
+    ok "XCOPY /D:01-01-90 (copied file dated 06/15/90)"
 else
-    fail "XCOPY /D:01-01-24 (expected '1 File(s) copied', got: $(echo "$output" | head -3))"
+    fail "XCOPY /D:01-01-90 (expected '1 File(s) copied', got: $(echo "$output" | head -3))"
 fi
 rm -rf "$SRC/XCDDEST"
 mkdir -p "$SRC/XCDDEST"
 output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' \
-    "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCDTEST.TXT' 'XCDDEST\' '/D:12-31-24' 2>/dev/null || true)
+    "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCDTEST.TXT' 'XCDDEST\' '/D:12-31-90' 2>/dev/null || true)
 if echo "$output" | grep -q "0 File(s) copied"; then
-    ok "XCOPY /D:12-31-24 (skipped file dated 06/15/24)"
+    ok "XCOPY /D:12-31-90 (skipped file dated 06/15/90)"
 else
-    fail "XCOPY /D:12-31-24 (expected '0 File(s) copied', got: $(echo "$output" | head -3))"
+    fail "XCOPY /D:12-31-90 (expected '0 File(s) copied', got: $(echo "$output" | head -3))"
 fi
 rm -rf "$SRC/XCDDEST" "$SRC/XCDTEST.TXT"
 
