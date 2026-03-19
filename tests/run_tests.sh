@@ -1289,6 +1289,19 @@ else
 fi
 rm -rf "$SRC/XCDDEST" "$SRC/XCDTEST.TXT"
 
+# -- XCOPY /W: wait for keypress before copying --
+# /W prompts "Press any key to begin copying file(s)" via SYSDISPMSG.
+# Piping a character satisfies the read and XCOPY proceeds normally.
+printf "WaitTest\r\n" > "$SRC/XCWTEST.TXT"
+mkdir -p "$SRC/XCWDEST"
+output=$(echo "x" | timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCWTEST.TXT' 'XCWDEST\' /W 2>/dev/null || true)
+if echo "$output" | grep -qi "Press any key" && echo "$output" | grep -q "1 File(s) copied"; then
+    ok "XCOPY /W (waited for key, then copied file)"
+else
+    fail "XCOPY /W (expected 'Press any key' + '1 File(s) copied', got: $(echo "$output" | head -3))"
+fi
+rm -rf "$SRC/XCWDEST" "$SRC/XCWTEST.TXT"
+
 # -- REPLACE /R: replace read-only file --
 mkdir -p "$SRC/RPLRDEST"
 printf "ORIGINAL\r\n" > "$SRC/RPLRDEST/RPLR.TXT"
@@ -1331,6 +1344,20 @@ else
     fail "REPLACE /S (SUB2/RPLS.TXT not replaced)"
 fi
 rm -rf "$SRC/RPLSDEST" "$SRC/RPLS.TXT"
+
+# -- REPLACE /W: wait for keypress before replacing --
+# /W prompts "Press any key to continue . . ." before starting.
+# Piping a character via stdin satisfies the read.
+mkdir -p "$SRC/RPLWDEST"
+printf "OldData\r\n" > "$SRC/RPLWDEST/RPLW.TXT"
+printf "NewData\r\n" > "$SRC/RPLW.TXT"
+output=$(echo "x" | timeout 10 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\RPLW.TXT' 'C:\RPLWDEST\' /W 2>/dev/null || true)
+if echo "$output" | grep -qi "Replacing"; then
+    ok "REPLACE /W (waited for key, then replaced file)"
+else
+    fail "REPLACE /W (expected 'Replacing' in output, got: $(echo "$output" | head -3))"
+fi
+rm -rf "$SRC/RPLWDEST" "$SRC/RPLW.TXT"
 
 # ── Section 7: COMMAND.COM built-in E2E tests (kvikdos) ──────────────────────
 echo ""
