@@ -227,6 +227,17 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'KEYB\r\n'
     printf 'ECHO KEYB_UK_STATUS_DONE\r\n'
 
+    # ── KEYB FR,850,KEYBOARD.SYS /ID:189 — load French layout with /ID ────
+    # Tests the /ID switch parsing path. FR has two keyboard IDs (120, 189).
+    printf 'ECHO ---KEYB-ID---\r\n'
+    printf 'KEYB FR,850,KEYBOARD.SYS /ID:189\r\n'
+    printf 'ECHO KEYB_ID_DONE\r\n'
+
+    # ── KEYB (no args) — verify FR is now active ──────────────────────────
+    printf 'ECHO ---KEYB-FR-STATUS---\r\n'
+    printf 'KEYB\r\n'
+    printf 'ECHO KEYB_FR_STATUS_DONE\r\n'
+
     # ── GRAPHICS /R — load with reverse printing ────────────────────────────
     # /R reverses foreground/background when printing. Installs silently.
     # (GRAPHICS already installed from earlier call; this reloads with /R.)
@@ -483,6 +494,19 @@ if grep -qi "Current keyboard code.*UK\|code.*UK" "$SERIAL_LOG" && grep -q "KEYB
     ok "KEYB (no args after UK,850: shows 'UK' as current layout)"
 else
     fail "KEYB (no args after UK,850: expected 'Current keyboard code' with 'UK')"
+fi
+
+# KEYB FR,850 /ID:189 — French layout with keyboard ID
+if grep -q "KEYB_ID_DONE" "$SERIAL_LOG"; then
+    ok "KEYB FR,850,KEYBOARD.SYS /ID:189 (loaded French layout with /ID, batch continued)"
+else
+    fail "KEYB FR,850,KEYBOARD.SYS /ID:189 (batch hung or crashed)"
+fi
+
+if grep -qi "Current keyboard code.*FR\|code.*FR" "$SERIAL_LOG" && grep -q "KEYB_FR_STATUS_DONE" "$SERIAL_LOG"; then
+    ok "KEYB (no args after FR /ID:189: shows 'FR' as current layout)"
+else
+    fail "KEYB (no args after FR /ID:189: expected 'Current keyboard code' with 'FR')"
 fi
 
 # ── GRAPHICS /R /B checks ────────────────────────────────────────────────────

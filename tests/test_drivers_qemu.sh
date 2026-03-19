@@ -4,7 +4,10 @@
 # Tests CONFIG.SYS device driver loading and CONFIG.SYS directives:
 #   - ANSI.SYS: load driver, verify via escape sequence output
 #   - RAMDRIVE.SYS: load driver, verify extra drive letter appears
-#   - CONFIG.SYS directives: BUFFERS, FILES, LASTDRIVE, BREAK, STACKS, FCBS, INSTALL, SHELL
+#   - VDISK.SYS: load virtual disk driver, verify drive accessible
+#   - DISPLAY.SYS: load code page display driver
+#   - CONFIG.SYS directives: BUFFERS, FILES, LASTDRIVE, BREAK, STACKS, FCBS,
+#     INSTALL, SHELL, COUNTRY
 #
 # Run via: make test-drivers-qemu  (requires 'make deploy' first)
 
@@ -36,12 +39,15 @@ cp "$FLOPPY" "$BOOT_IMG"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
-# ANSI.SYS and RAMDRIVE.SYS are already on the base floppy (added by make deploy).
+# Drivers are already on the base floppy (added by make deploy).
 
 # Write CONFIG.SYS with device drivers and directives
 {
+    printf 'COUNTRY=001,,COUNTRY.SYS\r\n'
     printf 'DEVICE=ANSI.SYS\r\n'
     printf 'DEVICE=RAMDRIVE.SYS 64\r\n'
+    printf 'DEVICE=VDISK.SYS 64\r\n'
+    printf 'DEVICE=DISPLAY.SYS CON=(EGA,,1)\r\n'
     printf 'BUFFERS=20\r\n'
     printf 'FILES=30\r\n'
     printf 'LASTDRIVE=Z\r\n'
@@ -72,6 +78,21 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'DIR C:\\\r\n'
     printf 'DIR D:\\\r\n'
     printf 'ECHO RAMDRIVE_DONE\r\n'
+
+    # ── VDISK.SYS test — verify another virtual disk drive via DIR ─────────
+    # VDISK.SYS creates a 64KB virtual disk at the next available drive letter
+    # after RAMDRIVE.SYS. Try D: and E: to find it.
+    printf 'ECHO ---VDISK---\r\n'
+    printf 'DIR D:\\\r\n'
+    printf 'DIR E:\\\r\n'
+    printf 'ECHO VDISK_DONE\r\n'
+
+    # ── DISPLAY.SYS test — verify code page driver loaded ────────────────
+    # DISPLAY.SYS installs as a device driver. Boot completing proves it loaded.
+    # MODE CON CP /STATUS shows prepared code pages (requires DISPLAY.SYS).
+    printf 'ECHO ---DISPLAY---\r\n'
+    printf 'MODE CON CP /STATUS\r\n'
+    printf 'ECHO DISPLAY_DONE\r\n'
 
     # ── CONFIG.SYS directives — verify via MEM output ──────────────────────
     # MEM shows total memory; BUFFERS/FILES affect memory layout.
@@ -128,12 +149,40 @@ else
     fail "RAMDRIVE.SYS (no RAM disk drive found on C: or D:)"
 fi
 
+# ── VDISK.SYS checks ───────────────────────────────────────────────────────
+echo ""
+echo "--- VDISK.SYS tests ---"
+
+if grep -q "VDISK_DONE" "$SERIAL_LOG"; then
+    ok "VDISK.SYS (boot completed with DEVICE=VDISK.SYS 64, batch continued)"
+else
+    fail "VDISK.SYS (batch hung or crashed — driver load may have failed)"
+fi
+
+# Check if DIR on D: or E: succeeded (VDISK drive after RAMDRIVE on C:)
+if grep -qi "Directory of D:\|Volume in drive D" "$SERIAL_LOG" || \
+   grep -qi "Directory of E:\|Volume in drive E" "$SERIAL_LOG"; then
+    ok "VDISK.SYS (virtual disk drive accessible via DIR)"
+else
+    fail "VDISK.SYS (no virtual disk drive found on D: or E:)"
+fi
+
+# ── DISPLAY.SYS checks ────────────────────────────────────────────────────
+echo ""
+echo "--- DISPLAY.SYS tests ---"
+
+if grep -q "DISPLAY_DONE" "$SERIAL_LOG"; then
+    ok "DISPLAY.SYS (boot completed with DEVICE=DISPLAY.SYS CON=(EGA,,1), batch continued)"
+else
+    fail "DISPLAY.SYS (batch hung or crashed — driver load may have failed)"
+fi
+
 # ── CONFIG.SYS directives checks ────────────────────────────────────────────
 echo ""
 echo "--- CONFIG.SYS directive tests ---"
 
 if grep -q "CONFIG_DONE" "$SERIAL_LOG"; then
-    ok "CONFIG.SYS directives (BUFFERS FILES LASTDRIVE BREAK STACKS FCBS INSTALL SHELL — boot completed)"
+    ok "CONFIG.SYS directives (BUFFERS FILES LASTDRIVE BREAK STACKS FCBS INSTALL SHELL COUNTRY — boot completed)"
 else
     fail "CONFIG.SYS directives (batch did not reach CONFIG_DONE marker)"
 fi
