@@ -144,14 +144,11 @@ else
     fail "SHARE /NC (batch hung or crashed after first SHARE call)"
 fi
 
-if grep -qi "SHARE already installed" "$SERIAL_LOG"; then
-    ok "SHARE /F:4096 /L:40 (second call: 'SHARE already installed' message)"
-else
-    fail "SHARE /F:4096 /L:40 (expected 'SHARE already installed' on second call)"
-fi
-
+# NOTE: SHARE writes "SHARE already installed" via ShDispMsg which uses BIOS
+# direct output, not through CTTY AUX — not capturable over serial.
+# Verify via errorlevel instead (ShDispMsg exits with AL=0FFh = errorlevel 255).
 if grep -q "SHARE_ALREADY_EL" "$SERIAL_LOG"; then
-    ok "SHARE /F:4096 /L:40 (second call: errorlevel 255 set)"
+    ok "SHARE /F:4096 /L:40 (second call: errorlevel 255 — already installed)"
 else
     fail "SHARE /F:4096 /L:40 (expected errorlevel 255 on already-installed)"
 fi
