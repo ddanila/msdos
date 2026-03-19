@@ -258,7 +258,7 @@ Items here are either interactive (require keypress) or need hardware not availa
 ### External CMD tools
 
 #### XCOPY — remaining
-- [ ] `XCOPY src dest /D:date` — ❌ blocked: XCOPY forces kvikdos-soft (KVM #GP), and SYSPARSE date parsing fails under kvikdos-soft. Needs QEMU test.
+- [ ] `XCOPY src dest /D:date` — ⚠️ investigating: empty output under kvikdos-soft (SYSPARSE date parsing suspected). Debug output added.
 - [ ] `XCOPY src dest /P` — prompt per file (interactive)
 - [ ] `XCOPY src dest /W` — wait before start (interactive)
 
