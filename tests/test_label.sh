@@ -50,7 +50,7 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
-trap 'rm -f "$SERIAL_IN" "$SERIAL_OUT" 2>/dev/null; true' EXIT
+trap 'rm -f "$SERIAL_IN" "$SERIAL_OUT" "$OUT/label-set-serial.in" "$OUT/label-set-serial.out" 2>/dev/null; true' EXIT
 
 echo "=== LABEL E2E tests (QEMU, interactive serial expect) ==="
 
@@ -163,9 +163,9 @@ else
     ok "LABEL remove (label cleared — mlabel output: '$postlabel')"
 fi
 
-# ── Test 2: LABEL B: NEWLABEL — set label via command line (non-interactive) ──
+# ── Test 2: LABEL B: — set label interactively via serial expect ──────────────
 echo ""
-echo "--- LABEL set test (non-interactive) ---"
+echo "--- LABEL set test (interactive) ---"
 
 # Build a fresh target floppy with no label
 dd if=/dev/zero bs=512 count=2880 of="$TARGET_IMG" status=none
@@ -175,31 +175,46 @@ mformat -i "$TARGET_IMG" -f 1440 ::
 prelabel2=$(mlabel -i "$TARGET_IMG" -s :: 2>/dev/null || echo "")
 echo "  Pre-test label on B: '$prelabel2'"
 
-# Build new boot image with non-interactive LABEL command
+# Build new boot image — LABEL B: with no label arg triggers interactive prompt
 BOOT_IMG2="$OUT/label-set-boot.img"
 SERIAL_LOG2="$OUT/label-set-serial.log"
+SERIAL_IN2="$OUT/label-set-serial.in"
+SERIAL_OUT2="$OUT/label-set-serial.out"
 cp "$FLOPPY" "$BOOT_IMG2"
 
 {
     printf 'CTTY AUX\r\n'
     printf 'ECHO ---LABEL-SET---\r\n'
-    printf 'LABEL B: NEWLABEL\r\n'
+    printf 'LABEL B:\r\n'
     printf 'ECHO LABEL_SET_DONE\r\n'
-    printf 'VOL B:\r\n'
-    printf 'ECHO VOL_DONE\r\n'
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$BOOT_IMG2" - ::AUTOEXEC.BAT
 
+# Set up serial FIFOs for interactive test
+rm -f "$SERIAL_IN2" "$SERIAL_OUT2"
+mkfifo "$SERIAL_IN2" "$SERIAL_OUT2"
+exec 4<>"$SERIAL_IN2"
+
 echo "Booting QEMU for LABEL set test..."
 rm -f "$SERIAL_LOG2"
-(while true; do sleep 0.5; printf '\r\n'; done) | \
 timeout 120 qemu-system-i386 \
     -display none \
     -drive if=floppy,index=0,format=raw,file="$BOOT_IMG2",cache=writethrough \
     -drive if=floppy,index=1,format=raw,file="$TARGET_IMG",cache=writethrough \
     -boot a -m 4 \
-    -serial stdio \
-    2>/dev/null | tee "$SERIAL_LOG2" > /dev/null; true
+    -serial pipe:"$OUT/label-set-serial" \
+    2>/dev/null &
+QEMU_PID2=$!
+
+# When LABEL prompts "ENTER for none", type "NEWLABEL\r" to set the label.
+# No existing label on disk, so no "Delete current volume label" prompt.
+python3 "$REPO_ROOT/tests/serial_expect.py" \
+    "$SERIAL_IN2" "$SERIAL_OUT2" "$SERIAL_LOG2" \
+    "ENTER for none"  $'NEWLABEL\\r'
+
+wait $QEMU_PID2 || true
+exec 4>&-
+rm -f "$SERIAL_IN2" "$SERIAL_OUT2"
 
 if [[ ! -f "$SERIAL_LOG2" || ! -s "$SERIAL_LOG2" ]]; then
     echo "ERROR: serial log is empty — QEMU may have failed to boot"
