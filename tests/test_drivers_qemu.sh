@@ -111,6 +111,17 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'MEM\r\n'
     printf 'ECHO CONFIG_DONE\r\n'
 
+    # ── CHCP (no args) — show current code page ────────────────────────────
+    # INT 21h/AH=66h/AL=01h returns active code page (default 437).
+    # Works without NLSFUNC — just queries the kernel.
+    printf 'ECHO ---CHCP---\r\n'
+    printf 'CHCP\r\n'
+    printf 'ECHO CHCP_DONE\r\n'
+
+    # Note: CHCP nnn (set) requires MODE CON CP PREPARE with EGA.CPI, which
+    # is not built (needs DOS-toolchain MASM). Without prepared code pages,
+    # CHCP 850 hangs in DISPLAY.SYS driver. Skipped until EGA.CPI is built.
+
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
@@ -212,6 +223,23 @@ if grep -qi "bytes total memory" "$SERIAL_LOG"; then
 else
     fail "CONFIG.SYS + MEM (expected 'bytes total memory' in MEM output)"
 fi
+
+# ── CHCP checks ──────────────────────────────────────────────────────────────
+echo ""
+echo "--- CHCP tests ---"
+
+if grep -q "CHCP_DONE" "$SERIAL_LOG"; then
+    ok "CHCP (show current code page, batch continued)"
+else
+    fail "CHCP (batch hung or crashed)"
+fi
+
+if grep -qi "Active code page.*437" "$SERIAL_LOG"; then
+    ok "CHCP (default code page is 437)"
+else
+    fail "CHCP (expected 'Active code page: 437')"
+fi
+
 
 # ── Completion check ──────────────────────────────────────────────────────────
 echo ""
