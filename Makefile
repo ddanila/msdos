@@ -332,6 +332,9 @@ test-debug-qemu: deploy
 test-edlin-b-qemu: deploy
 	bash tests/test_edlin_b_qemu.sh
 
+test-drivers-qemu: deploy
+	bash tests/test_drivers_qemu.sh
+
 # ---------------------------------------------------------------------------
 # DEPLOY — bootable 1.44MB floppy image
 # ---------------------------------------------------------------------------

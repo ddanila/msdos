@@ -163,6 +163,76 @@ else
     ok "LABEL remove (label cleared — mlabel output: '$postlabel')"
 fi
 
+# ── Test 2: LABEL B: NEWLABEL — set label via command line (non-interactive) ──
+echo ""
+echo "--- LABEL set test (non-interactive) ---"
+
+# Build a fresh target floppy with no label
+dd if=/dev/zero bs=512 count=2880 of="$TARGET_IMG" status=none
+mformat -i "$TARGET_IMG" -f 1440 ::
+
+# Verify no label before test
+prelabel2=$(mlabel -i "$TARGET_IMG" -s :: 2>/dev/null || echo "")
+echo "  Pre-test label on B: '$prelabel2'"
+
+# Build new boot image with non-interactive LABEL command
+BOOT_IMG2="$OUT/label-set-boot.img"
+SERIAL_LOG2="$OUT/label-set-serial.log"
+cp "$FLOPPY" "$BOOT_IMG2"
+
+{
+    printf 'CTTY AUX\r\n'
+    printf 'ECHO ---LABEL-SET---\r\n'
+    printf 'LABEL B: NEWLABEL\r\n'
+    printf 'ECHO LABEL_SET_DONE\r\n'
+    printf 'VOL B:\r\n'
+    printf 'ECHO VOL_DONE\r\n'
+    printf 'ECHO ===DONE===\r\n'
+} | mcopy -o -i "$BOOT_IMG2" - ::AUTOEXEC.BAT
+
+echo "Booting QEMU for LABEL set test..."
+rm -f "$SERIAL_LOG2"
+(while true; do sleep 0.5; printf '\r\n'; done) | \
+timeout 120 qemu-system-i386 \
+    -display none \
+    -drive if=floppy,index=0,format=raw,file="$BOOT_IMG2",cache=writethrough \
+    -drive if=floppy,index=1,format=raw,file="$TARGET_IMG",cache=writethrough \
+    -boot a -m 4 \
+    -serial stdio \
+    2>/dev/null | tee "$SERIAL_LOG2" > /dev/null; true
+
+if [[ ! -f "$SERIAL_LOG2" || ! -s "$SERIAL_LOG2" ]]; then
+    echo "ERROR: serial log is empty — QEMU may have failed to boot"
+    exit 1
+fi
+
+echo ""
+echo "--- LABEL set serial log checks ---"
+
+if grep -q "LABEL_SET_DONE" "$SERIAL_LOG2"; then
+    ok "LABEL B: NEWLABEL (batch continued after LABEL)"
+else
+    fail "LABEL B: NEWLABEL (batch hung or crashed)"
+fi
+
+if grep -q "===DONE===" "$SERIAL_LOG2"; then
+    ok "LABEL set: batch reached ===DONE==="
+else
+    fail "LABEL set: batch did NOT reach ===DONE==="
+fi
+
+echo ""
+echo "--- LABEL set post-QEMU image check ---"
+
+postlabel2=$(mlabel -i "$TARGET_IMG" -s :: 2>/dev/null || echo "")
+if echo "$postlabel2" | grep -qi "NEWLABEL"; then
+    ok "LABEL set (label 'NEWLABEL' written to B: — mlabel output: '$postlabel2')"
+else
+    fail "LABEL set (expected 'NEWLABEL' on B:, got: '$postlabel2')"
+fi
+
+rm -f "$BOOT_IMG2"
+
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 [[ $FAIL -eq 0 ]]

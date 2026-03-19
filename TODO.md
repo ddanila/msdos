@@ -19,7 +19,7 @@ Source-code audit identified these untested paths (all doable under kvikdos):
 ### FIND — untested paths
 
 - [ ] `FIND "str"` from stdin (no filename argument) — kvikdos stdin passthrough is unreliable for FIND (works for SORT but not FIND; timing-dependent). Blocked until kvikdos stdin handling is improved.
-- [x] Exit code via `IF ERRORLEVEL` — FIND.ASM source audit: exits 0 (always, even no match) or 2 (error). Note: full exit-code test blocked by kvikdos spawn limitation (can't run child EXEs from COMMAND.COM). IF ERRORLEVEL parsing itself is tested with default errorlevel 0.
+- [x] Exit code via `IF ERRORLEVEL` — FIND.ASM: exits 0 (always, even no match) or 2 (error). Errorlevel 2 tested in Section 6 via batch: FIND with no args triggers error, IF ERRORLEVEL 2 verified.
   - Note: FIND v4.0 does NOT set errorlevel 1 for "no match" — only 0 or 2.
 
 ### MEM — untested switches
@@ -201,7 +201,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 |------|-------|---------|------------|-------|
 | COMMAND.COM (built-ins) | ✅ | ⚠️ Section 5 binary (Linux CI only) | ⚠️ Section 7 (43 tests) | IF ERRORLEVEL, CD, PROMPT, TRUENAME, COPY+concat, COPY /A/B; DATE/TIME/PAUSE/CHCP 🚫 interactive |
 | MEM | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (3 tests: basic + /PROGRAM + /DEBUG) | MCB loops under kvikdos, uses timeout+head |
-| FIND | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (7 tests: /V /N /C multi no-match) | v4.0 flags: /V /C /N only. stdin ❌ blocked (kvikdos stdin unreliable) |
+| FIND | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (8 tests: /V /N /C multi no-match errorlevel-2) | v4.0 flags: /V /C /N only. stdin ❌ blocked (kvikdos stdin unreliable) |
 | FC | ✅ | ✅ Section 4 (own parser, works everywhere) | ✅ Section 6 (14 tests: /A /B /C /N /W /L /T /5 + nonexistent) | v4.0 flags: /A /B /C /L /LB /W /T /N /NNNN |
 | ATTRIB | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (8 tests: show +R -R +R+A -A +A /S) | v4.0 flags: +R -R +A -A /S. No +H/-H +S/-S in v4.0 |
 | COMP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (7 tests: identical/diff/hex/limit/not-found) | v4.0 has NO switches (confirmed: COMPPAR.ASM defines 0 switch operands) |
@@ -213,7 +213,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | XCOPY | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (15 tests: basic /S /S+E /V /A /M /D) | v4.0 flags: /A /D /E /M /P /S /V /W. `/P` `/W` 🚫 interactive |
 | REPLACE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (9 tests: /A /U /U-older /R /S error + content checks) | v4.0 flags: /A /P /R /S /U /W. `/P` `/W` 🚫 interactive |
 | GRAFTABL | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (4 tests: 437 850 /STATUS status) | |
-| LABEL | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (read-only); write/delete in test_label.sh | |
+| LABEL | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (read-only); set + delete in test_label.sh | |
 | ASSIGN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_assign_subst_join.sh (B=A redirect verified; clear) | |
 | SUBST | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_assign_subst_join.sh (D: create/list/delete) | |
 | JOIN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_assign_subst_join.sh (B: join/list/verify/unjoin) | |
@@ -228,15 +228,18 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | SHARE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh | |
 | NLSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh | |
 | APPEND | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_append.sh (/E /X path set/clear) | |
-| KEYB | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (KEYB US; KEYB GR,,KEYBOARD.SYS; KEYB status) | |
+| KEYB | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (KEYB US; KEYB GR,,KEYBOARD.SYS; KEYB UK,850; status) | |
 | FDISK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_fdisk.sh (/PRI:5 /EXT:10 /LOG:10 /Q; errorlevel 2; MBR+EBR verified) | |
-| PRINT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (/D:PRN install; queue status) | |
+| PRINT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (/D:PRN install; queue status; /P add; /T cancel) | |
 | FASTOPEN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (C:=50 install smoke test) | |
 | GRAPHICS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (load GRAPHICS.PRO; reload; /R reverse; /B background) | |
 | MODE | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ test_misc_qemu.sh (CON /STATUS only) | serial/parallel/console config 🚫 hardware |
 | RECOVER | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_recover.sh (file mode: keypress prompt + bytes recovered) | drive mode (destructive) skipped |
 | IFSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install + already-installed check) | |
 | FILESYS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install smoke test, after IFSFUNC) | |
+| ANSI.SYS | ✅ | n/a | ✅ test_drivers_qemu.sh (DEVICE= load, boot completes) | device driver |
+| RAMDRIVE.SYS | ✅ | n/a | ✅ test_drivers_qemu.sh (DEVICE= load 64KB, RAM disk DIR) | device driver |
+| CONFIG.SYS | n/a | n/a | ✅ test_drivers_qemu.sh (BUFFERS=20 FILES=30 LASTDRIVE=Z) | directives |
 
 **Note on /? help tests:** Section 4 uses SYSPARSE which returns "Parse Error 3" under kvikdos-soft (macOS). Tests pass under KVM (Linux CI). FC has its own parser and works everywhere.
 
@@ -364,9 +367,9 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 - [x] `FDISK 1 /Q` (no switches) — exit code 2 verified via IF ERRORLEVEL (test_fdisk.sh)
 
 #### PRINT
-- [ ] `PRINT /D:PRN file` — print to device
-- [ ] `PRINT /T` — cancel queue
-- [ ] `PRINT file /P` — add to queue
+- [x] `PRINT /D:PRN` — install print spooler (test_misc_qemu.sh)
+- [x] `PRINT file /P` — add to queue (test_misc_qemu.sh)
+- [x] `PRINT /T` — cancel queue (test_misc_qemu.sh)
 - [ ] `PRINT file /C` — remove from queue
 - [ ] `PRINT /Q:5 file` — set queue size
 
@@ -374,7 +377,8 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 - [x] `KEYB US` — load US keyboard (test_misc_qemu.sh)
 - [x] `KEYB GR,,KEYBOARD.SYS` — explicit file, non-US layout (test_misc_qemu.sh)
 - [x] `KEYB` — show current layout, verified for US and GR (test_misc_qemu.sh)
-- [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with code page and ID
+- [x] `KEYB UK,850,KEYBOARD.SYS` — with code page (test_misc_qemu.sh)
+- [ ] `KEYB UK,850,KEYBOARD.SYS /ID:166` — with /ID switch
 
 #### ASSIGN ✅ done
 - [x] `ASSIGN B=A` + `DIR B:` verify + `ASSIGN` clear (test_assign_subst_join.sh)
@@ -410,6 +414,24 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 #### RECOVER
 - [ ] `RECOVER A:file` — recover bad-sector file
 - [ ] `RECOVER A:` — recover entire disk
+
+#### LABEL — remaining
+- [x] `LABEL B:` — interactive remove (test_label.sh, serial_expect.py)
+- [x] `LABEL B: NEWLABEL` — set label via command line (test_label.sh, non-interactive)
+
+#### Device Drivers
+- [x] `DEVICE=ANSI.SYS` — load ANSI driver, boot completes (test_drivers_qemu.sh)
+- [x] `DEVICE=RAMDRIVE.SYS 64` — load RAM disk, DIR on new drive (test_drivers_qemu.sh)
+- [ ] `DEVICE=DISPLAY.SYS` — code page display driver (needed for CHCP)
+- [ ] `DEVICE=VDISK.SYS` — virtual disk
+- [ ] `DEVICE=SMARTDRV.SYS` — disk cache
+
+#### CONFIG.SYS Directives
+- [x] `BUFFERS=20` — boot completes with custom buffer count (test_drivers_qemu.sh)
+- [x] `FILES=30` — boot completes with custom file handle count (test_drivers_qemu.sh)
+- [x] `LASTDRIVE=Z` — boot completes with extended drive table (test_drivers_qemu.sh)
+- [ ] `COUNTRY=` — locale configuration
+- [ ] `SHELL=` — custom command interpreter path
 
 #### IFSFUNC
 - [ ] `IFSFUNC` — load IFS driver (smoke test)

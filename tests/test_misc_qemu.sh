@@ -154,6 +154,18 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'PRINT\r\n'
     printf 'ECHO PRINT_AGAIN_DONE\r\n'
 
+    # ── PRINT file /P — add file to print queue ──────────────────────────────
+    # /P adds the preceding filename to the queue. AUTOEXEC.BAT is on the floppy.
+    printf 'ECHO ---PRINT-P---\r\n'
+    printf 'PRINT AUTOEXEC.BAT /P\r\n'
+    printf 'ECHO PRINT_P_DONE\r\n'
+
+    # ── PRINT /T — terminate (cancel) all files in queue ──────────────────────
+    # /T cancels all pending print jobs. Prints "PRINT queue is empty".
+    printf 'ECHO ---PRINT-T---\r\n'
+    printf 'PRINT /T\r\n'
+    printf 'ECHO PRINT_T_DONE\r\n'
+
     # ── KEYB US (first call) — load US keyboard layout ────────────────────────
     # KEYBOARD.SYS copied to floppy root in test setup.
     # Installs INT 9h hook and loads US layout. Silent on success.
@@ -178,6 +190,18 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'ECHO ---KEYB-GR-STATUS---\r\n'
     printf 'KEYB\r\n'
     printf 'ECHO KEYB_GR_STATUS_DONE\r\n'
+
+    # ── KEYB UK,850,KEYBOARD.SYS — load UK layout with explicit code page ──
+    # Syntax: KEYB lang[,[codepage][,[drive:][path]file]] [/ID:nnn]
+    # Tests loading a layout with explicit code page parameter.
+    printf 'ECHO ---KEYB-UK-850---\r\n'
+    printf 'KEYB UK,850,KEYBOARD.SYS\r\n'
+    printf 'ECHO KEYB_UK_850_DONE\r\n'
+
+    # ── KEYB (no args) — verify UK is now active ──────────────────────────
+    printf 'ECHO ---KEYB-UK-STATUS---\r\n'
+    printf 'KEYB\r\n'
+    printf 'ECHO KEYB_UK_STATUS_DONE\r\n'
 
     # ── GRAPHICS /R — load with reverse printing ────────────────────────────
     # /R reverses foreground/background when printing. Installs silently.
@@ -341,6 +365,20 @@ else
     fail "PRINT (batch hung or crashed on second call)"
 fi
 
+# PRINT file /P — add file to queue
+if grep -q "PRINT_P_DONE" "$SERIAL_LOG"; then
+    ok "PRINT AUTOEXEC.BAT /P (add to queue, batch continued)"
+else
+    fail "PRINT AUTOEXEC.BAT /P (batch hung or crashed)"
+fi
+
+# PRINT /T — cancel queue
+if grep -q "PRINT_T_DONE" "$SERIAL_LOG"; then
+    ok "PRINT /T (terminate queue, batch continued)"
+else
+    fail "PRINT /T (batch hung or crashed)"
+fi
+
 # ── KEYB checks ────────────────────────────────────────────────────────────────
 echo ""
 echo "--- KEYB tests ---"
@@ -374,6 +412,19 @@ if grep -qi "Current keyboard code.*GR\|code.*GR" "$SERIAL_LOG" && grep -q "KEYB
     ok "KEYB (no args after GR: shows 'GR' as current layout)"
 else
     fail "KEYB (no args after GR: expected 'Current keyboard code' with 'GR')"
+fi
+
+# KEYB UK,850 — UK layout with explicit code page
+if grep -q "KEYB_UK_850_DONE" "$SERIAL_LOG"; then
+    ok "KEYB UK,850,KEYBOARD.SYS (loaded UK layout with code page, batch continued)"
+else
+    fail "KEYB UK,850,KEYBOARD.SYS (batch hung or crashed)"
+fi
+
+if grep -qi "Current keyboard code.*UK\|code.*UK" "$SERIAL_LOG" && grep -q "KEYB_UK_STATUS_DONE" "$SERIAL_LOG"; then
+    ok "KEYB (no args after UK,850: shows 'UK' as current layout)"
+else
+    fail "KEYB (no args after UK,850: expected 'Current keyboard code' with 'UK')"
 fi
 
 # ── GRAPHICS /R /B checks ────────────────────────────────────────────────────
