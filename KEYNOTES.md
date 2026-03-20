@@ -274,7 +274,7 @@ CONTINUE:
 - JOIN.EXE / SUBST.EXE: 1C + 2ASM + INC kernel objects (ERRTST.OBJ, SYSVAR.OBJ, CDS.OBJ, DPB.OBJ already built by `inc` target). Links MAPPER.LIB + INC/COMSUBS.LIB. LNK files reference INC objs by relative path `..\..\inc\*.OBJ`. Stays EXE.
 - CHKDSK.COM is built from `CMD/CHKDSK/` source (BUILDMSG → 9 MASM files → LINK → CONVERT). Key quirk: `CHKDISP.ASM` uses the `Msg_Services` macro which includes `CHKDSK.CL1` and `CHKDSK.CL2` — but CHKDSK.SKL has no class 1 or 2, so BUILDMSG doesn't generate them. Fix: `touch CHKDSK.CL1 CHKDSK.CL2` after BUILDMSG to create empty stubs. CHKDSK also uses `CONVERT.EXE` (not EXE2BIN).
 - FORMAT.COM is tested via `test_format.sh` — see "## FORMAT E2E Tests (QMP disk swapping)" section below.
-- FORMAT internal/OEM switches (`/BACKUP /SELECT /AUTOTEST /Z /C`) — see "## FORMAT Internal/OEM Switches" section.
+- FORMAT internal/OEM switches (`/BACKUP /SELECT /AUTOTEST /Z`) — see "## FORMAT Internal/OEM Switches" section.
 
 ## Floppy Image (deploy / verify)
 
@@ -484,7 +484,7 @@ they are intentionally omitted from the `/? ` help text.
 | `/SELECT` | yes | Called by `SELECT.EXE`. Suppresses all interactive prompts; on write-protect or not-ready errors sets `ExitStatus` errorlevel instead of displaying a message. |
 | `/AUTOTEST` | yes | Same prompt-suppression as `/SELECT` (both checked together throughout FORMAT). Used for automated/test invocations. |
 | `/Z` | yes (ShipDisk only) | Sets 1 sector/cluster in the BPB — a special geometry for the "ShipDisk" build variant. Only compiled when `ShipDisk` is defined; absent in standard builds. |
-| `/C` | **no** | Has a bit in `FORSWTCH.INC` (`SWITCH_C EQU 0008h`) and code in `MSFOR.ASM` that would skip actual formatting if set, but **no parser control block** in `FORPARSE.INC` — SYSPARSE rejects it as an unknown switch. Dead code from a switch removed before release. |
+| `/C` | removed | Was dead code — had a bit in `FORSWTCH.INC` and checks in `MSFOR.ASM`/`FORMAT.ASM` but no parser control block in `FORPARSE.INC`. SYSPARSE always rejected it. Removed in `555b065`. |
 
 ## FORMAT E2E Tests (QMP disk swapping)
 
