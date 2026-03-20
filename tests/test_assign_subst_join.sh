@@ -103,6 +103,17 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
     printf 'SUBST\r\n'
     printf 'ECHO SUBST_LIST_DONE\r\n'
 
+    # ── SUBST file I/O — COPY, TYPE, DIR through virtual drive D: ───────────
+    # Create a file on D: (= A:\SUBSTDIR), read it back, verify it also
+    # appears at the real path A:\SUBSTDIR.
+    printf 'ECHO ---SUBST-IO---\r\n'
+    printf 'COPY A:\\COMMAND.COM D:\\TEST.COM\r\n'
+    printf 'DIR D:\\\r\n'
+    printf 'TYPE D:\\TEST.COM > NUL\r\n'
+    printf 'IF EXIST D:\\TEST.COM ECHO SUBST_FILE_EXISTS\r\n'
+    printf 'IF EXIST A:\\SUBSTDIR\\TEST.COM ECHO SUBST_PASSTHRU_OK\r\n'
+    printf 'ECHO SUBST_IO_DONE\r\n'
+
     # ── SUBST D: /D — remove substitution ────────────────────────────────────
     printf 'ECHO ---SUBST-DEL---\r\n'
     printf 'SUBST D: /D\r\n'
@@ -121,9 +132,14 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
     printf 'JOIN\r\n'
     printf 'ECHO JOIN_LIST_DONE\r\n'
 
-    # ── JOIN verify — B:'s file is visible at A:\JOINDIR ────────────────────
+    # ── JOIN file I/O — DIR, TYPE, COPY through joined path ─────────────────
+    # B: contents appear at A:\JOINDIR. Verify with DIR, TYPE content,
+    # and COPY a file from joined path back to A:.
     printf 'ECHO ---JOIN-DIR---\r\n'
     printf 'DIR A:\JOINDIR\r\n'
+    printf 'TYPE A:\JOINDIR\BJOIN.TXT\r\n'
+    printf 'COPY A:\JOINDIR\BJOIN.TXT A:\BJOIN_COPY.TXT\r\n'
+    printf 'IF EXIST A:\BJOIN_COPY.TXT ECHO JOIN_COPY_OK\r\n'
     printf 'ECHO JOIN_DIR_DONE\r\n'
 
     # ── JOIN B: /D — remove join ──────────────────────────────────────────────
@@ -189,6 +205,24 @@ else
     fail "SUBST list (expected 'D: => ' in SUBST output)"
 fi
 
+if grep -q "SUBST_IO_DONE" "$SERIAL_LOG"; then
+    ok "SUBST file I/O (batch continued)"
+else
+    fail "SUBST file I/O (batch hung or crashed)"
+fi
+
+if grep -q "SUBST_FILE_EXISTS" "$SERIAL_LOG"; then
+    ok "SUBST COPY (file written to D: via COPY)"
+else
+    fail "SUBST COPY (COPY to D:\\TEST.COM failed)"
+fi
+
+if grep -q "SUBST_PASSTHRU_OK" "$SERIAL_LOG"; then
+    ok "SUBST pass-through (D:\\TEST.COM visible at A:\\SUBSTDIR\\TEST.COM)"
+else
+    fail "SUBST pass-through (file on D: not found at real path A:\\SUBSTDIR)"
+fi
+
 if grep -q "SUBST_DEL_DONE" "$SERIAL_LOG"; then
     ok "SUBST D: /D (removed silently, batch continued)"
 else
@@ -212,9 +246,21 @@ else
 fi
 
 if grep -qi "BJOIN" "$SERIAL_LOG" && grep -q "JOIN_DIR_DONE" "$SERIAL_LOG"; then
-    ok "JOIN verify (B:'s BJOIN.TXT visible at A:\\JOINDIR)"
+    ok "JOIN DIR (B:'s BJOIN.TXT visible at A:\\JOINDIR)"
 else
-    fail "JOIN verify (expected BJOIN.TXT from B: to appear under A:\\JOINDIR)"
+    fail "JOIN DIR (expected BJOIN.TXT from B: to appear under A:\\JOINDIR)"
+fi
+
+if grep -qi "JOIN_B_FILE_CONTENT" "$SERIAL_LOG"; then
+    ok "JOIN TYPE (file content read through joined path)"
+else
+    fail "JOIN TYPE (expected 'JOIN_B_FILE_CONTENT' from TYPE A:\\JOINDIR\\BJOIN.TXT)"
+fi
+
+if grep -q "JOIN_COPY_OK" "$SERIAL_LOG"; then
+    ok "JOIN COPY (file copied from joined path to A:)"
+else
+    fail "JOIN COPY (COPY from A:\\JOINDIR\\BJOIN.TXT to A: failed)"
 fi
 
 if grep -q "JOIN_DEL_DONE" "$SERIAL_LOG"; then

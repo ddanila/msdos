@@ -1,9 +1,5 @@
 # MS-DOS 4.0 Build — TODO
 
-## Remaining Test Coverage
-
-- [ ] SUBST/JOIN with actual drive operations — enhance test_assign_subst_join.sh: after `SUBST D: A:\DIR`, test file I/O on D: (DIR, COPY, TYPE); after `JOIN B: A:\JOINDIR`, access B: files through joined path. Feasible in QEMU now (no kvikdos changes needed).
-
 ## UMB Support (Upper Memory Blocks)
 
 Goal: add UMB support to our MS-DOS 4.0 fork so device drivers and TSRs can be loaded into upper memory (640K–1MB), freeing conventional memory. Backporting the MS-DOS 5.0 concept.
@@ -79,8 +75,8 @@ All commands have functional E2E tests. kvikdos handles fast tests (`run_tests.s
 | GRAFTABL | 437 850 /STATUS | run_tests.sh §6 |
 | LABEL | read-only + interactive set/delete | run_tests.sh §6, test_label.sh |
 | ASSIGN | B=A redirect + clear | test_assign_subst_join.sh |
-| SUBST | D: create/list/delete | test_assign_subst_join.sh |
-| JOIN | B: join/list/verify/unjoin | test_assign_subst_join.sh |
+| SUBST | D: create/list/delete + file I/O (COPY, DIR, TYPE, pass-through) | test_assign_subst_join.sh |
+| JOIN | B: join/list/verify/unjoin + file I/O (TYPE, COPY through joined path) | test_assign_subst_join.sh |
 | EXE2BIN | 3 tests | run_tests.sh §6, test_share_nlsfunc_exe2bin.sh |
 | CHKDSK | disk stats, /V, file alloc, /F orphan fix | test_misc_qemu.sh, test_chkdsk_fix.sh |
 | FORMAT | 12 variants: /V /S /B /F:720 /T /4 /1 /8 /C /Z /SELECT /AUTOTEST | test_format.sh |
