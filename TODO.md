@@ -229,7 +229,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | NLSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh | |
 | APPEND | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_append.sh (/E /X path set/clear /PATH:ON /PATH:OFF) | |
 | KEYB | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (KEYB US; GR,,KEYBOARD.SYS; UK,850; FR,850 /ID:189; status) | |
-| FDISK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_fdisk.sh (/PRI:5 /EXT:10 /LOG:10 /Q; errorlevel 2; MBR+EBR verified) | |
+| FDISK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_fdisk.sh (/PRI:5 /EXT:10 /LOG:10 /Q; errorlevel 2; MBR+EBR; primary-only PTM P941) | |
 | PRINT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (/D:PRN /B:512 /Q:5 /S:8 /U:1 /M:2 install; /P add; /C remove; /T cancel) | |
 | FASTOPEN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (C:=50 install; D:=20 /X expanded memory) | |
 | GRAPHICS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (load GRAPHICS.PRO; reload; /R /B /LCD /PB:STD) | |
@@ -478,11 +478,11 @@ Source-code audit of dos4-enhancements branch bug fixes and their test coverage.
 | EDLIN /B (2 fixes) | 52f514b + 61b2920 | ✅ YES — Section 6 ^Z test | |
 | FOR hang (ES corruption) | c70042b | ✅ YES — Section 7 FOR loop would timeout | |
 | SET/PROMPT hang (ES corruption) | ae75edf | ✅ YES — Section 7 stress test (10 alternating calls) | |
-| FDISK R6001 + semicolon | a5a02a9 | ⚠️ Partial — crash caught, logic edge case not | No test where extended partition absent |
+| FDISK R6001 + semicolon | a5a02a9 | ✅ YES — test_fdisk.sh boot 2: primary-only, no extended | PTM P941 guard verified |
 | COMMAND parser crash (signed cmp) | 4ed73cb | ⚠️ Indirect — most tests would fail | No test forcing transient near 0x8000 |
 | COMMAND boot crash (help in code path) | 58a0bb4 | ✅ YES — test_misc_qemu.sh COMMAND /? | |
 
 ### Regression hardening opportunities
 - [x] SET/PROMPT stress: batch with 10 alternating SET/PROMPT calls (run_tests.sh Section 7)
-- [ ] FDISK edge case: scenario where extended partition is absent, verify conditional block doesn't execute
+- [x] FDISK edge case: primary-only disk, no extended partition — second FDISK call triggers write_info() which must skip logical drive block (PTM P941). test_fdisk.sh boot 2.
 - [ ] COMMAND.COM parser boundary: test with large transient (near 0x8000) to trigger signed comparison

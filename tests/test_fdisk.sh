@@ -55,6 +55,7 @@ cp "$FLOPPY" "$BOOT_IMG"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
+# ── Batch 1: full partition sequence (primary → extended → logical) ───────────
 {
     printf 'CTTY AUX\r\n'
 
@@ -256,6 +257,133 @@ case "$log_type" in
     01|04|06) ok "EBR entry 1: logical drive type 0x$log_type (${ebr_debug:-})" ;;
     *)        fail "EBR entry 1: expected DOS type (01/04/06), got 0x${log_type:-?} (${ebr_debug:-})" ;;
 esac
+
+# ══════════════════════════════════════════════════════════════════════════════
+# Boot 2: Primary-only (no extended partition) — regression test for PTM P941
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# DISKOUT.C line 49: `if (find_partition_type(uc(EXTENDED)))` guards the block
+# that writes logical drive info. A stray semicolon (fixed in d08cd94) turned
+# this into a no-op, causing write_info() to access the extended partition table
+# with an invalid index when no extended partition existed → crash/corruption.
+#
+# This test creates ONLY a primary partition, then creates another primary on a
+# second FDISK call (which triggers write_info() to persist partition state).
+# If the guard is broken, FDISK crashes during the second call.
+
+BOOT_IMG2="$OUT/fdisk-boot2.img"
+HDD_IMG2="$OUT/fdisk-hdd2.img"
+SERIAL_LOG2="$OUT/fdisk-serial2.log"
+trap 'rm -f "$HDD_IMG" "$HDD_IMG2" 2>/dev/null; true' EXIT
+
+echo ""
+echo "=== FDISK edge case: primary-only, no extended partition (PTM P941) ==="
+
+echo "Building test image (boot 2)..."
+cp "$FLOPPY" "$BOOT_IMG2"
+
+# Batch: create primary partition, then invoke FDISK again (triggers write_info
+# on a disk with no extended partition — the exact scenario PTM P941 describes).
+{
+    printf 'CTTY AUX\r\n'
+
+    # Create a 5 MB primary partition on blank disk
+    printf 'ECHO ---FDISK_PRIONLY---\r\n'
+    printf 'FDISK 1 /PRI:5 /Q\r\n'
+    printf 'ECHO FDISK_PRIONLY_DONE\r\n'
+
+    # Second FDISK call — reads existing partition table (primary only, no
+    # extended). write_info() must skip the logical drive block. If the
+    # semicolon bug is present, this crashes with R6001 or corrupts memory.
+    printf 'ECHO ---FDISK_NOEXT---\r\n'
+    printf 'FDISK 1 /Q\r\n'
+    printf 'IF ERRORLEVEL 2 ECHO FDISK_NOEXT_EL2\r\n'
+    printf 'ECHO FDISK_NOEXT_DONE\r\n'
+
+    printf 'ECHO ===DONE2===\r\n'
+} | mcopy -o -i "$BOOT_IMG2" - ::AUTOEXEC.BAT
+
+run_qemu2() {
+    dd if=/dev/zero bs=1M count=20 of="$HDD_IMG2" status=none
+    rm -f "$SERIAL_LOG2"
+    (while true; do sleep 0.5; printf '\r\n'; done) | \
+    timeout 90 qemu-system-i386 \
+        -display none \
+        -drive if=floppy,index=0,format=raw,file="$BOOT_IMG2",cache=writethrough \
+        -drive if=ide,index=0,format=raw,file="$HDD_IMG2",cache=writethrough \
+        -boot a -m 4 \
+        -serial stdio \
+        2>/dev/null | tee "$SERIAL_LOG2" > /dev/null; true
+}
+
+echo "Booting QEMU (may take ~60s)..."
+run_qemu2
+if ! grep -q "FDISK_NOEXT_DONE" "$SERIAL_LOG2" 2>/dev/null; then
+    echo "  FDISK did not complete (crash or hang); retrying..."
+    run_qemu2
+fi
+
+echo ""
+echo "--- FDISK primary-only checks ---"
+
+# First call: create primary partition
+if grep -q "FDISK_PRIONLY_DONE" "$SERIAL_LOG2"; then
+    ok "FDISK 1 /PRI:5 /Q (primary-only disk, no extended)"
+else
+    fail "FDISK 1 /PRI:5 /Q (primary-only: batch hung or crashed)"
+fi
+
+# Second call: FDISK reads partition table with no extended partition.
+# write_info() must skip the logical drive block (DISKOUT.C line 49 guard).
+# Returns errorlevel 2 (/Q with no partition switches).
+if grep -q "FDISK_NOEXT_EL2" "$SERIAL_LOG2"; then
+    ok "FDISK 1 /Q on primary-only disk (errorlevel 2, no crash — PTM P941 guard works)"
+else
+    fail "FDISK 1 /Q on primary-only disk (expected errorlevel 2 — semicolon bug regression?)"
+fi
+
+if grep -q "FDISK_NOEXT_DONE" "$SERIAL_LOG2"; then
+    ok "FDISK primary-only: batch continued after second call"
+else
+    fail "FDISK primary-only: batch hung or crashed (write_info crash without extended partition?)"
+fi
+
+# Verify MBR: entry 1 has a primary partition, entry 2 is empty (type 0x00)
+read -r pri2_type ext2_type < <(python3 -c "
+with open('$HDD_IMG2', 'rb') as f:
+    f.seek(446)
+    e1 = f.read(16)
+    e2 = f.read(16)
+    print('{:02x} {:02x}'.format(e1[4], e2[4]))
+" 2>/dev/null)
+
+case "$pri2_type" in
+    01|04|06) ok "MBR entry 1: primary partition type 0x$pri2_type (primary-only disk)" ;;
+    *)        fail "MBR entry 1: expected DOS type (01/04/06), got 0x${pri2_type:-?}" ;;
+esac
+
+if [[ "$ext2_type" == "00" ]]; then
+    ok "MBR entry 2: type 0x00 (no extended partition — confirms primary-only scenario)"
+else
+    fail "MBR entry 2: expected type 0x00 (empty), got 0x${ext2_type:-?}"
+fi
+
+if grep -q "===DONE2===" "$SERIAL_LOG2"; then
+    ok "Batch 2 reached ===DONE2==="
+else
+    fail "Batch 2 did NOT reach ===DONE2=== (hung or crashed early)"
+    echo "--- last 20 lines of serial log 2 ---"
+    tail -20 "$SERIAL_LOG2"
+    echo "---"
+fi
+
+# Dump serial log on any failure
+if [[ $FAIL -gt 0 ]]; then
+    echo ""
+    echo "--- full serial log 2 (for debugging) ---"
+    cat "$SERIAL_LOG2" 2>/dev/null || echo "(empty)"
+    echo "--- end serial log 2 ---"
+fi
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
