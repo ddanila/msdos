@@ -66,35 +66,30 @@ All help strings were added by us in `dos4-enhancements` branch.
 - **Parser has**: Only `/1` switch defined. SYSPARSE rejects `/V` → "Invalid switch - /V"
 - **Note**: Already documented in KEYNOTES.md under "DISKCOPY / DISKCOMP Two-Drive QEMU E2E Patterns"
 - **Fix options**: (a) remove `/V` from help text (simplest), or (b) implement `/V` verify pass in `DISKCOPY.ASM`
-- [ ] Decide and fix
+- [x] Remove `/V` from DISKCOPY help (`ae73311`)
 
 #### 2. SHARE — `/NC` parsed but not in help
 - **File**: `CMD/SHARE/GSHARE2.ASM`
 - **Parser has**: `/NC` switch (`N_SW DB "/NC",0 ; /NC: INDICATES no checking required`) — used to skip network-path checking at line 1835, 1852, 2933
 - **Help shows**: Only `/F:filespace` and `/L:locks`; `/NC` is completely absent
-- **Fix**: Add `/NC  Skip network path checking` line to `SHARE_HELP_STR`
-- [ ] Add `/NC` to SHARE help text
+- [x] Add `/NC` to SHARE help text (`ae73311`)
 
 #### 3. IFSFUNC — `/NAMES:n` in help but `NAMES=n` in parser
 - **File**: `CMD/IFSFUNC/IFSINIT.ASM` (help) + `CMD/IFSFUNC/IFSPARSE.INC` (parser)
 - **Help says**: `IFSFUNC [/NAMES:n]` (switch syntax with colon)
 - **Parser has**: `DB "NAMES=",0` — a keyword (not a switch), parsed as `NAMES=n` positional keyword
-- **Fix**: Change help to `IFSFUNC [NAMES=n]` to match actual syntax; OR verify that the `NAMES=` keyword path is even used/needed (this parameter was likely never widely used)
-- [ ] Fix IFSFUNC help text
+- [x] Fix IFSFUNC help text: `[/NAMES:n]` → `[NAMES=n]` (`ae73311`)
 
 #### 4. FILESYS — `/d` lowercase in help
 - **File**: `CMD/FILESYS/FILESYS.C`
 - **Help says**: `FILESYS drive: /d` (lowercase)
 - **Parser has**: `strcpy(p_swt1.p_keyorsw,"/D"+NULL)` (uppercase)
-- **Impact**: DOS switches are case-insensitive so both work, but convention is uppercase in help text
-- **Fix**: Change `printf("FILESYS drive: /d\r\n")` → `printf("FILESYS drive: /D\r\n")`
-- [ ] Fix FILESYS help text
+- [x] Fix FILESYS help text: `/d` → `/D` (`ae73311`)
 
 #### 5. CHKDSK — dead /? help code in CHKINIT.ASM
 - **File**: `CMD/CHKDSK/CHKINIT.ASM` lines 241–271 (dead code)
 - **Issue**: An older, briefer `/? ` help block was added in `Main_Init` in `CHKINIT.ASM` (`6a147b1`). Later `CHKDSK1.ASM` was added with a more complete help block at the actual entry point `CHKDSK:` (`a450ec6`). Since `CHKDSK1.ASM:CHKDSK` is the EXE entry, it checks `/? ` first and exits — the `CHKINIT.ASM` block is never reached.
-- **Fix**: Remove the dead `/? ` check from `CHKINIT.ASM:Main_Init` (lines ~241–272)
-- [ ] Remove dead CHKDSK /? code from CHKINIT.ASM
+- [x] Remove dead CHKDSK /? code from CHKINIT.ASM (`ae73311`)
 
 ### Minor / Documentation Issues
 
