@@ -2,7 +2,7 @@
 
 A working fork of MS-DOS 4.0 that builds from source on Linux and macOS, boots in QEMU, and has full E2E test coverage — intended as a stable base for OS-level experiments.
 
-The build uses the original DOS compilers (MASM, CL, LINK) running under [kvikdos](https://github.com/pts/kvikdos) (a headless DOS emulator — KVM on Linux, software 8086 CPU on macOS).
+The build currently uses the original DOS compilers (MASM, CL, LINK) running under [kvikdos](https://github.com/pts/kvikdos) (a headless DOS emulator — KVM on Linux, software 8086 CPU on macOS). A migration to [Open Watcom V2](https://github.com/open-watcom/open-watcom-v2) (native Linux toolchain, no emulation) is in progress on the `watcom-migration` branch.
 
 ## What's here beyond the stock source
 
@@ -48,7 +48,6 @@ make test-assign-subst-join
 make test-debug-qemu
 make test-drivers-qemu
 make test-misc-qemu
-make gen-checksums   # regenerate tests/golden.sha256 (run make clean first)
 ```
 
 ## Dependencies
@@ -70,6 +69,6 @@ brew install nasm gcc make python3 qemu mtools
 - `bin/` — wrapper scripts invoking kvikdos for each DOS tool (masm, cl, link, lib, …)
 - `mk/` — per-module Makefile fragments
 - `Makefile` — GNU Makefile orchestrating the full build
-- `tests/` — all test scripts (kvikdos E2E, QEMU serial, golden checksums, /? smoke tests)
+- `tests/` — all test scripts (kvikdos E2E, QEMU serial, /? smoke tests)
 - `KEYNOTES.md` — build notes, architecture decisions, tips and tricks
 - `TODO.md` — current work in progress

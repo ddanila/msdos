@@ -3,16 +3,9 @@
 ## Workflow Rules
 - Commit after every step that succeeds, push to remote (origin/master).
 
-## Checksums (tests/golden.sha256)
+## CI Workflow
 
-**Always regenerate via `make gen-checksums`** — never compute SHA256 manually or copy hashes by hand.
-
-`make gen-checksums` runs `make all` first, then hashes the built artifacts in one atomic step.
-If you hash binaries by hand (e.g. after a manual `masm`/`link`/`convert` invocation), the result
-will differ because `make` runs `buildmsg` first, which regenerates EDLIN CL files → different
-EDLIN.OBJ → different EDLIN.COM hash.
-
-CI workflow: `make` (build), then `make test` (tests only — no rebuild). Do not rely on
+`make` (build), then `make test` (tests only — no rebuild). Do not rely on
 `make test` to build — `test` target no longer depends on `all`.
 
 ## Line Ending Rules
@@ -25,7 +18,7 @@ CI workflow: `make` (build), then `make test` (tests only — no rebuild). Do no
 
 These rules are enforced by `.gitattributes` in the MS-DOS submodule (`MS-DOS/.gitattributes`).
 Without it, git may normalize CRLF→LF on checkout, causing `buildidx` to produce a different
-`USA-MS.IDX` and breaking SHA256 checks in CI.
+`USA-MS.IDX`.
 
 ### CRLF-in-blob pitfall (perpetually "modified" MSG files)
 
@@ -301,18 +294,6 @@ CONTINUE:
 - QEMU flags: `-display none -serial file:out/serial.log`; `timeout 15` kills QEMU after output is captured.
 - Pass condition: `grep -q "MS-DOS" out/serial.log`.
 
-## Golden Checksums (tests/golden.sha256)
-
-- **Always run `make clean` before `make gen-checksums`**, otherwise `buildidx` may report
-  "not changed" and reuse a stale `USA-MS.IDX`, capturing a wrong checksum.
-- Lesson learned: the `USA-MS.IDX` checksum was captured from a pre-CRLF-conversion build,
-  causing CI to fail even though the fresh build was correct. Only fresh builds tell the truth.
-- **FC.EXE is excluded** from golden.sha256. Local builds produce `4e36dad...` while CI
-  produces `0494a906...` despite identical source and tools. Root cause unknown — likely
-  KSTRING.OBJ (the only shared INC object, used only by FC) or C runtime resolution differs
-  between environments. FC.EXE is still covered by Section 1 (file exists) and Section 4
-  (/? smoke test). Do not add FC.EXE back to golden.sha256 without resolving this.
-
 ## CI (GitHub Actions)
 
 - **Submodule pointer pitfall:** When committing changes to both the submodule and
@@ -323,20 +304,23 @@ CONTINUE:
 - Workflow: `.github/workflows/ci.yml`, runs on every push/PR to `master`.
 - Runner: `ubuntu-latest` with pre-built Docker container image (`ghcr.io/<repo>/ci:latest`).
 - KVM fix: `chmod 666 /dev/kvm` in the container.
-- Steps: grant KVM → build kvikdos → `make` → `make test` → `make deploy` → upload floppy artifact → parallel e2e jobs: `test_sys.sh`, `test_builtins.sh`, `test_help_qemu.sh` (includes EXEPACK verification).
+- Steps: grant KVM → build kvikdos → `make` → `make test` → `make deploy` → upload floppy artifact → parallel e2e jobs: `test_sys.sh`, `test_help_qemu.sh` (includes EXEPACK verification).
 - Free tier: unlimited minutes for public repos on GitHub Actions.
 - kvikdos now builds and runs on macOS via software 8086 CPU backend (XTulator).
   Linux CI uses KVM (unchanged); macOS builds use the same codebase with `#ifdef __linux__` guards.
 
 ## MS-DOS Fork Branch Strategy
 
-The MS-DOS submodule (`MS-DOS/`) has two branches:
+The MS-DOS submodule (`MS-DOS/`) has three branches:
 - `main` — minimal patches to make the source build (CRLF fixes, UTF-8, `.gitattributes`).
-  Stays close to original Microsoft source; should always produce binary-identical output.
-- `dos4-enhancements` — our additions (help strings, etc.). Branches off `main`.
+  Stays close to the original Microsoft source.
+- `dos4-enhancements` — our additions (help strings, bug fixes, etc.). Branches off `main`.
+  This is the active development branch.
+- `watcom-migration` — migration to Open Watcom V2 (native Linux toolchain). Branches off
+  `dos4-enhancements`.
 
 Workflow: develop on `dos4-enhancements`; merge upstream changes into `main` first,
-then rebase `dos4-enhancements` on top.
+then rebase `dos4-enhancements` on top. Watcom work happens on `watcom-migration`.
 
 ## Adding /? Help Strings to CMD Tools
 
