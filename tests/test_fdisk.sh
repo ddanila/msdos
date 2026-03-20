@@ -22,6 +22,24 @@
 #   - Blank 20 MB IDE hard disk image is attached as the first fixed disk.
 #   - BIOS presents the IDE disk as drive 0x80 → FDISK drive number 1.
 #
+# IMPORTANT — stdin feed and FDISK flakiness:
+#   Most QEMU tests pipe a continuous \r\n stream to stdin (serial port) to
+#   keep the DOS prompt alive and satisfy interactive prompts. However, FDISK
+#   is incompatible with this approach. The \r\n characters arrive on COM1
+#   (mapped to stdin via CTTY AUX) while FDISK initializes, and interfere
+#   with the MSC runtime or SYSPARSE command-line parser (FDPARSE.C). This
+#   manifests as intermittent "Invalid parameter" errors and R6001 null pointer
+#   crashes — the first QEMU boot attempt would almost always fail on CI.
+#
+#   Root cause: FDISK's SYSPARSE reads the command line from the PSP, but
+#   serial characters arriving during initialization corrupt parser state.
+#   The exact mechanism is timing-dependent (race between serial IRQ delivery
+#   and FDISK's init sequence), explaining the intermittent nature.
+#
+#   Fix: use `< /dev/null` instead of the \r\n feed. FDISK with /Q has no
+#   interactive prompts, so stdin is unnecessary. QEMU exits via timeout.
+#   If FDISK tests become flaky again, check whether stdin is being piped.
+#
 # Run via: make test-fdisk  (requires 'make deploy' first)
 
 set -uo pipefail
@@ -85,19 +103,13 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
-# ── Boot QEMU (with retry on crash/hang) ──────────────────────────────────────
-# FDISK has an intermittent crash under QEMU (tight conventional memory).
+# ── Boot QEMU ────────────────────────────────────────────────────────────────
+# No stdin feed (< /dev/null) — see header comment for why this matters.
 # FDISK writes to screen (INT 10h), not serial, so crash messages are NOT
-# visible in the serial log — we detect failure by missing FDISK_DONE marker.
-# Retry once if FDISK_DONE is absent (crash or hang).
+# visible in the serial log — we detect failure by missing batch markers.
 run_qemu() {
-    # Blank 20 MB HDD image for each attempt — FDISK writes a partition table.
-    # QEMU derives geometry from image size; 20 MB holds 5 MB primary + 10 MB extended.
     dd if=/dev/zero bs=1M count=20 of="$HDD_IMG" status=none
     rm -f "$SERIAL_LOG"
-    # No stdin feed — FDISK with /Q has no interactive prompts. The continuous
-    # \r\n feed was causing "Invalid parameter" + R6001 crashes by injecting
-    # characters into the serial port while FDISK initializes.
     timeout 90 qemu-system-i386 \
         -display none \
         -drive if=floppy,index=0,format=raw,file="$BOOT_IMG",cache=writethrough \
