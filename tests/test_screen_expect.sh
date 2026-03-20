@@ -68,11 +68,15 @@ fi
 
 # ── Step 3: run screen_expect ────────────────────────────────────────────────
 # Rules:
-#   1. Wait for ">" (DOS prompt) → type "VER" + Enter
-#   2. Wait for "MS-DOS" (VER output) → done (send nothing meaningful)
+#   1. Wait for date prompt → press Enter (skip)
+#   2. Wait for time prompt → press Enter (skip)
+#   3. Wait for ">" (DOS prompt) → type "VER" + Enter
+#   4. Wait for "MS-DOS" (VER output) → done (send nothing meaningful)
 echo "Running screen_expect (read video RAM, type VER)..."
 python3 "$REPO_ROOT/tests/screen_expect.py" \
     "$QMP_SOCK" "$SCREEN_LOG" \
+    'Enter new date' 'ret' \
+    'Enter new time' 'ret' \
     '>' 'v+e+r+ret' \
     'MS-DOS' 'ret'
 
@@ -96,15 +100,21 @@ else
 fi
 
 if grep -q "Rule 0: matched" "$SCREEN_LOG"; then
-    ok "Rule 0 matched (DOS prompt detected)"
+    ok "Rule 0 matched (date prompt dismissed)"
 else
-    fail "Rule 0 did not match (DOS prompt not found in video memory)"
+    fail "Rule 0 did not match (date prompt not found in video memory)"
 fi
 
-if grep -q "Rule 1: matched" "$SCREEN_LOG"; then
-    ok "Rule 1 matched (VER output detected after keystroke injection)"
+if grep -q "Rule 2: matched" "$SCREEN_LOG"; then
+    ok "Rule 2 matched (DOS prompt detected)"
 else
-    fail "Rule 1 did not match (VER output not found after typing)"
+    fail "Rule 2 did not match (DOS prompt not found in video memory)"
+fi
+
+if grep -q "Rule 3: matched" "$SCREEN_LOG"; then
+    ok "Rule 3 matched (VER output detected after keystroke injection)"
+else
+    fail "Rule 3 did not match (VER output not found after typing)"
 fi
 
 if grep -q "Final screen" "$SCREEN_LOG"; then

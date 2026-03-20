@@ -133,7 +133,7 @@ def read_screen_text(qmp: QMPConnection, tmp_path: str) -> str:
     Returns a single string: 25 lines joined by newlines, trailing
     whitespace stripped per line.
     """
-    qmp.human_cmd(f"pmemsave {VRAM_PHYS} {VRAM_SIZE} {tmp_path}")
+    qmp.human_cmd(f'pmemsave 0x{VRAM_PHYS:X} {VRAM_SIZE} "{tmp_path}"')
     try:
         with open(tmp_path, 'rb') as f:
             raw = f.read(VRAM_SIZE)
