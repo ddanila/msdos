@@ -105,15 +105,17 @@ run_qemu() {
         2>/dev/null | tee "$SERIAL_LOG" > /dev/null; true
 }
 
+# FDISK intermittently crashes under QEMU with tight conventional memory.
+# Retry up to 3 times to tolerate this flakiness.
 echo "Booting QEMU (may take ~60s)..."
-run_qemu
-if ! grep -q "FDISK_LOG_DONE" "$SERIAL_LOG" 2>/dev/null; then
-    echo "  FDISK did not complete all steps (crash or hang); retrying..."
-    echo "  --- attempt 1 serial log ---"
-    cat "$SERIAL_LOG" 2>/dev/null || echo "  (empty)"
-    echo "  ---"
+for attempt in 1 2 3; do
     run_qemu
-fi
+    if grep -q "FDISK_LOG_DONE" "$SERIAL_LOG" 2>/dev/null; then
+        break
+    fi
+    echo "  FDISK did not complete all steps (attempt $attempt/3, crash or hang); retrying..."
+    [[ $attempt -eq 1 ]] && { echo "  --- attempt 1 serial log ---"; cat "$SERIAL_LOG" 2>/dev/null || echo "  (empty)"; echo "  ---"; }
+done
 
 if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
     echo "ERROR: serial log is empty — QEMU may have failed to boot"
@@ -317,11 +319,13 @@ run_qemu2() {
 }
 
 echo "Booting QEMU (may take ~60s)..."
-run_qemu2
-if ! grep -q "FDISK_NOEXT_DONE" "$SERIAL_LOG2" 2>/dev/null; then
-    echo "  FDISK did not complete (crash or hang); retrying..."
+for attempt in 1 2 3; do
     run_qemu2
-fi
+    if grep -q "FDISK_NOEXT_DONE" "$SERIAL_LOG2" 2>/dev/null; then
+        break
+    fi
+    echo "  FDISK did not complete (attempt $attempt/3, crash or hang); retrying..."
+done
 
 echo ""
 echo "--- FDISK primary-only checks ---"
