@@ -118,9 +118,13 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'CHCP\r\n'
     printf 'ECHO CHCP_DONE\r\n'
 
-    # Note: CHCP nnn (set) requires MODE CON CP PREPARE with EGA.CPI, which
-    # is not built (needs DOS-toolchain MASM). Without prepared code pages,
-    # CHCP 850 hangs in DISPLAY.SYS driver. Skipped until EGA.CPI is built.
+    # ── CHCP 850 (set code page — error path) ───────────────────────────────
+    # CHCP nnn requires NLSFUNC to be loaded. Without NLSFUNC, CHCP should
+    # print an error and exit (before reaching DISPLAY.SYS, avoiding the hang
+    # that occurs when code pages are not prepared with MODE CON CP PREPARE).
+    printf 'ECHO ---CHCP-SET---\r\n'
+    printf 'CHCP 850\r\n'
+    printf 'ECHO CHCP_SET_DONE\r\n'
 
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
@@ -240,6 +244,19 @@ else
     fail "CHCP (expected 'Active code page: 437')"
 fi
 
+# CHCP 850 — set code page (error path: NLSFUNC not loaded)
+if grep -q "CHCP_SET_DONE" "$SERIAL_LOG"; then
+    ok "CHCP 850 (batch continued — didn't hang)"
+else
+    fail "CHCP 850 (batch hung or crashed)"
+fi
+
+# Without NLSFUNC, CHCP should report an error (not silently succeed)
+if sed -n '/---CHCP-SET---/,/CHCP_SET_DONE/p' "$SERIAL_LOG" | grep -qi "NLSFUNC\|not installed\|Invalid\|error\|not valid\|not prepared"; then
+    ok "CHCP 850 (error reported — NLSFUNC not loaded or code page not prepared)"
+else
+    fail "CHCP 850 (expected error message about NLSFUNC or code page)"
+fi
 
 # ── Completion check ──────────────────────────────────────────────────────────
 echo ""

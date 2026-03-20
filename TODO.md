@@ -18,7 +18,7 @@ Source-code audit identified these untested paths (all doable under kvikdos):
 
 ### FIND — untested paths
 
-- [ ] `FIND "str"` from stdin (no filename argument) — kvikdos stdin passthrough is unreliable for FIND (works for SORT but not FIND; timing-dependent). Blocked until kvikdos stdin handling is improved.
+- [x] `FIND "str"` from stdin (pipe) — `ECHO Hello World | FIND "Hello"` via QEMU (test_misc_qemu.sh). Note: DOS pipe corrupts COMMAND.COM handles after `cmd1 | cmd2` ("Invalid handle" on next ECHO), but FIND output is correct.
 - [x] Exit code via `IF ERRORLEVEL` — FIND.ASM: exits 0 (always, even no match) or 2 (error). Errorlevel 2 tested in Section 6 via batch: FIND with no args triggers error, IF ERRORLEVEL 2 verified.
   - Note: FIND v4.0 does NOT set errorlevel 1 for "no match" — only 0 or 2.
 
@@ -53,7 +53,7 @@ Source-code audit identified these untested paths (all doable under kvikdos):
 | TRUENAME functional | COMMAND.COM | Low | ✅ done |
 | COPY concatenation (`a+b`) | COMMAND.COM | Low | ✅ done (batch; macOS blocked) |
 | COPY /A /B | COMMAND.COM | Low | ✅ done (batch; macOS blocked) |
-| FIND from stdin | FIND | Low | ❌ blocked (kvikdos stdin unreliable) |
+| FIND from stdin | FIND | Low | ✅ done (QEMU pipe: ECHO \| FIND in test_misc_qemu.sh) |
 | FIND exit code via ERRORLEVEL | FIND | Low | ✅ done (batch; macOS blocked) |
 | MEM /PROGRAM | MEM | Low | ✅ done |
 | MEM /DEBUG | MEM | Low | ✅ done |
@@ -201,7 +201,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 |------|-------|---------|------------|-------|
 | COMMAND.COM (built-ins) | ✅ | ⚠️ Section 5 binary (Linux CI only) | ⚠️ Section 7 (48 tests) | IF ERRORLEVEL, CD, PROMPT, TRUENAME, COPY+concat, COPY /A/B, SET/PROMPT stress, PAUSE, DATE, TIME (piped stdin), parser boundary (jae); COMMAND /? in test_misc_qemu.sh; CHCP show in test_drivers_qemu.sh; CHCP nnn needs EGA.CPI |
 | MEM | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (3 tests: basic + /PROGRAM + /DEBUG) | MCB loops under kvikdos, uses timeout+head |
-| FIND | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (8 tests: /V /N /C multi no-match errorlevel-2) | v4.0 flags: /V /C /N only. stdin ❌ blocked (kvikdos stdin unreliable) |
+| FIND | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (8 tests: /V /N /C multi no-match errorlevel-2) + test_misc_qemu.sh (stdin pipe) | v4.0 flags: /V /C /N only |
 | FC | ✅ | ✅ Section 4 (own parser, works everywhere) | ✅ Section 6 (15 tests: /A /B /C /N /W /L /LB /T /5 + nonexistent) | v4.0 flags: /A /B /C /L /LB /W /T /N /NNNN |
 | ATTRIB | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (8 tests: show +R -R +R+A -A +A /S) | v4.0 flags: +R -R +A -A /S. No +H/-H +S/-S in v4.0 |
 | COMP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (7 tests: identical/diff/hex/limit/not-found) | v4.0 has NO switches (confirmed: COMPPAR.ASM defines 0 switch operands) |
@@ -233,7 +233,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | PRINT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (/D:PRN /B:512 /Q:5 /S:8 /U:1 /M:2 install; /P add; /C remove; /T cancel) | |
 | FASTOPEN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (C:=50 install; D:=20 /X expanded memory) | |
 | GRAPHICS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (load GRAPHICS.PRO; reload; /R /B /LCD /PB:STD) | |
-| MODE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (CON /STATUS, COLS=80 LINES=25, RATE=30 DELAY=1) | COM/LPT 🚫 hardware |
+| MODE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (CON /STATUS, COLS=80 LINES=25, RATE=30 DELAY=1, COM1: 9600, LPT1: 80) | |
 | RECOVER | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_recover.sh (file mode: keypress prompt + bytes recovered) | v4.0 is file-mode only (no drive-mode in source) |
 | IFSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install + already-installed) | |
 | FILESYS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install after IFSFUNC) | |
@@ -249,34 +249,35 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 ## E2E Tests — Remaining Per-Command Coverage
 
 **Kvikdos-testable gaps are tracked in the PREREQUISITE section above.**
-Items here are either interactive (require keypress) or need hardware not available in kvikdos.
+Items here are interactive or need hardware emulation. Most are **now feasible via QEMU**
+(serial_expect.py for Y/N prompts, CTTY AUX for stdin, INT 14h/17h for COM/LPT).
 
 ### COMMAND.COM built-ins — remaining (interactive / needs special setup)
 
 | Command | Remaining options |
 |---------|-------------------|
-| DIR | `/P` (pause/page — interactive) |
+| DIR | ~~`/P`~~ ✅ done (QEMU serial `\r\n` feed advances pages; test_misc_qemu.sh) |
 | DATE | ~~show/set~~ ✅ done (piped empty line via stdin, run_tests.sh Section 7) |
 | TIME | ~~show/set~~ ✅ done (piped empty line via stdin, run_tests.sh Section 7) |
 | PAUSE | ~~no-arg~~ ✅ done (piped keystroke via stdin, run_tests.sh Section 7) |
-| CHCP | `CHCP nnn` (set — needs EGA.CPI built; show tested in test_drivers_qemu.sh) |
+| CHCP | ~~`CHCP nnn`~~ ⚠️ error path tested (CHCP 850 → "NLSFUNC not installed"; test_drivers_qemu.sh). Full set needs EGA.CPI (MASM toolchain). Show ✅ done. |
 
 ### External CMD tools
 
 #### XCOPY — remaining
 - [x] `XCOPY src dest /D:date` — required INT 21h/AH=2Bh (Set Date) stub in kvikdos; SYSPARSE calls it to validate dates. Section 6, kvikdos.
-- [ ] `XCOPY src dest /P` — prompt per file (Y/N via SYSDISPMSG not received by kvikdos piped stdin)
+- [ ] `XCOPY src dest /P` — prompt per file. **QEMU feasible:** uses INT 21h AH=01h (keyboard input with echo) via SYSDISPMSG; serial_expect can match filename prompt and send `Y` per file
 - [x] `XCOPY src dest /W` — wait before start (piped keystroke, run_tests.sh Section 6)
 
 #### REPLACE — remaining (interactive; non-interactive flags tracked in PREREQUISITE above)
-- [ ] `REPLACE src dest /P` — prompt per file (Y/N via SYSDISPMSG not received by kvikdos piped stdin)
+- [ ] `REPLACE src dest /P` — prompt per file. **QEMU feasible:** same SYSDISPMSG mechanism as XCOPY /P; prompt is "Replace %1? (Y/N)"; serial_expect can respond
 - [x] `REPLACE src dest /W` — wait before start (piped keystroke, run_tests.sh Section 6)
 
 #### BACKUP — remaining
 - [x] `BACKUP A:... B: /F` — format target if needed (test_backup_restore.sh)
 
 #### RESTORE — remaining
-- [ ] `RESTORE A: C: /P` — prompt on conflicts (interactive)
+- [ ] `RESTORE A: C: /P` — prompt on conflicts. **QEMU feasible:** uses INT 21h AX=6523h Y/N check via SYSDISPMSG; prompts "file is read-only" or "file was changed"; serial_expect can respond `Y\r`
 
 #### EDLIN — /B bug (pre-existing in MS-DOS 4.0 source)
 - [x] `EDLIN file /B` — binary (ignore ^Z) — kvikdos Section 6 (~~test_edlin_b_qemu.sh~~ **Deleted**)
@@ -410,8 +411,8 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 
 #### MODE
 - [x] `MODE CON /STATUS` — show console status (test_misc_qemu.sh)
-- [ ] `MODE COM1: 9600,N,8,1` — configure serial (🚫 hardware-dependent)
-- [ ] `MODE LPT1: 80,66` — configure parallel (🚫 hardware-dependent)
+- [x] `MODE COM1: 9600,N,8,1` — configure serial via INT 14h. QEMU 16550 UART. Output: `COM1: 9600,N,8,1,-` (test_misc_qemu.sh)
+- [x] `MODE LPT1: 80,6` — configure parallel via INT 17h. Output: `LPT1: set for 80` (test_misc_qemu.sh)
 - [x] `MODE CON COLS=80 LINES=25` — configure console (test_misc_qemu.sh)
 - [x] `MODE CON RATE=30 DELAY=1` — typematic rate (test_misc_qemu.sh)
 

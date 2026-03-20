@@ -276,6 +276,36 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'GRAPHICS /PB:STD\r\n'
     printf 'ECHO GRAPHICS_PB_DONE\r\n'
 
+    # ── MODE COM1: — configure serial port ────────────────────────────────────
+    # Uses INT 14h (BIOS serial). QEMU emulates 16550 UART.
+    # Success output: "COM1: 9600,N,8,1,-"
+    printf 'ECHO ---MODE-COM---\r\n'
+    printf 'MODE COM1: 9600,N,8,1\r\n'
+    printf 'ECHO MODE_COM_DONE\r\n'
+
+    # ── MODE LPT1: — configure parallel port ────────────────────────────────
+    # Uses INT 17h (BIOS printer). QEMU has parallel port emulation.
+    # Success output: "LPT1: set for 80" + "Printer lines per inch set"
+    printf 'ECHO ---MODE-LPT---\r\n'
+    printf 'MODE LPT1: 80,6\r\n'
+    printf 'ECHO MODE_LPT_DONE\r\n'
+
+    # ── FIND from stdin (pipe) — ECHO | FIND ────────────────────────────────
+    # FIND reads handle 0 (stdin) via INT 21h AH=3Fh. Under QEMU with CTTY AUX,
+    # stdin works through the serial port. Pipe via DOS shell handles it.
+    # Note: DOS pipe via COMMAND.COM corrupts handles after cmd1 | cmd2,
+    # causing "Invalid handle" on the next ECHO. The FIND output itself works.
+    printf 'ECHO ---FIND-STDIN---\r\n'
+    printf 'ECHO Hello World | FIND "Hello"\r\n'
+    printf 'REM FIND_STDIN end marker not used (DOS pipe corrupts handles)\r\n'
+
+    # ── DIR /P — paginated directory listing ─────────────────────────────────
+    # DIR /P pauses after each screenful (INT 21h AH=01h, waits for any key).
+    # The continuous \r\n serial feed advances past the pause prompts.
+    printf 'ECHO ---DIR-P---\r\n'
+    printf 'DIR /P\r\n'
+    printf 'ECHO DIR_P_DONE\r\n'
+
     # ── COMMAND /? — help text (regression for boot-crash fix 58a0bb4) ────────
     # COMMAND /? prints help and exits. Verifies the /? code path doesn't crash.
     printf 'ECHO ---COMMAND-HELP---\r\n'
@@ -565,6 +595,64 @@ if grep -q "GRAPHICS_PB_DONE" "$SERIAL_LOG"; then
     ok "GRAPHICS /PB:STD (loaded with explicit printbox ID, batch continued)"
 else
     fail "GRAPHICS /PB:STD (batch hung or crashed)"
+fi
+
+# ── MODE COM1 checks ──────────────────────────────────────────────────────────
+echo ""
+echo "--- MODE COM/LPT tests ---"
+
+if grep -q "MODE_COM_DONE" "$SERIAL_LOG"; then
+    ok "MODE COM1: 9600,N,8,1 (batch continued after serial port config)"
+else
+    fail "MODE COM1: 9600,N,8,1 (batch hung or crashed)"
+fi
+
+if grep -qi "COM1.*9600" "$SERIAL_LOG"; then
+    ok "MODE COM1: (success output confirms 9600 baud)"
+else
+    fail "MODE COM1: (expected 'COM1: 9600,...' in output)"
+fi
+
+# ── MODE LPT1 checks ─────────────────────────────────────────────────────────
+if grep -q "MODE_LPT_DONE" "$SERIAL_LOG"; then
+    ok "MODE LPT1: 80,6 (batch continued after printer config)"
+else
+    fail "MODE LPT1: 80,6 (batch hung or crashed)"
+fi
+
+if grep -qi "LPT1.*set for 80\|set for 80" "$SERIAL_LOG"; then
+    ok "MODE LPT1: (success output: 'set for 80')"
+else
+    fail "MODE LPT1: (expected 'LPT1: set for 80' in output)"
+fi
+
+# ── FIND stdin checks ────────────────────────────────────────────────────────
+echo ""
+echo "--- FIND stdin tests ---"
+
+# FIND output should show the matched line "Hello World".
+# Note: DOS pipe (ECHO | FIND) corrupts COMMAND.COM's handle table, so the
+# ECHO after the pipe gets "Invalid handle". We verify via output content only.
+if sed -n '/---FIND-STDIN---/,/---DIR-P---/p' "$SERIAL_LOG" | grep -qi "Hello World"; then
+    ok "FIND from stdin (ECHO | FIND matched 'Hello World')"
+else
+    fail "FIND from stdin (expected 'Hello World' in FIND output)"
+fi
+
+# ── DIR /P checks ────────────────────────────────────────────────────────────
+echo ""
+echo "--- DIR /P tests ---"
+
+if grep -q "DIR_P_DONE" "$SERIAL_LOG"; then
+    ok "DIR /P (paginated listing completed, batch continued)"
+else
+    fail "DIR /P (batch hung — pagination pause may not have been dismissed)"
+fi
+
+if sed -n '/---DIR-P---/,/DIR_P_DONE/p' "$SERIAL_LOG" | grep -qi "COMMAND.*COM\|Directory of"; then
+    ok "DIR /P (directory listing contains files)"
+else
+    fail "DIR /P (expected file listing in DIR /P output)"
 fi
 
 # ── COMMAND /? checks ─────────────────────────────────────────────────────────
