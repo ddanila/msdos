@@ -218,7 +218,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | SUBST | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_assign_subst_join.sh (D: create/list/delete) | |
 | JOIN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_assign_subst_join.sh (B: join/list/verify/unjoin) | |
 | EXE2BIN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (3 tests) + test_share_nlsfunc_exe2bin.sh | |
-| CHKDSK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (disk stats, /V file listing, file alloc check) | |
+| CHKDSK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (disk stats, /V, file alloc) + test_chkdsk_fix.sh (/F: FAT orphan fix, Y/N prompt, FILE0000.CHK recovery) | |
 | FORMAT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_format.sh (8 variants: geometry/BPB/label) | |
 | SYS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_sys.sh (boot verification) | |
 | DISKCOPY | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_diskcomp_diskcopy.sh (/1 single-sided, /V parse error) | |
@@ -418,7 +418,7 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 #### CHKDSK — remaining
 - [x] `CHKDSK` — disk stats (test_misc_qemu.sh)
 - [x] `CHKDSK /V` — verbose file listing (test_misc_qemu.sh)
-- [ ] `CHKDSK /F` — fix errors (interactive on real errors; needs corrupt disk image)
+- [x] `CHKDSK /F` — fix errors: FAT12 orphan cluster chain, interactive Y/N prompt via serial_expect (test_chkdsk_fix.sh)
 
 #### RECOVER
 - [x] `RECOVER A:TESTFILE.TXT` — file-mode recovery (test_recover.sh)

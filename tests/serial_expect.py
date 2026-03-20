@@ -77,6 +77,9 @@ def main():
                 if pat in buf:
                     fin.write(resp)
                     fin.flush()
+                    # Clear buffer after match so the same text doesn't
+                    # immediately trigger a subsequent rule with the same pattern.
+                    buf.clear()
                     idx += 1
     finally:
         fin.close()

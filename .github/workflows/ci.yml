@@ -411,3 +411,28 @@ jobs:
 
       - name: DEBUG G (execute) e2e test
         run: bash tests/test_debug_qemu.sh
+
+  e2e-chkdsk-fix:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}/ci:latest
+      options: --device /dev/kvm
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repo with submodules
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Grant KVM access
+        run: chmod 666 /dev/kvm
+
+      - name: Download floppy image
+        uses: actions/download-artifact@v7
+        with:
+          name: floppy
+
+      - name: CHKDSK /F (fix errors) e2e test
+        run: bash tests/test_chkdsk_fix.sh
