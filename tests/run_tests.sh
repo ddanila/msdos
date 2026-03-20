@@ -1837,6 +1837,20 @@ else
 fi
 rm -f "$SRC/CMD/COMMAND/KVASCII.TXT" "$SRC/CMD/COMMAND/KVAOUT.TXT"
 
+# -- Parser signed comparison regression (commit 4ed73cb) --
+# PARSE2.ASM:281: argbuf overflow check uses cmp DI, 0x80BD (>= 0x8000).
+# Original code used jge (signed) — treats 0x80BD as negative, always overflows.
+# Fix: jae (unsigned). This test verifies VER works (parser must succeed).
+# If the bug is reintroduced, every command fails with "Bad command or file name".
+printf '@ECHO OFF\r\nVER\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -qi "MS-DOS\|Version"; then
+    ok "COMMAND.COM parser boundary (argbuf >= 0x8000, jae unsigned compare)"
+else
+    fail "COMMAND.COM parser boundary (VER failed — jge signed comparison regression?)"
+fi
+
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

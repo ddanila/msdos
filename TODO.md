@@ -199,7 +199,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 
 | Tool | Build | /? help | Functional | Notes |
 |------|-------|---------|------------|-------|
-| COMMAND.COM (built-ins) | ✅ | ⚠️ Section 5 binary (Linux CI only) | ⚠️ Section 7 (47 tests) | IF ERRORLEVEL, CD, PROMPT, TRUENAME, COPY+concat, COPY /A/B, SET/PROMPT stress, PAUSE, DATE, TIME (piped stdin); COMMAND /? in test_misc_qemu.sh; CHCP show in test_drivers_qemu.sh; CHCP nnn needs EGA.CPI |
+| COMMAND.COM (built-ins) | ✅ | ⚠️ Section 5 binary (Linux CI only) | ⚠️ Section 7 (48 tests) | IF ERRORLEVEL, CD, PROMPT, TRUENAME, COPY+concat, COPY /A/B, SET/PROMPT stress, PAUSE, DATE, TIME (piped stdin), parser boundary (jae); COMMAND /? in test_misc_qemu.sh; CHCP show in test_drivers_qemu.sh; CHCP nnn needs EGA.CPI |
 | MEM | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (3 tests: basic + /PROGRAM + /DEBUG) | MCB loops under kvikdos, uses timeout+head |
 | FIND | ✅ | ⚠️ Section 4 (Linux CI only) | ⚠️ Section 6 (8 tests: /V /N /C multi no-match errorlevel-2) | v4.0 flags: /V /C /N only. stdin ❌ blocked (kvikdos stdin unreliable) |
 | FC | ✅ | ✅ Section 4 (own parser, works everywhere) | ✅ Section 6 (15 tests: /A /B /C /N /W /L /LB /T /5 + nonexistent) | v4.0 flags: /A /B /C /L /LB /W /T /N /NNNN |
@@ -479,10 +479,10 @@ Source-code audit of dos4-enhancements branch bug fixes and their test coverage.
 | FOR hang (ES corruption) | c70042b | ✅ YES — Section 7 FOR loop would timeout | |
 | SET/PROMPT hang (ES corruption) | ae75edf | ✅ YES — Section 7 stress test (10 alternating calls) | |
 | FDISK R6001 + semicolon | a5a02a9 | ✅ YES — test_fdisk.sh boot 2: primary-only, no extended | PTM P941 guard verified |
-| COMMAND parser crash (signed cmp) | 4ed73cb | ⚠️ Indirect — most tests would fail | No test forcing transient near 0x8000 |
+| COMMAND parser crash (signed cmp) | 4ed73cb | ✅ YES — run_tests.sh Section 7: VER with argbuf at 0x80BD | |
 | COMMAND boot crash (help in code path) | 58a0bb4 | ✅ YES — test_misc_qemu.sh COMMAND /? | |
 
 ### Regression hardening opportunities
 - [x] SET/PROMPT stress: batch with 10 alternating SET/PROMPT calls (run_tests.sh Section 7)
 - [x] FDISK edge case: primary-only disk, no extended partition — second FDISK call triggers write_info() which must skip logical drive block (PTM P941). test_fdisk.sh boot 2.
-- [ ] COMMAND.COM parser boundary: test with large transient (near 0x8000) to trigger signed comparison
+- [x] COMMAND.COM parser boundary: VER test catches jge/jae regression (argbuf at 0x80BD, run_tests.sh Section 7). TDD verified: patching 0x73→0x7D silences all commands.
