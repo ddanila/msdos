@@ -27,7 +27,7 @@ CFLAGS   := -AS -Os -Zp
 # Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy run-boot test-sys test-help-qemu test-misc-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-b-qemu test-chkdsk-fix
+.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy run-boot test-sys test-help-qemu test-misc-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-b-qemu test-chkdsk-fix test-prompt-yesno
 
 # Build kvikdos-soft (software CPU) if /dev/kvm is unavailable.
 # dos-run automatically selects the right binary at runtime.
@@ -334,6 +334,9 @@ test-edlin-b-qemu: deploy
 
 test-chkdsk-fix: deploy
 	bash tests/test_chkdsk_fix.sh
+
+test-prompt-yesno: deploy
+	bash tests/test_prompt_yesno.sh
 
 test-drivers-qemu: deploy
 	bash tests/test_drivers_qemu.sh

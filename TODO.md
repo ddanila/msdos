@@ -210,8 +210,8 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | MORE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (3 tests: stdin file from-file) | v4.0: no switches (filter utility) |
 | DEBUG | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (15 tests: R/E/D/F/H/C/M/S/A/U/N/W/L) + test_debug_qemu.sh (G execute) | |
 | EDLIN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (18 tests: open/new/insert/del/edit/copy/move/search/replace/transfer/page/write + /B) | |
-| XCOPY | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (16 tests: basic /S /S+E /V /A /M /D /W) | v4.0 flags: /A /D /E /M /P /S /V /W. `/P` 🚫 kvikdos SYSDISPMSG Y/N |
-| REPLACE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (10 tests: /A /U /U-older /R /S /W error + content checks) | v4.0 flags: /A /P /R /S /U /W. `/P` 🚫 kvikdos SYSDISPMSG Y/N |
+| XCOPY | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (16 tests: basic /S /S+E /V /A /M /D /W) + test_prompt_yesno.sh (/P) | v4.0 flags: /A /D /E /M /P /S /V /W — all tested |
+| REPLACE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (10 tests: /A /U /U-older /R /S /W error + content) + test_prompt_yesno.sh (/P) | v4.0 flags: /A /P /R /S /U /W — all tested |
 | GRAFTABL | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (4 tests: 437 850 /STATUS status) | |
 | LABEL | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (read-only); set + delete in test_label.sh | |
 | ASSIGN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_assign_subst_join.sh (B=A redirect verified; clear) | |
@@ -224,7 +224,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | DISKCOPY | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_diskcomp_diskcopy.sh (/1 single-sided, /V parse error) | |
 | DISKCOMP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_diskcomp_diskcopy.sh (/1 single-sided, /8 sectors) | |
 | BACKUP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_backup_restore.sh (/S /M /A /F /D /T /L) | |
-| RESTORE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_backup_restore.sh (/S /N /M /B /A /E /L) | `/P` 🚫 interactive |
+| RESTORE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_backup_restore.sh (/S /N /M /B /A /E /L) + test_prompt_yesno.sh (/P) | all tested |
 | SHARE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh (/F /L /NC) | |
 | NLSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_share_nlsfunc_exe2bin.sh | |
 | APPEND | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_append.sh (/E /X path set/clear /PATH:ON /PATH:OFF) | |
@@ -266,18 +266,18 @@ Items here are interactive or need hardware emulation. Most are **now feasible v
 
 #### XCOPY — remaining
 - [x] `XCOPY src dest /D:date` — required INT 21h/AH=2Bh (Set Date) stub in kvikdos; SYSPARSE calls it to validate dates. Section 6, kvikdos.
-- [ ] `XCOPY src dest /P` — prompt per file. **QEMU feasible:** uses INT 21h AH=01h (keyboard input with echo) via SYSDISPMSG; serial_expect can match filename prompt and send `Y` per file
+- [x] `XCOPY src dest /P` — prompt per file (Y/N via SYSDISPMSG). serial_expect responds `Y\r` per file (test_prompt_yesno.sh)
 - [x] `XCOPY src dest /W` — wait before start (piped keystroke, run_tests.sh Section 6)
 
 #### REPLACE — remaining (interactive; non-interactive flags tracked in PREREQUISITE above)
-- [ ] `REPLACE src dest /P` — prompt per file. **QEMU feasible:** same SYSDISPMSG mechanism as XCOPY /P; prompt is "Replace %1? (Y/N)"; serial_expect can respond
+- [x] `REPLACE src dest /P` — prompt per file ("Replace %1? (Y/N)"). serial_expect responds `Y\r` (test_prompt_yesno.sh)
 - [x] `REPLACE src dest /W` — wait before start (piped keystroke, run_tests.sh Section 6)
 
 #### BACKUP — remaining
 - [x] `BACKUP A:... B: /F` — format target if needed (test_backup_restore.sh)
 
 #### RESTORE — remaining
-- [ ] `RESTORE A: C: /P` — prompt on conflicts. **QEMU feasible:** uses INT 21h AX=6523h Y/N check via SYSDISPMSG; prompts "file is read-only" or "file was changed"; serial_expect can respond `Y\r`
+- [x] `RESTORE A: C: /P` — prompt on conflicts ("Replace the file (Y/N)?"). serial_expect responds `Y\r` after file modification (test_prompt_yesno.sh)
 
 #### EDLIN — /B bug (pre-existing in MS-DOS 4.0 source)
 - [x] `EDLIN file /B` — binary (ignore ^Z) — kvikdos Section 6 (~~test_edlin_b_qemu.sh~~ **Deleted**)
