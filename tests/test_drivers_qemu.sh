@@ -118,13 +118,21 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'CHCP\r\n'
     printf 'ECHO CHCP_DONE\r\n'
 
-    # ── CHCP 850 (set code page — error path) ───────────────────────────────
-    # CHCP nnn requires NLSFUNC to be loaded. Without NLSFUNC, CHCP should
-    # print an error and exit (before reaching DISPLAY.SYS, avoiding the hang
-    # that occurs when code pages are not prepared with MODE CON CP PREPARE).
+    # ── Code page prepare + select (NLSFUNC + EGA.CPI + MODE SELECT) ───────
+    # Full NLS path: install NLSFUNC, prepare CP 850 from EGA.CPI,
+    # select it via MODE (not CHCP — CHCP triggers DISPLAY.SYS console
+    # reprogramming which hangs under -display none / CTTY AUX).
     printf 'ECHO ---CHCP-SET---\r\n'
-    printf 'CHCP 850\r\n'
+    printf 'NLSFUNC\r\n'
+    printf 'MODE CON CP PREPARE=((850) A:\\EGA.CPI)\r\n'
+    printf 'MODE CON CP SELECT=850\r\n'
     printf 'ECHO CHCP_SET_DONE\r\n'
+
+    # ── Verify code page 850 is active ───────────────────────────────────────
+    printf 'ECHO ---CHCP-VERIFY---\r\n'
+    printf 'MODE CON CP /STATUS\r\n'
+    printf 'CHCP\r\n'
+    printf 'ECHO CHCP_VERIFY_DONE\r\n'
 
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
@@ -244,18 +252,38 @@ else
     fail "CHCP (expected 'Active code page: 437')"
 fi
 
-# CHCP 850 — set code page (error path: NLSFUNC not loaded)
+# Code page prepare + select (NLSFUNC + EGA.CPI + MODE SELECT=850)
 if grep -q "CHCP_SET_DONE" "$SERIAL_LOG"; then
-    ok "CHCP 850 (batch continued — didn't hang)"
+    ok "Code page set (batch continued — didn't hang)"
 else
-    fail "CHCP 850 (batch hung or crashed)"
+    fail "Code page set (batch hung or crashed)"
 fi
 
-# Without NLSFUNC, CHCP should report an error (not silently succeed)
-if sed -n '/---CHCP-SET---/,/CHCP_SET_DONE/p' "$SERIAL_LOG" | grep -qi "NLSFUNC\|not installed\|Invalid\|error\|not valid\|not prepared"; then
-    ok "CHCP 850 (error reported — NLSFUNC not loaded or code page not prepared)"
+# MODE CON CP PREPARE should report success
+if sed -n '/---CHCP-SET---/,/CHCP_SET_DONE/p' "$SERIAL_LOG" | grep -qi "prepare.*completed\|prepared"; then
+    ok "MODE CON CP PREPARE=((850) EGA.CPI) succeeded"
 else
-    fail "CHCP 850 (expected error message about NLSFUNC or code page)"
+    fail "MODE CON CP PREPARE (expected 'prepared' or 'completed')"
+fi
+
+# MODE CON CP SELECT should report success
+if sed -n '/---CHCP-SET---/,/CHCP_SET_DONE/p' "$SERIAL_LOG" | grep -qi "select.*completed\|selected"; then
+    ok "MODE CON CP SELECT=850 succeeded"
+else
+    fail "MODE CON CP SELECT=850 (expected 'selected' or 'completed')"
+fi
+
+# Verify code page actually changed to 850
+if grep -q "CHCP_VERIFY_DONE" "$SERIAL_LOG"; then
+    ok "CHCP verify (batch continued)"
+else
+    fail "CHCP verify (batch hung or crashed)"
+fi
+
+if sed -n '/---CHCP-VERIFY---/,/CHCP_VERIFY_DONE/p' "$SERIAL_LOG" | grep -qi "Active code page.*850"; then
+    ok "CHCP 850 (active code page is 850 after switch)"
+else
+    fail "CHCP 850 (expected 'Active code page: 850' after switch)"
 fi
 
 # ── Completion check ──────────────────────────────────────────────────────────

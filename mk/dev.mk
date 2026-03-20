@@ -19,7 +19,8 @@ dev: \
     $(DEV_DIR)/SMARTDRV/SMARTDRV.SYS \
     $(DEV_DIR)/SMARTDRV/FLUSH13.EXE \
     $(DEV_DIR)/XMA2EMS/XMA2EMS.SYS \
-    $(DEV_DIR)/XMAEM/XMAEM.SYS
+    $(DEV_DIR)/XMAEM/XMAEM.SYS \
+    $(DEV_DIR)/DISPLAY/EGA/EGA.CPI
 
 # ---------------------------------------------------------------------------
 # DEV/DRIVER
@@ -171,7 +172,7 @@ $(PRINTER_DIR)/PRINTER.SYS: $(PRINTER_DIR)/PRINTER.EXE
 	cd $(PRINTER_DIR) && $(EXE2BIN) "PRINTER.EXE PRINTER.SYS" <ZERO.DAT
 
 # ---------------------------------------------------------------------------
-# DEV/DISPLAY (display.sys; ega.cpi / lcd.cpi subdirs skipped)
+# DEV/DISPLAY (display.sys + ega.cpi)
 # ---------------------------------------------------------------------------
 DISPLAY_DIR := $(DEV_DIR)/DISPLAY
 
@@ -194,6 +195,44 @@ $(DISPLAY_DIR)/DISPLAY.EXE: \
 
 $(DISPLAY_DIR)/DISPLAY.SYS: $(DISPLAY_DIR)/DISPLAY.EXE
 	cd $(DISPLAY_DIR) && $(EXE2BIN) "DISPLAY.EXE DISPLAY.SYS" <ZERO.DAT
+
+# ---------------------------------------------------------------------------
+# DEV/DISPLAY/EGA (ega.cpi — code page information file for console fonts)
+# ---------------------------------------------------------------------------
+EGA_DIR  := $(DISPLAY_DIR)/EGA
+EGA_AINC := -I. -I..\\..\\..\\INC
+
+EGA_OBJS := \
+    $(EGA_DIR)/CPI-HEAD.OBJ $(EGA_DIR)/437-CPI.OBJ $(EGA_DIR)/850-CPI.OBJ \
+    $(EGA_DIR)/860-CPI.OBJ $(EGA_DIR)/863-CPI.OBJ $(EGA_DIR)/865-CPI.OBJ \
+    $(EGA_DIR)/COPYRIGH.OBJ
+
+$(EGA_DIR)/CPI-HEAD.OBJ: $(EGA_DIR)/CPI-HEAD.ASM
+	cd $(EGA_DIR) && $(MASM) "$(AFLAGS) $(EGA_AINC)" "CPI-HEAD.ASM,CPI-HEAD.OBJ;"
+
+$(EGA_DIR)/437-CPI.OBJ: $(EGA_DIR)/437-CPI.ASM $(EGA_DIR)/437-8X16.ASM $(EGA_DIR)/437-8X14.ASM $(EGA_DIR)/437-8X8.ASM
+	cd $(EGA_DIR) && $(MASM) "$(AFLAGS) $(EGA_AINC)" "437-CPI.ASM,437-CPI.OBJ;"
+
+$(EGA_DIR)/850-CPI.OBJ: $(EGA_DIR)/850-CPI.ASM $(EGA_DIR)/850-8X16.ASM $(EGA_DIR)/850-8X14.ASM $(EGA_DIR)/850-8X8.ASM
+	cd $(EGA_DIR) && $(MASM) "$(AFLAGS) $(EGA_AINC)" "850-CPI.ASM,850-CPI.OBJ;"
+
+$(EGA_DIR)/860-CPI.OBJ: $(EGA_DIR)/860-CPI.ASM $(EGA_DIR)/860-8X16.ASM $(EGA_DIR)/860-8X14.ASM $(EGA_DIR)/860-8X8.ASM
+	cd $(EGA_DIR) && $(MASM) "$(AFLAGS) $(EGA_AINC)" "860-CPI.ASM,860-CPI.OBJ;"
+
+$(EGA_DIR)/863-CPI.OBJ: $(EGA_DIR)/863-CPI.ASM $(EGA_DIR)/863-8X16.ASM $(EGA_DIR)/863-8X14.ASM $(EGA_DIR)/863-8X8.ASM
+	cd $(EGA_DIR) && $(MASM) "$(AFLAGS) $(EGA_AINC)" "863-CPI.ASM,863-CPI.OBJ;"
+
+$(EGA_DIR)/865-CPI.OBJ: $(EGA_DIR)/865-CPI.ASM $(EGA_DIR)/865-8X16.ASM $(EGA_DIR)/865-8X14.ASM $(EGA_DIR)/865-8X8.ASM
+	cd $(EGA_DIR) && $(MASM) "$(AFLAGS) $(EGA_AINC)" "865-CPI.ASM,865-CPI.OBJ;"
+
+$(EGA_DIR)/COPYRIGH.OBJ: $(EGA_DIR)/COPYRIGH.ASM
+	cd $(EGA_DIR) && $(MASM) "$(AFLAGS) $(EGA_AINC)" "COPYRIGH.ASM,COPYRIGH.OBJ;"
+
+$(EGA_DIR)/CPI-HEAD.EXE: $(EGA_OBJS)
+	cd $(EGA_DIR) && $(LINK) "@EGA.LNK"
+
+$(EGA_DIR)/EGA.CPI: $(EGA_DIR)/CPI-HEAD.EXE
+	cd $(EGA_DIR) && $(EXE2BIN) "CPI-HEAD.EXE EGA.CPI"
 
 # ---------------------------------------------------------------------------
 # DEV/SMARTDRV

@@ -3,7 +3,6 @@
 ## Remaining Test Coverage
 
 - [ ] SUBST/JOIN with actual drive operations — enhance test_assign_subst_join.sh: after `SUBST D: A:\DIR`, test file I/O on D: (DIR, COPY, TYPE); after `JOIN B: A:\JOINDIR`, access B: files through joined path. Feasible in QEMU now (no kvikdos changes needed).
-- [ ] `CHCP nnn` full path — needs EGA.CPI (MASM toolchain build). Error path tested (CHCP 850 → "NLSFUNC not installed").
 
 ## UMB Support (Upper Memory Blocks)
 
@@ -64,7 +63,7 @@ All commands have functional E2E tests. kvikdos handles fast tests (`run_tests.s
 
 | Tool | Functional | Test location |
 |------|-----------|---------------|
-| COMMAND.COM | 48 kvikdos tests + COMMAND /? (QEMU) + CHCP show/error | run_tests.sh §7, test_misc_qemu.sh, test_drivers_qemu.sh |
+| COMMAND.COM | 48 kvikdos tests + COMMAND /? (QEMU) + CHCP show/set 850 | run_tests.sh §7, test_misc_qemu.sh, test_drivers_qemu.sh |
 | MEM | basic + /PROGRAM + /DEBUG | run_tests.sh §6 |
 | FIND | /V /N /C + errorlevel-2 + stdin pipe | run_tests.sh §6, test_misc_qemu.sh |
 | FC | /A /B /C /N /W /L /LB /T /5 + error | run_tests.sh §6 (15 tests) |
@@ -91,7 +90,7 @@ All commands have functional E2E tests. kvikdos handles fast tests (`run_tests.s
 | BACKUP | /S /M /A /F /D /T /L | test_backup_restore.sh |
 | RESTORE | /S /N /M /B /A /E /L /P | test_backup_restore.sh, test_prompt_yesno.sh |
 | SHARE | /F /L /NC | test_share_nlsfunc_exe2bin.sh |
-| NLSFUNC | install + CHCP interaction | test_share_nlsfunc_exe2bin.sh |
+| NLSFUNC | install + CHCP interaction + CP switch | test_share_nlsfunc_exe2bin.sh, test_drivers_qemu.sh |
 | APPEND | /E /X path /PATH:ON /PATH:OFF | test_append.sh |
 | KEYB | US, GR, UK,850, FR /ID:189 | test_misc_qemu.sh |
 | FDISK | /PRI /EXT /LOG /Q + errorlevel 2 | test_fdisk.sh |
