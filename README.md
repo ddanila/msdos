@@ -1,88 +1,75 @@
-# MS-DOS 4.0 Reproducible Build
+# MS-DOS 4.0 — Buildable Fork with Full Test Coverage
 
-Build MS-DOS 4.0 from source on Linux and macOS using original DOS compilers running under [kvikdos](https://github.com/pts/kvikdos) (a headless DOS emulator — KVM on Linux, software 8086 CPU on macOS).
+A working fork of MS-DOS 4.0 that builds from source on Linux and macOS, boots in QEMU, and has full E2E test coverage — intended as a stable base for OS-level experiments.
 
-## What this does
+The build uses the original DOS compilers (MASM, CL, LINK) running under [kvikdos](https://github.com/pts/kvikdos) (a headless DOS emulator — KVM on Linux, software 8086 CPU on macOS).
 
-1. **Build**: Run the original MS-DOS 4.0 compilers (MASM, CL, LINK, LIB, etc.) under kvikdos to compile and link the OS from source — producing `IO.SYS`, `MSDOS.SYS`, `COMMAND.COM` (with `/?' help for all built-in commands), `SYS.COM`, `FORMAT.COM`, all 11 device drivers, and more.
-2. **Test**: Validate build outputs with integration tests — file existence checks, SHA256 golden checksums, COMMAND.COM smoke tests, /? help smoke tests for all 38 CMD tools under kvikdos, and E2E functional tests (MEM, FIND, FC, TREE, SORT, COMP, ATTRIB, MORE, DEBUG, LABEL, EDLIN, GRAFTABL, etc.) under kvikdos.
-3. **Deploy**: Assemble a bootable 1.44MB floppy image (`out/floppy.img`) from the build outputs.
-4. **E2E test**: Boot the floppy in QEMU and run a suite of functional tests — EXEPACK integrity for all external tools via `make test-help-qemu`; FORMAT variants via `make test-format`; BACKUP/RESTORE, DISKCOMP/DISKCOPY, SHARE/NLSFUNC/EXE2BIN, APPEND, LABEL, FDISK, RECOVER, ASSIGN/SUBST/JOIN, DEBUG, drivers, and more via dedicated test targets; and `FORMAT B:` → `SYS B:` boot verification via `make test-sys`. Built-in commands (VER, ECHO, SET, PATH, DIR, VOL, IF, FOR, COPY, REN, DEL, MD/CD/RD, etc.) are tested via kvikdos in `make test`.
-5. **CI**: GitHub Actions on every push — build + `make test` (kvikdos integration tests), then parallel E2E jobs covering all of the above test targets.
+## What's here beyond the stock source
 
-## Status
+- **`/?` help for every tool** — all 38 CMD utilities and all COMMAND.COM built-in commands have `/? ` usage text (none existed in the original source)
+- **Bug fixes** — FOR/SET/PROMPT hang (ES register corruption), COMMAND.COM parser crash (signed comparison overflow), FDISK R6001 and semicolon bugs, EDLIN binary mode fixes
+- **Full E2E test suite** — kvikdos fast tests for all built-ins and most tools; QEMU+serial tests for disk ops, TSRs, interactive prompts, FORMAT geometry, FDISK partitioning, driver loading
+- **CI** — GitHub Actions on every push; parallel QEMU jobs cover all test targets
 
-All modules built from source. Full source audit complete. Builds and tests pass on both Linux (KVM) and macOS (software CPU backend).
+## What's built
 
-### Core (kernel, boot)
-
+### Kernel and boot
 `IO.SYS`, `MSDOS.SYS`, `EMM386.SYS`, `MAPPER.LIB`, `boot.inc`, shared kernel objects, `SELECT.{EXE,COM,HLP,DAT}`, `USA-MS.IDX`
 
-### CMD utilities (all 38 built)
-
+### CMD utilities (all 38)
 `COMMAND.COM`, `FORMAT.COM`, `SYS.COM`, `CHKDSK.COM`, `DEBUG.COM`, `MEM.EXE`, `FDISK.EXE`, `MORE.COM`, `SORT.EXE`, `LABEL.COM`, `FIND.EXE`, `TREE.COM`, `COMP.COM`, `ATTRIB.EXE`, `EDLIN.COM`, `FC.EXE`, `NLSFUNC.EXE`, `ASSIGN.COM`, `XCOPY.EXE`, `DISKCOMP.COM`, `DISKCOPY.COM`, `APPEND.EXE`, `RECOVER.COM`, `FASTOPEN.EXE`, `PRINT.COM`, `FILESYS.EXE`, `REPLACE.EXE`, `JOIN.EXE`, `SUBST.EXE`, `BACKUP.COM`, `RESTORE.COM`, `GRAFTABL.COM`, `KEYB.COM`, `SHARE.EXE`, `EXE2BIN.EXE`, `GRAPHICS.COM`, `IFSFUNC.EXE`, `MODE.COM`
 
-### DEV (device drivers — all 11 built)
-
+### Device drivers (all 11)
 `ANSI.SYS`, `COUNTRY.SYS`, `DISPLAY.SYS`, `DRIVER.SYS`, `KEYBOARD.SYS`, `PRINTER.SYS`, `RAMDRIVE.SYS`, `SMARTDRV.SYS`, `VDISK.SYS`, `XMA2EMS.SYS`, `XMAEM.SYS`, `FLUSH13.EXE`
 
-## Repository layout
+## Quick start
 
-- `MS-DOS/` — fork of [microsoft/MS-DOS](https://github.com/microsoft/MS-DOS) (v4.0 source)
-- `kvikdos/` — fork of [pts/kvikdos](https://github.com/pts/kvikdos) with modifications for this build (`--dos-version`, GETPID/NLS/boot-drive/disk-serial stubs, macOS support)
-- `bin/` — wrapper scripts that invoke kvikdos for each DOS tool (masm, cl, link, lib, …)
-- `mk/` — per-module Makefile fragments
-- `Makefile` — Linux GNU Makefile orchestrating the full build
-- `tests/` — integration tests (file existence, SHA256 golden checksums, /? help under kvikdos and QEMU, kvikdos E2E, QEMU built-in E2E, EXEPACK verification, SYS e2e)
-- `run-qemu.sh` — launch the floppy image in a graphical QEMU window for manual testing
-- `KEYNOTES.md` — build notes, tips, and architecture decisions
-- `TODO.md` — build notes and completed tasks log
+```sh
+make               # build everything
+make test          # kvikdos integration tests (fast)
+make deploy        # create out/floppy.img
+./run-qemu.sh      # boot interactively in QEMU
+```
+
+Full E2E test targets:
+
+```sh
+make test-sys
+make test-help-qemu
+make test-format
+make test-backup-restore
+make test-diskcomp-diskcopy
+make test-share-nlsfunc-exe2bin
+make test-append
+make test-label
+make test-fdisk
+make test-recover
+make test-assign-subst-join
+make test-debug-qemu
+make test-drivers-qemu
+make test-misc-qemu
+make gen-checksums   # regenerate tests/golden.sha256 (run make clean first)
+```
 
 ## Dependencies
 
-### Linux
-
+**Linux**
 ```sh
-# Build tools
-sudo apt install nasm gcc make python3
-
-# DOS emulator (kvikdos uses KVM — requires /dev/kvm access)
-# kvikdos is built from the kvikdos/ submodule (see kvikdos/Makefile)
-
-# Deploy and verify
-sudo apt install qemu-system-x86 mtools
+sudo apt install nasm gcc make python3 qemu-system-x86 mtools
 ```
 
-### macOS
-
+**macOS**
 ```sh
 brew install nasm gcc make python3 qemu mtools
-# kvikdos uses the software 8086 CPU backend (XTulator) — no KVM required
 ```
 
-## Building
+## Repository layout
 
-```sh
-make               # build all modules
-make test          # build + run integration tests
-make deploy        # create bootable floppy image at out/floppy.img
-make test-sys      # e2e: FORMAT + SYS a blank floppy, verify it boots
-make test-help-qemu # e2e: QEMU boot, EXEPACK integrity for all external CMD tools
-make test-format    # e2e: FORMAT B: with all flag variants (8 tests, 4 parallel QEMU jobs)
-make test-backup-restore       # e2e: BACKUP and RESTORE with all flag variants
-make test-diskcomp-diskcopy    # e2e: DISKCOPY and DISKCOMP
-make test-share-nlsfunc-exe2bin # e2e: SHARE, NLSFUNC, EXE2BIN
-make test-append    # e2e: APPEND flag variants
-make test-label     # e2e: LABEL interactive (serial_expect.py)
-make test-fdisk     # e2e: FDISK partition creation (/PRI /EXT /LOG)
-make test-recover   # e2e: RECOVER file mode
-make test-assign-subst-join  # e2e: ASSIGN, SUBST, JOIN drive operations
-make test-debug-qemu         # e2e: DEBUG G (execute) command
-make test-drivers-qemu       # e2e: ANSI.SYS, RAMDRIVE.SYS, CONFIG.SYS directives
-make test-misc-qemu          # e2e: CHKDSK, MODE, IFSFUNC, FILESYS, FASTOPEN, GRAPHICS, PRINT, KEYB
-make gen-checksums  # regenerate tests/golden.sha256 (always run make clean first!)
-make clean         # remove all generated files and floppy images
-./run-qemu.sh      # boot floppy interactively in QEMU (graphical window)
-```
-
-Individual module targets: `messages`, `mapper`, `boot`, `inc`, `bios`, `dos`, `cmd`, `dev`, `select`, `memm`.
+- `MS-DOS/` — fork of [microsoft/MS-DOS](https://github.com/microsoft/MS-DOS) (`dos4-enhancements` branch)
+- `kvikdos/` — fork of [pts/kvikdos](https://github.com/pts/kvikdos) with DOS 4.0 compatibility stubs and macOS support
+- `bin/` — wrapper scripts invoking kvikdos for each DOS tool (masm, cl, link, lib, …)
+- `mk/` — per-module Makefile fragments
+- `Makefile` — GNU Makefile orchestrating the full build
+- `tests/` — all test scripts (kvikdos E2E, QEMU serial, golden checksums, /? smoke tests)
+- `KEYNOTES.md` — build notes, architecture decisions, tips and tricks
+- `TODO.md` — current work in progress
