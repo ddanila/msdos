@@ -48,28 +48,63 @@ TIMEOUT = 120            # seconds total before giving up
 
 
 class QMPConnection:
-    """Persistent QMP connection to QEMU."""
+    """Persistent QMP connection to QEMU.
 
-    def __init__(self, sock_path: str):
+    Handles the QMP greeting, capability negotiation, and filters out
+    async events ({"event": ...}) that QEMU sends between commands.
+    """
+
+    def __init__(self, sock_path: str, retries: int = 10):
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.sock.settimeout(10.0)
-        self.sock.connect(sock_path)
-        self._recv()                                          # greeting
+        # Retry connection — QEMU may still be initializing
+        for attempt in range(retries):
+            try:
+                self.sock.connect(sock_path)
+                break
+            except (ConnectionRefusedError, FileNotFoundError):
+                if attempt == retries - 1:
+                    raise
+                time.sleep(0.5)
+        self._buf = b''
+        self._recv_json()                                     # greeting
         self._send({"execute": "qmp_capabilities"})
-        self._recv()
+        self._recv_json()
 
     def _send(self, obj: dict) -> None:
         self.sock.sendall(json.dumps(obj).encode() + b'\n')
 
-    def _recv(self) -> dict:
-        # QMP responses can be split across recv calls; accumulate until valid JSON
-        buf = b''
+    def _recv_json(self) -> dict:
+        """Read one complete JSON object from the socket.
+
+        QMP sends newline-delimited JSON.  Async events may arrive at any
+        time; this method returns the first complete JSON object found.
+        """
         while True:
-            buf += self.sock.recv(65536)
-            try:
-                return json.loads(buf)
-            except json.JSONDecodeError:
-                continue
+            # Try to parse a complete JSON object from accumulated buffer
+            nl = self._buf.find(b'\n')
+            if nl >= 0:
+                line = self._buf[:nl]
+                self._buf = self._buf[nl + 1:]
+                if line.strip():
+                    try:
+                        return json.loads(line)
+                    except json.JSONDecodeError:
+                        pass  # malformed line, skip
+            else:
+                # Need more data
+                chunk = self.sock.recv(65536)
+                if not chunk:
+                    raise ConnectionError("QMP connection closed")
+                self._buf += chunk
+
+    def _recv_response(self) -> dict:
+        """Read until we get a command response (skip async events)."""
+        while True:
+            obj = self._recv_json()
+            if "return" in obj or "error" in obj:
+                return obj
+            # else: async event like {"event": "..."} — skip
 
     def human_cmd(self, cmd_line: str) -> str:
         """Run a human monitor command, return the string result."""
@@ -77,7 +112,7 @@ class QMPConnection:
             "execute": "human-monitor-command",
             "arguments": {"command-line": cmd_line},
         })
-        resp = self._recv()
+        resp = self._recv_response()
         return resp.get("return", "")
 
     def send_key(self, qcode: str) -> None:
@@ -86,7 +121,7 @@ class QMPConnection:
             "execute": "send-key",
             "arguments": {"keys": [{"type": "qcode", "data": qcode}]},
         })
-        self._recv()
+        self._recv_response()
 
     def close(self) -> None:
         self.sock.close()
