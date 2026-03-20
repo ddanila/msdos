@@ -3,7 +3,6 @@
 ## Remaining Test Coverage
 
 - [ ] SUBST/JOIN with actual drive operations — enhance test_assign_subst_join.sh: after `SUBST D: A:\DIR`, test file I/O on D: (DIR, COPY, TYPE); after `JOIN B: A:\JOINDIR`, access B: files through joined path. Feasible in QEMU now (no kvikdos changes needed).
-- [ ] `SELECT` — hard to automate: SSTUB.ASM uses INT 16H (BIOS keyboard) for initial ENTER prompt before parameter parsing — not reachable via CTTY AUX serial. Would need QMP keyboard injection.
 - [ ] `CHCP nnn` full path — needs EGA.CPI (MASM toolchain build). Error path tested (CHCP 850 → "NLSFUNC not installed").
 
 ## UMB Support (Upper Memory Blocks)
@@ -103,6 +102,7 @@ All commands have functional E2E tests. kvikdos handles fast tests (`run_tests.s
 | RECOVER | file-mode recovery | test_recover.sh |
 | IFSFUNC | install + already-installed | test_misc_qemu.sh |
 | FILESYS | install (requires IFSFUNC) | test_misc_qemu.sh |
+| SELECT | stub INT 16H + SELECT.EXE exec + error path | test_select.sh |
 | Device drivers | ANSI.SYS, RAMDRIVE.SYS, VDISK.SYS, DISPLAY.SYS, SMARTDRV.SYS | test_drivers_qemu.sh |
 | CONFIG.SYS | BUFFERS FILES LASTDRIVE BREAK STACKS FCBS INSTALL SHELL COUNTRY | test_drivers_qemu.sh |
 
@@ -138,3 +138,4 @@ All bug fixes from dos4-enhancements branch have regression tests:
 | test_prompt_yesno.sh | Interactive Y/N prompts (XCOPY/REPLACE/RESTORE /P) |
 | test_fdisk.sh | INT 13h disk partitioning |
 | test_drivers_qemu.sh | CONFIG.SYS device drivers, boot verification |
+| test_select.sh | INT 16H keyboard (BIOS), INT 10H video, screen_expect |

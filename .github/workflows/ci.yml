@@ -488,3 +488,28 @@ jobs:
 
       - name: screen_expect.py smoke test (video memory + QMP keyboard)
         run: bash tests/test_screen_expect.sh
+
+  e2e-select:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}/ci:latest
+      options: --device /dev/kvm
+    timeout-minutes: 5
+
+    steps:
+      - name: Check out repo with submodules
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Grant KVM access
+        run: chmod 666 /dev/kvm
+
+      - name: Download floppy image
+        uses: actions/download-artifact@v7
+        with:
+          name: floppy
+
+      - name: SELECT e2e test (INT 16H stub + SELECT.EXE)
+        run: bash tests/test_select.sh
