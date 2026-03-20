@@ -102,7 +102,7 @@ All help strings were added by us in `dos4-enhancements` branch.
 - **File**: `CMD/FDISK/MAIN.C` line 138: `/* /PRI:m  Size of Primary DOS partition to create in K */`
 - **Reality**: Help text says "megabytes", parser range is 1–4000, code calls `mbytes_to_cylinders()`. The "K" in the comment is wrong.
 - **Fix**: Update the source comment (no behavior change needed)
-- [ ] Fix stale source comment in FDISK/MAIN.C
+- [x] Fix stale source comment in FDISK/MAIN.C (`0b578d5`)
 
 #### 7. FORMAT — undocumented internal switches (intentional omission)
 - **File**: `CMD/FORMAT/FORSWTCH.INC`
