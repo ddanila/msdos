@@ -89,7 +89,7 @@ All commands have functional E2E tests. kvikdos handles fast tests (`run_tests.s
 | NLSFUNC | install + CHCP interaction + CP switch | test_share_nlsfunc_exe2bin.sh, test_drivers_qemu.sh |
 | APPEND | /E /X path /PATH:ON /PATH:OFF | test_append.sh |
 | KEYB | US, GR, UK,850, FR /ID:189 | test_misc_qemu.sh |
-| FDISK | /PRI /EXT /LOG /Q + errorlevel 2 | test_fdisk.sh |
+| FDISK | /PRI /EXT /LOG /Q + primary-only (PTM P941) | test_fdisk.sh |
 | PRINT | /D /B /Q /S /U /M /P /C /T | test_misc_qemu.sh |
 | FASTOPEN | C:=50, /X | test_misc_qemu.sh |
 | GRAPHICS | load, reload, /R /B /LCD /PB:STD | test_misc_qemu.sh |
