@@ -1,0 +1,9 @@
+#!/bin/bash
+# Platform-detecting wrapper for vendored Open Watcom wasm
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+case "$(uname -s)-$(uname -m)" in
+    Linux-x86_64)  WASM="$SCRIPT_DIR/../watcom/bin/linux-x64/wasm" ;;
+    Darwin-arm64)  WASM="$SCRIPT_DIR/../watcom/bin/macos-arm64/wasm" ;;
+    *) echo "Unsupported platform: $(uname -s)-$(uname -m)" >&2; exit 1 ;;
+esac
+exec "$WASM" "$@"
