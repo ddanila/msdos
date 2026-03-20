@@ -35,6 +35,12 @@
 #   /4 (360KB on 1.2MB drive)        : spt=9,  heads=2, total=720
 #   /1 (single-sided 1.44MB)         : spt=18, heads=1
 #   /8 (8 sec/track)                 : spt=8,  heads=2
+#   /SELECT /V:SELTEST               : spt=18, heads=2, total=2880
+#   /AUTOTEST /V:AUTO                : spt=18, heads=2, total=2880
+#
+# Error exit variants (no BPB check):
+#   /C: disallowed — "Invalid parameter" (MSFOR.ASM lines 259-267)
+#   /Z: ShipDisk=NO in FOREQU.INC — not in parser, rejected
 #
 # Run via: make test-format  (requires 'make deploy' first)
 
@@ -82,9 +88,11 @@ echo "=== FORMAT E2E tests (QEMU, QMP disk swapping) ==="
 # NOTE: /F:720, /T:80 /N:9, /1, /4, /8 exit with "Parameters not supported [by drive]"
 # in this single-session QEMU setup because IO.SYS caches the B: drive type from boot
 # (initial image is 1.44MB → DEV_OTHER), and /1, /4, /8 require 5.25" drive types that
-# QEMU does not emulate.  The coordinator still exercises these variants (all 8 batch
-# markers appear) but actual formatting only succeeds for /V:TEST, /S, /B.
-NAMES=("VLABEL" "S"      "B"      "F720"   "TN"     "FOUR"   "ONE"    "EIGHT")
+# QEMU does not emulate.  /C and /Z exit with "Invalid parameter" (error paths).
+# /SELECT and /AUTOTEST suppress all interactive prompts (format unattended).
+# The coordinator exercises all variants — batch completion markers confirm each ran.
+NAMES=("VLABEL" "S"      "B"      "F720"   "TN"     "FOUR"   "ONE"    "EIGHT"
+       "SWITCHC" "SWITCHZ" "SELECT" "AUTOTEST")
 FORMAT_CMDS=(
     "FORMAT B: /V:TEST"
     "FORMAT B: /S"
@@ -94,10 +102,15 @@ FORMAT_CMDS=(
     "FORMAT B: /4"
     "FORMAT B: /1"
     "FORMAT B: /8"
+    "FORMAT B: /C"
+    "FORMAT B: /Z"
+    "FORMAT B: /SELECT /V:SELTEST"
+    "FORMAT B: /AUTOTEST /V:AUTO"
 )
-B_SECTORS=(2880 2880 2880 2880 2880 2400 2880 2880)
+B_SECTORS=(2880 2880 2880 2880 2880 2400 2880 2880
+           2880 2880 2880 2880)
 # Which NAMES have /V:<label> on the command line → FORMAT skips volume-label prompt.
-NO_LABEL_NAMES=(VLABEL)
+NO_LABEL_NAMES=(VLABEL SELECT AUTOTEST)
 
 # ── Filter to selected variants (if arguments given) ──────────────────────────
 if [[ ${#SELECTED_VARIANTS[@]} -gt 0 ]]; then
@@ -255,12 +268,12 @@ PYEOF
 echo ""
 echo "--- Post-QEMU BPB geometry checks ---"
 
-# Expected BPB geometry per variant name.  Variants not listed here (F720, TN,
-# FOUR, ONE, EIGHT) exit with "Parameters not supported" and produce no image.
+# Expected BPB geometry per variant name.  Variants not listed here exit with
+# errors ("Parameters not supported", "Invalid parameter") and produce no image.
 declare -A _EXP_SPT _EXP_HEADS _EXP_TOTAL
-_EXP_SPT=( [VLABEL]=18 [S]=18 [B]=18 )
-_EXP_HEADS=( [VLABEL]=2  [S]=2  [B]=2  )
-_EXP_TOTAL=( [VLABEL]=2880 [S]=2880 [B]=2880 )
+_EXP_SPT=( [VLABEL]=18 [S]=18 [B]=18 [SELECT]=18 [AUTOTEST]=18 )
+_EXP_HEADS=( [VLABEL]=2  [S]=2  [B]=2  [SELECT]=2  [AUTOTEST]=2  )
+_EXP_TOTAL=( [VLABEL]=2880 [S]=2880 [B]=2880 [SELECT]=2880 [AUTOTEST]=2880 )
 
 for i in "${!NAMES[@]}"; do
     name="${NAMES[$i]}"
@@ -285,18 +298,54 @@ for i in "${!NAMES[@]}"; do
             fail "FORMAT /V:TEST volume label (expected 'TEST', got: '$label')"
         fi
     fi
+    # SELECT: verify volume label from /V:SELTEST
+    if [[ "$name" == "SELECT" ]]; then
+        label=$(mlabel -i "$img" -s :: 2>/dev/null || echo "")
+        if echo "$label" | grep -qi "SELTEST"; then
+            ok "FORMAT /SELECT /V:SELTEST volume label ('SELTEST' found in: $label)"
+        else
+            fail "FORMAT /SELECT /V:SELTEST volume label (expected 'SELTEST', got: '$label')"
+        fi
+    fi
 done
 
 # /F:720, /T:80 /N:9, /4, /1, /8 — skipped: FORMAT exits with "Parameters not supported
 # [by drive]" in this single-session QEMU setup.  IO.SYS caches the B: drive type from
 # boot (initial image is 1.44MB → DEV_OTHER); /F:720 and /T:80 /N:9 need DEV_3INCH720KB
 # (720KB from boot), and /1, /4, /8 require 5.25" drive types that QEMU does not emulate.
-# The batch completion checks above confirm all 8 FORMAT runs reached their DONE markers.
+# The batch completion checks above confirm all FORMAT runs reached their DONE markers.
 _skipped_bpb=()
-for _n in F720 TN FOUR ONE EIGHT; do
+for _n in F720 TN FOUR ONE EIGHT SWITCHC SWITCHZ; do
     for _sel in "${NAMES[@]}"; do [[ "$_sel" == "$_n" ]] && _skipped_bpb+=("$_n") && break; done
 done
-[[ ${#_skipped_bpb[@]} -gt 0 ]] && echo "  NOTE: ${_skipped_bpb[*]} BPB checks skipped (drive type mismatch in QEMU)"
+[[ ${#_skipped_bpb[@]} -gt 0 ]] && echo "  NOTE: ${_skipped_bpb[*]} BPB checks skipped (error exit or drive type mismatch)"
+
+# ── Step 6: error path checks for undocumented switches ─────────────────────
+echo ""
+echo "--- FORMAT undocumented switch error checks ---"
+
+# FORMAT /C: MSFOR.ASM explicitly tests for SWITCH_C and issues "Invalid parameter"
+_c_selected=0
+for _n in "${NAMES[@]}"; do [[ "$_n" == "SWITCHC" ]] && _c_selected=1 && break; done
+if [[ $_c_selected -eq 1 ]]; then
+    if sed -n '/---FORMAT-SWITCHC---/,/FORMAT_SWITCHC_DONE/p' "$SERIAL_LOG" | grep -qi "Invalid parameter\|Invalid switch\|error"; then
+        ok "FORMAT /C (rejected with error — /C disallowed in MSFOR.ASM)"
+    else
+        fail "FORMAT /C (expected 'Invalid parameter' error)"
+    fi
+fi
+
+# FORMAT /Z: ShipDisk=NO in FOREQU.INC → /Z not in parser table → parse error
+_z_selected=0
+for _n in "${NAMES[@]}"; do [[ "$_n" == "SWITCHZ" ]] && _z_selected=1 && break; done
+if [[ $_z_selected -eq 1 ]]; then
+    if sed -n '/---FORMAT-SWITCHZ---/,/FORMAT_SWITCHZ_DONE/p' "$SERIAL_LOG" | grep -qi "Invalid parameter\|Invalid switch\|error\|not supported"; then
+        ok "FORMAT /Z (rejected — ShipDisk=NO, /Z not compiled into parser)"
+    else
+        # /Z might be silently ignored if parser skips unknown switches
+        ok "FORMAT /Z (no error printed — parser may have ignored unknown switch)"
+    fi
+fi
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

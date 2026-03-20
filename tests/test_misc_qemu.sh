@@ -1,6 +1,6 @@
 #!/bin/bash
-# tests/test_misc_qemu.sh — E2E tests for CHKDSK, MODE CON, IFSFUNC, FILESYS,
-#                           FASTOPEN, GRAPHICS, PRINT, KEYB via QEMU.
+# tests/test_misc_qemu.sh — E2E tests for CHKDSK, MODE (CON/COM/LPT/redirect),
+#                           IFSFUNC, FILESYS, FASTOPEN, GRAPHICS, PRINT, KEYB via QEMU.
 #
 # All tools in one QEMU boot; no interactive prompts needed.
 #
@@ -305,6 +305,13 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'ECHO ---DIR-P---\r\n'
     printf 'DIR /P\r\n'
     printf 'ECHO DIR_P_DONE\r\n'
+
+    # ── MODE LPT1:=COM1: — printer-to-serial redirect ────────────────────────
+    # MODEECHO.ASM: loads resident code at segment 60H to intercept printer I/O.
+    # Output: "LPT1: rerouted to COM1:" (MODE.SKL message 15).
+    printf 'ECHO ---MODE-REDIRECT---\r\n'
+    printf 'MODE LPT1:=COM1:\r\n'
+    printf 'ECHO MODE_REDIRECT_DONE\r\n'
 
     # ── COMMAND /? — help text (regression for boot-crash fix 58a0bb4) ────────
     # COMMAND /? prints help and exits. Verifies the /? code path doesn't crash.
@@ -653,6 +660,22 @@ if sed -n '/---DIR-P---/,/DIR_P_DONE/p' "$SERIAL_LOG" | grep -qi "COMMAND.*COM\|
     ok "DIR /P (directory listing contains files)"
 else
     fail "DIR /P (expected file listing in DIR /P output)"
+fi
+
+# ── MODE LPT1:=COM1: redirect checks ─────────────────────────────────────────
+echo ""
+echo "--- MODE LPT1:=COM1: redirect tests ---"
+
+if grep -q "MODE_REDIRECT_DONE" "$SERIAL_LOG"; then
+    ok "MODE LPT1:=COM1: (batch continued after redirect)"
+else
+    fail "MODE LPT1:=COM1: (batch hung or crashed)"
+fi
+
+if grep -qi "rerouted to COM1\|LPT1.*rerouted" "$SERIAL_LOG"; then
+    ok "MODE LPT1:=COM1: (output: 'LPT1: rerouted to COM1:')"
+else
+    fail "MODE LPT1:=COM1: (expected 'rerouted to COM1' in output)"
 fi
 
 # ── COMMAND /? checks ─────────────────────────────────────────────────────────

@@ -5,7 +5,9 @@ Replaces the continuous N\\r\\n feed.  Processes FORMAT's interactive prompts
 in strict order, doing the QMP disk swap at exactly the right moment:
 
   For each FORMAT variant i:
-    1. "press ENTER when ready"  → [swap B: to b_imgs[i] if i > 0], send \\r
+    0. "---FORMAT-{name}---"    → [swap B: to b_imgs[i] if i > 0], no response
+                                   (batch marker always appears before FORMAT runs)
+    1. "press ENTER when ready"  → send \\r
     2. "ENTER for none"          → send \\r   (bare CR — empty volume label)
                                    (skipped for variants with /V: on cmd line)
     3. "Format another (Y/N)?"  → send N\\r  (N + bare CR, no LF)
@@ -76,10 +78,19 @@ def build_rules(n: int, names: list, no_label_prompt: set,
     rules = []
     for i in range(n):
         variant_start = len(rules)
+        marker_rule_idx = None
 
-        # "press ENTER when ready" — swap disk first (except for the very first FORMAT)
-        hook = ('swap', b_imgs[i]) if i > 0 else None
-        rules.append([b"press ENTER when ready", b'\r', hook, None])  # skip_to filled below
+        # Pre-swap: trigger on batch marker (---FORMAT-<NAME>---).
+        # The swap happens here instead of on "press ENTER" so that variants
+        # which suppress all prompts (/SELECT, /AUTOTEST) still get a fresh
+        # B: image.  The batch marker always appears before FORMAT runs.
+        if i > 0:
+            marker_rule_idx = len(rules)
+            rules.append([f"---FORMAT-{names[i]}---".encode(), None,
+                          ('swap', b_imgs[i]), None])
+
+        # "press ENTER when ready" — just send \r (swap already done above)
+        rules.append([b"press ENTER when ready", b'\r', None, None])  # skip_to filled below
 
         # Interactive volume label prompt — absent when /V: given on command line
         if i not in no_label_prompt:
@@ -105,6 +116,10 @@ def build_rules(n: int, names: list, no_label_prompt: set,
         # before an intermediate prompt, the coordinator can jump ahead).
         for j in range(variant_start, done_idx):
             rules[j][3] = done_idx
+        # The batch marker swap rule must always fire — never skip it.
+        # (The marker always appears before DONE in the serial stream.)
+        if marker_rule_idx is not None:
+            rules[marker_rule_idx][3] = None
 
     return [tuple(r) for r in rules]
 

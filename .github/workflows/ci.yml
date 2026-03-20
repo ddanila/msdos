@@ -269,6 +269,8 @@ jobs:
             variants: "B"
           - group: rest
             variants: "F720 TN FOUR ONE EIGHT"
+          - group: undoc
+            variants: "SWITCHC SWITCHZ SELECT AUTOTEST"
 
     steps:
       - name: Check out repo with submodules

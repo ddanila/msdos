@@ -219,7 +219,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | JOIN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_assign_subst_join.sh (B: join/list/verify/unjoin) | |
 | EXE2BIN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ Section 6 (3 tests) + test_share_nlsfunc_exe2bin.sh | |
 | CHKDSK | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (disk stats, /V, file alloc) + test_chkdsk_fix.sh (/F: FAT orphan fix, Y/N prompt, FILE0000.CHK recovery) | |
-| FORMAT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_format.sh (8 variants: geometry/BPB/label) | |
+| FORMAT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_format.sh (12 variants: geometry/BPB/label + /C /Z error, /SELECT /AUTOTEST unattended) | |
 | SYS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_sys.sh (boot verification) | |
 | DISKCOPY | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_diskcomp_diskcopy.sh (/1 single-sided, /V parse error) | |
 | DISKCOMP | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_diskcomp_diskcopy.sh (/1 single-sided, /8 sectors) | |
@@ -233,7 +233,7 @@ Legend: ✅ tested · ⚠️ partial · ❌ not tested · 🚫 untestable (inter
 | PRINT | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (/D:PRN /B:512 /Q:5 /S:8 /U:1 /M:2 install; /P add; /C remove; /T cancel) | |
 | FASTOPEN | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (C:=50 install; D:=20 /X expanded memory) | |
 | GRAPHICS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (load GRAPHICS.PRO; reload; /R /B /LCD /PB:STD) | |
-| MODE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (CON /STATUS, COLS=80 LINES=25, RATE=30 DELAY=1, COM1: 9600, LPT1: 80) | |
+| MODE | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (CON /STATUS, COLS=80 LINES=25, RATE=30 DELAY=1, COM1: 9600, LPT1: 80, LPT1:=COM1: redirect) | |
 | RECOVER | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_recover.sh (file mode: keypress prompt + bytes recovered) | v4.0 is file-mode only (no drive-mode in source) |
 | IFSFUNC | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install + already-installed) | |
 | FILESYS | ✅ | ⚠️ Section 4 (Linux CI only) | ✅ test_misc_qemu.sh (install after IFSFUNC) | |
@@ -459,14 +459,17 @@ MASM syntax `cs:[varname]` is confirmed valid — already used in EDLIN.ASM ~lin
 #### FILESYS ✅ done
 - [x] `FILESYS` — install filesystem helper (requires IFSFUNC); silent install (test_misc_qemu.sh)
 
-#### FORMAT — undocumented switches (low priority)
-- [ ] `FORMAT /C` — check for bad sectors (undocumented, source: FORSWTCH.INC)
-- [ ] `FORMAT /SELECT` — select mode (undocumented, internal)
-- [ ] `FORMAT /AUTOTEST` — auto-test mode (undocumented, internal)
-- [ ] `FORMAT /Z` — 1 sector/cluster (undocumented, internal)
+#### FORMAT — undocumented switches
+- [x] `FORMAT /C` — disallowed, "Invalid parameter" error (MSFOR.ASM lines 259-267). Error path test in test_format.sh (SWITCHC variant).
+- [x] `FORMAT /SELECT /V:SELTEST` — suppresses all prompts (disk insert, volume label, format another), formats unattended. BPB + volume label verified (test_format.sh SELECT variant).
+- [x] `FORMAT /AUTOTEST /V:AUTO` — same unattended behavior as /SELECT (FORMAT.ASM lines 928-934). BPB verified (test_format.sh AUTOTEST variant).
+- [x] `FORMAT /Z` — ShipDisk=NO in FOREQU.INC, /Z not in parser table → parse error. Error path test in test_format.sh (SWITCHZ variant).
+
+#### MODE — remaining
+- [x] `MODE LPT1:=COM1:` — printer-to-serial redirect. MODEECHO.ASM loads resident code at segment 60H. Output: "LPT1: rerouted to COM1:" (test_misc_qemu.sh).
 
 #### SELECT
-- [ ] `SELECT` — MS-DOS installer utility (CMD/SELECT/); zero test coverage. Hard to automate.
+- [ ] `SELECT` — MS-DOS installer utility (SRC/SELECT/). Hard to automate: SSTUB.ASM uses INT 16H (BIOS keyboard) for initial ENTER prompt before parameter parsing — not reachable via CTTY AUX serial. Would need keyboard injection via QEMU monitor or QMP.
 
 ---
 

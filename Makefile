@@ -300,13 +300,14 @@ test-format-one: deploy
 # Much faster than test-format (sequential).  Results: out/format-parallel-*.log
 test-format-parallel: deploy
 	@mkdir -p $(OUT)
-	@echo "=== FORMAT parallel test (4 groups) ==="
+	@echo "=== FORMAT parallel test (5 groups) ==="
 	@FAIL=0; \
 	FORMAT_WORKDIR=$(OUT)/format-p-vlabel bash tests/test_format.sh VLABEL        > $(OUT)/format-parallel-vlabel.log 2>&1 & P1=$$!; \
 	FORMAT_WORKDIR=$(OUT)/format-p-s      bash tests/test_format.sh S             > $(OUT)/format-parallel-s.log     2>&1 & P2=$$!; \
 	FORMAT_WORKDIR=$(OUT)/format-p-b      bash tests/test_format.sh B             > $(OUT)/format-parallel-b.log     2>&1 & P3=$$!; \
 	FORMAT_WORKDIR=$(OUT)/format-p-rest   bash tests/test_format.sh F720 TN FOUR ONE EIGHT > $(OUT)/format-parallel-rest.log 2>&1 & P4=$$!; \
-	for JOB in "vlabel:$$P1" "s:$$P2" "b:$$P3" "rest:$$P4"; do \
+	FORMAT_WORKDIR=$(OUT)/format-p-undoc  bash tests/test_format.sh SWITCHC SWITCHZ SELECT AUTOTEST > $(OUT)/format-parallel-undoc.log 2>&1 & P5=$$!; \
+	for JOB in "vlabel:$$P1" "s:$$P2" "b:$$P3" "rest:$$P4" "undoc:$$P5"; do \
 	    NAME=$${JOB%%:*}; PID=$${JOB##*:}; \
 	    if wait $$PID; then echo "  PASS group: $$NAME"; \
 	    else echo "  FAIL group: $$NAME (see out/format-parallel-$$NAME.log)"; FAIL=$$((FAIL+1)); fi; \
