@@ -19,8 +19,6 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
 FLOPPY="$OUT/floppy.img"
-SRC_SELECT="$REPO_ROOT/MS-DOS/v4.0/src/SELECT"
-
 BOOT_IMG="$OUT/select-test-boot.img"
 SCREEN_LOG="$OUT/select-test.log"
 QMP_SOCK="$OUT/select-test-qmp.sock"
@@ -40,15 +38,11 @@ trap 'kill $QEMU_PID 2>/dev/null; rm -f "$QMP_SOCK" "$BOOT_IMG" 2>/dev/null; tru
 
 echo "=== SELECT e2e test (screen_expect: INT 16H + video memory) ==="
 
-# ── Step 1: build boot floppy with SELECT files ──────────────────────────────
-echo "Building test image with SELECT binaries..."
+# ── Step 1: build boot floppy (SELECT files already on floppy from deploy) ───
+echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 mdel -i "$BOOT_IMG" ::AUTOEXEC.BAT 2>/dev/null || true
-mcopy -i "$BOOT_IMG" "$SRC_SELECT/SELECT.COM" ::SELECT.COM
-mcopy -i "$BOOT_IMG" "$SRC_SELECT/SELECT.EXE" ::SELECT.EXE
-mcopy -i "$BOOT_IMG" "$SRC_SELECT/SELECT.DAT" ::SELECT.DAT
-mcopy -i "$BOOT_IMG" "$SRC_SELECT/SELECT.HLP" ::SELECT.HLP
 
 # ── Step 2: boot QEMU with QMP ──────────────────────────────────────────────
 echo "Booting QEMU with QMP socket..."
