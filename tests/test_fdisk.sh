@@ -95,27 +95,28 @@ run_qemu() {
     # QEMU derives geometry from image size; 20 MB holds 5 MB primary + 10 MB extended.
     dd if=/dev/zero bs=1M count=20 of="$HDD_IMG" status=none
     rm -f "$SERIAL_LOG"
-    (while true; do sleep 0.5; printf '\r\n'; done) | \
+    # No stdin feed — FDISK with /Q has no interactive prompts. The continuous
+    # \r\n feed was causing "Invalid parameter" + R6001 crashes by injecting
+    # characters into the serial port while FDISK initializes.
     timeout 90 qemu-system-i386 \
         -display none \
         -drive if=floppy,index=0,format=raw,file="$BOOT_IMG",cache=writethrough \
         -drive if=ide,index=0,format=raw,file="$HDD_IMG",cache=writethrough \
         -boot a -m 4 \
         -serial stdio \
+        < /dev/null \
         2>/dev/null | tee "$SERIAL_LOG" > /dev/null; true
 }
 
-# FDISK intermittently crashes under QEMU with tight conventional memory.
-# Retry up to 3 times to tolerate this flakiness.
 echo "Booting QEMU (may take ~60s)..."
-for attempt in 1 2 3; do
+run_qemu
+if ! grep -q "FDISK_LOG_DONE" "$SERIAL_LOG" 2>/dev/null; then
+    echo "  FDISK did not complete all steps (crash or hang); retrying..."
+    echo "  --- attempt 1 serial log ---"
+    cat "$SERIAL_LOG" 2>/dev/null || echo "  (empty)"
+    echo "  ---"
     run_qemu
-    if grep -q "FDISK_LOG_DONE" "$SERIAL_LOG" 2>/dev/null; then
-        break
-    fi
-    echo "  FDISK did not complete all steps (attempt $attempt/3, crash or hang); retrying..."
-    [[ $attempt -eq 1 ]] && { echo "  --- attempt 1 serial log ---"; cat "$SERIAL_LOG" 2>/dev/null || echo "  (empty)"; echo "  ---"; }
-done
+fi
 
 if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
     echo "ERROR: serial log is empty — QEMU may have failed to boot"
@@ -308,24 +309,22 @@ cp "$FLOPPY" "$BOOT_IMG2"
 run_qemu2() {
     dd if=/dev/zero bs=1M count=20 of="$HDD_IMG2" status=none
     rm -f "$SERIAL_LOG2"
-    (while true; do sleep 0.5; printf '\r\n'; done) | \
     timeout 90 qemu-system-i386 \
         -display none \
         -drive if=floppy,index=0,format=raw,file="$BOOT_IMG2",cache=writethrough \
         -drive if=ide,index=0,format=raw,file="$HDD_IMG2",cache=writethrough \
         -boot a -m 4 \
         -serial stdio \
+        < /dev/null \
         2>/dev/null | tee "$SERIAL_LOG2" > /dev/null; true
 }
 
 echo "Booting QEMU (may take ~60s)..."
-for attempt in 1 2 3; do
+run_qemu2
+if ! grep -q "FDISK_NOEXT_DONE" "$SERIAL_LOG2" 2>/dev/null; then
+    echo "  FDISK did not complete (crash or hang); retrying..."
     run_qemu2
-    if grep -q "FDISK_NOEXT_DONE" "$SERIAL_LOG2" 2>/dev/null; then
-        break
-    fi
-    echo "  FDISK did not complete (attempt $attempt/3, crash or hang); retrying..."
-done
+fi
 
 echo ""
 echo "--- FDISK primary-only checks ---"
