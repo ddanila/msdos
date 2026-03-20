@@ -53,6 +53,65 @@ Load MSDOS.SYS kernel into the HMA (first 64K-16 bytes above 1MB), freeing ~40-5
 
 ---
 
+## Help Text vs Parameter Parsing Audit
+
+Audit of all CMD tools for inconsistencies between `/? ` help text and actual parameter parsing.
+All help strings were added by us in `dos4-enhancements` branch.
+
+### Confirmed Inconsistencies (need fixing)
+
+#### 1. DISKCOPY — `/V` advertised but not parsed (critical)
+- **File**: `CMD/DISKCOPY/DISKCOPY.ASM` (help) + `CMD/DISKCOPY/DCOPYPAR.ASM` (parser)
+- **Help says**: `DISKCOPY [d1:] [d2:] [/1] [/V]` with `/V  Verify that the information is copied correctly`
+- **Parser has**: Only `/1` switch defined. SYSPARSE rejects `/V` → "Invalid switch - /V"
+- **Note**: Already documented in KEYNOTES.md under "DISKCOPY / DISKCOMP Two-Drive QEMU E2E Patterns"
+- **Fix options**: (a) remove `/V` from help text (simplest), or (b) implement `/V` verify pass in `DISKCOPY.ASM`
+- [ ] Decide and fix
+
+#### 2. SHARE — `/NC` parsed but not in help
+- **File**: `CMD/SHARE/GSHARE2.ASM`
+- **Parser has**: `/NC` switch (`N_SW DB "/NC",0 ; /NC: INDICATES no checking required`) — used to skip network-path checking at line 1835, 1852, 2933
+- **Help shows**: Only `/F:filespace` and `/L:locks`; `/NC` is completely absent
+- **Fix**: Add `/NC  Skip network path checking` line to `SHARE_HELP_STR`
+- [ ] Add `/NC` to SHARE help text
+
+#### 3. IFSFUNC — `/NAMES:n` in help but `NAMES=n` in parser
+- **File**: `CMD/IFSFUNC/IFSINIT.ASM` (help) + `CMD/IFSFUNC/IFSPARSE.INC` (parser)
+- **Help says**: `IFSFUNC [/NAMES:n]` (switch syntax with colon)
+- **Parser has**: `DB "NAMES=",0` — a keyword (not a switch), parsed as `NAMES=n` positional keyword
+- **Fix**: Change help to `IFSFUNC [NAMES=n]` to match actual syntax; OR verify that the `NAMES=` keyword path is even used/needed (this parameter was likely never widely used)
+- [ ] Fix IFSFUNC help text
+
+#### 4. FILESYS — `/d` lowercase in help
+- **File**: `CMD/FILESYS/FILESYS.C`
+- **Help says**: `FILESYS drive: /d` (lowercase)
+- **Parser has**: `strcpy(p_swt1.p_keyorsw,"/D"+NULL)` (uppercase)
+- **Impact**: DOS switches are case-insensitive so both work, but convention is uppercase in help text
+- **Fix**: Change `printf("FILESYS drive: /d\r\n")` → `printf("FILESYS drive: /D\r\n")`
+- [ ] Fix FILESYS help text
+
+#### 5. CHKDSK — dead /? help code in CHKINIT.ASM
+- **File**: `CMD/CHKDSK/CHKINIT.ASM` lines 241–271 (dead code)
+- **Issue**: An older, briefer `/? ` help block was added in `Main_Init` in `CHKINIT.ASM` (`6a147b1`). Later `CHKDSK1.ASM` was added with a more complete help block at the actual entry point `CHKDSK:` (`a450ec6`). Since `CHKDSK1.ASM:CHKDSK` is the EXE entry, it checks `/? ` first and exits — the `CHKINIT.ASM` block is never reached.
+- **Fix**: Remove the dead `/? ` check from `CHKINIT.ASM:Main_Init` (lines ~241–272)
+- [ ] Remove dead CHKDSK /? code from CHKINIT.ASM
+
+### Minor / Documentation Issues
+
+#### 6. FDISK — source comment says "in K" but code/help use megabytes
+- **File**: `CMD/FDISK/MAIN.C` line 138: `/* /PRI:m  Size of Primary DOS partition to create in K */`
+- **Reality**: Help text says "megabytes", parser range is 1–4000, code calls `mbytes_to_cylinders()`. The "K" in the comment is wrong.
+- **Fix**: Update the source comment (no behavior change needed)
+- [ ] Fix stale source comment in FDISK/MAIN.C
+
+#### 7. FORMAT — undocumented internal switches (intentional omission)
+- **File**: `CMD/FORMAT/FORSWTCH.INC`
+- **Undocumented**: `SWITCH_BACKUP`, `SWITCH_C`, `SWITCH_SELECT`, `SWITCH_AUTOTEST`, `SWITCH_Z` (ShipDisk)
+- **Status**: These are internal/OEM switches not intended for end users. Omission from help is correct.
+- No action needed.
+
+---
+
 ## E2E Test Coverage Summary
 
 All commands have functional E2E tests. kvikdos handles fast tests (`run_tests.sh`), QEMU+serial for disk/TSR/interactive tests. CI runs parallel jobs per test target (`.github/workflows/ci.yml`).
