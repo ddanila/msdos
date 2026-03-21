@@ -43,6 +43,51 @@ Avoided for now to not diverge from upstream with a large no-content-change comm
 reads use ^Z as EOF sentinel. Always terminate text files with `\x1a` when used with TYPE
 in batch scripts: `printf 'content\r\n\x1a'`.
 
+## WASM Migration (Open Watcom → replaces MASM 5.x via kvikdos)
+
+**Status:** DOS kernel (50 files) fully passes. Makefile still uses `bin/masm` (kvikdos). Next: wire `bin/wasm-masm`, then handle C (wcc) and linker (wlink/wlib).
+
+### Wrapper
+`bin/wasm-masm` — translates MASM two-arg calling convention to WASM:
+- Input: `masm "FLAGS -I..." "SOURCE.ASM,OUTPUT.OBJ;"`
+- Output: `wasm -0 -ms -zq [flags] source.asm -fo=output.obj`
+- Flag translations: `-Mx`/`-t` dropped (WASM defaults); `-I` → `-i=`; `-D` → `-d`; `D:\\TOOLS\\INC` path skipped
+
+### WASM vs MASM 5.x compatibility issues (all fixed)
+
+**1. Duplicate EQU/label (E230)**
+MASM silently allows re-defining `TRUE`/`FALSE`/`IBM` when multiple include files define the same constant. WASM rejects with E230. Fix: add `ifndef X / ... / endif` guards in `DOSSYM.INC`, `VERSION.INC`, `MSSW.ASM`.
+
+**2. SUBTTL and TITLE parsed as code (E251/E032)**
+WASM parses SUBTTL/TITLE argument text as assembly code. If the title contains a word that matches a macro name (e.g. `SUBTTL ... Return ...` → calls `return` macro; `TITLE ... error ...` → calls `error` macro), assembly fails. Fix: comment out all SUBTTL and problematic TITLE directives with `;; `.
+
+**3. STRUC name case sensitivity (E306)**
+`DOSINFO STRUC` must close with `DOSINFO ENDS`, not `DosInfo ENDS`. MASM 5.x was case-insensitive. Fix: match case exactly.
+
+**4. Duplicate EXTRN (E299)**
+WASM rejects duplicate EXTRN declarations for the same symbol. Fix: remove duplicates. Special case: `STRIN.ASM` and `KSTRIN.ASM` declared `EXTRN COPYNEW/BACKMES/FINDOLD:NEAR` and also *defined* those labels in the same file. MASM 5.x silently overrode the EXTRN. Fix: remove the three EXTRN declarations from both files.
+
+**5. Bare `Invoke` treated as directive (E094)**
+WASM has a built-in `INVOKE` directive. Uses of `Invoke` (renamed from MASM's custom macro via DOSMAC.INC) clash. Fix: rename to `DOSInvoke`.
+
+**6. `ORG expr` with character literals (E066)**
+`ORG CharType-Zero+"."` fails — WASM doesn't convert single-char string literals to their ASCII value in arithmetic ORG expressions. Fix: replace `"."` etc. with explicit ASCII values (`46`, `34`, etc.) at the call sites.
+
+**7. `db LOW (NOT (expr))` (E021)**
+WASM doesn't support `LOW` as a unary operator in `db` directives. Fix: pre-compute the values (`LOW(NOT(fChk))` = `0FEH`, etc.) and use hex literals directly.
+
+**8. `<= ` inside angle-bracket argument (E032)**
+`<"text <= more">` — WASM sees `<` in `<=` as a nested angle-bracket start. Fix: replace `<=` with `LE` inside string literals used in angle-bracket macro args.
+
+**9. ^Z (0x1A) EOF byte**
+DOS source files end with `^Z` (0x1A). WASM stops processing at `^Z`. If a file has `^Z` before an `endif`, the `endif` is invisible. Fix: strip `^Z` in Python binary mode before writing: `data.replace(b'\x1a', b'')`. Never use shell `echo >>` or `tr` on these files — use Python for binary correctness.
+
+**10. Wrong error grep pattern**
+WASM errors look like `filename(line): Error! Exx`, not `^Error`. Always grep with `': Error!'` pattern to count real errors.
+
+**11. OOM from batch WASM invocations**
+Even sequential WASM processes are memory-heavy. Never loop over 20+ files. Keep test batches ≤20 files. See memory note: `feedback_wasm_oom.md`.
+
 ## Build Architecture
 - kvikdos cannot spawn subprocesses (exec replaces process), so NMAKE is unusable.
 - Linux GNU Makefile calls kvikdos for each individual DOS tool invocation.
