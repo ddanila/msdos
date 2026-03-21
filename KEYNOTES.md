@@ -85,8 +85,23 @@ DOS source files end with `^Z` (0x1A). WASM stops processing at `^Z`. If a file 
 **10. Wrong error grep pattern**
 WASM errors look like `filename(line): Error! Exx`, not `^Error`. Always grep with `': Error!'` pattern to count real errors.
 
-**11. OOM from batch WASM invocations**
+**11. OOM from batch WASM invocations — NEVER `make -k -f Makefile`**
 Even sequential WASM processes are memory-heavy. Never loop over 20+ files. Keep test batches ≤20 files. See memory note: `feedback_wasm_oom.md`.
+
+**CRITICAL:** Never run `make -k -f Makefile` (full build with continue-on-error). This launches hundreds of WASM invocations across all subsystems (CMD alone has 610+ OBJ targets) and causes OOM / system crash.
+
+**Safe workflow — always build ONE subsystem at a time:**
+```
+make -f Makefile boot      # ~1 file
+make -f Makefile mapper    # ~55 files
+make -f Makefile bios      # ~14 files
+make -f Makefile inc       # ~5 files
+make -f Makefile dos       # ~50 files (link has pre-existing errors)
+make -f Makefile cmd       # ~many files — build and fix errors one at a time
+make -f Makefile memm      # ...
+make -f Makefile select    # ...
+```
+Each subsystem build stops at first WASM error, keeping total invocations bounded. Fix the error, re-run the same subsystem target, repeat.
 
 **12. Include guard needed for DOSMAC.INC (E236)**
 `DOSSYM.INC` includes `DOSMAC.INC` and some source files also include it directly. WASM (single-pass) rejects macro redefinitions on second inclusion. Fix: wrap `DOSMAC.INC` in `IFNDEF DOSMAC_INC_ / DOSMAC_INC_ EQU 1 / ... / ENDIF`.
