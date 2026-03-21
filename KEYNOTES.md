@@ -45,7 +45,7 @@ in batch scripts: `printf 'content\r\n\x1a'`.
 
 ## WASM Migration (Open Watcom → replaces MASM 5.x via kvikdos)
 
-**Status:** DOS kernel (50 files) + INC subsystem (5 targets: NIBDOS, CONST2, MSDATA, MSTABLE, MSDOSME) fully pass. `bin/wasm-masm` is wired into the Makefile. Next: C compiler (wcc replacing CL.EXE), linker (wlink), librarian (wlib).
+**Status:** DOS kernel (50 files) + INC subsystem (5 targets) + BIOS subsystem (14 targets: MSLOAD, MSBIO1, MSBIO2, MSAUX, MSCON, MSCLOCK, MSDISK, MSHARD, MSINIT, SYSINIT1, SYSINIT2, SYSCONF, + MSBIO.EXE link) fully pass. `bin/wasm-masm` is wired into the Makefile. Next: C compiler (wcc replacing CL.EXE), linker (wlink), librarian (wlib).
 
 ### Wrapper
 `bin/wasm-masm` — translates MASM two-arg calling convention to WASM:
@@ -102,6 +102,51 @@ Even sequential WASM processes are memory-heavy. Never loop over 20+ files. Keep
 
 **16. `^Z` before newline in include filename (E220)**
 `YESNO.ASM` ended with `include MSDOS.CL3\x1a` (no newline). WASM tried to open `MSDOS.CL3\x1a` as filename. Fix: add newline before `\x1a` using Python binary mode.
+
+**17. WASM IFNDEF on macro names doesn't work**
+`IFNDEF macroname` does NOT recognize macro names — only EQU/label symbols. Must use a separate EQU sentinel to guard macro definitions. Fix: `IFNDEF PATHMACROS_DEFINED_ / PATHMACROS_DEFINED_ EQU 1 / ...macros... / ENDIF`.
+
+**18. WASM `=` vs `EQU` for include guards**
+Guards using `X = 1` (reassignable variable) are not recognized by IFNDEF. Must use `X EQU 1`. Affected: `VERSION.INC` (VERSION_INC_INCLUDED = 1 → EQU 1) and any other guard-style variables.
+
+**19. WASM IFNDEF guards: EQU must be placed INSIDE the guard**
+If the sentinel `X EQU 1` is placed OUTSIDE the `IFNDEF X / ... / ENDIF` block, re-inclusion still allows the body to execute the second time. Sentinel must be the first statement inside the guard.
+
+**20. REP/REPE on non-string instructions (E101)**
+`REPZ INSW` / `REPZ INSB` (port I/O string instructions) not supported. `REPE MOVSB` is also rejected (use `REP MOVSB` instead). Fix: either replace with explicit loop (for INS*) or use REP (for MOV*).
+
+**21. Struct name as arithmetic constant fails (E077)**
+`WORD PTR CHROUT*4` — WASM parses `WORD PTR CHROUT` as a memory reference, not a numeric constant. CHROUT is an EQU. Fix: use the literal value: `(29H*4)`.
+
+**22. `+byte` / `+word` as arithmetic offsets (E065/E066)**
+`[si+byte]` and `[di+word]` fail — WASM does not support `byte`/`word` as arithmetic constants (1 and 2 respectively). Fix: replace with `[si+1]` and `[di+2]`.
+
+**23. `NOT immediate` out-of-range (E048)**
+`mov cs:EOF, not END_OF_FILE` where END_OF_FILE=0FFh and EOF is a DB (byte). WASM rejects `NOT immediate` for byte-range values. Fix: load into AL and `not al` before storing.
+
+**24. Uninitialized `?stackdepth` in BIOS context (E250: nesting too deep)**
+`DOSMAC.INC` initializes `?stackdepth = 0` but BIOS files use `PUSHPOP.INC` without including DOSMAC.INC first. WASM crashes on uninitialized variable. Fix: add `?stackdepth = 0` initialization in `PUSHPOP.INC` with IFNDEF guard.
+
+**25. Angle bracket in macro string argument (E032)**
+`MESSAGE FTESTINIT,<"<">` — the `>` inside `"..."` closes the outer `<...>` bracket prematurely. Fix: use unquoted string without outer angle brackets: `MESSAGE FTESTINIT,"<"`.
+
+**26. WASM -Mx flag makes macro parameter substitution case-sensitive**
+`MACRO AA` with body using `&aa` (lowercase) fails under `-Mx`. MASM was case-insensitive for macro parameter substitution. Fix: normalize all parameter references to same case as the MACRO parameter declaration.
+
+**27. Struct initialization with DUP fields (E020)**
+WASM cannot handle `<val1, val2, N dup (x)>` struct initializer syntax. Fix: replace with explicit `label byte` + individual `db`/`dw` directives with hardcoded sizes.
+
+**28. IF1/IF2 two-pass directives (E300: unclosed conditional)**
+`IF1 ... INCLUDE BPB.INC ... ELSE ... ENDIF` not supported in WASM (single-pass). Fix: replace with `IFNDEF A_BPB / INCLUDE BPB.INC / ENDIF`. Note: misplaced `endif` in comments can also cause E300.
+
+**29. Trailing comma in EXTRN (E214)**
+`EXTRN foo:word,bar:word,` with trailing comma causes E214 "Colon expected" on the next EXTRN line. WASM does not allow line continuation via trailing comma. Fix: remove trailing commas.
+
+**30. Forward-referenced EQU constants used as immediates (E040)**
+WASM single-pass: EQU constants defined near the end of a file cannot be used as immediates in instructions earlier in the file. MASM two-pass handled this transparently. Fix: hoist the EQU definitions to before their first use (top of file or before segment). Affected: `SYSINIT2.ASM` switchnum/flagec35/flagdrive/flagcyln/flagseclim/flagheads/flagff.
+
+**31. Bare `invoke` treated as built-in directive (E094)**
+WASM has a built-in `INVOKE` directive (case-insensitive). Legacy BIOS code using `invoke GETCHR` (without `DOS` prefix) hits E094. Fix: replace `invoke` with `DOSInvoke`.
 
 ## Build Architecture
 - kvikdos cannot spawn subprocesses (exec replaces process), so NMAKE is unusable.
