@@ -1,13 +1,15 @@
 # Linux GNU Makefile for building MS-DOS 4.0 from source using kvikdos
-# Each DOS tool is invoked via a wrapper script in bin/ that calls kvikdos.
+# Assembler: Open Watcom WASM (via bin/wasm-masm wrapper).
+# C compiler, linker, librarian: still kvikdos-based (migration in progress).
 
 SHELL    := /bin/bash
 SRC      := $(CURDIR)/MS-DOS/v4.0/src
 BIN      := $(CURDIR)/bin
 OUT      := $(CURDIR)/out
 
-# Tool wrappers (all invoke kvikdos internally)
-MASM     := $(BIN)/masm
+# Assembler: Open Watcom WASM (native Linux — no kvikdos needed)
+MASM     := $(BIN)/wasm-masm
+# C compiler / linker / librarian: still kvikdos-based
 CL       := $(BIN)/cl
 LINK     := $(BIN)/link
 LIB      := $(BIN)/lib
