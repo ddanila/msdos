@@ -45,7 +45,7 @@ in batch scripts: `printf 'content\r\n\x1a'`.
 
 ## WASM Migration (Open Watcom → replaces MASM 5.x via kvikdos)
 
-**Status:** DOS kernel (50 files) fully passes. Makefile still uses `bin/masm` (kvikdos). Next: wire `bin/wasm-masm`, then handle C (wcc) and linker (wlink/wlib).
+**Status:** DOS kernel (50 files) + INC subsystem (5 targets: NIBDOS, CONST2, MSDATA, MSTABLE, MSDOSME) fully pass. `bin/wasm-masm` is wired into the Makefile. Next: C compiler (wcc replacing CL.EXE), linker (wlink), librarian (wlib).
 
 ### Wrapper
 `bin/wasm-masm` — translates MASM two-arg calling convention to WASM:
@@ -87,6 +87,21 @@ WASM errors look like `filename(line): Error! Exx`, not `^Error`. Always grep wi
 
 **11. OOM from batch WASM invocations**
 Even sequential WASM processes are memory-heavy. Never loop over 20+ files. Keep test batches ≤20 files. See memory note: `feedback_wasm_oom.md`.
+
+**12. Include guard needed for DOSMAC.INC (E236)**
+`DOSSYM.INC` includes `DOSMAC.INC` and some source files also include it directly. WASM (single-pass) rejects macro redefinitions on second inclusion. Fix: wrap `DOSMAC.INC` in `IFNDEF DOSMAC_INC_ / DOSMAC_INC_ EQU 1 / ... / ENDIF`.
+
+**13. CALL OUT — x86 keyword conflict (E040)**
+`CALL OUT` fails — WASM parses `OUT` as x86 I/O instruction even when used as a label. Worse, WASM evaluates this even inside a FALSE `IF` block (MASM skips false blocks entirely). Fix: rename `OUT` procedure to `OUTRTN` in `PRINT.ASM` and `MSINIT.ASM`.
+
+**14. Forward-ref computed symbols (E050)**
+`MAXCALL DB VAL1` where `VAL1 = ($-DISPATCH)/2 - 1` is computed later in the file. WASM single-pass can't resolve this forward reference. Fix: move the `DB` declarations after the `VAL1`/`VAL2` assignments (`MS_TABLE.ASM`).
+
+**15. `short_addr name` in data segments needs EXTRN (E251)**
+`short_addr X` expands to `DW OFFSET DOSGROUP:X`. If `X` is defined in another OBJ, WASM requires an explicit `EXTRN X:NEAR` declaration. Affected: `CONST2.ASM` (DEVIOBUF), `MSCONST.ASM` (SNULDEV/INULDEV), `DOSMES.ASM` (13 ESCFUNC entries), `MS_TABLE.ASM` (125 dispatch table entries).
+
+**16. `^Z` before newline in include filename (E220)**
+`YESNO.ASM` ended with `include MSDOS.CL3\x1a` (no newline). WASM tried to open `MSDOS.CL3\x1a` as filename. Fix: add newline before `\x1a` using Python binary mode.
 
 ## Build Architecture
 - kvikdos cannot spawn subprocesses (exec replaces process), so NMAKE is unusable.
