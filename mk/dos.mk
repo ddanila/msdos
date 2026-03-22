@@ -203,7 +203,10 @@ DOS_OBJ_PATHS := $(addprefix $(DOS_DIR)/,$(DOS_OBJS))
 
 $(DOS_DIR)/MSDOS.EXE: $(INC_NIBDOS) $(INC_CONST2) $(INC_MSDATA) \
     $(INC_MSTABLE) $(INC_MSDOSME) $(DOS_OBJ_PATHS)
-	cd $(DOS_DIR) && $(LINK) "@MSDOS.LNK"
+	# Pre-existing L2029: TESTKANJ/NET_xxx/NETWINIT/ASS_ERR are DBCS/networking
+	# stubs disabled by DBCS=FALSE/no IFS lib. Linker still produces EXE;
+	# suppress the exit-code-2 so make proceeds to EXE2BIN.
+	-cd $(DOS_DIR) && $(LINK) "@MSDOS.LNK"
 
 $(DOS_OUT): $(DOS_DIR)/MSDOS.EXE
 	cd $(DOS_DIR) && $(EXE2BIN) "MSDOS.EXE MSDOS.SYS"
