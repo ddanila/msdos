@@ -135,6 +135,7 @@ COMMAND_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC -I..\\..\\DOS
 # ---------------------------------------------------------------------------
 $(COMMAND_DIR)/COMMAND.CTL: $(COMMAND_DIR)/COMMAND.SKL $(MESSAGES_OUT)
 	cd $(COMMAND_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" COMMAND.SKL
+	python3 $(CURDIR)/fix_cl_forward_refs.py $(COMMAND_DIR)/
 
 # All CL files are side-effects of the same BUILDMSG run
 $(COMMAND_DIR)/COMMAND.CL1 $(COMMAND_DIR)/COMMAND.CL2 \

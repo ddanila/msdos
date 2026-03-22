@@ -145,6 +145,35 @@ If the sentinel `X EQU 1` is placed OUTSIDE the `IFNDEF X / ... / ENDIF` block, 
 **25. Angle bracket in macro string argument (E032)**
 `MESSAGE FTESTINIT,<"<">` — the `>` inside `"..."` closes the outer `<...>` bracket prematurely. Fix: use unquoted string without outer angle brackets: `MESSAGE FTESTINIT,"<"`.
 
+**32. WASM `%out` suppresses OBJ creation (no error, 0-byte OBJ)**
+`%out` directive causes WASM to discard the OBJ output (produces 0-byte file with 0 errors). Fix: replace `%out` with `;; WASM: %out removed` in all COMMAND.CL* files (fix_cl_forward_refs.py).
+
+**33. WASM EXTRN/IFNDEF interaction — L2025 duplicate PUBLIC**
+In WASM, `EXTRN name:type` makes `IFNDEF name` return FALSE (symbol is "defined"). In MASM, EXTRN symbols remain invisible to IFNDEF. If a symbol is declared EXTRN before MSGDCL.INC runs, MSGDCL's `IFNDEF $M_CLS_N` returns FALSE → emits `PUBLIC` → L2025 duplicate when the symbol is also PUBLIC in the defining OBJ.
+Fix pattern: use a companion `$M_HAS_xxx = 1` flag in the file that DEFINES the symbol. MSGDCL checks `IFNDEF $M_HAS_xxx` instead of `IFNDEF $M_CLS_N`. Applied to:
+- `$M_RT2`: added `$M_HAS_RT2 = 1` in MSGSERV.ASM MSGDATA section; MSGDCL.INC COMR branch now uses `IFDEF $M_HAS_RT2` (PUBLIC only); EXTRN handled by MSGSERV.ASM.
+- `$M_CLS_N` (N=1..8): fix_cl_forward_refs.py injects `$M_HAS_CLS_N = 1` and `$M_HAS_$M_CLS_N = 1` after each `PUBLIC $M_CLS_N` in CL* files. MSGDCL `$M_DECLARE2` checks `$M_HAS_CLS_&innum` (all 3 branches). `$M_CHECK` checks `$M_HAS_&parm`.
+- `$M_MSGSERV_1/2`: `$M_HAS_MSGSERV_N = 1` and `$M_HAS_$M_MSGSERV_N = 1` injected by fix_cl_forward_refs.py in CL1/CL2 files. EXTRN guards added in MSGSERV.ASM LOADmsg section.
+- `$M_GET_MSG_ADDRESS`: `$M_HAS_$M_GET_MSG_ADDRESS = 1` set in MSGSERV.ASM `IF $M_SUBS` block; `$M_CHECK` uses `$M_HAS_$M_GET_MSG_ADDRESS`.
+
+**34. WASM `=` equate makes IFNDEF return FALSE; EXTRN of equate generates external named by VALUE**
+`$M_RT2 = 0` (reassignable equate) causes WASM to treat `$M_RT2` as defined (unlike MASM). Worse: `EXTRN $M_RT2:BYTE` when `$M_RT2 = 0` → WASM substitutes the value (0) → generates external symbol named "0" → L2029 unresolved external "0". Fix: in MSGSERV.ASM DISK_PROC/LOADmsg/GETmsg/DISPLAYmsg COMR sections, replace the placeholder `$M_RT2 = 0` pattern with a proper `EXTRN $M_RT2:BYTE` (guarded by `$M_HAS_RT2_EXTERN` to avoid double-declaration) + `$M_RT EQU $M_RT2` alias. MSGDCL no longer needs to EXTRN $M_RT2 for COMR case.
+
+**37. $M_BUILD_PTRS timing — EXTRN guards needed before $M_MAKE_COMR/$M_MAKE_COMT**
+`$M_MAKE_COMR` calls `CALL $M_CLS_3`..`CALL $M_CLS_7` before MSGDCL.INC runs (MSGDCL is included after MSG_SERVICES). WASM E251 "symbol not defined" for each class. Fix: add `IFNDEF $M_HAS_CLS_N; IF FARmsg; EXTRN $M_CLS_N:FAR; ELSE; EXTRN $M_CLS_N:NEAR; ENDIF; ENDIF` guards inside `$M_MAKE_COMR` and `$M_MAKE_COMT` macros in SYSMSG.INC.
+
+**38. AD054 amendment removed CL3/CL4 from RDATA.ASM — $M_CLS_1/$M_CLS_2 unresolved**
+The AD054 amendment changed `MSG_SERVICES <COMR,MSGDATA,COMMAND.CLA,COMMAND.CL3,COMMAND.CL4>` to omit CL3/CL4. These define $M_CLS_1 and $M_CLS_2, which are referenced via EXTRN in all 6 COMMAND OBJs but never defined anywhere → L2029. The Makefile still lists CL3/CL4 as RDATA.OBJ dependencies (revealing the bug). Fix: restore CL3/CL4 in RDATA.ASM's MSG_SERVICES call.
+
+**39. triageError cross-group NEAR call — L2002 fixup overflow**
+INIT.ASM (RESGROUP:INIT) calls `triageError` declared as `EXTRN:NEAR`. `triageError` is defined in TMISC2.ASM in TRANCODE (TRANGROUP). Different groups → NEAR call cannot span groups → L2002. Pre-existing in MASM build too. Fix: change `EXTRN triageError:NEAR` to `EXTRN triageError:FAR` in INIT.ASM. Also removed duplicate EXTRN set (copy-paste artifact).
+
+**35. WASM BREAK macro / SUBTTL Trap interaction**
+`BREAK <Trap: Get the attention of MSDOS>` expands to `SUBTTL Trap: ...`. WASM (case-insensitive) parses `Trap:` as an invocation of the `trap` macro → E225 "Data emitted with no segment". Fix: redefine BREAK as empty macro in TDATA.ASM before COMEQU.ASM include.
+
+**36. `int_command` undefined in TDATA (E251)**
+COMEQU.ASM's `trap` macro references `int_command` (from VECTOR.INC) at definition time. VECTOR.INC is not in TDATA's include chain. Fix: add `IFNDEF int_command; int_command EQU 21H; ENDIF` before the COMEQU.ASM include in TDATA.ASM.
+
 **26. WASM -Mx flag makes macro parameter substitution case-sensitive**
 `MACRO AA` with body using `&aa` (lowercase) fails under `-Mx`. MASM was case-insensitive for macro parameter substitution. Fix: normalize all parameter references to same case as the MACRO parameter declaration.
 
@@ -190,9 +219,9 @@ WASM has a built-in `INVOKE` directive (case-insensitive). Legacy BIOS code usin
 ### CMD utilities
 | Utility       | Status  | Output                         |
 |---------------|---------|--------------------------------|
-| COMMAND       | ✅ done | CMD/COMMAND/COMMAND.COM        |
+| COMMAND       | ✅ done | CMD/COMMAND/COMMAND.EXE        |
 | FORMAT        | ✅ done | CMD/FORMAT/FORMAT.COM          |
-| SYS           | ✅ done | CMD/SYS/SYS.COM                |
+| SYS           | 🔄 needs work | SYSHDR.INC/BOOTFORM.INC/SYS1.ASM errors (FALSE redef, syntax) — likely SYSMSG.INC VERSIONA include interaction |
 | CHKDSK        | ✅ done | CMD/CHKDSK/CHKDSK.COM          |
 | DEBUG         | ✅ done | CMD/DEBUG/DEBUG.COM            |
 | MEM           | ✅ done | CMD/MEM/MEM.EXE                |
