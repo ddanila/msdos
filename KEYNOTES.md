@@ -966,3 +966,67 @@ TCOMMAND's own comment says "Nothing is known here. No registers, no flags, noth
 - EMM AFLAGS: `-Mx -t -DI386 -DNOHIMEM -I..\\MEMM`; CFLAGS: `/ASw /G2 /Oat /Gs /Ze /Zl /c`.
 - MEMM AFLAGS: `-Mx -t -DI386 -DNoBugMode -DNOHIMEM -I..\\EMM`; MAPDMA.C needs `-I..\\EMM`.
 - EMM386.SYS: link `/NOI @EMM386.LNK` → emm386.exe, then rename to emm386.sys (no exe2bin).
+
+## WASM COMMAND.COM Boot Failure — Root Cause Analysis
+
+**Status:** All three WASM-built binaries (IO.SYS, MSDOS.SYS, COMMAND.COM) fail to boot
+independently (confirmed via `tests/test_wasm_boot.sh` — tests A–E: only baseline MASM passes).
+
+### Debugging infrastructure
+
+- `tests/test_wasm_boot.sh`: FAT12 binary-patches floppy.img with WASM binaries one at a time,
+  boots each in headless QEMU, captures serial output via CTTY AUX / VER, checks for "MS-DOS".
+- QEMU GDB server: `qemu-system-i386 -s -S -no-reboot -d int,cpu ...` then GDB with hw breakpoints.
+- QEMU exec trace: `-d exec,nochain 2>trace.log` (format: `[cs_base/phys_pc/flags]`, IP = phys_pc − cs_base).
+
+### COMMAND.COM crash: CS:0x6F48 (#UD — invalid opcode)
+
+**COMMAND.COM segment layout (WASM build, 43832 bytes):**
+- CODERES: CS:0x0000–0x0E26
+- DATARES: CS:0x0E27–0x1A6A
+- INIT:    CS:0x1B70–0x289F  (entry at CS:0x0100 → JMP 0x1B70)
+- TRANCODE: CS:0x28A0–0x978A
+- TRANDATA: CS:0x978A–0x9C3E
+
+**Crash location:** EIP = CS:0x6F48 = 307 bytes into COPY_HELP_STR string data (TRANCODE segment).
+CPU state at crash: CS=0x0E66, DS=0x099D (not equal to CS), ESI=0x81.
+
+**Root cause (WASM linker bug):** `OFFSET TRANGROUP:COPY_HELP_STR` in COPY.ASM resolves to
+**0x6F48** (WASM) instead of **CS:0x6E15** (MASM) — 0x133 = 307 bytes too far into the string.
+Two data uses of the wrong address confirmed in the binary:
+- File 0x5AA7: MOV DX, 0x6F48; JMP 0x5D20
+- File 0x651C: MOV word [0x822F], 0x6F48
+
+**Dispatch table (TDATA.ASM COMTAB):** COPY entry at file 0x995E stores TRANGROUP-offset 0x4727 → CS:0x6FC7.
+MASM stores 0x4720 → CS:0x6F60. Both point to the COPY: label (COPY.ASM), but differ by 7 bytes.
+
+**Crash mechanism:** The wrong DX=0x6F48 is passed to the message dispatcher at CS:0x87EB.
+That dispatcher reads [DS:0x6F48] as a message structure pointer — DS!=CS, so
+it dereferences at linear 0x099D0 + 0x6F48 = 0x10918 (INIT segment data), computes a
+garbage function pointer, and jumps into the middle of COPY_HELP_STR string data, causing #UD.
+
+**COPY_HELP_STR location:** file offset 0x6D15 (CS:0x6E15), length 433 bytes.
+COPY: label immediately follows at file 0x6EC7 (CS:0x6FC7).
+
+### Comparison with MASM build (from floppy.img)
+
+| | MASM | WASM |
+|--|------|------|
+| COMMAND.COM size | 44013 bytes | 43832 bytes |
+| COPY_HELP_STR | CS:0x6DAE | CS:0x6E15 |
+| COPY: label | CS:0x6F60 | CS:0x6FC7 |
+| COMTAB COPY offset | 0x4720 | 0x4727 |
+| OFFSET TRANGROUP:COPY_HELP_STR | 0x6DAE (correct) | 0x6F48 (WRONG, +0x133) |
+
+### Key diagnostic tips
+
+- x86 hw breakpoints in GDB: max 4 (DR0–DR3). Setting 5 causes silent failure on one.
+- Real-mode GDB linear address: CS*16 + IP (e.g., CS=0x0E66, IP=0x6F48 → linear 0x155A8).
+- Stack read via GDB: `x/8xb <linear_SS*16+SP>`, not local offset.
+- QEMU exec trace format: `[cs_base/phys_pc/flags]` — IP = phys_pc - cs_base.
+
+### Next step
+
+Identify the exact WASM code-generation bug for `OFFSET TRANGROUP:COPY_HELP_STR`
+(likely affects all forward-reference TRANGROUP offsets in TRANCODE segment).
+Apply source-level fix and verify boot.
