@@ -85,6 +85,24 @@ def fix_cl_file(filepath):
     return changed or changed_pct or changed_has
 
 
+def fix_ctl_file(filepath):
+    """Guard $M_NUM_CLS EQU N in CTL files against double-include."""
+    with open(filepath, 'r') as f:
+        content = f.read()
+    if re.search(r'^\$M_NUM_CLS\s+EQU\s+\d+', content, re.MULTILINE) and 'IFNDEF $M_NUM_CLS' not in content:
+        content = re.sub(
+            r'^(\$M_NUM_CLS\s+EQU\s+\d+)',
+            r'IFNDEF $M_NUM_CLS\n\1\t\t\t\t;; WASM: guard against double-include via MSG_UTILNAME\nENDIF',
+            content,
+            flags=re.MULTILINE
+        )
+        with open(filepath, 'w') as f:
+            f.write(content)
+        print(f"Fixed: {filepath}")
+        return True
+    return False
+
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print("Usage: fix_cl_forward_refs.py <dir_or_file> [...]")
@@ -93,8 +111,13 @@ if __name__ == '__main__':
     for pattern in sys.argv[1:]:
         for filepath in glob.glob(pattern) or [pattern]:
             if os.path.isfile(filepath):
-                fix_cl_file(filepath)
+                if filepath.upper().endswith('.CTL'):
+                    fix_ctl_file(filepath)
+                else:
+                    fix_cl_file(filepath)
             elif os.path.isdir(filepath):
                 for ext in ['CL1', 'CL2', 'CL3', 'CL4', 'CLA', 'CLB', 'CLC', 'CLD', 'CLE', 'CLF']:
                     for f in glob.glob(os.path.join(filepath, f'*.{ext}')):
                         fix_cl_file(f)
+                for f in glob.glob(os.path.join(filepath, '*.CTL')):
+                    fix_ctl_file(f)

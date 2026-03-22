@@ -159,6 +159,22 @@ Fix pattern: use a companion `$M_HAS_xxx = 1` flag in the file that DEFINES the 
 **34. WASM `=` equate makes IFNDEF return FALSE; EXTRN of equate generates external named by VALUE**
 `$M_RT2 = 0` (reassignable equate) causes WASM to treat `$M_RT2` as defined (unlike MASM). Worse: `EXTRN $M_RT2:BYTE` when `$M_RT2 = 0` → WASM substitutes the value (0) → generates external symbol named "0" → L2029 unresolved external "0". Fix: in MSGSERV.ASM DISK_PROC/LOADmsg/GETmsg/DISPLAYmsg COMR sections, replace the placeholder `$M_RT2 = 0` pattern with a proper `EXTRN $M_RT2:BYTE` (guarded by `$M_HAS_RT2_EXTERN` to avoid double-declaration) + `$M_RT EQU $M_RT2` alias. MSGDCL no longer needs to EXTRN $M_RT2 for COMR case.
 
+**40. MSG_UTILNAME CTL double-include → E230 $M_NUM_CLS already defined**
+`MSG_UTILNAME <UTIL>` includes `UTIL.CTL` (defines `$M_NUM_CLS EQU N`). Later, `Msg_Services <...,UTIL.CTL>` includes it again → E230 re-definition. MASM two-pass was silent; WASM single-pass rejects.
+Fix: wrap `$M_NUM_CLS EQU N` in `IFNDEF $M_NUM_CLS / ... / ENDIF` in the CTL file. Updated `fix_cl_forward_refs.py` to add this guard when processing a directory (also handles `*.CTL` files). Add `python3 fix_cl_forward_refs.py <DIR>/` step after each BUILDMSG call in Makefile.
+
+**41. MSG_SERVICES CL-before-service ordering — EXTRN vs PROC conflict (E299)**
+In the original DISPLAY.ASM for FORMAT, service calls (`NEARmsg`, `LOADmsg`, `DISPLAYmsg`) come BEFORE the class-file call (`FORMAT.CLA,...,FORMAT.CTL`). MSGSERV.ASM (included for each service call) emits `EXTRN $M_MSGSERV_1:NEAR` since the CL file hasn't been included yet. Then when `FORMAT.CL1` is finally included, `$M_MSGSERV_1 PROC NEAR` conflicts with the already-declared EXTRN → E299.
+Fix: reorder `Msg_Services` in DISPLAY.ASM so the CL-files call comes FIRST (mirrors SYSSR.ASM pattern). This ensures `$M_HAS_MSGSERV_1 = 1` is set before MSGSERV.ASM's EXTRN-guard block runs.
+**Rule:** in any assembly that uses both `Msg_Services <CL files>` and `Msg_Services <LOADmsg/...>`, the CL files call must come first.
+
+**42. FORMSG.INC uses SYSMSG.INC constants before SYSMSG.INC is included (E050)**
+FORMAT's include order is: FOREQU.INC → FORMSG.INC → SYSMSG.INC. FORMSG.INC's `Create_Msg` macro uses `STDOUT`, `No_Handle`, `No_Input` as Handle/Function values in DB/DW directives. These are defined in SYSMSG.INC, not yet available when FORMSG.INC is assembled. WASM single-pass: undefined symbol in `var = STDOUT` may produce a fixup/label reference; `db Class` then receives an unexpected offset expression → E050 "Offset cannot be smaller than WORD size".
+Fix: pre-define `STDOUT`, `STDERR`, `NO_HANDLE`, `NO_INPUT` in FOREQU.INC (with IFNDEF guards) before FORMSG.INC is included. Also add IFNDEF guard for `NO_INPUT` in SYSMSG.INC.
+
+**43. $M_BUILD_PTRS nummsg expansion — OPEN issue (FORMAT DISPLAY.OBJ still failing)**
+After fixing issues #40-42, `DISPLAY.OBJ` still fails with E251 "$M_CLS_4 is not defined" through "$M_CLS_23 is not defined". The call chain: `Msg_Services <LOADmsg>` (DISPLAY.ASM:81) → INCLUDE MSGSERV.ASM (SYSMSG.INC:404) → `$M_BUILD_PTRS %$M_NUM_CLS` (MSGSERV.ASM:594) → REPT iterates past 3. FORMAT has only 3 classes (CLA/CLB/CLC → $M_CLS_1/2/3). The REPT loop runs more than 3 times (errors from CLS_4 onward imply nummsg ≥ 23 at REPT execution time). $M_NUM_CLS is defined as 3 via FORMAT.CTL. Root cause unclear: possibilities include WASM `%` operator not expanding `%$M_NUM_CLS` correctly in nested macro argument, or $M_NUM_CLS being evaluated to a different value than expected at REPT time. **Status: under investigation.**
+
 **37. $M_BUILD_PTRS timing — EXTRN guards needed before $M_MAKE_COMR/$M_MAKE_COMT**
 `$M_MAKE_COMR` calls `CALL $M_CLS_3`..`CALL $M_CLS_7` before MSGDCL.INC runs (MSGDCL is included after MSG_SERVICES). WASM E251 "symbol not defined" for each class. Fix: add `IFNDEF $M_HAS_CLS_N; IF FARmsg; EXTRN $M_CLS_N:FAR; ELSE; EXTRN $M_CLS_N:NEAR; ENDIF; ENDIF` guards inside `$M_MAKE_COMR` and `$M_MAKE_COMT` macros in SYSMSG.INC.
 
@@ -220,8 +236,8 @@ WASM has a built-in `INVOKE` directive (case-insensitive). Legacy BIOS code usin
 | Utility       | Status  | Output                         |
 |---------------|---------|--------------------------------|
 | COMMAND       | ✅ done | CMD/COMMAND/COMMAND.EXE        |
-| FORMAT        | ✅ done | CMD/FORMAT/FORMAT.COM          |
-| SYS           | 🔄 needs work | SYSHDR.INC/BOOTFORM.INC/SYS1.ASM errors (FALSE redef, syntax) — likely SYSMSG.INC VERSIONA include interaction |
+| FORMAT        | 🔄 in progress | DISPLAY.OBJ failing: $M_BUILD_PTRS nummsg expansion issue (issue #43) |
+| SYS           | ✅ done | W249 warnings only (END directive) — all 3 OBJs assemble cleanly |
 | CHKDSK        | ✅ done | CMD/CHKDSK/CHKDSK.COM          |
 | DEBUG         | ✅ done | CMD/DEBUG/DEBUG.COM            |
 | MEM           | ✅ done | CMD/MEM/MEM.EXE                |
