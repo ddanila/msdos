@@ -45,7 +45,7 @@ in batch scripts: `printf 'content\r\n\x1a'`.
 
 ## WASM Migration (Open Watcom → replaces MASM 5.x via kvikdos)
 
-**Status:** DOS kernel (50 files) + INC subsystem (5 targets) + BIOS subsystem (14 targets: MSLOAD, MSBIO1, MSBIO2, MSAUX, MSCON, MSCLOCK, MSDISK, MSHARD, MSINIT, SYSINIT1, SYSINIT2, SYSCONF, + MSBIO.EXE link) fully pass. `bin/wasm-masm` is wired into the Makefile. Next: C compiler (wcc replacing CL.EXE), linker (wlink), librarian (wlib).
+**Status:** DOS kernel (50 files) + INC subsystem (5 targets) + BIOS subsystem (14 targets) + all CMD utilities (FORMAT, SYS, COMMAND, CHKDSK, and 30+ others) fully pass. FORMAT.COM builds cleanly. `bin/wasm-masm` is wired into the Makefile. Next: remaining cmd utilities not yet migrated, then C compiler (wcc replacing CL.EXE).
 
 ### Wrapper
 `bin/wasm-masm` — translates MASM two-arg calling convention to WASM:
@@ -172,8 +172,29 @@ Fix: reorder `Msg_Services` in DISPLAY.ASM so the CL-files call comes FIRST (mir
 FORMAT's include order is: FOREQU.INC → FORMSG.INC → SYSMSG.INC. FORMSG.INC's `Create_Msg` macro uses `STDOUT`, `No_Handle`, `No_Input` as Handle/Function values in DB/DW directives. These are defined in SYSMSG.INC, not yet available when FORMSG.INC is assembled. WASM single-pass: undefined symbol in `var = STDOUT` may produce a fixup/label reference; `db Class` then receives an unexpected offset expression → E050 "Offset cannot be smaller than WORD size".
 Fix: pre-define `STDOUT`, `STDERR`, `NO_HANDLE`, `NO_INPUT` in FOREQU.INC (with IFNDEF guards) before FORMSG.INC is included. Also add IFNDEF guard for `NO_INPUT` in SYSMSG.INC.
 
-**43. $M_BUILD_PTRS nummsg expansion — OPEN issue (FORMAT DISPLAY.OBJ still failing)**
-After fixing issues #40-42, `DISPLAY.OBJ` still fails with E251 "$M_CLS_4 is not defined" through "$M_CLS_23 is not defined". The call chain: `Msg_Services <LOADmsg>` (DISPLAY.ASM:81) → INCLUDE MSGSERV.ASM (SYSMSG.INC:404) → `$M_BUILD_PTRS %$M_NUM_CLS` (MSGSERV.ASM:594) → REPT iterates past 3. FORMAT has only 3 classes (CLA/CLB/CLC → $M_CLS_1/2/3). The REPT loop runs more than 3 times (errors from CLS_4 onward imply nummsg ≥ 23 at REPT execution time). $M_NUM_CLS is defined as 3 via FORMAT.CTL. Root cause unclear: possibilities include WASM `%` operator not expanding `%$M_NUM_CLS` correctly in nested macro argument, or $M_NUM_CLS being evaluated to a different value than expected at REPT time. **Status: under investigation.**
+**43. $M_BUILD_PTRS nummsg expansion — FIXED**
+`DISPLAY.OBJ` was failing with E251 "$M_CLS_4 through $M_CLS_23 not defined". Root cause: `$M_BUILD_PTRS %$M_NUM_CLS` is called from MSGSERV.ASM which is INCLUDE'd inside the `MSG_SERVICES` macro body. In this nested macro+INCLUDE context, WASM's `%` operator fails to expand `$M_NUM_CLS` correctly — REPT ran ≥23 iterations instead of 3.
+Fix: replaced `REPT nummsg` in `$M_BUILD_PTRS` (SYSMSG.INC) with explicit `IFDEF $M_HAS_CLS_1 / $M_MAKE 1 / ENDIF` blocks for classes 1–8 (max class count). The `$M_HAS_CLS_N = 1` flags are injected by `fix_cl_forward_refs.py` after each `PUBLIC $M_CLS_N` in CL* files.
+
+**44. Macro name collision with DOSMAC.INC (E236) — FORMAT**
+`FORMACRO.INC` defined `Procedure macro Proc_Name`. `DOSMAC.INC` also defines `procedure MACRO name,distance`. WASM case-insensitive mode treats them as the same symbol → E236 on redefinition. `PURGE` not supported (causes E094 parser corruption). Macro redefinition also causes E236.
+Fix: rename `Procedure` → `Fmt_Proc` in FORMACRO.INC and update all 80 call sites across FORMAT.ASM, MSFOR.ASM, FORINIT.ASM, FORLABEL.ASM, FORPROC.ASM, FOREXEC.ASM.
+
+**45. `TRUE` (0FFFFh) used with byte DB variables (E048) — FORMAT**
+`DOSMAC.INC` defines `TRUE EQU 0FFFFh`. FORMAT uses `mov fBigFat,TRUE` etc. where `fBigFat` is a DB (byte). WASM rejects `0FFFFh` as out-of-range for byte immediate.
+Fix: replace `,TRUE` with `,0FFh` in all byte-variable instruction contexts (12 places in FORMAT.ASM, 4 in MSFOR.ASM).
+
+**46. REPNZ/REPNE with MOVSB not allowed (E101) — MSFOR.ASM**
+`repnz movsb` is invalid — REPNZ/REPNE prefix is only allowed with CMPS and SCAS, not MOVS. MASM 5.x accepted it; WASM rejects with E101.
+Fix: replace `repnz movsb` → `rep movsb` at 3 locations in MSFOR.ASM.
+
+**47. Struct field access without PTR qualifier (E048/E040) — MSFOR.ASM**
+`cmp Boot2.Boot_Signature,Boot_ID` where `BOOT_SIGNATURE = word ptr (BOOT_SIZE-2)` and `Boot_ID = 0AA55h`. WASM can't infer operand size → treats immediate as byte → E048.
+Fix: add explicit `word ptr`: `cmp word ptr Boot2.Boot_Signature,Boot_ID` (mirrors the `word ptr ScratchBuffer.Boot_Signature` pattern already used at line 332).
+
+**48. Unconditional EXTRN for FSExec=NO symbol causes L2029 — FOREXEC.ASM**
+`EXTRN SYS_RET_ERR:NEAR` appeared twice unconditionally at the top of the code segment, but `SYS_RET_ERR` is only referenced inside `IF FSExec ... ENDIF` (FSExec=NO). WASM always emits the EXTRN into the OBJ; linker can't resolve it.
+Fix: wrap the EXTRN in `IF FSExec / EXTRN SYS_RET_ERR:NEAR / ENDIF` (remove duplicate too).
 
 **37. $M_BUILD_PTRS timing — EXTRN guards needed before $M_MAKE_COMR/$M_MAKE_COMT**
 `$M_MAKE_COMR` calls `CALL $M_CLS_3`..`CALL $M_CLS_7` before MSGDCL.INC runs (MSGDCL is included after MSG_SERVICES). WASM E251 "symbol not defined" for each class. Fix: add `IFNDEF $M_HAS_CLS_N; IF FARmsg; EXTRN $M_CLS_N:FAR; ELSE; EXTRN $M_CLS_N:NEAR; ENDIF; ENDIF` guards inside `$M_MAKE_COMR` and `$M_MAKE_COMT` macros in SYSMSG.INC.
@@ -236,7 +257,7 @@ WASM has a built-in `INVOKE` directive (case-insensitive). Legacy BIOS code usin
 | Utility       | Status  | Output                         |
 |---------------|---------|--------------------------------|
 | COMMAND       | ✅ done | CMD/COMMAND/COMMAND.EXE        |
-| FORMAT        | 🔄 in progress | DISPLAY.OBJ failing: $M_BUILD_PTRS nummsg expansion issue (issue #43) |
+| FORMAT        | ✅ done | CMD/FORMAT/FORMAT.COM          |
 | SYS           | ✅ done | W249 warnings only (END directive) — all 3 OBJs assemble cleanly |
 | CHKDSK        | ✅ done | CMD/CHKDSK/CHKDSK.COM          |
 | DEBUG         | ✅ done | CMD/DEBUG/DEBUG.COM            |
