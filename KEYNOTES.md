@@ -47,11 +47,14 @@ in batch scripts: `printf 'content\r\n\x1a'`.
 
 **Status:** All 53 modules build cleanly under WASM (assembler migration complete). Currently in **runtime validation** phase — WASM-built binaries crash at boot. See "## WASM Boot Failure" section for root cause analysis.
 
-**Next steps:**
-1. Fix WASM linker `OFFSET TRANGROUP:` bug causing COMMAND.COM crash (see issue below)
-2. Validate minimal boot: boot sector → IO.SYS → MSDOS.SYS → COMMAND.COM
-3. Run existing E2E test suite against WASM-built floppy image
-4. Migrate C compiler (wcc replacing CL.EXE via kvikdos)
+**Key insight:** The linker is the same MS LINK.EXE (via kvikdos) in both MASM and WASM builds. The `OFFSET TRANGROUP:` bug is in **WASM's OBJ output** (OMF FIXUPP records), not the linker.
+
+**Next steps:** See TODO.md "WASM Runtime Validation" for the full plan. Summary:
+1. OBJ-level diagnostics — compare MASM vs WASM FIXUPP records to find root cause
+2. Individual binary validation under kvikdos (fast, no QEMU needed for most tests)
+3. Minimal QEMU boot — boot sector → IO.SYS → MSDOS.SYS → COMMAND.COM
+4. Full E2E test suite on WASM build
+5. C compiler migration (wcc replacing CL.EXE)
 
 ### Wrapper
 `bin/wasm-masm` — translates MASM two-arg calling convention to WASM:
@@ -272,7 +275,7 @@ All 53 modules assemble cleanly under WASM: 7 core (MESSAGES, MAPPER, BOOT, INC,
 | Boot sector (MSBOOT.BIN) | ✅ | ✅ | boots into IO.SYS |
 | IO.SYS (BIOS) | ✅ | ❌ | fails independently (test E) |
 | MSDOS.SYS (kernel) | ✅ | ❌ | fails independently (test C/D) |
-| COMMAND.COM | ✅ | ❌ | crashes at CS:0x6F48 — OFFSET TRANGROUP bug (see below) |
+| COMMAND.COM | ✅ | ❌ | crashes at CS:0x6F48 — WASM OFFSET TRANGROUP bug in OBJ FIXUPP records (see below) |
 | Full WASM boot | ✅ | ❌ | all three fail together (test E) |
 
 Test harness: `tests/test_wasm_boot.sh` — swaps WASM binaries one-at-a-time into MASM floppy.img, boots headless QEMU, checks serial for "MS-DOS".
@@ -950,7 +953,7 @@ independently (confirmed via `tests/test_wasm_boot.sh` — tests A–E: only bas
 **Crash location:** EIP = CS:0x6F48 = 307 bytes into COPY_HELP_STR string data (TRANCODE segment).
 CPU state at crash: CS=0x0E66, DS=0x099D (not equal to CS), ESI=0x81.
 
-**Root cause (WASM linker bug):** `OFFSET TRANGROUP:COPY_HELP_STR` in COPY.ASM resolves to
+**Root cause (WASM assembler bug — not the linker, since MS LINK.EXE is used in both builds):** `OFFSET TRANGROUP:COPY_HELP_STR` in COPY.ASM resolves to
 **0x6F48** (WASM) instead of **CS:0x6E15** (MASM) — 0x133 = 307 bytes too far into the string.
 Two data uses of the wrong address confirmed in the binary:
 - File 0x5AA7: MOV DX, 0x6F48; JMP 0x5D20
@@ -986,7 +989,7 @@ COPY: label immediately follows at file 0x6EC7 (CS:0x6FC7).
 
 ### Next steps (priority order)
 
-1. **COMMAND.COM**: Identify the exact WASM/WLINK code-generation bug for `OFFSET TRANGROUP:COPY_HELP_STR` — likely affects all forward-reference TRANGROUP offsets in TRANCODE segment. Apply source-level workaround (e.g., force symbol ordering, split segments) and verify boot with `tests/test_wasm_boot.sh` test B.
+1. **COMMAND.COM**: Compare MASM vs WASM OBJ FIXUPP records (the linker is the same MS LINK.EXE in both builds — the bug is in WASM's OMF output). Use `wdump` or Python OMF parser to find exactly how WASM encodes `OFFSET TRANGROUP:COPY_HELP_STR`. Apply source-level workaround and verify with kvikdos (`COMMAND.COM /C VER`) then `test_wasm_boot.sh` test B.
 2. **MSDOS.SYS**: Debug kernel boot failure (test C) — may be a similar offset/segment bug or different root cause. Use QEMU GDB + exec trace.
 3. **IO.SYS**: Debug BIOS boot failure (test E) — lowest priority since it loads first and may depend on kernel fix.
 4. **Full integration**: Once all three boot individually, run test E (full WASM) and then the complete E2E test suite.

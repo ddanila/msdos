@@ -4,22 +4,52 @@
 
 Goal: make all WASM-built binaries boot and pass the existing E2E test suite. Assembly migration is complete (53/53 modules, 50 WASM compat issues fixed). Current blocker: runtime crashes.
 
-Test harness: `tests/test_wasm_boot.sh` (swaps WASM binaries into MASM floppy, boots QEMU, checks serial).
+**Key architectural fact:** The linker is the same MS LINK.EXE (via kvikdos) in both MASM and WASM builds — only the assembler changed. So the OFFSET TRANGROUP bug is in **WASM's OBJ output** (FIXUPP records), not the linker. This means OBJ-level comparison is the most direct way to find the root cause.
 
-### Phase 1: Minimal boot — boot sector + IO.SYS + MSDOS.SYS + COMMAND.COM
+### Phase 0: OBJ-level diagnostics (find the root cause)
 
-- [ ] Fix COMMAND.COM `OFFSET TRANGROUP:` bug — WASM/WLINK emits wrong offset for `COPY_HELP_STR` (+0x133 too far), crashes at CS:0x6F48. Likely affects all forward-reference TRANGROUP offsets. See KEYNOTES.md "WASM Boot Failure" section for full analysis.
-- [ ] Debug MSDOS.SYS boot failure (test C/D) — separate root cause TBD
-- [ ] Debug IO.SYS boot failure (test E) — separate root cause TBD
-- [ ] Full WASM boot (test E) — all three binaries together
+Compare MASM vs WASM OBJ files to pinpoint what WASM emits differently. This avoids guessing at the binary level.
 
-### Phase 2: E2E test suite on WASM build
+- [ ] Build a comparison script: assemble one file (e.g., COPY.ASM) with both MASM and WASM, dump OMF records from each OBJ (segment definitions, FIXUPP records, PUBDEF/EXTDEF). Open Watcom includes `wdump` which can parse OMF. Alternatively, Python + struct to parse OMF records.
+- [ ] Compare FIXUPP records for `OFFSET TRANGROUP:COPY_HELP_STR` — check frame method, target method, and displacement. The +0x133 error suggests WASM emits a segment-relative offset instead of group-relative, or uses wrong frame specification.
+- [ ] Check if the bug is systematic (all TRANGROUP forward references) or specific to certain patterns (forward ref to data in a different segment within the same group).
+- [ ] Once root cause is identified: either fix the source to avoid triggering the bug (reorder symbols, split segments) or patch WASM's output with a post-processing script (similar to fix_cl_forward_refs.py).
 
-- [ ] `make deploy` with WASM-built binaries
-- [ ] `make test` (kvikdos fast tests)
-- [ ] Full QEMU E2E test suite (FORMAT, SYS, FDISK, drivers, etc.)
+### Phase 1: Individual binary validation under kvikdos (fast, no QEMU)
 
-### Phase 3: C compiler migration (wcc replacing CL.EXE)
+kvikdos can run COMMAND.COM (`/C` mode), any standalone .COM/.EXE, and has spawn support (8 levels deep). This is much faster than QEMU for individual binary testing.
+
+**COMMAND.COM under kvikdos:**
+- [ ] Run WASM-built COMMAND.COM under kvikdos: `kvikdos --dos-version=4 COMMAND.COM /C VER` — if it prints "MS-DOS Version 4.00", transient init works.
+- [ ] Run built-in commands: `COMMAND.COM /C DIR`, `/C COPY`, `/C SET FOO=BAR`, `/C FOR %X IN (A B C) DO ECHO %X` — tests TRANCODE dispatch table and the OFFSET bug's blast radius.
+- [ ] Run Section 7 of run_tests.sh (COMMAND.COM built-in E2E) against WASM binary — swap the binary path and re-run. This covers 48 built-in command tests.
+- [ ] If any built-in crashes, cross-reference the COMTAB dispatch offset with the OBJ analysis to confirm the FIXUPP pattern.
+
+**Individual CMD utilities under kvikdos:**
+- [ ] Run /? smoke tests (Section 4 of run_tests.sh) against WASM-built binaries — all 37 tools. This catches gross code-generation bugs (wrong entry points, corrupted strings).
+- [ ] Run Section 6 functional tests (FIND, FC, SORT, COMP, ATTRIB, MORE, DEBUG, EDLIN, etc.) against WASM-built binaries. These are the fastest, most granular tests.
+
+**Approach:** Modify `run_tests.sh` or create a wrapper that points `$SRC` to the WASM build output directory instead of MASM. No floppy image needed — kvikdos runs from the filesystem.
+
+### Phase 2: Minimal QEMU boot (boot sector + IO.SYS + MSDOS.SYS + COMMAND.COM)
+
+Only needed once Phase 1 passes — QEMU tests the boot chain that kvikdos cannot emulate.
+
+- [ ] Fix the OFFSET TRANGROUP bug identified in Phase 0
+- [ ] Test B: MASM core + WASM COMMAND.COM — validates COMMAND.COM in real DOS
+- [ ] Test C: MASM BIOS + WASM MSDOS.SYS — validates kernel init, INT 21h dispatch
+- [ ] Test D: WASM MSDOS.SYS + WASM COMMAND.COM — validates kernel ↔ shell interaction
+- [ ] Test E: full WASM — validates complete boot chain
+- [ ] Use `tests/test_wasm_boot.sh` (already exists) for all of the above
+
+### Phase 3: Full E2E test suite on WASM build
+
+- [ ] `make deploy` with WASM-built floppy image
+- [ ] `make test` (kvikdos fast tests — reuses Sections 1–7)
+- [ ] Full QEMU E2E test suite: FORMAT, SYS, FDISK, DISKCOMP, DISKCOPY, drivers, BACKUP/RESTORE, etc.
+- [ ] Binary size comparison: MASM vs WASM for all outputs (track regressions)
+
+### Phase 4: C compiler migration (wcc replacing CL.EXE)
 
 - [ ] Migrate C-based tools (FDISK, BACKUP, RESTORE, REPLACE, FC, FILESYS, SELECT) from CL.EXE to wcc
 - [ ] Verify E2E tests pass with wcc-compiled binaries
