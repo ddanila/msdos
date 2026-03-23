@@ -156,6 +156,8 @@ These are Microsoft-proprietary build utilities with no Open Watcom equivalent. 
 
 Goal: a standalone `.COM` test harness that exercises every INT 21h function and reports pass/fail. Runs on real DOS (QEMU) and validates the kernel independently of the toolchain. Can be built and used on master branch — not tied to the Watcom migration.
 
+**Source of truth:** `DOS/MS_TABLE.ASM` dispatch table (109 entries, AH=00h–6Ch). Each handler's expected behavior must be verified from the kernel source code, not from generic DOS documentation.
+
 **Design:**
 - Single `.ASM` file → `.COM` (no LINK, no message framework, no dependencies)
 - Self-contained: creates its own test files, cleans up after itself
