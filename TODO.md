@@ -9,7 +9,9 @@
 **Key findings:**
 - The COMMAND.COM crash was **not** a linker FIXUPP incompatibility — it was a WASM assembly-time conditional evaluation bug (`IF NOT TRUE` ≠ 0, see KEYNOTES.md issue #51).
 - Both MS LINK and wlink produce bootable COMMAND.COM from WASM OBJs after the MSGSERV.ASM fix.
-- MSDOS.SYS and IO.SYS still fail independently (tests C and E) — likely similar missed `IF NOT` patterns or other WASM conditional bugs.
+- Full `IF NOT` audit complete (60+ instances across 38 files) — no `IF NOT` patterns remain anywhere.
+- MSDOS.SYS still hangs silently (test C) — not an `IF NOT` bug, needs QEMU `-d in_asm` trace debugging.
+- IO.SYS prints "Non-System disk or disk error" (test F) — executes but fails disk I/O to load MSDOS.SYS. Also not `IF NOT`.
 
 ### Phase 0A: wlink proof-of-concept ✅ DONE
 
@@ -67,13 +69,18 @@ No divergence concerns — upstream hasn't accepted PRs in 35 years.
 
 ### Phase 0B: MSDOS.SYS and IO.SYS runtime debugging
 
-COMMAND.COM crash was a WASM conditional assembly bug, not FIXUPP. The remaining failures (MSDOS.SYS test C, IO.SYS test E) likely have similar root causes.
+Full `IF NOT` audit complete — all 60+ instances converted to `EQ 0`. The remaining failures are **not** `IF NOT` bugs.
 
+**MSDOS.SYS (test C):** Hangs silently after "Booting from Floppy..." — kernel starts but crashes before producing any output. Needs QEMU `-d in_asm` trace to find crash point.
+
+**IO.SYS (test F):** Prints "Non-System disk or disk error" — IO.SYS executes far enough to display this message but fails to read MSDOS.SYS from disk. Likely a BPB/disk parameter or segment layout issue.
+
+- [x] Audit kernel source for remaining `IF NOT` patterns — done, all converted
 - [ ] Debug MSDOS.SYS crash: QEMU `-d in_asm` trace, same methodology as COMMAND.COM
-- [ ] Audit kernel source for remaining `IF NOT` patterns that may hit the same WASM bug
+- [ ] Debug IO.SYS disk read failure (test F) — compare MASM/WASM SYSINIT disk read code
 - [ ] Fix and validate MSDOS.SYS boot (test C)
-- [ ] Debug and fix IO.SYS (test E)
-- [ ] Add isolated IO.SYS test ("Test F") to `test_wasm_boot.sh`.
+- [ ] Fix and validate IO.SYS (test F)
+- [ ] Fix `test_wasm_boot.sh` cluster overflow bug (COMMAND.COM truncation)
 
 ### Phase 1: Individual binary validation under kvikdos (fast, no QEMU)
 

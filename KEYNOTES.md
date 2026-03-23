@@ -298,12 +298,14 @@ All 53 modules assemble cleanly under WASM: 7 core (MESSAGES, MAPPER, BOOT, INC,
 | Component | WASM Build | WASM Boot | Notes |
 |-----------|-----------|-----------|-------|
 | Boot sector (MSBOOT.BIN) | ✅ | ✅ | boots into IO.SYS |
-| IO.SYS (BIOS) | ✅ | ❌ | fails independently (test E) |
-| MSDOS.SYS (kernel) | ✅ | ❌ | hangs after "Booting from Floppy..." — IF NOT audit complete, different bug remains |
-| COMMAND.COM | ✅ | ✅ | boots to date prompt (fix: issue #51, MSGSERV.ASM `IF NOT` → `EQ 0`) |
-| Full WASM boot | ✅ | ❌ | all three fail together (test E) |
+| IO.SYS (BIOS) | ✅ | ❌ | "Non-System disk or disk error" — IO.SYS executes (prints message) but fails to load MSDOS.SYS from disk. Not an IF NOT bug. |
+| MSDOS.SYS (kernel) | ✅ | ❌ | hangs silently after "Booting from Floppy..." — all IF NOT patterns fixed, different WASM bug remains |
+| COMMAND.COM | ✅ | ✅ | boots in QEMU + works under kvikdos (VER, ECHO, DIR). Fix: issue #51, then full IF NOT audit. |
+| Full WASM boot | ✅ | ❌ | IO.SYS and MSDOS.SYS each fail independently |
 
 Test harness: `tests/test_wasm_boot.sh` — swaps WASM binaries one-at-a-time into MASM floppy.img, boots headless QEMU, checks serial for "MS-DOS".
+
+**Known test bug:** `test_wasm_boot.sh` raw-patches files by following the existing FAT cluster chain. When the WASM binary needs more sectors than the MASM original (e.g., COMMAND.COM: 87 vs 86 sectors), the last sector is silently dropped, truncating the binary. Workaround: use `mcopy` to replace COMMAND.COM (delete + re-add). MSDOS.SYS and IO.SYS are smaller under WASM, so the raw-patch approach works for those.
 
 ## Manual Testing (Interactive QEMU)
 
