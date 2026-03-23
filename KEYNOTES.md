@@ -35,7 +35,7 @@ build is unaffected (working-tree files are still CRLF as DOS tools require).
 **Correct long-term fix:** change `*.MSG text eol=crlf` → `*.MSG binary` in `.gitattributes`.
 `binary` stores files as-is (CRLF blobs stay CRLF blobs) and disables normalization entirely,
 which is semantically correct since BUILDIDX treats these files as byte-addressed binary data.
-Avoided for now to not diverge from upstream with a large no-content-change commit.
+Fix: change `*.MSG` to `binary` in `.gitattributes` (one-line change + renormalize).
 
 ## TYPE ^Z Requirement
 

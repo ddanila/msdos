@@ -55,12 +55,23 @@ vs MS LINK positional: `obj1+obj2, output.exe, output.map, lib1 /STACK:50000;`
 | `/EXEPACK` | none | Skip or post-process |
 | `/NOE` | none | May not be needed |
 
-### Cleanup: strip ^Z (0x1A) from all source files
+### Cleanup: source hygiene (3 items, one commit each)
 
-All 827 ASM/INC files end with DOS `^Z` EOF marker. WASM W249 "End directive required" warning on every file. Strip with Python: `data.replace(b'\x1a', b'')` across the submodule. One bulk commit.
+No divergence concerns — upstream hasn't accepted PRs in 35 years.
 
-- [ ] Strip `^Z` from all ASM/INC files in MS-DOS submodule
+**1. Strip `^Z` (0x1A) from all source files**
+827 ASM/INC files have DOS `^Z` EOF marker causing W249 warnings on every file.
+- [ ] Python bulk strip: `data.replace(b'\x1a', b'')` across the submodule
 - [ ] Verify build still passes (W249 warnings gone)
+
+**2. Fix `.gitattributes` for MSG files**
+`*.MSG text eol=crlf` causes perpetually "modified" MSG files (CRLF-in-blob conflict). Change to `*.MSG binary` + renormalize.
+- [ ] Update `.gitattributes`: `*.MSG binary`
+- [ ] `git add --renormalize .` to fix blobs
+
+**3. Delete commented-out SUBTTL/TITLE directives**
+37 lines across 13 files changed from `SUBTTL ...` to `;; SUBTTL ...` for WASM compat. They serve no purpose — just delete them.
+- [ ] Remove all `;; SUBTTL` and `;; TITLE` lines
 
 ### Phase 0B: OBJ-level diagnostics (fallback / educational)
 
