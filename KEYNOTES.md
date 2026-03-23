@@ -47,14 +47,25 @@ in batch scripts: `printf 'content\r\n\x1a'`.
 
 **Status:** All 53 modules build cleanly under WASM (assembler migration complete). Currently in **runtime validation** phase — WASM-built binaries crash at boot. See "## WASM Boot Failure" section for root cause analysis.
 
-**Key insight:** The linker is the same MS LINK.EXE (via kvikdos) in both MASM and WASM builds. The `OFFSET TRANGROUP:` bug is in **WASM's OBJ output** (OMF FIXUPP records), not the linker.
+**Key insight:** The linker is the same MS LINK.EXE (via kvikdos) in both MASM and WASM builds. The runtime crashes are most likely caused by **MS LINK misinterpreting WASM's OMF FIXUPP records** for group-relative offsets — a cross-vendor toolchain incompatibility, not a WASM code-gen bug.
+
+**Linker strategy: wlink (Open Watcom) vs MS LINK.EXE**
+
+wlink is already vendored (`watcom/bin/`). Switching to wlink would:
+- **Likely fix all runtime crashes** — same-vendor toolchain coherence means wlink interprets WASM's FIXUPP records correctly
+- **Eliminate kvikdos dependency** for linking (native binary, no DOS emulator)
+- **Require a wrapper script** (`bin/wlink-mslink`) to translate MS LINK response file format to wlink directives — the formats are completely different (positional vs directive-based)
+- **Lose /EXEPACK** — 4 targets use it (SELECT, FIND, FDISK, EXE2BIN); wlink has no equivalent. Binaries would be slightly larger but functional; or use a post-link packing step.
+
+The recommended approach is a quick proof-of-concept: hand-convert COMMAND.LNK, link with wlink, test boot. If it works, write the wrapper and switch everything. See TODO.md for details.
 
 **Next steps:** See TODO.md "WASM Runtime Validation" for the full plan. Summary:
-1. OBJ-level diagnostics — compare MASM vs WASM FIXUPP records to find root cause
-2. Individual binary validation under kvikdos (fast, no QEMU needed for most tests)
-3. Minimal QEMU boot — boot sector → IO.SYS → MSDOS.SYS → COMMAND.COM
-4. Full E2E test suite on WASM build
-5. C compiler migration (wcc replacing CL.EXE)
+1. **wlink proof-of-concept** — hand-convert COMMAND.LNK, link, test boot (fastest path)
+2. OBJ-level diagnostics (fallback — compare MASM vs WASM FIXUPP records)
+3. Individual binary validation under kvikdos
+4. Minimal QEMU boot — boot sector → IO.SYS → MSDOS.SYS → COMMAND.COM
+5. Full E2E test suite on WASM build
+6. C compiler migration (wcc replacing CL.EXE)
 
 ### Wrapper
 `bin/wasm-masm` — translates MASM two-arg calling convention to WASM:

@@ -5,43 +5,86 @@
 Goal: make all WASM-built binaries boot and pass the existing E2E test suite. Assembly migration is complete (53/53 modules, 50 WASM compat issues fixed). Current blocker: runtime crashes.
 
 **Key architectural facts:**
-- The linker is the same MS LINK.EXE (via kvikdos) in both MASM and WASM builds — only the assembler changed. The OFFSET bug is in **WASM's OBJ output** (OMF FIXUPP records), not the linker.
+- The linker is the same MS LINK.EXE (via kvikdos) in both MASM and WASM builds — only the assembler changed.
 - **The failures are independent.** Test B (WASM COMMAND.COM only) and test C (WASM MSDOS.SYS only) each fail with the other binaries still MASM-built. At minimum two distinct bugs exist.
 - The error is **per-fixup, not per-symbol**: intra-object `OFFSET TRANGROUP:` references (same .OBJ) show +0x133 error, inter-object references (via EXTRN) show +7 error for symbols in the same source file. This suggests WASM encodes group-relative adjustments differently depending on whether the target is local or external.
 - Both COMMAND.COM (TRANGROUP, 4 segments, 22 files, 173 references) and MSDOS.SYS (DOSGROUP, ~50 files) use the same pattern — if the FIXUPP bug is systematic, fixing it once fixes both.
 
-### Phase 0: OBJ-level diagnostics (find the root cause)
+**Root cause hypothesis:** The runtime crashes are most likely caused by **MS LINK misinterpreting WASM's OMF FIXUPP records** for group-relative offsets. Evidence:
+1. The crash is at a wrong offset — a link-time fixup resolution error, not code generation.
+2. The per-fixup error pattern (different errors from different OBJs for the same symbol) is characteristic of frame specification misinterpretation.
+3. Both independently-failing binaries use the same multi-segment GROUP pattern.
+4. WASM and MS LINK are different vendors, different decades — OMF FIXUPP frame methods have subtle ambiguities.
 
-Compare MASM vs WASM OBJ files to pinpoint the exact FIXUPP encoding difference.
+**Recommended approach: try wlink first (Phase 0A), then fall back to OBJ analysis (Phase 0B).**
+
+### Phase 0A: wlink proof-of-concept (fastest path to unblock)
+
+wlink (Open Watcom linker, already vendored) would interpret WASM's FIXUPP records the way WASM intended — same-vendor toolchain coherence. If the crash is a WASM↔MS LINK incompatibility, switching to wlink fixes COMMAND.COM, MSDOS.SYS, and IO.SYS in one shot.
+
+**Quick test (~1 hour):**
+- [ ] Hand-convert `COMMAND.LNK` to wlink directive syntax (FORMAT DOS, FILE ..., NAME ..., OPTION MAP)
+- [ ] Link WASM-built COMMAND.COM OBJs with wlink (native, no kvikdos)
+- [ ] Run `test_wasm_boot.sh` test B — if it boots, wlink is the path forward
+- [ ] If test passes, also test MSDOS.SYS (convert MSDOS.LNK, run test C)
+
+**wlink response file format** (completely different from MS LINK):
+```
+FORMAT DOS
+FILE obj1.obj, obj2.obj
+NAME output.exe
+OPTION MAP=output.map
+OPTION STACK=50000
+OPTION DOSSEG
+LIBRARY lib1.lib
+```
+vs MS LINK positional: `obj1+obj2, output.exe, output.map, lib1 /STACK:50000;`
+
+**If proof-of-concept succeeds:**
+- [ ] Write `bin/wlink-mslink` wrapper — translates MS LINK response file format to wlink directives on the fly. Makes the switch transparent to the Makefile (`LINK := $(BIN)/wlink-mslink`). All 51 .LNK files work without modification.
+- [ ] Handle /EXEPACK gap: 4 targets use it (SELECT, FIND, FDISK, EXE2BIN). wlink has no equivalent. Options: (a) skip packing — binaries slightly larger but functional, (b) use existing `bin/fix-exepack` as a post-link step.
+- [ ] Verify segment ordering for kernel binaries (MSDOS.SYS, IO.SYS) — layout is critical.
+
+**wlink flag mapping:**
+| MS LINK | wlink | Notes |
+|---------|-------|-------|
+| `/MAP` | `OPTION MAP` | |
+| `/DOSSEG` | `OPTION DOSSEG` | |
+| `/STACK:N` | `OPTION STACK=N` | |
+| `/NOI` | `OPTION CASEEXACT` | |
+| `/EXEPACK` | none | Skip or post-process |
+| `/NOE` | none | May not be needed |
+
+### Phase 0B: OBJ-level diagnostics (fallback / educational)
+
+If wlink doesn't fix the issue, or for understanding the root cause regardless:
 
 - [ ] Build a comparison script: assemble COPY.ASM with both MASM and WASM, dump OMF records (SEGDEF, GRPDEF, FIXUPP, PUBDEF, EXTDEF). Use `wdump` (Open Watcom) or Python OMF parser.
-- [ ] Compare FIXUPP records for intra-object `OFFSET TRANGROUP:COPY_HELP_STR` in COPY.OBJ — check frame method (GRPDEF vs SEGDEF), target method, and displacement. The +0x133 error likely means WASM uses segment-relative frame instead of group-relative.
-- [ ] Compare FIXUPP records for inter-object `OFFSET TRANGROUP:COPY` in TDATA.OBJ (via EXTRN) — the +7 error is much smaller, suggesting the EXTRN path has a different (smaller) encoding issue.
-- [ ] Check if the bug is systematic (all group-relative fixups) or context-dependent (forward refs only, or multi-segment groups only).
-- [ ] Once root cause is identified: either fix source to avoid the bug (e.g., eliminate `OFFSET TRANGROUP:` with a different addressing pattern) or write a post-processing script to patch FIXUPP records in OBJ files before linking.
-- [ ] Add isolated IO.SYS test ("Test F") to `test_wasm_boot.sh` to determine if IO.SYS has a third independent bug.
+- [ ] Compare FIXUPP records for intra-object `OFFSET TRANGROUP:COPY_HELP_STR` in COPY.OBJ — check frame method (GRPDEF vs SEGDEF), target method, and displacement.
+- [ ] Compare FIXUPP records for inter-object `OFFSET TRANGROUP:COPY` in TDATA.OBJ (via EXTRN).
+- [ ] If systematic: write a post-processing script to patch FIXUPP records in OBJ files before linking.
+- [ ] Add isolated IO.SYS test ("Test F") to `test_wasm_boot.sh`.
 
 ### Phase 1: Individual binary validation under kvikdos (fast, no QEMU)
 
-kvikdos can run COMMAND.COM (`/C` mode), any standalone .COM/.EXE, and has spawn support (8 levels deep). This is much faster than QEMU for individual binary testing.
+kvikdos can run COMMAND.COM (`/C` mode), any standalone .COM/.EXE, and has spawn support (8 levels deep). Much faster than QEMU for individual binary testing.
 
 **COMMAND.COM under kvikdos:**
 - [ ] Run WASM-built COMMAND.COM under kvikdos: `kvikdos --dos-version=4 COMMAND.COM /C VER` — if it prints "MS-DOS Version 4.00", transient init works.
 - [ ] Run built-in commands: `COMMAND.COM /C DIR`, `/C COPY`, `/C SET FOO=BAR`, `/C FOR %X IN (A B C) DO ECHO %X` — tests TRANCODE dispatch table and the OFFSET bug's blast radius.
-- [ ] Run Section 7 of run_tests.sh (COMMAND.COM built-in E2E) against WASM binary — swap the binary path and re-run. This covers 48 built-in command tests.
-- [ ] If any built-in crashes, cross-reference the COMTAB dispatch offset with the OBJ analysis to confirm the FIXUPP pattern.
+- [ ] Run Section 7 of run_tests.sh (COMMAND.COM built-in E2E) against WASM binary — covers 48 built-in command tests.
+- [ ] If any built-in crashes, cross-reference the COMTAB dispatch offset with the OBJ analysis.
 
 **Individual CMD utilities under kvikdos:**
-- [ ] Run /? smoke tests (Section 4 of run_tests.sh) against WASM-built binaries — all 37 tools. This catches gross code-generation bugs (wrong entry points, corrupted strings).
-- [ ] Run Section 6 functional tests (FIND, FC, SORT, COMP, ATTRIB, MORE, DEBUG, EDLIN, etc.) against WASM-built binaries. These are the fastest, most granular tests.
+- [ ] Run /? smoke tests (Section 4 of run_tests.sh) against WASM-built binaries — all 37 tools.
+- [ ] Run Section 6 functional tests (FIND, FC, SORT, COMP, ATTRIB, MORE, DEBUG, EDLIN, etc.) against WASM-built binaries.
 
-**Approach:** Modify `run_tests.sh` or create a wrapper that points `$SRC` to the WASM build output directory instead of MASM. No floppy image needed — kvikdos runs from the filesystem.
+**Approach:** Modify `run_tests.sh` or create a wrapper that points `$SRC` to the WASM build output directory. No floppy image needed.
 
 ### Phase 2: Minimal QEMU boot (boot sector + IO.SYS + MSDOS.SYS + COMMAND.COM)
 
-Only needed once Phase 1 passes — QEMU tests the boot chain that kvikdos cannot emulate.
+QEMU tests the boot chain that kvikdos cannot emulate.
 
-- [ ] Fix the OFFSET TRANGROUP bug identified in Phase 0
 - [ ] Test B: MASM core + WASM COMMAND.COM — validates COMMAND.COM in real DOS
 - [ ] Test C: MASM BIOS + WASM MSDOS.SYS — validates kernel init, INT 21h dispatch
 - [ ] Test D: WASM MSDOS.SYS + WASM COMMAND.COM — validates kernel ↔ shell interaction
