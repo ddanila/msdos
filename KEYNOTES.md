@@ -45,7 +45,7 @@ in batch scripts: `printf 'content\r\n\x1a'`.
 
 ## WASM Migration (Open Watcom → replaces MASM 5.x via kvikdos)
 
-**Status:** All 53 modules build cleanly under WASM (assembler migration complete). **COMMAND.COM now boots successfully** with WASM assembly + MS LINK. Root cause of the boot crash was a missed `IF NOT` → `EQ 0` conversion in MSGSERV.ASM (see issue #51 below).
+**Status:** All 53 modules build cleanly under WASM (assembler migration complete). **COMMAND.COM now boots successfully** with WASM assembly + MS LINK. All `IF NOT` patterns (60+ instances across 38 files) converted to `EQ 0`. MSDOS.SYS still crashes — a different WASM bug (not `IF NOT`) remains in the kernel.
 
 **Linker strategy: wlink (Open Watcom) vs MS LINK.EXE**
 
@@ -66,7 +66,7 @@ All changes are correct:
 - `DS:` segment override prefixes (~70 places) — makes implicit explicit, adds 1 byte each
 - LABEL/EQU reorder in COMR MSGDATA — correct fix for WASM forward-reference
 - `WORD PTR` on POP/PUSH `$M_RETURN_ADDR` — necessary for WASM operand size
-- `IF NOT X` → `IF X EQ 0` (14 places total, including the 2 fixed in issue #51) — semantically equivalent
+- `IF NOT X` → `IF X EQ 0` (all 60+ instances across codebase, including the 2 in issue #51) — semantically equivalent
 - `$M_HAS_RT2` / `$M_HAS_MSGSERV_N` flag logic — correct EXTRN/PUBLIC guards
 - Commented-out `$M_HAS_$M_GET_MSG_ADDRESS` — documented WASM parser workaround
 
@@ -299,7 +299,7 @@ All 53 modules assemble cleanly under WASM: 7 core (MESSAGES, MAPPER, BOOT, INC,
 |-----------|-----------|-----------|-------|
 | Boot sector (MSBOOT.BIN) | ✅ | ✅ | boots into IO.SYS |
 | IO.SYS (BIOS) | ✅ | ❌ | fails independently (test E) |
-| MSDOS.SYS (kernel) | ✅ | ❌ | fails independently (test C/D) |
+| MSDOS.SYS (kernel) | ✅ | ❌ | hangs after "Booting from Floppy..." — IF NOT audit complete, different bug remains |
 | COMMAND.COM | ✅ | ✅ | boots to date prompt (fix: issue #51, MSGSERV.ASM `IF NOT` → `EQ 0`) |
 | Full WASM boot | ✅ | ❌ | all three fail together (test E) |
 
