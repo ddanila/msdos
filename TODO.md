@@ -4,31 +4,21 @@
 
 **End state:** All assembly and C compilation uses Open Watcom (WASM, wcc, wlink, wlib) natively. The full E2E test suite passes on the WASM-built floppy image. kvikdos remains only for the 7 pre-built DOS build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF, MENUBLD) — eliminating those is a separate future effort, not part of this migration.
 
-**Current status:** Assembly migration complete (53/53 modules, 50 WASM compat issues fixed). Blocker: runtime crashes (linker compatibility).
+**Current status:** Assembly migration complete (53/53 modules, 51 WASM compat issues fixed). COMMAND.COM boots successfully under WASM + MS LINK. Remaining: MSDOS.SYS and IO.SYS runtime validation, then full E2E.
 
-**Key architectural facts:**
-- The linker is the same MS LINK.EXE (via kvikdos) in both MASM and WASM builds — only the assembler changed.
-- **The failures are independent.** Test B (WASM COMMAND.COM only) and test C (WASM MSDOS.SYS only) each fail with the other binaries still MASM-built. At minimum two distinct bugs exist.
-- The error is **per-fixup, not per-symbol**: intra-object `OFFSET TRANGROUP:` references (same .OBJ) show +0x133 error, inter-object references (via EXTRN) show +7 error for symbols in the same source file. This suggests WASM encodes group-relative adjustments differently depending on whether the target is local or external.
-- Both COMMAND.COM (TRANGROUP, 4 segments, 22 files, 173 references) and MSDOS.SYS (DOSGROUP, ~50 files) use the same pattern — if the FIXUPP bug is systematic, fixing it once fixes both.
+**Key findings:**
+- The COMMAND.COM crash was **not** a linker FIXUPP incompatibility — it was a WASM assembly-time conditional evaluation bug (`IF NOT TRUE` ≠ 0, see KEYNOTES.md issue #51).
+- Both MS LINK and wlink produce bootable COMMAND.COM from WASM OBJs after the MSGSERV.ASM fix.
+- MSDOS.SYS and IO.SYS still fail independently (tests C and E) — likely similar missed `IF NOT` patterns or other WASM conditional bugs.
 
-**Root cause hypothesis:** The runtime crashes are most likely caused by **MS LINK misinterpreting WASM's OMF FIXUPP records** for group-relative offsets. Evidence:
-1. The crash is at a wrong offset — a link-time fixup resolution error, not code generation.
-2. The per-fixup error pattern (different errors from different OBJs for the same symbol) is characteristic of frame specification misinterpretation.
-3. Both independently-failing binaries use the same multi-segment GROUP pattern.
-4. WASM and MS LINK are different vendors, different decades — OMF FIXUPP frame methods have subtle ambiguities.
+### Phase 0A: wlink proof-of-concept ✅ DONE
 
-**Recommended approach: try wlink first (Phase 0A), then fall back to OBJ analysis (Phase 0B).**
+Proved that both MS LINK and wlink produce bootable COMMAND.COM from WASM OBJs. The crash was not a linker issue — it was the MSGSERV.ASM `IF NOT` bug (issue #51). wlink migration remains a future convenience step.
 
-### Phase 0A: wlink proof-of-concept (fastest path to unblock)
-
-wlink (Open Watcom linker, already vendored) would interpret WASM's FIXUPP records the way WASM intended — same-vendor toolchain coherence. If the crash is a WASM↔MS LINK incompatibility, switching to wlink fixes COMMAND.COM, MSDOS.SYS, and IO.SYS in one shot.
-
-**Quick test (~1 hour):**
-- [ ] Hand-convert `COMMAND.LNK` to wlink directive syntax (FORMAT DOS, FILE ..., NAME ..., OPTION MAP)
-- [ ] Link WASM-built COMMAND.COM OBJs with wlink (native, no kvikdos)
-- [ ] Run `test_wasm_boot.sh` test B — if it boots, wlink is the path forward
-- [ ] If test passes, also test MSDOS.SYS (convert MSDOS.LNK, run test C)
+- [x] Hand-convert `COMMAND.LNK` to wlink directive syntax (`COMMAND.wlink`)
+- [x] Link WASM-built COMMAND.COM OBJs with wlink (native, no kvikdos)
+- [x] Boot test: both MS LINK and wlink COMMAND.COM boot to date prompt
+- [ ] ~~If test passes, also test MSDOS.SYS~~ (deferred — MSDOS.SYS has its own runtime bugs)
 
 **wlink response file format** (completely different from MS LINK):
 ```
@@ -75,14 +65,14 @@ No divergence concerns — upstream hasn't accepted PRs in 35 years.
 37 lines across 13 files changed from `SUBTTL ...` to `;; SUBTTL ...` for WASM compat. They serve no purpose — just delete them.
 - [ ] Remove all `;; SUBTTL` and `;; TITLE` lines
 
-### Phase 0B: OBJ-level diagnostics (fallback / educational)
+### Phase 0B: MSDOS.SYS and IO.SYS runtime debugging
 
-If wlink doesn't fix the issue, or for understanding the root cause regardless:
+COMMAND.COM crash was a WASM conditional assembly bug, not FIXUPP. The remaining failures (MSDOS.SYS test C, IO.SYS test E) likely have similar root causes.
 
-- [ ] Build a comparison script: assemble COPY.ASM with both MASM and WASM, dump OMF records (SEGDEF, GRPDEF, FIXUPP, PUBDEF, EXTDEF). Use `wdump` (Open Watcom) or Python OMF parser.
-- [ ] Compare FIXUPP records for intra-object `OFFSET TRANGROUP:COPY_HELP_STR` in COPY.OBJ — check frame method (GRPDEF vs SEGDEF), target method, and displacement.
-- [ ] Compare FIXUPP records for inter-object `OFFSET TRANGROUP:COPY` in TDATA.OBJ (via EXTRN).
-- [ ] If systematic: write a post-processing script to patch FIXUPP records in OBJ files before linking.
+- [ ] Debug MSDOS.SYS crash: QEMU `-d in_asm` trace, same methodology as COMMAND.COM
+- [ ] Audit kernel source for remaining `IF NOT` patterns that may hit the same WASM bug
+- [ ] Fix and validate MSDOS.SYS boot (test C)
+- [ ] Debug and fix IO.SYS (test E)
 - [ ] Add isolated IO.SYS test ("Test F") to `test_wasm_boot.sh`.
 
 ### Phase 1: Individual binary validation under kvikdos (fast, no QEMU)

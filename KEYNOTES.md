@@ -45,48 +45,34 @@ in batch scripts: `printf 'content\r\n\x1a'`.
 
 ## WASM Migration (Open Watcom → replaces MASM 5.x via kvikdos)
 
-**Status:** All 53 modules build cleanly under WASM (assembler migration complete). Currently in **runtime validation** phase — WASM-built binaries crash at boot. See "## WASM Boot Failure" section for root cause analysis.
-
-**Key insight:** The linker is the same MS LINK.EXE (via kvikdos) in both MASM and WASM builds. The runtime crashes are most likely caused by **MS LINK misinterpreting WASM's OMF FIXUPP records** for group-relative offsets — a cross-vendor toolchain incompatibility, not a WASM code-gen bug.
+**Status:** All 53 modules build cleanly under WASM (assembler migration complete). **COMMAND.COM now boots successfully** with WASM assembly + MS LINK. Root cause of the boot crash was a missed `IF NOT` → `EQ 0` conversion in MSGSERV.ASM (see issue #51 below).
 
 **Linker strategy: wlink (Open Watcom) vs MS LINK.EXE**
 
 wlink is already vendored (`watcom/bin/`). Switching to wlink would:
-- **Likely fix all runtime crashes** — same-vendor toolchain coherence means wlink interprets WASM's FIXUPP records correctly
 - **Eliminate kvikdos dependency** for linking (native binary, no DOS emulator)
 - **Require a wrapper script** (`bin/wlink-mslink`) to translate MS LINK response file format to wlink directives — the formats are completely different (positional vs directive-based)
 - **Lose /EXEPACK** — 4 targets use it (SELECT, FIND, FDISK, EXE2BIN); wlink has no equivalent. Binaries would be slightly larger but functional; or use a post-link packing step.
 
-The recommended approach is a quick proof-of-concept: hand-convert COMMAND.LNK, link with wlink, test boot. If it works, write the wrapper and switch everything. See TODO.md for details.
+Proof-of-concept done: COMMAND.COM links cleanly with both MS LINK and wlink. Both produce bootable binaries after the MSGSERV.ASM fix. wlink migration is a separate convenience step, not a blocker.
 
-### Source change audit: MSGSERV.ASM (static analysis)
+### Source change audit: MSGSERV.ASM
 
 MSGSERV.ASM (339-line diff, largest change) was reviewed as a representative of the most complex WASM migration changes. This file is the DOS message retriever service, included by nearly every subsystem.
 
-**Result: no semantic bugs found.** All changes are correct:
+All changes are correct:
 - `TYPE` → `SIZEOF` on STRUC (4 places) — equivalent for structs
 - `SUBTTL` commenting (11 places) — cosmetic
 - `DS:` segment override prefixes (~70 places) — makes implicit explicit, adds 1 byte each
 - LABEL/EQU reorder in COMR MSGDATA — correct fix for WASM forward-reference
 - `WORD PTR` on POP/PUSH `$M_RETURN_ADDR` — necessary for WASM operand size
-- `IF NOT X` → `IF X EQ 0` (12 places) — semantically equivalent
+- `IF NOT X` → `IF X EQ 0` (14 places total, including the 2 fixed in issue #51) — semantically equivalent
 - `$M_HAS_RT2` / `$M_HAS_MSGSERV_N` flag logic — correct EXTRN/PUBLIC guards
 - Commented-out `$M_HAS_$M_GET_MSG_ADDRESS` — documented WASM parser workaround
 
-**Minor flags (none critical):**
-1. Two `IF NOT` constructs (lines 206, 616) were not migrated to `EQ 0` — work as-is but inconsistent with the other 12 conversions.
-2. `IF COMR` gate removed from `$M_RT2` EXTRN guards — fail-safe (linker error, not silent bug) in edge cases.
-3. ~70 extra `DS:` prefix bytes across all consumers — COMMAND.COM is 181 bytes smaller under WASM, so no size concern.
-
-**Conclusion:** The runtime crashes are not caused by source-level changes in the WASM migration. This reinforces the hypothesis that the crashes are in the FIXUPP/linker interface (WASM OBJ ↔ MS LINK incompatibility).
-
-**Next steps:** See TODO.md "WASM Runtime Validation" for the full plan. Summary:
-1. **wlink proof-of-concept** — hand-convert COMMAND.LNK, link, test boot (fastest path)
-2. OBJ-level diagnostics (fallback — compare MASM vs WASM FIXUPP records)
-3. Individual binary validation under kvikdos
-4. Minimal QEMU boot — boot sector → IO.SYS → MSDOS.SYS → COMMAND.COM
-5. Full E2E test suite on WASM build
-6. C compiler migration (wcc replacing CL.EXE)
+**Minor flags:**
+1. `IF COMR` gate removed from `$M_RT2` EXTRN guards — fail-safe (linker error, not silent bug) in edge cases.
+2. ~70 extra `DS:` prefix bytes across all consumers — COMMAND.COM is 181 bytes smaller under WASM, so no size concern.
 
 ### Wrapper
 `bin/wasm-masm` — translates MASM two-arg calling convention to WASM:
@@ -267,6 +253,13 @@ Root cause confirmed by minimal test: `MY_FLAG = FALSE; IFNDEF GUARD_; MY_FLAG =
 
 Applied to: `MS-DOS/v4.0/src/INC/SYSMSG.INC` (lines 56–93 moved before line 95 `IFNDEF SYSMSG_INC_`).
 
+**51. `IF NOT` on `TRUE` (0FFFFh) evaluates as truthy — MSGSERV.ASM SYSLOADMSG stack corruption**
+WASM's `NOT` operator on `TRUE` (0FFFFh) produces a truthy value instead of 0, so `IF NOT TRUE` evaluates as true (MASM correctly produces 0). This caused a **runtime crash** in COMMAND.COM: the TRANGROUP copy of SYSLOADMSG (invoked with `NOVERCHECKmsg=TRUE` via `TPRINTF.ASM`) emitted a spurious `POP CX` in its exit path (MSGSERV.ASM line 616, `IF NOT NOVERCHECKmsg`). The function pushed 5 registers but popped 6, consuming the caller's return address. `RET` then popped IP=0x0001, sending execution into zeroed memory.
+
+Fix: `IF NOT X` → `IF X EQ 0` at MSGSERV.ASM lines 206 and 616. This is the same pattern already applied to 12 other `IF NOT` sites during the build migration, but these two were missed because they are inside the `MSG_SERVICES` macro body (only expanded at assembly time, not visible as static text).
+
+Debugging method: QEMU `-d in_asm` instruction trace → traced bad RET → discovered COMMAND.COM dual-load architecture (two SYSLOADMSG copies at different segments) → compared WASM vs MASM exit paths → found extra POP CX → traced to `IF NOT NOVERCHECKmsg` conditional.
+
 **26. WASM -Mx flag makes macro parameter substitution case-sensitive**
 `MACRO AA` with body using `&aa` (lowercase) fails under `-Mx`. MASM was case-insensitive for macro parameter substitution. Fix: normalize all parameter references to same case as the MACRO parameter declaration.
 
@@ -298,7 +291,7 @@ WASM has a built-in `INVOKE` directive (case-insensitive). Legacy BIOS code usin
 
 ## WASM Build Status
 
-All 53 modules assemble cleanly under WASM: 7 core (MESSAGES, MAPPER, BOOT, INC, BIOS, DOS, MEMM), 38 CMD utilities, 12 DEV drivers, SELECT, DEPLOY, VERIFY, SYS e2e. 50 WASM compatibility issues resolved (#1–#50, documented below).
+All 53 modules assemble cleanly under WASM: 7 core (MESSAGES, MAPPER, BOOT, INC, BIOS, DOS, MEMM), 38 CMD utilities, 12 DEV drivers, SELECT, DEPLOY, VERIFY, SYS e2e. 51 WASM compatibility issues resolved (#1–#51, documented below).
 
 ### Runtime Validation Status
 
@@ -307,7 +300,7 @@ All 53 modules assemble cleanly under WASM: 7 core (MESSAGES, MAPPER, BOOT, INC,
 | Boot sector (MSBOOT.BIN) | ✅ | ✅ | boots into IO.SYS |
 | IO.SYS (BIOS) | ✅ | ❌ | fails independently (test E) |
 | MSDOS.SYS (kernel) | ✅ | ❌ | fails independently (test C/D) |
-| COMMAND.COM | ✅ | ❌ | crashes at CS:0x6F48 — WASM OFFSET TRANGROUP bug in OBJ FIXUPP records (see below) |
+| COMMAND.COM | ✅ | ✅ | boots to date prompt (fix: issue #51, MSGSERV.ASM `IF NOT` → `EQ 0`) |
 | Full WASM boot | ✅ | ❌ | all three fail together (test E) |
 
 Test harness: `tests/test_wasm_boot.sh` — swaps WASM binaries one-at-a-time into MASM floppy.img, boots headless QEMU, checks serial for "MS-DOS".

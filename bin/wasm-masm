@@ -1,0 +1,49 @@
+#!/bin/bash
+# wasm-masm — wrapper that translates MASM-style invocation to Open Watcom WASM
+#
+# MASM invocation:  masm "flags" "source.ASM,output.OBJ;"
+# WASM equivalent:  wasm -zcm=masm [translated flags] source.ASM -fo=output.OBJ
+#
+# Translation:
+#   -Mx (preserve case externals) → WASM default (case-sensitive), dropped
+#   -t  (terse output)            → no WASM equivalent, dropped
+#   -ID:\TOOLS\INC                → dropped (redundant with relative -I paths)
+#   -I<path> with backslashes     → converted to forward slashes
+#   -D<name>=<val>                → passed through as-is
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+# Platform-detect WASM binary
+case "$(uname -s)-$(uname -m)" in
+    Linux-x86_64)  WASM="$SCRIPT_DIR/../watcom/bin/linux-x64/wasm" ;;
+    Darwin-arm64)  WASM="$SCRIPT_DIR/../watcom/bin/macos-arm64/wasm" ;;
+    *) echo "Unsupported platform: $(uname -s)-$(uname -m)" >&2; exit 1 ;;
+esac
+
+# Parse arguments: "$1" = flags, "$2" = "source,output;"
+FLAGS="$1"
+FILESPEC="$2"
+
+# Strip trailing semicolon and split on comma
+FILESPEC="${FILESPEC%;}"
+SOURCE="${FILESPEC%%,*}"
+OUTPUT="${FILESPEC#*,}"
+
+# Translate MASM flags to WASM flags
+WASM_FLAGS=()
+for flag in $FLAGS; do
+    case "$flag" in
+        -Mx|-t)           ;; # MASM-specific, not needed
+        -I[A-Z]:\\*)       ;; # DOS absolute path (e.g., -ID:\TOOLS\INC), skip
+        -I*)
+            # Convert backslashes to forward slashes
+            flag="${flag//\\//}"
+            WASM_FLAGS+=("$flag")
+            ;;
+        *)
+            WASM_FLAGS+=("$flag")
+            ;;
+    esac
+done
+
+exec "$WASM" -zcm=masm "${WASM_FLAGS[@]}" "$SOURCE" -fo="$OUTPUT"
