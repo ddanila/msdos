@@ -116,10 +116,37 @@ QEMU tests the boot chain that kvikdos cannot emulate.
 - [ ] Full QEMU E2E test suite: FORMAT, SYS, FDISK, DISKCOMP, DISKCOPY, drivers, BACKUP/RESTORE, etc.
 - [ ] Binary size comparison: MASM vs WASM for all outputs (track regressions)
 
-### Phase 4: C compiler migration (wcc replacing CL.EXE)
+### Phase 4: C compiler + library manager migration
 
 - [ ] Migrate C-based tools (FDISK, BACKUP, RESTORE, REPLACE, FC, FILESYS, SELECT) from CL.EXE to wcc
-- [ ] Verify E2E tests pass with wcc-compiled binaries
+- [ ] Replace LIB.EXE with wlib (already vendored) for MAPPER.LIB, EMMLIB.LIB, COMSUBS.LIB, SERVICES.LIB
+- [ ] Verify E2E tests pass with wcc-compiled and wlib-built binaries
+
+### Phase 5: CI pipeline update
+
+- [ ] Update `.github/workflows/ci.yml` to use native Open Watcom toolchain
+- [ ] Verify CI passes on both Linux x64 and macOS ARM64
+- [ ] Update build documentation (README.md dependencies section)
+
+### Remaining kvikdos dependencies (post-migration)
+
+Even after Phases 0–4, these pre-built DOS tools from `TOOLS/` still require kvikdos:
+
+| Tool | Purpose | Invocations |
+|------|---------|-------------|
+| EXE2BIN.EXE | EXE → flat binary | MSBOOT, ~10 CMD utilities |
+| CONVERT.EXE | EXE → COM with relocating stub | CHKDSK, RECOVER, EDLIN, PRINT, FORMAT, DEBUG, RESTORE, BACKUP |
+| BUILDIDX.EXE | Build message index (USA-MS.IDX) | 1 (messages target) |
+| BUILDMSG.EXE | Generate CL/CTL from SKL | ~30 CMD utilities |
+| NOSRVBLD.EXE | Generate CL1 from SKL (class 1) | BOOT, DOS, FDISK5, XMAEM |
+| DBOF.EXE | Binary → INC offset table | BOOT (MSBOOT.BIN → BOOT.INC), FDISK (FDBOOT) |
+| MENUBLD.EXE | FDISK menu data → C source | 1 (FDISK) |
+
+These are Microsoft-proprietary build utilities with no Open Watcom equivalent. Options for full kvikdos elimination (future, not blocking):
+- Rewrite as Python/native scripts (BUILDIDX, DBOF, MENUBLD are simple format converters)
+- EXE2BIN: Open Watcom's `wstrip` or custom script (MZ header removal)
+- CONVERT: custom native reimplementation (small relocating stub generator)
+- BUILDMSG/NOSRVBLD: most complex — SKL message compiler, would need reverse-engineering
 
 ---
 
