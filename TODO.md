@@ -1,5 +1,31 @@
 # MS-DOS 4.0 Build — TODO
 
+## WASM Runtime Validation (ACTIVE)
+
+Goal: make all WASM-built binaries boot and pass the existing E2E test suite. Assembly migration is complete (53/53 modules, 50 WASM compat issues fixed). Current blocker: runtime crashes.
+
+Test harness: `tests/test_wasm_boot.sh` (swaps WASM binaries into MASM floppy, boots QEMU, checks serial).
+
+### Phase 1: Minimal boot — boot sector + IO.SYS + MSDOS.SYS + COMMAND.COM
+
+- [ ] Fix COMMAND.COM `OFFSET TRANGROUP:` bug — WASM/WLINK emits wrong offset for `COPY_HELP_STR` (+0x133 too far), crashes at CS:0x6F48. Likely affects all forward-reference TRANGROUP offsets. See KEYNOTES.md "WASM Boot Failure" section for full analysis.
+- [ ] Debug MSDOS.SYS boot failure (test C/D) — separate root cause TBD
+- [ ] Debug IO.SYS boot failure (test E) — separate root cause TBD
+- [ ] Full WASM boot (test E) — all three binaries together
+
+### Phase 2: E2E test suite on WASM build
+
+- [ ] `make deploy` with WASM-built binaries
+- [ ] `make test` (kvikdos fast tests)
+- [ ] Full QEMU E2E test suite (FORMAT, SYS, FDISK, drivers, etc.)
+
+### Phase 3: C compiler migration (wcc replacing CL.EXE)
+
+- [ ] Migrate C-based tools (FDISK, BACKUP, RESTORE, REPLACE, FC, FILESYS, SELECT) from CL.EXE to wcc
+- [ ] Verify E2E tests pass with wcc-compiled binaries
+
+---
+
 ## UMB Support (Upper Memory Blocks)
 
 Goal: add UMB support to our MS-DOS 4.0 fork so device drivers and TSRs can be loaded into upper memory (640K–1MB), freeing conventional memory. Backporting the MS-DOS 5.0 concept.

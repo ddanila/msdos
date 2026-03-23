@@ -45,7 +45,13 @@ in batch scripts: `printf 'content\r\n\x1a'`.
 
 ## WASM Migration (Open Watcom → replaces MASM 5.x via kvikdos)
 
-**Status:** DOS kernel (50 files) + INC subsystem (5 targets) + BIOS subsystem (14 targets) + all CMD utilities (FORMAT, SYS, COMMAND, CHKDSK, and 30+ others) fully pass. FORMAT.COM builds cleanly. `bin/wasm-masm` is wired into the Makefile. Next: remaining cmd utilities not yet migrated, then C compiler (wcc replacing CL.EXE).
+**Status:** All 53 modules build cleanly under WASM (assembler migration complete). Currently in **runtime validation** phase — WASM-built binaries crash at boot. See "## WASM Boot Failure" section for root cause analysis.
+
+**Next steps:**
+1. Fix WASM linker `OFFSET TRANGROUP:` bug causing COMMAND.COM crash (see issue below)
+2. Validate minimal boot: boot sector → IO.SYS → MSDOS.SYS → COMMAND.COM
+3. Run existing E2E test suite against WASM-built floppy image
+4. Migrate C compiler (wcc replacing CL.EXE via kvikdos)
 
 ### Wrapper
 `bin/wasm-masm` — translates MASM two-arg calling convention to WASM:
@@ -255,84 +261,21 @@ WASM has a built-in `INVOKE` directive (case-insensitive). Legacy BIOS code usin
 - ASM/OBJ/EXE/BIN/LIB targets: use uppercase (MSBOOT.OBJ, MAPPER.LIB, etc.).
 - The `MESSAGES_OUT` target is `USA-MS.IDX` (uppercase), not `usa-ms.idx`.
 
-## Build Status
+## WASM Build Status
 
-### Core (libraries, kernel, boot)
-| Module   | Status  | Output                    |
-|----------|---------|---------------------------|
-| MESSAGES | ✅ done | USA-MS.IDX                |
-| MAPPER   | ✅ done | MAPPER.LIB                |
-| BOOT     | ✅ done | INC/boot.inc              |
-| INC      | ✅ done | *.OBJ in INC/             |
-| BIOS     | ✅ done | BIOS/IO.SYS               |
-| DOS      | ✅ done | DOS/MSDOS.SYS             |
-| MEMM     | ✅ done | MEMM/EMM386.SYS           |
+All 53 modules assemble cleanly under WASM: 7 core (MESSAGES, MAPPER, BOOT, INC, BIOS, DOS, MEMM), 38 CMD utilities, 12 DEV drivers, SELECT, DEPLOY, VERIFY, SYS e2e. 50 WASM compatibility issues resolved (#1–#50, documented below).
 
-### CMD utilities
-| Utility       | Status  | Output                         |
-|---------------|---------|--------------------------------|
-| COMMAND       | ✅ done | CMD/COMMAND/COMMAND.EXE        |
-| FORMAT        | ✅ done | CMD/FORMAT/FORMAT.COM          |
-| SYS           | ✅ done | W249 warnings only (END directive) — all 3 OBJs assemble cleanly |
-| CHKDSK        | ✅ done | CMD/CHKDSK/CHKDSK.COM          |
-| DEBUG         | ✅ done | CMD/DEBUG/DEBUG.COM            |
-| MEM           | ✅ done | CMD/MEM/MEM.EXE                |
-| FDISK         | ✅ done | CMD/FDISK/FDISK.EXE            |
-| MORE          | ✅ done | CMD/MORE/MORE.COM              |
-| SORT          | ✅ done | CMD/SORT/SORT.EXE              |
-| LABEL         | ✅ done | CMD/LABEL/LABEL.COM            |
-| FIND          | ✅ done | CMD/FIND/FIND.EXE              |
-| TREE          | ✅ done | CMD/TREE/TREE.COM              |
-| COMP          | ✅ done | CMD/COMP/COMP.COM              |
-| ATTRIB        | ✅ done | CMD/ATTRIB/ATTRIB.EXE          |
-| EDLIN         | ✅ done | CMD/EDLIN/EDLIN.COM            |
-| FC            | ✅ done | CMD/FC/FC.EXE                  |
-| NLSFUNC       | ✅ done | CMD/NLSFUNC/NLSFUNC.EXE        |
-| ASSIGN        | ✅ done | CMD/ASSIGN/ASSIGN.COM          |
-| XCOPY         | ✅ done | CMD/XCOPY/XCOPY.EXE            |
-| DISKCOMP      | ✅ done | CMD/DISKCOMP/DISKCOMP.COM      |
-| DISKCOPY      | ✅ done | CMD/DISKCOPY/DISKCOPY.COM      |
-| APPEND        | ✅ done | CMD/APPEND/APPEND.EXE          |
-| RECOVER       | ✅ done | CMD/RECOVER/RECOVER.COM        |
-| FASTOPEN      | ✅ done | CMD/FASTOPEN/FASTOPEN.EXE      |
-| PRINT         | ✅ done | CMD/PRINT/PRINT.COM            |
-| FILESYS       | ✅ done | CMD/FILESYS/FILESYS.EXE        |
-| REPLACE       | ✅ done | CMD/REPLACE/REPLACE.EXE        |
-| JOIN          | ✅ done | CMD/JOIN/JOIN.EXE              |
-| SUBST         | ✅ done | CMD/SUBST/SUBST.EXE            |
-| BACKUP        | ✅ done | CMD/BACKUP/BACKUP.COM          |
-| RESTORE       | ✅ done | CMD/RESTORE/RESTORE.COM        |
-| GRAFTABL      | ✅ done | CMD/GRAFTABL/GRAFTABL.COM      |
-| KEYB          | ✅ done | CMD/KEYB/KEYB.COM              |
-| SHARE         | ✅ done | CMD/SHARE/SHARE.EXE            |
-| EXE2BIN       | ✅ done | CMD/EXE2BIN/EXE2BIN.EXE        |
-| GRAPHICS      | ✅ done | CMD/GRAPHICS/GRAPHICS.COM      |
-| IFSFUNC       | ✅ done | CMD/IFSFUNC/IFSFUNC.EXE        |
-| MODE          | ✅ done | CMD/MODE/MODE.COM              |
+### Runtime Validation Status
 
-### DEV (device drivers)
-| Module        | Status  | Output                         |
-|---------------|---------|--------------------------------|
-| ANSI          | ✅ done | DEV/ANSI/ANSI.SYS              |
-| COUNTRY       | ✅ done | DEV/COUNTRY/COUNTRY.SYS        |
-| DISPLAY       | ✅ done | DEV/DISPLAY/DISPLAY.SYS        |
-| DRIVER        | ✅ done | DEV/DRIVER/DRIVER.SYS          |
-| KEYBOARD      | ✅ done | DEV/KEYBOARD/KEYBOARD.SYS      |
-| PRINTER       | ✅ done | DEV/PRINTER/PRINTER.SYS        |
-| RAMDRIVE      | ✅ done | DEV/RAMDRIVE/RAMDRIVE.SYS      |
-| SMARTDRV      | ✅ done | DEV/SMARTDRV/SMARTDRV.SYS      |
-| FLUSH13       | ✅ done | DEV/SMARTDRV/FLUSH13.EXE       |
-| VDISK         | ✅ done | DEV/VDISK/VDISK.SYS            |
-| XMA2EMS       | ✅ done | DEV/XMA2EMS/XMA2EMS.SYS        |
-| XMAEM         | ✅ done | DEV/XMAEM/XMAEM.SYS            |
+| Component | WASM Build | WASM Boot | Notes |
+|-----------|-----------|-----------|-------|
+| Boot sector (MSBOOT.BIN) | ✅ | ✅ | boots into IO.SYS |
+| IO.SYS (BIOS) | ✅ | ❌ | fails independently (test E) |
+| MSDOS.SYS (kernel) | ✅ | ❌ | fails independently (test C/D) |
+| COMMAND.COM | ✅ | ❌ | crashes at CS:0x6F48 — OFFSET TRANGROUP bug (see below) |
+| Full WASM boot | ✅ | ❌ | all three fail together (test E) |
 
-### Other
-| Module        | Status  | Output                         |
-|---------------|---------|--------------------------------|
-| SELECT        | ✅ done | SELECT.{EXE,DAT,COM,HLP}       |
-| DEPLOY        | ✅ done | out/floppy.img                 |
-| VERIFY        | ✅ done | headless QEMU boot confirmed   |
-| SYS e2e test  | ✅ done | `make test-sys`                |
+Test harness: `tests/test_wasm_boot.sh` — swaps WASM binaries one-at-a-time into MASM floppy.img, boots headless QEMU, checks serial for "MS-DOS".
 
 ## Manual Testing (Interactive QEMU)
 
@@ -982,10 +925,11 @@ TCOMMAND's own comment says "Nothing is known here. No registers, no flags, noth
 - MEMM AFLAGS: `-Mx -t -DI386 -DNoBugMode -DNOHIMEM -I..\\EMM`; MAPDMA.C needs `-I..\\EMM`.
 - EMM386.SYS: link `/NOI @EMM386.LNK` → emm386.exe, then rename to emm386.sys (no exe2bin).
 
-## WASM COMMAND.COM Boot Failure — Root Cause Analysis
+## WASM Boot Failure — Root Cause Analysis (ACTIVE)
 
 **Status:** All three WASM-built binaries (IO.SYS, MSDOS.SYS, COMMAND.COM) fail to boot
 independently (confirmed via `tests/test_wasm_boot.sh` — tests A–E: only baseline MASM passes).
+**This is the current focus of the watcom-migration effort.**
 
 ### Debugging infrastructure
 
@@ -1040,8 +984,9 @@ COPY: label immediately follows at file 0x6EC7 (CS:0x6FC7).
 - Stack read via GDB: `x/8xb <linear_SS*16+SP>`, not local offset.
 - QEMU exec trace format: `[cs_base/phys_pc/flags]` — IP = phys_pc - cs_base.
 
-### Next step
+### Next steps (priority order)
 
-Identify the exact WASM code-generation bug for `OFFSET TRANGROUP:COPY_HELP_STR`
-(likely affects all forward-reference TRANGROUP offsets in TRANCODE segment).
-Apply source-level fix and verify boot.
+1. **COMMAND.COM**: Identify the exact WASM/WLINK code-generation bug for `OFFSET TRANGROUP:COPY_HELP_STR` — likely affects all forward-reference TRANGROUP offsets in TRANCODE segment. Apply source-level workaround (e.g., force symbol ordering, split segments) and verify boot with `tests/test_wasm_boot.sh` test B.
+2. **MSDOS.SYS**: Debug kernel boot failure (test C) — may be a similar offset/segment bug or different root cause. Use QEMU GDB + exec trace.
+3. **IO.SYS**: Debug BIOS boot failure (test E) — lowest priority since it loads first and may depend on kernel fix.
+4. **Full integration**: Once all three boot individually, run test E (full WASM) and then the complete E2E test suite.
