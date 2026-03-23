@@ -211,6 +211,21 @@ INIT.ASM (RESGROUP:INIT) calls `triageError` declared as `EXTRN:NEAR`. `triageEr
 **36. `int_command` undefined in TDATA (E251)**
 COMEQU.ASM's `trap` macro references `int_command` (from VECTOR.INC) at definition time. VECTOR.INC is not in TDATA's include chain. Fix: add `IFNDEF int_command; int_command EQU 21H; ENDIF` before the COMEQU.ASM include in TDATA.ASM.
 
+**50. WASM STRUC fields with leading whitespace cause E066/E021**
+WASM rejects struct field declarations that begin with leading spaces (e.g., `    argpointer DW ?` inside a STRUC block). MASM 5.x accepted indented fields. WASM emits E066 "Operand is expected" + E021 "Expecting number" on each indented field.
+Fix: remove the leading whitespace from all field declarations inside STRUC blocks. Applied to `COMEQU.ASM` (`argv_ele STRUC` and `arg_unit STRUC` fields).
+
+**49. WASM `=` assignments inside IFNDEF/ENDIF blocks do not persist (scoping bug)**
+WASM is single-pass. When a `=` (reassignable equate) assignment appears INSIDE a `IFNDEF … ENDIF` block, the value does NOT persist to the outer scope after the `ENDIF`. MASM two-pass has no such limitation.
+
+Root cause confirmed by minimal test: `MY_FLAG = FALSE; IFNDEF GUARD_; MY_FLAG = TRUE; ENDIF; DB (MY_FLAG) AND 0FFh` → byte is 0x00 (FALSE), not 0xFF (TRUE).
+
+**Impact on COMMAND.COM**: `SYSMSG.INC` placed ALL its `=` flag defaults (`$M_SUBS = TRUE`, `$M_STRUC = TRUE`, `NEARmsg = TRUE`, `GETmsg = FALSE`, …) INSIDE the `IFNDEF SYSMSG_INC_` include guard. WASM discarded all of them after the ENDIF. `$M_SUBS` remained 0 (FALSE) throughout the assembly of `RUCODE.ASM`, so `IF $M_SUBS` inside `MSGSERV.ASM` never fired → `$M_GET_MSG_ADDRESS` proc was never generated → `SYSGETMSG` called `SYSDISPMSG` in an infinite loop at boot.
+
+**Fix**: Move all `=` assignments in `SYSMSG.INC` to **before** the `IFNDEF SYSMSG_INC_` guard. Also replace nested `IFNDEF COMR / COMR = FALSE / ENDIF` with a plain unconditional `COMR = FALSE` (the nested IFNDEF guard suffers the same scoping bug). EQU definitions and macro definitions remain inside the guard (they are only defined once; safe to stay inside IFNDEF). Since SYSMSG.INC is itself include-guarded, these `=` assignments execute exactly once per compilation unit in both MASM and WASM.
+
+Applied to: `MS-DOS/v4.0/src/INC/SYSMSG.INC` (lines 56–93 moved before line 95 `IFNDEF SYSMSG_INC_`).
+
 **26. WASM -Mx flag makes macro parameter substitution case-sensitive**
 `MACRO AA` with body using `&aa` (lowercase) fails under `-Mx`. MASM was case-insensitive for macro parameter substitution. Fix: normalize all parameter references to same case as the MACRO parameter declaration.
 
