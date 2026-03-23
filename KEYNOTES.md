@@ -121,7 +121,7 @@ WASM doesn't support `LOW` as a unary operator in `db` directives. Fix: pre-comp
 `<"text <= more">` — WASM sees `<` in `<=` as a nested angle-bracket start. Fix: replace `<=` with `LE` inside string literals used in angle-bracket macro args.
 
 **9. ^Z (0x1A) EOF byte**
-DOS source files end with `^Z` (0x1A). WASM stops processing at `^Z`. If a file has `^Z` before an `endif`, the `endif` is invisible. Fix: strip `^Z` in Python binary mode before writing: `data.replace(b'\x1a', b'')`. Never use shell `echo >>` or `tr` on these files — use Python for binary correctness.
+DOS source files end with `^Z` (0x1A). WASM stops processing at `^Z`. If a file has `^Z` before an `endif`, the `endif` is invisible. Also causes W249 "End directive required" warning on every file (WASM reads past `END`, hits `^Z`, warns). Fix: bulk-strip `^Z` from all 827 ASM/INC files in the submodule: `data.replace(b'\x1a', b'')` in Python binary mode. This diverges from the original Microsoft source but is the cleanest approach — no wrapper hacks needed.
 
 **10. Wrong error grep pattern**
 WASM errors look like `filename(line): Error! Exx`, not `^Error`. Always grep with `': Error!'` pattern to count real errors.

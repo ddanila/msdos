@@ -55,6 +55,13 @@ vs MS LINK positional: `obj1+obj2, output.exe, output.map, lib1 /STACK:50000;`
 | `/EXEPACK` | none | Skip or post-process |
 | `/NOE` | none | May not be needed |
 
+### Cleanup: strip ^Z (0x1A) from all source files
+
+All 827 ASM/INC files end with DOS `^Z` EOF marker. WASM W249 "End directive required" warning on every file. Strip with Python: `data.replace(b'\x1a', b'')` across the submodule. One bulk commit.
+
+- [ ] Strip `^Z` from all ASM/INC files in MS-DOS submodule
+- [ ] Verify build still passes (W249 warnings gone)
+
 ### Phase 0B: OBJ-level diagnostics (fallback / educational)
 
 If wlink doesn't fix the issue, or for understanding the root cause regardless:
