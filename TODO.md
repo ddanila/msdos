@@ -152,6 +152,112 @@ These are Microsoft-proprietary build utilities with no Open Watcom equivalent. 
 
 ---
 
+## INT 21h Unit Test (standalone, master branch)
+
+Goal: a standalone `.COM` test harness that exercises every INT 21h function and reports pass/fail. Runs on real DOS (QEMU) and validates the kernel independently of the toolchain. Can be built and used on master branch — not tied to the Watcom migration.
+
+**Design:**
+- Single `.ASM` file → `.COM` (no LINK, no message framework, no dependencies)
+- Self-contained: creates its own test files, cleans up after itself
+- Output: one line per test group to serial/console (`PASS: File I/O` or `FAIL: File I/O - AH=3Ch`)
+- Exit code: 0 = all pass, 1 = any failure
+- Usable in CI: boot QEMU with CTTY AUX, capture serial, grep for FAIL
+
+**Test groups (by INT 21h AH function):**
+
+### Core file I/O (17 functions)
+| AH | Test |
+|----|------|
+| 3Ch | Create file, verify handle returned |
+| 3Dh | Open existing file (read, write, r/w modes) |
+| 3Eh | Close handle, verify double-close fails |
+| 3Fh | Read bytes, verify count and content |
+| 40h | Write bytes, read back and compare |
+| 41h | Delete file, verify open fails after |
+| 42h | Seek (beginning, current, end), verify position |
+| 43h | Get/set file attributes (readonly, archive) |
+| 45h | Dup handle, write via dup, read via original |
+| 46h | Dup2 (force dup), verify redirect works |
+| 56h | Rename file, verify old name gone + new exists |
+| 57h | Get/set file date/time, verify roundtrip |
+| 5Ah | Create temp file, verify unique name |
+| 5Bh | Create new (fail if exists), verify error on second call |
+| 5Ch | Lock region, verify concurrent access blocked |
+| 68h | Commit (flush), verify no error |
+| 6Ch | Extended open/create (DOS 4.0+), verify action codes |
+
+### Directory (4 functions)
+| AH | Test |
+|----|------|
+| 39h | Mkdir, verify exists |
+| 3Bh | Chdir into it, verify with 47h |
+| 47h | Get current dir, verify path string |
+| 3Ah | Rmdir, verify gone |
+
+### Find first/next (2 functions)
+| AH | Test |
+|----|------|
+| 4Eh | Find first with wildcard, verify DTA filled |
+| 4Fh | Find next, verify iteration + termination |
+
+### Memory management (4 functions)
+| AH | Test |
+|----|------|
+| 48h | Allocate block, verify segment returned |
+| 4Ah | Resize block (grow and shrink) |
+| 49h | Free block, verify double-free fails |
+| 58h | Get/set allocation strategy, verify roundtrip |
+
+### Process control (testable subset)
+| AH | Test |
+|----|------|
+| 4Ch | Exit with code (implicitly tested — the test itself exits) |
+| 4Dh | Get child exit code (after spawning a tiny helper) |
+| 62h | Get PSP, verify segment matches CS-10h for .COM |
+| 30h | Get DOS version, verify major=4 |
+| 2Eh | Set verify flag, 54h get verify — roundtrip |
+
+### Console I/O (testable via serial/CTTY AUX)
+| AH | Test |
+|----|------|
+| 02h | Output char, verify echo |
+| 09h | Print $-terminated string |
+| 06h | Direct console I/O (output mode) |
+| 0Bh | Check input status (should be "no input ready") |
+
+### Date/time
+| AH | Test |
+|----|------|
+| 2Ah | Get date, verify year ≥ 1980 |
+| 2Ch | Get time, verify hours 0-23 |
+
+### System info
+| AH | Test |
+|----|------|
+| 19h | Get default drive, verify 0-25 range |
+| 0Eh | Set default drive, 19h get — roundtrip |
+| 1Ah | Set DTA, 2Fh get DTA — roundtrip |
+| 25h | Set interrupt vector, 35h get — roundtrip |
+| 33h | Get/set Ctrl-C check — roundtrip |
+| 65h | Get extended country info (NLS), verify buffer filled |
+| 66h | Get global code page, verify non-zero |
+| 69h | Get disk serial number, verify structure |
+
+### FCB legacy (selective — verify not broken)
+| AH | Test |
+|----|------|
+| 29h | Parse filename into FCB, verify fields |
+| 11h/12h | FCB find first/next, verify DTA |
+
+### Not tested (by design)
+- 00h, 31h (terminate/TSR — can't return from these)
+- 4Bh (exec — complex, tested separately in E2E suite)
+- 5Dh-5Fh (network — not relevant)
+- 03h-05h (aux/printer — hardware dependent)
+- IOCTL 44h (device-specific, too many subfunctions)
+
+---
+
 ## UMB Support (Upper Memory Blocks)
 
 Goal: add UMB support to our MS-DOS 4.0 fork so device drivers and TSRs can be loaded into upper memory (640K–1MB), freeing conventional memory. Backporting the MS-DOS 5.0 concept.
