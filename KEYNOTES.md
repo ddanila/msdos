@@ -987,9 +987,44 @@ COPY: label immediately follows at file 0x6EC7 (CS:0x6FC7).
 - Stack read via GDB: `x/8xb <linear_SS*16+SP>`, not local offset.
 - QEMU exec trace format: `[cs_base/phys_pc/flags]` — IP = phys_pc - cs_base.
 
+### Isolation test results
+
+| Test | IO.SYS | MSDOS.SYS | COMMAND.COM | Result | Conclusion |
+|------|--------|-----------|-------------|--------|------------|
+| A | MASM | MASM | MASM | PASS | Baseline works |
+| B | MASM | MASM | **WASM** | FAIL | COMMAND.COM has its own bug |
+| C | MASM | **WASM** | MASM | FAIL | MSDOS.SYS has its own independent bug |
+| D | MASM | **WASM** | **WASM** | FAIL | Both broken (expected given B+C) |
+| E | **WASM** | **WASM** | **WASM** | FAIL | All broken |
+
+**Key conclusion: the failures are INDEPENDENT.** Tests B and C each fail with only one binary swapped into an otherwise working MASM system. There are at minimum two distinct bugs.
+
+**Missing test:** No isolated IO.SYS test exists (IO.SYS is only tested in test E alongside the other two). Adding a "Test F: WASM IO.SYS + MASM kernel + MASM COMMAND.COM" would confirm whether IO.SYS has a third independent bug or works fine.
+
+### COMMAND.COM OFFSET bug — per-fixup error pattern
+
+The error magnitude depends on **which OBJ file contains the reference**, not which symbol is referenced:
+
+| Reference | Source OBJ | Target symbol | Error |
+|-----------|-----------|---------------|-------|
+| `OFFSET TRANGROUP:COPY_HELP_STR` | COPY.OBJ (intra-object) | COPY_HELP_STR | +0x133 (307 bytes) |
+| `OFFSET TRANGROUP:COPY` | TDATA.OBJ (inter-object, via EXTRN) | COPY | +7 bytes |
+
+Both target symbols are in the same file (COPY.ASM, TRANCODE segment), ~307 bytes apart. Yet the errors are vastly different. This suggests WASM computes the group-relative adjustment differently for intra-object references (same .OBJ, same TRANCODE contribution) vs inter-object references (different .OBJ, via EXTRN/FIXUPP frame).
+
+TRANCODE is `PUBLIC BYTE` — 17+ OBJ files contribute sections that get concatenated. COPY.OBJ is #24 in link order. WASM may be encoding the FIXUPP as segment-relative instead of group-relative, or using the wrong LSEG index for the frame specification.
+
+**Blast radius:** 173 `OFFSET TRANGROUP:` references across 22 ASM files. If the bug is systematic, many dispatch table entries, string pointers, and data addresses are corrupted — not just COPY.
+
+### MSDOS.SYS — likely same class of bug
+
+MSDOS.SYS uses `DOSGROUP` (spanning ~50 files, same `PUBLIC BYTE` concatenation pattern). If WASM has a systematic group-relative FIXUPP bug, the kernel is equally affected. This has not been debugged via GDB yet — test C confirms it's independently broken.
+
 ### Next steps (priority order)
 
-1. **COMMAND.COM**: Compare MASM vs WASM OBJ FIXUPP records (the linker is the same MS LINK.EXE in both builds — the bug is in WASM's OMF output). Use `wdump` or Python OMF parser to find exactly how WASM encodes `OFFSET TRANGROUP:COPY_HELP_STR`. Apply source-level workaround and verify with kvikdos (`COMMAND.COM /C VER`) then `test_wasm_boot.sh` test B.
-2. **MSDOS.SYS**: Debug kernel boot failure (test C) — may be a similar offset/segment bug or different root cause. Use QEMU GDB + exec trace.
-3. **IO.SYS**: Debug BIOS boot failure (test E) — lowest priority since it loads first and may depend on kernel fix.
-4. **Full integration**: Once all three boot individually, run test E (full WASM) and then the complete E2E test suite.
+1. **OBJ-level diagnostics (Phase 0):** Compare MASM vs WASM FIXUPP records for COPY.OBJ and TDATA.OBJ. Use `wdump` (Open Watcom) or Python OMF parser. Focus on frame method, target method, and displacement for `OFFSET TRANGROUP:` fixups. This will reveal the exact encoding difference.
+2. **Determine if systematic:** If the FIXUPP pattern is consistent across all OBJs, write a post-processing script to fix OBJ files before linking (similar to fix_cl_forward_refs.py).
+3. **kvikdos smoke test:** Run WASM COMMAND.COM under kvikdos (`COMMAND.COM /C VER`) — tests transient init without needing QEMU boot.
+4. **Add isolated IO.SYS test** (Test F) to `test_wasm_boot.sh`.
+5. **MSDOS.SYS debugging:** QEMU GDB + exec trace to find crash location and compare with DOSGROUP FIXUPP analysis.
+6. **Full integration:** Once all three boot individually, run complete E2E suite.

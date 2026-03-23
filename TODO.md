@@ -4,16 +4,22 @@
 
 Goal: make all WASM-built binaries boot and pass the existing E2E test suite. Assembly migration is complete (53/53 modules, 50 WASM compat issues fixed). Current blocker: runtime crashes.
 
-**Key architectural fact:** The linker is the same MS LINK.EXE (via kvikdos) in both MASM and WASM builds — only the assembler changed. So the OFFSET TRANGROUP bug is in **WASM's OBJ output** (FIXUPP records), not the linker. This means OBJ-level comparison is the most direct way to find the root cause.
+**Key architectural facts:**
+- The linker is the same MS LINK.EXE (via kvikdos) in both MASM and WASM builds — only the assembler changed. The OFFSET bug is in **WASM's OBJ output** (OMF FIXUPP records), not the linker.
+- **The failures are independent.** Test B (WASM COMMAND.COM only) and test C (WASM MSDOS.SYS only) each fail with the other binaries still MASM-built. At minimum two distinct bugs exist.
+- The error is **per-fixup, not per-symbol**: intra-object `OFFSET TRANGROUP:` references (same .OBJ) show +0x133 error, inter-object references (via EXTRN) show +7 error for symbols in the same source file. This suggests WASM encodes group-relative adjustments differently depending on whether the target is local or external.
+- Both COMMAND.COM (TRANGROUP, 4 segments, 22 files, 173 references) and MSDOS.SYS (DOSGROUP, ~50 files) use the same pattern — if the FIXUPP bug is systematic, fixing it once fixes both.
 
 ### Phase 0: OBJ-level diagnostics (find the root cause)
 
-Compare MASM vs WASM OBJ files to pinpoint what WASM emits differently. This avoids guessing at the binary level.
+Compare MASM vs WASM OBJ files to pinpoint the exact FIXUPP encoding difference.
 
-- [ ] Build a comparison script: assemble one file (e.g., COPY.ASM) with both MASM and WASM, dump OMF records from each OBJ (segment definitions, FIXUPP records, PUBDEF/EXTDEF). Open Watcom includes `wdump` which can parse OMF. Alternatively, Python + struct to parse OMF records.
-- [ ] Compare FIXUPP records for `OFFSET TRANGROUP:COPY_HELP_STR` — check frame method, target method, and displacement. The +0x133 error suggests WASM emits a segment-relative offset instead of group-relative, or uses wrong frame specification.
-- [ ] Check if the bug is systematic (all TRANGROUP forward references) or specific to certain patterns (forward ref to data in a different segment within the same group).
-- [ ] Once root cause is identified: either fix the source to avoid triggering the bug (reorder symbols, split segments) or patch WASM's output with a post-processing script (similar to fix_cl_forward_refs.py).
+- [ ] Build a comparison script: assemble COPY.ASM with both MASM and WASM, dump OMF records (SEGDEF, GRPDEF, FIXUPP, PUBDEF, EXTDEF). Use `wdump` (Open Watcom) or Python OMF parser.
+- [ ] Compare FIXUPP records for intra-object `OFFSET TRANGROUP:COPY_HELP_STR` in COPY.OBJ — check frame method (GRPDEF vs SEGDEF), target method, and displacement. The +0x133 error likely means WASM uses segment-relative frame instead of group-relative.
+- [ ] Compare FIXUPP records for inter-object `OFFSET TRANGROUP:COPY` in TDATA.OBJ (via EXTRN) — the +7 error is much smaller, suggesting the EXTRN path has a different (smaller) encoding issue.
+- [ ] Check if the bug is systematic (all group-relative fixups) or context-dependent (forward refs only, or multi-segment groups only).
+- [ ] Once root cause is identified: either fix source to avoid the bug (e.g., eliminate `OFFSET TRANGROUP:` with a different addressing pattern) or write a post-processing script to patch FIXUPP records in OBJ files before linking.
+- [ ] Add isolated IO.SYS test ("Test F") to `test_wasm_boot.sh` to determine if IO.SYS has a third independent bug.
 
 ### Phase 1: Individual binary validation under kvikdos (fast, no QEMU)
 
