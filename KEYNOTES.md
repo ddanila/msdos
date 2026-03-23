@@ -59,6 +59,27 @@ wlink is already vendored (`watcom/bin/`). Switching to wlink would:
 
 The recommended approach is a quick proof-of-concept: hand-convert COMMAND.LNK, link with wlink, test boot. If it works, write the wrapper and switch everything. See TODO.md for details.
 
+### Source change audit: MSGSERV.ASM (static analysis)
+
+MSGSERV.ASM (339-line diff, largest change) was reviewed as a representative of the most complex WASM migration changes. This file is the DOS message retriever service, included by nearly every subsystem.
+
+**Result: no semantic bugs found.** All changes are correct:
+- `TYPE` → `SIZEOF` on STRUC (4 places) — equivalent for structs
+- `SUBTTL` commenting (11 places) — cosmetic
+- `DS:` segment override prefixes (~70 places) — makes implicit explicit, adds 1 byte each
+- LABEL/EQU reorder in COMR MSGDATA — correct fix for WASM forward-reference
+- `WORD PTR` on POP/PUSH `$M_RETURN_ADDR` — necessary for WASM operand size
+- `IF NOT X` → `IF X EQ 0` (12 places) — semantically equivalent
+- `$M_HAS_RT2` / `$M_HAS_MSGSERV_N` flag logic — correct EXTRN/PUBLIC guards
+- Commented-out `$M_HAS_$M_GET_MSG_ADDRESS` — documented WASM parser workaround
+
+**Minor flags (none critical):**
+1. Two `IF NOT` constructs (lines 206, 616) were not migrated to `EQ 0` — work as-is but inconsistent with the other 12 conversions.
+2. `IF COMR` gate removed from `$M_RT2` EXTRN guards — fail-safe (linker error, not silent bug) in edge cases.
+3. ~70 extra `DS:` prefix bytes across all consumers — COMMAND.COM is 181 bytes smaller under WASM, so no size concern.
+
+**Conclusion:** The runtime crashes are not caused by source-level changes in the WASM migration. This reinforces the hypothesis that the crashes are in the FIXUPP/linker interface (WASM OBJ ↔ MS LINK incompatibility).
+
 **Next steps:** See TODO.md "WASM Runtime Validation" for the full plan. Summary:
 1. **wlink proof-of-concept** — hand-convert COMMAND.LNK, link, test boot (fastest path)
 2. OBJ-level diagnostics (fallback — compare MASM vs WASM FIXUPP records)
