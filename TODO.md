@@ -1,8 +1,10 @@
 # MS-DOS 4.0 Build — TODO
 
-## WASM Runtime Validation (ACTIVE)
+## Watcom Migration (ACTIVE)
 
-Goal: make all WASM-built binaries boot and pass the existing E2E test suite. Assembly migration is complete (53/53 modules, 50 WASM compat issues fixed). Current blocker: runtime crashes.
+**End state:** All assembly and C compilation uses Open Watcom (WASM, wcc, wlink, wlib) natively. The full E2E test suite passes on the WASM-built floppy image. kvikdos remains only for the 7 pre-built DOS build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF, MENUBLD) — eliminating those is a separate future effort, not part of this migration.
+
+**Current status:** Assembly migration complete (53/53 modules, 50 WASM compat issues fixed). Blocker: runtime crashes (linker compatibility).
 
 **Key architectural facts:**
 - The linker is the same MS LINK.EXE (via kvikdos) in both MASM and WASM builds — only the assembler changed.
