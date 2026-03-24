@@ -1,0 +1,203 @@
+#!/usr/bin/env python3
+"""Strip WASM auto-generated _TEXT/_DATA SEGDEF records from OMF .OBJ files.
+
+WASM emits empty _TEXT (class CODE) and _DATA (class DATA) segments in every
+OBJ file. MS LINK uses class names to order segments within a GROUP, so these
+phantom CODE/DATA class segments get placed before the actual START segment in
+DOSGROUP, breaking OFFSET calculations (e.g., OFFSET DOSGROUP:DOSINIT).
+
+This script removes those empty SEGDEFs and renumbers all segment indices in
+subsequent records (GRPDEF, FIXUPP, PUBDEF, EXTDEF, LINNUM, LEDATA, LIDATA).
+"""
+
+import sys, struct
+
+SEGDEF16 = 0x98
+SEGDEF32 = 0x99
+LNAMES   = 0x96
+GRPDEF   = 0x9A
+FIXUPP16 = 0x9C
+FIXUPP32 = 0x9D
+LEDATA16 = 0xA0
+LEDATA32 = 0xA1
+LIDATA16 = 0xA2
+LIDATA32 = 0xA3
+PUBDEF16 = 0x90
+PUBDEF32 = 0x91
+LINNUM16 = 0x94
+LINNUM32 = 0x95
+COMDAT16 = 0xC2
+COMDAT32 = 0xC3
+
+def read_records(data):
+    """Parse OMF file into list of (type, payload) tuples (payload includes checksum)."""
+    records = []
+    i = 0
+    while i < len(data):
+        rtype = data[i]
+        rlen = data[i+1] | (data[i+2] << 8)
+        payload = data[i+3 : i+3+rlen]
+        records.append((rtype, payload))
+        i += 3 + rlen
+    return records
+
+def write_records(records):
+    """Serialize list of (type, payload) tuples back to bytes."""
+    out = bytearray()
+    for rtype, payload in records:
+        out.append(rtype)
+        out.append(len(payload) & 0xFF)
+        out.append((len(payload) >> 8) & 0xFF)
+        out.extend(payload)
+    return bytes(out)
+
+def decode_lnames(payload):
+    """Decode LNAMES record into list of name strings."""
+    names = []
+    i = 0
+    end = len(payload) - 1  # last byte is checksum
+    while i < end:
+        nlen = payload[i]; i += 1
+        name = payload[i:i+nlen].decode('ascii', errors='replace'); i += nlen
+        names.append(name)
+    return names
+
+def read_index(data, offset):
+    """Read OMF index field (1 or 2 bytes). Returns (value, new_offset)."""
+    if data[offset] < 0x80:
+        return data[offset], offset + 1
+    else:
+        return ((data[offset] & 0x7F) << 8) | data[offset+1], offset + 2
+
+def write_index(val):
+    """Encode OMF index field."""
+    if val < 0x80:
+        return bytes([val])
+    else:
+        return bytes([0x80 | (val >> 8), val & 0xFF])
+
+def recompute_checksum(rtype, payload):
+    """Recompute checksum byte (last byte of payload)."""
+    s = rtype + (len(payload) & 0xFF) + ((len(payload) >> 8) & 0xFF)
+    s += sum(payload[:-1])
+    payload_list = bytearray(payload)
+    payload_list[-1] = (256 - (s & 0xFF)) & 0xFF
+    return bytes(payload_list)
+
+def remap_segidx(idx, seg_map):
+    """Remap a segment index through the removal map. Returns 0 if removed."""
+    return seg_map.get(idx, 0)
+
+def process_obj(filepath):
+    data = open(filepath, 'rb').read()
+    records = read_records(data)
+
+    # Pass 1: collect LNAMES to build name table
+    lname_table = ['']  # index 0 = empty
+    for rtype, payload in records:
+        if rtype == LNAMES:
+            lname_table.extend(decode_lnames(payload))
+
+    # Pass 2: identify SEGDEF records to remove
+    seg_index = 0  # 1-based
+    segs_to_remove = set()
+    seg_map = {}  # old_index -> new_index
+
+    new_seg_index = 0
+    for rtype, payload in records:
+        if rtype in (SEGDEF16, SEGDEF32):
+            seg_index += 1
+            # Parse SEGDEF: first byte is ACBP, then segment length (2 bytes for 16-bit)
+            acbp = payload[0]
+            if rtype == SEGDEF16:
+                seg_len = payload[1] | (payload[2] << 8)
+                idx_offset = 3
+            else:
+                seg_len = struct.unpack_from('<I', payload, 1)[0]
+                idx_offset = 5
+
+            seg_name_idx, idx_offset = read_index(payload, idx_offset)
+            class_name_idx, idx_offset = read_index(payload, idx_offset)
+
+            seg_name = lname_table[seg_name_idx] if seg_name_idx < len(lname_table) else ''
+            class_name = lname_table[class_name_idx] if class_name_idx < len(lname_table) else ''
+
+            if seg_name in ('_TEXT', '_DATA') and seg_len == 0:
+                segs_to_remove.add(seg_index)
+                seg_map[seg_index] = 0  # removed
+            else:
+                new_seg_index += 1
+                seg_map[seg_index] = new_seg_index
+
+    if not segs_to_remove:
+        return  # nothing to strip
+
+    # Pass 3: rebuild records, removing marked SEGDEFs and remapping indices
+    out_records = []
+    seg_counter = 0
+    for rtype, payload in records:
+        if rtype in (SEGDEF16, SEGDEF32):
+            seg_counter += 1
+            if seg_counter in segs_to_remove:
+                continue  # skip this SEGDEF
+            out_records.append((rtype, payload))
+
+        elif rtype in (LEDATA16, LEDATA32):
+            # First field is segment index
+            old_idx, off = read_index(payload, 0)
+            new_idx = remap_segidx(old_idx, seg_map)
+            if new_idx == 0:
+                continue  # data for removed segment, skip
+            new_payload = bytearray(write_index(new_idx)) + bytearray(payload[off:])
+            out_records.append((rtype, recompute_checksum(rtype, bytes(new_payload))))
+
+        elif rtype in (PUBDEF16, PUBDEF32):
+            # Fields: group_index, segment_index, ...
+            grp_idx, off = read_index(payload, 0)
+            old_seg_idx, off = read_index(payload, off)
+            new_seg_idx = remap_segidx(old_seg_idx, seg_map)
+            if new_seg_idx == 0 and old_seg_idx != 0:
+                continue  # public in removed segment, skip
+            new_payload = bytearray(write_index(grp_idx)) + bytearray(write_index(new_seg_idx)) + bytearray(payload[off:])
+            out_records.append((rtype, recompute_checksum(rtype, bytes(new_payload))))
+
+        elif rtype in (LINNUM16, LINNUM32):
+            grp_idx, off = read_index(payload, 0)
+            old_seg_idx, off = read_index(payload, off)
+            new_seg_idx = remap_segidx(old_seg_idx, seg_map)
+            if new_seg_idx == 0:
+                continue
+            new_payload = bytearray(write_index(grp_idx)) + bytearray(write_index(new_seg_idx)) + bytearray(payload[off:])
+            out_records.append((rtype, recompute_checksum(rtype, bytes(new_payload))))
+
+        elif rtype == GRPDEF:
+            # Fields: group_name_index, then pairs of (0xFF, segment_index)
+            grp_name_idx, off = read_index(payload, 0)
+            new_payload = bytearray(write_index(grp_name_idx))
+            end = len(payload) - 1  # checksum
+            while off < end:
+                marker = payload[off]; off += 1
+                seg_idx, off = read_index(payload, off)
+                new_seg = remap_segidx(seg_idx, seg_map)
+                if new_seg != 0:
+                    new_payload.append(marker)
+                    new_payload.extend(write_index(new_seg))
+            new_payload.append(0)  # checksum placeholder
+            out_records.append((rtype, recompute_checksum(rtype, bytes(new_payload))))
+
+        elif rtype in (FIXUPP16, FIXUPP32):
+            # FIXUPP records contain multiple sub-records (FIXUP or THREAD)
+            # Segment indices appear in FIXUP target/frame fields
+            # Safest: keep as-is since empty segments shouldn't be referenced
+            out_records.append((rtype, payload))
+
+        else:
+            out_records.append((rtype, payload))
+
+    open(filepath, 'wb').write(write_records(out_records))
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print(f"Usage: {sys.argv[0]} <file.obj>", file=sys.stderr)
+        sys.exit(1)
+    process_obj(sys.argv[1])

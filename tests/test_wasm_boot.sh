@@ -48,147 +48,221 @@ make_test_img() {
     for r in "${replacements[@]:-}"; do
         case "$r" in
             io)
-                # Replace IO.SYS: must be first dir entry, contiguous at cluster 2.
-                # Easier: rebuild whole image with WASM IO.SYS.
-                # Instead, we note that mcopy -o replaces in-place only if same cluster
-                # layout. Since IO.SYS is always first, we can delete and re-add,
-                # but that changes dir order. Use python to patch raw bytes instead.
-                python3 - "$out" "$WASM_IO" <<'PYEOF'
+                # Replace IO.SYS (dir entry 0, starts at cluster 2)
+                # Uses same FAT chain extension logic as MSDOS.SYS/COMMAND.COM
+                python3 - "$out" "$WASM_IO" 0 "IO.SYS" <<'PYEOF'
 import sys, struct
-
-img_path = sys.argv[1]
-new_io_path = sys.argv[2]
-
+img_path, new_file_path = sys.argv[1], sys.argv[2]
+dir_idx, label = int(sys.argv[3]), sys.argv[4]
 data = bytearray(open(img_path, 'rb').read())
-new_io = open(new_io_path, 'rb').read()
-fat_start = 512
-fat = data[fat_start:fat_start + 9*512]
+new_file = open(new_file_path, 'rb').read()
+FAT1 = 512; FAT2 = 512 + 9*512; FAT_SZ = 9*512
+fat = bytearray(data[FAT1:FAT1+FAT_SZ])
 
-def get_fat12(cluster):
-    idx = cluster * 3 // 2
-    if cluster % 2 == 0:
-        return int.from_bytes(fat[idx:idx+2], 'little') & 0xFFF
+def get_fat12(c):
+    i = c*3//2
+    return (int.from_bytes(fat[i:i+2],'little') & 0xFFF) if c%2==0 else (int.from_bytes(fat[i:i+2],'little')>>4) & 0xFFF
+
+def set_fat12(c, val):
+    i = c*3//2
+    old = int.from_bytes(fat[i:i+2],'little')
+    if c%2==0:
+        new = (old & 0xF000) | (val & 0xFFF)
     else:
-        return (int.from_bytes(fat[idx:idx+2], 'little') >> 4) & 0xFFF
+        new = (old & 0x000F) | ((val & 0xFFF) << 4)
+    fat[i:i+2] = new.to_bytes(2,'little')
 
-# IO.SYS is always at cluster 2 in our images
-cluster = 2
-buf = bytearray(new_io)
-# Pad to full cluster multiple
-while len(buf) % 512 != 0:
-    buf += b'\x00'
+dir_start = 19*512
+entry = data[dir_start+dir_idx*32:dir_start+dir_idx*32+32]
+start_cluster = int.from_bytes(entry[26:28],'little')
+old_size = int.from_bytes(entry[28:32],'little')
 
-offset_in_buf = 0
-while cluster < 0xFF8 and offset_in_buf < len(buf):
-    sector = (cluster - 2) + 33
-    off = sector * 512
-    data[off:off+512] = buf[offset_in_buf:offset_in_buf+512]
-    offset_in_buf += 512
-    cluster = get_fat12(cluster)
+buf = bytearray(new_file)
+while len(buf) % 512: buf += b'\x00'
+sectors_needed = len(buf) // 512
 
-# Update directory entry size
-dir_start = 19 * 512
-# Entry 0 = IO.SYS
-data[dir_start + 28:dir_start + 32] = struct.pack('<I', len(new_io))
+# Collect existing chain
+chain = []
+c = start_cluster
+while c >= 2 and c < 0xFF8:
+    chain.append(c)
+    c = get_fat12(c)
 
+# Extend chain if needed
+while len(chain) < sectors_needed:
+    for fc in range(2, (len(data)//512 - 33) + 2):
+        if get_fat12(fc) == 0:
+            set_fat12(chain[-1], fc)
+            set_fat12(fc, 0xFFF)
+            chain.append(fc)
+            break
+    else:
+        print(f'  ERROR: disk full', file=sys.stderr); sys.exit(1)
+
+# Shrink chain if new file is smaller
+for i in range(sectors_needed, len(chain)):
+    set_fat12(chain[i], 0)
+if sectors_needed > 0 and sectors_needed < len(chain):
+    set_fat12(chain[sectors_needed-1], 0xFFF)
+chain = chain[:sectors_needed]
+
+# Write data
+for i, cl in enumerate(chain):
+    off = (cl - 2 + 33) * 512
+    data[off:off+512] = buf[i*512:(i+1)*512]
+
+# Write both FATs + dir size
+data[FAT1:FAT1+FAT_SZ] = fat
+data[FAT2:FAT2+FAT_SZ] = fat
+data[dir_start+dir_idx*32+28:dir_start+dir_idx*32+32] = struct.pack('<I', len(new_file))
 open(img_path, 'wb').write(bytes(data))
-print(f'  Patched IO.SYS: {len(new_io)} bytes')
+print(f'  Patched {label}: {len(new_file)} bytes')
 PYEOF
                 ;;
             msdos)
-                # Replace MSDOS.SYS in-place (patch cluster chain data + dir size)
-                python3 - "$out" "$WASM_MSDOS" <<'PYEOF'
+                # Replace MSDOS.SYS — extends FAT chain if new file is larger
+                python3 - "$out" "$WASM_MSDOS" 1 "MSDOS.SYS" <<'PYEOF'
 import sys, struct
-
-img_path = sys.argv[1]
-new_file_path = sys.argv[2]
-
+img_path, new_file_path = sys.argv[1], sys.argv[2]
+dir_idx, label = int(sys.argv[3]), sys.argv[4]
 data = bytearray(open(img_path, 'rb').read())
 new_file = open(new_file_path, 'rb').read()
-fat_start = 512
-fat = data[fat_start:fat_start + 9*512]
+FAT1 = 512; FAT2 = 512 + 9*512; FAT_SZ = 9*512
+fat = bytearray(data[FAT1:FAT1+FAT_SZ])
 
-def get_fat12(cluster):
-    idx = cluster * 3 // 2
-    if cluster % 2 == 0:
-        return int.from_bytes(fat[idx:idx+2], 'little') & 0xFFF
+def get_fat12(c):
+    i = c*3//2
+    return (int.from_bytes(fat[i:i+2],'little') & 0xFFF) if c%2==0 else (int.from_bytes(fat[i:i+2],'little')>>4) & 0xFFF
+
+def set_fat12(c, val):
+    i = c*3//2
+    old = int.from_bytes(fat[i:i+2],'little')
+    if c%2==0:
+        new = (old & 0xF000) | (val & 0xFFF)
     else:
-        return (int.from_bytes(fat[idx:idx+2], 'little') >> 4) & 0xFFF
+        new = (old & 0x000F) | ((val & 0xFFF) << 4)
+    fat[i:i+2] = new.to_bytes(2,'little')
 
-# Find MSDOS.SYS dir entry (entry index 1)
-dir_start = 19 * 512
-entry = data[dir_start + 1*32 : dir_start + 1*32 + 32]
-start_cluster = int.from_bytes(entry[26:28], 'little')
-old_size = int.from_bytes(entry[28:32], 'little')
-
-print(f'  MSDOS.SYS: cluster={start_cluster}, old_size={old_size}, new_size={len(new_file)}')
+dir_start = 19*512
+entry = data[dir_start+dir_idx*32:dir_start+dir_idx*32+32]
+start_cluster = int.from_bytes(entry[26:28],'little')
+old_size = int.from_bytes(entry[28:32],'little')
+print(f'  {label}: cluster={start_cluster}, old_size={old_size}, new_size={len(new_file)}')
 
 buf = bytearray(new_file)
-while len(buf) % 512 != 0:
-    buf += b'\x00'
+while len(buf) % 512: buf += b'\x00'
+sectors_needed = len(buf) // 512
 
-cluster = start_cluster
-offset_in_buf = 0
-while cluster < 0xFF8 and offset_in_buf < len(buf):
-    sector = (cluster - 2) + 33
-    off = sector * 512
-    data[off:off+512] = buf[offset_in_buf:offset_in_buf+512]
-    offset_in_buf += 512
-    cluster = get_fat12(cluster)
+# Collect existing chain
+chain = []
+c = start_cluster
+while c >= 2 and c < 0xFF8:
+    chain.append(c)
+    c = get_fat12(c)
 
-# Update dir entry size
-data[dir_start + 1*32 + 28 : dir_start + 1*32 + 32] = struct.pack('<I', len(new_file))
+# Extend chain if needed
+while len(chain) < sectors_needed:
+    for fc in range(2, (len(data)//512 - 33) + 2):
+        if get_fat12(fc) == 0:
+            set_fat12(chain[-1], fc)
+            set_fat12(fc, 0xFFF)
+            chain.append(fc)
+            break
+    else:
+        print(f'  ERROR: disk full, need {sectors_needed} clusters, have {len(chain)}', file=sys.stderr)
+        sys.exit(1)
 
+# Shrink chain if new file is smaller
+for i in range(sectors_needed, len(chain)):
+    set_fat12(chain[i], 0)
+if sectors_needed > 0 and sectors_needed < len(chain):
+    set_fat12(chain[sectors_needed-1], 0xFFF)
+chain = chain[:sectors_needed]
+
+# Write data
+for i, cl in enumerate(chain):
+    off = (cl - 2 + 33) * 512
+    data[off:off+512] = buf[i*512:(i+1)*512]
+
+# Write both FATs + dir size
+data[FAT1:FAT1+FAT_SZ] = fat
+data[FAT2:FAT2+FAT_SZ] = fat
+data[dir_start+dir_idx*32+28:dir_start+dir_idx*32+32] = struct.pack('<I', len(new_file))
 open(img_path, 'wb').write(bytes(data))
-print(f'  Patched MSDOS.SYS OK')
+print(f'  Patched {label} OK')
 PYEOF
                 ;;
             command)
-                # Replace COMMAND.COM (entry index 2)
-                python3 - "$out" "$WASM_COMMAND" <<'PYEOF'
+                # Replace COMMAND.COM — extends FAT chain if new file is larger
+                python3 - "$out" "$WASM_COMMAND" 2 "COMMAND.COM" <<'PYEOF'
 import sys, struct
-
-img_path = sys.argv[1]
-new_file_path = sys.argv[2]
-
+img_path, new_file_path = sys.argv[1], sys.argv[2]
+dir_idx, label = int(sys.argv[3]), sys.argv[4]
 data = bytearray(open(img_path, 'rb').read())
 new_file = open(new_file_path, 'rb').read()
-fat_start = 512
-fat = data[fat_start:fat_start + 9*512]
+FAT1 = 512; FAT2 = 512 + 9*512; FAT_SZ = 9*512
+fat = bytearray(data[FAT1:FAT1+FAT_SZ])
 
-def get_fat12(cluster):
-    idx = cluster * 3 // 2
-    if cluster % 2 == 0:
-        return int.from_bytes(fat[idx:idx+2], 'little') & 0xFFF
+def get_fat12(c):
+    i = c*3//2
+    return (int.from_bytes(fat[i:i+2],'little') & 0xFFF) if c%2==0 else (int.from_bytes(fat[i:i+2],'little')>>4) & 0xFFF
+
+def set_fat12(c, val):
+    i = c*3//2
+    old = int.from_bytes(fat[i:i+2],'little')
+    if c%2==0:
+        new = (old & 0xF000) | (val & 0xFFF)
     else:
-        return (int.from_bytes(fat[idx:idx+2], 'little') >> 4) & 0xFFF
+        new = (old & 0x000F) | ((val & 0xFFF) << 4)
+    fat[i:i+2] = new.to_bytes(2,'little')
 
-# Find COMMAND.COM dir entry (entry index 2)
-dir_start = 19 * 512
-entry = data[dir_start + 2*32 : dir_start + 2*32 + 32]
-start_cluster = int.from_bytes(entry[26:28], 'little')
-old_size = int.from_bytes(entry[28:32], 'little')
-
-print(f'  COMMAND.COM: cluster={start_cluster}, old_size={old_size}, new_size={len(new_file)}')
+dir_start = 19*512
+entry = data[dir_start+dir_idx*32:dir_start+dir_idx*32+32]
+start_cluster = int.from_bytes(entry[26:28],'little')
+old_size = int.from_bytes(entry[28:32],'little')
+print(f'  {label}: cluster={start_cluster}, old_size={old_size}, new_size={len(new_file)}')
 
 buf = bytearray(new_file)
-while len(buf) % 512 != 0:
-    buf += b'\x00'
+while len(buf) % 512: buf += b'\x00'
+sectors_needed = len(buf) // 512
 
-cluster = start_cluster
-offset_in_buf = 0
-while cluster < 0xFF8 and offset_in_buf < len(buf):
-    sector = (cluster - 2) + 33
-    off = sector * 512
-    data[off:off+512] = buf[offset_in_buf:offset_in_buf+512]
-    offset_in_buf += 512
-    cluster = get_fat12(cluster)
+# Collect existing chain
+chain = []
+c = start_cluster
+while c >= 2 and c < 0xFF8:
+    chain.append(c)
+    c = get_fat12(c)
 
-# Update dir entry size
-data[dir_start + 2*32 + 28 : dir_start + 2*32 + 32] = struct.pack('<I', len(new_file))
+# Extend chain if needed
+while len(chain) < sectors_needed:
+    for fc in range(2, (len(data)//512 - 33) + 2):
+        if get_fat12(fc) == 0:
+            set_fat12(chain[-1], fc)
+            set_fat12(fc, 0xFFF)
+            chain.append(fc)
+            break
+    else:
+        print(f'  ERROR: disk full, need {sectors_needed} clusters, have {len(chain)}', file=sys.stderr)
+        sys.exit(1)
 
+# Shrink chain if new file is smaller
+for i in range(sectors_needed, len(chain)):
+    set_fat12(chain[i], 0)
+if sectors_needed > 0 and sectors_needed < len(chain):
+    set_fat12(chain[sectors_needed-1], 0xFFF)
+chain = chain[:sectors_needed]
+
+# Write data
+for i, cl in enumerate(chain):
+    off = (cl - 2 + 33) * 512
+    data[off:off+512] = buf[i*512:(i+1)*512]
+
+# Write both FATs + dir size
+data[FAT1:FAT1+FAT_SZ] = fat
+data[FAT2:FAT2+FAT_SZ] = fat
+data[dir_start+dir_idx*32+28:dir_start+dir_idx*32+32] = struct.pack('<I', len(new_file))
 open(img_path, 'wb').write(bytes(data))
-print(f'  Patched COMMAND.COM OK')
+print(f'  Patched {label} OK')
 PYEOF
                 ;;
         esac
