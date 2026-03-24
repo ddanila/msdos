@@ -45,7 +45,9 @@ in batch scripts: `printf 'content\r\n\x1a'`.
 
 ## WASM Migration (Open Watcom → replaces MASM 5.x via kvikdos)
 
-**Status:** All 53 modules build cleanly under WASM (assembler migration complete). COMMAND.COM boots and runs (test B passes — issue #52 fixed). MSDOS.SYS + COMMAND.COM boots (test D passes — issues #53, #54 fixed). IO.SYS remains (test E fails). All `IF NOT` patterns (60+ instances across 38 files) converted to `EQ 0`. `bin/strip-wasm-segs` OMF post-processor strips empty `_TEXT`/`_DATA` SEGDEFs that break MS LINK segment ordering.
+**Status:** All 53 modules build cleanly under WASM (assembler migration complete). COMMAND.COM boots (test B). MSDOS.SYS boots (tests C/D — issues #53, #54). IO.SYS boots full stack (test E — issues #55, #56). All `IF NOT` patterns (60+ instances across 38 files) converted to `EQ 0`. `bin/strip-wasm-segs` OMF post-processor strips empty `_TEXT`/`_DATA` SEGDEFs that break MS LINK segment ordering.
+
+**MSDOS.SYS regression (open):** After `make clean`, fresh-built MSDOS.SYS is 36976 bytes (vs 37024 bytes from a stale-OBJ build). The fresh binary produces zero serial output in QEMU — system is alive (INT 0x08 timer ticks, no CPU resets, no exceptions) but CTTY AUX never outputs. Root cause unknown; likely 48 bytes of code excluded in fresh build due to a conditional block that was previously included via stale OBJs. Workaround: use pre-clean binary from git; full investigation pending.
 
 **Linker strategy: wlink (Open Watcom) vs MS LINK.EXE**
 
@@ -264,6 +266,21 @@ Debugging method: QEMU `-d in_asm` instruction trace → traced bad RET → disc
 `NOT IBM` where IBM=TRUE (0FFFFh) should produce 0 (FALSE) but WASM produces a truthy non-zero value. This is the same `NOT TRUE` bug as #51 but in a compound expression inside MSDOS.SYS's DOSINIT. The copyright display code was erroneously included, containing a broken CALL target (E8 00 00) that corrupted execution.
 Fix: `IF (NOT IBM) OR (DEBUG)` → `IF (IBM EQ 0) OR (DEBUG)` in MSINIT.ASM line 527.
 
+**55–56. IO.SYS full WASM boot — fixed**
+Issues #55 and #56 fixed IO.SYS loading MSDOS.SYS correctly. Details documented in git commit `5fb9e5e` and submodule.
+
+**57. `$M_MSGDATA_ONLY` undefined in WASM — SYSMSG.INC TRUE/FALSE forward-reference**
+
+`SYSMSG.INC` uses `TRUE` and `FALSE` in `=` (reassignable-equate) assignments starting at line 58 (`NEARmsg = TRUE`, `NOVERCHECKmsg = FALSE`, ...). In MASM (two-pass), `TRUE`/`FALSE` can be resolved on the second pass even though they are defined later. In WASM (single-pass), `TRUE` is undefined at that point — it is defined inside the `IFNDEF SYSMSG_INC_` block at line ~100. This causes `$M_MSGDATA_ONLY = TRUE` to assign an undefined (0) value, which breaks every consumer that includes `MSGSERV.ASM` via `MSG_UTILNAME` before `SYSMSG.INC` initializes.
+
+**Symptom:** `MSGSERV.ASM(206): E074 Constant operand is expected` (and similar on consumers).
+
+**Root cause:** `SYSMSG.INC` lines 56–90 execute BEFORE the `IFNDEF SYSMSG_INC_` guard (which is where `TRUE`/`FALSE` are defined by the existing compat fixes from issue #49).
+
+**Fix:** Added `IFNDEF FALSE / FALSE EQU 0 / ENDIF` and `IFNDEF TRUE / TRUE EQU -1 / ENDIF` in `SYSMSG.INC` **before** line 58 (before the first `= TRUE/FALSE` assignment). Also added `IFNDEF $M_MSGDATA_ONLY / $M_MSGDATA_ONLY = 0 / ENDIF` in `MSGSERV.ASM` as a safety net.
+
+**Impact:** SYS.COM (SYSSR.ASM) and other MSG_UTILNAME users now build clean.
+
 **54. WASM `LABEL WORD` emits absolute symbol (offset 0) instead of segment-relative — MSVERS**
 `MSVERS LABEL WORD` (replaced from original `EQU THIS WORD`) was emitted by WASM as an absolute PUBDEF (grp=0, seg=0, offset=0) in the OBJ file, despite being inside the TABLE segment. Other `LABEL BYTE` directives at the same location (e.g., MSTAB001S) were emitted correctly. The $GET_VERSION handler (INT 21h/AH=30h) read MOV AX,[0] instead of MOV AX,[0D12h], returning version 0 instead of 4.00. COMMAND.COM failed the version check and entered an error loop.
 Fix: replaced `MSVERS LABEL WORD` + two `DB` directives with `MSVERS DW MAJOR_VERSION + MINOR_VERSION * 256` in MS_TABLE.ASM. MSMAJOR/MSMINOR labels removed (not referenced externally).
@@ -329,10 +346,10 @@ All 53 modules assemble cleanly under WASM: 7 core (MESSAGES, MAPPER, BOOT, INC,
 | Component | WASM Build | WASM Boot | Notes |
 |-----------|-----------|-----------|-------|
 | Boot sector (MSBOOT.BIN) | ✅ | ✅ | boots into IO.SYS |
-| IO.SYS (BIOS) | ✅ | ❌ | "Non-System disk or disk error" — IO.SYS executes (prints message) but fails to load MSDOS.SYS from disk. Not an IF NOT bug. |
-| MSDOS.SYS (kernel) | ✅ | ✅ | **Fixed** (test C/D pass): issue #53 (NOT IBM), #54 (MSVERS absolute symbol). |
+| IO.SYS (BIOS) | ✅ | ✅ | **Fixed** (test E pass): issues #55, #56. |
+| MSDOS.SYS (kernel) | ✅ | ⚠️ | Fixed (tests C/D — issues #53, #54), but **fresh clean build regresses** (36976 bytes, no serial output). Stale-OBJ build (37024 bytes) still works. Investigation pending. |
 | COMMAND.COM | ✅ | ✅ | **Fixed** (test B/D pass): issue #52 ($M_GET_MSG_ADDRESS L2029). |
-| Full WASM boot | ✅ | ❌ | IO.SYS still fails (test E) — "Non-System disk or disk error". |
+| Full WASM boot | ✅ | ⚠️ | Blocked by MSDOS.SYS clean-build regression. Workaround: use `minimal-floppy` with pre-clean MSDOS.SYS. |
 
 Test harness: `tests/test_wasm_boot.sh` — swaps WASM binaries one-at-a-time into MASM floppy.img, boots headless QEMU, checks serial for "MS-DOS".
 
@@ -471,6 +488,14 @@ CONTINUE:
 - REPLACE.EXE: 1 C + 3 ASM, BUILDMSG for SKL. Links MAPPER.LIB + INC/COMSUBS.LIB. Stays EXE.
 - JOIN.EXE / SUBST.EXE: 1C + 2ASM + INC kernel objects (ERRTST.OBJ, SYSVAR.OBJ, CDS.OBJ, DPB.OBJ already built by `inc` target). Links MAPPER.LIB + INC/COMSUBS.LIB. LNK files reference INC objs by relative path `..\..\inc\*.OBJ`. Stays EXE.
 - CHKDSK.COM is built from `CMD/CHKDSK/` source (BUILDMSG → 9 MASM files → LINK → CONVERT). Key quirk: `CHKDISP.ASM` uses the `Msg_Services` macro which includes `CHKDSK.CL1` and `CHKDSK.CL2` — but CHKDSK.SKL has no class 1 or 2, so BUILDMSG doesn't generate them. Fix: `touch CHKDSK.CL1 CHKDSK.CL2` after BUILDMSG to create empty stubs. CHKDSK also uses `CONVERT.EXE` (not EXE2BIN).
+
+  **CHKDSK WASM status (partial — as of this session):**
+  - `CHKDISK.ASM` now assembles clean (was: E230 Stderr/FALSE/TRUE double-defined + E236 BREAK/Procedure macros).
+    Fixes: (a) IFNDEF guards for `Stderr`/`FALSE`/`TRUE` in `CHKEQU.INC` (conflicts with DOSSYM.INC→FILEMODE.INC).
+    (b) Physical removal of `BREAK` and `Procedure` macro defs from `CHKMACRO.INC` — they are already defined in DOSMAC.INC. IFNDEF-guarding macros does NOT work in WASM (see compat note #17); duplicates must be physically removed.
+  - `CHKDISP.ASM` (and 7 other files) still fail with pre-existing `E050: Offset cannot be smaller than WORD size` in `CHKMSG.INC` where `db Sublist_Length` uses `SIZE Sublist_Struc` — WASM treats SIZE as WORD-sized, rejects in `db` context. Needs explicit cast or byte constant.
+  - **CHKDSK.COM cannot be built until `CHKDISP.ASM` (and the other 7) are fixed.**
+  - `make deploy` is blocked by CHKDSK. Workaround: use `make minimal-floppy` (boot sector + IO.SYS + MSDOS.SYS + COMMAND.COM only).
 - FORMAT.COM is tested via `test_format.sh` — see "## FORMAT E2E Tests (QMP disk swapping)" section below.
 - FORMAT internal/OEM switches (`/BACKUP /SELECT /AUTOTEST /Z`) — see "## FORMAT Internal/OEM Switches" section.
 
@@ -492,6 +517,9 @@ CONTINUE:
 ### File copy order
 - `IO.SYS` **must** be the first directory entry; `MSDOS.SYS` must be second.
 - Use `mcopy` (not loop-mount) to guarantee insertion order; then `mattrib +h +s +r` both files.
+
+### minimal-floppy target
+`make minimal-floppy` — builds `out/floppy.img` with only the 4 boot components (boot sector, IO.SYS, MSDOS.SYS, COMMAND.COM). Use when `make deploy` is blocked by utility build errors (currently CHKDSK). Depends on `boot bios dos cmd_command` targets only.
 
 ### verify target
 - `floppy-test.img` = `floppy.img` + `AUTOEXEC.BAT` with `CTTY AUX\r\nVER\r\n`.

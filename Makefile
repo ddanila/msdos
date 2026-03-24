@@ -29,7 +29,7 @@ CFLAGS   := -AS -Os -Zp
 # Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy run-boot test-sys test-help-qemu test-misc-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-b-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select
+.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy minimal-floppy run-boot test-sys test-help-qemu test-misc-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-b-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select
 
 # Build kvikdos-soft (software CPU) if /dev/kvm is unavailable.
 # dos-run automatically selects the right binary at runtime.
@@ -270,6 +270,24 @@ test:
 gen-checksums: all
 	cd $(SRC) && sha256sum $(ARTIFACTS) > $(CURDIR)/tests/golden.sha256
 	@echo "Checksums written to tests/golden.sha256"
+
+# minimal-floppy: create out/floppy.img from the 4 boot components only.
+# Use this when the full 'deploy' (all utilities) is blocked by utility build errors.
+# Requires IO.SYS, MSDOS.SYS, COMMAND.COM to already be built.
+minimal-floppy: boot bios dos cmd_command
+	mkdir -p $(OUT)
+	dd if=/dev/zero of=$(FLOPPY) bs=512 count=2880 status=none
+	dd if=$(BOOT_BIN) of=$(FLOPPY) bs=1 skip=$(BOOT_OFF) count=512 conv=notrunc status=none
+	$(BIN)/patch-bpb $(FLOPPY)
+	mformat -i $(FLOPPY) -k ::
+	mcopy -i $(FLOPPY) $(IO_SYS) ::IO.SYS
+	mcopy -i $(FLOPPY) $(MSDOS_SYS) ::MSDOS.SYS
+	mcopy -i $(FLOPPY) $(COMMAND_COM) ::COMMAND.COM
+	echo 'drive a: file="$(FLOPPY)"' > $(OUT)/.mtoolsrc
+	MTOOLSRC=$(OUT)/.mtoolsrc mattrib +h +s +r a:/IO.SYS
+	MTOOLSRC=$(OUT)/.mtoolsrc mattrib +h +s +r a:/MSDOS.SYS
+	rm -f $(OUT)/.mtoolsrc
+	@echo "Minimal floppy built: $(FLOPPY)"
 
 test-sys: deploy
 	bash tests/test_sys.sh
