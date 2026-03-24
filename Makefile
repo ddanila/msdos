@@ -505,7 +505,5 @@ run-boot: deploy
 
 # ---------------------------------------------------------------------------
 clean:
-	find $(SRC) -name "*.obj" -o -name "*.exe" -o -name "*.bin" \
-	    -o -name "*.com" -o -name "*.sys" -o -name "*.lib" \
-	    -o -name "*.cl1" -o -name "*.idx" | xargs rm -f
-	rm -f $(FLOPPY) $(OUT)/serial.log
+	git -C "$(CURDIR)/MS-DOS" clean -fXq 2>/dev/null || true
+	rm -f $(FLOPPY) $(OUT)/serial.log $(OUT)/wasm-test-*.img $(OUT)/wasm-test-*.log
