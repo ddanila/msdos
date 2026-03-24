@@ -29,7 +29,7 @@ CFLAGS   := -AS -Os -Zp
 # Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all messages mapper boot inc bios dos cmd dev select memm clean test gen-checksums deploy minimal-floppy run-boot test-sys test-help-qemu test-misc-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-b-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select
+.PHONY: all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test gen-checksums deploy minimal-floppy run-boot test-sys test-help-qemu test-misc-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-b-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select
 
 # Build kvikdos-soft (software CPU) if /dev/kvm is unavailable.
 # dos-run automatically selects the right binary at runtime.
