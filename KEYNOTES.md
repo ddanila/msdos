@@ -45,7 +45,7 @@ in batch scripts: `printf 'content\r\n\x1a'`.
 
 ## WASM Migration (Open Watcom → replaces MASM 5.x via kvikdos)
 
-**Status:** All 53 modules build cleanly under WASM (assembler migration complete). COMMAND.COM boots and runs (test B passes — issue #52 fixed). MSDOS.SYS fails boot test (test C — separate issue, under investigation). All `IF NOT` patterns (60+ instances across 38 files) converted to `EQ 0`. MSDOS.SYS WASM fixes: `MSVERS LABEL` vs `EQU THIS WORD`, `Installed` case sensitivity, `IF NOT Installed`. `bin/strip-wasm-segs` OMF post-processor strips empty `_TEXT`/`_DATA` SEGDEFs that break MS LINK segment ordering.
+**Status:** All 53 modules build cleanly under WASM (assembler migration complete). COMMAND.COM boots and runs (test B passes — issue #52 fixed). MSDOS.SYS + COMMAND.COM boots (test D passes — issues #53, #54 fixed). IO.SYS remains (test E fails). All `IF NOT` patterns (60+ instances across 38 files) converted to `EQ 0`. `bin/strip-wasm-segs` OMF post-processor strips empty `_TEXT`/`_DATA` SEGDEFs that break MS LINK segment ordering.
 
 **Linker strategy: wlink (Open Watcom) vs MS LINK.EXE**
 
@@ -260,6 +260,14 @@ Fix: `IF NOT X` → `IF X EQ 0` at MSGSERV.ASM lines 206 and 616. This is the sa
 
 Debugging method: QEMU `-d in_asm` instruction trace → traced bad RET → discovered COMMAND.COM dual-load architecture (two SYSLOADMSG copies at different segments) → compared WASM vs MASM exit paths → found extra POP CX → traced to `IF NOT NOVERCHECKmsg` conditional.
 
+**53. `IF (NOT IBM) OR (DEBUG)` evaluates as TRUE in WASM — MSINIT.ASM copyright display crash**
+`NOT IBM` where IBM=TRUE (0FFFFh) should produce 0 (FALSE) but WASM produces a truthy non-zero value. This is the same `NOT TRUE` bug as #51 but in a compound expression inside MSDOS.SYS's DOSINIT. The copyright display code was erroneously included, containing a broken CALL target (E8 00 00) that corrupted execution.
+Fix: `IF (NOT IBM) OR (DEBUG)` → `IF (IBM EQ 0) OR (DEBUG)` in MSINIT.ASM line 527.
+
+**54. WASM `LABEL WORD` emits absolute symbol (offset 0) instead of segment-relative — MSVERS**
+`MSVERS LABEL WORD` (replaced from original `EQU THIS WORD`) was emitted by WASM as an absolute PUBDEF (grp=0, seg=0, offset=0) in the OBJ file, despite being inside the TABLE segment. Other `LABEL BYTE` directives at the same location (e.g., MSTAB001S) were emitted correctly. The $GET_VERSION handler (INT 21h/AH=30h) read MOV AX,[0] instead of MOV AX,[0D12h], returning version 0 instead of 4.00. COMMAND.COM failed the version check and entered an error loop.
+Fix: replaced `MSVERS LABEL WORD` + two `DB` directives with `MSVERS DW MAJOR_VERSION + MINOR_VERSION * 256` in MS_TABLE.ASM. MSMAJOR/MSMINOR labels removed (not referenced externally).
+
 **26. WASM -Mx flag makes macro parameter substitution case-sensitive**
 `MACRO AA` with body using `&aa` (lowercase) fails under `-Mx`. MASM was case-insensitive for macro parameter substitution. Fix: normalize all parameter references to same case as the MACRO parameter declaration.
 
@@ -322,13 +330,13 @@ All 53 modules assemble cleanly under WASM: 7 core (MESSAGES, MAPPER, BOOT, INC,
 |-----------|-----------|-----------|-------|
 | Boot sector (MSBOOT.BIN) | ✅ | ✅ | boots into IO.SYS |
 | IO.SYS (BIOS) | ✅ | ❌ | "Non-System disk or disk error" — IO.SYS executes (prints message) but fails to load MSDOS.SYS from disk. Not an IF NOT bug. |
-| MSDOS.SYS (kernel) | ✅ | ✅ | **Fixed** (test C passes): IF NOT→EQ 0, MSVERS LABEL vs EQU, Installed case-sensitivity. |
-| COMMAND.COM | ✅ | ❌ | "Bad or missing Command Interpreter" at boot — $M_GET_MSG_ADDRESS L2029 unresolved (issue #52) |
-| Full WASM boot | ✅ | ❌ | IO.SYS and COMMAND.COM each fail independently |
+| MSDOS.SYS (kernel) | ✅ | ✅ | **Fixed** (test C/D pass): issue #53 (NOT IBM), #54 (MSVERS absolute symbol). |
+| COMMAND.COM | ✅ | ✅ | **Fixed** (test B/D pass): issue #52 ($M_GET_MSG_ADDRESS L2029). |
+| Full WASM boot | ✅ | ❌ | IO.SYS still fails (test E) — "Non-System disk or disk error". |
 
 Test harness: `tests/test_wasm_boot.sh` — swaps WASM binaries one-at-a-time into MASM floppy.img, boots headless QEMU, checks serial for "MS-DOS".
 
-**Known test bug:** `test_wasm_boot.sh` raw-patches files by following the existing FAT cluster chain. When the WASM binary needs more sectors than the MASM original (e.g., COMMAND.COM: 87 vs 86 sectors), the last sector is silently dropped, truncating the binary. Workaround: use `mcopy` to replace COMMAND.COM (delete + re-add). MSDOS.SYS and IO.SYS are smaller under WASM, so the raw-patch approach works for those.
+**Test infrastructure:** `test_wasm_boot.sh` raw-patches files by following/extending FAT12 cluster chains. Handles any file size: extends chains with free clusters when WASM binary is larger, frees clusters when smaller. Both FAT copies updated.
 
 ## Manual Testing (Interactive QEMU)
 
