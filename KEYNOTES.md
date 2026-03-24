@@ -45,9 +45,9 @@ in batch scripts: `printf 'content\r\n\x1a'`.
 
 ## WASM Migration (Open Watcom → replaces MASM 5.x via kvikdos)
 
-**Status:** All 53 modules build cleanly under WASM (assembler migration complete). COMMAND.COM boots (test B). MSDOS.SYS boots (tests C/D — issues #53, #54). IO.SYS boots full stack (test E — issues #55, #56). All `IF NOT` patterns (60+ instances across 38 files) converted to `EQ 0`. `bin/strip-wasm-segs` OMF post-processor strips empty `_TEXT`/`_DATA` SEGDEFs that break MS LINK segment ordering.
+**Status:** All 53 modules build cleanly under WASM (assembler migration complete). COMMAND.COM boots (test B). MSDOS.SYS boots (tests C/D — issues #53, #54). IO.SYS boots full stack (test E — issues #55, #56). All `IF NOT` patterns (60+ instances across 38 files) converted to `EQ 0`. `bin/strip-wasm-segs` OMF post-processor strips empty `_TEXT`/`_DATA` SEGDEFs that break MS LINK segment ordering. All 5 boot tests (A–E) pass on clean build.
 
-**MSDOS.SYS regression (open):** After `make clean`, fresh-built MSDOS.SYS is 36976 bytes (vs 37024 bytes from a stale-OBJ build). The fresh binary produces zero serial output in QEMU — system is alive (INT 0x08 timer ticks, no CPU resets, no exceptions) but CTTY AUX never outputs. Root cause unknown; likely 48 bytes of code excluded in fresh build due to a conditional block that was previously included via stale OBJs. Workaround: use pre-clean binary from git; full investigation pending.
+**Boot sector BPB issue #58 (fixed):** `MSBOOT.ASM`'s `JMP START` assembled to a 2-byte short JMP (EB 3B) with no NOP, placing the BPB at offset 10 instead of the standard offset 11. `mformat -k` always writes the FAT12 BPB at offset 11, corrupting all BPB fields (bytes/sector=0, sectors/cluster=2, etc.) and overwriting the first code instruction at 0x3D (CLI → space). This caused "Non-System disk or disk error" on every boot. Fix: added `NOP` after `JMP SHORT START` for the standard 3-byte boot JMP (EB 3C 90). The "MSDOS.SYS regression" (36976 vs 37024 bytes) was a red herring — 36976 bytes is correct for both MASM and WASM clean builds.
 
 **Linker strategy: wlink (Open Watcom) vs MS LINK.EXE**
 

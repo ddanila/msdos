@@ -4,7 +4,7 @@
 
 **End state:** All assembly and C compilation uses Open Watcom (WASM, wcc, wlink, wlib) natively. The full E2E test suite passes on the WASM-built floppy image. kvikdos remains only for the 7 pre-built DOS build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF, MENUBLD) — eliminating those is a separate future effort, not part of this migration.
 
-**Current status:** Assembly migration complete (53/53 modules, 57 WASM compat issues fixed). COMMAND.COM + IO.SYS + MSDOS.SYS all boot (tests A–E pass with stale OBJs). One open regression: fresh `make clean` build of MSDOS.SYS produces 36976-byte binary with no serial output (stale-OBJ build at 37024 bytes still works). Full E2E pending.
+**Current status:** Assembly migration complete (53/53 modules, 57 WASM compat issues fixed). COMMAND.COM + IO.SYS + MSDOS.SYS all boot — tests A–E pass on clean build (36976-byte MSDOS.SYS). Full E2E pending.
 
 **Key findings:**
 - COMMAND.COM issue #52 (L2029 `$M_GET_MSG_ADDRESS` unresolved) fixed: renamed `$M_HAS_$M_GET_MSG_ADDRESS` → `$M_HAS_GETMSGADDR` to avoid WASM `$M_` symbol parsing bug.
@@ -14,7 +14,8 @@
 - `test_wasm_boot.sh` FAT12 patcher: handles any file size via cluster chain extension/shrinking.
 - Both MS LINK and wlink produce bootable COMMAND.COM from WASM OBJs.
 - Full `IF NOT` audit complete (60+ instances across 38 files) — no `IF NOT` patterns remain.
-- IO.SYS prints "Non-System disk or disk error" (test E) — executes but fails disk I/O. Not an `IF NOT` bug.
+- IO.SYS "Non-System disk" error (test E) was a boot sector BPB alignment bug, not an IO.SYS issue — see issue #58 below.
+- Issue #58: boot sector BPB off-by-1. `MSBOOT.ASM`'s `JMP START` generated a 2-byte short JMP (no NOP), placing the BPB at offset 10. `mformat -k` always writes at the standard offset 11, corrupting all BPB fields and overwriting the first code instruction. Fix: added `NOP` after `JMP SHORT START` for the standard 3-byte boot JMP.
 
 ### Phase 0A: wlink proof-of-concept ✅ DONE
 
@@ -74,15 +75,18 @@ No divergence concerns — upstream hasn't accepted PRs in 35 years.
 
 Full `IF NOT` audit complete — all 60+ instances converted to `EQ 0`. The remaining failures are **not** `IF NOT` bugs.
 
-**MSDOS.SYS (test C):** ✅ Fixed (issues #53, #54). Clean-build regression open: fresh `make clean` produces 36976-byte MSDOS.SYS with no serial output; stale-OBJ build (37024 bytes) still works. Root cause unknown — likely 48 bytes of code excluded by a conditional block. Investigation pending.
+**MSDOS.SYS (test C):** ✅ Fixed (issues #53, #54). 36976-byte clean build is correct — the "stale-OBJ regression" was actually a boot sector BPB bug (issue #58).
 
-**IO.SYS (test E):** ✅ Fixed (issues #55, #56). IO.SYS loads MSDOS.SYS correctly; full WASM stack boots with stale MSDOS.SYS OBJs.
+**IO.SYS (test E):** ✅ Fixed (issues #55, #56). Full WASM stack boots on clean build.
+
+**Boot sector (issue #58):** ✅ Fixed. `MSBOOT.ASM` JMP was 2 bytes (no NOP), BPB at offset 10. `mformat -k` writes BPB at standard offset 11, corrupting all fields. Added NOP for standard 3-byte JMP.
 
 - [x] Audit kernel source for remaining `IF NOT` patterns — done, all converted
 - [x] Debug MSDOS.SYS crash: QEMU `-d in_asm` trace — fixed (issues #53, #54)
 - [x] Debug IO.SYS disk read failure (test E) — fixed (issues #55, #56)
-- [x] Fix and validate MSDOS.SYS boot (test C) — done (stale-OBJ build); clean-build regression open
+- [x] Fix and validate MSDOS.SYS boot (test C) — done (clean build works, issue #58 resolved)
 - [x] Fix and validate IO.SYS (test E) — done
+- [x] Fix boot sector BPB alignment (issue #58) — added NOP after JMP SHORT START
 - [x] Fix `test_wasm_boot.sh` cluster overflow bug (COMMAND.COM truncation) — FAT chain extension + correct cluster range for 1.44MB
 - [x] Fix issue #52: `$M_GET_MSG_ADDRESS` L2029 — renamed flag to `$M_HAS_GETMSGADDR`
 
@@ -109,7 +113,7 @@ QEMU tests the boot chain that kvikdos cannot emulate.
 - [x] Test B: MASM core + WASM COMMAND.COM — passes
 - [x] Test C: MASM BIOS + WASM MSDOS.SYS — passes (stale-OBJ MSDOS.SYS; clean-build regression open)
 - [x] Test D: WASM MSDOS.SYS + WASM COMMAND.COM — passes
-- [ ] Test E: full WASM — passes with stale MSDOS.SYS OBJs; blocked on clean-build regression
+- [x] Test E: full WASM — passes on clean build (issue #58 fixed)
 - [x] Use `tests/test_wasm_boot.sh` (already exists) for all of the above
 
 ### Phase 3: Full E2E test suite on WASM build

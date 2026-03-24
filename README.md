@@ -2,7 +2,7 @@
 
 A working fork of MS-DOS 4.0 that builds from source on Linux and macOS, boots in QEMU, and has full E2E test coverage — intended as a stable base for OS-level experiments.
 
-The build currently uses the original DOS compilers (MASM, CL, LINK) running under [kvikdos](https://github.com/pts/kvikdos) (a headless DOS emulator — KVM on Linux, software 8086 CPU on macOS). A migration to [Open Watcom V2](https://github.com/open-watcom/open-watcom-v2) (native Linux toolchain, no emulation) is in progress on the `watcom-migration` branch — all 53 modules assemble cleanly (57 WASM compat issues fixed), COMMAND.COM/IO.SYS/MSDOS.SYS all boot; one open regression: fresh `make clean` build of MSDOS.SYS regresses (stale-OBJ build works).
+The build currently uses the original DOS compilers (MASM, CL, LINK) running under [kvikdos](https://github.com/pts/kvikdos) (a headless DOS emulator — KVM on Linux, software 8086 CPU on macOS). A migration to [Open Watcom V2](https://github.com/open-watcom/open-watcom-v2) (native Linux toolchain, no emulation) is in progress on the `watcom-migration` branch — all 53 modules assemble cleanly (58 WASM compat issues fixed), COMMAND.COM/IO.SYS/MSDOS.SYS all boot from clean build (tests A–E pass). Full E2E test suite pending.
 
 ## What's here beyond the stock source
 
