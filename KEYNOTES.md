@@ -339,7 +339,7 @@ WASM has a built-in `INVOKE` directive (case-insensitive). Legacy BIOS code usin
 
 ## WASM Build Status
 
-All 53 modules assemble cleanly under WASM: 7 core (MESSAGES, MAPPER, BOOT, INC, BIOS, DOS, MEMM), 38 CMD utilities, 12 DEV drivers, SELECT, DEPLOY, VERIFY, SYS e2e. 51 WASM compatibility issues resolved (#1–#51, documented below).
+All 53 modules assemble cleanly under WASM: 7 core (MESSAGES, MAPPER, BOOT, INC, BIOS, DOS, MEMM), 38 CMD utilities, 12 DEV drivers, SELECT, DEPLOY, VERIFY, SYS e2e. 57 WASM compatibility issues resolved (#1–#57, documented below).
 
 ### Runtime Validation Status
 

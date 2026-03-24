@@ -4,7 +4,7 @@
 
 **End state:** All assembly and C compilation uses Open Watcom (WASM, wcc, wlink, wlib) natively. The full E2E test suite passes on the WASM-built floppy image. kvikdos remains only for the 7 pre-built DOS build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF, MENUBLD) — eliminating those is a separate future effort, not part of this migration.
 
-**Current status:** Assembly migration complete (53/53 modules, 54 WASM compat issues fixed). COMMAND.COM + MSDOS.SYS boot and run (tests A–D pass). Remaining: IO.SYS runtime validation (test E), then full E2E.
+**Current status:** Assembly migration complete (53/53 modules, 57 WASM compat issues fixed). COMMAND.COM + IO.SYS + MSDOS.SYS all boot (tests A–E pass with stale OBJs). One open regression: fresh `make clean` build of MSDOS.SYS produces 36976-byte binary with no serial output (stale-OBJ build at 37024 bytes still works). Full E2E pending.
 
 **Key findings:**
 - COMMAND.COM issue #52 (L2029 `$M_GET_MSG_ADDRESS` unresolved) fixed: renamed `$M_HAS_$M_GET_MSG_ADDRESS` → `$M_HAS_GETMSGADDR` to avoid WASM `$M_` symbol parsing bug.
@@ -74,15 +74,15 @@ No divergence concerns — upstream hasn't accepted PRs in 35 years.
 
 Full `IF NOT` audit complete — all 60+ instances converted to `EQ 0`. The remaining failures are **not** `IF NOT` bugs.
 
-**MSDOS.SYS (test C):** Hangs silently after "Booting from Floppy..." — kernel starts but crashes before producing any output. Needs QEMU `-d in_asm` trace to find crash point.
+**MSDOS.SYS (test C):** ✅ Fixed (issues #53, #54). Clean-build regression open: fresh `make clean` produces 36976-byte MSDOS.SYS with no serial output; stale-OBJ build (37024 bytes) still works. Root cause unknown — likely 48 bytes of code excluded by a conditional block. Investigation pending.
 
-**IO.SYS (test F):** Prints "Non-System disk or disk error" — IO.SYS executes far enough to display this message but fails to read MSDOS.SYS from disk. Likely a BPB/disk parameter or segment layout issue.
+**IO.SYS (test E):** ✅ Fixed (issues #55, #56). IO.SYS loads MSDOS.SYS correctly; full WASM stack boots with stale MSDOS.SYS OBJs.
 
 - [x] Audit kernel source for remaining `IF NOT` patterns — done, all converted
-- [ ] Debug MSDOS.SYS crash: QEMU `-d in_asm` trace, same methodology as COMMAND.COM
-- [ ] Debug IO.SYS disk read failure (test F) — compare MASM/WASM SYSINIT disk read code
-- [ ] Fix and validate MSDOS.SYS boot (test C)
-- [ ] Fix and validate IO.SYS (test F)
+- [x] Debug MSDOS.SYS crash: QEMU `-d in_asm` trace — fixed (issues #53, #54)
+- [x] Debug IO.SYS disk read failure (test E) — fixed (issues #55, #56)
+- [x] Fix and validate MSDOS.SYS boot (test C) — done (stale-OBJ build); clean-build regression open
+- [x] Fix and validate IO.SYS (test E) — done
 - [x] Fix `test_wasm_boot.sh` cluster overflow bug (COMMAND.COM truncation) — FAT chain extension + correct cluster range for 1.44MB
 - [x] Fix issue #52: `$M_GET_MSG_ADDRESS` L2029 — renamed flag to `$M_HAS_GETMSGADDR`
 
@@ -106,11 +106,11 @@ kvikdos can run COMMAND.COM (`/C` mode), any standalone .COM/.EXE, and has spawn
 
 QEMU tests the boot chain that kvikdos cannot emulate.
 
-- [ ] Test B: MASM core + WASM COMMAND.COM — validates COMMAND.COM in real DOS
-- [ ] Test C: MASM BIOS + WASM MSDOS.SYS — validates kernel init, INT 21h dispatch
-- [ ] Test D: WASM MSDOS.SYS + WASM COMMAND.COM — validates kernel ↔ shell interaction
-- [ ] Test E: full WASM — validates complete boot chain
-- [ ] Use `tests/test_wasm_boot.sh` (already exists) for all of the above
+- [x] Test B: MASM core + WASM COMMAND.COM — passes
+- [x] Test C: MASM BIOS + WASM MSDOS.SYS — passes (stale-OBJ MSDOS.SYS; clean-build regression open)
+- [x] Test D: WASM MSDOS.SYS + WASM COMMAND.COM — passes
+- [ ] Test E: full WASM — passes with stale MSDOS.SYS OBJs; blocked on clean-build regression
+- [x] Use `tests/test_wasm_boot.sh` (already exists) for all of the above
 
 ### Phase 3: Full E2E test suite on WASM build
 

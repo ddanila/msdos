@@ -2,7 +2,7 @@
 
 A working fork of MS-DOS 4.0 that builds from source on Linux and macOS, boots in QEMU, and has full E2E test coverage — intended as a stable base for OS-level experiments.
 
-The build currently uses the original DOS compilers (MASM, CL, LINK) running under [kvikdos](https://github.com/pts/kvikdos) (a headless DOS emulator — KVM on Linux, software 8086 CPU on macOS). A migration to [Open Watcom V2](https://github.com/open-watcom/open-watcom-v2) (native Linux toolchain, no emulation) is in progress on the `watcom-migration` branch — all 53 modules assemble cleanly, now in runtime validation phase.
+The build currently uses the original DOS compilers (MASM, CL, LINK) running under [kvikdos](https://github.com/pts/kvikdos) (a headless DOS emulator — KVM on Linux, software 8086 CPU on macOS). A migration to [Open Watcom V2](https://github.com/open-watcom/open-watcom-v2) (native Linux toolchain, no emulation) is in progress on the `watcom-migration` branch — all 53 modules assemble cleanly (57 WASM compat issues fixed), COMMAND.COM/IO.SYS/MSDOS.SYS all boot; one open regression: fresh `make clean` build of MSDOS.SYS regresses (stale-OBJ build works).
 
 ## What's here beyond the stock source
 
@@ -19,7 +19,7 @@ The build currently uses the original DOS compilers (MASM, CL, LINK) running und
 ### CMD utilities (all 38)
 `COMMAND.COM`, `FORMAT.COM`, `SYS.COM`, `CHKDSK.COM`, `DEBUG.COM`, `MEM.EXE`, `FDISK.EXE`, `MORE.COM`, `SORT.EXE`, `LABEL.COM`, `FIND.EXE`, `TREE.COM`, `COMP.COM`, `ATTRIB.EXE`, `EDLIN.COM`, `FC.EXE`, `NLSFUNC.EXE`, `ASSIGN.COM`, `XCOPY.EXE`, `DISKCOMP.COM`, `DISKCOPY.COM`, `APPEND.EXE`, `RECOVER.COM`, `FASTOPEN.EXE`, `PRINT.COM`, `FILESYS.EXE`, `REPLACE.EXE`, `JOIN.EXE`, `SUBST.EXE`, `BACKUP.COM`, `RESTORE.COM`, `GRAFTABL.COM`, `KEYB.COM`, `SHARE.EXE`, `EXE2BIN.EXE`, `GRAPHICS.COM`, `IFSFUNC.EXE`, `MODE.COM`
 
-### Device drivers (all 11)
+### Device drivers (all 12)
 `ANSI.SYS`, `COUNTRY.SYS`, `DISPLAY.SYS`, `DRIVER.SYS`, `KEYBOARD.SYS`, `PRINTER.SYS`, `RAMDRIVE.SYS`, `SMARTDRV.SYS`, `VDISK.SYS`, `XMA2EMS.SYS`, `XMAEM.SYS`, `FLUSH13.EXE`
 
 ## Quick start
