@@ -45,7 +45,7 @@ in batch scripts: `printf 'content\r\n\x1a'`.
 
 ## WASM Migration (Open Watcom → replaces MASM 5.x via kvikdos)
 
-**Status:** All 53 modules build cleanly under WASM (assembler migration complete). **COMMAND.COM now boots successfully** with WASM assembly + MS LINK. All `IF NOT` patterns (60+ instances across 38 files) converted to `EQ 0`. MSDOS.SYS still crashes — a different WASM bug (not `IF NOT`) remains in the kernel.
+**Status:** All 53 modules build cleanly under WASM (assembler migration complete). MSDOS.SYS now boots (test C passes). COMMAND.COM has a remaining runtime bug ($M_GET_MSG_ADDRESS unresolved, issue #52). All `IF NOT` patterns (60+ instances across 38 files) converted to `EQ 0`. Three additional MSDOS.SYS WASM bugs fixed: `MSVERS LABEL` vs `EQU THIS WORD`, `Installed` case sensitivity in MSDATA.ASM, `IF NOT Installed` in MSINIT.ASM.
 
 **Linker strategy: wlink (Open Watcom) vs MS LINK.EXE**
 
@@ -181,7 +181,7 @@ Fix pattern: use a companion `$M_HAS_xxx = 1` flag in the file that DEFINES the 
 - `$M_RT2`: added `$M_HAS_RT2 = 1` in MSGSERV.ASM MSGDATA section; MSGDCL.INC COMR branch now uses `IFDEF $M_HAS_RT2` (PUBLIC only); EXTRN handled by MSGSERV.ASM.
 - `$M_CLS_N` (N=1..8): fix_cl_forward_refs.py injects `$M_HAS_CLS_N = 1` and `$M_HAS_$M_CLS_N = 1` after each `PUBLIC $M_CLS_N` in CL* files. MSGDCL `$M_DECLARE2` checks `$M_HAS_CLS_&innum` (all 3 branches). `$M_CHECK` checks `$M_HAS_&parm`.
 - `$M_MSGSERV_1/2`: `$M_HAS_MSGSERV_N = 1` and `$M_HAS_$M_MSGSERV_N = 1` injected by fix_cl_forward_refs.py in CL1/CL2 files. EXTRN guards added in MSGSERV.ASM LOADmsg section.
-- `$M_GET_MSG_ADDRESS`: `$M_HAS_$M_GET_MSG_ADDRESS = 1` set in MSGSERV.ASM `IF $M_SUBS` block; `$M_CHECK` uses `$M_HAS_$M_GET_MSG_ADDRESS`.
+- `$M_GET_MSG_ADDRESS`: **BROKEN** — see issue #52 below. The flag `$M_HAS_$M_GET_MSG_ADDRESS = 1` was commented out in MSGSERV.ASM (WASM misparse workaround), which broke the guard. EXTRN override is the current failure mode.
 
 **34. WASM `=` equate makes IFNDEF return FALSE; EXTRN of equate generates external named by VALUE**
 `$M_RT2 = 0` (reassignable equate) causes WASM to treat `$M_RT2` as defined (unlike MASM). Worse: `EXTRN $M_RT2:BYTE` when `$M_RT2 = 0` → WASM substitutes the value (0) → generates external symbol named "0" → L2029 unresolved external "0". Fix: in MSGSERV.ASM DISK_PROC/LOADmsg/GETmsg/DISPLAYmsg COMR sections, replace the placeholder `$M_RT2 = 0` pattern with a proper `EXTRN $M_RT2:BYTE` (guarded by `$M_HAS_RT2_EXTERN` to avoid double-declaration) + `$M_RT EQU $M_RT2` alias. MSGDCL no longer needs to EXTRN $M_RT2 for COMR case.
@@ -263,6 +263,28 @@ Debugging method: QEMU `-d in_asm` instruction trace → traced bad RET → disc
 **26. WASM -Mx flag makes macro parameter substitution case-sensitive**
 `MACRO AA` with body using `&aa` (lowercase) fails under `-Mx`. MASM was case-insensitive for macro parameter substitution. Fix: normalize all parameter references to same case as the MACRO parameter declaration.
 
+**52. `$M_GET_MSG_ADDRESS` unresolved (L2029) — EXTRN overrides PROC in WASM**
+
+**Symptom:** Linker reports L2029: `$M_GET_MSG_ADDRESS` unresolved in TDATA.OBJ, UINIT.OBJ, INIT.OBJ, RDATA.OBJ. COMMAND.COM is produced but is corrupted; SYSINIT shows "Bad or missing Command Interpreter" at boot.
+
+**Root cause (two interacting bugs):**
+
+1. **WASM misparse of nested `$M_` in symbol names.** In MSGSERV.ASM, the original `$M_HAS_$M_GET_MSG_ADDRESS = 1` was intended to set a guard flag after defining the `$M_GET_MSG_ADDRESS PROC`. But WASM tokenizes `$M_HAS_$M_GET_MSG_ADDRESS` by splitting at the second `$`, effectively executing `$M_GET_MSG_ADDRESS = 1` (a numeric equate). This was noticed and the line was commented out.
+
+2. **EXTRN overrides PROC in WASM OMF output.** With the flag commented out, MSGDCL.INC's `$M_CHECK $M_GET_MSG_ADDRESS` macro sees `IFNDEF $M_HAS_$M_GET_MSG_ADDRESS` as TRUE (flag not defined) and emits `EXTRN $M_GET_MSG_ADDRESS:NEAR`. In MASM, a local PROC definition wins over a later EXTRN declaration. In WASM, the EXTRN overrides the PROC — the OBJ file records the symbol as EXTDEF (external reference) rather than PUBDEF, regardless of the PROC defined earlier in the same assembly. Confirmed via OMF parser: `TDATA.OBJ` has `EXTDEF: $M_GET_MSG_ADDRESS` with no corresponding PUBDEF.
+
+**Diagnosis steps:**
+```
+make COMMAND.COM  # → L2029: $M_GET_MSG_ADDRESS unresolved in TDATA.OBJ UINIT.OBJ INIT.OBJ RDATA.OBJ
+python3 -c "parse OMF TDATA.OBJ for PUBDEF/EXTDEF"  # → EXTDEF only (no PUBDEF)
+```
+
+**Fix plan:**
+- In `MSGSERV.ASM` (both `IF $M_SUBS` blocks, lines ~899 and ~2108): replace the commented-out `$M_HAS_$M_GET_MSG_ADDRESS = 1` with `$M_HAS_GETMSGADDR = 1` (no nested `$M_`; WASM tokenizes correctly).
+- In `MSGDCL.INC` (line 31): replace `$M_CHECK $M_GET_MSG_ADDRESS` with an explicit `IFDEF $M_HAS_GETMSGADDR` block that declares PUBLIC or EXTRN accordingly.
+
+**Why the comment-out made things worse:** Before the flag was commented out, the misparse `$M_GET_MSG_ADDRESS = 1` accidentally set a numeric equate, which caused WASM's `IFNDEF $M_GET_MSG_ADDRESS` (in the misparsed IFNDEF check) to return FALSE → ELSE branch → PUBLIC. Commenting it out removed this accidental workaround, leaving only the EXTRN path active. The correct fix is a properly-named flag.
+
 **27. Struct initialization with DUP fields (E020)**
 WASM cannot handle `<val1, val2, N dup (x)>` struct initializer syntax. Fix: replace with explicit `label byte` + individual `db`/`dw` directives with hardcoded sizes.
 
@@ -299,9 +321,9 @@ All 53 modules assemble cleanly under WASM: 7 core (MESSAGES, MAPPER, BOOT, INC,
 |-----------|-----------|-----------|-------|
 | Boot sector (MSBOOT.BIN) | ✅ | ✅ | boots into IO.SYS |
 | IO.SYS (BIOS) | ✅ | ❌ | "Non-System disk or disk error" — IO.SYS executes (prints message) but fails to load MSDOS.SYS from disk. Not an IF NOT bug. |
-| MSDOS.SYS (kernel) | ✅ | ❌ | hangs silently after "Booting from Floppy..." — all IF NOT patterns fixed, different WASM bug remains |
-| COMMAND.COM | ✅ | ✅ | boots in QEMU + works under kvikdos (VER, ECHO, DIR). Fix: issue #51, then full IF NOT audit. |
-| Full WASM boot | ✅ | ❌ | IO.SYS and MSDOS.SYS each fail independently |
+| MSDOS.SYS (kernel) | ✅ | ✅ | **Fixed** (test C passes): IF NOT→EQ 0, MSVERS LABEL vs EQU, Installed case-sensitivity. |
+| COMMAND.COM | ✅ | ❌ | "Bad or missing Command Interpreter" at boot — $M_GET_MSG_ADDRESS L2029 unresolved (issue #52) |
+| Full WASM boot | ✅ | ❌ | IO.SYS and COMMAND.COM each fail independently |
 
 Test harness: `tests/test_wasm_boot.sh` — swaps WASM binaries one-at-a-time into MASM floppy.img, boots headless QEMU, checks serial for "MS-DOS".
 

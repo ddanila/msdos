@@ -210,3 +210,15 @@ $(DOS_DIR)/MSDOS.EXE: $(INC_NIBDOS) $(INC_CONST2) $(INC_MSDATA) \
 
 $(DOS_OUT): $(DOS_DIR)/MSDOS.EXE
 	cd $(DOS_DIR) && $(EXE2BIN) "MSDOS.EXE MSDOS.SYS"
+	# WASM places _TEXT (class CODE) before START in OBJ stream → MS LINK puts CODE at
+	# offset 0, not the START segment's "JMP DOSINIT". Patch offset 0 with JMP DOSINIT.
+	# SETVECTFLAG/BUF_EMS_MAP_USER at offsets 0-12 are always written before read at
+	# runtime (DISPCALL sets them on every INT 21h entry), so overwriting is safe.
+	cd $(DOS_DIR) && python3 -c "\
+import re, struct; \
+m = re.search(r' [0-9A-F]{4}:([0-9A-F]{4})\s+DOSINIT', open('MSDOS.MAP').read()); \
+off = int(m.group(1), 16); \
+data = bytearray(open('MSDOS.SYS','rb').read()); \
+data[0]=0xE9; data[1]=(off-3)&0xFF; data[2]=((off-3)>>8)&0xFF; \
+open('MSDOS.SYS','wb').write(bytes(data)); \
+print(f'MSDOS.SYS: patched JMP 0x{off:04x} at offset 0 (DOSINIT entry)')"

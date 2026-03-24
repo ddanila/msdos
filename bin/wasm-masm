@@ -46,4 +46,8 @@ for flag in $FLAGS; do
     esac
 done
 
-exec "$WASM" -zcm=masm "${WASM_FLAGS[@]}" "$SOURCE" -fo="$OUTPUT"
+"$WASM" -zcm=masm "${WASM_FLAGS[@]}" "$SOURCE" -fo="$OUTPUT" || exit $?
+
+# Strip WASM auto-generated _TEXT/_DATA segments: their CODE/DATA class causes
+# MS LINK to place CODE before START in DOSGROUP, breaking OFFSET DOSGROUP:INITBLOCK.
+python3 "$SCRIPT_DIR/strip-wasm-segs" "$OUTPUT"
