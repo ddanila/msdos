@@ -45,7 +45,7 @@ in batch scripts: `printf 'content\r\n\x1a'`.
 
 ## WASM Migration (Open Watcom → replaces MASM 5.x via kvikdos)
 
-**Status:** All 53 modules build cleanly under WASM (assembler migration complete). MSDOS.SYS now boots (test C passes). COMMAND.COM has a remaining runtime bug ($M_GET_MSG_ADDRESS unresolved, issue #52). All `IF NOT` patterns (60+ instances across 38 files) converted to `EQ 0`. Three additional MSDOS.SYS WASM bugs fixed: `MSVERS LABEL` vs `EQU THIS WORD`, `Installed` case sensitivity in MSDATA.ASM, `IF NOT Installed` in MSINIT.ASM.
+**Status:** All 53 modules build cleanly under WASM (assembler migration complete). COMMAND.COM boots and runs (test B passes — issue #52 fixed). MSDOS.SYS fails boot test (test C — separate issue, under investigation). All `IF NOT` patterns (60+ instances across 38 files) converted to `EQ 0`. MSDOS.SYS WASM fixes: `MSVERS LABEL` vs `EQU THIS WORD`, `Installed` case sensitivity, `IF NOT Installed`. `bin/strip-wasm-segs` OMF post-processor strips empty `_TEXT`/`_DATA` SEGDEFs that break MS LINK segment ordering.
 
 **Linker strategy: wlink (Open Watcom) vs MS LINK.EXE**
 
@@ -279,9 +279,10 @@ make COMMAND.COM  # → L2029: $M_GET_MSG_ADDRESS unresolved in TDATA.OBJ UINIT.
 python3 -c "parse OMF TDATA.OBJ for PUBDEF/EXTDEF"  # → EXTDEF only (no PUBDEF)
 ```
 
-**Fix plan:**
-- In `MSGSERV.ASM` (both `IF $M_SUBS` blocks, lines ~899 and ~2108): replace the commented-out `$M_HAS_$M_GET_MSG_ADDRESS = 1` with `$M_HAS_GETMSGADDR = 1` (no nested `$M_`; WASM tokenizes correctly).
-- In `MSGDCL.INC` (line 31): replace `$M_CHECK $M_GET_MSG_ADDRESS` with an explicit `IFDEF $M_HAS_GETMSGADDR` block that declares PUBLIC or EXTRN accordingly.
+**Fix (DONE):**
+- In `MSGSERV.ASM` (both `IF $M_SUBS` blocks, lines ~899 and ~2108): replaced the commented-out `$M_HAS_$M_GET_MSG_ADDRESS = 1` with `$M_HAS_GETMSGADDR = 1` (no nested `$M_`; WASM tokenizes correctly).
+- In `MSGDCL.INC` (line 31): replaced `$M_CHECK $M_GET_MSG_ADDRESS` with an explicit `IFNDEF $M_HAS_GETMSGADDR` block that declares EXTRN or PUBLIC accordingly.
+- Verified: COMMAND.COM links without L2029 and boots to DOS prompt (test B passes).
 
 **Why the comment-out made things worse:** Before the flag was commented out, the misparse `$M_GET_MSG_ADDRESS = 1` accidentally set a numeric equate, which caused WASM's `IFNDEF $M_GET_MSG_ADDRESS` (in the misparsed IFNDEF check) to return FALSE → ELSE branch → PUBLIC. Commenting it out removed this accidental workaround, leaving only the EXTRN path active. The correct fix is a properly-named flag.
 

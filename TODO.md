@@ -4,14 +4,16 @@
 
 **End state:** All assembly and C compilation uses Open Watcom (WASM, wcc, wlink, wlib) natively. The full E2E test suite passes on the WASM-built floppy image. kvikdos remains only for the 7 pre-built DOS build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF, MENUBLD) — eliminating those is a separate future effort, not part of this migration.
 
-**Current status:** Assembly migration complete (53/53 modules, 51 WASM compat issues fixed). COMMAND.COM boots successfully under WASM + MS LINK. Remaining: MSDOS.SYS and IO.SYS runtime validation, then full E2E.
+**Current status:** Assembly migration complete (53/53 modules, 52 WASM compat issues fixed). COMMAND.COM boots and runs (test B passes, issue #52 fixed). Remaining: MSDOS.SYS and IO.SYS runtime validation, then full E2E.
 
 **Key findings:**
-- The COMMAND.COM crash was **not** a linker FIXUPP incompatibility — it was a WASM assembly-time conditional evaluation bug (`IF NOT TRUE` ≠ 0, see KEYNOTES.md issue #51).
-- Both MS LINK and wlink produce bootable COMMAND.COM from WASM OBJs after the MSGSERV.ASM fix.
-- Full `IF NOT` audit complete (60+ instances across 38 files) — no `IF NOT` patterns remain anywhere.
+- COMMAND.COM issue #52 (L2029 `$M_GET_MSG_ADDRESS` unresolved) fixed: renamed `$M_HAS_$M_GET_MSG_ADDRESS` → `$M_HAS_GETMSGADDR` to avoid WASM `$M_` symbol parsing bug.
+- `bin/strip-wasm-segs` OMF post-processor created: strips WASM's auto-generated empty `_TEXT`/`_DATA` SEGDEFs that break MS LINK segment ordering in DOSGROUP.
+- `test_wasm_boot.sh` FAT12 patcher fixed: extends cluster chains when WASM binary is larger than MASM original (was silently truncating at 86 clusters).
+- Both MS LINK and wlink produce bootable COMMAND.COM from WASM OBJs.
+- Full `IF NOT` audit complete (60+ instances across 38 files) — no `IF NOT` patterns remain.
 - MSDOS.SYS still hangs silently (test C) — not an `IF NOT` bug, needs QEMU `-d in_asm` trace debugging.
-- IO.SYS prints "Non-System disk or disk error" (test F) — executes but fails disk I/O to load MSDOS.SYS. Also not `IF NOT`.
+- IO.SYS prints "Non-System disk or disk error" (test F) — executes but fails disk I/O. Also not `IF NOT`.
 
 ### Phase 0A: wlink proof-of-concept ✅ DONE
 
@@ -80,7 +82,8 @@ Full `IF NOT` audit complete — all 60+ instances converted to `EQ 0`. The rema
 - [ ] Debug IO.SYS disk read failure (test F) — compare MASM/WASM SYSINIT disk read code
 - [ ] Fix and validate MSDOS.SYS boot (test C)
 - [ ] Fix and validate IO.SYS (test F)
-- [ ] Fix `test_wasm_boot.sh` cluster overflow bug (COMMAND.COM truncation)
+- [x] Fix `test_wasm_boot.sh` cluster overflow bug (COMMAND.COM truncation) — FAT chain extension + correct cluster range for 1.44MB
+- [x] Fix issue #52: `$M_GET_MSG_ADDRESS` L2029 — renamed flag to `$M_HAS_GETMSGADDR`
 
 ### Phase 1: Individual binary validation under kvikdos (fast, no QEMU)
 
