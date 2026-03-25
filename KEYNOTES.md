@@ -635,7 +635,7 @@ Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits ea
 - **MEM.EXE**: runs, prints correct memory report, exits non-zero (C runtime artifact — ignored).
 - **FIND.EXE**: works with file arguments. Stdin mode unreliable under kvikdos. Full option coverage (basic, /V, /C, /N) tested via QEMU in `test_builtins.sh`.
 - **FC.EXE**: works — all major modes tested (identical, different, /N, /B, /C, /W, /L).
-- **TREE.COM**: works — shows "Directory PATH listing". FCB FindFirst/FindNext now supports wildcards and subdirectories. /F mode also tested.
+- **TREE.COM**: broken — hangs after printing header. Root cause: INT 2Fh/122Eh (MultDOS MSG_RETRIEVAL) handler sets ES=0, which corrupts ES for the caller. TREE's message subsystem (SENDMSG) calls this, and later code uses the corrupted ES as a buffer segment, writing to unmapped memory (0xFF000+). Worth fixing by implementing proper message retrieval or preserving ES across the INT 2Fh/122Eh call.
 - **SORT.EXE**: works — sorts stdin lines correctly, /R (reverse) and /+N (column sort) tested. Was blocked by "Insufficient memory" until build was fixed to include `exefix sort.exe 1 1` (sets MAXALLOC=1 so INT 21h/48h malloc has free memory).
 - **COMP.COM**: works — identical files ("Files compare OK") and different files ("different sizes") tested. Uses `timeout 5` with piped `/dev/null` to avoid interactive Y/N loop at EOF.
 - **ATTRIB.EXE**: works — show attributes, +R (set read-only), -R (clear read-only) tested. +A/-A (archive) cannot be tested under kvikdos — only read-only is mapped to Unix chmod; archive/hidden/system are silently ignored (kvikdos.c INT 21h/43h handler). Worth extending kvikdos to support archive/hidden/system via xattr.
