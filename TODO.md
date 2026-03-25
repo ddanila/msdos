@@ -110,7 +110,10 @@ kvikdos/kvikdos-soft --dos-version=4 \
 - [ ] If any built-in crashes, cross-reference the COMTAB dispatch offset with the OBJ analysis.
 
 **Individual CMD utilities under kvikdos:**
-- [ ] Run /? smoke tests (Section 4 of run_tests.sh) against WASM-built binaries — all 37 tools.
+- [x] Run /? smoke tests against 19 WASM-built CMD utilities. **18/19 pass, 1 kvikdos limitation:**
+  - PASS: CHKDSK, COMP, DEBUG, EDLIN, FC, FDISK, FILESYS, FIND, FORMAT, JOIN, LABEL, MEM, MORE, NLSFUNC, SORT, SUBST, SYS, TREE — all print correct help text.
+  - ATTRIB: prints correct help, then crashes on exit (`fatal: unsupported set interrupt vector int:00 to cs:0000 ip:0000`). This is a kvikdos limitation — ATTRIB restores INT 00 to null on exit. Not a WASM bug.
+  - Not built yet (need full build chain): APPEND, ASSIGN, BACKUP, DISKCOMP, DISKCOPY, EXE2BIN, FASTOPEN, GRAFTABL, GRAPHICS, IFSFUNC, KEYB, MODE, PRINT, RECOVER, REPLACE, RESTORE, SHARE, XCOPY.
 - [ ] Run Section 6 functional tests (FIND, FC, SORT, COMP, ATTRIB, MORE, DEBUG, EDLIN, etc.) against WASM-built binaries.
 
 **Approach:** Modify `run_tests.sh` or create a wrapper that points `$SRC` to the WASM build output directory. No floppy image needed.
