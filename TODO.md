@@ -92,8 +92,20 @@ Full `IF NOT` audit complete — all 60+ instances converted to `EQ 0`. The rema
 kvikdos can run COMMAND.COM (`/C` mode), any standalone .COM/.EXE, and has spawn support (8 levels deep). Much faster than QEMU for individual binary testing.
 
 **COMMAND.COM under kvikdos:**
-- [ ] Run WASM-built COMMAND.COM under kvikdos: `kvikdos --dos-version=4 COMMAND.COM /C VER` — if it prints "MS-DOS Version 4.00", transient init works.
-- [ ] Run built-in commands: `COMMAND.COM /C DIR`, `/C COPY`, `/C SET FOO=BAR`, `/C FOR %X IN (A B C) DO ECHO %X` — tests TRANCODE dispatch table and the OFFSET bug's blast radius.
+
+kvikdos invocation for COMMAND.COM 4.0 (needs mount + COMSPEC for transient checksum reload):
+```bash
+kvikdos/kvikdos-soft --dos-version=4 \
+  --mount=C:MS-DOS/v4.0/src/CMD/COMMAND/ \
+  --drive=C \
+  --env=COMSPEC=C:\\COMMAND.COM \
+  MS-DOS/v4.0/src/CMD/COMMAND/COMMAND.COM /C VER
+```
+
+- [x] Run WASM-built COMMAND.COM under kvikdos: prints "MS-DOS Version 4.00" — transient init works.
+- [x] Fix kvikdos IOCTL 44/01 (Set Device Info): removed strict DH!=0 rejection and S_ISCHR gate on non-char fds (pipes).
+- [x] Fix kvikdos IOCTL 44/08 (Get Drive Removable): was reading AL instead of BL for drive number.
+- [ ] Run built-in commands: `/C DIR`, `/C COPY`, `/C SET FOO=BAR`, `/C FOR %X IN (A B C) DO ECHO %X` — tests TRANCODE dispatch table. Note: DIR gives "Extended Error 6" due to kvikdos FCB/INT 2Fh gaps, not a COMMAND.COM bug.
 - [ ] Run Section 7 of run_tests.sh (COMMAND.COM built-in E2E) against WASM binary — covers 48 built-in command tests.
 - [ ] If any built-in crashes, cross-reference the COMTAB dispatch offset with the OBJ analysis.
 
