@@ -111,8 +111,8 @@ kvikdos/kvikdos-soft --dos-version=4 \
   - COPY: works when CWD is inside the source tree (dos-run computes --cwd from Linux CWD).
   - FOR via batch file: works. Inline `/C FOR` has an edge case (crashes or "Bad command or file name" after last iteration) — this is a COMMAND.COM /C parsing issue, not a WASM or kvikdos bug. Test suite uses batch files.
   - kvikdos changes: FCB FindFirst/FindNext wildcard support, extended FCB handling, per-drive in-memory volume labels (get/set via INT 21h/69h and FCB attr=0x08).
-- [ ] Run Section 7 of run_tests.sh (COMMAND.COM built-in E2E) against WASM binary — covers 48 built-in command tests.
-- [ ] If any built-in crashes, cross-reference the COMTAB dispatch offset with the OBJ analysis.
+- [x] Run Section 7 of run_tests.sh (COMMAND.COM built-in E2E) against WASM binary — **46/46 pass**. Covers VER, ECHO, SET, PATH, DIR, DIR /W, VOL, BREAK, VERIFY, TYPE, GOTO, REM, IF EXIST, IF NOT EXIST, IF ==, IF NOT ==, CALL, SHIFT, FOR, ECHO., ECHO OFF/ON, BREAK toggle, VERIFY toggle, PATH set/clear, SET assign, COPY, COPY /V, REN, DEL, ERASE, DEL wildcard, MD+RD, MD nested, IF ERRORLEVEL, IF NOT ERRORLEVEL, CD, PROMPT, TRUENAME, SET/PROMPT stress, PAUSE, DATE, TIME, COPY a+b c, COPY /B, COPY /A, parser boundary.
+- [x] No built-in crashes — all 46 tests clean.
 
 **Individual CMD utilities under kvikdos:**
 - [x] Run /? smoke tests against 19 WASM-built CMD utilities. **18/19 pass, 1 kvikdos limitation:**
