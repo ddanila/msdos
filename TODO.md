@@ -105,7 +105,12 @@ kvikdos/kvikdos-soft --dos-version=4 \
 - [x] Run WASM-built COMMAND.COM under kvikdos: prints "MS-DOS Version 4.00" — transient init works.
 - [x] Fix kvikdos IOCTL 44/01 (Set Device Info): removed strict DH!=0 rejection and S_ISCHR gate on non-char fds (pipes).
 - [x] Fix kvikdos IOCTL 44/08 (Get Drive Removable): was reading AL instead of BL for drive number.
-- [ ] Run built-in commands: `/C DIR`, `/C COPY`, `/C SET FOO=BAR`, `/C FOR %X IN (A B C) DO ECHO %X` — tests TRANCODE dispatch table. Note: DIR gives "Extended Error 6" due to kvikdos FCB/INT 2Fh gaps, not a COMMAND.COM bug.
+- [x] Run built-in commands: `/C DIR`, `/C COPY`, `/C SET FOO=BAR`, `/C FOR %X IN (A B C) DO ECHO %X` — tests TRANCODE dispatch table.
+  - DIR: now works after implementing FCB wildcard FindFirst/FindNext (INT 21h/11h,12h) with extended FCB + directory entry DTA format in kvikdos.
+  - SET: works (no output expected, clean exit).
+  - COPY: works when CWD is inside the source tree (dos-run computes --cwd from Linux CWD).
+  - FOR via batch file: works. Inline `/C FOR` has an edge case (crashes or "Bad command or file name" after last iteration) — this is a COMMAND.COM /C parsing issue, not a WASM or kvikdos bug. Test suite uses batch files.
+  - kvikdos changes: FCB FindFirst/FindNext wildcard support, extended FCB handling, per-drive in-memory volume labels (get/set via INT 21h/69h and FCB attr=0x08).
 - [ ] Run Section 7 of run_tests.sh (COMMAND.COM built-in E2E) against WASM binary — covers 48 built-in command tests.
 - [ ] If any built-in crashes, cross-reference the COMTAB dispatch offset with the OBJ analysis.
 

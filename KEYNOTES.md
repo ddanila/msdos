@@ -1004,6 +1004,8 @@ TCOMMAND's own comment says "Nothing is known here. No registers, no flags, noth
 - `INT 3` (software breakpoint) handled as no-op — needed by COMPRESS.COM.
 - INT 21h/AH=87h GETPID stub — returns PID=1 (MS-DOS 4.0 multitasking API, called by MS C 5.10 getpid()).
 - macOS: `MADV_DONTNEED` does not zero pages (unlike Linux); spawn/re-exec path uses memset instead.
+- FCB FindFirst/FindNext (INT 21h/11h,12h) wildcard support: directory enumeration via `opendir()`/`readdir()`, reuses `WildcardSearch` slot table. Extended FCB (0xFF header + attribute byte) handled. DTA filled in DOS directory entry format (dir_name 11, dir_attr, 10-byte pad, dir_time, dir_date, dir_first, dir_size_l, dir_size_h). Enables COMMAND.COM `DIR` command.
+- Per-drive in-memory volume labels (11 bytes, space-padded). Read via FCB FindFirst attr=0x08 and INT 21h/69h (get serial). Set via INT 21h/69h subfunction 1. Default "NO NAME" returns "not found" for volume label search (matches "has no label" display).
 
 ## Paths
 - C standard headers (dos.h, stdio.h, etc.) are in `TOOLS/BLD/INC/`, not `TOOLS/INC/`.
