@@ -2,6 +2,7 @@
 
 ## Workflow Rules
 - Commit after every step that succeeds, push to remote (origin/master).
+- When investigating what flags/features a DOS command supports, always read the source code (ASM/C files in `CMD/`) — not `/? help` output. The help text may be incomplete or misleading; the parser source is authoritative.
 
 ## CI Workflow
 
@@ -326,6 +327,22 @@ WASM single-pass: EQU constants defined near the end of a file cannot be used as
 **31. Bare `invoke` treated as built-in directive (E094)**
 WASM has a built-in `INVOKE` directive (case-insensitive). Legacy BIOS code using `invoke GETCHR` (without `DOS` prefix) hits E094. Fix: replace `invoke` with `DOSInvoke`.
 
+## wcc Migration Notes (Phase 4 — C compiler)
+
+**Goal:** Replace CL.EXE (via kvikdos) with Open Watcom wcc for 7 C modules: FDISK, BACKUP, RESTORE, REPLACE, FC, FILESYS, SELECT.
+
+**Critical: calling convention.** wcc defaults to `__watcall` (register-based). All ASM modules expect `__cdecl` (stack-based). Must use `-ecc` flag. Without it, every C↔ASM call corrupts the stack silently.
+
+**Critical: struct packing.** wcc defaults to `-zp8` (8-byte alignment). CL uses `-Zp` (1-byte). Must use `-zp1`. Wrong alignment silently breaks shared C↔ASM structs.
+
+**Safe: segment naming.** wcc `-ms` produces identical `_TEXT`/`_DATA`/`_BSS`/`DGROUP` layout to CL `-AS`. OBJs link with existing ASM objects and MS LINK without issues.
+
+**Gotcha: wlink .COM corruption (issue #820).** wlink has been reported to corrupt .COM files when linking C code. Affects BACKUP.COM, RESTORE.COM (EXE → CONVERT → COM). Test carefully if switching to wlink for these modules.
+
+**Gotcha: Watcom runtime startup.** `cstart_s.obj` adds a `BEGDATA` segment that may break MS LINK segment ordering. May need `-zl` (suppress library refs) or custom startup.
+
+See `TODO.md` Phase 4 for full flag mapping and task list.
+
 ## Build Architecture
 - kvikdos cannot spawn subprocesses (exec replaces process), so NMAKE is unusable.
 - Linux GNU Makefile calls kvikdos for each individual DOS tool invocation.
@@ -345,11 +362,11 @@ All 53 modules assemble cleanly under WASM: 7 core (MESSAGES, MAPPER, BOOT, INC,
 
 | Component | WASM Build | WASM Boot | Notes |
 |-----------|-----------|-----------|-------|
-| Boot sector (MSBOOT.BIN) | ✅ | ✅ | boots into IO.SYS |
+| Boot sector (MSBOOT.BIN) | ✅ | ✅ | boots into IO.SYS. Issue #58 fixed (BPB off-by-1: added NOP after JMP SHORT). |
 | IO.SYS (BIOS) | ✅ | ✅ | **Fixed** (test E pass): issues #55, #56. |
-| MSDOS.SYS (kernel) | ✅ | ⚠️ | Fixed (tests C/D — issues #53, #54), but **fresh clean build regresses** (36976 bytes, no serial output). Stale-OBJ build (37024 bytes) still works. Investigation pending. |
+| MSDOS.SYS (kernel) | ✅ | ✅ | **Fixed** (tests C/D pass): issues #53 (NOT IBM), #54 (LABEL WORD). 36976 bytes is correct for clean build. |
 | COMMAND.COM | ✅ | ✅ | **Fixed** (test B/D pass): issue #52 ($M_GET_MSG_ADDRESS L2029). |
-| Full WASM boot | ✅ | ⚠️ | Blocked by MSDOS.SYS clean-build regression. Workaround: use `minimal-floppy` with pre-clean MSDOS.SYS. |
+| Full WASM boot (test E) | ✅ | ✅ | All 5 boot tests (A–E) pass on clean build. |
 
 Test harness: `tests/test_wasm_boot.sh` — swaps WASM binaries one-at-a-time into MASM floppy.img, boots headless QEMU, checks serial for "MS-DOS".
 

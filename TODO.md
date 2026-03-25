@@ -125,9 +125,53 @@ QEMU tests the boot chain that kvikdos cannot emulate.
 
 ### Phase 4: C compiler + library manager migration
 
-- [ ] Migrate C-based tools (FDISK, BACKUP, RESTORE, REPLACE, FC, FILESYS, SELECT) from CL.EXE to wcc
+**Goal:** Replace CL.EXE (via kvikdos) with wcc (native Open Watcom) for all 7 C modules, and LIB.EXE with wlib.
+
+**Flag mapping (CL → wcc):**
+| CL flag | Meaning | wcc equivalent |
+|---------|---------|----------------|
+| `-AS` | Small memory model | `-ms` |
+| `-Os` | Optimize for size | `-os` |
+| `-Od` | No optimization (BACKUP/RESTORE) | `-od` |
+| `-Zp` | Pack structs (1-byte align) | `-zp1` |
+| `-c` | Compile only | implicit (wcc never links) |
+| `-Fo<name>` | Output OBJ name | `-fo=<name>` |
+| `-I<dir>` | Include directory | `-i=<dir>` |
+
+**Recommended wcc invocation** (replacing `CL -AS -Os -Zp`):
+```
+wcc -ms -os -s -0 -ecc -zp1 -i=. -i=../../H -fo=<output>.OBJ <input>.C
+```
+
+**Known risks and compatibility notes:**
+- **Calling convention (critical):** wcc defaults to `__watcall` (register-based: AX, DX, BX, CX). All ASM modules (`_MSGRET.ASM`, `_PARSE.ASM`, `BOOTREC.ASM`, etc.) expect `__cdecl` (stack-based, caller cleans). Must use `-ecc` flag to force cdecl globally.
+- **Segment naming (safe):** wcc `-ms` produces identical segment layout to CL `-AS`: `_TEXT`/`_DATA`/`_BSS`/`DGROUP`. OBJs should link cleanly with existing ASM objects.
+- **Struct packing (critical):** Default wcc alignment is 8-byte (`-zp8`). Must use `-zp1` to match CL `-Zp`. Wrong alignment silently breaks C↔ASM struct sharing.
+- **Runtime startup:** Watcom's `cstart_s.obj` adds a `BEGDATA` segment with null-pointer detection byte. May conflict with MS LINK segment ordering. Options: (a) use wlink for C modules, (b) suppress with `-zl` flag, (c) provide custom startup.
+- **C library:** If any module uses libc functions (printf, malloc, etc.), need to vendor `clibs.lib` (Watcom small-model DOS C library from `lib286/dos/`). Currently not in `watcom/` directory.
+- **Inline assembly:** If any C files use `_asm`/`__asm` blocks, syntax differs. Watcom uses `#pragma aux` for some inline operations.
+- **wlink .COM bug (issue #820):** wlink has been reported to corrupt .COM files when linking C code. Affects BACKUP.COM, RESTORE.COM (compiled as .EXE, then CONVERT to .COM). If using wlink, test these carefully. MS LINK does not have this issue.
+- **Code size:** wcc `-os` produces roughly comparable output to CL `-Os`. Not smaller, not larger. The value is eliminating kvikdos, not shrinking binaries.
+
+**C modules (7 total):**
+| Module | Source dir | Libraries | Notes |
+|--------|-----------|-----------|-------|
+| FDISK | CMD/FDISK | MAPPER.LIB | Uses `-Od` (debug), MENUBLD-generated C source |
+| BACKUP | CMD/BACKUP | COMSUBS.LIB | Compiled as EXE → CONVERT to COM |
+| RESTORE | CMD/RESTORE | COMSUBS.LIB | Compiled as EXE → CONVERT to COM |
+| REPLACE | CMD/REPLACE | — | |
+| FC | CMD/FC | — | |
+| FILESYS | CMD/FILESYS | — | Requires IFSFUNC TSR |
+| SELECT | SELECT | SERVICES.LIB | Uses /EXEPACK (no wlink equivalent) |
+
+**Tasks:**
+- [ ] Vendor wcc small-model DOS C library (`clibs.lib`) into `watcom/lib/`
+- [ ] Write `bin/wcc-cl` wrapper (translates CL calling convention to wcc, similar to `wasm-masm`)
+- [ ] Test one simple module first (FC or REPLACE — no libraries, no COM conversion)
+- [ ] Migrate remaining modules, verify each links with MS LINK
 - [ ] Replace LIB.EXE with wlib (already vendored) for MAPPER.LIB, EMMLIB.LIB, COMSUBS.LIB, SERVICES.LIB
 - [ ] Verify E2E tests pass with wcc-compiled and wlib-built binaries
+- [ ] Binary size comparison: CL vs wcc for all 7 modules
 
 ### Phase 5: CI pipeline update
 
