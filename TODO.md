@@ -123,6 +123,53 @@ QEMU tests the boot chain that kvikdos cannot emulate.
 - [ ] Full QEMU E2E test suite: FORMAT, SYS, FDISK, DISKCOMP, DISKCOPY, drivers, BACKUP/RESTORE, etc.
 - [ ] Binary size comparison: MASM vs WASM for all outputs (track regressions)
 
+#### Disassembly diff verification (MASM vs WASM)
+
+Complementary to E2E tests: compare disassembled output from MASM and WASM builds to verify semantic equivalence at the instruction level. This directly catches the main class of WASM migration bugs — conditional assembly mismatches (`IF NOT`, `IFNDEF` behavioral differences) — without needing to boot anything.
+
+**Approach:**
+1. Build all modules with MASM (reference) — already available from master branch
+2. Build all modules with WASM (migration)
+3. Disassemble both with the same tool, diff the output
+4. Triage differences: cosmetic (expected) vs semantic (bugs)
+
+**Two-level comparison:**
+
+**Level 1 — OBJ-level (per-module, most granular):**
+Use `wdis` (Open Watcom disassembler, already vendored) to disassemble each `.OBJ` file. Compare per-module before linking, so each diff is small and localized.
+```bash
+wdis -a module_masm.obj > module_masm.dis
+wdis -a module_wasm.obj > module_wasm.dis
+diff module_masm.dis module_wasm.dis
+```
+
+**Level 2 — final binary (linked output):**
+Use `ndisasm` (NASM project) for flat .COM/.BIN files, or `objdump` for MZ .EXE:
+```bash
+ndisasm -b 16 COMMAND_masm.COM > command_masm.dis
+ndisasm -b 16 COMMAND_wasm.COM > command_wasm.dis
+diff command_masm.dis command_wasm.dis
+```
+
+**Expected cosmetic differences (filterable noise):**
+- `DS:` segment override prefixes (`3E` byte) — WASM requires explicit `DS:` where MASM inferred it
+- Instruction encoding variants — same semantics, different opcode choice (e.g., `MOV AX,BX` as `89 D8` vs `8B C3`)
+- Offset shifts cascading from the above (addresses change by 1+ bytes)
+
+**Real bugs would look like:**
+- Entire instruction blocks present in one but absent in the other — conditional assembly mismatch (e.g., `IF NOT` evaluating differently)
+- Different branch targets — wrong label resolution
+- Different immediate values — wrong EQU evaluation
+- Missing or extra `EXTRN`/`PUBLIC` symbols — IFNDEF/EXTRN interaction bugs
+
+**Tasks:**
+- [ ] Vendor or confirm `wdis` availability (may need to add to `watcom/bin/`)
+- [ ] Build reference MASM .OBJ set from master branch
+- [ ] Write `bin/disasm-diff` script: automates wdis on paired OBJ files, filters known cosmetic diffs, reports unexpected changes
+- [ ] Run OBJ-level diff on all 53 modules, triage results
+- [ ] Run final binary diff on key outputs: COMMAND.COM, IO.SYS, MSDOS.SYS, FORMAT.COM, CHKDSK.COM
+- [ ] Document all confirmed-cosmetic difference patterns for future reference
+
 ### Phase 4: C compiler + library manager migration
 
 **Goal:** Replace CL.EXE (via kvikdos) with wcc (native Open Watcom) for all 7 C modules, and LIB.EXE with wlib.
@@ -179,25 +226,233 @@ wcc -ms -os -s -0 -ecc -zp1 -i=. -i=../../H -fo=<output>.OBJ <input>.C
 - [ ] Verify CI passes on both Linux x64 and macOS ARM64
 - [ ] Update build documentation (README.md dependencies section)
 
-### Remaining kvikdos dependencies (post-migration)
+### Phase 6: Native replacements for DOS build utilities
 
-Even after Phases 0–4, these pre-built DOS tools from `TOOLS/` still require kvikdos:
+**Goal:** Replace all 7 Microsoft-proprietary DOS build utilities with native Python scripts, eliminating kvikdos entirely from the build. Currently 86 total kvikdos invocations across the build.
 
-| Tool | Purpose | Invocations |
-|------|---------|-------------|
-| EXE2BIN.EXE | EXE → flat binary | MSBOOT, ~10 CMD utilities |
-| CONVERT.EXE | EXE → COM with relocating stub | CHKDSK, RECOVER, EDLIN, PRINT, FORMAT, DEBUG, RESTORE, BACKUP |
-| BUILDIDX.EXE | Build message index (USA-MS.IDX) | 1 (messages target) |
-| BUILDMSG.EXE | Generate CL/CTL from SKL | ~30 CMD utilities |
-| NOSRVBLD.EXE | Generate CL1 from SKL (class 1) | BOOT, DOS, FDISK5, XMAEM |
-| DBOF.EXE | Binary → INC offset table | BOOT (MSBOOT.BIN → BOOT.INC), FDISK (FDBOOT) |
-| MENUBLD.EXE | FDISK menu data → C source | 1 (FDISK) |
+**Summary:**
 
-These are Microsoft-proprietary build utilities with no Open Watcom equivalent. Options for full kvikdos elimination (future, not blocking):
-- Rewrite as Python/native scripts (BUILDIDX, DBOF, MENUBLD are simple format converters)
-- EXE2BIN: Open Watcom's `wstrip` or custom script (MZ header removal)
-- CONVERT: custom native reimplementation (small relocating stub generator)
-- BUILDMSG/NOSRVBLD: most complex — SKL message compiler, would need reverse-engineering
+| Tool | Invocations | Complexity | Est. Python LOC | Replacement strategy |
+|------|------------|-----------|----------------|---------------------|
+| DBOF | 2 | Trivial | ~20 | Self-made Python script |
+| BUILDIDX | 1 | Trivial | ~40 | Self-made Python script |
+| EXE2BIN | 32 | Low | ~50 | Self-made Python script (or vendor Open Watcom's native exe2bin) |
+| MENUBLD | 1 | Low-medium | ~80 | Self-made Python script |
+| NOSRVBLD | 8 | Low-medium | ~150 | Self-made Python script |
+| CONVERT | 7 | Medium | ~150 + asm stub | Self-made Python script with embedded x86 relocating stub |
+| BUILDMSG | 36 | Medium-high | ~350 | Self-made Python script |
+
+**Recommended order:** DBOF + BUILDIDX → EXE2BIN → NOSRVBLD + MENUBLD → CONVERT → BUILDMSG. Replacing the first 3 eliminates 35 of 86 kvikdos invocations.
+
+---
+
+#### 6.1 DBOF — binary to INC hex dump (trivial)
+
+**What it does:** Reads a binary file and emits an ASM `.INC` file with `db` directives — 8 hex bytes per line, `0xxH` format, tab-indented.
+
+**Invocations (2):**
+```makefile
+cd $(BOOT_DIR)  && $(DBOF) "MSBOOT.BIN BOOT.INC 7c00 200"
+cd $(FDISK_DIR) && $(DBOF) "FDBOOT.BIN FDBOOT.INC 600 200"
+```
+
+**Arguments:** `INPUT.BIN OUTPUT.INC OFFSET_HEX SIZE_HEX` — offset is the load address (informational/for EQU generation), size is byte count to read (0x200 = 512 bytes).
+
+**Output format** (from `BOOT.INC` / `FDBOOT.INC`):
+```asm
+	db	0FAH,033H,0C0H,08EH,0D0H,0BCH,000H,07CH
+	db	08BH,0F4H,050H,007H,050H,01FH,0FBH,0FCH
+```
+
+**Implementation:** ~20 lines of Python. Read binary, chunk into 8-byte groups, format as `0xxH`.
+
+- [ ] Write `bin/dbof` replacement (Python)
+- [ ] Verify output matches original BOOT.INC and FDBOOT.INC byte-for-byte
+- [ ] Update Makefile to use native script
+
+#### 6.2 BUILDIDX — message index builder (trivial)
+
+**What it does:** Reads `USA-MS.MSG` and produces `USA-MS.IDX` — a plain text index mapping each named message pool to its byte offset and entry count.
+
+**Invocations (1):**
+```makefile
+cd $(MESSAGES_DIR) && $(BUILDIDX) USA-MS.MSG
+```
+
+**Output format** (from `USA-MS.IDX`):
+```
+0099
+COMMON   0006 0038
+EXTEND   0685 0090
+COMMAND  14c8 0091
+...
+```
+Line 1: total message count. Subsequent lines: `POOLNAME   OFFSET_HEX COUNT_HEX`.
+
+**Implementation:** ~40 lines of Python. Scan MSG file for pool headers, record byte offsets and entry counts.
+
+- [ ] Write `bin/buildidx` replacement (Python)
+- [ ] Verify output matches original USA-MS.IDX byte-for-byte
+- [ ] Update Makefile to use native script
+
+#### 6.3 EXE2BIN — MZ EXE to flat binary (low)
+
+**What it does:** Strips the MZ header from a DOS .EXE file and writes the raw code/data. Optionally applies segment relocations (adding a base segment to each relocation entry). Used for .COM files, boot sectors (.BIN), device drivers (.SYS), and data files (.DAT, .CPI).
+
+**Invocations (32):** MSLOAD, MSBIO, MSDOS, COMMAND, MORE, LABEL, TREE, COMP, ASSIGN, DISKCOMP, DISKCOPY, GRAFTABL, KEYB, GRAPHICS, MODE, SELECT, FDBOOT, SYS, FIND, SORT, ATTRIB, APPEND, SHARE, MEM, NLSFUNC, FASTOPEN, IFSFUNC, device drivers (DRIVER, ANSI, VDISK, RAMDRIVE, KEYBOARD, PRINTER, DISPLAY).
+
+**Special cases:**
+- MSBIO uses stdin redirection: `$(EXE2BIN) "MSBIO.EXE MSBIO.BIN" <LOCSCR` — LOCSCR provides the load segment for relocation
+- PRINTER & DISPLAY use `<ZERO.DAT` for same purpose
+- Most invocations have zero relocations (just header stripping)
+
+**MZ header format:** 28-byte fixed header. Signature `MZ`/`ZM` at offset 0. `e_cblp` (bytes on last page) at 0x02, `e_cp` (pages) at 0x04, `e_crlc` (relocation count) at 0x06, `e_cparhdr` (header size in 16-byte paragraphs) at 0x08, `e_lfarlc` (relocation table offset) at 0x18. Code starts at `e_cparhdr * 16`.
+
+**Algorithm:**
+1. Read MZ header, validate signature
+2. Skip to `header_paragraphs * 16` (code start)
+3. For each relocation entry: read segment:offset pair, add base segment to the word at that file offset
+4. Write everything from code start to end
+
+**Open-source alternatives:**
+- Open Watcom ships a native `exe2bin` ([source](https://github.com/open-watcom/open-watcom-v2/blob/master/bld/wl/exe2bin/exe2bin.c), ~450 lines C) — not currently vendored
+- FreeDOS exe2bin ([GitLab](https://gitlab.com/FDOS/base/exe2bin)) — Sybase Open Watcom Public License
+
+**Implementation:** ~50 lines of Python. Most invocations are zero-relocation (just skip header + copy), making it especially simple.
+
+- [ ] Write `bin/exe2bin` replacement (Python)
+- [ ] Handle stdin base segment for MSBIO/PRINTER/DISPLAY special cases
+- [ ] Verify output matches original for all 32 invocations (binary diff)
+- [ ] Update Makefile to use native script
+
+#### 6.4 MENUBLD — FDISK menu data to C source (low-medium)
+
+**What it does:** Reads `FDISK.MSG` (menu definitions with `^rrcc^` cursor positioning, `<H>`/`<R>`/`<U>` attributes, `<I>` insert placeholders) and `USA-MS.MSG`, generates `FDISKM.C` — C source with `char far *menu_XX = "..."` declarations. The input and output are nearly identical text — MENUBLD primarily substitutes localized strings from USA-MS.MSG.
+
+**Invocations (1):**
+```makefile
+cd $(FDISK_DIR) && $(MENUBLD) "FDISK.MSG ..\\..\\MESSAGES\\USA-MS.MSG"
+```
+
+**Implementation:** ~80 lines of Python. Copy-through with string substitution from MSG pool.
+
+- [ ] Examine FDISK.MSG vs FDISKM.C to document exact transformations
+- [ ] Write `bin/menubld` replacement (Python)
+- [ ] Verify FDISKM.C output matches original
+- [ ] Update Makefile to use native script
+
+#### 6.5 NOSRVBLD — simple message class generator (low-medium)
+
+**What it does:** Simpler variant of BUILDMSG. Takes a `.SKL` file and `USA-MS.MSG`, produces `.CL1`–`.CL5` files containing raw `DB` directives with label names — no class structure wrappers, no `PROC`. Used for kernel-level messages (BIOS, DOS, boot sector) that use a simpler retrieval mechanism.
+
+**Invocations (8):**
+```makefile
+cd $(BOOT_DIR)    && $(NOSRVBLD) BOOT.SKL "..\MESSAGES\USA-MS.MSG"
+cd $(BIOS_DIR)    && $(NOSRVBLD) MSBIO.SKL "..\MESSAGES\USA-MS.MSG"
+cd $(DOS_DIR)     && $(NOSRVBLD) MSDOS.SKL "..\MESSAGES\USA-MS.MSG"
+cd $(FDISK_DIR)   && $(NOSRVBLD) FDISK5.SKL "..\\..\\MESSAGES\\USA-MS.MSG"
+cd $(XMA2EMS_DIR) && $(NOSRVBLD) XMA2EMS.SKL "..\\..\\MESSAGES\\USA-MS.MSG"
+cd $(XMAEM_DIR)   && $(NOSRVBLD) XMAEM.SKL "..\\..\\MESSAGES\\USA-MS.MSG"
+```
+(Plus 2 more for BIOS/DOS additional SKLs.)
+
+**SKL format** (line-oriented):
+```
+:class N          — start class N
+:def NNN "text"   — define message NNN with literal text
+:def NNN LABEL DB ... — define with assembly DB directives
+:use NNN COMMONXX — reference shared message from USA-MS.MSG
+:end              — end of file
+```
+
+**Output format:** Simple labeled `DB` lines:
+```asm
+LABEL	DB	"message text",0Dh,0Ah
+```
+
+**Implementation:** ~150 lines of Python. Parse SKL directives, resolve `:use` references from MSG file, emit `DB` lines.
+
+- [ ] Examine existing .CL1 outputs to document exact format
+- [ ] Write `bin/nosrvbld` replacement (Python)
+- [ ] Verify output matches original for all 8 invocations
+- [ ] Update Makefile to use native script
+
+#### 6.6 CONVERT — EXE to COM with relocating stub (medium)
+
+**What it does:** Unlike EXE2BIN (which requires zero relocations for .COM), CONVERT handles .EXE files **with relocations** by prepending a small x86 relocating stub. The stub patches segment references at load time, then jumps to the real entry point. The output is a .COM file that is self-relocating.
+
+**Invocations (7):**
+```makefile
+cd $(FORMAT_DIR)  && $(CONVERT) "FORMAT.EXE"
+cd $(CHKDSK_DIR)  && $(CONVERT) "CHKDSK.EXE"
+cd $(DEBUG_DIR)   && $(CONVERT) "DEBUG.EXE"
+cd $(EDLIN_DIR)   && $(CONVERT) "EDLIN.EXE"
+cd $(RECOVER_DIR) && $(CONVERT) "RECOVER.EXE"
+cd $(PRINT_DIR)   && $(CONVERT) "PRINT.EXE"
+cd $(BACKUP_DIR)  && $(CONVERT) "BACKUP.EXE BACKUP.COM"
+cd $(RESTORE_DIR) && $(CONVERT) "RESTORE.EXE RESTORE.COM"
+```
+
+**How it works:**
+1. Parse MZ header and relocation table
+2. Prepend a fixed x86 relocating stub (~50-80 bytes of 16-bit machine code)
+3. Append the relocation table entries (compact format)
+4. Append the EXE body (minus MZ header)
+5. The stub, at .COM load time: reads relocation entries, patches each segment reference (adds current CS), sets up SS:SP, far-jumps to real CS:IP
+
+**Reference implementations:**
+- [exe2com.asm](https://github.com/leonardo-ono/Assembly80863DCubeAdlibMusicDemoTest/blob/master/exe2com.asm) — ~43 lines of NASM showing the relocating stub concept
+
+**Implementation:** ~150 lines of Python + embedded x86 stub blob (~80 bytes, hand-crafted once in assembly). The Python script assembles: stub + relocation data + EXE body. The stub itself is fixed binary — write it once, embed as a byte literal.
+
+- [ ] Reverse-engineer the exact stub format by examining existing CONVERT output (e.g., FORMAT.COM)
+- [ ] Write the relocating stub in NASM/WASM, assemble to binary blob
+- [ ] Write `bin/convert` replacement (Python) embedding the stub
+- [ ] Verify output matches original for all 7 invocations (boot test FORMAT.COM, CHKDSK.COM, DEBUG.COM)
+- [ ] Update Makefile to use native script
+
+#### 6.7 BUILDMSG — full message compiler (medium-high)
+
+**What it does:** The main message compiler. Takes a `.SKL` skeleton file and `USA-MS.MSG` message database, produces `.CTL` (class count) + `.CL*` files (CL1, CL2, CLA, CLB, etc.) — full MASM-compatible assembly includes with message structures, length-prefixed `DB` strings, and lookup `PROC`s.
+
+**Invocations (36):** COMMAND, SYS, FORMAT, CHKDSK, FDISK, BACKUP, RESTORE, REPLACE, FC, and 27 more across CMD, DEV, and SELECT modules.
+
+**Invocation pattern:**
+```makefile
+cd $(CMD_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" UTIL.SKL
+```
+
+**SKL format** (line-oriented):
+```
+:util NAME        — utility name
+:class N|A|B|...  — start message class (numeric or letter)
+:def NNN "text"   — define message inline
+:use NNN COMMONXX — reference shared message from MSG pool
+:use NNN EXTENDXX — reference extended error message
+:use NNN PARSEXX  — reference parser error message
+:end              — end of file
+```
+
+**Output formats:**
+- **CTL file:** Single line: `$M_NUM_CLS EQU N` (class count)
+- **CL letter files (CLA, CLB):** Full MASM include with `$M_CLASS_A_STRUC`, `$M_ID` entries, `DB` strings with length prefix, `$M_CLS_1 PROC` returning ES:DI to class structure
+- **CL numeric files (CL1, CL2):** Same structure with `$M_MSGSERV_N PROC` names, `$M_N_FF_STRUC` message IDs
+
+**Implementation:** ~350 lines of Python. The core logic:
+1. Parse SKL directives (`:util`, `:class`, `:def`, `:use`, `:end`)
+2. Parse USA-MS.MSG to resolve `:use` references (MSG file has named pools: COMMON, EXTEND, PARSE, per-utility, etc., each with numbered entries)
+3. Generate MASM assembly output with correct structure (`$M_CLASS_ID`, `$M_ID` structs, length-prefix `DB`, lookup `PROC` with `PUSH CS / POP ES / LEA DI`)
+4. Handle class naming: numeric → `$M_MSGSERV_N`, letter → `$M_CLS_N`
+5. Generate CTL file with class count
+
+**Main challenge:** Getting the assembly template byte-exact. The `$M_CLASS_ID`/`$M_ID` struct macros and the `PROC` boilerplate must match what the existing SYSMSG.INC message framework expects at runtime.
+
+- [ ] Document exact CL/CTL output format by examining multiple existing outputs
+- [ ] Document USA-MS.MSG pool structure and reference resolution
+- [ ] Write `bin/buildmsg` replacement (Python)
+- [ ] Verify output matches original for all 36 invocations (binary diff of CL/CTL files)
+- [ ] Run full E2E test suite with Python-generated message files
+- [ ] Update Makefile to use native script
 
 ---
 
