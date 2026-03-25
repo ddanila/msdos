@@ -635,15 +635,15 @@ Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits ea
 - **MEM.EXE**: runs, prints correct memory report, exits non-zero (C runtime artifact — ignored).
 - **FIND.EXE**: works with file arguments. Stdin mode unreliable under kvikdos. Full option coverage (basic, /V, /C, /N) tested via QEMU in `test_builtins.sh`.
 - **FC.EXE**: works — all major modes tested (identical, different, /N, /B, /C, /W, /L).
-- **TREE.COM**: works — shows "Directory PATH listing". kvikdos doesn't expose subdirectories via FindFirst/FindNext, so tree is flat. /F mode also tested.
+- **TREE.COM**: works — shows "Directory PATH listing". FCB FindFirst/FindNext now supports wildcards and subdirectories. /F mode also tested.
 - **SORT.EXE**: works — sorts stdin lines correctly, /R (reverse) and /+N (column sort) tested. Was blocked by "Insufficient memory" until build was fixed to include `exefix sort.exe 1 1` (sets MAXALLOC=1 so INT 21h/48h malloc has free memory).
 - **COMP.COM**: works — identical files ("Files compare OK") and different files ("different sizes") tested. Uses `timeout 5` with piped `/dev/null` to avoid interactive Y/N loop at EOF.
-- **ATTRIB.EXE**: works — show attributes, +R (set read-only), -R (clear read-only) tested. +A/-A (archive) cannot be tested under kvikdos — only read-only is mapped to Unix chmod; archive/hidden/system are silently ignored (kvikdos.c INT 21h/43h handler).
+- **ATTRIB.EXE**: works — show attributes, +R (set read-only), -R (clear read-only) tested. +A/-A (archive) cannot be tested under kvikdos — only read-only is mapped to Unix chmod; archive/hidden/system are silently ignored (kvikdos.c INT 21h/43h handler). Worth extending kvikdos to support archive/hidden/system via xattr.
 - **MORE.COM**: works — piped stdin pagination tested.
 - **DEBUG.COM**: works — launch+quit (`-` prompt) and register dump (`R` command) tested. Required INT 21h/26h (Create PSP), /50h (Set PSP), INT 01/02/03 whitelist additions.
 - **LABEL.COM**: works — show volume info tested. Write operations need FCB delete (QEMU only).
 - **EDLIN.COM**: works — open existing file + list, open new file tested. Insert mode can't be tested via pipe (Ctrl+C handling). Needs INT 21h/6Ch (Extended Open/Create).
-- **REPLACE.EXE**: /A (add mode) works. Basic replace fails (needs wildcard FindFirst on absolute paths).
+- **REPLACE.EXE**: /A (add mode) works. Basic replace may work now (FCB wildcard FindFirst was added); needs retest.
 - **XCOPY.EXE**: launches but copies 0 files under kvikdos. No-args error message tested.
 - **GRAFTABL.COM**: /STATUS, 437, 850 all work. /STATUS prints "Active Code Page: None"; 437/850 load the code page and print "Active Code Page: NNN" (crashes after on INT 1F set-vector, but output is correct on stdout).
 - **SUBST.EXE**: no-args (list substitutions) works — silent exit 0.
