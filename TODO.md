@@ -119,14 +119,16 @@ kvikdos/kvikdos-soft --dos-version=4 \
   - PASS: CHKDSK, COMP, DEBUG, EDLIN, FC, FDISK, FILESYS, FIND, FORMAT, JOIN, LABEL, MEM, MORE, NLSFUNC, SORT, SUBST, SYS, TREE — all print correct help text.
   - ATTRIB: prints correct help, then crashes on exit (`fatal: unsupported set interrupt vector int:00 to cs:0000 ip:0000`). kvikdos rejects setting INT 00 to null — worth extending kvikdos to allow it. Not a WASM bug.
   - Not built yet (need full build chain): APPEND, ASSIGN, BACKUP, DISKCOMP, DISKCOPY, EXE2BIN, FASTOPEN, GRAFTABL, GRAPHICS, IFSFUNC, KEYB, MODE, PRINT, RECOVER, REPLACE, RESTORE, SHARE, XCOPY.
-- [x] Run Section 6 functional tests against WASM-built binaries. **40 pass, 74 fail.** Triage:
-  - PASS (27): FIND (8), FC (13), SORT (4), MORE (2), TREE specific-path (2 — false positive, see below), SUBST, JOIN, ASSIGN, ATTRIB -R/-A, EXE2BIN err, EDLIN ^Z, XCOPY /M clear, /D skip.
-  - TREE (4 fail): pre-existing — MSGSERV message subsystem reads ES:DI=0:0 from INT 2Fh/122Eh GET, then internal code uses corrupted segment registers. Needs proper message retrieval implementation in kvikdos.
-  - COMP (7 fail): same MSGSERV ES corruption as TREE.
+- [x] Run Section 6 functional tests against WASM-built binaries. **49 pass, 65 fail** (after MSGSERV fix).
+  - PASS (49): FIND (8), FC (14), SORT (4), MORE (2), TREE (4), COMP (6), LABEL (1), SUBST, JOIN, ASSIGN, ATTRIB -R/-A, EXE2BIN err, EDLIN ^Z, XCOPY /M clear, /D skip.
+  - TREE: **all 4 pass** after MSGSERV $M_CLASS_ADDRS offset fix.
+  - COMP: **6 of 7 pass** (1 fail: "File not found" test — likely needs wildcard FindFirst on absolute paths).
+  - LABEL: **passes** after MSGSERV fix + LABELM.OBJ rebuild.
   - DEBUG (13 fail), EDLIN (16 fail): interactive stdin/tty handling gaps in kvikdos.
-  - ATTRIB (5 fail): path resolution issue (Extended Error 2/9), not the crash-on-exit which is fixed.
-  - GRAFTABL (3 fail), REPLACE (4 fail), XCOPY (11 fail): binaries not built yet.
-  - MEM (2 fail), LABEL (1 fail): minor kvikdos gaps.
+  - ATTRIB (5 fail): path resolution issue (Extended Error 2/9).
+  - GRAFTABL (3 fail), REPLACE (4+4 fail), XCOPY (11 fail): binaries not built yet.
+  - MEM (3 fail): kvikdos memory reporting gap.
+  - COMP "File not found" (1 fail): needs investigation.
 
 ### Phase 2: Minimal QEMU boot (boot sector + IO.SYS + MSDOS.SYS + COMMAND.COM)
 
