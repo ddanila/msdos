@@ -105,8 +105,10 @@ def _size_override_repl(m):
 
 # MASM's TYPE operator returns the size of a structure; WASM uses SIZE instead.
 # Match TYPE as an operand (after comma or whitespace, not after a dot).
+# Use [^\S\n]+ (non-newline whitespace) after TYPE to avoid eating line breaks
+# when "type" appears at end of a comment line followed by code on the next line.
 TYPE_OP_PAT = re.compile(
-    r'(?<=[\s,])(?i:type)\s+(?=\w)',
+    r'(?<=[\s,])(?i:type)[^\S\n]+(?=\w)',
 )
 
 # For WASM, cBegin/cEnd take the proc name as first argument.
