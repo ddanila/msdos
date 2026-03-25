@@ -4,7 +4,7 @@
 
 **End state:** All assembly and C compilation uses Open Watcom (WASM, wcc, wlink, wlib) natively. The full E2E test suite passes on the WASM-built floppy image. kvikdos remains only for the 7 pre-built DOS build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF, MENUBLD) — eliminating those is a separate future effort, not part of this migration.
 
-**Current status:** Assembly migration complete (53/53 modules, 57 WASM compat issues fixed). COMMAND.COM + IO.SYS + MSDOS.SYS all boot — tests A–E pass on clean build (36976-byte MSDOS.SYS). Full E2E pending.
+**Current status:** Assembly migration complete (53/53 modules, 57 WASM compat issues fixed). COMMAND.COM + IO.SYS + MSDOS.SYS all boot — tests A–E pass on clean build (36976-byte MSDOS.SYS). Phase 1 kvikdos validation: VER works, 18/19 CMD utilities pass /? smoke tests. Source hygiene done (^Z stripped, SUBTTL/TITLE deleted, .gitattributes fixed). Full E2E pending.
 
 **Key findings:**
 - COMMAND.COM issue #52 (L2029 `$M_GET_MSG_ADDRESS` unresolved) fixed: renamed `$M_HAS_$M_GET_MSG_ADDRESS` → `$M_HAS_GETMSGADDR` to avoid WASM `$M_` symbol parsing bug.

@@ -1,7 +1,7 @@
 # MS-DOS 4.0 Build — Key Notes
 
 ## Workflow Rules
-- Commit after every step that succeeds, push to remote (origin/master).
+- Commit after every step that succeeds, push to remote.
 - When investigating what flags/features a DOS command supports, always read the source code (ASM/C files in `CMD/`) — not `/? help` output. The help text may be incomplete or misleading; the parser source is authoritative.
 
 ## CI Workflow
@@ -33,10 +33,9 @@ CRLF blob, and permanently reports `v4.0/src/MESSAGES/USA-MS.MSG` (and similar f
 **Impact:** cosmetic only — `git diff --ignore-cr-at-eol` shows zero real differences, the
 build is unaffected (working-tree files are still CRLF as DOS tools require).
 
-**Correct long-term fix:** change `*.MSG text eol=crlf` → `*.MSG binary` in `.gitattributes`.
+**Fixed:** changed `*.MSG text eol=crlf` → `*.MSG binary` in `.gitattributes` + renormalized.
 `binary` stores files as-is (CRLF blobs stay CRLF blobs) and disables normalization entirely,
 which is semantically correct since BUILDIDX treats these files as byte-addressed binary data.
-Fix: change `*.MSG` to `binary` in `.gitattributes` (one-line change + renormalize).
 
 ## TYPE ^Z Requirement
 
@@ -46,7 +45,7 @@ in batch scripts: `printf 'content\r\n\x1a'`.
 
 ## WASM Migration (Open Watcom → replaces MASM 5.x via kvikdos)
 
-**Status:** All 53 modules build cleanly under WASM (assembler migration complete). COMMAND.COM boots (test B). MSDOS.SYS boots (tests C/D — issues #53, #54). IO.SYS boots full stack (test E — issues #55, #56). All `IF NOT` patterns (60+ instances across 38 files) converted to `EQ 0`. `bin/strip-wasm-segs` OMF post-processor strips empty `_TEXT`/`_DATA` SEGDEFs that break MS LINK segment ordering. All 5 boot tests (A–E) pass on clean build.
+**Status:** All 53 modules build cleanly under WASM (assembler migration complete). All 5 QEMU boot tests (A–E) pass on clean build. Phase 1 kvikdos validation: `COMMAND.COM /C VER` prints "MS-DOS Version 4.00"; 18/19 CMD utilities pass /? smoke tests (ATTRIB has a kvikdos exit-time limitation, not a WASM bug). Source hygiene cleanup done: ^Z stripped from 332 files, commented-out SUBTTL/TITLE directives deleted. All `IF NOT` patterns (60+ instances across 38 files) converted to `EQ 0`. `bin/strip-wasm-segs` OMF post-processor strips empty `_TEXT`/`_DATA` SEGDEFs that break MS LINK segment ordering.
 
 **Boot sector BPB issue #58 (fixed):** `MSBOOT.ASM`'s `JMP START` assembled to a 2-byte short JMP (EB 3B) with no NOP, placing the BPB at offset 10 instead of the standard offset 11. `mformat -k` always writes the FAT12 BPB at offset 11, corrupting all BPB fields (bytes/sector=0, sectors/cluster=2, etc.) and overwriting the first code instruction at 0x3D (CLI → space). This caused "Non-System disk or disk error" on every boot. Fix: added `NOP` after `JMP SHORT START` for the standard 3-byte boot JMP (EB 3C 90). The "MSDOS.SYS regression" (36976 vs 37024 bytes) was a red herring — 36976 bytes is correct for both MASM and WASM clean builds.
 
@@ -65,7 +64,7 @@ MSGSERV.ASM (339-line diff, largest change) was reviewed as a representative of 
 
 All changes are correct:
 - `TYPE` → `SIZEOF` on STRUC (4 places) — equivalent for structs
-- `SUBTTL` commenting (11 places) — cosmetic
+- `SUBTTL` lines (11 places) — deleted (were commented out for WASM, now removed entirely)
 - `DS:` segment override prefixes (~70 places) — makes implicit explicit, adds 1 byte each
 - LABEL/EQU reorder in COMR MSGDATA — correct fix for WASM forward-reference
 - `WORD PTR` on POP/PUSH `$M_RETURN_ADDR` — necessary for WASM operand size
@@ -89,7 +88,7 @@ All changes are correct:
 MASM silently allows re-defining `TRUE`/`FALSE`/`IBM` when multiple include files define the same constant. WASM rejects with E230. Fix: add `ifndef X / ... / endif` guards in `DOSSYM.INC`, `VERSION.INC`, `MSSW.ASM`.
 
 **2. SUBTTL and TITLE parsed as code (E251/E032)**
-WASM parses SUBTTL/TITLE argument text as assembly code. If the title contains a word that matches a macro name (e.g. `SUBTTL ... Return ...` → calls `return` macro; `TITLE ... error ...` → calls `error` macro), assembly fails. Fix: comment out all SUBTTL and problematic TITLE directives with `;; `.
+WASM parses SUBTTL/TITLE argument text as assembly code. If the title contains a word that matches a macro name (e.g. `SUBTTL ... Return ...` → calls `return` macro; `TITLE ... error ...` → calls `error` macro), assembly fails. Fix: originally commented out with `;;`, now deleted entirely (37 lines across 13 files).
 
 **3. STRUC name case sensitivity (E306)**
 `DOSINFO STRUC` must close with `DOSINFO ENDS`, not `DosInfo ENDS`. MASM 5.x was case-insensitive. Fix: match case exactly.
@@ -110,7 +109,7 @@ WASM doesn't support `LOW` as a unary operator in `db` directives. Fix: pre-comp
 `<"text <= more">` — WASM sees `<` in `<=` as a nested angle-bracket start. Fix: replace `<=` with `LE` inside string literals used in angle-bracket macro args.
 
 **9. ^Z (0x1A) EOF byte**
-DOS source files end with `^Z` (0x1A). WASM stops processing at `^Z`. If a file has `^Z` before an `endif`, the `endif` is invisible. Also causes W249 "End directive required" warning on every file (WASM reads past `END`, hits `^Z`, warns). Fix: bulk-strip `^Z` from all 827 ASM/INC files in the submodule: `data.replace(b'\x1a', b'')` in Python binary mode. This diverges from the original Microsoft source but is the cleanest approach — no wrapper hacks needed.
+DOS source files end with `^Z` (0x1A). WASM stops processing at `^Z`. If a file has `^Z` before an `endif`, the `endif` is invisible. Also causes W249 "End directive required" warning on every file (WASM reads past `END`, hits `^Z`, warns). Fix: bulk-stripped `^Z` from 332 ASM/INC/C/H files in the submodule: `data.replace(b'\x1a', b'')` in Python binary mode. This diverges from the original Microsoft source but is the cleanest approach — no wrapper hacks needed.
 
 **10. Wrong error grep pattern**
 WASM errors look like `filename(line): Error! Exx`, not `^Error`. Always grep with `': Error!'` pattern to count real errors.
