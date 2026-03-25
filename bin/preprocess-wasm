@@ -1,0 +1,448 @@
+#!/usr/bin/env python3
+"""Preprocess ASM/INC files for WASM compatibility.
+
+Renames STRUC.INC dot-macros (.IF/.ELSE/.ENDIF etc.) to $-prefixed names
+to avoid clashes with WASM reserved words.  Also moves forward-declared
+Class_X_MessageCount EQU lines to the top of CL* files.
+
+Usage: preprocess-wasm <outdir> <source.ASM> [incdir ...]
+"""
+import os, re, sys, glob
+
+# WASM doesn't support MASM RECORD instantiation syntax SF_BITS<align,,size,type>.
+# Evaluate SF_BITS<...> at preprocessing time using the RECORD bit layout:
+#   F_ALIGN:1, F_RES:1=0, F_SIZE:2, F_TYPE:4  (A0SSTTTT)
+_SF_ALIGN = {'SF_LEFT': 0, 'SF_RIGHT': 1}
+_SF_SIZE  = {'SF_CH': 0, 'SF_ASCIIZ': 1, 'SF_BYTE': 1, 'SF_WORD': 2, 'SF_DWORD': 3,
+             'SF_MD': 1, 'SF_MDY2': 2, 'SF_MDY4': 3,
+             'SF_HHMM': 0, 'SF_HHMMSS': 1, 'SF_HHMMSSHH': 2}
+_SF_TYPE  = {'SF_CHAR': 0x00, 'SF_UN_BD': 0x01, 'SF_SIN_BD': 0x02,
+             'SF_UN_BH': 0x03, 'SF_DATE': 0x04, 'SF_TIME_12': 0x05,
+             'SF_TIME_24': 0x06}
+
+def _eval_sfbits(m):
+    """Replace SF_BITS<align,res,size,type> with a computed byte literal."""
+    args = [a.strip() for a in m.group(1).split(',')]
+    # args[0]=align, args[1]=res(ignored), args[2]=size, args[3]=type
+    align = _SF_ALIGN.get(args[0].upper(), 0) if len(args) > 0 and args[0] else 0
+    size  = _SF_SIZE.get(args[2].upper(), 0)   if len(args) > 2 and args[2] else 0
+    typ   = _SF_TYPE.get(args[3].upper(), 0)   if len(args) > 3 and args[3] else 0
+    val   = (align << 7) | (size << 4) | typ
+    return '0%02XH' % val
+
+# Match SF_BITS<...> with optional space before <, up to 4 comma-separated args
+SF_BITS_PAT = re.compile(
+    r'SF_BITS\s*<([^>]*)>',
+    re.IGNORECASE,
+)
+
+DOT_PAT = re.compile(
+    r'(?:^|(?<=\s))\.'
+    r'((?i:if|else|elseif|endif|then|while|endwhile|repeat|until'
+    r'|loop|for|next|leave|select|when|otherwise|endselect))'
+    r'(?=[^a-zA-Z0-9_]|$)',
+    re.MULTILINE,
+)
+FWD_PAT = re.compile(
+    r'^(Class_\w+_MessageCount\s+EQU\s+\d+)\s*$',
+    re.MULTILINE | re.IGNORECASE,
+)
+# WASM doesn't support %out — silently prevents OBJ generation
+PCTOUT_PAT = re.compile(
+    r'^\s*%out\b.*$',
+    re.MULTILINE | re.IGNORECASE,
+)
+# WASM doesn't support MASM listing control directives
+LISTING_PAT = re.compile(
+    r'^\s*\.(?:LALL|SALL|XALL|LFCOND|SFCOND|TFCOND|XCREF|CREF|LIST|XLIST)\b.*$',
+    re.MULTILINE | re.IGNORECASE,
+)
+# WASM segfaults on SUBTTL with long string arguments when STRUC.INC macros
+# are loaded.  SUBTTL is a listing-only directive — strip it.
+SUBTTL_PAT = re.compile(
+    r'^\s*SUBTTL\b.*$',
+    re.MULTILINE | re.IGNORECASE,
+)
+# WASM forbids EQU redefinition (MASM allows same-value redefine).
+# Wrap common redefined symbols in IFNDEF guards.
+EQU_REDEF_PAT = re.compile(
+    r'^((?:FALSE|TRUE|IBMJAPAN|IBMJAPVER|IBMVER|MSVER'
+    r'|CR|LF|STDIN|STDOUT|STDERR'
+    r'|Left_Align|Right_Align'
+    r'|Char_Field_Char|Char_Field_ASCIIZ'
+    r'|Unsgn_Bin_Byte|Unsgn_Bin_Word|Unsgn_Bin_DWord'
+    r'|Sgn_Bin_Byte|Sgn_Bin_Word|Sgn_Bin_DWord'
+    r'|Bin_Hex_Byte|Bin_Hex_Word|Bin_Hex_DWord'
+    r'|FILL_OFF|FILL_SEG|DOS_KEYB_INP|LINE_FEED'
+    r'|No_Error|Len_FS_String_Buffer|FCB1'
+    r'|awrite|aread|bogus|IBM'
+    r')\s+equ\s+.+)$',
+    re.MULTILINE | re.IGNORECASE,
+)
+
+# Extensions to preprocess in include directories
+INC_EXTS = {
+    '.inc', '.asm', '.ctl', '.equ',
+    '.cl1', '.cl2', '.cl3', '.cl4', '.cl5', '.cl6', '.cl7', '.cl8', '.cl9',
+    '.cla', '.clb', '.clc', '.cld', '.cle',
+}
+
+# MASM allows +BYTE, +WORD, -BYTE as operand size arithmetic:
+# [SI]+BYTE means [SI+1], [SI]+WORD means [SI+2], LETTER_A-BYTE means LETTER_A-1.
+# WASM doesn't support this.  Replace +BYTE→+1, +WORD→+2, -BYTE→-1.
+# Negative lookahead prevents matching "BYTE PTR" or "WORD PTR".
+SIZE_OVERRIDE_PAT = re.compile(
+    r'([+\-])(BYTE|WORD)\b(?!\s+PTR)',
+    re.IGNORECASE,
+)
+
+def _size_override_repl(m):
+    """Replace +BYTE/+WORD/-BYTE with +1/+2/-1."""
+    op = m.group(1)
+    kw = m.group(2).upper()
+    val = '1' if kw == 'BYTE' else '2'
+    return op + val
+
+# MASM's TYPE operator returns the size of a structure; WASM uses SIZE instead.
+# Match TYPE as an operand (after comma or whitespace, not after a dot).
+TYPE_OP_PAT = re.compile(
+    r'(?<=[\s,])(?i:type)\s+(?=\w)',
+)
+
+# For WASM, cBegin/cEnd take the proc name as first argument.
+# Detect cProc and inject name into subsequent cBegin/cEnd.
+CPROC_PAT = re.compile(
+    r'^(\s*cProc\s+(\w+)\s*(?:,.*)?)\s*$',
+    re.MULTILINE | re.IGNORECASE,
+)
+CBEGIN_PAT = re.compile(
+    r'^(\s*)cBegin\b(.*)',
+    re.IGNORECASE,
+)
+CEND_PAT = re.compile(
+    r'^(\s*)cEnd\b(.*)',
+    re.IGNORECASE,
+)
+
+def inject_proc_names(text):
+    """For WASM: inject cProc's name as first arg of subsequent cBegin/cEnd calls.
+
+    cProc name,<attrs> ... cBegin [nogen] ... cEnd [nogen]
+    becomes:
+    cProc name,<attrs> ... cBegin _name[,nogen] ... cEnd _name[,nogen]
+
+    Assumes ?PLM=0 (C calling convention) so C name is _name.
+    Does not transform if cBegin/cEnd already have a non-blank first arg.
+    """
+    lines = text.split('\n')
+    current_proc = None
+    result = []
+    for line in lines:
+        m = CPROC_PAT.match(line)
+        if m:
+            current_proc = '_' + m.group(2)
+            result.append(line)
+            continue
+        if current_proc:
+            mb = CBEGIN_PAT.match(line)
+            if mb:
+                indent = mb.group(1)
+                rest = mb.group(2).strip()
+                # Only inject if rest is empty or starts with nogen
+                if not rest or rest.lower().startswith('nogen'):
+                    sep = ',' if rest else ''
+                    result.append(f'{indent}cBegin {current_proc}{sep}{rest}')
+                else:
+                    result.append(line)
+                continue
+            me = CEND_PAT.match(line)
+            if me:
+                indent = me.group(1)
+                rest = me.group(2).strip()
+                if not rest or rest.lower().startswith('nogen'):
+                    sep = ',' if rest else ''
+                    result.append(f'{indent}cEnd {current_proc}{sep}{rest}')
+                else:
+                    result.append(line)
+                # After cEnd, clear current proc
+                current_proc = None
+                continue
+        result.append(line)
+    return '\n'.join(result)
+
+def resolve_wasm_conditionals(text):
+    """Evaluate ifdef/ifndef __WASM__ blocks at preprocessing time.
+
+    Since we are always preprocessing for WASM (__WASM__ is always defined),
+    we can statically evaluate:
+      - ifdef __WASM__ ... [else ...] endif  → keep the TRUE branch, drop the else
+      - ifndef __WASM__ ... [else ...] endif → keep the ELSE branch (if any), drop the TRUE
+
+    This prevents WASM from seeing &macro/&endm in skipped branches, which
+    causes WASM's scanner to malfunction on subsequent conditional blocks.
+
+    Only handles top-level (unnested) ifdef/ifndef __WASM__ blocks.
+    Inner ifdef/ifndef blocks (non-__WASM__) are passed through unchanged.
+
+    Correctly handles macro bodies: if/endif inside macro...endm are not
+    counted as conditional nesting at the outer level.
+    """
+    # Patterns for the directives we care about (case-insensitive)
+    IFDEF_WASM  = re.compile(r'^\s*ifdef\s+__WASM__\s*(?:;.*)?$', re.IGNORECASE)
+    IFNDEF_WASM = re.compile(r'^\s*ifndef\s+__WASM__\s*(?:;.*)?$', re.IGNORECASE)
+    # Generic ifdef/ifndef/if/ife/else/endif for nesting tracking.
+    # Covers: if, ife, ifnb, ifidn, ifdif, ifb, ifdef, ifndef (and 2-char variants)
+    COND_OPEN   = re.compile(r'^\s*(?:if(?:e|nb|idn|dif|b|def|ndef)?)\b', re.IGNORECASE)
+    ELSE_PAT    = re.compile(r'^\s*else\b', re.IGNORECASE)
+    ENDIF_PAT   = re.compile(r'^\s*endif\b', re.IGNORECASE)
+    # Blocks that start an endm-terminated body (macros, loops)
+    # These suspend conditional tracking until the matching endm.
+    # Matches: "name macro", "irp x,<...>", "rept N", "for x,<...>"
+    ENDM_OPEN = re.compile(
+        r'^\s*(?:\S+\s+macro\b|irp\b|rept\b|for\b)',
+        re.IGNORECASE,
+    )
+    ENDM_CLOSE = re.compile(r'^\s*endm\b', re.IGNORECASE)
+
+    def collect_block(lines, start):
+        """Collect lines from start until we see else/endif at depth 0.
+        Returns (true_lines, else_lines, end_idx) where end_idx points past endif.
+        Correctly ignores if/endif INSIDE macro/irp/rept bodies.
+        """
+        i = start
+        cond_depth = 0   # conditional nesting (only counted outside endm-blocks)
+        endm_depth = 0   # macro/irp/rept nesting depth
+        true_lines = []
+        else_lines = None
+        in_else = False
+
+        def append(l):
+            (else_lines if in_else else true_lines).append(l)
+
+        while i < len(lines):
+            l = lines[i]
+            if endm_depth > 0:
+                # Inside a macro/irp/rept body — don't count conditionals
+                if ENDM_OPEN.match(l):
+                    endm_depth += 1
+                elif ENDM_CLOSE.match(l):
+                    endm_depth -= 1
+                append(l)
+            else:
+                # Outside any macro body
+                if ENDM_OPEN.match(l):
+                    endm_depth += 1
+                    append(l)
+                elif COND_OPEN.match(l):
+                    cond_depth += 1
+                    append(l)
+                elif ENDIF_PAT.match(l) and cond_depth == 0:
+                    # End of the outer ifdef/ifndef __WASM__ block
+                    return true_lines, else_lines, i + 1
+                elif ENDIF_PAT.match(l):
+                    cond_depth -= 1
+                    append(l)
+                elif ELSE_PAT.match(l) and cond_depth == 0 and not in_else:
+                    # Switch from true branch to else branch
+                    in_else = True
+                    else_lines = []
+                else:
+                    append(l)
+            i += 1
+
+        # Unterminated block (shouldn't happen in valid ASM)
+        return true_lines, else_lines, i
+
+    lines = text.split('\n')
+    result = []
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        if IFDEF_WASM.match(line):
+            # Keep the TRUE branch, skip the ELSE branch
+            true_lines, else_lines, end_idx = collect_block(lines, i + 1)
+            inner = resolve_wasm_conditionals('\n'.join(true_lines))
+            result.append(inner)
+            i = end_idx
+        elif IFNDEF_WASM.match(line):
+            # Skip the TRUE branch, keep the ELSE branch
+            true_lines, else_lines, end_idx = collect_block(lines, i + 1)
+            if else_lines is not None:
+                inner = resolve_wasm_conditionals('\n'.join(else_lines))
+                result.append(inner)
+            i = end_idx
+        else:
+            result.append(line)
+            i += 1
+    return '\n'.join(result)
+
+
+WASM_COND_PAT = re.compile(r'^\s*(?:ifdef|ifndef)\s+__WASM__', re.IGNORECASE | re.MULTILINE)
+
+def needs_transform(text):
+    """Quick check if text contains any patterns needing transformation."""
+    return (DOT_PAT.search(text) is not None
+            or STRUC_MACRO_PAT.search(text) is not None
+            or FWD_PAT.search(text) is not None
+            or PCTOUT_PAT.search(text) is not None
+            or LISTING_PAT.search(text) is not None
+            or EQU_REDEF_PAT.search(text) is not None
+            or SF_BITS_PAT.search(text) is not None
+            or CPROC_PAT.search(text) is not None
+            or WASM_COND_PAT.search(text) is not None
+            or SUBTTL_PAT.search(text) is not None
+            or SIZE_OVERRIDE_PAT.search(text) is not None
+            or TYPE_OP_PAT.search(text) is not None)
+
+def _wrap_equ_ifndef(m):
+    """Wrap an EQU definition in IFNDEF guard."""
+    line = m.group(1)
+    sym = line.split()[0]
+    return f'IFNDEF {sym}\n{line}\nENDIF'
+
+def _comma_sep_struc_args(m):
+    """Convert space-separated STRUC.INC macro args to comma-separated for WASM.
+
+    MASM splits macro arguments on both commas AND spaces.
+    WASM only splits on commas.  STRUC.INC macros like $IF/$WHILE/$WHEN
+    rely on space-separation, e.g. `.IF <ax EQ 0> near AND`.
+    """
+    keyword = m.group(1)  # IF, WHILE, etc.
+    rest = m.group(2)     # everything after the keyword
+    comment_start = rest.find(';')
+    if comment_start >= 0:
+        args_part = rest[:comment_start]
+        comment = rest[comment_start:]
+    else:
+        args_part = rest
+        comment = ''
+
+    # Convert spaces inside angle brackets to commas: <X OP Y> → <X,OP,Y>
+    # Only at depth 1 (outermost brackets); nested <<WORD PTR X> NE 0> keeps
+    # inner spaces intact since they are assembly operands, not macro args.
+    def fix_angles(s):
+        result = []
+        depth = 0
+        for ch in s:
+            if ch == '<':
+                depth += 1
+                result.append(ch)
+            elif ch == '>':
+                depth -= 1
+                result.append(ch)
+            elif ch == ' ' and depth == 1:
+                result.append(',')
+            else:
+                result.append(ch)
+        return ''.join(result)
+
+    args_part = fix_angles(args_part)
+
+    # Convert remaining spaces between top-level args to commas
+    # e.g. "$IF NZ OR" → "$IF NZ,OR"
+    # e.g. "$IF <ax,EQ,0> near AND" → "$IF <ax,EQ,0>,near,AND"
+    tokens = []
+    current = ''
+    depth = 0
+    for ch in args_part:
+        if ch == '<':
+            depth += 1
+            current += ch
+        elif ch == '>':
+            depth -= 1
+            current += ch
+        elif (ch == ' ' or ch == '\t') and depth == 0:
+            if current.strip():
+                tokens.append(current.strip())
+                current = ''
+            # skip whitespace
+        else:
+            current += ch
+    if current.strip():
+        tokens.append(current.strip())
+
+    if tokens:
+        args_str = ','.join(tokens)
+    else:
+        args_str = ''
+
+    return f'${keyword}\t{args_str}{comment}'
+
+# WASM splits macro args on commas only; MASM also splits on spaces.
+# Convert space-separated args in STRUC.INC macro invocations.
+# Exclude macro DEFINITIONS (`.if macro t,p2,p3`) by negative lookahead.
+STRUC_MACRO_PAT = re.compile(
+    r'^\s*\.'
+    r'((?:IF|ELSEIF|WHILE|UNTIL|WHEN|LEAVE)\b)'
+    r'(?!\s+macro\b)'
+    r'(.*?)$',
+    re.MULTILINE | re.IGNORECASE,
+)
+
+def transform(text):
+    """Apply dot-macro rename, CL forward-ref fix, %out removal, EQU guards, SF_BITS expansion,
+    and cProc/cBegin/cEnd name injection for WASM."""
+    # Evaluate ifdef/ifndef __WASM__ blocks first to eliminate MASM-only branches
+    # (prevents WASM scanner bug with &macro/&endm in skipped branches)
+    text = resolve_wasm_conditionals(text)
+    # Expand SF_BITS<...> RECORD instantiations before other transforms
+    text = SF_BITS_PAT.sub(_eval_sfbits, text)
+    # Must comma-separate STRUC.INC macro args BEFORE renaming . to $
+    text = STRUC_MACRO_PAT.sub(_comma_sep_struc_args, text)
+    text = DOT_PAT.sub(lambda m: '$' + m.group(1), text)
+    text = PCTOUT_PAT.sub(r'; (removed for WASM)', text)
+    text = LISTING_PAT.sub(r'; (listing directive removed for WASM)', text)
+    text = SUBTTL_PAT.sub(r'; (SUBTTL removed for WASM)', text)
+    text = EQU_REDEF_PAT.sub(_wrap_equ_ifndef, text)
+    fwd_lines = FWD_PAT.findall(text)
+    if fwd_lines:
+        text = '\n'.join(fwd_lines) + '\n' + FWD_PAT.sub(r'; (moved to top) \1', text)
+    # Replace MASM operand size overrides: +BYTE→+1, +WORD→+2, -BYTE→-1
+    text = SIZE_OVERRIDE_PAT.sub(_size_override_repl, text)
+    # Replace MASM TYPE operator with WASM SIZE equivalent
+    text = TYPE_OP_PAT.sub('SIZE ', text)
+    # Inject proc names into cBegin/cEnd for WASM compatibility
+    text = inject_proc_names(text)
+    return text
+
+def process_file(src, dst):
+    """Read src, transform if needed, write to dst."""
+    with open(src, 'rb') as f:
+        raw = f.read()
+    text = raw.decode('latin-1')
+    if needs_transform(text):
+        text = transform(text)
+        raw = text.encode('latin-1')
+    with open(dst, 'wb') as f:
+        f.write(raw)
+
+def main():
+    outdir = sys.argv[1]
+    source = sys.argv[2]
+    incdirs = sys.argv[3:]
+
+    # Preprocess source file and all include-able files in source directory
+    process_file(source, os.path.join(outdir, os.path.basename(source)))
+    srcdir = os.path.dirname(source) or '.'
+    for entry in os.listdir(srcdir):
+        ext = os.path.splitext(entry)[1].lower()
+        if ext in INC_EXTS and entry != os.path.basename(source):
+            process_file(os.path.join(srcdir, entry), os.path.join(outdir, entry))
+
+    # Preprocess include directories
+    srcdir_real = os.path.realpath(srcdir)
+    for incdir in incdirs:
+        if not os.path.isdir(incdir):
+            continue
+        # Skip if incdir is the same as srcdir — those files are already at outdir root
+        if os.path.realpath(incdir) == srcdir_real:
+            continue
+        ppinc = os.path.join(outdir, 'inc_' + incdir.replace('/', '_').replace('.', '_').replace('=', '_'))
+        os.makedirs(ppinc, exist_ok=True)
+        for entry in os.listdir(incdir):
+            ext = os.path.splitext(entry)[1].lower()
+            if ext in INC_EXTS:
+                process_file(os.path.join(incdir, entry), os.path.join(ppinc, entry))
+
+if __name__ == '__main__':
+    main()

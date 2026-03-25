@@ -31,6 +31,7 @@ OUTPUT="${FILESPEC#*,}"
 
 # Translate MASM flags to WASM flags
 WASM_FLAGS=()
+INC_DIRS=()
 for flag in $FLAGS; do
     case "$flag" in
         -Mx|-t)           ;; # MASM-specific, not needed
@@ -39,6 +40,7 @@ for flag in $FLAGS; do
             # Convert backslashes to forward slashes
             flag="${flag//\\//}"
             WASM_FLAGS+=("$flag")
+            INC_DIRS+=("${flag#-I}")
             ;;
         *)
             WASM_FLAGS+=("$flag")
@@ -46,7 +48,53 @@ for flag in $FLAGS; do
     esac
 done
 
-"$WASM" -zcm=masm "${WASM_FLAGS[@]}" "$SOURCE" -fo="$OUTPUT" || exit $?
+# Preprocess: rename STRUC.INC dot-macros that clash with WASM reserved words.
+# .IF/.ELSE/.ENDIF → $IF/$ELSE/$ENDIF etc.  Also fix CL file forward references.
+# Single Python invocation processes source + all include dirs.
+PPDIR=$(mktemp -d)
+trap 'rm -rf "$PPDIR"' EXIT
+
+python3 "$SCRIPT_DIR/preprocess-wasm" "$PPDIR" "$SOURCE" "${INC_DIRS[@]}"
+
+PP_SOURCE="$PPDIR/$(basename "$SOURCE")"
+
+# Build new -I flags: shadow dirs first, then originals as fallback.
+# Convert relative -I paths to absolute since we'll cd to PPDIR.
+ORIG_DIR="$(pwd)"
+PP_WASM_FLAGS=()
+for flag in "${WASM_FLAGS[@]}"; do
+    case "$flag" in
+        -I*)
+            incdir="${flag#-I}"
+            # Make relative paths absolute (we'll cd to PPDIR later)
+            case "$incdir" in
+                /*) abs_incdir="$incdir" ;;
+                *)  abs_incdir="$ORIG_DIR/$incdir" ;;
+            esac
+            ppinc="$PPDIR/inc_$(echo "$incdir" | tr '/.=' '___')"
+            if [ -d "$ppinc" ]; then
+                PP_WASM_FLAGS+=("-I$ppinc" "-I$abs_incdir")
+            else
+                PP_WASM_FLAGS+=("-I$abs_incdir")
+            fi
+            ;;
+        *)
+            PP_WASM_FLAGS+=("$flag")
+            ;;
+    esac
+done
+
+# Run WASM from the preprocessed directory so CWD-relative includes find
+# preprocessed CL files instead of originals.
+PP_SOURCE_BASE="$(basename "$PP_SOURCE")"
+# Convert OUTPUT to absolute path
+case "$OUTPUT" in
+    /*) ABS_OUTPUT="$OUTPUT" ;;
+    *)  ABS_OUTPUT="$ORIG_DIR/$OUTPUT" ;;
+esac
+cd "$PPDIR"
+"$WASM" -zcm=masm "${PP_WASM_FLAGS[@]}" "$PP_SOURCE_BASE" -fo="$ABS_OUTPUT" || { rc=$?; cd "$ORIG_DIR"; exit $rc; }
+cd "$ORIG_DIR"
 
 # Strip WASM auto-generated _TEXT/_DATA segments: their CODE/DATA class causes
 # MS LINK to place CODE before START in DOSGROUP, breaking OFFSET DOSGROUP:INITBLOCK.
