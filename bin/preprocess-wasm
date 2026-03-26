@@ -92,7 +92,7 @@ INC_EXTS = {
 # WASM doesn't support this.  Replace +BYTE→+1, +WORD→+2, -BYTE→-1.
 # Negative lookahead prevents matching "BYTE PTR" or "WORD PTR".
 SIZE_OVERRIDE_PAT = re.compile(
-    r'([+\-])(BYTE|WORD)\b(?!\s+PTR)',
+    r'([+\-])\s*(BYTE|WORD)\b(?!\s+PTR)',
     re.IGNORECASE,
 )
 
