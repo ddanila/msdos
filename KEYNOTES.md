@@ -645,8 +645,11 @@ Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits ea
   - DOS EOF bug: bare `^Z` (`0x1A`) lines triggered a WASM internal assertion in `asmins.c`; fixed by treating unquoted `0x1A` as DOS text EOF in `asmline.c`.
   - Result: all 11 DEBUG ASM modules now assemble with WASM, link, and CONVERT successfully; `DEBUG.COM` is produced from source.
   - kvikdos/KVM follow-up: the immediate native-Linux crash at `phys_addr=00104031` was a real `kvikdos` bug. KVM reports the unfurled physical address for `ff00:5031`-style real-mode accesses, but `kvikdos` wasn't folding those back to 20 bits or servicing wrapped accesses landing in normal DOS RAM. A minimal `a20wrap.com` repro was added and the KVM MMIO handler now masks to `0xfffff` and emulates wrapped accesses into the writable guest slot.
-  - Current runtime state: on Linux with native `kvikdos` + KVM, `DEBUG.COM` no longer dies immediately on the `00104031` write. It gets further into startup but still appears to spin/hang even for piped `Q`, repeatedly touching the wrapped input buffer area around `0x4031/0x4032`. On Linux with `kvikdos-soft`, `DEBUG.COM` also still hangs. So the remaining `DEBUG` runtime problem is narrower, but still unresolved and now looks like a separate `kvikdos` behavioral issue rather than a `wasm` codegen problem.
-  - CI evidence: latest successful CI run still passes both `make test` and the dedicated `e2e-debug` QEMU job, so the current failure is environment-specific or a local kvikdos/KVM issue rather than a persistent DOS/WASM regression.
+  - Current runtime state after control testing: the remaining `DEBUG` failure is not a generic kvikdos problem. A clean `master` worktree still builds a MASM `DEBUG.COM` that exits correctly under local Linux `kvikdos` (`printf 'Q\r\n' | dos-run CMD/DEBUG/DEBUG.COM` returns `RC=0`) on the same host where the `watcom-migration` `DEBUG.COM` still hangs.
+  - Hybrid-link narrowing: swapping in only the MASM-built `DEBMES.OBJ` makes the WASM-linked `DEBUG.COM` exit correctly on `Q`; swapping any other single DEBUG object does not.
+  - Wrapper check: this is not `bin/wasm-masm` or `strip-wasm-segs`. A raw unstripped direct `wasm -zcm=masm` build of `DEBMES.ASM` reproduces the same failure.
+  - Current hypothesis: there is a second WASM codegen bug in `DEBMES.ASM` / `MSGSERV.ASM`, likely in the generated message-service runtime around `SYSDISPMSG` and the `$M_CHECKSTDIN` / `$M_CHECKSTDOUT` helper path. Symptom: prompt output disappears and DEBUG repeatedly re-enters buffered input (`INT 21h/AH=0A`) even after receiving `Q`.
+  - CI evidence is still useful: latest successful CI run passes both `make test` and the dedicated `e2e-debug` QEMU job, so this is not an inherent DOS source bug. The remaining discrepancy is specifically between MASM output and the current WASM output for `DEBMES`.
 - **LABEL.COM**: works — show volume info tested. Write operations need FCB delete (QEMU only).
 - **EDLIN.COM**: works — open existing file + list, open new file tested. Insert mode can't be tested via pipe (Ctrl+C handling). Needs INT 21h/6Ch (Extended Open/Create).
 - **REPLACE.EXE**: /A (add mode) works. Basic replace may work now (FCB wildcard FindFirst was added); needs retest.
@@ -997,25 +1000,19 @@ TCOMMAND's own comment says "Nothing is known here. No registers, no flags, noth
 
 ## WASM Struct Field Offset Bug (Open Watcom)
 
-**Summary:** WASM resolves `label.struct_field` with a variable +1 to +3 byte offset error depending on macro expansion depth. This is a WASM assembler bug, not a source issue.
+**Status:** fixed upstream in the local `open-watcom-v2` fork.
 
-**Reproduction:** `$M_RT.$M_CLASS_ADDRS` (offset 0x2C in `$M_RES_ADDRS` struct) resolves to 0x2D when referenced from the `$M_MAKE` macro (called via `$M_BUILD_PTRS` from `SYSLOADMSG`). The struct data is at the correct offset — only the code reference is wrong.
+**Original summary:** WASM resolved `label.struct_field` with a variable +1 to +3 byte offset error depending on macro expansion depth. This was a WASM assembler bug, not a source issue.
 
-**Impact:** All CMD utilities using MSGSERV. Simple utilities (1 class: TREE, LABEL, COMP) are fixed with a `-1` workaround in `$M_MAKE`. Multi-class utilities (DEBUG: 6 classes) have multiple offset errors (+1, +3) across different fields and code paths — the workaround doesn't scale.
+**Original reproduction:** `$M_RT.$M_CLASS_ADDRS` (offset 0x2C in `$M_RES_ADDRS` struct) resolved to 0x2D when referenced from the `$M_MAKE` macro (called via `$M_BUILD_PTRS` from `SYSLOADMSG`). The struct data was at the correct offset — only the code reference was wrong.
 
-**Evidence from DEBUG.COM:**
-- `$M_CRIT_ADDRS` (expected RT+0x1C): code accesses RT+0x1F (+3 error)
-- `$M_CRLF` (expected RT+0x3B): code accesses RT+0x3C (+1 error)
-- `$M_TEMP_BUF` (expected RT+0x44): code accesses RT+0x47 (+3 error)
-- Other fields (RT+0x00..0x28) are correct in SYSLOADMSG context
+**Actual root cause:** when parsing a `MACRO` definition line, WASM expanded constants too early, so a formal parameter name could be rewritten to an unrelated constant value already in scope. That corrupted the stored macro body and later shifted `$M_RT.field` references during expansion.
 
-**Attempted fixes:**
-- `-1` in `$M_MAKE` macro: works for CLASS_ADDRS only (committed)
-- Preprocessor `$M_RT.field` → `$M_RT+numeric_offset`: correct offsets for SYSLOADMSG but broke SYSDISPMSG/SYSGETMSG code paths
-- `$M_RT.field` → `$M_RT2.field` (use LABEL directly): same bug — LABEL also has offset error
-- `$M_RT2 EQU $M_RT` (reverse alias): same bug in reverse
+**Fix:** in `open-watcom-v2`, treat `T_MACRO` definition lines like `T_NAME` lines in `directive()` so formal parameter names survive macro definition unchanged.
 
-**Next step:** Fix WASM assembler itself (fork at https://github.com/ddanila/open-watcom-v2, issue #1). Failing test case committed at `test_struct_bug/run_test.sh`. wmake+builder bootstrap builds on macOS ARM64. 31/34 WASM source files compile with `cc`. The bug is in `bld/wasm/c/asmeval.c` — `get_operand()` struct field resolution and/or DOT operator handler.
+**Regression test:** `open-watcom-v2/test_struct_bug/run_test.sh` now passes (`$M_CLASS_ADDRS` at `RT+0x2C`).
+
+**Important follow-up:** fixing this bug was necessary but not sufficient for `DEBUG.COM`. There is still a separate unresolved WASM regression isolated to `DEBMES.ASM` / `MSGSERV.ASM` (see DEBUG.COM note above).
 
 ## kvikdos Modifications (in kvikdos/kvikdos.c)
 - `current_dir[DRIVE_COUNT]` expanded from 1 to 64 bytes per drive.
