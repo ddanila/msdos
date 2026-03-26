@@ -1009,7 +1009,7 @@ TCOMMAND's own comment says "Nothing is known here. No registers, no flags, noth
 - `$M_RT.field` → `$M_RT2.field` (use LABEL directly): same bug — LABEL also has offset error
 - `$M_RT2 EQU $M_RT` (reverse alias): same bug in reverse
 
-**Next step:** Fix WASM assembler itself (fork at https://github.com/ddanila/open-watcom-v2). The bug likely in struct field offset calculation during macro expansion in `bld/wasm/`.
+**Next step:** Fix WASM assembler itself (fork at https://github.com/ddanila/open-watcom-v2, issue #1). Failing test case committed at `test_struct_bug/run_test.sh`. wmake+builder bootstrap builds on macOS ARM64. 31/34 WASM source files compile with `cc`. The bug is in `bld/wasm/c/asmeval.c` — `get_operand()` struct field resolution and/or DOT operator handler.
 
 ## kvikdos Modifications (in kvikdos/kvikdos.c)
 - `current_dir[DRIVE_COUNT]` expanded from 1 to 64 bytes per drive.
