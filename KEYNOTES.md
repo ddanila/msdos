@@ -635,9 +635,9 @@ Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits ea
 - **MEM.EXE**: runs, prints correct memory report, exits non-zero (C runtime artifact — ignored).
 - **FIND.EXE**: works with file arguments. Stdin mode unreliable under kvikdos. Full option coverage (basic, /V, /C, /N) tested via QEMU in `test_builtins.sh`.
 - **FC.EXE**: works — all major modes tested (identical, different, /N, /B, /C, /W, /L).
-- **TREE.COM**: broken — WASM build issue, not kvikdos. MASM-built TREE works perfectly under QEMU. Root cause: `TREESYSM.ASM` fails to compile under WASM (SYSMSG.INC / TREEMS.INC / .CL file compat errors), producing an empty OBJ. The linker uses stale data, so `LAST_BYTE EQU $` resolves to 0 in the final binary. This corrupts the stack overflow check (`SUB AX, OFFSET LAST_BYTE` becomes `SUB AX, 0`) and message handler pointers (ES=0xFF00 from garbage data). Fix requires: (1) port SYSMSG.INC `MSG_SERVICES` macro to WASM, (2) fix TREEMS.INC syntax errors, (3) convert `LAST_BYTE EQU $` to `LAST_BYTE LABEL BYTE` (WASM exports EQU $ as absolute 0, not segment-relative). Same SYSMSG.INC issue likely affects COMP and other CMD utilities.
+- **TREE.COM**: works — "Directory PATH listing" + directory tree under both QEMU and kvikdos. Required: (1) preprocess-wasm TYPE→SIZE regex newline fix, (2) `LAST_BYTE EQU $` → `LABEL BYTE`, (3) `$M_BUILD_PTRS` class flag fix, (4) `-1` compensation in `$M_MAKE` for WASM `$M_RT.field` struct offset bug. All 4 TREE tests pass.
 - **SORT.EXE**: works — sorts stdin lines correctly, /R (reverse) and /+N (column sort) tested. Was blocked by "Insufficient memory" until build was fixed to include `exefix sort.exe 1 1` (sets MAXALLOC=1 so INT 21h/48h malloc has free memory).
-- **COMP.COM**: works — identical files ("Files compare OK") and different files ("different sizes") tested. Uses `timeout 5` with piped `/dev/null` to avoid interactive Y/N loop at EOF.
+- **COMP.COM**: works — 6 of 7 tests pass after MSGSERV fix. Same `-1` `$M_MAKE` workaround as TREE. Uses `timeout 5` with piped `/dev/null` to avoid interactive Y/N loop at EOF.
 - **ATTRIB.EXE**: works — show attributes, +R (set read-only), -R (clear read-only) tested. +A/-A (archive) cannot be tested under kvikdos — only read-only is mapped to Unix chmod; archive/hidden/system are silently ignored (kvikdos.c INT 21h/43h handler). Worth extending kvikdos to support archive/hidden/system via xattr.
 - **MORE.COM**: works — piped stdin pagination tested.
 - **DEBUG.COM**: all 11 ASM modules compile with WASM (0 errors). Links and CONVERTs successfully. But **hangs on startup** — same `$M_RT` EQU alias offset bug as TREE/COMP but worse: multiple fields are off by 1–3 bytes (RT+0x1F instead of 0x1C, RT+0x3C instead of 0x3B, RT+0x47 instead of 0x44). The `-1` workaround in `$M_MAKE` only fixes one reference. Systematic fix needed: all `$M_RT.field` references in MSGSERV.ASM resolve with wrong offsets in different macro expansion contexts. CI master (MASM build) passes all DEBUG tests.
@@ -988,6 +988,28 @@ Same class of bug as the FOR hang. Both `ADD_NAME_TO_ENVIRONMENT` (SET) and
 **Fix (TCODE.ASM):** Defensive: added `PUSH CS; POP ES` before `CALL [HEADCALL]`
 at TCOMMAND. This catches any command handler that forgets to restore ES —
 TCOMMAND's own comment says "Nothing is known here. No registers, no flags, nothing."
+
+## WASM Struct Field Offset Bug (Open Watcom)
+
+**Summary:** WASM resolves `label.struct_field` with a variable +1 to +3 byte offset error depending on macro expansion depth. This is a WASM assembler bug, not a source issue.
+
+**Reproduction:** `$M_RT.$M_CLASS_ADDRS` (offset 0x2C in `$M_RES_ADDRS` struct) resolves to 0x2D when referenced from the `$M_MAKE` macro (called via `$M_BUILD_PTRS` from `SYSLOADMSG`). The struct data is at the correct offset — only the code reference is wrong.
+
+**Impact:** All CMD utilities using MSGSERV. Simple utilities (1 class: TREE, LABEL, COMP) are fixed with a `-1` workaround in `$M_MAKE`. Multi-class utilities (DEBUG: 6 classes) have multiple offset errors (+1, +3) across different fields and code paths — the workaround doesn't scale.
+
+**Evidence from DEBUG.COM:**
+- `$M_CRIT_ADDRS` (expected RT+0x1C): code accesses RT+0x1F (+3 error)
+- `$M_CRLF` (expected RT+0x3B): code accesses RT+0x3C (+1 error)
+- `$M_TEMP_BUF` (expected RT+0x44): code accesses RT+0x47 (+3 error)
+- Other fields (RT+0x00..0x28) are correct in SYSLOADMSG context
+
+**Attempted fixes:**
+- `-1` in `$M_MAKE` macro: works for CLASS_ADDRS only (committed)
+- Preprocessor `$M_RT.field` → `$M_RT+numeric_offset`: correct offsets for SYSLOADMSG but broke SYSDISPMSG/SYSGETMSG code paths
+- `$M_RT.field` → `$M_RT2.field` (use LABEL directly): same bug — LABEL also has offset error
+- `$M_RT2 EQU $M_RT` (reverse alias): same bug in reverse
+
+**Next step:** Fix WASM assembler itself (fork at https://github.com/ddanila/open-watcom-v2). The bug likely in struct field offset calculation during macro expansion in `bld/wasm/`.
 
 ## kvikdos Modifications (in kvikdos/kvikdos.c)
 - `current_dir[DRIVE_COUNT]` expanded from 1 to 64 bytes per drive.
