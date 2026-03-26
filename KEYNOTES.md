@@ -640,7 +640,7 @@ Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits ea
 - **COMP.COM**: works — identical files ("Files compare OK") and different files ("different sizes") tested. Uses `timeout 5` with piped `/dev/null` to avoid interactive Y/N loop at EOF.
 - **ATTRIB.EXE**: works — show attributes, +R (set read-only), -R (clear read-only) tested. +A/-A (archive) cannot be tested under kvikdos — only read-only is mapped to Unix chmod; archive/hidden/system are silently ignored (kvikdos.c INT 21h/43h handler). Worth extending kvikdos to support archive/hidden/system via xattr.
 - **MORE.COM**: works — piped stdin pagination tested.
-- **DEBUG.COM**: works — launch+quit (`-` prompt) and register dump (`R` command) tested. Required INT 21h/26h (Create PSP), /50h (Set PSP), INT 01/02/03 whitelist additions.
+- **DEBUG.COM**: all 11 ASM modules compile with WASM (0 errors). Links and CONVERTs successfully. But **hangs on startup** — same `$M_RT` EQU alias offset bug as TREE/COMP but worse: multiple fields are off by 1–3 bytes (RT+0x1F instead of 0x1C, RT+0x3C instead of 0x3B, RT+0x47 instead of 0x44). The `-1` workaround in `$M_MAKE` only fixes one reference. Systematic fix needed: all `$M_RT.field` references in MSGSERV.ASM resolve with wrong offsets in different macro expansion contexts. CI master (MASM build) passes all DEBUG tests.
 - **LABEL.COM**: works — show volume info tested. Write operations need FCB delete (QEMU only).
 - **EDLIN.COM**: works — open existing file + list, open new file tested. Insert mode can't be tested via pipe (Ctrl+C handling). Needs INT 21h/6Ch (Extended Open/Create).
 - **REPLACE.EXE**: /A (add mode) works. Basic replace may work now (FCB wildcard FindFirst was added); needs retest.
