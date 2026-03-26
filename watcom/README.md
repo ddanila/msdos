@@ -5,9 +5,14 @@ project, vendored for reproducible builds without requiring a system-level insta
 
 ## Source
 
-Release tag: **2026-03-01-Build**
+Base release tag: **2026-03-01-Build**
 URL: https://github.com/open-watcom/open-watcom-v2/releases/tag/2026-03-01-Build
 Asset: `ow-snapshot.tar.xz`
+
+Current repo state:
+- `bin/macos-arm64/` still matches the release snapshot.
+- `bin/linux-x64/wasm` is currently replaced with a locally built `open-watcom-v2` fork binary so in-flight WASM fixes can be tested in this tree before a new upstream release is vendored.
+- `bin/linux-x64/wcc`, `wlink`, and `wlib` still come from the release snapshot.
 
 ## Layout
 

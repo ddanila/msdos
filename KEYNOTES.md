@@ -647,8 +647,13 @@ Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits ea
   - kvikdos/KVM follow-up: the immediate native-Linux crash at `phys_addr=00104031` was a real `kvikdos` bug. KVM reports the unfurled physical address for `ff00:5031`-style real-mode accesses, but `kvikdos` wasn't folding those back to 20 bits or servicing wrapped accesses landing in normal DOS RAM. A minimal `a20wrap.com` repro was added and the KVM MMIO handler now masks to `0xfffff` and emulates wrapped accesses into the writable guest slot.
   - Current runtime state after control testing: the remaining `DEBUG` failure is not a generic kvikdos problem. A clean `master` worktree still builds a MASM `DEBUG.COM` that exits correctly under local Linux `kvikdos` (`printf 'Q\r\n' | dos-run CMD/DEBUG/DEBUG.COM` returns `RC=0`) on the same host where the `watcom-migration` `DEBUG.COM` still hangs.
   - Hybrid-link narrowing: swapping in only the MASM-built `DEBMES.OBJ` makes the WASM-linked `DEBUG.COM` exit correctly on `Q`; swapping any other single DEBUG object does not.
+  - Tooling update: `wdis` is the preferred tool for comparing MASM vs WASM OMF `.OBJ` files such as `DEBMES.OBJ`; `ndisasm` is still useful for final `.COM` diffs, but only after link time.
+  - Vendored-tool check: the original `watcom/bin/linux-x64/wasm` in this repo was still the `2026-03-01-Build` snapshot, so the fixes in the local Open Watcom fork were not being exercised until the vendored Linux `wasm` was manually replaced with the fork-built binary.
   - Wrapper check: this is not `bin/wasm-masm` or `strip-wasm-segs`. A raw unstripped direct `wasm -zcm=masm` build of `DEBMES.ASM` reproduces the same failure.
-  - Current hypothesis: there is a second WASM codegen bug in `DEBMES.ASM` / `MSGSERV.ASM`, likely in the generated message-service runtime around `SYSDISPMSG` and the `$M_CHECKSTDIN` / `$M_CHECKSTDOUT` helper path. Symptom: prompt output disappears and DEBUG repeatedly re-enters buffered input (`INT 21h/AH=0A`) even after receiving `Q`.
+  - After swapping in the fork-built Linux `wasm`, `DEBUG` was rebuilt in isolation and `DEBMES.OBJ` / `DEBUG.COM` both changed (`DEBUG.COM` grew from 21686 to 21702 bytes), but runtime behavior did not: `printf 'Q\r\n' | dos-run CMD/DEBUG/DEBUG.COM` still hangs with `RC=124`.
+  - Current OMF diff clues after the tool swap: the duplicate `PUBLIC $M_MSGSERV_1` / `$M_MSGSERV_2` problem disappeared, but `DEBMES.OBJ` still exports `arg_buf` where MASM exports `ARG_BUF`. That remaining case-mismatch is now the cleanest assembler-side reproducer left.
+  - Current hypothesis: there is still at least one more WASM MASM-compatibility bug in `DEBMES`-style OMF emission. The strongest reduced reproducer so far is `PUBLIC ARG_BUF` with a lowercase backing label exporting `arg_buf` instead of `ARG_BUF`.
+  - Wider regression note after swapping in the fork-built `wasm`: a full `make cmd` no longer matches the previous "mostly green except DEBUG" state. Two earlier command-tree regressions now show up before `DEBUG`: `COMMAND` hits a linker fixup overflow on `triageError`, and `CHKDSK` fails in `CHKDISP.ASM` with `$M_NUM_CLS` already defined.
   - CI evidence is still useful: latest successful CI run passes both `make test` and the dedicated `e2e-debug` QEMU job, so this is not an inherent DOS source bug. The remaining discrepancy is specifically between MASM output and the current WASM output for `DEBMES`.
 - **LABEL.COM**: works — show volume info tested. Write operations need FCB delete (QEMU only).
 - **EDLIN.COM**: works — open existing file + list, open new file tested. Insert mode can't be tested via pipe (Ctrl+C handling). Needs INT 21h/6Ch (Extended Open/Create).
@@ -1033,6 +1038,11 @@ TCOMMAND's own comment says "Nothing is known here. No registers, no flags, noth
 - Per-drive in-memory volume labels (11 bytes, space-padded). Read via FCB FindFirst attr=0x08 and INT 21h/69h (get serial). Set via INT 21h/69h subfunction 1. Default "NO NAME" returns "not found" for volume label search (matches "has no label" display).
 
 ## Paths
+- Tooling worth using for migration/debugging:
+  - `wdis` — disassemble OMF `.OBJ` files; best tool for MASM vs WASM object-level diffs.
+  - `ndisasm` — disassemble final flat `.COM` binaries; useful after link/CONVERT, but not for OMF object analysis.
+  - `objxdef` / `objxref` / `objlist` — quick OMF symbol-surface inspection when `wdis` is too verbose; useful for checking public/external sets and spotting duplicate publics.
+  - If missing: clone `open-watcom-v2`, run `./build.sh build`, then use the built tool binaries from the Watcom build output.
 - C standard headers (dos.h, stdio.h, etc.) are in `TOOLS/BLD/INC/`, not `TOOLS/INC/`.
 - INCLUDE env var in bin/dos-run: `c:\\TOOLS\\BLD\\INC`.
 - LIB env var in bin/dos-run: `c:\\TOOLS\\BLD\\LIB` (for SLIBCE.LIB needed by SELECT C objects).
