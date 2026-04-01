@@ -4,7 +4,7 @@
 
 **End state:** All assembly and C compilation uses Open Watcom (WASM, wcc, wlink, wlib) natively. The full E2E test suite passes on the WASM-built floppy image. kvikdos remains only for the 7 pre-built DOS build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF, MENUBLD) — eliminating those is a separate future effort, not part of this migration.
 
-**Current status:** Assembly migration complete (53/53 modules, 57 WASM compat issues fixed). COMMAND.COM + IO.SYS + MSDOS.SYS all boot — tests A–E pass on clean build (36976-byte MSDOS.SYS). Phase 1 kvikdos validation: VER works, 18/19 CMD utilities pass /? smoke tests. Source hygiene done (^Z stripped, SUBTTL/TITLE deleted, .gitattributes fixed). Full E2E pending.
+**Current status:** Assembly migration complete (53/53 modules, 57 WASM compat issues fixed). COMMAND.COM + IO.SYS + MSDOS.SYS all boot — tests A–E pass on clean build (36976-byte MSDOS.SYS). Phase 1 kvikdos validation: VER works, 18/19 CMD utilities pass /? smoke tests. Source hygiene done (^Z stripped, SUBTTL/TITLE deleted, .gitattributes fixed). DEBUG DEBMES class-pointer offset issue resolved. Two fork-built wasm regressions remain: COMMAND triageError L2002 and CHKDSK $M_NUM_CLS. Full E2E pending.
 
 **Key findings:**
 - COMMAND.COM issue #52 (L2029 `$M_GET_MSG_ADDRESS` unresolved) fixed: renamed `$M_HAS_$M_GET_MSG_ADDRESS` → `$M_HAS_GETMSGADDR` to avoid WASM `$M_` symbol parsing bug.
@@ -124,11 +124,19 @@ kvikdos/kvikdos-soft --dos-version=4 \
   - TREE: **all 4 pass** after MSGSERV $M_CLASS_ADDRS offset fix.
   - COMP: **6 of 7 pass** (1 fail: "File not found" test — likely needs wildcard FindFirst on absolute paths).
   - LABEL: **passes** after MSGSERV fix + LABELM.OBJ rebuild.
-  - DEBUG (13 fail), EDLIN (16 fail): interactive stdin/tty handling gaps in kvikdos.
+  - DEBUG (13 fail): interactive stdin/tty handling gaps in kvikdos. **DEBMES class-pointer offset bug now fixed** (stale `-1` workaround in SYSMSG.INC removed) — DEBUG.COM exits correctly on `Q` under kvikdos. Remaining 13 failures are kvikdos tty limitations, not WASM bugs.
+  - EDLIN (16 fail): interactive stdin/tty handling gaps in kvikdos.
   - ATTRIB (5 fail): path resolution issue (Extended Error 2/9).
   - GRAFTABL (3 fail), REPLACE (4+4 fail), XCOPY (11 fail): binaries not built yet.
   - MEM (3 fail): kvikdos memory reporting gap.
   - COMP "File not found" (1 fail): needs investigation.
+
+### Fork-built wasm regressions (ACTIVE — blockers for Phase 3)
+
+After swapping in the fork-built `wasm` binary (which fixed the DEBUG DEBMES offset bug), two new build regressions appeared. These must be resolved before `make deploy` / full E2E.
+
+- [ ] **COMMAND.COM triageError L2002** — `INIT.ASM` (RESGROUP) calls `triageError` in TRANCODE via `DOSInvoke` near CALL → cross-group fixup overflow. Naive `CALL FAR PTR` fix links but adds relocations → EXE2BIN rejects COMMAND.EXE. **Best direction:** use the existing `triage_add` far-pointer thunk path in `INIT.ASM` / `UINIT.ASM` / `TMISC2.ASM` (`Triage_Init proc FAR`) instead of a direct far call. See KEYNOTES issue #39.
+- [ ] **CHKDSK $M_NUM_CLS already defined** — `CHKDISP.ASM` fails with E230: `MSG_UTILNAME` includes the CTL file (defines `$M_NUM_CLS`), then `Msg_Services` includes it again. Known fix: add `IFNDEF $M_NUM_CLS` guard in the CTL file (KEYNOTES issue #40). Also, the pre-existing E050 `SIZE Sublist_Struc` in `CHKMSG.INC` still blocks 8 CHKDSK source files (KEYNOTES line 514).
 
 ### Phase 2: Minimal QEMU boot (boot sector + IO.SYS + MSDOS.SYS + COMMAND.COM)
 
@@ -141,6 +149,8 @@ QEMU tests the boot chain that kvikdos cannot emulate.
 - [x] Use `tests/test_wasm_boot.sh` (already exists) for all of the above
 
 ### Phase 3: Full E2E test suite on WASM build
+
+**Blocked by:** fork-built wasm regressions above (COMMAND triageError, CHKDSK $M_NUM_CLS / E050). `make deploy` requires both COMMAND.COM and CHKDSK.COM to build.
 
 - [ ] `make deploy` with WASM-built floppy image
 - [ ] `make test` (kvikdos fast tests — reuses Sections 1–7)
