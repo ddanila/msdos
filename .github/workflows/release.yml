@@ -1,0 +1,149 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Git tag to create or update the release for
+        required: true
+        type: string
+      name:
+        description: Release title
+        required: false
+        type: string
+      draft:
+        description: Create as draft release
+        required: true
+        default: true
+        type: boolean
+      prerelease:
+        description: Mark release as prerelease
+        required: true
+        default: false
+        type: boolean
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}/ci:latest
+      options: --device /dev/kvm
+    timeout-minutes: 30
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out repo with submodules
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Grant KVM access
+        run: chmod 666 /dev/kvm
+
+      - name: Build kvikdos
+        run: make -C kvikdos kvikdos
+
+      - name: Build all modules
+        run: make
+
+      - name: Build bootable floppy
+        run: make deploy
+
+      - name: Prepare release floppy images
+        run: |
+          set -euo pipefail
+
+          MINIMAL_IMG=out/floppy-minimal.img
+          DOSDIR_IMG=out/floppy-dosdir.img
+
+          cp out/floppy.img "$MINIMAL_IMG"
+          cp out/floppy.img "$DOSDIR_IMG"
+
+          extras=(
+            SYS.COM
+            FORMAT.COM
+            CHKDSK.COM
+            DEBUG.COM
+            MEM.EXE
+            FDISK.EXE
+            MORE.COM
+            SORT.EXE
+            LABEL.COM
+            FIND.EXE
+            TREE.COM
+            COMP.COM
+            ATTRIB.EXE
+            EDLIN.COM
+            FC.EXE
+            NLSFUNC.EXE
+            ASSIGN.COM
+            XCOPY.EXE
+            DISKCOMP.COM
+            DISKCOPY.COM
+            APPEND.EXE
+            RECOVER.COM
+            FASTOPEN.EXE
+            PRINT.COM
+            FILESYS.EXE
+            REPLACE.EXE
+            JOIN.EXE
+            SUBST.EXE
+            BACKUP.COM
+            RESTORE.COM
+            GRAFTABL.COM
+            KEYB.COM
+            KEYBOARD.SYS
+            SHARE.EXE
+            EXE2BIN.EXE
+            GRAPHICS.COM
+            GRAPHICS.PRO
+            IFSFUNC.EXE
+            MODE.COM
+            ANSI.SYS
+            RAMDRIVE.SYS
+            VDISK.SYS
+            DISPLAY.SYS
+            COUNTRY.SYS
+            SMARTDRV.SYS
+            DRIVER.SYS
+            SELECT.COM
+            SELECT.EXE
+            SELECT.DAT
+            SELECT.HLP
+            EGA.CPI
+          )
+
+          for file in "${extras[@]}"; do
+            mdel -i "$MINIMAL_IMG" "::${file}"
+          done
+
+          mmd -i "$DOSDIR_IMG" ::DOS
+          for file in "${extras[@]}"; do
+            mmove -i "$DOSDIR_IMG" "::${file}" "::DOS/${file}"
+          done
+
+          cat > out/AUTOEXEC.BAT <<'EOF'
+          @ECHO OFF
+          PATH A:\DOS
+          EOF
+          mcopy -o -i "$DOSDIR_IMG" out/AUTOEXEC.BAT ::AUTOEXEC.BAT
+          rm -f out/AUTOEXEC.BAT
+
+          (
+            cd out
+            sha256sum floppy-minimal.img floppy-dosdir.img > SHA256SUMS.txt
+          )
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag }}
+          name: ${{ inputs.name || inputs.tag }}
+          draft: ${{ inputs.draft }}
+          prerelease: ${{ inputs.prerelease }}
+          generate_release_notes: true
+          files: |
+            out/floppy-minimal.img
+            out/floppy-dosdir.img
+            out/SHA256SUMS.txt

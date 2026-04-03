@@ -41,6 +41,86 @@ jobs:
         run: make deploy
         timeout-minutes: 5
 
+      - name: Prepare published floppy images
+        run: |
+          set -euo pipefail
+
+          MINIMAL_IMG=out/floppy-minimal.img
+          DOSDIR_IMG=out/floppy-dosdir.img
+
+          cp out/floppy.img "$MINIMAL_IMG"
+          cp out/floppy.img "$DOSDIR_IMG"
+
+          extras=(
+            SYS.COM
+            FORMAT.COM
+            CHKDSK.COM
+            DEBUG.COM
+            MEM.EXE
+            FDISK.EXE
+            MORE.COM
+            SORT.EXE
+            LABEL.COM
+            FIND.EXE
+            TREE.COM
+            COMP.COM
+            ATTRIB.EXE
+            EDLIN.COM
+            FC.EXE
+            NLSFUNC.EXE
+            ASSIGN.COM
+            XCOPY.EXE
+            DISKCOMP.COM
+            DISKCOPY.COM
+            APPEND.EXE
+            RECOVER.COM
+            FASTOPEN.EXE
+            PRINT.COM
+            FILESYS.EXE
+            REPLACE.EXE
+            JOIN.EXE
+            SUBST.EXE
+            BACKUP.COM
+            RESTORE.COM
+            GRAFTABL.COM
+            KEYB.COM
+            KEYBOARD.SYS
+            SHARE.EXE
+            EXE2BIN.EXE
+            GRAPHICS.COM
+            GRAPHICS.PRO
+            IFSFUNC.EXE
+            MODE.COM
+            ANSI.SYS
+            RAMDRIVE.SYS
+            VDISK.SYS
+            DISPLAY.SYS
+            COUNTRY.SYS
+            SMARTDRV.SYS
+            DRIVER.SYS
+            SELECT.COM
+            SELECT.EXE
+            SELECT.DAT
+            SELECT.HLP
+            EGA.CPI
+          )
+
+          for file in "${extras[@]}"; do
+            mdel -i "$MINIMAL_IMG" "::${file}"
+          done
+
+          mmd -i "$DOSDIR_IMG" ::DOS
+          for file in "${extras[@]}"; do
+            mmove -i "$DOSDIR_IMG" "::${file}" "::DOS/${file}"
+          done
+
+          cat > out/AUTOEXEC.BAT <<'EOF'
+          @ECHO OFF
+          PATH A:\DOS
+          EOF
+          mcopy -o -i "$DOSDIR_IMG" out/AUTOEXEC.BAT ::AUTOEXEC.BAT
+          rm -f out/AUTOEXEC.BAT
+
       - name: Upload floppy image
         uses: actions/upload-artifact@v7
         with:
@@ -48,6 +128,15 @@ jobs:
           path: |
             out/floppy.img
             MS-DOS/v4.0/src/CMD/COMMAND/COMMAND.COM
+          retention-days: 14
+
+      - name: Upload published floppy images
+        uses: actions/upload-artifact@v7
+        with:
+          name: floppy-images
+          path: |
+            out/floppy-minimal.img
+            out/floppy-dosdir.img
           retention-days: 14
 
   e2e-sys:
