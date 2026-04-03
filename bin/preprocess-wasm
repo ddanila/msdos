@@ -106,6 +106,7 @@ EQU_REDEF_PAT = re.compile(
     r'|MULT_ANSI|INSTALL_CHECK|IOCTL_2F'
     r'|STDPRN|STDAUX|NO_INPUT|memS|lock_all|BP_START|ICB_OUT|HLP_OVER'
     r'|\$M_NUM_CLS'
+    r'|number_of_CON_keywords|number_of_com_keywords'
     r')\s+equ\s+.+)$',
     re.MULTILINE | re.IGNORECASE,
 )
