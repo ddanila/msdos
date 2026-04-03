@@ -369,17 +369,23 @@ def _comma_sep_struc_args(m):
     def fix_angles(s):
         result = []
         depth = 0
+        prev_was_space = False
         for ch in s:
             if ch == '<':
                 depth += 1
                 result.append(ch)
+                prev_was_space = False
             elif ch == '>':
                 depth -= 1
                 result.append(ch)
+                prev_was_space = False
             elif ch == ' ' and depth == 1:
-                result.append(',')
+                if not prev_was_space:
+                    result.append(',')
+                prev_was_space = True
             else:
                 result.append(ch)
+                prev_was_space = False
         return ''.join(result)
 
     args_part = fix_angles(args_part)
