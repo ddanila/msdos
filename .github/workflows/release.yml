@@ -51,6 +51,7 @@ jobs:
         run: make deploy
 
       - name: Prepare release floppy images
+        shell: bash
         run: |
           set -euo pipefail
 
