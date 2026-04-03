@@ -4,7 +4,7 @@
 
 **End state:** All assembly and C compilation uses Open Watcom (WASM, wcc, wlink, wlib) natively. The full E2E test suite passes on the WASM-built floppy image. kvikdos remains only for the 7 pre-built DOS build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF, MENUBLD) — eliminating those is a separate future effort, not part of this migration.
 
-**Current status:** Upgraded to official upstream WASM (Apr 2 2026) with all 3 bug fixes merged. **334/416 assembly files build clean (80%).** 84 files still errored (864 total errors). Core build (IO.SYS, MSDOS.SYS, COMMAND.COM) + most CMD utilities assemble cleanly. 9 CMD modules have assembly errors; 4 have link-only errors. Non-CMD modules (SELECT, MEMM, DEV) also have errors but are lower priority. Full E2E pending.
+**Current status:** Upgraded to official upstream WASM (Apr 2 2026) with all 3 bug fixes merged. **349/416 assembly files build clean (84%).** ~75 files still errored (756 total errors). Core build (IO.SYS, MSDOS.SYS, COMMAND.COM) + most CMD utilities assemble cleanly. 5 CMD modules have assembly errors (14 files); 4 have link-only errors. Non-CMD modules (SELECT, MEMM, DEV) also have errors but are lower priority. MASM target dropped — WASM-only going forward. Full E2E pending.
 
 **Key findings:**
 - COMMAND.COM issue #52 (L2029 `$M_GET_MSG_ADDRESS` unresolved) fixed: renamed `$M_HAS_$M_GET_MSG_ADDRESS` → `$M_HAS_GETMSGADDR` to avoid WASM `$M_` symbol parsing bug.
@@ -138,21 +138,46 @@ All 3 WASM bugs merged upstream (open-watcom-v2, 2026-04-01). Official upstream 
 
 ### Remaining WASM compat work — plan
 
-864 errors across 84 files. Top error types: E032 Syntax (299), E050 Offset/size (103), E225 data outside segment (52), E066 Operand expected (52), E094 unsupported instruction (44).
+756 errors across ~75 files. **349/416 assemblies clean (84%).** MASM target dropped — WASM-only going forward.
 
-#### Assembly failures by module (9 CMD modules, 36 files)
+#### Completed fixes (this session)
 
-| Module | Files | Errors | Primary issues |
-|--------|-------|--------|----------------|
-| MODE | 12 | ~40 | STRUC.INC E050 cascade, ANSI.INC segment/EQU, ABS extern |
-| KEYB | 5 | ~12 | STRUC.INC cascade, REPNZ prefix, immediate range |
-| GRAPHICS | 5 | many | CMACROS.INC nested `&macro`/`&endm`, MACROS.INC |
-| IFSFUNC | 4 | ~10 | 386 instructions in 8086 mode, immediate range |
-| SHARE | 3 | ~12 | Procedure/EndProc macro redef, DOSMAC.INC E227 |
-| PRINT | 3 | ~8 | Procedure redef, double segment override, PRIDEFS.INC |
-| GRAFTABL | 2 | ~6 | `REP CMPSB`, `* DWORD` operand, start address |
-| EXE2BIN | 1 | ~8 | EndProc name mismatch (Procedure macro already fixed) |
-| BACKUP | 1 | 1 | E002 CPU mode in _MSGRET.ASM |
+Modules fully resolved: GRAFTABL, PRINT, BACKUP, SHARE, RECOVER (+link), FASTOPEN, ASSIGN, XCOPY, DISKCOMP, DISKCOPY, APPEND. Plus 6 of 11 MODE files fixed.
+
+Key preprocessor improvements:
+- BREAK/HEADER listing macro stripping (invocations + definitions)
+- OPTION → KB_OPTION rename (WASM reserved word)
+- EXTRN:ABS → local EQU resolution (scans source dir for PUBLIC EQU values)
+- $M_NUM_CLS, FALSE/TRUE/IBM, ERR_*, and many more IFNDEF EQU guards
+- TYPE→SIZE handles (TYPE x) in DUP; multi-space collapse in angle brackets
+- endm_depth tracking in resolve_wasm_conditionals main loop
+
+Key source fix patterns:
+- WASM reserved words: DISPLAY→DISP_MSG, ECHO→ECHO_PTS, REPEAT→REPT_LP, FOR→FOR_LP, addr macro removed
+- NOT mask overflow: `(NOT x) AND 0FFh/0FFFFh`
+- REP CMPSB → REPE CMPSB; REPE MOVSB → REP MOVSB
+- EXTRN:ABS comparisons with BYTE: use register intermediates or literals
+- Forward-ref EQUs: reorder before DB/DW, or hardcode with ERRNZ assert
+- Procedure/ERRNZ macro redefinitions: remove (use DOSMAC.INC version)
+- THIS WORD → LABEL WORD; EQU $ → LABEL BYTE
+- push cs:mem → mov ax,cs:mem / mov ds,ax (8086 compat)
+- Trailing commas on PUBLIC before ifdef: remove
+
+#### Assembly failures remaining (5 CMD modules, 14 files)
+
+| Module | Files | Primary issues |
+|--------|-------|----------------|
+| MODE | 5 | STRUC.INC `.IF`/`.WHILE` macro cascade (E032 $StrucError) |
+| GRAPHICS | 4 | CMACROS.INC nested `&macro`/`&endm` incompatible with WASM |
+| KEYB | 2 | STRUC.INC loop range (E043) + ANSI.INC segment issues |
+| IFSFUNC | 2 | DOSMAC.INC `error` macro refs kernel-only symbols; INSTALLED collision |
+| EXE2BIN | 1 | DOSMAC.INC Procedure macro confuses WASM proc/endp tracking |
+
+**Root causes (all hard problems):**
+- **STRUC.INC E032** (~19 from CMD, ~198 from SELECT/DEV): `$StrucError` fires because WASM macro expansion handles arguments differently from MASM in some `.IF`/`.WHILE` patterns. Simple cases work (tested). Complex cases with segment overrides or BIT keyword fail. May be a WASM macro expansion bug worth reporting upstream.
+- **CMACROS.INC**: Uses `&macro`/`&endm` nested macro definition syntax that WASM fundamentally doesn't support. Already has partial `IFNDEF __WASM__` guards but they're incomplete.
+- **DOSMAC.INC Procedure/EndProc**: WASM tracks proc/endp differently when opened via macro expansion. PURGE not supported.
+- **EXTRN:ABS E050**: WASM treats all ABS externs as WORD-sized regardless of actual value. Likely a WASM bug — `EXTRN keyword:ABS` (value=58h) should work as byte immediate in `CMP BYTE_var, keyword`. Workaround: preprocessor resolves known ABS values to local EQU.
 
 #### Link-only failures (4 modules, assemblies OK)
 
@@ -163,39 +188,18 @@ All 3 WASM bugs merged upstream (open-watcom-v2, 2026-04-01). Official upstream 
 | REPLACE | L1101 invalid OBJ | _REPLACE.OBJ — WASM produced malformed OMF record |
 | RESTORE | L1101 invalid OBJ | MAPPER.LIB SIGHAND module — same OMF corruption |
 
-#### Non-CMD failures (lower priority, not needed for core `make deploy`)
+#### Non-CMD failures (lower priority)
 
-- **SELECT** (28 files) — MACROS.INC nested macros, E225 data outside segment
+- **SELECT** (28 files) — MACROS.INC nested macros, STRUC.INC cascade
 - **MEMM** (23 files) — 386 mode code, E102 CPU setting, VM386.INC
 - **DEV** (23 files) — PRINTER, KEYBOARD, DISPLAY, ANSI driver
 
-#### Fix plan
+#### Next steps
 
-**Phase A: STRUC.INC (highest cascade impact, ~30-40 errors)**
-Fix 3 macro issues in the shared structured-programming INC:
-- E050 at line 347: `$Test` macro byte-sized offset → force WORD
-- E043 at line 214: `$Label` distance calc uses `$` arithmetic → disable short-jump optimization under `__WASM__`
-- E020 at line 591: `.repeat` comma alignment in nested expansion → add trailing-comma guard
-
-**Phase B: Preprocessor batch fixes (~20 errors)**
-- Add FALSE/TRUE/IBM to IFNDEF guard list (PRIDEFS.INC cascade → PRINT, SHARE)
-- Handle Procedure/EndProc macro redefinition generically (SHARE, PRINT, EXE2BIN)
-- Transform `REP CMPSB` → `REPE CMPSB` (GRAFTABL, KEYB)
-
-**Phase C: Module-specific source patches (~15 errors)**
-- GRAFTABL: `* DWORD` → `* 4`, END start address
-- PRINT: double segment override `es:byte ptr es:[di]` → `byte ptr es:[di]`
-- KEYB: REPNZ prefix on non-string, immediate masking (NOT → AND 0FFFFh)
-- IFSFUNC: 386 instruction CPU mode guards
-- BACKUP: CPU mode conflict in _MSGRET.ASM
-
-**Phase D: Link failures**
-- RECOVER: check ifdef-guarded symbol definitions (`fsexec`)
-- REPLACE/RESTORE: investigate OMF corruption — may be upstream WASM bug (report if confirmed)
-- COMMAND: triageError already ignored
-
-**Phase E: Non-CMD modules (defer)**
-SELECT, MEMM, DEV — only needed if `make deploy` requires them or for full E2E.
+1. **Report EXTRN:ABS E050 upstream** — minimal repro ready, likely a WASM bug
+2. **STRUC.INC macro investigation** — need to understand why complex `.IF` patterns trigger `$StrucError` in WASM but not MASM. Test more patterns to narrow down.
+3. **CMACROS.INC** — may need WASM-specific rewrite of cBegin/cEnd/cProc macros
+4. **Link failures** — REPLACE/RESTORE OMF corruption worth reporting upstream too
 
 ### Phase 2: Minimal QEMU boot (boot sector + IO.SYS + MSDOS.SYS + COMMAND.COM)
 
@@ -209,7 +213,7 @@ QEMU tests the boot chain that kvikdos cannot emulate.
 
 ### Phase 3: Full E2E test suite on WASM build
 
-**Blocked by:** 9 CMD modules with assembly errors + 4 with link errors (see plan above). `make deploy` requires all CMD modules to build.
+**Blocked by:** 5 CMD modules with assembly errors (14 files) + 4 with link errors (see plan above). `make deploy` requires all CMD modules to build.
 
 - [ ] `make deploy` with WASM-built floppy image
 - [ ] `make test` (kvikdos fast tests — reuses Sections 1–7)
