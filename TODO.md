@@ -4,7 +4,7 @@
 
 **End state:** All assembly and C compilation uses Open Watcom (WASM, wcc, wlink, wlib) natively. The full E2E test suite passes on the WASM-built floppy image. kvikdos remains only for the 7 pre-built DOS build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF, MENUBLD) — eliminating those is a separate future effort, not part of this migration.
 
-**Current status:** Assembly migration complete (53/53 modules, 57 WASM compat issues fixed). COMMAND.COM + IO.SYS + MSDOS.SYS all boot — tests A–E pass on clean build (36976-byte MSDOS.SYS). Phase 1 kvikdos validation: VER works, 18/19 CMD utilities pass /? smoke tests. Source hygiene done (^Z stripped, SUBTTL/TITLE deleted, .gitattributes fixed). DEBUG DEBMES class-pointer offset issue resolved. Two fork-built wasm regressions remain: COMMAND triageError L2002 and CHKDSK $M_NUM_CLS. Full E2E pending.
+**Current status:** Upgraded to official upstream WASM (Apr 2 2026) with all 3 bug fixes merged. Fork-built regressions (COMMAND triageError, CHKDSK $M_NUM_CLS) resolved upstream. Core build (IO.SYS, MSDOS.SYS, COMMAND.COM) assembles cleanly. 5 previously-unbuilt CMD modules fixed (ASSIGN, XCOPY, DISKCOMP, DISKCOPY, APPEND). 13 CMD modules still need WASM compat fixes (see below). Full E2E pending.
 
 **Key findings:**
 - COMMAND.COM issue #52 (L2029 `$M_GET_MSG_ADDRESS` unresolved) fixed: renamed `$M_HAS_$M_GET_MSG_ADDRESS` → `$M_HAS_GETMSGADDR` to avoid WASM `$M_` symbol parsing bug.
@@ -127,16 +127,22 @@ kvikdos/kvikdos-soft --dos-version=4 \
   - DEBUG (13 fail): interactive stdin/tty handling gaps in kvikdos. **DEBMES class-pointer offset bug now fixed** (stale `-1` workaround in SYSMSG.INC removed) — DEBUG.COM exits correctly on `Q` under kvikdos. Remaining 13 failures are kvikdos tty limitations, not WASM bugs.
   - EDLIN (16 fail): interactive stdin/tty handling gaps in kvikdos.
   - ATTRIB (5 fail): path resolution issue (Extended Error 2/9).
-  - GRAFTABL (3 fail), REPLACE (4+4 fail), XCOPY (11 fail): binaries not built yet.
+  - XCOPY: **now builds** with upstream WASM (BYTE PTR fix for forward-ref CS: var).
+  - GRAFTABL (3 fail), REPLACE (4+4 fail): binaries not built yet.
   - MEM (3 fail): kvikdos memory reporting gap.
   - COMP "File not found" (1 fail): needs investigation.
 
-### Fork-built wasm regressions (ACTIVE — blockers for Phase 3)
+### Fork-built wasm regressions — RESOLVED
 
-After swapping in the fork-built `wasm` binary (which fixed the DEBUG DEBMES offset bug), two new build regressions appeared. These must be resolved before `make deploy` / full E2E.
+All 3 WASM bugs merged upstream (open-watcom-v2, 2026-04-01). Official upstream binary (Apr 2 2026 build) replaces the fork-built binary. COMMAND triageError L2002 and CHKDSK $M_NUM_CLS issues no longer reproduce.
 
-- [ ] **COMMAND.COM triageError L2002** — `INIT.ASM` (RESGROUP) calls `triageError` in TRANCODE via `DOSInvoke` near CALL → cross-group fixup overflow. Naive `CALL FAR PTR` fix links but adds relocations → EXE2BIN rejects COMMAND.EXE. **Best direction:** use the existing `triage_add` far-pointer thunk path in `INIT.ASM` / `UINIT.ASM` / `TMISC2.ASM` (`Triage_Init proc FAR`) instead of a direct far call. See KEYNOTES issue #39.
-- [ ] **CHKDSK $M_NUM_CLS already defined** — `CHKDISP.ASM` fails with E230: `MSG_UTILNAME` includes the CTL file (defines `$M_NUM_CLS`), then `Msg_Services` includes it again. Known fix: add `IFNDEF $M_NUM_CLS` guard in the CTL file (KEYNOTES issue #40). Also, the pre-existing E050 `SIZE Sublist_Struc` in `CHKMSG.INC` still blocks 8 CHKDSK source files (KEYNOTES line 514).
+### Remaining CMD module WASM compat fixes (13 modules)
+
+Upstream WASM is stricter than the fork build. These CMD modules were never assembled before and need compat fixes. Top error categories: E032 Syntax (247), E050 Offset/size (81), E094 unsupported instruction (77), E230 EQU redef (many), E225 data outside segment (50).
+
+Failing modules: BACKUP, EXE2BIN, FASTOPEN, GRAFTABL, GRAPHICS, IFSFUNC, KEYB, MODE, PRINT, RECOVER, REPLACE, RESTORE, SHARE.
+
+Approach: fix incrementally via preprocessor extensions (BREAK stripping, IFNDEF guards) and targeted source patches (forward-ref EQUs, ABS extern workarounds, BYTE PTR additions).
 
 ### Phase 2: Minimal QEMU boot (boot sector + IO.SYS + MSDOS.SYS + COMMAND.COM)
 
@@ -150,7 +156,7 @@ QEMU tests the boot chain that kvikdos cannot emulate.
 
 ### Phase 3: Full E2E test suite on WASM build
 
-**Blocked by:** fork-built wasm regressions above (COMMAND triageError, CHKDSK $M_NUM_CLS / E050). `make deploy` requires both COMMAND.COM and CHKDSK.COM to build.
+**Blocked by:** 13 CMD modules with WASM compat errors (see above). `make deploy` requires all CMD modules to build.
 
 - [ ] `make deploy` with WASM-built floppy image
 - [ ] `make test` (kvikdos fast tests — reuses Sections 1–7)
