@@ -90,6 +90,15 @@ EQU_REDEF_PAT = re.compile(
     r'|awrite|aread|bogus|IBM'
     r'|TAB|Sublist_Length|NO_REPLACE|Reserved'
     r'|MSG_SER_CLASS|EXT_ERR_CLASS|PARSE_ERR_CLASS|UTILITY_MSG_CLASS'
+    r'|ERR_NOT_ENOUGH_MEM|ERR_OPENING_FILE|ERR_READING_FILE|ERR_FINDING_VALUE'
+    r'|ERR_LINE_TOO_LONG|ERR_FINDING_NAME|ERR_ACCESSING_FILE|ERR_TOO_MANY_DEFS'
+    r'|ERR_NUMBER_MATCH|ERR_ALLOCATING_MEM|ERR_CDP_CPP|ERR_PRN_DEFN'
+    r'|PRESENT_WITH_PART|PRESENT_WITHOUT_PART|NOT_PRESENT'
+    r'|NO_EDOS_SPACE|FREE_EDOS_SPACE|NO_EDOS_BUT_SPACE'
+    r'|M_DOS_EXISTS|M_EDOS_EXISTS|M_LOGICAL_EXISTS|M_EDOS_SPACE|M_FREE_SPACE'
+    r'|MULT_ANSI|INSTALL_CHECK|IOCTL_2F'
+    r'|STDPRN|STDAUX|NO_INPUT|memS|lock_all|BP_START|ICB_OUT|HLP_OVER'
+    r'|\$M_NUM_CLS'
     r')\s+equ\s+.+)$',
     re.MULTILINE | re.IGNORECASE,
 )
@@ -122,7 +131,7 @@ def _size_override_repl(m):
 # Use [^\S\n]+ (non-newline whitespace) after TYPE to avoid eating line breaks
 # when "type" appears at end of a comment line followed by code on the next line.
 TYPE_OP_PAT = re.compile(
-    r'(?<=[\s,])(?i:type)[^\S\n]+(?=\w)',
+    r'(?<=[\s,(])(?i:type)[^\S\n]+(?=\w)',
 )
 
 # For WASM, cBegin/cEnd take the proc name as first argument.
@@ -309,6 +318,7 @@ def needs_transform(text):
             or SUBTTL_PAT.search(text) is not None
             or BREAK_PAT.search(text) is not None
             or BREAK_MACRO_DEF_PAT.search(text) is not None
+            or OPTION_MACRO_PAT.search(text) is not None
             or SIZE_OVERRIDE_PAT.search(text) is not None
             or TYPE_OP_PAT.search(text) is not None)
 
@@ -397,6 +407,14 @@ STRUC_MACRO_PAT = re.compile(
     re.MULTILINE | re.IGNORECASE,
 )
 
+# WASM reserves OPTION as a directive.  Rename the KEYBMAC.INC OPTION macro
+# and all its call sites to KB_OPTION.  Only match OPTION at statement position
+# (start of line or after whitespace), not inside OPTION_COMMAND or comments.
+OPTION_MACRO_PAT = re.compile(
+    r'^(\s*)OPTION(\s+(?:MACRO|EXIT_IF_FOUND)\b)',
+    re.MULTILINE | re.IGNORECASE,
+)
+
 def transform(text):
     """Apply dot-macro rename, CL forward-ref fix, %out removal, EQU guards, SF_BITS expansion,
     and cProc/cBegin/cEnd name injection for WASM."""
@@ -413,6 +431,7 @@ def transform(text):
     text = SUBTTL_PAT.sub(r'; (SUBTTL removed for WASM)', text)
     text = BREAK_MACRO_DEF_PAT.sub(r'; (BREAK MACRO definition removed for WASM)', text)
     text = BREAK_PAT.sub(r'; (BREAK removed for WASM)', text)
+    text = OPTION_MACRO_PAT.sub(r'\1KB_OPTION\2', text)
     text = EQU_REDEF_PAT.sub(_wrap_equ_ifndef, text)
     fwd_lines = FWD_PAT.findall(text)
     if fwd_lines:
