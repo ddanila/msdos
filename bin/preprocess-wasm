@@ -470,11 +470,71 @@ def transform(text):
     text = inject_proc_names(text)
     return text
 
+# WASM treats EXTRN xxx:ABS as WORD-sized, causing E050 when compared with
+# BYTE operands.  Collect PUBLIC EQU definitions from the source directory
+# and replace EXTRN xxx:ABS with local EQU definitions.
+EXTRN_ABS_PAT = re.compile(
+    r'^\s*EXTRN\s+(\w+)\s*:\s*ABS\b',
+    re.MULTILINE | re.IGNORECASE,
+)
+# Match "name EQU value" where name is PUBLIC'd
+EQU_DEF_PAT = re.compile(
+    r'^\s*(\w+)\s+(?:EQU|=)\s+(.+?)(?:\s*;.*)?$',
+    re.MULTILINE | re.IGNORECASE,
+)
+PUBLIC_PAT = re.compile(
+    r'^\s*PUBLIC\s+(.*)',
+    re.MULTILINE | re.IGNORECASE,
+)
+
+_abs_equ_map = {}  # populated by main() before processing
+
+def _collect_abs_equs(srcdir):
+    """Scan source directory for PUBLIC EQU definitions to resolve EXTRN:ABS."""
+    equs = {}   # name (lower) → value string
+    publics = set()
+    for entry in os.listdir(srcdir):
+        ext = os.path.splitext(entry)[1].lower()
+        if ext not in INC_EXTS:
+            continue
+        try:
+            with open(os.path.join(srcdir, entry), 'rb') as f:
+                text = f.read().decode('latin-1')
+        except (IOError, UnicodeDecodeError):
+            continue
+        for m in PUBLIC_PAT.finditer(text):
+            for name in m.group(1).split(','):
+                name = name.strip().split()[0] if name.strip() else ''
+                if name:
+                    publics.add(name.lower())
+        for m in EQU_DEF_PAT.finditer(text):
+            name = m.group(1)
+            val = m.group(2).strip()
+            equs[name.lower()] = (name, val)
+    # Only keep EQUs that are PUBLIC and have simple constant values
+    # (reject values containing $, labels, register names, or expressions)
+    simple_val = re.compile(r'^[0-9][0-9A-Fa-f]*[Hh]?$|^0[Xx][0-9A-Fa-f]+$|^[0-9]+$|^-?[0-9]+$')
+    return {k: v for k, v in equs.items()
+            if k in publics and simple_val.match(v[1])}
+
+def _replace_extrn_abs(m):
+    """Replace EXTRN name:ABS with local EQU if value is known."""
+    name = m.group(1)
+    key = name.lower()
+    if key in _abs_equ_map:
+        orig_name, val = _abs_equ_map[key]
+        return f'{name}\tEQU\t{val}\t; WASM: was EXTRN {name}:ABS'
+    return m.group(0)  # keep original if value unknown
+
 def process_file(src, dst):
     """Read src, transform if needed, write to dst."""
     with open(src, 'rb') as f:
         raw = f.read()
     text = raw.decode('latin-1')
+    # Replace EXTRN:ABS with local EQU before other transforms
+    if EXTRN_ABS_PAT.search(text):
+        text = EXTRN_ABS_PAT.sub(_replace_extrn_abs, text)
+        raw = text.encode('latin-1')
     if needs_transform(text):
         text = transform(text)
         raw = text.encode('latin-1')
@@ -482,9 +542,14 @@ def process_file(src, dst):
         f.write(raw)
 
 def main():
+    global _abs_equ_map
     outdir = sys.argv[1]
     source = sys.argv[2]
     incdirs = sys.argv[3:]
+
+    # Collect PUBLIC EQU definitions to resolve EXTRN:ABS
+    srcdir = os.path.dirname(source) or '.'
+    _abs_equ_map = _collect_abs_equs(srcdir)
 
     # Preprocess source file and all include-able files in source directory
     process_file(source, os.path.join(outdir, os.path.basename(source)))
