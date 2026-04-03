@@ -4,7 +4,7 @@
 
 **End state:** All assembly and C compilation uses Open Watcom (WASM, wcc, wlink, wlib) natively. The full E2E test suite passes on the WASM-built floppy image. kvikdos remains only for the 7 pre-built DOS build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF, MENUBLD) — eliminating those is a separate future effort, not part of this migration.
 
-**Current status:** Upgraded to official upstream WASM (Apr 2 2026) with all 3 bug fixes merged. Fork-built regressions (COMMAND triageError, CHKDSK $M_NUM_CLS) resolved upstream. Core build (IO.SYS, MSDOS.SYS, COMMAND.COM) assembles cleanly. 5 previously-unbuilt CMD modules fixed (ASSIGN, XCOPY, DISKCOMP, DISKCOPY, APPEND). 13 CMD modules still need WASM compat fixes (see below). Full E2E pending.
+**Current status:** Upgraded to official upstream WASM (Apr 2 2026) with all 3 bug fixes merged. **334/416 assembly files build clean (80%).** 84 files still errored (864 total errors). Core build (IO.SYS, MSDOS.SYS, COMMAND.COM) + most CMD utilities assemble cleanly. 9 CMD modules have assembly errors; 4 have link-only errors. Non-CMD modules (SELECT, MEMM, DEV) also have errors but are lower priority. Full E2E pending.
 
 **Key findings:**
 - COMMAND.COM issue #52 (L2029 `$M_GET_MSG_ADDRESS` unresolved) fixed: renamed `$M_HAS_$M_GET_MSG_ADDRESS` → `$M_HAS_GETMSGADDR` to avoid WASM `$M_` symbol parsing bug.
@@ -136,13 +136,66 @@ kvikdos/kvikdos-soft --dos-version=4 \
 
 All 3 WASM bugs merged upstream (open-watcom-v2, 2026-04-01). Official upstream binary (Apr 2 2026 build) replaces the fork-built binary. COMMAND triageError L2002 and CHKDSK $M_NUM_CLS issues no longer reproduce.
 
-### Remaining CMD module WASM compat fixes (13 modules)
+### Remaining WASM compat work — plan
 
-Upstream WASM is stricter than the fork build. These CMD modules were never assembled before and need compat fixes. Top error categories: E032 Syntax (247), E050 Offset/size (81), E094 unsupported instruction (77), E230 EQU redef (many), E225 data outside segment (50).
+864 errors across 84 files. Top error types: E032 Syntax (299), E050 Offset/size (103), E225 data outside segment (52), E066 Operand expected (52), E094 unsupported instruction (44).
 
-Failing modules: BACKUP, EXE2BIN, FASTOPEN, GRAFTABL, GRAPHICS, IFSFUNC, KEYB, MODE, PRINT, RECOVER, REPLACE, RESTORE, SHARE.
+#### Assembly failures by module (9 CMD modules, 36 files)
 
-Approach: fix incrementally via preprocessor extensions (BREAK stripping, IFNDEF guards) and targeted source patches (forward-ref EQUs, ABS extern workarounds, BYTE PTR additions).
+| Module | Files | Errors | Primary issues |
+|--------|-------|--------|----------------|
+| MODE | 12 | ~40 | STRUC.INC E050 cascade, ANSI.INC segment/EQU, ABS extern |
+| KEYB | 5 | ~12 | STRUC.INC cascade, REPNZ prefix, immediate range |
+| GRAPHICS | 5 | many | CMACROS.INC nested `&macro`/`&endm`, MACROS.INC |
+| IFSFUNC | 4 | ~10 | 386 instructions in 8086 mode, immediate range |
+| SHARE | 3 | ~12 | Procedure/EndProc macro redef, DOSMAC.INC E227 |
+| PRINT | 3 | ~8 | Procedure redef, double segment override, PRIDEFS.INC |
+| GRAFTABL | 2 | ~6 | `REP CMPSB`, `* DWORD` operand, start address |
+| EXE2BIN | 1 | ~8 | EndProc name mismatch (Procedure macro already fixed) |
+| BACKUP | 1 | 1 | E002 CPU mode in _MSGRET.ASM |
+
+#### Link-only failures (4 modules, assemblies OK)
+
+| Module | Error | Cause |
+|--------|-------|-------|
+| COMMAND | L2002 fixup overflow | triageError cross-segment call (ignored in build) |
+| RECOVER | L2029 unresolved | 5 symbols (`int_23_old_off/seg`, `append`) — ifdef-guarded data not defined |
+| REPLACE | L1101 invalid OBJ | _REPLACE.OBJ — WASM produced malformed OMF record |
+| RESTORE | L1101 invalid OBJ | MAPPER.LIB SIGHAND module — same OMF corruption |
+
+#### Non-CMD failures (lower priority, not needed for core `make deploy`)
+
+- **SELECT** (28 files) — MACROS.INC nested macros, E225 data outside segment
+- **MEMM** (23 files) — 386 mode code, E102 CPU setting, VM386.INC
+- **DEV** (23 files) — PRINTER, KEYBOARD, DISPLAY, ANSI driver
+
+#### Fix plan
+
+**Phase A: STRUC.INC (highest cascade impact, ~30-40 errors)**
+Fix 3 macro issues in the shared structured-programming INC:
+- E050 at line 347: `$Test` macro byte-sized offset → force WORD
+- E043 at line 214: `$Label` distance calc uses `$` arithmetic → disable short-jump optimization under `__WASM__`
+- E020 at line 591: `.repeat` comma alignment in nested expansion → add trailing-comma guard
+
+**Phase B: Preprocessor batch fixes (~20 errors)**
+- Add FALSE/TRUE/IBM to IFNDEF guard list (PRIDEFS.INC cascade → PRINT, SHARE)
+- Handle Procedure/EndProc macro redefinition generically (SHARE, PRINT, EXE2BIN)
+- Transform `REP CMPSB` → `REPE CMPSB` (GRAFTABL, KEYB)
+
+**Phase C: Module-specific source patches (~15 errors)**
+- GRAFTABL: `* DWORD` → `* 4`, END start address
+- PRINT: double segment override `es:byte ptr es:[di]` → `byte ptr es:[di]`
+- KEYB: REPNZ prefix on non-string, immediate masking (NOT → AND 0FFFFh)
+- IFSFUNC: 386 instruction CPU mode guards
+- BACKUP: CPU mode conflict in _MSGRET.ASM
+
+**Phase D: Link failures**
+- RECOVER: check ifdef-guarded symbol definitions (`fsexec`)
+- REPLACE/RESTORE: investigate OMF corruption — may be upstream WASM bug (report if confirmed)
+- COMMAND: triageError already ignored
+
+**Phase E: Non-CMD modules (defer)**
+SELECT, MEMM, DEV — only needed if `make deploy` requires them or for full E2E.
 
 ### Phase 2: Minimal QEMU boot (boot sector + IO.SYS + MSDOS.SYS + COMMAND.COM)
 
@@ -156,7 +209,7 @@ QEMU tests the boot chain that kvikdos cannot emulate.
 
 ### Phase 3: Full E2E test suite on WASM build
 
-**Blocked by:** 13 CMD modules with WASM compat errors (see above). `make deploy` requires all CMD modules to build.
+**Blocked by:** 9 CMD modules with assembly errors + 4 with link errors (see plan above). `make deploy` requires all CMD modules to build.
 
 - [ ] `make deploy` with WASM-built floppy image
 - [ ] `make test` (kvikdos fast tests — reuses Sections 1–7)
