@@ -230,8 +230,9 @@ def resolve_wasm_conditionals(text):
     # Blocks that start an endm-terminated body (macros, loops)
     # These suspend conditional tracking until the matching endm.
     # Matches: "name macro", "irp x,<...>", "rept N", "for x,<...>"
+    # Negative lookbehind excludes comment lines (starting with ;)
     ENDM_OPEN = re.compile(
-        r'^\s*(?:\S+\s+macro\b|irp\b|rept\b|for\b)',
+        r'^(?!\s*;)\s*(?:\S+\s+macro\b|irp\b|rept\b|for\b)',
         re.IGNORECASE,
     )
     ENDM_CLOSE = re.compile(r'^\s*endm\b', re.IGNORECASE)
@@ -288,15 +289,22 @@ def resolve_wasm_conditionals(text):
     lines = text.split('\n')
     result = []
     i = 0
+    endm_depth = 0  # track macro/irp/rept nesting in main loop
     while i < len(lines):
         line = lines[i]
-        if IFDEF_WASM.match(line):
+        # Track macro nesting so we don't evaluate ifdef/ifndef __WASM__
+        # inside macro bodies (they must be evaluated at expansion time).
+        if ENDM_OPEN.match(line):
+            endm_depth += 1
+        elif ENDM_CLOSE.match(line) and endm_depth > 0:
+            endm_depth -= 1
+        if endm_depth == 0 and IFDEF_WASM.match(line):
             # Keep the TRUE branch, skip the ELSE branch
             true_lines, else_lines, end_idx = collect_block(lines, i + 1)
             inner = resolve_wasm_conditionals('\n'.join(true_lines))
             result.append(inner)
             i = end_idx
-        elif IFNDEF_WASM.match(line):
+        elif endm_depth == 0 and IFNDEF_WASM.match(line):
             # Skip the TRUE branch, keep the ELSE branch
             true_lines, else_lines, end_idx = collect_block(lines, i + 1)
             if else_lines is not None:
