@@ -63,16 +63,23 @@ SUBTTL_PAT = re.compile(
     r'^\s*SUBTTL\b.*$',
     re.MULTILINE | re.IGNORECASE,
 )
-# BREAK is a MASM listing-control macro (defined in DOSMAC.INC).  Some files
-# use BREAK before the macro is defined; WASM rejects the undefined call.
-# It's purely cosmetic (listing subtitle) — strip it.
-# Also strip BREAK MACRO ... ENDM definitions to avoid E236 redefinition errors.
+# BREAK and HEADER are MASM listing-control macros.  Some files use them
+# before they're defined; WASM rejects the undefined call.  They're purely
+# cosmetic (listing subtitle) — strip invocations and definitions.
 BREAK_PAT = re.compile(
     r'^\s*BREAK\b(?!\s+MACRO\b).*$',
     re.MULTILINE | re.IGNORECASE,
 )
+HEADER_PAT = re.compile(
+    r'^\s*HEADER\b(?!\s+(?:MACRO|STRUC|ENDS|SEGMENT|LABEL|EQU|=|DB|DW|DD|DQ|DT|PROC)\b).*$',
+    re.MULTILINE | re.IGNORECASE,
+)
 BREAK_MACRO_DEF_PAT = re.compile(
     r'^\s*BREAK\s+MACRO\b[^\n]*(?:\n[^\n]*)*?\n\s*ENDM\b[^\n]*',
+    re.MULTILINE | re.IGNORECASE,
+)
+HEADER_MACRO_DEF_PAT = re.compile(
+    r'^\s*HEADER\s+MACRO\b[^\n]*(?:\n[^\n]*)*?\n\s*ENDM\b[^\n]*',
     re.MULTILINE | re.IGNORECASE,
 )
 # WASM forbids EQU redefinition (MASM allows same-value redefine).
@@ -317,7 +324,9 @@ def needs_transform(text):
             or WASM_COND_PAT.search(text) is not None
             or SUBTTL_PAT.search(text) is not None
             or BREAK_PAT.search(text) is not None
+            or HEADER_PAT.search(text) is not None
             or BREAK_MACRO_DEF_PAT.search(text) is not None
+            or HEADER_MACRO_DEF_PAT.search(text) is not None
             or OPTION_MACRO_PAT.search(text) is not None
             or SIZE_OVERRIDE_PAT.search(text) is not None
             or TYPE_OP_PAT.search(text) is not None)
@@ -430,7 +439,9 @@ def transform(text):
     text = LISTING_PAT.sub(r'; (listing directive removed for WASM)', text)
     text = SUBTTL_PAT.sub(r'; (SUBTTL removed for WASM)', text)
     text = BREAK_MACRO_DEF_PAT.sub(r'; (BREAK MACRO definition removed for WASM)', text)
+    text = HEADER_MACRO_DEF_PAT.sub(r'; (HEADER MACRO definition removed for WASM)', text)
     text = BREAK_PAT.sub(r'; (BREAK removed for WASM)', text)
+    text = HEADER_PAT.sub(r'; (HEADER removed for WASM)', text)
     text = OPTION_MACRO_PAT.sub(r'\1KB_OPTION\2', text)
     text = EQU_REDEF_PAT.sub(_wrap_equ_ifndef, text)
     fwd_lines = FWD_PAT.findall(text)
