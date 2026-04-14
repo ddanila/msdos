@@ -2,7 +2,7 @@
 
 A working fork of MS-DOS 4.0 that builds from source on Linux and macOS, boots in QEMU, and has full E2E test coverage — intended as a stable base for OS-level experiments.
 
-The build currently uses the original DOS compilers (MASM, CL, LINK) running under [kvikdos](https://github.com/pts/kvikdos) (a headless DOS emulator — KVM on Linux, software 8086 CPU on macOS). A migration to [Open Watcom V2](https://github.com/open-watcom/open-watcom-v2) (native Linux toolchain, no emulation) is in progress on the `watcom-migration` branch — all 53 modules assemble cleanly (58 WASM compat issues fixed), COMMAND.COM/IO.SYS/MSDOS.SYS all boot from clean build (tests A–E pass). Full E2E test suite pending.
+The `watcom-migration` branch uses [Open Watcom V2](https://github.com/open-watcom/open-watcom-v2) WASM assembler natively (no emulation needed for assembly). The C compiler, linker, and library manager still run the original DOS tools via [kvikdos](https://github.com/pts/kvikdos) (a headless DOS emulator — KVM on Linux, software 8086 CPU on macOS). kvikdos also runs 7 proprietary DOS build utilities (BUILDMSG, NOSRVBLD, etc.). Core build (IO.SYS, MSDOS.SYS, COMMAND.COM) boots from clean WASM build. Full native toolchain migration in progress — see `TODO.md`.
 
 ## What's here beyond the stock source
 
@@ -66,7 +66,7 @@ brew install nasm gcc make python3 qemu mtools
 
 - `MS-DOS/` — fork of [microsoft/MS-DOS](https://github.com/microsoft/MS-DOS) (`dos4-enhancements` branch)
 - `kvikdos/` — fork of [pts/kvikdos](https://github.com/pts/kvikdos) with DOS 4.0 compatibility stubs and macOS support
-- `bin/` — wrapper scripts invoking kvikdos for each DOS tool (masm, cl, link, lib, …)
+- `bin/` — wrapper scripts for build tools (wasm-masm for native WASM, kvikdos wrappers for cl/link/lib and DOS utilities)
 - `mk/` — per-module Makefile fragments
 - `Makefile` — GNU Makefile orchestrating the full build
 - `tests/` — all test scripts (kvikdos E2E, QEMU serial, /? smoke tests)

@@ -19,124 +19,38 @@
 
 ### Phase 0A: wlink proof-of-concept ✅ DONE
 
-Proved that both MS LINK and wlink produce bootable COMMAND.COM from WASM OBJs. The crash was not a linker issue — it was the MSGSERV.ASM `IF NOT` bug (issue #51). wlink migration remains a future convenience step.
+Both MS LINK and wlink produce bootable COMMAND.COM from WASM OBJs.
 
-- [x] Hand-convert `COMMAND.LNK` to wlink directive syntax (`COMMAND.wlink`)
-- [x] Link WASM-built COMMAND.COM OBJs with wlink (native, no kvikdos)
-- [x] Boot test: both MS LINK and wlink COMMAND.COM boot to date prompt
-- [ ] ~~If test passes, also test MSDOS.SYS~~ (deferred — MSDOS.SYS has its own runtime bugs)
-
-**wlink response file format** (completely different from MS LINK):
-```
-FORMAT DOS
-FILE obj1.obj, obj2.obj
-NAME output.exe
-OPTION MAP=output.map
-OPTION STACK=50000
-OPTION DOSSEG
-LIBRARY lib1.lib
-```
-vs MS LINK positional: `obj1+obj2, output.exe, output.map, lib1 /STACK:50000;`
-
-**If proof-of-concept succeeds:**
-- [ ] Write `bin/wlink-mslink` wrapper — translates MS LINK response file format to wlink directives on the fly. Makes the switch transparent to the Makefile (`LINK := $(BIN)/wlink-mslink`). All 51 .LNK files work without modification.
-- [ ] Handle /EXEPACK gap: 4 targets use it (SELECT, FIND, FDISK, EXE2BIN). wlink has no equivalent. Options: (a) skip packing — binaries slightly larger but functional, (b) use existing `bin/fix-exepack` as a post-link step.
+**Remaining wlink tasks:**
+- [ ] Write `bin/wlink-mslink` wrapper — translates MS LINK response file format to wlink directives on the fly. All 51 .LNK files work without modification.
+- [ ] Handle /EXEPACK gap: 4 targets use it (SELECT, FIND, FDISK, EXE2BIN). wlink has no equivalent.
 - [ ] Verify segment ordering for kernel binaries (MSDOS.SYS, IO.SYS) — layout is critical.
-
-**wlink flag mapping:**
-| MS LINK | wlink | Notes |
-|---------|-------|-------|
-| `/MAP` | `OPTION MAP` | |
-| `/DOSSEG` | `OPTION DOSSEG` | |
-| `/STACK:N` | `OPTION STACK=N` | |
-| `/NOI` | `OPTION CASEEXACT` | |
-| `/EXEPACK` | none | Skip or post-process |
-| `/NOE` | none | May not be needed |
 
 ### Cleanup: source hygiene ✅ DONE
 
-**1. Strip `^Z` (0x1A) from all source files** ✅
-Stripped ^Z from 332 ASM/INC/C/H files. WASM boot tests pass.
-- [x] Python bulk strip: `data.replace(b'\x1a', b'')` across the submodule
-- [x] Verify build still passes (W249 warnings gone)
+Stripped ^Z from 332 files, fixed `.gitattributes` for MSG files, removed SUBTTL/TITLE remnants.
 
-**2. Fix `.gitattributes` for MSG files** ✅ (done in prior session)
-- [x] Update `.gitattributes`: `*.MSG binary`
-- [x] `git add --renormalize .` to fix blobs
+### Phase 0B: MSDOS.SYS and IO.SYS runtime debugging ✅ DONE
 
-**3. Delete commented-out SUBTTL/TITLE directives** ✅
-Removed 37 lines across 13 files.
-- [x] Remove all `;; SUBTTL` and `;; TITLE` lines
+All kernel boot issues resolved: `IF NOT` audit (60+ instances), MSDOS.SYS (issues #53, #54), IO.SYS (issues #55, #56), boot sector BPB alignment (issue #58), `$M_GET_MSG_ADDRESS` L2029 (issue #52). Full WASM stack boots on clean build.
 
-### Phase 0B: MSDOS.SYS and IO.SYS runtime debugging
+### Phase 1: Individual binary validation under kvikdos ✅ DONE
 
-Full `IF NOT` audit complete — all 60+ instances converted to `EQ 0`. The remaining failures are **not** `IF NOT` bugs.
+**COMMAND.COM:** 46/46 kvikdos built-in tests pass. No crashes.
 
-**MSDOS.SYS (test C):** ✅ Fixed (issues #53, #54). 36976-byte clean build is correct — the "stale-OBJ regression" was actually a boot sector BPB bug (issue #58).
+**CMD utilities:** 18/19 /? smoke tests pass (ATTRIB has kvikdos INT 00 limitation, not a WASM bug). Section 6 functional tests: 49 pass, 65 fail — most failures are kvikdos tty/interactive limitations (DEBUG 13, EDLIN 16), not WASM bugs.
 
-**IO.SYS (test E):** ✅ Fixed (issues #55, #56). Full WASM stack boots on clean build.
+**Known remaining issues:**
+- ATTRIB (5 fail): path resolution (Extended Error 2/9)
+- MEM (3 fail): kvikdos memory reporting gap
+- COMP (1 fail): wildcard FindFirst on absolute paths
 
-**Boot sector (issue #58):** ✅ Fixed. `MSBOOT.ASM` JMP was 2 bytes (no NOP), BPB at offset 10. `mformat -k` writes BPB at standard offset 11, corrupting all fields. Added NOP for standard 3-byte JMP.
+### Upstream WASM fixes — RESOLVED
 
-- [x] Audit kernel source for remaining `IF NOT` patterns — done, all converted
-- [x] Debug MSDOS.SYS crash: QEMU `-d in_asm` trace — fixed (issues #53, #54)
-- [x] Debug IO.SYS disk read failure (test E) — fixed (issues #55, #56)
-- [x] Fix and validate MSDOS.SYS boot (test C) — done (clean build works, issue #58 resolved)
-- [x] Fix and validate IO.SYS (test E) — done
-- [x] Fix boot sector BPB alignment (issue #58) — added NOP after JMP SHORT START
-- [x] Fix `test_wasm_boot.sh` cluster overflow bug (COMMAND.COM truncation) — FAT chain extension + correct cluster range for 1.44MB
-- [x] Fix issue #52: `$M_GET_MSG_ADDRESS` L2029 — renamed flag to `$M_HAS_GETMSGADDR`
-
-### Phase 1: Individual binary validation under kvikdos (fast, no QEMU)
-
-kvikdos can run COMMAND.COM (`/C` mode), any standalone .COM/.EXE, and has spawn support (8 levels deep). Much faster than QEMU for individual binary testing.
-
-**COMMAND.COM under kvikdos:**
-
-kvikdos invocation for COMMAND.COM 4.0 (needs mount + COMSPEC for transient checksum reload):
-```bash
-kvikdos/kvikdos-soft --dos-version=4 \
-  --mount=C:MS-DOS/v4.0/src/CMD/COMMAND/ \
-  --drive=C \
-  --env=COMSPEC=C:\\COMMAND.COM \
-  MS-DOS/v4.0/src/CMD/COMMAND/COMMAND.COM /C VER
-```
-
-- [x] Run WASM-built COMMAND.COM under kvikdos: prints "MS-DOS Version 4.00" — transient init works.
-- [x] Fix kvikdos IOCTL 44/01 (Set Device Info): removed strict DH!=0 rejection and S_ISCHR gate on non-char fds (pipes).
-- [x] Fix kvikdos IOCTL 44/08 (Get Drive Removable): was reading AL instead of BL for drive number.
-- [x] Run built-in commands: `/C DIR`, `/C COPY`, `/C SET FOO=BAR`, `/C FOR %X IN (A B C) DO ECHO %X` — tests TRANCODE dispatch table.
-  - DIR: now works after implementing FCB wildcard FindFirst/FindNext (INT 21h/11h,12h) with extended FCB + directory entry DTA format in kvikdos.
-  - SET: works (no output expected, clean exit).
-  - COPY: works when CWD is inside the source tree (dos-run computes --cwd from Linux CWD).
-  - FOR via batch file: works. Inline `/C FOR` has an edge case (crashes or "Bad command or file name" after last iteration) — this is a COMMAND.COM /C parsing issue, not a WASM or kvikdos bug. Test suite uses batch files.
-  - kvikdos changes: FCB FindFirst/FindNext wildcard support, extended FCB handling, per-drive in-memory volume labels (get/set via INT 21h/69h and FCB attr=0x08).
-- [x] Run Section 7 of run_tests.sh (COMMAND.COM built-in E2E) against WASM binary — **46/46 pass**. Covers VER, ECHO, SET, PATH, DIR, DIR /W, VOL, BREAK, VERIFY, TYPE, GOTO, REM, IF EXIST, IF NOT EXIST, IF ==, IF NOT ==, CALL, SHIFT, FOR, ECHO., ECHO OFF/ON, BREAK toggle, VERIFY toggle, PATH set/clear, SET assign, COPY, COPY /V, REN, DEL, ERASE, DEL wildcard, MD+RD, MD nested, IF ERRORLEVEL, IF NOT ERRORLEVEL, CD, PROMPT, TRUENAME, SET/PROMPT stress, PAUSE, DATE, TIME, COPY a+b c, COPY /B, COPY /A, parser boundary.
-- [x] No built-in crashes — all 46 tests clean.
-
-**Individual CMD utilities under kvikdos:**
-- [x] Run /? smoke tests against 19 WASM-built CMD utilities. **18/19 pass, 1 kvikdos limitation:**
-  - PASS: CHKDSK, COMP, DEBUG, EDLIN, FC, FDISK, FILESYS, FIND, FORMAT, JOIN, LABEL, MEM, MORE, NLSFUNC, SORT, SUBST, SYS, TREE — all print correct help text.
-  - ATTRIB: prints correct help, then crashes on exit (`fatal: unsupported set interrupt vector int:00 to cs:0000 ip:0000`). kvikdos rejects setting INT 00 to null — worth extending kvikdos to allow it. Not a WASM bug.
-  - Not built yet (need full build chain): APPEND, ASSIGN, BACKUP, DISKCOMP, DISKCOPY, EXE2BIN, FASTOPEN, GRAFTABL, GRAPHICS, IFSFUNC, KEYB, MODE, PRINT, RECOVER, REPLACE, RESTORE, SHARE, XCOPY.
-- [x] Run Section 6 functional tests against WASM-built binaries. **49 pass, 65 fail** (after MSGSERV fix).
-  - PASS (49): FIND (8), FC (14), SORT (4), MORE (2), TREE (4), COMP (6), LABEL (1), SUBST, JOIN, ASSIGN, ATTRIB -R/-A, EXE2BIN err, EDLIN ^Z, XCOPY /M clear, /D skip.
-  - TREE: **all 4 pass** after MSGSERV $M_CLASS_ADDRS offset fix.
-  - COMP: **6 of 7 pass** (1 fail: "File not found" test — likely needs wildcard FindFirst on absolute paths).
-  - LABEL: **passes** after MSGSERV fix + LABELM.OBJ rebuild.
-  - DEBUG (13 fail): interactive stdin/tty handling gaps in kvikdos. **DEBMES class-pointer offset bug now fixed** (stale `-1` workaround in SYSMSG.INC removed) — DEBUG.COM exits correctly on `Q` under kvikdos. Remaining 13 failures are kvikdos tty limitations, not WASM bugs.
-  - EDLIN (16 fail): interactive stdin/tty handling gaps in kvikdos.
-  - ATTRIB (5 fail): path resolution issue (Extended Error 2/9).
-  - XCOPY: **now builds** with upstream WASM (BYTE PTR fix for forward-ref CS: var).
-  - GRAFTABL (3 fail), REPLACE (4+4 fail): binaries not built yet.
-  - MEM (3 fail): kvikdos memory reporting gap.
-  - COMP "File not found" (1 fail): needs investigation.
-
-### Fork-built wasm regressions — RESOLVED
-
-All 3 WASM bugs merged upstream (open-watcom-v2, 2026-04-01). Official upstream binary (Apr 2 2026 build) replaces the fork-built binary. COMMAND triageError L2002 and CHKDSK $M_NUM_CLS issues no longer reproduce. Updated to Apr 13 2026 Current-build — EXTRN:ABS E050 bug fixed upstream (confirmed with minimal test), preprocessor workaround kept for safety.
-
-**WASM crash fix (invoke → do_invoke):** DOSMAC.INC defines an `invoke` macro, but WASM reserves `invoke` as a directive (T_INVOKE). When the macro definition failed with E094, the macro body `call name` was processed as regular code, and `name` (T_NAME directive) triggered a NULL dereference in `NameDirective()` → `ConvertModuleName()`. Fix: preprocessor renames `invoke` → `do_invoke`. Upstream crash fix PR: ddanila/open-watcom-v2#14. This eliminated 61 of 62 segfaults.
+All 4 WASM bugs fixed upstream (Apr 13 2026 Current-build):
+- 3 original fork fixes (merged 2026-04-01): EXTRN:ABS byte comparison, $M_ symbol parsing, BYTE PTR forward-ref
+- EXTRN:ABS E050 (confirmed fixed; preprocessor workaround kept for safety)
+- NameDirective NULL deref crash (ddanila/open-watcom-v2#14): `invoke` macro body `call name` triggers SIGSEGV via T_NAME directive handler. Preprocessor renames `invoke` → `do_invoke`, eliminating 61 of 62 segfaults.
 
 ### Remaining WASM compat work — plan
 
@@ -199,21 +113,14 @@ Key source fix patterns:
 
 #### Next steps
 
-1. ~~**Report EXTRN:ABS E050 upstream**~~ — DONE, fixed in Apr 13 build. Preprocessor workaround kept.
-2. **Investigate XMA2EMS segfault** — 1 remaining crash, different root cause from the invoke/name crash (ddanila/open-watcom-v2#14)
-3. **STRUC.INC macro investigation** — need to understand why complex `.IF` patterns trigger `$StrucError` in WASM but not MASM. Test more patterns to narrow down.
-4. **CMACROS.INC** — may need WASM-specific rewrite of cBegin/cEnd/cProc macros
-5. **Link failures** — REPLACE/RESTORE OMF corruption worth reporting upstream too
+1. **Investigate XMA2EMS segfault** — 1 remaining crash, different root cause from the invoke/name crash
+2. **STRUC.INC macro investigation** — need to understand why complex `.IF` patterns trigger `$StrucError` in WASM but not MASM. Test more patterns to narrow down.
+3. **CMACROS.INC** — may need WASM-specific rewrite of cBegin/cEnd/cProc macros
+4. **Link failures** — REPLACE/RESTORE OMF corruption worth reporting upstream too
 
-### Phase 2: Minimal QEMU boot (boot sector + IO.SYS + MSDOS.SYS + COMMAND.COM)
+### Phase 2: Minimal QEMU boot ✅ DONE
 
-QEMU tests the boot chain that kvikdos cannot emulate.
-
-- [x] Test B: MASM core + WASM COMMAND.COM — passes
-- [x] Test C: MASM BIOS + WASM MSDOS.SYS — passes (stale-OBJ MSDOS.SYS; clean-build regression open)
-- [x] Test D: WASM MSDOS.SYS + WASM COMMAND.COM — passes
-- [x] Test E: full WASM — passes on clean build (issue #58 fixed)
-- [x] Use `tests/test_wasm_boot.sh` (already exists) for all of the above
+All 4 boot tests pass (B through E). Full WASM stack boots on clean build. Tests in `tests/test_wasm_boot.sh`.
 
 ### Phase 3: Full E2E test suite on WASM build
 

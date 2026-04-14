@@ -387,7 +387,7 @@ See `TODO.md` Phase 4 for full flag mapping and task list.
 
 ## WASM Build Status
 
-All 53 modules assemble cleanly under WASM: 7 core (MESSAGES, MAPPER, BOOT, INC, BIOS, DOS, MEMM), 38 CMD utilities, 12 DEV drivers, SELECT, DEPLOY, VERIFY, SYS e2e. 57 WASM compatibility issues resolved (#1–#57, documented below).
+97 assembly files build clean, 431 fail, 1 segfault (XMA2EMS). Core build (IO.SYS, MSDOS.SYS, COMMAND.COM) + most CMD utilities assemble cleanly. 5 CMD modules have assembly errors; non-CMD modules (SELECT, MEMM, DEV) also have errors. 58+ WASM compatibility issues resolved (documented below).
 
 ### Runtime Validation Status
 
@@ -672,30 +672,11 @@ Direct pipeline `strings ... | grep -q ...` can cause SIGPIPE when grep exits ea
 - **COMP.COM**: works — 6 of 7 tests pass after MSGSERV fix. Same `-1` `$M_MAKE` workaround as TREE. Uses `timeout 5` with piped `/dev/null` to avoid interactive Y/N loop at EOF.
 - **ATTRIB.EXE**: works — show attributes, +R (set read-only), -R (clear read-only) tested. +A/-A (archive) cannot be tested under kvikdos — only read-only is mapped to Unix chmod; archive/hidden/system are silently ignored (kvikdos.c INT 21h/43h handler). Worth extending kvikdos to support archive/hidden/system via xattr.
 - **MORE.COM**: works — piped stdin pagination tested.
-- **DEBUG.COM**: the old WASM blockers are now fixed upstream in the local Open Watcom fork:
-  - MSGSERV macro bug: `$M_BUILD_PTRS Macro nummsg` formal parameter names were being constant-expanded on `MACRO` definition lines, corrupting stored macro bodies and shifting `$M_RT.field` references. Fixed in `open-watcom-v2` by preserving formal parameters on `T_MACRO` lines.
-  - DOS EOF bug: bare `^Z` (`0x1A`) lines triggered a WASM internal assertion in `asmins.c`; fixed by treating unquoted `0x1A` as DOS text EOF in `asmline.c`.
-  - Result: all 11 DEBUG ASM modules now assemble with WASM, link, and CONVERT successfully; `DEBUG.COM` is produced from source.
-  - kvikdos/KVM follow-up: the immediate native-Linux crash at `phys_addr=00104031` was a real `kvikdos` bug. KVM reports the unfurled physical address for `ff00:5031`-style real-mode accesses, but `kvikdos` wasn't folding those back to 20 bits or servicing wrapped accesses landing in normal DOS RAM. A minimal `a20wrap.com` repro was added and the KVM MMIO handler now masks to `0xfffff` and emulates wrapped accesses into the writable guest slot.
-  - Current runtime state after control testing: the remaining `DEBUG` failure is not a generic kvikdos problem. A clean `master` worktree still builds a MASM `DEBUG.COM` that exits correctly under local Linux `kvikdos` (`printf 'Q\r\n' | dos-run CMD/DEBUG/DEBUG.COM` returns `RC=0`) on the same host where the `watcom-migration` `DEBUG.COM` still hangs.
-  - Hybrid-link narrowing: swapping in only the MASM-built `DEBMES.OBJ` makes the WASM-linked `DEBUG.COM` exit correctly on `Q`; swapping any other single DEBUG object does not.
-  - Tooling update: `wdis` is the preferred tool for comparing MASM vs WASM OMF `.OBJ` files such as `DEBMES.OBJ`; `ndisasm` is still useful for final `.COM` diffs, but only after link time.
-  - Vendored-tool check: the original `watcom/bin/linux-x64/wasm` in this repo was still the `2026-03-01-Build` snapshot, so the fixes in the local Open Watcom fork were not being exercised until the vendored Linux `wasm` was manually replaced with the fork-built binary.
-  - Wrapper check: this is not `bin/wasm-masm` or `strip-wasm-segs`. A raw unstripped direct `wasm -zcm=masm` build of `DEBMES.ASM` reproduces the same failure.
-  - After swapping in the fork-built Linux `wasm`, `DEBUG` was rebuilt in isolation and `DEBMES.OBJ` / `DEBUG.COM` both changed (`DEBUG.COM` grew from 21686 to 21702 bytes), but runtime behavior did not: `printf 'Q\r\n' | dos-run CMD/DEBUG/DEBUG.COM` still hangs with `RC=124`.
-  - Follow-up in the Watcom fork: a reduced reproducer for `PUBLIC ARG_BUF` + lowercase backing label was added, and `wasm` was fixed to preserve the `PUBLIC` spelling as the canonical exported symbol name in case-insensitive MASM mode.
-  - After updating the vendored Linux `wasm` again with that fix, the remaining known OMF surface mismatch in `DEBMES.OBJ` disappeared too: it now exports `ARG_BUF` (not `arg_buf`) and still emits only single `PUBLIC $M_MSGSERV_1` / `$M_MSGSERV_2` records.
-  - Even with both known OMF-surface mismatches fixed, `DEBUG.COM` still hangs on `Q` with `RC=124`.
-  - Fresh hybrid re-check after the latest Watcom fix: swapping in only the MASM `DEBMES.OBJ` on top of the current new-WASM DEBUG object set still produces a `DEBUG.COM` that exits correctly on `Q` (`RC=0`). So the remaining runtime discrepancy is still isolated to `DEBMES.OBJ`, not the rest of the current command build.
-  - Better reducer than full `DEBUG`: `pre_load_message` succeeds with both MASM and current WASM `DEBMES.OBJ`, but `printf PROMPT_PTR` differs. MASM prints `-` and returns carry clear; current prints nothing and returns carry set.
-  - Direct failing subroutine reducer: calling `$M_GET_MSG_ADDRESS` for utility-class prompt message `0x001A` succeeds with MASM but fails with current WASM (`DI=FFFF`, `CX=0`, carry set). So the remaining bug is in message lookup / runtime table state, not in `pre_load_message` itself.
-  - Data points that are *not* the bug: the `PROMPT_PTR` descriptor bytes match, the exported `$M_CLS_1..4` / `$M_MSGSERV_1..2` stubs return sensible `ES:DI` / `CX`, and the linked class-C header / message-entry table bytes for the prompt message still match MASM.
-  - New strongest clue: after `pre_load_message`, the resident `$M_RT` table matches MASM up to offset `0x2A`, then current WASM is shifted left by one byte before the utility-class pointer region. The stored class pointers used by `$M_GET_MSG_ADDRESS` are therefore mislaid out, which explains why prompt message `0x001A` is "not found" even though the class data itself is present and correct.
-  - Final root cause: this was not another new WASM backend bug. The remaining one-byte shift came from a stale source-side workaround in `SYSMSG.INC` added in `MS-DOS` commit `a2a2ee7` for the older `$M_RT.$M_CLASS_ADDRS` alias-offset bug. After updating the vendored Linux `wasm` to the fork-built binary, that `-1` compensation became wrong and wrote the class pointers one byte early.
-  - Fix: remove the `-1` offsets from the `$M_MAKE` stores in `SYSMSG.INC` so `$M_RT.$M_CLASS_ADDRS+$M_INDEX` is used directly again.
-  - Validation: with the rebuilt `DEBMES.OBJ`, the reduced repros all flip back to MASM-like behavior (`$M_GET_MSG_ADDRESS` succeeds for utility-class prompt message `0x001A`, `printf PROMPT_PTR` prints `-`), and full `DEBUG.COM` exits correctly on `Q` under local `kvikdos` (`RC=0`).
-  - Wider regression note after swapping in the fork-built `wasm`: after the `DEBUG` fix, the next command-tree blockers are still outside `DEBUG`. `COMMAND` is not yet properly resolved: the old `triageError` near-call still triggers `L2002`, while the naive direct-far-call variant links but introduces relocations and makes `EXE2BIN` reject `COMMAND.EXE`. `CHKDSK` still fails in `CHKDISP.ASM` with `$M_NUM_CLS` already defined.
-  - CI evidence is still useful: latest successful CI run passes both `make test` and the dedicated `e2e-debug` QEMU job, so the `DEBUG` failure was never an inherent DOS source bug. That item is now resolved; the remaining migration work is the wider command-tree regression set above.
+- **DEBUG.COM**: ✅ Fixed. All 11 ASM modules assemble, link, and CONVERT successfully.
+  - Upstream WASM fixes needed: (1) MSGSERV macro `$M_BUILD_PTRS` formal parameter corruption, (2) bare `^Z` DOS EOF assertion. Both merged into open-watcom-v2.
+  - kvikdos KVM fix: 20-bit address wraparound for `ff00:5031`-style accesses — MMIO handler now masks to `0xfffff`.
+  - Runtime bug root cause: `DEBMES.OBJ` had a one-byte `$M_RT` table shift. Traced to stale `-1` workaround in `SYSMSG.INC` (commit `a2a2ee7`) for the older `$M_CLASS_ADDRS` alias-offset bug. After upstream WASM fixes, the compensation became wrong. Fix: remove `-1` offsets from `$M_MAKE` stores.
+  - Debugging approach: hybrid-link narrowing (swap single MASM OBJ into WASM build) isolated the bug to `DEBMES.OBJ`. Subroutine reducer: `$M_GET_MSG_ADDRESS` for prompt message `0x001A` failed with WASM but succeeded with MASM, pointing to class pointer table misalignment.
 - **LABEL.COM**: works — show volume info tested. Write operations need FCB delete (QEMU only).
 - **EDLIN.COM**: works — open existing file + list, open new file tested. Insert mode can't be tested via pipe (Ctrl+C handling). Needs INT 21h/6Ch (Extended Open/Create).
 - **REPLACE.EXE**: /A (add mode) works. Basic replace may work now (FCB wildcard FindFirst was added); needs retest.
@@ -1108,103 +1089,21 @@ TCOMMAND's own comment says "Nothing is known here. No registers, no flags, noth
 - MEMM AFLAGS: `-Mx -t -DI386 -DNoBugMode -DNOHIMEM -I..\\EMM`; MAPDMA.C needs `-I..\\EMM`.
 - EMM386.SYS: link `/NOI @EMM386.LNK` → emm386.exe, then rename to emm386.sys (no exe2bin).
 
-## WASM Boot Failure — Root Cause Analysis (ACTIVE)
+## WASM Boot Failure — Root Cause Analysis (RESOLVED)
 
-**Status:** All three WASM-built binaries (IO.SYS, MSDOS.SYS, COMMAND.COM) fail to boot
-independently (confirmed via `tests/test_wasm_boot.sh` — tests A–E: only baseline MASM passes).
-**This is the current focus of the watcom-migration effort.**
+All boot failures resolved (issues #51–#58). Tests B–E all pass now.
 
-### Debugging infrastructure
+**Root causes found:**
+- **COMMAND.COM** (issue #51): `IF NOT TRUE` in MSGSERV.ASM compound expression evaluated as truthy in WASM. Fix: `IF (IBM EQ 0) OR (DEBUG)`.
+- **MSDOS.SYS** (issues #53, #54): Same `IF NOT` pattern + `LABEL WORD` emitting absolute offset 0.
+- **IO.SYS** (issues #55, #56): Boot sector BPB alignment (issue #58) — `JMP SHORT START` was 2 bytes (no NOP), BPB offset 10 vs mformat's expected offset 11.
+- **`bin/strip-wasm-segs`** OMF post-processor: strips WASM's auto-generated `_TEXT`/`_DATA` SEGDEFs that broke segment ordering.
 
-- `tests/test_wasm_boot.sh`: FAT12 binary-patches floppy.img with WASM binaries one at a time,
-  boots each in headless QEMU, captures serial output via CTTY AUX / VER, checks for "MS-DOS".
-- QEMU GDB server: `qemu-system-i386 -s -S -no-reboot -d int,cpu ...` then GDB with hw breakpoints.
-- QEMU exec trace: `-d exec,nochain 2>trace.log` (format: `[cs_base/phys_pc/flags]`, IP = phys_pc − cs_base).
+**Debugging approach that worked:** Isolation testing (`test_wasm_boot.sh`) — swap one WASM binary at a time into MASM build to identify independent failures. Then hybrid-link narrowing (single OBJ swap) to isolate to specific modules.
 
-### COMMAND.COM crash: CS:0x6F48 (#UD — invalid opcode)
-
-**COMMAND.COM segment layout (WASM build, 43832 bytes):**
-- CODERES: CS:0x0000–0x0E26
-- DATARES: CS:0x0E27–0x1A6A
-- INIT:    CS:0x1B70–0x289F  (entry at CS:0x0100 → JMP 0x1B70)
-- TRANCODE: CS:0x28A0–0x978A
-- TRANDATA: CS:0x978A–0x9C3E
-
-**Crash location:** EIP = CS:0x6F48 = 307 bytes into COPY_HELP_STR string data (TRANCODE segment).
-CPU state at crash: CS=0x0E66, DS=0x099D (not equal to CS), ESI=0x81.
-
-**Root cause (WASM assembler bug — not the linker, since MS LINK.EXE is used in both builds):** `OFFSET TRANGROUP:COPY_HELP_STR` in COPY.ASM resolves to
-**0x6F48** (WASM) instead of **CS:0x6E15** (MASM) — 0x133 = 307 bytes too far into the string.
-Two data uses of the wrong address confirmed in the binary:
-- File 0x5AA7: MOV DX, 0x6F48; JMP 0x5D20
-- File 0x651C: MOV word [0x822F], 0x6F48
-
-**Dispatch table (TDATA.ASM COMTAB):** COPY entry at file 0x995E stores TRANGROUP-offset 0x4727 → CS:0x6FC7.
-MASM stores 0x4720 → CS:0x6F60. Both point to the COPY: label (COPY.ASM), but differ by 7 bytes.
-
-**Crash mechanism:** The wrong DX=0x6F48 is passed to the message dispatcher at CS:0x87EB.
-That dispatcher reads [DS:0x6F48] as a message structure pointer — DS!=CS, so
-it dereferences at linear 0x099D0 + 0x6F48 = 0x10918 (INIT segment data), computes a
-garbage function pointer, and jumps into the middle of COPY_HELP_STR string data, causing #UD.
-
-**COPY_HELP_STR location:** file offset 0x6D15 (CS:0x6E15), length 433 bytes.
-COPY: label immediately follows at file 0x6EC7 (CS:0x6FC7).
-
-### Comparison with MASM build (from floppy.img)
-
-| | MASM | WASM |
-|--|------|------|
-| COMMAND.COM size | 44013 bytes | 43832 bytes |
-| COPY_HELP_STR | CS:0x6DAE | CS:0x6E15 |
-| COPY: label | CS:0x6F60 | CS:0x6FC7 |
-| COMTAB COPY offset | 0x4720 | 0x4727 |
-| OFFSET TRANGROUP:COPY_HELP_STR | 0x6DAE (correct) | 0x6F48 (WRONG, +0x133) |
-
-### Key diagnostic tips
-
-- x86 hw breakpoints in GDB: max 4 (DR0–DR3). Setting 5 causes silent failure on one.
-- Real-mode GDB linear address: CS*16 + IP (e.g., CS=0x0E66, IP=0x6F48 → linear 0x155A8).
-- Stack read via GDB: `x/8xb <linear_SS*16+SP>`, not local offset.
-- QEMU exec trace format: `[cs_base/phys_pc/flags]` — IP = phys_pc - cs_base.
-
-### Isolation test results
-
-| Test | IO.SYS | MSDOS.SYS | COMMAND.COM | Result | Conclusion |
-|------|--------|-----------|-------------|--------|------------|
-| A | MASM | MASM | MASM | PASS | Baseline works |
-| B | MASM | MASM | **WASM** | FAIL | COMMAND.COM has its own bug |
-| C | MASM | **WASM** | MASM | FAIL | MSDOS.SYS has its own independent bug |
-| D | MASM | **WASM** | **WASM** | FAIL | Both broken (expected given B+C) |
-| E | **WASM** | **WASM** | **WASM** | FAIL | All broken |
-
-**Key conclusion: the failures are INDEPENDENT.** Tests B and C each fail with only one binary swapped into an otherwise working MASM system. There are at minimum two distinct bugs.
-
-**Missing test:** No isolated IO.SYS test exists (IO.SYS is only tested in test E alongside the other two). Adding a "Test F: WASM IO.SYS + MASM kernel + MASM COMMAND.COM" would confirm whether IO.SYS has a third independent bug or works fine.
-
-### COMMAND.COM OFFSET bug — per-fixup error pattern
-
-The error magnitude depends on **which OBJ file contains the reference**, not which symbol is referenced:
-
-| Reference | Source OBJ | Target symbol | Error |
-|-----------|-----------|---------------|-------|
-| `OFFSET TRANGROUP:COPY_HELP_STR` | COPY.OBJ (intra-object) | COPY_HELP_STR | +0x133 (307 bytes) |
-| `OFFSET TRANGROUP:COPY` | TDATA.OBJ (inter-object, via EXTRN) | COPY | +7 bytes |
-
-Both target symbols are in the same file (COPY.ASM, TRANCODE segment), ~307 bytes apart. Yet the errors are vastly different. This suggests WASM computes the group-relative adjustment differently for intra-object references (same .OBJ, same TRANCODE contribution) vs inter-object references (different .OBJ, via EXTRN/FIXUPP frame).
-
-TRANCODE is `PUBLIC BYTE` — 17+ OBJ files contribute sections that get concatenated. COPY.OBJ is #24 in link order. WASM may be encoding the FIXUPP as segment-relative instead of group-relative, or using the wrong LSEG index for the frame specification.
-
-**Blast radius:** 173 `OFFSET TRANGROUP:` references across 22 ASM files. If the bug is systematic, many dispatch table entries, string pointers, and data addresses are corrupted — not just COPY.
-
-### MSDOS.SYS — likely same class of bug
-
-MSDOS.SYS uses `DOSGROUP` (spanning ~50 files, same `PUBLIC BYTE` concatenation pattern). If WASM has a systematic group-relative FIXUPP bug, the kernel is equally affected. This has not been debugged via GDB yet — test C confirms it's independently broken.
-
-### Next steps (priority order)
-
-1. **OBJ-level diagnostics (Phase 0):** Compare MASM vs WASM FIXUPP records for COPY.OBJ and TDATA.OBJ. Use `wdump` (Open Watcom) or Python OMF parser. Focus on frame method, target method, and displacement for `OFFSET TRANGROUP:` fixups. This will reveal the exact encoding difference.
-2. **Determine if systematic:** If the FIXUPP pattern is consistent across all OBJs, write a post-processing script to fix OBJ files before linking (similar to fix_cl_forward_refs.py).
-3. **kvikdos smoke test:** Run WASM COMMAND.COM under kvikdos (`COMMAND.COM /C VER`) — tests transient init without needing QEMU boot.
-4. **Add isolated IO.SYS test** (Test F) to `test_wasm_boot.sh`.
+**Key diagnostic tips:**
+- x86 hw breakpoints in GDB: max 4 (DR0–DR3). Setting 5 causes silent failure.
+- Real-mode GDB linear address: CS*16 + IP.
+- QEMU exec trace: `-d exec,nochain 2>trace.log`, IP = phys_pc - cs_base.
 5. **MSDOS.SYS debugging:** QEMU GDB + exec trace to find crash location and compare with DOSGROUP FIXUPP analysis.
 6. **Full integration:** Once all three boot individually, run complete E2E suite.
