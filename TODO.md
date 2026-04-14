@@ -4,7 +4,7 @@
 
 **End state:** All assembly and C compilation uses Open Watcom (WASM, wcc, wlink, wlib) natively. The full E2E test suite passes on the WASM-built floppy image. kvikdos remains only for the 7 pre-built DOS build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF, MENUBLD) — eliminating those is a separate future effort, not part of this migration.
 
-**Current status:** Upgraded to official upstream WASM (Apr 2 2026) with all 3 bug fixes merged. **349/416 assembly files build clean (84%).** ~75 files still errored (756 total errors). Core build (IO.SYS, MSDOS.SYS, COMMAND.COM) + most CMD utilities assemble cleanly. 5 CMD modules have assembly errors (14 files); 4 have link-only errors. Non-CMD modules (SELECT, MEMM, DEV) also have errors but are lower priority. MASM target dropped — WASM-only going forward. Full E2E pending.
+**Current status:** Upgraded to official upstream WASM (Apr 13 2026 Current-build). EXTRN:ABS bug fixed upstream; preprocessor workaround kept for safety. `invoke` WASM reserved word crash fixed via preprocessor rename (`invoke` → `do_invoke`), eliminating 61 of 62 segfaults. **97 assembly files build clean, 431 fail, 1 segfault** (XMA2EMS, separate crash). Note: raw error count is not a reliable metric — fixing crashes increases it as previously-crashing files now report real errors. Track clean-file count and failed-target count instead. Core build (IO.SYS, MSDOS.SYS, COMMAND.COM) + most CMD utilities assemble cleanly. MASM target dropped — WASM-only going forward. Full E2E pending.
 
 **Key findings:**
 - COMMAND.COM issue #52 (L2029 `$M_GET_MSG_ADDRESS` unresolved) fixed: renamed `$M_HAS_$M_GET_MSG_ADDRESS` → `$M_HAS_GETMSGADDR` to avoid WASM `$M_` symbol parsing bug.
@@ -134,11 +134,13 @@ kvikdos/kvikdos-soft --dos-version=4 \
 
 ### Fork-built wasm regressions — RESOLVED
 
-All 3 WASM bugs merged upstream (open-watcom-v2, 2026-04-01). Official upstream binary (Apr 2 2026 build) replaces the fork-built binary. COMMAND triageError L2002 and CHKDSK $M_NUM_CLS issues no longer reproduce.
+All 3 WASM bugs merged upstream (open-watcom-v2, 2026-04-01). Official upstream binary (Apr 2 2026 build) replaces the fork-built binary. COMMAND triageError L2002 and CHKDSK $M_NUM_CLS issues no longer reproduce. Updated to Apr 13 2026 Current-build — EXTRN:ABS E050 bug fixed upstream (confirmed with minimal test), preprocessor workaround kept for safety.
+
+**WASM crash fix (invoke → do_invoke):** DOSMAC.INC defines an `invoke` macro, but WASM reserves `invoke` as a directive (T_INVOKE). When the macro definition failed with E094, the macro body `call name` was processed as regular code, and `name` (T_NAME directive) triggered a NULL dereference in `NameDirective()` → `ConvertModuleName()`. Fix: preprocessor renames `invoke` → `do_invoke`. Upstream crash fix PR: ddanila/open-watcom-v2#14. This eliminated 61 of 62 segfaults.
 
 ### Remaining WASM compat work — plan
 
-756 errors across ~75 files. **349/416 assemblies clean (84%).** MASM target dropped — WASM-only going forward.
+**97 clean, 431 fail, 1 segfault (XMA2EMS).** MASM target dropped — WASM-only going forward.
 
 #### Completed fixes (this session)
 
@@ -147,13 +149,14 @@ Modules fully resolved: GRAFTABL, PRINT, BACKUP, SHARE, RECOVER (+link), FASTOPE
 Key preprocessor improvements:
 - BREAK/HEADER listing macro stripping (invocations + definitions)
 - OPTION → KB_OPTION rename (WASM reserved word)
-- EXTRN:ABS → local EQU resolution (scans source dir for PUBLIC EQU values)
+- invoke → do_invoke rename (WASM reserved word — crashed WASM via NULL deref in NameDirective; 61 segfaults fixed)
+- EXTRN:ABS → local EQU resolution (scans source dir for PUBLIC EQU values; kept even after upstream fix)
 - $M_NUM_CLS, FALSE/TRUE/IBM, ERR_*, and many more IFNDEF EQU guards
 - TYPE→SIZE handles (TYPE x) in DUP; multi-space collapse in angle brackets
 - endm_depth tracking in resolve_wasm_conditionals main loop
 
 Key source fix patterns:
-- WASM reserved words: DISPLAY→DISP_MSG, ECHO→ECHO_PTS, REPEAT→REPT_LP, FOR→FOR_LP, addr macro removed
+- WASM reserved words: DISPLAY→DISP_MSG, ECHO→ECHO_PTS, REPEAT→REPT_LP, FOR→FOR_LP, invoke→do_invoke (preprocessor), addr macro removed
 - NOT mask overflow: `(NOT x) AND 0FFh/0FFFFh`
 - REP CMPSB → REPE CMPSB; REPE MOVSB → REP MOVSB
 - EXTRN:ABS comparisons with BYTE: use register intermediates or literals
@@ -177,7 +180,7 @@ Key source fix patterns:
 - **STRUC.INC E032** (~19 from CMD, ~198 from SELECT/DEV): `$StrucError` fires because WASM macro expansion handles arguments differently from MASM in some `.IF`/`.WHILE` patterns. Simple cases work (tested). Complex cases with segment overrides or BIT keyword fail. May be a WASM macro expansion bug worth reporting upstream.
 - **CMACROS.INC**: Uses `&macro`/`&endm` nested macro definition syntax that WASM fundamentally doesn't support. Already has partial `IFNDEF __WASM__` guards but they're incomplete.
 - **DOSMAC.INC Procedure/EndProc**: WASM tracks proc/endp differently when opened via macro expansion. PURGE not supported.
-- **EXTRN:ABS E050**: WASM treats all ABS externs as WORD-sized regardless of actual value. Likely a WASM bug — `EXTRN keyword:ABS` (value=58h) should work as byte immediate in `CMP BYTE_var, keyword`. Workaround: preprocessor resolves known ABS values to local EQU.
+- **EXTRN:ABS E050**: ~~WASM treats all ABS externs as WORD-sized~~ — **fixed upstream** (Apr 13 2026 build, confirmed). Preprocessor workaround (resolve to local EQU) kept for safety.
 
 #### Link-only failures (4 modules, assemblies OK)
 
@@ -196,10 +199,11 @@ Key source fix patterns:
 
 #### Next steps
 
-1. **Report EXTRN:ABS E050 upstream** — minimal repro ready, likely a WASM bug
-2. **STRUC.INC macro investigation** — need to understand why complex `.IF` patterns trigger `$StrucError` in WASM but not MASM. Test more patterns to narrow down.
-3. **CMACROS.INC** — may need WASM-specific rewrite of cBegin/cEnd/cProc macros
-4. **Link failures** — REPLACE/RESTORE OMF corruption worth reporting upstream too
+1. ~~**Report EXTRN:ABS E050 upstream**~~ — DONE, fixed in Apr 13 build. Preprocessor workaround kept.
+2. **Investigate XMA2EMS segfault** — 1 remaining crash, different root cause from the invoke/name crash (ddanila/open-watcom-v2#14)
+3. **STRUC.INC macro investigation** — need to understand why complex `.IF` patterns trigger `$StrucError` in WASM but not MASM. Test more patterns to narrow down.
+4. **CMACROS.INC** — may need WASM-specific rewrite of cBegin/cEnd/cProc macros
+5. **Link failures** — REPLACE/RESTORE OMF corruption worth reporting upstream too
 
 ### Phase 2: Minimal QEMU boot (boot sector + IO.SYS + MSDOS.SYS + COMMAND.COM)
 
