@@ -325,8 +325,38 @@ WASM cannot handle `<val1, val2, N dup (x)>` struct initializer syntax. Fix: rep
 **30. Forward-referenced EQU constants used as immediates (E040)**
 WASM single-pass: EQU constants defined near the end of a file cannot be used as immediates in instructions earlier in the file. MASM two-pass handled this transparently. Fix: hoist the EQU definitions to before their first use (top of file or before segment). Affected: `SYSINIT2.ASM` switchnum/flagec35/flagdrive/flagcyln/flagseclim/flagheads/flagff.
 
-**31. Bare `invoke` treated as built-in directive (E094)**
-WASM has a built-in `INVOKE` directive (case-insensitive). Legacy BIOS code using `invoke GETCHR` (without `DOS` prefix) hits E094. Fix: replace `invoke` with `DOSInvoke`.
+**31. `invoke` macro crashes WASM (SIGSEGV via NameDirective NULL deref)**
+
+DOSMAC.INC defines `invoke MACRO name` — a helper that calls a procedure with
+auto-EXTRN.  WASM reserves `INVOKE` as a directive (T_INVOKE), so the macro
+definition fails with E094.  But the crash is NOT from E094 itself — it's from
+the macro body lines being processed as regular assembly after the failed
+definition.
+
+Crash chain:
+1. `invoke MACRO name` → E094 (expected), macro definition discarded
+2. `call name` (macro body) processed as regular code
+3. Tokenizer: token[0]=`call` (TC_INSTR/T_CALL), token[1]=`name` (TC_DIRECTIVE/T_NAME), token[2]=TC_FINAL (string_ptr=NULL)
+4. AsmParse (asmins.c:2366-2371): instruction followed by directive → heuristic reclassifies `call` as TC_ID (label)
+5. Dispatch: label `call` + directive NAME → `NameDirective(tokbuf, 1)`
+6. NameDirective (direct.c:4146): reads `tokens[i+1].string_ptr` → tokens[2] is TC_FINAL sentinel, string_ptr=NULL
+7. `MemStrdupSafe(NULL)` → returns NULL → `ConvertModuleName(NULL)` → dereferences NULL → SIGSEGV (main.c:284)
+
+Simplest reproducer (no invoke needed): `call name` / `END`
+
+Fix (preprocessor): rename `invoke` → `do_invoke` globally via INVOKE_PAT in preprocess-wasm.
+Eliminates 61 of 62 build segfaults — every file including DOSMAC.INC was crashing.
+
+Upstream crash fix PR: ddanila/open-watcom-v2#14 — adds TC_FINAL guard in NameDirective
+before accessing tokens[i+1], matching the pattern used by other directive handlers.
+
+**32. XMA2EMS.ASM segfault — remaining 1 of 62**
+
+XMA2EMS does not include DOSMAC.INC and has no `invoke` usage. Crashes only when
+built via the Makefile (wasm-masm wrapper with -I paths), not when run directly
+with absolute paths. Different root cause from #31 — not yet investigated.
+Likely another directive-related NULL deref triggered by specific include path
+resolution order.
 
 ## wcc Migration Notes (Phase 4 — C compiler)
 
