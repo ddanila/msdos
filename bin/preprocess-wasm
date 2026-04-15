@@ -339,7 +339,15 @@ def needs_transform(text):
             or OPTION_MACRO_PAT.search(text) is not None
             or SIZE_OVERRIDE_PAT.search(text) is not None
             or TYPE_OP_PAT.search(text) is not None
-            or INVOKE_PAT.search(text) is not None)
+            or INVOKE_PAT.search(text) is not None
+            or ENTER_MACRO_PAT.search(text) is not None
+            or MEXIT_MACRO_PAT.search(text) is not None
+            or STR_STRUC_PAT.search(text) is not None
+            or STR_SIZE_PAT.search(text) is not None
+            or NOT_MEM_OPERAND_PAT.search(text) is not None
+            or ADDR_FIELD_DEF_PAT.search(text) is not None
+            or ADDR_MEMBER_ACCESS_PAT.search(text) is not None
+)
 
 def _wrap_equ_ifndef(m):
     """Wrap an EQU definition in IFNDEF guard."""
@@ -448,6 +456,100 @@ INVOKE_PAT = re.compile(
     re.IGNORECASE,
 )
 
+# WASM treats ENTER as the x86 ENTER instruction, blocking MAPPER's MACROS.INC
+# `Enter` macro (which saves registers/sets up frame).  Rename the macro
+# definition and all call sites.  Match Enter at statement position followed by
+# a word (the routine name argument) or "macro" (the definition).
+ENTER_MACRO_PAT = re.compile(
+    r'^(\s*)Enter(\s+(?:macro|[A-Za-z_]\w*))',
+    re.MULTILINE | re.IGNORECASE,
+)
+
+# WASM reserves MEXIT as a directive (exit macro expansion).  MAPPER's
+# MACROS.INC defines a `Mexit` macro (restores registers/frame).  Only rename
+# at statement position OUTSIDE macro/irp/rept bodies (inside those bodies,
+# mexit is the real WASM directive).
+MEXIT_MACRO_PAT = re.compile(
+    r'^(\s*)mexit\b',
+    re.MULTILINE | re.IGNORECASE,
+)
+
+# MAPPER files name their stack-frame structure `str`, which may conflict with
+# WASM internals.  Rename to `stkfrm` in structure definitions, ends, and
+# SIZE references.
+STR_STRUC_PAT = re.compile(
+    r'\bstr\b(?=\s+(?:struc|ends)\b)',
+    re.IGNORECASE,
+)
+# Use capturing group (not lookbehind) to handle variable whitespace between
+# SIZE and str.
+STR_SIZE_PAT = re.compile(
+    r'\b(size\s+)str\b',
+    re.IGNORECASE,
+)
+
+# WASM reserves ADDR as an operator.  Rename `addr` when used as a struct
+# member name: field definitions and [reg].addr member accesses.
+# Restricted to struct context to avoid false positives.
+# WASM `not` on a 16-bit EQU value produces a 32-bit result, causing E102
+# (386 operand size) when used with unsized memory operands (e.g., ds:[si]).
+# Add explicit WORD PTR and mask to 16 bits.  Only match memory operands
+# of the form seg:[reg] or [reg] (no explicit PTR override) with `not`.
+NOT_MEM_OPERAND_PAT = re.compile(
+    r'^(\s*(?:and|or|test|xor)\s+)'
+    r'((?:(?:ds|es|cs|ss):)?\[[^\]]+\])'
+    r'(\s*,\s*)'
+    r'not\s+(\w+)',
+    re.MULTILINE | re.IGNORECASE,
+)
+
+ADDR_FIELD_DEF_PAT = re.compile(
+    r'^(addr)(\s+d[bdwqt]\s)',
+    re.MULTILINE | re.IGNORECASE,
+)
+ADDR_MEMBER_ACCESS_PAT = re.compile(
+    r'(\.)(addr)\b',
+    re.IGNORECASE,
+)
+
+
+_MEXIT_ENDM_OPEN = re.compile(
+    r'^(?!\s*;)\s*(?:\S+\s+macro\b|irp\b|rept\b|for\b)',
+    re.IGNORECASE,
+)
+_MEXIT_ENDM_CLOSE = re.compile(r'^\s*endm\b', re.IGNORECASE)
+
+_MEXIT_DEF_PAT = re.compile(
+    r'^(\s*)(mexit)(\s+macro\b)',
+    re.IGNORECASE,
+)
+
+def rename_mexit_outside_macros(text):
+    """Rename `mexit` to `do_mexit` only outside macro/irp/rept bodies.
+
+    Inside macro bodies, mexit is the real WASM directive (exit macro
+    expansion) and must NOT be renamed.  Outside, it's MAPPER's MACROS.INC
+    `Mexit` macro (restores registers/frame) and must be renamed.
+    Also renames the macro definition itself (`Mexit macro` → `do_mexit macro`).
+    """
+    lines = text.split('\n')
+    endm_depth = 0
+    result = []
+    for line in lines:
+        # Rename the macro definition line before tracking depth
+        m = _MEXIT_DEF_PAT.match(line)
+        if m:
+            line = m.group(1) + 'do_mexit' + m.group(3)
+            endm_depth += 1
+        elif _MEXIT_ENDM_OPEN.match(line):
+            endm_depth += 1
+        elif _MEXIT_ENDM_CLOSE.match(line) and endm_depth > 0:
+            endm_depth -= 1
+        if endm_depth == 0:
+            line = MEXIT_MACRO_PAT.sub(r'\1do_mexit', line)
+        result.append(line)
+    return '\n'.join(result)
+
 def transform(text):
     """Apply dot-macro rename, CL forward-ref fix, %out removal, EQU guards, SF_BITS expansion,
     and cProc/cBegin/cEnd name injection for WASM."""
@@ -468,6 +570,13 @@ def transform(text):
     text = HEADER_PAT.sub(r'; (HEADER removed for WASM)', text)
     text = OPTION_MACRO_PAT.sub(r'\1KB_OPTION\2', text)
     text = INVOKE_PAT.sub('do_invoke', text)
+    text = ENTER_MACRO_PAT.sub(r'\1do_enter\2', text)
+    text = rename_mexit_outside_macros(text)
+    text = STR_STRUC_PAT.sub('stkfrm', text)
+    text = STR_SIZE_PAT.sub(r'\1stkfrm', text)
+    text = NOT_MEM_OPERAND_PAT.sub(r'\1WORD PTR \2\3((not \4) and 0FFFFh)', text)
+    text = ADDR_FIELD_DEF_PAT.sub(r'saddr\2', text)
+    text = ADDR_MEMBER_ACCESS_PAT.sub(r'\1saddr', text)
     text = EQU_REDEF_PAT.sub(_wrap_equ_ifndef, text)
     fwd_lines = FWD_PAT.findall(text)
     if fwd_lines:
