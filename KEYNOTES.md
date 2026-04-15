@@ -387,7 +387,51 @@ See `TODO.md` Phase 4 for full flag mapping and task list.
 
 ## WASM Build Status
 
-97 assembly files build clean, 431 fail, 1 segfault (XMA2EMS). Core build (IO.SYS, MSDOS.SYS, COMMAND.COM) + most CMD utilities assemble cleanly. 5 CMD modules have assembly errors; non-CMD modules (SELECT, MEMM, DEV) also have errors. 58+ WASM compatibility issues resolved (documented below).
+**Apr 15 2026:** 368 failed build targets (down from 431). Estimated ~160/528 ASM
+files compile clean (~30%). Core OS boots in QEMU. XMA2EMS segfault fixed upstream.
+
+Build target breakdown (298 ASM + 56 C = 354 OBJ targets, 86 final outputs):
+
+| Component | Status | Files | Notes |
+|-----------|--------|-------|-------|
+| Boot sector | ✅ | 1 | MSBOOT.BIN |
+| BIOS (IO.SYS) | ✅ | 11 | QEMU validated |
+| DOS kernel (MSDOS.SYS) | ✅ | ~50 | QEMU validated |
+| COMMAND.COM | ✅ | ~30 | 46/46 kvikdos tests, 18/19 CMD smoke |
+| MAPPER (OS/2 compat) | 98% | 54/55 | GETMSG.OBJ has &Number macro issue |
+| CMD utilities | ~60% | varies | Simple ones work, complex ones blocked by dosmac/cmacros |
+| Drivers (DEV/*) | ~20% | varies | KEYBOARD, ANSI, PRINTER, DISPLAY blocked |
+| SELECT (installer) | 0% | 32 | Blocked by STRUC.INC nested macros |
+| MEMM (386 mem mgr) | 0% | 26 | 386-specific code, segment issues |
+
+### Remaining systemic blockers
+
+Three macro-system incompatibilities cascade to most remaining failures:
+
+1. **STRUC.INC `$BuildJump` nested macros** (~38 targets): WASM cannot define
+   macros via parameter substitution inside macro bodies (`j1 macro t` where
+   `j1` is a macro parameter). Affects SELECT, MODE, GRAPHICS, KEYBOARD, ANSI,
+   DISPLAY, PRINTER. Fix requires rewriting `$BuildJump` for WASM or adding
+   jump-alias definitions directly.
+
+2. **dosmac.INC macro redefinition** (~30 targets): WASM forbids macro redefine
+   (MASM silently replaces). Include guards break two-pass assembly; PURGE
+   guards cause regressions (IFDEF matches non-macro symbols). Fix requires
+   per-macro PURGE or file-level include guard that respects IF1/IF2.
+
+3. **cmacros.inc `&macro`/`&endm` escaping** (~12 targets): WASM may not
+   support `&`-escaped keywords inside macro bodies (`add_&grp &macro s` /
+   `&endm`). Affects SMARTDRV, some CMD modules. Fix requires rewriting
+   nested macro definitions.
+
+### Approaches tried and rejected (Apr 15 2026)
+
+- **Include guards on .INC files**: Wrapping in `IFNDEF __GUARD / ENDIF` breaks
+  MASM two-pass assembly (IF1/IF2 blocks need both passes). 96 regressions.
+- **PURGE before all macro defs**: `IFDEF name / PURGE name / ENDIF` breaks when
+  name exists as a non-macro symbol (label/EQU). 87 regressions.
+- **Global `not X` → `((not X) and 0FFFFh)`**: Breaks 8-bit and 32-bit contexts.
+  Targeted version (memory operands only) works for MAPPER.
 
 ### Runtime Validation Status
 
