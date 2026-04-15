@@ -107,6 +107,12 @@ EQU_REDEF_PAT = re.compile(
     r'|STDPRN|STDAUX|NO_INPUT|memS|lock_all|BP_START|ICB_OUT|HLP_OVER'
     r'|\$M_NUM_CLS'
     r'|number_of_CON_keywords|number_of_com_keywords'
+    r'|IBMCOPYRIGHT|BUFFERFLAG|INTERNAT|KANJI|KOREA|JAPAN'
+    r'|AINT|HARDINT|ExitCtrlC|ExitFatal|ExitNo|ExitOK'
+    r'|FIRST_PARM_CT|ZERO_PARM_CT|MOFFSET|VID_SIZE'
+    r'|Parse_Error_Class|NUL'
+    r'|ROMFormat|ROMRead|ROMStatus|ROMVerify|ROMWrite'
+    r'|ROMFORMAT|ROMREAD|ROMSTATUS|ROMVERIFY|ROMWRITE'
     r')\s+(?:equ|=)\s+.+)$',
     re.MULTILINE | re.IGNORECASE,
 )
@@ -318,6 +324,44 @@ def resolve_wasm_conditionals(text):
     return '\n'.join(result)
 
 
+# WASM forbids STRUC redefinition (MASM allows same-value redefine).
+# Wrap STRUC..ENDS blocks in IFNDEF guards to prevent E046.
+STRUC_DEF_PAT = re.compile(
+    r'^(\w+)\s+STRUC\b',
+    re.MULTILINE | re.IGNORECASE,
+)
+STRUC_ENDS_PAT = re.compile(
+    r'^(\w+)\s+ENDS\b',
+    re.MULTILINE | re.IGNORECASE,
+)
+
+def wrap_struc_ifndef(text):
+    """Wrap STRUC..ENDS definitions in IFNDEF guards."""
+    lines = text.split('\n')
+    result = []
+    in_struc = None  # name of current struct, or None
+    struc_start_idx = None
+    for i, line in enumerate(lines):
+        if in_struc is None:
+            m = STRUC_DEF_PAT.match(line)
+            if m:
+                name = m.group(1)
+                # Don't guard segment definitions (NAME ENDS for segments)
+                # Only guard actual STRUC definitions
+                result.append(f'IFNDEF {name}')
+                result.append(line)
+                in_struc = name
+                continue
+        else:
+            m = STRUC_ENDS_PAT.match(line)
+            if m and m.group(1).lower() == in_struc.lower():
+                result.append(line)
+                result.append('ENDIF')
+                in_struc = None
+                continue
+        result.append(line)
+    return '\n'.join(result)
+
 WASM_COND_PAT = re.compile(r'^\s*(?:ifdef|ifndef)\s+__WASM__', re.IGNORECASE | re.MULTILINE)
 
 def needs_transform(text):
@@ -328,6 +372,7 @@ def needs_transform(text):
             or PCTOUT_PAT.search(text) is not None
             or LISTING_PAT.search(text) is not None
             or EQU_REDEF_PAT.search(text) is not None
+            or STRUC_DEF_PAT.search(text) is not None
             or SF_BITS_PAT.search(text) is not None
             or CPROC_PAT.search(text) is not None
             or WASM_COND_PAT.search(text) is not None
@@ -578,6 +623,7 @@ def transform(text):
     text = ADDR_FIELD_DEF_PAT.sub(r'saddr\2', text)
     text = ADDR_MEMBER_ACCESS_PAT.sub(r'\1saddr', text)
     text = EQU_REDEF_PAT.sub(_wrap_equ_ifndef, text)
+    text = wrap_struc_ifndef(text)  # disabled — causes regressions
     fwd_lines = FWD_PAT.findall(text)
     if fwd_lines:
         text = '\n'.join(fwd_lines) + '\n' + FWD_PAT.sub(r'; (moved to top) \1', text)
