@@ -416,8 +416,8 @@ Three macro-system incompatibilities cascade to most remaining failures:
 
 2. **dosmac.INC macro redefinition** (~30 targets): WASM forbids macro redefine
    (MASM silently replaces). Include guards break two-pass assembly; PURGE
-   guards cause regressions (IFDEF matches non-macro symbols). Fix requires
-   per-macro PURGE or file-level include guard that respects IF1/IF2.
+   causes WASM segfaults (error 139) on certain macros. Fix likely requires
+   a WASM-specific dosmac.INC or upstream WASM fix for macro redefinition.
 
 3. **cmacros.inc `&macro`/`&endm` escaping** (~12 targets): WASM may not
    support `&`-escaped keywords inside macro bodies (`add_&grp &macro s` /
@@ -430,8 +430,15 @@ Three macro-system incompatibilities cascade to most remaining failures:
   MASM two-pass assembly (IF1/IF2 blocks need both passes). 96 regressions.
 - **PURGE before all macro defs**: `IFDEF name / PURGE name / ENDIF` breaks when
   name exists as a non-macro symbol (label/EQU). 87 regressions.
+- **Targeted PURGE for known double-included files**: Even with per-file targeting
+  (dosmac.inc, jumpmac.inc, etc.), PURGE causes WASM to segfault (error 139)
+  on certain macros. 19 regressions including BIOS and DEBUG modules.
 - **Global `not X` → `((not X) and 0FFFFh)`**: Breaks 8-bit and 32-bit contexts.
   Targeted version (memory operands only) works for MAPPER.
+- **$BuildJump pre-expansion**: Successfully replaces nested macro definitions
+  with static jump aliases (1128→751 STRUC.INC errors). But deeper `&`
+  parameter substitution issues (`$ll&n`, `j&c`, `$l&l`) remain — these are
+  fundamental to STRUC.INC's conditional jump/label machinery.
 
 ### Runtime Validation Status
 
