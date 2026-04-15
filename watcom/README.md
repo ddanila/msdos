@@ -5,7 +5,7 @@ project, vendored for reproducible builds without requiring a system-level insta
 
 ## Source
 
-Current build: **Current-build** (Apr 13 2026)
+Current build: **Current-build** (Apr 15 2026)
 URL: https://github.com/open-watcom/open-watcom-v2/releases/tag/Current-build
 Asset: `ow-snapshot.tar.xz`
 
