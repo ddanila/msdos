@@ -595,9 +595,55 @@ def rename_mexit_outside_macros(text):
         result.append(line)
     return '\n'.join(result)
 
+# STRUC.INC's $BuildJump macro defines jump aliases via nested macro-inside-macro.
+# WASM can't handle this (E235 "Procedure must have a name").  Pre-expand all
+# jump aliases at preprocessing time since the irp arguments are static.
+_BUILDJUMP_BLOCK_PAT = re.compile(
+    r'^\$BuildJump\s+macro\s+j1\s*,\s*j2\b.*?^purge\s+\$BuildJump\b[^\n]*',
+    re.MULTILINE | re.DOTALL | re.IGNORECASE,
+)
+
+# All jump aliases produced by the three irp loops in STRUC.INC:
+_JUMP_ALIASES = [
+    # irp 1: pairs
+    ('jeq', 'je'), ('jlt', 'jl'), ('jgt', 'jg'), ('jneq', 'jne'),
+    ('jnlt', 'jnl'), ('jngt', 'jng'), ('jnpe', 'jpo'), ('jnpo', 'jpe'),
+    # irp 2: zero/nonzero/bit-test aliases
+    ('jzero', 'jz'), ('jnzero', 'jnz'), ('jnonzero', 'jnz'),
+    ('jnnonzero', 'jz'), ('jand', 'jnz'), ('jnand', 'jz'), ('jnnand', 'jnz'),
+    # irp 3: jnn&x → j&x for each suffix
+    ('jnna', 'ja'), ('jnnae', 'jae'), ('jnnb', 'jb'), ('jnnbe', 'jbe'),
+    ('jnnc', 'jc'), ('jnne', 'je'), ('jnng', 'jg'), ('jnnge', 'jge'),
+    ('jnnl', 'jl'), ('jnnle', 'jle'), ('jnno', 'jo'), ('jnnp', 'jp'),
+    ('jnns', 'js'), ('jnnz', 'jz'), ('jnncxz', 'jcxz'),
+]
+
+def _expand_buildjump(m):
+    """Replace $BuildJump block with pre-expanded jump alias macros."""
+    lines = ['; WASM: $BuildJump pre-expanded by preprocessor']
+    for alias, target in _JUMP_ALIASES:
+        lines.append(f'{alias}\tmacro\tt')
+        lines.append(f'\t\t\t\t\t{target} t')
+        lines.append('endm')
+    # jncxz is defined separately in the original — keep it as-is since
+    # it's a standalone macro, not nested.  It's right before `purge` in
+    # the matched block, so we need to re-emit it.
+    lines.append('jncxz\tmacro\tt')
+    lines.append('\tif\t$Dist eq $NearToShort')
+    lines.append('\t\t\t\t\tjcxz $+5')
+    lines.append('\t\t\t\t\tjmp t')
+    lines.append('\telse')
+    lines.append('\t\t\t\t\tjcxz $+4')
+    lines.append('\t\t\t\t\tjmp short t')
+    lines.append('\tendif')
+    lines.append('endm')
+    return '\n'.join(lines)
+
 def transform(text):
     """Apply dot-macro rename, CL forward-ref fix, %out removal, EQU guards, SF_BITS expansion,
     and cProc/cBegin/cEnd name injection for WASM."""
+    # Pre-expand $BuildJump nested macros before any other transforms
+    text = _BUILDJUMP_BLOCK_PAT.sub(_expand_buildjump, text)
     # Evaluate ifdef/ifndef __WASM__ blocks first to eliminate MASM-only branches
     # (prevents WASM scanner bug with &macro/&endm in skipped branches)
     text = resolve_wasm_conditionals(text)
