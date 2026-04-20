@@ -17,6 +17,38 @@
 - IO.SYS "Non-System disk" error (test E) was a boot sector BPB alignment bug, not an IO.SYS issue — see issue #58 below.
 - Issue #58: boot sector BPB off-by-1. `MSBOOT.ASM`'s `JMP START` generated a 2-byte short JMP (no NOP), placing the BPB at offset 10. `mformat -k` always writes at the standard offset 11, corrupting all BPB fields and overwriting the first code instruction. Fix: added `NOP` after `JMP SHORT START` for the standard 3-byte boot JMP.
 
+### Source editing policy: direct edits over preprocessor passes
+
+This is a one-way migration to WASM — MASM support is dropped, and the MS-DOS sources already live in a fork (the `MS-DOS` submodule tracks our own branch). New WASM-compat fixes should therefore be **direct edits to the source files**, not new transformations added to `bin/preprocess-wasm`.
+
+Rationale:
+- Error line numbers match what's on disk — much easier debugging.
+- Changes are visible in the submodule's `git log` / `git blame`.
+- No shadow-directory magic to reason about in `bin/wasm-masm`.
+- The preprocessor is 789 lines of Python; shrinking it is a goal.
+
+The existing preprocessor passes stay for now and are retired incrementally — each pass is replaced by either a direct source edit (for simple renames/strips) or kept only when the transform is genuinely computed (e.g., `SF_BITS<>` bit packing). End state: `bin/preprocess-wasm` deleted, `bin/wasm-masm` reduced to a thin MASM→WASM flag-translation wrapper.
+
+### Upstream WASM bugs — OPEN (block E236 work)
+
+Discovered while attempting to add PURGE-based re-include guards to the 6 INC files that trigger E236 (`dosmac.INC`, `JUMPMAC.INC`, `MSMACRO.INC`, `CHKMACRO.INC`, `RECMACRO.INC`, `FORMACRO.INC`). Both need upstream fixes before E236 can be cleaned up at source level.
+
+1. **`IFDEF name` + later `name macro` SIGSEGV.** The sequence below crashes wasm (exit 139, no output), even when the IFDEF is false and the body is empty:
+
+   ```asm
+   IFDEF foo
+   ENDIF
+   foo macro
+       nop
+   endm
+   ```
+
+   Presumably the pass-2 re-definition of `foo` trips when `foo` is already in the symbol table from pass 1 + touched by a pass-2 `IFDEF` lookup. The upstream PR #1615 PURGE fix handles the simple `define → PURGE → redefine` pattern (upstream `purge.asm` test) but does not cover this combination. This blocks any `IFDEF name / PURGE name / ENDIF` style guard immediately preceding a `name MACRO` definition.
+
+2. **Preprocessor-stripped macros leave dangling PURGE.** Our `bin/preprocess-wasm` strips `BREAK MACRO … ENDM` blocks (listing directive). Any `PURGE BREAK` we emit as part of an include-guard block therefore references a macro that never exists, producing E251. A fix path: stop stripping `BREAK` in the preprocessor — bake the removal into source directly per the direct-edit policy above, or remove `BREAK_MACRO_DEF_PAT` from `transform()` and include the rename/strip as a source-level edit.
+
+Until (1) is fixed upstream, E236 cannot be addressed purely via source edits in these INC files. The ~137 E236 errors remain as a latent blocker on roughly 30 targets.
+
 ### Phase 0A: wlink proof-of-concept ✅ DONE
 
 Both MS LINK and wlink produce bootable COMMAND.COM from WASM OBJs.
