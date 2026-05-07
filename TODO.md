@@ -4,9 +4,14 @@
 
 **End state:** All assembly and C compilation uses Open Watcom (WASM, wcc, wlink, wlib) natively. The full E2E test suite passes on the WASM-built floppy image. kvikdos remains only for the 7 pre-built DOS build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF, MENUBLD) — eliminating those is a separate future effort, not part of this migration.
 
-**Current status:** Upgraded to official upstream WASM (Apr 13 2026 Current-build). EXTRN:ABS bug fixed upstream; preprocessor workaround kept for safety. `invoke` WASM reserved word crash fixed via preprocessor rename (`invoke` → `do_invoke`), eliminating 61 of 62 segfaults. **97 assembly files build clean, 431 fail, 1 segfault** (XMA2EMS, separate crash). Note: raw error count is not a reliable metric — fixing crashes increases it as previously-crashing files now report real errors. Track clean-file count and failed-target count instead. Core build (IO.SYS, MSDOS.SYS, COMMAND.COM) + most CMD utilities assemble cleanly. MASM target dropped — WASM-only going forward. Full E2E pending.
+**Current status:** Upgraded to upstream WASM Current-build (May 7 2026), which includes upstream PRs #1614, #1615, **#1617** (`IFDEF name`+`name macro` SIGSEGV — the previous E236 blocker), and **#1618** (struct label init). With the new binary plus a round of source fixes for MASM/WASM divergences, the **`inc` subsystem now builds clean except for one wasm bug** (see fork PR below). Earlier "97/431/1" snapshot is stale — full subsystem sweep pending. MASM target dropped — WASM-only going forward. Full E2E pending.
+
+**Open WASM bug (fork PR ddanila/open-watcom-v2#21):** `IRP itm,<p>` with `p = '/'` (single-quoted character forwarded via macro arg) errors with E020 *Expecting comma*. Direct `IRP itm,<'/'>` works; only the macro-substituted form fails. Currently blocking `INC/CONST2.ASM` only (`I_am chSwitch,BYTE,<'/'>`). Workaround `<2Fh>` available if we ever need to unblock from the source side.
+
+**kvikdos fix (this session):** DOS INT 21h/AH=4Ah `inplace_realloc` corrupted the arena when growing into the trailing Z-type free block — wrote a fake M-type next-MCB and a `psize` past end-of-arena, fatal-tripping later validation as "adjacent free MCBs". Hit by Microsoft C 5.10 (CL.EXE) compiling INC/*.C files. Fixed in submodule and rebuilt `kvikdos-soft`.
 
 **Key findings:**
+- May 7 2026 inc-subsystem session: 5 source divergences and 1 kvikdos bug fixed; 4 wasm objects (MSTABLE/MSDATA/NIBDOS/BUGTYP) and 4 kvikdos-CL objects (ERRTST/SYSVAR/CDS/DPB) all clean. CONST2 alone blocked on fork PR #21. Source fixes: VERSION.INC dup-include guard; DOSMAC.INC `IF2` removed in `short_addr`/`long_addr`/`invoke`/`transfer` (single-pass — was producing E251 cascades on every dispatch entry); BUGTYP.ASM same-value `LevLog` `EQU`→`=`; MS_TABLE.ASM `MAXCALL/MAXCOM` reorder past `VAL2` and lowercase `byte`→`BYTE` for I_AM IFIDN; PRINT.ASM/MSINIT.ASM `Out`→`OutRtn` (avoid `OUT` reserved word).
 - COMMAND.COM issue #52 (L2029 `$M_GET_MSG_ADDRESS` unresolved) fixed: renamed `$M_HAS_$M_GET_MSG_ADDRESS` → `$M_HAS_GETMSGADDR` to avoid WASM `$M_` symbol parsing bug.
 - MSDOS.SYS issue #53 (`IF (NOT IBM) OR (DEBUG)` → `IF (IBM EQ 0) OR (DEBUG)`): WASM `NOT TRUE` in compound expressions evaluates as truthy. Copyright display code included erroneously, crashing DOSINIT.
 - MSDOS.SYS issue #54 (`MSVERS LABEL WORD` → `MSVERS DW ...`): WASM emits `LABEL WORD` as absolute symbol (offset 0) instead of segment-relative. $GET_VERSION returned wrong version, COMMAND.COM failed version check.
@@ -29,11 +34,9 @@ Rationale:
 
 The existing preprocessor passes stay for now and are retired incrementally — each pass is replaced by either a direct source edit (for simple renames/strips) or kept only when the transform is genuinely computed (e.g., `SF_BITS<>` bit packing). End state: `bin/preprocess-wasm` deleted, `bin/wasm-masm` reduced to a thin MASM→WASM flag-translation wrapper.
 
-### Upstream WASM bugs — OPEN (block E236 work)
+### Upstream WASM bugs — status
 
-Discovered while attempting to add PURGE-based re-include guards to the 6 INC files that trigger E236 (`dosmac.INC`, `JUMPMAC.INC`, `MSMACRO.INC`, `CHKMACRO.INC`, `RECMACRO.INC`, `FORMACRO.INC`). Both need upstream fixes before E236 can be cleaned up at source level.
-
-1. **`IFDEF name` + later `name macro` SIGSEGV.** The sequence below crashes wasm (exit 139, no output), even when the IFDEF is false and the body is empty:
+1. **`IFDEF name` + later `name macro` SIGSEGV ✅ FIXED upstream (PR #1617, in May 7 binary).** Previously crashed wasm with exit 139. Verified clean in repro:
 
    ```asm
    IFDEF foo
@@ -43,11 +46,11 @@ Discovered while attempting to add PURGE-based re-include guards to the 6 INC fi
    endm
    ```
 
-   Presumably the pass-2 re-definition of `foo` trips when `foo` is already in the symbol table from pass 1 + touched by a pass-2 `IFDEF` lookup. The upstream PR #1615 PURGE fix handles the simple `define → PURGE → redefine` pattern (upstream `purge.asm` test) but does not cover this combination. This blocks any `IFDEF name / PURGE name / ENDIF` style guard immediately preceding a `name MACRO` definition.
+   E236 source-level guards in the 6 INC files (`dosmac.INC`, `JUMPMAC.INC`, `MSMACRO.INC`, `CHKMACRO.INC`, `RECMACRO.INC`, `FORMACRO.INC`) are now unblocked. Not yet attempted on the broader subsystems — `inc` cleanup only required dropping `IF2` wrappers in the EXTRN-emitter macros, which is unrelated to the E236 family.
 
-2. **Preprocessor-stripped macros leave dangling PURGE.** Our `bin/preprocess-wasm` strips `BREAK MACRO … ENDM` blocks (listing directive). Any `PURGE BREAK` we emit as part of an include-guard block therefore references a macro that never exists, producing E251. A fix path: stop stripping `BREAK` in the preprocessor — bake the removal into source directly per the direct-edit policy above, or remove `BREAK_MACRO_DEF_PAT` from `transform()` and include the rename/strip as a source-level edit.
+2. **Preprocessor-stripped BREAK leaves dangling PURGE.** Our `bin/preprocess-wasm` strips `BREAK MACRO … ENDM` blocks (listing directive). Any `PURGE BREAK` we emit as part of an include-guard block therefore references a macro that never exists, producing E251. Fix path: stop stripping `BREAK` in the preprocessor and bake the removal into source directly per the direct-edit policy above. Not yet exercised — only relevant if/when we add PURGE guards.
 
-Until (1) is fixed upstream, E236 cannot be addressed purely via source edits in these INC files. The ~137 E236 errors remain as a latent blocker on roughly 30 targets.
+3. **`IRP itm,<p>` with single-quoted-char forwarded via macro arg → E020.** Filed as fork PR https://github.com/ddanila/open-watcom-v2/pull/21 with minimal repro. Currently blocking `INC/CONST2.ASM` only; workaround `<2Fh>` available if needed before the wasm fix lands.
 
 ### Phase 0A: wlink proof-of-concept ✅ DONE
 
