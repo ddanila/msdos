@@ -1,2 +1,4 @@
 /out/
 /kvikdos/kvikdos-soft
+/*.o
+/*.err
