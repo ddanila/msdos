@@ -6,9 +6,13 @@
 
 **Branch policy (MS-DOS submodule):** `main` ≈ original Microsoft sources. `dos4-enhancements` = `main` + non-WASM source bug fixes. `watcom-migration` = `dos4-enhancements` + WASM-build-system migration edits. WASM-related changes always land on `watcom-migration`. The superproject `watcom-migration` branch points the MS-DOS submodule at the MS-DOS `watcom-migration` branch tip.
 
-**Current status:** Upgraded to upstream WASM Current-build (May 7 2026), which includes upstream PRs #1614, #1615, **#1617** (`IFDEF name`+`name macro` SIGSEGV — the previous E236 blocker), and **#1618** (struct label init). The MS-DOS `watcom-migration` branch already carried equivalent IF2-removal / EXTRN / LevLog / MS_TABLE / OUT-rename fixes — `inc` subsystem **builds fully clean** (zero wasm errors, zero kvikdos fatals) on the May 7 binary + the kvikdos MCB fix. Earlier "97/431/1" snapshot is stale — full subsystem sweep pending. MASM target dropped — WASM-only going forward. Full E2E pending.
+**Current status:** Upgraded to upstream WASM Current-build (May 13 2026), which now also includes upstream PRs **#1621** (don't join trailing-comma lines outside WATCOM mode) and **#1622** (macro substitution drops quote delimiters from TC_STRING args), in addition to the previously-vendored PRs #1614, #1615, #1617, #1618. The original Microsoft `chSwitch,BYTE,<'/'>` form in `INC/CONST2.ASM` has been restored — the temporary `<"/">` workaround was retired since #1622 fixes the underlying TC_STRING substitution. `inc` subsystem still **builds fully clean** (verified serially; transient `-j4` failures observed are CL.EXE intermediate-file collisions on `INIT`, not wasm). Full subsystem sweep against the May 13 binary still pending. MASM target dropped -- WASM-only going forward. Full E2E pending.
 
-**Open WASM bug (fork PR ddanila/open-watcom-v2#21):** `IRP itm,<p>` with `p = '/'` (single-quoted character forwarded via macro arg) errors with E020 *Expecting comma*. Direct `IRP itm,<'/'>` works; only the macro-substituted form fails. **Not currently blocking the build** — `watcom-migration`'s CONST2.ASM uses `<"/">` and its I_AM macro emits `DB init` directly (no inner IRP). Tracked in case it bites elsewhere.
+**May 13 baseline build** (parallel `-j4`, full tree, see `/tmp/build-may13.log`):
+- 97 ASM files reporting non-zero wasm errors; 167 make targets failed.
+- Dominant wasm E-codes: **E032 (296)**, E230 (61), E050 (59), E225 (52), E066 (50), E236 (38), E040 (35), E300 (23), E020 (22 -- but no longer the IRP/single-quote case; mostly SELECT/`MACROS.INC:327`).
+- Subsystems by failure count: SELECT 31, MEMM/MEMM 20, CMD/FDISK 18, CMD/MODE 13, CMD/RESTORE 12, DEV/XMAEM 8, CMD/GRAPHICS 7, MEMM/EMM 5, CMD/KEYB 5, CMD/FC 5, INC 4, DEV/ANSI 4, CMD/IFSFUNC 4, ... (rest single-digit).
+- INC failures are kvikdos CL.EXE temp-file clashes under parallelism, not wasm regressions.
 
 **kvikdos fix (this session):** DOS INT 21h/AH=4Ah `inplace_realloc` corrupted the arena when growing into the trailing Z-type free block — wrote a fake M-type next-MCB and a `psize` past end-of-arena, fatal-tripping later validation as "adjacent free MCBs". Hit by Microsoft C 5.10 (CL.EXE) compiling INC/*.C files. Fixed in submodule and rebuilt `kvikdos-soft`.
 
@@ -51,7 +55,9 @@ The existing preprocessor passes stay for now and are retired incrementally — 
 
 2. **Preprocessor-stripped BREAK leaves dangling PURGE.** Our `bin/preprocess-wasm` strips `BREAK MACRO … ENDM` blocks (listing directive). Any `PURGE BREAK` we emit as part of an include-guard block therefore references a macro that never exists, producing E251. Fix path: stop stripping `BREAK` in the preprocessor and bake the removal into source directly per the direct-edit policy above. Not yet exercised — only relevant if/when we add PURGE guards.
 
-3. **`IRP itm,<p>` with single-quoted-char forwarded via macro arg → E020.** Filed as fork PR https://github.com/ddanila/open-watcom-v2/pull/21 with minimal repro. Currently blocking `INC/CONST2.ASM` only; workaround `<2Fh>` available if needed before the wasm fix lands.
+3. **`IRP itm,<p>` with single-quoted-char forwarded via macro arg → E020 ✅ FIXED upstream (PR #1622, in May 13 binary).** Was filed as fork PR ddanila/open-watcom-v2#21, landed upstream as #1622. `INC/CONST2.ASM` restored to the original Microsoft `<'/'>` form on `watcom-migration` -- assembles clean.
+
+4. **Trailing-comma line joining outside WATCOM mode ✅ FIXED upstream (PR #1621, in May 13 binary).** Was filed as fork PR ddanila/open-watcom-v2#22, landed upstream as #1621. Not currently exercised in the MS-DOS sources, but available now in the vendored binary.
 
 ### Phase 0A: wlink proof-of-concept ✅ DONE
 
