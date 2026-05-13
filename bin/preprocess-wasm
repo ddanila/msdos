@@ -420,26 +420,40 @@ def _comma_sep_struc_args(m):
     # Convert spaces inside angle brackets to commas: <X OP Y> → <X,OP,Y>
     # Only at depth 1 (outermost brackets); nested <<WORD PTR X> NE 0> keeps
     # inner spaces intact since they are assembly operands, not macro args.
+    # Leading/trailing whitespace inside < > is trimmed -- emitting it as a
+    # comma would create blank macro args that wasm sees as IFB-true and that
+    # MASM never produces, since MASM trims < > content edges.
     def fix_angles(s):
         result = []
         depth = 0
         prev_was_space = False
+        seen_content = False  # any non-space content in current depth-1 group?
         for ch in s:
             if ch == '<':
                 depth += 1
                 result.append(ch)
                 prev_was_space = False
+                if depth == 1:
+                    seen_content = False  # reset on entering a new depth-1 group
+                else:
+                    seen_content = True   # inner < counts as content for outer
             elif ch == '>':
+                if depth == 1 and prev_was_space and result and result[-1] == ',':
+                    result.pop()  # strip trailing-space comma we just emitted
                 depth -= 1
                 result.append(ch)
                 prev_was_space = False
+                if depth == 1:
+                    seen_content = True   # inner <...> was content for outer
             elif ch == ' ' and depth == 1:
-                if not prev_was_space:
+                if seen_content and not prev_was_space:
                     result.append(',')
                 prev_was_space = True
             else:
                 result.append(ch)
                 prev_was_space = False
+                if depth == 1:
+                    seen_content = True
         return ''.join(result)
 
     args_part = fix_angles(args_part)

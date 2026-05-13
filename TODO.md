@@ -8,11 +8,13 @@
 
 **Current status:** Upgraded to upstream WASM Current-build (May 13 2026), which now also includes upstream PRs **#1621** (don't join trailing-comma lines outside WATCOM mode) and **#1622** (macro substitution drops quote delimiters from TC_STRING args), in addition to the previously-vendored PRs #1614, #1615, #1617, #1618. The original Microsoft `chSwitch,BYTE,<'/'>` form in `INC/CONST2.ASM` has been restored — the temporary `<"/">` workaround was retired since #1622 fixes the underlying TC_STRING substitution. `inc` subsystem still **builds fully clean** (verified serially; transient `-j4` failures observed are CL.EXE intermediate-file collisions on `INIT`, not wasm). Full subsystem sweep against the May 13 binary still pending. MASM target dropped -- WASM-only going forward. Full E2E pending.
 
-**May 13 baseline build** (parallel `-j4`, full tree, see `/tmp/build-may13.log`):
-- 97 ASM files reporting non-zero wasm errors; 167 make targets failed.
-- Dominant wasm E-codes: **E032 (296)**, E230 (61), E050 (59), E225 (52), E066 (50), E236 (38), E040 (35), E300 (23), E020 (22 -- but no longer the IRP/single-quote case; mostly SELECT/`MACROS.INC:327`).
+**May 13 baseline build** (parallel `-j4`, full tree):
+- Before preprocessor fix (`/tmp/build-may13.log`): 850 wasm errors across 97 ASM files; 167 make targets failed. Dominant E-codes: **E032 (296)**, E230 (61), E050 (59), E225 (52), E066 (50), E236 (38), E040 (35), E300 (23), E020 (22).
+- After preprocessor fix (`/tmp/build-may13-pp.log`): **670 wasm errors (-180, -21%)**, dominant E-codes now **E032 (107)**, E230 (61), E050 (59), E225 (52), E066 (50), E040 (42), E094 (39), E236 (38), E074 (26 - up from 13), E300 (25). File count rose 97 -> 108 because previously-aborting files now get past `$StrucError` and surface the next layer (mostly E074: STRUC.INC `&` concatenation in macro bodies). INC subsystem still clean serially. No regressions.
 - Subsystems by failure count: SELECT 31, MEMM/MEMM 20, CMD/FDISK 18, CMD/MODE 13, CMD/RESTORE 12, DEV/XMAEM 8, CMD/GRAPHICS 7, MEMM/EMM 5, CMD/KEYB 5, CMD/FC 5, INC 4, DEV/ANSI 4, CMD/IFSFUNC 4, ... (rest single-digit).
 - INC failures are kvikdos CL.EXE temp-file clashes under parallelism, not wasm regressions.
+
+**Preprocessor `< AL eq 1 >` -> `<AL,eq,1>` fix:** `_comma_sep_struc_args.fix_angles` was emitting leading/trailing commas when the angle-bracketed text had whitespace adjacent to `<` / `>` (`< AL eq 1 >` -> `<,AL,eq,1,>`). The resulting blank macro args propagated through `.if -> $TopTest -> $Test` and hit `ifb <a1> = TRUE` -> `$StrucError` at STRUC.INC line 33. Patched to trim leading whitespace inside angle brackets and to drop a trailing-space-induced comma before `>`. Underlying wasm bug (whitespace-doesn't-split-substituted-macro-args in MASM mode) **still needs filing** -- that fix would let the preprocessor pass retire entirely. Tracked in [[project_no_preprocessor_endstate]].
 
 **kvikdos fix (this session):** DOS INT 21h/AH=4Ah `inplace_realloc` corrupted the arena when growing into the trailing Z-type free block — wrote a fake M-type next-MCB and a `psize` past end-of-arena, fatal-tripping later validation as "adjacent free MCBs". Hit by Microsoft C 5.10 (CL.EXE) compiling INC/*.C files. Fixed in submodule and rebuilt `kvikdos-soft`.
 
