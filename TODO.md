@@ -29,6 +29,43 @@
 - IO.SYS "Non-System disk" error (test E) was a boot sector BPB alignment bug, not an IO.SYS issue — see issue #58 below.
 - Issue #58: boot sector BPB off-by-1. `MSBOOT.ASM`'s `JMP START` generated a 2-byte short JMP (no NOP), placing the BPB at offset 10. `mformat -k` always writes at the standard offset 11, corrupting all BPB fields and overwriting the first code instruction. Fix: added `NOP` after `JMP SHORT START` for the standard 3-byte boot JMP.
 
+### Jun 4 2026 session: STRUC.INC blocker re-diagnosed; CMD/MODE cleared; remaining work is upstream
+
+This session overturned the central assumption that ~296 E032 errors were all "STRUC.INC `&` substitution" (a single unfixable upstream bug). Systematic per-file probing (`bin/wasm-masm` directly with each subsystem's `inc`/`hinc` include dirs) showed the real picture is several **distinct** issues, most of them source-fixable.
+
+**Biggest win -- `.FOR` comma cascade (cleared all of CMD/MODE):**
+- STRUC.INC's `.FOR idx = start TO stop [STEP n]` uses **space-separated** args. WASM splits macro args on commas only (the filed whitespace-split bug), and the preprocessor's `_comma_sep_struc_args` pass covers `.IF`/`.WHILE`/`.UNTIL`/etc. but **NOT `.FOR`**. So `.for` received one giant arg, mis-expanded, corrupted its macro-stack (`$st`), and **cascaded** E032/E074 into every subsequent `.IF`/`.NEXT` in the file.
+- Fix: explicit commas at the call sites -- `.FOR idx,=,start,TO,stop[,STEP,n]` (MASM-compatible, since MASM splits on commas AND whitespace). Sites: `CMD/MODE/{MAIN,INVOKE,MODEPRIN}.ASM`, `SELECT/MACROS3.INC`.
+- Result: the **entire CMD/MODE subsystem (16 files) now assembles 0 errors** (was ~13 failing). The E032s there were `.FOR`-comma cascades, NOT `&` substitution; `.IF`/`.WHILE`/`.REPEAT`/`.UNTIL` were never broken.
+
+**Key `&` rule (confirmed by isolation tests):** WASM's `&` macro concatenation **works when it forms a MACRO CALL** (`j&c` -> `jeq`, a `$BuildJump` alias -- assembles fine) but **fails when it forms an INSTRUCTION mnemonic** (`loop&c` -> `loop`/`loope`, `j&c` -> `je`) with E235/E065/internal-error. Consequence: `.IF`/`.WHILE` using STRUC condition *names* (EQ/NEQ/LT/GT/ZERO/NONZERO, which have `jeq`/`jneq`/... aliases) are fine; only instruction-forming concats broke.
+- Fixed `STRUC.INC` `$CondLoop` to emit `loop $l&l` directly instead of `loop&c $l&l` (the `$l&l` operand is variable-name concat, which WASM handles). No conditional `.LOOP` exists in the tree. No regression.
+
+**Per-file source fixes landed this session** (all verified to 0 errors via `bin/wasm-masm`):
+- `DEV/XMAEM/INDEINS.MAC` -- comment `.XLIST`/`.LIST` (`.MAC` is not a preprocessed extension, so its raw listing directives reached WASM). Cleared the XMAEM subsystem (was 8 failing).
+- `CMD/EXE2BIN/LOCMES.ASM` -- `addr` macro renamed to `set_addr` (WASM reserves ADDR; 10x E094).
+- `MEMM/MEMM/INITDEB.ASM` -- stale `DEBC/DEBD/DEBW1/DEBW2_GSEL` -> `DEB1..DEB4_GSEL` (VDMSEL.INC renamed them; 4x E040). (Leaves a separate pre-existing `ddata` undefined-segment issue.)
+- `MEMM/MEMM/KBD.ASM` -- `(NOT mask) AND 0FFh` on byte ops (E048), and explicit `WORD PTR` on `ds:[67h]` writes (W096).
+- `MEMM/MEMM/INIT.ASM` -- added missing `extrn hi_size:word` (E251).
+- `MAPPER/OLDGETCN.ASM` -- typeless STRUC fields `ra`/`DResv` given `db` (E032). Cleared the MAPPER subsystem.
+- `DEV/PRINTER/PARSE4E.ASM`, `CPSPI.ASM` -- renamed labels colliding with the `DF` directive and with `CPSPEQU.INC` DW vars (note: these two are superseded orphan files, not built).
+
+**Retired 3 preprocessor passes** (source now handles them; `bin/preprocess-wasm` shrinks toward deletion):
+- `PCTOUT_PAT` (`%OUT`) -- all uncommented `%OUT` commented in source.
+- `LISTING_PAT` (`.XLIST`/`.LIST`/`.CREF`/...) -- all v4.0 preprocessed-extension files cleared.
+- `SUBTTL_PAT` -- v4.0/src had 0 uncommented `SUBTTL` already.
+
+**Methodology notes (save future effort):**
+- **Orphaned old-version files** inflate an all-`.ASM` probe: `CPSPI.ASM` (live: `CPSPI07.ASM`), `PARSE4E.ASM` (`PARSER.ASM`), `CPSFONT.ASM`, `PTRMSG.ASM`, `DISPMES.ASM`, `INDEMSUS.ASM`, `LOCMES/LOCATE`. Cross-check `MAKEFILE`/`*.LNK` before investing -- only real targets matter.
+- **CP437 byte hazard:** these sources are CP437/latin-1 with high-bit box-drawing glyphs in banner comments. The UTF-8 Edit/Write tooling re-encodes every high-bit byte on save (corrupting comments). Edit byte-preserving (Python `encoding='latin-1'`); verify with `git diff --stat`.
+
+**Remaining real-target blockers -- all confirmed UPSTREAM WASM macro-engine bugs (not cleanly source-fixable):** only ~5 files left (DEV/ANSI x2, CMD/GRAPHICS x2, CMD/KEYB x1).
+1. **AND/OR conjunctions** (`$GetConj`, the ANSI root): `.IF cond AND` / `.IF cond2` -- `$GetConj` fails to detect the `AND` (its nested `irp` + `ifnb <&parm>` + `exitm` structure breaks WASM's parser at the engine level; isolated repro fails E249/E065), so `$TopTest` takes the wrong branch and `$Test` gets mis-parsed args (`cmp a1,a3` E040). Cascades into later `.IF`s.
+2. **`.loop` E206 block-nesting** (GRCOLPRT/GRLOAD2): block-nesting miscount in the `.loop` macro body during nested expansion; persists with `$CondLoop`=nop, and `.until` uses the same `$Pop`/`exitm`/`$Label` patterns yet works -- a subtle engine bug.
+3. **E043 jump-out-of-range** (CMD/KEYB/PARSER): STRUC.INC's short/near `$Dist` logic overflows.
+
+A source workaround for #1/#2 would mean **reimplementing STRUC.INC's macro-stack/conjunction machinery** (nested-`irp` + `&`-substitution + `exitm` are fundamental to its design) -- very high effort and regression risk for ~5 files. This **vindicates the original "prefer the upstream WASM fix" guidance** for the STRUC.INC family (same bug class as the already-filed #24). Recommended next step: file the minimal repros (conjunction `$GetConj`, `.loop` E206) against `ddanila/open-watcom-v2`; landing them cascade-clears the remainder. The source-fixable (non-engine) surface is now exhausted.
+
 ### Source editing policy: direct edits over preprocessor passes
 
 This is a one-way migration to WASM — MASM support is dropped, and the MS-DOS sources already live in a fork (the `MS-DOS` submodule tracks our own branch). New WASM-compat fixes should therefore be **direct edits to the source files**, not new transformations added to `bin/preprocess-wasm`.
