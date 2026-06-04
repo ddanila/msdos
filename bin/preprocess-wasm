@@ -47,11 +47,6 @@ FWD_PAT = re.compile(
     r'^(Class_\w+_MessageCount\s+EQU\s+\d+)\s*$',
     re.MULTILINE | re.IGNORECASE,
 )
-# WASM doesn't support MASM listing control directives
-LISTING_PAT = re.compile(
-    r'^\s*\.(?:LALL|SALL|XALL|LFCOND|SFCOND|TFCOND|XCREF|CREF|LIST|XLIST)\b.*$',
-    re.MULTILINE | re.IGNORECASE,
-)
 # WASM segfaults on SUBTTL with long string arguments when STRUC.INC macros
 # are loaded.  SUBTTL is a listing-only directive — strip it.
 SUBTTL_PAT = re.compile(
@@ -364,7 +359,6 @@ def needs_transform(text):
     return (DOT_PAT.search(text) is not None
             or STRUC_MACRO_PAT.search(text) is not None
             or FWD_PAT.search(text) is not None
-            or LISTING_PAT.search(text) is not None
             or EQU_REDEF_PAT.search(text) is not None
             or STRUC_DEF_PAT.search(text) is not None
             or SF_BITS_PAT.search(text) is not None
@@ -660,7 +654,6 @@ def transform(text):
     # Must comma-separate STRUC.INC macro args BEFORE renaming . to $
     text = STRUC_MACRO_PAT.sub(_comma_sep_struc_args, text)
     text = DOT_PAT.sub(lambda m: '$' + m.group(1), text)
-    text = LISTING_PAT.sub(r'; (listing directive removed for WASM)', text)
     text = SUBTTL_PAT.sub(r'; (SUBTTL removed for WASM)', text)
     text = BREAK_MACRO_DEF_PAT.sub(r'; (BREAK MACRO definition removed for WASM)', text)
     text = HEADER_MACRO_DEF_PAT.sub(r'; (HEADER MACRO definition removed for WASM)', text)
