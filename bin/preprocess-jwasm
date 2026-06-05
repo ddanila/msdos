@@ -30,7 +30,8 @@ INC_EXTS = {
 # Structured-directive invocations whose args must be comma-separated.
 # Exclude the macro DEFINITIONS (`.if macro ...`) via the negative lookahead.
 STRUC_MACRO_PAT = re.compile(
-    r'^\s*\.'
+    r'^[^\S\n]*\.'          # leading tabs/spaces only -- NOT newlines (else
+                            # \s* would eat preceding blank lines, dropping them)
     r'((?:IF|ELSEIF|WHILE|UNTIL|WHEN|LEAVE|FOR)\b)'
     r'(?!\s+macro\b)'
     r'(.*?)$',
