@@ -404,8 +404,11 @@ Remaining: DEBEQU (equ-fragment needing IBMVER from its includer) + DEBMES
   FL13.ASM includes it via -I. and hit the same `&macro`/`&endm` + `&&`
   jwasm issues. Applied the same fixes (9+9 + 30). FL13 clean. NB: watch for
   other subsystems carrying local CMACROS.INC copies. Remaining SMARTDRV:
-  mostly include-fragments (no END, start with BREAK) + SMARTDRV.ASM A2102
-  ABOVE_BLKMOV (fragment-assembly/cross-module, next).
+  mostly include-fragments (no END, start with BREAK). SMARTDRV.ASM: pass-2
+  (IF2) alignment-assertion guards used `OFFSET <forward-label>`
+  (ABOVE_BLKMOV/ABOVE_END/ABOVE_RESET_END defined later) -> A2102 (jwasm
+  cant evaluate forward OFFSET in IF); commented out the no-code %out guards.
+  SMARTDRV.ASM clean.
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
