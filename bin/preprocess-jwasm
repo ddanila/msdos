@@ -30,11 +30,15 @@ INC_EXTS = {
 # Structured-directive invocations whose args must be comma-separated.
 # Exclude the macro DEFINITIONS (`.if macro ...`) via the negative lookahead.
 STRUC_MACRO_PAT = re.compile(
-    r'^[^\S\n]*\.'          # leading tabs/spaces only -- NOT newlines (else
-                            # \s* would eat preceding blank lines, dropping them)
-    r'((?:IF|ELSEIF|WHILE|UNTIL|WHEN|LEAVE|FOR)\b)'
+    r'^('                              # group 1: leading prefix, preserved as-is
+    r'[^\S\n]*'                        #   leading tabs/spaces only (NOT newlines,
+                                       #   else blank lines before the directive
+                                       #   would be eaten and dropped)
+    r'(?:[A-Za-z_$@?][\w$@?]*:[^\S\n]*)?'  #  optional 'label:' on the same line
+    r')\.'                             #   (e.g. `CUP:  .IF <...>`)
+    r'((?:IF|ELSEIF|WHILE|UNTIL|WHEN|LEAVE|FOR)\b)'  # group 2: directive
     r'(?!\s+macro\b)'
-    r'(.*?)$',
+    r'(.*?)$',                         # group 3: args
     re.MULTILINE | re.IGNORECASE,
 )
 
@@ -45,8 +49,9 @@ def _comma_sep_struc_args(m):
     Keeps the leading dot (JWasm path) -- e.g. `.IF <ax EQ 0> THEN` becomes
     `.IF <ax,EQ,0>,THEN`. A trailing `;comment` is preserved verbatim.
     """
-    keyword = m.group(1)          # IF, WHILE, FOR, ...
-    rest = m.group(2)             # everything after the keyword
+    prefix = m.group(1)           # leading whitespace + optional 'label:'
+    keyword = m.group(2)          # IF, WHILE, FOR, ...
+    rest = m.group(3)             # everything after the keyword
     comment_start = rest.find(';')
     if comment_start >= 0:
         args_part = rest[:comment_start]
@@ -117,7 +122,7 @@ def _comma_sep_struc_args(m):
         tokens.append(current.strip())
 
     args_str = ','.join(tokens) if tokens else ''
-    return f'.{keyword}\t{args_str}{comment}'
+    return f'{prefix}.{keyword}\t{args_str}{comment}'
 
 
 def needs_transform(text):
