@@ -524,6 +524,14 @@ under jwasm, so the mutually-exclusive `IF MSVER` / `IF IBM` blocks BOTH ran
 (**tree-wide IF MSVER fix**, provably 16-bit-MASM-equiv, no regression --
 CHKDSK unchanged). The 4 PRINT_* files now source-clean (only PRINT.CTL left).
 
+#### CMD/SHARE (Jun 5 2026) -- 1/4
+
+GSHARE.ASM `DOSAssume SS <DS>,"..."` -> added comma (`SS,<DS>`; macro-args-
+without-commas, A2209). GSHARE then hits DEEP A2080: a build-variant
+`IF / SHARE ENDS / END / ELSE / CODE ENDS / ENDIF` closes a different segment
+per branch -> jwasm block-nesting tracker rejects it (block-nesting-in-skipped-
+IF class). Deferred. GSHARE2/SHARESR need SHARE.CTL; SHARELNK passes.
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
