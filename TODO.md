@@ -419,10 +419,14 @@ it they hit A2106, NOT a source bug).
   with jwasms reserved LOWWORD/HIGHWORD operators -> A2209. Freed via
   OPTION NOKEYWORD:<LowWord HighWord> (jwasm approach; the WASM catalog
   renamed them to LoWord/HiWord instead). Cleared 5 files (15 -> 20).
-- Remaining clusters: `C` reserved kw (ERRHNDLR -- NOKEYWORD:<C>), A2078
-  segment-alignment (MEMMINC/VMINST/VMTRAP), A2188 "operand must be
-  relocatable" (INIT/MEMM386/MEMMCOM/MEMMONF), A2049/A2048 (INITDEB/RETREAL/
-  UTIL/KBD), unexpected-colon (EKBD), + emmdef.inc include-path. Next.
+- **FIXED (+5)**: length EQUs `X equ (this byte - label)` -> `($ - label)`
+  (A2188; jwasm wont reduce THIS BYTE - label to absolute; cataloged THIS-BYTE
+  pattern). 12 sites in TABDEF/INIT/MEMM386/PPAGE/MEMMCOM/MEMMONF. (26 -> 31.)
+- Note: emmdef.inc "not found" needs `-I..\EMM` (sibling MEMM/EMM dir), not a
+  source bug -- with it, the count is out of 42 properly.
+- Remaining 11: `C` reserved kw (ERRHNDLR), A2078 segment-alignment
+  (MEMMINC/VMINST/VMTRAP/ROM_SRCH), A2049 (INITDEB/RETREAL/UTIL), A2048 (KBD),
+  unexpected-colon (EKBD), INIT (further A2188/other). Next.
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
