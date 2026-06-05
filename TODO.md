@@ -244,7 +244,7 @@ Source fixes applied:
 - `MSLOAD.ASM` -- `not END_OF_FILE` into a byte var (A2048, NOT-width)
   masked to `(not END_OF_FILE) AND 0FFh`. (MSLOAD still needs MSbio.cl1.)
 
-#### CMD/CHKDSK sweep (Jun 5 2026) -- 6 of 9
+#### CMD/CHKDSK sweep (Jun 5 2026) -- 8 of 9
 
 Flags `-I. -I..\..\INC -I..\..\H` (per its MAKEFILE: inc=..\..\inc,
 hinc=..\..\h). Initial 1/9; all standalone (END).
@@ -260,13 +260,15 @@ hinc=..\..\h). Initial 1/9; all standalone (END).
   `rep movsb` (A2028). (-> 5/9.)
 - **FIXED**: CHKFAT:56 `public ...,` + CHKPROC:32 `EXTRN ...,` trailing
   commas (A2209, jwasm line-joins). (-> 6/9.)
-- Remaining 3: **A2048 byte-flag `<- word TRUE`** (CHKPROC 323/413/706/...,
-  CHKPROC2:242: `MOV fTrunc,TRUE` / `MOV SecondPass,True` where the flags
-  are `DB` but `TRUE`=0FFFFh word -- MASM truncated to 0FFh, jwasm errors.
-  **Likely systemic across subsystems** -- needs a careful pass, e.g.
-  `TRUE AND 0FFh` at each byte-dest MOV. Flags are only tested vs False=0,
-  so 0FFh is semantically fine.); SYSMSG.INC:53 `TRUE = NOT FALSE` EQU-vs-=
-  conflict (CHKDISP, also needs CHKDSK.CTL artifact).
+- **FIXED**: A2048 byte-flag `<- word TRUE` (CHKPROC fTrunc/IsCross +
+  CHKPROC2 SecondPass; `MOV`/`CMP byteflag,TRUE` where flags are `DB` but
+  `TRUE`=0FFFFh). Masked each to `(TRUE) AND 0FFh` = 0FFh (flags tested only
+  vs False=0). **This is a systemic pattern -- now in the memory catalog.**
+  (-> 8/9.)
+- Remaining 1: **CHKDISP** -- needs the generated `CHKDSK.CTL` (build
+  artifact, make flow) + the shared `SYSMSG.INC:53 TRUE = NOT FALSE`
+  EQU-vs-= conflict. So CMD/CHKDSK is **source-clean** apart from CHKDISP's
+  message-file dependency.
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
