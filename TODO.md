@@ -428,14 +428,11 @@ it they hit A2106, NOT a source bug).
   reserved C (conv) / ENTER (instr) -> OPTION NOKEYWORD:<C ENTER>. (31 -> 32.)
 - **FIXED**: OEMDEP.INC bare `_TEXT`/`LAST` reopens -> explicit attrs
   (match VDMSEG.INC); cleared MEMMINC. (32 -> 33.)
-- Remaining 9: **A2078 bare-segment-before-VDMSEG** (VMINST/VMTRAP/ROM_SRCH):
-  these .ASM open `R_CODE`/`_TEXT`/`LAST` BARE *before* their `include vdmseg.inc`
-  (e.g. VMINST:83 R_CODE bare, include at 104), so the bare def lands first
-  with default attrs and VDMSEGs explicit reopen conflicts. **Pervasive** --
-  dozens of MEMM files reopen these segments bare (most pass because VDMSEG
-  comes first for them). Per-file fix: make the pre-VDMSEG bare opens explicit,
-  or include vdmseg first. Plus A2049 (INITDEB/RETREAL/UTIL), A2048 (KBD),
-  unexpected-colon (EKBD), INIT.
+- **FIXED**: A2078 bare-segment-before-VDMSEG -- made the pre-vdmseg bare
+  opens explicit in VMINST (R_CODE:83, _TEXT:88), VMTRAP (_TEXT:104), ROM_SRCH
+  (LAST:72). (33 -> 36.) The whole A2078 VDMSEG cluster is now cleared.
+- Remaining 6: A2049 invalid-operands (INITDEB/RETREAL/UTIL), A2048 operand-
+  size (KBD), A2047 unexpected-colon (EKBD), INIT (A2188/other). Next.
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
