@@ -384,6 +384,16 @@ Flags `-I. -I..\..\INC -I..\..\H`. Fixes (cataloged patterns):
 - **source-clean**: remaining 2 (CPSPI07, PTRMSG) need the generated
   PRINTER.CTL / PTRMSG.INC message files (make flow).
 
+#### CMD/DEBUG sweep (Jun 5 2026) -- 10 of 12, source-clean
+
+Flags `-I. -I..\..\INC -I..\..\H`. One source fix: DEBUG.ASM skeleton
+CONST (143) and DATA (149) segments used default align while their content
+reopens (154/184) and every other DEBUG file use `SEGMENT PUBLIC BYTE` ->
+A2078 "Segment definition changed: alignment" (jwasm requires consistent
+attrs on reopen; MASM took the first). Added BYTE to the 2 skeleton defs.
+Remaining: DEBEQU (equ-fragment needing IBMVER from its includer) + DEBMES
+(generated DEBUG.CTL). So source-clean.
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
