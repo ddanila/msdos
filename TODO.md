@@ -424,9 +424,16 @@ it they hit A2106, NOT a source bug).
   pattern). 12 sites in TABDEF/INIT/MEMM386/PPAGE/MEMMCOM/MEMMONF. (26 -> 31.)
 - Note: emmdef.inc "not found" needs `-I..\EMM` (sibling MEMM/EMM dir), not a
   source bug -- with it, the count is out of 42 properly.
-- Remaining 11: `C` reserved kw (ERRHNDLR), A2078 segment-alignment
-  (MEMMINC/VMINST/VMTRAP/ROM_SRCH), A2049 (INITDEB/RETREAL/UTIL), A2048 (KBD),
-  unexpected-colon (EKBD), INIT (further A2188/other). Next.
+- **FIXED**: ERRHNDLR `C = 46` / `ENTER = 28` scan-code constants clash with
+  reserved C (conv) / ENTER (instr) -> OPTION NOKEYWORD:<C ENTER>. (31 -> 32.)
+- Remaining 10: **A2078 VDMSEG.INC segment-attr cluster** (MEMMINC/VMINST/
+  VMTRAP/ROM_SRCH): bare `_TEXT segment`/`LAST segment` (OEMDEP.INC) vs
+  explicit `SEGMENT BYTE/PARA ... PUBLIC` (VDMSEG.INC); jwasm: bare-first-then-
+  explicit -> A2078 (alignment/combine), but explicit-first-then-bare is fine
+  (bare inherits). R_CODE combine conflict (VMINST) is from a not-yet-located
+  earlier R_CODE def. Needs include-order/segment-attr reconciliation -- a
+  focused multi-file pass. Plus A2049 (INITDEB/RETREAL/UTIL), A2048 (KBD),
+  unexpected-colon (EKBD), INIT.
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
