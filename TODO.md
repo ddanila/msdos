@@ -125,11 +125,11 @@ under JWasm, unlike WASM). Next step: extract the comma-sep pass into a
 `bin/preprocess-jwasm` (or inline it in `bin/jwasm-masm`), then sweep
 subsystems end-to-end and link-test with `wlink`.
 
-#### DOS kernel sweep (Jun 5 2026) -- 60 of 83 `.ASM` assembling
+#### DOS kernel sweep (Jun 5 2026) -- 61 of 83 `.ASM` assembling
 
 `bin/preprocess-jwasm` + `bin/jwasm-masm` now exist (committed). Sweeping
 `v4.0/src/DOS` (`-I. -I..\INC -I..\HINC`) drove the pass count from 0 to
-**60 of 83** via these fixes (each clears/corrects many files at once):
+**61 of 83** via these fixes (each clears/corrects many files at once):
 
 1. **`DOSMAC.INC` `invoke` keyword freed** (`OPTION NOKEYWORD:<invoke>`) --
    the DOS `invoke` macro collided with jwasm's reserved INVOKE directive.
@@ -181,23 +181,35 @@ subsystems end-to-end and link-test with `wlink`.
    whitespace-split macro call (stray `set` token, defaults to BYTE via the
    I_NEED macro) that jwasm comma-split into one bad symbol -> A2084. Matched
    the `,BYTE` neighbors; identical resulting EXTRN. (+1 file.)
+8. **`SEGCHECK.ASM` stale `buf_link` -> `buf_next`** -- the buffer-chain
+   link migrated from a far DWORD `buf_link` to a near WORD `buf_next`
+   (BUF.ASM shows the exact side-by-side change); the debug `BUFCheck`
+   routine still used the removed field -> A2102. Applied the same
+   `LES ... buf_link` -> `MOV ... buf_next` migration. (+1 file.)
 
-Remaining 23 failures break down as:
-- **Include-fragments, not standalone-assemblable** (false sweep failures):
-  e.g. DISP.ASM / MS_CODE.ASM have no `END` and are `INCLUDE`d into
-  MSDISP/STDDISP and STDCODE/MSCODE; switch files STDSW/MSSW/STDASW/HIGHSW/
-  STDIOCTL/MSIOCTL are `IBM EQU` config fragments. These assemble only as
-  part of their parent -- A2099 "END directive required" / A2209 syntax
-  error on `Break`/`procedure`/`I_Need` at the top are the tell. NOT real
-  blockers; the standalone sweep over-counts them.
-- **A2102 from undefined build-config flags**: `CTRLC.ASM TOGLPRN` etc.
-  TOGLPRN is only defined in the per-variant switch files (STDSW/MSSW/...),
-  which CTRLC does not include standalone -- so it needs the build's switch
-  file / `-D` config (the real make flow), not a source fix. (OPEN.ASM
-  `update_size` and MACRO.ASM `okdone` are now FIXED by the IF-NOT-mask fix.)
-- **A2102 cross-module symbols** (`SEGCHECK.ASM buf_link`): genuine externs
-  to diagnose individually.
-- Build-artifact dependencies (message system / `.CTL`).
+Remaining 22 failures -- only **4 are genuinely standalone** (have `END`);
+the other 18 are include-fragments (false sweep failures):
+- **Include-fragments, not standalone-assemblable** (18): no `END`, pulled
+  into a parent. DISP/MS_CODE -> MSDISP/STDDISP, STDCODE/MSCODE; switch
+  files STDSW/MSSW/STDASW/HIGHSW/STDIOCTL/MSIOCTL (`IBM EQU` config);
+  EXEC/MSINIT/KSTRIN/STRIN/PRINT/MSHALO/MSCONST/DISPATCH/MS_TABLE/STDDOSME
+  (start with `I_need`/`Break`/`procedure`). A2099 "END directive required"
+  / A2209 on `Break`/`procedure`/`I_Need`/`OUT` at the top are the tell.
+  NOT real blockers; the standalone sweep over-counts them.
+- **Standalone, config-gated** (`CTRLC.ASM`): A2102 `TOGLPRN`, only defined
+  in the per-variant switch files -- needs the build's switch file / `-D`
+  config (real make flow), not a source fix.
+- **Standalone, build-artifact** (`DOSMES.ASM`): A2106 can't open
+  `msdos.cl1` (generated message file) -- needs the make flow.
+- **Standalone, deeper include-chain** (`STDDATA.ASM`, `STDTABLE.ASM`):
+  pull in `mssw.asm` (-> A2143 `IBM` redefinition: MSSW.ASM:5 `IBM EQU
+  ibmver` is itself unguarded, distinct from the VERSION.INC fix) and
+  `msinit.asm` (-> A2209 another `OUT`-as-label, same class as print.asm).
+  Next candidates.
+
+FIXED this session that were formerly in this list: OPEN.ASM `update_size`
++ MACRO.ASM `okdone` (IF-NOT-mask), DOSPRINT/SHRPRINT (`Out` rename),
+FINFO.ASM (`i_need` comma), SEGCHECK.ASM (`buf_link` -> `buf_next`).
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
