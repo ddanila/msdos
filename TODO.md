@@ -460,10 +460,17 @@ it they hit A2106, NOT a source bug).
   files are include-fragments (no END, A2082) pulled into the `*-CPI.ASM`
   parents (which pass).
 - **CMD/COMMAND** 2 -> 20 of 39 (flags `-I. -I..\..\INC -I..\..\H`):
-  shared COMEQU.ASM used bare `(?)` initializers (`DW (?)`/`DB (?)`) -> A2209;
-  replaced the 8 direct forms with `?` (kept `N DUP (?)`). Remaining 19 are a
-  mix of data/equ/segment fragments (COMSEG/COMSW/ENVDATA/FORDATA/IFEQU/RDATA/
-  TDATA/TRANMSG) and standalone files with other errors -- next.
+  shared COMEQU.ASM + FORDATA.ASM + TSPC.ASM used bare `(?)` initializers
+  (`DW (?)`/`DB (?)`) -> A2209; replaced the direct forms with `?` (kept
+  `N DUP (?)`). 2 -> 22 of 39. Remaining 17:
+  - **A2143 cluster** (INIT/PARSE2/RDATA/RUCODE/TPRINTF): shared
+    `SYSMSG.INC:53 TRUE = NOT FALSE` redefines DOSSYM `TRUE EQU 0FFFFh` via
+    `=` (EQU-vs-= conflict) -- a broadly-shared message include (also hits
+    CHKDISP); guard with `ifndef TRUE`. High-value but wide blast radius ->
+    own iteration. (INIT also needs COMMAND.CTL.)
+  - **A2209 cluster** (TBATCH2/TDATA/TUCODE/UINIT): cause TBD (not the (?) one).
+  - data/equ/segment fragments (COMSEG/COMSW/ENVDATA/IFEQU/TRANMSG, no END).
+  - PATH2 A2048.
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
