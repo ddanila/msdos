@@ -442,6 +442,18 @@ it they hit A2106, NOT a source bug).
   layout, surface not guess; see WASM-patterns memory). MEMM essentially
   source-clean modulo these two.
 
+#### More subsystems (Jun 5 2026)
+
+- **CMD/MODE** 13/16: source-clean modulo MAIN (MODE.CTL artifact), MODEMES
+  (deferred Sublist A2164), INVOKE (`max_pknum = $ - OFFSET <EXTRN
+  des_start_packet>` -- uncomputable cross-module EQU, deep).
+- **CMD/GRAPHICS** 12/14: source-clean (GRCOMMON is an include-fragment of
+  GRCOLPRT; GRINST needs GRAPHICS.CTL).
+- **DEV/KEYBOARD** 25/25 SOURCE-CLEAN: KEYBMAC.INC defined macros named
+  OPTION + GOTO (reserved) -> freed via OPTION NOKEYWORD:<OPTION GOTO>
+  (cleared 21 country-layout files at once); KDFSU.ASM `_KB` -> `AT_KB`
+  (undefined truncation typo).
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
