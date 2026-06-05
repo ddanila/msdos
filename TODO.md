@@ -125,11 +125,11 @@ under JWasm, unlike WASM). Next step: extract the comma-sep pass into a
 `bin/preprocess-jwasm` (or inline it in `bin/jwasm-masm`), then sweep
 subsystems end-to-end and link-test with `wlink`.
 
-#### DOS kernel sweep (Jun 5 2026) -- 49 of 83 `.ASM` assembling
+#### DOS kernel sweep (Jun 5 2026) -- 55 of 83 `.ASM` assembling
 
 `bin/preprocess-jwasm` + `bin/jwasm-masm` now exist (committed). Sweeping
 `v4.0/src/DOS` (`-I. -I..\INC -I..\HINC`) drove the pass count from 0 to
-**49 of 83** via three shared-include fixes (each clears many files at once):
+**55 of 83** via four shared-include fixes (each clears many files at once):
 
 1. **`DOSMAC.INC` `invoke` keyword freed** (`OPTION NOKEYWORD:<invoke>`) --
    the DOS `invoke` macro collided with jwasm's reserved INVOKE directive.
@@ -153,14 +153,30 @@ subsystems end-to-end and link-test with `wlink`.
    genuine cross-module externs are not all explicitly declared, so the
    auto-EXTRN is load-bearing). No jwasm CLI option restores MASM's two-pass
    table behavior; EXTERNDEF is the fix.
+4. **`VERSION.INC` `IBM EQU IBMVER` guarded with `ifndef IBM`** -- per-variant
+   switch files (STDSW/MSSW/STDASW/HIGHSW/STDIOCTL/MSIOCTL) each set
+   `IBM EQU <value>` at the top; VERSION.INC then redefined it (unguarded)
+   when pulled in via SYSVAR.INC -> A2143. `MSVER` directly above it was
+   already `ifndef`-guarded; `IBM` was just missing the same guard. Switch
+   value now wins; VERSION.INC supplies the default otherwise. (+6 files:
+   STDPROC/STDCODE/STDDISP/MSDISP/MSCODE etc.)
 
-Remaining 34 failures cluster on: more A2143 (9 files -- a *different*
-redefinition cause than the invoke phase issue, still to diagnose), A2102
-(7 files -- e.g. `OPEN.ASM update_size` forward equate), and build-artifact
-dependencies (message system / `.CTL`). `STD*`/`MS*` family dominate the
-remainder. Note: `***** Possible stack size error in X *****` from the
-`EndProc` macro is a `%OUT` message, NOT a jwasm error -- filter sweeps on
-`Error A[0-9]`, not the bare word "error".
+Remaining 28 failures break down as:
+- **Include-fragments, not standalone-assemblable** (false sweep failures):
+  e.g. DISP.ASM / MS_CODE.ASM have no `END` and are `INCLUDE`d into
+  MSDISP/STDDISP and STDCODE/MSCODE; switch files STDSW/MSSW/STDASW/HIGHSW/
+  STDIOCTL/MSIOCTL are `IBM EQU` config fragments. These assemble only as
+  part of their parent -- A2099 "END directive required" / A2209 syntax
+  error on `Break`/`procedure`/`I_Need` at the top are the tell. NOT real
+  blockers; the standalone sweep over-counts them.
+- **A2102 forward/cross-module symbols**: `CTRLC.ASM TOGLPRN`,
+  `OPEN.ASM update_size`, `SEGCHECK.ASM buf_link`, `MACRO.ASM okdone` --
+  to diagnose individually (some may be the same forward-EQU class).
+- Build-artifact dependencies (message system / `.CTL`).
+
+Note: `***** Possible stack size error in X *****` from the `EndProc` macro
+is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
+not the bare word "error".
 
 ### Source editing policy: direct edits over preprocessor passes
 
