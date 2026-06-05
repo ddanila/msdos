@@ -125,11 +125,11 @@ under JWasm, unlike WASM). Next step: extract the comma-sep pass into a
 `bin/preprocess-jwasm` (or inline it in `bin/jwasm-masm`), then sweep
 subsystems end-to-end and link-test with `wlink`.
 
-#### DOS kernel sweep (Jun 5 2026) -- 55 of 83 `.ASM` assembling
+#### DOS kernel sweep (Jun 5 2026) -- 57 of 83 `.ASM` assembling
 
 `bin/preprocess-jwasm` + `bin/jwasm-masm` now exist (committed). Sweeping
 `v4.0/src/DOS` (`-I. -I..\INC -I..\HINC`) drove the pass count from 0 to
-**55 of 83** via four shared-include fixes (each clears many files at once):
+**57 of 83** via these fixes (each clears/corrects many files at once):
 
 1. **`DOSMAC.INC` `invoke` keyword freed** (`OPTION NOKEYWORD:<invoke>`) --
    the DOS `invoke` macro collided with jwasm's reserved INVOKE directive.
@@ -160,8 +160,21 @@ subsystems end-to-end and link-test with `wlink`.
    already `ifndef`-guarded; `IBM` was just missing the same guard. Switch
    value now wins; VERSION.INC supplies the default otherwise. (+6 files:
    STDPROC/STDCODE/STDDISP/MSDISP/MSCODE etc.)
+5. **`IF NOT <flag>` masked to 16 bits** (`(NOT flag) AND 0FFFFh`) in DOS
+   .ASM. jwasm `-Zm` evaluates `NOT` WITHOUT masking to the word size, so
+   `IF NOT Installed` with `Installed=TRUE(0FFFFh)` computes `NOT 0FFFFh` as
+   a WIDE nonzero value and takes the IF branch -- MASM 5.10 computes 16-bit
+   `NOT 0FFFFh = 0` and takes the ELSE branch. This (a) produced A2102 when
+   the skipped ELSE branch defined a label the IF branch jumps to (OPEN.ASM
+   `update_size`, MACRO.ASM `okdone`), and (b) **silently selected the wrong
+   conditional-assembly branch** in files that still "passed" -- a real
+   miscompilation, not just a sweep count issue. `(NOT x) AND 0FFFFh` is
+   provably identical to MASM 16-bit NOT for any value (0->true, 0FFFFh->
+   false, 1->0FFFEh). 49 sites / 23 files. (+2 pass: OPEN, MACRO; corrects
+   branch selection in ~21 others.) **7 more sites in shared INC files are
+   deferred** to when their other consumer subsystems are swept.
 
-Remaining 28 failures break down as:
+Remaining 26 failures break down as:
 - **Include-fragments, not standalone-assemblable** (false sweep failures):
   e.g. DISP.ASM / MS_CODE.ASM have no `END` and are `INCLUDE`d into
   MSDISP/STDDISP and STDCODE/MSCODE; switch files STDSW/MSSW/STDASW/HIGHSW/
@@ -169,9 +182,13 @@ Remaining 28 failures break down as:
   part of their parent -- A2099 "END directive required" / A2209 syntax
   error on `Break`/`procedure`/`I_Need` at the top are the tell. NOT real
   blockers; the standalone sweep over-counts them.
-- **A2102 forward/cross-module symbols**: `CTRLC.ASM TOGLPRN`,
-  `OPEN.ASM update_size`, `SEGCHECK.ASM buf_link`, `MACRO.ASM okdone` --
-  to diagnose individually (some may be the same forward-EQU class).
+- **A2102 from undefined build-config flags**: `CTRLC.ASM TOGLPRN` etc.
+  TOGLPRN is only defined in the per-variant switch files (STDSW/MSSW/...),
+  which CTRLC does not include standalone -- so it needs the build's switch
+  file / `-D` config (the real make flow), not a source fix. (OPEN.ASM
+  `update_size` and MACRO.ASM `okdone` are now FIXED by the IF-NOT-mask fix.)
+- **A2102 cross-module symbols** (`SEGCHECK.ASM buf_link`): genuine externs
+  to diagnose individually.
 - Build-artifact dependencies (message system / `.CTL`).
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
