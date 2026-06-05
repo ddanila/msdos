@@ -125,11 +125,11 @@ under JWasm, unlike WASM). Next step: extract the comma-sep pass into a
 `bin/preprocess-jwasm` (or inline it in `bin/jwasm-masm`), then sweep
 subsystems end-to-end and link-test with `wlink`.
 
-#### DOS kernel sweep (Jun 5 2026) -- 61 of 83 `.ASM` assembling
+#### DOS kernel sweep (Jun 5 2026) -- 63 of 83 `.ASM` assembling
 
 `bin/preprocess-jwasm` + `bin/jwasm-masm` now exist (committed). Sweeping
 `v4.0/src/DOS` (`-I. -I..\INC -I..\HINC`) drove the pass count from 0 to
-**61 of 83** via these fixes (each clears/corrects many files at once):
+**63 of 83** via these fixes (each clears/corrects many files at once):
 
 1. **`DOSMAC.INC` `invoke` keyword freed** (`OPTION NOKEYWORD:<invoke>`) --
    the DOS `invoke` macro collided with jwasm's reserved INVOKE directive.
@@ -186,8 +186,15 @@ subsystems end-to-end and link-test with `wlink`.
    (BUF.ASM shows the exact side-by-side change); the debug `BUFCheck`
    routine still used the removed field -> A2102. Applied the same
    `LES ... buf_link` -> `MOV ... buf_next` migration. (+1 file.)
+9. **`MSSW.ASM` IBM guard + `MSINIT.ASM` OUT keyword** -- cleared STDDATA +
+   STDTABLE. They set IBM=FALSE via stdsw.asm then transitively pull mssw.asm
+   (MSSW.ASM:5 forced IBM=ibmver -> A2143 different-value redef); guarded
+   with `ifndef IBM` like VERSION.INC. STDDATA then hit `OUT`-as-external-
+   proc-call in MSINIT.ASM:534 (`invoke OUT`); OUT is defined in another
+   module (link-resolved), so freed it with `OPTION NOKEYWORD:<OUT>` rather
+   than renaming. (+2 files.)
 
-Remaining 22 failures -- only **4 are genuinely standalone** (have `END`);
+Remaining 20 failures -- only **2 are genuinely standalone** (have `END`);
 the other 18 are include-fragments (false sweep failures):
 - **Include-fragments, not standalone-assemblable** (18): no `END`, pulled
   into a parent. DISP/MS_CODE -> MSDISP/STDDISP, STDCODE/MSCODE; switch
@@ -201,15 +208,18 @@ the other 18 are include-fragments (false sweep failures):
   config (real make flow), not a source fix.
 - **Standalone, build-artifact** (`DOSMES.ASM`): A2106 can't open
   `msdos.cl1` (generated message file) -- needs the make flow.
-- **Standalone, deeper include-chain** (`STDDATA.ASM`, `STDTABLE.ASM`):
-  pull in `mssw.asm` (-> A2143 `IBM` redefinition: MSSW.ASM:5 `IBM EQU
-  ibmver` is itself unguarded, distinct from the VERSION.INC fix) and
-  `msinit.asm` (-> A2209 another `OUT`-as-label, same class as print.asm).
-  Next candidates.
+
+The 2 remaining standalone failures (CTRLC config flag, DOSMES build
+artifact) both need the real make flow, not source fixes. **The DOS
+subsystem is effectively source-clean under jwasm** -- the rest of the gap
+is include-fragments (assemble only via their parents) + the make-flow
+dependency. Next milestone is wiring jwasm into `make` (generate `.CTL` /
+message files, link with `wlink`) rather than more standalone source fixes.
 
 FIXED this session that were formerly in this list: OPEN.ASM `update_size`
 + MACRO.ASM `okdone` (IF-NOT-mask), DOSPRINT/SHRPRINT (`Out` rename),
-FINFO.ASM (`i_need` comma), SEGCHECK.ASM (`buf_link` -> `buf_next`).
+FINFO.ASM (`i_need` comma), SEGCHECK.ASM (`buf_link` -> `buf_next`),
+STDDATA/STDTABLE (MSSW IBM guard + MSINIT OUT keyword).
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
