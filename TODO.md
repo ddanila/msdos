@@ -410,6 +410,20 @@ Remaining: DEBEQU (equ-fragment needing IBMVER from its includer) + DEBMES
   cant evaluate forward OFFSET in IF); commented out the no-code %out guards.
   SMARTDRV.ASM clean.
 
+#### MEMM (memory manager) sweep (Jun 5 2026) -- 20 of 42 (started)
+
+Flags `-I. -I..\..\INC -I..\..\H` (NB: also needs `-I..\EMM` -- several
+files `include emmdef.inc` which lives in the sibling MEMM/EMM dir; without
+it they hit A2106, NOT a source bug).
+- **FIXED (shared)**: vm386.inc DwordS struct fields LowWord/HighWord clash
+  with jwasms reserved LOWWORD/HIGHWORD operators -> A2209. Freed via
+  OPTION NOKEYWORD:<LowWord HighWord> (jwasm approach; the WASM catalog
+  renamed them to LoWord/HiWord instead). Cleared 5 files (15 -> 20).
+- Remaining clusters: `C` reserved kw (ERRHNDLR -- NOKEYWORD:<C>), A2078
+  segment-alignment (MEMMINC/VMINST/VMTRAP), A2188 "operand must be
+  relocatable" (INIT/MEMM386/MEMMCOM/MEMMONF), A2049/A2048 (INITDEB/RETREAL/
+  UTIL/KBD), unexpected-colon (EKBD), + emmdef.inc include-path. Next.
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
