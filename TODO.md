@@ -394,6 +394,19 @@ attrs on reopen; MASM took the first). Added BYTE to the 2 skeleton defs.
 Remaining: DEBEQU (equ-fragment needing IBMVER from its includer) + DEBMES
 (generated DEBUG.CTL). So source-clean.
 
+#### SELECT (source-clean) + DEV/SMARTDRV local cmacros (Jun 5 2026)
+
+- **SELECT** (38 files, flags `-I. -I..\INC -I..\HINC`): 33/38 assemble;
+  the 5 failures (PANELS/SCROLL need PANEL.INF; SELECT0/SSTUB/VAR need
+  SELECT.CTL) are all generated-file deps -> **source-clean**. (The earlier
+  MACROS5 `OPTION NOKEYWORD:<GOTO>` fix cleared the bulk.)
+- **DEV/SMARTDRV** has a LOCAL copy of CMACROS.INC (not the INC/ one);
+  FL13.ASM includes it via -I. and hit the same `&macro`/`&endm` + `&&`
+  jwasm issues. Applied the same fixes (9+9 + 30). FL13 clean. NB: watch for
+  other subsystems carrying local CMACROS.INC copies. Remaining SMARTDRV:
+  mostly include-fragments (no END, start with BREAK) + SMARTDRV.ASM A2102
+  ABOVE_BLKMOV (fragment-assembly/cross-module, next).
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
