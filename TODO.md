@@ -270,6 +270,15 @@ hinc=..\..\h). Initial 1/9; all standalone (END).
   EQU-vs-= conflict. So CMD/CHKDSK is **source-clean** apart from CHKDISP's
   message-file dependency.
 
+#### CMD/FORMAT sweep (Jun 5 2026) -- 5 of 7, SOURCE-CLEAN
+
+Flags `-I. -I..\..\INC -I..\..\H`. Initial 4/7. Fixes (both cataloged
+patterns): byte-flag vs word `TRUE` (A2048) masked to `(TRUE) AND 0FFh`
+-- fBigFat/fLastChance/Old_Dir/Format_End/Cluster_Boundary_Flag, 12 sites
+in FORMAT.ASM + 4 in MSFOR.ASM; `repnz movsb` -> `rep movsb` (A2028), 3
+sites in MSFOR.ASM. FORMAT.ASM clean; the 2 remaining (DISPLAY, MSFOR)
+fail only on generated `FORMAT.CTL` / `BOOT.CL1`. So source-clean.
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
