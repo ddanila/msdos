@@ -480,6 +480,13 @@ it they hit A2106, NOT a source bug).
     files. **CMD/COMMAND is effectively source-clean** modulo fragments, the
     generated COMMAND.CTL, and the PARSE2 cross-module EQU.
 
+#### CMD/EDLIN (Jun 5 2026) -- 4 of 6, source-clean
+
+Byte flags (EA_Flag/lc_flag/continue/parse_switch_b, all db) set/compared vs
+word `True` -> A2048; masked to `(True) AND 0FFh` (8 sites, incl. an explicit
+`byte ptr cs:[parse_switch_b],true`). 1 -> 4. Remaining: EDLEQU (fragment),
+EDLMES (EDLIN.CTL artifact). Source-clean.
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
