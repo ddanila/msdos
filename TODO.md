@@ -352,10 +352,15 @@ Flags `-I. -I..\..\INC -I..\..\H`. FC's .ASM files are C-interfacing
   jwasm counts nested `macro`/`endm` without the `&`, so dropped the 9+9
   escapes (kept `&`-symbol concatenations). Unblocks the nested-macro wall
   for ALL C-interfacing assembly. FC 1 -> 2; the other 5 advance past it.
-- Remaining: per-call CMACROS `&`-concatenation in `?aD`/`?dd` (used by
-  `staticW`/`globalW`/...) -> A2039 "Expecting comma: &bufsrc" etc. A
-  broader CMACROS port (the package leans heavily on `&`); next target for
-  the C-interface utilities.
+- **FIXED (shared)**: CMACROS.INC IRP-nested double-amp `&&` concat
+  (`?T&&x`, `_&&x`, ...) -> single `&` (30 sites). jwasm wants one `&` where
+  MASM needed `&&`. Cleared GETL/MAXMIN/MOVE/STRING.
+- **FIXED**: ITOUPPER.ASM `parmW c` -- `c`/`C` is jwasm's reserved C
+  calling-convention keyword; added `OPTION NOKEYWORD:<C>`.
+- **CMD/FC now 7 of 7, source-clean.** The CMACROS.INC C-interface package
+  (Microsoft C-callable assembly) assembles under jwasm after the
+  `&macro`/`&endm` + `&&` fixes -- this unblocks C-interfacing assembly
+  across all utilities that include cmacros.
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
