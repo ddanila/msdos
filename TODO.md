@@ -514,6 +514,8 @@ includes -- CMACROS.INC and KEYBMAC.INC both have per-subsystem copies.)
   HEADER listing macro before it is defined (it announces the section that
   defines it) -> A2209 (jwasm needs macros defined before use). Commented the
   single premature call per file. GRTABSM needs a generated .CTL. Source-clean.
+- **CMD/FASTOPEN** 3 -> 4 of 5: same premature-HEADER pattern in FASTP.ASM
+  (call 90, def 93); commented. FASTSM needs fastopen.CTL. Source-clean.
 
 #### CMD/PRINT + VERSION.INC MSVER (Jun 5 2026)
 
