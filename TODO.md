@@ -221,18 +221,21 @@ FIXED this session that were formerly in this list: OPEN.ASM `update_size`
 FINFO.ASM (`i_need` comma), SEGCHECK.ASM (`buf_link` -> `buf_next`),
 STDDATA/STDTABLE (MSSW IBM guard + MSINIT OUT keyword).
 
-#### BIOS subsystem sweep (Jun 5 2026) -- 8 of 14 `.ASM` (started)
+#### BIOS subsystem sweep (Jun 5 2026) -- 9 of 14 `.ASM` (started)
 
 Same flags as DOS (`-I. -I..\INC -I..\HINC`). Initial: 6/14. All 14 are
 standalone (have `END`). Breakdown of the failures:
 - **`.CL` build-artifacts** (MSBIO2, SYSIMES, SYSINIT1): A2106 can't open
   `MSBIO.CL2/CL3/CL5` (generated message-overlay files) -- need make flow.
-- **Source errors**: MSDISK (`?stackdepth` not defined -- BIOS macro setup),
-  MSINIT (A2065 constant expected), MSLOAD (A2048 operand size).
+- **Source errors**: MSINIT (A2065 constant expected), MSLOAD (A2048
+  operand size).
 - **FIXED**: `SYSINIT2.ASM` -- two trailing-comma EXTRNs (A2209, jwasm
   line-joins them) + `repe movsb` -> `rep movsb` (A2028; REPE/REPZ valid
   only on CMPS/SCAS). `MSHARD.ASM` -- `REPZ INSW`/`REPZ INSB` -> `REP`
-  (same A2028 class; .286c already present). (-> 8/14.)
+  (same A2028 class; .286c already present). `MSDISK.ASM` -- BIOS
+  `PUSHPOP.INC` never initialized `?stackdepth` (DOSMAC.INC inits it for
+  DOS; MASM treated the undefined symbol as 0). Added `?stackdepth = 0`
+  outside the IF1. (-> 9/14.)
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
