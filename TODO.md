@@ -515,6 +515,15 @@ includes -- CMACROS.INC and KEYBMAC.INC both have per-subsystem copies.)
   defines it) -> A2209 (jwasm needs macros defined before use). Commented the
   single premature call per file. GRTABSM needs a generated .CTL. Source-clean.
 
+#### CMD/PRINT + VERSION.INC MSVER (Jun 5 2026)
+
+CMD/PRINT pridefs.inc: `TRUE EQU NOT FALSE` -> 16-bit mask (A2143 vs DOSSYM).
+Then HARDINT A2143 -- root cause: `MSVER EQU NOT IBMVER` (VERSION.INC) is wide
+under jwasm, so the mutually-exclusive `IF MSVER` / `IF IBM` blocks BOTH ran
+-> HARDINT redefined. Masked `MSVER EQU (NOT IBMVER) AND 0FFFFh` in VERSION.INC
+(**tree-wide IF MSVER fix**, provably 16-bit-MASM-equiv, no regression --
+CHKDSK unchanged). The 4 PRINT_* files now source-clean (only PRINT.CTL left).
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
