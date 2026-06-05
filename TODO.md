@@ -426,13 +426,15 @@ it they hit A2106, NOT a source bug).
   source bug -- with it, the count is out of 42 properly.
 - **FIXED**: ERRHNDLR `C = 46` / `ENTER = 28` scan-code constants clash with
   reserved C (conv) / ENTER (instr) -> OPTION NOKEYWORD:<C ENTER>. (31 -> 32.)
-- Remaining 10: **A2078 VDMSEG.INC segment-attr cluster** (MEMMINC/VMINST/
-  VMTRAP/ROM_SRCH): bare `_TEXT segment`/`LAST segment` (OEMDEP.INC) vs
-  explicit `SEGMENT BYTE/PARA ... PUBLIC` (VDMSEG.INC); jwasm: bare-first-then-
-  explicit -> A2078 (alignment/combine), but explicit-first-then-bare is fine
-  (bare inherits). R_CODE combine conflict (VMINST) is from a not-yet-located
-  earlier R_CODE def. Needs include-order/segment-attr reconciliation -- a
-  focused multi-file pass. Plus A2049 (INITDEB/RETREAL/UTIL), A2048 (KBD),
+- **FIXED**: OEMDEP.INC bare `_TEXT`/`LAST` reopens -> explicit attrs
+  (match VDMSEG.INC); cleared MEMMINC. (32 -> 33.)
+- Remaining 9: **A2078 bare-segment-before-VDMSEG** (VMINST/VMTRAP/ROM_SRCH):
+  these .ASM open `R_CODE`/`_TEXT`/`LAST` BARE *before* their `include vdmseg.inc`
+  (e.g. VMINST:83 R_CODE bare, include at 104), so the bare def lands first
+  with default attrs and VDMSEGs explicit reopen conflicts. **Pervasive** --
+  dozens of MEMM files reopen these segments bare (most pass because VDMSEG
+  comes first for them). Per-file fix: make the pre-VDMSEG bare opens explicit,
+  or include vdmseg first. Plus A2049 (INITDEB/RETREAL/UTIL), A2048 (KBD),
   unexpected-colon (EKBD), INIT.
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
