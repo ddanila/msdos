@@ -431,8 +431,13 @@ it they hit A2106, NOT a source bug).
 - **FIXED**: A2078 bare-segment-before-VDMSEG -- made the pre-vdmseg bare
   opens explicit in VMINST (R_CODE:83, _TEXT:88), VMTRAP (_TEXT:104), ROM_SRCH
   (LAST:72). (33 -> 36.) The whole A2078 VDMSEG cluster is now cleared.
-- Remaining 6: A2049 invalid-operands (INITDEB/RETREAL/UTIL), A2048 operand-
-  size (KBD), A2047 unexpected-colon (EKBD), INIT (A2188/other). Next.
+- **FIXED**: LIDT/LGDT `qword ptr` -> `fword ptr` (A2049; 6-byte FWORD
+  descriptor in 16-bit mode) in RETREAL/UTIL/INITDEB (4 sites). RETREAL+UTIL
+  clean. (36 -> 38.)
+- Remaining 4: A2048 operand-size (KBD), A2047 unexpected-colon (EKBD), INIT
+  (A2188/other), INITDEB (known stale symbols: `ddata` has no segment declared,
+  `DEBC_GSEL`->`DEB1_GSEL`-style -- needs external-lib segment layout, surface
+  not guess; see WASM-patterns memory).
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
