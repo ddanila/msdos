@@ -4,14 +4,14 @@
 # MASM invocation:  masm "flags" "source.ASM,output.OBJ;"
 # JWasm equivalent: jwasm -q -Zm -c [translated flags] source.ASM -Fo=output.OBJ
 #
-# Unlike bin/wasm-masm, there is NO preprocessor step: JWasm targets MASM
-# compatibility natively (-Zm = MASM 5.1 mode), so STRUC.INC and friends are
-# expected to assemble with only direct source adaptations (see the
-# jwasm-migration branch of the MS-DOS submodule).
+# Runs a MINIMAL preprocessor (bin/preprocess-jwasm) that only comma-separates
+# structured-directive args (.IF <a EQ b> -> .IF <a,EQ,b>, .FOR x = a TO b ->
+# .FOR x,=,a,TO,b). JWasm handles everything else natively (-Zm = MASM 5.1),
+# so no dot-rename, no $BuildJump expansion, no %out/listing stripping.
 #
 # Flag translation:
 #   -Mx (preserve case externals) -> drop (handled via -Zm / default casemap)
-#   -t  (terse)                   -> drop (no JWasm equivalent)
+#   -t  (terse)                   -> drop
 #   -I<dos\path>                  -> backslashes converted to forward slashes
 #   -I<drive>:\...                -> dropped (DOS absolute path)
 #   -D<name>[=<val>]              -> passed through
@@ -23,7 +23,6 @@ case "$(uname -s)-$(uname -m)" in
     Linux-x86_64)  JWASM="$SCRIPT_DIR/../jwasm/linux-x64/jwasm" ;;
     *) echo "jwasm-masm: unsupported platform $(uname -s)-$(uname -m)" >&2; exit 1 ;;
 esac
-
 if [ ! -x "$JWASM" ]; then
     echo "jwasm-masm: JWasm binary not found at $JWASM (see jwasm/README.md to build)" >&2
     exit 1
@@ -31,20 +30,57 @@ fi
 
 FLAGS="$1"
 FILESPEC="$2"
-
-# Strip trailing semicolon, split "source,output" on the comma
 FILESPEC="${FILESPEC%;}"
 SOURCE="${FILESPEC%%,*}"
 OUTPUT="${FILESPEC#*,}"
 
+# Parse MASM flags -> jwasm flags, collecting include dirs.
 JFLAGS=()
+INC_DIRS=()
 for flag in $FLAGS; do
     case "$flag" in
         -Mx|-t)        ;;                      # MASM-specific, not needed
         -I[A-Za-z]:\\*) ;;                     # DOS absolute include path, skip
-        -I*)           JFLAGS+=("${flag//\\//}") ;;  # convert backslashes
+        -I*)           f="${flag//\\//}"; JFLAGS+=("$f"); INC_DIRS+=("${f#-I}") ;;
         *)             JFLAGS+=("$flag") ;;
     esac
 done
 
-exec "$JWASM" -q -Zm -c "${JFLAGS[@]}" -Fo="$OUTPUT" "$SOURCE"
+# Preprocess source + include dirs into a shadow tree.
+PPDIR=$(mktemp -d)
+trap 'rm -rf "$PPDIR"' EXIT
+python3 "$SCRIPT_DIR/preprocess-jwasm" "$PPDIR" "$SOURCE" "${INC_DIRS[@]}"
+
+ORIG_DIR="$(pwd)"
+PP_SOURCE_BASE="$(basename "$SOURCE")"
+
+# Remap -I flags: shadow inc dirs first (absolute), original dirs as fallback.
+PP_FLAGS=()
+for flag in "${JFLAGS[@]}"; do
+    case "$flag" in
+        -I*)
+            incdir="${flag#-I}"
+            case "$incdir" in
+                /*) abs_incdir="$incdir" ;;
+                *)  abs_incdir="$ORIG_DIR/$incdir" ;;
+            esac
+            ppinc="$PPDIR/inc_$(echo "$incdir" | tr '/.=' '___')"
+            if [ -d "$ppinc" ]; then
+                PP_FLAGS+=("-I$ppinc" "-I$abs_incdir")
+            else
+                PP_FLAGS+=("-I$abs_incdir")
+            fi
+            ;;
+        *) PP_FLAGS+=("$flag") ;;
+    esac
+done
+
+case "$OUTPUT" in
+    /*) ABS_OUTPUT="$OUTPUT" ;;
+    *)  ABS_OUTPUT="$ORIG_DIR/$OUTPUT" ;;
+esac
+
+# Run JWasm from the shadow dir so CWD-relative includes resolve to the
+# preprocessed same-directory files (placed at the shadow root).
+cd "$PPDIR"
+exec "$JWASM" -q -Zm -c "${PP_FLAGS[@]}" "$PP_SOURCE_BASE" -Fo="$ABS_OUTPUT"
