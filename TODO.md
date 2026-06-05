@@ -468,9 +468,13 @@ it they hit A2106, NOT a source bug).
     INIT/RDATA/RUCODE/TPRINTF + CHKDISP past the TRUE A2143 to their
     generated .CTL (now source-clean). Tree-wide message-include fix, no
     regression. PARSE2 has a separate `switch_count` A2143 (TBD).
-  - **A2209 cluster** (TBATCH2/TDATA/TUCODE/UINIT): cause TBD (not the (?) one).
-  - data/equ/segment fragments (COMSEG/COMSW/ENVDATA/IFEQU/TRANMSG, no END).
-  - PATH2 A2048.
+  - **A2209 cluster FIXED**: goto/ECHO (PUBLIC proc names) + addr (macro)
+    are reserved (GOTO/.ECHO/ADDR); freed via OPTION NOKEYWORD:<GOTO ECHO
+    ADDR> in COMSW.ASM (common first include). Cleared TBATCH2/TUCODE;
+    UINIT source-clean (only .CTL left). (22 -> 24 of 39.)
+  - Remaining real: PARSE2 `switch_count` A2143, PATH2 A2048; plus data/equ/
+    segment fragments (COMEQU/COMSEG/COMSW/ENVDATA/FORDATA/IFEQU/TDATA/TRANMSG,
+    no END) and .CTL-blocked source-clean files (INIT/RDATA/RUCODE/TPRINTF/UINIT).
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
