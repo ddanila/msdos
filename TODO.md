@@ -125,11 +125,11 @@ under JWasm, unlike WASM). Next step: extract the comma-sep pass into a
 `bin/preprocess-jwasm` (or inline it in `bin/jwasm-masm`), then sweep
 subsystems end-to-end and link-test with `wlink`.
 
-#### DOS kernel sweep (Jun 5 2026) -- 57 of 83 `.ASM` assembling
+#### DOS kernel sweep (Jun 5 2026) -- 59 of 83 `.ASM` assembling
 
 `bin/preprocess-jwasm` + `bin/jwasm-masm` now exist (committed). Sweeping
 `v4.0/src/DOS` (`-I. -I..\INC -I..\HINC`) drove the pass count from 0 to
-**57 of 83** via these fixes (each clears/corrects many files at once):
+**59 of 83** via these fixes (each clears/corrects many files at once):
 
 1. **`DOSMAC.INC` `invoke` keyword freed** (`OPTION NOKEYWORD:<invoke>`) --
    the DOS `invoke` macro collided with jwasm's reserved INVOKE directive.
@@ -173,8 +173,12 @@ subsystems end-to-end and link-test with `wlink`.
    false, 1->0FFFEh). 49 sites / 23 files. (+2 pass: OPEN, MACRO; corrects
    branch selection in ~21 others.) **7 more sites in shared INC files are
    deferred** to when their other consumer subsystems are swept.
+6. **`print.asm` `Out` label renamed `PrintOut`** -- `OUT` is the x86 I/O
+   instruction mnemonic, so the console-output label `Out:` (+ 5 `CALL Out`)
+   was rejected A2209. Same reserved-word-collision class as ECHO->cmd_echo.
+   Cleared DOSPRINT + SHRPRINT (which include print.asm). (+2 files.)
 
-Remaining 26 failures break down as:
+Remaining 24 failures break down as:
 - **Include-fragments, not standalone-assemblable** (false sweep failures):
   e.g. DISP.ASM / MS_CODE.ASM have no `END` and are `INCLUDE`d into
   MSDISP/STDDISP and STDCODE/MSCODE; switch files STDSW/MSSW/STDASW/HIGHSW/
