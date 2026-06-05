@@ -516,6 +516,13 @@ includes -- CMACROS.INC and KEYBMAC.INC both have per-subsystem copies.)
   single premature call per file. GRTABSM needs a generated .CTL. Source-clean.
 - **CMD/FASTOPEN** 3 -> 4 of 5: same premature-HEADER pattern in FASTP.ASM
   (call 90, def 93); commented. FASTSM needs fastopen.CTL. Source-clean.
+- **CMD/LABEL** + **CMD/NLSFUNC**: premature HEADER (LABEL:127, NLSPARM:96)
+  commented. NLSFUNC/DOESMAC.INC was CORRUPTED -- the BREAK listing macro was
+  defined inside the CallInstall macro body (single ENDM closed CallInstall),
+  so BREAK only existed at CallInstall expansion -> A2209 at `BREAK <...>`
+  calls. Moved BREAK out after CallInstalls ENDM (canonical DOSMAC layout).
+  LABEL/NLSPARM clean; NLSFUNC.ASM source-clean (NLSFUNC.CTL + message-system
+  $M_NUM_CLS remain).
 
 #### CMD/PRINT + VERSION.INC MSVER (Jun 5 2026)
 
