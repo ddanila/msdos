@@ -371,15 +371,18 @@ FDISK.CTL, FDBOOT needs fdisk5.cl1, and BOOTREC includes the GENERATED
 `fdboot.inc` (FDBOOT.obj -> link -> exe2bin -> dbof fdboot.bin fdboot.inc),
 a build-order dependency. So source-clean.
 
-#### DEV/PRINTER sweep (Jun 5 2026) -- 6 of 9 (started)
+#### DEV/PRINTER sweep (Jun 5 2026) -- 7 of 9, source-clean
 
 Flags `-I. -I..\..\INC -I..\..\H`. Fixes (cataloged patterns):
 - CPSPM10/PRTINT2F use INVOKE as a cross-module proc name (PUBLIC/EXTRN
   INVOKE) -> A2209; freed via OPTION NOKEYWORD:<invoke> in shared
   CPSPEQU.INC. PARSE4E uses DF as a code label (vs the DF data directive)
   -> renamed to DF_LBL. (3 -> 6.)
-- Remaining 3: CPSPI (A2143 HWCP_1 redefinition -- to diagnose),
-  CPSPI07 (PRINTER.CTL artifact), PTRMSG (PTRMSG.INC -- generated msg inc).
+- CPSPI: DF label -> DF_LBL + HWCP_1/HWCP_2 used as code labels while
+  CPSPEQU.INC defines them as data words (`DW`) -> A2143 + A2249; renamed
+  the local labels -> HWCP_LP1/HWCP_LP2. (6 -> 7.)
+- **source-clean**: remaining 2 (CPSPI07, PTRMSG) need the generated
+  PRINTER.CTL / PTRMSG.INC message files (make flow).
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
