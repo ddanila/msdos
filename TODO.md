@@ -343,6 +343,20 @@ matching MASM) -- likely the cleanest; (b) restructure Create_Msg to branch
 absolute-vs-relocatable (emit literal `dw 0` for the no-replace case via a
 separate macro path). Deferred -- needs a design decision, not a quick edit.
 
+#### CMD/FC sweep + CMACROS.INC (Jun 5 2026) -- 2 of 7 (started)
+
+Flags `-I. -I..\..\INC -I..\..\H`. FC's .ASM files are C-interfacing
+(include `INC/CMACROS.INC`, Microsoft's C-callable-assembly package).
+- **FIXED (shared)**: CMACROS.INC defined macros-from-macros via MASM
+  `&macro`/`&endm` escaping (addSeg builds `add_IGROUP` etc.) -> A2209.
+  jwasm counts nested `macro`/`endm` without the `&`, so dropped the 9+9
+  escapes (kept `&`-symbol concatenations). Unblocks the nested-macro wall
+  for ALL C-interfacing assembly. FC 1 -> 2; the other 5 advance past it.
+- Remaining: per-call CMACROS `&`-concatenation in `?aD`/`?dd` (used by
+  `staticW`/`globalW`/...) -> A2039 "Expecting comma: &bufsrc" etc. A
+  broader CMACROS port (the package leans heavily on `&`); next target for
+  the C-interface utilities.
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
