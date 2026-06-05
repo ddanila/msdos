@@ -125,6 +125,43 @@ under JWasm, unlike WASM). Next step: extract the comma-sep pass into a
 `bin/preprocess-jwasm` (or inline it in `bin/jwasm-masm`), then sweep
 subsystems end-to-end and link-test with `wlink`.
 
+#### DOS kernel sweep (Jun 5 2026) -- 49 of 83 `.ASM` assembling
+
+`bin/preprocess-jwasm` + `bin/jwasm-masm` now exist (committed). Sweeping
+`v4.0/src/DOS` (`-I. -I..\INC -I..\HINC`) drove the pass count from 0 to
+**49 of 83** via three shared-include fixes (each clears many files at once):
+
+1. **`DOSMAC.INC` `invoke` keyword freed** (`OPTION NOKEYWORD:<invoke>`) --
+   the DOS `invoke` macro collided with jwasm's reserved INVOKE directive.
+2. **`SYSVAR.INC` `Buffinfo` struct renamed `BuffPoolInfo`** -- collided with
+   the unrelated `BUFFER.INC BUFFINFO` (single-buffer header vs buffer-pool
+   manager); A2139 across every DOS file pulling in both includes. Only the
+   BUFFER.INC name is referenced by name (`SIZE BUFFINFO`), so the SYSVAR one
+   was the safe rename. (Same shape as the ANSI `INIT_REQ_HDR` collision.)
+3. **`DOSMAC.INC` call macros `EXTRN` -> `EXTERNDEF`** (invoke, transfer,
+   short_addr, long_addr). These emit `IFNDEF name / EXTRN name:NEAR` on pass
+   2 so a proc called before its definition is declared external. MASM 5.10
+   makes this benign (pass 1 fills the whole symbol table, so on pass 2 a
+   same-module forward proc reads as defined -> no EXTRN). **jwasm `-Zm`
+   evaluates `IFNDEF` textually each pass** (verified: a proc/equate defined
+   LATER reads as undefined at an earlier site even on pass 2 -- no cross-pass
+   symbol memory at earlier positions), so it emits EXTRN for same-module
+   forward calls, clashing with the later `PROC` -> A2143. `EXTERNDEF` is the
+   MASM/jwasm directive with exactly the needed semantics: PUBLIC if defined
+   locally, EXTERN otherwise, idempotent and pass-independent. Confirmed:
+   dropping the auto-EXTRN entirely is NOT viable (A2102 storm, 54 files --
+   genuine cross-module externs are not all explicitly declared, so the
+   auto-EXTRN is load-bearing). No jwasm CLI option restores MASM's two-pass
+   table behavior; EXTERNDEF is the fix.
+
+Remaining 34 failures cluster on: more A2143 (9 files -- a *different*
+redefinition cause than the invoke phase issue, still to diagnose), A2102
+(7 files -- e.g. `OPEN.ASM update_size` forward equate), and build-artifact
+dependencies (message system / `.CTL`). `STD*`/`MS*` family dominate the
+remainder. Note: `***** Possible stack size error in X *****` from the
+`EndProc` macro is a `%OUT` message, NOT a jwasm error -- filter sweeps on
+`Error A[0-9]`, not the bare word "error".
+
 ### Source editing policy: direct edits over preprocessor passes
 
 This is a one-way migration to WASM — MASM support is dropped, and the MS-DOS sources already live in a fork (the `MS-DOS` submodule tracks our own branch). New WASM-compat fixes should therefore be **direct edits to the source files**, not new transformations added to `bin/preprocess-wasm`.
