@@ -541,6 +541,16 @@ without-commas, A2209). GSHARE then hits DEEP A2080: a build-variant
 per branch -> jwasm block-nesting tracker rejects it (block-nesting-in-skipped-
 IF class). Deferred. GSHARE2/SHARESR need SHARE.CTL; SHARELNK passes.
 
+#### More CMD utilities, batch 2 (Jun 5 2026)
+
+Premature-HEADER (cataloged, commented): TREE.ASM:185, DCOPYP.ASM:93,
+DCOMPSM.ASM:101 -> TREE/DCOPYP clean, DCOMPSM source-clean (.CTL).
+ASSIGN/ASSGMAIN.ASM: included CURDIR.INC (calls BREAK) + a premature
+`BREAK <...>` before defining BREAK -> moved the BREAK macro def above the
+includes. Source-clean. (SYS/SYSHDR.INC has the same BREAK-before-def via an
+include -- next.) Most other utilities (SORT/JOIN/APPEND/SUBST/ATTRIB/FIND/
+MORE/REPLACE/XCOPY/COMP/EXE2BIN) fail only on generated .CTL -- source-clean.
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
