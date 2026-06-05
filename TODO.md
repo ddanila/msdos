@@ -499,6 +499,14 @@ deep/artifact:
   (MODE max_pknum, COMMAND switch_count, Sublist A2164).
 - INDEMSG: needs generated xmaem.cl1.
 
+#### CMD/KEYB (Jun 5 2026) -- 9 of 10, source-clean
+
+CMD/KEYB has its OWN copy of KEYBMAC.INC (separate from DEV/KEYBOARDs) with
+the same OPTION + GOTO reserved-macro-name issue -> freed via
+OPTION NOKEYWORD:<OPTION GOTO>. Cleared KEYBI2F/KEYBI48. 6 -> 9. Only KEYBCMD
+remains (generated .CTL). (Reinforces: watch for LOCAL copies of shared
+includes -- CMACROS.INC and KEYBMAC.INC both have per-subsystem copies.)
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
