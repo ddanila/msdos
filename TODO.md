@@ -96,6 +96,35 @@ Findings so far:
   jump-alias edge (`jnNEQ`), `ifndef <bracketed>` A4248 warnings, then an
   end-to-end real-file + link test.
 
+**Update (Jun 5, iter 2):**
+- AND-conjunction (`.IF NZ,AND` / `.IF <mem,EQ,const>`) **verified working**
+  under JWasm with the committed STRUC.INC adaptations -- the `$GetConj`
+  ifidni rewrite was the key. This was WASM's "upstream-only" ANSI blocker.
+- `NEQ` is **unused** in real conditionals, so the `jnNEQ` edge is moot.
+- A4248 warnings **cleared** (`ifndef <$ll&l>` -> `ifndef $ll&l`); core test
+  now 0 errors / 0 warnings.
+- `.FOR` comma edits applied to the 6 real sites (MODE + SELECT/MACROS3).
+
+**PIVOTAL FINDING (reshapes the approach):** a MODE-subsystem sweep showed
+the dominant remaining error (A2209) is the **space-separated bracketed
+condition** `.IF <a EQ b>` -- JWasm passes `<a EQ b>` as a single arg (no
+whitespace split), so the whole blob lands in the condition slot and
+`jn&c` builds garbage (e.g. `jnv`). The comma form `.IF <a,EQ,b>` works.
+This affects the COMMON comparison form, **~1811 sites across 65 files** --
+far too many for call-site edits. So a **minimal comma-separation
+preprocessor pass is required** (the `fix_angles` / `_comma_sep_struc_args`
+logic already in `bin/preprocess-wasm`).
+
+Net revised picture: the JWasm path is **adapted STRUC.INC (5 small edits)
++ a MINIMAL comma-sep preprocessor + OpenWatcom for C**. The preprocessor
+does NOT fully disappear, but it shrinks from `bin/preprocess-wasm`'s ~789
+lines / many passes to essentially ONE pass (comma-separate structured-
+directive args) -- and, crucially, there are **no unfixable macro-engine
+walls** (the `&` / nested-macro / conjunction engine all work natively
+under JWasm, unlike WASM). Next step: extract the comma-sep pass into a
+`bin/preprocess-jwasm` (or inline it in `bin/jwasm-masm`), then sweep
+subsystems end-to-end and link-test with `wlink`.
+
 ### Source editing policy: direct edits over preprocessor passes
 
 This is a one-way migration to WASM — MASM support is dropped, and the MS-DOS sources already live in a fork (the `MS-DOS` submodule tracks our own branch). New WASM-compat fixes should therefore be **direct edits to the source files**, not new transformations added to `bin/preprocess-wasm`.
