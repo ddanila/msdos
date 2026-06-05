@@ -463,11 +463,11 @@ it they hit A2106, NOT a source bug).
   shared COMEQU.ASM + FORDATA.ASM + TSPC.ASM used bare `(?)` initializers
   (`DW (?)`/`DB (?)`) -> A2209; replaced the direct forms with `?` (kept
   `N DUP (?)`). 2 -> 22 of 39. Remaining 17:
-  - **A2143 cluster** (INIT/PARSE2/RDATA/RUCODE/TPRINTF): shared
-    `SYSMSG.INC:53 TRUE = NOT FALSE` redefines DOSSYM `TRUE EQU 0FFFFh` via
-    `=` (EQU-vs-= conflict) -- a broadly-shared message include (also hits
-    CHKDISP); guard with `ifndef TRUE`. High-value but wide blast radius ->
-    own iteration. (INIT also needs COMMAND.CTL.)
+  - **A2143 TRUE cluster FIXED**: guarded `SYSMSG.INC` TRUE/FALSE with
+    `ifndef` (+16-bit mask) -- defers to DOSSYM `TRUE EQU 0FFFFh`. Advanced
+    INIT/RDATA/RUCODE/TPRINTF + CHKDISP past the TRUE A2143 to their
+    generated .CTL (now source-clean). Tree-wide message-include fix, no
+    regression. PARSE2 has a separate `switch_count` A2143 (TBD).
   - **A2209 cluster** (TBATCH2/TDATA/TUCODE/UINIT): cause TBD (not the (?) one).
   - data/equ/segment fragments (COMSEG/COMSW/ENVDATA/IFEQU/TRANMSG, no END).
   - PATH2 A2048.
