@@ -434,10 +434,13 @@ it they hit A2106, NOT a source bug).
 - **FIXED**: LIDT/LGDT `qword ptr` -> `fword ptr` (A2049; 6-byte FWORD
   descriptor in 16-bit mode) in RETREAL/UTIL/INITDEB (4 sites). RETREAL+UTIL
   clean. (36 -> 38.)
-- Remaining 4: A2048 operand-size (KBD), A2047 unexpected-colon (EKBD), INIT
-  (A2188/other), INITDEB (known stale symbols: `ddata` has no segment declared,
-  `DEBC_GSEL`->`DEB1_GSEL`-style -- needs external-lib segment layout, surface
-  not guess; see WASM-patterns memory).
+- **FIXED**: EKBD `wait` code-label -> `wait_loop` (vs WAIT instr); KBD DCODE
+  bare `segment` -> `USE16` (under .386p jwasm defaults bare segs to USE32, so
+  `offset AltChrs` was 32-bit -> A2048). (38 -> 40.)
+- Remaining 2: INIT (A2188/other), INITDEB (known stale symbols: `ddata` has no
+  segment declared, `DEBC_GSEL`->`DEB1_GSEL`-style -- needs external-lib segment
+  layout, surface not guess; see WASM-patterns memory). MEMM essentially
+  source-clean modulo these two.
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
