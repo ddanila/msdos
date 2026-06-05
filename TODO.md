@@ -547,8 +547,10 @@ Premature-HEADER (cataloged, commented): TREE.ASM:185, DCOPYP.ASM:93,
 DCOMPSM.ASM:101 -> TREE/DCOPYP clean, DCOMPSM source-clean (.CTL).
 ASSIGN/ASSGMAIN.ASM: included CURDIR.INC (calls BREAK) + a premature
 `BREAK <...>` before defining BREAK -> moved the BREAK macro def above the
-includes. Source-clean. (SYS/SYSHDR.INC has the same BREAK-before-def via an
-include -- next.) Most other utilities (SORT/JOIN/APPEND/SUBST/ATTRIB/FIND/
+includes. Source-clean. **CMD/SYS**: SYS never defines BREAK at all (no DOSMAC
+include; the WASM build relied on the preprocessor stripping BREAK) -> added
+the standard BREAK macro at the top of the shared SYSHDR.INC. SYS2 clean,
+SYS1/SYSSR source-clean (SYS.CTL). Most other utilities (SORT/JOIN/APPEND/SUBST/ATTRIB/FIND/
 MORE/REPLACE/XCOPY/COMP/EXE2BIN) fail only on generated .CTL -- source-clean.
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
