@@ -553,6 +553,17 @@ the standard BREAK macro at the top of the shared SYSHDR.INC. SYS2 clean,
 SYS1/SYSSR source-clean (SYS.CTL). Most other utilities (SORT/JOIN/APPEND/SUBST/ATTRIB/FIND/
 MORE/REPLACE/XCOPY/COMP/EXE2BIN) fail only on generated .CTL -- source-clean.
 
+#### Misc subsystems (Jun 5 2026)
+
+DEV/DISPLAY/LCD 7/7 clean. Most DEV drivers (ANSI/DRIVER/VDISK) + MEMM/EMM +
+COMP fail only on generated .CTL (source-clean). DEV/RAMDRIVE: A2082 in
+syscall.inc (includes it outside a segment block -- to check). CMD/EXE2BIN:
+DISPLAY clean, E2BINIT needs EXE2BIN.CTL; LOCMES freed `addr` macro (reserved
+ADDR) + TRUE mask -> clean. LOCATE.ASM is an ancient 86-DOS loader with its
+`INCLUDE E2BMACRO.INC` commented out (line 35), so MESSAGE/addr are undefined
+-> A2209; likely vestigial, uncommenting would also need DOSSYM/SYSCALL --
+left as-is.
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
