@@ -362,6 +362,15 @@ Flags `-I. -I..\..\INC -I..\..\H`. FC's .ASM files are C-interfacing
   `&macro`/`&endm` + `&&` fixes -- this unblocks C-interfacing assembly
   across all utilities that include cmacros.
 
+#### CMD/FDISK sweep (Jun 5 2026) -- source-clean
+
+Flags `-I. -I..\..\INC -I..\..\H`. Only source fix: FDBOOT.ASM:30
+`repnz movsw` -> `rep movsw` (A2028, cataloged conditional-rep). The 3
+remaining sweep failures are all make-flow/build-order deps: _MSGRET needs
+FDISK.CTL, FDBOOT needs fdisk5.cl1, and BOOTREC includes the GENERATED
+`fdboot.inc` (FDBOOT.obj -> link -> exe2bin -> dbof fdboot.bin fdboot.inc),
+a build-order dependency. So source-clean.
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
