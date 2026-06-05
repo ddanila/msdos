@@ -564,6 +564,14 @@ ADDR) + TRUE mask -> clean. LOCATE.ASM is an ancient 86-DOS loader with its
 -> A2209; likely vestigial, uncommenting would also need DOSSYM/SYSCALL --
 left as-is.
 
+#### RECOVER + more (Jun 5 2026)
+
+CMD/RECOVER: RECPARSE.INC/RECdata.INC had trailing-comma `public` lines
+(jwasm line-joins -> A2209, e.g. into "parms_input_block LABEL BYTE");
+stripped 5 trailing commas. RECINIT/RECPROC clean; RECDISP/RECOVER source-
+clean (RECOVER.CTL). CMD/BACKUP, RESTORE, MEM, COMP: source-clean (only
+_MSGRET/*SM .CTL). 
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
