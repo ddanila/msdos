@@ -279,6 +279,36 @@ in FORMAT.ASM + 4 in MSFOR.ASM; `repnz movsb` -> `rep movsb` (A2028), 3
 sites in MSFOR.ASM. FORMAT.ASM clean; the 2 remaining (DISPLAY, MSFOR)
 fail only on generated `FORMAT.CTL` / `BOOT.CL1`. So source-clean.
 
+#### Message-file generation: a SOLVED make-flow step (Jun 5 2026)
+
+The `.CTL` / `.CL*` "Cannot open file" failures seen across EVERY swept
+subsystem (DOS DOSMES, BIOS MSBIO2/SYSIMES/SYSINIT1/MSLOAD, CHKDSK CHKDISP,
+FORMAT DISPLAY/MSFOR, ...) are **one and the same make-flow step, already
+tooled** -- NOT source bugs and NOT jwasm work. They only appear because a
+standalone file sweep doesn't run the message-compiler step.
+
+Mechanism (from `TOOLS/TOOLS.INI` inference rules):
+- `.msg.idx`:  `buildidx $*.msg`                        (-> `bin/buildidx`)
+- `.skl.ctl`:  `buildmsg $(msg)\$(COUNTRY) $*.skl`      (-> `bin/buildmsg`)
+- `.skl.cl1`:  `nosrvbld $*.skl $(msg)\$(COUNTRY).msg`  (-> `bin/nosrvbld`)
+
+Tools are the DOS exes `TOOLS/BUILDIDX.EXE`/`BUILDMSG.EXE`/`NOSRVBLD.EXE`,
+run via `bin/dos-run` -> `kvikdos` (or `kvikdos-soft` when /dev/kvm is
+absent, e.g. **macOS** -- so this works on the dev host). Inputs are the
+checked-in per-utility `*.skl` + `MESSAGES/USA-MS.MSG` (+ `USA-MS.IDX`).
+
+**Verified Jun 5**: ran `bin/buildidx`/`bin/buildmsg` on FORMAT (kvikdos-soft,
+macOS) -> produced FORMAT.CTL + FORMAT.CL1/CL2/CLA/CLB/CLC. With those
+present, DISPLAY.ASM no longer fails on the missing `.CTL`. (Generated
+`.ctl`/`.cl*` are gitignored build artifacts -- never commit them.)
+
+**KEY follow-on**: generating the `.CTL` UNMASKS the next real source
+blocker -- DISPLAY.ASM then hits `FORMSG.INC(859): A2164 No segment
+information to create fixup: Sublist`. So the message-system `Sublist`
+macro/symbol is the next genuine jwasm source target (it was previously
+hidden behind the missing-`.CTL` error). **Next: diagnose `Sublist`
+A2164 in the message-service includes (FORMSG.INC / INC/msgserv.asm).**
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
