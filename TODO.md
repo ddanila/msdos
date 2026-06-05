@@ -472,9 +472,13 @@ it they hit A2106, NOT a source bug).
     are reserved (GOTO/.ECHO/ADDR); freed via OPTION NOKEYWORD:<GOTO ECHO
     ADDR> in COMSW.ASM (common first include). Cleared TBATCH2/TUCODE;
     UINIT source-clean (only .CTL left). (22 -> 24 of 39.)
-  - Remaining real: PARSE2 `switch_count` A2143, PATH2 A2048; plus data/equ/
-    segment fragments (COMEQU/COMSEG/COMSW/ENVDATA/FORDATA/IFEQU/TDATA/TRANMSG,
-    no END) and .CTL-blocked source-clean files (INIT/RDATA/RUCODE/TPRINTF/UINIT).
+  - **PATH2 FIXED**: WORD PTR on `argv[BX].<word_member>` (argv is a DB array;
+    member typed BYTE -> A2048). (24 -> 25 of 39.)
+  - Remaining real: PARSE2 `switch_count EQU $-switch_list` (switch_list EXTRN
+    -- uncomputable cross-module $-OFFSET, deep, like MODE max_pknum; deferred).
+    Rest are data/equ/segment fragments (no END) + .CTL-blocked source-clean
+    files. **CMD/COMMAND is effectively source-clean** modulo fragments, the
+    generated COMMAND.CTL, and the PARSE2 cross-module EQU.
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
