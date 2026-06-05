@@ -304,10 +304,44 @@ present, DISPLAY.ASM no longer fails on the missing `.CTL`. (Generated
 
 **KEY follow-on**: generating the `.CTL` UNMASKS the next real source
 blocker -- DISPLAY.ASM then hits `FORMSG.INC(859): A2164 No segment
-information to create fixup: Sublist`. So the message-system `Sublist`
-macro/symbol is the next genuine jwasm source target (it was previously
-hidden behind the missing-`.CTL` error). **Next: diagnose `Sublist`
-A2164 in the message-service includes (FORMSG.INC / INC/msgserv.asm).**
+information to create fixup: Sublist`.
+
+##### Sublist A2164 -- root-caused (Jun 5 2026), a deep SHARED blocker
+
+FORMSG.INC builds message-description tables: `Sublist = No_Replace` (=0,
+absolute) or `Sublist = Sublist_msgXxx` (a relocatable sublist-table label),
+then `Define_Msg`/`Create_Msg` emits `dw Sublist` into the `data` segment.
+
+Minimal reproducer (fails A2164 at `data ends`; verified):
+```
+data segment public 'DATA'
+ST1 label dword
+	dw 5
+Create_Msg macro p1,p4
+p1 label word
+	dw p4
+	endm
+Sublist = 0          ;; absolute
+	Create_Msg M1,Sublist
+Sublist = ST1        ;; relocatable
+	Create_Msg M2,Sublist
+data ends
+end
+```
+Root cause: **jwasm locks a redefinable `=` symbol's type on first use; a
+symbol assigned BOTH an absolute (0) and a relocatable (label) value across
+reassignments cannot be turned into a fixup** -> A2164 flushed at segment
+end. Order-independent; `offset` doesn't help; all-absolute or all-relocatable
+both work, only the MIX fails. MASM 5.10 allowed the mix.
+
+This is **NOT a small fix**: No_Replace must stay 0 (runtime "no replaceable
+params" check), so we can't just make it relocatable; and the
+`Sublist`/`Create_Msg` message pattern is **shared across many utilities**
+(FORMAT, CHKDSK, ... every program with replaceable-parameter messages).
+Options: (a) a jwasm-engine fix (allow `=` to switch absolute<->relocatable,
+matching MASM) -- likely the cleanest; (b) restructure Create_Msg to branch
+absolute-vs-relocatable (emit literal `dw 0` for the no-replace case via a
+separate macro path). Deferred -- needs a design decision, not a quick edit.
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
