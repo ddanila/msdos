@@ -244,21 +244,24 @@ Source fixes applied:
 - `MSLOAD.ASM` -- `not END_OF_FILE` into a byte var (A2048, NOT-width)
   masked to `(not END_OF_FILE) AND 0FFh`. (MSLOAD still needs MSbio.cl1.)
 
-#### CMD/CHKDSK sweep (Jun 5 2026) -- 3 of 9 (started)
+#### CMD/CHKDSK sweep (Jun 5 2026) -- 5 of 9
 
 Flags `-I. -I..\..\INC -I..\..\H` (per its MAKEFILE: inc=..\..\inc,
 hinc=..\..\h). Initial 1/9; all standalone (END).
 - **FIXED**: `CHKEQU.INC` `TRUE EQU NOT FALSE` -> `(NOT FALSE) AND 0FFFFh`
   (A2143: jwasm leaves NOT wide so it != DOSSYM `TRUE EQU 0FFFFh`; the
-  16-bit mask makes it 0FFFFh, a benign redef). (-> 3/9.) **This
-  `TRUE EQU NOT FALSE` idiom is likely systemic across subsystem EQU files
-  -- watch for it elsewhere.**
-- Remaining: A2139 dup struct `A_DeviceParameters` (CHKEQU.INC:162 vs
-  shared IOCTL.INC:136 -- Buffinfo-style, affects CHKDSK1/CHKINIT);
-  A2209 `public`/`EXTRN` syntax (CHKFAT:57, CHKPROC:33 -- trailing comma?);
-  A2048 operand size (CHKPROC2:242 -- NOT-width?); SYSMSG.INC:53
-  `TRUE = NOT FALSE` redefining the DOSSYM EQU via `=` (CHKDISP -- shared
-  include, EQU-vs-= conflict); CHKDISP also needs CHKDSK.CTL (artifact).
+  16-bit mask makes it 0FFFFh, a benign redef). **This `TRUE EQU NOT FALSE`
+  idiom is likely systemic across subsystem EQU files -- watch for it.**
+- **FIXED**: CHKEQU.INC local struct `A_DeviceParameters` (BPB template)
+  collided with shared IOCTL.INC `A_DEVICEPARAMETERS` -> A2139. Renamed the
+  local one to `Chk_DeviceParameters` (Buffinfo-style; members stay global
+  for `[bx].SectorsPerFAT`, and the one by-name use BPB_Buffer:96 resolves
+  to IOCTL's -- which MASM also used there). + CHKINIT:605 `repnz movsb` ->
+  `rep movsb` (A2028). (-> 5/9.)
+- Remaining 4: A2209 `public`/`EXTRN` syntax (CHKFAT:57, CHKPROC:33 --
+  trailing comma?); A2048 operand size (CHKPROC2:242 -- NOT-width?);
+  SYSMSG.INC:53 `TRUE = NOT FALSE` redefining the DOSSYM EQU via `=`
+  (CHKDISP -- shared include, EQU-vs-= conflict) + CHKDISP needs CHKDSK.CTL.
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
