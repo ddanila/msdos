@@ -454,6 +454,17 @@ it they hit A2106, NOT a source bug).
   (cleared 21 country-layout files at once); KDFSU.ASM `_KB` -> `AT_KB`
   (undefined truncation typo).
 
+#### DEV/DISPLAY/EGA (source-clean) + CMD/COMMAND start (Jun 5 2026)
+
+- **DEV/DISPLAY/EGA** 7/22: source-clean. The 15 `<cp>-<size>.ASM` font-data
+  files are include-fragments (no END, A2082) pulled into the `*-CPI.ASM`
+  parents (which pass).
+- **CMD/COMMAND** 2 -> 20 of 39 (flags `-I. -I..\..\INC -I..\..\H`):
+  shared COMEQU.ASM used bare `(?)` initializers (`DW (?)`/`DB (?)`) -> A2209;
+  replaced the 8 direct forms with `?` (kept `N DUP (?)`). Remaining 19 are a
+  mix of data/equ/segment fragments (COMSEG/COMSW/ENVDATA/FORDATA/IFEQU/RDATA/
+  TDATA/TRANMSG) and standalone files with other errors -- next.
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
