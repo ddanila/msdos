@@ -487,6 +487,18 @@ word `True` -> A2048; masked to `(True) AND 0FFh` (8 sites, incl. an explicit
 `byte ptr cs:[parse_switch_b],true`). 1 -> 4. Remaining: EDLEQU (fragment),
 EDLMES (EDLIN.CTL artifact). Source-clean.
 
+#### DEV/XMAEM (Jun 5 2026) -- 10 of 12
+
+INDEINS.MAC LJCOND macro `DW (OFFSET &DISPL)-(&TEMP)`: dropped `&` on TEMP
+(a local `=` symbol, not a macro param) -> A2209 cleared. Remaining 2 are
+deep/artifact:
+- INDEDMA: A2193 -- LJ* macros hand-code 386 long jumps as `DW (OFFSET
+  target)-(here)`; when `target` is EXTRN (DISPLAY in INDEEXC), jwasm rejects
+  an external symbol in DW arithmetic (can't form the external-relative
+  fixup MASM emitted). **Deep** -- joins the cross-module $-OFFSET class
+  (MODE max_pknum, COMMAND switch_count, Sublist A2164).
+- INDEMSG: needs generated xmaem.cl1.
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
