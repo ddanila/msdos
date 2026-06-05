@@ -2,3 +2,7 @@
 /kvikdos/kvikdos-soft
 /*.o
 /*.err
+
+# Experimental JWasm assembler binaries (built locally; see jwasm/README.md)
+jwasm/macos-arm64/jwasm
+jwasm/linux-x64/jwasm

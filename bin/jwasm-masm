@@ -1,0 +1,50 @@
+#!/bin/bash
+# jwasm-masm -- wrapper translating MASM-style invocation to JWasm.
+#
+# MASM invocation:  masm "flags" "source.ASM,output.OBJ;"
+# JWasm equivalent: jwasm -q -Zm -c [translated flags] source.ASM -Fo=output.OBJ
+#
+# Unlike bin/wasm-masm, there is NO preprocessor step: JWasm targets MASM
+# compatibility natively (-Zm = MASM 5.1 mode), so STRUC.INC and friends are
+# expected to assemble with only direct source adaptations (see the
+# jwasm-migration branch of the MS-DOS submodule).
+#
+# Flag translation:
+#   -Mx (preserve case externals) -> drop (handled via -Zm / default casemap)
+#   -t  (terse)                   -> drop (no JWasm equivalent)
+#   -I<dos\path>                  -> backslashes converted to forward slashes
+#   -I<drive>:\...                -> dropped (DOS absolute path)
+#   -D<name>[=<val>]              -> passed through
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+case "$(uname -s)-$(uname -m)" in
+    Darwin-arm64)  JWASM="$SCRIPT_DIR/../jwasm/macos-arm64/jwasm" ;;
+    Linux-x86_64)  JWASM="$SCRIPT_DIR/../jwasm/linux-x64/jwasm" ;;
+    *) echo "jwasm-masm: unsupported platform $(uname -s)-$(uname -m)" >&2; exit 1 ;;
+esac
+
+if [ ! -x "$JWASM" ]; then
+    echo "jwasm-masm: JWasm binary not found at $JWASM (see jwasm/README.md to build)" >&2
+    exit 1
+fi
+
+FLAGS="$1"
+FILESPEC="$2"
+
+# Strip trailing semicolon, split "source,output" on the comma
+FILESPEC="${FILESPEC%;}"
+SOURCE="${FILESPEC%%,*}"
+OUTPUT="${FILESPEC#*,}"
+
+JFLAGS=()
+for flag in $FLAGS; do
+    case "$flag" in
+        -Mx|-t)        ;;                      # MASM-specific, not needed
+        -I[A-Za-z]:\\*) ;;                     # DOS absolute include path, skip
+        -I*)           JFLAGS+=("${flag//\\//}") ;;  # convert backslashes
+        *)             JFLAGS+=("$flag") ;;
+    esac
+done
+
+exec "$JWASM" -q -Zm -c "${JFLAGS[@]}" -Fo="$OUTPUT" "$SOURCE"

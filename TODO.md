@@ -66,6 +66,36 @@ This session overturned the central assumption that ~296 E032 errors were all "S
 
 A source workaround for #1/#2 would mean **reimplementing STRUC.INC's macro-stack/conjunction machinery** (nested-`irp` + `&`-substitution + `exitm` are fundamental to its design) -- very high effort and regression risk for ~5 files. This **vindicates the original "prefer the upstream WASM fix" guidance** for the STRUC.INC family (same bug class as the already-filed #24). Recommended next step: file the minimal repros (conjunction `$GetConj`, `.loop` E206) against `ddanila/open-watcom-v2`; landing them cascade-clears the remainder. The source-fixable (non-engine) surface is now exhausted.
 
+### JWasm experiment (Jun 5 2026, branch `jwasm-migration`, LOCAL only)
+
+Exploring **JWasm** (Japheth/Baron-von-Riedesel fork) as an alternative to Open
+Watcom `wasm` for assembly, keeping Open Watcom for C. Motivation: the WASM path
+declared its remaining ~5 blocked files (ANSI/GRAPHICS/KEYB) "upstream macro-
+engine bugs" -- JWasm is far more MASM-compatible (`-Zm` = MASM 5.1 mode, multi-
+pass, full macro engine) and may clear them without an upstream fix, and could
+let us drop `bin/preprocess-wasm` entirely.
+
+Setup (local, not pushed): branches `jwasm-migration` in both repos; MS-DOS
+worktree at `../msdos-jwasm` off `dos4-enhancements`; JWasm vendored at
+`jwasm/macos-arm64/jwasm` (gitignored, build recipe in `jwasm/README.md`);
+`bin/jwasm-masm` wrapper (drop-in for `bin/masm`, **no preprocessor**).
+
+Findings so far:
+- JWasm v2.21 builds on macOS arm64 (one-line `malloc.h`->`alloca.h` patch),
+  emits 16-bit OMF, multi-pass.
+- STRUC.INC's macro engine (the `&` / macro-stack that broke WASM) **works**
+  under JWasm with 5 localized STRUC.INC adaptations (see the MS-DOS
+  `jwasm-migration` commit): OPTION NOKEYWORD for the dotted names,
+  `$LastLabelOrg` init, `$EquateLabel` eq-`$` drop, `$GetConj`/`$GetDist`
+  ifidni dispatch.
+- **Verified: `.IF/.ELSE/.WHILE/.REPEAT/.UNTIL` assemble 0 errors -> OMF.**
+- JWasm also splits macro args on commas only (not whitespace), so the `.FOR`
+  and conjunction call-site comma edits are still needed (same as WASM; MASM-
+  compatible).
+- Still open: two-line AND/OR conjunctions (`.IF NZ,AND`), a double-negation
+  jump-alias edge (`jnNEQ`), `ifndef <bracketed>` A4248 warnings, then an
+  end-to-end real-file + link test.
+
 ### Source editing policy: direct edits over preprocessor passes
 
 This is a one-way migration to WASM — MASM support is dropped, and the MS-DOS sources already live in a fork (the `MS-DOS` submodule tracks our own branch). New WASM-compat fixes should therefore be **direct edits to the source files**, not new transformations added to `bin/preprocess-wasm`.
