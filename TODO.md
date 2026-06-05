@@ -507,6 +507,14 @@ OPTION NOKEYWORD:<OPTION GOTO>. Cleared KEYBI2F/KEYBI48. 6 -> 9. Only KEYBCMD
 remains (generated .CTL). (Reinforces: watch for LOCAL copies of shared
 includes -- CMACROS.INC and KEYBMAC.INC both have per-subsystem copies.)
 
+#### More CMD utilities (Jun 5 2026)
+
+- **CMD/IFSFUNC** 8/10: source-clean (IFSERROR/IFSINIT need IFSFUNC.CTL).
+- **CMD/GRAFTABL** 6 -> 9 of 10: GRTAB/GRTABHAN/GRTABP call the cosmetic
+  HEADER listing macro before it is defined (it announces the section that
+  defines it) -> A2209 (jwasm needs macros defined before use). Commented the
+  single premature call per file. GRTABSM needs a generated .CTL. Source-clean.
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
