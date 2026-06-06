@@ -610,12 +610,11 @@ DEFINITIVE (via -Fl listing): the external-offset revision was ALSO wrong
 offsets needing a segment-relative fixup the `=` lost via the 0/label mix ->
 A2164. IFE and `= OFFSET label` both ruled out (count unchanged). So there are
 actually TWO distinct deep roots, not one:
-  (1) `=` symbol holding both absolute(0) and relocatable(label) -> lost-segment
-      data fixup (Sublist / message system). All 3 macro-expression coercions
-      RULED OUT (IFE -> count unchanged; `= OFFSET label` -> still A2164;
-      `Parm4 AND 0FFFFh` -> A2065 cant-AND-relocatable). Only fixes: jwasm `=`
-      reloc-segment support, or restructure Define_Msg to emit `dw <label>`
-      directly (bypass the reused `=` var) -- per-msg-file structural change.
+  (1) **RESOLVED** -- Sublist `=` absolute/reloc mix: fixed by converting the
+      per-message `Sublist = X` to `Sublist EQU <X>` TEXT equates, so `dw Sublist`
+      substitutes to `dw <label>` (direct, proper fixup) or `dw 0`. FORMAT done
+      (FORMSG.INC, DISPLAY.ASM fully assembles with FORMAT.CTL). A mechanical
+      per-assignment edit; apply the same to other Sublist msg files (MODE/MODEMES).
   (2) external `$-OFFSET` / displacement (max_pknum, switch_count, XMAEM/
       RAMDRIVE long-jumps). Fix: jwasm external-relative fixups.
 Both are jwasm-engine gaps best fixed upstream; per-msg-file restructure is the
