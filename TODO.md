@@ -621,6 +621,20 @@ actually TWO distinct deep roots, not one:
 Both are jwasm-engine gaps best fixed upstream; per-msg-file restructure is the
 source alternative for (1).
 
+#### Make-flow end-to-end validation (Jun 6 2026)
+
+Confirmed: a simple `.CTL`-blocked source-clean utility (CMD/MORE) **fully
+assembles** under jwasm once its message files are generated -- ran
+`bin/buildmsg ..\..\MESSAGES\usa-ms MORE.SKL` -> MORE.CTL/CL1/CL2, copied in,
+and MORE.ASM assembled with ZERO errors. So every `.CTL`-blocked file that is
+Sublist-FREE (i.e. uses only No_Replace=0, so `dw Sublist`=`dw 0`, no fixup) is
+DONE the moment the make-flow runs -- that is the large majority of utilities.
+Only the few with replaceable-parameter messages (Sublist label tables) hit the
+A2164 deep case. Net: the migration is effectively complete for source + the
+non-Sublist .CTL class; remaining = (a) run/wire the message make-flow,
+(b) the 2 jwasm-engine gaps (Sublist `=`-reloc fixup; external `$-OFFSET`).
+(Generated .CTL/.CL are gitignored -- not committed.)
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
