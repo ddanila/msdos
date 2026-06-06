@@ -572,6 +572,28 @@ stripped 5 trailing commas. RECINIT/RECPROC clean; RECDISP/RECOVER source-
 clean (RECOVER.CTL). CMD/BACKUP, RESTORE, MEM, COMP: source-clean (only
 _MSGRET/*SM .CTL). 
 
+#### Tree-wide completeness probe (Jun 6 2026)
+
+Swept EVERY .asm dir (depth-based include paths) filtering for non-A2106
+(real source) errors. After fixing the last 3 found -- BOOT/MSBOOT.ASM
+(repz movsb -> rep), ASSGPARM.ASM:97 + TREEPAR.ASM:76 (premature HEADER) --
+**every remaining non-artifact error is now either a fragment, a deep case,
+or a vestigial file**:
+- **Fragments** (no END, assemble only via parent): COMSEG/COMSW/ENVDATA/
+  IFEQU/TRANMSG/COMEQU/FORDATA/TDATA, DEBEQU, EDLEQU, GRCOMMON, EGA font
+  files (437-*/850-*/...), SMARTDRV ABOVE/DEVSYM/DIRENT/AB_MACRO.
+- **Deep set** (documented): PARSE2 switch_count + MODE INVOKE max_pknum
+  (external `$-OFFSET` EQU); MODEMES Sublist A2164; GSHARE A2080 conditional-
+  segment; RAMDRIVE/XMAEM ABOVE_* external long-jumps. EXE2BIN LOCATE
+  (vestigial, commented-out include).
+- Everything else: source-clean (residual = generated `.CTL`/message files).
+
+**The per-file source-fixing phase is effectively COMPLETE.** Remaining work
+is the make-flow (.CTL/.CL/.idx via bin/buildmsg/buildidx/nosrvbld -- already
+tooled) to validate the source-clean-but-.CTL-blocked files end-to-end, plus
+the small deep set (best addressed by an upstream jwasm capability for
+external-symbol expressions, or targeted per-site reworks).
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
