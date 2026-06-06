@@ -604,9 +604,19 @@ so the failing fixups are NOT Create_Msg's `dw Sublist`. They are in the
 segment). So Sublist A2164 is the **external-symbol-in-expression deep class**
 (same as max_pknum / switch_count / XMAEM-RAMDRIVE long-jumps), NOT a macro
 type-lock. Reverted the IFE change. Cross-segment `=` ruled out (works).
-=> the deep set collapses to ONE root: jwasm won't form a data/displacement
-fixup involving an external symbol; MASM did. Best fix is an upstream jwasm
-capability, not per-site source rewrites.
+DEFINITIVE (via -Fl listing): the external-offset revision was ALSO wrong
+(plain `dw offset <extern>` works). The listing shows `Sublist` typed Number
+(final 0, from the No_Replace=0 assignments) but `dw Sublist` emits data-label
+offsets needing a segment-relative fixup the `=` lost via the 0/label mix ->
+A2164. IFE and `= OFFSET label` both ruled out (count unchanged). So there are
+actually TWO distinct deep roots, not one:
+  (1) `=` symbol holding both absolute(0) and relocatable(label) -> lost-segment
+      data fixup (Sublist / message system). Fix: jwasm `=` reloc-segment, or
+      restructure Define_Msg to `dw <label>` directly.
+  (2) external `$-OFFSET` / displacement (max_pknum, switch_count, XMAEM/
+      RAMDRIVE long-jumps). Fix: jwasm external-relative fixups.
+Both are jwasm-engine gaps best fixed upstream; per-msg-file restructure is the
+source alternative for (1).
 
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
