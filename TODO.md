@@ -594,6 +594,20 @@ tooled) to validate the source-clean-but-.CTL-blocked files end-to-end, plus
 the small deep set (best addressed by an upstream jwasm capability for
 external-symbol expressions, or targeted per-site reworks).
 
+#### Sublist A2164 -- revised diagnosis (Jun 6 2026)
+
+Attempted the Create_Msg restructure (`IFE Parm4 / dw 0 / ELSE / dw Parm4`)
+to dodge the suspected `=` type-lock. It fixes the isolated reproducer but
+NOT real FORMSG.INC -- the A2164 count is unchanged (still 10x at data ends),
+so the failing fixups are NOT Create_Msg's `dw Sublist`. They are in the
+**Sublist tables** (`dw offset <EXTRN>` like PercentComplete, and `dw data`
+segment). So Sublist A2164 is the **external-symbol-in-expression deep class**
+(same as max_pknum / switch_count / XMAEM-RAMDRIVE long-jumps), NOT a macro
+type-lock. Reverted the IFE change. Cross-segment `=` ruled out (works).
+=> the deep set collapses to ONE root: jwasm won't form a data/displacement
+fixup involving an external symbol; MASM did. Best fix is an upstream jwasm
+capability, not per-site source rewrites.
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
