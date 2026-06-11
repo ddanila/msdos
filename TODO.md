@@ -623,9 +623,16 @@ actually TWO distinct deep roots, not one:
       Jcc near ptr <extern>`, but the files are `.286P` and hand-code the 386
       jumps as DB/DW data -- a `.386` rework risks the USE32-default change.)
       RAMDRIVE forward-OFFSET IF2 alignment assertions neutralized (like SMARTDRV,
-      6 blocks); RAMDRIVE now has a single murky A2082 in the struct-includes-
-      before-first-segment region (syscall.inc:91; none of devsym/syscall/dirent/
-      mi obviously emit data) -- last unexplained case, niche.
+      6 blocks). **RAMDRIVE A2082 SOLVED: it was `Wait EQU 77` in RAMDRIVE's
+      local SYSCALL.INC -- `WAIT` is a reserved x86 (FWAIT) mnemonic in jwasm
+      -Zm, so the equate parsed as an instruction emitted outside any segment
+      (jwasm mis-blamed syscall.inc:91, the include site, via a stale line
+      counter). Fixed with `OPTION NOKEYWORD:<Wait>` before the equate (same
+      pattern STRUC.INC uses for the dotted directive names). RAMDRIVE.ASM now
+      assembles clean (only A4073 size-assumed + A4184 AT-segment-data
+      warnings). Only this local copy had the line; canonical INC/SYSCALL.INC
+      never did. Generalizes: any DOS symbol colliding with an x86 mnemonic
+      needs OPTION NOKEYWORD or rename.**
 Both are jwasm-engine gaps best fixed upstream; per-msg-file restructure is the
 source alternative for (1).
 
