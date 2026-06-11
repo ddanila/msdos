@@ -617,11 +617,17 @@ actually TWO distinct deep roots, not one:
       per-assignment edit; apply the same to other Sublist msg files (MODE/MODEMES).
   (2) external `$-OFFSET` / displacement. **max_pknum (MODE) + switch_count
       (COMMAND) were DEAD broken EQUs -- removed (INVOKE/PARSE2 now clean).**
-      Only the XMAEM/RAMDRIVE LJ* long-jumps to external targets remain (genuine
-      control flow, niche above-board emulators); those need jwasm external-
-      relative displacement fixups. (Verified jwasm CAN emit them as real `.386
-      Jcc near ptr <extern>`, but the files are `.286P` and hand-code the 386
-      jumps as DB/DW data -- a `.386` rework risks the USE32-default change.)
+      **XMAEM LJ*-to-external SOLVED (no .386 needed):** INDEDMA's 2 long
+      conditional jumps to extern `DISPLAY` went through LJCOND, which hand-
+      encodes a 386 near Jcc as `DW (OFFSET DISPL)-(TEMP)` -- jwasm A2193 on the
+      external offset arithmetic (verified: no DW form works; only a real jump
+      instruction forms the relocation). Added an `LJX` macro (INDEINS.MAC) that
+      emits the equivalent inverse-short-Jcc-over-real-near-`JMP DISPL` idiom
+      (.286P-safe, proper extern fixup); used at the 2 sites. LJCOND untouched
+      for the many local-target LJ jumps. All 12 XMAEM modules now source-clean
+      (INDEMSG/INDEMSUS xmaem.cl1 A2106 = the message-file build step). RAMDRIVE
+      already assembles clean (its LJ issue was the Wait-mnemonic/ABOVE_* set,
+      both fixed). So the LJ*-external class is closed without a .386 rework.
       RAMDRIVE forward-OFFSET IF2 alignment assertions neutralized (like SMARTDRV,
       6 blocks). **RAMDRIVE A2082 SOLVED: it was `Wait EQU 77` in RAMDRIVE's
       local SYSCALL.INC -- `WAIT` is a reserved x86 (FWAIT) mnemonic in jwasm
