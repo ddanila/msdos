@@ -573,9 +573,12 @@ build-tool step):
   PARSER), PRINTER (PRTINT2F/CPSPI07/PARSER/CPSPM10/CPSFONT3), DRIVER, SMARTDRV,
   RAMDRIVE, XMAEM (all 12), DISPLAY/LCD.
 - **DRIVER fixed this pass:** `repe movsb` -> `rep movsb` (A2028), DRIVER.ASM:1055.
-- **Genuine source bugs still open:** VDISK/VDISKSYS.ASM 3x A2048 "operands must
-  be the same size" (lines 1056/1103/1595); XMA2EMS/XMA2EMS.ASM 4x A2028 + 1x
-  A2209. (DIAGS.ASM's 51x A2082 is a standalone diagnostic, not in XMA2EMS.LNK.)
+- **VDISK fixed (Jun 11):** VDISKSYS.ASM `CMP/MOV CS:PC_386,TRUE` (1056/1103/
+  1595) -> `(TRUE) AND 0FFh` (PC_386 is DB, TRUE EQU 0FFFFh; A2048). VDISK now
+  source-clean.
+- **Genuine source bugs still open:** XMA2EMS/XMA2EMS.ASM 4x A2028 + 1x A2209
+  (last DEV driver with real source errors). (DIAGS.ASM's 51x A2082 is a
+  standalone diagnostic, not in XMA2EMS.LNK.)
 
 CMD/EXE2BIN: DISPLAY clean, E2BINIT needs EXE2BIN.CTL; LOCMES freed `addr` macro
 (reserved ADDR) + TRUE mask -> clean. LOCATE.ASM is an ancient 86-DOS loader
