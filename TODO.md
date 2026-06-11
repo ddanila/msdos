@@ -634,6 +634,12 @@ non-Sublist .CTL class; remaining = (a) run/wire the message make-flow,
 (b) the 2 jwasm-engine gaps (Sublist `=`-reloc fixup; external `$-OFFSET`).
 (Generated .CTL/.CL are gitignored -- not committed.)
 
+#### Sublist RESOLVED tree-wide (Jun 6-11 2026)
+
+Text-equate fix (`Sublist EQU <X>`) applied to all 5 replaceable-param message
+files (FORMSG/CHKMSG/MODEDEFS/RECMSG/E2BTABLE). Verified end-to-end on FORMAT +
+MODE. Sublist A2164 no longer a deep blocker.
+
 Note: `***** Possible stack size error in X *****` from the `EndProc` macro
 is a `%OUT` message, NOT a jwasm error -- filter sweeps on `Error A[0-9]`,
 not the bare word "error".
