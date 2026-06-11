@@ -553,6 +553,36 @@ the standard BREAK macro at the top of the shared SYSHDR.INC. SYS2 clean,
 SYS1/SYSSR source-clean (SYS.CTL). Most other utilities (SORT/JOIN/APPEND/SUBST/ATTRIB/FIND/
 MORE/REPLACE/XCOPY/COMP/EXE2BIN) fail only on generated .CTL -- source-clean.
 
+#### DEV driver re-sweep with CORRECT include depth (Jun 11 2026)
+
+**Include-depth gotcha:** DEV drivers live at `src/DEV/<drv>` (depth 2), so the
+right MASM include flags are `-I. -I..\..\INC -I..\..\HINC` -- NOT the depth-3
+`..\..\..\INC` (that level is only for `DEV/DISPLAY/EGA`, `DEV/DISPLAY/LCD`,
+`DEV/PRINTER/<model>`). RAMDRIVE/XMAEM happened to pass with the wrong depth-3
+flags only because they include LOCAL copies via `-I.`. Sweeping a depth-2
+driver with depth-3 flags makes STRUC.INC unfindable, so the custom `.IF`/
+`.WHILE` macros never load and jwasm falls back to its BUILT-IN HLL parser ->
+a flood of bogus **A2199 "Syntax error in control-flow directive"**. Those
+A2199s are NOT a real structured-directive incompatibility -- they vanish with
+the correct depth.
+
+Re-swept all DEV main targets with correct flags (message-file `.CTL`/`.CL*`
+A2106 + `$M_NUM_CLS` A2102 cascade filtered out, as that's the separate
+build-tool step):
+- **Source-clean:** ANSI (ANSI/IOCTL/ANSIINIT/PARSER), DISPLAY (DISPLAY/INIT/
+  PARSER), PRINTER (PRTINT2F/CPSPI07/PARSER/CPSPM10/CPSFONT3), DRIVER, SMARTDRV,
+  RAMDRIVE, XMAEM (all 12), DISPLAY/LCD.
+- **DRIVER fixed this pass:** `repe movsb` -> `rep movsb` (A2028), DRIVER.ASM:1055.
+- **Genuine source bugs still open:** VDISK/VDISKSYS.ASM 3x A2048 "operands must
+  be the same size" (lines 1056/1103/1595); XMA2EMS/XMA2EMS.ASM 4x A2028 + 1x
+  A2209. (DIAGS.ASM's 51x A2082 is a standalone diagnostic, not in XMA2EMS.LNK.)
+
+CMD/EXE2BIN: DISPLAY clean, E2BINIT needs EXE2BIN.CTL; LOCMES freed `addr` macro
+(reserved ADDR) + TRUE mask -> clean. LOCATE.ASM is an ancient 86-DOS loader
+with its `INCLUDE E2BMACRO.INC` commented out (line 35), so MESSAGE/addr are
+undefined -> A2209; likely vestigial, uncommenting would also need DOSSYM/
+SYSCALL -- left as-is.
+
 #### Misc subsystems (Jun 5 2026)
 
 DEV/DISPLAY/LCD 7/7 clean. Most DEV drivers (ANSI/DRIVER/VDISK) + MEMM/EMM +
