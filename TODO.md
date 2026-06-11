@@ -615,8 +615,11 @@ actually TWO distinct deep roots, not one:
       substitutes to `dw <label>` (direct, proper fixup) or `dw 0`. FORMAT done
       (FORMSG.INC, DISPLAY.ASM fully assembles with FORMAT.CTL). A mechanical
       per-assignment edit; apply the same to other Sublist msg files (MODE/MODEMES).
-  (2) external `$-OFFSET` / displacement (max_pknum, switch_count, XMAEM/
-      RAMDRIVE long-jumps). Fix: jwasm external-relative fixups.
+  (2) external `$-OFFSET` / displacement. **max_pknum (MODE) + switch_count
+      (COMMAND) were DEAD broken EQUs -- removed (INVOKE/PARSE2 now clean).**
+      Only the XMAEM/RAMDRIVE LJ* long-jumps to external targets remain (genuine
+      control flow, niche above-board emulators); those need jwasm external-
+      relative displacement fixups.
 Both are jwasm-engine gaps best fixed upstream; per-msg-file restructure is the
 source alternative for (1).
 
