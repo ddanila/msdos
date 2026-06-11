@@ -619,7 +619,13 @@ actually TWO distinct deep roots, not one:
       (COMMAND) were DEAD broken EQUs -- removed (INVOKE/PARSE2 now clean).**
       Only the XMAEM/RAMDRIVE LJ* long-jumps to external targets remain (genuine
       control flow, niche above-board emulators); those need jwasm external-
-      relative displacement fixups.
+      relative displacement fixups. (Verified jwasm CAN emit them as real `.386
+      Jcc near ptr <extern>`, but the files are `.286P` and hand-code the 386
+      jumps as DB/DW data -- a `.386` rework risks the USE32-default change.)
+      RAMDRIVE forward-OFFSET IF2 alignment assertions neutralized (like SMARTDRV,
+      6 blocks); RAMDRIVE now has a single murky A2082 in the struct-includes-
+      before-first-segment region (syscall.inc:91; none of devsym/syscall/dirent/
+      mi obviously emit data) -- last unexplained case, niche.
 Both are jwasm-engine gaps best fixed upstream; per-msg-file restructure is the
 source alternative for (1).
 
