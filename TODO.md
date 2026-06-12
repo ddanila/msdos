@@ -576,9 +576,18 @@ build-tool step):
 - **VDISK fixed (Jun 11):** VDISKSYS.ASM `CMP/MOV CS:PC_386,TRUE` (1056/1103/
   1595) -> `(TRUE) AND 0FFh` (PC_386 is DB, TRUE EQU 0FFFFh; A2048). VDISK now
   source-clean.
-- **Genuine source bugs still open:** XMA2EMS/XMA2EMS.ASM 4x A2028 + 1x A2209
-  (last DEV driver with real source errors). (DIAGS.ASM's 51x A2082 is a
-  standalone diagnostic, not in XMA2EMS.LNK.)
+- **XMA2EMS fixed (Jun 12):** EMSINIT.INC:9 `DB (?)` -> `DB ?` (A2209,
+  cataloged bare-(?) pattern) + XMA1DIAG.INC 4x `LOCK MOV` -> dropped LOCK
+  (A2028 -- NOT the repe/movs catalog class; LOCK is invalid on MOV, #UD on
+  386+, MASM 5.10 emitted it blindly). XMA2EMS.ASM assembles 0 errors ->
+  real OMF OBJ. That was the LAST DEV driver with genuine source errors --
+  all DEV drivers now source-clean. (DIAGS.ASM's 51x A2082 is a standalone
+  diagnostic, not in XMA2EMS.LNK.)
+- **jwasm-masm wrapper bug found+fixed (Jun 12):** jwasm SILENTLY IGNORES any
+  option placed after the source filename, and the wrapper passed
+  `-Fo=<output>` last -- so NO sweep to date ever wrote an OBJ (error counts
+  were still valid; jwasm fully assembles regardless). Moved `-Fo<output>`
+  (attached form) before the filename; verified XMA2EMS.OBJ is real 8086 OMF.
 
 CMD/EXE2BIN: DISPLAY clean, E2BINIT needs EXE2BIN.CTL; LOCMES freed `addr` macro
 (reserved ADDR) + TRUE mask -> clean. LOCATE.ASM is an ancient 86-DOS loader

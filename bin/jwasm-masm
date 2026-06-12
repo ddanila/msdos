@@ -83,4 +83,6 @@ esac
 # Run JWasm from the shadow dir so CWD-relative includes resolve to the
 # preprocessed same-directory files (placed at the shadow root).
 cd "$PPDIR"
-exec "$JWASM" -q -Zm -c "${PP_FLAGS[@]}" "$PP_SOURCE_BASE" -Fo="$ABS_OUTPUT"
+# NB: jwasm silently ignores options placed after the source filename,
+# so -Fo must come before it.
+exec "$JWASM" -q -Zm -c "${PP_FLAGS[@]}" "-Fo$ABS_OUTPUT" "$PP_SOURCE_BASE"
