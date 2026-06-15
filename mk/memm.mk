@@ -46,9 +46,10 @@ $(EMM_DIR)/EMMLIB.LIB: \
 
 # ---------------------------------------------------------------------------
 # MEMM sub-module: EMM386.EXE → EMM386.SYS
-# AFLAGS: -DI386 -DNoBugMode -DNOHIMEM; include = ..\EMM (from MEMM/ dir)
+# AFLAGS: -DI386 -DNoBugMode -DNOHIMEM; include = . (same-dir, e.g.
+# DRIVER.STR) + ..\EMM (from MEMM/ dir)
 # ---------------------------------------------------------------------------
-MEMM_AFLAGS := -Mx -t -DI386 -DNoBugMode -DNOHIMEM -I..\\EMM
+MEMM_AFLAGS := -Mx -t -DI386 -DNoBugMode -DNOHIMEM -I. -I..\\EMM
 MEMM_CFLAGS := /ASw /G2 /Oat /Gs /Ze /Zl /c
 
 # Pattern rule for all ASM objects in MEMM/
