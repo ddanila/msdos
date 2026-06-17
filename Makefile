@@ -19,6 +19,10 @@ endif
 # C compiler / linker / librarian: still kvikdos-based
 CL       := $(BIN)/cl
 LINK     := $(BIN)/link
+# WLINK: open-source Open Watcom linker (native), used for pure-assembly
+# targets (boot/BIOS/DOS/drivers + asm-only CMD utils). C-containing targets
+# still use MS LINK ($(LINK)) until the C compiler is migrated (Stage B).
+WLINK    := $(BIN)/wlink
 LIB      := $(BIN)/lib
 EXE2BIN  := $(BIN)/exe2bin
 BUILDIDX := $(BIN)/buildidx
@@ -121,7 +125,7 @@ $(BOOT_DIR)/MSBOOT.OBJ: $(BOOT_DIR)/MSBOOT.ASM $(BOOT_DIR)/BOOT.CL1
 	cd $(BOOT_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\INC" "MSBOOT.ASM,MSBOOT.OBJ;"
 
 $(BOOT_DIR)/MSBOOT.EXE: $(BOOT_DIR)/MSBOOT.OBJ
-	cd $(BOOT_DIR) && $(LINK) "MSBOOT;"
+	cd $(BOOT_DIR) && $(WLINK) "MSBOOT;"
 
 $(BOOT_DIR)/MSBOOT.BIN: $(BOOT_DIR)/MSBOOT.EXE
 	cd $(BOOT_DIR) && $(EXE2BIN) "MSBOOT.EXE MSBOOT.BIN"

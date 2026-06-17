@@ -1,0 +1,136 @@
+#!/usr/bin/env python3
+# wlink -- wrapper translating a Microsoft LINK invocation to Open Watcom wlink.
+#
+# MS LINK takes up to four comma/newline-separated response fields:
+#     objects[+more], runfile[/opts], mapfile[/opts], libraries ;
+# with '+' as item separator / line continuation and ';' terminating early
+# (remaining fields default).  Drivers/boot/DOS-kernel are pure assembly, so
+# wlink (which consumes the same OMF jwasm emits) can link them with no MS
+# tool.  C-containing targets are NOT handled here (they need the MS C runtime
+# or an Open Watcom wcc rebuild -- a separate migration stage).
+#
+# Usage (drop-in for bin/link): wlink "<ms-link command string>"
+#   e.g.  wlink "@DRIVER.LNK"
+#         wlink "MSLOAD.OBJ,MSLOAD,,;"
+#         wlink "/NOI @EMM386.LNK"
+
+import os
+import platform
+import re
+import struct
+import subprocess
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def canonicalize_mz_header(path, hdr_bytes=512):
+    """Rewrite a wlink MZ .EXE to use a 512-byte (MS-LINK-style) header.
+
+    wlink emits a compact 32-byte header, but the vintage MS EXE2BIN assumes
+    the 512-byte header MS LINK always produced and otherwise strips the wrong
+    number of leading bytes -- corrupting the image.  This makes the load image
+    start where EXE2BIN expects.  Relocations are preserved.  No-op for non-MZ
+    files."""
+    d = open(path, "rb").read()
+    if d[:2] != b"MZ":
+        return
+    e_crlc, e_cparhdr = struct.unpack_from("<HH", d, 6)
+    e_lfarlc = struct.unpack_from("<H", d, 24)[0]
+    old_hdr = e_cparhdr * 16
+    if old_hdr == hdr_bytes:
+        return
+    image = d[old_hdr:]
+    relocs = d[e_lfarlc:e_lfarlc + 4 * e_crlc]
+    reloc_off = 28
+    if reloc_off + len(relocs) > hdr_bytes:
+        return  # too many relocs to fit; leave as-is
+    new = bytearray(hdr_bytes)
+    new[0:2] = b"MZ"
+    total = hdr_bytes + len(image)
+    pages = (total + 511) // 512
+    last = total % 512 or 512
+    struct.pack_into("<HHHH", new, 2, last, pages, e_crlc, hdr_bytes // 16)
+    new[10:24] = d[10:24]                       # alloc/ss/sp/csum/ip/cs
+    struct.pack_into("<H", new, 24, reloc_off)  # relocation table offset
+    new[reloc_off:reloc_off + len(relocs)] = relocs
+    open(path, "wb").write(bytes(new) + image)
+
+def wlink_bin():
+    s, m = platform.system(), platform.machine()
+    if s == "Darwin" and m == "arm64":
+        return os.path.join(SCRIPT_DIR, "..", "watcom", "bin", "macos-arm64", "wlink")
+    if s == "Linux" and m in ("x86_64", "amd64"):
+        return os.path.join(SCRIPT_DIR, "..", "watcom", "bin", "linux-x64", "wlink")
+    sys.exit(f"wlink: unsupported platform {s}-{m}")
+
+def names(field):
+    """Split an objects/libraries field into file names ('+' or whitespace
+    separated), dropping /options and converting DOS backslashes."""
+    field = re.sub(r"/\w+", " ", field)             # strip attached options
+    items = re.split(r"[+\s]+", field.strip())
+    return [it.replace("\\", "/") for it in items if it]
+
+def main():
+    arg = (sys.argv[1] if len(sys.argv) > 1 else "").strip()
+
+    # Pull a @response-file (its contents become the body); collect any
+    # options that sit outside it in the invocation (e.g. "/NOI @X.LNK").
+    gopts = []
+    mfile = re.search(r"@(\S+)", arg)
+    if mfile:
+        with open(mfile.group(1), encoding="latin-1") as fh:
+            body = fh.read()
+        gopts += re.findall(r"/\w+", arg.replace("@" + mfile.group(1), " "))
+    else:
+        body = arg
+
+    # ';' terminates the response; options may trail after it ("...; /NOI").
+    semi = body.find(";")
+    if semi >= 0:
+        gopts += re.findall(r"/\w+", body[semi + 1:])
+        body = body[:semi]
+
+    # Collapse '+' continuations, then treat newlines as field separators.
+    body = re.sub(r"\+\s*", "+", body)
+    body = re.sub(r"[ \t]*\r?\n[ \t]*", ",", body)
+    fields = [f.strip() for f in body.split(",")]
+    while len(fields) < 4:
+        fields.append("")
+    objs_f, run_f, map_f, lib_f = fields[0], fields[1], fields[2], fields[3]
+
+    gopts += re.findall(r"/\w+", run_f) + re.findall(r"/\w+", map_f)
+    gopts_l = [o.lower() for o in gopts]
+
+    objs = names(objs_f)
+    libs = names(lib_f)
+    if not objs:
+        sys.exit("wlink: no object modules in link command")
+
+    # Run file: explicit name (sans options) or default to first obj + .EXE.
+    run = re.sub(r"/\w+", "", run_f).strip().replace("\\", "/")
+    if not run:
+        run = os.path.splitext(os.path.basename(objs[0]))[0] + ".EXE"
+    elif "." not in os.path.basename(run):
+        run += ".EXE"
+
+    # Map file: a real name (not NUL) or a /M[AP] option enables it.
+    mapname = re.sub(r"/\w+", "", map_f).strip().replace("\\", "/")
+    want_map = (mapname and mapname.lower() != "nul") or any(
+        o in ("/m", "/map") for o in gopts_l
+    )
+
+    directives = ["format", "dos", "option", "quiet", "option", "caseexact"]
+    if want_map:
+        directives += ["option", "map" + (("=" + mapname) if mapname and mapname.lower() != "nul" else "")]
+    directives += ["name", run]
+    directives += ["file", ",".join(objs)]
+    if libs:
+        directives += ["library", ",".join(libs)]
+
+    rc = subprocess.call([wlink_bin()] + directives)
+    if rc == 0 and os.path.exists(run):
+        canonicalize_mz_header(run)   # make MS EXE2BIN handle wlink's header
+    sys.exit(rc)
+
+if __name__ == "__main__":
+    main()
