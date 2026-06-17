@@ -1,5 +1,5 @@
 # Linux GNU Makefile for building MS-DOS 4.0 from source using kvikdos
-# Assembler: Open Watcom WASM (via bin/wasm-masm wrapper).
+# Assembler: JWasm by default (bin/jwasm-masm); ASM=wasm selects Open Watcom WASM.
 # C compiler, linker, librarian: still kvikdos-based (migration in progress).
 
 SHELL    := /bin/bash
@@ -7,8 +7,15 @@ SRC      := $(CURDIR)/MS-DOS/v4.0/src
 BIN      := $(CURDIR)/bin
 OUT      := $(CURDIR)/out
 
-# Assembler: Open Watcom WASM (native Linux — no kvikdos needed)
+# Assembler selection (native Linux/macOS -- no kvikdos needed):
+#   make            -> jwasm-masm  (JWasm -Zm, A-codes); the active migration target
+#   make ASM=wasm   -> wasm-masm   (Open Watcom WASM, E-codes); kept for comparison
+ASM      ?= jwasm
+ifeq ($(ASM),wasm)
 MASM     := $(BIN)/wasm-masm
+else
+MASM     := $(BIN)/jwasm-masm
+endif
 # C compiler / linker / librarian: still kvikdos-based
 CL       := $(BIN)/cl
 LINK     := $(BIN)/link
