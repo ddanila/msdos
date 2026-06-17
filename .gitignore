@@ -2,6 +2,8 @@
 /kvikdos/kvikdos-soft
 /*.o
 /*.err
+/*.log
+/bin/__pycache__/
 
 # Experimental JWasm assembler binaries (built locally; see jwasm/README.md)
 jwasm/macos-arm64/jwasm
