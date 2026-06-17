@@ -63,12 +63,21 @@ def wlink_bin():
         return os.path.join(SCRIPT_DIR, "..", "watcom", "bin", "linux-x64", "wlink")
     sys.exit(f"wlink: unsupported platform {s}-{m}")
 
-def names(field):
+def names(field, ext):
     """Split an objects/libraries field into file names ('+' or whitespace
-    separated), dropping /options and converting DOS backslashes."""
+    separated), dropping /options, converting DOS backslashes, and appending
+    the default extension when none is given (wlink's default obj ext is .o,
+    but the build's files are .OBJ/.LIB)."""
     field = re.sub(r"/\w+", " ", field)             # strip attached options
-    items = re.split(r"[+\s]+", field.strip())
-    return [it.replace("\\", "/") for it in items if it]
+    out = []
+    for it in re.split(r"[+\s]+", field.strip()):
+        if not it:
+            continue
+        it = it.replace("\\", "/")
+        if "." not in os.path.basename(it):
+            it += ext
+        out.append(it)
+    return out
 
 def main():
     arg = (sys.argv[1] if len(sys.argv) > 1 else "").strip()
@@ -101,8 +110,8 @@ def main():
     gopts += re.findall(r"/\w+", run_f) + re.findall(r"/\w+", map_f)
     gopts_l = [o.lower() for o in gopts]
 
-    objs = names(objs_f)
-    libs = names(lib_f)
+    objs = names(objs_f, ".obj")
+    libs = names(lib_f, ".lib")
     if not objs:
         sys.exit("wlink: no object modules in link command")
 
@@ -119,7 +128,10 @@ def main():
         o in ("/m", "/map") for o in gopts_l
     )
 
-    directives = ["format", "dos", "option", "quiet", "option", "caseexact"]
+    owlib = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "watcom", "lib286", "dos"))
+    directives = ["format", "dos", "option", "quiet", "option", "caseexact",
+                  "libpath", owlib]   # resolve OW clib for wcc-compiled C objects
+
     if want_map:
         directives += ["option", "map" + (("=" + mapname) if mapname and mapname.lower() != "nul" else "")]
     directives += ["name", run]
