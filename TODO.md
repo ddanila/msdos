@@ -694,6 +694,29 @@ vs a clean asm object's SEGDEF/COMENT/LEDATA records (or `git bisect` the
 wlink source around the OMF loader). RESTORE (the other C-hybrid link
 failure) still needs the same triage.
 
+**JWlink cross-check (Jun 18 2026): NOT a workaround, but it NAMES the bug.**
+Built JWlink (Japheth's fork of OW wlink, the linker side of the JWasm
+ecosystem) natively on macOS arm64 -- clone `Baron-von-Riedesel/JWlink`,
+`make -f GccUnix.mak CC=clang`, then link manually (drop Linux-only `-s` /
+`-Wl,-Map`), same recipe as jwasm. JWlink **crashes identically** (SIGSEGV
+on all 6 objects) -- expected, since it shares OW wlink's OMF reader. BUT,
+run without `option quiet`, it prints a real diagnostic before dying on
+SELECT1.obj:
+```
+loading object files
+Error! E2153: invalid segment/group/external index (6) in relocation
+```
+So the trigger is a **malformed FIXUPP (relocation) record** -- a fixup
+whose segment/group/external index is out of range -- which reframes the
+blocker as a likely **jwasm OMF-emission bug** (bad fixup index), not a
+pure linker defect. Both linkers trust the index, run off their tables, and
+segfault; JWlink at least reports E2153 first. (A quick hand-rolled OMF
+FIXUPP parser desynced -- do NOT trust ad-hoc index dumps; pin it with a
+real dumper like OW `wdump`, or by diffing jwasm's SELECT1.obj against an
+OW-`wasm`-assembled one to confirm which assembler emits the bad fixup.)
+Takeaway: the fix likely belongs in jwasm (ddanila/JWasm fork), with a
+defensive bounds-check in the OW wlink OMF loader as a secondary filing.
+
 #### Misc subsystems (Jun 5 2026)
 
 DEV/DISPLAY/LCD 7/7 clean. Most DEV drivers (ANSI/DRIVER/VDISK) + MEMM/EMM +
