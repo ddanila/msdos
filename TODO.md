@@ -822,6 +822,42 @@ banked: bin/wcc + bin/wlink wrappers, the OW-cstart entry recipe
 layer-by-layer trace method. Resume point if/when funded: the `sysdispmsg`
 `m_sublist` contiguity/metadata layer in ATTRIB.
 
+#### Full E2E build GREEN (Jun 18 2026) -- complete open-source-built floppy
+
+`make deploy` (default: jwasm+wlink for ALL assembly, MS CL/LINK for the
+C-hybrids) now builds the **complete 1.44MB boot floppy end-to-end (exit 0)**
+-- kernel (IO.SYS/MSDOS.SYS), COMMAND.COM, all ~36 CMD utilities (incl. the
+C-hybrids ATTRIB/RESTORE/BACKUP/FC/REPLACE/JOIN/SUBST/...), all DEV drivers,
+SELECT, EGA.CPI. This is the shippable milestone: every `.ASM` in the image is
+assembled+linked by the open-source toolchain.
+
+Three build-flow fixes were needed (all committed):
+1. `mk/dos.mk` MSDOS.SYS DOSINIT map regex -- was MS-LINK format (uppercase
+   hex, leading space); wlink emits column-0 lowercase hex + optional `*`.
+   Anchored to line start, case-insensitive, optional `*`.
+2. ATTRIB restored to MS-buildable -- the deferred Stage B `main`->`do_attrib`
+   rename left crt0 `_main` unresolved under MS LINK (L2029). Reverted the
+   Stage B ATTRIB source (history 69602f0..d5e3086).
+3. ANSI `Display_Loaded_Before_me`/`...Me` case mismatch -- jwasm `-Mx` +
+   wlink `option caseexact` (MS LINK was case-insensitive). Source made
+   case-consistent.
+
+Note: RESTORE/ATTRIB build fine in the PRODUCTION flow because it uses MS LINK
++ SLIBCE (the C runtime is present). The earlier "RESTORE link failure" was
+only the ALL-open-source (wlink, no SLIBCE) path -- i.e. Stage B, not this
+milestone.
+
+**Runtime/boot test is BLOCKED in this sandbox (environment, not the build):**
+qemu can't be driven headlessly here -- `-serial stdio` yields empty serial
+(documented earlier) AND the QMP monitor socket fails with BrokenPipe (the
+screen_expect path). So `make test-*` all fail with no captured output. Boot +
+functional test-suite validation needs a working-qemu environment (Linux/CI).
+Byte-parity vs `tests/golden.sha256` is currently inconclusive (52/58 differ;
+the golden is a stale local snapshot of unclear provenance -- do NOT regenerate
+it from an unbooted build). NEXT: run the test suite where qemu works (or fix
+the qemu serial/monitor wiring for macOS), then refresh golden from a
+boot-validated build.
+
 #### Misc subsystems (Jun 5 2026)
 
 DEV/DISPLAY/LCD 7/7 clean. Most DEV drivers (ANSI/DRIVER/VDISK) + MEMM/EMM +
