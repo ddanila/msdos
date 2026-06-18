@@ -68,7 +68,7 @@ def names(field, ext):
     separated), dropping /options, converting DOS backslashes, and appending
     the default extension when none is given (wlink's default obj ext is .o,
     but the build's files are .OBJ/.LIB)."""
-    field = re.sub(r"/\w+", " ", field)             # strip attached options
+    field = re.sub(r"/\w+(?::[^\s+]+)?", " ", field)  # strip attached options (incl /OPT:value)
     out = []
     for it in re.split(r"[+\s]+", field.strip()):
         if not it:
@@ -131,6 +131,11 @@ def main():
     owlib = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "watcom", "lib286", "dos"))
     directives = ["format", "dos", "option", "quiet", "option", "caseexact",
                   "libpath", owlib]   # resolve OW clib for wcc-compiled C objects
+
+    # MS LINK /STACK:nnnn (decimal bytes) -> wlink "option stack=nnnn".
+    mstack = re.search(r"/stack:(\d+)", body, re.I)
+    if mstack:
+        directives += ["option", "stack=" + mstack.group(1)]
 
     if want_map:
         directives += ["option", "map" + (("=" + mapname) if mapname and mapname.lower() != "nul" else "")]

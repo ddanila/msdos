@@ -748,6 +748,36 @@ C-runtime side lands.) The deeper jwasm engine fix (renumber seg_idx after
 sort + remap fixups, MASM-style, so `.ALPHA` works) remains a candidate to
 file against ddanila/JWasm, but is not needed for the migration.
 
+#### RESTORE.COM link failure triaged (Jun 18 2026) -- pure C-hybrid, no crash
+
+The other remaining build LINK failure. Triaged: **NOT a crash and NOT a
+jwasm/linker defect** -- RESTORE is a heavily-C utility (restore/restpars/
+rtt*/rtdo*/rtold*/rtnew*/rtfile* are C; only `_parse`/`_msgret` are asm),
+so it's the same C-hybrid (Stage B) class as ATTRIB and SELECT. Two findings:
+
+1. **`bin/wlink` `/STACK:nnnn` parse gap (fixed):** RESTORE.LNK starts its
+   objects field with `/STACK:50000`. The wrapper's option-stripping regex
+   (`/\w+`) left the `:50000` remnant, which `names()` turned into a bogus
+   object `:50000.obj` -> `E2008 cannot open`. Fixed: strip `/\w+(?::value)?`
+   (so `/OPT:value` is removed whole) and translate `/STACK:nnnn` -> wlink
+   `option stack=nnnn`. Also affects FDISK.LNK / REPLACE.LNK (the only other
+   LNKs using `/STACK`). Verified no regression on the pure-asm DRIVER link
+   (still exits 0). 
+
+2. **Real blocker = the MS C 5.10 runtime + DOS family API (Stage B):** past
+   the `/STACK` fix, `bin/wlink "@restore.lnk"` exits 1 (normal, no SIGSEGV)
+   and reports `cannot open SLIBCE.lib` + undefined `__acrtused`, `_printf`,
+   `_strcpy`, `__chkstk`, `_intdos`, ... (MS C runtime) and the DOS family
+   API `DOSOPEN`/`DOSFINDFIRST`/`DOSSETSIGHANDLER`/... bindings. `mapper.lib`
+   + `comsubs.lib` open fine. So RESTORE links cleanly up to symbol
+   resolution; it just needs the C runtime -- i.e. the wcc port (ATTRIB
+   recipe) or keep MS CL/LINK for it.
+
+Net: with SELECT's crash fixed and RESTORE triaged, **neither remaining link
+failure is a crash or a toolchain bug** -- both are the known C-hybrid
+C-runtime dependency (Stage B). RESTORE additionally builds `.COM` via
+`convert restore.exe restore.com` (CONVERT, a kvikdos build util).
+
 #### Misc subsystems (Jun 5 2026)
 
 DEV/DISPLAY/LCD 7/7 clean. Most DEV drivers (ANSI/DRIVER/VDISK) + MEMM/EMM +
