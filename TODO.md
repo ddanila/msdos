@@ -595,6 +595,105 @@ with its `INCLUDE E2BMACRO.INC` commented out (line 35), so MESSAGE/addr are
 undefined -> A2209; likely vestigial, uncommenting would also need DOSSYM/
 SYSCALL -- left as-is.
 
+#### Stage B pilot: ATTRIB ported MS CL -> Open Watcom wcc (Jun 17 2026)
+
+First C-hybrid utility migrated off proprietary Microsoft C (CL.EXE) onto
+Open Watcom `wcc` + `wlink` + OW C runtime. ATTRIB is the pilot for the
+~remaining C-hybrid utilities (the toolchain's last proprietary dependency
+alongside MS LIB/EXE2BIN). `ATTRIB /?` now prints help and the parser
+parses correctly under the all-open-source toolchain. The fixes below keep
+the source compiling and running under MS CL too (verified each step), so
+this is additive, not a fork.
+
+**1. wcc-strict C source fixes** (`ATTRIB.C`/`ATTRIB.H`): wcc errors
+(E1176) on size-incompatible pointer conversions MS C silently allowed.
+`(BYTE)" "` -> `(BYTE)' '` (x4); widened generic pointer params to `void*`
+(`Display_msg msgsub`, `Get_far_str source`) clearing ~14 call-site
+mismatches; explicit near->far / exact-type casts at the rest. Added
+`<stdlib.h>` and `exit()` -> `exit(0)` (wcc rejects argless `exit`).
+
+**2. C-runtime init (the key blocker):** the original MS-C `XCMAIN` asm
+startup bypasses OW init, leaving stdio/heap uninitialized (printf silent).
+Fix (option b): let OW's `cstart` be the entry instead. `pspbyte.c` now
+provides a C `main()` that reconstructs the DOS command tail from PSP:0x80
+(on the stack, as XCMAIN did) and calls `inmain()` -- the OW-side XCMAIN
+replacement. `criterr.asm` extracts the standalone INT 24h crit-err handler
+out of `attriba.asm` (wcc small-model segments) so it works without XCMAIN.
+The worker `main(line)` was renamed `do_attrib(line)` to free the real C
+`main`. Link without `attriba`/`op start`; cstart auto-pulls as entry.
+
+**3. getpspbyte/putpspbyte shim:** OW clib lacks the MS SLIBCE PSP-byte
+accessors. Implemented via OW's `_psp` (set by cstart) -- INT 21h/62h
+returned a wrong PSP under kvikdos.
+
+**4. Memory-corruption / parse heisenbug, root-caused to THREE distinct
+wcc-vs-MS-CL ABI differences** (each recurs across the DOS C utilities --
+same fixes apply tree-wide):
+- `strcpy(fix_es_reg, NUL)`: `NUL` is `#define`d `0x0`, so this reads from
+  a NULL pointer. MS C's DGROUP:0 null-guard is zeroed so it copied nothing
+  (and reloaded ES=DS as the intended side effect). wcc's DGROUP:0 isn't
+  guaranteed zero -> strcpy overran the 1-byte `fix_es_reg[]` and clobbered
+  the command-tail buffer. `strcpy(fix_es_reg, "")` keeps the ES-reload side
+  effect, reads a valid empty string, safe under both. 16 sites.
+- `_PARSE.ASM`: the asm `_parse()` interface set SI/DI from inregs but never
+  ES; `sysparse` reads the parse control block at ES:DI. MS C kept ES=DS
+  (via the fix_es_reg hack); wcc doesn't, and Get_DBCS_vector's intdosx
+  leaves ES = the DBCS buffer segment -> Parse Error 9. Added `push ds /
+  pop es` before the sysparse call.
+- `_MSGRET.ASM`: same class -- `sysloadmsg`/`sysgetmsg`/`sysdispmsg` read
+  control blocks / substitution pointers at ES:DI but never set ES. Added
+  `push ds / pop es` before each SAL call.
+
+**Reusable takeaway for the rest of the C-hybrid migration:** the wcc port
+pattern is (a) wcc-strict pointer/`exit` source fixes, (b) swap XCMAIN asm
+startup for OW `cstart` + a `main()` that rebuilds the command tail and
+calls `inmain`, (c) provide the missing SLIBCE PSP shims via `_psp`, and
+(d) force `ES=DGROUP` (`push ds/pop es`) before every asm interface that
+reads ES:DI control blocks, since wcc does not maintain ES=DS the way MS C
+did with the `fix_es_reg`/`NUL`-strcpy idiom.
+
+#### wlink SIGSEGV on SELECT (reproduced + root-caused Jun 18 2026)
+
+SELECT was one of the 2 remaining build LINK failures (with RESTORE, both
+C-hybrid). Reproduced and isolated: **Open Watcom `wlink` SEGFAULTS while
+loading certain jwasm-produced OMF object files** -- it is NOT a missing-
+symbol / EXEPACK / C-runtime issue.
+
+Reproduce (objects must already be assembled in `v4.0/src/SELECT`):
+```
+cd MS-DOS/v4.0/src/SELECT
+../../../../bin/wlink "/noe @select.lnk"     # exit 245 (= 256-11, SIGSEGV); leaves a 0-byte SELECT.EXE
+```
+Minimal repro -- a SINGLE object crashes wlink, no libs, no other objects:
+```
+watcom/bin/macos-arm64/wlink format dos name X.EXE file SELECT1.obj   # exit 139 (= 128+11, SIGSEGV)
+```
+
+Findings:
+- **Deterministic** (6/6 runs), and independent of `SERVICES.LIB`/
+  `CASSFAR.LIB` -- crashes with NO libraries at all.
+- The crash is in wlink's OMF reader: stderr stops right after
+  `loading object files`, before any fixups/symbol resolution.
+- **6 of the 32 objects each crash wlink on their own**: `SELECT1`,
+  `ROUTINE2`, `ROUTINES`, `SCN_PARM`, `PRN_DEF`, `S_DISPLY`. The other 26
+  (incl. the MS-CL-compiled C objects `GET_STAT`/`GLOBAL`/`INT13`/`BOOTREC`,
+  which carry a Watcom/MS default-library COMENT 0x9F -> SLIBCE) link past
+  the load phase to a normal undefined-symbol error.
+- All 6 crashers are **jwasm-produced `.ASM` objects** (no producer COMENT);
+  a naive OMF record walk parses them cleanly to MODEND, so the malformed/
+  mishandled record is something wlink's reader chokes on specifically. Both
+  crashers and clean asm objects share the same record-type set (THEADR/
+  COMENT/EXTDEF/PUBDEF/LNAMES/SEGDEF/GRPDEF/FIXUPP/LEDATA/MODEND) and the
+  same DGROUP/SELECT segment layout, so the trigger is finer-grained than
+  record type -- not yet byte-pinned.
+
+Status: this is a **wlink robustness bug** (segfault on input it should
+reject gracefully), triggered by jwasm OMF output -- file against
+ddanila/open-watcom-v2. Next step to pin it: byte-level diff of a crasher
+vs a clean asm object's SEGDEF/COMENT/LEDATA records (or `git bisect` the
+wlink source around the OMF loader). RESTORE (the other C-hybrid link
+failure) still needs the same triage.
+
 #### Misc subsystems (Jun 5 2026)
 
 DEV/DISPLAY/LCD 7/7 clean. Most DEV drivers (ANSI/DRIVER/VDISK) + MEMM/EMM +
