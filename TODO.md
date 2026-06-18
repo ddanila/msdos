@@ -717,6 +717,37 @@ OW-`wasm`-assembled one to confirm which assembler emits the bad fixup.)
 Takeaway: the fix likely belongs in jwasm (ddanila/JWasm fork), with a
 defensive bounds-check in the OW wlink OMF loader as a secondary filing.
 
+**ROOT-CAUSED + FIXED (Jun 18 2026): jwasm `.ALPHA` emits inconsistent OMF.**
+Instrumented JWlink's `FindNode` (objnode.c) printed `FindNode bad SEG
+index=6 (num=3)`: a fixup/directive references segment 6 when only 3 SEGDEFs
+precede it. The culprit COMENT is the `LDIR_OPT_FAR_CALLS` ('O') linker
+directive jwasm writes after each CODE segment's SEGDEF (`omf.c:915`),
+emitting `seg_idx`. SELECT1.asm uses **`.ALPHA`**, which makes jwasm SORT the
+SEGDEF output alphabetically (`CONST,DATA,SELECT,_BSS,_DATA,_TEXT`) while
+`SortSegments` (`segment.c:1513`) DELIBERATELY keeps each segment's
+definition-order `seg_idx` ("don't change indices, they're stored in
+fixup.frame_datum"). The linker numbers segments by APPEARANCE order, so
+after the sort `seg_idx` (and thus the FARCALLS COMENT and every FIXUPP
+frame_datum) is out of sync with the linker's index -> forward/out-of-range
+reference -> `FindNode` NULL -> NULL deref -> SIGSEGV. (`-zld`, jwasm's
+no_opt_farcall, suppresses only the COMENT -> no crash but then E3011 on the
+link-pass-separator, because the fixup indices are still inconsistent.)
+
+Fix (chosen: source-side, since `.ALPHA` is used in 25 files, ALL in SELECT,
+and nowhere else tree-wide): **`.ALPHA` -> `.SEQ`** in the 25 SELECT files
+(MS-DOS commit). `.SEQ` makes jwasm emit definition-order SEGDEFs, so all
+indices line up. VERIFIED: `bin/wlink "/noe @select.lnk"` now exits 1
+(normal), not 245 (SIGSEGV) -- it loads all 32 objects and proceeds to
+normal symbol resolution; the only remaining errors are the pre-existing
+`SLIBCE.lib`/`SELECT.lib` C-runtime deps, i.e. SELECT is now the SAME
+C-hybrid (Stage B) class as the other C utilities, no longer a crash.
+(Layout note: `.SEQ` orders segments sequentially instead of alphabetically;
+for SELECT's normally-linked .EXE this is GROUP/class-driven and expected to
+be behavior-neutral, but a built SELECT.EXE should be smoke-tested once the
+C-runtime side lands.) The deeper jwasm engine fix (renumber seg_idx after
+sort + remap fixups, MASM-style, so `.ALPHA` works) remains a candidate to
+file against ddanila/JWasm, but is not needed for the migration.
+
 #### Misc subsystems (Jun 5 2026)
 
 DEV/DISPLAY/LCD 7/7 clean. Most DEV drivers (ANSI/DRIVER/VDISK) + MEMM/EMM +
