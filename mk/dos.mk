@@ -216,7 +216,7 @@ $(DOS_OUT): $(DOS_DIR)/MSDOS.EXE
 	# runtime (DISPCALL sets them on every INT 21h entry), so overwriting is safe.
 	cd $(DOS_DIR) && python3 -c "\
 import re, struct; \
-m = re.search(r' [0-9A-F]{4}:([0-9A-F]{4})\s+DOSINIT', open('MSDOS.MAP').read()); \
+m = re.search(r'(?m)^\s*[0-9A-Fa-f]{4}:([0-9A-Fa-f]{4})\*?\s+DOSINIT', open('MSDOS.MAP').read()); \
 off = int(m.group(1), 16); \
 data = bytearray(open('MSDOS.SYS','rb').read()); \
 data[0]=0xE9; data[1]=(off-3)&0xFF; data[2]=((off-3)>>8)&0xFF; \
