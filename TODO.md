@@ -778,6 +778,50 @@ failure is a crash or a toolchain bug** -- both are the known C-hybrid
 C-runtime dependency (Stage B). RESTORE additionally builds `.COM` via
 `convert restore.exe restore.com` (CONVERT, a kvikdos build util).
 
+#### Stage B deep-debug of the ATTRIB pilot (Jun 18 2026) -- still hangs, layer-by-layer trace
+
+Took a time-boxed crack at making the ATTRIB pilot actually RUN under
+wcc+wlink+OW-cstart (not just link). Result: it **builds and links clean and
+`ATTRIB /?` works**, but the **core path still hangs** -- and the trace shows
+why it's hard. The path was instrumented end-to-end (printf+fflush, since
+stdio is buffered and a hang swallows un-flushed output):
+
+1. **Parser far-pointer capture WORKS.** `Get_far_str` returns the correct
+   filename; the stored far pointer's segment == DS. (Earlier ES=DGROUP fixes
+   in _PARSE/_MSGRET hold up.)
+2. **`Make_fspec` WORKS.** It resolves `C:\CMD\ATTRIB\` and splits the
+   filename into the global `file` -- the old note "filename MISSING" was a
+   misread; the split is by design.
+3. **`Find_first` WORKS.** Matches the file; `Get_reg_attrib` reads the `A`
+   attribute (which prints).
+4. **HANG is in `Regular_attrib -> Display_msg(9) -> sysdispmsg`, on the 2nd
+   substitution (the filename).** It prints sub #1 (the `  A` attr string)
+   then spins on sub #2. `Find_next` is never reached (ruled out the carry-
+   flag-loop theory). `fspec` itself is valid + NUL-terminated (the DOS
+   ASCIIZ call used it fine), so the issue is in the SAL message-substitution
+   layer -- how wcc lays out / passes the contiguous 11-byte `m_sublist`
+   array (`sysdispmsg` reads CX=TWOPARM structs starting at `&msg_str`; it
+   needs `msg_str1` exactly 11 bytes after `msg_str`). Next thread if resumed:
+   verify msg_str/msg_str1 global contiguity + sub_id/sub_flags metadata under
+   wcc's global layout.
+
+**Genuine bug found (not the hang cause):** `Regular_attrib` has
+`char string[16]` then `string[16] = '\0'` -- a 1-byte stack overflow (valid
+indices are 0..15). Real UB; MS C tolerated it via stack padding, wcc may not.
+Fix is `char string[17]`. Applying it did NOT resolve the hang, so it was left
+out (not committed) pending a working end-to-end result.
+
+**Assessment (confirms the prior option-c call):** the C-hybrid port is a
+deep, multi-layered, per-utility effort -- each fixed layer (pointer ABI ->
+ES regs -> off-by-one -> message-substitution layout) uncovers the next, x
+~30 utilities. Ruling: **pure-asm (jwasm+wlink) is the shippable open-source
+milestone (complete + byte-identical); Stage B (wcc port of the C-hybrids)
+is a deliberately DEFERRED separate effort.** The reusable groundwork is
+banked: bin/wcc + bin/wlink wrappers, the OW-cstart entry recipe
+(pspbyte.c main()+criterr.asm), the ES=DGROUP asm-interface fix, and this
+layer-by-layer trace method. Resume point if/when funded: the `sysdispmsg`
+`m_sublist` contiguity/metadata layer in ATTRIB.
+
 #### Misc subsystems (Jun 5 2026)
 
 DEV/DISPLAY/LCD 7/7 clean. Most DEV drivers (ANSI/DRIVER/VDISK) + MEMM/EMM +
