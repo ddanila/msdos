@@ -18,8 +18,8 @@ The build has three tool layers. Two are done; the rest is the remaining work.
 |-------|-----------|--------------|--------|
 | Assembler (all `.ASM`) | JWasm `-Zm` (`bin/jwasm-masm`) | Yes (SOWPL) | **DONE** -- 0 errors tree-wide |
 | Linker (pure-asm targets) | Open Watcom `wlink` (`bin/wlink`) | Yes (SOWPL) | **DONE** -- byte-identical to MS LINK |
-| Linker (C-hybrid targets) | MS LINK via kvikdos | **No** | Stage B |
-| C compiler (C-hybrids) | MS CL 5.10 via kvikdos | **No** | Stage B (deferred) |
+| Linker (C-hybrid targets) | wlink for ATTRIB; MS LINK for the rest | Mixed | Stage B: 1 migrated |
+| C compiler (C-hybrids) | wcc for ATTRIB; MS CL 5.10 for the rest | Mixed | Stage B: 1 migrated |
 | Library manager | MS LIB / OW `wlib` | Mixed | wlib vendored; not fully switched |
 | Proprietary build utilities (9 tools) | Native Python wrappers | Yes | **DONE -- 9 of 9 native** |
 
@@ -27,7 +27,7 @@ The **pure-assembly milestone is shippable**: every `.ASM` in the floppy image
 is assembled by JWasm and linked by wlink, and `make deploy` produces a complete
 1.44MB boot floppy end-to-end. What still pulls in proprietary tools:
 
-1. **~14 C-hybrid utilities** (ATTRIB, BACKUP, RESTORE, FC, FDISK, FILESYS,
+1. **~13 remaining C-hybrid targets** (BACKUP, RESTORE, FC, FDISK, FILESYS,
    JOIN, MEM, REPLACE, SUBST, SELECT, SMARTDRV, EMM386, MEMM) still compile
    with **MS CL** and link with **MS LINK**, because they depend on the MS C
    5.10 runtime (`SLIBCE.LIB`) and the OS/2-style DOS "family API".
@@ -145,11 +145,12 @@ to the C-hybrid compiler/linker and library-manager steps.
 
 ### WS2 -- Migrate the C-hybrids off MS CL/LINK (HARD, long tail)
 
-The wcc port of ATTRIB proved the pattern works
-end-to-end (links, `/?` runs) but the core path still hangs in per-utility
-MS-C-ABI layers -- each fixed layer (pointer ABI -> ES=DGROUP -> off-by-one ->
-message-substitution layout) uncovers the next, and there is **no systematic
-silver bullet**, x ~14 utilities. Root cause is the missing open **SLIBCE /
+The wcc port of ATTRIB now proves the pattern end-to-end: production builds it
+with wcc+JWasm+wlink, all eight focused host behaviors pass, and QEMU validates
+its FAT attribute changes through BACKUP/RESTORE. Its final blocker exposed a
+reusable ABI rule: `-Zp` structures stay byte-packed, while SAL message
+substitution records require an explicit 12-byte stride. There is still **no
+systematic silver bullet** for all remaining utilities. Root cause is the missing open **SLIBCE /
 DOS-family-API runtime**, not the compiler.
 
 Strategy -- treat it as a runtime project, not a per-file grind:
@@ -159,9 +160,9 @@ Strategy -- treat it as a runtime project, not a per-file grind:
    `main()` + `criterr.asm`), and the message-substitution (`sysdispmsg`
    `m_sublist`) contiguity fix -- factored out of ATTRIB into one reusable unit.
    The banked ATTRIB groundwork is the seed.
-2. **Nail ONE utility fully working** (finish ATTRIB: resume at the
-   `sysdispmsg` `m_sublist` layout layer). A single genuinely-running C-hybrid
-   validates the runtime module and turns the rest into repetition.
+2. **Nail ONE utility fully working (DONE: ATTRIB).** The first genuinely
+   running C-hybrid validates OW startup, PSP access, assembler interfaces,
+   packing, and SAL message substitution.
 3. **Templatize across the remaining ~13.** Simplest first (FC, REPLACE -- no
    libraries, no COM conversion), then the COM-converted ones (BACKUP/RESTORE),
    then the library-heavy ones (FDISK/MAPPER.LIB, SELECT/SERVICES.LIB, EMM386).
@@ -212,8 +213,9 @@ fraction of the cost) and behind a real qemu validation environment (see WS4).
   native, byte-compatible implementations.
 - **M3** -- WS4: qemu E2E validation green in CI; preprocessor deleted; golden
   refreshed from a boot-validated build.
-- **M4** -- WS2: first C-hybrid (ATTRIB) fully running under wcc+wlink+open
-  runtime; shared open-slibce module proven.
+- **M4 (DONE)** -- WS2: first C-hybrid (ATTRIB) fully running under
+  wcc+wlink+OW runtime. Host 290/290, forced parallel build, QEMU help 6/6,
+  and BACKUP/RESTORE 38/38 are green.
 - **M5 (GOAL)** -- All ~14 C-hybrids on wcc+wlink; MS CL/LINK/LIB and kvikdos
   fully removed. 100% open-source toolchain.
 

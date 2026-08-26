@@ -69,7 +69,7 @@ brew install nasm gcc make python3 qemu mtools
 
 - `MS-DOS/` — fork of [microsoft/MS-DOS](https://github.com/microsoft/MS-DOS); active development is on `master`
 - `kvikdos/` — fork of [pts/kvikdos](https://github.com/pts/kvikdos) with DOS 4.0 compatibility stubs and macOS support
-- `bin/` — wrappers for custom JWasm, Open Watcom wlink, and the remaining kvikdos-hosted tools
+- `bin/` — custom-JWasm/Open-Watcom wrappers and native build utilities
 - `mk/` — per-module Makefile fragments
 - `Makefile` — GNU Makefile orchestrating the full build
 - `tests/` — all test scripts (kvikdos E2E, QEMU serial, /? smoke tests)

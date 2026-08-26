@@ -758,7 +758,7 @@ $(COMP_OUT): $(COMP_DIR)/COMP.EXE
 	cd $(COMP_DIR) && $(EXE2BIN) "COMP.EXE COMP.COM"
 
 # ---------------------------------------------------------------------------
-# ATTRIB (attrib.exe) — C + 3 ASM files, stays EXE
+# ATTRIB (attrib.exe) — Open Watcom C + JWasm interfaces, stays EXE
 # ---------------------------------------------------------------------------
 $(ATTRIB_DIR)/ATTRIB.CTL: $(ATTRIB_DIR)/ATTRIB.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(ATTRIB_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" ATTRIB.SKL
@@ -766,9 +766,6 @@ $(ATTRIB_DIR)/ATTRIB.CTL: $(ATTRIB_DIR)/ATTRIB.SKL $(MESSAGES_OUT) $(BUILDMSG) $
 $(ATTRIB_DIR)/ATTRIB.CL1 $(ATTRIB_DIR)/ATTRIB.CL2 \
 $(ATTRIB_DIR)/ATTRIB.CLA $(ATTRIB_DIR)/ATTRIB.CLB: \
     $(ATTRIB_DIR)/ATTRIB.CTL
-
-$(ATTRIB_DIR)/ATTRIBA.OBJ: $(ATTRIB_DIR)/ATTRIBA.ASM
-	cd $(ATTRIB_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "ATTRIBA.ASM,ATTRIBA.OBJ;"
 
 $(ATTRIB_DIR)/_MSGRET.OBJ: $(ATTRIB_DIR)/_MSGRET.ASM \
     $(ATTRIB_DIR)/ATTRIB.CTL \
@@ -780,11 +777,17 @@ $(ATTRIB_DIR)/_PARSE.OBJ: $(ATTRIB_DIR)/_PARSE.ASM
 	cd $(ATTRIB_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "_PARSE.ASM,_PARSE.OBJ;"
 
 $(ATTRIB_DIR)/ATTRIB.OBJ: $(ATTRIB_DIR)/ATTRIB.C $(ATTRIB_DIR)/ATTRIB.CTL
-	cd $(ATTRIB_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoATTRIB.OBJ ATTRIB.C"
+	cd $(ATTRIB_DIR) && $(WCC) "-AS -Os -Zp -I. -I..\\..\\H -c -FoATTRIB.OBJ ATTRIB.C"
 
-$(ATTRIB_OUT): $(ATTRIB_DIR)/ATTRIBA.OBJ $(ATTRIB_DIR)/ATTRIB.OBJ \
-    $(ATTRIB_DIR)/_PARSE.OBJ $(ATTRIB_DIR)/_MSGRET.OBJ
-	cd $(ATTRIB_DIR) && $(LINK) "@ATTRIB.LNK"
+$(ATTRIB_DIR)/PSPBYTE.OBJ: $(ATTRIB_DIR)/pspbyte.c
+	cd $(ATTRIB_DIR) && $(WCC) "-AS -Os -Zp -I. -c -FoPSPBYTE.OBJ pspbyte.c"
+
+$(ATTRIB_DIR)/CRITERR.OBJ: $(ATTRIB_DIR)/criterr.asm
+	cd $(ATTRIB_DIR) && $(MASM) "$(AFLAGS) -I." "criterr.asm,CRITERR.OBJ;"
+
+$(ATTRIB_OUT): $(ATTRIB_DIR)/ATTRIB.OBJ $(ATTRIB_DIR)/PSPBYTE.OBJ \
+    $(ATTRIB_DIR)/CRITERR.OBJ $(ATTRIB_DIR)/_PARSE.OBJ $(ATTRIB_DIR)/_MSGRET.OBJ
+	cd $(ATTRIB_DIR) && $(WLINK) "ATTRIB.OBJ+PSPBYTE.OBJ+CRITERR.OBJ+_PARSE.OBJ+_MSGRET.OBJ,ATTRIB.EXE,,;"
 
 # ---------------------------------------------------------------------------
 # EDLIN (edlin.com) — 5 ASM files, CONVERT

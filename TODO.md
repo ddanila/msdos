@@ -11,6 +11,17 @@ utilities, then migrates every C-hybrid target to Open Watcom wcc/wlink/wlib and
 a shared compatibility runtime. `PLAN.md` defines milestones and completion
 gates.
 
+**First Open Watcom C hybrid complete (August 27 2026):** Production ATTRIB now
+builds with native Open Watcom `wcc`, custom JWasm, `wlink`, and the vendored OW
+DOS runtime; it no longer invokes MS CL or LINK. The old display hang was an ABI
+layout mismatch: C parser structures need byte packing, but SYSDispMsg follows
+the 12-byte offsets historically produced when MS C placed separate 11-byte
+`m_sublist` globals on word boundaries. ATTRIB now models that stride explicitly
+with padded records instead of linker-dependent adjacency. The port also fixes
+the real `string[16]`/`string[16] = 0` overflow. Validation passes the complete
+host suite (290/290), a forced `make -B -j8 build-all`, QEMU help (6/6), and the
+two-disk BACKUP/RESTORE suite (38/38), including real FAT archive-bit changes.
+
 **Native SELECT tools (August 27 2026):** ASC2HLP and COMPRESS, the final two
 proprietary build helpers, now have byte-compatible native Python replacements.
 ASC2HLP compiles USA.TXT into the indexed SELECT help-file layout; COMPRESS
@@ -940,7 +951,7 @@ failure is a crash or a toolchain bug** -- both are the known C-hybrid
 C-runtime dependency (Stage B). RESTORE additionally builds `.COM` via
 `convert restore.exe restore.com` (CONVERT, a kvikdos build util).
 
-#### Stage B deep-debug of the ATTRIB pilot (Jun 18 2026) -- still hangs, layer-by-layer trace
+#### Stage B deep-debug of the ATTRIB pilot (Jun 18 2026; resolved Aug 27)
 
 Took a time-boxed crack at making the ATTRIB pilot actually RUN under
 wcc+wlink+OW-cstart (not just link). Result: it **builds and links clean and
@@ -961,28 +972,24 @@ stdio is buffered and a hang swallows un-flushed output):
    then spins on sub #2. `Find_next` is never reached (ruled out the carry-
    flag-loop theory). `fspec` itself is valid + NUL-terminated (the DOS
    ASCIIZ call used it fine), so the issue is in the SAL message-substitution
-   layer -- how wcc lays out / passes the contiguous 11-byte `m_sublist`
-   array (`sysdispmsg` reads CX=TWOPARM structs starting at `&msg_str`; it
-   needs `msg_str1` exactly 11 bytes after `msg_str`). Next thread if resumed:
-   verify msg_str/msg_str1 global contiguity + sub_id/sub_flags metadata under
-   wcc's global layout.
+   layer -- how wcc lays out / passes `m_sublist` records. The later resolution
+   showed that SYSDispMsg follows the stored 12-byte stride: the records are 11
+   bytes under `-Zp`, but MS C word-aligned the independent globals. An explicit
+   padded pair now preserves that ABI without relying on global placement.
 
 **Genuine bug found (not the hang cause):** `Regular_attrib` has
 `char string[16]` then `string[16] = '\0'` -- a 1-byte stack overflow (valid
 indices are 0..15). Real UB; MS C tolerated it via stack padding, wcc may not.
-Fix is `char string[17]`. Applying it did NOT resolve the hang, so it was left
-out (not committed) pending a working end-to-end result.
+Fix is `char string[17]`; it is now committed alongside the layout fix.
 
-**Assessment (confirms the prior option-c call):** the C-hybrid port is a
+**Historical assessment:** the C-hybrid port is a
 deep, multi-layered, per-utility effort -- each fixed layer (pointer ABI ->
 ES regs -> off-by-one -> message-substitution layout) uncovers the next, x
 ~30 utilities. Ruling: **pure-asm (jwasm+wlink) is the shippable open-source
 milestone (complete + byte-identical); Stage B (wcc port of the C-hybrids)
-is a deliberately DEFERRED separate effort.** The reusable groundwork is
-banked: bin/wcc + bin/wlink wrappers, the OW-cstart entry recipe
-(pspbyte.c main()+criterr.asm), the ES=DGROUP asm-interface fix, and this
-layer-by-layer trace method. Resume point if/when funded: the `sysdispmsg`
-`m_sublist` contiguity/metadata layer in ATTRIB.
+was deferred at the time. The August 27 work resumed and completed this pilot;
+the reusable groundwork is now a verified production path for the remaining
+C hybrids.
 
 #### Full E2E build GREEN (Jun 18 2026) -- complete open-source-built floppy
 

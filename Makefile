@@ -8,12 +8,12 @@ BIN      := $(CURDIR)/bin
 OUT      := $(CURDIR)/out
 
 MASM     := $(BIN)/jwasm-masm
-# C compiler / linker / librarian: still kvikdos-based
+# Legacy C compiler/linker/library manager, retained for unmigrated hybrids.
 CL       := $(BIN)/cl
+WCC      := $(BIN)/wcc
 LINK     := $(BIN)/link
 # WLINK: open-source Open Watcom linker (native), used for pure-assembly
-# targets (boot/BIOS/DOS/drivers + asm-only CMD utils). C-containing targets
-# still use MS LINK ($(LINK)) until the C compiler is migrated (Stage B).
+# targets (boot/BIOS/DOS/drivers + asm-only CMD utils) and migrated C hybrids.
 WLINK    := $(BIN)/wlink
 LIB      := $(BIN)/lib
 EXE2BIN  := $(BIN)/exe2bin
