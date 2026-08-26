@@ -27,19 +27,33 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 OPT_RE = r"(?:/\w+(?::[^\s+]+)?|(?<!\S)-\w+(?::[^\s+]+)?)"
 
 def resolve_existing_casefold(path):
-    """Resolve a DOS-style input name on a case-sensitive host filesystem."""
+    """Resolve every component of a DOS-style path case-insensitively."""
     if os.path.exists(path):
         return path
-    directory, basename = os.path.split(path)
-    search_dir = directory or "."
-    try:
-        matches = [entry for entry in os.listdir(search_dir)
-                   if entry.casefold() == basename.casefold()]
-    except OSError:
-        return path
-    if len(matches) == 1:
-        return os.path.join(directory, matches[0]) if directory else matches[0]
-    return path
+
+    # Resolving only the basename is insufficient for response entries such as
+    # ../inc/nibdos.obj when both the INC directory and NIBDOS.OBJ are tracked
+    # in uppercase.  Walk from the current directory (or filesystem root),
+    # retaining '.'/'..' and replacing each ordinary component by its unique
+    # case-folded match.
+    is_absolute = os.path.isabs(path)
+    resolved = os.path.sep if is_absolute else ""
+    for component in path.split(os.path.sep):
+        if not component:
+            continue
+        if component in (".", ".."):
+            resolved = os.path.join(resolved, component)
+            continue
+        search_dir = resolved or "."
+        try:
+            matches = [entry for entry in os.listdir(search_dir)
+                       if entry.casefold() == component.casefold()]
+        except OSError:
+            return path
+        if len(matches) != 1:
+            return path
+        resolved = os.path.join(resolved, matches[0])
+    return resolved or path
 
 def canonicalize_mz_header(path, hdr_bytes=512):
     """Rewrite a wlink MZ .EXE to use a 512-byte (MS-LINK-style) header.
