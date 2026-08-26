@@ -49,6 +49,8 @@ make test-assign-subst-join
 make test-debug-qemu
 make test-drivers-qemu
 make test-misc-qemu
+make test-mode-redirect-qemu
+make test-keyb-layout-qemu
 ```
 
 ## Dependencies

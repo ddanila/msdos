@@ -4,6 +4,7 @@
 # Exit code: 0 if all tests pass, 1 if any fail.
 
 set -uo pipefail
+export LC_ALL=C  # DOS output contains arbitrary OEM bytes; keep host text tools byte-oriented.
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$REPO_ROOT/MS-DOS/v4.0/src"
@@ -1002,7 +1003,7 @@ fi
 XCOPY_KVIKDOS="$REPO_ROOT/kvikdos/kvikdos-soft"
 printf "XcopyTest\r\n" > "$SRC/XCTEST1.TXT"
 mkdir -p "$SRC/XCPDEST"
-output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCTEST1.TXT' 'XCPDEST\' 2>/dev/null || true)
+output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCTEST1.TXT' 'XCPDEST\' 2>/dev/null || true)
 if echo "$output" | grep -q "1 File(s) copied"; then
     ok "XCOPY (copy single file)"
 else
@@ -1020,7 +1021,7 @@ mkdir -p "$SRC/XCPTEST/SUB"
 printf "Root\r\n" > "$SRC/XCPTEST/FILE1.TXT"
 printf "SubFile\r\n" > "$SRC/XCPTEST/SUB/FILE2.TXT"
 mkdir -p "$SRC/XCPDEST"
-output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCPTEST\*.*' 'XCPDEST\' /S 2>/dev/null || true)
+output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCPTEST\*.*' 'XCPDEST\' /S 2>/dev/null || true)
 if echo "$output" | grep -q "2 File(s) copied"; then
     ok "XCOPY /S (copy subdirectory tree)"
 else
@@ -1036,7 +1037,7 @@ rm -rf "$SRC/XCPDEST"
 # -- XCOPY /S /E: copy including empty subdirectories --
 mkdir -p "$SRC/XCPTEST/EMPTY"
 mkdir -p "$SRC/XCPDEST"
-output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCPTEST\*.*' 'XCPDEST\' /S /E 2>/dev/null || true)
+output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCPTEST\*.*' 'XCPDEST\' /S /E 2>/dev/null || true)
 if echo "$output" | grep -q "2 File(s) copied" && [ -d "$SRC/XCPDEST/EMPTY" ]; then
     ok "XCOPY /S /E (empty subdirectory created)"
 else
@@ -1203,7 +1204,7 @@ rm -f "$SRC/FCA1.TXT" "$SRC/FCA2.TXT"
 # -- XCOPY /V: copy with verify --
 printf "VerifyTest\r\n" > "$SRC/XCVTEST.TXT"
 mkdir -p "$SRC/XCVDEST"
-output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCVTEST.TXT' 'XCVDEST\' /V 2>/dev/null || true)
+output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCVTEST.TXT' 'XCVDEST\' /V 2>/dev/null || true)
 if echo "$output" | grep -q "1 File(s) copied"; then
     ok "XCOPY /V (copy with verify)"
 else
@@ -1225,7 +1226,7 @@ mkdir -p "$SRC/XCADEST"
 # Set archive bit on first file, clear on second (persisted via xattr)
 run_dos CMD/ATTRIB/ATTRIB.EXE '+A' 'C:\XCATEST.TXT' > /dev/null 2>&1 || true
 run_dos CMD/ATTRIB/ATTRIB.EXE '-A' 'C:\XCATEST2.TXT' > /dev/null 2>&1 || true
-output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'C:\XCATEST*.TXT' 'C:\XCADEST\' /A 2>/dev/null || true)
+output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'C:\XCATEST*.TXT' 'C:\XCADEST\' /A 2>/dev/null || true)
 if echo "$output" | grep -q "1 File(s) copied"; then
     ok "XCOPY /A (copied only archived file)"
 else
@@ -1247,7 +1248,7 @@ mkdir -p "$SRC/XCMDEST"
 # Set archive bit on first file, clear on second (persisted via xattr)
 run_dos CMD/ATTRIB/ATTRIB.EXE '+A' 'C:\XCMTEST.TXT' > /dev/null 2>&1 || true
 run_dos CMD/ATTRIB/ATTRIB.EXE '-A' 'C:\XCMTEST2.TXT' > /dev/null 2>&1 || true
-output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'C:\XCMTEST*.TXT' 'C:\XCMDEST\' /M 2>/dev/null || true)
+output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'C:\XCMTEST*.TXT' 'C:\XCMDEST\' /M 2>/dev/null || true)
 if echo "$output" | grep -q "1 File(s) copied"; then
     ok "XCOPY /M (copied only archived file)"
 else
@@ -1269,7 +1270,7 @@ rm -rf "$SRC/XCMDEST" "$SRC/XCMTEST.TXT" "$SRC/XCMTEST2.TXT"
 printf "DateTest\r\n" > "$SRC/XCDTEST.TXT"
 touch -t 199006150000 "$SRC/XCDTEST.TXT"
 mkdir -p "$SRC/XCDDEST"
-output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' \
+output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 "$BIN/dos-run" --cwd='C:\' \
     "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCDTEST.TXT' 'XCDDEST\' '/D:01-01-90' 2>/dev/null || true)
 if echo "$output" | grep -q "1 File(s) copied"; then
     ok "XCOPY /D:01-01-90 (copied file dated 06/15/90)"
@@ -1278,7 +1279,7 @@ else
 fi
 rm -rf "$SRC/XCDDEST"
 mkdir -p "$SRC/XCDDEST"
-output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' \
+output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 "$BIN/dos-run" --cwd='C:\' \
     "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCDTEST.TXT' 'XCDDEST\' '/D:12-31-90' 2>/dev/null || true)
 # XCOPY prints "0 File(s) copied" or just "Reading source file(s)..." with no
 # copy line when no files match the date. Verify file was NOT copied.
@@ -1294,7 +1295,7 @@ rm -rf "$SRC/XCDDEST" "$SRC/XCDTEST.TXT"
 # Piping a character satisfies the read and XCOPY proceeds normally.
 printf "WaitTest\r\n" > "$SRC/XCWTEST.TXT"
 mkdir -p "$SRC/XCWDEST"
-output=$(echo "x" | timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCWTEST.TXT' 'XCWDEST\' /W 2>/dev/null || true)
+output=$(echo "x" | timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCWTEST.TXT' 'XCWDEST\' /W 2>/dev/null || true)
 if echo "$output" | grep -qi "Press any key" && echo "$output" | grep -q "1 File(s) copied"; then
     ok "XCOPY /W (waited for key, then copied file)"
 else

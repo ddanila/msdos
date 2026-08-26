@@ -32,7 +32,7 @@ CFLAGS   := -AS -Os -Zp
 # Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test gen-checksums deploy minimal-floppy run-boot test-sys test-help-qemu test-misc-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-b-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select
+.PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test gen-checksums deploy minimal-floppy run-boot test-sys test-help-qemu test-misc-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu
 
 # Build kvikdos-soft (software CPU) if /dev/kvm is unavailable.
 # dos-run automatically selects the right binary at runtime.
@@ -301,6 +301,12 @@ test-help-qemu: deploy
 test-misc-qemu: deploy
 	bash tests/test_misc_qemu.sh
 
+test-mode-redirect-qemu: deploy
+	bash tests/test_mode_redirect_qemu.sh
+
+test-keyb-layout-qemu: deploy
+	bash tests/test_keyb_layout_qemu.sh
+
 test-backup-restore: deploy
 	bash tests/test_backup_restore.sh
 
@@ -320,7 +326,7 @@ test-format: deploy
 test-format-one: deploy
 	bash tests/test_format.sh $(VARIANT)
 
-# Run FORMAT variants in parallel (4 groups, each in its own QEMU + workdir).
+# Run FORMAT variants in parallel (5 groups, each in its own QEMU + workdir).
 # Much faster than test-format (sequential).  Results: out/format-parallel-*.log
 test-format-parallel: deploy
 	@mkdir -p $(OUT)
@@ -353,9 +359,6 @@ test-assign-subst-join: deploy
 
 test-debug-qemu: deploy
 	bash tests/test_debug_qemu.sh
-
-test-edlin-b-qemu: deploy
-	bash tests/test_edlin_b_qemu.sh
 
 test-chkdsk-fix: deploy
 	bash tests/test_chkdsk_fix.sh

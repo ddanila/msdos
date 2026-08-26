@@ -45,6 +45,7 @@
 # Run via: make test-misc-qemu  (requires 'make deploy' first)
 
 set -uo pipefail
+export LC_ALL=C
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
@@ -290,6 +291,18 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'MODE LPT1: 80,6\r\n'
     printf 'ECHO MODE_LPT_DONE\r\n'
 
+    # Run the remaining COMMAND-sensitive checks before the pipe test below,
+    # which is known to corrupt the shell's inherited handle table.
+    printf 'ECHO ---MODE-REDIRECT---\r\n'
+    printf 'MODE LPT1:=COM1:\r\n'
+    printf 'ECHO MODE_REDIRECT_DONE\r\n'
+
+    printf 'ECHO ---COMMAND-HELP---\r\n'
+    printf 'COMMAND /?\r\n'
+    printf 'ECHO COMMAND_HELP_DONE\r\n'
+
+    printf 'ECHO ===DONE===\r\n'
+
     # ── FIND from stdin (pipe) — ECHO | FIND ────────────────────────────────
     # FIND reads handle 0 (stdin) via INT 21h AH=3Fh. Under QEMU with CTTY AUX,
     # stdin works through the serial port. Pipe via DOS shell handles it.
@@ -306,20 +319,6 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'DIR /P\r\n'
     printf 'ECHO DIR_P_DONE\r\n'
 
-    # ── MODE LPT1:=COM1: — printer-to-serial redirect ────────────────────────
-    # MODEECHO.ASM: loads resident code at segment 60H to intercept printer I/O.
-    # Output: "LPT1: rerouted to COM1:" (MODE.SKL message 15).
-    printf 'ECHO ---MODE-REDIRECT---\r\n'
-    printf 'MODE LPT1:=COM1:\r\n'
-    printf 'ECHO MODE_REDIRECT_DONE\r\n'
-
-    # ── COMMAND /? — help text (regression for boot-crash fix 58a0bb4) ────────
-    # COMMAND /? prints help and exits. Verifies the /? code path doesn't crash.
-    printf 'ECHO ---COMMAND-HELP---\r\n'
-    printf 'COMMAND /?\r\n'
-    printf 'ECHO COMMAND_HELP_DONE\r\n'
-
-    printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
 # ── Boot QEMU and capture serial output ──────────────────────────────────────

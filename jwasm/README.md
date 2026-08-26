@@ -12,10 +12,15 @@ Used via `bin/jwasm-masm` (drop-in for `bin/masm`/`bin/wasm-masm`).
 ## Required version
 
 The migration uses the project fork's **`custom` branch**, currently commit
-`f32b9dae220c2e2a11fd31ff7bfc47397c8908d5`. It is based on upstream's
+`9222ac7327f5cc23300181ab1ef8d7fdabc2fd0a`. It is based on upstream's
 2026-07-01 snapshot (`7f6f32e`, 11 commits
 newer than `v2.21pre1`) and carries the MS-DOS compatibility fixes, including
-MASM-compatible PUBLIC-name casing and native macOS `alloca` support. In
+MASM-compatible PUBLIC-name casing, native macOS `alloca` support, MASM 5.1
+forward-JMP sizing, forward-conditional-branch sizing, and indexed
+structure-member operand sizing. It also preserves a structure member's scalar
+type through an `EQU` alias, as MASM 5.1 does. These fixes prevent runtime
+parser corruption in KEYB and MODE and restore DISKCOMP's volume-serial
+comparison behavior while retaining short forward conditional branches. In
 particular, upstream v2.20 is not an equivalent fallback for this branch.
 
 The host binaries are built locally and gitignored. `jwasm/build.sh` clones and

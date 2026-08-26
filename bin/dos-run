@@ -22,6 +22,10 @@ if [ -z "${KVIKDOS:-}" ]; then
         KVIKDOS="$SCRIPT_DIR/../kvikdos/kvikdos-soft"
     fi
 fi
+KVIKDOS_ARGS=()
+if [ "${KVIKDOS_AZZY:-0}" = 1 ]; then
+    KVIKDOS_ARGS+=(--azzy)
+fi
 SRC_ROOT="$(cd "$SCRIPT_DIR/../MS-DOS/v4.0/src" && pwd)"
 
 TOOL="$1"
@@ -66,6 +70,7 @@ else
 fi
 
 "$KVIKDOS" \
+    "${KVIKDOS_ARGS[@]}" \
     --dos-version=4 \
     --mount=c:"$SRC_ROOT"/ \
     --drive=c \

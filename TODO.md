@@ -5,7 +5,11 @@
 **August 26 2026 toolchain refresh:** assembly now uses the `custom` branch of
 `ddanila/JWasm`, pinned in `jwasm/README.md`. The branch is based on the latest
 upstream snapshot and fixes MASM-compatible PUBLIC spelling in case-insensitive
-mode. Open Watcom C/link/library tools, headers, and DOS 16-bit libraries are
+mode. The current pin is `9222ac7327f5cc23300181ab1ef8d7fdabc2fd0a`; it also
+matches MASM 5.1's implicit-forward-JMP sizing, keeps forward conditional
+branches short, and preserves scalar structure member sizes in indexed
+expressions such as `[BX][DI].item_tag` and through `EQU` aliases. Open Watcom
+C/link/library tools, headers, and DOS 16-bit libraries are
 vendored from Current-build `638f7a4` (August 25 2026). The native wlink wrapper
 now explicitly mirrors MS LINK symbol-case behavior and accepts separated dash
 options without confusing hyphenated filenames. RECOVER's generated-message
@@ -37,9 +41,44 @@ by its dependency list. The leading `-` was removed from the COMMAND link
 recipe: COMMAND.EXE must link successfully before EXE2BIN may run.
 
 JWasm provisioning is now reproducible with `jwasm/build.sh`: it clones the
-fork, checks out `f32b9dae220c2e2a11fd31ff7bfc47397c8908d5`, builds for
+fork, checks out `9222ac7327f5cc23300181ab1ef8d7fdabc2fd0a`, builds for
 macOS arm64 or Linux x86-64, and installs into the platform directory consumed
 by `bin/jwasm-masm`. The macOS path was rebuilt successfully from scratch.
+
+Runtime comparison against the MASM-built master image found two additional
+assembler defects. First, `-Zm` shortened an implicit forward `JMP` that MASM
+5.1 keeps near; STRUC.INC sequences such as `Jcc $+5 / JMP label` then branched
+into the middle of an instruction and corrupted KEYB's parser. Second, JWasm
+dropped the DB type from indexed structure members and encoded MODE's byte tag
+comparisons as word comparisons. Both fixes live in the custom fork and have
+binary regression tests. MODE's fragile structured-macro keyword loop was also
+rewritten with explicit control flow in the MS-DOS source.
+
+The initial forward-JMP patch also treated unresolved conditional branches as
+near. That expanded COMMAND's transient parser layout and broke batch-file
+reloads. The custom fork now limits the MASM 5.1 rule to unconditional `JMP`
+and tests both encodings. COMMAND explicitly marks four in-range parser and
+printing bridges `SHORT`; the full 290-test host suite covers batch execution
+after a clean rebuild.
+
+The master-reference coverage now runs on the migration output: the host suite
+passes 290/290, the broad miscellaneous QEMU suite passes 48/48, focused MODE
+passes 3/3 (including all keyword parameters and LPT redirection), and focused
+KEYB passes 2/2. The CI workflow runs on both `master` and `jwasm-migration` and
+includes the two focused regressions. The XCOPY host tests enable kvikdos's
+case-insensitive host-filesystem mode, and COMMAND-sensitive QEMU checks run
+before the known pipe-handle corruption case.
+
+The last master-reference differences were DISKCOMP and DISPLAY.SYS. MASM
+retains the DWORD type when `VOL_SERIAL EQU EXT_BOOT_SERIAL`; JWasm previously
+reduced the alias to an untyped number, making `TYPE VOL_SERIAL` zero. The
+custom fork now preserves structure-member types through constant aliases and
+has a binary regression test; DISKCOPY/DISKCOMP passes 17/17. DISPLAY's local
+`JUMP` macro used a mutable relocatable variable as a cached trampoline. JWasm
+legally revisited that variable during backpatching, turning six jumps into
+`JMP $` self-loops. The MS-DOS macro now emits a direct jump, its Make rule
+tracks `MACROS.INC`, and the driver/CHCP suite passes 17/17, including code-page
+850 prepare, select, and verification.
 
 Runtime validation exposed two more MASM/JWasm differences in DOSMAC.INC.
 The `JUMP` and `CONDRET` macros used mutable equates to chain nearby transfer
@@ -63,6 +102,12 @@ Final build concurrency gates also pass: clean `make -j1`, `make -j4`, and
 `make -j8` all exit zero with no assembler errors, linker errors, unresolved
 symbols, or duplicate entry points. JWasm is now the sole production assembler
 selected by the Makefile; the old `ASM=wasm` comparison switch is retired.
+
+The final August 26 merge gate rebuilt from clean state both serially and with
+`make -j8`, passed the 290-test host suite after each build, deployed the
+parallel-built tree, and ran every QEMU Make target with four-way concurrency.
+All targets passed, including the five isolated parallel FORMAT groups; no
+shared-image, log, DOS-emulator, or compiler-temporary collision occurred.
 
 `make -j4 deploy` also uncovered a second build-graph race: `deploy` started
 `all` beside the floppy target even though both paths produced the same files.

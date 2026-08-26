@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [master, jwasm-migration]
     paths-ignore:
       - '**.md'
   pull_request:
@@ -124,6 +124,12 @@ jobs:
 
       - name: CHKDSK / MODE CON / IFSFUNC / FILESYS e2e tests
         run: bash tests/test_misc_qemu.sh
+
+      - name: Focused MODE parser regression
+        run: bash tests/test_mode_redirect_qemu.sh
+
+      - name: Focused KEYB layout regression
+        run: bash tests/test_keyb_layout_qemu.sh
 
   e2e-drivers:
     needs: build

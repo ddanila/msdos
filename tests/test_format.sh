@@ -270,16 +270,14 @@ echo "--- Post-QEMU BPB geometry checks ---"
 
 # Expected BPB geometry per variant name.  Variants not listed here exit with
 # errors ("Parameters not supported", "Invalid parameter") and produce no image.
-declare -A _EXP_SPT _EXP_HEADS _EXP_TOTAL
-_EXP_SPT=( [VLABEL]=18 [S]=18 [B]=18 [SELECT]=18 [AUTOTEST]=18 )
-_EXP_HEADS=( [VLABEL]=2  [S]=2  [B]=2  [SELECT]=2  [AUTOTEST]=2  )
-_EXP_TOTAL=( [VLABEL]=2880 [S]=2880 [B]=2880 [SELECT]=2880 [AUTOTEST]=2880 )
-
+# Keep this compatible with macOS's system Bash 3.2 (no associative arrays).
 for i in "${!NAMES[@]}"; do
     name="${NAMES[$i]}"
-    if [[ -z "${_EXP_SPT[$name]+x}" ]]; then continue; fi   # no BPB check for this variant
+    case "$name" in
+        VLABEL|S|B|SELECT|AUTOTEST) es=18; eh=2; et=2880 ;;
+        *) continue ;;                         # no BPB check for this variant
+    esac
     img="${SAVED_IMGS[$i]}"
-    es="${_EXP_SPT[$name]}"; eh="${_EXP_HEADS[$name]}"; et="${_EXP_TOTAL[$name]}"
     if bpb=$(read_bpb "$img" 2>/dev/null); then
         if [[ "$bpb" == *"spt=$es"* && "$bpb" == *"heads=$eh"* && "$bpb" == *"total=$et"* ]]; then
             ok "FORMAT $name BPB ($bpb)"
