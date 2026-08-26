@@ -17,8 +17,15 @@ ASC2HLP compiles USA.TXT into the indexed SELECT help-file layout; COMPRESS
 reproduces the original reserved-byte-aware RLE stream for SELECT.DAT. All nine
 formerly proprietary helper utilities are now native. A no-emulation audit also
 identified the source-built `MKCNTRY.EXE` execution as a separate remaining
-kvikdos dependency; it was never proprietary, but must be hosted natively before
-the full goal is complete.
+kvikdos dependency; it was never proprietary and was subsequently hosted
+natively as described below.
+
+**Native MKCNTRY hosting (August 27 2026):** The JWasm/wlink-built MKCNTRY.EXE
+contains its COUNTRY.SYS data as one contiguous region; its DOS code only writes
+that region to a file. `bin/mkcntry` now extracts the payload on the host and is
+byte-identical to the 12,806-byte reference output. The production build has no
+non-toolchain DOS execution left: remaining kvikdos calls are the Microsoft C,
+LINK, and LIB boundary targeted by the Open Watcom migration.
 
 **Native BUILDMSG (August 27 2026):** `bin/buildmsg` is now a native Python
 implementation of the message-skeleton compiler. Its regression corpus captures

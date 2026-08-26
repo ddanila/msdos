@@ -85,7 +85,7 @@ $(VDISK_DIR)/VDISK.SYS: $(VDISK_DIR)/VDISK.EXE
 	cd $(VDISK_DIR) && $(EXE2BIN) "VDISK.EXE VDISK.SYS"
 
 # ---------------------------------------------------------------------------
-# DEV/COUNTRY  (runs the built MKCNTRY.EXE tool to generate COUNTRY.SYS)
+# DEV/COUNTRY
 # ---------------------------------------------------------------------------
 COUNTRY_DIR := $(DEV_DIR)/COUNTRY
 
@@ -95,8 +95,8 @@ $(COUNTRY_DIR)/MKCNTRY.OBJ: $(COUNTRY_DIR)/MKCNTRY.ASM
 $(COUNTRY_DIR)/MKCNTRY.EXE: $(COUNTRY_DIR)/MKCNTRY.OBJ
 	cd $(COUNTRY_DIR) && $(WLINK) "MKCNTRY;"
 
-$(COUNTRY_DIR)/COUNTRY.SYS: $(COUNTRY_DIR)/MKCNTRY.EXE
-	cd $(COUNTRY_DIR) && $(BIN)/dos-run $(COUNTRY_DIR)/MKCNTRY.EXE
+$(COUNTRY_DIR)/COUNTRY.SYS: $(COUNTRY_DIR)/MKCNTRY.EXE $(MKCNTRY)
+	cd $(COUNTRY_DIR) && $(MKCNTRY) MKCNTRY.EXE COUNTRY.SYS
 
 # ---------------------------------------------------------------------------
 # DEV/RAMDRIVE (uses -I../../inc forward-slash style; no DOS dir needed)

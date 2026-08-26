@@ -32,9 +32,9 @@ is assembled by JWasm and linked by wlink, and `make deploy` produces a complete
    with **MS CL** and link with **MS LINK**, because they depend on the MS C
    5.10 runtime (`SLIBCE.LIB`) and the OS/2-style DOS "family API".
 2. The nine formerly proprietary build utilities now have native,
-   byte-compatible replacements. The source-built `MKCNTRY.EXE` generator still
-   runs under kvikdos and must also be hosted natively to satisfy the stronger
-   no-emulation goal.
+   byte-compatible replacements. The source-built `MKCNTRY.EXE` payload is also
+   extracted natively, so the remaining DOS-emulator use is confined to the
+   Microsoft C compiler, linker, and library manager.
 
 Reaching the goal means eliminating both. They are independent workstreams with
 very different risk profiles (see below).
@@ -139,8 +139,9 @@ Implementation order:
 6. **ASC2HLP + COMPRESS (DONE)** -- native SELECT help and panel-data
    compilers, byte-exact for both production outputs.
 
-Current state: no proprietary helper utility remains. DOS emulation is still
-used by the C-hybrid compile/link steps and the source-built MKCNTRY generator.
+Current state: no proprietary helper utility remains and the source-built
+MKCNTRY generator no longer executes under DOS. DOS emulation is now confined
+to the C-hybrid compiler/linker and library-manager steps.
 
 ### WS2 -- Migrate the C-hybrids off MS CL/LINK (HARD, long tail)
 
@@ -194,9 +195,9 @@ fraction of the cost) and behind a real qemu validation environment (see WS4).
   groups. Extend those tests as each native replacement lands.
 - **CI**: add an explicitly kvikdos-free native-toolchain job as WS1 lands;
   retain reference jobs only while they prove parity with a tool being replaced.
-- **Host MKCNTRY natively.** It is open-source assembly rather than a
-  proprietary helper, but executing its DOS binary is the remaining non-C use
-  of kvikdos and therefore part of the no-emulation completion gate.
+- **Host MKCNTRY natively (DONE).** Its JWasm/wlink-built executable contains
+  the complete COUNTRY.SYS payload; the native extractor writes that payload
+  byte-for-byte without executing DOS code.
 
 ---
 
