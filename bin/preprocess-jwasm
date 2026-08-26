@@ -173,13 +173,21 @@ def process_file_with_lower_alias(src, dstdir, entry):
     filesystem, while the historical sources freely mix (for example)
     ``include dosmac.INC`` with a tracked ``DOSMAC.INC``.  Static INCLUDE
     operands are normalized to lowercase, so provide that canonical alias.
-    Keep the original spelling and an original-stem/lowercase-extension alias
-    as well for macro-expanded operands such as ``&utilname.CTL``.
+    Keep all stem/extension case combinations as well for macro-expanded
+    operands such as ``&utilname.CTL``.
     """
     dst = os.path.join(dstdir, entry)
     process_file(src, dst)
     stem, extension = os.path.splitext(entry)
-    aliases = {entry.lower(), stem + extension.lower()}
+    # Macro callers supply utility names with either source spelling (SORT) or
+    # symbol spelling (recover), while SYSMSG may supply an upper- or lowercase
+    # suffix.  Materialize the four stem/suffix combinations used after macro
+    # expansion; a case-insensitive filesystem naturally collapses them.
+    aliases = {
+        entry.lower(),
+        stem + extension.lower(),
+        stem.lower() + extension,
+    }
     for alias in aliases:
         alias_dst = os.path.join(dstdir, alias)
         if alias_dst != dst and not os.path.exists(alias_dst):
