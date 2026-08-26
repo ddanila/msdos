@@ -41,22 +41,39 @@ fork, checks out `f32b9dae220c2e2a11fd31ff7bfc47397c8908d5`, builds for
 macOS arm64 or Linux x86-64, and installs into the platform directory consumed
 by `bin/jwasm-masm`. The macOS path was rebuilt successfully from scratch.
 
-After the COMMAND fix, a second clean `make -j4` completed with no assembler or
-linker errors. Deployment/runtime validation is still open on this host:
-`mformat`/mtools is not installed, so the floppy image cannot yet be populated.
-The broad kvikdos suite was stopped after its COMMAND.COM cases consistently
-timed out; the timeout also reproduces with CL3/CL4 omitted, so it is separate
-from the clean-link correction and requires focused emulator/startup analysis.
+Runtime validation exposed two more MASM/JWasm differences in DOSMAC.INC.
+The `JUMP` and `CONDRET` macros used mutable equates to chain nearby transfer
+sites as a size optimization; JWasm could resolve those equates to the current
+site and emit infinite `JMP $` / `JZ $` loops. They now emit direct jumps and a
+direct conditional-return sequence. QEMU then boots the complete JWasm-built
+IO.SYS, MSDOS.SYS, and COMMAND.COM stack; all five focused boot cases pass.
 
-Clean parallel validation is the next gate now that the previously blocking
-SELECT link succeeds; no shared-scratch-file or generated-message race has
-been observed in the targeted reruns.
+The broader QEMU EXEPACK/help smoke test confirms no packed-file corruption,
+but its batch stops after FDISK help and does not reach the final marker. That
+utility-level issue remains separate from the proven kernel boot path.
 
-**End state:** All assembly and C compilation uses Open Watcom (WASM, wcc, wlink, wlib) natively. The full E2E test suite passes on the WASM-built floppy image. kvikdos remains only for the 7 pre-built DOS build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF, MENUBLD) — eliminating those is a separate future effort, not part of this migration.
+Final build concurrency gates also pass: clean `make -j1`, `make -j4`, and
+`make -j8` all exit zero with no assembler errors, linker errors, unresolved
+symbols, or duplicate entry points. JWasm is now the sole production assembler
+selected by the Makefile; the old `ASM=wasm` comparison switch is retired.
 
-**Branch policy (MS-DOS submodule):** `main` ≈ original Microsoft sources. `dos4-enhancements` = `main` + non-WASM source bug fixes. `watcom-migration` = `dos4-enhancements` + WASM-build-system migration edits. WASM-related changes always land on `watcom-migration`. The superproject `watcom-migration` branch points the MS-DOS submodule at the MS-DOS `watcom-migration` branch tip.
+`make -j4 deploy` also uncovered a second build-graph race: `deploy` started
+`all` beside the floppy target even though both paths produced the same files.
+Deployment now enters one jobserver-aware sub-make after kvikdos is ready, and
+the floppy prerequisites explicitly include generated KEYBOARD.SYS. A clean
+parallel build and populated FAT12 deployment complete successfully.
 
-**Current status:** Upgraded to upstream WASM Current-build (May 13 2026), which now also includes upstream PRs **#1621** (don't join trailing-comma lines outside WATCOM mode) and **#1622** (macro substitution drops quote delimiters from TC_STRING args), in addition to the previously-vendored PRs #1614, #1615, #1617, #1618. The original Microsoft `chSwitch,BYTE,<'/'>` form in `INC/CONST2.ASM` has been restored — the temporary `<"/">` workaround was retired since #1622 fixes the underlying TC_STRING substitution. `inc` subsystem still **builds fully clean** (verified serially; transient `-j4` failures observed are CL.EXE intermediate-file collisions on `INIT`, not wasm). Full subsystem sweep against the May 13 binary still pending. MASM target dropped -- WASM-only going forward. Full E2E pending.
+**Assembler migration end state:** All assembly uses the pinned custom JWasm;
+clean serial/parallel builds, floppy deployment, and the full boot stack are
+validated. The remaining native-toolchain migration uses Open Watcom (`wcc`,
+`wlink`, and `wlib`) and is tracked separately. kvikdos remains for the
+pre-built DOS build utilities; eliminating those is another future effort.
+
+**Branch policy:** Active work lands directly on the superproject and MS-DOS
+submodule `jwasm-migration` branches. The old `watcom-migration` branches are
+retained only as historical baselines.
+
+**Historical WASM status (May 13 2026):** Upgraded to upstream WASM Current-build, which now also includes upstream PRs **#1621** (don't join trailing-comma lines outside WATCOM mode) and **#1622** (macro substitution drops quote delimiters from TC_STRING args), in addition to the previously-vendored PRs #1614, #1615, #1617, #1618. The original Microsoft `chSwitch,BYTE,<'/'>` form in `INC/CONST2.ASM` was restored — the temporary `<"/">` workaround was retired since #1622 fixes the underlying TC_STRING substitution. This section and the log below preserve the superseded WASM migration history.
 
 **May 13 baseline build** (parallel `-j4`, full tree):
 - Before preprocessor fix (`/tmp/build-may13.log`): 850 wasm errors across 97 ASM files; 167 make targets failed. Dominant E-codes: **E032 (296)**, E230 (61), E050 (59), E225 (52), E066 (50), E236 (38), E040 (35), E300 (23), E020 (22).

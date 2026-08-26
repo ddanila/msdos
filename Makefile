@@ -1,5 +1,5 @@
 # Linux GNU Makefile for building MS-DOS 4.0 from source using kvikdos
-# Assembler: JWasm by default (bin/jwasm-masm); ASM=wasm selects Open Watcom WASM.
+# Assembler: custom JWasm (bin/jwasm-masm).
 # C compiler, linker, librarian: still kvikdos-based (migration in progress).
 
 SHELL    := /bin/bash
@@ -7,15 +7,7 @@ SRC      := $(CURDIR)/MS-DOS/v4.0/src
 BIN      := $(CURDIR)/bin
 OUT      := $(CURDIR)/out
 
-# Assembler selection (native Linux/macOS -- no kvikdos needed):
-#   make            -> jwasm-masm  (JWasm -Zm, A-codes); the active migration target
-#   make ASM=wasm   -> wasm-masm   (Open Watcom WASM, E-codes); kept for comparison
-ASM      ?= jwasm
-ifeq ($(ASM),wasm)
-MASM     := $(BIN)/wasm-masm
-else
 MASM     := $(BIN)/jwasm-masm
-endif
 # C compiler / linker / librarian: still kvikdos-based
 CL       := $(BIN)/cl
 LINK     := $(BIN)/link
@@ -448,8 +440,8 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
            $(NLSFUNC_EXE) $(ASSIGN_COM) $(XCOPY_EXE) $(DISKCOMP_COM) $(DISKCOPY_COM) \
            $(APPEND_EXE) $(RECOVER_COM) $(FASTOPEN_EXE) $(PRINT_COM) \
            $(FILESYS_EXE) $(REPLACE_EXE) $(JOIN_EXE) $(SUBST_EXE) \
-           $(BACKUP_COM) $(RESTORE_COM) $(GRAFTABL_COM) $(KEYB_COM) $(SHARE_EXE) \
-           $(EXE2BIN_SRC) $(GRAPHICS_COM) \
+           $(BACKUP_COM) $(RESTORE_COM) $(GRAFTABL_COM) $(KEYB_COM) $(KEYBOARD_SYS) $(SHARE_EXE) \
+           $(EXE2BIN_SRC) $(GRAPHICS_COM) $(GRAPHICS_PRO) \
            $(IFSFUNC_EXE) $(MODE_COM) \
            $(ANSI_SYS) $(RAMDRIVE_SYS) \
            $(VDISK_SYS) $(DISPLAY_SYS) $(COUNTRY_SYS) \
@@ -526,7 +518,11 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
 	mcopy -i $@ $(SELECT_HLP) ::SELECT.HLP
 	mcopy -i $@ $(EGA_CPI) ::EGA.CPI
 
-deploy: all $(FLOPPY)
+# Enter one jobserver-aware sub-make after the shared emulator is ready.  Do not
+# list `all` beside $(FLOPPY): both paths build the same artifacts and race on
+# generated message/include files under parallel make.
+deploy: $(KVIKDOS_SOFT_BIN)
+	+$(MAKE) $(FLOPPY)
 
 # run-boot: interactive QEMU session (graphical)
 run-boot: deploy

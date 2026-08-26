@@ -1,11 +1,11 @@
-# JWasm (experimental assembler path)
+# Custom JWasm assembler
 
-Experimental alternative to the Open Watcom `wasm` assembler for the MS-DOS
-source. JWasm targets MASM compatibility much more closely than `wasm -zcm=masm`
+The production assembler for the MS-DOS source. JWasm targets MASM
+compatibility much more closely than `wasm -zcm=masm`
 (notably `-Zm` = MASM 5.1 mode, multi-pass, full macro engine), which lets us
 drop `bin/preprocess-wasm` and most WASM-specific source edits. C compilation
-still uses Open Watcom (`bin/cl` -> `wcc`); JWasm and wcc both emit OMF, so they
-interoperate and link with `wlink`/MS LINK.
+still uses Microsoft C 5.10 through kvikdos; migrating the C-hybrid targets to
+Open Watcom `wcc` is the separate Stage B described in `PLAN.md`.
 
 Used via `bin/jwasm-masm` (drop-in for `bin/masm`/`bin/wasm-masm`).
 
@@ -34,7 +34,10 @@ rebuild:
 The script supports macOS arm64 and Linux x86-64 and installs the native binary
 under the matching `jwasm/` platform directory.
 
-## Status
+## Validation
 
-See `TODO.md` (JWasm experiment section) and the MS-DOS submodule
-`jwasm-migration` branch for the STRUC.INC adaptations JWasm needs.
+The pinned custom build completes clean full-tree builds with GNU Make at
+`-j1`, `-j4`, and `-j8`. A deployed FAT12 image boots the JWasm-built IO.SYS,
+MSDOS.SYS, and COMMAND.COM stack in QEMU. See `TODO.md` and the MS-DOS
+submodule's `jwasm-migration` branch for the compatibility changes and
+validation history.

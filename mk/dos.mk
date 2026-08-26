@@ -207,7 +207,7 @@ $(DOS_DIR)/MSDOS.EXE: $(INC_NIBDOS) $(INC_CONST2) $(INC_MSDATA) \
 
 $(DOS_OUT): $(DOS_DIR)/MSDOS.EXE
 	cd $(DOS_DIR) && $(EXE2BIN) "MSDOS.EXE MSDOS.SYS"
-	# WASM places _TEXT (class CODE) before START in OBJ stream → MS LINK puts CODE at
+	# The generated OMF places _TEXT (class CODE) before START → MS LINK puts CODE at
 	# offset 0, not the START segment's "JMP DOSINIT". Patch offset 0 with JMP DOSINIT.
 	# SETVECTFLAG/BUF_EMS_MAP_USER at offsets 0-12 are always written before read at
 	# runtime (DISPCALL sets them on every INT 21h entry), so overwriting is safe.

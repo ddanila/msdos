@@ -1,8 +1,8 @@
-# MS-DOS 4.0 — Buildable Fork with Full Test Coverage
+# MS-DOS 4.0 — Buildable Development Fork
 
-A working fork of MS-DOS 4.0 that builds from source on Linux and macOS, boots in QEMU, and has full E2E test coverage — intended as a stable base for OS-level experiments.
+A working fork of MS-DOS 4.0 that builds from source on Linux and macOS and is intended as a stable base for OS-level experiments. The custom-JWasm boot stack is validated in QEMU; broader kvikdos and QEMU runtime tests are included.
 
-The `watcom-migration` branch uses [Open Watcom V2](https://github.com/open-watcom/open-watcom-v2) WASM assembler natively (no emulation needed for assembly). The C compiler, linker, and library manager still run the original DOS tools via [kvikdos](https://github.com/pts/kvikdos) (a headless DOS emulator — KVM on Linux, software 8086 CPU on macOS). kvikdos also runs 7 proprietary DOS build utilities (BUILDMSG, NOSRVBLD, etc.). Core build (IO.SYS, MSDOS.SYS, COMMAND.COM) boots from clean WASM build. Full native toolchain migration in progress — see `TODO.md`.
+The `jwasm-migration` branch uses the project's pinned [custom JWasm fork](https://github.com/ddanila/JWasm/tree/custom) natively for every assembly source and Open Watcom V2 `wlink` for pure-assembly targets. C-hybrid targets still use DOS-hosted tools through [kvikdos](https://github.com/pts/kvikdos); completing their Open Watcom migration is a separate stage. See `PLAN.md` and `TODO.md`.
 
 ## What's here beyond the stock source
 
@@ -25,6 +25,7 @@ The `watcom-migration` branch uses [Open Watcom V2](https://github.com/open-watc
 ## Quick start
 
 ```sh
+./jwasm/build.sh  # first checkout: build the pinned custom assembler
 make               # build everything
 make test          # kvikdos integration tests (fast)
 make deploy        # create out/floppy.img
@@ -64,9 +65,9 @@ brew install nasm gcc make python3 qemu mtools
 
 ## Repository layout
 
-- `MS-DOS/` — fork of [microsoft/MS-DOS](https://github.com/microsoft/MS-DOS) (`dos4-enhancements` branch)
+- `MS-DOS/` — fork of [microsoft/MS-DOS](https://github.com/microsoft/MS-DOS) (`jwasm-migration` branch)
 - `kvikdos/` — fork of [pts/kvikdos](https://github.com/pts/kvikdos) with DOS 4.0 compatibility stubs and macOS support
-- `bin/` — wrapper scripts for build tools (wasm-masm for native WASM, kvikdos wrappers for cl/link/lib and DOS utilities)
+- `bin/` — wrappers for custom JWasm, Open Watcom wlink, and the remaining kvikdos-hosted tools
 - `mk/` — per-module Makefile fragments
 - `Makefile` — GNU Makefile orchestrating the full build
 - `tests/` — all test scripts (kvikdos E2E, QEMU serial, /? smoke tests)

@@ -8,10 +8,12 @@ something worth persisting for this repo, edit this file or a file under
 ## What this project is
 
 Replacing the proprietary MS-DOS 4.0 build tools (run under kvikdos) with a
-native open-source toolchain. Status (2026-06-18):
+native open-source toolchain. Status (2026-08-26):
 
-- **Assembler = DONE.** JWasm (`bin/jwasm-masm`, `-Zm` MASM 5.1 mode) assembles
-  all `.ASM` with 0 errors. It superseded the earlier Open Watcom WASM path.
+- **Assembler = DONE.** The pinned custom JWasm (`bin/jwasm-masm`, `-Zm` MASM
+  5.1 mode) assembles all `.ASM` with 0 errors. `jwasm/build.sh` provisions the
+  exact fork revision; clean `-j1`, `-j4`, and `-j8` builds and the full QEMU
+  boot stack pass.
 - **Linker = DONE for pure-asm.** `bin/wlink` (Open Watcom wlink wrapper) links
   the pure-assembly targets and is byte-identical to MS LINK. The SELECT wlink
   SIGSEGV is fixed (`.ALPHA`->`.SEQ`); RESTORE is triaged (C-runtime dep).
@@ -51,10 +53,8 @@ Detailed running log: `TODO.md`. Deep notes: `docs/agent-notes/`.
   (`make -k ... 2>&1 | tee /tmp/build.log`), then grep/sed/awk that log. Do not
   re-run a full build just to grep differently. Logs contain binary OMF bytes,
   so grep needs `-a`.
-- **jwasm make invocation.** The top `Makefile` defaults to `wasm-masm` (Open
-  Watcom WASM, E-codes). To measure jwasm progress, override:
-  `make -k MASM="$PWD/bin/jwasm-masm" all > build_jwasm_<date>.log 2>&1`
-  (A2xxx codes). A plain `make all` measures the wrong assembler.
+- **jwasm make invocation.** Plain `make` is the production JWasm build. Run
+  `./jwasm/build.sh` once when the ignored host binary is absent.
 - **Include depth.** With `bin/jwasm-masm`, `-I` depth must match the file's
   dir depth under `v4.0/src` or `STRUC.INC` won't resolve and you get a flood of
   bogus A2199 control-flow errors. depth-1 (`BIOS`,`DOS`): `-I. -I..\INC
