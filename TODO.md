@@ -56,6 +56,16 @@ fixes an `argv[argc]` read and invalid omitted K&R arguments. All focused modes
 pass within host 290/290, a forced parallel full build/deploy succeeds, and the
 interactive QEMU `/P` workflow passes 10/10.
 
+**Fourth Open Watcom C hybrid complete (August 27 2026):** BACKUP now builds
+with `wcc`, custom JWasm, native `wlink`, native-wlib MAPPER, and the native
+CONVERT replacement. REPLACE's DBCS-aware searches moved into shared
+`INC/OWCOMSUB.C`, which also supplies `com_toupper` through DOS's country-aware
+`INT 21h AX=6520h` service; neither target links binary-only COMSUBS.LIB. The
+port fixes an `argv[argc]` read, a malformed `\\BACKUP\\CONTROL.*` literal,
+and the OW pointer/stdio declarations, and sets ES=DGROUP at each SAL bridge.
+Host parity is 290/290, a full parallel build/deploy succeeds, and the focused
+two-disk BACKUP/RESTORE QEMU suite passes all 38 checks.
+
 **Native SELECT tools (August 27 2026):** ASC2HLP and COMPRESS, the final two
 proprietary build helpers, now have byte-compatible native Python replacements.
 ASC2HLP compiles USA.TXT into the indexed SELECT help-file layout; COMPRESS

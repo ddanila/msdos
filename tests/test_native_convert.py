@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Compare native CONVERT with hashes captured from the Microsoft tool."""
+"""Check native CONVERT against production-output reference hashes.
+
+The hashes originated as Microsoft-tool parity references.  Migrated linker
+inputs are re-baselined only after their converted output passes QEMU tests.
+"""
 
 from __future__ import annotations
 
@@ -47,7 +51,7 @@ def main() -> None:
             if not output.read_bytes().endswith(loader_bytes):
                 raise SystemExit(f"CONVERT loader source mismatch for {output_name}")
 
-    print(f"native CONVERT parity tests passed ({len(cases)} production cases)")
+    print(f"native CONVERT reference tests passed ({len(cases)} production cases)")
 
 
 if __name__ == "__main__":
