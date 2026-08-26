@@ -825,29 +825,33 @@ $(EDLIN_OUT): $(EDLIN_DIR)/EDLIN.EXE $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(EDLIN_DIR) && $(CONVERT) "EDLIN.EXE"
 
 # ---------------------------------------------------------------------------
-# FC (fc.exe) — 5 C files + 7 ASM files + INC/KSTRING.OBJ, stays EXE
+# FC (fc.exe) — Open Watcom C + 7 JWasm files, stays EXE
 # No SKL/BUILDMSG — uses its own MESSAGES.ASM.
-# Requires INC/KSTRING.OBJ built from INC/KSTRING.C.
+# Keep the OW KSTRING object separate from the MS-C object used by targets
+# that have not migrated yet.
 # ---------------------------------------------------------------------------
-KSTRING_OBJ := $(SRC)/INC/KSTRING.OBJ
+FC_KSTRING_OBJ := $(SRC)/INC/KSTRING.OW.OBJ
 
-$(KSTRING_OBJ): $(SRC)/INC/KSTRING.C
-	cd $(SRC)/INC && $(CL) "-AS -Os -Zp -I. -I..\\H -c -FoKSTRING.OBJ KSTRING.C"
+$(FC_KSTRING_OBJ): $(SRC)/INC/KSTRING.C
+	cd $(SRC)/INC && $(WCC) "-AS -Os -Zp -I. -I..\\H -c -FoKSTRING.OW.OBJ KSTRING.C"
 
 $(FC_DIR)/FC.OBJ: $(FC_DIR)/FC.C
-	cd $(FC_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoFC.OBJ FC.C"
+	cd $(FC_DIR) && $(WCC) "-AS -Os -Zp -I. -I..\\..\\H -c -FoFC.OBJ FC.C"
 
 $(FC_DIR)/ERROR.OBJ: $(FC_DIR)/ERROR.C
-	cd $(FC_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoERROR.OBJ ERROR.C"
+	cd $(FC_DIR) && $(WCC) "-AS -Os -Zp -I. -I..\\..\\H -c -FoERROR.OBJ ERROR.C"
 
 $(FC_DIR)/FGETL.OBJ: $(FC_DIR)/FGETL.C
-	cd $(FC_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoFGETL.OBJ FGETL.C"
+	cd $(FC_DIR) && $(WCC) "-AS -Os -Zp -I. -I..\\..\\H -c -FoFGETL.OBJ FGETL.C"
 
 $(FC_DIR)/NTOI.OBJ: $(FC_DIR)/NTOI.C
-	cd $(FC_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoNTOI.OBJ NTOI.C"
+	cd $(FC_DIR) && $(WCC) "-AS -Os -Zp -I. -I..\\..\\H -c -FoNTOI.OBJ NTOI.C"
 
 $(FC_DIR)/UPDATE.OBJ: $(FC_DIR)/UPDATE.C
-	cd $(FC_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoUPDATE.OBJ UPDATE.C"
+	cd $(FC_DIR) && $(WCC) "-AS -Os -Zp -I. -I..\\..\\H -c -FoUPDATE.OBJ UPDATE.C"
+
+$(FC_DIR)/COMPAT.OBJ: $(FC_DIR)/COMPAT.C
+	cd $(FC_DIR) && $(WCC) "-AS -Os -Zp -I. -c -FoCOMPAT.OBJ COMPAT.C"
 
 $(FC_DIR)/GETL.OBJ: $(FC_DIR)/GETL.ASM
 	cd $(FC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "GETL.ASM,GETL.OBJ;"
@@ -873,10 +877,10 @@ $(FC_DIR)/MESSAGES.OBJ: $(FC_DIR)/MESSAGES.ASM
 FC_OBJS := $(addprefix $(FC_DIR)/,\
     FC.OBJ ERROR.OBJ FGETL.OBJ GETL.OBJ ITOUPPER.OBJ \
     MAXMIN.OBJ MOVE.OBJ NTOI.OBJ STRING.OBJ UPDATE.OBJ \
-    XTAB.OBJ MESSAGES.OBJ)
+    XTAB.OBJ MESSAGES.OBJ COMPAT.OBJ)
 
-$(FC_OUT): $(FC_OBJS) $(KSTRING_OBJ)
-	cd $(FC_DIR) && $(LINK) "@FC.LNK"
+$(FC_OUT): $(FC_OBJS) $(FC_KSTRING_OBJ)
+	cd $(FC_DIR) && $(WLINK) "FC.OBJ+ERROR.OBJ+FGETL.OBJ+GETL.OBJ+ITOUPPER.OBJ+..\\..\\INC\\KSTRING.OW.OBJ+MAXMIN.OBJ+MOVE.OBJ+NTOI.OBJ+STRING.OBJ+UPDATE.OBJ+XTAB.OBJ+MESSAGES.OBJ+COMPAT.OBJ,FC.EXE,,;"
 
 # ---------------------------------------------------------------------------
 # NLSFUNC (nlsfunc.exe) — 2 ASM files, stays EXE, no LNK file

@@ -22,6 +22,18 @@ the real `string[16]`/`string[16] = 0` overflow. Validation passes the complete
 host suite (290/290), a forced `make -B -j8 build-all`, QEMU help (6/6), and the
 two-disk BACKUP/RESTORE suite (38/38), including real FAT archive-bit changes.
 
+**Second Open Watcom C hybrid complete (August 27 2026):** FC and its shared
+KSTRING source now compile with `wcc`; its seven assembly modules use custom
+JWasm and the executable links with `wlink`. The OW KSTRING object has a
+distinct name so unmigrated MS-C consumers cannot accidentally reuse it. FC's
+old generated header contained invalid trailing-comma prototypes, its local
+`strcmpi` collided with the OW library, and its cdecl assembly expected a cdecl
+`strlen`; these boundaries are now explicit, with a small compatibility module
+for the assembly callback. A missing error-code argument in the out-of-memory
+path was also fixed. All 16 focused FC behaviors pass within host 290/290, a
+forced parallel full build and deployment succeed, and QEMU help/boot passes
+6/6.
+
 **Native SELECT tools (August 27 2026):** ASC2HLP and COMPRESS, the final two
 proprietary build helpers, now have byte-compatible native Python replacements.
 ASC2HLP compiles USA.TXT into the indexed SELECT help-file layout; COMPRESS
