@@ -2,6 +2,21 @@
 
 ## Watcom Migration (ACTIVE)
 
+**August 26 2026 toolchain refresh:** assembly now uses the `custom` branch of
+`ddanila/JWasm`, pinned in `jwasm/README.md`. The branch is based on the latest
+upstream snapshot and fixes MASM-compatible PUBLIC spelling in case-insensitive
+mode. Open Watcom C/link/library tools, headers, and DOS 16-bit libraries are
+vendored from Current-build `638f7a4` (August 25 2026). The native wlink wrapper
+now explicitly mirrors MS LINK symbol-case behavior, accepts separated dash
+options without confusing hyphenated filenames, and supports `/UNDEFSOK` for
+the three targets that deliberately carry MSDATA's disabled `OUT` reference.
+RECOVER's generated-message dependencies are complete for parallel builds.
+
+Clean `make -j4` validation gets through all JWasm/wlink targets affected by
+these changes. It currently stops later in the legacy MS LINK SELECT step on
+the existing `SELECT0.OBJ`/`MOD_COPY.OBJ` fixup overflows; no shared-scratch-file
+or generated-message race was observed.
+
 **End state:** All assembly and C compilation uses Open Watcom (WASM, wcc, wlink, wlib) natively. The full E2E test suite passes on the WASM-built floppy image. kvikdos remains only for the 7 pre-built DOS build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF, MENUBLD) — eliminating those is a separate future effort, not part of this migration.
 
 **Branch policy (MS-DOS submodule):** `main` ≈ original Microsoft sources. `dos4-enhancements` = `main` + non-WASM source bug fixes. `watcom-migration` = `dos4-enhancements` + WASM-build-system migration edits. WASM-related changes always land on `watcom-migration`. The superproject `watcom-migration` branch points the MS-DOS submodule at the MS-DOS `watcom-migration` branch tip.

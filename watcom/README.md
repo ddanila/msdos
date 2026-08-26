@@ -5,9 +5,10 @@ project, vendored for reproducible builds without requiring a system-level insta
 
 ## Source
 
-Current build: **Current-build** (May 13 2026)
+Current build: **Current-build** (August 25 2026, `638f7a4`)
 URL: https://github.com/open-watcom/open-watcom-v2/releases/tag/Current-build
 Asset: `ow-snapshot.tar.xz`
+SHA-256: `c3f6361dbb196ca907400ec6dabdbb13bacb4fd54e3216262adc58b41b1e1862`
 
 Both `bin/macos-arm64/` and `bin/linux-x64/` match the release snapshot.
 

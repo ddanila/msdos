@@ -22,6 +22,9 @@ import subprocess
 import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# Slash options may be attached to an output name (FOO/MAP); dash options are
+# accepted only as separate tokens so hyphenated filenames remain intact.
+OPT_RE = r"(?:/\w+(?::[^\s+]+)?|(?<!\S)-\w+(?::[^\s+]+)?)"
 
 def canonicalize_mz_header(path, hdr_bytes=512):
     """Rewrite a wlink MZ .EXE to use a 512-byte (MS-LINK-style) header.
@@ -68,7 +71,7 @@ def names(field, ext):
     separated), dropping /options, converting DOS backslashes, and appending
     the default extension when none is given (wlink's default obj ext is .o,
     but the build's files are .OBJ/.LIB)."""
-    field = re.sub(r"/\w+(?::[^\s+]+)?", " ", field)  # strip attached options (incl /OPT:value)
+    field = re.sub(OPT_RE, " ", field)  # strip attached options (incl /OPT:value)
     out = []
     for it in re.split(r"[+\s]+", field.strip()):
         if not it:
@@ -89,14 +92,14 @@ def main():
     if mfile:
         with open(mfile.group(1), encoding="latin-1") as fh:
             body = fh.read()
-        gopts += re.findall(r"/\w+", arg.replace("@" + mfile.group(1), " "))
+        gopts += re.findall(OPT_RE, arg.replace("@" + mfile.group(1), " "))
     else:
         body = arg
 
     # ';' terminates the response; options may trail after it ("...; /NOI").
     semi = body.find(";")
     if semi >= 0:
-        gopts += re.findall(r"/\w+", body[semi + 1:])
+        gopts += re.findall(OPT_RE, body[semi + 1:])
         body = body[:semi]
 
     # Collapse '+' continuations, then treat newlines as field separators.
@@ -107,8 +110,8 @@ def main():
         fields.append("")
     objs_f, run_f, map_f, lib_f = fields[0], fields[1], fields[2], fields[3]
 
-    gopts += re.findall(r"/\w+", run_f) + re.findall(r"/\w+", map_f)
-    gopts_l = [o.lower() for o in gopts]
+    gopts += re.findall(OPT_RE, run_f) + re.findall(OPT_RE, map_f)
+    gopts_l = [("/" + o[1:] if o.startswith("-") else o).lower() for o in gopts]
 
     objs = names(objs_f, ".obj")
     libs = names(lib_f, ".lib")
@@ -116,21 +119,29 @@ def main():
         sys.exit("wlink: no object modules in link command")
 
     # Run file: explicit name (sans options) or default to first obj + .EXE.
-    run = re.sub(r"/\w+", "", run_f).strip().replace("\\", "/")
+    run = re.sub(OPT_RE, "", run_f).strip().replace("\\", "/")
     if not run:
         run = os.path.splitext(os.path.basename(objs[0]))[0] + ".EXE"
     elif "." not in os.path.basename(run):
         run += ".EXE"
 
     # Map file: a real name (not NUL) or a /M[AP] option enables it.
-    mapname = re.sub(r"/\w+", "", map_f).strip().replace("\\", "/")
+    mapname = re.sub(OPT_RE, "", map_f).strip().replace("\\", "/")
     want_map = (mapname and mapname.lower() != "nul") or any(
         o in ("/m", "/map") for o in gopts_l
     )
 
     owlib = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "watcom", "lib286", "dos"))
-    directives = ["format", "dos", "option", "quiet", "option", "caseexact",
-                  "libpath", owlib]   # resolve OW clib for wcc-compiled C objects
+    directives = ["format", "dos", "option", "quiet"]
+    # Microsoft LINK is case-insensitive by default; /NOI selects significant
+    # case. Applying CASEEXACT unconditionally breaks old objects which freely
+    # vary symbol casing across modules.
+    directives += ["option", "caseexact" if "/noi" in gopts_l else "nocaseexact"]
+    # Wrapper extension used for the deliberately incomplete DOS kernel link:
+    # retain the image while reporting its known disabled-feature references.
+    if "/undefsok" in gopts_l:
+        directives += ["option", "undefsok"]
+    directives += ["libpath", owlib]   # resolve OW clib for wcc-compiled C objects
 
     # MS LINK /STACK:nnnn (decimal bytes) -> wlink "option stack=nnnn".
     mstack = re.search(r"/stack:(\d+)", body, re.I)

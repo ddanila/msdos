@@ -11,13 +11,12 @@ Used via `bin/jwasm-masm` (drop-in for `bin/masm`/`bin/wasm-masm`).
 
 ## Required version
 
-The migration was developed and validated with the **post-v2.21pre1 upstream
-snapshot from 2026-07-01**, commit
-`7f6f32e78b79565d40bcce496756aadd1ff66900`. Use that exact revision until an
-upgrade has passed a clean full-tree build. It is 11 commits newer than the
-`v2.21pre1` tag. In particular, v2.20 is not an equivalent fallback for this
-branch: it emits many macro-argument warnings and the resulting BIOS objects
-fail to link with missing symbols.
+The migration uses the project fork's **`custom` branch**, currently commit
+`f32b9dae220c2e2a11fd31ff7bfc47397c8908d5`. It is based on upstream's
+2026-07-01 snapshot (`7f6f32e`, 11 commits
+newer than `v2.21pre1`) and carries the MS-DOS compatibility fixes, including
+MASM-compatible PUBLIC-name casing and native macOS `alloca` support. In
+particular, upstream v2.20 is not an equivalent fallback for this branch.
 
 The host binaries are currently built locally and gitignored, so the version is
 not encoded in the repository other than by this documented source pin.
@@ -28,20 +27,9 @@ The vendored binary under `macos-arm64/` is gitignored (built locally). To
 rebuild:
 
 ```sh
-git clone https://github.com/Baron-von-Riedesel/JWasm.git
+git clone --branch custom https://github.com/ddanila/JWasm.git
 cd JWasm
-git checkout 7f6f32e78b79565d40bcce496756aadd1ff66900
-# macOS uses <alloca.h>, not <malloc.h>: patch src/H/memalloc.h
-#   in the __GNUC__ branch, replace
-#     #ifndef __FreeBSD__
-#     #include <malloc.h>
-#     #endif
-#   with
-#     #if defined(__APPLE__)
-#     #include <alloca.h>
-#     #elif !defined(__FreeBSD__)
-#     #include <malloc.h>
-#     #endif
+git checkout f32b9dae220c2e2a11fd31ff7bfc47397c8908d5
 make -f GccUnix.mak CC=clang        # compiles; link step uses Linux-only ld flags
 clang build/GccUnixR/*.o -o jwasm   # link manually (drop -s / -Wl,-Map)
 ```
