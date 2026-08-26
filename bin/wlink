@@ -141,6 +141,13 @@ def main():
     elif "." not in os.path.basename(run):
         run += ".EXE"
 
+    # DOS treats the response-file spelling and the Make target spelling as
+    # the same name (for example ``msbio`` and ``MSBIO.EXE``).  On Linux,
+    # preserve any directory but emit the 8.3 basename in canonical uppercase
+    # so subsequent build rules can open the declared target deterministically.
+    run_dir, run_base = os.path.split(run)
+    run = os.path.join(run_dir, run_base.upper()) if run_dir else run_base.upper()
+
     # Map file: a real name (not NUL) or a /M[AP] option enables it.
     mapname = re.sub(OPT_RE, "", map_f).strip().replace("\\", "/")
     want_map = (mapname and mapname.lower() != "nul") or any(
