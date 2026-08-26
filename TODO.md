@@ -30,6 +30,12 @@ callers. SELECT.LNK now lists those five modules explicitly beside SELECT0,
 CASERVIC, and MOD_COPY, while CASSFAR remains a library. SELECT.EXE links and
 the EXEPACK fixup completes successfully.
 
+The first successful clean `make -j4` log audit exposed a hidden COMMAND.COM
+L2029 that its Make recipe had ignored. RDATA.ASM now includes COMMAND.CL3 and
+COMMAND.CL4, restoring the `$M_CLS_1`/`$M_CLS_2` definitions already required
+by its dependency list. The leading `-` was removed from the COMMAND link
+recipe: COMMAND.EXE must link successfully before EXE2BIN may run.
+
 Clean parallel validation is the next gate now that the previously blocking
 SELECT link succeeds; no shared-scratch-file or generated-message race has
 been observed in the targeted reruns.
