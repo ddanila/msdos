@@ -1441,7 +1441,10 @@ The original utility increments it in both the `.MSG` source and generated
 
 **What it does:** Strips the MZ header from a DOS .EXE file and writes the raw code/data. Optionally applies segment relocations (adding a base segment to each relocation entry). Used for .COM files, boot sectors (.BIN), device drivers (.SYS), and data files (.DAT, .CPI).
 
-**Invocations (32):** MSLOAD, MSBIO, MSDOS, COMMAND, MORE, LABEL, TREE, COMP, ASSIGN, DISKCOMP, DISKCOPY, GRAFTABL, KEYB, GRAPHICS, MODE, SELECT, FDBOOT, SYS, FIND, SORT, ATTRIB, APPEND, SHARE, MEM, NLSFUNC, FASTOPEN, IFSFUNC, device drivers (DRIVER, ANSI, VDISK, RAMDRIVE, KEYBOARD, PRINTER, DISPLAY).
+**Production invocations (30):** MSLOAD, MSBIO, MSDOS, COMMAND, SYS, MORE,
+LABEL, TREE, COMP, ASSIGN, DISKCOMP, DISKCOPY, GRAFTABL, KEYB, GRAPHICS, MODE,
+SELECT, FDBOOT, SEL-PAN, CPI-HEAD, and device drivers (DRIVER, ANSI, VDISK,
+RAMDRIVE, KEYBOARD, PRINTER, DISPLAY, SMARTDRV, XMA2EMS).
 
 **Special cases:**
 - MSBIO uses stdin redirection: `$(EXE2BIN) "MSBIO.EXE MSBIO.BIN" <LOCSCR` — LOCSCR provides the load segment for relocation
@@ -1454,7 +1457,8 @@ The original utility increments it in both the `.MSG` source and generated
 1. Read MZ header, validate signature
 2. Skip to `header_paragraphs * 16` (code start)
 3. For each relocation entry: read segment:offset pair, add base segment to the word at that file offset
-4. Write everything from code start to end
+4. Discard the pre-entry prefix (normally 0x100 bytes for `.COM` targets) and
+   write the remaining image
 
 **Open-source alternatives:**
 - Open Watcom ships a native `exe2bin` ([source](https://github.com/open-watcom/open-watcom-v2/blob/master/bld/wl/exe2bin/exe2bin.c), ~450 lines C) — not currently vendored
@@ -1462,10 +1466,10 @@ The original utility increments it in both the `.MSG` source and generated
 
 **Implementation:** ~50 lines of Python. Most invocations are zero-relocation (just skip header + copy), making it especially simple.
 
-- [ ] Write `bin/exe2bin` replacement (Python)
-- [ ] Handle stdin base segment for MSBIO/PRINTER/DISPLAY special cases
-- [ ] Verify output matches original for all 32 invocations (binary diff)
-- [ ] Update Makefile to use native script
+- [x] Write `bin/exe2bin` replacement (Python)
+- [x] Handle stdin base segment for MSBIO/PRINTER/DISPLAY special cases
+- [x] Verify output hashes against the original for all 30 production calls
+- [x] Remove EXE2BIN from the emulated production path
 
 #### 6.4 MENUBLD — FDISK menu data to C source (low-medium)
 

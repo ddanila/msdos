@@ -1,3 +1,74 @@
-#!/bin/bash
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-exec "$SCRIPT_DIR/dos-run" "$SCRIPT_DIR/../MS-DOS/v4.0/src/TOOLS/EXE2BIN.EXE" "$@"
+#!/usr/bin/env python3
+"""Convert a 16-bit MZ executable to the flat image used by DOS builds."""
+
+from __future__ import annotations
+
+import shlex
+import struct
+import sys
+from pathlib import Path
+
+
+def fail(message: str) -> int:
+    print(f"exe2bin: {message}", file=sys.stderr)
+    return 1
+
+
+def main() -> int:
+    args = sys.argv[1:]
+    if len(args) == 1:
+        args = shlex.split(args[0])
+    if len(args) != 2:
+        print("usage: exe2bin INPUT.EXE OUTPUT", file=sys.stderr)
+        return 2
+
+    source = Path(args[0])
+    target = Path(args[1])
+    data = source.read_bytes()
+    if len(data) < 28 or data[:2] not in (b"MZ", b"ZM"):
+        return fail(f"{source} is not an MZ executable")
+
+    last_page, pages, relocations, header_paragraphs = struct.unpack_from(
+        "<4H", data, 2
+    )
+    initial_ip, initial_cs = struct.unpack_from("<2H", data, 0x14)
+    relocation_offset = struct.unpack_from("<H", data, 0x18)[0]
+
+    logical_size = (pages - 1) * 512 + (last_page or 512) if pages else 0
+    header_size = header_paragraphs * 16
+    if logical_size > len(data) or header_size < 28 or header_size > logical_size:
+        return fail(f"invalid MZ size fields in {source}")
+    if relocation_offset + relocations * 4 > header_size:
+        return fail(f"relocation table exceeds the MZ header in {source}")
+
+    image = bytearray(data[header_size:logical_size])
+    if relocations:
+        base_text = sys.stdin.read().strip()
+        if not base_text:
+            return fail(f"{source} has {relocations} relocations; load segment required")
+        try:
+            load_segment = int(base_text, 16)
+        except ValueError:
+            return fail(f"invalid hexadecimal load segment: {base_text!r}")
+        if not 0 <= load_segment <= 0xFFFF:
+            return fail(f"load segment is outside 0000..FFFF: {base_text!r}")
+
+        for index in range(relocations):
+            offset, segment = struct.unpack_from(
+                "<HH", data, relocation_offset + index * 4
+            )
+            position = segment * 16 + offset
+            if position + 2 > len(image):
+                return fail(f"relocation {index} points outside the image")
+            value = struct.unpack_from("<H", image, position)[0]
+            struct.pack_into("<H", image, position, (value + load_segment) & 0xFFFF)
+
+    entry_offset = initial_cs * 16 + initial_ip
+    if entry_offset > len(image):
+        return fail(f"entry point lies outside the image in {source}")
+    target.write_bytes(image[entry_offset:])
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
