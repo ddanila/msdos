@@ -77,6 +77,14 @@ tentative definitions of the two transfer-buffer pointers, fixes the
 headers as real build prerequisites. The canonical build passes host 290/290,
 a forced parallel full build/deploy, and the BACKUP/RESTORE QEMU suite 38/38.
 
+**Sixth Open Watcom C hybrid complete (August 27 2026):** FILESYS now compiles
+with `wcc`, its two assembly modules use custom JWasm, and `wlink` produces the
+production executable without MS CL or LINK. The port constructs the PSP
+command-tail far pointer without assigning through `FP_SEG`/`FP_OFF` macros and
+sets ES=DGROUP at both SAL message bridges. Direct host `/?` output passes, a
+forced parallel full build succeeds, QEMU help passes 6/6, and the QEMU
+miscellaneous suite passes 48/48, including installing FILESYS after IFSFUNC.
+
 **Native SELECT tools (August 27 2026):** ASC2HLP and COMPRESS, the final two
 proprietary build helpers, now have byte-compatible native Python replacements.
 ASC2HLP compiles USA.TXT into the indexed SELECT help-file layout; COMPRESS

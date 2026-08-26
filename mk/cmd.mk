@@ -1077,7 +1077,7 @@ $(PRINT_OUT): $(PRINT_DIR)/PRINT.EXE $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(PRINT_DIR) && $(CONVERT) "PRINT.EXE"
 
 # ---------------------------------------------------------------------------
-# FILESYS (filesys.exe) — 1 C + 2 ASM, stays EXE, no LNK
+# FILESYS (filesys.exe) — Open Watcom C + 2 JWasm modules
 # ---------------------------------------------------------------------------
 $(FILESYS_DIR)/FILESYS.CTL: $(FILESYS_DIR)/FILESYS.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(FILESYS_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" FILESYS.SKL
@@ -1089,10 +1089,10 @@ $(FILESYS_DIR)/_PARSE.OBJ: $(FILESYS_DIR)/_PARSE.ASM
 	cd $(FILESYS_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "_PARSE.ASM,_PARSE.OBJ;"
 
 $(FILESYS_DIR)/FILESYS.OBJ: $(FILESYS_DIR)/FILESYS.C $(FILESYS_DIR)/FILESYS.CTL
-	cd $(FILESYS_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoFILESYS.OBJ FILESYS.C"
+	cd $(FILESYS_DIR) && $(WCC) "-AS -Os -Zp -I. -I..\\..\\H -c -FoFILESYS.OBJ FILESYS.C"
 
 $(FILESYS_OUT): $(FILESYS_DIR)/FILESYS.OBJ $(FILESYS_DIR)/_PARSE.OBJ $(FILESYS_DIR)/_MSGRET.OBJ
-	cd $(FILESYS_DIR) && $(LINK) "FILESYS+_PARSE+_MSGRET; /NOI"
+	cd $(FILESYS_DIR) && $(WLINK) "FILESYS.OBJ+_PARSE.OBJ+_MSGRET.OBJ,FILESYS.EXE,,; /NOI"
 
 # ---------------------------------------------------------------------------
 # REPLACE (replace.exe) — Open Watcom C + 3 JWasm modules + native COMSUBS
