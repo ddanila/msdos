@@ -50,6 +50,7 @@ cp "$FLOPPY" "$TEST_IMG"
     printf 'SUBST /?\r\n'
     printf 'REPLACE /?\r\n'
     printf 'FIND /?\r\n'
+    printf 'ECHO ---AFTER_FIND---\r\n'
     printf 'TREE /?\r\n'
     printf 'BACKUP /?\r\n'
     printf 'RESTORE /?\r\n'
@@ -61,13 +62,16 @@ cp "$FLOPPY" "$TEST_IMG"
     printf 'ASSIGN /?\r\n'
     printf 'SYS /?\r\n'
     printf 'EXE2BIN /?\r\n'
+    printf 'ECHO ---AFTER_EXE2BIN---\r\n'
     printf 'KEYB /?\r\n'
     printf 'MODE /?\r\n'
     printf 'RECOVER /?\r\n'
     printf 'CHKDSK /?\r\n'
     printf 'FILESYS /?\r\n'
     printf 'FDISK /?\r\n'
+    printf 'ECHO ---AFTER_FDISK---\r\n'
     printf 'IFSFUNC /?\r\n'
+    printf 'ECHO ---AFTER_IFSFUNC---\r\n'
     printf 'ECHO ---DONE---\r\n'
 } | mcopy -o -i "$TEST_IMG" - ::AUTOEXEC.BAT
 
@@ -92,6 +96,14 @@ if grep -qi "Packed file is corrupt" "$SERIAL_LOG"; then
 else
     ok "EXEPACK: no corruption in any tool"
 fi
+
+for tool in FIND EXE2BIN FDISK IFSFUNC; do
+    if grep -q -- "---AFTER_${tool}---" "$SERIAL_LOG"; then
+        ok "$tool /? returned to the command interpreter"
+    else
+        fail "$tool /? did not return to the command interpreter"
+    fi
+done
 
 if grep -q "DONE" "$SERIAL_LOG"; then
     ok "QEMU boot ran to completion"
