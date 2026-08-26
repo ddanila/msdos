@@ -1,0 +1,112 @@
+#!/usr/bin/env python3
+"""Native replacement for SELECT's ASC2HLP help-file compiler."""
+
+from __future__ import annotations
+
+import struct
+import sys
+from pathlib import Path
+
+
+HEADER_SIZE = 0x14
+HELP_HEADER_OFFSET = 0xA4
+FILE_SIGNATURE = 0x1234
+OBJECT_LIST_OFFSET = 0xFE
+
+
+def directive_value(line: bytes, marker: bytes) -> bytes:
+    value = line[len(marker):]
+    return value[1:] if value.startswith((b" ", b"\t")) else value
+
+
+def compile_help(source: bytes) -> bytes:
+    lines = source.splitlines()
+    topic_length: int | None = None
+    maximum_topics: int | None = None
+    topics: list[bytes] = []
+    texts: list[bytes] = []
+    index = 0
+
+    while index < len(lines):
+        line = lines[index]
+        if line.startswith(b".TOPICLEN."):
+            topic_length = int(directive_value(line, b".TOPICLEN."))
+        elif line.startswith(b".MAXNUMHLP."):
+            maximum_topics = int(directive_value(line, b".MAXNUMHLP."))
+        elif line.startswith(b".HELPID."):
+            if topic_length is None or maximum_topics is None:
+                raise ValueError(".HELPID. appears before file parameters")
+            index += 1
+            if index >= len(lines) or not lines[index].startswith(b".TOPICTEXT."):
+                raise ValueError("missing .TOPICTEXT. after .HELPID.")
+            topic = directive_value(lines[index], b".TOPICTEXT.")
+            if len(topic) > topic_length:
+                raise ValueError("topic text exceeds .TOPICLEN.")
+            topics.append(topic.ljust(topic_length, b" "))
+
+            index += 1
+            if index >= len(lines) or not lines[index].startswith(b".HELPTEXT."):
+                raise ValueError("missing .HELPTEXT. after .TOPICTEXT.")
+            text_lines = [directive_value(lines[index], b".HELPTEXT.")]
+            index += 1
+            while index < len(lines) and not lines[index].startswith(b".HELPTEND."):
+                text_lines.append(lines[index])
+                index += 1
+            if index >= len(lines):
+                raise ValueError("missing .HELPTEND.")
+            texts.append(b" ".join(text_lines) + b" ")
+        index += 1
+
+    if topic_length is None:
+        raise ValueError('missing ".TOPICLEN." reserve word')
+    if maximum_topics is None:
+        raise ValueError('missing ".MAXNUMHLP." reserve word')
+    if len(topics) > maximum_topics:
+        raise ValueError("number of help topics exceeds .MAXNUMHLP.")
+
+    topic_table_offset = HELP_HEADER_OFFSET + 4 + maximum_topics * 8
+    text_offset = topic_table_offset + maximum_topics * topic_length
+    entries = bytearray()
+    cursor = text_offset
+    for number, text in enumerate(texts, 1):
+        entries += struct.pack("<IHH", number, cursor, len(text))
+        cursor += len(text)
+    entries += bytes((maximum_topics - len(texts)) * 8)
+
+    header = struct.pack(
+        "<10H",
+        FILE_SIGNATURE,
+        HEADER_SIZE,
+        OBJECT_LIST_OFFSET,
+        0,
+        HELP_HEADER_OFFSET,
+        maximum_topics,
+        0,
+        0,
+        0,
+        0,
+    )
+    output = bytearray(header)
+    output += bytes(HELP_HEADER_OFFSET - len(output))
+    output += struct.pack("<HH", len(topics), topic_length)
+    output += entries
+    output += b"".join(topics)
+    output += bytes((maximum_topics - len(topics)) * topic_length)
+    output += b"".join(texts)
+    return bytes(output)
+
+
+def main(argv: list[str]) -> int:
+    if len(argv) != 3:
+        print("usage: asc2hlp INPUT.TXT OUTPUT.HLP", file=sys.stderr)
+        return 2
+    try:
+        Path(argv[2]).write_bytes(compile_help(Path(argv[1]).read_bytes()))
+    except (OSError, ValueError) as error:
+        print(f"asc2hlp: {error}", file=sys.stderr)
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))

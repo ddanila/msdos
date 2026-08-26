@@ -21,7 +21,7 @@ The build has three tool layers. Two are done; the rest is the remaining work.
 | Linker (C-hybrid targets) | MS LINK via kvikdos | **No** | Stage B |
 | C compiler (C-hybrids) | MS CL 5.10 via kvikdos | **No** | Stage B (deferred) |
 | Library manager | MS LIB / OW `wlib` | Mixed | wlib vendored; not fully switched |
-| Build utilities (9 tools) | Native Python wrappers / DOS `.EXE`s | Mixed | **7 of 9 native** |
+| Proprietary build utilities (9 tools) | Native Python wrappers | Yes | **DONE -- 9 of 9 native** |
 
 The **pure-assembly milestone is shippable**: every `.ASM` in the floppy image
 is assembled by JWasm and linked by wlink, and `make deploy` produces a complete
@@ -31,9 +31,10 @@ is assembled by JWasm and linked by wlink, and `make deploy` produces a complete
    JOIN, MEM, REPLACE, SUBST, SELECT, SMARTDRV, EMM386, MEMM) still compile
    with **MS CL** and link with **MS LINK**, because they depend on the MS C
    5.10 runtime (`SLIBCE.LIB`) and the OS/2-style DOS "family API".
-2. **2 proprietary DOS build utilities** still run under kvikdos: ASC2HLP (2)
-   and COMPRESS (1). DBOF, BUILDIDX, EXE2BIN, NOSRVBLD, MENUBLD, CONVERT, and
-   BUILDMSG now have native byte-compatible replacements.
+2. The nine formerly proprietary build utilities now have native,
+   byte-compatible replacements. The source-built `MKCNTRY.EXE` generator still
+   runs under kvikdos and must also be hosted natively to satisfy the stronger
+   no-emulation goal.
 
 Reaching the goal means eliminating both. They are independent workstreams with
 very different risk profiles (see below).
@@ -115,7 +116,7 @@ release; vendored tool binaries retain their upstream licenses in `watcom/`,
 Ordered by ROI. WS1 is the big, clean, well-scoped win; WS2 is the hard long
 tail; WS3/WS4 are hygiene that de-risk the milestone.
 
-### WS1 -- Replace the 9 kvikdos-run build utilities (7/9 DONE)
+### WS1 -- Replace the 9 proprietary build utilities (DONE)
 
 This removes kvikdos from the build entirely for pure-asm targets and is
 **purely additive, low-risk, MIT-clean** (our own Python, no license question).
@@ -135,11 +136,11 @@ Implementation order:
    ~80-byte stub once, embed as a blob, verify FORMAT.COM/CHKDSK.COM boot.
 5. **BUILDMSG (DONE)** -- native message compiler, byte-exact across all 43
    production skeletons and all 204 generated CL/CTL files.
-6. **ASC2HLP + COMPRESS** (SELECT.HLP only, 3 calls) -- lowest priority;
-   SELECT-help-specific.
+6. **ASC2HLP + COMPRESS (DONE)** -- native SELECT help and panel-data
+   compilers, byte-exact for both production outputs.
 
-Current state: only SELECT's ASC2HLP/COMPRESS help pipeline and the C-hybrid
-compile/link steps still use DOS-hosted proprietary tools.
+Current state: no proprietary helper utility remains. DOS emulation is still
+used by the C-hybrid compile/link steps and the source-built MKCNTRY generator.
 
 ### WS2 -- Migrate the C-hybrids off MS CL/LINK (HARD, long tail)
 
@@ -193,6 +194,9 @@ fraction of the cost) and behind a real qemu validation environment (see WS4).
   groups. Extend those tests as each native replacement lands.
 - **CI**: add an explicitly kvikdos-free native-toolchain job as WS1 lands;
   retain reference jobs only while they prove parity with a tool being replaced.
+- **Host MKCNTRY natively.** It is open-source assembly rather than a
+  proprietary helper, but executing its DOS binary is the remaining non-C use
+  of kvikdos and therefore part of the no-emulation completion gate.
 
 ---
 
@@ -203,8 +207,8 @@ fraction of the cost) and behind a real qemu validation environment (see WS4).
 - **M1 (DONE)** -- WS1 steps 1-4: kvikdos removed from all pure-asm target builds
   (DBOF, BUILDIDX, EXE2BIN, NOSRVBLD, MENUBLD, CONVERT reimplemented). Biggest
   single step toward the goal.
-- **M2** -- Finish ASC2HLP/COMPRESS: **zero proprietary
-  build utilities**; kvikdos gone except for the C-hybrid compile/link step.
+- **M2 (DONE)** -- **Zero proprietary build utilities**: all nine replaced by
+  native, byte-compatible implementations.
 - **M3** -- WS4: qemu E2E validation green in CI; preprocessor deleted; golden
   refreshed from a boot-validated build.
 - **M4** -- WS2: first C-hybrid (ATTRIB) fully running under wcc+wlink+open

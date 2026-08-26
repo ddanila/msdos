@@ -23,6 +23,8 @@ NOSRVBLD := $(BIN)/nosrvbld
 DBOF     := $(BIN)/dbof
 MENUBLD  := $(BIN)/menubld
 CONVERT  := $(BIN)/convert
+ASC2HLP  := $(BIN)/asc2hlp
+COMPRESS := $(BIN)/compress
 MESSAGE_CATALOG := $(BIN)/message_catalog.py
 
 # Common MASM/CL flags (from TOOLS.INI)

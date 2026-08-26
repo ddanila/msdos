@@ -4,7 +4,6 @@
 # ---------------------------------------------------------------------------
 SELECT_DIR  := $(SRC)/SELECT
 FDISK_DIR   := $(SRC)/CMD/FDISK
-TOOLS_DIR   := $(SRC)/TOOLS
 
 # Include paths: local dir + SRC/INC (one level up)
 SELECT_AINC := -I. -I..\\INC
@@ -37,10 +36,10 @@ $(SELECT_DIR)/SELECT.COM: $(SELECT_DIR)/SSTUB.EXE
 	cd $(SELECT_DIR) && $(EXE2BIN) "SSTUB.EXE SELECT.COM"
 
 # ---------------------------------------------------------------------------
-# SELECT.HLP  (ASC2HLP.EXE is a pre-built tool in TOOLS/)
+# SELECT.HLP
 # ---------------------------------------------------------------------------
-$(SELECT_DIR)/SELECT.HLP: $(SELECT_DIR)/USA.TXT
-	cd $(SELECT_DIR) && $(BIN)/dos-run $(TOOLS_DIR)/ASC2HLP.EXE USA.TXT SELECT.HLP
+$(SELECT_DIR)/SELECT.HLP: $(SELECT_DIR)/USA.TXT $(ASC2HLP)
+	cd $(SELECT_DIR) && $(ASC2HLP) USA.TXT SELECT.HLP
 
 # ---------------------------------------------------------------------------
 # FDBOOT.INC dependency chain (needed for BOOTREC.OBJ → SELECT.EXE)
@@ -253,5 +252,5 @@ $(SELECT_DIR)/SEL-PAN.EXE: \
 $(SELECT_DIR)/SEL-PAN.DAT: $(SELECT_DIR)/SEL-PAN.EXE
 	cd $(SELECT_DIR) && $(EXE2BIN) "SEL-PAN.EXE SEL-PAN.DAT"
 
-$(SELECT_DIR)/SELECT.DAT: $(SELECT_DIR)/SEL-PAN.DAT
-	cd $(SELECT_DIR) && $(BIN)/dos-run $(TOOLS_DIR)/COMPRESS.COM
+$(SELECT_DIR)/SELECT.DAT: $(SELECT_DIR)/SEL-PAN.DAT $(COMPRESS)
+	cd $(SELECT_DIR) && $(COMPRESS)
