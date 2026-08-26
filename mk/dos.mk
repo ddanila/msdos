@@ -203,10 +203,7 @@ DOS_OBJ_PATHS := $(addprefix $(DOS_DIR)/,$(DOS_OBJS))
 
 $(DOS_DIR)/MSDOS.EXE: $(INC_NIBDOS) $(INC_CONST2) $(INC_MSDATA) \
     $(INC_MSTABLE) $(INC_MSDOSME) $(DOS_OBJ_PATHS)
-	# Pre-existing unresolved DBCS/networking references are from stubs disabled
-	# by DBCS=FALSE/no IFS library. Ask wlink to retain the partial image so the
-	# historical EXE2BIN/patch step can proceed.
-	cd $(DOS_DIR) && $(WLINK) "/UNDEFSOK @MSDOS.LNK"
+	cd $(DOS_DIR) && $(WLINK) "@MSDOS.LNK"
 
 $(DOS_OUT): $(DOS_DIR)/MSDOS.EXE
 	cd $(DOS_DIR) && $(EXE2BIN) "MSDOS.EXE MSDOS.SYS"

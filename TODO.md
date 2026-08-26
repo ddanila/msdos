@@ -7,10 +7,15 @@
 upstream snapshot and fixes MASM-compatible PUBLIC spelling in case-insensitive
 mode. Open Watcom C/link/library tools, headers, and DOS 16-bit libraries are
 vendored from Current-build `638f7a4` (August 25 2026). The native wlink wrapper
-now explicitly mirrors MS LINK symbol-case behavior, accepts separated dash
-options without confusing hyphenated filenames, and supports `/UNDEFSOK` for
-the three targets that deliberately carry MSDATA's disabled `OUT` reference.
-RECOVER's generated-message dependencies are complete for parallel builds.
+now explicitly mirrors MS LINK symbol-case behavior and accepts separated dash
+options without confusing hyphenated filenames. RECOVER's generated-message
+dependencies are complete for parallel builds.
+
+The apparent MSDATA `OUT` unresolved symbol was not intentional: JWasm's
+host-width `NOT` made MSINIT's `IF (NOT IBM) OR (DEBUG)` true for the 16-bit
+TRUE value `0FFFFh`. The condition now tests `IBM EQ 0`, and MSDATA.OBJ tracks
+MSINIT.ASM as a real prerequisite. MSDOS, SHARE, and IFSFUNC consequently link
+without unresolved symbols; the temporary `/UNDEFSOK` policy was removed.
 
 Clean `make -j4` validation gets through all JWasm/wlink targets affected by
 these changes. It currently stops later in the legacy MS LINK SELECT step on

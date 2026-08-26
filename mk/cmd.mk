@@ -1335,9 +1335,7 @@ $(SHARE_DIR)/SHARELNK.OBJ: $(SHARE_DIR)/SHARELNK.ASM
 
 $(SHARE_OUT): $(SHARE_DIR)/GSHARE.OBJ $(SHARE_DIR)/GSHARE2.OBJ \
     $(SHARE_DIR)/SHARESR.OBJ $(SHARE_DIR)/SHARELNK.OBJ $(INC_OBJ_PATHS)
-	# MSDATA also carries the disabled DOS initialization reference to OUT;
-	# retain the SHARE image, matching the kernel link policy.
-	cd $(SHARE_DIR) && $(WLINK) "/UNDEFSOK @SHARE.LNK"
+	cd $(SHARE_DIR) && $(WLINK) "@SHARE.LNK"
 
 # ---------------------------------------------------------------------------
 # EXE2BIN (exe2bin.exe) — 2 ASM, stays EXE
@@ -1459,8 +1457,7 @@ $(IFSFUNC_OUT): $(IFSFUNC_DIR)/IFSSESS.OBJ $(IFSFUNC_DIR)/IFSDIR.OBJ \
     $(IFSFUNC_DIR)/IFSERROR.OBJ $(IFSFUNC_DIR)/IFSFDOS.OBJ \
     $(IFSFUNC_DIR)/IFSINIT.OBJ $(IFSFUNC_DIR)/IFSFLINK.OBJ \
     $(INC_OBJ_PATHS) $(DOS_DIR)/MSDISP.OBJ $(DOS_DIR)/MSCODE.OBJ
-	# Like SHARE, this links MSDATA with its disabled initialization reference.
-	cd $(IFSFUNC_DIR) && $(WLINK) "/UNDEFSOK @IFSFUNC.LNK"
+	cd $(IFSFUNC_DIR) && $(WLINK) "@IFSFUNC.LNK"
 	$(BIN)/fix-exepack $(IFSFUNC_OUT)
 
 # ---------------------------------------------------------------------------

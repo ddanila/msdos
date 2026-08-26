@@ -137,10 +137,6 @@ def main():
     # case. Applying CASEEXACT unconditionally breaks old objects which freely
     # vary symbol casing across modules.
     directives += ["option", "caseexact" if "/noi" in gopts_l else "nocaseexact"]
-    # Wrapper extension used for the deliberately incomplete DOS kernel link:
-    # retain the image while reporting its known disabled-feature references.
-    if "/undefsok" in gopts_l:
-        directives += ["option", "undefsok"]
     directives += ["libpath", owlib]   # resolve OW clib for wcc-compiled C objects
 
     # MS LINK /STACK:nnnn (decimal bytes) -> wlink "option stack=nnnn".
