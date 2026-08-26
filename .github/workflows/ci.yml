@@ -30,6 +30,9 @@ jobs:
       - name: Build kvikdos
         run: make -C kvikdos kvikdos-soft
 
+      - name: Build pinned custom JWasm
+        run: ./jwasm/build.sh
+
       - name: Build all modules (make)
         run: make
 
