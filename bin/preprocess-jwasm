@@ -143,6 +143,22 @@ def process_file(src, dst):
         f.write(raw)
 
 
+def process_file_with_lower_alias(src, dstdir, entry):
+    """Copy one DOS source and provide its case-folded include spelling.
+
+    DOS and the original toolchain resolve include names case-insensitively.
+    On Linux, JWasm delegates opening includes to the case-sensitive host
+    filesystem, while the historical sources freely mix (for example)
+    ``include macros.inc`` with a tracked ``MACROS.INC``.  Keep the original
+    name and add a lowercase shadow alias where it is a distinct path.
+    """
+    dst = os.path.join(dstdir, entry)
+    process_file(src, dst)
+    lower_dst = os.path.join(dstdir, entry.lower())
+    if lower_dst != dst and not os.path.exists(lower_dst):
+        process_file(src, lower_dst)
+
+
 def main():
     outdir = sys.argv[1]
     source = sys.argv[2]
@@ -153,7 +169,7 @@ def main():
     for entry in os.listdir(srcdir):
         ext = os.path.splitext(entry)[1].lower()
         if ext in INC_EXTS and entry != os.path.basename(source):
-            process_file(os.path.join(srcdir, entry), os.path.join(outdir, entry))
+            process_file_with_lower_alias(os.path.join(srcdir, entry), outdir, entry)
 
     srcdir_real = os.path.realpath(srcdir)
     for incdir in incdirs:
@@ -166,7 +182,7 @@ def main():
         for entry in os.listdir(incdir):
             ext = os.path.splitext(entry)[1].lower()
             if ext in INC_EXTS:
-                process_file(os.path.join(incdir, entry), os.path.join(ppinc, entry))
+                process_file_with_lower_alias(os.path.join(incdir, entry), ppinc, entry)
 
 
 if __name__ == '__main__':
