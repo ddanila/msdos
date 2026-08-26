@@ -20,7 +20,7 @@ The build has three tool layers. Two are done; the rest is the remaining work.
 | Linker (pure-asm targets) | Open Watcom `wlink` (`bin/wlink`) | Yes (SOWPL) | **DONE** -- byte-identical to MS LINK |
 | Linker (C-hybrid targets) | wlink for ATTRIB/FC; MS LINK for the rest | Mixed | Stage B: 2 migrated |
 | C compiler (C-hybrids) | wcc for ATTRIB/FC; MS CL 5.10 for the rest | Mixed | Stage B: 2 migrated |
-| Library manager | MS LIB / OW `wlib` | Mixed | wlib vendored; not fully switched |
+| Library manager | OW `wlib` for MAPPER; MS LIB for EMMLIB/SERVICES | Mixed | native wrapper proven |
 | Proprietary build utilities (9 tools) | Native Python wrappers | Yes | **DONE -- 9 of 9 native** |
 
 The **pure-assembly milestone is shippable**: every `.ASM` in the floppy image
@@ -166,8 +166,10 @@ Strategy -- treat it as a runtime project, not a per-file grind:
 3. **Templatize across the remaining targets.** FC is complete; continue with
    REPLACE, then the COM-converted ones (BACKUP/RESTORE),
    then the library-heavy ones (FDISK/MAPPER.LIB, SELECT/SERVICES.LIB, EMM386).
-4. **Switch LIB.EXE -> `wlib`** for MAPPER/EMMLIB/COMSUBS/SERVICES libs (wlib
-   already vendored; low risk, do alongside).
+4. **Switch LIB.EXE -> `wlib`.** MAPPER is complete with identical exports and
+   full QEMU coverage. Apply the proven wrapper to EMMLIB and SERVICES.
+   COMSUBS has no source in this tree and must instead be replaced by source
+   implementations of the entry points actually used by migrated utilities.
 
 Reality check: this is a multi-week effort with diminishing per-utility returns.
 Gate it behind WS1 (which delivers most of the "no proprietary tools" value at a

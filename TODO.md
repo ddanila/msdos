@@ -34,6 +34,17 @@ path was also fixed. All 16 focused FC behaviors pass within host 290/290, a
 forced parallel full build and deployment succeed, and QEMU help/boot passes
 6/6.
 
+**Native MAPPER library complete (August 27 2026):** `MAPPER.LIB` now builds
+with vendored host-native Open Watcom `wlib`; Microsoft LIB.EXE is no longer in
+that production path. `bin/wlib` translates all three MS-LIB command forms used
+by the tree: response-file creation, inline creation/addition, and module
+replacement. The native library contains the same 53 modules and exported
+symbol set as the reference. A forced parallel full build, host 290/290, and
+the complete parallel QEMU target matrix pass. COMSUBS is a distinct issue: its
+source is absent from this tree, so migrated consumers must use open-source
+replacements for the small subset of entry points they need rather than retain
+the checked-in binary library.
+
 **Native SELECT tools (August 27 2026):** ASC2HLP and COMPRESS, the final two
 proprietary build helpers, now have byte-compatible native Python replacements.
 ASC2HLP compiles USA.TXT into the indexed SELECT help-file layout; COMPRESS

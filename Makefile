@@ -16,6 +16,7 @@ LINK     := $(BIN)/link
 # targets (boot/BIOS/DOS/drivers + asm-only CMD utils) and migrated C hybrids.
 WLINK    := $(BIN)/wlink
 LIB      := $(BIN)/lib
+WLIB     := $(BIN)/wlib
 EXE2BIN  := $(BIN)/exe2bin
 BUILDIDX := $(BIN)/buildidx
 BUILDMSG := $(BIN)/buildmsg
@@ -99,8 +100,7 @@ MAPPER_OBJ_PATHS := $(addprefix $(MAPPER_DIR)/,$(MAPPER_OBJS))
 mapper: $(MAPPER_LIB)
 
 $(MAPPER_LIB): $(MAPPER_OBJ_PATHS)
-	rm -f $(MAPPER_DIR)/mapper.lib $(MAPPER_DIR)/MAPPER.LIB
-	cd $(MAPPER_DIR) && $(LIB) @mapper.lbr
+	cd $(MAPPER_DIR) && $(WLIB) @mapper.lbr
 
 # Pattern rule: assemble .ASM -> .OBJ in MAPPER dir (uppercase filenames)
 $(MAPPER_DIR)/%.OBJ: $(MAPPER_DIR)/%.ASM
