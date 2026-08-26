@@ -17,6 +17,11 @@ TRUE value `0FFFFh`. The condition now tests `IBM EQ 0`, and MSDATA.OBJ tracks
 MSINIT.ASM as a real prerequisite. MSDOS, SHARE, and IFSFUNC consequently link
 without unresolved symbols; the temporary `/UNDEFSOK` policy was removed.
 
+KEYB's duplicate-start diagnostic was also a source-level MODEND issue:
+KEYB.ASM correctly names `START`, while the library-style KEYBTBBL.ASM also
+named `TABLE_BUILD` in its END directive. KEYBTBBL now emits a plain END;
+KEYB.COM links with one entry point and converts successfully.
+
 Clean `make -j4` validation gets through all JWasm/wlink targets affected by
 these changes. It currently stops later in the legacy MS LINK SELECT step on
 the existing `SELECT0.OBJ`/`MOD_COPY.OBJ` fixup overflows; no shared-scratch-file
