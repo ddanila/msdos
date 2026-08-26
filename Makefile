@@ -534,4 +534,4 @@ run-boot: deploy
 # ---------------------------------------------------------------------------
 clean:
 	git -C "$(CURDIR)/MS-DOS" clean -fXq 2>/dev/null || true
-	rm -f $(FLOPPY) $(OUT)/serial.log $(OUT)/wasm-test-*.img $(OUT)/wasm-test-*.log
+	rm -f $(FLOPPY) $(OUT)/serial.log

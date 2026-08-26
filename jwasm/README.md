@@ -2,12 +2,12 @@
 
 The production assembler for the MS-DOS source. JWasm targets MASM
 compatibility much more closely than `wasm -zcm=masm`
-(notably `-Zm` = MASM 5.1 mode, multi-pass, full macro engine), which lets us
-drop `bin/preprocess-wasm` and most WASM-specific source edits. C compilation
+(notably `-Zm` = MASM 5.1 mode, multi-pass, full macro engine). The superseded
+`bin/preprocess-wasm` path has been removed. C compilation
 still uses Microsoft C 5.10 through kvikdos; migrating the C-hybrid targets to
 Open Watcom `wcc` is the separate Stage B described in `PLAN.md`.
 
-Used via `bin/jwasm-masm` (drop-in for `bin/masm`/`bin/wasm-masm`).
+Used via `bin/jwasm-masm` as the build's MASM-compatible assembler wrapper.
 
 ## Required version
 

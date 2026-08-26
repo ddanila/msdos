@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Minimal preprocessor for the JWasm assembler path.
 
-JWasm (-Zm, MASM 5.1 mode) handles the STRUC.INC macro engine natively, so --
-unlike bin/preprocess-wasm -- the ONLY transform needed is comma-separation of
-structured-directive arguments. MASM 5.10 split macro-call args on whitespace;
+JWasm (-Zm, MASM 5.1 mode) handles the STRUC.INC macro engine natively. The
+only syntax transform needed is comma-separation of structured-directive
+arguments. MASM 5.10 split macro-call args on whitespace;
 JWasm (like wasm) splits on commas only, so:
 
     .IF   <model_byte EQ AT>     ->  .IF   <model_byte,EQ,AT>
@@ -15,8 +15,6 @@ OPTION NOKEYWORD); no $-prefix rename, no $BuildJump expansion, no %out/listing
 stripping, no reserved-word renames -- JWasm needs none of those.
 
 Usage: preprocess-jwasm <outdir> <source.ASM> [incdir ...]
-(Same shadow-directory interface as bin/preprocess-wasm, so bin/jwasm-masm can
-drive it identically to how bin/wasm-masm drives preprocess-wasm.)
 """
 import os, re, sys
 
