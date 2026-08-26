@@ -21,7 +21,7 @@ The build has three tool layers. Two are done; the rest is the remaining work.
 | Linker (C-hybrid targets) | MS LINK via kvikdos | **No** | Stage B |
 | C compiler (C-hybrids) | MS CL 5.10 via kvikdos | **No** | Stage B (deferred) |
 | Library manager | MS LIB / OW `wlib` | Mixed | wlib vendored; not fully switched |
-| Build utilities (9 tools) | MS DOS `.EXE`s via kvikdos | **No** | Phase 6 (not started) |
+| Build utilities (9 tools) | Native Python wrappers / DOS `.EXE`s | Mixed | **7 of 9 native** |
 
 The **pure-assembly milestone is shippable**: every `.ASM` in the floppy image
 is assembled by JWasm and linked by wlink, and `make deploy` produces a complete
@@ -31,9 +31,9 @@ is assembled by JWasm and linked by wlink, and `make deploy` produces a complete
    JOIN, MEM, REPLACE, SUBST, SELECT, SMARTDRV, EMM386, MEMM) still compile
    with **MS CL** and link with **MS LINK**, because they depend on the MS C
    5.10 runtime (`SLIBCE.LIB`) and the OS/2-style DOS "family API".
-2. **9 proprietary DOS build utilities** run under kvikdos: BUILDMSG (58 calls),
-   EXE2BIN (84), CONVERT (23), NOSRVBLD (13), DBOF (4), MENUBLD (4), BUILDIDX
-   (2), ASC2HLP (2), COMPRESS (1).
+2. **2 proprietary DOS build utilities** still run under kvikdos: ASC2HLP (2)
+   and COMPRESS (1). DBOF, BUILDIDX, EXE2BIN, NOSRVBLD, MENUBLD, CONVERT, and
+   BUILDMSG now have native byte-compatible replacements.
 
 Reaching the goal means eliminating both. They are independent workstreams with
 very different risk profiles (see below).
@@ -115,7 +115,7 @@ release; vendored tool binaries retain their upstream licenses in `watcom/`,
 Ordered by ROI. WS1 is the big, clean, well-scoped win; WS2 is the hard long
 tail; WS3/WS4 are hygiene that de-risk the milestone.
 
-### WS1 -- Replace the 9 kvikdos-run build utilities (HIGH ROI, do first)
+### WS1 -- Replace the 9 kvikdos-run build utilities (7/9 DONE)
 
 This removes kvikdos from the build entirely for pure-asm targets and is
 **purely additive, low-risk, MIT-clean** (our own Python, no license question).
@@ -123,24 +123,23 @@ These tools are deterministic file transformers with checked-in
 input/output pairs, so each can be verified by byte-diff against the current
 kvikdos output. Full per-tool analysis already exists in `TODO.md` Phase 6.
 
-Order (each step retires a chunk of the 191 kvikdos build calls):
-1. **DBOF + BUILDIDX** (trivial, ~60 LOC total) -- binary->INC hex dump; MSG
+Implementation order:
+1. **DBOF + BUILDIDX (DONE)** -- binary->INC hex dump; MSG
    index builder. Byte-diff vs `BOOT.INC`/`USA-MS.IDX`.
-2. **EXE2BIN** (84 calls, biggest single unlock) -- port Open Watcom's
-   `exe2bin.c` (SOWPL) or reimplement in ~50 lines Python. Handle the
-   `<LOCSCR` / `<ZERO.DAT` stdin load-segment cases (MSBIO/PRINTER/DISPLAY).
-3. **NOSRVBLD + MENUBLD** (~230 LOC) -- kernel message class generator; FDISK
+2. **EXE2BIN (DONE)** -- native MZ-to-binary conversion, including the
+   `<LOCSCR` / `<ZERO.DAT` stdin load-segment cases used by MSBIO, PRINTER,
+   and DISPLAY.
+3. **NOSRVBLD + MENUBLD (DONE)** -- kernel message class generator; FDISK
    menu-to-C.
-4. **CONVERT** (23 calls) -- EXE->COM with a relocating stub; hand-write the
+4. **CONVERT (DONE)** -- EXE->COM with a relocating stub; hand-write the
    ~80-byte stub once, embed as a blob, verify FORMAT.COM/CHKDSK.COM boot.
-5. **BUILDMSG** (58 calls, hardest) -- full message compiler; template must be
-   byte-exact against the `SYSMSG.INC` runtime. Verify by CL/CTL binary diff +
-   full E2E.
+5. **BUILDMSG (DONE)** -- native message compiler, byte-exact across all 43
+   production skeletons and all 204 generated CL/CTL files.
 6. **ASC2HLP + COMPRESS** (SELECT.HLP only, 3 calls) -- lowest priority;
    SELECT-help-specific.
 
-Unlock: after steps 1-4, kvikdos is gone from every pure-asm target's build;
-only BUILDMSG-consuming utilities and the C-hybrid compile step still touch it.
+Current state: only SELECT's ASC2HLP/COMPRESS help pipeline and the C-hybrid
+compile/link steps still use DOS-hosted proprietary tools.
 
 ### WS2 -- Migrate the C-hybrids off MS CL/LINK (HARD, long tail)
 
@@ -201,10 +200,10 @@ fraction of the cost) and behind a real qemu validation environment (see WS4).
 
 - **M0 (DONE)** -- Pure-asm image fully open-source-built (JWasm + wlink),
   byte-identical to MS LINK; complete floppy via `make deploy`.
-- **M1** -- WS1 steps 1-4: kvikdos removed from all pure-asm target builds
+- **M1 (DONE)** -- WS1 steps 1-4: kvikdos removed from all pure-asm target builds
   (DBOF, BUILDIDX, EXE2BIN, NOSRVBLD, MENUBLD, CONVERT reimplemented). Biggest
   single step toward the goal.
-- **M2** -- WS1 complete (BUILDMSG + ASC2HLP/COMPRESS): **zero proprietary
+- **M2** -- Finish ASC2HLP/COMPRESS: **zero proprietary
   build utilities**; kvikdos gone except for the C-hybrid compile/link step.
 - **M3** -- WS4: qemu E2E validation green in CI; preprocessor deleted; golden
   refreshed from a boot-validated build.

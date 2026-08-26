@@ -11,6 +11,15 @@ utilities, then migrates every C-hybrid target to Open Watcom wcc/wlink/wlib and
 a shared compatibility runtime. `PLAN.md` defines milestones and completion
 gates.
 
+**Native BUILDMSG (August 27 2026):** `bin/buildmsg` is now a native Python
+implementation of the message-skeleton compiler. Its regression corpus captures
+every production invocation: 43 SKL inputs and 204 generated CL/CTL outputs are
+byte-identical to the Microsoft utility, including localized continuations,
+remapped extended/parse errors, synthesized class-1/class-2 fallback records,
+and resident class procedure numbering. Every production CTL rule tracks the
+native tool and shared catalog parser as prerequisites. Seven of the nine
+DOS-hosted build utilities are now native; only ASC2HLP and COMPRESS remain.
+
 **August 26 2026 toolchain refresh:** assembly now uses the `custom` branch of
 `ddanila/JWasm`, pinned in `jwasm/README.md`. The branch is based on the latest
 upstream snapshot and fixes MASM-compatible PUBLIC spelling in case-insensitive

@@ -1,3 +1,218 @@
-#!/bin/bash
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-exec "$SCRIPT_DIR/dos-run" "$SCRIPT_DIR/../MS-DOS/v4.0/src/TOOLS/BUILDMSG.EXE" "$@"
+#!/usr/bin/env python3
+"""Native, byte-compatible replacement for the MS-DOS BUILDMSG utility."""
+
+from __future__ import annotations
+
+import re
+import sys
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from message_catalog import host_path, read_catalog
+
+
+REFERENCE = re.compile(rb"^(.+?)([0-9]+)$")
+SEPARATOR = b"; " + b"-" * 58 + b"\r\n"
+
+
+@dataclass
+class Message:
+    number: int
+    payload: list[bytes]
+
+
+@dataclass
+class MessageClass:
+    name: bytes
+    messages: list[Message] = field(default_factory=list)
+
+
+def split_reference(reference: bytes) -> tuple[bytes, int]:
+    match = REFERENCE.fullmatch(reference)
+    if not match:
+        raise ValueError(f"invalid message reference: {reference.decode('latin1')}")
+    return match.group(1).upper(), int(match.group(2), 10)
+
+
+def parse_skeleton(
+    path: Path, catalog: dict[tuple[bytes, int], list[bytes]]
+) -> list[MessageClass]:
+    utility: bytes | None = None
+    current: MessageClass | None = None
+    classes: list[MessageClass] = []
+
+    for line_number, raw in enumerate(path.read_bytes().splitlines(), 1):
+        # The text on :def is documentary. Localized bytes come from the MSG.
+        directive = raw.split(b";", 1)[0].strip()
+        if not directive.startswith(b":"):
+            continue
+        parts = directive.split()
+        command = parts[0].lower()
+        try:
+            if command == b":util":
+                utility = parts[1].upper()
+            elif command == b":class":
+                current = MessageClass(parts[1].upper())
+                classes.append(current)
+            elif command == b":def":
+                if utility is None or current is None:
+                    raise ValueError(":def before :util/:class")
+                number = int(parts[1], 10)
+                payload = catalog.get((utility, number))
+                if payload is None:
+                    # BUILDMSG silently emits a zero-length record when the
+                    # utility catalog omits a :def number (RESTORE does this).
+                    payload = []
+                current.messages.append(Message(number, payload))
+            elif command == b":use":
+                if current is None:
+                    raise ValueError(":use before :class")
+                if len(parts) == 2:
+                    pool, source_number = split_reference(parts[1])
+                    number = source_number
+                else:
+                    number = int(parts[1], 10)
+                    pool, source_number = split_reference(parts[2])
+                if source_number == 999 and pool in (b"EXTEND", b"PARSE"):
+                    # BUILDMSG reserves pool entry 999 for the two generic
+                    # resident-server errors; neither entry exists in MSG.
+                    text = (b'"Extended Error %1",CR,LF' if pool == b"EXTEND"
+                            else b'"Parse Error %1",CR,LF')
+                    payload = [text]
+                else:
+                    payload = list(catalog[(pool, source_number)])
+                    # Extended/parse errors have no line ending in the shared
+                    # catalog. Resident classes add one; service classes 1/2
+                    # deliberately leave it to the caller.
+                    if len(parts) > 2 and current.name not in (b"1", b"2") and pool in (b"EXTEND", b"PARSE"):
+                        payload[-1] += b",CR,LF"
+                current.messages.append(Message(number, payload))
+            elif command == b":end":
+                break
+        except (IndexError, KeyError, ValueError) as error:
+            raise ValueError(f"{path}:{line_number}: {error}") from error
+
+    if utility is None:
+        raise ValueError(f"{path}: missing :util directive")
+    return classes
+
+
+def add_separator(output: bytearray) -> None:
+    output += SEPARATOR
+    output += b"\r\n"
+
+
+def symbol(class_name: bytes, number: int) -> bytes:
+    return b"$M_" + class_name + b"_" + f"{number & 0xffff:05X}H".encode()
+
+
+def add_message_structure(output: bytearray, class_name: bytes, message: Message) -> None:
+    name = symbol(class_name, message.number)
+    output += name + b"_STRUC LABEL BYTE\r\n"
+    output += b"        $M_ID   <" + f"{message.number & 0xffff:05X}H".encode()
+    output += b"," + name + b"_MSG-" + name + b"_STRUC>\r\n\r\n"
+
+
+def add_message(output: bytearray, class_name: bytes, message: Message) -> None:
+    name = symbol(class_name, message.number)
+    output += name + b"_MSG LABEL BYTE\r\n"
+    output += b"        DB      " + name + b"_END-" + name + b"_MSG-1\r\n"
+    for index, payload in enumerate(message.payload):
+        output += b"        DB      " + (b"\t" if index else b"") + payload + b"\r\n"
+    output += name + b"_END LABEL BYTE\r\n  \r\n"
+
+
+def render_class(message_class: MessageClass, procedure_number: int) -> bytes:
+    class_name = message_class.name
+    standard = class_name in (b"1", b"2")
+    procedure = (b"$M_MSGSERV_" + class_name if standard else
+                 b"$M_CLS_" + str(procedure_number).encode())
+    class_id = class_name.zfill(3) + b"H" if standard else b"0FFH"
+    fallback = b"Extended Error %1" if class_name == b"1" else b"Parse Error %1"
+    output = bytearray(b"\r\n")
+
+    add_separator(output)
+    output += b"        PUBLIC  " + procedure + b"\r\n"
+    output += b"        IF1\r\n"
+    output += b"        %out    ... Including message Class " + class_name + b"\r\n"
+    output += b"        ENDIF\r\n\r\n"
+    add_separator(output)
+    output += b"$M_CLASS_" + class_name + b"_STRUC LABEL BYTE\r\n"
+    output += b"        $M_CLASS_ID <" + class_id + b",EXPECTED_VERSION,Class_"
+    output += class_name + b"_MessageCount>\r\n\r\n"
+    add_separator(output)
+    output += b"\r\n"
+    for message in message_class.messages:
+        add_message_structure(output, class_name, message)
+    add_separator(output)
+
+    if standard:
+        fallback_name = b"$M_" + class_name + b"_FF"
+        output += fallback_name + b"_STRUC LABEL BYTE\r\n"
+        output += b"        $M_ID <0FFFFH," + fallback_name + b"_MSG-"
+        output += fallback_name + b"_STRUC>\r\n\r\n"
+        add_separator(output)
+
+    output += b"\r\n"
+    for message in message_class.messages:
+        add_message(output, class_name, message)
+    add_separator(output)
+
+    if standard:
+        fallback_name = b"$M_" + class_name + b"_FF"
+        output += fallback_name + b"_MSG LABEL BYTE\r\n"
+        output += b"        DB      " + fallback_name + b"_END-"
+        output += fallback_name + b"_MSG-1\r\n"
+        output += b'        DB      "' + fallback + b'"\r\n'
+        output += fallback_name + b"_END LABEL BYTE\r\n  \r\n"
+        add_separator(output)
+
+    count = len(message_class.messages) + int(standard)
+    output += b"Class_" + class_name + b"_MessageCount EQU     "
+    output += str(count).encode() + b"\r\n\r\n"
+    add_separator(output)
+    output += b"        IF      FARmsg\r\n" + procedure + b" PROC FAR\r\n"
+    output += b"        ELSE\r\n" + procedure + b" PROC NEAR\r\n"
+    output += b"        ENDIF\r\n\r\n        PUSH    CS\r\n        POP     ES\r\n"
+    output += b"        LEA     DI,$M_CLASS_" + class_name + b"_STRUC\r\n"
+    output += b"        ADD     CX,$-$M_CLASS_" + class_name + b"_STRUC\r\n"
+    output += b"        RET\r\n\r\n" + procedure
+    output += b" Endp\r\n\r\n" if standard else b" ENDP\r\n\r\n"
+    add_separator(output)
+    return bytes(output)
+
+
+def main(argv: list[str]) -> int:
+    if len(argv) != 3:
+        print("usage: buildmsg MESSAGE-CATALOG[.MSG] SKELETON.SKL", file=sys.stderr)
+        return 2
+    catalog_path = host_path(argv[1])
+    if catalog_path.suffix.lower() != ".msg":
+        catalog_path = catalog_path.with_suffix(".MSG")
+    skeleton_path = host_path(argv[2])
+    try:
+        classes = parse_skeleton(skeleton_path, read_catalog(catalog_path))
+    except (OSError, ValueError) as error:
+        print(f"buildmsg: {error}", file=sys.stderr)
+        return 1
+
+    by_name = {item.name: item for item in classes}
+    ordered = [by_name.get(b"1", MessageClass(b"1")),
+               by_name.get(b"2", MessageClass(b"2"))]
+    ordered.extend(item for item in classes if item.name not in (b"1", b"2"))
+    stem = skeleton_path.stem.upper()
+    extra_number = 0
+    for message_class in ordered:
+        if message_class.name not in (b"1", b"2"):
+            extra_number += 1
+        Path(f"{stem}.CL{message_class.name.decode('ascii')}").write_bytes(
+            render_class(message_class, extra_number)
+        )
+    Path(f"{stem}.CTL").write_bytes(
+        b"$M_NUM_CLS  EQU " + str(len(ordered) - 2).encode() + b"\r\n"
+    )
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main(sys.argv))

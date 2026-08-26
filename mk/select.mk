@@ -18,7 +18,7 @@ select: \
 # ---------------------------------------------------------------------------
 # SELECT.CTL + CL files (BUILDMSG — SELECT.SKL has :util header)
 # ---------------------------------------------------------------------------
-$(SELECT_DIR)/SELECT.CTL: $(SELECT_DIR)/SELECT.SKL $(MESSAGES_OUT)
+$(SELECT_DIR)/SELECT.CTL: $(SELECT_DIR)/SELECT.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(SELECT_DIR) && $(BUILDMSG) "..\\MESSAGES\\USA-MS" SELECT.SKL
 
 # CL side-effects of the same BUILDMSG run
