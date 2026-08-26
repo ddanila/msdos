@@ -383,6 +383,12 @@ See `TODO.md` Phase 4 for full flag mapping and task list.
 - Linux GNU Makefile calls kvikdos for each individual DOS tool invocation.
 - `bin/dos-run` mounts C: at `MS-DOS/v4.0/src/` (uppercase mode) and uses `--cwd=C:\SUBDIR\`
   to set the initial DOS current directory, allowing `..` relative paths to work.
+- Parallel builds use two synchronization boundaries. The top-level `all` target
+  builds `kvikdos-soft` before starting the jobserver-aware `build-all` sub-make,
+  preventing DOS tools from racing an unfinished emulator binary. `bin/dos-run`
+  also uses an atomic directory lock because the original Microsoft tools use
+  shared, fixed-name intermediate files. Only emulated DOS invocations are
+  serialized; native JWasm and wlink work remains parallel under `make -j`.
 
 ## Filename Case
 - kvikdos mounts C: in uppercase mode — all DOS filenames must be uppercase in Makefile rules.

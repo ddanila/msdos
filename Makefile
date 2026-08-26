@@ -40,7 +40,7 @@ CFLAGS   := -AS -Os -Zp
 # Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test gen-checksums deploy minimal-floppy run-boot test-sys test-help-qemu test-misc-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-b-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select
+.PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test gen-checksums deploy minimal-floppy run-boot test-sys test-help-qemu test-misc-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-b-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select
 
 # Build kvikdos-soft (software CPU) if /dev/kvm is unavailable.
 # dos-run automatically selects the right binary at runtime.
@@ -55,13 +55,13 @@ KVIKDOS_SOFT_DEPS := $(KVIKDOS_SOFT_SRCS) kvikdos/mini_kvm.h kvikdos/cpu8086.h \
                      mk/mini_kvm_compat.h
 KVIKDOS_SOFT_BIN  := kvikdos/kvikdos-soft
 
-ifeq ($(wildcard /dev/kvm),)
-all: $(KVIKDOS_SOFT_BIN) messages mapper boot inc bios dos cmd dev select memm
-else
-# Build kvikdos-soft alongside KVM binary so tests can fall back to software
-# CPU for programs that trigger #GP on KVM (e.g. XCOPY segment limit issues).
-all: $(KVIKDOS_SOFT_BIN) messages mapper boot inc bios dos cmd dev select memm
-endif
+# Build the shared emulator first, then enter a jobserver-aware sub-make for
+# the actual build.  Listing it beside the other prerequisites lets a parallel
+# make start DOS-hosted tools before the emulator has finished linking.
+all: $(KVIKDOS_SOFT_BIN)
+	+$(MAKE) build-all
+
+build-all: messages mapper boot inc bios dos cmd dev select memm
 
 $(KVIKDOS_SOFT_BIN): $(KVIKDOS_SOFT_DEPS)
 	gcc -std=c99 -O2 -W -Wall -Wextra -fno-strict-aliasing \

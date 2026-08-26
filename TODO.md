@@ -18,6 +18,14 @@
 
 **kvikdos fix (this session):** DOS INT 21h/AH=4Ah `inplace_realloc` corrupted the arena when growing into the trailing Z-type free block — wrote a fake M-type next-MCB and a `psize` past end-of-arena, fatal-tripping later validation as "adjacent free MCBs". Hit by Microsoft C 5.10 (CL.EXE) compiling INC/*.C files. Fixed in submodule and rebuilt `kvikdos-soft`.
 
+**Parallel build race fixed (Aug 26):** `make -j` now completes the shared
+`kvikdos-soft` prerequisite before entering the parallel build. All calls through
+`bin/dos-run` share a portable atomic lock, preventing concurrent CL/BUILDMSG/etc.
+processes from colliding on fixed-name DOS scratch files (`C1001`/`C1042`). Native
+JWasm and wlink jobs still run in parallel. Verified with a clean `make -j4`: both
+race classes are gone; the run reaches the separately tracked JWasm-version BIOS
+link issue.
+
 **Key findings:**
 - COMMAND.COM issue #52 (L2029 `$M_GET_MSG_ADDRESS` unresolved) fixed: renamed `$M_HAS_$M_GET_MSG_ADDRESS` → `$M_HAS_GETMSGADDR` to avoid WASM `$M_` symbol parsing bug.
 - MSDOS.SYS issue #53 (`IF (NOT IBM) OR (DEBUG)` → `IF (IBM EQ 0) OR (DEBUG)`): WASM `NOT TRUE` in compound expressions evaluates as truthy. Copyright display code included erroneously, crashing DOSINIT.
