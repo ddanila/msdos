@@ -66,6 +66,17 @@ and the OW pointer/stdio declarations, and sets ES=DGROUP at each SAL bridge.
 Host parity is 290/290, a full parallel build/deploy succeeds, and the focused
 two-disk BACKUP/RESTORE QEMU suite passes all 38 checks.
 
+**Fifth Open Watcom C hybrid complete (August 27 2026):** RESTORE's twelve
+production C objects now use `wcc`; its two SAL bridges use custom JWasm, and
+`wlink` plus native CONVERT produce RESTORE.COM without MS CL/LINK or
+COMSUBS.LIB. The shared COMSUB replacement adds the original identity
+return-code-to-message mapping, while `INC/OWDOSFS.C` provides cdecl wrappers
+for DOS `chdir`/`mkdir` services. The migration removes conflicting near/far
+tentative definitions of the two transfer-buffer pointers, fixes the
+`argv[argc]` parser read and DBCS reverse-scan underflow, and records all local
+headers as real build prerequisites. The canonical build passes host 290/290,
+a forced parallel full build/deploy, and the BACKUP/RESTORE QEMU suite 38/38.
+
 **Native SELECT tools (August 27 2026):** ASC2HLP and COMPRESS, the final two
 proprietary build helpers, now have byte-compatible native Python replacements.
 ASC2HLP compiles USA.TXT into the indexed SELECT help-file layout; COMPRESS
