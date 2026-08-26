@@ -48,9 +48,16 @@ site and emit infinite `JMP $` / `JZ $` loops. They now emit direct jumps and a
 direct conditional-return sequence. QEMU then boots the complete JWasm-built
 IO.SYS, MSDOS.SYS, and COMMAND.COM stack; all five focused boot cases pass.
 
-The broader QEMU EXEPACK/help smoke test confirms no packed-file corruption,
-but its batch stops after FDISK help and does not reach the final marker. That
-utility-level issue remains separate from the proven kernel boot path.
+The broader QEMU EXEPACK/help smoke test originally stopped after FDISK help.
+Object-level bisection showed that changing an unrelated JWasm object merely
+changed the packed layout; the Microsoft EXEPACK stream became invalid after
+`fix-exepack` transplanted a replacement unpacker stub. The raw linked FDISK
+and an uncompressed FDISK both returned normally. FDISK is therefore linked
+without `/E+`, and its recipe no longer runs `fix-exepack`. This costs about
+4 KiB on the floppy but removes the layout-sensitive transformation. The help
+test now checks return markers after FIND, EXE2BIN, FDISK, and IFSFUNC, and the
+full FDISK QEMU suite validates `/PRI`, `/EXT`, `/LOG`, `/Q`, MBR/EBR contents,
+and the primary-only edge case (13 checks).
 
 Final build concurrency gates also pass: clean `make -j1`, `make -j4`, and
 `make -j8` all exit zero with no assembler errors, linker errors, unresolved

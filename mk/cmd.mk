@@ -638,7 +638,6 @@ FDISK_ASM_OBJS := $(addprefix $(FDISK_DIR)/,\
 
 $(FDISK_OUT): $(FDISK_C_OBJS) $(FDISK_ASM_OBJS) $(MAPPER_LIB)
 	cd $(FDISK_DIR) && $(LINK) "@FDISK.LNK"
-	$(BIN)/fix-exepack $(FDISK_OUT)
 
 # ---------------------------------------------------------------------------
 # MORE (more.com) — single ASM file, EXE2BIN
