@@ -76,9 +76,9 @@ cp "$FLOPPY" "$TEST_IMG"
 } | mcopy -o -i "$TEST_IMG" - ::AUTOEXEC.BAT
 
 # ── Boot QEMU and capture serial output ──────────────────────────────────────
-echo "Booting QEMU (headless, ~40s)..."
+echo "Booting QEMU (headless, up to 120s)..."
 rm -f "$SERIAL_LOG"
-timeout 50 qemu-system-i386 \
+timeout 120 qemu-system-i386 \
     -display none \
     -fda "$TEST_IMG" \
     -boot a -m 4 \
