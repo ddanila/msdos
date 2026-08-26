@@ -20,12 +20,24 @@ drive it identically to how bin/wasm-masm drives preprocess-wasm.)
 """
 import os, re, sys
 
-# Extensions to preprocess in the source dir and include dirs.
+# Extensions used by INCLUDE across the source tree.  These are source-like
+# files despite the historical variety of suffixes.
 INC_EXTS = {
-    '.inc', '.asm', '.ctl', '.equ',
+    '.inc', '.asm', '.ctl', '.equ', '.ext', '.mac', '.str', '.stc',
+    '.inf', '.sw', '.msg', '.lib',
     '.cl1', '.cl2', '.cl3', '.cl4', '.cl5', '.cl6', '.cl7', '.cl8', '.cl9',
     '.cla', '.clb', '.clc', '.cld', '.cle',
 }
+
+# DOS resolves INCLUDE operands case-insensitively.  JWasm uses the host file
+# APIs, so a spelling such as ``include dosmac.INC`` cannot find DOSMAC.INC on
+# Linux.  The shadow tree uses lowercase aliases; normalize concrete include
+# operands to match.  Macro-expanded operands (for example ``&ext``) must stay
+# untouched and are resolved after expansion by their naturally generated
+# spelling.
+INCLUDE_PAT = re.compile(
+    r'^(\s*include\s+)([^\s;]+)', re.MULTILINE | re.IGNORECASE,
+)
 
 # Structured-directive invocations whose args must be comma-separated.
 # Exclude the macro DEFINITIONS (`.if macro ...`) via the negative lookahead.
@@ -126,11 +138,21 @@ def _comma_sep_struc_args(m):
 
 
 def needs_transform(text):
-    return STRUC_MACRO_PAT.search(text) is not None
+    return (STRUC_MACRO_PAT.search(text) is not None or
+            any('&' not in match.group(2)
+                for match in INCLUDE_PAT.finditer(text)))
 
 
 def transform(text):
-    return STRUC_MACRO_PAT.sub(_comma_sep_struc_args, text)
+    text = STRUC_MACRO_PAT.sub(_comma_sep_struc_args, text)
+
+    def normalize_include(match):
+        operand = match.group(2)
+        if '&' in operand:
+            return match.group(0)
+        return match.group(1) + operand.lower()
+
+    return INCLUDE_PAT.sub(normalize_include, text)
 
 
 def process_file(src, dst):
@@ -144,13 +166,14 @@ def process_file(src, dst):
 
 
 def process_file_with_lower_alias(src, dstdir, entry):
-    """Copy one DOS source and provide its case-folded include spelling.
+    """Copy one DOS source and provide its canonical include spelling.
 
     DOS and the original toolchain resolve include names case-insensitively.
     On Linux, JWasm delegates opening includes to the case-sensitive host
     filesystem, while the historical sources freely mix (for example)
-    ``include macros.inc`` with a tracked ``MACROS.INC``.  Keep the original
-    name and add a lowercase shadow alias where it is a distinct path.
+    ``include dosmac.INC`` with a tracked ``DOSMAC.INC``.  Static INCLUDE
+    operands are normalized to lowercase, so provide that canonical alias.
+    Keep the original spelling as well for macro-expanded include operands.
     """
     dst = os.path.join(dstdir, entry)
     process_file(src, dst)
