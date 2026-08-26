@@ -45,6 +45,17 @@ source is absent from this tree, so migrated consumers must use open-source
 replacements for the small subset of entry points they need rather than retain
 the checked-in binary library.
 
+**Third Open Watcom C hybrid complete (August 27 2026):** REPLACE now builds
+with `wcc`, custom JWasm, native `wlink`, and the native-wlib MAPPER library.
+Its only COMSUBS dependencies were `com_strchr` and `com_strrchr`; source
+replacements now query the active DOS DBCS lead-byte vector and skip complete
+double-byte characters, so REPLACE no longer links the source-less binary
+COMSUBS library. The port applies the proven ES=DGROUP SAL bridge fix, OW `_psp`
+ownership, safe far-pointer construction, and null-string handling; it also
+fixes an `argv[argc]` read and invalid omitted K&R arguments. All focused modes
+pass within host 290/290, a forced parallel full build/deploy succeeds, and the
+interactive QEMU `/P` workflow passes 10/10.
+
 **Native SELECT tools (August 27 2026):** ASC2HLP and COMPRESS, the final two
 proprietary build helpers, now have byte-compatible native Python replacements.
 ASC2HLP compiles USA.TXT into the indexed SELECT help-file layout; COMPRESS
