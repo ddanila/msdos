@@ -7,8 +7,9 @@ something worth persisting for this repo, edit this file or a file under
 
 ## What this project is
 
-Replacing the proprietary MS-DOS 4.0 build tools (run under kvikdos) with a
-native open-source toolchain. Status (2026-08-26):
+Delivering a reproducible, fully open-source MS-DOS 4.0 build that runs on
+modern hosts without proprietary Microsoft binaries or DOS emulation in the
+build path and passes the complete QEMU suite. Status (2026-08-27):
 
 - **Assembler = DONE.** The pinned custom JWasm (`bin/jwasm-masm`, `-Zm` MASM
   5.1 mode) assembles all `.ASM` with 0 errors. `jwasm/build.sh` provisions the
@@ -17,28 +18,25 @@ native open-source toolchain. Status (2026-08-26):
 - **Linker = DONE for pure-asm.** `bin/wlink` (Open Watcom wlink wrapper) links
   the pure-assembly targets and is byte-identical to MS LINK. The SELECT wlink
   SIGSEGV is fixed (`.ALPHA`->`.SEQ`); RESTORE is triaged (C-runtime dep).
-- **Stage B (wcc port of the ~30 C-hybrid utilities) = DEFERRED.** Builds+links
-  clean and `/?` works, but ATTRIB's core path still hangs in the SAL
+- **Stage B (wcc port of the C-hybrid utilities) = ACTIVE GOAL.** Earlier
+  pilot work builds and links cleanly and `/?` works, but ATTRIB's core path
+  still hangs in the SAL
   message-substitution layer. It's a deep, multi-layered per-utility effort;
-  poor ROI. Pure-asm (jwasm+wlink) is the shippable milestone; C-hybrids stay
-  on MS CL/LINK for now.
-- Still proprietary: MS CL/LIB/EXE2BIN + MS LINK for C-hybrids, and the 7
-  kvikdos-run build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX,
-  DBOF, MENUBLD) -- a separate future effort.
+  substantial shared-runtime work remains. Pure-asm (jwasm+wlink) is the
+  completed foundation; C-hybrids remain on MS CL/LINK until migrated.
+- Still proprietary: MS CL/LIB + MS LINK for C-hybrids, and 9 kvikdos-run
+  build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF,
+  MENUBLD, ASC2HLP, COMPRESS). Replacing all of them is current work.
 
 Detailed running log: `TODO.md`. Deep notes: `docs/agent-notes/`.
 
 ## Working conventions (follow these)
 
-- **Branch policy (MS-DOS submodule).** Four long-lived branches: `main`
-  (original MS sources), `dos4-enhancements` (non-migration bug fixes,
-  MASM-buildable), `watcom-migration` (OLD WASM path, superseded -- do NOT
-  commit here), `jwasm-migration` (CURRENT -- ALL jwasm source fixes go here).
-  The superproject is on `jwasm-migration` and its `MS-DOS/` gitlink must point
-  at the submodule's `jwasm-migration` tip. Before committing in the submodule,
-  check `git -C MS-DOS branch --show-current`. After a superproject submodule
-  bump, confirm the gitlink lands on a `jwasm-migration` commit. Do not push to
-  `master`/`main`. See `docs/agent-notes/feedback_msdos_branch_policy.md`.
+- **Branch policy.** Active work lands directly on the superproject `master`
+  branch. The former `watcom-migration` and `jwasm-migration` histories are
+  preserved by `archive/watcom-migration` and `archive/jwasm-migration` tags;
+  their branches were deleted after the migration was fast-forwarded. Keep the
+  `MS-DOS/` gitlink on an intentional, pushed commit in the user's fork.
 - **CP437 byte-preserving edits.** MS-DOS sources contain CP437 high-bit bytes
   (box-drawing glyphs in banner comments). The UTF-8 Edit/Write tools re-encode
   every high-bit byte and corrupt the file. Edit MS-DOS sources byte-preserving

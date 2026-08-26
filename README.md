@@ -2,7 +2,7 @@
 
 A working fork of MS-DOS 4.0 that builds from source on Linux and macOS and is intended as a stable base for OS-level experiments. The custom-JWasm boot stack is validated in QEMU; broader kvikdos and QEMU runtime tests are included.
 
-The `jwasm-migration` branch uses the project's pinned [custom JWasm fork](https://github.com/ddanila/JWasm/tree/custom) natively for every assembly source and Open Watcom V2 `wlink` for pure-assembly targets. C-hybrid targets still use DOS-hosted tools through [kvikdos](https://github.com/pts/kvikdos); completing their Open Watcom migration is a separate stage. See `PLAN.md` and `TODO.md`.
+The `master` branch uses the project's pinned [custom JWasm fork](https://github.com/ddanila/JWasm/tree/custom) natively for every assembly source and Open Watcom V2 `wlink` for pure-assembly targets. The active project goal is a reproducible, fully open-source native build: replace the remaining DOS-hosted build utilities and migrate C-hybrid targets from Microsoft C/LINK/LIB to Open Watcom. See `PLAN.md` and `TODO.md`.
 
 ## What's here beyond the stock source
 
@@ -67,7 +67,7 @@ brew install nasm gcc make python3 qemu mtools
 
 ## Repository layout
 
-- `MS-DOS/` — fork of [microsoft/MS-DOS](https://github.com/microsoft/MS-DOS) (`jwasm-migration` branch)
+- `MS-DOS/` — fork of [microsoft/MS-DOS](https://github.com/microsoft/MS-DOS); active development is on `master`
 - `kvikdos/` — fork of [pts/kvikdos](https://github.com/pts/kvikdos) with DOS 4.0 compatibility stubs and macOS support
 - `bin/` — wrappers for custom JWasm, Open Watcom wlink, and the remaining kvikdos-hosted tools
 - `mk/` — per-module Makefile fragments

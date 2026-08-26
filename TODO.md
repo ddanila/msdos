@@ -1,6 +1,15 @@
 # MS-DOS 4.0 Build — TODO
 
-## Watcom Migration (ACTIVE)
+## Native Open-Source Build (ACTIVE)
+
+**Active goal (August 27 2026):** Deliver a reproducible, fully open-source
+build of MS-DOS 4.0 on modern hosts, with no proprietary Microsoft binaries or
+DOS emulation in the build path, and pass the complete QEMU test suite. The
+JWasm/wlink assembly migration below is complete historical groundwork. Current
+implementation starts with native replacements for all nine DOS-hosted build
+utilities, then migrates every C-hybrid target to Open Watcom wcc/wlink/wlib and
+a shared compatibility runtime. `PLAN.md` defines milestones and completion
+gates.
 
 **August 26 2026 toolchain refresh:** assembly now uses the `custom` branch of
 `ddanila/JWasm`, pinned in `jwasm/README.md`. The branch is based on the latest
@@ -121,9 +130,9 @@ validated. The remaining native-toolchain migration uses Open Watcom (`wcc`,
 `wlink`, and `wlib`) and is tracked separately. kvikdos remains for the
 pre-built DOS build utilities; eliminating those is another future effort.
 
-**Branch policy:** Active work lands directly on the superproject and MS-DOS
-submodule `jwasm-migration` branches. The old `watcom-migration` branches are
-retained only as historical baselines.
+**Branch policy:** Active work lands directly on `master`. The deleted
+`watcom-migration` and `jwasm-migration` branches are preserved by matching
+`archive/*` tags.
 
 **Historical WASM status (May 13 2026):** Upgraded to upstream WASM Current-build, which now also includes upstream PRs **#1621** (don't join trailing-comma lines outside WATCOM mode) and **#1622** (macro substitution drops quote delimiters from TC_STRING args), in addition to the previously-vendored PRs #1614, #1615, #1617, #1618. The original Microsoft `chSwitch,BYTE,<'/'>` form in `INC/CONST2.ASM` was restored — the temporary `<"/">` workaround was retired since #1622 fixes the underlying TC_STRING substitution. This section and the log below preserve the superseded WASM migration history.
 
@@ -1349,7 +1358,11 @@ wcc -ms -os -s -0 -ecc -zp1 -i=. -i=../../H -fo=<output>.OBJ <input>.C
 
 ### Phase 6: Native replacements for DOS build utilities
 
-**Goal:** Replace all 7 Microsoft-proprietary DOS build utilities with native Python scripts, eliminating kvikdos entirely from the build. Currently 86 total kvikdos invocations across the build.
+**Goal:** Replace all 9 Microsoft-proprietary DOS build utilities with native
+host tools, eliminating kvikdos from this part of the build. The seven tools
+detailed below are followed by ASC2HLP and COMPRESS, which are used only for
+SELECT help generation. Invocation counts in this historical analysis are a
+baseline; remeasure them as each replacement lands.
 
 **Summary:**
 

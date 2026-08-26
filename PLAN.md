@@ -6,7 +6,7 @@ emulator (kvikdos) anywhere in the build path. This file is the strategic
 roadmap: decisions and unlocks. The running technical log stays in `TODO.md`;
 deep notes in `docs/agent-notes/`.
 
-Last updated: 2026-07-06.
+Last updated: 2026-08-27.
 
 ---
 
@@ -144,7 +144,7 @@ only BUILDMSG-consuming utilities and the C-hybrid compile step still touch it.
 
 ### WS2 -- Migrate the C-hybrids off MS CL/LINK (HARD, long tail)
 
-Currently deferred (correctly). The wcc port of ATTRIB proved the pattern works
+The wcc port of ATTRIB proved the pattern works
 end-to-end (links, `/?` runs) but the core path still hangs in per-utility
 MS-C-ABI layers -- each fixed layer (pointer ABI -> ES=DGROUP -> off-by-one ->
 message-substitution layout) uncovers the next, and there is **no systematic
@@ -188,14 +188,12 @@ fraction of the cost) and behind a real qemu validation environment (see WS4).
   one pass (comma-separate structured-directive args). End state: JWasm consumes
   the sources directly. Either land the upstream MASM-mode whitespace-arg-split
   fix in the JWasm fork, or bake the equivalent as direct source edits on
-  `jwasm-migration` (per the direct-edit policy). Track each retired pass.
-- **Fix the qemu boot/serial harness** (currently env-blocked: empty `-serial
-  stdio`, QMP BrokenPipe on macOS). Boot + E2E validation must run somewhere
-  qemu works (Linux/CI). This gates WS2 sign-off and a trustworthy golden
-  refresh (`tests/golden.sha256` is currently stale/inconclusive -- do not
-  regenerate from an unbooted build).
-- **CI**: add a native-toolchain job (JWasm+wlink, no kvikdos) once WS1 lands;
-  keep the current kvikdos job until then. Matrix: Linux x64 + macOS arm64.
+  `master`. Track each retired pass.
+- **Keep the complete QEMU suite green.** The boot/serial harness and all QEMU
+  Make targets passed the August 26 merge gate, including parallel FORMAT
+  groups. Extend those tests as each native replacement lands.
+- **CI**: add an explicitly kvikdos-free native-toolchain job as WS1 lands;
+  retain reference jobs only while they prove parity with a tool being replaced.
 
 ---
 
@@ -215,14 +213,9 @@ fraction of the cost) and behind a real qemu validation environment (see WS4).
 - **M5 (GOAL)** -- All ~14 C-hybrids on wcc+wlink; MS CL/LINK/LIB and kvikdos
   fully removed. 100% open-source toolchain.
 
-## Open decisions (need user input)
+## Decisions
 
-1. **License tier** -- confirm OSI-approved is sufficient (recommended), or
-   require FSF-free (would trigger an Asmc assembler migration + reopen the
-   linker question). Everything below assumes OSI-approved.
-2. **WS2 scope/appetite** -- is full C-hybrid migration (M4/M5) in scope now, or
-   is M2 ("no proprietary build utilities; C-hybrids stay on MS CL as a vendored
-   convenience") the acceptable stopping point for the foreseeable future? WS1
-   delivers most of the practical value; WS2 is the expensive completionist tail.
-3. **Effort split** -- recommend doing WS1 next (clean, high ROI, unblocks a
-   kvikdos-free pure-asm CI) and time-boxing WS2 behind it.
+- The target is the OSI-approved toolchain tier: custom JWasm plus Open Watcom.
+- M5 is the active goal. M2 is an intermediate milestone, not a stopping point.
+- WS1 goes first because it creates deterministic native reference tooling and
+  removes emulation from the pure-assembly build path before the C-runtime work.
