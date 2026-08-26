@@ -16,7 +16,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Override with KVIKDOS env var for programs that need the software CPU
 # even when KVM is present (e.g. XCOPY triggers #GP on KVM).
 if [ -z "${KVIKDOS:-}" ]; then
-    if [ -r /dev/kvm ]; then
+    if [ -r /dev/kvm ] && [ -x "$SCRIPT_DIR/../kvikdos/kvikdos" ]; then
         KVIKDOS="$SCRIPT_DIR/../kvikdos/kvikdos"
     else
         KVIKDOS="$SCRIPT_DIR/../kvikdos/kvikdos-soft"

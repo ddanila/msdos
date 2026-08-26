@@ -28,7 +28,7 @@ jobs:
         run: chmod 666 /dev/kvm
 
       - name: Build kvikdos
-        run: make -C kvikdos kvikdos
+        run: make -C kvikdos kvikdos-soft
 
       - name: Build all modules (make)
         run: make
