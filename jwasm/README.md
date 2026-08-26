@@ -18,8 +18,9 @@ newer than `v2.21pre1`) and carries the MS-DOS compatibility fixes, including
 MASM-compatible PUBLIC-name casing and native macOS `alloca` support. In
 particular, upstream v2.20 is not an equivalent fallback for this branch.
 
-The host binaries are currently built locally and gitignored, so the version is
-not encoded in the repository other than by this documented source pin.
+The host binaries are built locally and gitignored. `jwasm/build.sh` clones and
+checks out the exact source pin before installing the binary for the current
+host, so no persistent source checkout or manual patch is required.
 
 ## Building (macOS arm64 / clang)
 
@@ -27,15 +28,11 @@ The vendored binary under `macos-arm64/` is gitignored (built locally). To
 rebuild:
 
 ```sh
-git clone --branch custom https://github.com/ddanila/JWasm.git
-cd JWasm
-git checkout f32b9dae220c2e2a11fd31ff7bfc47397c8908d5
-make -f GccUnix.mak CC=clang        # compiles; link step uses Linux-only ld flags
-clang build/GccUnixR/*.o -o jwasm   # link manually (drop -s / -Wl,-Map)
+./jwasm/build.sh
 ```
 
-Resulting `jwasm` is a native arm64 Mach-O that emits 16-bit OMF. Copy it to
-`jwasm/macos-arm64/jwasm`.
+The script supports macOS arm64 and Linux x86-64 and installs the native binary
+under the matching `jwasm/` platform directory.
 
 ## Status
 

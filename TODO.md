@@ -36,6 +36,18 @@ COMMAND.CL4, restoring the `$M_CLS_1`/`$M_CLS_2` definitions already required
 by its dependency list. The leading `-` was removed from the COMMAND link
 recipe: COMMAND.EXE must link successfully before EXE2BIN may run.
 
+JWasm provisioning is now reproducible with `jwasm/build.sh`: it clones the
+fork, checks out `f32b9dae220c2e2a11fd31ff7bfc47397c8908d5`, builds for
+macOS arm64 or Linux x86-64, and installs into the platform directory consumed
+by `bin/jwasm-masm`. The macOS path was rebuilt successfully from scratch.
+
+After the COMMAND fix, a second clean `make -j4` completed with no assembler or
+linker errors. Deployment/runtime validation is still open on this host:
+`mformat`/mtools is not installed, so the floppy image cannot yet be populated.
+The broad kvikdos suite was stopped after its COMMAND.COM cases consistently
+timed out; the timeout also reproduces with CL3/CL4 omitted, so it is separate
+from the clean-link correction and requires focused emulator/startup analysis.
+
 Clean parallel validation is the next gate now that the previously blocking
 SELECT link succeeds; no shared-scratch-file or generated-message race has
 been observed in the targeted reruns.

@@ -66,11 +66,8 @@ $(FDISK_DIR)/FDBOOT.BIN: $(FDISK_DIR)/FDBOOT.EXE
 $(FDISK_DIR)/FDBOOT.INC: $(FDISK_DIR)/FDBOOT.BIN
 	cd $(FDISK_DIR) && $(DBOF) "FDBOOT.BIN FDBOOT.INC 600 200"
 
-# Step 6: BOOTREC.OBJ (assembled in FDISK dir where FDBOOT.INC lives)
-$(FDISK_DIR)/BOOTREC.OBJ: $(FDISK_DIR)/BOOTREC.ASM $(FDISK_DIR)/FDBOOT.INC
-	cd $(FDISK_DIR) && $(MASM) "$(AFLAGS) -I." "BOOTREC.ASM,BOOTREC.OBJ;"
-
-# Step 7: Copy BOOTREC.OBJ to SELECT dir (SELECT.LNK expects it locally)
+# Step 6: Copy BOOTREC.OBJ to SELECT dir (SELECT.LNK expects it locally).
+# Its sole build rule lives in cmd.mk because FDISK also consumes the object.
 $(SELECT_DIR)/BOOTREC.OBJ: $(FDISK_DIR)/BOOTREC.OBJ
 	cp $(FDISK_DIR)/BOOTREC.OBJ $(SELECT_DIR)/BOOTREC.OBJ
 
