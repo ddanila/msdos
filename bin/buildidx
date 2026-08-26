@@ -1,3 +1,51 @@
-#!/bin/bash
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-exec "$SCRIPT_DIR/dos-run" "$SCRIPT_DIR/../MS-DOS/v4.0/src/TOOLS/BUILDIDX.EXE" "$@"
+#!/usr/bin/env python3
+"""Native replacement for the MS-DOS BUILDIDX message index utility."""
+
+from __future__ import annotations
+
+import re
+import shlex
+import sys
+from pathlib import Path
+
+
+POOL_HEADER = re.compile(rb"^[A-Z][A-Z0-9_-]* +[0-9A-Fa-f]{4} +[0-9A-Fa-f]{4}$")
+
+
+def usage() -> None:
+    print("usage: buildidx MESSAGE.MSG", file=sys.stderr)
+
+
+def main() -> int:
+    args = sys.argv[1:]
+    if len(args) == 1:
+        args = shlex.split(args[0])
+    if len(args) != 1:
+        usage()
+        return 2
+
+    source = Path(args[0])
+    data = source.read_bytes()
+    lines = data.splitlines()
+    if not lines or not re.fullmatch(rb"[0-9A-Fa-f]{4}", lines[0]):
+        print(f"buildidx: invalid message level in {source}", file=sys.stderr)
+        return 1
+
+    level = (int(lines[0], 16) + 1) & 0xFFFF
+    level_line = f"{level:04X}".encode("ascii")
+    pool_lines = [line for line in lines[1:] if POOL_HEADER.fullmatch(line)]
+    index_data = b"\r\n".join([level_line, *pool_lines]) + b"\r\n"
+
+    first_ending = data.find(b"\n")
+    if first_ending < 0:
+        print(f"buildidx: missing message data after level in {source}", file=sys.stderr)
+        return 1
+    prefix_end = first_ending + 1
+    ending = b"\r\n" if data[:prefix_end].endswith(b"\r\n") else b"\n"
+    source.write_bytes(level_line + ending + data[prefix_end:])
+    source.with_suffix(".IDX").write_bytes(index_data)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

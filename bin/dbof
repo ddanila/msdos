@@ -1,3 +1,51 @@
-#!/bin/bash
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-exec "$SCRIPT_DIR/dos-run" "$SCRIPT_DIR/../MS-DOS/v4.0/src/TOOLS/DBOF.EXE" "$@"
+#!/usr/bin/env python3
+"""Native replacement for the MS-DOS DBOF build utility."""
+
+from __future__ import annotations
+
+import shlex
+import sys
+from pathlib import Path
+
+
+def usage() -> None:
+    print("usage: dbof INPUT OUTPUT OFFSET_HEX SIZE_HEX", file=sys.stderr)
+
+
+def main() -> int:
+    args = sys.argv[1:]
+    if len(args) == 1:
+        args = shlex.split(args[0])
+    if len(args) != 4:
+        usage()
+        return 2
+
+    input_name, output_name, offset_text, size_text = args
+    try:
+        offset = int(offset_text, 16)
+        size = int(size_text, 16)
+    except ValueError:
+        usage()
+        return 2
+
+    data = Path(input_name).read_bytes()
+    end = offset + size
+    if offset < 0 or size < 0 or end > len(data):
+        print(
+            f"dbof: requested range {offset:#x}..{end:#x} exceeds "
+            f"{input_name} ({len(data):#x} bytes)",
+            file=sys.stderr,
+        )
+        return 1
+
+    selected = data[offset:end]
+    lines = []
+    for index in range(0, len(selected), 8):
+        values = ",".join(f"0{value:02X}H" for value in selected[index : index + 8])
+        lines.append(f"\tdb\t{values}\r\n".encode("ascii"))
+    Path(output_name).write_bytes(b"".join(lines))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

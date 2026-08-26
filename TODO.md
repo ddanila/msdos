@@ -1400,9 +1400,9 @@ cd $(FDISK_DIR) && $(DBOF) "FDBOOT.BIN FDBOOT.INC 600 200"
 
 **Implementation:** ~20 lines of Python. Read binary, chunk into 8-byte groups, format as `0xxH`.
 
-- [ ] Write `bin/dbof` replacement (Python)
-- [ ] Verify output matches original BOOT.INC and FDBOOT.INC byte-for-byte
-- [ ] Update Makefile to use native script
+- [x] Write `bin/dbof` replacement (Python)
+- [x] Verify output matches original BOOT.INC and FDBOOT.INC byte-for-byte
+- [x] Update Makefile to use native script
 
 #### 6.2 BUILDIDX — message index builder (trivial)
 
@@ -1422,6 +1422,14 @@ COMMAND  14c8 0091
 ...
 ```
 Line 1: total message count. Subsequent lines: `POOLNAME   OFFSET_HEX COUNT_HEX`.
+
+The first line is actually a hexadecimal message-file revision, not a total.
+The original utility increments it in both the `.MSG` source and generated
+`.IDX`; the native implementation preserves that behavior byte-for-byte.
+
+- [x] Write native `bin/buildidx` replacement
+- [x] Verify USA-MS.IDX output byte-for-byte and cover the source-level update
+- [x] Remove DBOF and BUILDIDX from the emulated production path
 
 **Implementation:** ~40 lines of Python. Scan MSG file for pool headers, record byte offsets and entry counts.
 
