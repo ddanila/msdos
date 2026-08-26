@@ -47,7 +47,7 @@ $(SELECT_DIR)/SELECT.HLP: $(SELECT_DIR)/USA.TXT
 # ---------------------------------------------------------------------------
 
 # Step 1: FDISK5.CL1 (class 1 SKL → NOSRVBLD)
-$(FDISK_DIR)/FDISK5.CL1: $(FDISK_DIR)/FDISK5.SKL $(MESSAGES_OUT)
+$(FDISK_DIR)/FDISK5.CL1: $(FDISK_DIR)/FDISK5.SKL $(MESSAGES_OUT) $(NOSRVBLD) $(MESSAGE_CATALOG)
 	cd $(FDISK_DIR) && $(NOSRVBLD) FDISK5.SKL "..\\..\\MESSAGES\\USA-MS.MSG"
 
 # Step 2: FDBOOT.OBJ

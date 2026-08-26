@@ -23,6 +23,7 @@ NOSRVBLD := $(BIN)/nosrvbld
 DBOF     := $(BIN)/dbof
 MENUBLD  := $(BIN)/menubld
 CONVERT  := $(BIN)/convert
+MESSAGE_CATALOG := $(BIN)/message_catalog.py
 
 # Common MASM/CL flags (from TOOLS.INI)
 COUNTRY  := usa-ms
@@ -70,7 +71,7 @@ MESSAGES_OUT := $(MESSAGES_DIR)/$(COUNTRY).IDX
 
 messages: $(MESSAGES_OUT)
 
-$(MESSAGES_OUT): $(MESSAGES_DIR)/USA-MS.MSG
+$(MESSAGES_OUT): $(MESSAGES_DIR)/USA-MS.MSG $(BUILDIDX)
 	cd $(MESSAGES_DIR) && $(BUILDIDX) USA-MS.MSG
 
 # ---------------------------------------------------------------------------
@@ -110,7 +111,7 @@ BOOT_INC  := $(SRC)/INC/boot.inc
 
 boot: $(BOOT_INC)
 
-$(BOOT_DIR)/BOOT.CL1: $(BOOT_DIR)/BOOT.SKL $(MESSAGES_OUT)
+$(BOOT_DIR)/BOOT.CL1: $(BOOT_DIR)/BOOT.SKL $(MESSAGES_OUT) $(NOSRVBLD) $(MESSAGE_CATALOG)
 	cd $(BOOT_DIR) && $(NOSRVBLD) BOOT.SKL "..\MESSAGES\USA-MS.MSG"
 
 $(BOOT_DIR)/MSBOOT.OBJ: $(BOOT_DIR)/MSBOOT.ASM $(BOOT_DIR)/BOOT.CL1
@@ -135,7 +136,7 @@ DOS_DIR  := $(SRC)/DOS
 
 # msdos.cl1 is generated in DOS/ by NOSRVBLD and included by INC/DIVMES.ASM
 # (via the -I..\\DOS path). It must be built before assembling MSDOSME.OBJ.
-$(DOS_DIR)/MSDOS.CL1: $(DOS_DIR)/MSDOS.SKL $(MESSAGES_OUT)
+$(DOS_DIR)/MSDOS.CL1: $(DOS_DIR)/MSDOS.SKL $(MESSAGES_OUT) $(NOSRVBLD) $(MESSAGE_CATALOG)
 	cd $(DOS_DIR) && $(NOSRVBLD) MSDOS.SKL "..\MESSAGES\USA-MS.MSG"
 
 INC_OBJS := ERRTST.OBJ SYSVAR.OBJ CDS.OBJ DPB.OBJ NIBDOS.OBJ \

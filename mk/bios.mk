@@ -12,7 +12,7 @@ BIOS_AINC := -I. -ID:\\TOOLS\\INC -I..\\INC
 # ---------------------------------------------------------------------------
 # Step 1: Generate CL1..CL5 from MSBIO.SKL via NOSRVBLD
 # ---------------------------------------------------------------------------
-$(BIOS_DIR)/MSBIO.CL1: $(BIOS_DIR)/MSBIO.SKL $(MESSAGES_OUT)
+$(BIOS_DIR)/MSBIO.CL1: $(BIOS_DIR)/MSBIO.SKL $(MESSAGES_OUT) $(NOSRVBLD) $(MESSAGE_CATALOG)
 	cd $(BIOS_DIR) && $(NOSRVBLD) MSBIO.SKL "..\MESSAGES\USA-MS.MSG"
 
 # CL2..CL5 are side-effects of the same NOSRVBLD run

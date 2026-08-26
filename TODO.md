@@ -1482,16 +1482,16 @@ cd $(FDISK_DIR) && $(MENUBLD) "FDISK.MSG ..\\..\\MESSAGES\\USA-MS.MSG"
 
 **Implementation:** ~80 lines of Python. Copy-through with string substitution from MSG pool.
 
-- [ ] Examine FDISK.MSG vs FDISKM.C to document exact transformations
-- [ ] Write `bin/menubld` replacement (Python)
-- [ ] Verify FDISKM.C output matches original
-- [ ] Update Makefile to use native script
+- [x] Examine FDISK.MSG vs FDISKM.C and document the marker substitution
+- [x] Write `bin/menubld` replacement (Python)
+- [x] Verify FDISKM.C output against the Microsoft-tool hash
+- [x] Remove MENUBLD from the emulated production path
 
 #### 6.5 NOSRVBLD — simple message class generator (low-medium)
 
 **What it does:** Simpler variant of BUILDMSG. Takes a `.SKL` file and `USA-MS.MSG`, produces `.CL1`–`.CL5` files containing raw `DB` directives with label names — no class structure wrappers, no `PROC`. Used for kernel-level messages (BIOS, DOS, boot sector) that use a simpler retrieval mechanism.
 
-**Invocations (8):**
+**Production invocations (6):**
 ```makefile
 cd $(BOOT_DIR)    && $(NOSRVBLD) BOOT.SKL "..\MESSAGES\USA-MS.MSG"
 cd $(BIOS_DIR)    && $(NOSRVBLD) MSBIO.SKL "..\MESSAGES\USA-MS.MSG"
@@ -1500,7 +1500,6 @@ cd $(FDISK_DIR)   && $(NOSRVBLD) FDISK5.SKL "..\\..\\MESSAGES\\USA-MS.MSG"
 cd $(XMA2EMS_DIR) && $(NOSRVBLD) XMA2EMS.SKL "..\\..\\MESSAGES\\USA-MS.MSG"
 cd $(XMAEM_DIR)   && $(NOSRVBLD) XMAEM.SKL "..\\..\\MESSAGES\\USA-MS.MSG"
 ```
-(Plus 2 more for BIOS/DOS additional SKLs.)
 
 **SKL format** (line-oriented):
 ```
@@ -1515,6 +1514,14 @@ cd $(XMAEM_DIR)   && $(NOSRVBLD) XMAEM.SKL "..\\..\\MESSAGES\\USA-MS.MSG"
 ```asm
 LABEL	DB	"message text",0Dh,0Ah
 ```
+
+`:def` supplies the label and implicit pool name; localized bytes still come
+from the message catalog. `:use` supplies an explicit pool. Continuation lines
+in the catalog become additional tab-indented `DB` directives.
+
+- [x] Write native `bin/nosrvbld` replacement
+- [x] Verify all 11 generated class files against Microsoft-tool hashes
+- [x] Remove NOSRVBLD from the emulated production path
 
 **Implementation:** ~150 lines of Python. Parse SKL directives, resolve `:use` references from MSG file, emit `DB` lines.
 
