@@ -363,7 +363,7 @@ FORMAT_OBJS := $(addprefix $(FORMAT_DIR)/,\
 $(FORMAT_DIR)/FORMAT.EXE: $(FORMAT_OBJS)
 	cd $(FORMAT_DIR) && $(LINK) "@FORMAT.LNK"
 
-$(FORMAT_OUT): $(FORMAT_DIR)/FORMAT.EXE
+$(FORMAT_OUT): $(FORMAT_DIR)/FORMAT.EXE $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(FORMAT_DIR) && $(CONVERT) "FORMAT.EXE"
 
 # ---------------------------------------------------------------------------
@@ -425,7 +425,7 @@ CHKDSK_OBJS := $(addprefix $(CHKDSK_DIR)/,\
 $(CHKDSK_DIR)/CHKDSK.EXE: $(CHKDSK_OBJS)
 	cd $(CHKDSK_DIR) && $(LINK) "@CHKDSK.LNK"
 
-$(CHKDSK_OUT): $(CHKDSK_DIR)/CHKDSK.EXE
+$(CHKDSK_OUT): $(CHKDSK_DIR)/CHKDSK.EXE $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(CHKDSK_DIR) && $(CONVERT) "CHKDSK.EXE"
 
 # ---------------------------------------------------------------------------
@@ -491,7 +491,7 @@ DEBUG_OBJS := $(addprefix $(DEBUG_DIR)/,\
 $(DEBUG_DIR)/DEBUG.EXE: $(DEBUG_OBJS)
 	cd $(DEBUG_DIR) && $(LINK) "@DEBUG.LNK"
 
-$(DEBUG_OUT): $(DEBUG_DIR)/DEBUG.EXE
+$(DEBUG_OUT): $(DEBUG_DIR)/DEBUG.EXE $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(DEBUG_DIR) && $(CONVERT) "DEBUG.EXE"
 
 # ---------------------------------------------------------------------------
@@ -818,7 +818,7 @@ $(EDLIN_DIR)/EDLIN.EXE: $(EDLIN_DIR)/EDLIN.OBJ $(EDLIN_DIR)/EDLCMD1.OBJ \
     $(EDLIN_DIR)/EDLCMD2.OBJ $(EDLIN_DIR)/EDLMES.OBJ $(EDLIN_DIR)/EDLPARSE.OBJ
 	cd $(EDLIN_DIR) && $(LINK) "@EDLIN.LNK"
 
-$(EDLIN_OUT): $(EDLIN_DIR)/EDLIN.EXE
+$(EDLIN_OUT): $(EDLIN_DIR)/EDLIN.EXE $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(EDLIN_DIR) && $(CONVERT) "EDLIN.EXE"
 
 # ---------------------------------------------------------------------------
@@ -1016,7 +1016,7 @@ $(RECOVER_DIR)/RECOVER.EXE: $(RECOVER_DIR)/RECDISP.OBJ $(RECOVER_DIR)/RECINIT.OB
     $(RECOVER_DIR)/RECPROC.OBJ $(RECOVER_DIR)/RECOVER.OBJ
 	cd $(RECOVER_DIR) && $(LINK) "@RECOVER.LNK"
 
-$(RECOVER_OUT): $(RECOVER_DIR)/RECOVER.EXE
+$(RECOVER_OUT): $(RECOVER_DIR)/RECOVER.EXE $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(RECOVER_DIR) && $(CONVERT) "RECOVER.EXE"
 
 # ---------------------------------------------------------------------------
@@ -1066,7 +1066,7 @@ $(PRINT_DIR)/PRINT.EXE: $(PRINT_DIR)/PRINT_RM.OBJ $(PRINT_DIR)/PRINT_R.OBJ \
     $(PRINT_DIR)/PRINT_T.OBJ $(PRINT_DIR)/PRINT_TM.OBJ
 	cd $(PRINT_DIR) && $(LINK) "@PRINT.LNK"
 
-$(PRINT_OUT): $(PRINT_DIR)/PRINT.EXE
+$(PRINT_OUT): $(PRINT_DIR)/PRINT.EXE $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(PRINT_DIR) && $(CONVERT) "PRINT.EXE"
 
 # ---------------------------------------------------------------------------
@@ -1163,7 +1163,7 @@ $(BACKUP_DIR)/_PARSE.OBJ: $(BACKUP_DIR)/_PARSE.ASM
 	cd $(BACKUP_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "_PARSE.ASM,_PARSE.OBJ;"
 
 $(BACKUP_OUT): $(BACKUP_DIR)/BACKUP.OBJ $(BACKUP_DIR)/_PARSE.OBJ \
-    $(BACKUP_DIR)/_MSGRET.OBJ $(MAPPER_LIB)
+    $(BACKUP_DIR)/_MSGRET.OBJ $(MAPPER_LIB) $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(BACKUP_DIR) && $(LINK) "/NOE BACKUP + _PARSE + _MSGRET,,,..\\..\\MAPPER\\MAPPER + ..\\..\\INC\\COMSUBS;"
 	cd $(BACKUP_DIR) && $(CONVERT) "BACKUP.EXE BACKUP.COM"
 
@@ -1221,7 +1221,8 @@ $(RESTORE_OUT): $(RESTORE_DIR)/RESTORE.OBJ $(RESTORE_DIR)/RESTPARS.OBJ \
     $(RESTORE_DIR)/RTOLD.OBJ $(RESTORE_DIR)/RTOLD1.OBJ \
     $(RESTORE_DIR)/RTNEW.OBJ $(RESTORE_DIR)/RTNEW1.OBJ \
     $(RESTORE_DIR)/RTFILE.OBJ $(RESTORE_DIR)/RTFILE1.OBJ \
-    $(RESTORE_DIR)/_PARSE.OBJ $(RESTORE_DIR)/_MSGRET.OBJ $(MAPPER_LIB)
+    $(RESTORE_DIR)/_PARSE.OBJ $(RESTORE_DIR)/_MSGRET.OBJ $(MAPPER_LIB) \
+    $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(RESTORE_DIR) && $(LINK) "@RESTORE.LNK"
 	cd $(RESTORE_DIR) && $(CONVERT) "RESTORE.EXE RESTORE.COM"
 

@@ -1,3 +1,64 @@
-#!/bin/bash
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-exec "$SCRIPT_DIR/dos-run" "$SCRIPT_DIR/../MS-DOS/v4.0/src/TOOLS/CONVERT.EXE" "$@"
+#!/usr/bin/env python3
+"""Wrap a 16-bit MZ executable in a self-loading DOS COM image."""
+
+from __future__ import annotations
+
+import struct
+import sys
+from pathlib import Path
+
+
+# Eight writable bytes hold the original IP:CS and SP:SS at runtime. The code
+# uses call/pop to find itself, derives the embedded EXE load segment, applies
+# its MZ relocation table, moves the load image to COM offset 100h, restores
+# the requested stack, and far-jumps to the original entry point.
+LOADER = bytes.fromhex(
+    "00 00 00 00 00 00 00 00"
+    " e8 00 00 5b 50 8c c0 05 10 00"
+    " 8b 0e 1e 01 03 c8 89 4f fb"
+    " 8b 0e 26 01 03 c8 89 4f f7"
+    " 8b 0e 20 01 89 4f f9"
+    " 8b 0e 24 01 89 4f f5"
+    " 8b 3e 28 01 8b 16 18 01 b1 04 d3 e2"
+    " 8b 0e 16 01 e3 1a"
+    " 26 c5 b5 10 01 83 c7 04 8c dd"
+    " 26 03 2e 18 01 83 c5 01 03 e8 8e dd 01 04 e2 e6"
+    " 0e 1f bf 00 01 8b f2 81 c6 10 01"
+    " 8b cb 2b ce f3 a4"
+    " 58 fa 8e 57 fb 8b 67 f9 fb ff 6f f5"
+)
+
+
+def fail(message: str) -> int:
+    print(f"convert: {message}", file=sys.stderr)
+    return 1
+
+
+def main() -> int:
+    args = sys.argv[1:]
+    if len(args) == 1:
+        args = args[0].split()
+    if len(args) not in (1, 2):
+        print("usage: convert INPUT.EXE [OUTPUT.COM]", file=sys.stderr)
+        return 2
+
+    source = Path(args[0])
+    target = Path(args[1]) if len(args) == 2 else source.with_suffix(".COM")
+    executable = source.read_bytes()
+    if len(executable) < 28 or executable[:2] not in (b"MZ", b"ZM"):
+        return fail(f"{source} is not an MZ executable")
+
+    # The near jump begins at COM offset 100h and targets the loader code after
+    # its eight-byte writable prefix. Relative displacement is measured from
+    # the instruction end, hence len(EXE) + 16 + 8 - 3.
+    displacement = len(executable) + 21
+    if displacement > 0xFFFF:
+        return fail(f"{source} is too large for the 16-bit loader jump")
+
+    prefix = b"\xE9" + struct.pack("<H", displacement) + b"Converted\0\0\0\0"
+    target.write_bytes(prefix + executable + LOADER)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

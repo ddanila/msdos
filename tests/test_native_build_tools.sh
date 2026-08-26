@@ -23,3 +23,4 @@ test "$(head -n 1 "$TEST_TMP/USA-MS.MSG" | tr -d '\r')" = 0088
 echo "native DBOF and BUILDIDX parity tests passed"
 python3 "$ROOT/tests/test_native_exe2bin.py"
 python3 "$ROOT/tests/test_native_message_tools.py"
+python3 "$ROOT/tests/test_native_convert.py"

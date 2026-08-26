@@ -1523,18 +1523,11 @@ in the catalog become additional tab-indented `DB` directives.
 - [x] Verify all 11 generated class files against Microsoft-tool hashes
 - [x] Remove NOSRVBLD from the emulated production path
 
-**Implementation:** ~150 lines of Python. Parse SKL directives, resolve `:use` references from MSG file, emit `DB` lines.
-
-- [ ] Examine existing .CL1 outputs to document exact format
-- [ ] Write `bin/nosrvbld` replacement (Python)
-- [ ] Verify output matches original for all 8 invocations
-- [ ] Update Makefile to use native script
-
 #### 6.6 CONVERT — EXE to COM with relocating stub (medium)
 
 **What it does:** Unlike EXE2BIN (which requires zero relocations for .COM), CONVERT handles .EXE files **with relocations** by prepending a small x86 relocating stub. The stub patches segment references at load time, then jumps to the real entry point. The output is a .COM file that is self-relocating.
 
-**Invocations (7):**
+**Production invocations (8):**
 ```makefile
 cd $(FORMAT_DIR)  && $(CONVERT) "FORMAT.EXE"
 cd $(CHKDSK_DIR)  && $(CONVERT) "CHKDSK.EXE"
@@ -1547,22 +1540,25 @@ cd $(RESTORE_DIR) && $(CONVERT) "RESTORE.EXE RESTORE.COM"
 ```
 
 **How it works:**
-1. Parse MZ header and relocation table
-2. Prepend a fixed x86 relocating stub (~50-80 bytes of 16-bit machine code)
-3. Append the relocation table entries (compact format)
-4. Append the EXE body (minus MZ header)
-5. The stub, at .COM load time: reads relocation entries, patches each segment reference (adds current CS), sets up SS:SP, far-jumps to real CS:IP
+1. Prepend a 16-byte near jump and `Converted` signature.
+2. Copy the complete MZ executable unchanged, including its header and
+   relocation table.
+3. Append a fixed 123-byte loader. At COM load time it interprets the embedded
+   MZ header, applies relocations, moves the load image to offset `100h`, sets
+   SS:SP, and far-jumps to the original CS:IP.
 
 **Reference implementations:**
 - [exe2com.asm](https://github.com/leonardo-ono/Assembly80863DCubeAdlibMusicDemoTest/blob/master/exe2com.asm) — ~43 lines of NASM showing the relocating stub concept
 
-**Implementation:** ~150 lines of Python + embedded x86 stub blob (~80 bytes, hand-crafted once in assembly). The Python script assembles: stub + relocation data + EXE body. The stub itself is fixed binary — write it once, embed as a byte literal.
+The native implementation embeds that loader directly. Its documented NASM
+source is checked in beside the converter, and parity tests prove that assembling
+the source produces the exact embedded bytes; no generated blob is needed at
+bootstrap time.
 
-- [ ] Reverse-engineer the exact stub format by examining existing CONVERT output (e.g., FORMAT.COM)
-- [ ] Write the relocating stub in NASM/WASM, assemble to binary blob
-- [ ] Write `bin/convert` replacement (Python) embedding the stub
-- [ ] Verify output matches original for all 7 invocations (boot test FORMAT.COM, CHKDSK.COM, DEBUG.COM)
-- [ ] Update Makefile to use native script
+- [x] Reverse-engineer the exact wrapper and loader format across all outputs
+- [x] Write native `bin/convert` replacement
+- [x] Verify all eight production outputs against Microsoft-tool hashes
+- [x] Track the converter as a prerequisite of every generated COM file
 
 #### 6.7 BUILDMSG — full message compiler (medium-high)
 
