@@ -26,6 +26,21 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 # accepted only as separate tokens so hyphenated filenames remain intact.
 OPT_RE = r"(?:/\w+(?::[^\s+]+)?|(?<!\S)-\w+(?::[^\s+]+)?)"
 
+def resolve_existing_casefold(path):
+    """Resolve a DOS-style input name on a case-sensitive host filesystem."""
+    if os.path.exists(path):
+        return path
+    directory, basename = os.path.split(path)
+    search_dir = directory or "."
+    try:
+        matches = [entry for entry in os.listdir(search_dir)
+                   if entry.casefold() == basename.casefold()]
+    except OSError:
+        return path
+    if len(matches) == 1:
+        return os.path.join(directory, matches[0]) if directory else matches[0]
+    return path
+
 def canonicalize_mz_header(path, hdr_bytes=512):
     """Rewrite a wlink MZ .EXE to use a 512-byte (MS-LINK-style) header.
 
@@ -90,7 +105,8 @@ def main():
     gopts = []
     mfile = re.search(r"@(\S+)", arg)
     if mfile:
-        with open(mfile.group(1), encoding="latin-1") as fh:
+        response_path = resolve_existing_casefold(mfile.group(1))
+        with open(response_path, encoding="latin-1") as fh:
             body = fh.read()
         gopts += re.findall(OPT_RE, arg.replace("@" + mfile.group(1), " "))
     else:
@@ -113,8 +129,8 @@ def main():
     gopts += re.findall(OPT_RE, run_f) + re.findall(OPT_RE, map_f)
     gopts_l = [("/" + o[1:] if o.startswith("-") else o).lower() for o in gopts]
 
-    objs = names(objs_f, ".obj")
-    libs = names(lib_f, ".lib")
+    objs = [resolve_existing_casefold(path) for path in names(objs_f, ".obj")]
+    libs = [resolve_existing_casefold(path) for path in names(lib_f, ".lib")]
     if not objs:
         sys.exit("wlink: no object modules in link command")
 
