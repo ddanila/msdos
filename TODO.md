@@ -22,10 +22,17 @@ KEYB.ASM correctly names `START`, while the library-style KEYBTBBL.ASM also
 named `TABLE_BUILD` in its END directive. KEYBTBBL now emits a plain END;
 KEYB.COM links with one entry point and converts successfully.
 
-Clean `make -j4` validation gets through all JWasm/wlink targets affected by
-these changes. It currently stops later in the legacy MS LINK SELECT step on
-the existing `SELECT0.OBJ`/`MOD_COPY.OBJ` fixup overflows; no shared-scratch-file
-or generated-message race was observed.
+SELECT's five MS LINK L2002 failures were 16-bit relative-fixup distance
+overflows, not malformed JWasm OMF. The service modules were extracted from
+SERVICES.LIB after all explicit objects, placing GET_FUNCTION_CALL,
+HANDLE_ERROR_CALL, and related SELECT-segment routines too far from their NEAR
+callers. SELECT.LNK now lists those five modules explicitly beside SELECT0,
+CASERVIC, and MOD_COPY, while CASSFAR remains a library. SELECT.EXE links and
+the EXEPACK fixup completes successfully.
+
+Clean parallel validation is the next gate now that the previously blocking
+SELECT link succeeds; no shared-scratch-file or generated-message race has
+been observed in the targeted reruns.
 
 **End state:** All assembly and C compilation uses Open Watcom (WASM, wcc, wlink, wlib) natively. The full E2E test suite passes on the WASM-built floppy image. kvikdos remains only for the 7 pre-built DOS build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF, MENUBLD) — eliminating those is a separate future effort, not part of this migration.
 
