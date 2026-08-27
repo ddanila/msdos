@@ -143,6 +143,12 @@ renames the cached directory, requires the stale pathname to fail, reads the
 payload through the new pathname, renames it back, and reads it again. This
 guards subtree invalidation as well as installation; it exposed the resident
 cache retaining renamed directories that had cached children.
+`test_append.sh` distinguishes APPEND's resident hooks rather than accepting
+silent command completion. Exact payloads prove ordinary OPEN lookup and
+`/PATH:ON` lookup for an explicit relative path, while `/X:OFF` and `/X:ON`
+must disable and re-enable FIND and EXEC lookup. `/E` status is read back from
+the environment-backed path and diagnosed after first installation; invalid
+`/PATH` and `/X` values and an unknown switch require exact diagnostics.
 `test_smartdrv_flush_qemu.sh` attaches a fixed disk and uses FLUSH13 to assert
 SMARTDRV status, disable/enable transitions, policy changes, and an explicit
 successful flush. A purpose-built guest probe also writes and reads back a

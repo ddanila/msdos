@@ -25,6 +25,7 @@ FLOPPY="$OUT/floppy.img"
 
 BOOT_IMG="$OUT/floppy-append-boot.img"
 SERIAL_LOG="$OUT/append-serial.log"
+EXIT_COM="$OUT/qemu-exit.com"
 
 PASS=0
 FAIL=0
@@ -42,11 +43,19 @@ echo "=== APPEND E2E tests (QEMU) ==="
 # ── Step 1: build boot floppy ────────────────────────────────────────────────
 echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
+nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
+mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
 {
     printf 'CTTY AUX\r\n'
+    printf 'MD APNDIR\r\n'
+    printf 'MD APNDIR\\SUB\r\n'
+    printf 'MD SUB\r\n'
+    printf 'ECHO APPEND_OPEN_PAYLOAD>APNDIR\\APNDATA.TXT\r\n'
+    printf 'ECHO APPEND_PATH_PAYLOAD>APNDIR\\SUB\\PATHDATA.TXT\r\n'
+    printf 'COPY TREE.COM APNDIR\\APNDEXE.COM>NUL\r\n'
 
     # ── APPEND /E /X (first call) — install with environment and extended search ──
     # First-time-only flags. No output on success. Hooks INT 2Fh + INT 21h/AH=31h
@@ -61,8 +70,16 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     # With /E active, also updates APPEND= in the environment.
     # No output on success.
     printf 'ECHO ---APPEND-PATH---\r\n'
-    printf 'APPEND C:\DOS\r\n'
+    printf 'APPEND A:\\APNDIR\r\n'
     printf 'ECHO APPEND_PATH_DONE\r\n'
+    printf 'TYPE APNDATA.TXT\r\n'
+    printf 'APPEND /X:OFF\r\n'
+    printf 'IF NOT EXIST APNDATA.TXT ECHO APPEND_X_OFF_FIND_BLOCKED\r\n'
+    printf 'APNDEXE /?\r\n'
+    printf 'APPEND /X:ON\r\n'
+    printf 'IF EXIST APNDATA.TXT ECHO APPEND_X_ON_FIND_OK\r\n'
+    printf 'APNDEXE /?\r\n'
+    printf 'ECHO APPEND_X_EXEC_DONE\r\n'
 
     # ── APPEND (show current path) ─────────────────────────────────────────────
     # display_dirs: address_status → ES:DI = path buffer; sub si,7 includes
@@ -71,24 +88,34 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'ECHO ---APPEND-SHOW---\r\n'
     printf 'APPEND\r\n'
     printf 'ECHO APPEND_SHOW_DONE\r\n'
+    printf 'APPEND /E\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO APPEND_SECOND_E_REJECTED\r\n'
 
     # ── APPEND /PATH:ON — enable PATH mode ────────────────────────────────────
     # Sets Path_mode flag in mode_flags. No output.
     printf 'ECHO ---APPEND-PATH-ON---\r\n'
     printf 'APPEND /PATH:ON\r\n'
     printf 'ECHO APPEND_PATH_ON_DONE\r\n'
+    printf 'TYPE SUB\\APNDATA.TXT\r\n'
 
     # ── APPEND /PATH:OFF — disable PATH mode ───────────────────────────────────
     # Clears Path_mode flag in mode_flags. No output.
     printf 'ECHO ---APPEND-PATH-OFF---\r\n'
     printf 'APPEND /PATH:OFF\r\n'
     printf 'ECHO APPEND_PATH_OFF_DONE\r\n'
+    printf 'APPEND /PATH:MAYBE\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO APPEND_BAD_PATH_MODE_REJECTED\r\n'
+    printf 'APPEND /X:MAYBE\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO APPEND_BAD_X_MODE_REJECTED\r\n'
+    printf 'APPEND /Z\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO APPEND_UNKNOWN_REJECTED\r\n'
 
     # ── APPEND ; (clear path) ─────────────────────────────────────────────────
     # Semicolon as null path list → sets app_dirs to ";". No output.
     printf 'ECHO ---APPEND-SEMI---\r\n'
     printf 'APPEND ;\r\n'
     printf 'ECHO APPEND_SEMI_DONE\r\n'
+    printf 'TYPE APNDATA.TXT\r\n'
 
     # ── APPEND (show empty path) ───────────────────────────────────────────────
     # display_dirs: app_dirs=";" → no_dirs_appended → "No Append" (msg 5) to
@@ -98,6 +125,7 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'ECHO APPEND_EMPTY_DONE\r\n'
 
     printf 'ECHO ===DONE===\r\n'
+    printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
 # ── Step 2: boot QEMU ─────────────────────────────────────────────────────────
@@ -110,6 +138,7 @@ timeout 120 qemu-system-i386 \
     -drive if=floppy,index=0,format=raw,file="$BOOT_IMG",cache=writethrough \
     -boot a -m 4 \
     -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     2>/dev/null | tee "$SERIAL_LOG" > /dev/null; true
 
 if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
@@ -132,9 +161,9 @@ echo ""
 echo "--- APPEND path set tests ---"
 
 if grep -q "APPEND_PATH_DONE" "$SERIAL_LOG"; then
-    ok "APPEND C:\\DOS (path set silently, batch continued)"
+    ok "APPEND A:\\APNDIR (resident path set)"
 else
-    fail "APPEND C:\\DOS (batch hung or crashed)"
+    fail "APPEND A:\\APNDIR (batch hung or crashed)"
 fi
 
 echo ""
@@ -143,16 +172,37 @@ echo "--- APPEND show path tests ---"
 # display_dirs writes "APPEND=C:\DOS" to STDOUT (visible via CTTY AUX).
 # The display_dirs code backs up 7 bytes from the path buffer to include
 # "APPEND=" prefix (append_id = "APPEND=" immediately precedes app_dirs).
-if grep -qi 'APPEND=C:\\DOS' "$SERIAL_LOG"; then
-    ok "APPEND (show path: 'APPEND=C:\\DOS' printed to STDOUT)"
+if grep -qi 'APPEND=A:\\APNDIR' "$SERIAL_LOG"; then
+    ok "APPEND /E exposes the environment-backed resident path"
 else
-    fail "APPEND (expected 'APPEND=C:\\DOS' in output after setting path)"
+    fail "APPEND did not expose its environment-backed resident path"
 fi
 
 if grep -q "APPEND_SHOW_DONE" "$SERIAL_LOG"; then
     ok "APPEND (show path: batch continued)"
 else
     fail "APPEND (show path: batch hung or crashed)"
+fi
+
+if grep -q '^APPEND_OPEN_PAYLOAD' "$SERIAL_LOG"; then
+    ok "APPEND extends ordinary OPEN lookup to the resident path"
+else
+    fail "APPEND ordinary OPEN lookup did not return the exact payload"
+fi
+
+if grep -q '^APPEND_X_OFF_FIND_BLOCKED' "$SERIAL_LOG" \
+    && grep -q '^APPEND_X_ON_FIND_OK' "$SERIAL_LOG" \
+    && grep -q 'Graphically displays the directory structure' "$SERIAL_LOG" \
+    && grep -q '^APPEND_X_EXEC_DONE' "$SERIAL_LOG"; then
+    ok "APPEND /X transitions gate FIND and EXEC lookup"
+else
+    fail "APPEND /X did not produce the expected FIND/EXEC transition"
+fi
+
+if grep -q 'Invalid switch -  /E' "$SERIAL_LOG"; then
+    ok "APPEND diagnoses /E after resident installation"
+else
+    fail "APPEND did not diagnose first-load-only /E on a later invocation"
 fi
 
 echo ""
@@ -164,6 +214,12 @@ else
     fail "APPEND /PATH:ON (batch hung or crashed)"
 fi
 
+if [[ $(grep -c '^APPEND_OPEN_PAYLOAD' "$SERIAL_LOG") -eq 2 ]]; then
+    ok "APPEND /PATH:ON extends explicit-path OPEN lookup"
+else
+    fail "APPEND /PATH:ON did not resolve the explicit path to the appended filename"
+fi
+
 echo ""
 echo "--- APPEND /PATH:OFF tests ---"
 
@@ -171,6 +227,14 @@ if grep -q "APPEND_PATH_OFF_DONE" "$SERIAL_LOG"; then
     ok "APPEND /PATH:OFF (PATH mode cleared silently, batch continued)"
 else
     fail "APPEND /PATH:OFF (batch hung or crashed)"
+fi
+
+if grep -q 'Parameter value not allowed -  /PATH:MAYBE' "$SERIAL_LOG" \
+    && grep -q 'Parameter value not allowed -  /X:MAYBE' "$SERIAL_LOG" \
+    && grep -q 'Invalid switch -  /Z' "$SERIAL_LOG"; then
+    ok "APPEND diagnoses invalid /PATH, /X, and unknown switch values"
+else
+    fail "APPEND invalid-switch diagnostics were incomplete"
 fi
 
 echo ""
@@ -182,13 +246,18 @@ else
     fail "APPEND ; (batch hung or crashed)"
 fi
 
+if grep -q 'File not found - APNDATA.TXT' "$SERIAL_LOG"; then
+    ok "APPEND ; removes the resident OPEN search path"
+else
+    fail "APPEND ; left the cleared path active"
+fi
+
 echo ""
 echo "--- APPEND (empty path) tests ---"
 
-# "No Append" message goes to STDERR (not visible via CTTY AUX).
-# Just verify batch continues.
-if grep -q "APPEND_EMPTY_DONE" "$SERIAL_LOG"; then
-    ok "APPEND (empty path: batch continued — 'No Append' goes to STDERR, invisible)"
+# The cleared-state status call must emit the source-defined diagnostic.
+if grep -q 'No Append' "$SERIAL_LOG" && grep -q "APPEND_EMPTY_DONE" "$SERIAL_LOG"; then
+    ok "APPEND reports the cleared resident path"
 else
     fail "APPEND (empty path: batch hung or crashed)"
 fi

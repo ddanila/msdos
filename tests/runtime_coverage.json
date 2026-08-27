@@ -2,7 +2,7 @@
   "schema": 1,
   "runtime_components": {
     "ANSI.SYS": {"kind": "driver", "level": "contract", "evidence": ["tests/test_ansi_driver_qemu.sh"], "note": "Exact output, blocking and nonblocking input, flush, generic IOCTL, and all pass-through request statuses are asserted through the live driver, including rejection at the corrected dispatch boundary"},
-    "APPEND.EXE": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_append.sh"], "note": "Resident path extension, /E, /X, and /PATH state are asserted"},
+    "APPEND.EXE": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_append.sh"], "note": "Exact payloads prove resident OPEN and explicit-path lookup; /X transitions gate FIND and EXEC, /E exposes environment-backed state and is diagnosed after installation, invalid mode values produce exact diagnostics, and clearing removes the resident path"},
     "ASSIGN.COM": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Drive redirection, file access, and removal are asserted"},
     "ATTRIB.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Attribute set/clear, combined and recursive behavior, missing-file and invalid-switch errors, payload preservation, and cleanup on a disposable file are asserted"},
     "BACKUP.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "All seven switches, filtering, recursive, append, format, and log effects are asserted with binary-exact restoration; repeated flag switches are proven idempotent, while repeated valued switches plus unknown, excess-operand, invalid-date, and invalid-time forms require exact diagnostics and nonzero errorlevels"},
