@@ -33,6 +33,14 @@ runtime `.COM`, `.EXE`, and `.SYS` component and to every directive parsed from
 the kernel's live `COMTAB` in `BIOS/SYSINIT2.ASM`. Its verifier derives both
 sets from the source and Makefile, rejecting omitted or stale entries.
 
+`command_coverage.json` drills into COMMAND.COM itself. Its verifier derives
+all 35 internal commands from the live `COMTAB` in `CMD/COMMAND/TDATA.ASM`, so
+adding, removing, or renaming a built-in requires an explicit behavioral
+classification. Synonyms are separate entries because their spelling still
+has to reach the shared implementation. The contract evidence includes actual
+namespace mutations for RENAME, MKDIR, and RMDIR, exact CLS console output, and
+the queried CHCP value rather than relying on embedded help strings.
+
 `dos_interrupt_coverage.json` covers the DOS-initialized vector surface outside
 the INT 21h dispatch table. Its verifier checks the live `MSINIT.ASM` vector
 setup for INT 20h through INT 29h and the installed INT 2Fh handler. Focused
@@ -360,6 +368,7 @@ Run the inventory check with:
 make test-coverage-manifest
 make test-int21-error-coverage-manifest
 make test-runtime-coverage-manifest
+make test-command-coverage-manifest
 make test-dos-interrupt-coverage-manifest
 make test-device-request-coverage-manifest
 ```
@@ -390,6 +399,7 @@ The completed runtime inventory is enforced with:
 
 ```sh
 python3 tests/test_runtime_coverage_manifest.py --require-complete
+python3 tests/test_command_coverage.py --require-complete
 ```
 
 CI also sets `FAIL_ON_SKIP=1`; an unexpected host-test skip is therefore a

@@ -1770,6 +1770,22 @@ else
     fail "COMMAND.COM DIR /W (expected 'COMMAND' in wide listing, got: $out)"
 fi
 
+# -- CHCP (query active code page) --
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C CHCP) || true
+if echo "$out" | grep -q '^Active code page: 437'; then
+    ok "COMMAND.COM CHCP (queries active code page 437)"
+else
+    fail "COMMAND.COM CHCP (expected active code page 437, got: $out)"
+fi
+
+# -- CLS (exact ANSI clear-screen request emitted through CON) --
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C CLS 2>/dev/null) || true
+if [[ "$out" == $'\033[2J' ]]; then
+    ok "COMMAND.COM CLS (emits exact ESC[2J clear-screen sequence)"
+else
+    fail "COMMAND.COM CLS (expected exact ESC[2J sequence)"
+fi
+
 # -- VOL --
 out=$(run_dos CMD/COMMAND/COMMAND.COM /C VOL) || true
 if echo "$out" | grep -qi "Volume\|volume in drive"; then
@@ -1989,6 +2005,17 @@ else
     fail "COMMAND.COM REN (expected renamed file content, got: $out)"
 fi
 
+# -- RENAME (long synonym reaches the same rename operation) --
+printf 'RENAME_TEST_DATA\r\n' > "$KVTXT"
+printf 'RENAME C:\CMD\COMMAND\KVTST.TXT KVREN.TXT\r\nTYPE C:\CMD\COMMAND\KVREN.TXT\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT" "$KVTXT" "$SRC/CMD/COMMAND/KVREN.TXT"
+if echo "$out" | grep -q "RENAME_TEST_DATA"; then
+    ok "COMMAND.COM RENAME (long synonym mutates the file namespace)"
+else
+    fail "COMMAND.COM RENAME (expected renamed file content, got: $out)"
+fi
+
 # -- DEL --
 printf 'DEL_TEST_DATA\r\n' > "$KVTXT"
 printf 'DEL C:\CMD\COMMAND\KVTST.TXT\r\nIF NOT EXIST C:\CMD\COMMAND\KVTST.TXT ECHO DEL_OK\r\n' > "$KVBAT"
@@ -2034,6 +2061,17 @@ else
     fail "COMMAND.COM MD + RD (expected 'MD_OK' and 'RD_OK', got: $out)"
 fi
 
+# -- MKDIR + RMDIR (long synonyms) --
+KVTDIR="$SRC/CMD/COMMAND/KVTDIR"
+printf 'MKDIR C:\CMD\COMMAND\KVTDIR\r\nIF EXIST C:\CMD\COMMAND\KVTDIR\ ECHO MKDIR_OK\r\nRMDIR C:\CMD\COMMAND\KVTDIR\r\nIF NOT EXIST C:\CMD\COMMAND\KVTDIR\ ECHO RMDIR_OK\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"; rmdir "$KVTDIR" 2>/dev/null || true
+if echo "$out" | grep -q "MKDIR_OK" && echo "$out" | grep -q "RMDIR_OK"; then
+    ok "COMMAND.COM MKDIR + RMDIR (long synonyms mutate directories)"
+else
+    fail "COMMAND.COM MKDIR + RMDIR (expected both markers, got: $out)"
+fi
+
 # -- MD nested --
 KVNDIR="$SRC/CMD/COMMAND/KVNEST"
 printf 'MD C:\CMD\COMMAND\KVNEST\r\nMD C:\CMD\COMMAND\KVNEST\SUB\r\nIF EXIST C:\CMD\COMMAND\KVNEST\SUB\ ECHO MD_NESTED_OK\r\n' > "$KVBAT"
@@ -2077,6 +2115,16 @@ if echo "$out" | grep -qi 'C:\\CMD\\EDLIN'; then
     ok "COMMAND.COM CD (change and verify directory)"
 else
     fail "COMMAND.COM CD (expected 'C:\CMD\EDLIN' in output, got: $out)"
+fi
+
+# -- CHDIR long synonym --
+printf '@ECHO OFF\r\nCHDIR C:\\CMD\\EDLIN\r\nCHDIR\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -qi 'C:\\CMD\\EDLIN'; then
+    ok "COMMAND.COM CHDIR (long synonym changes and reports directory)"
+else
+    fail "COMMAND.COM CHDIR (expected C:\CMD\EDLIN, got: $out)"
 fi
 
 # -- PROMPT: set and verify via SET (list all env vars) --
