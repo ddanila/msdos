@@ -11,10 +11,23 @@ MANIFEST = ROOT / "tests/utility_parser_coverage.json"
 VALID_LEVELS = {"uncovered", "observed", "contract"}
 
 
-def source_switches(text):
-    return {value.upper() for value in re.findall(
-        r"\bDB\s+[\"'](/[^\"',\s]+)[\"']\s*,\s*0", text, re.IGNORECASE
-    )}
+def source_switches(text, extractor="asm_db"):
+    if extractor == "asm_db":
+        values = re.findall(
+            r"\bDB\s+[\"'](/[^\"',\s]+)[\"']\s*,\s*0", text, re.IGNORECASE
+        )
+    elif extractor == "c_parser_literals":
+        values = re.findall(
+            r"strcpy\([^;]*?[\"'](/[^\"',+\s]+)[\"']", text, re.IGNORECASE
+        )
+        values += re.findall(
+            r"^\s*#define\s+\w+\s+[\"'](/[^\"']+)[\"']",
+            text,
+            re.IGNORECASE | re.MULTILINE,
+        )
+    else:
+        raise AssertionError(f"unknown parser extractor {extractor!r}")
+    return {value.upper() for value in values}
 
 
 def main():
@@ -26,17 +39,34 @@ def main():
         raise AssertionError("unsupported utility parser coverage schema")
 
     ci_corpus = (ROOT / "Makefile").read_text() + (ROOT / ".github/workflows/ci.yml").read_text()
-    parser_sources = {
+    assembly_sources = {
         path.relative_to(ROOT).as_posix()
         for path in (ROOT / "MS-DOS/v4.0/src/CMD").rglob("*.ASM")
         if "COMMAND" not in path.parts
         and source_switches(path.read_text(encoding="latin-1"))
     }
-    declared_sources = {item["source"] for item in manifest["utilities"].values()}
-    if parser_sources != declared_sources:
+    c_sources = {
+        path.relative_to(ROOT).as_posix()
+        for path in (ROOT / "MS-DOS/v4.0/src/CMD").rglob("*.C")
+        if source_switches(path.read_text(encoding="latin-1"), "c_parser_literals")
+    }
+    declared_assembly = {
+        item["source"] for item in manifest["utilities"].values()
+        if item.get("extractor", "asm_db") == "asm_db"
+    }
+    declared_c = {
+        item["source"] for item in manifest["utilities"].values()
+        if item.get("extractor") == "c_parser_literals"
+    }
+    if assembly_sources != declared_assembly:
         raise AssertionError(
-            f"utility parser source mismatch; missing={sorted(parser_sources-declared_sources)}, "
-            f"stale={sorted(declared_sources-parser_sources)}"
+            f"assembly parser source mismatch; missing={sorted(assembly_sources-declared_assembly)}, "
+            f"stale={sorted(declared_assembly-assembly_sources)}"
+        )
+    if c_sources != declared_c:
+        raise AssertionError(
+            f"C parser source mismatch; missing={sorted(c_sources-declared_c)}, "
+            f"stale={sorted(declared_c-c_sources)}"
         )
     incomplete = []
     counts = {level: 0 for level in VALID_LEVELS}
@@ -45,7 +75,9 @@ def main():
         source = ROOT / definition["source"]
         if not source.is_file():
             raise AssertionError(f"{utility}: missing parser source {definition['source']}")
-        derived = source_switches(source.read_text(encoding="latin-1"))
+        derived = source_switches(
+            source.read_text(encoding="latin-1"), definition.get("extractor", "asm_db")
+        )
         declared = {switch.upper() for switch in definition["switches"]}
         if derived != declared:
             raise AssertionError(f"{utility}: parser mismatch; missing={sorted(derived-declared)}, stale={sorted(declared-derived)}")

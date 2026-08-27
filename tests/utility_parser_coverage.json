@@ -1,6 +1,15 @@
 {
   "schema": 1,
   "utilities": {
+    "BACKUP.COM": {"source": "MS-DOS/v4.0/src/CMD/BACKUP/BACKUP.C", "extractor": "c_parser_literals", "switches": {
+      "/A": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Appends to an existing backup set and preserves earlier content"},
+      "/D": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Date filtering includes and excludes deterministic source timestamps"},
+      "/F": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Formats the private destination media before creating a restorable set"},
+      "/L": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Creates the requested backup log with observable entries"},
+      "/M": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Backs up modified files and clears their source archive attribute"},
+      "/S": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Recursively backs up and restores nested payloads"},
+      "/T": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Time filtering includes and excludes deterministic source timestamps"}
+    }},
     "DISKCOMP.COM": {"source": "MS-DOS/v4.0/src/CMD/DISKCOMP/DCOMPPAR.ASM", "switches": {
       "/1": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Limits comparison to one side and composes with /8"},
       "/8": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Limits comparison to eight sectors per track and composes with /1"}
@@ -16,6 +25,9 @@
       "/N": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Line numbering is observable alone and with inverted matches"},
       "/V": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Inverted matching is asserted alone and in every switch combination"}
     }},
+    "FILESYS.EXE": {"source": "MS-DOS/v4.0/src/CMD/FILESYS/FILESYS.C", "extractor": "c_parser_literals", "switches": {
+      "/D": {"level": "contract", "evidence": ["tests/test_config_ifs_qemu.sh", "tests/test_ifsfunc_filesys_qemu.sh"], "note": "Detaches a live purpose-built IFS and records the exact detach request"}
+    }},
     "GRAFTABL.COM": {"source": "MS-DOS/v4.0/src/CMD/GRAFTABL/GRTABPAR.ASM", "switches": {
       "/STA": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Short status synonym reaches the live code-page query"},
       "/STATUS": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_graftabl_qemu.sh"], "note": "Long status synonym reports the active resident code page"}
@@ -29,6 +41,13 @@
     }},
     "KEYB.COM": {"source": "MS-DOS/v4.0/src/CMD/KEYB/PARSER.ASM", "switches": {
       "/ID": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_keyb_layout_qemu.sh"], "note": "A concrete French keyboard ID loads and the resulting active layout is queried"}
+    }},
+    "JOIN.EXE": {"source": "MS-DOS/v4.0/src/CMD/JOIN/JOIN.C", "extractor": "c_parser_literals", "switches": {
+      "/D": {"level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Removes a live joined drive while preserving the underlying target payload"}
+    }},
+    "MEM.EXE": {"source": "MS-DOS/v4.0/src/CMD/MEM/MEM.C", "extractor": "c_parser_literals", "switches": {
+      "/DEBUG": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_drivers_qemu.sh"], "note": "Reports internal drivers and configured-system detail"},
+      "/PROGRAM": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Reports loaded programs and their memory use"}
     }},
     "MODE.COM": {"source": "MS-DOS/v4.0/src/CMD/MODE/MODEPARS.ASM", "switches": {
       "/STA": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Shortest synonym reports live console status"},
@@ -46,6 +65,24 @@
       "/T": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Terminates the active queue and returns to the batch"},
       "/U": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "Minimum-tick configuration is accepted by the working spooler"}
     }},
+    "REPLACE.EXE": {"source": "MS-DOS/v4.0/src/CMD/REPLACE/REPLACE.C", "extractor": "c_parser_literals", "switches": {
+      "/A": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Adds source files absent from the destination"},
+      "/P": {"level": "contract", "evidence": ["tests/test_prompt_yesno.sh"], "note": "Prompts before replacement and honors the supplied decision"},
+      "/R": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Replaces a read-only destination file"},
+      "/S": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Recursively replaces exact payloads in multiple subdirectories"},
+      "/U": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Replaces only when the source is newer"},
+      "/W": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Waits for supplied input before replacement"}
+    }},
+    "RESTORE.COM": {"source": "MS-DOS/v4.0/src/CMD/RESTORE/RESTPARS.C", "extractor": "c_parser_literals", "switches": {
+      "/A": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Restores files at or after a deterministic date boundary"},
+      "/B": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Restores files at or before a deterministic date boundary"},
+      "/E": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Restores files at or before a deterministic time boundary"},
+      "/L": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Restores files at or after a deterministic time boundary"},
+      "/M": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Restores only changed files from a binary-exact backup set"},
+      "/N": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Restores only files absent from the target"},
+      "/P": {"level": "contract", "evidence": ["tests/test_backup_restore.sh", "tests/test_prompt_yesno.sh"], "note": "Prompts before overwriting and honors the supplied decision"},
+      "/S": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Reconstructs nested directories and exact payloads"}
+    }},
     "SHARE.EXE": {"source": "MS-DOS/v4.0/src/CMD/SHARE/GSHARE2.ASM", "switches": {
       "/F": {"level": "contract", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_int21_compat_qemu.sh"], "note": "File-table sizing participates in the installation whose byte locking is verified"},
       "/L": {"level": "contract", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_int21_compat_qemu.sh"], "note": "Lock-table sizing participates in the installation whose byte locking is verified"},
@@ -54,6 +91,9 @@
     "SORT.EXE": {"source": "MS-DOS/v4.0/src/CMD/SORT/SORT.ASM", "switches": {
       "/+": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Column sorting covers an ordinary value, both declared range endpoints, and adjacent rejections"},
       "/R": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Reverse mode produces exact descending line order"}
+    }},
+    "SUBST.EXE": {"source": "MS-DOS/v4.0/src/CMD/SUBST/SUBST.C", "extractor": "c_parser_literals", "switches": {
+      "/D": {"level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Removes a live substitution while preserving the underlying directory payload"}
     }},
     "TREE.COM": {"source": "MS-DOS/v4.0/src/CMD/TREE/TREEPAR.ASM", "switches": {
       "/A": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Selects observable ASCII branch characters"},

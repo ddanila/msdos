@@ -36,13 +36,13 @@ It also derives SELECT.EXE's complete positional-mode surface from the live
 `KEYWORD_*` definitions in `SELECT/SCN_PARM.ASM`, preventing its internal MENU
 and FDISK entry paths from being collapsed into one generic executable claim.
 
-`utility_parser_coverage.json` begins the same source-derived depth inventory
-for standalone utilities whose parser synonyms are explicit `DB "/...",0`
-records. Its verifier covers all 42 switches across the thirteen standalone
-utilities encoded this way: DISKCOMP, DISKCOPY, EDLIN, FIND, GRAFTABL,
-GRAPHICS, KEYB, MODE, PRINT, SHARE, SORT, TREE, and XCOPY. Short and long
-synonyms remain separate entry contracts. It derives the complete matching
-source-file set, then compares each declared surface with its live
+`utility_parser_coverage.json` extends the same source-derived depth inventory
+to standalone utilities. It recognizes both assembly `DB "/...",0` synonym
+records and C parsers that initialize switch records with dedicated `strcpy`
+or `#define` literals. Its verifier covers all 68 switches across twenty
+utilities. Short and long synonyms remain separate entry contracts. It derives
+the complete matching source-file set for both encodings, then compares each
+declared surface with its live
 parser source and rejects missing or stale switches and evidence absent from
 CI. This layer intentionally complements the runtime-component inventory: an
 executable cannot be considered deep coverage merely because one of several
