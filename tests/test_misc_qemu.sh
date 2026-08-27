@@ -53,6 +53,7 @@ FLOPPY="$OUT/floppy.img"
 
 BOOT_IMG="$OUT/floppy-misc-qemu.img"
 SERIAL_LOG="$OUT/misc-qemu-serial.log"
+EXIT_COM="$OUT/misc-qemu-exit.com"
 
 PASS=0
 FAIL=0
@@ -74,6 +75,10 @@ echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
+nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
+mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
+printf '@ECHO OFF\r\nECHO Hello World | FIND "Hello"\r\n' \
+    | mcopy -o -i "$BOOT_IMG" - ::FINDPIPE.BAT
 
 # KEYBOARD.SYS is deployed to the floppy by make deploy (alongside KEYB.COM).
 
@@ -306,11 +311,10 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     # ── FIND from stdin (pipe) — ECHO | FIND ────────────────────────────────
     # FIND reads handle 0 (stdin) via INT 21h AH=3Fh. Under QEMU with CTTY AUX,
     # stdin works through the serial port. Pipe via DOS shell handles it.
-    # Note: DOS pipe via COMMAND.COM corrupts handles after cmd1 | cmd2,
-    # causing "Invalid handle" on the next ECHO. The FIND output itself works.
+    # Isolate the known DOS pipe handle mutation in a child COMMAND so the
+    # parent batch retains valid handles for the following DIR /P contract.
     printf 'ECHO ---FIND-STDIN---\r\n'
-    printf 'ECHO Hello World | FIND "Hello"\r\n'
-    printf 'REM FIND_STDIN end marker not used (DOS pipe corrupts handles)\r\n'
+    printf 'COMMAND /C FINDPIPE.BAT\r\n'
 
     # ── DIR /P — paginated directory listing ─────────────────────────────────
     # DIR /P pauses after each screenful (INT 21h AH=01h, waits for any key).
@@ -318,6 +322,7 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'ECHO ---DIR-P---\r\n'
     printf 'DIR /P\r\n'
     printf 'ECHO DIR_P_DONE\r\n'
+    printf 'QEXIT.COM\r\n'
 
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
@@ -330,6 +335,7 @@ timeout 120 qemu-system-i386 \
     -drive if=floppy,index=0,format=raw,file="$BOOT_IMG",cache=writethrough \
     -boot a -m 4 \
     -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     2>/dev/null | tee "$SERIAL_LOG" > /dev/null; true
 
 if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
