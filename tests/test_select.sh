@@ -6,15 +6,16 @@
 # injection) to drive the interaction.
 #
 # Test flow:
-#   1. Boot DOS (no AUTOEXEC.BAT) — dismiss date/time prompts
+#   1. Boot DOS with the minimal AUTOEXEC.BAT required by SELECT's exit path
 #   2. Type "SELECT" at A:\> prompt
 #   3. Stub shows "Insert SELECT diskette" — press ENTER (INT 16H)
-#   4. SELECT.EXE runs — "Invalid parameters" (no args = expected error)
-#   5. Returns to DOS prompt (no crash/hang)
-#   6. Boot a fresh image and run "SELECT MENU"
-#   7. Confirm the valid path reaches the Welcome panel
-#   8. Cancel to the Exit panel, decline exit, and confirm recovery to Welcome
-#   9. Re-enter the Exit panel, accept with F3, and confirm return to DOS
+#   4. SELECT.EXE rejects no args, an unknown mode, and excess operands
+#   5. FDISK is recognized, but a missing SELECT.TMP is rejected safely
+#   6. Each rejected invocation returns to DOS without a crash or hang
+#   7. Boot a fresh image and run "SELECT MENU"
+#   8. Confirm the valid path reaches the Welcome panel
+#   9. Cancel to the Exit panel, decline exit, and confirm recovery to Welcome
+#  10. Re-enter the Exit panel, accept with F3, and confirm return to DOS
 #
 # Run via: make test-select  (requires 'make deploy' first)
 
@@ -29,6 +30,9 @@ QMP_SOCK="$OUT/select-test-qmp.sock"
 MENU_BOOT_IMG="$OUT/select-menu-test-boot.img"
 MENU_SCREEN_LOG="$OUT/select-menu-test.log"
 MENU_QMP_SOCK="$OUT/select-menu-test-qmp.sock"
+FDISK_BOOT_IMG="$OUT/select-fdisk-test-boot.img"
+FDISK_SCREEN_LOG="$OUT/select-fdisk-test.log"
+FDISK_QMP_SOCK="$OUT/select-fdisk-test-qmp.sock"
 
 PASS=0
 FAIL=0
@@ -41,7 +45,7 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
-trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$QMP_SOCK" "$MENU_QMP_SOCK" "$BOOT_IMG" "$MENU_BOOT_IMG" 2>/dev/null; true' EXIT
+trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$QMP_SOCK" "$MENU_QMP_SOCK" "$FDISK_QMP_SOCK" "$BOOT_IMG" "$MENU_BOOT_IMG" "$FDISK_BOOT_IMG" 2>/dev/null; true' EXIT
 
 echo "=== SELECT e2e test (screen_expect: INT 16H + video memory) ==="
 
@@ -49,7 +53,7 @@ echo "=== SELECT e2e test (screen_expect: INT 16H + video memory) ==="
 echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
-mdel -i "$BOOT_IMG" ::AUTOEXEC.BAT 2>/dev/null || true
+printf '@ECHO OFF\r\n' | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
 # ── Step 2: boot QEMU with QMP ──────────────────────────────────────────────
 echo "Booting QEMU with QMP socket..."
@@ -75,25 +79,57 @@ fi
 
 # ── Step 3: run screen_expect ────────────────────────────────────────────────
 # Rules:
-#   1. Dismiss date prompt → Enter
-#   2. Dismiss time prompt → Enter
-#   3. Wait for A:\> prompt → type "SELECT" + Enter
-#   4. Wait for stub message "Insert SELECT" → press Enter (INT 16H)
-#   5. Wait for "Invalid parameters" (SELECT.EXE no-args error) → Enter
-#   6. Wait for A:\> again (returned to DOS) → done
-echo "Running screen_expect (SELECT stub + EXE flow)..."
+#   1. Wait for A:\> prompt → type "SELECT" + Enter
+#   2. Wait for stub message "Insert SELECT" → press Enter (INT 16H)
+#   3. Chain the remaining negative parser/control-file cases from each prompt
+echo "Running screen_expect (SELECT stub + parser/control-file flow)..."
 python3 "$REPO_ROOT/tests/screen_expect.py" \
     "$QMP_SOCK" "$SCREEN_LOG" \
-    'Enter new date' 'ret' \
-    'Enter new time' 'ret' \
     '>' 's+e+l+e+c+t+ret' \
     'Insert SELECT' 'ret' \
-    'Invalid parameters' 'ret'
+    'Invalid parameters' 's+e+l+e+c+t+spc+b+o+g+u+s+ret' \
+    'Insert SELECT' 'ret' \
+    'Invalid parameters' 's+e+l+e+c+t+spc+m+e+n+u+spc+e+x+t+r+a+ret' \
+    'Insert SELECT' 'ret' \
+    'Invalid parameters' ''
 
 kill $QEMU_PID 2>/dev/null
 wait $QEMU_PID 2>/dev/null || true
 
-# ── Step 4: exercise a valid UI state transition and recovery ──────────────────
+# ── Step 4: exercise the recognized FDISK mode's missing-control path ─────────
+echo "Running SELECT FDISK missing-control-file check..."
+cp "$FLOPPY" "$FDISK_BOOT_IMG"
+printf '@ECHO OFF\r\n' | mcopy -o -i "$FDISK_BOOT_IMG" - ::AUTOEXEC.BAT
+rm -f "$FDISK_QMP_SOCK"
+timeout 90 qemu-system-i386 \
+    -display none \
+    -drive if=floppy,index=0,format=raw,file="$FDISK_BOOT_IMG" \
+    -boot a -m 4 \
+    -qmp unix:"$FDISK_QMP_SOCK",server,nowait \
+    2>/dev/null &
+QEMU_PID=$!
+
+for i in $(seq 1 20); do
+    [[ -S "$FDISK_QMP_SOCK" ]] && break
+    sleep 0.2
+done
+
+if [[ ! -S "$FDISK_QMP_SOCK" ]]; then
+    echo "ERROR: FDISK QMP socket did not appear"
+    exit 1
+fi
+
+python3 "$REPO_ROOT/tests/screen_expect.py" \
+    "$FDISK_QMP_SOCK" "$FDISK_SCREEN_LOG" \
+    '>' 's+e+l+e+c+t+spc+f+d+i+s+k+ret' \
+    'Insert SELECT' 'ret' \
+    '>' 'e+c+h+o+spc+s+e+l+e+c+t+f+d+i+s+k+r+e+t+u+r+n+e+d+ret' \
+    'selectfdiskreturned' ''
+
+kill $QEMU_PID 2>/dev/null
+wait $QEMU_PID 2>/dev/null || true
+
+# ── Step 5: exercise a valid UI state transition and recovery ──────────────────
 echo "Running SELECT MENU valid-path check..."
 cp "$FLOPPY" "$MENU_BOOT_IMG"
 # EXIT_SELECT requires the INSTALL disk to contain AUTOEXEC.BAT before it will
@@ -150,7 +186,7 @@ else
 fi
 
 # Stub accepted ENTER via INT 16H (if it didn't, we'd never see SELECT.EXE output)
-if grep -q "Rule 3: matched.*Insert SELECT" "$SCREEN_LOG"; then
+if grep -q "Rule 1: matched.*Insert SELECT" "$SCREEN_LOG"; then
     ok "INT 16H keyboard input received (ENTER accepted by stub)"
 else
     fail "INT 16H keyboard input not received (stub didn't see ENTER)"
@@ -163,11 +199,26 @@ else
     fail "SELECT.EXE did not execute (no error message found)"
 fi
 
-# Returned to DOS prompt (no crash/hang)
-if grep -q "Rule 4: matched.*Invalid parameters" "$SCREEN_LOG"; then
-    ok "SELECT.EXE returned to DOS (no crash/hang)"
+# Returned to DOS prompt after every rejected invocation (no crash/hang).
+if grep -q "Rule 2: matched.*Invalid parameters" "$SCREEN_LOG"; then
+    ok "SELECT.EXE rejected a missing mode and returned to DOS"
 else
-    fail "SELECT.EXE did not return to DOS"
+    fail "SELECT.EXE did not reject a missing mode safely"
+fi
+if grep -q "Rule 4: matched.*Invalid parameters" "$SCREEN_LOG"; then
+    ok "SELECT.EXE rejected an unknown mode and returned to DOS"
+else
+    fail "SELECT.EXE did not reject an unknown mode safely"
+fi
+if grep -q "Rule 6: matched.*Invalid parameters" "$SCREEN_LOG"; then
+    ok "SELECT.EXE rejected excess operands and returned to DOS"
+else
+    fail "SELECT.EXE did not reject excess operands safely"
+fi
+if grep -q "Rule 3: matched.*selectfdiskreturned" "$FDISK_SCREEN_LOG"; then
+    ok "SELECT FDISK missing-control path preserved shell input and returned"
+else
+    fail "SELECT FDISK missing-control path did not preserve shell input"
 fi
 
 if grep -q "Final screen" "$SCREEN_LOG"; then
@@ -213,6 +264,8 @@ if [[ $FAIL -gt 0 ]]; then
     cat "$SCREEN_LOG" 2>/dev/null || echo "(empty)"
     echo "--- SELECT MENU screen log ---"
     cat "$MENU_SCREEN_LOG" 2>/dev/null || echo "(empty)"
+    echo "--- SELECT FDISK screen log ---"
+    cat "$FDISK_SCREEN_LOG" 2>/dev/null || echo "(empty)"
     echo "--- end screen log ---"
 fi
 

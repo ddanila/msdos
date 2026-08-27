@@ -275,8 +275,11 @@ prompt; submitting an empty replacement and declining deletion must preserve
 the prior on-disk label.
 
 `test_select.sh` drives SELECT through its BIOS keyboard and video interfaces.
-Besides the stub transition and invalid-command-line return path, the valid
-MENU workflow must reach Welcome, cancel to the Exit panel, decline exit, and
+Besides the stub transition, missing, unknown, and excess modes must return
+through the invalid-command-line path. The recognized FDISK mode is exercised
+without its reboot-generated `SELECT.TMP`; after that failure, a fresh ECHO
+command proves SELECT did not close the parent shell's standard input. The
+valid MENU workflow must reach Welcome, cancel to the Exit panel, decline exit, and
 return to Welcome. It then re-enters the Exit panel, accepts with F3, and must
 return to the DOS prompt with the source-required `AUTOEXEC.BAT` present on the
 INSTALL disk. This proves both sides of the reversible UI transition and its
