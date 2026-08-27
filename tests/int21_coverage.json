@@ -2,11 +2,15 @@
   "schema": 1,
   "dispatch_source": "MS-DOS/v4.0/src/DOS/MS_TABLE.ASM",
   "functions": {
+    "01": {"level": "contract", "evidence": ["tests/int21_console_probe.asm", "tests/test_int21_console_qemu.sh"], "note": "Redirected character input returns and echoes an asserted byte"},
     "02": {"level": "contract", "evidence": ["tests/test_debug_qemu.sh"], "note": "DEBUG-launched probe writes through console output"},
+    "06": {"level": "contract", "evidence": ["tests/int21_console_probe.asm", "tests/test_int21_console_qemu.sh"], "note": "Direct console output emits and returns an asserted byte"},
+    "07": {"level": "contract", "evidence": ["tests/int21_console_probe.asm", "tests/test_int21_console_qemu.sh"], "note": "Redirected raw input returns the next asserted byte"},
+    "08": {"level": "contract", "evidence": ["tests/int21_console_probe.asm", "tests/test_int21_console_qemu.sh"], "note": "Redirected no-echo input returns the next asserted byte"},
     "09": {"level": "contract", "evidence": ["tests/test_debug_qemu.sh"], "note": "DEBUG-launched probe prints a dollar-terminated string"},
-    "0A": {"level": "observed", "evidence": ["tests/run_tests.sh"], "note": "DATE and TIME exercise buffered console input"},
+    "0A": {"level": "contract", "evidence": ["tests/int21_console_probe.asm", "tests/test_int21_console_qemu.sh"], "note": "Buffered input returns the asserted length and contents"},
     "0B": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "Console input status is asserted to return its documented boolean domain"},
-    "0C": {"level": "observed", "evidence": ["tests/test_recover.sh", "tests/test_diskcomp_diskcopy.sh"], "note": "Interactive tools flush and read console input"},
+    "0C": {"level": "contract", "evidence": ["tests/int21_console_probe.asm", "tests/test_int21_console_qemu.sh"], "note": "Flush-and-read invokes buffered input and returns asserted contents"},
     "0D": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "Disk reset completes before subsequent asserted filesystem operations"},
     "0E": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "Selecting the active drive returns a drive count greater than its index"},
     "0F": {"level": "contract", "evidence": ["tests/int21_fcb_probe.asm", "tests/test_int21_fcb_qemu.sh"], "note": "A created FCB file is reopened successfully"},
@@ -79,6 +83,7 @@
     "52": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "List-of-lists returns a non-null internal pointer"},
     "53": {"level": "contract", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh"], "note": "A 1.44 MB FAT12 BPB is converted to asserted DPB geometry"},
     "54": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "Get-verify observes both toggled and restored write-verification states"},
+    "55": {"level": "contract", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh"], "note": "A duplicated PSP becomes current, is verified, then the parent is restored"},
     "56": {"level": "contract", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "Renames a test file before finding and deleting it"},
     "57": {"level": "contract", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "Reads and writes back a live handle's date and time"},
     "58": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "Arena allocation strategy is queried, set, and queried again"},
@@ -86,6 +91,9 @@
     "5A": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "A unique temporary pathname is generated, committed, closed, and deleted"},
     "5B": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "Create-new succeeds once and then returns ERROR_FILE_EXISTS"},
     "5C": {"level": "contract", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh"], "note": "With SHARE resident, a byte range is locked and unlocked on a live file"},
+    "5D": {"level": "contract", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh"], "note": "DOS 4 server call 0Bh returns a non-null swap-area table"},
+    "5E": {"level": "contract", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh"], "note": "Network identity name and number are changed, read back, and restored"},
+    "5F": {"level": "contract", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh"], "note": "Current CDS in-use state is set and reset successfully"},
     "60": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "TRUENAME canonicalizes dot to a path on the active drive"},
     "61": {"level": "contract", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh"], "note": "Reserved CP/M compatibility slot returns its defined zero status"},
     "62": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "Public get-PSP returns a nonzero segment shared by PSP interfaces"},
@@ -103,6 +111,7 @@
     "00": "Terminate-program compatibility entry cannot return to an in-process harness",
     "03": "AUX input requires external serial timing and is covered at the command/CTTY layer",
     "04": "AUX output requires hardware-specific observation",
-    "05": "Printer output requires printer-device observation"
+    "05": "Printer output requires printer-device observation",
+    "64": "Undocumented internal printer-idle flag is write-only; no DOS readback exists and observable behavior requires printer-device timing instrumentation"
   }
 }

@@ -156,6 +156,49 @@ set_dpb_failed:
     jmp fail
 set_dpb_ok:
 
+    mov ax, 5d0bh                  ; DOS 4 swap-area table for server callers.
+    int 21h
+    mov ax, ds
+    or ax, si
+    jnz server_data_ok
+    push cs
+    pop ds
+    mov dx, fail_5d
+    jmp fail
+server_data_ok:
+    push cs
+    pop ds
+
+    mov dx, original_user_name    ; Preserve local network identity.
+    xor al, al
+    mov ah, 5eh
+    int 21h
+    fail_if_carry 5e
+    mov [original_user_number], cx
+    mov dx, test_user_name
+    mov cx, 1234h
+    mov ax, 5e01h
+    int 21h
+    fail_if_carry 5e
+    mov dx, returned_user_name
+    xor al, al
+    mov ah, 5eh
+    int 21h
+    fail_if_carry 5e
+    cmp cx, 1234h
+    jne user_name_failed
+    cmp byte [returned_user_name], 'T'
+    je user_name_ok
+user_name_failed:
+    mov dx, fail_5e
+    jmp fail
+user_name_ok:
+    mov dx, original_user_name
+    mov cx, [original_user_number]
+    mov ax, 5e01h
+    int 21h
+    fail_if_carry 5e
+
     xor cx, cx
     mov dx, lock_file
     mov ah, 3ch
@@ -250,6 +293,49 @@ extended_open_failed:
     jmp fail
 extended_open_ok:
 
+    mov ah, 19h
+    int 21h
+    mov dl, al
+    mov ax, 5f07h                  ; Set and reset current CDS in-use state.
+    int 21h
+    fail_if_carry 5f
+    mov ah, 19h
+    int 21h
+    mov dl, al
+    mov ax, 5f08h
+    int 21h
+    fail_if_carry 5f
+
+    mov ah, 62h
+    int 21h
+    mov [parent_segment], bx
+    mov bx, 32
+    mov ah, 48h
+    int 21h
+    fail_if_carry 55
+    mov [child_segment], ax
+    mov dx, ax
+    add ax, 32
+    mov si, ax
+    mov ah, 55h                    ; Duplicate PSP and make it current.
+    int 21h
+    mov ah, 51h
+    int 21h
+    cmp bx, [child_segment]
+    je duplicated_psp_ok
+    mov dx, fail_55
+    jmp fail
+duplicated_psp_ok:
+    mov bx, [parent_segment]
+    mov ah, 50h                    ; Restore parent before releasing child.
+    int 21h
+    mov es, [child_segment]
+    mov ah, 49h
+    int 21h
+    push ds
+    pop es
+    fail_if_carry 55
+
     mov dx, pass_message
     mov ah, 09h
     int 21h
@@ -276,7 +362,11 @@ fail_20      db 'INT21_20_FAIL', 13, 10, '$'
 fail_26      db 'INT21_26_FAIL', 13, 10, '$'
 fail_32      db 'INT21_32_FAIL', 13, 10, '$'
 fail_53      db 'INT21_53_FAIL', 13, 10, '$'
+fail_55      db 'INT21_55_FAIL', 13, 10, '$'
 fail_5c      db 'INT21_5C_FAIL', 13, 10, '$'
+fail_5d      db 'INT21_5D_FAIL', 13, 10, '$'
+fail_5e      db 'INT21_5E_FAIL', 13, 10, '$'
+fail_5f      db 'INT21_5F_FAIL', 13, 10, '$'
 fail_61      db 'INT21_61_FAIL', 13, 10, '$'
 fail_63      db 'INT21_63_FAIL', 13, 10, '$'
 fail_6b      db 'INT21_6B_FAIL', 13, 10, '$'
@@ -295,7 +385,12 @@ floppy_bpb:
 lock_file db 'I21LOCK.TMP', 0
 extended_name db 'I21EXT.TMP', 0
 child_segment dw 0
+parent_segment dw 0
 file_handle dw 0
+original_user_number dw 0
+test_user_name db 'TRACEUSER      ', 0
+original_user_name times 16 db 0
+returned_user_name times 16 db 0
 extended_parameters times 8 db 0
 converted_dpb times 40 db 0
 ifs_buffer times 32 db 0
