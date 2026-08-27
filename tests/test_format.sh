@@ -143,6 +143,11 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     for i in "${!NAMES[@]}"; do
         printf 'ECHO ---FORMAT-%s---\r\n' "${NAMES[$i]}"
         printf '%s\r\n' "${FORMAT_CMDS[$i]}"
+        case "${NAMES[$i]}" in
+            TN|SWITCHC|SWITCHZ)
+                printf 'IF ERRORLEVEL 1 ECHO FORMAT_%s_REJECTED\r\n' "${NAMES[$i]}"
+                ;;
+        esac
         printf 'ECHO FORMAT_%s_DONE\r\n' "${NAMES[$i]}"
     done
     printf 'ECHO ===DONE===\r\n'
@@ -358,7 +363,8 @@ fi
 _tn_selected=0
 for _n in "${NAMES[@]}"; do [[ "$_n" == "TN" ]] && _tn_selected=1 && break; done
 if [[ $_tn_selected -eq 1 ]]; then
-    if sed -n '/---FORMAT-TN---/,/FORMAT_TN_DONE/p' "$SERIAL_LOG" | grep -qi "Parameters not supported"; then
+    if sed -n '/---FORMAT-TN---/,/FORMAT_TN_DONE/p' "$SERIAL_LOG" | grep -qi "Parameters not supported" \
+        && grep -q 'FORMAT_TN_REJECTED' "$SERIAL_LOG"; then
         ok "FORMAT /T:80 /N:9 (drive-specific rejection asserted)"
     else
         fail "FORMAT /T:80 /N:9 (expected drive-specific rejection)"
@@ -373,7 +379,8 @@ echo "--- FORMAT undocumented switch error checks ---"
 _c_selected=0
 for _n in "${NAMES[@]}"; do [[ "$_n" == "SWITCHC" ]] && _c_selected=1 && break; done
 if [[ $_c_selected -eq 1 ]]; then
-    if sed -n '/---FORMAT-SWITCHC---/,/FORMAT_SWITCHC_DONE/p' "$SERIAL_LOG" | grep -qi "Invalid parameter\|Invalid switch\|error"; then
+    if sed -n '/---FORMAT-SWITCHC---/,/FORMAT_SWITCHC_DONE/p' "$SERIAL_LOG" | grep -qi "Invalid parameter\|Invalid switch\|error" \
+        && grep -q 'FORMAT_SWITCHC_REJECTED' "$SERIAL_LOG"; then
         ok "FORMAT /C (rejected with error — /C disallowed in MSFOR.ASM)"
     else
         fail "FORMAT /C (expected 'Invalid parameter' error)"
@@ -384,12 +391,29 @@ fi
 _z_selected=0
 for _n in "${NAMES[@]}"; do [[ "$_n" == "SWITCHZ" ]] && _z_selected=1 && break; done
 if [[ $_z_selected -eq 1 ]]; then
-    if sed -n '/---FORMAT-SWITCHZ---/,/FORMAT_SWITCHZ_DONE/p' "$SERIAL_LOG" | grep -qi "Invalid parameter\|Invalid switch\|error\|not supported"; then
+    if sed -n '/---FORMAT-SWITCHZ---/,/FORMAT_SWITCHZ_DONE/p' "$SERIAL_LOG" | grep -qi "Invalid parameter\|Invalid switch\|error\|not supported" \
+        && grep -q 'FORMAT_SWITCHZ_REJECTED' "$SERIAL_LOG"; then
         ok "FORMAT /Z (rejected — ShipDisk=NO, /Z not compiled into parser)"
     else
         fail "FORMAT /Z (expected parser rejection)"
     fi
 fi
+
+for rejected_name in TN SWITCHC SWITCHZ; do
+    for i in "${!NAMES[@]}"; do
+        [[ "${NAMES[$i]}" == "$rejected_name" ]] || continue
+        if python3 - "${SAVED_IMGS[$i]}" <<'PYEOF'
+import sys
+image = open(sys.argv[1], 'rb').read()
+assert image and not any(image)
+PYEOF
+        then
+            ok "FORMAT $rejected_name left every target byte unchanged"
+        else
+            fail "FORMAT $rejected_name modified rejected target media"
+        fi
+    done
+done
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"

@@ -105,6 +105,8 @@ media checks cover 1.44MB and 720KB BPBs, 360KB and single-sided formats in a
 1.2MB drive, and the legacy pre-BPB 320KB `/8` FAT layout. Unsupported `/T`/`/N`
 and undocumented-switch paths require their exact rejection diagnostics; no
 FORMAT case is accepted merely because the batch continued.
+Rejected `/T`/`/N`, `/C`, and `/Z` cases must also set a nonzero DOS errorlevel
+and leave every byte of their initially zeroed private target image unchanged.
 
 `test_recover.sh` covers both public RECOVER modes on disposable media. File
 mode must preserve the exact original payload. Whole-drive mode destroys only
