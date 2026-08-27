@@ -52,6 +52,10 @@ and linkage without pretending that one of the shipped TSRs is an IFS driver.
 ON and OFF boots. An INT 13h observer proves the same ten-sector absolute read
 is coalesced across a track only when MULTITRACK is enabled.
 
+Driver contracts similarly require an effect after installation. For example,
+`test_ansi_driver_qemu.sh` sends an ANSI cursor-position sequence through DOS
+and checks the resulting coordinates through the BIOS.
+
 Run the inventory check with:
 
 ```sh

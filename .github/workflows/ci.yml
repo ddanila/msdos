@@ -262,6 +262,9 @@ jobs:
       - name: ANSI.SYS / RAMDRIVE.SYS / CONFIG.SYS e2e tests
         run: bash tests/test_drivers_qemu.sh
 
+      - name: ANSI.SYS escape-sequence behavior
+        run: bash tests/test_ansi_driver_qemu.sh
+
       - name: Focused CONFIG.SYS state contracts
         run: bash tests/test_config_state_qemu.sh
 

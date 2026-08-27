@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "runtime_components": {
-    "ANSI.SYS": {"kind": "driver", "level": "observed", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Boot completes with the ANSI driver installed, but an escape-sequence contract is still needed"},
+    "ANSI.SYS": {"kind": "driver", "level": "contract", "evidence": ["tests/test_ansi_driver_qemu.sh"], "note": "A cursor-position escape sequence is written through DOS and its exact BIOS cursor coordinates are asserted"},
     "APPEND.EXE": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_append.sh"], "note": "Resident path extension, /E, /X, and /PATH state are asserted"},
     "ASSIGN.COM": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Drive redirection, file access, and removal are asserted"},
     "ATTRIB.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Attribute set, clear, recursive, and display behavior are asserted"},
