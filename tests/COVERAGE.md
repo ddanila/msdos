@@ -75,6 +75,11 @@ build also accounts for the relocated stack handler.
 accepts the boot-time INIT request, returns its resident size, and is then
 verified by name in DOS's live IFS header chain. This covers actual IFS loading
 and linkage without pretending that one of the shipped TSRs is an IFS driver.
+`test_ifsfunc_filesys_qemu.sh` extends the same fixture through the runtime
+lifecycle: IFSFUNC installs its DOS interface, FILESYS attaches the fixture to
+C:, reports its exact `TESTIFS` name, and detaches it. A post-detach probe reads
+the resident header and requires exactly one ATTSTART, ATTSTAT, and ATTEND
+request, so command completion alone cannot satisfy the contract.
 
 `test_config_multitrack_qemu.sh` attaches separate FAT16 IDE images to parallel
 ON and OFF boots. An INT 13h observer proves the same ten-sector absolute read

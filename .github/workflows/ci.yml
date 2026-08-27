@@ -300,6 +300,9 @@ jobs:
       - name: CONFIG.SYS installable filesystem linkage
         run: bash tests/test_config_ifs_qemu.sh
 
+      - name: IFSFUNC and FILESYS lifecycle
+        run: bash tests/test_ifsfunc_filesys_qemu.sh
+
       - name: CONFIG.SYS fixed-disk multitrack I/O
         run: bash tests/test_config_multitrack_qemu.sh
 
