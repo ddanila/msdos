@@ -8,6 +8,14 @@
     "DISKCOPY.COM": {"source": "MS-DOS/v4.0/src/CMD/DISKCOPY/DCOPYPAR.ASM", "switches": {
       "/1": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Copies one side and produces a single-sided target image"}
     }},
+    "EDLIN.COM": {"source": "MS-DOS/v4.0/src/CMD/EDLIN/EDLPARSE.ASM", "switches": {
+      "/B": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_edlin_qemu.sh"], "note": "Binary mode reads beyond an embedded DOS EOF marker while text mode stops there"}
+    }},
+    "FIND.EXE": {"source": "MS-DOS/v4.0/src/CMD/FIND/FIND.ASM", "switches": {
+      "/C": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Count mode is asserted alone and in every combination, including precedence over /N"},
+      "/N": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Line numbering is observable alone and with inverted matches"},
+      "/V": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Inverted matching is asserted alone and in every switch combination"}
+    }},
     "GRAFTABL.COM": {"source": "MS-DOS/v4.0/src/CMD/GRAFTABL/GRTABPAR.ASM", "switches": {
       "/STA": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Short status synonym reaches the live code-page query"},
       "/STATUS": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_graftabl_qemu.sh"], "note": "Long status synonym reports the active resident code page"}
@@ -18,6 +26,13 @@
       "/PB": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_graphics_print_qemu.sh"], "note": "Short printbox synonym loads STD and drives an exact printer-stream contract"},
       "/PRINTBOX": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Long printbox synonym loads the same named STD profile"},
       "/R": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Reverse-printing mode loads and returns to the batch"}
+    }},
+    "KEYB.COM": {"source": "MS-DOS/v4.0/src/CMD/KEYB/PARSER.ASM", "switches": {
+      "/ID": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_keyb_layout_qemu.sh"], "note": "A concrete French keyboard ID loads and the resulting active layout is queried"}
+    }},
+    "SORT.EXE": {"source": "MS-DOS/v4.0/src/CMD/SORT/SORT.ASM", "switches": {
+      "/+": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Column sorting covers an ordinary value, both declared range endpoints, and adjacent rejections"},
+      "/R": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Reverse mode produces exact descending line order"}
     }},
     "TREE.COM": {"source": "MS-DOS/v4.0/src/CMD/TREE/TREEPAR.ASM", "switches": {
       "/A": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Selects observable ASCII branch characters"},

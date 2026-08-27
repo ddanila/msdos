@@ -38,9 +38,10 @@ and FDISK entry paths from being collapsed into one generic executable claim.
 
 `utility_parser_coverage.json` begins the same source-derived depth inventory
 for standalone utilities whose parser synonyms are explicit `DB "/...",0`
-records. Its verifier currently covers 20 switches across DISKCOMP, DISKCOPY,
-GRAFTABL, GRAPHICS, TREE, and XCOPY, including short and long synonyms as
-separate entry contracts. It compares each declared surface with its live
+records. Its verifier currently covers 27 switches across ten utilities:
+DISKCOMP, DISKCOPY, EDLIN, FIND, GRAFTABL, GRAPHICS, KEYB, SORT, TREE, and
+XCOPY. Short and long synonyms remain separate entry contracts. It compares
+each declared surface with its live
 parser source and rejects missing or stale switches and evidence absent from
 CI. This layer intentionally complements the runtime-component inventory: an
 executable cannot be considered deep coverage merely because one of several
