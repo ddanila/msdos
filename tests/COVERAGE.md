@@ -39,8 +39,10 @@ and FDISK entry paths from being collapsed into one generic executable claim.
 `utility_parser_coverage.json` extends the same source-derived depth inventory
 to standalone utilities. It recognizes both assembly `DB "/...",0` synonym
 records and C parsers that initialize switch records with dedicated `strcpy`
-or `#define` literals. Its verifier covers all 68 switches across twenty
-utilities. Short and long synonyms remain separate entry contracts. It derives
+or `#define` literals. FC's code-driven parser has a dedicated extractor for
+its switch cases, `/LB` subform, and numeric resynchronization form. The
+verifier covers all 77 switches across twenty-one utilities. Short and long
+synonyms remain separate entry contracts. It derives
 the complete matching source-file set for both encodings, then compares each
 declared surface with its live
 parser source and rejects missing or stale switches and evidence absent from

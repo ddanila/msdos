@@ -25,6 +25,16 @@ def source_switches(text, extractor="asm_db"):
             text,
             re.IGNORECASE | re.MULTILINE,
         )
+    elif extractor == "fc_code":
+        parser = text.split("if(*(v[i]+j)=='/')", 1)[1].split(
+            "end parse of argument", 1
+        )[0]
+        parser = re.sub(r"#ifdef\s+DEBUG.*?#endif", "", parser, flags=re.DOTALL)
+        values = [f"/{letter}" for letter in re.findall(r"case\s+'([A-Z])'", parser)]
+        if re.search(r"j\+2\)\)\s*==\s*'B'", parser):
+            values.append("/LB")
+        if 'strbskip((v[i]+j+1),"0123456789")' in parser:
+            values.append("/NNNN")
     else:
         raise AssertionError(f"unknown parser extractor {extractor!r}")
     return {value.upper() for value in values}
@@ -68,6 +78,11 @@ def main():
             f"C parser source mismatch; missing={sorted(c_sources-declared_c)}, "
             f"stale={sorted(declared_c-c_sources)}"
         )
+    if {
+        item["source"] for item in manifest["utilities"].values()
+        if item.get("extractor") == "fc_code"
+    } != {"MS-DOS/v4.0/src/CMD/FC/FC.C"}:
+        raise AssertionError("FC code-driven parser source is missing or stale")
     incomplete = []
     counts = {level: 0 for level in VALID_LEVELS}
     total = 0
