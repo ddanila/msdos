@@ -214,6 +214,11 @@ derives the complete 128-character bitmap oracles from the maintained font
 sources, then switches 437 to 850 and back in one DOS session. After every
 switch it verifies GRAFTABL's INT 2Fh handler, the INT 1Fh vector, and all 1,040
 resident bytes including the code-page identifier and language metadata.
+PRINT's resident-spooler contract first rejects both ends of its `/B` and `/Q`
+ranges, the zero/overflow tick forms, an unknown switch, and a duplicate
+installation switch. Exact diagnostics and a single later installation prove
+that rejection leaves no resident state behind; the recovered spooler then
+delivers the queued payload byte-for-byte through PRINTER.SYS to captured LPT1.
 `test_assign_subst_join.sh` uses a separate physical B: image to prove ASSIGN,
 SUBST, and JOIN through their resulting drive namespace and exact file I/O.
 It also exercises each parser's duplicate, unknown, missing, conflicting, and

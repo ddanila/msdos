@@ -43,6 +43,15 @@ printf 'DEVICE=PRINTER.SYS LPT1=(4201,,1)\r\n' \
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
+    printf 'PRINT /B:511\r\n'
+    printf 'PRINT /B:16385\r\n'
+    printf 'PRINT /Q:3\r\n'
+    printf 'PRINT /Q:33\r\n'
+    printf 'PRINT /S:0\r\n'
+    printf 'PRINT /U:256\r\n'
+    printf 'PRINT /M:0\r\n'
+    printf 'PRINT /Z\r\n'
+    printf 'PRINT /B:512 /B:512\r\n'
     printf 'PRINT /D:LPT1 /B:512 /Q:5 /S:1 /U:1 /M:1\r\n'
     printf 'IF ERRORLEVEL 1 ECHO PRINT_INSTALL_FAILED\r\n'
     printf 'PRINT PAYLOAD.TXT /P\r\n'
@@ -73,11 +82,31 @@ import sys
 Path(sys.argv[1]).write_bytes(b"PRINT_PAYLOAD_ALPHA\r\nPRINT_PAYLOAD_OMEGA\r\n\f")
 PY
 
-if grep -q 'PRINT_SPOOL_DONE' "$SERIAL_LOG" \
+rejections_complete=1
+expected_diagnostics=(
+    'Parameter value not in allowed range -  /B:511'
+    'Parameter value not in allowed range -  /B:16385'
+    'Parameter value not in allowed range -  /Q:3'
+    'Parameter value not in allowed range -  /Q:33'
+    'Parameter value not in allowed range -  /S:0'
+    'Parameter value not in allowed range -  /U:256'
+    'Parameter value not in allowed range -  /M:0'
+    'Invalid switch -  /Z'
+    'Invalid switch - /B:512'
+)
+for diagnostic in "${expected_diagnostics[@]}"; do
+    grep -Fq -- "$diagnostic" "$SERIAL_LOG" || rejections_complete=0
+done
+
+if [[ $rejections_complete -eq 1 ]] \
+    && [[ $(grep -c 'Parameter value not in allowed range' "$SERIAL_LOG") -eq 7 ]] \
+    && [[ $(grep -c 'Invalid switch' "$SERIAL_LOG") -eq 2 ]] \
+    && [[ $(grep -c 'Resident part of PRINT installed' "$SERIAL_LOG") -eq 1 ]] \
+    && grep -q 'PRINT_SPOOL_DONE' "$SERIAL_LOG" \
     && grep -q 'PRINT queue is empty' "$SERIAL_LOG" \
     && ! grep -q 'PRINT_.*_FAILED' "$SERIAL_LOG" \
     && cmp -s "$expected" "$PARALLEL_LOG"; then
-    echo "  PASS: PRINT delivered the exact queued payload through PRINTER.SYS to LPT1"
+    echo "  PASS: PRINT rejected parser boundaries before delivering the exact queued payload"
     exit 0
 fi
 
