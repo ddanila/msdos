@@ -39,7 +39,7 @@
     "MSDOS.SYS": {"kind": "system", "level": "contract", "evidence": ["tests/test_sys.sh", "tests/int21_coverage.json"], "note": "SYS-created media boots and the complete live INT 21h table is contract-traced"},
     "NLSFUNC.EXE": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_drivers_qemu.sh"], "note": "Resident installation, duplicate handling, and code-page interaction are asserted"},
     "PRINT.COM": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Queue configuration, add, cancel, and terminate operations are asserted"},
-    "PRINTER.SYS": {"kind": "driver", "level": "uncovered", "evidence": [], "note": "Built driver has no installation or printer-device contract"},
+    "PRINTER.SYS": {"kind": "driver", "level": "contract", "evidence": ["tests/test_printer_driver_qemu.sh"], "note": "The 4201 printer definition prepares and selects code page 850, then reports it active through MODE"},
     "RAMDRIVE.SYS": {"kind": "driver", "level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Installed RAM disk is located and accessed through DOS directory I/O"},
     "RECOVER.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_recover.sh"], "note": "File-mode FAT chain recovery and resulting contents are asserted"},
     "REPLACE.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_prompt_yesno.sh"], "note": "All documented modes and interactive confirmation are asserted"},

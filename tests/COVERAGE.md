@@ -58,6 +58,8 @@ and checks the resulting coordinates through the BIOS.
 `test_driver_sys_qemu.sh` installs a logical drive backed by a separate second
 floppy, handles the driver's media prompt through QMP, and verifies known bytes
 read through the new drive letter.
+`test_printer_driver_qemu.sh` loads the 4201 printer definition and proves its
+code-page control path by preparing, selecting, and querying code page 850.
 
 Run the inventory check with:
 
