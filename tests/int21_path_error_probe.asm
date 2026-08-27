@@ -82,6 +82,60 @@ start:
     int 21h
     require_error 5, fail_rmdir_nonempty
 
+    mov ax, 3d00h                   ; Directories cannot be opened as files.
+    mov dx, test_directory
+    int 21h
+    require_error 5, fail_open_denied
+
+    mov ax, 4301h                   ; A read-only file cannot be deleted.
+    mov cx, 1
+    mov dx, local_file_path
+    int 21h
+    jc setup_failed
+    mov dx, local_file_path
+    mov ah, 41h
+    int 21h
+    require_error 5, fail_delete_denied
+    mov ax, 4301h                   ; Restore it for later cleanup.
+    xor cx, cx
+    mov dx, local_file_path
+    int 21h
+    jc setup_failed
+
+    mov ax, 4301h                   ; Directory is not a settable file bit.
+    mov cx, 10h
+    mov dx, local_file_path
+    int 21h
+    require_error 5, fail_attr_denied
+
+    mov ax, 3d01h                   ; A write-only handle rejects reads.
+    mov dx, local_file_path
+    int 21h
+    jc setup_failed
+    mov bx, ax
+    mov cx, 1
+    mov dx, io_byte
+    mov ah, 3fh
+    int 21h
+    require_error 5, fail_read_denied
+    mov ah, 3eh
+    int 21h
+    jc setup_failed
+
+    mov ax, 3d00h                   ; A read-only handle rejects writes.
+    mov dx, local_file_path
+    int 21h
+    jc setup_failed
+    mov bx, ax
+    mov cx, 1
+    mov dx, io_byte
+    mov ah, 40h
+    int 21h
+    require_error 5, fail_write_denied
+    mov ah, 3eh
+    int 21h
+    jc setup_failed
+
     mov dx, missing_file
     mov ah, 41h
     int 21h
@@ -221,10 +275,15 @@ fail_rename_file db 'INT21_RENAME_FILE_FAIL', 13, 10, '$'
 fail_rename_path db 'INT21_RENAME_PATH_FAIL', 13, 10, '$'
 fail_delete_file db 'INT21_DELETE_FILE_FAIL', 13, 10, '$'
 fail_delete_path db 'INT21_DELETE_PATH_FAIL', 13, 10, '$'
+fail_delete_denied db 'INT21_DELETE_DENIED_FAIL', 13, 10, '$'
 fail_open_path   db 'INT21_OPEN_PATH_FAIL', 13, 10, '$'
+fail_open_denied db 'INT21_OPEN_DENIED_FAIL', 13, 10, '$'
+fail_read_denied db 'INT21_READ_DENIED_FAIL', 13, 10, '$'
+fail_write_denied db 'INT21_WRITE_DENIED_FAIL', 13, 10, '$'
 fail_create_path db 'INT21_CREATE_PATH_FAIL', 13, 10, '$'
 fail_attr_file   db 'INT21_ATTR_FILE_FAIL', 13, 10, '$'
 fail_attr_path   db 'INT21_ATTR_PATH_FAIL', 13, 10, '$'
+fail_attr_denied db 'INT21_ATTR_DENIED_FAIL', 13, 10, '$'
 fail_extopen_function db 'INT21_EXTOPEN_FUNCTION_FAIL', 13, 10, '$'
 fail_extopen_access_mode db 'INT21_EXTOPEN_ACCESS_MODE_FAIL', 13, 10, '$'
 fail_extopen_file db 'INT21_EXTOPEN_FILE_FAIL', 13, 10, '$'
@@ -232,4 +291,5 @@ fail_extopen_path db 'INT21_EXTOPEN_PATH_FAIL', 13, 10, '$'
 fail_extopen_denied db 'INT21_EXTOPEN_DENIED_FAIL', 13, 10, '$'
 fail_extopen_exists db 'INT21_EXTOPEN_EXISTS_FAIL', 13, 10, '$'
 fail_find_none   db 'INT21_FIND_NONE_FAIL', 13, 10, '$'
+io_byte          db 0
 dta              times 128 db 0

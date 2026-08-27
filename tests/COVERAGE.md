@@ -94,6 +94,10 @@ then completes a full write.
 `test_int21_path_errors_qemu.sh` distinguishes local FAT failure classes with
 purpose-built paths: absent file versus absent parent, existing directory,
 nonempty directory, current-directory removal, and a find with no matches.
+It also covers local access-mode enforcement by opening a directory, reading a
+write-only handle, writing a read-only handle, deleting a temporarily read-only
+file, and rejecting non-changeable attribute bits. Every changed attribute and
+opened handle is restored or released before the probe completes.
 The file/memory probe separately fills the default JFT and configured SFT so
 duplicate and all create/open variants return their exact capacity errors.
 The process probe covers EXEC success and seven distinct failure contracts. It
