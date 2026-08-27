@@ -29,6 +29,7 @@ FLOPPY="$OUT/floppy.img"
 BOOT_IMG="$OUT/floppy-backup-boot.img"
 TARGET_IMG="$OUT/floppy-backup-target.img"
 SERIAL_LOG="$OUT/backup-serial.log"
+EXIT_COM="$OUT/qemu-exit.com"
 
 PASS=0
 FAIL=0
@@ -46,6 +47,7 @@ echo "=== BACKUP / RESTORE E2E tests (QEMU) ==="
 # ── Step 1: build boot floppy ────────────────────────────────────────────────
 echo "Building test images..."
 cp "$FLOPPY" "$BOOT_IMG"
+nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
@@ -53,6 +55,7 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 printf 'BACKUP_FILE_ONE\r\n\x1a' | mcopy -o -i "$BOOT_IMG" - ::BAKF1.TXT
 printf 'BACKUP_FILE_TWO\r\n\x1a' | mcopy -o -i "$BOOT_IMG" - ::BAKF2.TXT
 printf 'DEEP_FILE\r\n\x1a'       | mcopy -o -i "$BOOT_IMG" - ::BAKDEEP.TXT
+mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 
 {
     printf 'CTTY AUX\r\n'
@@ -88,6 +91,8 @@ printf 'DEEP_FILE\r\n\x1a'       | mcopy -o -i "$BOOT_IMG" - ::BAKDEEP.TXT
     printf 'DEL BAKSRC\\FILE2.TXT\r\n'
     printf 'RESTORE B: A:BAKSRC\\*.TXT\r\n'
     printf 'IF EXIST BAKSRC\\FILE2.TXT ECHO BACKUP_M_FILE2_IN_BACKUP\r\n'
+    printf 'FC /B BAKSRC\\FILE2.TXT BAKF2.TXT >NUL\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO BACKUP_M_FILE2_CONTENT_OK\r\n'
     printf 'IF NOT EXIST BAKSRC\\FILE1.TXT ECHO BACKUP_M_FILE1_EXCLUDED\r\n'
     printf 'ECHO BACKUP_M_DONE\r\n'
     printf 'COPY BAKF1.TXT BAKSRC\\FILE1.TXT\r\n'
@@ -108,6 +113,12 @@ printf 'DEEP_FILE\r\n\x1a'       | mcopy -o -i "$BOOT_IMG" - ::BAKDEEP.TXT
     printf 'IF EXIST BAKSRC\\FILE1.TXT ECHO BACKUP_A_FILE1_PRESERVED\r\n'
     printf 'IF EXIST BAKSRC\\FILE2.TXT ECHO BACKUP_A_FILE2_PRESERVED\r\n'
     printf 'IF EXIST BAKSRC\\EXTRA.TXT ECHO BACKUP_A_EXTRA_ADDED\r\n'
+    printf 'FC /B BAKSRC\\FILE1.TXT BAKF1.TXT >NUL\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO BACKUP_A_FILE1_CONTENT_OK\r\n'
+    printf 'FC /B BAKSRC\\FILE2.TXT BAKF2.TXT >NUL\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO BACKUP_A_FILE2_CONTENT_OK\r\n'
+    printf 'FC /B BAKSRC\\EXTRA.TXT BAKF1.TXT >NUL\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO BACKUP_A_EXTRA_CONTENT_OK\r\n'
     printf 'ECHO BACKUP_A_DONE\r\n'
     printf 'DEL BAKSRC\\EXTRA.TXT\r\n'
 
@@ -134,6 +145,8 @@ printf 'DEEP_FILE\r\n\x1a'       | mcopy -o -i "$BOOT_IMG" - ::BAKDEEP.TXT
     printf 'DEL BAKSRC\\FILE1.TXT\r\n'
     printf 'RESTORE B: A:BAKSRC\\FILE1.TXT\r\n'
     printf 'IF EXIST BAKSRC\\FILE1.TXT ECHO RESTORE_BASIC_OK\r\n'
+    printf 'FC /B BAKSRC\\FILE1.TXT BAKF1.TXT >NUL\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO RESTORE_BASIC_CONTENT_OK\r\n'
     printf 'ECHO RESTORE_BASIC_DONE\r\n'
 
     # ── RESTORE /S: restore subdirectory tree ─────────────────────────────────
@@ -143,6 +156,8 @@ printf 'DEEP_FILE\r\n\x1a'       | mcopy -o -i "$BOOT_IMG" - ::BAKDEEP.TXT
     printf 'RD BAKSRC\\SUB\r\n'
     printf 'RESTORE B: A:BAKSRC /S\r\n'
     printf 'IF EXIST BAKSRC\\SUB\\DEEP.TXT ECHO RESTORE_S_OK\r\n'
+    printf 'FC /B BAKSRC\\SUB\\DEEP.TXT BAKDEEP.TXT >NUL\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO RESTORE_S_CONTENT_OK\r\n'
     printf 'ECHO RESTORE_S_DONE\r\n'
 
     # ── RESTORE /N: only restore files not present on destination ────────────
@@ -152,6 +167,8 @@ printf 'DEEP_FILE\r\n\x1a'       | mcopy -o -i "$BOOT_IMG" - ::BAKDEEP.TXT
     printf 'DEL BAKSRC\\FILE2.TXT\r\n'
     printf 'RESTORE B: A:BAKSRC\\*.TXT /N\r\n'
     printf 'IF EXIST BAKSRC\\FILE2.TXT ECHO RESTORE_N_OK\r\n'
+    printf 'FC /B BAKSRC\\FILE2.TXT BAKF2.TXT >NUL\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO RESTORE_N_CONTENT_OK\r\n'
     printf 'ECHO RESTORE_N_DONE\r\n'
 
     # ── BACKUP /D: date filter — include all files (cutoff Jan 1, 1980) ───────
@@ -245,6 +262,7 @@ printf 'DEEP_FILE\r\n\x1a'       | mcopy -o -i "$BOOT_IMG" - ::BAKDEEP.TXT
     printf 'RD BAKSRC\r\n'
 
     printf 'ECHO ===DONE===\r\n'
+    printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
 # ── Step 2: create pre-formatted blank target floppy ─────────────────────────
@@ -269,6 +287,7 @@ timeout 120 qemu-system-i386 \
     -drive if=floppy,index=1,format=raw,file="$TARGET_IMG",cache=writethrough \
     -boot a -m 4 \
     -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     2>/dev/null | tee "$SERIAL_LOG" > /dev/null; true
 
 if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
@@ -306,6 +325,12 @@ else
     fail "BACKUP /M (expected FILE2 with +A to be in backup)"
 fi
 
+if grep -q "BACKUP_M_FILE2_CONTENT_OK" "$SERIAL_LOG"; then
+    ok "BACKUP /M restored FILE2 with exact binary contents"
+else
+    fail "BACKUP /M restored FILE2 contents differ"
+fi
+
 if grep -q "BACKUP_M_FILE1_EXCLUDED" "$SERIAL_LOG"; then
     ok "BACKUP /M (archive-cleared FILE1 was excluded)"
 else
@@ -341,6 +366,14 @@ if grep -q "BACKUP_A_DONE" "$SERIAL_LOG"; then
 else
     fail "BACKUP /A (batch hung or crashed)"
 fi
+
+for marker in FILE1 FILE2 EXTRA; do
+    if grep -q "BACKUP_A_${marker}_CONTENT_OK" "$SERIAL_LOG"; then
+        ok "BACKUP /A preserved exact $marker contents"
+    else
+        fail "BACKUP /A $marker contents differ after restore"
+    fi
+done
 
 # "Warning! No files were found to back up" — printed when spec matches nothing
 if grep -qi "No files were found to back up" "$SERIAL_LOG"; then
@@ -384,16 +417,34 @@ else
     fail "RESTORE basic (batch hung or crashed)"
 fi
 
+if grep -q "RESTORE_BASIC_CONTENT_OK" "$SERIAL_LOG"; then
+    ok "RESTORE basic reproduced exact binary contents"
+else
+    fail "RESTORE basic contents differ"
+fi
+
 if grep -q "RESTORE_S_OK" "$SERIAL_LOG"; then
     ok "RESTORE /S (DEEP.TXT restored in subdir)"
 else
     fail "RESTORE /S (expected BAKSRC\\SUB\\DEEP.TXT to be restored)"
 fi
 
+if grep -q "RESTORE_S_CONTENT_OK" "$SERIAL_LOG"; then
+    ok "RESTORE /S reproduced exact nested-file contents"
+else
+    fail "RESTORE /S nested-file contents differ"
+fi
+
 if grep -q "RESTORE_N_OK" "$SERIAL_LOG"; then
     ok "RESTORE /N (restored only missing FILE2)"
 else
     fail "RESTORE /N (expected FILE2 to be restored)"
+fi
+
+if grep -q "RESTORE_N_CONTENT_OK" "$SERIAL_LOG"; then
+    ok "RESTORE /N reproduced exact missing-file contents"
+else
+    fail "RESTORE /N missing-file contents differ"
 fi
 
 echo ""

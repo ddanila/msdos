@@ -113,6 +113,12 @@ the payloads from the generated `FILEnnnn.REC` chains. The guest exits through
 the test-only QEMU port after persistence checks are ready, avoiding a fixed
 interactive timeout.
 
+`test_backup_restore.sh` treats existence as insufficient evidence for a
+successful archive round trip. Binary FC comparisons assert exact payloads for
+archive-bit selection, append preservation, basic restore, recursive restore,
+and restore-if-missing. Its negative date/time/filter cases still require the
+documented nonzero errorlevel and no-match behavior.
+
 `test_int21_file_memory_qemu.sh` includes destructive-but-recoverable resource
 limits. It consumes the largest reported DOS arena, asserts error 8 on the next
 allocation, releases it, and allocates again. With `FILES=12` and an expanded
