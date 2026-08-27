@@ -28,6 +28,10 @@ Both `bin/macos-arm64/` and `bin/linux-x64/` match the release snapshot.
 | `wlink` | Linker                      | LINK.EXE      |
 | `wlib`  | Library manager             | LIB.EXE       |
 
+The vendored 16-bit DOS runtime under `lib286/` includes the model-specific C
+libraries and `math87s.lib`, which Open Watcom links automatically for
+small-model programs that use floating-point arithmetic.
+
 ## Updating
 
 To update to a newer release:

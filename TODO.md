@@ -120,6 +120,17 @@ Direct host help and memory reports pass, the complete host suite passes
 290/290, QEMU help passes 6/6, and the QEMU driver/config suite passes 17/17,
 including a real MEM report under a custom CONFIG.SYS.
 
+**Tenth Open Watcom C hybrid complete (August 27 2026):** all twenty FDISK C
+modules now compile with `wcc`; custom JWasm assembles the five supporting
+objects, and `wlink` produces both FDISK.EXE and its embedded FDBOOT image.
+The C sources consistently use Watcom's annotated DOS interrupt and console
+declarations, far-pointer construction uses `MK_FP`, and the SAL message
+bridges establish ES=DGROUP. The matching snapshot's `math87s.lib` is now
+vendored because FDISK is the first migrated utility to exercise Open Watcom's
+floating-point runtime. The direct host help path passes, and the destructive
+QEMU FDISK suite passes 13/13: primary, extended, and logical partitions are
+verified on disk, followed by a separate primary-only regression scenario.
+
 **Native SELECT tools (August 27 2026):** ASC2HLP and COMPRESS, the final two
 proprietary build helpers, now have byte-compatible native Python replacements.
 ASC2HLP compiles USA.TXT into the indexed SELECT help-file layout; COMPRESS

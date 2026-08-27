@@ -168,13 +168,16 @@ def main():
         o in ("/m", "/map") for o in gopts_l
     )
 
-    owlib = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "watcom", "lib286", "dos"))
+    owroot = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "watcom", "lib286"))
+    owlib = os.path.join(owroot, "dos")
     directives = ["format", "dos", "option", "quiet"]
     # Microsoft LINK is case-insensitive by default; /NOI selects significant
     # case. Applying CASEEXACT unconditionally breaks old objects which freely
     # vary symbol casing across modules.
     directives += ["option", "caseexact" if "/noi" in gopts_l else "nocaseexact"]
-    directives += ["libpath", owlib]   # resolve OW clib for wcc-compiled C objects
+    # The model-specific C runtimes live in dos/, while their floating-point
+    # companions (for example math87s.lib) live one directory above it.
+    directives += ["libpath", owlib, "libpath", owroot]
 
     # MS LINK /STACK:nnnn (decimal bytes) -> wlink "option stack=nnnn".
     mstack = re.search(r"/stack:(\d+)", body, re.I)
