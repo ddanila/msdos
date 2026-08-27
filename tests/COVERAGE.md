@@ -44,6 +44,11 @@ The clean synchronous-vector probe also verifies INT 29h through BIOS cursor
 state and INT 2Fh through the uninstalled SHARE, redirector, and NLSFUNC checks
 plus DOS's own installation signature, before any resident utility can replace
 the multiplex chain.
+The asynchronous-vector probe connects through a private UNIX serial socket,
+waits for an explicit guest-ready marker, and deliberately withholds input.
+This proves DOS calls INT 28h from its actual console polling loop; the host
+then sends Ctrl-C followed by `X`, proving one INT 23h callback and successful
+continuation. Both vectors are restored before the probe exits.
 
 Focused CONFIG.SYS state coverage uses `test_config_state_qemu.sh`. Its probe
 queries BREAK and LASTDRIVE through public INT 21h interfaces and reads the DOS
