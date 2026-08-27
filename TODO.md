@@ -141,6 +141,12 @@ rather than relying on Microsoft C's permissive incompatible-pointer write.
 Direct FLUSH13 usage execution succeeds; the full host and QEMU driver suites
 cover the emitted utility and loading SMARTDRV.SYS.
 
+**SELECT assembly outputs migrated (August 27 2026):** `SELECT.COM` and the
+`SELECT.DAT` panel payload now link with `wlink`, while the auxiliary
+`SERVICES.LIB` is built with `wlib`. The interactive QEMU SELECT suite passes
+6/6 with the rebuilt stub and panel data. The three C objects and SELECT.EXE
+main link remain the active part of the SELECT Open Watcom migration.
+
 **Native SELECT tools (August 27 2026):** ASC2HLP and COMPRESS, the final two
 proprietary build helpers, now have byte-compatible native Python replacements.
 ASC2HLP compiles USA.TXT into the indexed SELECT help-file layout; COMPRESS
