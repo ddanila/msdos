@@ -19,6 +19,18 @@ org 100h
 %%ok:
 %endmacro
 
+%macro require_error 2
+    jc %%carried
+    mov dx, %2
+    jmp fail
+%%carried:
+    cmp ax, %1
+    je %%ok
+    mov dx, %2
+    jmp fail
+%%ok:
+%endmacro
+
 start:
     push cs
     pop ds
@@ -192,6 +204,125 @@ seek_ok:
     int 21h
     jc sft_exhaust_failed
 
+    ; Every handle-oriented entry in DOS's live error map must reject FFFFh
+    ; with error 6. Keep these together so one probe traces the shared negative
+    ; boundary without allowing a successful-path assertion to stand in for it.
+    mov bx, 0ffffh
+    mov ah, 3eh                    ; Close.
+    int 21h
+    require_error 6, fail_invalid_handle
+    mov bx, 0ffffh
+    mov cx, 1
+    mov dx, read_buffer
+    mov ah, 3fh                    ; Read.
+    int 21h
+    require_error 6, fail_invalid_handle
+    mov bx, 0ffffh
+    mov cx, 1
+    mov dx, payload
+    mov ah, 40h                    ; Write.
+    int 21h
+    require_error 6, fail_invalid_handle
+    mov bx, 0ffffh
+    xor cx, cx
+    xor dx, dx
+    xor al, al
+    mov ah, 42h                    ; Seek.
+    int 21h
+    require_error 6, fail_invalid_handle
+    mov bx, 0ffffh
+    mov ax, 4400h                  ; IOCTL get device information.
+    int 21h
+    require_error 6, fail_invalid_handle
+    mov bx, 0ffffh
+    mov ah, 45h                    ; Duplicate.
+    int 21h
+    require_error 6, fail_invalid_handle
+    mov bx, 0ffffh
+    mov cx, 15
+    mov ah, 46h                    ; Force duplicate.
+    int 21h
+    require_error 6, fail_invalid_handle
+    mov bx, 0ffffh
+    mov ax, 5700h                  ; Get file time.
+    int 21h
+    require_error 6, fail_invalid_handle
+    mov bx, 0ffffh
+    xor cx, cx
+    xor dx, dx
+    xor si, si
+    xor di, di
+    mov ax, 5c00h                  ; Lock range.
+    int 21h
+    require_error 6, fail_invalid_handle
+    mov bx, 0ffffh
+    mov ah, 6ah                    ; DOS 4 commit alias.
+    int 21h
+    require_error 6, fail_invalid_handle
+
+    ; Safe selector/argument boundaries from the live error table.
+    mov ax, 3d03h                  ; Open access modes stop at 2.
+    mov dx, original_name
+    int 21h
+    require_error 12, fail_invalid_open
+
+    mov ax, 3d00h
+    mov dx, original_name
+    int 21h
+    jc invalid_selector_failed
+    mov [error_handle], ax
+    mov bx, ax
+    xor cx, cx
+    xor dx, dx
+    mov ax, 4203h                  ; Seek origins stop at 2.
+    int 21h
+    require_error 1, fail_invalid_seek
+    mov bx, [error_handle]
+    xor cx, cx
+    xor dx, dx
+    xor si, si
+    xor di, di
+    mov ax, 5c02h                  ; Lock/unlock selectors stop at 1.
+    int 21h
+    require_error 1, fail_invalid_lock
+    mov bx, [error_handle]
+    mov ah, 3eh
+    int 21h
+    jc invalid_selector_failed
+
+    mov ax, 4302h                  ; Attribute subfunctions stop at 1.
+    mov dx, original_name
+    int 21h
+    require_error 1, fail_invalid_attr
+    mov ax, 44ffh                  ; Undefined IOCTL selector.
+    int 21h
+    require_error 1, fail_invalid_ioctl
+    mov ax, 5804h                  ; Allocation-strategy selectors stop at 3.
+    int 21h
+    require_error 1, fail_invalid_allocop
+    mov ax, 65ffh                  ; Undefined extended-country selector.
+    int 21h
+    require_error 1, fail_invalid_country
+    mov ax, 66ffh                  ; Undefined code-page selector.
+    int 21h
+    require_error 1, fail_invalid_codepage
+    xor bx, bx
+    mov ax, 69ffh                  ; Media-ID selectors stop at 1.
+    int 21h
+    require_error 1, fail_invalid_media
+
+    mov ax, 1
+    mov es, ax
+    mov ah, 49h                    ; Segment 0001h is not an allocated block.
+    int 21h
+    require_error 9, fail_invalid_free
+    mov bx, 1
+    mov ah, 4ah
+    int 21h
+    require_error 7, fail_invalid_resize
+    push ds
+    pop es
+
     mov ax, 3d02h
     mov dx, original_name
     int 21h
@@ -326,6 +457,9 @@ memory_exhaust_failed:
 sft_exhaust_failed:
     mov dx, fail_sft_exhaust
     jmp fail
+invalid_selector_failed:
+    mov dx, fail_invalid_selector
+    jmp fail
 
 fail:
     mov ah, 09h
@@ -367,7 +501,21 @@ fail_59        db 'INT21_59_FAIL', 13, 10, '$'
 fail_68        db 'INT21_68_FAIL', 13, 10, '$'
 fail_memory_exhaust db 'INT21_MEMORY_EXHAUST_FAIL', 13, 10, '$'
 fail_sft_exhaust db 'INT21_SFT_EXHAUST_FAIL', 13, 10, '$'
+fail_invalid_handle db 'INT21_INVALID_HANDLE_FAIL', 13, 10, '$'
+fail_invalid_selector db 'INT21_INVALID_SELECTOR_FAIL', 13, 10, '$'
+fail_invalid_open db 'INT21_INVALID_OPEN_FAIL', 13, 10, '$'
+fail_invalid_seek db 'INT21_INVALID_SEEK_FAIL', 13, 10, '$'
+fail_invalid_lock db 'INT21_INVALID_LOCK_FAIL', 13, 10, '$'
+fail_invalid_attr db 'INT21_INVALID_ATTR_FAIL', 13, 10, '$'
+fail_invalid_ioctl db 'INT21_INVALID_IOCTL_FAIL', 13, 10, '$'
+fail_invalid_allocop db 'INT21_INVALID_ALLOCOP_FAIL', 13, 10, '$'
+fail_invalid_country db 'INT21_INVALID_COUNTRY_FAIL', 13, 10, '$'
+fail_invalid_codepage db 'INT21_INVALID_CODEPAGE_FAIL', 13, 10, '$'
+fail_invalid_media db 'INT21_INVALID_MEDIA_FAIL', 13, 10, '$'
+fail_invalid_free db 'INT21_INVALID_FREE_FAIL', 13, 10, '$'
+fail_invalid_resize db 'INT21_INVALID_RESIZE_FAIL', 13, 10, '$'
 file_handle    dw 0
+error_handle   dw 0
 memory_segment dw 0
 open_handles   times 64 dw 0
 cwd_buffer     times 64 db 0

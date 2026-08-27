@@ -17,6 +17,12 @@ kernel's live INT 21h dispatch table. `test_coverage_manifest.py` parses
   recorded;
 - **uncovered**: no evidence has been established yet.
 
+`int21_error_coverage.json` independently derives every function/error pair
+from the kernel's live `I21_MAP_E_TAB`. This prevents a successful call from
+being mistaken for coverage of all its documented failure contracts. Its
+structural verifier rejects stale pairs and non-CI evidence while reporting
+the remaining negative-path backlog.
+
 `runtime_coverage.json` applies the same levels to every shipped or built
 runtime `.COM`, `.EXE`, and `.SYS` component and to every directive parsed from
 the kernel's live `COMTAB` in `BIOS/SYSINIT2.ASM`. Its verifier derives both
@@ -90,6 +96,7 @@ Run the inventory check with:
 
 ```sh
 make test-coverage-manifest
+make test-int21-error-coverage-manifest
 make test-runtime-coverage-manifest
 ```
 
