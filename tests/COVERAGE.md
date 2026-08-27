@@ -22,6 +22,12 @@ runtime `.COM`, `.EXE`, and `.SYS` component and to every directive parsed from
 the kernel's live `COMTAB` in `BIOS/SYSINIT2.ASM`. Its verifier derives both
 sets from the source and Makefile, rejecting omitted or stale entries.
 
+Focused CONFIG.SYS state coverage uses `test_config_state_qemu.sh`. Its probe
+queries BREAK and LASTDRIVE through public INT 21h interfaces and reads the DOS
+list of lists for the configured BUFFERS, FILES, and FCBS allocations. COMMENT
+and REM contain apparent state-changing commands; the probe asserts that both
+lines were ignored and did not override BREAK.
+
 Run the inventory check with:
 
 ```sh
