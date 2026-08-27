@@ -3,13 +3,11 @@
 #
 # Flow:
 #   1. Build floppy-sys-boot.img = floppy.img + AUTOEXEC.BAT
-#      (AUTOEXEC: CTTY AUX → FORMAT B: → SYS B:)
+#      (AUTOEXEC: CTTY AUX → FORMAT B: → SYS B: → SYS A: B:)
 #      FORMAT.COM and SYS.COM are already on floppy.img.
 #   2. Build floppy-sys-target.img = completely blank image (all zeros, no FAT)
 #   3. Boot QEMU with A: = boot img, B: = blank target
-#      -serial stdio: COM1 ↔ QEMU stdin/stdout
-#      A subshell feeds FORMAT responses at timed intervals via stdin.
-#      QEMU stdout (COM1 output) is captured to log via tee.
+#      Private serial FIFOs connect COM1 to a prompt-driven coordinator.
 #      FORMAT.COM formats B: from scratch, then SYS.COM transfers system files.
 #   4. Check log for "Format complete" and "System transferred"
 #   5. Add COMMAND.COM + AUTOEXEC.BAT (CTTY AUX + VER) to target via mcopy
@@ -17,12 +15,9 @@
 #
 # Run via: make test-sys  (requires 'make deploy' first)
 #
-# FORMAT B: prompts (all via COM1 because CTTY AUX redirects console):
-#   "press ENTER when ready"          → \r\n  (sent after ~5s boot)
-#   "Volume label ... ENTER for none" → \r\n  (sent after formatting, ~10s)
-#   "Format another (Y/N)?"           → N\r\n (sent after stats, ~2s)
-# Then SYS B: runs (~5s) and prints "System transferred".
-# Total QEMU run: ~22s; timeout set to 40s for safety.
+# FORMAT B: prompts (all via COM1 because CTTY AUX redirects console) are
+# answered only after their exact text appears. Both supported SYS arities then
+# transfer the system from the default drive and an explicit source drive.
 
 set -uo pipefail
 
@@ -36,6 +31,8 @@ SYS_BOOT="$OUT/floppy-sys-boot.img"
 SYS_TARGET="$OUT/floppy-sys-target.img"
 SYS_LOG="$OUT/sys-serial.log"
 SYS_BOOT2_LOG="$OUT/sys-boot2-serial.log"
+SYS_SERIAL_IN="$OUT/sys-serial.in"
+SYS_SERIAL_OUT="$OUT/sys-serial.out"
 SYS_RO_BOOT="$OUT/floppy-sys-readonly-boot.img"
 SYS_RO_TARGET="$OUT/floppy-sys-readonly-target.img"
 SYS_RO_LOG="$OUT/sys-readonly-serial.log"
@@ -52,6 +49,8 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
+trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$SYS_SERIAL_IN" "$SYS_SERIAL_OUT" 2>/dev/null; true' EXIT
+
 echo "=== SYS.COM e2e test ==="
 
 # ── Step 1: build boot floppy ───────────────────────────────────────────────
@@ -60,30 +59,43 @@ echo "Building test images..."
 cp "$FLOPPY" "$SYS_BOOT"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 mcopy -o -i "$SYS_BOOT" "$EXIT_COM" ::QEXIT.COM
-printf 'CTTY AUX\r\nFORMAT B:\r\nSYS B:\r\nQEXIT.COM\r\n' | mcopy -i "$SYS_BOOT" - ::AUTOEXEC.BAT
+{
+    printf 'CTTY AUX\r\n'
+    printf 'FORMAT B:\r\n'
+    printf 'SYS B:\r\n'
+    printf 'ECHO SYS_DEFAULT_SOURCE_DONE\r\n'
+    printf 'SYS A: B:\r\n'
+    printf 'ECHO SYS_EXPLICIT_SOURCE_DONE\r\n'
+    printf 'QEXIT.COM\r\n'
+} | mcopy -i "$SYS_BOOT" - ::AUTOEXEC.BAT
 
 # ── Step 2: create completely blank target floppy ───────────────────────────
 # All zeros — no FAT, no boot sector. FORMAT.COM will set it up from scratch.
 dd if=/dev/zero bs=512 count=2880 of="$SYS_TARGET" status=none
 
 # ── Step 3: boot A:, FORMAT B:, SYS B: ─────────────────────────────────────
-# -serial stdio maps COM1 to QEMU's stdin/stdout.
-# The subshell on the left feeds FORMAT responses at timed intervals.
-# tee on the right captures COM1 output to log.
+# A private serial coordinator responds only after each expected prompt.
 echo "Running FORMAT B: + SYS B: in QEMU (may take ~30s)..."
-rm -f "$SYS_LOG"
-(
-    sleep 5;  printf '\r\n'   # ENTER: "Insert diskette ... press ENTER when ready"
-    sleep 10; printf '\r\n'   # ENTER: "Volume label (11 characters, ENTER for none)?"
-    sleep 2;  printf 'N\r\n'  # N:     "Format another (Y/N)?"
-    sleep 15                  # keep stdin open while SYS B: runs + QEMU winds down
-) | timeout 40 qemu-system-i386 \
+rm -f "$SYS_LOG" "$SYS_SERIAL_IN" "$SYS_SERIAL_OUT"
+mkfifo "$SYS_SERIAL_IN" "$SYS_SERIAL_OUT"
+exec 3<>"$SYS_SERIAL_IN"
+timeout 45 qemu-system-i386 \
     -drive if=floppy,index=0,format=raw,file="$SYS_BOOT",cache=writethrough \
     -drive if=floppy,index=1,format=raw,file="$SYS_TARGET",cache=writethrough \
     -boot a -m 4 -display none \
-    -serial stdio \
+    -serial pipe:"$OUT/sys-serial" \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
-    2>/dev/null | tee "$SYS_LOG" > /dev/null; true
+    2>/dev/null &
+QEMU_PID=$!
+
+python3 "$REPO_ROOT/tests/serial_expect.py" \
+    "$SYS_SERIAL_IN" "$SYS_SERIAL_OUT" "$SYS_LOG" \
+    'press ENTER when ready' '\r\n' \
+    'Volume label' '\r\n' \
+    'Format another' 'N\r\n'
+
+wait "$QEMU_PID" || true
+exec 3>&-
 
 # ── Step 4: verify FORMAT + SYS reported success ────────────────────────────
 if grep -qi "Format complete" "$SYS_LOG"; then
@@ -93,10 +105,12 @@ else
     echo "--- serial log ---"; cat "$SYS_LOG"; echo "---"
 fi
 
-if grep -qi "System transferred" "$SYS_LOG"; then
-    ok "SYS B: reported 'System transferred'"
+if [[ $(grep -ci "System transferred" "$SYS_LOG") -eq 2 ]] \
+    && grep -q 'SYS_DEFAULT_SOURCE_DONE' "$SYS_LOG" \
+    && grep -q 'SYS_EXPLICIT_SOURCE_DONE' "$SYS_LOG"; then
+    ok "SYS transferred from both default and explicit source paths"
 else
-    fail "SYS B: did not report success"
+    fail "SYS did not complete both supported command-line arities"
     echo "--- serial log ---"; cat "$SYS_LOG"; echo "---"
 fi
 
@@ -130,6 +144,16 @@ cp "$FLOPPY" "$SYS_RO_BOOT"
 mcopy -o -i "$SYS_RO_BOOT" "$EXIT_COM" ::QEXIT.COM
 {
     printf 'CTTY AUX\r\n'
+    printf 'SYS\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SYS_NO_ARG_REJECTED\r\n'
+    printf 'SYS /Z\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SYS_SWITCH_REJECTED\r\n'
+    printf 'SYS A: B: C:\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SYS_EXTRA_ARG_REJECTED\r\n'
+    printf 'SYS A:\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SYS_DEFAULT_DRIVE_REJECTED\r\n'
+    printf 'SYS Z:\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SYS_INVALID_DRIVE_REJECTED\r\n'
     printf 'SYS B:\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SYS_READONLY_REJECTED\r\n'
     printf 'ECHO SYS_READONLY_DONE\r\n'
@@ -156,6 +180,21 @@ if grep -q 'SYS_READONLY_REJECTED' "$SYS_RO_LOG" \
     ok "SYS rejects read-only media and leaves every target byte unchanged"
 else
     fail "SYS read-only failure contract or target immutability check failed"
+fi
+
+if grep -q 'Required parameter missing' "$SYS_RO_LOG" \
+    && grep -q 'Parameter format not correct.*\/Z' "$SYS_RO_LOG" \
+    && grep -q 'Too many parameters.*C:' "$SYS_RO_LOG" \
+    && grep -q 'Cannot specify default drive' "$SYS_RO_LOG" \
+    && grep -q 'Invalid drive specification' "$SYS_RO_LOG" \
+    && grep -q 'SYS_NO_ARG_REJECTED' "$SYS_RO_LOG" \
+    && grep -q 'SYS_SWITCH_REJECTED' "$SYS_RO_LOG" \
+    && grep -q 'SYS_EXTRA_ARG_REJECTED' "$SYS_RO_LOG" \
+    && grep -q 'SYS_DEFAULT_DRIVE_REJECTED' "$SYS_RO_LOG" \
+    && grep -q 'SYS_INVALID_DRIVE_REJECTED' "$SYS_RO_LOG"; then
+    ok "SYS parser and target validation reject every unsupported command form"
+else
+    fail "SYS parser/target rejection diagnostics or errorlevels were incomplete"
 fi
 
 echo ""

@@ -201,6 +201,10 @@ own matching and deliberately mismatching paths remain separate assertions.
 B: image read-only. The failure case must return a nonzero DOS errorlevel,
 must never print the success diagnostic, and must leave the complete target
 image SHA-256 unchanged.
+Both source forms are exercised: `SYS B:` uses the default source, while
+`SYS A: B:` names its source drive explicitly. Parser and target validation separately
+reject missing operands, switches, excess operands, the default target drive,
+and an invalid drive with their exact diagnostics and nonzero errorlevels.
 
 `test_label.sh` covers the command-line boundary in addition to interactive
 set/delete behavior. A 12-character input must persist only its first eleven
