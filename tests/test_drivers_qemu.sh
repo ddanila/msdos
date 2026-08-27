@@ -65,6 +65,7 @@ mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::BLKREQ.COM
 
 # AUTOEXEC.BAT: test each driver and directive
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
     # ── ANSI.SYS test — use ANSI escape sequence to set cursor position ──
@@ -216,15 +217,15 @@ else
 fi
 
 for marker in RAM_WRITE RAM_VERIFY VDISK_WRITE VDISK_VERIFY; do
-    if grep -q "$marker" "$SERIAL_LOG"; then
-        ok "Block driver persisted $marker through DOS I/O"
+    if grep -qx "$marker"$'\r' "$SERIAL_LOG"; then
+        ok "Block driver returned the exact $marker payload through DOS I/O"
     else
         fail "Block driver did not persist $marker"
     fi
 done
 
 if grep -q 'BLOCK_DRIVER_REQUEST_PASS' "$SERIAL_LOG"; then
-    ok "RAMDRIVE.SYS and VDISK.SYS report non-removable media"
+    ok "RAMDRIVE.SYS and VDISK.SYS expose exact geometry and isolated raw I/O"
 else
     fail "Block-driver removable-media requests did not pass"
 fi

@@ -1,15 +1,107 @@
 bits 16
 org 100h
 
-; Assert the removable-media request path of the two configured block drivers.
+; Assert geometry, raw I/O, isolation, and removable-media behavior of the two
+; configured 64 KiB memory-backed block drivers.
 
 start:
+    push cs
+    pop ds
+    push ds
+    pop es
+    cld
+
     mov bl, 3                    ; C: RAMDRIVE
     call non_removable
     jc failed
     mov bl, 4                    ; D: VDISK
     call non_removable
     jc failed
+
+    mov al, 2                    ; Read C: RAMDRIVE boot sector.
+    xor dx, dx
+    mov bx, sector_buffer
+    call absolute_read
+    jc failed
+    cmp word [sector_buffer + 11], 512
+    jne failed
+    cmp word [sector_buffer + 17], 64
+    jne failed
+    cmp word [sector_buffer + 19], 128
+    jne failed
+    mov si, ram_oem
+    mov di, sector_buffer + 3
+    mov cx, 8
+    repe cmpsb
+    jne failed
+
+    mov al, 3                    ; Read D: VDISK boot sector.
+    xor dx, dx
+    mov bx, sector_buffer
+    call absolute_read
+    jc failed
+    cmp word [sector_buffer + 11], 128
+    jne failed
+    cmp word [sector_buffer + 17], 64
+    jne failed
+    cmp word [sector_buffer + 19], 512
+    jne failed
+    mov si, vdisk_oem
+    mov di, sector_buffer + 3
+    mov cx, 8
+    repe cmpsb
+    jne failed
+
+    mov di, write_buffer
+    mov cx, 512
+    mov al, 0a5h
+    rep stosb
+    mov al, 2                    ; C: final 512-byte sector.
+    mov dx, 127
+    mov bx, write_buffer
+    call absolute_write
+    jc failed
+    mov al, 2
+    mov dx, 127
+    mov bx, sector_buffer
+    call absolute_read
+    jc failed
+    mov si, write_buffer
+    mov di, sector_buffer
+    mov cx, 512
+    repe cmpsb
+    jne failed
+
+    mov di, write_buffer
+    mov cx, 128
+    mov al, 05ah
+    rep stosb
+    mov al, 3                    ; D: final 128-byte sector.
+    mov dx, 511
+    mov bx, write_buffer
+    call absolute_write
+    jc failed
+    mov al, 3
+    mov dx, 511
+    mov bx, sector_buffer
+    call absolute_read
+    jc failed
+    mov si, write_buffer
+    mov di, sector_buffer
+    mov cx, 128
+    repe cmpsb
+    jne failed
+
+    mov al, 2                    ; D: write must not alter C:.
+    mov dx, 127
+    mov bx, sector_buffer
+    call absolute_read
+    jc failed
+    mov di, sector_buffer
+    mov cx, 512
+    mov al, 0a5h
+    repe scasb
+    jne failed
 
     mov si, pass_message
     call serial_print
@@ -26,6 +118,18 @@ non_removable:
     ret
 .bad:
     stc
+    ret
+
+absolute_read:
+    mov cx, 1
+    int 25h
+    pop si                       ; Discard INT 25h's retained FLAGS word.
+    ret
+
+absolute_write:
+    mov cx, 1
+    int 26h
+    pop si                       ; Discard INT 26h's retained FLAGS word.
     ret
 
 failed:
@@ -51,5 +155,9 @@ serial_print:
 .done:
     ret
 
+ram_oem db 'RDV 1.20'
+vdisk_oem db 'VDISKx.x'
 pass_message db 'BLOCK_DRIVER_REQUEST_PASS', 13, 10, 0
 fail_message db 'BLOCK_DRIVER_REQUEST_FAIL', 13, 10, 0
+sector_buffer times 512 db 0
+write_buffer times 512 db 0
