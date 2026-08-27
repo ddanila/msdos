@@ -579,6 +579,31 @@ jobs:
       - name: INT 21h file, directory, search, error, and memory contracts
         run: bash tests/test_int21_file_memory_qemu.sh
 
+  e2e-int21-system:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}/ci:latest
+      options: --device /dev/kvm
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repo with submodules
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Grant KVM access
+        run: chmod 666 /dev/kvm
+
+      - name: Download floppy image
+        uses: actions/download-artifact@v7
+        with:
+          name: floppy
+
+      - name: INT 21h noninteractive system-state contracts
+        run: bash tests/test_int21_system_qemu.sh
+
   e2e-chkdsk-fix:
     needs: build
     runs-on: ubuntu-latest
