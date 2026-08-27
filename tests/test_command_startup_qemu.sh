@@ -10,6 +10,8 @@ BOOT_IMG="$OUT/command-startup-boot.img"
 B_IMG="$OUT/command-startup-unformatted-b.img"
 SERIAL_LOG="$OUT/command-startup-serial.log"
 EXIT_COM="$OUT/command-startup-qexit.com"
+COPY_ASCII_OUT="$OUT/command-copy-destination-ascii.bin"
+COPY_BINARY_OUT="$OUT/command-copy-source-ascii.bin"
 
 PASS=0
 FAIL=0
@@ -46,6 +48,8 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 printf '\r\n' | mcopy -o -i "$BOOT_IMG" - ::EMPTY.IN
 printf 'RENAME_SOURCE_PAYLOAD\r\n' | mcopy -o -i "$BOOT_IMG" - ::RENSRC.TXT
 printf 'RENAME_DEST_PAYLOAD\r\n' | mcopy -o -i "$BOOT_IMG" - ::RENDST.TXT
+printf 'DESTMODE' | mcopy -o -i "$BOOT_IMG" - ::DMODE.BIN
+printf 'BEFORE\032AFTER' | mcopy -o -i "$BOOT_IMG" - ::SMODE.BIN
 
 {
     printf 'CTTY AUX\r\n'
@@ -56,6 +60,8 @@ printf 'RENAME_DEST_PAYLOAD\r\n' | mcopy -o -i "$BOOT_IMG" - ::RENDST.TXT
     printf 'TYPE RENSRC.TXT\r\n'
     printf 'TYPE RENDST.TXT\r\n'
     printf 'ECHO ---COMMAND-RENAME-CONFLICT-END---\r\n'
+    printf 'COPY /B DMODE.BIN DASCII.BIN /A\r\n'
+    printf 'COPY /A SMODE.BIN DBINARY.BIN /B\r\n'
     printf 'ECHO ---COMMAND-DATE-TIME---\r\n'
     printf 'DATE 01-02-1990\r\n'
     printf 'DATE < EMPTY.IN\r\n'
@@ -81,7 +87,7 @@ printf 'RENAME_DEST_PAYLOAD\r\n' | mcopy -o -i "$BOOT_IMG" - ::RENDST.TXT
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
-rm -f "$SERIAL_LOG"
+rm -f "$SERIAL_LOG" "$COPY_ASCII_OUT" "$COPY_BINARY_OUT"
 timeout 120 qemu-system-i386 \
     -display none \
     -drive if=floppy,index=0,format=raw,file="$BOOT_IMG",cache=writethrough \
@@ -105,6 +111,21 @@ if echo "$rename_section" | grep -q '^RENAME_SOURCE_PRESERVED' \
     ok "RENAME existing target preserves both names and exact payloads"
 else
     fail "RENAME existing target did not preserve both DOS files"
+fi
+
+mcopy -i "$BOOT_IMG" ::DASCII.BIN "$COPY_ASCII_OUT" 2>/dev/null || true
+mcopy -i "$BOOT_IMG" ::DBINARY.BIN "$COPY_BINARY_OUT" 2>/dev/null || true
+copy_ascii_hex=$(od -An -tx1 "$COPY_ASCII_OUT" 2>/dev/null | tr -d ' \n')
+copy_binary_hex=$(od -An -tx1 "$COPY_BINARY_OUT" 2>/dev/null | tr -d ' \n')
+if [[ "$copy_ascii_hex" == "444553544d4f4445" ]]; then
+    ok "COPY destination /A preserves the exact source bytes on real DOS"
+else
+    fail "COPY destination /A real-DOS bytes (got: $copy_ascii_hex)"
+fi
+if [[ "$copy_binary_hex" == "4245464f52451a" ]]; then
+    ok "COPY source /A plus destination /B retains one EOF marker on real DOS"
+else
+    fail "COPY source /A destination /B real-DOS bytes (got: $copy_binary_hex)"
 fi
 
 date_time_section=$(sed -n '/---COMMAND-DATE-TIME---/,/---COMMAND-DATE-TIME-END---/p' "$SERIAL_LOG")

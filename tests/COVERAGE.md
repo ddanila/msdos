@@ -44,6 +44,13 @@ verifier derives the operational-switch surface from the built-ins' maintained
 help blocks: DIR `/P` and `/W`, DEL/ERASE `/P`, and COPY `/A`, `/B`, and `/V`.
 Their effects and parser rejection paths are asserted, including both answers
 to the real per-file deletion prompt.
+COPY additionally checks exact file state across ordinary and verified copies,
+concatenation (including a missing later member), wildcard expansion, and
+source/destination ASCII and binary mode combinations. Self-copy is rejected
+without changing its payload, a missing source preserves an existing target,
+and missing or excess operands have exact parser diagnostics. The two less
+obvious destination-mode byte contracts are repeated on a real FAT filesystem
+under QEMU so host-backed emulator behavior is not their only evidence.
 The initialization table in `CMD/COMMAND/UINIT.ASM` is independently derived
 as six startup switches: `/C`, `/D`, `/E`, `/F`, `/MSG`, and `/P`. A focused
 real-DOS test proves `/E` changes usable environment capacity, `/F`

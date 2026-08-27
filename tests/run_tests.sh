@@ -2440,6 +2440,89 @@ else
 fi
 rm -f "$SRC/CMD/COMMAND/KVASCII.TXT" "$SRC/CMD/COMMAND/KVAOUT.TXT"
 
+# -- COPY self-copy: reject and preserve exact source bytes --
+printf 'SELF_COPY_PAYLOAD\r\n' > "$SRC/CMD/COMMAND/KVSELF.TXT"
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'COPY C:\CMD\COMMAND\KVSELF.TXT C:\CMD\COMMAND\KVSELF.TXT') || true
+if echo "$out" | grep -q '^File cannot be copied onto itself' \
+    && [[ "$(cat "$SRC/CMD/COMMAND/KVSELF.TXT")" == $'SELF_COPY_PAYLOAD\r' ]]; then
+    ok "COMMAND.COM COPY self-copy (rejected with exact payload preserved)"
+else
+    fail "COMMAND.COM COPY self-copy preservation (got: $out)"
+fi
+rm -f "$SRC/CMD/COMMAND/KVSELF.TXT"
+
+# -- COPY missing source: preserve a pre-existing destination --
+printf 'PREEXISTING_DESTINATION\r\n' > "$SRC/CMD/COMMAND/KVPRES.TXT"
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'COPY C:\CMD\COMMAND\NOFILE.TXT C:\CMD\COMMAND\KVPRES.TXT') || true
+if echo "$out" | grep -q '^File not found - C:\\CMD\\COMMAND\\NOFILE.TXT' \
+    && [[ "$(cat "$SRC/CMD/COMMAND/KVPRES.TXT")" == $'PREEXISTING_DESTINATION\r' ]]; then
+    ok "COMMAND.COM COPY missing source (existing destination preserved)"
+else
+    fail "COMMAND.COM COPY missing-source preservation (got: $out)"
+fi
+rm -f "$SRC/CMD/COMMAND/KVPRES.TXT"
+
+# -- COPY concatenation: a later missing source is intentionally skipped --
+printf 'CONCAT_FIRST_ONLY\r\n' > "$SRC/CMD/COMMAND/KVCFIRST.TXT"
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'COPY /B C:\CMD\COMMAND\KVCFIRST.TXT+C:\CMD\COMMAND\NOFILE.TXT C:\CMD\COMMAND\KVCMISS.TXT') || true
+if echo "$out" | grep -q '^C:\\CMD\\COMMAND\\KVCFIRST.TXT' \
+    && [[ "$(cat "$SRC/CMD/COMMAND/KVCMISS.TXT")" == $'CONCAT_FIRST_ONLY\r' ]]; then
+    ok "COMMAND.COM COPY concatenation skips a missing later source"
+else
+    fail "COMMAND.COM COPY concatenation missing-source behavior (got: $out)"
+fi
+rm -f "$SRC/CMD/COMMAND/KVCFIRST.TXT" "$SRC/CMD/COMMAND/KVCMISS.TXT"
+
+# -- COPY wildcard expansion: every matching source reaches the directory --
+mkdir -p "$SRC/CMD/COMMAND/KVWDEST"
+printf 'WILDCARD_ONE\r\n' > "$SRC/CMD/COMMAND/KVW1.CPY"
+printf 'WILDCARD_TWO\r\n' > "$SRC/CMD/COMMAND/KVW2.CPY"
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'COPY C:\CMD\COMMAND\KVW?.CPY C:\CMD\COMMAND\KVWDEST') || true
+if [[ "$(cat "$SRC/CMD/COMMAND/KVWDEST/KVW1.CPY")" == $'WILDCARD_ONE\r' ]] \
+    && [[ "$(cat "$SRC/CMD/COMMAND/KVWDEST/KVW2.CPY")" == $'WILDCARD_TWO\r' ]] \
+    && echo "$out" | grep -q '2 File(s) copied'; then
+    ok "COMMAND.COM COPY wildcard expansion (both exact payloads copied)"
+else
+    fail "COMMAND.COM COPY wildcard expansion (got: $out)"
+fi
+rm -f "$SRC/CMD/COMMAND/KVW1.CPY" "$SRC/CMD/COMMAND/KVW2.CPY" \
+      "$SRC/CMD/COMMAND/KVWDEST/KVW1.CPY" "$SRC/CMD/COMMAND/KVWDEST/KVW2.CPY"
+rmdir "$SRC/CMD/COMMAND/KVWDEST" 2>/dev/null || true
+
+# -- Explicit destination modes --
+printf 'DESTMODE' > "$SRC/CMD/COMMAND/KVDMODE.BIN"
+run_dos CMD/COMMAND/COMMAND.COM /C 'COPY /B C:\CMD\COMMAND\KVDMODE.BIN C:\CMD\COMMAND\KVDASCII.BIN /A' >/dev/null || true
+hex=$(od -An -tx1 "$SRC/CMD/COMMAND/KVDASCII.BIN" | tr -d ' \n')
+if [[ "$hex" == "444553544d4f4445" ]]; then
+    ok "COMMAND.COM COPY destination /A preserves the exact source bytes"
+else
+    fail "COMMAND.COM COPY destination /A bytes (got: $hex)"
+fi
+printf 'BEFORE\x1aAFTER' > "$SRC/CMD/COMMAND/KVSMODE.BIN"
+run_dos CMD/COMMAND/COMMAND.COM /C 'COPY /A C:\CMD\COMMAND\KVSMODE.BIN C:\CMD\COMMAND\KVDBIN.BIN /B' >/dev/null || true
+hex=$(od -An -tx1 "$SRC/CMD/COMMAND/KVDBIN.BIN" | tr -d ' \n')
+if [[ "$hex" == "4245464f52451a" ]]; then
+    ok "COMMAND.COM COPY source /A plus destination /B retains one EOF marker"
+else
+    fail "COMMAND.COM COPY source /A destination /B bytes (got: $hex)"
+fi
+rm -f "$SRC/CMD/COMMAND/KVDMODE.BIN" "$SRC/CMD/COMMAND/KVDASCII.BIN" \
+      "$SRC/CMD/COMMAND/KVSMODE.BIN" "$SRC/CMD/COMMAND/KVDBIN.BIN"
+
+# Missing and excess operand parser contracts.
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'COPY') || true
+if echo "$out" | grep -q '^Parse Error 2'; then
+    ok "COMMAND.COM COPY missing source (exact parser rejection)"
+else
+    fail "COMMAND.COM COPY missing source parser result (got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'COPY C:\CMD\COMMAND\COMMAND.COM C:\X.TMP EXTRA') || true
+if echo "$out" | grep -q '^Parse Error 1'; then
+    ok "COMMAND.COM COPY excess operand (exact parser rejection)"
+else
+    fail "COMMAND.COM COPY excess operand parser result (got: $out)"
+fi
+
 # -- Parser signed comparison regression (commit 4ed73cb) --
 # PARSE2.ASM:281: argbuf overflow check uses cmp DI, 0x80BD (>= 0x8000).
 # Original code used jge (signed) — treats 0x80BD as negative, always overflows.
