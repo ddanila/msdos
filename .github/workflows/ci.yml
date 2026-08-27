@@ -149,6 +149,7 @@ jobs:
             MS-DOS/v4.0/src/DEV/XMA2EMS/XMA2EMS.SYS
             MS-DOS/v4.0/src/DEV/PRINTER/PRINTER.SYS
             MS-DOS/v4.0/src/DEV/PRINTER/4201/4201.CPI
+            MS-DOS/v4.0/src/DEV/SMARTDRV/FLUSH13.EXE
           retention-days: 14
 
       - name: Upload published floppy images

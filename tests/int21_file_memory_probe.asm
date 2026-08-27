@@ -236,6 +236,13 @@ seek_ok:
     mov ah, 5bh
     int 21h
     require_error 4, fail_sft_exhaust
+    xor bx, bx
+    xor cx, cx
+    mov dx, 1                     ; Open existing, fail if absent.
+    mov si, original_name
+    mov ax, 6c00h
+    int 21h
+    require_error 4, fail_sft_exhaust
     pop si
     mov cx, si
     mov di, open_handles

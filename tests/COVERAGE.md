@@ -101,6 +101,11 @@ rejects invalid modes, missing files and parents, directories, unterminated
 32 KiB environments, an exhausted system file table, and an exhausted memory
 arena. It releases both constrained resources before a final successful child
 execution, so the test also proves recovery rather than only observing errors.
+Rename coverage distinguishes absent leaves and parents, an existing target,
+and attempts to rename the active current directory. Extended-open coverage
+asserts its action and access selectors plus missing, existing, directory,
+full-root, and exhausted-SFT behavior rather than treating ordinary open/create
+coverage as evidence for the DOS 4-specific interface.
 
 Run the inventory check with:
 

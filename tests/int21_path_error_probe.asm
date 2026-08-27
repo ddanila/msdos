@@ -16,6 +16,8 @@ org 100h
 start:
     push cs
     pop ds
+    push ds
+    pop es
 
     mov dx, test_directory
     mov ah, 39h
@@ -42,6 +44,11 @@ start:
     mov ah, 3ah
     int 21h
     require_error 16, fail_rmdir_current
+    mov dx, dot_path                ; The current directory cannot be renamed.
+    mov di, moved_directory
+    mov ah, 56h
+    int 21h
+    require_error 16, fail_rename_current
 
     xor cx, cx
     mov dx, local_file
@@ -52,6 +59,20 @@ start:
     mov ah, 3eh
     int 21h
     jc setup_failed
+    xor cx, cx
+    mov dx, collision_file
+    mov ah, 3ch
+    int 21h
+    jc setup_failed
+    mov bx, ax
+    mov ah, 3eh
+    int 21h
+    jc setup_failed
+    mov dx, local_file              ; The destination already exists.
+    mov di, collision_file
+    mov ah, 56h
+    int 21h
+    require_error 5, fail_rename_access
     mov dx, root_directory
     mov ah, 3bh
     int 21h
@@ -88,6 +109,52 @@ start:
     int 21h
     require_error 3, fail_attr_path
 
+    mov dx, missing_file            ; Rename distinguishes the absent leaf.
+    mov di, rename_target
+    mov ah, 56h
+    int 21h
+    require_error 2, fail_rename_file
+    mov dx, missing_path_file       ; ...from an absent parent component.
+    mov di, rename_target
+    mov ah, 56h
+    int 21h
+    require_error 3, fail_rename_path
+
+    xor bx, bx                      ; Extended-open requires a valid action.
+    xor cx, cx
+    xor dx, dx
+    mov si, local_file_path
+    mov ax, 6c00h
+    int 21h
+    require_error 1, fail_extopen_function
+    mov bx, 3                       ; Access modes stop at 2.
+    xor cx, cx
+    mov dx, 1                       ; Open existing, fail if absent.
+    mov si, local_file_path
+    mov ax, 6c00h
+    int 21h
+    require_error 12, fail_extopen_access_mode
+    xor bx, bx
+    xor cx, cx
+    mov dx, 1
+    mov si, missing_file
+    mov ax, 6c00h
+    int 21h
+    require_error 2, fail_extopen_file
+    mov si, missing_path_file
+    mov ax, 6c00h
+    int 21h
+    require_error 3, fail_extopen_path
+    mov si, test_directory          ; Directories cannot be opened as files.
+    mov ax, 6c00h
+    int 21h
+    require_error 5, fail_extopen_denied
+    mov dx, 10h                     ; Fail if existing, create if absent.
+    mov si, local_file_path
+    mov ax, 6c00h
+    int 21h
+    require_error 80, fail_extopen_exists
+
     mov dx, dta
     mov ah, 1ah
     int 21h
@@ -98,6 +165,10 @@ start:
     require_error 18, fail_find_none
 
     mov dx, local_file_path
+    mov ah, 41h
+    int 21h
+    jc setup_failed
+    mov dx, collision_file_path
     mov ah, 41h
     int 21h
     jc setup_failed
@@ -129,22 +200,36 @@ missing_child    db 'NOEXIST\CHILD', 0
 dot_path         db '.', 0
 root_directory   db '\', 0
 local_file       db 'LOCAL.TST', 0
+collision_file   db 'OTHER.TST', 0
 local_file_path  db 'ERRDIR\LOCAL.TST', 0
+collision_file_path db 'ERRDIR\OTHER.TST', 0
 missing_file     db 'MISSING.TST', 0
 missing_path_file db 'NOEXIST\MISSING.TST', 0
 missing_glob     db 'NOFILES.*', 0
+moved_directory  db '..\MOVED', 0
+rename_target    db 'RENAMED.TST', 0
 pass_message     db 'INT21_PATH_ERRORS_PASS', 13, 10, '$'
 fail_setup       db 'INT21_PATH_SETUP_FAIL', 13, 10, '$'
 fail_mkdir_exists db 'INT21_MKDIR_EXISTS_FAIL', 13, 10, '$'
 fail_mkdir_path  db 'INT21_MKDIR_PATH_FAIL', 13, 10, '$'
 fail_chdir_path  db 'INT21_CHDIR_PATH_FAIL', 13, 10, '$'
 fail_rmdir_current db 'INT21_RMDIR_CURRENT_FAIL', 13, 10, '$'
+fail_rename_current db 'INT21_RENAME_CURRENT_FAIL', 13, 10, '$'
 fail_rmdir_nonempty db 'INT21_RMDIR_NONEMPTY_FAIL', 13, 10, '$'
+fail_rename_access db 'INT21_RENAME_ACCESS_FAIL', 13, 10, '$'
+fail_rename_file db 'INT21_RENAME_FILE_FAIL', 13, 10, '$'
+fail_rename_path db 'INT21_RENAME_PATH_FAIL', 13, 10, '$'
 fail_delete_file db 'INT21_DELETE_FILE_FAIL', 13, 10, '$'
 fail_delete_path db 'INT21_DELETE_PATH_FAIL', 13, 10, '$'
 fail_open_path   db 'INT21_OPEN_PATH_FAIL', 13, 10, '$'
 fail_create_path db 'INT21_CREATE_PATH_FAIL', 13, 10, '$'
 fail_attr_file   db 'INT21_ATTR_FILE_FAIL', 13, 10, '$'
 fail_attr_path   db 'INT21_ATTR_PATH_FAIL', 13, 10, '$'
+fail_extopen_function db 'INT21_EXTOPEN_FUNCTION_FAIL', 13, 10, '$'
+fail_extopen_access_mode db 'INT21_EXTOPEN_ACCESS_MODE_FAIL', 13, 10, '$'
+fail_extopen_file db 'INT21_EXTOPEN_FILE_FAIL', 13, 10, '$'
+fail_extopen_path db 'INT21_EXTOPEN_PATH_FAIL', 13, 10, '$'
+fail_extopen_denied db 'INT21_EXTOPEN_DENIED_FAIL', 13, 10, '$'
+fail_extopen_exists db 'INT21_EXTOPEN_EXISTS_FAIL', 13, 10, '$'
 fail_find_none   db 'INT21_FIND_NONE_FAIL', 13, 10, '$'
 dta              times 128 db 0

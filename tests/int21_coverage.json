@@ -84,7 +84,7 @@
     "53": {"level": "contract", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh"], "note": "A 1.44 MB FAT12 BPB is converted to asserted DPB geometry"},
     "54": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "Get-verify observes both toggled and restored write-verification states"},
     "55": {"level": "contract", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh"], "note": "A duplicated PSP becomes current, is verified, then the parent is restored"},
-    "56": {"level": "contract", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "Renames a test file before finding and deleting it"},
+    "56": {"level": "contract", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh", "tests/int21_path_error_probe.asm", "tests/test_int21_path_errors_qemu.sh"], "note": "Renames normally and distinguishes missing source, missing parent, current-directory, and existing-destination failures"},
     "57": {"level": "contract", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "Reads and writes back a live handle's date and time"},
     "58": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "Arena allocation strategy is queried, set, and queried again"},
     "59": {"level": "contract", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "A missing-file open is followed by an asserted extended error code"},
@@ -105,7 +105,7 @@
     "69": {"level": "contract", "evidence": ["tests/int21_media_probe.asm", "tests/test_int21_media_qemu.sh"], "note": "Disposable media ID is changed, read back in DOS, and verified in the raw image"},
     "6A": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "DOS 4.0 commit alias flushes a live temporary-file handle"},
     "6B": {"level": "contract", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh"], "note": "IFS IOCTL returns an asserted error when no IFS redirector is installed"},
-    "6C": {"level": "contract", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh"], "note": "Extended open reports create on first use and open-existing on second use"}
+    "6C": {"level": "contract", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh", "tests/int21_path_error_probe.asm", "tests/test_int21_path_errors_qemu.sh", "tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh", "tests/root_exhaustion_probe.asm", "tests/test_root_exhaustion_qemu.sh"], "note": "Extended open reports create/open actions and distinguishes invalid action/access, missing file/path, existing-file, access-denied, and exhausted-SFT failures"}
   },
   "excluded": {
     "00": "Terminate-program compatibility entry cannot return to an in-process harness",
