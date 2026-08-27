@@ -44,6 +44,13 @@ verifier derives the operational-switch surface from the built-ins' maintained
 help blocks: DIR `/P` and `/W`, DEL/ERASE `/P`, and COPY `/A`, `/B`, and `/V`.
 Their effects and parser rejection paths are asserted, including both answers
 to the real per-file deletion prompt.
+The initialization table in `CMD/COMMAND/UINIT.ASM` is independently derived
+as six startup switches: `/C`, `/D`, `/E`, `/F`, `/MSG`, and `/P`. A focused
+real-DOS test proves `/E` changes usable environment capacity, `/F`
+automatically fails a genuine INT 24h disk error, `/P /MSG` retains a child
+interpreter that ignores EXIT, and `/D` lets it start without date/time input.
+Host-side tests enforce `/E`'s exact source-defined bounds and diagnostics,
+the `/MSG` dependency, and `/C`'s consume-the-rest grammar.
 
 `dos_interrupt_coverage.json` covers the DOS-initialized vector surface outside
 the INT 21h dispatch table. Its verifier checks the live `MSINIT.ASM` vector

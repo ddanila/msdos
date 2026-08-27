@@ -7,6 +7,14 @@
     "DIR": ["P", "W"],
     "ERASE": ["P"]
   },
+  "startup_switches": {
+    "C": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Runs the remaining command line verbatim and returns to its caller"},
+    "D": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_command_startup_qemu.sh"], "note": "Suppresses startup date/time input while a new permanent interpreter begins processing commands"},
+    "E": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_command_startup_qemu.sh"], "note": "Both 160 and 32768 byte bounds, adjacent rejections, duplication, and an observable 160-versus-512 environment-capacity difference are asserted"},
+    "F": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_command_startup_qemu.sh"], "note": "Automatically chooses Fail for an actual INT 24h error from an unformatted B: disk and continues without input"},
+    "MSG": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_command_startup_qemu.sh"], "note": "Without /P the required relationship is diagnosed; with /P resident messages are accepted by the live permanent shell"},
+    "P": {"level": "contract", "evidence": ["tests/test_command_startup_qemu.sh"], "note": "A child permanent interpreter ignores EXIT, executes the following redirected command, and never returns to its parent batch"}
+  },
   "commands": {
     "BREAK": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Query plus ON/OFF state transitions are asserted"},
     "CALL": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "A nested batch runs and returns to its caller"},

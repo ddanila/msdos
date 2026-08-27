@@ -211,6 +211,9 @@ jobs:
       - name: External CMD /? help + EXEPACK tests
         run: bash tests/test_help_qemu.sh
 
+      - name: COMMAND.COM startup-switch behavior
+        run: bash tests/test_command_startup_qemu.sh
+
       - name: MORE lossless console paging
         run: bash tests/test_more_paging_qemu.sh
 

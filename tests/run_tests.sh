@@ -1722,6 +1722,66 @@ KVBAT="$SRC/CMD/COMMAND/KVTEST.BAT"
 KVSUB="$SRC/CMD/COMMAND/KVSUB.BAT"
 KVTXT="$SRC/CMD/COMMAND/KVTST.TXT"
 
+# -- COMMAND initialization parser --
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /E:160 /C 'ECHO COMMAND_E_MIN') || true
+if echo "$out" | grep -q '^COMMAND_E_MIN'; then
+    ok "COMMAND.COM /E:160 (minimum environment size accepted)"
+else
+    fail "COMMAND.COM /E:160 (minimum rejected, got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /E:32768 /C 'ECHO COMMAND_E_MAX') || true
+if echo "$out" | grep -q '^COMMAND_E_MAX'; then
+    ok "COMMAND.COM /E:32768 (maximum environment size accepted)"
+else
+    fail "COMMAND.COM /E:32768 (maximum rejected, got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /E:159 /C 'ECHO COMMAND_E_LOW') || true
+if echo "$out" | grep -q '^Parameter value not in allowed range' \
+    && echo "$out" | grep -q '^COMMAND_E_LOW'; then
+    ok "COMMAND.COM /E:159 (below-range value diagnosed before /C)"
+else
+    fail "COMMAND.COM /E:159 (expected range diagnostic, got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /E:32769 /C 'ECHO COMMAND_E_HIGH') || true
+if echo "$out" | grep -q '^Parameter value not in allowed range' \
+    && echo "$out" | grep -q '^COMMAND_E_HIGH'; then
+    ok "COMMAND.COM /E:32769 (above-range value diagnosed before /C)"
+else
+    fail "COMMAND.COM /E:32769 (expected range diagnostic, got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /E:160 /E:176 /C 'ECHO COMMAND_E_DUP') || true
+if echo "$out" | grep -q '^Too many parameters' \
+    && echo "$out" | grep -q '^COMMAND_E_DUP'; then
+    ok "COMMAND.COM duplicate /E (diagnosed before /C)"
+else
+    fail "COMMAND.COM duplicate /E (expected diagnostic, got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /MSG /C 'ECHO COMMAND_MSG_NOP') || true
+if echo "$out" | grep -q '^Required parameter missing' \
+    && echo "$out" | grep -q '^COMMAND_MSG_NOP'; then
+    ok "COMMAND.COM /MSG without /P (required relationship diagnosed)"
+else
+    fail "COMMAND.COM /MSG without /P (expected diagnostic, got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /D /C 'ECHO COMMAND_D_ACCEPTED') || true
+if echo "$out" | grep -q '^COMMAND_D_ACCEPTED'; then
+    ok "COMMAND.COM /D (startup date/time suppression switch accepted)"
+else
+    fail "COMMAND.COM /D (startup failed, got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /F /C 'ECHO COMMAND_F_ACCEPTED') || true
+if echo "$out" | grep -q '^COMMAND_F_ACCEPTED'; then
+    ok "COMMAND.COM /F (critical-error fail switch accepted)"
+else
+    fail "COMMAND.COM /F (startup failed, got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'ECHO COMMAND_C_REST /D') || true
+if echo "$out" | grep -q '^COMMAND_C_REST /D'; then
+    ok "COMMAND.COM /C consumes the remaining command line verbatim"
+else
+    fail "COMMAND.COM /C did not consume the remaining line (got: $out)"
+fi
+
 # -- VER --
 out=$(run_dos CMD/COMMAND/COMMAND.COM /C VER) || true
 if echo "$out" | grep -qi "MS-DOS"; then

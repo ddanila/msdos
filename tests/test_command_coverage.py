@@ -57,6 +57,22 @@ def live_operational_switches(commands):
     return {command: sorted(switches) for command, switches in surfaces.items()}
 
 
+def live_startup_switches():
+    source = (ROOT / "MS-DOS/v4.0/src/CMD/COMMAND/UINIT.ASM").read_text(
+        encoding="latin-1"
+    )
+    switches = re.findall(
+        r'^COMMAND_[A-Z]_SYN\s+DB\s+"/([A-Z]+)"',
+        source,
+        re.IGNORECASE | re.MULTILINE,
+    )
+    if not switches:
+        raise AssertionError("no COMMAND.COM startup switches derived from UINIT.ASM")
+    if len(switches) != len(set(switches)):
+        raise AssertionError("duplicate COMMAND.COM startup switch definition")
+    return {switch.upper() for switch in switches}
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--require-complete", action="store_true")
@@ -83,11 +99,20 @@ def main():
             f"derived={expected_switches}, declared={declared_switches}"
         )
 
+    expected_startup = live_startup_switches()
+    startup = manifest.get("startup_switches", {})
+    if set(startup) != expected_startup:
+        raise AssertionError(
+            "COMMAND.COM startup switch mismatch: "
+            f"missing={sorted(expected_startup - set(startup))}, "
+            f"stale={sorted(set(startup) - expected_startup)}"
+        )
+
     ci_corpus = (ROOT / "Makefile").read_text() + "\n" + (
         ROOT / ".github/workflows/ci.yml"
     ).read_text()
     counts = {level: 0 for level in LEVELS}
-    for command, item in commands.items():
+    for command, item in {**commands, **{f"/{key}": value for key, value in startup.items()}}.items():
         level = item.get("level")
         if level not in LEVELS:
             raise AssertionError(f"{command}: invalid level {level!r}")
@@ -106,7 +131,9 @@ def main():
             raise AssertionError(f"{command}: contract evidence is not wired into CI")
         counts[level] += 1
 
-    print(f"COMMAND.COM internal commands: {len(expected)}")
+    print(f"COMMAND.COM traceability entries: {len(expected) + len(expected_startup)}")
+    print(f"  internal commands: {len(expected)}")
+    print(f"  startup switches: {len(expected_startup)}")
     print(f"  contract tested: {counts['contract']}")
     print(f"  behavior observed: {counts['observed']}")
     print(f"  uncovered: {counts['uncovered']}")
@@ -117,8 +144,12 @@ def main():
             for command, switches in sorted(expected_switches.items())
         )
     )
+    print("  startup surface: " + " ".join(f"/{item}" for item in sorted(expected_startup)))
     incomplete = sorted(
         command for command, item in commands.items() if item["level"] != "contract"
+    )
+    incomplete += sorted(
+        f"/{switch}" for switch, item in startup.items() if item["level"] != "contract"
     )
     if incomplete:
         print("  incomplete: " + " ".join(incomplete))
