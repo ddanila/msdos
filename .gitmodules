@@ -4,5 +4,5 @@
 [submodule "kvikdos"]
 	path = kvikdos
 	url = https://github.com/ddanila/kvikdos.git
-	branch = improvements
+	branch = custom
 	ignore = untracked
