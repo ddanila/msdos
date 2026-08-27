@@ -28,11 +28,12 @@ python3 "$ROOT/tests/test_native_buildmsg.py"
 python3 "$ROOT/tests/test_native_select_tools.py"
 python3 "$ROOT/tests/test_native_mkcntry.py"
 
-python3 - "$ROOT" <<'PY'
+python3 - "$ROOT" "$TEST_TMP" <<'PY'
 import runpy
 import sys
 
 root = sys.argv[1]
+test_tmp = sys.argv[2]
 wlib = runpy.run_path(root + "/bin/wlib")
 resolved = wlib["resolve_existing_casefold"](
     root + "/MS-DOS/v4.0/src/MAPPER/mapper.lbr"
@@ -41,7 +42,7 @@ assert resolved.endswith("/MAPPER/MAPPER.LBR"), resolved
 
 record = bytearray(b"prefix\x88\x08\x00\xc0\xfeT\x34\x12\x78\x56\0suffix")
 record[16] = (-sum(record[6:16])) & 0xff
-sample = root + "/out/wlib-timestamp-test.lib"
+sample = test_tmp + "/wlib-timestamp-test.lib"
 with open(sample, "wb") as stream:
     stream.write(record)
 wlib["canonicalize_omf_timestamps"](sample)
