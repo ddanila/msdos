@@ -47,6 +47,18 @@ def config_directives(source_text):
     }
 
 
+def select_modes(source_text):
+    """Derive SELECT.EXE's accepted positional mode keywords."""
+    return {
+        value.upper()
+        for value in re.findall(
+            r"^KEYWORD_[A-Z0-9_]+\s+DB\s+'([A-Z]+)',0",
+            source_text,
+            re.IGNORECASE | re.MULTILINE,
+        )
+    }
+
+
 def validate_items(items, expected, category, ci_corpus):
     declared = set(items)
     missing = expected - declared
@@ -118,12 +130,23 @@ def main():
     workflow_text = (ROOT / ".github/workflows/ci.yml").read_text()
     ci_corpus = make_text + "\n" + workflow_text
     runtime = manifest["runtime_components"]
+    modes = manifest["select_modes"]
     directives = manifest["config_directives"]
 
     validate_items(
         runtime,
         shipped_runtime_components(make_text),
         "runtime component",
+        ci_corpus,
+    )
+    validate_items(
+        modes,
+        select_modes(
+            (ROOT / "MS-DOS/v4.0/src/SELECT/SCN_PARM.ASM").read_text(
+                encoding="latin-1"
+            )
+        ),
+        "SELECT.EXE mode",
         ci_corpus,
     )
     validate_items(
@@ -138,6 +161,7 @@ def main():
     )
 
     incomplete = summarize("Shipped runtime components", runtime)
+    incomplete += summarize("SELECT.EXE modes", modes)
     incomplete += summarize("CONFIG.SYS directives", directives)
     if args.require_complete and incomplete:
         raise SystemExit("runtime coverage incomplete for: " + " ".join(incomplete))

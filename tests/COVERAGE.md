@@ -32,6 +32,9 @@ fixed MCB mappings, and operational-IFS-only paths are recorded explicitly.
 runtime `.COM`, `.EXE`, and `.SYS` component and to every directive parsed from
 the kernel's live `COMTAB` in `BIOS/SYSINIT2.ASM`. Its verifier derives both
 sets from the source and Makefile, rejecting omitted or stale entries.
+It also derives SELECT.EXE's complete positional-mode surface from the live
+`KEYWORD_*` definitions in `SELECT/SCN_PARM.ASM`, preventing its internal MENU
+and FDISK entry paths from being collapsed into one generic executable claim.
 
 `command_coverage.json` drills into COMMAND.COM itself. Its verifier derives
 all 35 internal commands from the live `COMTAB` in `CMD/COMMAND/TDATA.ASM`, so
