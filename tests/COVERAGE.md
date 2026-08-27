@@ -208,6 +208,12 @@ characters. An invalid-character input must enter LABEL's documented recovery
 prompt; submitting an empty replacement and declining deletion must preserve
 the prior on-disk label.
 
+`test_select.sh` drives SELECT through its BIOS keyboard and video interfaces.
+Besides the stub transition and invalid-command-line return path, the valid
+MENU workflow must reach Welcome, cancel to the Exit panel, decline exit, and
+return to Welcome. This proves a reversible UI state transition and recovery
+without starting an installation or mutating a target disk.
+
 ATTRIB metadata transitions operate on a disposable copy rather than a source
 file. The test covers combined set/clear operations, recursive enumeration,
 the exact missing-file and invalid-switch failure classes with nonzero exits,

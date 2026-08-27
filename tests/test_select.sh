@@ -13,6 +13,7 @@
 #   5. Returns to DOS prompt (no crash/hang)
 #   6. Boot a fresh image and run "SELECT MENU"
 #   7. Confirm the valid path reaches the Welcome panel
+#   8. Cancel to the Exit panel, decline exit, and confirm recovery to Welcome
 #
 # Run via: make test-select  (requires 'make deploy' first)
 
@@ -91,7 +92,7 @@ python3 "$REPO_ROOT/tests/screen_expect.py" \
 kill $QEMU_PID 2>/dev/null
 wait $QEMU_PID 2>/dev/null || true
 
-# ── Step 4: exercise a valid command line through the first UI panel ────────
+# ── Step 4: exercise a valid UI state transition and recovery ──────────────────
 echo "Running SELECT MENU valid-path check..."
 cp "$FLOPPY" "$MENU_BOOT_IMG"
 mdel -i "$MENU_BOOT_IMG" ::AUTOEXEC.BAT 2>/dev/null || true
@@ -120,6 +121,8 @@ python3 "$REPO_ROOT/tests/screen_expect.py" \
     'Enter new time' 'ret' \
     '>' 's+e+l+e+c+t+spc+m+e+n+u+ret' \
     'Insert SELECT' 'ret' \
+    'Welcome' 'esc' \
+    'You have chosen to end SELECT' 'ret' \
     'Welcome' ''
 
 kill $QEMU_PID 2>/dev/null
@@ -173,6 +176,18 @@ if grep -q "Welcome to DOS 4.0 and the SELECT program" "$MENU_SCREEN_LOG"; then
     ok "SELECT MENU reached the Welcome panel"
 else
     fail "SELECT MENU did not reach the Welcome panel"
+fi
+
+if grep -q "Rule 5: matched.*You have chosen to end SELECT" "$MENU_SCREEN_LOG"; then
+    ok "ESC transitioned SELECT from Welcome to the Exit panel"
+else
+    fail "SELECT did not transition from Welcome to the Exit panel"
+fi
+
+if grep -q "Rule 6: matched.*Welcome" "$MENU_SCREEN_LOG"; then
+    ok "ENTER declined exit and returned SELECT to Welcome"
+else
+    fail "SELECT did not recover from the Exit panel to Welcome"
 fi
 
 # Dump log on failure
