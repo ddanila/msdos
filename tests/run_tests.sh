@@ -1331,6 +1331,39 @@ else
     fail "MEM /DEBUG (expected 'Address' and 'Type' headers)"
 fi
 
+# MEM's parser declares /PROGRAM and /DEBUG as separate switch descriptors but
+# the main loop deliberately rejects every second switch, including duplicates.
+for mem_pair in "/DEBUG /PROGRAM" "/DEBUG /DEBUG" "/PROGRAM /PROGRAM"; do
+    read -r mem_first mem_second <<< "$mem_pair"
+    output=$(run_dos_all_output CMD/MEM/MEM.EXE "$mem_first" "$mem_second"); mem_pair_rc=$?
+    if [[ "$mem_pair_rc" -eq 1 ]] && echo "$output" | grep -q "Parse Error 1"; then
+        ok "MEM $mem_pair (second switch rejected)"
+    else
+        fail "MEM $mem_pair (expected Parse Error 1/errorlevel 1, got rc=$mem_pair_rc)"
+    fi
+done
+
+output=$(run_dos_all_output CMD/MEM/MEM.EXE /Z); mem_unknown_rc=$?
+if [[ "$mem_unknown_rc" -eq 1 ]] && echo "$output" | grep -q "Parse Error 3"; then
+    ok "MEM unknown switch (rejected with errorlevel 1)"
+else
+    fail "MEM unknown switch (expected Parse Error 3/errorlevel 1, got rc=$mem_unknown_rc)"
+fi
+
+output=$(run_dos_all_output CMD/MEM/MEM.EXE FOO); mem_positional_rc=$?
+if [[ "$mem_positional_rc" -eq 1 ]] && echo "$output" | grep -q "Parse Error 1"; then
+    ok "MEM positional operand (rejected with errorlevel 1)"
+else
+    fail "MEM positional operand (expected Parse Error 1/errorlevel 1, got rc=$mem_positional_rc)"
+fi
+
+output=$(timeout 5 "$BIN/dos-run" "$SRC/CMD/MEM/MEM.EXE" /program 2>/dev/null | head -10) || true
+if echo "$output" | grep -q "Address" && echo "$output" | grep -q "Type"; then
+    ok "MEM switch matching is case-insensitive"
+else
+    fail "MEM lowercase /program was not accepted"
+fi
+
 # -- FC: nonexistent file error --
 output=$(run_dos CMD/FC/FC.EXE 'C:\NONEXIST.TXT' 'C:\SETENV.BAT' 2>&1) || true
 if echo "$output" | grep -qi "cannot open"; then

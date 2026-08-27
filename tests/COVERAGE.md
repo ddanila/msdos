@@ -241,6 +241,11 @@ uniquely numbered lines. It requires exactly two `-- More --` boundaries,
 injects an extended two-byte key at one and an ordinary raw key at the other,
 and then verifies every line appeared exactly once and in order before MORE
 returned to its caller.
+MEM's complete two-switch surface is covered at the parser as well as output
+level. `/PROGRAM` and `/DEBUG` each produce detailed reports and accept folded
+case, while every mixed or duplicate second switch is rejected. Unknown
+switches and forbidden positional operands require their distinct parser
+diagnostics and errorlevel 1.
 
 ATTRIB metadata transitions operate on a disposable copy rather than a source
 file. The test covers combined set/clear operations, recursive enumeration,
