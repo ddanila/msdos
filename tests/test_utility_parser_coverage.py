@@ -26,6 +26,18 @@ def main():
         raise AssertionError("unsupported utility parser coverage schema")
 
     ci_corpus = (ROOT / "Makefile").read_text() + (ROOT / ".github/workflows/ci.yml").read_text()
+    parser_sources = {
+        path.relative_to(ROOT).as_posix()
+        for path in (ROOT / "MS-DOS/v4.0/src/CMD").rglob("*.ASM")
+        if "COMMAND" not in path.parts
+        and source_switches(path.read_text(encoding="latin-1"))
+    }
+    declared_sources = {item["source"] for item in manifest["utilities"].values()}
+    if parser_sources != declared_sources:
+        raise AssertionError(
+            f"utility parser source mismatch; missing={sorted(parser_sources-declared_sources)}, "
+            f"stale={sorted(declared_sources-parser_sources)}"
+        )
     incomplete = []
     counts = {level: 0 for level in VALID_LEVELS}
     total = 0

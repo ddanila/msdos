@@ -113,11 +113,11 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 {
     printf 'CTTY AUX\r\n'
 
-    # ── SHARE /NC (first call) — load file-sharing TSR with no-compat mode ────
-    # /NC disables compatibility-mode checking (undocumented switch).
+    # ── SHARE /NC /F /L (first call) — load with every parser switch ─────────
+    # /NC disables compatibility checking; /F and /L size the file and lock tables.
     # No output on success. Hooks INT 2Fh, calls INT 21h/31h (Keep_Process).
     printf 'ECHO ---SHARE---\r\n'
-    printf 'SHARE /NC\r\n'
+    printf 'SHARE /NC /F:4096 /L:40\r\n'
     printf 'ECHO SHARE_DONE\r\n'
 
     # ── SHARE /F:4096 /L:40 (second call) — already installed ─────────────────
@@ -210,9 +210,9 @@ echo ""
 echo "--- SHARE tests ---"
 
 if grep -q "SHARE_DONE" "$SERIAL_LOG"; then
-    ok "SHARE /NC (first call installed silently with no-compat mode, batch continued)"
+    ok "SHARE /NC /F:4096 /L:40 (all switches installed, batch continued)"
 else
-    fail "SHARE /NC (batch hung or crashed after first SHARE call)"
+    fail "SHARE /NC /F:4096 /L:40 (batch hung or crashed after first SHARE call)"
 fi
 
 # NOTE: SHARE writes "SHARE already installed" via ShDispMsg which uses BIOS

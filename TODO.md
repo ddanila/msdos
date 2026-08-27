@@ -20,9 +20,9 @@ All 48 exclusions are post-failed-INIT requests in the two XMA drivers and are
 runtime-proven unreachable on the supported QEMU hardware contract; every
 reachable pass-through, no-op, unsupported, and ordinary handler is exercised.
 Source-derived command-line depth currently covers all 35 COMMAND.COM built-ins,
-six startup switches, two SELECT modes, and the first 27 standalone parser
-switches across ten utilities. The next active expansion is the remaining
-standalone parser families.
+six startup switches, two SELECT modes, and all 42 switches across the thirteen
+standalone utilities with explicit parser synonym records. The next active
+expansion is the remaining heterogeneous standalone parser families.
 
 ## Native Open-Source Build (COMPLETE)
 

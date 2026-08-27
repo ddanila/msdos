@@ -105,6 +105,14 @@ printf '@ECHO OFF\r\nECHO Hello World | FIND "Hello"\r\n' \
     printf 'MODE CON /STATUS\r\n'
     printf 'ECHO MODE_CON_DONE\r\n'
 
+    # Short status synonyms must reach the same console-status implementation.
+    printf 'ECHO ---MODE-STA---\r\n'
+    printf 'MODE CON /STA\r\n'
+    printf 'ECHO MODE_STA_DONE\r\n'
+    printf 'ECHO ---MODE-STAT---\r\n'
+    printf 'MODE CON /STAT\r\n'
+    printf 'ECHO MODE_STAT_DONE\r\n'
+
     # ── MODE CON COLS=80 LINES=25 — set console dimensions ─────────────────
     # Non-interactive: sets text mode and prints status.
     printf 'ECHO ---MODE-CON-SET---\r\n'
@@ -391,6 +399,19 @@ if grep -qi "Status" "$SERIAL_LOG" && grep -q "MODE_CON_DONE" "$SERIAL_LOG"; the
     ok "MODE CON /STATUS (status output printed, batch continued)"
 else
     fail "MODE CON /STATUS (expected 'Status' output and MODE_CON_DONE marker)"
+fi
+
+mode_sta_section=$(sed -n '/---MODE-STA---/,/MODE_STA_DONE/p' "$SERIAL_LOG")
+if echo "$mode_sta_section" | grep -qi "Status"; then
+    ok "MODE CON /STA (short synonym reports console status)"
+else
+    fail "MODE CON /STA (expected console status output)"
+fi
+mode_stat_section=$(sed -n '/---MODE-STAT---/,/MODE_STAT_DONE/p' "$SERIAL_LOG")
+if echo "$mode_stat_section" | grep -qi "Status"; then
+    ok "MODE CON /STAT (short synonym reports console status)"
+else
+    fail "MODE CON /STAT (expected console status output)"
 fi
 
 # MODE CON COLS=80 LINES=25

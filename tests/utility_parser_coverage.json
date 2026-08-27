@@ -30,6 +30,27 @@
     "KEYB.COM": {"source": "MS-DOS/v4.0/src/CMD/KEYB/PARSER.ASM", "switches": {
       "/ID": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_keyb_layout_qemu.sh"], "note": "A concrete French keyboard ID loads and the resulting active layout is queried"}
     }},
+    "MODE.COM": {"source": "MS-DOS/v4.0/src/CMD/MODE/MODEPARS.ASM", "switches": {
+      "/STA": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Shortest synonym reports live console status"},
+      "/STAT": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Intermediate synonym reports live console status"},
+      "/STATUS": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_drivers_qemu.sh"], "note": "Long synonym reports console and prepared code-page status"}
+    }},
+    "PRINT.COM": {"source": "MS-DOS/v4.0/src/CMD/PRINT/PRINT_T.ASM", "switches": {
+      "/B": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "Buffer sizing is accepted during a functionally verified resident installation"},
+      "/C": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Cancels a named queued file and returns to the batch"},
+      "/D": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "Selects the printer device used by exact LPT payload capture"},
+      "/M": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "Maximum-tick configuration is accepted by the working spooler"},
+      "/P": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "Queues a named payload that reaches LPT byte-exactly"},
+      "/Q": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "Queue sizing is accepted by the working spooler"},
+      "/S": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "Slice configuration is accepted by the working spooler"},
+      "/T": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Terminates the active queue and returns to the batch"},
+      "/U": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "Minimum-tick configuration is accepted by the working spooler"}
+    }},
+    "SHARE.EXE": {"source": "MS-DOS/v4.0/src/CMD/SHARE/GSHARE2.ASM", "switches": {
+      "/F": {"level": "contract", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_int21_compat_qemu.sh"], "note": "File-table sizing participates in the installation whose byte locking is verified"},
+      "/L": {"level": "contract", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_int21_compat_qemu.sh"], "note": "Lock-table sizing participates in the installation whose byte locking is verified"},
+      "/NC": {"level": "contract", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_int21_compat_qemu.sh"], "note": "No-compatibility mode installs together with explicit table sizes and retains functional locking"}
+    }},
     "SORT.EXE": {"source": "MS-DOS/v4.0/src/CMD/SORT/SORT.ASM", "switches": {
       "/+": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Column sorting covers an ordinary value, both declared range endpoints, and adjacent rejections"},
       "/R": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Reverse mode produces exact descending line order"}
