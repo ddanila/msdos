@@ -239,6 +239,9 @@ jobs:
       - name: GRAPHICS.COM exact Print Screen output
         run: bash tests/test_graphics_print_qemu.sh
 
+      - name: GRAFTABL exact resident font tables
+        run: bash tests/test_graftabl_qemu.sh
+
       - name: FASTOPEN pathname-cache invalidation
         run: bash tests/test_fastopen_cache_qemu.sh
 

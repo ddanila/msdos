@@ -93,6 +93,11 @@ disk copy.
 Driver contracts similarly require an effect after installation. For example,
 `test_ansi_driver_qemu.sh` sends an ANSI cursor-position sequence through DOS
 and checks the resulting coordinates through the BIOS.
+Resident utility contracts follow the same rule. `test_graftabl_qemu.sh`
+derives the complete 128-character bitmap oracles from the maintained font
+sources, then switches 437 to 850 and back in one DOS session. After every
+switch it verifies GRAFTABL's INT 2Fh handler, the INT 1Fh vector, and all 1,040
+resident bytes including the code-page identifier and language metadata.
 `test_driver_sys_qemu.sh` installs a logical drive backed by a separate second
 floppy and handles the driver's media prompt through QMP. The guest verifies
 exact bytes read through the new drive letter, creates a second file through
