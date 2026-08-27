@@ -614,6 +614,9 @@ jobs:
       - name: INT 21h file, directory, search, error, and memory contracts
         run: bash tests/test_int21_file_memory_qemu.sh
 
+      - name: INT 21h local path and directory error contracts
+        run: bash tests/test_int21_path_errors_qemu.sh
+
   e2e-int21-system:
     needs: build
     runs-on: ubuntu-latest

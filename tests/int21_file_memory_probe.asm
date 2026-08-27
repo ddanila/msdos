@@ -162,6 +162,40 @@ seek_ok:
     int 21h
     fail_if_carry 3e
 
+    ; Fill the default 20-entry JFT with duplicates of stdout. The next DUP
+    ; and a forced duplicate beyond the table must both report error 4.
+    xor si, si
+    mov di, open_handles
+.dup_until_full:
+    mov bx, 1
+    mov ah, 45h
+    int 21h
+    jc .dup_full
+    stosw
+    inc si
+    cmp si, 20
+    jb .dup_until_full
+    jmp dup_exhaust_failed
+.dup_full:
+    cmp ax, 4
+    jne dup_exhaust_failed
+    mov bx, 1
+    mov cx, 20
+    mov ah, 46h
+    int 21h
+    require_error 6, fail_dup2_exhaust
+    mov cx, si
+    mov di, open_handles
+.close_dups:
+    jcxz .dups_closed
+    mov bx, [di]
+    mov ah, 3eh
+    int 21h
+    jc dup_exhaust_failed
+    add di, 2
+    loop .close_dups
+.dups_closed:
+
     ; Expand the process JFT beyond CONFIG.SYS FILES=12 and consume the
     ; global SFT by repeatedly opening the same file. The next open must
     ; report error 4, and closing the acquired handles must restore service.
@@ -186,6 +220,23 @@ seek_ok:
     jne sft_exhaust_failed
     test si, si
     jz sft_exhaust_failed
+    push si
+    xor cx, cx
+    mov dx, sft_create_name
+    mov ah, 3ch
+    int 21h
+    require_error 4, fail_sft_exhaust
+    xor cx, cx
+    mov dx, sft_temp_template
+    mov ah, 5ah
+    int 21h
+    require_error 4, fail_sft_exhaust
+    xor cx, cx
+    mov dx, sft_new_name
+    mov ah, 5bh
+    int 21h
+    require_error 4, fail_sft_exhaust
+    pop si
     mov cx, si
     mov di, open_handles
 .close_exhausted:
@@ -460,6 +511,9 @@ sft_exhaust_failed:
 invalid_selector_failed:
     mov dx, fail_invalid_selector
     jmp fail
+dup_exhaust_failed:
+    mov dx, fail_dup_exhaust
+    jmp fail
 
 fail:
     mov ah, 09h
@@ -501,6 +555,9 @@ fail_59        db 'INT21_59_FAIL', 13, 10, '$'
 fail_68        db 'INT21_68_FAIL', 13, 10, '$'
 fail_memory_exhaust db 'INT21_MEMORY_EXHAUST_FAIL', 13, 10, '$'
 fail_sft_exhaust db 'INT21_SFT_EXHAUST_FAIL', 13, 10, '$'
+fail_jft_exhaust db 'INT21_JFT_EXHAUST_FAIL', 13, 10, '$'
+fail_dup_exhaust db 'INT21_DUP_EXHAUST_FAIL', 13, 10, '$'
+fail_dup2_exhaust db 'INT21_DUP2_EXHAUST_FAIL', 13, 10, '$'
 fail_invalid_handle db 'INT21_INVALID_HANDLE_FAIL', 13, 10, '$'
 fail_invalid_selector db 'INT21_INVALID_SELECTOR_FAIL', 13, 10, '$'
 fail_invalid_open db 'INT21_INVALID_OPEN_FAIL', 13, 10, '$'
@@ -516,6 +573,9 @@ fail_invalid_free db 'INT21_INVALID_FREE_FAIL', 13, 10, '$'
 fail_invalid_resize db 'INT21_INVALID_RESIZE_FAIL', 13, 10, '$'
 file_handle    dw 0
 error_handle   dw 0
+sft_create_name db 'SFTCREATE.TST', 0
+sft_new_name db 'SFTNEW.TST', 0
+sft_temp_template db 'A:', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 memory_segment dw 0
 open_handles   times 64 dw 0
 cwd_buffer     times 64 db 0

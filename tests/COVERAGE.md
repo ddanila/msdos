@@ -91,6 +91,11 @@ asserts access denied on create while clusters remain free, releases one entry,
 and creates again. `test_disk_exhaustion_qemu.sh` fills the data clusters,
 asserts DOS's documented short-write result, releases controlled files, and
 then completes a full write.
+`test_int21_path_errors_qemu.sh` distinguishes local FAT failure classes with
+purpose-built paths: absent file versus absent parent, existing directory,
+nonempty directory, current-directory removal, and a find with no matches.
+The file/memory probe separately fills the default JFT and configured SFT so
+duplicate and all create/open variants return their exact capacity errors.
 
 Run the inventory check with:
 
