@@ -246,6 +246,11 @@ level. `/PROGRAM` and `/DEBUG` each produce detailed reports and accept folded
 case, while every mixed or duplicate second switch is rejected. Unknown
 switches and forbidden positional operands require their distinct parser
 diagnostics and errorlevel 1.
+EXE2BIN fixtures exercise all three conversion algorithms with host-side byte
+oracles: BIN copies its load image, COM removes exactly the initial `100h`
+bytes, and one relocation adds the interactively supplied base segment to its
+target word. Separate malformed-signature, nonzero-SS, and invalid-IP headers
+must each report that conversion is impossible and leave no output file.
 
 ATTRIB metadata transitions operate on a disposable copy rather than a source
 file. The test covers combined set/clear operations, recursive enumeration,

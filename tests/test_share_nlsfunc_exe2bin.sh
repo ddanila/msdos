@@ -1,7 +1,8 @@
 #!/bin/bash
 # tests/test_share_nlsfunc_exe2bin.sh — E2E tests for SHARE, NLSFUNC, EXE2BIN via QEMU.
 #
-# All three tools in one QEMU boot; no interactive prompts needed.
+# All three tools run in one QEMU boot. EXE2BIN's relocation path is driven
+# through a private serial coordinator.
 #
 # SHARE (GSHARE2.ASM):
 #   - First call: installs as TSR (INT 2Fh hook + INT 21h/31h Keep_Process). No output.
@@ -33,6 +34,9 @@ FLOPPY="$OUT/floppy.img"
 
 BOOT_IMG="$OUT/floppy-share-nlsfunc-boot.img"
 SERIAL_LOG="$OUT/share-nlsfunc-serial.log"
+SERIAL_IN="$OUT/share-nlsfunc-serial.in"
+SERIAL_OUT="$OUT/share-nlsfunc-serial.out"
+EXIT_COM="$OUT/share-nlsfunc-qexit.com"
 
 PASS=0
 FAIL=0
@@ -45,6 +49,8 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
+trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$SERIAL_IN" "$SERIAL_OUT" 2>/dev/null; true' EXIT
+
 echo "=== SHARE / NLSFUNC / EXE2BIN E2E tests (QEMU) ==="
 
 # ── Step 1: build boot floppy ────────────────────────────────────────────────
@@ -53,17 +59,56 @@ cp "$FLOPPY" "$BOOT_IMG"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
-# Minimal valid EXE for EXE2BIN conversion test.
-# MZ header (28 bytes) + 4 bytes padding = 32-byte header (e_cparhdr=2 paragraphs).
+# Minimal valid EXE for EXE2BIN conversion test. This implementation rounds the
+# declared header paragraphs to a 512-byte boundary when computing load size,
+# so fixtures use a 512-byte header (e_cparhdr=20h), not merely the 28-byte MZ
+# structure.
 # e_ip=0 → BINFIX path in EXE2BIN (binary conversion, no "Fix-ups needed" prompt).
 # e_crlc=0 → no relocations → no segment prompt.
-# e_cp=1, e_cblp=33 → total file = 33 bytes (32 header + 1 byte code).
+# e_cp=2, e_cblp=1 → total file = 513 bytes (512 header + 1 byte code).
 # Code = 0xC3 (RET) — any single byte works; EXE2BIN just copies it verbatim.
 #
 # Offsets: MZ(0) cblp(2) cp(4) crlc(6) cparhdr(8) minalloc(10) maxalloc(12)
-#          ss(14) sp(16) csum(18) ip(20) cs(22) lfarlc(24) ovno(26) pad(28) code(32)
-printf '\115\132\041\000\001\000\000\000\002\000\000\000\377\377\000\000\000\000\000\000\000\000\000\000\034\000\000\000\000\000\000\000\303' \
-    | mcopy -o -i "$BOOT_IMG" - ::TEST.EXE
+#          ss(14) sp(16) csum(18) ip(20) cs(22) lfarlc(24) ovno(26)
+{
+    printf '\115\132\001\000\002\000\000\000\040\000\000\000\377\377\000\000\000\000\000\000\000\000\000\000\034\000\000\000\000\000\000\000'
+    dd if=/dev/zero bs=480 count=1 status=none
+    printf '\303'
+} | mcopy -o -i "$BOOT_IMG" - ::TEST.EXE
+
+# COM-path fixture: IP=100h and no relocations. EXE2BIN must discard the first
+# 100h bytes of the load image and emit only the final C3 payload byte.
+{
+    printf '\115\132\001\001\002\000\000\000\040\000\000\000\377\377\000\000\000\000\000\000\000\001\000\000\034\000\000\000\000\000\000\000'
+    dd if=/dev/zero bs=480 count=1 status=none
+    dd if=/dev/zero bs=256 count=1 status=none
+    printf '\303'
+} | mcopy -o -i "$BOOT_IMG" - ::COMPATH.EXE
+
+# Relocation fixture: one relocation entry at header offset 1Ch points at the
+# first load word (1234h). A supplied base segment of 0010h must produce 1244h.
+{
+    printf '\115\132\002\000\002\000\001\000\040\000\000\000\377\377\000\000\000\000\000\000\000\000\000\000\034\000\000\000\000\000\000\000'
+    dd if=/dev/zero bs=480 count=1 status=none
+    printf '\064\022'
+} | mcopy -o -i "$BOOT_IMG" - ::RELOC.EXE
+
+# Three independent structural rejection fixtures: bad MZ signature, nonzero
+# initial SS, and an IP that is neither BIN (0) nor COM (100h).
+printf 'NOT_AN_MZ_EXECUTABLE' | mcopy -o -i "$BOOT_IMG" - ::BADSIG.EXE
+{
+    printf '\115\132\001\000\002\000\000\000\040\000\000\000\377\377\001\000\000\000\000\000\000\000\000\000\034\000\000\000\000\000\000\000'
+    dd if=/dev/zero bs=480 count=1 status=none
+    printf '\303'
+} | mcopy -o -i "$BOOT_IMG" - ::BADSS.EXE
+{
+    printf '\115\132\001\000\002\000\000\000\040\000\000\000\377\377\000\000\000\000\000\000\001\000\000\000\034\000\000\000\000\000\000\000'
+    dd if=/dev/zero bs=480 count=1 status=none
+    printf '\303'
+} | mcopy -o -i "$BOOT_IMG" - ::BADIP.EXE
+
+nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
+mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 
 {
     printf 'CTTY AUX\r\n'
@@ -106,6 +151,22 @@ printf '\115\132\041\000\001\000\000\000\002\000\000\000\377\377\000\000\000\000
     printf 'IF EXIST TEST.BIN ECHO EXE2BIN_FILE_OK\r\n'
     printf 'ECHO EXE2BIN_DONE\r\n'
 
+    printf 'ECHO ---EXE2BIN-COM---\r\n'
+    printf 'EXE2BIN COMPATH.EXE COMPATH.COM\r\n'
+    printf 'IF EXIST COMPATH.COM ECHO EXE2BIN_COM_FILE_OK\r\n'
+
+    printf 'ECHO ---EXE2BIN-RELOC---\r\n'
+    printf 'EXE2BIN RELOC.EXE RELOC.BIN\r\n'
+    printf 'IF EXIST RELOC.BIN ECHO EXE2BIN_RELOC_FILE_OK\r\n'
+
+    printf 'ECHO ---EXE2BIN-INVALID---\r\n'
+    printf 'EXE2BIN BADSIG.EXE BADSIG.BIN\r\n'
+    printf 'EXE2BIN BADSS.EXE BADSS.BIN\r\n'
+    printf 'EXE2BIN BADIP.EXE BADIP.BIN\r\n'
+    printf 'IF NOT EXIST BADSIG.BIN ECHO EXE2BIN_BADSIG_NO_OUTPUT\r\n'
+    printf 'IF NOT EXIST BADSS.BIN ECHO EXE2BIN_BADSS_NO_OUTPUT\r\n'
+    printf 'IF NOT EXIST BADIP.BIN ECHO EXE2BIN_BADIP_NO_OUTPUT\r\n'
+
     # ── EXE2BIN MISSING.EXE — file not found error ────────────────────────────
     # DosError path: INT 21h/AH=59h returns code 2 → extend_message prints
     # "File not found". EXE2BIN exits errorlevel 0 regardless.
@@ -114,19 +175,29 @@ printf '\115\132\041\000\001\000\000\000\002\000\000\000\377\377\000\000\000\000
     printf 'ECHO EXE2BIN_NOFILE_DONE\r\n'
 
     printf 'ECHO ===DONE===\r\n'
+    printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
 # ── Step 2: boot QEMU ─────────────────────────────────────────────────────────
-# No interactive prompts — continuous newline feed is unused but harmless.
-echo "Booting QEMU (may take ~90s)..."
-rm -f "$SERIAL_LOG"
-(while true; do sleep 0.5; printf '\r\n'; done) | \
-timeout 120 qemu-system-i386 \
+echo "Booting QEMU..."
+rm -f "$SERIAL_LOG" "$SERIAL_IN" "$SERIAL_OUT"
+mkfifo "$SERIAL_IN" "$SERIAL_OUT"
+exec 3<>"$SERIAL_IN"
+timeout 30 qemu-system-i386 \
     -display none \
     -drive if=floppy,index=0,format=raw,file="$BOOT_IMG",cache=writethrough \
     -boot a -m 4 \
-    -serial stdio \
-    2>/dev/null | tee "$SERIAL_LOG" > /dev/null; true
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    -serial pipe:"$OUT/share-nlsfunc-serial" \
+    2>/dev/null &
+QEMU_PID=$!
+
+python3 "$REPO_ROOT/tests/serial_expect.py" \
+    "$SERIAL_IN" "$SERIAL_OUT" "$SERIAL_LOG" \
+    'Fix-ups needed - base segment (hex):' '0010\r'
+
+wait "$QEMU_PID" || true
+exec 3>&-
 
 if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
     echo "ERROR: serial log is empty — QEMU may have failed to boot"
@@ -195,6 +266,37 @@ if grep -q "EXE2BIN_DONE" "$SERIAL_LOG"; then
     ok "EXE2BIN TEST.EXE TEST.BIN (batch continued)"
 else
     fail "EXE2BIN TEST.EXE TEST.BIN (batch hung or crashed)"
+fi
+
+basic_bytes=$(mcopy -i "$BOOT_IMG" ::TEST.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n')
+if [[ "$basic_bytes" == "c3" ]]; then
+    ok "EXE2BIN BIN path emitted the exact payload byte"
+else
+    fail "EXE2BIN BIN path emitted unexpected bytes: $basic_bytes"
+fi
+
+com_bytes=$(mcopy -i "$BOOT_IMG" ::COMPATH.COM - 2>/dev/null | od -An -tx1 | tr -d ' \n')
+if grep -q "EXE2BIN_COM_FILE_OK" "$SERIAL_LOG" && [[ "$com_bytes" == "c3" ]]; then
+    ok "EXE2BIN COM path stripped the initial 100h bytes exactly"
+else
+    fail "EXE2BIN COM path output mismatch: $com_bytes"
+fi
+
+reloc_bytes=$(mcopy -i "$BOOT_IMG" ::RELOC.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n')
+if grep -q "EXE2BIN_RELOC_FILE_OK" "$SERIAL_LOG" && [[ "$reloc_bytes" == "4412" ]]; then
+    ok "EXE2BIN relocation path added base segment 0010h to word 1234h"
+else
+    fail "EXE2BIN relocation output mismatch: $reloc_bytes"
+fi
+
+cannot_convert_count=$(grep -ci "File cannot be converted" "$SERIAL_LOG" || true)
+if [[ "$cannot_convert_count" -eq 3 ]] &&
+   grep -q "EXE2BIN_BADSIG_NO_OUTPUT" "$SERIAL_LOG" &&
+   grep -q "EXE2BIN_BADSS_NO_OUTPUT" "$SERIAL_LOG" &&
+   grep -q "EXE2BIN_BADIP_NO_OUTPUT" "$SERIAL_LOG"; then
+    ok "EXE2BIN rejected bad signature, nonzero SS, and invalid IP without outputs"
+else
+    fail "EXE2BIN structural rejection contracts were not all observed"
 fi
 
 if grep -qi "File not found" "$SERIAL_LOG"; then
