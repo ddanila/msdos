@@ -6,8 +6,9 @@
 # with '+' as item separator / line continuation and ';' terminating early
 # (remaining fields default).  Drivers/boot/DOS-kernel are pure assembly, so
 # wlink (which consumes the same OMF jwasm emits) can link them with no MS
-# tool.  C-containing targets are NOT handled here (they need the MS C runtime
-# or an Open Watcom wcc rebuild -- a separate migration stage).
+# tool.  C-containing targets use the same adapter after their Open Watcom
+# rebuild; their ABI/runtime compatibility lives in the corresponding rules.
+# Unknown Microsoft options are rejected instead of being silently discarded.
 #
 # Usage (drop-in for bin/link): wlink "<ms-link command string>"
 #   e.g.  wlink "@DRIVER.LNK"
@@ -17,7 +18,6 @@
 import os
 import platform
 import re
-import struct
 import subprocess
 import sys
 
@@ -25,6 +25,24 @@ SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 # Slash options may be attached to an output name (FOO/MAP); dash options are
 # accepted only as separate tokens so hyphenated filenames remain intact.
 OPT_RE = r"(?:/\w+(?::[^\s+]+)?|(?<!\S)-\w+(?::[^\s+]+)?)"
+
+# Options deliberately accepted by the Microsoft-LINK compatibility surface.
+# Some are translated below; the remainder are documented no-ops because WLINK
+# either already has the required behavior or has no equivalent packaging pass.
+SUPPORTED_OPTIONS = {
+    "dosseg", "e", "ex", "exepack", "m", "map", "noe", "nofarcalls", "noi"
+}
+
+def validate_options(options):
+    for option in options:
+        normalized = option.lstrip("/-").lower()
+        name = normalized.split(":", 1)[0]
+        if name in SUPPORTED_OPTIONS:
+            continue
+        if name in ("cpa", "seg", "stack", "order", "packd", "packdata"):
+            if ":" in normalized and normalized.split(":", 1)[1]:
+                continue
+        raise SystemExit(f"wlink: unsupported Microsoft LINK option: {option}")
 
 def resolve_existing_casefold(path):
     """Resolve every component of a DOS-style path case-insensitively."""
@@ -54,38 +72,6 @@ def resolve_existing_casefold(path):
             return path
         resolved = os.path.join(resolved, matches[0])
     return resolved or path
-
-def canonicalize_mz_header(path, hdr_bytes=512):
-    """Rewrite a wlink MZ .EXE to use a 512-byte (MS-LINK-style) header.
-
-    wlink emits a compact 32-byte header, but the vintage MS EXE2BIN assumes
-    the 512-byte header MS LINK always produced and otherwise strips the wrong
-    number of leading bytes -- corrupting the image.  This makes the load image
-    start where EXE2BIN expects.  Relocations are preserved.  No-op for non-MZ
-    files."""
-    d = open(path, "rb").read()
-    if d[:2] != b"MZ":
-        return
-    e_crlc, e_cparhdr = struct.unpack_from("<HH", d, 6)
-    e_lfarlc = struct.unpack_from("<H", d, 24)[0]
-    old_hdr = e_cparhdr * 16
-    if old_hdr == hdr_bytes:
-        return
-    image = d[old_hdr:]
-    relocs = d[e_lfarlc:e_lfarlc + 4 * e_crlc]
-    reloc_off = 28
-    if reloc_off + len(relocs) > hdr_bytes:
-        return  # too many relocs to fit; leave as-is
-    new = bytearray(hdr_bytes)
-    new[0:2] = b"MZ"
-    total = hdr_bytes + len(image)
-    pages = (total + 511) // 512
-    last = total % 512 or 512
-    struct.pack_into("<HHHH", new, 2, last, pages, e_crlc, hdr_bytes // 16)
-    new[10:24] = d[10:24]                       # alloc/ss/sp/csum/ip/cs
-    struct.pack_into("<H", new, 24, reloc_off)  # relocation table offset
-    new[reloc_off:reloc_off + len(relocs)] = relocs
-    open(path, "wb").write(bytes(new) + image)
 
 def wlink_bin():
     s, m = platform.system(), platform.machine()
@@ -144,6 +130,7 @@ def main():
     objs_f, run_f, map_f, lib_f = fields[0], fields[1], fields[2], fields[3]
 
     gopts += re.findall(OPT_RE, run_f) + re.findall(OPT_RE, map_f)
+    validate_options(gopts)
     gopts_l = [("/" + o[1:] if o.startswith("-") else o).lower() for o in gopts]
 
     # Optional class ordering for programs whose runtime uses a linker-placed
@@ -186,6 +173,8 @@ def main():
     # case. Applying CASEEXACT unconditionally breaks old objects which freely
     # vary symbol casing across modules.
     directives += ["option", "caseexact" if "/noi" in gopts_l else "nocaseexact"]
+    if any(option.lstrip("/-").lower() == "dosseg" for option in gopts):
+        directives += ["option", "dosseg"]
     # Microsoft LINK does not shrink far calls to near calls.  WLINK's
     # optimization changes offsets inside resident/self-referential DOS code
     # (PRINT is one concrete example), so disable it for every translated
@@ -221,10 +210,7 @@ def main():
         for class_name in order_classes:
             directives += ["clname", class_name]
 
-    rc = subprocess.call([wlink_bin()] + directives)
-    if rc == 0 and os.path.exists(run):
-        canonicalize_mz_header(run)   # make MS EXE2BIN handle wlink's header
-    sys.exit(rc)
+    sys.exit(subprocess.call([wlink_bin()] + directives))
 
 if __name__ == "__main__":
     main()

@@ -189,13 +189,92 @@ fraction of the cost) and behind a real qemu validation environment (see WS4).
   load-bearing adapter and byte-parity is the validation of record.
 - Re-confirm JWasm/Asmc native macOS-arm64 hosting if a CI matrix expands.
 
-### WS4 -- Preprocessor retirement, CI, and validation (finish line)
+### WS4 -- Toolchain compatibility-layer cleanup (finish line)
 
-- **Shrink `bin/preprocess-jwasm` toward deletion.** It is down to essentially
-  one pass (comma-separate structured-directive args). End state: JWasm consumes
-  the sources directly. Either land the upstream MASM-mode whitespace-arg-split
-  fix in the JWasm fork, or bake the equivalent as direct source edits on
-  `master`. Track each retired pass.
+The production build is native and uses no DOS emulator, but it is not yet a
+transparent "JWasm + Open Watcom consume the source directly" path. The audit
+below records the remaining compatibility transformations. This is a cleanup
+plan only; none of these changes should begin without a separate execution
+decision.
+
+#### WS4.1 -- Characterize behavior before removing it (IMPLEMENTED)
+
+Focused contracts now accompany the retained transformations instead of relying
+only on final artifact checksums and broad QEMU coverage:
+
+- custom JWasm regression tests cover structured-macro whitespace arguments and
+  case-insensitive include lookup; the root suite assembles the same contract
+  through `bin/jwasm-masm` directly from its real source directory.
+- raw native BUILDMSG output for COMMAND, SYS, and FORMAT is assembled and
+  linked without a post-generation rewriter during the normal build.
+- `bin/wlink` option validation covers accepted and rejected compatibility
+  options; compact MZ input is exercised through native `exe2bin`.
+- Kernel layout is emitted directly from custom JWasm's historical segment
+  order; the resulting unpatched image begins with the source `JMP DOSINIT`,
+  while shared DOSGROUP offsets remain identical in resident utilities.
+- `fix-exepack` and `exefix`: assert which artifacts are changed, their exact
+  header/stub contracts, idempotence, and real-DOS/QEMU behavior.
+
+Removal gate: a compatibility pass is retired only after a focused test first
+captures its current contract and the full deterministic-build and QEMU suites
+remain green without it.
+
+#### WS4.2 -- Retire assembly source rewriting (IMPLEMENTED)
+
+The retired shadow preprocessor used to change 380 of 1,111 eligible source-like
+files: 64 files contained 2,091 structured-directive invocations and 379 files
+contained 1,221 concrete mixed/uppercase `INCLUDE` operands.
+
+Custom JWasm `4c2f0a2f7440ca40a8cfa6718ac3ffd74ca1f9d9` implements MASM 5.10
+structured-macro whitespace arguments and case-insensitive include resolution
+in M510 mode. `bin/jwasm-masm` now assembles the real source path directly, and
+`bin/preprocess-jwasm` has been deleted. Linux CI remains the case-sensitive
+host gate.
+
+#### WS4.3 -- Revalidate the generated-message workaround (IMPLEMENTED)
+
+The workaround described old WASM single-pass limitations. Current custom JWasm
+assembles and links raw BUILDMSG output for COMMAND, SYS, and FORMAT, so all
+three recipe hooks and `fix_cl_forward_refs.py` have been deleted.
+
+#### WS4.4 -- Remove linker-layout and blanket EXE-header patches (IMPLEMENTED)
+
+1. Custom JWasm emits the historical `START, CONST, DATA, TABLE, CODE, LAST`
+   order, causing the source START segment and its `JMP DOSINIT` to occupy
+   offset zero naturally. The inline post-EXE2BIN byte patch has been deleted.
+   An explicit `/ORDER:START,CODE` was rejected by runtime validation because
+   it moved shared DOSGROUP data behind CODE and broke resident utilities.
+2. Native `exe2bin` already accepts arbitrary valid MZ header sizes. WLINK's
+   blanket 512-byte MS-LINK-style header rewrite has therefore been deleted.
+3. `nofarcalls`, case mapping, `/ORDER`, `/PACKDATA`, and `/DOSSEG` remain
+   explicit translated Microsoft LINK semantics.
+
+#### WS4.5 -- Harden and document the adapters we retain
+
+- `bin/wcc` and `bin/wlink` now reject unknown options. Their explicitly
+  supported Microsoft-option surfaces include documented no-ops, and `-Os` and
+  `/DOSSEG` are translated rather than silently discarded.
+- Retain WCC's ABI/memory-model translation and temporary case-insensitive
+  include mirror until the underlying tools provide equivalent behavior.
+- Retain WLIB timestamp normalization as an explicit reproducibility step.
+- Retain native historical build-tool replacements (`buildmsg`, `buildidx`,
+  `exe2bin`, `convert`, `dbof`, `nosrvbld`, `menubld`, `asc2hlp`, `compress`,
+  and `mkcntry`) subject to their byte-parity tests; these are implementations
+  of required build operations, not hidden preprocessors.
+- Retain the floppy BPB patch as explicit image construction, and retain the
+  fixed EXEPACK stub while affected packed binaries need it on real DOS/QEMU.
+- Keep the `kvikdos-soft` compatibility header classified as test-only. It must
+  never become a production-build dependency.
+
+#### WS4.6 -- Documentation and CI completion
+
+- The assembler documentation now accurately describes direct source assembly,
+  and the stale Microsoft C 5.10/kvikdos statement has been removed.
+- Document each retained transformation beside its rule, its compatibility
+  reason, its focused test, and its eventual removal condition.
+- Keep macOS and Linux on the same production path; Homebrew should provide
+  only ordinary host dependencies, never a separate source-transformation
+  path.
 - **Keep the complete QEMU suite green.** The boot/serial harness and all QEMU
   Make targets passed the August 26 merge gate, including parallel FORMAT
   groups. Extend those tests as each native replacement lands.
@@ -204,6 +283,78 @@ fraction of the cost) and behind a real qemu validation environment (see WS4).
 - **Host MKCNTRY natively (DONE).** Its JWasm/wlink-built executable contains
   the complete COUNTRY.SYS payload; the native extractor writes that payload
   byte-for-byte without executing DOS code.
+
+Local cleanup validation (2026-08-27): focused native contracts pass; the fast
+kvikdos suite passes 389/389; all 60 golden artifacts are identical across
+clean `-j1`, `-j4`, and `-j8` builds; deployment succeeds; and the complete
+QEMU target matrix passes, including all seven parallel FORMAT groups. Enabling
+the formerly ignored `-Os` exposed FC's unsafe function-pointer dispatch for
+`/T`; `ddanila/MS-DOS` commit `50daf26626cad4cadd3cc465a032227f1861f9cc`
+replaces it with explicit tab-preserving input and is covered by the existing
+FC `/T` runtime contract. GitHub Actions remains the publication gate.
+
+#### WS4.7 -- Cleanup execution checklist
+
+The audit has identified the complete cleanup scope below. Items marked
+implemented describe changes currently present in the working branch; they are
+not considered finished until the validation and CI gates below pass. Execute
+this checklist as one coherent cleanup rather than as unrelated wrapper edits.
+
+1. **Establish focused reference contracts.** Keep regression coverage for
+   JWasm's M510 structured-directive whitespace and case-insensitive include
+   lookup, raw BUILDMSG output, compact MZ input, linker option translation,
+   kernel entry layout, EXEPACK repair, and EXE header repair.
+2. **Remove shadow source generation.** Assemble the checked-in source files
+   directly and delete `bin/preprocess-jwasm`. The custom JWasm implementation,
+   rather than a Homebrew text-processing tool, owns MASM-compatible include
+   lookup and structured-directive parsing.
+3. **Remove generated-message rewriting.** Build COMMAND, SYS, and FORMAT from
+   native BUILDMSG output and delete `fix_cl_forward_refs.py` plus all recipe
+   hooks that invoke it.
+4. **Preserve source-defined linker layout.** Remove the post-`exe2bin`
+   entry-byte patch and let the historical object/class order place START at
+   zero. Add focused checks that the emitted jump reaches `DOSINIT` without
+   mutation and that replicated DOSGROUP data offsets match resident tools.
+5. **Stop globally canonicalizing MZ headers.** Let WLINK emit valid compact MZ
+   headers and rely on native `exe2bin`'s format-aware parser. Refresh binary
+   references only after runtime validation demonstrates that the differences
+   are intentional.
+6. **Make retained adapters strict.** Reject unknown WCC and WLINK arguments;
+   explicitly translate meaningful compatibility options such as `-Os` and
+   `/DOSSEG`; document intentional no-ops. Retain only the ABI/memory-model,
+   case-insensitive C-include, and deterministic-library behavior that remains
+   demonstrably necessary.
+7. **Keep narrowly scoped binary transforms.** Preserve `fix-exepack`,
+   `exefix`, WLIB timestamp normalization, and floppy BPB construction only
+   where their focused contracts prove a real need. Each must be idempotent or
+   deterministic and identify exactly which bytes it may change.
+   Production BUILDIDX generation uses its non-mutating mode so repeated clean
+   builds do not increment the checked-in message catalog level.
+8. **Refresh documentation and references.** Remove current documentation that
+   describes deleted preprocessors or proprietary compiler/emulator paths.
+   Historical investigation notes may remain when clearly labelled as such.
+
+Validation gate, in order:
+
+- Run the focused transformation and native-build-tool tests.
+- Perform a pristine build using the pinned custom JWasm and vendored Open
+  Watcom binaries, with no manually copied intermediate artifacts.
+- Verify deterministic results for serial and parallel builds (`-j1`, `-j4`,
+  and `-j8`) so concurrent targets never share mutable scratch state.
+- Run the complete kvikdos test layer for fast command-level coverage, then
+  `make deploy` and the complete QEMU runtime matrix, including SYS, FORMAT,
+  FDISK, C-hybrid utilities, drivers, and EMM386.
+- Refresh golden manifests only from those validated artifacts. Preserve
+  platform-specific overrides where macOS and Linux output genuinely differs.
+- Push to `ddanila/MS-DOS` only after the local gates pass, then require the
+  MS-DOS GitHub Actions matrix in the `ddanila` namespace to be green. Slow
+  Open Watcom fork CI is informational and is not a blocker for this cleanup.
+
+Definition of done: the production build consumes real MS-DOS sources through
+custom JWasm and Open Watcom without hidden text rewrites or blanket binary
+patches; every retained compatibility operation is narrow, documented, and
+tested; clean serial and parallel builds are reproducible; and the complete
+local runtime and `ddanila/MS-DOS` CI suites pass.
 
 ---
 
@@ -253,6 +404,12 @@ fraction of the cost) and behind a real qemu validation environment (see WS4).
 - **M5 (IMPLEMENTED; CI GATE PENDING)** -- All C-hybrids, including EMM386,
   use wcc+wlink+wlib; MS CL/LINK/LIB and kvikdos are absent from the production
   build path.
+- **M6 (LOCAL VALIDATION DONE; CI GATE PENDING)** -- The native toolchain's remaining hidden
+  source/generated-file rewrites and broad post-link patches are characterized,
+  minimized, and retired where possible. JWasm consumes the actual source tree,
+  kernel entry layout is produced correctly by the linker, retained adapters
+  are strict and documented, and focused tests protect every intentional binary
+  transformation.
 
 ## Decisions
 

@@ -4,10 +4,9 @@
 # MASM invocation:  masm "flags" "source.ASM,output.OBJ;"
 # JWasm equivalent: jwasm -q -Zm -c [translated flags] source.ASM -Fo=output.OBJ
 #
-# Runs a MINIMAL preprocessor (bin/preprocess-jwasm) that only comma-separates
-# structured-directive args (.IF <a EQ b> -> .IF <a,EQ,b>, .FOR x = a TO b ->
-# .FOR x,=,a,TO,b). JWasm handles everything else natively (-Zm = MASM 5.1),
-# so no dot-rename, no $BuildJump expansion, no %out/listing stripping.
+# The pinned custom JWasm handles MASM 5.10 structured-macro whitespace
+# arguments and DOS-style case-insensitive INCLUDE lookup itself. Sources are
+# assembled directly; this wrapper only translates the historical command line.
 #
 # Flag translation:
 #   -Mx (preserve case externals) -> drop (handled via -Zm / default casemap)
@@ -34,55 +33,24 @@ FILESPEC="${FILESPEC%;}"
 SOURCE="${FILESPEC%%,*}"
 OUTPUT="${FILESPEC#*,}"
 
-# Parse MASM flags -> jwasm flags, collecting include dirs.
+# Parse MASM flags -> jwasm flags.
 JFLAGS=()
-INC_DIRS=()
 for flag in $FLAGS; do
     case "$flag" in
         -Mx|-t)        ;;                      # MASM-specific, not needed
         -I[A-Za-z]:\\*) ;;                     # DOS absolute include path, skip
-        -I*)           f="${flag//\\//}"; JFLAGS+=("$f"); INC_DIRS+=("${f#-I}") ;;
+        -I*)           f="${flag//\\//}"; JFLAGS+=("$f") ;;
         *)             JFLAGS+=("$flag") ;;
     esac
 done
 
-# Preprocess source + include dirs into a shadow tree.
-PPDIR=$(mktemp -d)
-trap 'rm -rf "$PPDIR"' EXIT
-python3 "$SCRIPT_DIR/preprocess-jwasm" "$PPDIR" "$SOURCE" "${INC_DIRS[@]}"
-
 ORIG_DIR="$(pwd)"
-PP_SOURCE_BASE="$(basename "$SOURCE")"
-
-# Remap -I flags: shadow inc dirs first (absolute), original dirs as fallback.
-PP_FLAGS=()
-for flag in "${JFLAGS[@]}"; do
-    case "$flag" in
-        -I*)
-            incdir="${flag#-I}"
-            case "$incdir" in
-                /*) abs_incdir="$incdir" ;;
-                *)  abs_incdir="$ORIG_DIR/$incdir" ;;
-            esac
-            ppinc="$PPDIR/inc_$(echo "$incdir" | tr '/.=' '___')"
-            if [ -d "$ppinc" ]; then
-                PP_FLAGS+=("-I$ppinc" "-I$abs_incdir")
-            else
-                PP_FLAGS+=("-I$abs_incdir")
-            fi
-            ;;
-        *) PP_FLAGS+=("$flag") ;;
-    esac
-done
 
 case "$OUTPUT" in
     /*) ABS_OUTPUT="$OUTPUT" ;;
     *)  ABS_OUTPUT="$ORIG_DIR/$OUTPUT" ;;
 esac
 
-# Run JWasm from the shadow dir so CWD-relative includes resolve to the
-# preprocessed same-directory files (placed at the shadow root).
-cd "$PPDIR"
 # NB: jwasm silently ignores options placed after the source filename,
 # so -Fo must come before it.
-exec "$JWASM" -q -Zm -c "${PP_FLAGS[@]}" "-Fo$ABS_OUTPUT" "$PP_SOURCE_BASE"
+exec "$JWASM" -q -Zm -c "${JFLAGS[@]}" "-Fo$ABS_OUTPUT" "$SOURCE"

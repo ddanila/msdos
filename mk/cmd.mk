@@ -137,7 +137,6 @@ COMMAND_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC -I..\\..\\DOS
 # ---------------------------------------------------------------------------
 $(COMMAND_DIR)/COMMAND.CTL: $(COMMAND_DIR)/COMMAND.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(COMMAND_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" COMMAND.SKL
-	python3 $(CURDIR)/fix_cl_forward_refs.py $(COMMAND_DIR)/
 
 # All CL files are side-effects of the same BUILDMSG run
 $(COMMAND_DIR)/COMMAND.CL1 $(COMMAND_DIR)/COMMAND.CL2 \
@@ -285,7 +284,6 @@ SYS_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC
 # Step 1: BUILDMSG generates SYS.CTL + SYS.CL[1,2,A-D]
 $(SYS_DIR)/SYS.CTL: $(SYS_DIR)/SYS.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(SYS_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" SYS.SKL
-	python3 $(CURDIR)/fix_cl_forward_refs.py $(SYS_DIR)/
 
 $(SYS_DIR)/SYS.CL1 $(SYS_DIR)/SYS.CL2 \
 $(SYS_DIR)/SYS.CLA $(SYS_DIR)/SYS.CLB \
@@ -322,7 +320,6 @@ FORMAT_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC
 # Step 1: BUILDMSG generates FORMAT.CTL + FORMAT.CL[1,A,B,C]
 $(FORMAT_DIR)/FORMAT.CTL: $(FORMAT_DIR)/FORMAT.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(FORMAT_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" FORMAT.SKL
-	python3 $(CURDIR)/fix_cl_forward_refs.py $(FORMAT_DIR)/
 
 $(FORMAT_DIR)/FORMAT.CL1 $(FORMAT_DIR)/FORMAT.CLA \
 $(FORMAT_DIR)/FORMAT.CLB $(FORMAT_DIR)/FORMAT.CLC: \

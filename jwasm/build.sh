@@ -3,7 +3,7 @@
 
 set -euo pipefail
 
-readonly REVISION=a41092c069bb1d8ae6dda889d7d5643b744edd99
+readonly REVISION=4c2f0a2f7440ca40a8cfa6718ac3ffd74ca1f9d9
 readonly REPOSITORY=https://github.com/ddanila/JWasm.git
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 

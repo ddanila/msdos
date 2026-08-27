@@ -47,7 +47,12 @@ in batch scripts: `printf 'content\r\n\x1a'`.
 
 DOS INT 21h/AH=4Ah `inplace_realloc` had a corruption bug when growing into the trailing Z-type free block of the arena: the new free remainder was unconditionally tagged M-type and a `psize` field was written past end-of-arena, then validated immediately and faulted as `bad next/free MCB after inplace_realloc(): 10` ("adjacent free MCBs" — actually trailing garbage). Hit by Microsoft C 5.10 (CL.EXE) compiling MS-DOS 4.0 INC/*.C files (ERRTST.C, SYSVAR.C, CDS.C, DPB.C). Fix: snapshot original next-MCB type, propagate Z-type to the new free block, only update next-next psize when there is one. Submodule `kvikdos@8f5d457`.
 
-## WASM Migration (Open Watcom → replaces MASM 5.x via kvikdos)
+## Historical WASM migration log (superseded by custom JWasm)
+
+The numbered findings in this section record the earlier migration path and
+its now-retired workarounds. They are retained as investigation history, not as
+instructions for the current build. `PLAN.md` and the live wrappers are the
+authoritative description of the direct-source custom-JWasm toolchain.
 
 **Status:** All 53 modules build cleanly under WASM (assembler migration complete). All 5 QEMU boot tests (A–E) pass on clean build. Phase 1 kvikdos validation: `COMMAND.COM /C VER` prints "MS-DOS Version 4.00"; 18/19 CMD utilities pass /? smoke tests (ATTRIB has a kvikdos exit-time limitation, not a WASM bug). Source hygiene cleanup done: ^Z stripped from 332 files, commented-out SUBTTL/TITLE directives deleted. All `IF NOT` patterns (60+ instances across 38 files) converted to `EQ 0`. `bin/strip-wasm-segs` OMF post-processor strips empty `_TEXT`/`_DATA` SEGDEFs that break MS LINK segment ordering.
 

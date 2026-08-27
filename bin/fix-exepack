@@ -84,6 +84,11 @@ def fix_exepack(path):
     stub_code_off         = ex_seg_off + init_ip   # where old stub code starts
     ex_stub_plus_reloc    = exepack_size - init_ip  # stub code + reloc table
 
+    # The fixed format has an 18-byte header and starts with the exact known
+    # replacement stub. Avoid growing/repacking an already corrected image.
+    if init_ip == 18 and data[stub_code_off:stub_code_off + len(FIXED_STUB)] == FIXED_STUB:
+        return False
+
     # Sanity
     if ex_stub_plus_reloc < 258 or stub_code_off + ex_stub_plus_reloc > len(data):
         return False

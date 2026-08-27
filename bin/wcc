@@ -8,11 +8,14 @@
 # Translation highlights:
 #   -A{S,C,M,L,H}  memory model        -> -m{s,c,m,l,h}
 #   -Od            no optimization     -> -od
+#   -Os            optimize for size   -> -os
 #   -Zp[n]         struct packing      -> -zp[n] (default n=1)
 #   -I<path>       include dir         -> -i=<path>  (\ -> /, DOS-absolute dropped)
 #   -Fo<obj>       object output       -> -fo=<obj>
 #   -D<m>[=v]      macro define        -> -d<m>[=v]
 #   -c             compile only        -> dropped (wcc compiles to .obj)
+#   -s             stack checks        -> dropped (always enabled below)
+#   -2, -zl        OW-native CPU/library-name controls used by MEMM -> unchanged
 # Always added:
 #   -ecc           force __cdecl as the default calling convention, so wcc's
 #                  code matches the MS C ABI the hand-written .ASM partners
@@ -20,6 +23,9 @@
 #   -bt=dos        target 16-bit DOS.
 #   -i=watcom/h    the vendored Open Watcom 16-bit headers (<stdio.h> etc.).
 #   -zq            quiet (suppress the banner).
+# Unknown options are rejected so future Microsoft flags cannot disappear
+# silently.  The temporary include mirror is retained because the historical
+# sources rely on DOS-style case-insensitive header lookup on Unix hosts.
 
 import os
 import platform
@@ -70,6 +76,8 @@ def main():
             out.append(MODEL[t[2]])
         elif t == "-Od":
             out.append("-od")
+        elif t == "-Os":
+            out.append("-os")
         elif t.startswith("-Zp"):
             out.append("-zp" + (t[3:] or "1"))
         elif t.startswith("-I"):
@@ -82,10 +90,14 @@ def main():
             out.append("-d" + t[2:])
         elif t == "-c":
             pass                                          # implicit for wcc
+        elif t == "-s":
+            pass                                          # already enforced globally above
+        elif t in ("-2", "-zl"):
+            out.append(t)                                 # explicit OW target/codegen option
         elif t.lower().endswith(".c"):
             source = t.replace("\\", "/")
         elif t.startswith("-"):
-            pass                                          # ignore unknown MS-only flags
+            sys.exit(f"wcc: unsupported Microsoft C option: {t}")
         else:
             source = t.replace("\\", "/")
     if not source:

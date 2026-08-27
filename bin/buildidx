@@ -13,13 +13,17 @@ POOL_HEADER = re.compile(rb"^[A-Z][A-Z0-9_-]* +[0-9A-Fa-f]{4} +[0-9A-Fa-f]{4}$")
 
 
 def usage() -> None:
-    print("usage: buildidx MESSAGE.MSG", file=sys.stderr)
+    print("usage: buildidx [--no-update] MESSAGE.MSG", file=sys.stderr)
 
 
 def main() -> int:
     args = sys.argv[1:]
     if len(args) == 1:
         args = shlex.split(args[0])
+    no_update = False
+    if args and args[0] == "--no-update":
+        no_update = True
+        args = args[1:]
     if len(args) != 1:
         usage()
         return 2
@@ -42,7 +46,8 @@ def main() -> int:
         return 1
     prefix_end = first_ending + 1
     ending = b"\r\n" if data[:prefix_end].endswith(b"\r\n") else b"\n"
-    source.write_bytes(level_line + ending + data[prefix_end:])
+    if not no_update:
+        source.write_bytes(level_line + ending + data[prefix_end:])
     source.with_suffix(".IDX").write_bytes(index_data)
     return 0
 

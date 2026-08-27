@@ -69,7 +69,7 @@ MESSAGES_OUT := $(MESSAGES_DIR)/$(COUNTRY).IDX
 messages: $(MESSAGES_OUT)
 
 $(MESSAGES_OUT): $(MESSAGES_DIR)/USA-MS.MSG $(BUILDIDX)
-	cd $(MESSAGES_DIR) && $(BUILDIDX) USA-MS.MSG
+	cd $(MESSAGES_DIR) && $(BUILDIDX) --no-update USA-MS.MSG
 
 # ---------------------------------------------------------------------------
 # MAPPER
