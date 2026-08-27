@@ -30,13 +30,13 @@
 #   0x13-0x14: total sectors 16-bit (0 if >65535)   0x20-0x23: total sectors 32-bit
 #
 # Expected BPB values per variant:
-#   default 1.44MB (/V:TEST, /S, /B): spt=18, heads=2, total=2880
+#   default 1.44MB (/V:TEST, /S, /B, /BACKUP): spt=18, heads=2, total=2880
 #   /F:720 and /T:80 /N:9 (720KB)   : spt=9,  heads=2, total=1440
 #   /4 (360KB on 1.2MB drive)        : spt=9,  heads=2, total=720
 #   /4 /1 (single-sided in 1.2MB)    : spt=9,  heads=1, total=360
 #   /8 (8 sec/track on 360KB drive)  : legacy pre-BPB 320KB FAT12 layout
 #   /SELECT /V:SELTEST               : spt=18, heads=2, total=2880
-#   /AUTOTEST /V:AUTO                : spt=18, heads=2, total=2880
+#   /AUTOTEST /V:AUTO, /BACKUP /V:BKP: spt=18, heads=2, total=2880
 #
 # Error exit variants (no BPB check):
 #   /C: disallowed — "Invalid parameter" (MSFOR.ASM lines 259-267)
@@ -91,7 +91,7 @@ echo "=== FORMAT E2E tests (QEMU, QMP disk swapping) ==="
 # /SELECT and /AUTOTEST suppress all interactive prompts (format unattended).
 # The coordinator exercises all variants — batch completion markers confirm each ran.
 NAMES=("VLABEL" "S"      "B"      "F720"   "TN"     "FOUR"   "ONE"    "EIGHT"
-       "SWITCHC" "SWITCHZ" "SELECT" "AUTOTEST")
+       "SWITCHC" "SWITCHZ" "SELECT" "AUTOTEST" "BACKUP")
 FORMAT_CMDS=(
     "FORMAT B: /V:TEST"
     "FORMAT B: /S"
@@ -105,11 +105,12 @@ FORMAT_CMDS=(
     "FORMAT B: /Z"
     "FORMAT B: /SELECT /V:SELTEST"
     "FORMAT B: /AUTOTEST /V:AUTO"
+    "FORMAT B: /BACKUP /V:BKP"
 )
 B_SECTORS=(2880 2880 2880 1440 1440 2400 2400 720
-           2880 2880 2880 2880)
+           2880 2880 2880 2880 2880)
 # Which NAMES have /V:<label> on the command line → FORMAT skips volume-label prompt.
-NO_LABEL_NAMES=(VLABEL EIGHT SELECT AUTOTEST)
+NO_LABEL_NAMES=(VLABEL EIGHT SELECT AUTOTEST BACKUP)
 
 # ── Filter to selected variants (if arguments given) ──────────────────────────
 if [[ ${#SELECTED_VARIANTS[@]} -gt 0 ]]; then
@@ -227,7 +228,7 @@ echo ""
 echo "--- FORMAT complete messages ---"
 # Count variants expected to complete an actual format.
 _full_count=0
-for _fn in VLABEL S B F720 FOUR ONE EIGHT; do
+for _fn in VLABEL S B F720 FOUR ONE EIGHT BACKUP; do
     for _n in "${NAMES[@]}"; do [[ "$_n" == "$_fn" ]] && _full_count=$((_full_count+1)) && break; done
 done
 if [[ $_full_count -gt 0 ]]; then
@@ -284,7 +285,7 @@ echo "--- Post-QEMU BPB geometry checks ---"
 for i in "${!NAMES[@]}"; do
     name="${NAMES[$i]}"
     case "$name" in
-        VLABEL|S|B|SELECT|AUTOTEST) es=18; eh=2; et=2880 ;;
+        VLABEL|S|B|SELECT|AUTOTEST|BACKUP) es=18; eh=2; et=2880 ;;
         F720) es=9; eh=2; et=1440 ;;
         FOUR) es=9; eh=2; et=720 ;;
         ONE) es=9; eh=1; et=360 ;;
@@ -317,6 +318,14 @@ for i in "${!NAMES[@]}"; do
             ok "FORMAT /SELECT /V:SELTEST volume label ('SELTEST' found in: $label)"
         else
             fail "FORMAT /SELECT /V:SELTEST volume label (expected 'SELTEST', got: '$label')"
+        fi
+    fi
+    if [[ "$name" == "BACKUP" ]]; then
+        label=$(mlabel -i "$img" -s :: 2>/dev/null || echo "")
+        if echo "$label" | grep -qi "BKP"; then
+            ok "FORMAT /BACKUP /V:BKP suppresses insertion prompt and writes exact label"
+        else
+            fail "FORMAT /BACKUP /V:BKP (expected BKP label, got: '$label')"
         fi
     fi
     # AUTOTEST is an unattended factory path: it suppresses normal completion

@@ -89,8 +89,9 @@ def build_rules(n: int, names: list, no_label_prompt: set,
             rules.append([f"---FORMAT-{names[i]}---".encode(), None,
                           ('swap', b_imgs[i]), None])
 
-        # "press ENTER when ready" — just send \r (swap already done above)
-        rules.append([b"press ENTER when ready", b'\r', None, None])  # skip_to filled below
+        # These internal modes suppress the initial disk-insertion prompt.
+        if names[i] not in {"SELECT", "AUTOTEST", "BACKUP"}:
+            rules.append([b"press ENTER when ready", b'\r', None, None])  # skip_to filled below
 
         # Interactive volume label prompt — absent when /V: given on command line
         if i not in no_label_prompt:

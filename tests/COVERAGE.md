@@ -41,7 +41,10 @@ to standalone utilities. It recognizes both assembly `DB "/...",0` synonym
 records and C parsers that initialize switch records with dedicated `strcpy`
 or `#define` literals. FC's code-driven parser has a dedicated extractor for
 its switch cases, `/LB` subform, and numeric resynchronization form. The
-verifier covers all 77 switches across twenty-one utilities. Short and long
+FORMAT, APPEND, ASSIGN, and CHKDSK extend the assembly extractor to parser
+tables held in include files; FORMAT's compile-time-disabled `/FS` and `/Z`
+records are excluded according to its live build constants. The verifier now
+covers all 96 switches across twenty-five utilities. Short and long
 synonyms remain separate entry contracts. It derives
 the complete matching source-file set for both encodings, then compares each
 declared surface with its live

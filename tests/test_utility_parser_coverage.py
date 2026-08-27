@@ -12,7 +12,12 @@ VALID_LEVELS = {"uncovered", "observed", "contract"}
 
 
 def source_switches(text, extractor="asm_db"):
-    if extractor == "asm_db":
+    if extractor in {"asm_db", "asm_include"}:
+        if extractor == "asm_include":
+            text = re.sub(
+                r"^IF\s+(?:FSExec|ShipDisk)\b.*?^ENDIF[^\n]*\n?",
+                "", text, flags=re.IGNORECASE | re.MULTILINE | re.DOTALL,
+            )
         values = re.findall(
             r"\bDB\s+[\"'](/[^\"',\s]+)[\"']\s*,\s*0", text, re.IGNORECASE
         )
@@ -60,6 +65,11 @@ def main():
         for path in (ROOT / "MS-DOS/v4.0/src/CMD").rglob("*.C")
         if source_switches(path.read_text(encoding="latin-1"), "c_parser_literals")
     }
+    include_sources = {
+        path.relative_to(ROOT).as_posix()
+        for path in (ROOT / "MS-DOS/v4.0/src/CMD").rglob("*.INC")
+        if source_switches(path.read_text(encoding="latin-1"), "asm_include")
+    }
     declared_assembly = {
         item["source"] for item in manifest["utilities"].values()
         if item.get("extractor", "asm_db") == "asm_db"
@@ -67,6 +77,10 @@ def main():
     declared_c = {
         item["source"] for item in manifest["utilities"].values()
         if item.get("extractor") == "c_parser_literals"
+    }
+    declared_includes = {
+        item["source"] for item in manifest["utilities"].values()
+        if item.get("extractor") == "asm_include"
     }
     if assembly_sources != declared_assembly:
         raise AssertionError(
@@ -77,6 +91,11 @@ def main():
         raise AssertionError(
             f"C parser source mismatch; missing={sorted(c_sources-declared_c)}, "
             f"stale={sorted(declared_c-c_sources)}"
+        )
+    if include_sources != declared_includes:
+        raise AssertionError(
+            f"include parser source mismatch; missing={sorted(include_sources-declared_includes)}, "
+            f"stale={sorted(declared_includes-include_sources)}"
         )
     if {
         item["source"] for item in manifest["utilities"].values()

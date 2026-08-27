@@ -1,6 +1,15 @@
 {
   "schema": 1,
   "utilities": {
+    "APPEND.EXE": {"source": "MS-DOS/v4.0/src/CMD/APPEND/APPENDP.INC", "extractor": "asm_include", "switches": {
+      "/E": {"level": "contract", "evidence": ["tests/test_append.sh"], "note": "Installs environment-backed state and is diagnosed when repeated after installation"},
+      "/PATH": {"level": "contract", "evidence": ["tests/test_append.sh"], "note": "ON enables explicit-path lookup, OFF disables it, and invalid values are diagnosed"},
+      "/X": {"level": "contract", "evidence": ["tests/test_append.sh"], "note": "ON and OFF transitions observably gate FIND and EXEC lookup"}
+    }},
+    "ASSIGN.COM": {"source": "MS-DOS/v4.0/src/CMD/ASSIGN/ASSGPARM.INC", "extractor": "asm_include", "switches": {
+      "/STA": {"level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Short synonym reports the active B-to-A redirection"},
+      "/STATUS": {"level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Long synonym reports the active redirection and rejects a duplicate synonym"}
+    }},
     "BACKUP.COM": {"source": "MS-DOS/v4.0/src/CMD/BACKUP/BACKUP.C", "extractor": "c_parser_literals", "switches": {
       "/A": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Appends to an existing backup set and preserves earlier content"},
       "/D": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Date filtering includes and excludes deterministic source timestamps"},
@@ -9,6 +18,10 @@
       "/M": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Backs up modified files and clears their source archive attribute"},
       "/S": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Recursively backs up and restores nested payloads"},
       "/T": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Time filtering includes and excludes deterministic source timestamps"}
+    }},
+    "CHKDSK.COM": {"source": "MS-DOS/v4.0/src/CMD/CHKDSK/CHKPARSE.INC", "extractor": "asm_include", "switches": {
+      "/F": {"level": "contract", "evidence": ["tests/test_chkdsk_fix.sh"], "note": "Repairs an injected orphan chain, preserves exact data, and leaves a clean filesystem"},
+      "/V": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Verbose reporting exposes an actual file in the volume scan"}
     }},
     "DISKCOMP.COM": {"source": "MS-DOS/v4.0/src/CMD/DISKCOMP/DCOMPPAR.ASM", "switches": {
       "/1": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Limits comparison to one side and composes with /8"},
@@ -24,6 +37,20 @@
       "/C": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Count mode is asserted alone and in every combination, including precedence over /N"},
       "/N": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Line numbering is observable alone and with inverted matches"},
       "/V": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Inverted matching is asserted alone and in every switch combination"}
+    }},
+    "FORMAT.COM": {"source": "MS-DOS/v4.0/src/CMD/FORMAT/FORPARSE.INC", "extractor": "asm_include", "switches": {
+      "/1": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Combined with /4, creates a verified single-sided 180KB layout"},
+      "/4": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Creates a verified 360KB layout on a 1.2MB drive"},
+      "/8": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Creates the exact legacy 320KB pre-BPB FAT12 layout"},
+      "/AUTOTEST": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Runs unattended and intentionally leaves the volume unlabeled"},
+      "/B": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Formats a valid default-geometry volume through the reserved-system-area path"},
+      "/BACKUP": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Suppresses the insertion prompt and produces an exact BPB and requested label"},
+      "/F": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Selects and verifies the 720KB capacity layout"},
+      "/N": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Explicit sectors-per-track reaches the drive-specific validation path with /T"},
+      "/S": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Transfers bootable system files and reports completion"},
+      "/SELECT": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Runs the SELECT-integrated unattended path and persists its requested label"},
+      "/T": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Explicit track count reaches the drive-specific validation path with /N"},
+      "/V": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Persists the exact requested volume label"}
     }},
     "FILESYS.EXE": {"source": "MS-DOS/v4.0/src/CMD/FILESYS/FILESYS.C", "extractor": "c_parser_literals", "switches": {
       "/D": {"level": "contract", "evidence": ["tests/test_config_ifs_qemu.sh", "tests/test_ifsfunc_filesys_qemu.sh"], "note": "Detaches a live purpose-built IFS and records the exact detach request"}

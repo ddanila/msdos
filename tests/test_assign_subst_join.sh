@@ -86,6 +86,9 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
     # /STATUS reports the resident mapping.  A duplicate synonym is rejected
     # because ASSIGN deliberately removes both synonyms after the first match.
     printf 'ASSIGN /STATUS\r\n'
+    printf 'ECHO ---ASSIGN-STA---\r\n'
+    printf 'ASSIGN /STA\r\n'
+    printf 'ECHO ASSIGN_STA_DONE\r\n'
     printf 'ASSIGN /STATUS /STA\r\n'
     printf 'IF ERRORLEVEL 1 ECHO ASSIGN_DUP_STATUS_REJECTED\r\n'
     printf 'ASSIGN /Z\r\n'
@@ -259,6 +262,13 @@ if grep -qi '^Original B: set to A:' "$SERIAL_LOG"; then
     ok "ASSIGN /STATUS reports B: redirected to A:"
 else
     fail "ASSIGN /STATUS did not report the active B:=A: mapping"
+fi
+
+assign_sta_section=$(sed -n '/---ASSIGN-STA---/,/ASSIGN_STA_DONE/p' "$SERIAL_LOG")
+if echo "$assign_sta_section" | grep -qi '^Original B: set to A:'; then
+    ok "ASSIGN /STA short synonym reports B: redirected to A:"
+else
+    fail "ASSIGN /STA did not report the active B:=A: mapping"
 fi
 
 if grep -q '^Invalid switch - /STA' "$SERIAL_LOG" \
