@@ -94,6 +94,9 @@ then completes a full write.
 `test_int21_path_errors_qemu.sh` distinguishes local FAT failure classes with
 purpose-built paths: absent file versus absent parent, existing directory,
 nonempty directory, current-directory removal, and a find with no matches.
+It separately asserts missing-parent behavior for find-first, create-temporary,
+and create-new, while wildcard leaves exercise the distinct file-not-found
+mapping of ordinary create and create-new.
 It also covers local access-mode enforcement by opening a directory, reading a
 write-only handle, writing a read-only handle, deleting a temporarily read-only
 file, and rejecting non-changeable attribute bits. Every changed attribute and

@@ -31,7 +31,6 @@ start:
     mov ah, 39h
     int 21h
     require_error 3, fail_mkdir_path
-
     mov dx, missing_directory
     mov ah, 3bh
     int 21h
@@ -154,6 +153,11 @@ start:
     mov ah, 3ch
     int 21h
     require_error 3, fail_create_path
+    xor cx, cx
+    mov dx, wildcard_name
+    mov ah, 3ch
+    int 21h
+    require_error 2, fail_create_file
     mov ax, 4300h
     mov dx, missing_file
     int 21h
@@ -217,6 +221,26 @@ start:
     mov ah, 4eh
     int 21h
     require_error 18, fail_find_none
+    mov dx, missing_path_glob
+    mov ah, 4eh
+    int 21h
+    require_error 3, fail_find_path
+
+    xor cx, cx
+    mov dx, wildcard_name
+    mov ah, 5bh
+    int 21h
+    require_error 2, fail_create_new_file
+    xor cx, cx
+    mov dx, missing_path_file
+    mov ah, 5bh
+    int 21h
+    require_error 3, fail_create_new_path
+    xor cx, cx
+    mov dx, missing_path_file
+    mov ah, 5ah
+    int 21h
+    require_error 3, fail_create_temp_path
 
     mov dx, local_file_path
     mov ah, 41h
@@ -260,6 +284,8 @@ collision_file_path db 'ERRDIR\OTHER.TST', 0
 missing_file     db 'MISSING.TST', 0
 missing_path_file db 'NOEXIST\MISSING.TST', 0
 missing_glob     db 'NOFILES.*', 0
+missing_path_glob db 'NOEXIST\*.*', 0
+wildcard_name    db 'BAD*.TMP', 0
 moved_directory  db '..\MOVED', 0
 rename_target    db 'RENAMED.TST', 0
 pass_message     db 'INT21_PATH_ERRORS_PASS', 13, 10, '$'
@@ -281,6 +307,7 @@ fail_open_denied db 'INT21_OPEN_DENIED_FAIL', 13, 10, '$'
 fail_read_denied db 'INT21_READ_DENIED_FAIL', 13, 10, '$'
 fail_write_denied db 'INT21_WRITE_DENIED_FAIL', 13, 10, '$'
 fail_create_path db 'INT21_CREATE_PATH_FAIL', 13, 10, '$'
+fail_create_file db 'INT21_CREATE_FILE_FAIL', 13, 10, '$'
 fail_attr_file   db 'INT21_ATTR_FILE_FAIL', 13, 10, '$'
 fail_attr_path   db 'INT21_ATTR_PATH_FAIL', 13, 10, '$'
 fail_attr_denied db 'INT21_ATTR_DENIED_FAIL', 13, 10, '$'
@@ -291,5 +318,9 @@ fail_extopen_path db 'INT21_EXTOPEN_PATH_FAIL', 13, 10, '$'
 fail_extopen_denied db 'INT21_EXTOPEN_DENIED_FAIL', 13, 10, '$'
 fail_extopen_exists db 'INT21_EXTOPEN_EXISTS_FAIL', 13, 10, '$'
 fail_find_none   db 'INT21_FIND_NONE_FAIL', 13, 10, '$'
+fail_find_path   db 'INT21_FIND_PATH_FAIL', 13, 10, '$'
+fail_create_new_file db 'INT21_CREATE_NEW_FILE_FAIL', 13, 10, '$'
+fail_create_new_path db 'INT21_CREATE_NEW_PATH_FAIL', 13, 10, '$'
+fail_create_temp_path db 'INT21_CREATE_TEMP_PATH_FAIL', 13, 10, '$'
 io_byte          db 0
 dta              times 128 db 0
