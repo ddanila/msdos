@@ -1330,6 +1330,12 @@ if echo "$output" | grep -q "Code Page"; then
 else
     fail "GRAFTABL /STATUS (expected 'Code Page' in output)"
 fi
+output=$(run_dos CMD/GRAFTABL/GRAFTABL.COM /STA) || true
+if echo "$output" | grep -q "Code Page"; then
+    ok "GRAFTABL /STA (short status synonym reaches code page query)"
+else
+    fail "GRAFTABL /STA (expected 'Code Page' in output)"
+fi
 
 # -- SUBST (no args): list drive substitutions (none → silent exit 0) --
 output=$(run_dos CMD/SUBST/SUBST.EXE 2>/dev/null) || true

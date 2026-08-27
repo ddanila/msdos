@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "utilities": {
+    "DISKCOMP.COM": {"source": "MS-DOS/v4.0/src/CMD/DISKCOMP/DCOMPPAR.ASM", "switches": {
+      "/1": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Limits comparison to one side and composes with /8"},
+      "/8": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Limits comparison to eight sectors per track and composes with /1"}
+    }},
+    "DISKCOPY.COM": {"source": "MS-DOS/v4.0/src/CMD/DISKCOPY/DCOPYPAR.ASM", "switches": {
+      "/1": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Copies one side and produces a single-sided target image"}
+    }},
+    "GRAFTABL.COM": {"source": "MS-DOS/v4.0/src/CMD/GRAFTABL/GRTABPAR.ASM", "switches": {
+      "/STA": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Short status synonym reaches the live code-page query"},
+      "/STATUS": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_graftabl_qemu.sh"], "note": "Long status synonym reports the active resident code page"}
+    }},
+    "GRAPHICS.COM": {"source": "MS-DOS/v4.0/src/CMD/GRAPHICS/GRPARMS.ASM", "switches": {
+      "/B": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Background-printing mode loads and returns to the batch"},
+      "/LCD": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "LCD aspect mode loads and returns to the batch"},
+      "/PB": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_graphics_print_qemu.sh"], "note": "Short printbox synonym loads STD and drives an exact printer-stream contract"},
+      "/PRINTBOX": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Long printbox synonym loads the same named STD profile"},
+      "/R": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Reverse-printing mode loads and returns to the batch"}
+    }},
+    "TREE.COM": {"source": "MS-DOS/v4.0/src/CMD/TREE/TREEPAR.ASM", "switches": {
+      "/A": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Selects observable ASCII branch characters"},
+      "/F": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Adds filenames to the directory tree"}
+    }},
+    "XCOPY.EXE": {"source": "MS-DOS/v4.0/src/CMD/XCOPY/XCOPYPAR.ASM", "switches": {
+      "/A": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Copies archived files without clearing the source archive bit"},
+      "/D": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Date threshold includes and excludes deterministic source dates"},
+      "/E": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Includes an empty source directory when combined with /S"},
+      "/M": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Copies archived files and clears the source archive bit"},
+      "/P": {"level": "contract", "evidence": ["tests/test_prompt_yesno.sh"], "note": "Prompts for each source and copies both accepted files"},
+      "/S": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Recursively copies a subdirectory payload"},
+      "/V": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Verified copying produces the exact destination payload"},
+      "/W": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Waits for supplied input before copying"}
+    }}
+  }
+}

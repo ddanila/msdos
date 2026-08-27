@@ -282,6 +282,11 @@ printf '@ECHO OFF\r\nECHO Hello World | FIND "Hello"\r\n' \
     printf 'GRAPHICS /PB:STD\r\n'
     printf 'ECHO GRAPHICS_PB_DONE\r\n'
 
+    # ── GRAPHICS /PRINTBOX:STD — long synonym for /PB ───────────────────────
+    printf 'ECHO ---GRAPHICS-PRINTBOX---\r\n'
+    printf 'GRAPHICS /PRINTBOX:STD\r\n'
+    printf 'ECHO GRAPHICS_PRINTBOX_DONE\r\n'
+
     # ── MODE COM1: — configure serial port ────────────────────────────────────
     # Uses INT 14h (BIOS serial). QEMU emulates 16550 UART.
     # Success output: "COM1: 9600,N,8,1,-"
@@ -607,6 +612,12 @@ if grep -q "GRAPHICS_PB_DONE" "$SERIAL_LOG"; then
     ok "GRAPHICS /PB:STD (loaded with explicit printbox ID, batch continued)"
 else
     fail "GRAPHICS /PB:STD (batch hung or crashed)"
+fi
+
+if grep -q "GRAPHICS_PRINTBOX_DONE" "$SERIAL_LOG"; then
+    ok "GRAPHICS /PRINTBOX:STD (long synonym loaded and batch continued)"
+else
+    fail "GRAPHICS /PRINTBOX:STD (batch hung or crashed)"
 fi
 
 # ── MODE COM1 checks ──────────────────────────────────────────────────────────
