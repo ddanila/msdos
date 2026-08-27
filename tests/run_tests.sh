@@ -586,24 +586,26 @@ fi
 rm -f "$SRC/COMP_A.TXT" "$SRC/COMP_B.TXT"
 
 # -- ATTRIB: show file attributes --
-output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\SETENV.BAT') || true
-if echo "$output" | grep -q "SETENV.BAT"; then
+cp "$SRC/SETENV.BAT" "$SRC/ATTRTEST.BAT"
+attrib_payload_before=$(sha256sum "$SRC/ATTRTEST.BAT" | awk '{print $1}')
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\ATTRTEST.BAT') || true
+if echo "$output" | grep -q "ATTRTEST.BAT"; then
     ok "ATTRIB (show attributes)"
 else
     fail "ATTRIB (expected filename in output)"
 fi
 
 # -- ATTRIB +R / -R: set and clear read-only --
-run_dos CMD/ATTRIB/ATTRIB.EXE '+R' 'C:\SETENV.BAT' > /dev/null 2>&1 || true
-output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\SETENV.BAT') || true
+run_dos CMD/ATTRIB/ATTRIB.EXE '+R' 'C:\ATTRTEST.BAT' > /dev/null 2>&1 || true
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\ATTRTEST.BAT') || true
 if echo "$output" | grep -q "R"; then
     ok "ATTRIB +R (set read-only)"
 else
     fail "ATTRIB +R (expected 'R' in attribute display)"
 fi
 # Clean up: remove read-only
-run_dos CMD/ATTRIB/ATTRIB.EXE '-R' 'C:\SETENV.BAT' > /dev/null 2>&1 || true
-output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\SETENV.BAT') || true
+run_dos CMD/ATTRIB/ATTRIB.EXE '-R' 'C:\ATTRTEST.BAT' > /dev/null 2>&1 || true
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\ATTRTEST.BAT') || true
 if ! echo "$output" | grep -q " R "; then
     ok "ATTRIB -R (clear read-only)"
 else
@@ -611,31 +613,53 @@ else
 fi
 
 # -- ATTRIB +R +A: combined flags --
-run_dos CMD/ATTRIB/ATTRIB.EXE '+R' '+A' 'C:\SETENV.BAT' > /dev/null 2>&1 || true
-output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\SETENV.BAT') || true
+run_dos CMD/ATTRIB/ATTRIB.EXE '+R' '+A' 'C:\ATTRTEST.BAT' > /dev/null 2>&1 || true
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\ATTRTEST.BAT') || true
 if echo "$output" | grep -q "A" && echo "$output" | grep -q "R"; then
     ok "ATTRIB +R +A (combined flags)"
 else
     fail "ATTRIB +R +A (expected both A and R in display)"
 fi
 # Clean up: remove read-only
-run_dos CMD/ATTRIB/ATTRIB.EXE '-R' 'C:\SETENV.BAT' > /dev/null 2>&1 || true
+run_dos CMD/ATTRIB/ATTRIB.EXE '-R' 'C:\ATTRTEST.BAT' > /dev/null 2>&1 || true
 
 # -- ATTRIB -A / +A: clear and set archive flag --
-run_dos CMD/ATTRIB/ATTRIB.EXE '-A' 'C:\SETENV.BAT' > /dev/null 2>&1 || true
-output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\SETENV.BAT') || true
+run_dos CMD/ATTRIB/ATTRIB.EXE '-A' 'C:\ATTRTEST.BAT' > /dev/null 2>&1 || true
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\ATTRTEST.BAT') || true
 if ! echo "$output" | grep -q " A "; then
     ok "ATTRIB -A (clear archive)"
 else
     fail "ATTRIB -A (A flag still present after -A)"
 fi
-run_dos CMD/ATTRIB/ATTRIB.EXE '+A' 'C:\SETENV.BAT' > /dev/null 2>&1 || true
-output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\SETENV.BAT') || true
+run_dos CMD/ATTRIB/ATTRIB.EXE '+A' 'C:\ATTRTEST.BAT' > /dev/null 2>&1 || true
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\ATTRTEST.BAT') || true
 if echo "$output" | grep -q "A"; then
     ok "ATTRIB +A (set archive)"
 else
     fail "ATTRIB +A (expected 'A' in attribute display)"
 fi
+
+# -- ATTRIB: missing file and invalid switch leave the control payload intact --
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\ATTR-MISSING.BAT' 2>&1); attrib_missing_rc=$?; true
+if [[ $attrib_missing_rc -ne 0 ]] && echo "$output" | grep -qi "Extended Error 2"; then
+    ok "ATTRIB (missing file error)"
+else
+    fail "ATTRIB (expected Extended Error 2 and nonzero exit)"
+fi
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE '/Z' 'C:\ATTRTEST.BAT' 2>&1); attrib_switch_rc=$?; true
+if [[ $attrib_switch_rc -ne 0 ]] && echo "$output" | grep -qi "Parse Error 3"; then
+    ok "ATTRIB (invalid switch error)"
+else
+    fail "ATTRIB (expected Parse Error 3 and nonzero exit)"
+fi
+attrib_payload_after=$(sha256sum "$SRC/ATTRTEST.BAT" | awk '{print $1}')
+if [[ "$attrib_payload_after" == "$attrib_payload_before" ]]; then
+    ok "ATTRIB transitions preserve file payload"
+else
+    fail "ATTRIB changed file payload while updating metadata"
+fi
+run_dos CMD/ATTRIB/ATTRIB.EXE '-R' '-A' 'C:\ATTRTEST.BAT' >/dev/null 2>&1 || true
+rm -f "$SRC/ATTRTEST.BAT"
 
 # -- ATTRIB /S: recursive listing --
 output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\CMD\EDLIN\*.*' /S) || true
