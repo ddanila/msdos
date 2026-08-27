@@ -71,6 +71,21 @@ start:
     cmp dx, 0a55ah
     jne cpsw_failed
 
+    mov bx, 2                     ; B: was overridden by DRIVPARM /D:1.
+    mov cx, 0860h                 ; Disk-control GET DEVICE PARAMETERS.
+    mov dx, device_parameters
+    mov ax, 440dh
+    int 21h
+    jc drivparm_failed
+    cmp byte [device_parameters + 1], 2
+    jne drivparm_failed           ; /F:2 (3.5-inch 720K form factor).
+    cmp word [device_parameters + 4], 77
+    jne drivparm_failed           ; /T:77 cylinders.
+    cmp word [device_parameters + 20], 17
+    jne drivparm_failed           ; /S:17 sectors per track.
+    cmp word [device_parameters + 22], 1
+    jne drivparm_failed           ; /H:1 head.
+
     mov dl, [current_drive]
     mov ah, 0eh
     int 21h
@@ -101,6 +116,9 @@ fcbs_failed:
     jmp fail
 cpsw_failed:
     mov dx, fail_cpsw
+    jmp fail
+drivparm_failed:
+    mov dx, fail_drivparm
 fail:
     mov ah, 09h
     int 21h
@@ -114,4 +132,6 @@ fail_buffers   db 'CONFIG_BUFFERS_FAIL', 13, 10, '$'
 fail_files     db 'CONFIG_FILES_FAIL', 13, 10, '$'
 fail_fcbs      db 'CONFIG_FCBS_FAIL', 13, 10, '$'
 fail_cpsw      db 'CONFIG_CPSW_COMPAT_FAIL', 13, 10, '$'
+fail_drivparm  db 'CONFIG_DRIVPARM_FAIL', 13, 10, '$'
 current_drive  db 0
+device_parameters times 300 db 0

@@ -64,7 +64,7 @@
     "COUNTRY": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Country data loads and downstream code-page behavior is asserted"},
     "CPSW": {"level": "contract", "evidence": ["tests/test_config_state_qemu.sh"], "note": "CPSW=ON is accepted and AH=33h subfunctions 03h/04h are asserted as the intentionally inert DOS 4 compatibility interface"},
     "DEVICE": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh", "tests/test_emm386_qemu.sh"], "note": "Multiple character, block, display, cache, and memory drivers are installed and exercised"},
-    "DRIVPARM": {"level": "uncovered", "evidence": [], "note": "No drive-parameter behavior or malformed-input contract"},
+    "DRIVPARM": {"level": "contract", "evidence": ["tests/test_config_state_qemu.sh"], "note": "A nondefault B: geometry is configured and all form-factor, cylinder, sector, and head values are queried through generic IOCTL"},
     "FCBS": {"level": "contract", "evidence": ["tests/test_config_state_qemu.sh"], "note": "Configured FCB table and keep counts are asserted through the DOS list of lists"},
     "FILES": {"level": "contract", "evidence": ["tests/test_config_state_qemu.sh"], "note": "Configured system file-table capacity is summed and asserted through the DOS list of lists"},
     "IFS": {"level": "contract", "evidence": ["tests/test_config_ifs_qemu.sh"], "note": "A minimal test filesystem receives INIT successfully and its named header is asserted in the DOS IFS chain"},

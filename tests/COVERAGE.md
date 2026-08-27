@@ -30,6 +30,8 @@ lines were ignored and did not override BREAK.
 The same probe loads `CPSW=ON` and verifies the DOS 4 compatibility behavior:
 INT 21h/AH=33h subfunctions 03h and 04h are accepted but intentionally preserve
 their caller-visible sentinel state.
+DRIVPARM applies a deliberately nondefault B: geometry, which is read back
+through DOS generic IOCTL and checked field by field.
 
 `test_config_switches_qemu.sh` boots isolated control and `SWITCHES=/K` images
 in parallel. An INT 16h hook proves that the directive changes DOS CON input

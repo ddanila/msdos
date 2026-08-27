@@ -35,6 +35,7 @@ mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::CFGPROBE.COM
     printf 'FCBS=8,3\r\n'
     printf 'LASTDRIVE=Z\r\n'
     printf 'CPSW=ON\r\n'
+    printf 'DRIVPARM=/D:1 /F:2 /T:77 /S:17 /H:1\r\n'
     printf 'COMMENT=BREAK=OFF\r\n'
     printf 'REM BREAK=OFF\r\n'
     printf 'SHELL=COMMAND.COM /P\r\n'
