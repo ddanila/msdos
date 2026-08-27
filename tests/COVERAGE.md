@@ -22,6 +22,11 @@ from the kernel's live `I21_MAP_E_TAB`. This prevents a successful call from
 being mistaken for coverage of all its documented failure contracts. Its
 structural verifier rejects stale pairs and non-CI evidence while reporting
 the remaining negative-path backlog.
+Error exclusions must cite the live source files that prove a path is absent,
+stubbed, or dependent on an unshipped subsystem. In particular, historical
+allowed-error rows are not treated as proof that the built local FAT kernel can
+emit every listed result: disabled extended-attribute code, nonallocating DUP2,
+fixed MCB mappings, and operational-IFS-only paths are recorded explicitly.
 
 `runtime_coverage.json` applies the same levels to every shipped or built
 runtime `.COM`, `.EXE`, and `.SYS` component and to every directive parsed from

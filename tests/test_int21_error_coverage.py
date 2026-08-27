@@ -132,6 +132,14 @@ def main():
     for item in excluded_items:
         if not item.get("reason", "").strip():
             raise AssertionError(f"{item_pair(item)}: missing exclusion reason")
+        evidence = item.get("evidence", [])
+        if not evidence:
+            raise AssertionError(f"{item_pair(item)}: missing exclusion evidence")
+        for relative in evidence:
+            if not (ROOT / relative).is_file():
+                raise AssertionError(
+                    f"{item_pair(item)}: missing exclusion evidence file {relative}"
+                )
 
     uncovered = expected - contracts - excluded
     print(f"INT 21h allowed error contracts: {len(expected)}")
