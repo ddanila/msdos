@@ -271,6 +271,9 @@ jobs:
       - name: PRINTER.SYS code-page behavior
         run: bash tests/test_printer_driver_qemu.sh
 
+      - name: SMARTDRV.SYS and FLUSH13.EXE cache control
+        run: bash tests/test_smartdrv_flush_qemu.sh
+
       - name: Focused CONFIG.SYS state contracts
         run: bash tests/test_config_state_qemu.sh
 

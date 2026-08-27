@@ -60,6 +60,9 @@ floppy, handles the driver's media prompt through QMP, and verifies known bytes
 read through the new drive letter.
 `test_printer_driver_qemu.sh` loads the 4201 printer definition and proves its
 code-page control path by preparing, selecting, and querying code page 850.
+`test_smartdrv_flush_qemu.sh` attaches a fixed disk and uses FLUSH13 to assert
+SMARTDRV status, disable/enable transitions, policy changes, and an explicit
+successful flush.
 
 Run the inventory check with:
 
