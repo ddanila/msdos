@@ -1220,6 +1220,62 @@ fi
 # XCOPY triggers #GP (INT 0x0D) on KVM due to segment limit enforcement
 # in real mode. Force kvikdos-soft for these tests.
 XCOPY_KVIKDOS="$REPO_ROOT/kvikdos/kvikdos-soft"
+
+# -- XCOPY parser duplicate and boundary contracts --
+# GET_OPTIONS blanks every consumed synonym, including the separately parsed
+# /D date switch. The parser maps all of these command-line failures to 4.
+for xcopy_switch in A E M P S V W; do
+    output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 \
+        "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" \
+        SETENV.BAT 'XCPDEST\' "/$xcopy_switch" "/$xcopy_switch" 2>&1)
+    xcopy_rc=$?
+    if [[ "$xcopy_rc" -eq 4 ]] && echo "$output" | grep -q "Invalid switch - /$xcopy_switch"; then
+        ok "XCOPY /$xcopy_switch duplicate rejected"
+    else
+        fail "XCOPY /$xcopy_switch duplicate (expected invalid switch/errorlevel 4, got rc=$xcopy_rc)"
+    fi
+done
+
+output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 \
+    "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" \
+    SETENV.BAT 'XCPDEST\' /D:01-01-90 /D:01-01-90 2>&1)
+xcopy_date_duplicate_rc=$?
+if [[ "$xcopy_date_duplicate_rc" -eq 4 ]] && echo "$output" | grep -q 'Invalid switch - /D'; then
+    ok "XCOPY /D duplicate rejected"
+else
+    fail "XCOPY /D duplicate (expected invalid switch/errorlevel 4, got rc=$xcopy_date_duplicate_rc)"
+fi
+
+output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 \
+    "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" \
+    SETENV.BAT 'XCPDEST\' /Z 2>&1)
+xcopy_unknown_rc=$?
+if [[ "$xcopy_unknown_rc" -eq 4 ]] && echo "$output" | grep -q 'Invalid switch - /Z'; then
+    ok "XCOPY unknown switch rejected"
+else
+    fail "XCOPY unknown switch (expected invalid switch/errorlevel 4, got rc=$xcopy_unknown_rc)"
+fi
+
+output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 \
+    "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" \
+    SETENV.BAT 'XCPDEST\' EXTRA 2>&1)
+xcopy_arity_rc=$?
+if [[ "$xcopy_arity_rc" -eq 4 ]] && echo "$output" | grep -q 'Invalid number of parameters - EXTRA'; then
+    ok "XCOPY excess filespec rejected"
+else
+    fail "XCOPY excess filespec (expected invalid parameter count/errorlevel 4, got rc=$xcopy_arity_rc)"
+fi
+
+output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 \
+    "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" \
+    SETENV.BAT 'XCPDEST\' /D:01-01-79 2>&1)
+xcopy_date_rc=$?
+if [[ "$xcopy_date_rc" -eq 4 ]] && echo "$output" | grep -q 'Invalid date'; then
+    ok "XCOPY date below DOS range rejected"
+else
+    fail "XCOPY pre-1980 date (expected Invalid date/errorlevel 4, got rc=$xcopy_date_rc)"
+fi
+
 printf "XcopyTest\r\n" > "$SRC/XCTEST1.TXT"
 mkdir -p "$SRC/XCPDEST"
 output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" 'XCTEST1.TXT' 'XCPDEST\' 2>/dev/null || true)
@@ -1534,6 +1590,32 @@ else
     fail "XCOPY /M (archive bit should be cleared after /M)"
 fi
 rm -rf "$SRC/XCMDEST" "$SRC/XCMTEST.TXT" "$SRC/XCMTEST2.TXT"
+
+# -- XCOPY /A and /M ordering: the last archive-mode switch wins --
+for xcopy_archive_order in "A M" "M A"; do
+    read -r first_mode last_mode <<<"$xcopy_archive_order"
+    archive_file="XCO${first_mode}${last_mode}.TXT"
+    archive_dest="XCO${first_mode}${last_mode}DST"
+    printf "ArchiveOrder%s%s\r\n" "$first_mode" "$last_mode" > "$SRC/$archive_file"
+    mkdir -p "$SRC/$archive_dest"
+    run_dos CMD/ATTRIB/ATTRIB.EXE '+A' "C:\\$archive_file" > /dev/null 2>&1 || true
+    output=$(timeout 10 env KVIKDOS="$XCOPY_KVIKDOS" KVIKDOS_AZZY=1 \
+        "$BIN/dos-run" --cwd='C:\' "$SRC/CMD/XCOPY/XCOPY.EXE" \
+        "$archive_file" "$archive_dest\\" "/$first_mode" "/$last_mode" 2>/dev/null || true)
+    attr_out=$(run_dos CMD/ATTRIB/ATTRIB.EXE "C:\\$archive_file") || true
+    archive_state_ok=false
+    if [[ "$last_mode" == M ]] && ! echo "$attr_out" | grep -q ' A '; then
+        archive_state_ok=true
+    elif [[ "$last_mode" == A ]] && echo "$attr_out" | grep -q 'A'; then
+        archive_state_ok=true
+    fi
+    if echo "$output" | grep -q '1 File(s) copied' && $archive_state_ok; then
+        ok "XCOPY /$first_mode /$last_mode (last archive mode controls source attribute)"
+    else
+        fail "XCOPY /$first_mode /$last_mode (last archive mode did not win)"
+    fi
+    rm -rf "$SRC/$archive_dest" "$SRC/$archive_file"
+done
 
 # -- XCOPY /D:date — copy files modified on or after date --
 # Touch file to Jun 15, 1990, then test with past and future dates.

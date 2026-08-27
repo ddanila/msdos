@@ -270,6 +270,14 @@ Its negative matrix also pins the source-defined `/A` conflicts with `/S` and
 `/U`, rejection of every duplicated synonym, an unknown switch, and a third
 filespec. Each parser failure must return REPLACE's exact errorlevel 11.
 
+XCOPY exercises all eight switches in its two live parser groups. The parser
+matrix additionally proves that every consumed synonym—including `/D`—is
+rejected when repeated, and pins unknown-switch, third-filespec, and pre-1980
+date failures to their exact diagnostic and errorlevel 4. Because the source
+deliberately treats `/A` and `/M` as ordered overrides, both orders are run and
+the last switch must determine whether the source archive bit is preserved or
+cleared.
+
 `test_int21_file_memory_qemu.sh` includes destructive-but-recoverable resource
 limits. It consumes the largest reported DOS arena, asserts error 8 on the next
 allocation, releases it, and allocates again. With `FILES=12` and an expanded
