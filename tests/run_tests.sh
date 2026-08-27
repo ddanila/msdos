@@ -640,13 +640,15 @@ else
 fi
 
 # -- ATTRIB: missing file and invalid switch leave the control payload intact --
-output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\ATTR-MISSING.BAT' 2>&1); attrib_missing_rc=$?; true
+output=$(timeout 30 "$BIN/dos-run" "$SRC/CMD/ATTRIB/ATTRIB.EXE" \
+    'C:\ATTR-MISSING.BAT' 2>&1); attrib_missing_rc=$?; true
 if [[ $attrib_missing_rc -ne 0 ]] && echo "$output" | grep -qi "Extended Error 2"; then
     ok "ATTRIB (missing file error)"
 else
     fail "ATTRIB (expected Extended Error 2 and nonzero exit)"
 fi
-output=$(run_dos CMD/ATTRIB/ATTRIB.EXE '/Z' 'C:\ATTRTEST.BAT' 2>&1); attrib_switch_rc=$?; true
+output=$(timeout 30 "$BIN/dos-run" "$SRC/CMD/ATTRIB/ATTRIB.EXE" \
+    '/Z' 'C:\ATTRTEST.BAT' 2>&1); attrib_switch_rc=$?; true
 if [[ $attrib_switch_rc -ne 0 ]] && echo "$output" | grep -qi "Parse Error 3"; then
     ok "ATTRIB (invalid switch error)"
 else
