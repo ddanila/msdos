@@ -315,6 +315,9 @@ test-help-qemu: deploy
 test-misc-qemu: deploy
 	bash tests/test_misc_qemu.sh
 
+test-graphics-print-qemu: deploy
+	bash tests/test_graphics_print_qemu.sh
+
 test-mode-redirect-qemu: deploy
 	bash tests/test_mode_redirect_qemu.sh
 

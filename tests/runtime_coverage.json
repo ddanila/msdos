@@ -26,7 +26,7 @@
     "FLUSH13.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Status, disable, enable, policy update, extended cache occupancy, and explicit flush operations complete against real absolute-sector I/O"},
     "FORMAT.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_format.sh"], "note": "1.44MB, 720KB, 360KB, single-sided, and legacy 320KB layouts, system transfer, volume behavior, and documented/undocumented rejection paths are asserted; every rejected target remains byte-for-byte blank"},
     "GRAFTABL.COM": {"kind": "tsr", "level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Code-page installation and status behavior are asserted"},
-    "GRAPHICS.COM": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Load, reload, profile, LCD, reverse, and background modes are asserted"},
+    "GRAPHICS.COM": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_graphics_print_qemu.sh"], "note": "Load, reload, profile, LCD, reverse, and background modes are asserted; a focused INT 5h probe prints a deterministic CGA pattern and requires the exact 17,781-byte LPT1 stream"},
     "IFSFUNC.EXE": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Initial and duplicate installation behavior are asserted"},
     "IO.SYS": {"kind": "system", "level": "contract", "evidence": ["tests/test_sys.sh"], "note": "SYS-created media boots through the built BIOS and reaches DOS"},
     "JOIN.EXE": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Join, listing, I/O through joined paths, and removal are asserted"},

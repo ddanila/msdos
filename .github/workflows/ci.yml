@@ -236,6 +236,9 @@ jobs:
       - name: CHKDSK / MODE CON / IFSFUNC / FILESYS e2e tests
         run: bash tests/test_misc_qemu.sh
 
+      - name: GRAPHICS.COM exact Print Screen output
+        run: bash tests/test_graphics_print_qemu.sh
+
       - name: Focused MODE parser regression
         run: bash tests/test_mode_redirect_qemu.sh
 

@@ -99,6 +99,12 @@ a deterministic text file, a guest probe polls the resident INT 2Fh queue until
 it is empty, and QEMU captures LPT1. The host requires the exact source bytes
 and PRINT's final form feed, proving delivery through the installed PRINTER.SYS
 chain rather than merely observing successful queue commands.
+`test_graphics_print_qemu.sh` installs GRAPHICS from its DOS-record profile,
+draws a deterministic asymmetric CGA pattern, invokes the resident INT 5h
+Print Screen handler, and captures LPT1. The host requires the exact 17,781-byte
+stream and all 25 graphics escape blocks. This also guards the `.PRO` CRLF
+checkout rule: an LF-only profile is rejected by the actual DOS parser and
+cannot reach the print assertion.
 `test_smartdrv_flush_qemu.sh` attaches a fixed disk and uses FLUSH13 to assert
 SMARTDRV status, disable/enable transitions, policy changes, and an explicit
 successful flush. A purpose-built guest probe also writes and reads back a
