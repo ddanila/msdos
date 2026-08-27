@@ -29,6 +29,9 @@ nasm -f bin "$REPO_ROOT/tests/int21_file_memory_probe.asm" -o "$PROBE_COM"
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::I21FMEM.COM
 {
+    printf 'FILES=12\r\n'
+} | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
+{
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'I21FMEM.COM\r\n'
@@ -45,7 +48,7 @@ timeout 35 qemu-system-i386 \
     >"$SERIAL_LOG" 2>&1 || true
 
 if grep -q 'INT21_FILE_MEMORY_PASS' "$SERIAL_LOG"; then
-    echo "  PASS: INT 21h file, directory, search, error, and memory contracts"
+    echo "  PASS: INT 21h file, directory, search, error, memory, and exhaustion contracts"
     exit 0
 fi
 

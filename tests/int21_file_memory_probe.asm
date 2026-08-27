@@ -51,6 +51,42 @@ start:
     push ds
     pop es
 
+    ; Exhaust the arena deliberately. AH=48h must return error 8 and the
+    ; largest available block. That block must be allocatable; while held, a
+    ; one-paragraph request must fail, then succeed after the block is freed.
+    mov bx, 0ffffh
+    mov ah, 48h
+    int 21h
+    jnc memory_exhaust_failed
+    cmp ax, 8
+    jne memory_exhaust_failed
+    test bx, bx
+    jz memory_exhaust_failed
+    mov ah, 48h
+    int 21h
+    jc memory_exhaust_failed
+    mov [memory_segment], ax
+    mov bx, 1
+    mov ah, 48h
+    int 21h
+    jnc memory_exhaust_failed
+    cmp ax, 8
+    jne memory_exhaust_failed
+    mov es, [memory_segment]
+    mov ah, 49h
+    int 21h
+    jc memory_exhaust_failed
+    mov bx, 1
+    mov ah, 48h
+    int 21h
+    jc memory_exhaust_failed
+    mov es, ax
+    mov ah, 49h
+    int 21h
+    jc memory_exhaust_failed
+    push ds
+    pop es
+
     mov dx, directory
     mov ah, 39h
     int 21h
@@ -113,6 +149,48 @@ seek_ok:
     mov ah, 3eh
     int 21h
     fail_if_carry 3e
+
+    ; Expand the process JFT beyond CONFIG.SYS FILES=12 and consume the
+    ; global SFT by repeatedly opening the same file. The next open must
+    ; report error 4, and closing the acquired handles must restore service.
+    mov bx, 64
+    mov ah, 67h
+    int 21h
+    jc sft_exhaust_failed
+    xor si, si
+    mov di, open_handles
+.open_until_full:
+    mov ax, 3d00h
+    mov dx, original_name
+    int 21h
+    jc .sft_full
+    stosw
+    inc si
+    cmp si, 64
+    jb .open_until_full
+    jmp sft_exhaust_failed
+.sft_full:
+    cmp ax, 4
+    jne sft_exhaust_failed
+    test si, si
+    jz sft_exhaust_failed
+    mov cx, si
+    mov di, open_handles
+.close_exhausted:
+    mov bx, [di]
+    mov ah, 3eh
+    int 21h
+    jc sft_exhaust_failed
+    add di, 2
+    loop .close_exhausted
+    mov ax, 3d00h
+    mov dx, original_name
+    int 21h
+    jc sft_exhaust_failed
+    mov bx, ax
+    mov ah, 3eh
+    int 21h
+    jc sft_exhaust_failed
 
     mov ax, 3d02h
     mov dx, original_name
@@ -242,6 +320,13 @@ extended_error_ok:
     mov ax, 4c00h
     int 21h
 
+memory_exhaust_failed:
+    mov dx, fail_memory_exhaust
+    jmp fail
+sft_exhaust_failed:
+    mov dx, fail_sft_exhaust
+    jmp fail
+
 fail:
     mov ah, 09h
     int 21h
@@ -280,8 +365,11 @@ fail_56        db 'INT21_56_FAIL', 13, 10, '$'
 fail_57        db 'INT21_57_FAIL', 13, 10, '$'
 fail_59        db 'INT21_59_FAIL', 13, 10, '$'
 fail_68        db 'INT21_68_FAIL', 13, 10, '$'
+fail_memory_exhaust db 'INT21_MEMORY_EXHAUST_FAIL', 13, 10, '$'
+fail_sft_exhaust db 'INT21_SFT_EXHAUST_FAIL', 13, 10, '$'
 file_handle    dw 0
 memory_segment dw 0
+open_handles   times 64 dw 0
 cwd_buffer     times 64 db 0
 read_buffer    times payload_size db 0
 dta            times 128 db 0

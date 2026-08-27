@@ -75,6 +75,12 @@ media checks cover 1.44MB and 720KB BPBs, 360KB and single-sided formats in a
 and undocumented-switch paths require their exact rejection diagnostics; no
 FORMAT case is accepted merely because the batch continued.
 
+`test_int21_file_memory_qemu.sh` includes destructive-but-recoverable resource
+limits. It consumes the largest reported DOS arena, asserts error 8 on the next
+allocation, releases it, and allocates again. With `FILES=12` and an expanded
+process handle table, it similarly exhausts the global SFT, asserts error 4,
+closes every handle, and proves a subsequent open succeeds.
+
 Run the inventory check with:
 
 ```sh
