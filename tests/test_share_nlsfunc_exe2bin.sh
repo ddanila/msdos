@@ -132,6 +132,10 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     # No args → NO_PARMS=1 → installs silently via INT 2Fh + Keep_Process.
     # COUNTRY.SYS path not needed at install time.
     printf 'ECHO ---NLSFUNC---\r\n'
+    printf 'NLSFUNC /X\r\n'
+    printf 'ECHO NLSFUNC_UNKNOWN_DONE\r\n'
+    printf 'NLSFUNC A B\r\n'
+    printf 'ECHO NLSFUNC_EXCESS_DONE\r\n'
     printf 'NLSFUNC\r\n'
     printf 'ECHO NLSFUNC_DONE\r\n'
 
@@ -147,6 +151,10 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     # IP=0 → BINFIX path: no prompts, no output on success.
     # Verifiable via IF EXIST (EXE2BIN always exits errorlevel 0).
     printf 'ECHO ---EXE2BIN---\r\n'
+    printf 'EXE2BIN\r\n'
+    printf 'ECHO EXE2BIN_MISSING_DONE\r\n'
+    printf 'EXE2BIN A B C\r\n'
+    printf 'ECHO EXE2BIN_EXCESS_DONE\r\n'
     printf 'EXE2BIN TEST.EXE TEST.BIN\r\n'
     printf 'IF EXIST TEST.BIN ECHO EXE2BIN_FILE_OK\r\n'
     printf 'ECHO EXE2BIN_DONE\r\n'
@@ -233,6 +241,20 @@ fi
 echo ""
 echo "--- NLSFUNC tests ---"
 
+if grep -q 'Invalid switch -  /X' "$SERIAL_LOG" \
+    && grep -q 'NLSFUNC_UNKNOWN_DONE' "$SERIAL_LOG"; then
+    ok "NLSFUNC rejects an unknown switch and returns to the batch"
+else
+    fail "NLSFUNC unknown-switch parser contract"
+fi
+
+if grep -q 'Too many parameters - B' "$SERIAL_LOG" \
+    && grep -q 'NLSFUNC_EXCESS_DONE' "$SERIAL_LOG"; then
+    ok "NLSFUNC rejects a second positional operand and returns"
+else
+    fail "NLSFUNC excess-operand parser contract"
+fi
+
 if grep -q "NLSFUNC_DONE" "$SERIAL_LOG"; then
     ok "NLSFUNC (first call installed silently, batch continued)"
 else
@@ -255,6 +277,20 @@ fi
 
 echo ""
 echo "--- EXE2BIN tests ---"
+
+if grep -q 'Required parameter missing -' "$SERIAL_LOG" \
+    && grep -q 'EXE2BIN_MISSING_DONE' "$SERIAL_LOG"; then
+    ok "EXE2BIN rejects a missing required input operand"
+else
+    fail "EXE2BIN missing-operand parser contract"
+fi
+
+if grep -q 'Too many parameters - C' "$SERIAL_LOG" \
+    && grep -q 'EXE2BIN_EXCESS_DONE' "$SERIAL_LOG"; then
+    ok "EXE2BIN rejects a third positional operand"
+else
+    fail "EXE2BIN excess-operand parser contract"
+fi
 
 if grep -q "EXE2BIN_FILE_OK" "$SERIAL_LOG"; then
     ok "EXE2BIN TEST.EXE TEST.BIN (output file TEST.BIN created)"

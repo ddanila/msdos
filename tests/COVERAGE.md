@@ -67,6 +67,9 @@ accounts for COMP, EXE2BIN, LABEL, MORE, NLSFUNC, RECOVER, and SYS rather than
 silently omitting them because they have no ordinary slash-switch table. It
 also exposes IFSFUNC's non-slash `NAMES=n` keyword: overflow and repetition are
 rejected before a `NAMES=7` installation completes the full IFS lifecycle.
+The positional contracts reject COMP's third filespec, EXE2BIN's missing and
+third operands, and NLSFUNC's unknown switch and second path before exercising
+their successful comparison, conversion, and resident-installation paths.
 
 `debug_command_coverage.json` derives DEBUG's twenty live non-error COMTAB
 entries and the four `X` EMS subcommands from DEBUG.ASM and DEBEMS.ASM. The

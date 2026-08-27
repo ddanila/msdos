@@ -718,6 +718,13 @@ else
     fail "COMP (expected 'File not found')"
 fi
 
+output=$(run_dos_all_output CMD/COMP/COMP.COM A B C); comp_excess_rc=$?
+if [[ "$comp_excess_rc" -eq 1 ]] && echo "$output" | grep -q "Parse Error 1"; then
+    ok "COMP (third filespec rejected with parser errorlevel 1)"
+else
+    fail "COMP (expected third-filespec rejection and errorlevel 1)"
+fi
+
 # Clean up COMP test files
 rm -f "$SRC/COMP_A.TXT" "$SRC/COMP_B.TXT"
 
