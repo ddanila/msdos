@@ -40,6 +40,10 @@ contracts currently include old-style termination and residency, process
 termination and critical-error callbacks, and absolute sector reads and writes
 on disposable images; callback or multiplex behavior that is only observed is
 kept visibly incomplete.
+The clean synchronous-vector probe also verifies INT 29h through BIOS cursor
+state and INT 2Fh through the uninstalled SHARE, redirector, and NLSFUNC checks
+plus DOS's own installation signature, before any resident utility can replace
+the multiplex chain.
 
 Focused CONFIG.SYS state coverage uses `test_config_state_qemu.sh`. Its probe
 queries BREAK and LASTDRIVE through public INT 21h interfaces and reads the DOS

@@ -11,8 +11,8 @@
     "26": {"level": "contract", "evidence": ["tests/config_multitrack_probe.asm", "tests/test_config_multitrack_qemu.sh"], "note": "Absolute disk write returns success while writing an unchanged sector on each disposable fixed-disk image"},
     "27": {"level": "contract", "evidence": ["tests/int27_tsr_probe.asm", "tests/int21_tsr_trigger.asm", "tests/test_int21_tsr_qemu.sh"], "note": "Old-style terminate-and-stay-resident preserves a callable INT 61h handler in a subsequent process"},
     "28": {"level": "uncovered", "evidence": [], "note": "DOS idle callback invocation needs a controlled blocking-input test"},
-    "29": {"level": "uncovered", "evidence": [], "note": "Fast console output needs direct observable screen-state evidence"},
-    "2F": {"level": "observed", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_misc_qemu.sh"], "note": "Resident utilities install and rediscover multiplex handlers, but the kernel installation/default dispatch contract is not isolated"}
+    "29": {"level": "contract", "evidence": ["tests/dos_interrupt_probe.asm", "tests/test_dos_interrupt_qemu.sh"], "note": "Direct fast-console output advances the BIOS cursor by exactly one column from a controlled position"},
+    "2F": {"level": "contract", "evidence": ["tests/dos_interrupt_probe.asm", "tests/test_dos_interrupt_qemu.sh"], "note": "A clean boot reports SHARE, redirector, and NLSFUNC absent while the DOS multiplex install check returns FFh"}
   },
   "excluded": {}
 }

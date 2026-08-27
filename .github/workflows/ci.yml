@@ -818,6 +818,31 @@ jobs:
       - name: INT 21h write-protected media errors
         run: bash tests/test_int21_readonly_media_qemu.sh
 
+  e2e-dos-interrupt:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}/ci:latest
+      options: --device /dev/kvm
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repo with submodules
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Grant KVM access
+        run: chmod 666 /dev/kvm
+
+      - name: Download floppy image
+        uses: actions/download-artifact@v7
+        with:
+          name: floppy
+
+      - name: DOS synchronous interrupt contracts
+        run: bash tests/test_dos_interrupt_qemu.sh
+
   e2e-chkdsk-fix:
     needs: build
     runs-on: ubuntu-latest
