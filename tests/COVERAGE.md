@@ -97,6 +97,12 @@ also resolves the live ANSI header and verifies all 13 pass-through request
 statuses against the lower BIOS CON driver. The first command beyond ANSI's
 table is rejected through the same chain, guarding the dispatch bound that
 previously indexed into adjacent escape-command data.
+`test_display_chain_qemu.sh` installs DISPLAY above ANSI and BIOS CON. It
+repeats visible output and controlled blocking, nonblocking, and flush effects
+through all three layers, then resolves DISPLAY's first live `CON` header and
+asserts every pass-through request status. Reserved requests 17 and 18 and the
+first out-of-table request are kept as exact compatibility contracts rather
+than being inferred from the individual lower driver.
 The combined driver boot also exercises RAMDRIVE and VDISK through two
 independent paths. DOS file I/O must return exact payload markers, while a
 guest probe checks each 64 KiB BPB field by field, writes and reads the final
@@ -276,9 +282,10 @@ make test-device-request-coverage-manifest
 `device_request_coverage.json` derives the command number and handler for each
 explicit request table in the shipped installable drivers. It also records the
 different forwarding models used by DRIVER.SYS and PRINTER.SYS. Source-backed
-pass-through, no-op, unsupported, and post-failed-INIT commands are separated
-from meaningful behavioral contracts. The normal test target enforces this as
-a strict zero-gap gate.
+post-failed-INIT commands are separated from meaningful behavioral contracts.
+Every reachable pass-through, no-op, and unsupported handler is exercised
+through its installed strategy/interrupt interface. The normal test target
+enforces this as a strict zero-gap gate.
 
 Contract evidence must include a runnable shell test referenced directly by
 the CI workflow. The verifier rejects source-only evidence and tests that can

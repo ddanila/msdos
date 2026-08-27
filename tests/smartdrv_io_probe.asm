@@ -96,6 +96,9 @@ find_smartdrv:
     dec dx
     jnz .compare
     pop si
+    mov [driver_header], si
+    mov ax, es
+    mov [driver_header + 2], ax
     mov ax, [es:si + 6]
     mov [driver_strategy], ax
     mov ax, [es:si + 8]
@@ -126,8 +129,13 @@ issue_request:
     push cs
     pop es
     mov bx, request_packet
-    call far [driver_strategy]
-    call far [driver_interrupt]
+    push ds
+    push si
+    lds si, [driver_header]
+    call far [cs:driver_strategy]
+    call far [cs:driver_interrupt]
+    pop si
+    pop ds
     ret
 
 failed:
@@ -141,6 +149,7 @@ successful_requests db 13, 14, 0ffh
 invalid_requests db 1, 2, 4, 5, 7, 8, 9, 11, 15, 16, 0ffh
 driver_strategy dd 0
 driver_interrupt dd 0
+driver_header dd 0
 request_packet:
     db 22, 0, 0
     dw 0

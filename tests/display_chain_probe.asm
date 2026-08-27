@@ -1,32 +1,14 @@
 bits 16
 org 100h
 
-; Exercise ANSI.SYS escape parsing and assert its visible cursor effect.
+; DISPLAY.SYS is installed above ANSI.SYS and BIOS CON.  Prove ordinary CON
+; behavior survives both filters, then call DISPLAY's live request entry points
+; to verify every pass-through status and the dispatch boundary.
 
 start:
     push cs
     pop ds
-
-    ; Generic IOCTL get-current-settings must be handled by ANSI itself.
-    mov ax, 3d02h
-    mov dx, con_name
-    int 21h
-    jc failed
-    mov bx, ax
-    mov ax, 440ch
-    mov ch, 3                     ; display-device category
-    mov cl, 7fh                   ; ANSI get-settings minor function
-    mov dx, ioctl_packet
-    int 21h
-    pushf
-    mov ah, 3eh
-    int 21h
-    popf
-    jc failed
-    cmp byte [ioctl_packet + 6], 1 ; text mode
-    jne failed
-    cmp word [ioctl_packet + 14], 80
-    jne failed
+    cld
 
     mov bx, 1
     mov cx, ansi_sequence_end - ansi_sequence
@@ -40,14 +22,14 @@ start:
     mov bh, 0
     mov ah, 03h
     int 10h
-    cmp dh, 9                     ; ESC[10;20H uses one-based coordinates.
+    cmp dh, 7
     jne failed
-    cmp dl, 19
+    cmp dl, 16
     jne failed
 
     mov dx, read_ready
     call screen_print
-    mov ah, 08h                   ; blocking CON read -> command 4
+    mov ah, 08h
     int 21h
     cmp al, 'r'
     jne failed
@@ -55,7 +37,7 @@ start:
     mov dx, rdnd_ready
     call screen_print
 .poll_rdnd:
-    mov ah, 06h                   ; direct/non-destructive CON input -> command 5
+    mov ah, 06h
     mov dl, 0ffh
     int 21h
     jz .poll_rdnd
@@ -65,18 +47,15 @@ start:
     mov dx, flush_ready
     call screen_print
 .wait_queued:
-    mov ah, 0bh                   ; wait until the injected key is queued
+    mov ah, 0bh
     int 21h
     test al, al
     jz .wait_queued
-    mov ax, 0c06h                 ; flush command 7, then nonblocking input
+    mov ax, 0c06h
     mov dl, 0ffh
     int 21h
-    jnz failed                    ; the queued 'f' must have been discarded
+    jnz failed
 
-    ; Resolve DOS's live CON header (ANSI in this isolated boot) and exercise
-    ; every table entry that ANSI deliberately passes to the lower BIOS CON.
-    ; The first command beyond ANSI's 0..19 table must be chained as well.
     call find_live_con
     jc failed
     mov [driver_header], si
@@ -103,52 +82,49 @@ start:
     jmp .success_request
 
 .error_requests:
+    mov al, 17
+    call issue_request
+    cmp word [request_packet + 3], 8103h
+    jne failed
+    mov al, 20
+    call issue_request
+    cmp word [request_packet + 3], 0100h
+    jne failed
     mov si, pass_through_errors
 .error_request:
     lodsb
     cmp al, 0ffh
-    je .requests_done
+    je .passed
     call issue_request
     cmp word [request_packet + 3], 8103h
     jne failed
     jmp .error_request
 
-.requests_done:
+.passed:
     mov si, pass_message
     call serial_print
-.passed:
-    hlt                           ; host ends QEMU after its final screen capture
-    jmp .passed
+.halt:
+    hlt
+    jmp .halt
 
 failed:
-    mov si, fail_message
+    mov si, fail_prefix
+    call serial_print
+    mov al, [last_command]
+    call serial_hex_byte
+    mov si, status_prefix
+    call serial_print
+    mov al, [request_packet + 4]
+    call serial_hex_byte
+    mov al, [request_packet + 3]
+    call serial_hex_byte
+    mov si, line_end
     call serial_print
     mov ax, 4c01h
     int 21h
 
-screen_print:
-    mov ah, 09h
-    int 21h
-    ret
-
-serial_print:
-    lodsb
-    test al, al
-    jz .done
-    mov ah, al
-.wait:
-    mov dx, 03fdh
-    in al, dx
-    test al, 20h
-    jz .wait
-    mov dx, 03f8h
-    mov al, ah
-    out dx, al
-    jmp serial_print
-.done:
-    ret
-
 issue_request:
+    mov [last_command], al
     mov [request_packet + 2], al
     mov word [request_packet + 3], 0deadh
     push cs
@@ -166,7 +142,7 @@ issue_request:
 find_live_con:
     mov ah, 52h
     int 21h
-    les si, [es:bx + 34]          ; SYSI_DEV chain.
+    les si, [es:bx + 34]          ; First CON in SYSI_DEV is the top filter.
     mov cx, 256
 .next:
     test word [es:si + 4], 8000h
@@ -199,25 +175,78 @@ find_live_con:
     stc
     ret
 
-ansi_sequence db 27, '[2J', 27, '[10;20H'
+screen_print:
+    mov ah, 09h
+    int 21h
+    ret
+
+serial_print:
+    lodsb
+    test al, al
+    jz .done
+    mov ah, al
+.wait:
+    mov dx, 03fdh
+    in al, dx
+    test al, 20h
+    jz .wait
+    mov dx, 03f8h
+    mov al, ah
+    out dx, al
+    jmp serial_print
+.done:
+    ret
+
+serial_hex_byte:
+    push ax
+    push bx
+    mov bl, al
+    shr al, 1
+    shr al, 1
+    shr al, 1
+    shr al, 1
+    call serial_hex_nibble
+    mov al, bl
+    and al, 0fh
+    call serial_hex_nibble
+    pop bx
+    pop ax
+    ret
+
+serial_hex_nibble:
+    and al, 0fh
+    add al, '0'
+    cmp al, '9'
+    jbe .emit
+    add al, 7
+.emit:
+    mov ah, al
+.wait:
+    mov dx, 03fdh
+    in al, dx
+    test al, 20h
+    jz .wait
+    mov dx, 03f8h
+    mov al, ah
+    out dx, al
+    ret
+
+ansi_sequence db 27, '[2J', 27, '[8;17H'
 ansi_sequence_end:
-con_name db 'CON', 0
+read_ready db 13, 10, 'DISPLAY_READ_READY', 13, 10, '$'
+rdnd_ready db 13, 10, 'DISPLAY_RDND_READY', 13, 10, '$'
+flush_ready db 13, 10, 'DISPLAY_FLUSH_READY', 13, 10, '$'
+pass_message db 'DISPLAY_CHAIN_PASS', 13, 10, 0
+fail_prefix db 'DISPLAY_CHAIN_FAIL command=', 0
+status_prefix db ' status=', 0
+line_end db 13, 10, 0
 con_header_name db 'CON     '
-ioctl_packet db 0, 0
-             dw 14
-             dw 0
-             db 0, 0
-             dw 0, 0, 0, 0, 0
-read_ready db 13, 10, 'ANSI_READ_READY', 13, 10, '$'
-rdnd_ready db 13, 10, 'ANSI_RDND_READY', 13, 10, '$'
-flush_ready db 13, 10, 'ANSI_FLUSH_READY', 13, 10, '$'
-pass_message db 'ANSI_DRIVER_PASS', 13, 10, 0
-fail_message db 'ANSI_DRIVER_FAIL', 13, 10, 0
-pass_through_success db 1, 2, 6, 10, 0ffh
-pass_through_errors db 3, 11, 12, 13, 14, 15, 16, 17, 18, 20, 0ffh
+pass_through_success db 1, 2, 6, 7, 8, 9, 10, 0ffh
+pass_through_errors db 18, 3, 11, 13, 14, 15, 16, 0ffh
 driver_strategy dd 0
 driver_interrupt dd 0
 driver_header dd 0
+last_command db 0ffh
 request_packet:
     db 22, 0, 0
     dw 0

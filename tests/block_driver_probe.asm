@@ -162,6 +162,9 @@ load_block_driver:
     mov al, [es:si + 1]          ; dpb_unit.
     mov [request_packet + 1], al
     les bx, [es:si + 19]         ; dpb_driver_addr.
+    mov [driver_header], bx
+    mov ax, es
+    mov [driver_header + 2], ax
     mov ax, [es:bx + 6]
     mov [driver_strategy], ax
     mov ax, [es:bx + 8]
@@ -209,8 +212,13 @@ issue_request:
     push cs
     pop es
     mov bx, request_packet
-    call far [driver_strategy]
-    call far [driver_interrupt]
+    push ds
+    push si
+    lds si, [driver_header]
+    call far [cs:driver_strategy]
+    call far [cs:driver_interrupt]
+    pop si
+    pop ds
     ret
 
 absolute_read:
@@ -258,6 +266,7 @@ pass_message db 'BLOCK_DRIVER_REQUEST_PASS', 13, 10, 0
 fail_message db 'BLOCK_DRIVER_REQUEST_FAIL', 13, 10, 0
 driver_strategy dd 0
 driver_interrupt dd 0
+driver_header dd 0
 request_packet:
     db 22, 0, 0
     dw 0

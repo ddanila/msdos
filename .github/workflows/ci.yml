@@ -279,6 +279,9 @@ jobs:
       - name: ANSI.SYS escape-sequence behavior
         run: bash tests/test_ansi_driver_qemu.sh
 
+      - name: DISPLAY.SYS chained request behavior
+        run: bash tests/test_display_chain_qemu.sh
+
       - name: DRIVER.SYS external logical drive
         run: bash tests/test_driver_sys_qemu.sh
 

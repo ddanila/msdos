@@ -23,9 +23,9 @@
     },
     "DISPLAY.SYS": {
       "0": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Initialization installs DISPLAY on CON"},
-      "1-11": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/DISPLAY/DISPLAY.ASM"], "note": "NO_OPERATION delegates unchanged to the underlying CON driver"},
+      "1-11": {"level": "contract", "evidence": ["tests/display_chain_probe.asm", "tests/test_display_chain_qemu.sh"], "note": "A live DISPLAY -> ANSI -> BIOS CON stack proves exact media, BPB, IOCTL, blocking/nonblocking input, status, flush, output, output-with-verify, and output-status behavior"},
       "12": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "MODE prepares code page 850 through IOCTL output"},
-      "13-18": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/DISPLAY/DISPLAY.ASM"], "note": "NO_OPERATION delegates unchanged to the underlying CON driver"},
+      "13-18": {"level": "contract", "evidence": ["tests/display_chain_probe.asm", "tests/test_display_chain_qemu.sh"], "note": "Direct requests through the live DISPLAY header return the exact lower-chain status for open, close, removable-media, output-until-busy, and both reserved slots"},
       "19": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Generic IOCTL selects and reports code page 850"}
     },
     "RAMDRIVE.SYS": {

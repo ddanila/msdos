@@ -14,8 +14,11 @@ function/error pairs derived from `I21_MAP_E_TAB` are accounted for: 94 have
 focused negative-path evidence and 16 have source-proven exclusions. The DOS
 interrupt inventory similarly accounts for all 11 installed vectors. The active
 depth milestone audits boundaries, state transitions, recovery, persistence,
-and source-only exclusions; the installable-device inventory currently has 75
-behavioral contracts and 65 justified exclusions across 140 request surfaces.
+and source-only exclusions; the installable-device inventory currently has 92
+behavioral contracts and 48 justified exclusions across 140 request surfaces.
+All 48 exclusions are post-failed-INIT requests in the two XMA drivers and are
+runtime-proven unreachable on the supported QEMU hardware contract; every
+reachable pass-through, no-op, unsupported, and ordinary handler is exercised.
 
 ## Native Open-Source Build (COMPLETE)
 
