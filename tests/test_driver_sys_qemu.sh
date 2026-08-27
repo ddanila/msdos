@@ -73,8 +73,12 @@ python3 "$REPO_ROOT/tests/screen_expect.py" \
 kill "$QEMU_PID" 2>/dev/null || true
 wait "$QEMU_PID" 2>/dev/null || true
 
-if grep -q 'DRIVER_SYS_PASS' "$SERIAL_LOG"; then
-    echo "  PASS: DRIVER.SYS logical C: read data from physical drive B:"
+written_payload="$(mtype -i "$TARGET_IMG" ::DRVWRITE.TXT 2>/dev/null || true)"
+source_payload="$(mtype -i "$TARGET_IMG" ::DRVTEST.TXT 2>/dev/null || true)"
+if grep -q 'DRIVER_SYS_PASS' "$SERIAL_LOG" \
+    && [[ "$written_payload" == 'DRIVER_WRITE_OK' ]] \
+    && [[ "$source_payload" == 'DRIVER_OK' ]]; then
+    echo "  PASS: DRIVER.SYS forwarded exact reads and writes to physical B:"
     exit 0
 fi
 

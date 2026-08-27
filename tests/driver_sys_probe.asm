@@ -27,6 +27,44 @@ start:
     mov ah, 3eh
     int 21h
 
+    ; Create and persist a new file through the same logical C: mapping.
+    mov dx, write_filename
+    xor cx, cx
+    mov ah, 3ch
+    int 21h
+    jc failed
+    mov bx, ax
+    mov cx, write_payload_size
+    mov dx, write_payload
+    mov ah, 40h
+    int 21h
+    jc failed_close
+    cmp ax, write_payload_size
+    jne failed_close
+    mov ah, 3eh
+    int 21h
+    jc failed
+
+    mov dx, write_filename
+    mov ax, 3d00h
+    int 21h
+    jc failed
+    mov bx, ax
+    mov cx, write_payload_size
+    mov dx, buffer
+    mov ah, 3fh
+    int 21h
+    jc failed_close
+    cmp ax, write_payload_size
+    jne failed_close
+    mov si, write_payload
+    mov di, buffer
+    mov cx, write_payload_size
+    repe cmpsb
+    jne failed_close
+    mov ah, 3eh
+    int 21h
+
     mov si, pass_message
     call serial_print
     mov ax, 4c00h
@@ -59,8 +97,11 @@ serial_print:
     ret
 
 filename     db 'C:\DRVTEST.TXT', 0
+write_filename db 'C:\DRVWRITE.TXT', 0
 payload      db 'DRIVER_OK'
 payload_size equ $ - payload
-buffer       times payload_size db 0
+write_payload db 'DRIVER_WRITE_OK'
+write_payload_size equ $ - write_payload
+buffer       times write_payload_size db 0
 pass_message db 'DRIVER_SYS_PASS', 13, 10, 0
 fail_message db 'DRIVER_SYS_FAIL', 13, 10, 0

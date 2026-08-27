@@ -74,7 +74,7 @@
     }
   },
   "forwarding_interfaces": {
-    "DRIVER.SYS": {"source": "MS-DOS/v4.0/src/DEV/DRIVER/DRIVER.ASM", "level": "contract", "evidence": ["tests/test_driver_sys_qemu.sh"], "note": "INIT creates the logical block device and later requests are translated and forwarded through INT 2Fh/AX=0802h; a real read from the separate physical disk proves that path"},
+    "DRIVER.SYS": {"source": "MS-DOS/v4.0/src/DEV/DRIVER/DRIVER.ASM", "level": "contract", "evidence": ["tests/test_driver_sys_qemu.sh"], "note": "INIT creates the logical block device; later requests are translated and forwarded through INT 2Fh/AX=0802h, with exact read and persisted write payloads proved on the separate physical disk"},
     "PRINTER.SYS": {"source": "MS-DOS/v4.0/src/DEV/PRINTER/CPSPM10.ASM", "level": "contract", "evidence": ["tests/test_printer_driver_qemu.sh"], "note": "The sparse interceptor chains ordinary LPT requests; initialization and code-page generic-IOCTL prepare, select, and status paths are asserted"}
   }
 }

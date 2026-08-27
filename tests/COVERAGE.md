@@ -87,8 +87,11 @@ Driver contracts similarly require an effect after installation. For example,
 `test_ansi_driver_qemu.sh` sends an ANSI cursor-position sequence through DOS
 and checks the resulting coordinates through the BIOS.
 `test_driver_sys_qemu.sh` installs a logical drive backed by a separate second
-floppy, handles the driver's media prompt through QMP, and verifies known bytes
-read through the new drive letter.
+floppy and handles the driver's media prompt through QMP. The guest verifies
+exact bytes read through the new drive letter, creates a second file through
+that mapping, and reads it back. After QEMU exits, the host independently reads
+both files from the physical backing image and requires their exact payloads,
+proving that DRIVER.SYS forwards and persists both reads and writes.
 `test_printer_driver_qemu.sh` loads the 4201 printer definition and proves its
 code-page control path by preparing, selecting, and querying code page 850.
 `test_smartdrv_flush_qemu.sh` attaches a fixed disk and uses FLUSH13 to assert
