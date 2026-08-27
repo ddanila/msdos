@@ -225,6 +225,12 @@ that count mode takes precedence over line numbering. Its distinct parser
 policy is also pinned: duplicate recognized switches are idempotent, while an
 unknown switch and missing or extra quoted search strings return the exact
 diagnostic class and errorlevel 2.
+FC coverage distinguishes explicit `/B` from automatic binary selection by
+extension and checks every source-level binary/line incompatibility (`/L`,
+`/N`, and numeric resynchronization). Its actual `/LBn` syntax is exercised at
+one and twenty lines; `/LB` without digits pins the historical default-buffer
+fallback, while `/LB0` must fail through the allocation path. Unknown switches
+and excess filenames require usage output and errorlevel 1.
 
 ATTRIB metadata transitions operate on a disposable copy rather than a source
 file. The test covers combined set/clear operations, recursive enumeration,

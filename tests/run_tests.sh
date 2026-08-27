@@ -446,6 +446,39 @@ else
     fail "FC /B (expected 'no differences' for identical files)"
 fi
 
+# FC.C automatically selects binary mode for executable/object extensions.
+output=$(run_dos CMD/FC/FC.EXE 'C:\CMD\TREE\TREE.COM' 'C:\CMD\TREE\TREE.COM') || true
+if echo "$output" | grep -q "no differences"; then
+    ok "FC automatic binary mode (.COM extension)"
+else
+    fail "FC automatic binary mode (expected identical .COM files)"
+fi
+
+# Binary mode is explicitly incompatible with every option that forces or
+# requires line mode. Assert each source-level condition independently.
+for line_option in /L /N /2; do
+    output=$(run_dos_all_output CMD/FC/FC.EXE /B "$line_option" 'C:\SETENV.BAT' 'C:\SETENV.BAT'); fc_incompatible_rc=$?
+    if [[ "$fc_incompatible_rc" -eq 1 ]] && echo "$output" | grep -q "Incompatible switches"; then
+        ok "FC /B $line_option (incompatible line mode rejected)"
+    else
+        fail "FC /B $line_option (expected Incompatible switches/errorlevel 1, got rc=$fc_incompatible_rc)"
+    fi
+done
+
+output=$(run_dos_all_output CMD/FC/FC.EXE /Z 'C:\SETENV.BAT' 'C:\SETENV.BAT'); fc_unknown_rc=$?
+if [[ "$fc_unknown_rc" -eq 1 ]] && echo "$output" | grep -qi "usage: fc"; then
+    ok "FC unknown switch (usage and errorlevel 1)"
+else
+    fail "FC unknown switch (expected usage/errorlevel 1, got rc=$fc_unknown_rc)"
+fi
+
+output=$(run_dos_all_output CMD/FC/FC.EXE 'C:\SETENV.BAT' 'C:\SETENV.BAT' 'C:\CPY.BAT'); fc_extra_file_rc=$?
+if [[ "$fc_extra_file_rc" -eq 1 ]] && echo "$output" | grep -qi "usage: fc"; then
+    ok "FC extra filename (usage and errorlevel 1)"
+else
+    fail "FC extra filename (expected usage/errorlevel 1, got rc=$fc_extra_file_rc)"
+fi
+
 # -- FC /C: case-insensitive compare (identical files) --
 output=$(run_dos CMD/FC/FC.EXE /C 'C:\SETENV.BAT' 'C:\SETENV.BAT') || true
 if echo "$output" | grep -q "no differences"; then
@@ -1319,14 +1352,34 @@ else
 fi
 rm -f "$SRC/FCA1.TXT" "$SRC/FCA2.TXT"
 
-# -- FC /LB:20: set line buffer to 20 lines (compare still works) --
+# -- FC /LBn: source syntax has no colon; exercise the smallest usable buffer
+# and a representative larger value. The former reaches allocation and compare
+# with cLine=1 rather than silently retaining the default.
 printf "line1\r\nline2\r\nline3\r\n" > "$SRC/FCLB1.TXT"
 printf "line1\r\nline2\r\nline3\r\n" > "$SRC/FCLB2.TXT"
-output=$(run_dos CMD/FC/FC.EXE /LB:20 'C:\FCLB1.TXT' 'C:\FCLB2.TXT') || true
-if echo "$output" | grep -qi "no differences"; then
-    ok "FC /LB:20 (line buffer size — identical files)"
+for line_buffer in 1 20; do
+    output=$(run_dos CMD/FC/FC.EXE "/LB$line_buffer" 'C:\FCLB1.TXT' 'C:\FCLB2.TXT'); fc_line_buffer_rc=$?
+    if [[ "$fc_line_buffer_rc" -eq 0 ]] && echo "$output" | grep -qi "no differences"; then
+        ok "FC /LB$line_buffer (line buffer size applied)"
+    else
+        fail "FC /LB$line_buffer (expected identical comparison, got rc=$fc_line_buffer_rc)"
+    fi
+done
+
+# ntoi returns -1 when /LB has no digits, which FC deliberately maps back to
+# its 100-line default. Pin that historical parser boundary explicitly.
+output=$(run_dos CMD/FC/FC.EXE /LB 'C:\FCLB1.TXT' 'C:\FCLB2.TXT'); fc_empty_lb_rc=$?
+if [[ "$fc_empty_lb_rc" -eq 0 ]] && echo "$output" | grep -qi "no differences"; then
+    ok "FC /LB without digits (historical default-buffer behavior)"
 else
-    fail "FC /LB:20 (expected 'no differences' with /LB:20)"
+    fail "FC /LB without digits (expected default-buffer success, got rc=$fc_empty_lb_rc)"
+fi
+
+output=$(run_dos_all_output CMD/FC/FC.EXE /LB0 'C:\FCLB1.TXT' 'C:\FCLB2.TXT'); fc_zero_lb_rc=$?
+if [[ "$fc_zero_lb_rc" -eq 1 ]] && echo "$output" | grep -qi "out of memory"; then
+    ok "FC /LB0 (zero-sized buffer rejected by allocation path)"
+else
+    fail "FC /LB0 (expected out of memory/errorlevel 1, got rc=$fc_zero_lb_rc)"
 fi
 rm -f "$SRC/FCLB1.TXT" "$SRC/FCLB2.TXT"
 
