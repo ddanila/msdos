@@ -6,16 +6,17 @@
 #
 # SHARE (GSHARE2.ASM):
 #   - First call: installs as TSR (INT 2Fh hook + INT 21h/31h Keep_Process). No output.
-#   - Second call: INT 2Fh check returns AL=0FFh (already loaded) → ShDispMsg prints
+#   - A call without /NC toggles compatibility checking back on; the following
+#     same-mode call returns AL=0FFh and prints
 #     "SHARE already installed" (COMMON2: "%1 already installed") → exits with AL=0FFh
 #     (errorlevel 255) via ShDispMsg's INT 21h/AH=4Ch.
 #
 # NLSFUNC (NLSFUNC.ASM):
 #   - First call (no args): NO_PARMS=1 → installs via INT 2Fh hook + INT 21h/31h. No output.
-#   - Second call: INT 2Fh/AH=MULT_NLSFUNC check returns AL≠0 (already installed) →
-#     prints "NLSFUNC already installed" (COMMON2) + ERROR_CODE=80h → exits AL=0x80
-#     (errorlevel 128) via INT 21h/AH=4Ch.
-#   - COUNTRY.SYS path is stored for later TSR use; file need not exist at install time.
+#   - Second no-argument call: INT 2Fh/AH=MULT_NLSFUNC returns installed →
+#     prints "NLSFUNC already installed" (COMMON2) + ERROR_CODE=80 decimal
+#     (errorlevel 80 decimal) via INT 21h/AH=4Ch.
+#   - A supplied COUNTRY.SYS path is opened before the installed-state check.
 #
 # EXE2BIN (E2BINIT.ASM):
 #   - Converts EXE to binary. Always exits errorlevel 0 (xor al,al before Dos_call Exit).
@@ -111,19 +112,33 @@ nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
     # ── SHARE /NC /F /L (first call) — load with every parser switch ─────────
     # /NC disables compatibility checking; /F and /L size the file and lock tables.
     # No output on success. Hooks INT 2Fh, calls INT 21h/31h (Keep_Process).
     printf 'ECHO ---SHARE---\r\n'
+    printf 'SHARE /F:0\r\n'
+    printf 'ECHO SHARE_F_LOW_DONE\r\n'
+    printf 'SHARE /F:65536\r\n'
+    printf 'ECHO SHARE_F_HIGH_DONE\r\n'
+    printf 'SHARE /L:0\r\n'
+    printf 'ECHO SHARE_L_LOW_DONE\r\n'
+    printf 'SHARE /L:65536\r\n'
+    printf 'ECHO SHARE_L_HIGH_DONE\r\n'
+    printf 'SHARE /X\r\n'
+    printf 'ECHO SHARE_UNKNOWN_DONE\r\n'
+    printf 'SHARE FILE\r\n'
+    printf 'ECHO SHARE_POSITIONAL_DONE\r\n'
     printf 'SHARE /NC /F:4096 /L:40\r\n'
     printf 'ECHO SHARE_DONE\r\n'
 
-    # ── SHARE /F:4096 /L:40 (second call) — already installed ─────────────────
-    # INT 2Fh check: AL=0FFh → ShDispMsg prints "SHARE already installed"
-    # then exits with errorlevel 255 (INT 21h/AH=4Ch/AL=0FFh inside ShDispMsg).
+    # Omitting /NC first toggles compatibility checking back on with a quiet
+    # return; repeating that mode then reaches the already-installed result.
     printf 'ECHO ---SHARE-PARAMS---\r\n'
+    printf 'SHARE /F:4096 /L:40\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SHARE_TOGGLE_FAILED\r\n'
     printf 'SHARE /F:4096 /L:40\r\n'
     printf 'IF ERRORLEVEL 255 ECHO SHARE_ALREADY_EL\r\n'
     printf 'ECHO SHARE_PARAMS_DONE\r\n'
@@ -139,12 +154,15 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'NLSFUNC\r\n'
     printf 'ECHO NLSFUNC_DONE\r\n'
 
-    # ── NLSFUNC C:\COUNTRY.SYS (second call) — already installed ──────────────
-    # INT 2Fh/AH=MULT_NLSFUNC check: AL≠0 → "NLSFUNC already installed" +
-    # exits with errorlevel 128 (ERROR_CODE=0x80).
+    printf 'NLSFUNC\r\n'
+    printf 'IF ERRORLEVEL 80 ECHO NLSFUNC_ALREADY_EL\r\n'
+
+    # A named path is opened before the installed-state check, so a missing
+    # COUNTRY.SYS must retain its DOS file-not-found result even after install.
     printf 'ECHO ---NLSFUNC-PATH---\r\n'
     printf 'NLSFUNC C:\COUNTRY.SYS\r\n'
-    printf 'IF ERRORLEVEL 128 ECHO NLSFUNC_ALREADY_EL\r\n'
+    printf 'IF ERRORLEVEL 3 ECHO NLSFUNC_PATH_TOO_HIGH\r\n'
+    printf 'IF ERRORLEVEL 2 ECHO NLSFUNC_PATH_EL2\r\n'
     printf 'ECHO NLSFUNC_PATH_DONE\r\n'
 
     # ── EXE2BIN TEST.EXE TEST.BIN — basic conversion ──────────────────────────
@@ -217,6 +235,28 @@ fi
 echo ""
 echo "--- SHARE tests ---"
 
+share_rejections_complete=1
+for diagnostic in \
+    'Parameter value not in allowed range -  /F:0' \
+    'Parameter value not in allowed range -  /F:65536' \
+    'Parameter value not in allowed range -  /L:0' \
+    'Parameter value not in allowed range -  /L:65536' \
+    'Invalid switch -  /X' \
+    'Parameter format not correct -  FILE'; do
+    grep -Fq -- "$diagnostic" "$SERIAL_LOG" || share_rejections_complete=0
+done
+if [[ $share_rejections_complete -eq 1 ]] \
+    && grep -q 'SHARE_F_LOW_DONE' "$SERIAL_LOG" \
+    && grep -q 'SHARE_F_HIGH_DONE' "$SERIAL_LOG" \
+    && grep -q 'SHARE_L_LOW_DONE' "$SERIAL_LOG" \
+    && grep -q 'SHARE_L_HIGH_DONE' "$SERIAL_LOG" \
+    && grep -q 'SHARE_UNKNOWN_DONE' "$SERIAL_LOG" \
+    && grep -q 'SHARE_POSITIONAL_DONE' "$SERIAL_LOG"; then
+    ok "SHARE rejects numeric boundaries, unknown switches, and positional operands"
+else
+    fail "SHARE parser rejection contracts"
+fi
+
 if grep -q "SHARE_DONE" "$SERIAL_LOG"; then
     ok "SHARE /NC /F:4096 /L:40 (all switches installed, batch continued)"
 else
@@ -226,14 +266,15 @@ fi
 # NOTE: SHARE writes "SHARE already installed" via ShDispMsg which uses BIOS
 # direct output, not through CTTY AUX — not capturable over serial.
 # Verify via errorlevel instead (ShDispMsg exits with AL=0FFh = errorlevel 255).
-if grep -q "SHARE_ALREADY_EL" "$SERIAL_LOG"; then
-    ok "SHARE /F:4096 /L:40 (second call: errorlevel 255 — already installed)"
+if grep -q "SHARE_ALREADY_EL" "$SERIAL_LOG" \
+    && ! grep -q 'SHARE_TOGGLE_FAILED' "$SERIAL_LOG"; then
+    ok "SHARE /NC-to-full transition precedes errorlevel 255 already-installed state"
 else
-    fail "SHARE /F:4096 /L:40 (expected errorlevel 255 on already-installed)"
+    fail "SHARE compatibility-mode transition and already-installed contract"
 fi
 
 if grep -q "SHARE_PARAMS_DONE" "$SERIAL_LOG"; then
-    ok "SHARE /F:4096 /L:40 (batch continued after second call)"
+    ok "SHARE batch continued after compatibility-state checks"
 else
     fail "SHARE /F:4096 /L:40 (batch hung or crashed)"
 fi
@@ -261,18 +302,20 @@ else
     fail "NLSFUNC (batch hung or crashed after first NLSFUNC call)"
 fi
 
-# NOTE: NLSFUNC writes "NLSFUNC already installed" to STDERR (bx=STDERR in SYSDISPMSG),
-# which is NOT redirected by CTTY AUX. We verify via errorlevel instead.
+# NLSFUNC's source assigns decimal 80 (not 80h) to the installed error code.
 if grep -q "NLSFUNC_ALREADY_EL" "$SERIAL_LOG"; then
-    ok "NLSFUNC C:\\COUNTRY.SYS (second call: errorlevel 128 — already installed)"
+    ok "NLSFUNC second installation reports errorlevel 80"
 else
-    fail "NLSFUNC C:\\COUNTRY.SYS (expected errorlevel 128 on second call)"
+    fail "NLSFUNC second-installation contract"
 fi
 
-if grep -q "NLSFUNC_PATH_DONE" "$SERIAL_LOG"; then
-    ok "NLSFUNC C:\\COUNTRY.SYS (batch continued after second call)"
+if grep -Fq 'File not found - C:\COUNTRY.SYS' "$SERIAL_LOG" \
+    && grep -q 'NLSFUNC_PATH_EL2' "$SERIAL_LOG" \
+    && ! grep -q 'NLSFUNC_PATH_TOO_HIGH' "$SERIAL_LOG" \
+    && grep -q "NLSFUNC_PATH_DONE" "$SERIAL_LOG"; then
+    ok "NLSFUNC missing named path preserves errorlevel 2 after installation"
 else
-    fail "NLSFUNC C:\\COUNTRY.SYS (batch hung or crashed)"
+    fail "NLSFUNC installed-state path-error precedence contract"
 fi
 
 echo ""

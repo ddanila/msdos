@@ -70,6 +70,12 @@ rejected before a `NAMES=7` installation completes the full IFS lifecycle.
 The positional contracts reject COMP's third filespec, EXE2BIN's missing and
 third operands, and NLSFUNC's unknown switch and second path before exercising
 their successful comparison, conversion, and resident-installation paths.
+The combined SHARE/NLSFUNC test disables command echo so conditional markers
+cannot match their own batch source. SHARE now rejects both numeric range ends,
+an unknown switch, and a positional operand before proving `/NC` installation,
+the transition back to full checking, and the subsequent already-installed
+state. NLSFUNC proves the source's decimal errorlevel 80 on reinstallation and
+that a supplied missing path retains DOS errorlevel 2 even after residency.
 
 `debug_command_coverage.json` derives DEBUG's twenty live non-error COMTAB
 entries and the four `X` EMS subcommands from DEBUG.ASM and DEBEMS.ASM. The

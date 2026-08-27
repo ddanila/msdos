@@ -158,9 +158,9 @@
       "/S": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Reconstructs nested directories and exact payloads"}
     }},
     "SHARE.EXE": {"source": "MS-DOS/v4.0/src/CMD/SHARE/GSHARE2.ASM", "switches": {
-      "/F": {"level": "contract", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_int21_compat_qemu.sh"], "note": "File-table sizing participates in the installation whose byte locking is verified"},
-      "/L": {"level": "contract", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_int21_compat_qemu.sh"], "note": "Lock-table sizing participates in the installation whose byte locking is verified"},
-      "/NC": {"level": "contract", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_int21_compat_qemu.sh"], "note": "No-compatibility mode installs together with explicit table sizes and retains functional locking"}
+      "/F": {"level": "contract", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_int21_compat_qemu.sh"], "note": "Values 0 and 65536 are rejected before valid file-table sizing participates in verified byte locking"},
+      "/L": {"level": "contract", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_int21_compat_qemu.sh"], "note": "Values 0 and 65536 are rejected before valid lock-table sizing participates in verified byte locking"},
+      "/NC": {"level": "contract", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_int21_compat_qemu.sh"], "note": "No-compatibility mode installs, omission toggles full checking back on, and repetition reaches the exact already-installed state"}
     }},
     "SORT.EXE": {"source": "MS-DOS/v4.0/src/CMD/SORT/SORT.ASM", "switches": {
       "/+": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Column sorting covers an ordinary value, both declared range endpoints, and adjacent rejections"},
