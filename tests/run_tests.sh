@@ -271,6 +271,14 @@ run_dos() {
     timeout 30 "$BIN/dos-run" "$tool" "$@" 2>/dev/null
 }
 
+# Negative parser contracts emit their diagnostics on DOS stderr. Keep that
+# stream available for exact assertions instead of applying run_dos's normal
+# emulator-noise suppression.
+run_dos_all_output() {
+    local tool="$SRC/$1"; shift
+    timeout 30 "$BIN/dos-run" "$tool" "$@" 2>&1
+}
+
 # -- MEM: basic memory report --
 output=$(run_dos CMD/MEM/MEM.EXE) || true
 if echo "$output" | grep -q "bytes total memory"; then
@@ -477,6 +485,22 @@ else
     fail "TREE /A (expected +, |, \\ or - in output)"
 fi
 
+# TREEPAR.ASM removes a recognized switch from its synonym list so a duplicate
+# takes the parser's explicit "not in switch list" error path.
+output=$(run_dos_all_output CMD/TREE/TREE.COM /A /A); tree_duplicate_rc=$?
+if [[ "$tree_duplicate_rc" -eq 1 ]] && echo "$output" | grep -q "Parse Error 3"; then
+    ok "TREE duplicate switch (rejected with parser error and errorlevel 1)"
+else
+    fail "TREE duplicate switch (expected Parse Error 3/errorlevel 1, got rc=$tree_duplicate_rc)"
+fi
+
+output=$(run_dos_all_output CMD/TREE/TREE.COM /Z); tree_unknown_rc=$?
+if [[ "$tree_unknown_rc" -eq 1 ]] && echo "$output" | grep -q "Parse Error 3"; then
+    ok "TREE unknown switch (rejected with parser error and errorlevel 1)"
+else
+    fail "TREE unknown switch (expected Parse Error 3/errorlevel 1, got rc=$tree_unknown_rc)"
+fi
+
 # -- SORT: sort lines from stdin (piped via host stdin) --
 output=$(printf "banana\r\ncherry\r\napple\r\n" | run_dos CMD/SORT/SORT.EXE) || true
 if echo "$output" | grep -q "apple" && echo "$output" | grep -q "banana"; then
@@ -505,6 +529,33 @@ if [[ -n "$aa_line" && -n "$cc_line" && "$aa_line" -lt "$cc_line" ]]; then
     ok "SORT /+2 (sort by column)"
 else
     fail "SORT /+2 (expected xaa before xcc when sorting by column 2)"
+fi
+
+# SORT.ASM's live parser descriptor accepts /+n only for 1..65535. Exercise
+# both accepted endpoints and the adjacent rejected values.
+for column in 1 65535; do
+    output=$(printf "b\r\na\r\n" | run_dos_all_output CMD/SORT/SORT.EXE "/+$column"); sort_column_rc=$?
+    if [[ "$sort_column_rc" -eq 0 ]] && echo "$output" | grep -q "a"; then
+        ok "SORT /+$column (accepted parser range endpoint)"
+    else
+        fail "SORT /+$column (expected success at parser range endpoint, got rc=$sort_column_rc)"
+    fi
+done
+
+for column in 0 65536; do
+    output=$(printf "b\r\na\r\n" | run_dos_all_output CMD/SORT/SORT.EXE "/+$column"); sort_column_rc=$?
+    if [[ "$sort_column_rc" -eq 1 ]] && echo "$output" | grep -q "Parse Error 6"; then
+        ok "SORT /+$column (rejected outside parser range)"
+    else
+        fail "SORT /+$column (expected Parse Error 6/errorlevel 1, got rc=$sort_column_rc)"
+    fi
+done
+
+output=$(printf "b\r\na\r\n" | run_dos_all_output CMD/SORT/SORT.EXE /Z); sort_unknown_rc=$?
+if [[ "$sort_unknown_rc" -eq 1 ]] && echo "$output" | grep -q "Parse Error 3"; then
+    ok "SORT unknown switch (rejected with errorlevel 1)"
+else
+    fail "SORT unknown switch (expected Parse Error 3/errorlevel 1, got rc=$sort_unknown_rc)"
 fi
 
 # -- SORT: sort from file via stdin redirection --

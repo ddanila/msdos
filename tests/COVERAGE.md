@@ -214,6 +214,13 @@ MENU workflow must reach Welcome, cancel to the Exit panel, decline exit, and
 return to Welcome. This proves a reversible UI state transition and recovery
 without starting an installation or mutating a target disk.
 
+Command-mode depth is derived from live parser definitions where possible.
+SORT tests both endpoints of its declared `/+n` range (1 through 65535), the
+adjacent rejected values, and an unknown switch. TREE exercises `/F` and `/A`,
+then proves that its parser's deliberate removal of a consumed synonym rejects
+a duplicate switch as well as an unknown one. Negative cases require both the
+expected parser diagnostic and errorlevel 1.
+
 ATTRIB metadata transitions operate on a disposable copy rather than a source
 file. The test covers combined set/clear operations, recursive enumeration,
 the exact missing-file and invalid-switch failure classes with nonzero exits,
