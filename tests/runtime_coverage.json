@@ -74,6 +74,6 @@
     "REM": {"level": "contract", "evidence": ["tests/test_config_state_qemu.sh"], "note": "An apparent BREAK override after REM is ignored and the original state remains active"},
     "SHELL": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Configured COMMAND.COM starts, processes AUTOEXEC, and remains operational"},
     "STACKS": {"level": "observed", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Accepted at boot; stack allocation is not independently asserted"},
-    "SWITCHES": {"level": "uncovered", "evidence": [], "note": "No /K keyboard-function selection contract"}
+    "SWITCHES": {"level": "contract", "evidence": ["tests/test_config_switches_qemu.sh"], "note": "An INT 16h hook proves /K changes DOS CON input from extended AH=10h to conventional AH=00h"}
   }
 }

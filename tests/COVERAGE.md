@@ -28,6 +28,11 @@ list of lists for the configured BUFFERS, FILES, and FCBS allocations. COMMENT
 and REM contain apparent state-changing commands; the probe asserts that both
 lines were ignored and did not override BREAK.
 
+`test_config_switches_qemu.sh` boots isolated control and `SWITCHES=/K` images
+in parallel. An INT 16h hook proves that the directive changes DOS CON input
+from the extended keyboard read function to the conventional compatibility
+function.
+
 Run the inventory check with:
 
 ```sh

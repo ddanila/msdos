@@ -265,6 +265,9 @@ jobs:
       - name: Focused CONFIG.SYS state contracts
         run: bash tests/test_config_state_qemu.sh
 
+      - name: CONFIG.SYS keyboard compatibility switch
+        run: bash tests/test_config_switches_qemu.sh
+
       - name: EMM386 protected-mode and EMS API e2e tests
         run: bash tests/test_emm386_qemu.sh
 
