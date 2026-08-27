@@ -2,6 +2,8 @@
   "schema": 1,
   "error_table_source": "MS-DOS/v4.0/src/DOS/MS_TABLE.ASM",
   "contracts": [
+    {"function": "38", "error": "error_invalid_function", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "A non-current country request without NLSFUNC installed returns invalid function"},
+    {"function": "38", "error": "error_file_not_found", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh"], "note": "With NLSFUNC resident, a deliberately unknown country record returns file not found from COUNTRY.SYS"},
     {"function": "39", "error": "error_path_not_found", "evidence": ["tests/int21_path_error_probe.asm", "tests/test_int21_path_errors_qemu.sh"], "note": "MKDIR under a nonexistent parent returns path not found"},
     {"function": "39", "error": "error_access_denied", "evidence": ["tests/int21_path_error_probe.asm", "tests/test_int21_path_errors_qemu.sh"], "note": "MKDIR of an existing directory returns access denied"},
     {"function": "3A", "error": "error_current_directory", "evidence": ["tests/int21_path_error_probe.asm", "tests/test_int21_path_errors_qemu.sh"], "note": "RMDIR of the process's current directory returns error 16"},
@@ -62,7 +64,9 @@
     {"function": "5C", "error": "error_invalid_handle", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "Lock rejects handle FFFFh with error 6"},
     {"function": "5C", "error": "error_invalid_function", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "Lock selector 2 is outside the lock/unlock domain and returns error 1"},
     {"function": "65", "error": "error_invalid_function", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "Extended-country selector FFh returns error 1"},
+    {"function": "65", "error": "error_file_not_found", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh"], "note": "Resident NLSFUNC returns file not found for an unknown extended-country record"},
     {"function": "66", "error": "error_invalid_function", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "Code-page selector FFh returns error 1"},
+    {"function": "66", "error": "error_file_not_found", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh"], "note": "Resident NLSFUNC returns file not found when asked to activate an unknown code page"},
     {"function": "67", "error": "error_invalid_function", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "Set-handle-count rejects the reserved FFFFh count with error 1"},
     {"function": "67", "error": "error_not_enough_memory", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "Growing the handle table while the largest free arena block is held returns error 8, then succeeds after arena recovery"},
     {"function": "67", "error": "error_too_many_open_files", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "Shrinking the handle table across a live forced high handle returns error 4; closing the handle restores shrinkability"},

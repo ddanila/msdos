@@ -421,6 +421,10 @@ seek_ok:
     mov ax, 65ffh                  ; Undefined extended-country selector.
     int 21h
     require_error 1, fail_invalid_country
+    mov ax, 38feh                  ; Country 254 requires absent NLSFUNC data.
+    mov dx, country_buffer
+    int 21h
+    require_error 1, fail_invalid_country
     mov ax, 66ffh                  ; Undefined code-page selector.
     int 21h
     require_error 1, fail_invalid_codepage
@@ -666,4 +670,5 @@ open_handles   times 64 dw 0
 cwd_buffer     times 64 db 0
 read_buffer    times payload_size db 0
 dta            times 128 db 0
+country_buffer times 64 db 0
 program_end:

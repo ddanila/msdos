@@ -32,6 +32,7 @@ mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::I21COMP.COM
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'SHARE.EXE\r\n'
+    printf 'NLSFUNC.EXE\r\n'
     printf 'I21COMP.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 

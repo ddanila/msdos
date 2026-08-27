@@ -115,6 +115,9 @@ The disposable-media probe additionally proves that rename cannot cross from
 A: to B:, and checks invalid-drive handling before performing successful media
 ID get/set/readback. IOCTL argument coverage distinguishes invalid selectors,
 unsupported flag data, invalid handles, and absent drives.
+Country and code-page failures run in two explicit environments: without
+NLSFUNC to assert DOS's invalid-function fallback, and with NLSFUNC resident to
+assert COUNTRY.SYS lookup failures for unknown country and code-page records.
 
 Run the inventory check with:
 

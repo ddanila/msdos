@@ -17,6 +17,18 @@ org 100h
 %%ok:
 %endmacro
 
+%macro require_error 2
+    jc %%carried
+    mov dx, %2
+    jmp fail
+%%carried:
+    cmp ax, %1
+    je %%ok
+    mov dx, %2
+    jmp fail
+%%ok:
+%endmacro
+
 %macro check_cpm 2
     mov al, 0ffh
     mov ah, %1
@@ -45,6 +57,25 @@ start:
     check_cpm 1eh, 1e
     check_cpm 20h, 20
     check_cpm 61h, 61
+
+    mov ax, 38ffh                  ; Unknown country through resident NLSFUNC.
+    mov bx, 9999
+    mov dx, country_buffer
+    int 21h
+    require_error 2, fail_nls_country
+
+    mov ax, 6501h                 ; Unknown extended-country record.
+    mov bx, 0ffffh
+    mov dx, 9999
+    mov cx, 64
+    mov di, country_buffer
+    int 21h
+    require_error 2, fail_nls_extended
+
+    mov ax, 6602h                 ; Unknown code page through NLSFUNC.
+    mov bx, 9999
+    int 21h
+    require_error 2, fail_nls_codepage
 
     mov ah, 1bh                    ; Default-drive allocation information.
     int 21h
@@ -371,6 +402,9 @@ fail_61      db 'INT21_61_FAIL', 13, 10, '$'
 fail_63      db 'INT21_63_FAIL', 13, 10, '$'
 fail_6b      db 'INT21_6B_FAIL', 13, 10, '$'
 fail_6c      db 'INT21_6C_FAIL', 13, 10, '$'
+fail_nls_country db 'INT21_NLS_COUNTRY_FAIL', 13, 10, '$'
+fail_nls_extended db 'INT21_NLS_EXTENDED_FAIL', 13, 10, '$'
+fail_nls_codepage db 'INT21_NLS_CODEPAGE_FAIL', 13, 10, '$'
 fail_setup   db 'INT21_COMPAT_SETUP_FAIL', 13, 10, '$'
 
 floppy_bpb:
@@ -394,4 +428,5 @@ returned_user_name times 16 db 0
 extended_parameters times 8 db 0
 converted_dpb times 40 db 0
 ifs_buffer times 32 db 0
+country_buffer times 64 db 0
 program_end:
