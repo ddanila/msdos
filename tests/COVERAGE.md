@@ -111,6 +111,10 @@ MCB signature to prove arena validation, and distinguishes that from ordinary
 capacity exhaustion. Handle-table coverage similarly asserts growth failure
 under arena exhaustion, shrink rejection across a live high handle, the
 reserved count boundary, and recovery after the constraint is removed.
+The disposable-media probe additionally proves that rename cannot cross from
+A: to B:, and checks invalid-drive handling before performing successful media
+ID get/set/readback. IOCTL argument coverage distinguishes invalid selectors,
+unsupported flag data, invalid handles, and absent drives.
 
 Run the inventory check with:
 

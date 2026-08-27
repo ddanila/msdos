@@ -3,9 +3,48 @@ org 100h
 
 ; Focused get/set media-ID contract on disposable drive B:.
 
+%macro require_error 2
+    jc %%carried
+    mov dx, %2
+    jmp finish
+%%carried:
+    cmp ax, %1
+    je %%ok
+    mov dx, %2
+    jmp finish
+%%ok:
+%endmacro
+
 start:
     push cs
     pop ds
+    push ds
+    pop es
+
+    xor cx, cx
+    mov dx, cross_source
+    mov ah, 3ch
+    int 21h
+    jc media_failed
+    mov bx, ax
+    mov ah, 3eh
+    int 21h
+    jc media_failed
+    mov dx, cross_source
+    mov di, cross_target
+    mov ah, 56h
+    int 21h
+    require_error 17, rename_failed
+    mov dx, cross_source
+    mov ah, 41h
+    int 21h
+    jc media_failed
+
+    mov bl, 26                    ; Z: is not installed.
+    mov dx, media_info
+    mov ax, 6900h
+    int 21h
+    require_error 15, media_drive_failed
 
     mov bl, 2
     mov dx, media_info
@@ -61,7 +100,11 @@ failed_exit:
     int 21h
 
 test_label db 'I21MEDIA   '
+cross_source db 'A:\CROSS.TST', 0
+cross_target db 'B:\CROSS.TST', 0
 media_info times 26 db 0
 returned_info times 26 db 0
 pass_message db 'INT21_MEDIA_PASS', 13, 10, '$'
 fail_message db 'INT21_69_FAIL', 13, 10, '$'
+rename_failed db 'INT21_RENAME_DRIVE_FAIL', 13, 10, '$'
+media_drive_failed db 'INT21_MEDIA_DRIVE_FAIL', 13, 10, '$'

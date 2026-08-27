@@ -402,6 +402,19 @@ seek_ok:
     mov ax, 44ffh                  ; Undefined IOCTL selector.
     int 21h
     require_error 1, fail_invalid_ioctl
+    mov bx, 1                     ; Set-device-info rejects unsupported DH bits.
+    mov dx, 0200h
+    mov ax, 4401h
+    int 21h
+    require_error 13, fail_invalid_ioctl_data
+    mov bl, 26                    ; Drive Z: is absent from this boot.
+    mov ax, 4409h
+    int 21h
+    require_error 15, fail_invalid_ioctl_drive
+    mov dl, 26                    ; Current-directory query uses 1=A:.
+    mov ah, 47h
+    int 21h
+    require_error 15, fail_invalid_current_drive
     mov ax, 5804h                  ; Allocation-strategy selectors stop at 3.
     int 21h
     require_error 1, fail_invalid_allocop
@@ -626,6 +639,9 @@ fail_invalid_seek db 'INT21_INVALID_SEEK_FAIL', 13, 10, '$'
 fail_invalid_lock db 'INT21_INVALID_LOCK_FAIL', 13, 10, '$'
 fail_invalid_attr db 'INT21_INVALID_ATTR_FAIL', 13, 10, '$'
 fail_invalid_ioctl db 'INT21_INVALID_IOCTL_FAIL', 13, 10, '$'
+fail_invalid_ioctl_data db 'INT21_INVALID_IOCTL_DATA_FAIL', 13, 10, '$'
+fail_invalid_ioctl_drive db 'INT21_INVALID_IOCTL_DRIVE_FAIL', 13, 10, '$'
+fail_invalid_current_drive db 'INT21_INVALID_CURRENT_DRIVE_FAIL', 13, 10, '$'
 fail_invalid_allocop db 'INT21_INVALID_ALLOCOP_FAIL', 13, 10, '$'
 fail_invalid_country db 'INT21_INVALID_COUNTRY_FAIL', 13, 10, '$'
 fail_invalid_codepage db 'INT21_INVALID_CODEPAGE_FAIL', 13, 10, '$'
