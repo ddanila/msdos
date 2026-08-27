@@ -136,7 +136,10 @@ cache retaining renamed directories that had cached children.
 `test_smartdrv_flush_qemu.sh` attaches a fixed disk and uses FLUSH13 to assert
 SMARTDRV status, disable/enable transitions, policy changes, and an explicit
 successful flush. A purpose-built guest probe also writes and reads back a
-deterministic 512-byte absolute sector through the installed cache. Extended
+deterministic 512-byte absolute sector through the installed cache. The same
+probe resolves the resident `SMARTAAR` header, directly verifies every
+otherwise-reachable no-op and unknown-command request status, and rejects the
+first command beyond the live dispatch table. Extended
 status must show that real I/O populated cache tracks while the shipped
 write-through implementation kept them clean; after a clean guest exit, the
 host independently requires every byte of that sector on the backing image.

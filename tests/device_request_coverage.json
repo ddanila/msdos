@@ -41,16 +41,16 @@
     },
     "SMARTDRV.SYS": {
       "0": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "CONFIG.SYS initializes SMARTDRV on a fixed disk"},
-      "1-2": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/SMARTDRV/SMARTDRV.ASM"], "note": "Character-device media-check and BPB requests deliberately return unknown command"},
+      "1-2": {"level": "contract", "evidence": ["tests/smartdrv_io_probe.asm", "tests/test_smartdrv_flush_qemu.sh"], "note": "Direct media-check and BPB requests through the live SMARTAAR entries return done, error, and unknown-command status"},
       "3": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "FLUSH13 reads cache policy and status through IOCTL input"},
-      "4-5": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/SMARTDRV/SMARTDRV.ASM"], "note": "Unsupported character input requests deliberately return unknown command"},
+      "4-5": {"level": "contract", "evidence": ["tests/smartdrv_io_probe.asm", "tests/test_smartdrv_flush_qemu.sh"], "note": "Direct character-input requests return done, error, and unknown-command status"},
       "6": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "FLUSH13 observes input status"},
-      "7-9": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/SMARTDRV/SMARTDRV.ASM"], "note": "Unsupported flush and output requests deliberately return unknown command"},
+      "7-9": {"level": "contract", "evidence": ["tests/smartdrv_io_probe.asm", "tests/test_smartdrv_flush_qemu.sh"], "note": "Direct input-flush, output, and output-with-verify requests return done, error, and unknown-command status"},
       "10": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "FLUSH13 observes output status"},
-      "11": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/SMARTDRV/SMARTDRV.ASM"], "note": "Unsupported output flush deliberately returns unknown command"},
+      "11": {"level": "contract", "evidence": ["tests/smartdrv_io_probe.asm", "tests/test_smartdrv_flush_qemu.sh"], "note": "A direct output-flush request returns done, error, and unknown-command status"},
       "12": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Disable, enable, policy update, and flush exercise IOCTL output"}
-      ,"13-14": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/SMARTDRV/SMARTDRV.ASM"], "note": "Open and close are deliberately successful no-ops"}
-      ,"15": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/SMARTDRV/SMARTDRV.ASM"], "note": "Removable-media is unsupported by this character control device"}
+      ,"13-14": {"level": "contract", "evidence": ["tests/smartdrv_io_probe.asm", "tests/test_smartdrv_flush_qemu.sh"], "note": "Direct open and close requests both complete successfully"}
+      ,"15": {"level": "contract", "evidence": ["tests/smartdrv_io_probe.asm", "tests/test_smartdrv_flush_qemu.sh"], "note": "A direct removable-media request returns done, error, and unknown-command status"}
     },
     "VDISK.SYS": {
       "0": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "CONFIG.SYS initializes the block device"},
