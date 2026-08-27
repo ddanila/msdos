@@ -27,12 +27,20 @@ stream, keyword, and bootstrap surfaces. DEBUG's twenty live commands and all
 four nested EMS subcommands are independently derived and contract-tested. All
 41 executable help surfaces are also accounted for: 37 execute `/?`, while
 four interfaces without a top-level help form have source-backed
-classifications. The next active expansion is argument relationships and
-mutation-driven completeness checks. The first oracle-mutation audit disabled
+classifications. Argument relationships and mutation-driven completeness are
+now enforced as ordinary gates. The oracle-mutation audit disabled
 command echo in every serial batch, exposed and corrected false FORMAT and SYS
 status expectations, found two real RESTORE one-file/existing-target defects,
 and added a normal-test gate that prevents any of the 51 `CTTY AUX` batches
-from matching its own echoed commands.
+from matching its own echoed commands. A source-checked mutation inventory now
+strictly accounts for all 55 runtime components; removal of every artifact is
+killed by an assigned behavioral QEMU suite, with no exclusions. The audit
+also found that FLUSH13.EXE, PRINTER.SYS/4201.CPI, and the XMA2EMS.SYS/XMAEM.SYS
+drivers were missing from the published floppy; focused tests now consume the
+deployed copies instead of masking packaging omissions with source-tree
+injection. COUNTRY.SYS selects Germany and is checked through the live DOS
+country interface, while SORT, TREE, FC, and the boot files have explicit
+deployed-artifact contracts rather than presence-only evidence.
 
 ## Native Open-Source Build (COMPLETE)
 

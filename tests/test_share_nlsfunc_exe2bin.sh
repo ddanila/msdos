@@ -31,7 +31,7 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 
 BOOT_IMG="$OUT/floppy-share-nlsfunc-boot.img"
 SERIAL_LOG="$OUT/share-nlsfunc-serial.log"

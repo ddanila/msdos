@@ -34,7 +34,7 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 
 BOOT_IMG="$OUT/asj-boot.img"
 B_IMG="$OUT/asj-b.img"

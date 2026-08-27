@@ -6,8 +6,7 @@ export LC_ALL=C
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-SRC="$REPO_ROOT/MS-DOS/v4.0/src"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT_IMG="$OUT/floppy-smartdrv-flush.img"
 HDD_IMG="$OUT/smartdrv-flush-hdd.img"
 SERIAL_LOG="$OUT/smartdrv-flush.log"
@@ -41,7 +40,6 @@ mformat -i "$HDD_IMG@@32256" -t 31 -h 16 -n 63 -H 63 -c 4 ::
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 nasm -f bin "$REPO_ROOT/tests/smartdrv_io_probe.asm" -o "$IO_COM"
-mcopy -o -i "$BOOT_IMG" "$SRC/DEV/SMARTDRV/FLUSH13.EXE" ::FLUSH13.EXE
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 mcopy -o -i "$BOOT_IMG" "$IO_COM" ::SDIO.COM
 printf 'DEVICE=SMARTDRV.SYS 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS

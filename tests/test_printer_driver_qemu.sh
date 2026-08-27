@@ -6,8 +6,7 @@ export LC_ALL=C
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-SRC="$REPO_ROOT/MS-DOS/v4.0/src"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT_IMG="$OUT/floppy-printer-driver.img"
 SERIAL_LOG="$OUT/printer-driver.log"
 
@@ -25,8 +24,6 @@ done
 
 cp "$FLOPPY" "$BOOT_IMG"
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
-mcopy -o -i "$BOOT_IMG" "$SRC/DEV/PRINTER/PRINTER.SYS" ::PRINTER.SYS
-mcopy -o -i "$BOOT_IMG" "$SRC/DEV/PRINTER/4201/4201.CPI" ::4201.CPI
 printf 'DEVICE=PRINTER.SYS LPT1=(4201,,1)\r\n' \
     | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {

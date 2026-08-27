@@ -5,7 +5,7 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT_IMG="$OUT/command-startup-boot.img"
 B_IMG="$OUT/command-startup-unformatted-b.img"
 SERIAL_LOG="$OUT/command-startup-serial.log"

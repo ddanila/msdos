@@ -23,7 +23,7 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT_IMG="$OUT/select-test-boot.img"
 SCREEN_LOG="$OUT/select-test.log"
 QMP_SOCK="$OUT/select-test-qmp.sock"

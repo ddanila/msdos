@@ -80,6 +80,21 @@ That protection is repository-wide: every serial batch switches command echo
 off before `CTTY AUX`, and `test_batch_oracles.py` derives and enforces the
 invariant across all test scripts. This prevents diagnostics and conditional
 markers embedded in AUTOEXEC.BAT from satisfying their own output assertions.
+Command-focused QEMU suites also accept an opt-in `FLOPPY_IMAGE` so mutation
+audits never alter or serialize access to the canonical deployed image.
+`audit_oracle_mutation.sh` removes one shipped program from a private copy and
+requires its claimed focused suite to fail; a suite that still passes has a
+surviving deletion mutation and cannot count as independent contract evidence.
+The mutation manifest is a strict normal-test gate: all 55 runtime artifacts
+have killed deletion mutations and none are excluded. The same audit requires
+focused tests to consume the published image. It found and closed deployment
+gaps for FLUSH13.EXE, the PRINTER.SYS/4201.CPI stack, and XMA2EMS.SYS/XMAEM.SYS;
+those suites no longer overwrite the image with source-tree binaries. PRINTER's
+mutation is assigned to its code-page behavior suite because exact PRINT bytes
+alone can succeed through the BIOS fallback when the driver is absent. The
+COUNTRY contract selects non-default Germany and verifies the live DOS country
+record, and deployed SORT, TREE, and FC checks prevent host-only oracles from
+masking missing image artifacts.
 
 `debug_command_coverage.json` derives DEBUG's twenty live non-error COMTAB
 entries and the four `X` EMS subcommands from DEBUG.ASM and DEBEMS.ASM. The

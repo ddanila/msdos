@@ -6,8 +6,7 @@ export LC_ALL=C
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-SRC="$REPO_ROOT/MS-DOS/v4.0/src"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT_IMG="$OUT/floppy-fastopen-cache.img"
 HDD_IMG="$OUT/fastopen-cache-hdd.img"
 SERIAL_LOG="$OUT/fastopen-cache.log"
@@ -42,7 +41,6 @@ mformat -i "$HDD_IMG@@32256" -t 31 -h 16 -n 63 -H 63 -c 4 ::
 nasm -f bin "$REPO_ROOT/tests/fastopen_cache_probe.asm" -o "$PROBE_COM"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 export MTOOLS_NO_VFAT=1
-mcopy -o -i "$BOOT_IMG" "$SRC/CMD/FASTOPEN/FASTOPEN.EXE" ::FASTOPEN.EXE
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::FOPROBE.COM
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 printf 'DEVICE=A:\\EMM386.SYS M5\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS

@@ -16,11 +16,12 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 
 BOOT_IMG="$OUT/floppy-drivers-qemu.img"
 SERIAL_LOG="$OUT/drivers-qemu-serial.log"
 PROBE_COM="$OUT/block-driver-request.com"
+COUNTRY_PROBE_COM="$OUT/country-config-probe.com"
 
 PASS=0
 FAIL=0
@@ -39,15 +40,17 @@ echo "=== Device Driver / CONFIG.SYS E2E tests (QEMU) ==="
 echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/block_driver_probe.asm" -o "$PROBE_COM"
+nasm -f bin "$REPO_ROOT/tests/country_config_probe.asm" -o "$COUNTRY_PROBE_COM"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
 # Drivers are already on the base floppy (added by make deploy).
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::BLKREQ.COM
+mcopy -o -i "$BOOT_IMG" "$COUNTRY_PROBE_COM" ::CNTRYCHK.COM
 
 # Write CONFIG.SYS with device drivers and directives
 {
-    printf 'COUNTRY=001,,COUNTRY.SYS\r\n'
+    printf 'COUNTRY=049,,COUNTRY.SYS\r\n'
     printf 'DEVICE=ANSI.SYS\r\n'
     printf 'DEVICE=RAMDRIVE.SYS 64\r\n'
     printf 'DEVICE=VDISK.SYS 64\r\n'
@@ -124,6 +127,7 @@ mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::BLKREQ.COM
     # MEM shows total memory; BUFFERS/FILES affect memory layout.
     # We just verify the boot completed successfully with these directives active.
     printf 'ECHO ---CONFIG---\r\n'
+    printf 'CNTRYCHK.COM\r\n'
     printf 'MEM\r\n'
     printf 'ECHO CONFIG_DONE\r\n'
 
@@ -264,6 +268,12 @@ if grep -qi "bytes total memory" "$SERIAL_LOG"; then
     ok "CONFIG.SYS + MEM (memory report confirms DOS loaded with custom config)"
 else
     fail "CONFIG.SYS + MEM (expected 'bytes total memory' in MEM output)"
+fi
+
+if grep -q "COUNTRY_CONFIG_PASS" "$SERIAL_LOG"; then
+    ok "COUNTRY=049 loaded exact German conventions from COUNTRY.SYS"
+else
+    fail "COUNTRY=049 did not expose the expected live country information"
 fi
 
 # ── CHCP checks ──────────────────────────────────────────────────────────────

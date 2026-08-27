@@ -49,7 +49,7 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 
 # Optional: pass variant names as arguments to run a subset, e.g.:
 #   bash tests/test_format.sh VLABEL S

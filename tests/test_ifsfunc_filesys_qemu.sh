@@ -6,8 +6,7 @@ export LC_ALL=C
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-SRC="$REPO_ROOT/MS-DOS/v4.0/src"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT_IMG="$OUT/floppy-ifsfunc-filesys.img"
 IFS_SYS="$OUT/ifsfunc-filesys-testifs.sys"
 PROBE_COM="$OUT/ifsfunc-filesys-probe.com"
@@ -35,8 +34,6 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 mcopy -o -i "$BOOT_IMG" "$IFS_SYS" ::TESTIFS.SYS
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::IFSPROBE.COM
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
-mcopy -o -i "$BOOT_IMG" "$SRC/CMD/IFSFUNC/IFSFUNC.EXE" ::IFSFUNC.EXE
-mcopy -o -i "$BOOT_IMG" "$SRC/CMD/FILESYS/FILESYS.EXE" ::FILESYS.EXE
 printf 'IFS=TESTIFS.SYS\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'

@@ -30,7 +30,7 @@ CFLAGS   := -AS -Os -Zp
 # Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools test-batch-oracles test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest gen-checksums deploy minimal-floppy run-boot test-sys test-help-qemu test-command-startup-qemu test-more-paging-qemu test-misc-qemu test-graftabl-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu test-ansi-driver-qemu test-display-chain-qemu test-driver-sys-qemu test-printer-driver-qemu test-smartdrv-flush-qemu test-xma-drivers-qemu test-root-exhaustion-qemu test-disk-exhaustion-qemu test-config-state-qemu test-config-switches-qemu test-config-stacks-qemu test-config-ifs-qemu test-ifsfunc-filesys-qemu test-config-multitrack-qemu test-emm386-qemu test-int21-file-memory-qemu test-int21-path-errors-qemu test-int21-system-qemu test-int21-fcb-qemu test-int21-compat-qemu test-int21-console-qemu test-int21-process-qemu test-int21-tsr-qemu test-int21-media-qemu test-int21-readonly-media-qemu test-dos-interrupt-qemu test-dos-async-interrupt-qemu
+.PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest gen-checksums deploy minimal-floppy run-boot test-sys test-help-qemu test-command-startup-qemu test-more-paging-qemu test-misc-qemu test-graftabl-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu test-ansi-driver-qemu test-display-chain-qemu test-driver-sys-qemu test-printer-driver-qemu test-smartdrv-flush-qemu test-xma-drivers-qemu test-root-exhaustion-qemu test-disk-exhaustion-qemu test-config-state-qemu test-config-switches-qemu test-config-stacks-qemu test-config-ifs-qemu test-ifsfunc-filesys-qemu test-config-multitrack-qemu test-emm386-qemu test-int21-file-memory-qemu test-int21-path-errors-qemu test-int21-system-qemu test-int21-fcb-qemu test-int21-compat-qemu test-int21-console-qemu test-int21-process-qemu test-int21-tsr-qemu test-int21-media-qemu test-int21-readonly-media-qemu test-dos-interrupt-qemu test-dos-async-interrupt-qemu
 .PHONY: test-utility-parser-coverage-manifest
 .PHONY: test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest
 
@@ -265,7 +265,7 @@ ARTIFACTS := \
     CMD/MODE/MODE.COM \
     MEMM/MEMM/EMM386.SYS
 
-test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-batch-oracles test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
+test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
 	bash tests/run_tests.sh
 
 test-native-build-tools:
@@ -273,6 +273,9 @@ test-native-build-tools:
 
 test-batch-oracles:
 	python3 tests/test_batch_oracles.py
+
+test-oracle-mutation-coverage:
+	python3 tests/test_oracle_mutation_coverage.py --require-complete
 
 test-coverage-manifest:
 	python3 tests/test_coverage_manifest.py --require-complete
@@ -531,8 +534,13 @@ RAMDRIVE_SYS := $(SRC)/DEV/RAMDRIVE/RAMDRIVE.SYS
 VDISK_SYS    := $(SRC)/DEV/VDISK/VDISK.SYS
 DISPLAY_SYS  := $(SRC)/DEV/DISPLAY/DISPLAY.SYS
 COUNTRY_SYS  := $(SRC)/DEV/COUNTRY/COUNTRY.SYS
+PRINTER_SYS  := $(SRC)/DEV/PRINTER/PRINTER.SYS
+PRINTER_CPI  := $(SRC)/DEV/PRINTER/4201/4201.CPI
 SMARTDRV_SYS := $(SRC)/DEV/SMARTDRV/SMARTDRV.SYS
+FLUSH13_EXE  := $(SRC)/DEV/SMARTDRV/FLUSH13.EXE
 DRIVER_SYS   := $(SRC)/DEV/DRIVER/DRIVER.SYS
+XMA2EMS_SYS  := $(SRC)/DEV/XMA2EMS/XMA2EMS.SYS
+XMAEM_SYS    := $(SRC)/DEV/XMAEM/XMAEM.SYS
 SELECT_COM   := $(SRC)/SELECT/SELECT.COM
 SELECT_EXE   := $(SRC)/SELECT/SELECT.EXE
 SELECT_DAT   := $(SRC)/SELECT/SELECT.DAT
@@ -550,8 +558,8 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
            $(EXE2BIN_SRC) $(GRAPHICS_COM) $(GRAPHICS_PRO) \
            $(IFSFUNC_EXE) $(MODE_COM) \
            $(ANSI_SYS) $(RAMDRIVE_SYS) \
-           $(VDISK_SYS) $(DISPLAY_SYS) $(COUNTRY_SYS) \
-           $(SMARTDRV_SYS) $(DRIVER_SYS) \
+           $(VDISK_SYS) $(DISPLAY_SYS) $(COUNTRY_SYS) $(PRINTER_SYS) $(PRINTER_CPI) \
+           $(SMARTDRV_SYS) $(FLUSH13_EXE) $(DRIVER_SYS) $(XMA2EMS_SYS) $(XMAEM_SYS) \
            $(SELECT_COM) $(SELECT_EXE) $(SELECT_DAT) $(SELECT_HLP) \
            $(EGA_CPI) $(EMM386_SYS)
 	mkdir -p $(OUT)
@@ -616,8 +624,13 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
 	mcopy -i $@ $(VDISK_SYS) ::VDISK.SYS
 	mcopy -i $@ $(DISPLAY_SYS) ::DISPLAY.SYS
 	mcopy -i $@ $(COUNTRY_SYS) ::COUNTRY.SYS
+	mcopy -i $@ $(PRINTER_SYS) ::PRINTER.SYS
+	mcopy -i $@ $(PRINTER_CPI) ::4201.CPI
 	mcopy -i $@ $(SMARTDRV_SYS) ::SMARTDRV.SYS
+	mcopy -i $@ $(FLUSH13_EXE) ::FLUSH13.EXE
 	mcopy -i $@ $(DRIVER_SYS) ::DRIVER.SYS
+	mcopy -i $@ $(XMA2EMS_SYS) ::XMA2EMS.SYS
+	mcopy -i $@ $(XMAEM_SYS) ::XMAEM.SYS
 	mcopy -i $@ $(SELECT_COM) ::SELECT.COM
 	mcopy -i $@ $(SELECT_EXE) ::SELECT.EXE
 	mcopy -i $@ $(SELECT_DAT) ::SELECT.DAT

@@ -5,7 +5,7 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT_IMG="$OUT/more-paging-boot.img"
 TEXT_FILE="$OUT/more-paging-input.txt"
 EXIT_COM="$OUT/more-paging-qexit.com"

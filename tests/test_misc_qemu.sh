@@ -49,7 +49,7 @@ export LC_ALL=C
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 
 BOOT_IMG="$OUT/floppy-misc-qemu.img"
 SERIAL_LOG="$OUT/misc-qemu-serial.log"
@@ -319,6 +319,21 @@ printf '@ECHO OFF\r\nECHO Hello World | FIND "Hello"\r\n' \
     printf 'ECHO ---COMMAND-HELP---\r\n'
     printf 'COMMAND /?\r\n'
     printf 'ECHO COMMAND_HELP_DONE\r\n'
+
+    # ── SORT and TREE deployed-command behavior ────────────────────────────
+    # File redirection avoids the shell pipe handle mutation exercised below.
+    printf 'ECHO banana>SORTIN.TXT\r\n'
+    printf 'ECHO apple>>SORTIN.TXT\r\n'
+    printf 'ECHO cherry>>SORTIN.TXT\r\n'
+    printf 'ECHO ---SORT-FILE---\r\n'
+    printf 'SORT <SORTIN.TXT\r\n'
+    printf 'ECHO SORT_FILE_DONE\r\n'
+    printf 'MD TREEFIX\r\n'
+    printf 'MD TREEFIX\\BRANCH\r\n'
+    printf 'ECHO LEAF>TREEFIX\\BRANCH\\LEAF.TXT\r\n'
+    printf 'ECHO ---TREE-FILES---\r\n'
+    printf 'TREE TREEFIX /F /A\r\n'
+    printf 'ECHO TREE_FILES_DONE\r\n'
 
     printf 'ECHO ===DONE===\r\n'
 
@@ -730,6 +745,28 @@ if grep -q "COMMAND_HELP_DONE" "$SERIAL_LOG"; then
     ok "COMMAND /? (batch continued — no crash in /? code path)"
 else
     fail "COMMAND /? (batch hung or crashed — possible regression of 58a0bb4)"
+fi
+
+# ── SORT / TREE checks ──────────────────────────────────────────────────────
+echo ""
+echo "--- SORT / TREE deployed behavior tests ---"
+
+sort_section=$(sed -n '/---SORT-FILE---/,/SORT_FILE_DONE/p' "$SERIAL_LOG")
+apple_line=$(printf '%s\n' "$sort_section" | grep -nix 'apple\r' | cut -d: -f1 || true)
+banana_line=$(printf '%s\n' "$sort_section" | grep -nix 'banana\r' | cut -d: -f1 || true)
+cherry_line=$(printf '%s\n' "$sort_section" | grep -nix 'cherry\r' | cut -d: -f1 || true)
+if [[ -n "$apple_line" && -n "$banana_line" && -n "$cherry_line" ]] \
+    && (( apple_line < banana_line && banana_line < cherry_line )); then
+    ok "SORT ordered redirected input as apple, banana, cherry"
+else
+    fail "SORT did not produce the expected ascending records"
+fi
+
+if sed -n '/---TREE-FILES---/,/TREE_FILES_DONE/p' "$SERIAL_LOG" \
+    | grep -qi 'LEAF.TXT'; then
+    ok "TREE /F /A traversed the fixture and listed its leaf file"
+else
+    fail "TREE /F /A did not expose the fixture hierarchy"
 fi
 
 # ── Completion check ──────────────────────────────────────────────────────────

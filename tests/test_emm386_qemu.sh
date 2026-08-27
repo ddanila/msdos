@@ -6,7 +6,7 @@ export LC_ALL=C
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT_IMG="$OUT/floppy-emm386-qemu.img"
 PROBE_COM="$OUT/emm386-probe.com"
 SERIAL_LOG="$OUT/emm386-qemu.log"

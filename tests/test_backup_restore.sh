@@ -24,7 +24,7 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 
 BOOT_IMG="$OUT/floppy-backup-boot.img"
 TARGET_IMG="$OUT/floppy-backup-target.img"
@@ -65,6 +65,13 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'MD BAKSRC\r\n'
     printf 'COPY BAKF1.TXT BAKSRC\\FILE1.TXT\r\n'
     printf 'COPY BAKF2.TXT BAKSRC\\FILE2.TXT\r\n'
+
+    # FC is part of the binary-exact oracle below. Prove that the deployed
+    # command ran: COMMAND otherwise preserves an earlier zero errorlevel for
+    # "Bad command or file name", which can make IF checks falsely succeed.
+    printf 'ECHO ---FC-SANITY---\r\n'
+    printf 'FC /B BAKF1.TXT BAKF1.TXT\r\n'
+    printf 'ECHO FC_SANITY_DONE\r\n'
 
     # ── Parser-only failures: no media prompts or mutations ────────────────────────
     printf 'BACKUP A:BAKSRC\\*.TXT B: /D:01-01-90 /D:01-01-90\r\n'
@@ -356,6 +363,13 @@ if $restore_parser_ok \
     ok "RESTORE rejects every malformed command class with exact diagnostics"
 else
     fail "RESTORE parser rejection matrix was incomplete"
+fi
+
+if sed -n '/---FC-SANITY---/,/FC_SANITY_DONE/p' "$SERIAL_LOG" \
+    | grep -qi 'no differences'; then
+    ok "FC /B independently confirmed identical binary payloads"
+else
+    fail "FC /B did not execute its identical-file comparison contract"
 fi
 
 # "*** Backing up files to drive B: ***" is printed by BUDISKMSG on every successful run

@@ -6,8 +6,7 @@ export LC_ALL=C
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-SRC="$REPO_ROOT/MS-DOS/v4.0/src"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT_IMG="$OUT/floppy-print-spooler.img"
 SERIAL_LOG="$OUT/print-spooler.log"
 PARALLEL_LOG="$OUT/print-spooler-lpt1.bin"
@@ -31,9 +30,6 @@ nasm -f bin "$REPO_ROOT/tests/print_queue_wait.asm" -o "$WAIT_COM"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 
 export MTOOLS_NO_VFAT=1
-mcopy -o -i "$BOOT_IMG" "$SRC/CMD/PRINT/PRINT.COM" ::PRINT.COM
-mcopy -o -i "$BOOT_IMG" "$SRC/DEV/PRINTER/PRINTER.SYS" ::PRINTER.SYS
-mcopy -o -i "$BOOT_IMG" "$SRC/DEV/PRINTER/4201/4201.CPI" ::4201.CPI
 mcopy -o -i "$BOOT_IMG" "$WAIT_COM" ::PWAIT.COM
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 printf 'PRINT_PAYLOAD_ALPHA\r\nPRINT_PAYLOAD_OMEGA\r\n' \

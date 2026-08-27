@@ -6,8 +6,7 @@ export LC_ALL=C
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-SRC="$REPO_ROOT/MS-DOS/v4.0/src"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT_IMG="$OUT/floppy-graphics-print.img"
 SERIAL_LOG="$OUT/graphics-print.log"
 PARALLEL_LOG="$OUT/graphics-print-lpt1.bin"
@@ -31,8 +30,6 @@ nasm -f bin "$REPO_ROOT/tests/graphics_print_probe.asm" -o "$PROBE_COM"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 
 export MTOOLS_NO_VFAT=1
-mcopy -o -i "$BOOT_IMG" "$SRC/CMD/GRAPHICS/GRAPHICS.COM" ::GRAPHICS.COM
-mcopy -o -i "$BOOT_IMG" "$SRC/CMD/GRAPHICS/GRAPHICS.PRO" ::GRAPHICS.PRO
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::GRPROBE.COM
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 {

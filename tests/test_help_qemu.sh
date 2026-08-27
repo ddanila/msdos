@@ -13,7 +13,7 @@ set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 
 TEST_IMG="$OUT/floppy-help-qemu.img"
 SERIAL_LOG="$OUT/help-qemu-serial.log"
