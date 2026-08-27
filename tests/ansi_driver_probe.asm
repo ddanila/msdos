@@ -74,6 +74,44 @@ start:
     int 21h
     jnz failed                    ; the queued 'f' must have been discarded
 
+    ; Resolve DOS's live CON header (ANSI in this isolated boot) and exercise
+    ; every table entry that ANSI deliberately passes to the lower BIOS CON.
+    ; The first command beyond ANSI's 0..19 table must be chained as well.
+    mov ah, 52h
+    int 21h
+    les si, [es:bx + 12]          ; SYSI_CON.
+    mov ax, [es:si + 6]
+    mov [driver_strategy], ax
+    mov ax, [es:si + 8]
+    mov [driver_interrupt], ax
+    mov ax, es
+    mov [driver_strategy + 2], ax
+    mov [driver_interrupt + 2], ax
+
+    mov si, pass_through_success
+.success_request:
+    lodsb
+    cmp al, 0ffh
+    je .error_requests
+    call issue_request
+    mov ax, [request_packet + 3]
+    and ax, 0ff00h
+    cmp ax, 0100h
+    jne failed
+    jmp .success_request
+
+.error_requests:
+    mov si, pass_through_errors
+.error_request:
+    lodsb
+    cmp al, 0ffh
+    je .requests_done
+    call issue_request
+    cmp word [request_packet + 3], 8103h
+    jne failed
+    jmp .error_request
+
+.requests_done:
     mov si, pass_message
     call serial_print
 .passed:
@@ -108,6 +146,18 @@ serial_print:
 .done:
     ret
 
+issue_request:
+    mov [request_packet + 2], al
+    mov word [request_packet + 3], 0deadh
+    push cs
+    pop es
+    mov bx, request_packet
+    call far [driver_strategy]
+    call far [driver_interrupt]
+    push cs
+    pop ds
+    ret
+
 ansi_sequence db 27, '[2J', 27, '[10;20H'
 ansi_sequence_end:
 con_name db 'CON', 0
@@ -121,3 +171,15 @@ rdnd_ready db 13, 10, 'ANSI_RDND_READY', 13, 10, '$'
 flush_ready db 13, 10, 'ANSI_FLUSH_READY', 13, 10, '$'
 pass_message db 'ANSI_DRIVER_PASS', 13, 10, 0
 fail_message db 'ANSI_DRIVER_FAIL', 13, 10, 0
+pass_through_success db 1, 2, 6, 10, 0ffh
+pass_through_errors db 3, 11, 12, 13, 14, 15, 16, 17, 18, 20, 0ffh
+driver_strategy dd 0
+driver_interrupt dd 0
+request_packet:
+    db 22, 0, 0
+    dw 0
+    times 8 db 0
+    db 0
+    dw 0, 0
+    dw 0
+    dw 0

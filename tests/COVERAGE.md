@@ -92,7 +92,11 @@ disk copy.
 
 Driver contracts similarly require an effect after installation. For example,
 `test_ansi_driver_qemu.sh` sends an ANSI cursor-position sequence through DOS
-and checks the resulting coordinates through the BIOS.
+and checks the resulting coordinates through the BIOS. Its interactive probe
+also resolves the live ANSI header and verifies all 13 pass-through request
+statuses against the lower BIOS CON driver. The first command beyond ANSI's
+table is rejected through the same chain, guarding the dispatch bound that
+previously indexed into adjacent escape-command data.
 The combined driver boot also exercises RAMDRIVE and VDISK through two
 independent paths. DOS file I/O must return exact payload markers, while a
 guest probe checks each 64 KiB BPB field by field, writes and reads the final
