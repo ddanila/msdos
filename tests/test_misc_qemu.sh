@@ -752,9 +752,9 @@ echo ""
 echo "--- SORT / TREE deployed behavior tests ---"
 
 sort_section=$(sed -n '/---SORT-FILE---/,/SORT_FILE_DONE/p' "$SERIAL_LOG")
-apple_line=$(printf '%s\n' "$sort_section" | grep -nix 'apple\r' | cut -d: -f1 || true)
-banana_line=$(printf '%s\n' "$sort_section" | grep -nix 'banana\r' | cut -d: -f1 || true)
-cherry_line=$(printf '%s\n' "$sort_section" | grep -nix 'cherry\r' | cut -d: -f1 || true)
+apple_line=$(printf '%s\n' "$sort_section" | grep -nix $'apple\r' | cut -d: -f1 || true)
+banana_line=$(printf '%s\n' "$sort_section" | grep -nix $'banana\r' | cut -d: -f1 || true)
+cherry_line=$(printf '%s\n' "$sort_section" | grep -nix $'cherry\r' | cut -d: -f1 || true)
 if [[ -n "$apple_line" && -n "$banana_line" && -n "$cherry_line" ]] \
     && (( apple_line < banana_line && banana_line < cherry_line )); then
     ok "SORT ordered redirected input as apple, banana, cherry"
