@@ -39,7 +39,11 @@ adding, removing, or renaming a built-in requires an explicit behavioral
 classification. Synonyms are separate entries because their spelling still
 has to reach the shared implementation. The contract evidence includes actual
 namespace mutations for RENAME, MKDIR, and RMDIR, exact CLS console output, and
-the queried CHCP value rather than relying on embedded help strings.
+the queried CHCP value rather than relying on embedded help strings. The same
+verifier derives the operational-switch surface from the built-ins' maintained
+help blocks: DIR `/P` and `/W`, DEL/ERASE `/P`, and COPY `/A`, `/B`, and `/V`.
+Their effects and parser rejection paths are asserted, including both answers
+to the real per-file deletion prompt.
 
 `dos_interrupt_coverage.json` covers the DOS-initialized vector surface outside
 the INT 21h dispatch table. Its verifier checks the live `MSINIT.ASM` vector

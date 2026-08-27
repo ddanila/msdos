@@ -1,6 +1,12 @@
 {
   "schema": 1,
   "dispatch_source": "MS-DOS/v4.0/src/CMD/COMMAND/TDATA.ASM",
+  "operational_switches": {
+    "COPY": ["A", "B", "V"],
+    "DEL": ["P"],
+    "DIR": ["P", "W"],
+    "ERASE": ["P"]
+  },
   "commands": {
     "BREAK": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Query plus ON/OFF state transitions are asserted"},
     "CALL": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "A nested batch runs and returns to its caller"},
@@ -8,13 +14,13 @@
     "CHCP": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_drivers_qemu.sh"], "note": "The default page is queried exactly and configured page 850 is selected and reported"},
     "CHDIR": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "The long form changes and reports the current directory"},
     "CLS": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "The exact ESC[2J console clear sequence is asserted"},
-    "COPY": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Ordinary, verified, concatenated, ASCII, and binary copies assert resulting bytes"},
+    "COPY": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Ordinary, verified, concatenated, ASCII, and binary copies assert resulting bytes; duplicate /V and unknown switches require exact parser errors"},
     "CTTY": {"level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "CTTY AUX redirects a complete live batch session to serial output"},
     "DATE": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "The current date is reported and an empty replacement is accepted"},
-    "DEL": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Single-file and wildcard deletion are asserted through absence"},
-    "DIR": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Normal and wide listings expose expected directory entries"},
+    "DEL": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_prompt_yesno.sh"], "note": "Single-file and wildcard deletion are asserted through absence; /P decline preserves a file, while duplicate /P is rejected exactly"},
+    "DIR": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_misc_qemu.sh"], "note": "Normal, wide /W, and paginated /P listings expose expected entries; duplicate and unknown switches require exact parser errors"},
     "ECHO": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Text, blank-line, OFF, ON, and batch-suppression behavior is asserted"},
-    "ERASE": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "The long deletion synonym removes a real file"},
+    "ERASE": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_prompt_yesno.sh"], "note": "The long synonym removes a real file; /P accept deletes exactly one selected file and an unknown switch is rejected exactly"},
     "EXIT": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "COMMAND /C EXIT returns successfully to its caller"},
     "FOR": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "A batch loop expands and visits every item exactly by marker"},
     "GOTO": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "A label jump reaches its target and skips intervening output"},

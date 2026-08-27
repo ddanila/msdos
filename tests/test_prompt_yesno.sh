@@ -1,7 +1,7 @@
 #!/bin/bash
 # tests/test_prompt_yesno.sh — E2E tests for per-file Y/N prompts via QEMU.
 #
-# Tests XCOPY /P, REPLACE /P, RESTORE /P, and COMP's repeat workflow, which
+# Tests DEL/ERASE /P, XCOPY /P, REPLACE /P, RESTORE /P, and COMP's repeat workflow, which
 # prompt through DOS console and country-aware Y/N services.
 #
 # Interactive prompt handling:
@@ -40,7 +40,7 @@ fi
 
 trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$SERIAL_IN" "$SERIAL_OUT" 2>/dev/null; true' EXIT
 
-echo "=== prompted command workflows (QEMU, serial expect) ==="
+echo "=== prompted command and utility workflows (QEMU, serial expect) ==="
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
@@ -54,6 +54,8 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 printf 'XCOPY_SOURCE_1\r\n' | mcopy -o -i "$BOOT_IMG" - ::XP_SRC1.TXT
 printf 'XCOPY_SOURCE_2\r\n' | mcopy -o -i "$BOOT_IMG" - ::XP_SRC2.TXT
 printf 'REPLACE_NEW\r\n'    | mcopy -o -i "$BOOT_IMG" - ::RP_FILE.TXT
+printf 'DEL_KEEP\r\n'       | mcopy -o -i "$BOOT_IMG" - ::DP_KEEP.TXT
+printf 'ERASE_DELETE\r\n'   | mcopy -o -i "$BOOT_IMG" - ::DP_DEL.TXT
 
 # Create blank target floppy for BACKUP/RESTORE /P test
 dd if=/dev/zero bs=512 count=2880 of="$TARGET_IMG" status=none
@@ -67,6 +69,14 @@ mformat -i "$TARGET_IMG" ::
     printf 'MD XPDEST\r\n'
     printf 'MD RPDEST\r\n'
     printf 'ECHO REPLACE_OLD>RPDEST\\RP_FILE.TXT\r\n'
+
+    # ── DEL and ERASE /P: exercise both answers and both command aliases ──
+    printf 'ECHO ---DEL-P-N---\r\n'
+    printf 'DEL DP_KEEP.TXT /P\r\n'
+    printf 'IF EXIST DP_KEEP.TXT ECHO DEL_P_N_PRESERVED\r\n'
+    printf 'ECHO ---ERASE-P-Y---\r\n'
+    printf 'ERASE DP_DEL.TXT /P\r\n'
+    printf 'IF NOT EXIST DP_DEL.TXT ECHO ERASE_P_Y_DELETED\r\n'
 
     # ── XCOPY /P: prompt per file, answer Y to both ──────────────────────
     # XCOPY shows "path\filename (Y/N)?" for each file when /P is used.
@@ -122,7 +132,7 @@ mkfifo "$SERIAL_IN" "$SERIAL_OUT"
 exec 3<>"$SERIAL_IN"    # O_RDWR: keeps read-end alive so QEMU/Python O_WRONLY won't block
 
 # ── Step 3: boot QEMU ────────────────────────────────────────────────────
-echo "Booting QEMU with XCOPY/REPLACE/RESTORE /P test..."
+echo "Booting QEMU with DEL/XCOPY/REPLACE/RESTORE /P tests..."
 rm -f "$SERIAL_LOG"
 timeout 120 qemu-system-i386 \
     -display none \
@@ -136,29 +146,33 @@ QEMU_PID=$!
 
 # ── Step 4: run serial expect coordinator ─────────────────────────────────
 # Interactions in order:
-#   1. XCOPY /P: "(Y/N)?" for XP_SRC1.TXT → Y
-#   2. XCOPY /P: "(Y/N)?" for XP_SRC2.TXT → Y
-#   3. REPLACE /P: "(Y/N)" for RP_FILE.TXT → Y
-#   4. BACKUP: "Press any key" (INSERTSOURCE) → \r
-#   5. BACKUP: "Press any key" (ERASEMSG) → \r
-#   6. RESTORE: "Press any key" (INSERTSOURCE) → \r
-#   7. RESTORE: "Press any key" (INSERTTARGET) → \r then pre-buffer Y\r
-#      for the optional changed-file prompt. If RESTORE finds no changed file,
-#      COMMAND.COM harmlessly consumes Y before continuing AUTOEXEC.
-#   8. COMP: "Compare more files" → N, returning to the batch
-#   9. COMP: "Compare more files" → Y
-#  10. COMP: primary filename prompt → COMP1.TXT
-#  11. COMP: second-filename prompt → COMP1.TXT
-#  12. COMP: second "Compare more files" → N
+#   1. DEL /P: "Delete (Y/N)?" for DP_KEEP.TXT → N
+#   2. ERASE /P: "Delete (Y/N)?" for DP_DEL.TXT → Y
+#   3. XCOPY /P: "(Y/N)?" for XP_SRC1.TXT → Y
+#   4. XCOPY /P: "(Y/N)?" for XP_SRC2.TXT → Y
+#   5. REPLACE /P: "(Y/N)" for RP_FILE.TXT → Y
+#   6. BACKUP: "Press any key" (INSERTSOURCE) → \r
+#   7. BACKUP: "Press any key" (ERASEMSG) → \r
+#   8. RESTORE: "Press any key" (INSERTSOURCE) → \r
+#   9. RESTORE: "Press any key" (INSERTTARGET) → \r. This fixture currently
+#      reaches the no-files path, so pre-buffering an optional Y would leak into
+#      COMP's following repeat prompt and make the workflow timing-dependent.
+#  10. COMP: "Compare more files" → N, returning to the batch
+#  11. COMP: "Compare more files" → Y
+#  12. COMP: primary filename prompt → COMP1.TXT
+#  13. COMP: second-filename prompt → COMP1.TXT
+#  14. COMP: second "Compare more files" → N
 python3 "$REPO_ROOT/tests/serial_expect.py" \
     "$SERIAL_IN" "$SERIAL_OUT" "$SERIAL_LOG" \
+    'Delete (Y/N)?' 'N\r' \
+    'Delete (Y/N)?' 'Y\r' \
     '(Y/N)?' 'Y\r' \
     '(Y/N)?' 'Y\r' \
     '(Y/N)' 'Y\r' \
     'Press any key' '\r' \
     'Press any key' '\r' \
     'Press any key' '\r' \
-    'Press any key' '\rY\r' \
+    'Press any key' '\r' \
     'Compare more files' 'N\r' \
     'Compare more files' 'Y\r' \
     'Enter primary filename' 'COMP1.TXT\r' \
@@ -174,6 +188,27 @@ if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
 fi
 
 # ── Step 5: checks ────────────────────────────────────────────────────────
+echo ""
+echo "--- DEL /P and ERASE /P tests ---"
+
+if grep -q '^DEL_P_N_PRESERVED' "$SERIAL_LOG"; then
+    ok "DEL /P N response preserves the selected file"
+else
+    fail "DEL /P N response did not preserve DP_KEEP.TXT"
+fi
+
+if grep -q '^ERASE_P_Y_DELETED' "$SERIAL_LOG"; then
+    ok "ERASE /P Y response deletes the selected file"
+else
+    fail "ERASE /P Y response did not delete DP_DEL.TXT"
+fi
+
+if [[ $(grep -c 'Delete (Y/N)?' "$SERIAL_LOG") -eq 2 ]]; then
+    ok "DEL/ERASE /P prompts exactly once per selected file"
+else
+    fail "DEL/ERASE /P did not produce exactly two per-file prompts"
+fi
+
 echo ""
 echo "--- XCOPY /P tests ---"
 
@@ -234,7 +269,7 @@ fi
 if grep -qi "Replace the file" "$SERIAL_LOG"; then
     ok "RESTORE /P ('Replace the file (Y/N)?' prompt appeared)"
 else
-    ok "RESTORE /P (no changed-file prompt; optional response was safely consumed)"
+    ok "RESTORE /P (no changed-file prompt on the no-files path)"
 fi
 
 echo ""

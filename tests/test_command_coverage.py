@@ -31,6 +31,32 @@ def live_commands(source):
     return {command.upper() for command in commands}
 
 
+def live_operational_switches(commands):
+    """Derive documented non-help switches from each built-in's help block."""
+    surfaces = {}
+    source_dir = ROOT / "MS-DOS/v4.0/src/CMD/COMMAND"
+    for path in source_dir.glob("*.ASM"):
+        lines = path.read_text(encoding="latin-1").splitlines()
+        for index, line in enumerate(lines):
+            match = re.search(r'DB\s+"([A-Z]+)\s+[^\"]*"', line, re.IGNORECASE)
+            if not match or match.group(1).upper() not in commands:
+                continue
+            command = match.group(1).upper()
+            block = []
+            for help_line in lines[index:]:
+                block.extend(re.findall(r'"([^\"]*)"', help_line))
+                if '"$"' in help_line:
+                    break
+            switches = {
+                switch.upper()
+                for switch in re.findall(r'/([A-Z])\b', " ".join(block), re.IGNORECASE)
+                if switch != "?"
+            }
+            if switches:
+                surfaces.setdefault(command, set()).update(switches)
+    return {command: sorted(switches) for command, switches in surfaces.items()}
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--require-complete", action="store_true")
@@ -47,6 +73,14 @@ def main():
         raise AssertionError(
             f"COMMAND.COM inventory mismatch: missing={sorted(expected - declared)}, "
             f"stale={sorted(declared - expected)}"
+        )
+
+    expected_switches = live_operational_switches(expected)
+    declared_switches = manifest.get("operational_switches", {})
+    if expected_switches != declared_switches:
+        raise AssertionError(
+            "COMMAND.COM operational switch mismatch: "
+            f"derived={expected_switches}, declared={declared_switches}"
         )
 
     ci_corpus = (ROOT / "Makefile").read_text() + "\n" + (
@@ -76,6 +110,13 @@ def main():
     print(f"  contract tested: {counts['contract']}")
     print(f"  behavior observed: {counts['observed']}")
     print(f"  uncovered: {counts['uncovered']}")
+    print(
+        "  operational switches: "
+        + " ".join(
+            f"{command}=/{',/'.join(switches)}"
+            for command, switches in sorted(expected_switches.items())
+        )
+    )
     incomplete = sorted(
         command for command, item in commands.items() if item["level"] != "contract"
     )

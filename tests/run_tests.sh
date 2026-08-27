@@ -1770,6 +1770,20 @@ else
     fail "COMMAND.COM DIR /W (expected 'COMMAND' in wide listing, got: $out)"
 fi
 
+# DIR's parser rejects repeated and unknown operational switches.
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'DIR /P /P') || true
+if echo "$out" | grep -q '^Parse Error 1'; then
+    ok "COMMAND.COM DIR duplicate /P (rejected by parser)"
+else
+    fail "COMMAND.COM DIR duplicate /P (expected Parse Error 1, got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'DIR /Z') || true
+if echo "$out" | grep -q '^Parse Error 3'; then
+    ok "COMMAND.COM DIR unknown switch (rejected by parser)"
+else
+    fail "COMMAND.COM DIR unknown switch (expected Parse Error 3, got: $out)"
+fi
+
 # -- CHCP (query active code page) --
 out=$(run_dos CMD/COMMAND/COMMAND.COM /C CHCP) || true
 if echo "$out" | grep -q '^Active code page: 437'; then
@@ -2048,6 +2062,35 @@ if echo "$out" | grep -q "DEL_WILD_OK"; then
     ok "COMMAND.COM DEL wildcard"
 else
     fail "COMMAND.COM DEL wildcard (expected 'DEL_WILD_OK', got: $out)"
+fi
+
+# DEL/ERASE parser boundaries; the interactive /P effects are exercised on
+# real DOS console input by test_prompt_yesno.sh.
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'DEL C:\NOFILE.TXT /P /P') || true
+if echo "$out" | grep -q '^Parse Error 1'; then
+    ok "COMMAND.COM DEL duplicate /P (rejected by parser)"
+else
+    fail "COMMAND.COM DEL duplicate /P (expected Parse Error 1, got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'ERASE C:\NOFILE.TXT /Z') || true
+if echo "$out" | grep -q '^Parse Error 3'; then
+    ok "COMMAND.COM ERASE unknown switch (rejected by parser)"
+else
+    fail "COMMAND.COM ERASE unknown switch (expected Parse Error 3, got: $out)"
+fi
+
+# COPY treats duplicate /V and any unknown switch as parser error 3.
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'COPY /V /V C:\NOFILE C:\X') || true
+if echo "$out" | grep -q '^Parse Error 3'; then
+    ok "COMMAND.COM COPY duplicate /V (rejected by parser)"
+else
+    fail "COMMAND.COM COPY duplicate /V (expected Parse Error 3, got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'COPY /Z C:\NOFILE C:\X') || true
+if echo "$out" | grep -q '^Parse Error 3'; then
+    ok "COMMAND.COM COPY unknown switch (rejected by parser)"
+else
+    fail "COMMAND.COM COPY unknown switch (expected Parse Error 3, got: $out)"
 fi
 
 # -- MD + RD --
