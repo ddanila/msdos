@@ -131,6 +131,25 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'DISKCOMP A: B: /8\r\n'
     printf 'ECHO DISKCOMP_8_DONE\r\n'
 
+    # Both distinct switches are accepted together; each consumed synonym is
+    # then blanked in the live parser table, so either duplicate is rejected.
+    printf 'ECHO ---DISKCOMP-18---\r\n'
+    printf 'DISKCOMP A: B: /1 /8\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO DISKCOMP_18_SUCCESS\r\n'
+    printf 'ECHO DISKCOMP_18_DONE\r\n'
+
+    # Parser-only failures return before any media prompt.
+    printf 'DISKCOMP A: B: /1 /1\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO DISKCOMP_DUPLICATE_REJECTED\r\n'
+    printf 'DISKCOMP A: B: /V\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO DISKCOMP_UNKNOWN_REJECTED\r\n'
+    printf 'DISKCOMP A: B: C:\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO DISKCOMP_ARITY_REJECTED\r\n'
+    printf 'DISKCOPY A: B: /1 /1\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO DISKCOPY_DUPLICATE_REJECTED\r\n'
+    printf 'DISKCOPY A: B: C:\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO DISKCOPY_ARITY_REJECTED\r\n'
+
     printf 'ECHO ===DONE===\r\n'
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
@@ -289,6 +308,30 @@ if grep -q "DISKCOMP_8_DONE" "$SERIAL_LOG"; then
     ok "DISKCOMP A: B: /8 (batch continued)"
 else
     fail "DISKCOMP A: B: /8 (batch hung or crashed)"
+fi
+
+echo ""
+echo "--- DISKCOMP combined switches and parser boundaries ---"
+
+combined_section="$(sed -n '/---DISKCOMP-18---/,/DISKCOMP_18_DONE/p' "$SERIAL_LOG")"
+if grep -q 'DISKCOMP_18_SUCCESS' <<<"$combined_section" \
+    && grep -qi '1 Side(s)' <<<"$combined_section" \
+    && grep -qi '8 sectors per track' <<<"$combined_section"; then
+    ok "DISKCOMP accepts /1 and /8 together and applies both effects"
+else
+    fail "DISKCOMP did not apply its complete valid switch combination"
+fi
+
+if grep -q 'DISKCOMP_DUPLICATE_REJECTED' "$SERIAL_LOG" \
+    && grep -q 'DISKCOMP_UNKNOWN_REJECTED' "$SERIAL_LOG" \
+    && grep -q 'DISKCOMP_ARITY_REJECTED' "$SERIAL_LOG" \
+    && grep -q 'DISKCOPY_DUPLICATE_REJECTED' "$SERIAL_LOG" \
+    && grep -q 'DISKCOPY_ARITY_REJECTED' "$SERIAL_LOG" \
+    && [[ $(grep -ci 'Invalid switch' "$SERIAL_LOG") -ge 3 ]] \
+    && [[ $(grep -ci 'Too many parameters' "$SERIAL_LOG") -ge 2 ]]; then
+    ok "DISKCOMP and DISKCOPY reject duplicate, unknown, and excess operands"
+else
+    fail "DISKCOMP/DISKCOPY parser rejection contracts were incomplete"
 fi
 
 echo ""

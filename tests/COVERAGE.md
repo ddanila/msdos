@@ -196,6 +196,10 @@ target image on the host after DOS reports a successful physical copy. Every
 byte must match except BPB offsets 39–42, where DISKCOPY is required by its
 live source contract to generate a distinct volume serial number. DISKCOMP's
 own matching and deliberately mismatching paths remain separate assertions.
+The parser contract follows the live synonym tables: DISKCOMP accepts `/1`
+and `/8` separately and together, while repeating either consumed synonym is
+rejected. Both tools reject an unknown switch and a third drive with
+errorlevel 1 and their exact parser diagnostic classes.
 
 `test_sys.sh` boots media produced by SYS and separately attaches a formatted
 B: image read-only. The failure case must return a nonzero DOS errorlevel,
