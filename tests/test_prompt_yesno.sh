@@ -50,8 +50,7 @@ cp "$FLOPPY" "$BOOT_IMG"
 # Create test files for XCOPY and REPLACE
 printf 'XCOPY_SOURCE_1\r\n' | mcopy -o -i "$BOOT_IMG" - ::XP_SRC1.TXT
 printf 'XCOPY_SOURCE_2\r\n' | mcopy -o -i "$BOOT_IMG" - ::XP_SRC2.TXT
-printf 'REPLACE_OLD\r\n'    | mcopy -o -i "$BOOT_IMG" - ::RP_FILE.TXT
-printf 'REPLACE_NEW\r\n'    | mcopy -o -i "$BOOT_IMG" - ::RP_NEW.TXT
+printf 'REPLACE_NEW\r\n'    | mcopy -o -i "$BOOT_IMG" - ::RP_FILE.TXT
 
 # Create blank target floppy for BACKUP/RESTORE /P test
 dd if=/dev/zero bs=512 count=2880 of="$TARGET_IMG" status=none
@@ -64,7 +63,7 @@ mformat -i "$TARGET_IMG" ::
     # ── Setup: create directories for XCOPY and REPLACE ──────────────────
     printf 'MD XPDEST\r\n'
     printf 'MD RPDEST\r\n'
-    printf 'COPY RP_FILE.TXT RPDEST\\RP_FILE.TXT\r\n'
+    printf 'ECHO REPLACE_OLD>RPDEST\\RP_FILE.TXT\r\n'
 
     # ── XCOPY /P: prompt per file, answer Y to both ──────────────────────
     # XCOPY shows "path\filename (Y/N)?" for each file when /P is used.
@@ -80,7 +79,7 @@ mformat -i "$TARGET_IMG" ::
     # REPLACE shows "Replace filename? (Y/N)" for each matching file.
     # RP_FILE.TXT already exists in RPDEST, so REPLACE will prompt.
     printf 'ECHO ---REPLACE-P---\r\n'
-    printf 'REPLACE RP_NEW.TXT RPDEST /P\r\n'
+    printf 'REPLACE RP_FILE.TXT RPDEST /P\r\n'
     printf 'ECHO REPLACE_P_DONE\r\n'
 
     # ── RESTORE /P: backup, modify, then restore with prompt ─────────────
@@ -123,16 +122,18 @@ QEMU_PID=$!
 # Interactions in order:
 #   1. XCOPY /P: "(Y/N)?" for XP_SRC1.TXT → Y
 #   2. XCOPY /P: "(Y/N)?" for XP_SRC2.TXT → Y
-#   3. REPLACE /P: "(Y/N)" for RP_NEW.TXT → Y
+#   3. REPLACE /P: "(Y/N)" for RP_FILE.TXT → Y
 #   4. BACKUP: "Press any key" (INSERTSOURCE) → \r
-#   5. BACKUP: "Press any key" (INSERTTARGET) → \r
-#   6. BACKUP: "Press any key" (ERASEMSG) → \r
-#   7. RESTORE /P: "Replace the file (Y/N)?" → Y
+#   5. BACKUP: "Press any key" (ERASEMSG) → \r
+#   6. RESTORE: "Press any key" (INSERTSOURCE) → \r
+#   7. RESTORE: "Press any key" (INSERTTARGET) → \r
+#   8. RESTORE /P: "Replace the file (Y/N)?" → Y
 python3 "$REPO_ROOT/tests/serial_expect.py" \
     "$SERIAL_IN" "$SERIAL_OUT" "$SERIAL_LOG" \
     '(Y/N)?' 'Y\r' \
     '(Y/N)?' 'Y\r' \
     '(Y/N)' 'Y\r' \
+    'Press any key' '\r' \
     'Press any key' '\r' \
     'Press any key' '\r' \
     'Press any key' '\r' \

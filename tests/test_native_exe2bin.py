@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check native EXE2BIN against hashes captured from the Microsoft tool."""
+"""Check native EXE2BIN against the current production build references."""
 
 from __future__ import annotations
 

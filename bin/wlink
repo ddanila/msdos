@@ -186,8 +186,11 @@ def main():
     # case. Applying CASEEXACT unconditionally breaks old objects which freely
     # vary symbol casing across modules.
     directives += ["option", "caseexact" if "/noi" in gopts_l else "nocaseexact"]
-    if "/nofarcalls" in gopts_l:
-        directives += ["option", "nofarcalls"]
+    # Microsoft LINK does not shrink far calls to near calls.  WLINK's
+    # optimization changes offsets inside resident/self-referential DOS code
+    # (PRINT is one concrete example), so disable it for every translated
+    # Microsoft-style link, not only for callers that know to request it.
+    directives += ["option", "nofarcalls"]
     # The model-specific C runtimes live in dos/, while their floating-point
     # companions (for example math87s.lib) live one directory above it.
     directives += ["libpath", owlib, "libpath", owroot]

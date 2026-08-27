@@ -11,6 +11,18 @@ utilities, then migrates every C-hybrid target to Open Watcom wcc/wlink/wlib and
 a shared compatibility runtime. `PLAN.md` defines milestones and completion
 gates.
 
+**All command utilities link with WLINK (August 27 2026):** The remaining 22
+Microsoft LINK recipes in `mk/cmd.mk` now use the pinned custom Open Watcom
+linker. The migration also makes legacy layout intent explicit in source:
+GRAPHICS' helper module has no entry record; SYS places DATA in an explicit
+DGROUP matching its runtime DS; and FASTOPEN gives its four resident/overlay
+segments separate one-segment groups so WLINK preserves their segment values.
+The latter makes the WLINK load-module body byte-identical to Microsoft LINK's
+for the same objects and fixes CONFIG.SYS `INSTALL=FASTOPEN` after multiple
+drivers. A new EDLIN open/list/quit QEMU test closes its prior behavior gap.
+The host suite passes 291/291 and the complete serialized QEMU target matrix
+passes. Only MEMM remains: three CL calls, one LIB call, and one LINK call.
+
 **First Open Watcom C hybrid complete (August 27 2026):** Production ATTRIB now
 builds with native Open Watcom `wcc`, custom JWasm, `wlink`, and the vendored OW
 DOS runtime; it no longer invokes MS CL or LINK. The old display hang was an ABI

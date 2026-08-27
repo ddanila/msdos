@@ -17,19 +17,18 @@ The build has three tool layers. Two are done; the rest is the remaining work.
 | Layer | Tool today | Open source? | Status |
 |-------|-----------|--------------|--------|
 | Assembler (all `.ASM`) | JWasm `-Zm` (`bin/jwasm-masm`) | Yes (SOWPL) | **DONE** -- 0 errors tree-wide |
-| Linker (pure-asm targets) | Open Watcom `wlink` (`bin/wlink`) | Yes (SOWPL) | **DONE** -- byte-identical to MS LINK |
-| Linker (C-hybrid targets) | wlink for ATTRIB/FC/FILESYS/REPLACE/JOIN/SUBST/BACKUP/RESTORE/MEM/FDISK/SMARTDRV; MS LINK for the rest | Mixed | Stage B: 11 migrated |
-| C compiler (C-hybrids) | wcc for ATTRIB/FC/FILESYS/REPLACE/JOIN/SUBST/BACKUP/RESTORE/MEM/FDISK/SMARTDRV; MS CL 5.10 for the rest | Mixed | Stage B: 11 migrated |
-| Library manager | OW `wlib` for MAPPER; MS LIB for EMMLIB/SERVICES | Mixed | native wrapper proven |
+| Linker (kernel, drivers, all 38 commands) | Open Watcom `wlink` (`bin/wlink`) | Yes (SOWPL) | **DONE** |
+| C compiler (C-hybrids) | Open Watcom `wcc`; MS CL only for MEMM/EMM386 | Mixed | MEMM remains |
+| Library manager | OW `wlib` for MAPPER/SERVICES; MS LIB only for MEMM/EMMLIB | Mixed | MEMM remains |
 | Proprietary build utilities (9 tools) | Native Python wrappers | Yes | **DONE -- 9 of 9 native** |
 
 The **pure-assembly milestone is shippable**: every `.ASM` in the floppy image
 is assembled by JWasm and linked by wlink, and `make deploy` produces a complete
 1.44MB boot floppy end-to-end. What still pulls in proprietary tools:
 
-1. **~3 remaining C-hybrid targets** (SELECT, EMM386, MEMM) still compile
-   with **MS CL** and link with **MS LINK**, because they depend on the MS C
-   5.10 runtime (`SLIBCE.LIB`) and the OS/2-style DOS "family API".
+1. **MEMM/EMM386** still has three **MS CL** compilations, one **MS LIB**
+   archive step, and one **MS LINK** final link. This is the sole proprietary
+   production island.
 2. The nine formerly proprietary build utilities now have native,
    byte-compatible replacements. The source-built `MKCNTRY.EXE` payload is also
    extracted natively, so the remaining DOS-emulator use is confined to the

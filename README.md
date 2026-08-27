@@ -2,7 +2,7 @@
 
 A working fork of MS-DOS 4.0 that builds from source on Linux and macOS and is intended as a stable base for OS-level experiments. The custom-JWasm boot stack is validated in QEMU; broader kvikdos and QEMU runtime tests are included.
 
-The `master` branch uses the project's pinned [custom JWasm fork](https://github.com/ddanila/JWasm/tree/custom) natively for every assembly source and Open Watcom V2 `wlink` for pure-assembly targets. The active project goal is a reproducible, fully open-source native build: replace the remaining DOS-hosted build utilities and migrate C-hybrid targets from Microsoft C/LINK/LIB to Open Watcom. See `PLAN.md` and `TODO.md`.
+The `master` branch uses the project's pinned [custom JWasm fork](https://github.com/ddanila/JWasm/tree/custom) natively for every assembly source and the pinned [custom Open Watcom fork](https://github.com/ddanila/open-watcom-v2/tree/custom) for linking and C compilation. All 38 command utilities now link with Open Watcom `wlink`; the only proprietary compiler/library/linker island left in the production build is MEMM/EMM386. See `PLAN.md` and `TODO.md`.
 
 ## What's here beyond the stock source
 
@@ -47,6 +47,7 @@ make test-fdisk
 make test-recover
 make test-assign-subst-join
 make test-debug-qemu
+make test-edlin-qemu
 make test-drivers-qemu
 make test-misc-qemu
 make test-mode-redirect-qemu

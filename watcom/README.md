@@ -10,13 +10,14 @@ Base build: **Current-build** (August 25 2026,
 URL: https://github.com/open-watcom/open-watcom-v2/releases/tag/Current-build
 Asset: `ow-snapshot.tar.xz`
 Source fork: https://github.com/ddanila/open-watcom-v2/tree/custom
-Custom revision: `990174aef057a5be9a5868bc17b55e2e404ec66a`
+Custom revision: `daae27ce5b7abbb2a0c08a3fef179ea79b0d73d3`
 
-The macOS arm64 `wlink` is built from the custom revision. It preserves the
-release snapshot's behavior while adding Microsoft LINK-compatible handling
-for oversized 16-bit real-mode groups, including member-relative external
-frames and relocation locations beyond 64 KiB. Its SHA-256 is
-`1b3e77a2f5cb5acc4098c25d7202acd17ea63aa3b12a2abad628fcab053109c7`.
+The macOS arm64 `wlink` is built from the custom revision. In addition to the
+oversized real-mode-group compatibility fixes, it permits wrapped negative
+absolute OMF fixups and preserves explicitly sized real-mode stacks. These are
+required respectively by DISKCOMP's `FINE EQU -1` reference and PRINT's
+200-byte resident stack. Its SHA-256 is
+`cd005b7805c69eac43db0c7278f39ffe0113fdecba21ab8cd3362f15e183c1d7`.
 
 The remaining macOS tools and the Linux x86-64 tools come from the release
 snapshot. The Linux custom WLINK rebuild is tracked as a portability gate; the
