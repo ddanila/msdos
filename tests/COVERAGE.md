@@ -136,6 +136,11 @@ byte must match except BPB offsets 39–42, where DISKCOPY is required by its
 live source contract to generate a distinct volume serial number. DISKCOMP's
 own matching and deliberately mismatching paths remain separate assertions.
 
+`test_sys.sh` boots media produced by SYS and separately attaches a formatted
+B: image read-only. The failure case must return a nonzero DOS errorlevel,
+must never print the success diagnostic, and must leave the complete target
+image SHA-256 unchanged.
+
 `test_int21_file_memory_qemu.sh` includes destructive-but-recoverable resource
 limits. It consumes the largest reported DOS arena, asserts error 8 on the next
 allocation, releases it, and allocates again. With `FILES=12` and an expanded

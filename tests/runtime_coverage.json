@@ -50,7 +50,7 @@
     "SMARTDRV.SYS": {"kind": "driver", "level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "On a fixed disk the cache reports enabled, transitions disabled then enabled, and applies full-track and write-through policy changes"},
     "SORT.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Ascending, reverse, and column-key sorting are asserted"},
     "SUBST.EXE": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Mapping, listing, I/O, pass-through, and removal are asserted"},
-    "SYS.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_sys.sh"], "note": "Transferred target media is inspected and booted"},
+    "SYS.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_sys.sh"], "note": "Transferred target media boots through the built system; read-only media is rejected with nonzero errorlevel and remains byte-for-byte unchanged"},
     "TREE.COM": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Tree-only, files, and ASCII rendering are asserted"},
     "VDISK.SYS": {"kind": "driver", "level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Installed virtual disk is located and accessed through DOS directory I/O"},
     "XCOPY.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_prompt_yesno.sh"], "note": "All DOS 4 switches and interactive confirmation are asserted"},
