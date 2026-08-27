@@ -171,6 +171,20 @@ wait_failed:
     jmp fail
 wait_ok:
 
+    mov dx, int20_child_name
+    mov bx, exec_block
+    mov ax, 4b00h                  ; Old-style INT 20h termination returns zero.
+    int 21h
+    jc int20_failed
+    mov ah, 4dh
+    int 21h
+    or ax, ax
+    jz int20_ok
+int20_failed:
+    mov dx, fail_int20
+    jmp fail
+int20_ok:
+
     mov bx, 1                     ; stdout remains the AUX character device.
     mov ax, 4400h
     int 21h
@@ -225,6 +239,7 @@ fail:
     int 21h
 
 child_name db 'I21CHILD.COM', 0
+int20_child_name db 'INT20.COM', 0
 missing_child db 'MISSING.COM', 0
 missing_path_child db 'NOEXIST\CHILD.COM', 0
 root_path db 'A:\', 0
@@ -254,6 +269,7 @@ fail_exec_sft_setup db 'INT21_EXEC_SFT_SETUP_FAIL', 13, 10, '$'
 fail_exec_memory db 'INT21_EXEC_MEMORY_FAIL', 13, 10, '$'
 fail_exec_memory_setup db 'INT21_EXEC_MEMORY_SETUP_FAIL', 13, 10, '$'
 fail_4d db 'INT21_4D_FAIL', 13, 10, '$'
+fail_int20 db 'INT20_TERMINATE_FAIL', 13, 10, '$'
 fail_65 db 'INT21_65_FAIL', 13, 10, '$'
 memory_segment dw 0
 environment_segment dw 0

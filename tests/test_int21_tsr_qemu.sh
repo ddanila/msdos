@@ -9,6 +9,7 @@ OUT="$REPO_ROOT/out"
 FLOPPY="$OUT/floppy.img"
 BOOT_IMG="$OUT/floppy-int21-tsr.img"
 TSR_COM="$OUT/i21tsr.com"
+INT27_TSR_COM="$OUT/int27tsr.com"
 TRIGGER_COM="$OUT/i21trig.com"
 SERIAL_LOG="$OUT/int21-tsr.log"
 
@@ -26,15 +27,18 @@ done
 
 cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/int21_tsr_probe.asm" -o "$TSR_COM"
+nasm -f bin "$REPO_ROOT/tests/int27_tsr_probe.asm" -o "$INT27_TSR_COM"
 nasm -f bin "$REPO_ROOT/tests/int21_tsr_trigger.asm" -o "$TRIGGER_COM"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 mcopy -o -i "$BOOT_IMG" "$TSR_COM" ::I21TSR.COM
+mcopy -o -i "$BOOT_IMG" "$INT27_TSR_COM" ::INT27TSR.COM
 mcopy -o -i "$BOOT_IMG" "$TRIGGER_COM" ::I21TRIG.COM
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'I21TSR.COM\r\n'
+    printf 'INT27TSR.COM\r\n'
     printf 'I21TRIG.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
@@ -49,6 +53,7 @@ timeout 35 qemu-system-i386 \
     >"$SERIAL_LOG" 2>&1 || true
 
 if grep -q 'INT21_TSR_HANDLER_PASS' "$SERIAL_LOG" && \
+   grep -q 'INT27_TSR_HANDLER_PASS' "$SERIAL_LOG" && \
    grep -q 'INT21_TSR_TRIGGER_PASS' "$SERIAL_LOG"; then
     echo "  PASS: INT 21h TSR retained memory and callable interrupt handler"
     exit 0

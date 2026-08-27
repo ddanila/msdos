@@ -2,6 +2,7 @@ bits 16
 org 100h
 
 int 60h
+int 61h
 mov dx, pass_message
 mov ah, 09h
 int 21h

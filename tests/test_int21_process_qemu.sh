@@ -10,6 +10,7 @@ FLOPPY="$OUT/floppy.img"
 BOOT_IMG="$OUT/floppy-int21-process.img"
 PROBE_COM="$OUT/i21proc.com"
 CHILD_COM="$OUT/i21child.com"
+INT20_CHILD_COM="$OUT/int20child.com"
 SERIAL_LOG="$OUT/int21-process.log"
 
 if [[ ! -f "$FLOPPY" ]]; then
@@ -27,10 +28,12 @@ done
 cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/int21_process_probe.asm" -o "$PROBE_COM"
 nasm -f bin "$REPO_ROOT/tests/int21_child_probe.asm" -o "$CHILD_COM"
+nasm -f bin "$REPO_ROOT/tests/int20_child_probe.asm" -o "$INT20_CHILD_COM"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::I21PROC.COM
 mcopy -o -i "$BOOT_IMG" "$CHILD_COM" ::I21CHILD.COM
+mcopy -o -i "$BOOT_IMG" "$INT20_CHILD_COM" ::INT20.COM
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'

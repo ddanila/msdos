@@ -29,10 +29,25 @@ start:
     pop dx                        ; Discard INT 25h's retained FLAGS word.
     mov [result_flags], ax
 
+    mov byte [write_calls], 0
+    mov al, 2                     ; Write one unchanged sector back to C:.
+    mov bx, disk_buffer
+    mov cx, 1
+    mov dx, 60
+    int 26h
+    pushf
+    pop ax
+    pop dx                        ; Discard INT 26h's retained FLAGS word.
+    mov [write_result_flags], ax
+
     call restore_vector
     test word [result_flags], 1
     jnz failed
+    test word [write_result_flags], 1
+    jnz failed
     cmp byte [read_calls], 0
+    je failed
+    cmp byte [write_calls], 0
     je failed
 
     mov si, prefix
@@ -70,13 +85,19 @@ restore_vector:
 
 int13_hook:
     cmp ah, 02h
-    jne .chain
+    jne .check_write
     cmp dl, 80h
     jne .chain
     inc byte [cs:read_calls]
     cmp al, [cs:max_sectors]
     jbe .chain
     mov [cs:max_sectors], al
+.check_write:
+    cmp ah, 03h
+    jne .chain
+    cmp dl, 80h
+    jne .chain
+    inc byte [cs:write_calls]
 .chain:
     jmp far [cs:old_int13_off]
 
@@ -121,6 +142,8 @@ fail_message    db 'CONFIG_MULTITRACK_FAIL', 13, 10, 0
 old_int13_off   dw 0
 old_int13_seg   dw 0
 result_flags    dw 0
+write_result_flags dw 0
 read_calls      db 0
+write_calls     db 0
 max_sectors     db 0
 disk_buffer     times 10 * 512 db 0

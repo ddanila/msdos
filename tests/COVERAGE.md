@@ -33,6 +33,14 @@ runtime `.COM`, `.EXE`, and `.SYS` component and to every directive parsed from
 the kernel's live `COMTAB` in `BIOS/SYSINIT2.ASM`. Its verifier derives both
 sets from the source and Makefile, rejecting omitted or stale entries.
 
+`dos_interrupt_coverage.json` covers the DOS-initialized vector surface outside
+the INT 21h dispatch table. Its verifier checks the live `MSINIT.ASM` vector
+setup for INT 20h through INT 29h and the installed INT 2Fh handler. Focused
+contracts currently include old-style termination and residency, process
+termination and critical-error callbacks, and absolute sector reads and writes
+on disposable images; callback or multiplex behavior that is only observed is
+kept visibly incomplete.
+
 Focused CONFIG.SYS state coverage uses `test_config_state_qemu.sh`. Its probe
 queries BREAK and LASTDRIVE through public INT 21h interfaces and reads the DOS
 list of lists for the configured BUFFERS, FILES, and FCBS allocations. COMMENT
@@ -62,6 +70,9 @@ and linkage without pretending that one of the shipped TSRs is an IFS driver.
 `test_config_multitrack_qemu.sh` attaches separate FAT16 IDE images to parallel
 ON and OFF boots. An INT 13h observer proves the same ten-sector absolute read
 is coalesced across a track only when MULTITRACK is enabled.
+Each probe also writes an unchanged sector back through INT 26h and requires a
+successful observed BIOS write, keeping all mutation confined to its private
+disk copy.
 
 Driver contracts similarly require an effect after installation. For example,
 `test_ansi_driver_qemu.sh` sends an ANSI cursor-position sequence through DOS
@@ -148,6 +159,7 @@ Run the inventory check with:
 make test-coverage-manifest
 make test-int21-error-coverage-manifest
 make test-runtime-coverage-manifest
+make test-dos-interrupt-coverage-manifest
 ```
 
 Contract evidence must include a runnable shell test referenced directly by
