@@ -48,7 +48,7 @@ timeout 35 qemu-system-i386 \
     >"$SERIAL_LOG" 2>&1 || true
 
 if grep -q 'INT21_PROCESS_PASS' "$SERIAL_LOG"; then
-    echo "  PASS: INT 21h process, IOCTL, and NLS contracts"
+    echo "  PASS: INT 21h EXEC success/error, wait, IOCTL, and NLS contracts"
     exit 0
 fi
 

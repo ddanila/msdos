@@ -7,10 +7,12 @@ machine-checked inventory parses all 109 live INT 21h dispatch entries from
 `DOS/MS_TABLE.ASM`. The dispatch milestone is complete: 104 entries have
 focused QEMU contracts, five hardware/write-only entries have explicit
 justifications, and the normal test suite enforces `--require-complete`.
-CI also rejects unexpected host-test skips. The next milestone is an equivalent
-machine-checked inventory for every shipped command, CONFIG.SYS directive,
-driver, and TSR, followed by negative, boundary, destructive-disk, and resource-
-exhaustion scenarios.
+CI also rejects unexpected host-test skips. The runtime inventory is complete:
+all 55 shipped commands, drivers, and TSRs and all 17 CONFIG.SYS directives have
+focused contracts enforced by the normal test suite. The active depth milestone
+derives 110 allowed INT 21h function/error pairs from `I21_MAP_E_TAB`; 50 now
+have focused negative-path evidence. The remaining 60 pairs, followed by a
+systematic boundary/state/recovery audit, are the current coverage backlog.
 
 ## Native Open-Source Build (COMPLETE)
 

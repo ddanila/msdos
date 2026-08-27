@@ -73,7 +73,7 @@
     "48": {"level": "contract", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "Allocates normally, asserts exhaustion error 8 and the largest available block, consumes it completely, then allocates again after recovery"},
     "49": {"level": "contract", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "Frees normal and arena-exhaustion blocks and proves allocation capacity returns"},
     "4A": {"level": "contract", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "Shrinks both the PSP arena and a separately allocated block"},
-    "4B": {"level": "contract", "evidence": ["tests/int21_process_probe.asm", "tests/test_int21_process_qemu.sh"], "note": "EXEC loads and runs a focused child COM program"},
+    "4B": {"level": "contract", "evidence": ["tests/int21_process_probe.asm", "tests/test_int21_process_qemu.sh"], "note": "EXEC loads and runs a focused child COM program, distinguishes seven documented failure classes, releases exhausted resources, and then executes successfully"},
     "4C": {"level": "contract", "evidence": ["tests/test_debug_qemu.sh", "tests/test_share_nlsfunc_exe2bin.sh"], "note": "Exit codes are asserted across child programs"},
     "4D": {"level": "contract", "evidence": ["tests/int21_process_probe.asm", "tests/test_int21_process_qemu.sh"], "note": "Wait returns normal termination and the child's asserted 2Ah exit code"},
     "4E": {"level": "contract", "evidence": ["tests/int21_file_memory_probe.asm", "tests/test_int21_file_memory_qemu.sh"], "note": "Find-first locates the uniquely named test file using a custom DTA"},

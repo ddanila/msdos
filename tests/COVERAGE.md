@@ -96,6 +96,11 @@ purpose-built paths: absent file versus absent parent, existing directory,
 nonempty directory, current-directory removal, and a find with no matches.
 The file/memory probe separately fills the default JFT and configured SFT so
 duplicate and all create/open variants return their exact capacity errors.
+The process probe covers EXEC success and seven distinct failure contracts. It
+rejects invalid modes, missing files and parents, directories, unterminated
+32 KiB environments, an exhausted system file table, and an exhausted memory
+arena. It releases both constrained resources before a final successful child
+execution, so the test also proves recovery rather than only observing errors.
 
 Run the inventory check with:
 
