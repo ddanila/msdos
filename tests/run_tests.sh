@@ -833,6 +833,7 @@ output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\CMD\EDLIN\*.*' /S) || true
 if echo "$output" | grep -q "EDLIN.COM" && echo "$output" | grep -q "EDLIN.ASM"; then
     ok "ATTRIB /S (recursive listing)"
 else
+    printf '%s\n' "$output"
     fail "ATTRIB /S (expected EDLIN.COM and EDLIN.ASM in recursive output)"
 fi
 
