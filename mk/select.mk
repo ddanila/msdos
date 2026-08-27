@@ -190,13 +190,13 @@ $(SELECT_DIR)/ASM2C.OBJ: $(SELECT_DIR)/ASM2C.ASM
 # SELECT.EXE C objects
 # ---------------------------------------------------------------------------
 $(SELECT_DIR)/GET_STAT.OBJ: $(SELECT_DIR)/GET_STAT.C
-	cd $(SELECT_DIR) && $(CL) "-AS -Od -Zp -I. -c -FoGET_STAT.OBJ GET_STAT.C"
+	cd $(SELECT_DIR) && $(WCC) "-AS -Os -Zp -I. -c -FoGET_STAT.OBJ GET_STAT.C"
 
 $(SELECT_DIR)/INT13.OBJ: $(SELECT_DIR)/INT13.C
-	cd $(SELECT_DIR) && $(CL) "-AS -Od -Zp -I. -c -FoINT13.OBJ INT13.C"
+	cd $(SELECT_DIR) && $(WCC) "-AS -Os -Zp -I. -c -FoINT13.OBJ INT13.C"
 
 $(SELECT_DIR)/GLOBAL.OBJ: $(SELECT_DIR)/GLOBAL.C
-	cd $(SELECT_DIR) && $(CL) "-AS -Od -Zp -I. -c -FoGLOBAL.OBJ GLOBAL.C"
+	cd $(SELECT_DIR) && $(WCC) "-AS -Os -Zp -I. -c -FoGLOBAL.OBJ GLOBAL.C"
 
 # ---------------------------------------------------------------------------
 # SELECT.EXE link
@@ -223,7 +223,7 @@ SELECT_OBJS := \
     $(SELECT_DIR)/SELSERV.OBJ
 
 $(SELECT_DIR)/SELECT.EXE: $(SELECT_OBJS)
-	cd $(SELECT_DIR) && $(LINK) "/noe @SELECT.LNK"
+	cd $(SELECT_DIR) && $(WLINK) "/noe /nofarcalls @SELECT.LNK"
 	$(BIN)/fix-exepack $(SELECT_DIR)/SELECT.EXE
 
 # ---------------------------------------------------------------------------

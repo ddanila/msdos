@@ -11,6 +11,8 @@
 #   3. Stub shows "Insert SELECT diskette" — press ENTER (INT 16H)
 #   4. SELECT.EXE runs — "Invalid parameters" (no args = expected error)
 #   5. Returns to DOS prompt (no crash/hang)
+#   6. Boot a fresh image and run "SELECT MENU"
+#   7. Confirm the valid path reaches the Welcome panel
 #
 # Run via: make test-select  (requires 'make deploy' first)
 
@@ -22,6 +24,9 @@ FLOPPY="$OUT/floppy.img"
 BOOT_IMG="$OUT/select-test-boot.img"
 SCREEN_LOG="$OUT/select-test.log"
 QMP_SOCK="$OUT/select-test-qmp.sock"
+MENU_BOOT_IMG="$OUT/select-menu-test-boot.img"
+MENU_SCREEN_LOG="$OUT/select-menu-test.log"
+MENU_QMP_SOCK="$OUT/select-menu-test-qmp.sock"
 
 PASS=0
 FAIL=0
@@ -34,7 +39,7 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
-trap 'kill $QEMU_PID 2>/dev/null; rm -f "$QMP_SOCK" "$BOOT_IMG" 2>/dev/null; true' EXIT
+trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$QMP_SOCK" "$MENU_QMP_SOCK" "$BOOT_IMG" "$MENU_BOOT_IMG" 2>/dev/null; true' EXIT
 
 echo "=== SELECT e2e test (screen_expect: INT 16H + video memory) ==="
 
@@ -86,7 +91,41 @@ python3 "$REPO_ROOT/tests/screen_expect.py" \
 kill $QEMU_PID 2>/dev/null
 wait $QEMU_PID 2>/dev/null || true
 
-# ── Step 4: checks ──────────────────────────────────────────────────────────
+# ── Step 4: exercise a valid command line through the first UI panel ────────
+echo "Running SELECT MENU valid-path check..."
+cp "$FLOPPY" "$MENU_BOOT_IMG"
+mdel -i "$MENU_BOOT_IMG" ::AUTOEXEC.BAT 2>/dev/null || true
+rm -f "$MENU_QMP_SOCK"
+timeout 90 qemu-system-i386 \
+    -display none \
+    -drive if=floppy,index=0,format=raw,file="$MENU_BOOT_IMG" \
+    -boot a -m 4 \
+    -qmp unix:"$MENU_QMP_SOCK",server,nowait \
+    2>/dev/null &
+QEMU_PID=$!
+
+for i in $(seq 1 20); do
+    [[ -S "$MENU_QMP_SOCK" ]] && break
+    sleep 0.2
+done
+
+if [[ ! -S "$MENU_QMP_SOCK" ]]; then
+    echo "ERROR: MENU QMP socket did not appear"
+    exit 1
+fi
+
+python3 "$REPO_ROOT/tests/screen_expect.py" \
+    "$MENU_QMP_SOCK" "$MENU_SCREEN_LOG" \
+    'Enter new date' 'ret' \
+    'Enter new time' 'ret' \
+    '>' 's+e+l+e+c+t+spc+m+e+n+u+ret' \
+    'Insert SELECT' 'ret' \
+    'Welcome' ''
+
+kill $QEMU_PID 2>/dev/null
+wait $QEMU_PID 2>/dev/null || true
+
+# ── Step 5: checks ──────────────────────────────────────────────────────────
 echo ""
 echo "--- SELECT tests ---"
 
@@ -130,11 +169,19 @@ else
     fail "Final screen not captured"
 fi
 
+if grep -q "Welcome to DOS 4.0 and the SELECT program" "$MENU_SCREEN_LOG"; then
+    ok "SELECT MENU reached the Welcome panel"
+else
+    fail "SELECT MENU did not reach the Welcome panel"
+fi
+
 # Dump log on failure
 if [[ $FAIL -gt 0 ]]; then
     echo ""
     echo "--- screen log (for debugging) ---"
     cat "$SCREEN_LOG" 2>/dev/null || echo "(empty)"
+    echo "--- SELECT MENU screen log ---"
+    cat "$MENU_SCREEN_LOG" 2>/dev/null || echo "(empty)"
     echo "--- end screen log ---"
 fi
 

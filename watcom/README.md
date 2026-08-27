@@ -5,19 +5,30 @@ project, vendored for reproducible builds without requiring a system-level insta
 
 ## Source
 
-Current build: **Current-build** (August 25 2026, `638f7a4`)
+Base build: **Current-build** (August 25 2026,
+`7d1bc7c50a2a2ac6228c6323d916e7b8733e1d10`)
 URL: https://github.com/open-watcom/open-watcom-v2/releases/tag/Current-build
 Asset: `ow-snapshot.tar.xz`
-SHA-256: `c3f6361dbb196ca907400ec6dabdbb13bacb4fd54e3216262adc58b41b1e1862`
+Source fork: https://github.com/ddanila/open-watcom-v2/tree/custom
+Custom revision: `990174aef057a5be9a5868bc17b55e2e404ec66a`
 
-Both `bin/macos-arm64/` and `bin/linux-x64/` match the release snapshot.
+The macOS arm64 `wlink` is built from the custom revision. It preserves the
+release snapshot's behavior while adding Microsoft LINK-compatible handling
+for oversized 16-bit real-mode groups, including member-relative external
+frames and relocation locations beyond 64 KiB. Its SHA-256 is
+`1b3e77a2f5cb5acc4098c25d7202acd17ea63aa3b12a2abad628fcab053109c7`.
+
+The remaining macOS tools and the Linux x86-64 tools come from the release
+snapshot. The Linux custom WLINK rebuild is tracked as a portability gate; the
+release WLINK remains vendored there until that native build has passed the
+same SELECT runtime regression.
 
 ## Layout
 
 | Directory         | Platform           | Extracted from |
 |-------------------|--------------------|----------------|
-| `bin/linux-x64/`  | Linux x86-64       | `binl64/`      |
-| `bin/macos-arm64/`| macOS Apple Silicon| `armo64/`      |
+| `bin/linux-x64/`  | Linux x86-64       | `binl64/` release snapshot |
+| `bin/macos-arm64/`| macOS Apple Silicon| `armo64/` snapshot plus custom WLINK |
 
 ## Tools included
 
@@ -32,7 +43,7 @@ The vendored 16-bit DOS runtime under `lib286/` includes the model-specific C
 libraries and `math87s.lib`, which Open Watcom links automatically for
 small-model programs that use floating-point arithmetic.
 
-## Updating
+## Updating release binaries
 
 To update to a newer release:
 1. Download `ow-snapshot.tar.xz` from the desired release tag

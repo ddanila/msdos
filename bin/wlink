@@ -134,6 +134,9 @@ def main():
 
     # Collapse '+' continuations, then treat newlines as field separators.
     body = re.sub(r"\+\s*", "+", body)
+    # A comma at end of line already advances to the next response field;
+    # do not turn its following newline into a second, empty field.
+    body = re.sub(r",[ \t]*\r?\n[ \t]*", ",", body)
     body = re.sub(r"[ \t]*\r?\n[ \t]*", ",", body)
     fields = [f.strip() for f in body.split(",")]
     while len(fields) < 4:
@@ -142,6 +145,14 @@ def main():
 
     gopts += re.findall(OPT_RE, run_f) + re.findall(OPT_RE, map_f)
     gopts_l = [("/" + o[1:] if o.startswith("-") else o).lower() for o in gopts]
+
+    # Optional class ordering for programs whose runtime uses a linker-placed
+    # end marker.  Syntax: /ORDER:CLASS1,CLASS2,...,CLASSN
+    order_classes = []
+    for opt in gopts:
+        match = re.fullmatch(r"[/-]order:([^\s]+)", opt, re.I)
+        if match:
+            order_classes = [name for name in match.group(1).split(",") if name]
 
     objs = [resolve_existing_casefold(path) for path in names(objs_f, ".obj")]
     libs = [resolve_existing_casefold(path) for path in names(lib_f, ".lib")]
@@ -175,6 +186,8 @@ def main():
     # case. Applying CASEEXACT unconditionally breaks old objects which freely
     # vary symbol casing across modules.
     directives += ["option", "caseexact" if "/noi" in gopts_l else "nocaseexact"]
+    if "/nofarcalls" in gopts_l:
+        directives += ["option", "nofarcalls"]
     # The model-specific C runtimes live in dos/, while their floating-point
     # companions (for example math87s.lib) live one directory above it.
     directives += ["libpath", owlib, "libpath", owroot]
@@ -190,6 +203,10 @@ def main():
     directives += ["file", ",".join(objs)]
     if libs:
         directives += ["library", ",".join(libs)]
+    if order_classes:
+        directives += ["order"]
+        for class_name in order_classes:
+            directives += ["clname", class_name]
 
     rc = subprocess.call([wlink_bin()] + directives)
     if rc == 0 and os.path.exists(run):
