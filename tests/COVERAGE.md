@@ -33,6 +33,11 @@ in parallel. An INT 16h hook proves that the directive changes DOS CON input
 from the extended keyboard read function to the conventional compatibility
 function.
 
+`test_config_stacks_qemu.sh` compares isolated `STACKS=0,0` and
+`STACKS=9,256` boots. The configured case must reserve at least the exact lower
+bound implied by nine stack entries and their 256-byte payloads; the current
+build also accounts for the relocated stack handler.
+
 Run the inventory check with:
 
 ```sh
