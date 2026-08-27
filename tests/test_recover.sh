@@ -6,7 +6,7 @@
 #                         skipping bad sectors; prints "X of Y bytes recovered".
 #   RECOVER A:          — drive mode: rebuilds entire directory, renaming
 #                         all chains to FILExxxx.REC; prints "N file(s) recovered".
-#                         Destructive — not tested here.
+#                         Destructive, so exercised on a private B: image.
 #
 # Both modes call GetKeystroke via INT 21h/AH=0Ch/AL=8 (flush input buffer
 # then read one char).  With CTTY AUX the read is from COM1 serial.
@@ -27,6 +27,8 @@ FLOPPY="$OUT/floppy.img"
 
 BOOT_IMG="$OUT/recover-boot.img"
 SERIAL_LOG="$OUT/recover-serial.log"
+DRIVE_IMG="$OUT/recover-drive.img"
+EXIT_COM="$OUT/qemu-exit.com"
 
 PASS=0
 FAIL=0
@@ -46,11 +48,17 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 # ── Step 1: build test floppy ─────────────────────────────────────────────────
 echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
+nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
+dd if=/dev/zero of="$DRIVE_IMG" bs=512 count=2880 status=none
+mformat -i "$DRIVE_IMG" -f 1440 ::
 
 # Add a small text file for RECOVER to process.
 # On a healthy floppy (no bad sectors) RECOVER reads all clusters cleanly
 # and prints "X of X bytes recovered".
 printf 'RECOVER TEST FILE CONTENTS\r\n' | mcopy -o -i "$BOOT_IMG" - ::TESTFILE.TXT
+mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
+printf 'RECOVER DRIVE ALPHA\r\n' | mcopy -o -i "$DRIVE_IMG" - ::ALPHA.TXT
+printf 'RECOVER DRIVE BETA\r\n' | mcopy -o -i "$DRIVE_IMG" - ::BETA.TXT
 
 # AUTOEXEC.BAT: RECOVER A:TESTFILE.TXT in file mode (non-destructive).
 {
@@ -63,7 +71,13 @@ printf 'RECOVER TEST FILE CONTENTS\r\n' | mcopy -o -i "$BOOT_IMG" - ::TESTFILE.T
     printf 'RECOVER A:TESTFILE.TXT\r\n'
     printf 'ECHO RECOVER_FILE_DONE\r\n'
 
+    printf 'ECHO ---RECOVER-DRIVE---\r\n'
+    printf 'RECOVER B:\r\n'
+    printf 'DIR B:\\FILE*.REC\r\n'
+    printf 'ECHO RECOVER_DRIVE_DONE\r\n'
+
     printf 'ECHO ===DONE===\r\n'
+    printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
 # ── Step 2: boot QEMU and capture serial output ───────────────────────────────
@@ -76,8 +90,10 @@ rm -f "$SERIAL_LOG"
 timeout 120 qemu-system-i386 \
     -display none \
     -drive if=floppy,index=0,format=raw,file="$BOOT_IMG",cache=writethrough \
+    -drive if=floppy,index=1,format=raw,file="$DRIVE_IMG",cache=writethrough \
     -boot a -m 4 \
     -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     2>/dev/null | tee "$SERIAL_LOG" > /dev/null; true
 
 if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
@@ -105,6 +121,36 @@ if grep -q "RECOVER_FILE_DONE" "$SERIAL_LOG"; then
     ok "RECOVER A:TESTFILE.TXT (batch continued after recovery)"
 else
     fail "RECOVER A:TESTFILE.TXT (batch hung or crashed)"
+fi
+
+if sed -n '/---RECOVER-DRIVE---/,/RECOVER_DRIVE_DONE/p' "$SERIAL_LOG" \
+    | grep -Eqi '[12] file\(s\) recovered' \
+    && grep -q 'RECOVER_DRIVE_DONE' "$SERIAL_LOG"; then
+    ok "RECOVER B: rebuilt the private drive directory"
+else
+    fail "RECOVER B: did not complete whole-drive recovery"
+fi
+
+file_contents="$(mtype -i "$BOOT_IMG" ::TESTFILE.TXT 2>/dev/null | tr -d '\r' || true)"
+if [[ "$file_contents" == 'RECOVER TEST FILE CONTENTS' ]]; then
+    ok "RECOVER file mode preserved the exact recovered bytes"
+else
+    fail "RECOVER file mode contents differ: '$file_contents'"
+fi
+
+drive_listing="$(mdir -b -i "$DRIVE_IMG" :: 2>/dev/null || true)"
+drive_contents="$({
+    mtype -i "$DRIVE_IMG" ::FILE0001.REC 2>/dev/null || true
+    mtype -i "$DRIVE_IMG" ::FILE0002.REC 2>/dev/null || true
+} | tr -d '\r')"
+if ! grep -qi 'ALPHA.TXT\|BETA.TXT' <<<"$drive_listing" \
+    && grep -q 'FILE0001.REC' <<<"$drive_listing" \
+    && grep -q 'FILE0002.REC' <<<"$drive_listing" \
+    && grep -q 'RECOVER DRIVE ALPHA' <<<"$drive_contents" \
+    && grep -q 'RECOVER DRIVE BETA' <<<"$drive_contents"; then
+    ok "RECOVER drive mode renamed both chains and preserved their bytes"
+else
+    fail "RECOVER drive mode persistence mismatch: $drive_listing"
 fi
 
 if grep -q "===DONE===" "$SERIAL_LOG"; then

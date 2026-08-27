@@ -106,6 +106,13 @@ media checks cover 1.44MB and 720KB BPBs, 360KB and single-sided formats in a
 and undocumented-switch paths require their exact rejection diagnostics; no
 FORMAT case is accepted merely because the batch continued.
 
+`test_recover.sh` covers both public RECOVER modes on disposable media. File
+mode must preserve the exact original payload. Whole-drive mode destroys only
+a private B: directory, proves both original names are removed, and reads back
+the payloads from the generated `FILEnnnn.REC` chains. The guest exits through
+the test-only QEMU port after persistence checks are ready, avoiding a fixed
+interactive timeout.
+
 `test_int21_file_memory_qemu.sh` includes destructive-but-recoverable resource
 limits. It consumes the largest reported DOS arena, asserts error 8 on the next
 allocation, releases it, and allocates again. With `FILES=12` and an expanded

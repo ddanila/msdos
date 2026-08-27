@@ -41,7 +41,7 @@
     "PRINT.COM": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Queue configuration, add, cancel, and terminate operations are asserted"},
     "PRINTER.SYS": {"kind": "driver", "level": "contract", "evidence": ["tests/test_printer_driver_qemu.sh"], "note": "The 4201 printer definition prepares and selects code page 850, then reports it active through MODE"},
     "RAMDRIVE.SYS": {"kind": "driver", "level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Installed RAM disk is located and accessed through DOS directory I/O"},
-    "RECOVER.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_recover.sh"], "note": "File-mode FAT chain recovery and resulting contents are asserted"},
+    "RECOVER.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_recover.sh"], "note": "File-mode recovery preserves exact bytes, while destructive drive mode rebuilds a private FAT directory as FILEnnnn.REC chains and preserves both payloads"},
     "REPLACE.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_prompt_yesno.sh"], "note": "All documented modes and interactive confirmation are asserted"},
     "RESTORE.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_backup_restore.sh", "tests/test_prompt_yesno.sh"], "note": "Restore filtering, media, and interactive confirmation modes are asserted"},
     "SELECT.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_select.sh"], "note": "BIOS-keyboard stub behavior and transition to SELECT.EXE are asserted"},
