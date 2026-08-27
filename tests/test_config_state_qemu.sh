@@ -34,6 +34,7 @@ mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::CFGPROBE.COM
     printf 'FILES=32\r\n'
     printf 'FCBS=8,3\r\n'
     printf 'LASTDRIVE=Z\r\n'
+    printf 'CPSW=ON\r\n'
     printf 'COMMENT=BREAK=OFF\r\n'
     printf 'REM BREAK=OFF\r\n'
     printf 'SHELL=COMMAND.COM /P\r\n'
@@ -55,7 +56,7 @@ timeout 35 qemu-system-i386 \
     >"$SERIAL_LOG" 2>&1 || true
 
 if grep -q 'CONFIG_STATE_PASS' "$SERIAL_LOG"; then
-    echo "  PASS: CONFIG.SYS BREAK/BUFFERS/FILES/FCBS/LASTDRIVE/COMMENT/REM contracts"
+    echo "  PASS: CONFIG.SYS state and compatibility no-op contracts"
     exit 0
 fi
 

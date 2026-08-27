@@ -62,7 +62,7 @@
     "BUFFERS": {"level": "contract", "evidence": ["tests/test_config_state_qemu.sh"], "note": "Both configured buffer parameters are asserted through the DOS list of lists"},
     "COMMENT": {"level": "contract", "evidence": ["tests/test_config_state_qemu.sh"], "note": "An apparent BREAK override after COMMENT= is ignored and the original state remains active"},
     "COUNTRY": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Country data loads and downstream code-page behavior is asserted"},
-    "CPSW": {"level": "uncovered", "evidence": [], "note": "No compatibility-switch state contract"},
+    "CPSW": {"level": "contract", "evidence": ["tests/test_config_state_qemu.sh"], "note": "CPSW=ON is accepted and AH=33h subfunctions 03h/04h are asserted as the intentionally inert DOS 4 compatibility interface"},
     "DEVICE": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh", "tests/test_emm386_qemu.sh"], "note": "Multiple character, block, display, cache, and memory drivers are installed and exercised"},
     "DRIVPARM": {"level": "uncovered", "evidence": [], "note": "No drive-parameter behavior or malformed-input contract"},
     "FCBS": {"level": "contract", "evidence": ["tests/test_config_state_qemu.sh"], "note": "Configured FCB table and keep counts are asserted through the DOS list of lists"},

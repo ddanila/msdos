@@ -3,8 +3,8 @@ org 100h
 
 ; Focused contracts for CONFIG.SYS settings exposed through DOS state.
 ; CONFIG.SYS for this probe selects BREAK=ON, BUFFERS=20, FILES=32,
-; FCBS=8,3, and LASTDRIVE=Z. COMMENT and REM lines attempt to override BREAK;
-; observing it still enabled also proves those lines were ignored.
+; FCBS=8,3, LASTDRIVE=Z, and CPSW=ON. COMMENT and REM lines attempt to override
+; BREAK; observing it still enabled also proves those lines were ignored.
 
 start:
     push cs
@@ -60,6 +60,17 @@ start:
     pop es
     jne fcbs_failed
 
+    mov dx, 5aa5h                 ; DOS 4's CPSW API is a compatibility no-op.
+    mov ax, 3303h                 ; Get must preserve the caller's sentinel.
+    int 21h
+    cmp dx, 5aa5h
+    jne cpsw_failed
+    mov dx, 0a55ah
+    mov ax, 3304h                 ; Set is accepted but intentionally inert.
+    int 21h
+    cmp dx, 0a55ah
+    jne cpsw_failed
+
     mov dl, [current_drive]
     mov ah, 0eh
     int 21h
@@ -87,6 +98,9 @@ files_failed:
     jmp fail
 fcbs_failed:
     mov dx, fail_fcbs
+    jmp fail
+cpsw_failed:
+    mov dx, fail_cpsw
 fail:
     mov ah, 09h
     int 21h
@@ -99,4 +113,5 @@ fail_lastdrive db 'CONFIG_LASTDRIVE_FAIL', 13, 10, '$'
 fail_buffers   db 'CONFIG_BUFFERS_FAIL', 13, 10, '$'
 fail_files     db 'CONFIG_FILES_FAIL', 13, 10, '$'
 fail_fcbs      db 'CONFIG_FCBS_FAIL', 13, 10, '$'
+fail_cpsw      db 'CONFIG_CPSW_COMPAT_FAIL', 13, 10, '$'
 current_drive  db 0

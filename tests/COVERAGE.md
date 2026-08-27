@@ -27,6 +27,9 @@ queries BREAK and LASTDRIVE through public INT 21h interfaces and reads the DOS
 list of lists for the configured BUFFERS, FILES, and FCBS allocations. COMMENT
 and REM contain apparent state-changing commands; the probe asserts that both
 lines were ignored and did not override BREAK.
+The same probe loads `CPSW=ON` and verifies the DOS 4 compatibility behavior:
+INT 21h/AH=33h subfunctions 03h and 04h are accepted but intentionally preserve
+their caller-visible sentinel state.
 
 `test_config_switches_qemu.sh` boots isolated control and `SWITCHES=/K` images
 in parallel. An INT 16h hook proves that the directive changes DOS CON input
