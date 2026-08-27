@@ -10,6 +10,13 @@
       "/STA": {"level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Short synonym reports the active B-to-A redirection"},
       "/STATUS": {"level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Long synonym reports the active redirection and rejects a duplicate synonym"}
     }},
+    "ATTRIB.EXE": {"source": "MS-DOS/v4.0/src/CMD/ATTRIB/ATTRIB.H", "extractor": "attrib_header", "switches": {
+      "+A": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Sets the archive attribute and a subsequent query reports the transition"},
+      "+R": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Sets the read-only attribute alone and together with +A"},
+      "-A": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Clears the archive attribute without changing the file payload"},
+      "-R": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Clears the read-only attribute and permits deterministic cleanup"},
+      "/S": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Recursively reports files from both the root and a nested directory"}
+    }},
     "BACKUP.COM": {"source": "MS-DOS/v4.0/src/CMD/BACKUP/BACKUP.C", "extractor": "c_parser_literals", "switches": {
       "/A": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Appends to an existing backup set and preserves earlier content"},
       "/D": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Date filtering includes and excludes deterministic source timestamps"},
@@ -65,6 +72,12 @@
       "/NNNN": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "A higher consecutive-line threshold changes resynchronization block grouping"},
       "/T": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Preserves tabs so tab-versus-space inputs differ, unlike the control"},
       "/W": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Compresses whitespace so spacing-only input differences compare equal"}
+    }},
+    "FDISK.EXE": {"source": "MS-DOS/v4.0/src/CMD/FDISK/PARSE.H", "extractor": "c_define_switches", "switches": {
+      "/EXT": {"level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Creates an exact extended-partition container whose CHS, LBA, and bounds are verified on disk"},
+      "/LOG": {"level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Creates a logical drive with a valid EBR inside the verified extended partition"},
+      "/PRI": {"level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Creates a requested primary partition in both mixed and primary-only disk scenarios"},
+      "/Q": {"level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Suppresses reboot and exposes the source-defined batch errorlevels before and after partition creation"}
     }},
     "FLUSH13.EXE": {"source": "MS-DOS/v4.0/src/DEV/SMARTDRV/FLUSH13.C", "extractor": "flush13_code", "switches": {
       "/C:OFF": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Disables caching of full-track reads and reports the resulting resident policy"},

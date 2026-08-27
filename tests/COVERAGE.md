@@ -43,10 +43,12 @@ or `#define` literals. FC's code-driven parser has a dedicated extractor for
 its switch cases, `/LB` subform, and numeric resynchronization form. The
 FORMAT, APPEND, ASSIGN, and CHKDSK extend the assembly extractor to parser
 tables held in include files; FORMAT's compile-time-disabled `/FS` and `/Z`
-records are excluded according to its live build constants. FLUSH13's
+records are excluded according to its live build constants. ATTRIB's
+non-switch `+A`, `-A`, `+R`, and `-R` operators and FDISK's header-defined
+valued switches have specialized source extractors. FLUSH13's
 code-driven grammar has a dedicated extractor for all status, state, policy,
-and numeric tick forms. The verifier now covers all 114 switches across
-twenty-six utilities. Short and long
+and numeric tick forms. The verifier now covers all 123 switch/operator forms
+across twenty-eight utilities. Short and long
 synonyms remain separate entry contracts. It derives
 the complete matching source-file set for both encodings, then compares each
 declared surface with its live

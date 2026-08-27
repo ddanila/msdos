@@ -58,6 +58,17 @@ def source_switches(text, extractor="asm_db"):
             write = parser.split("case 'w':", 1)[1].split("break;", 1)[0]
             for suffix in re.findall(r"\*cptr\s*==\s*'([a-z])'", write):
                 values += [f"/W{suffix}:ON", f"/W{suffix}:OFF"]
+    elif extractor == "attrib_header":
+        values = re.findall(
+            r"^\s*char\s+\w+\[\]\s*=\s*[\"']([+-][AR])[\"']",
+            text, re.IGNORECASE | re.MULTILINE,
+        )
+        values += re.findall(r"[\"'](/S)[\"']", text, re.IGNORECASE)
+    elif extractor == "c_define_switches":
+        values = re.findall(
+            r"^\s*#define\s+\w+\s+[\"'](/[^\"']+)[\"']",
+            text, re.IGNORECASE | re.MULTILINE,
+        )
     else:
         raise AssertionError(f"unknown parser extractor {extractor!r}")
     return {value.upper() for value in values}
@@ -125,6 +136,15 @@ def main():
         if item.get("extractor") == "flush13_code"
     } != {"MS-DOS/v4.0/src/DEV/SMARTDRV/FLUSH13.C"}:
         raise AssertionError("FLUSH13 code-driven parser source is missing or stale")
+    specialized_sources = {
+        item.get("extractor"): item["source"] for item in manifest["utilities"].values()
+        if item.get("extractor") in {"attrib_header", "c_define_switches"}
+    }
+    if specialized_sources != {
+        "attrib_header": "MS-DOS/v4.0/src/CMD/ATTRIB/ATTRIB.H",
+        "c_define_switches": "MS-DOS/v4.0/src/CMD/FDISK/PARSE.H",
+    }:
+        raise AssertionError(f"specialized C header parser sources are missing or stale: {specialized_sources}")
     incomplete = []
     counts = {level: 0 for level in VALID_LEVELS}
     total = 0
