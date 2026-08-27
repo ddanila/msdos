@@ -85,6 +85,17 @@ sets ES=DGROUP at both SAL message bridges. Direct host `/?` output passes, a
 forced parallel full build succeeds, QEMU help passes 6/6, and the QEMU
 miscellaneous suite passes 48/48, including installing FILESYS after IFSFUNC.
 
+**Seventh Open Watcom C hybrid complete (August 27 2026):** JOIN now uses
+`wcc`, custom JWasm, `wlink`, native-wlib MAPPER, the Open Watcom DOS runtime,
+and a source implementation of COMSUBS substring search. Four shared `INC` C
+objects have separately named OW variants so legacy SUBST retains its MS-C ABI.
+The port makes far-pointer construction compiler-explicit, fixes a system-table
+copy overrun, `argv[argc]`, null-source `strcpy`, omitted message arguments, and
+undeclared byte-return functions that left stale AH in Open Watcom callers. A
+forced parallel full build succeeds, direct host help passes, and the complete
+two-floppy ASSIGN/SUBST/JOIN QEMU suite passes 16/16, including JOIN list,
+DIR/TYPE/COPY through the joined path, and unjoin.
+
 **Native SELECT tools (August 27 2026):** ASC2HLP and COMPRESS, the final two
 proprietary build helpers, now have byte-compatible native Python replacements.
 ASC2HLP compiles USA.TXT into the indexed SELECT help-file layout; COMPRESS

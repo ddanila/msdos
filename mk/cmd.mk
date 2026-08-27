@@ -1120,13 +1120,16 @@ $(REPLACE_OUT): $(REPLACE_DIR)/REPLACE.OBJ $(REPLACE_DIR)/OWCOMSUB.OBJ $(REPLACE
 	cd $(REPLACE_DIR) && $(WLINK) "REPLACE.OBJ+OWCOMSUB.OBJ+_REPLACE.OBJ+_MSGRET.OBJ+_PARSE.OBJ,REPLACE.EXE,,..\\..\\MAPPER\\MAPPER.LIB;"
 
 # ---------------------------------------------------------------------------
-# JOIN (join.exe) — 1 C + 2 ASM + INC kernel objs, links MAPPER.LIB + COMSUBS.LIB
+# JOIN (join.exe) — Open Watcom C + 2 JWasm + native shared runtime
 # ---------------------------------------------------------------------------
 $(JOIN_DIR)/JOIN.CTL: $(JOIN_DIR)/JOIN.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(JOIN_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" JOIN.SKL
 
 $(JOIN_DIR)/JOIN.OBJ: $(JOIN_DIR)/JOIN.C $(JOIN_DIR)/JOIN.CTL
-	cd $(JOIN_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoJOIN.OBJ JOIN.C"
+	cd $(JOIN_DIR) && $(WCC) "-AS -Os -Zp -I. -I..\\..\\H -c -FoJOIN.OBJ JOIN.C"
+
+$(JOIN_DIR)/OWCOMSUB.OBJ: $(SRC)/INC/OWCOMSUB.C
+	cd $(JOIN_DIR) && $(WCC) "-AS -Os -Zp -I. -c -FoOWCOMSUB.OBJ ..\\..\\INC\\OWCOMSUB.C"
 
 $(JOIN_DIR)/_MSGRET.OBJ: $(JOIN_DIR)/_MSGRET.ASM $(JOIN_DIR)/JOIN.CTL
 	cd $(JOIN_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "_MSGRET.ASM,_MSGRET.OBJ;"
@@ -1134,9 +1137,9 @@ $(JOIN_DIR)/_MSGRET.OBJ: $(JOIN_DIR)/_MSGRET.ASM $(JOIN_DIR)/JOIN.CTL
 $(JOIN_DIR)/_PARSE.OBJ: $(JOIN_DIR)/_PARSE.ASM
 	cd $(JOIN_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "_PARSE.ASM,_PARSE.OBJ;"
 
-$(JOIN_OUT): $(JOIN_DIR)/JOIN.OBJ $(JOIN_DIR)/_MSGRET.OBJ $(JOIN_DIR)/_PARSE.OBJ \
-    $(INC_OBJ_PATHS) $(MAPPER_LIB)
-	cd $(JOIN_DIR) && $(LINK) "@JOIN.LNK"
+$(JOIN_OUT): $(JOIN_DIR)/JOIN.OBJ $(JOIN_DIR)/OWCOMSUB.OBJ \
+    $(JOIN_DIR)/_MSGRET.OBJ $(JOIN_DIR)/_PARSE.OBJ $(OW_INC_C_OBJ_PATHS) $(MAPPER_LIB)
+	cd $(JOIN_DIR) && $(WLINK) "JOIN.OBJ+OWCOMSUB.OBJ+..\\..\\INC\\OWERRTST.OBJ+..\\..\\INC\\OWSYSVAR.OBJ+..\\..\\INC\\OWCDS.OBJ+..\\..\\INC\\OWDPB.OBJ+_MSGRET.OBJ+_PARSE.OBJ,JOIN.EXE,,..\\..\\MAPPER\\MAPPER.LIB+clibs.lib;"
 
 # ---------------------------------------------------------------------------
 # SUBST (subst.exe) — 1 C + 2 ASM + INC kernel objs, links MAPPER.LIB + COMSUBS.LIB
