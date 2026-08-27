@@ -55,6 +55,25 @@ memory_ready:
     int 21h
     require_error 5, fail_exec_access
 
+    xor cx, cx                     ; A zero-byte image has no executable header.
+    mov dx, empty_child
+    mov ah, 3ch
+    int 21h
+    jc exec_format_setup_failed
+    mov bx, ax
+    mov ah, 3eh
+    int 21h
+    jc exec_format_setup_failed
+    mov dx, empty_child
+    mov bx, exec_block
+    mov ax, 4b00h
+    int 21h
+    require_error 11, fail_exec_format
+    mov dx, empty_child
+    mov ah, 41h
+    int 21h
+    jc exec_format_setup_failed
+
     mov bx, 800h                   ; Build 32 KiB with no double-NUL terminator.
     mov ah, 48h
     int 21h
@@ -195,6 +214,10 @@ exec_memory_setup_failed:
     mov dx, fail_exec_memory_setup
     jmp fail
 
+exec_format_setup_failed:
+    mov dx, fail_exec_format_setup
+    jmp fail
+
 fail:
     mov ah, 09h
     int 21h
@@ -205,6 +228,7 @@ child_name db 'I21CHILD.COM', 0
 missing_child db 'MISSING.COM', 0
 missing_path_child db 'NOEXIST\CHILD.COM', 0
 root_path db 'A:\', 0
+empty_child db 'EMPTY.COM', 0
 command_tail db 0, 13
 exec_block:
     dw 0
@@ -221,6 +245,8 @@ fail_exec_mode db 'INT21_EXEC_MODE_FAIL', 13, 10, '$'
 fail_exec_file db 'INT21_EXEC_FILE_FAIL', 13, 10, '$'
 fail_exec_path db 'INT21_EXEC_PATH_FAIL', 13, 10, '$'
 fail_exec_access db 'INT21_EXEC_ACCESS_FAIL', 13, 10, '$'
+fail_exec_format db 'INT21_EXEC_FORMAT_FAIL', 13, 10, '$'
+fail_exec_format_setup db 'INT21_EXEC_FORMAT_SETUP_FAIL', 13, 10, '$'
 fail_exec_environment db 'INT21_EXEC_ENVIRONMENT_FAIL', 13, 10, '$'
 fail_exec_environment_setup db 'INT21_EXEC_ENVIRONMENT_SETUP_FAIL', 13, 10, '$'
 fail_exec_sft db 'INT21_EXEC_SFT_FAIL', 13, 10, '$'

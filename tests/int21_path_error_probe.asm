@@ -35,6 +35,10 @@ start:
     mov ah, 3bh
     int 21h
     require_error 3, fail_chdir_path
+    mov dx, missing_directory       ; RMDIR maps a missing local leaf to path.
+    mov ah, 3ah
+    int 21h
+    require_error 3, fail_rmdir_path
     mov dx, test_directory
     mov ah, 3bh
     int 21h
@@ -294,6 +298,7 @@ fail_mkdir_exists db 'INT21_MKDIR_EXISTS_FAIL', 13, 10, '$'
 fail_mkdir_path  db 'INT21_MKDIR_PATH_FAIL', 13, 10, '$'
 fail_chdir_path  db 'INT21_CHDIR_PATH_FAIL', 13, 10, '$'
 fail_rmdir_current db 'INT21_RMDIR_CURRENT_FAIL', 13, 10, '$'
+fail_rmdir_path db 'INT21_RMDIR_PATH_FAIL', 13, 10, '$'
 fail_rename_current db 'INT21_RENAME_CURRENT_FAIL', 13, 10, '$'
 fail_rmdir_nonempty db 'INT21_RMDIR_NONEMPTY_FAIL', 13, 10, '$'
 fail_rename_access db 'INT21_RENAME_ACCESS_FAIL', 13, 10, '$'

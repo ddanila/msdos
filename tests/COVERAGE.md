@@ -113,6 +113,8 @@ rejects invalid modes, missing files and parents, directories, unterminated
 32 KiB environments, an exhausted system file table, and an exhausted memory
 arena. It releases both constrained resources before a final successful child
 execution, so the test also proves recovery rather than only observing errors.
+It additionally creates and deletes a zero-byte executable image to exercise
+the safe, explicit bad-format path before that final successful execution.
 Rename coverage distinguishes absent leaves and parents, an existing target,
 and attempts to rename the active current directory. Extended-open coverage
 asserts its action and access selectors plus missing, existing, directory,
@@ -135,6 +137,10 @@ violation from exhaustion of SHARE's finite lock-record pool, then releases
 every acquired range. This exposed and now guards a SHARE defect where its
 dispatcher replaced the capacity error with lock violation instead of
 preserving error 36.
+The media tests use separate writable and write-protected B: images. The latter
+issues valid media-ID writes through both generic IOCTL and function 69h and
+asserts access denied from the real block driver; its isolated CI job can run
+in parallel with the writable metadata round trip.
 
 Run the inventory check with:
 
@@ -152,6 +158,7 @@ The normal `make test` and CI build enforce the completed contract gate:
 
 ```sh
 python3 tests/test_coverage_manifest.py --require-complete
+python3 tests/test_int21_error_coverage.py --require-complete
 ```
 
 Every non-excluded dispatch entry now has focused contract evidence. Any new
