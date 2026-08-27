@@ -38,9 +38,10 @@
 #   /SELECT /V:SELTEST               : spt=18, heads=2, total=2880
 #   /AUTOTEST /V:AUTO, /BACKUP /V:BKP: spt=18, heads=2, total=2880
 #
-# Error exit variants (no BPB check):
-#   /C: disallowed — "Invalid parameter" (MSFOR.ASM lines 259-267)
-#   /Z: ShipDisk=NO in FOREQU.INC — not in parser, rejected
+# Rejected variants (no BPB check):
+#   /C and /Z are absent from this build's parser table.  Both print the exact
+#   "Invalid switch" diagnostic, preserve FORMAT's historical zero status,
+#   and leave the target media unchanged.
 #
 # Run via: make test-format  (requires 'make deploy' first)
 
@@ -78,7 +79,7 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
-trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$SERIAL_IN" "$SERIAL_OUT" "$QMP_SOCK" 2>/dev/null; [[ "$WORKDIR" != "$OUT" ]] && rm -rf "$WORKDIR" 2>/dev/null; true' EXIT
+trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$SERIAL_IN" "$SERIAL_OUT" "$QMP_SOCK" 2>/dev/null; [[ "$WORKDIR" != "$OUT" && "${KEEP_FORMAT_WORKDIR:-0}" != 1 ]] && rm -rf "$WORKDIR" 2>/dev/null; true' EXIT
 
 echo "=== FORMAT E2E tests (QEMU, QMP disk swapping) ==="
 
@@ -87,7 +88,7 @@ echo "=== FORMAT E2E tests (QEMU, QMP disk swapping) ==="
 # B_SECTORS also selects QEMU's initial B: drive geometry. CI groups variants
 # by the drive type cached by IO.SYS: DRIVPARM supplies a 720KB B: for F720/TN,
 # a 1.2MB image backs FOUR/ONE, and a 360KB image backs EIGHT. /C and /Z exit
-# with "Invalid parameter" (error paths).
+# with "Invalid switch" (rejection paths with historical zero status).
 # /SELECT and /AUTOTEST suppress all interactive prompts (format unattended).
 # The coordinator exercises all variants — batch completion markers confirm each ran.
 NAMES=("VLABEL" "S"      "B"      "F720"   "TN"     "FOUR"   "ONE"    "EIGHT"
@@ -140,13 +141,14 @@ cp "$FLOPPY" "$BOOT_IMG"
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     for i in "${!NAMES[@]}"; do
         printf 'ECHO ---FORMAT-%s---\r\n' "${NAMES[$i]}"
         printf '%s\r\n' "${FORMAT_CMDS[$i]}"
         case "${NAMES[$i]}" in
             TN|SWITCHC|SWITCHZ)
-                printf 'IF ERRORLEVEL 1 ECHO FORMAT_%s_REJECTED\r\n' "${NAMES[$i]}"
+                printf 'IF ERRORLEVEL 1 ECHO FORMAT_%s_NONZERO\r\n' "${NAMES[$i]}"
                 ;;
         esac
         printf 'ECHO FORMAT_%s_DONE\r\n' "${NAMES[$i]}"
@@ -373,7 +375,7 @@ _tn_selected=0
 for _n in "${NAMES[@]}"; do [[ "$_n" == "TN" ]] && _tn_selected=1 && break; done
 if [[ $_tn_selected -eq 1 ]]; then
     if sed -n '/---FORMAT-TN---/,/FORMAT_TN_DONE/p' "$SERIAL_LOG" | grep -qi "Parameters not supported" \
-        && grep -q 'FORMAT_TN_REJECTED' "$SERIAL_LOG"; then
+        && grep -q 'FORMAT_TN_NONZERO' "$SERIAL_LOG"; then
         ok "FORMAT /T:80 /N:9 (drive-specific rejection asserted)"
     else
         fail "FORMAT /T:80 /N:9 (expected drive-specific rejection)"
@@ -384,27 +386,27 @@ fi
 echo ""
 echo "--- FORMAT undocumented switch error checks ---"
 
-# FORMAT /C: MSFOR.ASM explicitly tests for SWITCH_C and issues "Invalid parameter"
+# /C is absent from the compiled parser table.
 _c_selected=0
 for _n in "${NAMES[@]}"; do [[ "$_n" == "SWITCHC" ]] && _c_selected=1 && break; done
 if [[ $_c_selected -eq 1 ]]; then
-    if sed -n '/---FORMAT-SWITCHC---/,/FORMAT_SWITCHC_DONE/p' "$SERIAL_LOG" | grep -qi "Invalid parameter\|Invalid switch\|error" \
-        && grep -q 'FORMAT_SWITCHC_REJECTED' "$SERIAL_LOG"; then
-        ok "FORMAT /C (rejected with error — /C disallowed in MSFOR.ASM)"
+    if sed -n '/---FORMAT-SWITCHC---/,/FORMAT_SWITCHC_DONE/p' "$SERIAL_LOG" | grep -q 'Invalid switch - /C' \
+        && ! grep -q 'FORMAT_SWITCHC_NONZERO' "$SERIAL_LOG"; then
+        ok "FORMAT /C prints its exact rejection and preserves historical zero status"
     else
-        fail "FORMAT /C (expected 'Invalid parameter' error)"
+        fail "FORMAT /C diagnostic or status contract"
     fi
 fi
 
-# FORMAT /Z: ShipDisk=NO in FOREQU.INC → /Z not in parser table → parse error
+# FORMAT /Z: ShipDisk=NO → /Z is absent from the compiled parser table.
 _z_selected=0
 for _n in "${NAMES[@]}"; do [[ "$_n" == "SWITCHZ" ]] && _z_selected=1 && break; done
 if [[ $_z_selected -eq 1 ]]; then
-    if sed -n '/---FORMAT-SWITCHZ---/,/FORMAT_SWITCHZ_DONE/p' "$SERIAL_LOG" | grep -qi "Invalid parameter\|Invalid switch\|error\|not supported" \
-        && grep -q 'FORMAT_SWITCHZ_REJECTED' "$SERIAL_LOG"; then
-        ok "FORMAT /Z (rejected — ShipDisk=NO, /Z not compiled into parser)"
+    if sed -n '/---FORMAT-SWITCHZ---/,/FORMAT_SWITCHZ_DONE/p' "$SERIAL_LOG" | grep -q 'Invalid switch - /Z' \
+        && ! grep -q 'FORMAT_SWITCHZ_NONZERO' "$SERIAL_LOG"; then
+        ok "FORMAT /Z prints its exact rejection and preserves historical zero status"
     else
-        fail "FORMAT /Z (expected parser rejection)"
+        fail "FORMAT /Z diagnostic or status contract"
     fi
 fi
 

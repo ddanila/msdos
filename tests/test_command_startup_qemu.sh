@@ -52,6 +52,7 @@ printf 'DESTMODE' | mcopy -o -i "$BOOT_IMG" - ::DMODE.BIN
 printf 'BEFORE\032AFTER' | mcopy -o -i "$BOOT_IMG" - ::SMODE.BIN
 
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'ECHO ---COMMAND-RENAME-CONFLICT---\r\n'
     printf 'RENAME RENSRC.TXT RENDST.TXT\r\n'

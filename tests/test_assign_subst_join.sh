@@ -74,6 +74,7 @@ mformat -i "$B_IMG" -f 1440 ::
 printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
 
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
     # ── ASSIGN B=A — redirect B: to A: ───────────────────────────────────────

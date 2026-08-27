@@ -73,6 +73,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
     # ── DISKCOPY A: B: — copy boot floppy to blank target ─────────────────────
@@ -349,6 +350,7 @@ echo "--- DISKCOPY host-side exact-image verification ---"
 cp "$FLOPPY" "$EXACT_BOOT_IMG"
 mcopy -o -i "$EXACT_BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'DISKCOPY A: B:\r\n'
     printf 'ECHO DISKCOPY_EXACT_DONE\r\n'

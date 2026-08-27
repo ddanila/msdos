@@ -86,6 +86,7 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
 # ── Batch 1: full partition sequence (primary → extended → logical) ───────────
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
     # ── Test 1: FDISK 1 /Q (no partition switches) → errorlevel 2 ────────────
@@ -359,6 +360,7 @@ mcopy -o -i "$BOOT_IMG2" "$EXIT_COM" ::QEXIT.COM
 # Batch: create primary partition, then invoke FDISK again (triggers write_info
 # on a disk with no extended partition — the exact scenario PTM P941 describes).
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
     # Warm-up: read-only FDISK call initializes BIOS disk subsystem.

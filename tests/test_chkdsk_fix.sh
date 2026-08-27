@@ -142,6 +142,7 @@ with open('$TARGET_IMG', 'r+b') as f:
 
 # ── Step 3: write AUTOEXEC.BAT ──────────────────────────────────────────────
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
     # First: CHKDSK B: /F — fix errors (will prompt Y/N for orphan recovery)

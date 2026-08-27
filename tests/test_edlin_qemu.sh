@@ -27,6 +27,7 @@ printf 'ALPHA\r\nBETA\r\nGAMMA\r\n' | mcopy -o -i "$BOOT_IMG" - ::EDLTEST.TXT
     printf 'Y\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::EDLIN.IN
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'EDLIN EDLTEST.TXT < EDLIN.IN\r\n'
     printf 'ECHO EDLIN_DONE\r\n'

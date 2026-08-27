@@ -40,6 +40,7 @@ echo "Building test floppy..."
 cp "$FLOPPY" "$TEST_IMG"
 
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'MEM /?\r\n'
     printf 'ATTRIB /?\r\n'

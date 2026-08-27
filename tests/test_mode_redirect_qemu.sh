@@ -18,6 +18,7 @@ fi
 cp "$FLOPPY" "$BOOT_IMG"
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'MODE COM1: BAUD=9600 PARITY=N DATA=8 STOP=1\r\n'
     printf 'MODE LPT1:=COM1:\r\n'

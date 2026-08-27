@@ -95,13 +95,16 @@ def build_rules(n: int, names: list, no_label_prompt: set,
 
         # Interactive volume label prompt — absent when /V: given on command line
         if i not in no_label_prompt:
-            rules.append([b"ENTER for none", b'\r', None, None])
+            # Match the complete prompt.  Responding as soon as its middle
+            # appears can race FORMAT before it has entered the input read,
+            # most visibly after the slower 1.2 MB media formats.
+            rules.append([b"ENTER for none)?", b'\r', None, None])
 
         # "Format another (Y/N)?" — N + CR only (no LF).
         # FORMAT uses a line-input read that stops at CR; bare N hangs waiting
         # for CR.  Sending N\r terminates the read.  No \n so the FIFO is
         # empty afterwards (CR is consumed as the line terminator).
-        rules.append([b"Format another", b'N\r', None, None])
+        rules.append([b"Format another (Y/N)?", b'N\r', None, None])
 
         done_idx = len(rules)
 
@@ -198,6 +201,11 @@ def main() -> None:
                         shutil.copy(hook[1], hook[2])
                         print(f"  Saved {hook[2]}", flush=True)
                 if response:
+                    # A prompt becomes visible on the UART just before FORMAT
+                    # enters its input read.  Give the real-mode program one
+                    # scheduler tick to arm the read, otherwise a fast host can
+                    # deliver (and lose) the response in that narrow window.
+                    time.sleep(0.1)
                     fin.write(response); fin.flush()
                 rule_idx += 1
 

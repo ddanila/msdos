@@ -60,6 +60,7 @@ cp "$FLOPPY" "$SYS_BOOT"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 mcopy -o -i "$SYS_BOOT" "$EXIT_COM" ::QEXIT.COM
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'FORMAT B:\r\n'
     printf 'SYS B:\r\n'
@@ -118,7 +119,7 @@ fi
 # SYS only transfers IO.SYS and MSDOS.SYS; COMMAND.COM must be added separately.
 mcopy -i "$SYS_TARGET" "$COMMAND_COM" ::COMMAND.COM
 mcopy -o -i "$SYS_TARGET" "$EXIT_COM" ::QEXIT.COM
-printf 'CTTY AUX\r\nVER\r\nQEXIT.COM\r\n' | mcopy -o -i "$SYS_TARGET" - ::AUTOEXEC.BAT
+printf '@ECHO OFF\r\nCTTY AUX\r\nVER\r\nQEXIT.COM\r\n' | mcopy -o -i "$SYS_TARGET" - ::AUTOEXEC.BAT
 
 # ── Step 6: boot from the SYS'd floppy ──────────────────────────────────────
 echo "Booting SYS'd floppy..."
@@ -143,19 +144,20 @@ echo "Testing SYS against a read-only target..."
 cp "$FLOPPY" "$SYS_RO_BOOT"
 mcopy -o -i "$SYS_RO_BOOT" "$EXIT_COM" ::QEXIT.COM
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'SYS\r\n'
-    printf 'IF ERRORLEVEL 1 ECHO SYS_NO_ARG_REJECTED\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SYS_NO_ARG_NONZERO\r\n'
     printf 'SYS /Z\r\n'
-    printf 'IF ERRORLEVEL 1 ECHO SYS_SWITCH_REJECTED\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SYS_SWITCH_NONZERO\r\n'
     printf 'SYS A: B: C:\r\n'
-    printf 'IF ERRORLEVEL 1 ECHO SYS_EXTRA_ARG_REJECTED\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SYS_EXTRA_ARG_NONZERO\r\n'
     printf 'SYS A:\r\n'
-    printf 'IF ERRORLEVEL 1 ECHO SYS_DEFAULT_DRIVE_REJECTED\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SYS_DEFAULT_DRIVE_NONZERO\r\n'
     printf 'SYS Z:\r\n'
-    printf 'IF ERRORLEVEL 1 ECHO SYS_INVALID_DRIVE_REJECTED\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SYS_INVALID_DRIVE_NONZERO\r\n'
     printf 'SYS B:\r\n'
-    printf 'IF ERRORLEVEL 1 ECHO SYS_READONLY_REJECTED\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SYS_READONLY_NONZERO\r\n'
     printf 'ECHO SYS_READONLY_DONE\r\n'
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$SYS_RO_BOOT" - ::AUTOEXEC.BAT
@@ -173,11 +175,12 @@ timeout 25 qemu-system-i386 \
     2>/dev/null | tee "$SYS_RO_LOG" >/dev/null; true
 readonly_after="$(sha256sum "$SYS_RO_TARGET" | awk '{print $1}')"
 
-if grep -q 'SYS_READONLY_REJECTED' "$SYS_RO_LOG" \
-    && grep -q 'SYS_READONLY_DONE' "$SYS_RO_LOG" \
+if grep -q 'SYS_READONLY_DONE' "$SYS_RO_LOG" \
+    && ! grep -q 'SYS_READONLY_NONZERO' "$SYS_RO_LOG" \
+    && grep -q 'Write protect error writing drive B' "$SYS_RO_LOG" \
     && ! grep -q 'System transferred' "$SYS_RO_LOG" \
     && [[ "$readonly_before" == "$readonly_after" ]]; then
-    ok "SYS rejects read-only media and leaves every target byte unchanged"
+    ok "SYS reports read-only media, preserves its historical zero status, and leaves the target unchanged"
 else
     fail "SYS read-only failure contract or target immutability check failed"
 fi
@@ -187,14 +190,10 @@ if grep -q 'Required parameter missing' "$SYS_RO_LOG" \
     && grep -q 'Too many parameters.*C:' "$SYS_RO_LOG" \
     && grep -q 'Cannot specify default drive' "$SYS_RO_LOG" \
     && grep -q 'Invalid drive specification' "$SYS_RO_LOG" \
-    && grep -q 'SYS_NO_ARG_REJECTED' "$SYS_RO_LOG" \
-    && grep -q 'SYS_SWITCH_REJECTED' "$SYS_RO_LOG" \
-    && grep -q 'SYS_EXTRA_ARG_REJECTED' "$SYS_RO_LOG" \
-    && grep -q 'SYS_DEFAULT_DRIVE_REJECTED' "$SYS_RO_LOG" \
-    && grep -q 'SYS_INVALID_DRIVE_REJECTED' "$SYS_RO_LOG"; then
-    ok "SYS parser and target validation reject every unsupported command form"
+    && ! grep -q 'SYS_.*_NONZERO' "$SYS_RO_LOG"; then
+    ok "SYS diagnoses unsupported forms while preserving its historical zero status"
 else
-    fail "SYS parser/target rejection diagnostics or errorlevels were incomplete"
+    fail "SYS parser/target diagnostic and status contracts were incomplete"
 fi
 
 echo ""

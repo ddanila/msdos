@@ -28,7 +28,11 @@ four nested EMS subcommands are independently derived and contract-tested. All
 41 executable help surfaces are also accounted for: 37 execute `/?`, while
 four interfaces without a top-level help form have source-backed
 classifications. The next active expansion is argument relationships and
-mutation-driven completeness checks.
+mutation-driven completeness checks. The first oracle-mutation audit disabled
+command echo in every serial batch, exposed and corrected false FORMAT and SYS
+status expectations, found two real RESTORE one-file/existing-target defects,
+and added a normal-test gate that prevents any of the 51 `CTTY AUX` batches
+from matching its own echoed commands.
 
 ## Native Open-Source Build (COMPLETE)
 

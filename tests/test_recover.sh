@@ -62,6 +62,7 @@ printf 'RECOVER DRIVE BETA\r\n' | mcopy -o -i "$DRIVE_IMG" - ::BETA.TXT
 
 # AUTOEXEC.BAT: RECOVER A:TESTFILE.TXT in file mode (non-destructive).
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
     # ── RECOVER A:TESTFILE.TXT — file recovery ────────────────────────────────

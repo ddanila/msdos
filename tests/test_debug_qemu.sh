@@ -103,6 +103,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 # DEBUG's stdout (prompts, disassembly) and the program's output still go
 # to COM1 (handle 1 = AUX via CTTY AUX).
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'ECHO ---DEBUG-G---\r\n'
     printf 'DEBUG < DBGCMD.TXT\r\n'

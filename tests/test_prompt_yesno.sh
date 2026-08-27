@@ -63,6 +63,7 @@ mformat -i "$TARGET_IMG" ::
 
 # Write AUTOEXEC.BAT
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
     # ── Setup: create directories for XCOPY and REPLACE ──────────────────

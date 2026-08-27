@@ -10,6 +10,6 @@
     "NLSFUNC.EXE": {"class": "positional", "source": "MS-DOS/v4.0/src/CMD/NLSFUNC/NLSFUNC.ASM", "marker": "FILENAME\tdb     \"COUNTRY.SYS\",0", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh"], "note": "Optional COUNTRY.SYS path, rejection forms, resident reinstallation, and path-error precedence"},
     "RECOVER.COM": {"class": "positional", "source": "MS-DOS/v4.0/src/CMD/RECOVER/RECPARSE.INC", "marker": "DB\t0\t\t\t;\t no switches", "evidence": ["tests/test_recover.sh"], "note": "Exactly one file-or-drive operand selecting nondestructive file or destructive volume recovery"},
     "SELECT.COM": {"class": "bootstrap", "source": "MS-DOS/v4.0/src/SELECT/SSTUB.ASM", "marker": "SELECT.EXE", "evidence": ["tests/test_select.sh"], "note": "Keyboard bootstrap stub that transfers control to SELECT.EXE and has no independent grammar"},
-    "SYS.COM": {"class": "positional", "source": "MS-DOS/v4.0/src/CMD/SYS/SYS1.ASM", "marker": "DB\t0\t\t\t; THERE ARE NO SWITCHES", "evidence": ["tests/test_sys.sh"], "note": "One required target and one optional source operand; switch syntax is rejected"}
+    "SYS.COM": {"class": "positional", "source": "MS-DOS/v4.0/src/CMD/SYS/SYS1.ASM", "marker": "DB\t0\t\t\t; THERE ARE NO SWITCHES", "evidence": ["tests/test_sys.sh"], "note": "One required target and one optional source operand; invalid forms are diagnosed exactly while preserving historical zero status"}
   }
 }

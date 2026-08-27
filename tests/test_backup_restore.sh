@@ -58,6 +58,7 @@ printf 'DEEP_FILE\r\n\x1a'       | mcopy -o -i "$BOOT_IMG" - ::BAKDEEP.TXT
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
     # ── Setup: create source dir with test files ───────────────────────────────
@@ -179,7 +180,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'BACKUP A:BAKSRC B: /S\r\n'
     printf 'DEL BAKSRC\\SUB\\DEEP.TXT\r\n'
     printf 'RD BAKSRC\\SUB\r\n'
-    printf 'RESTORE B: A:BAKSRC /S /S\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.* /S /S\r\n'
     printf 'IF EXIST BAKSRC\\SUB\\DEEP.TXT ECHO RESTORE_S_OK\r\n'
     printf 'FC /B BAKSRC\\SUB\\DEEP.TXT BAKDEEP.TXT >NUL\r\n'
     printf 'IF NOT ERRORLEVEL 1 ECHO RESTORE_S_CONTENT_OK\r\n'
@@ -241,7 +242,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'BACKUP A:BAKSRC\\*.TXT B:\r\n'
     printf 'ATTRIB -A BAKSRC\\FILE1.TXT\r\n'
     printf 'ATTRIB -A BAKSRC\\FILE2.TXT\r\n'
-    printf 'RESTORE B: A:BAKSRC\\*.TXT /M /M\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /M\r\n'
     printf 'IF ERRORLEVEL 1 ECHO RESTORE_M_NO_MATCH\r\n'
     printf 'ECHO RESTORE_M_DONE\r\n'
 
@@ -250,16 +251,16 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     # Files created in 2026 have FAT date year=46 (2026-1980) → excluded.
     # B: backup from /M test is reused (FILE1+FILE2 backed up).
     printf 'ECHO ---RESTORE-B---\r\n'
-    printf 'RESTORE B: A:BAKSRC\\*.TXT /B:12-31-99 /B:12-31-99\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /B:12-31-99\r\n'
     printf 'IF ERRORLEVEL 1 ECHO RESTORE_B_NO_MATCH\r\n'
     printf 'ECHO RESTORE_B_DONE\r\n'
 
-    # ── RESTORE /A: after-date (2050 cutoff excludes 2026 files → "no files") ──
-    # /A:12-31-50 → restore files with write_date >= 12/31/2050 (year 50 = 2050).
-    # Files from 2026 have date < 2050 → excluded.
+    # ── RESTORE /A: after-date (1999 cutoff includes 2026 files) ──────────────
+    # DOS 4's parser accepts two-digit years in its historical range; 1999 is
+    # therefore the latest deterministic cutoff below the current fixture date.
     printf 'ECHO ---RESTORE-A---\r\n'
-    printf 'RESTORE B: A:BAKSRC\\*.TXT /A:12-31-50 /A:12-31-50\r\n'
-    printf 'IF ERRORLEVEL 1 ECHO RESTORE_A_NO_MATCH\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /A:12-31-99\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO RESTORE_A_MATCH\r\n'
     printf 'ECHO RESTORE_A_DONE\r\n'
 
     # ── RESTORE /E: at-or-before time (00:00:00 → only midnight files → "no files") ─
@@ -267,7 +268,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     # Files created during QEMU runtime have hour > 0 → RTOLD1.C: hh > 0 → excluded.
     # (ss = FAT 2-sec units 0-29; parser seconds=0 so ss > 0 also excludes exact-midnight files)
     printf 'ECHO ---RESTORE-E---\r\n'
-    printf 'RESTORE B: A:BAKSRC\\*.TXT /E:00:00:00 /E:00:00:00\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /E:00:00:00\r\n'
     printf 'IF ERRORLEVEL 1 ECHO RESTORE_E_NO_MATCH\r\n'
     printf 'ECHO RESTORE_E_DONE\r\n'
 
@@ -275,7 +276,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     # /L:23:59:58 → restore files with write_time >= 23:59:58.
     # RTOLD1.C: hh < 23 → excluded for most files. Even at 23:59, FAT ss (0-29) < 58 always.
     printf 'ECHO ---RESTORE-L---\r\n'
-    printf 'RESTORE B: A:BAKSRC\\*.TXT /L:23:59:58 /L:23:59:58\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /L:23:59:58\r\n'
     printf 'IF ERRORLEVEL 1 ECHO RESTORE_L_NO_MATCH\r\n'
     printf 'ECHO RESTORE_L_DONE\r\n'
 
@@ -589,10 +590,10 @@ else
     fail "RESTORE /B (batch hung or crashed)"
 fi
 
-if grep -q "RESTORE_A_NO_MATCH" "$SERIAL_LOG"; then
-    ok "RESTORE /A:12-31-50 (errorlevel set — 2026 files older than 2050 cutoff)"
+if grep -q "RESTORE_A_MATCH" "$SERIAL_LOG"; then
+    ok "RESTORE /A:12-31-99 includes the newer 2026 backup entries"
 else
-    fail "RESTORE /A:12-31-50 (expected errorlevel >= 1 — after-date should exclude 2026 files)"
+    fail "RESTORE /A:12-31-99 after-date inclusion contract"
 fi
 
 if grep -q "RESTORE_A_DONE" "$SERIAL_LOG"; then

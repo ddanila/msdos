@@ -76,6 +76,10 @@ an unknown switch, and a positional operand before proving `/NC` installation,
 the transition back to full checking, and the subsequent already-installed
 state. NLSFUNC proves the source's decimal errorlevel 80 on reinstallation and
 that a supplied missing path retains DOS errorlevel 2 even after residency.
+That protection is repository-wide: every serial batch switches command echo
+off before `CTTY AUX`, and `test_batch_oracles.py` derives and enforces the
+invariant across all test scripts. This prevents diagnostics and conditional
+markers embedded in AUTOEXEC.BAT from satisfying their own output assertions.
 
 `debug_command_coverage.json` derives DEBUG's twenty live non-error COMTAB
 entries and the four `X` EMS subcommands from DEBUG.ASM and DEBEMS.ASM. The
@@ -94,7 +98,7 @@ list into a completeness gate and rejects duplicate, stale, or missing entries.
 
 Artifact checksums are deterministic per pinned host toolset. Linux remains the
 canonical full golden, while `golden.macos-arm64.sha256` narrowly overrides the
-two clean-build artifacts whose OW2 host compilers/linkers emit differently.
+clean-build artifacts whose OW2 host compilers/linkers emit differently.
 The override is not a wildcard: every other artifact must remain byte-identical,
 and both EMM386 variants must pass the same page-array and EMS behavior probes.
 
@@ -298,8 +302,12 @@ media checks cover 1.44MB and 720KB BPBs, 360KB and single-sided formats in a
 1.2MB drive, and the legacy pre-BPB 320KB `/8` FAT layout. Unsupported `/T`/`/N`
 and undocumented-switch paths require their exact rejection diagnostics; no
 FORMAT case is accepted merely because the batch continued.
-Rejected `/T`/`/N`, `/C`, and `/Z` cases must also set a nonzero DOS errorlevel
-and leave every byte of their initially zeroed private target image unchanged.
+Rejected `/T`/`/N` retains its nonzero status, while `/C` and `/Z` preserve
+FORMAT's historical zero status after their exact `Invalid switch` diagnostic.
+All three leave every byte of their initially zeroed private target image
+unchanged. The serial coordinator matches complete prompts and waits briefly
+for FORMAT to enter its input read, preventing fast-host response loss after
+slow 1.2 MB formatting.
 
 `test_recover.sh` covers both public RECOVER modes on disposable media. File
 mode must preserve the exact original payload. Whole-drive mode destroys only
@@ -311,12 +319,15 @@ interactive timeout.
 `test_backup_restore.sh` treats existence as insufficient evidence for a
 successful archive round trip. Binary FC comparisons assert exact payloads for
 archive-bit selection, append preservation, basic restore, recursive restore,
-and restore-if-missing. Its negative date/time/filter cases still require the
-documented nonzero errorlevel and no-match behavior.
+and restore-if-missing. The one-file case guards both the control-file header
+length and existing-target attribute paths that previously failed under the
+Open Watcom layout. Its negative date/time/filter cases require the documented
+nonzero errorlevel and no-match behavior, while `/A` proves positive inclusion
+at a deterministic date boundary.
 The same real-DOS workflow derives its parser matrices from BACKUP's seven and
-RESTORE's eight live switch synonyms. Repeated flag switches are intentionally
-idempotent and must retain their observable state effects; BACKUP's valued
-date/time switches instead reject a duplicate. Unknown switches, third
+RESTORE's eight live switch synonyms. Repeated valueless flag switches are
+intentionally idempotent and must retain their observable state effects;
+BACKUP's valued date/time switches instead reject a duplicate. Unknown switches, third
 operands, malformed calendar/time values, and RESTORE's forbidden same-drive
 form require their exact diagnostics and nonzero errorlevels.
 
@@ -342,13 +353,13 @@ rejected. Both tools reject an unknown switch and a third drive with
 errorlevel 1 and their exact parser diagnostic classes.
 
 `test_sys.sh` boots media produced by SYS and separately attaches a formatted
-B: image read-only. The failure case must return a nonzero DOS errorlevel,
-must never print the success diagnostic, and must leave the complete target
-image SHA-256 unchanged.
+B: image read-only. The failure case must print its exact write-protect
+diagnostic, preserve SYS's historical zero status, never print the success
+diagnostic, and leave the complete target image SHA-256 unchanged.
 Both source forms are exercised: `SYS B:` uses the default source, while
 `SYS A: B:` names its source drive explicitly. Parser and target validation separately
-reject missing operands, switches, excess operands, the default target drive,
-and an invalid drive with their exact diagnostics and nonzero errorlevels.
+diagnose missing operands, switches, excess operands, the default target drive,
+and an invalid drive exactly while preserving the same historical zero status.
 
 `test_label.sh` covers the command-line boundary in addition to interactive
 set/delete behavior. A 12-character input must persist only its first eleven

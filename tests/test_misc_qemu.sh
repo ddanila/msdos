@@ -83,6 +83,7 @@ printf '@ECHO OFF\r\nECHO Hello World | FIND "Hello"\r\n' \
 # KEYBOARD.SYS is deployed to the floppy by make deploy (alongside KEYB.COM).
 
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
     # ── CHKDSK — disk statistics ──────────────────────────────────────────────

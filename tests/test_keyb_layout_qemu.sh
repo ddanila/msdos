@@ -18,6 +18,7 @@ fi
 cp "$FLOPPY" "$BOOT_IMG"
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'KEYB GR,,KEYBOARD.SYS\r\n'
     printf 'KEYB\r\n'

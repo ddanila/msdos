@@ -83,6 +83,7 @@ echo "  Pre-test label on B: '$prelabel'"
 
 # AUTOEXEC.BAT: run LABEL B: interactively (no label on command line → interactive mode)
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'ECHO ---LABEL-REMOVE---\r\n'
     printf 'LABEL B:\r\n'
@@ -194,6 +195,7 @@ cp "$FLOPPY" "$BOOT_IMG2"
 mcopy -o -i "$BOOT_IMG2" "$EXIT_COM" ::QEXIT.COM
 
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'ECHO ---LABEL-SET---\r\n'
     printf 'LABEL B:\r\n'
@@ -270,6 +272,7 @@ dd if=/dev/zero bs=512 count=2880 of="$BOUNDARY_TARGET" status=none
 mformat -i "$BOUNDARY_TARGET" -f 1440 ::
 mlabel -i "$BOUNDARY_TARGET" ::OLDLABEL
 {
+    printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'LABEL B:ABCDEFGHIJKL\r\n'
     printf 'ECHO LABEL_LONG_DONE\r\n'
