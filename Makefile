@@ -403,6 +403,9 @@ test-driver-sys-qemu: deploy
 test-printer-driver-qemu: deploy
 	bash tests/test_printer_driver_qemu.sh
 
+test-print-spooler-qemu: deploy
+	bash tests/test_print_spooler_qemu.sh
+
 test-smartdrv-flush-qemu: deploy
 	bash tests/test_smartdrv_flush_qemu.sh
 

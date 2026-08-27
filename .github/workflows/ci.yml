@@ -276,6 +276,9 @@ jobs:
       - name: PRINTER.SYS code-page behavior
         run: bash tests/test_printer_driver_qemu.sh
 
+      - name: PRINT.COM exact LPT1 spooler delivery
+        run: bash tests/test_print_spooler_qemu.sh
+
       - name: SMARTDRV.SYS and FLUSH13.EXE cache control
         run: bash tests/test_smartdrv_flush_qemu.sh
 
