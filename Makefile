@@ -30,7 +30,7 @@ CFLAGS   := -AS -Os -Zp
 # Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools test-coverage-manifest gen-checksums deploy minimal-floppy run-boot test-sys test-help-qemu test-misc-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu test-emm386-qemu
+.PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools test-coverage-manifest gen-checksums deploy minimal-floppy run-boot test-sys test-help-qemu test-misc-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu test-emm386-qemu test-int21-file-memory-qemu
 
 # Build kvikdos-soft (software CPU) if /dev/kvm is unavailable.
 # dos-run automatically selects the right binary at runtime.
@@ -540,6 +540,9 @@ run-boot: deploy
 
 test-emm386-qemu: deploy
 	bash tests/test_emm386_qemu.sh
+
+test-int21-file-memory-qemu: deploy
+	bash tests/test_int21_file_memory_qemu.sh
 
 # ---------------------------------------------------------------------------
 clean:
