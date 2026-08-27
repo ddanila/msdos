@@ -2036,14 +2036,29 @@ else
     fail "COMMAND.COM PATH set/clear (expected A:\\DOS and 'No Path', got: $out)"
 fi
 
-# -- SET assign and clear --
-printf 'SET SETVAR=TESTVAL\r\nSET SETVAR\r\nECHO SET_ASSIGN_DONE\r\n' > "$KVBAT"
+# -- SET assign, query, and remove --
+printf '@ECHO OFF\r\nSET SETVAR=TESTVAL\r\nSET\r\nECHO SET_BEFORE_REMOVE_DONE\r\nSET SETVAR=\r\nSET\r\nECHO SET_REMOVE_DONE\r\n' > "$KVBAT"
 out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
 rm -f "$KVBAT"
-if echo "$out" | grep -q "SETVAR=TESTVAL"; then
-    ok "COMMAND.COM SET assign"
+if [[ $(echo "$out" | grep -c '^SETVAR=TESTVAL') -eq 1 ]] \
+    && echo "$out" | grep -q '^SET_REMOVE_DONE'; then
+    ok "COMMAND.COM SET assign, query, and remove"
 else
-    fail "COMMAND.COM SET assign (expected 'SETVAR=TESTVAL', got: $out)"
+    fail "COMMAND.COM SET state transition (expected one value before removal, got: $out)"
+fi
+
+# SET requires exactly one equals sign for mutation syntax.
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'SET BAD') || true
+if echo "$out" | grep -qi '^Syntax error'; then
+    ok "COMMAND.COM SET missing equals sign (exact syntax rejection)"
+else
+    fail "COMMAND.COM SET missing equals sign (expected syntax error, got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'SET BAD=A=B') || true
+if echo "$out" | grep -qi '^Syntax error'; then
+    ok "COMMAND.COM SET second equals sign (exact syntax rejection)"
+else
+    fail "COMMAND.COM SET second equals sign (expected syntax error, got: $out)"
 fi
 
 # -- COPY --

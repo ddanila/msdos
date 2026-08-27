@@ -43,9 +43,20 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'SET BIG2=YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY\r\n'
     printf 'SET\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::ENVTEST.BAT
+printf '\r\n' | mcopy -o -i "$BOOT_IMG" - ::EMPTY.IN
 
 {
     printf 'CTTY AUX\r\n'
+    printf 'ECHO ---COMMAND-DATE-TIME---\r\n'
+    printf 'DATE 01-02-1990\r\n'
+    printf 'DATE < EMPTY.IN\r\n'
+    printf 'TIME 12:34:56.78\r\n'
+    printf 'TIME < EMPTY.IN\r\n'
+    printf 'DATE 02-30-1990 < EMPTY.IN\r\n'
+    printf 'ECHO COMMAND_INVALID_DATE_RETURNED\r\n'
+    printf 'TIME 25:00 < EMPTY.IN\r\n'
+    printf 'ECHO COMMAND_INVALID_TIME_RETURNED\r\n'
+    printf 'ECHO ---COMMAND-DATE-TIME-END---\r\n'
     printf 'ECHO ---COMMAND-E-MIN---\r\n'
     printf 'COMMAND /E:160 /C ENVTEST.BAT\r\n'
     printf 'ECHO ---COMMAND-E-LARGE---\r\n'
@@ -75,6 +86,30 @@ if grep -q '^COMMAND_PERMANENT_EXIT_IGNORED' "$SERIAL_LOG"; then
     ok "COMMAND /P ignores EXIT and continues reading the permanent shell"
 else
     fail "COMMAND /P did not continue after EXIT"
+fi
+
+date_time_section=$(sed -n '/---COMMAND-DATE-TIME---/,/---COMMAND-DATE-TIME-END---/p' "$SERIAL_LOG")
+if echo "$date_time_section" | grep -q 'Current date is.*01-02-1990'; then
+    ok "DATE sets and reports the exact requested calendar date"
+else
+    fail "DATE did not report 01-02-1990 after setting it"
+fi
+if echo "$date_time_section" | grep -Eq 'Current time is.*12:34:56\.7[0-9]p'; then
+    ok "TIME sets and reports hours, minutes, seconds, and ticking hundredths"
+else
+    fail "TIME did not report the requested 12:34:56.78 state"
+fi
+if echo "$date_time_section" | grep -qi 'Invalid date' \
+    && grep -q '^COMMAND_INVALID_DATE_RETURNED' "$SERIAL_LOG"; then
+    ok "DATE rejects an impossible calendar date and returns after empty input"
+else
+    fail "DATE did not reject 02-30-1990 deterministically"
+fi
+if echo "$date_time_section" | grep -qi 'Invalid time' \
+    && grep -q '^COMMAND_INVALID_TIME_RETURNED' "$SERIAL_LOG"; then
+    ok "TIME rejects an out-of-range hour and returns after empty input"
+else
+    fail "TIME did not reject 25:00 deterministically"
 fi
 
 if sed -n '/---COMMAND-E-MIN---/,/---COMMAND-E-LARGE---/p' "$SERIAL_LOG" \

@@ -51,6 +51,11 @@ automatically fails a genuine INT 24h disk error, `/P /MSG` retains a child
 interpreter that ignores EXIT, and `/D` lets it start without date/time input.
 Host-side tests enforce `/E`'s exact source-defined bounds and diagnostics,
 the `/MSG` dependency, and `/C`'s consume-the-rest grammar.
+The same real-DOS session sets and reads back DATE and TIME, including seconds
+and hundredths, then drives their invalid-input loops with a finite empty input
+stream. SET is required to expose one assigned value, remove it, and reject
+both missing and repeated equals signs; `/E` exhaustion independently proves
+that failed growth does not masquerade as successful environment mutation.
 
 `dos_interrupt_coverage.json` covers the DOS-initialized vector surface outside
 the INT 21h dispatch table. Its verifier checks the live `MSINIT.ASM` vector
