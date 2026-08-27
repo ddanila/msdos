@@ -24,8 +24,12 @@ included in `make deploy`. The complete local QEMU matrix passes.
 The WLIB compatibility wrapper now resolves DOS paths case-insensitively on
 Linux and normalizes per-member DOS timestamps with repaired OMF checksums.
 Two clean builds reproduce all 59 golden artifacts byte for byte. Remaining
-publication gate: commit/push and confirm the complete GitHub Actions Linux
-matrix is green.
+publication gate: confirm the complete GitHub Actions Linux matrix is green.
+The refreshed custom Linux WCC deterministically changes only ATTRIB's local
+stack-slot ordering and reduces EMM386's compiled image by one paragraph; their
+goldens now pin those latest-toolchain outputs. The previously completed local
+QEMU matrix remains the runtime reference while Linux CI validates the same
+sources end to end.
 
 **All command utilities link with WLINK (August 27 2026):** The remaining 22
 Microsoft LINK recipes in `mk/cmd.mk` now use the pinned custom Open Watcom
