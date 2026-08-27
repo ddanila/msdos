@@ -2105,6 +2105,19 @@ else
     fail "COMMAND.COM RENAME (expected renamed file content, got: $out)"
 fi
 
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'REN C:\NOFILE.TXT X.TXT') || true
+if echo "$out" | grep -q '^Path not found'; then
+    ok "COMMAND.COM REN missing source (exact path diagnostic)"
+else
+    fail "COMMAND.COM REN missing source (expected Path not found, got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'REN C:\NOFILE.TXT X.TXT EXTRA') || true
+if echo "$out" | grep -q '^Parse Error 1'; then
+    ok "COMMAND.COM REN excess operand (exact parser rejection)"
+else
+    fail "COMMAND.COM REN excess operand (expected Parse Error 1, got: $out)"
+fi
+
 # -- DEL --
 printf 'DEL_TEST_DATA\r\n' > "$KVTXT"
 printf 'DEL C:\CMD\COMMAND\KVTST.TXT\r\nIF NOT EXIST C:\CMD\COMMAND\KVTST.TXT ECHO DEL_OK\r\n' > "$KVBAT"
@@ -2190,6 +2203,32 @@ else
     fail "COMMAND.COM MKDIR + RMDIR (expected both markers, got: $out)"
 fi
 
+# Existing-directory creation and non-empty removal are rejected without
+# disturbing the directory or its payload.
+KVNDIR="$SRC/CMD/COMMAND/KVNONEMP"
+mkdir -p "$KVNDIR"
+printf 'NONEMPTY_PAYLOAD\r\n' > "$KVNDIR/KEEP.TXT"
+printf '@ECHO OFF\r\nMD C:\CMD\COMMAND\KVNONEMP\r\nRD C:\CMD\COMMAND\KVNONEMP\r\nIF EXIST C:\CMD\COMMAND\KVNONEMP\KEEP.TXT ECHO DIRECTORY_STATE_PRESERVED\r\n' > "$KVBAT"
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT" "$KVNDIR/KEEP.TXT"; rmdir "$KVNDIR" 2>/dev/null || true
+if [[ $(echo "$out" | grep -c '^General failure - C:\\CMD\\COMMAND\\KVNONEMP') -eq 2 ]] \
+    && echo "$out" | grep -q '^DIRECTORY_STATE_PRESERVED'; then
+    ok "COMMAND.COM MD existing + RD non-empty (state preserved)"
+else
+    fail "COMMAND.COM MD/RD rejection preservation (got: $out)"
+fi
+
+for spec in \
+    'MD C:\X C:\Y' \
+    'RD C:\X C:\Y'; do
+    out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C "$spec") || true
+    if echo "$out" | grep -q '^Parse Error 1'; then
+        ok "COMMAND.COM ${spec%% *} excess operand (exact parser rejection)"
+    else
+        fail "COMMAND.COM ${spec%% *} excess operand (expected Parse Error 1, got: $out)"
+    fi
+done
+
 # -- MD nested --
 KVNDIR="$SRC/CMD/COMMAND/KVNEST"
 printf 'MD C:\CMD\COMMAND\KVNEST\r\nMD C:\CMD\COMMAND\KVNEST\SUB\r\nIF EXIST C:\CMD\COMMAND\KVNEST\SUB\ ECHO MD_NESTED_OK\r\n' > "$KVBAT"
@@ -2235,6 +2274,23 @@ else
     fail "COMMAND.COM CD (expected 'C:\CMD\EDLIN' in output, got: $out)"
 fi
 
+# A rejected CD leaves the current directory unchanged.
+printf '@ECHO OFF\r\nCD C:\\CMD\\EDLIN\r\nCD C:\\NO-SUCH-DIR\r\nCD\r\n' > "$KVBAT"
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | grep -q '^Invalid directory' \
+    && echo "$out" | grep -qi '^C:\\CMD\\EDLIN'; then
+    ok "COMMAND.COM CD missing path (current directory preserved)"
+else
+    fail "COMMAND.COM CD missing path preservation (got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'CD C:\CMD\COMMAND EXTRA') || true
+if echo "$out" | grep -q '^Parse Error 1'; then
+    ok "COMMAND.COM CD excess operand (exact parser rejection)"
+else
+    fail "COMMAND.COM CD excess operand (expected Parse Error 1, got: $out)"
+fi
+
 # -- CHDIR long synonym --
 printf '@ECHO OFF\r\nCHDIR C:\\CMD\\EDLIN\r\nCHDIR\r\n' > "$KVBAT"
 out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
@@ -2261,6 +2317,32 @@ if echo "$out" | grep -qi 'C:\\SETENV.BAT'; then
     ok "COMMAND.COM TRUENAME (resolve path)"
 else
     fail "COMMAND.COM TRUENAME (expected 'C:\SETENV.BAT', got: $out)"
+fi
+
+# TYPE and VOL negative contracts.
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'TYPE C:\NOFILE.TXT') || true
+if echo "$out" | grep -q '^File not found - C:\\NOFILE.TXT'; then
+    ok "COMMAND.COM TYPE missing file (exact diagnostic)"
+else
+    fail "COMMAND.COM TYPE missing file (got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'TYPE C:\SETENV.BAT C:\SETENV.BAT') || true
+if echo "$out" | grep -q '^Parse Error 1'; then
+    ok "COMMAND.COM TYPE excess operand (exact parser rejection)"
+else
+    fail "COMMAND.COM TYPE excess operand (got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'VOL Z:') || true
+if echo "$out" | grep -q '^Invalid drive specification'; then
+    ok "COMMAND.COM VOL unavailable drive (exact diagnostic)"
+else
+    fail "COMMAND.COM VOL unavailable drive (got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'VOL C: D:') || true
+if echo "$out" | grep -q '^Parse Error 1'; then
+    ok "COMMAND.COM VOL excess drive (exact parser rejection)"
+else
+    fail "COMMAND.COM VOL excess drive (got: $out)"
 fi
 
 # -- SET/PROMPT stress: multiple calls in sequence (ES corruption regression) --

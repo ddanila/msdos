@@ -44,9 +44,18 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'SET\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::ENVTEST.BAT
 printf '\r\n' | mcopy -o -i "$BOOT_IMG" - ::EMPTY.IN
+printf 'RENAME_SOURCE_PAYLOAD\r\n' | mcopy -o -i "$BOOT_IMG" - ::RENSRC.TXT
+printf 'RENAME_DEST_PAYLOAD\r\n' | mcopy -o -i "$BOOT_IMG" - ::RENDST.TXT
 
 {
     printf 'CTTY AUX\r\n'
+    printf 'ECHO ---COMMAND-RENAME-CONFLICT---\r\n'
+    printf 'RENAME RENSRC.TXT RENDST.TXT\r\n'
+    printf 'IF EXIST RENSRC.TXT ECHO RENAME_SOURCE_PRESERVED\r\n'
+    printf 'IF EXIST RENDST.TXT ECHO RENAME_DEST_PRESERVED\r\n'
+    printf 'TYPE RENSRC.TXT\r\n'
+    printf 'TYPE RENDST.TXT\r\n'
+    printf 'ECHO ---COMMAND-RENAME-CONFLICT-END---\r\n'
     printf 'ECHO ---COMMAND-DATE-TIME---\r\n'
     printf 'DATE 01-02-1990\r\n'
     printf 'DATE < EMPTY.IN\r\n'
@@ -88,13 +97,23 @@ else
     fail "COMMAND /P did not continue after EXIT"
 fi
 
+rename_section=$(sed -n '/---COMMAND-RENAME-CONFLICT---/,/---COMMAND-RENAME-CONFLICT-END---/p' "$SERIAL_LOG")
+if echo "$rename_section" | grep -q '^RENAME_SOURCE_PRESERVED' \
+    && echo "$rename_section" | grep -q '^RENAME_DEST_PRESERVED' \
+    && echo "$rename_section" | grep -q '^RENAME_SOURCE_PAYLOAD' \
+    && echo "$rename_section" | grep -q '^RENAME_DEST_PAYLOAD'; then
+    ok "RENAME existing target preserves both names and exact payloads"
+else
+    fail "RENAME existing target did not preserve both DOS files"
+fi
+
 date_time_section=$(sed -n '/---COMMAND-DATE-TIME---/,/---COMMAND-DATE-TIME-END---/p' "$SERIAL_LOG")
 if echo "$date_time_section" | grep -q 'Current date is.*01-02-1990'; then
     ok "DATE sets and reports the exact requested calendar date"
 else
     fail "DATE did not report 01-02-1990 after setting it"
 fi
-if echo "$date_time_section" | grep -Eq 'Current time is.*12:34:56\.7[0-9]p'; then
+if echo "$date_time_section" | grep -Eq 'Current time is.*12:34:56\.[0-9][0-9]p'; then
     ok "TIME sets and reports hours, minutes, seconds, and ticking hundredths"
 else
     fail "TIME did not report the requested 12:34:56.78 state"

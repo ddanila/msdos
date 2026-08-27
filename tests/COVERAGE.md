@@ -56,6 +56,13 @@ and hundredths, then drives their invalid-input loops with a finite empty input
 stream. SET is required to expose one assigned value, remove it, and reject
 both missing and repeated equals signs; `/E` exhaustion independently proves
 that failed growth does not masquerade as successful environment mutation.
+File-namespace failures are checked for state as well as text: a rejected CD
+keeps the prior current directory, MD/RD failures preserve a non-empty
+directory and payload, and real DOS preserves both source and destination when
+RENAME finds an existing target. The latter intentionally runs under QEMU
+because kvikdos delegates to a host rename operation that replaces the target,
+which is not accepted as evidence for the DOS contract. Missing and excess
+forms for REN, TYPE, and VOL require their exact built diagnostics.
 
 `dos_interrupt_coverage.json` covers the DOS-initialized vector surface outside
 the INT 21h dispatch table. Its verifier checks the live `MSINIT.ASM` vector
