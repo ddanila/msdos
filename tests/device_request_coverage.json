@@ -30,7 +30,10 @@
       "3": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/RAMDRIVE/RAMDRIVE.ASM"], "note": "The table deliberately maps unsupported IOCTL input to CMDERR"},
       "4": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "DIR reads the mounted RAM disk"},
       "5-7": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/RAMDRIVE/RAMDRIVE.ASM"], "note": "Character-input requests are deliberately successful no-ops on this block driver"},
-      "10-14": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/RAMDRIVE/RAMDRIVE.ASM"], "note": "Character status, flush, IOCTL, open, and close requests are deliberately successful no-ops"}
+      "8": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "A VERIFY OFF write is read back with exact contents"},
+      "9": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "A VERIFY ON write is read back with exact contents"},
+      "10-14": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/RAMDRIVE/RAMDRIVE.ASM"], "note": "Character status, flush, IOCTL, open, and close requests are deliberately successful no-ops"},
+      "15": {"level": "contract", "evidence": ["tests/block_driver_probe.asm", "tests/test_drivers_qemu.sh"], "note": "Generic IOCTL removable-media query returns the driver's non-removable result"}
     },
     "SMARTDRV.SYS": {
       "0": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "CONFIG.SYS initializes SMARTDRV on a fixed disk"},
@@ -51,8 +54,11 @@
       "3": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/VDISK/VDISKSYS.ASM"], "note": "Unsupported character-mode IOCTL input returns invalid command"},
       "4": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "DIR reads the mounted virtual disk"},
       "5-7": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/VDISK/VDISKSYS.ASM"], "note": "Unsupported character input requests return invalid command"},
+      "8": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "A VERIFY OFF write is read back with exact contents"},
+      "9": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "A VERIFY ON write is read back with exact contents"},
       "10-12": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/VDISK/VDISKSYS.ASM"], "note": "Unsupported character output and IOCTL requests return invalid command"},
-      "13-14": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/VDISK/VDISKSYS.ASM"], "note": "Device open and close are explicitly implemented as no-ops"}
+      "13-14": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/VDISK/VDISKSYS.ASM"], "note": "Device open and close are explicitly implemented as no-ops"},
+      "15": {"level": "contract", "evidence": ["tests/block_driver_probe.asm", "tests/test_drivers_qemu.sh"], "note": "Generic IOCTL removable-media query returns the driver's non-removable result"}
     },
     "XMA2EMS.SYS": {
       "0": {"level": "contract", "evidence": ["tests/test_xma_drivers_qemu.sh"], "note": "Initialization rejects unsupported QEMU hardware without leaving a device or EMS vector"},

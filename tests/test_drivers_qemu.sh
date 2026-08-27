@@ -20,6 +20,7 @@ FLOPPY="$OUT/floppy.img"
 
 BOOT_IMG="$OUT/floppy-drivers-qemu.img"
 SERIAL_LOG="$OUT/drivers-qemu-serial.log"
+PROBE_COM="$OUT/block-driver-request.com"
 
 PASS=0
 FAIL=0
@@ -37,10 +38,12 @@ echo "=== Device Driver / CONFIG.SYS E2E tests (QEMU) ==="
 # ── Build test floppy ────────────────────────────────────────────────────────
 echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
+nasm -f bin "$REPO_ROOT/tests/block_driver_probe.asm" -o "$PROBE_COM"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
 # Drivers are already on the base floppy (added by make deploy).
+mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::BLKREQ.COM
 
 # Write CONFIG.SYS with device drivers and directives
 {
@@ -88,6 +91,18 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     # avoid E: if no driver creates it — DIR on nonexistent drive may hang.
     printf 'ECHO ---VDISK---\r\n'
     printf 'DIR D:\\\r\n'
+    printf 'VERIFY OFF\r\n'
+    printf 'ECHO RAM_WRITE>C:\\RAMW.TXT\r\n'
+    printf 'ECHO VDISK_WRITE>D:\\VDSKW.TXT\r\n'
+    printf 'VERIFY ON\r\n'
+    printf 'ECHO RAM_VERIFY>C:\\RAMV.TXT\r\n'
+    printf 'ECHO VDISK_VERIFY>D:\\VDSKV.TXT\r\n'
+    printf 'VERIFY OFF\r\n'
+    printf 'TYPE C:\\RAMW.TXT\r\n'
+    printf 'TYPE C:\\RAMV.TXT\r\n'
+    printf 'TYPE D:\\VDSKW.TXT\r\n'
+    printf 'TYPE D:\\VDSKV.TXT\r\n'
+    printf 'BLKREQ.COM\r\n'
     printf 'ECHO VDISK_DONE\r\n'
 
     # ── DISPLAY.SYS test — verify code page driver loaded ────────────────
@@ -198,6 +213,20 @@ if grep -qi "Directory of D:\|Volume in drive D" "$SERIAL_LOG" || \
     ok "VDISK.SYS (virtual disk drive accessible via DIR)"
 else
     fail "VDISK.SYS (no virtual disk drive found on D: or E:)"
+fi
+
+for marker in RAM_WRITE RAM_VERIFY VDISK_WRITE VDISK_VERIFY; do
+    if grep -q "$marker" "$SERIAL_LOG"; then
+        ok "Block driver persisted $marker through DOS I/O"
+    else
+        fail "Block driver did not persist $marker"
+    fi
+done
+
+if grep -q 'BLOCK_DRIVER_REQUEST_PASS' "$SERIAL_LOG"; then
+    ok "RAMDRIVE.SYS and VDISK.SYS report non-removable media"
+else
+    fail "Block-driver removable-media requests did not pass"
 fi
 
 # ── DISPLAY.SYS checks ────────────────────────────────────────────────────

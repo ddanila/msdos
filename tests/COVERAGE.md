@@ -177,7 +177,7 @@ explicit request table in the shipped installable drivers. It also records the
 different forwarding models used by DRIVER.SYS and PRINTER.SYS. The audit is
 intentionally informative, not yet a strict completeness gate: source-backed
 pass-through, no-op, unsupported, and post-failed-INIT commands are separated
-from ten meaningful request paths that still need focused behavioral evidence.
+from meaningful request paths that still need focused behavioral evidence.
 Once those paths are covered, this target will gain `--require-complete` like
 the completed interrupt and runtime inventories.
 
