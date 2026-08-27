@@ -27,16 +27,14 @@ Contract evidence must include a runnable shell test referenced directly by
 the CI workflow. The verifier rejects source-only evidence and tests that can
 silently disappear from CI.
 
-The normal `make test` and CI build run this structural check. The stricter
-completion gate is:
+The normal `make test` and CI build enforce the completed contract gate:
 
 ```sh
 python3 tests/test_coverage_manifest.py --require-complete
 ```
 
-That command intentionally fails until every non-excluded dispatch entry has
-focused contract evidence. Existing command-level observation is useful, but it
-does not satisfy the final coverage goal by itself.
+Every non-excluded dispatch entry now has focused contract evidence. Any new
+uncovered or observation-only entry fails the normal test suite and CI.
 
 CI also sets `FAIL_ON_SKIP=1`; an unexpected host-test skip is therefore a
 failure rather than being folded into the pass count.

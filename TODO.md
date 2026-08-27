@@ -4,11 +4,13 @@
 
 The current coverage program is defined in `tests/COVERAGE.md`. Its first
 machine-checked inventory parses all 109 live INT 21h dispatch entries from
-`DOS/MS_TABLE.ASM`, separates focused contract tests from incidental behavior,
-and exposes every uncovered call. CI now rejects unexpected host-test skips and
-runs the existing EDLIN QEMU regression as a dedicated job. The next major
-milestone is the standalone INT 21h contract harness described below; its
-evidence must drive the strict `--require-complete` gate to zero uncovered calls.
+`DOS/MS_TABLE.ASM`. The dispatch milestone is complete: 104 entries have
+focused QEMU contracts, five hardware/write-only entries have explicit
+justifications, and the normal test suite enforces `--require-complete`.
+CI also rejects unexpected host-test skips. The next milestone is an equivalent
+machine-checked inventory for every shipped command, CONFIG.SYS directive,
+driver, and TSR, followed by negative, boundary, destructive-disk, and resource-
+exhaustion scenarios.
 
 ## Native Open-Source Build (COMPLETE)
 
