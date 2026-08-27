@@ -96,6 +96,19 @@ forced parallel full build succeeds, direct host help passes, and the complete
 two-floppy ASSIGN/SUBST/JOIN QEMU suite passes 16/16, including JOIN list,
 DIR/TYPE/COPY through the joined path, and unjoin.
 
+**Eighth Open Watcom C hybrid complete (August 27 2026):** SUBST now uses
+`wcc`, custom JWasm, `wlink`, native-wlib MAPPER, source-backed COMSUBS substring
+search, and the four shared OW `INC` objects introduced with JOIN. Its standard
+runtime calls use Watcom's annotated headers while parser/message boundaries
+remain cdecl; the port also fixes `argv[argc]`, null-source `strcpy`, omitted
+message arguments, and undeclared byte-return drive predicates. Direct host
+help passes, a forced parallel full build succeeds, and the complete sequential
+ASSIGN/SUBST/JOIN QEMU suite remains 16/16, including SUBST create, list,
+write-through, path pass-through, and deletion. SHARE and IFSFUNC prerequisites
+now name only the shared assembly objects their link files consume; `inc` uses
+the OW variants, eliminating four otherwise-unused MS-C compilations from every
+full build.
+
 **Native SELECT tools (August 27 2026):** ASC2HLP and COMPRESS, the final two
 proprietary build helpers, now have byte-compatible native Python replacements.
 ASC2HLP compiles USA.TXT into the indexed SELECT help-file layout; COMPRESS

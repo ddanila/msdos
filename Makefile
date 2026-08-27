@@ -142,29 +142,14 @@ DOS_DIR  := $(SRC)/DOS
 $(DOS_DIR)/MSDOS.CL1: $(DOS_DIR)/MSDOS.SKL $(MESSAGES_OUT) $(NOSRVBLD) $(MESSAGE_CATALOG)
 	cd $(DOS_DIR) && $(NOSRVBLD) MSDOS.SKL "..\MESSAGES\USA-MS.MSG"
 
-INC_OBJS := ERRTST.OBJ SYSVAR.OBJ CDS.OBJ DPB.OBJ NIBDOS.OBJ \
-            CONST2.OBJ MSDATA.OBJ MSDOSME.OBJ MSTABLE.OBJ
-INC_OBJ_PATHS := $(addprefix $(INC_DIR)/,$(INC_OBJS))
+INC_ASM_OBJS := NIBDOS.OBJ CONST2.OBJ MSDATA.OBJ MSDOSME.OBJ MSTABLE.OBJ
+INC_ASM_OBJ_PATHS := $(addprefix $(INC_DIR)/,$(INC_ASM_OBJS))
 OW_INC_C_OBJS := OWERRTST.OBJ OWSYSVAR.OBJ OWCDS.OBJ OWDPB.OBJ
 OW_INC_C_OBJ_PATHS := $(addprefix $(INC_DIR)/,$(OW_INC_C_OBJS))
 
-inc: $(INC_OBJ_PATHS)
+inc: $(INC_ASM_OBJ_PATHS) $(OW_INC_C_OBJ_PATHS)
 
-# C source objects
-$(INC_DIR)/ERRTST.OBJ: $(INC_DIR)/ERRTST.C
-	cd $(INC_DIR) && $(CL) "-AS -Od -Zp -I. -I..\\H -c -FoERRTST.OBJ ERRTST.C"
-
-$(INC_DIR)/SYSVAR.OBJ: $(INC_DIR)/SYSVAR.C
-	cd $(INC_DIR) && $(CL) "-AS -Od -Zp -I. -I..\\H -c -FoSYSVAR.OBJ SYSVAR.C"
-
-$(INC_DIR)/CDS.OBJ: $(INC_DIR)/CDS.C
-	cd $(INC_DIR) && $(CL) "-AS -Od -Zp -I. -I..\\H -c -FoCDS.OBJ CDS.C"
-
-$(INC_DIR)/DPB.OBJ: $(INC_DIR)/DPB.C
-	cd $(INC_DIR) && $(CL) "-AS -Od -Zp -I. -I..\\H -c -FoDPB.OBJ DPB.C"
-
-# Open Watcom variants are named separately: JOIN/SUBST may use them without
-# changing the ABI of still-unmigrated MS-C consumers of the legacy objects.
+# Open Watcom variants are named separately from historical build artifacts.
 $(INC_DIR)/OWERRTST.OBJ: $(INC_DIR)/ERRTST.C
 	cd $(INC_DIR) && $(WCC) "-AS -Od -Zp -I. -I..\\H -c -FoOWERRTST.OBJ ERRTST.C"
 

@@ -1142,13 +1142,16 @@ $(JOIN_OUT): $(JOIN_DIR)/JOIN.OBJ $(JOIN_DIR)/OWCOMSUB.OBJ \
 	cd $(JOIN_DIR) && $(WLINK) "JOIN.OBJ+OWCOMSUB.OBJ+..\\..\\INC\\OWERRTST.OBJ+..\\..\\INC\\OWSYSVAR.OBJ+..\\..\\INC\\OWCDS.OBJ+..\\..\\INC\\OWDPB.OBJ+_MSGRET.OBJ+_PARSE.OBJ,JOIN.EXE,,..\\..\\MAPPER\\MAPPER.LIB+clibs.lib;"
 
 # ---------------------------------------------------------------------------
-# SUBST (subst.exe) — 1 C + 2 ASM + INC kernel objs, links MAPPER.LIB + COMSUBS.LIB
+# SUBST (subst.exe) — Open Watcom C + 2 JWasm + native shared runtime
 # ---------------------------------------------------------------------------
 $(SUBST_DIR)/SUBST.CTL: $(SUBST_DIR)/SUBST.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(SUBST_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" SUBST.SKL
 
 $(SUBST_DIR)/SUBST.OBJ: $(SUBST_DIR)/SUBST.C $(SUBST_DIR)/SUBST.CTL
-	cd $(SUBST_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoSUBST.OBJ SUBST.C"
+	cd $(SUBST_DIR) && $(WCC) "-AS -Os -Zp -I. -I..\\..\\H -c -FoSUBST.OBJ SUBST.C"
+
+$(SUBST_DIR)/OWCOMSUB.OBJ: $(SRC)/INC/OWCOMSUB.C
+	cd $(SUBST_DIR) && $(WCC) "-AS -Os -Zp -I. -c -FoOWCOMSUB.OBJ ..\\..\\INC\\OWCOMSUB.C"
 
 $(SUBST_DIR)/_MSGRET.OBJ: $(SUBST_DIR)/_MSGRET.ASM $(SUBST_DIR)/SUBST.CTL
 	cd $(SUBST_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "_MSGRET.ASM,_MSGRET.OBJ;"
@@ -1156,9 +1159,9 @@ $(SUBST_DIR)/_MSGRET.OBJ: $(SUBST_DIR)/_MSGRET.ASM $(SUBST_DIR)/SUBST.CTL
 $(SUBST_DIR)/_PARSE.OBJ: $(SUBST_DIR)/_PARSE.ASM
 	cd $(SUBST_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "_PARSE.ASM,_PARSE.OBJ;"
 
-$(SUBST_OUT): $(SUBST_DIR)/SUBST.OBJ $(SUBST_DIR)/_MSGRET.OBJ $(SUBST_DIR)/_PARSE.OBJ \
-    $(INC_OBJ_PATHS) $(MAPPER_LIB)
-	cd $(SUBST_DIR) && $(LINK) "@SUBST.LNK"
+$(SUBST_OUT): $(SUBST_DIR)/SUBST.OBJ $(SUBST_DIR)/OWCOMSUB.OBJ \
+    $(SUBST_DIR)/_MSGRET.OBJ $(SUBST_DIR)/_PARSE.OBJ $(OW_INC_C_OBJ_PATHS) $(MAPPER_LIB)
+	cd $(SUBST_DIR) && $(WLINK) "SUBST.OBJ+OWCOMSUB.OBJ+..\\..\\INC\\OWERRTST.OBJ+..\\..\\INC\\OWSYSVAR.OBJ+..\\..\\INC\\OWCDS.OBJ+..\\..\\INC\\OWDPB.OBJ+_MSGRET.OBJ+_PARSE.OBJ,SUBST.EXE,,..\\..\\MAPPER\\MAPPER.LIB+clibs.lib;"
 
 # ---------------------------------------------------------------------------
 # BACKUP (backup.com) — Open Watcom C + 2 JWasm modules + native COMSUBS
@@ -1363,7 +1366,7 @@ $(SHARE_DIR)/SHARELNK.OBJ: $(SHARE_DIR)/SHARELNK.ASM
 	cd $(SHARE_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "SHARELNK.ASM,SHARELNK.OBJ;"
 
 $(SHARE_OUT): $(SHARE_DIR)/GSHARE.OBJ $(SHARE_DIR)/GSHARE2.OBJ \
-    $(SHARE_DIR)/SHARESR.OBJ $(SHARE_DIR)/SHARELNK.OBJ $(INC_OBJ_PATHS)
+    $(SHARE_DIR)/SHARESR.OBJ $(SHARE_DIR)/SHARELNK.OBJ $(INC_ASM_OBJ_PATHS)
 	cd $(SHARE_DIR) && $(WLINK) "@SHARE.LNK"
 
 # ---------------------------------------------------------------------------
@@ -1485,7 +1488,7 @@ $(IFSFUNC_OUT): $(IFSFUNC_DIR)/IFSSESS.OBJ $(IFSFUNC_DIR)/IFSDIR.OBJ \
     $(IFSFUNC_DIR)/IFSDEV.OBJ $(IFSFUNC_DIR)/IFSUTIL.OBJ \
     $(IFSFUNC_DIR)/IFSERROR.OBJ $(IFSFUNC_DIR)/IFSFDOS.OBJ \
     $(IFSFUNC_DIR)/IFSINIT.OBJ $(IFSFUNC_DIR)/IFSFLINK.OBJ \
-    $(INC_OBJ_PATHS) $(DOS_DIR)/MSDISP.OBJ $(DOS_DIR)/MSCODE.OBJ
+    $(INC_ASM_OBJ_PATHS) $(DOS_DIR)/MSDISP.OBJ $(DOS_DIR)/MSCODE.OBJ
 	cd $(IFSFUNC_DIR) && $(WLINK) "@IFSFUNC.LNK"
 	$(BIN)/fix-exepack $(IFSFUNC_OUT)
 
