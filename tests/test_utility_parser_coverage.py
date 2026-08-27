@@ -69,6 +69,11 @@ def source_switches(text, extractor="asm_db"):
             r"^\s*#define\s+\w+\s+[\"'](/[^\"']+)[\"']",
             text, re.IGNORECASE | re.MULTILINE,
         )
+    elif extractor == "fastopen_code":
+        values = re.findall(
+            r"^\s*E_Switch\s+DB\s+[\"'](/[^\"']+)[\"']",
+            text, re.IGNORECASE | re.MULTILINE,
+        )
     else:
         raise AssertionError(f"unknown parser extractor {extractor!r}")
     return {value.upper() for value in values}
@@ -138,11 +143,12 @@ def main():
         raise AssertionError("FLUSH13 code-driven parser source is missing or stale")
     specialized_sources = {
         item.get("extractor"): item["source"] for item in manifest["utilities"].values()
-        if item.get("extractor") in {"attrib_header", "c_define_switches"}
+        if item.get("extractor") in {"attrib_header", "c_define_switches", "fastopen_code"}
     }
     if specialized_sources != {
         "attrib_header": "MS-DOS/v4.0/src/CMD/ATTRIB/ATTRIB.H",
         "c_define_switches": "MS-DOS/v4.0/src/CMD/FDISK/PARSE.H",
+        "fastopen_code": "MS-DOS/v4.0/src/CMD/FASTOPEN/FASTINIT.ASM",
     }:
         raise AssertionError(f"specialized C header parser sources are missing or stale: {specialized_sources}")
     incomplete = []

@@ -45,12 +45,13 @@ export MTOOLS_NO_VFAT=1
 mcopy -o -i "$BOOT_IMG" "$SRC/CMD/FASTOPEN/FASTOPEN.EXE" ::FASTOPEN.EXE
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::FOPROBE.COM
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
+printf 'DEVICE=A:\\EMM386.SYS M5\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'FOPROBE.COM B\r\n'
     printf 'IF ERRORLEVEL 1 ECHO FASTOPEN_PRECHECK_FAILED\r\n'
-    printf 'FASTOPEN C:=50\r\n'
+    printf 'FASTOPEN C:=50 /X\r\n'
     printf 'IF ERRORLEVEL 1 ECHO FASTOPEN_INSTALL_FAILED\r\n'
     printf 'FOPROBE.COM P\r\n'
     printf 'IF ERRORLEVEL 1 ECHO FASTOPEN_CACHE_FAILED\r\n'
@@ -73,7 +74,7 @@ timeout 20 qemu-system-i386 \
 
 if grep -q 'FASTOPEN_CACHE_DONE' "$SERIAL_LOG" \
     && ! grep -q 'FASTOPEN_.*_FAILED' "$SERIAL_LOG"; then
-    echo "  PASS: FASTOPEN installed and invalidated a renamed cached pathname"
+    echo "  PASS: FASTOPEN installed its /X EMS cache and invalidated a renamed pathname"
     exit 0
 fi
 

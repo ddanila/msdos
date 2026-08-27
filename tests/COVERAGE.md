@@ -44,11 +44,12 @@ its switch cases, `/LB` subform, and numeric resynchronization form. The
 FORMAT, APPEND, ASSIGN, and CHKDSK extend the assembly extractor to parser
 tables held in include files; FORMAT's compile-time-disabled `/FS` and `/Z`
 records are excluded according to its live build constants. ATTRIB's
-non-switch `+A`, `-A`, `+R`, and `-R` operators and FDISK's header-defined
-valued switches have specialized source extractors. FLUSH13's
+non-switch `+A`, `-A`, `+R`, and `-R` operators, FDISK's header-defined
+valued switches, and FASTOPEN's inline `/X` record have specialized source
+extractors. FLUSH13's
 code-driven grammar has a dedicated extractor for all status, state, policy,
-and numeric tick forms. The verifier now covers all 123 switch/operator forms
-across twenty-eight utilities. Short and long
+and numeric tick forms. The verifier now covers all 124 switch/operator forms
+across twenty-nine utilities. Short and long
 synonyms remain separate entry contracts. It derives
 the complete matching source-file set for both encodings, then compares each
 declared surface with its live
@@ -206,9 +207,10 @@ Print Screen handler, and captures LPT1. The host requires the exact 17,781-byte
 stream and all 25 graphics escape blocks. This also guards the `.PRO` CRLF
 checkout rule: an LF-only profile is rejected by the actual DOS parser and
 cannot reach the print assertion.
-`test_fastopen_cache_qemu.sh` creates a deep fixed-disk fixture through DOS,
-proves the FASTOPEN multiplex hook is absent before installation and present
-afterward, and reads the exact payload to populate the pathname cache. It then
+`test_fastopen_cache_qemu.sh` loads EMM386, creates a deep fixed-disk fixture
+through DOS, proves the FASTOPEN multiplex hook is absent before `/X`
+installation and present afterward, and reads the exact payload to populate
+the expanded-memory pathname cache. It then
 renames the cached directory, requires the stale pathname to fail, reads the
 payload through the new pathname, renames it back, and reads it again. This
 guards subtree invalidation as well as installation; it exposed the resident
@@ -236,6 +238,12 @@ QEMU's AT-compatible machine. It asserts both exact boot diagnostics, walks the
 live DOS device chain to prove neither rejected driver remained resident,
 checks that no LIM EMS signature was installed on INT 67h, and verifies DOS
 services remain operational.
+
+`test_emm386_qemu.sh` covers LIM 4.0 page-frame enumeration and partial-map
+state saving in addition to allocation, mapping, aliasing, and release. The
+enumerated-page contract guards the exact record stride consumed by FASTOPEN;
+it exposed overlapping records caused by an old cast-and-increment extension
+when EMM386's C source moved to Open Watcom.
 
 `test_format.sh` groups cases by the floppy geometry cached by IO.SYS. Its
 media checks cover 1.44MB and 720KB BPBs, 360KB and single-sided formats in a

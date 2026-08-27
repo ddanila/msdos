@@ -79,6 +79,9 @@
       "/PRI": {"level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Creates a requested primary partition in both mixed and primary-only disk scenarios"},
       "/Q": {"level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Suppresses reboot and exposes the source-defined batch errorlevels before and after partition creation"}
     }},
+    "FASTOPEN.EXE": {"source": "MS-DOS/v4.0/src/CMD/FASTOPEN/FASTINIT.ASM", "extractor": "fastopen_code", "switches": {
+      "/X": {"level": "contract", "evidence": ["tests/test_fastopen_cache_qemu.sh"], "note": "Installs the pathname cache in EMM386 expanded memory, then proves exact reads and stale-path invalidation across directory renames"}
+    }},
     "FLUSH13.EXE": {"source": "MS-DOS/v4.0/src/DEV/SMARTDRV/FLUSH13.C", "extractor": "flush13_code", "switches": {
       "/C:OFF": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Disables caching of full-track reads and reports the resulting resident policy"},
       "/C:ON": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Enables caching of full-track reads and reports the resulting resident policy"},
