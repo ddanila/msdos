@@ -169,7 +169,17 @@ make test-coverage-manifest
 make test-int21-error-coverage-manifest
 make test-runtime-coverage-manifest
 make test-dos-interrupt-coverage-manifest
+make test-device-request-coverage-manifest
 ```
+
+`device_request_coverage.json` derives the command number and handler for each
+explicit request table in the shipped installable drivers. It also records the
+different forwarding models used by DRIVER.SYS and PRINTER.SYS. The audit is
+intentionally informative, not yet a strict completeness gate: source-backed
+pass-through, no-op, unsupported, and post-failed-INIT commands are separated
+from ten meaningful request paths that still need focused behavioral evidence.
+Once those paths are covered, this target will gain `--require-complete` like
+the completed interrupt and runtime inventories.
 
 Contract evidence must include a runnable shell test referenced directly by
 the CI workflow. The verifier rejects source-only evidence and tests that can

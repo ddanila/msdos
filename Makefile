@@ -263,7 +263,7 @@ ARTIFACTS := \
     CMD/MODE/MODE.COM \
     MEMM/MEMM/EMM386.SYS
 
-test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-dos-interrupt-coverage-manifest
+test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
 	bash tests/run_tests.sh
 
 test-native-build-tools:
@@ -280,6 +280,9 @@ test-runtime-coverage-manifest:
 
 test-dos-interrupt-coverage-manifest:
 	python3 tests/test_dos_interrupt_coverage.py --require-complete
+
+test-device-request-coverage-manifest:
+	python3 tests/test_device_request_coverage.py
 
 gen-checksums: all
 	cd $(SRC) && sha256sum $(ARTIFACTS) > $(CURDIR)/tests/golden.sha256

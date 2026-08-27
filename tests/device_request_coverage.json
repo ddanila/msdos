@@ -1,0 +1,70 @@
+{
+  "schema": 1,
+  "tables": {
+    "ANSI.SYS": {"source": "MS-DOS/v4.0/src/DEV/ANSI/ANSI.ASM", "label": "CONTBL", "max_command": 19},
+    "DISPLAY.SYS": {"source": "MS-DOS/v4.0/src/DEV/DISPLAY/DISPLAY.ASM", "label": "CMD_TABLE", "max_command": 19},
+    "RAMDRIVE.SYS": {"source": "MS-DOS/v4.0/src/DEV/RAMDRIVE/RAMDRIVE.ASM", "label": "RAMTBL", "max_command": 15},
+    "SMARTDRV.SYS": {"source": "MS-DOS/v4.0/src/DEV/SMARTDRV/SMARTDRV.ASM", "label": "INT13TBL", "max_command": 15},
+    "VDISK.SYS": {"source": "MS-DOS/v4.0/src/DEV/VDISK/VDISKSYS.ASM", "label": "CMD_TABLE", "max_command": 15},
+    "XMA2EMS.SYS": {"source": "MS-DOS/v4.0/src/DEV/XMA2EMS/XMA2EMS.ASM", "label": "CMD_TABLE", "max_command": 24},
+    "XMAEM.SYS": {"source": "MS-DOS/v4.0/src/DEV/XMAEM/INDEINI.ASM", "label": "CMD_TABLE", "max_command": 24}
+  },
+  "coverage": {
+    "ANSI.SYS": {
+      "0": {"level": "contract", "evidence": ["tests/test_ansi_driver_qemu.sh"], "note": "Initialization and attachment to CON are prerequisites of the focused probe"},
+      "1-3": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/ANSI/ANSI.ASM"], "note": "NO_OPERATION delegates unchanged to the underlying CON driver"},
+      "6": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/ANSI/ANSI.ASM"], "note": "NO_OPERATION delegates unchanged to the underlying CON driver"},
+      "8-9": {"level": "contract", "evidence": ["tests/test_ansi_driver_qemu.sh"], "note": "DOS output passes through ANSI and an exact cursor side effect is asserted"}
+      ,"10-18": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/ANSI/ANSI.ASM"], "note": "NO_OPERATION delegates unchanged to the underlying CON driver"}
+    },
+    "DISPLAY.SYS": {
+      "0": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Initialization installs DISPLAY on CON"},
+      "1-11": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/DISPLAY/DISPLAY.ASM"], "note": "NO_OPERATION delegates unchanged to the underlying CON driver"},
+      "12": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "MODE prepares code page 850 through IOCTL output"},
+      "13-18": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/DISPLAY/DISPLAY.ASM"], "note": "NO_OPERATION delegates unchanged to the underlying CON driver"},
+      "19": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Generic IOCTL selects and reports code page 850"}
+    },
+    "RAMDRIVE.SYS": {
+      "0": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "CONFIG.SYS initializes the block device"},
+      "1-2": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "DOS mounts the device and obtains media state and BPB before directory access"},
+      "3": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/RAMDRIVE/RAMDRIVE.ASM"], "note": "The table deliberately maps unsupported IOCTL input to CMDERR"},
+      "4": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "DIR reads the mounted RAM disk"},
+      "5-7": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/RAMDRIVE/RAMDRIVE.ASM"], "note": "Character-input requests are deliberately successful no-ops on this block driver"},
+      "10-14": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/RAMDRIVE/RAMDRIVE.ASM"], "note": "Character status, flush, IOCTL, open, and close requests are deliberately successful no-ops"}
+    },
+    "SMARTDRV.SYS": {
+      "0": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "CONFIG.SYS initializes SMARTDRV on a fixed disk"},
+      "1-2": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/SMARTDRV/SMARTDRV.ASM"], "note": "Character-device media-check and BPB requests deliberately return unknown command"},
+      "3": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "FLUSH13 reads cache policy and status through IOCTL input"},
+      "4-5": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/SMARTDRV/SMARTDRV.ASM"], "note": "Unsupported character input requests deliberately return unknown command"},
+      "6": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "FLUSH13 observes input status"},
+      "7-9": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/SMARTDRV/SMARTDRV.ASM"], "note": "Unsupported flush and output requests deliberately return unknown command"},
+      "10": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "FLUSH13 observes output status"},
+      "11": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/SMARTDRV/SMARTDRV.ASM"], "note": "Unsupported output flush deliberately returns unknown command"},
+      "12": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Disable, enable, policy update, and flush exercise IOCTL output"}
+      ,"13-14": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/SMARTDRV/SMARTDRV.ASM"], "note": "Open and close are deliberately successful no-ops"}
+      ,"15": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/SMARTDRV/SMARTDRV.ASM"], "note": "Removable-media is unsupported by this character control device"}
+    },
+    "VDISK.SYS": {
+      "0": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "CONFIG.SYS initializes the block device"},
+      "1-2": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "DOS mounts the device and obtains media state and BPB before directory access"},
+      "3": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/VDISK/VDISKSYS.ASM"], "note": "Unsupported character-mode IOCTL input returns invalid command"},
+      "4": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "DIR reads the mounted virtual disk"},
+      "5-7": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/VDISK/VDISKSYS.ASM"], "note": "Unsupported character input requests return invalid command"},
+      "10-12": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/VDISK/VDISKSYS.ASM"], "note": "Unsupported character output and IOCTL requests return invalid command"},
+      "13-14": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/VDISK/VDISKSYS.ASM"], "note": "Device open and close are explicitly implemented as no-ops"}
+    },
+    "XMA2EMS.SYS": {
+      "0": {"level": "contract", "evidence": ["tests/test_xma_drivers_qemu.sh"], "note": "Initialization rejects unsupported QEMU hardware without leaving a device or EMS vector"},
+      "1-24": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/XMA2EMS/XMA2EMS.ASM", "tests/test_xma_drivers_qemu.sh"], "note": "Rejected INIT returns no resident header, making subsequent request commands unreachable"}
+    },
+    "XMAEM.SYS": {
+      "0": {"level": "contract", "evidence": ["tests/test_xma_drivers_qemu.sh"], "note": "Initialization rejects unsupported QEMU hardware without leaving a device"},
+      "1-24": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/XMAEM/INDEINI.ASM", "tests/test_xma_drivers_qemu.sh"], "note": "Rejected INIT returns no resident header, making subsequent request commands unreachable"}
+    }
+  },
+  "forwarding_interfaces": {
+    "DRIVER.SYS": {"source": "MS-DOS/v4.0/src/DEV/DRIVER/DRIVER.ASM", "level": "contract", "evidence": ["tests/test_driver_sys_qemu.sh"], "note": "INIT creates the logical block device and later requests are translated and forwarded through INT 2Fh/AX=0802h; a real read from the separate physical disk proves that path"},
+    "PRINTER.SYS": {"source": "MS-DOS/v4.0/src/DEV/PRINTER/CPSPM10.ASM", "level": "contract", "evidence": ["tests/test_printer_driver_qemu.sh"], "note": "The sparse interceptor chains ordinary LPT requests; initialization and code-page generic-IOCTL prepare, select, and status paths are asserted"}
+  }
+}
