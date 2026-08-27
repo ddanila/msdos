@@ -80,6 +80,11 @@ limits. It consumes the largest reported DOS arena, asserts error 8 on the next
 allocation, releases it, and allocates again. With `FILES=12` and an expanded
 process handle table, it similarly exhausts the global SFT, asserts error 4,
 closes every handle, and proves a subsequent open succeeds.
+`test_root_exhaustion_qemu.sh` independently fills all 224 FAT12 root entries,
+asserts access denied on create while clusters remain free, releases one entry,
+and creates again. `test_disk_exhaustion_qemu.sh` fills the data clusters,
+asserts DOS's documented short-write result, releases controlled files, and
+then completes a full write.
 
 Run the inventory check with:
 
