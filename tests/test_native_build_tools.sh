@@ -27,3 +27,27 @@ python3 "$ROOT/tests/test_native_convert.py"
 python3 "$ROOT/tests/test_native_buildmsg.py"
 python3 "$ROOT/tests/test_native_select_tools.py"
 python3 "$ROOT/tests/test_native_mkcntry.py"
+
+python3 - "$ROOT" <<'PY'
+import runpy
+import sys
+
+root = sys.argv[1]
+wlib = runpy.run_path(root + "/bin/wlib")
+resolved = wlib["resolve_existing_casefold"](
+    root + "/MS-DOS/v4.0/src/MAPPER/mapper.lbr"
+)
+assert resolved.endswith("/MAPPER/MAPPER.LBR"), resolved
+
+record = bytearray(b"prefix\x88\x08\x00\xc0\xfeT\x34\x12\x78\x56\0suffix")
+record[16] = (-sum(record[6:16])) & 0xff
+sample = root + "/out/wlib-timestamp-test.lib"
+with open(sample, "wb") as stream:
+    stream.write(record)
+wlib["canonicalize_omf_timestamps"](sample)
+normalized = open(sample, "rb").read()
+assert normalized[12:16] == b"\0\0\0\0", normalized
+assert sum(normalized[6:17]) & 0xff == 0, normalized
+__import__("os").unlink(sample)
+print("native WLIB case-folding and reproducibility tests passed")
+PY

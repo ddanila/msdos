@@ -11,6 +11,22 @@ utilities, then migrates every C-hybrid target to Open Watcom wcc/wlink/wlib and
 a shared compatibility runtime. `PLAN.md` defines milestones and completion
 gates.
 
+**Native production build complete locally (August 27 2026):** MEMM/EMM386,
+the final proprietary island, now builds with JWasm plus Open Watcom
+`wcc`/`wlib`/`wlink`. WLINK far-data packing is disabled for this link so the
+driver's protected-mode tables retain their required independent `SEG:0000`
+layout. Explicit 32-bit source operands replace MASM-era split-immediate byte
+encodings, and page-table copy sizing now handles both packed and independent
+segment layouts. A focused QEMU test validates protected-mode entry plus EMS
+allocation, mapping, cross-window memory aliasing, and release. EMM386 is
+included in `make deploy`. The complete local QEMU matrix passes.
+
+The WLIB compatibility wrapper now resolves DOS paths case-insensitively on
+Linux and normalizes per-member DOS timestamps with repaired OMF checksums.
+Two clean builds reproduce all 59 golden artifacts byte for byte. Remaining
+publication gate: commit/push and confirm the complete GitHub Actions Linux
+matrix is green.
+
 **All command utilities link with WLINK (August 27 2026):** The remaining 22
 Microsoft LINK recipes in `mk/cmd.mk` now use the pinned custom Open Watcom
 linker. The migration also makes legacy layout intent explicit in source:
@@ -1983,6 +1999,7 @@ All commands have functional E2E tests. kvikdos handles fast tests (`run_tests.s
 | SELECT | stub INT 16H + SELECT.EXE exec + error path | test_select.sh |
 | Device drivers | ANSI.SYS, RAMDRIVE.SYS, VDISK.SYS, DISPLAY.SYS, SMARTDRV.SYS | test_drivers_qemu.sh |
 | CONFIG.SYS | BUFFERS FILES LASTDRIVE BREAK STACKS FCBS INSTALL SHELL COUNTRY | test_drivers_qemu.sh |
+| EMM386 | protected-mode entry; EMS allocate/map/alias/release | test_emm386_qemu.sh |
 
 ## Bug Fix Regression Coverage
 

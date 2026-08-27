@@ -2,13 +2,14 @@
 
 A working fork of MS-DOS 4.0 that builds from source on Linux and macOS and is intended as a stable base for OS-level experiments. The custom-JWasm boot stack is validated in QEMU; broader kvikdos and QEMU runtime tests are included.
 
-The `master` branch uses the project's pinned [custom JWasm fork](https://github.com/ddanila/JWasm/tree/custom) natively for every assembly source and the pinned [custom Open Watcom fork](https://github.com/ddanila/open-watcom-v2/tree/custom) for linking and C compilation. All 38 command utilities now link with Open Watcom `wlink`; the only proprietary compiler/library/linker island left in the production build is MEMM/EMM386. See `PLAN.md` and `TODO.md`.
+The `master` branch uses the project's pinned [custom JWasm fork](https://github.com/ddanila/JWasm/tree/custom) natively for every assembly source and the pinned [custom Open Watcom fork](https://github.com/ddanila/open-watcom-v2/tree/custom) for linking, library creation, and C compilation. The complete production build—including MEMM/EMM386—now runs natively with no proprietary Microsoft tools and no DOS emulator in the build path. See `PLAN.md` and `TODO.md`.
 
 ## What's here beyond the stock source
 
 - **`/?` help for every tool** — all 38 CMD utilities and all COMMAND.COM built-in commands have `/? ` usage text (none existed in the original source)
 - **Bug fixes** — FOR/SET/PROMPT hang (ES register corruption), COMMAND.COM parser crash (signed comparison overflow), FDISK R6001 and semicolon bugs, EDLIN binary mode fixes
 - **Full E2E test suite** — kvikdos fast tests for all built-ins and most tools; QEMU+serial tests for disk ops, TSRs, interactive prompts, FORMAT geometry, FDISK partitioning, driver loading
+- **Reproducible outputs** — clean builds normalize library-member timestamps and reproduce all 59 golden artifacts byte for byte
 - **CI** — GitHub Actions on every push; parallel QEMU jobs cover all test targets
 
 ## What's built
@@ -52,6 +53,7 @@ make test-drivers-qemu
 make test-misc-qemu
 make test-mode-redirect-qemu
 make test-keyb-layout-qemu
+make test-emm386-qemu
 ```
 
 ## Dependencies
@@ -74,5 +76,5 @@ brew install nasm gcc make python3 qemu mtools
 - `mk/` — per-module Makefile fragments
 - `Makefile` — GNU Makefile orchestrating the full build
 - `tests/` — all test scripts (kvikdos E2E, QEMU serial, /? smoke tests)
-- `KEYNOTES.md` — build notes, architecture decisions, tips and tricks
+- `PLAN.md` — build architecture, completed migration milestones, and follow-up work
 - `TODO.md` — current work in progress

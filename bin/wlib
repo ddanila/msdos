@@ -11,6 +11,29 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
+def resolve_existing_casefold(path):
+    """Resolve a DOS-style path case-insensitively on case-sensitive hosts."""
+    path = path.replace("\\", "/")
+    absolute = os.path.isabs(path)
+    resolved = os.path.sep if absolute else ""
+    for component in path.split(os.path.sep):
+        if not component:
+            continue
+        if component in (".", ".."):
+            resolved = os.path.join(resolved, component)
+            continue
+        directory = resolved or "."
+        try:
+            matches = [entry for entry in os.listdir(directory)
+                       if entry.casefold() == component.casefold()]
+        except OSError:
+            return path
+        if len(matches) != 1:
+            return path
+        resolved = os.path.join(resolved, matches[0])
+    return resolved or path
+
+
 def executable():
     system, machine = platform.system(), platform.machine().lower()
     if system == "Darwin" and machine == "arm64":
@@ -26,11 +49,11 @@ def object_name(name):
     name = name.strip().replace("\\", "/")
     if not os.path.splitext(name)[1]:
         name += ".OBJ"
-    return name
+    return resolve_existing_casefold(name)
 
 
 def response(path):
-    with open(path, encoding="latin-1") as stream:
+    with open(resolve_existing_casefold(path), encoding="latin-1") as stream:
         lines = [line.strip() for line in stream if line.strip()]
     if not lines:
         raise SystemExit("wlib: empty response file")
@@ -58,6 +81,30 @@ def inline(body):
     return pieces[0], ["+" + object_name(piece) for piece in pieces[1:]], True
 
 
+def canonicalize_omf_timestamps(path):
+    """Zero WLIB's per-member DOS timestamps and repair record checksums."""
+    if not os.path.splitext(path)[1]:
+        path += ".LIB"
+    path = resolve_existing_casefold(path)
+    data = bytearray(open(path, "rb").read())
+    signature = b"\x88\x08\x00\xc0\xfeT"
+    changed = False
+    offset = 0
+    while True:
+        offset = data.find(signature, offset)
+        if offset < 0:
+            break
+        # The eight-byte COMENT body is: attributes, class, subtype,
+        # DOS time/date (four bytes), checksum.  The timestamp has no bearing
+        # on linking but otherwise makes clean builds depend on wall time.
+        data[offset + 6:offset + 10] = b"\0\0\0\0"
+        data[offset + 10] = (-sum(data[offset:offset + 10])) & 0xff
+        changed = True
+        offset += 11
+    if changed:
+        open(path, "wb").write(data)
+
+
 def main():
     if len(sys.argv) != 2:
         raise SystemExit("usage: wlib '<MS LIB command>'")
@@ -70,7 +117,10 @@ def main():
     if create:
         args.append("-n")
     args.extend([library] + commands)
-    raise SystemExit(subprocess.call(args))
+    rc = subprocess.call(args)
+    if rc == 0:
+        canonicalize_omf_timestamps(library)
+    raise SystemExit(rc)
 
 
 if __name__ == "__main__":

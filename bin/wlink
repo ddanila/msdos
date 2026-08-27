@@ -200,6 +200,16 @@ def main():
     if mstack:
         directives += ["option", "stack=" + mstack.group(1)]
 
+    # WLINK packs adjacent ungrouped far-data segments into a shared physical
+    # segment by default.  Some system code (notably EMM386's GDT/IDT/TSS)
+    # deliberately treats each logical segment as a real-mode SEG:0 address.
+    # Accept an explicit packing limit so those links can preserve that layout.
+    mpackdata = next((re.fullmatch(r"[/-]packd(?:ata)?:(\d+)", opt, re.I)
+                      for opt in gopts
+                      if re.fullmatch(r"[/-]packd(?:ata)?:(\d+)", opt, re.I)), None)
+    if mpackdata:
+        directives += ["option", "packdata=" + mpackdata.group(1)]
+
     if want_map:
         directives += ["option", "map" + (("=" + mapname) if mapname and mapname.lower() != "nul" else "")]
     directives += ["name", run]

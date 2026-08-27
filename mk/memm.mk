@@ -13,13 +13,13 @@ memm: $(MEMM_DIR)/EMM386.SYS
 # AFLAGS: -DI386 -DNOHIMEM; include path = ..\MEMM (from EMM/ dir)
 # ---------------------------------------------------------------------------
 EMM_AFLAGS := -Mx -t -DI386 -DNOHIMEM -I..\\MEMM
-EMM_CFLAGS := /ASw /G2 /Oat /Gs /Ze /Zl /c
+EMM_CFLAGS := -AS -2 -Os -Zp -zl -I. -c
 
 $(EMM_DIR)/EMMFUNCT.OBJ: $(EMM_DIR)/EMMFUNCT.C
-	cd $(EMM_DIR) && $(CL) "$(EMM_CFLAGS) -I. -FoEMMFUNCT.OBJ EMMFUNCT.C"
+	cd $(EMM_DIR) && $(WCC) "$(EMM_CFLAGS) -FoEMMFUNCT.OBJ EMMFUNCT.C"
 
 $(EMM_DIR)/EMM40.OBJ: $(EMM_DIR)/EMM40.C
-	cd $(EMM_DIR) && $(CL) "$(EMM_CFLAGS) -I. -FoEMM40.OBJ EMM40.C"
+	cd $(EMM_DIR) && $(WCC) "$(EMM_CFLAGS) -FoEMM40.OBJ EMM40.C"
 
 $(EMM_DIR)/EMMP.OBJ: $(EMM_DIR)/EMMP.ASM
 	cd $(EMM_DIR) && $(MASM) "$(EMM_AFLAGS)" "EMMP.ASM,EMMP.OBJ;"
@@ -42,7 +42,7 @@ $(EMM_DIR)/EMMLIB.LIB: \
     $(EMM_DIR)/EMMDISP.OBJ $(EMM_DIR)/EMMDATA.OBJ \
     $(EMM_DIR)/EMMINC.OBJ
 	rm -f $(EMM_DIR)/EMMLIB.LIB
-	cd $(EMM_DIR) && $(LIB) "EMMLIB+EMMFUNCT.OBJ+EMM40.OBJ+EMMP.OBJ+EMMSUP.OBJ+EMMDISP.OBJ+EMMDATA.OBJ,;"
+	cd $(EMM_DIR) && $(WLIB) "EMMLIB+EMMFUNCT.OBJ+EMM40.OBJ+EMMP.OBJ+EMMSUP.OBJ+EMMDISP.OBJ+EMMDATA.OBJ,;"
 
 # ---------------------------------------------------------------------------
 # MEMM sub-module: EMM386.EXE → EMM386.SYS
@@ -50,7 +50,7 @@ $(EMM_DIR)/EMMLIB.LIB: \
 # DRIVER.STR) + ..\EMM (from MEMM/ dir)
 # ---------------------------------------------------------------------------
 MEMM_AFLAGS := -Mx -t -DI386 -DNoBugMode -DNOHIMEM -I. -I..\\EMM
-MEMM_CFLAGS := /ASw /G2 /Oat /Gs /Ze /Zl /c
+MEMM_CFLAGS := -AS -2 -Os -Zp -zl -I..\\EMM -c
 
 # Pattern rule for all ASM objects in MEMM/
 $(MEMM_DIR)/%.OBJ: $(MEMM_DIR)/%.ASM
@@ -58,7 +58,7 @@ $(MEMM_DIR)/%.OBJ: $(MEMM_DIR)/%.ASM
 
 # C object (MAPDMA.C needs emm.h from EMM/ dir)
 $(MEMM_DIR)/MAPDMA.OBJ: $(MEMM_DIR)/MAPDMA.C
-	cd $(MEMM_DIR) && $(CL) "$(MEMM_CFLAGS) -I..\\EMM -FoMAPDMA.OBJ MAPDMA.C"
+	cd $(MEMM_DIR) && $(WCC) "$(MEMM_CFLAGS) -FoMAPDMA.OBJ MAPDMA.C"
 
 MEMM_OBJS := \
     $(MEMM_DIR)/MEMM386.OBJ $(MEMM_DIR)/ELIMFUNC.OBJ \
@@ -82,7 +82,7 @@ MEMM_OBJS := \
     $(MEMM_DIR)/INITDEB.OBJ $(MEMM_DIR)/MAPDMA.OBJ
 
 $(MEMM_DIR)/EMM386.EXE: $(MEMM_OBJS) $(EMM_DIR)/EMMLIB.LIB
-	cd $(MEMM_DIR) && $(LINK) "/NOI @EMM386.LNK"
+	cd $(MEMM_DIR) && $(WLINK) "/NOI /PACKDATA:1 @EMM386.LNK"
 
 $(MEMM_DIR)/EMM386.SYS: $(MEMM_DIR)/EMM386.EXE
 	mv $(MEMM_DIR)/EMM386.EXE $(MEMM_DIR)/EMM386.SYS

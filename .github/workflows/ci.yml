@@ -107,6 +107,7 @@ jobs:
             SELECT.DAT
             SELECT.HLP
             EGA.CPI
+            EMM386.SYS
           )
 
           for file in "${extras[@]}"; do
@@ -248,6 +249,9 @@ jobs:
 
       - name: ANSI.SYS / RAMDRIVE.SYS / CONFIG.SYS e2e tests
         run: bash tests/test_drivers_qemu.sh
+
+      - name: EMM386 protected-mode and EMS API e2e tests
+        run: bash tests/test_emm386_qemu.sh
 
   e2e-share-nlsfunc-exe2bin:
     needs: build

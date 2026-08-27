@@ -12,30 +12,33 @@ Last updated: 2026-08-27.
 
 ## Where we are
 
-The build has three tool layers. Two are done; the rest is the remaining work.
+All production tool layers are now open-source and native-hosted. The remaining
+gate is confirming the committed result across the full Linux CI matrix.
 
 | Layer | Tool today | Open source? | Status |
 |-------|-----------|--------------|--------|
 | Assembler (all `.ASM`) | JWasm `-Zm` (`bin/jwasm-masm`) | Yes (SOWPL) | **DONE** -- 0 errors tree-wide |
 | Linker (kernel, drivers, all 38 commands) | Open Watcom `wlink` (`bin/wlink`) | Yes (SOWPL) | **DONE** |
-| C compiler (C-hybrids) | Open Watcom `wcc`; MS CL only for MEMM/EMM386 | Mixed | MEMM remains |
-| Library manager | OW `wlib` for MAPPER/SERVICES; MS LIB only for MEMM/EMMLIB | Mixed | MEMM remains |
+| C compiler (all C-hybrids) | Open Watcom `wcc` | Yes (SOWPL) | **DONE** |
+| Library manager | Open Watcom `wlib` (`bin/wlib`) | Yes (SOWPL) | **DONE** |
 | Proprietary build utilities (9 tools) | Native Python wrappers | Yes | **DONE -- 9 of 9 native** |
 
-The **pure-assembly milestone is shippable**: every `.ASM` in the floppy image
-is assembled by JWasm and linked by wlink, and `make deploy` produces a complete
-1.44MB boot floppy end-to-end. What still pulls in proprietary tools:
+Every `.ASM` is assembled by JWasm, every C source is compiled by Open Watcom,
+and all libraries and executables are produced by Open Watcom tools. The nine
+formerly proprietary build utilities have native replacements. `make deploy`
+therefore creates the complete boot floppy without executing DOS code during
+the build.
 
-1. **MEMM/EMM386** still has three **MS CL** compilations, one **MS LIB**
-   archive step, and one **MS LINK** final link. This is the sole proprietary
-   production island.
-2. The nine formerly proprietary build utilities now have native,
-   byte-compatible replacements. The source-built `MKCNTRY.EXE` payload is also
-   extracted natively, so the remaining DOS-emulator use is confined to the
-   Microsoft C compiler, linker, and library manager.
+MEMM/EMM386 was the final island. Its C sources now compile with `wcc`, EMMLIB
+is created by `wlib`, and EMM386 links with `wlink`. The link explicitly disables
+far-data packing because the original protected-mode code requires GDT, IDT,
+TSS, PAGESEG, and LAST to have independent `SEG:0000` addresses. Its QEMU probe
+enters virtual-8086 mode and validates INT 67h allocation, dual-window mapping,
+memory aliasing, and release.
 
-Reaching the goal means eliminating both. They are independent workstreams with
-very different risk profiles (see below).
+Two clean macOS builds reproduce all 59 golden artifacts byte for byte. The
+WLIB wrapper removes wall-clock DOS timestamps from library members while
+preserving valid OMF checksums. The complete local QEMU matrix is green.
 
 ---
 
@@ -141,7 +144,7 @@ Current state: no proprietary helper utility remains and the source-built
 MKCNTRY generator no longer executes under DOS. DOS emulation is now confined
 to the C-hybrid compiler/linker and library-manager steps.
 
-### WS2 -- Migrate the C-hybrids off MS CL/LINK (HARD, long tail)
+### WS2 -- Migrate the C-hybrids off MS CL/LINK (DONE)
 
 The wcc port of ATTRIB now proves the pattern end-to-end: production builds it
 with wcc+JWasm+wlink, all eight focused host behaviors pass, and QEMU validates
@@ -211,8 +214,9 @@ fraction of the cost) and behind a real qemu validation environment (see WS4).
   single step toward the goal.
 - **M2 (DONE)** -- **Zero proprietary build utilities**: all nine replaced by
   native, byte-compatible implementations.
-- **M3** -- WS4: qemu E2E validation green in CI; preprocessor deleted; golden
-  refreshed from a boot-validated build.
+- **M3 (DONE locally)** -- QEMU E2E validation is green and goldens are
+  refreshed from a boot-validated, reproducible build. Linux CI confirmation
+  remains the publication gate.
 - **M4 (DONE)** -- WS2: first C-hybrid (ATTRIB) fully running under
   wcc+wlink+OW runtime. Host 290/290, forced parallel build, QEMU help 6/6,
   and BACKUP/RESTORE 38/38 are green.
@@ -244,8 +248,9 @@ fraction of the cost) and behind a real qemu validation environment (see WS4).
   matching OW2 floating-point runtime is now vendored, and the destructive-disk
   QEMU suite passes 13/13 across primary, extended, logical, and primary-only
   layouts.
-- **M5 (GOAL)** -- All ~14 C-hybrids on wcc+wlink; MS CL/LINK/LIB and kvikdos
-  fully removed. 100% open-source toolchain.
+- **M5 (IMPLEMENTED; CI GATE PENDING)** -- All C-hybrids, including EMM386,
+  use wcc+wlink+wlib; MS CL/LINK/LIB and kvikdos are absent from the production
+  build path.
 
 ## Decisions
 

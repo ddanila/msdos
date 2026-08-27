@@ -1,6 +1,5 @@
-# Linux GNU Makefile for building MS-DOS 4.0 from source using kvikdos
-# Assembler: custom JWasm (bin/jwasm-masm).
-# C compiler, linker, librarian: still kvikdos-based (migration in progress).
+# GNU Makefile for building MS-DOS 4.0 with host-native open-source tools.
+# Assembly uses custom JWasm; C, linking, and libraries use Open Watcom.
 
 SHELL    := /bin/bash
 SRC      := $(CURDIR)/MS-DOS/v4.0/src
@@ -8,14 +7,8 @@ BIN      := $(CURDIR)/bin
 OUT      := $(CURDIR)/out
 
 MASM     := $(BIN)/jwasm-masm
-# Legacy C compiler/linker/library manager, retained for unmigrated hybrids.
-CL       := $(BIN)/cl
 WCC      := $(BIN)/wcc
-LINK     := $(BIN)/link
-# WLINK: open-source Open Watcom linker (native), used for pure-assembly
-# targets (boot/BIOS/DOS/drivers + asm-only CMD utils) and migrated C hybrids.
 WLINK    := $(BIN)/wlink
-LIB      := $(BIN)/lib
 WLIB     := $(BIN)/wlib
 EXE2BIN  := $(BIN)/exe2bin
 BUILDIDX := $(BIN)/buildidx
@@ -37,7 +30,7 @@ CFLAGS   := -AS -Os -Zp
 # Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools gen-checksums deploy minimal-floppy run-boot test-sys test-help-qemu test-misc-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu
+.PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools gen-checksums deploy minimal-floppy run-boot test-sys test-help-qemu test-misc-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu test-emm386-qemu
 
 # Build kvikdos-soft (software CPU) if /dev/kvm is unavailable.
 # dos-run automatically selects the right binary at runtime.
@@ -52,11 +45,9 @@ KVIKDOS_SOFT_DEPS := $(KVIKDOS_SOFT_SRCS) kvikdos/mini_kvm.h kvikdos/cpu8086.h \
                      mk/mini_kvm_compat.h
 KVIKDOS_SOFT_BIN  := kvikdos/kvikdos-soft
 
-# Build the shared emulator first, then enter a jobserver-aware sub-make for
-# the actual build.  Listing it beside the other prerequisites lets a parallel
-# make start DOS-hosted tools before the emulator has finished linking.
-all: $(KVIKDOS_SOFT_BIN)
-	+$(MAKE) build-all
+# The production build has no emulator dependency. kvikdos-soft is retained
+# only as a fast host-side behavioral test runner.
+all: build-all
 
 build-all: messages mapper boot inc bios dos cmd dev select memm
 
@@ -272,7 +263,7 @@ ARTIFACTS := \
     CMD/MODE/MODE.COM \
     MEMM/MEMM/EMM386.SYS
 
-test: test-native-build-tools
+test: $(KVIKDOS_SOFT_BIN) test-native-build-tools
 	bash tests/run_tests.sh
 
 test-native-build-tools:
@@ -447,6 +438,7 @@ SELECT_EXE   := $(SRC)/SELECT/SELECT.EXE
 SELECT_DAT   := $(SRC)/SELECT/SELECT.DAT
 SELECT_HLP   := $(SRC)/SELECT/SELECT.HLP
 EGA_CPI      := $(SRC)/DEV/DISPLAY/EGA/EGA.CPI
+EMM386_SYS   := $(MEMM_DIR)/EMM386.SYS
 
 $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT_COM) $(CHKDSK_COM) $(DEBUG_COM) $(MEM_EXE) $(FDISK_EXE) \
            $(MORE_COM) $(SORT_EXE) $(LABEL_COM) $(FIND_EXE) $(TREE_COM) $(COMP_COM) \
@@ -461,7 +453,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
            $(VDISK_SYS) $(DISPLAY_SYS) $(COUNTRY_SYS) \
            $(SMARTDRV_SYS) $(DRIVER_SYS) \
            $(SELECT_COM) $(SELECT_EXE) $(SELECT_DAT) $(SELECT_HLP) \
-           $(EGA_CPI)
+           $(EGA_CPI) $(EMM386_SYS)
 	mkdir -p $(OUT)
 	# blank 1.44MB image
 	dd if=/dev/zero of=$@ bs=512 count=2880 status=none
@@ -531,16 +523,20 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
 	mcopy -i $@ $(SELECT_DAT) ::SELECT.DAT
 	mcopy -i $@ $(SELECT_HLP) ::SELECT.HLP
 	mcopy -i $@ $(EGA_CPI) ::EGA.CPI
+	mcopy -i $@ $(EMM386_SYS) ::EMM386.SYS
 
-# Enter one jobserver-aware sub-make after the shared emulator is ready.  Do not
-# list `all` beside $(FLOPPY): both paths build the same artifacts and race on
-# generated message/include files under parallel make.
-deploy: $(KVIKDOS_SOFT_BIN)
+# Enter one jobserver-aware sub-make. Do not list `all` beside $(FLOPPY): both
+# paths build the same artifacts and race on generated message/include files
+# under parallel make. Production image creation has no emulator dependency.
+deploy:
 	+$(MAKE) $(FLOPPY)
 
 # run-boot: interactive QEMU session (graphical)
 run-boot: deploy
 	qemu-system-i386 -fda $(FLOPPY) -boot a -m 4
+
+test-emm386-qemu: deploy
+	bash tests/test_emm386_qemu.sh
 
 # ---------------------------------------------------------------------------
 clean:

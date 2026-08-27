@@ -116,6 +116,7 @@ jobs:
             SELECT.DAT
             SELECT.HLP
             EGA.CPI
+            EMM386.SYS
           )
 
           for file in "${extras[@]}"; do
