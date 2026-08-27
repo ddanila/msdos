@@ -97,7 +97,7 @@ done
 echo ""
 echo "=== Section 2: SHA256 checksums ==="
 
-# Golden checksums match the original Microsoft MS-DOS 4.0 release binaries.
+# Golden checksums pin the canonical artifacts produced by the open toolchain.
 # Skip when the MS-DOS submodule is not on the 'main' branch (e.g. on
 # 'dos4-enhancements' where source changes invalidate the golden hashes).
 if git -C "$REPO_ROOT/MS-DOS" merge-base --is-ancestor HEAD main 2>/dev/null; then
@@ -105,6 +105,16 @@ if git -C "$REPO_ROOT/MS-DOS" merge-base --is-ancestor HEAD main 2>/dev/null; th
         if (cd "$SRC" && sha256sum --check "$GOLDEN" --quiet 2>&1); then
             ok "all checksums match"
         else
+            while read -r expected artifact; do
+                [[ -n "$artifact" && -f "$SRC/$artifact" ]] || continue
+                actual=$(sha256sum "$SRC/$artifact")
+                actual=${actual%% *}
+                if [[ "$actual" != "$expected" ]]; then
+                    echo "    $artifact"
+                    echo "      expected: $expected"
+                    echo "      actual:   $actual"
+                fi
+            done < "$GOLDEN"
             fail "checksum mismatch (run 'make gen-checksums' to regenerate)"
         fi
     else
