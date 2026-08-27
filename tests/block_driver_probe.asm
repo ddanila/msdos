@@ -18,6 +18,22 @@ start:
     call non_removable
     jc failed
 
+    mov al, 2                    ; Resolve C:'s live DPB and RAMDRIVE header.
+    call load_block_driver
+    jc failed
+    mov si, ram_success_commands
+    mov di, ram_error_commands
+    call verify_request_commands
+    jc failed
+
+    mov al, 3                    ; Resolve D:'s live DPB and VDISK header.
+    call load_block_driver
+    jc failed
+    mov si, vdisk_success_commands
+    mov di, vdisk_error_commands
+    call verify_request_commands
+    jc failed
+
     mov al, 2                    ; Read C: RAMDRIVE boot sector.
     xor dx, dx
     mov bx, sector_buffer
@@ -120,6 +136,83 @@ non_removable:
     stc
     ret
 
+; Locate the DPB for zero-based drive AL and retain its unit number and live
+; device entry points.  This avoids relying on device-chain order to distinguish
+; the two unnamed block drivers.
+load_block_driver:
+    push ax
+    mov ah, 52h
+    int 21h
+    les si, [es:bx]              ; SYSI_DPB chain head.
+    mov cx, 32
+.next_dpb:
+    pop ax
+    push ax
+    cmp [es:si], al
+    je .found
+    les si, [es:si + 25]         ; dpb_next_dpb.
+    cmp si, 0ffffh
+    je .missing
+    loop .next_dpb
+.missing:
+    pop ax
+    stc
+    ret
+.found:
+    mov al, [es:si + 1]          ; dpb_unit.
+    mov [request_packet + 1], al
+    les bx, [es:si + 19]         ; dpb_driver_addr.
+    mov ax, [es:bx + 6]
+    mov [driver_strategy], ax
+    mov ax, [es:bx + 8]
+    mov [driver_interrupt], ax
+    mov ax, es
+    mov [driver_strategy + 2], ax
+    mov [driver_interrupt + 2], ax
+    pop ax
+    clc
+    ret
+
+; Success-command list at DS:SI and invalid-command list at DS:DI are both
+; FF-terminated.  Direct requests prove the live handlers' status contracts;
+; command 16 additionally checks the dispatch-table upper boundary.
+verify_request_commands:
+.success:
+    lodsb
+    cmp al, 0ffh
+    je .errors
+    call issue_request
+    mov ax, [request_packet + 3]
+    and ax, 0ff00h
+    cmp ax, 0100h                ; Done, with no error or busy bits.
+    jne .failed
+    jmp .success
+.errors:
+    mov al, [di]
+    inc di
+    cmp al, 0ffh
+    je .passed
+    call issue_request
+    cmp word [request_packet + 3], 8103h
+    jne .failed                  ; Done + error + unknown command.
+    jmp .errors
+.passed:
+    clc
+    ret
+.failed:
+    stc
+    ret
+
+issue_request:
+    mov [request_packet + 2], al
+    mov word [request_packet + 3], 0deadH
+    push cs
+    pop es
+    mov bx, request_packet
+    call far [driver_strategy]
+    call far [driver_interrupt]
+    ret
+
 absolute_read:
     mov cx, 1
     int 25h
@@ -157,7 +250,21 @@ serial_print:
 
 ram_oem db 'RDV 1.20'
 vdisk_oem db 'VDISKx.x'
+ram_success_commands db 5, 6, 7, 10, 11, 12, 13, 14, 0ffh
+ram_error_commands db 3, 16, 0ffh
+vdisk_success_commands db 13, 14, 0ffh
+vdisk_error_commands db 3, 5, 6, 7, 10, 11, 12, 16, 0ffh
 pass_message db 'BLOCK_DRIVER_REQUEST_PASS', 13, 10, 0
 fail_message db 'BLOCK_DRIVER_REQUEST_FAIL', 13, 10, 0
+driver_strategy dd 0
+driver_interrupt dd 0
+request_packet:
+    db 22, 0, 0
+    dw 0
+    times 8 db 0
+    db 0
+    dw 0, 0
+    dw 0
+    dw 0
 sector_buffer times 512 db 0
 write_buffer times 512 db 0

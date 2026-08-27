@@ -97,7 +97,11 @@ The combined driver boot also exercises RAMDRIVE and VDISK through two
 independent paths. DOS file I/O must return exact payload markers, while a
 guest probe checks each 64 KiB BPB field by field, writes and reads the final
 sector using that driver's distinct sector size, and rereads RAMDRIVE after a
-VDISK mutation to prove the two memory-backed devices are isolated.
+VDISK mutation to prove the two memory-backed devices are isolated. The probe
+also resolves each driver through its live DOS DPB, calls its strategy and
+interrupt entries directly, and asserts exact success or unknown-command
+status for every otherwise-reachable no-op or unsupported request. A request
+one command beyond each table proves the dispatch bound as well.
 Resident utility contracts follow the same rule. `test_graftabl_qemu.sh`
 derives the complete 128-character bitmap oracles from the maintained font
 sources, then switches 437 to 850 and back in one DOS session. After every
