@@ -55,6 +55,9 @@ is coalesced across a track only when MULTITRACK is enabled.
 Driver contracts similarly require an effect after installation. For example,
 `test_ansi_driver_qemu.sh` sends an ANSI cursor-position sequence through DOS
 and checks the resulting coordinates through the BIOS.
+`test_driver_sys_qemu.sh` installs a logical drive backed by a separate second
+floppy, handles the driver's media prompt through QMP, and verifies known bytes
+read through the new drive letter.
 
 Run the inventory check with:
 

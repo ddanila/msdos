@@ -265,6 +265,9 @@ jobs:
       - name: ANSI.SYS escape-sequence behavior
         run: bash tests/test_ansi_driver_qemu.sh
 
+      - name: DRIVER.SYS external logical drive
+        run: bash tests/test_driver_sys_qemu.sh
+
       - name: Focused CONFIG.SYS state contracts
         run: bash tests/test_config_state_qemu.sh
 
