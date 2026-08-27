@@ -65,6 +65,31 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'COPY BAKF1.TXT BAKSRC\\FILE1.TXT\r\n'
     printf 'COPY BAKF2.TXT BAKSRC\\FILE2.TXT\r\n'
 
+    # ── Parser-only failures: no media prompts or mutations ────────────────────────
+    printf 'BACKUP A:BAKSRC\\*.TXT B: /D:01-01-90 /D:01-01-90\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO BACKUP_DUP_D_REJECTED\r\n'
+    printf 'BACKUP A:BAKSRC\\*.TXT B: /T:00:00:00 /T:00:00:00\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO BACKUP_DUP_T_REJECTED\r\n'
+    printf 'BACKUP A:BAKSRC\\*.TXT B: /Z\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO BACKUP_UNKNOWN_REJECTED\r\n'
+    printf 'BACKUP A:BAKSRC\\*.TXT B: EXTRA\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO BACKUP_ARITY_REJECTED\r\n'
+    printf 'BACKUP A:BAKSRC\\*.TXT B: /D:02-30-90\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO BACKUP_DATE_REJECTED\r\n'
+    printf 'BACKUP A:BAKSRC\\*.TXT B: /T:24:00:00\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO BACKUP_TIME_REJECTED\r\n'
+
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /Z\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO RESTORE_UNKNOWN_REJECTED\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT EXTRA\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO RESTORE_ARITY_REJECTED\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /B:02-30-90\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO RESTORE_DATE_REJECTED\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /E:24:00:00\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO RESTORE_TIME_REJECTED\r\n'
+    printf 'RESTORE A: A:BAKSRC\\*.TXT\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO RESTORE_SAME_DRIVE_REJECTED\r\n'
+
     # ── BACKUP basic: specific file spec to B: ────────────────────────────────
     # Prompts: INSERTSOURCE (1) + INSERTTARGET + ERASEMSG (2) = 3 keypresses.
     # Output: "*** Backing up files to drive B: ***"
@@ -76,7 +101,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'ECHO ---BACKUP-S---\r\n'
     printf 'MD BAKSRC\\SUB\r\n'
     printf 'COPY BAKDEEP.TXT BAKSRC\\SUB\\DEEP.TXT\r\n'
-    printf 'BACKUP A:BAKSRC B: /S\r\n'
+    printf 'BACKUP A:BAKSRC B: /S /S\r\n'
     printf 'ECHO BACKUP_S_DONE\r\n'
 
     # ── BACKUP /M: only files with archive bit set ────────────────────────────
@@ -86,7 +111,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'ATTRIB -A BAKSRC\\FILE1.TXT\r\n'
     printf 'ATTRIB -A BAKSRC\\FILE2.TXT\r\n'
     printf 'ATTRIB +A BAKSRC\\FILE2.TXT\r\n'
-    printf 'BACKUP A:BAKSRC\\*.TXT B: /M\r\n'
+    printf 'BACKUP A:BAKSRC\\*.TXT B: /M /M\r\n'
     printf 'DEL BAKSRC\\FILE1.TXT\r\n'
     printf 'DEL BAKSRC\\FILE2.TXT\r\n'
     printf 'RESTORE B: A:BAKSRC\\*.TXT\r\n'
@@ -105,7 +130,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'ECHO ---BACKUP-A---\r\n'
     printf 'BACKUP A:BAKSRC\\*.TXT B:\r\n'
     printf 'COPY BAKF1.TXT BAKSRC\\EXTRA.TXT\r\n'
-    printf 'BACKUP A:BAKSRC\\EXTRA.TXT B: /A\r\n'
+    printf 'BACKUP A:BAKSRC\\EXTRA.TXT B: /A /A\r\n'
     printf 'DEL BAKSRC\\FILE1.TXT\r\n'
     printf 'DEL BAKSRC\\FILE2.TXT\r\n'
     printf 'DEL BAKSRC\\EXTRA.TXT\r\n'
@@ -135,7 +160,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     # switch parsing through the full code path.
     # Prompts: INSERTSOURCE + INSERTTARGET + ERASEMSG = 3 keypresses.
     printf 'ECHO ---BACKUP-F---\r\n'
-    printf 'BACKUP A:BAKSRC\\*.TXT B: /F\r\n'
+    printf 'BACKUP A:BAKSRC\\*.TXT B: /F /F\r\n'
     printf 'ECHO BACKUP_F_DONE\r\n'
 
     # ── RESTORE basic: round-trip FILE1 ──────────────────────────────────────
@@ -154,7 +179,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'BACKUP A:BAKSRC B: /S\r\n'
     printf 'DEL BAKSRC\\SUB\\DEEP.TXT\r\n'
     printf 'RD BAKSRC\\SUB\r\n'
-    printf 'RESTORE B: A:BAKSRC /S\r\n'
+    printf 'RESTORE B: A:BAKSRC /S /S\r\n'
     printf 'IF EXIST BAKSRC\\SUB\\DEEP.TXT ECHO RESTORE_S_OK\r\n'
     printf 'FC /B BAKSRC\\SUB\\DEEP.TXT BAKDEEP.TXT >NUL\r\n'
     printf 'IF NOT ERRORLEVEL 1 ECHO RESTORE_S_CONTENT_OK\r\n'
@@ -165,7 +190,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'ECHO ---RESTORE-N---\r\n'
     printf 'BACKUP A:BAKSRC\\*.TXT B:\r\n'
     printf 'DEL BAKSRC\\FILE2.TXT\r\n'
-    printf 'RESTORE B: A:BAKSRC\\*.TXT /N\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /N /N\r\n'
     printf 'IF EXIST BAKSRC\\FILE2.TXT ECHO RESTORE_N_OK\r\n'
     printf 'FC /B BAKSRC\\FILE2.TXT BAKF2.TXT >NUL\r\n'
     printf 'IF NOT ERRORLEVEL 1 ECHO RESTORE_N_CONTENT_OK\r\n'
@@ -203,7 +228,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     # Log contains date/time header + one line per backed-up file.
     # Prompts: INSERTSOURCE + INSERTTARGET + ERASEMSG = 3 keypresses.
     printf 'ECHO ---BACKUP-L---\r\n'
-    printf 'BACKUP A:BAKSRC\\*.TXT B: /L\r\n'
+    printf 'BACKUP A:BAKSRC\\*.TXT B: /L /L\r\n'
     printf 'IF EXIST A:\\BACKUP.LOG ECHO BACKUP_L_LOG_EXISTS\r\n'
     printf 'ECHO BACKUP_L_DONE\r\n'
 
@@ -216,7 +241,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'BACKUP A:BAKSRC\\*.TXT B:\r\n'
     printf 'ATTRIB -A BAKSRC\\FILE1.TXT\r\n'
     printf 'ATTRIB -A BAKSRC\\FILE2.TXT\r\n'
-    printf 'RESTORE B: A:BAKSRC\\*.TXT /M\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /M /M\r\n'
     printf 'IF ERRORLEVEL 1 ECHO RESTORE_M_NO_MATCH\r\n'
     printf 'ECHO RESTORE_M_DONE\r\n'
 
@@ -225,7 +250,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     # Files created in 2026 have FAT date year=46 (2026-1980) → excluded.
     # B: backup from /M test is reused (FILE1+FILE2 backed up).
     printf 'ECHO ---RESTORE-B---\r\n'
-    printf 'RESTORE B: A:BAKSRC\\*.TXT /B:12-31-99\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /B:12-31-99 /B:12-31-99\r\n'
     printf 'IF ERRORLEVEL 1 ECHO RESTORE_B_NO_MATCH\r\n'
     printf 'ECHO RESTORE_B_DONE\r\n'
 
@@ -233,7 +258,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     # /A:12-31-50 → restore files with write_date >= 12/31/2050 (year 50 = 2050).
     # Files from 2026 have date < 2050 → excluded.
     printf 'ECHO ---RESTORE-A---\r\n'
-    printf 'RESTORE B: A:BAKSRC\\*.TXT /A:12-31-50\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /A:12-31-50 /A:12-31-50\r\n'
     printf 'IF ERRORLEVEL 1 ECHO RESTORE_A_NO_MATCH\r\n'
     printf 'ECHO RESTORE_A_DONE\r\n'
 
@@ -242,7 +267,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     # Files created during QEMU runtime have hour > 0 → RTOLD1.C: hh > 0 → excluded.
     # (ss = FAT 2-sec units 0-29; parser seconds=0 so ss > 0 also excludes exact-midnight files)
     printf 'ECHO ---RESTORE-E---\r\n'
-    printf 'RESTORE B: A:BAKSRC\\*.TXT /E:00:00:00\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /E:00:00:00 /E:00:00:00\r\n'
     printf 'IF ERRORLEVEL 1 ECHO RESTORE_E_NO_MATCH\r\n'
     printf 'ECHO RESTORE_E_DONE\r\n'
 
@@ -250,7 +275,7 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     # /L:23:59:58 → restore files with write_time >= 23:59:58.
     # RTOLD1.C: hh < 23 → excluded for most files. Even at 23:59, FAT ss (0-29) < 58 always.
     printf 'ECHO ---RESTORE-L---\r\n'
-    printf 'RESTORE B: A:BAKSRC\\*.TXT /L:23:59:58\r\n'
+    printf 'RESTORE B: A:BAKSRC\\*.TXT /L:23:59:58 /L:23:59:58\r\n'
     printf 'IF ERRORLEVEL 1 ECHO RESTORE_L_NO_MATCH\r\n'
     printf 'ECHO RESTORE_L_DONE\r\n'
 
@@ -299,6 +324,38 @@ fi
 
 echo ""
 echo "--- BACKUP tests ---"
+
+backup_parser_ok=true
+for marker in D T; do
+    grep -q "^BACKUP_DUP_${marker}_REJECTED" "$SERIAL_LOG" || backup_parser_ok=false
+done
+for marker in UNKNOWN ARITY DATE TIME; do
+    grep -q "^BACKUP_${marker}_REJECTED" "$SERIAL_LOG" || backup_parser_ok=false
+done
+if $backup_parser_ok \
+    && grep -q 'Invalid date - /D:01-01-90' "$SERIAL_LOG" \
+    && grep -q 'Invalid time - /T:00:00:00' "$SERIAL_LOG" \
+    && grep -q 'Invalid switch - /Z' "$SERIAL_LOG" \
+    && grep -q 'Too many parameters - EXTRA' "$SERIAL_LOG"; then
+    ok "BACKUP rejects duplicate valued switches and malformed command classes"
+else
+    fail "BACKUP parser rejection matrix was incomplete"
+fi
+
+restore_parser_ok=true
+for marker in UNKNOWN ARITY DATE TIME SAME_DRIVE; do
+    grep -q "^RESTORE_${marker}_REJECTED" "$SERIAL_LOG" || restore_parser_ok=false
+done
+if $restore_parser_ok \
+    && [[ $(grep -c 'Invalid switch - /Z' "$SERIAL_LOG") -ge 2 ]] \
+    && [[ $(grep -c 'Too many parameters - EXTRA' "$SERIAL_LOG") -ge 2 ]] \
+    && grep -q 'Invalid date - /B:02-30-90' "$SERIAL_LOG" \
+    && grep -q 'Invalid time - /E:24:00:00' "$SERIAL_LOG" \
+    && grep -q 'Source and target drives are the same' "$SERIAL_LOG"; then
+    ok "RESTORE rejects every malformed command class with exact diagnostics"
+else
+    fail "RESTORE parser rejection matrix was incomplete"
+fi
 
 # "*** Backing up files to drive B: ***" is printed by BUDISKMSG on every successful run
 if grep -q "Backing up files to drive B" "$SERIAL_LOG"; then

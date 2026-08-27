@@ -179,6 +179,12 @@ successful archive round trip. Binary FC comparisons assert exact payloads for
 archive-bit selection, append preservation, basic restore, recursive restore,
 and restore-if-missing. Its negative date/time/filter cases still require the
 documented nonzero errorlevel and no-match behavior.
+The same real-DOS workflow derives its parser matrices from BACKUP's seven and
+RESTORE's eight live switch synonyms. Repeated flag switches are intentionally
+idempotent and must retain their observable state effects; BACKUP's valued
+date/time switches instead reject a duplicate. Unknown switches, third
+operands, malformed calendar/time values, and RESTORE's forbidden same-drive
+form require their exact diagnostics and nonzero errorlevels.
 
 `test_chkdsk_fix.sh` injects a three-cluster orphan chain with a distinct byte
 pattern in every cluster. After `/F`, the generated `FILE0000.CHK` must match

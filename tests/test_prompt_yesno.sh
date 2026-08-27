@@ -98,7 +98,7 @@ mformat -i "$TARGET_IMG" ::
     printf 'ECHO MODIFIED_CONTENT > XP_SRC1.TXT\r\n'
 
     printf 'ECHO ---RESTORE-P---\r\n'
-    printf 'RESTORE B: A:\\XP_SRC1.TXT /P\r\n'
+    printf 'RESTORE B: A:\\XP_SRC1.TXT /P /P\r\n'
     printf 'ECHO RESTORE_P_DONE\r\n'
 
     # ── COMP: decline repetition, then accept it and compare a second pair
