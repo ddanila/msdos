@@ -219,6 +219,9 @@ ranges, the zero/overflow tick forms, an unknown switch, and a duplicate
 installation switch. Exact diagnostics and a single later installation prove
 that rejection leaves no resident state behind; the recovered spooler then
 delivers the queued payload byte-for-byte through PRINTER.SYS to captured LPT1.
+GRAPHICS likewise rejects duplicate `/R`, `/B`, `/LCD`, and printbox synonyms,
+plus both orderings of the `/LCD`/printbox conflict and an unknown switch,
+before a valid installation emits the exact patterned-screen printer stream.
 `test_assign_subst_join.sh` uses a separate physical B: image to prove ASSIGN,
 SUBST, and JOIN through their resulting drive namespace and exact file I/O.
 It also exercises each parser's duplicate, unknown, missing, conflicting, and

@@ -38,6 +38,13 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
+    printf 'GRAPHICS /LCD /PB:STD\r\n'
+    printf 'GRAPHICS /PB:STD /LCD\r\n'
+    printf 'GRAPHICS /LCD /LCD\r\n'
+    printf 'GRAPHICS /PB:STD /PRINTBOX:STD\r\n'
+    printf 'GRAPHICS /R /R\r\n'
+    printf 'GRAPHICS /B /B\r\n'
+    printf 'GRAPHICS /Z\r\n'
     printf 'GRAPHICS GRAPHICS GRAPHICS.PRO /PB:STD\r\n'
     printf 'IF ERRORLEVEL 1 ECHO GRAPHICS_INSTALL_FAILED\r\n'
     printf 'GRPROBE.COM\r\n'
@@ -68,13 +75,16 @@ print(len(data), hashlib.sha256(data).hexdigest(), data.count(b"\x1bL"))
 PY
 )"
 
-if grep -q 'GRAPHICS_PRINT_DONE' "$SERIAL_LOG" \
+if [[ $(grep -c '^Invalid parameter combination' "$SERIAL_LOG") -eq 2 ]] \
+    && [[ $(grep -c '^Duplicate parameters not allowed' "$SERIAL_LOG") -eq 4 ]] \
+    && grep -Fq 'Invalid parameter:   /Z' "$SERIAL_LOG" \
+    && grep -q 'GRAPHICS_PRINT_DONE' "$SERIAL_LOG" \
     && ! grep -q 'GRAPHICS_.*_FAILED\|Printer error' "$SERIAL_LOG"; then
     read -r capture_size capture_sha graphics_blocks <<<"$analysis"
     if [[ "$capture_size" == 17781 \
         && "$capture_sha" == 8afd0de4bd00fb51325256f281fdec5b7ed51644f01c4eb9b91f4bc550f60506 \
         && "$graphics_blocks" == 25 ]]; then
-        echo "  PASS: GRAPHICS emitted the exact patterned-screen LPT1 stream"
+        echo "  PASS: GRAPHICS rejected parser conflicts and emitted the exact LPT1 stream"
         exit 0
     fi
 fi

@@ -107,11 +107,11 @@
       "/STATUS": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_graftabl_qemu.sh"], "note": "Long status synonym reports the active resident code page"}
     }},
     "GRAPHICS.COM": {"source": "MS-DOS/v4.0/src/CMD/GRAPHICS/GRPARMS.ASM", "switches": {
-      "/B": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Background-printing mode loads and returns to the batch"},
-      "/LCD": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "LCD aspect mode loads and returns to the batch"},
-      "/PB": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_graphics_print_qemu.sh"], "note": "Short printbox synonym loads STD and drives an exact printer-stream contract"},
-      "/PRINTBOX": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Long printbox synonym loads the same named STD profile"},
-      "/R": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Reverse-printing mode loads and returns to the batch"}
+      "/B": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_graphics_print_qemu.sh"], "note": "Duplicate background mode is rejected before the resident output contract"},
+      "/LCD": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_graphics_print_qemu.sh"], "note": "Duplicate LCD mode and both orderings with printbox mode are rejected"},
+      "/PB": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_graphics_print_qemu.sh"], "note": "Short printbox spelling selects STD, conflicts with LCD, and collides with its long synonym"},
+      "/PRINTBOX": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_graphics_print_qemu.sh"], "note": "Long printbox spelling is recognized as a duplicate of the short synonym"},
+      "/R": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_graphics_print_qemu.sh"], "note": "Duplicate reverse mode is rejected before the byte-exact patterned-screen capture"}
     }},
     "KEYB.COM": {"source": "MS-DOS/v4.0/src/CMD/KEYB/PARSER.ASM", "switches": {
       "/ID": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_keyb_layout_qemu.sh"], "note": "A concrete French keyboard ID loads and the resulting active layout is queried"}
