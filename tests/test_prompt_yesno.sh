@@ -1,8 +1,8 @@
 #!/bin/bash
 # tests/test_prompt_yesno.sh — E2E tests for per-file Y/N prompts via QEMU.
 #
-# Tests XCOPY /P, REPLACE /P, and RESTORE /P which prompt for confirmation
-# on each file via SYSDISPMSG (INT 21h AH=01h keyboard input with echo).
+# Tests XCOPY /P, REPLACE /P, RESTORE /P, and COMP's repeat workflow, which
+# prompt through DOS console and country-aware Y/N services.
 #
 # Interactive prompt handling:
 #   XCOPY /P: shows "path\filename (Y/N)?" per file
@@ -25,6 +25,7 @@ TARGET_IMG="$OUT/prompt-yesno-target.img"
 SERIAL_LOG="$OUT/prompt-yesno-serial.log"
 SERIAL_IN="$OUT/prompt-yesno-serial.in"
 SERIAL_OUT="$OUT/prompt-yesno-serial.out"
+EXIT_COM="$OUT/prompt-yesno-qexit.com"
 
 PASS=0
 FAIL=0
@@ -37,15 +38,17 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
-trap 'rm -f "$SERIAL_IN" "$SERIAL_OUT" 2>/dev/null; true' EXIT
+trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$SERIAL_IN" "$SERIAL_OUT" 2>/dev/null; true' EXIT
 
-echo "=== XCOPY /P, REPLACE /P, RESTORE /P E2E tests (QEMU, serial expect) ==="
+echo "=== prompted command workflows (QEMU, serial expect) ==="
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
 # ── Step 1: build boot floppy ─────────────────────────────────────────────
 echo "Building test images..."
 cp "$FLOPPY" "$BOOT_IMG"
+nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
+mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 
 # Create test files for XCOPY and REPLACE
 printf 'XCOPY_SOURCE_1\r\n' | mcopy -o -i "$BOOT_IMG" - ::XP_SRC1.TXT
@@ -98,7 +101,19 @@ mformat -i "$TARGET_IMG" ::
     printf 'RESTORE B: A:\\XP_SRC1.TXT /P\r\n'
     printf 'ECHO RESTORE_P_DONE\r\n'
 
+    # ── COMP: decline repetition, then accept it and compare a second pair
+    # in the same process before declining the next repetition prompt.
+    printf 'ECHO COMP_PAYLOAD>COMP1.TXT\r\n'
+    printf 'ECHO ---COMP-N---\r\n'
+    printf 'COMP COMP1.TXT COMP1.TXT\r\n'
+    printf 'ECHO COMP_N_DONE\r\n'
+
+    printf 'ECHO ---COMP-Y---\r\n'
+    printf 'COMP COMP1.TXT COMP1.TXT\r\n'
+    printf 'ECHO COMP_Y_DONE\r\n'
+
     printf 'ECHO ===DONE===\r\n'
+    printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
 # ── Step 2: set up serial FIFOs ───────────────────────────────────────────
@@ -114,6 +129,7 @@ timeout 120 qemu-system-i386 \
     -drive if=floppy,index=0,format=raw,file="$BOOT_IMG",cache=writethrough \
     -drive if=floppy,index=1,format=raw,file="$TARGET_IMG",cache=writethrough \
     -boot a -m 4 \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     -serial pipe:"$OUT/prompt-yesno-serial" \
     2>/dev/null &
 QEMU_PID=$!
@@ -126,8 +142,14 @@ QEMU_PID=$!
 #   4. BACKUP: "Press any key" (INSERTSOURCE) → \r
 #   5. BACKUP: "Press any key" (ERASEMSG) → \r
 #   6. RESTORE: "Press any key" (INSERTSOURCE) → \r
-#   7. RESTORE: "Press any key" (INSERTTARGET) → \r
-#   8. RESTORE /P: "Replace the file (Y/N)?" → Y
+#   7. RESTORE: "Press any key" (INSERTTARGET) → \r then pre-buffer Y\r
+#      for the optional changed-file prompt. If RESTORE finds no changed file,
+#      COMMAND.COM harmlessly consumes Y before continuing AUTOEXEC.
+#   8. COMP: "Compare more files" → N, returning to the batch
+#   9. COMP: "Compare more files" → Y
+#  10. COMP: primary filename prompt → COMP1.TXT
+#  11. COMP: second-filename prompt → COMP1.TXT
+#  12. COMP: second "Compare more files" → N
 python3 "$REPO_ROOT/tests/serial_expect.py" \
     "$SERIAL_IN" "$SERIAL_OUT" "$SERIAL_LOG" \
     '(Y/N)?' 'Y\r' \
@@ -136,8 +158,12 @@ python3 "$REPO_ROOT/tests/serial_expect.py" \
     'Press any key' '\r' \
     'Press any key' '\r' \
     'Press any key' '\r' \
-    'Press any key' '\r' \
-    'Replace the file (Y/N)?' 'Y\r'
+    'Press any key' '\rY\r' \
+    'Compare more files' 'N\r' \
+    'Compare more files' 'Y\r' \
+    'Enter primary filename' 'COMP1.TXT\r' \
+    'Enter 2nd filename or drive id' 'COMP1.TXT\r' \
+    'Compare more files' 'N\r'
 
 wait $QEMU_PID || true
 exec 3>&-    # close our O_RDWR fd on SERIAL_IN
@@ -208,10 +234,29 @@ fi
 if grep -qi "Replace the file" "$SERIAL_LOG"; then
     ok "RESTORE /P ('Replace the file (Y/N)?' prompt appeared)"
 else
-    # RESTORE /P may not prompt if file hasn't changed from RESTORE's perspective
-    # (FAT timestamp granularity is 2 seconds — the modify+restore might happen
-    # within the same timestamp window). Not a failure, just not prompted.
-    ok "RESTORE /P (no prompt — file timestamp may match backup; /P switch parsed OK)"
+    ok "RESTORE /P (no changed-file prompt; optional response was safely consumed)"
+fi
+
+echo ""
+echo "--- COMP repeat-workflow tests ---"
+
+if grep -q "COMP_N_DONE" "$SERIAL_LOG"; then
+    ok "COMP N response returned to the calling batch"
+else
+    fail "COMP N response did not return to the calling batch"
+fi
+
+if [[ $(grep -c "Enter primary filename" "$SERIAL_LOG") -ge 1 ]] &&
+   [[ $(grep -c "Enter 2nd filename or drive id" "$SERIAL_LOG") -eq 1 ]]; then
+    ok "COMP Y response requested a new primary and secondary file pair"
+else
+    fail "COMP Y response did not request a new primary and secondary file pair"
+fi
+
+if [[ $(grep -c "Files compare OK" "$SERIAL_LOG") -ge 3 ]] && grep -q "COMP_Y_DONE" "$SERIAL_LOG"; then
+    ok "COMP repeated comparison completed and final N returned to batch"
+else
+    fail "COMP repeated comparison or final return did not complete"
 fi
 
 echo ""

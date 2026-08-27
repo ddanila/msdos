@@ -231,6 +231,11 @@ extension and checks every source-level binary/line incompatibility (`/L`,
 one and twenty lines; `/LB` without digits pins the historical default-buffer
 fallback, while `/LB0` must fail through the allocation path. Unknown switches
 and excess filenames require usage output and errorlevel 1.
+COMP's ordinary comparisons verify exact mismatch offsets and byte values,
+different sizes, missing files, and its ten-error cutoff. A real-DOS serial
+workflow additionally covers its stateful tail prompt: `N` returns to the
+calling batch, while `Y` requests exactly one fresh filename pair, performs a
+second comparison in the same process, and accepts a final `N`.
 
 ATTRIB metadata transitions operate on a disposable copy rather than a source
 file. The test covers combined set/clear operations, recursive enumeration,
