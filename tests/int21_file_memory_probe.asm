@@ -56,6 +56,31 @@ start:
     int 21h
     fail_if_carry 4a
 
+    mov bx, 0ffffh                ; A valid block cannot grow beyond the arena.
+    mov ah, 4ah
+    int 21h
+    require_error 8, fail_resize_memory
+
+    mov ax, [memory_segment]      ; Temporarily invalidate this block's MCB.
+    dec ax
+    mov es, ax
+    mov al, [es:0]
+    mov [saved_mcb_signature], al
+    mov byte [es:0], 0
+    mov bx, 1
+    mov ah, 48h
+    int 21h
+    pushf
+    push ax
+    mov ax, [memory_segment]
+    dec ax
+    mov es, ax
+    mov al, [saved_mcb_signature]
+    mov [es:0], al
+    pop ax
+    popf
+    require_error 7, fail_alloc_arena
+
     mov es, [memory_segment]
     mov ah, 49h
     int 21h
@@ -84,6 +109,10 @@ start:
     jnc memory_exhaust_failed
     cmp ax, 8
     jne memory_exhaust_failed
+    mov bx, 64                    ; Enlarging the JFT also needs arena memory.
+    mov ah, 67h
+    int 21h
+    require_error 8, fail_handle_memory
     mov es, [memory_segment]
     mov ah, 49h
     int 21h
@@ -262,6 +291,24 @@ seek_ok:
     int 21h
     jc sft_exhaust_failed
 
+    mov bx, 1                     ; A live high handle prevents JFT shrinking.
+    mov cx, 30
+    mov ah, 46h
+    int 21h
+    jc handle_resize_failed
+    mov bx, 20
+    mov ah, 67h
+    int 21h
+    require_error 4, fail_handle_shrink
+    mov bx, 30
+    mov ah, 3eh
+    int 21h
+    jc handle_resize_failed
+    mov bx, 0ffffh                ; FFFFh is the reserved invalid JFT size.
+    mov ah, 67h
+    int 21h
+    require_error 1, fail_handle_count
+
     ; Every handle-oriented entry in DOS's live error map must reject FFFFh
     ; with error 6. Keep these together so one probe traces the shared negative
     ; boundary without allowing a successful-path assertion to stand in for it.
@@ -406,6 +453,10 @@ read_failed:
 read_ok:
 
     mov bx, [file_handle]
+    mov ax, 57ffh                 ; File-time subfunctions stop at 4.
+    int 21h
+    require_error 1, fail_invalid_file_time
+    mov bx, [file_handle]
     mov ax, 5700h
     int 21h
     fail_if_carry 57
@@ -518,6 +569,9 @@ sft_exhaust_failed:
 invalid_selector_failed:
     mov dx, fail_invalid_selector
     jmp fail
+handle_resize_failed:
+    mov dx, fail_handle_resize_setup
+    jmp fail
 dup_exhaust_failed:
     mov dx, fail_dup_exhaust
     jmp fail
@@ -576,14 +630,22 @@ fail_invalid_allocop db 'INT21_INVALID_ALLOCOP_FAIL', 13, 10, '$'
 fail_invalid_country db 'INT21_INVALID_COUNTRY_FAIL', 13, 10, '$'
 fail_invalid_codepage db 'INT21_INVALID_CODEPAGE_FAIL', 13, 10, '$'
 fail_invalid_media db 'INT21_INVALID_MEDIA_FAIL', 13, 10, '$'
+fail_invalid_file_time db 'INT21_INVALID_FILE_TIME_FAIL', 13, 10, '$'
 fail_invalid_free db 'INT21_INVALID_FREE_FAIL', 13, 10, '$'
 fail_invalid_resize db 'INT21_INVALID_RESIZE_FAIL', 13, 10, '$'
+fail_resize_memory db 'INT21_RESIZE_MEMORY_FAIL', 13, 10, '$'
+fail_alloc_arena db 'INT21_ALLOC_ARENA_FAIL', 13, 10, '$'
+fail_handle_memory db 'INT21_HANDLE_MEMORY_FAIL', 13, 10, '$'
+fail_handle_shrink db 'INT21_HANDLE_SHRINK_FAIL', 13, 10, '$'
+fail_handle_count db 'INT21_HANDLE_COUNT_FAIL', 13, 10, '$'
+fail_handle_resize_setup db 'INT21_HANDLE_RESIZE_SETUP_FAIL', 13, 10, '$'
 file_handle    dw 0
 error_handle   dw 0
 sft_create_name db 'SFTCREATE.TST', 0
 sft_new_name db 'SFTNEW.TST', 0
 sft_temp_template db 'A:', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 memory_segment dw 0
+saved_mcb_signature db 0
 open_handles   times 64 dw 0
 cwd_buffer     times 64 db 0
 read_buffer    times payload_size db 0

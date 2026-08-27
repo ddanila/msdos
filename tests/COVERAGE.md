@@ -106,6 +106,11 @@ and attempts to rename the active current directory. Extended-open coverage
 asserts its action and access selectors plus missing, existing, directory,
 full-root, and exhausted-SFT behavior rather than treating ordinary open/create
 coverage as evidence for the DOS 4-specific interface.
+Memory-manager coverage temporarily corrupts and restores an allocated block's
+MCB signature to prove arena validation, and distinguishes that from ordinary
+capacity exhaustion. Handle-table coverage similarly asserts growth failure
+under arena exhaustion, shrink rejection across a live high handle, the
+reserved count boundary, and recovery after the constraint is removed.
 
 Run the inventory check with:
 

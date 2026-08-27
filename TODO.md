@@ -10,8 +10,8 @@ justifications, and the normal test suite enforces `--require-complete`.
 CI also rejects unexpected host-test skips. The runtime inventory is complete:
 all 55 shipped commands, drivers, and TSRs and all 17 CONFIG.SYS directives have
 focused contracts enforced by the normal test suite. The active depth milestone
-derives 110 allowed INT 21h function/error pairs from `I21_MAP_E_TAB`; 63 now
-have focused negative-path evidence. The remaining 47 pairs, followed by a
+derives 110 allowed INT 21h function/error pairs from `I21_MAP_E_TAB`; 69 now
+have focused negative-path evidence. The remaining 41 pairs, followed by a
 systematic boundary/state/recovery audit, are the current coverage backlog.
 
 ## Native Open-Source Build (COMPLETE)
