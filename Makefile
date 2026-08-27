@@ -282,7 +282,7 @@ test-dos-interrupt-coverage-manifest:
 	python3 tests/test_dos_interrupt_coverage.py --require-complete
 
 test-device-request-coverage-manifest:
-	python3 tests/test_device_request_coverage.py
+	python3 tests/test_device_request_coverage.py --require-complete
 
 gen-checksums: all
 	cd $(SRC) && sha256sum $(ARTIFACTS) > $(CURDIR)/tests/golden.sha256

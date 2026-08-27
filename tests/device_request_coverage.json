@@ -13,9 +13,13 @@
     "ANSI.SYS": {
       "0": {"level": "contract", "evidence": ["tests/test_ansi_driver_qemu.sh"], "note": "Initialization and attachment to CON are prerequisites of the focused probe"},
       "1-3": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/ANSI/ANSI.ASM"], "note": "NO_OPERATION delegates unchanged to the underlying CON driver"},
+      "4": {"level": "contract", "evidence": ["tests/ansi_driver_probe.asm", "tests/test_ansi_driver_qemu.sh"], "note": "A QMP-injected key is returned by a blocking DOS CON read"},
+      "5": {"level": "contract", "evidence": ["tests/ansi_driver_probe.asm", "tests/test_ansi_driver_qemu.sh"], "note": "A QMP-injected key is returned by direct nonblocking DOS CON input"},
       "6": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/ANSI/ANSI.ASM"], "note": "NO_OPERATION delegates unchanged to the underlying CON driver"},
+      "7": {"level": "contract", "evidence": ["tests/ansi_driver_probe.asm", "tests/test_ansi_driver_qemu.sh"], "note": "DOS flush discards a confirmed queued key before nonblocking input"},
       "8-9": {"level": "contract", "evidence": ["tests/test_ansi_driver_qemu.sh"], "note": "DOS output passes through ANSI and an exact cursor side effect is asserted"}
       ,"10-18": {"level": "excluded", "evidence": ["MS-DOS/v4.0/src/DEV/ANSI/ANSI.ASM"], "note": "NO_OPERATION delegates unchanged to the underlying CON driver"}
+      ,"19": {"level": "contract", "evidence": ["tests/ansi_driver_probe.asm", "tests/test_ansi_driver_qemu.sh"], "note": "Generic IOCTL returns a valid 80-column text-mode characteristics packet"}
     },
     "DISPLAY.SYS": {
       "0": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Initialization installs DISPLAY on CON"},
