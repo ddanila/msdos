@@ -45,12 +45,23 @@ printf 'IFS=TESTIFS.SYS\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
     printf 'IF ERRORLEVEL 1 ECHO IFSFUNC_INSTALL_FAILED\r\n'
     printf 'FILESYS C: TESTIFS\r\n'
     printf 'IF ERRORLEVEL 1 ECHO FILESYS_ATTACH_FAILED\r\n'
+    printf 'FILESYS C: TESTIFS\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO FILESYS_DUPLICATE_REJECTED\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO FILESYS_DUPLICATE_FAILED\r\n'
+    printf 'FILESYS D: NOIFS\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO FILESYS_UNKNOWN_IFS_REJECTED\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO FILESYS_UNKNOWN_IFS_FAILED\r\n'
     printf 'FILESYS C:\r\n'
     printf 'IF ERRORLEVEL 1 ECHO FILESYS_STATUS_FAILED\r\n'
     printf 'ECHO IFSFUNC_FILESYS_BEFORE_DETACH\r\n'
     printf 'FILESYS C: /D\r\n'
     printf 'ECHO IFSFUNC_FILESYS_AFTER_DETACH\r\n'
     printf 'IF ERRORLEVEL 1 ECHO FILESYS_DETACH_FAILED\r\n'
+    printf 'FILESYS C: /D\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO FILESYS_REPEAT_DETACH_REJECTED\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO FILESYS_REPEAT_DETACH_FAILED\r\n'
+    printf 'FILESYS C:\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO FILESYS_EMPTY_STATUS_FAILED\r\n'
     printf 'IFSPROBE.COM\r\n'
     printf 'IF ERRORLEVEL 1 ECHO IFSFUNC_FILESYS_PROBE_FAILED\r\n'
     printf 'ECHO IFSFUNC_FILESYS_DONE\r\n'
@@ -69,6 +80,10 @@ timeout 20 qemu-system-i386 \
 
 if grep -q 'IFSFUNC_FILESYS_DONE' "$SERIAL_LOG" \
     && grep -Eq 'C:[[:space:]]+TESTIFS([[:space:]]|$)' "$SERIAL_LOG" \
+    && grep -q 'FILESYS_DUPLICATE_REJECTED' "$SERIAL_LOG" \
+    && grep -q 'FILESYS_UNKNOWN_IFS_REJECTED' "$SERIAL_LOG" \
+    && grep -q 'FILESYS_REPEAT_DETACH_REJECTED' "$SERIAL_LOG" \
+    && grep -q 'No entries found' "$SERIAL_LOG" \
     && ! grep -q 'IFSFUNC_.*_FAILED\|FILESYS_.*_FAILED' "$SERIAL_LOG"; then
     echo "  PASS: FILESYS attach/status/detach traversed resident IFSFUNC and TESTIFS"
     exit 0

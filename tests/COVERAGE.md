@@ -79,7 +79,9 @@ and linkage without pretending that one of the shipped TSRs is an IFS driver.
 lifecycle: IFSFUNC installs its DOS interface, FILESYS attaches the fixture to
 C:, reports its exact `TESTIFS` name, and detaches it. A post-detach probe reads
 the resident header and requires exactly one ATTSTART, ATTSTAT, and ATTEND
-request, so command completion alone cannot satisfy the contract.
+request, so command completion alone cannot satisfy the contract. Duplicate
+attachment, an unknown IFS, and repeated detachment must return failure without
+reaching the driver; a final status query must report an empty attachment list.
 
 `test_config_multitrack_qemu.sh` attaches separate FAT16 IDE images to parallel
 ON and OFF boots. An INT 13h observer proves the same ten-sector absolute read
