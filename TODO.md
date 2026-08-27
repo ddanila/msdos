@@ -1971,7 +1971,11 @@ Load MSDOS.SYS kernel into the HMA (first 64K-16 bytes above 1MB), freeing ~40-5
 
 ## E2E Test Coverage Summary
 
-All commands have functional E2E tests. kvikdos handles fast tests (`run_tests.sh`), QEMU+serial for disk/TSR/interactive tests. CI runs parallel jobs per test target (`.github/workflows/ci.yml`).
+This table is a historical functional-test summary. The authoritative live
+inventory is `tests/runtime_coverage.json`; it currently exposes runtime and
+CONFIG.SYS gaps that this older prose table did not account for. kvikdos handles
+fast tests (`run_tests.sh`), while QEMU+serial covers disk, TSR, driver, and
+interactive behavior. CI runs parallel jobs per test target.
 
 | Tool | Functional | Test location |
 |------|-----------|---------------|

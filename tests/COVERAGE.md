@@ -17,10 +17,16 @@ kernel's live INT 21h dispatch table. `test_coverage_manifest.py` parses
   recorded;
 - **uncovered**: no evidence has been established yet.
 
+`runtime_coverage.json` applies the same levels to every shipped or built
+runtime `.COM`, `.EXE`, and `.SYS` component and to every directive parsed from
+the kernel's live `COMTAB` in `BIOS/SYSINIT2.ASM`. Its verifier derives both
+sets from the source and Makefile, rejecting omitted or stale entries.
+
 Run the inventory check with:
 
 ```sh
 make test-coverage-manifest
+make test-runtime-coverage-manifest
 ```
 
 Contract evidence must include a runnable shell test referenced directly by
@@ -35,6 +41,13 @@ python3 tests/test_coverage_manifest.py --require-complete
 
 Every non-excluded dispatch entry now has focused contract evidence. Any new
 uncovered or observation-only entry fails the normal test suite and CI.
+
+The runtime inventory is structural while its known gaps are being closed. Its
+future completion gate can be inspected with:
+
+```sh
+python3 tests/test_runtime_coverage_manifest.py --require-complete
+```
 
 CI also sets `FAIL_ON_SKIP=1`; an unexpected host-test skip is therefore a
 failure rather than being folded into the pass count.
