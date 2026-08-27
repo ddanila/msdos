@@ -12,7 +12,7 @@
     "COUNTRY.SYS": {"kind": "data_driver", "level": "contract", "evidence": ["tests/test_drivers_qemu.sh", "tests/test_share_nlsfunc_exe2bin.sh"], "note": "Country loading and code-page interaction are asserted"},
     "DEBUG.COM": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_debug_qemu.sh"], "note": "Core debugger commands and actual G execution are asserted"},
     "DISKCOMP.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Track comparison and supported switch behavior are asserted"},
-    "DISKCOPY.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Physical disk copying and verification/error paths are asserted"},
+    "DISKCOPY.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "A host-side whole-image comparison proves every byte is copied except the documented regenerated volume serial; DOS comparison, single-sided, and switch-error paths are also asserted"},
     "DISPLAY.SYS": {"kind": "driver", "level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Code page 850 is prepared, selected, and reported active through the installed driver"},
     "DRIVER.SYS": {"kind": "driver", "level": "contract", "evidence": ["tests/test_driver_sys_qemu.sh"], "note": "Installed logical C: is prompted through QMP and reads known data from a separate physical B: image"},
     "EDLIN.COM": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_edlin_qemu.sh"], "note": "Editing operations, binary mode, and interactive open/list/quit are asserted"},
