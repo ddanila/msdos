@@ -318,6 +318,9 @@ test-misc-qemu: deploy
 test-graphics-print-qemu: deploy
 	bash tests/test_graphics_print_qemu.sh
 
+test-fastopen-cache-qemu: deploy
+	bash tests/test_fastopen_cache_qemu.sh
+
 test-mode-redirect-qemu: deploy
 	bash tests/test_mode_redirect_qemu.sh
 

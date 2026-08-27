@@ -105,6 +105,13 @@ Print Screen handler, and captures LPT1. The host requires the exact 17,781-byte
 stream and all 25 graphics escape blocks. This also guards the `.PRO` CRLF
 checkout rule: an LF-only profile is rejected by the actual DOS parser and
 cannot reach the print assertion.
+`test_fastopen_cache_qemu.sh` creates a deep fixed-disk fixture through DOS,
+proves the FASTOPEN multiplex hook is absent before installation and present
+afterward, and reads the exact payload to populate the pathname cache. It then
+renames the cached directory, requires the stale pathname to fail, reads the
+payload through the new pathname, renames it back, and reads it again. This
+guards subtree invalidation as well as installation; it exposed the resident
+cache retaining renamed directories that had cached children.
 `test_smartdrv_flush_qemu.sh` attaches a fixed disk and uses FLUSH13 to assert
 SMARTDRV status, disable/enable transitions, policy changes, and an explicit
 successful flush. A purpose-built guest probe also writes and reads back a

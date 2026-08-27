@@ -239,6 +239,9 @@ jobs:
       - name: GRAPHICS.COM exact Print Screen output
         run: bash tests/test_graphics_print_qemu.sh
 
+      - name: FASTOPEN pathname-cache invalidation
+        run: bash tests/test_fastopen_cache_qemu.sh
+
       - name: Focused MODE parser regression
         run: bash tests/test_mode_redirect_qemu.sh
 
