@@ -1,5 +1,15 @@
 # MS-DOS 4.0 Build — TODO
 
+## Complete behavioral coverage and traceability (ACTIVE)
+
+The current coverage program is defined in `tests/COVERAGE.md`. Its first
+machine-checked inventory parses all 109 live INT 21h dispatch entries from
+`DOS/MS_TABLE.ASM`, separates focused contract tests from incidental behavior,
+and exposes every uncovered call. CI now rejects unexpected host-test skips and
+runs the existing EDLIN QEMU regression as a dedicated job. The next major
+milestone is the standalone INT 21h contract harness described below; its
+evidence must drive the strict `--require-complete` gate to zero uncovered calls.
+
 ## Native Open-Source Build (COMPLETE)
 
 **Active goal (August 27 2026):** Deliver a reproducible, fully open-source

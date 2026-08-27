@@ -13,10 +13,11 @@ GOLDEN="$REPO_ROOT/tests/golden.sha256"
 
 PASS=0
 FAIL=0
+SKIP=0
 
 ok()   { echo "  PASS: $1"; PASS=$((PASS+1)); }
 fail() { echo "  FAIL: $1"; FAIL=$((FAIL+1)); }
-skip() { echo "  SKIP: $1"; PASS=$((PASS+$2)); }  # count skipped tests as passed
+skip() { echo "  SKIP: $1"; SKIP=$((SKIP+1)); }
 
 # ── Section 1: output files exist and are non-empty ─────────────────────────
 echo "=== Section 1: output files exist ==="
@@ -118,10 +119,10 @@ if git -C "$REPO_ROOT/MS-DOS" merge-base --is-ancestor HEAD main 2>/dev/null; th
             fail "checksum mismatch (run 'make gen-checksums' to regenerate)"
         fi
     else
-        echo "  SKIP: golden.sha256 not found — run 'make gen-checksums' first"
+        skip "golden.sha256 not found — run 'make gen-checksums' first"
     fi
 else
-    echo "  SKIP: MS-DOS submodule is not on 'main' — golden checksums not applicable"
+    skip "MS-DOS submodule is not on 'main' — golden checksums not applicable"
 fi
 
 # ── Section 3: kvikdos smoke tests ──────────────────────────────────────────
@@ -1864,5 +1865,9 @@ fi
 
 # ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
-echo "Results: $PASS passed, $FAIL failed"
+echo "Results: $PASS passed, $FAIL failed, $SKIP skipped"
+if [[ ${FAIL_ON_SKIP:-0} == 1 && $SKIP -ne 0 ]]; then
+    echo "Unexpected skips are forbidden when FAIL_ON_SKIP=1"
+    exit 1
+fi
 [[ $FAIL -eq 0 ]]

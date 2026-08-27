@@ -30,7 +30,7 @@ CFLAGS   := -AS -Os -Zp
 # Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools gen-checksums deploy minimal-floppy run-boot test-sys test-help-qemu test-misc-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu test-emm386-qemu
+.PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools test-coverage-manifest gen-checksums deploy minimal-floppy run-boot test-sys test-help-qemu test-misc-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu test-emm386-qemu
 
 # Build kvikdos-soft (software CPU) if /dev/kvm is unavailable.
 # dos-run automatically selects the right binary at runtime.
@@ -263,11 +263,14 @@ ARTIFACTS := \
     CMD/MODE/MODE.COM \
     MEMM/MEMM/EMM386.SYS
 
-test: $(KVIKDOS_SOFT_BIN) test-native-build-tools
+test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-coverage-manifest
 	bash tests/run_tests.sh
 
 test-native-build-tools:
 	bash tests/test_native_build_tools.sh
+
+test-coverage-manifest:
+	python3 tests/test_coverage_manifest.py
 
 gen-checksums: all
 	cd $(SRC) && sha256sum $(ARTIFACTS) > $(CURDIR)/tests/golden.sha256

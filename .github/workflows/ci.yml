@@ -48,6 +48,8 @@ jobs:
 
       - name: Run integration tests (make test)
         run: make test
+        env:
+          FAIL_ON_SKIP: 1
         timeout-minutes: 10
 
       - name: Build bootable floppy (make deploy)
@@ -526,6 +528,31 @@ jobs:
 
       - name: DEBUG G (execute) e2e test
         run: bash tests/test_debug_qemu.sh
+
+  e2e-edlin:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}/ci:latest
+      options: --device /dev/kvm
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repo with submodules
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Grant KVM access
+        run: chmod 666 /dev/kvm
+
+      - name: Download floppy image
+        uses: actions/download-artifact@v7
+        with:
+          name: floppy
+
+      - name: EDLIN open/list/quit e2e test
+        run: bash tests/test_edlin_qemu.sh
 
   e2e-chkdsk-fix:
     needs: build
