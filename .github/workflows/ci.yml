@@ -274,6 +274,9 @@ jobs:
       - name: CONFIG.SYS installable filesystem linkage
         run: bash tests/test_config_ifs_qemu.sh
 
+      - name: CONFIG.SYS fixed-disk multitrack I/O
+        run: bash tests/test_config_multitrack_qemu.sh
+
       - name: EMM386 protected-mode and EMS API e2e tests
         run: bash tests/test_emm386_qemu.sh
 

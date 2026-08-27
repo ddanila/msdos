@@ -48,6 +48,10 @@ accepts the boot-time INIT request, returns its resident size, and is then
 verified by name in DOS's live IFS header chain. This covers actual IFS loading
 and linkage without pretending that one of the shipped TSRs is an IFS driver.
 
+`test_config_multitrack_qemu.sh` attaches separate FAT16 IDE images to parallel
+ON and OFF boots. An INT 13h observer proves the same ten-sector absolute read
+is coalesced across a track only when MULTITRACK is enabled.
+
 Run the inventory check with:
 
 ```sh

@@ -70,7 +70,7 @@
     "IFS": {"level": "contract", "evidence": ["tests/test_config_ifs_qemu.sh"], "note": "A minimal test filesystem receives INIT successfully and its named header is asserted in the DOS IFS chain"},
     "INSTALL": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "FASTOPEN is installed and resident behavior is subsequently exercised"},
     "LASTDRIVE": {"level": "contract", "evidence": ["tests/test_config_state_qemu.sh"], "note": "INT 21h/AH=0Eh reports all 26 configured CDS entries for LASTDRIVE=Z"},
-    "MULTITRACK": {"level": "uncovered", "evidence": [], "note": "No state or disk-I/O contract"},
+    "MULTITRACK": {"level": "contract", "evidence": ["tests/test_config_multitrack_qemu.sh"], "note": "Parallel fixed-disk reads spanning a track prove ON coalesces one 10-sector BIOS request while OFF splits it into two requests"},
     "REM": {"level": "contract", "evidence": ["tests/test_config_state_qemu.sh"], "note": "An apparent BREAK override after REM is ignored and the original state remains active"},
     "SHELL": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Configured COMMAND.COM starts, processes AUTOEXEC, and remains operational"},
     "STACKS": {"level": "contract", "evidence": ["tests/test_config_stacks_qemu.sh"], "note": "Parallel STACKS=0,0 and STACKS=9,256 boots prove the configured internal stack pool reserves the required DOS memory"},
