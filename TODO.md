@@ -1,6 +1,6 @@
 # MS-DOS 4.0 Build — TODO
 
-## Native Open-Source Build (ACTIVE)
+## Native Open-Source Build (COMPLETE)
 
 **Active goal (August 27 2026):** Deliver a reproducible, fully open-source
 build of MS-DOS 4.0 on modern hosts, with no proprietary Microsoft binaries or
@@ -23,13 +23,14 @@ included in `make deploy`. The complete local QEMU matrix passes.
 
 The WLIB compatibility wrapper now resolves DOS paths case-insensitively on
 Linux and normalizes per-member DOS timestamps with repaired OMF checksums.
-Two clean builds reproduce all 59 golden artifacts byte for byte. Remaining
-publication gate: confirm the complete GitHub Actions Linux matrix is green.
+Two clean builds established byte-for-byte repeatability across all 59 artifacts
+before the final tool refresh. GitHub Actions run `33051385481` reproduces the
+refreshed 59-artifact golden set and passes all 23 build and QEMU jobs.
 The refreshed custom Linux WCC deterministically changes only ATTRIB's local
 stack-slot ordering and reduces EMM386's compiled image by one paragraph; their
 goldens now pin those latest-toolchain outputs. The previously completed local
-QEMU matrix remains the runtime reference while Linux CI validates the same
-sources end to end.
+QEMU matrix and the complete Linux CI matrix both validate the sources end to
+end.
 
 **All command utilities link with WLINK (August 27 2026):** The remaining 22
 Microsoft LINK recipes in `mk/cmd.mk` now use the pinned custom Open Watcom

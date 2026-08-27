@@ -12,8 +12,8 @@ Last updated: 2026-08-27.
 
 ## Where we are
 
-All production tool layers are now open-source and native-hosted. The remaining
-gate is confirming the committed result across the full Linux CI matrix.
+All production tool layers are now open-source and native-hosted. The committed
+result passes the full Linux CI and QEMU matrix.
 
 | Layer | Tool today | Open source? | Status |
 |-------|-----------|--------------|--------|
@@ -36,9 +36,11 @@ TSS, PAGESEG, and LAST to have independent `SEG:0000` addresses. Its QEMU probe
 enters virtual-8086 mode and validates INT 67h allocation, dual-window mapping,
 memory aliasing, and release.
 
-Two clean macOS builds reproduce all 59 golden artifacts byte for byte. The
-WLIB wrapper removes wall-clock DOS timestamps from library members while
-preserving valid OMF checksums. The complete local QEMU matrix is green.
+Two clean macOS builds established repeatability before the final tool refresh.
+The WLIB wrapper removes wall-clock DOS timestamps from library members while
+preserving valid OMF checksums, and Linux CI now reproduces all 59 refreshed
+golden artifacts. Both the complete local QEMU matrix and the 23-job GitHub
+Actions matrix are green.
 
 ---
 
