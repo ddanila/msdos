@@ -343,6 +343,58 @@ else
     fail "FIND /V /C (expected 'SETENV.BAT: N' count)"
 fi
 
+# Exercise the remaining combinations of the three source-declared switches.
+output=$(run_dos CMD/FIND/FIND.EXE /V /N '"echo"' 'C:\SETENV.BAT') || true
+if echo "$output" | grep -qE '\[[0-9]+\].*set COUNTRY'; then
+    ok "FIND /V /N (numbered inverted matches)"
+else
+    fail "FIND /V /N (expected numbered non-matching lines)"
+fi
+
+output=$(run_dos CMD/FIND/FIND.EXE /C /N '"echo"' 'C:\SETENV.BAT') || true
+if echo "$output" | grep -qE 'SETENV\.BAT:.*[0-9]' && ! echo "$output" | grep -q '\[[0-9]\+\]'; then
+    ok "FIND /C /N (count mode takes precedence over numbering)"
+else
+    fail "FIND /C /N (expected an unnumbered count)"
+fi
+
+output=$(run_dos CMD/FIND/FIND.EXE /V /C /N '"echo"' 'C:\SETENV.BAT') || true
+if echo "$output" | grep -qE 'SETENV\.BAT:.*[0-9]' && ! echo "$output" | grep -q '\[[0-9]\+\]'; then
+    ok "FIND /V /C /N (inverted count takes precedence over numbering)"
+else
+    fail "FIND /V /C /N (expected an unnumbered inverted count)"
+fi
+
+# Unlike TREE, FIND leaves recognized synonyms live: duplicate switches are
+# accepted and idempotent. This is an intentional parser compatibility check.
+output=$(run_dos CMD/FIND/FIND.EXE /V /V '"echo"' 'C:\SETENV.BAT'); find_duplicate_rc=$?
+if [[ "$find_duplicate_rc" -eq 0 ]] && echo "$output" | grep -q "COUNTRY"; then
+    ok "FIND duplicate switch (accepted idempotently)"
+else
+    fail "FIND duplicate switch (expected idempotent success, got rc=$find_duplicate_rc)"
+fi
+
+output=$(run_dos_all_output CMD/FIND/FIND.EXE /Z '"echo"' 'C:\SETENV.BAT'); find_unknown_rc=$?
+if [[ "$find_unknown_rc" -eq 2 ]] && echo "$output" | grep -q "Parse Error 3"; then
+    ok "FIND unknown switch (rejected with parser diagnostic and errorlevel 2)"
+else
+    fail "FIND unknown switch (expected Parse Error 3/errorlevel 2, got rc=$find_unknown_rc)"
+fi
+
+output=$(run_dos_all_output CMD/FIND/FIND.EXE 'C:\SETENV.BAT'); find_missing_string_rc=$?
+if [[ "$find_missing_string_rc" -eq 2 ]] && echo "$output" | grep -q "Parse Error 9"; then
+    ok "FIND missing quoted search string (rejected with errorlevel 2)"
+else
+    fail "FIND missing quoted search string (expected Parse Error 9/errorlevel 2, got rc=$find_missing_string_rc)"
+fi
+
+output=$(run_dos_all_output CMD/FIND/FIND.EXE '"echo"' '"set"' 'C:\SETENV.BAT'); find_extra_string_rc=$?
+if [[ "$find_extra_string_rc" -eq 2 ]] && echo "$output" | grep -q "Parse Error 9"; then
+    ok "FIND second quoted search string (rejected with errorlevel 2)"
+else
+    fail "FIND second quoted search string (expected Parse Error 9/errorlevel 2, got rc=$find_extra_string_rc)"
+fi
+
 # -- FIND errorlevel 2: bad arguments trigger error exit code --
 # FIND.ASM: exits 2 on errors (no args → "Invalid number of parameters").
 # Run FIND directly (not via COMMAND.COM batch — kvikdos can't spawn child EXEs).

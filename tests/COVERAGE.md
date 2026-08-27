@@ -220,6 +220,11 @@ adjacent rejected values, and an unknown switch. TREE exercises `/F` and `/A`,
 then proves that its parser's deliberate removal of a consumed synonym rejects
 a duplicate switch as well as an unknown one. Negative cases require both the
 expected parser diagnostic and errorlevel 1.
+FIND covers all eight combinations of its `/V`, `/C`, and `/N` flags and proves
+that count mode takes precedence over line numbering. Its distinct parser
+policy is also pinned: duplicate recognized switches are idempotent, while an
+unknown switch and missing or extra quoted search strings return the exact
+diagnostic class and errorlevel 2.
 
 ATTRIB metadata transitions operate on a disposable copy rather than a source
 file. The test covers combined set/clear operations, recursive enumeration,
