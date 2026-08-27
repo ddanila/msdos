@@ -24,8 +24,10 @@ six startup switches, two SELECT modes, and 124 switch/operator forms across
 twenty-nine standalone utilities. A cross-inventory gate now accounts for all
 41 shipped executable interfaces, including positional-only, interactive,
 stream, keyword, and bootstrap surfaces. DEBUG's twenty live commands and all
-four nested EMS subcommands are independently derived and contract-tested. The
-next active expansion is argument relationships, help-entry traceability, and
+four nested EMS subcommands are independently derived and contract-tested. All
+41 executable help surfaces are also accounted for: 37 execute `/?`, while
+four interfaces without a top-level help form have source-backed
+classifications. The next active expansion is argument relationships and
 mutation-driven completeness checks.
 
 ## Native Open-Source Build (COMPLETE)

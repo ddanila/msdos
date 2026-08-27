@@ -76,6 +76,13 @@ an EMM386-backed status/allocate/map/deallocate lifecycle. An inactive PERR
 letter cannot satisfy the inventory, and a newly dispatched command fails CI
 until behavioral evidence is supplied.
 
+`help_coverage.json` derives the same 41-executable universe and cross-checks
+the actual `check_help` calls in the host behavior suite. Thirty-seven built
+programs execute `/?`; COMMAND.COM, FLUSH13, SELECT.COM, and SELECT.EXE are
+explicitly classified from their independently complete startup, control,
+bootstrap, or mode grammars. This turns the former hand-maintained help smoke
+list into a completeness gate and rejects duplicate, stale, or missing entries.
+
 `command_coverage.json` drills into COMMAND.COM itself. Its verifier derives
 all 35 internal commands from the live `COMTAB` in `CMD/COMMAND/TDATA.ASM`, so
 adding, removing, or renaming a built-in requires an explicit behavioral
