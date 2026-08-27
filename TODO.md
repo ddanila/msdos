@@ -109,6 +109,17 @@ now name only the shared assembly objects their link files consume; `inc` uses
 the OW variants, eliminating four otherwise-unused MS-C compilations from every
 full build.
 
+**Ninth Open Watcom C hybrid complete (August 27 2026):** MEM now compiles
+with `wcc`; its parser and message bridges use custom JWasm, and `wlink` links
+the Open Watcom DOS runtime. The checked-in Microsoft `LIB/MEM.LIB` is no
+longer consumed: its only MEM-specific startup symbol, `DOS_TopOfMemory`, is
+replaced by the equivalent top-of-memory field in the program's PSP. Pointer
+construction uses Watcom's `MK_FP` instead of Microsoft C's assignable
+`FP_SEG`/`FP_OFF` extension, and the message wrappers establish ES=DGROUP.
+Direct host help and memory reports pass, the complete host suite passes
+290/290, QEMU help passes 6/6, and the QEMU driver/config suite passes 17/17,
+including a real MEM report under a custom CONFIG.SYS.
+
 **Native SELECT tools (August 27 2026):** ASC2HLP and COMPRESS, the final two
 proprietary build helpers, now have byte-compatible native Python replacements.
 ASC2HLP compiles USA.TXT into the indexed SELECT help-file layout; COMPRESS

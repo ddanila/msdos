@@ -18,8 +18,8 @@ The build has three tool layers. Two are done; the rest is the remaining work.
 |-------|-----------|--------------|--------|
 | Assembler (all `.ASM`) | JWasm `-Zm` (`bin/jwasm-masm`) | Yes (SOWPL) | **DONE** -- 0 errors tree-wide |
 | Linker (pure-asm targets) | Open Watcom `wlink` (`bin/wlink`) | Yes (SOWPL) | **DONE** -- byte-identical to MS LINK |
-| Linker (C-hybrid targets) | wlink for ATTRIB/FC/FILESYS/REPLACE/JOIN/SUBST/BACKUP/RESTORE; MS LINK for the rest | Mixed | Stage B: 8 migrated |
-| C compiler (C-hybrids) | wcc for ATTRIB/FC/FILESYS/REPLACE/JOIN/SUBST/BACKUP/RESTORE; MS CL 5.10 for the rest | Mixed | Stage B: 8 migrated |
+| Linker (C-hybrid targets) | wlink for ATTRIB/FC/FILESYS/REPLACE/JOIN/SUBST/BACKUP/RESTORE/MEM; MS LINK for the rest | Mixed | Stage B: 9 migrated |
+| C compiler (C-hybrids) | wcc for ATTRIB/FC/FILESYS/REPLACE/JOIN/SUBST/BACKUP/RESTORE/MEM; MS CL 5.10 for the rest | Mixed | Stage B: 9 migrated |
 | Library manager | OW `wlib` for MAPPER; MS LIB for EMMLIB/SERVICES | Mixed | native wrapper proven |
 | Proprietary build utilities (9 tools) | Native Python wrappers | Yes | **DONE -- 9 of 9 native** |
 
@@ -27,7 +27,7 @@ The **pure-assembly milestone is shippable**: every `.ASM` in the floppy image
 is assembled by JWasm and linked by wlink, and `make deploy` produces a complete
 1.44MB boot floppy end-to-end. What still pulls in proprietary tools:
 
-1. **~6 remaining C-hybrid targets** (FDISK, MEM, SELECT, SMARTDRV, EMM386,
+1. **~5 remaining C-hybrid targets** (FDISK, SELECT, SMARTDRV, EMM386,
    MEMM) still compile
    with **MS CL** and link with **MS LINK**, because they depend on the MS C
    5.10 runtime (`SLIBCE.LIB`) and the OS/2-style DOS "family API".
@@ -164,7 +164,7 @@ Strategy -- treat it as a runtime project, not a per-file grind:
    running C-hybrid validates OW startup, PSP access, assembler interfaces,
    packing, and SAL message substitution.
 3. **Templatize across the remaining targets.** FC, FILESYS, REPLACE, JOIN,
-   SUBST, BACKUP, and RESTORE are complete; continue with the library-heavy ones
+   SUBST, BACKUP, RESTORE, and MEM are complete; continue with the library-heavy ones
    (FDISK/MAPPER.LIB, SELECT/SERVICES.LIB, EMM386).
 4. **Switch LIB.EXE -> `wlib`.** MAPPER is complete with identical exports and
    full QEMU coverage. Apply the proven wrapper to EMMLIB and SERVICES.
@@ -236,6 +236,11 @@ fraction of the cost) and behind a real qemu validation environment (see WS4).
   removing the last MS-C consumer of those objects and binary-only COMSUBS from
   both drive-splicing utilities. The same 16/16 QEMU suite and a forced
   parallel full build are green.
+- **M4g (DONE)** -- MEM migrated to wcc+wlink. Its sole apparent application
+  dependency in the binary-only Microsoft `MEM.LIB` was the C-startup
+  `DOS_TopOfMemory` value; MEM now reads the equivalent top-of-memory field
+  directly from its PSP. Far pointers use `MK_FP`, and the host 290/290 suite,
+  QEMU help 6/6, and QEMU driver/config suite 17/17 are green.
 - **M5 (GOAL)** -- All ~14 C-hybrids on wcc+wlink; MS CL/LINK/LIB and kvikdos
   fully removed. 100% open-source toolchain.
 

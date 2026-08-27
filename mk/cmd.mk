@@ -497,9 +497,7 @@ $(DEBUG_OUT): $(DEBUG_DIR)/DEBUG.EXE $(CONVERT) $(BIN)/convert-loader.asm
 # ---------------------------------------------------------------------------
 # MEM (mem.exe)
 # ---------------------------------------------------------------------------
-# C + 2 ASM files. Output is EXE (not COM) — no CONVERT needed.
-# Links against src/LIB/MEM.LIB (pre-built small-model C runtime subset).
-# Note: MEM.EXE checks for DOS 4.0 via sysloadmsg — won't run under kvikdos.
+# Open Watcom C + 2 JWasm files. Output is EXE (not COM).
 MEM_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC
 
 # Step 1: BUILDMSG generates MEM.CTL + MEM.CL[1,2,A,B]
@@ -522,11 +520,11 @@ $(MEM_DIR)/_PARSE.OBJ: $(MEM_DIR)/_PARSE.ASM
 
 # Step 3: Compile MEM.C
 $(MEM_DIR)/MEM.OBJ: $(MEM_DIR)/MEM.C $(MEM_DIR)/MEM.CTL
-	cd $(MEM_DIR) && $(CL) "-AS -Os -Zp -I. -I..\\..\\H -c -FoMEM.OBJ MEM.C"
+	cd $(MEM_DIR) && $(WCC) "-AS -Os -Zp -I. -I..\\..\\H -c -FoMEM.OBJ MEM.C"
 
 # Step 4: Link → MEM.EXE
 $(MEM_OUT): $(MEM_DIR)/MEM.OBJ $(MEM_DIR)/_MSGRET.OBJ $(MEM_DIR)/_PARSE.OBJ
-	cd $(MEM_DIR) && $(LINK) "MEM+_MSGRET+_PARSE,,,..\\..\\LIB\\MEM;"
+	cd $(MEM_DIR) && $(WLINK) "MEM.OBJ+_MSGRET.OBJ+_PARSE.OBJ,MEM.EXE,,clibs.lib;"
 
 # ---------------------------------------------------------------------------
 # FDISK (fdisk.exe)
