@@ -829,12 +829,16 @@ run_dos CMD/ATTRIB/ATTRIB.EXE '-R' '-A' 'C:\ATTRTEST.BAT' >/dev/null 2>&1 || tru
 rm -f "$SRC/ATTRTEST.BAT"
 
 # -- ATTRIB /S: recursive listing --
-output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\CMD\EDLIN\*.*' /S) || true
-if echo "$output" | grep -q "EDLIN.COM" && echo "$output" | grep -q "EDLIN.ASM"; then
+mkdir -p "$SRC/ATTRDIR/SUB"
+printf 'root\r\n' > "$SRC/ATTRDIR/ROOT.TXT"
+printf 'nested\r\n' > "$SRC/ATTRDIR/SUB/NEST.TXT"
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\ATTRDIR\*.TXT' /S) || true
+rm -rf "$SRC/ATTRDIR"
+if echo "$output" | grep -q "ROOT.TXT" && echo "$output" | grep -q "NEST.TXT"; then
     ok "ATTRIB /S (recursive listing)"
 else
     printf '%s\n' "$output"
-    fail "ATTRIB /S (expected EDLIN.COM and EDLIN.ASM in recursive output)"
+    fail "ATTRIB /S (expected root and nested fixture files in recursive output)"
 fi
 
 # -- MORE: page through piped stdin --
