@@ -241,9 +241,17 @@ user_name_ok:
     xor dx, dx
     xor si, si
     mov di, 1
-    mov ax, 5c00h                  ; Lock byte zero, then unlock it.
+    mov ax, 5c00h                  ; Lock byte zero.
     int 21h
     fail_if_carry 5c
+    mov bx, [file_handle]
+    xor cx, cx
+    xor dx, dx
+    xor si, si
+    mov di, 1
+    mov ax, 5c00h                  ; The overlapping lock must be rejected.
+    int 21h
+    require_error 33, fail_lock_violation
     mov bx, [file_handle]
     xor cx, cx
     xor dx, dx
@@ -252,10 +260,51 @@ user_name_ok:
     mov ax, 5c01h
     int 21h
     fail_if_carry 5c
+
+    mov word [lock_count], 0       ; Consume SHARE's finite lock table.
+.fill_lock_table:
+    mov bx, [file_handle]
+    xor cx, cx
+    mov dx, [lock_count]
+    shl dx, 1                     ; SHARE treats adjacent endpoints as overlap.
+    xor si, si
+    mov di, 1
+    mov ax, 5c00h
+    int 21h
+    jc .lock_table_full
+    inc word [lock_count]
+    cmp word [lock_count], 256
+    jb .fill_lock_table
+    mov dx, fail_lock_table_setup
+    jmp fail
+.lock_table_full:
+    require_error 36, fail_lock_buffer
+    mov word [unlock_count], 0
+.release_locks:
+    mov dx, [unlock_count]
+    cmp dx, [lock_count]
+    jae .locks_released
+    shl dx, 1
+    mov bx, [file_handle]
+    xor cx, cx
+    xor si, si
+    mov di, 1
+    mov ax, 5c01h
+    int 21h
+    jc lock_cleanup_failed
+    inc word [unlock_count]
+    jmp .release_locks
+.locks_released:
     mov bx, [file_handle]
     mov ah, 3eh
     int 21h
     fail_if_carry 5c
+
+    jmp lock_cleanup_ok
+lock_cleanup_failed:
+    mov dx, fail_lock_cleanup
+    jmp fail
+lock_cleanup_ok:
     mov dx, lock_file
     mov ah, 41h
     int 21h
@@ -402,6 +451,10 @@ fail_61      db 'INT21_61_FAIL', 13, 10, '$'
 fail_63      db 'INT21_63_FAIL', 13, 10, '$'
 fail_6b      db 'INT21_6B_FAIL', 13, 10, '$'
 fail_6c      db 'INT21_6C_FAIL', 13, 10, '$'
+fail_lock_violation db 'INT21_LOCK_VIOLATION_FAIL', 13, 10, '$'
+fail_lock_buffer db 'INT21_LOCK_BUFFER_FAIL', 13, 10, '$'
+fail_lock_table_setup db 'INT21_LOCK_TABLE_SETUP_FAIL', 13, 10, '$'
+fail_lock_cleanup db 'INT21_LOCK_CLEANUP_FAIL', 13, 10, '$'
 fail_nls_country db 'INT21_NLS_COUNTRY_FAIL', 13, 10, '$'
 fail_nls_extended db 'INT21_NLS_EXTENDED_FAIL', 13, 10, '$'
 fail_nls_codepage db 'INT21_NLS_CODEPAGE_FAIL', 13, 10, '$'
@@ -421,6 +474,8 @@ extended_name db 'I21EXT.TMP', 0
 child_segment dw 0
 parent_segment dw 0
 file_handle dw 0
+lock_count dw 0
+unlock_count dw 0
 original_user_number dw 0
 test_user_name db 'TRACEUSER      ', 0
 original_user_name times 16 db 0

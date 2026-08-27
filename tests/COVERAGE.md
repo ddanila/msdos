@@ -118,6 +118,11 @@ unsupported flag data, invalid handles, and absent drives.
 Country and code-page failures run in two explicit environments: without
 NLSFUNC to assert DOS's invalid-function fallback, and with NLSFUNC resident to
 assert COUNTRY.SYS lookup failures for unknown country and code-page records.
+The SHARE-resident compatibility probe distinguishes an overlapping-range lock
+violation from exhaustion of SHARE's finite lock-record pool, then releases
+every acquired range. This exposed and now guards a SHARE defect where its
+dispatcher replaced the capacity error with lock violation instead of
+preserving error 36.
 
 Run the inventory check with:
 
