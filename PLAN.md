@@ -6,7 +6,7 @@ emulator (kvikdos) anywhere in the build path. This file is the strategic
 roadmap: decisions and unlocks. The running technical log stays in `TODO.md`;
 deep notes in `docs/agent-notes/`.
 
-Last updated: 2026-08-27.
+Last updated: 2026-08-28.
 
 ---
 
@@ -191,13 +191,13 @@ fraction of the cost) and behind a real qemu validation environment (see WS4).
 
 ### WS4 -- Toolchain compatibility-layer cleanup (finish line)
 
-The production build is native and uses no DOS emulator, but it is not yet a
-transparent "JWasm + Open Watcom consume the source directly" path. The audit
-below records the remaining compatibility transformations. This is a cleanup
-plan only; none of these changes should begin without a separate execution
-decision.
+The production build is native and uses no DOS emulator. Custom JWasm consumes
+the checked-in assembly sources directly, while Open Watcom provides the C
+compiler, linker, and library manager. The completed audit below records the
+transformations that were retired and the narrow compatibility adapters that
+remain intentionally.
 
-#### WS4.1 -- Characterize behavior before removing it (IMPLEMENTED)
+#### WS4.1 -- Characterize behavior before removing it (DONE)
 
 Focused contracts now accompany the retained transformations instead of relying
 only on final artifact checksums and broad QEMU coverage:
@@ -219,7 +219,7 @@ Removal gate: a compatibility pass is retired only after a focused test first
 captures its current contract and the full deterministic-build and QEMU suites
 remain green without it.
 
-#### WS4.2 -- Retire assembly source rewriting (IMPLEMENTED)
+#### WS4.2 -- Retire assembly source rewriting (DONE)
 
 The retired shadow preprocessor used to change 380 of 1,111 eligible source-like
 files: 64 files contained 2,091 structured-directive invocations and 379 files
@@ -231,13 +231,13 @@ in M510 mode. `bin/jwasm-masm` now assembles the real source path directly, and
 `bin/preprocess-jwasm` has been deleted. Linux CI remains the case-sensitive
 host gate.
 
-#### WS4.3 -- Revalidate the generated-message workaround (IMPLEMENTED)
+#### WS4.3 -- Revalidate the generated-message workaround (DONE)
 
 The workaround described old WASM single-pass limitations. Current custom JWasm
 assembles and links raw BUILDMSG output for COMMAND, SYS, and FORMAT, so all
 three recipe hooks and `fix_cl_forward_refs.py` have been deleted.
 
-#### WS4.4 -- Remove linker-layout and blanket EXE-header patches (IMPLEMENTED)
+#### WS4.4 -- Remove linker-layout and blanket EXE-header patches (DONE)
 
 1. Custom JWasm emits the historical `START, CONST, DATA, TABLE, CODE, LAST`
    order, causing the source START segment and its `JMP DOSINIT` to occupy
@@ -291,14 +291,15 @@ QEMU target matrix passes, including all seven parallel FORMAT groups. Enabling
 the formerly ignored `-Os` exposed FC's unsafe function-pointer dispatch for
 `/T`; `ddanila/MS-DOS` commit `50daf26626cad4cadd3cc465a032227f1861f9cc`
 replaces it with explicit tab-preserving input and is covered by the existing
-FC `/T` runtime contract. GitHub Actions remains the publication gate.
+FC `/T` runtime contract. GitHub Actions run
+[`33117104290`](https://github.com/ddanila/msdos/actions/runs/33117104290)
+passed the complete Linux build and QEMU matrix for cleanup commit `953332b`.
 
-#### WS4.7 -- Cleanup execution checklist
+#### WS4.7 -- Cleanup execution checklist (DONE)
 
-The audit has identified the complete cleanup scope below. Items marked
-implemented describe changes currently present in the working branch; they are
-not considered finished until the validation and CI gates below pass. Execute
-this checklist as one coherent cleanup rather than as unrelated wrapper edits.
+The audit identified the complete cleanup scope below. All items and their
+validation gates are complete in `master`; the checklist remains the record of
+what was changed and the evidence required to preserve the result.
 
 1. **Establish focused reference contracts.** Keep regression coverage for
    JWasm's M510 structured-directive whitespace and case-insensitive include
@@ -367,9 +368,8 @@ local runtime and `ddanila/MS-DOS` CI suites pass.
   single step toward the goal.
 - **M2 (DONE)** -- **Zero proprietary build utilities**: all nine replaced by
   native, byte-compatible implementations.
-- **M3 (DONE locally)** -- QEMU E2E validation is green and goldens are
-  refreshed from a boot-validated, reproducible build. Linux CI confirmation
-  remains the publication gate.
+- **M3 (DONE)** -- QEMU E2E validation is green and goldens are refreshed from
+  a boot-validated, reproducible build. Linux CI confirms the same artifacts.
 - **M4 (DONE)** -- WS2: first C-hybrid (ATTRIB) fully running under
   wcc+wlink+OW runtime. Host 290/290, forced parallel build, QEMU help 6/6,
   and BACKUP/RESTORE 38/38 are green.
@@ -401,10 +401,10 @@ local runtime and `ddanila/MS-DOS` CI suites pass.
   matching OW2 floating-point runtime is now vendored, and the destructive-disk
   QEMU suite passes 13/13 across primary, extended, logical, and primary-only
   layouts.
-- **M5 (IMPLEMENTED; CI GATE PENDING)** -- All C-hybrids, including EMM386,
+- **M5 (DONE)** -- All C-hybrids, including EMM386,
   use wcc+wlink+wlib; MS CL/LINK/LIB and kvikdos are absent from the production
   build path.
-- **M6 (LOCAL VALIDATION DONE; CI GATE PENDING)** -- The native toolchain's remaining hidden
+- **M6 (DONE)** -- The native toolchain's remaining hidden
   source/generated-file rewrites and broad post-link patches are characterized,
   minimized, and retired where possible. JWasm consumes the actual source tree,
   kernel entry layout is produced correctly by the linker, retained adapters
@@ -414,6 +414,8 @@ local runtime and `ddanila/MS-DOS` CI suites pass.
 ## Decisions
 
 - The target is the OSI-approved toolchain tier: custom JWasm plus Open Watcom.
-- M5 is the active goal. M2 is an intermediate milestone, not a stopping point.
+- M6 completes the native-toolchain cleanup goal; future work can extend test
+  depth or reduce the remaining documented compatibility adapters without
+  reopening this milestone.
 - WS1 goes first because it creates deterministic native reference tooling and
   removes emulation from the pure-assembly build path before the C-runtime work.

@@ -50,5 +50,5 @@ under the matching `jwasm/` platform directory.
 The pinned custom build completes clean full-tree builds with GNU Make at
 `-j1`, `-j4`, and `-j8`. A deployed FAT12 image boots the JWasm-built IO.SYS,
 MSDOS.SYS, and COMMAND.COM stack in QEMU. See `TODO.md` and the MS-DOS
-submodule's `jwasm-migration` branch for the compatibility changes and
-validation history.
+submodule's `main` branch for the compatibility changes and validation
+history.
