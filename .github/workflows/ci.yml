@@ -629,6 +629,31 @@ jobs:
       - name: INT 21h legacy FCB contracts
         run: bash tests/test_int21_fcb_qemu.sh
 
+  e2e-int21-compat:
+    needs: build
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/${{ github.repository }}/ci:latest
+      options: --device /dev/kvm
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repo with submodules
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+
+      - name: Grant KVM access
+        run: chmod 666 /dev/kvm
+
+      - name: Download floppy image
+        uses: actions/download-artifact@v7
+        with:
+          name: floppy
+
+      - name: INT 21h compatibility and extended contracts
+        run: bash tests/test_int21_compat_qemu.sh
+
   e2e-chkdsk-fix:
     needs: build
     runs-on: ubuntu-latest

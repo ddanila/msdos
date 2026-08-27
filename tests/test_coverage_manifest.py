@@ -51,6 +51,7 @@ def main():
 
     functions = manifest["functions"]
     excluded = manifest["excluded"]
+    workflow_text = (ROOT / ".github/workflows/ci.yml").read_text()
     known = {f"{value:02X}" for value, _ in entries}
     declared = set(functions) | set(excluded)
     unknown = declared - known
@@ -69,6 +70,12 @@ def main():
             path = ROOT / relative
             if not path.is_file():
                 raise AssertionError(f"INT 21h/{call}: evidence does not exist: {relative}")
+        if item["level"] == "contract":
+            runnable = [relative for relative in evidence if relative.endswith(".sh")]
+            if not runnable or not any(path in workflow_text for path in runnable):
+                raise AssertionError(
+                    f"INT 21h/{call}: contract evidence is not wired into CI"
+                )
 
     for call, reason in excluded.items():
         if not reason.strip():

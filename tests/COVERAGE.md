@@ -23,6 +23,10 @@ Run the inventory check with:
 make test-coverage-manifest
 ```
 
+Contract evidence must include a runnable shell test referenced directly by
+the CI workflow. The verifier rejects source-only evidence and tests that can
+silently disappear from CI.
+
 The normal `make test` and CI build run this structural check. The stricter
 completion gate is:
 
