@@ -38,6 +38,11 @@ function.
 bound implied by nine stack entries and their 256-byte payloads; the current
 build also accounts for the relocated stack handler.
 
+`test_config_ifs_qemu.sh` supplies a minimal purpose-built IFS fixture. It
+accepts the boot-time INIT request, returns its resident size, and is then
+verified by name in DOS's live IFS header chain. This covers actual IFS loading
+and linkage without pretending that one of the shipped TSRs is an IFS driver.
+
 Run the inventory check with:
 
 ```sh

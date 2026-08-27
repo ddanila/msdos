@@ -67,7 +67,7 @@
     "DRIVPARM": {"level": "uncovered", "evidence": [], "note": "No drive-parameter behavior or malformed-input contract"},
     "FCBS": {"level": "contract", "evidence": ["tests/test_config_state_qemu.sh"], "note": "Configured FCB table and keep counts are asserted through the DOS list of lists"},
     "FILES": {"level": "contract", "evidence": ["tests/test_config_state_qemu.sh"], "note": "Configured system file-table capacity is summed and asserted through the DOS list of lists"},
-    "IFS": {"level": "uncovered", "evidence": [], "note": "No CONFIG.SYS IFS driver load contract"},
+    "IFS": {"level": "contract", "evidence": ["tests/test_config_ifs_qemu.sh"], "note": "A minimal test filesystem receives INIT successfully and its named header is asserted in the DOS IFS chain"},
     "INSTALL": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "FASTOPEN is installed and resident behavior is subsequently exercised"},
     "LASTDRIVE": {"level": "contract", "evidence": ["tests/test_config_state_qemu.sh"], "note": "INT 21h/AH=0Eh reports all 26 configured CDS entries for LASTDRIVE=Z"},
     "MULTITRACK": {"level": "uncovered", "evidence": [], "note": "No state or disk-I/O contract"},
