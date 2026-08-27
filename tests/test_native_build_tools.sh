@@ -51,3 +51,18 @@ assert sum(normalized[6:17]) & 0xff == 0, normalized
 __import__("os").unlink(sample)
 print("native WLIB case-folding and reproducibility tests passed")
 PY
+
+python3 - "$ROOT" <<'PY'
+import os
+import runpy
+import tempfile
+import sys
+
+root = sys.argv[1]
+wcc = runpy.run_path(root + "/bin/wcc")
+with tempfile.TemporaryDirectory() as source, tempfile.TemporaryDirectory() as mirror:
+    open(os.path.join(source, "HEADER.H"), "w").close()
+    assert wcc["casefold_include_mirror"](source, mirror)
+    assert os.path.exists(os.path.join(mirror, "header.h"))
+print("native WCC case-insensitive include test passed")
+PY
