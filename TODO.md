@@ -20,9 +20,13 @@ All 48 exclusions are post-failed-INIT requests in the two XMA drivers and are
 runtime-proven unreachable on the supported QEMU hardware contract; every
 reachable pass-through, no-op, unsupported, and ordinary handler is exercised.
 Source-derived command-line depth currently covers all 35 COMMAND.COM built-ins,
-six startup switches, two SELECT modes, and 124 switch/operator forms across twenty-nine
-standalone utilities. The next active expansion is the remaining manually
-decoded parser families.
+six startup switches, two SELECT modes, and 124 switch/operator forms across
+twenty-nine standalone utilities. A cross-inventory gate now accounts for all
+41 shipped executable interfaces, including positional-only, interactive,
+stream, keyword, and bootstrap surfaces. DEBUG's twenty live commands and all
+four nested EMS subcommands are independently derived and contract-tested. The
+next active expansion is argument relationships, help-entry traceability, and
+mutation-driven completeness checks.
 
 ## Native Open-Source Build (COMPLETE)
 

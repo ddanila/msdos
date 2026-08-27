@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "commands": {
+    "A": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_debug_qemu.sh"], "note": "Assembles instructions used by both disassembly and executed-program contracts"},
+    "C": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Reports the exact differing bytes between two memory ranges"},
+    "D": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Displays entered, filled, moved, and loaded bytes in hexadecimal and ASCII"},
+    "E": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_debug_qemu.sh"], "note": "Writes exact byte sequences consumed by dump and real execution"},
+    "F": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Fills a memory range with a verified repeated byte"},
+    "G": {"level": "contract", "evidence": ["tests/test_debug_qemu.sh"], "note": "Executes assembled code, emits its exact payload, and catches normal INT 20h termination"},
+    "H": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Reports exact hexadecimal sum and difference results"},
+    "I": {"level": "contract", "evidence": ["tests/test_debug_qemu.sh"], "note": "Reads QEMU's deterministic E9h debug port and displays its exact byte"},
+    "L": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Loads a named file and exposes its exact bytes through D"},
+    "M": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Copies an exact memory range to a separately dumped destination"},
+    "N": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Supplies the filename used by exact load and write contracts"},
+    "O": {"level": "contract", "evidence": ["tests/test_debug_qemu.sh"], "note": "Writes byte 41h to QEMU's E9h debug port and captures exactly A"},
+    "P": {"level": "contract", "evidence": ["tests/test_debug_qemu.sh"], "note": "Proceeds over one NOP and reports the exact next instruction pointer"},
+    "Q": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_debug_qemu.sh"], "note": "Returns from redirected DEBUG sessions and allows the calling batch to continue"},
+    "R": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_debug_qemu.sh"], "note": "Displays registers and changes AX and IP to exact requested values"},
+    "S": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Finds an exact byte pattern at its expected address"},
+    "T": {"level": "contract", "evidence": ["tests/test_debug_qemu.sh"], "note": "Single-steps MOV AX,1234 and reports the resulting AX and IP"},
+    "U": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Disassembles source-assembled NOP and INT 20h instructions"},
+    "W": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Writes the requested five bytes to a named file verified byte-for-byte"},
+    "X": {"level": "contract", "evidence": ["tests/test_debug_qemu.sh"], "note": "Dispatches every live EMS subcommand against EMM386"}
+  },
+  "ems_subcommands": {
+    "A": {"level": "contract", "evidence": ["tests/test_debug_qemu.sh"], "note": "Allocates one EMS page and reports the created handle"},
+    "D": {"level": "contract", "evidence": ["tests/test_debug_qemu.sh"], "note": "Deallocates the created EMS handle and reports it"},
+    "M": {"level": "contract", "evidence": ["tests/test_debug_qemu.sh"], "note": "Maps logical page zero to physical page zero for the created handle"},
+    "S": {"level": "contract", "evidence": ["tests/test_debug_qemu.sh"], "note": "Reports live EMS page-frame, allocation, and handle state"}
+  }
+}

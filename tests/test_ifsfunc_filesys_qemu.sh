@@ -41,7 +41,13 @@ printf 'IFS=TESTIFS.SYS\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
-    printf 'IFSFUNC\r\n'
+    printf 'IFSFUNC NAMES=256\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO IFSFUNC_NAMES_RANGE_REJECTED\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO IFSFUNC_NAMES_RANGE_FAILED\r\n'
+    printf 'IFSFUNC NAMES=1 NAMES=2\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO IFSFUNC_NAMES_REPEAT_REJECTED\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO IFSFUNC_NAMES_REPEAT_FAILED\r\n'
+    printf 'IFSFUNC NAMES=7\r\n'
     printf 'IF ERRORLEVEL 1 ECHO IFSFUNC_INSTALL_FAILED\r\n'
     printf 'FILESYS C: TESTIFS\r\n'
     printf 'IF ERRORLEVEL 1 ECHO FILESYS_ATTACH_FAILED\r\n'
@@ -81,6 +87,8 @@ timeout 20 qemu-system-i386 \
 if grep -q 'IFSFUNC_FILESYS_DONE' "$SERIAL_LOG" \
     && grep -Eq 'C:[[:space:]]+TESTIFS([[:space:]]|$)' "$SERIAL_LOG" \
     && grep -q 'FILESYS_DUPLICATE_REJECTED' "$SERIAL_LOG" \
+    && grep -q 'IFSFUNC_NAMES_RANGE_REJECTED' "$SERIAL_LOG" \
+    && grep -q 'IFSFUNC_NAMES_REPEAT_REJECTED' "$SERIAL_LOG" \
     && grep -q 'FILESYS_UNKNOWN_IFS_REJECTED' "$SERIAL_LOG" \
     && grep -q 'FILESYS_REPEAT_DETACH_REJECTED' "$SERIAL_LOG" \
     && grep -q 'No entries found' "$SERIAL_LOG" \

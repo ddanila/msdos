@@ -58,6 +58,24 @@ CI. This layer intentionally complements the runtime-component inventory: an
 executable cannot be considered deep coverage merely because one of several
 accepted spellings was exercised.
 
+`program_interface_coverage.json` closes the complementary zero-switch blind
+spot. Its verifier derives all 41 shipped executable interfaces from the live
+runtime inventory and requires each to resolve exactly once to a switch
+grammar, COMMAND.COM's language, SELECT.EXE's mode grammar, or a specialized
+positional, interactive, stream, keyword, or bootstrap classification. This
+accounts for COMP, EXE2BIN, LABEL, MORE, NLSFUNC, RECOVER, and SYS rather than
+silently omitting them because they have no ordinary slash-switch table. It
+also exposes IFSFUNC's non-slash `NAMES=n` keyword: overflow and repetition are
+rejected before a `NAMES=7` installation completes the full IFS lifecycle.
+
+`debug_command_coverage.json` derives DEBUG's twenty live non-error COMTAB
+entries and the four `X` EMS subcommands from DEBUG.ASM and DEBEMS.ASM. The
+ordinary memory, file, arithmetic, assembly, and execution contracts are now
+joined by real QEMU port input/output, exact single-step and proceed state, and
+an EMM386-backed status/allocate/map/deallocate lifecycle. An inactive PERR
+letter cannot satisfy the inventory, and a newly dispatched command fails CI
+until behavioral evidence is supplied.
+
 `command_coverage.json` drills into COMMAND.COM itself. Its verifier derives
 all 35 internal commands from the live `COMTAB` in `CMD/COMMAND/TDATA.ASM`, so
 adding, removing, or renaming a built-in requires an explicit behavioral
