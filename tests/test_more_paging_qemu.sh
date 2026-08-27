@@ -61,7 +61,7 @@ QEMU_PID=$!
 
 python3 "$REPO_ROOT/tests/serial_expect.py" \
     "$SERIAL_IN" "$SERIAL_OUT" "$SERIAL_LOG" \
-    '-- More --' 'x' \
+    '-- More --' '\x00\x4d' \
     '-- More --' 'x'
 
 wait "$QEMU_PID" || true
@@ -83,7 +83,7 @@ for line in $(seq 1 60); do
     expected_sequence+=$(printf 'PAGE_LINE_%03d ' "$line")
 done
 if [[ "$actual_sequence" == "$expected_sequence" ]]; then
-    ok "all 60 lines resumed exactly once and in order"
+    ok "ordinary and extended keys resumed all 60 lines exactly once and in order"
 else
     fail "line sequence was lost, duplicated, or reordered across a page boundary"
 fi

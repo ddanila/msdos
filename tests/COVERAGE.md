@@ -238,8 +238,9 @@ calling batch, while `Y` requests exactly one fresh filename pair, performs a
 second comparison in the same process, and accepts a final `N`.
 `test_more_paging_qemu.sh` drives MORE through the real DOS console with sixty
 uniquely numbered lines. It requires exactly two `-- More --` boundaries,
-injects one raw key at each, and then verifies every line appeared exactly once
-and in order before MORE returned to its caller.
+injects an extended two-byte key at one and an ordinary raw key at the other,
+and then verifies every line appeared exactly once and in order before MORE
+returned to its caller.
 
 ATTRIB metadata transitions operate on a disposable copy rather than a source
 file. The test covers combined set/clear operations, recursive enumeration,

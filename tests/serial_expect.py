@@ -9,7 +9,8 @@ Reads raw bytes from <out_fifo> (QEMU serial output → host), logs them to <log
 and scans for each pattern in order.  When a pattern is found, the corresponding
 response is written to <in_fifo> (host → QEMU serial input / DOS stdin).
 
-Responses support C-style escapes: \\r → CR (0x0D), \\n → LF (0x0A), \\t → TAB.
+Responses support C-style escapes: \\r → CR (0x0D), \\n → LF (0x0A),
+\\t → TAB, and \\xNN → an arbitrary byte.
 
 FIFO setup (caller must do this before starting QEMU):
     mkfifo "$SERIAL_IN" "$SERIAL_OUT"
@@ -34,6 +35,7 @@ Pattern matching:
 import os, select, sys, re, time
 
 def decode_response(s: str) -> bytes:
+    s = re.sub(r'\\x([0-9a-fA-F]{2})', lambda match: chr(int(match.group(1), 16)), s)
     return s.replace('\\r', '\r').replace('\\n', '\n').replace('\\t', '\t').encode('latin-1')
 
 def main():
