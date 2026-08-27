@@ -1126,6 +1126,52 @@ else
     fail "REPLACE (expected 'Source path required')"
 fi
 
+# -- REPLACE parser conflicts and boundaries --
+# REPLACE.C explicitly rejects /A with /S or /U after parsing, rejects every
+# repeated switch in its six-synonym table, and allows at most two filespecs.
+for replace_conflict in "/A /S" "/A /U"; do
+    read -r -a replace_args <<<"$replace_conflict"
+    output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' \
+        "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\SETENV.BAT' 'C:\CMD\REPLACE\' \
+        "${replace_args[@]}" 2>&1)
+    replace_rc=$?
+    if [[ "$replace_rc" -eq 11 ]] && echo "$output" | grep -q 'Parse Error 11'; then
+        ok "REPLACE $replace_conflict (incompatible combination rejected)"
+    else
+        fail "REPLACE $replace_conflict (expected incompatibility/errorlevel 11, got rc=$replace_rc)"
+    fi
+done
+
+for replace_switch in A P R S U W; do
+    output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' \
+        "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\SETENV.BAT' 'C:\CMD\REPLACE\' \
+        "/$replace_switch" "/$replace_switch" 2>&1)
+    replace_rc=$?
+    if [[ "$replace_rc" -eq 11 ]] && echo "$output" | grep -q 'Parse Error 3'; then
+        ok "REPLACE /$replace_switch duplicate rejected"
+    else
+        fail "REPLACE /$replace_switch duplicate (expected Parse Error 3/errorlevel 11, got rc=$replace_rc)"
+    fi
+done
+
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' \
+    "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\SETENV.BAT' 'C:\CMD\REPLACE\' /Z 2>&1)
+replace_unknown_rc=$?
+if [[ "$replace_unknown_rc" -eq 11 ]] && echo "$output" | grep -q 'Parse Error 3'; then
+    ok "REPLACE unknown switch rejected"
+else
+    fail "REPLACE unknown switch (expected Parse Error 3/errorlevel 11, got rc=$replace_unknown_rc)"
+fi
+
+output=$(timeout 10 "$BIN/dos-run" --cwd='C:\' \
+    "$SRC/CMD/REPLACE/REPLACE.EXE" 'C:\SETENV.BAT' 'C:\CMD\REPLACE\' EXTRA 2>&1)
+replace_arity_rc=$?
+if [[ "$replace_arity_rc" -eq 11 ]] && echo "$output" | grep -q 'Parse Error 1'; then
+    ok "REPLACE excess filespec rejected"
+else
+    fail "REPLACE excess filespec (expected Parse Error 1/errorlevel 11, got rc=$replace_arity_rc)"
+fi
+
 # -- REPLACE /U: replace only if source is newer --
 # Uses C:\CMD\REPLACE\ (same dir as the /A test above) to stay on known-good ground.
 # REPLU.BAT is a temp copy; we never touch SETENV.BAT so other tests are unaffected.

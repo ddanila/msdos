@@ -265,6 +265,11 @@ file. The test covers combined set/clear operations, recursive enumeration,
 the exact missing-file and invalid-switch failure classes with nonzero exits,
 payload SHA-256 preservation, and attribute cleanup before removing the copy.
 
+REPLACE covers each of its six live parser synonyms as an observable mode.
+Its negative matrix also pins the source-defined `/A` conflicts with `/S` and
+`/U`, rejection of every duplicated synonym, an unknown switch, and a third
+filespec. Each parser failure must return REPLACE's exact errorlevel 11.
+
 `test_int21_file_memory_qemu.sh` includes destructive-but-recoverable resource
 limits. It consumes the largest reported DOS arena, asserts error 8 on the next
 allocation, releases it, and allocates again. With `FILES=12` and an expanded
