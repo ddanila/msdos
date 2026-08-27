@@ -40,6 +40,24 @@ def source_switches(text, extractor="asm_db"):
             values.append("/LB")
         if 'strbskip((v[i]+j+1),"0123456789")' in parser:
             values.append("/NNNN")
+    elif extractor == "flush13_code":
+        parser = text.split("/* Parse the arguments */", 1)[1].split(
+            "/* Open the device */", 1
+        )[0]
+        cases = set(re.findall(r"case\s+'([a-z])'", parser))
+        values = [f"/{letter}" for letter in cases & {"d", "e", "l", "u", "i", "f"}]
+        if "s" in cases:
+            status = parser.split("case 's':", 1)[1].split("break;", 1)[0]
+            suffixes = set(re.findall(r"\*cptr\s*==\s*'([a-z])'", status))
+            values += ["/S"] + [f"/S{suffix}" for suffix in suffixes]
+        for letter in cases & {"c", "r"}:
+            values += [f"/{letter}:ON", f"/{letter}:OFF"]
+        if "t" in cases and "GetNum" in parser.split("case 't':", 1)[1].split("break;", 1)[0]:
+            values.append("/T:NNNN")
+        if "w" in cases:
+            write = parser.split("case 'w':", 1)[1].split("break;", 1)[0]
+            for suffix in re.findall(r"\*cptr\s*==\s*'([a-z])'", write):
+                values += [f"/W{suffix}:ON", f"/W{suffix}:OFF"]
     else:
         raise AssertionError(f"unknown parser extractor {extractor!r}")
     return {value.upper() for value in values}
@@ -102,6 +120,11 @@ def main():
         if item.get("extractor") == "fc_code"
     } != {"MS-DOS/v4.0/src/CMD/FC/FC.C"}:
         raise AssertionError("FC code-driven parser source is missing or stale")
+    if {
+        item["source"] for item in manifest["utilities"].values()
+        if item.get("extractor") == "flush13_code"
+    } != {"MS-DOS/v4.0/src/DEV/SMARTDRV/FLUSH13.C"}:
+        raise AssertionError("FLUSH13 code-driven parser source is missing or stale")
     incomplete = []
     counts = {level: 0 for level in VALID_LEVELS}
     total = 0

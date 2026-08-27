@@ -66,6 +66,26 @@
       "/T": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Preserves tabs so tab-versus-space inputs differ, unlike the control"},
       "/W": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Compresses whitespace so spacing-only input differences compare equal"}
     }},
+    "FLUSH13.EXE": {"source": "MS-DOS/v4.0/src/DEV/SMARTDRV/FLUSH13.C", "extractor": "flush13_code", "switches": {
+      "/C:OFF": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Disables caching of full-track reads and reports the resulting resident policy"},
+      "/C:ON": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Enables caching of full-track reads and reports the resulting resident policy"},
+      "/D": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Disables the resident cache and status reports the transition"},
+      "/E": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Re-enables the resident cache and status reports the transition"},
+      "/F": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Flushes after real absolute-sector I/O and the host verifies the exact persisted payload"},
+      "/I": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Invalidates populated cache state through the resident IOCTL interface"},
+      "/L": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Locks cache contents and status reports the locked state"},
+      "/R:OFF": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Disables reboot flushing and status reports the resulting policy"},
+      "/R:ON": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Enables reboot flushing and status reports the resulting policy"},
+      "/S": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Reports the live cache configuration"},
+      "/SR": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Reports extended statistics and resets their resident counters"},
+      "/SX": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Reports extended live cache occupancy after real disk I/O"},
+      "/T:NNNN": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Sets a nondefault tick interval and status reports its exact tick value"},
+      "/U": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Unlocks cache contents and status reports the transition"},
+      "/WC:OFF": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Disables write caching and status reports the resulting policy"},
+      "/WC:ON": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Enables write caching and status reports the resulting policy"},
+      "/WT:OFF": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Disables write-through mode and status reports the resulting policy"},
+      "/WT:ON": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Enables write-through mode and status reports the resulting policy"}
+    }},
     "GRAFTABL.COM": {"source": "MS-DOS/v4.0/src/CMD/GRAFTABL/GRTABPAR.ASM", "switches": {
       "/STA": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Short status synonym reaches the live code-page query"},
       "/STATUS": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_graftabl_qemu.sh"], "note": "Long status synonym reports the active resident code page"}

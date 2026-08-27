@@ -43,8 +43,10 @@ or `#define` literals. FC's code-driven parser has a dedicated extractor for
 its switch cases, `/LB` subform, and numeric resynchronization form. The
 FORMAT, APPEND, ASSIGN, and CHKDSK extend the assembly extractor to parser
 tables held in include files; FORMAT's compile-time-disabled `/FS` and `/Z`
-records are excluded according to its live build constants. The verifier now
-covers all 96 switches across twenty-five utilities. Short and long
+records are excluded according to its live build constants. FLUSH13's
+code-driven grammar has a dedicated extractor for all status, state, policy,
+and numeric tick forms. The verifier now covers all 114 switches across
+twenty-six utilities. Short and long
 synonyms remain separate entry contracts. It derives
 the complete matching source-file set for both encodings, then compares each
 declared surface with its live
@@ -216,8 +218,10 @@ must disable and re-enable FIND and EXEC lookup. `/E` status is read back from
 the environment-backed path and diagnosed after first installation; invalid
 `/PATH` and `/X` values and an unknown switch require exact diagnostics.
 `test_smartdrv_flush_qemu.sh` attaches a fixed disk and uses FLUSH13 to assert
-SMARTDRV status, disable/enable transitions, policy changes, and an explicit
-successful flush. A purpose-built guest probe also writes and reads back a
+SMARTDRV status, disable/enable, lock/unlock, invalidation, statistics-reset,
+every two-way resident policy, an exact nondefault tick interval, and an
+explicit successful flush. Conflicting switches and a malformed numeric form
+must be rejected. A purpose-built guest probe also writes and reads back a
 deterministic 512-byte absolute sector through the installed cache. The same
 probe resolves the resident `SMARTAAR` header, directly verifies every
 otherwise-reachable no-op and unknown-command request status, and rejects the
