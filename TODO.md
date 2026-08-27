@@ -131,6 +131,16 @@ floating-point runtime. The direct host help path passes, and the destructive
 QEMU FDISK suite passes 13/13: primary, extended, and logical partitions are
 verified on disk, followed by a separate primary-only regression scenario.
 
+**Eleventh Open Watcom C hybrid complete (August 27 2026):** SMARTDRV now has
+no Microsoft compiler or linker step. FLUSH13 compiles with `wcc` and links its
+two custom-JWasm companions against the Open Watcom small-model runtime; the
+assembly-only SMARTDRV driver also links with `wlink` before native EXE2BIN
+conversion. The `/t:` parser now obtains its 16-bit value in an aligned local
+and explicitly serializes the low and high bytes into the packed IOCTL packet,
+rather than relying on Microsoft C's permissive incompatible-pointer write.
+Direct FLUSH13 usage execution succeeds; the full host and QEMU driver suites
+cover the emitted utility and loading SMARTDRV.SYS.
+
 **Native SELECT tools (August 27 2026):** ASC2HLP and COMPRESS, the final two
 proprietary build helpers, now have byte-compatible native Python replacements.
 ASC2HLP compiles USA.TXT into the indexed SELECT help-file layout; COMPRESS
