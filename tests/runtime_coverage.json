@@ -54,8 +54,8 @@
     "TREE.COM": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Tree-only, files, and ASCII rendering are asserted"},
     "VDISK.SYS": {"kind": "driver", "level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Installed virtual disk is located and accessed through DOS directory I/O"},
     "XCOPY.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_prompt_yesno.sh"], "note": "All DOS 4 switches and interactive confirmation are asserted"},
-    "XMA2EMS.SYS": {"kind": "driver", "level": "uncovered", "evidence": [], "note": "Built EMS bridge has no installation or service-level contract"},
-    "XMAEM.SYS": {"kind": "driver", "level": "uncovered", "evidence": [], "note": "Built XMA manager has no installation or allocation contract"}
+    "XMA2EMS.SYS": {"kind": "driver", "level": "contract", "evidence": ["tests/test_xma_drivers_qemu.sh"], "note": "On unsupported AT-compatible hardware its exact rejection is asserted, with no EMMXXXX0 device or LIM EMS vector left resident and DOS continuing normally"},
+    "XMAEM.SYS": {"kind": "driver", "level": "contract", "evidence": ["tests/test_xma_drivers_qemu.sh"], "note": "On unsupported non-PS/2 hardware its exact rejection is asserted, with no 386XMAEM device left resident and DOS continuing normally"}
   },
   "config_directives": {
     "BREAK": {"level": "contract", "evidence": ["tests/test_config_state_qemu.sh"], "note": "BREAK=ON is queried through INT 21h/AH=33h"},

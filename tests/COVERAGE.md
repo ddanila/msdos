@@ -63,6 +63,11 @@ code-page control path by preparing, selecting, and querying code page 850.
 `test_smartdrv_flush_qemu.sh` attaches a fixed disk and uses FLUSH13 to assert
 SMARTDRV status, disable/enable transitions, policy changes, and an explicit
 successful flush.
+`test_xma_drivers_qemu.sh` covers the XMA drivers' documented hardware gate on
+QEMU's AT-compatible machine. It asserts both exact boot diagnostics, walks the
+live DOS device chain to prove neither rejected driver remained resident,
+checks that no LIM EMS signature was installed on INT 67h, and verifies DOS
+services remain operational.
 
 Run the inventory check with:
 
@@ -84,8 +89,7 @@ python3 tests/test_coverage_manifest.py --require-complete
 Every non-excluded dispatch entry now has focused contract evidence. Any new
 uncovered or observation-only entry fails the normal test suite and CI.
 
-The runtime inventory is structural while its known gaps are being closed. Its
-future completion gate can be inspected with:
+The completed runtime inventory is enforced with:
 
 ```sh
 python3 tests/test_runtime_coverage_manifest.py --require-complete
