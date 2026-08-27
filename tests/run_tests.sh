@@ -10,6 +10,10 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$REPO_ROOT/MS-DOS/v4.0/src"
 BIN="$REPO_ROOT/bin"
 GOLDEN="$REPO_ROOT/tests/golden.sha256"
+GOLDEN_OVERRIDE=""
+if [[ "$(uname -s)-$(uname -m)" == "Darwin-arm64" ]]; then
+    GOLDEN_OVERRIDE="$REPO_ROOT/tests/golden.macos-arm64.sha256"
+fi
 
 PASS=0
 FAIL=0
@@ -103,20 +107,38 @@ echo "=== Section 2: SHA256 checksums ==="
 # 'dos4-enhancements' where source changes invalidate the golden hashes).
 if git -C "$REPO_ROOT/MS-DOS" merge-base --is-ancestor HEAD main 2>/dev/null; then
     if [[ -f "$GOLDEN" ]]; then
-        if (cd "$SRC" && sha256sum --check "$GOLDEN" --quiet 2>&1); then
+        checksum_failures=0
+        if [[ -n "$GOLDEN_OVERRIDE" && -f "$GOLDEN_OVERRIDE" ]]; then
+            override_errors=$(awk '
+                NR == FNR { canonical[$2] = 1; next }
+                NF != 2 { print "malformed override line " FNR; errors++; next }
+                seen[$2]++ { print "duplicate override for " $2; errors++ }
+                !($2 in canonical) { print "override for unknown artifact " $2; errors++ }
+                END { exit(errors != 0) }
+            ' "$GOLDEN" "$GOLDEN_OVERRIDE") || {
+                printf '%s\n' "$override_errors" | sed 's/^/    /'
+                checksum_failures=$((checksum_failures + 1))
+            }
+        fi
+        while read -r expected artifact; do
+            [[ -n "$artifact" && -f "$SRC/$artifact" ]] || continue
+            if [[ -n "$GOLDEN_OVERRIDE" && -f "$GOLDEN_OVERRIDE" ]]; then
+                platform_expected=$(awk -v artifact="$artifact" '$2 == artifact { print $1 }' "$GOLDEN_OVERRIDE")
+                [[ -z "$platform_expected" ]] || expected="$platform_expected"
+            fi
+            actual=$(sha256sum "$SRC/$artifact")
+            actual=${actual%% *}
+            if [[ "$actual" != "$expected" ]]; then
+                echo "    $artifact"
+                echo "      expected: $expected"
+                echo "      actual:   $actual"
+                checksum_failures=$((checksum_failures + 1))
+            fi
+        done < "$GOLDEN"
+        if [[ $checksum_failures -eq 0 ]]; then
             ok "all checksums match"
         else
-            while read -r expected artifact; do
-                [[ -n "$artifact" && -f "$SRC/$artifact" ]] || continue
-                actual=$(sha256sum "$SRC/$artifact")
-                actual=${actual%% *}
-                if [[ "$actual" != "$expected" ]]; then
-                    echo "    $artifact"
-                    echo "      expected: $expected"
-                    echo "      actual:   $actual"
-                fi
-            done < "$GOLDEN"
-            fail "checksum mismatch (run 'make gen-checksums' to regenerate)"
+            fail "checksum mismatch for the active host toolchain"
         fi
     else
         skip "golden.sha256 not found — run 'make gen-checksums' first"

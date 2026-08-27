@@ -86,6 +86,12 @@ explicitly classified from their independently complete startup, control,
 bootstrap, or mode grammars. This turns the former hand-maintained help smoke
 list into a completeness gate and rejects duplicate, stale, or missing entries.
 
+Artifact checksums are deterministic per pinned host toolset. Linux remains the
+canonical full golden, while `golden.macos-arm64.sha256` narrowly overrides the
+two clean-build artifacts whose OW2 host compilers/linkers emit differently.
+The override is not a wildcard: every other artifact must remain byte-identical,
+and both EMM386 variants must pass the same page-array and EMS behavior probes.
+
 `command_coverage.json` drills into COMMAND.COM itself. Its verifier derives
 all 35 internal commands from the live `COMTAB` in `CMD/COMMAND/TDATA.ASM`, so
 adding, removing, or renaming a built-in requires an explicit behavioral

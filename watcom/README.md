@@ -50,6 +50,13 @@ The vendored 16-bit DOS runtime under `lib286/` includes the model-specific C
 libraries and `math87s.lib`, which Open Watcom links automatically for
 small-model programs that use floating-point arithmetic.
 
+Host builds are deterministic within each pinned toolset, but the independently
+built Linux GCC and macOS Clang host compilers do not promise byte-identical
+16-bit code generation. The behavioral suite therefore uses the Linux artifact
+set as its canonical golden and a small macOS arm64 override file for the
+artifacts known to differ after a clean build. Both sets execute the same QEMU
+contracts; an unlisted platform difference remains a test failure.
+
 ## Updating release binaries
 
 To update to a newer release:
