@@ -277,8 +277,11 @@ the prior on-disk label.
 `test_select.sh` drives SELECT through its BIOS keyboard and video interfaces.
 Besides the stub transition and invalid-command-line return path, the valid
 MENU workflow must reach Welcome, cancel to the Exit panel, decline exit, and
-return to Welcome. This proves a reversible UI state transition and recovery
-without starting an installation or mutating a target disk.
+return to Welcome. It then re-enters the Exit panel, accepts with F3, and must
+return to the DOS prompt with the source-required `AUTOEXEC.BAT` present on the
+INSTALL disk. This proves both sides of the reversible UI transition and its
+successful process-exit contract without starting an installation or mutating
+a target disk.
 
 Command-mode depth is derived from live parser definitions where possible.
 SORT tests both endpoints of its declared `/+n` range (1 through 65535), the

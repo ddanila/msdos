@@ -14,6 +14,7 @@
 #   6. Boot a fresh image and run "SELECT MENU"
 #   7. Confirm the valid path reaches the Welcome panel
 #   8. Cancel to the Exit panel, decline exit, and confirm recovery to Welcome
+#   9. Re-enter the Exit panel, accept with F3, and confirm return to DOS
 #
 # Run via: make test-select  (requires 'make deploy' first)
 
@@ -95,7 +96,10 @@ wait $QEMU_PID 2>/dev/null || true
 # ── Step 4: exercise a valid UI state transition and recovery ──────────────────
 echo "Running SELECT MENU valid-path check..."
 cp "$FLOPPY" "$MENU_BOOT_IMG"
-mdel -i "$MENU_BOOT_IMG" ::AUTOEXEC.BAT 2>/dev/null || true
+# EXIT_SELECT requires the INSTALL disk to contain AUTOEXEC.BAT before it will
+# return to DOS. A minimal file also skips the unrelated startup date/time
+# prompts in this second, UI-focused boot.
+printf '@ECHO OFF\r\n' | mcopy -o -i "$MENU_BOOT_IMG" - ::AUTOEXEC.BAT
 rm -f "$MENU_QMP_SOCK"
 timeout 90 qemu-system-i386 \
     -display none \
@@ -117,13 +121,13 @@ fi
 
 python3 "$REPO_ROOT/tests/screen_expect.py" \
     "$MENU_QMP_SOCK" "$MENU_SCREEN_LOG" \
-    'Enter new date' 'ret' \
-    'Enter new time' 'ret' \
     '>' 's+e+l+e+c+t+spc+m+e+n+u+ret' \
     'Insert SELECT' 'ret' \
     'Welcome' 'esc' \
     'You have chosen to end SELECT' 'ret' \
-    'Welcome' ''
+    'Welcome' 'esc' \
+    'You have chosen to end SELECT' 'f3' \
+    '>' ''
 
 kill $QEMU_PID 2>/dev/null
 wait $QEMU_PID 2>/dev/null || true
@@ -178,16 +182,28 @@ else
     fail "SELECT MENU did not reach the Welcome panel"
 fi
 
-if grep -q "Rule 5: matched.*You have chosen to end SELECT" "$MENU_SCREEN_LOG"; then
+if grep -q "Rule 3: matched.*You have chosen to end SELECT" "$MENU_SCREEN_LOG"; then
     ok "ESC transitioned SELECT from Welcome to the Exit panel"
 else
     fail "SELECT did not transition from Welcome to the Exit panel"
 fi
 
-if grep -q "Rule 6: matched.*Welcome" "$MENU_SCREEN_LOG"; then
+if grep -q "Rule 4: matched.*Welcome" "$MENU_SCREEN_LOG"; then
     ok "ENTER declined exit and returned SELECT to Welcome"
 else
     fail "SELECT did not recover from the Exit panel to Welcome"
+fi
+
+if grep -q "Rule 5: matched.*You have chosen to end SELECT" "$MENU_SCREEN_LOG"; then
+    ok "ESC re-entered the SELECT Exit panel after recovery"
+else
+    fail "SELECT could not re-enter the Exit panel after recovery"
+fi
+
+if grep -q "Rule 6: matched.*>" "$MENU_SCREEN_LOG"; then
+    ok "F3 accepted exit and returned SELECT to DOS"
+else
+    fail "SELECT did not return to DOS after accepting exit"
 fi
 
 # Dump log on failure
