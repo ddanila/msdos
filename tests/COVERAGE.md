@@ -143,6 +143,12 @@ B: image read-only. The failure case must return a nonzero DOS errorlevel,
 must never print the success diagnostic, and must leave the complete target
 image SHA-256 unchanged.
 
+`test_label.sh` covers the command-line boundary in addition to interactive
+set/delete behavior. A 12-character input must persist only its first eleven
+characters. An invalid-character input must enter LABEL's documented recovery
+prompt; submitting an empty replacement and declining deletion must preserve
+the prior on-disk label.
+
 `test_int21_file_memory_qemu.sh` includes destructive-but-recoverable resource
 limits. It consumes the largest reported DOS arena, asserts error 8 on the next
 allocation, releases it, and allocates again. With `FILES=12` and an expanded

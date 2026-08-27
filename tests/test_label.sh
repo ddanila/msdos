@@ -38,6 +38,12 @@ TARGET_IMG="$OUT/label-target.img"
 SERIAL_LOG="$OUT/label-serial.log"
 SERIAL_IN="$OUT/label-serial.in"
 SERIAL_OUT="$OUT/label-serial.out"
+EXIT_COM="$OUT/qemu-exit.com"
+BOUNDARY_BOOT="$OUT/label-boundary-boot.img"
+BOUNDARY_TARGET="$OUT/label-boundary-target.img"
+BOUNDARY_LOG="$OUT/label-boundary-serial.log"
+BOUNDARY_IN="$OUT/label-boundary-serial.in"
+BOUNDARY_OUT="$OUT/label-boundary-serial.out"
 
 PASS=0
 FAIL=0
@@ -50,7 +56,7 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
-trap 'rm -f "$SERIAL_IN" "$SERIAL_OUT" "$OUT/label-set-serial.in" "$OUT/label-set-serial.out" 2>/dev/null; true' EXIT
+trap 'rm -f "$SERIAL_IN" "$SERIAL_OUT" "$OUT/label-set-serial.in" "$OUT/label-set-serial.out" "$BOUNDARY_IN" "$BOUNDARY_OUT" 2>/dev/null; true' EXIT
 
 echo "=== LABEL E2E tests (QEMU, interactive serial expect) ==="
 
@@ -59,6 +65,8 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 # ── Step 1: build images ──────────────────────────────────────────────────────
 echo "Building test images..."
 cp "$FLOPPY" "$BOOT_IMG"
+nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
+mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 
 # Build target floppy with label "TESTLABEL" — this is what LABEL will remove
 dd if=/dev/zero bs=512 count=2880 of="$TARGET_IMG" status=none
@@ -80,6 +88,7 @@ echo "  Pre-test label on B: '$prelabel'"
     printf 'LABEL B:\r\n'
     printf 'ECHO LABEL_DONE\r\n'
     printf 'ECHO ===DONE===\r\n'
+    printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
 # ── Step 2: set up serial FIFOs ───────────────────────────────────────────────
@@ -96,6 +105,7 @@ timeout 120 qemu-system-i386 \
     -drive if=floppy,index=1,format=raw,file="$TARGET_IMG",cache=writethrough \
     -boot a -m 4 \
     -serial pipe:"$OUT/label-serial" \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     2>/dev/null &
 QEMU_PID=$!
 
@@ -181,6 +191,7 @@ SERIAL_LOG2="$OUT/label-set-serial.log"
 SERIAL_IN2="$OUT/label-set-serial.in"
 SERIAL_OUT2="$OUT/label-set-serial.out"
 cp "$FLOPPY" "$BOOT_IMG2"
+mcopy -o -i "$BOOT_IMG2" "$EXIT_COM" ::QEXIT.COM
 
 {
     printf 'CTTY AUX\r\n'
@@ -188,6 +199,7 @@ cp "$FLOPPY" "$BOOT_IMG2"
     printf 'LABEL B:\r\n'
     printf 'ECHO LABEL_SET_DONE\r\n'
     printf 'ECHO ===DONE===\r\n'
+    printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG2" - ::AUTOEXEC.BAT
 
 # Set up serial FIFOs for interactive test
@@ -203,6 +215,7 @@ timeout 120 qemu-system-i386 \
     -drive if=floppy,index=1,format=raw,file="$TARGET_IMG",cache=writethrough \
     -boot a -m 4 \
     -serial pipe:"$OUT/label-set-serial" \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     2>/dev/null &
 QEMU_PID2=$!
 
@@ -247,6 +260,50 @@ else
 fi
 
 rm -f "$BOOT_IMG2"
+
+# ── Test 3: command-line length and invalid-character boundaries ────────────
+echo ""
+echo "--- LABEL command-line boundary test ---"
+cp "$FLOPPY" "$BOUNDARY_BOOT"
+mcopy -o -i "$BOUNDARY_BOOT" "$EXIT_COM" ::QEXIT.COM
+dd if=/dev/zero bs=512 count=2880 of="$BOUNDARY_TARGET" status=none
+mformat -i "$BOUNDARY_TARGET" -f 1440 ::
+mlabel -i "$BOUNDARY_TARGET" ::OLDLABEL
+{
+    printf 'CTTY AUX\r\n'
+    printf 'LABEL B:ABCDEFGHIJKL\r\n'
+    printf 'ECHO LABEL_LONG_DONE\r\n'
+    printf 'LABEL B:BAD*LABEL\r\n'
+    printf 'ECHO LABEL_BOUNDARY_DONE\r\n'
+    printf 'QEXIT.COM\r\n'
+} | mcopy -o -i "$BOUNDARY_BOOT" - ::AUTOEXEC.BAT
+rm -f "$BOUNDARY_LOG" "$BOUNDARY_IN" "$BOUNDARY_OUT"
+mkfifo "$BOUNDARY_IN" "$BOUNDARY_OUT"
+exec 5<>"$BOUNDARY_IN"
+timeout 25 qemu-system-i386 \
+    -display none \
+    -drive if=floppy,index=0,format=raw,file="$BOUNDARY_BOOT",cache=writethrough \
+    -drive if=floppy,index=1,format=raw,file="$BOUNDARY_TARGET",cache=writethrough \
+    -boot a -m 4 -serial pipe:"$OUT/label-boundary-serial" \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    2>/dev/null &
+QEMU_PID3=$!
+python3 "$REPO_ROOT/tests/serial_expect.py" \
+    "$BOUNDARY_IN" "$BOUNDARY_OUT" "$BOUNDARY_LOG" \
+    'ENTER for none' $'\r' \
+    'Delete current volume label' 'N'
+wait "$QEMU_PID3" 2>/dev/null || true
+exec 5>&-
+boundary_label="$(mlabel -i "$BOUNDARY_TARGET" -s :: 2>/dev/null || true)"
+if grep -q 'LABEL_LONG_DONE' "$BOUNDARY_LOG" \
+    && grep -qi 'Invalid characters in volume label' "$BOUNDARY_LOG" \
+    && grep -q 'LABEL_BOUNDARY_DONE' "$BOUNDARY_LOG" \
+    && grep -qi 'ABCDEFGHIJK' <<<"$boundary_label" \
+    && ! grep -qi 'BAD.*LABEL' <<<"$boundary_label"; then
+    ok "LABEL truncates at 11 characters and preserves it after invalid input"
+else
+    fail "LABEL command-line boundary contract failed: '$boundary_label'"
+fi
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
