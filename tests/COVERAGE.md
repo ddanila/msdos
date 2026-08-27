@@ -124,6 +124,12 @@ pattern in every cluster. After `/F`, the generated `FILE0000.CHK` must match
 the complete injected chain by SHA-256, an ordinary referenced file must remain
 byte-exact, and a second read-only CHKDSK pass must report a clean filesystem.
 
+`test_fdisk.sh` reads the resulting MBR and EBR as structures rather than only
+checking partition type bytes. It bounds the requested 5 MB and 10 MB sizes by
+one geometry unit, proves non-overlap and extended-partition containment,
+checks CHS/LBA agreement and the EBR signature, and requires unused entries to
+remain zero in the primary-only regression case.
+
 `test_int21_file_memory_qemu.sh` includes destructive-but-recoverable resource
 limits. It consumes the largest reported DOS arena, asserts error 8 on the next
 allocation, releases it, and allocates again. With `FILES=12` and an expanded

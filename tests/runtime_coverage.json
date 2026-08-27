@@ -20,7 +20,7 @@
     "EXE2BIN.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_share_nlsfunc_exe2bin.sh"], "note": "Conversion success and error behavior are asserted"},
     "FASTOPEN.EXE": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Resident cache installation and /X behavior are asserted"},
     "FC.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Text, binary, case, line-number, whitespace, and error modes are asserted"},
-    "FDISK.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Primary, extended, and logical partition creation and errorlevel behavior are asserted"},
+    "FDISK.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Primary, extended, and logical creation, requested-size bounds, containment, CHS/LBA consistency, EBR signature, unused-entry state, and errorlevel behavior are asserted"},
     "FILESYS.EXE": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Installation after IFSFUNC and continued execution are asserted"},
     "FIND.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_misc_qemu.sh"], "note": "Counting, line numbers, inversion, stdin, and errors are asserted"},
     "FLUSH13.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Status, disable, enable, policy update, and explicit flush operations complete against the installed cache device"},

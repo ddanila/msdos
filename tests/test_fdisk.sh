@@ -59,6 +59,7 @@ FLOPPY="$OUT/floppy.img"
 BOOT_IMG="$OUT/fdisk-boot.img"
 HDD_IMG="$OUT/fdisk-hdd.img"
 SERIAL_LOG="$OUT/fdisk-serial.log"
+EXIT_COM="$OUT/qemu-exit.com"
 
 PASS=0
 FAIL=0
@@ -78,6 +79,8 @@ echo "=== FDISK E2E tests (QEMU, non-interactive switches) ==="
 # ── Build test floppy and blank HDD ──────────────────────────────────────────
 echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
+nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
+mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
@@ -109,6 +112,7 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'ECHO FDISK_LOG_DONE\r\n'
 
     printf 'ECHO ===DONE===\r\n'
+    printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
 # ── Boot QEMU ────────────────────────────────────────────────────────────────
@@ -124,6 +128,7 @@ run_qemu() {
         -drive if=ide,index=0,format=raw,file="$HDD_IMG",cache=writethrough \
         -boot a -m 4 \
         -serial stdio \
+        -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
         < /dev/null \
         2>/dev/null | tee "$SERIAL_LOG" > /dev/null; true
 }
@@ -218,7 +223,7 @@ echo "--- FDISK partition table checks ---"
 # Extended Boot Record (EBR): at the first sector of the extended partition,
 #   same layout — entry 1 has the logical drive (type 0x01/0x04/0x06).
 
-read -r pri_type ext_type log_type ebr_debug < <(python3 -c "
+read -r pri_type ext_type log_type geometry_ok ebr_debug < <(python3 -c "
 import struct, sys
 
 DOS_TYPES = (0x01, 0x04, 0x06)
@@ -246,13 +251,16 @@ with open('$HDD_IMG', 'rb') as f:
 
     pri_type  = e1[4]
     ext_type  = e2[4]
+    pri_lba, pri_size = struct.unpack_from('<II', e1, 8)
     ext_lba   = struct.unpack_from('<I', e2, 8)[0]
+    ext_size  = struct.unpack_from('<I', e2, 12)[0]
     ext_chs   = chs_to_lba(e2)
 
     # ── Find EBR: scan from ext_lba for up to 64 sectors ──
     log_type = 0
     used_method = 'none'
     ebr_hex = ''
+    log_rel = log_size = ebr_sector = 0
     start = ext_lba if ext_lba > 0 else ext_chs
     if start > 0 and start * 512 < IMG_SIZE:
         # Dump the partition table area of the EBR sector for diagnostics
@@ -261,6 +269,8 @@ with open('$HDD_IMG', 'rb') as f:
         ebr_hex = hexdump(ebr_raw, 66)
         if len(ebr_raw) >= 16 and ebr_raw[4] in DOS_TYPES:
             log_type = ebr_raw[4]
+            log_rel, log_size = struct.unpack_from('<II', ebr_raw, 8)
+            ebr_sector = start
             used_method = 'direct@{}'.format(start)
         else:
             # Scan ahead: some FDISKs put the EBR one track in
@@ -272,11 +282,28 @@ with open('$HDD_IMG', 'rb') as f:
                 le1 = f.read(16)
                 if len(le1) == 16 and le1[4] in DOS_TYPES:
                     log_type = le1[4]
+                    log_rel, log_size = struct.unpack_from('<II', le1, 8)
+                    ebr_sector = sec
                     used_method = 'scan@{}(+{})'.format(sec, offset)
                     break
 
-    debug = 'lba={},chs={},method={},ebr_hex=[{}]'.format(ext_lba, ext_chs, used_method, ebr_hex)
-    print('{:02x} {:02x} {:02x} {}'.format(pri_type, ext_type, log_type, debug))
+    primary_bytes = pri_size * 512
+    logical_bytes = log_size * 512
+    logical_lba = ebr_sector + log_rel
+    geometry_ok = (
+        pri_lba > 0 and 5 * 1024 * 1024 <= primary_bytes <= 6 * 1024 * 1024
+        and pri_lba + pri_size <= ext_lba
+        and ext_lba == ext_chs and ext_size > 0
+        and ext_lba <= ebr_sector < ext_lba + ext_size
+        and 10 * 1024 * 1024 <= logical_bytes <= 11 * 1024 * 1024
+        and logical_lba >= ext_lba
+        and logical_lba + log_size <= ext_lba + ext_size
+        and ebr_hex.endswith('55 aa')
+    )
+    debug = 'pri={}:{} ext={}:{} log={}:{} method={}'.format(
+        pri_lba, pri_size, ext_lba, ext_size, logical_lba, log_size, used_method)
+    print('{:02x} {:02x} {:02x} {} {}'.format(
+        pri_type, ext_type, log_type, int(geometry_ok), debug))
 " 2>/dev/null)
 
 # Check primary partition type (0x01=FAT12, 0x04=FAT16<32M, 0x06=FAT16>32M)
@@ -297,6 +324,12 @@ case "$log_type" in
     01|04|06) ok "EBR entry 1: logical drive type 0x$log_type (${ebr_debug:-})" ;;
     *)        fail "EBR entry 1: expected DOS type (01/04/06), got 0x${log_type:-?} (${ebr_debug:-})" ;;
 esac
+
+if [[ "$geometry_ok" == "1" ]]; then
+    ok "Partition starts, requested sizes, containment, CHS/LBA, and EBR signature are consistent ($ebr_debug)"
+else
+    fail "Partition geometry does not match the 5 MB primary plus 10 MB logical request ($ebr_debug)"
+fi
 
 # ══════════════════════════════════════════════════════════════════════════════
 # Boot 2: Primary-only (no extended partition) — regression test for PTM P941
@@ -321,6 +354,7 @@ echo "=== FDISK edge case: primary-only, no extended partition (PTM P941) ==="
 
 echo "Building test image (boot 2)..."
 cp "$FLOPPY" "$BOOT_IMG2"
+mcopy -o -i "$BOOT_IMG2" "$EXIT_COM" ::QEXIT.COM
 
 # Batch: create primary partition, then invoke FDISK again (triggers write_info
 # on a disk with no extended partition — the exact scenario PTM P941 describes).
@@ -346,6 +380,7 @@ cp "$FLOPPY" "$BOOT_IMG2"
     printf 'ECHO FDISK_NOEXT_DONE\r\n'
 
     printf 'ECHO ===DONE2===\r\n'
+    printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG2" - ::AUTOEXEC.BAT
 
 run_qemu2() {
@@ -357,6 +392,7 @@ run_qemu2() {
         -drive if=ide,index=0,format=raw,file="$HDD_IMG2",cache=writethrough \
         -boot a -m 4 \
         -serial stdio \
+        -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
         < /dev/null \
         2>/dev/null | tee "$SERIAL_LOG2" > /dev/null; true
 }
@@ -390,12 +426,17 @@ else
 fi
 
 # Verify MBR: entry 1 has a primary partition, entry 2 is empty (type 0x00)
-read -r pri2_type ext2_type < <(python3 -c "
+read -r pri2_type ext2_type pri2_geometry_ok pri2_debug < <(python3 -c "
+import struct
 with open('$HDD_IMG2', 'rb') as f:
     f.seek(446)
-    e1 = f.read(16)
-    e2 = f.read(16)
-    print('{:02x} {:02x}'.format(e1[4], e2[4]))
+    entries = [f.read(16) for _ in range(4)]
+    start, size = struct.unpack_from('<II', entries[0], 8)
+    size_bytes = size * 512
+    clean_tail = all(entry == bytes(16) for entry in entries[1:])
+    geometry_ok = start > 0 and 5 * 1024 * 1024 <= size_bytes <= 6 * 1024 * 1024 and clean_tail
+    print('{:02x} {:02x} {} start={}:size={}'.format(
+        entries[0][4], entries[1][4], int(geometry_ok), start, size))
 " 2>/dev/null)
 
 case "$pri2_type" in
@@ -407,6 +448,12 @@ if [[ "$ext2_type" == "00" ]]; then
     ok "MBR entry 2: type 0x00 (no extended partition — confirms primary-only scenario)"
 else
     fail "MBR entry 2: expected type 0x00 (empty), got 0x${ext2_type:-?}"
+fi
+
+if [[ "$pri2_geometry_ok" == "1" ]]; then
+    ok "Primary-only MBR preserves the requested size and zeroes all unused entries ($pri2_debug)"
+else
+    fail "Primary-only MBR geometry or unused entries are invalid ($pri2_debug)"
 fi
 
 if grep -q "===DONE2===" "$SERIAL_LOG2"; then
