@@ -44,7 +44,7 @@ def main() -> None:
     )
     assert map_offset(kernel_map, "DataVersion") - group_base(kernel_map) == 4
 
-    share_map = ROOT / "MS-DOS/v4.0/src/CMD/SHARE/SHARE.MAP"
+    share_map = ROOT / "MS-DOS/v4.0/src/CMD/SHARE/share.map"
     assert map_offset(share_map, "DataVersion") - group_base(share_map) == 4, (
         "SHARE and the kernel disagree on the replicated DOSGROUP layout"
     )
