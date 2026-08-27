@@ -1,7 +1,7 @@
 #!/bin/bash
 # tests/test_format.sh — E2E tests for FORMAT.COM via QEMU with QMP floppy swapping.
 #
-# All 8 FORMAT variants run in a single QEMU session.  After each FORMAT the host:
+# Selected FORMAT variants run in one QEMU session. After each FORMAT the host:
 #   1. Detects the DONE marker in real-time serial output (FIFO + background monitor)
 #   2. Saves a copy of B: image for post-QEMU verification
 #   3. Swaps B: to the next blank image via QEMU QMP ("change floppy1 …")
@@ -33,8 +33,8 @@
 #   default 1.44MB (/V:TEST, /S, /B): spt=18, heads=2, total=2880
 #   /F:720 and /T:80 /N:9 (720KB)   : spt=9,  heads=2, total=1440
 #   /4 (360KB on 1.2MB drive)        : spt=9,  heads=2, total=720
-#   /1 (single-sided 1.44MB)         : spt=18, heads=1
-#   /8 (8 sec/track)                 : spt=8,  heads=2
+#   /4 /1 (single-sided in 1.2MB)    : spt=9,  heads=1, total=360
+#   /8 (8 sec/track on 360KB drive)  : legacy pre-BPB 320KB FAT12 layout
 #   /SELECT /V:SELTEST               : spt=18, heads=2, total=2880
 #   /AUTOTEST /V:AUTO                : spt=18, heads=2, total=2880
 #
@@ -78,17 +78,16 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
-trap 'rm -f "$SERIAL_IN" "$SERIAL_OUT" "$QMP_SOCK" 2>/dev/null; [[ "$WORKDIR" != "$OUT" ]] && rm -rf "$WORKDIR" 2>/dev/null; true' EXIT
+trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$SERIAL_IN" "$SERIAL_OUT" "$QMP_SOCK" 2>/dev/null; [[ "$WORKDIR" != "$OUT" ]] && rm -rf "$WORKDIR" 2>/dev/null; true' EXIT
 
 echo "=== FORMAT E2E tests (QEMU, QMP disk swapping) ==="
 
 # ── Test definitions ──────────────────────────────────────────────────────────
 # NAMES must be uppercase (used verbatim in AUTOEXEC.BAT ECHO markers).
-# B_SECTORS: /4 needs a 1.2MB image (2400 sectors) so QEMU presents a 1.2MB drive.
-# NOTE: /F:720, /T:80 /N:9, /1, /4, /8 exit with "Parameters not supported [by drive]"
-# in this single-session QEMU setup because IO.SYS caches the B: drive type from boot
-# (initial image is 1.44MB → DEV_OTHER), and /1, /4, /8 require 5.25" drive types that
-# QEMU does not emulate.  /C and /Z exit with "Invalid parameter" (error paths).
+# B_SECTORS also selects QEMU's initial B: drive geometry. CI groups variants
+# by the drive type cached by IO.SYS: DRIVPARM supplies a 720KB B: for F720/TN,
+# a 1.2MB image backs FOUR/ONE, and a 360KB image backs EIGHT. /C and /Z exit
+# with "Invalid parameter" (error paths).
 # /SELECT and /AUTOTEST suppress all interactive prompts (format unattended).
 # The coordinator exercises all variants — batch completion markers confirm each ran.
 NAMES=("VLABEL" "S"      "B"      "F720"   "TN"     "FOUR"   "ONE"    "EIGHT"
@@ -100,17 +99,17 @@ FORMAT_CMDS=(
     "FORMAT B: /F:720"
     "FORMAT B: /T:80 /N:9"
     "FORMAT B: /4"
-    "FORMAT B: /1"
+    "FORMAT B: /4 /1"
     "FORMAT B: /8"
     "FORMAT B: /C"
     "FORMAT B: /Z"
     "FORMAT B: /SELECT /V:SELTEST"
     "FORMAT B: /AUTOTEST /V:AUTO"
 )
-B_SECTORS=(2880 2880 2880 2880 2880 2400 2880 2880
+B_SECTORS=(2880 2880 2880 1440 1440 2400 2400 720
            2880 2880 2880 2880)
 # Which NAMES have /V:<label> on the command line → FORMAT skips volume-label prompt.
-NO_LABEL_NAMES=(VLABEL SELECT AUTOTEST)
+NO_LABEL_NAMES=(VLABEL EIGHT SELECT AUTOTEST)
 
 # ── Filter to selected variants (if arguments given) ──────────────────────────
 if [[ ${#SELECTED_VARIANTS[@]} -gt 0 ]]; then
@@ -148,6 +147,13 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     done
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
+
+# QEMU exposes a 1.44MB floppy drive for 3.5-inch media regardless of the
+# inserted image size. Override DOS's cached B: geometry for the two 720KB
+# variants so FORMAT exercises their success path on the matching drive type.
+if [[ "${NAMES[0]}" == "F720" ]]; then
+    printf 'DRIVPARM=/D:1 /F:2\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
+fi
 
 for i in "${!NAMES[@]}"; do
     B_IMGS+=("$OUT/format-b-${NAMES[$i]}.img")
@@ -214,13 +220,13 @@ done
 
 echo ""
 echo "--- FORMAT complete messages ---"
-# Count how many full-format variants (VLABEL, S, B) were selected.
+# Count variants expected to complete an actual format.
 _full_count=0
-for _fn in VLABEL S B; do
+for _fn in VLABEL S B F720 FOUR ONE EIGHT; do
     for _n in "${NAMES[@]}"; do [[ "$_n" == "$_fn" ]] && _full_count=$((_full_count+1)) && break; done
 done
 if [[ $_full_count -gt 0 ]]; then
-    count=$(grep -ic "Format complete" "$SERIAL_LOG" || echo 0)
+    count=$(grep -ic "Format complete" "$SERIAL_LOG" || true)
     if [[ $count -ge $_full_count ]]; then
         ok "FORMAT full-format variants printed 'Format complete' ($count found, expected >=$_full_count)"
     else
@@ -268,14 +274,17 @@ PYEOF
 echo ""
 echo "--- Post-QEMU BPB geometry checks ---"
 
-# Expected BPB geometry per variant name.  Variants not listed here exit with
-# errors ("Parameters not supported", "Invalid parameter") and produce no image.
+# Expected BPB geometry per variant name. Error-only variants are omitted.
 # Keep this compatible with macOS's system Bash 3.2 (no associative arrays).
 for i in "${!NAMES[@]}"; do
     name="${NAMES[$i]}"
     case "$name" in
         VLABEL|S|B|SELECT|AUTOTEST) es=18; eh=2; et=2880 ;;
-        *) continue ;;                         # no BPB check for this variant
+        F720) es=9; eh=2; et=1440 ;;
+        FOUR) es=9; eh=2; et=720 ;;
+        ONE) es=9; eh=1; et=360 ;;
+        EIGHT) continue ;;                     # checked as a legacy layout below
+        *) continue ;;                         # error-only variant
     esac
     img="${SAVED_IMGS[$i]}"
     if bpb=$(read_bpb "$img" 2>/dev/null); then
@@ -305,18 +314,56 @@ for i in "${!NAMES[@]}"; do
             fail "FORMAT /SELECT /V:SELTEST volume label (expected 'SELTEST', got: '$label')"
         fi
     fi
+    # AUTOTEST is an unattended factory path: it suppresses normal completion
+    # output and intentionally leaves the disk unlabeled despite /V:AUTO.
+    if [[ "$name" == "AUTOTEST" ]]; then
+        label=$(mlabel -i "$img" -s :: 2>/dev/null || echo "")
+        if echo "$label" | grep -qi "no label"; then
+            ok "FORMAT /AUTOTEST /V:AUTO leaves the unattended disk unlabeled"
+        else
+            fail "FORMAT /AUTOTEST /V:AUTO (expected no label, got: '$label')"
+        fi
+    fi
 done
 
-# /F:720, /T:80 /N:9, /4, /1, /8 — skipped: FORMAT exits with "Parameters not supported
-# [by drive]" in this single-session QEMU setup.  IO.SYS caches the B: drive type from
-# boot (initial image is 1.44MB → DEV_OTHER); /F:720 and /T:80 /N:9 need DEV_3INCH720KB
-# (720KB from boot), and /1, /4, /8 require 5.25" drive types that QEMU does not emulate.
-# The batch completion checks above confirm all FORMAT runs reached their DONE markers.
-_skipped_bpb=()
-for _n in F720 TN FOUR ONE EIGHT SWITCHC SWITCHZ; do
-    for _sel in "${NAMES[@]}"; do [[ "$_sel" == "$_n" ]] && _skipped_bpb+=("$_n") && break; done
-done
-[[ ${#_skipped_bpb[@]} -gt 0 ]] && echo "  NOTE: ${_skipped_bpb[*]} BPB checks skipped (error exit or drive type mismatch)"
+# /8 deliberately selects FORMAT's old-directory layout. Its boot sector
+# predates the DOS 2 BPB, so zero BPB fields are correct; validate the legacy
+# boot signature, both FAT media bytes, root marker, and usable capacity.
+_eight_selected=0
+for _n in "${NAMES[@]}"; do [[ "$_n" == "EIGHT" ]] && _eight_selected=1 && break; done
+if [[ $_eight_selected -eq 1 ]]; then
+    eight_img=""
+    for i in "${!NAMES[@]}"; do
+        [[ "${NAMES[$i]}" == "EIGHT" ]] && eight_img="${SAVED_IMGS[$i]}" && break
+    done
+    legacy=$(python3 - "$eight_img" <<'PYEOF'
+import sys
+with open(sys.argv[1], 'rb') as f:
+    image = f.read()
+print(f"boot={image[:3].hex()} bpb={image[11:13].hex()} "
+      f"fat1={image[512]:02x} fat2={image[1024]:02x} root={image[1536]:02x}")
+PYEOF
+)
+    free_bytes=$(mdir -i "$eight_img" :: 2>/dev/null | sed -n 's/[^0-9]*\([0-9][0-9 ]*[0-9]\) bytes free.*/\1/p' | tr -d ' ')
+    if [[ "$legacy" == "boot=eb2790 bpb=0000 fat1=ff fat2=ff root=e5" && "$free_bytes" == "322560" ]]; then
+        ok "FORMAT /8 legacy 320KB FAT12 layout ($legacy, free=$free_bytes)"
+    else
+        fail "FORMAT /8 legacy layout: got '$legacy', free='${free_bytes:-missing}'"
+    fi
+fi
+
+# On the 720KB DRIVPARM geometry used by the F720/TN group, the explicit
+# /T:80 /N:9 spelling reaches FORMAT's drive-specific rejection path. Assert
+# that exact behavior rather than treating the absent BPB as a skipped check.
+_tn_selected=0
+for _n in "${NAMES[@]}"; do [[ "$_n" == "TN" ]] && _tn_selected=1 && break; done
+if [[ $_tn_selected -eq 1 ]]; then
+    if sed -n '/---FORMAT-TN---/,/FORMAT_TN_DONE/p' "$SERIAL_LOG" | grep -qi "Parameters not supported"; then
+        ok "FORMAT /T:80 /N:9 (drive-specific rejection asserted)"
+    else
+        fail "FORMAT /T:80 /N:9 (expected drive-specific rejection)"
+    fi
+fi
 
 # ── Step 6: error path checks for undocumented switches ─────────────────────
 echo ""
@@ -340,8 +387,7 @@ if [[ $_z_selected -eq 1 ]]; then
     if sed -n '/---FORMAT-SWITCHZ---/,/FORMAT_SWITCHZ_DONE/p' "$SERIAL_LOG" | grep -qi "Invalid parameter\|Invalid switch\|error\|not supported"; then
         ok "FORMAT /Z (rejected — ShipDisk=NO, /Z not compiled into parser)"
     else
-        # /Z might be silently ignored if parser skips unknown switches
-        ok "FORMAT /Z (no error printed — parser may have ignored unknown switch)"
+        fail "FORMAT /Z (expected parser rejection)"
     fi
 fi
 

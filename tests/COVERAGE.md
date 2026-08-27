@@ -69,6 +69,12 @@ live DOS device chain to prove neither rejected driver remained resident,
 checks that no LIM EMS signature was installed on INT 67h, and verifies DOS
 services remain operational.
 
+`test_format.sh` groups cases by the floppy geometry cached by IO.SYS. Its
+media checks cover 1.44MB and 720KB BPBs, 360KB and single-sided formats in a
+1.2MB drive, and the legacy pre-BPB 320KB `/8` FAT layout. Unsupported `/T`/`/N`
+and undocumented-switch paths require their exact rejection diagnostics; no
+FORMAT case is accepted merely because the batch continued.
+
 Run the inventory check with:
 
 ```sh

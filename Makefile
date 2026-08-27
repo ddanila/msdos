@@ -331,18 +331,20 @@ test-format: deploy
 test-format-one: deploy
 	bash tests/test_format.sh $(VARIANT)
 
-# Run FORMAT variants in parallel (5 groups, each in its own QEMU + workdir).
+# Run FORMAT variants in parallel (7 groups, each in its own QEMU + workdir).
 # Much faster than test-format (sequential).  Results: out/format-parallel-*.log
 test-format-parallel: deploy
 	@mkdir -p $(OUT)
-	@echo "=== FORMAT parallel test (5 groups) ==="
+	@echo "=== FORMAT parallel test (7 groups) ==="
 	@FAIL=0; \
 	FORMAT_WORKDIR=$(OUT)/format-p-vlabel bash tests/test_format.sh VLABEL        > $(OUT)/format-parallel-vlabel.log 2>&1 & P1=$$!; \
 	FORMAT_WORKDIR=$(OUT)/format-p-s      bash tests/test_format.sh S             > $(OUT)/format-parallel-s.log     2>&1 & P2=$$!; \
 	FORMAT_WORKDIR=$(OUT)/format-p-b      bash tests/test_format.sh B             > $(OUT)/format-parallel-b.log     2>&1 & P3=$$!; \
-	FORMAT_WORKDIR=$(OUT)/format-p-rest   bash tests/test_format.sh F720 TN FOUR ONE EIGHT > $(OUT)/format-parallel-rest.log 2>&1 & P4=$$!; \
-	FORMAT_WORKDIR=$(OUT)/format-p-undoc  bash tests/test_format.sh SWITCHC SWITCHZ SELECT AUTOTEST > $(OUT)/format-parallel-undoc.log 2>&1 & P5=$$!; \
-	for JOB in "vlabel:$$P1" "s:$$P2" "b:$$P3" "rest:$$P4" "undoc:$$P5"; do \
+	FORMAT_WORKDIR=$(OUT)/format-p-720k   bash tests/test_format.sh F720 TN       > $(OUT)/format-parallel-720k.log   2>&1 & P4=$$!; \
+	FORMAT_WORKDIR=$(OUT)/format-p-1200k  bash tests/test_format.sh FOUR ONE      > $(OUT)/format-parallel-1200k.log  2>&1 & P5=$$!; \
+	FORMAT_WORKDIR=$(OUT)/format-p-360k   bash tests/test_format.sh EIGHT         > $(OUT)/format-parallel-360k.log   2>&1 & P6=$$!; \
+	FORMAT_WORKDIR=$(OUT)/format-p-undoc  bash tests/test_format.sh SWITCHC SWITCHZ SELECT AUTOTEST > $(OUT)/format-parallel-undoc.log 2>&1 & P7=$$!; \
+	for JOB in "vlabel:$$P1" "s:$$P2" "b:$$P3" "720k:$$P4" "1200k:$$P5" "360k:$$P6" "undoc:$$P7"; do \
 	    NAME=$${JOB%%:*}; PID=$${JOB##*:}; \
 	    if wait $$PID; then echo "  PASS group: $$NAME"; \
 	    else echo "  FAIL group: $$NAME (see out/format-parallel-$$NAME.log)"; FAIL=$$((FAIL+1)); fi; \

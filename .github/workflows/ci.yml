@@ -147,6 +147,8 @@ jobs:
             MS-DOS/v4.0/src/CMD/COMMAND/COMMAND.COM
             MS-DOS/v4.0/src/DEV/XMAEM/XMAEM.SYS
             MS-DOS/v4.0/src/DEV/XMA2EMS/XMA2EMS.SYS
+            MS-DOS/v4.0/src/DEV/PRINTER/PRINTER.SYS
+            MS-DOS/v4.0/src/DEV/PRINTER/4201/4201.CPI
           retention-days: 14
 
       - name: Upload published floppy images
@@ -411,8 +413,12 @@ jobs:
             variants: "S"
           - group: b
             variants: "B"
-          - group: rest
-            variants: "F720 TN FOUR ONE EIGHT"
+          - group: 720k
+            variants: "F720 TN"
+          - group: 1200k
+            variants: "FOUR ONE"
+          - group: 360k
+            variants: "EIGHT"
           - group: undoc
             variants: "SWITCHC SWITCHZ SELECT AUTOTEST"
 

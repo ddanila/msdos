@@ -24,7 +24,7 @@
     "FILESYS.EXE": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Installation after IFSFUNC and continued execution are asserted"},
     "FIND.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_misc_qemu.sh"], "note": "Counting, line numbers, inversion, stdin, and errors are asserted"},
     "FLUSH13.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Status, disable, enable, policy update, and explicit flush operations complete against the installed cache device"},
-    "FORMAT.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_format.sh"], "note": "Formatting geometry, system transfer, volume, and documented/undocumented switches are asserted"},
+    "FORMAT.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_format.sh"], "note": "1.44MB, 720KB, 360KB, single-sided, and legacy 320KB media layouts, system transfer, volume behavior, and exact documented/undocumented switch rejection paths are asserted"},
     "GRAFTABL.COM": {"kind": "tsr", "level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Code-page installation and status behavior are asserted"},
     "GRAPHICS.COM": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Load, reload, profile, LCD, reverse, and background modes are asserted"},
     "IFSFUNC.EXE": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Initial and duplicate installation behavior are asserted"},
