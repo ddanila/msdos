@@ -96,7 +96,11 @@ proving that DRIVER.SYS forwards and persists both reads and writes.
 code-page control path by preparing, selecting, and querying code page 850.
 `test_smartdrv_flush_qemu.sh` attaches a fixed disk and uses FLUSH13 to assert
 SMARTDRV status, disable/enable transitions, policy changes, and an explicit
-successful flush.
+successful flush. A purpose-built guest probe also writes and reads back a
+deterministic 512-byte absolute sector through the installed cache. Extended
+status must show that real I/O populated cache tracks while the shipped
+write-through implementation kept them clean; after a clean guest exit, the
+host independently requires every byte of that sector on the backing image.
 `test_xma_drivers_qemu.sh` covers the XMA drivers' documented hardware gate on
 QEMU's AT-compatible machine. It asserts both exact boot diagnostics, walks the
 live DOS device chain to prove neither rejected driver remained resident,
