@@ -119,6 +119,11 @@ archive-bit selection, append preservation, basic restore, recursive restore,
 and restore-if-missing. Its negative date/time/filter cases still require the
 documented nonzero errorlevel and no-match behavior.
 
+`test_chkdsk_fix.sh` injects a three-cluster orphan chain with a distinct byte
+pattern in every cluster. After `/F`, the generated `FILE0000.CHK` must match
+the complete injected chain by SHA-256, an ordinary referenced file must remain
+byte-exact, and a second read-only CHKDSK pass must report a clean filesystem.
+
 `test_int21_file_memory_qemu.sh` includes destructive-but-recoverable resource
 limits. It consumes the largest reported DOS arena, asserts error 8 on the next
 allocation, releases it, and allocates again. With `FILES=12` and an expanded

@@ -6,7 +6,7 @@
     "ASSIGN.COM": {"kind": "tsr", "level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Drive redirection, file access, and removal are asserted"},
     "ATTRIB.EXE": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Attribute set, clear, recursive, and display behavior are asserted"},
     "BACKUP.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Backup media and major filtering/append switches are asserted, including binary-exact restoration of selected and appended payloads"},
-    "CHKDSK.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_chkdsk_fix.sh"], "note": "Reporting and /F repair of injected FAT corruption are asserted"},
+    "CHKDSK.COM": {"kind": "command", "level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_chkdsk_fix.sh"], "note": "Reporting and /F repair of an injected three-cluster orphan chain are asserted, including exact recovered payloads, preservation of a referenced file, and a clean post-repair scan"},
     "COMMAND.COM": {"kind": "shell", "level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_help_qemu.sh"], "note": "Built-ins, batch grammar, errorlevel, redirection, and help behavior are asserted"},
     "COMP.COM": {"kind": "command", "level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Equal, different, hexadecimal, limit, and missing-file behavior are asserted"},
     "COUNTRY.SYS": {"kind": "data_driver", "level": "contract", "evidence": ["tests/test_drivers_qemu.sh", "tests/test_share_nlsfunc_exe2bin.sh"], "note": "Country loading and code-page interaction are asserted"},
