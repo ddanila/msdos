@@ -113,8 +113,7 @@ requires them:
    constructing the FAT image.
 4. WLIB timestamp normalization clears nondeterministic archive metadata.
 
-`buildidx --no-update` is also used in production to avoid incrementing the
-checked-in message-catalog level during a clean build.
+`buildidx` treats the checked-in message catalog as read-only.
 
 Focused tests define the permitted byte changes and idempotence. These
 operations may be removed when the underlying format no longer requires them;

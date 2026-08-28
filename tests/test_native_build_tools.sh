@@ -17,12 +17,9 @@ cmp "$TEST_TMP/FDBOOT.INC" "$SRC/CMD/FDISK/FDBOOT.INC"
 cp "$SRC/MESSAGES/USA-MS.MSG" "$TEST_TMP/USA-MS.MSG"
 python3 -c 'from pathlib import Path; import sys; p=Path(sys.argv[1]); d=p.read_bytes(); p.write_bytes(b"0087" + d[4:])' "$TEST_TMP/USA-MS.MSG"
 cp "$TEST_TMP/USA-MS.MSG" "$TEST_TMP/USA-MS.ORIGINAL"
-"$ROOT/bin/buildidx" --no-update "$TEST_TMP/USA-MS.MSG"
+"$ROOT/bin/buildidx" "$TEST_TMP/USA-MS.MSG"
 cmp "$TEST_TMP/USA-MS.MSG" "$TEST_TMP/USA-MS.ORIGINAL"
 cmp "$TEST_TMP/USA-MS.IDX" "$SRC/MESSAGES/USA-MS.IDX"
-"$ROOT/bin/buildidx" "$TEST_TMP/USA-MS.MSG"
-cmp "$TEST_TMP/USA-MS.IDX" "$SRC/MESSAGES/USA-MS.IDX"
-test "$(head -n 1 "$TEST_TMP/USA-MS.MSG" | tr -d '\r')" = 0088
 
 echo "native DBOF and BUILDIDX parity tests passed"
 python3 "$ROOT/tests/test_native_exe2bin.py"

@@ -35,8 +35,7 @@ The cleanup deliberately retains a small set of transformations:
 - `bin/exefix` updates only the requested MZ allocation fields for targets whose
   runtime contract requires them.
 - `bin/patch-bpb` constructs the deployment image's BIOS parameter block.
-- `buildidx --no-update` prevents clean builds from mutating the checked-in
-  message catalog level.
+- `buildidx` treats the checked-in message catalog as read-only.
 
 Focused contracts for these operations live in
 `tests/test_toolchain_transforms.py`, `tests/test_kernel_layout.py`, and
@@ -71,9 +70,8 @@ The MS-DOS `.gitattributes` policy is significant:
 - DOS message and build-control text may require CRLF because native message
   tools compute byte offsets from the on-disk representation.
 
-`USA-MS.MSG` can appear modified solely because historical CRLF bytes are stored
-in the blob while Git also applies `eol=crlf`. Use
-`git diff --ignore-cr-at-eol` before assuming that file has a content change.
+`USA-MS.MSG` uses historical CRLF bytes because message offsets depend on its
+on-disk representation.
 
 ## Parallel-build isolation
 
