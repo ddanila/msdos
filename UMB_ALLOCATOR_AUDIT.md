@@ -71,13 +71,21 @@ the provider or UMB descriptors exist.
 | List of Lists | DOS 5 link state, first-UMB pointer, and allocation scan-start fields still need their reference-confirmed exported layout. |
 
 SYSINIT now discovers a provider through `INT 2Fh/4300h` and `4310h`, retains
-each extent returned by XMS function `10h`, and registers it with the kernel.
-The kernel carves a RAM-resident bridge immediately below `A000h`, represents
-the video/ROM gap as DOS-owned `SC`, and terminates every provider extent with
-an `SM` guard so coalescing cannot cross provider boundaries. The public chain
-remains unlinked after boot. With no provider the descriptors stay zero,
+each extent returned by XMS function `10h`, sorts and validates the complete
+map, and then registers it with the kernel. The kernel carves a RAM-resident
+bridge at the current conventional-arena ceiling, represents the gap to the
+first provider extent as DOS-owned `SC`, and terminates every provider extent
+with an `SM` guard so coalescing cannot cross provider boundaries. The public
+chain remains unlinked after boot. With no provider the descriptors stay zero,
 `5802h` reports unlinked, and both valid `5803h` requests fail with
 `ERROR_INVALID_FUNCTION`.
+
+Acquisition is transactional. An unexpected provider failure, an incomplete
+map beyond the supported descriptor capacity, a short or wrapping extent, an
+overlap, or a kernel registration failure resets the nascent arena and releases
+every acquired XMS extent. The configurable test provider exercises successful
+out-of-order acquisition and partial, overlapping, malformed, and conflicting
+maps in isolated QEMU boots.
 
 The private `5804h` path is callable only with SYSINIT's three-register
 signature and is not part of the public API; ordinary `5804h` calls still take

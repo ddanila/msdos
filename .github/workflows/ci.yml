@@ -302,6 +302,9 @@ jobs:
       - name: CONFIG.SYS DOS memory selection
         run: bash tests/test_config_dos_qemu.sh
 
+      - name: Transactional XMS UMB acquisition
+        run: bash tests/test_xms_umb_transaction_qemu.sh
+
       - name: CONFIG.SYS installable filesystem linkage
         run: bash tests/test_config_ifs_qemu.sh
 

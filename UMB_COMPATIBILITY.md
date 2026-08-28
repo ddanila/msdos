@@ -106,6 +106,13 @@ link/unlink calls matched the 5.0 register results, and both `0040h` and `0080h`
 16-paragraph allocations returned `CB02h`. Those Microsoft binaries remain
 outside this repository and are not required by its build or CI.
 
+CI uses an original test-only XMS provider with writable synthetic backing. It
+proves that out-of-order discontiguous extents are sorted and committed as one
+arena, while partial failure, overlap, undersized ranges, and ranges conflicting
+with conventional memory release all provider allocations and leave `5803h`
+unavailable. This fixture implements only the XMS calls needed by the test and
+does not ship as an XMS manager.
+
 ## Evidence required to close Phase 0
 
 - Capture all four reference configurations above.
