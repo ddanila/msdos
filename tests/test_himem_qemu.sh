@@ -6,6 +6,7 @@ ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT="$ROOT/out"
 FLOPPY="$OUT/floppy.img"
 HIMEM="$OUT/HIMEM.SYS"
+REJECT_HIMEM="$OUT/HIMEM-REJECT.SYS"
 XMS_PROBE="$OUT/xms-reference.com"
 PROVIDER_PROBE="$OUT/himem-provider.com"
 IMAGE="$OUT/floppy-himem.img"
@@ -15,6 +16,9 @@ EMM_PROBE="$OUT/emm386-with-umb.com"
 ISOLATION_PROBE="$OUT/umb-ems-isolation.com"
 COMBINED_IMAGE="$OUT/floppy-himem-emm386.img"
 COMBINED_LOG="$OUT/himem-emm386.log"
+ABSENCE_PROBE="$OUT/umb-provider-absence.com"
+ROLLBACK_IMAGE="$OUT/floppy-himem-emm386-rollback.img"
+ROLLBACK_LOG="$OUT/himem-emm386-rollback.log"
 
 for tool in nasm mcopy qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || {
@@ -25,11 +29,14 @@ done
 
 "$ROOT/bin/jwasm-bin" -Fo"$HIMEM" \
     "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
+"$ROOT/bin/jwasm-bin" -DUMB_TEST_REJECT -Fo"$REJECT_HIMEM" \
+    "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
 nasm -f bin "$ROOT/tests/xms_reference_probe.asm" -o "$XMS_PROBE"
 nasm -f bin "$ROOT/tests/himem_provider_probe.asm" -o "$PROVIDER_PROBE"
 nasm -f bin "$ROOT/tests/umb_lifecycle_reference.asm" -o "$LIFECYCLE_PROBE"
 nasm -f bin "$ROOT/tests/emm386_probe.asm" -o "$EMM_PROBE"
 nasm -f bin "$ROOT/tests/umb_ems_isolation_probe.asm" -o "$ISOLATION_PROBE"
+nasm -f bin "$ROOT/tests/umb_provider_absence_probe.asm" -o "$ABSENCE_PROBE"
 
 cp "$FLOPPY" "$IMAGE"
 mcopy -o -i "$IMAGE" "$HIMEM" ::HIMEM.SYS
@@ -126,6 +133,35 @@ if ! grep -Fq 'UMB_LIFECYCLE_END' "$COMBINED_LOG" \
 then
     echo "FAIL: combined HIMEM/EMM386 UMB and EMS contract" >&2
     sed -n '1,220p' "$COMBINED_LOG" >&2
+    exit 1
+fi
+
+cp "$FLOPPY" "$ROLLBACK_IMAGE"
+mcopy -o -i "$ROLLBACK_IMAGE" "$REJECT_HIMEM" ::HIMEM.SYS
+mcopy -o -i "$ROLLBACK_IMAGE" "$ABSENCE_PROBE" ::NOUMB.COM
+mcopy -o -i "$ROLLBACK_IMAGE" "$EMM_PROBE" ::EMMPROBE.COM
+{
+    printf 'DEVICE=A:\\HIMEM.SYS\r\n'
+    printf 'DEVICE=A:\\EMM386.SYS M5\r\n'
+    printf 'DOS=UMB\r\n'
+} | mcopy -o -i "$ROLLBACK_IMAGE" - ::CONFIG.SYS
+{
+    printf '@ECHO OFF\r\n'
+    printf 'CTTY AUX\r\n'
+    printf 'NOUMB.COM\r\n'
+    printf 'EMMPROBE.COM\r\n'
+} | mcopy -o -i "$ROLLBACK_IMAGE" - ::AUTOEXEC.BAT
+timeout 35 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 16 \
+    -drive if=floppy,index=0,format=raw,file="$ROLLBACK_IMAGE",cache=writethrough \
+    -boot a -serial stdio -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$ROLLBACK_LOG" 2>&1 || true
+
+if ! grep -Fq 'UMB_PROVIDER_ABSENT_PASS' "$ROLLBACK_LOG" \
+    || ! grep -Fq 'EMM386_API_PASS' "$ROLLBACK_LOG"
+then
+    echo 'FAIL: rejected UMB transaction did not roll back cleanly' >&2
+    sed -n '1,220p' "$ROLLBACK_LOG" >&2
     exit 1
 fi
 
