@@ -305,6 +305,9 @@ jobs:
       - name: Transactional XMS UMB acquisition
         run: bash tests/test_xms_umb_transaction_qemu.sh
 
+      - name: Repository XMS and UMB provider core
+        run: bash tests/test_himem_qemu.sh
+
       - name: CONFIG.SYS installable filesystem linkage
         run: bash tests/test_config_ifs_qemu.sh
 

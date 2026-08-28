@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR=$(cd "$(dirname "$0")" && pwd)
+case "$(uname -s)-$(uname -m)" in
+    Darwin-arm64) assembler="$SCRIPT_DIR/../jwasm/macos-arm64/jwasm" ;;
+    Linux-x86_64) assembler="$SCRIPT_DIR/../jwasm/linux-x64/jwasm" ;;
+    *) echo "jwasm-bin: unsupported platform $(uname -s)-$(uname -m)" >&2; exit 1 ;;
+esac
+if [[ ! -x "$assembler" ]]; then
+    echo "jwasm-bin: JWasm binary not found (run jwasm/build.sh)" >&2
+    exit 1
+fi
+exec "$assembler" -q -bin "$@"

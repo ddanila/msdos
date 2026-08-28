@@ -43,6 +43,45 @@ start:
     jz hma_test
     mov [handle], dx
 
+    mov ax, ds
+    mov word [move_to_xms+8], ax
+    mov word [move_to_xms+10], dx
+    mov ah, 0bh
+    mov si, move_to_xms
+    mov di, move_to_label
+    call invoke_move
+
+    mov ax, ds
+    mov word [move_from_xms+14], ax
+    mov dx, [handle]
+    mov word [move_from_xms+4], dx
+    push es
+    push ds
+    pop es
+    mov di, move_destination
+    mov cx, 16
+    xor ax, ax
+    rep stosw
+    pop es
+    mov ah, 0bh
+    mov si, move_from_xms
+    mov di, move_from_label
+    call invoke_move
+    push ds
+    pop es
+    mov si, move_source
+    mov di, move_destination
+    mov cx, 32
+    repe cmpsb
+    mov ax, 1
+    je short move_verified
+    xor ax, ax
+move_verified:
+    xor bx, bx
+    xor dx, dx
+    mov si, move_verify_label
+    call print_ax_bx_dx
+
     mov ah, 0eh
     mov dx, [handle]
     mov si, handle_info_label
@@ -132,6 +171,11 @@ finish:
 
 invoke:
     call far [xms_entry]
+    jmp short print_ax_bx_dx
+invoke_move:
+    call far [xms_entry]
+    mov si, di
+    jmp short print_ax_bx_dx
 print_ax_bx_dx:
     pushf
     pop cx
@@ -240,6 +284,20 @@ result_ax dw 0
 result_bx dw 0
 result_dx dw 0
 character db 0
+move_source db '0123456789ABCDEF0123456789ABCDEF'
+move_destination times 32 db 0
+move_to_xms:
+    dd 32
+    dw 0
+    dw move_source, 0
+    dw 0
+    dd 0
+move_from_xms:
+    dd 32
+    dw 0
+    dd 0
+    dw 0
+    dw move_destination, 0
 banner db 'XMS_REFERENCE_BEGIN', 13, 10, 0
 complete db 'XMS_REFERENCE_END', 13, 10, 0
 installed_label db 'INSTALLED', 0
@@ -247,6 +305,9 @@ version_label db 'VERSION', 0
 a20_initial_label db 'A20_INITIAL', 0
 free_initial_label db 'FREE_INITIAL', 0
 allocate_label db 'ALLOCATE_64K', 0
+move_to_label db 'MOVE_TO_XMS', 0
+move_from_label db 'MOVE_FROM_XMS', 0
+move_verify_label db 'MOVE_VERIFY', 0
 handle_info_label db 'HANDLE_INFO', 0
 lock_label db 'LOCK', 0
 unlock_label db 'UNLOCK', 0
