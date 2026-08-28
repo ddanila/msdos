@@ -24,5 +24,5 @@ with open(sys.argv[1], 'r+b') as f:
     ))
     f.write(bytes([0x00, 0x00, 0x29]))
     f.write(struct.pack('<I', 0x19841984))
-    f.write(b'MSDOS4     ')
+    f.write(b'MSDOS5     ')
     f.write(b'FAT12   ')
