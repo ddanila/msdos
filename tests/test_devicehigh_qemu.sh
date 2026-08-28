@@ -22,11 +22,14 @@ DRIVER="$OUT/devicehigh-ref.sys"
 HIMEM="$OUT/devicehigh-himem.sys"
 HIGH_PROBE="$OUT/devicehigh-state.com"
 LOW_PROBE="$OUT/devicehigh-fallback-state.com"
+LINKED_LOW_PROBE="$OUT/devicehigh-linked-fallback-state.com"
 QEXIT="$OUT/devicehigh-exit.com"
 "$ROOT/bin/jwasm-bin" -Fo"$HIMEM" "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
-nasm -f bin "$ROOT/tests/devicehigh_test_driver.asm" -o "$DRIVER"
+nasm -f bin "$ROOT/tests/devicehigh_reference_driver.asm" -o "$DRIVER"
 nasm -DEXPECT_HIGH=1 -f bin "$ROOT/tests/devicehigh_state_probe.asm" -o "$HIGH_PROBE"
 nasm -DEXPECT_HIGH=0 -f bin "$ROOT/tests/devicehigh_state_probe.asm" -o "$LOW_PROBE"
+nasm -DEXPECT_HIGH=0 -DEXPECT_LINK=1 -f bin \
+    "$ROOT/tests/devicehigh_state_probe.asm" -o "$LINKED_LOW_PROBE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 
 run_case() {
@@ -41,12 +44,26 @@ run_case() {
     if [[ $with_provider == yes ]]; then
         mcopy -o -i "$image" "$HIMEM" ::HIMEM.SYS
         mcopy -o -i "$image" "$ROOT/MS-DOS/v4.0/src/MEMM/MEMM/EMM386.SYS" ::EMM386.SYS
-        mcopy -o -i "$image" "$HIGH_PROBE" ::DHSTATE.COM
+        if [[ $name == region-missing || $name == region-shrink || $name == region-min-large ]]; then
+            mcopy -o -i "$image" "$LINKED_LOW_PROBE" ::DHSTATE.COM
+        else
+            mcopy -o -i "$image" "$HIGH_PROBE" ::DHSTATE.COM
+        fi
         {
             printf 'DEVICE=HIMEM.SYS\r\n'
             printf 'DEVICE=EMM386.SYS M5\r\n'
             if [[ $name == size ]]; then
                 printf 'DEVICEHIGH SIZE=0200 DHREF.SYS SIZEARG\r\n'
+            elif [[ $name == region ]]; then
+                printf 'DEVICEHIGH /L:1=DHREF.SYS REGION1\r\n'
+            elif [[ $name == region-missing ]]; then
+                printf 'DEVICEHIGH /L:16=DHREF.SYS REGION16\r\n'
+            elif [[ $name == region-min ]]; then
+                printf 'DEVICEHIGH /L:1,200=DHREF.SYS REGIONMIN\r\n'
+            elif [[ $name == region-shrink ]]; then
+                printf 'DEVICEHIGH /L:1,200 /S=DHREF.SYS SHRINK\r\n'
+            elif [[ $name == region-min-large ]]; then
+                printf 'DEVICEHIGH /L:1,65535=DHREF.SYS MINLARGE\r\n'
             else
                 printf 'DEVICEHIGH=DHREF.SYS BEFORE\r\n'
             fi
@@ -78,6 +95,11 @@ run_case() {
 
 high_log=$(run_case high yes)
 size_log=$(run_case size yes)
+region_log=$(run_case region yes)
+region_missing_log=$(run_case region-missing yes)
+region_min_log=$(run_case region-min yes)
+region_shrink_log=$(run_case region-shrink yes)
+region_min_large_log=$(run_case region-min-large yes)
 fallback_log=$(run_case fallback no)
 
 if ! grep -q '^DEVICEHIGH_STATE_PASS' "$high_log"; then
@@ -89,6 +111,36 @@ fi
 if ! grep -q '^DEVICEHIGH_STATE_PASS' "$size_log"; then
     echo 'FAIL: DEVICEHIGH SIZE= did not place the driver high' >&2
     sed -n '1,160p' "$size_log" >&2
+    exit 1
+fi
+
+if ! grep -q '^DEVICEHIGH_STATE_PASS' "$region_log"; then
+    echo 'FAIL: DEVICEHIGH /L:1 did not select the first UMB region' >&2
+    sed -n '1,160p' "$region_log" >&2
+    exit 1
+fi
+
+if ! grep -q '^DEVICEHIGH_FALLBACK_PASS' "$region_missing_log"; then
+    echo 'FAIL: DEVICEHIGH unavailable /L region did not fall back low' >&2
+    sed -n '1,160p' "$region_missing_log" >&2
+    exit 1
+fi
+
+if ! grep -q '^DEVICEHIGH_STATE_PASS' "$region_min_log"; then
+    echo 'FAIL: DEVICEHIGH /L minimum-size region did not load high' >&2
+    sed -n '1,160p' "$region_min_log" >&2
+    exit 1
+fi
+
+if ! grep -q '^DEVICEHIGH_FALLBACK_PASS' "$region_shrink_log"; then
+    echo 'FAIL: DEVICEHIGH /S did not shrink the selected UMB before loading' >&2
+    sed -n '1,160p' "$region_shrink_log" >&2
+    exit 1
+fi
+
+if ! grep -q '^DEVICEHIGH_FALLBACK_PASS' "$region_min_large_log"; then
+    echo 'FAIL: DEVICEHIGH oversized region minimum did not fall back low' >&2
+    sed -n '1,160p' "$region_min_large_log" >&2
     exit 1
 fi
 

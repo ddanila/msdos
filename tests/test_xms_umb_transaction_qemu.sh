@@ -10,6 +10,7 @@ LIFECYCLE_PROBE="$OUT/umb-lifecycle.com"
 LIFECYCLE_CHILD="$OUT/umbchild.com"
 DISABLED_PROBE="$OUT/xms-umb-disabled.com"
 REGISTER_PROBE="$OUT/umb-registers.com"
+REGION_PROBE="$OUT/umb-region-filter.com"
 
 for tool in nasm mcopy qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || {
@@ -23,6 +24,7 @@ nasm -f bin "$ROOT/tests/umb_lifecycle_probe.asm" -o "$LIFECYCLE_PROBE"
 nasm -f bin "$ROOT/tests/umb_exit_child.asm" -o "$LIFECYCLE_CHILD"
 nasm -f bin "$ROOT/tests/xms_umb_disabled_probe.asm" -o "$DISABLED_PROBE"
 nasm -f bin "$ROOT/tests/umb_register_reference.asm" -o "$REGISTER_PROBE"
+nasm -f bin "$ROOT/tests/umb_region_filter_probe.asm" -o "$REGION_PROBE"
 
 for mode in 0 1 2 3 4 5 6 7 8 9; do
     provider="$OUT/xms-umb-provider-$mode.sys"
@@ -147,6 +149,33 @@ do
 done
 if [[ $(grep -Ec '^CASE=[01I234L].* DS=[0-9A-F]{4} ES=8888' "$log") -ne 7 ]]; then
     echo "FAIL: UMB segment-register preservation" >&2
+    sed -n '1,120p' "$log" >&2
+    exit 1
+fi
+
+provider="$OUT/xms-umb-provider-region.sys"
+image="$OUT/floppy-umb-region.img"
+log="$OUT/umb-region.log"
+nasm -DTEST_MODE=0 -f bin "$ROOT/tests/xms_umb_provider.asm" -o "$provider"
+cp "$FLOPPY" "$image"
+mcopy -o -i "$image" "$provider" ::XMSPROV.SYS
+mcopy -o -i "$image" "$REGION_PROBE" ::UMBREGN.COM
+{
+    printf 'DEVICE=A:\\XMSPROV.SYS\r\n'
+    printf 'DOS=UMB\r\n'
+} | mcopy -o -i "$image" - ::CONFIG.SYS
+{
+    printf '@ECHO OFF\r\n'
+    printf 'CTTY AUX\r\n'
+    printf 'UMBREGN.COM\r\n'
+} | mcopy -o -i "$image" - ::AUTOEXEC.BAT
+timeout 20 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 4 \
+    -drive if=floppy,index=0,format=raw,file="$image",cache=writethrough \
+    -boot a -serial stdio -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$log" 2>&1 || true
+if ! grep -q '^UMB_REGION_FILTER_PASS' "$log"; then
+    echo 'FAIL: private UMB region filter contract' >&2
     sed -n '1,120p' "$log" >&2
     exit 1
 fi

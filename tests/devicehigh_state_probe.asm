@@ -4,12 +4,15 @@ org 100h
 %ifndef EXPECT_HIGH
 %define EXPECT_HIGH 1
 %endif
+%ifndef EXPECT_LINK
+%define EXPECT_LINK EXPECT_HIGH
+%endif
 
 start:
     mov ax, 5802h
     int 21h
     jc fail
-%if EXPECT_HIGH
+%if EXPECT_LINK
     cmp al, 1
 %else
     cmp al, 0

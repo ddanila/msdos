@@ -169,8 +169,15 @@ independently of textual order. Both accepted the DOS 5
 `DEVICEHIGH SIZE=200` spelling, loaded the driver high, and removed the loader
 option from the driver's command tail. DOS 6.22 likewise accepted
 `DEVICEHIGH /L:1=`. The observed `DEVICEHIGH /L:1,200 /S=` case loaded low;
-the exact minimum-size and shrink boundary still needs a parameter sweep before
-that behavior is encoded.
+the minimum is a decimal byte count, whereas the legacy `SIZE=` value is
+hexadecimal. This tree now reproduces the observed single-region behavior:
+`/L` limits the allocator to the named provider region, an unavailable region
+or an unsatisfied minimum falls back to conventional memory, and `/S` limits
+the tentative upper allocation to the stated minimum before falling back low
+if the complete driver image does not fit. Region selection is scoped to the
+load and the public allocation strategy and link state are restored afterward.
+A multiple-region parameter sweep remains necessary to settle ordering and
+per-region shrinking when more than one listed region is usable.
 
 The matching program oracle establishes that DOS 6.22 recognizes
 `INSTALLHIGH=` and executed the test program at `CC4Eh`. DOS 5.0 did not execute
