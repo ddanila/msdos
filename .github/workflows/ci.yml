@@ -320,6 +320,9 @@ jobs:
       - name: CONFIG.SYS DEVICEHIGH upper-memory loading
         run: bash tests/test_devicehigh_qemu.sh
 
+      - name: CONFIG.SYS INSTALLHIGH upper-memory execution
+        run: bash tests/test_installhigh_qemu.sh
+
       - name: CONFIG.SYS installable filesystem linkage
         run: bash tests/test_config_ifs_qemu.sh
 

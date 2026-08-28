@@ -179,6 +179,12 @@ than part of the initial 5.0 surface. Normalized captures are kept outside Git
 beside the locally owned reference images; only probe source and the capture
 harness are committed.
 
+This tree now implements that confirmed extension through the existing
+`INSTALL=` EXEC/TSR lifecycle. A scoped upper-first allocation transaction is
+restored on return, and the integration test proves high TSR placement,
+argument-tail preservation, `DOS=` ordering independence, and conventional
+fallback when no provider is installed.
+
 ## HMA residency reference
 
 An independent probe now compares otherwise identical `DOS=LOW,UMB` and
