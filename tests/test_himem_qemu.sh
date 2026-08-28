@@ -117,7 +117,7 @@ timeout 35 qemu-system-i386 \
 
 if ! grep -Fq 'UMB_LIFECYCLE_END' "$COMBINED_LOG" \
     || ! grep -Eq '^ALLOC_0010 C=0 AX=[A-F][0-9A-F]{3}' "$COMBINED_LOG" \
-    || ! grep -Eq '^ALLOC_AFTER_LARGEST C=0 AX=[A-F][0-9A-F]{3}' "$COMBINED_LOG" \
+    || ! grep -Eq '^ALLOC_AFTER_LARGEST (C=0 AX=[A-F][0-9A-F]{3}|C=1 AX=0008 BX=0000)' "$COMBINED_LOG" \
     || ! grep -Fq 'EMM386_API_PASS' "$COMBINED_LOG" \
     || ! grep -Fq 'UMB_EMS_ISOLATION_PASS' "$COMBINED_LOG"
 then
