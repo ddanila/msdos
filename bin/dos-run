@@ -1,20 +1,8 @@
 #!/bin/bash
-# Generic kvikdos runner.
-# Usage: dos-run <DOS-tool-path> [args...]
-#
-# Mounts:
-#   C: -> MS-DOS 4.0 source root (uppercase mode)
-#   --cwd sets initial DOS current directory to the current Linux subdir
-#
-# This allows DOS relative paths like ..\INC to work correctly from
-# any subdirectory of the source tree.
 
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-# Use kvikdos-soft (software CPU) when /dev/kvm is not available.
-# Override with KVIKDOS env var for programs that need the software CPU
-# even when KVM is present (e.g. XCOPY triggers #GP on KVM).
 if [ -z "${KVIKDOS:-}" ]; then
     if [ -r /dev/kvm ] && [ -x "$SCRIPT_DIR/../kvikdos/kvikdos" ]; then
         KVIKDOS="$SCRIPT_DIR/../kvikdos/kvikdos"
@@ -31,11 +19,9 @@ SRC_ROOT="$(cd "$SCRIPT_DIR/../MS-DOS/v4.0/src" && pwd)"
 TOOL="$1"
 shift
 
-# The original DOS tools use fixed-name scratch files in shared mounted
-# directories, so separate kvikdos processes are not safe to run concurrently.
-# Serialize only this legacy-tool boundary; native JWasm/WLINK jobs remain
-# fully parallel. mkdir is an atomic, portable lock on Linux and macOS.
 LOCK_DIR="$SCRIPT_DIR/../.dos-run.lock"
+# Historical DOS tools reuse fixed scratch names, so only their emulator
+# boundary is serialized; native build jobs remain parallel.
 while ! mkdir "$LOCK_DIR" 2>/dev/null; do
     if [ -f "$LOCK_DIR/pid" ]; then
         LOCK_PID="$(sed -n '1p' "$LOCK_DIR/pid" 2>/dev/null || true)"
@@ -54,12 +40,11 @@ release_lock() {
 }
 trap release_lock EXIT HUP INT TERM
 
-# Compute the DOS current directory (subdir relative to source root)
 CWD="$(pwd)"
 if [[ "$CWD" == "$SRC_ROOT"* ]]; then
     DOSREL="${CWD#$SRC_ROOT}"
-    DOSREL="${DOSREL#/}"   # strip leading /
-    DOSREL="${DOSREL//\//\\}" # convert / to backslash
+    DOSREL="${DOSREL#/}"
+    DOSREL="${DOSREL//\//\\}"
     if [ -n "$DOSREL" ]; then
         CWD_ARG="--cwd=C:\\${DOSREL}\\"
     else

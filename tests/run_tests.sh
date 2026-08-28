@@ -1204,8 +1204,6 @@ else
     fail "ASSIGN /STATUS (expected exit 0, got $exit_code)"
 fi
 
-# if the version check fails (same root cause as COMMAND.COM built-in failures).
-
 E2B_DIR="$SRC/CMD/EXE2BIN"
 E2B_TEST_EXE="$E2B_DIR/E2BTEST.EXE"
 E2B_TEST_BIN="$E2B_DIR/E2BTEST.BIN"

@@ -1,19 +1,4 @@
 #!/usr/bin/env python3
-# wlink -- wrapper translating a Microsoft LINK invocation to Open Watcom wlink.
-#
-# MS LINK takes up to four comma/newline-separated response fields:
-#     objects[+more], runfile[/opts], mapfile[/opts], libraries ;
-# with '+' as item separator / line continuation and ';' terminating early
-# (remaining fields default).  Drivers/boot/DOS-kernel are pure assembly, so
-# wlink (which consumes the same OMF jwasm emits) can link them with no MS
-# tool.  C-containing targets use the same adapter after their Open Watcom
-# rebuild; their ABI/runtime compatibility lives in the corresponding rules.
-# Unknown Microsoft options are rejected instead of being silently discarded.
-#
-# Usage (drop-in for bin/link): wlink "<ms-link command string>"
-#   e.g.  wlink "@DRIVER.LNK"
-#         wlink "MSLOAD.OBJ,MSLOAD,,;"
-#         wlink "/NOI @EMM386.LNK"
 
 import os
 import platform
@@ -22,13 +7,8 @@ import subprocess
 import sys
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-# Slash options may be attached to an output name (FOO/MAP); dash options are
-# accepted only as separate tokens so hyphenated filenames remain intact.
 OPT_RE = r"(?:/\w+(?::[^\s+]+)?|(?<!\S)-\w+(?::[^\s+]+)?)"
 
-# Options deliberately accepted by the Microsoft-LINK compatibility surface.
-# Some are translated below; the remainder are documented no-ops because WLINK
-# either already has the required behavior or has no equivalent packaging pass.
 SUPPORTED_OPTIONS = {
     "dosseg", "e", "ex", "exepack", "m", "map", "noe", "nofarcalls", "noi"
 }
@@ -49,11 +29,6 @@ def resolve_existing_casefold(path):
     if os.path.exists(path):
         return path
 
-    # Resolving only the basename is insufficient for response entries such as
-    # ../inc/nibdos.obj when both the INC directory and NIBDOS.OBJ are tracked
-    # in uppercase.  Walk from the current directory (or filesystem root),
-    # retaining '.'/'..' and replacing each ordinary component by its unique
-    # case-folded match.
     is_absolute = os.path.isabs(path)
     resolved = os.path.sep if is_absolute else ""
     for component in path.split(os.path.sep):
@@ -62,6 +37,8 @@ def resolve_existing_casefold(path):
         if component in (".", ".."):
             resolved = os.path.join(resolved, component)
             continue
+        # Resolve every component because DOS paths are case-insensitive while
+        # response files often disagree with the host filesystem's spelling.
         search_dir = resolved or "."
         try:
             matches = [entry for entry in os.listdir(search_dir)
@@ -86,7 +63,7 @@ def names(field, ext):
     separated), dropping /options, converting DOS backslashes, and appending
     the default extension when none is given (wlink's default obj ext is .o,
     but the build's files are .OBJ/.LIB)."""
-    field = re.sub(OPT_RE, " ", field)  # strip attached options (incl /OPT:value)
+    field = re.sub(OPT_RE, " ", field)
     out = []
     for it in re.split(r"[+\s]+", field.strip()):
         if not it:
@@ -100,8 +77,6 @@ def names(field, ext):
 def main():
     arg = (sys.argv[1] if len(sys.argv) > 1 else "").strip()
 
-    # Pull a @response-file (its contents become the body); collect any
-    # options that sit outside it in the invocation (e.g. "/NOI @X.LNK").
     gopts = []
     mfile = re.search(r"@(\S+)", arg)
     if mfile:
@@ -112,16 +87,12 @@ def main():
     else:
         body = arg
 
-    # ';' terminates the response; options may trail after it ("...; /NOI").
     semi = body.find(";")
     if semi >= 0:
         gopts += re.findall(OPT_RE, body[semi + 1:])
         body = body[:semi]
 
-    # Collapse '+' continuations, then treat newlines as field separators.
     body = re.sub(r"\+\s*", "+", body)
-    # A comma at end of line already advances to the next response field;
-    # do not turn its following newline into a second, empty field.
     body = re.sub(r",[ \t]*\r?\n[ \t]*", ",", body)
     body = re.sub(r"[ \t]*\r?\n[ \t]*", ",", body)
     fields = [f.strip() for f in body.split(",")]
@@ -133,8 +104,6 @@ def main():
     validate_options(gopts)
     gopts_l = [("/" + o[1:] if o.startswith("-") else o).lower() for o in gopts]
 
-    # Optional class ordering for programs whose runtime uses a linker-placed
-    # end marker.  Syntax: /ORDER:CLASS1,CLASS2,...,CLASSN
     order_classes = []
     for opt in gopts:
         match = re.fullmatch(r"[/-]order:([^\s]+)", opt, re.I)
@@ -146,21 +115,15 @@ def main():
     if not objs:
         sys.exit("wlink: no object modules in link command")
 
-    # Run file: explicit name (sans options) or default to first obj + .EXE.
     run = re.sub(OPT_RE, "", run_f).strip().replace("\\", "/")
     if not run:
         run = os.path.splitext(os.path.basename(objs[0]))[0] + ".EXE"
     elif "." not in os.path.basename(run):
         run += ".EXE"
 
-    # DOS treats the response-file spelling and the Make target spelling as
-    # the same name (for example ``msbio`` and ``MSBIO.EXE``).  On Linux,
-    # preserve any directory but emit the 8.3 basename in canonical uppercase
-    # so subsequent build rules can open the declared target deterministically.
     run_dir, run_base = os.path.split(run)
     run = os.path.join(run_dir, run_base.upper()) if run_dir else run_base.upper()
 
-    # Map file: a real name (not NUL) or a /M[AP] option enables it.
     mapname = re.sub(OPT_RE, "", map_f).strip().replace("\\", "/")
     want_map = (mapname and mapname.lower() != "nul") or any(
         o in ("/m", "/map") for o in gopts_l
@@ -169,34 +132,24 @@ def main():
     owroot = os.path.normpath(os.path.join(SCRIPT_DIR, "..", "watcom", "lib286"))
     owlib = os.path.join(owroot, "dos")
     directives = ["format", "dos", "option", "quiet"]
-    # Microsoft LINK is case-insensitive by default; /NOI selects significant
-    # case. Applying CASEEXACT unconditionally breaks old objects which freely
-    # vary symbol casing across modules.
+    # Microsoft LINK is case-insensitive unless /NOI requests significant case.
     directives += ["option", "caseexact" if "/noi" in gopts_l else "nocaseexact"]
     if any(option.lstrip("/-").lower() == "dosseg" for option in gopts):
         directives += ["option", "dosseg"]
-    # Microsoft LINK does not shrink far calls to near calls.  WLINK's
-    # optimization changes offsets inside resident/self-referential DOS code
-    # (PRINT is one concrete example), so disable it for every translated
-    # Microsoft-style link, not only for callers that know to request it.
+    # WLINK's far-call shrinking changes offsets in self-referential resident code.
     directives += ["option", "nofarcalls"]
-    # The model-specific C runtimes live in dos/, while their floating-point
-    # companions (for example math87s.lib) live one directory above it.
+    # Floating-point companions live above the model-specific runtime directory.
     directives += ["libpath", owlib, "libpath", owroot]
 
-    # MS LINK /STACK:nnnn (decimal bytes) -> wlink "option stack=nnnn".
     mstack = re.search(r"/stack:(\d+)", body, re.I)
     if mstack:
         directives += ["option", "stack=" + mstack.group(1)]
 
-    # WLINK packs adjacent ungrouped far-data segments into a shared physical
-    # segment by default.  Some system code (notably EMM386's GDT/IDT/TSS)
-    # deliberately treats each logical segment as a real-mode SEG:0 address.
-    # Accept an explicit packing limit so those links can preserve that layout.
     mpackdata = next((re.fullmatch(r"[/-]packd(?:ata)?:(\d+)", opt, re.I)
                       for opt in gopts
                       if re.fullmatch(r"[/-]packd(?:ata)?:(\d+)", opt, re.I)), None)
     if mpackdata:
+        # EMM386 treats logical far-data segments as distinct real-mode addresses.
         directives += ["option", "packdata=" + mpackdata.group(1)]
 
     if want_map:

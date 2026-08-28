@@ -42,7 +42,6 @@ def parse_skeleton(
     classes: list[MessageClass] = []
 
     for line_number, raw in enumerate(path.read_bytes().splitlines(), 1):
-        # The text on :def is documentary. Localized bytes come from the MSG.
         directive = raw.split(b";", 1)[0].strip()
         if not directive.startswith(b":"):
             continue
@@ -60,8 +59,7 @@ def parse_skeleton(
                 number = int(parts[1], 10)
                 payload = catalog.get((utility, number))
                 if payload is None:
-                    # BUILDMSG silently emits a zero-length record when the
-                    # utility catalog omits a :def number (RESTORE does this).
+                    # Microsoft BUILDMSG emits an empty record for omitted :def entries.
                     payload = []
                 current.messages.append(Message(number, payload))
             elif command == b":use":
@@ -74,16 +72,12 @@ def parse_skeleton(
                     number = int(parts[1], 10)
                     pool, source_number = split_reference(parts[2])
                 if source_number == 999 and pool in (b"EXTEND", b"PARSE"):
-                    # BUILDMSG reserves pool entry 999 for the two generic
-                    # resident-server errors; neither entry exists in MSG.
+                    # Entry 999 is implicit in BUILDMSG and absent from the catalog.
                     text = (b'"Extended Error %1",CR,LF' if pool == b"EXTEND"
                             else b'"Parse Error %1",CR,LF')
                     payload = [text]
                 else:
                     payload = list(catalog[(pool, source_number)])
-                    # Extended/parse errors have no line ending in the shared
-                    # catalog. Resident classes add one; service classes 1/2
-                    # deliberately leave it to the caller.
                     if len(parts) > 2 and current.name not in (b"1", b"2") and pool in (b"EXTEND", b"PARSE"):
                         payload[-1] += b",CR,LF"
                 current.messages.append(Message(number, payload))

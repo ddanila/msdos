@@ -1,31 +1,4 @@
 #!/usr/bin/env python3
-# wcc -- wrapper translating a Microsoft C 5.10 (CL.EXE) invocation to the
-# open-source Open Watcom C compiler (wcc, 16-bit).
-#
-# MS CL form (as used by the Makefile):
-#     cl "-AS -Od -Zp -I. -I..\H -c -FoX.OBJ X.C"
-#
-# Translation highlights:
-#   -A{S,C,M,L,H}  memory model        -> -m{s,c,m,l,h}
-#   -Od            no optimization     -> -od
-#   -Os            optimize for size   -> -os
-#   -Zp[n]         struct packing      -> -zp[n] (default n=1)
-#   -I<path>       include dir         -> -i=<path>  (\ -> /, DOS-absolute dropped)
-#   -Fo<obj>       object output       -> -fo=<obj>
-#   -D<m>[=v]      macro define        -> -d<m>[=v]
-#   -c             compile only        -> dropped (wcc compiles to .obj)
-#   -s             stack checks        -> dropped (always enabled below)
-#   -2, -zl        OW-native CPU/library-name controls used by MEMM -> unchanged
-# Always added:
-#   -ecc           force __cdecl as the default calling convention, so wcc's
-#                  code matches the MS C ABI the hand-written .ASM partners
-#                  expect (stack params, caller cleanup, leading underscore).
-#   -bt=dos        target 16-bit DOS.
-#   -i=watcom/h    the vendored Open Watcom 16-bit headers (<stdio.h> etc.).
-#   -zq            quiet (suppress the banner).
-# Unknown options are rejected so future Microsoft flags cannot disappear
-# silently.  The temporary include mirror is retained because the historical
-# sources rely on DOS-style case-insensitive header lookup on Unix hosts.
 
 import os
 import platform
@@ -82,18 +55,18 @@ def main():
             out.append("-zp" + (t[3:] or "1"))
         elif t.startswith("-I"):
             p = t[2:].replace("\\", "/")
-            if not re.match(r"^[A-Za-z]:/", p):          # drop DOS-absolute (D:\...)
+            if not re.match(r"^[A-Za-z]:/", p):
                 include_dirs.append(p)
         elif t.startswith("-Fo"):
             out.append("-fo=" + t[3:].replace("\\", "/"))
         elif t.startswith("-D"):
             out.append("-d" + t[2:])
         elif t == "-c":
-            pass                                          # implicit for wcc
+            pass
         elif t == "-s":
-            pass                                          # already enforced globally above
+            pass
         elif t in ("-2", "-zl"):
-            out.append(t)                                 # explicit OW target/codegen option
+            out.append(t)
         elif t.lower().endswith(".c"):
             source = t.replace("\\", "/")
         elif t.startswith("-"):
@@ -105,6 +78,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="wcc-includes-") as temp:
         for index, directory in enumerate(include_dirs):
             mirror = os.path.join(temp, str(index))
+            # Historical sources assume DOS-style case-insensitive include lookup.
             if casefold_include_mirror(directory, mirror):
                 out.append(f"-i={mirror}")
             out.append(f"-i={directory}")

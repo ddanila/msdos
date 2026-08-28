@@ -8,23 +8,21 @@ if len(sys.argv) != 2:
 
 with open(sys.argv[1], 'r+b') as f:
     f.seek(11)
-    # Standard BPB — 25 bytes (offsets 11-35)
     f.write(struct.pack('<HBHBHHBHHHII',
-        512,    # bytes per sector
-        1,      # sectors per cluster
-        1,      # reserved sectors
-        2,      # number of FATs
-        224,    # root directory entries
-        2880,   # total sectors (16-bit)
-        0xF0,   # media byte (1.44MB floppy)
-        9,      # sectors per FAT
-        18,     # sectors per track
-        2,      # number of heads
-        0,      # hidden sectors (4 bytes, DOS 4.0 extended BPB)
-        0,      # large sector count
+        512,
+        1,
+        1,
+        2,
+        224,
+        2880,
+        0xF0,
+        9,
+        18,
+        2,
+        0,
+        0,
     ))
-    # Extended BPB — 26 bytes (offsets 36-61)
-    f.write(bytes([0x00, 0x00, 0x29]))      # drive (0=floppy), reserved, ext_boot_sig
-    f.write(struct.pack('<I', 0x19841984))  # volume serial
-    f.write(b'MSDOS4     ')                 # volume label (11 bytes)
-    f.write(b'FAT12   ')                    # file system type (8 bytes)
+    f.write(bytes([0x00, 0x00, 0x29]))
+    f.write(struct.pack('<I', 0x19841984))
+    f.write(b'MSDOS4     ')
+    f.write(b'FAT12   ')

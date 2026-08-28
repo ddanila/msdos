@@ -94,9 +94,7 @@ def canonicalize_omf_timestamps(path):
         offset = data.find(signature, offset)
         if offset < 0:
             break
-        # The eight-byte COMENT body is: attributes, class, subtype,
-        # DOS time/date (four bytes), checksum.  The timestamp has no bearing
-        # on linking but otherwise makes clean builds depend on wall time.
+        # Member timestamps do not affect linking but otherwise make builds depend on wall time.
         data[offset + 6:offset + 10] = b"\0\0\0\0"
         data[offset + 10] = (-sum(data[offset:offset + 10])) & 0xff
         changed = True

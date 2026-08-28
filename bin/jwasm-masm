@@ -1,19 +1,4 @@
 #!/bin/bash
-# jwasm-masm -- wrapper translating MASM-style invocation to JWasm.
-#
-# MASM invocation:  masm "flags" "source.ASM,output.OBJ;"
-# JWasm equivalent: jwasm -q -Zm -c [translated flags] source.ASM -Fo=output.OBJ
-#
-# The pinned custom JWasm handles MASM 5.10 structured-macro whitespace
-# arguments and DOS-style case-insensitive INCLUDE lookup itself. Sources are
-# assembled directly; this wrapper only translates the historical command line.
-#
-# Flag translation:
-#   -Mx (preserve case externals) -> drop (handled via -Zm / default casemap)
-#   -t  (terse)                   -> drop
-#   -I<dos\path>                  -> backslashes converted to forward slashes
-#   -I<drive>:\...                -> dropped (DOS absolute path)
-#   -D<name>[=<val>]              -> passed through
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -33,12 +18,11 @@ FILESPEC="${FILESPEC%;}"
 SOURCE="${FILESPEC%%,*}"
 OUTPUT="${FILESPEC#*,}"
 
-# Parse MASM flags -> jwasm flags.
 JFLAGS=()
 for flag in $FLAGS; do
     case "$flag" in
-        -Mx|-t)        ;;                      # MASM-specific, not needed
-        -I[A-Za-z]:\\*) ;;                     # DOS absolute include path, skip
+        -Mx|-t)        ;;
+        -I[A-Za-z]:\\*) ;;
         -I*)           f="${flag//\\//}"; JFLAGS+=("$f") ;;
         *)             JFLAGS+=("$flag") ;;
     esac
@@ -51,6 +35,5 @@ case "$OUTPUT" in
     *)  ABS_OUTPUT="$ORIG_DIR/$OUTPUT" ;;
 esac
 
-# NB: jwasm silently ignores options placed after the source filename,
-# so -Fo must come before it.
+# JWasm silently ignores options after the source name, so output precedes it.
 exec "$JWASM" -q -Zm -c "${JFLAGS[@]}" "-Fo$ABS_OUTPUT" "$SOURCE"

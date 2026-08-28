@@ -8,10 +8,6 @@ import sys
 from pathlib import Path
 
 
-# Eight writable bytes hold the original IP:CS and SP:SS at runtime. The code
-# uses call/pop to find itself, derives the embedded EXE load segment, applies
-# its MZ relocation table, moves the load image to COM offset 100h, restores
-# the requested stack, and far-jumps to the original entry point.
 LOADER = bytes.fromhex(
     "00 00 00 00 00 00 00 00"
     " e8 00 00 5b 50 8c c0 05 10 00"
@@ -27,6 +23,9 @@ LOADER = bytes.fromhex(
     " 8b cb 2b ce f3 a4"
     " 58 fa 8e 57 fb 8b 67 f9 fb ff 6f f5"
 )
+PREFIX_SIZE = 16
+LOADER_STATE_SIZE = 8
+NEAR_JUMP_SIZE = 3
 
 
 def fail(message: str) -> int:
@@ -48,10 +47,7 @@ def main() -> int:
     if len(executable) < 28 or executable[:2] not in (b"MZ", b"ZM"):
         return fail(f"{source} is not an MZ executable")
 
-    # The near jump begins at COM offset 100h and targets the loader code after
-    # its eight-byte writable prefix. Relative displacement is measured from
-    # the instruction end, hence len(EXE) + 16 + 8 - 3.
-    displacement = len(executable) + 21
+    displacement = len(executable) + PREFIX_SIZE + LOADER_STATE_SIZE - NEAR_JUMP_SIZE
     if displacement > 0xFFFF:
         return fail(f"{source} is too large for the 16-bit loader jump")
 
