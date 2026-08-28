@@ -7,6 +7,8 @@ OUT="$ROOT/out"
 FLOPPY="$OUT/floppy.img"
 HIMEM="$OUT/HIMEM.SYS"
 REJECT_HIMEM="$OUT/HIMEM-REJECT.SYS"
+BIOS_A20_HIMEM="$OUT/HIMEM-A20-BIOS.SYS"
+KBC_A20_HIMEM="$OUT/HIMEM-A20-KBC.SYS"
 XMS_PROBE="$OUT/xms-reference.com"
 PROVIDER_PROBE="$OUT/himem-provider.com"
 IMAGE="$OUT/floppy-himem.img"
@@ -33,6 +35,10 @@ done
     "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
 "$ROOT/bin/jwasm-bin" -DUMB_TEST_REJECT -Fo"$REJECT_HIMEM" \
     "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
+"$ROOT/bin/jwasm-bin" -DA20_TEST_SKIP_FAST -Fo"$BIOS_A20_HIMEM" \
+    "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
+"$ROOT/bin/jwasm-bin" -DA20_TEST_SKIP_FAST -DA20_TEST_SKIP_BIOS \
+    -Fo"$KBC_A20_HIMEM" "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
 nasm -f bin "$ROOT/tests/xms_reference_probe.asm" -o "$XMS_PROBE"
 nasm -f bin "$ROOT/tests/himem_provider_probe.asm" -o "$PROVIDER_PROBE"
 nasm -f bin "$ROOT/tests/umb_lifecycle_reference.asm" -o "$LIFECYCLE_PROBE"
@@ -102,6 +108,40 @@ do
     if ! grep -Eq "$expected_re" "$LOG"; then
         echo "FAIL: repository HIMEM error contract: $expected_re" >&2
         sed -n '1,220p' "$LOG" >&2
+        exit 1
+    fi
+done
+
+for backend in BIOS KBC; do
+    backend_image="$OUT/floppy-himem-a20-${backend}.img"
+    backend_log="$OUT/himem-a20-${backend}.log"
+    if [[ "$backend" == BIOS ]]; then
+        backend_driver=$BIOS_A20_HIMEM
+    else
+        backend_driver=$KBC_A20_HIMEM
+    fi
+    cp "$FLOPPY" "$backend_image"
+    mcopy -o -i "$backend_image" "$backend_driver" ::HIMEM.SYS
+    mcopy -o -i "$backend_image" "$XMS_PROBE" ::XMSREF.COM
+    mcopy -o -i "$backend_image" "$PROVIDER_PROBE" ::HIMPROV.COM
+    printf 'DEVICE=A:\\HIMEM.SYS\r\n' \
+        | mcopy -o -i "$backend_image" - ::CONFIG.SYS
+    {
+        printf '@ECHO OFF\r\n'
+        printf 'CTTY AUX\r\n'
+        printf 'XMSREF.COM\r\n'
+        printf 'HIMPROV.COM\r\n'
+    } | mcopy -o -i "$backend_image" - ::AUTOEXEC.BAT
+    timeout 25 qemu-system-i386 \
+        -display none -monitor none -machine pc -cpu 486 -m 16 \
+        -drive if=floppy,index=0,format=raw,file="$backend_image",cache=writethrough \
+        -boot a -serial stdio -no-reboot \
+        -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$backend_log" 2>&1 || true
+    if ! grep -Fq 'A20_ON_QUERY CF=0 AX=0001' "$backend_log" \
+        || ! grep -Fq 'A20_FINAL CF=0 AX=0000' "$backend_log"
+    then
+        echo "FAIL: HIMEM $backend A20 backend" >&2
+        sed -n '1,180p' "$backend_log" >&2
         exit 1
     fi
 done

@@ -178,7 +178,9 @@ from every firmware-safe upper region exposed on that machine, and exercises
 EMS in the same boot. A local QEMU map exposes two separated regions; the CI
 firmware map exposes one. Deterministic synthetic coverage independently proves
 normalization and allocation across multiple discontiguous extents.
-This establishes the basic ownership split but does not close Phase 3: the
-full XMS error matrix, A20 hardware fallbacks, fault injection, warm reboot,
-and live-UMB data stability during EMS remapping remain required. HIMEM is
-therefore still omitted from published images until those gates pass.
+This establishes the basic ownership split but does not close Phase 3:
+remaining XMS edge cases, broader fault injection, and warm reboot remain
+required. Physical A20 alias detection, fast-gate/BIOS/8042 backends, one
+registration-rejection rollback, and live-UMB data stability during EMS
+remapping are now covered. HIMEM is still omitted from published images until
+the remaining gates pass.

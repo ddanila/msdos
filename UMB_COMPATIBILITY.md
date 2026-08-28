@@ -119,10 +119,13 @@ provider's compatibility target; it must not advertise XMS 3.00.
 The repository provider now passes the captured XMS success-path lifecycle and
 boots together with the repository EMM386. EMM386 owns the paging translations
 and removes permanent UMB backing pages from its EMS pool; HIMEM owns the
-public XMS allocation state. A combined test confirms multiple DOS-visible UMB
-regions and a functioning EMS API in one boot. Error-path parity, A20 hardware
-coverage, rollback injection, and data stability across repeated EMS remapping
-are still open provider gates.
+public XMS allocation state. A combined test confirms DOS-visible UMBs and a
+functioning EMS API in one boot. Error-path parity now covers the principal
+XMS 2.00 handle, move, HMA, and A20 failures. Physical A20 alias detection and
+independently forced fast-gate, BIOS, and 8042 control paths pass under QEMU.
+Registration rejection rolls back to EMS-only operation, and a live patterned
+UMB survives repeated EMS remapping. Broader initialization fault injection
+and warm-reboot coverage remain open provider gates.
 
 The expanded DOS 5.0/6.22 error capture agrees on invalid-handle `A2h`, locked
 block `ABh`, unlocked-block `AAh`, odd or out-of-range move `A7h`, invalid
