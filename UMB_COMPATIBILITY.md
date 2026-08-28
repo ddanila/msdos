@@ -54,7 +54,7 @@ and `e2c0ede60d5de23f77c35de371de9ba9df60905af3fe9a695dc270c8a0e8e380`.
 | `5803h`, other `BX` | carry set, `AX=0001h`, state unchanged | confirmed | confirmed | invalid function |
 | unknown `58xxh` subfunction | carry set, `AX=0001h`, state unchanged | confirmed | confirmed | invalid function |
 | strategy/link independence | neither setter changes the other state | pending | pending | no UMB state |
-| state across EXEC | child sees global state; caller restores it | pending | pending | strategy global |
+| state across EXEC | child sees global state; caller restores it | confirmed | confirmed | confirmed |
 
 The strategy values and public link-state behavior come from the Microsoft
 MS-DOS 5 Programmer's Reference and are retained by 6.22. A focused black-box
@@ -76,7 +76,7 @@ asserts the same contract in this tree.
 | `48h` failure | exact `AX` and largest-domain block in `BX` | confirmed | confirmed |
 | `49h`/`4Ah` on UMB | same ownership, resize, and errors as low blocks | confirmed | confirmed |
 | unlink with live UMB | allocation survives unlink/relink | confirmed | confirmed |
-| process termination | owned UMB blocks are freed | pending | pending |
+| process termination | owned UMB blocks are freed | confirmed | confirmed |
 | MCB traversal | exact bridge, gap-owner, and `M`/`Z` layout | pending | pending |
 
 With the UMB arena linked, a 16-paragraph allocation using either strategy
@@ -96,6 +96,13 @@ word. On both references a failed `4Ah` growth coalesced the block to the
 reported maximum and left its MCB marked `Z`. With the same DOS 5 provider this
 tree now matches the reference's `14FEh` largest UMB exactly; the earlier
 test-only terminal guard had reduced it by one paragraph.
+
+The same independent parent/child probe succeeds on DOS 5.0, DOS 6.22, and
+this tree. The child inherits linked upper-only allocation state, allocates a
+64-paragraph UMB, and exits with status `2Ah`; the parent observes its strategy
+and link settings unchanged and immediately reallocates the reclaimed upper
+block. The recovered reference segments were `CB4Eh` on 5.0 and `CC98h` on
+6.22; the address itself is provider-layout dependent.
 
 ## XMS provider contract
 

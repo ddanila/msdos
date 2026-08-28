@@ -12,6 +12,8 @@ PROVIDER_PROBE="$OUT/himem-provider.com"
 IMAGE="$OUT/floppy-himem.img"
 LOG="$OUT/himem.log"
 LIFECYCLE_PROBE="$OUT/umb-lifecycle-reference.com"
+EXEC_PROBE="$OUT/umb-exec-reference.com"
+EXEC_CHILD="$OUT/umbchild.com"
 EMM_PROBE="$OUT/emm386-with-umb.com"
 ISOLATION_PROBE="$OUT/umb-ems-isolation.com"
 COMBINED_IMAGE="$OUT/floppy-himem-emm386.img"
@@ -34,6 +36,8 @@ done
 nasm -f bin "$ROOT/tests/xms_reference_probe.asm" -o "$XMS_PROBE"
 nasm -f bin "$ROOT/tests/himem_provider_probe.asm" -o "$PROVIDER_PROBE"
 nasm -f bin "$ROOT/tests/umb_lifecycle_reference.asm" -o "$LIFECYCLE_PROBE"
+nasm -f bin "$ROOT/tests/umb_exec_reference.asm" -o "$EXEC_PROBE"
+nasm -f bin "$ROOT/tests/umb_exit_child.asm" -o "$EXEC_CHILD"
 nasm -f bin "$ROOT/tests/emm386_probe.asm" -o "$EMM_PROBE"
 nasm -f bin "$ROOT/tests/umb_ems_isolation_probe.asm" -o "$ISOLATION_PROBE"
 nasm -f bin "$ROOT/tests/umb_provider_absence_probe.asm" -o "$ABSENCE_PROBE"
@@ -105,6 +109,8 @@ done
 cp "$FLOPPY" "$COMBINED_IMAGE"
 mcopy -o -i "$COMBINED_IMAGE" "$HIMEM" ::HIMEM.SYS
 mcopy -o -i "$COMBINED_IMAGE" "$LIFECYCLE_PROBE" ::UMBLREF.COM
+mcopy -o -i "$COMBINED_IMAGE" "$EXEC_PROBE" ::UMBEXEC.COM
+mcopy -o -i "$COMBINED_IMAGE" "$EXEC_CHILD" ::UMBCHILD.COM
 mcopy -o -i "$COMBINED_IMAGE" "$EMM_PROBE" ::EMMPROBE.COM
 mcopy -o -i "$COMBINED_IMAGE" "$ISOLATION_PROBE" ::UMBEMS.COM
 {
@@ -116,6 +122,7 @@ mcopy -o -i "$COMBINED_IMAGE" "$ISOLATION_PROBE" ::UMBEMS.COM
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'UMBLREF.COM\r\n'
+    printf 'UMBEXEC.COM\r\n'
     printf 'UMBEMS.COM\r\n'
     printf 'EMMPROBE.COM\r\n'
 } | mcopy -o -i "$COMBINED_IMAGE" - ::AUTOEXEC.BAT
@@ -126,6 +133,7 @@ timeout 35 qemu-system-i386 \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$COMBINED_LOG" 2>&1 || true
 
 if ! grep -Fq 'UMB_LIFECYCLE_END' "$COMBINED_LOG" \
+    || ! grep -Fq 'UMB_EXEC_PASS SEG=' "$COMBINED_LOG" \
     || ! grep -Eq '^ALLOC_0010 C=0 AX=[A-F][0-9A-F]{3}' "$COMBINED_LOG" \
     || ! grep -Eq '^ALLOC_AFTER_LARGEST (C=0 AX=[A-F][0-9A-F]{3}|C=1 AX=0008 BX=0000)' "$COMBINED_LOG" \
     || ! grep -Fq 'EMM386_API_PASS' "$COMBINED_LOG" \
