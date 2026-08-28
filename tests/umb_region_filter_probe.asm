@@ -41,6 +41,43 @@ start:
     int 21h
     jc fail
 
+    mov bx, 1
+    call signed_get_region_info
+    jc fail
+    cmp ax, 01feh
+    jne fail
+    mov bx, 1
+    call signed_get_region_limit
+    jc fail
+    cmp ax, 0ffffh
+    jne fail
+    mov bx, 1
+    mov dx, 20h
+    call signed_set_region_limit
+    jc fail
+    mov bx, 21h
+    mov ah, 48h
+    int 21h
+    jnc fail
+    cmp ax, 8
+    jne fail
+    cmp bx, 20h
+    jne fail
+    mov bx, 20h
+    mov ah, 48h
+    int 21h
+    jc fail
+    cmp ax, 09001h
+    jne fail
+    mov es, ax
+    mov ah, 49h
+    int 21h
+    jc fail
+    mov bx, 1
+    mov dx, 0ffffh
+    call signed_set_region_limit
+    jc fail
+
     mov bx, 0002h
     call signed_set_filter
     jc fail
@@ -91,6 +128,30 @@ signed_get_filter:
     mov si, 2142h
     mov di, 0a55ah
     mov ax, 5808h
+    int 21h
+    ret
+
+signed_get_region_info:
+    mov cx, 4d55h
+    mov si, 2142h
+    mov di, 0a55ah
+    mov ax, 5809h
+    int 21h
+    ret
+
+signed_set_region_limit:
+    mov cx, 4d55h
+    mov si, 2142h
+    mov di, 0a55ah
+    mov ax, 580ah
+    int 21h
+    ret
+
+signed_get_region_limit:
+    mov cx, 4d55h
+    mov si, 2142h
+    mov di, 0a55ah
+    mov ax, 580bh
     int 21h
     ret
 

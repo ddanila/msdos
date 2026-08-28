@@ -206,6 +206,19 @@ while `/S` without `/L` is accepted and behaves like plain LOADHIGH. The
 normalized capture is produced by `tests/capture_loadhigh_reference.sh` and is
 kept beside the external reference media.
 
+This tree now parses and removes those LOADHIGH/LH options before normal
+command resolution, validates every named region and minimum against the live
+arena, and installs a scoped region profile around EXEC. The kernel allocator
+reports each region's largest coalescible free block and can temporarily cap
+the allocatable prefix of each region, so `/S` governs the environment, PSP,
+and image allocations rather than merely checking the final PSP address. A
+failed minimum uses the ordinary low EXEC state, an invalid region emits the
+captured diagnostic without running the child, and filters, caps, strategy,
+and link state are restored after successful and failed EXEC calls. Synthetic
+split-region tests cover individual regions, lists, per-region minima, forced
+low placement, and recovery after a missing executable. Quoting, redirection,
+batch errorlevel, and Ctrl-C remain separate command-path gates.
+
 ## HMA residency reference
 
 An independent probe now compares otherwise identical `DOS=LOW,UMB` and

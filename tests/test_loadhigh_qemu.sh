@@ -71,6 +71,23 @@ provider_commands=$(printf '%b' \
     'LOADHIGH VER\r\n' \
     'LOADHIGH MISSING.COM\r\n' \
     'LHSTATE.COM\r\n' \
+    'ECHO LH_OPTIONS_BEGIN\r\n' \
+    'ECHO LH_REGION_1\r\n' \
+    'LOADHIGH /L:1 LHCHILD.COM\r\n' \
+    'ECHO LH_REGION_INVALID\r\n' \
+    'LOADHIGH /L:16 LHCHILD.COM\r\n' \
+    'ECHO LH_MINIMUM\r\n' \
+    'LOADHIGH /L:1,200 LHCHILD.COM\r\n' \
+    'ECHO LH_SHRINK\r\n' \
+    'LOADHIGH /L:1,200 /S LHCHILD.COM\r\n' \
+    'ECHO LH_SHRINK_ALONE\r\n' \
+    'LOADHIGH /S LHCHILD.COM\r\n' \
+    'ECHO LH_PROFILE_FAILURE\r\n' \
+    'LOADHIGH /L:1,200 /S MISSING.COM\r\n' \
+    'ECHO LH_PROFILE_RECOVERY\r\n' \
+    'LOADHIGH /L:1 LHCHILD.COM\r\n' \
+    'LHSTATE.COM\r\n' \
+    'ECHO LH_OPTIONS_END\r\n' \
     'ECHO PROVIDER_END\r\n')
 provider_config=$(printf '%b' \
     'DEVICE=A:\\HIMEM.SYS\r\n' \
@@ -79,21 +96,76 @@ provider_config=$(printf '%b' \
 run_image provider "$provider_config" "$provider_commands"
 
 provider_log="$OUT/loadhigh-provider.log"
-if [[ $(grep -Ec '^CHILD_PSP=[A-F][0-9A-F]{3}' "$provider_log") -ne 2 ]] \
-    || ! grep -Eq '^CHILD_PSP=[0-9][0-9A-F]{3}' "$provider_log" \
-    || [[ $(grep -c '^CHILD_STRATEGY=0080' "$provider_log") -ne 2 ]] \
-    || [[ $(grep -c '^CHILD_UMB_LINK=0001' "$provider_log") -ne 2 ]] \
+options_log=$(sed -n '/^LH_OPTIONS_BEGIN/,/^LH_OPTIONS_END/p' "$provider_log")
+invalid_log=$(sed -n '/^LH_REGION_INVALID/,/^LH_MINIMUM/p' "$provider_log")
+shrink_log=$(sed -n '/^LH_SHRINK/,/^LH_SHRINK_ALONE/p' "$provider_log")
+recovery_log=$(sed -n '/^LH_PROFILE_FAILURE/,/^LH_OPTIONS_END/p' "$provider_log")
+if [[ $(grep -Ec '^CHILD_PSP=[A-F][0-9A-F]{3}' "$provider_log") -ne 6 ]] \
+    || [[ $(grep -Ec '^CHILD_PSP=[0-9][0-9A-F]{3}' "$provider_log") -ne 2 ]] \
+    || [[ $(grep -c '^CHILD_STRATEGY=0080' "$provider_log") -ne 7 ]] \
+    || [[ $(grep -c '^CHILD_UMB_LINK=0001' "$provider_log") -ne 7 ]] \
     || ! grep -Eq '^EXE_PSP=[A-F][0-9A-F]{3}' "$provider_log" \
     || ! grep -q '^EXE_STRATEGY=0080' "$provider_log" \
     || ! grep -q '^EXE_UMB_LINK=0001' "$provider_log" \
-    || [[ $(grep -c '^PARENT_STRATEGY=0000' "$provider_log") -ne 5 ]] \
-    || [[ $(grep -c '^PARENT_UMB_LINK=0000' "$provider_log") -ne 5 ]] \
+    || [[ $(grep -c '^PARENT_STRATEGY=0000' "$provider_log") -ne 6 ]] \
+    || [[ $(grep -c '^PARENT_UMB_LINK=0000' "$provider_log") -ne 6 ]] \
     || ! grep -q 'Required parameter missing' "$provider_log" \
-    || [[ $(grep -c 'File not found' "$provider_log") -lt 2 ]] \
+    || [[ $(grep -c 'File not found' "$provider_log") -lt 3 ]] \
+    || [[ $(grep -c '^LOADHIGH_CHILD_END' <<<"$options_log") -ne 5 ]] \
+    || ! grep -q 'A bad UMB number has been specified' <<<"$invalid_log" \
+    || grep -q '^LOADHIGH_CHILD_END' <<<"$invalid_log" \
+    || ! grep -Eq '^CHILD_PSP=[0-9][0-9A-F]{3}' <<<"$shrink_log" \
+    || ! grep -q 'File not found' <<<"$recovery_log" \
+    || ! grep -Eq '^CHILD_PSP=[A-F][0-9A-F]{3}' <<<"$recovery_log" \
     || ! grep -q '^PROVIDER_END' "$provider_log"
 then
     echo "FAIL: LOADHIGH/LH provider contract" >&2
     sed -n '1,220p' "$provider_log" >&2
+    exit 1
+fi
+
+regions_commands=$(printf '%b' \
+    'ECHO REGIONS_BEGIN\r\n' \
+    'ECHO REGION_ONE\r\n' \
+    'LOADHIGH /L:1 LHCHILD.COM\r\n' \
+    'ECHO REGION_TWO\r\n' \
+    'LOADHIGH /L:2 LHCHILD.COM\r\n' \
+    'ECHO REGION_LIST\r\n' \
+    'LOADHIGH /L:1;2 LHCHILD.COM\r\n' \
+    'ECHO REGION_MIN_REJECT\r\n' \
+    'LOADHIGH /L:1,40000;2,10000 /S LHCHILD.COM\r\n' \
+    'ECHO REGION_MIN_ACCEPT\r\n' \
+    'LOADHIGH /L:1,20000;2,10000 /S LHCHILD.COM\r\n' \
+    'LHSTATE.COM\r\n' \
+    'ECHO REGIONS_END\r\n')
+regions_config=$(printf '%b' \
+    'DEVICE=A:\\HIMEM.SYS\r\n' \
+    'DEVICE=A:\\EMM386.SYS M5 X=D000-D7FF\r\n' \
+    'DOS=UMB\r\n')
+run_image regions "$regions_config" "$regions_commands"
+regions_log="$OUT/loadhigh-regions.log"
+region_one_log=$(sed -n '/^REGION_ONE/,/^REGION_TWO/p' "$regions_log")
+region_two_log=$(sed -n '/^REGION_TWO/,/^REGION_LIST/p' "$regions_log")
+region_list_log=$(sed -n '/^REGION_LIST/,/^REGION_MIN_REJECT/p' "$regions_log")
+region_reject_log=$(sed -n '/^REGION_MIN_REJECT/,/^REGION_MIN_ACCEPT/p' "$regions_log")
+region_accept_log=$(sed -n '/^REGION_MIN_ACCEPT/,/^REGIONS_END/p' "$regions_log")
+region_one_psp=$(sed -n 's/^CHILD_PSP=\([0-9A-F][0-9A-F]*\).*/\1/p' <<<"$region_one_log")
+region_two_psp=$(sed -n 's/^CHILD_PSP=\([0-9A-F][0-9A-F]*\).*/\1/p' <<<"$region_two_log")
+if [[ -z $region_one_psp || -z $region_two_psp || $region_one_psp == "$region_two_psp" ]] \
+    || (( 16#$region_one_psp < 16#8000 || 16#$region_two_psp < 16#8000 )) \
+    || ! grep -Eq '^CHILD_PSP=[A-F][0-9A-F]{3}' <<<"$region_list_log" \
+    || ! grep -Eq '^CHILD_PSP=[0-9][0-9A-F]{3}' <<<"$region_reject_log" \
+    || ! grep -q '^CHILD_STRATEGY=0000' <<<"$region_reject_log" \
+    || ! grep -q '^CHILD_UMB_LINK=0000' <<<"$region_reject_log" \
+    || ! grep -Eq '^CHILD_PSP=[A-F][0-9A-F]{3}' <<<"$region_accept_log" \
+    || ! grep -q '^CHILD_STRATEGY=0080' <<<"$region_accept_log" \
+    || ! grep -q '^CHILD_UMB_LINK=0001' <<<"$region_accept_log" \
+    || ! grep -q '^PARENT_STRATEGY=0000' "$regions_log" \
+    || ! grep -q '^PARENT_UMB_LINK=0000' "$regions_log" \
+    || ! grep -q '^REGIONS_END' "$regions_log"
+then
+    echo "FAIL: LOADHIGH multi-region and per-region minimum contract" >&2
+    sed -n '1,240p' "$regions_log" >&2
     exit 1
 fi
 
@@ -139,4 +211,4 @@ then
     exit 1
 fi
 
-echo "  PASS: LOADHIGH/LH COM, EXE, fallback, restoration, and DOS=HIGH contracts"
+echo "  PASS: LOADHIGH/LH regions, minima, shrinking, fallback, restoration, and DOS=HIGH"
