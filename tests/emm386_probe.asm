@@ -102,9 +102,11 @@ start:
     mov dx, pass_message
     mov ah, 09h
     int 21h
+%ifndef NO_QEMU_EXIT
     mov dx, 0f4h
     mov ax, 10h
     out dx, ax
+%endif
     mov ax, 4c00h
     int 21h
 

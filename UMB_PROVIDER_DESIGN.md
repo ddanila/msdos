@@ -179,8 +179,10 @@ EMS in the same boot. A local QEMU map exposes two separated regions; the CI
 firmware map exposes one. Deterministic synthetic coverage independently proves
 normalization and allocation across multiple discontiguous extents.
 This establishes the basic ownership split but does not close Phase 3:
-remaining XMS edge cases, broader fault injection, and warm reboot remain
-required. Physical A20 alias detection, fast-gate/BIOS/8042 backends, one
+remaining XMS edge cases and broader fault injection remain required. A
+monitor-driven system-reset test now proves that HMA ownership, UMB allocation,
+EMS isolation, and EMS allocation/mapping all work on two consecutive boots.
+Physical A20 alias detection, fast-gate/BIOS/8042 backends, one
 registration-rejection rollback, and live-UMB data stability during EMS
 remapping are now covered. HIMEM is still omitted from published images until
 the remaining gates pass.

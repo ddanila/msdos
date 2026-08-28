@@ -17,12 +17,19 @@ LIFECYCLE_PROBE="$OUT/umb-lifecycle-reference.com"
 EXEC_PROBE="$OUT/umb-exec-reference.com"
 EXEC_CHILD="$OUT/umbchild.com"
 EMM_PROBE="$OUT/emm386-with-umb.com"
+WARM_EMM_PROBE="$OUT/emm386-warm.com"
+WARM_HMA_PROBE="$OUT/himem-warm-hma.com"
 ISOLATION_PROBE="$OUT/umb-ems-isolation.com"
 COMBINED_IMAGE="$OUT/floppy-himem-emm386.img"
 COMBINED_LOG="$OUT/himem-emm386.log"
 ABSENCE_PROBE="$OUT/umb-provider-absence.com"
 ROLLBACK_IMAGE="$OUT/floppy-himem-emm386-rollback.img"
 ROLLBACK_LOG="$OUT/himem-emm386-rollback.log"
+WARMBOOT="$OUT/warm-reboot.com"
+QEXIT="$OUT/himem-qexit.com"
+WARM_IMAGE="$OUT/floppy-himem-emm386-warm.img"
+WARM_LOG="$OUT/himem-emm386-warm.log"
+WARM_MONITOR="$OUT/himem-emm386-warm.monitor"
 
 for tool in nasm mcopy qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || {
@@ -45,8 +52,12 @@ nasm -f bin "$ROOT/tests/umb_lifecycle_reference.asm" -o "$LIFECYCLE_PROBE"
 nasm -f bin "$ROOT/tests/umb_exec_reference.asm" -o "$EXEC_PROBE"
 nasm -f bin "$ROOT/tests/umb_exit_child.asm" -o "$EXEC_CHILD"
 nasm -f bin "$ROOT/tests/emm386_probe.asm" -o "$EMM_PROBE"
+nasm -DNO_QEMU_EXIT -f bin "$ROOT/tests/emm386_probe.asm" -o "$WARM_EMM_PROBE"
+nasm -f bin "$ROOT/tests/hma_reference_probe.asm" -o "$WARM_HMA_PROBE"
 nasm -f bin "$ROOT/tests/umb_ems_isolation_probe.asm" -o "$ISOLATION_PROBE"
 nasm -f bin "$ROOT/tests/umb_provider_absence_probe.asm" -o "$ABSENCE_PROBE"
+nasm -f bin "$ROOT/tests/warm_reboot.asm" -o "$WARMBOOT"
+nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 
 cp "$FLOPPY" "$IMAGE"
 mcopy -o -i "$IMAGE" "$HIMEM" ::HIMEM.SYS
@@ -214,4 +225,87 @@ then
     exit 1
 fi
 
-echo "  PASS: repository XMS core and concurrent paging-backed UMB/EMS provider"
+cp "$FLOPPY" "$WARM_IMAGE"
+mcopy -o -i "$WARM_IMAGE" "$HIMEM" ::HIMEM.SYS
+mcopy -o -i "$WARM_IMAGE" "$LIFECYCLE_PROBE" ::UMBLREF.COM
+mcopy -o -i "$WARM_IMAGE" "$WARM_EMM_PROBE" ::EMMPROBE.COM
+mcopy -o -i "$WARM_IMAGE" "$ISOLATION_PROBE" ::UMBEMS.COM
+mcopy -o -i "$WARM_IMAGE" "$WARM_HMA_PROBE" ::HMAREF.COM
+mcopy -o -i "$WARM_IMAGE" "$WARMBOOT" ::WARMBOOT.COM
+mcopy -o -i "$WARM_IMAGE" "$QEXIT" ::QEXIT.COM
+{
+    printf 'DEVICE=A:\\HIMEM.SYS\r\n'
+    printf 'DEVICE=A:\\EMM386.SYS M5\r\n'
+    printf 'DOS=HIGH,UMB\r\n'
+} | mcopy -o -i "$WARM_IMAGE" - ::CONFIG.SYS
+{
+    printf '@ECHO OFF\r\n'
+    printf 'CTTY AUX\r\n'
+    printf 'IF EXIST WARM.OK GOTO SECOND\r\n'
+    printf 'ECHO WARM_FIRST_BOOT\r\n'
+    printf 'HMAREF.COM\r\n'
+    printf 'UMBLREF.COM\r\n'
+    printf 'UMBEMS.COM\r\n'
+    printf 'EMMPROBE.COM\r\n'
+    printf 'ECHO READY>WARM.OK\r\n'
+    printf 'WARMBOOT.COM\r\n'
+    printf ':SECOND\r\n'
+    printf 'ECHO WARM_SECOND_BOOT\r\n'
+    printf 'HMAREF.COM\r\n'
+    printf 'UMBLREF.COM\r\n'
+    printf 'UMBEMS.COM\r\n'
+    printf 'EMMPROBE.COM\r\n'
+    printf 'QEXIT.COM\r\n'
+} | mcopy -o -i "$WARM_IMAGE" - ::AUTOEXEC.BAT
+
+rm -f "$WARM_LOG" "$WARM_MONITOR"
+mkfifo "$WARM_MONITOR"
+exec 9<>"$WARM_MONITOR"
+qemu-system-i386 \
+    -display none -machine pc -cpu 486 -m 16 \
+    -drive if=floppy,index=0,format=raw,file="$WARM_IMAGE",cache=writethrough \
+    -boot a -serial file:"$WARM_LOG" \
+    -monitor stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 <&9 >/dev/null 2>&1 &
+warm_pid=$!
+cleanup_warm() {
+    kill "$warm_pid" 2>/dev/null || true
+    wait "$warm_pid" 2>/dev/null || true
+    exec 9>&- 9<&-
+    rm -f "$WARM_MONITOR"
+}
+trap cleanup_warm EXIT
+
+for _ in $(seq 1 300); do
+    grep -Fq 'WARM_RESET_READY' "$WARM_LOG" 2>/dev/null && break
+    kill -0 "$warm_pid" 2>/dev/null || break
+    sleep 0.1
+done
+if ! grep -Fq 'WARM_RESET_READY' "$WARM_LOG" 2>/dev/null; then
+    echo 'FAIL: warm-reboot fixture did not reach its flushed reset point' >&2
+    sed -n '1,260p' "$WARM_LOG" >&2
+    exit 1
+fi
+printf 'system_reset\n' >&9
+
+for _ in $(seq 1 400); do
+    ! kill -0 "$warm_pid" 2>/dev/null && break
+    sleep 0.1
+done
+cleanup_warm
+trap - EXIT
+
+if [[ $(grep -Fc 'UMB_LIFECYCLE_END' "$WARM_LOG") -ne 2 ]] \
+    || [[ $(grep -Fc 'UMB_EMS_ISOLATION_PASS' "$WARM_LOG") -ne 2 ]] \
+    || [[ $(grep -Fc 'EMM386_API_PASS' "$WARM_LOG") -ne 2 ]] \
+    || [[ $(grep -Fc 'HMA_REFERENCE_END' "$WARM_LOG") -ne 2 ]] \
+    || [[ $(grep -Ec '^HMA_REQUEST AX=0000 BL=..91' "$WARM_LOG") -ne 2 ]] \
+    || ! grep -Fq 'WARM_FIRST_BOOT' "$WARM_LOG" \
+    || ! grep -Fq 'WARM_SECOND_BOOT' "$WARM_LOG"
+then
+    echo 'FAIL: HIMEM/EMM386 state did not survive a complete warm-reboot cycle' >&2
+    sed -n '1,300p' "$WARM_LOG" >&2
+    exit 1
+fi
+
+echo "  PASS: repository XMS core, concurrent UMB/EMS, rollback, and warm reboot"

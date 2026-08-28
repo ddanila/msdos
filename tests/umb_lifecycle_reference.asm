@@ -24,6 +24,13 @@ start:
     mov dx, strategy_label
     call invoke_and_print
 
+    mov ax, 5802h
+    mov dx, link_state_label
+    call invoke_and_print
+    mov ax, 5800h
+    mov dx, strategy_state_label
+    call invoke_and_print
+
     mov bx, 0ffffh
     mov ah, 48h
     mov dx, largest_upper_label
@@ -278,6 +285,8 @@ mcb_signature db 0
 banner db 'UMB_LIFECYCLE_BEGIN', 13, 10, 0
 link_label db 'LINK ', 0
 strategy_label db 'STRATEGY_0040 ', 0
+link_state_label db 'LINK_STATE ', 0
+strategy_state_label db 'STRATEGY_STATE ', 0
 largest_upper_label db 'LARGEST_UPPER ', 0
 allocate_label db 'ALLOC_0010 ', 0
 shrink_label db 'SHRINK_0008 ', 0

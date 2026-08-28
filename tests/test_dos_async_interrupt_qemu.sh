@@ -6,11 +6,14 @@ export LC_ALL=C
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
 FLOPPY="$OUT/floppy.img"
-BOOT_IMG="$OUT/floppy-dos-async-interrupt.img"
+MODE=${DOS_ASYNC_MODE:-LOW}
+MODE_LC=$(printf '%s' "$MODE" | tr '[:upper:]' '[:lower:]')
+BOOT_IMG="$OUT/floppy-dos-async-interrupt-$MODE_LC.img"
 PROBE_COM="$OUT/dosasync.com"
-SERIAL_SOCKET="$OUT/dos-async-interrupt.sock"
-SERIAL_LOG="$OUT/dos-async-interrupt.log"
-QEMU_LOG="$OUT/dos-async-interrupt-qemu.log"
+HIMEM="$OUT/dos-async-himem.sys"
+SERIAL_SOCKET="$OUT/dos-async-interrupt-$MODE_LC.sock"
+SERIAL_LOG="$OUT/dos-async-interrupt-$MODE_LC.log"
+QEMU_LOG="$OUT/dos-async-interrupt-$MODE_LC-qemu.log"
 
 if [[ ! -f "$FLOPPY" ]]; then
     echo "ERROR: $FLOPPY not found — run 'make deploy' first"
@@ -28,6 +31,15 @@ cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/dos_async_interrupt_probe.asm" -o "$PROBE_COM"
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::DOSASYNC.COM
+if [[ "$MODE" == HIGH ]]; then
+    "$REPO_ROOT/bin/jwasm-bin" -Fo"$HIMEM" \
+        "$REPO_ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
+    mcopy -o -i "$BOOT_IMG" "$HIMEM" ::HIMEM.SYS
+    {
+        printf 'DEVICE=A:\\HIMEM.SYS\r\n'
+        printf 'DOS=HIGH\r\n'
+    } | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
+fi
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
@@ -90,11 +102,16 @@ trap - EXIT
 rm -f "$SERIAL_SOCKET"
 
 if grep -q 'DOS_ASYNC_INTERRUPT_PASS' "$SERIAL_LOG"; then
-    echo "  PASS: DOS INT 23h Ctrl-Break and INT 28h idle callbacks"
+    if [[ "$MODE" == LOW ]]; then
+        DOS_ASYNC_MODE=HIGH "$0"
+        echo "  PASS: DOS INT 23h Ctrl-Break and INT 28h idle callbacks low and high"
+    else
+        echo "  PASS: DOS=HIGH asynchronous callbacks"
+    fi
     exit 0
 fi
 
-echo "  FAIL: DOS asynchronous interrupt probe did not complete"
+echo "  FAIL: DOS=$MODE asynchronous interrupt probe did not complete"
 sed -n '1,180p' "$SERIAL_LOG"
 sed -n '1,80p' "$QEMU_LOG"
 exit 1

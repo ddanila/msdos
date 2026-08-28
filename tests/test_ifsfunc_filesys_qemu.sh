@@ -6,11 +6,14 @@ export LC_ALL=C
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
 FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
-BOOT_IMG="$OUT/floppy-ifsfunc-filesys.img"
+MODE=${IFS_DOS_MODE:-LOW}
+MODE_LC=$(printf '%s' "$MODE" | tr '[:upper:]' '[:lower:]')
+BOOT_IMG="$OUT/floppy-ifsfunc-filesys-$MODE_LC.img"
 IFS_SYS="$OUT/ifsfunc-filesys-testifs.sys"
+HIMEM_SYS="$OUT/ifsfunc-filesys-himem.sys"
 PROBE_COM="$OUT/ifsfunc-filesys-probe.com"
 EXIT_COM="$OUT/ifsfunc-filesys-exit.com"
-SERIAL_LOG="$OUT/ifsfunc-filesys.log"
+SERIAL_LOG="$OUT/ifsfunc-filesys-$MODE_LC.log"
 
 if [[ ! -f "$FLOPPY" ]]; then
     echo "ERROR: $FLOPPY not found — run 'make deploy' first"
@@ -33,7 +36,18 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 mcopy -o -i "$BOOT_IMG" "$IFS_SYS" ::TESTIFS.SYS
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::IFSPROBE.COM
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
-printf 'IFS=TESTIFS.SYS\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
+if [[ "$MODE" == HIGH ]]; then
+    "$REPO_ROOT/bin/jwasm-bin" -Fo"$HIMEM_SYS" \
+        "$REPO_ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
+    mcopy -o -i "$BOOT_IMG" "$HIMEM_SYS" ::HIMEM.SYS
+    {
+        printf 'DEVICE=A:\\HIMEM.SYS\r\n'
+        printf 'DOS=HIGH\r\n'
+        printf 'IFS=TESTIFS.SYS\r\n'
+    } | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
+else
+    printf 'IFS=TESTIFS.SYS\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
+fi
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
@@ -89,10 +103,15 @@ if grep -q 'IFSFUNC_FILESYS_DONE' "$SERIAL_LOG" \
     && grep -q 'FILESYS_REPEAT_DETACH_REJECTED' "$SERIAL_LOG" \
     && grep -q 'No entries found' "$SERIAL_LOG" \
     && ! grep -q 'IFSFUNC_.*_FAILED\|FILESYS_.*_FAILED' "$SERIAL_LOG"; then
-    echo "  PASS: FILESYS attach/status/detach traversed resident IFSFUNC and TESTIFS"
+    if [[ "$MODE" == LOW ]]; then
+        IFS_DOS_MODE=HIGH "$0"
+        echo "  PASS: FILESYS/IFSFUNC lifecycle with DOS resident low and high"
+    else
+        echo "  PASS: DOS=HIGH FILESYS/IFSFUNC lifecycle"
+    fi
     exit 0
 fi
 
-echo "  FAIL: IFSFUNC/FILESYS behavioral contract did not complete"
+echo "  FAIL: DOS=$MODE IFSFUNC/FILESYS behavioral contract did not complete"
 sed -n '1,200p' "$SERIAL_LOG"
 exit 1

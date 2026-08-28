@@ -126,7 +126,9 @@ XMS 2.00 handle, move, HMA, and A20 failures. Physical A20 alias detection and
 independently forced fast-gate, BIOS, and 8042 control paths pass under QEMU.
 Registration rejection rolls back to EMS-only operation, and a live patterned
 UMB survives repeated EMS remapping. Broader initialization fault injection
-and warm-reboot coverage remain open provider gates.
+remains an open provider gate. A monitor-driven warm-reset test now performs
+two complete `DOS=HIGH,UMB` boots from the same image and requires HMA
+ownership, UMB lifecycle, EMS isolation, and the EMS API to pass on both.
 
 The expanded DOS 5.0/6.22 error capture agrees on invalid-handle `A2h`, locked
 block `ABh`, unlocked-block `AAh`, odd or out-of-range move `A7h`, invalid
@@ -252,8 +254,13 @@ state, requires at least `0700h` additional free paragraphs, and repeats the
 measurement after EXEC and child cleanup. A deliberately hostile test driver
 hooks INT 21h before relocation and disables A20 during device calls; the
 retained low gateways and driver trampoline must recover without losing the
-old interrupt chain. Exact unavailable-HMA diagnostics, asynchronous callback
-coverage, redirectors, warm reboot, and MEM residency output are still open.
+old interrupt chain. Asynchronous callbacks, redirectors, warm reboot, and MEM
+residency output are exercised by the repository tests. The asynchronous test
+runs INT 23h Ctrl-Break and INT
+28h idle callbacks with DOS low and high; the IFSFUNC/FILESYS lifecycle runs in
+both residency modes; the warm-reset test repeats the full HMA/UMB/EMS contract
+on two boots; and `test_mem_umb_qemu.sh` checks the HMA residency view. Exact
+reference wording for unavailable-HMA diagnostics remains open.
 
 CI uses an original test-only XMS provider with writable synthetic backing. It
 proves that out-of-order discontiguous extents are sorted and committed as one
