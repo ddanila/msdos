@@ -2,10 +2,11 @@
 
 ## Objective
 
-Add Upper Memory Block (UMB) support to this MS-DOS 4 source tree with the
-observable behavior of MS-DOS 6.22. The DOS-facing API is the DOS 5 interface
-retained by 6.22: existing applications, drivers, and memory managers must see
-the same calls, state transitions, allocation policies, fallbacks, and errors.
+Add Upper Memory Block (UMB) and High Memory Area (HMA) support to this MS-DOS
+4 source tree with the observable behavior of MS-DOS 6.22. The DOS-facing UMB
+API is the DOS 5 interface retained by 6.22: existing applications, drivers,
+and memory managers must see the same calls, state transitions, allocation
+policies, fallbacks, and errors.
 
 This is a compatibility implementation, not a new memory API. Existing DOS 4
 behavior must remain unchanged when UMB support is unavailable or disabled.
@@ -73,6 +74,27 @@ Implement the 6.22-facing forms relevant to UMBs:
 `DEVICEHIGH` then behaves like `DEVICE`. `DOS=` is valid anywhere in CONFIG.SYS,
 so SYSINIT's pass ordering must make its settings effective as 6.22 does; the
 UMB provider itself still has to be installed before a driver can load high.
+
+### Required HMA behavior
+
+Implement `DOS=HIGH` as part of this plan, after the UMB core is stable:
+
+- discover an installed XMS manager through `INT 2Fh/4300h` and `4310h`;
+- request and own the HMA through the standard XMS HMA service;
+- enable and coordinate A20 only through the XMS manager;
+- relocate the same classes of DOS-resident code/data that 6.22 exposes as
+  high-resident, subject to what this kernel layout can safely relocate;
+- preserve interrupt entry points, swappable-data rules, internal pointers,
+  reentrancy, and compatibility with debuggers, redirectors, and drivers;
+- emit the 6.22-compatible `HMA not available` / `Loading DOS low` fallback when
+  `HIGH` was requested but cannot be satisfied;
+- implement `LOW` as the explicit conventional-memory selection and make
+  `HIGH`/`LOW` independent of `UMB`/`NOUMB`;
+- expose the correct HMA state to `MEM` and other documented diagnostics.
+
+The HMA stage includes the XMS functions required to support DOS safely. It
+must not claim general HIMEM/XMS compatibility until the complete advertised
+function set and error behavior are tested.
 
 ### Required command behavior
 
@@ -270,7 +292,21 @@ Exit criterion: the repository boots under QEMU with its own provider, exposes
 multiple safe UMBs, passes XMS and EMS probes concurrently, and survives warm
 reboot and repeated allocation/free cycles.
 
-### Phase 4: CONFIG.SYS and device/program high loading
+### Phase 4: HMA and `DOS=HIGH`
+
+- Add the XMS HMA ownership and A20-control path.
+- Identify the relocatable kernel regions and define link/load boundaries that
+  remain valid in both low and high configurations.
+- Implement relocation, pointer fixups, fallback, and `DOS=HIGH`/`LOW` state.
+- Add reference probes for HMA ownership, A20 state, reported residency,
+  conventional-memory savings, and unavailable-HMA diagnostics.
+- Stress synchronous/asynchronous interrupts, nested DOS calls, EXEC, drivers,
+  redirectors, and warm reboot with DOS resident high.
+
+Exit criterion: `DOS=HIGH`, `DOS=LOW`, `DOS=HIGH,UMB`, and `DOS=LOW,UMB` match
+the reference contract and the full suite passes in both residency modes.
+
+### Phase 5: CONFIG.SYS and device/program high loading
 
 - Add `DOS=` parsing and boot sequencing.
 - Add `DEVICEHIGH`, legacy `SIZE=`, region `/L`, and `/S` behavior.
@@ -282,7 +318,7 @@ reboot and repeated allocation/free cycles.
 Exit criterion: reference configuration files and batch files produce matching
 placement and failure behavior on 6.22 and this tree.
 
-### Phase 5: diagnostics and compatibility hardening
+### Phase 6: diagnostics and compatibility hardening
 
 - Extend `MEM` with the required 6.22 UMB views and region numbering.
 - Add long-running fragmentation/coalescing and repeated link-state stress.
@@ -320,6 +356,18 @@ locally and in CI, with no unaccounted source or generated-file drift.
 - simultaneous EMS mapping and UMB access, DMA-sensitive paths, warm reboot,
   and provider activation modes.
 
+### HMA
+
+- XMS discovery, request/release, minimum-size rejection, already-owned HMA,
+  and absent or failing XMS manager;
+- A20 enable/disable accounting and preservation across success, fallback,
+  interrupt, EXEC, and reboot paths;
+- low/high kernel layout equivalence for DOS APIs, devices, redirectors, and
+  asynchronous callbacks;
+- exact `DOS=HIGH`, `LOW`, combined-option, diagnostic, and fallback behavior;
+- conventional-memory measurements proving the intended space is actually
+  reclaimed rather than merely reporting high residency.
+
 ### User-facing behavior
 
 - every `DOS=` spelling, textual position, repetition, whitespace, case,
@@ -346,8 +394,12 @@ locally and in CI, with no unaccounted source or generated-file drift.
 
 Implementation may be original work based on public interface documentation and
 black-box observations, or reuse code only after an explicit per-file license
-review. Pre-approved "MIT-like" licenses should be limited to MIT, BSD-2-Clause,
-BSD-3-Clause, ISC, and zlib unless the owner chooses a different allowlist.
+review. The repository must remain distributable under its existing MIT license
+without adding a second code license. Therefore copied code must itself be MIT
+licensed, be unambiguously dedicated to the public domain/CC0, or come with
+explicit permission to relicense it under MIT. Merely MIT-compatible code under
+BSD, ISC, or zlib is not copied unless its required notice and licensing effect
+have been reviewed and the owner explicitly approves the exception.
 
 Do not copy from GPL, LGPL, AGPL, MPL, CDDL, proprietary, source-available,
 decompiled, leaked, or license-unclear implementations. Documentation may define
@@ -382,29 +434,24 @@ Reference-machine probes take precedence where documentation is ambiguous.
 Before implementation, cite the exact reference result beside each ambiguity in
 the compatibility matrix.
 
-## Decisions required before implementation
+## Confirmed project decisions
 
-1. **Version reporting.** Recommended: retain the product's DOS 4.0 identity but
-   implement the later calls, and document that applications which gate UMB use
-   on `INT 21h/AH=30h >= 5` need an explicit compatibility mechanism. Alternative:
-   report 5.0 or 6.22 globally, which broadens the compatibility promise far
-   beyond UMBs and is therefore not recommended.
-2. **HMA scope.** Recommended: make UMBs the first deliverable and treat
-   `DOS=HIGH` plus full HIMEM/HMA support as a separately gated phase. During the
-   UMB deliverable, parse `HIGH` compatibly and follow the 6.22 low-memory
-   fallback when HMA is unavailable. If the goal is specifically the canonical
-   `DOS=HIGH,UMB` outcome and its conventional-memory savings, HMA must be in
-   scope from the start.
-3. **6.22 loader breadth.** Recommended: include `/L`, `/S`, legacy `SIZE=`,
-   `INSTALLHIGH` if confirmed, and the relevant `MEM` views. Omitting them gives
-   DOS 5-like basic UMB support, not the requested 6.22 user-facing contract.
-4. **Permissive-license allowlist.** Recommended: approve MIT, BSD-2-Clause,
-   BSD-3-Clause, ISC, and zlib; require an explicit decision for any other
-   license.
-5. **Hardware acceptance target.** Recommended: require correct fallback on
-   8086/286, functional UMBs on 386+ under QEMU, and provider interoperability
-   on at least one real or cycle-accurate PC-compatible environment before the
-   feature is called complete.
-6. **Reference media.** Genuine MS-DOS 5.0/6.22 binaries are useful only as
-   external black-box oracles. Confirm that the test operator may use locally
-   owned media; no proprietary binary or derived binary data will be committed.
+1. UMB delivery and HMA/`DOS=HIGH` delivery are separate stages of this one
+   plan; both are required before the plan is complete.
+2. The project release identity becomes 4.2. The recommended compatibility
+   behavior is to return DOS 5.0 from `INT 21h/AH=30h` by default because
+   UMB-aware applications commonly require a reported version of at least 5
+   before using `5802h`/`5803h`. Existing per-program version overrides remain
+   available. Returning 4.2 through the API is still an owner decision because
+   it would hide UMB support from such applications; product identity and API
+   compatibility identity should not be conflated.
+3. The full relevant 6.22 user surface is in scope: `/L`, `/S`, legacy
+   `DEVICEHIGH SIZE=`, `INSTALLHIGH` if confirmed by reference testing, and the
+   corresponding `MEM` views.
+4. The repository remains MIT-licensed. Original clean-room work is preferred;
+   external code is accepted only under the licensing rules above.
+5. Locally owned genuine MS-DOS 5.0 and 6.22 media may be used as black-box
+   oracles. Proprietary binaries and derived binary content are not committed.
+6. QEMU/KVM is sufficient for the primary acceptance gate. Final compatibility
+   also requires one real or cycle-accurate 386+ environment, plus correct
+   fallback behavior on pre-386 configurations.
