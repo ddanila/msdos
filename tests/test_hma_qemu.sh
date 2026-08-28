@@ -88,6 +88,33 @@ run_case() {
 run_case HIGH
 run_case LOW
 
+NO_XMS_IMAGE="$OUT/floppy-hma-no-xms.img"
+NO_XMS_LOG="$OUT/hma-no-xms.log"
+cp "$FLOPPY" "$NO_XMS_IMAGE"
+mcopy -o -i "$NO_XMS_IMAGE" "$PROBE" ::HMAREF.COM
+printf 'DOS=HIGH\r\n' | mcopy -o -i "$NO_XMS_IMAGE" - ::CONFIG.SYS
+{
+    printf '@ECHO OFF\r\n'
+    printf 'CTTY AUX\r\n'
+    printf 'HMAREF.COM\r\n'
+} | mcopy -o -i "$NO_XMS_IMAGE" - ::AUTOEXEC.BAT
+timeout 20 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 16 \
+    -drive if=floppy,index=0,format=raw,file="$NO_XMS_IMAGE",cache=writethrough \
+    -boot a -serial stdio -no-reboot >"$NO_XMS_LOG" 2>&1 || true
+
+grep -Fq 'HMA_REFERENCE_NO_XMS' "$NO_XMS_LOG" || {
+    echo 'FAIL: DOS=HIGH without XMS did not complete through the low kernel' >&2
+    sed -n '1,160p' "$NO_XMS_LOG" >&2
+    exit 1
+}
+for diagnostic in 'HMA not available' 'Loading DOS low'; do
+    strings -a "$ROOT/MS-DOS/v4.0/src/BIOS/IO.SYS" | grep -Fq "$diagnostic" || {
+        echo "FAIL: DOS=HIGH fallback diagnostic missing: $diagnostic" >&2
+        exit 1
+    }
+done
+
 grep -Eq '^A20 AX=0001 ' "$OUT/hma-high.log" || {
     echo 'FAIL: DOS=HIGH did not leave A20 enabled' >&2
     exit 1
@@ -148,4 +175,4 @@ if (( high_free_dec - low_free_dec < 0x700 )); then
     exit 1
 fi
 
-echo '  PASS: DOS=HIGH ownership, code-tail reclaim, A20 recovery, and EXEC'
+echo '  PASS: DOS=HIGH ownership, fallback, code-tail reclaim, A20 recovery, and EXEC'
