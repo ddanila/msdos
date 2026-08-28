@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Prove the unpatched kernel entry jump is produced by linker layout."""
+"""Prove the source-linked kernel entry jump and HMA address bias."""
 
 from __future__ import annotations
 
@@ -42,10 +42,13 @@ def main() -> None:
     assert target == dosinit, (
         f"entry JMP targets {target:04x}, but the map places DOSINIT at {dosinit:04x}"
     )
-    assert map_offset(kernel_map, "DataVersion") - group_base(kernel_map) == 4
+    data_version = map_offset(kernel_map, "DataVersion") - group_base(kernel_map)
+    assert data_version == 0x14, (
+        f"kernel HMA bias places DataVersion at {data_version:04x}, expected 0014"
+    )
 
     share_map = ROOT / "MS-DOS/v4.0/src/CMD/SHARE/share.map"
-    assert map_offset(share_map, "DataVersion") - group_base(share_map) == 4, (
+    assert map_offset(share_map, "DataVersion") - group_base(share_map) == data_version, (
         "SHARE and the kernel disagree on the replicated DOSGROUP layout"
     )
     print("unpatched kernel entry layout test passed")

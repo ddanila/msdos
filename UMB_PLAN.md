@@ -96,6 +96,16 @@ The HMA stage includes the XMS functions required to support DOS safely. It
 must not claim general HIMEM/XMS compatibility until the complete advertised
 function set and error behavior are tested.
 
+The kernel link layout now reserves a 16-byte bias in its one-time `START`
+segment. The initial near jump remains at offset zero for the low boot loader,
+while every persistent DOSGROUP symbol begins at offset `0010h` or later.
+Consequently a byte-for-byte runtime copy at `FFFF:0010h` preserves all linked
+near displacements and absolute offsets without placing persistent state in the
+unaddressable 16-byte wrap boundary. SHARE's replicated DOS data layout is
+checked against the same bias. Runtime HMA ownership, copying, segment-pointer
+fixups, vector transition, low-arena reclamation, and rollback remain the next
+stage; the layout change alone does not report DOS high.
+
 ### Required command behavior
 
 Add the COMMAND.COM internal commands `LOADHIGH` and `LH` with 6.22 behavior:
