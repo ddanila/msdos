@@ -77,7 +77,7 @@ if [[ -z $high_segment ]] \
     || (( 16#$high_segment < 16#8000 )) \
     || ! grep -q 'TAIL= TOKEN' "$high_log" \
     || ! grep -q '^PARENT_STRATEGY=0000' "$high_log" \
-    || ! grep -q '^PARENT_UMB_LINK=0001' "$high_log" \
+    || ! grep -q '^PARENT_UMB_LINK=0000' "$high_log" \
     || ! grep -q '^INSTALLHIGH_BOOTED' "$high_log"; then
     echo 'FAIL: INSTALLHIGH upper execution and restoration contract' >&2
     sed -n '1,180p' "$high_log" >&2

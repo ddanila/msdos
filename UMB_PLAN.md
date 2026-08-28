@@ -116,8 +116,8 @@ Add the COMMAND.COM internal commands `LOADHIGH` and `LH` with 6.22 behavior:
 - plain `LOADHIGH program [arguments]` tries the largest suitable UMB and falls
   back to conventional memory;
 - `/L:region[,minsize][;...]` restricts the regions exposed to the child;
-- `/S` is accepted only with `/L` and applies only to regions with a minimum
-  size;
+- `/S` applies shrinking only to `/L` regions with a minimum size; 6.22 also
+  accepts it without `/L` as a no-op;
 - quoting, redirection, batch execution, `ERRORLEVEL`, Ctrl-C, environment
   ownership, and executable lookup remain consistent with normal execution;
 - allocation strategy and link state are restored on every success and error

@@ -25,6 +25,7 @@ tests/capture_umb_reference.sh /path/to/boot.img /tmp/dos622-umb.log
 tests/capture_umb_lifecycle_reference.sh /path/to/boot.img /tmp/dos622-life.log
 tests/capture_umb_register_reference.sh /path/to/boot.img /tmp/dos622-regs.log
 tests/capture_xms_reference.sh /path/to/boot.img /tmp/dos622-xms.log
+tests/capture_loadhigh_reference.sh /path/to/dos622.img /tmp/dos622-loadhigh.log
 ```
 
 The prepared UMB images retain their own legally obtained HIMEM/EMM386 files
@@ -150,8 +151,8 @@ asserted against the repository manager.
 | `DEVICEHIGH` no fit | falls back to `DEVICE` | pending | pending |
 | `DEVICEHIGH SIZE=` | DOS 5 legacy placement semantics | confirmed (basic placement/tail) | confirmed (basic placement/tail) |
 | `DEVICEHIGH /L /S` | region/minimum/shrink behavior | n/a | partial; single-region placement confirmed |
-| `LOADHIGH`/`LH` | largest UMB, conventional fallback | pending | pending |
-| `LOADHIGH /L /S` | child region visibility and restoration | n/a | pending |
+| `LOADHIGH`/`LH` | largest UMB, conventional fallback | pending | confirmed |
+| `LOADHIGH /L /S` | child region visibility and restoration | n/a | confirmed |
 | `INSTALLHIGH` | existence, syntax, and fallback | not recognized | confirmed (basic execution high) |
 | `MEM /C /D /F /M` | region numbering and accounting | pending | pending |
 
@@ -191,6 +192,19 @@ This tree now implements that confirmed extension through the existing
 restored on return, and the integration test proves high TSR placement,
 argument-tail preservation, `DOS=` ordering independence, and conventional
 fallback when no provider is installed.
+
+The focused 6.22 LOADHIGH capture confirms that DOS keeps the UMB arena
+publicly unlinked at the prompt even with `DOS=UMB`. During a successful high
+load the child observes strategy `0080h` and link state 1; both return to
+strategy `0000h` and link state 0 afterward. With a split UMA map,
+`/L:1`, `/L:2`, and `/L:1;2` select the numbered regions. A nonexistent region
+prints `A bad UMB number has been specified` and does not execute the child.
+Every listed minimum must be satisfiable before the scoped high-load state is
+entered; otherwise 6.22 executes the child through the ordinary low path.
+`/S` caps regions that have minima, which can force conventional placement,
+while `/S` without `/L` is accepted and behaves like plain LOADHIGH. The
+normalized capture is produced by `tests/capture_loadhigh_reference.sh` and is
+kept beside the external reference media.
 
 ## HMA residency reference
 

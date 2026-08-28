@@ -5,7 +5,7 @@ org 100h
 %define EXPECT_HIGH 1
 %endif
 %ifndef EXPECT_LINK
-%define EXPECT_LINK EXPECT_HIGH
+%define EXPECT_LINK 0
 %endif
 
 start:
@@ -41,7 +41,17 @@ start:
     cmp ax, 8000h
     jb fail
     mov [cs:device_segment], ax
+    mov bx, 1
+    mov ax, 5803h
+    int 21h
+    jc fail
     call validate_resident_mcb
+    pushf
+    xor bx, bx
+    mov ax, 5803h
+    int 21h
+    jc fail
+    popf
     jc fail
 %else
     cmp ax, 8000h

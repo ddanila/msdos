@@ -17,6 +17,11 @@ start:
     cmp ax, 0ffffh
     jne fail
 
+    mov bx, 1
+    mov ax, 5803h
+    int 21h
+    jc fail
+
     mov bx, 0040h
     mov ax, 5801h
     int 21h

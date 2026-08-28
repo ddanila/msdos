@@ -82,12 +82,12 @@ provider_log="$OUT/loadhigh-provider.log"
 if [[ $(grep -Ec '^CHILD_PSP=[A-F][0-9A-F]{3}' "$provider_log") -ne 2 ]] \
     || ! grep -Eq '^CHILD_PSP=[0-9][0-9A-F]{3}' "$provider_log" \
     || [[ $(grep -c '^CHILD_STRATEGY=0080' "$provider_log") -ne 2 ]] \
-    || [[ $(grep -c '^CHILD_UMB_LINK=0001' "$provider_log") -ne 3 ]] \
+    || [[ $(grep -c '^CHILD_UMB_LINK=0001' "$provider_log") -ne 2 ]] \
     || ! grep -Eq '^EXE_PSP=[A-F][0-9A-F]{3}' "$provider_log" \
     || ! grep -q '^EXE_STRATEGY=0080' "$provider_log" \
     || ! grep -q '^EXE_UMB_LINK=0001' "$provider_log" \
     || [[ $(grep -c '^PARENT_STRATEGY=0000' "$provider_log") -ne 5 ]] \
-    || [[ $(grep -c '^PARENT_UMB_LINK=0001' "$provider_log") -ne 5 ]] \
+    || [[ $(grep -c '^PARENT_UMB_LINK=0000' "$provider_log") -ne 5 ]] \
     || ! grep -q 'Required parameter missing' "$provider_log" \
     || [[ $(grep -c 'File not found' "$provider_log") -lt 2 ]] \
     || ! grep -q '^PROVIDER_END' "$provider_log"
@@ -131,7 +131,7 @@ if ! grep -Eq '^CHILD_PSP=[A-F][0-9A-F]{3}' "$high_log" \
     || ! grep -q '^CHILD_STRATEGY=0080' "$high_log" \
     || ! grep -q '^CHILD_UMB_LINK=0001' "$high_log" \
     || ! grep -q '^PARENT_STRATEGY=0000' "$high_log" \
-    || ! grep -q '^PARENT_UMB_LINK=0001' "$high_log" \
+    || ! grep -q '^PARENT_UMB_LINK=0000' "$high_log" \
     || ! grep -q '^DOS_HIGH_END' "$high_log"
 then
     echo "FAIL: LOADHIGH with DOS=HIGH" >&2

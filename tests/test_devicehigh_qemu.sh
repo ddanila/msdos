@@ -28,7 +28,7 @@ QEXIT="$OUT/devicehigh-exit.com"
 nasm -f bin "$ROOT/tests/devicehigh_reference_driver.asm" -o "$DRIVER"
 nasm -DEXPECT_HIGH=1 -f bin "$ROOT/tests/devicehigh_state_probe.asm" -o "$HIGH_PROBE"
 nasm -DEXPECT_HIGH=0 -f bin "$ROOT/tests/devicehigh_state_probe.asm" -o "$LOW_PROBE"
-nasm -DEXPECT_HIGH=0 -DEXPECT_LINK=1 -f bin \
+nasm -DEXPECT_HIGH=0 -f bin \
     "$ROOT/tests/devicehigh_state_probe.asm" -o "$LINKED_LOW_PROBE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 
@@ -150,4 +150,4 @@ if ! grep -q '^DEVICEHIGH_FALLBACK_PASS' "$fallback_log"; then
     exit 1
 fi
 
-echo '  PASS: DEVICEHIGH upper placement, DOS= ordering, retained link, and fallback'
+echo '  PASS: DEVICEHIGH upper placement, DOS= ordering, scoped link, and fallback'
