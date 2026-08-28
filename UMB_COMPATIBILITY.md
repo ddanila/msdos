@@ -123,7 +123,11 @@ source/destination handle `A3h`/`A5h`, exhausted-memory `A0h`, duplicate HMA
 ownership `91h`, unowned HMA release `93h`, and A20 nesting error `82h`.
 Both reference managers accept overlapping moves in either direction. Zero-KiB
 extended-memory allocations consume a real handle and report a zero-sized
-block. These observed results are asserted against the repository manager.
+block. With EMM386 already owning one handle, both references allow the probe
+to obtain 31 further handles and then return `A1h`; the repository manager
+allows all 32 when run without that peer allocation. A 256th lock returns
+`ACh`, and an unlock below zero returns `AAh`. These observed results are
+asserted against the repository manager.
 
 ## Boot and command interfaces
 

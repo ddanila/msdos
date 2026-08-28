@@ -233,6 +233,86 @@ move_errors:
     mov si, allocate_huge_label
     call invoke
 
+    ; Exhaust the finite handle table with legal zero-sized blocks. Keep the
+    ; output compact: DX reports how many caller-visible handles were obtained.
+    xor di, di
+handle_exhaust_loop:
+    mov ah, 09h
+    xor dx, dx
+    call far [xms_entry]
+    or ax, ax
+    jz short handle_exhausted
+    mov [exhaust_handles+di], dx
+    add di, 2
+    cmp di, 64
+    jb short handle_exhaust_loop
+    mov ah, 09h
+    xor dx, dx
+    call far [xms_entry]
+    or ax, ax
+    jz short handle_exhausted
+    mov ax, 0ffffh
+    xor bx, bx
+handle_exhausted:
+    mov dx, di
+    shr dx, 1
+    mov si, handle_exhaust_label
+    call print_ax_bx_dx
+    xor di, di
+handle_release_loop:
+    cmp di, dx
+    jae short lock_overflow_test
+    push dx
+    mov bx, di
+    shl bx, 1
+    mov dx, [exhaust_handles+bx]
+    mov ah, 0ah
+    call far [xms_entry]
+    pop dx
+    inc di
+    jmp short handle_release_loop
+
+lock_overflow_test:
+    mov ah, 09h
+    mov dx, 1
+    call far [xms_entry]
+    or ax, ax
+    jz short hma_test
+    mov [overflow_handle], dx
+    mov word [repeat_count], 255
+lock_to_limit:
+    mov ah, 0ch
+    mov dx, [overflow_handle]
+    call far [xms_entry]
+    or ax, ax
+    jz short lock_loop_failed
+    dec word [repeat_count]
+    jnz short lock_to_limit
+    mov ah, 0ch
+    mov dx, [overflow_handle]
+    mov si, lock_overflow_label
+    call invoke
+    mov word [repeat_count], 255
+unlock_to_zero:
+    mov ah, 0dh
+    mov dx, [overflow_handle]
+    call far [xms_entry]
+    or ax, ax
+    jz short lock_loop_failed
+    dec word [repeat_count]
+    jnz short unlock_to_zero
+    mov ah, 0dh
+    mov dx, [overflow_handle]
+    mov si, unlock_after_overflow_label
+    call invoke
+    mov ah, 0ah
+    mov dx, [overflow_handle]
+    call far [xms_entry]
+    jmp short hma_test
+lock_loop_failed:
+    mov si, lock_loop_failed_label
+    call print_ax_bx_dx
+
 hma_test:
     mov ah, 01h
     mov dx, 0ffffh
@@ -405,6 +485,9 @@ xms_entry dd 0
 handle dw 0
 zero_handle dw 0
 error_handle dw 0
+overflow_handle dw 0
+repeat_count dw 0
+exhaust_handles times 32 dw 0
 installed_ax dw 0
 result_flags dw 0
 result_ax dw 0
@@ -500,6 +583,10 @@ overlap_move_label db 'MOVE_OVERLAP', 0
 reverse_overlap_move_label db 'MOVE_REVERSE_OVERLAP', 0
 error_free_label db 'ERROR_CASE_FREE', 0
 allocate_huge_label db 'ALLOCATE_HUGE', 0
+handle_exhaust_label db 'HANDLE_EXHAUSTED', 0
+lock_overflow_label db 'LOCK_OVERFLOW', 0
+unlock_after_overflow_label db 'UNLOCK_AFTER_OVERFLOW', 0
+lock_loop_failed_label db 'LOCK_LOOP_FAILED', 0
 hma_request_label db 'HMA_REQUEST', 0
 hma_second_label db 'HMA_SECOND_REQUEST', 0
 hma_release_label db 'HMA_RELEASE', 0
