@@ -146,7 +146,7 @@ asserted against the repository manager.
 | `DOS=UMB` without provider | silent, remains usable low | pending | pending |
 | `DOS=NOUMB` | disables DOS UMB management | n/a or pending | pending |
 | `DOS=HIGH` failure | exact message, loads DOS low | pending | pending |
-| `DOS=HIGH,UMB` | independent HMA and UMB state | pending | pending |
+| `DOS=HIGH,UMB` | DOS owns HMA, A20 on; UMB state remains independent | confirmed | confirmed |
 | `DEVICEHIGH` no fit | falls back to `DEVICE` | pending | pending |
 | `DEVICEHIGH SIZE=` | DOS 5 legacy placement semantics | pending | pending |
 | `DEVICEHIGH /L /S` | region/minimum/shrink behavior | n/a | pending |
@@ -159,6 +159,18 @@ This tree now accepts case-insensitive `DOS=HIGH`, `LOW`, `UMB`, and `NOUMB`
 tokens, comma-separated pairs, and repeated `DOS=` lines. The HMA and UMB
 effects remain delivery-gated; without a provider, `DOS=UMB` is silent and the
 kernel remains unlinked.
+
+## HMA residency reference
+
+An independent probe now compares otherwise identical `DOS=LOW,UMB` and
+`DOS=HIGH,UMB` boots. In low mode, both HIMEM versions report A20 disabled and
+allow the probe to acquire the HMA. In high mode, A20 is enabled and an HMA
+request fails with `BL=91h`, proving DOS owns it. Under the captured 16 MiB
+NOEMS configurations, DOS 5.0's largest conventional block increases from
+`8D80h` to `9952h` paragraphs (48,416 bytes), while DOS 6.22 increases from
+`8E63h` to `9A8Dh` paragraphs (49,824 bytes). These measurements are layout
+oracles, not universal free-memory constants; the ownership and A20 state are
+the portable contract.
 
 As an independent provider check, this tree was booted with the locally held
 MS-DOS 5.0 HIMEM 2.78 and EMM386 4.33.06X binaries under the reference QEMU
