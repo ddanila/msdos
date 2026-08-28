@@ -139,8 +139,7 @@ All project-specific work stays under `github.com/ddanila`:
 - `ddanila/kvikdos:custom` for emulator test support.
 
 The `master` branches of the Open Watcom and kvikdos forks are reserved for
-upstream synchronization. Never push or submit anything to an upstream project
-without explicit owner permission.
+upstream synchronization; project-specific changes live on `custom`.
 
 ## Expensive diagnostics
 
