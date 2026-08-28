@@ -9,6 +9,8 @@ HIMEM="$OUT/loadhigh-himem.sys"
 COM_CHILD="$OUT/loadhigh-child.com"
 EXE_CHILD="$OUT/loadhigh-child.exe"
 STATE="$OUT/loadhigh-state.com"
+ERROR_CHILD="$OUT/loadhigh-error.com"
+CTRLC_CHILD="$OUT/loadhigh-ctrlc.com"
 QEXIT="$OUT/loadhigh-qexit.com"
 
 for tool in nasm mcopy qemu-system-i386 timeout; do
@@ -26,6 +28,8 @@ done
 nasm -f bin "$ROOT/tests/loadhigh_child.asm" -o "$COM_CHILD"
 nasm -f bin "$ROOT/tests/loadhigh_exe_child.asm" -o "$EXE_CHILD"
 nasm -f bin "$ROOT/tests/loadhigh_state.asm" -o "$STATE"
+nasm -f bin "$ROOT/tests/loadhigh_error_child.asm" -o "$ERROR_CHILD"
+nasm -f bin "$ROOT/tests/loadhigh_ctrlc_child.asm" -o "$CTRLC_CHILD"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 
 run_image() {
@@ -40,6 +44,8 @@ run_image() {
     mcopy -o -i "$image" "$COM_CHILD" ::LHCHILD.COM
     mcopy -o -i "$image" "$EXE_CHILD" ::LHEXEC.EXE
     mcopy -o -i "$image" "$STATE" ::LHSTATE.COM
+    mcopy -o -i "$image" "$ERROR_CHILD" ::LHERR.COM
+    mcopy -o -i "$image" "$CTRLC_CHILD" ::LHCTRL.COM
     mcopy -o -i "$image" "$QEXIT" ::QEXIT.COM
     printf '%s' "$config" | mcopy -o -i "$image" - ::CONFIG.SYS
     {
@@ -88,6 +94,16 @@ provider_commands=$(printf '%b' \
     'LOADHIGH /L:1 LHCHILD.COM\r\n' \
     'LHSTATE.COM\r\n' \
     'ECHO LH_OPTIONS_END\r\n' \
+    'ECHO LH_PATHS_BEGIN\r\n' \
+    'LOADHIGH /L:1 LHCHILD.COM "TWO WORDS" >LHOUT.TXT\r\n' \
+    'TYPE LHOUT.TXT\r\n' \
+    'LOADHIGH /L:1 LHERR.COM\r\n' \
+    'IF ERRORLEVEL 37 ECHO LH_ERRORLEVEL_PASS\r\n' \
+    'LHSTATE.COM\r\n' \
+    'COMMAND /C LOADHIGH /L:1 LHCTRL.COM\r\n' \
+    'LHSTATE.COM\r\n' \
+    'LOADHIGH /L:1 LHCHILD.COM RECOVER\r\n' \
+    'ECHO LH_PATHS_END\r\n' \
     'ECHO PROVIDER_END\r\n')
 provider_config=$(printf '%b' \
     'DEVICE=A:\\HIMEM.SYS\r\n' \
@@ -100,15 +116,16 @@ options_log=$(sed -n '/^LH_OPTIONS_BEGIN/,/^LH_OPTIONS_END/p' "$provider_log")
 invalid_log=$(sed -n '/^LH_REGION_INVALID/,/^LH_MINIMUM/p' "$provider_log")
 shrink_log=$(sed -n '/^LH_SHRINK/,/^LH_SHRINK_ALONE/p' "$provider_log")
 recovery_log=$(sed -n '/^LH_PROFILE_FAILURE/,/^LH_OPTIONS_END/p' "$provider_log")
-if [[ $(grep -Ec '^CHILD_PSP=[A-F][0-9A-F]{3}' "$provider_log") -ne 6 ]] \
+paths_log=$(sed -n '/^LH_PATHS_BEGIN/,/^LH_PATHS_END/p' "$provider_log")
+if [[ $(grep -Ec '^CHILD_PSP=[A-F][0-9A-F]{3}' "$provider_log") -ne 8 ]] \
     || [[ $(grep -Ec '^CHILD_PSP=[0-9][0-9A-F]{3}' "$provider_log") -ne 2 ]] \
-    || [[ $(grep -c '^CHILD_STRATEGY=0080' "$provider_log") -ne 7 ]] \
-    || [[ $(grep -c '^CHILD_UMB_LINK=0001' "$provider_log") -ne 7 ]] \
+    || [[ $(grep -c '^CHILD_STRATEGY=0080' "$provider_log") -ne 9 ]] \
+    || [[ $(grep -c '^CHILD_UMB_LINK=0001' "$provider_log") -ne 9 ]] \
     || ! grep -Eq '^EXE_PSP=[A-F][0-9A-F]{3}' "$provider_log" \
     || ! grep -q '^EXE_STRATEGY=0080' "$provider_log" \
     || ! grep -q '^EXE_UMB_LINK=0001' "$provider_log" \
-    || [[ $(grep -c '^PARENT_STRATEGY=0000' "$provider_log") -ne 6 ]] \
-    || [[ $(grep -c '^PARENT_UMB_LINK=0000' "$provider_log") -ne 6 ]] \
+    || [[ $(grep -c 'PARENT_STRATEGY=0000' "$provider_log") -ne 8 ]] \
+    || [[ $(grep -c '^PARENT_UMB_LINK=0000' "$provider_log") -ne 8 ]] \
     || ! grep -q 'Required parameter missing' "$provider_log" \
     || [[ $(grep -c 'File not found' "$provider_log") -lt 3 ]] \
     || [[ $(grep -c '^LOADHIGH_CHILD_END' <<<"$options_log") -ne 5 ]] \
@@ -117,6 +134,11 @@ if [[ $(grep -Ec '^CHILD_PSP=[A-F][0-9A-F]{3}' "$provider_log") -ne 6 ]] \
     || ! grep -Eq '^CHILD_PSP=[0-9][0-9A-F]{3}' <<<"$shrink_log" \
     || ! grep -q 'File not found' <<<"$recovery_log" \
     || ! grep -Eq '^CHILD_PSP=[A-F][0-9A-F]{3}' <<<"$recovery_log" \
+    || ! grep -q '^CHILD_TAIL= "TWO WORDS"' <<<"$paths_log" \
+    || ! grep -q '^LOADHIGH_ERROR_CHILD' <<<"$paths_log" \
+    || ! grep -q '^LH_ERRORLEVEL_PASS' <<<"$paths_log" \
+    || grep -q '^LOADHIGH_CTRLC_RETURNED' <<<"$paths_log" \
+    || ! grep -q '^CHILD_TAIL= RECOVER' <<<"$paths_log" \
     || ! grep -q '^PROVIDER_END' "$provider_log"
 then
     echo "FAIL: LOADHIGH/LH provider contract" >&2

@@ -5,6 +5,16 @@ start:
     push cs
     pop ds
 
+    mov ax, [2ch]
+    or ax, ax
+    jz fail
+    mov es, ax
+    dec ax
+    mov es, ax
+    mov ax, cs
+    cmp [es:1], ax
+    jne fail
+
     mov ax, cs
     mov si, psp_label
     call print_word
@@ -21,6 +31,19 @@ start:
     xor ah, ah
     mov si, link_label
     call print_word
+
+    mov dx, tail_label
+    mov ah, 09h
+    int 21h
+    xor cx, cx
+    mov cl, [80h]
+    mov bx, 1
+    mov dx, 81h
+    mov ah, 40h
+    int 21h
+    mov dx, newline
+    mov ah, 09h
+    int 21h
 
     mov dx, complete
     mov ah, 09h
@@ -86,6 +109,7 @@ print_nibble:
 psp_label db 'CHILD_PSP=', '$'
 strategy_label db 'CHILD_STRATEGY=', '$'
 link_label db 'CHILD_UMB_LINK=', '$'
+tail_label db 'CHILD_TAIL=', '$'
 newline db 13, 10, '$'
 complete db 'LOADHIGH_CHILD_END', 13, 10, '$'
 failed db 'LOADHIGH_CHILD_FAIL', 13, 10, '$'

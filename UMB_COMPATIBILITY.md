@@ -216,8 +216,12 @@ failed minimum uses the ordinary low EXEC state, an invalid region emits the
 captured diagnostic without running the child, and filters, caps, strategy,
 and link state are restored after successful and failed EXEC calls. Synthetic
 split-region tests cover individual regions, lists, per-region minima, forced
-low placement, and recovery after a missing executable. Quoting, redirection,
-batch errorlevel, and Ctrl-C remain separate command-path gates.
+low placement, and recovery after a missing executable. The command-path test
+also proves that the child environment MCB is owned by its PSP, LOADHIGH's own
+options are absent from quoted argument tails, redirected output is recovered
+from the target file, batch `ERRORLEVEL` preserves the child's value, and a
+Ctrl-C termination restores allocator state before another successful high
+load.
 
 ## HMA residency reference
 
