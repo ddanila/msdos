@@ -120,7 +120,16 @@
       "/D": {"level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Removes a live joined drive while preserving the underlying target payload"}
     }},
     "MEM.EXE": {"source": "MS-DOS/v4.0/src/CMD/MEM/MEM.C", "extractor": "c_parser_literals", "switches": {
-      "/DEBUG": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_drivers_qemu.sh"], "note": "Reports internal drivers and configured-system detail"},
+      "/C": {"level": "contract", "evidence": ["tests/test_mem_umb_qemu.sh"], "note": "Classifies modules by conventional and upper-memory use"},
+      "/CLASSIFY": {"level": "contract", "evidence": ["tests/test_mem_umb_qemu.sh"], "note": "Long classify synonym uses the same UMB-aware module view"},
+      "/D": {"level": "contract", "evidence": ["tests/test_mem_umb_qemu.sh"], "note": "Reports detailed MCB addresses, ownership, types, and exact UMB region numbers"},
+      "/DEBUG": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_drivers_qemu.sh", "tests/test_mem_umb_qemu.sh"], "note": "Reports conventional and upper arenas with region-aware diagnostics"},
+      "/F": {"level": "contract", "evidence": ["tests/test_mem_umb_qemu.sh"], "note": "Reports free conventional blocks and exact per-region UMB totals"},
+      "/FREE": {"level": "contract", "evidence": ["tests/test_mem_umb_qemu.sh"], "note": "Long free-memory synonym uses the region-aware free view"},
+      "/M": {"level": "contract", "evidence": ["tests/test_mem_umb_qemu.sh"], "note": "Reports conventional and upper memory for a named module"},
+      "/M:": {"level": "contract", "evidence": ["tests/test_mem_umb_qemu.sh"], "note": "Accepts the compact named-module form"},
+      "/MODULE": {"level": "contract", "evidence": ["tests/test_mem_umb_qemu.sh"], "note": "Long module synonym accepts a separate module name"},
+      "/MODULE:": {"level": "contract", "evidence": ["tests/test_mem_umb_qemu.sh"], "note": "Accepts the compact long named-module form"},
       "/PROGRAM": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Reports loaded programs and their memory use"}
     }},
     "MODE.COM": {"source": "MS-DOS/v4.0/src/CMD/MODE/MODEPARS.ASM", "switches": {

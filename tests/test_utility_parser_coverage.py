@@ -26,6 +26,9 @@ def source_switches(text, extractor="asm_db"):
             r"strcpy\([^;]*?[\"'](/[^\"',+\s]+)[\"']", text, re.IGNORECASE
         )
         values += re.findall(
+            r"str(?:n)?icmp\([^,]+,[\"'](/[^\"']+)[\"']", text, re.IGNORECASE
+        )
+        values += re.findall(
             r"^\s*#define\s+\w+\s+[\"'](/[^\"']+)[\"']",
             text,
             re.IGNORECASE | re.MULTILINE,

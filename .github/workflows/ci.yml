@@ -314,6 +314,9 @@ jobs:
       - name: DOS high-memory residency
         run: bash tests/test_hma_qemu.sh
 
+      - name: MEM upper-memory diagnostics
+        run: bash tests/test_mem_umb_qemu.sh
+
       - name: LOADHIGH and LH upper-memory execution
         run: bash tests/test_loadhigh_qemu.sh
 
