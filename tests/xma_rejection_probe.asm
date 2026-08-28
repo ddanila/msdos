@@ -45,7 +45,7 @@ start:
 
     mov ah, 30h
     int 21h
-    cmp al, 4
+    cmp al, 5
     jne dos_failed
 
     mov dx, pass_message

@@ -16,6 +16,11 @@ start:
     push ds
     pop es
 
+    mov si, 18h
+    mov di, initial_jfn_table
+    mov cx, 20
+    rep movsb
+
     mov dx, io_dta
     mov ah, 1ah
     int 21h
@@ -24,6 +29,8 @@ start:
     mov ah, 16h
     int 21h
     fail_unless_zero 16
+    call check_jfn_table
+    jne jfn_failed
     cmp word [file_fcb + 14], 128
     je record_size_ok
     mov dx, fail_16
@@ -43,11 +50,15 @@ record_size_ok:
     mov ah, 10h
     int 21h
     fail_unless_zero 10
+    call check_jfn_table
+    jne jfn_failed
 
     mov dx, file_fcb
     mov ah, 0fh
     int 21h
     fail_unless_zero 0f
+    call check_jfn_table
+    jne jfn_failed
 
     mov word [file_fcb + 12], 0
     mov byte [file_fcb + 32], 0
@@ -144,6 +155,8 @@ block_write_ok:
     mov ah, 10h
     int 21h
     fail_unless_zero 10
+    call check_jfn_table
+    jne jfn_failed
 
     mov dx, rename_fcb
     mov ah, 17h
@@ -190,6 +203,9 @@ parse_failed:
     jmp fail
 parse_ok:
 
+    call check_jfn_table
+    jne jfn_failed
+
     mov dx, pass_message
     mov ah, 09h
     int 21h
@@ -198,6 +214,27 @@ parse_ok:
     out dx, ax
     mov ax, 4c00h
     int 21h
+
+jfn_failed:
+    mov dx, fail_jfn
+    jmp fail
+
+check_jfn_table:
+    push es
+    push si
+    push di
+    push cx
+    push ds
+    pop es
+    mov si, 18h
+    mov di, initial_jfn_table
+    mov cx, 20
+    repe cmpsb
+    pop cx
+    pop di
+    pop si
+    pop es
+    ret
 
 fail:
     mov ah, 09h
@@ -222,6 +259,9 @@ fail_24     db 'INT21_24_FAIL', 13, 10, '$'
 fail_27     db 'INT21_27_FAIL', 13, 10, '$'
 fail_28     db 'INT21_28_FAIL', 13, 10, '$'
 fail_29     db 'INT21_29_FAIL', 13, 10, '$'
+fail_jfn    db 'INT21_FCB_JFN_CORRUPTION_FAIL', 13, 10, '$'
+
+initial_jfn_table times 20 db 0
 
 file_fcb:
     db 0, 'I21FCB  ', 'DAT'

@@ -8,10 +8,13 @@ FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 
 BOOT_IMG="$OUT/prompt-yesno-boot.img"
 TARGET_IMG="$OUT/prompt-yesno-target.img"
+COMP_IMG="$OUT/prompt-yesno-comp.img"
 SERIAL_LOG="$OUT/prompt-yesno-serial.log"
 SERIAL_IN="$OUT/prompt-yesno-serial.in"
 SERIAL_OUT="$OUT/prompt-yesno-serial.out"
 EXIT_COM="$OUT/prompt-yesno-qexit.com"
+COMP_SCREEN_LOG="$OUT/prompt-yesno-comp-screen.log"
+COMP_QMP_SOCK="$OUT/prompt-yesno-comp-qmp.sock"
 
 PASS=0
 FAIL=0
@@ -24,7 +27,7 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
-trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$SERIAL_IN" "$SERIAL_OUT" 2>/dev/null; true' EXIT
+trap 'kill ${QEMU_PID:-} ${COMP_QEMU_PID:-} 2>/dev/null; rm -f "$SERIAL_IN" "$SERIAL_OUT" "$COMP_QMP_SOCK" 2>/dev/null; true' EXIT
 
 echo "=== prompted command and utility workflows (QEMU, serial expect) ==="
 
@@ -86,10 +89,6 @@ mformat -i "$TARGET_IMG" ::
     printf 'COMP COMP1.TXT COMP1.TXT\r\n'
     printf 'ECHO COMP_N_DONE\r\n'
 
-    printf 'ECHO ---COMP-Y---\r\n'
-    printf 'COMP COMP1.TXT COMP1.TXT\r\n'
-    printf 'ECHO COMP_Y_DONE\r\n'
-
     printf 'ECHO ===DONE===\r\n'
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
@@ -123,10 +122,7 @@ python3 "$REPO_ROOT/tests/serial_expect.py" \
     'Press any key' '\r' \
     'Press any key' '\r' \
     'Compare more files' 'N\r' \
-    'Compare more files' 'Y\r' \
-    'Enter primary filename' 'COMP1.TXT\r' \
-    'Enter 2nd filename or drive id' 'COMP1.TXT\r' \
-    'Compare more files' 'N\r'
+    '===DONE===' ''
 
 wait $QEMU_PID || true
 exec 3>&-
@@ -229,17 +225,45 @@ else
     fail "COMP N response did not return to the calling batch"
 fi
 
-if [[ $(grep -c "Enter primary filename" "$SERIAL_LOG") -ge 1 ]] &&
-   [[ $(grep -c "Enter 2nd filename or drive id" "$SERIAL_LOG") -eq 1 ]]; then
-    ok "COMP Y response requested a new primary and secondary file pair"
-else
-    fail "COMP Y response did not request a new primary and secondary file pair"
-fi
+cp "$FLOPPY" "$COMP_IMG"
+mcopy -o -i "$COMP_IMG" "$EXIT_COM" ::QEXIT.COM
+{
+    printf '@ECHO OFF\r\n'
+    printf 'ECHO COMP_PAYLOAD>COMP1.TXT\r\n'
+    printf 'COMP COMP1.TXT COMP1.TXT\r\n'
+    printf 'ECHO COMP_Y_DONE>A:\\COMPY.OK\r\n'
+} | mcopy -o -i "$COMP_IMG" - ::AUTOEXEC.BAT
 
-if [[ $(grep -c "Files compare OK" "$SERIAL_LOG") -ge 3 ]] && grep -q "COMP_Y_DONE" "$SERIAL_LOG"; then
-    ok "COMP repeated comparison completed and final N returned to batch"
+rm -f "$COMP_QMP_SOCK" "$COMP_SCREEN_LOG"
+timeout 45 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 4 \
+    -drive if=floppy,index=0,format=raw,file="$COMP_IMG",cache=writethrough \
+    -boot a -qmp unix:"$COMP_QMP_SOCK",server,nowait -no-reboot \
+    2>/dev/null &
+COMP_QEMU_PID=$!
+for _ in $(seq 1 30); do
+    [[ -S "$COMP_QMP_SOCK" ]] && break
+    sleep 0.1
+done
+
+COMP_SCREEN_OK=0
+if [[ -S "$COMP_QMP_SOCK" ]] && python3 "$REPO_ROOT/tests/screen_expect.py" \
+        "$COMP_QMP_SOCK" "$COMP_SCREEN_LOG" \
+        'Compare more files' 'y+ret' \
+        'Enter primary filename' 'c+o+m+p+1+dot+t+x+t+ret' \
+        'Enter 2nd filename or drive id' 'c+o+m+p+1+dot+t+x+t+ret' \
+        'Compare more files' 'n+ret' \
+        'A>' ''; then
+    COMP_SCREEN_OK=1
+fi
+kill "$COMP_QEMU_PID" 2>/dev/null || true
+wait "$COMP_QEMU_PID" 2>/dev/null || true
+COMP_QEMU_PID=
+
+if [[ "$COMP_SCREEN_OK" -eq 1 ]] && mtype -i "$COMP_IMG" ::COMPY.OK 2>/dev/null | grep -q 'COMP_Y_DONE'; then
+    ok "COMP Y response requested a new pair and final N returned to the batch"
 else
-    fail "COMP repeated comparison or final return did not complete"
+    fail "COMP real-console repeat workflow did not complete"
 fi
 
 echo ""
