@@ -280,6 +280,89 @@ list_ok:
     jmp fail
 strategy_ok:
 
+    mov bx, 0042h
+    mov ax, 5801h
+    int 21h
+    fail_if_carry 58
+    mov ax, 5800h
+    int 21h
+    fail_if_carry 58
+    cmp ax, 0042h
+    jne strategy_failed
+
+    mov bx, 0081h
+    mov ax, 5801h
+    int 21h
+    fail_if_carry 58
+    mov ax, 5800h
+    int 21h
+    fail_if_carry 58
+    cmp ax, 0081h
+    jne strategy_failed
+
+    mov bx, 0043h
+    mov ax, 5801h
+    int 21h
+    fail_unless_carry 58
+    cmp ax, 1
+    jne strategy_failed
+    mov ax, 5800h
+    int 21h
+    fail_if_carry 58
+    cmp ax, 0081h
+    jne strategy_failed
+
+    mov bx, 0100h
+    mov ax, 5801h
+    int 21h
+    fail_unless_carry 58
+    cmp ax, 1
+    jne strategy_failed
+
+    mov ax, 5802h
+    int 21h
+    fail_if_carry 58
+    or al, al
+    jnz strategy_failed
+
+    mov bx, 1
+    mov ax, 5803h
+    int 21h
+    fail_unless_carry 58
+    cmp ax, 1
+    jne strategy_failed
+
+    mov bx, 0
+    mov ax, 5803h
+    int 21h
+    fail_unless_carry 58
+    cmp ax, 1
+    jne strategy_failed
+
+    mov bx, 2
+    mov ax, 5803h
+    int 21h
+    fail_unless_carry 58
+    cmp ax, 1
+    jne strategy_failed
+
+    mov ax, 5804h
+    int 21h
+    fail_unless_carry 58
+    cmp ax, 1
+    jne strategy_failed
+
+    mov bx, [allocation_strategy]
+    mov ax, 5801h
+    int 21h
+    fail_if_carry 58
+    jmp strategy_complete
+
+strategy_failed:
+    mov dx, fail_58
+    jmp fail
+strategy_complete:
+
     xor cx, cx
     mov dx, temporary_template
     mov ah, 5ah

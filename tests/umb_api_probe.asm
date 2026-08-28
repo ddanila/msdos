@@ -2,8 +2,13 @@ bits 16
 org 100h
 
 start:
+    cli
+    mov sp, program_stack_top
+    sti
     push cs
     pop ds
+    push cs
+    pop es
 
     mov bx, (program_end - $$ + 100h + 15) / 16
     mov ah, 4ah
@@ -329,4 +334,6 @@ ax_label db ' AX=', 0
 bx_label db ' BX=', 0
 newline db 13, 10, 0
 complete db 'UMB_API_END', 13, 10, 0
+program_stack times 512 db 0
+program_stack_top:
 program_end:
