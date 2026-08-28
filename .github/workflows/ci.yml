@@ -299,6 +299,9 @@ jobs:
       - name: CONFIG.SYS internal stack allocation
         run: bash tests/test_config_stacks_qemu.sh
 
+      - name: CONFIG.SYS DOS memory selection
+        run: bash tests/test_config_dos_qemu.sh
+
       - name: CONFIG.SYS installable filesystem linkage
         run: bash tests/test_config_ifs_qemu.sh
 

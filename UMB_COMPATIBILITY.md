@@ -94,6 +94,11 @@ distinguish the upper-only and upper-then-low fallback contracts empirically.
 | `INSTALLHIGH` | existence, syntax, and fallback | pending | pending |
 | `MEM /C /D /F /M` | region numbering and accounting | pending | pending |
 
+This tree now accepts case-insensitive `DOS=HIGH`, `LOW`, `UMB`, and `NOUMB`
+tokens, comma-separated pairs, and repeated `DOS=` lines. The HMA and UMB
+effects remain delivery-gated; without a provider, `DOS=UMB` is silent and the
+kernel remains unlinked.
+
 ## Evidence required to close Phase 0
 
 - Capture all four reference configurations above.
