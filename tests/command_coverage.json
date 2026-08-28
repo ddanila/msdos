@@ -33,6 +33,8 @@
     "FOR": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "A batch loop expands and visits every item exactly by marker"},
     "GOTO": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "A label jump reaches its target and skips intervening output"},
     "IF": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "EXIST, string, ERRORLEVEL, and NOT variants assert both true and false branches"},
+    "LH": {"level": "contract", "evidence": ["tests/test_loadhigh_qemu.sh"], "note": "The DOS 5 alias loads COM and EXE children into a UMB, falls back low without a provider or sufficient upper space, and restores the caller's UMB link and allocation strategy"},
+    "LOADHIGH": {"level": "contract", "evidence": ["tests/test_loadhigh_qemu.sh"], "note": "COM and EXE placement, child-visible upper-first strategy, conventional environment ownership, fallback, missing operands and programs, aliases, and DOS=HIGH coexistence are asserted"},
     "MD": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "The short form creates ordinary and nested directories; existing targets and excess operands are rejected without disturbing contents"},
     "MKDIR": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "The long form creates a directory observed through IF EXIST and reaches the shared validated implementation"},
     "PATH": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Display, assignment, and clearing of the executable search path are asserted"},

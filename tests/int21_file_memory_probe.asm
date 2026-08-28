@@ -29,6 +29,9 @@ org 100h
 %endmacro
 
 start:
+    cli
+    mov sp, stack_top
+    sti
     push cs
     pop ds
 
@@ -571,9 +574,11 @@ extended_error_ok:
     mov dx, pass_message
     mov ah, 09h
     int 21h
+%ifndef NO_DEBUG_EXIT
     mov dx, 0f4h
     mov ax, 10h
     out dx, ax
+%endif
     mov ax, 4c00h
     int 21h
 
@@ -674,4 +679,7 @@ cwd_buffer     times 64 db 0
 read_buffer    times payload_size db 0
 dta            times 128 db 0
 country_buffer times 64 db 0
+align 16
+stack_space times 512 db 0
+stack_top:
 program_end:

@@ -5,7 +5,7 @@ export LC_ALL=C
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT="$ROOT/out"
 FLOPPY="$OUT/floppy.img"
-HIMEM="$OUT/HIMEM.SYS"
+HIMEM="$OUT/hma-himem.sys"
 PROBE="$OUT/hma-reference.com"
 A20_DRIVER="$OUT/hma-a20.sys"
 SYSTEM_PROBE="$OUT/hma-i21system.com"
@@ -28,7 +28,8 @@ done
 nasm -f bin "$ROOT/tests/hma_reference_probe.asm" -o "$PROBE"
 nasm -f bin "$ROOT/tests/hma_a20_driver.asm" -o "$A20_DRIVER"
 nasm -f bin "$ROOT/tests/int21_system_probe.asm" -o "$SYSTEM_PROBE"
-nasm -f bin "$ROOT/tests/int21_file_memory_probe.asm" -o "$FILE_MEMORY_PROBE"
+nasm -DNO_DEBUG_EXIT -f bin "$ROOT/tests/int21_file_memory_probe.asm" \
+    -o "$FILE_MEMORY_PROBE"
 
 run_case() {
     local mode=$1
