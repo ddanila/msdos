@@ -12,6 +12,7 @@ IMAGE="$OUT/floppy-himem.img"
 LOG="$OUT/himem.log"
 LIFECYCLE_PROBE="$OUT/umb-lifecycle-reference.com"
 EMM_PROBE="$OUT/emm386-with-umb.com"
+ISOLATION_PROBE="$OUT/umb-ems-isolation.com"
 COMBINED_IMAGE="$OUT/floppy-himem-emm386.img"
 COMBINED_LOG="$OUT/himem-emm386.log"
 
@@ -28,6 +29,7 @@ nasm -f bin "$ROOT/tests/xms_reference_probe.asm" -o "$XMS_PROBE"
 nasm -f bin "$ROOT/tests/himem_provider_probe.asm" -o "$PROVIDER_PROBE"
 nasm -f bin "$ROOT/tests/umb_lifecycle_reference.asm" -o "$LIFECYCLE_PROBE"
 nasm -f bin "$ROOT/tests/emm386_probe.asm" -o "$EMM_PROBE"
+nasm -f bin "$ROOT/tests/umb_ems_isolation_probe.asm" -o "$ISOLATION_PROBE"
 
 cp "$FLOPPY" "$IMAGE"
 mcopy -o -i "$IMAGE" "$HIMEM" ::HIMEM.SYS
@@ -70,6 +72,7 @@ cp "$FLOPPY" "$COMBINED_IMAGE"
 mcopy -o -i "$COMBINED_IMAGE" "$HIMEM" ::HIMEM.SYS
 mcopy -o -i "$COMBINED_IMAGE" "$LIFECYCLE_PROBE" ::UMBLREF.COM
 mcopy -o -i "$COMBINED_IMAGE" "$EMM_PROBE" ::EMMPROBE.COM
+mcopy -o -i "$COMBINED_IMAGE" "$ISOLATION_PROBE" ::UMBEMS.COM
 {
     printf 'DEVICE=A:\\HIMEM.SYS\r\n'
     printf 'DEVICE=A:\\EMM386.SYS M5\r\n'
@@ -79,6 +82,7 @@ mcopy -o -i "$COMBINED_IMAGE" "$EMM_PROBE" ::EMMPROBE.COM
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'UMBLREF.COM\r\n'
+    printf 'UMBEMS.COM\r\n'
     printf 'EMMPROBE.COM\r\n'
 } | mcopy -o -i "$COMBINED_IMAGE" - ::AUTOEXEC.BAT
 timeout 35 qemu-system-i386 \
@@ -90,7 +94,8 @@ timeout 35 qemu-system-i386 \
 if ! grep -Fq 'UMB_LIFECYCLE_END' "$COMBINED_LOG" \
     || ! grep -Eq '^ALLOC_0010 C=0 AX=[A-F][0-9A-F]{3}' "$COMBINED_LOG" \
     || ! grep -Eq '^ALLOC_AFTER_LARGEST C=0 AX=[A-F][0-9A-F]{3}' "$COMBINED_LOG" \
-    || ! grep -Fq 'EMM386_API_PASS' "$COMBINED_LOG"
+    || ! grep -Fq 'EMM386_API_PASS' "$COMBINED_LOG" \
+    || ! grep -Fq 'UMB_EMS_ISOLATION_PASS' "$COMBINED_LOG"
 then
     echo "FAIL: combined HIMEM/EMM386 UMB and EMS contract" >&2
     sed -n '1,220p' "$COMBINED_LOG" >&2
