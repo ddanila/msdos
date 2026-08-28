@@ -2,11 +2,11 @@
 
 ## Objective
 
-Add Upper Memory Block (UMB) and High Memory Area (HMA) support to this MS-DOS
-4 source tree with the observable behavior of MS-DOS 6.22. The DOS-facing UMB
-API is the DOS 5 interface retained by 6.22: existing applications, drivers,
-and memory managers must see the same calls, state transitions, allocation
-policies, fallbacks, and errors.
+Evolve this MS-DOS 4 source tree into an MS-DOS 5.0-compatible system by adding
+Upper Memory Block (UMB) and High Memory Area (HMA) support with the observable
+behavior retained by MS-DOS 6.22. Existing applications, drivers, and memory
+managers must see the same calls, state transitions, allocation policies,
+fallbacks, and errors.
 
 This is a compatibility implementation, not a new memory API. Existing DOS 4
 behavior must remain unchanged when UMB support is unavailable or disabled.
@@ -180,6 +180,28 @@ allocator entry that assumes one contiguous conventional arena. Audit direct
 MCB traversal through the List of Lists as well as calls to `$ALLOC`, because
 internal diagnostics and third-party tools observe arena layout directly.
 
+## Version transition gate
+
+The project and program-visible target are both MS-DOS 5.0. Do not change the
+reported version at the start of implementation. First inventory behavior that
+applications condition on `INT 21h/AH=30h >= 5`, then switch all version
+surfaces together once the UMB/HMA foundation and the high-risk gated contracts
+are ready:
+
+- `INT 21h/AH=30h`, boot banner, `VER`, internal version tables, and build
+  metadata must agree on 5.00;
+- preserve the existing per-program fake-version mechanism and include complete
+  MS-DOS 5 SETVER behavior in the subsequent general parity plan;
+- probe representative applications that select different code paths on DOS 5;
+- record every known non-UMB DOS 5 gap in a dedicated parity matrix rather than
+  implying that the version bump proves complete parity;
+- require explicit tests for any version-gated contract judged necessary before
+  the 5.00 report is enabled.
+
+Broader MS-DOS 5 parity is the follow-on project goal. This UMB/HMA plan owns
+the version transition gate and parity inventory, but it does not silently add
+every unrelated DOS 5 utility or feature to the present implementation scope.
+
 ## Arena design
 
 Represent conventional memory and UMBs as two persistent arenas with explicit
@@ -243,6 +265,8 @@ image where 6.22 does so.
   EXEC, TSR termination, and arena corruption.
 - Capture CONFIG/COMMAND syntax, diagnostics, fallback, exit codes, region
   numbering, `/S`, and directive-order behavior.
+- Inventory documented and representative real-world behavior gated on a
+  reported DOS version of 5 or later, and classify it for the transition gate.
 - Store probe source and normalized assertions, not proprietary binaries or
   copied code, in this repository.
 - Freeze the resulting compatibility matrix before implementation begins.
@@ -384,6 +408,8 @@ locally and in CI, with no unaccounted source or generated-file drift.
 
 - keep every existing low-memory, EXEC, CONFIG.SYS, device, EMM386, and INT 21h
   test enabled;
+- verify that every public and internal version surface changes atomically to
+  5.00 and that the recorded high-risk version-gated paths behave correctly;
 - run fast API/model probes under kvikdos where its memory model is sufficient;
 - run paging, boot, device, and end-to-end placement tests under QEMU/KVM;
 - add strict coverage manifests for the new API calls, directives, command
@@ -438,13 +464,11 @@ the compatibility matrix.
 
 1. UMB delivery and HMA/`DOS=HIGH` delivery are separate stages of this one
    plan; both are required before the plan is complete.
-2. The project release identity becomes 4.2. The recommended compatibility
-   behavior is to return DOS 5.0 from `INT 21h/AH=30h` by default because
-   UMB-aware applications commonly require a reported version of at least 5
-   before using `5802h`/`5803h`. Existing per-program version overrides remain
-   available. Returning 4.2 through the API is still an owner decision because
-   it would hide UMB support from such applications; product identity and API
-   compatibility identity should not be conflated.
+2. The project release identity and `INT 21h/AH=30h` compatibility identity both
+   become MS-DOS 5.0. The report changes only at the version transition gate
+   above, because applications use it to enable more than UMB support. Broader
+   MS-DOS 5 parity is the next roadmap goal and all remaining gaps are tracked
+   explicitly.
 3. The full relevant 6.22 user surface is in scope: `/L`, `/S`, legacy
    `DEVICEHIGH SIZE=`, `INSTALLHIGH` if confirmed by reference testing, and the
    corresponding `MEM` views.
