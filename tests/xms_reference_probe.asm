@@ -118,6 +118,121 @@ move_verified:
     mov si, freed_info_label
     call invoke
 
+    ; Error and boundary behavior needed by the clean-room XMS 2.00 manager.
+    mov ah, 0ah
+    mov dx, 0ffffh
+    mov si, bad_handle_free_label
+    call invoke
+    mov ah, 0ch
+    mov dx, 0ffffh
+    mov si, bad_handle_lock_label
+    call invoke
+    mov ah, 0dh
+    mov dx, 0ffffh
+    mov si, bad_handle_unlock_label
+    call invoke
+    mov ah, 0eh
+    mov dx, 0ffffh
+    mov si, bad_handle_info_label
+    call invoke
+    mov ah, 0fh
+    mov bx, 1
+    mov dx, 0ffffh
+    mov si, bad_handle_realloc_label
+    call invoke
+
+    mov ah, 09h
+    xor dx, dx
+    mov si, allocate_zero_label
+    call invoke
+    or ax, ax
+    jz short after_zero
+    mov [zero_handle], dx
+    mov ah, 0eh
+    mov si, zero_info_label
+    call invoke
+    mov ah, 0ah
+    mov dx, [zero_handle]
+    mov si, zero_free_label
+    call invoke
+after_zero:
+    mov ah, 09h
+    mov dx, 4
+    mov si, allocate_lock_label
+    call invoke
+    or ax, ax
+    jz short move_errors
+    mov [error_handle], dx
+    mov ah, 0ch
+    mov si, error_lock_label
+    call invoke
+    mov ah, 0ah
+    mov dx, [error_handle]
+    mov si, locked_free_label
+    call invoke
+    mov ah, 0fh
+    mov bx, 2
+    mov dx, [error_handle]
+    mov si, locked_realloc_label
+    call invoke
+    mov ah, 0dh
+    mov dx, [error_handle]
+    mov si, error_unlock_label
+    call invoke
+    mov ah, 0dh
+    mov dx, [error_handle]
+    mov si, unlock_under_label
+    call invoke
+
+move_errors:
+    mov ax, ds
+    mov [odd_move+8], ax
+    mov [odd_move+14], ax
+    mov [bad_source_move+14], ax
+    mov [bad_dest_move+8], ax
+    mov [bad_offset_move+14], ax
+    mov ax, [error_handle]
+    mov [overlap_move+4], ax
+    mov [overlap_move+10], ax
+    mov [reverse_overlap_move+4], ax
+    mov [reverse_overlap_move+10], ax
+
+    mov ah, 0bh
+    mov si, odd_move
+    mov di, odd_move_label
+    call invoke_move
+    mov ah, 0bh
+    mov si, bad_source_move
+    mov di, bad_source_move_label
+    call invoke_move
+    mov ah, 0bh
+    mov si, bad_dest_move
+    mov di, bad_dest_move_label
+    call invoke_move
+    mov ax, [error_handle]
+    mov [bad_offset_move+4], ax
+    mov ah, 0bh
+    mov si, bad_offset_move
+    mov di, bad_offset_move_label
+    call invoke_move
+    mov ah, 0bh
+    mov si, overlap_move
+    mov di, overlap_move_label
+    call invoke_move
+    mov ah, 0bh
+    mov si, reverse_overlap_move
+    mov di, reverse_overlap_move_label
+    call invoke_move
+
+    mov ah, 0ah
+    mov dx, [error_handle]
+    mov si, error_free_label
+    call invoke
+    mov ah, 09h
+    mov dx, 0ffffh
+    mov si, allocate_huge_label
+    call invoke
+
 hma_test:
     mov ah, 01h
     mov dx, 0ffffh
@@ -125,8 +240,15 @@ hma_test:
     call invoke
     or ax, ax
     jz a20_test
+    mov ah, 01h
+    mov dx, 0ffffh
+    mov si, hma_second_label
+    call invoke
     mov ah, 02h
     mov si, hma_release_label
+    call invoke
+    mov ah, 02h
+    mov si, hma_second_release_label
     call invoke
 
 a20_test:
@@ -141,6 +263,9 @@ a20_test:
     call invoke
     mov ah, 07h
     mov si, a20_final_label
+    call invoke
+    mov ah, 06h
+    mov si, a20_underflow_label
     call invoke
 
     mov ah, 10h
@@ -278,6 +403,8 @@ print_newline:
 
 xms_entry dd 0
 handle dw 0
+zero_handle dw 0
+error_handle dw 0
 installed_ax dw 0
 result_flags dw 0
 result_ax dw 0
@@ -298,6 +425,42 @@ move_from_xms:
     dd 0
     dw 0
     dw move_destination, 0
+odd_move:
+    dd 1
+    dw 0
+    dw move_source, 0
+    dw 0
+    dw move_destination, 0
+bad_source_move:
+    dd 2
+    dw 0ffffh
+    dd 0
+    dw 0
+    dw move_destination, 0
+bad_dest_move:
+    dd 2
+    dw 0
+    dw move_source, 0
+    dw 0ffffh
+    dd 0
+bad_offset_move:
+    dd 4
+    dw 0
+    dd 4094
+    dw 0
+    dw move_destination, 0
+overlap_move:
+    dd 4
+    dw 0
+    dd 0
+    dw 0
+    dd 2
+reverse_overlap_move:
+    dd 4
+    dw 0
+    dd 2
+    dw 0
+    dd 0
 banner db 'XMS_REFERENCE_BEGIN', 13, 10, 0
 complete db 'XMS_REFERENCE_END', 13, 10, 0
 installed_label db 'INSTALLED', 0
@@ -315,12 +478,37 @@ shrink_label db 'SHRINK_32K', 0
 shrunk_info_label db 'SHRUNK_INFO', 0
 free_label db 'FREE', 0
 freed_info_label db 'FREED_INFO', 0
+bad_handle_free_label db 'BAD_HANDLE_FREE', 0
+bad_handle_lock_label db 'BAD_HANDLE_LOCK', 0
+bad_handle_unlock_label db 'BAD_HANDLE_UNLOCK', 0
+bad_handle_info_label db 'BAD_HANDLE_INFO', 0
+bad_handle_realloc_label db 'BAD_HANDLE_REALLOC', 0
+allocate_zero_label db 'ALLOCATE_ZERO', 0
+zero_info_label db 'ZERO_INFO', 0
+zero_free_label db 'ZERO_FREE', 0
+allocate_lock_label db 'ALLOCATE_LOCK_CASE', 0
+error_lock_label db 'ERROR_LOCK', 0
+locked_free_label db 'LOCKED_FREE', 0
+locked_realloc_label db 'LOCKED_REALLOC', 0
+error_unlock_label db 'ERROR_UNLOCK', 0
+unlock_under_label db 'UNLOCK_UNDERFLOW', 0
+odd_move_label db 'MOVE_ODD_LENGTH', 0
+bad_source_move_label db 'MOVE_BAD_SOURCE', 0
+bad_dest_move_label db 'MOVE_BAD_DEST', 0
+bad_offset_move_label db 'MOVE_BAD_SOURCE_OFFSET', 0
+overlap_move_label db 'MOVE_OVERLAP', 0
+reverse_overlap_move_label db 'MOVE_REVERSE_OVERLAP', 0
+error_free_label db 'ERROR_CASE_FREE', 0
+allocate_huge_label db 'ALLOCATE_HUGE', 0
 hma_request_label db 'HMA_REQUEST', 0
+hma_second_label db 'HMA_SECOND_REQUEST', 0
 hma_release_label db 'HMA_RELEASE', 0
+hma_second_release_label db 'HMA_SECOND_RELEASE', 0
 a20_local_on_label db 'A20_LOCAL_ON', 0
 a20_on_query_label db 'A20_ON_QUERY', 0
 a20_local_off_label db 'A20_LOCAL_OFF', 0
 a20_final_label db 'A20_FINAL', 0
+a20_underflow_label db 'A20_LOCAL_UNDERFLOW', 0
 umb_largest_label db 'UMB_LARGEST', 0
 umb_bad_release_label db 'UMB_BAD_RELEASE', 0
 umb_bad_realloc_label db 'UMB_BAD_REALLOC', 0

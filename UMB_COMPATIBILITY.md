@@ -117,6 +117,14 @@ regions and a functioning EMS API in one boot. Error-path parity, A20 hardware
 coverage, rollback injection, and data stability across repeated EMS remapping
 are still open provider gates.
 
+The expanded DOS 5.0/6.22 error capture agrees on invalid-handle `A2h`, locked
+block `ABh`, unlocked-block `AAh`, odd or out-of-range move `A7h`, invalid
+source/destination handle `A3h`/`A5h`, exhausted-memory `A0h`, duplicate HMA
+ownership `91h`, unowned HMA release `93h`, and A20 nesting error `82h`.
+Both reference managers accept overlapping moves in either direction. Zero-KiB
+extended-memory allocations consume a real handle and report a zero-sized
+block. These observed results are asserted against the repository manager.
+
 ## Boot and command interfaces
 
 | Surface | Required observation | DOS 5.0 | DOS 6.22 |

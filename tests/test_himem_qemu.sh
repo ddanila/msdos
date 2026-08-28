@@ -68,6 +68,30 @@ do
     fi
 done
 
+for expected_re in \
+    '^BAD_HANDLE_FREE CF=0 AX=0000 BX=..A2 ' \
+    '^ALLOCATE_ZERO CF=0 AX=0001 ' \
+    '^LOCKED_FREE CF=0 AX=0000 BX=..AB ' \
+    '^LOCKED_REALLOC CF=0 AX=0000 BX=..AB ' \
+    '^UNLOCK_UNDERFLOW CF=0 AX=0000 BX=..AA ' \
+    '^MOVE_ODD_LENGTH CF=0 AX=0000 BX=..A7 ' \
+    '^MOVE_BAD_SOURCE CF=0 AX=0000 BX=..A3 ' \
+    '^MOVE_BAD_DEST CF=0 AX=0000 BX=..A5 ' \
+    '^MOVE_BAD_SOURCE_OFFSET CF=0 AX=0000 BX=..A7 ' \
+    '^MOVE_OVERLAP CF=0 AX=0001 ' \
+    '^MOVE_REVERSE_OVERLAP CF=0 AX=0001 ' \
+    '^ALLOCATE_HUGE CF=0 AX=0000 BX=..A0 ' \
+    '^HMA_SECOND_REQUEST CF=0 AX=0000 BX=..91 ' \
+    '^HMA_SECOND_RELEASE CF=0 AX=0000 BX=..93 ' \
+    '^A20_LOCAL_UNDERFLOW CF=0 AX=0000 BX=..82 '
+do
+    if ! grep -Eq "$expected_re" "$LOG"; then
+        echo "FAIL: repository HIMEM error contract: $expected_re" >&2
+        sed -n '1,220p' "$LOG" >&2
+        exit 1
+    fi
+done
+
 cp "$FLOPPY" "$COMBINED_IMAGE"
 mcopy -o -i "$COMBINED_IMAGE" "$HIMEM" ::HIMEM.SYS
 mcopy -o -i "$COMBINED_IMAGE" "$LIFECYCLE_PROBE" ::UMBLREF.COM
