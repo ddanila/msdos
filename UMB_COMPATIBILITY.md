@@ -99,6 +99,13 @@ tokens, comma-separated pairs, and repeated `DOS=` lines. The HMA and UMB
 effects remain delivery-gated; without a provider, `DOS=UMB` is silent and the
 kernel remains unlinked.
 
+As an independent provider check, this tree was booted with the locally held
+MS-DOS 5.0 HIMEM 2.78 and EMM386 4.33.06X binaries under the reference QEMU
+configuration. SYSINIT acquired the provider's `CB00h` UMB through XMS, public
+link/unlink calls matched the 5.0 register results, and both `0040h` and `0080h`
+16-paragraph allocations returned `CB02h`. Those Microsoft binaries remain
+outside this repository and are not required by its build or CI.
+
 ## Evidence required to close Phase 0
 
 - Capture all four reference configurations above.

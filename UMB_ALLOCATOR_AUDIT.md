@@ -70,7 +70,17 @@ the provider or UMB descriptors exist.
 | `CMD/MEM/MEM.C` | Traversal stops at one `Z`; reporting has only base/EMS/extended categories and DOS 4 switches. |
 | List of Lists | DOS 5 link state, first-UMB pointer, and allocation scan-start fields still need their reference-confirmed exported layout. |
 
-The provider phase must populate the arena and bridge descriptors
-transactionally. Until then they remain zero, `5802h` reports unlinked, and
-both valid `5803h` requests fail with `ERROR_INVALID_FUNCTION`, matching the
-no-provider DOS 5 and 6.22 captures.
+SYSINIT now discovers a provider through `INT 2Fh/4300h` and `4310h`, retains
+each extent returned by XMS function `10h`, and registers it with the kernel.
+The kernel carves a RAM-resident bridge immediately below `A000h`, represents
+the video/ROM gap as DOS-owned `SC`, and terminates every provider extent with
+an `SM` guard so coalescing cannot cross provider boundaries. The public chain
+remains unlinked after boot. With no provider the descriptors stay zero,
+`5802h` reports unlinked, and both valid `5803h` requests fail with
+`ERROR_INVALID_FUNCTION`.
+
+The private `5804h` path is callable only with SYSINIT's three-register
+signature and is not part of the public API; ordinary `5804h` calls still take
+the required invalid-function path. This handoff does not expose or consume a
+private EMM386 interface: all provider discovery, allocation, and release calls
+remain standard XMS.
