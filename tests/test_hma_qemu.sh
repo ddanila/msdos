@@ -115,6 +115,13 @@ for diagnostic in 'HMA not available' 'Loading DOS low'; do
     }
 done
 
+for log in "$OUT/hma-high.log" "$OUT/hma-low.log"; do
+    grep -Fq 'DOS_VERSION_AX=0005' "$log" || {
+        echo "FAIL: runtime did not report DOS 5.00 in $log" >&2
+        exit 1
+    }
+done
+
 grep -Eq '^A20 AX=0001 ' "$OUT/hma-high.log" || {
     echo 'FAIL: DOS=HIGH did not leave A20 enabled' >&2
     exit 1

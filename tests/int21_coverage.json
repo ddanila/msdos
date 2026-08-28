@@ -46,7 +46,7 @@
     "2D": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "The valid current time is written back and its success status asserted"},
     "2E": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "Write verification is toggled, observed, and restored"},
     "2F": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "Get-DTA returns the exact custom DTA previously installed"},
-    "30": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "The runtime reports DOS major version 4"},
+    "30": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "The public and true-version interfaces consistently report the maintained DOS 5.00 compatibility identity"},
     "31": {"level": "contract", "evidence": ["tests/int21_tsr_probe.asm", "tests/test_int21_tsr_qemu.sh"], "note": "A resident interrupt handler remains callable from a subsequent process"},
     "32": {"level": "contract", "evidence": ["tests/int21_compat_probe.asm", "tests/test_int21_compat_qemu.sh"], "note": "Current-drive DPB query returns success and a non-null pointer"},
     "33": {"level": "contract", "evidence": ["tests/int21_system_probe.asm", "tests/test_int21_system_qemu.sh"], "note": "Ctrl-C checking state is queried, set, and queried again"},

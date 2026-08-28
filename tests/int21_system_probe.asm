@@ -176,11 +176,22 @@ dta_ok:
 
     mov ah, 30h
     int 21h
-    cmp al, 4
+    cmp al, 5
     je version_ok
     mov dx, fail_30
     jmp fail
 version_ok:
+
+    mov ax, 3306h
+    int 21h
+    cmp bx, 0005h
+    jne true_version_failed
+    or dx, dx
+    jz true_version_ok
+true_version_failed:
+    mov dx, fail_3306
+    jmp fail
+true_version_ok:
 
     mov ax, 3300h
     int 21h
@@ -482,6 +493,7 @@ fail_2e             db 'INT21_2E_FAIL', 13, 10, '$'
 fail_2f             db 'INT21_2F_FAIL', 13, 10, '$'
 fail_30             db 'INT21_30_FAIL', 13, 10, '$'
 fail_33             db 'INT21_33_FAIL', 13, 10, '$'
+fail_3306           db 'INT21_3306_FAIL', 13, 10, '$'
 fail_34             db 'INT21_34_FAIL', 13, 10, '$'
 fail_36             db 'INT21_36_FAIL', 13, 10, '$'
 fail_37             db 'INT21_37_FAIL', 13, 10, '$'

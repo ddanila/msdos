@@ -89,6 +89,12 @@ else
     echo "--- serial log ---"; cat "$SYS_LOG"; echo "---"
 fi
 
+if [[ $(dd if="$SYS_TARGET" bs=1 skip=3 count=8 2>/dev/null) == "MSDOS5.0" ]]; then
+    ok "SYS installed the DOS 5.00 boot-sector OEM identifier"
+else
+    fail "SYS did not install the MSDOS5.0 boot-sector OEM identifier"
+fi
+
 mcopy -i "$SYS_TARGET" "$COMMAND_COM" ::COMMAND.COM
 mcopy -o -i "$SYS_TARGET" "$EXIT_COM" ::QEXIT.COM
 printf '@ECHO OFF\r\nCTTY AUX\r\nVER\r\nQEXIT.COM\r\n' | mcopy -o -i "$SYS_TARGET" - ::AUTOEXEC.BAT
@@ -102,10 +108,10 @@ timeout 15 qemu-system-i386 \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     2>/dev/null; true
 
-if grep -q "MS-DOS" "$SYS_BOOT2_LOG"; then
+if grep -Eq "MS-DOS Version 5\.00" "$SYS_BOOT2_LOG"; then
     ok "SYS'd floppy boots MS-DOS successfully"
 else
-    fail "SYS'd floppy did not boot MS-DOS"
+    fail "SYS'd floppy did not boot as MS-DOS 5.00"
     echo "--- serial log ---"; cat "$SYS_BOOT2_LOG"; echo "---"
 fi
 

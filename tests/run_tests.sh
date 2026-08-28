@@ -1556,10 +1556,10 @@ else
 fi
 
 out=$(run_dos CMD/COMMAND/COMMAND.COM /C VER) || true
-if echo "$out" | grep -qi "MS-DOS"; then
+if echo "$out" | grep -Eqi "MS-DOS Version 5\.00"; then
     ok "COMMAND.COM VER"
 else
-    fail "COMMAND.COM VER (expected 'MS-DOS', got: $out)"
+    fail "COMMAND.COM VER (expected 'MS-DOS Version 5.00', got: $out)"
 fi
 
 out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'ECHO HELLO_KVIKDOS_TEST') || true

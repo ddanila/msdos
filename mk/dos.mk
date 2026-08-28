@@ -7,10 +7,10 @@ DOS_AINC := -I. -ID:\\TOOLS\\INC -I..\\INC
 
 $(DOS_DIR)/MSDOS.CL3: $(DOS_DIR)/MSDOS.CL1
 
-$(DOS_DIR)/MSDISP.OBJ: $(DOS_DIR)/MSDISP.ASM
+$(DOS_DIR)/MSDISP.OBJ: $(DOS_DIR)/MSDISP.ASM $(DOS_DIR)/DISP.ASM
 	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "MSDISP.ASM,MSDISP.OBJ;"
 
-$(DOS_DIR)/MSCODE.OBJ: $(DOS_DIR)/MSCODE.ASM
+$(DOS_DIR)/MSCODE.OBJ: $(DOS_DIR)/MSCODE.ASM $(DOS_DIR)/MS_CODE.ASM
 	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "MSCODE.ASM,MSCODE.OBJ;"
 
 $(DOS_DIR)/TIME.OBJ: $(DOS_DIR)/TIME.ASM
@@ -112,7 +112,7 @@ $(DOS_DIR)/ROM.OBJ: $(DOS_DIR)/ROM.ASM
 $(DOS_DIR)/FCB.OBJ: $(DOS_DIR)/FCB.ASM
 	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "FCB.ASM,FCB.OBJ;"
 
-$(DOS_DIR)/MSCTRLC.OBJ: $(DOS_DIR)/MSCTRLC.ASM
+$(DOS_DIR)/MSCTRLC.OBJ: $(DOS_DIR)/MSCTRLC.ASM $(DOS_DIR)/CTRLC.ASM
 	cd $(DOS_DIR) && $(MASM) "$(AFLAGS) $(DOS_AINC)" "MSCTRLC.ASM,MSCTRLC.OBJ;"
 
 $(DOS_DIR)/FAT.OBJ: $(DOS_DIR)/FAT.ASM
@@ -175,6 +175,16 @@ DOS_OBJS := MSDISP.OBJ MSCODE.OBJ TIME.OBJ GETSET.OBJ PARSE.OBJ \
             FILE.OBJ LOCK.OBJ SHARE.OBJ EXTATTR.OBJ IFS.OBJ
 
 DOS_OBJ_PATHS := $(addprefix $(DOS_DIR)/,$(DOS_OBJS))
+
+# VERSIONA.INC is pulled in transitively through DOSSYM.INC by the kernel
+# sources.  Record that otherwise-invisible dependency so changing the DOS
+# identity cannot leave a stale kernel binary behind.
+$(DOS_OBJ_PATHS) $(INC_NIBDOS) $(INC_CONST2) $(INC_MSDATA) \
+    $(INC_MSTABLE) $(INC_MSDOSME): $(INC_DIR)/VERSIONA.INC
+
+# These small assembly drivers include their implementation source.  Make does
+# not discover assembler INCLUDE directives, so list the included files here.
+$(INC_MSTABLE): $(DOS_DIR)/MS_TABLE.ASM $(INC_DIR)/COPYRIGH.INC
 
 $(DOS_DIR)/MSDOS.EXE: $(INC_NIBDOS) $(INC_CONST2) $(INC_MSDATA) \
     $(INC_MSTABLE) $(INC_MSDOSME) $(DOS_OBJ_PATHS)
