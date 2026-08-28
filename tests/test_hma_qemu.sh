@@ -90,6 +90,8 @@ run_case LOW
 
 NO_XMS_IMAGE="$OUT/floppy-hma-no-xms.img"
 NO_XMS_LOG="$OUT/hma-no-xms.log"
+NO_XMS_SCREEN_LOG="$OUT/hma-no-xms-screen.log"
+NO_XMS_QMP="$OUT/hma-no-xms-qmp.sock"
 cp "$FLOPPY" "$NO_XMS_IMAGE"
 mcopy -o -i "$NO_XMS_IMAGE" "$PROBE" ::HMAREF.COM
 printf 'DOS=HIGH\r\n' | mcopy -o -i "$NO_XMS_IMAGE" - ::CONFIG.SYS
@@ -98,22 +100,44 @@ printf 'DOS=HIGH\r\n' | mcopy -o -i "$NO_XMS_IMAGE" - ::CONFIG.SYS
     printf 'CTTY AUX\r\n'
     printf 'HMAREF.COM\r\n'
 } | mcopy -o -i "$NO_XMS_IMAGE" - ::AUTOEXEC.BAT
-timeout 20 qemu-system-i386 \
+rm -f "$NO_XMS_QMP" "$NO_XMS_SCREEN_LOG"
+qemu-system-i386 \
     -display none -monitor none -machine pc -cpu 486 -m 16 \
     -drive if=floppy,index=0,format=raw,file="$NO_XMS_IMAGE",cache=writethrough \
-    -boot a -serial stdio -no-reboot >"$NO_XMS_LOG" 2>&1 || true
+    -boot a -serial file:"$NO_XMS_LOG" \
+    -qmp unix:"$NO_XMS_QMP",server,nowait -no-reboot >/dev/null 2>&1 &
+no_xms_pid=$!
+cleanup_no_xms() {
+    kill "$no_xms_pid" 2>/dev/null || true
+    wait "$no_xms_pid" 2>/dev/null || true
+    rm -f "$NO_XMS_QMP"
+}
+trap cleanup_no_xms EXIT
+for _ in $(seq 1 50); do
+    [[ -S "$NO_XMS_QMP" ]] && break
+    kill -0 "$no_xms_pid" 2>/dev/null || break
+    sleep 0.1
+done
+[[ -S "$NO_XMS_QMP" ]] || {
+    echo 'FAIL: DOS=HIGH fallback QMP socket did not appear' >&2
+    exit 1
+}
+timeout 30 python3 "$ROOT/tests/screen_expect.py" \
+    "$NO_XMS_QMP" "$NO_XMS_SCREEN_LOG" \
+    'HMA not available: Loading DOS low' ''
+cleanup_no_xms
+trap - EXIT
 
 grep -Fq 'HMA_REFERENCE_NO_XMS' "$NO_XMS_LOG" || {
     echo 'FAIL: DOS=HIGH without XMS did not complete through the low kernel' >&2
     sed -n '1,160p' "$NO_XMS_LOG" >&2
     exit 1
 }
-for diagnostic in 'HMA not available' 'Loading DOS low'; do
-    strings -a "$ROOT/MS-DOS/v4.0/src/BIOS/IO.SYS" | grep -Fq "$diagnostic" || {
-        echo "FAIL: DOS=HIGH fallback diagnostic missing: $diagnostic" >&2
-        exit 1
-    }
-done
+grep -Fq 'HMA not available: Loading DOS low' "$NO_XMS_SCREEN_LOG" || {
+    echo 'FAIL: DOS=HIGH runtime fallback diagnostic differs from MS-DOS 6.22' >&2
+    sed -n '1,180p' "$NO_XMS_SCREEN_LOG" >&2
+    exit 1
+}
 
 for log in "$OUT/hma-high.log" "$OUT/hma-low.log"; do
     grep -Fq 'DOS_VERSION_AX=0005' "$log" || {

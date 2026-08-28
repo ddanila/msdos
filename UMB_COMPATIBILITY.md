@@ -259,8 +259,14 @@ residency output are exercised by the repository tests. The asynchronous test
 runs INT 23h Ctrl-Break and INT
 28h idle callbacks with DOS low and high; the IFSFUNC/FILESYS lifecycle runs in
 both residency modes; the warm-reset test repeats the full HMA/UMB/EMS contract
-on two boots; and `test_mem_umb_qemu.sh` checks the HMA residency view. Exact
-reference wording for unavailable-HMA diagnostics remains open.
+on two boots; and `test_mem_umb_qemu.sh` checks the HMA residency view. The
+exact unavailable-HMA wording is captured below.
+
+The no-XMS video-memory captures resolve that final wording ambiguity. DOS 5.0
+prints `HMA not available : Loading DOS low`, while DOS 6.22 prints
+`HMA not available: Loading DOS low`. This tree follows the plan's 6.22-facing
+contract and asserts the latter exact line from live video memory before the
+low-resident AUTOEXEC path completes.
 
 CI uses an original test-only XMS provider with writable synthetic backing. It
 proves that out-of-order discontiguous extents are sorted and committed as one
