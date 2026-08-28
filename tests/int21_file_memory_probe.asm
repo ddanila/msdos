@@ -83,6 +83,8 @@ start:
     push ds
     pop es
 
+    xor si, si
+.exhaust_query:
     mov bx, 0ffffh
     mov ah, 48h
     int 21h
@@ -90,11 +92,19 @@ start:
     cmp ax, 8
     jne memory_exhaust_failed
     test bx, bx
-    jz memory_exhaust_failed
+    jz .exhausted
     mov ah, 48h
     int 21h
     jc memory_exhaust_failed
-    mov [memory_segment], ax
+    mov [exhaust_segments + si], ax
+    add si, 2
+    cmp si, exhaust_segments_size
+    jae memory_exhaust_failed
+    jmp short .exhaust_query
+.exhausted:
+    test si, si
+    jz memory_exhaust_failed
+    mov [exhaust_count], si
     mov bx, 1
     mov ah, 48h
     int 21h
@@ -105,10 +115,17 @@ start:
     mov ah, 67h
     int 21h
     require_error 8, fail_handle_memory
-    mov es, [memory_segment]
+    xor si, si
+.free_exhausted:
+    cmp si, [exhaust_count]
+    jae .exhausted_freed
+    mov es, [exhaust_segments + si]
     mov ah, 49h
     int 21h
     jc memory_exhaust_failed
+    add si, 2
+    jmp short .free_exhausted
+.exhausted_freed:
     mov bx, 1
     mov ah, 48h
     int 21h
@@ -648,6 +665,9 @@ sft_create_name db 'SFTCREATE.TST', 0
 sft_new_name db 'SFTNEW.TST', 0
 sft_temp_template db 'A:', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 memory_segment dw 0
+exhaust_count dw 0
+exhaust_segments_size equ 64
+exhaust_segments times exhaust_segments_size / 2 dw 0
 saved_mcb_signature db 0
 open_handles   times 64 dw 0
 cwd_buffer     times 64 db 0

@@ -103,8 +103,11 @@ Consequently a byte-for-byte runtime copy at `FFFF:0010h` preserves all linked
 near displacements and absolute offsets without placing persistent state in the
 unaddressable 16-byte wrap boundary. SHARE's replicated DOS data layout is
 checked against the same bias. Runtime HMA ownership, copying, segment-pointer
-fixups, vector transition, low-arena reclamation, and rollback remain the next
-stage; the layout change alone does not report DOS high.
+fixups, vector transition, and low-arena reclamation are implemented. The HMA
+runtime test also exercises a pre-relocation interrupt chain, EXEC and child
+cleanup, file and memory services, and recovery when a driver disables A20.
+Phase 4 remains open until fallback diagnostics, asynchronous paths,
+redirectors, warm reboot, and residency reporting are reference-verified.
 
 ### Required command behavior
 

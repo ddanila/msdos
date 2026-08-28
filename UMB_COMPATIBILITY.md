@@ -179,6 +179,17 @@ link/unlink calls matched the 5.0 register results, and both `0040h` and `0080h`
 16-paragraph allocations returned `CB02h`. Those Microsoft binaries remain
 outside this repository and are not required by its build or CI.
 
+The repository `DOS=HIGH` runtime now acquires the HMA through XMS, relocates
+the persistent kernel image to `FFFF:0010h`, redirects DOS-owned vectors, and
+returns the relocated conventional code tail to the MCB arena. Its QEMU test
+compares otherwise identical HIGH and LOW boots, verifies HMA ownership and A20
+state, requires at least `0700h` additional free paragraphs, and repeats the
+measurement after EXEC and child cleanup. A deliberately hostile test driver
+hooks INT 21h before relocation and disables A20 during device calls; the
+retained low gateways and driver trampoline must recover without losing the
+old interrupt chain. Exact unavailable-HMA diagnostics, asynchronous callback
+coverage, redirectors, warm reboot, and MEM residency output are still open.
+
 CI uses an original test-only XMS provider with writable synthetic backing. It
 proves that out-of-order discontiguous extents are sorted and committed as one
 arena. No UMB service, no free ranges, failed requests, partial failure,

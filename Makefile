@@ -421,6 +421,9 @@ test-xms-umb-transaction-qemu: deploy
 test-himem-qemu: deploy
 	bash tests/test_himem_qemu.sh
 
+test-hma-qemu: deploy
+	bash tests/test_hma_qemu.sh
+
 test-config-ifs-qemu: deploy
 	bash tests/test_config_ifs_qemu.sh
 
