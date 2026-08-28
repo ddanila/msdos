@@ -47,6 +47,30 @@ start:
     cmp ax, 01feh
     jne fail
     mov bx, 1
+    call signed_get_region_start
+    jc fail
+    cmp ax, 09000h
+    jne fail
+    mov bx, 1
+    call signed_get_region_end
+    jc fail
+    cmp ax, 09200h
+    jne fail
+    mov bx, 2
+    call signed_get_region_start
+    jc fail
+    cmp ax, 09400h
+    jne fail
+    mov bx, 2
+    call signed_get_region_end
+    jc fail
+    cmp ax, 09500h
+    jne fail
+    call signed_get_hma_state
+    jc fail
+    or ax, ax
+    jnz fail
+    mov bx, 1
     call signed_get_region_limit
     jc fail
     cmp ax, 0ffffh
@@ -152,6 +176,30 @@ signed_get_region_limit:
     mov si, 2142h
     mov di, 0a55ah
     mov ax, 580bh
+    int 21h
+    ret
+
+signed_get_region_start:
+    mov cx, 4d55h
+    mov si, 2142h
+    mov di, 0a55ah
+    mov ax, 580ch
+    int 21h
+    ret
+
+signed_get_region_end:
+    mov cx, 4d55h
+    mov si, 2142h
+    mov di, 0a55ah
+    mov ax, 580dh
+    int 21h
+    ret
+
+signed_get_hma_state:
+    mov cx, 4d55h
+    mov si, 2142h
+    mov di, 0a55ah
+    mov ax, 580eh
     int 21h
     ret
 
