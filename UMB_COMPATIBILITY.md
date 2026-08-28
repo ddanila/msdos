@@ -98,6 +98,13 @@ reported maximum and left its MCB marked `Z`. With the same DOS 5 provider this
 tree now matches the reference's `14FEh` largest UMB exactly; the earlier
 test-only terminal guard had reduced it by one paragraph.
 
+A deterministic 1,000-operation shadow-model stress now selects all three UMB
+fit policies while randomly allocating, resizing, and freeing blocks across a
+split provider map. After every operation it checks interval non-overlap, MCB
+owner and size, and sentinels at both ends of every live allocation. Failed
+growth adopts DOS's reported maximum block size in the model, so subsequent
+operations also exercise the reference-compatible coalescing side effect.
+
 The same independent parent/child probe succeeds on DOS 5.0, DOS 6.22, and
 this tree. The child inherits linked upper-only allocation state, allocates a
 64-paragraph UMB, and exits with status `2Ah`; the parent observes its strategy
