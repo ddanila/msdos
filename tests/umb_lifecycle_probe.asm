@@ -43,19 +43,11 @@ start:
     jne fail_02
     mov ax, 09400h
     mov es, ax
-    cmp byte [es:0], 'M'
+    cmp byte [es:0], 'Z'
     jne fail_02
     cmp word [es:1], 0
     jne fail_02
-    cmp word [es:3], 00feh
-    jne fail_02
-    mov ax, 094ffh
-    mov es, ax
-    cmp byte [es:0], 'Z'
-    jne fail_02
-    cmp word [es:1], 8
-    jne fail_02
-    cmp word [es:3], 0
+    cmp word [es:3], 00ffh
     jne fail_02
 
     mov bx, 1
@@ -153,7 +145,7 @@ start:
     mov bx, 10h
     call allocate
     jc fail_11
-    cmp ax, 094efh
+    cmp ax, 094f0h
     jne fail_11
     call free_ax
     jc fail_11
@@ -179,7 +171,7 @@ start:
     mov bx, 10h
     call allocate
     jc fail_23
-    cmp ax, 094efh
+    cmp ax, 094f0h
     jne fail_23
     call free_ax
 
@@ -327,7 +319,7 @@ corruption_done:
     call verify_free_extent
     jc fail_21
     mov ax, 09400h
-    mov dx, 094ffh
+    mov dx, 09500h
     call verify_free_extent
     jc fail_22
     mov bx, 01feh
@@ -366,14 +358,23 @@ verify_free_extent:
     cmp ax, dx
     je .valid
     ja .invalid
-    cmp byte [es:0], 'M'
+    mov bl, [es:0]
+    cmp bl, 'M'
+    je .owner
+    cmp bl, 'Z'
     jne .invalid
+.owner:
     cmp word [es:1], 0
     jne .invalid
     add ax, [es:3]
     inc ax
+    cmp bl, 'Z'
+    je .at_end
     mov es, ax
     jmp short .next
+.at_end:
+    cmp ax, dx
+    jne .invalid
 .valid:
     clc
     ret

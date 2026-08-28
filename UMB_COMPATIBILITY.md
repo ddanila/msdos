@@ -14,14 +14,15 @@ version, configuration, emulator or hardware, and probe commit.
 | ID | System | CONFIG.SYS state | Purpose | Status |
 | --- | --- | --- | --- | --- |
 | `dos50-low` | MS-DOS 5.0 | no XMS/UMB provider | API fallback and invalid inputs | basic API captured |
-| `dos50-umb` | MS-DOS 5.0 | HIMEM, EMM386, `DOS=UMB` | Original UMB contract | basic API captured |
+| `dos50-umb` | MS-DOS 5.0 | HIMEM, EMM386, `DOS=UMB` | Original UMB contract | API and allocator lifecycle captured |
 | `dos622-low` | MS-DOS 6.22 | no XMS/UMB provider | 6.22 fallback comparison | basic API captured |
-| `dos622-umb` | MS-DOS 6.22 | HIMEM, EMM386, `DOS=UMB` | Final compatibility oracle | basic API captured |
+| `dos622-umb` | MS-DOS 6.22 | HIMEM, EMM386, `DOS=UMB` | Final compatibility oracle | API and allocator lifecycle captured |
 
 Capture a prepared image without modifying the original:
 
 ```sh
 tests/capture_umb_reference.sh /path/to/boot.img /tmp/dos622-umb.log
+tests/capture_umb_lifecycle_reference.sh /path/to/boot.img /tmp/dos622-life.log
 ```
 
 The prepared UMB images retain their own legally obtained HIMEM/EMM386 files
@@ -62,13 +63,13 @@ preserved-register details remain reference-gated where the manuals are silent.
 | Contract | Required observation | DOS 5.0 | DOS 6.22 |
 | --- | --- | --- | --- |
 | low-only `00h..02h` | never allocate from a UMB | pending | pending |
-| upper-only `40h..42h` | fail rather than fall back low | pending | pending |
-| upper-then-low `80h..82h` | allocate upper first, then conventional | pending | pending |
+| upper-only `40h..42h` | fail rather than fall back low | confirmed | confirmed |
+| upper-then-low `80h..82h` | allocate upper first, then conventional | confirmed | confirmed |
 | unlinked UMB arena | high strategy allocates conventionally without changing either setting | confirmed | confirmed |
 | link with no provider | exact link state and error behavior | pending | pending |
-| `48h` failure | exact `AX` and largest-domain block in `BX` | pending | pending |
-| `49h`/`4Ah` on UMB | same ownership, resize, and errors as low blocks | pending | pending |
-| unlink with live UMB | allocation survives unlink/relink | pending | pending |
+| `48h` failure | exact `AX` and largest-domain block in `BX` | confirmed | confirmed |
+| `49h`/`4Ah` on UMB | same ownership, resize, and errors as low blocks | confirmed | confirmed |
+| unlink with live UMB | allocation survives unlink/relink | confirmed | confirmed |
 | process termination | owned UMB blocks are freed | pending | pending |
 | MCB traversal | exact bridge, gap-owner, and `M`/`Z` layout | pending | pending |
 
@@ -78,8 +79,17 @@ With the UMB arena linked, a 16-paragraph allocation using either strategy
 `0040h` allocated conventionally on both references (`12AEh` on 5.0 and
 `11CBh` on 6.22), without changing the strategy or link setting. With no
 provider and no link, the same calls also allocated conventionally. Exhaustion
-and fragmentation probes are still required to distinguish the upper-only and
-upper-then-low fallback contracts empirically.
+then confirmed the domain distinction: one paragraph beyond the largest UMB
+failed under `0040h` with `AX=0008h` and the UMB maximum in `BX`, while `0080h`
+allocated the same request conventionally. Fragmentation ordering across
+multiple genuine regions remains a reference uncertainty.
+
+The focused lifecycle capture also confirms shrink and growth, failed growth's
+maximum-size result, free, exact exhaustion, and unlink/relink with a live data
+word. On both references a failed `4Ah` growth coalesced the block to the
+reported maximum and left its MCB marked `Z`. With the same DOS 5 provider this
+tree now matches the reference's `14FEh` largest UMB exactly; the earlier
+test-only terminal guard had reduced it by one paragraph.
 
 ## Boot and command interfaces
 

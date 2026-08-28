@@ -74,9 +74,11 @@ SYSINIT now discovers a provider through `INT 2Fh/4300h` and `4310h`, retains
 each extent returned by XMS function `10h`, sorts and validates the complete
 map, and then registers it with the kernel. The kernel carves a RAM-resident
 bridge at the current conventional-arena ceiling, represents the gap to the
-first provider extent as DOS-owned `SC`, and terminates every provider extent
-with an `SM` guard so coalescing cannot cross provider boundaries. The public
-chain remains unlinked after boot. With no provider the descriptors stay zero,
+first provider extent as DOS-owned `SC`, and terminates each interior provider
+extent with an `SM` guard so coalescing cannot cross provider boundaries. A
+boot-only finalization makes the last free MCB itself `Z`, matching the DOS 5
+capacity without spending a final guard paragraph. The public chain remains
+unlinked after boot. With no provider the descriptors stay zero,
 `5802h` reports unlinked, and both valid `5803h` requests fail with
 `ERROR_INVALID_FUNCTION`.
 
