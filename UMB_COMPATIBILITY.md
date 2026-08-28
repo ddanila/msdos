@@ -171,14 +171,16 @@ independently of textual order. Both accepted the DOS 5
 option from the driver's command tail. DOS 6.22 likewise accepted
 `DEVICEHIGH /L:1=`. The observed `DEVICEHIGH /L:1,200 /S=` case loaded low;
 the minimum is a decimal byte count, whereas the legacy `SIZE=` value is
-hexadecimal. This tree now reproduces the observed single-region behavior:
+hexadecimal. A split-map capture confirms that `/L:1` and `/L:2` place the
+driver in different regions (`CC4Ch` and `D803h`), while `/L:1;2` selects the
+first suitable region. Every listed minimum is validated: the
+`1,40000;2,10000 /S` profile fell low, whereas `1,10000;2,40000 /S` loaded
+high. This tree reproduces those single- and multiple-region behaviors:
 `/L` limits the allocator to the named provider region, an unavailable region
 or an unsatisfied minimum falls back to conventional memory, and `/S` limits
-the tentative upper allocation to the stated minimum before falling back low
-if the complete driver image does not fit. Region selection is scoped to the
-load and the public allocation strategy and link state are restored afterward.
-A multiple-region parameter sweep remains necessary to settle ordering and
-per-region shrinking when more than one listed region is usable.
+each region to its own stated minimum before falling back low if the complete
+driver image does not fit. Region selection is scoped to the load and all caps,
+the public allocation strategy, and link state are restored afterward.
 
 The matching program oracle establishes that DOS 6.22 recognizes
 `INSTALLHIGH=` and executed the test program at `CC4Eh`. DOS 5.0 did not execute

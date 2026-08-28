@@ -27,6 +27,11 @@ nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$WORK_DIR/QEXIT.COM"
 run_case() {
     local name=$1
     shift
+    local emm_options=NOEMS
+    if [[ ${1-} == EMM:* ]]; then
+        emm_options=${1#EMM:}
+        shift
+    fi
     local image="$WORK_DIR/$name.img"
     local log="$WORK_DIR/$name.log"
     cp "$SOURCE_IMAGE" "$image"
@@ -36,7 +41,7 @@ run_case() {
     mcopy -o -i "$image" "$WORK_DIR/QEXIT.COM" ::QEXIT.COM
     {
         printf 'DEVICE=A:\\HIMEM.SYS /TESTMEM:OFF\r\n'
-        printf 'DEVICE=A:\\EMM386.EXE NOEMS\r\n'
+        printf 'DEVICE=A:\\EMM386.EXE %s\r\n' "$emm_options"
         for line in "$@"; do
             printf '%s\r\n' "$line"
         done
@@ -69,6 +74,14 @@ mkdir -p "$(dirname "$OUTPUT_LOG")"
     if [[ $DOS_VERSION == 6.22 ]]; then
         run_case devicehigh_region 'DOS=UMB' 'DEVICEHIGH /L:1=A:\DHREF.SYS REGION'
         run_case devicehigh_region_s 'DOS=UMB' 'DEVICEHIGH /L:1,200 /S=A:\DHREF.SYS SHRINK'
+        run_case devicehigh_region_2 'EMM:NOEMS X=D000-D7FF' 'DOS=UMB' \
+            'DEVICEHIGH /L:2=A:\DHREF.SYS REGION2'
+        run_case devicehigh_region_list 'EMM:NOEMS X=D000-D7FF' 'DOS=UMB' \
+            'DEVICEHIGH /L:1;2=A:\DHREF.SYS LIST'
+        run_case devicehigh_region_reject 'EMM:NOEMS X=D000-D7FF' 'DOS=UMB' \
+            'DEVICEHIGH /L:1,40000;2,10000 /S=A:\DHREF.SYS REJECT'
+        run_case devicehigh_region_accept 'EMM:NOEMS X=D000-D7FF' 'DOS=UMB' \
+            'DEVICEHIGH /L:1,10000;2,40000 /S=A:\DHREF.SYS ACCEPT'
     fi
     run_case installhigh 'DOS=UMB' 'INSTALLHIGH=A:\IHREF.COM ARG'
     printf 'DEVICEHIGH_REFERENCE_END DOS=%s\n' "$DOS_VERSION"

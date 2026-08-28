@@ -44,14 +44,18 @@ run_case() {
     if [[ $with_provider == yes ]]; then
         mcopy -o -i "$image" "$HIMEM" ::HIMEM.SYS
         mcopy -o -i "$image" "$ROOT/MS-DOS/v4.0/src/MEMM/MEMM/EMM386.SYS" ::EMM386.SYS
-        if [[ $name == region-missing || $name == region-shrink || $name == region-min-large ]]; then
+        if [[ $name == region-missing || $name == region-shrink || $name == region-min-large || $name == multi-reject ]]; then
             mcopy -o -i "$image" "$LINKED_LOW_PROBE" ::DHSTATE.COM
         else
             mcopy -o -i "$image" "$HIGH_PROBE" ::DHSTATE.COM
         fi
         {
             printf 'DEVICE=HIMEM.SYS\r\n'
-            printf 'DEVICE=EMM386.SYS M5\r\n'
+            if [[ $name == multi-* ]]; then
+                printf 'DEVICE=EMM386.SYS M5 X=D000-D7FF\r\n'
+            else
+                printf 'DEVICE=EMM386.SYS M5\r\n'
+            fi
             if [[ $name == size ]]; then
                 printf 'DEVICEHIGH SIZE=0200 DHREF.SYS SIZEARG\r\n'
             elif [[ $name == region ]]; then
@@ -64,6 +68,16 @@ run_case() {
                 printf 'DEVICEHIGH /L:1,200 /S=DHREF.SYS SHRINK\r\n'
             elif [[ $name == region-min-large ]]; then
                 printf 'DEVICEHIGH /L:1,65535=DHREF.SYS MINLARGE\r\n'
+            elif [[ $name == multi-one ]]; then
+                printf 'DEVICEHIGH /L:1=DHREF.SYS MULTIONE\r\n'
+            elif [[ $name == multi-two ]]; then
+                printf 'DEVICEHIGH /L:2=DHREF.SYS MULTITWO\r\n'
+            elif [[ $name == multi-list ]]; then
+                printf 'DEVICEHIGH /L:1;2=DHREF.SYS MULTILIST\r\n'
+            elif [[ $name == multi-reject ]]; then
+                printf 'DEVICEHIGH /L:1,40000;2,10000 /S=DHREF.SYS MULTIREJECT\r\n'
+            elif [[ $name == multi-accept ]]; then
+                printf 'DEVICEHIGH /L:1,20000;2,10000 /S=DHREF.SYS MULTIACCEPT\r\n'
             else
                 printf 'DEVICEHIGH=DHREF.SYS BEFORE\r\n'
             fi
@@ -100,6 +114,11 @@ region_missing_log=$(run_case region-missing yes)
 region_min_log=$(run_case region-min yes)
 region_shrink_log=$(run_case region-shrink yes)
 region_min_large_log=$(run_case region-min-large yes)
+multi_one_log=$(run_case multi-one yes)
+multi_two_log=$(run_case multi-two yes)
+multi_list_log=$(run_case multi-list yes)
+multi_reject_log=$(run_case multi-reject yes)
+multi_accept_log=$(run_case multi-accept yes)
 fallback_log=$(run_case fallback no)
 
 if ! grep -q '^DEVICEHIGH_STATE_PASS' "$high_log"; then
@@ -144,10 +163,28 @@ if ! grep -q '^DEVICEHIGH_FALLBACK_PASS' "$region_min_large_log"; then
     exit 1
 fi
 
+multi_one_segment=$(sed -n 's/^DEVICEHIGH_REF_SEG=\([0-9A-F][0-9A-F]*\).*/\1/p' "$multi_one_log")
+multi_two_segment=$(sed -n 's/^DEVICEHIGH_REF_SEG=\([0-9A-F][0-9A-F]*\).*/\1/p' "$multi_two_log")
+if [[ -z $multi_one_segment || -z $multi_two_segment || $multi_one_segment == "$multi_two_segment" ]] \
+    || ! grep -q '^DEVICEHIGH_STATE_PASS' "$multi_one_log" \
+    || ! grep -q '^DEVICEHIGH_STATE_PASS' "$multi_two_log" \
+    || ! grep -q '^DEVICEHIGH_STATE_PASS' "$multi_list_log" \
+    || ! grep -q '^DEVICEHIGH_FALLBACK_PASS' "$multi_reject_log" \
+    || ! grep -q '^DEVICEHIGH_STATE_PASS' "$multi_accept_log"
+then
+    echo 'FAIL: DEVICEHIGH multi-region minimum and shrink profile' >&2
+    sed -n '1,120p' "$multi_one_log" >&2
+    sed -n '1,120p' "$multi_two_log" >&2
+    sed -n '1,120p' "$multi_list_log" >&2
+    sed -n '1,120p' "$multi_reject_log" >&2
+    sed -n '1,120p' "$multi_accept_log" >&2
+    exit 1
+fi
+
 if ! grep -q '^DEVICEHIGH_FALLBACK_PASS' "$fallback_log"; then
     echo 'FAIL: DEVICEHIGH did not fall back to conventional memory' >&2
     sed -n '1,160p' "$fallback_log" >&2
     exit 1
 fi
 
-echo '  PASS: DEVICEHIGH upper placement, DOS= ordering, scoped link, and fallback'
+echo '  PASS: DEVICEHIGH regions, minima, shrinking, DOS= ordering, and fallback'
