@@ -9,6 +9,7 @@ PROBE="$OUT/xms-umb-transaction.com"
 LIFECYCLE_PROBE="$OUT/umb-lifecycle.com"
 LIFECYCLE_CHILD="$OUT/umbchild.com"
 DISABLED_PROBE="$OUT/xms-umb-disabled.com"
+REGISTER_PROBE="$OUT/umb-registers.com"
 
 for tool in nasm mcopy qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || {
@@ -21,6 +22,7 @@ nasm -f bin "$ROOT/tests/xms_umb_transaction_probe.asm" -o "$PROBE"
 nasm -f bin "$ROOT/tests/umb_lifecycle_probe.asm" -o "$LIFECYCLE_PROBE"
 nasm -f bin "$ROOT/tests/umb_exit_child.asm" -o "$LIFECYCLE_CHILD"
 nasm -f bin "$ROOT/tests/xms_umb_disabled_probe.asm" -o "$DISABLED_PROBE"
+nasm -f bin "$ROOT/tests/umb_register_reference.asm" -o "$REGISTER_PROBE"
 
 for mode in 0 1 2 3 4 5 6 7 8 9; do
     provider="$OUT/xms-umb-provider-$mode.sys"
@@ -108,4 +110,45 @@ if ! grep -q '^UMB_LIFECYCLE_PASS' "$log"; then
     exit 1
 fi
 
-echo "  PASS: XMS transactions and UMB allocator lifecycle"
+provider="$OUT/xms-umb-provider-registers.sys"
+image="$OUT/floppy-umb-registers.img"
+log="$OUT/umb-registers.log"
+nasm -DTEST_MODE=0 -f bin "$ROOT/tests/xms_umb_provider.asm" -o "$provider"
+cp "$FLOPPY" "$image"
+mcopy -o -i "$image" "$provider" ::XMSPROV.SYS
+mcopy -o -i "$image" "$REGISTER_PROBE" ::UMBREG.COM
+{
+    printf 'DEVICE=A:\\XMSPROV.SYS\r\n'
+    printf 'DOS=UMB\r\n'
+} | mcopy -o -i "$image" - ::CONFIG.SYS
+{
+    printf '@ECHO OFF\r\n'
+    printf 'CTTY AUX\r\n'
+    printf 'UMBREG.COM\r\n'
+} | mcopy -o -i "$image" - ::AUTOEXEC.BAT
+timeout 20 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 4 \
+    -drive if=floppy,index=0,format=raw,file="$image",cache=writethrough \
+    -boot a -serial stdio -no-reboot >"$log" 2>&1 || true
+for expected in \
+    'CASE=0 CF=0 AX=0000 BX=2222 CX=3333 DX=4444 SI=5555 DI=6666 BP=7777' \
+    'CASE=1 CF=0 AX=5801 BX=0000 CX=3333 DX=4444 SI=5555 DI=6666 BP=7777' \
+    'CASE=I CF=1 AX=0001 BX=0100 CX=3333 DX=4444 SI=5555 DI=6666 BP=7777' \
+    'CASE=2 CF=0 AX=5800 BX=2222 CX=3333 DX=4444 SI=5555 DI=6666 BP=7777' \
+    'CASE=3 CF=0 AX=5803 BX=0000 CX=3333 DX=4444 SI=5555 DI=6666 BP=7777' \
+    'CASE=L CF=1 AX=0001 BX=0100 CX=3333 DX=4444 SI=5555 DI=6666 BP=7777' \
+    'CASE=4 CF=1 AX=0001 BX=2222 CX=3333 DX=4444 SI=5555 DI=6666 BP=7777'
+do
+    if ! grep -Fq "$expected" "$log"; then
+        echo "FAIL: UMB register contract: $expected" >&2
+        sed -n '1,120p' "$log" >&2
+        exit 1
+    fi
+done
+if [[ $(grep -Ec '^CASE=[01I234L].* DS=[0-9A-F]{4} ES=8888' "$log") -ne 7 ]]; then
+    echo "FAIL: UMB segment-register preservation" >&2
+    sed -n '1,120p' "$log" >&2
+    exit 1
+fi
+
+echo "  PASS: XMS transactions, UMB allocator lifecycle, and register contract"

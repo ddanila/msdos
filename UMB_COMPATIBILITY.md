@@ -23,6 +23,7 @@ Capture a prepared image without modifying the original:
 ```sh
 tests/capture_umb_reference.sh /path/to/boot.img /tmp/dos622-umb.log
 tests/capture_umb_lifecycle_reference.sh /path/to/boot.img /tmp/dos622-life.log
+tests/capture_umb_register_reference.sh /path/to/boot.img /tmp/dos622-regs.log
 ```
 
 The prepared UMB images retain their own legally obtained HIMEM/EMM386 files
@@ -46,7 +47,7 @@ and `e2c0ede60d5de23f77c35de371de9ba9df60905af3fe9a695dc270c8a0e8e380`.
 | `5801h`, `0000h..0002h` | accept and round-trip | confirmed | confirmed | accepts |
 | `5801h`, `0040h..0042h` | accept and round-trip | confirmed | confirmed | incorrectly treated as last fit |
 | `5801h`, `0080h..0082h` | accept and round-trip | confirmed | confirmed | incorrectly treated as last fit |
-| `5801h`, other value or `BH!=0` | carry set, `AX=0001h`, state unchanged | error confirmed; preservation pending | error confirmed; preservation pending | incorrectly accepts |
+| `5801h`, other value or `BH!=0` | carry set, `AX=0001h`, state unchanged | confirmed | confirmed | incorrectly accepts |
 | `5802h` | carry clear, `AL=0` or `1` | confirmed | confirmed | invalid function |
 | `5803h`, `BX=0` or `1` | carry clear with provider; otherwise error and unchanged | confirmed | confirmed | invalid function |
 | `5803h`, other `BX` | carry set, `AX=0001h`, state unchanged | confirmed | confirmed | invalid function |
@@ -55,8 +56,12 @@ and `e2c0ede60d5de23f77c35de371de9ba9df60905af3fe9a695dc270c8a0e8e380`.
 | state across EXEC | child sees global state; caller restores it | pending | pending | strategy global |
 
 The strategy values and public link-state behavior come from the Microsoft
-MS-DOS 5 Programmer's Reference and are retained by 6.22. Invalid-input and
-preserved-register details remain reference-gated where the manuals are silent.
+MS-DOS 5 Programmer's Reference and are retained by 6.22. A focused black-box
+capture confirms that `CX`, `DX`, `SI`, `DI`, `BP`, `DS`, and `ES` survive all
+four calls and invalid subfunctions on both references. `BX` also survives;
+the setters leave successful `AX` unchanged, `5802h` changes only `AL`, and
+invalid calls return `AX=0001h` with carry set. The synthetic-provider test
+asserts the same contract in this tree.
 
 ## Allocation and arena behavior
 
