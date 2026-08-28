@@ -64,7 +64,7 @@ preserved-register details remain reference-gated where the manuals are silent.
 | low-only `00h..02h` | never allocate from a UMB | pending | pending |
 | upper-only `40h..42h` | fail rather than fall back low | pending | pending |
 | upper-then-low `80h..82h` | allocate upper first, then conventional | pending | pending |
-| unlinked UMB arena | high strategy cannot reach UMBs | pending | pending |
+| unlinked UMB arena | high strategy allocates conventionally without changing either setting | confirmed | confirmed |
 | link with no provider | exact link state and error behavior | pending | pending |
 | `48h` failure | exact `AX` and largest-domain block in `BX` | pending | pending |
 | `49h`/`4Ah` on UMB | same ownership, resize, and errors as low blocks | pending | pending |
@@ -74,9 +74,12 @@ preserved-register details remain reference-gated where the manuals are silent.
 
 With the UMB arena linked, a 16-paragraph allocation using either strategy
 `0040h` or `0080h` landed above `A000h` in both references (`CB02h` on 5.0;
-`CC4Bh` on 6.22). With no provider and no link, the same calls allocated from
-conventional memory. Exhaustion and fragmentation probes are still required to
-distinguish the upper-only and upper-then-low fallback contracts empirically.
+`CC4Bh` on 6.22). After explicitly unlinking a populated UMB arena, strategy
+`0040h` allocated conventionally on both references (`12AEh` on 5.0 and
+`11CBh` on 6.22), without changing the strategy or link setting. With no
+provider and no link, the same calls also allocated conventionally. Exhaustion
+and fragmentation probes are still required to distinguish the upper-only and
+upper-then-low fallback contracts empirically.
 
 ## Boot and command interfaces
 

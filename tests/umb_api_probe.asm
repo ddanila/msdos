@@ -104,6 +104,23 @@ strategy_done:
     mov dx, invalid_subfunction_label
     call invoke_and_print
 
+    mov bx, 0040h
+    mov ax, 5801h
+    int 21h
+    mov bx, 0010h
+    mov ah, 48h
+    int 21h
+    pushf
+    pop cx
+    mov dx, allocate_upper_unlinked_label
+    call print_result
+    test cl, 1
+    jnz upper_unlinked_done
+    mov es, ax
+    mov ah, 49h
+    int 21h
+upper_unlinked_done:
+
     xor bx, bx
     cmp byte [original_link], 0
     je restore_link
@@ -324,6 +341,7 @@ get_link_off_label db 'GET_LINK_0', 0
 invalid_link_label db 'SET_LINK_INVALID_2', 0
 invalid_link_bh_label db 'SET_LINK_INVALID_0100', 0
 invalid_subfunction_label db 'INVALID_5804', 0
+allocate_upper_unlinked_label db 'ALLOC_UPPER_UNLINKED_0010', 0
 get_link_before_allocation_label db 'GET_LINK_BEFORE_ALLOC', 0
 get_strategy_before_upper_only_label db 'GET_STRATEGY_BEFORE_UPPER_ONLY', 0
 get_strategy_before_fallback_label db 'GET_STRATEGY_BEFORE_UPPER_THEN_LOW', 0

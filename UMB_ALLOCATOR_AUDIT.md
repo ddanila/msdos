@@ -87,6 +87,13 @@ every acquired XMS extent. The configurable test provider exercises successful
 out-of-order acquisition and partial, overlapping, malformed, and conflicting
 maps in isolated QEMU boots.
 
+The synthetic lifecycle test also covers every fit/domain strategy, exact and
+failed allocation with largest-block reporting, fragmentation, UMB resize and
+free, unlink/relink with live contents, arena corruption, conventional
+fallback, and child-process cleanup. That cleanup exposed and now guards a
+carry-sensitive traversal defect which had returned after the first
+conventional MCB instead of reaching child-owned upper blocks.
+
 The private `5804h` path is callable only with SYSINIT's three-register
 signature and is not part of the public API; ordinary `5804h` calls still take
 the required invalid-function path. This handoff does not expose or consume a
