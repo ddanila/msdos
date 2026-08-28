@@ -11,8 +11,7 @@ For changes that affect generated binaries or runtime behavior:
 - keep focused host contracts and all strict coverage manifests green;
 - prove pristine serial and parallel build reproducibility;
 - run `make deploy` and the relevant QEMU suites;
-- run the complete QEMU matrix before changing golden artifacts or declaring a
-  toolchain update complete;
+- run the complete QEMU matrix before declaring a toolchain update complete;
 - require green `ddanila/msdos` CI for the exact pushed implementation commit.
 
 ## Extend behavioral depth

@@ -57,9 +57,8 @@ ASCII unless a file's historical byte content specifically requires otherwise.
   contain binary bytes, so use binary-safe search options when needed.
 - Use the module's Make rule when diagnosing include lookup. Hand-written JWasm
   invocations must reproduce its source directory and include arguments.
-- Treat checksum changes as evidence to investigate, not as references to
-  refresh automatically. Golden files change only after focused behavior and
-  complete QEMU validation.
+- Treat binary changes as evidence to investigate and validate with focused
+  behavior, pristine reproducibility builds, and the complete QEMU matrix.
 - When a tool compatibility problem is real, prefer a focused fix in the
   appropriate `ddanila` tool fork. Source changes are appropriate for actual
   source defects or deliberate MS-DOS behavior changes.

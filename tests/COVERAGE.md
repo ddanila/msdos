@@ -140,19 +140,6 @@ Tests that mutate disks or files use private copies and accept a `FLOPPY_IMAGE`
 override where appropriate. This permits parallel execution and supports the
 mutation audit without serializing access to `out/floppy.img`.
 
-## Artifact checksums
-
-Checksums are reproducibility evidence, not behavioral evidence.
-`golden.sha256` is the canonical Linux artifact set.
-`golden.macos-arm64.sha256` narrowly overrides outputs that differ because the
-vendored host tools were built by different compilers. Every unlisted macOS
-artifact must match Linux, and both platform variants pass the same behavioral
-contracts.
-
-Golden files may be refreshed only after the difference is understood, focused
-contracts pass, pristine serial and parallel builds are deterministic, and the
-complete QEMU matrix is green.
-
 ## Commands
 
 Run all manifest checks as part of the normal suite:

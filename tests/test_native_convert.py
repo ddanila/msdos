@@ -8,7 +8,6 @@ inputs are re-baselined only after their converted output passes QEMU tests.
 from __future__ import annotations
 
 import hashlib
-import platform
 import subprocess
 import tempfile
 from pathlib import Path
@@ -24,14 +23,6 @@ def main() -> None:
     for line in (ROOT / "tests/native_convert.sha256").read_text().splitlines():
         checksum, output_name = line.split(maxsplit=1)
         cases[output_name] = checksum
-
-    # Converted output inherits any host-specific bytes in its linked OW2
-    # input.  Use the same narrow macOS artifact overrides as run_tests.sh.
-    if platform.system() == "Darwin" and platform.machine() == "arm64":
-        for line in (ROOT / "tests/golden.macos-arm64.sha256").read_text().splitlines():
-            checksum, output_name = line.split(maxsplit=1)
-            if output_name in cases:
-                cases[output_name] = checksum
 
     with tempfile.TemporaryDirectory(prefix="msdos-convert-") as temp_name:
         temp = Path(temp_name)

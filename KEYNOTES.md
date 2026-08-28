@@ -119,11 +119,6 @@ kvikdos behavior plus strict machine-readable coverage checks. The QEMU targets
 test behavior that needs a real DOS machine model: boot, interrupts, block
 devices, filesystem mutation, drivers, TSRs, interactive I/O, and EMM386.
 
-Golden checksums prove deterministic output; they do not prove behavior. A
-golden update requires focused behavioral evidence and the full QEMU matrix.
-Linux is the canonical artifact set. `tests/golden.macos-arm64.sha256` contains
-only known output differences from independently hosted Open Watcom binaries.
-
 Coverage is contract based rather than source-line based. The manifests derive
 their inventories from source and build metadata, reject stale evidence, and
 require runnable tests wired into CI. See `tests/COVERAGE.md`.
@@ -150,6 +145,6 @@ make -k -j8 2>&1 | tee /tmp/msdos-build.log
 rg -a 'error|warning|failed' /tmp/msdos-build.log
 ```
 
-Compare clean-file, failed-target, crash, checksum, and runtime results rather
+Compare clean-file, failed-target, crash, artifact, and runtime results rather
 than relying on raw assembler error count. A fix can expose more diagnostics by
 allowing a file to progress farther.

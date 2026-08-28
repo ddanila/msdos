@@ -147,13 +147,12 @@ the rest of the test suite.
 
 The reproducibility contract is exact equality of the complete artifact set
 across pristine `-j1`, `-j4`, and `-j8` builds using one pinned host toolset.
-Linux is the canonical golden platform. A narrow macOS checksum override
-records genuine differences caused by independently hosted Open Watcom tools;
-all unlisted artifacts must match the Linux set.
+Cross-host differences are investigated when updating the toolchain, while
+behavioral contracts remain the release criterion on every supported host.
 
 ## Validation model
 
-No single checksum or smoke test proves this toolchain. The release gate is:
+No single smoke test proves this toolchain. The release gate is:
 
 1. focused native-tool and compatibility-transform contracts;
 2. a pristine build with the exact custom JWasm and vendored Open Watcom pins;

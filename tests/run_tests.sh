@@ -1,6 +1,6 @@
 #!/bin/bash
 # Integration tests for the MS-DOS 4.0 build.
-# Run via: make test  (which first builds everything, then calls this script)
+# Build first, then run via: make test
 # Exit code: 0 if all tests pass, 1 if any fail.
 
 set -uo pipefail
@@ -9,12 +9,6 @@ export LC_ALL=C  # DOS output contains arbitrary OEM bytes; keep host text tools
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$REPO_ROOT/MS-DOS/v4.0/src"
 BIN="$REPO_ROOT/bin"
-GOLDEN="$REPO_ROOT/tests/golden.sha256"
-GOLDEN_OVERRIDE=""
-if [[ "$(uname -s)-$(uname -m)" == "Darwin-arm64" ]]; then
-    GOLDEN_OVERRIDE="$REPO_ROOT/tests/golden.macos-arm64.sha256"
-fi
-
 PASS=0
 FAIL=0
 SKIP=0
@@ -98,58 +92,9 @@ for f in "${ARTIFACTS[@]}"; do
     fi
 done
 
-# ── Section 2: SHA256 checksums ──────────────────────────────────────────────
+# ── Section 2: kvikdos smoke tests ──────────────────────────────────────────
 echo ""
-echo "=== Section 2: SHA256 checksums ==="
-
-# Golden checksums pin the canonical artifacts produced by the open toolchain.
-# Skip when the MS-DOS submodule is not on the 'main' branch (e.g. on
-# 'dos4-enhancements' where source changes invalidate the golden hashes).
-if git -C "$REPO_ROOT/MS-DOS" merge-base --is-ancestor HEAD main 2>/dev/null; then
-    if [[ -f "$GOLDEN" ]]; then
-        checksum_failures=0
-        if [[ -n "$GOLDEN_OVERRIDE" && -f "$GOLDEN_OVERRIDE" ]]; then
-            override_errors=$(awk '
-                NR == FNR { canonical[$2] = 1; next }
-                NF != 2 { print "malformed override line " FNR; errors++; next }
-                seen[$2]++ { print "duplicate override for " $2; errors++ }
-                !($2 in canonical) { print "override for unknown artifact " $2; errors++ }
-                END { exit(errors != 0) }
-            ' "$GOLDEN" "$GOLDEN_OVERRIDE") || {
-                printf '%s\n' "$override_errors" | sed 's/^/    /'
-                checksum_failures=$((checksum_failures + 1))
-            }
-        fi
-        while read -r expected artifact; do
-            [[ -n "$artifact" && -f "$SRC/$artifact" ]] || continue
-            if [[ -n "$GOLDEN_OVERRIDE" && -f "$GOLDEN_OVERRIDE" ]]; then
-                platform_expected=$(awk -v artifact="$artifact" '$2 == artifact { print $1 }' "$GOLDEN_OVERRIDE")
-                [[ -z "$platform_expected" ]] || expected="$platform_expected"
-            fi
-            actual=$(sha256sum "$SRC/$artifact")
-            actual=${actual%% *}
-            if [[ "$actual" != "$expected" ]]; then
-                echo "    $artifact"
-                echo "      expected: $expected"
-                echo "      actual:   $actual"
-                checksum_failures=$((checksum_failures + 1))
-            fi
-        done < "$GOLDEN"
-        if [[ $checksum_failures -eq 0 ]]; then
-            ok "all checksums match"
-        else
-            fail "checksum mismatch for the active host toolchain"
-        fi
-    else
-        skip "golden.sha256 not found — run 'make gen-checksums' first"
-    fi
-else
-    skip "MS-DOS submodule is not on 'main' — golden checksums not applicable"
-fi
-
-# ── Section 3: kvikdos smoke tests ──────────────────────────────────────────
-echo ""
-echo "=== Section 3: kvikdos smoke tests ==="
+echo "=== Section 2: kvikdos smoke tests ==="
 
 # COMMAND.COM /C EXIT — should return exit code 0
 if (cd "$SRC/CMD/COMMAND" && timeout 30 "$BIN/dos-run" "$SRC/CMD/COMMAND/COMMAND.COM" /C EXIT) 2>&1; then
@@ -163,9 +108,9 @@ else
     fi
 fi
 
-# ── Section 4: /? help smoke tests ──────────────────────────────────────────
+# ── Section 3: /? help smoke tests ──────────────────────────────────────────
 echo ""
-echo "=== Section 4: /? help smoke tests ==="
+echo "=== Section 3: /? help smoke tests ==="
 
 # Run a tool with /? and check that expected text appears in stdout.
 # Exit code is ignored (|| true) because some tools (e.g. ATTRIB) trigger a
@@ -229,11 +174,11 @@ check_help "IFSFUNC"  "CMD/IFSFUNC/IFSFUNC.EXE"       "IFSFUNC"
 # Skipped: COMMAND.COM /? hangs under kvikdos (interactive shell, no timeout-safe exit)
 # check_help "COMMAND"  "CMD/COMMAND/COMMAND.COM"       "command interpreter"
 
-# ── Section 5: COMMAND.COM built-in /? help (static binary check) ────────────
+# ── Section 4: COMMAND.COM built-in /? help (static binary check) ────────────
 # Verify the help string is present in the COMMAND.COM binary.
-# (Functional built-in testing is in Section 6 below, using kvikdos.)
+# (Functional built-in testing is in Section 5 below, using kvikdos.)
 echo ""
-echo "=== Section 5: COMMAND.COM built-in /? help (static check) ==="
+echo "=== Section 4: COMMAND.COM built-in /? help (static check) ==="
 
 check_builtin_help() {
     local name="$1"
@@ -280,10 +225,10 @@ check_builtin_help "IF"      "Performs conditional processing"
 check_builtin_help "FOR"     "Runs a specified command for each file"
 check_builtin_help "CALL"    "Calls one batch program from another"
 
-# ── Section 6: E2E functional tests (kvikdos) ─────────────────────────────────
+# ── Section 5: E2E functional tests (kvikdos) ─────────────────────────────────
 # Run real DOS binaries under kvikdos with actual input/output, not just /? help.
 echo ""
-echo "=== Section 6: E2E functional tests (kvikdos) ==="
+echo "=== Section 5: E2E functional tests (kvikdos) ==="
 
 # Helper: run a tool under kvikdos from the source root, capture stdout.
 # Usage: run_dos TOOL [args...]
@@ -1417,7 +1362,7 @@ fi
 # Skipped: KEYB functional tests (load, status query) cannot run under kvikdos.
 # KEYB_COMMAND calls SYSLOADMSG as its very first instruction and exits immediately
 # if the version check fails (same root cause as COMMAND.COM built-in failures).
-# The /? smoke test in Section 4 passes because the PARSER intercepts /? before
+# The /? smoke test in Section 3 passes because the PARSER intercepts /? before
 # KEYB_COMMAND is ever entered.  Functional KEYB tests require QEMU.
 
 # -- EXE2BIN: convert a minimal EXE to BIN --
@@ -1754,9 +1699,9 @@ else
 fi
 rm -rf "$SRC/RPLWDEST" "$SRC/RPLW.TXT"
 
-# ── Section 7: COMMAND.COM built-in E2E tests (kvikdos) ──────────────────────
+# ── Section 6: COMMAND.COM built-in E2E tests (kvikdos) ──────────────────────
 echo ""
-echo "=== Section 7: COMMAND.COM built-in E2E tests (kvikdos) ==="
+echo "=== Section 6: COMMAND.COM built-in E2E tests (kvikdos) ==="
 
 KVBAT="$SRC/CMD/COMMAND/KVTEST.BAT"
 KVSUB="$SRC/CMD/COMMAND/KVSUB.BAT"

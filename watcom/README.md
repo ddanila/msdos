@@ -50,12 +50,10 @@ The vendored 16-bit DOS runtime under `lib286/` includes the model-specific C
 libraries and `math87s.lib`, which Open Watcom links automatically for
 small-model programs that use floating-point arithmetic.
 
-Host builds are deterministic within each pinned toolset, but the independently
+Host builds are deterministic within each pinned toolset, but independently
 built Linux GCC and macOS Clang host compilers do not promise byte-identical
-16-bit code generation. The behavioral suite therefore uses the Linux artifact
-set as its canonical golden and a small macOS arm64 override file for the
-artifacts known to differ after a clean build. Both sets execute the same QEMU
-contracts; an unlisted platform difference remains a test failure.
+16-bit code generation. Every supported host runs the same behavioral and QEMU
+contracts.
 
 ## Updating the vendored tools
 
@@ -68,7 +66,7 @@ Treat a refresh as a toolchain change, not a binary-copy operation:
 4. record the base snapshot, custom revisions, workflow provenance, and hashes
    in this file;
 5. run focused adapter tests, pristine `-j1`/`-j4`/`-j8` builds, `make test`,
-   deployment, and the complete QEMU matrix before updating golden artifacts.
+   deployment, and the complete QEMU matrix.
 
 The upstream snapshot extraction command, when needed, is:
 
