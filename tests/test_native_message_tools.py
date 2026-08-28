@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Compare native NOSRVBLD and MENUBLD with captured Microsoft-tool hashes."""
+"""Compare native NOSRVBLD and MENUBLD with current production outputs."""
 
 from __future__ import annotations
 
-import hashlib
 import subprocess
 import tempfile
 from pathlib import Path
@@ -28,16 +27,7 @@ NOSRV_CASES = {
 }
 
 
-def digest(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
-
-
 def main() -> None:
-    expected = {}
-    for line in (ROOT / "tests/native_message_tools.sha256").read_text().splitlines():
-        checksum, name = line.split(maxsplit=1)
-        expected[name] = checksum
-
     with tempfile.TemporaryDirectory(prefix="msdos-message-tools-") as temp_name:
         temp = Path(temp_name)
         skeletons = sorted(set(NOSRV_CASES.values()))
@@ -49,7 +39,7 @@ def main() -> None:
             )
         for output_name in NOSRV_CASES:
             output = temp / Path(output_name).name
-            if digest(output) != expected[output_name]:
+            if output.read_bytes() != (SOURCE / output_name).read_bytes():
                 raise SystemExit(f"NOSRVBLD mismatch for {output_name}")
 
         subprocess.run(
@@ -61,7 +51,7 @@ def main() -> None:
             check=True,
         )
         menu_name = "CMD/FDISK/FDISKM.C"
-        if digest(temp / "FDISKM.C") != expected[menu_name]:
+        if (temp / "FDISKM.C").read_bytes() != (SOURCE / menu_name).read_bytes():
             raise SystemExit(f"MENUBLD mismatch for {menu_name}")
 
     print("native NOSRVBLD and MENUBLD parity tests passed (12 outputs)")

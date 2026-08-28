@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
-"""Check native EXE2BIN against the current production build references."""
+"""Check native EXE2BIN against the current production outputs."""
 
 from __future__ import annotations
 
-import hashlib
 import subprocess
 import tempfile
 from pathlib import Path
@@ -47,19 +46,7 @@ CASES = {
 }
 
 
-def load_hashes() -> dict[str, str]:
-    result = {}
-    for line in (ROOT / "tests/native_exe2bin.sha256").read_text().splitlines():
-        digest, name = line.split(maxsplit=1)
-        result[name] = digest
-    return result
-
-
 def main() -> None:
-    expected = load_hashes()
-    if expected.keys() != CASES.keys():
-        raise SystemExit("EXE2BIN case list and reference hash list differ")
-
     with tempfile.TemporaryDirectory(prefix="msdos-exe2bin-") as temp_name:
         temp = Path(temp_name)
         for output_name, (input_name, load_segment) in CASES.items():
@@ -71,10 +58,11 @@ def main() -> None:
                 text=True,
                 check=True,
             )
-            actual = hashlib.sha256(output.read_bytes()).hexdigest()
-            if actual != expected[output_name]:
+            actual = output.read_bytes()
+            expected = (SOURCE / output_name).read_bytes()
+            if actual != expected:
                 raise SystemExit(
-                    f"EXE2BIN mismatch for {output_name}: {actual} != {expected[output_name]}"
+                    f"EXE2BIN output differs from the production {output_name}"
                 )
     print(f"native EXE2BIN parity tests passed ({len(CASES)} production cases)")
 
