@@ -12,7 +12,7 @@ Used via `bin/jwasm-masm` as the build's MASM-compatible assembler wrapper.
 
 ## Required version
 
-The migration uses the project fork's **`custom` branch**, currently commit
+Production uses the project fork's **`custom` branch**, pinned to commit
 `4c2f0a2f7440ca40a8cfa6718ac3ffd74ca1f9d9`. It is based on upstream's
 2026-07-01 snapshot (`7f6f32e`, 11 commits
 newer than `v2.21pre1`) and carries the MS-DOS compatibility fixes, including
@@ -49,6 +49,6 @@ under the matching `jwasm/` platform directory.
 
 The pinned custom build completes clean full-tree builds with GNU Make at
 `-j1`, `-j4`, and `-j8`. A deployed FAT12 image boots the JWasm-built IO.SYS,
-MSDOS.SYS, and COMMAND.COM stack in QEMU. See `TODO.md` and the MS-DOS
-submodule's `main` branch for the compatibility changes and validation
-history.
+MSDOS.SYS, and COMMAND.COM stack in QEMU. Focused parsing and include-lookup
+contracts run through `tests/test_toolchain_transforms.py`; the complete
+validation policy is documented in `PLAN.md`.

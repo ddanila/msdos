@@ -1,87 +1,88 @@
-# Project context for Claude (MS-DOS 4.0 open-source toolchain migration)
+# Repository instructions
 
-This file replaces Claude's per-repo auto-memory. Keep durable project notes
-HERE (and in `docs/agent-notes/`), not in `~/.claude` memory. When you learn
-something worth persisting for this repo, edit this file or a file under
-`docs/agent-notes/` -- do not write it to Claude memory.
+This file contains durable project constraints for coding agents. It is not a
+status log. Current architecture is documented in `PLAN.md`; open work belongs
+in `TODO.md`.
 
-## What this project is
+## Project state
 
-Delivering a reproducible, fully open-source MS-DOS 4.0 build that runs on
-modern hosts without proprietary Microsoft binaries or DOS emulation in the
-build path and passes the complete QEMU suite. Status (2026-08-27):
+The production build is fully native and open source:
 
-- **Assembler = DONE.** The pinned custom JWasm (`bin/jwasm-masm`, `-Zm` MASM
-  5.1 mode) assembles all `.ASM` with 0 errors. `jwasm/build.sh` provisions the
-  exact fork revision; clean `-j1`, `-j4`, and `-j8` builds and the full QEMU
-  boot stack pass.
-- **Linker = DONE for pure-asm.** `bin/wlink` (Open Watcom wlink wrapper) links
-  the pure-assembly targets and is byte-identical to MS LINK. The SELECT wlink
-  SIGSEGV is fixed (`.ALPHA`->`.SEQ`); RESTORE is triaged (C-runtime dep).
-- **Stage B (wcc port of the C-hybrid utilities) = ACTIVE GOAL.** Earlier
-  pilot work builds and links cleanly and `/?` works, but ATTRIB's core path
-  still hangs in the SAL
-  message-substitution layer. It's a deep, multi-layered per-utility effort;
-  substantial shared-runtime work remains. Pure-asm (jwasm+wlink) is the
-  completed foundation; C-hybrids remain on MS CL/LINK until migrated.
-- Still proprietary: MS CL/LIB + MS LINK for C-hybrids, and 9 kvikdos-run
-  build utilities (BUILDMSG, NOSRVBLD, EXE2BIN, CONVERT, BUILDIDX, DBOF,
-  MENUBLD, ASC2HLP, COMPRESS). Replacing all of them is current work.
+- custom JWasm assembles every assembly source through `bin/jwasm-masm`;
+- custom Open Watcom `wcc`, `wlink`, and `wlib` compile C, link images, and
+  create libraries;
+- native repository tools replace all historical DOS-hosted build utilities;
+- kvikdos is test-only and is never part of the production build path;
+- clean serial and parallel builds, `make test`, deployment, and the complete
+  QEMU matrix are the release gates.
 
-Detailed running log: `TODO.md`. Deep notes: `docs/agent-notes/`.
+Do not reintroduce Microsoft build binaries, DOS execution in build recipes,
+shadow source trees, broad post-link rewriting, or host-specific preprocessing.
 
-## Working conventions (follow these)
+## Repository and branch policy
 
-- **Branch policy.** Active work lands directly on the superproject `master`
-  branch. The former `watcom-migration` and `jwasm-migration` histories are
-  preserved by `archive/watcom-migration` and `archive/jwasm-migration` tags;
-  their branches were deleted after the migration was fast-forwarded. Keep the
-  `MS-DOS/` gitlink on an intentional, pushed commit in the user's fork.
-- **CP437 byte-preserving edits.** MS-DOS sources contain CP437 high-bit bytes
-  (box-drawing glyphs in banner comments). The UTF-8 Edit/Write tools re-encode
-  every high-bit byte and corrupt the file. Edit MS-DOS sources byte-preserving
-  via Python latin-1:
-  `s=open(p,encoding='latin-1').read(); ...; open(p,'w',encoding='latin-1').write(s)`
-  (compute the new content BEFORE opening for write -- opening `'wb'`/`'w'`
-  truncates immediately). Verify with `git diff --stat`; unrelated comment-line
-  churn means encoding corruption -- restore from git and redo via latin-1.
-- **ASCII only.** No unicode ellipsis `...` (use three dots) or em-dash (use
-  `--`/`-`) in code, comments, commit messages, or PR text.
-- **Build log discipline.** Run the build once to a log
-  (`make -k ... 2>&1 | tee /tmp/build.log`), then grep/sed/awk that log. Do not
-  re-run a full build just to grep differently. Logs contain binary OMF bytes,
-  so grep needs `-a`.
-- **jwasm make invocation.** Plain `make` is the production JWasm build. Run
-  `./jwasm/build.sh` once when the ignored host binary is absent.
-- **Include depth.** With `bin/jwasm-masm`, `-I` depth must match the file's
-  dir depth under `v4.0/src` or `STRUC.INC` won't resolve and you get a flood of
-  bogus A2199 control-flow errors. depth-1 (`BIOS`,`DOS`): `-I. -I..\INC
-  -I..\HINC`; depth-2 (`DEV/<drv>`,`CMD/<util>`): `-I. -I..\..\INC -I..\..\HINC`;
-  depth-3 (`DEV/DISPLAY/EGA|LCD`,`DEV/PRINTER/<model>`): `-I..\..\..\INC`.
-- **Build metrics.** Total error count is NOT a reliable progress metric (fixing
-  a crash can raise it as files now run to completion). Track clean-file count,
-  segfault count, and failed-target count together; compare the same assembler
-  version.
-- **Prefer toolchain fix.** Classify each build error: (a) genuine assembler bug
-  -> propose a fix to the tool; (b) tool-stricter-than-MASM (correct rejection)
-  -> a source edit is fine. When unsure, surface the analysis and recommend; do
-  not silently apply source workarounds.
-- **Tool forks.** File toolchain bugs/PRs against the user's forks
-  (`github.com/ddanila/open-watcom-v2`, `github.com/ddanila/kvikdos`), never
-  upstream. Vendored binaries under `watcom/bin/` are upstream snapshots.
+- Work only in repositories under `github.com/ddanila` unless the owner gives
+  explicit permission to interact with an upstream project.
+- The superproject branch is `ddanila/msdos:master`.
+- MS-DOS source changes belong in `ddanila/MS-DOS:main`; update the superproject
+  gitlink only after that commit is pushed.
+- JWasm changes belong in `ddanila/JWasm:custom`.
+- Open Watcom and kvikdos changes belong in each fork's `custom` branch. Their
+  `master` branches are upstream synchronization branches and must not receive
+  custom commits.
+- Preserve unrelated working-tree changes, especially generated or
+  line-ending-sensitive files inside submodules.
 
-## docs/agent-notes/ index
+## Source integrity
 
-Migrated from Claude memory (2026-06-18). Some `project_wasm_*` /
-`project_struc_inc_*` notes describe the superseded WASM path and are historical
--- jwasm cleared those blockers; trust `TODO.md` and `project_jwasm_*` /
-`project_toolchain_migration.md` for current reality.
+Many MS-DOS sources contain CP437 high-bit bytes and DOS text files require
+specific line endings. Never decode and rewrite an entire historical source as
+UTF-8 merely to change one line. Use a byte-preserving or Latin-1 round trip,
+and inspect the resulting diff for unrelated high-bit changes.
 
-- `project_toolchain_migration.md` -- toolchain status, SELECT fix, RESTORE
-  triage, Stage B / ATTRIB deep-debug findings (most current).
-- `project_jwasm_deep_set.md`, `project_jwasm_make_invocation.md` -- jwasm path.
-- `project_message_file_generation.md` -- `.CTL`/`.CL*` make-flow step.
-- `project_no_preprocessor_endstate.md` -- goal of retiring the preprocessor.
-- `project_wasm_blockers.md`, `project_wasm_source_patterns.md`,
-  `project_struc_inc_investigation.md` -- historical WASM-era detail.
-- `feedback_*.md` -- the conventions above, in full.
+The `.gitattributes` file in the MS-DOS fork defines line-ending policy. In
+particular, message inputs and build-control files may require CRLF while
+assembly and C sources require LF. Do not normalize these files casually.
+
+Keep source, comments, documentation, commit messages, and automation text
+ASCII unless a file's historical byte content specifically requires otherwise.
+
+## Build and diagnostic conventions
+
+- Run `./jwasm/build.sh` when the ignored host assembler is absent. The script
+  checks out and builds the exact revision documented in `jwasm/README.md`.
+- Plain `make` is the production path. Do not override the assembler or linker
+  to reproduce an obsolete migration configuration.
+- Capture expensive builds once and inspect the saved log. OMF output may
+  contain binary bytes, so use binary-safe search options when needed.
+- Use the module's Make rule when diagnosing include lookup. Hand-written JWasm
+  invocations must reproduce its source directory and include arguments.
+- Treat checksum changes as evidence to investigate, not as references to
+  refresh automatically. Golden files change only after focused behavior and
+  complete QEMU validation.
+- When a tool compatibility problem is real, prefer a focused fix in the
+  appropriate `ddanila` tool fork. Source changes are appropriate for actual
+  source defects or deliberate MS-DOS behavior changes.
+
+## Validation expectations
+
+Choose validation proportional to the change, but the complete release gate is:
+
+1. a pristine build using the pinned tools;
+2. identical artifacts across `-j1`, `-j4`, and `-j8` builds;
+3. `make test` with no unexpected skips;
+4. `make deploy`;
+5. the complete QEMU target matrix;
+6. green GitHub Actions in the `ddanila/msdos` repository.
+
+Coverage claims must be represented in the machine-readable manifests under
+`tests/`, cite runnable evidence, and pass their `--require-complete` verifier.
+See `tests/COVERAGE.md` for the coverage model.
+
+## Documentation policy
+
+Documentation describes the current system, durable design rationale, or
+concrete open work. Do not append session transcripts, dated debugging diaries,
+or already-completed checklists. Git history preserves chronology. When a
+finding remains useful, fold it into `PLAN.md`, `KEYNOTES.md`, a component
+README, or `tests/COVERAGE.md` in present-tense form.

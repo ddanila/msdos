@@ -1,80 +1,96 @@
-# MS-DOS 4.0 — Buildable Development Fork
+# MS-DOS 4.0 build and test environment
 
-A working fork of MS-DOS 4.0 that builds from source on Linux and macOS and is intended as a stable base for OS-level experiments. The custom-JWasm boot stack is validated in QEMU; broader kvikdos and QEMU runtime tests are included.
+This repository builds the `ddanila/MS-DOS` 4.0 source fork on current Linux
+and macOS hosts. The production path is fully native and open source: custom
+JWasm assembles the historical MASM sources, and custom Open Watcom provides
+the 16-bit C compiler, linker, library manager, and runtime libraries. No
+Microsoft build binary or DOS emulator is executed while building.
 
-The `master` branch uses the project's pinned [custom JWasm fork](https://github.com/ddanila/JWasm/tree/custom) natively for every assembly source and the pinned [custom Open Watcom fork](https://github.com/ddanila/open-watcom-v2/tree/custom) for linking, library creation, and C compilation. The complete production build—including MEMM/EMM386—now runs natively with no proprietary Microsoft tools and no DOS emulator in the build path. See `PLAN.md` and `TODO.md`.
+The repository also contains two runtime test layers:
 
-## What's here beyond the stock source
+- kvikdos provides fast command-level tests;
+- QEMU boots the deployed floppy and exercises the kernel, utilities, drivers,
+  filesystem behavior, disk operations, and EMM386.
 
-- **`/?` help for every tool** — all 38 CMD utilities and all COMMAND.COM built-in commands have `/? ` usage text (none existed in the original source)
-- **Bug fixes** — FOR/SET/PROMPT hang (ES register corruption), COMMAND.COM parser crash (signed comparison overflow), FDISK R6001 and semicolon bugs, EDLIN binary mode fixes
-- **Full E2E test suite** — kvikdos fast tests for all built-ins and most tools; QEMU+serial tests for disk ops, TSRs, interactive prompts, FORMAT geometry, FDISK partitioning, driver loading
-- **Reproducible outputs** — clean builds normalize library-member timestamps and reproduce all 59 golden artifacts byte for byte
-- **CI** — GitHub Actions on every push; parallel QEMU jobs cover all test targets
-
-## What's built
-
-### Kernel and boot
-`IO.SYS`, `MSDOS.SYS`, `EMM386.SYS`, `MAPPER.LIB`, `boot.inc`, shared kernel objects, `SELECT.{EXE,COM,HLP,DAT}`, `USA-MS.IDX`
-
-### CMD utilities (all 38)
-`COMMAND.COM`, `FORMAT.COM`, `SYS.COM`, `CHKDSK.COM`, `DEBUG.COM`, `MEM.EXE`, `FDISK.EXE`, `MORE.COM`, `SORT.EXE`, `LABEL.COM`, `FIND.EXE`, `TREE.COM`, `COMP.COM`, `ATTRIB.EXE`, `EDLIN.COM`, `FC.EXE`, `NLSFUNC.EXE`, `ASSIGN.COM`, `XCOPY.EXE`, `DISKCOMP.COM`, `DISKCOPY.COM`, `APPEND.EXE`, `RECOVER.COM`, `FASTOPEN.EXE`, `PRINT.COM`, `FILESYS.EXE`, `REPLACE.EXE`, `JOIN.EXE`, `SUBST.EXE`, `BACKUP.COM`, `RESTORE.COM`, `GRAFTABL.COM`, `KEYB.COM`, `SHARE.EXE`, `EXE2BIN.EXE`, `GRAPHICS.COM`, `IFSFUNC.EXE`, `MODE.COM`
-
-### Device drivers (all 12)
-`ANSI.SYS`, `COUNTRY.SYS`, `DISPLAY.SYS`, `DRIVER.SYS`, `KEYBOARD.SYS`, `PRINTER.SYS`, `RAMDRIVE.SYS`, `SMARTDRV.SYS`, `VDISK.SYS`, `XMA2EMS.SYS`, `XMAEM.SYS`, `FLUSH13.EXE`
+The exact tool revisions and the compatibility operations that remain are
+documented in [PLAN.md](PLAN.md). Detailed test traceability is in
+[tests/COVERAGE.md](tests/COVERAGE.md).
 
 ## Quick start
 
+Initialize submodules before the first build, then provision the pinned JWasm
+host binary:
+
 ```sh
-./jwasm/build.sh  # first checkout: build the pinned custom assembler
-make               # build everything
-make test          # kvikdos integration tests (fast)
-make deploy        # create out/floppy.img
-./run-qemu.sh      # boot interactively in QEMU
+git submodule update --init --recursive
+./jwasm/build.sh
+make
+make test
+make deploy
 ```
 
-Full E2E test targets:
+`make` builds the complete tree. `make test` runs the fast host-side behavioral
+suite and all strict coverage-manifest checks. `make deploy` creates
+`out/floppy.img`. To boot that image interactively:
 
 ```sh
-make test-sys
-make test-help-qemu
-make test-format
-make test-backup-restore
-make test-diskcomp-diskcopy
-make test-share-nlsfunc-exe2bin
-make test-append
-make test-label
-make test-fdisk
-make test-recover
-make test-assign-subst-join
-make test-debug-qemu
-make test-edlin-qemu
-make test-drivers-qemu
-make test-misc-qemu
-make test-mode-redirect-qemu
-make test-keyb-layout-qemu
-make test-emm386-qemu
+./run-qemu.sh
+```
+
+The CI workflow runs the production build, `make test`, deployment, and the
+complete QEMU matrix. Individual QEMU targets are listed by:
+
+```sh
+make -qp | sed -n 's/^\(test-[[:alnum:]_-]*\):.*/\1/p' | sort -u
 ```
 
 ## Dependencies
 
-**Linux**
+Linux (Debian/Ubuntu):
+
 ```sh
-sudo apt install nasm gcc make python3 qemu-system-x86 mtools
+sudo apt install build-essential git nasm python3 qemu-system-x86 mtools
 ```
 
-**macOS**
+macOS with Homebrew:
+
 ```sh
-brew install nasm gcc make python3 qemu mtools
+brew install coreutils git make mtools nasm python qemu
 ```
+
+The Makefile expects GNU Make. On macOS, invoke `gmake` if Homebrew installs it
+under that name. The repository does not use Homebrew-specific preprocessors or
+source-rewriting utilities.
+
+## What is built
+
+The build produces the DOS boot sector, `IO.SYS`, `MSDOS.SYS`, `EMM386.SYS`,
+the shared libraries and data files, SELECT, all command utilities, and all
+shipped device drivers from the checked-in source tree. The authoritative
+artifact inventory is `ARTIFACTS` in [Makefile](Makefile); the checksum oracle
+is [tests/golden.sha256](tests/golden.sha256), with a narrow macOS override for
+host-tool output differences.
 
 ## Repository layout
 
-- `MS-DOS/` — fork of [microsoft/MS-DOS](https://github.com/microsoft/MS-DOS); active development is on `master`
-- `kvikdos/` — fork of [pts/kvikdos](https://github.com/pts/kvikdos) with DOS 4.0 compatibility stubs and macOS support
-- `bin/` — custom-JWasm/Open-Watcom wrappers and native build utilities
-- `mk/` — per-module Makefile fragments
-- `Makefile` — GNU Makefile orchestrating the full build
-- `tests/` — all test scripts (kvikdos E2E, QEMU serial, /? smoke tests)
-- `PLAN.md` — build architecture, completed migration milestones, and follow-up work
-- `TODO.md` — current work in progress
+- `MS-DOS/` - pinned `ddanila/MS-DOS` source fork; development branch `main`.
+- `kvikdos/` - pinned `ddanila/kvikdos` fork; development branch `custom`.
+- `bin/` - strict tool adapters and native replacements for historical build
+  utilities.
+- `jwasm/` - exact custom-JWasm source pin and host build script.
+- `watcom/` - vendored Open Watcom host tools, libraries, headers, and source
+  revision documentation.
+- `mk/` - module-specific build rules.
+- `tests/` - fast behavioral tests, QEMU tests, coverage manifests, and golden
+  artifacts.
+- [PLAN.md](PLAN.md) - current architecture, compatibility rationale, and
+  maintenance direction.
+- [TODO.md](TODO.md) - concise open work only.
+- [KEYNOTES.md](KEYNOTES.md) - durable maintainer constraints and diagnostics.
+
+## Branch and contribution policy
+
+Work in this repository lands on `ddanila/msdos` `master`. Changes to the
+source or tool forks land only in the corresponding repositories and branches
+under `github.com/ddanila`. Do not open issues, push branches, or submit changes
+to an upstream project without explicit permission from the repository owner.

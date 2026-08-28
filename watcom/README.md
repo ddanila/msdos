@@ -6,12 +6,12 @@ vendored for reproducible builds without requiring a system-level install.
 
 ## Source
 
-Base build: **Current-build** (August 25 2026,
-`7d1bc7c50a2a2ac6228c6323d916e7b8733e1d10`)
-URL: https://github.com/open-watcom/open-watcom-v2/releases/tag/Current-build
-Asset: `ow-snapshot.tar.xz`
-Source fork: https://github.com/ddanila/open-watcom-v2/tree/custom
-Linux build revision: `1e6b2b4d546ac5d60fafbb986d84c615fd4b26d0`
+Base build: upstream **Current-build** snapshot from August 25 2026,
+revision `7d1bc7c50a2a2ac6228c6323d916e7b8733e1d10`, distributed as
+`ow-snapshot.tar.xz`.
+
+Project source fork: [`ddanila/open-watcom-v2:custom`](https://github.com/ddanila/open-watcom-v2/tree/custom).
+Linux custom build revision: `1e6b2b4d546ac5d60fafbb986d84c615fd4b26d0`.
 
 The macOS arm64 `wlink` is built from custom source revision
 `b0c4a1ec0342ef14e9ff0df02e29a05e8fd0a620`. In addition to the oversized
@@ -41,7 +41,7 @@ release snapshot; production assembly uses the separately pinned custom JWasm.
 
 | Binary  | Role                        | Replaces      |
 |---------|-----------------------------|---------------|
-| `wasm`  | Assembler (MASM-compatible) | MASM 5.x      |
+| `wasm`  | Unused base-snapshot assembler | -          |
 | `wcc`   | 16-bit C compiler           | CL.EXE        |
 | `wlink` | Linker                      | LINK.EXE      |
 | `wlib`  | Library manager             | LIB.EXE       |
@@ -57,10 +57,23 @@ set as its canonical golden and a small macOS arm64 override file for the
 artifacts known to differ after a clean build. Both sets execute the same QEMU
 contracts; an unlisted platform difference remains a test failure.
 
-## Updating release binaries
+## Updating the vendored tools
 
-To update to a newer release:
-1. Download `ow-snapshot.tar.xz` from the desired release tag
-2. Extract: `tar -xJf ow-snapshot.tar.xz ./binl64/wasm ./binl64/wcc ./binl64/wlink ./binl64/wlib ./armo64/wasm ./armo64/wcc ./armo64/wlink ./armo64/wlib`
-3. Copy into the respective `bin/` subdirs
-4. Update this README with the new tag
+Treat a refresh as a toolchain change, not a binary-copy operation:
+
+1. synchronize the fork's `master` from upstream without custom commits;
+2. rebase or update the fork's `custom` branch and build from an exact revision;
+3. extract only the required host tools and copy them into the matching
+   `watcom/bin/` directories;
+4. record the base snapshot, custom revisions, workflow provenance, and hashes
+   in this file;
+5. run focused adapter tests, pristine `-j1`/`-j4`/`-j8` builds, `make test`,
+   deployment, and the complete QEMU matrix before updating golden artifacts.
+
+The upstream snapshot extraction command, when needed, is:
+
+```sh
+tar -xJf ow-snapshot.tar.xz \
+  ./binl64/wasm ./binl64/wcc ./binl64/wlink ./binl64/wlib \
+  ./armo64/wasm ./armo64/wcc ./armo64/wlink ./armo64/wlib
+```
