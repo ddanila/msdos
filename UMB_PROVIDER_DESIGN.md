@@ -61,15 +61,18 @@ the selected XMS version, not just the calls DOS happens to use. In particular:
 - extended-memory allocate/free/move/lock/unlock/handle-information/reallocate;
 - UMB request/release/reallocate (`10h`, `11h`, and `12h`).
 
-The precise version will be selected only after an executable conformance
-matrix exists. XMS 2.0 is the minimum candidate; XMS 3.0 is allowed only if its
-32-bit-size functions and limits are fully implemented and tested. DOS itself
-continues to depend only on discovery plus UMB and HMA calls.
+The production target is XMS 2.00. A clean-room probe of the genuine reference
+stacks found DOS 5 HIMEM 2.78 reporting XMS 2.00 and DOS 6.22 HIMEM 3.10
+reporting XMS 3.00. The UMB/HMA contract needed here is fully representable by
+2.00, and avoiding 3.00 means the driver does not make a false claim about the
+32-bit-size functions and limits. DOS itself continues to depend only on
+discovery plus UMB and HMA calls.
 
 For XMS `10h`, HIMEM selects a registered free extent according to the XMS
 specification, splits it when necessary, and returns the exact largest
 available size and error code on failure. `11h` validates an exact allocation
-start before release. `12h` follows the reference split/grow/failure contract.
+start before release. Function `12h` returns error `80h`: both genuine DOS 5
+and 6.22 reference stacks do so, despite the latter reporting XMS 3.00.
 Registration is transactional: EMM386 submits a complete normalized extent
 set, HIMEM either accepts all of it or none, and neither side exposes pages
 until both ownership tables agree.
@@ -135,8 +138,8 @@ defaults, diagnostics, and precedence remain Phase 0 reference gates.
 
 ## Implementation and verification order
 
-1. Add independent XMS conformance probes and freeze DOS 5/6.22 results for
-   functions the repository will expose.
+1. Extend the independent XMS conformance probe and freeze DOS 5/6.22 results
+   for every XMS 2.00 success and error path the repository will expose.
 2. Implement and unit-test the XMS handle allocator, move validation, and A20
    nesting logic without advertising the manager.
 3. Install the public entry only when the selected-version conformance matrix

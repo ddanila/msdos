@@ -24,6 +24,7 @@ Capture a prepared image without modifying the original:
 tests/capture_umb_reference.sh /path/to/boot.img /tmp/dos622-umb.log
 tests/capture_umb_lifecycle_reference.sh /path/to/boot.img /tmp/dos622-life.log
 tests/capture_umb_register_reference.sh /path/to/boot.img /tmp/dos622-regs.log
+tests/capture_xms_reference.sh /path/to/boot.img /tmp/dos622-xms.log
 ```
 
 The prepared UMB images retain their own legally obtained HIMEM/EMM386 files
@@ -95,6 +96,18 @@ word. On both references a failed `4Ah` growth coalesced the block to the
 reported maximum and left its MCB marked `Z`. With the same DOS 5 provider this
 tree now matches the reference's `14FEh` largest UMB exactly; the earlier
 test-only terminal guard had reduced it by one paragraph.
+
+## XMS provider contract
+
+The independent XMS capture identifies DOS 5 HIMEM 2.78 as XMS 2.00 and DOS
+6.22 HIMEM 3.10 as XMS 3.00. Both successfully exercise HMA ownership, local
+A20 enable/query/disable, and the XMS 2.00 extended-memory allocate, handle-information,
+lock, unlock, resize, and free lifecycle. After `DOS=UMB` has acquired the
+provider map, a largest-UMB request fails with `BL=B1h` and `DX=0000h`, and an
+invalid release fails with `BL=B2h`. Both references return `BL=80h` for UMB
+reallocation function `12h` and the following unknown function. This makes a
+complete XMS 2.00 implementation with optional `10h`/`11h` the repository
+provider's compatibility target; it must not advertise XMS 3.00.
 
 ## Boot and command interfaces
 
