@@ -146,6 +146,11 @@ design checkpoint. The preferred design is either:
   standard manner, after the inter-driver protocol has been verified from
   specifications and black-box reference behavior.
 
+The checkpoint is recorded in `UMB_PROVIDER_DESIGN.md`: a repository-owned
+HIMEM is the sole public XMS and memory-ownership authority, while EMM386
+registers paging-backed UMA extents through a private transactional peer
+protocol. DOS remains coupled only to standard XMS.
+
 EMM386 must identify safe UMA holes, exclude video RAM, option ROMs, system
 ROM, EMS page-frame pages, explicitly excluded ranges, and its own resident
 state. It must map backing RAM into each advertised range and keep those
