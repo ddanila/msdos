@@ -1,5 +1,4 @@
 #!/bin/bash
-# Prove that CONFIG.SYS SWITCHES=/K selects conventional BIOS keyboard calls.
 
 set -uo pipefail
 export LC_ALL=C
@@ -57,8 +56,6 @@ run_case() {
     grep -q 'CONFIG_SWITCHES_PASS' "$serial_log"
 }
 
-# Run independent images concurrently: the control proves QEMU advertises an
-# extended keyboard, while /K must force DOS back to INT 16h/AH=00h.
 run_case default 0x10 '' &
 default_pid=$!
 run_case conventional 0x00 'SWITCHES=/K' &

@@ -1,5 +1,4 @@
 #!/bin/bash
-# Assert externally visible and documented internal CONFIG.SYS state in QEMU.
 
 set -uo pipefail
 export LC_ALL=C

@@ -1,15 +1,4 @@
 #!/bin/bash
-# tests/test_screen_expect.sh — Smoke test for screen_expect.py framework.
-#
-# Validates that video memory reading + QMP keystroke injection works:
-#   1. Boot DOS with no AUTOEXEC.BAT (lands at A:\> prompt)
-#   2. screen_expect reads video memory, sees boot text or prompt
-#   3. Types "VER" + Enter via QMP send-key
-#   4. Verifies "MS-DOS" appears on screen (VER output)
-#
-# This is a framework validation test, not a DOS command test.
-#
-# Run via: make test-screen-expect  (requires 'make deploy' first)
 
 set -uo pipefail
 
@@ -36,14 +25,11 @@ trap 'rm -f "$QMP_SOCK" 2>/dev/null; true' EXIT
 
 echo "=== screen_expect.py smoke test (QEMU + QMP video memory) ==="
 
-# ── Step 1: build boot floppy with no AUTOEXEC.BAT ──────────────────────────
-# Boot lands at A:\> prompt. We'll type commands via QMP keyboard injection.
 echo "Building test image (no AUTOEXEC.BAT)..."
 cp "$FLOPPY" "$BOOT_IMG"
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 mdel -i "$BOOT_IMG" ::AUTOEXEC.BAT 2>/dev/null || true
 
-# ── Step 2: boot QEMU with QMP ──────────────────────────────────────────────
 echo "Booting QEMU with QMP socket..."
 rm -f "$QMP_SOCK"
 timeout 60 qemu-system-i386 \
@@ -54,7 +40,6 @@ timeout 60 qemu-system-i386 \
     2>/dev/null &
 QEMU_PID=$!
 
-# Wait for QMP socket to appear
 for i in $(seq 1 20); do
     [[ -S "$QMP_SOCK" ]] && break
     sleep 0.2
@@ -66,12 +51,6 @@ if [[ ! -S "$QMP_SOCK" ]]; then
     exit 1
 fi
 
-# ── Step 3: run screen_expect ────────────────────────────────────────────────
-# Rules:
-#   1. Wait for date prompt → press Enter (skip)
-#   2. Wait for time prompt → press Enter (skip)
-#   3. Wait for ">" (DOS prompt) → type "VER" + Enter
-#   4. Wait for "MS-DOS" (VER output) → done (send nothing meaningful)
 echo "Running screen_expect (read video RAM, type VER)..."
 python3 "$REPO_ROOT/tests/screen_expect.py" \
     "$QMP_SOCK" "$SCREEN_LOG" \
@@ -83,7 +62,6 @@ python3 "$REPO_ROOT/tests/screen_expect.py" \
 kill $QEMU_PID 2>/dev/null
 wait $QEMU_PID 2>/dev/null || true
 
-# ── Step 4: checks ──────────────────────────────────────────────────────────
 echo ""
 echo "--- screen_expect framework tests ---"
 
@@ -123,7 +101,6 @@ else
     fail "Final screen not captured"
 fi
 
-# Dump log on failure
 if [[ $FAIL -gt 0 ]]; then
     echo ""
     echo "--- screen log (for debugging) ---"

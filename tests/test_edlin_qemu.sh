@@ -1,5 +1,4 @@
 #!/bin/bash
-# EDLIN open/list/quit regression under a real DOS/QEMU environment.
 
 set -uo pipefail
 

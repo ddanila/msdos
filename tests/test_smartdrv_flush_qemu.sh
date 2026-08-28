@@ -1,5 +1,4 @@
 #!/bin/bash
-# Exercise SMARTDRV.SYS control state through the shipped FLUSH13.EXE utility.
 
 set -uo pipefail
 export LC_ALL=C

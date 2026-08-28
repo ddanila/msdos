@@ -1,5 +1,4 @@
 #!/bin/bash
-# Assert compatibility and DOS 4.0 extended INT 21h contracts.
 
 set -uo pipefail
 export LC_ALL=C

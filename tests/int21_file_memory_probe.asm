@@ -1,9 +1,6 @@
 bits 16
 org 100h
 
-; Focused contracts for the DOS directory, file-handle, search, extended-error,
-; and memory APIs.  Every call is followed by an assertion on its documented
-; result; a failure identifies the function that violated its contract.
 
 %macro fail_if_carry 1
     jnc %%ok
@@ -35,8 +32,6 @@ start:
     push cs
     pop ds
 
-    ; A COM process initially owns the remaining arena.  Shrink its PSP block
-    ; first, then exercise allocate/resize/free on a separate block.
     push ds
     pop es
     mov bx, (program_end - $$ + 100h + 15) / 16
@@ -56,12 +51,12 @@ start:
     int 21h
     fail_if_carry 4a
 
-    mov bx, 0ffffh                ; A valid block cannot grow beyond the arena.
+    mov bx, 0ffffh
     mov ah, 4ah
     int 21h
     require_error 8, fail_resize_memory
 
-    mov ax, [memory_segment]      ; Temporarily invalidate this block's MCB.
+    mov ax, [memory_segment]
     dec ax
     mov es, ax
     mov al, [es:0]
@@ -88,9 +83,6 @@ start:
     push ds
     pop es
 
-    ; Exhaust the arena deliberately. AH=48h must return error 8 and the
-    ; largest available block. That block must be allocatable; while held, a
-    ; one-paragraph request must fail, then succeed after the block is freed.
     mov bx, 0ffffh
     mov ah, 48h
     int 21h
@@ -109,7 +101,7 @@ start:
     jnc memory_exhaust_failed
     cmp ax, 8
     jne memory_exhaust_failed
-    mov bx, 64                    ; Enlarging the JFT also needs arena memory.
+    mov bx, 64
     mov ah, 67h
     int 21h
     require_error 8, fail_handle_memory
@@ -191,8 +183,6 @@ seek_ok:
     int 21h
     fail_if_carry 3e
 
-    ; Fill the default 20-entry JFT with duplicates of stdout. The next DUP
-    ; and a forced duplicate beyond the table must both report error 4.
     xor si, si
     mov di, open_handles
 .dup_until_full:
@@ -225,9 +215,6 @@ seek_ok:
     loop .close_dups
 .dups_closed:
 
-    ; Expand the process JFT beyond CONFIG.SYS FILES=12 and consume the
-    ; global SFT by repeatedly opening the same file. The next open must
-    ; report error 4, and closing the acquired handles must restore service.
     mov bx, 64
     mov ah, 67h
     int 21h
@@ -267,7 +254,7 @@ seek_ok:
     require_error 4, fail_sft_exhaust
     xor bx, bx
     xor cx, cx
-    mov dx, 1                     ; Open existing, fail if absent.
+    mov dx, 1
     mov si, original_name
     mov ax, 6c00h
     int 21h
@@ -291,7 +278,7 @@ seek_ok:
     int 21h
     jc sft_exhaust_failed
 
-    mov bx, 1                     ; A live high handle prevents JFT shrinking.
+    mov bx, 1
     mov cx, 30
     mov ah, 46h
     int 21h
@@ -304,52 +291,49 @@ seek_ok:
     mov ah, 3eh
     int 21h
     jc handle_resize_failed
-    mov bx, 0ffffh                ; FFFFh is the reserved invalid JFT size.
+    mov bx, 0ffffh
     mov ah, 67h
     int 21h
     require_error 1, fail_handle_count
 
-    ; Every handle-oriented entry in DOS's live error map must reject FFFFh
-    ; with error 6. Keep these together so one probe traces the shared negative
-    ; boundary without allowing a successful-path assertion to stand in for it.
     mov bx, 0ffffh
-    mov ah, 3eh                    ; Close.
+    mov ah, 3eh
     int 21h
     require_error 6, fail_invalid_handle
     mov bx, 0ffffh
     mov cx, 1
     mov dx, read_buffer
-    mov ah, 3fh                    ; Read.
+    mov ah, 3fh
     int 21h
     require_error 6, fail_invalid_handle
     mov bx, 0ffffh
     mov cx, 1
     mov dx, payload
-    mov ah, 40h                    ; Write.
+    mov ah, 40h
     int 21h
     require_error 6, fail_invalid_handle
     mov bx, 0ffffh
     xor cx, cx
     xor dx, dx
     xor al, al
-    mov ah, 42h                    ; Seek.
+    mov ah, 42h
     int 21h
     require_error 6, fail_invalid_handle
     mov bx, 0ffffh
-    mov ax, 4400h                  ; IOCTL get device information.
+    mov ax, 4400h
     int 21h
     require_error 6, fail_invalid_handle
     mov bx, 0ffffh
-    mov ah, 45h                    ; Duplicate.
+    mov ah, 45h
     int 21h
     require_error 6, fail_invalid_handle
     mov bx, 0ffffh
     mov cx, 15
-    mov ah, 46h                    ; Force duplicate.
+    mov ah, 46h
     int 21h
     require_error 6, fail_invalid_handle
     mov bx, 0ffffh
-    mov ax, 5700h                  ; Get file time.
+    mov ax, 5700h
     int 21h
     require_error 6, fail_invalid_handle
     mov bx, 0ffffh
@@ -357,16 +341,15 @@ seek_ok:
     xor dx, dx
     xor si, si
     xor di, di
-    mov ax, 5c00h                  ; Lock range.
+    mov ax, 5c00h
     int 21h
     require_error 6, fail_invalid_handle
     mov bx, 0ffffh
-    mov ah, 6ah                    ; DOS 4 commit alias.
+    mov ah, 6ah
     int 21h
     require_error 6, fail_invalid_handle
 
-    ; Safe selector/argument boundaries from the live error table.
-    mov ax, 3d03h                  ; Open access modes stop at 2.
+    mov ax, 3d03h
     mov dx, original_name
     int 21h
     require_error 12, fail_invalid_open
@@ -379,7 +362,7 @@ seek_ok:
     mov bx, ax
     xor cx, cx
     xor dx, dx
-    mov ax, 4203h                  ; Seek origins stop at 2.
+    mov ax, 4203h
     int 21h
     require_error 1, fail_invalid_seek
     mov bx, [error_handle]
@@ -387,7 +370,7 @@ seek_ok:
     xor dx, dx
     xor si, si
     xor di, di
-    mov ax, 5c02h                  ; Lock/unlock selectors stop at 1.
+    mov ax, 5c02h
     int 21h
     require_error 1, fail_invalid_lock
     mov bx, [error_handle]
@@ -395,47 +378,47 @@ seek_ok:
     int 21h
     jc invalid_selector_failed
 
-    mov ax, 4302h                  ; Attribute subfunctions stop at 1.
+    mov ax, 4302h
     mov dx, original_name
     int 21h
     require_error 1, fail_invalid_attr
-    mov ax, 44ffh                  ; Undefined IOCTL selector.
+    mov ax, 44ffh
     int 21h
     require_error 1, fail_invalid_ioctl
-    mov bx, 1                     ; Set-device-info rejects unsupported DH bits.
+    mov bx, 1
     mov dx, 0200h
     mov ax, 4401h
     int 21h
     require_error 13, fail_invalid_ioctl_data
-    mov bl, 26                    ; Drive Z: is absent from this boot.
+    mov bl, 26
     mov ax, 4409h
     int 21h
     require_error 15, fail_invalid_ioctl_drive
-    mov dl, 26                    ; Current-directory query uses 1=A:.
+    mov dl, 26
     mov ah, 47h
     int 21h
     require_error 15, fail_invalid_current_drive
-    mov ax, 5804h                  ; Allocation-strategy selectors stop at 3.
+    mov ax, 5804h
     int 21h
     require_error 1, fail_invalid_allocop
-    mov ax, 65ffh                  ; Undefined extended-country selector.
+    mov ax, 65ffh
     int 21h
     require_error 1, fail_invalid_country
-    mov ax, 38feh                  ; Country 254 requires absent NLSFUNC data.
+    mov ax, 38feh
     mov dx, country_buffer
     int 21h
     require_error 1, fail_invalid_country
-    mov ax, 66ffh                  ; Undefined code-page selector.
+    mov ax, 66ffh
     int 21h
     require_error 1, fail_invalid_codepage
     xor bx, bx
-    mov ax, 69ffh                  ; Media-ID selectors stop at 1.
+    mov ax, 69ffh
     int 21h
     require_error 1, fail_invalid_media
 
     mov ax, 1
     mov es, ax
-    mov ah, 49h                    ; Segment 0001h is not an allocated block.
+    mov ah, 49h
     int 21h
     require_error 9, fail_invalid_free
     mov bx, 1
@@ -470,7 +453,7 @@ read_failed:
 read_ok:
 
     mov bx, [file_handle]
-    mov ax, 57ffh                 ; File-time subfunctions stop at 4.
+    mov ax, 57ffh
     int 21h
     require_error 1, fail_invalid_file_time
     mov bx, [file_handle]
@@ -533,7 +516,7 @@ read_ok:
     mov ah, 4fh
     int 21h
     fail_unless_carry 4f
-    cmp ax, 12h                    ; no more files
+    cmp ax, 12h
     je find_next_ok
     mov dx, fail_4f
     jmp fail
@@ -547,7 +530,7 @@ find_next_ok:
     mov ah, 59h
     int 21h
     fail_if_carry 59
-    cmp ax, 2                      ; file not found
+    cmp ax, 2
     je extended_error_ok
     mov dx, fail_59
     jmp fail

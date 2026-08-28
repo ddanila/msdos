@@ -1,45 +1,41 @@
 bits 16
 org 100h
 
-; Focused contracts for CONFIG.SYS settings exposed through DOS state.
-; CONFIG.SYS for this probe selects BREAK=ON, BUFFERS=20, FILES=32,
-; FCBS=8,3, LASTDRIVE=Z, and CPSW=ON. COMMENT and REM lines attempt to override
-; BREAK; observing it still enabled also proves those lines were ignored.
 
 start:
     push cs
     pop ds
 
-    mov ax, 3300h                 ; BREAK=ON is observable through AH=33h.
+    mov ax, 3300h
     int 21h
     cmp dl, 1
     jne break_failed
 
-    mov ah, 19h                   ; Preserve the current drive.
+    mov ah, 19h
     int 21h
     mov [current_drive], al
     mov dl, al
-    mov ah, 0eh                   ; AL is the number of CDS entries.
+    mov ah, 0eh
     int 21h
-    cmp al, 26                    ; LASTDRIVE=Z => A through Z.
+    cmp al, 26
     jne lastdrive_failed
 
-    mov ah, 52h                   ; ES:BX -> DOS SYSINITVAR/list of lists.
+    mov ah, 52h
     int 21h
 
-    cmp word [es:bx + 63], 20     ; BUFFERS first configured parameter.
+    cmp word [es:bx + 63], 20
     jne buffers_failed
-    cmp word [es:bx + 65], 0      ; No secondary /X or look-ahead value.
+    cmp word [es:bx + 65], 0
     jne buffers_failed
 
-    mov si, [es:bx + 4]           ; SYSI_SFT far pointer.
+    mov si, [es:bx + 4]
     mov ax, [es:bx + 6]
     push es
     mov es, ax
     xor cx, cx
 .sum_sfts:
-    add cx, [es:si + 4]           ; SFCount.
-    mov ax, [es:si + 2]           ; SFLink segment.
+    add cx, [es:si + 4]
+    mov ax, [es:si + 2]
     mov si, [es:si]
     cmp si, 0ffffh
     je .sfts_done
@@ -50,41 +46,41 @@ start:
     cmp cx, 32
     jne files_failed
 
-    cmp word [es:bx + 30], 3      ; SYSI_Keep from FCBS=8,3.
+    cmp word [es:bx + 30], 3
     jne fcbs_failed
-    mov si, [es:bx + 26]          ; SYSI_FCB far pointer.
+    mov si, [es:bx + 26]
     mov ax, [es:bx + 28]
     push es
     mov es, ax
-    cmp word [es:si + 4], 8       ; FCB SFT entry count.
+    cmp word [es:si + 4], 8
     pop es
     jne fcbs_failed
 
-    mov dx, 5aa5h                 ; DOS 4's CPSW API is a compatibility no-op.
-    mov ax, 3303h                 ; Get must preserve the caller's sentinel.
+    mov dx, 5aa5h
+    mov ax, 3303h
     int 21h
     cmp dx, 5aa5h
     jne cpsw_failed
     mov dx, 0a55ah
-    mov ax, 3304h                 ; Set is accepted but intentionally inert.
+    mov ax, 3304h
     int 21h
     cmp dx, 0a55ah
     jne cpsw_failed
 
-    mov bx, 2                     ; B: was overridden by DRIVPARM /D:1.
-    mov cx, 0860h                 ; Disk-control GET DEVICE PARAMETERS.
+    mov bx, 2
+    mov cx, 0860h
     mov dx, device_parameters
     mov ax, 440dh
     int 21h
     jc drivparm_failed
     cmp byte [device_parameters + 1], 2
-    jne drivparm_failed           ; /F:2 (3.5-inch 720K form factor).
+    jne drivparm_failed
     cmp word [device_parameters + 4], 77
-    jne drivparm_failed           ; /T:77 cylinders.
+    jne drivparm_failed
     cmp word [device_parameters + 20], 17
-    jne drivparm_failed           ; /S:17 sectors per track.
+    jne drivparm_failed
     cmp word [device_parameters + 22], 1
-    jne drivparm_failed           ; /H:1 head.
+    jne drivparm_failed
 
     mov dl, [current_drive]
     mov ah, 0eh

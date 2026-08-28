@@ -5,14 +5,14 @@ start:
     push cs
     pop ds
 
-    mov ax, 1100h                 ; IFSFUNC installation check.
+    mov ax, 1100h
     int 2fh
     or al, al
     jz failed
 
-    mov ax, 5200h                 ; DOS list of lists.
+    mov ax, 5200h
     int 21h
-    les bx, [es:bx + 59]          ; SYSI_IFS header-chain head.
+    les bx, [es:bx + 59]
 
 find_header:
     mov si, expected_name
@@ -32,11 +32,11 @@ find_header:
 found:
     cmp word [es:bx + 22], 0beefh
     jne failed
-    cmp word [es:bx + 24], 1      ; one FILESYS attach
+    cmp word [es:bx + 24], 1
     jne failed
-    cmp word [es:bx + 26], 1      ; one FILESYS status query
+    cmp word [es:bx + 26], 1
     jne failed
-    cmp word [es:bx + 28], 1      ; one FILESYS detach
+    cmp word [es:bx + 28], 1
     jne failed
 
     mov ax, 4c00h

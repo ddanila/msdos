@@ -1,11 +1,6 @@
-# ---------------------------------------------------------------------------
-# SELECT (select.exe, select.dat, select.com, select.hlp)
-# SELECT is 1 level deep (SRC/SELECT/), so .. paths work directly.
-# ---------------------------------------------------------------------------
 SELECT_DIR  := $(SRC)/SELECT
 FDISK_DIR   := $(SRC)/CMD/FDISK
 
-# Include paths: local dir + SRC/INC (one level up)
 SELECT_AINC := -I. -I..\\INC
 
 select: \
@@ -14,18 +9,11 @@ select: \
     $(SELECT_DIR)/SELECT.EXE \
     $(SELECT_DIR)/SELECT.DAT
 
-# ---------------------------------------------------------------------------
-# SELECT.CTL + CL files (BUILDMSG — SELECT.SKL has :util header)
-# ---------------------------------------------------------------------------
 $(SELECT_DIR)/SELECT.CTL: $(SELECT_DIR)/SELECT.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(SELECT_DIR) && $(BUILDMSG) "..\\MESSAGES\\USA-MS" SELECT.SKL
 
-# CL side-effects of the same BUILDMSG run
 $(SELECT_DIR)/SELECT.CLA: $(SELECT_DIR)/SELECT.CTL
 
-# ---------------------------------------------------------------------------
-# SELECT.COM  (simplest output: sstub.asm → link → exe2bin)
-# ---------------------------------------------------------------------------
 $(SELECT_DIR)/SSTUB.OBJ: $(SELECT_DIR)/SSTUB.ASM $(SELECT_DIR)/SELECT.CTL
 	cd $(SELECT_DIR) && $(MASM) "$(AFLAGS) $(SELECT_AINC)" "SSTUB.ASM,SSTUB.OBJ;"
 
@@ -35,44 +23,29 @@ $(SELECT_DIR)/SSTUB.EXE: $(SELECT_DIR)/SSTUB.OBJ
 $(SELECT_DIR)/SELECT.COM: $(SELECT_DIR)/SSTUB.EXE
 	cd $(SELECT_DIR) && $(EXE2BIN) "SSTUB.EXE SELECT.COM"
 
-# ---------------------------------------------------------------------------
-# SELECT.HLP
-# ---------------------------------------------------------------------------
 $(SELECT_DIR)/SELECT.HLP: $(SELECT_DIR)/USA.TXT $(ASC2HLP)
 	cd $(SELECT_DIR) && $(ASC2HLP) USA.TXT SELECT.HLP
 
-# ---------------------------------------------------------------------------
-# FDBOOT.INC dependency chain (needed for BOOTREC.OBJ → SELECT.EXE)
-# ---------------------------------------------------------------------------
 
-# Step 1: FDISK5.CL1 (class 1 SKL → NOSRVBLD)
 $(FDISK_DIR)/FDISK5.CL1: $(FDISK_DIR)/FDISK5.SKL $(MESSAGES_OUT) $(NOSRVBLD) $(MESSAGE_CATALOG)
 	cd $(FDISK_DIR) && $(NOSRVBLD) FDISK5.SKL "..\\..\\MESSAGES\\USA-MS.MSG"
 
-# Step 2: FDBOOT.OBJ
 $(FDISK_DIR)/FDBOOT.OBJ: $(FDISK_DIR)/FDBOOT.ASM $(FDISK_DIR)/FDISK5.CL1
 	cd $(FDISK_DIR) && $(MASM) "$(AFLAGS) -I." "FDBOOT.ASM,FDBOOT.OBJ;"
 
-# Step 3: FDBOOT.EXE
 $(FDISK_DIR)/FDBOOT.EXE: $(FDISK_DIR)/FDBOOT.OBJ
 	cd $(FDISK_DIR) && $(WLINK) "FDBOOT;"
 
-# Step 4: FDBOOT.BIN
 $(FDISK_DIR)/FDBOOT.BIN: $(FDISK_DIR)/FDBOOT.EXE
 	cd $(FDISK_DIR) && $(EXE2BIN) "FDBOOT.EXE FDBOOT.BIN"
 
-# Step 5: FDBOOT.INC via DBOF
 $(FDISK_DIR)/FDBOOT.INC: $(FDISK_DIR)/FDBOOT.BIN
 	cd $(FDISK_DIR) && $(DBOF) "FDBOOT.BIN FDBOOT.INC 600 200"
 
-# Step 6: Copy BOOTREC.OBJ to SELECT dir (SELECT.LNK expects it locally).
-# Its sole build rule lives in cmd.mk because FDISK also consumes the object.
 $(SELECT_DIR)/BOOTREC.OBJ: $(FDISK_DIR)/BOOTREC.OBJ
+	# SELECT.LNK requires a local copy while FDISK owns the single build rule.
 	cp $(FDISK_DIR)/BOOTREC.OBJ $(SELECT_DIR)/BOOTREC.OBJ
 
-# ---------------------------------------------------------------------------
-# SERVICES.LIB objects
-# ---------------------------------------------------------------------------
 $(SELECT_DIR)/SELQUIT.OBJ: $(SELECT_DIR)/SELQUIT.ASM
 	cd $(SELECT_DIR) && $(MASM) "$(AFLAGS) $(SELECT_AINC)" "SELQUIT.ASM,SELQUIT.OBJ;"
 
@@ -99,9 +72,6 @@ $(SELECT_DIR)/SERVICES.LIB: \
 	cd $(SELECT_DIR) && $(WLIB) "SERVICES.LIB -+ GET_HELP;"
 	cd $(SELECT_DIR) && $(WLIB) "SERVICES.LIB -+ SELSERV;"
 
-# ---------------------------------------------------------------------------
-# SELECT.EXE main objects (ASM)
-# ---------------------------------------------------------------------------
 $(SELECT_DIR)/SELECT0.OBJ: $(SELECT_DIR)/SELECT0.ASM $(SELECT_DIR)/SELECT.CTL
 	cd $(SELECT_DIR) && $(MASM) "$(AFLAGS) $(SELECT_AINC)" "SELECT0.ASM,SELECT0.OBJ;"
 
@@ -186,9 +156,6 @@ $(SELECT_DIR)/INTVEC.OBJ: $(SELECT_DIR)/INTVEC.ASM
 $(SELECT_DIR)/ASM2C.OBJ: $(SELECT_DIR)/ASM2C.ASM
 	cd $(SELECT_DIR) && $(MASM) "$(AFLAGS) $(SELECT_AINC)" "ASM2C.ASM,ASM2C.OBJ;"
 
-# ---------------------------------------------------------------------------
-# SELECT.EXE C objects
-# ---------------------------------------------------------------------------
 $(SELECT_DIR)/GET_STAT.OBJ: $(SELECT_DIR)/GET_STAT.C
 	cd $(SELECT_DIR) && $(WCC) "-AS -Os -Zp -I. -c -FoGET_STAT.OBJ GET_STAT.C"
 
@@ -198,9 +165,6 @@ $(SELECT_DIR)/INT13.OBJ: $(SELECT_DIR)/INT13.C
 $(SELECT_DIR)/GLOBAL.OBJ: $(SELECT_DIR)/GLOBAL.C
 	cd $(SELECT_DIR) && $(WCC) "-AS -Os -Zp -I. -c -FoGLOBAL.OBJ GLOBAL.C"
 
-# ---------------------------------------------------------------------------
-# SELECT.EXE link
-# ---------------------------------------------------------------------------
 SELECT_OBJS := \
     $(SELECT_DIR)/SELECT0.OBJ $(SELECT_DIR)/SELECT1.OBJ \
     $(SELECT_DIR)/SELECT2.OBJ $(SELECT_DIR)/SELECT2A.OBJ \
@@ -226,9 +190,6 @@ $(SELECT_DIR)/SELECT.EXE: $(SELECT_OBJS)
 	cd $(SELECT_DIR) && $(WLINK) "/noe /nofarcalls @SELECT.LNK"
 	$(BIN)/fix-exepack $(SELECT_DIR)/SELECT.EXE
 
-# ---------------------------------------------------------------------------
-# SELECT.DAT  (SEL-PAN objects → link → exe2bin → compress)
-# ---------------------------------------------------------------------------
 $(SELECT_DIR)/PANEL.INF: $(SELECT_DIR)/USA.INF
 	cp $(SELECT_DIR)/USA.INF $(SELECT_DIR)/PANEL.INF
 

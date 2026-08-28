@@ -1,5 +1,4 @@
 #!/bin/bash
-# Assert INT 21h process, IOCTL, and NLS contracts under the built DOS.
 
 set -uo pipefail
 export LC_ALL=C

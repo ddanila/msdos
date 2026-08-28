@@ -51,7 +51,7 @@ def qmp_change_floppy(sock_path: str, img_path: str) -> None:
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as s:
         s.settimeout(10.0)
         s.connect(sock_path)
-        s.recv(4096)                                         # greeting
+        s.recv(4096)
         s.sendall(b'{"execute":"qmp_capabilities"}\n')
         s.recv(4096)
         cmd = json.dumps({
@@ -80,35 +80,23 @@ def build_rules(n: int, names: list, no_label_prompt: set,
         variant_start = len(rules)
         marker_rule_idx = None
 
-        # Pre-swap: trigger on batch marker (---FORMAT-<NAME>---).
-        # The swap happens here instead of on "press ENTER" so that variants
-        # which suppress all prompts (/SELECT, /AUTOTEST) still get a fresh
-        # B: image.  The batch marker always appears before FORMAT runs.
         if i > 0:
             marker_rule_idx = len(rules)
             rules.append([f"---FORMAT-{names[i]}---".encode(), None,
                           ('swap', b_imgs[i]), None])
 
-        # These internal modes suppress the initial disk-insertion prompt.
+        # Swap on the batch marker because prompt-suppressing variants never
+        # produce a later synchronization point before touching the new disk.
         if names[i] not in {"SELECT", "AUTOTEST", "BACKUP"}:
-            rules.append([b"press ENTER when ready", b'\r', None, None])  # skip_to filled below
+            rules.append([b"press ENTER when ready", b'\r', None, None])
 
-        # Interactive volume label prompt — absent when /V: given on command line
         if i not in no_label_prompt:
-            # Match the complete prompt.  Responding as soon as its middle
-            # appears can race FORMAT before it has entered the input read,
-            # most visibly after the slower 1.2 MB media formats.
             rules.append([b"ENTER for none)?", b'\r', None, None])
 
-        # "Format another (Y/N)?" — N + CR only (no LF).
-        # FORMAT uses a line-input read that stops at CR; bare N hangs waiting
-        # for CR.  Sending N\r terminates the read.  No \n so the FIFO is
-        # empty afterwards (CR is consumed as the line terminator).
         rules.append([b"Format another (Y/N)?", b'N\r', None, None])
 
         done_idx = len(rules)
 
-        # Batch DONE marker — save image, no serial response, no skip_to
         rules.append([
             f"FORMAT_{names[i]}_DONE".encode(),
             None,
@@ -116,12 +104,8 @@ def build_rules(n: int, names: list, no_label_prompt: set,
             None,
         ])
 
-        # Back-fill skip_to for all rules of this variant (so if DONE appears
-        # before an intermediate prompt, the coordinator can jump ahead).
         for j in range(variant_start, done_idx):
             rules[j][3] = done_idx
-        # The batch marker swap rule must always fire — never skip it.
-        # (The marker always appears before DONE in the serial stream.)
         if marker_rule_idx is not None:
             rules[marker_rule_idx][3] = None
 
@@ -167,18 +151,15 @@ def main() -> None:
                 continue
             chunk = os.read(fout.fileno(), 512)
             if not chunk:
-                break   # EOF: QEMU exited
+                break
             log.write(chunk); log.flush()
             buf.extend(chunk)
             if len(buf) > 65536:
                 buf = buf[-65536:]
 
-            # Drain as many consecutive rules as the buffer satisfies
             while rule_idx < len(rules):
                 pattern, response, hook, skip_to = rules[rule_idx]
 
-                # If FORMAT exited early (before this prompt), the DONE marker
-                # appears before the expected pattern.  Jump to the DONE rule.
                 if skip_to is not None:
                     done_pattern = rules[skip_to][0]
                     if buf.find(done_pattern) >= 0:
@@ -189,8 +170,8 @@ def main() -> None:
 
                 idx = buf.find(pattern)
                 if idx < 0:
-                    break   # current rule not in buffer yet — keep reading
-                buf = buf[idx + len(pattern):]   # consume up to end of pattern
+                    break
+                buf = buf[idx + len(pattern):]
                 print(f"  rule[{rule_idx}] matched: {pattern.decode(errors='replace')[:50]}",
                       flush=True)
                 if hook:
@@ -201,17 +182,12 @@ def main() -> None:
                         shutil.copy(hook[1], hook[2])
                         print(f"  Saved {hook[2]}", flush=True)
                 if response:
-                    # A prompt becomes visible on the UART just before FORMAT
-                    # enters its input read.  Give the real-mode program one
-                    # scheduler tick to arm the read, otherwise a fast host can
-                    # deliver (and lose) the response in that narrow window.
+                    # The UART can expose a prompt just before FORMAT arms its
+                    # input read, so yield one scheduler tick before replying.
                     time.sleep(0.1)
                     fin.write(response); fin.flush()
                 rule_idx += 1
 
-            # All rules processed — read trailing output briefly (for ===DONE===
-            # and any other trailing serial data), then exit without waiting for
-            # QEMU to time out.  The caller kills QEMU after we return.
             if rule_idx >= len(rules):
                 deadline = time.monotonic() + 3.0
                 while time.monotonic() < deadline:

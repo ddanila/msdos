@@ -1,23 +1,4 @@
 #!/bin/bash
-# tests/test_recover.sh — E2E test for RECOVER file recovery via QEMU.
-#
-# RECOVER (RECOVER.ASM) has two modes:
-#   RECOVER A:FILENAME  — file mode: walks FAT chain cluster-by-cluster,
-#                         skipping bad sectors; prints "X of Y bytes recovered".
-#   RECOVER A:          — drive mode: rebuilds entire directory, renaming
-#                         all chains to FILExxxx.REC; prints "N file(s) recovered".
-#                         Destructive, so exercised on a private B: image.
-#
-# Both modes call GetKeystroke via INT 21h/AH=0Ch/AL=8 (flush input buffer
-# then read one char).  With CTTY AUX the read is from COM1 serial.
-#
-# The flush-then-read means a single pre-sent character may be discarded by
-# the flush before the read.  We use a continuous stream of \r\n (every 0.5s)
-# piped into QEMU stdin (→ emulated COM1) so a fresh character is always
-# available after the flush completes.  This is the same pattern as
-# test_misc_qemu.sh and avoids the serial_expect.py FIFO timing race.
-#
-# Run via: make test-recover  (requires 'make deploy' first)
 
 set -uo pipefail
 
@@ -45,29 +26,21 @@ echo "=== RECOVER E2E tests (QEMU) ==="
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
-# ── Step 1: build test floppy ─────────────────────────────────────────────────
 echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 dd if=/dev/zero of="$DRIVE_IMG" bs=512 count=2880 status=none
 mformat -i "$DRIVE_IMG" -f 1440 ::
 
-# Add a small text file for RECOVER to process.
-# On a healthy floppy (no bad sectors) RECOVER reads all clusters cleanly
-# and prints "X of X bytes recovered".
 printf 'RECOVER TEST FILE CONTENTS\r\n' | mcopy -o -i "$BOOT_IMG" - ::TESTFILE.TXT
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 printf 'RECOVER DRIVE ALPHA\r\n' | mcopy -o -i "$DRIVE_IMG" - ::ALPHA.TXT
 printf 'RECOVER DRIVE BETA\r\n' | mcopy -o -i "$DRIVE_IMG" - ::BETA.TXT
 
-# AUTOEXEC.BAT: RECOVER A:TESTFILE.TXT in file mode (non-destructive).
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
-    # ── RECOVER A:TESTFILE.TXT — file recovery ────────────────────────────────
-    # Prompts "Press any key to begin recovery of the file(s) on drive A:"
-    # then reads FAT chain and prints "X of Y bytes recovered".
     printf 'ECHO ---RECOVER-FILE---\r\n'
     printf 'RECOVER A:TESTFILE.TXT\r\n'
     printf 'ECHO RECOVER_FILE_DONE\r\n'
@@ -81,10 +54,6 @@ printf 'RECOVER DRIVE BETA\r\n' | mcopy -o -i "$DRIVE_IMG" - ::BETA.TXT
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
-# ── Step 2: boot QEMU and capture serial output ───────────────────────────────
-# Continuous \r\n stream satisfies GetKeystroke's flush-then-read:
-#   INT 21h/AH=0Ch/AL=8 flushes the input buffer then waits for a char.
-#   A fresh \r arrives within 0.5s after the flush, unblocking RECOVER.
 echo "Booting QEMU (may take ~90s)..."
 rm -f "$SERIAL_LOG"
 (while true; do sleep 0.5; printf '\r\n'; done) | \
@@ -102,7 +71,6 @@ if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
     exit 1
 fi
 
-# ── Step 3: checks ────────────────────────────────────────────────────────────
 echo ""
 echo "--- RECOVER serial log checks ---"
 

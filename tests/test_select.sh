@@ -1,23 +1,4 @@
 #!/bin/bash
-# tests/test_select.sh — SELECT.COM/SELECT.EXE e2e test via screen_expect.
-#
-# SELECT uses INT 16H (BIOS keyboard) and INT 10H (video) — not reachable
-# via CTTY AUX serial.  Uses screen_expect.py (QMP video memory + keyboard
-# injection) to drive the interaction.
-#
-# Test flow:
-#   1. Boot DOS with the minimal AUTOEXEC.BAT required by SELECT's exit path
-#   2. Type "SELECT" at A:\> prompt
-#   3. Stub shows "Insert SELECT diskette" — press ENTER (INT 16H)
-#   4. SELECT.EXE rejects no args, an unknown mode, and excess operands
-#   5. FDISK is recognized, but a missing SELECT.TMP is rejected safely
-#   6. Each rejected invocation returns to DOS without a crash or hang
-#   7. Boot a fresh image and run "SELECT MENU"
-#   8. Confirm the valid path reaches the Welcome panel
-#   9. Cancel to the Exit panel, decline exit, and confirm recovery to Welcome
-#  10. Re-enter the Exit panel, accept with F3, and confirm return to DOS
-#
-# Run via: make test-select  (requires 'make deploy' first)
 
 set -uo pipefail
 
@@ -49,13 +30,11 @@ trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$QMP_SOCK" "$MENU_QMP_SOCK" "$FDISK
 
 echo "=== SELECT e2e test (screen_expect: INT 16H + video memory) ==="
 
-# ── Step 1: build boot floppy (SELECT files already on floppy from deploy) ───
 echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 printf '@ECHO OFF\r\n' | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
-# ── Step 2: boot QEMU with QMP ──────────────────────────────────────────────
 echo "Booting QEMU with QMP socket..."
 rm -f "$QMP_SOCK"
 timeout 90 qemu-system-i386 \
@@ -66,7 +45,6 @@ timeout 90 qemu-system-i386 \
     2>/dev/null &
 QEMU_PID=$!
 
-# Wait for QMP socket to appear
 for i in $(seq 1 20); do
     [[ -S "$QMP_SOCK" ]] && break
     sleep 0.2
@@ -77,11 +55,6 @@ if [[ ! -S "$QMP_SOCK" ]]; then
     exit 1
 fi
 
-# ── Step 3: run screen_expect ────────────────────────────────────────────────
-# Rules:
-#   1. Wait for A:\> prompt → type "SELECT" + Enter
-#   2. Wait for stub message "Insert SELECT" → press Enter (INT 16H)
-#   3. Chain the remaining negative parser/control-file cases from each prompt
 echo "Running screen_expect (SELECT stub + parser/control-file flow)..."
 python3 "$REPO_ROOT/tests/screen_expect.py" \
     "$QMP_SOCK" "$SCREEN_LOG" \
@@ -96,7 +69,6 @@ python3 "$REPO_ROOT/tests/screen_expect.py" \
 kill $QEMU_PID 2>/dev/null
 wait $QEMU_PID 2>/dev/null || true
 
-# ── Step 4: exercise the recognized FDISK mode's missing-control path ─────────
 echo "Running SELECT FDISK missing-control-file check..."
 cp "$FLOPPY" "$FDISK_BOOT_IMG"
 printf '@ECHO OFF\r\n' | mcopy -o -i "$FDISK_BOOT_IMG" - ::AUTOEXEC.BAT
@@ -129,12 +101,8 @@ python3 "$REPO_ROOT/tests/screen_expect.py" \
 kill $QEMU_PID 2>/dev/null
 wait $QEMU_PID 2>/dev/null || true
 
-# ── Step 5: exercise a valid UI state transition and recovery ──────────────────
 echo "Running SELECT MENU valid-path check..."
 cp "$FLOPPY" "$MENU_BOOT_IMG"
-# EXIT_SELECT requires the INSTALL disk to contain AUTOEXEC.BAT before it will
-# return to DOS. A minimal file also skips the unrelated startup date/time
-# prompts in this second, UI-focused boot.
 printf '@ECHO OFF\r\n' | mcopy -o -i "$MENU_BOOT_IMG" - ::AUTOEXEC.BAT
 rm -f "$MENU_QMP_SOCK"
 timeout 90 qemu-system-i386 \
@@ -168,7 +136,6 @@ python3 "$REPO_ROOT/tests/screen_expect.py" \
 kill $QEMU_PID 2>/dev/null
 wait $QEMU_PID 2>/dev/null || true
 
-# ── Step 5: checks ──────────────────────────────────────────────────────────
 echo ""
 echo "--- SELECT tests ---"
 
@@ -178,28 +145,24 @@ else
     fail "Screen log file missing or empty"
 fi
 
-# Stub message: "Insert SELECT diskette in drive A"
 if grep -q "Insert SELECT diskette" "$SCREEN_LOG"; then
     ok "SELECT.COM stub message displayed (INT 10H video output)"
 else
     fail "SELECT.COM stub message not found in video memory"
 fi
 
-# Stub accepted ENTER via INT 16H (if it didn't, we'd never see SELECT.EXE output)
 if grep -q "Rule 1: matched.*Insert SELECT" "$SCREEN_LOG"; then
     ok "INT 16H keyboard input received (ENTER accepted by stub)"
 else
     fail "INT 16H keyboard input not received (stub didn't see ENTER)"
 fi
 
-# SELECT.EXE ran and produced output
 if grep -q "Invalid parameters" "$SCREEN_LOG"; then
     ok "SELECT.EXE executed (error message confirms it ran)"
 else
     fail "SELECT.EXE did not execute (no error message found)"
 fi
 
-# Returned to DOS prompt after every rejected invocation (no crash/hang).
 if grep -q "Rule 2: matched.*Invalid parameters" "$SCREEN_LOG"; then
     ok "SELECT.EXE rejected a missing mode and returned to DOS"
 else
@@ -257,7 +220,6 @@ else
     fail "SELECT did not return to DOS after accepting exit"
 fi
 
-# Dump log on failure
 if [[ $FAIL -gt 0 ]]; then
     echo ""
     echo "--- screen log (for debugging) ---"

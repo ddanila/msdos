@@ -87,7 +87,7 @@ def test_exepack_fix_contract() -> None:
     old_stub = b"\x90" * (258 - len(error) - len(message)) + error + message
     header = bytearray(32)
     header[:2] = b"MZ"
-    struct.pack_into("<HH", header, 8, 2, 0)  # 32-byte MZ header
+    struct.pack_into("<HH", header, 8, 2, 0)
     struct.pack_into("<HH", header, 20, 16, 0)
     packed = bytearray(16)
     struct.pack_into("<H", packed, 6, 16 + len(old_stub))

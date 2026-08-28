@@ -1,24 +1,4 @@
 #!/bin/bash
-# tests/test_backup_restore.sh — E2E tests for BACKUP.COM and RESTORE.COM via QEMU.
-#
-# Flow:
-#   1. Build boot floppy (A:) = floppy.img + test files + AUTOEXEC.BAT
-#   2. Build target floppy (B:) = pre-formatted blank FAT12 (mformat)
-#   3. Boot QEMU with A: = boot, B: = backup target; feed continuous newlines
-#      through -serial stdio to satisfy all "Press any key to continue" prompts
-#   4. Check COM1 serial output for expected messages
-#
-# Interactive prompt analysis (BACKUP.COM source verified):
-#   Every BACKUP call prompts via display_it(..., WAIT):
-#     - INSERTSOURCE ("Insert backup source diskette in drive A:") — always, 1 wait
-#     - INSERTTARGET ("Insert backup diskette 1 in drive B:")      — if target used
-#     - ERASEMSG     ("WARNING! Files in target drive will be erased") — if target used
-#   /A (append) replaces INSERTTARGET+ERASEMSG with LASTDISKMSG (1 wait).
-#   No-files case: only INSERTSOURCE (1 wait), then "No files found" message.
-#   The "Press any key to continue . . ." suffix is added by display_it(WAIT).
-#   RESTORE has similar prompts for multi-disk restore; single-disk is prompt-free.
-#
-# Run via: make test-backup-restore  (requires 'make deploy' first)
 
 set -uo pipefail
 
@@ -44,14 +24,12 @@ fi
 
 echo "=== BACKUP / RESTORE E2E tests (QEMU) ==="
 
-# ── Step 1: build boot floppy ────────────────────────────────────────────────
 echo "Building test images..."
 cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
-# Source files for backup tests.
 printf 'BACKUP_FILE_ONE\r\n\x1a' | mcopy -o -i "$BOOT_IMG" - ::BAKF1.TXT
 printf 'BACKUP_FILE_TWO\r\n\x1a' | mcopy -o -i "$BOOT_IMG" - ::BAKF2.TXT
 printf 'DEEP_FILE\r\n\x1a'       | mcopy -o -i "$BOOT_IMG" - ::BAKDEEP.TXT
@@ -61,19 +39,14 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
-    # ── Setup: create source dir with test files ───────────────────────────────
     printf 'MD BAKSRC\r\n'
     printf 'COPY BAKF1.TXT BAKSRC\\FILE1.TXT\r\n'
     printf 'COPY BAKF2.TXT BAKSRC\\FILE2.TXT\r\n'
 
-    # FC is part of the binary-exact oracle below. Prove that the deployed
-    # command ran: COMMAND otherwise preserves an earlier zero errorlevel for
-    # "Bad command or file name", which can make IF checks falsely succeed.
     printf 'ECHO ---FC-SANITY---\r\n'
     printf 'FC /B BAKF1.TXT BAKF1.TXT\r\n'
     printf 'ECHO FC_SANITY_DONE\r\n'
 
-    # ── Parser-only failures: no media prompts or mutations ────────────────────────
     printf 'BACKUP A:BAKSRC\\*.TXT B: /D:01-01-90 /D:01-01-90\r\n'
     printf 'IF ERRORLEVEL 1 ECHO BACKUP_DUP_D_REJECTED\r\n'
     printf 'BACKUP A:BAKSRC\\*.TXT B: /T:00:00:00 /T:00:00:00\r\n'
@@ -98,23 +71,16 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'RESTORE A: A:BAKSRC\\*.TXT\r\n'
     printf 'IF ERRORLEVEL 1 ECHO RESTORE_SAME_DRIVE_REJECTED\r\n'
 
-    # ── BACKUP basic: specific file spec to B: ────────────────────────────────
-    # Prompts: INSERTSOURCE (1) + INSERTTARGET + ERASEMSG (2) = 3 keypresses.
-    # Output: "*** Backing up files to drive B: ***"
     printf 'ECHO ---BACKUP-BASIC---\r\n'
     printf 'BACKUP A:BAKSRC\\*.TXT B:\r\n'
     printf 'ECHO BACKUP_BASIC_DONE\r\n'
 
-    # ── BACKUP /S: include subdirectories ─────────────────────────────────────
     printf 'ECHO ---BACKUP-S---\r\n'
     printf 'MD BAKSRC\\SUB\r\n'
     printf 'COPY BAKDEEP.TXT BAKSRC\\SUB\\DEEP.TXT\r\n'
     printf 'BACKUP A:BAKSRC B: /S /S\r\n'
     printf 'ECHO BACKUP_S_DONE\r\n'
 
-    # ── BACKUP /M: only files with archive bit set ────────────────────────────
-    # Clear archive on FILE1, set on FILE2 — only FILE2 backed up.
-    # Verify by deleting both files and restoring: FILE2 must come back, FILE1 must not.
     printf 'ECHO ---BACKUP-M---\r\n'
     printf 'ATTRIB -A BAKSRC\\FILE1.TXT\r\n'
     printf 'ATTRIB -A BAKSRC\\FILE2.TXT\r\n'
@@ -130,11 +96,6 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'ECHO BACKUP_M_DONE\r\n'
     printf 'COPY BAKF1.TXT BAKSRC\\FILE1.TXT\r\n'
 
-    # ── BACKUP /A: append to existing backup, do not erase B:\BACKUP ─────────
-    # Verify /A by: fresh backup of FILE1+FILE2, then /A of EXTRA.TXT, then
-    # delete all three and restore — all must come back.
-    # Prompts per BACKUP call: INSERTSOURCE (1) + INSERTTARGET+ERASEMSG (2)
-    #   or LASTDISKMSG (1) for /A first disk = 2 keypresses.
     printf 'ECHO ---BACKUP-A---\r\n'
     printf 'BACKUP A:BAKSRC\\*.TXT B:\r\n'
     printf 'COPY BAKF1.TXT BAKSRC\\EXTRA.TXT\r\n'
@@ -155,24 +116,15 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'ECHO BACKUP_A_DONE\r\n'
     printf 'DEL BAKSRC\\EXTRA.TXT\r\n'
 
-    # ── BACKUP no files: non-matching spec → warning + errorlevel 1 ──────────
-    # Prompts: INSERTSOURCE only (1 keypress); get_diskette() never called.
     printf 'ECHO ---BACKUP-NOFILES---\r\n'
     printf 'BACKUP A:BAKSRC\\*.XYZ B:\r\n'
     printf 'IF ERRORLEVEL 1 ECHO BACKUP_NOFIL_ERRORLEVEL\r\n'
     printf 'ECHO BACKUP_NOFIL_DONE\r\n'
 
-    # ── BACKUP /F: format target if needed ─────────────────────────────────
-    # /F tells BACKUP to format the target disk before use. With a pre-formatted
-    # disk (B:), BACKUP detects free space exists and skips FORMAT. Tests /F
-    # switch parsing through the full code path.
-    # Prompts: INSERTSOURCE + INSERTTARGET + ERASEMSG = 3 keypresses.
     printf 'ECHO ---BACKUP-F---\r\n'
     printf 'BACKUP A:BAKSRC\\*.TXT B: /F /F\r\n'
     printf 'ECHO BACKUP_F_DONE\r\n'
 
-    # ── RESTORE basic: round-trip FILE1 ──────────────────────────────────────
-    # Back up FILE1 fresh, delete it, restore, verify it exists.
     printf 'ECHO ---RESTORE-BASIC---\r\n'
     printf 'BACKUP A:BAKSRC\\FILE1.TXT B:\r\n'
     printf 'DEL BAKSRC\\FILE1.TXT\r\n'
@@ -182,7 +134,6 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'IF NOT ERRORLEVEL 1 ECHO RESTORE_BASIC_CONTENT_OK\r\n'
     printf 'ECHO RESTORE_BASIC_DONE\r\n'
 
-    # ── RESTORE /S: restore subdirectory tree ─────────────────────────────────
     printf 'ECHO ---RESTORE-S---\r\n'
     printf 'BACKUP A:BAKSRC B: /S\r\n'
     printf 'DEL BAKSRC\\SUB\\DEEP.TXT\r\n'
@@ -193,8 +144,6 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'IF NOT ERRORLEVEL 1 ECHO RESTORE_S_CONTENT_OK\r\n'
     printf 'ECHO RESTORE_S_DONE\r\n'
 
-    # ── RESTORE /N: only restore files not present on destination ────────────
-    # FILE2 is deleted; FILE1 is present — only FILE2 should be restored.
     printf 'ECHO ---RESTORE-N---\r\n'
     printf 'BACKUP A:BAKSRC\\*.TXT B:\r\n'
     printf 'DEL BAKSRC\\FILE2.TXT\r\n'
@@ -204,11 +153,6 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'IF NOT ERRORLEVEL 1 ECHO RESTORE_N_CONTENT_OK\r\n'
     printf 'ECHO RESTORE_N_DONE\r\n'
 
-    # ── BACKUP /D: date filter — include all files (cutoff Jan 1, 1980) ───────
-    # /D:01-01-80 → back up files modified on or after Jan 1, 1980.
-    # All test files (created in 2026 by QEMU real-time clock) pass this filter.
-    # Verifies the /D flag is parsed, validated, and applied to the file scan.
-    # Prompts: INSERTSOURCE + INSERTTARGET + ERASEMSG = 3 keypresses.
     printf 'ECHO ---BACKUP-D---\r\n'
     printf 'BACKUP A:BAKSRC\\*.TXT B: /D:01-01-80\r\n'
     printf 'DEL BAKSRC\\FILE1.TXT\r\n'
@@ -218,10 +162,6 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'IF EXIST BAKSRC\\FILE2.TXT ECHO BACKUP_D_FILE2_OK\r\n'
     printf 'ECHO BACKUP_D_DONE\r\n'
 
-    # ── BACKUP /T: time filter — include all files (cutoff 00:00:00) ─────────
-    # /T:00:00:00 → back up files modified at or after midnight.
-    # All files qualify (write_time >= 0 always true). Verifies /T is parsed.
-    # Prompts: INSERTSOURCE + INSERTTARGET + ERASEMSG = 3 keypresses.
     printf 'ECHO ---BACKUP-T---\r\n'
     printf 'BACKUP A:BAKSRC\\*.TXT B: /T:00:00:00\r\n'
     printf 'DEL BAKSRC\\FILE1.TXT\r\n'
@@ -231,20 +171,11 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'IF EXIST BAKSRC\\FILE2.TXT ECHO BACKUP_T_FILE2_OK\r\n'
     printf 'ECHO BACKUP_T_DONE\r\n'
 
-    # ── BACKUP /L: log file — default path A:\BACKUP.LOG ─────────────────────
-    # /L (no path) → writes log to A:\BACKUP.LOG (default: src_drive:\BACKUP.LOG).
-    # Log contains date/time header + one line per backed-up file.
-    # Prompts: INSERTSOURCE + INSERTTARGET + ERASEMSG = 3 keypresses.
     printf 'ECHO ---BACKUP-L---\r\n'
     printf 'BACKUP A:BAKSRC\\*.TXT B: /L /L\r\n'
     printf 'IF EXIST A:\\BACKUP.LOG ECHO BACKUP_L_LOG_EXISTS\r\n'
     printf 'ECHO BACKUP_L_DONE\r\n'
 
-    # ── RESTORE /M: archive bit cleared on both → both skipped → "no files" ───
-    # /M restores only dest files whose archive bit is SET (= modified since backup).
-    # After ATTRIB -A on both files, /M skips both → "Warning! No files were found".
-    # errorlevel = 2 (ERROR_FILE_NOT_FOUND). Single-disk RESTORE → no prompts.
-    # BACKUP first to populate B: with current FILE1+FILE2. 3 keypresses.
     printf 'ECHO ---RESTORE-M---\r\n'
     printf 'BACKUP A:BAKSRC\\*.TXT B:\r\n'
     printf 'ATTRIB -A BAKSRC\\FILE1.TXT\r\n'
@@ -253,41 +184,26 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'IF ERRORLEVEL 1 ECHO RESTORE_M_NO_MATCH\r\n'
     printf 'ECHO RESTORE_M_DONE\r\n'
 
-    # ── RESTORE /B: before-date (1999 cutoff excludes 2026 files → "no files") ─
-    # /B:12-31-99 → restore files with write_date <= 12/31/1999.
-    # Files created in 2026 have FAT date year=46 (2026-1980) → excluded.
-    # B: backup from /M test is reused (FILE1+FILE2 backed up).
     printf 'ECHO ---RESTORE-B---\r\n'
     printf 'RESTORE B: A:BAKSRC\\*.TXT /B:12-31-99\r\n'
     printf 'IF ERRORLEVEL 1 ECHO RESTORE_B_NO_MATCH\r\n'
     printf 'ECHO RESTORE_B_DONE\r\n'
 
-    # ── RESTORE /A: after-date (1999 cutoff includes 2026 files) ──────────────
-    # DOS 4's parser accepts two-digit years in its historical range; 1999 is
-    # therefore the latest deterministic cutoff below the current fixture date.
     printf 'ECHO ---RESTORE-A---\r\n'
     printf 'RESTORE B: A:BAKSRC\\*.TXT /A:12-31-99\r\n'
     printf 'IF NOT ERRORLEVEL 1 ECHO RESTORE_A_MATCH\r\n'
     printf 'ECHO RESTORE_A_DONE\r\n'
 
-    # ── RESTORE /E: at-or-before time (00:00:00 → only midnight files → "no files") ─
-    # /E:00:00:00 → restore files with write_time <= 00:00:00.
-    # Files created during QEMU runtime have hour > 0 → RTOLD1.C: hh > 0 → excluded.
-    # (ss = FAT 2-sec units 0-29; parser seconds=0 so ss > 0 also excludes exact-midnight files)
     printf 'ECHO ---RESTORE-E---\r\n'
     printf 'RESTORE B: A:BAKSRC\\*.TXT /E:00:00:00\r\n'
     printf 'IF ERRORLEVEL 1 ECHO RESTORE_E_NO_MATCH\r\n'
     printf 'ECHO RESTORE_E_DONE\r\n'
 
-    # ── RESTORE /L: at-or-after time (23:59:58 → only end-of-day files → "no files") ─
-    # /L:23:59:58 → restore files with write_time >= 23:59:58.
-    # RTOLD1.C: hh < 23 → excluded for most files. Even at 23:59, FAT ss (0-29) < 58 always.
     printf 'ECHO ---RESTORE-L---\r\n'
     printf 'RESTORE B: A:BAKSRC\\*.TXT /L:23:59:58\r\n'
     printf 'IF ERRORLEVEL 1 ECHO RESTORE_L_NO_MATCH\r\n'
     printf 'ECHO RESTORE_L_DONE\r\n'
 
-    # ── Cleanup ────────────────────────────────────────────────────────────────
     printf 'DEL BAKSRC\\FILE1.TXT\r\n'
     printf 'DEL BAKSRC\\FILE2.TXT\r\n'
     printf 'DEL BAKSRC\\SUB\\DEEP.TXT\r\n'
@@ -298,19 +214,9 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
-# ── Step 2: create pre-formatted blank target floppy ─────────────────────────
-# mformat writes a valid FAT12 filesystem — BACKUP needs a writable FS on B:.
-# (format_target() in BACKUP.C only calls FORMAT.COM if disk_free_space() fails;
-# a mformatted disk has a valid FAT so it skips the FORMAT step.)
 dd if=/dev/zero bs=512 count=2880 of="$TARGET_IMG" status=none
 mformat -i "$TARGET_IMG" -f 1440 ::
 
-# ── Step 3: boot QEMU, run tests ─────────────────────────────────────────────
-# Feed continuous newlines through -serial stdio to satisfy all PRESS_ANY_KEY
-# prompts from BACKUP (INSERTSOURCE, INSERTTARGET, ERASEMSG, LASTDISKMSG).
-# Each BACKUP call needs up to 3 keypresses; newlines arrive every 0.2s.
-# COMMAND.COM reads batch commands from the .BAT file (not stdin), so extra
-# buffered newlines don't affect batch execution.
 echo "Booting QEMU with A:=boot B:=blank target (may take ~90s)..."
 rm -f "$SERIAL_LOG"
 (while true; do sleep 0.2; printf '\r\n'; done) | \
@@ -328,7 +234,6 @@ if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
     exit 1
 fi
 
-# ── Check output ──────────────────────────────────────────────────────────────
 
 echo ""
 echo "--- BACKUP tests ---"
@@ -372,7 +277,6 @@ else
     fail "FC /B did not execute its identical-file comparison contract"
 fi
 
-# "*** Backing up files to drive B: ***" is printed by BUDISKMSG on every successful run
 if grep -q "Backing up files to drive B" "$SERIAL_LOG"; then
     ok "BACKUP basic (started backing up to B:)"
 else
@@ -447,7 +351,6 @@ for marker in FILE1 FILE2 EXTRA; do
     fi
 done
 
-# "Warning! No files were found to back up" — printed when spec matches nothing
 if grep -qi "No files were found to back up" "$SERIAL_LOG"; then
     ok "BACKUP no-match (printed warning)"
 else
@@ -460,7 +363,6 @@ else
     fail "BACKUP no-match (expected errorlevel >= 1)"
 fi
 
-# BACKUP /F — format target if needed (pre-formatted disk, tests switch parsing)
 if grep -q "BACKUP_F_DONE" "$SERIAL_LOG"; then
     ok "BACKUP /F (format switch parsed, batch continued with pre-formatted disk)"
 else
@@ -470,7 +372,6 @@ fi
 echo ""
 echo "--- RESTORE tests ---"
 
-# "*** Files were backed up <date> ***" — RESTORE prints this before restoring
 if grep -q "Files were backed up" "$SERIAL_LOG"; then
     ok "RESTORE basic (printed backup date header)"
 else
@@ -573,7 +474,6 @@ fi
 echo ""
 echo "--- RESTORE /M /B /A /E /L tests ---"
 
-# /M: archive=0 on both → both skipped → "Warning! No files were found to restore"
 if grep -qi "no files were found to restore" "$SERIAL_LOG"; then
     ok "RESTORE /M /B /A /E /L (at least one 'no files found' message appeared)"
 else

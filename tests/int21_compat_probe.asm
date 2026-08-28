@@ -1,7 +1,6 @@
 bits 16
 org 100h
 
-; Focused contracts for compatibility and DOS 4.0 extended INT 21h calls.
 
 %macro fail_if_carry 1
     jnc %%ok
@@ -46,25 +45,24 @@ start:
     push ds
     pop es
 
-    ; Leave arena space for the temporary PSP allocation.
     mov bx, (program_end - $$ + 100h + 15) / 16
     mov ah, 4ah
     int 21h
     fail_if_carry setup
 
-    check_cpm 18h, 18              ; Reserved CP/M compatibility slots.
+    check_cpm 18h, 18
     check_cpm 1dh, 1d
     check_cpm 1eh, 1e
     check_cpm 20h, 20
     check_cpm 61h, 61
 
-    mov ax, 38ffh                  ; Unknown country through resident NLSFUNC.
+    mov ax, 38ffh
     mov bx, 9999
     mov dx, country_buffer
     int 21h
     require_error 2, fail_nls_country
 
-    mov ax, 6501h                 ; Unknown extended-country record.
+    mov ax, 6501h
     mov bx, 0ffffh
     mov dx, 9999
     mov cx, 64
@@ -72,12 +70,12 @@ start:
     int 21h
     require_error 2, fail_nls_extended
 
-    mov ax, 6602h                 ; Unknown code page through NLSFUNC.
+    mov ax, 6602h
     mov bx, 9999
     int 21h
     require_error 2, fail_nls_codepage
 
-    mov ah, 1bh                    ; Default-drive allocation information.
+    mov ah, 1bh
     int 21h
     cmp al, 0ffh
     je disk_info_1b_failed
@@ -94,7 +92,7 @@ disk_info_1b_ok:
     push cs
     pop ds
 
-    xor dl, dl                     ; Explicit current-drive allocation info.
+    xor dl, dl
     mov ah, 1ch
     int 21h
     cmp al, 0ffh
@@ -112,7 +110,7 @@ disk_info_1c_ok:
     push cs
     pop ds
 
-    mov ah, 1fh                    ; Default DPB pointer.
+    mov ah, 1fh
     int 21h
     or al, al
     jnz default_dpb_failed
@@ -128,7 +126,7 @@ default_dpb_ok:
     push cs
     pop ds
 
-    xor dl, dl                     ; DPB pointer for current drive.
+    xor dl, dl
     mov ah, 32h
     int 21h
     or al, al
@@ -151,11 +149,11 @@ drive_dpb_ok:
     fail_if_carry 26
     mov [child_segment], ax
     mov dx, ax
-    mov ah, 26h                    ; Build an old-style child PSP.
+    mov ah, 26h
     int 21h
     mov ax, [cs:child_segment]
     mov es, ax
-    cmp word [es:0], 20cdh         ; PSP starts with INT 20h.
+    cmp word [es:0], 20cdh
     je child_psp_ok
     push cs
     pop ds
@@ -170,7 +168,7 @@ child_psp_ok:
     pop es
     fail_if_carry 26
 
-    mov si, floppy_bpb             ; Convert a known 1.44 MB BPB to a DPB.
+    mov si, floppy_bpb
     mov bp, converted_dpb
     mov ah, 53h
     int 21h
@@ -187,7 +185,7 @@ set_dpb_failed:
     jmp fail
 set_dpb_ok:
 
-    mov ax, 5d0bh                  ; DOS 4 swap-area table for server callers.
+    mov ax, 5d0bh
     int 21h
     mov ax, ds
     or ax, si
@@ -200,7 +198,7 @@ server_data_ok:
     push cs
     pop ds
 
-    mov dx, original_user_name    ; Preserve local network identity.
+    mov dx, original_user_name
     xor al, al
     mov ah, 5eh
     int 21h
@@ -241,7 +239,7 @@ user_name_ok:
     xor dx, dx
     xor si, si
     mov di, 1
-    mov ax, 5c00h                  ; Lock byte zero.
+    mov ax, 5c00h
     int 21h
     fail_if_carry 5c
     mov bx, [file_handle]
@@ -249,7 +247,7 @@ user_name_ok:
     xor dx, dx
     xor si, si
     mov di, 1
-    mov ax, 5c00h                  ; The overlapping lock must be rejected.
+    mov ax, 5c00h
     int 21h
     require_error 33, fail_lock_violation
     mov bx, [file_handle]
@@ -261,12 +259,12 @@ user_name_ok:
     int 21h
     fail_if_carry 5c
 
-    mov word [lock_count], 0       ; Consume SHARE's finite lock table.
+    mov word [lock_count], 0
 .fill_lock_table:
     mov bx, [file_handle]
     xor cx, cx
     mov dx, [lock_count]
-    shl dx, 1                     ; SHARE treats adjacent endpoints as overlap.
+    shl dx, 1
     xor si, si
     mov di, 1
     mov ax, 5c00h
@@ -310,10 +308,10 @@ lock_cleanup_ok:
     int 21h
     fail_if_carry 5c
 
-    xor al, al                     ; Get the DBCS lead-byte table.
+    xor al, al
     mov ah, 63h
     int 21h
-    cmp word [si], 0               ; This non-DBCS build exposes an empty table.
+    cmp word [si], 0
     je dbcs_ok
     push cs
     pop ds
@@ -323,7 +321,7 @@ dbcs_ok:
     push cs
     pop ds
 
-    xor al, al                     ; No IFS is installed: IOCTL must fail.
+    xor al, al
     xor bx, bx
     xor cx, cx
     mov dx, ifs_buffer
@@ -335,13 +333,13 @@ dbcs_ok:
     pop es
     mov si, extended_name
     mov di, extended_parameters
-    mov bx, 2                      ; Read/write, compatibility sharing.
+    mov bx, 2
     xor cx, cx
-    mov dx, 11h                   ; Open existing or create absent.
+    mov dx, 11h
     mov ax, 6c00h
     int 21h
     fail_if_carry 6c
-    cmp cx, 2                     ; File was newly created.
+    cmp cx, 2
     jne extended_open_failed
     mov [file_handle], ax
     mov bx, ax
@@ -357,7 +355,7 @@ dbcs_ok:
     mov ax, 6c00h
     int 21h
     fail_if_carry 6c
-    cmp cx, 1                     ; Existing file was opened.
+    cmp cx, 1
     jne extended_open_failed
     mov bx, ax
     mov ah, 3eh
@@ -376,7 +374,7 @@ extended_open_ok:
     mov ah, 19h
     int 21h
     mov dl, al
-    mov ax, 5f07h                  ; Set and reset current CDS in-use state.
+    mov ax, 5f07h
     int 21h
     fail_if_carry 5f
     mov ah, 19h
@@ -397,7 +395,7 @@ extended_open_ok:
     mov dx, ax
     add ax, 32
     mov si, ax
-    mov ah, 55h                    ; Duplicate PSP and make it current.
+    mov ah, 55h
     int 21h
     mov ah, 51h
     int 21h
@@ -407,7 +405,7 @@ extended_open_ok:
     jmp fail
 duplicated_psp_ok:
     mov bx, [parent_segment]
-    mov ah, 50h                    ; Restore parent before releasing child.
+    mov ah, 50h
     int 21h
     mov es, [child_segment]
     mov ah, 49h

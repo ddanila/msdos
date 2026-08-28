@@ -1,5 +1,4 @@
 #!/bin/bash
-# Assert DOS access-denied mappings on a write-protected B: image.
 
 set -uo pipefail
 export LC_ALL=C

@@ -1,5 +1,4 @@
 #!/bin/bash
-# Exercise FILESYS attach/status/detach through resident IFSFUNC and a test IFS.
 
 set -uo pipefail
 export LC_ALL=C

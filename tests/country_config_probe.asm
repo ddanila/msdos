@@ -1,9 +1,3 @@
-; Verify that CONFIG.SYS loaded Germany (049) from COUNTRY.SYS.
-;
-; DOS INT 21h/AH=38h returns the active 16-bit country code in BX and
-; the legacy country-information block at DS:DX.  Germany's COUNTRY.SYS
-; record uses DMY dates, a period thousands separator, a comma decimal
-; separator, and 24-hour time.
 
 bits 16
 org 100h
@@ -21,13 +15,13 @@ start:
     jne fail
     cmp ax, 49
     jne fail
-    cmp word [country_buffer + 0], 1 ; DMY date order
+    cmp word [country_buffer + 0], 1
     jne fail
-    cmp byte [country_buffer + 7], '.' ; thousands separator
+    cmp byte [country_buffer + 7], '.'
     jne fail
-    cmp byte [country_buffer + 9], ',' ; decimal separator
+    cmp byte [country_buffer + 9], ','
     jne fail
-    cmp byte [country_buffer + 17], 1 ; 24-hour time
+    cmp byte [country_buffer + 17], 1
     jne fail
 
     mov dx, pass_message

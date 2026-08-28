@@ -1,5 +1,4 @@
 #!/bin/bash
-# Prove FASTOPEN installation and pathname-cache invalidation on directory rename.
 
 set -uo pipefail
 export LC_ALL=C

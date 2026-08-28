@@ -1,5 +1,4 @@
 #!/bin/bash
-# Install PRINTER.SYS and exercise its code-page prepare/select/status path.
 
 set -uo pipefail
 export LC_ALL=C

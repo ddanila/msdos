@@ -15,8 +15,6 @@ for script in sorted((ROOT / "tests").glob("test*.sh")):
         if "printf" not in line or "CTTY AUX" not in line:
             continue
         checked += 1
-        # Inline batches may put both commands in one printf.  For block-built
-        # batches, require ECHO OFF on the immediately preceding nonblank line.
         prior = ""
         for candidate in reversed(lines[:index]):
             if candidate.strip():

@@ -1,5 +1,4 @@
 #!/bin/bash
-# Assert terminate-and-stay-resident retention with a callable interrupt hook.
 
 set -uo pipefail
 export LC_ALL=C

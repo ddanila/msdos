@@ -1,23 +1,4 @@
 #!/bin/bash
-# tests/test_sys.sh — E2E test for SYS.COM: transfer system files to blank floppy and verify boot.
-#
-# Flow:
-#   1. Build floppy-sys-boot.img = floppy.img + AUTOEXEC.BAT
-#      (AUTOEXEC: CTTY AUX → FORMAT B: → SYS B: → SYS A: B:)
-#      FORMAT.COM and SYS.COM are already on floppy.img.
-#   2. Build floppy-sys-target.img = completely blank image (all zeros, no FAT)
-#   3. Boot QEMU with A: = boot img, B: = blank target
-#      Private serial FIFOs connect COM1 to a prompt-driven coordinator.
-#      FORMAT.COM formats B: from scratch, then SYS.COM transfers system files.
-#   4. Check log for "Format complete" and "System transferred"
-#   5. Add COMMAND.COM + AUTOEXEC.BAT (CTTY AUX + VER) to target via mcopy
-#   6. Boot QEMU from target; verify "MS-DOS" on COM1
-#
-# Run via: make test-sys  (requires 'make deploy' first)
-#
-# FORMAT B: prompts (all via COM1 because CTTY AUX redirects console) are
-# answered only after their exact text appears. Both supported SYS arities then
-# transfer the system from the default drive and an explicit source drive.
 
 set -uo pipefail
 
@@ -53,8 +34,6 @@ trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$SYS_SERIAL_IN" "$SYS_SERIAL_OUT" 2
 
 echo "=== SYS.COM e2e test ==="
 
-# ── Step 1: build boot floppy ───────────────────────────────────────────────
-# floppy.img already has FORMAT.COM and SYS.COM; just add the AUTOEXEC.BAT.
 echo "Building test images..."
 cp "$FLOPPY" "$SYS_BOOT"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
@@ -70,12 +49,8 @@ mcopy -o -i "$SYS_BOOT" "$EXIT_COM" ::QEXIT.COM
     printf 'QEXIT.COM\r\n'
 } | mcopy -i "$SYS_BOOT" - ::AUTOEXEC.BAT
 
-# ── Step 2: create completely blank target floppy ───────────────────────────
-# All zeros — no FAT, no boot sector. FORMAT.COM will set it up from scratch.
 dd if=/dev/zero bs=512 count=2880 of="$SYS_TARGET" status=none
 
-# ── Step 3: boot A:, FORMAT B:, SYS B: ─────────────────────────────────────
-# A private serial coordinator responds only after each expected prompt.
 echo "Running FORMAT B: + SYS B: in QEMU (may take ~30s)..."
 rm -f "$SYS_LOG" "$SYS_SERIAL_IN" "$SYS_SERIAL_OUT"
 mkfifo "$SYS_SERIAL_IN" "$SYS_SERIAL_OUT"
@@ -98,7 +73,6 @@ python3 "$REPO_ROOT/tests/serial_expect.py" \
 wait "$QEMU_PID" || true
 exec 3>&-
 
-# ── Step 4: verify FORMAT + SYS reported success ────────────────────────────
 if grep -qi "Format complete" "$SYS_LOG"; then
     ok "FORMAT B: completed"
 else
@@ -115,13 +89,10 @@ else
     echo "--- serial log ---"; cat "$SYS_LOG"; echo "---"
 fi
 
-# ── Step 5: add COMMAND.COM + AUTOEXEC.BAT to target ────────────────────────
-# SYS only transfers IO.SYS and MSDOS.SYS; COMMAND.COM must be added separately.
 mcopy -i "$SYS_TARGET" "$COMMAND_COM" ::COMMAND.COM
 mcopy -o -i "$SYS_TARGET" "$EXIT_COM" ::QEXIT.COM
 printf '@ECHO OFF\r\nCTTY AUX\r\nVER\r\nQEXIT.COM\r\n' | mcopy -o -i "$SYS_TARGET" - ::AUTOEXEC.BAT
 
-# ── Step 6: boot from the SYS'd floppy ──────────────────────────────────────
 echo "Booting SYS'd floppy..."
 rm -f "$SYS_BOOT2_LOG"
 timeout 15 qemu-system-i386 \
@@ -131,7 +102,6 @@ timeout 15 qemu-system-i386 \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     2>/dev/null; true
 
-# ── Step 7: verify boot ──────────────────────────────────────────────────────
 if grep -q "MS-DOS" "$SYS_BOOT2_LOG"; then
     ok "SYS'd floppy boots MS-DOS successfully"
 else
@@ -139,7 +109,6 @@ else
     echo "--- serial log ---"; cat "$SYS_BOOT2_LOG"; echo "---"
 fi
 
-# ── Step 8: reject an unwritable target without changing it ─────────────────
 echo "Testing SYS against a read-only target..."
 cp "$FLOPPY" "$SYS_RO_BOOT"
 mcopy -o -i "$SYS_RO_BOOT" "$EXIT_COM" ::QEXIT.COM

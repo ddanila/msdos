@@ -1,5 +1,4 @@
 #!/bin/bash
-# Assert legacy FCB INT 21h contracts under the built DOS.
 
 set -uo pipefail
 export LC_ALL=C

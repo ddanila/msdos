@@ -33,7 +33,7 @@ start:
     mov ax, 3d00h
     int 21h
     jnc failed_stale_open
-    cmp ax, 3                    ; stale cached path must be invalidated
+    cmp ax, 3
     jne failed_stale_error
 
     mov dx, renamed_file
@@ -89,9 +89,9 @@ passed:
 query_installed:
     push ds
     push es
-    mov ax, 122ah               ; DOS installable FASTOPEN call
+    mov ax, 122ah
     mov bx, 1
-    mov si, -1                  ; special installation query
+    mov si, -1
     int 2fh
     pushf
     pop bp

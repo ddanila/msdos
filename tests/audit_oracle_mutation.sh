@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Prove that a focused QEMU suite detects removal of one shipped DOS program.
-# This is an explicit mutation-audit tool, not part of the normal CI matrix.
 
 set -euo pipefail
 

@@ -11,12 +11,12 @@ start:
     mov [start_tick], dx
 
 poll:
-    mov ax, 0104h              ; PRINT: lock and return queue status
+    mov ax, 0104h
     int 2fh
     jc busy
     cmp byte [si], 0
     pushf
-    mov ax, 0105h              ; PRINT: unlock queue
+    mov ax, 0105h
     int 2fh
     popf
     push cs
@@ -26,7 +26,7 @@ poll:
 busy:
     push cs
     pop ds
-    int 28h                    ; yield while PRINT drains in the background
+    int 28h
     mov ah, 00h
     int 1ah
     sub dx, [start_tick]

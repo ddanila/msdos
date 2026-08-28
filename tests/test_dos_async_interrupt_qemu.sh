@@ -1,5 +1,4 @@
 #!/bin/bash
-# Drive delayed serial input to prove DOS's Ctrl-Break and idle callbacks.
 
 set -uo pipefail
 export LC_ALL=C

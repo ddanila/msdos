@@ -1,9 +1,6 @@
 bits 16
 org 100h
 
-; DISPLAY.SYS is installed above ANSI.SYS and BIOS CON.  Prove ordinary CON
-; behavior survives both filters, then call DISPLAY's live request entry points
-; to verify every pass-through status and the dispatch boundary.
 
 start:
     push cs
@@ -142,7 +139,7 @@ issue_request:
 find_live_con:
     mov ah, 52h
     int 21h
-    les si, [es:bx + 34]          ; First CON in SYSI_DEV is the top filter.
+    les si, [es:bx + 34]
     mov cx, 256
 .next:
     test word [es:si + 4], 8000h

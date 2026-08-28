@@ -1,7 +1,6 @@
 bits 16
 org 100h
 
-; Read known data through the logical drive installed by DRIVER.SYS.
 
 start:
     push cs
@@ -27,7 +26,6 @@ start:
     mov ah, 3eh
     int 21h
 
-    ; Create and persist a new file through the same logical C: mapping.
     mov dx, write_filename
     xor cx, cx
     mov ah, 3ch

@@ -1,6 +1,3 @@
-# ---------------------------------------------------------------------------
-# CMD (command.com + utilities)
-# ---------------------------------------------------------------------------
 CMD_DIR  := $(SRC)/CMD
 COMMAND_DIR := $(CMD_DIR)/COMMAND
 COMMAND_OUT := $(COMMAND_DIR)/COMMAND.COM
@@ -129,16 +126,11 @@ cmd: $(COMMAND_OUT) $(SYS_OUT) $(FORMAT_OUT) $(CHKDSK_OUT) $(DEBUG_OUT) \
      $(EXE2BIN_SRC_OUT) $(GRAPHICS_OUT) \
      $(IFSFUNC_OUT) $(MODE_OUT)
 
-# COMMAND include paths (two levels up from CMD/COMMAND/)
 COMMAND_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC -I..\\..\\DOS
 
-# ---------------------------------------------------------------------------
-# Step 1: BUILDMSG generates COMMAND.CTL + COMMAND.CL[1-4,A-F]
-# ---------------------------------------------------------------------------
 $(COMMAND_DIR)/COMMAND.CTL: $(COMMAND_DIR)/COMMAND.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(COMMAND_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" COMMAND.SKL
 
-# All CL files are side-effects of the same BUILDMSG run
 $(COMMAND_DIR)/COMMAND.CL1 $(COMMAND_DIR)/COMMAND.CL2 \
 $(COMMAND_DIR)/COMMAND.CL3 $(COMMAND_DIR)/COMMAND.CL4 \
 $(COMMAND_DIR)/COMMAND.CLA $(COMMAND_DIR)/COMMAND.CLB \
@@ -146,9 +138,6 @@ $(COMMAND_DIR)/COMMAND.CLC $(COMMAND_DIR)/COMMAND.CLD \
 $(COMMAND_DIR)/COMMAND.CLE $(COMMAND_DIR)/COMMAND.CLF: \
     $(COMMAND_DIR)/COMMAND.CTL
 
-# ---------------------------------------------------------------------------
-# Step 2: Assemble COMMAND objects
-# ---------------------------------------------------------------------------
 $(COMMAND_DIR)/COMMAND1.OBJ: $(COMMAND_DIR)/COMMAND1.ASM \
     $(COMMAND_DIR)/COMMAND.CTL
 	cd $(COMMAND_DIR) && $(MASM) "$(AFLAGS) $(COMMAND_AINC)" "COMMAND1.ASM,COMMAND1.OBJ;"
@@ -257,9 +246,6 @@ $(COMMAND_DIR)/TDATA.OBJ: $(COMMAND_DIR)/TDATA.ASM \
 $(COMMAND_DIR)/TSPC.OBJ: $(COMMAND_DIR)/TSPC.ASM
 	cd $(COMMAND_DIR) && $(MASM) "$(AFLAGS) $(COMMAND_AINC)" "TSPC.ASM,TSPC.OBJ;"
 
-# ---------------------------------------------------------------------------
-# Step 3: Link -> COMMAND.EXE -> EXE2BIN -> COMMAND.COM
-# ---------------------------------------------------------------------------
 COMMAND_OBJS := COMMAND1.OBJ COMMAND2.OBJ RUCODE.OBJ RDATA.OBJ INIT.OBJ \
     IPARSE.OBJ UINIT.OBJ TCODE.OBJ TBATCH.OBJ TBATCH2.OBJ TFOR.OBJ \
     TCMD1A.OBJ TCMD1B.OBJ TCMD2A.OBJ TCMD2B.OBJ TENV.OBJ TENV2.OBJ \
@@ -275,13 +261,8 @@ $(COMMAND_DIR)/COMMAND.EXE: $(COMMAND_OBJ_PATHS)
 $(COMMAND_OUT): $(COMMAND_DIR)/COMMAND.EXE
 	cd $(COMMAND_DIR) && $(EXE2BIN) "COMMAND.EXE COMMAND.COM"
 
-# ---------------------------------------------------------------------------
-# SYS (sys.com)
-# ---------------------------------------------------------------------------
-# Include paths: current dir (for SYSHDR.INC, generated SYSMSG.INC/CL*) + INC/
 SYS_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC
 
-# Step 1: BUILDMSG generates SYS.CTL + SYS.CL[1,2,A-D]
 $(SYS_DIR)/SYS.CTL: $(SYS_DIR)/SYS.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(SYS_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" SYS.SKL
 
@@ -290,7 +271,6 @@ $(SYS_DIR)/SYS.CLA $(SYS_DIR)/SYS.CLB \
 $(SYS_DIR)/SYS.CLC $(SYS_DIR)/SYS.CLD: \
     $(SYS_DIR)/SYS.CTL
 
-# Step 2: Assemble objects
 $(SYS_DIR)/SYS1.OBJ: $(SYS_DIR)/SYS1.ASM $(SYS_DIR)/SYS.CTL
 	cd $(SYS_DIR) && $(MASM) "$(AFLAGS) $(SYS_AINC)" "SYS1.ASM,SYS1.OBJ;"
 
@@ -303,21 +283,14 @@ $(SYS_DIR)/SYSSR.OBJ: $(SYS_DIR)/SYSSR.ASM \
     $(SYS_DIR)/SYS.CLC $(SYS_DIR)/SYS.CLD
 	cd $(SYS_DIR) && $(MASM) "$(AFLAGS) $(SYS_AINC)" "SYSSR.ASM,SYSSR.OBJ;"
 
-# Step 3: Link -> SYS.EXE -> EXE2BIN -> SYS.COM
 $(SYS_DIR)/SYS.EXE: $(SYS_DIR)/SYS1.OBJ $(SYS_DIR)/SYS2.OBJ $(SYS_DIR)/SYSSR.OBJ
 	cd $(SYS_DIR) && $(WLINK) "@SYS.LNK"
 
 $(SYS_OUT): $(SYS_DIR)/SYS.EXE
 	cd $(SYS_DIR) && $(EXE2BIN) "SYS.EXE SYS.COM"
 
-# ---------------------------------------------------------------------------
-# FORMAT (format.com)
-# ---------------------------------------------------------------------------
-# Uses CONVERT.EXE (not EXE2BIN) to produce COM from EXE.
-# MSFOR.ASM includes BOOT.CL1 (from BOOT/) and BOOT11.INC (from INC/).
 FORMAT_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC
 
-# Step 1: BUILDMSG generates FORMAT.CTL + FORMAT.CL[1,A,B,C]
 $(FORMAT_DIR)/FORMAT.CTL: $(FORMAT_DIR)/FORMAT.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(FORMAT_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" FORMAT.SKL
 
@@ -325,11 +298,9 @@ $(FORMAT_DIR)/FORMAT.CL1 $(FORMAT_DIR)/FORMAT.CLA \
 $(FORMAT_DIR)/FORMAT.CLB $(FORMAT_DIR)/FORMAT.CLC: \
     $(FORMAT_DIR)/FORMAT.CTL
 
-# Step 2: copy BOOT.CL1 to FORMAT dir (MSFOR.ASM: include BOOT.CL1)
 $(FORMAT_DIR)/BOOT.CL1: $(SRC)/BOOT/BOOT.CL1
 	cp $< $@
 
-# Step 3: Assemble objects
 $(FORMAT_DIR)/DISPLAY.OBJ: $(FORMAT_DIR)/DISPLAY.ASM $(FORMAT_DIR)/FORMAT.CTL
 	cd $(FORMAT_DIR) && $(MASM) "$(AFLAGS) $(FORMAT_AINC)" "DISPLAY.ASM,DISPLAY.OBJ;"
 
@@ -352,7 +323,6 @@ $(FORMAT_DIR)/MSFOR.OBJ: $(FORMAT_DIR)/MSFOR.ASM $(FORMAT_DIR)/FORMAT.CTL \
 $(FORMAT_DIR)/FOREXEC.OBJ: $(FORMAT_DIR)/FOREXEC.ASM
 	cd $(FORMAT_DIR) && $(MASM) "$(AFLAGS) $(FORMAT_AINC)" "FOREXEC.ASM,FOREXEC.OBJ;"
 
-# Step 4: Link → FORMAT.EXE; Step 5: CONVERT → FORMAT.COM
 FORMAT_OBJS := $(addprefix $(FORMAT_DIR)/,\
     DISPLAY.OBJ FORINIT.OBJ FORLABEL.OBJ FORMAT.OBJ \
     FORPROC.OBJ MSFOR.OBJ FOREXEC.OBJ)
@@ -363,17 +333,11 @@ $(FORMAT_DIR)/FORMAT.EXE: $(FORMAT_OBJS)
 $(FORMAT_OUT): $(FORMAT_DIR)/FORMAT.EXE $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(FORMAT_DIR) && $(CONVERT) "FORMAT.EXE"
 
-# ---------------------------------------------------------------------------
-# CHKDSK (chkdsk.com)
-# ---------------------------------------------------------------------------
-# SKL defines classes A,B,C,D only; CHKDISP.ASM's Msg_Services macro also
-# INCLUDEs CL1 and CL2, so we touch empty stubs for those after BUILDMSG.
 CHKDSK_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC
 
-# Step 1: BUILDMSG generates CHKDSK.CTL + CHKDSK.CL[A,B,C,D]
-# Also touch empty CL1/CL2 stubs (Msg_Services INCLUDEs them but SKL has no class 1/2)
 $(CHKDSK_DIR)/CHKDSK.CTL: $(CHKDSK_DIR)/CHKDSK.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(CHKDSK_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" CHKDSK.SKL
+	# Msg_Services includes CL1 and CL2 although CHKDSK.SKL defines neither class.
 	touch $(CHKDSK_DIR)/CHKDSK.CL1 $(CHKDSK_DIR)/CHKDSK.CL2
 
 $(CHKDSK_DIR)/CHKDSK.CLA $(CHKDSK_DIR)/CHKDSK.CLB \
@@ -381,8 +345,6 @@ $(CHKDSK_DIR)/CHKDSK.CLC $(CHKDSK_DIR)/CHKDSK.CLD \
 $(CHKDSK_DIR)/CHKDSK.CL1 $(CHKDSK_DIR)/CHKDSK.CL2: \
     $(CHKDSK_DIR)/CHKDSK.CTL
 
-# Step 2: Assemble objects
-# Most objects don't include CTL/CL files directly; only CHKDISP does (via Msg_Services).
 $(CHKDSK_DIR)/CHKDISK.OBJ: $(CHKDSK_DIR)/CHKDISK.ASM
 	cd $(CHKDSK_DIR) && $(MASM) "$(AFLAGS) $(CHKDSK_AINC)" "CHKDISK.ASM,CHKDISK.OBJ;"
 
@@ -414,7 +376,6 @@ $(CHKDSK_DIR)/CHKPROC2.OBJ: $(CHKDSK_DIR)/CHKPROC2.ASM
 $(CHKDSK_DIR)/CHKPROC.OBJ: $(CHKDSK_DIR)/CHKPROC.ASM
 	cd $(CHKDSK_DIR) && $(MASM) "$(AFLAGS) $(CHKDSK_AINC)" "CHKPROC.ASM,CHKPROC.OBJ;"
 
-# Step 3: Link → CHKDSK.EXE; Step 4: CONVERT → CHKDSK.COM
 CHKDSK_OBJS := $(addprefix $(CHKDSK_DIR)/,\
     CHKDISK.OBJ CHKDISP.OBJ CHKDSK1.OBJ CHKDSK2.OBJ \
     CHKFAT.OBJ CHKINIT.OBJ CHKPRMT.OBJ CHKPROC2.OBJ CHKPROC.OBJ)
@@ -425,14 +386,8 @@ $(CHKDSK_DIR)/CHKDSK.EXE: $(CHKDSK_OBJS)
 $(CHKDSK_OUT): $(CHKDSK_DIR)/CHKDSK.EXE $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(CHKDSK_DIR) && $(CONVERT) "CHKDSK.EXE"
 
-# ---------------------------------------------------------------------------
-# DEBUG (debug.com)
-# ---------------------------------------------------------------------------
-# BUILDMSG generates all CL files including CL1/CL2 (unlike CHKDSK, no stubs needed).
-# Uses CONVERT.EXE (not EXE2BIN) to produce COM from EXE.
 DEBUG_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC
 
-# Step 1: BUILDMSG generates DEBUG.CTL + DEBUG.CL[1,2,A,B,C,D]
 $(DEBUG_DIR)/DEBUG.CTL: $(DEBUG_DIR)/DEBUG.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(DEBUG_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" DEBUG.SKL
 
@@ -441,7 +396,6 @@ $(DEBUG_DIR)/DEBUG.CLA $(DEBUG_DIR)/DEBUG.CLB \
 $(DEBUG_DIR)/DEBUG.CLC $(DEBUG_DIR)/DEBUG.CLD: \
     $(DEBUG_DIR)/DEBUG.CTL
 
-# Step 2: Assemble objects
 $(DEBUG_DIR)/DEBUG.OBJ: $(DEBUG_DIR)/DEBUG.ASM $(DEBUG_DIR)/DEBUG.CTL
 	cd $(DEBUG_DIR) && $(MASM) "$(AFLAGS) $(DEBUG_AINC)" "DEBUG.ASM,DEBUG.OBJ;"
 
@@ -479,7 +433,6 @@ $(DEBUG_DIR)/DEBEMS.OBJ: $(DEBUG_DIR)/DEBEMS.ASM
 $(DEBUG_DIR)/DEBDATA.OBJ: $(DEBUG_DIR)/DEBDATA.ASM $(DEBUG_DIR)/DEBUG.CTL
 	cd $(DEBUG_DIR) && $(MASM) "$(AFLAGS) $(DEBUG_AINC)" "DEBDATA.ASM,DEBDATA.OBJ;"
 
-# Step 3: Link → DEBUG.EXE; Step 4: CONVERT → DEBUG.COM
 DEBUG_OBJS := $(addprefix $(DEBUG_DIR)/,\
     DEBUG.OBJ DEBCOM1.OBJ DEBCOM2.OBJ DEBCOM3.OBJ \
     DEBASM.OBJ DEBUASM.OBJ DEBERR.OBJ DEBCONST.OBJ \
@@ -491,13 +444,8 @@ $(DEBUG_DIR)/DEBUG.EXE: $(DEBUG_OBJS)
 $(DEBUG_OUT): $(DEBUG_DIR)/DEBUG.EXE $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(DEBUG_DIR) && $(CONVERT) "DEBUG.EXE"
 
-# ---------------------------------------------------------------------------
-# MEM (mem.exe)
-# ---------------------------------------------------------------------------
-# Open Watcom C + 2 JWasm files. Output is EXE (not COM).
 MEM_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC
 
-# Step 1: BUILDMSG generates MEM.CTL + MEM.CL[1,2,A,B]
 $(MEM_DIR)/MEM.CTL: $(MEM_DIR)/MEM.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(MEM_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" MEM.SKL
 
@@ -505,7 +453,6 @@ $(MEM_DIR)/MEM.CL1 $(MEM_DIR)/MEM.CL2 \
 $(MEM_DIR)/MEM.CLA $(MEM_DIR)/MEM.CLB: \
     $(MEM_DIR)/MEM.CTL
 
-# Step 2: Assemble _MSGRET.OBJ and _PARSE.OBJ
 $(MEM_DIR)/_MSGRET.OBJ: $(MEM_DIR)/_MSGRET.ASM \
     $(MEM_DIR)/MEM.CTL \
     $(MEM_DIR)/MEM.CLA $(MEM_DIR)/MEM.CLB \
@@ -515,25 +462,15 @@ $(MEM_DIR)/_MSGRET.OBJ: $(MEM_DIR)/_MSGRET.ASM \
 $(MEM_DIR)/_PARSE.OBJ: $(MEM_DIR)/_PARSE.ASM
 	cd $(MEM_DIR) && $(MASM) "$(AFLAGS) $(MEM_AINC)" "_PARSE.ASM,_PARSE.OBJ;"
 
-# Step 3: Compile MEM.C
 $(MEM_DIR)/MEM.OBJ: $(MEM_DIR)/MEM.C $(MEM_DIR)/MEM.CTL
 	cd $(MEM_DIR) && $(WCC) "-AS -Os -Zp -I. -I..\\..\\H -c -FoMEM.OBJ MEM.C"
 
-# Step 4: Link → MEM.EXE
 $(MEM_OUT): $(MEM_DIR)/MEM.OBJ $(MEM_DIR)/_MSGRET.OBJ $(MEM_DIR)/_PARSE.OBJ
 	cd $(MEM_DIR) && $(WLINK) "MEM.OBJ+_MSGRET.OBJ+_PARSE.OBJ,MEM.EXE,,clibs.lib;"
 
-# ---------------------------------------------------------------------------
-# FDISK (fdisk.exe)
-# ---------------------------------------------------------------------------
-# Complex build: NOSRVBLD (FDISK5.SKL→CL1 already done for SELECT),
-# BUILDMSG (FDISK.SKL→CTL+CL files), MENUBLD (FDISK.MSG→FDISKM.C),
-# 20 C files and 5 ASM files, linked with the native MAPPER and OW runtimes.
-# FDBOOT.OBJ and FDBOOT.INC already built for SELECT — reused here.
 FDISK_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC
 FDISK_CFLAGS := -AS -Os -s -Zp -I. -I..\\..\\H -c
 
-# Step 1: BUILDMSG → FDISK.CTL + FDISK.CL[1,2,A,B]
 $(FDISK_DIR)/FDISK.CTL: $(FDISK_DIR)/FDISK.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(FDISK_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" FDISK.SKL
 
@@ -541,11 +478,9 @@ $(FDISK_DIR)/FDISK.CL1 $(FDISK_DIR)/FDISK.CL2 \
 $(FDISK_DIR)/FDISK.CLA $(FDISK_DIR)/FDISK.CLB: \
     $(FDISK_DIR)/FDISK.CTL
 
-# Step 2: MENUBLD → FDISKM.C
 $(FDISK_DIR)/FDISKM.C: $(FDISK_DIR)/FDISK.MSG $(MESSAGES_OUT) $(MENUBLD) $(MESSAGE_CATALOG)
 	cd $(FDISK_DIR) && $(MENUBLD) "FDISK.MSG ..\\..\\MESSAGES\\USA-MS.MSG"
 
-# Step 3: Compile C objects
 $(FDISK_DIR)/MAIN.OBJ: $(FDISK_DIR)/MAIN.C $(FDISK_DIR)/FDISK.CTL
 	cd $(FDISK_DIR) && $(WCC) "$(FDISK_CFLAGS) -FoMAIN.OBJ MAIN.C"
 
@@ -606,7 +541,6 @@ $(FDISK_DIR)/GLOBAL.OBJ: $(FDISK_DIR)/GLOBAL.C
 $(FDISK_DIR)/FDISKM.OBJ: $(FDISK_DIR)/FDISKM.C
 	cd $(FDISK_DIR) && $(WCC) "$(FDISK_CFLAGS) -FoFDISKM.OBJ FDISKM.C"
 
-# Step 4: Assemble ASM objects
 $(FDISK_DIR)/_MSGRET.OBJ: $(FDISK_DIR)/_MSGRET.ASM \
     $(FDISK_DIR)/FDISK.CTL \
     $(FDISK_DIR)/FDISK.CLA $(FDISK_DIR)/FDISK.CLB \
@@ -622,7 +556,6 @@ $(FDISK_DIR)/BOOTREC.OBJ: $(FDISK_DIR)/BOOTREC.ASM $(FDISK_DIR)/FDBOOT.INC
 $(FDISK_DIR)/REBOOT.OBJ: $(FDISK_DIR)/REBOOT.ASM
 	cd $(FDISK_DIR) && $(MASM) "$(AFLAGS) $(FDISK_AINC)" "REBOOT.ASM,REBOOT.OBJ;"
 
-# Step 5: Link → FDISK.EXE
 FDISK_C_OBJS := $(addprefix $(FDISK_DIR)/,\
     MAIN.OBJ MAINMENU.OBJ D_MENUS.OBJ C_MENUS.OBJ FDISK.OBJ \
     DISPLAY.OBJ INPUT.OBJ TDISPLAY.OBJ VDISPLAY.OBJ SPACE.OBJ \
@@ -634,9 +567,6 @@ FDISK_ASM_OBJS := $(addprefix $(FDISK_DIR)/,\
 $(FDISK_OUT): $(FDISK_C_OBJS) $(FDISK_ASM_OBJS) $(MAPPER_LIB)
 	cd $(FDISK_DIR) && $(WLINK) "/DOSSEG /MAP /CPA:1000 /SEG:1024 MAIN.OBJ+MAINMENU.OBJ+D_MENUS.OBJ+C_MENUS.OBJ+FDISK.OBJ+REBOOT.OBJ+BOOTREC.OBJ+FDBOOT.OBJ+DISPLAY.OBJ+INPUT.OBJ+TDISPLAY.OBJ+VDISPLAY.OBJ+SPACE.OBJ+PARTINFO.OBJ+VIDEO.OBJ+MAKEPART.OBJ+INT13.OBJ+DISKOUT.OBJ+MESSAGES.OBJ+FDPARSE.OBJ+CONVERT.OBJ+GLOBAL.OBJ+_PARSE.OBJ+_MSGRET.OBJ+FDISKM.OBJ,FDISK.EXE,FDISK.MAP,..\\..\\MAPPER\\MAPPER.LIB+clibs.lib;"
 
-# ---------------------------------------------------------------------------
-# MORE (more.com) — single ASM file, EXE2BIN
-# ---------------------------------------------------------------------------
 $(MORE_DIR)/MORE.CTL: $(MORE_DIR)/MORE.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(MORE_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" MORE.SKL
 
@@ -649,9 +579,6 @@ $(MORE_DIR)/MORE.EXE: $(MORE_DIR)/MORE.OBJ
 $(MORE_OUT): $(MORE_DIR)/MORE.EXE
 	cd $(MORE_DIR) && $(EXE2BIN) "MORE.EXE MORE.COM"
 
-# ---------------------------------------------------------------------------
-# SORT (sort.exe) — 2 ASM files, stays EXE
-# ---------------------------------------------------------------------------
 $(SORT_DIR)/SORT.CTL: $(SORT_DIR)/SORT.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(SORT_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" SORT.SKL
 
@@ -665,9 +592,6 @@ $(SORT_OUT): $(SORT_DIR)/SORT.OBJ $(SORT_DIR)/SORTMES.OBJ
 	cd $(SORT_DIR) && $(WLINK) "SORT+SORTMES,SORT.EXE;"
 	$(BIN)/exefix $(SORT_OUT) 1 1
 
-# ---------------------------------------------------------------------------
-# LABEL (label.com) — 2 ASM files, EXE2BIN
-# ---------------------------------------------------------------------------
 $(LABEL_DIR)/LABL.CTL: $(LABEL_DIR)/LABL.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(LABEL_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" LABL.SKL
 
@@ -683,9 +607,6 @@ $(LABEL_DIR)/LABEL.EXE: $(LABEL_DIR)/LABEL.OBJ $(LABEL_DIR)/LABELM.OBJ
 $(LABEL_OUT): $(LABEL_DIR)/LABEL.EXE
 	cd $(LABEL_DIR) && $(EXE2BIN) "LABEL.EXE LABEL.COM"
 
-# ---------------------------------------------------------------------------
-# FIND (find.exe) — 2 ASM files, stays EXE
-# ---------------------------------------------------------------------------
 $(FIND_DIR)/FIND.CTL: $(FIND_DIR)/FIND.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(FIND_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" FIND.SKL
 
@@ -699,9 +620,6 @@ $(FIND_OUT): $(FIND_DIR)/FIND.OBJ $(FIND_DIR)/FINDMES.OBJ
 	cd $(FIND_DIR) && $(WLINK) "FIND+FINDMES,FIND.EXE/EX;"
 	$(BIN)/fix-exepack $(FIND_OUT)
 
-# ---------------------------------------------------------------------------
-# TREE (tree.com) — 4 ASM files, EXE2BIN
-# ---------------------------------------------------------------------------
 $(TREE_DIR)/TREE.CTL: $(TREE_DIR)/TREE.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(TREE_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" TREE.SKL
 
@@ -724,9 +642,6 @@ $(TREE_DIR)/TREE.EXE: $(TREE_DIR)/TREE.OBJ $(TREE_DIR)/TREEPAR.OBJ \
 $(TREE_OUT): $(TREE_DIR)/TREE.EXE
 	cd $(TREE_DIR) && $(EXE2BIN) "TREE.EXE TREE.COM"
 
-# ---------------------------------------------------------------------------
-# COMP (comp.com) — 5 ASM files, EXE2BIN
-# ---------------------------------------------------------------------------
 $(COMP_DIR)/COMP.CTL: $(COMP_DIR)/COMP.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(COMP_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" COMP.SKL
 
@@ -752,9 +667,6 @@ $(COMP_DIR)/COMP.EXE: $(COMP_DIR)/COMP1.OBJ $(COMP_DIR)/COMPPAR.OBJ \
 $(COMP_OUT): $(COMP_DIR)/COMP.EXE
 	cd $(COMP_DIR) && $(EXE2BIN) "COMP.EXE COMP.COM"
 
-# ---------------------------------------------------------------------------
-# ATTRIB (attrib.exe) — Open Watcom C + JWasm interfaces, stays EXE
-# ---------------------------------------------------------------------------
 $(ATTRIB_DIR)/ATTRIB.CTL: $(ATTRIB_DIR)/ATTRIB.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(ATTRIB_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" ATTRIB.SKL
 
@@ -784,9 +696,6 @@ $(ATTRIB_OUT): $(ATTRIB_DIR)/ATTRIB.OBJ $(ATTRIB_DIR)/PSPBYTE.OBJ \
     $(ATTRIB_DIR)/CRITERR.OBJ $(ATTRIB_DIR)/_PARSE.OBJ $(ATTRIB_DIR)/_MSGRET.OBJ
 	cd $(ATTRIB_DIR) && $(WLINK) "ATTRIB.OBJ+PSPBYTE.OBJ+CRITERR.OBJ+_PARSE.OBJ+_MSGRET.OBJ,ATTRIB.EXE,,;"
 
-# ---------------------------------------------------------------------------
-# EDLIN (edlin.com) — 5 ASM files, CONVERT
-# ---------------------------------------------------------------------------
 $(EDLIN_DIR)/EDLIN.CTL: $(EDLIN_DIR)/EDLIN.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(EDLIN_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" EDLIN.SKL
 
@@ -819,12 +728,6 @@ $(EDLIN_DIR)/EDLIN.EXE: $(EDLIN_DIR)/EDLIN.OBJ $(EDLIN_DIR)/EDLCMD1.OBJ \
 $(EDLIN_OUT): $(EDLIN_DIR)/EDLIN.EXE $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(EDLIN_DIR) && $(CONVERT) "EDLIN.EXE"
 
-# ---------------------------------------------------------------------------
-# FC (fc.exe) — Open Watcom C + 7 JWasm files, stays EXE
-# No SKL/BUILDMSG — uses its own MESSAGES.ASM.
-# Keep the OW KSTRING object separate from the MS-C object used by targets
-# that have not migrated yet.
-# ---------------------------------------------------------------------------
 FC_KSTRING_OBJ := $(SRC)/INC/KSTRING.OW.OBJ
 
 $(FC_KSTRING_OBJ): $(SRC)/INC/KSTRING.C
@@ -877,9 +780,6 @@ FC_OBJS := $(addprefix $(FC_DIR)/,\
 $(FC_OUT): $(FC_OBJS) $(FC_KSTRING_OBJ)
 	cd $(FC_DIR) && $(WLINK) "FC.OBJ+ERROR.OBJ+FGETL.OBJ+GETL.OBJ+ITOUPPER.OBJ+..\\..\\INC\\KSTRING.OW.OBJ+MAXMIN.OBJ+MOVE.OBJ+NTOI.OBJ+STRING.OBJ+UPDATE.OBJ+XTAB.OBJ+MESSAGES.OBJ+COMPAT.OBJ,FC.EXE,,;"
 
-# ---------------------------------------------------------------------------
-# NLSFUNC (nlsfunc.exe) — 2 ASM files, stays EXE, no LNK file
-# ---------------------------------------------------------------------------
 $(NLSFUNC_DIR)/NLSFUNC.CTL: $(NLSFUNC_DIR)/NLSFUNC.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(NLSFUNC_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" NLSFUNC.SKL
 
@@ -892,9 +792,6 @@ $(NLSFUNC_DIR)/NLSPARM.OBJ: $(NLSFUNC_DIR)/NLSPARM.ASM
 $(NLSFUNC_OUT): $(NLSFUNC_DIR)/NLSFUNC.OBJ $(NLSFUNC_DIR)/NLSPARM.OBJ
 	cd $(NLSFUNC_DIR) && $(WLINK) "NLSFUNC+NLSPARM;"
 
-# ---------------------------------------------------------------------------
-# ASSIGN (assign.com) — 2 ASM files, EXE2BIN, no LNK file
-# ---------------------------------------------------------------------------
 $(ASSIGN_DIR)/ASSIGN.CTL: $(ASSIGN_DIR)/ASSIGN.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(ASSIGN_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" ASSIGN.SKL
 
@@ -910,9 +807,6 @@ $(ASSIGN_DIR)/ASSIGN.EXE: $(ASSIGN_DIR)/ASSGMAIN.OBJ $(ASSIGN_DIR)/ASSGPARM.OBJ
 $(ASSIGN_OUT): $(ASSIGN_DIR)/ASSIGN.EXE
 	cd $(ASSIGN_DIR) && $(EXE2BIN) "ASSIGN.EXE ASSIGN.COM"
 
-# ---------------------------------------------------------------------------
-# XCOPY (xcopy.exe) — 3 ASM files, stays EXE
-# ---------------------------------------------------------------------------
 $(XCOPY_DIR)/XCOPY.CTL: $(XCOPY_DIR)/XCOPY.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(XCOPY_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" XCOPY.SKL
 
@@ -928,9 +822,6 @@ $(XCOPY_DIR)/XCOPYPAR.OBJ: $(XCOPY_DIR)/XCOPYPAR.ASM
 $(XCOPY_OUT): $(XCOPY_DIR)/XCOPY.OBJ $(XCOPY_DIR)/XCPYINIT.OBJ $(XCOPY_DIR)/XCOPYPAR.OBJ
 	cd $(XCOPY_DIR) && $(WLINK) "@XCOPY.LNK"
 
-# ---------------------------------------------------------------------------
-# DISKCOMP (diskcomp.com) — 5 ASM files, EXE2BIN
-# ---------------------------------------------------------------------------
 $(DISKCOMP_DIR)/DISKCOMP.CTL: $(DISKCOMP_DIR)/DISKCOMP.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(DISKCOMP_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" DISKCOMP.SKL
 
@@ -956,9 +847,6 @@ $(DISKCOMP_DIR)/DISKCOMP.EXE: $(DISKCOMP_DIR)/DISKCOMP.OBJ $(DISKCOMP_DIR)/DCOMP
 $(DISKCOMP_OUT): $(DISKCOMP_DIR)/DISKCOMP.EXE
 	cd $(DISKCOMP_DIR) && $(EXE2BIN) "DISKCOMP.EXE DISKCOMP.COM"
 
-# ---------------------------------------------------------------------------
-# DISKCOPY (diskcopy.com) — 5 ASM files, EXE2BIN
-# ---------------------------------------------------------------------------
 $(DISKCOPY_DIR)/DISKCOPY.CTL: $(DISKCOPY_DIR)/DISKCOPY.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(DISKCOPY_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" DISKCOPY.SKL
 
@@ -984,9 +872,6 @@ $(DISKCOPY_DIR)/DISKCOPY.EXE: $(DISKCOPY_DIR)/DISKCOPY.OBJ $(DISKCOPY_DIR)/DCOPY
 $(DISKCOPY_OUT): $(DISKCOPY_DIR)/DISKCOPY.EXE
 	cd $(DISKCOPY_DIR) && $(EXE2BIN) "DISKCOPY.EXE DISKCOPY.COM"
 
-# ---------------------------------------------------------------------------
-# APPEND (append.exe) — 1 ASM file, stays EXE, no LNK
-# ---------------------------------------------------------------------------
 $(APPEND_DIR)/APPEND.CTL: $(APPEND_DIR)/APPEND.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(APPEND_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" APPEND.SKL
 
@@ -996,9 +881,6 @@ $(APPEND_DIR)/APPEND.OBJ: $(APPEND_DIR)/APPEND.ASM $(APPEND_DIR)/APPEND.CTL
 $(APPEND_OUT): $(APPEND_DIR)/APPEND.OBJ
 	cd $(APPEND_DIR) && $(WLINK) "APPEND;"
 
-# ---------------------------------------------------------------------------
-# RECOVER (recover.com) — 4 ASM files, CONVERT
-# ---------------------------------------------------------------------------
 $(RECOVER_DIR)/RECOVER.CTL: $(RECOVER_DIR)/RECOVER.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(RECOVER_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" RECOVER.SKL
 
@@ -1021,9 +903,6 @@ $(RECOVER_DIR)/RECOVER.EXE: $(RECOVER_DIR)/RECDISP.OBJ $(RECOVER_DIR)/RECINIT.OB
 $(RECOVER_OUT): $(RECOVER_DIR)/RECOVER.EXE $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(RECOVER_DIR) && $(CONVERT) "RECOVER.EXE"
 
-# ---------------------------------------------------------------------------
-# FASTOPEN (fastopen.exe) — 5 ASM files, stays EXE
-# ---------------------------------------------------------------------------
 $(FASTOPEN_DIR)/FASTOPEN.CTL: $(FASTOPEN_DIR)/FASTOPEN.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(FASTOPEN_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" FASTOPEN.SKL
 
@@ -1046,9 +925,6 @@ $(FASTOPEN_OUT): $(FASTOPEN_DIR)/FASTOPEN.OBJ $(FASTOPEN_DIR)/FASTSEEK.OBJ \
     $(FASTOPEN_DIR)/FASTINIT.OBJ $(FASTOPEN_DIR)/FASTP.OBJ $(FASTOPEN_DIR)/FASTSM.OBJ
 	cd $(FASTOPEN_DIR) && $(WLINK) "@FASTOPEN.LNK"
 
-# ---------------------------------------------------------------------------
-# PRINT (print.com) — 4 ASM files, CONVERT
-# ---------------------------------------------------------------------------
 $(PRINT_DIR)/PRINT.CTL: $(PRINT_DIR)/PRINT.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(PRINT_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" PRINT.SKL
 
@@ -1071,9 +947,6 @@ $(PRINT_DIR)/PRINT.EXE: $(PRINT_DIR)/PRINT_RM.OBJ $(PRINT_DIR)/PRINT_R.OBJ \
 $(PRINT_OUT): $(PRINT_DIR)/PRINT.EXE $(CONVERT) $(BIN)/convert-loader.asm
 	cd $(PRINT_DIR) && $(CONVERT) "PRINT.EXE"
 
-# ---------------------------------------------------------------------------
-# FILESYS (filesys.exe) — Open Watcom C + 2 JWasm modules
-# ---------------------------------------------------------------------------
 $(FILESYS_DIR)/FILESYS.CTL: $(FILESYS_DIR)/FILESYS.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(FILESYS_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" FILESYS.SKL
 
@@ -1089,9 +962,6 @@ $(FILESYS_DIR)/FILESYS.OBJ: $(FILESYS_DIR)/FILESYS.C $(FILESYS_DIR)/FILESYS.CTL
 $(FILESYS_OUT): $(FILESYS_DIR)/FILESYS.OBJ $(FILESYS_DIR)/_PARSE.OBJ $(FILESYS_DIR)/_MSGRET.OBJ
 	cd $(FILESYS_DIR) && $(WLINK) "FILESYS.OBJ+_PARSE.OBJ+_MSGRET.OBJ,FILESYS.EXE,,; /NOI"
 
-# ---------------------------------------------------------------------------
-# REPLACE (replace.exe) — Open Watcom C + 3 JWasm modules + native COMSUBS
-# ---------------------------------------------------------------------------
 $(REPLACE_DIR)/REPLACE.CTL: $(REPLACE_DIR)/REPLACE.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(REPLACE_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" REPLACE.SKL
 
@@ -1114,9 +984,6 @@ $(REPLACE_OUT): $(REPLACE_DIR)/REPLACE.OBJ $(REPLACE_DIR)/OWCOMSUB.OBJ $(REPLACE
     $(REPLACE_DIR)/_MSGRET.OBJ $(REPLACE_DIR)/_PARSE.OBJ $(MAPPER_LIB)
 	cd $(REPLACE_DIR) && $(WLINK) "REPLACE.OBJ+OWCOMSUB.OBJ+_REPLACE.OBJ+_MSGRET.OBJ+_PARSE.OBJ,REPLACE.EXE,,..\\..\\MAPPER\\MAPPER.LIB;"
 
-# ---------------------------------------------------------------------------
-# JOIN (join.exe) — Open Watcom C + 2 JWasm + native shared runtime
-# ---------------------------------------------------------------------------
 $(JOIN_DIR)/JOIN.CTL: $(JOIN_DIR)/JOIN.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(JOIN_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" JOIN.SKL
 
@@ -1136,9 +1003,6 @@ $(JOIN_OUT): $(JOIN_DIR)/JOIN.OBJ $(JOIN_DIR)/OWCOMSUB.OBJ \
     $(JOIN_DIR)/_MSGRET.OBJ $(JOIN_DIR)/_PARSE.OBJ $(OW_INC_C_OBJ_PATHS) $(MAPPER_LIB)
 	cd $(JOIN_DIR) && $(WLINK) "JOIN.OBJ+OWCOMSUB.OBJ+..\\..\\INC\\OWERRTST.OBJ+..\\..\\INC\\OWSYSVAR.OBJ+..\\..\\INC\\OWCDS.OBJ+..\\..\\INC\\OWDPB.OBJ+_MSGRET.OBJ+_PARSE.OBJ,JOIN.EXE,,..\\..\\MAPPER\\MAPPER.LIB+clibs.lib;"
 
-# ---------------------------------------------------------------------------
-# SUBST (subst.exe) — Open Watcom C + 2 JWasm + native shared runtime
-# ---------------------------------------------------------------------------
 $(SUBST_DIR)/SUBST.CTL: $(SUBST_DIR)/SUBST.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(SUBST_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" SUBST.SKL
 
@@ -1158,9 +1022,6 @@ $(SUBST_OUT): $(SUBST_DIR)/SUBST.OBJ $(SUBST_DIR)/OWCOMSUB.OBJ \
     $(SUBST_DIR)/_MSGRET.OBJ $(SUBST_DIR)/_PARSE.OBJ $(OW_INC_C_OBJ_PATHS) $(MAPPER_LIB)
 	cd $(SUBST_DIR) && $(WLINK) "SUBST.OBJ+OWCOMSUB.OBJ+..\\..\\INC\\OWERRTST.OBJ+..\\..\\INC\\OWSYSVAR.OBJ+..\\..\\INC\\OWCDS.OBJ+..\\..\\INC\\OWDPB.OBJ+_MSGRET.OBJ+_PARSE.OBJ,SUBST.EXE,,..\\..\\MAPPER\\MAPPER.LIB+clibs.lib;"
 
-# ---------------------------------------------------------------------------
-# BACKUP (backup.com) — Open Watcom C + 2 JWasm modules + native COMSUBS
-# ---------------------------------------------------------------------------
 $(BACKUP_DIR)/BACKUP.CTL: $(BACKUP_DIR)/BACKUP.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(BACKUP_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" BACKUP.SKL
 
@@ -1181,9 +1042,6 @@ $(BACKUP_OUT): $(BACKUP_DIR)/BACKUP.OBJ $(BACKUP_DIR)/OWCOMSUB.OBJ $(BACKUP_DIR)
 	cd $(BACKUP_DIR) && $(WLINK) "BACKUP.OBJ+OWCOMSUB.OBJ+_PARSE.OBJ+_MSGRET.OBJ,BACKUP.EXE,,..\\..\\MAPPER\\MAPPER.LIB;"
 	cd $(BACKUP_DIR) && $(CONVERT) "BACKUP.EXE BACKUP.COM"
 
-# ---------------------------------------------------------------------------
-# RESTORE (restore.com) — 12 Open Watcom C + 2 JWasm + native COMSUBS
-# ---------------------------------------------------------------------------
 RESTORE_HEADERS := $(wildcard $(RESTORE_DIR)/*.H)
 
 $(RESTORE_DIR)/RESTORE.CTL: $(RESTORE_DIR)/RESTORE.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
@@ -1255,9 +1113,6 @@ $(RESTORE_OUT): $(RESTORE_DIR)/RESTORE.OBJ $(RESTORE_DIR)/RESTPARS.OBJ \
 	cd $(RESTORE_DIR) && $(WLINK) "/STACK:50000 RESTORE.OBJ+RESTPARS.OBJ+RTT1.OBJ+RTT3.OBJ+RTDO.OBJ+RTDO1.OBJ+RTOLD.OBJ+RTOLD1.OBJ+RTNEW.OBJ+RTNEW1.OBJ+RTFILE.OBJ+RTFILE1.OBJ+OWCOMSUB.OBJ+OWDOSFS.OBJ+_PARSE.OBJ+_MSGRET.OBJ,RESTORE.EXE,,..\\..\\MAPPER\\MAPPER.LIB;"
 	cd $(RESTORE_DIR) && $(CONVERT) "RESTORE.EXE RESTORE.COM"
 
-# ---------------------------------------------------------------------------
-# GRAFTABL (graftabl.com) — 10 ASM, EXE2BIN
-# ---------------------------------------------------------------------------
 $(GRAFTABL_DIR)/GRAFTABL.CTL: $(GRAFTABL_DIR)/GRAFTABL.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(GRAFTABL_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" GRAFTABL.SKL
 
@@ -1299,9 +1154,6 @@ $(GRAFTABL_OUT): $(GRAFTABL_DIR)/GRTABHAN.OBJ $(GRAFTABL_DIR)/GRTABUS.OBJ \
 	cd $(GRAFTABL_DIR) && $(WLINK) "@GRAFTABL.LNK"
 	cd $(GRAFTABL_DIR) && $(EXE2BIN) "GRAFTABL.EXE GRAFTABL.COM"
 
-# ---------------------------------------------------------------------------
-# KEYB (keyb.com) — 10 ASM, EXE2BIN
-# ---------------------------------------------------------------------------
 $(KEYB_DIR)/KEYB.CTL: $(KEYB_DIR)/KEYB.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(KEYB_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" KEYB.SKL
 
@@ -1342,9 +1194,6 @@ $(KEYB_OUT): $(KEYB_DIR)/KEYB.OBJ $(KEYB_DIR)/KEYBI9.OBJ $(KEYB_DIR)/KEYBI9C.OBJ
 	cd $(KEYB_DIR) && $(WLINK) "@KEYB.LNK"
 	cd $(KEYB_DIR) && $(EXE2BIN) "KEYB.EXE KEYB.COM"
 
-# ---------------------------------------------------------------------------
-# SHARE (share.exe) — 4 ASM + INC kernel objs, stays EXE
-# ---------------------------------------------------------------------------
 $(SHARE_DIR)/SHARE.CTL: $(SHARE_DIR)/SHARE.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(SHARE_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" SHARE.SKL
 
@@ -1364,11 +1213,6 @@ $(SHARE_OUT): $(SHARE_DIR)/GSHARE.OBJ $(SHARE_DIR)/GSHARE2.OBJ \
     $(SHARE_DIR)/SHARESR.OBJ $(SHARE_DIR)/SHARELNK.OBJ $(INC_ASM_OBJ_PATHS)
 	cd $(SHARE_DIR) && $(WLINK) "@SHARE.LNK"
 
-# ---------------------------------------------------------------------------
-# EXE2BIN (exe2bin.exe) — 2 ASM, stays EXE
-# Note: the build system uses the pre-built exe2bin from TOOLS/; this builds
-# the source version for inclusion on the floppy image.
-# ---------------------------------------------------------------------------
 $(EXE2BIN_DIR)/EXE2BIN.CTL: $(EXE2BIN_DIR)/EXE2BIN.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(EXE2BIN_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" EXE2BIN.SKL
 
@@ -1382,11 +1226,6 @@ $(EXE2BIN_SRC_OUT): $(EXE2BIN_DIR)/E2BINIT.OBJ $(EXE2BIN_DIR)/DISPLAY.OBJ
 	cd $(EXE2BIN_DIR) && $(WLINK) "@EXE2BIN.LNK"
 	$(BIN)/fix-exepack $(EXE2BIN_SRC_OUT)
 
-# ---------------------------------------------------------------------------
-# GRAPHICS (graphics.com) — 13 ASM, EXE2BIN
-# Note: GRCPSD.OBJ is assembled from GRPARSE.ASM and vice versa (swapped in repo).
-# GRCOLPRT.ASM includes GRCOMMON.ASM directly via INCLUDE.
-# ---------------------------------------------------------------------------
 $(GRAPHICS_DIR)/GRAPHICS.CTL: $(GRAPHICS_DIR)/GRAPHICS.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(GRAPHICS_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" GRAPHICS.SKL
 
@@ -1402,15 +1241,12 @@ $(GRAPHICS_DIR)/GRPATTRN.OBJ: $(GRAPHICS_DIR)/GRPATTRN.ASM
 $(GRAPHICS_DIR)/GRCTRL.OBJ: $(GRAPHICS_DIR)/GRCTRL.ASM
 	cd $(GRAPHICS_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "GRCTRL.ASM,GRCTRL.OBJ;"
 
-# GRCPSD.OBJ is assembled from GRPARSE.ASM (files are swapped in the repo)
 $(GRAPHICS_DIR)/GRCPSD.OBJ: $(GRAPHICS_DIR)/GRPARSE.ASM $(GRAPHICS_DIR)/GRAPHICS.CTL
 	cd $(GRAPHICS_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "GRPARSE.ASM,GRCPSD.OBJ;"
 
-# GRPARSE.OBJ is assembled from GRCPSD.ASM (files are swapped in the repo)
 $(GRAPHICS_DIR)/GRPARSE.OBJ: $(GRAPHICS_DIR)/GRCPSD.ASM
 	cd $(GRAPHICS_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "GRCPSD.ASM,GRPARSE.OBJ;"
 
-# GRCOLPRT.ASM includes GRCOMMON.ASM directly via INCLUDE
 $(GRAPHICS_DIR)/GRCOLPRT.OBJ: $(GRAPHICS_DIR)/GRCOLPRT.ASM
 	cd $(GRAPHICS_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\..\\INC" "GRCOLPRT.ASM,GRCOLPRT.OBJ;"
 
@@ -1442,9 +1278,6 @@ $(GRAPHICS_OUT): $(GRAPHICS_DIR)/GRAPHICS.OBJ $(GRAPHICS_DIR)/GRINT2FH.OBJ \
 	cd $(GRAPHICS_DIR) && $(WLINK) "@GRAPHICS.LNK"
 	cd $(GRAPHICS_DIR) && $(EXE2BIN) "GRAPHICS.EXE GRAPHICS.COM"
 
-# ---------------------------------------------------------------------------
-# IFSFUNC (ifsfunc.exe) — 10 ASM, links INC + DOS kernel objs, stays EXE
-# ---------------------------------------------------------------------------
 $(IFSFUNC_DIR)/IFSFUNC.CTL: $(IFSFUNC_DIR)/IFSFUNC.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(IFSFUNC_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" IFSFUNC.SKL
 
@@ -1487,9 +1320,6 @@ $(IFSFUNC_OUT): $(IFSFUNC_DIR)/IFSSESS.OBJ $(IFSFUNC_DIR)/IFSDIR.OBJ \
 	cd $(IFSFUNC_DIR) && $(WLINK) "@IFSFUNC.LNK"
 	$(BIN)/fix-exepack $(IFSFUNC_OUT)
 
-# ---------------------------------------------------------------------------
-# MODE (mode.com) — 16 ASM, EXE2BIN
-# ---------------------------------------------------------------------------
 $(MODE_DIR)/MODE.CTL: $(MODE_DIR)/MODE.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
 	cd $(MODE_DIR) && $(BUILDMSG) "..\\..\\MESSAGES\\USA-MS" MODE.SKL
 

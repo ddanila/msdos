@@ -1,5 +1,4 @@
 #!/bin/bash
-# Assert noninteractive INT 21h system-state contracts under the built DOS.
 
 set -uo pipefail
 export LC_ALL=C

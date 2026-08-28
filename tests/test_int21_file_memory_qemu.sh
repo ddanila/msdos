@@ -1,5 +1,4 @@
 #!/bin/bash
-# Assert core INT 21h directory, file, search, error, and memory contracts.
 
 set -uo pipefail
 export LC_ALL=C

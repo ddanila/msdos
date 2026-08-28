@@ -1,7 +1,6 @@
 bits 16
 org 100h
 
-; Focused contracts for noninteractive INT 21h system-state services.
 
 %macro fail_if_carry 1
     jnc %%ok
@@ -23,13 +22,12 @@ start:
     push ds
     pop es
 
-    ; Leave DOS arena space for AH=67h to allocate the enlarged JFT.
     mov bx, (program_end - $$ + 100h + 15) / 16
     mov ah, 4ah
     int 21h
     fail_if_carry setup
 
-    mov ah, 0bh                    ; Console input status is boolean.
+    mov ah, 0bh
     int 21h
     or al, al
     jz console_status_ok
@@ -39,7 +37,7 @@ start:
     jmp fail
 console_status_ok:
 
-    mov ah, 0dh                    ; Flush disk buffers; no result is defined.
+    mov ah, 0dh
     int 21h
 
     mov ah, 19h
@@ -61,7 +59,7 @@ drive_count_ok:
     jmp fail
 current_drive_ok:
 
-    mov ax, 3560h                 ; Preserve, replace, query, and restore INT 60h.
+    mov ax, 3560h
     int 21h
     mov [old_vector_offset], bx
     mov [old_vector_segment], es
@@ -90,7 +88,7 @@ vector_verified:
     int 21h
     pop ds
 
-    mov ah, 2ah                    ; Read and set back the same valid date.
+    mov ah, 2ah
     int 21h
     cmp cx, 1980
     jb date_failed
@@ -111,7 +109,7 @@ date_failed:
     jmp fail
 date_ok:
 
-    mov ah, 2ch                    ; Read and set back the same valid time.
+    mov ah, 2ch
     int 21h
     cmp ch, 23
     ja time_failed
@@ -130,13 +128,12 @@ time_failed:
     jmp fail
 time_ok:
 
-    mov ah, 54h                    ; Toggle verify, observe it, then restore it.
+    mov ah, 54h
     int 21h
     and al, 1
     mov [original_verify], al
     xor al, 1
     mov [changed_verify], al
-    ; AH=2Eh takes the new state in AL.
     mov ah, 2eh
     int 21h
     mov ah, 54h
@@ -185,7 +182,7 @@ dta_ok:
     jmp fail
 version_ok:
 
-    mov ax, 3300h                 ; Round-trip the Ctrl-C checking state.
+    mov ax, 3300h
     int 21h
     and dl, 1
     mov [break_state], dl
@@ -220,7 +217,7 @@ disk_space_failed:
     jmp fail
 disk_space_ok:
 
-    mov ax, 3700h                 ; Query and round-trip the switch character.
+    mov ax, 3700h
     int 21h
     mov [switch_character], dl
     mov ax, 3701h
@@ -239,7 +236,7 @@ switch_ok:
     int 21h
     fail_if_carry 38
 
-    mov ah, 62h                   ; All three PSP interfaces must agree.
+    mov ah, 62h
     int 21h
     mov [psp_segment], bx
     or bx, bx
@@ -266,7 +263,7 @@ psp_ok:
     jmp fail
 list_ok:
 
-    mov ax, 5800h                 ; Round-trip the arena allocation strategy.
+    mov ax, 5800h
     int 21h
     fail_if_carry 58
     mov [allocation_strategy], ax
@@ -283,7 +280,7 @@ list_ok:
     jmp fail
 strategy_ok:
 
-    xor cx, cx                    ; Create a unique temporary file.
+    xor cx, cx
     mov dx, temporary_template
     mov ah, 5ah
     int 21h
@@ -295,7 +292,7 @@ strategy_ok:
     jmp fail
 temporary_named:
     mov bx, [file_handle]
-    mov ah, 6ah                    ; 6Ah is the 4.0 commit alias.
+    mov ah, 6ah
     int 21h
     fail_if_carry 6a
     mov bx, [file_handle]
@@ -307,7 +304,7 @@ temporary_named:
     int 21h
     fail_if_carry 5a_delete
 
-    xor cx, cx                    ; Create-new must reject an existing name.
+    xor cx, cx
     mov dx, new_file_name
     mov ah, 5bh
     int 21h
@@ -318,7 +315,7 @@ temporary_named:
     mov ah, 5bh
     int 21h
     fail_unless_carry 5b
-    cmp ax, 50h                   ; ERROR_FILE_EXISTS
+    cmp ax, 50h
     je create_new_rejected
     mov dx, fail_5b
     jmp fail
@@ -332,7 +329,7 @@ create_new_rejected:
     int 21h
     fail_if_carry 5b
 
-    push ds                       ; Canonicalize "." into current-drive root.
+    push ds
     pop es
     mov si, dot_path
     mov di, canonical_path
@@ -350,7 +347,7 @@ truename_failed:
     jmp fail
 truename_ok:
 
-    mov bx, 24                    ; Enlarge the JFT, then prove handle 23 exists.
+    mov bx, 24
     mov ah, 67h
     int 21h
     fail_if_carry 67

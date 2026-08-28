@@ -1,7 +1,6 @@
 bits 16
 org 100h
 
-; Install a resident INT 61h handler through the original DOS 1.x INT 27h API.
 
 start:
     push cs

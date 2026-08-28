@@ -1,5 +1,4 @@
 #!/bin/bash
-# Exercise GRAPHICS.COM's resident INT 5h handler and capture its LPT1 stream.
 
 set -uo pipefail
 export LC_ALL=C

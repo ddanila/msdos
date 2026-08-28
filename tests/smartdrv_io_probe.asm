@@ -47,8 +47,7 @@ start:
     mov cx, marker_size
     rep movsb
 
-    ; INT 26h leaves the caller flags word on the stack.
-    mov al, 2                   ; C:
+    mov al, 2
     mov cx, 1
     mov dx, sector_number
     mov bx, write_buffer
@@ -73,8 +72,6 @@ start:
     mov ax, 4c00h
     int 21h
 
-; Resolve the installed SMARTAAR character-device header and retain its live
-; strategy and interrupt entry points.
 find_smartdrv:
     mov ah, 52h
     int 21h

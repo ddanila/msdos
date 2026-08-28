@@ -1,6 +1,4 @@
 #!/bin/bash
-# run-qemu.sh — Launch MS-DOS 4.0 floppy image in QEMU with a graphical display.
-# Usage: ./run-qemu.sh [path/to/floppy.img]
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"

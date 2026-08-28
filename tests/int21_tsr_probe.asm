@@ -1,8 +1,6 @@
 bits 16
 org 100h
 
-; Install a resident INT 60h handler. The trigger program proves that memory
-; beyond the terminate-and-stay-resident call remains callable.
 
 start:
     push cs

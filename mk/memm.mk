@@ -1,17 +1,9 @@
-# ---------------------------------------------------------------------------
-# MEMM (EMM386.SYS — expanded memory manager)
-# Two sub-dirs: EMM/ (EMMLIB.LIB) and MEMM/ (EMM386.EXE → EMM386.SYS)
-# ---------------------------------------------------------------------------
 MEMM_ROOT := $(SRC)/MEMM
 EMM_DIR   := $(MEMM_ROOT)/EMM
 MEMM_DIR  := $(MEMM_ROOT)/MEMM
 
 memm: $(MEMM_DIR)/EMM386.SYS
 
-# ---------------------------------------------------------------------------
-# EMM sub-module: EMMLIB.LIB
-# AFLAGS: -DI386 -DNOHIMEM; include path = ..\MEMM (from EMM/ dir)
-# ---------------------------------------------------------------------------
 EMM_AFLAGS := -Mx -t -DI386 -DNOHIMEM -I..\\MEMM
 EMM_CFLAGS := -AS -2 -Os -Zp -zl -I. -c
 
@@ -44,19 +36,12 @@ $(EMM_DIR)/EMMLIB.LIB: \
 	rm -f $(EMM_DIR)/EMMLIB.LIB
 	cd $(EMM_DIR) && $(WLIB) "EMMLIB+EMMFUNCT.OBJ+EMM40.OBJ+EMMP.OBJ+EMMSUP.OBJ+EMMDISP.OBJ+EMMDATA.OBJ,;"
 
-# ---------------------------------------------------------------------------
-# MEMM sub-module: EMM386.EXE → EMM386.SYS
-# AFLAGS: -DI386 -DNoBugMode -DNOHIMEM; include = . (same-dir, e.g.
-# DRIVER.STR) + ..\EMM (from MEMM/ dir)
-# ---------------------------------------------------------------------------
 MEMM_AFLAGS := -Mx -t -DI386 -DNoBugMode -DNOHIMEM -I. -I..\\EMM
 MEMM_CFLAGS := -AS -2 -Os -Zp -zl -I..\\EMM -c
 
-# Pattern rule for all ASM objects in MEMM/
 $(MEMM_DIR)/%.OBJ: $(MEMM_DIR)/%.ASM
 	cd $(MEMM_DIR) && $(MASM) "$(MEMM_AFLAGS)" "$*.ASM,$*.OBJ;"
 
-# C object (MAPDMA.C needs emm.h from EMM/ dir)
 $(MEMM_DIR)/MAPDMA.OBJ: $(MEMM_DIR)/MAPDMA.C
 	cd $(MEMM_DIR) && $(WCC) "$(MEMM_CFLAGS) -FoMAPDMA.OBJ MAPDMA.C"
 

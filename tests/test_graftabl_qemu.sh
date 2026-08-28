@@ -1,5 +1,4 @@
 #!/bin/bash
-# Verify GRAFTABL's resident code-page table and replacement behavior.
 
 set -uo pipefail
 export LC_ALL=C

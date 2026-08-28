@@ -1,5 +1,4 @@
 #!/bin/bash
-# Exhaust a FAT12 root directory, assert the failure, then recover one slot.
 
 set -uo pipefail
 export LC_ALL=C
@@ -33,9 +32,6 @@ mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::ROOTPROB.COM
     printf 'ROOTPROB.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
-# Add the entry the DOS probe will release. Then replace every unused or VFAT
-# long-name slot with a valid, unique zero-length DOS entry. DOS 4 predates
-# VFAT and may otherwise treat those host-created 0Fh entries as reusable.
 printf '' | mcopy -o -i "$BOOT_IMG" - ::RF00000.TMP
 created=$(python3 - "$BOOT_IMG" <<'PYEOF'
 import struct

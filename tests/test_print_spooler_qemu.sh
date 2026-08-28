@@ -1,5 +1,4 @@
 #!/bin/bash
-# Prove PRINT.COM delivers exact queued bytes through PRINTER.SYS to LPT1.
 
 set -uo pipefail
 export LC_ALL=C

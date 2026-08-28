@@ -1,9 +1,6 @@
 bits 16
 org 100h
 
-; The host fills every FAT12 root-directory slot after installing this probe.
-; Creating one more file must fail with access denied even though data clusters
-; remain free. Removing one controlled entry must make creation work again.
 
 start:
     push cs
@@ -14,11 +11,11 @@ start:
     mov ah, 3ch
     int 21h
     jnc failed
-    cmp ax, 5                      ; Root directory full -> access denied.
+    cmp ax, 5
     jne failed
 
     xor cx, cx
-    mov dx, temp_template          ; Temporary create uses the same root slot.
+    mov dx, temp_template
     mov ah, 5ah
     int 21h
     jnc failed
@@ -26,7 +23,7 @@ start:
     jne failed
 
     xor cx, cx
-    mov dx, overflow_name          ; Create-new must report the same boundary.
+    mov dx, overflow_name
     mov ah, 5bh
     int 21h
     jnc failed
@@ -35,7 +32,7 @@ start:
 
     xor bx, bx
     xor cx, cx
-    mov dx, 10h                    ; Fail if present, create if absent.
+    mov dx, 10h
     mov si, overflow_name
     mov ax, 6c00h
     int 21h

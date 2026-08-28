@@ -2,12 +2,12 @@ bits 16
 org 100h
 
 start:
-    mov ah, 40h                    ; Get manager status.
+    mov ah, 40h
     int 67h
     test ah, ah
     jnz status_failed
 
-    mov ah, 41h                    ; Get page-frame segment.
+    mov ah, 41h
     int 67h
     test ah, ah
     jnz frame_failed
@@ -15,7 +15,7 @@ start:
     jz frame_failed
     mov [frame], bx
 
-    mov ah, 46h                    ; FASTOPEN requires LIM EMS 4.0.
+    mov ah, 46h
     int 67h
     test ah, ah
     jnz version_failed
@@ -25,14 +25,14 @@ start:
     push ds
     pop es
     mov di, frame_array
-    mov ax, 5801h                  ; Enumerate all mappable physical pages.
+    mov ax, 5801h
     int 67h
     test ah, ah
     jnz frame_array_failed
     test cx, cx
     jz frame_array_failed
     mov bp, cx
-    mov ax, 5800h                  ; Fetch the segment/page-number array.
+    mov ax, 5800h
     int 67h
     test ah, ah
     jnz frame_array_failed
@@ -53,12 +53,12 @@ start:
     pop es
     mov si, partial_map
     mov di, partial_state
-    mov ax, 4f00h                  ; Save one physical page's map state.
+    mov ax, 4f00h
     int 67h
     test ah, ah
     jnz partial_failed
 
-    mov ah, 42h                    ; Get free and total page counts.
+    mov ah, 42h
     int 67h
     test ah, ah
     jnz pages_failed
@@ -66,13 +66,13 @@ start:
     jz pages_failed
 
     mov bx, 1
-    mov ah, 43h                    ; Allocate one 16 KiB logical page.
+    mov ah, 43h
     int 67h
     test ah, ah
     jnz alloc_failed
     mov [handle], dx
 
-    xor al, al                     ; Map logical page 0 at physical page 0.
+    xor al, al
     xor bx, bx
     mov dx, [handle]
     mov ah, 44h
@@ -83,7 +83,7 @@ start:
     mov es, [frame]
     mov word [es:0], 0a55ah
 
-    mov al, 1                      ; Alias the page in a second frame window.
+    mov al, 1
     xor bx, bx
     mov dx, [handle]
     mov ah, 44h
@@ -94,7 +94,7 @@ start:
     jne memory_failed
 
     mov dx, [handle]
-    mov ah, 45h                    ; Release the allocated handle.
+    mov ah, 45h
     int 67h
     test ah, ah
     jnz release_failed
@@ -102,7 +102,7 @@ start:
     mov dx, pass_message
     mov ah, 09h
     int 21h
-    mov dx, 0f4h                   ; QEMU isa-debug-exit test completion.
+    mov dx, 0f4h
     mov ax, 10h
     out dx, ax
     mov ax, 4c00h

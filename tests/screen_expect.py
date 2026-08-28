@@ -38,13 +38,13 @@ Example:
 import json, os, socket, sys, time, tempfile
 
 
-VRAM_PHYS = 0xB8000     # Color text mode base address
-VRAM_SIZE = 4000         # 80 * 25 * 2 (char + attr pairs)
+VRAM_PHYS = 0xB8000
+VRAM_SIZE = 4000
 COLS = 80
 ROWS = 25
-POLL_INTERVAL = 0.3      # seconds between screen reads
-KEY_DELAY = 0.05         # seconds between keystrokes
-TIMEOUT = 120            # seconds total before giving up
+POLL_INTERVAL = 0.3
+KEY_DELAY = 0.05
+TIMEOUT = 120
 
 
 class QMPConnection:
@@ -57,7 +57,6 @@ class QMPConnection:
     def __init__(self, sock_path: str, retries: int = 10):
         self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.sock.settimeout(10.0)
-        # Retry connection — QEMU may still be initializing
         for attempt in range(retries):
             try:
                 self.sock.connect(sock_path)
@@ -67,7 +66,7 @@ class QMPConnection:
                     raise
                 time.sleep(0.5)
         self._buf = b''
-        self._recv_json()                                     # greeting
+        self._recv_json()
         self._send({"execute": "qmp_capabilities"})
         self._recv_json()
 
@@ -81,7 +80,6 @@ class QMPConnection:
         time; this method returns the first complete JSON object found.
         """
         while True:
-            # Try to parse a complete JSON object from accumulated buffer
             nl = self._buf.find(b'\n')
             if nl >= 0:
                 line = self._buf[:nl]
@@ -90,9 +88,8 @@ class QMPConnection:
                     try:
                         return json.loads(line)
                     except json.JSONDecodeError:
-                        pass  # malformed line, skip
+                        pass
             else:
-                # Need more data
                 chunk = self.sock.recv(65536)
                 if not chunk:
                     raise ConnectionError("QMP connection closed")
@@ -104,7 +101,7 @@ class QMPConnection:
             obj = self._recv_json()
             if "return" in obj or "error" in obj:
                 return obj
-            # else: async event like {"event": "..."} — skip
+
 
     def human_cmd(self, cmd_line: str) -> str:
         """Run a human monitor command, return the string result."""
@@ -142,13 +139,11 @@ def read_screen_text(qmp: QMPConnection, tmp_path: str) -> str:
     if len(raw) < VRAM_SIZE:
         return ""
 
-    # Extract character bytes (even offsets), skip attribute bytes (odd offsets)
     chars = bytes(raw[i] for i in range(0, VRAM_SIZE, 2))
 
     lines = []
     for row in range(ROWS):
         line = chars[row * COLS:(row + 1) * COLS]
-        # Decode as CP437 (DOS code page), strip trailing whitespace
         lines.append(line.decode('cp437', errors='replace').rstrip())
     return '\n'.join(lines)
 
@@ -200,12 +195,10 @@ def main() -> None:
                 print(f"  rule[{rule_idx}] matched: {pattern[:60]}", flush=True)
                 send_keys(qmp, response)
                 rule_idx += 1
-                # Brief pause after sending keys to let DOS process them
                 time.sleep(0.5)
             else:
                 time.sleep(POLL_INTERVAL)
 
-        # Capture final screen
         time.sleep(1.0)
         screen = read_screen_text(qmp, tmp_path)
         log.write("=== Final screen ===\n")

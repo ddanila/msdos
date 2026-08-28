@@ -1,7 +1,6 @@
 bits 16
 org 100h
 
-; Exercise valid metadata writes against a write-protected B: medium.
 
 %macro require_error 2
     jc %%carried
@@ -27,13 +26,13 @@ start:
 
     mov bl, 2
     mov dx, media_info
-    mov ax, 6900h                  ; Start with a driver-produced valid packet.
+    mov ax, 6900h
     int 21h
     jc setup_failed
     mov byte [media_info + 6], 'R'
 
     mov bl, 2
-    mov cx, 0846h                 ; Generic IOCTL: set media ID.
+    mov cx, 0846h
     mov dx, media_info
     mov ax, 440dh
     int 21h
@@ -63,7 +62,7 @@ fail:
     int 21h
 
 critical_error_handler:
-    mov al, 3                       ; INT 24h: fail the originating request.
+    mov al, 3
     iret
 
 media_info times 26 db 0

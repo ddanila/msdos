@@ -1,8 +1,6 @@
 bits 16
 org 100h
 
-; Issue one fixed-disk absolute read spanning a BIOS track boundary and report
-; the INT 13h request shape selected by CONFIG.SYS MULTITRACK.
 
 start:
     push cs
@@ -19,25 +17,25 @@ start:
 
     mov byte [read_calls], 0
     mov byte [max_sectors], 0
-    mov al, 2                     ; C: (zero-based).
+    mov al, 2
     mov bx, disk_buffer
     mov cx, 10
-    mov dx, 60                    ; Hidden LBA 63 => physical sector 61.
-    int 25h                       ; Ten sectors cross the 63-sector track.
+    mov dx, 60
+    int 25h
     pushf
     pop ax
-    pop dx                        ; Discard INT 25h's retained FLAGS word.
+    pop dx
     mov [result_flags], ax
 
     mov byte [write_calls], 0
-    mov al, 2                     ; Write one unchanged sector back to C:.
+    mov al, 2
     mov bx, disk_buffer
     mov cx, 1
     mov dx, 60
     int 26h
     pushf
     pop ax
-    pop dx                        ; Discard INT 26h's retained FLAGS word.
+    pop dx
     mov [write_result_flags], ax
 
     call restore_vector

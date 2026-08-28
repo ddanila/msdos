@@ -1,21 +1,19 @@
 bits 16
 org 100h
 
-; Exercise ANSI.SYS escape parsing and assert its visible cursor effect.
 
 start:
     push cs
     pop ds
 
-    ; Generic IOCTL get-current-settings must be handled by ANSI itself.
     mov ax, 3d02h
     mov dx, con_name
     int 21h
     jc failed
     mov bx, ax
     mov ax, 440ch
-    mov ch, 3                     ; display-device category
-    mov cl, 7fh                   ; ANSI get-settings minor function
+    mov ch, 3
+    mov cl, 7fh
     mov dx, ioctl_packet
     int 21h
     pushf
@@ -23,7 +21,7 @@ start:
     int 21h
     popf
     jc failed
-    cmp byte [ioctl_packet + 6], 1 ; text mode
+    cmp byte [ioctl_packet + 6], 1
     jne failed
     cmp word [ioctl_packet + 14], 80
     jne failed
@@ -40,14 +38,14 @@ start:
     mov bh, 0
     mov ah, 03h
     int 10h
-    cmp dh, 9                     ; ESC[10;20H uses one-based coordinates.
+    cmp dh, 9
     jne failed
     cmp dl, 19
     jne failed
 
     mov dx, read_ready
     call screen_print
-    mov ah, 08h                   ; blocking CON read -> command 4
+    mov ah, 08h
     int 21h
     cmp al, 'r'
     jne failed
@@ -55,7 +53,7 @@ start:
     mov dx, rdnd_ready
     call screen_print
 .poll_rdnd:
-    mov ah, 06h                   ; direct/non-destructive CON input -> command 5
+    mov ah, 06h
     mov dl, 0ffh
     int 21h
     jz .poll_rdnd
@@ -65,18 +63,15 @@ start:
     mov dx, flush_ready
     call screen_print
 .wait_queued:
-    mov ah, 0bh                   ; wait until the injected key is queued
+    mov ah, 0bh
     int 21h
     test al, al
     jz .wait_queued
-    mov ax, 0c06h                 ; flush command 7, then nonblocking input
+    mov ax, 0c06h
     mov dl, 0ffh
     int 21h
-    jnz failed                    ; the queued 'f' must have been discarded
+    jnz failed
 
-    ; Resolve DOS's live CON header (ANSI in this isolated boot) and exercise
-    ; every table entry that ANSI deliberately passes to the lower BIOS CON.
-    ; The first command beyond ANSI's 0..19 table must be chained as well.
     call find_live_con
     jc failed
     mov [driver_header], si
@@ -117,7 +112,7 @@ start:
     mov si, pass_message
     call serial_print
 .passed:
-    hlt                           ; host ends QEMU after its final screen capture
+    hlt
     jmp .passed
 
 failed:
@@ -166,7 +161,7 @@ issue_request:
 find_live_con:
     mov ah, 52h
     int 21h
-    les si, [es:bx + 34]          ; SYSI_DEV chain.
+    les si, [es:bx + 34]
     mov cx, 256
 .next:
     test word [es:si + 4], 8000h

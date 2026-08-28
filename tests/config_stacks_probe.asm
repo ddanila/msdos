@@ -1,7 +1,6 @@
 bits 16
 org 100h
 
-; Report the largest free DOS memory block after releasing the COM arena.
 
 start:
     push cs
@@ -17,7 +16,7 @@ start:
     mov bx, 0ffffh
     mov ah, 48h
     int 21h
-    jnc failed                     ; The deliberately oversized request fails.
+    jnc failed
 
     mov si, prefix
     call serial_print

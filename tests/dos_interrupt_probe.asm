@@ -1,7 +1,6 @@
 bits 16
 org 100h
 
-; Focused contracts for DOS vectors that do not require asynchronous input.
 
 start:
     push cs
@@ -13,7 +12,7 @@ start:
     mov ah, 02h
     int 10h
     mov al, 'X'
-    int 29h                       ; Fast console output must advance the cursor.
+    int 29h
     xor bh, bh
     mov ah, 03h
     int 10h
@@ -22,19 +21,19 @@ start:
     cmp dl, 11
     jne fail_int29
 
-    mov ax, 1000h                 ; SHARE is absent on this clean boot.
+    mov ax, 1000h
     int 2fh
     test al, al
     jnz fail_int2f_share
-    mov ax, 1100h                 ; No redirector or IFSFUNC is resident.
+    mov ax, 1100h
     int 2fh
     test al, al
     jnz fail_int2f_net
-    mov ax, 1400h                 ; NLSFUNC is absent as well.
+    mov ax, 1400h
     int 2fh
     test al, al
     jnz fail_int2f_nls
-    mov ax, 1200h                 ; The DOS multiplex table is installed.
+    mov ax, 1200h
     int 2fh
     cmp al, 0ffh
     jne fail_int2f_dos

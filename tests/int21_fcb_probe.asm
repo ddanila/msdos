@@ -1,7 +1,6 @@
 bits 16
 org 100h
 
-; Focused contracts for the legacy FCB API retained by MS-DOS 4.0.
 
 %macro fail_unless_zero 1
     or al, al
@@ -22,7 +21,7 @@ start:
     int 21h
 
     mov dx, file_fcb
-    mov ah, 16h                    ; Create/truncate through an FCB.
+    mov ah, 16h
     int 21h
     fail_unless_zero 16
     cmp word [file_fcb + 14], 128
@@ -36,7 +35,7 @@ record_size_ok:
     mov cx, 64
     rep movsw
     mov dx, file_fcb
-    mov ah, 15h                    ; Sequential write of record zero.
+    mov ah, 15h
     int 21h
     fail_unless_zero 15
 
@@ -58,7 +57,7 @@ record_size_ok:
     xor ax, ax
     rep stosw
     mov dx, file_fcb
-    mov ah, 14h                    ; Sequential read advances current record.
+    mov ah, 14h
     int 21h
     fail_unless_zero 14
     cmp byte [io_dta], 'S'
@@ -68,7 +67,7 @@ record_size_ok:
 sequential_data_ok:
 
     mov dx, file_fcb
-    mov ah, 23h                    ; File length in 128-byte records.
+    mov ah, 23h
     int 21h
     fail_unless_zero 23
     cmp byte [file_fcb + 33], 1
@@ -78,7 +77,7 @@ sequential_data_ok:
 length_ok:
 
     mov dx, file_fcb
-    mov ah, 24h                    ; Current block/record becomes random record.
+    mov ah, 24h
     int 21h
     cmp byte [file_fcb + 33], 1
     je position_ok
@@ -90,7 +89,7 @@ position_ok:
     mov byte [file_fcb + 34], 0
     mov byte [file_fcb + 35], 0
     mov dx, file_fcb
-    mov ah, 21h                    ; Random read record zero.
+    mov ah, 21h
     int 21h
     fail_unless_zero 21
     cmp byte [io_dta], 'S'
@@ -104,7 +103,7 @@ random_read_ok:
     mov byte [file_fcb + 34], 0
     mov byte [file_fcb + 35], 0
     mov dx, file_fcb
-    mov ah, 22h                    ; Random write record zero.
+    mov ah, 22h
     int 21h
     fail_unless_zero 22
 
@@ -114,7 +113,7 @@ random_read_ok:
     mov byte [file_fcb + 35], 0
     mov cx, 1
     mov dx, file_fcb
-    mov ah, 27h                    ; Random block read of one record.
+    mov ah, 27h
     int 21h
     fail_unless_zero 27
     cmp cx, 1
@@ -132,7 +131,7 @@ block_read_ok:
     mov byte [file_fcb + 35], 0
     mov cx, 1
     mov dx, file_fcb
-    mov ah, 28h                    ; Random block write of one record.
+    mov ah, 28h
     int 21h
     fail_unless_zero 28
     cmp cx, 1
@@ -177,7 +176,7 @@ find_next_done:
     mov si, parse_text
     mov di, parsed_fcb
     xor al, al
-    mov ah, 29h                    ; Parse an 8.3 name and advance SI.
+    mov ah, 29h
     int 21h
     fail_unless_zero 29
     cmp byte [parsed_fcb + 1], 'I'

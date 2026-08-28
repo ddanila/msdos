@@ -1,48 +1,4 @@
 #!/bin/bash
-# tests/test_misc_qemu.sh — E2E tests for CHKDSK, MODE (CON/COM/LPT/redirect),
-#                           IFSFUNC, FILESYS, FASTOPEN, GRAPHICS, PRINT, KEYB via QEMU.
-#
-# All tools in one QEMU boot; no interactive prompts needed.
-#
-# CHKDSK (CHKDSK.ASM):
-#   - No args: checks current drive (A:), prints disk statistics.
-#   - /V: verbose — lists every file path on the volume.
-#   - Needs a real FAT filesystem; kvikdos has no disk layer.
-#
-# MODE CON /STATUS (MODE.ASM):
-#   - Prints current console status (columns, lines, typematic rate/delay).
-#   - Non-interactive; exits immediately after printing status.
-#
-# IFSFUNC (IFSFUNC.ASM):
-#   - First call: installs IFS handler as TSR via INT 2Fh/AX=1100h + INT 21h/31h. Silent.
-#   - Second call: INT 2Fh/AX=1100h returns AL≠0 → "IFSFUNC already installed".
-#
-# FILESYS (FILESYS.ASM):
-#   - First call: installs filesystem helper as TSR. Silent on success.
-#   - Requires IFSFUNC already resident.
-#
-# FASTOPEN (FASTINIT.ASM):
-#   - First call: installs directory cache TSR. Silent on success.
-#   - Second call: INT 2Fh check → "FASTOPEN already installed".
-#
-# GRAPHICS (GRINST.ASM):
-#   - First call: loads GRAPHICS.PRO and installs print-screen handler. Silent.
-#   - Second call: reloads silently (no "already installed" message — just reloads).
-#   - GRAPHICS.PRO must be on the floppy (it is, via make deploy).
-#
-# PRINT (PRINT_T.ASM):
-#   - First call with /D:PRN: installs resident spooler, prints
-#     "Resident part of PRINT installed". No file queued; no device prompt (/D given).
-#   - Second call (PRINT alone): queue already installed, shows queue status.
-#
-# KEYB (KEYB.ASM):
-#   - KEYBOARD.SYS is not on the base floppy; we copy it in test setup.
-#   - First call (KEYB US): installs INT 9h hook, loads US layout. Silent on success.
-#   - Second call (KEYB, no args): prints "Current keyboard code: US" + code page info.
-#   - Third call (KEYB GR,,KEYBOARD.SYS): loads German layout with explicit file path.
-#   - Fourth call (KEYB, no args): verifies "GR" is now the active layout.
-#
-# Run via: make test-misc-qemu  (requires 'make deploy' first)
 
 set -uo pipefail
 export LC_ALL=C
@@ -70,7 +26,6 @@ SRC="$REPO_ROOT/MS-DOS/v4.0/src"
 
 echo "=== CHKDSK / MODE CON / IFSFUNC / FILESYS / FASTOPEN / GRAPHICS / PRINT / KEYB E2E tests (QEMU) ==="
 
-# ── Build test floppy ────────────────────────────────────────────────────────
 echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
 
@@ -80,33 +35,23 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 printf '@ECHO OFF\r\nECHO Hello World | FIND "Hello"\r\n' \
     | mcopy -o -i "$BOOT_IMG" - ::FINDPIPE.BAT
 
-# KEYBOARD.SYS is deployed to the floppy by make deploy (alongside KEYB.COM).
 
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
-    # ── CHKDSK — disk statistics ──────────────────────────────────────────────
-    # No args checks current drive (A:). Prints "X bytes total disk space" and
-    # "X bytes available on disk" plus a memory summary.
     printf 'ECHO ---CHKDSK---\r\n'
     printf 'CHKDSK\r\n'
     printf 'ECHO CHKDSK_DONE\r\n'
 
-    # ── CHKDSK /V — verbose file listing ─────────────────────────────────────
-    # Lists every file on the volume with its full path (e.g. A:\COMMAND.COM).
     printf 'ECHO ---CHKDSK-V---\r\n'
     printf 'CHKDSK /V\r\n'
     printf 'ECHO CHKDSK_V_DONE\r\n'
 
-    # ── MODE CON /STATUS — console status ────────────────────────────────────
-    # Prints current console columns, lines, and typematic settings.
-    # Non-interactive; exits immediately after printing status.
     printf 'ECHO ---MODE-CON---\r\n'
     printf 'MODE CON /STATUS\r\n'
     printf 'ECHO MODE_CON_DONE\r\n'
 
-    # Short status synonyms must reach the same console-status implementation.
     printf 'ECHO ---MODE-STA---\r\n'
     printf 'MODE CON /STA\r\n'
     printf 'ECHO MODE_STA_DONE\r\n'
@@ -114,204 +59,130 @@ printf '@ECHO OFF\r\nECHO Hello World | FIND "Hello"\r\n' \
     printf 'MODE CON /STAT\r\n'
     printf 'ECHO MODE_STAT_DONE\r\n'
 
-    # ── MODE CON COLS=80 LINES=25 — set console dimensions ─────────────────
-    # Non-interactive: sets text mode and prints status.
     printf 'ECHO ---MODE-CON-SET---\r\n'
     printf 'MODE CON COLS=80 LINES=25\r\n'
     printf 'ECHO MODE_CON_SET_DONE\r\n'
 
-    # ── MODE CON RATE=30 DELAY=1 — set typematic rate ──────────────────────
-    # Sets keyboard repeat rate and delay via INT 16h/AH=03h.
     printf 'ECHO ---MODE-TYPAMAT---\r\n'
     printf 'MODE CON RATE=30 DELAY=1\r\n'
     printf 'ECHO MODE_TYPAMAT_DONE\r\n'
 
-    # ── CHKDSK A:\COMMAND.COM — file allocation check ──────────────────────
-    # Reports allocation info for a specific file.
     printf 'ECHO ---CHKDSK-FILE---\r\n'
     printf 'CHKDSK A:\COMMAND.COM\r\n'
     printf 'ECHO CHKDSK_FILE_DONE\r\n'
 
-    # ── IFSFUNC (first call) — install IFS handler ────────────────────────────
-    # INT 2Fh/AX=1100h not yet hooked → installs via INT 21h/31h. No output.
     printf 'ECHO ---IFSFUNC---\r\n'
     printf 'IFSFUNC\r\n'
     printf 'ECHO IFSFUNC_DONE\r\n'
 
-    # ── IFSFUNC (second call) — already installed ─────────────────────────────
-    # INT 2Fh/AX=1100h returns AL≠0 → prints "IFSFUNC already installed".
     printf 'ECHO ---IFSFUNC-AGAIN---\r\n'
     printf 'IFSFUNC\r\n'
     printf 'ECHO IFSFUNC_AGAIN_DONE\r\n'
 
-    # ── FILESYS — install filesystem helper ───────────────────────────────────
-    # Requires IFSFUNC already resident. Installs silently via INT 21h/31h.
     printf 'ECHO ---FILESYS---\r\n'
     printf 'FILESYS\r\n'
     printf 'ECHO FILESYS_DONE\r\n'
 
-    # ── FASTOPEN C:=50 (first call) — install directory cache TSR ────────────
-    # Installs silently on success via INT 21h/31h (Keep_Process).
     printf 'ECHO ---FASTOPEN---\r\n'
     printf 'FASTOPEN C:=50\r\n'
     printf 'ECHO FASTOPEN_DONE\r\n'
 
-    # ── FASTOPEN C:=50 (second call) — already installed ─────────────────────
-    # INT 2Fh check detects existing install → prints "FASTOPEN already installed".
     printf 'ECHO ---FASTOPEN-AGAIN---\r\n'
     printf 'FASTOPEN C:=50\r\n'
     printf 'ECHO FASTOPEN_AGAIN_DONE\r\n'
 
-    # ── FASTOPEN D:=20 /X — expanded memory cache ─────────────────────────
-    # /X creates name cache in EMS. Without EMM386/EMS, FASTOPEN should fail
-    # gracefully (error message) rather than crash. Tests /X parsing path.
-    # Note: FASTOPEN is already installed from earlier call, so this will
-    # also get "already installed" — but the /X parsing still exercises code.
     printf 'ECHO ---FASTOPEN-X---\r\n'
     printf 'FASTOPEN D:=20 /X\r\n'
     printf 'ECHO FASTOPEN_X_DONE\r\n'
 
-    # ── GRAPHICS (first call) — load print-screen handler ────────────────────
-    # Reads GRAPHICS.PRO from current drive root, installs handler. Silent.
     printf 'ECHO ---GRAPHICS---\r\n'
     printf 'GRAPHICS\r\n'
     printf 'ECHO GRAPHICS_DONE\r\n'
 
-    # ── GRAPHICS (second call) — reload ──────────────────────────────────────
-    # Already installed: reloads silently (no "already installed" message).
     printf 'ECHO ---GRAPHICS-AGAIN---\r\n'
     printf 'GRAPHICS\r\n'
     printf 'ECHO GRAPHICS_AGAIN_DONE\r\n'
 
-    # ── PRINT /D:PRN (first call) — install print spooler with params ────────
-    # /D:PRN specifies device so no interactive device prompt.
-    # /B:512 /S:8 /U:1 /M:2 are install-time params (buffer, slice, busy, max ticks).
-    # Prints "Resident part of PRINT installed" on success.
     printf 'ECHO ---PRINT---\r\n'
     printf 'PRINT /D:PRN /B:512 /Q:5 /S:8 /U:1 /M:2\r\n'
     printf 'ECHO PRINT_DONE\r\n'
 
-    # ── PRINT (second call) — already installed, show queue ───────────────────
-    # Resident already in memory; no re-install prompt. Shows queue (empty).
     printf 'ECHO ---PRINT-AGAIN---\r\n'
     printf 'PRINT\r\n'
     printf 'ECHO PRINT_AGAIN_DONE\r\n'
 
-    # ── PRINT file /P — add file to print queue ──────────────────────────────
-    # /P adds the preceding filename to the queue. AUTOEXEC.BAT is on the floppy.
     printf 'ECHO ---PRINT-P---\r\n'
     printf 'PRINT AUTOEXEC.BAT /P\r\n'
     printf 'ECHO PRINT_P_DONE\r\n'
 
-    # ── PRINT AUTOEXEC.BAT /C — remove file from queue ────────────────────────
-    # /C cancels the preceding filename from the queue.
     printf 'ECHO ---PRINT-C---\r\n'
     printf 'PRINT AUTOEXEC.BAT /C\r\n'
     printf 'ECHO PRINT_C_DONE\r\n'
 
-    # ── PRINT /T — terminate (cancel) all files in queue ──────────────────────
-    # /T cancels all pending print jobs. Prints "PRINT queue is empty".
     printf 'ECHO ---PRINT-T---\r\n'
     printf 'PRINT /T\r\n'
     printf 'ECHO PRINT_T_DONE\r\n'
 
-    # ── KEYB US (first call) — load US keyboard layout ────────────────────────
-    # KEYBOARD.SYS copied to floppy root in test setup.
-    # Installs INT 9h hook and loads US layout. Silent on success.
     printf 'ECHO ---KEYB---\r\n'
     printf 'KEYB US\r\n'
     printf 'ECHO KEYB_DONE\r\n'
 
-    # ── KEYB (no args) — show current layout ─────────────────────────────────
-    # Prints "Current keyboard code: US" + code page info.
     printf 'ECHO ---KEYB-STATUS---\r\n'
     printf 'KEYB\r\n'
     printf 'ECHO KEYB_STATUS_DONE\r\n'
 
-    # ── KEYB GR,,KEYBOARD.SYS — load German layout with explicit file ───────
-    # Syntax: KEYB lang[,[codepage][,[drive:][path]file]] [/ID:nnn]
-    # Tests non-US layout loading with explicit KEYBOARD.SYS path.
     printf 'ECHO ---KEYB-GR---\r\n'
     printf 'KEYB GR,,KEYBOARD.SYS\r\n'
     printf 'ECHO KEYB_GR_DONE\r\n'
 
-    # ── KEYB (no args) — verify GR is now active ────────────────────────────
     printf 'ECHO ---KEYB-GR-STATUS---\r\n'
     printf 'KEYB\r\n'
     printf 'ECHO KEYB_GR_STATUS_DONE\r\n'
 
-    # ── KEYB UK,850,KEYBOARD.SYS — load UK layout with explicit code page ──
-    # Syntax: KEYB lang[,[codepage][,[drive:][path]file]] [/ID:nnn]
-    # Tests loading a layout with explicit code page parameter.
     printf 'ECHO ---KEYB-UK-850---\r\n'
     printf 'KEYB UK,850,KEYBOARD.SYS\r\n'
     printf 'ECHO KEYB_UK_850_DONE\r\n'
 
-    # ── KEYB (no args) — verify UK is now active ──────────────────────────
     printf 'ECHO ---KEYB-UK-STATUS---\r\n'
     printf 'KEYB\r\n'
     printf 'ECHO KEYB_UK_STATUS_DONE\r\n'
 
-    # ── KEYB FR,850,KEYBOARD.SYS /ID:189 — load French layout with /ID ────
-    # Tests the /ID switch parsing path. FR has two keyboard IDs (120, 189).
     printf 'ECHO ---KEYB-ID---\r\n'
     printf 'KEYB FR,850,KEYBOARD.SYS /ID:189\r\n'
     printf 'ECHO KEYB_ID_DONE\r\n'
 
-    # ── KEYB (no args) — verify FR is now active ──────────────────────────
     printf 'ECHO ---KEYB-FR-STATUS---\r\n'
     printf 'KEYB\r\n'
     printf 'ECHO KEYB_FR_STATUS_DONE\r\n'
 
-    # ── GRAPHICS /R — load with reverse printing ────────────────────────────
-    # /R reverses foreground/background when printing. Installs silently.
-    # (GRAPHICS already installed from earlier call; this reloads with /R.)
     printf 'ECHO ---GRAPHICS-R---\r\n'
     printf 'GRAPHICS /R\r\n'
     printf 'ECHO GRAPHICS_R_DONE\r\n'
 
-    # ── GRAPHICS /B — load with background printing ─────────────────────────
-    # /B enables printing of background color. Reloads silently.
-    # Note: /B is invalid with BLACK_WHITE printers; default printer type may
-    # vary — if this fails, the batch marker still tells us it didn't hang.
     printf 'ECHO ---GRAPHICS-B---\r\n'
     printf 'GRAPHICS /B\r\n'
     printf 'ECHO GRAPHICS_B_DONE\r\n'
 
-    # ── GRAPHICS /LCD — load with LCD aspect ratio ──────────────────────────
-    # /LCD sets LCD printbox (mutually exclusive with /PB). Reloads silently.
     printf 'ECHO ---GRAPHICS-LCD---\r\n'
     printf 'GRAPHICS /LCD\r\n'
     printf 'ECHO GRAPHICS_LCD_DONE\r\n'
 
-    # ── GRAPHICS /PB:STD — load with explicit printbox ID ───────────────────
-    # /PB:id (or /PRINTBOX:id) sets a named printbox from GRAPHICS.PRO.
-    # "STD" is the default printbox. Mutually exclusive with /LCD.
     printf 'ECHO ---GRAPHICS-PB---\r\n'
     printf 'GRAPHICS /PB:STD\r\n'
     printf 'ECHO GRAPHICS_PB_DONE\r\n'
 
-    # ── GRAPHICS /PRINTBOX:STD — long synonym for /PB ───────────────────────
     printf 'ECHO ---GRAPHICS-PRINTBOX---\r\n'
     printf 'GRAPHICS /PRINTBOX:STD\r\n'
     printf 'ECHO GRAPHICS_PRINTBOX_DONE\r\n'
 
-    # ── MODE COM1: — configure serial port ────────────────────────────────────
-    # Uses INT 14h (BIOS serial). QEMU emulates 16550 UART.
-    # Success output: "COM1: 9600,N,8,1,-"
     printf 'ECHO ---MODE-COM---\r\n'
     printf 'MODE COM1: 9600,N,8,1\r\n'
     printf 'ECHO MODE_COM_DONE\r\n'
 
-    # ── MODE LPT1: — configure parallel port ────────────────────────────────
-    # Uses INT 17h (BIOS printer). QEMU has parallel port emulation.
-    # Success output: "LPT1: set for 80" + "Printer lines per inch set"
     printf 'ECHO ---MODE-LPT---\r\n'
     printf 'MODE LPT1: 80,6\r\n'
     printf 'ECHO MODE_LPT_DONE\r\n'
 
-    # Run the remaining COMMAND-sensitive checks before the pipe test below,
-    # which is known to corrupt the shell's inherited handle table.
     printf 'ECHO ---MODE-REDIRECT---\r\n'
     printf 'MODE LPT1:=COM1:\r\n'
     printf 'ECHO MODE_REDIRECT_DONE\r\n'
@@ -320,8 +191,6 @@ printf '@ECHO OFF\r\nECHO Hello World | FIND "Hello"\r\n' \
     printf 'COMMAND /?\r\n'
     printf 'ECHO COMMAND_HELP_DONE\r\n'
 
-    # ── SORT and TREE deployed-command behavior ────────────────────────────
-    # File redirection avoids the shell pipe handle mutation exercised below.
     printf 'ECHO banana>SORTIN.TXT\r\n'
     printf 'ECHO apple>>SORTIN.TXT\r\n'
     printf 'ECHO cherry>>SORTIN.TXT\r\n'
@@ -337,17 +206,9 @@ printf '@ECHO OFF\r\nECHO Hello World | FIND "Hello"\r\n' \
 
     printf 'ECHO ===DONE===\r\n'
 
-    # ── FIND from stdin (pipe) — ECHO | FIND ────────────────────────────────
-    # FIND reads handle 0 (stdin) via INT 21h AH=3Fh. Under QEMU with CTTY AUX,
-    # stdin works through the serial port. Pipe via DOS shell handles it.
-    # Isolate the known DOS pipe handle mutation in a child COMMAND so the
-    # parent batch retains valid handles for the following DIR /P contract.
     printf 'ECHO ---FIND-STDIN---\r\n'
     printf 'COMMAND /C FINDPIPE.BAT\r\n'
 
-    # ── DIR /P — paginated directory listing ─────────────────────────────────
-    # DIR /P pauses after each screenful (INT 21h AH=01h, waits for any key).
-    # The continuous \r\n serial feed advances past the pause prompts.
     printf 'ECHO ---DIR-P---\r\n'
     printf 'DIR /P\r\n'
     printf 'ECHO DIR_P_DONE\r\n'
@@ -355,7 +216,6 @@ printf '@ECHO OFF\r\nECHO Hello World | FIND "Hello"\r\n' \
 
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
-# ── Boot QEMU and capture serial output ──────────────────────────────────────
 echo "Booting QEMU (may take ~90s)..."
 rm -f "$SERIAL_LOG"
 (while true; do sleep 0.5; printf '\r\n'; done) | \
@@ -372,7 +232,6 @@ if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
     exit 1
 fi
 
-# ── CHKDSK checks ─────────────────────────────────────────────────────────────
 echo ""
 echo "--- CHKDSK tests ---"
 
@@ -400,14 +259,12 @@ else
     fail "CHKDSK /V (expected file listing with 'COMMAND' and CHKDSK_V_DONE marker)"
 fi
 
-# CHKDSK A:\COMMAND.COM — file allocation check
 if grep -q "CHKDSK_FILE_DONE" "$SERIAL_LOG"; then
     ok "CHKDSK A:\\COMMAND.COM (file allocation check, batch continued)"
 else
     fail "CHKDSK A:\\COMMAND.COM (batch hung or crashed)"
 fi
 
-# ── MODE CON /STATUS checks ───────────────────────────────────────────────────
 echo ""
 echo "--- MODE CON tests ---"
 
@@ -430,21 +287,18 @@ else
     fail "MODE CON /STAT (expected console status output)"
 fi
 
-# MODE CON COLS=80 LINES=25
 if grep -q "MODE_CON_SET_DONE" "$SERIAL_LOG"; then
     ok "MODE CON COLS=80 LINES=25 (set console dimensions, batch continued)"
 else
     fail "MODE CON COLS=80 LINES=25 (batch hung or crashed)"
 fi
 
-# MODE CON RATE=30 DELAY=1
 if grep -q "MODE_TYPAMAT_DONE" "$SERIAL_LOG"; then
     ok "MODE CON RATE=30 DELAY=1 (set typematic rate, batch continued)"
 else
     fail "MODE CON RATE=30 DELAY=1 (batch hung or crashed)"
 fi
 
-# ── IFSFUNC checks ────────────────────────────────────────────────────────────
 echo ""
 echo "--- IFSFUNC tests ---"
 
@@ -466,7 +320,6 @@ else
     fail "IFSFUNC (batch hung or crashed after second call)"
 fi
 
-# ── FILESYS checks ────────────────────────────────────────────────────────────
 echo ""
 echo "--- FILESYS tests ---"
 
@@ -476,7 +329,6 @@ else
     fail "FILESYS (batch hung or crashed)"
 fi
 
-# ── FASTOPEN checks ───────────────────────────────────────────────────────────
 echo ""
 echo "--- FASTOPEN tests ---"
 
@@ -486,24 +338,18 @@ else
     fail "FASTOPEN C:=50 (batch hung or crashed after first call)"
 fi
 
-# Note: FASTOPEN's "already installed" / install messages go to the physical
-# screen via direct BIOS writes, not through CTTY AUX — not capturable over
-# serial. On second call FASTOPEN rejects C: as already cached ("Invalid drive
-# specification") — not a crash, batch continues normally.
 if grep -q "FASTOPEN_AGAIN_DONE" "$SERIAL_LOG"; then
     ok "FASTOPEN C:=50 (second call: batch continued without hang)"
 else
     fail "FASTOPEN C:=50 (batch hung or crashed after second call)"
 fi
 
-# FASTOPEN /X — expanded memory cache (no EMS available, tests /X parsing)
 if grep -q "FASTOPEN_X_DONE" "$SERIAL_LOG"; then
     ok "FASTOPEN D:=20 /X (expanded memory switch parsed, batch continued)"
 else
     fail "FASTOPEN D:=20 /X (batch hung or crashed — /X parsing may have failed)"
 fi
 
-# ── GRAPHICS checks ────────────────────────────────────────────────────────────
 echo ""
 echo "--- GRAPHICS tests ---"
 
@@ -519,7 +365,6 @@ else
     fail "GRAPHICS (batch hung or crashed after second call)"
 fi
 
-# ── PRINT checks ───────────────────────────────────────────────────────────────
 echo ""
 echo "--- PRINT tests ---"
 
@@ -541,28 +386,24 @@ else
     fail "PRINT (batch hung or crashed on second call)"
 fi
 
-# PRINT file /P — add file to queue
 if grep -q "PRINT_P_DONE" "$SERIAL_LOG"; then
     ok "PRINT AUTOEXEC.BAT /P (add to queue, batch continued)"
 else
     fail "PRINT AUTOEXEC.BAT /P (batch hung or crashed)"
 fi
 
-# PRINT file /C — remove file from queue
 if grep -q "PRINT_C_DONE" "$SERIAL_LOG"; then
     ok "PRINT AUTOEXEC.BAT /C (remove from queue, batch continued)"
 else
     fail "PRINT AUTOEXEC.BAT /C (batch hung or crashed)"
 fi
 
-# PRINT /T — cancel queue
 if grep -q "PRINT_T_DONE" "$SERIAL_LOG"; then
     ok "PRINT /T (terminate queue, batch continued)"
 else
     fail "PRINT /T (batch hung or crashed)"
 fi
 
-# ── KEYB checks ────────────────────────────────────────────────────────────────
 echo ""
 echo "--- KEYB tests ---"
 
@@ -584,7 +425,6 @@ else
     fail "KEYB (batch hung or crashed after status query)"
 fi
 
-# KEYB GR — non-US layout with explicit KEYBOARD.SYS
 if grep -q "KEYB_GR_DONE" "$SERIAL_LOG"; then
     ok "KEYB GR,,KEYBOARD.SYS (loaded German layout, batch continued)"
 else
@@ -597,7 +437,6 @@ else
     fail "KEYB (no args after GR: expected 'Current keyboard code' with 'GR')"
 fi
 
-# KEYB UK,850 — UK layout with explicit code page
 if grep -q "KEYB_UK_850_DONE" "$SERIAL_LOG"; then
     ok "KEYB UK,850,KEYBOARD.SYS (loaded UK layout with code page, batch continued)"
 else
@@ -610,7 +449,6 @@ else
     fail "KEYB (no args after UK,850: expected 'Current keyboard code' with 'UK')"
 fi
 
-# KEYB FR,850 /ID:189 — French layout with keyboard ID
 if grep -q "KEYB_ID_DONE" "$SERIAL_LOG"; then
     ok "KEYB FR,850,KEYBOARD.SYS /ID:189 (loaded French layout with /ID, batch continued)"
 else
@@ -623,7 +461,6 @@ else
     fail "KEYB (no args after FR /ID:189: expected 'Current keyboard code' with 'FR')"
 fi
 
-# ── GRAPHICS /R /B checks ────────────────────────────────────────────────────
 echo ""
 echo "--- GRAPHICS /R /B tests ---"
 
@@ -657,7 +494,6 @@ else
     fail "GRAPHICS /PRINTBOX:STD (batch hung or crashed)"
 fi
 
-# ── MODE COM1 checks ──────────────────────────────────────────────────────────
 echo ""
 echo "--- MODE COM/LPT tests ---"
 
@@ -673,7 +509,6 @@ else
     fail "MODE COM1: (expected 'COM1: 9600,...' in output)"
 fi
 
-# ── MODE LPT1 checks ─────────────────────────────────────────────────────────
 if grep -q "MODE_LPT_DONE" "$SERIAL_LOG"; then
     ok "MODE LPT1: 80,6 (batch continued after printer config)"
 else
@@ -686,20 +521,15 @@ else
     fail "MODE LPT1: (expected 'LPT1: set for 80' in output)"
 fi
 
-# ── FIND stdin checks ────────────────────────────────────────────────────────
 echo ""
 echo "--- FIND stdin tests ---"
 
-# FIND output should show the matched line "Hello World".
-# Note: DOS pipe (ECHO | FIND) corrupts COMMAND.COM's handle table, so the
-# ECHO after the pipe gets "Invalid handle". We verify via output content only.
 if sed -n '/---FIND-STDIN---/,/---DIR-P---/p' "$SERIAL_LOG" | grep -qi "Hello World"; then
     ok "FIND from stdin (ECHO | FIND matched 'Hello World')"
 else
     fail "FIND from stdin (expected 'Hello World' in FIND output)"
 fi
 
-# ── DIR /P checks ────────────────────────────────────────────────────────────
 echo ""
 echo "--- DIR /P tests ---"
 
@@ -715,7 +545,6 @@ else
     fail "DIR /P (expected file listing in DIR /P output)"
 fi
 
-# ── MODE LPT1:=COM1: redirect checks ─────────────────────────────────────────
 echo ""
 echo "--- MODE LPT1:=COM1: redirect tests ---"
 
@@ -731,7 +560,6 @@ else
     fail "MODE LPT1:=COM1: (expected 'rerouted to COM1' in output)"
 fi
 
-# ── COMMAND /? checks ─────────────────────────────────────────────────────────
 echo ""
 echo "--- COMMAND /? tests ---"
 
@@ -747,7 +575,6 @@ else
     fail "COMMAND /? (batch hung or crashed — possible regression of 58a0bb4)"
 fi
 
-# ── SORT / TREE checks ──────────────────────────────────────────────────────
 echo ""
 echo "--- SORT / TREE deployed behavior tests ---"
 
@@ -769,7 +596,6 @@ else
     fail "TREE /F /A did not expose the fixture hierarchy"
 fi
 
-# ── Completion check ──────────────────────────────────────────────────────────
 echo ""
 if grep -q "===DONE===" "$SERIAL_LOG"; then
     ok "Batch reached ===DONE==="

@@ -23,11 +23,11 @@ start:
     mov ah, 39h
     int 21h
     jc setup_failed
-    mov dx, test_directory          ; Existing directory.
+    mov dx, test_directory
     mov ah, 39h
     int 21h
     require_error 5, fail_mkdir_exists
-    mov dx, missing_child           ; Parent component does not exist.
+    mov dx, missing_child
     mov ah, 39h
     int 21h
     require_error 3, fail_mkdir_path
@@ -35,7 +35,7 @@ start:
     mov ah, 3bh
     int 21h
     require_error 3, fail_chdir_path
-    mov dx, missing_directory       ; RMDIR maps a missing local leaf to path.
+    mov dx, missing_directory
     mov ah, 3ah
     int 21h
     require_error 3, fail_rmdir_path
@@ -43,11 +43,11 @@ start:
     mov ah, 3bh
     int 21h
     jc setup_failed
-    mov dx, dot_path                ; The current directory cannot be removed.
+    mov dx, dot_path
     mov ah, 3ah
     int 21h
     require_error 16, fail_rmdir_current
-    mov dx, dot_path                ; The current directory cannot be renamed.
+    mov dx, dot_path
     mov di, moved_directory
     mov ah, 56h
     int 21h
@@ -71,7 +71,7 @@ start:
     mov ah, 3eh
     int 21h
     jc setup_failed
-    mov dx, local_file              ; The destination already exists.
+    mov dx, local_file
     mov di, collision_file
     mov ah, 56h
     int 21h
@@ -80,17 +80,17 @@ start:
     mov ah, 3bh
     int 21h
     jc setup_failed
-    mov dx, test_directory          ; A nonempty directory cannot be removed.
+    mov dx, test_directory
     mov ah, 3ah
     int 21h
     require_error 5, fail_rmdir_nonempty
 
-    mov ax, 3d00h                   ; Directories cannot be opened as files.
+    mov ax, 3d00h
     mov dx, test_directory
     int 21h
     require_error 5, fail_open_denied
 
-    mov ax, 4301h                   ; A read-only file cannot be deleted.
+    mov ax, 4301h
     mov cx, 1
     mov dx, local_file_path
     int 21h
@@ -99,19 +99,19 @@ start:
     mov ah, 41h
     int 21h
     require_error 5, fail_delete_denied
-    mov ax, 4301h                   ; Restore it for later cleanup.
+    mov ax, 4301h
     xor cx, cx
     mov dx, local_file_path
     int 21h
     jc setup_failed
 
-    mov ax, 4301h                   ; Directory is not a settable file bit.
+    mov ax, 4301h
     mov cx, 10h
     mov dx, local_file_path
     int 21h
     require_error 5, fail_attr_denied
 
-    mov ax, 3d01h                   ; A write-only handle rejects reads.
+    mov ax, 3d01h
     mov dx, local_file_path
     int 21h
     jc setup_failed
@@ -125,7 +125,7 @@ start:
     int 21h
     jc setup_failed
 
-    mov ax, 3d00h                   ; A read-only handle rejects writes.
+    mov ax, 3d00h
     mov dx, local_file_path
     int 21h
     jc setup_failed
@@ -171,27 +171,27 @@ start:
     int 21h
     require_error 3, fail_attr_path
 
-    mov dx, missing_file            ; Rename distinguishes the absent leaf.
+    mov dx, missing_file
     mov di, rename_target
     mov ah, 56h
     int 21h
     require_error 2, fail_rename_file
-    mov dx, missing_path_file       ; ...from an absent parent component.
+    mov dx, missing_path_file
     mov di, rename_target
     mov ah, 56h
     int 21h
     require_error 3, fail_rename_path
 
-    xor bx, bx                      ; Extended-open requires a valid action.
+    xor bx, bx
     xor cx, cx
     xor dx, dx
     mov si, local_file_path
     mov ax, 6c00h
     int 21h
     require_error 1, fail_extopen_function
-    mov bx, 3                       ; Access modes stop at 2.
+    mov bx, 3
     xor cx, cx
-    mov dx, 1                       ; Open existing, fail if absent.
+    mov dx, 1
     mov si, local_file_path
     mov ax, 6c00h
     int 21h
@@ -207,11 +207,11 @@ start:
     mov ax, 6c00h
     int 21h
     require_error 3, fail_extopen_path
-    mov si, test_directory          ; Directories cannot be opened as files.
+    mov si, test_directory
     mov ax, 6c00h
     int 21h
     require_error 5, fail_extopen_denied
-    mov dx, 10h                     ; Fail if existing, create if absent.
+    mov dx, 10h
     mov si, local_file_path
     mov ax, 6c00h
     int 21h

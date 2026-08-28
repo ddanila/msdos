@@ -1,9 +1,6 @@
 bits 16
 org 100h
 
-; Observe which BIOS keyboard-read function the DOS CON driver selects.
-; EXPECTED_KEY_FN is 10h for the QEMU extended keyboard default and 00h when
-; CONFIG.SYS contains SWITCHES=/K.
 
 %ifndef EXPECTED_KEY_FN
 %error EXPECTED_KEY_FN must be defined
@@ -26,7 +23,7 @@ start:
     int 21h
 
     mov byte [observed_fn], 0ffh
-    mov ah, 07h                   ; Direct console input, no echo.
+    mov ah, 07h
     int 21h
     cmp al, 'K'
     jne failed
@@ -88,14 +85,14 @@ int16_hook:
     jmp far [cs:old_int16_off]
 .read:
     mov [cs:observed_fn], ah
-    mov ax, 254bh                 ; Scan code 25h, ASCII K.
+    mov ax, 254bh
     iret
 .status:
     mov [cs:observed_fn], ah
     mov ax, 254bh
     push bp
     mov bp, sp
-    and word [ss:bp + 6], 0ffbfh  ; Clear ZF in the caller's saved FLAGS.
+    and word [ss:bp + 6], 0ffbfh
     pop bp
     iret
 

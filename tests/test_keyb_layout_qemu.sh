@@ -1,5 +1,4 @@
 #!/bin/bash
-# Focused KEYB parser/state regression test for non-US layouts.
 
 set -uo pipefail
 export LC_ALL=C

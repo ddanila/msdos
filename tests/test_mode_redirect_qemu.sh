@@ -1,5 +1,4 @@
 #!/bin/bash
-# Focused MODE parser and LPT1:=COM1: resident-install regression test.
 
 set -uo pipefail
 export LC_ALL=C

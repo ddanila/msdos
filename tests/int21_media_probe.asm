@@ -1,7 +1,6 @@
 bits 16
 org 100h
 
-; Focused get/set media-ID contract on disposable drive B:.
 
 %macro require_error 2
     jc %%carried
@@ -40,7 +39,7 @@ start:
     int 21h
     jc media_failed
 
-    mov bl, 26                    ; Z: is not installed.
+    mov bl, 26
     mov dx, media_info
     mov ax, 6900h
     int 21h
@@ -63,7 +62,7 @@ start:
     mov ax, 6901h
     int 21h
     jc media_failed
-    mov ah, 0dh                    ; Persist the updated boot-sector metadata.
+    mov ah, 0dh
     int 21h
 
     mov di, returned_info

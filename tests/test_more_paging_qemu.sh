@@ -1,5 +1,4 @@
 #!/bin/bash
-# Verify MORE's real console paging boundary and lossless resume behavior.
 
 set -uo pipefail
 

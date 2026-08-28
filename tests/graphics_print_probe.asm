@@ -2,10 +2,9 @@ bits 16
 org 100h
 
 start:
-    mov ax, 0004h               ; CGA 320x200, profile-supported graphics mode
+    mov ax, 0004h
     int 10h
 
-    ; A deterministic asymmetric pattern makes rotation/reversal observable.
     mov dx, 24
 row_loop:
     mov cx, 16
@@ -33,7 +32,7 @@ diagonal_loop:
     cmp dx, 146
     jb diagonal_loop
 
-    int 05h                     ; GRAPHICS resident Print Screen handler
+    int 05h
 
     mov ax, 0003h
     int 10h

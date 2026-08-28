@@ -1,5 +1,4 @@
 #!/bin/bash
-# Assert DOS 4 media-ID get/set behavior against a disposable B: image.
 
 set -uo pipefail
 export LC_ALL=C

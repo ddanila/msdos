@@ -1,5 +1,4 @@
 #!/bin/bash
-# Assert synchronous DOS interrupt contracts on a clean boot.
 
 set -uo pipefail
 export LC_ALL=C

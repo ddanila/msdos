@@ -1,34 +1,4 @@
 #!/bin/bash
-# tests/test_assign_subst_join.sh — E2E tests for ASSIGN, SUBST, and JOIN via QEMU.
-#
-# All three are TSR-based drive-manipulation tools that cannot run under kvikdos
-# (kvikdos has no disk layer / drive table).  One QEMU boot covers all three.
-#
-# ASSIGN (ASSGMAIN.ASM):
-#   - ASSIGN B=A  : maps B: → A: (installs TSR on first run, then updates
-#                   mapping table via INT 2Fh on subsequent runs). Silent.
-#   - DIR B:\...  : proves redirection works — ASSIGN patches drive letter
-#                   in INT 21h path calls so B: is served by A:.
-#   - ASSIGN      : clear all mappings (identity table). Silent.
-#   Note: REPORT_STATUS ("Original X: set to Y:") is only printed when the
-#   /STATUS flag is set; plain "ASSIGN B=A" produces no output.
-#
-# SUBST (SUBST.C):
-#   - SUBST D: A:\SUBSTDIR : creates virtual drive D: → A:\SUBSTDIR. Silent.
-#   - SUBST                 : lists all substitutions: "D: => A:\SUBSTDIR".
-#   - SUBST D: /D           : removes the substitution. Silent.
-#   Requires LASTDRIVE >= D — set via CONFIG.SYS LASTDRIVE=Z.
-#
-# JOIN (JOIN.C):
-#   - JOIN B: A:\JOINDIR : joins physical drive B: (second floppy) to the
-#                          directory A:\JOINDIR. B: is then inaccessible as a
-#                          standalone drive; its contents appear at A:\JOINDIR.
-#   - JOIN                : lists all joins: "B: => A:\JOINDIR".
-#   - JOIN B: /D          : unjoin. B: becomes accessible again.
-#   Requires a second physical floppy (B:) — created blank + formatted.
-#   A test file is placed on B: so its presence at A:\JOINDIR can be verified.
-#
-# Run via: make test-assign-subst-join  (requires 'make deploy' first)
 
 set -uo pipefail
 
@@ -58,17 +28,13 @@ echo "=== ASSIGN / SUBST / JOIN E2E tests (QEMU) ==="
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
-# ── Build test images ─────────────────────────────────────────────────────────
 echo "Building test images..."
 cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 
-# CONFIG.SYS: LASTDRIVE=Z makes all drive letters A-Z available for SUBST/JOIN.
-# Without this SUBST D: would fail if the default LASTDRIVE < D.
 printf 'LASTDRIVE=Z\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 
-# Second floppy (B:) for JOIN test — blank, formatted, with a marker file.
 dd if=/dev/zero bs=512 count=2880 of="$B_IMG" status=none
 mformat -i "$B_IMG" -f 1440 ::
 printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
@@ -77,15 +43,10 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
-    # ── ASSIGN B=A — redirect B: to A: ───────────────────────────────────────
-    # ASSIGN is silent on success (no output, no "Original X: set to Y:" message
-    # unless /STATUS is passed). Just installs TSR + sets mapping.
     printf 'ECHO ---ASSIGN---\r\n'
     printf 'ASSIGN B=A\r\n'
     printf 'ECHO ASSIGN_DONE\r\n'
 
-    # /STATUS reports the resident mapping.  A duplicate synonym is rejected
-    # because ASSIGN deliberately removes both synonyms after the first match.
     printf 'ASSIGN /STATUS\r\n'
     printf 'ECHO ---ASSIGN-STA---\r\n'
     printf 'ASSIGN /STA\r\n'
@@ -97,21 +58,16 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
     printf 'ASSIGN B\r\n'
     printf 'IF ERRORLEVEL 1 ECHO ASSIGN_UNPAIRED_REJECTED\r\n'
 
-    # ── ASSIGN verify — DIR B: redirected to A: ───────────────────────────────
-    # With B: → A: active, DIR B:\COMMAND.COM shows A:\COMMAND.COM.
     printf 'ECHO ---ASSIGN-DIR---\r\n'
     printf 'DIR B:\COMMAND.COM\r\n'
     printf 'IF EXIST B:\COMMAND.COM ECHO ASSIGN_STATE_PRESERVED\r\n'
     printf 'ECHO ASSIGN_DIR_DONE\r\n'
 
-    # ── ASSIGN clear ──────────────────────────────────────────────────────────
-    # ASSIGN with no args resets all mappings to identity. Silent.
     printf 'ECHO ---ASSIGN-CLEAR---\r\n'
     printf 'ASSIGN\r\n'
     printf 'IF EXIST B:\BJOIN.TXT ECHO ASSIGN_CLEAR_RESTORED_B\r\n'
     printf 'ECHO ASSIGN_CLEAR_DONE\r\n'
 
-    # ── SUBST D: A:\SUBSTDIR — create virtual drive D: ───────────────────────
     printf 'ECHO ---SUBST---\r\n'
     printf 'MD SUBSTDIR\r\n'
     printf 'SUBST E: A:\NO-SUCH-DIR\r\n'
@@ -123,7 +79,6 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
     printf 'ECHO SUBST_CREATE_DONE\r\n'
     printf 'ECHO SUBST_STATE_PAYLOAD>D:\STATE.TXT\r\n'
 
-    # Every rejected form must return errorlevel 1 and leave D: mapped.
     printf 'SUBST D: A:\SUBSTDIR\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SUBST_DUP_CREATE_REJECTED\r\n'
     printf 'SUBST D: /D /D\r\n'
@@ -140,14 +95,10 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
     printf 'IF ERRORLEVEL 1 ECHO SUBST_UNKNOWN_REJECTED\r\n'
     printf 'IF EXIST D:\STATE.TXT ECHO SUBST_STATE_PRESERVED\r\n'
 
-    # ── SUBST (list) — shows "D: => A:\SUBSTDIR" ─────────────────────────────
     printf 'ECHO ---SUBST-LIST---\r\n'
     printf 'SUBST\r\n'
     printf 'ECHO SUBST_LIST_DONE\r\n'
 
-    # ── SUBST file I/O — COPY, TYPE, DIR through virtual drive D: ───────────
-    # Create a file on D: (= A:\SUBSTDIR), read it back, verify it also
-    # appears at the real path A:\SUBSTDIR.
     printf 'ECHO ---SUBST-IO---\r\n'
     printf 'COPY A:\\COMMAND.COM D:\\TEST.COM\r\n'
     printf 'DIR D:\\\r\n'
@@ -156,16 +107,12 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
     printf 'IF EXIST A:\\SUBSTDIR\\TEST.COM ECHO SUBST_PASSTHRU_OK\r\n'
     printf 'ECHO SUBST_IO_DONE\r\n'
 
-    # ── SUBST D: /D — remove substitution ────────────────────────────────────
     printf 'ECHO ---SUBST-DEL---\r\n'
     printf 'SUBST D: /D\r\n'
     printf 'ECHO SUBST_DEL_DONE\r\n'
     printf 'SUBST D: /D\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SUBST_INACTIVE_DELETE_REJECTED\r\n'
 
-    # ── JOIN B: A:\JOINDIR — join second floppy to a directory ───────────────
-    # B: (second floppy) becomes inaccessible as a standalone drive; its
-    # contents appear under A:\JOINDIR.
     printf 'ECHO ---JOIN---\r\n'
     printf 'MD JOINDIR\r\n'
     printf 'ECHO OCCUPIED>JOINDIR\OCCUPIED.TXT\r\n'
@@ -179,7 +126,6 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
     printf 'JOIN B: A:\JOINDIR\r\n'
     printf 'ECHO JOIN_CREATE_DONE\r\n'
 
-    # Parser and semantic failures must not disturb the live B: join.
     printf 'JOIN B: A:\JOINDIR\r\n'
     printf 'IF ERRORLEVEL 1 ECHO JOIN_DUP_CREATE_REJECTED\r\n'
     printf 'JOIN B: /D /D\r\n'
@@ -196,14 +142,10 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
     printf 'IF ERRORLEVEL 1 ECHO JOIN_UNKNOWN_REJECTED\r\n'
     printf 'IF EXIST A:\JOINDIR\BJOIN.TXT ECHO JOIN_STATE_PRESERVED\r\n'
 
-    # ── JOIN (list) — shows "B: => A:\JOINDIR" ───────────────────────────────
     printf 'ECHO ---JOIN-LIST---\r\n'
     printf 'JOIN\r\n'
     printf 'ECHO JOIN_LIST_DONE\r\n'
 
-    # ── JOIN file I/O — DIR, TYPE, COPY through joined path ─────────────────
-    # B: contents appear at A:\JOINDIR. Verify with DIR, TYPE content,
-    # and COPY a file from joined path back to A:.
     printf 'ECHO ---JOIN-DIR---\r\n'
     printf 'DIR A:\JOINDIR\r\n'
     printf 'TYPE A:\JOINDIR\BJOIN.TXT\r\n'
@@ -211,7 +153,6 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
     printf 'IF EXIST A:\BJOIN_COPY.TXT ECHO JOIN_COPY_OK\r\n'
     printf 'ECHO JOIN_DIR_DONE\r\n'
 
-    # ── JOIN B: /D — remove join ──────────────────────────────────────────────
     printf 'ECHO ---JOIN-DEL---\r\n'
     printf 'JOIN B: /D\r\n'
     printf 'ECHO JOIN_DEL_DONE\r\n'
@@ -222,7 +163,6 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
-# ── Boot QEMU and capture serial output ──────────────────────────────────────
 echo "Booting QEMU (may take ~90s)..."
 rm -f "$SERIAL_LOG"
 (while true; do sleep 0.5; printf '\r\n'; done) | \
@@ -240,7 +180,6 @@ if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
     exit 1
 fi
 
-# ── ASSIGN checks ─────────────────────────────────────────────────────────────
 echo ""
 echo "--- ASSIGN tests ---"
 
@@ -298,7 +237,6 @@ else
     fail "ASSIGN clear did not restore the physical B: drive"
 fi
 
-# ── SUBST checks ──────────────────────────────────────────────────────────────
 echo ""
 echo "--- SUBST tests ---"
 
@@ -361,7 +299,6 @@ else
     fail "SUBST D: /D (batch hung or crashed)"
 fi
 
-# ── JOIN checks ───────────────────────────────────────────────────────────────
 echo ""
 echo "--- JOIN tests ---"
 
@@ -426,7 +363,6 @@ else
     fail "JOIN B: /D (batch hung or crashed)"
 fi
 
-# ── Completion check ──────────────────────────────────────────────────────────
 echo ""
 if grep -q '^===DONE===' "$SERIAL_LOG"; then
     ok "Batch reached ===DONE==="

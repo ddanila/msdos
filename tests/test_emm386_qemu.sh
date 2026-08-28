@@ -1,5 +1,4 @@
 #!/bin/bash
-# Exercise EMM386's protected-mode transition and core LIM EMS services.
 
 set -uo pipefail
 export LC_ALL=C

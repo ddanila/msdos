@@ -1,54 +1,4 @@
 #!/bin/bash
-# tests/test_fdisk.sh — E2E test for FDISK partition operations.
-#
-# FDISK (FDISK.C) supports non-interactive command-line switches:
-#   FDISK drivenum [/PRI:m] [/EXT:n] [/LOG:o] [/Q]
-#   - drivenum: 1 = first hard disk (BIOS drive 0x80)
-#   - /PRI:m:  create a Primary DOS Partition of m MB
-#   - /EXT:n:  create an Extended DOS Partition of n MB
-#   - /LOG:o:  create a Logical DOS Drive of o MB in the extended partition
-#   - /Q:      suppress the "restart computer" reboot prompt after changes
-#
-# Exit codes (with /Q):  0 = success, 1 = no valid DOS partition, 2 = /Q but
-# no partition creation switches given.
-#
-# FDISK writes directly to the screen via INT 10h, so only the batch markers
-# are visible on serial (COM1 via CTTY AUX).
-# Partition creation is verified after QEMU exits by inspecting the raw HDD
-# image (MBR partition table + Extended Boot Record).
-#
-# QEMU setup:
-#   - Boot floppy (A:) carries FDISK.EXE and the batch script.
-#   - Blank 20 MB IDE hard disk image is attached as the first fixed disk.
-#   - BIOS presents the IDE disk as drive 0x80 → FDISK drive number 1.
-#
-# IMPORTANT — stdin feed and FDISK flakiness:
-#   Most QEMU tests pipe a continuous \r\n stream to stdin (serial port) to
-#   keep the DOS prompt alive and satisfy interactive prompts. However, FDISK
-#   is incompatible with this approach. The \r\n characters arrive on COM1
-#   (mapped to stdin via CTTY AUX) while FDISK initializes, and interfere
-#   with the MSC runtime or SYSPARSE command-line parser (FDPARSE.C). This
-#   manifests as intermittent "Invalid parameter" errors and R6001 null pointer
-#   crashes — the first QEMU boot attempt would almost always fail on CI.
-#
-#   Root cause: FDISK's SYSPARSE reads the command line from the PSP, but
-#   serial characters arriving during initialization corrupt parser state.
-#   The exact mechanism is timing-dependent (race between serial IRQ delivery
-#   and FDISK's init sequence), explaining the intermittent nature.
-#
-#   Fix: use `< /dev/null` instead of the \r\n feed. FDISK with /Q has no
-#   interactive prompts, so stdin is unnecessary. QEMU exits via timeout.
-#   If FDISK tests become flaky again, check whether stdin is being piped.
-#
-#   Additional flakiness under KVM (CI):
-#   Even with `< /dev/null`, FDISK can crash or silently fail to write
-#   partitions under KVM due to timing differences vs TCG (software
-#   emulation). Two mitigations:
-#   - A read-only `FDISK 1 /Q` warm-up call before the first write
-#     initializes the BIOS disk subsystem, preventing first-access races.
-#   - Up to 3 attempts per boot to tolerate remaining flakiness.
-#
-# Run via: make test-fdisk  (requires 'make deploy' first)
 
 set -uo pipefail
 
@@ -76,7 +26,6 @@ trap 'rm -f "$HDD_IMG" 2>/dev/null; true' EXIT
 
 echo "=== FDISK E2E tests (QEMU, non-interactive switches) ==="
 
-# ── Build test floppy and blank HDD ──────────────────────────────────────────
 echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
@@ -84,30 +33,22 @@ mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
-# ── Batch 1: full partition sequence (primary → extended → logical) ───────────
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
-    # ── Test 1: FDISK 1 /Q (no partition switches) → errorlevel 2 ────────────
-    # Source (MAIN.C): returns ERR_LEVEL_2 when /Q is set but no /PRI /EXT /LOG.
     printf 'ECHO ---FDISK_ERRLEVEL---\r\n'
     printf 'FDISK 1 /Q\r\n'
     printf 'IF ERRORLEVEL 2 ECHO FDISK_ERRLEVEL_2\r\n'
 
-    # ── Test 2: FDISK 1 /PRI:5 /Q — create 5 MB primary DOS partition ────────
     printf 'ECHO ---FDISK_PRI---\r\n'
     printf 'FDISK 1 /PRI:5 /Q\r\n'
     printf 'ECHO FDISK_PRI_DONE\r\n'
 
-    # ── Test 3: FDISK 1 /EXT:10 /Q — create 10 MB extended partition ─────────
-    # Requires a primary partition to exist first.
     printf 'ECHO ---FDISK_EXT---\r\n'
     printf 'FDISK 1 /EXT:10 /Q\r\n'
     printf 'ECHO FDISK_EXT_DONE\r\n'
 
-    # ── Test 4: FDISK 1 /LOG:10 /Q — create 10 MB logical drive ──────────────
-    # Requires an extended partition to exist first.
     printf 'ECHO ---FDISK_LOG---\r\n'
     printf 'FDISK 1 /LOG:10 /Q\r\n'
     printf 'ECHO FDISK_LOG_DONE\r\n'
@@ -116,13 +57,10 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
-# ── Boot QEMU ────────────────────────────────────────────────────────────────
-# No stdin feed (< /dev/null) — see header comment for why this matters.
-# FDISK writes to screen (INT 10h), not serial, so crash messages are NOT
-# visible in the serial log — we detect failure by missing batch markers.
 run_qemu() {
     dd if=/dev/zero bs=1M count=20 of="$HDD_IMG" status=none
     rm -f "$SERIAL_LOG"
+    # FDISK /Q needs no input, and incoming serial IRQs race its initialization.
     timeout 90 qemu-system-i386 \
         -display none \
         -drive if=floppy,index=0,format=raw,file="$BOOT_IMG",cache=writethrough \
@@ -134,12 +72,11 @@ run_qemu() {
         2>/dev/null | tee "$SERIAL_LOG" > /dev/null; true
 }
 
-# Quick partition table sanity check — returns 0 if extended partition exists.
 hdd_has_ext() {
     python3 -c "
 import sys
 with open('$HDD_IMG', 'rb') as f:
-    f.seek(466)  # MBR entry 2 (offset 462) + 4 bytes = type byte
+    f.seek(466)
     sys.exit(0 if f.read(1) == b'\\x05' else 1)
 " 2>/dev/null
 }
@@ -147,8 +84,6 @@ with open('$HDD_IMG', 'rb') as f:
 echo "Booting QEMU (may take ~60s)..."
 for attempt in 1 2 3; do
     run_qemu
-    # Retry if serial markers are missing OR if partition table is incomplete
-    # (CI flakiness: serial markers pass but writes don't persist under KVM).
     if grep -q "FDISK_LOG_DONE" "$SERIAL_LOG" 2>/dev/null && hdd_has_ext; then
         break
     fi
@@ -163,35 +98,27 @@ if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
     exit 1
 fi
 
-# ── Serial log checks ─────────────────────────────────────────────────────────
 echo ""
 echo "--- FDISK serial log checks ---"
 
-# Test 1: FDISK 1 /Q with no partition switches — verify it doesn't crash.
-# FDISK should return errorlevel 2, but the exact behavior varies across
-# environments (may print "Invalid parameter" instead). We just verify the
-# batch continued past FDISK without hanging.
 if grep -q "FDISK_PRI" "$SERIAL_LOG"; then
     ok "FDISK 1 /Q (no switches, batch continued)"
 else
     fail "FDISK 1 /Q (batch hung or crashed)"
 fi
 
-# Test 2: /PRI completed
 if grep -q "FDISK_PRI_DONE" "$SERIAL_LOG"; then
     ok "FDISK 1 /PRI:5 /Q completed"
 else
     fail "FDISK 1 /PRI:5 /Q did not complete"
 fi
 
-# Test 3: /EXT completed
 if grep -q "FDISK_EXT_DONE" "$SERIAL_LOG"; then
     ok "FDISK 1 /EXT:10 /Q completed"
 else
     fail "FDISK 1 /EXT:10 /Q did not complete"
 fi
 
-# Test 4: /LOG completed
 if grep -q "FDISK_LOG_DONE" "$SERIAL_LOG"; then
     ok "FDISK 1 /LOG:10 /Q completed"
 else
@@ -204,7 +131,6 @@ else
     fail "Batch did NOT reach ===DONE=== (hung or crashed early)"
 fi
 
-# Always dump serial log on any failure for CI debugging
 if [[ $FAIL -gt 0 ]]; then
     echo ""
     echo "--- full serial log (for debugging) ---"
@@ -212,24 +138,15 @@ if [[ $FAIL -gt 0 ]]; then
     echo "--- end serial log ---"
 fi
 
-# ── Post-QEMU partition table check ───────────────────────────────────────────
 echo ""
 echo "--- FDISK partition table checks ---"
 
-# Read partition table via Python (no root required).
-# MBR layout: partition table starts at offset 446; each entry is 16 bytes.
-#   Entry byte 4 = partition type, entry bytes 8-11 = relative sector (LE).
-# Entry 1 (offset 446): primary partition  → type 0x01/0x04/0x06 (DOS FAT)
-# Entry 2 (offset 462): extended partition → type 0x05
-# Extended Boot Record (EBR): at the first sector of the extended partition,
-#   same layout — entry 1 has the logical drive (type 0x01/0x04/0x06).
 
 read -r pri_type ext_type log_type geometry_ok ebr_debug < <(python3 -c "
 import struct, sys
 
 DOS_TYPES = (0x01, 0x04, 0x06)
-IMG_SIZE = 20 * 1024 * 1024  # 20 MB
-# QEMU IDE geometry for 20 MB: 16 heads, 63 sectors/track
+IMG_SIZE = 20 * 1024 * 1024
 HEADS, SPT = 16, 63
 
 def chs_to_lba(entry):
@@ -245,10 +162,9 @@ def hexdump(data, n=64):
     return ' '.join('{:02x}'.format(b) for b in data[:n])
 
 with open('$HDD_IMG', 'rb') as f:
-    # ── MBR ──
     f.seek(446)
-    e1 = f.read(16)  # primary
-    e2 = f.read(16)  # extended
+    e1 = f.read(16)
+    e2 = f.read(16)
 
     pri_type  = e1[4]
     ext_type  = e2[4]
@@ -257,16 +173,14 @@ with open('$HDD_IMG', 'rb') as f:
     ext_size  = struct.unpack_from('<I', e2, 12)[0]
     ext_chs   = chs_to_lba(e2)
 
-    # ── Find EBR: scan from ext_lba for up to 64 sectors ──
     log_type = 0
     used_method = 'none'
     ebr_hex = ''
     log_rel = log_size = ebr_sector = 0
     start = ext_lba if ext_lba > 0 else ext_chs
     if start > 0 and start * 512 < IMG_SIZE:
-        # Dump the partition table area of the EBR sector for diagnostics
         f.seek(start * 512 + 446)
-        ebr_raw = f.read(66)  # 4 entries (64 bytes) + 2 byte signature
+        ebr_raw = f.read(66)
         ebr_hex = hexdump(ebr_raw, 66)
         if len(ebr_raw) >= 16 and ebr_raw[4] in DOS_TYPES:
             log_type = ebr_raw[4]
@@ -274,7 +188,6 @@ with open('$HDD_IMG', 'rb') as f:
             ebr_sector = start
             used_method = 'direct@{}'.format(start)
         else:
-            # Scan ahead: some FDISKs put the EBR one track in
             for offset in range(1, 64):
                 sec = start + offset
                 if sec * 512 >= IMG_SIZE:
@@ -307,20 +220,17 @@ with open('$HDD_IMG', 'rb') as f:
         pri_type, ext_type, log_type, int(geometry_ok), debug))
 " 2>/dev/null)
 
-# Check primary partition type (0x01=FAT12, 0x04=FAT16<32M, 0x06=FAT16>32M)
 case "$pri_type" in
     01|04|06) ok "MBR entry 1: primary DOS partition type 0x$pri_type" ;;
     *)        fail "MBR entry 1: expected DOS type (01/04/06), got 0x${pri_type:-?}" ;;
 esac
 
-# Check extended partition type (0x05)
 if [[ "$ext_type" == "05" ]]; then
     ok "MBR entry 2: extended partition type 0x05"
 else
     fail "MBR entry 2: expected type 0x05 (extended), got 0x${ext_type:-?}"
 fi
 
-# Check logical drive in EBR
 case "$log_type" in
     01|04|06) ok "EBR entry 1: logical drive type 0x$log_type (${ebr_debug:-})" ;;
     *)        fail "EBR entry 1: expected DOS type (01/04/06), got 0x${log_type:-?} (${ebr_debug:-})" ;;
@@ -332,18 +242,6 @@ else
     fail "Partition geometry does not match the 5 MB primary plus 10 MB logical request ($ebr_debug)"
 fi
 
-# ══════════════════════════════════════════════════════════════════════════════
-# Boot 2: Primary-only (no extended partition) — regression test for PTM P941
-# ══════════════════════════════════════════════════════════════════════════════
-#
-# DISKOUT.C line 49: `if (find_partition_type(uc(EXTENDED)))` guards the block
-# that writes logical drive info. A stray semicolon (fixed in d08cd94) turned
-# this into a no-op, causing write_info() to access the extended partition table
-# with an invalid index when no extended partition existed → crash/corruption.
-#
-# This test creates ONLY a primary partition, then creates another primary on a
-# second FDISK call (which triggers write_info() to persist partition state).
-# If the guard is broken, FDISK crashes during the second call.
 
 BOOT_IMG2="$OUT/fdisk-boot2.img"
 HDD_IMG2="$OUT/fdisk-hdd2.img"
@@ -357,25 +255,16 @@ echo "Building test image (boot 2)..."
 cp "$FLOPPY" "$BOOT_IMG2"
 mcopy -o -i "$BOOT_IMG2" "$EXIT_COM" ::QEXIT.COM
 
-# Batch: create primary partition, then invoke FDISK again (triggers write_info
-# on a disk with no extended partition — the exact scenario PTM P941 describes).
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
-    # Warm-up: read-only FDISK call initializes BIOS disk subsystem.
-    # Without this, the first write call can crash under KVM due to
-    # timing differences in IDE controller initialization.
     printf 'FDISK 1 /Q\r\n'
 
-    # Create a 5 MB primary partition on blank disk
     printf 'ECHO ---FDISK_PRIONLY---\r\n'
     printf 'FDISK 1 /PRI:5 /Q\r\n'
     printf 'ECHO FDISK_PRIONLY_DONE\r\n'
 
-    # Second FDISK call — reads existing partition table (primary only, no
-    # extended). write_info() must skip the logical drive block. If the
-    # semicolon bug is present, this crashes with R6001 or corrupts memory.
     printf 'ECHO ---FDISK_NOEXT---\r\n'
     printf 'FDISK 1 /Q\r\n'
     printf 'IF ERRORLEVEL 2 ECHO FDISK_NOEXT_EL2\r\n'
@@ -411,23 +300,18 @@ done
 echo ""
 echo "--- FDISK primary-only checks ---"
 
-# First call: create primary partition
 if grep -q "FDISK_PRIONLY_DONE" "$SERIAL_LOG2"; then
     ok "FDISK 1 /PRI:5 /Q (primary-only disk, no extended)"
 else
     fail "FDISK 1 /PRI:5 /Q (primary-only: batch hung or crashed)"
 fi
 
-# Second call: FDISK reads partition table with no extended partition.
-# write_info() must skip the logical drive block (DISKOUT.C line 49 guard).
-# The real test is that FDISK doesn't crash — errorlevel is secondary.
 if grep -q "FDISK_NOEXT_DONE" "$SERIAL_LOG2"; then
     ok "FDISK 1 /Q on primary-only disk (no crash — PTM P941 guard works)"
 else
     fail "FDISK 1 /Q on primary-only disk (crashed — semicolon bug regression?)"
 fi
 
-# Verify MBR: entry 1 has a primary partition, entry 2 is empty (type 0x00)
 read -r pri2_type ext2_type pri2_geometry_ok pri2_debug < <(python3 -c "
 import struct
 with open('$HDD_IMG2', 'rb') as f:
@@ -467,7 +351,6 @@ else
     echo "---"
 fi
 
-# Dump serial log on any failure
 if [[ $FAIL -gt 0 ]]; then
     echo ""
     echo "--- full serial log 2 (for debugging) ---"

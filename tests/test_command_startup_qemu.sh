@@ -1,5 +1,4 @@
 #!/bin/bash
-# Verify COMMAND.COM initialization switches that require a real DOS process tree.
 
 set -uo pipefail
 
@@ -31,9 +30,6 @@ dd if=/dev/zero bs=512 count=2880 of="$B_IMG" status=none
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 
-# A permanent interpreter must ignore EXIT. Its redirected input therefore
-# reaches the following marker and QEXIT. A non-permanent child instead returns
-# to AUTOEXEC, which emits the explicit failure marker before exiting QEMU.
 {
     printf 'EXIT\r\n'
     printf 'ECHO COMMAND_PERMANENT_EXIT_IGNORED\r\n'
@@ -77,9 +73,6 @@ printf 'BEFORE\032AFTER' | mcopy -o -i "$BOOT_IMG" - ::SMODE.BIN
     printf 'COMMAND /E:160 /C ENVTEST.BAT\r\n'
     printf 'ECHO ---COMMAND-E-LARGE---\r\n'
     printf 'COMMAND /E:512 /C ENVTEST.BAT\r\n'
-    # With no B: media, TYPE enters DOS's critical-error path. /F forces the
-    # child interpreter to return Fail instead of displaying an Abort/Retry
-    # prompt, so AUTOEXEC must continue without host input.
     printf 'COMMAND /F /C TYPE B:\\NOFILE.TXT\r\n'
     printf 'ECHO COMMAND_FAIL_ALL_CONTINUED\r\n'
     printf 'ECHO COMMAND_PERMANENT_START\r\n'

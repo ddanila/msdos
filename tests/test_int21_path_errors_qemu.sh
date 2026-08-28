@@ -1,5 +1,4 @@
 #!/bin/bash
-# Assert local FAT path/file/current-directory error distinctions.
 
 set -uo pipefail
 export LC_ALL=C

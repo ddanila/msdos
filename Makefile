@@ -1,5 +1,3 @@
-# GNU Makefile for building MS-DOS 4.0 with host-native open-source tools.
-# Assembly uses custom JWasm; C, linking, and libraries use Open Watcom.
 
 SHELL    := /bin/bash
 SRC      := $(CURDIR)/MS-DOS/v4.0/src
@@ -22,37 +20,28 @@ COMPRESS := $(BIN)/compress
 MKCNTRY  := $(BIN)/mkcntry
 MESSAGE_CATALOG := $(BIN)/message_catalog.py
 
-# Common MASM/CL flags (from TOOLS.INI)
 COUNTRY  := usa-ms
 AFLAGS   := -Mx -t
 CFLAGS   := -AS -Os -Zp
 
-# Assembler include dirs relative to each module (overridden per-module)
 AINC     := -I. -ID:\\TOOLS\\INC
 
 .PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest deploy minimal-floppy run-boot test-sys test-help-qemu test-command-startup-qemu test-more-paging-qemu test-misc-qemu test-graftabl-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu test-ansi-driver-qemu test-display-chain-qemu test-driver-sys-qemu test-printer-driver-qemu test-smartdrv-flush-qemu test-xma-drivers-qemu test-root-exhaustion-qemu test-disk-exhaustion-qemu test-config-state-qemu test-config-switches-qemu test-config-stacks-qemu test-config-ifs-qemu test-ifsfunc-filesys-qemu test-config-multitrack-qemu test-emm386-qemu test-int21-file-memory-qemu test-int21-path-errors-qemu test-int21-system-qemu test-int21-fcb-qemu test-int21-compat-qemu test-int21-console-qemu test-int21-process-qemu test-int21-tsr-qemu test-int21-media-qemu test-int21-readonly-media-qemu test-dos-interrupt-qemu test-dos-async-interrupt-qemu
 .PHONY: test-utility-parser-coverage-manifest
 .PHONY: test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest
 
-# Build kvikdos-soft (software CPU) if /dev/kvm is unavailable.
-# dos-run automatically selects the right binary at runtime.
-#
-# kvikdos/mini_kvm.h's non-Linux __u64 typedef uses uint64_t (= unsigned long
-# on x86-64) which conflicts with Linux kernel headers' unsigned long long.
-# Fix: inject mk/mini_kvm_compat.h via -include; its MINI_KVM_H guard
-# prevents the real mini_kvm.h from being processed.
 KVIKDOS_SOFT_SRCS := kvikdos/kvikdos.c kvikdos/cpu8086.c
 KVIKDOS_SOFT_DEPS := $(KVIKDOS_SOFT_SRCS) kvikdos/mini_kvm.h kvikdos/cpu8086.h \
                      kvikdos/cpu8086_xt.h kvikdos/XTulator/XTulator/cpu/cpu.c \
                      mk/mini_kvm_compat.h
 KVIKDOS_SOFT_BIN  := kvikdos/kvikdos-soft
 
-# The production build has no emulator dependency. kvikdos-soft is retained
-# only as a fast host-side behavioral test runner.
 all: build-all
 
 build-all: messages mapper boot inc bios dos cmd dev select memm
 
+# Force kvikdos's portable path while predefining Linux-compatible KVM types;
+# its portable uint64_t alias conflicts with Linux kernel headers on x86-64.
 $(KVIKDOS_SOFT_BIN): $(KVIKDOS_SOFT_DEPS)
 	gcc -std=c99 -O2 -W -Wall -Wextra -fno-strict-aliasing \
 	    -Wno-error=incompatible-pointer-types \
@@ -60,9 +49,6 @@ $(KVIKDOS_SOFT_BIN): $(KVIKDOS_SOFT_DEPS)
 	    -I kvikdos/ \
 	    -o $@ $(KVIKDOS_SOFT_SRCS)
 
-# ---------------------------------------------------------------------------
-# MESSAGES
-# ---------------------------------------------------------------------------
 MESSAGES_DIR := $(SRC)/MESSAGES
 MESSAGES_OUT := $(MESSAGES_DIR)/$(COUNTRY).IDX
 
@@ -71,9 +57,6 @@ messages: $(MESSAGES_OUT)
 $(MESSAGES_OUT): $(MESSAGES_DIR)/USA-MS.MSG $(BUILDIDX)
 	cd $(MESSAGES_DIR) && $(BUILDIDX) --no-update USA-MS.MSG
 
-# ---------------------------------------------------------------------------
-# MAPPER
-# ---------------------------------------------------------------------------
 MAPPER_DIR := $(SRC)/MAPPER
 MAPPER_LIB := $(MAPPER_DIR)/MAPPER.LIB
 
@@ -95,13 +78,9 @@ mapper: $(MAPPER_LIB)
 $(MAPPER_LIB): $(MAPPER_OBJ_PATHS)
 	cd $(MAPPER_DIR) && $(WLIB) @mapper.lbr
 
-# Pattern rule: assemble .ASM -> .OBJ in MAPPER dir (uppercase filenames)
 $(MAPPER_DIR)/%.OBJ: $(MAPPER_DIR)/%.ASM
 	cd $(MAPPER_DIR) && $(MASM) "$(AFLAGS) $(AINC)" "$*.ASM,$*.OBJ;"
 
-# ---------------------------------------------------------------------------
-# BOOT
-# ---------------------------------------------------------------------------
 BOOT_DIR := $(SRC)/BOOT
 BOOT_INC  := $(SRC)/INC/boot.inc
 
@@ -123,15 +102,10 @@ $(BOOT_INC): $(BOOT_DIR)/MSBOOT.BIN
 	cd $(BOOT_DIR) && $(DBOF) "MSBOOT.BIN BOOT.INC 7c00 200"
 	cp $(BOOT_DIR)/BOOT.INC $(SRC)/INC/boot.inc
 
-# ---------------------------------------------------------------------------
-# INC (shared kernel objects)
-# ---------------------------------------------------------------------------
 INC_DIR  := $(SRC)/INC
 HINC_DIR := $(SRC)/H
 DOS_DIR  := $(SRC)/DOS
 
-# msdos.cl1 is generated in DOS/ by NOSRVBLD and included by INC/DIVMES.ASM
-# (via the -I..\\DOS path). It must be built before assembling MSDOSME.OBJ.
 $(DOS_DIR)/MSDOS.CL1: $(DOS_DIR)/MSDOS.SKL $(MESSAGES_OUT) $(NOSRVBLD) $(MESSAGE_CATALOG)
 	cd $(DOS_DIR) && $(NOSRVBLD) MSDOS.SKL "..\MESSAGES\USA-MS.MSG"
 
@@ -142,7 +116,6 @@ OW_INC_C_OBJ_PATHS := $(addprefix $(INC_DIR)/,$(OW_INC_C_OBJS))
 
 inc: $(INC_ASM_OBJ_PATHS) $(OW_INC_C_OBJ_PATHS)
 
-# Open Watcom variants are named separately from historical build artifacts.
 $(INC_DIR)/OWERRTST.OBJ: $(INC_DIR)/ERRTST.C
 	cd $(INC_DIR) && $(WCC) "-AS -Od -Zp -I. -I..\\H -c -FoOWERRTST.OBJ ERRTST.C"
 
@@ -155,7 +128,6 @@ $(INC_DIR)/OWCDS.OBJ: $(INC_DIR)/CDS.C
 $(INC_DIR)/OWDPB.OBJ: $(INC_DIR)/DPB.C
 	cd $(INC_DIR) && $(WCC) "-AS -Od -Zp -I. -I..\\H -c -FoOWDPB.OBJ DPB.C"
 
-# ASM source objects
 $(INC_DIR)/NIBDOS.OBJ: $(INC_DIR)/NIBDOS.ASM
 	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "NIBDOS.ASM,NIBDOS.OBJ;"
 
@@ -171,39 +143,18 @@ $(INC_DIR)/MSDOSME.OBJ: $(INC_DIR)/MSDOSME.ASM $(DOS_DIR)/MSDOS.CL1
 $(INC_DIR)/MSTABLE.OBJ: $(INC_DIR)/MSTABLE.ASM
 	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "MSTABLE.ASM,MSTABLE.OBJ;"
 
-# ---------------------------------------------------------------------------
-# BIOS (io.sys)
-# ---------------------------------------------------------------------------
 include mk/bios.mk
 
-# ---------------------------------------------------------------------------
-# DOS (msdos.sys)
-# ---------------------------------------------------------------------------
 include mk/dos.mk
 
-# ---------------------------------------------------------------------------
-# CMD (command.com)
-# ---------------------------------------------------------------------------
 include mk/cmd.mk
 
-# ---------------------------------------------------------------------------
-# DEV (device drivers)
-# ---------------------------------------------------------------------------
 include mk/dev.mk
 
-# ---------------------------------------------------------------------------
-# SELECT (select.exe, select.dat, select.com, select.hlp)
-# ---------------------------------------------------------------------------
 include mk/select.mk
 
-# ---------------------------------------------------------------------------
-# MEMM (emm386.sys)
-# ---------------------------------------------------------------------------
 include mk/memm.mk
 
-# ---------------------------------------------------------------------------
-# TESTS
-# ---------------------------------------------------------------------------
 ARTIFACTS := \
     MESSAGES/USA-MS.IDX \
     MAPPER/MAPPER.LIB \
@@ -307,9 +258,6 @@ test-dos-interrupt-coverage-manifest:
 test-device-request-coverage-manifest:
 	python3 tests/test_device_request_coverage.py --require-complete
 
-# minimal-floppy: create out/floppy.img from the 4 boot components only.
-# Use this when the full 'deploy' (all utilities) is blocked by utility build errors.
-# Requires IO.SYS, MSDOS.SYS, COMMAND.COM to already be built.
 minimal-floppy: boot bios dos cmd_command
 	mkdir -p $(OUT)
 	dd if=/dev/zero of=$(FLOPPY) bs=512 count=2880 status=none
@@ -367,12 +315,9 @@ test-append: deploy
 test-format: deploy
 	bash tests/test_format.sh
 
-# Run a single FORMAT variant for quick debugging, e.g.: make test-format-one VARIANT=VLABEL
 test-format-one: deploy
 	bash tests/test_format.sh $(VARIANT)
 
-# Run FORMAT variants in parallel (7 groups, each in its own QEMU + workdir).
-# Much faster than test-format (sequential).  Results: out/format-parallel-*.log
 test-format-parallel: deploy
 	@mkdir -p $(OUT)
 	@echo "=== FORMAT parallel test (7 groups) ==="
@@ -476,12 +421,9 @@ test-ifsfunc-filesys-qemu: deploy
 test-config-multitrack-qemu: deploy
 	bash tests/test_config_multitrack_qemu.sh
 
-# ---------------------------------------------------------------------------
-# DEPLOY — bootable 1.44MB floppy image
-# ---------------------------------------------------------------------------
 FLOPPY      := $(OUT)/floppy.img
 BOOT_BIN    := $(SRC)/BOOT/MSBOOT.BIN
-BOOT_OFF    := 31744   # boot sector lives at offset 0x7c00 in MSBOOT.BIN
+BOOT_OFF    := 31744
 
 IO_SYS      := $(SRC)/BIOS/IO.SYS
 MSDOS_SYS   := $(SRC)/DOS/MSDOS.SYS
@@ -559,19 +501,15 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
            $(SELECT_COM) $(SELECT_EXE) $(SELECT_DAT) $(SELECT_HLP) \
            $(EGA_CPI) $(EMM386_SYS)
 	mkdir -p $(OUT)
-	# blank 1.44MB image
 	dd if=/dev/zero of=$@ bs=512 count=2880 status=none
-	# write MSBOOT.BIN's boot sector (sits at offset 0x7c00 in the .BIN)
 	dd if=$(BOOT_BIN) of=$@ bs=1 skip=$(BOOT_OFF) count=512 conv=notrunc status=none
-	# patch BPB fields for 1.44MB floppy geometry
 	$(BIN)/patch-bpb $@
-	# create FAT12 filesystem, keeping our patched boot sector
 	mformat -i $@ -k ::
-	# copy system files — IO.SYS must be the first directory entry
+	# IO.SYS must be the first root-directory entry because the boot sector assumes it.
 	mcopy -i $@ $(IO_SYS) ::IO.SYS
 	mcopy -i $@ $(MSDOS_SYS) ::MSDOS.SYS
 	mcopy -i $@ $(COMMAND_COM) ::COMMAND.COM
-	# mattrib -i is broken in mtools >=4.0.49; use MTOOLSRC drive mapping
+	# mtools 4.0.49 broke mattrib's -i handling, so expose the image through MTOOLSRC.
 	echo 'drive a: file="$@"' > $(OUT)/.mtoolsrc
 	MTOOLSRC=$(OUT)/.mtoolsrc mattrib +h +s +r a:/IO.SYS
 	MTOOLSRC=$(OUT)/.mtoolsrc mattrib +h +s +r a:/MSDOS.SYS
@@ -634,13 +572,11 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
 	mcopy -i $@ $(EGA_CPI) ::EGA.CPI
 	mcopy -i $@ $(EMM386_SYS) ::EMM386.SYS
 
-# Enter one jobserver-aware sub-make. Do not list `all` beside $(FLOPPY): both
-# paths build the same artifacts and race on generated message/include files
-# under parallel make. Production image creation has no emulator dependency.
 deploy:
+	# A single jobserver-aware submake prevents parallel image and build paths
+	# from racing on their shared generated message and include files.
 	+$(MAKE) $(FLOPPY)
 
-# run-boot: interactive QEMU session (graphical)
 run-boot: deploy
 	qemu-system-i386 -fda $(FLOPPY) -boot a -m 4
 
@@ -680,7 +616,6 @@ test-dos-interrupt-qemu: deploy
 test-dos-async-interrupt-qemu: deploy
 	bash tests/test_dos_async_interrupt_qemu.sh
 
-# ---------------------------------------------------------------------------
 clean:
 	git -C "$(CURDIR)/MS-DOS" clean -fXq 2>/dev/null || true
 	rm -f $(FLOPPY) $(OUT)/serial.log

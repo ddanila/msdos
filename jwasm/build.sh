@@ -1,5 +1,4 @@
 #!/bin/bash
-# Build the pinned custom JWasm revision for the current supported host.
 
 set -euo pipefail
 
@@ -29,8 +28,8 @@ git clone --quiet --filter=blob:none "$REPOSITORY" "$workdir/JWasm"
 git -C "$workdir/JWasm" checkout --quiet --detach "$REVISION"
 
 if [[ "$platform" == macos-arm64 ]]; then
-    # GccUnix.mak's Linux-only strip/map link flags fail on macOS, after all
-    # objects have been compiled. Link those objects natively with clang.
+    # GccUnix.mak reaches its Linux-only link flags after compiling successfully,
+    # so reuse those objects and link them with the native macOS compiler.
     make -C "$workdir/JWasm" -f GccUnix.mak CC="$compiler" >/dev/null 2>&1 || true
     "$compiler" "$workdir"/JWasm/build/GccUnixR/*.o -o "$workdir/jwasm-bin"
 else

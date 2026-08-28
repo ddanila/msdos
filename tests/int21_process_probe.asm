@@ -1,7 +1,6 @@
 bits 16
 org 100h
 
-; Focused contracts for EXEC/wait, IOCTL device classification, and NLS case.
 
 %macro require_error 2
     jc %%carried
@@ -36,7 +35,7 @@ memory_ready:
 
     mov dx, child_name
     mov bx, exec_block
-    mov ax, 4bffh                  ; Undefined EXEC mode.
+    mov ax, 4bffh
     int 21h
     require_error 1, fail_exec_mode
     mov dx, missing_child
@@ -49,13 +48,13 @@ memory_ready:
     mov ax, 4b00h
     int 21h
     require_error 3, fail_exec_path
-    mov dx, root_path              ; A directory is not executable.
+    mov dx, root_path
     mov bx, exec_block
     mov ax, 4b00h
     int 21h
     require_error 5, fail_exec_access
 
-    xor cx, cx                     ; A zero-byte image has no executable header.
+    xor cx, cx
     mov dx, empty_child
     mov ah, 3ch
     int 21h
@@ -74,7 +73,7 @@ memory_ready:
     int 21h
     jc exec_format_setup_failed
 
-    mov bx, 800h                   ; Build 32 KiB with no double-NUL terminator.
+    mov bx, 800h
     mov ah, 48h
     int 21h
     jc exec_environment_setup_failed
@@ -101,7 +100,7 @@ memory_ready:
     push ds
     pop es
 
-    xor di, di                     ; Fill the system file table with opens.
+    xor di, di
 .open_until_full:
     mov dx, child_name
     mov ax, 3d00h
@@ -115,7 +114,7 @@ memory_ready:
     jmp fail
 .open_table_full:
     require_error 4, fail_exec_sft_setup
-    mov dx, child_name             ; EXEC must report the same exhausted SFT.
+    mov dx, child_name
     mov bx, exec_block
     mov ax, 4b00h
     int 21h
@@ -131,11 +130,11 @@ memory_ready:
     jmp .close_open_handles
 .handles_closed:
 
-    mov bx, 0ffffh                 ; Consume the largest free arena block.
+    mov bx, 0ffffh
     mov ah, 48h
     int 21h
     require_error 8, fail_exec_memory_setup
-    mov ah, 48h                    ; BX is the reported largest block.
+    mov ah, 48h
     int 21h
     jc exec_memory_setup_failed
     mov [memory_segment], ax
@@ -153,16 +152,16 @@ memory_ready:
 
     mov dx, child_name
     mov bx, exec_block
-    mov ax, 4b00h                  ; Load and execute child returning 2Ah.
+    mov ax, 4b00h
     int 21h
     jnc exec_ok
     mov dx, fail_4b
     jmp fail
 exec_ok:
 
-    mov ah, 4dh                    ; Consume child termination status.
+    mov ah, 4dh
     int 21h
-    cmp ah, 0                      ; Normal termination.
+    cmp ah, 0
     jne wait_failed
     cmp al, 2ah
     je wait_ok
@@ -173,7 +172,7 @@ wait_ok:
 
     mov dx, int20_child_name
     mov bx, exec_block
-    mov ax, 4b00h                  ; Old-style INT 20h termination returns zero.
+    mov ax, 4b00h
     int 21h
     jc int20_failed
     mov ah, 4dh
@@ -185,7 +184,7 @@ int20_failed:
     jmp fail
 int20_ok:
 
-    mov bx, 1                     ; stdout remains the AUX character device.
+    mov bx, 1
     mov ax, 4400h
     int 21h
     jc ioctl_failed
@@ -196,7 +195,7 @@ ioctl_failed:
     jmp fail
 ioctl_ok:
 
-    mov dl, 'a'                   ; Active NLS table uppercases ASCII a.
+    mov dl, 'a'
     mov ax, 6520h
     int 21h
     jc nls_failed

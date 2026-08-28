@@ -1,16 +1,4 @@
 #!/bin/bash
-# tests/test_drivers_qemu.sh — E2E tests for device drivers via QEMU.
-#
-# Tests CONFIG.SYS device driver loading and CONFIG.SYS directives:
-#   - ANSI.SYS: load driver, verify via escape sequence output
-#   - RAMDRIVE.SYS: load driver, verify extra drive letter appears
-#   - VDISK.SYS: load virtual disk driver, verify drive accessible
-#   - DISPLAY.SYS: load code page display driver
-#   - SMARTDRV.SYS: load disk cache driver
-#   - CONFIG.SYS directives: BUFFERS, FILES, LASTDRIVE, BREAK, STACKS, FCBS,
-#     INSTALL, SHELL, COUNTRY
-#
-# Run via: make test-drivers-qemu  (requires 'make deploy' first)
 
 set -uo pipefail
 
@@ -36,7 +24,6 @@ fi
 
 echo "=== Device Driver / CONFIG.SYS E2E tests (QEMU) ==="
 
-# ── Build test floppy ────────────────────────────────────────────────────────
 echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/block_driver_probe.asm" -o "$PROBE_COM"
@@ -44,11 +31,9 @@ nasm -f bin "$REPO_ROOT/tests/country_config_probe.asm" -o "$COUNTRY_PROBE_COM"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
-# Drivers are already on the base floppy (added by make deploy).
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::BLKREQ.COM
 mcopy -o -i "$BOOT_IMG" "$COUNTRY_PROBE_COM" ::CNTRYCHK.COM
 
-# Write CONFIG.SYS with device drivers and directives
 {
     printf 'COUNTRY=049,,COUNTRY.SYS\r\n'
     printf 'DEVICE=ANSI.SYS\r\n'
@@ -66,33 +51,19 @@ mcopy -o -i "$BOOT_IMG" "$COUNTRY_PROBE_COM" ::CNTRYCHK.COM
     printf 'SHELL=COMMAND.COM /P\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 
-# AUTOEXEC.BAT: test each driver and directive
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
-    # ── ANSI.SYS test — use ANSI escape sequence to set cursor position ──
-    # ESC[6n is "Device Status Report" → ANSI.SYS responds with cursor position.
-    # But output goes to stdin buffer, hard to capture. Instead, test that ANSI.SYS
-    # is loaded by checking MEM output for the driver name.
     printf 'ECHO ---ANSI---\r\n'
     printf 'MEM\r\n'
     printf 'ECHO ANSI_DONE\r\n'
 
-    # ── RAMDRIVE.SYS test — verify extra drive letter via DIR ──────────────
-    # RAMDRIVE.SYS creates a 64KB RAM disk at the next available drive letter.
-    # With floppy-only boot (A:, B: reserved), the RAM disk is typically C: or D:.
-    # Try multiple candidates to be robust.
     printf 'ECHO ---RAMDRIVE---\r\n'
     printf 'DIR C:\\\r\n'
     printf 'DIR D:\\\r\n'
     printf 'ECHO RAMDRIVE_DONE\r\n'
 
-    # ── VDISK.SYS test — verify another virtual disk drive via DIR ─────────
-    # VDISK.SYS creates a 64KB virtual disk at the next available drive letter
-    # after RAMDRIVE.SYS. Try D: and E: to find it.
-    # RAMDRIVE is C:, VDISK is D:. Only try D: and E: if drives exist;
-    # avoid E: if no driver creates it — DIR on nonexistent drive may hang.
     printf 'ECHO ---VDISK---\r\n'
     printf 'DIR D:\\\r\n'
     printf 'VERIFY OFF\r\n'
@@ -109,46 +80,29 @@ mcopy -o -i "$BOOT_IMG" "$COUNTRY_PROBE_COM" ::CNTRYCHK.COM
     printf 'BLKREQ.COM\r\n'
     printf 'ECHO VDISK_DONE\r\n'
 
-    # ── DISPLAY.SYS test — verify code page driver loaded ────────────────
-    # DISPLAY.SYS installs as a device driver. Boot completing proves it loaded.
-    # MODE CON CP /STATUS shows prepared code pages (requires DISPLAY.SYS).
     printf 'ECHO ---DISPLAY---\r\n'
     printf 'MODE CON CP /STATUS\r\n'
     printf 'ECHO DISPLAY_DONE\r\n'
 
-    # ── SMARTDRV.SYS test — verify disk cache loaded ─────────────────────
-    # SMARTDRV.SYS installs as a device driver for disk caching.
-    # Boot completing proves it loaded without crashing.
     printf 'ECHO ---SMARTDRV---\r\n'
     printf 'MEM\r\n'
     printf 'ECHO SMARTDRV_DONE\r\n'
 
-    # ── CONFIG.SYS directives — verify via MEM output ──────────────────────
-    # MEM shows total memory; BUFFERS/FILES affect memory layout.
-    # We just verify the boot completed successfully with these directives active.
     printf 'ECHO ---CONFIG---\r\n'
     printf 'CNTRYCHK.COM\r\n'
     printf 'MEM\r\n'
     printf 'ECHO CONFIG_DONE\r\n'
 
-    # ── CHCP (no args) — show current code page ────────────────────────────
-    # INT 21h/AH=66h/AL=01h returns active code page (default 437).
-    # Works without NLSFUNC — just queries the kernel.
     printf 'ECHO ---CHCP---\r\n'
     printf 'CHCP\r\n'
     printf 'ECHO CHCP_DONE\r\n'
 
-    # ── Code page prepare + select (NLSFUNC + EGA.CPI + MODE SELECT) ───────
-    # Full NLS path: install NLSFUNC, prepare CP 850 from EGA.CPI,
-    # select it via MODE (not CHCP — CHCP triggers DISPLAY.SYS console
-    # reprogramming which hangs under -display none / CTTY AUX).
     printf 'ECHO ---CHCP-SET---\r\n'
     printf 'NLSFUNC\r\n'
     printf 'MODE CON CP PREPARE=((850) A:\\EGA.CPI)\r\n'
     printf 'MODE CON CP SELECT=850\r\n'
     printf 'ECHO CHCP_SET_DONE\r\n'
 
-    # ── Verify code page 850 is active ───────────────────────────────────────
     printf 'ECHO ---CHCP-VERIFY---\r\n'
     printf 'MODE CON CP /STATUS\r\n'
     printf 'CHCP\r\n'
@@ -157,7 +111,6 @@ mcopy -o -i "$BOOT_IMG" "$COUNTRY_PROBE_COM" ::CNTRYCHK.COM
     printf 'ECHO ===DONE===\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
-# ── Boot QEMU and capture serial output ──────────────────────────────────────
 echo "Booting QEMU (may take ~90s)..."
 rm -f "$SERIAL_LOG"
 (while true; do sleep 0.5; printf '\r\n'; done) | \
@@ -173,7 +126,6 @@ if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
     exit 1
 fi
 
-# ── ANSI.SYS checks ─────────────────────────────────────────────────────────
 echo ""
 echo "--- ANSI.SYS tests ---"
 
@@ -183,7 +135,6 @@ else
     fail "ANSI.SYS (batch hung or crashed — driver load may have failed)"
 fi
 
-# ── RAMDRIVE.SYS checks ─────────────────────────────────────────────────────
 echo ""
 echo "--- RAMDRIVE.SYS tests ---"
 
@@ -193,8 +144,6 @@ else
     fail "RAMDRIVE.SYS (batch hung or crashed — driver load may have failed)"
 fi
 
-# Check if DIR on C: or D: succeeded (shows "Volume" or "Directory of" header).
-# RAMDRIVE assigns the next available drive letter after physical drives.
 if grep -qi "Directory of C:\|Volume in drive C" "$SERIAL_LOG" || \
    grep -qi "Directory of D:\|Volume in drive D" "$SERIAL_LOG"; then
     ok "RAMDRIVE.SYS (RAM disk drive accessible via DIR)"
@@ -202,7 +151,6 @@ else
     fail "RAMDRIVE.SYS (no RAM disk drive found on C: or D:)"
 fi
 
-# ── VDISK.SYS checks ───────────────────────────────────────────────────────
 echo ""
 echo "--- VDISK.SYS tests ---"
 
@@ -212,7 +160,6 @@ else
     fail "VDISK.SYS (batch hung or crashed — driver load may have failed)"
 fi
 
-# Check if DIR on D: or E: succeeded (VDISK drive after RAMDRIVE on C:)
 if grep -qi "Directory of D:\|Volume in drive D" "$SERIAL_LOG" || \
    grep -qi "Directory of E:\|Volume in drive E" "$SERIAL_LOG"; then
     ok "VDISK.SYS (virtual disk drive accessible via DIR)"
@@ -234,7 +181,6 @@ else
     fail "Block-driver removable-media requests did not pass"
 fi
 
-# ── DISPLAY.SYS checks ────────────────────────────────────────────────────
 echo ""
 echo "--- DISPLAY.SYS tests ---"
 
@@ -244,7 +190,6 @@ else
     fail "DISPLAY.SYS (batch hung or crashed — driver load may have failed)"
 fi
 
-# ── SMARTDRV.SYS checks ──────────────────────────────────────────────────
 echo ""
 echo "--- SMARTDRV.SYS tests ---"
 
@@ -254,7 +199,6 @@ else
     fail "SMARTDRV.SYS (batch hung or crashed — driver load may have failed)"
 fi
 
-# ── CONFIG.SYS directives checks ────────────────────────────────────────────
 echo ""
 echo "--- CONFIG.SYS directive tests ---"
 
@@ -276,7 +220,6 @@ else
     fail "COUNTRY=049 did not expose the expected live country information"
 fi
 
-# ── CHCP checks ──────────────────────────────────────────────────────────────
 echo ""
 echo "--- CHCP tests ---"
 
@@ -292,28 +235,24 @@ else
     fail "CHCP (expected 'Active code page: 437')"
 fi
 
-# Code page prepare + select (NLSFUNC + EGA.CPI + MODE SELECT=850)
 if grep -q "CHCP_SET_DONE" "$SERIAL_LOG"; then
     ok "Code page set (batch continued — didn't hang)"
 else
     fail "Code page set (batch hung or crashed)"
 fi
 
-# MODE CON CP PREPARE should report success
 if sed -n '/---CHCP-SET---/,/CHCP_SET_DONE/p' "$SERIAL_LOG" | grep -qi "prepare.*completed\|prepared"; then
     ok "MODE CON CP PREPARE=((850) EGA.CPI) succeeded"
 else
     fail "MODE CON CP PREPARE (expected 'prepared' or 'completed')"
 fi
 
-# MODE CON CP SELECT should report success
 if sed -n '/---CHCP-SET---/,/CHCP_SET_DONE/p' "$SERIAL_LOG" | grep -qi "select.*completed\|selected"; then
     ok "MODE CON CP SELECT=850 succeeded"
 else
     fail "MODE CON CP SELECT=850 (expected 'selected' or 'completed')"
 fi
 
-# Verify code page actually changed to 850
 if grep -q "CHCP_VERIFY_DONE" "$SERIAL_LOG"; then
     ok "CHCP verify (batch continued)"
 else
@@ -326,7 +265,6 @@ else
     fail "CHCP 850 (expected 'Active code page: 850' after switch)"
 fi
 
-# ── Completion check ──────────────────────────────────────────────────────────
 echo ""
 if grep -q "===DONE===" "$SERIAL_LOG"; then
     ok "Batch reached ===DONE==="

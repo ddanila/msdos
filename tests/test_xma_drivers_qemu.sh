@@ -1,5 +1,4 @@
 #!/bin/bash
-# Exercise the documented unsupported-hardware rejection of the XMA drivers.
 
 set -uo pipefail
 export LC_ALL=C

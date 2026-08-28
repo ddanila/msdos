@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Verify DISPLAY.SYS pass-through behavior above ANSI.SYS and BIOS CON.
 
 set -uo pipefail
 export LC_ALL=C

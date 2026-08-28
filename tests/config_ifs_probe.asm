@@ -1,7 +1,6 @@
 bits 16
 org 100h
 
-; Verify the IFS header linked by CONFIG.SYS IFS=TESTIFS.SYS.
 
 start:
     push cs
@@ -9,7 +8,7 @@ start:
 
     mov ah, 52h
     int 21h
-    mov si, [es:bx + 59]           ; SYSI_IFS far pointer.
+    mov si, [es:bx + 59]
     mov ax, [es:bx + 61]
     cmp si, 0ffffh
     jne .pointer_present
@@ -17,7 +16,7 @@ start:
     je failed
 .pointer_present:
     mov es, ax
-    add si, 4                      ; IFS_NAME.
+    add si, 4
     mov di, expected_name
     mov cx, 8
 .compare:

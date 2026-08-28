@@ -1,5 +1,4 @@
 #!/bin/bash
-# Prove MULTITRACK changes fixed-disk BIOS request coalescing across a track.
 
 set -uo pipefail
 export LC_ALL=C
@@ -25,8 +24,6 @@ done
 nasm -f bin "$REPO_ROOT/tests/config_multitrack_probe.asm" -o "$PROBE_COM"
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
-# A 31-cylinder FAT16 partition begins after the first 63-sector track. QEMU's
-# IDE geometry is 16 heads x 63 sectors, matching the explicit MBR CHS fields.
 dd if=/dev/zero of="$HDD_TEMPLATE" bs=512 count=32256 status=none
 python3 -c "
 import struct

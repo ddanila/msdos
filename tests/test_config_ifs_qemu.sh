@@ -1,5 +1,4 @@
 #!/bin/bash
-# Assert CONFIG.SYS IFS loading and linkage using a minimal test IFS fixture.
 
 set -uo pipefail
 export LC_ALL=C

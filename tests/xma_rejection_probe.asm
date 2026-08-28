@@ -1,23 +1,20 @@
 bits 16
 org 100h
 
-; QEMU's standard PC machine is not one of the IBM PS/2/XMA systems supported
-; by XMAEM or XMA2EMS.  Verify that both failed initializations leave no
-; resident device or EMS API behind, and that DOS remains usable afterward.
 
 start:
     push cs
     pop ds
 
-    mov ah, 52h                    ; ES:BX -> DOS SYSINITVAR/list of lists.
+    mov ah, 52h
     int 21h
-    mov si, [es:bx + 34]           ; SYSI_DEV far pointer.
+    mov si, [es:bx + 34]
     mov ax, [es:bx + 36]
     mov es, ax
-    mov cx, 256                    ; Bound a corrupt device-chain traversal.
+    mov cx, 256
 
 .next_device:
-    test word [es:si + 4], 8000h   ; Character devices carry an 8-byte name.
+    test word [es:si + 4], 8000h
     jz .advance
 
     mov di, xmaem_name
@@ -39,14 +36,14 @@ start:
     jmp fail
 
 .chain_done:
-    mov ax, 3567h                  ; A LIM EMS manager advertises EMMXXXX0
-    int 21h                       ; ten bytes into its INT 67h handler.
+    mov ax, 3567h
+    int 21h
     mov si, bx
     mov di, xma2ems_name
     call name_matches
     jc ems_resident
 
-    mov ah, 30h                    ; Prove DOS services remain operational.
+    mov ah, 30h
     int 21h
     cmp al, 4
     jne dos_failed
@@ -74,7 +71,6 @@ fail:
     mov ax, 4c01h
     int 21h
 
-; Compare ES:SI+10 with the eight-byte name at DS:DI. Carry means equal.
 name_matches:
     push ax
     push cx

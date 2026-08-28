@@ -1,5 +1,4 @@
 #!/bin/bash
-# Exercise DRIVER.SYS with a second physical floppy and QMP media prompt input.
 
 set -uo pipefail
 export LC_ALL=C

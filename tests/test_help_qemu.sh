@@ -1,13 +1,4 @@
 #!/bin/bash
-# tests/test_help_qemu.sh — Verify EXEPACK integrity for all external CMD tools on real DOS.
-#
-# Boots a floppy with AUTOEXEC.BAT that runs every external CMD tool with /?
-# and captures COM1 serial output.  The sole purpose is to confirm that no tool
-# prints "Packed file is corrupt", which would indicate a broken EXEPACK header.
-#
-# /? functional output is already checked under kvikdos in run_tests.sh Section 4.
-#
-# Run via: make test-help-qemu  (requires 'make deploy' first)
 
 set -uo pipefail
 
@@ -31,10 +22,6 @@ fi
 
 echo "=== EXEPACK integrity test (QEMU) ==="
 
-# ── Build test floppy ────────────────────────────────────────────────────────
-# Run all tools with /? in one boot to exercise the EXEPACK decompressor for
-# every packed binary.  Skipped tools (TSRs / interactive / stdin filters):
-#   NLSFUNC, SHARE, APPEND, PRINT, GRAPHICS, FASTOPEN, DEBUG, EDLIN, MORE, SORT
 
 echo "Building test floppy..."
 cp "$FLOPPY" "$TEST_IMG"
@@ -76,7 +63,6 @@ cp "$FLOPPY" "$TEST_IMG"
     printf 'ECHO ---DONE---\r\n'
 } | mcopy -o -i "$TEST_IMG" - ::AUTOEXEC.BAT
 
-# ── Boot QEMU and capture serial output ──────────────────────────────────────
 echo "Booting QEMU (headless, up to 120s)..."
 rm -f "$SERIAL_LOG"
 timeout 120 qemu-system-i386 \
@@ -91,7 +77,6 @@ if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
     exit 1
 fi
 
-# ── EXEPACK integrity check ───────────────────────────────────────────────────
 if grep -qi "Packed file is corrupt" "$SERIAL_LOG"; then
     fail "EXEPACK corruption detected in one or more tools"
 else
@@ -112,7 +97,6 @@ else
     fail "QEMU boot did not reach ---DONE--- marker (crash or hang?)"
 fi
 
-# ── Summary ──────────────────────────────────────────────────────────────────
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
 if [[ $FAIL -gt 0 ]]; then

@@ -1,8 +1,6 @@
 bits 16
 org 100h
 
-; Assert geometry, raw I/O, isolation, and removable-media behavior of the two
-; configured 64 KiB memory-backed block drivers.
 
 start:
     push cs
@@ -11,14 +9,14 @@ start:
     pop es
     cld
 
-    mov bl, 3                    ; C: RAMDRIVE
+    mov bl, 3
     call non_removable
     jc failed
-    mov bl, 4                    ; D: VDISK
+    mov bl, 4
     call non_removable
     jc failed
 
-    mov al, 2                    ; Resolve C:'s live DPB and RAMDRIVE header.
+    mov al, 2
     call load_block_driver
     jc failed
     mov si, ram_success_commands
@@ -26,7 +24,7 @@ start:
     call verify_request_commands
     jc failed
 
-    mov al, 3                    ; Resolve D:'s live DPB and VDISK header.
+    mov al, 3
     call load_block_driver
     jc failed
     mov si, vdisk_success_commands
@@ -34,7 +32,7 @@ start:
     call verify_request_commands
     jc failed
 
-    mov al, 2                    ; Read C: RAMDRIVE boot sector.
+    mov al, 2
     xor dx, dx
     mov bx, sector_buffer
     call absolute_read
@@ -51,7 +49,7 @@ start:
     repe cmpsb
     jne failed
 
-    mov al, 3                    ; Read D: VDISK boot sector.
+    mov al, 3
     xor dx, dx
     mov bx, sector_buffer
     call absolute_read
@@ -72,7 +70,7 @@ start:
     mov cx, 512
     mov al, 0a5h
     rep stosb
-    mov al, 2                    ; C: final 512-byte sector.
+    mov al, 2
     mov dx, 127
     mov bx, write_buffer
     call absolute_write
@@ -92,7 +90,7 @@ start:
     mov cx, 128
     mov al, 05ah
     rep stosb
-    mov al, 3                    ; D: final 128-byte sector.
+    mov al, 3
     mov dx, 511
     mov bx, write_buffer
     call absolute_write
@@ -108,7 +106,7 @@ start:
     repe cmpsb
     jne failed
 
-    mov al, 2                    ; D: write must not alter C:.
+    mov al, 2
     mov dx, 127
     mov bx, sector_buffer
     call absolute_read
@@ -125,10 +123,10 @@ start:
     int 21h
 
 non_removable:
-    mov ax, 4408h                ; IOCTL: is block device removable?
+    mov ax, 4408h
     int 21h
     jc .bad
-    cmp ax, 1                    ; 1 = non-removable
+    cmp ax, 1
     jne .bad
     clc
     ret
@@ -136,21 +134,18 @@ non_removable:
     stc
     ret
 
-; Locate the DPB for zero-based drive AL and retain its unit number and live
-; device entry points.  This avoids relying on device-chain order to distinguish
-; the two unnamed block drivers.
 load_block_driver:
     push ax
     mov ah, 52h
     int 21h
-    les si, [es:bx]              ; SYSI_DPB chain head.
+    les si, [es:bx]
     mov cx, 32
 .next_dpb:
     pop ax
     push ax
     cmp [es:si], al
     je .found
-    les si, [es:si + 25]         ; dpb_next_dpb.
+    les si, [es:si + 25]
     cmp si, 0ffffh
     je .missing
     loop .next_dpb
@@ -159,9 +154,9 @@ load_block_driver:
     stc
     ret
 .found:
-    mov al, [es:si + 1]          ; dpb_unit.
+    mov al, [es:si + 1]
     mov [request_packet + 1], al
-    les bx, [es:si + 19]         ; dpb_driver_addr.
+    les bx, [es:si + 19]
     mov [driver_header], bx
     mov ax, es
     mov [driver_header + 2], ax
@@ -176,9 +171,6 @@ load_block_driver:
     clc
     ret
 
-; Success-command list at DS:SI and invalid-command list at DS:DI are both
-; FF-terminated.  Direct requests prove the live handlers' status contracts;
-; command 16 additionally checks the dispatch-table upper boundary.
 verify_request_commands:
 .success:
     lodsb
@@ -187,7 +179,7 @@ verify_request_commands:
     call issue_request
     mov ax, [request_packet + 3]
     and ax, 0ff00h
-    cmp ax, 0100h                ; Done, with no error or busy bits.
+    cmp ax, 0100h
     jne .failed
     jmp .success
 .errors:
@@ -197,7 +189,7 @@ verify_request_commands:
     je .passed
     call issue_request
     cmp word [request_packet + 3], 8103h
-    jne .failed                  ; Done + error + unknown command.
+    jne .failed
     jmp .errors
 .passed:
     clc
@@ -224,13 +216,13 @@ issue_request:
 absolute_read:
     mov cx, 1
     int 25h
-    pop si                       ; Discard INT 25h's retained FLAGS word.
+    pop si
     ret
 
 absolute_write:
     mov cx, 1
     int 26h
-    pop si                       ; Discard INT 26h's retained FLAGS word.
+    pop si
     ret
 
 failed:

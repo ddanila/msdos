@@ -1,14 +1,12 @@
 bits 16
 org 100h
 
-; Focused contracts for console input paths. The QEMU wrapper redirects a
-; deterministic byte stream to stdin while stdout remains on AUX/COM1.
 
 start:
     push cs
     pop ds
 
-    mov ah, 01h                    ; Character input with echo.
+    mov ah, 01h
     int 21h
     cmp al, 'A'
     je input_01_ok
@@ -16,7 +14,7 @@ start:
     jmp fail
 input_01_ok:
 
-    mov ah, 07h                    ; Raw character input without echo/checking.
+    mov ah, 07h
     int 21h
     cmp al, 'B'
     je input_07_ok
@@ -24,7 +22,7 @@ input_01_ok:
     jmp fail
 input_07_ok:
 
-    mov ah, 08h                    ; Character input without echo.
+    mov ah, 08h
     int 21h
     cmp al, 'C'
     je input_08_ok
@@ -33,7 +31,7 @@ input_07_ok:
 input_08_ok:
 
     mov dl, '!'
-    mov ah, 06h                    ; Direct console output returns the byte.
+    mov ah, 06h
     int 21h
     cmp al, '!'
     je output_06_ok
@@ -42,7 +40,7 @@ input_08_ok:
 output_06_ok:
 
     mov dx, first_buffer
-    mov ah, 0ah                    ; Buffered input of FIRST.
+    mov ah, 0ah
     int 21h
     cmp byte [first_buffer + 1], 5
     jne buffered_0a_failed
@@ -56,7 +54,7 @@ buffered_0a_failed:
 buffered_0a_ok:
 
     mov dx, second_buffer
-    mov ax, 0c0ah                  ; Flush console input, then buffered read.
+    mov ax, 0c0ah
     int 21h
     cmp byte [second_buffer + 1], 6
     jne buffered_0c_failed

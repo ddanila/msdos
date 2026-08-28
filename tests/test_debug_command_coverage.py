@@ -14,7 +14,6 @@ def debug_commands(text):
     table = text.split("COMTAB\tDW", 1)[1].split("\n\nQUIT:", 1)[0]
     rows = re.findall(r"(?:^|\n)\s*(?:COMTAB\s+)?DW\s+(\w+)\s*;\s*([A-Z])", "COMTAB\tDW" + table)
     commands = {letter for handler, letter in rows if handler.upper() != "PERR"}
-    # The shipped clone build has SYSVER=0, selecting DEBEMS for X.
     if "X" not in commands or "DEBEMS" not in table:
         raise AssertionError("DEBUG X/DEBEMS build selection is missing or stale")
     return commands

@@ -1,41 +1,4 @@
 #!/bin/bash
-# tests/test_diskcomp_diskcopy.sh — E2E tests for DISKCOPY.COM and DISKCOMP.COM via QEMU.
-#
-# Flow:
-#   1. Build boot floppy (A:) = floppy.img + AUTOEXEC.BAT
-#   2. Build target floppy (B:) = pre-formatted blank FAT12 (mformat)
-#   3. Boot QEMU with A: = boot, B: = blank target; feed continuous "N\r\n"
-#      through -serial stdio to satisfy:
-#        - PRESS_ANY_KEY before each operation (CLEAR_BUF + any char → 'N' OK)
-#        - "Copy another diskette (Y/N)?" and "Compare another diskette (Y/N)?"
-#          (CLEAR_BUF + KEY_IN_ECHO → must feed 'N', not bare CR which is invalid)
-#   4. Check COM1 serial output for expected messages
-#
-# Interactive prompt analysis (DISKCOPY/DISKCOMP source verified):
-#   DISKCOPY two-drive (A:≠B:) flow per invocation:
-#     - Print "Insert SOURCE diskette in drive A:" (no wait)
-#     - Print "Insert TARGET diskette in drive B:" (no wait)
-#     - PRESS_ANY_KEY ("Press any key to continue...") — CLEAR_BUF + KEY_IN (1 char, any)
-#     - Copy tracks, print "Copying %1 tracks..."
-#     - "Copy another diskette (Y/N)?" — CLEAR_BUF + KEY_IN_ECHO (needs 'N')
-#     NOTE: "Copy process ended" (msg 21) is FATAL_ERROR, not a success print.
-#   DISKCOMP two-drive (A:≠B:) flow per invocation:
-#     - Print "Insert FIRST diskette in drive A:" (no wait)
-#     - Print "Insert SECOND diskette in drive B:" (no wait)
-#     - PRESS_ANY_KEY — CLEAR_BUF + KEY_IN (1 char, any)
-#     - Compare tracks, print "Comparing %1 tracks..."
-#     - "Compare OK" (if identical) or "Compare error on..." (if different)
-#     - "Compare process ended"
-#     - "Compare another diskette (Y/N)?" — CLEAR_BUF + KEY_IN_ECHO (needs 'N')
-#
-# DISKCOMP exit codes: 0 = normal (even with compare errors), 1 = param error,
-#   2 = Ctrl-Break. Compare errors do NOT set non-zero errorlevel.
-#   "Compare OK" vs "Compare error on" in output is the test oracle.
-#
-# Tests: DISKCOPY A: B: (full copy), DISKCOMP A: B: (match + mismatch),
-#        DISKCOPY A: B: /1 (single-sided), DISKCOPY A: B: /V (parse error — unimplemented)
-#
-# Run via: make test-diskcomp-diskcopy  (requires 'make deploy' first)
 
 set -uo pipefail
 
@@ -64,7 +27,6 @@ fi
 
 echo "=== DISKCOPY / DISKCOMP E2E tests (QEMU) ==="
 
-# ── Step 1: build boot floppy ────────────────────────────────────────────────
 echo "Building test images..."
 cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
@@ -76,70 +38,41 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
 
-    # ── DISKCOPY A: B: — copy boot floppy to blank target ─────────────────────
-    # Prompts: PRESS_ANY_KEY (1 char) + COPY_ANOTHER (Y/N = 'N').
-    # Output: "Copying 80 tracks", "18 Sectors/Track, 2 Side(s)", "Copy process ended".
     printf 'ECHO ---DISKCOPY---\r\n'
     printf 'DISKCOPY A: B:\r\n'
     printf 'ECHO DISKCOPY_DONE\r\n'
 
-    # ── DISKCOMP A: B: (match) — compare identical disks ──────────────────────
-    # After DISKCOPY, A: and B: are identical byte-for-byte.
-    # Prompts: PRESS_ANY_KEY (1 char) + COMP_ANOTHER (Y/N = 'N').
-    # Output: "Comparing 80 tracks", "Compare OK", "Compare process ended".
     printf 'ECHO ---DISKCOMP-MATCH---\r\n'
     printf 'DISKCOMP A: B:\r\n'
     printf 'ECHO DISKCOMP_MATCH_DONE\r\n'
 
-    # ── Modify A: — write a new file to create difference ─────────────────────
-    # ECHO writes to DISKTEST.TXT on A:, changing FAT + directory + data sectors.
     printf 'ECHO DISKTEST > DISKTEST.TXT\r\n'
 
-    # ── DISKCOMP A: B: (mismatch) — compare after modification ────────────────
-    # A: now has DISKTEST.TXT; B: does not. Sectors differ → "Compare error on".
-    # DISKCOMP errorlevel stays 0 on compare errors — must check output text.
     printf 'ECHO ---DISKCOMP-DIFF---\r\n'
     printf 'DISKCOMP A: B:\r\n'
     printf 'ECHO DISKCOMP_DIFF_DONE\r\n'
 
-    # ── DISKCOPY A: B: /1 — single-sided copy ─────────────────────────────────
-    # /1 sets NO_OF_SIDES=0 → MSG_SIDES=1 → "Sectors/Track, 1 Side(s)" in output.
-    # Prompts: PRESS_ANY_KEY (1 char) + COPY_ANOTHER (Y/N = 'N'). Same as normal.
     printf 'ECHO ---DISKCOPY-1---\r\n'
     printf 'DISKCOPY A: B: /1\r\n'
     printf 'ECHO DISKCOPY_1_DONE\r\n'
 
-    # ── DISKCOPY A: B: /V — /V is not implemented ─────────────────────────────
-    # DCOPYPAR.ASM only defines the /1 switch; /V is in the help text but the
-    # parser (SYSPARSE) rejects it as an unknown switch → "Invalid switch - /V".
-    # No interactive prompts — the tool exits immediately at parse time.
     printf 'ECHO ---DISKCOPY-V---\r\n'
     printf 'DISKCOPY A: B: /V\r\n'
     printf 'ECHO DISKCOPY_V_DONE\r\n'
 
-    # ── DISKCOMP A: B: /1 — single-sided compare ──────────────────────────────
-    # /1 sets NO_OF_SIDES=0 → MSG_SIDES=1 → output says "1 Side(s)".
-    # Prompts: PRESS_ANY_KEY (any char) + COMP_ANOTHER (Y/N = 'N').
     printf 'ECHO ---DISKCOMP-1---\r\n'
     printf 'DISKCOMP A: B: /1\r\n'
     printf 'ECHO DISKCOMP_1_DONE\r\n'
 
-    # ── DISKCOMP A: B: /8 — 8-sector compare ──────────────────────────────────
-    # /8 sets END_OF_TRACK=8 → MSG_SECTRK=8 → output says "8 Sectors/Track".
-    # On a 1.44MB floppy (18 sec/track), 18>=8 so cap is applied normally.
-    # Prompts: PRESS_ANY_KEY (any char) + COMP_ANOTHER (Y/N = 'N').
     printf 'ECHO ---DISKCOMP-8---\r\n'
     printf 'DISKCOMP A: B: /8\r\n'
     printf 'ECHO DISKCOMP_8_DONE\r\n'
 
-    # Both distinct switches are accepted together; each consumed synonym is
-    # then blanked in the live parser table, so either duplicate is rejected.
     printf 'ECHO ---DISKCOMP-18---\r\n'
     printf 'DISKCOMP A: B: /1 /8\r\n'
     printf 'IF NOT ERRORLEVEL 1 ECHO DISKCOMP_18_SUCCESS\r\n'
     printf 'ECHO DISKCOMP_18_DONE\r\n'
 
-    # Parser-only failures return before any media prompt.
     printf 'DISKCOMP A: B: /1 /1\r\n'
     printf 'IF ERRORLEVEL 1 ECHO DISKCOMP_DUPLICATE_REJECTED\r\n'
     printf 'DISKCOMP A: B: /V\r\n'
@@ -155,17 +88,9 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
-# ── Step 2: create pre-formatted blank target floppy ─────────────────────────
-# mformat writes a valid FAT12 filesystem on B:.
-# DISKCOPY writes raw tracks via IOCTL (not filesystem), so mformat vs. zero
-# makes no difference for the copy; FAT12 is needed so DISKTEST.TXT ECHO works.
 dd if=/dev/zero bs=512 count=2880 of="$TARGET_IMG" status=none
 mformat -i "$TARGET_IMG" -f 1440 ::
 
-# ── Step 3: boot QEMU, run tests ─────────────────────────────────────────────
-# Feed continuous "N\r\n" to satisfy both PRESS_ANY_KEY (any char) and Y/N prompts.
-# CLEAR_BUF (INT 21h/AH=0Ch) before each Y/N read flushes the type-ahead buffer,
-# so timing of feeds is not critical — each prompt gets a fresh 'N' after the flush.
 echo "Booting QEMU with A:=boot B:=blank target (may take ~90s)..."
 rm -f "$SERIAL_LOG"
 (while true; do sleep 0.2; printf 'N\r\n'; done) | \
@@ -183,19 +108,16 @@ if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
     exit 1
 fi
 
-# ── Check output ──────────────────────────────────────────────────────────────
 
 echo ""
 echo "--- DISKCOPY tests ---"
 
-# "Copying 80 tracks" (or similar — exact track count from disk BPB)
 if grep -qi "Copying.*tracks" "$SERIAL_LOG"; then
     ok "DISKCOPY A: B: (started copying tracks)"
 else
     fail "DISKCOPY A: B: (expected 'Copying...tracks' message)"
 fi
 
-# "Copy another diskette (Y/N)?" — printed after successful copy, before exit
 if grep -qi "Copy another diskette" "$SERIAL_LOG"; then
     ok "DISKCOPY A: B: (copy completed, reached repeat prompt)"
 else
@@ -211,14 +133,12 @@ fi
 echo ""
 echo "--- DISKCOMP (match) tests ---"
 
-# "Comparing 80 tracks" — printed after reading source disk geometry
 if grep -qi "Comparing.*tracks" "$SERIAL_LOG"; then
     ok "DISKCOMP A: B: match (started comparing tracks)"
 else
     fail "DISKCOMP A: B: match (expected 'Comparing...tracks' message)"
 fi
 
-# "Compare OK" — printed when no compare errors found
 if grep -qi "Compare OK" "$SERIAL_LOG"; then
     ok "DISKCOMP A: B: match (identical disks reported 'Compare OK')"
 else
@@ -234,7 +154,6 @@ fi
 echo ""
 echo "--- DISKCOMP (mismatch) tests ---"
 
-# "Compare error on" — printed per-track when sectors differ
 if grep -qi "Compare error on" "$SERIAL_LOG"; then
     ok "DISKCOMP A: B: mismatch (detected 'Compare error on' after file write)"
 else
@@ -250,7 +169,6 @@ fi
 echo ""
 echo "--- DISKCOPY /1 tests ---"
 
-# "1 Side(s)" — /1 sets NO_OF_SIDES=0 → MSG_SIDES=1 → printed in Copying message
 if grep -qi "1 Side(s)" "$SERIAL_LOG"; then
     ok "DISKCOPY A: B: /1 (single-sided copy: '1 Side(s)' in output)"
 else
@@ -266,7 +184,6 @@ fi
 echo ""
 echo "--- DISKCOPY /V tests ---"
 
-# "Invalid switch - /V" — SYSPARSE rejects /V since DCOPYPAR only defines /1
 if grep -qi "Invalid switch" "$SERIAL_LOG"; then
     ok "DISKCOPY A: B: /V (rejected with 'Invalid switch' — /V not implemented in parser)"
 else
@@ -282,7 +199,6 @@ fi
 echo ""
 echo "--- DISKCOMP /1 tests ---"
 
-# "1 Side(s)" — /1 sets NO_OF_SIDES=0 → MSG_SIDES=1 → printed in Comparing message
 if grep -qi "1 Side(s)" "$SERIAL_LOG"; then
     ok "DISKCOMP A: B: /1 (single-sided compare: '1 Side(s)' in output)"
 else
@@ -298,7 +214,6 @@ fi
 echo ""
 echo "--- DISKCOMP /8 tests ---"
 
-# "8 Sectors/Track" — /8 caps END_OF_TRACK=8 → MSG_SECTRK=8 in Comparing message
 if grep -qi "8 Sectors/Track" "$SERIAL_LOG"; then
     ok "DISKCOMP A: B: /8 (8-sector compare: '8 Sectors/Track' in output)"
 else

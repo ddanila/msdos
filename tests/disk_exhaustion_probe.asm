@@ -1,9 +1,6 @@
 bits 16
 org 100h
 
-; Fill the remaining FAT12 data clusters through DOS writes. A full disk must
-; return a short successful write, then accept a complete write after the host
-; filler and partial output are deleted.
 
 start:
     push cs
@@ -25,7 +22,7 @@ start:
     jc failed
     cmp ax, buffer_size
     je .fill
-    cmp ax, buffer_size             ; A disk-full write is short, never long.
+    cmp ax, buffer_size
     ja failed
 
     mov bx, [handle]

@@ -1,7 +1,6 @@
 bits 16
 org 100h
 
-; Prove DOS invokes INT 28h while waiting and INT 23h when Ctrl-C arrives.
 
 start:
     push cs
@@ -27,7 +26,7 @@ start:
     mov ah, 09h
     int 21h
 
-    mov ah, 01h                    ; Host sends Ctrl-C, then X after readiness.
+    mov ah, 01h
     int 21h
     cmp al, 'X'
     jne input_failed

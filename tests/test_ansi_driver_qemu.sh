@@ -1,5 +1,4 @@
 #!/bin/bash
-# Assert ANSI.SYS escape parsing through a BIOS-visible cursor transition.
 
 set -uo pipefail
 export LC_ALL=C

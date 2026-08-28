@@ -1,5 +1,4 @@
 #!/bin/bash
-# Assert that CONFIG.SYS STACKS allocates the requested internal stack pool.
 
 set -uo pipefail
 export LC_ALL=C
@@ -70,9 +69,6 @@ disabled=$((16#$disabled_hex))
 allocated=$((16#$allocated_hex))
 delta=$((disabled - allocated))
 
-# Nine 256-byte stacks plus their eight-byte entries alone require 149 DOS
-# paragraphs. The relocated stack handler adds more; use the strict lower bound
-# so the contract is independent of harmless code-size changes.
 if (( delta < 149 )); then
     echo "  FAIL: STACKS=9,256 reserved only $delta paragraphs (expected >=149)"
     exit 1

@@ -1,5 +1,4 @@
 #!/bin/bash
-# Exhaust FAT12 data clusters through DOS, assert the short write, and recover.
 
 set -uo pipefail
 export LC_ALL=C

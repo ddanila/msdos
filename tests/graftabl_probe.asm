@@ -1,8 +1,6 @@
 bits 16
 org 100h
 
-; Verify GRAFTABL's resident multiplex handler, INT 1Fh vector, and complete
-; 128-character bitmap plus metadata for the requested code page.
 
 start:
     push cs
@@ -17,13 +15,13 @@ start:
     mov si, expected_850
 .have_expected:
 
-    mov ax, 0b000h               ; GRAFTABL installation query.
+    mov ax, 0b000h
     int 2fh
     cmp al, 0ffh
     jne install_failed
 
     mov bx, table_pointer
-    mov ax, 0b001h               ; Return resident table pointer.
+    mov ax, 0b001h
     int 2fh
     cmp al, 0ffh
     jne install_failed

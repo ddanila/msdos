@@ -1,31 +1,4 @@
 #!/bin/bash
-# tests/test_label.sh — E2E test for interactive LABEL.COM label removal via QEMU.
-#
-# Interactive test pattern (template for all interactive tools):
-#   - QEMU -serial pipe:<prefix>  separates serial input (.in) and output (.out)
-#   - tests/serial_expect.py acts as an expect-like coordinator:
-#       reads .out (QEMU→host), logs it, detects prompt patterns, writes .in (host→QEMU)
-#   - With CTTY AUX, DOS stdin/stdout use COM1 → serial pipe
-#
-# LABEL remove prompt sequence (LABL.SKL verified):
-#   COMMON35: "Volume label (11 characters, ENTER for none)? "  — no trailing \n
-#   msg 9:    CR,LF,"Delete current volume label (Y/N)? "       — no trailing \n
-# Responses:
-#   → \r    (bare CR — empty label.  INT 21h/3Fh cooked read stops at CR;
-#             sending \r\n would leave \n in UART FIFO which function 8 would
-#             consume as the Y/N char before we get a chance to send 'Y')
-#   → Y     (bare Y — function 8 reads one char; no trailing CR/LF to pollute
-#             subsequent reads, matching format_coordinator.py's pattern)
-# Y/N input is read via SYSDISPMSG/function-8 through DOS handle 0 (COM1 with CTTY AUX).
-# Y = proceed to delete, N = set NO_DELETE flag (skip deletion).
-#
-# FIFO ordering trick (see serial_expect.py header):
-#   exec 3<>"$SERIAL_IN"  opens .in with O_RDWR → QEMU's O_RDONLY open doesn't block.
-#   Python opens .in for O_WRONLY (non-blocking, write-end already present).
-#   Python opens .out for O_RDONLY (blocks until QEMU opens for O_WRONLY) — they
-#   unblock each other since QEMU is already running in background at that point.
-#
-# Run via: make test-label  (requires 'make deploy' first)
 
 set -uo pipefail
 
@@ -62,18 +35,15 @@ echo "=== LABEL E2E tests (QEMU, interactive serial expect) ==="
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
-# ── Step 1: build images ──────────────────────────────────────────────────────
 echo "Building test images..."
 cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 
-# Build target floppy with label "TESTLABEL" — this is what LABEL will remove
 dd if=/dev/zero bs=512 count=2880 of="$TARGET_IMG" status=none
 mformat -i "$TARGET_IMG" -f 1440 ::
 mlabel  -i "$TARGET_IMG" ::TESTLABEL
 
-# Verify label was written before the test
 prelabel=$(mlabel -i "$TARGET_IMG" -s :: 2>/dev/null || echo "")
 if ! echo "$prelabel" | grep -qi "TESTLABEL"; then
     echo "ERROR: failed to pre-write label 'TESTLABEL' to target — got: '$prelabel'"
@@ -81,7 +51,6 @@ if ! echo "$prelabel" | grep -qi "TESTLABEL"; then
 fi
 echo "  Pre-test label on B: '$prelabel'"
 
-# AUTOEXEC.BAT: run LABEL B: interactively (no label on command line → interactive mode)
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
@@ -92,12 +61,10 @@ echo "  Pre-test label on B: '$prelabel'"
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
-# ── Step 2: set up serial FIFOs ───────────────────────────────────────────────
-# See serial_expect.py header for the O_RDWR trick that prevents FIFO open deadlocks.
 mkfifo "$SERIAL_IN" "$SERIAL_OUT"
-exec 3<>"$SERIAL_IN"    # O_RDWR: keeps read-end alive so QEMU/Python O_WRONLY won't block
+# Holding the input FIFO as O_RDWR prevents either endpoint from blocking during startup.
+exec 3<>"$SERIAL_IN"
 
-# ── Step 3: boot QEMU ─────────────────────────────────────────────────────────
 echo "Booting QEMU with interactive LABEL test..."
 rm -f "$SERIAL_LOG"
 timeout 120 qemu-system-i386 \
@@ -110,28 +77,19 @@ timeout 120 qemu-system-i386 \
     2>/dev/null &
 QEMU_PID=$!
 
-# ── Step 4: run serial expect coordinator ─────────────────────────────────────
-# Python opens $SERIAL_IN (O_WRONLY, non-blocking) then $SERIAL_OUT (O_RDONLY,
-# blocks until QEMU opens it).  Coordinator exits on EOF (QEMU exits).
-#
-# Interactions in order:
-#   1. "ENTER for none"              → \r   (bare CR — cooked INT 21h/3Fh stops at CR;
-#                                            no trailing LF to pollute function-8 Y/N read)
-#   2. "Delete current volume label" → Y    (bare Y — function 8 reads one char)
 python3 "$REPO_ROOT/tests/serial_expect.py" \
     "$SERIAL_IN" "$SERIAL_OUT" "$SERIAL_LOG" \
     "ENTER for none"              $'\\r' \
     "Delete current volume label" 'Y'
 
 wait $QEMU_PID || true
-exec 3>&-    # close our O_RDWR fd on SERIAL_IN
+exec 3>&-
 
 if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
     echo "ERROR: serial log is empty — QEMU may have failed to boot"
     exit 1
 fi
 
-# ── Step 5: checks ────────────────────────────────────────────────────────────
 echo ""
 echo "--- LABEL serial log checks ---"
 
@@ -166,27 +124,21 @@ echo ""
 echo "--- LABEL post-QEMU image check ---"
 
 postlabel=$(mlabel -i "$TARGET_IMG" -s :: 2>/dev/null || echo "")
-# After successful removal, mlabel should print "has no label" or show empty/no label name.
-# We check that "TESTLABEL" is gone from the label output.
 if echo "$postlabel" | grep -qi "TESTLABEL"; then
     fail "LABEL remove (label 'TESTLABEL' still present: '$postlabel')"
 else
     ok "LABEL remove (label cleared — mlabel output: '$postlabel')"
 fi
 
-# ── Test 2: LABEL B: — set label interactively via serial expect ──────────────
 echo ""
 echo "--- LABEL set test (interactive) ---"
 
-# Build a fresh target floppy with no label
 dd if=/dev/zero bs=512 count=2880 of="$TARGET_IMG" status=none
 mformat -i "$TARGET_IMG" -f 1440 ::
 
-# Verify no label before test
 prelabel2=$(mlabel -i "$TARGET_IMG" -s :: 2>/dev/null || echo "")
 echo "  Pre-test label on B: '$prelabel2'"
 
-# Build new boot image — LABEL B: with no label arg triggers interactive prompt
 BOOT_IMG2="$OUT/label-set-boot.img"
 SERIAL_LOG2="$OUT/label-set-serial.log"
 SERIAL_IN2="$OUT/label-set-serial.in"
@@ -204,7 +156,6 @@ mcopy -o -i "$BOOT_IMG2" "$EXIT_COM" ::QEXIT.COM
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG2" - ::AUTOEXEC.BAT
 
-# Set up serial FIFOs for interactive test
 rm -f "$SERIAL_IN2" "$SERIAL_OUT2"
 mkfifo "$SERIAL_IN2" "$SERIAL_OUT2"
 exec 4<>"$SERIAL_IN2"
@@ -221,8 +172,6 @@ timeout 120 qemu-system-i386 \
     2>/dev/null &
 QEMU_PID2=$!
 
-# When LABEL prompts "ENTER for none", type "NEWLABEL\r" to set the label.
-# No existing label on disk, so no "Delete current volume label" prompt.
 python3 "$REPO_ROOT/tests/serial_expect.py" \
     "$SERIAL_IN2" "$SERIAL_OUT2" "$SERIAL_LOG2" \
     "ENTER for none"  $'NEWLABEL\\r'
@@ -263,7 +212,6 @@ fi
 
 rm -f "$BOOT_IMG2"
 
-# ── Test 3: command-line length and invalid-character boundaries ────────────
 echo ""
 echo "--- LABEL command-line boundary test ---"
 cp "$FLOPPY" "$BOUNDARY_BOOT"

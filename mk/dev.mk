@@ -1,9 +1,3 @@
-# ---------------------------------------------------------------------------
-# DEV (device drivers)
-# Built sub-modules: DRIVER, ANSI, VDISK, COUNTRY, RAMDRIVE, KEYBOARD,
-#                    PRINTER, DISPLAY, SMARTDRV, XMA2EMS, XMAEM
-# Include path for all DEV sub-dirs (2 levels deep: DEV/SUBDIR/)
-# ---------------------------------------------------------------------------
 DEV_DIR  := $(SRC)/DEV
 DEV_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC -I..\\..\\DOS
 
@@ -22,9 +16,6 @@ dev: \
     $(DEV_DIR)/XMAEM/XMAEM.SYS \
     $(DEV_DIR)/DISPLAY/EGA/EGA.CPI
 
-# ---------------------------------------------------------------------------
-# DEV/DRIVER
-# ---------------------------------------------------------------------------
 DRIVER_DIR := $(DEV_DIR)/DRIVER
 
 $(DRIVER_DIR)/DRIVER.CTL: $(DRIVER_DIR)/DRIVER.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
@@ -39,9 +30,6 @@ $(DRIVER_DIR)/DRIVER.EXE: $(DRIVER_DIR)/DRIVER.OBJ
 $(DRIVER_DIR)/DRIVER.SYS: $(DRIVER_DIR)/DRIVER.EXE
 	cd $(DRIVER_DIR) && $(EXE2BIN) "DRIVER.EXE DRIVER.SYS"
 
-# ---------------------------------------------------------------------------
-# DEV/ANSI
-# ---------------------------------------------------------------------------
 ANSI_DIR := $(DEV_DIR)/ANSI
 
 $(ANSI_DIR)/ANSI.CTL: $(ANSI_DIR)/ANSI.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
@@ -67,9 +55,6 @@ $(ANSI_DIR)/ANSI.EXE: \
 $(ANSI_DIR)/ANSI.SYS: $(ANSI_DIR)/ANSI.EXE
 	cd $(ANSI_DIR) && $(EXE2BIN) "ANSI.EXE ANSI.SYS"
 
-# ---------------------------------------------------------------------------
-# DEV/VDISK
-# ---------------------------------------------------------------------------
 VDISK_DIR := $(DEV_DIR)/VDISK
 
 $(VDISK_DIR)/VDISK.CTL: $(VDISK_DIR)/VDISK.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
@@ -84,9 +69,6 @@ $(VDISK_DIR)/VDISK.EXE: $(VDISK_DIR)/VDISKSYS.OBJ
 $(VDISK_DIR)/VDISK.SYS: $(VDISK_DIR)/VDISK.EXE
 	cd $(VDISK_DIR) && $(EXE2BIN) "VDISK.EXE VDISK.SYS"
 
-# ---------------------------------------------------------------------------
-# DEV/COUNTRY
-# ---------------------------------------------------------------------------
 COUNTRY_DIR := $(DEV_DIR)/COUNTRY
 
 $(COUNTRY_DIR)/MKCNTRY.OBJ: $(COUNTRY_DIR)/MKCNTRY.ASM
@@ -98,9 +80,6 @@ $(COUNTRY_DIR)/MKCNTRY.EXE: $(COUNTRY_DIR)/MKCNTRY.OBJ
 $(COUNTRY_DIR)/COUNTRY.SYS: $(COUNTRY_DIR)/MKCNTRY.EXE $(MKCNTRY)
 	cd $(COUNTRY_DIR) && $(MKCNTRY) MKCNTRY.EXE COUNTRY.SYS
 
-# ---------------------------------------------------------------------------
-# DEV/RAMDRIVE (uses -I../../inc forward-slash style; no DOS dir needed)
-# ---------------------------------------------------------------------------
 RAMDRIVE_DIR := $(DEV_DIR)/RAMDRIVE
 
 $(RAMDRIVE_DIR)/RAMDRIVE.OBJ: $(RAMDRIVE_DIR)/RAMDRIVE.ASM
@@ -116,9 +95,6 @@ $(RAMDRIVE_DIR)/RAMDRIVE.EXE: \
 $(RAMDRIVE_DIR)/RAMDRIVE.SYS: $(RAMDRIVE_DIR)/RAMDRIVE.EXE
 	cd $(RAMDRIVE_DIR) && $(EXE2BIN) "RAMDRIVE.EXE RAMDRIVE.SYS"
 
-# ---------------------------------------------------------------------------
-# DEV/KEYBOARD (20 KDF files)
-# ---------------------------------------------------------------------------
 KEYBOARD_DIR := $(DEV_DIR)/KEYBOARD
 KB_AINC := -I. -I..\\..\\INC
 
@@ -139,9 +115,6 @@ $(KEYBOARD_DIR)/KEYBOARD.EXE: $(KEYBOARD_OBJ_PATHS)
 $(KEYBOARD_DIR)/KEYBOARD.SYS: $(KEYBOARD_DIR)/KEYBOARD.EXE
 	cd $(KEYBOARD_DIR) && $(EXE2BIN) "KEYBOARD.EXE KEYBOARD.SYS"
 
-# ---------------------------------------------------------------------------
-# DEV/PRINTER (printer.sys; 5202.cpi subdir skipped)
-# ---------------------------------------------------------------------------
 PRINTER_DIR := $(DEV_DIR)/PRINTER
 
 $(PRINTER_DIR)/PRINTER.CTL: $(PRINTER_DIR)/PRINTER.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
@@ -171,9 +144,6 @@ $(PRINTER_DIR)/PRINTER.EXE: \
 $(PRINTER_DIR)/PRINTER.SYS: $(PRINTER_DIR)/PRINTER.EXE
 	cd $(PRINTER_DIR) && $(EXE2BIN) "PRINTER.EXE PRINTER.SYS" <ZERO.DAT
 
-# ---------------------------------------------------------------------------
-# DEV/DISPLAY (display.sys + ega.cpi)
-# ---------------------------------------------------------------------------
 DISPLAY_DIR := $(DEV_DIR)/DISPLAY
 
 $(DISPLAY_DIR)/DISPLAY.CTL: $(DISPLAY_DIR)/DISPLAY.SKL $(MESSAGES_OUT) $(BUILDMSG) $(MESSAGE_CATALOG)
@@ -196,9 +166,6 @@ $(DISPLAY_DIR)/DISPLAY.EXE: \
 $(DISPLAY_DIR)/DISPLAY.SYS: $(DISPLAY_DIR)/DISPLAY.EXE
 	cd $(DISPLAY_DIR) && $(EXE2BIN) "DISPLAY.EXE DISPLAY.SYS" <ZERO.DAT
 
-# ---------------------------------------------------------------------------
-# DEV/DISPLAY/EGA (ega.cpi — code page information file for console fonts)
-# ---------------------------------------------------------------------------
 EGA_DIR  := $(DISPLAY_DIR)/EGA
 EGA_AINC := -I. -I..\\..\\..\\INC
 
@@ -234,9 +201,6 @@ $(EGA_DIR)/CPI-HEAD.EXE: $(EGA_OBJS)
 $(EGA_DIR)/EGA.CPI: $(EGA_DIR)/CPI-HEAD.EXE
 	cd $(EGA_DIR) && $(EXE2BIN) "CPI-HEAD.EXE EGA.CPI"
 
-# ---------------------------------------------------------------------------
-# DEV/SMARTDRV
-# ---------------------------------------------------------------------------
 SMARTDRV_DIR := $(DEV_DIR)/SMARTDRV
 
 $(SMARTDRV_DIR)/SMARTDRV.OBJ: $(SMARTDRV_DIR)/SMARTDRV.ASM
@@ -260,9 +224,6 @@ $(SMARTDRV_DIR)/FLMES.OBJ: $(SMARTDRV_DIR)/FLMES.ASM
 $(SMARTDRV_DIR)/FLUSH13.EXE: $(SMARTDRV_DIR)/FLUSH13.OBJ $(SMARTDRV_DIR)/FL13.OBJ $(SMARTDRV_DIR)/FLMES.OBJ
 	cd $(SMARTDRV_DIR) && $(WLINK) "FLUSH13.OBJ+FL13.OBJ+FLMES.OBJ,FLUSH13.EXE,FLUSH13.MAP,clibs.lib;"
 
-# ---------------------------------------------------------------------------
-# DEV/XMA2EMS
-# ---------------------------------------------------------------------------
 XMA2EMS_DIR := $(DEV_DIR)/XMA2EMS
 
 $(XMA2EMS_DIR)/XMA2EMS.CL1: $(XMA2EMS_DIR)/XMA2EMS.SKL $(MESSAGES_OUT) $(NOSRVBLD) $(MESSAGE_CATALOG)
@@ -277,9 +238,6 @@ $(XMA2EMS_DIR)/XMA2EMS.EXE: $(XMA2EMS_DIR)/XMA2EMS.OBJ
 $(XMA2EMS_DIR)/XMA2EMS.SYS: $(XMA2EMS_DIR)/XMA2EMS.EXE
 	cd $(XMA2EMS_DIR) && $(EXE2BIN) "XMA2EMS.EXE XMA2EMS.SYS"
 
-# ---------------------------------------------------------------------------
-# DEV/XMAEM
-# ---------------------------------------------------------------------------
 XMAEM_DIR := $(DEV_DIR)/XMAEM
 
 $(XMAEM_DIR)/XMAEM.CL1: $(XMAEM_DIR)/XMAEM.SKL $(MESSAGES_OUT) $(NOSRVBLD) $(MESSAGE_CATALOG)
