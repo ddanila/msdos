@@ -148,17 +148,36 @@ asserted against the repository manager.
 | `DOS=HIGH` failure | exact message, loads DOS low | pending | pending |
 | `DOS=HIGH,UMB` | DOS owns HMA, A20 on; UMB state remains independent | confirmed | confirmed |
 | `DEVICEHIGH` no fit | falls back to `DEVICE` | pending | pending |
-| `DEVICEHIGH SIZE=` | DOS 5 legacy placement semantics | pending | pending |
-| `DEVICEHIGH /L /S` | region/minimum/shrink behavior | n/a | pending |
+| `DEVICEHIGH SIZE=` | DOS 5 legacy placement semantics | confirmed (basic placement/tail) | confirmed (basic placement/tail) |
+| `DEVICEHIGH /L /S` | region/minimum/shrink behavior | n/a | partial; single-region placement confirmed |
 | `LOADHIGH`/`LH` | largest UMB, conventional fallback | pending | pending |
 | `LOADHIGH /L /S` | child region visibility and restoration | n/a | pending |
-| `INSTALLHIGH` | existence, syntax, and fallback | pending | pending |
+| `INSTALLHIGH` | existence, syntax, and fallback | not recognized | confirmed (basic execution high) |
 | `MEM /C /D /F /M` | region numbering and accounting | pending | pending |
 
 This tree now accepts case-insensitive `DOS=HIGH`, `LOW`, `UMB`, and `NOUMB`
 tokens, comma-separated pairs, and repeated `DOS=` lines. The HMA and UMB
 effects remain delivery-gated; without a provider, `DOS=UMB` is silent and the
 kernel remains unlinked.
+
+The clean-room `devicehigh_reference_driver.asm` oracle records its actual
+load segment and the INIT command tail. With genuine HIMEM and EMM386 loaded,
+DOS 5.0 placed plain `DEVICE` at `0E63h` and `DEVICEHIGH` at `CB03h`; DOS 6.22
+placed them at `0D6Fh` and `CC4Ch`. Both releases honored a `DEVICEHIGH` line
+that precedes `DOS=UMB`, proving that the requested DOS state is established
+independently of textual order. Both accepted the DOS 5
+`DEVICEHIGH SIZE=200` spelling, loaded the driver high, and removed the loader
+option from the driver's command tail. DOS 6.22 likewise accepted
+`DEVICEHIGH /L:1=`. The observed `DEVICEHIGH /L:1,200 /S=` case loaded low;
+the exact minimum-size and shrink boundary still needs a parameter sweep before
+that behavior is encoded.
+
+The matching program oracle establishes that DOS 6.22 recognizes
+`INSTALLHIGH=` and executed the test program at `CC4Eh`. DOS 5.0 did not execute
+the same directive, so `INSTALLHIGH` is a 6.22 compatibility extension rather
+than part of the initial 5.0 surface. Normalized captures are kept outside Git
+beside the locally owned reference images; only probe source and the capture
+harness are committed.
 
 ## HMA residency reference
 

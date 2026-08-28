@@ -25,7 +25,7 @@ start:
     mov ax, 5802h
     int 21h
     jc fail
-    cmp al, 0
+    cmp al, 1
     jne fail
     mov bx, 1
     mov ax, 5803h
