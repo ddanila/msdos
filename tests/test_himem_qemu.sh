@@ -10,6 +10,10 @@ XMS_PROBE="$OUT/xms-reference.com"
 PROVIDER_PROBE="$OUT/himem-provider.com"
 IMAGE="$OUT/floppy-himem.img"
 LOG="$OUT/himem.log"
+LIFECYCLE_PROBE="$OUT/umb-lifecycle-reference.com"
+EMM_PROBE="$OUT/emm386-with-umb.com"
+COMBINED_IMAGE="$OUT/floppy-himem-emm386.img"
+COMBINED_LOG="$OUT/himem-emm386.log"
 
 for tool in nasm mcopy qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || {
@@ -22,6 +26,8 @@ done
     "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
 nasm -f bin "$ROOT/tests/xms_reference_probe.asm" -o "$XMS_PROBE"
 nasm -f bin "$ROOT/tests/himem_provider_probe.asm" -o "$PROVIDER_PROBE"
+nasm -f bin "$ROOT/tests/umb_lifecycle_reference.asm" -o "$LIFECYCLE_PROBE"
+nasm -f bin "$ROOT/tests/emm386_probe.asm" -o "$EMM_PROBE"
 
 cp "$FLOPPY" "$IMAGE"
 mcopy -o -i "$IMAGE" "$HIMEM" ::HIMEM.SYS
@@ -60,4 +66,35 @@ do
     fi
 done
 
-echo "  PASS: repository XMS core and transactional UMB provider"
+cp "$FLOPPY" "$COMBINED_IMAGE"
+mcopy -o -i "$COMBINED_IMAGE" "$HIMEM" ::HIMEM.SYS
+mcopy -o -i "$COMBINED_IMAGE" "$LIFECYCLE_PROBE" ::UMBLREF.COM
+mcopy -o -i "$COMBINED_IMAGE" "$EMM_PROBE" ::EMMPROBE.COM
+{
+    printf 'DEVICE=A:\\HIMEM.SYS\r\n'
+    printf 'DEVICE=A:\\EMM386.SYS M5\r\n'
+    printf 'DOS=UMB\r\n'
+} | mcopy -o -i "$COMBINED_IMAGE" - ::CONFIG.SYS
+{
+    printf '@ECHO OFF\r\n'
+    printf 'CTTY AUX\r\n'
+    printf 'UMBLREF.COM\r\n'
+    printf 'EMMPROBE.COM\r\n'
+} | mcopy -o -i "$COMBINED_IMAGE" - ::AUTOEXEC.BAT
+timeout 35 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 16 \
+    -drive if=floppy,index=0,format=raw,file="$COMBINED_IMAGE",cache=writethrough \
+    -boot a -serial stdio -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$COMBINED_LOG" 2>&1 || true
+
+if ! grep -Fq 'UMB_LIFECYCLE_END' "$COMBINED_LOG" \
+    || ! grep -Eq '^ALLOC_0010 C=0 AX=[A-F][0-9A-F]{3}' "$COMBINED_LOG" \
+    || ! grep -Eq '^ALLOC_AFTER_LARGEST C=0 AX=[A-F][0-9A-F]{3}' "$COMBINED_LOG" \
+    || ! grep -Fq 'EMM386_API_PASS' "$COMBINED_LOG"
+then
+    echo "FAIL: combined HIMEM/EMM386 UMB and EMS contract" >&2
+    sed -n '1,220p' "$COMBINED_LOG" >&2
+    exit 1
+fi
+
+echo "  PASS: repository XMS core and concurrent paging-backed UMB/EMS provider"

@@ -109,6 +109,14 @@ reallocation function `12h` and the following unknown function. This makes a
 complete XMS 2.00 implementation with optional `10h`/`11h` the repository
 provider's compatibility target; it must not advertise XMS 3.00.
 
+The repository provider now passes the captured XMS success-path lifecycle and
+boots together with the repository EMM386. EMM386 owns the paging translations
+and removes permanent UMB backing pages from its EMS pool; HIMEM owns the
+public XMS allocation state. A combined test confirms multiple DOS-visible UMB
+regions and a functioning EMS API in one boot. Error-path parity, A20 hardware
+coverage, rollback injection, and data stability across repeated EMS remapping
+are still open provider gates.
+
 ## Boot and command interfaces
 
 | Surface | Required observation | DOS 5.0 | DOS 6.22 |

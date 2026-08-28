@@ -264,6 +264,9 @@ jobs:
       - name: Grant KVM access
         run: chmod 666 /dev/kvm
 
+      - name: Build pinned custom JWasm
+        run: ./jwasm/build.sh
+
       - name: Download floppy image
         uses: actions/download-artifact@v7
         with:

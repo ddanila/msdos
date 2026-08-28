@@ -156,3 +156,26 @@ defaults, diagnostics, and precedence remain Phase 0 reference gates.
 The Phase 3 exit gate is satisfied only when the production drivers—not the
 test fixture—boot together, expose multiple safe extents through XMS, pass the
 direct XMS and DOS allocator probes, and retain full EMS behavior concurrently.
+
+## Current implementation status
+
+The repository now contains an original clean-room HIMEM driver that exposes
+the XMS 2.00 entry point, HMA ownership, A20 control, extended-memory handles,
+moves, locking, resizing, and the optional XMS UMB request/release calls. Its
+private transaction accepts or rejects a complete normalized UMB map, and
+refuses unregistration while any advertised block remains allocated.
+
+EMM386 now obtains its backing pool as a locked XMS allocation when the
+repository HIMEM peer is present. After ROM and page-frame discovery, it takes
+safe 16 KiB UMA windows out of the EMS mapping pool, reserves distinct backing
+pages, installs permanent mappings, coalesces the resulting extents, and
+registers the complete map atomically. Initialization failure reverses the
+page mappings, returns every EMS page, unregisters the map, and releases the
+XMS handle.
+
+The combined QEMU test boots both production drivers with `DOS=UMB`, allocates
+from multiple upper regions through DOS, and exercises EMS in the same boot.
+This establishes the basic ownership split but does not close Phase 3: the
+full XMS error matrix, A20 hardware fallbacks, fault injection, warm reboot,
+and live-UMB data stability during EMS remapping remain required. HIMEM is
+therefore still omitted from published images until those gates pass.

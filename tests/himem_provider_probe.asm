@@ -76,6 +76,16 @@ start:
     cmp ax, 1
     jne fail_07
 
+    mov ax, 0e702h
+    int 2fh
+    cmp ax, 1
+    jne fail_08
+    mov si, umb_map
+    mov ax, 0e701h
+    int 2fh
+    cmp ax, 1
+    jne fail_08
+
     mov dx, pass_message
     mov ah, 09h
     int 21h
@@ -98,6 +108,8 @@ fail_05: mov al, 5
 fail_06: mov al, 6
     jmp short fail
 fail_07: mov al, 7
+    jmp short fail
+fail_08: mov al, 8
 fail:
     mov [failure_code], al
     mov dx, fail_message
