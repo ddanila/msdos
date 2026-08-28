@@ -84,8 +84,10 @@ Acquisition is transactional. An unexpected provider failure, an incomplete
 map beyond the supported descriptor capacity, a short or wrapping extent, an
 overlap, or a kernel registration failure resets the nascent arena and releases
 every acquired XMS extent. The configurable test provider exercises successful
-out-of-order acquisition and partial, overlapping, malformed, and conflicting
-maps in isolated QEMU boots.
+out-of-order acquisition, no UMB service, no free UMB, query/request failures,
+partial acquisition, overlap, wrapping and conflicting ranges, and descriptor
+overflow in isolated QEMU boots. Repeated `DOS=UMB`/`DOS=NOUMB` boots prove the
+last applicable UMB token controls whether SYSINIT contacts the provider.
 
 The synthetic lifecycle test also covers every fit/domain strategy, exact and
 failed allocation with largest-block reporting, fragmentation, UMB resize and

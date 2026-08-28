@@ -111,10 +111,12 @@ outside this repository and are not required by its build or CI.
 
 CI uses an original test-only XMS provider with writable synthetic backing. It
 proves that out-of-order discontiguous extents are sorted and committed as one
-arena, while partial failure, overlap, undersized ranges, and ranges conflicting
-with conventional memory release all provider allocations and leave `5803h`
-unavailable. This fixture implements only the XMS calls needed by the test and
-does not ship as an XMS manager.
+arena. No UMB service, no free ranges, failed requests, partial failure,
+overlap, undersized or wrapping ranges, conventional-memory conflicts, and a
+map exceeding descriptor capacity all leave `5803h` unavailable and release
+every extent DOS acquired. Repeated `UMB`/`NOUMB` lines also prove that disabled
+management does not contact the provider. This fixture implements only the XMS
+calls needed by the test and does not ship as an XMS manager.
 
 ## Evidence required to close Phase 0
 

@@ -104,6 +104,11 @@ xms_request_umb:
 %if TEST_MODE = 1
     cmp byte [cs:extent_index], 1
     je .forced_failure
+%elif TEST_MODE = 6
+    xor ax, ax
+    xor dx, dx
+    mov bl, 80h
+    retf
 %endif
     xor ax, ax
     mov al, [cs:extent_index]
@@ -120,6 +125,11 @@ xms_request_umb:
 .allocate:
     cmp dx, [cs:extent_sizes + si]
     jne .smaller
+%if TEST_MODE = 9
+    xor ax, ax
+    mov bl, 0a0h
+    retf
+%endif
     mov bx, [cs:extent_segments + si]
     inc byte [cs:extent_index]
     inc word [cs:allocation_count]
@@ -242,6 +252,28 @@ EXTENT_COUNT equ 1
 %elif TEST_MODE = 4
 extent_segments dw 08000h
 extent_sizes dw 0100h
+EXTENT_COUNT equ 1
+%elif TEST_MODE = 5
+extent_segments dw 0
+extent_sizes dw 0
+EXTENT_COUNT equ 0
+%elif TEST_MODE = 6
+extent_segments dw 0
+extent_sizes dw 0
+EXTENT_COUNT equ 0
+%elif TEST_MODE = 7
+extent_segments dw 09000h, 09004h, 09008h, 0900ch, 09010h, 09014h
+                dw 09018h, 0901ch, 09020h, 09024h, 09028h, 0902ch
+                dw 09030h, 09034h, 09038h, 0903ch, 09040h
+extent_sizes times 17 dw 3
+EXTENT_COUNT equ 17
+%elif TEST_MODE = 8
+extent_segments dw 0fffeh
+extent_sizes dw 4
+EXTENT_COUNT equ 1
+%elif TEST_MODE = 9
+extent_segments dw 09000h
+extent_sizes dw 0200h
 EXTENT_COUNT equ 1
 %else
 %error Unsupported TEST_MODE

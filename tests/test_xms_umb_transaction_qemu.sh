@@ -8,6 +8,7 @@ FLOPPY="$OUT/floppy.img"
 PROBE="$OUT/xms-umb-transaction.com"
 LIFECYCLE_PROBE="$OUT/umb-lifecycle.com"
 LIFECYCLE_CHILD="$OUT/umbchild.com"
+DISABLED_PROBE="$OUT/xms-umb-disabled.com"
 
 for tool in nasm mcopy qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || {
@@ -19,8 +20,9 @@ done
 nasm -f bin "$ROOT/tests/xms_umb_transaction_probe.asm" -o "$PROBE"
 nasm -f bin "$ROOT/tests/umb_lifecycle_probe.asm" -o "$LIFECYCLE_PROBE"
 nasm -f bin "$ROOT/tests/umb_exit_child.asm" -o "$LIFECYCLE_CHILD"
+nasm -f bin "$ROOT/tests/xms_umb_disabled_probe.asm" -o "$DISABLED_PROBE"
 
-for mode in 0 1 2 3 4; do
+for mode in 0 1 2 3 4 5 6 7 8 9; do
     provider="$OUT/xms-umb-provider-$mode.sys"
     image="$OUT/floppy-xms-umb-$mode.img"
     log="$OUT/xms-umb-$mode.log"
@@ -49,6 +51,34 @@ for mode in 0 1 2 3 4; do
     fi
 done
 
+provider="$OUT/xms-umb-provider-disabled.sys"
+image="$OUT/floppy-xms-umb-disabled.img"
+log="$OUT/xms-umb-disabled.log"
+nasm -DTEST_MODE=0 -f bin "$ROOT/tests/xms_umb_provider.asm" -o "$provider"
+cp "$FLOPPY" "$image"
+mcopy -o -i "$image" "$provider" ::XMSPROV.SYS
+mcopy -o -i "$image" "$DISABLED_PROBE" ::XMSOFF.COM
+{
+    printf 'DEVICE=A:\\XMSPROV.SYS\r\n'
+    printf 'DOS=UMB\r\n'
+    printf 'DOS=NOUMB\r\n'
+} | mcopy -o -i "$image" - ::CONFIG.SYS
+{
+    printf '@ECHO OFF\r\n'
+    printf 'CTTY AUX\r\n'
+    printf 'XMSOFF.COM\r\n'
+} | mcopy -o -i "$image" - ::AUTOEXEC.BAT
+timeout 20 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 4 \
+    -drive if=floppy,index=0,format=raw,file="$image",cache=writethrough \
+    -boot a -serial stdio -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$log" 2>&1 || true
+if ! grep -q '^XMS_UMB_DISABLED_PASS' "$log"; then
+    echo "FAIL: DOS=NOUMB acquisition suppression" >&2
+    sed -n '1,120p' "$log" >&2
+    exit 1
+fi
+
 provider="$OUT/xms-umb-provider-lifecycle.sys"
 image="$OUT/floppy-umb-lifecycle.img"
 log="$OUT/umb-lifecycle.log"
@@ -59,6 +89,7 @@ mcopy -o -i "$image" "$LIFECYCLE_PROBE" ::UMBLIFE.COM
 mcopy -o -i "$image" "$LIFECYCLE_CHILD" ::UMBCHILD.COM
 {
     printf 'DEVICE=A:\\XMSPROV.SYS\r\n'
+    printf 'DOS=NOUMB\r\n'
     printf 'DOS=UMB\r\n'
 } | mcopy -o -i "$image" - ::CONFIG.SYS
 {

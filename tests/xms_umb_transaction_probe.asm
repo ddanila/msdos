@@ -48,7 +48,7 @@ start:
     mov ah, 49h
     int 21h
     jc fail
-    jmp short pass
+    jmp pass
 
 rollback_case:
     mov dx, ax
@@ -77,11 +77,40 @@ rollback_case:
     jmp short .check_unavailable
 .location:
     cmp cx, 4
-    jne fail
+    jne .no_umb
     cmp bx, 1
     jne fail
     cmp dx, 1
     jne fail
+    jmp short .check_unavailable
+.no_umb:
+    cmp cx, 5
+    je .expect_zero
+    cmp cx, 6
+    je .expect_zero
+    cmp cx, 7
+    jne .wrapping
+    cmp bx, 16
+    jne fail
+    cmp dx, 16
+    jne fail
+    jmp short .check_unavailable
+.wrapping:
+    cmp cx, 8
+    jne .request_failure
+    cmp bx, 1
+    jne fail
+    cmp dx, 1
+    jne fail
+    jmp short .check_unavailable
+.request_failure:
+    cmp cx, 9
+    jne fail
+.expect_zero:
+    or bx, bx
+    jnz fail
+    or dx, dx
+    jnz fail
 .check_unavailable:
     mov bx, 1
     mov ax, 5803h
