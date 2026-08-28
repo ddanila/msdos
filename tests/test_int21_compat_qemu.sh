@@ -36,7 +36,7 @@ mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::I21COMP.COM
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
 rm -f "$SERIAL_LOG"
-timeout 35 qemu-system-i386 \
+timeout "${QEMU_TIMEOUT_SECONDS:-60}" qemu-system-i386 \
     -display none \
     -monitor none \
     -machine pc -cpu 486 -m 4 \

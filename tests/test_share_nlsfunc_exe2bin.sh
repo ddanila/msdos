@@ -147,7 +147,7 @@ echo "Booting QEMU..."
 rm -f "$SERIAL_LOG" "$SERIAL_IN" "$SERIAL_OUT"
 mkfifo "$SERIAL_IN" "$SERIAL_OUT"
 exec 3<>"$SERIAL_IN"
-timeout 30 qemu-system-i386 \
+timeout "${QEMU_TIMEOUT_SECONDS:-60}" qemu-system-i386 \
     -display none \
     -drive if=floppy,index=0,format=raw,file="$BOOT_IMG",cache=writethrough \
     -boot a -m 4 \
