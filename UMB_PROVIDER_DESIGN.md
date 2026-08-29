@@ -200,3 +200,9 @@ driver disabling A20, synchronous and asynchronous DOS entry, EXEC cleanup,
 installable-filesystem redirector traffic, warm reboot, and safe 8086/286
 fallback. These contracts satisfy the Phase 4 software and pre-386 gates; the
 plan-wide cycle-accurate or real 386+ acceptance run remains separate.
+
+Standard-provider independence is checked by
+`tests/verify_third_party_umb_provider.sh`, which takes an externally supplied
+JemmEx binary and commits neither that binary nor derived media. JemmEx 5.86
+completed the full DOS UMB lifecycle locally, including live unlink/relink,
+resize and exhaustion reporting, and upper-only versus upper-then-low policy.
