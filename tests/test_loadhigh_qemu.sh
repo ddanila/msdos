@@ -172,14 +172,14 @@ regions_commands=$(printf '%b' \
     'ECHO REGION_LIST\r\n' \
     'LOADHIGH /L:1;2 LHCHILD.COM\r\n' \
     'ECHO REGION_MIN_REJECT\r\n' \
-    'LOADHIGH /L:1,40000;2,10000 /S LHCHILD.COM\r\n' \
+    'LOADHIGH /L:1,40000;2,40000 /S LHCHILD.COM\r\n' \
     'ECHO REGION_MIN_ACCEPT\r\n' \
-    'LOADHIGH /L:1,10000;2,40000 /S LHCHILD.COM\r\n' \
+    'LOADHIGH /L:1,10000;2,10000 /S LHCHILD.COM\r\n' \
     'LHSTATE.COM\r\n' \
     'ECHO REGIONS_END\r\n')
 regions_config=$(printf '%b' \
     'DEVICE=A:\\HIMEM.SYS\r\n' \
-    'DEVICE=A:\\EMM386.SYS NOEMS X=D000-D7FF\r\n' \
+    'DEVICE=A:\\EMM386.SYS RAM M5 I=CC00-CFFF I=E400-E7FF\r\n' \
     'DOS=UMB\r\n')
 run_image regions "$regions_config" "$regions_commands"
 regions_log="$OUT/loadhigh-regions.log"
