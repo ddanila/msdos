@@ -139,7 +139,7 @@ char   max_input;
                 break;
 
             case '2':
-                if ((cur_disk == c(1)) || (find_partition_type(uc(DOS12))) || (find_partition_type(uc(DOS16))) ||
+                if ((cur_disk != c(0)) || (find_partition_type(uc(DOS12))) || (find_partition_type(uc(DOS16))) ||
                    (find_partition_type(uc(DOSNEW))))                   /* AN000 */                         /* AC000 */
                     ext_create_partition();
                 else
@@ -666,7 +666,7 @@ BEGIN
         table_display();
 
     /* Go see if primary already exists and ext doesn't */
-    if ((cur_disk == c(1)) || (find_partition_type(uc(DOS12))) || (find_partition_type(uc(DOS16))) ||
+    if ((cur_disk != c(0)) || (find_partition_type(uc(DOS12))) || (find_partition_type(uc(DOS16))) ||
         (find_partition_type(uc(DOSNEW))))                                            /* AC000 */
         BEGIN
         if (!find_partition_type(uc(EXTENDED)))                         /* AC000 */

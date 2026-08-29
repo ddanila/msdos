@@ -9,7 +9,7 @@
 
 
 extern  char    cur_disk;
-extern  FLAG    good_disk[2];
+extern  FLAG    good_disk[MAX_FIXED_DISKS];
 extern  unsigned char    number_of_drives;
 extern  FLAG    reboot_flag;
 extern  char    errorlevel;
@@ -21,18 +21,18 @@ extern  unsigned char   video_mode;
 extern  unsigned char   display_page;
 extern  unsigned char   video_attribute;                                /* AN006 */
 
-extern  unsigned        total_disk[2];                                  /* AN000 */
-extern  XFLOAT          total_mbytes[2];                                /* AN000 */
-extern  unsigned char   max_sector[2];
-extern  unsigned        max_head[2];                                    /* AC004 */
-extern  unsigned        required_cyls[2];
+extern  unsigned        total_disk[MAX_FIXED_DISKS];                    /* AN000 */
+extern  XFLOAT          total_mbytes[MAX_FIXED_DISKS];                  /* AN000 */
+extern  unsigned char   max_sector[MAX_FIXED_DISKS];
+extern  unsigned        max_head[MAX_FIXED_DISKS];                      /* AC004 */
+extern  unsigned        required_cyls[MAX_FIXED_DISKS];
 
 extern  unsigned       input_row;
 extern  unsigned       input_col;
 extern  char           insert[800];                                     /* AC000 */
 extern  char           *pinsert;
 
-extern unsigned char   master_boot_record[2][512];
+extern unsigned char   master_boot_record[MAX_FIXED_DISKS][512];
 extern unsigned char   boot_record[512];
 
 extern  char            next_letter;                                    /* AN000 */
@@ -62,8 +62,8 @@ extern  unsigned        Parse_Ptr;                                      /* AN010
 /****************************************************************************/
 /*                                                                          */
 
-extern  struct entry part_table[2][4];
-extern  struct entry ext_table[2][24];
+extern  struct entry part_table[MAX_FIXED_DISKS][4];
+extern  struct entry ext_table[MAX_FIXED_DISKS][24];
 extern  struct freespace free_space[24];
 extern  struct KeyData *input_data;
 extern  struct dx_buffer_ioctl dx_buff;                                 /* AN000 */
@@ -79,4 +79,3 @@ extern  struct sublistx sublistp[1];                                    /* AN010
 /*                                                                          */
 
 extern  union REGS regs;
-

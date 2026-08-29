@@ -105,30 +105,20 @@ char table_drive_letter()
 
 BEGIN
 char drive_letter;
+char saved_disk;
+unsigned char disk;
 
-      /* Put in drive letter in display */
-      if (cur_disk == c(0))                                             /* AC000 */
+      drive_letter = c('C');
+      saved_disk = cur_disk;
+      for (disk = uc(0); disk < (unsigned char)saved_disk; disk++)
          BEGIN
-          /* There is a primary partition on 80h, so drive C: */
-          drive_letter = c('C');                                        /* AC000 */
+          cur_disk = (char)disk;
+          if (find_partition_type(uc(DOS12)) ||
+              find_partition_type(uc(DOS16)) ||
+              find_partition_type(uc(DOSNEW)))
+             drive_letter++;
          END
-      else
-         BEGIN
-          /* We are on drive 81h, so assume D: */
-          drive_letter = c('D');                                        /* AC000 */
-
-          /* See if primary exists on 80h drive */
-          /* First, set cur_drive to 0 */
-          cur_disk = c(0);                                              /* AC000 */
-
-          /* Check for primary on drive 80h */
-          if (!(find_partition_type(uc(DOS12)) || find_partition_type(uc(DOS16)) || find_partition_type(uc(DOSNEW)))) /* AC000 */
-             BEGIN
-              drive_letter = c('C');                                    /* AC000 */
-             END
-          /* restore cur_disk to normal */
-          cur_disk = c(1);                                              /* AC000 */
-         END
+      cur_disk = saved_disk;
       return(drive_letter);
 END
 

@@ -96,13 +96,11 @@ unsigned    i;
    /* Intialize cur_disk indicator. It is 0 based for array usage */
    /* See if first disk readable */
    cur_disk = c(0);                                                     /* AC000 */
-   if (!good_disk[0])
-      BEGIN
-       cur_disk++;
-      END
+   while ((cur_disk < number_of_drives) && (!good_disk[cur_disk]))
+      cur_disk++;
 
    /* See if we have a valid combo of disk */
-   if ((good_disk[0]) || ((good_disk[1]) && (number_of_drives == uc(2)))) /* AC000 */
+   if (cur_disk < number_of_drives)
       BEGIN
        clear_screen(u(0),u(0),u(24),u(79));                             /* AC000 */
        /* Display the copyright */
@@ -148,7 +146,7 @@ unsigned    i;
             /* Get the menu input */
 
             /* See if more than one fixed disk */
-            if (number_of_drives == uc(2))                              /* AC000 */
+            if (number_of_drives > uc(1))
               BEGIN
                display(menu_4);
                max_input = c(5);                                        /* AC000 */
@@ -172,43 +170,17 @@ unsigned    i;
                           break;
 
                case  '5': BEGIN
-                           if (number_of_drives == uc(1))               /* AC000 */
+                           if (number_of_drives <= uc(1))
                               internal_program_error();
                            else
                               BEGIN
-                               /* Swap the number */
-                               if (cur_disk == c(0))                    /* AC000 */
+                               do
                                   BEGIN
-                                   if (good_disk[1])
-                                      BEGIN
-                                       cur_disk++;
-                                      END
-                                   else
-                                      BEGIN
-                                       /* Disk has error reading */
-                                       insert[0] = c('2');              /* AC000 */
-                                       display(error_30);
-                                      END
+                                   cur_disk++;
+                                   if (cur_disk >= number_of_drives)
+                                      cur_disk = c(0);
                                   END
-                               else
-                                  BEGIN
-
-                                   if (cur_disk == c(1))                /* AC000 */
-                                      BEGIN
-                                       if (good_disk[0])
-                                          BEGIN
-                                           cur_disk--;
-                                          END
-                                       else
-                                          BEGIN
-                                           /* Disk has error reading */
-                                           insert[0] = c('1');          /* AC000 */
-                                           display(error_30);
-                                          END
-                                      END
-                                   else
-                                      internal_program_error;
-                                  END
+                               while (!good_disk[cur_disk]);
                               END
                            break;
                          END

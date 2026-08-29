@@ -252,6 +252,7 @@ SERIAL_LOG3="$OUT/fdisk-2g-serial.log"
 BOOT_IMG4="$OUT/fdisk-interactive-boot.img"
 HDD_IMG4A="$OUT/fdisk-interactive-hdd1.img"
 HDD_IMG4B="$OUT/fdisk-interactive-hdd2.img"
+HDD_IMG4C="$OUT/fdisk-interactive-hdd3.img"
 SERIAL_LOG4="$OUT/fdisk-interactive-seed.log"
 SCREEN_LOG4="$OUT/fdisk-interactive-screen.log"
 QMP_SOCK4="$OUT/fdisk-interactive-qmp.sock"
@@ -259,7 +260,7 @@ BOOT_IMG5="$OUT/fdisk-2g-interactive-boot.img"
 HDD_IMG5="$OUT/fdisk-2g-interactive-hdd.img"
 SCREEN_LOG5="$OUT/fdisk-2g-interactive-screen.log"
 QMP_SOCK5="$OUT/fdisk-2g-interactive-qmp.sock"
-trap 'kill ${QEMU_PID4:-} ${QEMU_PID5:-} 2>/dev/null; rm -f "$HDD_IMG" "$HDD_IMG2" "$HDD_IMG3" "$HDD_IMG4A" "$HDD_IMG4B" "$HDD_IMG5" "$QMP_SOCK4" "$QMP_SOCK5" 2>/dev/null; true' EXIT
+trap 'kill ${QEMU_PID4:-} ${QEMU_PID5:-} 2>/dev/null; rm -f "$HDD_IMG" "$HDD_IMG2" "$HDD_IMG3" "$HDD_IMG4A" "$HDD_IMG4B" "$HDD_IMG4C" "$HDD_IMG5" "$QMP_SOCK4" "$QMP_SOCK5" 2>/dev/null; true' EXIT
 
 echo ""
 echo "=== FDISK edge case: primary-only, no extended partition (PTM P941) ==="
@@ -480,7 +481,7 @@ else
 fi
 
 echo ""
-echo "=== FDISK interactive workflows (two fixed disks) ==="
+echo "=== FDISK interactive workflows (three fixed disks) ==="
 
 cp "$FLOPPY" "$BOOT_IMG4"
 mcopy -o -i "$BOOT_IMG4" "$EXIT_COM" ::QEXIT.COM
@@ -489,17 +490,20 @@ mcopy -o -i "$BOOT_IMG4" "$EXIT_COM" ::QEXIT.COM
     printf 'CTTY AUX\r\n'
     printf 'FDISK 1 /PRI:5 /Q\r\n'
     printf 'FDISK 2 /PRI:5 /Q\r\n'
+    printf 'FDISK 3 /PRI:5 /Q\r\n'
     printf 'ECHO FDISK_INTERACTIVE_SEED_DONE\r\n'
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG4" - ::AUTOEXEC.BAT
 
 dd if=/dev/zero bs=1M count=20 of="$HDD_IMG4A" status=none
 dd if=/dev/zero bs=1M count=20 of="$HDD_IMG4B" status=none
+dd if=/dev/zero bs=1M count=20 of="$HDD_IMG4C" status=none
 timeout 90 qemu-system-i386 \
     -display none -monitor none \
     -drive if=floppy,index=0,format=raw,file="$BOOT_IMG4",cache=writethrough \
     -drive if=ide,index=0,format=raw,file="$HDD_IMG4A",cache=writethrough \
     -drive if=ide,index=1,format=raw,file="$HDD_IMG4B",cache=writethrough \
+    -drive if=ide,index=2,format=raw,file="$HDD_IMG4C",cache=writethrough \
     -boot a -m 4 -serial stdio \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     < /dev/null >"$SERIAL_LOG4" 2>&1 || true
@@ -514,6 +518,7 @@ qemu-system-i386 \
     -drive if=floppy,index=0,format=raw,file="$BOOT_IMG4",cache=writethrough \
     -drive if=ide,index=0,format=raw,file="$HDD_IMG4A",cache=writethrough \
     -drive if=ide,index=1,format=raw,file="$HDD_IMG4B",cache=writethrough \
+    -drive if=ide,index=2,format=raw,file="$HDD_IMG4C",cache=writethrough \
     -boot a -m 4 -qmp unix:"$QMP_SOCK4",server,nowait -no-reboot \
     >/dev/null 2>&1 &
 QEMU_PID4=$!
@@ -532,13 +537,16 @@ if [[ -S "$QMP_SOCK4" ]] && python3 "$REPO_ROOT/tests/screen_expect.py" \
     "FDISK Options" "5+ret" \
     "Current fixed disk drive: 2" "4+ret" \
     "Display Partition Information" "esc" \
-    "Current fixed disk drive: 2" "3+ret" \
+    "Current fixed disk drive: 2" "5+ret" \
+    "Current fixed disk drive: 3" "4+ret" \
+    "Display Partition Information" "esc" \
+    "Current fixed disk drive: 3" "3+ret" \
     "Delete DOS Partition or Logical DOS Drive" "1+ret" \
     "Delete Primary DOS Partition" "y+ret" \
     "Primary DOS Partition deleted" "esc" \
-    "Current fixed disk drive: 2" "esc" \
+    "Current fixed disk drive: 3" "esc" \
     "System will now restart" ""; then
-    ok "Interactive display, active, second-disk selection, and delete paths completed"
+    ok "Interactive display, active, third-disk selection, and delete paths completed"
 else
     fail "Interactive FDISK workflow did not complete"
 fi
@@ -555,14 +563,17 @@ kill "$QEMU_PID4" 2>/dev/null || true
 wait "$QEMU_PID4" 2>/dev/null || true
 QEMU_PID4=
 
-read -r active4a type4a type4b < <(python3 -c "
+read -r active4a type4a type4b type4c < <(python3 -c "
 with open('$HDD_IMG4A', 'rb') as f:
     f.seek(446)
     one = f.read(16)
 with open('$HDD_IMG4B', 'rb') as f:
     f.seek(446)
     two = f.read(16)
-print('{:02x} {:02x} {:02x}'.format(one[0], one[4], two[4]))
+with open('$HDD_IMG4C', 'rb') as f:
+    f.seek(446)
+    three = f.read(16)
+print('{:02x} {:02x} {:02x} {:02x}'.format(one[0], one[4], two[4], three[4]))
 " 2>/dev/null)
 
 if [[ "$active4a" == "80" && "$type4a" =~ ^(01|04|06)$ ]]; then
@@ -571,10 +582,10 @@ else
     fail "Interactive active selection did not persist (active=$active4a type=$type4a)"
 fi
 
-if [[ "$type4b" == "00" ]]; then
-    ok "Interactive deletion cleared disk 2 primary partition"
+if [[ "$type4b" =~ ^(01|04|06)$ && "$type4c" == "00" ]]; then
+    ok "Disk 2 remained intact and interactive deletion cleared disk 3"
 else
-    fail "Interactive deletion did not clear disk 2 primary partition (type=$type4b)"
+    fail "Third-disk mutation state is invalid (disk2=$type4b disk3=$type4c)"
 fi
 
 echo ""

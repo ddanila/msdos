@@ -138,7 +138,7 @@ BEGIN                                                                   /* AN000
   p_px.p_swi2_ptr         = (unsigned)&p_swi2;                          /* AN000 pointer to next control blk */
   p_px.p_maxk             = uc(NOVAL);                                  /* AN000 no keywords */
 
-  p_con.p_match_flag     = u(0x8001);                                   /* AN000 DRIVE NUMBER 1 OR 2 optional */
+  p_con.p_match_flag     = u(0x8001);                                   /* AN000 optional drive number */
   p_con.p_function_flag  = u(0x0000);                                   /* AN000 DO NOTHING FOR FUNCTION FLAG */
   p_con.p_buff1_ptr      = (unsigned)&p_buff;                           /* AN000 */
   p_con.p_val1_ptr       = (unsigned)&p_val;                            /* AN000 */
@@ -164,7 +164,7 @@ BEGIN                                                                   /* AN000
   p_val.p_range          =  uc(1);                                      /* AN000 - Number of ranges */
   p_val.p_range_one      =  uc(1);                                      /* AN000 - range number one */
   p_val.p_low_range      =  ul(1);                                      /* AN000 - low value for range */
-  p_val.p_high_range     =  ul(2);                                      /* AN000 - high value for range */
+  p_val.p_high_range     =  ul(MAX_FIXED_DISKS);                        /* AN000 - high value for range */
 
   sp_val.p_values      =  uc(1);                                        /* AN000 - Number of values items returned */
   sp_val.p_range       =  uc(1);                                        /* AN000 - Number of ranges */

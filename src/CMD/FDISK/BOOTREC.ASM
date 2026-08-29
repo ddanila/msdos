@@ -29,6 +29,12 @@ _master_boot_record label   byte
 
 include fdboot.inc
 include fdboot.inc
+include fdboot.inc
+include fdboot.inc
+include fdboot.inc
+include fdboot.inc
+include fdboot.inc
+include fdboot.inc
 
 _DATA      ENDS
 

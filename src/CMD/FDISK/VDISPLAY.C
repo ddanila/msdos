@@ -30,59 +30,30 @@ unsigned    insert_offset;
         third_display = FALSE;
         fourth_display = FALSE;
 
-        /* See what the starting drive letter is */
-        drive_letter = c(SEA);                                          /* AC000 */
-
-        /* See if primary on drive 1 */
+        /* DOS assigns primary partitions before logical drives. */
+        drive_letter = c(SEA);
         temp = cur_disk;
-        cur_disk = c(0);                                                /* AC000 */
-        if ( (find_partition_type(uc(DOS12))) ||
-             (find_partition_type(uc(DOS16))) ||
-             (find_partition_type(uc(DOSNEW)))) /* AC000 */
+        for (drive_num = c(0); drive_num < (char)number_of_drives; drive_num++)
            BEGIN
-            /* There is a Primary partition on drive 1, so increment for first logical drive */
-                drive_letter++;
+            cur_disk = drive_num;
+            if (find_partition_type(uc(DOS12)) ||
+                find_partition_type(uc(DOS16)) ||
+                find_partition_type(uc(DOSNEW)))
+               drive_letter++;
            END
-         cur_disk = temp;
 
-        /* See if there is a second drive */
-        if (number_of_drives == uc(2))                                  /* AC000 */
+        /* Logical drives on earlier physical disks precede this disk. */
+        for (drive_num = c(0); drive_num < temp; drive_num++)
            BEGIN
-
-            /* Go see if DOS partition on drive 2 */
-            temp = cur_disk;
-            cur_disk = c(1);                                            /* AC000 */
-            if ( (find_partition_type(uc(DOS12))) ||
-                 (find_partition_type(uc(DOS16))) ||
-                 (find_partition_type(uc(DOSNEW)))) /*AC000*/
-                BEGIN
-
-                /* There is a Primary partition on drive 2, so increment for first logical drive */
-                drive_letter++;
-               END
-            /* Are we on drive 2? If so, we got to find all the drives on drive 1 */
-            if (temp == c(1))                                           /* AC000 */
+            for (i = u(0); i < u(23); i++)
                BEGIN
-                /* Next, we need to see what is on drive 1 */
-                for (i=u(0); i < u(23); i++)                            /* AC000 */
-                   BEGIN
-                    /* See if there is a logical drive we understand in PC-DOS land */
-                    if ( (ext_table[0][i].sys_id == uc(DOS12)) ||
-                         (ext_table[0][i].sys_id == uc(DOS16)) ||
-                         (ext_table[0][i].sys_id == uc(DOSNEW)) )                    /* AC000  */
-                       BEGIN
-                        /* Found one, so kick up the first available drive letter */
-                        drive_letter++;
-                       END
-                   END
+                if ((ext_table[drive_num][i].sys_id == uc(DOS12)) ||
+                    (ext_table[drive_num][i].sys_id == uc(DOS16)) ||
+                    (ext_table[drive_num][i].sys_id == uc(DOSNEW)))
+                   drive_letter++;
                END
-
-            /* Reset the cur_drive to where it was */
-            cur_disk = temp;
            END
-
-
-
+        cur_disk = temp;
 
         /* loop thru the partitions, only print stuff if it is there */
 

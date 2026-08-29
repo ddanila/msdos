@@ -13,7 +13,7 @@
 
 char    _fdisk_pad[8];         /* pad to push globals past MSC null-ptr sentinel area */
 char    cur_disk;
-char    good_disk[2];
+char    good_disk[MAX_FIXED_DISKS];
 unsigned char    number_of_drives;
 char    reboot_flag;
 char    errorlevel;
@@ -26,18 +26,18 @@ unsigned char   display_page;
 unsigned char   video_attribute;                                        /* AN006 */
 
 
-unsigned        total_disk[2];
-unsigned        total_mbytes[2];                                        /* AN000 */
-unsigned char   max_sector[2];
-unsigned        max_head[2];                                            /* AC004 */
-unsigned        required_cyls[2];
+unsigned        total_disk[MAX_FIXED_DISKS];
+unsigned        total_mbytes[MAX_FIXED_DISKS];                          /* AN000 */
+unsigned char   max_sector[MAX_FIXED_DISKS];
+unsigned        max_head[MAX_FIXED_DISKS];                              /* AC004 */
+unsigned        required_cyls[MAX_FIXED_DISKS];
 
 unsigned       input_row;
 unsigned       input_col;
 char           insert[800];                                             /* AC000 */
 char           *pinsert = insert;
 
-extern unsigned char   master_boot_record[2][512];
+extern unsigned char   master_boot_record[MAX_FIXED_DISKS][512];
 unsigned char   boot_record[512];
 
 char            next_letter;                                            /* AN000 */
@@ -66,8 +66,8 @@ unsigned        Parse_Ptr;                                              /* AN010
 /****************************************************************************/
 /*                                                                          */
 
-struct entry part_table[2][4];
-struct entry ext_table[2][24];
+struct entry part_table[MAX_FIXED_DISKS][4];
+struct entry ext_table[MAX_FIXED_DISKS][24];
 struct freespace free_space[24];
 struct KeyData *input_data;
 struct dx_buffer_ioctl dx_buff;                                         /* AN000 */
@@ -82,4 +82,3 @@ struct sublistx sublistp[1];                                            /* AN010
 /*                                                                          */
 
 union REGS regs;
-
