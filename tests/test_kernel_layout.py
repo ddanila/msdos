@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-DOS = ROOT / "MS-DOS/v4.0/src/DOS"
+DOS = ROOT / "src/v4.0/src/DOS"
 
 
 def map_offset(map_file: Path, symbol: str) -> int:
@@ -47,7 +47,7 @@ def main() -> None:
         f"kernel HMA bias places DataVersion at {data_version:04x}, expected 0014"
     )
 
-    share_map = ROOT / "MS-DOS/v4.0/src/CMD/SHARE/share.map"
+    share_map = ROOT / "src/v4.0/src/CMD/SHARE/share.map"
     assert map_offset(share_map, "DataVersion") - group_base(share_map) == data_version, (
         "SHARE and the kernel disagree on the replicated DOSGROUP layout"
     )

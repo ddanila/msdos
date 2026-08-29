@@ -33,7 +33,7 @@ jobs:
       contents: write
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive

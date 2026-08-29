@@ -26,7 +26,7 @@ done
     exit 1
 }
 
-"$ROOT/bin/jwasm-bin" -Fo"$HIMEM" "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
+"$ROOT/bin/jwasm-bin" -Fo"$HIMEM" "$ROOT/src/v4.0/src/DEV/HIMEM/HIMEM.ASM"
 nasm -f bin "$ROOT/tests/loadhigh_child.asm" -o "$COM_CHILD"
 nasm -f bin "$ROOT/tests/loadhigh_exe_child.asm" -o "$EXE_CHILD"
 nasm -f bin "$ROOT/tests/loadhigh_state.asm" -o "$STATE"

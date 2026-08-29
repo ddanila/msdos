@@ -33,7 +33,7 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::DOSASYNC.COM
 if [[ "$MODE" == HIGH ]]; then
     "$REPO_ROOT/bin/jwasm-bin" -Fo"$HIMEM" \
-        "$REPO_ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
+        "$REPO_ROOT/src/v4.0/src/DEV/HIMEM/HIMEM.ASM"
     mcopy -o -i "$BOOT_IMG" "$HIMEM" ::HIMEM.SYS
     {
         printf 'DEVICE=A:\\HIMEM.SYS\r\n'

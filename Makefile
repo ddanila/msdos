@@ -1,6 +1,6 @@
 
 SHELL    := /bin/bash
-SRC      := $(CURDIR)/MS-DOS/v4.0/src
+SRC      := $(CURDIR)/src/v4.0/src
 BIN      := $(CURDIR)/bin
 OUT      := $(CURDIR)/out
 
@@ -647,5 +647,5 @@ test-dos-async-interrupt-qemu: deploy
 	bash tests/test_dos_async_interrupt_qemu.sh
 
 clean:
-	git -C "$(CURDIR)/MS-DOS" clean -fXq 2>/dev/null || true
+	git clean -fXq -- src/v4.0 2>/dev/null || true
 	rm -f $(FLOPPY) $(OUT)/serial.log

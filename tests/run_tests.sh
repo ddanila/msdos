@@ -4,7 +4,7 @@ set -uo pipefail
 export LC_ALL=C
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SRC="$REPO_ROOT/MS-DOS/v4.0/src"
+SRC="$REPO_ROOT/src/v4.0/src"
 BIN="$REPO_ROOT/bin"
 PASS=0
 FAIL=0

@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-SRC="$ROOT/MS-DOS/v4.0/src"
+SRC="$ROOT/src/v4.0/src"
 TEST_TMP=$(mktemp -d "${TMPDIR:-/tmp}/msdos-native-tools.XXXXXX")
 trap 'rm -f "$TEST_TMP"/*; rmdir "$TEST_TMP"' EXIT HUP INT TERM
 
@@ -39,7 +39,7 @@ root = sys.argv[1]
 test_tmp = sys.argv[2]
 wlib = runpy.run_path(root + "/bin/wlib")
 resolved = wlib["resolve_existing_casefold"](
-    root + "/MS-DOS/v4.0/src/MAPPER/mapper.lbr"
+    root + "/src/v4.0/src/MAPPER/mapper.lbr"
 )
 assert resolved.endswith("/MAPPER/MAPPER.LBR"), resolved
 

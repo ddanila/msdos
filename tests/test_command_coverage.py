@@ -34,7 +34,7 @@ def live_commands(source):
 def live_operational_switches(commands):
     """Derive documented non-help switches from each built-in's help block."""
     surfaces = {}
-    source_dir = ROOT / "MS-DOS/v4.0/src/CMD/COMMAND"
+    source_dir = ROOT / "src/v4.0/src/CMD/COMMAND"
     for path in source_dir.glob("*.ASM"):
         lines = path.read_text(encoding="latin-1").splitlines()
         for index, line in enumerate(lines):
@@ -58,7 +58,7 @@ def live_operational_switches(commands):
 
 
 def live_startup_switches():
-    source = (ROOT / "MS-DOS/v4.0/src/CMD/COMMAND/UINIT.ASM").read_text(
+    source = (ROOT / "src/v4.0/src/CMD/COMMAND/UINIT.ASM").read_text(
         encoding="latin-1"
     )
     switches = re.findall(

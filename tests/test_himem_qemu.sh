@@ -48,11 +48,11 @@ done
 mcopy -o -i "$FLOPPY" ::HIMEM.SYS "$HIMEM"
 
 "$ROOT/bin/jwasm-bin" -DUMB_TEST_REJECT -Fo"$REJECT_HIMEM" \
-    "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
+    "$ROOT/src/v4.0/src/DEV/HIMEM/HIMEM.ASM"
 "$ROOT/bin/jwasm-bin" -DA20_TEST_SKIP_FAST -Fo"$BIOS_A20_HIMEM" \
-    "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
+    "$ROOT/src/v4.0/src/DEV/HIMEM/HIMEM.ASM"
 "$ROOT/bin/jwasm-bin" -DA20_TEST_SKIP_FAST -DA20_TEST_SKIP_BIOS \
-    -Fo"$KBC_A20_HIMEM" "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
+    -Fo"$KBC_A20_HIMEM" "$ROOT/src/v4.0/src/DEV/HIMEM/HIMEM.ASM"
 nasm -f bin "$ROOT/tests/xms_reference_probe.asm" -o "$XMS_PROBE"
 nasm -f bin "$ROOT/tests/himem_provider_probe.asm" -o "$PROVIDER_PROBE"
 nasm -f bin "$ROOT/tests/umb_lifecycle_reference.asm" -o "$LIFECYCLE_PROBE"
@@ -72,8 +72,8 @@ build_fault_emm() {
     local work
     work=$(mktemp -d "${TMPDIR:-/tmp}/msdos-emm386-fault.XXXXXX")
     mkdir "$work/MEMM"
-    cp -R "$ROOT/MS-DOS/v4.0/src/MEMM/MEMM" "$work/MEMM/MEMM"
-    cp -R "$ROOT/MS-DOS/v4.0/src/MEMM/EMM" "$work/MEMM/EMM"
+    cp -R "$ROOT/src/v4.0/src/MEMM/MEMM" "$work/MEMM/MEMM"
+    cp -R "$ROOT/src/v4.0/src/MEMM/EMM" "$work/MEMM/EMM"
     find "$work" -type f \( -name '*.OBJ' -o -name '*.LIB' \
         -o -name 'EMM386.EXE' -o -name 'EMM386.SYS' \) -delete
     make -s -C "$ROOT" SRC="$work" \

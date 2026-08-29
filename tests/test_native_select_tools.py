@@ -11,7 +11,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SELECT = ROOT / "MS-DOS/v4.0/src/SELECT"
+SELECT = ROOT / "src/v4.0/src/SELECT"
 
 
 def digest(path: Path) -> str:

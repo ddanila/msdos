@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "MS-DOS/v4.0/src"
+SRC = ROOT / "src/v4.0/src"
 BUILDMSG = ROOT / "bin/buildmsg"
 CATALOG = SRC / "MESSAGES/USA-MS"
 SKELETONS = (

@@ -10,7 +10,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-COUNTRY = ROOT / "MS-DOS/v4.0/src/DEV/COUNTRY"
+COUNTRY = ROOT / "src/v4.0/src/DEV/COUNTRY"
 
 
 def digest(path: Path) -> str:

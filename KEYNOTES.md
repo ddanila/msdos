@@ -54,7 +54,7 @@ banner bytes. For a text-level edit, Latin-1 provides a one-byte round trip:
 ```python
 from pathlib import Path
 
-path = Path("MS-DOS/v4.0/src/path/to/file.asm")
+path = Path("src/v4.0/src/path/to/file.asm")
 text = path.read_text(encoding="latin-1")
 text = text.replace("old", "new")
 path.write_text(text, encoding="latin-1")
@@ -121,12 +121,13 @@ Coverage is contract based rather than source-line based. The manifests derive
 their inventories from source and build metadata, reject stale evidence, and
 require runnable tests wired into CI. See `tests/COVERAGE.md`.
 
-## Fork ownership
+## Repository ownership
 
 All project-specific work stays under `github.com/ddanila`:
 
-- `ddanila/msdos:master` for this build and test environment;
-- `ddanila/MS-DOS:main` for operating-system sources;
+- `ddanila/msdos:master` for the maintained system, its imported source,
+  build, tests, documentation, and releases;
+- archived `ddanila/MS-DOS:main` commits remain provenance for source history;
 - `ddanila/JWasm:custom` for assembler compatibility;
 - `ddanila/open-watcom-v2:custom` for compiler/linker/library changes;
 - `ddanila/kvikdos:custom` for emulator test support.

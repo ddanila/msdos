@@ -4,15 +4,6 @@ The native-toolchain migration and its compatibility-layer cleanup are
 complete. This file lists future work only; completed implementation history is
 available from Git.
 
-## Consolidate the active repositories
-
-Import the maintained `ddanila/MS-DOS` source history into this repository so
-source, build, tests, documentation, and releases can change atomically. Before
-the import, reconstruct and publish the four capability milestone tags. Follow
-the acceptance and archival procedure in
-`REPOSITORY_CONSOLIDATION_PLAN.md`; do not replace the submodule or archive the
-source repository piecemeal.
-
 ## Preserve the release gate
 
 For changes that affect generated binaries or runtime behavior:

@@ -93,18 +93,18 @@ def main():
     ci_corpus = (ROOT / "Makefile").read_text() + (ROOT / ".github/workflows/ci.yml").read_text()
     assembly_sources = {
         path.relative_to(ROOT).as_posix()
-        for path in (ROOT / "MS-DOS/v4.0/src/CMD").rglob("*.ASM")
+        for path in (ROOT / "src/v4.0/src/CMD").rglob("*.ASM")
         if "COMMAND" not in path.parts
         and source_switches(path.read_text(encoding="latin-1"))
     }
     c_sources = {
         path.relative_to(ROOT).as_posix()
-        for path in (ROOT / "MS-DOS/v4.0/src/CMD").rglob("*.C")
+        for path in (ROOT / "src/v4.0/src/CMD").rglob("*.C")
         if source_switches(path.read_text(encoding="latin-1"), "c_parser_literals")
     }
     include_sources = {
         path.relative_to(ROOT).as_posix()
-        for path in (ROOT / "MS-DOS/v4.0/src/CMD").rglob("*.INC")
+        for path in (ROOT / "src/v4.0/src/CMD").rglob("*.INC")
         if source_switches(path.read_text(encoding="latin-1"), "asm_include")
     }
     declared_assembly = {
@@ -137,21 +137,21 @@ def main():
     if {
         item["source"] for item in manifest["utilities"].values()
         if item.get("extractor") == "fc_code"
-    } != {"MS-DOS/v4.0/src/CMD/FC/FC.C"}:
+    } != {"src/v4.0/src/CMD/FC/FC.C"}:
         raise AssertionError("FC code-driven parser source is missing or stale")
     if {
         item["source"] for item in manifest["utilities"].values()
         if item.get("extractor") == "flush13_code"
-    } != {"MS-DOS/v4.0/src/DEV/SMARTDRV/FLUSH13.C"}:
+    } != {"src/v4.0/src/DEV/SMARTDRV/FLUSH13.C"}:
         raise AssertionError("FLUSH13 code-driven parser source is missing or stale")
     specialized_sources = {
         item.get("extractor"): item["source"] for item in manifest["utilities"].values()
         if item.get("extractor") in {"attrib_header", "c_define_switches", "fastopen_code"}
     }
     if specialized_sources != {
-        "attrib_header": "MS-DOS/v4.0/src/CMD/ATTRIB/ATTRIB.H",
-        "c_define_switches": "MS-DOS/v4.0/src/CMD/FDISK/PARSE.H",
-        "fastopen_code": "MS-DOS/v4.0/src/CMD/FASTOPEN/FASTINIT.ASM",
+        "attrib_header": "src/v4.0/src/CMD/ATTRIB/ATTRIB.H",
+        "c_define_switches": "src/v4.0/src/CMD/FDISK/PARSE.H",
+        "fastopen_code": "src/v4.0/src/CMD/FASTOPEN/FASTINIT.ASM",
     }:
         raise AssertionError(f"specialized C header parser sources are missing or stale: {specialized_sources}")
     incomplete = []

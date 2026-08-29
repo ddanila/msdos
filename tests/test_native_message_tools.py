@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCE = ROOT / "MS-DOS/v4.0/src"
+SOURCE = ROOT / "src/v4.0/src"
 CATALOG = SOURCE / "MESSAGES/USA-MS.MSG"
 
 NOSRV_CASES = {

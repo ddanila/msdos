@@ -3,7 +3,7 @@
 set -uo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SRC="$REPO_ROOT/MS-DOS/v4.0/src"
+SRC="$REPO_ROOT/src/v4.0/src"
 OUT="$REPO_ROOT/out"
 FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 COMMAND_COM="$SRC/CMD/COMMAND/COMMAND.COM"

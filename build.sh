@@ -3,8 +3,8 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 KVIKDOS="$SCRIPT_DIR/kvikdos/kvikdos"
-SRC="$SCRIPT_DIR/MS-DOS/v4.0/src"
-OZZIE="$SCRIPT_DIR/MS-DOS/v4.0-ozzie/bin/DISK1"
+SRC="$SCRIPT_DIR/src/v4.0/src"
+OZZIE="$SCRIPT_DIR/src/v4.0-ozzie/bin/DISK1"
 OUT="$SCRIPT_DIR/out"
 
 mkdir -p "$OUT"

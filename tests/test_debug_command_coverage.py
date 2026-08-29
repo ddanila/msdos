@@ -33,8 +33,8 @@ def main():
         raise AssertionError("unsupported DEBUG coverage schema")
 
     derived = {
-        "commands": debug_commands((ROOT / "MS-DOS/v4.0/src/CMD/DEBUG/DEBUG.ASM").read_text(encoding="latin-1")),
-        "ems_subcommands": ems_subcommands((ROOT / "MS-DOS/v4.0/src/CMD/DEBUG/DEBEMS.ASM").read_text(encoding="latin-1")),
+        "commands": debug_commands((ROOT / "src/v4.0/src/CMD/DEBUG/DEBUG.ASM").read_text(encoding="latin-1")),
+        "ems_subcommands": ems_subcommands((ROOT / "src/v4.0/src/CMD/DEBUG/DEBEMS.ASM").read_text(encoding="latin-1")),
     }
     ci_corpus = (ROOT / "Makefile").read_text() + (ROOT / ".github/workflows/ci.yml").read_text()
     incomplete = []

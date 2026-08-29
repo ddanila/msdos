@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "dispatch_source": "MS-DOS/v4.0/src/DOS/MS_TABLE.ASM",
+  "dispatch_source": "src/v4.0/src/DOS/MS_TABLE.ASM",
   "functions": {
     "01": {"level": "contract", "evidence": ["tests/int21_console_probe.asm", "tests/test_int21_console_qemu.sh"], "note": "Redirected character input returns and echoes an asserted byte"},
     "02": {"level": "contract", "evidence": ["tests/test_debug_qemu.sh"], "note": "DEBUG-launched probe writes through console output"},

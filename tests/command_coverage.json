@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "dispatch_source": "MS-DOS/v4.0/src/CMD/COMMAND/TDATA.ASM",
+  "dispatch_source": "src/v4.0/src/CMD/COMMAND/TDATA.ASM",
   "operational_switches": {
     "COPY": ["A", "B", "V"],
     "DEL": ["P"],

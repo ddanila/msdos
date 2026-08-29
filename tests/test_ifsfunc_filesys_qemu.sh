@@ -38,7 +38,7 @@ mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::IFSPROBE.COM
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 if [[ "$MODE" == HIGH ]]; then
     "$REPO_ROOT/bin/jwasm-bin" -Fo"$HIMEM_SYS" \
-        "$REPO_ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
+        "$REPO_ROOT/src/v4.0/src/DEV/HIMEM/HIMEM.ASM"
     mcopy -o -i "$BOOT_IMG" "$HIMEM_SYS" ::HIMEM.SYS
     {
         printf 'DEVICE=A:\\HIMEM.SYS\r\n'

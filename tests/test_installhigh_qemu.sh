@@ -21,7 +21,7 @@ done
     exit 1
 }
 
-"$ROOT/bin/jwasm-bin" -Fo"$HIMEM" "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
+"$ROOT/bin/jwasm-bin" -Fo"$HIMEM" "$ROOT/src/v4.0/src/DEV/HIMEM/HIMEM.ASM"
 nasm -f bin "$ROOT/tests/installhigh_test_tsr.asm" -o "$TSR"
 nasm -f bin "$ROOT/tests/loadhigh_state.asm" -o "$STATE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"

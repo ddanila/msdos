@@ -23,15 +23,15 @@ shadow source trees, broad post-link rewriting, or host-specific preprocessing.
 
 - Work only in repositories under `github.com/ddanila` unless the owner gives
   explicit permission to interact with an upstream project.
-- The superproject branch is `ddanila/msdos:master`.
-- MS-DOS source changes belong in `ddanila/MS-DOS:main`; update the superproject
-  gitlink only after that commit is pushed.
+- The canonical system and source branch is `ddanila/msdos:master`.
+- DOS source changes belong under `src/v4.0` in this repository. The archived
+  `ddanila/MS-DOS` repository is provenance, not an active development target.
 - JWasm changes belong in `ddanila/JWasm:custom`.
 - Open Watcom and kvikdos changes belong in each fork's `custom` branch. Their
   `master` branches are upstream synchronization branches and must not receive
   custom commits.
 - Preserve unrelated working-tree changes, especially generated or
-  line-ending-sensitive files inside submodules.
+  line-ending-sensitive files in the imported source and tool submodules.
 
 ## Source integrity
 
@@ -40,7 +40,7 @@ specific line endings. Never decode and rewrite an entire historical source as
 UTF-8 merely to change one line. Use a byte-preserving or Latin-1 round trip,
 and inspect the resulting diff for unrelated high-bit changes.
 
-The `.gitattributes` file in the MS-DOS fork defines line-ending policy. In
+The imported `src/.gitattributes` file defines line-ending policy. In
 particular, message inputs and build-control files may require CRLF while
 assembly and C sources require LF. Do not normalize these files casually.
 

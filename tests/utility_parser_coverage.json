@@ -1,23 +1,23 @@
 {
   "schema": 1,
   "utilities": {
-    "APPEND.EXE": {"source": "MS-DOS/v4.0/src/CMD/APPEND/APPENDP.INC", "extractor": "asm_include", "switches": {
+    "APPEND.EXE": {"source": "src/v4.0/src/CMD/APPEND/APPENDP.INC", "extractor": "asm_include", "switches": {
       "/E": {"level": "contract", "evidence": ["tests/test_append.sh"], "note": "Installs environment-backed state and is diagnosed when repeated after installation"},
       "/PATH": {"level": "contract", "evidence": ["tests/test_append.sh"], "note": "ON enables explicit-path lookup, OFF disables it, and invalid values are diagnosed"},
       "/X": {"level": "contract", "evidence": ["tests/test_append.sh"], "note": "ON and OFF transitions observably gate FIND and EXEC lookup"}
     }},
-    "ASSIGN.COM": {"source": "MS-DOS/v4.0/src/CMD/ASSIGN/ASSGPARM.INC", "extractor": "asm_include", "switches": {
+    "ASSIGN.COM": {"source": "src/v4.0/src/CMD/ASSIGN/ASSGPARM.INC", "extractor": "asm_include", "switches": {
       "/STA": {"level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Short synonym reports the active B-to-A redirection"},
       "/STATUS": {"level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Long synonym reports the active redirection and rejects a duplicate synonym"}
     }},
-    "ATTRIB.EXE": {"source": "MS-DOS/v4.0/src/CMD/ATTRIB/ATTRIB.H", "extractor": "attrib_header", "switches": {
+    "ATTRIB.EXE": {"source": "src/v4.0/src/CMD/ATTRIB/ATTRIB.H", "extractor": "attrib_header", "switches": {
       "+A": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Sets the archive attribute and a subsequent query reports the transition"},
       "+R": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Sets the read-only attribute alone and together with +A"},
       "-A": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Clears the archive attribute without changing the file payload"},
       "-R": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Clears the read-only attribute and permits deterministic cleanup"},
       "/S": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Recursively reports files from both the root and a nested directory"}
     }},
-    "BACKUP.COM": {"source": "MS-DOS/v4.0/src/CMD/BACKUP/BACKUP.C", "extractor": "c_parser_literals", "switches": {
+    "BACKUP.COM": {"source": "src/v4.0/src/CMD/BACKUP/BACKUP.C", "extractor": "c_parser_literals", "switches": {
       "/A": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Appends to an existing backup set and preserves earlier content"},
       "/D": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Date filtering includes and excludes deterministic source timestamps"},
       "/F": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Formats the private destination media before creating a restorable set"},
@@ -26,26 +26,26 @@
       "/S": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Recursively backs up and restores nested payloads"},
       "/T": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Time filtering includes and excludes deterministic source timestamps"}
     }},
-    "CHKDSK.COM": {"source": "MS-DOS/v4.0/src/CMD/CHKDSK/CHKPARSE.INC", "extractor": "asm_include", "switches": {
+    "CHKDSK.COM": {"source": "src/v4.0/src/CMD/CHKDSK/CHKPARSE.INC", "extractor": "asm_include", "switches": {
       "/F": {"level": "contract", "evidence": ["tests/test_chkdsk_fix.sh"], "note": "Repairs an injected orphan chain, preserves exact data, and leaves a clean filesystem"},
       "/V": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Verbose reporting exposes an actual file in the volume scan"}
     }},
-    "DISKCOMP.COM": {"source": "MS-DOS/v4.0/src/CMD/DISKCOMP/DCOMPPAR.ASM", "switches": {
+    "DISKCOMP.COM": {"source": "src/v4.0/src/CMD/DISKCOMP/DCOMPPAR.ASM", "switches": {
       "/1": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Limits comparison to one side and composes with /8"},
       "/8": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Limits comparison to eight sectors per track and composes with /1"}
     }},
-    "DISKCOPY.COM": {"source": "MS-DOS/v4.0/src/CMD/DISKCOPY/DCOPYPAR.ASM", "switches": {
+    "DISKCOPY.COM": {"source": "src/v4.0/src/CMD/DISKCOPY/DCOPYPAR.ASM", "switches": {
       "/1": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Copies one side and produces a single-sided target image"}
     }},
-    "EDLIN.COM": {"source": "MS-DOS/v4.0/src/CMD/EDLIN/EDLPARSE.ASM", "switches": {
+    "EDLIN.COM": {"source": "src/v4.0/src/CMD/EDLIN/EDLPARSE.ASM", "switches": {
       "/B": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_edlin_qemu.sh"], "note": "Binary mode reads beyond an embedded DOS EOF marker while text mode stops there"}
     }},
-    "FIND.EXE": {"source": "MS-DOS/v4.0/src/CMD/FIND/FIND.ASM", "switches": {
+    "FIND.EXE": {"source": "src/v4.0/src/CMD/FIND/FIND.ASM", "switches": {
       "/C": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Count mode is asserted alone and in every combination, including precedence over /N"},
       "/N": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Line numbering is observable alone and with inverted matches"},
       "/V": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Inverted matching is asserted alone and in every switch combination"}
     }},
-    "FORMAT.COM": {"source": "MS-DOS/v4.0/src/CMD/FORMAT/FORPARSE.INC", "extractor": "asm_include", "switches": {
+    "FORMAT.COM": {"source": "src/v4.0/src/CMD/FORMAT/FORPARSE.INC", "extractor": "asm_include", "switches": {
       "/1": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Combined with /4, creates a verified single-sided 180KB layout"},
       "/4": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Creates a verified 360KB layout on a 1.2MB drive"},
       "/8": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Creates the exact legacy 320KB pre-BPB FAT12 layout"},
@@ -59,10 +59,10 @@
       "/T": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Explicit track count reaches the drive-specific validation path with /N"},
       "/V": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Persists the exact requested volume label"}
     }},
-    "FILESYS.EXE": {"source": "MS-DOS/v4.0/src/CMD/FILESYS/FILESYS.C", "extractor": "c_parser_literals", "switches": {
+    "FILESYS.EXE": {"source": "src/v4.0/src/CMD/FILESYS/FILESYS.C", "extractor": "c_parser_literals", "switches": {
       "/D": {"level": "contract", "evidence": ["tests/test_config_ifs_qemu.sh", "tests/test_ifsfunc_filesys_qemu.sh"], "note": "Detaches a live purpose-built IFS and records the exact detach request"}
     }},
-    "FC.EXE": {"source": "MS-DOS/v4.0/src/CMD/FC/FC.C", "extractor": "fc_code", "switches": {
+    "FC.EXE": {"source": "src/v4.0/src/CMD/FC/FC.C", "extractor": "fc_code", "switches": {
       "/A": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Abbreviates long difference blocks while the control retains full output"},
       "/B": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Binary comparison reports exact hexadecimal offsets and identical input"},
       "/C": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Case-insensitive comparison treats case-only changes as equal"},
@@ -73,16 +73,16 @@
       "/T": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Preserves tabs so tab-versus-space inputs differ, unlike the control"},
       "/W": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Compresses whitespace so spacing-only input differences compare equal"}
     }},
-    "FDISK.EXE": {"source": "MS-DOS/v4.0/src/CMD/FDISK/PARSE.H", "extractor": "c_define_switches", "switches": {
+    "FDISK.EXE": {"source": "src/v4.0/src/CMD/FDISK/PARSE.H", "extractor": "c_define_switches", "switches": {
       "/EXT": {"level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Creates an exact extended-partition container whose CHS, LBA, and bounds are verified on disk"},
       "/LOG": {"level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Creates a logical drive with a valid EBR inside the verified extended partition"},
       "/PRI": {"level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Creates a requested primary partition in both mixed and primary-only disk scenarios"},
       "/Q": {"level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Suppresses reboot and exposes the source-defined batch errorlevels before and after partition creation"}
     }},
-    "FASTOPEN.EXE": {"source": "MS-DOS/v4.0/src/CMD/FASTOPEN/FASTINIT.ASM", "extractor": "fastopen_code", "switches": {
+    "FASTOPEN.EXE": {"source": "src/v4.0/src/CMD/FASTOPEN/FASTINIT.ASM", "extractor": "fastopen_code", "switches": {
       "/X": {"level": "contract", "evidence": ["tests/test_fastopen_cache_qemu.sh"], "note": "Installs the pathname cache in EMM386 expanded memory, then proves exact reads and stale-path invalidation across directory renames"}
     }},
-    "FLUSH13.EXE": {"source": "MS-DOS/v4.0/src/DEV/SMARTDRV/FLUSH13.C", "extractor": "flush13_code", "switches": {
+    "FLUSH13.EXE": {"source": "src/v4.0/src/DEV/SMARTDRV/FLUSH13.C", "extractor": "flush13_code", "switches": {
       "/C:OFF": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Disables caching of full-track reads and reports the resulting resident policy"},
       "/C:ON": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Enables caching of full-track reads and reports the resulting resident policy"},
       "/D": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Disables the resident cache and status reports the transition"},
@@ -102,24 +102,24 @@
       "/WT:OFF": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Disables write-through mode and status reports the resulting policy"},
       "/WT:ON": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Enables write-through mode and status reports the resulting policy"}
     }},
-    "GRAFTABL.COM": {"source": "MS-DOS/v4.0/src/CMD/GRAFTABL/GRTABPAR.ASM", "switches": {
+    "GRAFTABL.COM": {"source": "src/v4.0/src/CMD/GRAFTABL/GRTABPAR.ASM", "switches": {
       "/STA": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Short status synonym reaches the live code-page query"},
       "/STATUS": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_graftabl_qemu.sh"], "note": "Long status synonym reports the active resident code page"}
     }},
-    "GRAPHICS.COM": {"source": "MS-DOS/v4.0/src/CMD/GRAPHICS/GRPARMS.ASM", "switches": {
+    "GRAPHICS.COM": {"source": "src/v4.0/src/CMD/GRAPHICS/GRPARMS.ASM", "switches": {
       "/B": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_graphics_print_qemu.sh"], "note": "Duplicate background mode is rejected before the resident output contract"},
       "/LCD": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_graphics_print_qemu.sh"], "note": "Duplicate LCD mode and both orderings with printbox mode are rejected"},
       "/PB": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_graphics_print_qemu.sh"], "note": "Short printbox spelling selects STD, conflicts with LCD, and collides with its long synonym"},
       "/PRINTBOX": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_graphics_print_qemu.sh"], "note": "Long printbox spelling is recognized as a duplicate of the short synonym"},
       "/R": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_graphics_print_qemu.sh"], "note": "Duplicate reverse mode is rejected before the byte-exact patterned-screen capture"}
     }},
-    "KEYB.COM": {"source": "MS-DOS/v4.0/src/CMD/KEYB/PARSER.ASM", "switches": {
+    "KEYB.COM": {"source": "src/v4.0/src/CMD/KEYB/PARSER.ASM", "switches": {
       "/ID": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_keyb_layout_qemu.sh"], "note": "A concrete French keyboard ID loads and the resulting active layout is queried"}
     }},
-    "JOIN.EXE": {"source": "MS-DOS/v4.0/src/CMD/JOIN/JOIN.C", "extractor": "c_parser_literals", "switches": {
+    "JOIN.EXE": {"source": "src/v4.0/src/CMD/JOIN/JOIN.C", "extractor": "c_parser_literals", "switches": {
       "/D": {"level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Removes a live joined drive while preserving the underlying target payload"}
     }},
-    "MEM.EXE": {"source": "MS-DOS/v4.0/src/CMD/MEM/MEM.C", "extractor": "c_parser_literals", "switches": {
+    "MEM.EXE": {"source": "src/v4.0/src/CMD/MEM/MEM.C", "extractor": "c_parser_literals", "switches": {
       "/C": {"level": "contract", "evidence": ["tests/test_mem_umb_qemu.sh"], "note": "Classifies modules by conventional and upper-memory use"},
       "/CLASSIFY": {"level": "contract", "evidence": ["tests/test_mem_umb_qemu.sh"], "note": "Long classify synonym uses the same UMB-aware module view"},
       "/D": {"level": "contract", "evidence": ["tests/test_mem_umb_qemu.sh"], "note": "Reports detailed MCB addresses, ownership, types, and exact UMB region numbers"},
@@ -132,12 +132,12 @@
       "/MODULE:": {"level": "contract", "evidence": ["tests/test_mem_umb_qemu.sh"], "note": "Accepts the compact long named-module form"},
       "/PROGRAM": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Reports loaded programs and their memory use"}
     }},
-    "MODE.COM": {"source": "MS-DOS/v4.0/src/CMD/MODE/MODEPARS.ASM", "switches": {
+    "MODE.COM": {"source": "src/v4.0/src/CMD/MODE/MODEPARS.ASM", "switches": {
       "/STA": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Shortest synonym reports live console status"},
       "/STAT": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Intermediate synonym reports live console status"},
       "/STATUS": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_drivers_qemu.sh"], "note": "Long synonym reports console and prepared code-page status"}
     }},
-    "PRINT.COM": {"source": "MS-DOS/v4.0/src/CMD/PRINT/PRINT_T.ASM", "switches": {
+    "PRINT.COM": {"source": "src/v4.0/src/CMD/PRINT/PRINT_T.ASM", "switches": {
       "/B": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "The 512-byte and 16-KiB bounds are enforced before a functionally verified resident installation"},
       "/C": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Cancels a named queued file and returns to the batch"},
       "/D": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "Selects the printer device used by exact LPT payload capture"},
@@ -148,7 +148,7 @@
       "/T": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Terminates the active queue and returns to the batch"},
       "/U": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "Values above 255 are rejected and a valid busy-tick configuration reaches the working spooler"}
     }},
-    "REPLACE.EXE": {"source": "MS-DOS/v4.0/src/CMD/REPLACE/REPLACE.C", "extractor": "c_parser_literals", "switches": {
+    "REPLACE.EXE": {"source": "src/v4.0/src/CMD/REPLACE/REPLACE.C", "extractor": "c_parser_literals", "switches": {
       "/A": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Adds source files absent from the destination"},
       "/P": {"level": "contract", "evidence": ["tests/test_prompt_yesno.sh"], "note": "Prompts before replacement and honors the supplied decision"},
       "/R": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Replaces a read-only destination file"},
@@ -156,7 +156,7 @@
       "/U": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Replaces only when the source is newer"},
       "/W": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Waits for supplied input before replacement"}
     }},
-    "RESTORE.COM": {"source": "MS-DOS/v4.0/src/CMD/RESTORE/RESTPARS.C", "extractor": "c_parser_literals", "switches": {
+    "RESTORE.COM": {"source": "src/v4.0/src/CMD/RESTORE/RESTPARS.C", "extractor": "c_parser_literals", "switches": {
       "/A": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Restores files at or after a deterministic date boundary"},
       "/B": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Restores files at or before a deterministic date boundary"},
       "/E": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Restores files at or before a deterministic time boundary"},
@@ -166,23 +166,23 @@
       "/P": {"level": "contract", "evidence": ["tests/test_backup_restore.sh", "tests/test_prompt_yesno.sh"], "note": "Prompts before overwriting and honors the supplied decision"},
       "/S": {"level": "contract", "evidence": ["tests/test_backup_restore.sh"], "note": "Reconstructs nested directories and exact payloads"}
     }},
-    "SHARE.EXE": {"source": "MS-DOS/v4.0/src/CMD/SHARE/GSHARE2.ASM", "switches": {
+    "SHARE.EXE": {"source": "src/v4.0/src/CMD/SHARE/GSHARE2.ASM", "switches": {
       "/F": {"level": "contract", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_int21_compat_qemu.sh"], "note": "Values 0 and 65536 are rejected before valid file-table sizing participates in verified byte locking"},
       "/L": {"level": "contract", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_int21_compat_qemu.sh"], "note": "Values 0 and 65536 are rejected before valid lock-table sizing participates in verified byte locking"},
       "/NC": {"level": "contract", "evidence": ["tests/test_share_nlsfunc_exe2bin.sh", "tests/test_int21_compat_qemu.sh"], "note": "No-compatibility mode installs, omission toggles full checking back on, and repetition reaches the exact already-installed state"}
     }},
-    "SORT.EXE": {"source": "MS-DOS/v4.0/src/CMD/SORT/SORT.ASM", "switches": {
+    "SORT.EXE": {"source": "src/v4.0/src/CMD/SORT/SORT.ASM", "switches": {
       "/+": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Column sorting covers an ordinary value, both declared range endpoints, and adjacent rejections"},
       "/R": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Reverse mode produces exact descending line order"}
     }},
-    "SUBST.EXE": {"source": "MS-DOS/v4.0/src/CMD/SUBST/SUBST.C", "extractor": "c_parser_literals", "switches": {
+    "SUBST.EXE": {"source": "src/v4.0/src/CMD/SUBST/SUBST.C", "extractor": "c_parser_literals", "switches": {
       "/D": {"level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "Removes a live substitution while preserving the underlying directory payload"}
     }},
-    "TREE.COM": {"source": "MS-DOS/v4.0/src/CMD/TREE/TREEPAR.ASM", "switches": {
+    "TREE.COM": {"source": "src/v4.0/src/CMD/TREE/TREEPAR.ASM", "switches": {
       "/A": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Selects observable ASCII branch characters"},
       "/F": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Adds filenames to the directory tree"}
     }},
-    "XCOPY.EXE": {"source": "MS-DOS/v4.0/src/CMD/XCOPY/XCOPYPAR.ASM", "switches": {
+    "XCOPY.EXE": {"source": "src/v4.0/src/CMD/XCOPY/XCOPYPAR.ASM", "switches": {
       "/A": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Copies archived files without clearing the source archive bit"},
       "/D": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Date threshold includes and excludes deterministic source dates"},
       "/E": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Includes an empty source directory when combined with /S"},

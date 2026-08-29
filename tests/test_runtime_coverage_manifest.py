@@ -142,7 +142,7 @@ def main():
     validate_items(
         modes,
         select_modes(
-            (ROOT / "MS-DOS/v4.0/src/SELECT/SCN_PARM.ASM").read_text(
+            (ROOT / "src/v4.0/src/SELECT/SCN_PARM.ASM").read_text(
                 encoding="latin-1"
             )
         ),
@@ -152,7 +152,7 @@ def main():
     validate_items(
         directives,
         config_directives(
-            (ROOT / "MS-DOS/v4.0/src/BIOS/SYSINIT2.ASM").read_text(
+            (ROOT / "src/v4.0/src/BIOS/SYSINIT2.ASM").read_text(
                 encoding="latin-1"
             )
         ),

@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -134,12 +134,12 @@ jobs:
           name: floppy
           path: |
             out/floppy.img
-            MS-DOS/v4.0/src/CMD/COMMAND/COMMAND.COM
-            MS-DOS/v4.0/src/DEV/XMAEM/XMAEM.SYS
-            MS-DOS/v4.0/src/DEV/XMA2EMS/XMA2EMS.SYS
-            MS-DOS/v4.0/src/DEV/PRINTER/PRINTER.SYS
-            MS-DOS/v4.0/src/DEV/PRINTER/4201/4201.CPI
-            MS-DOS/v4.0/src/DEV/SMARTDRV/FLUSH13.EXE
+            src/v4.0/src/CMD/COMMAND/COMMAND.COM
+            src/v4.0/src/DEV/XMAEM/XMAEM.SYS
+            src/v4.0/src/DEV/XMA2EMS/XMA2EMS.SYS
+            src/v4.0/src/DEV/PRINTER/PRINTER.SYS
+            src/v4.0/src/DEV/PRINTER/4201/4201.CPI
+            src/v4.0/src/DEV/SMARTDRV/FLUSH13.EXE
           retention-days: 14
 
       - name: Upload published floppy images
@@ -160,7 +160,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -185,7 +185,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -216,7 +216,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -256,7 +256,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -350,7 +350,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -375,7 +375,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -400,7 +400,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -425,7 +425,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -468,7 +468,7 @@ jobs:
             variants: "SWITCHC SWITCHZ SELECT AUTOTEST"
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -493,7 +493,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -518,7 +518,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -543,7 +543,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -568,7 +568,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -593,7 +593,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -618,7 +618,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -643,7 +643,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -671,7 +671,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -696,7 +696,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -721,7 +721,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -746,7 +746,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -771,7 +771,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -796,7 +796,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -821,7 +821,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -846,7 +846,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -871,7 +871,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -896,7 +896,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -921,7 +921,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -946,7 +946,7 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -971,7 +971,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -996,7 +996,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -1021,7 +1021,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive
@@ -1049,7 +1049,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - name: Check out repo with submodules
+      - name: Check out repository
         uses: actions/checkout@v6
         with:
           submodules: recursive

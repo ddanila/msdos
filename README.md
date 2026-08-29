@@ -1,7 +1,8 @@
-# MS-DOS 5.0-compatible build and test environment
+# MS-DOS 5.0-compatible system
 
-Builds the maintained `ddanila/MS-DOS` source fork on Linux and macOS with
-custom JWasm and Open Watcom. The source layout retains its `v4.0` ancestry,
+This is the canonical source, build, test, and release repository for the
+maintained DOS system. It builds on Linux and macOS with custom JWasm and Open
+Watcom. The imported source under `src/v4.0` retains its historical layout,
 while the maintained system reports DOS 5.00 and implements its UMB/HMA memory
 surface. The build is fully native and open source; it does not execute
 Microsoft build tools or DOS emulators.
@@ -26,7 +27,8 @@ that name.
 ## Build and test
 
 ```sh
-git submodule update --init --recursive
+git clone --recurse-submodules https://github.com/ddanila/msdos.git
+cd msdos
 ./jwasm/build.sh
 make
 make test
@@ -43,8 +45,8 @@ The deployed floppy is written to `out/floppy.img`. Boot it interactively with:
 
 - [PLAN.md](PLAN.md) - toolchain architecture and design rationale.
 - [TODO.md](TODO.md) - open work.
-- [REPOSITORY_CONSOLIDATION_PLAN.md](REPOSITORY_CONSOLIDATION_PLAN.md) - plan
-  for importing the source history and making this the canonical repository.
+- [REPOSITORY_CONSOLIDATION_PLAN.md](REPOSITORY_CONSOLIDATION_PLAN.md) -
+  consolidation history and acceptance contract.
 - [KEYNOTES.md](KEYNOTES.md) - maintainer constraints and diagnostics.
 - [UMB_PLAN.md](UMB_PLAN.md) - UMB/HMA compatibility contract and delivery plan.
 - [DOS5_PARITY_MATRIX.md](DOS5_PARITY_MATRIX.md) - version gate and known gaps.
