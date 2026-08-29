@@ -79,6 +79,7 @@ jobs:
             DISKCOMP.COM
             DISKCOPY.COM
             SETVER.COM
+            DOSKEY.COM
             APPEND.EXE
             RECOVER.COM
             FASTOPEN.EXE
@@ -250,6 +251,9 @@ jobs:
 
       - name: SETVER compatibility table
         run: bash tests/test_setver_qemu.sh
+
+      - name: DOSKEY history and macros
+        run: bash tests/test_doskey_qemu.sh
 
   e2e-drivers:
     needs: build

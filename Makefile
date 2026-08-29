@@ -26,7 +26,7 @@ CFLAGS   := -AS -Os -Zp
 
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest deploy minimal-floppy run-boot test-sys test-help-qemu test-command-startup-qemu test-more-paging-qemu test-misc-qemu test-graftabl-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-setver-qemu test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu test-ansi-driver-qemu test-display-chain-qemu test-driver-sys-qemu test-printer-driver-qemu test-smartdrv-flush-qemu test-xma-drivers-qemu test-himem-qemu test-hma-qemu test-pre386-dosbox test-mem-umb-qemu test-loadhigh-qemu test-devicehigh-qemu test-installhigh-qemu test-root-exhaustion-qemu test-disk-exhaustion-qemu test-config-state-qemu test-config-switches-qemu test-config-stacks-qemu test-config-dos-qemu test-xms-umb-transaction-qemu test-config-ifs-qemu test-ifsfunc-filesys-qemu test-config-multitrack-qemu test-emm386-qemu test-int21-file-memory-qemu test-int21-path-errors-qemu test-int21-system-qemu test-int21-fcb-qemu test-int21-compat-qemu test-int21-console-qemu test-int21-process-qemu test-int21-tsr-qemu test-int21-media-qemu test-int21-readonly-media-qemu test-dos-interrupt-qemu test-dos-async-interrupt-qemu
+.PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest deploy minimal-floppy run-boot test-sys test-help-qemu test-command-startup-qemu test-more-paging-qemu test-misc-qemu test-graftabl-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-setver-qemu test-doskey-qemu test-share-nlsfunc-exe2bin test-append test-format test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu test-ansi-driver-qemu test-display-chain-qemu test-driver-sys-qemu test-printer-driver-qemu test-smartdrv-flush-qemu test-xma-drivers-qemu test-himem-qemu test-hma-qemu test-pre386-dosbox test-mem-umb-qemu test-loadhigh-qemu test-devicehigh-qemu test-installhigh-qemu test-root-exhaustion-qemu test-disk-exhaustion-qemu test-config-state-qemu test-config-switches-qemu test-config-stacks-qemu test-config-dos-qemu test-xms-umb-transaction-qemu test-config-ifs-qemu test-ifsfunc-filesys-qemu test-config-multitrack-qemu test-emm386-qemu test-int21-file-memory-qemu test-int21-path-errors-qemu test-int21-system-qemu test-int21-fcb-qemu test-int21-compat-qemu test-int21-console-qemu test-int21-process-qemu test-int21-tsr-qemu test-int21-media-qemu test-int21-readonly-media-qemu test-dos-interrupt-qemu test-dos-async-interrupt-qemu
 .PHONY: test-utility-parser-coverage-manifest
 .PHONY: test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest
 
@@ -137,7 +137,7 @@ $(INC_DIR)/CONST2.OBJ: $(INC_DIR)/CONST2.ASM
 $(INC_DIR)/MSDATA.OBJ: $(INC_DIR)/MSDATA.ASM $(DOS_DIR)/MSINIT.ASM
 	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "MSDATA.ASM,MSDATA.OBJ;"
 
-$(INC_DIR)/MSDOSME.OBJ: $(INC_DIR)/MSDOSME.ASM $(DOS_DIR)/MSDOS.CL1
+$(INC_DIR)/MSDOSME.OBJ: $(INC_DIR)/MSDOSME.ASM $(DOS_DIR)/DOSMES.ASM $(DOS_DIR)/MSDOS.CL1
 	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "MSDOSME.ASM,MSDOSME.OBJ;"
 
 $(INC_DIR)/MSTABLE.OBJ: $(INC_DIR)/MSTABLE.ASM
@@ -216,6 +216,7 @@ ARTIFACTS := \
     CMD/IFSFUNC/IFSFUNC.EXE \
     CMD/MODE/MODE.COM \
     CMD/SETVER/SETVER.COM \
+    CMD/DOSKEY/DOSKEY.COM \
     MEMM/MEMM/EMM386.SYS
 
 test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
@@ -453,6 +454,9 @@ test-config-multitrack-qemu: deploy
 test-setver-qemu: deploy
 	bash tests/test_setver_qemu.sh
 
+test-doskey-qemu: deploy
+	bash tests/test_doskey_qemu.sh
+
 FLOPPY      := $(OUT)/floppy.img
 BOOT_BIN    := $(SRC)/BOOT/MSBOOT.BIN
 BOOT_OFF    := 31744
@@ -481,6 +485,7 @@ XCOPY_EXE   := $(SRC)/CMD/XCOPY/XCOPY.EXE
 DISKCOMP_COM := $(SRC)/CMD/DISKCOMP/DISKCOMP.COM
 DISKCOPY_COM := $(SRC)/CMD/DISKCOPY/DISKCOPY.COM
 SETVER_COM := $(SRC)/CMD/SETVER/SETVER.COM
+DOSKEY_COM := $(SRC)/CMD/DOSKEY/DOSKEY.COM
 APPEND_EXE   := $(SRC)/CMD/APPEND/APPEND.EXE
 RECOVER_COM  := $(SRC)/CMD/RECOVER/RECOVER.COM
 FASTOPEN_EXE := $(SRC)/CMD/FASTOPEN/FASTOPEN.EXE
@@ -523,7 +528,7 @@ EMM386_SYS   := $(MEMM_DIR)/EMM386.SYS
 $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT_COM) $(CHKDSK_COM) $(DEBUG_COM) $(MEM_EXE) $(FDISK_EXE) \
            $(MORE_COM) $(SORT_EXE) $(LABEL_COM) $(FIND_EXE) $(TREE_COM) $(COMP_COM) \
            $(ATTRIB_EXE) $(EDLIN_COM) $(FC_EXE) \
-           $(NLSFUNC_EXE) $(ASSIGN_COM) $(XCOPY_EXE) $(DISKCOMP_COM) $(DISKCOPY_COM) $(SETVER_COM) \
+           $(NLSFUNC_EXE) $(ASSIGN_COM) $(XCOPY_EXE) $(DISKCOMP_COM) $(DISKCOPY_COM) $(SETVER_COM) $(DOSKEY_COM) \
            $(APPEND_EXE) $(RECOVER_COM) $(FASTOPEN_EXE) $(PRINT_COM) \
            $(FILESYS_EXE) $(REPLACE_EXE) $(JOIN_EXE) $(SUBST_EXE) \
            $(BACKUP_COM) $(RESTORE_COM) $(GRAFTABL_COM) $(KEYB_COM) $(KEYBOARD_SYS) $(SHARE_EXE) \
@@ -569,6 +574,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
 	mcopy -i $@ $(DISKCOMP_COM) ::DISKCOMP.COM
 	mcopy -i $@ $(DISKCOPY_COM) ::DISKCOPY.COM
 	mcopy -i $@ $(SETVER_COM) ::SETVER.COM
+	mcopy -i $@ $(DOSKEY_COM) ::DOSKEY.COM
 	mcopy -i $@ $(APPEND_EXE) ::APPEND.EXE
 	mcopy -i $@ $(RECOVER_COM) ::RECOVER.COM
 	mcopy -i $@ $(FASTOPEN_EXE) ::FASTOPEN.EXE

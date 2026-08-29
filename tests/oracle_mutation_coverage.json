@@ -14,6 +14,7 @@
     "DISKCOMP.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_diskcomp_diskcopy.sh"},
     "DISKCOPY.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_diskcomp_diskcopy.sh"},
     "DISPLAY.SYS": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_display_chain_qemu.sh"},
+    "DOSKEY.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_doskey_qemu.sh"},
     "DRIVER.SYS": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_driver_sys_qemu.sh"},
     "EDLIN.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_edlin_qemu.sh"},
     "EMM386.SYS": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_emm386_qemu.sh"},

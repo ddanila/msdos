@@ -35,7 +35,7 @@ features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
 | --- | --- | --- |
 | DOS in the HMA and programs/drivers in UMBs | Present on 386+ | Original HIMEM also supports 286 systems; repository HIMEM rejects pre-386 CPUs. |
 | MS-DOS Shell and Task Swapper | Missing | No DOSSHELL UI, program groups, file manager, session switching, EGA save driver, or task-switcher API. |
-| Command history and macros | Missing | No DOSKEY program or INT 2Fh DOSKEY services. |
+| Command history and macros | Partial | DOSKEY provides resident history, macros, edit-mode configuration, and INT 2Fh services. Multi-entry Up/Down/F7/F8/F9 navigation remains incomplete. |
 | Full-screen Editor and QBasic | Missing | No EDIT, QBASIC, BASIC runtime, help, or sample programs. EDLIN remains available. |
 | Online command help | Partial | Shipped executable `/?` surfaces are tested, but HELP and its searchable help database are absent. |
 | Delete/format recovery | Missing | MIRROR, UNDELETE, and UNFORMAT are absent. |
@@ -54,7 +54,6 @@ Every documented option of a missing command is necessarily unsupported.
 
 | Command | Missing DOS 5 surface |
 | --- | --- |
-| `DOSKEY` | History editing; insert/overstrike modes; `/REINSTALL`, `/BUFSIZE`, `/MACROS`, `/HISTORY`; macro creation, deletion, expansion, and persistence. |
 | `DOSSHELL` | Text/graphics Shell, `/T`, `/G`, resolution selection, `/B`, program groups, file operations, help, and task swapping. |
 | `EDIT` | Full-screen text editor and `/B`, `/G`, `/H`, `/NOHI`; depends on QBASIC. |
 | `EMM386` command | Runtime status plus `ON`, `OFF`, `AUTO`, `W=ON`, and `W=OFF`. The CONFIG.SYS driver is separate and only partial. |
@@ -72,6 +71,7 @@ Every documented option of a missing command is necessarily unsupported.
 | Command | Implemented | Missing or incompatible DOS 5 behavior |
 | --- | --- | --- |
 | `ATTRIB` | `+R`, `-R`, `+A`, `-A`, `+H`, `-H`, `+S`, `-S`, `/S` | No known DOS 5 option gap. |
+| `DOSKEY` | Resident history and macros; `/REINSTALL`, `/BUFSIZE`, `/MACROS`, `/HISTORY`, `/INSERT`, `/OVERSTRIKE`; `$1`-`$9`, `$*`, `$$`, `$G`, `$L`, `$B`, and queued `$T`; `4800h`/`4810h` APIs | Complete multi-entry Up/Down/Page/F7/F8/F9 and Alt-key interactive navigation. |
 | `SETVER` | List, add, update, and `/DELETE` against the resident kernel table; EXEC reports the selected version to matching programs | Persistent table storage, the CONFIG.SYS device-loader form, and `/QUIET`. |
 | `DIR` | Basic listing, `/P`, `/W` | `/A[:attributes]`, `/B`, `/L`, `/O[:sortorder]`, `/S`, negative forms, and `DIRCMD` defaults. These include DOS 5's recursive search and sorted-directory features. |
 | `DISKCOPY` | Copy, `/1`, and `/V` read-back verification | No known DOS 5 option gap. |
@@ -143,17 +143,18 @@ Known limitations remain:
 - Critical-error handling, sharing, locking, redirector, and asynchronous paths
   have representative contracts rather than exhaustive cross-product coverage.
 
-### Missing multiplex and task-switching APIs
+### Multiplex and task-switching APIs
 
-- DOSKEY `INT 2Fh/4800h` installed-state and `4810h` command-line service.
+- DOSKEY `INT 2Fh/4800h` installed-state and `4810h` command-line service are
+  implemented and runtime-tested.
 - Task-switcher `INT 2Fh/4B01h` through `4B05h`: notification-chain building,
   switcher detection/ID allocation/free, and instance-data discovery.
 - Task-switcher notification functions `0000h` through `0007h` and service
   functions `0000h` through `0006h`, including session suspend/resume,
   instance data, memory-region tests, and API-chain management.
 
-These are missing because DOSKEY and DOSSHELL/Task Swapper are absent; they
-must not be represented by no-op stubs if compatibility is claimed.
+The DOSKEY services are present. DOSSHELL/Task Swapper services remain absent
+and must not be represented by no-op stubs if compatibility is claimed.
 
 ### XMS, EMS, and device APIs
 
