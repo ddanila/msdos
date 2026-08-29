@@ -1,49 +1,7 @@
-# Maintainer notes
+# Maintaining the system
 
-These notes capture constraints that are easy to violate and difficult to
-rediscover.
-
-## Build architecture
-
-The default Makefile is the only production build path:
-
-- `bin/jwasm-masm` translates the historical MASM invocation and runs the
-  pinned custom JWasm in MASM 5.1 mode.
-- `bin/wcc`, `bin/wlink`, and `bin/wlib` translate the Microsoft-style command
-  forms used by the source makefiles and run vendored Open Watcom tools.
-- `bin/buildmsg`, `bin/buildidx`, `bin/exe2bin`, `bin/convert`, `bin/dbof`,
-  `bin/nosrvbld`, `bin/menubld`, `bin/asc2hlp`, `bin/compress`, and
-  `bin/mkcntry` are native implementations of required historical build
-  operations.
-- kvikdos is used only by `make test`. Production targets do not execute DOS
-  programs.
-
-The wrappers reject unknown options. If a newly encountered option has real
-semantics, translate it and add a focused contract. Do not silently ignore it.
-
-## Retained compatibility operations
-
-The cleanup deliberately retains a small set of transformations:
-
-- `bin/wcc` creates a temporary case-insensitive include view because the DOS
-  sources do not use host-consistent filename case. The source tree itself is
-  not rewritten.
-- `bin/wlib` clears OMF library-member timestamps for reproducible archives.
-- `bin/fix-exepack` replaces a known broken decompressor stub in affected
-  packed executables. It is idempotent and limited to recognized images.
-- `bin/exefix` updates only the requested MZ allocation fields for targets whose
-  runtime contract requires them.
-- `bin/patch-bpb` constructs the deployment image's BIOS parameter block.
-- `buildidx` treats the checked-in message catalog as read-only.
-
-Focused contracts for these operations live in
-`tests/test_toolchain_transforms.py`, `tests/test_kernel_layout.py`, and
-`tests/test_native_build_tools.sh`. Any attempt to remove or broaden a retained
-operation must update those contracts and pass the full runtime gate.
-
-There is no assembly shadow preprocessor, generated-message rewriter, kernel
-entry-byte patch, or global MZ-header canonicalizer. JWasm consumes the actual
-source paths and native `exe2bin` accepts valid compact MZ headers.
+The architecture and release contract are in [ARCHITECTURE.md](ARCHITECTURE.md).
+This file records operational constraints that are easy to violate.
 
 ## Source bytes and line endings
 

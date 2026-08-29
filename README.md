@@ -42,9 +42,9 @@ The deployed floppy is written to `out/floppy.img`. Boot it interactively with:
 
 ## Documentation
 
-- [PLAN.md](PLAN.md) - system and toolchain architecture.
+- [ARCHITECTURE.md](ARCHITECTURE.md) - system and toolchain design.
 - [TODO.md](TODO.md) - open work.
-- [KEYNOTES.md](KEYNOTES.md) - maintainer constraints and diagnostics.
+- [MAINTAINING.md](MAINTAINING.md) - maintainer constraints and diagnostics.
 - [MEMORY.md](MEMORY.md) - DOS 5 HMA/UMB/XMS/EMS invariants.
 - [tests/COVERAGE.md](tests/COVERAGE.md) - behavioral coverage and traceability.
 - [jwasm/README.md](jwasm/README.md) and [watcom/README.md](watcom/README.md) -

@@ -14,28 +14,9 @@ unexpectedly skips is a failure. A new source-derived interface, stale manifest
 entry, missing evidence file, observation-only entry, or uncovered contract
 fails the build.
 
-Current enforced inventory:
-
-| Inventory | Total | Contract tested | Justified exclusions |
-| --- | ---: | ---: | ---: |
-| INT 21h dispatch entries | 109 | 104 | 5 |
-| INT 21h function/error pairs | 110 | 94 | 16 |
-| Shipped runtime components | 56 | 56 | 0 |
-| SELECT.EXE modes | 2 | 2 | 0 |
-| CONFIG.SYS directives | 20 | 20 | 0 |
-| COMMAND.COM built-ins and startup switches | 43 | 43 | 0 |
-| Standalone utility switch/operator forms | 133 | 133 | 0 |
-| Shipped executable interfaces | 41 | 41 | 0 |
-| DEBUG commands and EMS subcommands | 24 | 24 | 0 |
-| Executable help surfaces | 41 | 37 | 4 no-help interfaces |
-| DOS interrupt surfaces | 11 | 11 | 0 |
-| Installable-device request surfaces | 140 | 92 | 48 |
-
-The 48 device exclusions are post-failed-INIT requests in XMA drivers and are
-runtime-proven unreachable on the supported QEMU machine. Other exclusions
-must likewise identify the live source condition that makes a path absent,
-disabled, unshipped, or unreachable; historical documentation alone is not
-evidence.
+Verifier output is the authoritative inventory and count. Exclusions must
+identify the live source condition that makes a path absent, disabled,
+unshipped, or unreachable; historical documentation alone is not evidence.
 
 ## Evidence levels
 
@@ -76,7 +57,7 @@ two positional modes from its parser definitions.
 ### COMMAND.COM
 
 `command_coverage.json` is checked by `test_command_coverage.py`. The verifier
-derives all 37 live internal commands and six startup switches. Operational
+derives all live internal commands and startup switches. Operational
 subforms such as COPY `/A`, `/B`, and `/V`, DIR `/P` and `/W`, and DEL/ERASE
 `/P` are part of the contract evidence rather than separate inferred commands.
 
@@ -163,5 +144,4 @@ make test-dos-interrupt-coverage-manifest
 make test-device-request-coverage-manifest
 ```
 
-The per-inventory output is the authoritative current count. Update the table
-above in the same commit whenever a source-derived total changes.
+Each verifier prints its current source-derived totals.
