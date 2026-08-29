@@ -38,7 +38,6 @@ run_case() {
     mcopy -o -i "$image" "$QEXIT" ::QEXIT.COM
     if [[ $provider == yes ]]; then
         mcopy -o -i "$image" "$HIMEM" ::HIMEM.SYS
-        mcopy -o -i "$image" "$ROOT/MS-DOS/v4.0/src/MEMM/MEMM/EMM386.SYS" ::EMM386.SYS
         {
             printf 'DEVICE=HIMEM.SYS\r\n'
             printf 'DEVICE=EMM386.SYS RAM M5\r\n'

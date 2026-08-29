@@ -43,7 +43,6 @@ run_case() {
     mcopy -o -i "$image" "$QEXIT" ::QEXIT.COM
     if [[ $with_provider == yes ]]; then
         mcopy -o -i "$image" "$HIMEM" ::HIMEM.SYS
-        mcopy -o -i "$image" "$ROOT/MS-DOS/v4.0/src/MEMM/MEMM/EMM386.SYS" ::EMM386.SYS
         if [[ $name == region-missing || $name == region-shrink || $name == region-min-large || $name == multi-reject ]]; then
             mcopy -o -i "$image" "$LINKED_LOW_PROBE" ::DHSTATE.COM
         else

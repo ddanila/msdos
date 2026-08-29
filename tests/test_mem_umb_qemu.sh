@@ -37,7 +37,6 @@ IMAGE="$OUT/mem-umb.img"
 LOG="$OUT/mem-umb.log"
 cp "$FLOPPY" "$IMAGE"
 mcopy -o -i "$IMAGE" "$HIMEM" ::HIMEM.SYS
-mcopy -o -i "$IMAGE" "$ROOT/MS-DOS/v4.0/src/MEMM/MEMM/EMM386.SYS" ::EMM386.SYS
 mcopy -o -i "$IMAGE" "$STATE" ::STATE.COM
 mcopy -o -i "$IMAGE" "$QEXIT" ::QEXIT.COM
 {
