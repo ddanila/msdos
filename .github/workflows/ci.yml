@@ -314,6 +314,9 @@ jobs:
       - name: DOS high-memory residency
         run: bash tests/test_hma_qemu.sh
 
+      - name: Pre-386 high-memory fallback
+        run: bash tests/test_pre386_dosbox.sh
+
       - name: MEM upper-memory diagnostics
         run: bash tests/test_mem_umb_qemu.sh
 

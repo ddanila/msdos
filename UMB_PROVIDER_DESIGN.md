@@ -193,3 +193,10 @@ rejection after a deliberately backing-limited partial mapping, and live-UMB
 data stability during EMS remapping are now covered. HIMEM is still omitted
 from published images until the remaining plan-wide gates pass. The repository
 provider itself now satisfies the Phase 3 exit criterion.
+
+The HMA acceptance matrix covers low and high residency, exact unavailable-HMA
+fallback diagnostics, reclaimed conventional memory, all A20 backends, a
+driver disabling A20, synchronous and asynchronous DOS entry, EXEC cleanup,
+installable-filesystem redirector traffic, warm reboot, and safe 8086/286
+fallback. These contracts satisfy the Phase 4 software and pre-386 gates; the
+plan-wide cycle-accurate or real 386+ acceptance run remains separate.
