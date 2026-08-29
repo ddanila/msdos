@@ -1,0 +1,11 @@
+JWASM ?= jwasm
+
+.PHONY: all clean
+
+all: HIMEM.SYS
+
+HIMEM.SYS: HIMEM.ASM
+	$(JWASM) -q -bin -Fo$@ $<
+
+clean:
+	rm -f HIMEM.SYS

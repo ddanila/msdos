@@ -1,0 +1,20 @@
+# DOS text files: must stay CRLF — DOS tools parse them as text and
+# BUILDIDX computes byte offsets into MSG files.
+# *.MSG uses binary (not text eol=crlf) so git stores the blob as-is;
+# the upstream blob already has CRLF bytes, and binary prevents the
+# normalization mismatch that causes USA-MS.MSG to always show as modified.
+*.MSG   binary
+*.SKL   text eol=crlf
+*.LBR   text eol=crlf
+*.LNK   text eol=crlf
+*.INF   text eol=crlf
+*.BAT   text eol=crlf
+*.INI   text eol=crlf
+*.IDX   text eol=crlf
+*.PRO   text eol=crlf
+
+# Source files: LF only — CRLF corrupts MASM THEADR records in .OBJ output
+*.ASM   text eol=lf
+*.C     text eol=lf
+*.H     text eol=lf
+*.INC   text eol=lf
