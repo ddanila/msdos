@@ -39,7 +39,8 @@
       "/8": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Limits comparison to eight sectors per track and composes with /1"}
     }},
     "DISKCOPY.COM": {"source": "src/CMD/DISKCOPY/DCOPYPAR.ASM", "switches": {
-      "/1": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Copies one side and produces a single-sided target image"}
+      "/1": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Copies one side and produces a single-sided target image"},
+      "/V": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Reads each written target track back and compares it with the source buffer"}
     }},
     "EDLIN.COM": {"source": "src/CMD/EDLIN/EDLPARSE.ASM", "switches": {
       "/B": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_edlin_qemu.sh"], "note": "Binary mode reads beyond an embedded DOS EOF marker while text mode stops there"}

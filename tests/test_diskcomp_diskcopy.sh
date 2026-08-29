@@ -81,6 +81,8 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'IF ERRORLEVEL 1 ECHO DISKCOMP_ARITY_REJECTED\r\n'
     printf 'DISKCOPY A: B: /1 /1\r\n'
     printf 'IF ERRORLEVEL 1 ECHO DISKCOPY_DUPLICATE_REJECTED\r\n'
+    printf 'DISKCOPY A: B: /V /V\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO DISKCOPY_V_DUPLICATE_REJECTED\r\n'
     printf 'DISKCOPY A: B: C:\r\n'
     printf 'IF ERRORLEVEL 1 ECHO DISKCOPY_ARITY_REJECTED\r\n'
 
@@ -184,14 +186,14 @@ fi
 echo ""
 echo "--- DISKCOPY /V tests ---"
 
-if grep -qi "Invalid switch" "$SERIAL_LOG"; then
-    ok "DISKCOPY A: B: /V (rejected with 'Invalid switch' — /V not implemented in parser)"
+if grep -qi "Verifying target diskette" "$SERIAL_LOG"; then
+    ok "DISKCOPY A: B: /V (read-back verification executed)"
 else
-    fail "DISKCOPY A: B: /V (expected 'Invalid switch' — /V is undocumented stub)"
+    fail "DISKCOPY A: B: /V (expected verification pass)"
 fi
 
 if grep -q "DISKCOPY_V_DONE" "$SERIAL_LOG"; then
-    ok "DISKCOPY A: B: /V (batch continued after error)"
+    ok "DISKCOPY A: B: /V (batch continued after verified copy)"
 else
     fail "DISKCOPY A: B: /V (batch hung or crashed)"
 fi
@@ -242,6 +244,7 @@ if grep -q 'DISKCOMP_DUPLICATE_REJECTED' "$SERIAL_LOG" \
     && grep -q 'DISKCOMP_UNKNOWN_REJECTED' "$SERIAL_LOG" \
     && grep -q 'DISKCOMP_ARITY_REJECTED' "$SERIAL_LOG" \
     && grep -q 'DISKCOPY_DUPLICATE_REJECTED' "$SERIAL_LOG" \
+    && grep -q 'DISKCOPY_V_DUPLICATE_REJECTED' "$SERIAL_LOG" \
     && grep -q 'DISKCOPY_ARITY_REJECTED' "$SERIAL_LOG" \
     && [[ $(grep -ci 'Invalid switch' "$SERIAL_LOG") -ge 3 ]] \
     && [[ $(grep -ci 'Too many parameters' "$SERIAL_LOG") -ge 2 ]]; then

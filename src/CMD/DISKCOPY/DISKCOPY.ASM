@@ -236,6 +236,7 @@ CSEG	       SEGMENT PARA PUBLIC 'CODE' ;AN000;
  EXTRN	MSGNUM_LOAD_SOURCE   :WORD ;AC000;"Insert SOURCE diskette in drive %2:"
  EXTRN	MSGNUM_LOAD_TARGET   :WORD ;AC000;"Insert TARGET diskette in drive %2:"
  EXTRN	MSGNUM_TARGET_MB_UNUSABLE :WORD ;AC000;"Target diskette may be unusable"
+ EXTRN MSGNUM_TARGET_UNUSABLE :WORD
  EXTRN	MSGNUM_NOT_COMPATIBLE :WORD ;AC000;"Drive types or diskette types",CR,LF
 				   ;"not compatible"
  EXTRN	MSGNUM_BAD_SOURCE  :WORD   ;AC000;"SOURCE diskette bad or incompatible"
@@ -276,6 +277,9 @@ CSEG	       SEGMENT PARA PUBLIC 'CODE' ;AN000;
  PUBLIC T_DRV_HEADS		   ;
  PUBLIC T_DRV_TRACKS		   ;
  PUBLIC USER_OPTION		   ;
+ PUBLIC VERIFY_OPTION
+ PUBLIC BUFFER_LIMIT
+ PUBLIC BUFFER_BASE
  PUBLIC COPY_TYPE		   ;
  PUBLIC BUFFER_BEGIN		   ;
  PUBLIC BUFFER_END		   ;
@@ -332,9 +336,14 @@ RECOMMENDED_BYTES_SECTOR DW 0	   ;RECOMMENED BYTES/SECTOR FROM DEVICE PARA
 SOURCE_DRIVE	     DB  0	   ;SOURCE DRIVE ID: 1=DRV A, 2=DRV B ETC.
 TARGET_DRIVE	     DB  0	   ;TARGET DRIVE ID
 USER_OPTION	     DB  0	   ;=1 OF /1 OPTION IS ENTERED
+VERIFY_OPTION        DB  0       ;nonzero requests post-write comparison
 COPY_TYPE	     DB  1	   ;SINGLE DRV COPY=1, DOUBLE DRIVE COPY=2
 BUFFER_BEGIN	     DW  1000H	   ;BEGINNING OF BUFFER ADDR [IN SEGMENT]
+BUFFER_BASE          DW  1000H    ;unreserved bottom of available memory
 BUFFER_END	     DW  3FF0H	   ;END OF BUFFER ADDR [IN SEGMENT]
+BUFFER_LIMIT         DW  3FF0H    ;unreserved top of available memory
+VERIFY_BUFFER        DW  0        ;one-side target readback buffer segment
+VERIFYING_STR        DB  0DH,0AH,"Verifying target diskette",0DH,0AH,"$"
 S_DRV_SECT_TRACK     DB  ?	   ;SECT/TRACK, device informations.
 S_DRV_HEADS	     DB  ?	   ;# OF HEADS
 S_DRV_TRACKS	     DB  ?	   ;# OF TRACKS
@@ -517,9 +526,10 @@ TAddress_seg	     dw  ?	   ;
 ;  =  =  =  =  =  =  =	=  =  =  =  =
 DISKCOPY_HELP_STR DB "Copies the contents of one floppy disk to another.",0Dh,0Ah
 		  DB 0Dh,0Ah
-		  DB "DISKCOPY [d1:] [d2:] [/1]",0Dh,0Ah
+		  DB "DISKCOPY [d1:] [d2:] [/1] [/V]",0Dh,0Ah
 		  DB 0Dh,0Ah
-		  DB "  /1    Copy only the first side of the disk",0Dh,0Ah,"$"
+		  DB "  /1    Copy only the first side of the disk",0Dh,0Ah
+		  DB "  /V    Verify that the information is copied correctly",0Dh,0Ah,"$"
 
 		     PATHLABL DISKCOPY ;AN015;
 		     HEADER <BEGIN - VERSION CHECK, SYSMSG INIT, EXIT TO DOS> ;AN000;
@@ -880,6 +890,12 @@ WRITE_TARGET PROC		   ;WRITE DATA FROM MEMORY TO TARGET DISKETTE*
 
 ;  $ENDIF			   ;
 $$IF43:
+   CMP   VERIFY_OPTION, FALSE
+   JE    NO_VERIFY_MESSAGE
+   MOV   DX,OFFSET VERIFYING_STR
+   MOV   AH,09H
+   INT   21H
+NO_VERIFY_MESSAGE:
    MOV	 TARGET_OP, ON		   ;INDICATE A OPERATION ON TARGET
    MOV	 BX,BUFFER_BEGIN	   ;
    MOV	 BUFFER_PTR,BX		   ;INITIALIZE BUFFER POINTER
@@ -1168,6 +1184,10 @@ $$IF73:
 ;  $ENDLOOP E			   ;
    JNE $$DO73
 $$EN73:
+       CMP   VERIFY_OPTION, FALSE
+       JE    VERIFY_WRITE_DONE
+       CALL  VERIFY_WRITE
+VERIFY_WRITE_DONE:
 .XLIST				   ;
 ;this next is dead code, nobody calls WO_FATAL, so the move copy_status
 ;and the print not compatible msg should be removed, and just the JMP WO_EXIT
@@ -1183,6 +1203,71 @@ WO_EXIT:			   ;
    RET				   ;
 
 WRITE_OP ENDP			   ;
+;  =  =  =  =  =  =  = =  =  =  =  =
+; Read the just-written target side into reserved memory and compare it with
+; the source buffer.  The normal copy buffer remains intact for the compare.
+VERIFY_WRITE PROC NEAR
+VERIFY_READ_AGAIN:
+   XOR   AX,AX
+   MOV   AL,SIDE
+   MOV   Head,AX
+   MOV   AL,TRACK_TO_WRITE
+   MOV   Cylinder,AX
+   MOV   FirstSectors,0
+   MOV   AX,VERIFY_BUFFER
+   MOV   Taddress_seg,AX
+   MOV   Taddress_off,0
+   XOR   BX,BX
+   MOV   BL,TARGET_DRIVE
+   MOV   CL,READ_FUNC
+   MOV   DX,OFFSET IOCTL_R_W
+   CALL  GENERIC_IOCTL
+   CMP   IO_ERROR,NO_ERROR
+   JE    VERIFY_COMPARE
+   CMP   IO_ERROR,SOFT_ERROR
+   JE    VERIFY_READ_AGAIN
+   MOV   AH,READ_FUNC
+   MOV   DL,TARGET_DRIVE
+   CALL  ERROR_MESSAGE
+   JMP   SHORT VERIFY_FAILED
+
+VERIFY_COMPARE:
+   XOR   AX,AX
+   MOV   AL,END_OF_TRACK
+   MUL   bSECTOR_SIZE
+   MOV   CX,AX
+   SHR   CX,1
+   PUSH  BX
+   PUSH  DS
+   PUSH  ES
+   PUSH  SI
+   PUSH  DI
+   MOV   AX,BUFFER_PTR
+   MOV   DS,AX
+   MOV   AX,CS:VERIFY_BUFFER
+   MOV   ES,AX
+   XOR   SI,SI
+   XOR   DI,DI
+   CLD
+   REPE  CMPSW
+   PUSHF
+   POP   BX
+   POP   DI
+   POP   SI
+   POP   ES
+   POP   DS
+   PUSH  BX
+   POPF
+   POP   BX
+   JE    VERIFY_EXIT
+   PRINT MSGNUM_TARGET_UNUSABLE
+
+VERIFY_FAILED:
+   INC   COPY_ERROR
+   MOV   EXITFL,EXPAR
+VERIFY_EXIT:
+   RET
+VERIFY_WRITE ENDP
 ;  =  =  =  =  =  =  =	=  =  =  =  =
    HEADER <FORMAT_ALL - FORMATS ALL TRACKS TO END> ;AN000;
 ;*****************************************************************************
@@ -1663,6 +1748,21 @@ CALC_TRACK_SIZE ENDP		   ;
 CHECK_MEMORY_SIZE PROC NEAR	   ;MAKE SURE WE HAVE ENOUGH TO COPY 1 TRACK INTO
 ;			      TO BUFFER ELSE ABORT COPY 		     *
 ;*****************************************************************************
+   MOV   AX,BUFFER_LIMIT
+   MOV   BUFFER_END,AX
+   MOV   AX,BUFFER_BASE
+   MOV   BUFFER_BEGIN,AX
+   MOV   VERIFY_BUFFER,0
+   CMP   VERIFY_OPTION,FALSE
+   JE    CMS_HAVE_LIMIT
+   XOR   AX,AX
+   MOV   AL,SECTOR_SIZE
+   MUL   END_OF_TRACK
+   MOV   BX,BUFFER_BEGIN
+   MOV   VERIFY_BUFFER,BX
+   ADD   BX,AX
+   MOV   BUFFER_BEGIN,BX
+CMS_HAVE_LIMIT:
    MOV	 AX,BUFFER_END		   ;CALCULATE AVAILABLE MEMORY
    SUB	 AX,BUFFER_BEGIN	   ;IN SEGMENTS
    CMP	 AX,TRACK_SIZE		   ;DO WE HAVE ENOUGH TO STORE A CYLINDER?

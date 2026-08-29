@@ -7,7 +7,7 @@
 :use 3 PARSE10             ;AN000;CR,LF,"Invalid parameter",CR,LF
 
 :def 4 "Do not specify filename(s)",CR,LF                                       ;AN000;
-"Command Format: DISKCOPY d: d: [/1]",CR,LF                                     ;AN000;
+"Command Format: DISKCOPY d: d: [/1] [/V]",CR,LF                                ;AN000;
 
 :def 5 CR,LF,"Invalid drive specification",CR,LF                                ;AN000;
 "Specified drive does not exist",CR,LF                                          ;AN000;
@@ -62,4 +62,4 @@
 :end                                                                            ;AN000;
 lume Serial Number is %1-%2",CR,LF
 
-:end        
+:end
