@@ -12,6 +12,7 @@ DISABLED_PROBE="$OUT/xms-umb-disabled.com"
 REGISTER_PROBE="$OUT/umb-registers.com"
 REGION_PROBE="$OUT/umb-region-filter.com"
 RANDOM_MODEL_PROBE="$OUT/umb-random-model.com"
+LOADER_SEQUENCE_PROBE="$OUT/umb-loader-sequence.com"
 
 for tool in nasm mcopy qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || {
@@ -27,6 +28,7 @@ nasm -f bin "$ROOT/tests/xms_umb_disabled_probe.asm" -o "$DISABLED_PROBE"
 nasm -f bin "$ROOT/tests/umb_register_reference.asm" -o "$REGISTER_PROBE"
 nasm -f bin "$ROOT/tests/umb_region_filter_probe.asm" -o "$REGION_PROBE"
 nasm -f bin "$ROOT/tests/umb_random_model_probe.asm" -o "$RANDOM_MODEL_PROBE"
+nasm -f bin "$ROOT/tests/umb_loader_sequence_probe.asm" -o "$LOADER_SEQUENCE_PROBE"
 
 for mode in 0 1 2 3 4 5 6 7 8 9; do
     provider="$OUT/xms-umb-provider-$mode.sys"
@@ -209,4 +211,37 @@ if ! grep -q '^UMB_REGION_FILTER_PASS' "$log"; then
     exit 1
 fi
 
-echo "  PASS: XMS transactions, UMB allocator lifecycle/model stress, and register contract"
+provider="$OUT/xms-umb-provider-loader.sys"
+image="$OUT/floppy-umb-loader.img"
+log="$OUT/umb-loader.log"
+nasm -DTEST_MODE=0 -f bin "$ROOT/tests/xms_umb_provider.asm" -o "$provider"
+cp "$FLOPPY" "$image"
+mcopy -o -i "$image" "$provider" ::XMSPROV.SYS
+mcopy -o -i "$image" "$LOADER_SEQUENCE_PROBE" ::UMBLOAD.COM
+{
+    printf 'DEVICE=A:\\XMSPROV.SYS\r\n'
+    printf 'DOS=UMB\r\n'
+} | mcopy -o -i "$image" - ::CONFIG.SYS
+{
+    printf '@ECHO OFF\r\n'
+    printf 'CTTY AUX\r\n'
+    printf 'UMBLOAD.COM\r\n'
+} | mcopy -o -i "$image" - ::AUTOEXEC.BAT
+timeout 20 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 4 \
+    -drive if=floppy,index=0,format=raw,file="$image",cache=writethrough \
+    -boot a -serial stdio -no-reboot >"$log" 2>&1 || true
+for expected in \
+    'ALLOC_7FFF CF=0001 AX=0008 BX=01FE' \
+    'ALLOC_FFFF CF=0001 AX=0008 BX=01FE' \
+    'ALLOC_MAX CF=0000 AX=9001 BX=01FE' \
+    'UMB_LOADER_SEQUENCE_END'
+do
+    if ! grep -Fq "$expected" "$log"; then
+        echo "FAIL: DOS 5 loader allocation sequence: $expected" >&2
+        sed -n '1,120p' "$log" >&2
+        exit 1
+    fi
+done
+
+echo "  PASS: XMS transactions, UMB allocator lifecycle/model stress, loader sequence, and register contract"

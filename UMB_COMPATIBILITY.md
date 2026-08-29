@@ -1,9 +1,8 @@
 # UMB compatibility matrix
 
 This matrix freezes the observable MS-DOS 5.0/6.22 contract before kernel
-implementation. Documentation establishes the public contract. Results marked
-`reference pending` require execution of `tests/umb_api_probe.asm` against
-local reference media before the affected implementation stage closes.
+implementation. Documentation establishes the public contract and focused
+clean-room probes resolve ambiguous details against local reference media.
 
 No proprietary image, executable, or byte-derived fixture belongs in this
 repository. Normalized textual observations may be recorded here with the DOS
@@ -24,6 +23,7 @@ Capture a prepared image without modifying the original:
 tests/capture_umb_reference.sh /path/to/boot.img /tmp/dos622-umb.log
 tests/capture_umb_lifecycle_reference.sh /path/to/boot.img /tmp/dos622-life.log
 tests/capture_umb_register_reference.sh /path/to/boot.img /tmp/dos622-regs.log
+tests/capture_umb_loader_sequence.sh /path/to/boot.img /tmp/dos50-loader.log
 tests/capture_xms_reference.sh /path/to/boot.img /tmp/dos622-xms.log
 tests/capture_loadhigh_reference.sh /path/to/dos622.img /tmp/dos622-loadhigh.log
 ```
@@ -128,6 +128,15 @@ and link settings unchanged and immediately reallocates the reclaimed upper
 block. The recovered reference segments were `CB4Eh` on 5.0 and `CC98h` on
 6.22; the address itself is provider-layout dependent.
 
+A focused loader-sequence probe links the arena, selects strategy `0040h`,
+requests `7FFFh` and `FFFFh` paragraphs, and allocates the maximum returned in
+`BX`. Genuine DOS 5.0 reports `14FEh` for both failed requests and allocates it
+at `CB02h`. This tree reports the provider-specific maximum for both requests
+and allocates that exact block in its UMB arena. As a separate black-box
+interoperability check, unmodified FreeDOS DEVLOAD 3.25 `/H` loads the original
+clean-room test driver high (`D801h`) on the current tree; no FreeDOS source or
+binary is part of the repository or CI.
+
 ## XMS provider contract
 
 The independent XMS capture identifies DOS 5 HIMEM 2.78 as XMS 2.00 and DOS
@@ -148,8 +157,9 @@ functioning EMS API in one boot. Error-path parity now covers the principal
 XMS 2.00 handle, move, HMA, and A20 failures. Physical A20 alias detection and
 independently forced fast-gate, BIOS, and 8042 control paths pass under QEMU.
 Registration rejection rolls back to EMS-only operation, and a live patterned
-UMB survives repeated EMS remapping. Broader initialization fault injection
-remains an open provider gate. A monitor-driven warm-reset test now performs
+UMB survives repeated EMS remapping. Ten deterministic initialization fault
+variants cover discovery, acquisition, mapping, registration, finalization,
+and rollback boundaries without leaving partial UMB state. A monitor-driven warm-reset test now performs
 two complete `DOS=HIGH,UMB` boots from the same image and requires HMA
 ownership, UMB lifecycle, EMS isolation, and the EMS API to pass on both.
 
@@ -177,14 +187,14 @@ asserted against the repository manager.
 
 | Surface | Required observation | DOS 5.0 | DOS 6.22 |
 | --- | --- | --- | --- |
-| `DOS=UMB` without provider | silent, remains usable low | pending | pending |
-| `DOS=NOUMB` | disables DOS UMB management | n/a or pending | pending |
+| `DOS=UMB` without provider | silent, remains usable low | confirmed | confirmed |
+| `DOS=NOUMB` | disables DOS UMB management | confirmed | confirmed |
 | `DOS=HIGH` failure | exact message, loads DOS low | confirmed | confirmed |
 | `DOS=HIGH,UMB` | DOS owns HMA, A20 on; UMB state remains independent | confirmed | confirmed |
 | `DEVICEHIGH` no fit | falls back to `DEVICE` | not separately captured | confirmed |
 | `DEVICEHIGH SIZE=` | DOS 5 legacy placement semantics | confirmed (basic placement/tail) | confirmed (basic placement/tail) |
 | `DEVICEHIGH /L /S` | region/minimum/shrink behavior | n/a | partial; single-region placement confirmed |
-| `LOADHIGH`/`LH` | largest UMB, conventional fallback | pending | confirmed |
+| `LOADHIGH`/`LH` | largest UMB, conventional fallback | confirmed | confirmed |
 | `LOADHIGH /L /S` | child region visibility and restoration | n/a | confirmed |
 | `INSTALLHIGH` | existence, syntax, and fallback | not recognized | confirmed (basic execution high) |
 | `MEM /C /D /F /M` | region numbering and accounting | not separately captured | confirmed |
@@ -317,13 +327,10 @@ every extent DOS acquired. Repeated `UMB`/`NOUMB` lines also prove that disabled
 management does not contact the provider. This fixture implements only the XMS
 calls needed by the test and does not ship as an XMS manager.
 
-## Evidence required to close Phase 0
+## Remaining reference evidence
 
-- Capture all four reference configurations above.
-- Extend the probe with MCB, EXEC, resize, and fragmentation scenarios after the
-  basic results establish safe traversal rules.
-- Add separate CONFIG.SYS, DEVICEHIGH, LOADHIGH, MEM, and HMA probes.
-- Record exact flags, errors, preserved registers, messages, region numbers,
-  memory placement, and MCB layouts.
-- Resolve every `pending` entry needed by a delivery phase before that phase is
-  declared complete.
+The four base configurations and the API, MCB, EXEC, resize, CONFIG.SYS,
+DEVICEHIGH, LOADHIGH, MEM, and HMA surfaces have focused captures. The remaining
+acceptance work is the plan's cycle-accurate 386+ run and broader fragmentation
+ordering across multiple genuine provider regions; neither is inferred from
+the synthetic provider tests.
