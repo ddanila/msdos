@@ -1677,6 +1677,99 @@ else
     fail "COMMAND.COM DIR unknown switch (expected Parse Error 3, got: $out)"
 fi
 
+printf '@ECHO OFF\r\nSET DIRCMD=/B /L\r\nDIR C:\\CMD\\COMMAND\\COMMAND.COM\r\nECHO DIRCMD_OVERRIDE_L\r\nDIR C:\\CMD\\COMMAND\\COMMAND.COM /-L\r\nECHO DIRCMD_OVERRIDE_B\r\nDIR C:\\CMD\\COMMAND\\COMMAND.COM /-B\r\n' > "$KVBAT"
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'C:\CMD\COMMAND\KVTEST.BAT') || true
+rm -f "$KVBAT"
+if echo "$out" | tr -d '\r' | grep -q '^command\.com$' &&
+   echo "$out" | tr -d '\r' | grep -A1 '^DIRCMD_OVERRIDE_L$' | grep -q '^COMMAND\.COM$' &&
+   echo "$out" | grep -A4 'DIRCMD_OVERRIDE_B' | grep -q 'Directory of'; then
+    ok "COMMAND.COM DIRCMD defaults and /- switch overrides"
+else
+    fail "COMMAND.COM DIRCMD defaults/overrides (got: $out)"
+fi
+
+DIR5_TMP="$SRC/CMD/COMMAND/KVDIR5"
+rm -rf "$DIR5_TMP"
+mkdir -p "$DIR5_TMP/SUB1/DEEP" "$DIR5_TMP/SUB2" "$DIR5_TMP/ADIR" "$DIR5_TMP/ZDIR"
+printf 'a' > "$DIR5_TMP/ALPHA.TXT"
+printf 'mm' > "$DIR5_TMP/MID.BIN"
+printf 'zzz' > "$DIR5_TMP/ZETA.TXT"
+printf 'root' > "$DIR5_TMP/ROOT.TXT"
+printf 'one' > "$DIR5_TMP/SUB1/ONE.TXT"
+printf 'two' > "$DIR5_TMP/SUB1/DEEP/TWO.TXT"
+printf 'three' > "$DIR5_TMP/SUB2/THREE.BIN"
+touch -t 199001010101 "$DIR5_TMP/ALPHA.TXT"
+touch -t 199101010101 "$DIR5_TMP/MID.BIN"
+touch -t 199201010101 "$DIR5_TMP/ZETA.TXT"
+
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'DIR C:\CMD\COMMAND\KVDIR5 /A:-D /B /O:N') || true
+ordered=$(printf '%s\n' "$out" | tr -d '\r' | grep -E '^(ALPHA\.TXT|MID\.BIN|ROOT\.TXT|ZETA\.TXT)$' || true)
+if [[ "$ordered" == $'ALPHA.TXT\nMID.BIN\nROOT.TXT\nZETA.TXT' ]]; then
+    ok "COMMAND.COM DIR /O:N (name order)"
+else
+    fail "COMMAND.COM DIR /O:N order (got: $out)"
+fi
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'DIR C:\CMD\COMMAND\KVDIR5 /A:-D /B /O:-N') || true
+ordered=$(printf '%s\n' "$out" | tr -d '\r' | grep -E '^(ALPHA\.TXT|MID\.BIN|ROOT\.TXT|ZETA\.TXT)$' || true)
+if [[ "$ordered" == $'ZETA.TXT\nROOT.TXT\nMID.BIN\nALPHA.TXT' ]]; then
+    ok "COMMAND.COM DIR /O:-N (reverse name order)"
+else
+    fail "COMMAND.COM DIR /O:-N order (got: $out)"
+fi
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'DIR C:\CMD\COMMAND\KVDIR5 /A:-D /B /O:E') || true
+ordered=$(printf '%s\n' "$out" | tr -d '\r' | grep -E '^(ALPHA\.TXT|MID\.BIN|ZETA\.TXT)$' || true)
+if [[ "$ordered" == $'MID.BIN\nALPHA.TXT\nZETA.TXT' ]]; then
+    ok "COMMAND.COM DIR /O:E (extension order)"
+else
+    fail "COMMAND.COM DIR /O:E order (got: $out)"
+fi
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'DIR C:\CMD\COMMAND\KVDIR5 /A:-D /B /O:S') || true
+ordered=$(printf '%s\n' "$out" | tr -d '\r' | grep -E '^(ALPHA\.TXT|MID\.BIN|ZETA\.TXT)$' || true)
+if [[ "$ordered" == $'ALPHA.TXT\nMID.BIN\nZETA.TXT' ]]; then
+    ok "COMMAND.COM DIR /O:S (size order)"
+else
+    fail "COMMAND.COM DIR /O:S order (got: $out)"
+fi
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'DIR C:\CMD\COMMAND\KVDIR5 /A:-D /B /O:D') || true
+ordered=$(printf '%s\n' "$out" | tr -d '\r' | grep -E '^(ALPHA\.TXT|MID\.BIN|ZETA\.TXT)$' || true)
+if [[ "$ordered" == $'ALPHA.TXT\nMID.BIN\nZETA.TXT' ]]; then
+    ok "COMMAND.COM DIR /O:D (date order)"
+else
+    fail "COMMAND.COM DIR /O:D order (got: $out)"
+fi
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'DIR C:\CMD\COMMAND\KVDIR5 /A /B /O:G-N') || true
+ordered=$(printf '%s\n' "$out" | tr -d '\r' | grep -E '^(ADIR|ZDIR|ALPHA\.TXT|MID\.BIN|ROOT\.TXT|ZETA\.TXT)$' || true)
+if [[ "$ordered" == $'ZDIR\nADIR\nZETA.TXT\nROOT.TXT\nMID.BIN\nALPHA.TXT' ]]; then
+    ok "COMMAND.COM DIR /O:G-N (multi-key directory grouping)"
+else
+    fail "COMMAND.COM DIR /O:G-N order (got: $out)"
+fi
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'DIR C:\CMD\COMMAND\KVDIR5\*.TXT /B /S /O:N') || true
+for recursive_name in \
+    'C:\CMD\COMMAND\KVDIR5\ROOT.TXT' \
+    'C:\CMD\COMMAND\KVDIR5\SUB1\ONE.TXT' \
+    'C:\CMD\COMMAND\KVDIR5\SUB1\DEEP\TWO.TXT'; do
+    echo "$out" | tr -d '\r' | grep -Fqx "$recursive_name" || fail "COMMAND.COM DIR /S missing $recursive_name"
+done
+if ! echo "$out" | grep -q 'THREE.BIN'; then
+    ok "COMMAND.COM DIR /S /B (recursive full paths and wildcard filtering)"
+else
+    fail "COMMAND.COM DIR /S wildcard filtering (got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'DIR /O:Q') || true
+if echo "$out" | grep -q '^Parse Error'; then
+    ok "COMMAND.COM DIR invalid /O key rejected"
+else
+    fail "COMMAND.COM DIR invalid /O key (got: $out)"
+fi
+out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'DIR /O:N /O:S') || true
+if echo "$out" | grep -q '^Parse Error 1'; then
+    ok "COMMAND.COM DIR duplicate /O rejected"
+else
+    fail "COMMAND.COM DIR duplicate /O (got: $out)"
+fi
+rm -rf "$DIR5_TMP"
+
 out=$(run_dos CMD/COMMAND/COMMAND.COM /C CHCP) || true
 if echo "$out" | grep -q '^Active code page: 437'; then
     ok "COMMAND.COM CHCP (queries active code page 437)"

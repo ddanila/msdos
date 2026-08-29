@@ -70,7 +70,6 @@ Every documented option of a missing command is necessarily unsupported.
 | Command | Implemented | Missing or incompatible DOS 5 behavior |
 | --- | --- | --- |
 | `ATTRIB` | `+R`, `-R`, `+A`, `-A`, `+H`, `-H`, `+S`, `-S`, `/S` | No known DOS 5 option gap. |
-| `DIR` | Basic listing; `/P`, `/W`, `/B`, `/L`; `/A[:attributes]` with `D`, `R`, `H`, `A`, `S`, and negated selectors | `/O[:sortorder]`, `/S`, and `DIRCMD` defaults. These include DOS 5's recursive search and sorted-directory features. |
 | `DISKCOPY` | Copy, `/1`, and `/V` read-back verification | No known DOS 5 option gap. |
 | `FDISK` | Automated primary, extended, and logical creation; interactive display, near-2-GiB creation, active selection, deletion, and multi-disk selection, with resulting MBR state validated | No known DOS 5 workflow gap. |
 | `FIND` | `/V`, `/C`, `/N`, `/I` | No known DOS 5 option gap. |
@@ -85,7 +84,7 @@ found; it does not claim every hardware, locale, or error-path permutation:
 
 `APPEND`, `ASSIGN`, `BACKUP`, `BREAK`, `CALL`, `CHCP`, `CHDIR`/`CD`,
 `CHKDSK`, `CLS`, `COMMAND`, `COMP`, `COPY`, `CTTY`, `DATE`, `DEBUG`, `DOSKEY`,
-`DEL`/`ERASE`, `DISKCOMP`, `ECHO`, `EDLIN`, `EMM386`, `EXE2BIN`, `EXIT`,
+`DEL`/`ERASE`, `DIR`, `DISKCOMP`, `ECHO`, `EDLIN`, `EMM386`, `EXE2BIN`, `EXIT`,
 `FASTOPEN`,
 `FC`, `FOR`, `GOTO`, `GRAFTABL`, `GRAPHICS`, `IF`, `JOIN`, `KEYB`, `LABEL`,
 `LOADHIGH`/`LH`, `MEM`, `MKDIR`/`MD`, `MODE`, `MORE`, `NLSFUNC`, `PATH`,

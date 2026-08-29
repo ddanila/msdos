@@ -32,6 +32,9 @@ TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	dir_attr_require:byte
 	EXTRN	dir_attr_deny:byte
 	EXTRN	dir_attr_selected:byte
+	EXTRN	dir_seen:word
+	EXTRN	dir_parse_phase:byte
+	EXTRN	dir_help_str:byte
 	EXTRN	dirdat_mo_day:word	;AC000;
 	EXTRN	dirdat_yr:word		;AC000;
 	EXTRN	dirdattim_ptr:word
@@ -91,6 +94,17 @@ TRANSPACE	ENDS
 
 	EXTRN	cerror:near
 	EXTRN	std_printf:near
+	EXTRN	dir_prepare:near
+	EXTRN	dir_next_source:near
+	EXTRN	dir_apply_negative:near
+	EXTRN	dir_sort_all:near
+	EXTRN	dir_sort_next:near
+	EXTRN	dir_sort_finish:near
+	EXTRN	dir_recursive_capture:near
+	EXTRN	dir_recursive_run:near
+	EXTRN	dir_print_bare_prefix:near
+	EXTRN	dir_external_record:byte
+	EXTRN	dir_recursive_selected:byte
 
 
 	PUBLIC	catalog
@@ -116,19 +130,6 @@ assume	ds:trangroup,es:trangroup
 ; * OUTPUT:	 none
 ; *
 ; ****************************************************************
-
-DIR_HELP_STR	DB	"Displays a list of files and subdirectories in a directory.", 0DH, 0AH
-		DB	0DH, 0AH
-		DB	"DIR [drive:][path][filename] [/P] [/W] [/B] [/L] [/A[:attributes]]", 0DH, 0AH
-		DB	0DH, 0AH
-		DB	"  [drive:][path][filename]  Specifies drive, directory, and/or files", 0DH, 0AH
-		DB	"                            to list.", 0DH, 0AH
-		DB	"  /P  Pauses after each screenful of information.", 0DH, 0AH
-		DB	"  /W  Uses wide list format.", 0DH, 0AH
-		DB	"  /B  Uses bare format (no heading information or summary).", 0DH, 0AH
-		DB	"  /L  Uses lowercase.", 0DH, 0AH
-		DB	"  /A  Displays files with specified D, R, H, A, or S attributes.", 0DH, 0AH
-		DB	"      Prefix an attribute with - to exclude it.", 0DH, 0AH, "$"
 
 CATALOG:
 	mov	si, 81H
@@ -169,7 +170,7 @@ DIR_NORM:
 	stosb					;AN000;
 	mov	al,end_of_line_in		;AN000;
 	stosb					;AN000;
-	mov	si,81H				;AN000; Get command line
+	call	dir_prepare
 	mov	di,offset trangroup:parse_dir	;AN000; Get adderss of PARSE_DIR
 	xor	cx,cx				;AC000; clear counter for positionals
 	mov	ComSw,cx			;AC000; initialize flags
@@ -177,6 +178,7 @@ DIR_NORM:
 	mov	dir_attr_require,cl
 	mov	dir_attr_deny,cl
 	mov	dir_attr_selected,cl
+	mov	dir_seen,cx
 	mov	linperpag,linesperpage		;AC000; Set default for lines per page
 	mov	linlen,normperlin		;AC000; Set number of entries per line
 	mov	lincnt,normperlin		;AC000;
@@ -204,9 +206,16 @@ dirscan_cont2:
 	je	set_dir_lower
 	cmp	parse1_syn,offset trangroup:dir_a_syn
 	je	set_dir_attr
+	call	dir_apply_negative
+	or	al,al
+	jz	dir_filespec
+	cmp	al,2
+	je	dir_duplicate_switch
+	jmp	dirscan
 ;
 ; Must be filespec since no other matches occurred. move filename to srcbuf
 ;
+dir_filespec:
 	push	si				;AC000; save position in line
 	lds	si,parse1_addr			;AC000; get address of filespec
 	push	si				;AN000; save address
@@ -237,26 +246,28 @@ dir_fspec_end:
 	jmp	dirscan				;AC000; keep parsing
 
 set_dir_width:
-	test	byte ptr[bits],SwitchW		;AN018; /W already set?
+	test	dir_seen,SwitchW
 	jz	ok_set_width			;AN018; no - okay to set width
 	mov	ax,moreargs_ptr 		;AN018; set up too many arguments
 	invoke	setup_parse_error_msg		;AN018; set up an error message
 	jmp	badparm 			;AN018; exit
 
 ok_set_width:
+	or	dir_seen,SwitchW
 	or	bits,switchw			;AC000; indicate /w was selected
 	mov	linlen,wideperlin		;AC000; Set number of entries per line
 	mov	lincnt,wideperlin		;AC000;
 	jmp	dirscan				;AC000; keep parsing
 
 set_dir_pause:
-	test	byte ptr[bits],SwitchP		;AN018; /p already set?
+	test	dir_seen,SwitchP
 	jz	ok_set_pause			;AN018; no - okay to set width
 	mov	ax,moreargs_ptr 		;AN018; set up too many arguments
 	invoke	setup_parse_error_msg		;AN018; set up an error message
 	jmp	badparm 			;AN018; exit
 
 ok_set_pause:
+	or	dir_seen,SwitchP
 	or	bits,switchp			;AC000; indicate /p was selected
 	push	cx				;AN000; save necessary registers
 	push	si				;AN000;
@@ -277,16 +288,18 @@ lines_set:
 	jmp	dirscan 			;AC000; keep parsing
 
 set_dir_bare:
-	test	bits,SwitchDirB
+	test	dir_seen,SwitchDirB
 	jnz	dir_duplicate_switch
+	or	dir_seen,SwitchDirB
 	or	bits,SwitchDirB
 	mov	linlen,1
 	mov	lincnt,1
 	jmp	dirscan
 
 set_dir_lower:
-	test	bits,SwitchDirL
+	test	dir_seen,SwitchDirL
 	jnz	dir_duplicate_switch
+	or	dir_seen,SwitchDirL
 	or	bits,SwitchDirL
 	jmp	dirscan
 
@@ -296,8 +309,9 @@ dir_duplicate_switch:
 	jmp	badparm
 
 set_dir_attr:
-	cmp	dir_attr_selected,0
+	test	dir_seen,0400h
 	jne	dir_duplicate_switch
+	or	dir_seen,0400h
 	mov	dir_attr_selected,1
 	cmp	parse1_type,result_string
 	jne	dirscan
@@ -359,6 +373,8 @@ BadParm:
 	jmp	cerror				;AC000; invalid switches get displayed
 
 ScanDone:
+	call	dir_next_source
+	jc	dirscan
 
 ;
 ; Find and display the volume ID on the drive.
@@ -485,6 +501,7 @@ DirNFFix:
 ; and reset our directory afterward.
 ;
 DoSearch:
+	call	dir_recursive_capture
 	mov	byte ptr DS:[FCB-7],0FFH
 	mov	byte ptr DS:[FCB-1],010H
 	cmp	dir_attr_selected,0
@@ -504,12 +521,20 @@ dir_search_attr_ready:
 	inc	al				;AN022; did an error occur?
 	pop	ax				;AN022; get return state back
 	jnz	found_first_file		;AN022; no error - start dir
+	cmp	dir_recursive_selected,0
+	je	dir_search_error_message
+	invoke	restudir
+	jmp	DirDone
+dir_search_error_message:
 	invoke	set_ext_error_msg		;AN022; yes - set up error message
 	push	dx				;AN022; save message
 	invoke	restudir			;AN022; restore user's dir
 	pop	dx				;AN022; restore message
 	cmp	word ptr Extend_Buf_Ptr,Error_No_More_Files ;AN022; convert no more files to
-	jnz	DirCerrorJ			;AN022; 	file not found
+	je	dir_search_empty
+	cmp	word ptr Extend_Buf_Ptr,Error_File_Not_Found
+	jnz	DirCerrorJ
+dir_search_empty:
 	mov	Extend_Buf_Ptr,Error_File_Not_Found  ;AN022;
 
 DirCerrorJ:					;AN022;
@@ -524,6 +549,7 @@ found_first_file:
 	push	ax
 	invoke	restudir
 	pop	ax
+	call	dir_sort_all
 ;
 ; Main scanning loop.  Entry has AL = Search first/next error code.  Test for
 ; no more.
@@ -537,6 +563,8 @@ DIRSTART:
 ;
 
 Display:
+	PUBLIC	dir_display_record
+dir_display_record:
 	cmp	dir_attr_selected,0
 	je	dir_attr_match
 	mov	al,[dirbuf+8].dir_attr
@@ -633,6 +661,7 @@ prbuf:
 	jmp	scroll				; If not, just continue
 
 display_bare:
+	call	dir_print_bare_prefix
 	call	show_bare_name
 	invoke	crlf2
 	dec	byte ptr [fullscr]
@@ -670,17 +699,27 @@ nexent:
 ; All we need to do now is to get the next directory entry.
 ;
 scroll:
+	cmp	dir_external_record,0
+	jne	dir_external_return
+	call	dir_sort_next
+	jc	DirStart
 	mov	ah,Dir_Search_Next
 	mov	dx,FCB-7			; DX -> Unopened FCB
 	int	int_command			; Search for a file to match FCB
 	jmp	DirStart
+dir_external_return:
+	ret
 ;
 ; If no files have been found, display a not-found message
 ;
 DirDone:
+	call	dir_sort_finish
+	jc	dir_done_have_error
 	invoke	get_ext_error_number		;AN022; get the extended error number
+dir_done_have_error:
 	cmp	ax,error_no_more_files		;AN022; was error file not found?
 	jnz	dir_err_setup_jmp		;AN022; no - setup error message
+	call	dir_recursive_run
 	test	[filecnt],-1
 	jnz	Trailer
 	mov	ax,error_file_not_found 	;AN022;

@@ -176,13 +176,6 @@ TRANDATA	SEGMENT PUBLIC BYTE
 	PUBLIC	dirmes_ptr		;AN000;
 	PUBLIC	dirtim_hr_min		;AN000;
 	PUBLIC	dirtim_sec_hn		;AN000;
-	PUBLIC	DIR_W_SYN		;AN000;
-	PUBLIC	DIR_B_SYN
-	PUBLIC	DIR_L_SYN
-	PUBLIC	DIR_A_SYN
-	PUBLIC	dir_attr_require
-	PUBLIC	dir_attr_deny
-	PUBLIC	dir_attr_selected
 	PUBLIC	disp_file_size_ptr	;AN000;
 	PUBLIC	dmes_ptr		;AN000;
 	PUBLIC	echomes_ptr		;AN000;
@@ -194,6 +187,7 @@ TRANDATA	SEGMENT PUBLIC BYTE
 	PUBLIC	extend_buf_seg		;AN000;
 	PUBLIC	extend_buf_sub		;AN000;
 	PUBLIC	file_name_ptr		;AN000;
+	PUBLIC	FILE_OPTIONAL2
 	PUBLIC	fornestmes_ptr		;AN000;
 	PUBLIC	fuldir_ptr		;AN000;
 	PUBLIC	IFTAB
@@ -222,7 +216,6 @@ TRANDATA	SEGMENT PUBLIC BYTE
 	PUBLIC	PARSE_CHDIR		;AN000;
 	PUBLIC	PARSE_CTTY		;AN000;
 	PUBLIC	PARSE_DATE		;AN000;
-	PUBLIC	PARSE_DIR		;AN000;
 	PUBLIC	PARSE_ERASE		;AN000;
 	PUBLIC	PARSE_MRDIR		;AN000;
 	PUBLIC	PARSE_RENAME		;AN000;
@@ -241,6 +234,7 @@ TRANDATA	SEGMENT PUBLIC BYTE
 	PUBLIC	promtim_sec_hn		;AN000;
 	PUBLIC	renerr_ptr		;AN000;
 	PUBLIC	SLASH_P_SYN		;AN000;
+	PUBLIC	SLASH_P_SWITCH
 	PUBLIC	string_buf_ptr		;AN000;
 	PUBLIC	suremes_ptr		;AN000;
 	PUBLIC	switch_list
@@ -675,67 +669,6 @@ ERASE_PARMS	LABEL	BYTE			;AN000;
 		DB	1			;AN000;  1 switch
 		DW	TRANGROUP:SLASH_P_SWITCH;AN000;
 		DB	0			;AN000;  no keywords
-
-;
-; PARSE BLOCK FOR DIR
-;
-
-;
-; The following parse control block is used for the DIR internal command.
-; This command has one optional file specification and two optional
-; switches (/p and /w) as operands.  The verified switch or unverified
-; file specification is returned in PARSE1_OUTPUT.
-;
-
-PARSE_DIR	LABEL	BYTE			;AN000;
-		DW	TRANGROUP:DIR_PARMS	;AN000;
-		DB	0			;AN000;  no extra delimiter
-
-DIR_PARMS	LABEL	BYTE			;AN000;
-		DB	0,1			;AN000;  1 positional parm
-		DW	TRANGROUP:FILE_OPTIONAL2;AN000;
-		DB	5			; five switches
-		DW	TRANGROUP:SLASH_P_SWITCH;AN000;
-		DW	TRANGROUP:DIR_SWITCH1	;AN000;
-		DW	TRANGROUP:DIR_SWITCH2
-		DW	TRANGROUP:DIR_SWITCH3
-		DW	TRANGROUP:DIR_SWITCH4
-		DB	0			;AN000;  no keywords
-
-DIR_SWITCH1	LABEL	BYTE			;AN000;
-		DW	0			;AN000;  no match flags
-		DW	2			;AN000;  capitalize by char table
-		DW	TRANGROUP:PARSE1_OUTPUT ;AN000;  result buffer
-		DW	TRANGROUP:NO_VALUES	;AN000;
-		DB	1			;AN000;  1 keyword
-DIR_W_SYN	DB	"/W",0                  ;AN000;  /W switch
-
-DIR_SWITCH2	LABEL	BYTE
-		DW	0
-		DW	2
-		DW	TRANGROUP:PARSE1_OUTPUT
-		DW	TRANGROUP:NO_VALUES
-		DB	1
-DIR_B_SYN	DB	"/B",0
-
-DIR_SWITCH3	LABEL	BYTE
-		DW	0
-		DW	2
-		DW	TRANGROUP:PARSE1_OUTPUT
-		DW	TRANGROUP:NO_VALUES
-		DB	1
-DIR_L_SYN	DB	"/L",0
-
-DIR_SWITCH4	LABEL	BYTE
-		DW	2001H			; optional attribute string
-		DW	2
-		DW	TRANGROUP:PARSE1_OUTPUT
-		DW	TRANGROUP:NO_VALUES
-		DB	1
-DIR_A_SYN	DB	"/A",0
-dir_attr_require DB	0
-dir_attr_deny	DB	0
-dir_attr_selected DB	0
 
 ;
 ; PARSE BLOCK FOR RENAME
