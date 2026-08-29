@@ -39,8 +39,8 @@ features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
 | Full-screen Editor and QBasic | Missing | No EDIT, QBASIC, BASIC runtime, help, or sample programs. EDLIN remains available. |
 | Online command help | Partial | Shipped executable `/?` surfaces are tested, but HELP and its searchable help database are absent. |
 | Delete/format recovery | Missing | MIRROR, UNDELETE, and UNFORMAT are absent. |
-| Partitions up to 2 GiB | Partial | Automated FDISK creates and validates a near-2-GiB FAT16 partition on a sparse 2-GiB disk. Equivalent interactive creation and manipulation remain unverified. |
-| More than two hard disks | Unverified | The kernel and FDISK contain multi-drive structures, but the DOS 5 selection workflow is not tested. |
+| Partitions up to 2 GiB | Present | Automated and interactive FDISK paths create and validate a near-2-GiB FAT16 partition on a sparse 2-GiB disk. |
+| More than two hard disks | Unverified | FDISK's two-disk selection and mutation workflow is tested; the inherited implementation still models only two physical disks while the DOS 5 guide describes selecting higher disk numbers. |
 | 2.88 MiB floppy support | Partial | FORMAT and the BIOS provide a tested 2.88 MiB path; SYS-created bootability and DRIVER.SYS geometry remain unverified. |
 | Guided Setup with online help | Missing | SELECT is the inherited DOS 4 installer, not the DOS 5 SETUP/upgrade workflow. |
 | Compressed installation media | Missing | No DOS `EXPAND.EXE`, DOS 5 compressed-file format workflow, or retail multi-disk installer. The host build tool named `compress` is unrelated. |
@@ -74,7 +74,7 @@ Every documented option of a missing command is necessarily unsupported.
 | `SETVER` | List, add, update, `/DELETE`/`/D`, and `/QUIET` against the resident kernel table; EXEC reports the selected version to matching programs | Persistent table storage and the CONFIG.SYS device-loader form. |
 | `DIR` | Basic listing; `/P`, `/W`, `/B`, `/L`; `/A[:attributes]` with `D`, `R`, `H`, `A`, `S`, and negated selectors | `/O[:sortorder]`, `/S`, and `DIRCMD` defaults. These include DOS 5's recursive search and sorted-directory features. |
 | `DISKCOPY` | Copy, `/1`, and `/V` read-back verification | No known DOS 5 option gap. |
-| `FDISK` | Automated primary, extended, and logical creation, including a validated near-2-GiB FAT16 primary; inherited interactive code | Display/delete/change-active/select-next-disk behavior remains unverified. |
+| `FDISK` | Automated primary, extended, and logical creation; interactive display, near-2-GiB creation, active selection, deletion, and two-disk selection, with resulting MBR state validated | Selection of physical disks beyond disk 2 remains unsupported. |
 | `FIND` | `/V`, `/C`, `/N`, `/I` | No known DOS 5 option gap. |
 | `FORMAT` | Safe, `/Q`, and `/U` modes on floppy and FAT16 fixed media; hard-disk warning/errorlevel 5; `/1`, `/4`, `/8`, `/B`, `/F` including 2.88 MiB, `/N`, `/S`, `/T`, `/V`, and inherited private switches | Deterministic hardware-fault coverage for fixed-disk bad-cluster marking and UNFORMAT-compatible recovery metadata. |
 | `SYS` | Default and explicit source paths; bootable target media | DOS 5 compatibility across hard-disk geometries, 2.88 MiB media, and upgrade scenarios is not established. |
@@ -172,8 +172,9 @@ and must not be represented by no-op stubs if compatibility is claimed.
 
 ## Storage, locale, and hardware gaps
 
-- FDISK's automated near-2-GiB creation is established; its complete
-  interactive workflow is not.
+- FDISK's automated and interactive near-2-GiB creation, display, active
+  selection, deletion, and two-disk selection are established. Physical disks
+  beyond disk 2 remain unsupported.
 - FORMAT has a demonstrated 2.88 MiB path; SYS bootability and DRIVER.SYS
   geometry still need end-to-end coverage on that media.
 - Fixed-disk formatting, bad-sector preservation, partition-boundary behavior,

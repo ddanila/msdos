@@ -1039,7 +1039,7 @@ FDISK    b1ba 0122
 0010 U 0003 "N",0
 1001 U 0000 "MS-DOS Version 5.00"
 1002 U 0000 "Fixed Disk Setup Program"
-1003 U 0000 "(C)Copyright Microsoft Corp. 1983, 1991"
+1003 U 0000 "(C)Copyright Microsoft Corp. 1983, 1990"
 1004 U 0000 "FDISK Options"
 1005 U 0000 "1. <R>Create DOS Partition or Logical DOS Drive"
 1006 U 0000 "2. <R>Set active partition"

@@ -131,6 +131,7 @@ def read_screen_text(qmp: QMPConnection, tmp_path: str) -> str:
     whitespace stripped per line.
     """
     qmp.human_cmd(f'pmemsave 0x{VRAM_PHYS:X} {VRAM_SIZE} "{tmp_path}"')
+    completed = False
     try:
         with open(tmp_path, 'rb') as f:
             raw = f.read(VRAM_SIZE)
@@ -210,11 +211,15 @@ def main() -> None:
                   f"{rule_idx}/{len(rules)} rules matched", flush=True)
         else:
             print(f"screen_expect: all {len(rules)} rules matched.", flush=True)
+            completed = True
 
     finally:
         log.close()
         os.unlink(tmp_path)
         qmp.close()
+
+    if not completed:
+        sys.exit(1)
 
 
 if __name__ == '__main__':

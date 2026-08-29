@@ -249,7 +249,17 @@ SERIAL_LOG2="$OUT/fdisk-serial2.log"
 BOOT_IMG3="$OUT/fdisk-2g-boot.img"
 HDD_IMG3="$OUT/fdisk-2g-hdd.img"
 SERIAL_LOG3="$OUT/fdisk-2g-serial.log"
-trap 'rm -f "$HDD_IMG" "$HDD_IMG2" "$HDD_IMG3" 2>/dev/null; true' EXIT
+BOOT_IMG4="$OUT/fdisk-interactive-boot.img"
+HDD_IMG4A="$OUT/fdisk-interactive-hdd1.img"
+HDD_IMG4B="$OUT/fdisk-interactive-hdd2.img"
+SERIAL_LOG4="$OUT/fdisk-interactive-seed.log"
+SCREEN_LOG4="$OUT/fdisk-interactive-screen.log"
+QMP_SOCK4="$OUT/fdisk-interactive-qmp.sock"
+BOOT_IMG5="$OUT/fdisk-2g-interactive-boot.img"
+HDD_IMG5="$OUT/fdisk-2g-interactive-hdd.img"
+SCREEN_LOG5="$OUT/fdisk-2g-interactive-screen.log"
+QMP_SOCK5="$OUT/fdisk-2g-interactive-qmp.sock"
+trap 'kill ${QEMU_PID4:-} ${QEMU_PID5:-} 2>/dev/null; rm -f "$HDD_IMG" "$HDD_IMG2" "$HDD_IMG3" "$HDD_IMG4A" "$HDD_IMG4B" "$HDD_IMG5" "$QMP_SOCK4" "$QMP_SOCK5" 2>/dev/null; true' EXIT
 
 echo ""
 echo "=== FDISK edge case: primary-only, no extended partition (PTM P941) ==="
@@ -414,6 +424,157 @@ if [[ "$type3" == "06" && "$active3" == "80" && "$geometry3" == "1" ]]; then
     ok "Near-2-GiB FAT16 partition is active, cylinder-aligned, and within disk bounds ($debug3)"
 else
     fail "Near-2-GiB partition table is invalid (type=$type3 active=$active3 $debug3)"
+fi
+
+echo ""
+echo "=== FDISK interactive near-2-GiB creation ==="
+
+cp "$FLOPPY" "$BOOT_IMG5"
+printf '@ECHO OFF\r\nFDISK\r\n' | mcopy -o -i "$BOOT_IMG5" - ::AUTOEXEC.BAT
+truncate -s 2147483648 "$HDD_IMG5"
+rm -f "$QMP_SOCK5"
+qemu-system-i386 \
+    -display none -monitor none \
+    -drive if=floppy,index=0,format=raw,file="$BOOT_IMG5",cache=writethrough \
+    -drive if=ide,index=0,format=raw,file="$HDD_IMG5",cache=writethrough \
+    -boot a -m 4 -qmp unix:"$QMP_SOCK5",server,nowait -no-reboot \
+    >/dev/null 2>&1 &
+QEMU_PID5=$!
+for _ in $(seq 1 100); do
+    [[ -S "$QMP_SOCK5" ]] && break
+    sleep 0.05
+done
+
+if [[ -S "$QMP_SOCK5" ]] && python3 "$REPO_ROOT/tests/screen_expect.py" \
+    "$QMP_SOCK5" "$SCREEN_LOG5" \
+    "MS-DOS Version 5.00" "1+ret" \
+    "Create DOS Partition or Logical DOS Drive" "1+ret" \
+    "Create Primary DOS Partition" "ret" \
+    "System will now restart" ""; then
+    ok "Interactive maximum-size primary creation completed near 2 GiB"
+else
+    fail "Interactive near-2-GiB primary creation did not complete"
+fi
+
+kill "$QEMU_PID5" 2>/dev/null || true
+wait "$QEMU_PID5" 2>/dev/null || true
+QEMU_PID5=
+
+read -r type5 active5 geometry5 debug5 < <(python3 -c "
+import struct
+with open('$HDD_IMG5', 'rb') as f:
+    f.seek(446)
+    entry = f.read(16)
+start, size = struct.unpack_from('<II', entry, 8)
+valid = (entry[4] == 0x06 and entry[0] == 0x80 and start > 0
+         and 2000 * 1024 * 1024 <= size * 512 <= 2048 * 1024 * 1024
+         and start + size <= 2147483648 // 512)
+print('{:02x} {:02x} {} start={}:size={}'.format(
+    entry[4], entry[0], int(valid), start, size))
+" 2>/dev/null)
+
+if [[ "$type5" == "06" && "$active5" == "80" && "$geometry5" == "1" ]]; then
+    ok "Interactive near-2-GiB partition is active and within disk bounds ($debug5)"
+else
+    fail "Interactive near-2-GiB partition table is invalid (type=$type5 active=$active5 $debug5)"
+fi
+
+echo ""
+echo "=== FDISK interactive workflows (two fixed disks) ==="
+
+cp "$FLOPPY" "$BOOT_IMG4"
+mcopy -o -i "$BOOT_IMG4" "$EXIT_COM" ::QEXIT.COM
+{
+    printf '@ECHO OFF\r\n'
+    printf 'CTTY AUX\r\n'
+    printf 'FDISK 1 /PRI:5 /Q\r\n'
+    printf 'FDISK 2 /PRI:5 /Q\r\n'
+    printf 'ECHO FDISK_INTERACTIVE_SEED_DONE\r\n'
+    printf 'QEXIT.COM\r\n'
+} | mcopy -o -i "$BOOT_IMG4" - ::AUTOEXEC.BAT
+
+dd if=/dev/zero bs=1M count=20 of="$HDD_IMG4A" status=none
+dd if=/dev/zero bs=1M count=20 of="$HDD_IMG4B" status=none
+timeout 90 qemu-system-i386 \
+    -display none -monitor none \
+    -drive if=floppy,index=0,format=raw,file="$BOOT_IMG4",cache=writethrough \
+    -drive if=ide,index=0,format=raw,file="$HDD_IMG4A",cache=writethrough \
+    -drive if=ide,index=1,format=raw,file="$HDD_IMG4B",cache=writethrough \
+    -boot a -m 4 -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    < /dev/null >"$SERIAL_LOG4" 2>&1 || true
+
+# Force disk 1 inactive so the interactive active-partition path changes state.
+printf '\0' | dd of="$HDD_IMG4A" bs=1 seek=446 conv=notrunc status=none
+
+printf '@ECHO OFF\r\nFDISK\r\n' | mcopy -o -i "$BOOT_IMG4" - ::AUTOEXEC.BAT
+rm -f "$QMP_SOCK4"
+qemu-system-i386 \
+    -display none -monitor none \
+    -drive if=floppy,index=0,format=raw,file="$BOOT_IMG4",cache=writethrough \
+    -drive if=ide,index=0,format=raw,file="$HDD_IMG4A",cache=writethrough \
+    -drive if=ide,index=1,format=raw,file="$HDD_IMG4B",cache=writethrough \
+    -boot a -m 4 -qmp unix:"$QMP_SOCK4",server,nowait -no-reboot \
+    >/dev/null 2>&1 &
+QEMU_PID4=$!
+for _ in $(seq 1 100); do
+    [[ -S "$QMP_SOCK4" ]] && break
+    sleep 0.05
+done
+
+if [[ -S "$QMP_SOCK4" ]] && python3 "$REPO_ROOT/tests/screen_expect.py" \
+    "$QMP_SOCK4" "$SCREEN_LOG4" \
+    "MS-DOS Version 5.00" "4+ret" \
+    "Display Partition Information" "esc" \
+    "FDISK Options" "2+ret" \
+    "Set Active Partition" "1+ret" \
+    "Partition 1 made active" "esc" \
+    "FDISK Options" "5+ret" \
+    "Current fixed disk drive: 2" "4+ret" \
+    "Display Partition Information" "esc" \
+    "Current fixed disk drive: 2" "3+ret" \
+    "Delete DOS Partition or Logical DOS Drive" "1+ret" \
+    "Delete Primary DOS Partition" "y+ret" \
+    "Primary DOS Partition deleted" "esc" \
+    "Current fixed disk drive: 2" "esc" \
+    "System will now restart" ""; then
+    ok "Interactive display, active, second-disk selection, and delete paths completed"
+else
+    fail "Interactive FDISK workflow did not complete"
+fi
+
+if grep -Fq "MS-DOS Version 5.00" "$SCREEN_LOG4" \
+    && grep -Fq "Copyright Microsoft Corp. 1983, 1990" "$SCREEN_LOG4" \
+    && ! grep -Fq "MS-DOS Version 4.00" "$SCREEN_LOG4"; then
+    ok "FDISK displays the retail DOS 5 product banner"
+else
+    fail "FDISK product banner does not match retail DOS 5"
+fi
+
+kill "$QEMU_PID4" 2>/dev/null || true
+wait "$QEMU_PID4" 2>/dev/null || true
+QEMU_PID4=
+
+read -r active4a type4a type4b < <(python3 -c "
+with open('$HDD_IMG4A', 'rb') as f:
+    f.seek(446)
+    one = f.read(16)
+with open('$HDD_IMG4B', 'rb') as f:
+    f.seek(446)
+    two = f.read(16)
+print('{:02x} {:02x} {:02x}'.format(one[0], one[4], two[4]))
+" 2>/dev/null)
+
+if [[ "$active4a" == "80" && "$type4a" =~ ^(01|04|06)$ ]]; then
+    ok "Interactive active selection persisted in disk 1 MBR"
+else
+    fail "Interactive active selection did not persist (active=$active4a type=$type4a)"
+fi
+
+if [[ "$type4b" == "00" ]]; then
+    ok "Interactive deletion cleared disk 2 primary partition"
+else
+    fail "Interactive deletion did not clear disk 2 primary partition (type=$type4b)"
 fi
 
 echo ""
