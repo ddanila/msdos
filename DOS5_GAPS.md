@@ -44,7 +44,7 @@ features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
 | 2.88 MiB floppy support | Present | FORMAT creates the standard FAT12 layout, SYS creates bootable media, and DRIVER.SYS `/F:9` provides DOS-side read/write access. |
 | Guided Setup with online help | Missing | SELECT is the inherited DOS 4 installer, not the DOS 5 SETUP/upgrade workflow. |
 | Compressed installation media | Missing | No DOS `EXPAND.EXE`, DOS 5 compressed-file format workflow, or retail multi-disk installer. The host build tool named `compress` is unrelated. |
-| DOS 5 version compatibility table | Partial | SETVER lists and edits a bounded resident kernel table, and EXEC applies add/update/delete changes immediately. Persistence across reboot and the original CONFIG.SYS loader remain absent. |
+| DOS 5 version compatibility table | Present | SETVER edits the persistent table in SETVER.EXE, `DEVICE=SETVER.EXE` loads it during CONFIG.SYS, and EXEC applies the selected version. |
 
 ## Command inventory
 
@@ -71,7 +71,6 @@ Every documented option of a missing command is necessarily unsupported.
 | --- | --- | --- |
 | `ATTRIB` | `+R`, `-R`, `+A`, `-A`, `+H`, `-H`, `+S`, `-S`, `/S` | No known DOS 5 option gap. |
 | `DOSKEY` | Resident history and macros; `/REINSTALL`, `/BUFSIZE`, `/MACROS`, `/HISTORY`, `/INSERT`, `/OVERSTRIKE`; `$1`-`$9`, `$*`, `$$`, `$G`, `$L`, `$B`, and queued `$T`; `4800h`/`4810h` APIs | Complete multi-entry Up/Down/Page/F7/F8/F9 and Alt-key interactive navigation. |
-| `SETVER` | List, add, update, `/DELETE`/`/D`, and `/QUIET` against the resident kernel table; EXEC reports the selected version to matching programs | Persistent table storage and the CONFIG.SYS device-loader form. |
 | `DIR` | Basic listing; `/P`, `/W`, `/B`, `/L`; `/A[:attributes]` with `D`, `R`, `H`, `A`, `S`, and negated selectors | `/O[:sortorder]`, `/S`, and `DIRCMD` defaults. These include DOS 5's recursive search and sorted-directory features. |
 | `DISKCOPY` | Copy, `/1`, and `/V` read-back verification | No known DOS 5 option gap. |
 | `FDISK` | Automated primary, extended, and logical creation; interactive display, near-2-GiB creation, active selection, deletion, and multi-disk selection, with resulting MBR state validated | No known DOS 5 workflow gap. |
@@ -92,7 +91,7 @@ found; it does not claim every hardware, locale, or error-path permutation:
 `FC`, `FOR`, `GOTO`, `GRAFTABL`, `GRAPHICS`, `IF`, `JOIN`, `KEYB`, `LABEL`,
 `LOADHIGH`/`LH`, `MEM`, `MKDIR`/`MD`, `MODE`, `MORE`, `NLSFUNC`, `PATH`,
 `PAUSE`, `PRINT`, `PROMPT`, `RECOVER`, `RENAME`/`REN`, `REPLACE`, `RESTORE`,
-`RMDIR`/`RD`, `SET`, `SHARE`, `SHIFT`, `SORT`, `SUBST`, `TIME`, `TREE`,
+`RMDIR`/`RD`, `SET`, `SETVER`, `SHARE`, `SHIFT`, `SORT`, `SUBST`, `TIME`, `TREE`,
 `TYPE`, `VER`, `VERIFY`, `VOL`, and `XCOPY`.
 
 Repository-only or inherited extensions such as `TRUENAME`, `FILESYS`,
@@ -113,7 +112,7 @@ Complete limit/error/order parity remains unverified outside the cases in
 | `HIMEM.SYS` | Partial XMS 2.00 implementation | 286 support; `/HMAMIN`, `/NUMHANDLES`, `/INT15`, `/MACHINE`, `/A20CONTROL`, `/SHADOWRAM`, and `/CPUCLOCK`. The handle count is fixed and machine-specific A20 selection is automatic only. |
 | `EMM386.EXE` | Partial DOS 5 EMM386 replacement | Driver-load `ON`/`OFF`/`AUTO`, `W=`, `FRAME=`, `Pn=`, `B=`, `L=`, `A=`, `H=`, and `D=` controls. The dual-purpose retail-named executable implements runtime status, `ON`, `OFF`, `AUTO`, `W=ON`, and `W=OFF`; driver loading implements pool size, page-frame selection, `I=`, `X=`, `RAM`, and `NOEMS`. |
 | `EGA.SYS` | Missing | DOSSHELL Task Swapper display save/restore support. |
-| `SETVER.EXE` | Partial (`SETVER.COM`) | Kernel-resident table and complete command editing work; the original dual-purpose EXE/device loader and persistent on-disk table remain. |
+| `SETVER.EXE` | Present | Persistent table loading through CONFIG.SYS and reboot-stable command edits are tested. |
 | `ANSI.SYS` | Present | No known DOS 5 `/X` or `/K` omission; exhaustive escape-sequence and adapter conformance is not complete. |
 | `DISPLAY.SYS`, `PRINTER.SYS` | Present | Core code-page flow is tested; the full adapter/printer type and code-page matrix is unverified. |
 | `DRIVER.SYS` | Present | Core logical-drive behavior and `/F:9` 2.88 MiB geometry are tested; the remaining DOS 5 geometry matrix is unverified. |
@@ -134,8 +133,8 @@ currently known.
 
 Known limitations remain:
 
-- `AH=30h` and SETVER provide immediate per-process fake versions through EXEC,
-  but the filename database is not yet persisted or loaded through CONFIG.SYS.
+- `AH=30h` and SETVER provide per-process fake versions through EXEC; the
+  filename database is persisted and loaded through CONFIG.SYS.
 - Network/server calls are present, but interoperability with a complete DOS 5
   network redirector stack is not established.
 - List-of-Lists, PSP, SFT, CDS, DPB, country, and driver structures have focused

@@ -6,6 +6,8 @@ CODE SEGMENT PUBLIC
 
 start:
         cld
+        mov     cs:path_arg,0
+        mov     cs:quiet_flag,0
         call    tokenize
         cmp     cs:token_count,0
         je      query_table
@@ -49,6 +51,8 @@ query_table:
         mov     cs:value_arg,si
         jmp     short parse_name
 path_args:
+        mov     ax,cs:token1
+        mov     cs:path_arg,ax
         mov     si,cs:token2             ; ignore optional SETVER.EXE path
         mov     cs:name_arg,si
         mov     si,cs:token3
@@ -62,6 +66,8 @@ four_args:
         call    is_quiet
         jnc     syntax_error
         mov     cs:quiet_flag,1
+        mov     ax,cs:token1
+        mov     cs:path_arg,ax
         mov     si,cs:token2             ; ignore optional SETVER.EXE path
         mov     cs:name_arg,si
         mov     si,cs:token3
@@ -84,6 +90,7 @@ parse_name:
         jc      bad_version
         mov     cs:new_major,al
         mov     cs:new_minor,ah
+        call    prepare_persist
         call    find_entry
         jnc     update_entry
 
@@ -116,7 +123,7 @@ parse_name:
         xor     al,al
         stosb
         mov     dx,OFFSET added_msg
-        jmp     short success
+        jmp     mutation_success
 
 update_entry:
         xor     bx,bx
@@ -129,11 +136,14 @@ update_entry:
         mov     es:[di+1],al
         mov     byte ptr es:[di+2],0ffh
         mov     dx,OFFSET updated_msg
+mutation_success:
+        call    save_persist
 success:
         call    print_dollar
         jmp     exit_ok
 
 delete_entry:
+        call    prepare_persist
         call    find_entry
         jc      not_found
         mov     bx,di                    ; destination
@@ -148,6 +158,7 @@ delete_entry:
         mov     si,di
         mov     di,bx
         rep     movsb                    ; overlap is forward-safe
+        call    save_persist
         cmp     cs:quiet_flag,0
         jne     exit_ok
         mov     dx,OFFSET deleted_msg
@@ -218,6 +229,167 @@ find_hit:
 find_miss:
         stc
         ret
+
+; Open and validate the persistent table embedded in SETVER.EXE.
+prepare_persist:
+        call    build_persist_path
+persist_open:
+        mov     dx,OFFSET persist_path
+        mov     ax,3d02h
+        int     21h
+        jc      persist_open_error
+        mov     cs:persist_handle,ax
+        mov     bx,ax
+        mov     dx,OFFSET persist_image
+        mov     cx,1024
+        mov     ah,3fh
+        int     21h
+        jc      persist_read_error
+        mov     cs:persist_size,ax
+        mov     cx,ax
+        sub     cx,520                   ; marker plus complete table
+        jc      persist_corrupt
+        inc     cx
+        mov     di,OFFSET persist_image
+persist_scan:
+        push    cx
+        push    di
+        mov     si,OFFSET table_marker
+        mov     cx,8
+        repe    cmpsb
+        pop     bx                      ; candidate marker offset
+        pop     cx
+        je      persist_found
+        mov     di,bx
+        inc     di
+        loop    persist_scan
+        jmp     short persist_corrupt
+persist_found:
+        add     bx,8
+        mov     cs:persist_table,bx
+        ret
+
+; Copy the live table into the validated image and rewrite it in place.
+save_persist:
+        push    dx                      ; preserve success message
+        push    ds
+        push    es
+        mov     si,cs:table_off
+        mov     ax,cs:table_seg
+        mov     ds,ax
+        push    cs
+        pop     es
+        mov     di,cs:persist_table
+        mov     cx,512
+        rep     movsb
+        pop     es
+        pop     ds
+        mov     bx,cs:persist_handle
+        xor     cx,cx
+        xor     dx,dx
+        mov     ax,4200h
+        int     21h
+        jc      persist_write_error_pop
+        mov     dx,OFFSET persist_image
+        mov     cx,cs:persist_size
+        mov     ah,40h
+        int     21h
+        jc      persist_write_error_pop
+        cmp     ax,cs:persist_size
+        jne     persist_write_error_pop
+        mov     ah,3eh
+        int     21h
+        pop     dx
+        ret
+
+persist_write_error_pop:
+        pop     dx
+persist_write_error:
+        mov     bx,cs:persist_handle
+        mov     ah,3eh
+        int     21h
+        mov     dx,OFFSET persist_write_msg
+        mov     al,14
+        jmp     short persist_exit
+persist_read_error:
+        mov     dx,OFFSET persist_read_msg
+        mov     al,10
+        jmp     short persist_close_exit
+persist_corrupt:
+        mov     dx,OFFSET persist_corrupt_msg
+        mov     al,12
+persist_close_exit:
+        push    ax
+        mov     bx,cs:persist_handle
+        mov     ah,3eh
+        int     21h
+        pop     ax
+persist_exit:
+        push    ax
+        call    print_dollar
+        pop     ax
+        mov     ah,4ch
+        int     21h
+persist_open_error:
+        mov     dx,OFFSET persist_open_msg
+        mov     al,6
+        jmp     short persist_exit
+build_persist_path:
+        mov     di,OFFSET persist_path
+        mov     si,cs:path_arg
+        or      si,si
+        jnz     persist_have_explicit_path
+        mov     ah,19h
+        int     21h
+        add     al,'A'
+        stosb
+        mov     al,':'
+        stosb
+        mov     al,'\'
+        stosb
+        mov     si,OFFSET persist_name
+persist_copy_startup_default:
+        lodsb
+        stosb
+        or      al,al
+        jnz     persist_copy_startup_default
+        ret
+
+persist_have_explicit_path:
+        xor     cx,cx
+persist_copy_path:
+        lodsb
+        or      al,al
+        jz      persist_path_copied
+        cmp     cx,116
+        jae     persist_path_too_long_no_es
+        stosb
+        inc     cx
+        jmp     short persist_copy_path
+persist_path_copied:
+        or      cx,cx
+        jz      persist_append_name
+        mov     al,[di-1]
+        cmp     al,'\'
+        je      persist_append_name
+        cmp     al,'/'
+        je      persist_append_name
+        cmp     al,':'
+        je      persist_append_name
+        mov     al,'\'
+        stosb
+persist_append_name:
+        mov     si,OFFSET persist_name
+persist_copy_name:
+        lodsb
+        stosb
+        or      al,al
+        jnz     persist_copy_name
+        ret
+persist_path_too_long_no_es:
+        mov     dx,OFFSET persist_corrupt_msg
+        mov     al,12
+        jmp     persist_exit
 
 ; Strip drive/path, uppercase ASCII, and validate an 8.3-sized basename.
 normalize_name:
@@ -519,6 +691,7 @@ token3      dw 0
 token4      dw 0
 name_arg    dw 0
 value_arg   dw 0
+path_arg    dw 0
 table_off   dw 0
 table_seg   dw 0
 table_size  dw 0
@@ -526,9 +699,16 @@ name_len    db 0
 new_major   db 0
 new_minor   db 0
 quiet_flag  db 0
+persist_handle dw 0
+persist_size dw 0
+persist_table dw 0
 name_buf    db 12 dup(0)
 delete_word db 'DELETE'
 quiet_word  db 'QUIET'
+persist_name db 'SETVER.EXE',0
+table_marker db 'SVTAB5',0,1
+persist_path db 128 dup(0)
+persist_image db 1024 dup(0)
 crlf        db 13,10,'$'
 heading     db 'MS-DOS Version Table',13,10,'$'
 added_msg   db 'Entry added.',13,10,'$'
@@ -540,6 +720,10 @@ version_msg db 'Invalid version. Use major.minor.',13,10,'$'
 full_msg    db 'Version table is full.',13,10,'$'
 missing_msg db 'Entry not found.',13,10,'$'
 support_msg db 'SETVER is not supported by this DOS kernel.',13,10,'$'
+persist_open_msg db 'Cannot find SETVER.EXE.',13,10,'$'
+persist_read_msg db 'Error reading SETVER.EXE.',13,10,'$'
+persist_corrupt_msg db 'SETVER.EXE has no valid version table.',13,10,'$'
+persist_write_msg db 'Error writing SETVER.EXE.',13,10,'$'
 help_msg    db 'SETVER [path] [filename version | filename /DELETE [/QUIET]]',13,10
             db 'Lists or changes the DOS version reported to a program.',13,10,'$'
 
