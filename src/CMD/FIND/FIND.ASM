@@ -10,7 +10,7 @@
 ;*
 ;*   SYNTAX (Command line)
 ;*
-;*         FIND [/V][/C][/N] "string" [[d:][path]filename[.ext]...]
+;*         FIND [/V][/C][/N][/I] "string" [[d:][path]filename[.ext]...]
 ;*
 ;*         where:
 ;*
@@ -302,6 +302,7 @@ opt_tbl:
 v_flag   db      FALSE           ;AN000; Set to FALSE
 c_flag   db      FALSE           ;AN000; Set to FALSE
 n_flag   db      FALSE           ;AN000; Set to FALSE
+i_flag   db      FALSE           ;DOS 5 case-insensitive matching
 
 
 ;----- LINE COUNTERS
@@ -391,10 +392,11 @@ sw1     label   word            ;AN000;
         dw      2               ;AN005; capitalize
         dw      ret_buff        ;AN000; PLACE RESULT IN RET_BUFF
         dw      novals          ;AN000; NO VALUE LIST
-        db      3               ;AN000; THREE SWITCHES IN FOLLOWING LIST
+        db      4               ;DOS 5 adds /I to the switch list
 n_swch  db      "/N",0          ;AN000;
 v_swch  db      "/V",0          ;AN000;
 c_swch  db      "/C",0          ;AN000;
+i_swch  db      "/I",0          ;DOS 5 case-insensitive matching
 
 
         ;------------------------------
@@ -474,11 +476,12 @@ crlf            db      CR,LF   ;AN000;
 
 FIND_HELP_STR   DB "Searches for a text string in a file or files.",0Dh,0Ah
                 DB 0Dh,0Ah
-                DB "FIND [/V] [/C] [/N] ""string"" [[drive:][path]filename [...]]",0Dh,0Ah
+                DB "FIND [/V] [/C] [/N] [/I] ""string"" [[drive:][path]filename [...]]",0Dh,0Ah
                 DB 0Dh,0Ah
                 DB "  /V    Display all lines not containing the specified string",0Dh,0Ah
                 DB "  /C    Display only the count of matching lines",0Dh,0Ah
-                DB "  /N    Display line numbers with matched lines",0Dh,0Ah,"$"
+                DB "  /N    Display line numbers with matched lines",0Dh,0Ah
+                DB "  /I    Ignore the case of characters when searching",0Dh,0Ah,"$"
 
 START:
         ; Check for /? help (DS=PSP at EXE startup, before DS is changed)
@@ -807,7 +810,10 @@ try_again:
         dec     cx                      ;CR character discounted
 NO_SECOND_DEC:
         inc     cs:line_cntr            ;increment line counter
-        jcxz    try_again_opt           ;if line empty go to next line
+        or      cx,cx
+        jnz     line_not_empty
+        jmp     try_again_opt           ;if line empty go to next line
+line_not_empty:
         mov     di,bp                   ;pointer to the beg. of current line
 another_char:
 ;---------------------------
@@ -825,6 +831,8 @@ lop:
         mov     si,offset st_buffer     ;pointer to beg. of string argument
 
 comp_next_char:
+        cmp     byte ptr cs:[si],80h
+        jb      nopre
         push    di
         mov     di,si
         call    is_prefix               ;check for a prefix char
@@ -840,7 +848,23 @@ comp_next_char:
 nopre:
         lodsb
         cmp     al,byte ptr [di]
-        jz      kmatch
+        jz      ascii_match
+        cmp     cs:i_flag,(TRUE) AND 0FFh
+        jne     back_up
+        cmp     al,'A'
+        jb      back_up
+        cmp     al,'Z'
+        jbe     fold_ascii_pair
+        cmp     al,'a'
+        jb      back_up
+        cmp     al,'z'
+        ja      back_up
+fold_ascii_pair:
+        or      al,20h
+        mov     ah,byte ptr [di]
+        or      ah,20h
+        cmp     al,ah
+        jz      ascii_match
 back_up:
         pop     ax                      ; Original length of comp string
         push    ax
@@ -855,6 +879,13 @@ back_up:
         sub     ax,dx                   ; AX = AX-DX
         sub     di,ax                   ; Do the back up.
         add     cx,ax                   ; restore count too!
+        cmp     byte ptr [di],80h
+        jae     back_up_dbcs
+        inc     di
+        dec     cx
+        jz      try_again_opt1
+        jmp     short lop
+back_up_dbcs:
         call    next_kchar              ;no match, advance di to next kanji
         jc      try_again_opt1          ;not enough chars left in line
         jmp     short lop               ;try another char in line
@@ -873,6 +904,14 @@ kmatch:
         call    next_kchar
         jc      try_again_opt1
         jmp     comp_next_char          ; loop if chars left in arg.
+
+ascii_match:
+        dec     dx
+        jz      a_matchk
+        inc     di
+        dec     cx
+        jz      try_again_opt1
+        jmp     comp_next_char
 
 a_matchk:
         pop     dx
@@ -1473,9 +1512,14 @@ chek_v:                                                 ;AN000;
         jne     chek_c                                  ;AN000:  Yes, process it.
         jmp     parse_loop                              ;AN000;  Look for another
 chek_c:                                                 ;AN000;
-        cmp     bx,offset c_swch                        ;AN000; Is it the /N switch?
-        jne     whoops                                  ;AN000:  Yes, process it.
+        cmp     bx,offset c_swch                        ;AN000; Is it the /C switch?
+        jne     chek_i                                  ;AN000:  No, try /I.
         jmp     parse_loop                              ;AN000;  Look for another
+chek_i:
+        cmp     bx,offset i_swch                        ; Is it the /I switch?
+        jne     whoops
+        mov     cs:i_flag,(TRUE) AND 0FFh
+        jmp     parse_loop
 whoops:                                                 ;AN000; None of the above (can we ever get here?)
         mov     ax,msg_switch                           ;AN000; Invalid parameter
         mov     dh,2                                    ;AN005; message class
@@ -1551,10 +1595,15 @@ pp_chek_v:                              ;AN005;
         mov     cs:v_flag,(TRUE) AND 0FFh          ;AN005;  Set the corresponding flag
         jmp     pp_loop                 ;AN005;  Look for another
 pp_chek_c:                              ;AN005;
-        cmp     bx,offset c_swch        ;AN005; Is it the /N switch?
-        jne     pp_error                ;AN005:  Yes, process it.
+        cmp     bx,offset c_swch        ;AN005; Is it the /C switch?
+        jne     pp_chek_i               ;AN005:  No, try /I.
         mov     cs:c_flag,(TRUE) AND 0FFh          ;AN005;  Set the corresponding flag
         jmp     pp_loop                 ;AN005;  Look for another
+pp_chek_i:
+        cmp     bx,offset i_swch        ; Is it the /I switch?
+        jne     pp_error
+        mov     cs:i_flag,(TRUE) AND 0FFh
+        jmp     pp_loop
 
 pp_error:                               ;AN005; None of the above (can we ever get here?)
         mov     ax,msg_switch           ;AN005; Invalid parameter
@@ -1689,4 +1738,3 @@ stack_top equ   $
 stack   ends
 
         end     start
-

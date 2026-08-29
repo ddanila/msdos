@@ -76,7 +76,7 @@ Every documented option of a missing command is necessarily unsupported.
 | `DIR` | Basic listing, `/P`, `/W` | `/A[:attributes]`, `/B`, `/L`, `/O[:sortorder]`, `/S`, negative forms, and `DIRCMD` defaults. These include DOS 5's recursive search and sorted-directory features. |
 | `DISKCOPY` | Copy and `/1` | `/V` post-copy verification option. |
 | `FDISK` | Automated primary, extended, and logical creation; inherited interactive code | Display/delete/change-active/select-next-disk behavior and DOS 5 large-partition boundaries are unverified. Current tests use only 5-20 MiB images. |
-| `FIND` | `/V`, `/C`, `/N` | `/I` case-insensitive matching. |
+| `FIND` | `/V`, `/C`, `/N`, `/I` | No known DOS 5 option gap. |
 | `FORMAT` | `/1`, `/4`, `/8`, `/B`, `/F`, `/N`, `/S`, `/T`, `/V` and inherited private switches | `/Q` quick format, `/U` unconditional format, `/F:2.88`, and a proven DOS 5 fixed-disk/bad-sector workflow. |
 | `SYS` | Default and explicit source paths; bootable target media | DOS 5 compatibility across hard-disk geometries, 2.88 MiB media, and upgrade scenarios is not established. |
 

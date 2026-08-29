@@ -42,6 +42,7 @@
     }},
     "FIND.EXE": {"source": "src/CMD/FIND/FIND.ASM", "switches": {
       "/C": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Count mode is asserted alone and in every combination, including precedence over /N"},
+      "/I": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Case-insensitive matching finds differently cased ASCII text while default matching remains case-sensitive"},
       "/N": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Line numbering is observable alone and with inverted matches"},
       "/V": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Inverted matching is asserted alone and in every switch combination"}
     }},

@@ -259,6 +259,27 @@ else
     fail "FIND /C (expected 'SETENV.BAT' header with count)"
 fi
 
+output=$(run_dos CMD/FIND/FIND.EXE /I '"ECHO"' 'C:\SETENV.BAT') || true
+if echo "$output" | grep -qi '^echo'; then
+    ok "FIND /I (case-insensitive match)"
+else
+    fail "FIND /I (expected uppercase search to match lowercase text)"
+fi
+
+output=$(run_dos CMD/FIND/FIND.EXE '"ECHO"' 'C:\SETENV.BAT') || true
+if ! echo "$output" | grep -qi '^echo'; then
+    ok "FIND default matching remains case-sensitive"
+else
+    fail "FIND default matching unexpectedly ignored case"
+fi
+
+output=$(run_dos CMD/FIND/FIND.EXE /I '"`"' 'C:\SETENV.BAT') || true
+if ! echo "$output" | grep -q '^@echo'; then
+    ok "FIND /I folds letters only"
+else
+    fail "FIND /I incorrectly treated @ and backtick as a case pair"
+fi
+
 output=$(run_dos CMD/FIND/FIND.EXE '"echo"' 'C:\SETENV.BAT' 'C:\CPY.BAT') || true
 if echo "$output" | grep -q "SETENV.BAT" && echo "$output" | grep -q "CPY.BAT"; then
     ok "FIND (multiple files)"
