@@ -100,6 +100,63 @@ then
     exit 1
 fi
 
+# Measure the incremental low-memory cost of publishing UMBs.  Keep HIMEM,
+# DOS=HIGH, the EMS page frame, and all machine settings identical; only RAM
+# mode (and therefore the UMB map) differs.  The inherited EMM386 resident
+# monitor is the baseline, not UMB overhead.
+BUDGET_IMAGE="$OUT/mem-umb-budget-baseline.img"
+BUDGET_LOG="$OUT/mem-umb-budget-baseline.log"
+BUDGET_UMB_IMAGE="$OUT/mem-umb-budget-enabled.img"
+BUDGET_UMB_LOG="$OUT/mem-umb-budget-enabled.log"
+cp "$FLOPPY" "$BUDGET_IMAGE"
+mcopy -o -i "$BUDGET_IMAGE" "$HIMEM" ::HIMEM.SYS
+mcopy -o -i "$BUDGET_IMAGE" "$QEXIT" ::QEXIT.COM
+{
+    printf 'DEVICE=HIMEM.SYS\r\n'
+    printf 'DEVICE=EMM386.SYS M5\r\n'
+    printf 'DOS=HIGH,UMB\r\n'
+} | mcopy -o -i "$BUDGET_IMAGE" - ::CONFIG.SYS
+{
+    printf '@ECHO OFF\r\nCTTY AUX\r\nMEM\r\nQEXIT.COM\r\n'
+} | mcopy -o -i "$BUDGET_IMAGE" - ::AUTOEXEC.BAT
+run_image "$BUDGET_IMAGE" "$BUDGET_LOG"
+
+cp "$FLOPPY" "$BUDGET_UMB_IMAGE"
+mcopy -o -i "$BUDGET_UMB_IMAGE" "$HIMEM" ::HIMEM.SYS
+mcopy -o -i "$BUDGET_UMB_IMAGE" "$QEXIT" ::QEXIT.COM
+{
+    printf 'DEVICE=HIMEM.SYS\r\n'
+    printf 'DEVICE=EMM386.SYS RAM M5\r\n'
+    printf 'DOS=HIGH,UMB\r\n'
+} | mcopy -o -i "$BUDGET_UMB_IMAGE" - ::CONFIG.SYS
+{
+    printf '@ECHO OFF\r\nCTTY AUX\r\nMEM\r\nQEXIT.COM\r\n'
+} | mcopy -o -i "$BUDGET_UMB_IMAGE" - ::AUTOEXEC.BAT
+run_image "$BUDGET_UMB_IMAGE" "$BUDGET_UMB_LOG"
+
+baseline_conventional=$(awk '$1 == "Conventional" { print $4; exit }' "$BUDGET_LOG" | tr -d '\r')
+umb_conventional=$(awk '$1 == "Conventional" { print $4; exit }' "$BUDGET_UMB_LOG" | tr -d '\r')
+baseline_under_1m=$(awk '$1 == "Total" && $2 == "under" { print $7; exit }' "$BUDGET_LOG" | tr -d '\r')
+umb_under_1m=$(awk '$1 == "Total" && $2 == "under" { print $7; exit }' "$BUDGET_UMB_LOG" | tr -d '\r')
+if [[ ! "$baseline_conventional" =~ ^[0-9]+$ \
+    || ! "$umb_conventional" =~ ^[0-9]+$ \
+    || ! "$baseline_under_1m" =~ ^[0-9]+$ \
+    || ! "$umb_under_1m" =~ ^[0-9]+$ ]]
+then
+    echo 'FAIL: unable to parse UMB conventional-memory budget measurements' >&2
+    exit 1
+fi
+if (( umb_conventional + 1024 < baseline_conventional )); then
+    echo "FAIL: UMB mode consumed more than the 1024-byte conventional-memory budget" >&2
+    echo "  baseline=$baseline_conventional UMB=$umb_conventional" >&2
+    exit 1
+fi
+if (( umb_under_1m <= baseline_under_1m )); then
+    echo 'FAIL: UMB mode did not increase usable memory below 1 MB' >&2
+    echo "  baseline=$baseline_under_1m UMB=$umb_under_1m" >&2
+    exit 1
+fi
+
 IMAGE="$OUT/mem-no-umb.img"
 LOG="$OUT/mem-no-umb.log"
 cp "$FLOPPY" "$IMAGE"

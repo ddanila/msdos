@@ -9,6 +9,7 @@ RUN apt-get update -q \
       make \
       nasm \
       python3 \
+      dosbox-x \
       qemu-system-x86 \
       mtools \
  && rm -rf /var/lib/apt/lists/*

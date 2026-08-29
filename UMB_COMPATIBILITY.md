@@ -293,6 +293,15 @@ both residency modes; the warm-reset test repeats the full HMA/UMB/EMS contract
 on two boots; and `test_mem_umb_qemu.sh` checks the HMA residency view. The
 exact unavailable-HMA wording is captured below.
 
+The incremental UMB conventional-memory budget is enforced by
+`tests/test_mem_umb_qemu.sh`. Two otherwise identical 16 MiB boots use HIMEM,
+`DOS=HIGH,UMB`, an EMS page frame, and the same EMM386 build; the baseline uses
+plain EMS mode and the comparison uses `RAM`. Publishing the UMB map reduces
+free conventional memory by only 16 bytes (`533616` to `533600`), within the
+accepted 1 KiB ceiling, while increasing usable free memory below 1 MiB by
+49,088 bytes (`533616` to `582704`). The larger inherited EMM386 monitor is
+common to both cases and is therefore not misclassified as UMB overhead.
+
 The no-XMS video-memory captures resolve that final wording ambiguity. DOS 5.0
 prints `HMA not available : Loading DOS low`, while DOS 6.22 prints
 `HMA not available: Loading DOS low`. This tree follows the plan's 6.22-facing
