@@ -46,6 +46,7 @@ The deployed floppy is written to `out/floppy.img`. Boot it interactively with:
 - [TODO.md](TODO.md) - open work.
 - [MAINTAINING.md](MAINTAINING.md) - maintainer constraints and diagnostics.
 - [MEMORY.md](MEMORY.md) - DOS 5 HMA/UMB/XMS/EMS invariants.
+- [DOS5_GAPS.md](DOS5_GAPS.md) - complete known DOS 5 feature and tooling gaps.
 - [tests/COVERAGE.md](tests/COVERAGE.md) - behavioral coverage and traceability.
 - [jwasm/README.md](jwasm/README.md) and [watcom/README.md](watcom/README.md) -
   exact tool provenance.

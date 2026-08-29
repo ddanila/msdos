@@ -2,16 +2,9 @@
 
 ## DOS 5 compatibility
 
-- Implement the persistent `SETVER` database and utility behavior.
-- Audit non-memory DOS 5 kernel differences from black-box contracts.
-- Extend FDISK, FORMAT, SYS, and setup/update behavior beyond the inherited
-  DOS 4 contracts.
-- Decide which additional DOS 5 utilities belong in the distribution and use
-  only license-compatible implementations or clean-room observations.
-- Broaden third-party, redirector, interrupt, and warm-reboot coverage while
-  DOS resides in the HMA.
-- Complete the advertised HIMEM/XMS conformance matrix before treating the
-  repository driver as a universal replacement for commercial XMS managers.
+The canonical feature inventory and recommended order are in
+[DOS5_GAPS.md](DOS5_GAPS.md). Keep each implementation backed by a black-box
+contract and update the inventory when its gap closes.
 
 ## Maintenance
 
