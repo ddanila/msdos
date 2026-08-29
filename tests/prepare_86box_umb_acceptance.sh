@@ -32,7 +32,7 @@ mdir -i "$BASE_IMAGE" ::EMM386.SYS >/dev/null 2>&1 || {
 
 mkdir -p "$OUT" "$(dirname "$OUTPUT_IMAGE")"
 "$ROOT/bin/jwasm-bin" -Fo"$HIMEM" \
-    "$ROOT/src/v4.0/src/DEV/HIMEM/HIMEM.ASM"
+    "$ROOT/src/DEV/HIMEM/HIMEM.ASM"
 nasm -f bin "$ROOT/tests/umb_lifecycle_reference.asm" -o "$UMB_PROBE"
 nasm -f bin "$ROOT/tests/hma_reference_probe.asm" -o "$HMA_PROBE"
 

@@ -24,7 +24,7 @@ shadow source trees, broad post-link rewriting, or host-specific preprocessing.
 - Work only in repositories under `github.com/ddanila` unless the owner gives
   explicit permission to interact with an upstream project.
 - The canonical system and source branch is `ddanila/msdos:master`.
-- DOS source changes belong under `src/v4.0` in this repository. The archived
+- DOS source changes belong under `src` in this repository. The archived
   `ddanila/MS-DOS` repository is provenance, not an active development target.
 - JWasm changes belong in `ddanila/JWasm:custom`.
 - Open Watcom and kvikdos changes belong in each fork's `custom` branch. Their

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "vector_source": "src/v4.0/src/DOS/MSINIT.ASM",
+  "vector_source": "src/DOS/MSINIT.ASM",
   "surfaces": {
     "20": {"level": "contract", "evidence": ["tests/int20_child_probe.asm", "tests/int21_process_probe.asm", "tests/test_int21_process_qemu.sh"], "note": "A child exits through old-style INT 20h and its parent observes normal status zero"},
     "21": {"level": "contract", "evidence": ["tests/int21_coverage.json", "tests/int21_error_coverage.json", "tests/test_coverage_manifest.py", "tests/test_int21_error_coverage.py"], "note": "Delegated to the complete live dispatch and allowed-error inventories"},

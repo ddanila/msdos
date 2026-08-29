@@ -134,12 +134,12 @@ jobs:
           name: floppy
           path: |
             out/floppy.img
-            src/v4.0/src/CMD/COMMAND/COMMAND.COM
-            src/v4.0/src/DEV/XMAEM/XMAEM.SYS
-            src/v4.0/src/DEV/XMA2EMS/XMA2EMS.SYS
-            src/v4.0/src/DEV/PRINTER/PRINTER.SYS
-            src/v4.0/src/DEV/PRINTER/4201/4201.CPI
-            src/v4.0/src/DEV/SMARTDRV/FLUSH13.EXE
+            src/CMD/COMMAND/COMMAND.COM
+            src/DEV/XMAEM/XMAEM.SYS
+            src/DEV/XMA2EMS/XMA2EMS.SYS
+            src/DEV/PRINTER/PRINTER.SYS
+            src/DEV/PRINTER/4201/4201.CPI
+            src/DEV/SMARTDRV/FLUSH13.EXE
           retention-days: 14
 
       - name: Upload published floppy images

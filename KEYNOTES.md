@@ -54,7 +54,7 @@ banner bytes. For a text-level edit, Latin-1 provides a one-byte round trip:
 ```python
 from pathlib import Path
 
-path = Path("src/v4.0/src/path/to/file.asm")
+path = Path("src/path/to/file.asm")
 text = path.read_text(encoding="latin-1")
 text = text.replace("old", "new")
 path.write_text(text, encoding="latin-1")

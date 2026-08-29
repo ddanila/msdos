@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parent.parent
-SOURCE = ROOT / "src/v4.0/src"
+SOURCE = ROOT / "src"
 EXE2BIN = ROOT / "bin/exe2bin"
 
 CASES = {

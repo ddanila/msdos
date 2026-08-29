@@ -14,7 +14,7 @@ KVIKDOS_ARGS=()
 if [ "${KVIKDOS_AZZY:-0}" = 1 ]; then
     KVIKDOS_ARGS+=(--azzy)
 fi
-SRC_ROOT="$(cd "$SCRIPT_DIR/../src/v4.0/src" && pwd)"
+SRC_ROOT="$(cd "$SCRIPT_DIR/../src" && pwd)"
 
 TOOL="$1"
 shift

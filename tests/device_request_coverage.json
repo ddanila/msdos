@@ -1,13 +1,13 @@
 {
   "schema": 1,
   "tables": {
-    "ANSI.SYS": {"source": "src/v4.0/src/DEV/ANSI/ANSI.ASM", "label": "CONTBL", "max_command": 19},
-    "DISPLAY.SYS": {"source": "src/v4.0/src/DEV/DISPLAY/DISPLAY.ASM", "label": "CMD_TABLE", "max_command": 19},
-    "RAMDRIVE.SYS": {"source": "src/v4.0/src/DEV/RAMDRIVE/RAMDRIVE.ASM", "label": "RAMTBL", "max_command": 15},
-    "SMARTDRV.SYS": {"source": "src/v4.0/src/DEV/SMARTDRV/SMARTDRV.ASM", "label": "INT13TBL", "max_command": 15},
-    "VDISK.SYS": {"source": "src/v4.0/src/DEV/VDISK/VDISKSYS.ASM", "label": "CMD_TABLE", "max_command": 15},
-    "XMA2EMS.SYS": {"source": "src/v4.0/src/DEV/XMA2EMS/XMA2EMS.ASM", "label": "CMD_TABLE", "max_command": 24},
-    "XMAEM.SYS": {"source": "src/v4.0/src/DEV/XMAEM/INDEINI.ASM", "label": "CMD_TABLE", "max_command": 24}
+    "ANSI.SYS": {"source": "src/DEV/ANSI/ANSI.ASM", "label": "CONTBL", "max_command": 19},
+    "DISPLAY.SYS": {"source": "src/DEV/DISPLAY/DISPLAY.ASM", "label": "CMD_TABLE", "max_command": 19},
+    "RAMDRIVE.SYS": {"source": "src/DEV/RAMDRIVE/RAMDRIVE.ASM", "label": "RAMTBL", "max_command": 15},
+    "SMARTDRV.SYS": {"source": "src/DEV/SMARTDRV/SMARTDRV.ASM", "label": "INT13TBL", "max_command": 15},
+    "VDISK.SYS": {"source": "src/DEV/VDISK/VDISKSYS.ASM", "label": "CMD_TABLE", "max_command": 15},
+    "XMA2EMS.SYS": {"source": "src/DEV/XMA2EMS/XMA2EMS.ASM", "label": "CMD_TABLE", "max_command": 24},
+    "XMAEM.SYS": {"source": "src/DEV/XMAEM/INDEINI.ASM", "label": "CMD_TABLE", "max_command": 24}
   },
   "coverage": {
     "ANSI.SYS": {
@@ -66,15 +66,15 @@
     },
     "XMA2EMS.SYS": {
       "0": {"level": "contract", "evidence": ["tests/test_xma_drivers_qemu.sh"], "note": "Initialization rejects unsupported QEMU hardware without leaving a device or EMS vector"},
-      "1-24": {"level": "excluded", "evidence": ["src/v4.0/src/DEV/XMA2EMS/XMA2EMS.ASM", "tests/test_xma_drivers_qemu.sh"], "note": "Rejected INIT returns no resident header, making subsequent request commands unreachable"}
+      "1-24": {"level": "excluded", "evidence": ["src/DEV/XMA2EMS/XMA2EMS.ASM", "tests/test_xma_drivers_qemu.sh"], "note": "Rejected INIT returns no resident header, making subsequent request commands unreachable"}
     },
     "XMAEM.SYS": {
       "0": {"level": "contract", "evidence": ["tests/test_xma_drivers_qemu.sh"], "note": "Initialization rejects unsupported QEMU hardware without leaving a device"},
-      "1-24": {"level": "excluded", "evidence": ["src/v4.0/src/DEV/XMAEM/INDEINI.ASM", "tests/test_xma_drivers_qemu.sh"], "note": "Rejected INIT returns no resident header, making subsequent request commands unreachable"}
+      "1-24": {"level": "excluded", "evidence": ["src/DEV/XMAEM/INDEINI.ASM", "tests/test_xma_drivers_qemu.sh"], "note": "Rejected INIT returns no resident header, making subsequent request commands unreachable"}
     }
   },
   "forwarding_interfaces": {
-    "DRIVER.SYS": {"source": "src/v4.0/src/DEV/DRIVER/DRIVER.ASM", "level": "contract", "evidence": ["tests/test_driver_sys_qemu.sh"], "note": "INIT creates the logical block device; later requests are translated and forwarded through INT 2Fh/AX=0802h, with exact read and persisted write payloads proved on the separate physical disk"},
-    "PRINTER.SYS": {"source": "src/v4.0/src/DEV/PRINTER/CPSPM10.ASM", "level": "contract", "evidence": ["tests/test_printer_driver_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "Initialization and code-page generic-IOCTL prepare, select, and status paths are asserted; exact host-captured PRINT output proves the sparse interceptor chains ordinary LPT writes"}
+    "DRIVER.SYS": {"source": "src/DEV/DRIVER/DRIVER.ASM", "level": "contract", "evidence": ["tests/test_driver_sys_qemu.sh"], "note": "INIT creates the logical block device; later requests are translated and forwarded through INT 2Fh/AX=0802h, with exact read and persisted write payloads proved on the separate physical disk"},
+    "PRINTER.SYS": {"source": "src/DEV/PRINTER/CPSPM10.ASM", "level": "contract", "evidence": ["tests/test_printer_driver_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "Initialization and code-page generic-IOCTL prepare, select, and status paths are asserted; exact host-captured PRINT output proves the sparse interceptor chains ordinary LPT writes"}
   }
 }

@@ -5,7 +5,7 @@ export LC_ALL=C
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
-SRC="$REPO_ROOT/src/v4.0/src"
+SRC="$REPO_ROOT/src"
 FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT_IMG="$OUT/floppy-graftabl.img"
 PROBE_COM="$OUT/graftabl-probe.com"

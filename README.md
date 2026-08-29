@@ -2,10 +2,9 @@
 
 This is the canonical source, build, test, and release repository for the
 maintained DOS system. It builds on Linux and macOS with custom JWasm and Open
-Watcom. The imported source under `src/v4.0` retains its historical layout,
-while the maintained system reports DOS 5.00 and implements its UMB/HMA memory
-surface. The build is fully native and open source; it does not execute
-Microsoft build tools or DOS emulators.
+Watcom. The maintained source lives directly under `src`; the system reports
+DOS 5.00 and implements its UMB/HMA memory surface. The build is fully native
+and open source; it does not execute Microsoft build tools or DOS emulators.
 
 ## Requirements
 

@@ -24,7 +24,7 @@ done
 }
 
 "$ROOT/bin/jwasm-bin" -Fo"$HIMEM" \
-    "$ROOT/src/v4.0/src/DEV/HIMEM/HIMEM.ASM"
+    "$ROOT/src/DEV/HIMEM/HIMEM.ASM"
 nasm -f bin "$ROOT/tests/hma_reference_probe.asm" -o "$PROBE"
 nasm -f bin "$ROOT/tests/hma_a20_driver.asm" -o "$A20_DRIVER"
 nasm -f bin "$ROOT/tests/int21_system_probe.asm" -o "$SYSTEM_PROBE"

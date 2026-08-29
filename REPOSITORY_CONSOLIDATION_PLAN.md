@@ -15,6 +15,12 @@ They have independent upstream histories, synchronization policies, and
 release cycles, so folding them into the DOS repository would not improve the
 source/build boundary.
 
+After the history-preserving import and its acceptance gate completed, the
+maintained `v4.0/src` subtree was flattened to `src/`. Historical v1.25, v2.0,
+Ozzie binaries, translated archive material, and the obsolete DOS-hosted build
+entry point were removed from the active tree. They remain available in the
+imported Git history and the archived `ddanila/MS-DOS` repository.
+
 ## Why consolidate
 
 The current submodule boundary reflects an earlier state in which `MS-DOS` was
@@ -109,11 +115,11 @@ filesystem copy is not acceptable.
    its final commit identity in the commit message.
 3. Merge the source repository's history into `msdos` with unrelated-history
    ancestry preserved, placing the maintained source tree under `src/`.
-4. Initially retain the source tree's internal `v4.0` layout. Flattening or
-   renaming that historical layout is optional follow-up work and must not be
-   mixed with the history import.
+4. Initially retain the source tree's internal `v4.0` layout. Its later
+   flattening to `src/` is a separate follow-up change, not part of the history
+   import.
 5. Update build paths, scripts, coverage inventories, CI, release workflows,
-   and documentation from the submodule path to `src/v4.0`.
+   and documentation from the submodule path to the imported source path.
 6. Remove `.gitmodules` and all submodule initialization instructions once no
    tracked gitlink remains.
 7. Keep source attribution, copyright notices, and license files intact.

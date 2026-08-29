@@ -22,7 +22,7 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
-SRC="$REPO_ROOT/src/v4.0/src"
+SRC="$REPO_ROOT/src"
 
 echo "=== CHKDSK / MODE CON / IFSFUNC / FILESYS / FASTOPEN / GRAPHICS / PRINT / KEYB E2E tests (QEMU) ==="
 
