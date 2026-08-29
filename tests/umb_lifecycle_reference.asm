@@ -13,6 +13,13 @@ start:
     mov ah, 4ah
     int 21h
 
+    mov ax, 5800h
+    int 21h
+    mov [saved_strategy], ax
+    mov ax, 5802h
+    int 21h
+    mov [saved_link], al
+
     mov dx, banner
     call print_string
     mov bx, 1
@@ -123,6 +130,13 @@ query_fallback_largest:
     call invoke_and_print
 
 finish:
+    mov bx, [saved_strategy]
+    mov ax, 5801h
+    int 21h
+    xor bx, bx
+    mov bl, [saved_link]
+    mov ax, 5803h
+    int 21h
     mov dx, complete
     call print_string
     mov ax, 4c00h
@@ -275,6 +289,8 @@ print_newline:
     jmp short print_string
 
 largest_upper dw 0
+saved_strategy dw 0
+saved_link db 0
 allocated_segment dw 0
 second_segment dw 0
 result_ax dw 0
