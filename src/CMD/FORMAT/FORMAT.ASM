@@ -614,6 +614,8 @@ $$IF3:
 ;And keep track of how many bytes there are in bad sectors
 
 GETTRK:
+	test	SWITCHMAP,SWITCH_Q
+	jnz	DRTFAT			; quick format only rewrites filesystem metadata
 	CALL	BADSECTOR			;Do bad track fix-up
 	JC	FRMTPROB			;Had an error in Formatting - can't recover
 	CMP	AX,0				;Are we finished?
@@ -2342,6 +2344,16 @@ $$EN28:
 ;
 NTSupported:
 StdBPB:
+	test	SwitchMap,SWITCH_Q
+	jz	PhysicalFormat
+	test	SwitchMap,(Switch_Select or SWITCH_AUTOTEST)
+	jnz	QuickFormatDone
+	Message msgFormatComplete
+QuickFormatDone:
+	mov	FormatError,0
+	clc
+	return
+PhysicalFormat:
 						;call	 DSKPRM 		 ; prompt user for disk ;; DCL 5/12/86
 	mov	FormatPacket.FP_SpecialFunctions, 0
 	mov	ax, firstHead
@@ -4200,7 +4212,15 @@ Procedure FormatTrack								;an015; dms;
 	mov	ax,(IOCTL shl 8) or Generic_IOCTL				;an015; dms;Generic IOCTL
 	mov	bl,drive							;an015; dms;get drive number
 	inc	bl								;an015; dms;make it 1 based
-	mov	cx,(RawIO shl 8) or Format_Track				;an015; dms;Format track(s)
+	mov	cx,(RawIO shl 8) or Format_Track				;default to physical format
+	test	SwitchMap,Switch_U
+	jnz	FormatTrackSelected
+	cmp	SizeMap,0						;size changes are unconditional
+	jne	FormatTrackSelected
+	test	SwitchMap,(Switch_1 or Switch_4 or Switch_8 or Switch_N or Switch_T)
+	jnz	FormatTrackSelected
+	mov	cx,(RawIO shl 8) or Verify_Track				;safe format preserves sector data
+FormatTrackSelected:
 	mov	dx,Tracks_To_Format						;an015; dms;get track count
 	mov	FormatPacket.FP_TrackCount,dx					;an015; dms;put count in parms list
 	lea	dx,FormatPacket 						;an015; dms;ptr to parms

@@ -72,13 +72,15 @@ Command_Old_Ptr dw	?
 
 Format_Help_Msg DB "Formats a disk for use with MS-DOS.",0Dh,0Ah
 		DB 0Dh,0Ah
-		DB "FORMAT drive: [/V[:label]] [/S] [/B]",0Dh,0Ah
-		DB "FORMAT drive: [/S] [/1] [/4] [/8]",0Dh,0Ah
-		DB "FORMAT drive: [/V[:label]] [/S] [/T:tracks /N:sectors]",0Dh,0Ah
-		DB "FORMAT drive: [/V[:label]] [/S] [/F:size]",0Dh,0Ah
+		DB "FORMAT drive: [/V[:label]] [/Q] [/U] [/S] [/B]",0Dh,0Ah
+		DB "FORMAT drive: [/Q] [/U] [/S] [/1] [/4] [/8]",0Dh,0Ah
+		DB "FORMAT drive: [/V[:label]] [/Q] [/U] [/S] [/T:tracks /N:sectors]",0Dh,0Ah
+		DB "FORMAT drive: [/V[:label]] [/Q] [/U] [/S] [/F:size]",0Dh,0Ah
 		DB 0Dh,0Ah
 		DB "  /V[:label]  Volume label",0Dh,0Ah
 		DB "  /S          Copy system files to disk",0Dh,0Ah
+		DB "  /Q          Quick format (clear FAT and root directory)",0Dh,0Ah
+		DB "  /U          Unconditional format (disable recovery data)",0Dh,0Ah
 		DB "  /B          Reserve space for system files",0Dh,0Ah
 		DB "  /1          Format single side",0Dh,0Ah
 		DB "  /4          Format 5.25"" 360KB disk in high-density drive",0Dh,0Ah
@@ -801,6 +803,16 @@ $$IF42:
 	   or	   SwitchMap,Switch_S		;				;AN000;
 ;	$ENDIF					;				;AN000;
 $$IF44:
+	cmp	Switch_Buffer.Switch_Pointer,offset Switch_Q_Control.Keyword
+	jne	Format_Not_Q
+	mov	Switch_Q_Control.Keyword,20h
+	or	SwitchMap,Switch_Q
+Format_Not_Q:
+	cmp	Switch_Buffer.Switch_Pointer,offset Switch_U_Control.Keyword
+	jne	Format_Not_U
+	mov	Switch_U_Control.Keyword,20h
+	or	SwitchMap,Switch_U
+Format_Not_U:
 	cmp	Switch_Buffer.Switch_Pointer,offset Switch_Backup_Control.Keyword ;AN000;
 ;	$IF	E				;				;AN000;
 	JNE $$IF46

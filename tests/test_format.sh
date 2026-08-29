@@ -33,10 +33,12 @@ trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$SERIAL_IN" "$SERIAL_OUT" "$QMP_SOC
 
 echo "=== FORMAT E2E tests (QEMU, QMP disk swapping) ==="
 
-NAMES=("VLABEL" "S"      "B"      "F720"   "F2880"  "TN"     "FOUR"   "ONE"    "EIGHT"
+NAMES=("VLABEL" "Q"      "U"      "S"      "B"      "F720"   "F2880"  "TN"     "FOUR"   "ONE"    "EIGHT"
        "SWITCHC" "SWITCHZ" "SELECT" "AUTOTEST" "BACKUP")
 FORMAT_CMDS=(
     "FORMAT B: /V:TEST"
+    "FORMAT B: /Q /V:QUICK"
+    "FORMAT B: /U /V:UNCOND"
     "FORMAT B: /S"
     "FORMAT B: /B"
     "FORMAT B: /F:720"
@@ -51,15 +53,15 @@ FORMAT_CMDS=(
     "FORMAT B: /AUTOTEST /V:AUTO"
     "FORMAT B: /BACKUP /V:BKP"
 )
-B_SECTORS=(2880 2880 2880 1440 5760 1440 2400 2400 720
+B_SECTORS=(2880 2880 2880 2880 2880 1440 5760 1440 2400 2400 720
            2880 2880 2880 2880 2880)
-NO_LABEL_NAMES=(VLABEL EIGHT SELECT AUTOTEST BACKUP)
+NO_LABEL_NAMES=(VLABEL Q U EIGHT SELECT AUTOTEST BACKUP)
 
 if [[ ${#SELECTED_VARIANTS[@]} -eq 0 && "${FORMAT_2880_CHILD:-0}" != 1 ]]; then
     # QEMU fixes the emulated floppy-drive type at boot.  Exercise 2.88 MB
     # media in its own VM instead of hot-swapping it into a 1.44 MB drive.
     RUN_2880_SEPARATELY=1
-    SELECTED_VARIANTS=(VLABEL S B F720 TN FOUR ONE EIGHT SWITCHC SWITCHZ SELECT AUTOTEST BACKUP)
+    SELECTED_VARIANTS=(VLABEL Q U S B F720 TN FOUR ONE EIGHT SWITCHC SWITCHZ SELECT AUTOTEST BACKUP)
 fi
 
 if [[ ${#SELECTED_VARIANTS[@]} -gt 0 ]]; then
@@ -111,6 +113,10 @@ for i in "${!NAMES[@]}"; do
     B_IMGS+=("$OUT/format-b-${NAMES[$i]}.img")
     SAVED_IMGS+=("$OUT/format-saved-${NAMES[$i]}.img")
     dd if=/dev/zero bs=512 count="${B_SECTORS[$i]}" of="${B_IMGS[$i]}" status=none
+    if [[ "${NAMES[$i]}" == "VLABEL" || "${NAMES[$i]}" == "Q" || "${NAMES[$i]}" == "U" ]]; then
+        mformat -i "${B_IMGS[$i]}" ::
+        printf '%s-format-marker\r\n' "${NAMES[$i]}" | mcopy -i "${B_IMGS[$i]}" - ::MARKER.TXT
+    fi
 done
 
 mkfifo "$SERIAL_IN" "$SERIAL_OUT"
@@ -160,7 +166,7 @@ done
 echo ""
 echo "--- FORMAT complete messages ---"
 _full_count=0
-for _fn in VLABEL S B F720 F2880 FOUR ONE EIGHT BACKUP; do
+for _fn in VLABEL Q U S B F720 F2880 FOUR ONE EIGHT BACKUP; do
     for _n in "${NAMES[@]}"; do [[ "$_n" == "$_fn" ]] && _full_count=$((_full_count+1)) && break; done
 done
 if [[ $_full_count -gt 0 ]]; then
@@ -212,7 +218,7 @@ echo "--- Post-QEMU BPB geometry checks ---"
 for i in "${!NAMES[@]}"; do
     name="${NAMES[$i]}"
     case "$name" in
-        VLABEL|S|B|SELECT|AUTOTEST|BACKUP) es=18; eh=2; et=2880 ;;
+        VLABEL|Q|U|S|B|SELECT|AUTOTEST|BACKUP) es=18; eh=2; et=2880 ;;
         F720) es=9; eh=2; et=1440 ;;
         F2880) es=36; eh=2; et=5760 ;;
         FOUR) es=9; eh=2; et=720 ;;
@@ -236,6 +242,27 @@ for i in "${!NAMES[@]}"; do
             ok "FORMAT /V:TEST volume label ('TEST' found in: $label)"
         else
             fail "FORMAT /V:TEST volume label (expected 'TEST', got: '$label')"
+        fi
+        if ! mdir -i "$img" ::MARKER.TXT >/dev/null 2>&1 \
+            && grep -a -q 'VLABEL-format-marker' "$img"; then
+            ok "FORMAT safe default verifies media without overwriting file data"
+        else
+            fail "FORMAT safe-default data preservation"
+        fi
+    fi
+    if [[ "$name" == "Q" ]]; then
+        if ! mdir -i "$img" ::MARKER.TXT >/dev/null 2>&1 \
+            && grep -a -q 'Q-format-marker' "$img"; then
+            ok "FORMAT /Q clears metadata without overwriting file data"
+        else
+            fail "FORMAT /Q metadata-only behavior"
+        fi
+    fi
+    if [[ "$name" == "U" ]]; then
+        if ! mdir -i "$img" ::MARKER.TXT >/dev/null 2>&1; then
+            ok "FORMAT /U removes all DOS-visible prior data"
+        else
+            fail "FORMAT /U left prior directory data visible"
         fi
     fi
     if [[ "$name" == "SELECT" ]]; then

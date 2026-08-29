@@ -3,6 +3,7 @@
  SWITCH_S EQU		0001h			   ; System transfer
  SWITCH_V EQU		0002h			   ; Volume ID prompt
  SWITCH_BACKUP EQU	0004h
+ SWITCH_Q EQU		0008h			   ; Quick format
  SWITCH_T EQU		0010h
  SWITCH_N EQU		0020h
  SWITCH_1 EQU		0040h
@@ -13,6 +14,7 @@
  SWITCH_AUTOTEST EQU	0800h
  SWITCH_F	EQU	1000h
  SWITCH_FS	EQU	2000h
+ SWITCH_U EQU		8000h			   ; Unconditional format
 
 IF ShipDisk
 
@@ -33,5 +35,4 @@ Size_720	equ	0010h			;				;AN000;
 Size_1200	equ	0020h			;				;AN000;
 Size_1440	equ	0040h			;				;AN000;
 Size_2880	equ	0080h			; 3.5-inch 2.88 MB media
-
 
