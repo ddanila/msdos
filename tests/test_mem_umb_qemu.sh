@@ -16,8 +16,7 @@ for tool in mcopy nasm qemu-system-i386 timeout; do
     }
 done
 
-"$ROOT/bin/jwasm-bin" -Fo"$HIMEM" \
-    "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
+mcopy -o -i "$FLOPPY" ::HIMEM.SYS "$HIMEM"
 nasm -f bin "$ROOT/tests/loadhigh_state.asm" -o "$STATE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 
