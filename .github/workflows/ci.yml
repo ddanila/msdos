@@ -78,6 +78,7 @@ jobs:
             XCOPY.EXE
             DISKCOMP.COM
             DISKCOPY.COM
+            SETVER.COM
             APPEND.EXE
             RECOVER.COM
             FASTOPEN.EXE
@@ -246,6 +247,9 @@ jobs:
 
       - name: Focused KEYB layout regression
         run: bash tests/test_keyb_layout_qemu.sh
+
+      - name: SETVER compatibility table
+        run: bash tests/test_setver_qemu.sh
 
   e2e-drivers:
     needs: build

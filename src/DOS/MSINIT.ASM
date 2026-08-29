@@ -350,20 +350,10 @@ TRUEDPBAD:
 	STOSW			; End of list
 
 	MOV	[Special_Entries],BP ;MS.;AN007 save starting address of Special entries
-	MOV	SI,OFFSET DOSGROUP:Version_Fake_Table	;MS.;AN007
-	MOV	DX,SI		     ;MS.;AN007
-	XOR	AH,AH		     ;MS.;AN007
-NextEntry:			     ;MS.;AN007
-	LODSB			     ;MS.;AN007  get name length
-	OR	AL,AL		     ;MS.;AN007  end of list
-	JZ	endlist 	     ;MS.;AN007  yes
-	ADD	SI,AX		     ;MS.;AN007  position to
-	ADD	SI,3		     ;MS.;AN007  next entry
-	JMP	NextEntry	     ;MS.;AN007
-endlist:			     ;MS.;AN007
-	SUB	SI,DX		     ;MS.;AN007
-	MOV	[Temp_Var],SI	     ;MS.;AN007  si = total table length
-	ADD	BP,SI		     ;MS.;AN007
+	; Reserve and copy the complete writable SETVER table, not merely the
+	; seeded entries through the first terminator.
+	MOV	[Temp_Var],SETVER_TABLE_CAPACITY
+	ADD	BP,SETVER_TABLE_CAPACITY
 
 
 	ADD	BP,15		; True start of free space (round up to segment)
@@ -651,6 +641,7 @@ INITSTACK LABEL BYTE
 ;fake_count: ff means the version will be reset when Abort or Exec is encountered
 ;	     n means the version will be reset after n DOS version calls are issued
 ;
+SETVER_TABLE_CAPACITY EQU 512
 Version_Fake_Table:			    ;AN007  starting address for special
 	DB	12,"IBMCACHE.COM",3,40,255  ;AN007  ibmcache     1
 	DB	12,"IBMCACHE.SYS",3,40,255  ;AN007  ibmcache     2
@@ -661,7 +652,9 @@ Version_Fake_Table:			    ;AN007  starting address for special
 	DB	 8,"ISAM.EXE"    ,3,40,255  ;AN008  basic        7
 	DB	 9,"ISAM2.EXE"   ,3,40,255  ;AN008  basic        8
 	DB	12,"DFIA0MOD.SYS",3,40,255  ;AN008  lan support  9
-	DB	20  dup(0)		    ;AN007
+	; Keep the resident table writable.  SETVER uses the first zero-length
+	; entry as the terminator and may consume the remaining zero-filled space.
+	DB	(SETVER_TABLE_CAPACITY-($-Version_Fake_Table)) dup(0)
 
 MEMSTRT LABEL	WORD
 MSINI002E label byte

@@ -468,6 +468,7 @@ DOSTable    LABEL   WORD
         Short_addr  MSG_RETRIEVAL       ;   46  MSG_RETRIEVAL DOS 4.0  ;AN000;
         Short_addr  Fake_Version        ;   47  Fake_Version  DOS 4.0  ;AN006;
         Short_addr  DOS_HMA_RELOCATE    ;   48  internal SYSINIT callback
+        Short_addr  DOSGetVersionTable  ;   49  SETVER resident table
 
 DOSTableEnd LABEL   BYTE
 

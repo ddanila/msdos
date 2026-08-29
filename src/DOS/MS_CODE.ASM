@@ -54,6 +54,7 @@ ASSUME	CS:DOSGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
     I_need  JShare,DWORD
     I_need  CALLDEVAD,DWORD
     I_need  arena_head,WORD
+    I_need  Special_Entries,WORD
 
     EXTRN   DOS_CODE_START:BYTE
 
@@ -610,6 +611,15 @@ Procedure   INT2F_etcetera,NEAR
 
 	entry	DOSInstall
 	MOV	AL,0FFh
+	return
+
+	; SETVER resident compatibility table interface (AX=1231h).
+	; Returns ES:DI -> length-prefixed entries and CX = table capacity.
+	entry	DOSGetVersionTable
+	MOV	DI,CS:[Special_Entries]
+	PUSH	CS
+	POP	ES
+	MOV	CX,512
 	return
 EndProc INT2F_etcetera
 

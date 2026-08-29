@@ -44,7 +44,7 @@ features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
 | 2.88 MiB floppy support | Missing | No implemented/tested 2.88 MiB FORMAT and system-disk path; DRIVER.SYS syntax alone is insufficient. |
 | Guided Setup with online help | Missing | SELECT is the inherited DOS 4 installer, not the DOS 5 SETUP/upgrade workflow. |
 | Compressed installation media | Missing | No DOS `EXPAND.EXE`, DOS 5 compressed-file format workflow, or retail multi-disk installer. The host build tool named `compress` is unrelated. |
-| DOS 5 version compatibility table | Partial | The kernel reports 5.00 and retains per-process spoofing, but SETVER and its persistent table are absent. |
+| DOS 5 version compatibility table | Partial | SETVER lists and edits a bounded resident kernel table, and EXEC applies add/update/delete changes immediately. Persistence across reboot and the original CONFIG.SYS loader remain absent. |
 
 ## Command inventory
 
@@ -62,7 +62,6 @@ Every documented option of a missing command is necessarily unsupported.
 | `HELP` | Command index, `HELP command`, and the DOS 5 help database. |
 | `MIRROR` | Delete-tracking file, disk/partition recovery metadata, `/1`, `/T`, `/U`, and `/PARTN`. |
 | `QBASIC` | BASIC editor/interpreter, `/B`, `/EDITOR`, `/G`, `/H`, `/MBF`, `/NOHI`, `/RUN`, online help, and bundled examples. |
-| `SETVER` | Display/add/delete version-table entries, `/DELETE`, `/QUIET`, and the resident CONFIG.SYS table loader. |
 | `UNDELETE` | File recovery, `/LIST`, `/ALL`, `/DOS`, and delete-tracking modes. |
 | `UNFORMAT` | Disk recovery/reconstruction, `/J`, `/U`, `/L`, `/TEST`, `/P`, and `/PARTN`. |
 
@@ -73,6 +72,7 @@ Every documented option of a missing command is necessarily unsupported.
 | Command | Implemented | Missing or incompatible DOS 5 behavior |
 | --- | --- | --- |
 | `ATTRIB` | `+R`, `-R`, `+A`, `-A`, `+H`, `-H`, `+S`, `-S`, `/S` | No known DOS 5 option gap. |
+| `SETVER` | List, add, update, and `/DELETE` against the resident kernel table; EXEC reports the selected version to matching programs | Persistent table storage, the CONFIG.SYS device-loader form, and `/QUIET`. |
 | `DIR` | Basic listing, `/P`, `/W` | `/A[:attributes]`, `/B`, `/L`, `/O[:sortorder]`, `/S`, negative forms, and `DIRCMD` defaults. These include DOS 5's recursive search and sorted-directory features. |
 | `DISKCOPY` | Copy, `/1`, and `/V` read-back verification | No known DOS 5 option gap. |
 | `FDISK` | Automated primary, extended, and logical creation; inherited interactive code | Display/delete/change-active/select-next-disk behavior and DOS 5 large-partition boundaries are unverified. Current tests use only 5-20 MiB images. |
@@ -113,7 +113,7 @@ Complete limit/error/order parity remains unverified outside the cases in
 | `HIMEM.SYS` | Partial XMS 2.00 implementation | 286 support; `/HMAMIN`, `/NUMHANDLES`, `/INT15`, `/MACHINE`, `/A20CONTROL`, `/SHADOWRAM`, and `/CPUCLOCK`. The handle count is fixed and machine-specific A20 selection is automatic only. |
 | `EMM386.SYS` | Partial DOS 5 EMM386 replacement | Retail filename compatibility (`EMM386.EXE`); driver `ON`/`OFF`/`AUTO`, `W=`, `FRAME=`, `Pn=`, `B=`, `L=`, `A=`, `H=`, and `D=` controls. The repository implements pool size, page-frame selection, `I=`, `X=`, `RAM`, and `NOEMS`. |
 | `EGA.SYS` | Missing | DOSSHELL Task Swapper display save/restore support. |
-| `SETVER.EXE` | Missing | Resident version table and command interface. |
+| `SETVER.EXE` | Partial (`SETVER.COM`) | Kernel-resident table and command editing work; the original dual-purpose EXE/device loader, persistent on-disk table, and `/QUIET` remain. |
 | `ANSI.SYS` | Present | No known DOS 5 `/X` or `/K` omission; exhaustive escape-sequence and adapter conformance is not complete. |
 | `DISPLAY.SYS`, `PRINTER.SYS` | Present | Core code-page flow is tested; the full adapter/printer type and code-page matrix is unverified. |
 | `DRIVER.SYS` | Present | Core logical-drive behavior is tested; all DOS 5 geometry values, including 2.88 MiB, are unverified. |
@@ -134,8 +134,8 @@ currently known.
 
 Known limitations remain:
 
-- `AH=30h` supports the per-process fake-version mechanism, but without SETVER
-  there is no persistent filename database or normal loader policy.
+- `AH=30h` and SETVER provide immediate per-process fake versions through EXEC,
+  but the filename database is not yet persisted or loaded through CONFIG.SYS.
 - Network/server calls are present, but interoperability with a complete DOS 5
   network redirector stack is not established.
 - List-of-Lists, PSP, SFT, CDS, DPB, country, and driver structures have focused
