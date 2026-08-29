@@ -72,6 +72,9 @@ The MS-DOS `.gitattributes` policy is significant:
 `USA-MS.MSG` uses historical CRLF bytes because message offsets depend on its
 on-disk representation.
 
+Keep new source, comments, documentation, commit messages, and automation text
+ASCII unless a historical file specifically requires other bytes.
+
 ## Parallel-build isolation
 
 Build recipes and tests may run concurrently. Temporary files, floppy images,
@@ -96,6 +99,10 @@ before diagnosing such an error as an assembler problem.
 
 Raw BUILDMSG output is the supported input. COMMAND, SYS, and FORMAT assemble
 and link it without a post-generation rewrite.
+
+When diagnosing include lookup, reproduce the module's Make rule, including
+its source directory and include arguments; an isolated assembler invocation
+may exercise a different search path.
 
 ## Kernel and executable layout
 
@@ -133,6 +140,8 @@ All project-specific work stays under `github.com/ddanila`:
 
 The `master` branches of the Open Watcom and kvikdos forks are reserved for
 upstream synchronization; project-specific changes live on `custom`.
+Do not send project changes to upstream repositories without maintainer
+approval.
 
 ## Expensive diagnostics
 
