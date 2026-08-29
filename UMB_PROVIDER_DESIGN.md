@@ -113,11 +113,13 @@ The DOS-side XMS acquisition remains separately transactional, so a later DOS
 failure releases its XMS UMB allocations without destroying the provider's
 underlying mappings.
 
-`RAM` enables UMB construction. `NOEMS` suppresses the EMS page frame but still
-permits paging-backed UMBs. `X=` always excludes a range. `I=` may include a
-range only after the existing safety checks and reference behavior are made
-explicit; it cannot override video or system ROM safety. Exact spelling,
-defaults, diagnostics, and precedence remain Phase 0 reference gates.
+`RAM` enables UMB construction alongside an EMS page frame. `NOEMS` enables
+UMBs while suppressing the EMS page frame. With neither switch, EMM386 remains
+an EMS-only provider. Repeated `I=` ranges explicitly reclaim adapter space
+from C000 through EFFF after option-ROM discovery; repeated `X=` ranges remove
+space from consideration and win over `I=` regardless of command-line order.
+Video memory below C000 and the F000 system-ROM area remain hard exclusions.
+The historical `X:` spelling remains accepted alongside the DOS 5 `X=` form.
 
 ## Concurrency and lifecycle invariants
 
@@ -178,8 +180,10 @@ from every firmware-safe upper region exposed on that machine, and exercises
 EMS in the same boot. A local QEMU map exposes two separated regions; the CI
 firmware map exposes one. Deterministic synthetic coverage independently proves
 normalization and allocation across multiple discontiguous extents.
-This establishes the basic ownership split but does not close Phase 3:
-remaining XMS edge cases and broader fault injection remain required. A
+The production activation matrix now covers EMS-only default operation,
+`RAM`, `NOEMS`, explicit exclusions, repeated include/exclude parsing, and
+`X=` precedence. This establishes the ownership split and user-facing mode
+contract but does not close Phase 3: broader fault injection remains required. A
 monitor-driven system-reset test now proves that HMA ownership, UMB allocation,
 EMS isolation, and EMS allocation/mapping all work on two consecutive boots.
 Physical A20 alias detection, fast-gate/BIOS/8042 backends, one

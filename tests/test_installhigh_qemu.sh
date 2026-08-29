@@ -41,7 +41,7 @@ run_case() {
         mcopy -o -i "$image" "$ROOT/MS-DOS/v4.0/src/MEMM/MEMM/EMM386.SYS" ::EMM386.SYS
         {
             printf 'DEVICE=HIMEM.SYS\r\n'
-            printf 'DEVICE=EMM386.SYS M5\r\n'
+            printf 'DEVICE=EMM386.SYS RAM M5\r\n'
             printf 'INSTALLHIGH=IHREF.COM TOKEN\r\n'
             printf 'DOS=UMB\r\n'
         } | mcopy -o -i "$image" - ::CONFIG.SYS

@@ -23,6 +23,7 @@ ISOLATION_PROBE="$OUT/umb-ems-isolation.com"
 COMBINED_IMAGE="$OUT/floppy-himem-emm386.img"
 COMBINED_LOG="$OUT/himem-emm386.log"
 ABSENCE_PROBE="$OUT/umb-provider-absence.com"
+ACTIVATION_PROBE_SRC="$ROOT/tests/emm386_activation_probe.asm"
 ROLLBACK_IMAGE="$OUT/floppy-himem-emm386-rollback.img"
 ROLLBACK_LOG="$OUT/himem-emm386-rollback.log"
 WARMBOOT="$OUT/warm-reboot.com"
@@ -167,7 +168,7 @@ mcopy -o -i "$COMBINED_IMAGE" "$EMM_PROBE" ::EMMPROBE.COM
 mcopy -o -i "$COMBINED_IMAGE" "$ISOLATION_PROBE" ::UMBEMS.COM
 {
     printf 'DEVICE=A:\\HIMEM.SYS\r\n'
-    printf 'DEVICE=A:\\EMM386.SYS M5\r\n'
+    printf 'DEVICE=A:\\EMM386.SYS RAM M5\r\n'
     printf 'DOS=UMB\r\n'
 } | mcopy -o -i "$COMBINED_IMAGE" - ::CONFIG.SYS
 {
@@ -202,7 +203,7 @@ mcopy -o -i "$ROLLBACK_IMAGE" "$ABSENCE_PROBE" ::NOUMB.COM
 mcopy -o -i "$ROLLBACK_IMAGE" "$EMM_PROBE" ::EMMPROBE.COM
 {
     printf 'DEVICE=A:\\HIMEM.SYS\r\n'
-    printf 'DEVICE=A:\\EMM386.SYS M5\r\n'
+    printf 'DEVICE=A:\\EMM386.SYS RAM M5\r\n'
     printf 'DOS=UMB\r\n'
 } | mcopy -o -i "$ROLLBACK_IMAGE" - ::CONFIG.SYS
 {
@@ -225,6 +226,48 @@ then
     exit 1
 fi
 
+for mode_spec in \
+    'plain|0|1|M5|' \
+    'ram|1|1|RAM M5|' \
+    'noems|1|0|NOEMS|' \
+    'exclude|1|1|RAM M5 X=E000-EFFF|-DEXPECT_ONE_REGION' \
+    'include_precedence|1|0|NOEMS I=C000-CFFF X=C000-CFFF|-DEXPECT_ONE_REGION'
+do
+    IFS='|' read -r mode expect_umb expect_ems options extra_define \
+        <<<"$mode_spec"
+    mode_probe="$OUT/emm386-activation-$mode.com"
+    mode_image="$OUT/floppy-emm386-activation-$mode.img"
+    mode_log="$OUT/emm386-activation-$mode.log"
+    nasm -DEXPECT_UMB="$expect_umb" -DEXPECT_EMS="$expect_ems" \
+        ${extra_define:+"$extra_define"} -f bin "$ACTIVATION_PROBE_SRC" \
+        -o "$mode_probe"
+    cp "$FLOPPY" "$mode_image"
+    mcopy -o -i "$mode_image" "$HIMEM" ::HIMEM.SYS
+    mcopy -o -i "$mode_image" "$mode_probe" ::EMMMODE.COM
+    mcopy -o -i "$mode_image" "$QEXIT" ::QEXIT.COM
+    {
+        printf 'DEVICE=A:\\HIMEM.SYS\r\n'
+        printf 'DEVICE=A:\\EMM386.SYS %s\r\n' "$options"
+        printf 'DOS=UMB\r\n'
+    } | mcopy -o -i "$mode_image" - ::CONFIG.SYS
+    {
+        printf '@ECHO OFF\r\n'
+        printf 'CTTY AUX\r\n'
+        printf 'EMMMODE.COM\r\n'
+        printf 'QEXIT.COM\r\n'
+    } | mcopy -o -i "$mode_image" - ::AUTOEXEC.BAT
+    timeout 25 qemu-system-i386 \
+        -display none -monitor none -machine pc -cpu 486 -m 16 \
+        -drive if=floppy,index=0,format=raw,file="$mode_image",cache=writethrough \
+        -boot a -serial stdio -no-reboot \
+        -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$mode_log" 2>&1 || true
+    if ! grep -Fq 'EMM386_ACTIVATION_PASS' "$mode_log"; then
+        echo "FAIL: EMM386 activation mode $mode" >&2
+        sed -n '1,180p' "$mode_log" >&2
+        exit 1
+    fi
+done
+
 cp "$FLOPPY" "$WARM_IMAGE"
 mcopy -o -i "$WARM_IMAGE" "$HIMEM" ::HIMEM.SYS
 mcopy -o -i "$WARM_IMAGE" "$LIFECYCLE_PROBE" ::UMBLREF.COM
@@ -235,7 +278,7 @@ mcopy -o -i "$WARM_IMAGE" "$WARMBOOT" ::WARMBOOT.COM
 mcopy -o -i "$WARM_IMAGE" "$QEXIT" ::QEXIT.COM
 {
     printf 'DEVICE=A:\\HIMEM.SYS\r\n'
-    printf 'DEVICE=A:\\EMM386.SYS M5\r\n'
+    printf 'DEVICE=A:\\EMM386.SYS RAM M5\r\n'
     printf 'DOS=HIGH,UMB\r\n'
 } | mcopy -o -i "$WARM_IMAGE" - ::CONFIG.SYS
 {
