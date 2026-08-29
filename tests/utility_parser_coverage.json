@@ -69,11 +69,11 @@
       "/BACKUP": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Suppresses the insertion prompt and produces an exact BPB and requested label"},
       "/F": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Selects verified 720KB and 2.88MB layouts, including every documented 2.88 alias"},
       "/N": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Explicit sectors-per-track reaches the drive-specific validation path with /T"},
-      "/Q": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Clears FAT and root metadata without scanning or overwriting file payload sectors"},
+      "/Q": {"level": "contract", "evidence": ["tests/test_format.sh", "tests/test_format_hdd_qemu.sh"], "note": "Clears FAT and root metadata without scanning or overwriting file payload sectors on floppy and FAT16 fixed media"},
       "/S": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Transfers bootable system files and reports completion"},
       "/SELECT": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Runs the SELECT-integrated unattended path and persists its requested label"},
       "/T": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Explicit track count reaches the drive-specific validation path with /N"},
-      "/U": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Selects unconditional formatting and removes all DOS-visible prior data"},
+      "/U": {"level": "contract", "evidence": ["tests/test_format.sh", "tests/test_format_hdd_qemu.sh"], "note": "Selects unconditional formatting and removes all DOS-visible prior data on floppy and FAT16 fixed media"},
       "/V": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Persists the exact requested volume label"}
     }},
     "FILESYS.EXE": {"source": "src/CMD/FILESYS/FILESYS.C", "extractor": "c_parser_literals", "switches": {

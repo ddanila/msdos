@@ -77,7 +77,7 @@ Every documented option of a missing command is necessarily unsupported.
 | `DISKCOPY` | Copy, `/1`, and `/V` read-back verification | No known DOS 5 option gap. |
 | `FDISK` | Automated primary, extended, and logical creation; inherited interactive code | Display/delete/change-active/select-next-disk behavior and DOS 5 large-partition boundaries are unverified. Current tests use only 5-20 MiB images. |
 | `FIND` | `/V`, `/C`, `/N`, `/I` | No known DOS 5 option gap. |
-| `FORMAT` | Safe, `/Q`, and `/U` modes; `/1`, `/4`, `/8`, `/B`, `/F` including 2.88 MiB, `/N`, `/S`, `/T`, `/V`, and inherited private switches | A proven DOS 5 fixed-disk/bad-sector workflow and UNFORMAT-compatible recovery metadata. |
+| `FORMAT` | Safe, `/Q`, and `/U` modes on floppy and FAT16 fixed media; hard-disk warning/errorlevel 5; `/1`, `/4`, `/8`, `/B`, `/F` including 2.88 MiB, `/N`, `/S`, `/T`, `/V`, and inherited private switches | Deterministic hardware-fault coverage for fixed-disk bad-cluster marking and UNFORMAT-compatible recovery metadata. |
 | `SYS` | Default and explicit source paths; bootable target media | DOS 5 compatibility across hard-disk geometries, 2.88 MiB media, and upgrade scenarios is not established. |
 
 ### Present commands without a known parser omission
