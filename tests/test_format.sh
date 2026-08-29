@@ -204,11 +204,18 @@ read_bpb() {
     python3 - "$1" <<'PYEOF'
 import struct, sys
 with open(sys.argv[1], 'rb') as f:
+    f.seek(0x0B); bps = struct.unpack('<H', f.read(2))[0]
+    spc = f.read(1)[0]
+    f.seek(0x11); roots = struct.unpack('<H', f.read(2))[0]
     f.seek(0x13); total16 = struct.unpack('<H', f.read(2))[0]
+    media = f.read(1)[0]
+    spf = struct.unpack('<H', f.read(2))[0]
     f.seek(0x18); spt, heads = struct.unpack('<HH', f.read(4))
     f.seek(0x20); total32 = struct.unpack('<I', f.read(4))[0]
+    f.seek(0x36); fs = f.read(8).decode('ascii', errors='replace').rstrip()
 total = total32 if total16 == 0 else total16
-print(f"spt={spt} heads={heads} total={total}")
+print(f"bps={bps} spc={spc} roots={roots} media={media:02X} spf={spf} "
+      f"spt={spt} heads={heads} total={total} fs={fs}")
 PYEOF
 }
 
@@ -228,13 +235,22 @@ for i in "${!NAMES[@]}"; do
     esac
     img="${SAVED_IMGS[$i]}"
     if bpb=$(read_bpb "$img" 2>/dev/null); then
-        if [[ "$bpb" == *"spt=$es"* && "$bpb" == *"heads=$eh"* && "$bpb" == *"total=$et"* ]]; then
+        if [[ "$bpb" == *"spt=$es"* && "$bpb" == *"heads=$eh"* && "$bpb" == *"total=$et"* ]] \
+            && { [[ "$name" != "F2880" ]] \
+                || [[ "$bpb" == *"bps=512 spc=2 roots=240 media=F0 spf=9"*"fs=FAT12"* ]]; }; then
             ok "FORMAT $name BPB ($bpb)"
         else
             fail "FORMAT $name BPB: expected spt=$es heads=$eh total=$et, got: $bpb"
         fi
     else
         fail "FORMAT $name (saved image missing or unreadable)"
+    fi
+    if [[ "$name" == "F2880" ]]; then
+        if mdir -i "$img" :: >/dev/null 2>&1; then
+            ok "FORMAT /F:2.88 creates a host-readable FAT12 filesystem"
+        else
+            fail "FORMAT /F:2.88 creates an unreadable FAT filesystem"
+        fi
     fi
     if [[ "$name" == "VLABEL" ]]; then
         label=$(mlabel -i "$img" -s :: 2>/dev/null || echo "")

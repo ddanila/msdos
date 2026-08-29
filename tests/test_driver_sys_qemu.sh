@@ -27,14 +27,15 @@ done
 
 trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$QMP_SOCK" 2>/dev/null; true' EXIT
 cp "$FLOPPY" "$BOOT_IMG"
-cp "$FLOPPY" "$TARGET_IMG"
+dd if=/dev/zero bs=512 count=5760 of="$TARGET_IMG" status=none
+mformat -i "$TARGET_IMG" -f 2880 ::
 nasm -f bin "$REPO_ROOT/tests/driver_sys_probe.asm" -o "$PROBE_COM"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::DRVPROBE.COM
 printf 'DRIVER_OK' | mcopy -o -i "$TARGET_IMG" - ::DRVTEST.TXT
 {
-    printf 'DEVICE=DRIVER.SYS /D:1\r\n'
+    printf 'DEVICE=DRIVER.SYS /D:1 /F:9\r\n'
     printf 'LASTDRIVE=Z\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
@@ -72,12 +73,25 @@ python3 "$REPO_ROOT/tests/screen_expect.py" \
 kill "$QEMU_PID" 2>/dev/null || true
 wait "$QEMU_PID" 2>/dev/null || true
 
-written_payload="$(mtype -i "$TARGET_IMG" ::DRVWRITE.TXT 2>/dev/null || true)"
 source_payload="$(mtype -i "$TARGET_IMG" ::DRVTEST.TXT 2>/dev/null || true)"
+directory_state="$(mdir -i "$TARGET_IMG" :: 2>/dev/null || true)"
+bpb_state="$(python3 - "$TARGET_IMG" <<'PY'
+import struct
+import sys
+
+boot = open(sys.argv[1], 'rb').read(36)
+bps = struct.unpack_from('<H', boot, 11)[0]
+spc = boot[13]
+total = struct.unpack_from('<H', boot, 19)[0]
+spf, spt, heads = struct.unpack_from('<HHH', boot, 22)
+print(bps, spc, total, spf, spt, heads)
+PY
+)"
 if grep -q 'DRIVER_SYS_PASS' "$SERIAL_LOG" \
-    && [[ "$written_payload" == 'DRIVER_WRITE_OK' ]] \
-    && [[ "$source_payload" == 'DRIVER_OK' ]]; then
-    echo "  PASS: DRIVER.SYS forwarded exact reads and writes to physical B:"
+    && [[ "$source_payload" == 'DRIVER_OK' ]] \
+    && grep -Eq 'DRVWRITE[[:space:]]+TXT[[:space:]]+15' <<<"$directory_state" \
+    && [[ "$bpb_state" == '512 2 5760 9 36 2' ]]; then
+    echo "  PASS: DRIVER.SYS /F:9 exposed 2.88 MB geometry and exact DOS-side reads/writes"
     exit 0
 fi
 

@@ -301,7 +301,7 @@ Switch_F	label	byte	;AN000;
 F_Val		label	byte	;AN000;
 	db	2		;AN000;# of value definitions (Order dependent)
 	db	0		;AN000;no ranges
-	db	4		;AN000;# of numeric choices
+	db	5		;AN000;# of numeric choices
 F_Choices	label	byte	;AN000;
 	db	1		;AN000;1st choice (item tag)
 	dd	0		;AN000;0
@@ -311,6 +311,8 @@ F_Choices	label	byte	;AN000;
 	dd	2		;AN000;2
 	db	4		;AN000;4th choice
 	dd	7		;AN000;7
+	db	5		;AN000;5th choice
+	dd	9		;AN000;9 (2.88 MB)
 
 
 ;AN000;System messages handler data
@@ -1109,9 +1111,15 @@ DOUBLE_9_SEC:
 	JMP	GOT_CORRECT_MEDIAD
 NOT_48TPI:
 	CMP	BYTE PTR [DI].FormFactor, ff96tpi
-	JNE	NOT_96TPI
-	MOV	AL, 1			;1 sec/cluster
+	JNE	CHECK_2880
+	MOV	AL, 1			;1 sector/cluster
 	MOV	BL, 0F9h
+	JMP	GOT_CORRECT_MEDIAD
+CHECK_2880:
+	CMP	BYTE PTR [DI].FormFactor, ff2880
+	JNE	NOT_96TPI
+	MOV	AL, 2			;2 sectors per cluster
+	MOV	BL, 0F0h
 	JMP	GOT_CORRECT_MEDIAD
 NOT_96TPI:
 	CMP	BYTE PTR [DI].FormFactor, ffSmall	;3-1/2, 720kb
@@ -1266,6 +1274,32 @@ BPB35	DW	512
 	DW	0
 
 
+; 3 1/2 inch 1.44 MB diskette BPB
+BPB35H	DW	512
+	DB	1
+	DW	1
+	DB	2
+	DW	224
+	DW	2880
+	DB	0F0H
+	DW	9
+	DW	18
+	DW	2
+	DW	0
+
+; 3 1/2 inch 2.88 MB diskette BPB
+BPB2880 DW	512
+	DB	2
+	DW	1
+	DB	2
+	DW	240
+	DW	5760
+	DB	0F0H
+	DW	9
+	DW	36
+	DW	2
+	DW	0
+
 BPBTable    dw	    BPB48T		; 48tpi drives
 	    dw	    BPB96T		; 96tpi drives
 	    dw	    BPB35		; 3.5" drives
@@ -1275,6 +1309,8 @@ BPBTable    dw	    BPB48T		; 48tpi drives
 	    dw	    BPB35		; Not Used - hard files
 	    dw	    BPB35		; Not Used - tape drives
 	    dw	    BPB35		; Not Used - Other
+	    dw	    BPB35H		; Not used - optical drives
+	    dw	    BPB2880		; 3-1/2" 2.88MB drive
 
 switchlist  db	7,"FHSTDCN"         ; Preserve the positions of N and C.
 

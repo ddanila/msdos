@@ -180,6 +180,7 @@ BPB91	a_BPB	<512, 1, 1, 2,	64, 1*9*40, 0fcH, 2, 9, 1, 0, 0, 0, 0>
 BPB82	a_BPB	<512, 2, 1, 2, 112, 2*8*40, 0ffH, 1, 8, 2, 0, 0, 0, 0>
 BPB81	a_BPB	<512, 1, 1, 2,	64, 1*8*40, 0feH, 1, 8, 1, 0, 0, 0, 0>
 BPB720	a_BPB	<512, 2, 1, 2, 112, 2*9*80, 0F9h, 3, 9, 2, 0, 0, 0, 0>
+BPB2880	a_BPB	<512, 2, 1, 2, 240, 5760, 0F0h, 9, 36, 2, 0, 0, 0, 0>
 
 
 
@@ -571,6 +572,25 @@ No_Custom_Cyln:
 ; Fix MT  11/12/86
 
 Check_720:
+
+	cmp	TrackCnt,80
+	jne	Check_720_Legacy
+	cmp	NumSectors,36
+	jne	Check_720_Legacy
+
+; DOS 5 standard 2.88 MB FAT12 layout.
+	SaveReg <ds,es,si,di,cx>
+	mov	cx,seg data
+	mov	ds,cx
+	mov	es,cx
+	mov	si,offset BPB2880
+	mov	di,offset deviceParameters.DP_BPB
+	mov	cx,size a_BPB
+	rep	movsb
+	RestoreReg <cx,di,si,es,ds>
+	jmp	EndSwitchCheck
+
+Check_720_Legacy:
 
 	cmp	byte ptr deviceParameters.DP_DeviceType,DEV_5INCH96TPI
 	je	Calc_Total

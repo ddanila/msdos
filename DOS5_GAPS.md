@@ -41,7 +41,7 @@ features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
 | Delete/format recovery | Missing | MIRROR, UNDELETE, and UNFORMAT are absent. |
 | Partitions up to 2 GiB | Present | Automated and interactive FDISK paths create and validate a near-2-GiB FAT16 partition on a sparse 2-GiB disk. |
 | More than two hard disks | Present | FDISK models up to eight BIOS fixed disks; automated creation and interactive selection, display, and deletion are validated through disk 3. |
-| 2.88 MiB floppy support | Partial | FORMAT and the BIOS provide a tested 2.88 MiB path; SYS-created bootability and DRIVER.SYS geometry remain unverified. |
+| 2.88 MiB floppy support | Present | FORMAT creates the standard FAT12 layout, SYS creates bootable media, and DRIVER.SYS `/F:9` provides DOS-side read/write access. |
 | Guided Setup with online help | Missing | SELECT is the inherited DOS 4 installer, not the DOS 5 SETUP/upgrade workflow. |
 | Compressed installation media | Missing | No DOS `EXPAND.EXE`, DOS 5 compressed-file format workflow, or retail multi-disk installer. The host build tool named `compress` is unrelated. |
 | DOS 5 version compatibility table | Partial | SETVER lists and edits a bounded resident kernel table, and EXEC applies add/update/delete changes immediately. Persistence across reboot and the original CONFIG.SYS loader remain absent. |
@@ -77,7 +77,7 @@ Every documented option of a missing command is necessarily unsupported.
 | `FDISK` | Automated primary, extended, and logical creation; interactive display, near-2-GiB creation, active selection, deletion, and multi-disk selection, with resulting MBR state validated | No known DOS 5 workflow gap. |
 | `FIND` | `/V`, `/C`, `/N`, `/I` | No known DOS 5 option gap. |
 | `FORMAT` | Safe, `/Q`, and `/U` modes on floppy and FAT16 fixed media; hard-disk warning/errorlevel 5; `/1`, `/4`, `/8`, `/B`, `/F` including 2.88 MiB, `/N`, `/S`, `/T`, `/V`, and inherited private switches | Deterministic hardware-fault coverage for fixed-disk bad-cluster marking and UNFORMAT-compatible recovery metadata. |
-| `SYS` | Default and explicit source paths; bootable target media | DOS 5 compatibility across hard-disk geometries, 2.88 MiB media, and upgrade scenarios is not established. |
+| `SYS` | Default and explicit source paths; bootable 1.44 and 2.88 MiB target media | DOS 5 compatibility across hard-disk geometries and upgrade scenarios is not established. |
 
 ### Present commands without a known parser omission
 
@@ -116,7 +116,7 @@ Complete limit/error/order parity remains unverified outside the cases in
 | `SETVER.EXE` | Partial (`SETVER.COM`) | Kernel-resident table and complete command editing work; the original dual-purpose EXE/device loader and persistent on-disk table remain. |
 | `ANSI.SYS` | Present | No known DOS 5 `/X` or `/K` omission; exhaustive escape-sequence and adapter conformance is not complete. |
 | `DISPLAY.SYS`, `PRINTER.SYS` | Present | Core code-page flow is tested; the full adapter/printer type and code-page matrix is unverified. |
-| `DRIVER.SYS` | Present | Core logical-drive behavior is tested; all DOS 5 geometry values, including 2.88 MiB, are unverified. |
+| `DRIVER.SYS` | Present | Core logical-drive behavior and `/F:9` 2.88 MiB geometry are tested; the remaining DOS 5 geometry matrix is unverified. |
 | `RAMDRIVE.SYS`, `SMARTDRV.SYS` | Present | Core media/cache behavior exists; the complete memory-provider, cache-size, and hardware matrix is unverified. |
 
 The shipped `VDISK.SYS`, `XMA2EMS.SYS`, and `XMAEM.SYS` are inherited
@@ -176,8 +176,8 @@ and must not be represented by no-op stubs if compatibility is claimed.
   selection, deletion, and multi-disk selection are established. The bounded
   implementation supports up to eight BIOS fixed disks and is exercised
   through disk 3.
-- FORMAT has a demonstrated 2.88 MiB path; SYS bootability and DRIVER.SYS
-  geometry still need end-to-end coverage on that media.
+- FORMAT, SYS, DRIVER.SYS, and the BIOS have end-to-end 2.88 MiB FAT12
+  coverage, including DOS-side I/O and bootability.
 - Fixed-disk formatting, bad-sector preservation, partition-boundary behavior,
   removable-media changes, and recovery after interrupted writes need broader
   DOS 5 differential tests.

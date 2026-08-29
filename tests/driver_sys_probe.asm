@@ -39,6 +39,9 @@ start:
     jc failed_close
     cmp ax, write_payload_size
     jne failed_close
+    mov ah, 68h
+    int 21h
+    jc failed_close
     mov ah, 3eh
     int 21h
     jc failed
@@ -61,6 +64,13 @@ start:
     repe cmpsb
     jne failed_close
     mov ah, 3eh
+    int 21h
+
+    ; Commit directory and FAT buffers before the harness powers QEMU off.
+    mov dl, 2
+    mov ah, 0eh
+    int 21h
+    mov ah, 0dh
     int 21h
 
     mov si, pass_message

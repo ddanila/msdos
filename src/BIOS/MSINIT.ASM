@@ -361,14 +361,46 @@ BPB35	DW	512
 	dd	0		;AN000;  extended total sectors
 
 	EVENB
+BPB35H	DW	512
+	DB	1
+	DW	1
+	DB	2
+	DW	224
+	DW	2*18*80
+	DB	0F0H
+	DW	9
+	DW	18
+	DW	2
+	DW	0
+	dw	0		;AN000;  hidden sector High
+	dd	0		;AN000;  extended total sectors
+
+	EVENB
+BPB2880	DW	512
+	DB	2
+	DW	1
+	DB	2
+	DW	240
+	DW	2*36*80
+	DB	0F0H
+	DW	9
+	DW	36
+	DW	2
+	DW	0
+	dw	0		;AN000;  hidden sector High
+	dd	0		;AN000;  extended total sectors
+
+	EVENB
 BPBTABLE DW	BPB48T			; 48TPI DRIVES
 	DW	BPB96T			; 96TPI DRIVES
 	DW	BPB35			; 3.5" DRIVES
-					;DW	 BPB48T 	     ; NOT USED - 8" DRIVES
-					;DW	 BPB48T 	     ; NOT USED - 8" DRIVES
-					;DW	 BPB48T 	     ; NOT USED - HARD FILES
-					;DW	 BPB48T 	     ; NOT USED - TAPE DRIVES
-					;DW	 BPB48T 	     ; NOT USED - OTHER
+	DW	BPB35			; Not used - 8" drives
+	DW	BPB35			; Not used - 8" drives
+	DW	BPB35			; Not used - hard files
+	DW	BPB35			; Not used - tape drives
+	DW	BPB35H			; 3.5" 1.44 MB drives
+	DW	BPB35H			; Not used - optical drives
+	DW	BPB2880			; 3.5" 2.88 MB drives
 
 PATCHTABLE LABEL BYTE
 	DW	10,MEDIA_PATCH
@@ -2071,9 +2103,15 @@ NOTHARDFF:
 ;SB34INIT007******************************************************************
 
 	CMP	BL,FFOTHER		; SPECIAL CASE "OTHER" TYPE OF MEDIUM
-	JZ	PROCESS_OTHER
-	CMP	BL,FF2880		; 2.88 MB uses the same computed BPB path
 	JNZ	NOT_PROCESS_OTHER
+	CMP	BYTE PTR [DI].CCYLN,80	; Only the low byte is initialized above
+	JNE	PROCESS_OTHER
+	CMP	WORD PTR [DI].RHDLIM,2
+	JNE	PROCESS_OTHER
+	CMP	WORD PTR [DI].RSECLIM,36
+	JNE	PROCESS_OTHER
+	MOV	SI,OFFSET BPB2880
+	JMP	SHORT SET_RECBPB
 PROCESS_OTHER:
 	XOR	DX,DX
 	MOV	AX,[DI].CCYLN

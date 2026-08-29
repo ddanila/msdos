@@ -17,6 +17,12 @@ SYS_SERIAL_OUT="$OUT/sys-serial.out"
 SYS_RO_BOOT="$OUT/floppy-sys-readonly-boot.img"
 SYS_RO_TARGET="$OUT/floppy-sys-readonly-target.img"
 SYS_RO_LOG="$OUT/sys-readonly-serial.log"
+SYS_288_BOOT="$OUT/floppy-sys-2880-boot.img"
+SYS_288_TARGET="$OUT/floppy-sys-2880-target.img"
+SYS_288_LOG="$OUT/sys-2880-serial.log"
+SYS_288_BOOT_LOG="$OUT/sys-2880-boot-serial.log"
+SYS_288_SERIAL_IN="$OUT/sys-2880-serial.in"
+SYS_288_SERIAL_OUT="$OUT/sys-2880-serial.out"
 EXIT_COM="$OUT/qemu-exit.com"
 
 PASS=0
@@ -30,7 +36,7 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
-trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$SYS_SERIAL_IN" "$SYS_SERIAL_OUT" 2>/dev/null; true' EXIT
+trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$SYS_SERIAL_IN" "$SYS_SERIAL_OUT" "$SYS_288_SERIAL_IN" "$SYS_288_SERIAL_OUT" 2>/dev/null; true' EXIT
 
 echo "=== SYS.COM e2e test ==="
 
@@ -113,6 +119,71 @@ if grep -Eq "MS-DOS Version 5\.00" "$SYS_BOOT2_LOG"; then
 else
     fail "SYS'd floppy did not boot as MS-DOS 5.00"
     echo "--- serial log ---"; cat "$SYS_BOOT2_LOG"; echo "---"
+fi
+
+echo "Testing SYS-created 2.88 MB boot media..."
+cp "$FLOPPY" "$SYS_288_BOOT"
+mcopy -o -i "$SYS_288_BOOT" "$EXIT_COM" ::QEXIT.COM
+{
+    printf '@ECHO OFF\r\n'
+    printf 'CTTY AUX\r\n'
+    printf 'FORMAT B: /F:2.88\r\n'
+    printf 'SYS B:\r\n'
+    printf 'ECHO SYS_2880_TRANSFER_DONE\r\n'
+    printf 'QEXIT.COM\r\n'
+} | mcopy -o -i "$SYS_288_BOOT" - ::AUTOEXEC.BAT
+dd if=/dev/zero bs=512 count=5760 of="$SYS_288_TARGET" status=none
+
+rm -f "$SYS_288_LOG" "$SYS_288_SERIAL_IN" "$SYS_288_SERIAL_OUT"
+mkfifo "$SYS_288_SERIAL_IN" "$SYS_288_SERIAL_OUT"
+exec 4<>"$SYS_288_SERIAL_IN"
+timeout 60 qemu-system-i386 \
+    -drive if=floppy,index=0,format=raw,file="$SYS_288_BOOT",cache=writethrough \
+    -drive if=floppy,index=1,format=raw,file="$SYS_288_TARGET",cache=writethrough \
+    -boot a -m 4 -display none \
+    -serial pipe:"$OUT/sys-2880-serial" \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    2>/dev/null &
+QEMU_PID=$!
+
+python3 "$REPO_ROOT/tests/serial_expect.py" \
+    "$SYS_288_SERIAL_IN" "$SYS_288_SERIAL_OUT" "$SYS_288_LOG" \
+    'press ENTER when ready' '\r\n' \
+    'Volume label' '\r\n' \
+    'Format another' 'N\r\n'
+
+wait "$QEMU_PID" || true
+QEMU_PID=
+exec 4>&-
+
+mcopy -o -i "$SYS_288_TARGET" "$COMMAND_COM" ::COMMAND.COM
+mcopy -o -i "$SYS_288_TARGET" "$EXIT_COM" ::QEXIT.COM
+printf '@ECHO OFF\r\nCTTY AUX\r\nVER\r\nQEXIT.COM\r\n' | \
+    mcopy -o -i "$SYS_288_TARGET" - ::AUTOEXEC.BAT
+
+rm -f "$SYS_288_BOOT_LOG"
+timeout 20 qemu-system-i386 \
+    -drive if=floppy,index=0,format=raw,file="$SYS_288_TARGET",cache=writethrough \
+    -boot a -m 4 -display none \
+    -serial file:"$SYS_288_BOOT_LOG" \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    2>/dev/null; true
+
+read -r bps288 total288 media288 spf288 spt288 heads288 < <(python3 -c "
+import struct
+b = open('$SYS_288_TARGET', 'rb').read(36)
+print(struct.unpack_from('<H', b, 11)[0], struct.unpack_from('<H', b, 19)[0],
+      b[21], struct.unpack_from('<H', b, 22)[0],
+      struct.unpack_from('<H', b, 24)[0], struct.unpack_from('<H', b, 26)[0])
+")
+
+if grep -q 'SYS_2880_TRANSFER_DONE' "$SYS_288_LOG" \
+    && grep -q 'System transferred' "$SYS_288_LOG" \
+    && grep -Eq 'MS-DOS Version 5\.00' "$SYS_288_BOOT_LOG" \
+    && [[ "$bps288 $total288 $media288 $spf288 $spt288 $heads288" == '512 5760 240 9 36 2' ]]; then
+    ok "SYS creates bootable DOS 5 media with exact 2.88 MB geometry"
+else
+    fail "SYS-created 2.88 MB media did not transfer, boot, or retain exact geometry"
 fi
 
 echo "Testing SYS against a read-only target..."
