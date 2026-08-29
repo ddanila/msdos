@@ -32,6 +32,6 @@ Size_360	equ	0008h			;				;AN000;
 Size_720	equ	0010h			;				;AN000;
 Size_1200	equ	0020h			;				;AN000;
 Size_1440	equ	0040h			;				;AN000;
-
+Size_2880	equ	0080h			; 3.5-inch 2.88 MB media
 
 

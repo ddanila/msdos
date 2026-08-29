@@ -381,7 +381,7 @@ Switch_Size_Value	label	byte		;				;AN001;
 	db	3				;Look for strings		;AN001;
 	db	0				;No ranges			;AN001;
 	db	0				;No numerics			;AN001;
-	db	27				;16 possible strings		;AN001;
+	db	33				;33 possible strings		;AN001;
 	db	Size_160			;				;AN001;
 	dw	String_160k_1			;/F:160 			;AN001;
 	db	Size_160			;				;AN001;
@@ -436,6 +436,18 @@ Switch_Size_Value	label	byte		;				;AN001;
 	dw	String_1440k_5			;/F:1.44M			;AN001;
 	db	Size_1440			;				;AN001;
 	dw	String_1440k_6			;/F:1.44MB			;AN001;
+	db	Size_2880
+	dw	String_2880k_1			;/F:2880
+	db	Size_2880
+	dw	String_2880k_2			;/F:2880K
+	db	Size_2880
+	dw	String_2880k_3			;/F:2880KB
+	db	Size_2880
+	dw	String_2880k_4			;/F:2.88
+	db	Size_2880
+	dw	String_2880k_5			;/F:2.88M
+	db	Size_2880
+	dw	String_2880k_6			;/F:2.88MB
 
 
 No_Value	label	byte			;				;AN000;
@@ -478,6 +490,12 @@ String_1440k_3	db	"1440KB",Asciiz_End      ;                               ;AN00
 String_1440k_4	db	"1.44",Asciiz_End      ;                               ;AN001;
 String_1440k_5	db	"1.44M",Asciiz_End      ;                               ;AN001;
 String_1440k_6	db	"1.44MB",Asciiz_End      ;                               ;AN001;
+String_2880k_1	db	"2880",Asciiz_End
+String_2880k_2	db	"2880K",Asciiz_End
+String_2880k_3	db	"2880KB",Asciiz_End
+String_2880k_4	db	"2.88",Asciiz_End
+String_2880k_5	db	"2.88M",Asciiz_End
+String_2880k_6	db	"2.88MB",Asciiz_End
 
 ;
 ;************************************************************************

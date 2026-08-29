@@ -718,7 +718,10 @@ $$IF18:
 $$IF20:
 		       cmp     byte ptr deviceParameters.DP_DeviceType,DEV_OTHER ;AN001;
 ;		       $IF     E		;Must be 1.44mb 		;AN001;
+		       JE $$IF21_OTHER
+		       cmp     byte ptr deviceParameters.DP_DeviceType,DEV_3INCH2880KB
 		       JNE $$IF22
+$$IF21_OTHER:
 			  call	  Other_Drives	;				;AN001;
 ;		       $ELSE			;				;AN001;
 		       JMP SHORT $$EN22
@@ -915,6 +918,14 @@ Small_Drives endp
 
 Procedure Other_Drives				;				;AN001;
 
+	test	SizeMap,Size_2880		;Ask for 2.88mb diskette?
+	jz	Check_Other_1440
+	or	SwitchMap,Switch_T+Switch_N	;2.88 MB is 80 tracks, 36 sectors
+	mov	TrackCnt,80
+	mov	NumSectors,36
+	ret
+
+Check_Other_1440:
 	test	SizeMap,Size_1440		;Ask for 1.44mb diskette?	 ;AN001;
 ;	$IF	Z				;Nope				;AN001;
 	JNZ $$IF52

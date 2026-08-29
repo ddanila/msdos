@@ -1606,6 +1606,20 @@ BPB35H	DW	0200H
 	DD	0
         DD      0
 
+; 3 1/2 inch 2.88 MB diskette BPB
+BPB2880 DW	0200H
+	DB	02H
+	DW	0001H
+	DB	02H
+	DW	00F0H
+	DW	1680H
+	DB	0F0H
+	DW	0009H
+	DW	0024H
+	DW	0002H
+	DD	0
+	DD	0
+
 BPBTable    dw	    BPB48T		; 48tpi drives
 	    dw	    BPB96T		; 96tpi drives
 	    dw	    BPB35		; 3.5" drives
@@ -1615,6 +1629,8 @@ BPBTable    dw	    BPB48T		; 48tpi drives
 	    dw	    BPB35		; Not Used - hard files
 	    dw	    BPB35		; Not Used - tape drives
 	    dw	    BPB35H		; 3-1/2" 1.44MB drive
+	    dw	    BPB35H		; Not used - optical drives
+	    dw	    BPB2880		; 3-1/2" 2.88MB drive
 
 switchlist  db	8,"FHSTDICN"         ; Preserve the positions of N and C.
 

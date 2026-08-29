@@ -85,7 +85,7 @@ Format_Help_Msg DB "Formats a disk for use with MS-DOS.",0Dh,0Ah
 		DB "  /8          Format 8 sectors per track",0Dh,0Ah
 		DB "  /T:tracks   Number of tracks per side",0Dh,0Ah
 		DB "  /N:sectors  Number of sectors per track",0Dh,0Ah
-		DB "  /F:size     Floppy size (160, 180, 320, 360, 720, 1200, 1440)",0Dh,0Ah
+		DB "  /F:size     Floppy size (160, 180, 320, 360, 720, 1200, 1440, 2880)",0Dh,0Ah
 		DB "  /BACKUP     Suppress disk prompt (used by BACKUP.COM)",0Dh,0Ah
 		DB "  /SELECT     Suppress prompts, use errorlevel on errors (used by SELECT.EXE)",0Dh,0Ah
 		DB "  /AUTOTEST   Suppress prompts for automated invocations",0Dh,0Ah,"$"

@@ -268,6 +268,7 @@ data	segment public	para	'DATA'
 	extrn	msgInterrupt:byte
 	extrn	msgCRLF:byte
 	extrn	Fatal_Error:Byte
+	extrn	SizeMap:Byte
 	extrn	Read_Write_Relative:Byte
 	extrn	PSP_Segment:Word
 	extrn	Parse_Error_Msg:Byte
@@ -2323,6 +2324,8 @@ $$IF30:
 	      test    SwitchMap, SWITCH_N or SWITCH_T ; DCL 5/12/86		      ;     ;
 ;	      $IF     NZ			;				;AC000;
 	      JZ $$IF32
+		 test	 SizeMap,Size_2880	; /F:2.88 uses the old-ROM DPT fallback
+		 jnz	 $$IF32
 		 Message msgParametersNotSupported ;				   ;AC000;
 		 mov	 Fatal_Error,Yes	;Indicate quittin'type err!     ;AN000;
 ;	      $ENDIF				;				;AN000;

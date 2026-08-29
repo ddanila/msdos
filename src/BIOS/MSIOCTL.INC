@@ -409,6 +409,15 @@ Skip_Disk_Base_setting:
 	JMP	SHORT POP_STAT_RET
 
 FORMAT_STAT_ERR:
+	cmp	byte ptr ds:[di].SECLIM, 36
+	jne	FORMAT_STAT_OTHER
+	; Some BIOSes do not recognize 36-sector media through AH=18h even
+	; though their floppy controller can format it.  Use the established
+	; old-ROM path, which installs the requested EOT in the active DPT.
+	mov	al, 1
+	mov	cs:[New_Rom], 0
+	jmp	short Pop_stat_ret
+FORMAT_STAT_OTHER:
 	cmp	ah, Dsk_illegal_combination	;J.K. illegal combination = 0ch
 	je	Format_stat_illegal_comb
 	cmp	ah, Dsk_Time_Out_Err		;J.K. = 80h
@@ -825,6 +834,11 @@ DoSetDasd:
 	mov	cs:[Had_Format_Error],0 ;reset it
 ;SB33115******************************************************************
 	MOV	CS:[GAP_PATCH],50H	; FORMAT GAP FOR 48TPI DISKS
+	CMP	BYTE PTR DS:[DI].SECLIM,36
+	JNE	NOT_2880_DASD
+	MOV	CS:[GAP_PATCH],53H	; 2.88 MB format gap
+	JMP	SHORT DASDHASBEENSET	; AH=17h has no 2.88 MB media code
+NOT_2880_DASD:
 	MOV	AL,4
 	CMP	BYTE PTR DS:[DI].FORMFACTOR,DEV_3INCH720KB
 	JZ	DO_SET

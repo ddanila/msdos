@@ -33,6 +33,7 @@ FF96TPI 	    EQU     1
 FFSMALL 	    EQU     2
 FFHARDFILE	    EQU     5
 FFOTHER 	    EQU     7
+FF2880		    EQU     9
 
 BDS_TYPE	STRUC
 LINK		DD		?	; LINK TO NEXT BDS
@@ -125,4 +126,3 @@ BDSM_type	ENDS
 ;******************************************************************************
 Max_mini_dsk_num = 23	      ;J.K. 4/7/86 - max # of mini disk ibmbio can support
 ;
-

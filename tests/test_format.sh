@@ -7,6 +7,7 @@ OUT="$REPO_ROOT/out"
 FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 
 SELECTED_VARIANTS=("$@")
+RUN_2880_SEPARATELY=0
 
 WORKDIR="${FORMAT_WORKDIR:-$OUT}"
 mkdir -p "$WORKDIR"
@@ -32,13 +33,14 @@ trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$SERIAL_IN" "$SERIAL_OUT" "$QMP_SOC
 
 echo "=== FORMAT E2E tests (QEMU, QMP disk swapping) ==="
 
-NAMES=("VLABEL" "S"      "B"      "F720"   "TN"     "FOUR"   "ONE"    "EIGHT"
+NAMES=("VLABEL" "S"      "B"      "F720"   "F2880"  "TN"     "FOUR"   "ONE"    "EIGHT"
        "SWITCHC" "SWITCHZ" "SELECT" "AUTOTEST" "BACKUP")
 FORMAT_CMDS=(
     "FORMAT B: /V:TEST"
     "FORMAT B: /S"
     "FORMAT B: /B"
     "FORMAT B: /F:720"
+    "FORMAT B: /F:2.88"
     "FORMAT B: /T:80 /N:9"
     "FORMAT B: /4"
     "FORMAT B: /4 /1"
@@ -49,9 +51,16 @@ FORMAT_CMDS=(
     "FORMAT B: /AUTOTEST /V:AUTO"
     "FORMAT B: /BACKUP /V:BKP"
 )
-B_SECTORS=(2880 2880 2880 1440 1440 2400 2400 720
+B_SECTORS=(2880 2880 2880 1440 5760 1440 2400 2400 720
            2880 2880 2880 2880 2880)
 NO_LABEL_NAMES=(VLABEL EIGHT SELECT AUTOTEST BACKUP)
+
+if [[ ${#SELECTED_VARIANTS[@]} -eq 0 && "${FORMAT_2880_CHILD:-0}" != 1 ]]; then
+    # QEMU fixes the emulated floppy-drive type at boot.  Exercise 2.88 MB
+    # media in its own VM instead of hot-swapping it into a 1.44 MB drive.
+    RUN_2880_SEPARATELY=1
+    SELECTED_VARIANTS=(VLABEL S B F720 TN FOUR ONE EIGHT SWITCHC SWITCHZ SELECT AUTOTEST BACKUP)
+fi
 
 if [[ ${#SELECTED_VARIANTS[@]} -gt 0 ]]; then
     _SEL_NAMES=() _SEL_CMDS=() _SEL_SECTORS=()
@@ -151,7 +160,7 @@ done
 echo ""
 echo "--- FORMAT complete messages ---"
 _full_count=0
-for _fn in VLABEL S B F720 FOUR ONE EIGHT BACKUP; do
+for _fn in VLABEL S B F720 F2880 FOUR ONE EIGHT BACKUP; do
     for _n in "${NAMES[@]}"; do [[ "$_n" == "$_fn" ]] && _full_count=$((_full_count+1)) && break; done
 done
 if [[ $_full_count -gt 0 ]]; then
@@ -205,6 +214,7 @@ for i in "${!NAMES[@]}"; do
     case "$name" in
         VLABEL|S|B|SELECT|AUTOTEST|BACKUP) es=18; eh=2; et=2880 ;;
         F720) es=9; eh=2; et=1440 ;;
+        F2880) es=36; eh=2; et=5760 ;;
         FOUR) es=9; eh=2; et=720 ;;
         ONE) es=9; eh=1; et=360 ;;
         EIGHT) continue ;;
@@ -331,4 +341,10 @@ done
 
 echo ""
 echo "Results: $PASS passed, $FAIL failed"
+
+if [[ $FAIL -eq 0 && $RUN_2880_SEPARATELY -eq 1 ]]; then
+    FORMAT_2880_CHILD=1 FORMAT_WORKDIR="$OUT/format-2880-work" \
+        bash "$0" F2880 || FAIL=$((FAIL+1))
+fi
+
 [[ $FAIL -eq 0 ]]

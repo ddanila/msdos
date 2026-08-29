@@ -101,8 +101,9 @@ DEV_8INCHSS		EQU	3
 DEV_8INCHDS		EQU	4
 DEV_HARDDISK		EQU	5
 DEV_OTHER		EQU	7
+DEV_3INCH2880KB		EQU	9
 
-MAX_DEV_TYPE		EQU	7	; MAXIMUM DEVICE TYPE THAT WE
+MAX_DEV_TYPE		EQU	9	; MAXIMUM DEVICE TYPE THAT WE
 					; CURRENTLY SUPPORT.
 
 ;J.K. Bug in MASM 3.  A_BPB will be defined in PASS1 and, in PASS2 the
@@ -207,5 +208,4 @@ A_RETRYCOUNT	    ENDS
 ;End_designate_codepage  equ	 4Dh
 ;Get_list_of_designated_codepage equ 6Bh
 ;J.K. 4/29/86 *** End of Con$genioctl equates & structures
-
 
