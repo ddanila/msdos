@@ -41,7 +41,7 @@ features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
 | Delete/format recovery | Missing | MIRROR, UNDELETE, and UNFORMAT are absent. |
 | Partitions up to 2 GiB | Unverified | FDISK has FAT16 and 32-bit sector handling, but tests cover only small images and do not prove DOS 5 boundary behavior. The `DOS_MAX` constant is a special 32 MiB compatibility case, not a general ceiling. |
 | More than two hard disks | Unverified | The kernel and FDISK contain multi-drive structures, but the DOS 5 selection workflow is not tested. |
-| 2.88 MiB floppy support | Missing | No implemented/tested 2.88 MiB FORMAT and system-disk path; DRIVER.SYS syntax alone is insufficient. |
+| 2.88 MiB floppy support | Partial | FORMAT and the BIOS provide a tested 2.88 MiB path; SYS-created bootability and DRIVER.SYS geometry remain unverified. |
 | Guided Setup with online help | Missing | SELECT is the inherited DOS 4 installer, not the DOS 5 SETUP/upgrade workflow. |
 | Compressed installation media | Missing | No DOS `EXPAND.EXE`, DOS 5 compressed-file format workflow, or retail multi-disk installer. The host build tool named `compress` is unrelated. |
 | DOS 5 version compatibility table | Partial | SETVER lists and edits a bounded resident kernel table, and EXEC applies add/update/delete changes immediately. Persistence across reboot and the original CONFIG.SYS loader remain absent. |
@@ -77,7 +77,7 @@ Every documented option of a missing command is necessarily unsupported.
 | `DISKCOPY` | Copy, `/1`, and `/V` read-back verification | No known DOS 5 option gap. |
 | `FDISK` | Automated primary, extended, and logical creation; inherited interactive code | Display/delete/change-active/select-next-disk behavior and DOS 5 large-partition boundaries are unverified. Current tests use only 5-20 MiB images. |
 | `FIND` | `/V`, `/C`, `/N`, `/I` | No known DOS 5 option gap. |
-| `FORMAT` | `/1`, `/4`, `/8`, `/B`, `/F`, `/N`, `/S`, `/T`, `/V` and inherited private switches | `/Q` quick format, `/U` unconditional format, `/F:2.88`, and a proven DOS 5 fixed-disk/bad-sector workflow. |
+| `FORMAT` | Safe, `/Q`, and `/U` modes; `/1`, `/4`, `/8`, `/B`, `/F` including 2.88 MiB, `/N`, `/S`, `/T`, `/V`, and inherited private switches | A proven DOS 5 fixed-disk/bad-sector workflow and UNFORMAT-compatible recovery metadata. |
 | `SYS` | Default and explicit source paths; bootable target media | DOS 5 compatibility across hard-disk geometries, 2.88 MiB media, and upgrade scenarios is not established. |
 
 ### Present commands without a known parser omission
@@ -174,7 +174,8 @@ and must not be represented by no-op stubs if compatibility is claimed.
 
 - FDISK's DOS 5 headline 2 GiB boundary and complete interactive workflow are
   not established by current tests.
-- FORMAT/SYS/DRIVER do not provide a demonstrated end-to-end 2.88 MiB path.
+- FORMAT has a demonstrated 2.88 MiB path; SYS bootability and DRIVER.SYS
+  geometry still need end-to-end coverage on that media.
 - Fixed-disk formatting, bad-sector preservation, partition-boundary behavior,
   removable-media changes, and recovery after interrupted writes need broader
   DOS 5 differential tests.
