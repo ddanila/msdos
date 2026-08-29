@@ -1639,6 +1639,30 @@ else
     fail "COMMAND.COM DIR /W (expected 'COMMAND' in wide listing, got: $out)"
 fi
 
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'DIR C:\CMD\COMMAND\COMMAND.COM /B') || true
+dir_bare_out=$(printf '%s' "$out" | tr -d '\r')
+if echo "$dir_bare_out" | grep -q '^COMMAND\.COM$' && ! echo "$dir_bare_out" | grep -qi 'Volume\|Directory of\|File(s)'; then
+    ok "COMMAND.COM DIR /B (bare name without header or trailer)"
+else
+    fail "COMMAND.COM DIR /B (expected only bare COMMAND.COM entry, got: $out)"
+fi
+
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'DIR C:\CMD\COMMAND\COMMAND.COM /B /L') || true
+dir_lower_out=$(printf '%s' "$out" | tr -d '\r')
+if echo "$dir_lower_out" | grep -q '^command\.com$'; then
+    ok "COMMAND.COM DIR /L (lowercase bare listing)"
+else
+    fail "COMMAND.COM DIR /L (expected lowercase command.com, got: $out)"
+fi
+
+out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'DIR C:\CMD\COMMAND /A:-D /B') || true
+dir_attr_out=$(printf '%s' "$out" | tr -d '\r')
+if echo "$dir_attr_out" | grep -q '^COMMAND\.COM$'; then
+    ok "COMMAND.COM DIR /A:-D (excludes directories)"
+else
+    fail "COMMAND.COM DIR /A:-D (expected files including COMMAND.COM, got: $out)"
+fi
+
 out=$(run_dos_all_output CMD/COMMAND/COMMAND.COM /C 'DIR /P /P') || true
 if echo "$out" | grep -q '^Parse Error 1'; then
     ok "COMMAND.COM DIR duplicate /P (rejected by parser)"

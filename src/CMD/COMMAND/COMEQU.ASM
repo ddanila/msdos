@@ -215,6 +215,8 @@ SwitchB 	EQU	08h
 SwitchA 	EQU	04h
 SwitchP 	EQU	02h
 SwitchW 	EQU	01h
+SwitchDirB	EQU	0100h
+SwitchDirL	EQU	0200h
 fSwitch 	EQU	8000h
 fBadSwitch	EQU	4000h
 

@@ -26,6 +26,12 @@ TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	Bytmes_ptr:word
 	EXTRN	comsw:word
 	EXTRN	dir_w_syn:word		;AC000;
+	EXTRN	dir_b_syn:word
+	EXTRN	dir_l_syn:word
+	EXTRN	dir_a_syn:word
+	EXTRN	dir_attr_require:byte
+	EXTRN	dir_attr_deny:byte
+	EXTRN	dir_attr_selected:byte
 	EXTRN	dirdat_mo_day:word	;AC000;
 	EXTRN	dirdat_yr:word		;AC000;
 	EXTRN	dirdattim_ptr:word
@@ -113,12 +119,16 @@ assume	ds:trangroup,es:trangroup
 
 DIR_HELP_STR	DB	"Displays a list of files and subdirectories in a directory.", 0DH, 0AH
 		DB	0DH, 0AH
-		DB	"DIR [drive:][path][filename] [/P] [/W]", 0DH, 0AH
+		DB	"DIR [drive:][path][filename] [/P] [/W] [/B] [/L] [/A[:attributes]]", 0DH, 0AH
 		DB	0DH, 0AH
 		DB	"  [drive:][path][filename]  Specifies drive, directory, and/or files", 0DH, 0AH
 		DB	"                            to list.", 0DH, 0AH
 		DB	"  /P  Pauses after each screenful of information.", 0DH, 0AH
-		DB	"  /W  Uses wide list format.", 0DH, 0AH, "$"
+		DB	"  /W  Uses wide list format.", 0DH, 0AH
+		DB	"  /B  Uses bare format (no heading information or summary).", 0DH, 0AH
+		DB	"  /L  Uses lowercase.", 0DH, 0AH
+		DB	"  /A  Displays files with specified D, R, H, A, or S attributes.", 0DH, 0AH
+		DB	"      Prefix an attribute with - to exclude it.", 0DH, 0AH, "$"
 
 CATALOG:
 	mov	si, 81H
@@ -164,6 +174,9 @@ DIR_NORM:
 	xor	cx,cx				;AC000; clear counter for positionals
 	mov	ComSw,cx			;AC000; initialize flags
 	mov	bits,cx 			;AC000; initialize switches
+	mov	dir_attr_require,cl
+	mov	dir_attr_deny,cl
+	mov	dir_attr_selected,cl
 	mov	linperpag,linesperpage		;AC000; Set default for lines per page
 	mov	linlen,normperlin		;AC000; Set number of entries per line
 	mov	lincnt,normperlin		;AC000;
@@ -185,6 +198,12 @@ dirscan_cont2:
 	je	set_dir_width			;AN000; yes - go set wide lines
 	cmp	parse1_syn,offset trangroup:slash_p_syn ;AN000; was /P entered?
 	je	set_dir_pause			;AN000; yes - go set pause at end of screen
+	cmp	parse1_syn,offset trangroup:dir_b_syn
+	je	set_dir_bare
+	cmp	parse1_syn,offset trangroup:dir_l_syn
+	je	set_dir_lower
+	cmp	parse1_syn,offset trangroup:dir_a_syn
+	je	set_dir_attr
 ;
 ; Must be filespec since no other matches occurred. move filename to srcbuf
 ;
@@ -215,7 +234,7 @@ dir_check_device:				;AN022;
 
 dir_fspec_end:
 	pop	si				;AC000; restore position in line
-	jmp	short dirscan			;AC000; keep parsing
+	jmp	dirscan				;AC000; keep parsing
 
 set_dir_width:
 	test	byte ptr[bits],SwitchW		;AN018; /W already set?
@@ -228,7 +247,7 @@ ok_set_width:
 	or	bits,switchw			;AC000; indicate /w was selected
 	mov	linlen,wideperlin		;AC000; Set number of entries per line
 	mov	lincnt,wideperlin		;AC000;
-	jmp	short dirscan			;AC000; keep parsing
+	jmp	dirscan				;AC000; keep parsing
 
 set_dir_pause:
 	test	byte ptr[bits],SwitchP		;AN018; /p already set?
@@ -257,6 +276,82 @@ lines_set:
 	pop	cx				;AN000;
 	jmp	dirscan 			;AC000; keep parsing
 
+set_dir_bare:
+	test	bits,SwitchDirB
+	jnz	dir_duplicate_switch
+	or	bits,SwitchDirB
+	mov	linlen,1
+	mov	lincnt,1
+	jmp	dirscan
+
+set_dir_lower:
+	test	bits,SwitchDirL
+	jnz	dir_duplicate_switch
+	or	bits,SwitchDirL
+	jmp	dirscan
+
+dir_duplicate_switch:
+	mov	ax,moreargs_ptr
+	invoke	setup_parse_error_msg
+	jmp	badparm
+
+set_dir_attr:
+	cmp	dir_attr_selected,0
+	jne	dir_duplicate_switch
+	mov	dir_attr_selected,1
+	cmp	parse1_type,result_string
+	jne	dirscan
+	push	ds
+	push	si
+	lds	si,parse1_addr
+	xor	bx,bx				; BL says next attribute is negated
+dir_attr_loop:
+	lodsb
+	or	al,al
+	jz	dir_attr_done
+	cmp	al,'-'
+	jne	dir_attr_letter
+	mov	bl,1
+	jmp	dir_attr_loop
+dir_attr_letter:
+	mov	dl,attr_directory
+	cmp	al,'D'
+	je	dir_attr_have_bit
+	mov	dl,attr_read_only
+	cmp	al,'R'
+	je	dir_attr_have_bit
+	mov	dl,attr_hidden
+	cmp	al,'H'
+	je	dir_attr_have_bit
+	mov	dl,attr_archive
+	cmp	al,'A'
+	je	dir_attr_have_bit
+	mov	dl,attr_system
+	cmp	al,'S'
+	jne	dir_attr_bad
+dir_attr_have_bit:
+	or	bl,bl
+	jnz	dir_attr_exclude
+	or	dir_attr_require,dl
+	jmp	short dir_attr_next
+dir_attr_exclude:
+	or	dir_attr_deny,dl
+dir_attr_next:
+	xor	bl,bl
+	jmp	dir_attr_loop
+dir_attr_bad:
+	pop	si
+	pop	ds
+	mov	ax,moreargs_ptr
+	invoke	setup_parse_error_msg
+	jmp	badparm
+dir_attr_done:
+	or	bl,bl
+	jnz	dir_attr_bad
+	pop	si
+	pop	ds
+	jmp	dirscan
+
 ;
 ; The syntax is incorrect.  Report only message we can.
 ;
@@ -269,8 +364,11 @@ ScanDone:
 ; Find and display the volume ID on the drive.
 ;
 
-	invoke	okvolarg			;AC000;
 	mov	[filecnt],0			;AC000; Keep track of how many files found
+	test	bits,SwitchDirB
+	jnz	dir_skip_volume
+	invoke	okvolarg			;AC000;
+dir_skip_volume:
 	cmp	comsw,0 			;AC000; did an error occur?
 	jnz	doheader			;AC000; yes - don't bother to fix path
 
@@ -360,11 +458,14 @@ DoHeader:
 ;
 
 DoHeaderCont:
+	test	bits,SwitchDirB
+	jnz	DoHeaderBare
 	mov	al,blank			;AN051; Print out a blank
 	invoke	print_char			;AN051;   before DIR header
 	invoke	build_dir_string		; get current dir string
 	mov	dx,offset trangroup:Dirhead_ptr
 	invoke	printf_crlf			; bang!
+DoHeaderBare:
 
 ;
 ; If there were chars left after parse or device, then invalid file name
@@ -386,6 +487,10 @@ DirNFFix:
 DoSearch:
 	mov	byte ptr DS:[FCB-7],0FFH
 	mov	byte ptr DS:[FCB-1],010H
+	cmp	dir_attr_selected,0
+	je	dir_search_attr_ready
+	mov	byte ptr DS:[FCB-1],attr_hidden+attr_system+attr_directory
+dir_search_attr_ready:
 ;
 ; Caution!  Since we are using an extended FCB, we will *also* be returning
 ; the directory information as an extended FCB.  We must bias all fetches into
@@ -432,8 +537,20 @@ DIRSTART:
 ;
 
 Display:
+	cmp	dir_attr_selected,0
+	je	dir_attr_match
+	mov	al,[dirbuf+8].dir_attr
+	mov	ah,al
+	and	al,dir_attr_require
+	cmp	al,dir_attr_require
+	jne	scroll
+	and	ah,dir_attr_deny
+	jnz	scroll
+dir_attr_match:
 	inc	[filecnt]			; Keep track of how many we find
 	mov	si,offset trangroup:dirbuf+8	; SI -> information returned by sys call
+	test	bits,SwitchDirB
+	jnz	display_bare
 	call	shoname
 ;
 ; If we are displaying in wide mode, do not output the file info
@@ -514,6 +631,14 @@ prbuf:
 	   call    check_for_P			;AN066;   pause if /P requested
 	endif04:				;AN066;
 	jmp	scroll				; If not, just continue
+
+display_bare:
+	call	show_bare_name
+	invoke	crlf2
+	dec	byte ptr [fullscr]
+	jnz	scroll
+	call	check_for_P
+	jmp	scroll
 ;AD061; mov	DirDat_yr,0			;AC000; reset year, month and day
 ;AD061; mov	DirDat_mo_day,0 		;AC000;     in control block
 ;AD061; mov	DirTim_hr_min,0 		;AC000; reset hour & minute in control block
@@ -567,6 +692,8 @@ dir_err_setup_jmp:				;AN022;
 ; CRLF.
 ;
 Trailer:
+	test	bits,SwitchDirB
+	jnz	dir_bare_done
 	mov	al,[linlen]
 	cmp	al,[lincnt]			; Will be equal if just had CR/LF
 	jz	mmessage
@@ -593,6 +720,9 @@ mmessage:
 	MOV	DX,OFFSET TRANGROUP:BYTMES_ptr
 	jmp	std_printf
 
+dir_bare_done:
+	return
+
 shoname:
 	mov	di,offset trangroup:charbuf
 	mov	cx,8
@@ -601,6 +731,21 @@ shoname:
 	stosb
 	mov	cx,3
 	rep	movsb
+	test	bits,SwitchDirL
+	jz	shoname_case_done
+	mov	di,offset trangroup:charbuf
+	mov	cx,12
+shoname_lower_loop:
+	mov	al,[di]
+	cmp	al,'A'
+	jb	shoname_lower_next
+	cmp	al,'Z'
+	ja	shoname_lower_next
+	or	byte ptr [di],20H
+shoname_lower_next:
+	inc	di
+	loop	shoname_lower_loop
+shoname_case_done:
 	xor	ax,ax
 	stosb
 	push	dx
@@ -609,6 +754,45 @@ shoname:
 	mov	dx,offset trangroup:string_buf_ptr
 	call	std_printf
 	pop	DX
+	return
+
+; Emit the FCB-format name at DS:SI without padding.
+show_bare_name:
+	push	si
+	mov	cx,8
+show_bare_base:
+	lodsb
+	cmp	al,' '
+	je	show_bare_ext
+	call	show_dir_char
+	loop	show_bare_base
+show_bare_ext:
+	pop	si
+	add	si,8
+	cmp	byte ptr [si],' '
+	je	show_bare_ret
+	mov	al,'.'
+	invoke	print_char
+	mov	cx,3
+show_bare_ext_loop:
+	lodsb
+	cmp	al,' '
+	je	show_bare_ret
+	call	show_dir_char
+	loop	show_bare_ext_loop
+show_bare_ret:
+	return
+
+show_dir_char:
+	test	bits,SwitchDirL
+	jz	show_dir_char_print
+	cmp	al,'A'
+	jb	show_dir_char_print
+	cmp	al,'Z'
+	ja	show_dir_char_print
+	or	al,20H
+show_dir_char_print:
+	invoke	print_char
 	return
 
 check_for_P    PROC  NEAR			;AN066;

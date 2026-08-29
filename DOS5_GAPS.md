@@ -73,7 +73,7 @@ Every documented option of a missing command is necessarily unsupported.
 | `ATTRIB` | `+R`, `-R`, `+A`, `-A`, `+H`, `-H`, `+S`, `-S`, `/S` | No known DOS 5 option gap. |
 | `DOSKEY` | Resident history and macros; `/REINSTALL`, `/BUFSIZE`, `/MACROS`, `/HISTORY`, `/INSERT`, `/OVERSTRIKE`; `$1`-`$9`, `$*`, `$$`, `$G`, `$L`, `$B`, and queued `$T`; `4800h`/`4810h` APIs | Complete multi-entry Up/Down/Page/F7/F8/F9 and Alt-key interactive navigation. |
 | `SETVER` | List, add, update, and `/DELETE` against the resident kernel table; EXEC reports the selected version to matching programs | Persistent table storage, the CONFIG.SYS device-loader form, and `/QUIET`. |
-| `DIR` | Basic listing, `/P`, `/W` | `/A[:attributes]`, `/B`, `/L`, `/O[:sortorder]`, `/S`, negative forms, and `DIRCMD` defaults. These include DOS 5's recursive search and sorted-directory features. |
+| `DIR` | Basic listing; `/P`, `/W`, `/B`, `/L`; `/A[:attributes]` with `D`, `R`, `H`, `A`, `S`, and negated selectors | `/O[:sortorder]`, `/S`, and `DIRCMD` defaults. These include DOS 5's recursive search and sorted-directory features. |
 | `DISKCOPY` | Copy, `/1`, and `/V` read-back verification | No known DOS 5 option gap. |
 | `FDISK` | Automated primary, extended, and logical creation; inherited interactive code | Display/delete/change-active/select-next-disk behavior and DOS 5 large-partition boundaries are unverified. Current tests use only 5-20 MiB images. |
 | `FIND` | `/V`, `/C`, `/N`, `/I` | No known DOS 5 option gap. |

@@ -4,7 +4,7 @@
   "operational_switches": {
     "COPY": ["A", "B", "V"],
     "DEL": ["P"],
-    "DIR": ["P", "W"],
+    "DIR": ["A", "B", "L", "P", "W"],
     "ERASE": ["P"]
   },
   "startup_switches": {
@@ -26,7 +26,7 @@
     "CTTY": {"level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "CTTY AUX redirects a complete live batch session to serial output"},
     "DATE": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_command_startup_qemu.sh"], "note": "Prompt-and-empty input is covered; a valid date is set and reported exactly, while an impossible calendar date is rejected before empty input returns"},
     "DEL": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_prompt_yesno.sh"], "note": "Single-file and wildcard deletion are asserted through absence; /P decline preserves a file, while duplicate /P is rejected exactly"},
-    "DIR": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_misc_qemu.sh"], "note": "Normal, wide /W, and paginated /P listings expose expected entries; duplicate and unknown switches require exact parser errors"},
+    "DIR": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_misc_qemu.sh"], "note": "Normal, wide, paginated, bare, lowercase, and attribute-filtered listings expose expected entries; duplicate and unknown switches require exact parser errors"},
     "ECHO": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Text, blank-line, OFF, ON, and batch-suppression behavior is asserted"},
     "ERASE": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_prompt_yesno.sh"], "note": "The long synonym removes a real file; /P accept deletes exactly one selected file and an unknown switch is rejected exactly"},
     "EXIT": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "COMMAND /C EXIT returns successfully to its caller"},
