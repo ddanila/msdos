@@ -106,8 +106,10 @@ checked against the same bias. Runtime HMA ownership, copying, segment-pointer
 fixups, vector transition, and low-arena reclamation are implemented. The HMA
 runtime test also exercises a pre-relocation interrupt chain, EXEC and child
 cleanup, file and memory services, and recovery when a driver disables A20.
-Phase 4 remains open until fallback diagnostics, asynchronous paths,
-redirectors, warm reboot, and residency reporting are reference-verified.
+Fallback diagnostics, asynchronous paths, installable-filesystem redirectors,
+warm reboot, residency reporting, and 8086/286 fallback are now covered by the
+automated acceptance matrix. The Phase 4 software gate is closed; the separate
+plan-wide real or cycle-accurate 386+ run remains outstanding.
 
 ### Required command behavior
 
