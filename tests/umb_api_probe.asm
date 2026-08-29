@@ -82,6 +82,71 @@ strategy_done:
     mov dx, get_link_on_label
     call invoke_and_print
 
+    mov ax, 5800h
+    xor bx, bx
+    mov dx, get_strategy_after_link_label
+    call invoke_and_print
+
+    mov bx, 0040h
+    mov ax, 5801h
+    int 21h
+    mov ax, 5802h
+    xor bx, bx
+    mov dx, get_link_after_strategy_label
+    call invoke_and_print
+    mov bx, [original_strategy]
+    mov ax, 5801h
+    int 21h
+
+    mov bx, 0010h
+    mov ah, 48h
+    int 21h
+    pushf
+    pop cx
+    mov dx, allocate_low_linked_label
+    call print_result
+    test cl, 1
+    jnz low_linked_done
+    mov es, ax
+    mov ah, 49h
+    int 21h
+low_linked_done:
+    mov bx, 0001h
+    mov ax, 5801h
+    int 21h
+    mov bx, 0010h
+    mov ah, 48h
+    int 21h
+    pushf
+    pop cx
+    mov dx, allocate_low_best_linked_label
+    call print_result
+    test cl, 1
+    jnz low_best_linked_done
+    mov es, ax
+    mov ah, 49h
+    int 21h
+low_best_linked_done:
+    mov bx, 0002h
+    mov ax, 5801h
+    int 21h
+    mov bx, 0010h
+    mov ah, 48h
+    int 21h
+    pushf
+    pop cx
+    mov dx, allocate_low_last_linked_label
+    call print_result
+    test cl, 1
+    jnz low_last_linked_done
+    mov es, ax
+    mov ah, 49h
+    int 21h
+low_last_linked_done:
+    mov bx, [original_strategy]
+    mov ax, 5801h
+    int 21h
+
     mov bx, 0000h
     mov ax, 5803h
     mov dx, link_off_label
@@ -336,6 +401,11 @@ invalid_bh_strategy_label db 'SET_INVALID_0100', 0
 get_link_initial_label db 'GET_LINK_INITIAL', 0
 link_on_label db 'SET_LINK_1', 0
 get_link_on_label db 'GET_LINK_1', 0
+get_strategy_after_link_label db 'GET_STRATEGY_AFTER_LINK_1', 0
+get_link_after_strategy_label db 'GET_LINK_AFTER_STRATEGY_0040', 0
+allocate_low_linked_label db 'ALLOC_LOW_LINKED_0010', 0
+allocate_low_best_linked_label db 'ALLOC_LOW_BEST_LINKED_0010', 0
+allocate_low_last_linked_label db 'ALLOC_LOW_LAST_LINKED_0010', 0
 link_off_label db 'SET_LINK_0', 0
 get_link_off_label db 'GET_LINK_0', 0
 invalid_link_label db 'SET_LINK_INVALID_2', 0

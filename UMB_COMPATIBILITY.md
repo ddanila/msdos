@@ -54,7 +54,7 @@ and `e2c0ede60d5de23f77c35de371de9ba9df60905af3fe9a695dc270c8a0e8e380`.
 | `5803h`, `BX=0` or `1` | carry clear with provider; otherwise error and unchanged | confirmed | confirmed | invalid function |
 | `5803h`, other `BX` | carry set, `AX=0001h`, state unchanged | confirmed | confirmed | invalid function |
 | unknown `58xxh` subfunction | carry set, `AX=0001h`, state unchanged | confirmed | confirmed | invalid function |
-| strategy/link independence | neither setter changes the other state | pending | pending | no UMB state |
+| strategy/link independence | neither setter changes the other state | confirmed | confirmed | no UMB state |
 | state across EXEC | child sees global state; caller restores it | confirmed | confirmed | confirmed |
 
 The strategy values and public link-state behavior come from the Microsoft
@@ -69,16 +69,22 @@ asserts the same contract in this tree.
 
 | Contract | Required observation | DOS 5.0 | DOS 6.22 |
 | --- | --- | --- | --- |
-| low-only `00h..02h` | never allocate from a UMB | pending | pending |
+| standard `00h..02h` | scan the complete linked public arena chain | confirmed | confirmed |
 | upper-only `40h..42h` | fail rather than fall back low | confirmed | confirmed |
 | upper-then-low `80h..82h` | allocate upper first, then conventional | confirmed | confirmed |
 | unlinked UMB arena | high strategy allocates conventionally without changing either setting | confirmed | confirmed |
-| link with no provider | exact link state and error behavior | pending | pending |
+| link with no provider | exact link state and error behavior | confirmed | confirmed |
 | `48h` failure | exact `AX` and largest-domain block in `BX` | confirmed | confirmed |
 | `49h`/`4Ah` on UMB | same ownership, resize, and errors as low blocks | confirmed | confirmed |
 | unlink with live UMB | allocation survives unlink/relink | confirmed | confirmed |
 | process termination | owned UMB blocks are freed | confirmed | confirmed |
 | MCB traversal | exact bridge, gap-owner, and `M`/`Z` layout | pending | pending |
+
+The linked-chain layout capture currently establishes the visible terminal UMB
+MCB on both references: DOS 5.0 exposes a free `Z` block at `CB01h` of size
+`14FEh`, and DOS 6.22 exposes one at `CC4Ah` of size `1BB5h`. The bridge and
+reserved-gap records below `A000h` still need a probe that can distinguish them
+from ordinary conventional MCBs, so the broader layout row remains pending.
 
 With the UMB arena linked, a 16-paragraph allocation using either strategy
 `0040h` or `0080h` landed above `A000h` in both references (`CB02h` on 5.0;
@@ -90,6 +96,15 @@ then confirmed the domain distinction: one paragraph beyond the largest UMB
 failed under `0040h` with `AX=0008h` and the UMB maximum in `BX`, while `0080h`
 allocated the same request conventionally. Fragmentation ordering across
 multiple genuine regions remains a reference uncertainty.
+
+The refreshed API capture also makes the independence rules explicit. Linking
+left strategy `0000h` unchanged and setting strategy `0040h` left link state 1.
+Strategies `0000h..0002h` scan the linked public chain rather than imposing a
+conventional-only domain: first fit selected the earlier conventional block
+(`12BFh` on 5.0 and `11DCh` on 6.22), while best fit selected an upper block
+(`CB02h` and `CC4Bh`) and last fit selected the last upper block (`DFF0h` and
+`E7F0h`). On provider-free boots both references rejected link and unlink with
+`CF=1`, `AX=0001h`, while `5802h` continued to report zero.
 
 The focused lifecycle capture also confirms shrink and growth, failed growth's
 maximum-size result, free, exact exhaustion, and unlink/relink with a live data
@@ -163,15 +178,15 @@ asserted against the repository manager.
 | --- | --- | --- | --- |
 | `DOS=UMB` without provider | silent, remains usable low | pending | pending |
 | `DOS=NOUMB` | disables DOS UMB management | n/a or pending | pending |
-| `DOS=HIGH` failure | exact message, loads DOS low | pending | pending |
+| `DOS=HIGH` failure | exact message, loads DOS low | confirmed | confirmed |
 | `DOS=HIGH,UMB` | DOS owns HMA, A20 on; UMB state remains independent | confirmed | confirmed |
-| `DEVICEHIGH` no fit | falls back to `DEVICE` | pending | pending |
+| `DEVICEHIGH` no fit | falls back to `DEVICE` | not separately captured | confirmed |
 | `DEVICEHIGH SIZE=` | DOS 5 legacy placement semantics | confirmed (basic placement/tail) | confirmed (basic placement/tail) |
 | `DEVICEHIGH /L /S` | region/minimum/shrink behavior | n/a | partial; single-region placement confirmed |
 | `LOADHIGH`/`LH` | largest UMB, conventional fallback | pending | confirmed |
 | `LOADHIGH /L /S` | child region visibility and restoration | n/a | confirmed |
 | `INSTALLHIGH` | existence, syntax, and fallback | not recognized | confirmed (basic execution high) |
-| `MEM /C /D /F /M` | region numbering and accounting | pending | pending |
+| `MEM /C /D /F /M` | region numbering and accounting | not separately captured | confirmed |
 
 This tree now accepts case-insensitive `DOS=HIGH`, `LOW`, `UMB`, and `NOUMB`
 tokens, comma-separated pairs, and repeated `DOS=` lines. The HMA and UMB

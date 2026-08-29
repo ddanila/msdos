@@ -50,7 +50,9 @@ MCB whose `M`/`Z` signature controls public traversal into the persistent UMB
 chain. `UmbLinked` describes that signature state; it does not describe whether
 the provider or UMB descriptors exist.
 
-- Conventional scans stop before `UmbArenaHead`, even when the chain is linked.
+- Standard `00h..02h` scans start at the conventional head and continue into
+  `UmbArenaHead` when the public chain is linked. Candidate selection spans
+  both domains, so best and last fit may select an upper block.
 - Upper scans start at `UmbArenaHead` and never infer arena identity from a
   segment threshold.
 - An `80h..82h` scan retries conventional memory only after the upper scan has

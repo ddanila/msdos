@@ -54,6 +54,49 @@ start:
     mov ax, 5803h
     int 21h
     jc fail_03
+
+    ; Standard strategies scan the complete public chain when UMBs are linked.
+    ; First fit reaches the earlier conventional block, while global best and
+    ; last fit select from the smaller/later synthetic upper extent.
+    mov bx, 0000h
+    call set_strategy
+    jc fail_25
+    mov bx, 10h
+    call allocate
+    jc fail_25
+    cmp ax, 09000h
+    jae fail_25
+    mov es, ax
+    mov ah, 49h
+    int 21h
+    jc fail_25
+
+    mov bx, 0001h
+    call set_strategy
+    jc fail_25
+    mov bx, 10h
+    call allocate
+    jc fail_25
+    cmp ax, 09401h
+    jne fail_25
+    mov es, ax
+    mov ah, 49h
+    int 21h
+    jc fail_25
+
+    mov bx, 0002h
+    call set_strategy
+    jc fail_25
+    mov bx, 10h
+    call allocate
+    jc fail_25
+    cmp ax, 094f0h
+    jne fail_25
+    mov es, ax
+    mov ah, 49h
+    int 21h
+    jc fail_25
+
     mov bx, 0040h
     call set_strategy
     jc fail_03
@@ -174,22 +217,6 @@ start:
     cmp ax, 094f0h
     jne fail_23
     call free_ax
-
-    xor bx, bx
-.low_strategy_loop:
-    push bx
-    call set_strategy
-    jc fail_24_pop
-    mov bx, 10h
-    call allocate
-    jc fail_24_pop
-    cmp ax, 09000h
-    jae fail_24_pop
-    call free_ax
-    pop bx
-    inc bx
-    cmp bx, 3
-    jb .low_strategy_loop
 
     mov bx, 0040h
     call set_strategy
@@ -410,11 +437,7 @@ fail_label 20
 fail_label 21
 fail_label 22
 fail_label 23
-fail_label 24
-
-fail_24_pop:
-    pop bx
-    jmp fail_24
+fail_label 25
 
 fail:
     mov al, [failure_code]

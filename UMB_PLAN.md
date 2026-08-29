@@ -31,9 +31,9 @@ The supported strategy values are:
 
 | Value | Placement |
 | --- | --- |
-| `0000h` | Low memory, first fit |
-| `0001h` | Low memory, best fit |
-| `0002h` | Low memory, last fit |
+| `0000h` | Linked arena chain, first fit |
+| `0001h` | Linked arena chain, best fit |
+| `0002h` | Linked arena chain, last fit |
 | `0040h` | UMB only, first fit |
 | `0041h` | UMB only, best fit |
 | `0042h` | UMB only, last fit |
@@ -234,7 +234,9 @@ The UMB arena must:
 - preserve correct `M`/`Z` signatures in both linked and unlinked states;
 - never permit coalescing across a provider extent or reserved-hole boundary;
 - preserve allocated UMBs across unlink/relink operations;
-- keep conventional-only scans from crossing into UMBs even while linked;
+- make standard first/best/last scans traverse the complete public chain when
+  UMBs are linked, including global best/last selection across conventional
+  and upper blocks;
 - allow upper-only and upper-then-low scans to apply first/best/last fit within
   the intended domains;
 - keep failed allocations' `BX` largest-block result compatible with the
