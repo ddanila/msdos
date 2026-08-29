@@ -42,7 +42,7 @@ nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 export MTOOLS_NO_VFAT=1
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::FOPROBE.COM
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
-printf 'DEVICE=A:\\EMM386.SYS M5\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
+printf 'DEVICE=A:\\EMM386.EXE M5\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'

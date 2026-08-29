@@ -40,7 +40,7 @@ run_case() {
         mcopy -o -i "$image" "$HIMEM" ::HIMEM.SYS
         {
             printf 'DEVICE=HIMEM.SYS\r\n'
-            printf 'DEVICE=EMM386.SYS RAM M5\r\n'
+            printf 'DEVICE=EMM386.EXE RAM M5\r\n'
             printf 'INSTALLHIGH=IHREF.COM TOKEN\r\n'
             printf 'DOS=UMB\r\n'
         } | mcopy -o -i "$image" - ::CONFIG.SYS

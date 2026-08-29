@@ -40,7 +40,7 @@ mcopy -o -i "$IMAGE" "$STATE" ::STATE.COM
 mcopy -o -i "$IMAGE" "$QEXIT" ::QEXIT.COM
 {
     printf 'DEVICE=HIMEM.SYS\r\n'
-    printf 'DEVICE=EMM386.SYS RAM M5 I=CC00-CFFF I=E400-E7FF\r\n'
+    printf 'DEVICE=EMM386.EXE RAM M5 I=CC00-CFFF I=E400-E7FF\r\n'
     printf 'DOS=HIGH,UMB\r\n'
 } | mcopy -o -i "$IMAGE" - ::CONFIG.SYS
 {
@@ -112,7 +112,7 @@ mcopy -o -i "$BUDGET_IMAGE" "$HIMEM" ::HIMEM.SYS
 mcopy -o -i "$BUDGET_IMAGE" "$QEXIT" ::QEXIT.COM
 {
     printf 'DEVICE=HIMEM.SYS\r\n'
-    printf 'DEVICE=EMM386.SYS M5\r\n'
+    printf 'DEVICE=EMM386.EXE M5\r\n'
     printf 'DOS=HIGH,UMB\r\n'
 } | mcopy -o -i "$BUDGET_IMAGE" - ::CONFIG.SYS
 {
@@ -125,7 +125,7 @@ mcopy -o -i "$BUDGET_UMB_IMAGE" "$HIMEM" ::HIMEM.SYS
 mcopy -o -i "$BUDGET_UMB_IMAGE" "$QEXIT" ::QEXIT.COM
 {
     printf 'DEVICE=HIMEM.SYS\r\n'
-    printf 'DEVICE=EMM386.SYS RAM M5\r\n'
+    printf 'DEVICE=EMM386.EXE RAM M5\r\n'
     printf 'DOS=HIGH,UMB\r\n'
 } | mcopy -o -i "$BUDGET_UMB_IMAGE" - ::CONFIG.SYS
 {

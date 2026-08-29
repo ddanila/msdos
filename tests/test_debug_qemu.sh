@@ -28,7 +28,7 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
 echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
-printf 'DEVICE=A:\\EMM386.SYS M5\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
+printf 'DEVICE=A:\\EMM386.EXE M5\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 

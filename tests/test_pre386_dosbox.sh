@@ -30,7 +30,7 @@ for cpu in 8086 286; do
     mcopy -o -i "$image" "$WORK/pre386.com" ::PRE386.COM
     {
         printf 'DEVICE=A:\\HIMEM.SYS\r\n'
-        printf 'DEVICE=A:\\EMM386.SYS NOEMS\r\n'
+        printf 'DEVICE=A:\\EMM386.EXE NOEMS\r\n'
         printf 'DOS=HIGH,UMB\r\n'
     } | mcopy -o -i "$image" - ::CONFIG.SYS
     {

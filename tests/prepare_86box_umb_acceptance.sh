@@ -25,8 +25,8 @@ done
     echo "missing built floppy: $BASE_IMAGE" >&2
     exit 1
 }
-mdir -i "$BASE_IMAGE" ::EMM386.SYS >/dev/null 2>&1 || {
-    echo "built floppy does not contain EMM386.SYS: $BASE_IMAGE" >&2
+mdir -i "$BASE_IMAGE" ::EMM386.EXE >/dev/null 2>&1 || {
+    echo "built floppy does not contain EMM386.EXE: $BASE_IMAGE" >&2
     exit 1
 }
 
@@ -43,7 +43,7 @@ mcopy -o -i "$OUTPUT_IMAGE" "$UMB_PROBE" ::UMBLREF.COM
 mcopy -o -i "$OUTPUT_IMAGE" "$HMA_PROBE" ::HMAREF.COM
 {
     printf 'DEVICE=A:\\HIMEM.SYS\r\n'
-    printf 'DEVICE=A:\\EMM386.SYS RAM M5\r\n'
+    printf 'DEVICE=A:\\EMM386.EXE RAM M5\r\n'
     printf 'DOS=HIGH,UMB\r\n'
 } | mcopy -o -i "$OUTPUT_IMAGE" - ::CONFIG.SYS
 {

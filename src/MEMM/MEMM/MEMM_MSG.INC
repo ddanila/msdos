@@ -39,5 +39,7 @@ rerr		db	"Unable to inactivate EMM386.",CR,LF,BEL,"$"
 
 aerr		db	"Unable to place EMM386 in Auto mode.",CR,LF,BEL,"$"
 
-parmerr 	db	"Usage: EMM386 [ ON | OFF | AUTO]"
+parmerr 	db	"Usage: EMM386 [ ON | OFF | AUTO] [W=ON | W=OFF]"
 		db	CR,LF,BEL,"$"
+
+weitek_missing	db	"Weitek Coprocessor not installed",CR,LF,"$"

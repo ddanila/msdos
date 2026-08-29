@@ -75,11 +75,11 @@ build_fault_emm() {
     cp -R "$ROOT/src/MEMM/MEMM" "$work/MEMM/MEMM"
     cp -R "$ROOT/src/MEMM/EMM" "$work/MEMM/EMM"
     find "$work" -type f \( -name '*.OBJ' -o -name '*.LIB' \
-        -o -name 'EMM386.EXE' -o -name 'EMM386.SYS' \) -delete
+        -o -name 'EMM386.EXE' \) -delete
     make -s -C "$ROOT" SRC="$work" \
         MEMM_AFLAGS="-Mx -t -DI386 -DNoBugMode -DNOHIMEM -D$define -I. -I..\\EMM" \
         memm >/dev/null
-    cp "$work/MEMM/MEMM/EMM386.SYS" "$output"
+    cp "$work/MEMM/MEMM/EMM386.EXE" "$output"
     rm -rf "$work"
 }
 
@@ -194,7 +194,7 @@ mcopy -o -i "$COMBINED_IMAGE" "$EMM_PROBE" ::EMMPROBE.COM
 mcopy -o -i "$COMBINED_IMAGE" "$ISOLATION_PROBE" ::UMBEMS.COM
 {
     printf 'DEVICE=A:\\HIMEM.SYS\r\n'
-    printf 'DEVICE=A:\\EMM386.SYS RAM M5\r\n'
+    printf 'DEVICE=A:\\EMM386.EXE RAM M5\r\n'
     printf 'DOS=UMB\r\n'
 } | mcopy -o -i "$COMBINED_IMAGE" - ::CONFIG.SYS
 {
@@ -229,7 +229,7 @@ mcopy -o -i "$ROLLBACK_IMAGE" "$ABSENCE_PROBE" ::NOUMB.COM
 mcopy -o -i "$ROLLBACK_IMAGE" "$EMM_PROBE" ::EMMPROBE.COM
 {
     printf 'DEVICE=A:\\HIMEM.SYS\r\n'
-    printf 'DEVICE=A:\\EMM386.SYS 16 RAM M5\r\n'
+    printf 'DEVICE=A:\\EMM386.EXE 16 RAM M5\r\n'
     printf 'DOS=UMB\r\n'
 } | mcopy -o -i "$ROLLBACK_IMAGE" - ::CONFIG.SYS
 {
@@ -261,13 +261,13 @@ do
     fault_log="$OUT/himem-emm386-fault-$fault_name.log"
     cp "$FLOPPY" "$fault_image"
     mcopy -o -i "$fault_image" "$HIMEM" ::HIMEM.SYS
-    mcopy -o -i "$fault_image" "$fault_driver" ::EMM386.SYS
+    mcopy -o -i "$fault_image" "$fault_driver" ::EMM386.EXE
     mcopy -o -i "$fault_image" "$ABSENCE_PROBE" ::NOUMB.COM
     mcopy -o -i "$fault_image" "$EMM_PROBE" ::EMMPROBE.COM
     mcopy -o -i "$fault_image" "$QEXIT" ::QEXIT.COM
     {
         printf 'DEVICE=A:\\HIMEM.SYS\r\n'
-        printf 'DEVICE=A:\\EMM386.SYS RAM M5\r\n'
+        printf 'DEVICE=A:\\EMM386.EXE RAM M5\r\n'
         printf 'DOS=UMB\r\n'
     } | mcopy -o -i "$fault_image" - ::CONFIG.SYS
     {
@@ -309,7 +309,7 @@ do
     mcopy -o -i "$mode_image" "$QEXIT" ::QEXIT.COM
     {
         printf 'DEVICE=A:\\HIMEM.SYS\r\n'
-        printf 'DEVICE=A:\\EMM386.SYS %s\r\n' "$options"
+        printf 'DEVICE=A:\\EMM386.EXE %s\r\n' "$options"
         printf 'DOS=UMB\r\n'
     } | mcopy -o -i "$mode_image" - ::CONFIG.SYS
     {
@@ -340,7 +340,7 @@ mcopy -o -i "$WARM_IMAGE" "$WARMBOOT" ::WARMBOOT.COM
 mcopy -o -i "$WARM_IMAGE" "$QEXIT" ::QEXIT.COM
 {
     printf 'DEVICE=A:\\HIMEM.SYS\r\n'
-    printf 'DEVICE=A:\\EMM386.SYS RAM M5\r\n'
+    printf 'DEVICE=A:\\EMM386.EXE RAM M5\r\n'
     printf 'DOS=HIGH,UMB\r\n'
 } | mcopy -o -i "$WARM_IMAGE" - ::CONFIG.SYS
 {

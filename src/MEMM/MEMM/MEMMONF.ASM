@@ -99,8 +99,12 @@ off_len 	equ	($ - off_arg)
 auto_arg	db	"auto"
 auto_len	equ	($ - auto_arg)
 
-null_arg	db	" "
-null_len	equ	1
+w_on_arg	db	"w=on"
+w_on_len	equ	($ - w_on_arg)
+
+w_off_arg	db	"w=off"
+w_off_len	equ	($ - w_off_arg)
+
 max_arg_len	equ	11
 arg_str 	db	max_arg_len	dup(0)		; storage for get_token
 ;
@@ -108,17 +112,20 @@ arg_tbl 	label	word		; table of valid arguments
 		dw	offset	on_arg
 		dw	offset	off_arg
 		dw	offset	auto_arg
-;
-no_arg		equ	($ - arg_tbl)
-		dw	offset null_arg 	; should be last entry
-max_args	equ	($ - arg_tbl)
+		dw	offset	w_on_arg
+		dw	offset	w_off_arg
+arg_count	equ	($ - arg_tbl)/2
+no_arg		equ	3
+invalid_arg	equ	4
 ;
 arg_len 	label	word		; table of argument lengths
 		dw	on_len
 		dw	off_len
 		dw	auto_len
-;
-		dw	null_len
+		dw	w_on_len
+		dw	w_off_len
+
+weitek_seen	db	0
 
 page
 ;******************************************************************************
@@ -151,14 +158,14 @@ drvr_installed:
 ;
 	call	parse_onf		; look for ON/OFF
 	jc	msg_disp		; invalid parameter
-	cmp	ax,no_arg/2		; q: no argument?
+	cmp	ax,no_arg		; q: no argument?
 	je	get_status		; y: get status
 	push	ax			; save on/off indicator
 	mov	ah,1			; ah=1 for set status routine
 	call	ELIM_link		; go turn it on or off
 	pop	ax			; restore on/off indicator
 	jnc	get_status		; no error in status routine
-	add	ax,max_args/2+1 	; indicate error
+	add	ax,5 			; indicate error
 	jmp	msg_disp
 ;
 get_status:
@@ -182,6 +189,12 @@ msg_disp:
 term:
 	mov	ah,9
 	int	MSDOS			; display error message
+	cmp	cs:[weitek_seen],0
+	je	short no_weitek_message
+	mov	dx,offset weitek_missing
+	mov	ah,9
+	int	MSDOS
+no_weitek_message:
 ;
 	pop	di
 	pop	dx
@@ -251,7 +264,7 @@ get_token	endp
 
 	page
 ;******************************************************************************
-;	parse_onf - Parse command line for ON or OFF
+;	parse_onf - Parse ON/OFF/AUTO and the optional W= setting
 ;
 ;	ENTRY: es:di points to command line terminated by CR or LF
 ;
@@ -268,67 +281,85 @@ get_token	endp
 ;
 ;******************************************************************************
 parse_onf	proc		near
-;
 	push	si
 	push	ds
 	push	bx
+	push	dx
+	push	bp
 	push	es
-;
-	mov	bx,no_arg	; initialize to no parameters encountered
-	cld			; go foward
-;
-;	es:di = 1st char
-;
-	mov	si,offset arg_str	; ds:si = storage for argument
-	push	cs
-	pop	ds		; arg storage in _CODE
-	mov	cx,max_arg_len	; maximum argument length
-	call	get_token	; get an argument
-	or	cx,cx		; q: any parms?
-	jz	parse_xit	; n: quit
-	push	di		; y: save di for later
-	push	ds		; es:di = parameter table
-	pop	es
 
-	xor	bx,bx		; index into parameter table
-ploop2:
-	cmp	cx,arg_len[bx]	; q: lengths equal?
-	jne	not_found	; n: keep looking
-	mov	di,arg_tbl[bx]	; get destination address
-	push	si		; save source string addr
-	repe	cmpsb		; q: is this a valid argument?
-	pop	si		;     restore source string address (command line)
-	je	found		; y: matched one
-not_found:
-	inc	bx
-	inc	bx		; update table pointer
-	cmp	bx,max_args	; q: have we done them all yet?
-	jne	ploop2		; n: keep looking
-parse_inv:
-	mov	bx,max_args	; y: invalid
-	pop	di		; restore di
-	jmp	short parse_xit ; leave
-found:
-	pop	di		; restore original string addr
+	mov	bp,no_arg		; selected mode, or no argument
+	mov	cs:[weitek_seen],0
+	xor	dx,dx			; token count
+	cld
+	push	cs
+	pop	ds
+
+parse_next:
+	mov	si,offset arg_str
+	mov	cx,max_arg_len
+	call	get_token
+	or	cx,cx
+	jz	parse_good
+	inc	dx
+	cmp	dx,2
+	ja	parse_bad
+
+	push	di			; retain command-line position
+	push	es
+	push	ds
 	pop	es
-	mov	cx,1		; just need to check for one non blank
-	call	get_token	; get another token
-	or	cx,cx		; q: was there another one?
-	jz	parse_xit2	; n: good
-	mov	bx,max_args	; y: invalid
-	jmp	short parse_xit2
-parse_xit:
+	xor	bx,bx
+parse_compare:
+	cmp	cx,arg_len[bx]
+	jne	parse_not_this
+	mov	di,arg_tbl[bx]
+	push	si
+	push	cx
+	repe	cmpsb
+	pop	cx
+	pop	si
+	je	parse_found
+parse_not_this:
+	add	bx,2
+	cmp	bx,arg_count*2
+	jb	parse_compare
 	pop	es
-parse_xit2:
-	shr	bx,1		; get result of parse
-	mov	ax,bx		; put in ax
-	mov	bx,max_args/2-1
-	cmp	bx,ax		; set/clear carry on invalid/valid return
-;
+	pop	di
+	jmp	short parse_bad
+
+parse_found:
+	pop	es
+	pop	di
+	cmp	bx,6			; W=ON and W=OFF entries?
+	jae	parse_weitek
+	cmp	bp,no_arg		; duplicate mode selector?
+	jne	parse_bad
+	mov	bp,bx
+	shr	bp,1
+	jmp	short parse_next
+
+parse_weitek:
+	cmp	cs:[weitek_seen],0
+	jne	parse_bad
+	mov	cs:[weitek_seen],1
+	jmp	short parse_next
+
+parse_good:
+	mov	ax,bp
+	clc
+	jmp	short parse_done
+parse_bad:
+	mov	cs:[weitek_seen],0
+	mov	ax,invalid_arg
+	stc
+parse_done:
+	pop	es
+	pop	bp
+	pop	dx
 	pop	bx
 	pop	ds
 	pop	si
-;
 	ret
 parse_onf	endp
 

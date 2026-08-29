@@ -392,9 +392,6 @@ FarLink	dd	0		; far pointer to installed memm386 entry point
 				; during .EXE execution.
 
 ;
-rh	db	23,0,0,0,0,8 dup (0)
-	db	10 dup (0)
-;
 MEMM:
 ;******************************************************************************
 ;
@@ -403,72 +400,16 @@ MEMM:
 ;
 ;******************************************************************************
 
-;------------------------------------------------------------------------------
-; NOTE** SUNILP .. Paulch changed this to load it as an terminate and stay
-;	 resident.  This entry should only be to turn an existing MEMM ON
-;	 OFF or AUTO.  Once the driver is debugged change this back to the
-;	 original code given here in comments. Also remove the above rh
-;	 storage block. WISH002
-;ELIM_EXE	 proc	 near
-;;
-;	 push	 cs
-;	 pop	 ds			 ; ds = cs
-;	 mov	 ah,GET_PSP		 ; get segment of PSP
-;	 int	 MS_DOS
-;	 mov	 es,bx			 ; DOS call returned seg in bx
-;	 mov	 di,offset cmd_line	 ; es:di = command line
-;	 call	 onf_func		 ; look for on, off, or auto
-;	 mov	 ax,4c00h		 ; exit to DOS
-;	 int	 MS_DOS
-;;
-;ELIM_EXE	 endp
-;;
-;------------------------------------------------------------------------------
-
 ELIM_EXE	proc	near
-;
-	extrn	exe_stack:byte
-
-	push	seg STACK
-	pop	ss
-	mov	sp, offset STACK:exe_stack
 	push	cs
 	pop	ds
 	mov	ah,GET_PSP
 	int	MS_DOS
 	mov	es,bx
 	mov	di,offset cmd_line
-
-	mov	bx,seg rh
-	mov	ds,bx
-	mov	bx,offset rh
-	mov	[bx+20],es
-	mov	[bx+18],di
-
-	push	ds
-	pop	es
-	call	Strategy
-	call	Interrupt
-
-	mov	bx,seg rh
-	mov	es,bx
-	mov	bx,offset rh
-	mov	dx,es:[bx+16]
-	sub	dx,es:[bx+20]
-	mov	ah,31h
-	int	21h
-;
-	
-;	push	cs			
-;	pop	ds			; ds = cs
-;	mov	ah,GET_PSP		; get segment of PSP
-;	int	MS_DOS
-;	mov	es,bx			; DOS call returned seg in bx
-;	mov	di,offset cmd_line	; es:di = command line
-;	call	onf_func		; look for on, off, or auto
+	call	onf_func
 	mov	ax,4c00h		; exit to DOS
 	int	MS_DOS
-;
 ELIM_EXE	endp
 ;
 ;******************************************************************************

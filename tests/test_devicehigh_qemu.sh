@@ -59,9 +59,9 @@ run_case() {
         {
             printf 'DEVICE=HIMEM.SYS\r\n'
             if [[ $name == multi-* ]]; then
-                printf 'DEVICE=EMM386.SYS RAM M5 I=CC00-CFFF I=E400-E7FF\r\n'
+                printf 'DEVICE=EMM386.EXE RAM M5 I=CC00-CFFF I=E400-E7FF\r\n'
             else
-                printf 'DEVICE=EMM386.SYS RAM M5\r\n'
+                printf 'DEVICE=EMM386.EXE RAM M5\r\n'
             fi
             if [[ $name == block ]]; then
                 printf 'DEVICEHIGH=DHBLOCK.SYS\r\n'

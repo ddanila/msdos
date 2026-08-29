@@ -212,37 +212,29 @@ EOO_OFF:
 	cmp	al,1			;Q: turn it off ?
 	jne	EOO_AUTO		;  N: check for AUTO mode
 
-;
-; we are not providing the ability to turn emm off.
-;
-;	 cmp	 [Active_Status],0	 ;  Y: Q: is it already OFF ?
-;	 je	 EOO_AUTO_OFF		 ;	 Y: then just leave
-;	 mov	 [Active_Status],0	 ;	 N: then go to real mode
-;	 mov	 [Auto_Mode],0		 ;	 and clear auto mode
-;	 call	 RRProc 		 ; put processor in real mode
-;	 jmp	 short EOO_OK
-
-	 jmp	short EOO_inv
+	cmp	[Active_Status],0	;  Y: Q: is it already OFF ?
+	je	EOO_AUTO_OFF		;     Y: then just leave
+	mov	[Active_Status],0	;     N: then go to real mode
+	mov	[Auto_Mode],0		;     and clear auto mode
+	call	RRProc			; put processor in real mode
+	jmp	short EOO_OK
 
 
 EOO_AUTO_OFF:
-;	 cmp	 [Auto_Mode],0		 ; q: auto mode already off?
-;	 jz	 EOO_OK 		 ; y: forget it
-;	 mov	 [Auto_Mode],0		 ; n: clear it
-;	 jmp	 short EOO_OK		 ; and update status
-
-	 jmp	short EOO_inv
+	cmp	[Auto_Mode],0		; q: auto mode already off?
+	jz	EOO_OK			; y: forget it
+	mov	[Auto_Mode],0		; n: clear it
+	jmp	short EOO_OK		; and update status
 
 
 EOO_AUTO:
-	 cmp	 al,2			 ;Q: go to auto mode ?
-	 jne	 EOO_inv		 ;  N: invalid function
-;	 cmp	 [Auto_Mode],0		 ;  Y: Q: is it already in auto mode
-;	 jne	 EOO_OK 		 ;	 Y: then just leave
-;	 mov	 [Auto_Mode],1		 ;	 N: then go to auto mode
-;	 call	 _AutoUpdate		 ;
-
-	 jmp	short EOO_inv
+	cmp	al,2			;Q: go to auto mode ?
+	jne	EOO_inv			;  N: invalid function
+	cmp	[Auto_Mode],0		;  Y: Q: is it already in auto mode
+	jne	EOO_OK			;     Y: then just leave
+	mov	[Auto_Mode],1		;     N: then go to auto mode
+	call	_AutoUpdate
+	jmp	short EOO_OK
 ;
 ;   leave with no errors
 ;

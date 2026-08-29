@@ -217,7 +217,7 @@ ARTIFACTS := \
     CMD/MODE/MODE.COM \
     CMD/SETVER/SETVER.COM \
     CMD/DOSKEY/DOSKEY.COM \
-    MEMM/MEMM/EMM386.SYS
+    MEMM/MEMM/EMM386.EXE
 
 test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
 	bash tests/run_tests.sh
@@ -526,7 +526,7 @@ SELECT_DAT   := $(SRC)/SELECT/SELECT.DAT
 SELECT_HLP   := $(SRC)/SELECT/SELECT.HLP
 EGA_CPI      := $(SRC)/DEV/DISPLAY/EGA/EGA.CPI
 HIMEM_SYS    := $(SRC)/DEV/HIMEM/HIMEM.SYS
-EMM386_SYS   := $(MEMM_DIR)/EMM386.SYS
+EMM386_EXE   := $(MEMM_DIR)/EMM386.EXE
 
 $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT_COM) $(CHKDSK_COM) $(DEBUG_COM) $(MEM_EXE) $(FDISK_EXE) \
            $(MORE_COM) $(SORT_EXE) $(LABEL_COM) $(FIND_EXE) $(TREE_COM) $(COMP_COM) \
@@ -541,7 +541,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
            $(VDISK_SYS) $(DISPLAY_SYS) $(COUNTRY_SYS) $(PRINTER_SYS) $(PRINTER_CPI) \
            $(SMARTDRV_SYS) $(FLUSH13_EXE) $(DRIVER_SYS) $(XMA2EMS_SYS) $(XMAEM_SYS) \
            $(SELECT_COM) $(SELECT_EXE) $(SELECT_DAT) $(SELECT_HLP) \
-           $(EGA_CPI) $(HIMEM_SYS) $(EMM386_SYS)
+           $(EGA_CPI) $(HIMEM_SYS) $(EMM386_EXE)
 	mkdir -p $(OUT)
 	dd if=/dev/zero of=$@ bs=512 count=2880 status=none
 	dd if=$(BOOT_BIN) of=$@ bs=1 skip=$(BOOT_OFF) count=512 conv=notrunc status=none
@@ -615,7 +615,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
 	mcopy -i $@ $(SELECT_HLP) ::SELECT.HLP
 	mcopy -i $@ $(EGA_CPI) ::EGA.CPI
 	mcopy -i $@ $(HIMEM_SYS) ::HIMEM.SYS
-	mcopy -i $@ $(EMM386_SYS) ::EMM386.SYS
+	mcopy -i $@ $(EMM386_EXE) ::EMM386.EXE
 
 deploy:
 	# A single jobserver-aware submake prevents parallel image and build paths

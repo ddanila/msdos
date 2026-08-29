@@ -56,7 +56,6 @@ Every documented option of a missing command is necessarily unsupported.
 | --- | --- |
 | `DOSSHELL` | Text/graphics Shell, `/T`, `/G`, resolution selection, `/B`, program groups, file operations, help, and task swapping. |
 | `EDIT` | Full-screen text editor and `/B`, `/G`, `/H`, `/NOHI`; depends on QBASIC. |
-| `EMM386` command | Runtime status plus `ON`, `OFF`, `AUTO`, `W=ON`, and `W=OFF`. The CONFIG.SYS driver is separate and only partial. |
 | `EXPAND` | Extraction of one or more compressed distribution files. |
 | `HELP` | Command index, `HELP command`, and the DOS 5 help database. |
 | `MIRROR` | Delete-tracking file, disk/partition recovery metadata, `/1`, `/T`, `/U`, and `/PARTN`. |
@@ -88,7 +87,8 @@ found; it does not claim every hardware, locale, or error-path permutation:
 
 `APPEND`, `ASSIGN`, `BACKUP`, `BREAK`, `CALL`, `CHCP`, `CHDIR`/`CD`,
 `CHKDSK`, `CLS`, `COMMAND`, `COMP`, `COPY`, `CTTY`, `DATE`, `DEBUG`,
-`DEL`/`ERASE`, `DISKCOMP`, `ECHO`, `EDLIN`, `EXE2BIN`, `EXIT`, `FASTOPEN`,
+`DEL`/`ERASE`, `DISKCOMP`, `ECHO`, `EDLIN`, `EMM386`, `EXE2BIN`, `EXIT`,
+`FASTOPEN`,
 `FC`, `FOR`, `GOTO`, `GRAFTABL`, `GRAPHICS`, `IF`, `JOIN`, `KEYB`, `LABEL`,
 `LOADHIGH`/`LH`, `MEM`, `MKDIR`/`MD`, `MODE`, `MORE`, `NLSFUNC`, `PATH`,
 `PAUSE`, `PRINT`, `PROMPT`, `RECOVER`, `RENAME`/`REN`, `REPLACE`, `RESTORE`,
@@ -111,7 +111,7 @@ Complete limit/error/order parity remains unverified outside the cases in
 | Driver | Status | Missing DOS 5 surface |
 | --- | --- | --- |
 | `HIMEM.SYS` | Partial XMS 2.00 implementation | 286 support; `/HMAMIN`, `/NUMHANDLES`, `/INT15`, `/MACHINE`, `/A20CONTROL`, `/SHADOWRAM`, and `/CPUCLOCK`. The handle count is fixed and machine-specific A20 selection is automatic only. |
-| `EMM386.SYS` | Partial DOS 5 EMM386 replacement | Retail filename compatibility (`EMM386.EXE`); driver `ON`/`OFF`/`AUTO`, `W=`, `FRAME=`, `Pn=`, `B=`, `L=`, `A=`, `H=`, and `D=` controls. The repository implements pool size, page-frame selection, `I=`, `X=`, `RAM`, and `NOEMS`. |
+| `EMM386.EXE` | Partial DOS 5 EMM386 replacement | Driver-load `ON`/`OFF`/`AUTO`, `W=`, `FRAME=`, `Pn=`, `B=`, `L=`, `A=`, `H=`, and `D=` controls. The dual-purpose retail-named executable implements runtime status, `ON`, `OFF`, `AUTO`, `W=ON`, and `W=OFF`; driver loading implements pool size, page-frame selection, `I=`, `X=`, `RAM`, and `NOEMS`. |
 | `EGA.SYS` | Missing | DOSSHELL Task Swapper display save/restore support. |
 | `SETVER.EXE` | Partial (`SETVER.COM`) | Kernel-resident table and complete command editing work; the original dual-purpose EXE/device loader and persistent on-disk table remain. |
 | `ANSI.SYS` | Present | No known DOS 5 `/X` or `/K` omission; exhaustive escape-sequence and adapter conformance is not complete. |
@@ -204,22 +204,27 @@ Remaining project-level gaps are:
 - builds depend on pinned custom JWasm, Open Watcom, and kvikdos forks, so each
   tool update still requires the complete reproducibility/runtime gate.
 
-## Recommended order
+## Delivery stages
 
-1. Add FDISK interactive and 2 GiB boundary tests, then fix any defects they
-   expose.
-2. Add missing DOS 5 command options with highest compatibility impact:
-   `DIR`, `ATTRIB`, `FIND`, `FORMAT`, and `DISKCOPY`.
-3. Implement SETVER end to end, including persistent table loading and EXEC
-   policy.
-4. Decide whether 286 HIMEM compatibility is a project requirement; if so,
-   replace the 386-only move engine and implement the documented options.
-5. Complete EMM386 configuration/runtime compatibility and retain full EMS/UMB
-   regression coverage.
-6. Add 2.88 MiB media support and broader hard-disk FORMAT/SYS behavior.
-7. Implement the independent small utilities (`EXPAND`, `HELP`, `DOSKEY`)
-   before choosing whether large product applications such as DOSSHELL,
-   EDIT/QBASIC, and recovery tools belong in scope.
+The compatibility work is split into four independently useful stages:
+
+1. **Core command and runtime compatibility.** Complete FDISK workflows and
+   2 GiB boundaries, remaining DIR behavior, fixed/removable FORMAT and SYS
+   cases, persistent SETVER loading, DOSKEY navigation, and EMM386 runtime
+   control.
+2. **Distribution and installation.** Implement EXPAND and the DOS 5
+   compressed-file format, then provide reproducible compressed media and a
+   guided install/upgrade flow.
+3. **Memory, locale, and hardware breadth.** Complete HIMEM configuration and
+   286 support, EMM386 driver-load options, media geometries, NLS combinations,
+   and representative 286/386/486 hardware validation.
+4. **Help and recovery.** Add the HELP command/database and the MIRROR,
+   UNDELETE, and UNFORMAT recovery workflow, including recovery metadata and
+   interrupted-write tests.
+
+DOSSHELL/Task Swapper and EDIT/QBASIC are separate product-scale projects and
+are not hidden inside these four stages. EGA.SYS belongs with Task Swapper if
+that project is accepted.
 
 Update this file whenever a listed gap closes or a new source/reference
 difference is demonstrated. Machine-readable manifests remain authoritative

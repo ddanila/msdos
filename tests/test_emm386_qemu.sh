@@ -27,11 +27,22 @@ nasm -f bin "$REPO_ROOT/tests/emm386_probe.asm" -o "$PROBE_COM"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::EMMPROBE.COM
-printf 'DEVICE=A:\\EMM386.SYS M5\r\n' \
+printf 'DEVICE=A:\\EMM386.EXE M5\r\n' \
     | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
+    printf 'EMM386\r\n'
+    printf 'EMM386 OFF\r\n'
+    printf 'EMM386\r\n'
+    printf 'EMM386 ON\r\n'
+    printf 'EMM386\r\n'
+    printf 'EMM386 AUTO\r\n'
+    printf 'EMM386\r\n'
+    printf 'EMM386 ON W=ON\r\n'
+    printf 'EMM386 W=OFF\r\n'
+    printf 'EMM386 ON OFF\r\n'
+    printf 'ECHO EMM386_COMMAND_PASS\r\n'
     printf 'EMMPROBE.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
@@ -44,8 +55,14 @@ timeout 35 qemu-system-i386 \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     >"$SERIAL_LOG" 2>&1 || true
 
-if grep -q 'EMM386_API_PASS' "$SERIAL_LOG"; then
-    echo "  PASS: EMM386 entered protected mode and passed EMS allocation, mapping, alias, and release checks"
+if grep -q 'EMM386_API_PASS' "$SERIAL_LOG" \
+    && grep -q 'EMM386_COMMAND_PASS' "$SERIAL_LOG" \
+    && [[ $(grep -c 'EMM386 Active\.' "$SERIAL_LOG") -eq 7 ]] \
+    && [[ $(grep -c 'EMM386 Inactive\.' "$SERIAL_LOG") -eq 2 ]] \
+    && [[ $(grep -c 'EMM386 in Auto mode\.' "$SERIAL_LOG") -eq 2 ]] \
+    && [[ $(grep -c 'Weitek Coprocessor not installed' "$SERIAL_LOG") -eq 2 ]] \
+    && [[ $(grep -c 'Usage: EMM386' "$SERIAL_LOG") -eq 1 ]]; then
+    echo "  PASS: EMM386 driver API and complete runtime command grammar passed"
     exit 0
 fi
 

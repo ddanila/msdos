@@ -119,7 +119,7 @@ provider_commands=$(printf '%b' \
     'ECHO PROVIDER_END\r\n')
 provider_config=$(printf '%b' \
     'DEVICE=A:\\HIMEM.SYS\r\n' \
-    'DEVICE=A:\\EMM386.SYS RAM M5\r\n' \
+    'DEVICE=A:\\EMM386.EXE RAM M5\r\n' \
     'DOS=UMB\r\n')
 run_image provider "$provider_config" "$provider_commands"
 
@@ -179,7 +179,7 @@ regions_commands=$(printf '%b' \
     'ECHO REGIONS_END\r\n')
 regions_config=$(printf '%b' \
     'DEVICE=A:\\HIMEM.SYS\r\n' \
-    'DEVICE=A:\\EMM386.SYS RAM M5 I=CC00-CFFF I=E400-E7FF\r\n' \
+    'DEVICE=A:\\EMM386.EXE RAM M5 I=CC00-CFFF I=E400-E7FF\r\n' \
     'DOS=UMB\r\n')
 run_image regions "$regions_config" "$regions_commands"
 regions_log="$OUT/loadhigh-regions.log"
@@ -234,7 +234,7 @@ high_commands=$(printf '%b' \
     'ECHO DOS_HIGH_END\r\n')
 high_config=$(printf '%b' \
     'DEVICE=A:\\HIMEM.SYS\r\n' \
-    'DEVICE=A:\\EMM386.SYS RAM M5\r\n' \
+    'DEVICE=A:\\EMM386.EXE RAM M5\r\n' \
     'DOS=HIGH,UMB\r\n')
 run_image high "$high_config" "$high_commands"
 high_log="$OUT/loadhigh-high.log"
