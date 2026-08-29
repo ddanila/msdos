@@ -27,6 +27,7 @@ ARTIFACTS=(
     CMD/SYS/SYS.COM
     CMD/FORMAT/FORMAT.COM
     CMD/EXPAND/EXPAND.EXE
+    CMD/SETUP/SETUP.EXE
     CMD/CHKDSK/CHKDSK.COM
     DEV/ANSI/ANSI.SYS
     DEV/VDISK/VDISK.SYS
@@ -168,6 +169,7 @@ check_help "DEBUG"    "CMD/DEBUG/DEBUG.COM"           "DEBUG"
 check_help "FDISK"    "CMD/FDISK/FDISK.EXE"           "FDISK"
 check_help "IFSFUNC"  "CMD/IFSFUNC/IFSFUNC.EXE"       "IFSFUNC"
 check_help "EXPAND"   "CMD/EXPAND/EXPAND.EXE"         "EXPAND"
+check_help "SETUP"    "CMD/SETUP/SETUP.EXE"           "SETUP"
 
 echo ""
 echo "=== Section 4: COMMAND.COM built-in /? help (static check) ==="

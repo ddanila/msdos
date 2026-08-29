@@ -7,7 +7,8 @@
     ["src/CMD/EXPAND/EXPAND.EXE", "EXPAND.EXE"],
     ["src/CMD/SYS/SYS.COM", "SYS.COM"],
     ["src/CMD/FORMAT/FORMAT.COM", "FORMAT.COM"],
-    ["src/CMD/FDISK/FDISK.EXE", "FDISK.EXE"]
+    ["src/CMD/FDISK/FDISK.EXE", "FDISK.EXE"],
+    ["src/CMD/SETUP/SETUP.EXE", "SETUP.EXE"]
   ],
   "compressed": [
     ["src/DEV/ANSI/ANSI.SYS", "ANSI.SYS"],

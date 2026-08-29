@@ -20,6 +20,7 @@
     "EMM386.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_emm386_qemu.sh"},
     "EXE2BIN.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_share_nlsfunc_exe2bin.sh"},
     "EXPAND.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_expand.sh"},
+    "SETUP.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_setup_qemu.sh"},
     "IO.SYS": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_sys.sh"},
     "FDISK.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_fdisk.sh"},
     "FASTOPEN.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_fastopen_cache_qemu.sh"},

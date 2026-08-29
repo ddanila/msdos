@@ -42,7 +42,7 @@ features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
 | Partitions up to 2 GiB | Present | Automated and interactive FDISK paths create and validate a near-2-GiB FAT16 partition on a sparse 2-GiB disk. |
 | More than two hard disks | Present | FDISK models up to eight BIOS fixed disks; automated creation and interactive selection, display, and deletion are validated through disk 3. |
 | 2.88 MiB floppy support | Present | FORMAT creates the standard FAT12 layout, SYS creates bootable media, and DRIVER.SYS `/F:9` provides DOS-side read/write access. |
-| Guided Setup with online help | Missing | SELECT is the inherited DOS 4 installer, not the DOS 5 SETUP/upgrade workflow. |
+| Guided Setup with online help | Partial | SETUP performs tested fresh and upgrade installs from the two-disk compressed set and produces a bootable fixed disk. Its concise `/?` help is not the retail interactive help system. |
 | Compressed installation media | Present | `EXPAND.EXE` and the deterministic host encoder share the DOS 5 SZDD format; the build produces boot and compressed-data FAT12 images with `PACKING.LST`. The host SELECT panel tool named `compress` is unrelated. |
 | DOS 5 version compatibility table | Present | SETVER edits the persistent table in SETVER.EXE, `DEVICE=SETVER.EXE` loads it during CONFIG.SYS, and EXEC applies the selected version. |
 
@@ -192,7 +192,7 @@ parallel tests, QEMU matrix, and CI are project capabilities that the retail
 product did not expose. They are strengths, not DOS 5 compatibility features.
 Remaining project-level gaps are:
 
-- no DOS 5 SETUP, upgrade, uninstall, or retail multi-disk packaging flow;
+- no uninstall workflow or reproduction of the exact retail disk layout and UI;
 - no user manual/help corpus for the implemented commands beyond `/?` output;
 - no automated differential runner against user-supplied genuine DOS 5 media;
 - no CI-hosted 286/386/486 hardware-model matrix beyond QEMU and the separately
@@ -209,9 +209,9 @@ The compatibility work is split into four independently useful stages:
    2 GiB boundaries, remaining DIR behavior, fixed/removable FORMAT and SYS
    cases, persistent SETVER loading, DOSKEY navigation, and EMM386 runtime
    control.
-2. **Distribution and installation.** Implement EXPAND and the DOS 5
-   compressed-file format, then provide reproducible compressed media and a
-   guided install/upgrade flow.
+2. **Distribution and installation (complete).** EXPAND, the DOS 5
+   compressed-file format, reproducible two-disk media, and tested guided
+   fresh-install/upgrade flows are present.
 3. **Memory, locale, and hardware breadth.** Complete HIMEM configuration and
    286 support, EMM386 driver-load options, media geometries, NLS combinations,
    and representative 286/386/486 hardware validation.

@@ -168,6 +168,12 @@ def main() -> None:
     packing_data = ("\r\n".join(lines) + "\r\n").encode("ascii")
     boot_files.append(MediaFile("PACKING.LST", packing_data))
     compressed_files.append(MediaFile("PACKING.LST", packing_data))
+    setup_lines = []
+    for relative, destination in manifest["compressed"]:
+        media_name, _ = compressed_name(destination)
+        setup_lines.append(f"{media_name}|{destination}")
+    setup_data = ("\r\n".join(setup_lines) + "\r\n").encode("ascii")
+    compressed_files.append(MediaFile("SETUP.DAT", setup_data))
 
     args.output.mkdir(parents=True, exist_ok=True)
     disk1 = build_image(boot_files, boot_sector, "MSDOS5_1", 0x05000001)
