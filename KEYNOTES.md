@@ -1,8 +1,7 @@
 # Maintainer notes
 
 These notes capture constraints that are easy to violate and difficult to
-rediscover. They intentionally omit migration chronology and completed debug
-logs.
+rediscover.
 
 ## Build architecture
 
@@ -90,7 +89,7 @@ under CPU oversubscription is not evidence of a build race.
 
 ## Message generation
 
-`.SKL` files plus `MESSAGES/USA-MS.MSG` produce `.CTL` and `.CL*` assembly
+`.SKL` files plus `src/MESSAGES/USA-MS.MSG` produce `.CTL` and `.CL*` assembly
 includes. A direct one-file assembler experiment can therefore fail because it
 did not run the prerequisite message rule. Reproduce the Make dependency chain
 before diagnosing such an error as an assembler problem.
@@ -125,7 +124,7 @@ require runnable tests wired into CI. See `tests/COVERAGE.md`.
 
 All project-specific work stays under `github.com/ddanila`:
 
-- `ddanila/msdos:master` for the maintained system, its imported source,
+- `ddanila/msdos:master` for the maintained system, source,
   build, tests, documentation, and releases;
 - archived `ddanila/MS-DOS:main` commits remain provenance for source history;
 - `ddanila/JWasm:custom` for assembler compatibility;

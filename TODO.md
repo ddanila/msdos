@@ -1,62 +1,26 @@
 # Open work
 
-The native-toolchain migration and its compatibility-layer cleanup are
-complete. This file lists future work only; completed implementation history is
-available from Git.
+## DOS 5 compatibility
 
-## Preserve the release gate
+- Implement the persistent `SETVER` database and utility behavior.
+- Audit non-memory DOS 5 kernel differences from black-box contracts.
+- Extend FDISK, FORMAT, SYS, and setup/update behavior beyond the inherited
+  DOS 4 contracts.
+- Decide which additional DOS 5 utilities belong in the distribution and use
+  only license-compatible implementations or clean-room observations.
+- Broaden third-party, redirector, interrupt, and warm-reboot coverage while
+  DOS resides in the HMA.
+- Complete the advertised HIMEM/XMS conformance matrix before treating the
+  repository driver as a universal replacement for commercial XMS managers.
 
-For changes that affect generated binaries or runtime behavior:
+## Maintenance
 
-- keep focused host contracts and all strict coverage manifests green;
-- prove pristine serial and parallel build reproducibility;
-- run `make deploy` and the relevant QEMU suites;
-- run the complete QEMU matrix before declaring a toolchain update complete;
-- require green `ddanila/msdos` CI for the exact pushed implementation commit.
+- Keep strict coverage manifests complete and add tests for meaningful
+  boundaries, failures, and state transitions rather than test counts.
+- Evaluate `ddanila/JWasm`, `ddanila/open-watcom-v2`, and `ddanila/kvikdos`
+  `custom` revisions one tool family at a time through the full release gate.
+- Remove retained build adapters only when the underlying tool supplies
+  equivalent behavior and reproducibility plus runtime tests remain green.
 
-## Extend behavioral depth
-
-The current coverage inventories are complete for their declared interfaces.
-Future tests should improve contract depth, especially at boundaries, recovery
-paths, state transitions, and multi-component interactions. New coverage must
-be source-derived where possible and represented in the appropriate JSON
-manifest under `tests/`.
-
-Do not add tests merely to raise a count. A useful test distinguishes behavior,
-kills a plausible mutation, or protects a previously observed defect. Keep
-fast deterministic command behavior in kvikdos and use QEMU for hardware,
-kernel, filesystem, TSR, driver, and interactive behavior.
-
-## Maintain tool pins
-
-Periodically evaluate new snapshots of the three tool forks:
-
-- `ddanila/JWasm:custom`;
-- `ddanila/open-watcom-v2:custom`;
-- `ddanila/kvikdos:custom`.
-
-Update one tool family at a time. Record its exact source revision and host
-binary hashes, rebuild from a pristine checkout, compare artifacts, and run the
-full validation gate. Keep fork `master` branches clean for upstream sync; all
-project changes belong on `custom`.
-
-## Reduce retained adapters only with evidence
-
-The retained operations are documented in `KEYNOTES.md` and `PLAN.md`. They are
-small, explicit, and tested. Removing one is valuable only when the underlying
-tool natively provides the same behavior and all focused, reproducibility, and
-runtime gates still pass. Do not replace a documented adapter with an implicit
-or host-specific workaround.
-
-## Documentation maintenance
-
-Keep documentation present tense and implementation backed:
-
-- `README.md` is the user entry point;
-- `PLAN.md` records architecture and durable decisions;
-- `KEYNOTES.md` records maintainer constraints and diagnostic knowledge;
-- component READMEs record exact tool provenance;
-- `tests/COVERAGE.md` explains the enforced coverage model.
-
-Do not append build diaries or completed task transcripts. Fold durable findings
-into the appropriate document and rely on Git history for chronology.
+Commercial DOS binaries and derived content must not be committed. Reference
+media may be used only as an external black-box oracle.

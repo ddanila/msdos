@@ -42,13 +42,10 @@ The deployed floppy is written to `out/floppy.img`. Boot it interactively with:
 
 ## Documentation
 
-- [PLAN.md](PLAN.md) - toolchain architecture and design rationale.
+- [PLAN.md](PLAN.md) - system and toolchain architecture.
 - [TODO.md](TODO.md) - open work.
-- [REPOSITORY_CONSOLIDATION_PLAN.md](REPOSITORY_CONSOLIDATION_PLAN.md) -
-  consolidation history and acceptance contract.
 - [KEYNOTES.md](KEYNOTES.md) - maintainer constraints and diagnostics.
-- [UMB_PLAN.md](UMB_PLAN.md) - UMB/HMA compatibility contract and delivery plan.
-- [DOS5_PARITY_MATRIX.md](DOS5_PARITY_MATRIX.md) - version gate and known gaps.
+- [MEMORY.md](MEMORY.md) - DOS 5 HMA/UMB/XMS/EMS invariants.
 - [tests/COVERAGE.md](tests/COVERAGE.md) - behavioral coverage and traceability.
 - [jwasm/README.md](jwasm/README.md) and [watcom/README.md](watcom/README.md) -
   exact tool provenance.

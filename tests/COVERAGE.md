@@ -20,11 +20,11 @@ Current enforced inventory:
 | --- | ---: | ---: | ---: |
 | INT 21h dispatch entries | 109 | 104 | 5 |
 | INT 21h function/error pairs | 110 | 94 | 16 |
-| Shipped runtime components | 55 | 55 | 0 |
+| Shipped runtime components | 56 | 56 | 0 |
 | SELECT.EXE modes | 2 | 2 | 0 |
-| CONFIG.SYS directives | 17 | 17 | 0 |
-| COMMAND.COM built-ins and startup switches | 41 | 41 | 0 |
-| Standalone utility switch/operator forms | 124 | 124 | 0 |
+| CONFIG.SYS directives | 20 | 20 | 0 |
+| COMMAND.COM built-ins and startup switches | 43 | 43 | 0 |
+| Standalone utility switch/operator forms | 133 | 133 | 0 |
 | Shipped executable interfaces | 41 | 41 | 0 |
 | DEBUG commands and EMS subcommands | 24 | 24 | 0 |
 | Executable help surfaces | 41 | 37 | 4 no-help interfaces |
@@ -57,7 +57,7 @@ assert behavior rather than merely execute a program successfully.
 ### INT 21h dispatch and failures
 
 `int21_coverage.json` is checked by `test_coverage_manifest.py`. The verifier
-parses the live dispatch table in `DOS/MS_TABLE.ASM`, derives entries `00h`
+parses the live dispatch table in `src/DOS/MS_TABLE.ASM`, derives entries `00h`
 through `6Ch`, and rejects missing or stale rows.
 
 `int21_error_coverage.json` is checked independently by
@@ -76,7 +76,7 @@ two positional modes from its parser definitions.
 ### COMMAND.COM
 
 `command_coverage.json` is checked by `test_command_coverage.py`. The verifier
-derives all 35 live internal commands and six startup switches. Operational
+derives all 37 live internal commands and six startup switches. Operational
 subforms such as COPY `/A`, `/B`, and `/V`, DIR `/P` and `/W`, and DEL/ERASE
 `/P` are part of the contract evidence rather than separate inferred commands.
 

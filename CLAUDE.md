@@ -31,7 +31,7 @@ shadow source trees, broad post-link rewriting, or host-specific preprocessing.
   `master` branches are upstream synchronization branches and must not receive
   custom commits.
 - Preserve unrelated working-tree changes, especially generated or
-  line-ending-sensitive files in the imported source and tool submodules.
+  line-ending-sensitive files in the source and tool submodules.
 
 ## Source integrity
 
@@ -52,7 +52,7 @@ ASCII unless a file's historical byte content specifically requires otherwise.
 - Run `./jwasm/build.sh` when the ignored host assembler is absent. The script
   checks out and builds the exact revision documented in `jwasm/README.md`.
 - Plain `make` is the production path. Do not override the assembler or linker
-  to reproduce an obsolete migration configuration.
+  with an unvalidated configuration.
 - Capture expensive builds once and inspect the saved log. OMF output may
   contain binary bytes, so use binary-safe search options when needed.
 - Use the module's Make rule when diagnosing include lookup. Hand-written JWasm
