@@ -23,8 +23,8 @@ nasm -f bin "$ROOT/tests/pre386_fallback_probe.asm" -o "$WORK/pre386.com"
 for cpu in 8086 286; do
     time_limit=20
     # The experimental 8086 core is substantially slower than the 286 core
-    # and can take over 20 seconds to reach AUTOEXEC.BAT on a CI runner.
-    [[ "$cpu" == 8086 ]] && time_limit=40
+    # and can take over 40 seconds to reach AUTOEXEC.BAT on a CI runner.
+    [[ "$cpu" == 8086 ]] && time_limit=90
     image="$WORK/pre386-$cpu.img"
     log="$WORK/pre386-$cpu.log"
     cp "$FLOPPY" "$image"
