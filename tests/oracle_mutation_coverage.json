@@ -32,6 +32,7 @@
     "JOIN.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_assign_subst_join.sh"},
     "KEYB.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_keyb_layout_qemu.sh"},
     "KEYBOARD.SYS": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_keyb_layout_qemu.sh"},
+    "HIMEM.SYS": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_himem_qemu.sh"},
     "LABEL.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_label.sh"},
     "MEM.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_drivers_qemu.sh"},
     "MODE.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_misc_qemu.sh"},

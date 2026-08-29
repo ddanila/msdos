@@ -190,9 +190,9 @@ monitor-driven system-reset test proves that HMA ownership, UMB allocation,
 EMS isolation, and EMS allocation/mapping all work on two consecutive boots.
 Physical A20 alias detection, fast-gate/BIOS/8042 backends, registration
 rejection after a deliberately backing-limited partial mapping, and live-UMB
-data stability during EMS remapping are now covered. HIMEM is still omitted
-from published images until the remaining plan-wide gates pass. The repository
-provider itself now satisfies the Phase 3 exit criterion.
+data stability during EMS remapping are now covered. With the plan-wide gates
+closed, HIMEM is a normal build artifact and is included in deployed images.
+The repository provider itself now satisfies the Phase 3 exit criterion.
 
 The HMA acceptance matrix covers low and high residency, exact unavailable-HMA
 fallback diagnostics, reclaimed conventional memory, all A20 backends, a

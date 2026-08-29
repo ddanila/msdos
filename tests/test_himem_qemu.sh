@@ -4,8 +4,8 @@ export LC_ALL=C
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT="$ROOT/out"
-FLOPPY="$OUT/floppy.img"
-HIMEM="$OUT/himem-core.sys"
+FLOPPY=${FLOPPY_IMAGE:-$OUT/floppy.img}
+HIMEM="$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.SYS"
 REJECT_HIMEM="$OUT/HIMEM-REJECT.SYS"
 BIOS_A20_HIMEM="$OUT/HIMEM-A20-BIOS.SYS"
 KBC_A20_HIMEM="$OUT/HIMEM-A20-KBC.SYS"
@@ -41,8 +41,6 @@ for tool in nasm mcopy qemu-system-i386 timeout; do
     }
 done
 
-"$ROOT/bin/jwasm-bin" -Fo"$HIMEM" \
-    "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
 "$ROOT/bin/jwasm-bin" -DUMB_TEST_REJECT -Fo"$REJECT_HIMEM" \
     "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
 "$ROOT/bin/jwasm-bin" -DA20_TEST_SKIP_FAST -Fo"$BIOS_A20_HIMEM" \

@@ -2,6 +2,7 @@ DEV_DIR  := $(SRC)/DEV
 DEV_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC -I..\\..\\DOS
 
 dev: \
+    $(DEV_DIR)/HIMEM/HIMEM.SYS \
     $(DEV_DIR)/DRIVER/DRIVER.SYS \
     $(DEV_DIR)/ANSI/ANSI.SYS \
     $(DEV_DIR)/VDISK/VDISK.SYS \
@@ -15,6 +16,11 @@ dev: \
     $(DEV_DIR)/XMA2EMS/XMA2EMS.SYS \
     $(DEV_DIR)/XMAEM/XMAEM.SYS \
     $(DEV_DIR)/DISPLAY/EGA/EGA.CPI
+
+HIMEM_DIR := $(DEV_DIR)/HIMEM
+
+$(HIMEM_DIR)/HIMEM.SYS: $(HIMEM_DIR)/HIMEM.ASM $(BIN)/jwasm-bin
+	$(BIN)/jwasm-bin -Fo$@ $<
 
 DRIVER_DIR := $(DEV_DIR)/DRIVER
 
