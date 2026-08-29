@@ -41,6 +41,14 @@ mcopy -o -i "$IMAGE" "$PROBE" ::SETPROBE.COM
     printf 'SETPROBE.COM\r\n'
     printf 'SETVER SETPROBE.COM 10.00\r\n'
     printf 'SETPROBE.COM\r\n'
+    printf 'SETVER SETPROBE.COM 2.11\r\n'
+    printf 'SETPROBE.COM\r\n'
+    printf 'SETVER SETPROBE.COM /D /QUIET\r\n'
+    printf 'SETPROBE.COM\r\n'
+    printf 'SETVER A:\\ SETPROBE.COM 4.20\r\n'
+    printf 'SETPROBE.COM\r\n'
+    printf 'SETVER A:\\ SETPROBE.COM /DELETE /quiet\r\n'
+    printf 'SETPROBE.COM\r\n'
 } | mcopy -o -i "$IMAGE" - ::AUTOEXEC.BAT
 
 timeout 30 qemu-system-i386 \
@@ -56,6 +64,10 @@ expected=$(printf '%s\n' \
     SETVER_PROBE_VERSION=5.00 \
     SETVER_PROBE_VERSION=4.01 \
     SETVER_PROBE_VERSION=5.00 \
+    SETVER_PROBE_VERSION=5.00 \
+    SETVER_PROBE_VERSION=2.11 \
+    SETVER_PROBE_VERSION=5.00 \
+    SETVER_PROBE_VERSION=4.20 \
     SETVER_PROBE_VERSION=5.00)
 if [[ "$versions" != "$expected" ]]; then
     echo 'FAIL: SETVER version transitions differ' >&2
@@ -71,6 +83,11 @@ grep -Fq 'SETPROBE.COM 3.30' "$LOG" || {
 grep -Fq 'Entry added.' "$LOG"
 grep -Fq 'Entry updated.' "$LOG"
 grep -Fq 'Entry deleted.' "$LOG"
+[[ "$(grep -Fc 'Entry deleted.' "$LOG")" -eq 2 ]] || {
+    echo 'FAIL: /QUIET emitted a deletion confirmation' >&2
+    sed -n '1,240p' "$LOG" >&2
+    exit 1
+}
 grep -Fq 'Invalid version. Use major.minor.' "$LOG"
 
-echo '  PASS: SETVER list/add/update/delete and per-program DOS version reporting'
+echo '  PASS: SETVER list/add/update/delete, /D, /QUIET, and per-program version reporting'

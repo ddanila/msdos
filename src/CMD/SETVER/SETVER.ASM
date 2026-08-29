@@ -29,11 +29,39 @@ query_table:
         je      list_table
         cmp     cs:token_count,1
         je      list_table              ; optional SETVER.EXE path
-        cmp     cs:token_count,3
+        cmp     cs:token_count,4
         ja      syntax_error
 
         cmp     cs:token_count,2
         je      args_ready
+        cmp     cs:token_count,3
+        jne     four_args
+        mov     si,cs:token2
+        call    is_delete
+        jnc     path_args
+        mov     si,cs:token3
+        call    is_quiet
+        jnc     syntax_error
+        mov     cs:quiet_flag,1
+        mov     si,cs:token1
+        mov     cs:name_arg,si
+        mov     si,cs:token2
+        mov     cs:value_arg,si
+        jmp     short parse_name
+path_args:
+        mov     si,cs:token2             ; ignore optional SETVER.EXE path
+        mov     cs:name_arg,si
+        mov     si,cs:token3
+        mov     cs:value_arg,si
+        jmp     short parse_name
+four_args:
+        mov     si,cs:token3
+        call    is_delete
+        jnc     syntax_error
+        mov     si,cs:token4
+        call    is_quiet
+        jnc     syntax_error
+        mov     cs:quiet_flag,1
         mov     si,cs:token2             ; ignore optional SETVER.EXE path
         mov     cs:name_arg,si
         mov     si,cs:token3
@@ -120,6 +148,8 @@ delete_entry:
         mov     si,di
         mov     di,bx
         rep     movsb                    ; overlap is forward-safe
+        cmp     cs:quiet_flag,0
+        jne     exit_ok
         mov     dx,OFFSET deleted_msg
         jmp     short success
 
@@ -317,6 +347,14 @@ is_delete:
         cmp     byte ptr [si],'/'
         jne     no_match
         inc     si
+        cmp     byte ptr [si],'d'
+        je      delete_short
+        cmp     byte ptr [si],'D'
+        jne     delete_long
+delete_short:
+        cmp     byte ptr [si+1],0
+        je      matched_switch
+delete_long:
         mov     di,OFFSET delete_word
         mov     cx,6
 delete_cmp:
@@ -334,13 +372,37 @@ delete_upper:
         loop    delete_cmp
         cmp     byte ptr [si],0
         jne     no_match
+matched_switch:
+        stc
+        ret
+is_quiet:
+        cmp     byte ptr [si],'/'
+        jne     no_match
+        inc     si
+        mov     di,OFFSET quiet_word
+        mov     cx,5
+quiet_cmp:
+        mov     al,[si]
+        cmp     al,'a'
+        jb      quiet_upper
+        cmp     al,'z'
+        ja      quiet_upper
+        sub     al,20h
+quiet_upper:
+        cmp     al,[di]
+        jne     no_match
+        inc     si
+        inc     di
+        loop    quiet_cmp
+        cmp     byte ptr [si],0
+        jne     no_match
         stc
         ret
 no_match:
         clc
         ret
 
-; Split PSP command tail in place.  At most three arguments are accepted.
+; Split PSP command tail in place.  At most four arguments are accepted.
 tokenize:
         xor     ax,ax
         mov     al,byte ptr ds:[80h]
@@ -362,7 +424,7 @@ token_space:
 token_start:
         inc     cs:token_count
         mov     al,cs:token_count
-        cmp     al,3
+        cmp     al,4
         ja      token_too_many
         xor     ah,ah
         dec     ax
@@ -385,7 +447,7 @@ token_end:
         inc     si
         jmp     short token_skip
 token_too_many:
-        mov     cs:token_count,4
+        mov     cs:token_count,5
 token_done:
         ret
 
@@ -454,6 +516,7 @@ token_count db 0
 token1      dw 0
 token2      dw 0
 token3      dw 0
+token4      dw 0
 name_arg    dw 0
 value_arg   dw 0
 table_off   dw 0
@@ -462,8 +525,10 @@ table_size  dw 0
 name_len    db 0
 new_major   db 0
 new_minor   db 0
+quiet_flag  db 0
 name_buf    db 12 dup(0)
 delete_word db 'DELETE'
+quiet_word  db 'QUIET'
 crlf        db 13,10,'$'
 heading     db 'MS-DOS Version Table',13,10,'$'
 added_msg   db 'Entry added.',13,10,'$'
@@ -475,7 +540,7 @@ version_msg db 'Invalid version. Use major.minor.',13,10,'$'
 full_msg    db 'Version table is full.',13,10,'$'
 missing_msg db 'Entry not found.',13,10,'$'
 support_msg db 'SETVER is not supported by this DOS kernel.',13,10,'$'
-help_msg    db 'SETVER [path] [filename version | filename /DELETE]',13,10
+help_msg    db 'SETVER [path] [filename version | filename /DELETE [/QUIET]]',13,10
             db 'Lists or changes the DOS version reported to a program.',13,10,'$'
 
 CODE ENDS

@@ -72,7 +72,7 @@ Every documented option of a missing command is necessarily unsupported.
 | --- | --- | --- |
 | `ATTRIB` | `+R`, `-R`, `+A`, `-A`, `+H`, `-H`, `+S`, `-S`, `/S` | No known DOS 5 option gap. |
 | `DOSKEY` | Resident history and macros; `/REINSTALL`, `/BUFSIZE`, `/MACROS`, `/HISTORY`, `/INSERT`, `/OVERSTRIKE`; `$1`-`$9`, `$*`, `$$`, `$G`, `$L`, `$B`, and queued `$T`; `4800h`/`4810h` APIs | Complete multi-entry Up/Down/Page/F7/F8/F9 and Alt-key interactive navigation. |
-| `SETVER` | List, add, update, and `/DELETE` against the resident kernel table; EXEC reports the selected version to matching programs | Persistent table storage, the CONFIG.SYS device-loader form, and `/QUIET`. |
+| `SETVER` | List, add, update, `/DELETE`/`/D`, and `/QUIET` against the resident kernel table; EXEC reports the selected version to matching programs | Persistent table storage and the CONFIG.SYS device-loader form. |
 | `DIR` | Basic listing; `/P`, `/W`, `/B`, `/L`; `/A[:attributes]` with `D`, `R`, `H`, `A`, `S`, and negated selectors | `/O[:sortorder]`, `/S`, and `DIRCMD` defaults. These include DOS 5's recursive search and sorted-directory features. |
 | `DISKCOPY` | Copy, `/1`, and `/V` read-back verification | No known DOS 5 option gap. |
 | `FDISK` | Automated primary, extended, and logical creation; inherited interactive code | Display/delete/change-active/select-next-disk behavior and DOS 5 large-partition boundaries are unverified. Current tests use only 5-20 MiB images. |
@@ -113,7 +113,7 @@ Complete limit/error/order parity remains unverified outside the cases in
 | `HIMEM.SYS` | Partial XMS 2.00 implementation | 286 support; `/HMAMIN`, `/NUMHANDLES`, `/INT15`, `/MACHINE`, `/A20CONTROL`, `/SHADOWRAM`, and `/CPUCLOCK`. The handle count is fixed and machine-specific A20 selection is automatic only. |
 | `EMM386.SYS` | Partial DOS 5 EMM386 replacement | Retail filename compatibility (`EMM386.EXE`); driver `ON`/`OFF`/`AUTO`, `W=`, `FRAME=`, `Pn=`, `B=`, `L=`, `A=`, `H=`, and `D=` controls. The repository implements pool size, page-frame selection, `I=`, `X=`, `RAM`, and `NOEMS`. |
 | `EGA.SYS` | Missing | DOSSHELL Task Swapper display save/restore support. |
-| `SETVER.EXE` | Partial (`SETVER.COM`) | Kernel-resident table and command editing work; the original dual-purpose EXE/device loader, persistent on-disk table, and `/QUIET` remain. |
+| `SETVER.EXE` | Partial (`SETVER.COM`) | Kernel-resident table and complete command editing work; the original dual-purpose EXE/device loader and persistent on-disk table remain. |
 | `ANSI.SYS` | Present | No known DOS 5 `/X` or `/K` omission; exhaustive escape-sequence and adapter conformance is not complete. |
 | `DISPLAY.SYS`, `PRINTER.SYS` | Present | Core code-page flow is tested; the full adapter/printer type and code-page matrix is unverified. |
 | `DRIVER.SYS` | Present | Core logical-drive behavior is tested; all DOS 5 geometry values, including 2.88 MiB, are unverified. |
