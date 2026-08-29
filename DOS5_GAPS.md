@@ -72,7 +72,7 @@ Every documented option of a missing command is necessarily unsupported.
 
 | Command | Implemented | Missing or incompatible DOS 5 behavior |
 | --- | --- | --- |
-| `ATTRIB` | `+R`, `-R`, `+A`, `-A`, `/S` | Hidden and system attribute controls `+H`, `-H`, `+S`, and `-S`. |
+| `ATTRIB` | `+R`, `-R`, `+A`, `-A`, `+H`, `-H`, `+S`, `-S`, `/S` | No known DOS 5 option gap. |
 | `DIR` | Basic listing, `/P`, `/W` | `/A[:attributes]`, `/B`, `/L`, `/O[:sortorder]`, `/S`, negative forms, and `DIRCMD` defaults. These include DOS 5's recursive search and sorted-directory features. |
 | `DISKCOPY` | Copy and `/1` | `/V` post-copy verification option. |
 | `FDISK` | Automated primary, extended, and logical creation; inherited interactive code | Display/delete/change-active/select-next-disk behavior and DOS 5 large-partition boundaries are unverified. Current tests use only 5-20 MiB images. |

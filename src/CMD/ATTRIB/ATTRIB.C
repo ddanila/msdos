@@ -99,9 +99,11 @@ inmain(line)                                                           /*;AN000;
    while (*p == ' ' || *p == '\t') p++;                               /*;AN000;*/
    if (p[0] == '/' && p[1] == '?') {                                  /*;AN000;*/
       printf("Displays or changes file attributes.\r\n\r\n");
-      printf("ATTRIB [+R|-R] [+A|-A] [filespec] [/S]\r\n\r\n");
+      printf("ATTRIB [+R|-R] [+A|-A] [+S|-S] [+H|-H] [filespec] [/S]\r\n\r\n");
       printf("  +R  Set Read-only attribute    -R  Clear Read-only attribute\r\n");
       printf("  +A  Set Archive attribute      -A  Clear Archive attribute\r\n");
+      printf("  +S  Set System attribute       -S  Clear System attribute\r\n");
+      printf("  +H  Set Hidden attribute       -H  Clear Hidden attribute\r\n");
       printf("  /S  Process files in subdirectories\r\n");
       exit(0);
       }                                                                /*;AN000;*/
@@ -580,7 +582,11 @@ WORD Parse_it(line)                                                    /*;AN000;
    WORD  pa,                                                           /*;AN000;*/
          ma,                                                           /*;AN000;*/
          pr,                                                           /*;AN000;*/
-         mr;                                                           /*;AN000;*/
+         mr,
+         ph,
+         mh,
+         ps,
+         ms;
    char far *cptr;                                                     /*;AN000;*/
    char *ptr;                                                          /*;AN000;*/
    BYTE  p_mask[4],                                                    /*;AN000;*/
@@ -769,7 +775,7 @@ WORD Parse_it(line)                                                    /*;AN000;
       }                                                                /*;AN000;*/
 
    /* check for duplicate +R +R or +A +A or -A -A or -R -R */
-   for (pr=0,mr=0,pa=0,ma=0,i=0; i<4; i++) {                           /*;AN000;*/
+   for (pr=0,mr=0,pa=0,ma=0,ph=0,mh=0,ps=0,ms=0,i=0; i<4; i++) {
       if (p_mask[i] & READONLY)                                        /*;AN000;*/
          pr++;                                                         /*;AN000;*/
       if (m_mask[i] & READONLY)                                        /*;AN000;*/
@@ -778,8 +784,17 @@ WORD Parse_it(line)                                                    /*;AN000;
          pa++;                                                         /*;AN000;*/
       if (m_mask[i] & ARCHIVE)                                         /*;AN000;*/
          ma++;                                                         /*;AN000;*/
+      if (p_mask[i] & HIDDEN)
+         ph++;
+      if (m_mask[i] & HIDDEN)
+         mh++;
+      if (p_mask[i] & SYSTEM)
+         ps++;
+      if (m_mask[i] & SYSTEM)
+         ms++;
       }                                                                /*;AN000;*/
-   if ((pr > 1) || (mr > 1) || (pa > 1) || (ma > 1)) {                 /*;AN000;*/
+   if ((pr > 1) || (mr > 1) || (pa > 1) || (ma > 1) ||
+       (ph > 1) || (mh > 1) || (ps > 1) || (ms > 1)) {
       status = p_syntax;                                               /*;AN000;*/
       }                                                                /*;AN000;*/
    else {                                                              /*;AN000;*/
@@ -790,7 +805,7 @@ WORD Parse_it(line)                                                    /*;AN000;
       }                                                                /*;AN000;*/
 
    /* check for duplicate -R +R or -A +A */
-   if ((pmask & mmask & READONLY) || (pmask & mmask & ARCHIVE)) {      /*;AN000;*/
+   if (pmask & mmask & (READONLY | ARCHIVE | HIDDEN | SYSTEM)) {
       status = p_syntax;                                               /*;AN000;*/
       }                                                                /*;AN000;*/
    return(status);                                                     /*;AN000;*/
@@ -2275,7 +2290,7 @@ WORD Do_dir(path,file)
       strcpy(subdirectory,path);
       strcat(subdirectory,"*.*");
 
-      search_attrib = SUBDIR; /* Find all except volume labels*/       /*;AN000;*/
+      search_attrib = SUBDIR | HIDDEN | SYSTEM;
       status = Find_first(subdirectory,next,&search_attrib);
 
       while (status == NOERROR) {
@@ -2289,7 +2304,7 @@ WORD Do_dir(path,file)
             strcpy(subdirectory,path);
             strcat(subdirectory,"*.*");
 
-            search_attrib = SUBDIR;                                    /*;AN000;*/
+            search_attrib = SUBDIR | HIDDEN | SYSTEM;
             status = Find_next(next,&search_attrib);
             }
          }     /* while */
@@ -2303,21 +2318,18 @@ WORD Do_dir(path,file)
       strcpy(subdirectory,path);
       strcat(subdirectory,file);
 
-      search_attrib = SUBDIR;                                          /*;AN000;*/
+      search_attrib = SUBDIR | HIDDEN | SYSTEM;
       status = Find_first(subdirectory,next,&search_attrib);
       while(status == NOERROR) {
 
-         /* Check that this file is not a directory, system file, */
-         /* or a hidden file.                                     */
+         /* Process matching files of every regular DOS attribute. */
          if (  (next[0] != '.') &&
-               ((search_attrib & SUBDIR) == 0) &&
-               ((search_attrib & SYSTEM) == 0) &&
-               ((search_attrib & HIDDEN) == 0) )  {
+               ((search_attrib & SUBDIR) == 0) )  {
             status = Attrib(path,next);
             }
 
          if (status == NOERROR) {
-            search_attrib = SUBDIR;                                    /*;AN000;*/
+            search_attrib = SUBDIR | HIDDEN | SYSTEM;
             status = Find_next(next,&search_attrib);
             }
          }      /* while */

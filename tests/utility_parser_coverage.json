@@ -12,9 +12,13 @@
     }},
     "ATTRIB.EXE": {"source": "src/CMD/ATTRIB/ATTRIB.H", "extractor": "attrib_header", "switches": {
       "+A": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Sets the archive attribute and a subsequent query reports the transition"},
+      "+H": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Sets hidden and remains discoverable by an explicit ATTRIB query"},
       "+R": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Sets the read-only attribute alone and together with +A"},
+      "+S": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Sets system and composes with the hidden attribute"},
       "-A": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Clears the archive attribute without changing the file payload"},
+      "-H": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Clears hidden and preserves the remaining attributes"},
       "-R": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Clears the read-only attribute and permits deterministic cleanup"},
+      "-S": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Clears system and preserves the remaining attributes"},
       "/S": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Recursively reports files from both the root and a nested directory"}
     }},
     "BACKUP.COM": {"source": "src/CMD/BACKUP/BACKUP.C", "extractor": "c_parser_literals", "switches": {

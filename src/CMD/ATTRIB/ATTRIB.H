@@ -188,6 +188,10 @@ char  plusa[]  = "+A";                 /*;AN000; strings for match */
 char  minusa[] = "-A";                 /*;AN000;*/
 char  plusr[]  = "+R";                 /*;AN000;*/
 char  minusr[] = "-R";                 /*;AN000;*/
+char  plush[]  = "+H";
+char  minush[] = "-H";
+char  pluss[]  = "+S";
+char  minuss[] = "-S";
 
 struct p_null noval =                  /*;AN000; structure for no value list */
      { 0 };                            /*;AN000;*/
@@ -196,7 +200,7 @@ struct ps_valist_blk vals1 =           /*;AN000; +A-A+R-R value list         */
      { p_nval_string,                  /*;AN000;  string value list type     */
        0,                              /*;AN000;  number of ranges           */
        0,                              /*;AN000;  number of numbers          */
-       4,                              /*;AN000;  number of strings          */
+       8,                              /* number of attribute strings       */
        0x20,                           /*;AN000;  item tag                   */
        (WORD)plusa,                    /*;AN000;  address of string          */
        0x20,                           /*;AN000;  item tag                   */
@@ -204,7 +208,11 @@ struct ps_valist_blk vals1 =           /*;AN000; +A-A+R-R value list         */
        0x01,                           /*;AN000;  item tag                   */
        (WORD)plusr,                    /*;AN000;  address of string          */
        0x01,                           /*;AN000;  item tag                   */
-       (WORD)minusr };                 /*;AN000;  address of string          */
+       (WORD)minusr,                   /*;AN000;  address of string          */
+       HIDDEN, (WORD)plush,
+       HIDDEN, (WORD)minush,
+       SYSTEM, (WORD)pluss,
+       SYSTEM, (WORD)minuss };
 
 struct p_control_blk p_con1 =          /*;AN000; describes +-A or +-R        */
      { 0x2001,                         /*;AN000;  Simple string,optional     */
@@ -445,7 +453,7 @@ BYTE             bits[8] = { 0x80,0x40,0x20,0x10,0x08,0x04,0x02,0x01 }; /*;AN000
 BYTE             pmask,                /*;AN000;*/
                  mmask;                /*;AN000;*/
 
-char             as[8] = { ' ',' ','A',' ',' ',' ',' ','R' };           /*;AN000;*/
+char             as[8] = { ' ',' ','A',' ',' ','S','H','R' };
 char             fix_es_reg[1];        /*;AN000;*/
 char             ext_attr[MAX_KEYWORD];        /*;AN000;*/
 char             error_file_name[256]; /*;AN005;*/

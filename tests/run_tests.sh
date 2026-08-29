@@ -687,6 +687,22 @@ else
     fail "ATTRIB +A (expected 'A' in attribute display)"
 fi
 
+run_dos CMD/ATTRIB/ATTRIB.EXE '+H' '+S' 'C:\ATTRTEST.BAT' > /dev/null 2>&1 || true
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\ATTRTEST.BAT') || true
+if echo "$output" | grep -qE 'A[[:space:]]+SH[[:space:]]+C:\\ATTRTEST.BAT'; then
+    ok "ATTRIB +H +S (set hidden and system attributes)"
+else
+    fail "ATTRIB +H +S (expected H and S in attribute display)"
+fi
+
+run_dos CMD/ATTRIB/ATTRIB.EXE '-H' '-S' 'C:\ATTRTEST.BAT' > /dev/null 2>&1 || true
+output=$(run_dos CMD/ATTRIB/ATTRIB.EXE 'C:\ATTRTEST.BAT') || true
+if ! echo "$output" | grep -qE '[[:space:]]SH[[:space:]]|[[:space:]]H[[:space:]]'; then
+    ok "ATTRIB -H -S (clear hidden and system attributes)"
+else
+    fail "ATTRIB -H -S (H or S flag still present)"
+fi
+
 output=$(timeout 30 "$BIN/dos-run" "$SRC/CMD/ATTRIB/ATTRIB.EXE" \
     'C:\ATTR-MISSING.BAT' 2>&1); attrib_missing_rc=$?; true
 if [[ $attrib_missing_rc -ne 0 ]] && echo "$output" | grep -qi "Extended Error 2"; then
@@ -707,7 +723,7 @@ if [[ "$attrib_payload_after" == "$attrib_payload_before" ]]; then
 else
     fail "ATTRIB changed file payload while updating metadata"
 fi
-run_dos CMD/ATTRIB/ATTRIB.EXE '-R' '-A' 'C:\ATTRTEST.BAT' >/dev/null 2>&1 || true
+run_dos CMD/ATTRIB/ATTRIB.EXE '-R' '-A' '-H' '-S' 'C:\ATTRTEST.BAT' >/dev/null 2>&1 || true
 rm -f "$SRC/ATTRTEST.BAT"
 
 mkdir -p "$SRC/ATTRDIR/SUB"

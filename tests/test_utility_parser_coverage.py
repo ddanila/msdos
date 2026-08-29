@@ -63,7 +63,7 @@ def source_switches(text, extractor="asm_db"):
                 values += [f"/W{suffix}:ON", f"/W{suffix}:OFF"]
     elif extractor == "attrib_header":
         values = re.findall(
-            r"^\s*char\s+\w+\[\]\s*=\s*[\"']([+-][AR])[\"']",
+            r"^\s*char\s+\w+\[\]\s*=\s*[\"']([+-][ARHS])[\"']",
             text, re.IGNORECASE | re.MULTILINE,
         )
         values += re.findall(r"[\"'](/S)[\"']", text, re.IGNORECASE)
