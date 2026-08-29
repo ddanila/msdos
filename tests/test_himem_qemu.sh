@@ -26,6 +26,8 @@ ABSENCE_PROBE="$OUT/umb-provider-absence.com"
 ACTIVATION_PROBE_SRC="$ROOT/tests/emm386_activation_probe.asm"
 ROLLBACK_IMAGE="$OUT/floppy-himem-emm386-rollback.img"
 ROLLBACK_LOG="$OUT/himem-emm386-rollback.log"
+FAULT_AFTER_MAP_EMM="$OUT/emm386-fault-after-map.sys"
+FAULT_BEFORE_PUBLISH_EMM="$OUT/emm386-fault-before-publish.sys"
 WARMBOOT="$OUT/warm-reboot.com"
 QEXIT="$OUT/himem-qexit.com"
 WARM_IMAGE="$OUT/floppy-himem-emm386-warm.img"
@@ -59,6 +61,27 @@ nasm -f bin "$ROOT/tests/umb_ems_isolation_probe.asm" -o "$ISOLATION_PROBE"
 nasm -f bin "$ROOT/tests/umb_provider_absence_probe.asm" -o "$ABSENCE_PROBE"
 nasm -f bin "$ROOT/tests/warm_reboot.asm" -o "$WARMBOOT"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
+
+build_fault_emm() {
+    local define=$1
+    local output=$2
+    local work
+    work=$(mktemp -d "${TMPDIR:-/tmp}/msdos-emm386-fault.XXXXXX")
+    cp -R "$ROOT/MS-DOS/v4.0/src/MEMM/MEMM" "$work/MEMM"
+    cp -R "$ROOT/MS-DOS/v4.0/src/MEMM/EMM" "$work/EMM"
+    (
+        cd "$work/MEMM"
+        "$ROOT/bin/jwasm-masm" \
+            "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -D$define -I. -I..\\EMM" \
+            'INIT.ASM,INIT.OBJ;'
+        "$ROOT/bin/wlink" '/NOI /PACKDATA:1 @EMM386.LNK'
+    ) >/dev/null
+    cp "$work/MEMM/EMM386.EXE" "$output"
+    rm -rf "$work"
+}
+
+build_fault_emm UMB_TEST_FAIL_AFTER_MAP=1 "$FAULT_AFTER_MAP_EMM"
+build_fault_emm UMB_TEST_FAIL_BEFORE_PUBLISH "$FAULT_BEFORE_PUBLISH_EMM"
 
 cp "$FLOPPY" "$IMAGE"
 mcopy -o -i "$IMAGE" "$HIMEM" ::HIMEM.SYS
@@ -225,6 +248,42 @@ then
     sed -n '1,220p' "$ROLLBACK_LOG" >&2
     exit 1
 fi
+
+for fault_spec in \
+    "after-map|$FAULT_AFTER_MAP_EMM" \
+    "before-publish|$FAULT_BEFORE_PUBLISH_EMM"
+do
+    IFS='|' read -r fault_name fault_driver <<<"$fault_spec"
+    fault_image="$OUT/floppy-himem-emm386-fault-$fault_name.img"
+    fault_log="$OUT/himem-emm386-fault-$fault_name.log"
+    cp "$FLOPPY" "$fault_image"
+    mcopy -o -i "$fault_image" "$HIMEM" ::HIMEM.SYS
+    mcopy -o -i "$fault_image" "$fault_driver" ::EMM386.SYS
+    mcopy -o -i "$fault_image" "$ABSENCE_PROBE" ::NOUMB.COM
+    mcopy -o -i "$fault_image" "$EMM_PROBE" ::EMMPROBE.COM
+    mcopy -o -i "$fault_image" "$QEXIT" ::QEXIT.COM
+    {
+        printf 'DEVICE=A:\\HIMEM.SYS\r\n'
+        printf 'DEVICE=A:\\EMM386.SYS RAM M5\r\n'
+        printf 'DOS=UMB\r\n'
+    } | mcopy -o -i "$fault_image" - ::CONFIG.SYS
+    {
+        printf '@ECHO OFF\r\nCTTY AUX\r\n'
+        printf 'NOUMB.COM\r\nEMMPROBE.COM\r\nQEXIT.COM\r\n'
+    } | mcopy -o -i "$fault_image" - ::AUTOEXEC.BAT
+    timeout 35 qemu-system-i386 \
+        -display none -monitor none -machine pc -cpu 486 -m 16 \
+        -drive if=floppy,index=0,format=raw,file="$fault_image",cache=writethrough \
+        -boot a -serial stdio -no-reboot \
+        -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$fault_log" 2>&1 || true
+    if ! grep -Fq 'UMB_PROVIDER_ABSENT_PASS' "$fault_log" \
+        || ! grep -Fq 'EMM386_API_PASS' "$fault_log"
+    then
+        echo "FAIL: UMB transaction fault did not roll back: $fault_name" >&2
+        sed -n '1,220p' "$fault_log" >&2
+        exit 1
+    fi
+done
 
 for mode_spec in \
     'plain|0|1|M5|' \

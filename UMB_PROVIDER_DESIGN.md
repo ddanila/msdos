@@ -182,11 +182,14 @@ firmware map exposes one. Deterministic synthetic coverage independently proves
 normalization and allocation across multiple discontiguous extents.
 The production activation matrix now covers EMS-only default operation,
 `RAM`, `NOEMS`, explicit exclusions, repeated include/exclude parsing, and
-`X=` precedence. This establishes the ownership split and user-facing mode
-contract but does not close Phase 3: broader fault injection remains required. A
-monitor-driven system-reset test now proves that HMA ownership, UMB allocation,
+`X=` precedence. Compile-time production-driver fault variants verify rollback
+after the first stable mapping and after the complete map but before
+publication; a rejecting HIMEM peer verifies rollback after publication is
+attempted. Each case leaves EMS usable and exposes no partial UMB provider. A
+monitor-driven system-reset test proves that HMA ownership, UMB allocation,
 EMS isolation, and EMS allocation/mapping all work on two consecutive boots.
 Physical A20 alias detection, fast-gate/BIOS/8042 backends, registration
 rejection after a deliberately backing-limited partial mapping, and live-UMB
 data stability during EMS remapping are now covered. HIMEM is still omitted
-from published images until the remaining gates pass.
+from published images until the remaining plan-wide gates pass. The repository
+provider itself now satisfies the Phase 3 exit criterion.
