@@ -1,4 +1,5 @@
 /out/
+/.reference/
 /kvikdos/kvikdos-soft
 /*.o
 /*.err
