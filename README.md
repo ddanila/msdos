@@ -43,6 +43,8 @@ The deployed floppy is written to `out/floppy.img`. Boot it interactively with:
 
 - [PLAN.md](PLAN.md) - toolchain architecture and design rationale.
 - [TODO.md](TODO.md) - open work.
+- [REPOSITORY_CONSOLIDATION_PLAN.md](REPOSITORY_CONSOLIDATION_PLAN.md) - plan
+  for importing the source history and making this the canonical repository.
 - [KEYNOTES.md](KEYNOTES.md) - maintainer constraints and diagnostics.
 - [UMB_PLAN.md](UMB_PLAN.md) - UMB/HMA compatibility contract and delivery plan.
 - [DOS5_PARITY_MATRIX.md](DOS5_PARITY_MATRIX.md) - version gate and known gaps.
