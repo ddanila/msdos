@@ -137,6 +137,14 @@ remains an open provider gate. A monitor-driven warm-reset test now performs
 two complete `DOS=HIGH,UMB` boots from the same image and requires HMA
 ownership, UMB lifecycle, EMS isolation, and the EMS API to pass on both.
 
+The pre-386 fallback is also exercised outside QEMU. DOSBox-X boots the same
+image as both an 8086 and an 80286 with HIMEM, EMM386, and `DOS=HIGH,UMB`
+requested. EMM386 rejects the processor before executing any 386 instruction;
+the boot continues with no EMM386 UMB provider, link requests fail cleanly,
+and ordinary allocations remain conventional. This caught an original
+`Is386` call site that tested restored zero state instead of the routine's
+documented carry result.
+
 The expanded DOS 5.0/6.22 error capture agrees on invalid-handle `A2h`, locked
 block `ABh`, unlocked-block `AAh`, odd or out-of-range move `A7h`, invalid
 source/destination handle `A3h`/`A5h`, exhausted-memory `A0h`, duplicate HMA

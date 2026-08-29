@@ -12,16 +12,16 @@ start:
     mov bx, 1
     mov ax, 5803h
     int 21h
-    jc umb_failed
+    jc link_failed
     mov bx, 0040h
     mov ax, 5801h
     int 21h
-    jc umb_failed
+    jc strategy_failed
 
     mov bx, 0100h
     mov ah, 48h
     int 21h
-    jc umb_failed
+    jc allocation_failed
     mov [umb_segment], ax
     mov es, ax
     xor di, di
@@ -165,8 +165,15 @@ umb_release_failed:
     call restore_strategy
     pop dx
     jmp short fail
-umb_failed:
-    mov dx, umb_fail
+link_failed:
+    mov dx, link_fail
+    jmp short state_failed
+strategy_failed:
+    mov dx, strategy_fail
+    jmp short state_failed
+allocation_failed:
+    mov dx, allocation_fail
+state_failed:
     push dx
     call restore_strategy
     pop dx
@@ -191,7 +198,9 @@ umb_segment   dw 0
 frame_segment dw 0
 ems_handle    dw 0
 pass_message  db 'UMB_EMS_ISOLATION_PASS', 13, 10, '$'
-umb_fail      db 'UMB_EMS_UMB_FAIL', 13, 10, '$'
+link_fail     db 'UMB_EMS_LINK_FAIL', 13, 10, '$'
+strategy_fail db 'UMB_EMS_STRATEGY_FAIL', 13, 10, '$'
+allocation_fail db 'UMB_EMS_ALLOCATION_FAIL', 13, 10, '$'
 ems_fail      db 'UMB_EMS_ALLOC_FAIL', 13, 10, '$'
 map_fail      db 'UMB_EMS_MAP_FAIL', 13, 10, '$'
 isolation_fail db 'UMB_EMS_CORRUPTION', 13, 10, '$'
