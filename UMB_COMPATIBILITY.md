@@ -318,6 +318,43 @@ prints `HMA not available : Loading DOS low`, while DOS 6.22 prints
 contract and asserts the latter exact line from live video memory before the
 low-resident AUTOEXEC path completes.
 
+## Cycle-accurate 486 acceptance
+
+The plan-wide 386+ hardware-model gate passed on 2026-08-29 under 86Box 4.2.1
+build 6130 with the archived AMI 495 configuration: i486DX at 50 MHz, dynarec
+disabled, 8 MiB RAM, ET4000AX video, and AMI ROMs. The 86Box distribution
+SHA-256 was
+`019e6ac4f156c07fbf2a1a45984725af9507d0569d333334f6ac99e1a056d724`;
+the archived VM package SHA-256 was
+`ec71ebddeae2a7373891ec6c1ad79bf0dc0cbd976b5d2966359c47253060ef18`,
+and the ROM-set revision was
+`52264223de5f3df1b51861481ee116eed47eca3e`. These external emulator assets and
+the generated result image remain outside Git.
+
+Prepare a fresh image from a complete repository build:
+
+```sh
+tests/prepare_86box_umb_acceptance.sh \
+  out/floppy.img /path/outside-the-repository/umb-acceptance.img
+```
+
+Attach that image as drive A to the machine above, ensure CMOS boots A before
+C, start the VM, and wait for AUTOEXEC.BAT to reach its terminal loop. Stop the
+VM before inspecting the writable image, then validate it:
+
+```sh
+tests/check_86box_umb_acceptance.sh \
+  /path/outside-the-repository/umb-acceptance.img
+```
+
+The accepted run linked the EMM386 arena, allocated at `C801h` and `E401h`,
+preserved `5AA5h` across unlink/relink, freed the live UMB, rejected upper-only
+allocation after exhaustion, and allowed upper-then-low fallback. The HMA
+probe observed a live XMS chain, A20 enabled, duplicate HMA ownership error
+`91h`, and DOS version 5.00 before writing `CYCLE_ACCEPTANCE_DONE`. The checker
+requires all of those portable outcomes without depending on provider-specific
+block sizes.
+
 CI uses an original test-only XMS provider with writable synthetic backing. It
 proves that out-of-order discontiguous extents are sorted and committed as one
 arena. No UMB service, no free ranges, failed requests, partial failure,
@@ -330,7 +367,7 @@ calls needed by the test and does not ship as an XMS manager.
 ## Remaining reference evidence
 
 The four base configurations and the API, MCB, EXEC, resize, CONFIG.SYS,
-DEVICEHIGH, LOADHIGH, MEM, and HMA surfaces have focused captures. The remaining
-acceptance work is the plan's cycle-accurate 386+ run and broader fragmentation
-ordering across multiple genuine provider regions; neither is inferred from
-the synthetic provider tests.
+DEVICEHIGH, LOADHIGH, MEM, and HMA surfaces have focused captures, and the
+cycle-accurate 386+ gate is closed. Broader fragmentation ordering across
+multiple genuine provider regions remains useful supplemental evidence and is
+not inferred from the synthetic provider tests.

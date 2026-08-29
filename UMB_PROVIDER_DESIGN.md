@@ -198,8 +198,9 @@ The HMA acceptance matrix covers low and high residency, exact unavailable-HMA
 fallback diagnostics, reclaimed conventional memory, all A20 backends, a
 driver disabling A20, synchronous and asynchronous DOS entry, EXEC cleanup,
 installable-filesystem redirector traffic, warm reboot, and safe 8086/286
-fallback. These contracts satisfy the Phase 4 software and pre-386 gates; the
-plan-wide cycle-accurate or real 386+ acceptance run remains separate.
+fallback. These contracts satisfy the Phase 4 software and pre-386 gates. A
+separate 86Box AMI 495/i486DX run now satisfies the plan-wide cycle-accurate
+386+ gate and is reproducible with the preparation and result-check scripts.
 
 Standard-provider independence is checked by
 `tests/verify_third_party_umb_provider.sh`, which takes an externally supplied

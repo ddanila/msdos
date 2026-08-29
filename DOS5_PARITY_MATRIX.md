@@ -41,8 +41,6 @@ These do not block the UMB/HMA compatibility identity, but remain explicit DOS
   (for example DOSKEY, EDIT/QBASIC, HELP, DOSSHELL, LOADFIX, UNDELETE, and
   UNFORMAT) and implement only from license-compatible sources or clean-room
   observations;
-- complete real-hardware or cycle-accurate 386+ acceptance and pre-386 fallback
-  testing required by `UMB_PLAN.md`;
 - broaden third-party, redirector, asynchronous-interrupt, and warm-reboot
   compatibility testing with DOS resident in the HMA;
 - complete the advertised HIMEM/XMS conformance matrix before describing the

@@ -108,8 +108,9 @@ runtime test also exercises a pre-relocation interrupt chain, EXEC and child
 cleanup, file and memory services, and recovery when a driver disables A20.
 Fallback diagnostics, asynchronous paths, installable-filesystem redirectors,
 warm reboot, residency reporting, and 8086/286 fallback are now covered by the
-automated acceptance matrix. The Phase 4 software gate is closed; the separate
-plan-wide real or cycle-accurate 386+ run remains outstanding.
+automated acceptance matrix. The Phase 4 software gate is closed. The
+plan-wide cycle-accurate 386+ gate is also closed by the recorded 86Box 486 run
+and its image-result validator; see `UMB_COMPATIBILITY.md`.
 
 ### Required command behavior
 
