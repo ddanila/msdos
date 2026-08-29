@@ -5,7 +5,7 @@ export LC_ALL=C
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT="$ROOT/out"
 FLOPPY=${FLOPPY_IMAGE:-$OUT/floppy.img}
-HIMEM="$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.SYS"
+HIMEM="$OUT/himem-core.sys"
 REJECT_HIMEM="$OUT/HIMEM-REJECT.SYS"
 BIOS_A20_HIMEM="$OUT/HIMEM-A20-BIOS.SYS"
 KBC_A20_HIMEM="$OUT/HIMEM-A20-KBC.SYS"
@@ -40,6 +40,12 @@ for tool in nasm mcopy qemu-system-i386 timeout; do
         exit 1
     }
 done
+
+[[ -f "$FLOPPY" ]] || {
+    echo "ERROR: missing build artifact: $FLOPPY" >&2
+    exit 1
+}
+mcopy -o -i "$FLOPPY" ::HIMEM.SYS "$HIMEM"
 
 "$ROOT/bin/jwasm-bin" -DUMB_TEST_REJECT -Fo"$REJECT_HIMEM" \
     "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
