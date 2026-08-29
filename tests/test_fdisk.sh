@@ -246,7 +246,10 @@ fi
 BOOT_IMG2="$OUT/fdisk-boot2.img"
 HDD_IMG2="$OUT/fdisk-hdd2.img"
 SERIAL_LOG2="$OUT/fdisk-serial2.log"
-trap 'rm -f "$HDD_IMG" "$HDD_IMG2" 2>/dev/null; true' EXIT
+BOOT_IMG3="$OUT/fdisk-2g-boot.img"
+HDD_IMG3="$OUT/fdisk-2g-hdd.img"
+SERIAL_LOG3="$OUT/fdisk-2g-serial.log"
+trap 'rm -f "$HDD_IMG" "$HDD_IMG2" "$HDD_IMG3" 2>/dev/null; true' EXIT
 
 echo ""
 echo "=== FDISK edge case: primary-only, no extended partition (PTM P941) ==="
@@ -356,6 +359,61 @@ if [[ $FAIL -gt 0 ]]; then
     echo "--- full serial log 2 (for debugging) ---"
     cat "$SERIAL_LOG2" 2>/dev/null || echo "(empty)"
     echo "--- end serial log 2 ---"
+fi
+
+echo ""
+echo "=== FDISK DOS 5 boundary: partition near 2 GiB ==="
+
+cp "$FLOPPY" "$BOOT_IMG3"
+mcopy -o -i "$BOOT_IMG3" "$EXIT_COM" ::QEXIT.COM
+{
+    printf '@ECHO OFF\r\n'
+    printf 'CTTY AUX\r\n'
+    printf 'FDISK 1 /PRI:2047 /Q\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO FDISK_2G_FAILED\r\n'
+    printf 'ECHO FDISK_2G_DONE\r\n'
+    printf 'QEXIT.COM\r\n'
+} | mcopy -o -i "$BOOT_IMG3" - ::AUTOEXEC.BAT
+
+# Keep the large fixture sparse: only the MBR written by FDISK consumes space.
+truncate -s 2147483648 "$HDD_IMG3"
+timeout 90 qemu-system-i386 \
+    -display none -monitor none \
+    -drive if=floppy,index=0,format=raw,file="$BOOT_IMG3",cache=writethrough \
+    -drive if=ide,index=0,format=raw,file="$HDD_IMG3",cache=writethrough \
+    -boot a -m 4 -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    < /dev/null >"$SERIAL_LOG3" 2>&1 || true
+
+if grep -q 'FDISK_2G_DONE' "$SERIAL_LOG3" \
+    && ! grep -q 'FDISK_2G_FAILED' "$SERIAL_LOG3"; then
+    ok "FDISK creates a near-2-GiB primary partition without error"
+else
+    fail "FDISK near-2-GiB creation did not complete successfully"
+fi
+
+read -r type3 active3 geometry3 debug3 < <(python3 -c "
+import struct
+disk_sectors = 2147483648 // 512
+with open('$HDD_IMG3', 'rb') as f:
+    f.seek(446)
+    entry = f.read(16)
+start, size = struct.unpack_from('<II', entry, 8)
+size_bytes = size * 512
+geometry_ok = (
+    start > 0
+    and 2000 * 1024 * 1024 <= size_bytes <= 2048 * 1024 * 1024
+    and start + size <= disk_sectors
+    and entry[4] == 0x06
+)
+print('{:02x} {:02x} {} start={}:size={}'.format(
+    entry[4], entry[0], int(geometry_ok), start, size))
+" 2>/dev/null)
+
+if [[ "$type3" == "06" && "$active3" == "80" && "$geometry3" == "1" ]]; then
+    ok "Near-2-GiB FAT16 partition is active, cylinder-aligned, and within disk bounds ($debug3)"
+else
+    fail "Near-2-GiB partition table is invalid (type=$type3 active=$active3 $debug3)"
 fi
 
 echo ""

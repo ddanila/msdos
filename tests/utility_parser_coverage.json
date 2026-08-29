@@ -93,7 +93,7 @@
     "FDISK.EXE": {"source": "src/CMD/FDISK/PARSE.H", "extractor": "c_define_switches", "switches": {
       "/EXT": {"level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Creates an exact extended-partition container whose CHS, LBA, and bounds are verified on disk"},
       "/LOG": {"level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Creates a logical drive with a valid EBR inside the verified extended partition"},
-      "/PRI": {"level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Creates a requested primary partition in both mixed and primary-only disk scenarios"},
+      "/PRI": {"level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Creates requested primary partitions in mixed, primary-only, and validated near-2-GiB disk scenarios"},
       "/Q": {"level": "contract", "evidence": ["tests/test_fdisk.sh"], "note": "Suppresses reboot and exposes the source-defined batch errorlevels before and after partition creation"}
     }},
     "FASTOPEN.EXE": {"source": "src/CMD/FASTOPEN/FASTINIT.ASM", "extractor": "fastopen_code", "switches": {
