@@ -41,7 +41,10 @@ def main() -> None:
                 errors.append(f"{name}: mutation test is not runtime evidence")
             if not test_path.is_file():
                 errors.append(f"{name}: missing mutation test {test_name}")
-            elif 'FLOPPY_IMAGE' not in test_path.read_text(encoding="utf-8"):
+            elif not any(
+                seam in test_path.read_text(encoding="utf-8")
+                for seam in ("FLOPPY_IMAGE", "EXPAND_PROGRAM")
+            ):
                 errors.append(f"{name}: mutation test lacks an isolated image seam")
         elif level == "justified_exclusion":
             if not entry.get("note"):

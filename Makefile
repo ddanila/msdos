@@ -28,7 +28,7 @@ AINC     := -I. -ID:\\TOOLS\\INC
 
 .PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest deploy minimal-floppy run-boot test-sys test-help-qemu test-command-startup-qemu test-more-paging-qemu test-misc-qemu test-graftabl-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-setver-qemu test-doskey-qemu test-share-nlsfunc-exe2bin test-append test-format test-format-hdd-qemu test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu test-ansi-driver-qemu test-display-chain-qemu test-driver-sys-qemu test-printer-driver-qemu test-smartdrv-flush-qemu test-xma-drivers-qemu test-himem-qemu test-hma-qemu test-pre386-dosbox test-mem-umb-qemu test-loadhigh-qemu test-devicehigh-qemu test-installhigh-qemu test-root-exhaustion-qemu test-disk-exhaustion-qemu test-config-state-qemu test-config-switches-qemu test-config-stacks-qemu test-config-dos-qemu test-xms-umb-transaction-qemu test-config-ifs-qemu test-ifsfunc-filesys-qemu test-config-multitrack-qemu test-emm386-qemu test-int21-file-memory-qemu test-int21-path-errors-qemu test-int21-system-qemu test-int21-fcb-qemu test-int21-compat-qemu test-int21-console-qemu test-int21-process-qemu test-int21-tsr-qemu test-int21-media-qemu test-int21-readonly-media-qemu test-dos-interrupt-qemu test-dos-async-interrupt-qemu
 .PHONY: test-utility-parser-coverage-manifest
-.PHONY: test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest
+.PHONY: test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-expand
 
 KVIKDOS_SOFT_SRCS := kvikdos/kvikdos.c kvikdos/cpu8086.c
 KVIKDOS_SOFT_DEPS := $(KVIKDOS_SOFT_SRCS) kvikdos/mini_kvm.h kvikdos/cpu8086.h \
@@ -165,6 +165,7 @@ ARTIFACTS := \
     CMD/COMMAND/COMMAND.COM \
     CMD/SYS/SYS.COM \
     CMD/FORMAT/FORMAT.COM \
+    CMD/EXPAND/EXPAND.EXE \
     CMD/CHKDSK/CHKDSK.COM \
     DEV/ANSI/ANSI.SYS \
     DEV/VDISK/VDISK.SYS \
@@ -220,11 +221,14 @@ ARTIFACTS := \
     CMD/DOSKEY/DOSKEY.COM \
     MEMM/MEMM/EMM386.EXE
 
-test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
+test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-expand test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
 	bash tests/run_tests.sh
 
 test-native-build-tools:
 	bash tests/test_native_build_tools.sh
+
+test-expand: deploy $(KVIKDOS_SOFT_BIN)
+	bash tests/test_expand.sh
 
 test-batch-oracles:
 	python3 tests/test_batch_oracles.py
@@ -474,6 +478,7 @@ MSDOS_SYS   := $(SRC)/DOS/MSDOS.SYS
 COMMAND_COM := $(SRC)/CMD/COMMAND/COMMAND.COM
 SYS_COM     := $(SRC)/CMD/SYS/SYS.COM
 FORMAT_COM  := $(SRC)/CMD/FORMAT/FORMAT.COM
+EXPAND_COM  := $(SRC)/CMD/EXPAND/EXPAND.EXE
 CHKDSK_COM  := $(SRC)/CMD/CHKDSK/CHKDSK.COM
 DEBUG_COM   := $(SRC)/CMD/DEBUG/DEBUG.COM
 MEM_EXE     := $(SRC)/CMD/MEM/MEM.EXE
@@ -534,7 +539,7 @@ EGA_CPI      := $(SRC)/DEV/DISPLAY/EGA/EGA.CPI
 HIMEM_SYS    := $(SRC)/DEV/HIMEM/HIMEM.SYS
 EMM386_EXE   := $(MEMM_DIR)/EMM386.EXE
 
-$(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT_COM) $(CHKDSK_COM) $(DEBUG_COM) $(MEM_EXE) $(FDISK_EXE) \
+$(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT_COM) $(EXPAND_COM) $(CHKDSK_COM) $(DEBUG_COM) $(MEM_EXE) $(FDISK_EXE) \
            $(MORE_COM) $(SORT_EXE) $(LABEL_COM) $(FIND_EXE) $(TREE_COM) $(COMP_COM) \
            $(ATTRIB_EXE) $(EDLIN_COM) $(FC_EXE) \
            $(NLSFUNC_EXE) $(ASSIGN_COM) $(XCOPY_EXE) $(DISKCOMP_COM) $(DISKCOPY_COM) $(SETVER_COM) $(SETVER_EXE) $(DOSKEY_COM) \
@@ -564,6 +569,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
 	rm -f $(OUT)/.mtoolsrc
 	mcopy -i $@ $(SYS_COM) ::SYS.COM
 	mcopy -i $@ $(FORMAT_COM) ::FORMAT.COM
+	mcopy -i $@ $(EXPAND_COM) ::EXPAND.EXE
 	mcopy -i $@ $(CHKDSK_COM) ::CHKDSK.COM
 	mcopy -i $@ $(DEBUG_COM) ::DEBUG.COM
 	mcopy -i $@ $(MEM_EXE) ::MEM.EXE

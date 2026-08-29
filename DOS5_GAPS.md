@@ -43,7 +43,7 @@ features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
 | More than two hard disks | Present | FDISK models up to eight BIOS fixed disks; automated creation and interactive selection, display, and deletion are validated through disk 3. |
 | 2.88 MiB floppy support | Present | FORMAT creates the standard FAT12 layout, SYS creates bootable media, and DRIVER.SYS `/F:9` provides DOS-side read/write access. |
 | Guided Setup with online help | Missing | SELECT is the inherited DOS 4 installer, not the DOS 5 SETUP/upgrade workflow. |
-| Compressed installation media | Missing | No DOS `EXPAND.EXE`, DOS 5 compressed-file format workflow, or retail multi-disk installer. The host build tool named `compress` is unrelated. |
+| Compressed installation media | Partial | `EXPAND.EXE` decodes DOS 5 SZDD files; reproducible compressed media and its installer flow remain. The host SELECT panel tool named `compress` is unrelated. |
 | DOS 5 version compatibility table | Present | SETVER edits the persistent table in SETVER.EXE, `DEVICE=SETVER.EXE` loads it during CONFIG.SYS, and EXEC applies the selected version. |
 
 ## Command inventory
@@ -56,7 +56,6 @@ Every documented option of a missing command is necessarily unsupported.
 | --- | --- |
 | `DOSSHELL` | Text/graphics Shell, `/T`, `/G`, resolution selection, `/B`, program groups, file operations, help, and task swapping. |
 | `EDIT` | Full-screen text editor and `/B`, `/G`, `/H`, `/NOHI`; depends on QBASIC. |
-| `EXPAND` | Extraction of one or more compressed distribution files. |
 | `HELP` | Command index, `HELP command`, and the DOS 5 help database. |
 | `MIRROR` | Delete-tracking file, disk/partition recovery metadata, `/1`, `/T`, `/U`, and `/PARTN`. |
 | `QBASIC` | BASIC editor/interpreter, `/B`, `/EDITOR`, `/G`, `/H`, `/MBF`, `/NOHI`, `/RUN`, online help, and bundled examples. |
@@ -85,7 +84,7 @@ found; it does not claim every hardware, locale, or error-path permutation:
 `APPEND`, `ASSIGN`, `BACKUP`, `BREAK`, `CALL`, `CHCP`, `CHDIR`/`CD`,
 `CHKDSK`, `CLS`, `COMMAND`, `COMP`, `COPY`, `CTTY`, `DATE`, `DEBUG`, `DOSKEY`,
 `DEL`/`ERASE`, `DIR`, `DISKCOMP`, `ECHO`, `EDLIN`, `EMM386`, `EXE2BIN`, `EXIT`,
-`FASTOPEN`,
+`EXPAND`, `FASTOPEN`,
 `FC`, `FOR`, `GOTO`, `GRAFTABL`, `GRAPHICS`, `IF`, `JOIN`, `KEYB`, `LABEL`,
 `LOADHIGH`/`LH`, `MEM`, `MKDIR`/`MD`, `MODE`, `MORE`, `NLSFUNC`, `PATH`,
 `PAUSE`, `PRINT`, `PROMPT`, `RECOVER`, `RENAME`/`REN`, `REPLACE`, `RESTORE`,
@@ -194,7 +193,7 @@ product did not expose. They are strengths, not DOS 5 compatibility features.
 Remaining project-level gaps are:
 
 - no DOS 5 SETUP, upgrade, uninstall, or retail multi-disk packaging flow;
-- no DOS-side EXPAND utility or compatible compressed distribution;
+- no reproducible DOS 5-style compressed distribution media;
 - no user manual/help corpus for the implemented commands beyond `/?` output;
 - no automated differential runner against user-supplied genuine DOS 5 media;
 - no CI-hosted 286/386/486 hardware-model matrix beyond QEMU and the separately
