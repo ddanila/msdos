@@ -11,6 +11,7 @@ v4.0/src/CMD/**/*M.C
 # DEV drivers
 v4.0/src/DEV/**/*.SYS
 v4.0/src/DEV/**/*.EXE
+v4.0/src/DEV/**/*.CPI
 
 # BIOS outputs
 v4.0/src/BIOS/*.SYS
