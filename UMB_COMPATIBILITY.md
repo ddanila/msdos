@@ -225,6 +225,18 @@ each region to its own stated minimum before falling back low if the complete
 driver image does not fit. Region selection is scoped to the load and all caps,
 the public allocation strategy, and link state are restored afterward.
 
+A second DOS 5 INIT-state capture records strategy `0000h` and public link
+state 0 inside both low and high driver initialization. This tree therefore
+retains the selected high image block and SYSINIT placement window while
+restoring the caller-visible allocator controls before invoking `INIT`; memory
+requested by the driver follows ordinary DOS allocation rules. A compact
+clean-room block-driver fixture additionally proves that a high block driver is
+retained, linked through the live DPB chain, and callable through its strategy
+and interrupt entries. Large embedded-disk drivers are not used as placement
+fixtures: on the archived DOS 5 configuration, `DEVICEHIGH=RAMDRIVE.SYS 64`
+does not install because the largest UMB is only 20 KiB. RAMDRIVE and VDISK
+remain covered separately through conventional `DEVICE=` functional tests.
+
 The matching program oracle establishes that DOS 6.22 recognizes
 `INSTALLHIGH=` and executed the test program at `CC4Eh`. DOS 5.0 did not execute
 the same directive, so `INSTALLHIGH` is a 6.22 compatibility extension rather
@@ -266,7 +278,10 @@ also proves that the child environment MCB is owned by its PSP, LOADHIGH's own
 options are absent from quoted argument tails, redirected output is recovered
 from the target file, batch `ERRORLEVEL` preserves the child's value, and a
 Ctrl-C termination restores allocator state before another successful high
-load.
+load. A resident child is also loaded above `A000h`, returns its chosen exit
+status, and leaves an interrupt handler callable after LOADHIGH returns; the
+following allocator-state probe proves the TSR lifecycle restores the scoped
+region transaction without releasing the resident allocation.
 
 ## HMA residency reference
 

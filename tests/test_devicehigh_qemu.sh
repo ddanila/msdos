@@ -24,6 +24,8 @@ HIGH_PROBE="$OUT/devicehigh-state.com"
 LOW_PROBE="$OUT/devicehigh-fallback-state.com"
 LINKED_LOW_PROBE="$OUT/devicehigh-linked-fallback-state.com"
 QEXIT="$OUT/devicehigh-exit.com"
+BLOCK_PROBE="$OUT/devicehigh-block.com"
+BLOCK_DRIVER="$OUT/devicehigh-block.sys"
 "$ROOT/bin/jwasm-bin" -Fo"$HIMEM" "$ROOT/MS-DOS/v4.0/src/DEV/HIMEM/HIMEM.ASM"
 nasm -f bin "$ROOT/tests/devicehigh_reference_driver.asm" -o "$DRIVER"
 nasm -DEXPECT_HIGH=1 -f bin "$ROOT/tests/devicehigh_state_probe.asm" -o "$HIGH_PROBE"
@@ -31,6 +33,8 @@ nasm -DEXPECT_HIGH=0 -f bin "$ROOT/tests/devicehigh_state_probe.asm" -o "$LOW_PR
 nasm -DEXPECT_HIGH=0 -f bin \
     "$ROOT/tests/devicehigh_state_probe.asm" -o "$LINKED_LOW_PROBE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
+nasm -f bin "$ROOT/tests/devicehigh_block_probe.asm" -o "$BLOCK_PROBE"
+nasm -f bin "$ROOT/tests/devicehigh_block_driver.asm" -o "$BLOCK_DRIVER"
 
 run_case() {
     local name=$1
@@ -48,6 +52,10 @@ run_case() {
         else
             mcopy -o -i "$image" "$HIGH_PROBE" ::DHSTATE.COM
         fi
+        if [[ $name == block ]]; then
+            mcopy -o -i "$image" "$BLOCK_PROBE" ::BLKREQ.COM
+            mcopy -o -i "$image" "$BLOCK_DRIVER" ::DHBLOCK.SYS
+        fi
         {
             printf 'DEVICE=HIMEM.SYS\r\n'
             if [[ $name == multi-* ]]; then
@@ -55,7 +63,9 @@ run_case() {
             else
                 printf 'DEVICE=EMM386.SYS RAM M5\r\n'
             fi
-            if [[ $name == size ]]; then
+            if [[ $name == block ]]; then
+                printf 'DEVICEHIGH=DHBLOCK.SYS\r\n'
+            elif [[ $name == size ]]; then
                 printf 'DEVICEHIGH SIZE=0200 DHREF.SYS SIZEARG\r\n'
             elif [[ $name == region ]]; then
                 printf 'DEVICEHIGH /L:1=DHREF.SYS REGION1\r\n'
@@ -83,7 +93,11 @@ run_case() {
             printf 'DOS=UMB\r\n'
         } | mcopy -o -i "$image" - ::CONFIG.SYS
         {
-            printf '@ECHO OFF\r\nCTTY AUX\r\nDHSTATE.COM\r\nQEXIT.COM\r\n'
+            if [[ $name == block ]]; then
+                printf '@ECHO OFF\r\nCTTY AUX\r\nBLKREQ.COM\r\nQEXIT.COM\r\n'
+            else
+                printf '@ECHO OFF\r\nCTTY AUX\r\nDHSTATE.COM\r\nQEXIT.COM\r\n'
+            fi
         } | mcopy -o -i "$image" - ::AUTOEXEC.BAT
     else
         mcopy -o -i "$image" "$LOW_PROBE" ::DHSTATE.COM
@@ -107,6 +121,7 @@ run_case() {
 }
 
 high_log=$(run_case high yes)
+block_log=$(run_case block yes)
 size_log=$(run_case size yes)
 region_log=$(run_case region yes)
 region_missing_log=$(run_case region-missing yes)
@@ -123,6 +138,12 @@ fallback_log=$(run_case fallback no)
 if ! grep -q '^DEVICEHIGH_STATE_PASS' "$high_log"; then
     echo 'FAIL: DEVICEHIGH did not retain the driver in an upper arena' >&2
     sed -n '1,160p' "$high_log" >&2
+    exit 1
+fi
+
+if ! grep -q '^DEVICEHIGH_BLOCK_PASS' "$block_log"; then
+    echo 'FAIL: DEVICEHIGH block drivers were not retained high and functional' >&2
+    sed -n '1,180p' "$block_log" >&2
     exit 1
 fi
 

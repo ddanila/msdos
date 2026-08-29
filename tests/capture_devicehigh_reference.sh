@@ -60,7 +60,7 @@ run_case() {
         -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
         >"$log" 2>&1 || true
     printf 'CASE=%s\n' "$name"
-    sed -n '/DEVICEHIGH_REF_SEG=/p;/INSTALLHIGH_REF_RAN/p;/DEVICEHIGH_REF_BOOTED/p;/[Uu]nrecognized/p;/[Ee]rror in CONFIG/p' "$log" | tr -d '\r'
+    sed -n '/DEVICEHIGH_REF_/p;/INSTALLHIGH_REF_RAN/p;/[Uu]nrecognized/p;/[Ee]rror in CONFIG/p' "$log" | tr -d '\r'
     printf 'CASE_END=%s\n' "$name"
 }
 

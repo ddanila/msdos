@@ -56,6 +56,25 @@ interrupt:
     pop ds
     call serial_print
 
+    mov ax, 5800h
+    int 21h
+    push ax
+    mov si, strategy_message
+    call serial_print
+    pop ax
+    call serial_hex_word
+    mov si, newline
+    call serial_print
+    mov ax, 5802h
+    int 21h
+    push ax
+    mov si, link_message
+    call serial_print
+    pop ax
+    call serial_hex_word
+    mov si, newline
+    call serial_print
+
     mov word [es:di + 0eh], resident_end
     mov word [es:di + 10h], cs
     mov word [es:di + 3], 0100h
@@ -120,6 +139,7 @@ serial_print:
 begin_message db 'DEVICEHIGH_REF_SEG=', 0
 tail_message  db ' TAIL=', 0
 newline       db 13, 10, 0
+strategy_message db 'DEVICEHIGH_REF_STRATEGY=', 0
+link_message     db 'DEVICEHIGH_REF_LINK=', 0
 
 resident_end:
-

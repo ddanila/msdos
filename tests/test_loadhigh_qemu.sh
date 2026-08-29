@@ -12,6 +12,8 @@ STATE="$OUT/loadhigh-state.com"
 ERROR_CHILD="$OUT/loadhigh-error.com"
 CTRLC_CHILD="$OUT/loadhigh-ctrlc.com"
 QEXIT="$OUT/loadhigh-qexit.com"
+TSR_CHILD="$OUT/loadhigh-tsr.com"
+TSR_TRIGGER="$OUT/loadhigh-tsr-trigger.com"
 
 for tool in nasm mcopy qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || {
@@ -31,6 +33,8 @@ nasm -f bin "$ROOT/tests/loadhigh_state.asm" -o "$STATE"
 nasm -f bin "$ROOT/tests/loadhigh_error_child.asm" -o "$ERROR_CHILD"
 nasm -f bin "$ROOT/tests/loadhigh_ctrlc_child.asm" -o "$CTRLC_CHILD"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
+nasm -f bin "$ROOT/tests/loadhigh_tsr_child.asm" -o "$TSR_CHILD"
+nasm -f bin "$ROOT/tests/loadhigh_tsr_trigger.asm" -o "$TSR_TRIGGER"
 
 run_image() {
     local name=$1
@@ -47,6 +51,8 @@ run_image() {
     mcopy -o -i "$image" "$ERROR_CHILD" ::LHERR.COM
     mcopy -o -i "$image" "$CTRLC_CHILD" ::LHCTRL.COM
     mcopy -o -i "$image" "$QEXIT" ::QEXIT.COM
+    mcopy -o -i "$image" "$TSR_CHILD" ::LHTSR.COM
+    mcopy -o -i "$image" "$TSR_TRIGGER" ::LHTRIG.COM
     printf '%s' "$config" | mcopy -o -i "$image" - ::CONFIG.SYS
     {
         printf '@ECHO OFF\r\n'
@@ -104,6 +110,12 @@ provider_commands=$(printf '%b' \
     'LHSTATE.COM\r\n' \
     'LOADHIGH /L:1 LHCHILD.COM RECOVER\r\n' \
     'ECHO LH_PATHS_END\r\n' \
+    'ECHO LH_TSR_BEGIN\r\n' \
+    'LOADHIGH /L:1 LHTSR.COM\r\n' \
+    'IF ERRORLEVEL 42 ECHO LH_TSR_ERRORLEVEL_PASS\r\n' \
+    'LHTRIG.COM\r\n' \
+    'LHSTATE.COM\r\n' \
+    'ECHO LH_TSR_END\r\n' \
     'ECHO PROVIDER_END\r\n')
 provider_config=$(printf '%b' \
     'DEVICE=A:\\HIMEM.SYS\r\n' \
@@ -117,6 +129,7 @@ invalid_log=$(sed -n '/^LH_REGION_INVALID/,/^LH_MINIMUM/p' "$provider_log")
 shrink_log=$(sed -n '/^LH_SHRINK/,/^LH_SHRINK_ALONE/p' "$provider_log")
 recovery_log=$(sed -n '/^LH_PROFILE_FAILURE/,/^LH_OPTIONS_END/p' "$provider_log")
 paths_log=$(sed -n '/^LH_PATHS_BEGIN/,/^LH_PATHS_END/p' "$provider_log")
+tsr_log=$(sed -n '/^LH_TSR_BEGIN/,/^LH_TSR_END/p' "$provider_log")
 if [[ $(grep -Ec '^CHILD_PSP=[A-F][0-9A-F]{3}' "$provider_log") -ne 8 ]] \
     || [[ $(grep -Ec '^CHILD_PSP=[0-9][0-9A-F]{3}' "$provider_log") -ne 2 ]] \
     || [[ $(grep -c '^CHILD_STRATEGY=0080' "$provider_log") -ne 9 ]] \
@@ -124,8 +137,8 @@ if [[ $(grep -Ec '^CHILD_PSP=[A-F][0-9A-F]{3}' "$provider_log") -ne 8 ]] \
     || ! grep -Eq '^EXE_PSP=[A-F][0-9A-F]{3}' "$provider_log" \
     || ! grep -q '^EXE_STRATEGY=0080' "$provider_log" \
     || ! grep -q '^EXE_UMB_LINK=0001' "$provider_log" \
-    || [[ $(grep -c 'PARENT_STRATEGY=0000' "$provider_log") -ne 8 ]] \
-    || [[ $(grep -c '^PARENT_UMB_LINK=0000' "$provider_log") -ne 8 ]] \
+    || [[ $(grep -c 'PARENT_STRATEGY=0000' "$provider_log") -ne 9 ]] \
+    || [[ $(grep -c '^PARENT_UMB_LINK=0000' "$provider_log") -ne 9 ]] \
     || ! grep -q 'Required parameter missing' "$provider_log" \
     || [[ $(grep -c 'File not found' "$provider_log") -lt 3 ]] \
     || [[ $(grep -c '^LOADHIGH_CHILD_END' <<<"$options_log") -ne 5 ]] \
@@ -139,6 +152,10 @@ if [[ $(grep -Ec '^CHILD_PSP=[A-F][0-9A-F]{3}' "$provider_log") -ne 8 ]] \
     || ! grep -q '^LH_ERRORLEVEL_PASS' <<<"$paths_log" \
     || grep -q '^LOADHIGH_CTRLC_RETURNED' <<<"$paths_log" \
     || ! grep -q '^CHILD_TAIL= RECOVER' <<<"$paths_log" \
+    || ! grep -Eq '^LOADHIGH_TSR_PSP=[A-F][0-9A-F]{3}' <<<"$tsr_log" \
+    || ! grep -q '^LH_TSR_ERRORLEVEL_PASS' <<<"$tsr_log" \
+    || ! grep -q '^LOADHIGH_TSR_HANDLER_PASS' <<<"$tsr_log" \
+    || ! grep -q '^LOADHIGH_TSR_TRIGGER_PASS' <<<"$tsr_log" \
     || ! grep -q '^PROVIDER_END' "$provider_log"
 then
     echo "FAIL: LOADHIGH/LH provider contract" >&2
