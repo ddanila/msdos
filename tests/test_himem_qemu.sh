@@ -203,7 +203,7 @@ mcopy -o -i "$ROLLBACK_IMAGE" "$ABSENCE_PROBE" ::NOUMB.COM
 mcopy -o -i "$ROLLBACK_IMAGE" "$EMM_PROBE" ::EMMPROBE.COM
 {
     printf 'DEVICE=A:\\HIMEM.SYS\r\n'
-    printf 'DEVICE=A:\\EMM386.SYS RAM M5\r\n'
+    printf 'DEVICE=A:\\EMM386.SYS 16 RAM M5\r\n'
     printf 'DOS=UMB\r\n'
 } | mcopy -o -i "$ROLLBACK_IMAGE" - ::CONFIG.SYS
 {
