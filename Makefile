@@ -279,6 +279,10 @@ minimal-floppy: boot bios dos cmd_command
 
 test-sys: deploy
 	bash tests/test_sys.sh
+	bash tests/test_sys_hdd_qemu.sh
+
+test-sys-hdd-qemu: deploy
+	bash tests/test_sys_hdd_qemu.sh
 
 test-help-qemu: deploy
 	bash tests/test_help_qemu.sh

@@ -73,8 +73,8 @@ Every documented option of a missing command is necessarily unsupported.
 | `DISKCOPY` | Copy, `/1`, and `/V` read-back verification | No known DOS 5 option gap. |
 | `FDISK` | Automated primary, extended, and logical creation; interactive display, near-2-GiB creation, active selection, deletion, and multi-disk selection, with resulting MBR state validated | No known DOS 5 workflow gap. |
 | `FIND` | `/V`, `/C`, `/N`, `/I` | No known DOS 5 option gap. |
-| `FORMAT` | Safe, `/Q`, and `/U` modes on floppy and FAT16 fixed media; hard-disk warning/errorlevel 5; `/1`, `/4`, `/8`, `/B`, `/F` including 2.88 MiB, `/N`, `/S`, `/T`, `/V`, and inherited private switches | Deterministic hardware-fault coverage for fixed-disk bad-cluster marking and UNFORMAT-compatible recovery metadata. |
-| `SYS` | Default and explicit source paths; bootable 1.44 and 2.88 MiB target media | DOS 5 compatibility across hard-disk geometries and upgrade scenarios is not established. |
+| `FORMAT` | Safe, `/Q`, and `/U` modes on floppy and FAT16 fixed media; bad-cluster marking; hard-disk warning/errorlevel 5; `/1`, `/4`, `/8`, `/B`, `/F` including 2.88 MiB, `/N`, `/S`, `/T`, `/V`, and inherited private switches | UNFORMAT-compatible recovery metadata belongs to Stage 4. |
+| `SYS` | Default and explicit source paths; bootable 1.44 and 2.88 MiB targets; fresh and upgrade transfers across small and large FAT16 fixed-disk geometries | No known DOS 5 workflow gap. |
 
 ### Present commands without a known parser omission
 
@@ -175,9 +175,9 @@ and must not be represented by no-op stubs if compatibility is claimed.
   through disk 3.
 - FORMAT, SYS, DRIVER.SYS, and the BIOS have end-to-end 2.88 MiB FAT12
   coverage, including DOS-side I/O and bootability.
-- Fixed-disk formatting, bad-sector preservation, partition-boundary behavior,
-  removable-media changes, and recovery after interrupted writes need broader
-  DOS 5 differential tests.
+- Fixed-disk and removable formatting, partition-boundary behavior, and SYS
+  upgrades have focused coverage. Recovery metadata and interrupted-write
+  reconstruction belong to Stage 4.
 - COUNTRY.SYS, KEYB, DISPLAY, PRINTER, and CPI files provide working NLS and
   code-page paths, but every retail keyboard, country, printer, and code-page
   combination has not been compared.
