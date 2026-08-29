@@ -67,16 +67,15 @@ build_fault_emm() {
     local output=$2
     local work
     work=$(mktemp -d "${TMPDIR:-/tmp}/msdos-emm386-fault.XXXXXX")
-    cp -R "$ROOT/MS-DOS/v4.0/src/MEMM/MEMM" "$work/MEMM"
-    cp -R "$ROOT/MS-DOS/v4.0/src/MEMM/EMM" "$work/EMM"
-    (
-        cd "$work/MEMM"
-        "$ROOT/bin/jwasm-masm" \
-            "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -D$define -I. -I..\\EMM" \
-            'INIT.ASM,INIT.OBJ;'
-        "$ROOT/bin/wlink" '/NOI /PACKDATA:1 @EMM386.LNK'
-    ) >/dev/null
-    cp "$work/MEMM/EMM386.EXE" "$output"
+    mkdir "$work/MEMM"
+    cp -R "$ROOT/MS-DOS/v4.0/src/MEMM/MEMM" "$work/MEMM/MEMM"
+    cp -R "$ROOT/MS-DOS/v4.0/src/MEMM/EMM" "$work/MEMM/EMM"
+    find "$work" -type f \( -name '*.OBJ' -o -name '*.LIB' \
+        -o -name 'EMM386.EXE' -o -name 'EMM386.SYS' \) -delete
+    make -s -C "$ROOT" SRC="$work" \
+        MEMM_AFLAGS="-Mx -t -DI386 -DNoBugMode -DNOHIMEM -D$define -I. -I..\\EMM" \
+        memm >/dev/null
+    cp "$work/MEMM/MEMM/EMM386.SYS" "$output"
     rm -rf "$work"
 }
 
