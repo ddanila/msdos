@@ -78,13 +78,14 @@ asserts the same contract in this tree.
 | `49h`/`4Ah` on UMB | same ownership, resize, and errors as low blocks | confirmed | confirmed |
 | unlink with live UMB | allocation survives unlink/relink | confirmed | confirmed |
 | process termination | owned UMB blocks are freed | confirmed | confirmed |
-| MCB traversal | exact bridge, gap-owner, and `M`/`Z` layout | pending | pending |
+| MCB traversal | exact bridge, gap-owner, and `M`/`Z` layout | confirmed | confirmed |
 
-The linked-chain layout capture currently establishes the visible terminal UMB
-MCB on both references: DOS 5.0 exposes a free `Z` block at `CB01h` of size
-`14FEh`, and DOS 6.22 exposes one at `CC4Ah` of size `1BB5h`. The bridge and
-reserved-gap records below `A000h` still need a probe that can distinguish them
-from ordinary conventional MCBs, so the broader layout row remains pending.
+The linked-chain layout capture establishes both the reserved bridge and the
+terminal UMB. DOS 5.0 exposes a DOS-owned `M` block at `9FFFh`, size `2B01h`,
+followed by a free `Z` block at `CB01h`, size `14FEh`. DOS 6.22 exposes the same
+shape with the bridge size `2C4Ah` and terminal free block at `CC4Ah`, size
+`1BB5h`. The lifecycle capture separately verifies signature and size changes
+through allocation, resize, unlink/relink, exact exhaustion, and free.
 
 With the UMB arena linked, a 16-paragraph allocation using either strategy
 `0040h` or `0080h` landed above `A000h` in both references (`CB02h` on 5.0;

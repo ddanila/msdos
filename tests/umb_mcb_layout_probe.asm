@@ -22,7 +22,9 @@ start:
     mov cx, 256
 .next:
     mov es, ax
-    cmp ax, 0a000h
+    ; Include the conventional-to-UMA bridge and reserved gap records, not
+    ; only the provider-owned UMB blocks themselves.
+    cmp ax, 08000h
     jb .advance
     push ax
     mov dx, segment_label
