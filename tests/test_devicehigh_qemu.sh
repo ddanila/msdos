@@ -59,7 +59,7 @@ run_case() {
         {
             printf 'DEVICE=HIMEM.SYS\r\n'
             if [[ $name == multi-* ]]; then
-                printf 'DEVICE=EMM386.SYS NOEMS X=D000-D7FF\r\n'
+                printf 'DEVICE=EMM386.SYS RAM M5 I=CC00-CFFF I=E400-E7FF\r\n'
             else
                 printf 'DEVICE=EMM386.SYS RAM M5\r\n'
             fi
@@ -84,9 +84,9 @@ run_case() {
             elif [[ $name == multi-list ]]; then
                 printf 'DEVICEHIGH /L:1;2=DHREF.SYS MULTILIST\r\n'
             elif [[ $name == multi-reject ]]; then
-                printf 'DEVICEHIGH /L:1,40000;2,10000 /S=DHREF.SYS MULTIREJECT\r\n'
+                printf 'DEVICEHIGH /L:1,40000;2,40000 /S=DHREF.SYS MULTIREJECT\r\n'
             elif [[ $name == multi-accept ]]; then
-                printf 'DEVICEHIGH /L:1,10000;2,40000 /S=DHREF.SYS MULTIACCEPT\r\n'
+                printf 'DEVICEHIGH /L:1,10000;2,10000 /S=DHREF.SYS MULTIACCEPT\r\n'
             else
                 printf 'DEVICEHIGH=DHREF.SYS BEFORE\r\n'
             fi
