@@ -89,17 +89,23 @@ dk_buffered_input:
         cmp     cs:pending_pos,0
         jne     dk_emit_pending
 
-        ; Present the most recent command as the DOS editor template.  F3/F5
-        ; and the ordinary cursor/Insert keys then use the kernel editor.
-        call    preload_template
-        cmp     cs:default_insert,0
-        je      dk_read_line
-        mov     cx,5200h                ; seed one Insert keystroke
-        mov     ah,05h
-        int     16h
+        ; Redirected input must retain DOS handle semantics.  Interactive
+        ; console input uses DOSKEY's history-aware editor below.
+        mov     ax,4400h
+        xor     bx,bx
+        int     21h
+        test    dx,0080h                ; character device
+        jz      dk_read_line
+        test    dx,0001h                ; CON input capability (not AUX/file)
+        jnz     dk_interactive_line
 dk_read_line:
+        mov     dx,bp
         mov     ah,0ah
         int     21h
+        jmp     short dk_line_ready
+dk_interactive_line:
+        call    edit_line
+dk_line_ready:
         mov     ax,cs:caller_ds           ; DOS does not promise to retain DS
         mov     ds,ax
         call    remember_line
@@ -168,6 +174,627 @@ dk_command_done:
         xor     ax,ax
         mov     al,cs:service_result
         iret
+
+; ---------------------------------------------------------------------------
+; Interactive line editor.  DOS redirected input continues to use AH=0Ah;
+; this path is only selected for a character-device standard input handle.
+; ---------------------------------------------------------------------------
+edit_line:
+        mov     cs:editor_len,0
+        mov     cs:editor_pos,0
+        mov     cs:editor_drawn,0
+        mov     cs:history_nav,0ffh
+        mov     cs:f8_active,0
+        mov     al,cs:default_insert
+        mov     cs:editor_insert_mode,al
+editor_key:
+        xor     ah,ah
+        int     16h
+        or      al,al
+        jz      editor_extended
+        cmp     al,0e0h
+        je      editor_extended
+        mov     cs:f8_active,0
+        cmp     al,0dh
+        je      editor_enter
+        cmp     al,08h
+        je      editor_backspace
+        cmp     al,1bh
+        je      editor_escape
+        cmp     al,20h
+        jb      editor_key
+        cmp     al,7eh
+        ja      editor_key
+        mov     dl,ds:[bp]
+        dec     dl
+        cmp     cs:editor_len,dl
+        jae     editor_key
+        push    ax
+        cmp     cs:editor_insert_mode,0
+        je      editor_overwrite
+        xor     cx,cx
+        mov     cl,cs:editor_len
+        sub     cl,cs:editor_pos
+        jcxz    editor_overwrite
+        mov     si,OFFSET editor_buffer
+        xor     bx,bx
+        mov     bl,cs:editor_len
+        add     si,bx
+        dec     si
+        mov     di,si
+        inc     di
+editor_shift_right:
+        mov     al,cs:[si]
+        mov     cs:[di],al
+        dec     si
+        dec     di
+        loop    editor_shift_right
+editor_overwrite:
+        pop     ax
+        xor     bx,bx
+        mov     bl,cs:editor_pos
+        mov     cs:[editor_buffer+bx],al
+        inc     cs:editor_pos
+        mov     dl,cs:editor_len
+        cmp     cs:editor_pos,dl
+        jbe     editor_changed
+        mov     al,cs:editor_pos
+        mov     cs:editor_len,al
+        jmp     short editor_changed
+
+editor_backspace:
+        cmp     cs:editor_pos,0
+        je      editor_key
+        dec     cs:editor_pos
+        cmp     cs:editor_insert_mode,0
+        jne     editor_backspace_delete
+        mov     al,cs:editor_pos
+        cmp     al,cs:editor_len
+        je      editor_backspace_delete
+        mov     dl,08h
+        call    editor_putc
+        dec     cs:editor_screen
+        jmp     editor_key
+editor_backspace_delete:
+        mov     bl,cs:editor_pos
+        jmp     short editor_delete_at_bl
+
+editor_delete:
+        mov     bl,cs:editor_pos
+        cmp     bl,cs:editor_len
+        jae     editor_key
+editor_delete_at_bl:
+        xor     bh,bh
+        mov     si,OFFSET editor_buffer
+        add     si,bx
+        mov     di,si
+        inc     si
+        xor     cx,cx
+        mov     cl,cs:editor_len
+        sub     cl,bl
+        dec     cx
+        jcxz    editor_delete_tail
+editor_shift_left:
+        mov     al,cs:[si]
+        mov     cs:[di],al
+        inc     si
+        inc     di
+        loop    editor_shift_left
+editor_delete_tail:
+        dec     cs:editor_len
+        jmp     short editor_changed
+
+editor_escape:
+        mov     cs:editor_len,0
+        mov     cs:editor_pos,0
+        mov     cs:history_nav,0ffh
+editor_changed:
+        call    editor_refresh
+        jmp     editor_key
+
+editor_extended:
+        cmp     ah,48h                  ; Up
+        je      editor_up
+        cmp     ah,50h                  ; Down
+        je      editor_down
+        cmp     ah,49h                  ; Page Up
+        je      editor_oldest
+        cmp     ah,51h                  ; Page Down
+        je      editor_newest
+        cmp     ah,41h                  ; F7
+        je      editor_f7
+        cmp     ah,42h                  ; F8
+        je      editor_f8
+        cmp     ah,43h                  ; F9
+        je      editor_f9
+        mov     cs:f8_active,0
+        cmp     ah,4bh
+        je      editor_left
+        cmp     ah,4dh
+        je      editor_right
+        cmp     ah,47h
+        je      editor_home
+        cmp     ah,4fh
+        je      editor_end
+        cmp     ah,52h
+        je      editor_insert
+        cmp     ah,53h
+        je      editor_delete
+        cmp     ah,73h                  ; Ctrl+Left
+        je      editor_word_left
+        cmp     ah,74h                  ; Ctrl+Right
+        je      editor_word_right
+        cmp     ah,75h                  ; Ctrl+End
+        je      editor_ctrl_end
+        cmp     ah,77h                  ; Ctrl+Home
+        je      editor_ctrl_home
+        cmp     ah,6eh                  ; Alt+F7
+        je      editor_clear_history
+        jmp     editor_key
+
+editor_left:
+        cmp     cs:editor_pos,0
+        je      editor_key
+        dec     cs:editor_pos
+        mov     dl,08h
+        call    editor_putc
+        dec     cs:editor_screen
+        jmp     editor_key
+editor_right:
+        mov     bl,cs:editor_pos
+        cmp     bl,cs:editor_len
+        jae     editor_key
+        xor     bh,bh
+        mov     dl,cs:[editor_buffer+bx]
+        call    editor_putc
+        inc     cs:editor_pos
+        inc     cs:editor_screen
+        jmp     editor_key
+editor_home:
+        cmp     cs:editor_pos,0
+        je      editor_key
+        mov     cl,cs:editor_pos
+        xor     ch,ch
+editor_home_loop:
+        mov     dl,08h
+        call    editor_putc
+        loop    editor_home_loop
+        mov     cs:editor_pos,0
+        mov     cs:editor_screen,0
+        jmp     editor_key
+editor_end:
+        mov     al,cs:editor_len
+        mov     cs:editor_pos,al
+        call    editor_refresh
+        jmp     editor_key
+editor_insert:
+        xor     cs:editor_insert_mode,1
+        jmp     editor_key
+
+editor_word_left:
+        cmp     cs:editor_pos,0
+        je      editor_key
+        xor     bx,bx
+        mov     bl,cs:editor_pos
+editor_word_left_spaces:
+        or      bl,bl
+        jz      editor_word_left_set
+        cmp     byte ptr cs:[editor_buffer+bx-1],' '
+        jne     editor_word_left_word
+        dec     bl
+        jmp     editor_word_left_spaces
+editor_word_left_word:
+        or      bl,bl
+        jz      editor_word_left_set
+        cmp     byte ptr cs:[editor_buffer+bx-1],' '
+        je      editor_word_left_set
+        dec     bl
+        jmp     editor_word_left_word
+editor_word_left_set:
+        mov     cs:editor_pos,bl
+        call    editor_refresh
+        jmp     editor_key
+
+editor_word_right:
+        xor     bx,bx
+        mov     bl,cs:editor_pos
+editor_word_right_word:
+        cmp     bl,cs:editor_len
+        jae     editor_word_right_set
+        cmp     byte ptr cs:[editor_buffer+bx],' '
+        je      editor_word_right_spaces
+        inc     bl
+        jmp     editor_word_right_word
+editor_word_right_spaces:
+        cmp     bl,cs:editor_len
+        jae     editor_word_right_set
+        cmp     byte ptr cs:[editor_buffer+bx],' '
+        jne     editor_word_right_set
+        inc     bl
+        jmp     editor_word_right_spaces
+editor_word_right_set:
+        mov     cs:editor_pos,bl
+        call    editor_refresh
+        jmp     editor_key
+
+editor_ctrl_end:
+        mov     al,cs:editor_pos
+        mov     cs:editor_len,al
+        call    editor_refresh
+        jmp     editor_key
+
+editor_ctrl_home:
+        xor     bx,bx
+        mov     bl,cs:editor_pos
+        or      bl,bl
+        jz      editor_key
+        xor     cx,cx
+        mov     cl,cs:editor_len
+        sub     cl,bl
+        mov     si,OFFSET editor_buffer
+        add     si,bx
+        mov     di,OFFSET editor_buffer
+editor_ctrl_home_shift:
+        jcxz    editor_ctrl_home_done
+        mov     al,cs:[si]
+        mov     cs:[di],al
+        inc     si
+        inc     di
+        loop    editor_ctrl_home_shift
+editor_ctrl_home_done:
+        sub     cs:editor_len,bl
+        mov     cs:editor_pos,0
+        call    editor_refresh
+        jmp     editor_key
+
+editor_clear_history:
+        mov     cs:history_count,0
+        mov     cs:history_head,0
+        mov     cs:history_nav,0ffh
+        mov     cs:editor_len,0
+        mov     cs:editor_pos,0
+        call    editor_refresh
+        jmp     editor_key
+
+editor_up:
+        cmp     cs:history_count,0
+        je      editor_key
+        mov     al,cs:history_nav
+        cmp     al,0ffh
+        jne     editor_up_existing
+        mov     al,cs:history_count
+        dec     al
+        jmp     short editor_load_nav
+editor_up_existing:
+        or      al,al
+        jz      editor_key
+        dec     al
+        jmp     short editor_load_nav
+editor_down:
+        mov     al,cs:history_nav
+        cmp     al,0ffh
+        je      editor_key
+        inc     al
+        cmp     al,cs:history_count
+        jb      editor_load_nav
+        mov     cs:history_nav,0ffh
+        mov     cs:editor_len,0
+        mov     cs:editor_pos,0
+        jmp     editor_changed
+editor_oldest:
+        cmp     cs:history_count,0
+        je      editor_key
+        xor     al,al
+        jmp     short editor_load_nav
+editor_newest:
+        cmp     cs:history_count,0
+        je      editor_key
+        mov     al,cs:history_count
+        dec     al
+editor_load_nav:
+        mov     cs:history_nav,al
+        call    editor_load_history
+        mov     cs:f8_active,0
+        jmp     editor_changed
+
+editor_f8:
+        cmp     cs:history_count,0
+        je      editor_key
+        cmp     cs:f8_active,0
+        jne     editor_f8_next
+        mov     al,cs:editor_len
+        mov     cs:f8_prefix_len,al
+        xor     bx,bx
+        mov     bl,al
+editor_f8_save_prefix:
+        or      bl,bl
+        jz      editor_f8_start
+        dec     bl
+        mov     al,cs:[editor_buffer+bx]
+        mov     cs:[f8_prefix+bx],al
+        jmp     editor_f8_save_prefix
+editor_f8_start:
+        mov     al,cs:history_count
+        dec     al
+        mov     cs:f8_candidate,al
+        mov     cs:f8_active,1
+        jmp     short editor_f8_search
+editor_f8_next:
+        cmp     cs:f8_candidate,0
+        jne     editor_f8_previous
+        mov     al,cs:history_count
+        dec     al
+        mov     cs:f8_candidate,al
+        jmp     short editor_f8_search
+editor_f8_previous:
+        dec     cs:f8_candidate
+editor_f8_search:
+        mov     al,cs:f8_candidate
+        call    history_slot_pointer
+        xor     cx,cx
+        mov     cl,cs:f8_prefix_len
+        jcxz    editor_f8_match
+        cmp     cs:[si],cl
+        jb      editor_f8_miss
+        inc     si
+        xor     bx,bx
+editor_f8_compare:
+        mov     dl,cs:[si+bx]
+        mov     dh,cs:[f8_prefix+bx]
+        cmp     dl,'a'
+        jb      editor_f8_fold_prefix
+        cmp     dl,'z'
+        ja      editor_f8_fold_prefix
+        sub     dl,20h
+editor_f8_fold_prefix:
+        cmp     dh,'a'
+        jb      editor_f8_compare_folded
+        cmp     dh,'z'
+        ja      editor_f8_compare_folded
+        sub     dh,20h
+editor_f8_compare_folded:
+        cmp     dl,dh
+        jne     editor_f8_miss
+        inc     bx
+        loop    editor_f8_compare
+editor_f8_match:
+        mov     al,cs:f8_candidate
+        mov     cs:history_nav,al
+        call    editor_load_history
+        jmp     editor_changed
+editor_f8_miss:
+        cmp     cs:f8_candidate,0
+        je      editor_key
+        dec     cs:f8_candidate
+        jmp     editor_f8_search
+
+editor_f7:
+        call    editor_newline
+        xor     bl,bl
+editor_f7_loop:
+        cmp     bl,cs:history_count
+        jae     editor_f7_done
+        mov     al,bl
+        inc     al
+        call    editor_print_number
+        mov     dl,':'
+        call    editor_putc
+        mov     dl,' '
+        call    editor_putc
+        mov     al,bl
+        call    history_slot_pointer
+        xor     cx,cx
+        mov     cl,cs:[si]
+        inc     si
+editor_f7_text:
+        jcxz    editor_f7_eol
+        mov     dl,cs:[si]
+        call    editor_putc
+        inc     si
+        loop    editor_f7_text
+editor_f7_eol:
+        call    editor_newline
+        inc     bl
+        jmp     editor_f7_loop
+editor_f7_done:
+        mov     cs:editor_drawn,0
+        mov     cs:editor_screen,0
+        call    editor_refresh
+        jmp     editor_key
+
+editor_f9:
+        call    editor_newline
+        mov     si,OFFSET line_number_prompt
+editor_f9_prompt:
+        mov     dl,cs:[si]
+        inc     si
+        or      dl,dl
+        jz      editor_f9_read
+        call    editor_putc
+        jmp     editor_f9_prompt
+editor_f9_read:
+        xor     bx,bx
+editor_f9_digit:
+        xor     ah,ah
+        int     16h
+        cmp     al,0dh
+        je      editor_f9_accept
+        cmp     al,'0'
+        jb      editor_f9_digit
+        cmp     al,'9'
+        ja      editor_f9_digit
+        mov     dl,al
+        call    editor_putc
+        sub     al,'0'
+        mov     ah,0
+        push    ax
+        mov     ax,bx
+        mov     cx,10
+        mul     cx
+        mov     bx,ax
+        pop     ax
+        add     bx,ax
+        jmp     editor_f9_digit
+editor_f9_accept:
+        call    editor_newline
+        or      bx,bx
+        jz      editor_f7_done
+        dec     bx
+        cmp     bl,cs:history_count
+        jae     editor_f7_done
+        mov     al,bl
+        jmp     editor_load_nav
+
+editor_enter:
+        call    editor_newline
+        xor     cx,cx
+        mov     cl,cs:editor_len
+        mov     ds:[bp+1],cl
+        lea     di,[bp+2]
+        mov     si,OFFSET editor_buffer
+editor_return_copy:
+        jcxz    editor_return_cr
+        mov     al,cs:[si]
+        mov     ds:[di],al
+        inc     si
+        inc     di
+        loop    editor_return_copy
+editor_return_cr:
+        mov     byte ptr ds:[di],0dh
+        ret
+
+; AL is a zero-based chronological history number; returns CS:SI at slot.
+history_slot_pointer:
+        push    ax
+        push    bx
+        mov     bl,al
+        call    resident_max_slots
+        mov     dl,al
+        mov     al,cs:history_head
+        sub     al,cs:history_count
+        jnc     history_oldest_ready
+        add     al,dl
+history_oldest_ready:
+        add     al,bl
+        cmp     al,dl
+        jb      history_slot_ready
+        sub     al,dl
+history_slot_ready:
+        xor     ah,ah
+        mov     si,ax
+        mov     cl,7
+        shl     si,cl
+        add     si,OFFSET history_data
+        pop     bx
+        pop     ax
+        ret
+
+editor_load_history:
+        call    history_slot_pointer
+        xor     cx,cx
+        mov     cl,cs:[si]
+        mov     al,ds:[bp]
+        dec     al
+        cmp     cl,al
+        jbe     editor_history_fits
+        mov     cl,al
+editor_history_fits:
+        mov     cs:editor_len,cl
+        mov     cs:editor_pos,cl
+        inc     si
+        mov     di,OFFSET editor_buffer
+editor_history_copy:
+        jcxz    editor_history_done
+        mov     al,cs:[si]
+        mov     cs:[di],al
+        inc     si
+        inc     di
+        loop    editor_history_copy
+editor_history_done:
+        ret
+
+editor_refresh:
+        xor     cx,cx
+        mov     cl,cs:editor_screen
+editor_refresh_back:
+        jcxz    editor_refresh_text
+        mov     dl,08h
+        call    editor_putc
+        loop    editor_refresh_back
+editor_refresh_text:
+        xor     cx,cx
+        mov     cl,cs:editor_len
+        mov     si,OFFSET editor_buffer
+editor_refresh_emit:
+        jcxz    editor_refresh_erase
+        mov     dl,cs:[si]
+        call    editor_putc
+        inc     si
+        loop    editor_refresh_emit
+editor_refresh_erase:
+        xor     cx,cx
+        mov     cl,cs:editor_drawn
+        cmp     cl,cs:editor_len
+        jbe     editor_refresh_rewind
+        sub     cl,cs:editor_len
+editor_refresh_spaces:
+        mov     dl,' '
+        call    editor_putc
+        loop    editor_refresh_spaces
+editor_refresh_rewind:
+        xor     cx,cx
+        mov     cl,cs:editor_drawn
+        cmp     cl,cs:editor_len
+        jae     editor_refresh_have_max
+        mov     cl,cs:editor_len
+editor_refresh_have_max:
+        jcxz    editor_refresh_forward
+editor_refresh_rewind_loop:
+        mov     dl,08h
+        call    editor_putc
+        loop    editor_refresh_rewind_loop
+editor_refresh_forward:
+        xor     cx,cx
+        mov     cl,cs:editor_pos
+        mov     si,OFFSET editor_buffer
+editor_refresh_forward_loop:
+        jcxz    editor_refresh_done
+        mov     dl,cs:[si]
+        call    editor_putc
+        inc     si
+        loop    editor_refresh_forward_loop
+editor_refresh_done:
+        mov     al,cs:editor_len
+        mov     cs:editor_drawn,al
+        mov     al,cs:editor_pos
+        mov     cs:editor_screen,al
+        ret
+
+editor_print_number:
+        aam
+        or      ah,ah
+        jz      editor_print_ones
+        mov     dl,ah
+        add     dl,'0'
+        call    editor_putc
+editor_print_ones:
+        mov     dl,al
+        add     dl,'0'
+        call    editor_putc
+        ret
+
+editor_newline:
+        mov     dl,0dh
+        call    editor_putc
+        mov     dl,0ah
+editor_putc:
+        push    ax
+        push    bx
+        mov     ah,02h
+        int     21h
+        pop     bx
+        pop     ax
+        ret
 
 preload_template:
         cmp     cs:history_count,0
@@ -966,6 +1593,18 @@ default_insert  db 0
 resident_max    db 0
 pending_pos     dw 0
 pending_length  dw 0
+editor_len      db 0
+editor_pos      db 0
+editor_drawn    db 0
+editor_screen   db 0
+editor_insert_mode db 0
+history_nav     db 0ffh
+f8_active       db 0
+f8_prefix_len   db 0
+f8_candidate    db 0
+line_number_prompt db 'Line number: ',0
+editor_buffer   db HISTORY_WIDTH dup(0)
+f8_prefix       db HISTORY_WIDTH dup(0)
 history_data    db HISTORY_SLOTS*HISTORY_WIDTH dup(0)
 macro_names     db MACRO_SLOTS*MACRO_NAME_SIZE dup(0)
 macro_bodies    db MACRO_SLOTS*MACRO_BODY_SIZE dup(0)

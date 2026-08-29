@@ -35,7 +35,7 @@ features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
 | --- | --- | --- |
 | DOS in the HMA and programs/drivers in UMBs | Present on 386+ | Original HIMEM also supports 286 systems; repository HIMEM rejects pre-386 CPUs. |
 | MS-DOS Shell and Task Swapper | Missing | No DOSSHELL UI, program groups, file manager, session switching, EGA save driver, or task-switcher API. |
-| Command history and macros | Partial | DOSKEY provides resident history, macros, edit-mode configuration, and INT 2Fh services. Multi-entry Up/Down/F7/F8/F9 navigation remains incomplete. |
+| Command history and macros | Present | DOSKEY provides resident history, macros, edit modes, redirected input, INT 2Fh services, and the DOS 5 interactive history/editing keys. |
 | Full-screen Editor and QBasic | Missing | No EDIT, QBASIC, BASIC runtime, help, or sample programs. EDLIN remains available. |
 | Online command help | Partial | Shipped executable `/?` surfaces are tested, but HELP and its searchable help database are absent. |
 | Delete/format recovery | Missing | MIRROR, UNDELETE, and UNFORMAT are absent. |
@@ -70,7 +70,6 @@ Every documented option of a missing command is necessarily unsupported.
 | Command | Implemented | Missing or incompatible DOS 5 behavior |
 | --- | --- | --- |
 | `ATTRIB` | `+R`, `-R`, `+A`, `-A`, `+H`, `-H`, `+S`, `-S`, `/S` | No known DOS 5 option gap. |
-| `DOSKEY` | Resident history and macros; `/REINSTALL`, `/BUFSIZE`, `/MACROS`, `/HISTORY`, `/INSERT`, `/OVERSTRIKE`; `$1`-`$9`, `$*`, `$$`, `$G`, `$L`, `$B`, and queued `$T`; `4800h`/`4810h` APIs | Complete multi-entry Up/Down/Page/F7/F8/F9 and Alt-key interactive navigation. |
 | `DIR` | Basic listing; `/P`, `/W`, `/B`, `/L`; `/A[:attributes]` with `D`, `R`, `H`, `A`, `S`, and negated selectors | `/O[:sortorder]`, `/S`, and `DIRCMD` defaults. These include DOS 5's recursive search and sorted-directory features. |
 | `DISKCOPY` | Copy, `/1`, and `/V` read-back verification | No known DOS 5 option gap. |
 | `FDISK` | Automated primary, extended, and logical creation; interactive display, near-2-GiB creation, active selection, deletion, and multi-disk selection, with resulting MBR state validated | No known DOS 5 workflow gap. |
@@ -85,7 +84,7 @@ coverage. Their inclusion here means no missing documented top-level switch was
 found; it does not claim every hardware, locale, or error-path permutation:
 
 `APPEND`, `ASSIGN`, `BACKUP`, `BREAK`, `CALL`, `CHCP`, `CHDIR`/`CD`,
-`CHKDSK`, `CLS`, `COMMAND`, `COMP`, `COPY`, `CTTY`, `DATE`, `DEBUG`,
+`CHKDSK`, `CLS`, `COMMAND`, `COMP`, `COPY`, `CTTY`, `DATE`, `DEBUG`, `DOSKEY`,
 `DEL`/`ERASE`, `DISKCOMP`, `ECHO`, `EDLIN`, `EMM386`, `EXE2BIN`, `EXIT`,
 `FASTOPEN`,
 `FC`, `FOR`, `GOTO`, `GRAFTABL`, `GRAPHICS`, `IF`, `JOIN`, `KEYB`, `LABEL`,

@@ -50,6 +50,17 @@ for marker in \
     'DOSKEY_SECOND=[echo MULTI_ONE]' \
     'DOSKEY_THIRD=[echo MULTI_TWO]' \
     'DOSKEY_FOURTH=[echo RAW_HISTORY]' \
+    'DOSKEY_UP=[echo RAW_HISTORY]' \
+    'DOSKEY_PGUP=[echo MACRO_OK one one two]' \
+    'DOSKEY_DOWN=[echo MULTI_ONE]' \
+    'DOSKEY_PGDN=[echo MULTI_ONE]' \
+    'DOSKEY_F8=[echo MULTI_ONE]' \
+    'DOSKEY_F8_PENDING=[echo MULTI_TWO]' \
+    '1: hi one two' \
+    '2: multi' \
+    'DOSKEY_F7_RETURN=[]' \
+    'DOSKEY_F9=[echo MULTI_ONE]' \
+    'DOSKEY_ALTF7_UP=[]' \
     'DOSKEY_PROBE_PASS' \
     'hi one two' \
     'multi' \
@@ -63,4 +74,4 @@ for marker in \
     }
 done
 
-echo '  PASS: DOSKEY install check, buffered input, macros, history, modes, sizing, and reinstall'
+echo '  PASS: DOSKEY APIs, macros, redirected input, navigation keys, modes, sizing, and reinstall'
