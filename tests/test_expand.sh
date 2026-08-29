@@ -49,6 +49,8 @@ with open(os.path.join(root, 'BAD.TX_'), 'wb') as f: f.write(b'not an SZDD strea
 with open(os.path.join(root, 'SHORT.TX_'), 'wb') as f:
     f.write(b'SZDD\x88\xf0\x27\x33\x41T' + struct.pack('<I', 100) + b'\xffshort')
 PY
+python3 "$ROOT/tools/szdd.py" compress "$WORK/LONG.EXP" "$WORK/HOST.DA_" \
+    --missing-character T
 
 PASS=0
 FAIL=0
@@ -88,6 +90,13 @@ if cmp -s "$WORK/MATCH.EXP" "$WORK/MATCH.OUT"; then
     ok "SZDD dictionary back-references decode exactly"
 else
     fail "SZDD back-reference decoding"
+fi
+
+run_expand HOST.DA_ HOST.OUT >/dev/null
+if cmp -s "$WORK/LONG.EXP" "$WORK/HOST.OUT"; then
+    ok "DOS EXPAND decodes the deterministic host encoder output byte-exactly"
+else
+    fail "host-to-DOS SZDD compatibility"
 fi
 
 run_expand ONE.TX_ TWO.BI_ 'OUTDIR\' >/dev/null
