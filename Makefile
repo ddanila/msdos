@@ -222,6 +222,9 @@ ARTIFACTS := \
     CMD/DOSKEY/DOSKEY.COM \
     CMD/HELP/HELP.COM \
     CMD/HELP/HELP.HLP \
+    CMD/MIRROR/MIRROR.COM \
+    CMD/UNDELETE/UNDELETE.COM \
+    CMD/UNFORMAT/UNFORMAT.COM \
     MEMM/MEMM/EMM386.EXE
 
 test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-szdd-tool test-distribution test-expand test-setup-qemu test-himem-options-qemu test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
@@ -533,6 +536,9 @@ SETVER_EXE := $(SRC)/CMD/SETVER/SETVER.EXE
 DOSKEY_COM := $(SRC)/CMD/DOSKEY/DOSKEY.COM
 HELP_COM   := $(SRC)/CMD/HELP/HELP.COM
 HELP_HLP   := $(SRC)/CMD/HELP/HELP.HLP
+MIRROR_COM := $(SRC)/CMD/MIRROR/MIRROR.COM
+UNDELETE_COM := $(SRC)/CMD/UNDELETE/UNDELETE.COM
+UNFORMAT_COM := $(SRC)/CMD/UNFORMAT/UNFORMAT.COM
 APPEND_EXE   := $(SRC)/CMD/APPEND/APPEND.EXE
 RECOVER_COM  := $(SRC)/CMD/RECOVER/RECOVER.COM
 FASTOPEN_EXE := $(SRC)/CMD/FASTOPEN/FASTOPEN.EXE
@@ -577,6 +583,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
            $(ATTRIB_EXE) $(EDLIN_COM) $(FC_EXE) \
            $(NLSFUNC_EXE) $(ASSIGN_COM) $(XCOPY_EXE) $(DISKCOMP_COM) $(DISKCOPY_COM) $(SETVER_COM) $(SETVER_EXE) $(DOSKEY_COM) \
            $(APPEND_EXE) $(RECOVER_COM) $(FASTOPEN_EXE) $(PRINT_COM) $(HELP_COM) $(HELP_HLP) \
+           $(MIRROR_COM) $(UNDELETE_COM) $(UNFORMAT_COM) \
            $(FILESYS_EXE) $(REPLACE_EXE) $(JOIN_EXE) $(SUBST_EXE) \
            $(BACKUP_COM) $(RESTORE_COM) $(GRAFTABL_COM) $(KEYB_COM) $(KEYBOARD_SYS) $(SHARE_EXE) \
            $(EXE2BIN_SRC) $(GRAPHICS_COM) $(GRAPHICS_PRO) \
@@ -627,6 +634,9 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
 	mcopy -i $@ $(DOSKEY_COM) ::DOSKEY.COM
 	mcopy -i $@ $(HELP_COM) ::HELP.COM
 	mcopy -i $@ $(HELP_HLP) ::HELP.HLP
+	mcopy -i $@ $(MIRROR_COM) ::MIRROR.COM
+	mcopy -i $@ $(UNDELETE_COM) ::UNDELETE.COM
+	mcopy -i $@ $(UNFORMAT_COM) ::UNFORMAT.COM
 	mcopy -i $@ $(APPEND_EXE) ::APPEND.EXE
 	mcopy -i $@ $(RECOVER_COM) ::RECOVER.COM
 	mcopy -i $@ $(FASTOPEN_EXE) ::FASTOPEN.EXE

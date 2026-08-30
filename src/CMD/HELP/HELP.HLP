@@ -49,6 +49,7 @@ LOADHIGH   Loads a program into upper memory.
 MD         Creates a directory.
 MEM        Displays allocated and free memory.
 MKDIR      Creates a directory.
+MIRROR     Records disk information for recovery.
 MODE       Configures system devices.
 MORE       Displays output one screen at a time.
 NLSFUNC    Loads country-specific information.
@@ -73,6 +74,8 @@ SYS        Transfers system files to a disk.
 TIME       Displays or sets the time.
 TREE       Displays a directory tree.
 TYPE       Displays a text file.
+UNDELETE   Restores files deleted with DEL.
+UNFORMAT   Restores a disk erased by FORMAT.
 VER        Displays the MS-DOS version.
 VERIFY     Controls disk-write verification.
 VOL        Displays a volume label and serial number.
@@ -223,6 +226,9 @@ Syntax: MEM [/CLASSIFY|/DEBUG|/FREE|/MODULE name|/PAGE]
 @MKDIR
 Creates a directory.
 Syntax: MKDIR [drive:]path
+@MIRROR
+Records disk and deletion information used by UNFORMAT and UNDELETE.
+Syntax: MIRROR [drive: [...]] [/1] or MIRROR /Tdrive[-entries] or MIRROR /U or MIRROR /PARTN
 @MODE
 Configures system devices.
 Syntax: MODE device parameters
@@ -295,6 +301,12 @@ Syntax: TREE [drive:][path] [/F] [/A]
 @TYPE
 Displays a text file.
 Syntax: TYPE [drive:][path]filename
+@UNDELETE
+Restores files deleted with DEL.
+Syntax: UNDELETE [[drive:][path]filename] [/LIST|/ALL] [/DOS|/DT]
+@UNFORMAT
+Restores formatted disks or saved hard-disk partition tables.
+Syntax: UNFORMAT drive: [/J] or UNFORMAT drive: [/U] [/L] [/TEST] [/P] or UNFORMAT /PARTN [/L]
 @VER
 Displays the MS-DOS version.
 Syntax: VER

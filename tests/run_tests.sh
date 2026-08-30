@@ -66,6 +66,9 @@ ARTIFACTS=(
     CMD/DOSKEY/DOSKEY.COM \
     CMD/HELP/HELP.COM \
     CMD/HELP/HELP.HLP \
+    CMD/MIRROR/MIRROR.COM \
+    CMD/UNDELETE/UNDELETE.COM \
+    CMD/UNFORMAT/UNFORMAT.COM \
     CMD/APPEND/APPEND.EXE \
     CMD/RECOVER/RECOVER.COM \
     CMD/FASTOPEN/FASTOPEN.EXE \
@@ -173,6 +176,9 @@ check_help "IFSFUNC"  "CMD/IFSFUNC/IFSFUNC.EXE"       "IFSFUNC"
 check_help "EXPAND"   "CMD/EXPAND/EXPAND.EXE"         "EXPAND"
 check_help "SETUP"    "CMD/SETUP/SETUP.EXE"           "SETUP"
 check_help "HELP"     "CMD/HELP/HELP.COM"             "HELP"
+check_help "MIRROR"   "CMD/MIRROR/MIRROR.COM"         "MIRROR"
+check_help "UNDELETE" "CMD/UNDELETE/UNDELETE.COM"     "UNDELETE"
+check_help "UNFORMAT" "CMD/UNFORMAT/UNFORMAT.COM"     "UNFORMAT"
 
 echo ""
 echo "=== Section 4: COMMAND.COM built-in /? help (static check) ==="
