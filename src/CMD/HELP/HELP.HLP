@@ -20,6 +20,7 @@ COPY       Copies files.
 CTTY       Changes the controlling terminal.
 DATE       Displays or sets the date.
 DEBUG      Tests and edits programs.
+DEFRAG     Reorganizes files to improve disk performance.
 DEL        Deletes files.
 DIR        Displays files and directories.
 DISKCOMP   Compares two floppy disks.
@@ -152,6 +153,12 @@ Syntax: DATE [date]
 @DEBUG
 Runs the program testing and editing tool.
 Syntax: DEBUG [[drive:][path]filename [arguments]]
+@DEFRAG
+Reorganizes files on a FAT12 or FAT16 disk.
+Syntax: DEFRAG [drive:] [/F [/S[:]order] | /U] [/B] [/SKIPHIGH]
+              [/LCD | /BW | /G0] [/H]
+/U makes file chains contiguous. /F also requests free-space compaction and
+/S selects directory order. /H includes hidden files.
 @DEL
 Deletes files.
 Syntax: DEL [drive:][path]filename [/P]

@@ -36,7 +36,7 @@ valid lightweight interface.
 | DOS identity and compatibility | Present | The kernel and true-version API identify 6.22, and SETVER ships the retail 6.2/6.22 default table. The `MSDOS5.0` FAT OEM identifier is correct for 6.22 and remains unchanged. |
 | Startup and configuration | Partial | Named blocks, nested boot menus, ordered `INCLUDE`, `MENUCOLOR`, defaults/timeouts, keyboard recovery, and `CONFIG` propagation are present alongside F5/Shift bypass and F8 stepping. Reference diagnostics and selected-block interaction coverage remain. |
 | Everyday command additions | Partial | `CHOICE`, `DELTREE`, `LOADFIX`, and `MOVE` are present; overwrite policy additions to `COPY` and `XCOPY` remain. |
-| Disk health and performance | Partial | ScanDisk has a shipped FAT12/FAT16 logical-repair core, repair log, and stale-safe undo flow. Its remaining checks, surface relocation, file-fragment mode, full INI policy, and reference UI remain; `DEFRAG` is missing. |
+| Disk health and performance | Partial | ScanDisk has a shipped FAT12/FAT16 logical-repair core, repair log, and stale-safe undo flow. Defrag has byte-preserving FAT12 `/U` relocation, `/F` compaction, and physical directory sorting. Remaining checks, interruption safety, surface recovery, and reference UI are listed below. |
 | Memory optimization | Partial | Strong DOS 5 HMA/UMB base, but not the complete DOS 6 EMM386/MEM/loader contract or `MEMMAKER`. |
 | SMARTDrive | Partial | A DOS 5 block driver and control helper exist, not the DOS 6 dual-purpose `SMARTDRV.EXE` cache interface and write-behind behavior. |
 | Diagnostics and power | Partial | `MSD` ships with interactive and report modes; `POWER.EXE` remains missing. |
@@ -55,7 +55,7 @@ DOS 5 commands inherit their status from `DOS5_GAPS.md`.
 | Command | Status | Missing 6.22 surface |
 | --- | --- | --- |
 | `CHOICE` | Present | Prompt, `/C[:]choices`, `/N`, `/S`, `/T[:]choice,seconds`, key-index errorlevels, and redirected input are covered. |
-| `DEFRAG` | Missing | Full-screen and command-line operation; `/F`, `/U`, `/S[:]order`, `/B`, `/SKIPHIGH`, `/LCD`, `/BW`, `/G0`, `/H`, documented errorlevels, progress/error reporting, and safe interruption. |
+| `DEFRAG` | Partial | `/U` relocates fragmented FAT12 file chains into contiguous free runs; `/F` compacts movable clusters and `/S[:]order` physically sorts directory entries while preserving byte-exact files. Divergent FAT copies, lost allocations, and invalid chains are refused; one mid-relocation interruption boundary is proven recoverable through ScanDisk. Remaining: explicit directory-chain/FAT16/hidden-file gates, meaningful display modes, reboot and broader interruption tests, exhaustive errorlevels, and the reference full-screen interface. |
 | `DELTREE` | Present | Recursive and wildcard deletion, multiple targets, protected attributes, prompting, and `/Y` are covered. |
 | `DRVSPACE` | Separate epic | Interactive and command-line DriveSpace manager; `/AUTOMOUNT`, `/CHKDSK`, `/COMPRESS`, `/CREATE`, `/DELETE`, `/FORMAT`, `/INFO`, `/MOUNT`, `/RATIO`, `/SIZE`, `/UNCOMPRESS`, `/UNMOUNT`, host-drive swapping, and the driver/format/API integration listed below. |
 | `FASTHELP` | Present | Compact command list/topic interface backed by the lean text Help database. |

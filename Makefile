@@ -29,7 +29,7 @@ AINC     := -I. -ID:\\TOOLS\\INC
 .PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest deploy minimal-floppy run-boot test-sys test-help-qemu test-command-startup-qemu test-more-paging-qemu test-misc-qemu test-graftabl-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-setver-qemu test-doskey-qemu test-share-nlsfunc-exe2bin test-append test-format test-format-hdd-qemu test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu test-ansi-driver-qemu test-display-chain-qemu test-driver-sys-qemu test-driver-geometry-qemu test-printer-driver-qemu test-smartdrv-flush-qemu test-xma-drivers-qemu test-himem-qemu test-himem-286-dosbox test-hardware-matrix test-hma-qemu test-pre386-dosbox test-mem-umb-qemu test-loadhigh-qemu test-devicehigh-qemu test-installhigh-qemu test-root-exhaustion-qemu test-disk-exhaustion-qemu test-config-state-qemu test-config-switches-qemu test-config-stacks-qemu test-config-dos-qemu test-xms-umb-transaction-qemu test-config-ifs-qemu test-ifsfunc-filesys-qemu test-config-multitrack-qemu test-emm386-qemu test-int21-file-memory-qemu test-int21-path-errors-qemu test-int21-system-qemu test-int21-fcb-qemu test-int21-compat-qemu test-int21-console-qemu test-int21-process-qemu test-int21-tsr-qemu test-int21-media-qemu test-int21-readonly-media-qemu test-dos-interrupt-qemu test-dos-async-interrupt-qemu
 .PHONY: test-utility-parser-coverage-manifest test-keyboard-records test-country-records test-country-matrix-qemu
 .PHONY: test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-szdd-tool distribution test-distribution test-setup-qemu test-mirror-unformat-qemu test-undelete-qemu
-.PHONY: test-command-step-qemu test-msd-qemu test-scandisk-qemu test-config-menu-qemu test-config-menu-input-qemu
+.PHONY: test-command-step-qemu test-msd-qemu test-scandisk-qemu test-defrag-qemu test-config-menu-qemu test-config-menu-input-qemu
 .PHONY: test-copy-policy-qemu
 .PHONY: test-xcopy-dos6-qemu
 .PHONY: test-config-numlock-qemu
@@ -235,11 +235,12 @@ ARTIFACTS := \
     CMD/CHOICE/CHOICE.COM \
     CMD/LOADFIX/LOADFIX.COM \
     CMD/DELTREE/DELTREE.EXE \
+    CMD/DEFRAG/DEFRAG.EXE \
     CMD/MOVE/MOVE.EXE \
     CMD/SCANDISK/SCANDISK.EXE \
     MEMM/MEMM/EMM386.EXE
 
-test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-keyboard-records test-country-records test-szdd-tool test-distribution test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-scandisk-qemu test-setup-qemu test-himem-options-qemu test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
+test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-keyboard-records test-country-records test-szdd-tool test-distribution test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-scandisk-qemu test-defrag-qemu test-setup-qemu test-himem-options-qemu test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
 	bash tests/run_tests.sh
 
 test-native-build-tools:
@@ -398,6 +399,9 @@ test-msd-qemu: deploy
 test-scandisk-qemu: deploy
 	bash tests/test_scandisk_qemu.sh
 	bash tests/test_scandisk_fat16_qemu.sh
+
+test-defrag-qemu: deploy
+	bash tests/test_defrag_qemu.sh
 
 test-config-menu-qemu: deploy
 	bash tests/test_config_menu_qemu.sh
@@ -615,6 +619,7 @@ DELTREE_EXE  := $(SRC)/CMD/DELTREE/DELTREE.EXE
 MOVE_EXE     := $(SRC)/CMD/MOVE/MOVE.EXE
 MSD_EXE      := $(SRC)/CMD/MSD/MSD.EXE
 SCANDISK_EXE := $(SRC)/CMD/SCANDISK/SCANDISK.EXE
+DEFRAG_EXE   := $(SRC)/CMD/DEFRAG/DEFRAG.EXE
 UNFORMAT_COM := $(SRC)/CMD/UNFORMAT/UNFORMAT.COM
 APPEND_EXE   := $(SRC)/CMD/APPEND/APPEND.EXE
 RECOVER_COM  := $(SRC)/CMD/RECOVER/RECOVER.COM
@@ -660,7 +665,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OVL) $(COMMAND_COM) $(SY
            $(ATTRIB_EXE) $(EDLIN_COM) $(FC_EXE) \
            $(NLSFUNC_EXE) $(ASSIGN_COM) $(XCOPY_EXE) $(DISKCOMP_COM) $(DISKCOPY_COM) $(SETVER_COM) $(SETVER_EXE) $(DOSKEY_COM) \
            $(APPEND_EXE) $(RECOVER_COM) $(FASTOPEN_EXE) $(PRINT_COM) $(HELP_COM) $(FASTHELP_COM) $(HELP_HLP) \
-           $(MIRROR_COM) $(UNDELETE_COM) $(UNFORMAT_COM) $(CHOICE_COM) $(LOADFIX_COM) $(DELTREE_EXE) $(MOVE_EXE) $(MSD_EXE) $(SCANDISK_EXE) \
+           $(MIRROR_COM) $(UNDELETE_COM) $(UNFORMAT_COM) $(CHOICE_COM) $(LOADFIX_COM) $(DELTREE_EXE) $(DEFRAG_EXE) $(MOVE_EXE) $(MSD_EXE) $(SCANDISK_EXE) \
            $(FILESYS_EXE) $(REPLACE_EXE) $(JOIN_EXE) $(SUBST_EXE) \
            $(BACKUP_COM) $(RESTORE_COM) $(GRAFTABL_COM) $(KEYB_COM) $(KEYBOARD_SYS) $(SHARE_EXE) \
            $(EXE2BIN_SRC) $(GRAPHICS_COM) $(GRAPHICS_PRO) \
@@ -722,6 +727,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OVL) $(COMMAND_COM) $(SY
 	mcopy -i $@ $(CHOICE_COM) ::CHOICE.COM
 	mcopy -i $@ $(LOADFIX_COM) ::LOADFIX.COM
 	mcopy -i $@ $(DELTREE_EXE) ::DELTREE.EXE
+	mcopy -i $@ $(DEFRAG_EXE) ::DEFRAG.EXE
 	mcopy -i $@ $(MOVE_EXE) ::MOVE.EXE
 	mcopy -i $@ $(MSD_EXE) ::MSD.EXE
 	mcopy -i $@ $(SCANDISK_EXE) ::SCANDISK.EXE

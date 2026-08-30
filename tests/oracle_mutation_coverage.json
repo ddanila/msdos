@@ -12,6 +12,7 @@
     "COMP.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_prompt_yesno.sh"},
     "COUNTRY.SYS": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_drivers_qemu.sh"},
     "DEBUG.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_debug_qemu.sh"},
+    "DEFRAG.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_defrag_qemu.sh"},
     "DELTREE.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_deltree_qemu.sh"},
     "DISKCOMP.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_diskcomp_diskcopy.sh"},
     "DISKCOPY.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_diskcomp_diskcopy.sh"},

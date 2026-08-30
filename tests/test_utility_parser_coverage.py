@@ -41,6 +41,14 @@ def source_switches(text, extractor="asm_db"):
                 re.IGNORECASE,
             )
         ]
+        values += [
+            "/" + value
+            for value in re.findall(
+                r"switch_is\([^,]+,\s*[\"']([^\"']+)[\"']",
+                text,
+                re.IGNORECASE,
+            )
+        ]
     elif extractor == "fc_code":
         parser = text.split("if(*(v[i]+j)=='/')", 1)[1].split(
             "end parse of argument", 1
