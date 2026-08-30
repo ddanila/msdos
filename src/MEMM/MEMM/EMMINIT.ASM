@@ -82,6 +82,11 @@ extrn	_page_frame_base:word	; pointers into page tables for each window
 extrn	_mappable_pages:word	; mappable page array
 extrn	_EMM_MPindex:byte	; index into mappable page array
 extrn	_physical_page_count:word   ; number of physical pages
+extrn	_VM1_EMM_Pages:word
+extrn	_physical_page_ids:byte
+extrn	requested_page_count:byte
+extrn	requested_page_ids:byte
+extrn	requested_page_segments:word
 extrn	_mappable_page_count:word   ; number of mappable pages
 
 extrn	_cntxt_pages:word	; pages in a context
@@ -103,6 +108,7 @@ extrn	CurRegSetn:byte
 extrn	CurRegSet:word
 extrn	FRS_free:byte
 extrn	_altreg_count:word
+extrn	banking_base:word
 
 extrn	_handle_table:word
 extrn	_handle_count:word
@@ -198,6 +204,7 @@ init_page_frame_base	MACRO
 ;******************************************************************************
 init_mappable_pages	MACRO
 ;
+	call	assign_external_page_id
     push    di
 ;
     shl     di,2		    ; convert index into offset in dword array
@@ -290,6 +297,63 @@ first_sys_ppage  dw	 0ffffh      ; physical page number of first system page
 ;	USED: none
 ;
 ;******************************************************************************
+; Record the caller-visible Pn= number for dense physical index SI at segment
+; BX. The core keeps dense arrays; only the public identifier is sparse.
+assign_external_page_id proc near
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	di
+	mov	ax,si
+	xor	dx,dx
+	xor	di,di
+	xor	ch,ch
+	mov	cl,[requested_page_count]
+	jcxz	short assign_external_store
+assign_external_loop:
+	cmp	requested_page_segments[di],bx
+	je	short assign_external_found
+	inc	dx
+	add	di,2
+	loop	assign_external_loop
+	xor	ax,ax			; choose the lowest unreserved public ID
+assign_external_candidate:
+	xor	di,di
+	xor	ch,ch
+	mov	cl,[requested_page_count]
+assign_external_check_requested:
+	jcxz	short assign_external_check_used
+	cmp	al,requested_page_ids[di]
+	je	short assign_external_next_candidate
+	inc	di
+	loop	assign_external_check_requested
+assign_external_check_used:
+	xor	di,di
+	mov	cx,si
+assign_external_used_loop:
+	jcxz	short assign_external_store
+	cmp	al,_physical_page_ids[di]
+	je	short assign_external_next_candidate
+	inc	di
+	loop	assign_external_used_loop
+	jmp	short assign_external_store
+assign_external_next_candidate:
+	inc	al
+	jmp	short assign_external_candidate
+assign_external_found:
+	mov	di,dx
+	mov	al,requested_page_ids[di]
+assign_external_store:
+	mov	_physical_page_ids[si],al
+	pop	di
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	ret
+assign_external_page_id endp
+
 EMM_Init	proc	near
 ;
 	pusha
@@ -522,12 +586,13 @@ EMIN_7:
     ; setup the segment and the count of pages we have to look for. also
     ; the index into the mappable_segs array
     ;
-	mov	bx,04000h		; segment
+	mov	bx,[banking_base]	; lowest segment selected by B=
 	mov	dx,bx			;
 	shr	dx,10			; page # corresponding to segment
     ;
 	mov	cx,40			; max page #
 	sub	cx,dx			;
+	mov	[_VM1_EMM_Pages],cx	; conventional banking-window count
 					; number of pages to be examined
     ;
     ; setup loop

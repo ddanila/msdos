@@ -115,6 +115,7 @@ extrn	_mappable_pages:word			; table of mappable pages
 extrn	_mappable_page_count:word		; how many in the table
 extrn	_page_frame_pages:word			; how many in the page frame
 extrn	_physical_page_count:word		; number of physical pages
+extrn	_physical_page_ids:byte
 extrn	_VM1_EMM_Pages:word			; pages not in the page frame
 ;extrn	_VM1_EMM_Offset:word			; offset of these in a context
 extrn	_cntxt_pages:byte			; number of pages in a context
@@ -552,6 +553,34 @@ mp_inv_log:
 	ret
 map_page	endp
 
+; Translate a caller-visible sparse Pn= identifier in AX to the dense index
+; used by the resident mapping arrays. Carry set means no such physical page.
+translate_physical_id proc near
+	push	bx
+	push	cx
+	push	si
+	mov	bl,al
+	xor	si,si
+	mov	cx,[_physical_page_count]
+translate_physical_loop:
+	cmp	bl,_physical_page_ids[si]
+	je	short translate_physical_found
+	inc	si
+	loop	translate_physical_loop
+	pop	si
+	pop	cx
+	pop	bx
+	stc
+	ret
+translate_physical_found:
+	mov	ax,si
+	pop	si
+	pop	cx
+	pop	bx
+	clc
+	ret
+translate_physical_id endp
+
 
 	page
 ;***********************************************
@@ -585,6 +614,8 @@ _MapHandlePage	proc	near
 
 	mov	byte ptr [bp.rAX+1],OK	; Assume success!
 	movzx	eax, al			; Physical page
+	call	translate_physical_id
+	jc	short mhp_inv_page
 	movzx	ebx, bx			; Logical page
 
 	push	eax
@@ -596,6 +627,9 @@ _MapHandlePage	proc	near
 
 mhp_inv_handle:
 	mov	byte ptr [bp.rAX+1], INVALID_HANDLE
+	ret
+mhp_inv_page:
+	mov	byte ptr [bp.rAX+1], PHYS_PAGE_RANGE
 	ret
 
 _MapHandlePage	endp
@@ -964,11 +998,11 @@ _GetMappablePAddrArrayFixed proc near
 	mov	es, dx
 	mov	di, ax
 	xor	si, si
-	mov	cx, 48
+	mov	cx, 60
 	cld
 gmpa_loop:
 	mov	bl, EMM_MPindex[si]
-	cmp	bl, 48				; 0ffh and every invalid index
+	cmp	bl, MAX_PHYS_PAGES		; 0ffh and every invalid index
 	jae	short gmpa_next
 	xor	bh, bh
 	shl	bx, 2				; sizeof mappable_page
@@ -976,6 +1010,11 @@ gmpa_loop:
 	mov	ax, [bx]
 	stosw
 	mov	ax, [bx+2]
+	push	bx
+	mov	bx,ax
+	xor	ah,ah
+	mov	al,_physical_page_ids[bx]
+	pop	bx
 	stosw
 gmpa_next:
 	inc	si
@@ -1207,6 +1246,8 @@ MapHandleArray_Entry_2:
 		;
 mha_sub0:
 	movzx	eax, fs:[si.mha0_phys_pg]	; physical page number
+	call	translate_physical_id
+	jc	mha_inv_seg
 	movzx	ebx, fs:[si.mha0_log_pg]	; logical page number
 	call	map_page			; map it if possible
 	jc	short mha_exit			; Error code already set

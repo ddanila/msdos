@@ -79,6 +79,10 @@ LAST_CONV_UMAP_SEG	=  03FFFh
 _DATA	segment
 
 	extrn	PF_Base:word
+	extrn	banking_base:word
+	extrn	requested_page_count:byte
+	extrn	requested_page_ids:byte
+	extrn	requested_page_segments:word
 	extrn	msg_flag:word
 
 _DATA	ends
@@ -188,6 +192,7 @@ find_phys_pages proc	near
 					; removes the segments of these from
 					; being mappable
 	call	Apply_User_UMA_Ranges ; apply explicit I= and X= precedence
+	call	Apply_Requested_Pages ; Pn= explicitly owns its selected windows
 ;
 ; then find the page frame from the information of mappable segs from C000-E000
 ; and the user specified page frame (if any).
@@ -199,6 +204,38 @@ find_phys_pages proc	near
 	ret
 ;
 find_phys_pages endp
+
+Apply_Requested_Pages proc near
+	push	ax
+	push	bx
+	push	cx
+	push	si
+	xor	si,si
+	xor	ch,ch
+	mov	cl,[requested_page_count]
+	jcxz	short requested_pages_done
+requested_pages_loop:
+	cmp	requested_page_ids[si],3
+	jbe	short requested_pages_next
+	mov	bx,si
+	shl	bx,1
+	mov	ax,requested_page_segments[bx]
+	push	cx
+	mov	cl,10
+	shr	ax,cl
+	pop	cx
+	mov	bx,ax
+	mov	cs:mappable_segs[bx],PAGE_MAPPABLE
+requested_pages_next:
+	inc	si
+	loop	requested_pages_loop
+requested_pages_done:
+	pop	si
+	pop	cx
+	pop	bx
+	pop	ax
+	ret
+Apply_Requested_Pages endp
 
     page
 ;******************************************************************************
@@ -429,7 +466,8 @@ exclude_conv_RAM    proc    near
     push    ax
 ;
     mov     bx,FIRST_CONV_UMAP_SEG
-    mov     ax,LAST_CONV_UMAP_SEG
+    mov     ax,[banking_base]
+    dec     ax
     call    exclude_segments
 ;
     pop     ax

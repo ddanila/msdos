@@ -56,6 +56,10 @@
 	public	pool_size
 	public	min_xms
 	public	dma_page_limit
+	public	banking_base
+	public	requested_page_count
+	public	requested_page_ids
+	public	requested_page_segments
 	public	msg_flag
 	public	Active_Status
 	public	Auto_Mode
@@ -213,6 +217,13 @@ dos_version	db	0h	; MS-DOS version
 pool_size	dw	0	; size of EMM Pages Pool in kbytes
 min_xms		dw	0	; extended memory that L= keeps available to XMS
 dma_page_limit	dw	1	; D= buffered DMA capacity in 16 KiB pages
+banking_base	dw	4000h	; B= lowest conventional banking segment
+requested_page_count db	0
+requested_page_ids db	20 dup (0)
+requested_page_segments dw 20 dup (0)
+p_frame_seen	db	0
+p_frame_segments dw	4 dup (0ffffh)
+page_id_temp	db	0
 msg_flag	dw	0	; Message flag byte
 umb_mode	db	0	; RAM or NOEMS requested paging-backed UMBs
 noems_mode	db	0	; NOEMS suppresses the EMS page frame
@@ -758,6 +769,8 @@ ploop1:
 	je	jmp_FRAME
 	cmp	al,'/'			; q: /Pmmmm direct page frame?
 	je	jmp_slash_P
+	cmp	al,'p'			; q: Pn= explicit physical page?
+	je	chk_page_assignment
 	cmp	al,'o'			; q: ON or OFF initial state?
 	je	chk_initial_onoff
 	cmp	al,'a'			; q: AUTO initial state?
@@ -772,6 +785,8 @@ dispatch_not_a:
 	je	chk_min_xms
 	cmp	al,'d'			; q: D= buffered DMA memory?
 	je	chk_dma_size
+	cmp	al,'b'			; q: B= lowest banking address?
+	je	chk_banking_base
 	cmp	al,'r'			; q: RAM activation mode?
 	je	chk_RAM
 	cmp	al,'n'			; q: NOEMS activation mode?
@@ -876,6 +891,120 @@ chk_dma_size:
 	shr	ax,cl
 	mov	[dma_page_limit],ax
 	jmp	ploop1
+
+chk_banking_base:
+	cmp	cx,6
+	jne	inv_prm
+	cmp	byte ptr [si],'='
+	jne	inv_prm
+	inc	si
+	mov	cx,4
+	call	htoi
+	or	cx,cx
+	jnz	inv_prm
+	cmp	ax,1000h
+	jb	inv_prm
+	cmp	ax,4000h
+	ja	inv_prm
+	test	ax,03ffh
+	jnz	inv_prm
+	mov	[banking_base],ax
+	jmp	ploop1
+
+chk_page_assignment:
+	cmp	cx,4
+	jb	inv_prm
+	dec	cx			; the dispatcher consumed the leading 'P'
+	xor	ax,ax
+page_number_loop:
+	cmp	byte ptr [si],'='
+	je	short page_number_done
+	mov	bl,[si]
+	cmp	bl,'0'
+	jb	inv_prm
+	cmp	bl,'9'
+	ja	inv_prm
+	sub	bl,'0'
+	xor	bh,bh
+	push	cx
+	mov	cx,10
+	mul	cx
+	pop	cx
+	or	dx,dx
+	jnz	inv_prm
+	add	ax,bx
+	jc	inv_prm
+	cmp	ax,255
+	ja	inv_prm
+	inc	si
+	dec	cx
+	jmp	short page_number_loop
+page_number_done:
+	cmp	cx,5			; '=' plus exactly four hex digits
+	jne	inv_prm
+	mov	[page_id_temp],al	; requested external physical-page ID
+	inc	si
+	dec	cx
+	call	htoi
+	or	cx,cx
+	jnz	inv_prm
+	call	validate_page_segment
+	jc	inv_prm
+	mov	dl,[page_id_temp]
+	mov	dh,[requested_page_count]
+	cmp	dh,20
+	jae	inv_prm
+	xor	ch,ch
+	mov	cl,dh
+	xor	bx,bx
+	xor	si,si
+page_assignment_duplicate_loop:
+	jcxz	short page_assignment_store
+	cmp	dl,requested_page_ids[bx]
+	je	inv_prm
+	cmp	ax,requested_page_segments[si]
+	je	inv_prm
+	inc	bx
+	add	si,2
+	loop	page_assignment_duplicate_loop
+page_assignment_store:
+	xor	bx,bx
+	mov	bl,dh
+	mov	requested_page_ids[bx],dl
+	shl	bx,1
+	mov	requested_page_segments[bx],ax
+	inc	[requested_page_count]
+	cmp	dl,3
+	ja	short page_assignment_stored
+	cmp	[PF_Base],0ffffh
+	jne	inv_prm
+	mov	[p_frame_seen],1
+	xor	bx,bx
+	mov	bl,dl
+	shl	bx,1
+	mov	p_frame_segments[bx],ax
+page_assignment_stored:
+	jmp	ploop1
+
+; AX is a Pn= segment. Accept the two DOS 5 windows at 16 KiB alignment.
+validate_page_segment proc near
+	test	ax,03ffh
+	jnz	short validate_page_segment_bad
+	cmp	ax,08000h
+	jb	short validate_page_segment_bad
+	cmp	ax,09c00h
+	jbe	short validate_page_segment_ok
+	cmp	ax,0c000h
+	jb	short validate_page_segment_bad
+	cmp	ax,0ec00h
+	ja	short validate_page_segment_bad
+validate_page_segment_ok:
+	clc
+	ret
+validate_page_segment_bad:
+	stc
+	ret
+validate_page_segment endp
 
 chk_altregs:
 	cmp	cx,3
@@ -1009,6 +1138,8 @@ chk_slash_P:
 store_page_frame:
 	cmp	[PF_Base],0ffffh
 	jne	inv_prm
+	cmp	[p_frame_seen],0
+	jne	inv_prm
 	mov	[PF_Base],ax
 	jmp	ploop1
 
@@ -1059,6 +1190,8 @@ chk_PF:
 	jb	inv_prm 		; n: error
 	cmp	[PF_Base],0ffffh	; q: have they already specified this?
 	jnz	inv_prm 		; y: don't let them do it again
+	cmp	[p_frame_seen],0
+	jne	inv_prm
 	call	parse_decimal_token
 	jc	inv_prm
 	cmp	ax,1
@@ -1186,6 +1319,9 @@ set_himem:
 ;	 cmp	 [himem_use],0ffh	 ; q:did they specify himem enb/dsb
 ;	 jnz	 parse_xit		 ; y: ok
 ;	 mov	 [himem_use],0		 ; n: set default that it is not used
+	call	finalize_page_frame_assignments
+	jnc	short parse_xit
+	or	[msg_flag],INV_PARM_MSG
 
 parse_xit:				; restore registers and exit
 	pop	es
@@ -1199,6 +1335,33 @@ parse_xit:				; restore registers and exit
 	pop	ax
 	ret
 parser	endp
+
+finalize_page_frame_assignments proc near
+	cmp	[p_frame_seen],0
+	je	short finalize_page_frame_ok
+	mov	ax,p_frame_segments[0]
+	cmp	ax,0ffffh
+	je	short finalize_page_frame_bad
+	mov	bx,ax
+	add	bx,0400h
+	cmp	p_frame_segments[2],bx
+	jne	short finalize_page_frame_bad
+	add	bx,0400h
+	cmp	p_frame_segments[4],bx
+	jne	short finalize_page_frame_bad
+	add	bx,0400h
+	cmp	p_frame_segments[6],bx
+	jne	short finalize_page_frame_bad
+	call	page_frame_to_index
+	jc	short finalize_page_frame_bad
+	mov	[PF_Base],ax
+finalize_page_frame_ok:
+	clc
+	ret
+finalize_page_frame_bad:
+	stc
+	ret
+finalize_page_frame_assignments endp
 ;
 ;   parser local data
 ;

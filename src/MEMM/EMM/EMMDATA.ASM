@@ -61,6 +61,7 @@ _DATA	SEGMENT
 	PUBLIC	_mappable_pages
 	PUBLIC	_mappable_page_count
 	PUBLIC	_physical_page_count
+	PUBLIC	_physical_page_ids
 	PUBLIC	_page_frame_pages
 	PUBLIC	EMM_MPindex
 	PUBLIC	_EMM_MPindex
@@ -223,10 +224,11 @@ _mappable_pages	LABEL	WORD
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 EMM_MPindex	LABEL	byte			; table of indexes into above
 _EMM_MPindex	LABEL	byte
-	db	48	dup (-1)		; 4000h to 10000h
+	db	60	dup (-1)		; 1000h to 10000h
 
 _mappable_page_count	dw	MAX_PHYS_PAGES	; number of entries in above
 _physical_page_count	dw	0		; number of physical pages
+_physical_page_ids	db	MAX_PHYS_PAGES dup (0ffh) ; external Pn= numbers
 
 
 _page_frame_pages	dw	4		; pages in the page frame

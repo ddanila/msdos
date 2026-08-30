@@ -41,8 +41,7 @@ EMM32_PHYS_PAGES = 4				; page frame contains 4 pages
 ; get for mapping is 40.
 
 TOT_PHYS_PAGES	equ	64
-MAX_PHYS_PAGES	equ	40			; Life, the Universe
-						; and Everything
+MAX_PHYS_PAGES	equ	52			; B=1000 through upper-memory windows
 PAGE_SIZE	= 1000h
 ;
 ; Of the above mappable pages the regions C000h to Dfffh have to be searched
@@ -58,10 +57,10 @@ MAX_ABOVE_CONV_PAGES	EQU 8
 ;
 ; Also the system memory mappable region starts at 4000h
 ;
-CONV_STRT_SEG	    equ 4000h
+CONV_STRT_SEG	    equ 1000h
 CONV_STRT_PG	    equ CONV_STRT_SEG SHR 10
 ;
-NUM_CONV_PGS	    equ (0A000h -4000h) SHR 10
+NUM_CONV_PGS	    equ (0A000h -1000h) SHR 10
 ;
 ; During init we keep track of mappable pages with an array of mappable_segs
 ;
