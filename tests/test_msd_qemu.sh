@@ -18,6 +18,8 @@ cp "$OUT/floppy.img" "$IMAGE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 mcopy -o -i "$IMAGE" "$ROOT/src/CMD/MSD/MSD.EXE" ::MSD.EXE
 mcopy -o -i "$IMAGE" "$EXIT_COM" ::QEXIT.COM
+printf 'DEVICE=A:\\RAMDRIVE.SYS 64\r\n' | \
+    mcopy -o -i "$IMAGE" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
@@ -29,6 +31,10 @@ mcopy -o -i "$IMAGE" "$EXIT_COM" ::QEXIT.COM
     printf 'IF EXIST A:\\MSD.TXT ECHO MSD_DEFAULT_FILE\r\n'
     printf 'MSD /I /S /F A:\\MSDI.TXT\r\n'
     printf 'TYPE A:\\MSDI.TXT\r\n'
+    printf 'MD A:\\MSDMAP\r\n'
+    printf 'SUBST D: A:\\MSDMAP\r\n'
+    printf 'MSD /S /F A:\\MSDMAP.TXT\r\n'
+    printf 'TYPE A:\\MSDMAP.TXT\r\n'
     printf 'MSD /S /P\r\n'
     printf 'MSD /NOPE\r\n'
     printf 'IF ERRORLEVEL 1 ECHO MSD_BAD_SWITCH_LEVEL1\r\n'
@@ -48,6 +54,9 @@ for marker in \
     'Operating System' 'Computer' 'Memory' 'Video' 'Disk Drives' \
     'IRQ Vectors' 'Device Drivers' 'Network' \
     'Reported DOS version: 6.22' 'True DOS version:     6.22' \
+    'B:  logical alias of A: (one physical floppy)' \
+    'C:  total      62464 bytes  512-byte sectors  FAT12' \
+    'D:  substituted path A:\MSDMAP' \
     'MSD [/B] [/I] [/F [filename]] [/P] [/S]' 'MSD_DEFAULT_FILE' \
     'Extended probing:      Skipped (/I)' \
     'MSD_BAD_SWITCH_LEVEL1' 'MSD_TEST_DONE'; do

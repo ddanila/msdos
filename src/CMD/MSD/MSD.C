@@ -7,6 +7,19 @@
 static FILE *report;
 static int skip_detection;
 
+/* DOS's internal tables contain unaligned words.  Decode them bytewise so
+ * this remains correct regardless of the compiler's structure packing. */
+static unsigned table_word(const unsigned char far *p)
+{
+    return p[0] | ((unsigned)p[1] << 8);
+}
+
+static unsigned long table_pointer(const unsigned char far *p)
+{
+    return (unsigned long)table_word(p) |
+           ((unsigned long)table_word(p + 2) << 16);
+}
+
 static void usage(void)
 {
     puts("Displays Microsoft Diagnostics information.");
@@ -109,8 +122,22 @@ static void report_video(void)
 static void report_disks(void)
 {
     union REGS inregs, outregs;
-    unsigned drive;
+    struct SREGS segregs;
+    unsigned char far *lists;
+    unsigned char far *dpb;
+    unsigned char far *cds;
+    unsigned drive, count = 0, i, floppy_count;
+    unsigned long pointer;
     heading("Disk Drives");
+
+    segread(&segregs);
+    inregs.h.ah = 0x52;
+    intdosx(&inregs, &outregs, &segregs);
+    lists = (unsigned char far *)MK_FP(segregs.es, outregs.x.bx);
+
+    int86(0x11, &inregs, &outregs);
+    floppy_count = outregs.x.ax & 1 ? ((outregs.x.ax >> 6) & 3) + 1 : 0;
+
     inregs.h.ah = 0x19;
     int86(0x21, &inregs, &outregs);
     drive = outregs.h.al + 1;
@@ -122,6 +149,52 @@ static void report_disks(void)
         fprintf(report, "%c:  total %10lu  free %10lu bytes\n",
                 'A' + drive - 1, cluster * outregs.x.dx,
                 cluster * outregs.x.bx);
+    }
+
+    pointer = table_pointer(lists);
+    /* DOS code in this tree checks both forms used by its initializers: an
+     * FFFFh offset or an FFFFh segment marks the end of the chain. */
+    while ((unsigned)pointer != 0xffff &&
+           (unsigned)(pointer >> 16) != 0xffff && count++ < 26) {
+        unsigned long clusters, bytes;
+        unsigned max_cluster, sector_size;
+        unsigned char dpb_drive;
+        dpb = (unsigned char far *)
+            MK_FP((unsigned)(pointer >> 16), (unsigned)pointer);
+        dpb_drive = dpb[0];
+        if ((unsigned)dpb_drive + 1 != drive &&
+            dpb_drive == 1 && floppy_count < 2) {
+            fprintf(report, "B:  logical alias of A: (one physical floppy)\n");
+        } else if ((unsigned)dpb_drive + 1 != drive) {
+            max_cluster = table_word(dpb + 13);
+            sector_size = table_word(dpb + 2);
+            clusters = max_cluster > 1 ? max_cluster - 1UL : 0;
+            bytes = clusters * (dpb[4] + 1UL) * sector_size;
+            fprintf(report,
+                    "%c:  total %10lu bytes  %u-byte sectors  FAT%u\n",
+                    'A' + dpb_drive, bytes, sector_size,
+                    max_cluster < 4087 ? 12 : 16);
+        }
+        pointer = table_pointer(dpb + 25);
+    }
+
+    pointer = table_pointer(lists + 22);
+    cds = (unsigned char far *)MK_FP((unsigned)(pointer >> 16),
+                                     (unsigned)pointer);
+    for (i = 0; i < lists[33] && i < 26; ++i, cds += 88) {
+        unsigned flags = table_word(cds + 67);
+        if (flags & (0x8000 | 0x2000 | 0x1000)) {
+            char path[68];
+            unsigned j;
+            for (j = 0; j < 67 && cds[j]; ++j)
+                path[j] = cds[j];
+            path[j] = 0;
+            fprintf(report, "%c:  %s %s\n", 'A' + i,
+                    flags & 0x8000 ? "network mapping " :
+                    flags & 0x2000 ? "joined path      " :
+                                     "substituted path",
+                    path);
+        }
     }
 }
 
