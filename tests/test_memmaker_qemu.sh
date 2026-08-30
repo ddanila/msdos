@@ -31,7 +31,7 @@ mcopy -o -i "$IMAGE" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
 mcopy -o -i "$IMAGE" "$ROOT/src/MEMM/MEMM/EMM386.EXE" ::EMM386.EXE
 mcopy -o -i "$IMAGE" "$QEXIT" ::QEXIT.COM
 mmd -i "$IMAGE" ::WINDOWS
-printf 'FILES=20\r\nDEVICE=A:\\DRIVER.SYS\r\n' >"$ORIGINAL_CONFIG"
+printf 'FCBS=4,0\r\nDEVICE=A:\\DRIVER.SYS\r\nLASTDRIVE=Z\r\nFILES=20\r\nBUFFERS=15\r\n' >"$ORIGINAL_CONFIG"
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\nSET WINDIR=A:\\WINDOWS\r\nNLSFUNC A:\\COUNTRY.SYS\r\n'
     printf 'IF EXIST A:\\MEMMAKER.STS ECHO MEMMAKER_SESSION_DONE\r\n'
@@ -91,6 +91,15 @@ if grep -qi '^DEVICE=A:\\HIMEM.SYS /TESTMEM:ON' <<<"$config" &&
     ok "CONFIG.SYS honors the Custom driver-high choice"
 else
     fail "optimized CONFIG.SYS contents"
+fi
+config_order="$(grep -Ein '^(DEVICE=.*HIMEM|DEVICE=.*EMM386|BUFFERS=|FILES=|DOS=|LASTDRIVE=|FCBS=)' <<<"$config" | cut -d: -f2-)"
+expected_order=$'DEVICE=A:\\HIMEM.SYS /TESTMEM:ON\nDEVICE=A:\\EMM386.EXE RAM M5\nBUFFERS=15\nFILES=20\nDOS=HIGH,UMB\nLASTDRIVE=Z\nFCBS=4,0'
+config_order_upper="$(tr '[:lower:]' '[:upper:]' <<<"$config_order")"
+expected_order_upper="$(tr '[:lower:]' '[:upper:]' <<<"$expected_order")"
+if [[ "$config_order_upper" == "$expected_order_upper" ]]; then
+    ok "CONFIG.SYS uses the retail MemMaker leading-entry order"
+else
+    fail "MemMaker CONFIG.SYS leading-entry order"
 fi
 if grep -qi '^LH NLSFUNC A:\\COUNTRY.SYS' <<<"$autoexec" &&
    ! grep -qi '^@MEMMAKER /SESSION' <<<"$autoexec"; then

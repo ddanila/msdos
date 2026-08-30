@@ -429,6 +429,54 @@ static int inspect_config(FILE *input, int *has_himem, int *has_emm)
     return 0;
 }
 
+#define CONFIG_OTHER      0
+#define CONFIG_HIMEM      1
+#define CONFIG_EMM386     2
+#define CONFIG_BUFFERS    3
+#define CONFIG_FILES      4
+#define CONFIG_DOS        5
+#define CONFIG_LASTDRIVE  6
+#define CONFIG_FCBS       7
+
+static int config_line_class(const char *line)
+{
+    const char *body = line;
+    while (*body == ' ' || *body == '\t')
+        ++body;
+    if ((starts_with(body, "DEVICE=") ||
+         starts_with(body, "DEVICEHIGH=")) &&
+        contains_name(body, "HIMEM.SYS"))
+        return CONFIG_HIMEM;
+    if ((starts_with(body, "DEVICE=") ||
+         starts_with(body, "DEVICEHIGH=")) &&
+        contains_name(body, "EMM386.EXE"))
+        return CONFIG_EMM386;
+    if (starts_with(body, "BUFFERS=") || starts_with(body, "BUFFERSHIGH="))
+        return CONFIG_BUFFERS;
+    if (starts_with(body, "FILES="))
+        return CONFIG_FILES;
+    if (starts_with(body, "DOS="))
+        return CONFIG_DOS;
+    if (starts_with(body, "LASTDRIVE="))
+        return CONFIG_LASTDRIVE;
+    if (starts_with(body, "FCBS="))
+        return CONFIG_FCBS;
+    return CONFIG_OTHER;
+}
+
+static int copy_config_class(FILE *input, FILE *output, int wanted)
+{
+    char line[256];
+    while (fgets(line, sizeof(line), input)) {
+        if (!strchr(line, '\n') && !feof(input))
+            return 1;
+        if (config_line_class(line) == wanted)
+            fputs(line, output);
+    }
+    rewind(input);
+    return 0;
+}
+
 static int transform_config(unsigned drive, const struct options *options,
                             const char *program,
                             const char *source, const char *temporary)
@@ -451,14 +499,24 @@ static int transform_config(unsigned drive, const struct options *options,
     }
     if (!has_himem)
         fprintf(output, "DEVICE=%c:\\HIMEM.SYS /TESTMEM:ON\n", 'A' + drive);
+    else if (copy_config_class(input, output, CONFIG_HIMEM))
+        goto fail;
     if (!has_emm)
         fprintf(output, "DEVICE=%c:\\EMM386.EXE RAM M5\n", 'A' + drive);
+    else if (copy_config_class(input, output, CONFIG_EMM386))
+        goto fail;
+    if (copy_config_class(input, output, CONFIG_BUFFERS) ||
+        copy_config_class(input, output, CONFIG_FILES))
+        goto fail;
     fputs("DOS=HIGH,UMB\n", output);
+    if (copy_config_class(input, output, CONFIG_LASTDRIVE) ||
+        copy_config_class(input, output, CONFIG_FCBS))
+        goto fail;
     while (fgets(line, sizeof(line), input)) {
         const char *body = line;
         while (*body == ' ' || *body == '\t')
             ++body;
-        if (starts_with(body, "DOS="))
+        if (config_line_class(body) != CONFIG_OTHER)
             continue;
         if (starts_with(body, "DEVICE=") && line_is_high_driver(body) &&
             !contains_name(body, "HIMEM.SYS") &&
@@ -496,6 +554,11 @@ static int transform_config(unsigned drive, const struct options *options,
     if (fclose(output))
         return 1;
     return 0;
+fail:
+    fclose(input);
+    fclose(output);
+    remove(temporary);
+    return 1;
 }
 
 static int transform_autoexec(unsigned drive, const struct options *options,
