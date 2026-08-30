@@ -25,6 +25,7 @@ DOSName 		DB   "A:\IBMDOS.COM",0 ; z string for target name
 ELSE
 BIOSName		DB   "A:\IO.SYS",0
 DOSName 		DB   "A:\MSDOS.SYS",0
+MenuName		DB   "A:\SYSMENU.OVL",0
 ENDIF
 
 SourceBIOSName		LABEL WORD
@@ -54,6 +55,13 @@ IF  IBMCOPYRIGHT
 ELSE
 DosNameLen		equ  $ - SourceDOS
 ENDIF
+
+SourceMenuName		DB   "A:"
+			DB   53 dup (0)
+SourceMenu		DB   "\SYSMENU.OVL",0
+MenuNameLen		equ  $ - SourceMenu
+MenuSourceHandle	dw   0ffffh
+MenuTargetHandle	dw   0ffffh
 
 SourceSize		dw   2
 Spec_flag		db   0
@@ -442,6 +450,9 @@ BEGIN			PROC NEAR
    call Do_SYS				; perform SYS operation 	       ;AN000;
 
 ;  $if	nc,and				; no error and			       ;AN000;
+   JC $$IF1
+
+   call Copy_Menu_Overlay		; retain CONFIG.SYS menu support
    JC $$IF1
 
    call Do_End				; clean up loose ends		       ;AN000;
@@ -979,6 +990,11 @@ public Check_Default_Drive
        mov  cx,SourceSize		; set up size to move		       ;AN021;
        rep  movsb			; move it!			       ;AN021;
 
+       lea  si,SourceSpec
+       lea  di,SourceMenuName
+       mov  cx,SourceSize
+       rep  movsb
+
 ;  $else				; figure out what the default is       ;AN021;
    JMP SHORT $$EN42
 $$IF42:
@@ -1006,6 +1022,7 @@ $$IF44:
 	   or	al,num_2_letter 	; turn into letter
 	   mov	byte ptr SourceBIOSName,AL ; twiddle source name
 	   mov	SourceDOSName,AL	; twiddle source name
+	   mov	SourceMenuName,AL
 	   clc				; reset fail flag		       ;AN000;
 
 ;      $endif				;				       ;AC000;
@@ -1038,6 +1055,12 @@ $$EN42:
        add  di,SourceSize		; move to end of specified part        ;AN021;
        lea  si,SourceDOS		; point to system file name	       ;AN021;
        rep  movsb			;				       ;AN021;
+
+       mov  cx,MenuNameLen
+       lea  di,SourceMenuName
+       add  di,SourceSize
+       lea  si,SourceMenu
+       rep  movsb
 ;  $endif				;				       ;AN021;
 $$IF48:
 
@@ -2131,6 +2154,7 @@ $$EN104:
    mov	al,TargDrv			; set up drive letter in destignation filespecs
    mov	BIOSName,al			; point names at destination drive
    mov	DOSName,al			;
+   mov	MenuName,al
 
    MOV	DL,TargDrvNum			; load drive
    PUSH DS				; save register
@@ -2576,6 +2600,92 @@ $$IF143:
    ret
 
    ENDPROC Get_Cluster
+
+   BREAK <SYS - Copy_Menu_Overlay >
+
+; SYSMENU.OVL is an optional companion for this tree's DOS 6.22 CONFIG.SYS
+; menus.  Older source disks remain valid SYS sources; when the overlay is
+; present, transfer it exactly and protect it like the core system files.
+Copy_Menu_Overlay PROC NEAR
+   mov	MenuSourceHandle,0ffffh
+   mov	MenuTargetHandle,0ffffh
+   mov	dx,OFFSET SourceMenuName
+   mov	ax,3d00h
+   int	21h
+   jc	CopyMenuAbsent
+   mov	MenuSourceHandle,ax
+
+   mov	dx,OFFSET MenuName
+   mov	ax,4301h
+   xor	cx,cx
+   int	21h			; ignore an absent old target
+
+   mov	dx,OFFSET MenuName
+   mov	ah,3ch
+   xor	cx,cx
+   int	21h
+   jc	CopyMenuFail
+   mov	MenuTargetHandle,ax
+
+CopyMenuRead:
+   mov	bx,MenuSourceHandle
+   mov	dx,OFFSET DOS_BUFFER
+   mov	cx,80h
+   mov	ah,3fh
+   int	21h
+   jc	CopyMenuFail
+   or	ax,ax
+   jz	CopyMenuDone
+   mov	cx,ax
+   mov	bx,MenuTargetHandle
+   mov	ah,40h
+   int	21h
+   jc	CopyMenuFail
+   cmp	ax,cx
+   jne	CopyMenuFail
+   jmp	CopyMenuRead
+
+CopyMenuDone:
+   call	CloseMenuHandles
+   mov	dx,OFFSET MenuName
+   mov	ax,4301h
+   mov	cx,7			; read-only, hidden, system
+   int	21h
+   jc	CopyMenuFailureCode
+   clc
+   ret
+
+CopyMenuAbsent:
+   clc
+   ret
+
+CopyMenuFail:
+   call	CloseMenuHandles
+   mov	dx,OFFSET MenuName
+   mov	ah,41h
+   int	21h			; discard an incomplete target
+CopyMenuFailureCode:
+   mov	ax,(util_B shl 8) + no_room
+   stc
+   ret
+
+CloseMenuHandles:
+   mov	bx,MenuTargetHandle
+   cmp	bx,0ffffh
+   je	CloseMenuSource
+   mov	ah,3eh
+   int	21h
+   mov	MenuTargetHandle,0ffffh
+CloseMenuSource:
+   mov	bx,MenuSourceHandle
+   cmp	bx,0ffffh
+   je	CloseMenuReturn
+   mov	ah,3eh
+   int	21h
+   mov	MenuSourceHandle,0ffffh
+CloseMenuReturn:
+   ret
+Copy_Menu_Overlay ENDP
 
    BREAK <SYS - Do_SYS >
 ;******************* START OF SPECIFICATIONS ***********************************

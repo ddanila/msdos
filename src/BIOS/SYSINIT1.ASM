@@ -184,7 +184,7 @@ ASSUME	CS:SYSINITSEG,DS:NOTHING,ES:NOTHING,SS:NOTHING
 	PUBLIC dosinfo,entry_point
 	PUBLIC fcbs,keep
 	PUBLIC confbot,alloclim
-	PUBLIC RawConfigSeg,MenuScratch,MenuCodeSeg
+	PUBLIC RawConfigSeg,MenuScratch,MenuPristine,MenuCodeSeg
 	PUBLIC zero,sepchr,STALL
 	PUBLIC count,chrptr,org_count
 	PUBLIC bufptr,memlo,prmblk,memhi
@@ -287,6 +287,7 @@ NUM_CDS 		DB	5	; 5 net drives
 CONFBOT 		DW	?
 RawConfigSeg		DW	?
 MenuScratch		DW	?
+MenuPristine		DW	?
 MenuCodeSeg		DW	?
 ALLOCLIM		DW	?
 FOOSTRNG		DB	"A:\",0

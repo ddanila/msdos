@@ -132,7 +132,7 @@ ASSUME	CS:SYSINITSEG,DS:NOTHING,ES:NOTHING,SS:NOTHING
 	EXTRN	DOSINFO:dword,ENTRY_POINT:dword
 	EXTRN	FCBS:byte,KEEP:byte
 	EXTRN	CONFBOT:word,ALLOCLIM:word,COMMAND_LINE:byte
-	EXTRN	RawConfigSeg:word,MenuScratch:word,MenuCodeSeg:word
+	EXTRN	RawConfigSeg:word,MenuScratch:word,MenuPristine:word,MenuCodeSeg:word
 	EXTRN	ZERO:byte,SEPCHR:byte
 	EXTRN	COUNT:word,CHRPTR:word,CNTRYFILEHANDLE:word
 	EXTRN	MEMLO:word,MEMHI:word,PRMBLK:word,LDOFF:word
@@ -766,6 +766,8 @@ NOPROB: 				;GET FILE SIZE (NOTE < 64K!!)
 	SHL	AX,1			; INCLUDE may expand a section more than once.
 	SUB	DX,AX			; Transient processing buffer (4x source size).
 	MOV	[MenuScratch],DX
+	SUB	DX,AX			; Immutable organized image for later passes.
+	MOV	[MenuPristine],DX
 	SUB	DX,200H			; 8 KiB transient menu overlay.
 	MOV	[MenuCodeSeg],DX
 	MOV	[CONFBOT],DX		; Lowest address reserved for configuration data.
@@ -830,8 +832,17 @@ Multi_Pass:				;AN018;AN026; called to execute IFS=,  INSTALL= commands
 	pop	ds			;AN018;
 	cmp	Multi_Pass_id, 10	;J.K.
 	jae	Endconv 		;J.K. Do nothing. Just return.
-	push	MenuScratch 		; Organized CONFIG.SYS work image.
+	push	cs:MenuPristine
+	pop	ds
+	push	cs:MenuScratch 		; Organized CONFIG.SYS work image.
 	pop	es			;AN018; ES -> Confbot
+	xor	si,si
+	xor	di,di
+	mov	cx,cs:Org_Count
+	cld
+	rep	movsb			; Device loading may alter the prior pass image.
+	push	cs
+	pop	ds
 	mov	si, Org_Count		;AN018;
 	mov	Count, si		;AN018; set Count
 	xor	si,si			;AN018;
@@ -842,9 +853,52 @@ Multi_Pass:				;AN018;AN026; called to execute IFS=,  INSTALL= commands
 GETCOM:
 	call	PrepareConfigMenus
 	invoke	ORGANIZE		;ORGANIZE THE FILE
+	call	RecordDeferredInstall
+	push	ds
+	push	cs:MenuScratch
+	pop	ds
+	push	cs:MenuPristine
+	pop	es
+	xor	si,si
+	xor	di,di
+	mov	cx,cs:Org_Count
+	cld
+	rep	movsb
+	pop	ds
+	mov	es,MenuScratch
 	CALL	GETCHR
 	jmp	CONFLP
 
+; Record deferred commands before DEVICE initialization can alter the working
+; image. Each organized line begins with its one-byte command tag.
+RecordDeferredInstall proc near
+	push	ax
+	push	cx
+	push	si
+	xor	si,si
+	mov	cx,Org_Count
+RecordInstallLine:
+	jcxz	short RecordInstallDone
+	mov	al,es:[si]
+	cmp	al,'I'
+	je	short RecordInstallFound
+	cmp	al,'V'
+	jne	short RecordInstallSkip
+RecordInstallFound:
+	or	Install_Flag,HAVE_INSTALL_CMD
+RecordInstallSkip:
+	mov	al,es:[si]
+	inc	si
+	dec	cx
+	cmp	al,LF
+	jne	short RecordInstallSkip
+	jmp	short RecordInstallLine
+RecordInstallDone:
+	pop	si
+	pop	cx
+	pop	ax
+	ret
+RecordDeferredInstall endp
 
 MenuOverlayName db '\SYSMENU.OVL',0
 MenuOverlayEntry dw 0,0

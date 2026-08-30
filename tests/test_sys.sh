@@ -51,6 +51,7 @@ dd if="$SRC/BOOT/MSBOOT.BIN" of="$SYS_BASE" bs=1 skip=31744 count=512 conv=notru
 mformat -i "$SYS_BASE" -k ::
 mcopy -i "$SYS_BASE" "$SRC/BIOS/IO.SYS" ::IO.SYS
 mcopy -i "$SYS_BASE" "$SRC/DOS/MSDOS.SYS" ::MSDOS.SYS
+mcopy -i "$SYS_BASE" "$SRC/BIOS/SYSMENU.OVL" ::SYSMENU.OVL
 mcopy -i "$SYS_BASE" "$COMMAND_COM" ::COMMAND.COM
 mcopy -i "$SYS_BASE" "$SRC/CMD/FORMAT/FORMAT.COM" ::FORMAT.COM
 mcopy -i "$SYS_BASE" "$SRC/CMD/SYS/SYS.COM" ::SYS.COM
@@ -113,6 +114,13 @@ if [[ $(dd if="$SYS_TARGET" bs=1 skip=3 count=8 2>/dev/null) == "MSDOS5.0" ]]; t
     ok "SYS retained the MS-DOS 6.22-compatible MSDOS5.0 OEM identifier"
 else
     fail "SYS did not install the MSDOS5.0 boot-sector OEM identifier"
+fi
+
+if cmp -s "$SRC/BIOS/SYSMENU.OVL" <(mtype -i "$SYS_TARGET" ::SYSMENU.OVL 2>/dev/null) \
+    && mattrib -i "$SYS_TARGET" ::SYSMENU.OVL | grep -Eq 'SHR.*SYSMENU'; then
+    ok "SYS transferred and protected the CONFIG menu overlay"
+else
+    fail "SYS did not transfer the CONFIG menu overlay exactly"
 fi
 
 mcopy -i "$SYS_TARGET" "$COMMAND_COM" ::COMMAND.COM

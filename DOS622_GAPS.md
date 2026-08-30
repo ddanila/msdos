@@ -100,8 +100,9 @@ source-order flattening, missing-submenu filtering, and the `CONFIG` variable
 passed to AUTOEXEC.BAT have QEMU coverage.
 
 Remaining work is a reference differential of exact diagnostics and parsing
-boundaries, plus selected-block tests combining `DEVICEHIGH`, `INSTALL`,
-`SHELL`, F5/F8, and AUTOEXEC.BAT.
+boundaries, plus selected-block interaction with F5/F8. Selected `DEVICEHIGH`,
+`INSTALL`, `SHELL`, and AUTOEXEC.BAT behavior is covered across fresh
+multipass working images.
 
 `DEVICEHIGH /L:region[,minsize][;...] /S` and the corresponding `LOADHIGH`
 region grammar are already implemented and covered. `INSTALLHIGH` is a useful
