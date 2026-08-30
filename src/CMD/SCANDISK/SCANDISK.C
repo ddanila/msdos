@@ -38,6 +38,7 @@ struct scan_state {
     unsigned repaired;
     unsigned unrepaired;
     unsigned next_chk;
+    unsigned next_recovery_name;
     int repair_all;
     int aborted;
     int undo_decided;
@@ -563,6 +564,83 @@ static void validate_dot_entries(struct scan_state *state,
         ++state->unrepaired;
 }
 
+static int valid_short_name(const unsigned char *name)
+{
+    static const char illegal[] = "\"*+,/:;<=>?[\\]|";
+    unsigned index;
+    int padding = 0;
+    if (name[0] == ' ' || name[0] == 0)
+        return 0;
+    for (index = 0; index < 11; ++index) {
+        unsigned char c = name[index];
+        if (index == 8)
+            padding = 0;
+        if (c == ' ')
+            padding = 1;
+        else if (padding || c < 0x20 || strchr(illegal, c))
+            return 0;
+    }
+    return 1;
+}
+
+static int name_seen_before(struct fat_volume *volume, unsigned first,
+                            unsigned long current_sector,
+                            unsigned current_offset,
+                            const unsigned char name[11])
+{
+    unsigned cluster = first, next, sector_count, sector_index;
+    unsigned long base;
+    unsigned traversed = 0;
+    int root = first == 0;
+    do {
+        if (root) {
+            base = volume->root_start;
+            sector_count = volume->root_sectors;
+        } else {
+            if (!fat_volume_valid_cluster(volume, cluster) ||
+                traversed++ > volume->clusters)
+                return 0;
+            base = fat_volume_cluster_sector(volume, cluster);
+            sector_count = volume->sectors_per_cluster;
+        }
+        for (sector_index = 0; sector_index < sector_count; ++sector_index) {
+            unsigned offset;
+            unsigned long sector = base + sector_index;
+            if (fat_volume_io(volume, 0, sector, 1, compare_sector))
+                return 0;
+            for (offset = 0; offset < 512; offset += 32) {
+                unsigned char *entry = compare_sector + offset;
+                if (sector == current_sector && offset == current_offset)
+                    return 0;
+                if (!entry[0])
+                    return 0;
+                if (entry[0] != 0xe5 && (entry[11] & 0x0f) != 0x0f &&
+                    !(entry[11] & 0x08) && !memcmp(entry, name, 11))
+                    return 1;
+            }
+        }
+        if (root || fat_volume_get(volume, cluster, &next, fat_buffer) ||
+            fat_volume_eoc(volume, next))
+            break;
+        cluster = next;
+    } while (1);
+    return 0;
+}
+
+static void make_recovery_name(struct scan_state *state,
+                               struct fat_volume *volume, unsigned directory,
+                               unsigned char name[11])
+{
+    unsigned attempts = 0;
+    do {
+        char base[9];
+        sprintf(base, "FOUND%03u", state->next_recovery_name++ % 1000U);
+        memcpy(name, base, 8);
+        memcpy(name + 8, "CHK", 3);
+    } while (++attempts < 10000U &&
+             name_seen_before(volume, directory, ~0UL, 0, name));
+}
+
 static int scan_directory(struct scan_state *state, unsigned first,
                           unsigned parent, unsigned depth)
 {
@@ -610,9 +688,46 @@ static int scan_directory(struct scan_state *state, unsigned first,
                 if (entry[0] == 0)
                     break;
                 /* 05h is the on-disk escape for a live E5h first byte. */
-                if (entry[0] == 0xe5 ||
-                    (entry[11] & 0x0f) == 0x0f || (entry[11] & 0x08))
+                if (entry[0] == 0xe5 || (entry[11] & 0x0f) == 0x0f)
                     continue;
+                if (entry[11] & 0x08) {
+                    if (!root) {
+                        report_problem(state,
+                            "A subdirectory contains a volume-label entry.");
+                        if (permit_repair(state,
+                                "Remove the misplaced volume label")) {
+                            entry[0] = 0xe5;
+                            repair_directory_sector(state, position);
+                            ++state->repaired;
+                        } else ++state->unrepaired;
+                    }
+                    continue;
+                }
+                if (!dot_entry(entry) &&
+                    (!valid_short_name(entry) ||
+                     name_seen_before(&state->volume, first, position,
+                                      entry_offset, entry))) {
+                    report_problem(state,
+                        "A directory entry has an invalid or duplicate name.");
+                    if (permit_repair(state,
+                            "Give the entry a unique recovery name")) {
+                        make_recovery_name(state, &state->volume, first, entry);
+                        repair_directory_sector(state, position);
+                        ++state->repaired;
+                    } else ++state->unrepaired;
+                }
+                if ((entry[11] & 0xc0) || (entry[11] & 0x18) == 0x18) {
+                    report_problem(state,
+                        "A directory entry has invalid attributes.");
+                    if (permit_repair(state,
+                            "Repair the directory-entry attributes")) {
+                        entry[11] &= 0x3f;
+                        if ((entry[11] & 0x18) == 0x18)
+                            entry[11] &= (unsigned char)~0x08;
+                        repair_directory_sector(state, position);
+                        ++state->repaired;
+                    } else ++state->unrepaired;
+                }
                 child = get_word(entry + 26);
                 size = get_dword(entry + 28);
                 if (entry[11] & 0x10) {

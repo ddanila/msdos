@@ -39,6 +39,9 @@ python3 -c "open('$OUT/scandisk-frag.bin','wb').write(bytes((i & 255 for i in ra
 mcopy -o -i "$TARGET" "$OUT/scandisk-frag.bin" ::FRAG.BIN
 mmd -i "$TARGET" ::BROKEN
 printf 'nested payload\r\n' | mcopy -o -i "$TARGET" - ::BROKEN/KEEP.TXT
+printf 'duplicate one\r\n' | mcopy -o -i "$TARGET" - ::DUP1.TXT
+printf 'duplicate two\r\n' | mcopy -o -i "$TARGET" - ::DUP2.TXT
+printf 'invalid name\r\n' | mcopy -o -i "$TARGET" - ::BADNAME.TXT
 
 python3 - "$TARGET" <<'PY'
 from pathlib import Path
@@ -100,6 +103,17 @@ broken_sector = data_offset + (broken_cluster - 2) * 512
 struct.pack_into('<H', disk, broken_sector + 26, 999)
 struct.pack_into('<H', disk, broken_sector + 32 + 26, 999)
 
+def root_entry(name):
+    return next(root + off for off in range(0, 224 * 32, 32)
+                if disk[root + off:root + off + 11] == name)
+
+control_entry = root_entry(b'CONTROL TXT')
+disk[control_entry + 11] |= 0xc0
+dup2_entry = root_entry(b'DUP2    TXT')
+disk[dup2_entry:dup2_entry + 11] = b'DUP1    TXT'
+badname_entry = root_entry(b'BADNAME TXT')
+disk[badname_entry] = ord('*')
+
 data = 33 * 512
 for cluster in (100, 101, 102):
     start = data + (cluster - 2) * 512
@@ -151,6 +165,12 @@ if grep -q 'invalid \. entry' "$LOG" &&
 else
     fail "directory metadata corruption was not fully diagnosed"
 fi
+if grep -q 'invalid or duplicate name' "$LOG" &&
+   grep -q 'invalid attributes' "$LOG"; then
+    ok "invalid names, duplicate names, and reserved attributes are detected"
+else
+    fail "directory name or attribute corruption was not diagnosed"
+fi
 grep -q 'RECOVERED_FILE_PRESENT' "$LOG" &&
     ok "/AUTOFIX converts the orphan chain to FILE0000.CHK" ||
     fail "lost chain was not recovered"
@@ -174,6 +194,14 @@ actual="$(mcopy -i "$TARGET" ::FILE0000.CHK - 2>/dev/null | sha256sum | awk '{pr
 [[ "$actual" == "$expected" ]] &&
     ok "recovered chain payload is byte-exact" ||
     fail "recovered chain payload differs"
+
+dup_payload="$(mcopy -i "$TARGET" ::FOUND000.CHK - 2>/dev/null | tr -d '\r\n')"
+bad_payload="$(mcopy -i "$TARGET" ::FOUND001.CHK - 2>/dev/null | tr -d '\r\n')"
+if [[ "$dup_payload" == 'duplicate two' && "$bad_payload" == 'invalid name' ]]; then
+    ok "name repairs preserve both formerly ambiguous file payloads"
+else
+    fail "name repairs did not preserve the renamed file payloads"
+fi
 
 control="$(mcopy -i "$TARGET" ::CONTROL.TXT - 2>/dev/null | tr -d '\r\n')"
 [[ "$control" == 'SCANDISK CONTROL PAYLOAD' ]] &&
