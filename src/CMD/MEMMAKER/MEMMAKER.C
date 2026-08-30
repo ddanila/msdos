@@ -230,6 +230,7 @@ static int inspect_config(FILE *input, int *has_himem, int *has_emm)
 }
 
 static int transform_config(unsigned drive, const struct options *options,
+                            const char *program,
                             const char *source, const char *temporary)
 {
     FILE *input = fopen(source, "r");
@@ -271,6 +272,15 @@ static int transform_config(unsigned drive, const struct options *options,
             fputs(line, output);
         }
     }
+    if (strchr(program, ':') || strchr(program, '\\') || strchr(program, '/'))
+        fprintf(output, "INSTALL=%s /SESSION /SWAP:%c /W:%u,%u\n",
+                program, 'A' + drive,
+                options->reserve_one, options->reserve_two);
+    else
+        fprintf(output,
+                "INSTALL=%c:\\MEMMAKER.EXE /SESSION /SWAP:%c /W:%u,%u\n",
+                'A' + drive, 'A' + drive,
+                options->reserve_one, options->reserve_two);
     fclose(input);
     if (fclose(output))
         return 1;
@@ -362,7 +372,8 @@ static int finish_session(unsigned drive, const struct options *options)
     return 0;
 }
 
-static int optimize(unsigned drive, const struct options *options)
+static int optimize(unsigned drive, const struct options *options,
+                    const char *program)
 {
     char config[32], autoexec[32], config_backup[32], auto_backup[32];
     char config_temp[32], auto_temp[32], status[32];
@@ -385,7 +396,7 @@ static int optimize(unsigned drive, const struct options *options)
             return 3;
     }
     if (copy_file(config, config_backup) || copy_file(autoexec, auto_backup) ||
-        transform_config(drive, options, config, config_temp) ||
+        transform_config(drive, options, program, config, config_temp) ||
         transform_autoexec(autoexec, auto_temp)) {
         remove(config_temp);
         remove(auto_temp);
@@ -435,5 +446,5 @@ int main(int argc, char **argv)
         return restore_files(drive, &options);
     if (options.session)
         return finish_session(drive, &options);
-    return optimize(drive, &options);
+    return optimize(drive, &options, argv[0]);
 }

@@ -33,6 +33,7 @@ printf 'FILES=20\r\nDEVICE=A:\\DRIVER.SYS\r\n' >"$ORIGINAL_CONFIG"
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\nNLSFUNC A:\\COUNTRY.SYS\r\n'
     printf 'IF EXIST A:\\MEMMAKER.STS ECHO MEMMAKER_SESSION_DONE\r\n'
+    printf 'IF EXIST A:\\MEMMAKER.STS QEXIT.COM\r\n'
 } >"$ORIGINAL_AUTOEXEC"
 mcopy -o -i "$IMAGE" "$ORIGINAL_CONFIG" ::CONFIG.SYS
 mcopy -o -i "$IMAGE" "$ORIGINAL_AUTOEXEC" ::AUTOEXEC.BAT
@@ -61,13 +62,13 @@ timeout 40 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 
     2>/dev/null &
 QEMU_PID=$!
 python3 "$ROOT/tests/serial_expect.py" "$SERIAL_IN" "$SERIAL_OUT" "$SESSION_LOG" \
-    'A>' 'MEMMAKER /SESSION /SWAP:A /W:4,8\rQEXIT.COM\r'
+    'A>' 'QEXIT.COM\r'
 wait "$QEMU_PID" || true
 exec 3>&-
 cat "$SESSION_LOG" >>"$LOG"
 
 if grep -q 'MEMMAKER_SESSION_DONE' "$LOG"; then
-    ok "batch optimization reboots and completes its /SESSION pass"
+    ok "batch optimization schedules and completes its own /SESSION pass"
 else
     fail "MemMaker reboot/session workflow"
     tail -80 "$LOG"
