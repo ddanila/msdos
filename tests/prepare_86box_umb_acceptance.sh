@@ -37,6 +37,7 @@ nasm -f bin "$ROOT/tests/umb_lifecycle_reference.asm" -o "$UMB_PROBE"
 nasm -f bin "$ROOT/tests/hma_reference_probe.asm" -o "$HMA_PROBE"
 
 cp "$BASE_IMAGE" "$OUTPUT_IMAGE"
+mdel -i "$OUTPUT_IMAGE" ::HELP.HLP >/dev/null 2>&1 || true
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 mcopy -o -i "$OUTPUT_IMAGE" "$HIMEM" ::HIMEM.SYS
 mcopy -o -i "$OUTPUT_IMAGE" "$UMB_PROBE" ::UMBLREF.COM

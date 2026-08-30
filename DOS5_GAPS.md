@@ -33,7 +33,7 @@ features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
 
 | DOS 5 feature | Repository status | Gap |
 | --- | --- | --- |
-| DOS in the HMA and programs/drivers in UMBs | Present; broader validation pending | HIMEM runs on a fixed-cycle 286 gate, including byte-exact XMS moves, and HIMEM/EMM386 HMA/UMB integration is exercised end to end on 386+ systems. Broader physical-machine validation remains. |
+| DOS in the HMA and programs/drivers in UMBs | Present | HIMEM runs on a fixed-cycle 286 gate, including byte-exact XMS moves, and a CI-hosted 286/386/486 model matrix exercises HIMEM/EMM386 HMA/UMB integration. Physical-machine validation remains an external confidence activity. |
 | MS-DOS Shell and Task Swapper | Missing | No DOSSHELL UI, program groups, file manager, session switching, EGA save driver, or task-switcher API. |
 | Command history and macros | Present | DOSKEY provides resident history, macros, edit modes, redirected input, INT 2Fh services, and the DOS 5 interactive history/editing keys. |
 | Full-screen Editor and QBasic | Missing | No EDIT, QBASIC, BASIC runtime, help, or sample programs. EDLIN remains available. |
@@ -154,9 +154,8 @@ and must not be represented by no-op stubs if compatibility is claimed.
 ### XMS, EMS, and device APIs
 
 - The repository HIMEM exposes XMS 2.00 HMA, A20, handle, move, lock, resize,
-  and UMB calls. Its public function set is substantially present, but DOS 5
-  configuration semantics, 286 execution, and the complete error/timing matrix
-  remain gaps.
+  and UMB calls. Documented configuration semantics and 286 execution are
+  gated; exhaustive machine-specific error and timing parity is not claimed.
 - EMM386 contains the LIM EMS dispatcher through the 4.0 function range and
   focused allocation, mapping, save/restore, and warm-boot tests. Complete LIM
   4.0 semantic conformance and third-party application compatibility are still
@@ -181,8 +180,11 @@ and must not be represented by no-op stubs if compatibility is claimed.
   complete CPI/device combination matrix remain only partially compared.
 - HIMEM installs and serves its core XMS lifecycle on a fixed-cycle 286 gate,
   including 64 byte-exact bidirectional XMS moves without 386 opcodes.
-- Hardware validation is dominated by QEMU. The recorded 86Box 486 gate does
-  not replace testing on representative 8086/286/386 systems and controllers.
+- A CI-hosted fixed-cycle DOSBox-X matrix covers 286, 386, and 486 CPU models;
+  the 386/486 rows exercise DOS high memory, EMM386 paging, UMB allocation,
+  A20, HMA ownership, and INT 2Fh chaining. QEMU 486 coverage and a reproducible
+  86Box acceptance image provide independent paths. Physical controllers and
+  machines remain outside automated validation.
 
 ## Installation, documentation, and tooling gaps
 
@@ -194,8 +196,8 @@ Remaining project-level gaps are:
 - no uninstall workflow or reproduction of the exact retail disk layout and UI;
 - no user manual/help corpus for the implemented commands beyond `/?` output;
 - no automated differential runner against user-supplied genuine DOS 5 media;
-- no CI-hosted 286/386/486 hardware-model matrix beyond QEMU and the separately
-  reproducible 86Box acceptance run;
+- no maintained physical-hardware lab for controller-, chipset-, and
+  shadow-RAM-specific validation;
 - host tools support Linux x86-64 and macOS arm64, not Windows or other hosts;
 - builds depend on pinned custom JWasm, Open Watcom, and kvikdos forks, so each
   tool update still requires the complete reproducibility/runtime gate.
@@ -211,9 +213,10 @@ The compatibility work is split into four independently useful stages:
 2. **Distribution and installation (complete).** EXPAND, the DOS 5
    compressed-file format, reproducible two-disk media, and tested guided
    fresh-install/upgrade flows are present.
-3. **Memory, locale, and hardware breadth.** Complete HIMEM configuration and
-   286 support, EMM386 driver-load options, media geometries, NLS combinations,
-   and representative 286/386/486 hardware validation.
+3. **Memory, locale, and hardware breadth (complete).** HIMEM configuration and
+   286 execution, EMM386 driver-load options, media geometries, retail English
+   NLS combinations, and a CI-hosted 286/386/486 model matrix are present.
+   Physical-hardware breadth remains an ongoing confidence activity.
 4. **Help and recovery.** HELP and its database are present. MIRROR, UNDELETE,
    UNFORMAT, safe-FORMAT metadata, forensic reconstruction, and interrupted-
    write validation, latest/prior mirror selection, and real-time bounded
