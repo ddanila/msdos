@@ -6,8 +6,12 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/out"
 BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 IMAGE="$OUT/power.img"
+APM_IMAGE="$OUT/power-apm.img"
 LOG="$OUT/power.log"
+APM_LOG="$OUT/power-apm.log"
 PROBE="$OUT/power-probe.com"
+APM_DRIVER="$OUT/apm-test.sys"
+APM_PROBE="$OUT/power-apm-probe.com"
 QEXIT="$OUT/power-qexit.com"
 
 for tool in nasm mcopy qemu-system-i386 timeout; do
@@ -15,6 +19,8 @@ for tool in nasm mcopy qemu-system-i386 timeout; do
 done
 cp "$BASE" "$IMAGE"
 nasm -f bin "$ROOT/tests/power_probe.asm" -o "$PROBE"
+nasm -f bin "$ROOT/tests/apm_test_driver.asm" -o "$APM_DRIVER"
+nasm -f bin "$ROOT/tests/power_apm_probe.asm" -o "$APM_PROBE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 mcopy -o -i "$IMAGE" "$ROOT/src/CMD/POWER/POWER.EXE" ::POWER.EXE
 mdel -i "$IMAGE" ::POWER.COM >/dev/null 2>&1 || true
@@ -44,3 +50,23 @@ grep -Fq POWER_IDLE_PASS "$LOG"
 grep -Fq POWER_REJECT_PASS "$LOG"
 ! grep -Fq POWER_IDLE_FAIL "$LOG"
 echo '  PASS: POWER device, controller modes, idle action, and parser rejection'
+
+cp "$BASE" "$APM_IMAGE"
+mcopy -o -i "$APM_IMAGE" "$ROOT/src/CMD/POWER/POWER.EXE" ::POWER.EXE
+mcopy -o -i "$APM_IMAGE" "$APM_DRIVER" ::APMTEST.SYS
+mcopy -o -i "$APM_IMAGE" "$APM_PROBE" ::PWRAPM.COM
+mcopy -o -i "$APM_IMAGE" "$QEXIT" ::QEXIT.COM
+{
+    printf 'DEVICE=A:\\APMTEST.SYS\r\n'
+    printf 'DEVICE=A:\\POWER.EXE\r\n'
+} | mcopy -o -i "$APM_IMAGE" - ::CONFIG.SYS
+printf '@ECHO OFF\r\nCTTY AUX\r\nPWRAPM.COM\r\nQEXIT.COM\r\n' \
+    | mcopy -o -i "$APM_IMAGE" - ::AUTOEXEC.BAT
+timeout 25 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 16 \
+    -drive if=floppy,index=0,format=raw,file="$APM_IMAGE",cache=writethrough \
+    -boot a -serial stdio -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    </dev/null >"$APM_LOG" 2>&1 || true
+grep -Fq POWER_APM_PASS "$APM_LOG"
+! grep -Fq POWER_APM_FAIL "$APM_LOG"
+echo '  PASS: POWER connects, enables, disables, re-enables, and idles through APM'

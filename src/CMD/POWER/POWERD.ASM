@@ -83,10 +83,12 @@ interrupt PROC FAR
         jc      short no_apm
         cmp     bx,504dh                ; 'PM'
         jne     short no_apm
-        mov     byte ptr cs:apm_available,1
         mov     ax,5301h                ; connect real-mode interface
         xor     bx,bx
         int     15h
+        jc      short no_apm
+        mov     byte ptr cs:apm_available,1
+        call    set_apm_enabled
 no_apm:
         push    ds
         push    cs
@@ -185,6 +187,7 @@ retail_set_std:
         mov     al,MODE_STD
 retail_store_mode:
         mov     cs:power_mode,al
+        call    set_apm_enabled
         xor     ax,ax
         iret
 retail_mode_bad:
@@ -258,6 +261,7 @@ multiplex_set_std:
         jne     short multiplex_set_done
         mov     byte ptr cs:retail_mode_code,2
 multiplex_set_done:
+        call    set_apm_enabled
         mov     ax,0e8ffh
         xor     bh,bh
         iret
@@ -274,6 +278,27 @@ multiplex_diagnostics:
         mov     di,cs:apm_calls
         iret
 multiplex_handler ENDP
+
+set_apm_enabled PROC NEAR
+        cmp     cs:apm_available,0
+        je      short apm_enable_done
+        push    ax
+        push    bx
+        push    cx
+        mov     ax,5308h
+        mov     bx,1                   ; all APM-managed devices
+        xor     cx,cx
+        cmp     cs:power_mode,MODE_OFF
+        je      short apm_enable_call
+        inc     cx
+apm_enable_call:
+        int     15h
+        pop     cx
+        pop     bx
+        pop     ax
+apm_enable_done:
+        ret
+set_apm_enabled ENDP
 
 idle_handler PROC FAR
         pushf
