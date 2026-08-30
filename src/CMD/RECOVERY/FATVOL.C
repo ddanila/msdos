@@ -78,6 +78,7 @@ int fat_volume_io(const struct fat_volume *volume, int write,
     unsigned long track;
     unsigned cylinder;
     unsigned head;
+    unsigned attempt;
 
     if (count != 1) {
         unsigned index;
@@ -106,8 +107,18 @@ int fat_volume_io(const struct fat_volume *volume, int write,
     inregs.h.dl = (unsigned char)volume->drive;
     inregs.x.bx = FP_OFF(far_buffer);
     segregs.es = FP_SEG(far_buffer);
-    int86x(0x13, &inregs, &outregs, &segregs);
-    return outregs.x.cflag ? FATVOL_IO_ERROR : FATVOL_OK;
+    for (attempt = 0; attempt < 3; ++attempt) {
+        int86x(0x13, &inregs, &outregs, &segregs);
+        if (!outregs.x.cflag)
+            return FATVOL_OK;
+        if (attempt < 2) {
+            union REGS reset_in, reset_out;
+            memset(&reset_in, 0, sizeof(reset_in));
+            reset_in.h.dl = (unsigned char)volume->drive;
+            int86(0x13, &reset_in, &reset_out);
+        }
+    }
+    return FATVOL_IO_ERROR;
 }
 
 int fat_volume_get(const struct fat_volume *volume, unsigned cluster,

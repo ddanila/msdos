@@ -14,6 +14,7 @@ UNDO_TARGET="$OUT/scandisk-undo-target.img"
 UNDO_REPAIRED="$OUT/scandisk-undo-repaired.img"
 UNDO_LOG="$OUT/scandisk-undo.log"
 QEXIT="$OUT/scandisk-qexit.com"
+INT13_FAIL="$OUT/scandisk-int13-fail.com"
 PASS=0
 FAIL=0
 
@@ -29,8 +30,10 @@ fail() { echo "  FAIL: $1"; FAIL=$((FAIL + 1)); }
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 cp "$BASE" "$BOOT"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
+nasm -f bin "$ROOT/tests/int13_fail_once.asm" -o "$INT13_FAIL"
 mcopy -o -i "$BOOT" "$ROOT/src/CMD/SCANDISK/SCANDISK.EXE" ::SCANDISK.EXE
 mcopy -o -i "$BOOT" "$QEXIT" ::QEXIT.COM
+mcopy -o -i "$BOOT" "$INT13_FAIL" ::I13FAIL.COM
 {
     printf '[Environment]\r\nNumPasses=2\r\nLabelCheck=On\r\nLfnCheck=Off\r\n'
     printf '[Custom]\r\nDriveSummary=Off\r\nSurface=Always\r\n'
@@ -155,6 +158,7 @@ control_cluster="$(cat "$TARGET.control")"
 cp "$TARGET" "$BEFORE"
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
+    printf 'I13FAIL.COM\r\n'
     printf 'SET SCANDISK_FAILCLUSTER=%s\r\n' "$control_cluster"
     printf 'SCANDISK /FRAGMENT B:\\*.BIN\r\n'
     printf 'IF ERRORLEVEL 1 ECHO FRAGMENT_FAILED\r\n'
@@ -181,6 +185,12 @@ timeout 45 qemu-system-i386 -display none \
 grep -q 'CHECKONLY_FOUND_ERRORS' "$LOG" &&
     ok "/CHECKONLY detects corruption and returns failure" ||
     fail "/CHECKONLY did not report corruption through its status"
+if grep -q 'INT13 transient-read fault armed' "$LOG" &&
+   grep -q 'B:\\FRAG.BIN occupies' "$LOG"; then
+    ok "physical floppy reads reset and retry after a transient BIOS failure"
+else
+    fail "transient BIOS read failure was not recovered"
+fi
 if grep -q 'B:\\FRAG.BIN occupies 3 cluster(s) in 3 fragment(s)' "$LOG" &&
    ! grep -q 'FRAGMENT_FAILED' "$LOG"; then
     ok "/FRAGMENT follows the named file's physical FAT chain"
