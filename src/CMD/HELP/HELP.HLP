@@ -61,6 +61,7 @@ MODE       Configures system devices.
 MORE       Displays output one screen at a time.
 MOVE       Moves files or renames files and directories.
 MSD        Displays system diagnostic information.
+SCANDISK   Checks and repairs FAT12 and FAT16 disks.
 NLSFUNC    Loads country-specific information.
 PATH       Displays or sets the program search path.
 PAUSE      Suspends batch processing.
@@ -313,6 +314,12 @@ Syntax: RESTORE drive1: drive2:[path][filename] [options]
 @RMDIR
 Removes an empty directory.
 Syntax: RMDIR [drive:]path
+@SCANDISK
+Checks FAT12 and FAT16 disks and repairs allocation errors.
+Syntax: SCANDISK [drive:] [/ALL] [/AUTOFIX] [/CHECKONLY] [/CUSTOM]
+                [/FRAGMENT] [/MONO] [/NOSAVE] [/NOSUMMARY] [/SURFACE] [/UNDO]
+/CHECKONLY never repairs; /AUTOFIX repairs without prompting. /NOSAVE frees
+lost chains instead of saving FILEnnnn.CHK files. /SURFACE reads data clusters.
 @SET
 Displays, sets, or removes environment variables.
 Syntax: SET [variable=[string]]

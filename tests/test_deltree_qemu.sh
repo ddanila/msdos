@@ -4,10 +4,11 @@ export LC_ALL=C
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT="$ROOT/out"
+BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 IMAGE="$OUT/floppy-deltree.img"
 LOG="$OUT/deltree.log"
 
-cp "$OUT/floppy.img" "$IMAGE"
+cp "$BASE" "$IMAGE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$OUT/qemu-exit.com"
 mcopy -o -i "$IMAGE" "$ROOT/src/CMD/DELTREE/DELTREE.EXE" ::DELTREE.EXE
 mcopy -o -i "$IMAGE" "$OUT/qemu-exit.com" ::QEXIT.COM

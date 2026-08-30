@@ -4,11 +4,12 @@ export LC_ALL=C
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT="$ROOT/out"
+BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 IMAGE="$OUT/floppy-loadfix.img"
 LOG="$OUT/loadfix.log"
 PROBE="$OUT/LFPROBE.COM"
 
-cp "$OUT/floppy.img" "$IMAGE"
+cp "$BASE" "$IMAGE"
 nasm -f bin "$ROOT/tests/loadfix_probe.asm" -o "$PROBE"
 mcopy -o -i "$IMAGE" "$ROOT/src/CMD/LOADFIX/LOADFIX.COM" ::LOADFIX.COM
 mcopy -o -i "$IMAGE" "$PROBE" ::LFPROBE.COM

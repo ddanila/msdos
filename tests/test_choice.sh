@@ -3,7 +3,7 @@ set -euo pipefail
 export LC_ALL=C
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
-CHOICE="$ROOT/src/CMD/CHOICE/CHOICE.COM"
+CHOICE="${CHOICE_PROGRAM:-$ROOT/src/CMD/CHOICE/CHOICE.COM}"
 
 run_choice() {
     local input=$1

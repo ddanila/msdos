@@ -3,10 +3,11 @@ set -euo pipefail
 export LC_ALL=C
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT="$ROOT/out"
+BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT="$OUT/floppy-move.img"
 TARGET="$OUT/floppy-move-target.img"
 LOG="$OUT/move.log"
-cp "$OUT/floppy.img" "$BOOT"
+cp "$BASE" "$BOOT"
 dd if=/dev/zero bs=512 count=2880 of="$TARGET" status=none
 mformat -i "$TARGET" -f 1440 ::
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$OUT/qemu-exit.com"

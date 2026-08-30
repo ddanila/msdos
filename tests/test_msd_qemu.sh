@@ -4,6 +4,7 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/out"
+BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 IMAGE="$OUT/msd-test.img"
 LOG="$OUT/msd-test.log"
 PRINT_OUT="$OUT/msd-printer.txt"
@@ -14,7 +15,7 @@ SERIAL_IN="$SERIAL_BASE.in"
 SERIAL_OUT="$SERIAL_BASE.out"
 INTERACTIVE_LOG="$OUT/msd-interactive.log"
 
-cp "$OUT/floppy.img" "$IMAGE"
+cp "$BASE" "$IMAGE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 mcopy -o -i "$IMAGE" "$ROOT/src/CMD/MSD/MSD.EXE" ::MSD.EXE
 mcopy -o -i "$IMAGE" "$EXIT_COM" ::QEXIT.COM
@@ -72,7 +73,7 @@ grep -Fq 'Microsoft Diagnostics-compatible report' "$PRINT_OUT" || {
     exit 1
 }
 
-cp "$OUT/floppy.img" "$INTERACTIVE_IMAGE"
+cp "$BASE" "$INTERACTIVE_IMAGE"
 mcopy -o -i "$INTERACTIVE_IMAGE" "$ROOT/src/CMD/MSD/MSD.EXE" ::MSD.EXE
 mcopy -o -i "$INTERACTIVE_IMAGE" "$EXIT_COM" ::QEXIT.COM
 printf '@ECHO OFF\r\nCTTY AUX\r\nMSD\r\nECHO MSD_INTERACTIVE_RETURNED\r\nQEXIT.COM\r\n' | \

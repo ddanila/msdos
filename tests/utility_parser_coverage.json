@@ -164,6 +164,19 @@
       "/?": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Displays concise syntax without moving data"},
       "/Y": {"level": "contract", "evidence": ["tests/test_move_qemu.sh"], "note": "Overwrites an existing target without prompting"}
     }},
+    "SCANDISK.EXE": {"source": "src/CMD/SCANDISK/SCANDISK.C", "extractor": "c_parser_literals", "switches": {
+      "/?": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Displays the complete accepted syntax"},
+      "/ALL": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Selects all accessible FAT12/FAT16 drives and conflicts with an explicit drive"},
+      "/AUTOFIX": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Repairs detected FAT allocation problems without prompting"},
+      "/CHECKONLY": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Reports corruption and returns failure without enabling automatic repair"},
+      "/CUSTOM": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Reads AUTOFIX, SURFACE, and SAVELOST policy from SCANDISK.INI"},
+      "/FRAGMENT": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Reports noncontiguous cluster-chain transitions"},
+      "/MONO": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Selects monochrome-compatible output; the current text interface has no color dependency"},
+      "/NOSAVE": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Frees repaired lost chains instead of creating FILEnnnn.CHK entries"},
+      "/NOSUMMARY": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Suppresses the final file and repair counts"},
+      "/SURFACE": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Reads every data cluster and marks unclaimed unreadable clusters bad during automatic repair"},
+      "/UNDO": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Is recognized but currently diagnoses the missing undo-disk implementation; the gap remains explicit"}
+    }},
     "PRINT.COM": {"source": "src/CMD/PRINT/PRINT_T.ASM", "switches": {
       "/B": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "The 512-byte and 16-KiB bounds are enforced before a functionally verified resident installation"},
       "/C": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Cancels a named queued file and returns to the batch"},

@@ -36,7 +36,7 @@ valid lightweight interface.
 | DOS identity and compatibility | Present | The kernel and true-version API identify 6.22, and SETVER ships the retail 6.2/6.22 default table. The `MSDOS5.0` FAT OEM identifier is correct for 6.22 and remains unchanged. |
 | Startup and configuration | Partial | Named blocks, nested boot menus, ordered `INCLUDE`, `MENUCOLOR`, defaults/timeouts, keyboard recovery, and `CONFIG` propagation are present alongside F5/Shift bypass and F8 stepping. Reference diagnostics and selected-block interaction coverage remain. |
 | Everyday command additions | Partial | `CHOICE`, `DELTREE`, `LOADFIX`, and `MOVE` are present; overwrite policy additions to `COPY` and `XCOPY` remain. |
-| Disk health and performance | Missing | `SCANDISK` and `DEFRAG`; no ScanDisk repair log or undo flow. |
+| Disk health and performance | Partial | ScanDisk has a shipped FAT12/FAT16 logical-repair core, repair log, and stale-safe undo flow. Its remaining checks, surface relocation, file-fragment mode, full INI policy, and reference UI remain; `DEFRAG` is missing. |
 | Memory optimization | Partial | Strong DOS 5 HMA/UMB base, but not the complete DOS 6 EMM386/MEM/loader contract or `MEMMAKER`. |
 | SMARTDrive | Partial | A DOS 5 block driver and control helper exist, not the DOS 6 dual-purpose `SMARTDRV.EXE` cache interface and write-behind behavior. |
 | Diagnostics and power | Partial | `MSD` ships with interactive and report modes; `POWER.EXE` remains missing. |
@@ -69,7 +69,7 @@ DOS 5 commands inherit their status from `DOS5_GAPS.md`.
 | `MSCDEX` | Missing | CD-ROM redirector installation and `/D`, `/L`, `/M`, `/E`, `/S`, `/V`, `/K`; driver discovery, ISO 9660 access, audio/control IOCTLs, and multiplex API. A hardware-specific CD-ROM device driver remains external. |
 | `MSD` | Partial | A lean interactive/report implementation covers `/B`, `/I`, `/F`, `/P`, `/S` and core hardware, memory, IRQ, driver, FAT-drive geometry, SUBST/JOIN/network mappings, video, network, and OS reporting. Retail screen layout, exhaustive device detail, and reference-differential output remain. |
 | `POWER` | Missing | Installable driver plus runtime status/on/off and conservation levels (`ADV`, `STD`, `REG`, `MIN`, `MAX` as applicable), idle detection, and APM coordination. |
-| `SCANDISK` | Missing | FAT12/FAT16 and surface analysis, interactive repair, `/ALL`, `/AUTOFIX`, `/CHECKONLY`, `/CUSTOM`, `/FRAGMENT`, `/MONO`, `/NOSAVE`, `/NOSUMMARY`, `/SURFACE`, `/UNDO`, `SCANDISK.INI`, repair log, undo disk, and compressed-volume integration. |
+| `SCANDISK` | Partial | FAT12/FAT16 traversal, mirror and chain repair, lost-chain recovery, `/AUTOFIX`, `/CHECKONLY`, core prompting, repair logging, and byte-exact stale-safe `/UNDO` are live. Remaining: complete directory validation, occupied-cluster surface recovery, write/read surface verification, functional `/FRAGMENT`, full `SCANDISK.INI`, exact multi-drive/parser/UI behavior, broader corruption/fault corpora, and compressed-volume integration in the DriveSpace epic. |
 | `SMARTDRV` | Partial | Replace the shipped DOS 5 `SMARTDRV.SYS` interface with DOS 6 `SMARTDRV.EXE`: runtime install/status, per-drive read/write cache selection, cache sizing, `/B`, `/C`, `/E`, `/F`, `/L`, `/N`, `/Q`, `/R`, `/S`, `/V`, `/X`, write-behind flush, shutdown safety, CD-ROM caching, and the CONFIG.SYS compatibility-driver mode. |
 | `VSAFE` | Missing | Resident monitoring options `1` through `8`, `/NE`, `/NX`, `/Ax`, `/Cx`, `/N`, `/D`, `/U`, hotkeys, checksums, network monitoring, and MSAV signature sharing. |
 

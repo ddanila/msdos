@@ -43,7 +43,7 @@ def main() -> None:
                 errors.append(f"{name}: missing mutation test {test_name}")
             elif not any(
                 seam in test_path.read_text(encoding="utf-8")
-                for seam in ("FLOPPY_IMAGE", "EXPAND_PROGRAM")
+                for seam in ("FLOPPY_IMAGE", "_PROGRAM")
             ):
                 errors.append(f"{name}: mutation test lacks an isolated image seam")
         elif level == "justified_exclusion":

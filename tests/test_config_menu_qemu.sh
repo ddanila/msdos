@@ -4,12 +4,13 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/out"
+BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 IMAGE="$OUT/config-menu.img"
 LOG="$OUT/config-menu.log"
 EXIT_COM="$OUT/config-menu-exit.com"
 INSTALL_COM="$OUT/config-menu-install.com"
 
-cp "$OUT/floppy.img" "$IMAGE"
+cp "$BASE" "$IMAGE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 nasm -f bin "$ROOT/tests/installhigh_test_tsr.asm" -o "$INSTALL_COM"
 mcopy -o -i "$IMAGE" "$ROOT/src/BIOS/SYSMENU.OVL" ::SYSMENU.OVL
