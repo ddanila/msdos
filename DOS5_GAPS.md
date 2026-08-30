@@ -106,7 +106,7 @@ Complete limit/error/order parity remains unverified outside the cases in
 
 | Driver | Status | Missing DOS 5 surface |
 | --- | --- | --- |
-| `HIMEM.SYS` | Partial XMS 2.00 implementation | On 386+ systems it parses every documented DOS 5 option; HMA thresholds, 1-128 handles, INT 15h reservation, and generic A20 backends are tested. 286 execution and representative validation of machine-specific A20, shadow-RAM, and CPU-clock behavior remain missing. |
+| `HIMEM.SYS` | Partial XMS 2.00 implementation | It uses a 286 instruction baseline and a 286 runtime gate covers installation, allocation, locking, and release. On 386+ systems every documented DOS 5 option, HMA thresholds, 1-128 handles, INT 15h reservation, generic A20 backends, moves, and resizing are tested. A cycle-oriented 286 move gate and representative machine-specific A20, shadow-RAM, and CPU-clock validation remain. |
 | `EMM386.EXE` | Present DOS 5 command-line surface; hardware validation remains | Driver and runtime loading implement `ON`, `OFF`, `AUTO`, `W=ON`, and `W=OFF`. Driver loading implements pool size, `M1`-`M14`, `FRAME=`, `/P`, sparse `Pn=` physical-page assignments, `I=`, `X=`, `B=`, `L=`, `A=`, `H=`, `D=`, `RAM`, and `NOEMS`. The effect of `W=ON` on real Weitek hardware and the low-memory `M10`-`M14` cases remain unverified on representative hardware. |
 | `EGA.SYS` | Missing | DOSSHELL Task Swapper display save/restore support. |
 | `SETVER.EXE` | Present | Persistent table loading through CONFIG.SYS and reboot-stable command edits are tested. |
@@ -180,9 +180,9 @@ and must not be represented by no-op stubs if compatibility is claimed.
 - COUNTRY.SYS, KEYB, DISPLAY, PRINTER, and CPI files provide working NLS and
   code-page paths, but every retail keyboard, country, printer, and code-page
   combination has not been compared.
-- HIMEM's documented configuration semantics have focused tests on 386+
-  systems. Its move engine currently requires a 386, so 286 execution remains
-  an implementation gap rather than only an acceptance-test gap.
+- HIMEM installs and serves its core XMS lifecycle on a 286, and its move
+  engine contains no 386-only instructions. A cycle-oriented 286 move test is
+  still required in addition to the complete 386+ move contract.
 - Hardware validation is dominated by QEMU. The recorded 86Box 486 gate does
   not replace testing on representative 8086/286/386 systems and controllers.
 

@@ -319,6 +319,9 @@ jobs:
       - name: Repository XMS and UMB provider core
         run: bash tests/test_himem_qemu.sh
 
+      - name: HIMEM 286 XMS lifecycle
+        run: bash tests/test_himem_286_dosbox.sh
+
       - name: DOS high-memory residency
         run: bash tests/test_hma_qemu.sh
 
