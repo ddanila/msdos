@@ -16,6 +16,7 @@ extern unsigned MsdXmsA20;
 extern unsigned MsdXmsLargestFree;
 extern unsigned MsdXmsTotalFree;
 extern int MsdReadXmsInfo(void);
+extern unsigned MsdCpuClass(void);
 
 /* DOS's internal tables contain unaligned words.  Decode them bytewise so
  * this remains correct regardless of the compiler's structure packing. */
@@ -92,6 +93,7 @@ static void report_computer(void)
     heading("Computer");
     int86(0x11, &inregs, &outregs);
     equipment = outregs.x.ax;
+    fprintf(report, "Processor:             %u-class x86\n", MsdCpuClass());
     fprintf(report, "BIOS equipment word:  %04Xh\n", equipment);
     fprintf(report, "Math coprocessor:      %s\n",
             equipment & 2 ? "Present" : "Not reported");

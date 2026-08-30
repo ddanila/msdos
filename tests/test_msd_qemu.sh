@@ -58,6 +58,7 @@ for marker in \
     'Operating System' 'Computer' 'Memory' 'Video' 'Disk Drives' \
     'COM and LPT Ports' 'Input Devices' 'DOS Configuration' 'IRQ Vectors' 'Device Drivers' 'Network' \
     'Reported DOS version: 6.22' 'True DOS version:     6.22' 'DOS OEM/serial:' \
+    'Processor:             486-class x86' \
     'BIOS machine ID:' 'BIOS date:' 'BIOS base memory:' \
     'Startup display:' 'Game adapter:' 'COM1 base address:     03F8h' \
     'COM1 BIOS status:' 'LPT1 BIOS status:' 'Port status probing:   Skipped (/I)' \
