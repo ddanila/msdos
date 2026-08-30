@@ -97,7 +97,7 @@ Missing 6.22 configuration behavior:
 
 - named configuration blocks plus `[menu]` and `[common]`;
 - `MENUITEM`, `MENUDEFAULT`, `MENUCOLOR`, `SUBMENU`, and `INCLUDE`;
-- CONFIG.SYS `SET` and `NUMLOCK`;
+- CONFIG.SYS `SET` (the `NUMLOCK=ON|OFF` directive is present);
 - the `CONFIG` environment variable passed to AUTOEXEC.BAT;
 - F5/Shift bypass, F8 per-command confirmation, and the matching prompts;
 - section selection, invalid-menu recovery, timeouts, nesting, and common-section

@@ -3174,7 +3174,7 @@ PARMLOOP:
 ;*******************************************************************************
 TRYX:
 	CMP	AH,'X'
-	JNZ	TRYY
+	JNZ	TRY3
 ;	 invoke  GETNUM
 ;	 JZ	 TryXBad		 ; gotta have at least one
 ;	 CMP	 AX,256
@@ -3243,6 +3243,40 @@ $$EN103:
 ;	$ENDSRCH			;AN000;
 $$SR95:
 	jmp	Coff
+
+;------------------------------------------------------------------------------
+; NUMLOCK=ON|OFF -- set the BIOS keyboard-status toggle for the first shell.
+;------------------------------------------------------------------------------
+TRY3:
+	CMP	AH,'3'
+	JNZ	TRYY
+	CMP	AL,'O'
+	JNE	TRY3_BAD
+	CALL	GETCHR
+	JC	TRY3_BAD
+	CMP	AL,'N'
+	JE	TRY3_ON
+	CMP	AL,'F'
+	JNE	TRY3_BAD
+	CALL	GETCHR
+	JC	TRY3_BAD
+	CMP	AL,'F'
+	JNE	TRY3_BAD
+	MOV	AX,40H
+	MOV	DS,AX
+	AND	BYTE PTR DS:[17H],0DFH
+	PUSH	CS
+	POP	DS
+	JMP	COFF
+TRY3_ON:
+	MOV	AX,40H
+	MOV	DS,AX
+	OR	BYTE PTR DS:[17H],20H
+	PUSH	CS
+	POP	DS
+	JMP	COFF
+TRY3_BAD:
+	JMP	BADOP
 
 ;------------------------------------------------------------------------------
 ; Comment= Do nothing. Just decrese CHRPTR, and increase COUNT for correct
