@@ -63,6 +63,27 @@ start:
     cmp word [request_header + 3], 810fh
     jne fail
 
+    push ds
+    pop es
+    mov bx, sector_buffer
+    mov cx, 4
+    mov dx, 1
+    mov si, 1234h
+    mov di, 5678h
+    mov ax, 1508h
+    int 2fh
+    jc fail
+    cmp word [sector_buffer], 'DC'
+    jne fail
+    cmp word [sector_buffer + 2], '22'
+    jne fail
+    mov cx, 3
+    mov ax, 1508h
+    int 2fh
+    jnc fail
+    cmp ax, 000fh
+    jne fail
+
     mov dx, pass_message
     mov ah, 9
     int 21h
@@ -83,5 +104,6 @@ request_header db 32,0,3
                times 8 db 0
                db 0
                times 18 db 0
+sector_buffer times 2048 db 0
 pass_message db 'MSCDEX_API_PASS',13,10,'$'
 fail_message db 'MSCDEX_API_FAIL',13,10,'$'

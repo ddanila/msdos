@@ -162,6 +162,8 @@ int2f_handler PROC FAR
         je      api_version
         cmp     al,0dh
         je      api_drive_list
+        cmp     al,08h
+        je      api_absolute_read
         cmp     al,10h
         je      api_driver_request
 chain_2f:
@@ -233,10 +235,14 @@ api_drive_next:
         pop     ax
         iret
 
-; AX=1510h, CX=zero-based DOS drive, ES:BX=request header.  Forward the
-; packet through the selected CD-ROM driver's strategy and interrupt entries.
-api_driver_request:
-        push    ax
+; AX=1508h, ES:BX=destination, CX=drive, DX=count, SI:DI=starting sector.
+; Convert the call to the CD-ROM driver's command 80h READ LONG packet.
+api_absolute_read:
+        mov     word ptr cs:read_request+14,bx
+        mov     word ptr cs:read_request+16,es
+        mov     word ptr cs:read_request+18,dx
+        mov     word ptr cs:read_request+20,di
+        mov     word ptr cs:read_request+22,si
         push    bx
         push    cx
         push    dx
@@ -244,8 +250,60 @@ api_driver_request:
         push    di
         push    ds
         push    es
+        push    cs
+        pop     es
+        mov     bx,OFFSET read_request
+        call    forward_driver_request
+        mov     cs:api_failed,0
+        jnc     short api_read_save
+        mov     cs:api_failed,1
+        cmp     ax,000fh
+        je      short api_read_save
+        mov     ax,0015h              ; DOS error_not_ready
+api_read_save:
+        mov     cs:api_result,ax
+api_read_restore:
+        pop     es
+        pop     ds
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        mov     ax,cs:api_result
+        cmp     cs:api_failed,0
+        jne     short api_return_carry
+api_return_clear:
+        push    bp
+        mov     bp,sp
+        and     word ptr ss:[bp+6],0fffeh
+        pop     bp
+        iret
+api_return_carry:
+        push    bp
+        mov     bp,sp
+        or      word ptr ss:[bp+6],1
+        pop     bp
+        iret
+
+; AX=1510h, CX=zero-based DOS drive, ES:BX=request header.  Forward the
+; packet through the selected CD-ROM driver's strategy and interrupt entries.
+api_driver_request:
+        call    forward_driver_request
+        jc      short api_return_carry
+        jmp     short api_return_clear
+int2f_handler ENDP
+
+forward_driver_request PROC NEAR
         mov     cs:request_offset,bx
         mov     cs:request_segment,es
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        push    di
+        push    ds
+        push    es
         mov     ax,cx
         xor     dx,dx
         mov     dl,cs:first_drive
@@ -272,13 +330,25 @@ api_driver_request:
         mov     byte ptr es:[bx+1],0
         call    dword ptr cs:strategy_entry
         call    dword ptr cs:interrupt_entry
+        test    word ptr es:[bx+3],8000h
+        jnz     short api_request_driver_bad
+        xor     ax,ax
+        mov     cs:api_failed,0
+        jmp     short api_request_done
+api_request_driver_bad:
+        mov     ax,word ptr es:[bx+3]
+        and     ax,00ffh
+        mov     cs:api_failed,1
         jmp     short api_request_done
 api_request_bad:
         mov     ax,cs:request_segment
         mov     es,ax
         mov     bx,cs:request_offset
         mov     word ptr es:[bx+3],810fh
+        mov     ax,000fh
+        mov     cs:api_failed,1
 api_request_done:
+        mov     cs:api_result,ax
         pop     es
         pop     ds
         pop     di
@@ -286,9 +356,15 @@ api_request_done:
         pop     dx
         pop     cx
         pop     bx
-        pop     ax
-        iret
-int2f_handler ENDP
+        mov     ax,cs:api_result
+        cmp     cs:api_failed,0
+        jne     short forward_failed
+        clc
+        ret
+forward_failed:
+        stc
+        ret
+forward_driver_request ENDP
 
 old_2f_off      dw 0
 old_2f_seg      dw 0
@@ -296,6 +372,16 @@ strategy_entry  dd 0
 interrupt_entry dd 0
 request_offset  dw 0
 request_segment dw 0
+api_result      dw 0
+api_failed      db 0
+read_request    db 27,0,80h
+                dw 0
+                db 8 dup(0)
+                db 0                   ; HSG addressing mode
+                dw 0,0                 ; transfer offset:segment
+                dw 0                   ; sector count
+                dd 0                   ; starting sector
+                db 0,0,0               ; cooked, no interleave
 psp_segment     dw 0
 driver_offsets  dw MAX_DRIVERS dup(0)
 driver_segments dw MAX_DRIVERS dup(0)

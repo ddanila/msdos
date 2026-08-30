@@ -56,4 +56,4 @@ if grep -Eq 'MSCDEX_(HELP_STATUS_BAD|MISSING_ACCEPTED|INSTALL_FAILED|API_FAILED)
     exit 1
 fi
 
-echo '  PASS: MSCDEX parser, discovery, residency, and driver-request 15xxh API'
+echo '  PASS: MSCDEX discovery, absolute-read, and driver-request 15xxh API'

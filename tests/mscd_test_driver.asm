@@ -20,6 +20,9 @@ strategy:
 
 interrupt:
     push ax
+    push bx
+    push cx
+    push ds
     push es
     push di
     mov ax, [cs:request_segment]
@@ -32,10 +35,31 @@ interrupt:
     jmp .complete
 .forwarded:
     mov byte [es:di + 0dh], 0a5h
+    cmp byte [es:di + 2], 80h
+    jne .complete
+    cmp word [es:di + 18], 1
+    jne .request_error
+    cmp word [es:di + 20], 5678h
+    jne .request_error
+    cmp word [es:di + 22], 1234h
+    jne .request_error
+    mov bx, [es:di + 14]
+    mov ax, [es:di + 16]
+    mov ds, ax
+    mov word [bx], 'DC'
+    mov word [bx + 2], '22'
+    jmp .complete
+.request_error:
+    mov word [es:di + 3], 810bh
+    jmp .return
 .complete:
     mov word [es:di + 3], 0100h
+.return:
     pop di
     pop es
+    pop ds
+    pop cx
+    pop bx
     pop ax
     retf
 
