@@ -368,7 +368,14 @@ EMIN_1:
 	cmp	[_PF_base],0E400h	; in the ROM area
 	jae	EMIN_2			 ; also invalid
 	cmp	[_PF_base],0C000h	; or in the video area
-	jnb	EMIN_3			 ;
+	jnb	EMIN_3			 ; C000-E000 adapter space is valid
+	push	ax
+	int	12h			 ; M10-M14 require conventional RAM <= frame
+	mov	cl,6
+	shl	ax,cl			 ; KiB to segment address
+	cmp	[_PF_base],ax
+	pop	ax
+	jae	EMIN_3
 EMIN_2:
 ;
 ; Page Frame invalid, set it to FFFFh and _page_frame_pages to 0

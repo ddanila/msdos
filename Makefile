@@ -659,6 +659,9 @@ run-boot: deploy
 test-emm386-qemu: deploy
 	bash tests/test_emm386_qemu.sh
 
+test-emm386-frames-qemu: deploy
+	bash tests/test_emm386_frames_qemu.sh
+
 test-int21-file-memory-qemu: deploy
 	bash tests/test_int21_file_memory_qemu.sh
 

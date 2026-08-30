@@ -836,16 +836,16 @@ set_siz:
 ;
 chk_PF:
 	cmp	cx,2			; q: 2 and only 2 chars in argument?
-	jne	inv_prm 		; n: error
-	lodsb				; get Mx specifier
+	jb	inv_prm 		; n: error
 	cmp	[PF_Base],0ffffh	; q: have they already specified this?
 	jnz	inv_prm 		; y: don't let them do it again
-	cmp	al,'0'			; q: between 1 & 8?
-	jb	inv_prm 		; n: invalid
-	cmp	al,'8'
-	ja	inv_prm 		; n: invalid
-	sub	al,'0'			; make zero relative
-	xor	ah,ah			; zero out hi bits
+	call	parse_decimal_token
+	jc	inv_prm
+	cmp	ax,1
+	jb	inv_prm
+	cmp	ax,14
+	ja	inv_prm
+	dec	ax			; make zero relative
 	shl	ax,1			; make word offset
 	mov	[PF_Base],ax		; store address
 	jmp	ploop1			; get next parameter
@@ -1189,6 +1189,37 @@ Apply_User_UMA_Ranges endp
 ; ISP (isp) 8/24/88 shifted from ps2emm srces		;
 ;-----------------------------------------------------------------------;
 
+
+; Parse the decimal suffix of a one-character option. CX includes that option
+; character and DS:SI points at the first digit. Return AX and carry status.
+parse_decimal_token proc near
+	dec	cx
+	jcxz	short parse_decimal_error
+	xor	ax,ax
+parse_decimal_loop:
+	mov	bl,[si]
+	inc	si
+	cmp	bl,'0'
+	jb	short parse_decimal_error
+	cmp	bl,'9'
+	ja	short parse_decimal_error
+	sub	bl,'0'
+	xor	bh,bh
+	push	cx
+	mov	cx,10
+	mul	cx
+	pop	cx
+	or	dx,dx
+	jnz	short parse_decimal_error
+	add	ax,bx
+	jc	short parse_decimal_error
+	loop	parse_decimal_loop
+	clc
+	ret
+parse_decimal_error:
+	stc
+	ret
+parse_decimal_token endp
 
 htoi	proc	near
 	push	bx

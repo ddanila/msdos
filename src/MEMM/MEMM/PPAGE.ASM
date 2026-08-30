@@ -131,8 +131,20 @@ Map_tbl 	label	word
 		dw	0d400h
 		dw	0d800h
 		dw	0dc00h
-max_PF		equ	($ - Map_tbl)
 		dw	0e000h
+		dw	08000h
+		dw	08400h
+		dw	08800h
+		dw	08c00h
+		dw	09000h
+max_PF		equ	($ - Map_tbl) - 2
+
+; find_pf_base marks unavailable candidates in Map_tbl. Keep an immutable copy
+; so a user-selected frame can still be forced at its documented address.
+Requested_Map_tbl label word
+		dw	0c000h, 0c400h, 0c800h, 0cc00h
+		dw	0d000h, 0d400h, 0d800h, 0dc00h, 0e000h
+		dw	08000h, 08400h, 08800h, 08c00h, 09000h
 
 	page
 ;******************************************************************************
@@ -302,12 +314,8 @@ no_PF_warn:
 ; they specified a base address. Let's make sure it's good
 ;
 def_cont2:
-	mov	bx,[PF_Base]		; get the offset they specified
-	mov	ax,bx			; ax = bx
-	shr	ax,1			; back to 0..8
-	mov	cx,0400h		; length of PF segments
-	mul	cx			; addr = 0c000h + (Mx-1)*400h
-	add	ax,0c000h
+	mov	bx,[PF_Base]		; get the table offset they specified
+	mov	ax,cs:Requested_Map_Tbl[bx]
 	mov	[PF_Base],ax		; save it
 
 	cmp	cs:Map_tbl[bx],0ffffh	; Is this any good?
