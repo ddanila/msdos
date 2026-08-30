@@ -56,6 +56,7 @@ shadow_ram      db      0
 cpu_clock       db      0
 eisa_memory     db      0
 verbose_mode    db      0
+testmem_mode    db      1
 option_buffer   db      40 dup (0)
 hma_owned       db      0
 a20_initial     db      0
@@ -406,6 +407,10 @@ parse_one_option proc near
         mov     dx, offset opt_verbose
         call    string_equal
         jnc     short option_verbose
+        mov     si, offset option_buffer
+        mov     dx, offset opt_testmem
+        call    match_prefix
+        jnc     short option_testmem
         stc
         ret
 option_hmamin:
@@ -466,6 +471,12 @@ option_eisa:
         ret
 option_verbose:
         mov     [verbose_mode], 1
+        clc
+        ret
+option_testmem:
+        call    parse_on_off
+        jc      short option_bad
+        mov     [testmem_mode], al
         clc
         ret
 option_bad:
@@ -611,6 +622,7 @@ opt_shadowram   db '/SHADOWRAM:',0
 opt_cpuclock    db '/CPUCLOCK:',0
 opt_eisa        db '/EISA',0
 opt_verbose     db '/VERBOSE',0
+opt_testmem     db '/TESTMEM:',0
 value_on        db 'ON',0
 value_off       db 'OFF',0
 machine_names   dw offset machine_at, offset machine_ps2

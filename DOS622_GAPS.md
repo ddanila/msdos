@@ -37,7 +37,7 @@ valid lightweight interface.
 | Startup and configuration | Partial | Named blocks, nested boot menus, ordered `INCLUDE`, `MENUCOLOR`, defaults/timeouts, keyboard recovery, and `CONFIG` propagation are present alongside F5/Shift bypass and F8 stepping. Reference diagnostics and selected-block interaction coverage remain. |
 | Everyday command additions | Partial | `CHOICE`, `DELTREE`, `LOADFIX`, and `MOVE` are present; overwrite policy additions to `COPY` and `XCOPY` remain. |
 | Disk health and performance | Partial | ScanDisk has a shipped FAT12/FAT16 logical-repair core, repair log, and stale-safe undo flow. Defrag has byte-preserving FAT12 `/U` relocation, `/F` compaction, and physical directory sorting. Remaining checks, interruption safety, surface recovery, and reference UI are listed below. |
-| Memory optimization | Partial | Strong DOS 5 HMA/UMB base, but not the complete DOS 6 EMM386/MEM/loader contract or `MEMMAKER`. |
+| Memory optimization | Partial | Strong HMA/UMB base plus a reversible MemMaker startup-file/reboot workflow; measurement-driven custom placement and remaining DOS 6 EMM386/MEM/HIMEM differentials remain. |
 | SMARTDrive | Partial | A DOS 5 block driver and control helper exist, not the DOS 6 dual-purpose `SMARTDRV.EXE` cache interface and write-behind behavior. |
 | Diagnostics and power | Partial | `MSD` ships with interactive and report modes; `POWER.EXE` remains missing. |
 | Machine-to-machine and CD-ROM access | Missing | `INTERLNK.EXE`, `INTERSVR.EXE`, and `MSCDEX.EXE`. |
@@ -62,7 +62,7 @@ DOS 5 commands inherit their status from `DOS5_GAPS.md`.
 | `INTERLNK` | Missing | Client installation/status, drive and printer redirection, server discovery, and the driver options and transports listed below. |
 | `INTERSVR` | Missing | Serial/parallel file and printer server, `/B`, `/V`, `/LPT`, `/COM`, `/X`, drive selection, connection status, and client bootstrap transfer. |
 | `LOADFIX` | Present | Placement above the first 64 KiB, argument forwarding, and child exit propagation are covered. |
-| `MEMMAKER` | Missing | Express/custom analysis, reboot passes, CONFIG.SYS/AUTOEXEC.BAT rewriting, undo, batch/session modes, `/B`, `/T`, `/UNDO`, `/W`, and swap-drive control. |
+| `MEMMAKER` | Partial | Unattended Express rewriting, byte-exact backups and `/UNDO`, reboot plus `/SESSION`, `/SWAP`, `/W` status, memory-manager insertion, DEVICEHIGH/INSTALLHIGH, and eligible TSR `LH` conversion are live. Remaining: measured multi-pass placement and size ordering, interactive Custom choices, automatic session scheduling, Windows SYSTEM.INI handling, rollback fault injection, and exact retail UI/status behavior. |
 | `MOVE` | Present | Files, directory rename, multiple sources, prompts, `/Y`, `/-Y`, `COPYCMD`, cross-drive recursion, and errorlevels are covered. |
 | `MSAV` | Missing | Interactive scanning and `drive:`, `/S`, `/C`, `/R`, `/A`, `/L`, `/N`, `/P`, `/F`, `/VIDEO` and its display switches; removal, reports, checksums, exit code 86, configuration, and signature database. |
 | `MSBACKUP` | Missing | Interactive backup/restore/compare, `.SET` setup and catalog files, full/incremental/differential sets, compression, verification, scheduling, spanning, destination devices, and `setup_file`, `/BW`, `/LCD`, `/MDA`. DOS 5 `RESTORE` remains responsible for old `BACKUP` sets. |
@@ -83,7 +83,7 @@ Known gaps in commands already shipped:
 | `EMM386` | The DOS 6 enhanced automatic EMS/UMB behavior and remaining 6.22 parser/API/hardware differences need a reference differential audit. Existing DOS 5 modes and memory regions are a strong base. |
 | `FORMAT` | `/C` retests previously marked bad clusters, while normal formatting preserves their marks. Compressed/host-drive interaction depends on the DriveSpace epic. |
 | `HELP` | The current searchable text database lacks the retail full-screen hypertext UI, complete 6.22 topic corpus, mouse navigation, syntax/notes/examples links, and full-text search. The UI belongs to the QBASIC epic; lean text topics can grow with each stage. |
-| `HIMEM.SYS` | XMS 2.00, the DOS 5 option set, DOS 6 `/EISA` memory discovery, and `/VERBOSE` diagnostics are covered. `/TESTMEM`, exact 6.22 version/API identity, defaults, and remaining machine-option parity still require reference work. |
+| `HIMEM.SYS` | XMS 2.00, the DOS 5 option set, DOS 6 `/EISA` memory discovery, `/VERBOSE` diagnostics, and `/TESTMEM:ON|OFF` parsing/default state are covered. The destructive reliability pass behind `/TESTMEM:ON`, exact 6.22 version/API identity, defaults, and remaining machine-option parity still require reference work. |
 | `MEM` | Existing `/C`, `/D`, `/F`, `/M`, and `/PROGRAM` views need differential validation against DOS 6.22's enhanced reports and EMM386 integration. |
 | `SETVER` | Retail 6.2/6.22 defaults, persistent editing, driver loading, and 6.22 identity behavior are covered. |
 | `UNDELETE` | DOS protection modes exist, but the enhanced 6.22 UI/configuration and Windows companion are absent. The Windows companion is out of scope. |

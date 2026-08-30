@@ -154,6 +154,16 @@
       "/MODULE:": {"level": "contract", "evidence": ["tests/test_mem_umb_qemu.sh"], "note": "Accepts the compact long named-module form"},
       "/PROGRAM": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Reports loaded programs and their memory use"}
     }},
+    "MEMMAKER.EXE": {"source": "src/CMD/MEMMAKER/MEMMAKER.C", "extractor": "c_parser_literals", "switches": {
+      "/?": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Displays concise syntax"},
+      "/B": {"level": "contract", "evidence": ["tests/test_memmaker_qemu.sh"], "note": "Selects monochrome-compatible presentation"},
+      "/BATCH": {"level": "contract", "evidence": ["tests/test_memmaker_qemu.sh"], "note": "Uses unattended Express defaults and records status"},
+      "/SESSION": {"level": "contract", "evidence": ["tests/test_memmaker_qemu.sh"], "note": "Completes the post-reboot status pass"},
+      "/SWAP:": {"level": "contract", "evidence": ["tests/test_memmaker_qemu.sh"], "note": "Selects the startup-files drive; drive A is exercised"},
+      "/T": {"level": "contract", "evidence": ["tests/test_memmaker_qemu.sh"], "note": "Disables token-ring probing and is retained in status policy"},
+      "/UNDO": {"level": "contract", "evidence": ["tests/test_memmaker_qemu.sh"], "note": "Restores CONFIG.SYS and AUTOEXEC.BAT byte-for-byte"},
+      "/W:": {"level": "contract", "evidence": ["tests/test_memmaker_qemu.sh"], "note": "Accepts two 0-to-65535 Windows translation-buffer reserve sizes and records 4,8"}
+    }},
     "MODE.COM": {"source": "src/CMD/MODE/MODEPARS.ASM", "switches": {
       "/STA": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Shortest synonym reports live console status"},
       "/STAT": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Intermediate synonym reports live console status"},

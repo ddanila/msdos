@@ -28,7 +28,7 @@ mdel -i "$IMAGE" ::HELP.HLP >/dev/null 2>&1 || true
 mcopy -o -i "$IMAGE" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
 mcopy -o -i "$IMAGE" "$PROBE" ::HIMOPT.COM
 {
-    printf 'DEVICE=A:\\HIMEM.SYS /HMAMIN=1 /NUMHANDLES=3 /INT15=128 /MACHINE:PS2 /A20CONTROL:ON /SHADOWRAM:OFF /CPUCLOCK:OFF /EISA /VERBOSE\r\n'
+    printf 'DEVICE=A:\\HIMEM.SYS /HMAMIN=1 /NUMHANDLES=3 /INT15=128 /MACHINE:PS2 /A20CONTROL:ON /SHADOWRAM:OFF /CPUCLOCK:OFF /EISA /TESTMEM:OFF /VERBOSE\r\n'
 } | mcopy -o -i "$IMAGE" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'
@@ -94,7 +94,7 @@ done
 for option in \
     '/HMAMIN=64' '/NUMHANDLES=0' '/NUMHANDLES=129' '/INT15=65536' \
     '/MACHINE:UNKNOWN' '/A20CONTROL:MAYBE' '/SHADOWRAM:MAYBE' '/CPUCLOCK:MAYBE' \
-    '/EISA:ON' '/VERBOSE:ON'
+    '/EISA:ON' '/VERBOSE:ON' '/TESTMEM:MAYBE'
 do
     tag=$(printf '%s' "$option" | tr -c 'A-Za-z0-9' '_')
     reject_image="$OUT/floppy-himem-reject-$tag.img"
