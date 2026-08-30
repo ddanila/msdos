@@ -22,6 +22,7 @@ remote_bpbs     db 125 dup(0)
 boot_sector     db 512 dup(0)
 current_unit    db 0
 drive_limit     db 5
+installed_units db 0
 
 strategy PROC FAR
         mov     word ptr cs:request_ptr,bx
@@ -43,7 +44,12 @@ interrupt PROC FAR
         cmp     al,0
         je      request_init
         cmp     cs:connected,0
-        je      request_not_ready
+        jne     short request_dispatch
+        push    ax
+        call    connect_server
+        pop     ax
+        jc      request_not_ready
+request_dispatch:
         cmp     al,1
         je      request_media
         cmp     al,2
@@ -76,39 +82,68 @@ request_init:
         call    parse_config
         jc      init_failed
         call    init_serial
+        call    connect_server
+        jc      init_failed
+        lds     bx,cs:request_ptr
+        mov     al,cs:unit_count
+        mov     byte ptr [bx+13],al
+        mov     word ptr [bx+14],OFFSET resident_end
+        mov     word ptr [bx+16],cs
+        mov     word ptr [bx+18],OFFSET bpb_pointers
+        mov     word ptr [bx+20],cs
+        call    install_multiplex
+        jmp     request_done
+init_failed:
+        lds     bx,cs:request_ptr
+        mov     byte ptr [bx+13],0
+        mov     word ptr [bx+14],OFFSET resident_end
+        mov     word ptr [bx+16],cs
+        mov     word ptr [bx+3],8102h
+        jmp     request_exit
+
+connect_server PROC NEAR
+        mov     cs:connected,0
         mov     cs:current_unit,0
         mov     word ptr cs:sector_number,0
         mov     word ptr cs:sector_number+2,0
         xor     al,al
         xor     dx,dx
         call    send_request
-        jc      init_failed
+        jc      init_failed_connect
         call    receive_status
-        jc      init_failed
+        jc      init_failed_connect
         call    receive_byte
-        jc      init_failed
+        jc      init_failed_connect
         or      al,al
-        jz      init_failed
+        jz      init_failed_connect
         cmp     al,5
-        ja      init_failed
+        ja      init_failed_connect
         cmp     al,cs:drive_limit
         jbe     short init_count_ready
         mov     al,cs:drive_limit
 init_count_ready:
+        cmp     cs:installed_units,0
+        je      short init_store_count
+        cmp     al,cs:installed_units
+        jne     init_failed_connect
+        jmp     short init_have_count
+init_store_count:
         mov     cs:unit_count,al
+        mov     cs:installed_units,al
+init_have_count:
         mov     cs:current_unit,0
 init_geometry_loop:
         mov     al,1
         xor     dx,dx
         call    send_request
-        jc      init_failed
+        jc      init_failed_connect
         call    receive_status
-        jc      init_failed
+        jc      init_failed_connect
         push    cs
         pop     es
         mov     di,OFFSET boot_sector
         call    receive_sector
-        jc      init_failed
+        jc      init_failed_connect
         push    cs
         pop     ds
         mov     si,OFFSET boot_sector+11
@@ -128,23 +163,14 @@ init_geometry_loop:
         mov     al,cs:current_unit
         cmp     al,cs:unit_count
         jb      init_geometry_loop
-        lds     bx,cs:request_ptr
-        mov     al,cs:unit_count
-        mov     byte ptr [bx+13],al
-        mov     word ptr [bx+14],OFFSET resident_end
-        mov     word ptr [bx+16],cs
-        mov     word ptr [bx+18],OFFSET bpb_pointers
-        mov     word ptr [bx+20],cs
         mov     cs:connected,1
-        call    install_multiplex
-        jmp     request_done
-init_failed:
-        lds     bx,cs:request_ptr
-        mov     byte ptr [bx+13],0
-        mov     word ptr [bx+14],OFFSET resident_end
-        mov     word ptr [bx+16],cs
-        mov     word ptr [bx+3],8102h
-        jmp     request_exit
+        clc
+        ret
+init_failed_connect:
+        mov     cs:connected,0
+        stc
+        ret
+connect_server ENDP
 
 request_media:
         mov     byte ptr [bx+14],1
@@ -205,6 +231,7 @@ request_not_ready:
         mov     word ptr [bx+3],8102h
         jmp     request_exit
 request_io_error:
+        mov     cs:connected,0
         lds     bx,cs:request_ptr
         mov     word ptr [bx+3],810bh
         jmp     request_exit
@@ -559,6 +586,10 @@ install_multiplex PROC NEAR
 install_multiplex ENDP
 
 multiplex PROC FAR
+        cmp     ax,0e902h
+        je      short multiplex_disconnect
+        cmp     ax,0e901h
+        je      short multiplex_reconnect
         cmp     ax,0e900h
         jne     short chain_multiplex
         mov     ax,0ff00h
@@ -568,6 +599,32 @@ multiplex PROC FAR
         mov     cl,cs:unit_count
         xor     dx,dx
         mov     dl,cs:com_number
+        iret
+multiplex_disconnect:
+        mov     cs:connected,0
+        mov     ax,0ff00h
+        iret
+multiplex_reconnect:
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        push    di
+        push    ds
+        push    es
+        call    init_serial
+        call    connect_server
+        mov     ax,0
+        jc      short reconnect_result
+        mov     ax,0ff00h
+reconnect_result:
+        pop     es
+        pop     ds
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
         iret
 chain_multiplex:
         jmp     dword ptr cs:old_int2f

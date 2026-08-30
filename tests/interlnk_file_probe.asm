@@ -34,6 +34,29 @@ start:
     mov ah, 3eh
     int 21h
 
+    ; Force a complete discovery/BPB renegotiation over the live transport.
+    ; Subsequent access proves the resident client remains synchronized.
+    mov ax, 0e901h
+    int 2fh
+    cmp ax, 0ff00h
+    jne failed
+    mov ax, 0e900h
+    int 2fh
+    cmp ax, 0ff00h
+    jne failed
+    cmp bx, 1
+    jne failed
+    mov ax, 0e902h
+    int 2fh
+    cmp ax, 0ff00h
+    jne failed
+    mov ax, 0e900h
+    int 2fh
+    cmp ax, 0ff00h
+    jne failed
+    cmp bx, 0
+    jne failed
+
     mov dx, remote_name_two
     mov ax, 3d00h
     int 21h

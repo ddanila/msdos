@@ -19,7 +19,41 @@ command_skip_space:
         lodsb
         dec     cx
         cmp     al,'?'
+        je      command_help_tail
+        and     al,0dfh
+        cmp     al,'R'
         jne     command_syntax
+        mov     di,OFFSET reconnect_name+1
+        mov     bx,8
+command_reconnect_tail:
+        jcxz    command_reconnect
+        lodsb
+        dec     cx
+        and     al,0dfh
+        cmp     al,[di]
+        jne     command_syntax
+        inc     di
+        dec     bx
+        jnz     command_reconnect_tail
+command_reconnect_spaces:
+        jcxz    command_reconnect
+        lodsb
+        dec     cx
+        cmp     al,' '
+        je      command_reconnect_spaces
+        jmp     command_syntax
+command_reconnect:
+        or      bx,bx
+        jnz     command_syntax
+        mov     ax,0e901h
+        int     2fh
+        cmp     ax,0ff00h
+        jne     not_installed
+        mov     dx,OFFSET reconnected
+        mov     ah,9
+        int     21h
+        mov     ax,4c00h
+        int     21h
 command_help_tail:
         jcxz    command_help
         lodsb
@@ -73,9 +107,11 @@ banner_port db '0',13,10
 banner_count db '0',13,10,'$'
 missing db 'INTERLNK is not installed or the server is unavailable.',13,10,'$'
 syntax  db 'Invalid INTERLNK parameter.',13,10,'$'
-help    db 'Displays Interlnk client connection status.',13,10
-        db 'Syntax: INTERLNK',13,10
+help    db 'Displays or renews the Interlnk client connection.',13,10
+        db 'Syntax: INTERLNK [/RECONNECT]',13,10
         db 'CONFIG.SYS: DEVICE=INTERLNK.EXE [/DRIVES:n] [/NOPRINTER] [/COM:n]',13,10,'$'
+reconnect_name db 'RECONNECT'
+reconnected db 'Interlnk connection renewed.',13,10,'$'
 CODE ENDS
 STACKSEG SEGMENT PARA STACK 'STACK'
         db 256 dup(0)

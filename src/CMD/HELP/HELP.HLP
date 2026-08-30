@@ -45,7 +45,7 @@ GRAPHICS   Loads graphics-screen printing support.
 HELP       Displays command help.
 IF         Performs conditional batch processing.
 INCLUDE    Includes another CONFIG.SYS configuration block.
-INTERLNK   Displays Interlnk client connection status.
+INTERLNK   Displays or renews the Interlnk client connection.
 INTERSVR   Shares drives through an Interlnk transport.
 JOIN       Joins a drive to a directory.
 KEYB       Configures a national keyboard.
@@ -239,10 +239,11 @@ Syntax: IF [NOT] condition command
 Includes another named CONFIG.SYS block at this position.
 Syntax: INCLUDE=blockname
 @INTERLNK
-Displays the connection status of the installed Interlnk client.
-Syntax: INTERLNK
+Displays or renews the installed Interlnk client connection.
+Syntax: INTERLNK [/RECONNECT]
 Load INTERLNK.EXE with DEVICE in CONFIG.SYS to mount up to five server volumes.
 Options: /DRIVES:n (1-5), /NOPRINTER, and /COM:n (1-4).
+/RECONNECT repeats server discovery and per-volume BPB negotiation.
 @INTERSVR
 Shares a DOS volume with an Interlnk client over COM1.
 Syntax: INTERSVR [drive: ...] [/COM:n]
