@@ -86,7 +86,7 @@ grep -Fq 'INTERLNK_TRANSPORT_PASS' "$LOG" || {
 }
 grep -Fq 'truncated sector response 2' "$OUT/interlnk-proxy.log"
 grep -Fq 'corrupted sector response 4' "$OUT/interlnk-proxy.log"
-[[ $(grep -Fc 'retried corrupted read sector' "$OUT/interlnk-proxy.log") -eq 2 ]]
+[[ $(grep -Fc 'retried read sector' "$OUT/interlnk-proxy.log") -eq 2 ]]
 grep -Fq 'corrupted request header 4' "$OUT/interlnk-proxy.log"
 grep -Fq 'truncated write payload 1' "$OUT/interlnk-proxy.log"
 grep -Fq 'corrupted write payload 4' "$OUT/interlnk-proxy.log"

@@ -70,7 +70,7 @@ def forward_requests(data):
         request_number += 1
         identity = bytes(request[3:8])
         if command == 2 and retry_identity == identity:
-            print("retried corrupted read sector", flush=True)
+            print("retried read sector", flush=True)
             retry_identity = None
         if command == 3:
             write_request += 1
