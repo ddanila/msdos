@@ -34,7 +34,7 @@ valid lightweight interface.
 | Area | Status | Gap |
 | --- | --- | --- |
 | DOS identity and compatibility | Present | The kernel and true-version API identify 6.22, and SETVER ships the retail 6.2/6.22 default table. The `MSDOS5.0` FAT OEM identifier is correct for 6.22 and remains unchanged. |
-| Startup and configuration | Partial | No configuration blocks, boot menus, `CONFIG` selection variable, interactive startup bypass, or batch stepping. |
+| Startup and configuration | Partial | Configuration blocks, boot menus, and the `CONFIG` selection variable remain; F5/Shift bypass and F8 CONFIG/AUTOEXEC stepping are present. |
 | Everyday command additions | Partial | `CHOICE`, `DELTREE`, `LOADFIX`, and `MOVE` are present; overwrite policy additions to `COPY` and `XCOPY` remain. |
 | Disk health and performance | Missing | `SCANDISK` and `DEFRAG`; no ScanDisk repair log or undo flow. |
 | Memory optimization | Partial | Strong DOS 5 HMA/UMB base, but not the complete DOS 6 EMM386/MEM/loader contract or `MEMMAKER`. |
@@ -77,7 +77,7 @@ Known gaps in commands already shipped:
 
 | Existing command | Missing 6.22 behavior |
 | --- | --- |
-| `COMMAND` | `/K` and `/Y` batch single-stepping are present. F5 startup bypass, F8 confirmation, and selected-configuration propagation to AUTOEXEC.BAT remain. |
+| `COMMAND` | `/K`, `/Y` batch single-stepping, F5/Shift startup bypass, and F8 CONFIG/AUTOEXEC confirmation are present. Selected-configuration propagation remains. |
 | `COPY` | Present: `/Y`, `/-Y`, overwrite prompting, `COPYCMD`, and command-line precedence are covered. |
 | `DIR` | `/C[H]` compression ratios and `O:C`/`O:-C`; these depend on DriveSpace. |
 | `EMM386` | The DOS 6 enhanced automatic EMS/UMB behavior and remaining 6.22 parser/API/hardware differences need a reference differential audit. Existing DOS 5 modes and memory regions are a strong base. |
@@ -99,7 +99,6 @@ Missing 6.22 configuration behavior:
 - named configuration blocks plus `[menu]` and `[common]`;
 - `MENUITEM`, `MENUDEFAULT`, `MENUCOLOR`, `SUBMENU`, and `INCLUDE`;
 - the `CONFIG` environment variable passed to AUTOEXEC.BAT;
-- F5/Shift bypass, F8 per-command confirmation, and the matching prompts;
 - section selection, invalid-menu recovery, timeouts, nesting, and common-section
   ordering;
 - 6.22 parsing limits, diagnostics, and interaction with `DEVICEHIGH`,

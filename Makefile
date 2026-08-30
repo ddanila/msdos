@@ -34,6 +34,7 @@ AINC     := -I. -ID:\\TOOLS\\INC
 .PHONY: test-xcopy-dos6-qemu
 .PHONY: test-config-numlock-qemu
 .PHONY: test-config-set-qemu
+.PHONY: test-startup-keys-qemu
 
 KVIKDOS_SOFT_SRCS := kvikdos/kvikdos.c kvikdos/cpu8086.c
 KVIKDOS_SOFT_DEPS := $(KVIKDOS_SOFT_SRCS) kvikdos/mini_kvm.h kvikdos/cpu8086.h \
@@ -450,6 +451,9 @@ test-config-numlock-qemu: deploy
 
 test-config-set-qemu: deploy
 	bash tests/test_config_set_qemu.sh
+
+test-startup-keys-qemu: deploy
+	bash tests/test_startup_keys_qemu.sh
 
 test-screen-expect: deploy
 	bash tests/test_screen_expect.sh

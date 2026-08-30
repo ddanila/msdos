@@ -208,6 +208,7 @@ ASSUME	CS:SYSINITSEG,DS:NOTHING,ES:NOTHING,SS:NOTHING
 	public Do_Install_Exec			;AN019;
 	public Multi_Pass_Id			;AN024;
 	public ConfigEnv,ConfigEnvUsed
+	public BootBypass,BootStep
 
 
 ;
@@ -289,6 +290,9 @@ COMMAND_LINE		DB	2,0,"P" ;Default Command.com Args
 ZERO			DB	0
 ConfigEnvUsed		DW	2
 ConfigEnv		DB	1024 DUP (0)
+BootBypass		DB	0
+BootStep		DB	0
+BootKeyStartTick	DW	0
 SepChr			DB	0
 LineCount		dw	0	;AN000;  Line count in config.sys
 ShowCount		db	'     ',CR,LF,'$' ;AN000;  Used to convert Linecount to ASCII.
@@ -657,7 +661,14 @@ ASSUME	DS:NOTHING
 	INT	21H			;SELECT THE DISK
 ;J.K.  2/23/87	Modified to handle INSTALL= command.
 NODRVSET:
+	CALL	CheckStartupKeys
+	CMP	BootBypass,0
+	JNE	SHORT SkipBootConfig
 	CALL	DOCONF			;DO THE CONFIG STUFF
+	JMP	SHORT BootConfigReady
+SkipBootConfig:
+	MOV	Multi_Pass_Id,11
+BootConfigReady:
 	inc	cs:Multi_Pass_Id	;AN027;
 	call	Multi_Pass		;AN027;
 	inc	cs:Multi_Pass_Id	;AN024;
@@ -725,6 +736,7 @@ ASSUME	DS:SYSINITSEG
 ;
 ; SET UP THE PARAMETERS FOR COMMAND
 ;
+	CALL	ApplyStartupCommandFlags
 
 	MOV	SI,OFFSET COMMAND_LINE+1
 
@@ -1981,6 +1993,87 @@ Set_Sysinit_Base:
 
 ENDFILE_Ret:
 	return
+
+
+; F5 or either Shift key bypasses CONFIG.SYS and AUTOEXEC.BAT.  F8 enables
+; per-line CONFIG.SYS confirmation and passes /Y to COMMAND.COM so AUTOEXEC
+; receives the same treatment.  Keystrokes already buffered by the BIOS are
+; consumed here; the shift flags also cover a key held during this point.
+CheckStartupKeys proc near
+	push	ds
+	push	cs
+	pop	ds
+	mov	ax,(CHAR_OPER SHL 8)
+	int	21h
+	mov	SepChr,dl
+	mov	COMMAND_LINE+1,dl
+	mov	ah,0
+	int	1ah
+	mov	BootKeyStartTick,dx
+CheckStartupPoll:
+	mov	ah,2
+	int	16h
+	test	al,3
+	jz	short CheckStartupBuffered
+	mov	BootBypass,1
+	jmp	short CheckStartupDone
+CheckStartupBuffered:
+	mov	ah,1
+	int	16h
+	jnz	short CheckStartupRead
+	mov	ah,0
+	int	1ah
+	sub	dx,BootKeyStartTick
+	cmp	dx,18
+	jb	short CheckStartupPoll
+	jmp	short CheckStartupDone
+CheckStartupRead:
+	mov	ah,0
+	int	16h
+	cmp	ah,3fh
+	jne	short CheckStartupF8
+	mov	BootBypass,1
+	jmp	short CheckStartupDone
+CheckStartupF8:
+	cmp	ah,42h
+	jne	short CheckStartupDone
+	mov	BootStep,1
+CheckStartupDone:
+	pop	ds
+	ret
+CheckStartupKeys endp
+
+ApplyStartupCommandFlags proc near
+	push	ax
+	push	di
+	mov	di,offset COMMAND_LINE+1
+ApplyStartupFindEnd:
+	cmp	byte ptr [di],0
+	je	short ApplyStartupFoundEnd
+	inc	di
+	jmp	short ApplyStartupFindEnd
+ApplyStartupFoundEnd:
+	cmp	BootBypass,0
+	je	short ApplyStartupMaybeStep
+	mov	byte ptr [di],' '
+	mov	al,SepChr
+	mov	byte ptr [di+1],al
+	mov	byte ptr [di+2],'D'
+	mov	byte ptr [di+3],0
+	add	di,3
+ApplyStartupMaybeStep:
+	cmp	BootStep,0
+	je	short ApplyStartupFlagsDone
+	mov	byte ptr [di],' '
+	mov	al,SepChr
+	mov	byte ptr [di+1],al
+	mov	byte ptr [di+2],'Y'
+	mov	byte ptr [di+3],0
+ApplyStartupFlagsDone:
+	pop	di
+	pop	ax
+	ret
+ApplyStartupCommandFlags endp
 
 
 ; Build the environment inherited by the first command interpreter when

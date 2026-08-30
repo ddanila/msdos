@@ -153,6 +153,7 @@ ASSUME	CS:SYSINITSEG,DS:NOTHING,ES:NOTHING,SS:NOTHING
 	extrn	Org_Count:Word			;AN018;
 	extrn	Multi_Pass_Id:byte		;AN026;
 	extrn	ConfigEnv:byte,ConfigEnvUsed:word
+	extrn	BootStep:byte
 
 	EXTRN	MEM_ERR:NEAR,SetDOSCountryInfo:NEAR
 	EXTRN	PARAROUND:NEAR,TEMPCDS:NEAR
@@ -205,6 +206,7 @@ XMAEM_file	db	'XMAEM.SYS',0	;AN029;
 ConfigSetLine	db	256 dup (0)
 ConfigSetLength	dw	0
 ConfigSetNameLen	dw	0
+BootStepPrompt	db	'Process next CONFIG.SYS line? [Y,N] ',0
 
 ;IBMCACHE_file	 db	 'IBMCACHE.SYS',0;AN024;AN026;To cope with the IBMCACHE.SYS
 					; problem of DOS version checking.
@@ -843,10 +845,63 @@ ENDIF
 	je	Blank_Line		;AN000;  then ignore this line.
 	MOV	AH,AL
 	CALL	GETCHR
-	jnc	TryI			;AN000;
+	jc	short ConflpNoParameter
+	cmp	Multi_Pass_Id,1
+	jne	TryI
+	cmp	BootStep,0
+	je	TryI
+	call	ConfirmBootConfigLine
+	jc	COFF
+	jmp	TryI
+ConflpNoParameter:
 	cmp	Multi_Pass_ID, 2	;AN026;
 	jae	Endconv 		;AN026;Do not show Badop again for multi_pass.
 	JMP	BADOP
+
+ConfirmBootConfigLine proc near
+	push	ax
+	push	bx
+	push	si
+	mov	si,offset BootStepPrompt
+ConfirmBootPrint:
+	lodsb
+	or	al,al
+	jz	short ConfirmBootRead
+	mov	ah,0eh
+	mov	bx,0007h
+	int	10h
+	jmp	short ConfirmBootPrint
+ConfirmBootRead:
+	mov	ah,0
+	int	16h
+	and	al,0dfh
+	cmp	al,'Y'
+	je	short ConfirmBootYes
+	cmp	al,'N'
+	jne	short ConfirmBootRead
+	mov	al,'N'
+	call	ConfirmBootEcho
+	stc
+	jmp	short ConfirmBootReturn
+ConfirmBootYes:
+	mov	al,'Y'
+	call	ConfirmBootEcho
+	clc
+ConfirmBootReturn:
+	pop	si
+	pop	bx
+	pop	ax
+	ret
+ConfirmBootEcho:
+	mov	ah,0eh
+	mov	bx,0007h
+	int	10h
+	mov	al,CR
+	int	10h
+	mov	al,LF
+	int	10h
+	ret
+ConfirmBootConfigLine endp
 
 COFF:	PUSH	CS
 	POP	DS

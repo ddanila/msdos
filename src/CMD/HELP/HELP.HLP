@@ -127,7 +127,8 @@ Clears the screen.
 Syntax: CLS
 @COMMAND
 Starts a new command interpreter.
-Syntax: COMMAND [[drive:]path] [device] [/E:nnnn] [/P] [/C command] [/MSG]
+Syntax: COMMAND [[drive:]path] [device] [/E:nnnn] [/P] [/C command] [/K command] [/D] [/F] [/MSG] [/Y]
+At startup, F5 or Shift bypasses CONFIG.SYS and AUTOEXEC.BAT; F8 confirms each line.
 @COMP
 Compares the contents of two files or sets of files.
 Syntax: COMP data1 [data2] [/D] [/A] [/L] [/N=number] [/C]
