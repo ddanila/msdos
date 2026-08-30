@@ -30,6 +30,7 @@ nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 nasm -f bin "$REPO_ROOT/tests/smartdrv_io_probe.asm" -o "$IO_COM"
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 mcopy -o -i "$BOOT_IMG" "$IO_COM" ::SDIO.COM
+mcopy -o -i "$BOOT_IMG" "$REPO_ROOT/src/DEV/SMARTDRV/SMARTDRV.EXE" ::SMARTDRV.EXE
 printf 'DEVICE=SMARTDRV.SYS 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
@@ -53,6 +54,8 @@ printf 'DEVICE=SMARTDRV.SYS 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
     printf 'SDIO.COM\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_IO_FAILED\r\n'
     printf 'ECHO SMARTDRV_DIRTY_BEGIN\r\nSMARTDRV /S\r\nECHO SMARTDRV_DIRTY_END\r\n'
+    printf 'ECHO SMARTDRV_LOCKED_BEGIN\r\nSMARTDRV /L /S\r\nECHO SMARTDRV_LOCKED_END\r\n'
+    printf 'ECHO SMARTDRV_UNLOCKED_BEGIN\r\nSMARTDRV /U /S\r\nECHO SMARTDRV_UNLOCKED_END\r\n'
     printf 'SMARTDRV /C\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_FLUSH_FAILED\r\n'
     printf 'ECHO SMARTDRV_CLEAN_BEGIN\r\nSMARTDRV /S\r\nECHO SMARTDRV_CLEAN_END\r\n'
@@ -67,6 +70,8 @@ timeout 25 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 
     >"$SERIAL_LOG" 2>&1 || true
 
 dirty="$(sed -n '/SMARTDRV_DIRTY_BEGIN/,/SMARTDRV_DIRTY_END/p' "$SERIAL_LOG")"
+locked="$(sed -n '/SMARTDRV_LOCKED_BEGIN/,/SMARTDRV_LOCKED_END/p' "$SERIAL_LOG")"
+unlocked="$(sed -n '/SMARTDRV_UNLOCKED_BEGIN/,/SMARTDRV_UNLOCKED_END/p' "$SERIAL_LOG")"
 clean="$(sed -n '/SMARTDRV_CLEAN_BEGIN/,/SMARTDRV_CLEAN_END/p' "$SERIAL_LOG")"
 quiet_output="$(sed -n '/SMARTDRV_QUIET_BEGIN/,/SMARTDRV_QUIET_END/p' "$SERIAL_LOG")"
 off_status="$(sed -n '/SMARTDRV_OFF_BEGIN/,/SMARTDRV_OFF_END/p' "$SERIAL_LOG")"
@@ -96,6 +101,8 @@ if [[ "$(grep -c 'SMARTDRV_QUIET_' <<<"$quiet_output")" == 2 ]] \
     && grep -q 'C:  Read cache yes  Write cache no' <<<"$nowrite_status" \
     && grep -q 'C:  Read cache yes  Write cache yes' "$SERIAL_LOG" \
     && grep -Eq '[1-9][0-9]* dirty' <<<"$dirty" \
+    && grep -Eq 'Cache lock: on, [1-9][0-9]* tracks locked' <<<"$locked" \
+    && grep -q 'Cache lock: off, 0 tracks locked' <<<"$unlocked" \
     && grep -q '0 dirty' <<<"$clean" \
     && [[ "$sector_matches" == yes ]] \
     && grep -q 'SMARTDRV: invalid cache element or read-ahead size' "$SERIAL_LOG" \

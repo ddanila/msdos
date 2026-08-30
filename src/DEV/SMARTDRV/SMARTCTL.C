@@ -98,6 +98,8 @@ int h, extended;
         printf("Tracks: %u total, %u used, %u dirty; reads %lu/%lu hits, writes %lu/%lu hits\n",
             s.ttracks, s.total_used, s.total_dirty,
             s.read_hits, s.total_reads, s.write_hits, s.total_writes);
+        printf("Cache lock: %s, %u tracks locked\n",
+            s.lock_cache ? "on" : "off", s.total_locked);
     }
 }
 
@@ -167,7 +169,8 @@ char **argv;
             else if (same(a, "Q")) quiet = 1;
             else if (same(a, "V")) verbose = 1;
             else if (same(a, "S")) extended = 1;
-            else if (same(a, "L") || same(a, "U")) action = 1;
+            else if (same(a, "L")) { p[0] = 6; send(h, p, 1); action = 1; }
+            else if (same(a, "U")) { p[0] = 7; send(h, p, 1); action = 1; }
             else if ((upper(a[0]) == 'E' || upper(a[0]) == 'B') && a[1] == ':') {
                 n = getnum(a + 2, &ok);
                 if (!ok || (upper(a[0]) == 'E' && n != 1024 && n != 2048 && n != 4096 && n != 8192))
