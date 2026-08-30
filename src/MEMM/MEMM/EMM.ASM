@@ -401,6 +401,7 @@ EMM_rLINK	proc	far
 	pop	ds		; set DS = DGROUP
 	call	int67_Entry	;   call dispatcher
 	add	sp,2		; drop PFlag arg
+	call	_AutoUpdate	; update AUTO after allocate/deallocate/query calls
 	pop	ds		; restore seg regs
 	pop	es
 	pop	gs
@@ -417,13 +418,19 @@ ErE_GoProt:
 	pop	ds			; DS = DGROUP
 	cmp	[Active_Status],0	;Q: are we in Virtual Mode ?
 	jne	ErE_Pcall		;  Y: call protected mode function
-;	mov	[_map_known],TRUE	;  N: set global auto mode flag
-	call	_AutoUpdate		;      go into virtual mode
-					;      and call function
+	cmp	[Auto_Mode],0		;  N: may an EMS request activate AUTO?
+	je	ErE_Pcall		;     explicit OFF remains inaccessible
+	mov	[Active_Status],1
+	call	GoVirtual		;     service request in virtual mode
 ErE_Pcall:
 	mov	[EMM_Flag],TRUE 	; set flag
 	pop	ds			; restore DS
 	int	67h			; go for it ...
+	push	ds
+	push	seg DGROUP
+	pop	ds
+	call	_AutoUpdate		; release virtual mode when no app handles remain
+	pop	ds
 	ret				; then return
 
 EMM_rLINK	endp
@@ -455,8 +462,8 @@ _AutoUpdate	proc	near
 ;
 ;	cmp	[_map_known],0		;	Y:Q: map known ?
 ;	jne	AU_exit 		;	    Y: then stay ON...
-	cmp	[_handle_count],0	;	    N:Q: any active handles ?
-	jne	AU_exit 		;		Y: then stay ON...
+	cmp	[_handle_count],1	;	    N:Q: any application handles ?
+	ja	AU_exit 		;		Y: stay ON (handle 0 is internal)
 	mov	[Active_Status],0	;		N: go to OFF state
 	push	ax
 	call	RRProc			; Force processor into real mode
@@ -466,8 +473,8 @@ _AutoUpdate	proc	near
 ;   here if we are currently OFF
 ;
 AU_chkoff:
-	cmp	[_handle_count],0	;Q: any active handles ?
-	je	AU_exit			;  N: stay off
+	cmp	[_handle_count],1	;Q: any application handles beyond handle 0?
+	jbe	AU_exit			;  N: stay off
 
 ;	cmp	[_map_known],0		;;  Q: is the map known ?
 ;	je	AU_exit 		;;    N: then stay OFF...

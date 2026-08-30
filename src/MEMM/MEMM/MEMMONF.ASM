@@ -126,6 +126,7 @@ arg_len 	label	word		; table of argument lengths
 		dw	w_off_len
 
 weitek_seen	db	0
+arg_token_len	db	0
 
 page
 ;******************************************************************************
@@ -157,9 +158,22 @@ onf_func	proc	near
 drvr_installed:
 ;
 	call	parse_onf		; look for ON/OFF
-	jc	msg_disp		; invalid parameter
+	jnc	short parsed_ok
+	call	report_invalid_parameter
+	jmp	short term_no_message
+parsed_ok:
 	cmp	ax,no_arg		; q: no argument?
-	je	get_status		; y: get status
+	jne	short set_requested_status
+	cmp	cs:[weitek_seen],0	; W= alone only updates hardware policy
+	jne	short weitek_only
+	call	report_ems		; DOS 6 command-mode statistics
+	jmp	short get_status
+weitek_only:
+	mov	dx,offset weitek_missing
+	call	print_dollar
+	mov	cs:[weitek_seen],0
+	jmp	term_no_message
+set_requested_status:
 	push	ax			; save on/off indicator
 	mov	ah,1			; ah=1 for set status routine
 	call	ELIM_link		; go turn it on or off
@@ -201,7 +215,234 @@ no_weitek_message:
 	pop	ax
 
 	ret
+term_no_message:
+	pop	di
+	pop	dx
+	pop	ax
+
+	ret
 onf_func	endp
+
+report_invalid_parameter proc near
+	push	ax
+	push	cx
+	push	dx
+	push	si
+	mov	dx,offset invalid_parameter_prefix
+	call	print_dollar
+	mov	si,offset arg_str
+	xor	cx,cx
+	mov	cl,cs:[arg_token_len]
+invalid_parameter_char:
+	jcxz	short invalid_parameter_done
+	lodsb
+	cmp	al,'a'
+	jb	short invalid_parameter_emit
+	cmp	al,'z'
+	ja	short invalid_parameter_emit
+	sub	al,'a'-'A'
+invalid_parameter_emit:
+	mov	dl,al
+	mov	ah,2
+	int	MSDOS
+	loop	invalid_parameter_char
+invalid_parameter_done:
+	call	print_crlf
+	pop	si
+	pop	dx
+	pop	cx
+	pop	ax
+	ret
+report_invalid_parameter endp
+
+; Print the DOS 6 command-mode EMS summary.  Values come through the public
+; LIM 4.0 API, so this reports the live manager rather than build constants.
+report_ems	proc	near
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	xor	ah,ah
+	call	ELIM_link
+	mov	cs:[report_saved_mode],ah
+	test	ah,1			; real-mode OFF state hides INT 67h
+	jz	short report_manager_ready
+	xor	ax,ax			; temporarily enter virtual mode for queries
+	mov	ah,1
+	call	ELIM_link
+report_manager_ready:
+
+	mov	dx,offset report_header
+	call	print_dollar
+	mov	ah,42h			; unallocated and total pages
+	int	67h
+	push	dx			; total pages
+	push	bx			; free pages
+	mov	dx,offset report_available_kb
+	call	print_dollar
+	pop	ax
+	mov	cl,4
+	shl	ax,cl			; 16 KiB per EMS page
+	call	print_decimal
+	mov	dx,offset report_kb_suffix
+	call	print_dollar
+
+	mov	dx,offset report_version
+	call	print_dollar
+	mov	ah,46h
+	int	67h
+	push	ax
+	xor	ah,ah
+	mov	cl,4
+	shr	al,cl
+	call	print_decimal
+	mov	dl,'.'
+	mov	ah,2
+	int	MSDOS
+	pop	ax
+	and	ax,000fh
+	call	print_decimal
+	call	print_crlf
+
+	mov	dx,offset report_total_pages
+	call	print_dollar
+	pop	ax
+	call	print_decimal
+	call	print_crlf
+	mov	dx,offset report_free_pages
+	call	print_dollar
+	mov	ah,42h
+	int	67h
+	mov	ax,bx
+	call	print_decimal
+	call	print_crlf
+
+	mov	dx,offset report_total_handles
+	call	print_dollar
+	mov	ax,5402h		; LIM 4.0 total handle capacity
+	int	67h
+	mov	ax,bx
+	call	print_decimal
+	call	print_crlf
+	mov	dx,offset report_active_handles
+	call	print_dollar
+	mov	ah,4bh
+	int	67h
+	mov	ax,bx
+	call	print_decimal
+	call	print_crlf
+
+	mov	dx,offset report_frame
+	call	print_dollar
+	mov	ah,41h
+	int	67h
+	mov	ax,bx
+	call	print_hex4
+	mov	dx,offset report_hex_suffix
+	call	print_dollar
+
+	mov	al,cs:[report_saved_mode]
+	test	al,1
+	jz	short report_mode_restored
+	cmp	al,3
+	je	short report_restore_auto
+	mov	ax,0101h		; restore explicit OFF
+	call	ELIM_link
+	jmp	short report_mode_restored
+report_restore_auto:
+	mov	ax,0102h		; restore AUTO (AutoUpdate selects ON/OFF)
+	call	ELIM_link
+report_mode_restored:
+
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	ret
+report_ems	endp
+
+print_dollar	proc	near
+	push	ax
+	mov	ah,9
+	int	MSDOS
+	pop	ax
+	ret
+print_dollar	endp
+
+print_crlf	proc	near
+	push	dx
+	mov	dx,offset report_newline
+	call	print_dollar
+	pop	dx
+	ret
+print_crlf	endp
+
+print_decimal	proc	near
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	xor	cx,cx
+	mov	bx,10
+decimal_divide:
+	xor	dx,dx
+	div	bx
+	push	dx
+	inc	cx
+	or	ax,ax
+	jnz	decimal_divide
+decimal_emit:
+	pop	dx
+	add	dl,'0'
+	mov	ah,2
+	int	MSDOS
+	loop	decimal_emit
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	ret
+print_decimal	endp
+
+print_hex4	proc	near
+	push	ax
+	push	cx
+	push	dx
+	mov	cx,4
+hex_emit:
+	rol	ax,4
+	mov	dl,al
+	and	dl,0fh
+	add	dl,'0'
+	cmp	dl,'9'
+	jbe	short hex_digit
+	add	dl,'A'-'9'-1
+hex_digit:
+	push	ax
+	mov	ah,2
+	int	MSDOS
+	pop	ax
+	loop	hex_emit
+	pop	dx
+	pop	cx
+	pop	ax
+	ret
+print_hex4	endp
+
+report_header db "MICROSOFT Expanded Memory Manager 386  Version 4.49",CR,LF
+	      db "Copyright Microsoft Corporation 1986, 1994",CR,LF,"$"
+report_available_kb db "  Available expanded memory . . . . . . . . ","$"
+report_kb_suffix db " KB",CR,LF,"$"
+report_version db "  LIM/EMS version . . . . . . . . . . . . . ","$"
+report_total_pages db "  Total expanded memory pages . . . . . . . ","$"
+report_free_pages db "  Available expanded memory pages . . . . . ","$"
+report_total_handles db "  Total handles . . . . . . . . . . . . . . ","$"
+report_active_handles db "  Active handles  . . . . . . . . . . . . . ","$"
+report_frame db "  Page frame segment  . . . . . . . . . . . ","$"
+report_hex_suffix db " H",CR,LF,"$"
+report_newline db CR,LF,"$"
+report_saved_mode db 0
+invalid_parameter_prefix db "Invalid parameter - ","$"
 
 	page
 ;******************************************************************************
@@ -299,6 +540,7 @@ parse_next:
 	mov	si,offset arg_str
 	mov	cx,max_arg_len
 	call	get_token
+	mov	cs:[arg_token_len],cl
 	or	cx,cx
 	jz	parse_good
 	inc	dx

@@ -24,7 +24,7 @@ exit_com="$OUT/qemu-exit.com"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit_probe.asm" -o "$exit_com"
 for case_spec in 'ON|ON|EMM386 Active\.' \
     'OFF|OFF|EMM386 Inactive\.' \
-    'AUTO|AUTO|EMM386 in Auto mode\.' \
+    'AUTO|AUTO|EMM386 is in Auto mode\.' \
     'WON|W=ON|EMM386 Active\.' \
     'WOFF|W=OFF|EMM386 Active\.'; do
     IFS='|' read -r case_name options expected <<<"$case_spec"
