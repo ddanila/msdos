@@ -495,7 +495,7 @@ static int ini_key_is(const char *line, const char *name)
 }
 
 static void write_windows_30_settings(FILE *output, int *rom, int *exclude,
-                                      int *dual, int *noemm,
+                                      int *include, int *dual, int *noemm,
                                       const struct options *options)
 {
     if (!*rom) {
@@ -505,6 +505,10 @@ static void write_windows_30_settings(FILE *output, int *rom, int *exclude,
     if (!*exclude) {
         fputs("EMMEXCLUDE=A000-FFFF\n", output);
         *exclude = 1;
+    }
+    if (options->monochrome_region && !*include) {
+        fputs("EMMINCLUDE=B000-B7FF\n", output);
+        *include = 1;
     }
     if (options->monochrome_region && !*dual) {
         fputs("DUALDISPLAY=TRUE\n", output);
@@ -526,6 +530,7 @@ static int transform_system_ini(const char *source, const char *temporary,
     int found_386enh = 0;
     int wrote_rom = 0;
     int wrote_exclude = 0;
+    int wrote_include = 0;
     int wrote_dual = 0;
     int wrote_noemm = 0;
     if (!input)
@@ -546,7 +551,8 @@ static int transform_system_ini(const char *source, const char *temporary,
             int is_386enh = ini_section_is(line, "386Enh");
             if (in_386enh && !is_386enh && strchr(line, '['))
                 write_windows_30_settings(output, &wrote_rom, &wrote_exclude,
-                                          &wrote_dual, &wrote_noemm, options);
+                                          &wrote_include, &wrote_dual,
+                                          &wrote_noemm, options);
             if (strchr(line, '['))
                 in_386enh = is_386enh;
             if (is_386enh)
@@ -562,6 +568,10 @@ static int transform_system_ini(const char *source, const char *temporary,
                 fputs("EMMEXCLUDE=A000-FFFF\n", output);
                 wrote_exclude = 1;
             }
+        } else if (in_386enh && ini_key_is(line, "EMMINCLUDE")) {
+            fputs(line, output);
+            if (contains_name(line, "B000-B7FF"))
+                wrote_include = 1;
         } else if (in_386enh && ini_key_is(line, "DUALDISPLAY")) {
             if (options->monochrome_region && !wrote_dual) {
                 fputs("DUALDISPLAY=TRUE\n", output);
@@ -578,11 +588,13 @@ static int transform_system_ini(const char *source, const char *temporary,
     }
     if (in_386enh)
         write_windows_30_settings(output, &wrote_rom, &wrote_exclude,
-                                  &wrote_dual, &wrote_noemm, options);
+                                  &wrote_include, &wrote_dual,
+                                  &wrote_noemm, options);
     else if (!found_386enh) {
         fputs("[386Enh]\n", output);
         write_windows_30_settings(output, &wrote_rom, &wrote_exclude,
-                                  &wrote_dual, &wrote_noemm, options);
+                                  &wrote_include, &wrote_dual,
+                                  &wrote_noemm, options);
     }
     fclose(input);
     if (fclose(output)) {

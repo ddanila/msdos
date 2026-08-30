@@ -35,7 +35,11 @@ for version in 31 unknown options; do
         printf '@ECHO OFF\r\nCTTY AUX\r\nSET WINDIR=A:\\WINDOWS\r\n'
         printf 'IF EXIST A:\\MEMMAKER.STS QEXIT.COM\r\n'
     } | mcopy -o -i "$image" - ::AUTOEXEC.BAT
-    printf '[386Enh]\r\nMinTimeSlice=20\r\n' >"$original"
+    if [[ "$version" == options ]]; then
+        printf '[386Enh]\r\nMinTimeSlice=20\r\nEMMINCLUDE=C800-CFFF\r\n' >"$original"
+    else
+        printf '[386Enh]\r\nMinTimeSlice=20\r\n' >"$original"
+    fi
     mcopy -o -i "$image" "$original" ::WINDOWS/SYSTEM.INI
     if [[ "$version" == 31 ]]; then
         printf 'Microsoft Windows Version 3.10\r\n' | mcopy -o -i "$image" - ::WINDOWS/WIN.COM
@@ -73,6 +77,8 @@ for version in 31 unknown options; do
         config=$(mcopy -i "$image" ::CONFIG.SYS - 2>/dev/null | tr -d '\r')
         grep -qi '^DUALDISPLAY=TRUE$' <<<"$system_ini"
         grep -qi '^NOEMMDRIVER=TRUE$' <<<"$system_ini"
+        grep -qi '^EMMINCLUDE=B000-B7FF$' <<<"$system_ini"
+        grep -qi '^EMMINCLUDE=C800-CFFF$' <<<"$system_ini"
         grep -qi '^DEVICE=A:\\EMM386.EXE X=C800-CFFF NOEMS I=B000-B7FF$' <<<"$config"
         mdir -b -i "$image" ::WINDOWS 2>/dev/null | grep -q 'SYSTEM.UMB'
     else
