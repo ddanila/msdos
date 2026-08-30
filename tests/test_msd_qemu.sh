@@ -60,6 +60,8 @@ for marker in \
     'Reported DOS version: 6.22' 'True DOS version:     6.22' 'DOS OEM/serial:' \
     'BIOS machine ID:' 'BIOS date:' 'BIOS base memory:' \
     'Startup display:' 'Game adapter:' 'COM1 base address:     03F8h' \
+    'Text rows:' 'Character height:' 'Active adapter:        VGA color' \
+    'Alternate adapter:' \
     'Keyboard shift flags:' 'Mouse driver:          Not probed (/I)' \
     'Allocation strategy:' 'UMB chain linked:' 'Write verification:' \
     'Extended BREAK check:' 'Code pages:' 'Country code:' 'Date format:' 'Environment:' \

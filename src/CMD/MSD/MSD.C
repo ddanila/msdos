@@ -282,12 +282,30 @@ static void report_memory(void)
 static void report_video(void)
 {
     union REGS inregs, outregs;
+    const unsigned char far *bda =
+        (const unsigned char far *)MK_FP(0x40, 0);
+    static const char *displays[] = {
+        "None", "MDA", "CGA", "Reserved", "EGA color", "EGA monochrome",
+        "PGA", "VGA monochrome", "VGA color", "Reserved", "MCGA color",
+        "MCGA monochrome", "MCGA color"
+    };
     heading("Video");
     inregs.h.ah = 0x0f;
     int86(0x10, &inregs, &outregs);
     fprintf(report, "Video mode:            %u\n", outregs.h.al);
     fprintf(report, "Text columns:          %u\n", outregs.h.ah);
     fprintf(report, "Active display page:   %u\n", outregs.h.bh);
+    fprintf(report, "Text rows:             %u\n", (unsigned)bda[0x84] + 1);
+    fprintf(report, "Character height:      %u scan lines\n",
+            table_word(bda + 0x85));
+    inregs.x.ax = 0x1a00;
+    int86(0x10, &inregs, &outregs);
+    if (outregs.h.al == 0x1a) {
+        fprintf(report, "Active adapter:        %s\n",
+                outregs.h.bl < 13 ? displays[outregs.h.bl] : "Unknown");
+        fprintf(report, "Alternate adapter:     %s\n",
+                outregs.h.bh < 13 ? displays[outregs.h.bh] : "Unknown");
+    }
 }
 
 static void report_disks(void)
