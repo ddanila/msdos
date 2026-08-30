@@ -1,0 +1,74 @@
+; Command-side status display for the installable INTERLNK.EXE client.
+
+CODE SEGMENT PUBLIC
+        ORG     100h
+        ASSUME  CS:CODE,DS:CODE,SS:CODE
+start:
+        xor     cx,cx
+        mov     cl,byte ptr ds:[80h]
+        mov     si,81h
+command_skip_space:
+        jcxz    command_query
+        lodsb
+        dec     cx
+        cmp     al,' '
+        je      command_skip_space
+        cmp     al,'/'
+        jne     command_syntax
+        jcxz    command_syntax
+        lodsb
+        dec     cx
+        cmp     al,'?'
+        jne     command_syntax
+command_help_tail:
+        jcxz    command_help
+        lodsb
+        dec     cx
+        cmp     al,' '
+        je      command_help_tail
+command_syntax:
+        push    cs
+        pop     ds
+        mov     dx,OFFSET syntax
+        mov     ah,9
+        int     21h
+        mov     ax,4c01h
+        int     21h
+command_help:
+        push    cs
+        pop     ds
+        mov     dx,OFFSET help
+        mov     ah,9
+        int     21h
+        mov     ax,4c00h
+        int     21h
+command_query:
+        push    cs
+        pop     ds
+        mov     ax,0e900h
+        int     2fh
+        cmp     ax,0ff00h
+        jne     not_installed
+        mov     dx,OFFSET banner
+        mov     ah,9
+        int     21h
+        mov     ax,4c00h
+        int     21h
+not_installed:
+        mov     dx,OFFSET missing
+        mov     ah,9
+        int     21h
+        mov     ax,4c01h
+        int     21h
+banner  db 'Microsoft Interlnk version 1.00',13,10
+        db 'Port-COM1',13,10
+        db 'Drive letters redirected: 1',13,10,'$'
+missing db 'INTERLNK is not installed or the server is unavailable.',13,10,'$'
+syntax  db 'Invalid INTERLNK parameter.',13,10,'$'
+help    db 'Displays Interlnk client connection status.',13,10
+        db 'Syntax: INTERLNK',13,10,'$'
+CODE ENDS
+STACKSEG SEGMENT PARA STACK 'STACK'
+        db 256 dup(0)
+STACKSEG ENDS
+        END start

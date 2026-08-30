@@ -1,0 +1,348 @@
+; Serial Interlnk server.  The initial transport exports one DOS volume as a
+; remote block device; INTERLNK.EXE performs ordinary DOS filesystem work on
+; that volume through sector requests.
+
+CODE SEGMENT PUBLIC
+        ASSUME  CS:CODE,DS:CODE,ES:CODE,SS:CODE
+
+start:
+        cld
+        push    cs
+        pop     ds
+        mov     ah,62h
+        int     21h
+        mov     es,bx
+        cmp     byte ptr es:[80h],3
+        jne     server_parse
+        cmp     byte ptr es:[81h],' '
+        jne     server_parse
+        cmp     word ptr es:[82h],3f2fh ; '/?'
+        je      server_help
+server_parse:
+        call    parse_tail
+        jc      syntax_error
+        push    cs
+        pop     es
+        call    init_serial            ; 115200 baud, 8-N-1
+        mov     dx,OFFSET banner
+        mov     ah,9
+        int     21h
+        mov     dl,cs:server_drive
+        add     dl,'A'
+        mov     ah,2
+        int     21h
+        mov     dx,OFFSET banner_suffix
+        mov     ah,9
+        int     21h
+server_loop:
+        call    receive_byte
+        jc      server_loop
+        cmp     al,0a5h
+        jne     server_loop
+        call    receive_byte
+        jc      server_loop
+        cmp     al,05ah
+        jne     server_loop
+        call    receive_byte
+        jc      server_loop
+        cmp     al,1
+        je      geometry_request
+        cmp     al,2
+        je      read_request
+        cmp     al,3
+        je      write_request
+        mov     al,1
+        call    send_status
+        jmp     server_loop
+
+geometry_request:
+        call    receive_sector_number
+        call    read_boot_sector
+        jc      request_failed
+        xor     al,al
+        call    send_status
+        mov     si,OFFSET sector_buffer
+        call    send_sector
+        jmp     server_loop
+
+read_request:
+        call    receive_sector_number
+        call    absolute_read
+        jc      request_failed
+        xor     al,al
+        call    send_status
+        mov     si,OFFSET sector_buffer
+        call    send_sector
+        jmp     server_loop
+
+write_request:
+        call    receive_sector_number
+        mov     di,OFFSET sector_buffer
+        call    receive_sector
+        jc      request_failed
+        call    absolute_write
+        jc      request_failed
+        xor     al,al
+        call    send_status
+        jmp     server_loop
+
+request_failed:
+        mov     al,1
+        call    send_status
+        jmp     server_loop
+
+; Request sector is little-endian 32-bit.  DOS 6 FAT volumes are bounded by
+; the legacy absolute-I/O interface here, so reject a nonzero high word.
+receive_sector_number PROC NEAR
+        call    receive_byte
+        mov     byte ptr cs:sector_number,al
+        call    receive_byte
+        mov     byte ptr cs:sector_number+1,al
+        call    receive_byte
+        mov     byte ptr cs:sector_number+2,al
+        call    receive_byte
+        mov     byte ptr cs:sector_number+3,al
+        ret
+receive_sector_number ENDP
+
+read_boot_sector PROC NEAR
+        mov     word ptr cs:sector_number,0
+        mov     word ptr cs:sector_number+2,0
+        jmp     short absolute_read
+read_boot_sector ENDP
+
+absolute_read PROC NEAR
+        cmp     word ptr cs:sector_number+2,0
+        jne     short absolute_bad
+        push    ds
+        push    cs
+        pop     ds
+        mov     al,cs:server_drive
+        mov     bx,OFFSET sector_buffer
+        mov     cx,1
+        mov     dx,word ptr cs:sector_number
+        int     25h
+        pop     ax                      ; discard flags left by INT 25h
+        pop     ds
+        jc      short absolute_bad
+        clc
+        ret
+absolute_bad:
+        stc
+        ret
+absolute_read ENDP
+
+absolute_write PROC NEAR
+        cmp     word ptr cs:sector_number+2,0
+        jne     short absolute_bad_write
+        push    ds
+        push    cs
+        pop     ds
+        mov     al,cs:server_drive
+        mov     bx,OFFSET sector_buffer
+        mov     cx,1
+        mov     dx,word ptr cs:sector_number
+        int     26h
+        pop     ax
+        pop     ds
+        jc      short absolute_bad_write
+        clc
+        ret
+absolute_bad_write:
+        stc
+        ret
+absolute_write ENDP
+
+send_status PROC NEAR
+        push    ax
+        mov     al,05ah
+        call    send_byte
+        mov     al,0a5h
+        call    send_byte
+        pop     ax
+        call    send_byte
+        ret
+send_status ENDP
+
+send_sector PROC NEAR
+        mov     cx,512
+send_sector_loop:
+        lodsb
+        call    send_byte
+        loop    send_sector_loop
+        ret
+send_sector ENDP
+
+receive_sector PROC NEAR
+        mov     cx,512
+receive_sector_loop:
+        call    receive_byte
+        jc      short receive_sector_done
+        stosb
+        loop    receive_sector_loop
+        clc
+receive_sector_done:
+        ret
+receive_sector ENDP
+
+send_byte PROC NEAR
+        push    ax
+        push    dx
+        mov     dx,03fdh
+send_ready:
+        in      al,dx
+        test    al,20h
+        jz      send_ready
+        pop     dx
+        pop     ax
+        push    dx
+        mov     dx,03f8h
+        out     dx,al
+        pop     dx
+        ret
+send_byte ENDP
+
+receive_byte PROC NEAR
+        push    dx
+        mov     dx,03fdh
+receive_ready:
+        in      al,dx
+        test    al,1
+        jz      receive_ready
+        mov     dx,03f8h
+        in      al,dx
+        clc
+        pop     dx
+        ret
+receive_byte ENDP
+
+init_serial PROC NEAR
+        mov     dx,03f9h
+        xor     al,al
+        out     dx,al
+        mov     dx,03fbh
+        mov     al,80h
+        out     dx,al
+        mov     dx,03f8h
+        mov     al,1
+        out     dx,al
+        mov     dx,03f9h
+        xor     al,al
+        out     dx,al
+        mov     dx,03fbh
+        mov     al,3
+        out     dx,al
+        mov     dx,03fah
+        mov     al,0c7h
+        out     dx,al
+        mov     dx,03fch
+        mov     al,0bh
+        out     dx,al
+        ret
+init_serial ENDP
+
+parse_tail PROC NEAR
+        mov     si,81h
+        xor     cx,cx
+        mov     cl,byte ptr es:[80h]
+parse_space:
+        jcxz    parse_done
+        mov     al,es:[si]
+        inc     si
+        dec     cx
+        cmp     al,' '
+        je      parse_space
+        cmp     al,'/'
+        je      parse_switch
+        and     al,0dfh
+        cmp     al,'A'
+        jb      parse_bad
+        cmp     al,'Z'
+        ja      parse_bad
+        sub     al,'A'
+        mov     cs:server_drive,al
+        jcxz    parse_done
+        mov     al,es:[si]
+        inc     si
+        dec     cx
+        cmp     al,':'
+        je      parse_drive_tail
+        cmp     al,' '
+        jne     parse_bad
+        jmp     parse_space
+parse_drive_tail:
+        jcxz    parse_done
+        mov     al,es:[si]
+        inc     si
+        dec     cx
+        cmp     al,' '
+        jne     parse_bad
+        jmp     parse_space
+parse_switch:
+        ; /COM:1 is the first transport contract.  Other retail transports
+        ; remain diagnosed instead of being silently accepted.
+        jcxz    parse_bad
+        mov     al,es:[si]
+        inc     si
+        dec     cx
+        and     al,0dfh
+        cmp     al,'C'
+        jne     parse_bad
+        cmp     cx,4
+        jb      parse_bad
+        mov     al,es:[si]
+        inc     si
+        and     al,0dfh
+        cmp     al,'O'
+        jne     parse_bad
+        mov     al,es:[si]
+        inc     si
+        and     al,0dfh
+        cmp     al,'M'
+        jne     parse_bad
+        mov     al,es:[si]
+        inc     si
+        cmp     al,':'
+        jne     parse_bad
+        mov     al,es:[si]
+        inc     si
+        sub     cx,4
+        cmp     al,'1'
+        jne     parse_bad
+        mov     cs:com_port,0
+        jmp     parse_space
+parse_done:
+        clc
+        ret
+parse_bad:
+        stc
+        ret
+parse_tail ENDP
+
+syntax_error:
+        mov     dx,OFFSET usage
+        mov     ah,9
+        int     21h
+        mov     ax,4c01h
+        int     21h
+server_help:
+        mov     dx,OFFSET usage
+        mov     ah,9
+        int     21h
+        mov     ax,4c00h
+        int     21h
+
+com_port        dw 0
+server_drive    db 0
+sector_number   dd 0
+banner          db 'Microsoft Interlnk server compatible transport',13,10
+                db 'Port-COM1  Drive $'
+banner_suffix   db ': available',13,10,'$'
+usage           db 'Syntax: INTERSVR [drive:] [/COM:1]',13,10,'$'
+sector_buffer   db 512 dup(0)
+
+CODE ENDS
+STACKSEG SEGMENT PARA STACK 'STACK'
+        db 512 dup(0)
+STACKSEG ENDS
+        END start

@@ -37,6 +37,8 @@
     "GRAPHICS.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_graphics_print_qemu.sh"},
     "HELP.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_help_qemu.sh"},
     "IFSFUNC.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_ifsfunc_filesys_qemu.sh"},
+    "INTERLNK.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_interlnk_qemu.sh"},
+    "INTERSVR.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_interlnk_qemu.sh"},
     "JOIN.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_assign_subst_join.sh"},
     "KEYB.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_keyb_layout_qemu.sh"},
     "KEYBOARD.SYS": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_keyb_layout_qemu.sh"},

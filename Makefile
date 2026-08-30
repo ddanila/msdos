@@ -243,9 +243,11 @@ ARTIFACTS := \
     CMD/MEMMAKER/MEMMAKER.EXE \
     CMD/POWER/POWER.EXE \
     CMD/MSCDEX/MSCDEX.EXE \
+    CMD/INTERLNK/INTERLNK.EXE \
+    CMD/INTERSVR/INTERSVR.EXE \
     MEMM/MEMM/EMM386.EXE
 
-test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-keyboard-records test-country-records test-szdd-tool test-distribution test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-scandisk-qemu test-defrag-qemu test-defrag-fat16-qemu test-mem-dos6-qemu test-memmaker-qemu test-memmaker-rollback-qemu test-power-qemu test-power-api-qemu test-mscdex-qemu test-setup-qemu test-himem-options-qemu test-himem-xms3-qemu test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
+test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-keyboard-records test-country-records test-szdd-tool test-distribution test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-scandisk-qemu test-defrag-qemu test-defrag-fat16-qemu test-mem-dos6-qemu test-memmaker-qemu test-memmaker-rollback-qemu test-power-qemu test-power-api-qemu test-mscdex-qemu test-interlnk-qemu test-setup-qemu test-himem-options-qemu test-himem-xms3-qemu test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
 	bash tests/run_tests.sh
 
 test-native-build-tools:
@@ -428,6 +430,9 @@ test-power-api-qemu: deploy
 
 test-mscdex-qemu: deploy
 	bash tests/test_mscdex_qemu.sh
+
+test-interlnk-qemu: deploy
+	bash tests/test_interlnk_qemu.sh
 
 test-config-menu-qemu: deploy
 	bash tests/test_config_menu_qemu.sh
@@ -656,6 +661,8 @@ DEFRAG_EXE   := $(SRC)/CMD/DEFRAG/DEFRAG.EXE
 MEMMAKER_EXE := $(SRC)/CMD/MEMMAKER/MEMMAKER.EXE
 POWER_EXE    := $(SRC)/CMD/POWER/POWER.EXE
 MSCDEX_EXE   := $(SRC)/CMD/MSCDEX/MSCDEX.EXE
+INTERLNK_EXE := $(SRC)/CMD/INTERLNK/INTERLNK.EXE
+INTERSVR_EXE := $(SRC)/CMD/INTERSVR/INTERSVR.EXE
 UNFORMAT_COM := $(SRC)/CMD/UNFORMAT/UNFORMAT.COM
 APPEND_EXE   := $(SRC)/CMD/APPEND/APPEND.EXE
 RECOVER_COM  := $(SRC)/CMD/RECOVER/RECOVER.COM
@@ -702,7 +709,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OVL) $(COMMAND_COM) $(SY
            $(ATTRIB_EXE) $(EDLIN_COM) $(FC_EXE) \
            $(NLSFUNC_EXE) $(ASSIGN_COM) $(XCOPY_EXE) $(DISKCOMP_COM) $(DISKCOPY_COM) $(SETVER_COM) $(SETVER_EXE) $(DOSKEY_COM) \
            $(APPEND_EXE) $(RECOVER_COM) $(FASTOPEN_EXE) $(PRINT_COM) $(HELP_COM) $(FASTHELP_COM) $(HELP_HLP) \
-           $(MIRROR_COM) $(UNDELETE_COM) $(UNFORMAT_COM) $(CHOICE_COM) $(LOADFIX_COM) $(DELTREE_EXE) $(DEFRAG_EXE) $(MOVE_EXE) $(MSD_EXE) $(SCANDISK_EXE) $(SCANDISK_INI) $(MEMMAKER_EXE) $(POWER_EXE) $(MSCDEX_EXE) \
+           $(MIRROR_COM) $(UNDELETE_COM) $(UNFORMAT_COM) $(CHOICE_COM) $(LOADFIX_COM) $(DELTREE_EXE) $(DEFRAG_EXE) $(MOVE_EXE) $(MSD_EXE) $(SCANDISK_EXE) $(SCANDISK_INI) $(MEMMAKER_EXE) $(POWER_EXE) $(MSCDEX_EXE) $(INTERLNK_EXE) $(INTERSVR_EXE) \
            $(FILESYS_EXE) $(REPLACE_EXE) $(JOIN_EXE) $(SUBST_EXE) \
            $(BACKUP_COM) $(RESTORE_COM) $(GRAFTABL_COM) $(KEYB_COM) $(KEYBOARD_SYS) $(SHARE_EXE) \
            $(EXE2BIN_SRC) $(GRAPHICS_COM) $(GRAPHICS_PRO) \
@@ -772,6 +779,8 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OVL) $(COMMAND_COM) $(SY
 	mcopy -i $@ $(MEMMAKER_EXE) ::MEMMAKER.EXE
 	mcopy -i $@ $(POWER_EXE) ::POWER.EXE
 	mcopy -i $@ $(MSCDEX_EXE) ::MSCDEX.EXE
+	mcopy -i $@ $(INTERLNK_EXE) ::INTERLNK.EXE
+	mcopy -i $@ $(INTERSVR_EXE) ::INTERSVR.EXE
 	mcopy -i $@ $(APPEND_EXE) ::APPEND.EXE
 	mcopy -i $@ $(RECOVER_COM) ::RECOVER.COM
 	mcopy -i $@ $(FASTOPEN_EXE) ::FASTOPEN.EXE
