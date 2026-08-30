@@ -176,6 +176,8 @@ int2f_handler PROC FAR
         je      api_drive_list
         cmp     al,0eh
         je      api_volume_preference
+        cmp     al,0fh
+        je      api_directory_entry
         cmp     al,08h
         je      api_absolute_read
         cmp     al,10h
@@ -403,6 +405,236 @@ api_metadata_restore:
         jne     api_return_carry
         jmp     api_return_clear
 
+; AX=150Fh, CX=drive, ES:BX=ASCIIZ path, SI:DI=destination record.  Walk ISO
+; directory records from the PVD root and copy the matching on-disc record.
+api_directory_entry:
+        mov     cs:lookup_drive,cx
+        mov     cs:lookup_path_off,bx
+        mov     cs:lookup_path_seg,es
+        mov     cs:lookup_output_off,di
+        mov     cs:lookup_output_seg,si
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        push    di
+        push    ds
+        push    es
+        push    cs
+        pop     es
+        mov     bx,OFFSET vtoc_buffer
+        xor     dx,dx
+        call    read_vtoc_sector
+        jc      lookup_failed
+        cmp     byte ptr cs:vtoc_buffer,1
+        jne     lookup_not_ready
+        cmp     word ptr cs:vtoc_buffer+1,'DC'
+        jne     lookup_not_ready
+        cmp     word ptr cs:vtoc_buffer+3,'00'
+        jne     lookup_not_ready
+        cmp     byte ptr cs:vtoc_buffer+5,'1'
+        jne     lookup_not_ready
+        mov     ax,word ptr cs:vtoc_buffer+158
+        mov     word ptr cs:lookup_extent,ax
+        mov     ax,word ptr cs:vtoc_buffer+160
+        mov     word ptr cs:lookup_extent+2,ax
+        mov     ax,word ptr cs:vtoc_buffer+166
+        mov     word ptr cs:lookup_length,ax
+        mov     ax,word ptr cs:vtoc_buffer+168
+        mov     word ptr cs:lookup_length+2,ax
+
+lookup_component:
+        mov     ax,cs:lookup_path_seg
+        mov     ds,ax
+        mov     si,cs:lookup_path_off
+lookup_skip_separator:
+        mov     al,[si]
+        cmp     al,'\'
+        jne     short lookup_component_start
+        inc     si
+        jmp     lookup_skip_separator
+lookup_component_start:
+        or      al,al
+        jz      lookup_return_root
+        push    cs
+        pop     es
+        mov     di,OFFSET lookup_component_name
+        xor     cx,cx
+lookup_collect:
+        mov     al,[si]
+        or      al,al
+        jz      short lookup_component_done
+        cmp     al,'\'
+        je      short lookup_component_done
+        cmp     cx,31
+        jae     lookup_not_found
+        cmp     al,'a'
+        jb      short lookup_store_component
+        cmp     al,'z'
+        ja      short lookup_store_component
+        sub     al,20h
+lookup_store_component:
+        stosb
+        inc     si
+        inc     cx
+        jmp     lookup_collect
+lookup_component_done:
+        mov     cs:lookup_component_len,cl
+        mov     cs:lookup_path_off,si
+        mov     cs:lookup_more,0
+        cmp     byte ptr [si],'\'
+        jne     short lookup_scan_start
+        mov     cs:lookup_more,1
+lookup_scan_start:
+        mov     ax,word ptr cs:lookup_length
+        mov     word ptr cs:lookup_bytes_left,ax
+        mov     ax,word ptr cs:lookup_length+2
+        mov     word ptr cs:lookup_bytes_left+2,ax
+        mov     word ptr cs:lookup_sector_index,0
+
+lookup_next_sector:
+        mov     ax,word ptr cs:lookup_bytes_left
+        or      ax,word ptr cs:lookup_bytes_left+2
+        jz      lookup_not_found
+        mov     di,word ptr cs:lookup_extent
+        mov     si,word ptr cs:lookup_extent+2
+        add     di,cs:lookup_sector_index
+        adc     si,0
+        push    cs
+        pop     es
+        mov     bx,OFFSET directory_buffer
+        mov     cx,cs:lookup_drive
+        call    read_raw_sector
+        jc      lookup_failed
+        mov     word ptr cs:lookup_record_off,0
+lookup_next_record:
+        mov     bx,cs:lookup_record_off
+        cmp     bx,2048
+        jb      short lookup_record_in_sector
+        jmp     lookup_advance_sector
+lookup_record_in_sector:
+        mov     al,cs:directory_buffer[bx]
+        or      al,al
+        jnz     short lookup_record_present
+        jmp     lookup_advance_sector
+lookup_record_present:
+        xor     ah,ah
+        mov     cs:lookup_record_len,ax
+        mov     al,cs:directory_buffer[bx+32]
+        cmp     al,cs:lookup_component_len
+        jae     short lookup_record_long_enough
+        jmp     lookup_record_miss
+lookup_record_long_enough:
+        xor     si,si
+lookup_compare_name:
+        xor     ax,ax
+        mov     al,cs:lookup_component_len
+        cmp     si,ax
+        jae     short lookup_name_prefix
+        mov     di,bx
+        add     di,33
+        add     di,si
+        mov     al,cs:directory_buffer[di]
+        cmp     al,'a'
+        jb      short lookup_compare_folded
+        cmp     al,'z'
+        ja      short lookup_compare_folded
+        sub     al,20h
+lookup_compare_folded:
+        cmp     al,cs:lookup_component_name[si]
+        je      short lookup_name_character_ok
+        jmp     lookup_record_miss
+lookup_name_character_ok:
+        inc     si
+        jmp     lookup_compare_name
+lookup_name_prefix:
+        mov     al,cs:directory_buffer[bx+32]
+        cmp     al,cs:lookup_component_len
+        je      short lookup_record_found
+        mov     di,bx
+        add     di,33
+        add     di,si
+        cmp     byte ptr cs:directory_buffer[di],';'
+        jne     short lookup_record_miss
+lookup_record_found:
+        cmp     cs:lookup_more,0
+        je      short lookup_copy_record
+        test    byte ptr cs:directory_buffer[bx+25],2
+        jz      lookup_not_found
+        mov     ax,word ptr cs:directory_buffer[bx+2]
+        mov     word ptr cs:lookup_extent,ax
+        mov     ax,word ptr cs:directory_buffer[bx+4]
+        mov     word ptr cs:lookup_extent+2,ax
+        mov     ax,word ptr cs:directory_buffer[bx+10]
+        mov     word ptr cs:lookup_length,ax
+        mov     ax,word ptr cs:directory_buffer[bx+12]
+        mov     word ptr cs:lookup_length+2,ax
+        jmp     lookup_component
+lookup_copy_record:
+        push    cs
+        pop     ds
+        mov     si,OFFSET directory_buffer
+        add     si,bx
+        mov     ax,cs:lookup_output_seg
+        mov     es,ax
+        mov     di,cs:lookup_output_off
+        mov     cx,cs:lookup_record_len
+        rep     movsb
+        mov     ax,1
+        mov     cs:api_result,ax
+        mov     cs:api_failed,0
+        jmp     short lookup_restore
+lookup_record_miss:
+        mov     ax,cs:lookup_record_len
+        add     cs:lookup_record_off,ax
+        jmp     lookup_next_record
+lookup_advance_sector:
+        inc     cs:lookup_sector_index
+        sub     word ptr cs:lookup_bytes_left,2048
+        sbb     word ptr cs:lookup_bytes_left+2,0
+        jnc     lookup_next_sector
+        mov     word ptr cs:lookup_bytes_left,0
+        mov     word ptr cs:lookup_bytes_left+2,0
+        jmp     lookup_next_sector
+lookup_return_root:
+        push    cs
+        pop     ds
+        mov     si,OFFSET vtoc_buffer+156
+        mov     ax,cs:lookup_output_seg
+        mov     es,ax
+        mov     di,cs:lookup_output_off
+        xor     cx,cx
+        mov     cl,cs:vtoc_buffer+156
+        rep     movsb
+        mov     cs:api_result,1
+        mov     cs:api_failed,0
+        jmp     short lookup_restore
+lookup_not_ready:
+        mov     ax,0015h
+        jmp     short lookup_store_failure
+lookup_not_found:
+        mov     ax,0002h
+        jmp     short lookup_store_failure
+lookup_failed:
+        cmp     ax,000fh
+        je      short lookup_store_failure
+        mov     ax,0015h
+lookup_store_failure:
+        mov     cs:api_result,ax
+        mov     cs:api_failed,1
+lookup_restore:
+        pop     es
+        pop     ds
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        mov     ax,cs:api_result
+        cmp     cs:api_failed,0
+        jne     api_return_carry
+        jmp     api_return_clear
+
 ; AX=1508h, ES:BX=destination, CX=drive, DX=count, SI:DI=starting sector.
 ; Convert the call to the CD-ROM driver's command 80h READ LONG packet.
 api_absolute_read:
@@ -556,6 +788,26 @@ read_vtoc_done:
         ret
 read_vtoc_sector ENDP
 
+; Read one cooked sector SI:DI from CX drive into ES:BX.
+read_raw_sector PROC NEAR
+        mov     word ptr cs:read_request+14,bx
+        mov     word ptr cs:read_request+16,es
+        mov     word ptr cs:read_request+18,1
+        mov     word ptr cs:read_request+20,di
+        mov     word ptr cs:read_request+22,si
+        push    cs
+        pop     es
+        mov     bx,OFFSET read_request
+        call    forward_driver_request
+        jnc     short read_raw_done
+        cmp     ax,000fh
+        je      short read_raw_done
+        mov     ax,0015h
+        stc
+read_raw_done:
+        ret
+read_raw_sector ENDP
+
 old_2f_off      dw 0
 old_2f_seg      dw 0
 strategy_entry  dd 0
@@ -567,6 +819,20 @@ api_failed      db 0
 metadata_function db 0
 metadata_target_off dw 0
 metadata_target_seg dw 0
+lookup_drive        dw 0
+lookup_path_off     dw 0
+lookup_path_seg     dw 0
+lookup_output_off   dw 0
+lookup_output_seg   dw 0
+lookup_extent       dd 0
+lookup_length       dd 0
+lookup_bytes_left   dd 0
+lookup_sector_index dw 0
+lookup_record_off   dw 0
+lookup_record_len   dw 0
+lookup_component_len db 0
+lookup_more         db 0
+lookup_component_name db 31 dup(0)
 read_request    db 27,0,80h
                 dw 0
                 db 8 dup(0)
@@ -576,6 +842,7 @@ read_request    db 27,0,80h
                 dd 0                   ; starting sector
                 db 0,0,0               ; cooked, no interleave
 vtoc_buffer     db 2048 dup(0)
+directory_buffer db 2048 dup(0)
 psp_segment     dw 0
 driver_offsets  dw MAX_DRIVERS dup(0)
 driver_segments dw MAX_DRIVERS dup(0)

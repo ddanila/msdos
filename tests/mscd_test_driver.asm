@@ -42,6 +42,15 @@ interrupt:
     mov bx, [es:di + 14]
     mov ax, [es:di + 16]
     mov ds, ax
+    push es
+    push di
+    mov es, ax
+    mov di, bx
+    xor ax, ax
+    mov cx, 1024
+    rep stosw
+    pop di
+    pop es
     cmp word [es:di + 22], 1234h
     jne .vtoc_read
     cmp word [es:di + 20], 5678h
@@ -55,7 +64,13 @@ interrupt:
     cmp word [es:di + 20], 16
     je .primary_vtoc
     cmp word [es:di + 20], 17
+    je .terminating_vtoc
+    cmp word [es:di + 20], 20
+    je .root_directory
+    cmp word [es:di + 20], 21
+    je .nested_directory
     jne .request_error
+.terminating_vtoc:
     mov byte [bx], 0ffh
     jmp .complete
 .primary_vtoc:
@@ -81,6 +96,53 @@ interrupt:
     mov word [bx + 782], '.T'
     mov word [bx + 784], 'XT'
     mov word [bx + 786], ';1'
+    mov byte [bx + 156], 34
+    mov word [bx + 158], 20
+    mov word [bx + 160], 0
+    mov word [bx + 166], 2048
+    mov word [bx + 168], 0
+    mov byte [bx + 181], 2
+    mov byte [bx + 188], 1
+    mov byte [bx + 189], 0
+    jmp .complete
+.root_directory:
+    mov byte [bx], 46
+    mov word [bx + 2], 30
+    mov word [bx + 4], 0
+    mov word [bx + 10], 12
+    mov word [bx + 12], 0
+    mov byte [bx + 25], 0
+    mov byte [bx + 32], 12
+    mov word [bx + 33], 'RE'
+    mov word [bx + 35], 'AD'
+    mov word [bx + 37], 'ME'
+    mov word [bx + 39], '.T'
+    mov word [bx + 41], 'XT'
+    mov word [bx + 43], ';1'
+    mov byte [bx + 46], 38
+    mov word [bx + 48], 21
+    mov word [bx + 50], 0
+    mov word [bx + 56], 2048
+    mov word [bx + 58], 0
+    mov byte [bx + 71], 2
+    mov byte [bx + 78], 4
+    mov word [bx + 79], 'DO'
+    mov word [bx + 81], 'CS'
+    jmp .complete
+.nested_directory:
+    mov byte [bx], 46
+    mov word [bx + 2], 31
+    mov word [bx + 4], 0
+    mov word [bx + 10], 14
+    mov word [bx + 12], 0
+    mov byte [bx + 25], 0
+    mov byte [bx + 32], 11
+    mov word [bx + 33], 'IN'
+    mov word [bx + 35], 'NE'
+    mov word [bx + 37], 'R.'
+    mov word [bx + 39], 'TX'
+    mov word [bx + 41], 'T;'
+    mov byte [bx + 43], '1'
     jmp .complete
 .request_error:
     mov word [es:di + 3], 810bh

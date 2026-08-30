@@ -86,6 +86,49 @@ start:
 
     push ds
     pop es
+    push ds
+    pop si
+    mov bx, root_file_path
+    mov di, directory_record
+    mov cx, 4
+    mov ax, 150fh
+    int 2fh
+    jc fail
+    cmp ax, 1
+    jne fail
+    cmp word [directory_record + 2], 30
+    jne fail
+    cmp byte [directory_record + 32], 12
+    jne fail
+    mov bx, versioned_file_path
+    mov di, directory_record
+    mov ax, 150fh
+    int 2fh
+    jc fail
+    cmp word [directory_record + 2], 30
+    jne fail
+    mov bx, nested_file_path
+    mov di, directory_record
+    mov ax, 150fh
+    int 2fh
+    jc fail
+    cmp word [directory_record + 2], 31
+    jne fail
+    mov bx, missing_path
+    mov ax, 150fh
+    int 2fh
+    jnc fail
+    cmp ax, 2
+    jne fail
+    mov bx, root_path
+    mov ax, 150fh
+    int 2fh
+    jc fail
+    cmp word [directory_record + 2], 20
+    jne fail
+
+    push ds
+    pop es
     mov bx, sector_buffer
     mov cx, 4
     xor dx, dx
@@ -204,5 +247,11 @@ abstract_name db 'ABSTRACT.TXT;1',0
 abstract_end:
 biblio_name db 'BIBLIO.TXT;1',0
 biblio_end:
+root_file_path db '\README.TXT',0
+versioned_file_path db '\readme.txt;1',0
+nested_file_path db '\DOCS\INNER.TXT',0
+missing_path db '\MISSING.TXT',0
+root_path db '\',0
+directory_record times 255 db 0
 pass_message db 'MSCDEX_API_PASS',13,10,'$'
 fail_message db 'MSCDEX_API_FAIL',13,10,'$'
