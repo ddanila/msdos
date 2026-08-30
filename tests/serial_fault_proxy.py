@@ -95,7 +95,7 @@ def forward_replies(data):
     server_stream.extend(data)
     while pending:
         command, identity = pending[0]
-        response_size = 4 if command == 0 else (517 if command in (1, 2) else 3)
+        response_size = 4 if command in (0, 4) else (517 if command in (1, 2) else 3)
         if len(server_stream) < response_size:
             return
         response = bytearray(server_stream[:response_size])

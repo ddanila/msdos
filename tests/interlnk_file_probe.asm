@@ -14,6 +14,8 @@ start:
     jne failed
     cmp dx, 2
     jne failed
+    cmp si, 1
+    jne failed
     mov byte [read_attempts],2
 first_file_attempt:
     mov dx, remote_name
@@ -120,6 +122,11 @@ first_file_done:
     jne failed_close
     mov ah, 3eh
     int 21h
+
+    mov al, 'P'
+    xor dx, dx
+    xor ah, ah
+    int 17h
 
     mov si, pass_message
     call debug_print

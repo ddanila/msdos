@@ -104,6 +104,10 @@ init_install:
         mov     word ptr [bx+18],OFFSET bpb_pointers
         mov     word ptr [bx+20],cs
         call    install_multiplex
+        cmp     cs:printer_enabled,0
+        je      short request_init_done
+        call    install_printer
+request_init_done:
         jmp     request_done
 init_failed:
         lds     bx,cs:request_ptr
@@ -296,7 +300,7 @@ request_write:
         call    prepare_io
         jc      request_io_error
 write_sector_loop:
-        mov     byte ptr cs:write_retries,3
+        mov     byte ptr cs:write_retries,4
 write_sector_retry:
         call    send_current_request
         jc      short write_sector_failed
@@ -744,6 +748,7 @@ config_noprinter:
         and     ax,0dfdfh
         cmp     ax,'RE'
         jne     short config_bad
+        mov     cs:printer_enabled,0
         jmp     config_scan
 config_noscan:
         lodsw
@@ -852,6 +857,68 @@ install_multiplex PROC NEAR
         ret
 install_multiplex ENDP
 
+install_printer PROC NEAR
+        mov     ax,3517h
+        int     21h
+        mov     word ptr cs:old_int17,bx
+        mov     word ptr cs:old_int17+2,es
+        push    ds
+        push    cs
+        pop     ds
+        mov     dx,OFFSET printer_handler
+        mov     ax,2517h
+        int     21h
+        pop     ds
+        ret
+install_printer ENDP
+
+printer_handler PROC FAR
+        cmp     ah,0
+        jne     short chain_printer
+        cmp     dl,0                    ; first complete slice redirects LPT1
+        jne     short chain_printer
+        cmp     cs:connected,0
+        je      short chain_printer
+        mov     cs:printer_byte,al
+        push    ax
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        push    di
+        push    ds
+        push    es
+        mov     cs:current_unit,dl
+        xor     dx,dx
+        mov     dl,cs:printer_byte
+        mov     word ptr cs:sector_number+2,0
+        mov     al,4
+        call    send_request
+        jc      short printer_failed
+        call    receive_status
+        jc      short printer_failed
+        call    receive_byte
+        jc      short printer_failed
+        mov     cs:printer_status,al
+        jmp     short printer_return
+printer_failed:
+        mov     cs:connected,0
+        mov     cs:printer_status,1
+printer_return:
+        pop     es
+        pop     ds
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
+        mov     ah,cs:printer_status
+        iret
+chain_printer:
+        jmp     dword ptr cs:old_int17
+printer_handler ENDP
+
 multiplex PROC FAR
         cmp     ax,0e902h
         je      short multiplex_disconnect
@@ -866,6 +933,11 @@ multiplex PROC FAR
         mov     cl,cs:unit_count
         xor     dx,dx
         mov     dl,cs:com_number
+        xor     si,si
+        cmp     cs:printer_enabled,0
+        je      short multiplex_status_done
+        inc     si
+multiplex_status_done:
         iret
 multiplex_disconnect:
         mov     cs:connected,0
@@ -898,6 +970,7 @@ chain_multiplex:
 multiplex ENDP
 
 old_int2f       dd 0
+old_int17       dd 0
 transfer_ptr    dd 0
 io_command      db 0
 io_remaining    dw 0
@@ -909,6 +982,9 @@ baud_terminator db 0
 auto_install    db 0
 no_scan         db 0
 timer_safe_mode db 0
+printer_enabled db 1
+printer_byte    db 0
+printer_status  db 0
 default_bpb     dw 512
                 db 1
                 dw 1

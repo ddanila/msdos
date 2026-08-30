@@ -96,6 +96,8 @@ server_sync_second:
         je      read_request
         cmp     al,3
         je      write_request
+        cmp     al,4
+        je      printer_request
         mov     al,1
         call    send_status
         jmp     server_loop
@@ -133,6 +135,20 @@ write_request:
         jc      request_failed
         xor     al,al
         call    send_status
+        jmp     server_loop
+
+printer_request:
+        cmp     cs:request_unit,0       ; first complete slice exports LPT1
+        jne     request_failed
+        mov     al,byte ptr cs:sector_number
+        xor     dx,dx
+        mov     ah,0
+        int     17h
+        mov     cs:printer_status,ah
+        xor     al,al
+        call    send_status
+        mov     al,cs:printer_status
+        call    send_byte
         jmp     server_loop
 
 request_failed:
@@ -747,6 +763,7 @@ banner          db 'Microsoft Interlnk server compatible transport',13,10
                 db 'Port-COM'
 banner_port     db '1  Drives $'
 banner_suffix   db ' available',13,10,'$'
+printer_status  db 0
 usage           db 'Syntax: INTERSVR [drive: ...] [/X=drive: ...] [/COM:n] [/BAUD:rate] [/B] [/V]',13,10,'$'
 sector_buffer   db 512 dup(0)
 com_bases       dw 03f8h,02f8h,03e8h,02e8h

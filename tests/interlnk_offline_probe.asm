@@ -10,6 +10,10 @@ cmp bx, 0
 jne fail
 cmp cx, 2
 jne fail
+%ifdef EXPECT_PRINTER_OFF
+cmp si, 0
+jne fail
+%endif
 %ifdef DO_RECONNECT
 mov ax, 0e901h
 int 2fh
