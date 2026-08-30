@@ -24,7 +24,9 @@ OFFLINE_CONTINUE="$OUT/interlnk-offline-continue.com"
 AUTO_PROBE="$OUT/interlnk-auto.com"
 PORT=18666
 PROXY_PORT=18667
-PRINTER_OUT="$OUT/intersvr-printer.out"
+PRINTER1_OUT="$OUT/intersvr-printer1.out"
+PRINTER2_OUT="$OUT/intersvr-printer2.out"
+PRINTER3_OUT="$OUT/intersvr-printer3.out"
 
 for tool in nasm mcopy python3 qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || { echo "missing required tool: $tool" >&2; exit 1; }
@@ -54,13 +56,21 @@ mcopy -o -i "$CLIENT_IMAGE" "$QEXIT" ::QEXIT.COM
 printf 'LASTDRIVE=Z\r\nDEVICE=A:\\INTERLNK.EXE /DRIVES:2 /NOSCAN /BAUD:57600\r\n' | mcopy -o -i "$CLIENT_IMAGE" - ::CONFIG.SYS
 printf '@ECHO OFF\r\nOFFLINE.COM\r\nIF ERRORLEVEL 1 ECHO failed>RECONERR.TAG\r\nINTERLNK /RECONNECT\r\nIF ERRORLEVEL 1 ECHO failed>RECONERR.TAG\r\nILPROBE.COM\r\nQEXIT.COM\r\n' | mcopy -o -i "$CLIENT_IMAGE" - ::AUTOEXEC.BAT
 
-rm -f "$LOG" "$SERVER_LOG" "$CLIENT_LOG" "$PRINTER_OUT"
+rm -f "$LOG" "$SERVER_LOG" "$CLIENT_LOG" \
+    "$PRINTER1_OUT" "$PRINTER2_OUT" "$PRINTER3_OUT"
 timeout 60 qemu-system-i386 \
     -display none -monitor none -machine pc -cpu 486 -m 8 \
     -drive if=floppy,index=0,format=raw,file="$SERVER_IMAGE",cache=writethrough \
     -drive if=floppy,index=1,format=raw,file="$SERVER_IMAGE_TWO",cache=writethrough \
     -boot a -serial null -serial tcp:127.0.0.1:$PORT,server=on,wait=off \
-    -parallel file:"$PRINTER_OUT" -no-reboot \
+    -parallel none \
+    -chardev file,id=parallel1,path="$PRINTER1_OUT" \
+    -chardev file,id=parallel2,path="$PRINTER2_OUT" \
+    -chardev file,id=parallel3,path="$PRINTER3_OUT" \
+    -device isa-parallel,chardev=parallel1,index=0,iobase=0x378,irq=7 \
+    -device isa-parallel,chardev=parallel2,index=1,iobase=0x278,irq=5 \
+    -device isa-parallel,chardev=parallel3,index=2,iobase=0x3bc,irq=5 \
+    -no-reboot \
     >"$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
 PROXY_PID=
@@ -93,11 +103,15 @@ grep -Fq 'corrupted sector response 4' "$OUT/interlnk-proxy.log"
 grep -Fq 'corrupted request header 4' "$OUT/interlnk-proxy.log"
 grep -Fq 'truncated write payload 1' "$OUT/interlnk-proxy.log"
 grep -Fq 'corrupted write payload 4' "$OUT/interlnk-proxy.log"
+grep -Fq 'printer request unit 0 byte 50' "$OUT/interlnk-proxy.log"
+grep -Fq 'printer request unit 1 byte 51' "$OUT/interlnk-proxy.log"
+grep -Fq 'printer request unit 2 byte 52' "$OUT/interlnk-proxy.log"
 ! mdir -b -i "$CLIENT_IMAGE" :: 2>/dev/null | grep -Fq 'RECONERR.TAG'
 mcopy -i "$SERVER_IMAGE" ::WRITTEN.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx '001122334455aaff'
 mcopy -i "$SERVER_IMAGE_TWO" ::WRITTN2.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx 'fedcba9876543210'
-od -An -tx1 "$PRINTER_OUT" | tr -d ' \n' | grep -qx '50'
-echo '  PASS: Interlnk redirects two FAT volumes and LPT1 while recovering truncated/corrupt serial transfers'
+od -An -tx1 "$PRINTER1_OUT" | tr -d ' \n' | grep -qx '50'
+od -An -tx1 "$PRINTER2_OUT" | tr -d ' \n' | grep -qx '51'
+echo '  PASS: Interlnk redirects two FAT volumes and LPT1-LPT3 while recovering truncated/corrupt serial transfers'
 
 # Without /AUTO, a missing server leaves an offline resident driver and must
 # continue boot instead of waiting forever in the serial receive loop.

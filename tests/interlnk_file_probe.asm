@@ -127,6 +127,14 @@ first_file_done:
     xor dx, dx
     xor ah, ah
     int 17h
+    mov al, 'Q'
+    mov dx, 1
+    xor ah, ah
+    int 17h
+    mov al, 'R'
+    mov dx, 2
+    xor ah, ah
+    int 17h
 
     mov si, pass_message
     call debug_print

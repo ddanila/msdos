@@ -138,10 +138,11 @@ write_request:
         jmp     server_loop
 
 printer_request:
-        cmp     cs:request_unit,0       ; first complete slice exports LPT1
-        jne     request_failed
+        cmp     cs:request_unit,2
+        ja      request_failed
         mov     al,byte ptr cs:sector_number
         xor     dx,dx
+        mov     dl,cs:request_unit
         mov     ah,0
         int     17h
         mov     cs:printer_status,ah

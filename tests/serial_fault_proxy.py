@@ -74,6 +74,9 @@ def forward_requests(data):
             retry_identity = None
         if command == 3:
             write_request += 1
+        if command == 4:
+            print(f"printer request unit {request[3]} byte {request[4]:02x}",
+                  flush=True)
         if request_number == args.corrupt_request:
             request[3] ^= 0x01
             print(f"corrupted request header {request_number}", flush=True)

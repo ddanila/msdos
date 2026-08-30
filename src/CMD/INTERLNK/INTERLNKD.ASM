@@ -875,8 +875,8 @@ install_printer ENDP
 printer_handler PROC FAR
         cmp     ah,0
         jne     short chain_printer
-        cmp     dl,0                    ; first complete slice redirects LPT1
-        jne     short chain_printer
+        cmp     dl,2
+        ja      short chain_printer
         cmp     cs:connected,0
         je      short chain_printer
         mov     cs:printer_byte,al
