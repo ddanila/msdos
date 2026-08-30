@@ -246,9 +246,10 @@ Options: /DRIVES:n (1-5), /NOPRINTER, /COM:n (1-4), and /BAUD:rate.
 /RECONNECT repeats server discovery and per-volume BPB negotiation.
 @INTERSVR
 Shares a DOS volume with an Interlnk client over COM1.
-Syntax: INTERSVR [drive: ...] [/COM:n] [/BAUD:rate] [/B] [/V]
+Syntax: INTERSVR [drive: ...] [/X=drive: ...] [/COM:n] [/BAUD:rate] [/B] [/V]
 COM ports 1 through 4 are supported.
 Use /B for monochrome output and /V for timer-safe polling.
+With no drive list, all available drives except those named by /X are shared.
 The server remains active while the client reads and writes the shared volume.
 @JOIN
 Joins a disk drive to a directory on another drive.

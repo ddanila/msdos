@@ -390,7 +390,7 @@ parse_tail PROC NEAR
         xor     cx,cx
         mov     cl,byte ptr es:[80h]
 parse_space:
-        jcxz    short parse_at_end
+        jcxz    short parse_space_at_end
         mov     al,es:[si]
         inc     si
         dec     cx
@@ -398,18 +398,33 @@ parse_space:
         je      parse_space
         cmp     al,'/'
         je      parse_switch
+        jmp     short parse_drive_token
+parse_space_at_end:
+        jmp     parse_at_end
+parse_drive_token:
         and     al,0dfh
         cmp     al,'A'
         jb      parse_bad
         cmp     al,'Z'
         ja      parse_bad
         sub     al,'A'
+        mov     dl,al
+        cmp     cs:exclude_mode,0
+        je      short parse_include_drive
+        xor     bx,bx
+        mov     bl,dl
+        mov     cs:excluded_drives[bx],1
+        jmp     short parse_drive_stored
+parse_include_drive:
+        cmp     cs:has_exclusions,0
+        jne     parse_bad
         xor     bx,bx
         mov     bl,cs:drive_count
         cmp     bl,5
         jae     parse_bad
-        mov     cs:server_drives[bx],al
+        mov     cs:server_drives[bx],dl
         inc     cs:drive_count
+parse_drive_stored:
         jcxz    short parse_drive_at_end
         mov     al,es:[si]
         inc     si
@@ -439,13 +454,31 @@ parse_switch:
         dec     cx
         and     al,0dfh
         cmp     al,'C'
-        je      short parse_com
+        jne     short parse_check_b
+        jmp     parse_com
+parse_check_b:
         cmp     al,'B'
         je      short parse_monochrome
         cmp     al,'V'
-        je      short parse_timer_safe
+        jne     short parse_check_x
+        jmp     parse_timer_safe
+parse_check_x:
+        cmp     al,'X'
+        je      short parse_exclude
 parse_switch_bad:
         jmp     parse_bad
+parse_exclude:
+        cmp     cs:drive_count,0
+        jne     parse_bad
+        jcxz    short parse_switch_bad
+        cmp     byte ptr es:[si],'='
+        jne     parse_bad
+        inc     si
+        dec     cx
+        jcxz    short parse_switch_bad
+        mov     cs:exclude_mode,1
+        mov     cs:has_exclusions,1
+        jmp     parse_space
 parse_monochrome:
         cmp     cx,4
         jb      short parse_monochrome_flag
@@ -517,8 +550,9 @@ parse_com:
 parse_done:
         cmp     cs:drive_count,0
         jne     short parse_have_drive
-        mov     cs:server_drives,0
-        mov     cs:drive_count,1
+        call    enumerate_default_drives
+        cmp     cs:drive_count,0
+        je      short parse_bad
 parse_have_drive:
         clc
         ret
@@ -526,6 +560,34 @@ parse_bad:
         stc
         ret
 parse_tail ENDP
+
+; With no explicit drive list, retail INTERSVR shares available DOS drives
+; except those named after /X=. Keep the resident protocol's five-unit cap.
+enumerate_default_drives PROC NEAR
+        xor     si,si
+enumerate_drive:
+        cmp     cs:excluded_drives[si],0
+        jne     short enumerate_next
+        mov     dx,si
+        inc     dl
+        mov     ah,36h
+        int     21h
+        cmp     ax,0ffffh
+        je      short enumerate_next
+        xor     bx,bx
+        mov     bl,cs:drive_count
+        mov     ax,si
+        mov     cs:server_drives[bx],al
+        inc     cs:drive_count
+        cmp     cs:drive_count,5
+        jae     short enumerate_done
+enumerate_next:
+        inc     si
+        cmp     si,26
+        jb      short enumerate_drive
+enumerate_done:
+        ret
+enumerate_default_drives ENDP
 
 ; Parse one of the five retail baud rates from ES:SI. Consume its trailing
 ; space, if present, and return the UART divisor in BX.
@@ -617,6 +679,9 @@ com_number      db 1
 baud_divisor    dw 1
 monochrome_mode db 0
 timer_safe_mode db 0
+exclude_mode    db 0
+has_exclusions  db 0
+excluded_drives db 26 dup(0)
 drive_count     db 0
 server_drives   db 5 dup(0)
 request_command db 0
@@ -630,7 +695,7 @@ banner          db 'Microsoft Interlnk server compatible transport',13,10
                 db 'Port-COM'
 banner_port     db '1  Drives $'
 banner_suffix   db ' available',13,10,'$'
-usage           db 'Syntax: INTERSVR [drive: ...] [/COM:n] [/BAUD:rate] [/B] [/V]',13,10,'$'
+usage           db 'Syntax: INTERSVR [drive: ...] [/X=drive: ...] [/COM:n] [/BAUD:rate] [/B] [/V]',13,10,'$'
 sector_buffer   db 512 dup(0)
 com_bases       dw 03f8h,02f8h,03e8h,02e8h
 
