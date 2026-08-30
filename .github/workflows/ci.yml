@@ -249,6 +249,9 @@ jobs:
       - name: Focused KEYB layout regression
         run: bash tests/test_keyb_layout_qemu.sh
 
+      - name: DOS 5 country matrix
+        run: bash tests/test_country_matrix_qemu.sh
+
       - name: SETVER compatibility table
         run: bash tests/test_setver_qemu.sh
 

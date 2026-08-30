@@ -157,6 +157,16 @@ cntrycnt=0
 	ctryent <CENTRYSIZE,CID_PR,437,,,pr437_data>	    ;
 	ctryent <CENTRYSIZE,CID_TA,938,,,ta938_data>	    ; Taiwan
 	ctryent <CENTRYSIZE,CID_TA,437,,,ta437_data>	    ;
+	ctryent <CENTRYSIZE,CID_BR,850,,,br850_data>	    ; Brazil
+	ctryent <CENTRYSIZE,CID_BR,437,,,br437_data>	    ;
+	ctryent <CENTRYSIZE,CID_YU,852,,,yu852_data>	    ; Yugoslavia
+	ctryent <CENTRYSIZE,CID_YU,850,,,yu850_data>	    ;
+	ctryent <CENTRYSIZE,CID_CZ,852,,,cz852_data>	    ; Czechoslovakia
+	ctryent <CENTRYSIZE,CID_CZ,850,,,cz850_data>	    ;
+	ctryent <CENTRYSIZE,CID_PL,852,,,pl852_data>	    ; Poland
+	ctryent <CENTRYSIZE,CID_PL,850,,,pl850_data>	    ;
+	ctryent <CENTRYSIZE,CID_HU,852,,,hu852_data>	    ; Hungary
+	ctryent <CENTRYSIZE,CID_HU,850,,,hu850_data>	    ;
 
 
 dummy	macro	p
@@ -577,6 +587,96 @@ afe850_data label   word
 	ctrydat <CDATASIZE,SETUCASEFILE,,afe850_ucase>
 	ctrydat <CDATASIZE,SETFILELIST,,afe_flist>
 	ctrydat <CDATASIZE,SETDBCS,,afe_dbcs>
+;
+br850_data label word
+	dw CDATAITEMS
+	ctrydat <CDATASIZE,SETCOUNTRYINFO,,br_info>
+	ctrydat <CDATASIZE,SETCOLLATE,,br850_collate>
+	ctrydat <CDATASIZE,SETUCASE,,br850_ucase>
+	ctrydat <CDATASIZE,SETUCASEFILE,,d5_850_ucfile>
+	ctrydat <CDATASIZE,SETFILELIST,,uk_flist>
+	ctrydat <CDATASIZE,SETDBCS,,uk_dbcs>
+;
+br437_data label word
+	dw CDATAITEMS
+	ctrydat <CDATASIZE,SETCOUNTRYINFO,,br_info>
+	ctrydat <CDATASIZE,SETCOLLATE,,br437_collate>
+	ctrydat <CDATASIZE,SETUCASE,,br437_ucase>
+	ctrydat <CDATASIZE,SETUCASEFILE,,br437_ucase>
+	ctrydat <CDATASIZE,SETFILELIST,,uk_flist>
+	ctrydat <CDATASIZE,SETDBCS,,uk_dbcs>
+;
+yu850_data label word
+	dw CDATAITEMS
+	ctrydat <CDATASIZE,SETCOUNTRYINFO,,yu_info>
+	ctrydat <CDATASIZE,SETCOLLATE,,d5_850_collate>
+	ctrydat <CDATASIZE,SETUCASE,,d5_850_ucase>
+	ctrydat <CDATASIZE,SETUCASEFILE,,d5_850_ucfile>
+	ctrydat <CDATASIZE,SETFILELIST,,uk_flist>
+	ctrydat <CDATASIZE,SETDBCS,,uk_dbcs>
+;
+yu852_data label word
+	dw CDATAITEMS
+	ctrydat <CDATASIZE,SETCOUNTRYINFO,,yu_info>
+	ctrydat <CDATASIZE,SETCOLLATE,,cp852_collate>
+	ctrydat <CDATASIZE,SETUCASE,,cp852_ucase>
+	ctrydat <CDATASIZE,SETUCASEFILE,,cp852_ucfile>
+	ctrydat <CDATASIZE,SETFILELIST,,uk_flist>
+	ctrydat <CDATASIZE,SETDBCS,,uk_dbcs>
+;
+cz850_data label word
+	dw CDATAITEMS
+	ctrydat <CDATASIZE,SETCOUNTRYINFO,,cz_info>
+	ctrydat <CDATASIZE,SETCOLLATE,,d5_850_collate>
+	ctrydat <CDATASIZE,SETUCASE,,d5_850_ucase>
+	ctrydat <CDATASIZE,SETUCASEFILE,,d5_850_ucfile>
+	ctrydat <CDATASIZE,SETFILELIST,,uk_flist>
+	ctrydat <CDATASIZE,SETDBCS,,uk_dbcs>
+;
+cz852_data label word
+	dw CDATAITEMS
+	ctrydat <CDATASIZE,SETCOUNTRYINFO,,cz_info>
+	ctrydat <CDATASIZE,SETCOLLATE,,cp852_collate>
+	ctrydat <CDATASIZE,SETUCASE,,cp852_ucase>
+	ctrydat <CDATASIZE,SETUCASEFILE,,cp852_ucfile>
+	ctrydat <CDATASIZE,SETFILELIST,,uk_flist>
+	ctrydat <CDATASIZE,SETDBCS,,uk_dbcs>
+;
+pl850_data label word
+	dw CDATAITEMS
+	ctrydat <CDATASIZE,SETCOUNTRYINFO,,pl_info>
+	ctrydat <CDATASIZE,SETCOLLATE,,d5_850_collate>
+	ctrydat <CDATASIZE,SETUCASE,,d5_850_ucase>
+	ctrydat <CDATASIZE,SETUCASEFILE,,d5_850_ucfile>
+	ctrydat <CDATASIZE,SETFILELIST,,uk_flist>
+	ctrydat <CDATASIZE,SETDBCS,,uk_dbcs>
+;
+pl852_data label word
+	dw CDATAITEMS
+	ctrydat <CDATASIZE,SETCOUNTRYINFO,,pl_info>
+	ctrydat <CDATASIZE,SETCOLLATE,,cp852_collate>
+	ctrydat <CDATASIZE,SETUCASE,,cp852_ucase>
+	ctrydat <CDATASIZE,SETUCASEFILE,,cp852_ucfile>
+	ctrydat <CDATASIZE,SETFILELIST,,uk_flist>
+	ctrydat <CDATASIZE,SETDBCS,,uk_dbcs>
+;
+hu850_data label word
+	dw CDATAITEMS
+	ctrydat <CDATASIZE,SETCOUNTRYINFO,,hu_info>
+	ctrydat <CDATASIZE,SETCOLLATE,,d5_850_collate>
+	ctrydat <CDATASIZE,SETUCASE,,d5_850_ucase>
+	ctrydat <CDATASIZE,SETUCASEFILE,,d5_850_ucfile>
+	ctrydat <CDATASIZE,SETFILELIST,,uk_flist>
+	ctrydat <CDATASIZE,SETDBCS,,uk_dbcs>
+;
+hu852_data label word
+	dw CDATAITEMS
+	ctrydat <CDATASIZE,SETCOUNTRYINFO,,hu_info>
+	ctrydat <CDATASIZE,SETCOLLATE,,cp852_collate>
+	ctrydat <CDATASIZE,SETUCASE,,cp852_ucase>
+	ctrydat <CDATASIZE,SETUCASEFILE,,cp852_ucfile>
+	ctrydat <CDATASIZE,SETFILELIST,,uk_flist>
+	ctrydat <CDATASIZE,SETDBCS,,uk_dbcs>
 	page
 ; ----------------------------------------
 ;
@@ -2350,6 +2450,9 @@ page
 ;
 ; ---------------------------------------------------------------
 
+
+include D5CNTRY.INC
+include D5C850.INC
 
 include copyrigh.inc
 

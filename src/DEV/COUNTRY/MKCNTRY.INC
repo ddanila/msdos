@@ -47,6 +47,11 @@ CID_JP          EQU     081             ; Japan         2/17/KK
 CID_KO          EQU     082             ; Korea         2/17/KK
 CID_PR          EQU     086             ; PRC           2/17/KK
 CID_TA          EQU     088             ; Taiwan        2/17/KK
+CID_BR          EQU     055             ; Brazil
+CID_YU          EQU     038             ; Yugoslavia
+CID_CZ          EQU     042             ; Czechoslovakia
+CID_PL          EQU     048             ; Poland
+CID_HU          EQU     036             ; Hungary
 CID_XX          EQU     000             ; Dummy entry
 ;
 ; country code pages
@@ -137,4 +142,3 @@ CTABLE  STRUC
         DW      CINFOSIZE
 CTABLE  ENDS
 ;
-

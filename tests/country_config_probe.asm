@@ -2,6 +2,10 @@
 bits 16
 org 100h
 
+%ifndef COUNTRY_ID
+%define COUNTRY_ID 49
+%endif
+
 start:
     push cs
     pop ds
@@ -11,10 +15,11 @@ start:
     int 21h
     jc fail
 
-    cmp bx, 49
+    cmp bx, COUNTRY_ID
     jne fail
-    cmp ax, 49
+    cmp ax, COUNTRY_ID
     jne fail
+%if COUNTRY_ID = 49
     cmp word [country_buffer + 0], 1
     jne fail
     cmp byte [country_buffer + 7], '.'
@@ -23,6 +28,7 @@ start:
     jne fail
     cmp byte [country_buffer + 17], 1
     jne fail
+%endif
 
     mov dx, pass_message
     jmp print_and_exit
