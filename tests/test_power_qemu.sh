@@ -16,8 +16,8 @@ done
 cp "$BASE" "$IMAGE"
 nasm -f bin "$ROOT/tests/power_probe.asm" -o "$PROBE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
-mcopy -o -i "$IMAGE" "$ROOT/src/CMD/POWER/POWER.COM" ::POWER.COM
 mcopy -o -i "$IMAGE" "$ROOT/src/CMD/POWER/POWER.EXE" ::POWER.EXE
+mdel -i "$IMAGE" ::POWER.COM >/dev/null 2>&1 || true
 mcopy -o -i "$IMAGE" "$PROBE" ::PWRPROBE.COM
 mcopy -o -i "$IMAGE" "$QEXIT" ::QEXIT.COM
 printf 'DEVICE=A:\\POWER.EXE\r\n' | mcopy -o -i "$IMAGE" - ::CONFIG.SYS

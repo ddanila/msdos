@@ -24,7 +24,7 @@ def main():
         raise AssertionError("unsupported program-interface coverage schema")
     specialized = manifest["specialized_interfaces"]
 
-    executable_kinds = {"command", "tsr", "command_tsr", "shell"}
+    executable_kinds = {"command", "driver_command", "tsr", "command_tsr", "shell"}
     shipped = {name for name, item in runtime.items() if item["kind"] in executable_kinds}
     table_driven = utility | {"COMMAND.COM", "SELECT.EXE"}
     overlap = table_driven & set(specialized)

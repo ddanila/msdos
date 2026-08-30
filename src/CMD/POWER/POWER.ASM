@@ -6,12 +6,16 @@ CODE SEGMENT PUBLIC
 
 start:
         cld
+        push    cs
+        pop     es                      ; argument buffer lives with command code
         mov     si,81h
         xor     cx,cx
         mov     cl,byte ptr ds:[80h]
 skip_space:
         or      cx,cx
         jnz     short have_argument_byte
+        push    cs
+        pop     ds
         jmp     query
 have_argument_byte:
         lodsb
@@ -50,6 +54,8 @@ trailing:
 arg_done:
         xor     al,al
         stosb
+        push    cs
+        pop     ds                      ; switch from PSP to command data
         mov     si,OFFSET argument
         mov     di,OFFSET help_arg
         call    string_equal
@@ -195,4 +201,8 @@ syntax_msg      db 'Invalid POWER setting.',13,10,'$'
 help_msg        db 'Turns power management on or off and selects conservation.',13,10
                 db 'Syntax: POWER [ADV[:MAX|REG|MIN]|STD|OFF]',13,10,'$'
 CODE ENDS
+
+STACKSEG SEGMENT PARA STACK 'STACK'
+        db      512 dup(0)
+STACKSEG ENDS
         END start
