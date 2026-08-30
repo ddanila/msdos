@@ -971,6 +971,176 @@ static int scan_drive(unsigned drive, const struct options *options)
     return state.errors ? 254 : 0;
 }
 
+static int make_short_name(const char *component, unsigned length,
+                           unsigned char name[11])
+{
+    unsigned source = 0, target = 0;
+    int extension = 0;
+    memset(name, ' ', 11);
+    if (!length)
+        return 1;
+    while (source < length) {
+        unsigned char c = (unsigned char)component[source++];
+        if (c == '.') {
+            if (extension)
+                return 1;
+            extension = 1;
+            target = 8;
+            continue;
+        }
+        if (c <= ' ' || c == '"' || c == '+' || c == ',' || c == '/' ||
+            c == ':' || c == ';' || c == '<' || c == '=' || c == '>' ||
+            c == '[' || c == '\\' || c == ']' || c == '|')
+            return 1;
+        if ((!extension && target >= 8) || (extension && target >= 11))
+            return 1;
+        name[target++] = (unsigned char)toupper(c);
+    }
+    return name[0] == ' ';
+}
+
+static int find_directory_entry(struct fat_volume *volume, unsigned first,
+                                const unsigned char name[11],
+                                unsigned char result[32])
+{
+    unsigned cluster = first, next, sector_count, sector_index;
+    unsigned long base;
+    int root = first == 0;
+    memset(chain_seen, 0, sizeof(chain_seen));
+    do {
+        if (root) {
+            base = volume->root_start;
+            sector_count = volume->root_sectors;
+        } else {
+            if (!fat_volume_valid_cluster(volume, cluster) ||
+                bit_get(chain_seen, cluster))
+                return 1;
+            bit_set(chain_seen, cluster);
+            base = fat_volume_cluster_sector(volume, cluster);
+            sector_count = volume->sectors_per_cluster;
+        }
+        for (sector_index = 0; sector_index < sector_count; ++sector_index) {
+            unsigned offset;
+            if (fat_volume_io(volume, 0, base + sector_index, 1,
+                              directory_sector))
+                return 1;
+            for (offset = 0; offset < 512; offset += 32) {
+                unsigned char *entry = directory_sector + offset;
+                if (!entry[0])
+                    return 1;
+                if (entry[0] != 0xe5 && (entry[11] & 0x0f) != 0x0f &&
+                    !(entry[11] & 0x08) && !memcmp(entry, name, 11)) {
+                    memcpy(result, entry, 32);
+                    return 0;
+                }
+            }
+        }
+        if (root || fat_volume_get(volume, cluster, &next, fat_buffer) ||
+            fat_volume_eoc(volume, next))
+            break;
+        cluster = next;
+    } while (1);
+    return 1;
+}
+
+static int analyze_fragmentation(const char *specification)
+{
+    struct fat_volume volume;
+    union REGS regs;
+    struct SREGS segments;
+    char path[192], current[128];
+    const char *source = specification;
+    char *p, *component;
+    unsigned drive, directory = 0, first, next = 0;
+    unsigned transitions = 0, clusters = 0;
+    unsigned char name[11], entry[32];
+
+    memset(&regs, 0, sizeof(regs));
+    regs.h.ah = 0x19;
+    intdos(&regs, &regs);
+    drive = regs.h.al;
+    if (isalpha((unsigned char)source[0]) && source[1] == ':') {
+        drive = toupper((unsigned char)source[0]) - 'A';
+        source += 2;
+    }
+    if (*source != '\\' && *source != '/') {
+        memset(current, 0, sizeof(current));
+        memset(&regs, 0, sizeof(regs));
+        regs.h.ah = 0x47;
+        regs.h.dl = (unsigned char)(drive + 1);
+        regs.x.si = FP_OFF(current);
+        segread(&segments);
+        segments.ds = FP_SEG(current);
+        int86x(0x21, &regs, &regs, &segments);
+        if (regs.x.cflag) {
+            fputs("SCANDISK cannot determine the current directory.\n", stderr);
+            return 2;
+        }
+        path[0] = '\\'; path[1] = 0;
+        if (current[0]) { strcat(path, current); strcat(path, "\\"); }
+        if (strlen(path) + strlen(source) >= sizeof(path)) return 2;
+        strcat(path, source);
+    } else {
+        if (strlen(source) >= sizeof(path)) return 2;
+        strcpy(path, source);
+    }
+    for (p = path; *p; ++p)
+        if (*p == '/') *p = '\\';
+    if (fat_volume_open(&volume, drive, boot_sector) != FATVOL_OK) {
+        fprintf(stderr, "SCANDISK cannot examine drive %c:.\n", 'A' + drive);
+        return 2;
+    }
+    component = path;
+    while (*component == '\\') ++component;
+    while (*component) {
+        char *end = component;
+        int last;
+        while (*end && *end != '\\') ++end;
+        last = *end == 0;
+        if (make_short_name(component, (unsigned)(end - component), name) ||
+            find_directory_entry(&volume, directory, name, entry)) {
+            fprintf(stderr, "SCANDISK cannot find %s.\n", specification);
+            return 2;
+        }
+        if (!last) {
+            if (!(entry[11] & 0x10)) {
+                fprintf(stderr, "SCANDISK cannot find %s.\n", specification);
+                return 2;
+            }
+            directory = get_word(entry + 26);
+            component = end + 1;
+            while (*component == '\\') ++component;
+        } else break;
+    }
+    if (!*component || (entry[11] & 0x10)) {
+        fputs("/FRAGMENT requires a file name, not a directory.\n", stderr);
+        return 2;
+    }
+    first = get_word(entry + 26);
+    memset(chain_seen, 0, sizeof(chain_seen));
+    while (fat_volume_valid_cluster(&volume, first) &&
+           !bit_get(chain_seen, first)) {
+        bit_set(chain_seen, first);
+        ++clusters;
+        if (fat_volume_get(&volume, first, &next, fat_buffer)) return 2;
+        if (fat_volume_eoc(&volume, next)) break;
+        if (!fat_volume_valid_cluster(&volume, next)) {
+            fputs("The file has an invalid cluster chain.\n", stderr);
+            return 2;
+        }
+        if (next != first + 1U) ++transitions;
+        first = next;
+    }
+    if (!fat_volume_eoc(&volume, next) &&
+        fat_volume_valid_cluster(&volume, first) && bit_get(chain_seen, first)) {
+        fputs("The file has a cyclic cluster chain.\n", stderr);
+        return 2;
+    }
+    printf("%s occupies %u cluster(s) in %u fragment(s).\n", specification,
+           clusters, clusters ? transitions + 1U : 0U);
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     struct options options;
@@ -990,9 +1160,7 @@ int main(int argc, char **argv)
         return restore_undo_disk(drive);
     }
     if (options.fragment) {
-        fputs("SCANDISK file fragmentation analysis is not implemented.\n",
-              stderr);
-        return 2;
+        return analyze_fragmentation(options.fragment_spec);
     }
     if (options.all) {
         for (drive = 0; drive < 26; ++drive) {

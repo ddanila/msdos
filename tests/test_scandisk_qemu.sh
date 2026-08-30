@@ -35,6 +35,8 @@ mcopy -o -i "$BOOT" "$QEXIT" ::QEXIT.COM
 dd if=/dev/zero of="$TARGET" bs=512 count=2880 status=none
 mformat -i "$TARGET" -f 1440 ::
 printf 'SCANDISK CONTROL PAYLOAD\r\n' | mcopy -o -i "$TARGET" - ::CONTROL.TXT
+python3 -c "open('$OUT/scandisk-frag.bin','wb').write(bytes((i & 255 for i in range(1536))))"
+mcopy -o -i "$TARGET" "$OUT/scandisk-frag.bin" ::FRAG.BIN
 
 python3 - "$TARGET" <<'PY'
 from pathlib import Path
@@ -68,6 +70,26 @@ for base in (fat1, fat2):
 # Make one otherwise-unused FAT2 entry disagree with FAT1. Autofix must restore
 # the secondary copy without disturbing the orphan payload.
 set_fat12(fat2, 200, 0xfff)
+
+# Relocate the middle cluster of FRAG.BIN so /FRAGMENT must observe three
+# physical extents without changing any file byte.
+root = 19 * 512
+entry = next(root + off for off in range(0, 224 * 32, 32)
+             if disk[root + off:root + off + 11] == b'FRAG    BIN')
+c1 = struct.unpack_from('<H', disk, entry + 26)[0]
+c2 = get_fat12(fat1, c1)
+c3 = get_fat12(fat1, c2)
+assert c3 >= 2 and get_fat12(fat1, c3) >= 0xff8
+target = 300
+assert get_fat12(fat1, target) == 0
+data_offset = 33 * 512
+disk[data_offset + (target - 2) * 512:data_offset + (target - 1) * 512] = \
+    disk[data_offset + (c2 - 2) * 512:data_offset + (c2 - 1) * 512]
+for base in (fat1, fat2):
+    set_fat12(base, c1, target)
+    set_fat12(base, target, c3)
+    set_fat12(base, c2, 0)
+
 data = 33 * 512
 for cluster in (100, 101, 102):
     start = data + (cluster - 2) * 512
@@ -78,6 +100,8 @@ PY
 cp "$TARGET" "$BEFORE"
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
+    printf 'SCANDISK /FRAGMENT B:\\FRAG.BIN\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO FRAGMENT_FAILED\r\n'
     printf 'SCANDISK B: /CHECKONLY /NOSUMMARY\r\n'
     printf 'IF ERRORLEVEL 255 ECHO CHECKONLY_FOUND_ERRORS\r\n'
     printf 'SCANDISK B: /AUTOFIX /NOSUMMARY\r\n'
@@ -99,6 +123,12 @@ timeout 45 qemu-system-i386 -display none \
 grep -q 'CHECKONLY_FOUND_ERRORS' "$LOG" &&
     ok "/CHECKONLY detects corruption and returns failure" ||
     fail "/CHECKONLY did not report corruption through its status"
+if grep -q 'B:\\FRAG.BIN occupies 3 cluster(s) in 3 fragment(s)' "$LOG" &&
+   ! grep -q 'FRAGMENT_FAILED' "$LOG"; then
+    ok "/FRAGMENT follows the named file's physical FAT chain"
+else
+    fail "/FRAGMENT did not report the injected three-extent chain"
+fi
 grep -q 'file allocation table copies differ' "$LOG" &&
     ok "mismatched FAT mirrors are detected" ||
     fail "FAT mirror mismatch was not diagnosed"
