@@ -14,6 +14,8 @@ parser.add_argument("--corrupt-sector", type=int, default=0,
                     help="flip one byte in this 1-based sector response")
 parser.add_argument("--corrupt-request", type=int, default=0,
                     help="flip one byte in this 1-based request header")
+parser.add_argument("--corrupt-write", type=int, default=0,
+                    help="flip one byte in this 1-based write payload")
 args = parser.parse_args()
 
 upstream = socket.create_connection(("127.0.0.1", args.upstream), timeout=10)
@@ -33,11 +35,12 @@ server_stream = bytearray()
 pending = []
 sector_response = 0
 request_number = 0
+write_request = 0
 
 
 def forward_requests(data):
     """Frame requests for fault injection and record their reply types."""
-    global request_number
+    global request_number, write_request
     client_stream.extend(data)
     while True:
         marker = client_stream.find(b"\xa5\x5a")
@@ -58,11 +61,16 @@ def forward_requests(data):
         request = bytearray(client_stream[:request_size])
         del client_stream[:request_size]
         request_number += 1
+        if command == 3:
+            write_request += 1
         if request_number == args.corrupt_request:
             request[3] ^= 0x01
             print(f"corrupted request header {request_number}", flush=True)
         else:
             pending.append(command)
+            if command == 3 and write_request == args.corrupt_write:
+                request[9 + 100] ^= 0x40
+                print(f"corrupted write payload {write_request}", flush=True)
         upstream.sendall(request)
 
 

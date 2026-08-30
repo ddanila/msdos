@@ -289,13 +289,20 @@ request_write:
         call    prepare_io
         jc      request_io_error
 write_sector_loop:
+        mov     byte ptr cs:write_retries,2
+write_sector_retry:
         call    send_current_request
-        jc      request_io_error
+        jc      short write_sector_failed
         les     si,cs:transfer_ptr
         call    send_sector
-        jc      request_io_error
+        jc      short write_sector_failed
         call    receive_status
-        jc      request_io_error
+        jnc     short write_sector_complete
+write_sector_failed:
+        dec     byte ptr cs:write_retries
+        jnz     write_sector_retry
+        jmp     request_io_error
+write_sector_complete:
         call    advance_transfer
         dec     word ptr cs:io_remaining
         jnz     write_sector_loop
@@ -887,6 +894,7 @@ transfer_ptr    dd 0
 io_command      db 0
 io_remaining    dw 0
 packet_checksum db 0
+write_retries   db 0
 baud_divisor    dw 1
 baud_terminator db 0
 auto_install    db 0
