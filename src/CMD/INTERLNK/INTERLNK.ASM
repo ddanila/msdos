@@ -49,6 +49,9 @@ command_query:
         int     2fh
         cmp     ax,0ff00h
         jne     not_installed
+        mov     al,cl
+        add     al,'0'
+        mov     cs:banner_count,al
         mov     dx,OFFSET banner
         mov     ah,9
         int     21h
@@ -62,7 +65,8 @@ not_installed:
         int     21h
 banner  db 'Microsoft Interlnk version 1.00',13,10
         db 'Port-COM1',13,10
-        db 'Drive letters redirected: 1',13,10,'$'
+        db 'Drive letters redirected: '
+banner_count db '0',13,10,'$'
 missing db 'INTERLNK is not installed or the server is unavailable.',13,10,'$'
 syntax  db 'Invalid INTERLNK parameter.',13,10,'$'
 help    db 'Displays Interlnk client connection status.',13,10

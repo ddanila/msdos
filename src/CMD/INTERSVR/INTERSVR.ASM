@@ -1,6 +1,6 @@
-; Serial Interlnk server.  The initial transport exports one DOS volume as a
-; remote block device; INTERLNK.EXE performs ordinary DOS filesystem work on
-; that volume through sector requests.
+; Serial Interlnk server.  Exports up to five DOS volumes as remote block
+; devices; INTERLNK.EXE performs ordinary DOS filesystem work through sector
+; requests.
 
 CODE SEGMENT PUBLIC
         ASSUME  CS:CODE,DS:CODE,ES:CODE,SS:CODE
@@ -27,10 +27,20 @@ server_parse:
         mov     dx,OFFSET banner
         mov     ah,9
         int     21h
-        mov     dl,cs:server_drive
+        xor     bx,bx
+banner_drive_loop:
+        mov     dl,cs:server_drives[bx]
         add     dl,'A'
         mov     ah,2
         int     21h
+        inc     bx
+        cmp     bl,cs:drive_count
+        jae     short banner_done
+        mov     dl,' '
+        mov     ah,2
+        int     21h
+        jmp     banner_drive_loop
+banner_done:
         mov     dx,OFFSET banner_suffix
         mov     ah,9
         int     21h
@@ -45,6 +55,14 @@ server_loop:
         jne     server_loop
         call    receive_byte
         jc      server_loop
+        mov     cs:request_command,al
+        call    receive_byte
+        jc      server_loop
+        mov     cs:request_unit,al
+        call    receive_sector_number
+        mov     al,cs:request_command
+        cmp     al,0
+        je      discovery_request
         cmp     al,1
         je      geometry_request
         cmp     al,2
@@ -55,8 +73,14 @@ server_loop:
         call    send_status
         jmp     server_loop
 
+discovery_request:
+        xor     al,al
+        call    send_status
+        mov     al,cs:drive_count
+        call    send_byte
+        jmp     server_loop
+
 geometry_request:
-        call    receive_sector_number
         call    read_boot_sector
         jc      request_failed
         xor     al,al
@@ -66,7 +90,6 @@ geometry_request:
         jmp     server_loop
 
 read_request:
-        call    receive_sector_number
         call    absolute_read
         jc      request_failed
         xor     al,al
@@ -76,7 +99,6 @@ read_request:
         jmp     server_loop
 
 write_request:
-        call    receive_sector_number
         mov     di,OFFSET sector_buffer
         call    receive_sector
         jc      request_failed
@@ -117,7 +139,10 @@ absolute_read PROC NEAR
         push    ds
         push    cs
         pop     ds
-        mov     al,cs:server_drive
+        call    select_drive
+        jc      short absolute_read_bad_pushed
+        cmp     al,2
+        jb      short absolute_read_floppy
         mov     bx,OFFSET sector_buffer
         mov     cx,1
         mov     dx,word ptr cs:sector_number
@@ -127,6 +152,13 @@ absolute_read PROC NEAR
         jc      short absolute_bad
         clc
         ret
+absolute_read_floppy:
+        pop     ds
+        mov     ah,2
+        call    bios_floppy_io
+        ret
+absolute_read_bad_pushed:
+        pop     ds
 absolute_bad:
         stc
         ret
@@ -138,7 +170,10 @@ absolute_write PROC NEAR
         push    ds
         push    cs
         pop     ds
-        mov     al,cs:server_drive
+        call    select_drive
+        jc      short absolute_write_bad_pushed
+        cmp     al,2
+        jb      short absolute_write_floppy
         mov     bx,OFFSET sector_buffer
         mov     cx,1
         mov     dx,word ptr cs:sector_number
@@ -148,10 +183,71 @@ absolute_write PROC NEAR
         jc      short absolute_bad_write
         clc
         ret
+absolute_write_floppy:
+        pop     ds
+        mov     ah,3
+        call    bios_floppy_io
+        ret
+absolute_write_bad_pushed:
+        pop     ds
 absolute_bad_write:
         stc
         ret
 absolute_write ENDP
+
+; Read or write one physical floppy sector.  INT 25h can alias B: to A: on
+; systems configured for single-drive swapping, so use the BIOS drive number
+; for floppy exports.  AL is the zero-based drive and AH is 2 (read) or 3
+; (write).
+bios_floppy_io PROC NEAR
+        mov     cs:bios_drive,al
+        mov     cs:bios_command,ah
+        mov     dl,al
+        mov     ah,8
+        int     13h
+        jc      short bios_floppy_done
+        inc     dh
+        mov     cs:bios_heads,dh
+        and     cl,3fh
+        xor     bx,bx
+        mov     bl,cl
+        mov     ax,word ptr cs:sector_number
+        xor     dx,dx
+        div     bx
+        inc     dl
+        mov     cs:bios_sector,dl
+        xor     bx,bx
+        mov     bl,cs:bios_heads
+        xor     dx,dx
+        div     bx
+        mov     ch,al
+        mov     cl,cs:bios_sector
+        mov     dh,dl
+        mov     dl,cs:bios_drive
+        push    cs
+        pop     es
+        mov     bx,OFFSET sector_buffer
+        xor     ah,ah
+        int     13h
+        mov     ah,cs:bios_command
+        mov     al,1
+        int     13h
+bios_floppy_done:
+        ret
+bios_floppy_io ENDP
+
+select_drive PROC NEAR
+        xor     bx,bx
+        mov     bl,cs:request_unit
+        cmp     bl,cs:drive_count
+        jae     short select_drive_bad
+        mov     al,cs:server_drives[bx]
+        clc
+        ret
+select_drive_bad:
+        stc
+        ret
+select_drive ENDP
 
 send_status PROC NEAR
         push    ax
@@ -246,7 +342,7 @@ parse_tail PROC NEAR
         xor     cx,cx
         mov     cl,byte ptr es:[80h]
 parse_space:
-        jcxz    parse_done
+        jcxz    short parse_at_end
         mov     al,es:[si]
         inc     si
         dec     cx
@@ -260,7 +356,12 @@ parse_space:
         cmp     al,'Z'
         ja      parse_bad
         sub     al,'A'
-        mov     cs:server_drive,al
+        xor     bx,bx
+        mov     bl,cs:drive_count
+        cmp     bl,5
+        jae     parse_bad
+        mov     cs:server_drives[bx],al
+        inc     cs:drive_count
         jcxz    parse_done
         mov     al,es:[si]
         inc     si
@@ -278,6 +379,8 @@ parse_drive_tail:
         cmp     al,' '
         jne     parse_bad
         jmp     parse_space
+parse_at_end:
+        jmp     parse_done
 parse_switch:
         ; /COM:1 is the first transport contract.  Other retail transports
         ; remain diagnosed instead of being silently accepted.
@@ -312,6 +415,11 @@ parse_switch:
         mov     cs:com_port,0
         jmp     parse_space
 parse_done:
+        cmp     cs:drive_count,0
+        jne     short parse_have_drive
+        mov     cs:server_drives,0
+        mov     cs:drive_count,1
+parse_have_drive:
         clc
         ret
 parse_bad:
@@ -333,12 +441,19 @@ server_help:
         int     21h
 
 com_port        dw 0
-server_drive    db 0
+drive_count     db 0
+server_drives   db 5 dup(0)
+request_command db 0
+request_unit    db 0
+bios_drive      db 0
+bios_command    db 0
+bios_sector     db 0
+bios_heads      db 0
 sector_number   dd 0
 banner          db 'Microsoft Interlnk server compatible transport',13,10
-                db 'Port-COM1  Drive $'
-banner_suffix   db ': available',13,10,'$'
-usage           db 'Syntax: INTERSVR [drive:] [/COM:1]',13,10,'$'
+                db 'Port-COM1  Drives $'
+banner_suffix   db ' available',13,10,'$'
+usage           db 'Syntax: INTERSVR [drive: ...] [/COM:1]',13,10,'$'
 sector_buffer   db 512 dup(0)
 
 CODE ENDS

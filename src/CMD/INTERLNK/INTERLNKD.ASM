@@ -9,16 +9,17 @@ device_header:
         dw      0800h
         dw      strategy
         dw      interrupt
-unit_count      db      1
+unit_count      db      0
         db      7 dup(0)
 
 request_ptr     dd 0
 connected       db 0
 com_port        dw 0
 sector_number   dd 0
-bpb_pointer     dw OFFSET remote_bpb
-remote_bpb      db 25 dup(0)
+bpb_pointers    dw 5 dup(0)
+remote_bpbs     db 125 dup(0)
 boot_sector     db 512 dup(0)
+current_unit    db 0
 
 strategy PROC FAR
         mov     word ptr cs:request_ptr,bx
@@ -71,6 +72,23 @@ interrupt PROC FAR
 
 request_init:
         call    init_serial
+        mov     cs:current_unit,0
+        mov     word ptr cs:sector_number,0
+        mov     word ptr cs:sector_number+2,0
+        xor     al,al
+        xor     dx,dx
+        call    send_request
+        call    receive_status
+        jc      init_failed
+        call    receive_byte
+        jc      init_failed
+        or      al,al
+        jz      init_failed
+        cmp     al,5
+        ja      init_failed
+        mov     cs:unit_count,al
+        mov     cs:current_unit,0
+init_geometry_loop:
         mov     al,1
         xor     dx,dx
         call    send_request
@@ -84,14 +102,28 @@ request_init:
         push    cs
         pop     ds
         mov     si,OFFSET boot_sector+11
-        mov     di,OFFSET remote_bpb
+        xor     ax,ax
+        mov     al,cs:current_unit
+        mov     dx,25
+        mul     dx
+        mov     di,OFFSET remote_bpbs
+        add     di,ax
+        xor     bx,bx
+        mov     bl,cs:current_unit
+        shl     bx,1
+        mov     word ptr cs:bpb_pointers[bx],di
         mov     cx,25
         rep     movsb
+        inc     cs:current_unit
+        mov     al,cs:current_unit
+        cmp     al,cs:unit_count
+        jb      init_geometry_loop
         lds     bx,cs:request_ptr
-        mov     byte ptr [bx+13],1
+        mov     al,cs:unit_count
+        mov     byte ptr [bx+13],al
         mov     word ptr [bx+14],OFFSET resident_end
         mov     word ptr [bx+16],cs
-        mov     word ptr [bx+18],OFFSET bpb_pointer
+        mov     word ptr [bx+18],OFFSET bpb_pointers
         mov     word ptr [bx+20],cs
         mov     cs:connected,1
         call    install_multiplex
@@ -108,7 +140,14 @@ request_media:
         mov     byte ptr [bx+14],1
         jmp     request_done
 request_bpb:
-        mov     word ptr [bx+18],OFFSET remote_bpb
+        xor     ax,ax
+        mov     al,[bx+1]
+        cmp     al,cs:unit_count
+        jae     request_bad_command
+        shl     ax,1
+        mov     si,ax
+        mov     ax,cs:bpb_pointers[si]
+        mov     word ptr [bx+18],ax
         mov     word ptr [bx+20],cs
         jmp     request_done
 request_busy:
@@ -179,6 +218,10 @@ prepare_io PROC NEAR
         ; 16-bit starting sector at +20 and count at +18.
         mov     cs:io_command,al
         lds     bx,cs:request_ptr
+        mov     al,[bx+1]
+        cmp     al,cs:unit_count
+        jae     short prepare_bad
+        mov     cs:current_unit,al
         mov     cx,[bx+18]
         jcxz    short prepare_bad
         mov     cs:io_remaining,cx
@@ -223,6 +266,8 @@ send_request PROC NEAR
         mov     al,05ah
         call    send_byte
         pop     ax
+        call    send_byte
+        mov     al,cs:current_unit
         call    send_byte
         mov     al,dl
         call    send_byte

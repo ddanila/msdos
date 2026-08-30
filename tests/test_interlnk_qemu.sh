@@ -6,6 +6,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/out"
 BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 SERVER_IMAGE="$OUT/intersvr.img"
+SERVER_IMAGE_TWO="$OUT/intersvr-two.img"
 CLIENT_IMAGE="$OUT/interlnk.img"
 LOG="$OUT/interlnk-debug.log"
 SERVER_LOG="$OUT/intersvr-qemu.log"
@@ -23,9 +24,11 @@ nasm -f bin "$ROOT/tests/interlnk_file_probe.asm" -o "$PROBE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 cp "$BASE" "$SERVER_IMAGE"
 cp "$BASE" "$CLIENT_IMAGE"
+mformat -C -i "$SERVER_IMAGE_TWO" -f 1440 ::
 printf 'Byte-exact Interlnk transport\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::REMOTE.TXT
+printf 'Second Interlnk volume\r\n' | mcopy -o -i "$SERVER_IMAGE_TWO" - ::REMOTE2.TXT
 mcopy -o -i "$SERVER_IMAGE" "$ROOT/src/CMD/INTERSVR/INTERSVR.EXE" ::INTERSVR.EXE
-printf '@ECHO OFF\r\nINTERSVR A: /COM:1\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::AUTOEXEC.BAT
+printf '@ECHO OFF\r\nINTERSVR A: B: /COM:1\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::AUTOEXEC.BAT
 printf '\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::CONFIG.SYS
 
 mcopy -o -i "$CLIENT_IMAGE" "$ROOT/src/CMD/INTERLNK/INTERLNK.EXE" ::INTERLNK.EXE
@@ -38,6 +41,7 @@ rm -f "$LOG" "$SERVER_LOG" "$CLIENT_LOG"
 timeout 60 qemu-system-i386 \
     -display none -monitor none -machine pc -cpu 486 -m 8 \
     -drive if=floppy,index=0,format=raw,file="$SERVER_IMAGE",cache=writethrough \
+    -drive if=floppy,index=1,format=raw,file="$SERVER_IMAGE_TWO",cache=writethrough \
     -boot a -serial tcp:127.0.0.1:$PORT,server=on,wait=off -no-reboot \
     >"$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
@@ -59,4 +63,5 @@ grep -Fq 'INTERLNK_TRANSPORT_PASS' "$LOG" || {
     exit 1
 }
 mcopy -i "$SERVER_IMAGE" ::WRITTEN.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx '001122334455aaff'
-echo '  PASS: Interlnk redirects byte-exact FAT reads and writes over COM1'
+mcopy -i "$SERVER_IMAGE_TWO" ::WRITTN2.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx 'fedcba9876543210'
+echo '  PASS: Interlnk redirects two FAT volumes with byte-exact reads and writes over COM1'
