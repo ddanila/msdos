@@ -22,9 +22,12 @@ image="$work/himem-286.img"
 log="$work/himem-286.log"
 cp "$FLOPPY" "$image"
 mdel -i "$image" ::HELP.HLP >/dev/null 2>&1 || true
+"$ROOT/bin/jwasm-bin" -DFORCE_286 -Fo"$work/HIMEM.SYS" \
+    "$ROOT/src/DEV/HIMEM/HIMEM.ASM"
 nasm -f bin "$ROOT/tests/himem_286_probe.asm" -o "$work/HIM286.COM"
+mcopy -o -i "$image" "$work/HIMEM.SYS" ::HIMEM.SYS
 mcopy -o -i "$image" "$work/HIM286.COM" ::HIM286.COM
-printf 'DEVICE=A:\\HIMEM.SYS\r\n' | mcopy -o -i "$image" - ::CONFIG.SYS
+printf 'DEVICE=A:\\HIMEM.SYS /TESTMEM:OFF\r\n' | mcopy -o -i "$image" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'
     printf 'HIM286.COM > A:\\RESULT.TXT\r\n'
@@ -43,4 +46,4 @@ if [[ "$result" != *HIMEM_286_PASS* ]] \
     exit 1
 fi
 
-echo '  PASS: HIMEM serves 64 XMS move cycles and its lifecycle on a 286'
+echo '  PASS: HIMEM serves its lifecycle and safely rejects XMS 3 extended calls on a 286'

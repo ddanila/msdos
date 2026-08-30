@@ -37,7 +37,7 @@ rewrite, or DOS-emulated build step.
 
 The kernel implements DOS 5 allocation strategies and conventional/UMB arena
 linking. SYSINIT acquires UMB extents through standard XMS, and the repository
-HIMEM/EMM386 pair provides XMS 2.00, HMA ownership, stable UMB mappings, and EMS
+HIMEM/EMM386 pair provides XMS 3.00, HMA ownership, stable UMB mappings, and EMS
 isolation. `DOS=HIGH`, `DOS=UMB`, `DEVICEHIGH`, `INSTALLHIGH`, `LOADHIGH`/`LH`,
 and UMB-aware `MEM` use that shared model. See [MEMORY.md](MEMORY.md) for the
 invariants maintainers must preserve.

@@ -57,6 +57,7 @@ cpu_clock       db      0
 eisa_memory     db      0
 verbose_mode    db      0
 testmem_mode    db      1
+cpu_386         db      0
 option_buffer   db      40 dup (0)
 hma_owned       db      0
 a20_initial     db      0
@@ -72,6 +73,7 @@ move_chunk      dd      0
 move_offset_error db    0
 test_address    dd      0
 test_remaining dw      0
+highest_page   dw      0
 handles         db      MAX_HANDLES * HANDLE_SIZE dup (0)
 umb_count       dw      0
 umb_committed   db      0
@@ -128,8 +130,15 @@ endif
 
         ; HIMEM requires an 80286 or newer processor. The move engine below
         ; uses 16-bit word pairs so the published XMS path is 286-safe.
+ifdef FORCE_286
+        jmp     short init_check_286
+else
         call    cpu_is_386
-        jnc     short init_cpu_ok
+        jc      short init_check_286
+        mov     [cpu_386], 1
+        jmp     short init_cpu_ok
+endif
+init_check_286:
         call    cpu_is_286
         jc      init_fail
 init_cpu_ok:
@@ -151,6 +160,8 @@ ifdef DEBUG
         mov     al, 'C'
         call    debug_mark
 endif
+
+        call    detect_highest_page
 
         cmp     [eisa_memory], 0
         je      short init_query_88
@@ -334,24 +345,17 @@ parse_options_bad:
         ret
 parse_options endp
 
-; Carry clear on an 80386 or newer, carry set on an 8086/80186/80286.
-; This real-mode FLAGS test itself contains no 386 opcodes.
+; Carry clear on an 80386 or newer, carry set on an 80286. In real mode a 286
+; clears IOPL and NT when POPF attempts to set them; a 386 retains them.
 cpu_is_386 proc near
         push    ax
         pushf
-        xor     ax, ax
-        push    ax
-        popf
-        pushf
-        pop     ax
-        test    ax, 08000h
-        jnz     short cpu_not_386
         mov     ax, 07000h
         push    ax
         popf
         pushf
         pop     ax
-        test    ax, 07000h
+        and     ax, 07000h
         jz      short cpu_not_386
         popf
         pop     ax
@@ -978,6 +982,8 @@ int15_handler endp
 xms_control proc far
         mov     word ptr cs:[caller_ds], ds
         mov     word ptr cs:[caller_si], si
+        cmp     ah, 088h
+        jae     short xms_extended_control
         push    cx
         push    si
         push    di
@@ -1005,6 +1011,63 @@ xms_return:
         pop     si
         pop     cx
         retf
+xms_extended_control:
+        push    si
+        push    di
+        push    bp
+        push    ds
+        push    es
+        push    cs
+        pop     ds
+        cmp     [cpu_386], 0
+        jne     short xms_extended_dispatch
+        mov     bl, ERR_NOT_IMPLEMENTED
+        xor     ax, ax
+        jmp     short xms_extended_return
+xms_extended_dispatch:
+        cmp     ah, 088h
+        je      short xms_extended_query
+        cmp     ah, 089h
+        je      short xms_extended_allocate
+        cmp     ah, 08eh
+        je      short xms_extended_info
+        cmp     ah, 08fh
+        je      short xms_extended_reallocate
+        jmp     short xms_extended_unknown
+xms_extended_query:
+        call    xms_query_any_free
+        jmp     short xms_extended_return
+xms_extended_allocate:
+        call    xms_allocate_any
+        jmp     short xms_extended_return
+xms_extended_info:
+        call    xms_extended_handle_info
+        jmp     short xms_extended_return
+xms_extended_reallocate:
+        call    xms_reallocate_any
+        jmp     short xms_extended_return
+xms_extended_unknown:
+        ; DOS 6.22 aliases otherwise undefined 8xh calls to their low-seven-bit
+        ; XMS 2.x function (for example, 8Ah behaves as Free EMB/0Ah).
+        and     ah, 07fh
+        cmp     ah, 011h
+        ja      short xms_extended_reject
+        mov     al, ah
+        xor     ah, ah
+        mov     si, ax
+        shl     si, 1
+        call    word ptr cs:[xms_table+si]
+        jmp     short xms_extended_return
+xms_extended_reject:
+        mov     bl, ERR_NOT_IMPLEMENTED
+        xor     ax, ax
+xms_extended_return:
+        pop     es
+        pop     ds
+        pop     bp
+        pop     di
+        pop     si
+        retf
 xms_control endp
 
 xms_table:
@@ -1031,8 +1094,8 @@ xms_a20_failed:
         jmp     xms_failure
 
 xms_version proc near
-        mov     ax, 0200h
-        mov     bx, 0100h
+        mov     ax, 0300h
+        mov     bx, 0310h
         xor     dx, dx
         cmp     [extended_kb], 0
         je      short version_done
@@ -1040,6 +1103,171 @@ xms_version proc near
 version_done:
         ret
 xms_version endp
+
+; Record the highest installed physical 64-KiB page for XMS 3 function 88h.
+; E801 reports hardware extent independently of memory already reserved from
+; the legacy AH=88h pool. DOS 6.22 returns this page number rather than a byte
+; address in ECX.
+detect_highest_page proc near
+        push    ax
+        push    bx
+        push    cx
+        push    dx
+        cmp     [cpu_386], 0
+        je      short highest_page_done
+        ; AT CMOS registers 30h/31h report KiB installed above 1 MiB.
+        in      al, 070h
+        mov     dl, al
+        mov     al, 030h
+        out     070h, al
+        in      al, 071h
+        mov     bl, al
+        mov     al, 031h
+        out     070h, al
+        in      al, 071h
+        mov     bh, al
+        mov     al, dl
+        out     070h, al
+        mov     cl, 6
+        shr     bx, cl
+        add     bx, 16
+        dec     bx
+        mov     [highest_page], bx
+
+        mov     ax, 0e801h
+        int     015h
+        jc      short highest_page_done
+        or      ax, ax
+        jnz     short highest_page_values
+        mov     ax, cx
+        mov     bx, dx
+highest_page_values:
+        mov     cl, 6
+        shr     ax, cl
+        add     bx, ax
+        add     bx, 16
+        dec     bx
+        cmp     bx, [highest_page]
+        jbe     short highest_page_done
+        mov     [highest_page], bx
+highest_page_done:
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
+        ret
+detect_highest_page endp
+
+; XMS 3.0 super-extended-memory functions. The manager's physical pool remains
+; bounded to 65535 KiB, but these entry points honor the specification's
+; 32-bit register contracts and reject unrepresentable requests safely.
+ifdef FORCE_286
+xms_query_any_free proc near
+        mov     bl, ERR_NOT_IMPLEMENTED
+        jmp     xms_failure
+xms_query_any_free endp
+xms_allocate_any proc near
+        mov     bl, ERR_NOT_IMPLEMENTED
+        jmp     xms_failure
+xms_allocate_any endp
+xms_extended_handle_info proc near
+        mov     bl, ERR_NOT_IMPLEMENTED
+        jmp     xms_failure
+xms_extended_handle_info endp
+xms_reallocate_any proc near
+        mov     bl, ERR_NOT_IMPLEMENTED
+        jmp     xms_failure
+xms_reallocate_any endp
+else
+        .386
+xms_query_any_free proc near
+        cmp     [cpu_386], 0
+        je      short xms3_not_implemented
+        call    largest_gap
+        push    ax
+        call    total_free
+        movzx   edx, ax
+        pop     ax
+        movzx   eax, ax
+        movzx   ecx, word ptr [highest_page]
+        or      ecx, ecx
+        jnz     short xms3_highest_ready
+        movzx   ecx, word ptr [extended_kb]
+        shr     ecx, 6
+        add     ecx, 16
+        dec     ecx
+xms3_highest_ready:
+        or      edx, edx
+        jz      short xms3_no_memory
+        xor     bl, bl
+        clc
+        ret
+xms3_no_memory:
+        xor     eax, eax
+        mov     bl, ERR_NO_MEMORY
+        clc
+        ret
+xms3_not_implemented:
+        xor     ax, ax
+        mov     bl, ERR_NOT_IMPLEMENTED
+        clc
+        ret
+xms_query_any_free endp
+
+xms_allocate_any proc near
+        cmp     [cpu_386], 0
+        je      short xms3_allocate_unsupported
+        mov     eax, edx
+        shr     eax, 16
+        jnz     short xms3_allocate_too_large
+        call    xms_allocate
+        ret
+xms3_allocate_too_large:
+        mov     bl, ERR_NO_MEMORY
+        jmp     xms_failure
+xms3_allocate_unsupported:
+        mov     bl, ERR_NOT_IMPLEMENTED
+        jmp     xms_failure
+xms_allocate_any endp
+
+xms_extended_handle_info proc near
+        cmp     [cpu_386], 0
+        je      short xms3_info_unsupported
+        push    cx
+        call    validate_handle
+        jc      short xms3_info_bad_handle
+        pop     cx
+        mov     bh, byte ptr [si+1]
+        movzx   edx, word ptr [si+4]
+        mov     ax, 1
+        xor     bl, bl
+        clc
+        ret
+xms3_info_bad_handle:
+        pop     cx
+        jmp     xms_bad_handle
+xms3_info_unsupported:
+        mov     bl, ERR_NOT_IMPLEMENTED
+        jmp     xms_failure
+xms_extended_handle_info endp
+
+xms_reallocate_any proc near
+        cmp     [cpu_386], 0
+        je      short xms3_reallocate_unsupported
+        mov     eax, ebx
+        shr     eax, 16
+        jnz     short xms3_reallocate_too_large
+        call    xms_reallocate
+        ret
+xms3_reallocate_too_large:
+        mov     bl, ERR_NO_MEMORY
+        jmp     xms_failure
+xms3_reallocate_unsupported:
+        mov     bl, ERR_NOT_IMPLEMENTED
+        jmp     xms_failure
+xms_reallocate_any endp
+        .286
+endif
 
 xms_hma_request proc near
         cmp     [extended_kb], 0

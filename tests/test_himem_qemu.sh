@@ -108,7 +108,7 @@ timeout 25 qemu-system-i386 \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$LOG" 2>&1 || true
 
 for expected in \
-    'VERSION CF=0 AX=0200 BX=0100 DX=0001' \
+    'VERSION CF=0 AX=0300 BX=0310 DX=0001' \
     'MOVE_TO_XMS CF=0 AX=0001' \
     'MOVE_FROM_XMS CF=0 AX=0001' \
     'MOVE_VERIFY CF=0 AX=0001' \

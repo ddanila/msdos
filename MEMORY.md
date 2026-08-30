@@ -17,7 +17,8 @@ The supported memory surface includes:
 - UMB link/query control through `INT 21h/58xxh`;
 - `DOS=HIGH|LOW` and `DOS=UMB|NOUMB`;
 - `DEVICEHIGH`, `INSTALLHIGH`, `LOADHIGH`/`LH`, and UMB-aware `MEM`;
-- XMS 2.00 HMA, A20, extended-memory, and UMB functions;
+- XMS 3.00 HMA, A20, extended-memory, and UMB functions, including the 32-bit
+  free-memory, allocate, handle-information, and resize calls;
 - EMM386 EMS-only default mode plus `RAM` and `NOEMS` UMB modes.
 
 ## Arena invariants

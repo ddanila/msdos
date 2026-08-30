@@ -36,7 +36,7 @@ epic.
 
 | DOS 5 feature | Repository status | Gap |
 | --- | --- | --- |
-| DOS in the HMA and programs/drivers in UMBs | Present | HIMEM runs on a fixed-cycle 286 gate, including byte-exact XMS moves, and a CI-hosted 286/386/486 model matrix exercises HIMEM/EMM386 HMA/UMB integration. Physical-machine validation remains an external confidence activity. |
+| DOS in the HMA and programs/drivers in UMBs | Present | Fixed-cycle emulator gates cover byte-exact XMS moves and HIMEM/EMM386 HMA/UMB integration across supported CPU models. Physical-machine validation remains external. |
 | Command history and macros | Present | DOSKEY provides resident history, macros, edit modes, redirected input, INT 2Fh services, and the DOS 5 interactive history/editing keys. |
 | Full-screen Editor and QBasic | Missing | No EDIT, QBASIC, BASIC runtime, help, or sample programs. EDLIN remains available. |
 | Online command help | Present | HELP provides a described command index and case-insensitive topic lookup from a separate searchable database; shipped executable `/?` surfaces are also tested. |
@@ -104,7 +104,7 @@ Complete limit/error/order parity remains unverified outside the cases in
 
 | Driver | Status | Missing DOS 5 surface |
 | --- | --- | --- |
-| `HIMEM.SYS` | Partial XMS 2.00 implementation | It uses a 286 instruction baseline and a fixed-cycle 286 runtime gate covers installation, allocation, locking, release, and 64 byte-exact bidirectional moves. On 386+ systems every documented DOS 5 option, HMA thresholds, 1-128 handles, INT 15h reservation, generic A20 backends, moves, and resizing are tested. Representative machine-specific A20, shadow-RAM, and CPU-clock validation remains. |
+| `HIMEM.SYS` | XMS 3.00, including the XMS 2.00 interface | Emulator gates cover installation, allocation, locking, release, byte-exact moves, DOS 5 options, HMA thresholds, 1-128 handles, INT 15h reservation, A20 backends, and resizing. Machine-specific A20, shadow-RAM, CPU-clock, and physical-hardware validation remain. |
 | `EMM386.EXE` | Present DOS 5 command-line surface; hardware validation remains | Driver and runtime loading implement `ON`, `OFF`, `AUTO`, `W=ON`, and `W=OFF`. Driver loading implements pool size, `M1`-`M14`, `FRAME=`, `/P`, sparse `Pn=` physical-page assignments, `I=`, `X=`, `B=`, `L=`, `A=`, `H=`, `D=`, `RAM`, and `NOEMS`. The effect of `W=ON` on real Weitek hardware and the low-memory `M10`-`M14` cases remain unverified on representative hardware. |
 | `SETVER.EXE` | Present | Persistent table loading through CONFIG.SYS and reboot-stable command edits are tested. |
 | `ANSI.SYS` | Present | No known DOS 5 `/X` or `/K` omission; exhaustive escape-sequence and adapter conformance is not complete. |
@@ -145,7 +145,7 @@ from the project and must not be represented by no-op compatibility stubs.
 
 ### XMS, EMS, and device APIs
 
-- The repository HIMEM exposes XMS 2.00 HMA, A20, handle, move, lock, resize,
+- The repository HIMEM exposes XMS 3.00 HMA, A20, handle, move, lock, resize,
   and UMB calls. Documented configuration semantics and 286 execution are
   gated; exhaustive machine-specific error and timing parity is not claimed.
 - EMM386 contains the LIM EMS dispatcher through the 4.0 function range and

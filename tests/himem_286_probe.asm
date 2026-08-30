@@ -13,7 +13,9 @@ org 100h
 
     xor ah, ah
     call far [entry]
-    cmp ax, 0200h
+    cmp ax, 0300h
+    jne .early_fail
+    cmp bx, 0310h
     jne .early_fail
 
     mov ah, 09h
@@ -112,6 +114,37 @@ org 100h
     mov dx, [handle]
     call far [entry]
     cmp ax, 1
+    jne fail
+
+    ; XMS 3.0 identifies itself on a 286, but its four 32-bit entry points
+    ; must reject without executing a 386 instruction.
+    mov ah, 088h
+    call far [entry]
+    or ax, ax
+    jnz fail
+    cmp bl, 080h
+    jne fail
+    mov ah, 089h
+    mov dx, 16
+    call far [entry]
+    or ax, ax
+    jnz fail
+    cmp bl, 080h
+    jne fail
+    mov ah, 08eh
+    mov dx, 1
+    call far [entry]
+    or ax, ax
+    jnz fail
+    cmp bl, 080h
+    jne fail
+    mov ah, 08fh
+    mov bx, 16
+    mov dx, 1
+    call far [entry]
+    or ax, ax
+    jnz fail
+    cmp bl, 080h
     jne fail
     mov dx, pass_message
     jmp short print
