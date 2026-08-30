@@ -112,7 +112,7 @@ Complete limit/error/order parity remains unverified outside the cases in
 | `SETVER.EXE` | Present | Persistent table loading through CONFIG.SYS and reboot-stable command edits are tested. |
 | `ANSI.SYS` | Present | No known DOS 5 `/X` or `/K` omission; exhaustive escape-sequence and adapter conformance is not complete. |
 | `DISPLAY.SYS`, `PRINTER.SYS` | Present | Core code-page flow is tested; the full adapter/printer type and code-page matrix is unverified. |
-| `DRIVER.SYS` | Present | Core logical-drive behavior and `/F:9` 2.88 MiB geometry are tested; the remaining DOS 5 geometry matrix is unverified. |
+| `DRIVER.SYS` | Present | Logical-drive I/O and every documented `/F` geometry are runtime-tested. Custom `/H`, `/S`, and `/T` controller-specific combinations are not exhaustively cross-tested. |
 | `RAMDRIVE.SYS`, `SMARTDRV.SYS` | Present | Core media/cache behavior exists; the complete memory-provider, cache-size, and hardware matrix is unverified. |
 
 The shipped `VDISK.SYS`, `XMA2EMS.SYS`, and `XMAEM.SYS` are inherited

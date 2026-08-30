@@ -1303,12 +1303,14 @@ BPB2880 DW	512
 BPBTable    dw	    BPB48T		; 48tpi drives
 	    dw	    BPB96T		; 96tpi drives
 	    dw	    BPB35		; 3.5" drives
-; The following are not supported, so we default to 3.5" layout
+; The following legacy form factors are not supported. DOS 5 reuses value 7
+; for DRIVER.SYS /F:7 (1.44 MB), so that entry must select the high-density
+; 3.5-inch BPB rather than the historical "other" fallback.
 	    dw	    BPB35		; Not used - 8" drives
 	    dw	    BPB35		; Not Used - 8" drives
 	    dw	    BPB35		; Not Used - hard files
 	    dw	    BPB35		; Not Used - tape drives
-	    dw	    BPB35		; Not Used - Other
+	    dw	    BPB35H		; DOS 5 /F:7, 3-1/2" 1.44MB drive
 	    dw	    BPB35H		; Not used - optical drives
 	    dw	    BPB2880		; 3-1/2" 2.88MB drive
 

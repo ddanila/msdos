@@ -292,6 +292,9 @@ jobs:
       - name: DRIVER.SYS external logical drive
         run: bash tests/test_driver_sys_qemu.sh
 
+      - name: DRIVER.SYS documented media geometries
+        run: bash tests/test_driver_geometry_qemu.sh
+
       - name: PRINTER.SYS code-page behavior
         run: bash tests/test_printer_driver_qemu.sh
 
