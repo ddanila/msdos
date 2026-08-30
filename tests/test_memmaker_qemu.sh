@@ -54,6 +54,8 @@ timeout 15 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 
 QEMU_PID=$!
 python3 "$ROOT/tests/serial_expect.py" "$SERIAL_IN" "$SERIAL_OUT" "$LOG" \
     'A>' 'MEMMAKER /CUSTOM /SWAP:A /W:4,8\r' \
+    'Do programs require expanded memory (Y/N)?' 'Y\r' \
+    'Use monochrome region B000-B7FF for programs (Y/N)?' 'N\r' \
     'Load this driver into upper memory (Y/N)?' 'N\r' \
     'Load this TSR into upper memory (Y/N)?' 'Y\r'
 wait "$QEMU_PID" || true
@@ -133,8 +135,10 @@ system_backup_hash="$(mcopy -i "$IMAGE" ::WINDOWS/SYSTEM.UMB - 2>/dev/null | sha
     ok "Windows SYSTEM.INI backup is byte-exact" || fail "Windows SYSTEM.INI backup"
 system_ini="$(mcopy -i "$IMAGE" ::WINDOWS/SYSTEM.INI - 2>/dev/null | tr -d '\r')"
 if grep -qi '^SYSTEMROMBREAKPOINT=FALSE$' <<<"$system_ini" &&
-   grep -qi '^EMMEXCLUDE=A000-FFFF$' <<<"$system_ini"; then
-    ok "Windows 3.0 compatibility settings are written"
+   grep -qi '^EMMEXCLUDE=A000-FFFF$' <<<"$system_ini" &&
+   ! grep -qi '^DUALDISPLAY=' <<<"$system_ini" &&
+   ! grep -qi '^NOEMMDRIVER=' <<<"$system_ini"; then
+    ok "Windows 3.0 base compatibility settings are written"
 else
     fail "Windows 3.0 SYSTEM.INI compatibility settings"
 fi

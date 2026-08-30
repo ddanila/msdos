@@ -22,6 +22,8 @@ struct options {
     unsigned drive;
     unsigned reserve_one;
     unsigned reserve_two;
+    int expanded_memory;
+    int monochrome_region;
 };
 
 static unsigned char file_buffer[2048];
@@ -169,6 +171,7 @@ static int parse_options(int argc, char **argv, struct options *options)
     memset(options, 0, sizeof(*options));
     options->high_drivers = 1;
     options->high_tsrs = 1;
+    options->expanded_memory = 1;
     for (index = 1; index < argc; ++index) {
         char *argument = argv[index];
         char *name;
@@ -345,7 +348,9 @@ static int ini_key_is(const char *line, const char *name)
     return *line == '=';
 }
 
-static void write_windows_30_settings(FILE *output, int *rom, int *exclude)
+static void write_windows_30_settings(FILE *output, int *rom, int *exclude,
+                                      int *dual, int *noemm,
+                                      const struct options *options)
 {
     if (!*rom) {
         fputs("SYSTEMROMBREAKPOINT=FALSE\n", output);
@@ -355,9 +360,18 @@ static void write_windows_30_settings(FILE *output, int *rom, int *exclude)
         fputs("EMMEXCLUDE=A000-FFFF\n", output);
         *exclude = 1;
     }
+    if (options->monochrome_region && !*dual) {
+        fputs("DUALDISPLAY=TRUE\n", output);
+        *dual = 1;
+    }
+    if (!options->expanded_memory && !*noemm) {
+        fputs("NOEMMDRIVER=TRUE\n", output);
+        *noemm = 1;
+    }
 }
 
-static int transform_system_ini(const char *source, const char *temporary)
+static int transform_system_ini(const char *source, const char *temporary,
+                                const struct options *options)
 {
     FILE *input = fopen(source, "r");
     FILE *output;
@@ -366,6 +380,8 @@ static int transform_system_ini(const char *source, const char *temporary)
     int found_386enh = 0;
     int wrote_rom = 0;
     int wrote_exclude = 0;
+    int wrote_dual = 0;
+    int wrote_noemm = 0;
     if (!input)
         return 1;
     output = fopen(temporary, "w");
@@ -383,7 +399,8 @@ static int transform_system_ini(const char *source, const char *temporary)
         if (line[0] == '[' || line[0] == ' ' || line[0] == '\t') {
             int is_386enh = ini_section_is(line, "386Enh");
             if (in_386enh && !is_386enh && strchr(line, '['))
-                write_windows_30_settings(output, &wrote_rom, &wrote_exclude);
+                write_windows_30_settings(output, &wrote_rom, &wrote_exclude,
+                                          &wrote_dual, &wrote_noemm, options);
             if (strchr(line, '['))
                 in_386enh = is_386enh;
             if (is_386enh)
@@ -399,15 +416,27 @@ static int transform_system_ini(const char *source, const char *temporary)
                 fputs("EMMEXCLUDE=A000-FFFF\n", output);
                 wrote_exclude = 1;
             }
+        } else if (in_386enh && ini_key_is(line, "DUALDISPLAY")) {
+            if (options->monochrome_region && !wrote_dual) {
+                fputs("DUALDISPLAY=TRUE\n", output);
+                wrote_dual = 1;
+            }
+        } else if (in_386enh && ini_key_is(line, "NOEMMDRIVER")) {
+            if (!options->expanded_memory && !wrote_noemm) {
+                fputs("NOEMMDRIVER=TRUE\n", output);
+                wrote_noemm = 1;
+            }
         } else {
             fputs(line, output);
         }
     }
     if (in_386enh)
-        write_windows_30_settings(output, &wrote_rom, &wrote_exclude);
+        write_windows_30_settings(output, &wrote_rom, &wrote_exclude,
+                                  &wrote_dual, &wrote_noemm, options);
     else if (!found_386enh) {
         fputs("[386Enh]\n", output);
-        write_windows_30_settings(output, &wrote_rom, &wrote_exclude);
+        write_windows_30_settings(output, &wrote_rom, &wrote_exclude,
+                                  &wrote_dual, &wrote_noemm, options);
     }
     fclose(input);
     if (fclose(output)) {
@@ -520,6 +549,66 @@ static int copy_config_class(FILE *input, FILE *output, int wanted)
     return 0;
 }
 
+static char *find_text(char *text, const char *needle)
+{
+    size_t length = strlen(needle);
+    while (*text) {
+        if (!strnicmp(text, needle, length))
+            return text;
+        ++text;
+    }
+    return 0;
+}
+
+static int copy_config_emm386(FILE *input, FILE *output,
+                              const struct options *options)
+{
+    char line[256];
+    while (fgets(line, sizeof(line), input)) {
+        char *name, *tail, *p;
+        char token[64];
+        int has_mono = 0;
+        if (!strchr(line, '\n') && !feof(input))
+            return 1;
+        if (config_line_class(line) != CONFIG_EMM386)
+            continue;
+        name = find_text(line, "EMM386.EXE");
+        if (!name)
+            return 1;
+        tail = name + strlen("EMM386.EXE");
+        *tail = 0;
+        fputs(line, output);
+        p = tail + 1;
+        while (*p) {
+            unsigned length = 0;
+            while (*p == ' ' || *p == '\t' || *p == '\r' || *p == '\n')
+                ++p;
+            if (!*p)
+                break;
+            while (*p && *p != ' ' && *p != '\t' && *p != '\r' &&
+                   *p != '\n' && length + 1 < sizeof(token))
+                token[length++] = *p++;
+            token[length] = 0;
+            while (*p && *p != ' ' && *p != '\t' && *p != '\r' &&
+                   *p != '\n')
+                ++p;
+            if (stricmp(token, "RAM") && stricmp(token, "NOEMS")) {
+                if (!stricmp(token, "I=B000-B7FF"))
+                    has_mono = 1;
+                if (stricmp(token, "I=B000-B7FF") ||
+                    options->monochrome_region)
+                    fprintf(output, " %s", token);
+            }
+        }
+        fprintf(output, " %s", options->expanded_memory ? "RAM" : "NOEMS");
+        if (options->monochrome_region && !has_mono)
+            fputs(" I=B000-B7FF", output);
+        fputc('\n', output);
+    }
+    rewind(input);
+    return 0;
+}
+
 static int transform_config(unsigned drive, const struct options *options,
                             const char *program,
                             const char *source, const char *temporary)
@@ -545,8 +634,10 @@ static int transform_config(unsigned drive, const struct options *options,
     else if (copy_config_class(input, output, CONFIG_HIMEM))
         goto fail;
     if (!has_emm)
-        fprintf(output, "DEVICE=%c:\\EMM386.EXE RAM M5\n", 'A' + drive);
-    else if (copy_config_class(input, output, CONFIG_EMM386))
+        fprintf(output, "DEVICE=%c:\\EMM386.EXE %s M5%s\n", 'A' + drive,
+                options->expanded_memory ? "RAM" : "NOEMS",
+                options->monochrome_region ? " I=B000-B7FF" : "");
+    else if (copy_config_emm386(input, output, options))
         goto fail;
     if (copy_config_class(input, output, CONFIG_BUFFERS) ||
         copy_config_class(input, output, CONFIG_FILES))
@@ -869,11 +960,17 @@ static int optimize(unsigned drive, struct options *options,
                 return 3;
         }
     }
+    if (options->custom) {
+        options->expanded_memory = ask_yes_no(
+            "Do programs require expanded memory (Y/N)? ");
+        options->monochrome_region = ask_yes_no(
+            "Use monochrome region B000-B7FF for programs (Y/N)? ");
+    }
     if (copy_file(config, config_backup) || copy_file(autoexec, auto_backup) ||
         (windows_ini_found && windows_version == WINDOWS_30 &&
          copy_file(system_ini, system_backup)) ||
         (windows_ini_found && windows_version == WINDOWS_30 &&
-         transform_system_ini(system_ini, system_temp)) ||
+         transform_system_ini(system_ini, system_temp, options)) ||
         transform_config(drive, options, program, config, config_temp) ||
         transform_autoexec(drive, options, program, autoexec, auto_temp)) {
         remove(config_temp);
