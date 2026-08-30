@@ -330,10 +330,11 @@ receive_sector_loop:
         loop    receive_sector_loop
         call    receive_byte
         jc      short receive_sector_done
-        cmp     al,bl
-        jne     short receive_sector_bad
+        mov     dl,al
         call    receive_byte
         jc      short receive_sector_done
+        cmp     dl,bl
+        jne     short receive_sector_bad
         cmp     al,bh
         jne     short receive_sector_bad
         clc

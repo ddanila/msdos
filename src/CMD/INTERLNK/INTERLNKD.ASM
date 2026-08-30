@@ -272,13 +272,19 @@ request_read:
         call    prepare_io
         jc      request_io_error
 read_sector_loop:
+        mov     byte ptr cs:read_retries,2
+read_sector_retry:
         call    send_current_request
         jc      request_io_error
         call    receive_status
         jc      request_io_error
         les     di,cs:transfer_ptr
         call    receive_sector
-        jc      request_io_error
+        jnc     short read_sector_complete
+        dec     byte ptr cs:read_retries
+        jnz     read_sector_retry
+        jmp     request_io_error
+read_sector_complete:
         call    advance_transfer
         dec     word ptr cs:io_remaining
         jnz     read_sector_loop
@@ -475,10 +481,11 @@ receive_sector_loop:
         loop    receive_sector_loop
         call    receive_byte
         jc      short receive_sector_done
-        cmp     al,bl
-        jne     short receive_sector_bad
+        mov     dl,al
         call    receive_byte
         jc      short receive_sector_done
+        cmp     dl,bl
+        jne     short receive_sector_bad
         cmp     al,bh
         jne     short receive_sector_bad
         clc
@@ -894,6 +901,7 @@ transfer_ptr    dd 0
 io_command      db 0
 io_remaining    dw 0
 packet_checksum db 0
+read_retries    db 0
 write_retries   db 0
 baud_divisor    dw 1
 baud_terminator db 0

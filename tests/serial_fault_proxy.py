@@ -11,7 +11,7 @@ parser.add_argument("--listen", type=int, required=True)
 parser.add_argument("--upstream", type=int, required=True)
 parser.add_argument("--inject", required=True, help="hex bytes sent upstream first")
 parser.add_argument("--corrupt-sector", type=int, default=0,
-                    help="flip one byte in this 1-based sector response")
+                    help="flip one byte in this 1-based read-sector response")
 parser.add_argument("--corrupt-request", type=int, default=0,
                     help="flip one byte in this 1-based request header")
 parser.add_argument("--corrupt-write", type=int, default=0,
@@ -36,11 +36,12 @@ pending = []
 sector_response = 0
 request_number = 0
 write_request = 0
+retry_identity = None
 
 
 def forward_requests(data):
     """Frame requests for fault injection and record their reply types."""
-    global request_number, write_request
+    global request_number, write_request, retry_identity
     client_stream.extend(data)
     while True:
         marker = client_stream.find(b"\xa5\x5a")
@@ -61,13 +62,17 @@ def forward_requests(data):
         request = bytearray(client_stream[:request_size])
         del client_stream[:request_size]
         request_number += 1
+        identity = bytes(request[3:8])
+        if command == 2 and retry_identity == identity:
+            print("retried corrupted read sector", flush=True)
+            retry_identity = None
         if command == 3:
             write_request += 1
         if request_number == args.corrupt_request:
             request[3] ^= 0x01
             print(f"corrupted request header {request_number}", flush=True)
         else:
-            pending.append(command)
+            pending.append((command, identity))
             if command == 3 and write_request == args.corrupt_write:
                 request[9 + 100] ^= 0x40
                 print(f"corrupted write payload {write_request}", flush=True)
@@ -76,20 +81,21 @@ def forward_requests(data):
 
 def forward_replies(data):
     """Frame successful replies and optionally corrupt one sector payload."""
-    global sector_response
+    global sector_response, retry_identity
     server_stream.extend(data)
     while pending:
-        command = pending[0]
+        command, identity = pending[0]
         response_size = 4 if command == 0 else (517 if command in (1, 2) else 3)
         if len(server_stream) < response_size:
             return
         response = bytearray(server_stream[:response_size])
         del server_stream[:response_size]
         pending.pop(0)
-        if command in (1, 2) and response[:3] == b"\x5a\xa5\x00":
+        if command == 2 and response[:3] == b"\x5a\xa5\x00":
             sector_response += 1
             if sector_response == args.corrupt_sector:
                 response[3 + 100] ^= 0x40
+                retry_identity = identity
                 print(f"corrupted sector response {sector_response}", flush=True)
         client.sendall(response)
 
