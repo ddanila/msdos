@@ -16,6 +16,7 @@ request_ptr     dd 0
 connected       db 0
 com_port        dw 03f8h
 com_number      db 1
+com_explicit    db 0
 sector_number   dd 0
 bpb_pointers    dw 5 dup(0)
 remote_bpbs     db 125 dup(0)
@@ -102,6 +103,38 @@ init_failed:
         jmp     request_exit
 
 connect_server PROC NEAR
+        cmp     cs:com_explicit,0
+        jne     short connect_selected_port
+        push    bx
+        mov     bl,1
+connect_scan_port:
+        mov     cs:com_number,bl
+        xor     bh,bh
+        dec     bx
+        shl     bx,1
+        mov     ax,cs:com_bases[bx]
+        mov     cs:com_port,ax
+        shr     bx,1
+        inc     bx
+        call    init_serial
+        call    connect_on_port
+        jnc     short connect_scan_found
+        inc     bl
+        cmp     bl,4
+        jbe     short connect_scan_port
+        pop     bx
+        stc
+        ret
+connect_scan_found:
+        pop     bx
+        clc
+        ret
+connect_selected_port:
+        call    connect_on_port
+        ret
+connect_server ENDP
+
+connect_on_port PROC NEAR
         mov     cs:connected,0
         mov     cs:current_unit,0
         mov     word ptr cs:sector_number,0
@@ -170,7 +203,7 @@ init_failed_connect:
         mov     cs:connected,0
         stc
         ret
-connect_server ENDP
+connect_on_port ENDP
 
 request_media:
         mov     byte ptr [bx+14],1
@@ -511,6 +544,7 @@ config_com:
         cmp     al,4
         ja      short config_com_bad
         mov     cs:com_number,al
+        mov     cs:com_explicit,1
         dec     al
         xor     ah,ah
         shl     ax,1
