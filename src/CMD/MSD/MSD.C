@@ -57,12 +57,16 @@ static void heading(const char *name)
 static void report_os(void)
 {
     union REGS inregs, outregs;
+    unsigned oem, serial;
     heading("Operating System");
     inregs.h.ah = 0x30;
     inregs.h.al = 0;
     int86(0x21, &inregs, &outregs);
     fprintf(report, "Reported DOS version: %u.%02u\n",
             outregs.h.al, outregs.h.ah);
+    oem = outregs.h.bh;
+    serial = outregs.x.cx;
+    fprintf(report, "DOS OEM/serial:        %u / %u\n", oem, serial);
     inregs.x.ax = 0x3306;
     int86(0x21, &inregs, &outregs);
     if (!outregs.x.cflag)
@@ -158,6 +162,8 @@ static void report_input(void)
 static void report_configuration(void)
 {
     union REGS inregs, outregs;
+    struct SREGS segregs;
+    unsigned char country_info[34];
     unsigned env_count = 0;
     unsigned long env_bytes = 0;
     char **entry;
@@ -183,6 +189,22 @@ static void report_configuration(void)
     if (!outregs.x.cflag)
         fprintf(report, "Code pages:            %u active, %u system\n",
                 outregs.x.bx, outregs.x.dx);
+    memset(country_info, 0, sizeof(country_info));
+    memset(&inregs, 0, sizeof(inregs));
+    segread(&segregs);
+    inregs.x.ax = 0x3800;
+    inregs.x.dx = FP_OFF(country_info);
+    segregs.ds = FP_SEG(country_info);
+    intdosx(&inregs, &outregs, &segregs);
+    if (!outregs.x.cflag) {
+        static const char *orders[] = {
+            "month-day-year", "day-month-year", "year-month-day"
+        };
+        unsigned order = table_word(country_info);
+        fprintf(report, "Country code:          %u\n", outregs.x.bx);
+        fprintf(report, "Date format:           %s\n",
+                order < 3 ? orders[order] : "Unknown");
+    }
     for (entry = environ; entry && *entry; ++entry) {
         ++env_count;
         env_bytes += strlen(*entry) + 1UL;

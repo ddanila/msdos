@@ -57,12 +57,12 @@ for marker in \
     'Computer: IBM PC/AT compatible' \
     'Operating System' 'Computer' 'Memory' 'Video' 'Disk Drives' \
     'COM and LPT Ports' 'Input Devices' 'DOS Configuration' 'IRQ Vectors' 'Device Drivers' 'Network' \
-    'Reported DOS version: 6.22' 'True DOS version:     6.22' \
+    'Reported DOS version: 6.22' 'True DOS version:     6.22' 'DOS OEM/serial:' \
     'BIOS machine ID:' 'BIOS date:' 'BIOS base memory:' \
     'Startup display:' 'Game adapter:' 'COM1 base address:     03F8h' \
     'Keyboard shift flags:' 'Mouse driver:          Not probed (/I)' \
     'Allocation strategy:' 'UMB chain linked:' 'Write verification:' \
-    'Extended BREAK check:' 'Code pages:' 'Environment:' \
+    'Extended BREAK check:' 'Code pages:' 'Country code:' 'Date format:' 'Environment:' \
     'B:  logical alias of A: (one physical floppy)' \
     'C:  total      62464 bytes  512-byte sectors  FAT12' \
     'D:  substituted path A:\MSDMAP' \
