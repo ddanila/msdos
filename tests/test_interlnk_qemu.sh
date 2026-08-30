@@ -34,7 +34,7 @@ printf '\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::CONFIG.SYS
 mcopy -o -i "$CLIENT_IMAGE" "$ROOT/src/CMD/INTERLNK/INTERLNK.EXE" ::INTERLNK.EXE
 mcopy -o -i "$CLIENT_IMAGE" "$PROBE" ::ILPROBE.COM
 mcopy -o -i "$CLIENT_IMAGE" "$QEXIT" ::QEXIT.COM
-printf 'LASTDRIVE=Z\r\nDEVICE=A:\\INTERLNK.EXE\r\n' | mcopy -o -i "$CLIENT_IMAGE" - ::CONFIG.SYS
+printf 'LASTDRIVE=Z\r\nDEVICE=A:\\INTERLNK.EXE /DRIVES:2 /NOPRINTER /COM:1\r\n' | mcopy -o -i "$CLIENT_IMAGE" - ::CONFIG.SYS
 printf '@ECHO OFF\r\nILPROBE.COM\r\nQEXIT.COM\r\n' | mcopy -o -i "$CLIENT_IMAGE" - ::AUTOEXEC.BAT
 
 rm -f "$LOG" "$SERVER_LOG" "$CLIENT_LOG"

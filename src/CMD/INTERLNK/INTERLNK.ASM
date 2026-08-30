@@ -70,7 +70,8 @@ banner_count db '0',13,10,'$'
 missing db 'INTERLNK is not installed or the server is unavailable.',13,10,'$'
 syntax  db 'Invalid INTERLNK parameter.',13,10,'$'
 help    db 'Displays Interlnk client connection status.',13,10
-        db 'Syntax: INTERLNK',13,10,'$'
+        db 'Syntax: INTERLNK',13,10
+        db 'CONFIG.SYS: DEVICE=INTERLNK.EXE [/DRIVES:n] [/NOPRINTER] [/COM:1]',13,10,'$'
 CODE ENDS
 STACKSEG SEGMENT PARA STACK 'STACK'
         db 256 dup(0)

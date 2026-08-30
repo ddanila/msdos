@@ -20,6 +20,7 @@ bpb_pointers    dw 5 dup(0)
 remote_bpbs     db 125 dup(0)
 boot_sector     db 512 dup(0)
 current_unit    db 0
+drive_limit     db 5
 
 strategy PROC FAR
         mov     word ptr cs:request_ptr,bx
@@ -71,6 +72,8 @@ interrupt PROC FAR
         jmp     request_bad_command
 
 request_init:
+        call    parse_config
+        jc      init_failed
         call    init_serial
         mov     cs:current_unit,0
         mov     word ptr cs:sector_number,0
@@ -86,6 +89,10 @@ request_init:
         jz      init_failed
         cmp     al,5
         ja      init_failed
+        cmp     al,cs:drive_limit
+        jbe     short init_count_ready
+        mov     al,cs:drive_limit
+init_count_ready:
         mov     cs:unit_count,al
         mov     cs:current_unit,0
 init_geometry_loop:
@@ -377,6 +384,95 @@ init_serial PROC NEAR
         out     dx,al
         ret
 init_serial ENDP
+
+; Parse the tail supplied after DEVICE=... in CONFIG.SYS.  Serial COM1 is the
+; implemented transport; /NOPRINTER records the supported drive-only mode.
+parse_config PROC NEAR
+        lds     bx,cs:request_ptr
+        lds     si,dword ptr [bx+18]
+config_scan:
+        lodsb
+        or      al,al
+        jnz     short config_check_cr
+        jmp     config_ok
+config_check_cr:
+        cmp     al,13
+        jne     short config_check_lf
+        jmp     config_ok
+config_check_lf:
+        cmp     al,10
+        jne     short config_check_switch
+        jmp     config_ok
+config_check_switch:
+        cmp     al,'/'
+        jne     config_scan
+        lodsb
+        and     al,0dfh
+        cmp     al,'C'
+        je      short config_com
+        cmp     al,'D'
+        je      short config_drives
+        cmp     al,'N'
+        je      short config_noprinter
+        jmp     short config_bad
+config_com:
+        lodsw
+        and     ax,0dfdfh
+        cmp     ax,'MO'
+        jne     short config_bad
+        lodsw
+        cmp     ax,'1:'
+        jne     short config_bad
+        jmp     config_scan
+config_drives:
+        lodsw
+        and     ax,0dfdfh
+        cmp     ax,'IR'
+        jne     short config_bad
+        lodsw
+        and     ax,0dfdfh
+        cmp     ax,'EV'
+        jne     short config_bad
+        lodsb
+        and     al,0dfh
+        cmp     al,'S'
+        jne     short config_bad
+        lodsb
+        cmp     al,':'
+        jne     short config_bad
+        lodsb
+        sub     al,'0'
+        cmp     al,1
+        jb      short config_bad
+        cmp     al,5
+        ja      short config_bad
+        mov     cs:drive_limit,al
+        jmp     config_scan
+config_noprinter:
+        lodsw
+        and     ax,0dfdfh
+        cmp     ax,'PO'
+        jne     short config_bad
+        lodsw
+        and     ax,0dfdfh
+        cmp     ax,'IR'
+        jne     short config_bad
+        lodsw
+        and     ax,0dfdfh
+        cmp     ax,'TN'
+        jne     short config_bad
+        lodsw
+        and     ax,0dfdfh
+        cmp     ax,'RE'
+        jne     short config_bad
+        jmp     config_scan
+config_ok:
+        clc
+        ret
+config_bad:
+        stc
+        ret
+parse_config ENDP
 
 install_multiplex PROC NEAR
         mov     ax,352fh
