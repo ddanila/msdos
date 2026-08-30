@@ -102,6 +102,7 @@ extrn	FRS_array:word		;
 extrn	CurRegSetn:byte
 extrn	CurRegSet:word
 extrn	FRS_free:byte
+extrn	_altreg_count:word
 
 extrn	_handle_table:word
 extrn	_handle_count:word
@@ -583,7 +584,8 @@ EMIN_9:
 	lea	si,FRS_array		; DS:SI <-- FRS_array
 	mov	[si.FRS_alloc], 1	; mark FRS set 0 as allocated
 	mov	[CurRegSetn], 0		; use FRS set 0
-	mov	[FRS_free], FRS_COUNT-1	; one less FRS set
+	mov	ax,[_altreg_count]
+	mov	[FRS_free],al		; set 0 is the current mapping set
 	mov	word ptr [CurRegSet], SI; save current FRS pointer
 
 ;

@@ -56,6 +56,7 @@ _DATA	SEGMENT
 	PUBLIC	_total_pages
 	PUBLIC	_EMMstatus
 	PUBLIC	_emm40_info
+	PUBLIC	_altreg_count
 	PUBLIC	_page_frame_base
 	PUBLIC	_mappable_pages
 	PUBLIC	_mappable_page_count
@@ -256,7 +257,8 @@ _cntxt_bytes		db	0		; Bytes in context
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 _emm40_info	LABEL	WORD
 	dw	0400h			; raw page size in paragraphs (16k)
-	dw	FRS_COUNT-1		; number of fast register sets
+_altreg_count	LABEL	WORD
+	dw	7			; DOS 5 A= default extra register sets
 	dw	size FRS_window+2	; max. number of bytes to save a context
 					; ( FRS_window size + 2 )
 	dw	0			; settable DMA channels

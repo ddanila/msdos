@@ -59,6 +59,7 @@ page	58,132
 	include page.inc
 	include instr386.inc
 	include emmdef.inc
+	include emm386.inc
 ;
 ;******************************************************************************
 ;			E X T E R N A L   R E F E R E N C E S
@@ -84,6 +85,8 @@ _DATA	segment
 
 extrn	DMA_Pages:word		; DMA EMM pages buffer
 extrn	DMA_PAGE_COUNT:word	; number of DMA pages
+extrn	dma_page_limit:word	; requested DOS 5 D= capacity
+extrn	msg_flag:word
 
 extrn	xbase_addr_l:word	; 24 bit address of beginning of extended mem
 extrn	xbase_addr_h:byte	; pool of EMM pages.
@@ -257,7 +260,13 @@ endif
 	mov	cx,[DMA_ext_cnt]	;  N: use ext mem pages
 	mov	ax,[DMA_ext_begin]
 IEP_Dset:
-
+	cmp	cx,[dma_page_limit]
+	jae	short IEP_Dlimit
+	or	[msg_flag],MEM_ERR_MSG
+	jmp	short IEP_Dstore
+IEP_Dlimit:
+	mov	cx,[dma_page_limit]
+IEP_Dstore:
 	mov	DMA_Page_Count,cx
 	mov	di,offset DGROUP:DMA_Pages	; ES:DI ->dest array
 	cld
@@ -299,6 +308,14 @@ InitEPage endp
 FindDMA proc	near
 ;
 	push	eax
+	cmp	[dma_page_limit],8
+	jbe	short fdp_legacy
+	cmp	cx,[dma_page_limit]
+	jbe	fdp_ret
+	mov	cx,[dma_page_limit]
+	jmp	fdp_ret
+
+fdp_legacy:
 
 ;
 ; initialise the variables needed for this calculation

@@ -55,6 +55,7 @@
 
 	public	pool_size
 	public	min_xms
+	public	dma_page_limit
 	public	msg_flag
 	public	Active_Status
 	public	Auto_Mode
@@ -129,6 +130,7 @@ _DATA	segment
 	extrn	_pft386:word
 	extrn	PageT_Seg:word
 	extrn	_handle_table_size:word
+	extrn	_altreg_count:word
 
 _DATA	ends
 
@@ -210,6 +212,7 @@ _DATA	segment
 dos_version	db	0h	; MS-DOS version
 pool_size	dw	0	; size of EMM Pages Pool in kbytes
 min_xms		dw	0	; extended memory that L= keeps available to XMS
+dma_page_limit	dw	1	; D= buffered DMA capacity in 16 KiB pages
 msg_flag	dw	0	; Message flag byte
 umb_mode	db	0	; RAM or NOEMS requested paging-backed UMBs
 noems_mode	db	0	; NOEMS suppresses the EMS page frame
@@ -758,11 +761,17 @@ ploop1:
 	cmp	al,'o'			; q: ON or OFF initial state?
 	je	chk_initial_onoff
 	cmp	al,'a'			; q: AUTO initial state?
-	je	chk_initial_auto
+	jne	short dispatch_not_a
+	cmp	byte ptr [si],'='
+	je	chk_altregs
+	jmp	chk_initial_auto
+dispatch_not_a:
 	cmp	al,'w'			; q: W=ON or W=OFF?
 	je	chk_weitek
 	cmp	al,'l'			; q: L= minimum remaining XMS?
 	je	chk_min_xms
+	cmp	al,'d'			; q: D= buffered DMA memory?
+	je	chk_dma_size
 	cmp	al,'r'			; q: RAM activation mode?
 	je	chk_RAM
 	cmp	al,'n'			; q: NOEMS activation mode?
@@ -847,6 +856,39 @@ chk_min_xms:
 	call	parse_decimal_token
 	jc	inv_prm
 	mov	[min_xms],ax
+	jmp	ploop1
+
+chk_dma_size:
+	cmp	cx,3
+	jb	inv_prm
+	cmp	byte ptr [si],'='
+	jne	inv_prm
+	inc	si
+	dec	cx
+	call	parse_decimal_token
+	jc	inv_prm
+	cmp	ax,16
+	jb	inv_prm
+	cmp	ax,256
+	ja	inv_prm
+	add	ax,15			; reserve whole 16 KiB pages
+	mov	cl,4
+	shr	ax,cl
+	mov	[dma_page_limit],ax
+	jmp	ploop1
+
+chk_altregs:
+	cmp	cx,3
+	jb	inv_prm
+	cmp	byte ptr [si],'='
+	jne	inv_prm
+	inc	si
+	dec	cx
+	call	parse_decimal_token
+	jc	inv_prm
+	cmp	ax,254
+	ja	inv_prm
+	mov	[_altreg_count],ax
 	jmp	ploop1
 
 chk_RAM:

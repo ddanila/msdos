@@ -129,7 +129,7 @@ _DATA	segment
 ;	entries are left at NULL_PAGE.
 ;	This array should be initialized at boot time.
 ;
-DMA_Pages	dw	8 dup (NULL_PAGE)   ; null for start
+DMA_Pages	dw	16 dup (NULL_PAGE)  ; DOS 5 D= supports up to 256 KiB
 DMA_PAGE_COUNT	dw	0		    ; number of above initialised
 
 _DATA	ends

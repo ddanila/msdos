@@ -85,7 +85,9 @@ fi
 echo "EMM386 H= handle limit passed"
 
 for case_spec in 'LVALID|256 L=2000|installed' \
-    'LRESERVE|1024 L=3500|rejected'; do
+    'LRESERVE|1024 L=3500|rejected' \
+    'DVALID|512 D=256|installed' \
+    'DRESERVE|128 D=256|rejected'; do
     IFS='|' read -r case_name options expectation <<<"$case_spec"
     probe_com="$OUT/emm386-install-${case_name}.com"
     boot_img="$OUT/floppy-emm386-install-${case_name}.img"
@@ -120,4 +122,30 @@ for case_spec in 'LVALID|256 L=2000|installed' \
     fi
 done
 
-echo "EMM386 L= XMS reservation passed"
+echo "EMM386 L= XMS and D= DMA reservations passed"
+
+altreg_com="$OUT/emm386-altreg.com"
+boot_img="$OUT/floppy-emm386-altreg.img"
+serial_log="$OUT/emm386-altreg.log"
+nasm -f bin "$REPO_ROOT/tests/emm386_altreg_probe.asm" -o "$altreg_com"
+cp "$FLOPPY" "$boot_img"
+mcopy -o -i "$boot_img" "$altreg_com" ::ALTREG.COM
+printf 'DEVICE=A:\\EMM386.EXE A=2\r\n' | mcopy -o -i "$boot_img" - ::CONFIG.SYS
+{
+    printf '@ECHO OFF\r\n'
+    printf 'CTTY AUX\r\n'
+    printf 'ALTREG.COM\r\n'
+} | mcopy -o -i "$boot_img" - ::AUTOEXEC.BAT
+timeout 35 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 4 \
+    -drive if=floppy,index=0,format=raw,file="$boot_img",cache=writethrough \
+    -boot a -serial stdio -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    >"$serial_log" 2>&1 || true
+if ! grep -q 'EMM386_ALTREG_LIMIT_PASS' "$serial_log"; then
+    echo "FAIL: EMM386 A= alternate-register limit" >&2
+    sed -n '1,120p' "$serial_log"
+    exit 1
+fi
+
+echo "EMM386 A= alternate-register limit passed"

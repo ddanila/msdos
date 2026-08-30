@@ -150,6 +150,7 @@ extrn	EMM_savDI:word
 
 extrn	CurRegSetn:byte
 extrn	FRS_free:byte
+extrn	_altreg_count:word
 extrn	CurRegSet:dword
 extrn	FRS_array:word
 
@@ -2795,8 +2796,8 @@ AMRS_get1:
 ;-----------------------------------------------
 Dword_Align	_TEXT
 AMRS_set:
-	cmp	bl, FRS_COUNT			; Validate new Reg Set
-	jae	AMRS_inv_FRS
+	cmp	bl, byte ptr [_altreg_count]	; Validate new Reg Set
+	ja	AMRS_inv_FRS
 	movzx	eax, bl
 	imul	eax, size FRS_struc
 	xchg	ax, bx
@@ -2902,8 +2903,8 @@ AMRS_search:
 	je	short AMRS_foundRS		;   yes, bl has the number
 	add	di, size FRS_struc		; on to the next one
 	inc	bl
-	cmp	bl, FRS_COUNT			; Safety... should never fail
-	jb	short AMRS_search
+	cmp	bl, byte ptr [_altreg_count]	; Safety... should never fail
+	jbe	short AMRS_search
 
 	mov	byte ptr [bp.rAX+1], EMM_SW_MALFUNCTION	; Honesty...
 	ret
@@ -2943,8 +2944,8 @@ AMRS_deallocate:
 	jz	AMRS_exit			; Deallocating 0 is ignored
 	cmp	bl, [CurRegSetn]		; Can't deallocate current set
 	je	short AMRS_undef_FRS
-	cmp	bl, FRS_COUNT
-	jae	short AMRS_undef_FRS		; Invalid Register set
+	cmp	bl, byte ptr [_altreg_count]
+	ja	short AMRS_undef_FRS		; Invalid Register set
 	movzx	eax, bl
 	imul	eax, size FRS_struc		; Offset into array
 	xchg	ax, bx

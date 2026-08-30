@@ -32,7 +32,7 @@ endif
 ;******************************************************************************
 EMM_PAGE_CNT	= 2048			; maximum of 2048 EMM pages (32MB)
 HANDLE_CNT	= 255			; maximum of 255 EMM handles
-FRS_COUNT	= 16			; number of 'Fast Register Sets'
+FRS_COUNT	= 255			; set 0 plus up to 254 DOS 5 A= sets
 
 EMM32_PHYS_PAGES = 4				; page frame contains 4 pages
 ;

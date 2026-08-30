@@ -343,7 +343,7 @@ LIMDMAP_CNT	   =	   ($ - DMAP_Page) / 2
 ;	This array should be initialized at boot time.
 ;
 _DMA_Pages	LABEL	WORD
-DMA_Pages	dw	8 dup (NULL_PAGE)   ; null for start
+DMA_Pages	dw	16 dup (NULL_PAGE)  ; DOS 5 D= supports up to 256 KiB
 _DMA_PAGE_COUNT	LABEL	WORD
 DMA_PAGE_COUNT	dw	0		    ; number of above initialised
 
