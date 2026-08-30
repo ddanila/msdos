@@ -31,7 +31,8 @@ printf 'DEVICE=A:\\HIMEM.SYS\r\n' | mcopy -o -i "$image" - ::CONFIG.SYS
 
 SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy \
     dosbox-x -nogui -nomenu -fastlaunch -time-limit 25 \
-    -set 'cpu cputype=286' -c "boot $image" >"$log" 2>&1 || true
+    -set 'cpu cputype=286' -set 'cpu cycles=fixed 4000' \
+    -c "boot $image" >"$log" 2>&1 || true
 result=$(mtype -i "$image" ::RESULT.TXT 2>/dev/null || true)
 if [[ "$result" != *HIMEM_286_PASS* ]] \
     || grep -Fq 'Illegal Unhandled Interrupt Called 6' "$log"; then
@@ -41,4 +42,4 @@ if [[ "$result" != *HIMEM_286_PASS* ]] \
     exit 1
 fi
 
-echo '  PASS: HIMEM installs and serves the XMS lifecycle on a 286'
+echo '  PASS: HIMEM serves 64 XMS move cycles and its lifecycle on a 286'
