@@ -49,6 +49,7 @@
     ["src/CMD/MEM/MEM.EXE", "MEM.EXE"],
     ["src/CMD/MODE/MODE.COM", "MODE.COM"],
     ["src/CMD/MOVE/MOVE.EXE", "MOVE.EXE"],
+    ["src/CMD/MSD/MSD.EXE", "MSD.EXE"],
     ["src/CMD/MORE/MORE.COM", "MORE.COM"],
     ["src/CMD/NLSFUNC/NLSFUNC.EXE", "NLSFUNC.EXE"],
     ["src/CMD/PRINT/PRINT.COM", "PRINT.COM"],

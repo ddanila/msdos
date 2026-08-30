@@ -39,7 +39,7 @@ valid lightweight interface.
 | Disk health and performance | Missing | `SCANDISK` and `DEFRAG`; no ScanDisk repair log or undo flow. |
 | Memory optimization | Partial | Strong DOS 5 HMA/UMB base, but not the complete DOS 6 EMM386/MEM/loader contract or `MEMMAKER`. |
 | SMARTDrive | Partial | A DOS 5 block driver and control helper exist, not the DOS 6 dual-purpose `SMARTDRV.EXE` cache interface and write-behind behavior. |
-| Diagnostics and power | Missing | `MSD` and the `POWER.EXE` driver/command. |
+| Diagnostics and power | Partial | `MSD` ships with interactive and report modes; `POWER.EXE` remains missing. |
 | Machine-to-machine and CD-ROM access | Missing | `INTERLNK.EXE`, `INTERSVR.EXE`, and `MSCDEX.EXE`. |
 | Backup | Missing | The shipped DOS 5 `BACKUP`/`RESTORE` pair does not replace Microsoft Backup. |
 | Anti-virus | Missing | `MSAV` and resident `VSAFE`. |
@@ -67,7 +67,7 @@ DOS 5 commands inherit their status from `DOS5_GAPS.md`.
 | `MSAV` | Missing | Interactive scanning and `drive:`, `/S`, `/C`, `/R`, `/A`, `/L`, `/N`, `/P`, `/F`, `/VIDEO` and its display switches; removal, reports, checksums, exit code 86, configuration, and signature database. |
 | `MSBACKUP` | Missing | Interactive backup/restore/compare, `.SET` setup and catalog files, full/incremental/differential sets, compression, verification, scheduling, spanning, destination devices, and `setup_file`, `/BW`, `/LCD`, `/MDA`. DOS 5 `RESTORE` remains responsible for old `BACKUP` sets. |
 | `MSCDEX` | Missing | CD-ROM redirector installation and `/D`, `/L`, `/M`, `/E`, `/S`, `/V`, `/K`; driver discovery, ISO 9660 access, audio/control IOCTLs, and multiplex API. A hardware-specific CD-ROM device driver remains external. |
-| `MSD` | Missing | Interactive/report diagnostics and `/B`, `/I`, `/F`, `/P`, `/S`; hardware, memory, IRQ, driver, disk, video, network, and OS reporting. |
+| `MSD` | Partial | A lean interactive/report implementation covers `/B`, `/I`, `/F`, `/P`, `/S` and core hardware, memory, IRQ, driver, current-disk, video, network, and OS reporting. Retail screen layout, exhaustive drive/device detail, and reference-differential output remain. |
 | `POWER` | Missing | Installable driver plus runtime status/on/off and conservation levels (`ADV`, `STD`, `REG`, `MIN`, `MAX` as applicable), idle detection, and APM coordination. |
 | `SCANDISK` | Missing | FAT12/FAT16 and surface analysis, interactive repair, `/ALL`, `/AUTOFIX`, `/CHECKONLY`, `/CUSTOM`, `/FRAGMENT`, `/MONO`, `/NOSAVE`, `/NOSUMMARY`, `/SURFACE`, `/UNDO`, `SCANDISK.INI`, repair log, undo disk, and compressed-volume integration. |
 | `SMARTDRV` | Partial | Replace the shipped DOS 5 `SMARTDRV.SYS` interface with DOS 6 `SMARTDRV.EXE`: runtime install/status, per-drive read/write cache selection, cache sizing, `/B`, `/C`, `/E`, `/F`, `/L`, `/N`, `/Q`, `/R`, `/S`, `/V`, `/X`, write-behind flush, shutdown safety, CD-ROM caching, and the CONFIG.SYS compatibility-driver mode. |

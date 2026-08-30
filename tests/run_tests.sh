@@ -33,6 +33,7 @@ ARTIFACTS=(
     CMD/DELTREE/DELTREE.EXE
     CMD/LOADFIX/LOADFIX.COM
     CMD/MOVE/MOVE.EXE
+    CMD/MSD/MSD.EXE
     DEV/ANSI/ANSI.SYS
     DEV/VDISK/VDISK.SYS
     DEV/COUNTRY/COUNTRY.SYS
@@ -178,6 +179,7 @@ check_help "CHOICE"   "CMD/CHOICE/CHOICE.COM"        "CHOICE"
 check_help "DELTREE"  "CMD/DELTREE/DELTREE.EXE"      "DELTREE"
 check_help "LOADFIX"  "CMD/LOADFIX/LOADFIX.COM"      "LOADFIX"
 check_help "MOVE"     "CMD/MOVE/MOVE.EXE"            "MOVE"
+check_help "MSD"      "CMD/MSD/MSD.EXE"              "MSD"
 check_help "FILESYS"  "CMD/FILESYS/FILESYS.EXE"      "FILESYS"
 check_help "DEBUG"    "CMD/DEBUG/DEBUG.COM"           "DEBUG"
 check_help "FDISK"    "CMD/FDISK/FDISK.EXE"           "FDISK"

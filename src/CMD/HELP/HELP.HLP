@@ -56,6 +56,7 @@ MIRROR     Records disk information for recovery.
 MODE       Configures system devices.
 MORE       Displays output one screen at a time.
 MOVE       Moves files or renames files and directories.
+MSD        Displays system diagnostic information.
 NLSFUNC    Loads country-specific information.
 PATH       Displays or sets the program search path.
 PAUSE      Suspends batch processing.
@@ -254,6 +255,11 @@ Syntax: MORE [drive:][path]filename or command | MORE
 @MOVE
 Moves files, or renames files and directories.
 Syntax: MOVE [/Y | /-Y] source [source ...] target
+@MSD
+Displays operating-system, computer, memory, video, disk, IRQ, driver, and network information.
+Syntax: MSD [/B] [/I] [/F [filename]] [/P] [/S]
+/B uses the text-only display, /I skips extended probing, /F writes a report,
+/P sends a report to the printer, and /S selects the complete report.
 @NLSFUNC
 Loads country-specific information.
 Syntax: NLSFUNC [[drive:][path]country-file]
