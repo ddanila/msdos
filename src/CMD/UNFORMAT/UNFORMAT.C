@@ -31,6 +31,8 @@ struct scan_volume {
     int fat16;
 };
 
+static struct scan_volume recovery_volume;
+
 static unsigned short get_word(const unsigned char *p)
 {
     return (unsigned short)(p[0] | ((unsigned short)p[1] << 8));
@@ -441,10 +443,11 @@ static int geometry_matches(const struct recovery_header *header,
            header->fat_count != 0 && header->sectors_per_fat != 0;
 }
 
-static int find_generation(unsigned drive, unsigned long total,
-                           unsigned long *generation,
-                           unsigned short *commit_sequence,
-                           struct recovery_header *header)
+static int find_generation_before(unsigned drive, unsigned long total,
+                                  unsigned long before,
+                                  unsigned long *generation,
+                                  unsigned short *commit_sequence,
+                                  struct recovery_header *header)
 {
     unsigned long pos;
     struct recovery_record *record = (struct recovery_record *)sector;
@@ -452,14 +455,15 @@ static int find_generation(unsigned drive, unsigned long total,
 
     *generation = 0;
     for (pos = 1; pos < total; ++pos) {
-        if (abs_read(drive, pos, 1, sector))
+        if (scan_io(&recovery_volume, 0, pos, 1, sector))
             continue;
         if (!valid_record(record))
             continue;
         if (record->kind != RECOVERY_KIND_COMMIT || record->length != sizeof(candidate))
             continue;
         memcpy(&candidate, record->payload, sizeof(candidate));
-        if (geometry_matches(&candidate, drive, total) &&
+        if (record->generation < before &&
+            geometry_matches(&candidate, drive, total) &&
             record->generation >= *generation) {
             *generation = record->generation;
             *commit_sequence = record->sequence;
@@ -479,7 +483,7 @@ static int inventory_generation(unsigned drive, unsigned long total,
 
     memset(present, 0, sizeof(present));
     for (pos = 1; pos < total; ++pos) {
-        if (abs_read(drive, pos, 1, sector))
+        if (scan_io(&recovery_volume, 0, pos, 1, sector))
             continue;
         if (!valid_record(record) || record->generation != generation ||
             record->kind != RECOVERY_KIND_DATA || !record->sequence ||
@@ -491,6 +495,42 @@ static int inventory_generation(unsigned drive, unsigned long total,
         if (!(present[sequence >> 3] & (1 << (sequence & 7))))
             return 1;
     return 0;
+}
+
+static int find_complete_generation(unsigned drive, unsigned long total,
+                                    unsigned long before,
+                                    unsigned long *generation,
+                                    unsigned short *commit_sequence,
+                                    struct recovery_header *header)
+{
+    unsigned long candidate_before = before;
+
+    while (!find_generation_before(drive, total, candidate_before, generation,
+                                   commit_sequence, header)) {
+        if (!inventory_generation(drive, total, *generation, *commit_sequence))
+            return 0;
+        candidate_before = *generation;
+    }
+    return 1;
+}
+
+static void display_generation(const char *label, unsigned long generation)
+{
+    printf("%s: generation %lu\n", label, generation);
+}
+
+static int read_choice(const char *prompt, const char *choices)
+{
+    int answer;
+    int next;
+
+    fputs(prompt, stdout);
+    answer = getchar();
+    do {
+        next = getchar();
+    } while (next != '\n' && next != EOF);
+    answer = toupper(answer);
+    return strchr(choices, answer) ? answer : 0;
 }
 
 static int restore_piece(unsigned drive, const struct recovery_header *header,
@@ -505,20 +545,20 @@ static int restore_piece(unsigned drive, const struct recovery_header *header,
     if (stream_sector < fat_sectors) {
         for (copy = 0; copy < header->fat_count; ++copy) {
             target = header->fat_start + copy * fat_sectors + stream_sector;
-            if (abs_read(drive, target, 1, sector) ||
+            if (scan_io(&recovery_volume, 0, target, 1, sector) ||
                 offset + record->length > 512)
                 return 1;
             memcpy(sector + offset, record->payload, record->length);
-            if (abs_write(drive, target, 1, sector))
+            if (scan_io(&recovery_volume, 1, target, 1, sector))
                 return 1;
         }
     } else {
         target = header->root_start + stream_sector - fat_sectors;
-        if (abs_read(drive, target, 1, sector) ||
+        if (scan_io(&recovery_volume, 0, target, 1, sector) ||
             offset + record->length > 512)
             return 1;
         memcpy(sector + offset, record->payload, record->length);
-        if (abs_write(drive, target, 1, sector))
+        if (scan_io(&recovery_volume, 1, target, 1, sector))
             return 1;
     }
     return 0;
@@ -534,7 +574,7 @@ static int restore_generation(unsigned drive, unsigned long total,
     struct recovery_record *record = (struct recovery_record *)sector;
 
     for (pos = 1; pos < total; ++pos) {
-        if (abs_read(drive, pos, 1, sector))
+        if (scan_io(&recovery_volume, 0, pos, 1, sector))
             continue;
         if (!valid_record(record) || record->generation != generation ||
             record->kind != RECOVERY_KIND_DATA || !record->sequence ||
@@ -558,10 +598,13 @@ static void usage(void)
 int main(int argc, char **argv)
 {
     struct recovery_header header;
+    struct recovery_header prior_header;
     unsigned drive;
     unsigned long total;
     unsigned long generation;
     unsigned short commit_sequence = 0;
+    unsigned long prior_generation = 0;
+    unsigned short prior_commit_sequence = 0;
     int verify_only = 0;
     int force_scan = 0;
     int list_all = 0;
@@ -623,19 +666,38 @@ int main(int argc, char **argv)
     total = get_word(sector + 19);
     if (!total)
         total = get_dword(sector + 32);
+    if (load_scan_volume(&recovery_volume, drive)) {
+        fprintf(stderr, "UNFORMAT: unsupported filesystem on drive %c:.\n",
+                'A' + drive);
+        return 1;
+    }
     if (force_scan)
         return reconstruct_without_mirror(drive, list_all, test_only);
-    if (find_generation(drive, total, &generation, &commit_sequence, &header) ||
-        inventory_generation(drive, total, generation, commit_sequence)) {
+    if (find_complete_generation(drive, total, 0xffffffffUL, &generation,
+                                 &commit_sequence, &header)) {
         puts("No complete mirror information was found; scanning the disk.");
         return reconstruct_without_mirror(drive, 0, 0);
     }
     printf("Complete recovery information found for drive %c:.\n", 'A' + drive);
     if (verify_only)
         return 0;
-    printf("Restore the previous FAT and root directory (Y/N)? ");
-    answer = getchar();
-    if (toupper(answer) != 'Y') {
+    if (!find_complete_generation(drive, total, generation, &prior_generation,
+                                  &prior_commit_sequence, &prior_header)) {
+        display_generation("Latest mirror", generation);
+        display_generation("Prior mirror", prior_generation);
+        answer = read_choice("Use latest or prior information (L/P)? ", "LP");
+        if (answer == 'P') {
+            generation = prior_generation;
+            commit_sequence = prior_commit_sequence;
+            header = prior_header;
+        } else if (answer != 'L') {
+            puts("Cancelled.");
+            return 1;
+        }
+    }
+    answer = read_choice("Restore the previous FAT and root directory (Y/N)? ",
+                         "YN");
+    if (answer != 'Y') {
         puts("Cancelled.");
         return 1;
     }

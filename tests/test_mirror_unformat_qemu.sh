@@ -8,10 +8,12 @@ BOOT="$OUT/recovery-test-boot.img"
 TARGET="$OUT/recovery-test-target.img"
 UNSAFE_TARGET="$OUT/recovery-test-unsafe-target.img"
 REBUILD_TARGET="$OUT/recovery-test-rebuild-target.img"
+PRIOR_TARGET="$OUT/recovery-test-prior-target.img"
 HDD="$OUT/recovery-test-hdd.img"
 LOG="$OUT/recovery-test.log"
 UNSAFE_LOG="$OUT/recovery-test-unsafe.log"
 REBUILD_LOG="$OUT/recovery-test-rebuild.log"
+PRIOR_LOG="$OUT/recovery-test-prior.log"
 PRINT_LOG="$OUT/recovery-test-printer.log"
 PART_LOG="$OUT/recovery-partition-test.log"
 QEXIT="$OUT/recovery-test-qexit.com"
@@ -93,6 +95,48 @@ if [[ "$payload" == 'RECOVERY EXACT PAYLOAD' ]]; then
     ok "UNFORMAT restores the exact FAT/root file payload"
 else
     fail "UNFORMAT payload mismatch"
+fi
+
+dd if=/dev/zero of="$PRIOR_TARGET" bs=512 count=2880 status=none
+mformat -i "$PRIOR_TARGET" -f 1440 ::
+printf 'PRIOR GENERATION PAYLOAD\r\n' | mcopy -i "$PRIOR_TARGET" - ::PRIOR.TXT
+{
+    printf '@ECHO OFF\r\nCTTY AUX\r\nMIRROR B:\r\nQEXIT.COM\r\n'
+} | mcopy -o -i "$BOOT" - ::AUTOEXEC.BAT
+timeout 30 qemu-system-i386 -display none \
+    -drive if=floppy,index=0,format=raw,file="$BOOT",cache=writethrough \
+    -drive if=floppy,index=1,format=raw,file="$PRIOR_TARGET",cache=writethrough \
+    -boot a -m 4 -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    </dev/null >"$PRIOR_LOG" 2>&1 || true
+mren -i "$PRIOR_TARGET" ::PRIOR.TXT ::LATEST.TXT
+timeout 30 qemu-system-i386 -display none \
+    -drive if=floppy,index=0,format=raw,file="$BOOT",cache=writethrough \
+    -drive if=floppy,index=1,format=raw,file="$PRIOR_TARGET",cache=writethrough \
+    -boot a -m 4 -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    </dev/null >>"$PRIOR_LOG" 2>&1 || true
+dd if=/dev/zero of="$PRIOR_TARGET" bs=512 seek=1 count=32 conv=notrunc status=none
+printf 'P\r\nY\r\n' | mcopy -o -i "$BOOT" - ::CHOICE.TXT
+{
+    printf '@ECHO OFF\r\nCTTY AUX\r\nUNFORMAT B: <CHOICE.TXT\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO PRIOR_RESTORE_FAILED\r\nQEXIT.COM\r\n'
+} | mcopy -o -i "$BOOT" - ::AUTOEXEC.BAT
+timeout 30 qemu-system-i386 -display none \
+    -drive if=floppy,index=0,format=raw,file="$BOOT",cache=writethrough \
+    -drive if=floppy,index=1,format=raw,file="$PRIOR_TARGET",cache=writethrough \
+    -boot a -m 4 -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    </dev/null >>"$PRIOR_LOG" 2>&1 || true
+prior_payload="$(mcopy -i "$PRIOR_TARGET" ::PRIOR.TXT - 2>/dev/null | tr -d '\r\n')"
+if grep -q 'Latest mirror:' "$PRIOR_LOG" &&
+   grep -q 'Prior mirror:' "$PRIOR_LOG" &&
+   [[ "$prior_payload" == 'PRIOR GENERATION PAYLOAD' ]] &&
+   ! mdir -i "$PRIOR_TARGET" ::LATEST.TXT >/dev/null 2>&1 &&
+   ! grep -q 'PRIOR_RESTORE_FAILED' "$PRIOR_LOG"; then
+    ok "UNFORMAT selects and exactly restores the prior mirror generation"
+else
+    fail "UNFORMAT prior-generation selection"
 fi
 
 dd if=/dev/zero of="$REBUILD_TARGET" bs=512 count=2880 status=none
