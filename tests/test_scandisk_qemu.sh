@@ -37,6 +37,8 @@ mformat -i "$TARGET" -f 1440 ::
 printf 'SCANDISK CONTROL PAYLOAD\r\n' | mcopy -o -i "$TARGET" - ::CONTROL.TXT
 python3 -c "open('$OUT/scandisk-frag.bin','wb').write(bytes((i & 255 for i in range(1536))))"
 mcopy -o -i "$TARGET" "$OUT/scandisk-frag.bin" ::FRAG.BIN
+mmd -i "$TARGET" ::BROKEN
+printf 'nested payload\r\n' | mcopy -o -i "$TARGET" - ::BROKEN/KEEP.TXT
 
 python3 - "$TARGET" <<'PY'
 from pathlib import Path
@@ -90,6 +92,14 @@ for base in (fat1, fat2):
     set_fat12(base, target, c3)
     set_fat12(base, c2, 0)
 
+broken_entry = next(root + off for off in range(0, 224 * 32, 32)
+                    if disk[root + off:root + off + 11] == b'BROKEN     ')
+broken_cluster = struct.unpack_from('<H', disk, broken_entry + 26)[0]
+struct.pack_into('<I', disk, broken_entry + 28, 123)
+broken_sector = data_offset + (broken_cluster - 2) * 512
+struct.pack_into('<H', disk, broken_sector + 26, 999)
+struct.pack_into('<H', disk, broken_sector + 32 + 26, 999)
+
 data = 33 * 512
 for cluster in (100, 101, 102):
     start = data + (cluster - 2) * 512
@@ -134,6 +144,13 @@ fi
 grep -q 'file allocation table copies differ' "$LOG" &&
     ok "mismatched FAT mirrors are detected" ||
     fail "FAT mirror mismatch was not diagnosed"
+if grep -q 'invalid \. entry' "$LOG" &&
+   grep -q 'invalid \.\. entry' "$LOG" &&
+   grep -q 'directory entry has a nonzero file size' "$LOG"; then
+    ok "directory metadata validation detects dot-parent and size corruption"
+else
+    fail "directory metadata corruption was not fully diagnosed"
+fi
 grep -q 'RECOVERED_FILE_PRESENT' "$LOG" &&
     ok "/AUTOFIX converts the orphan chain to FILE0000.CHK" ||
     fail "lost chain was not recovered"
@@ -175,6 +192,22 @@ first = disk[reserved * 512:reserved * 512 + size]
 assert all(disk[(reserved + n * size // 512) * 512:
                     (reserved + n * size // 512) * 512 + size] == first
            for n in range(1, fats))
+PY
+
+python3 - "$TARGET" <<'PY' && ok "directory dot entries and size were repaired exactly" || fail "directory metadata repair is incomplete"
+from pathlib import Path
+import struct, sys
+disk = Path(sys.argv[1]).read_bytes()
+root = 19 * 512
+entry = next(root + off for off in range(0, 224 * 32, 32)
+             if disk[root + off:root + off + 11] == b'BROKEN     ')
+cluster = struct.unpack_from('<H', disk, entry + 26)[0]
+sector = (33 + cluster - 2) * 512
+assert struct.unpack_from('<I', disk, entry + 28)[0] == 0
+assert disk[sector:sector + 11] == b'.          '
+assert struct.unpack_from('<H', disk, sector + 26)[0] == cluster
+assert disk[sector + 32:sector + 43] == b'..         '
+assert struct.unpack_from('<H', disk, sector + 32 + 26)[0] == 0
 PY
 
 grep -q 'SCANDISK_DONE' "$LOG" && ok "DOS batch completed" || {

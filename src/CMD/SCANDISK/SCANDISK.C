@@ -527,8 +527,44 @@ static int dot_entry(const unsigned char *entry)
     return entry[0] == '.' && (entry[1] == ' ' || entry[1] == '.');
 }
 
+static void validate_dot_entries(struct scan_state *state,
+                                 unsigned long sector, unsigned self,
+                                 unsigned parent)
+{
+    static const unsigned char dot_name[11] =
+        {'.',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '};
+    static const unsigned char dotdot_name[11] =
+        {'.','.',' ',' ',' ',' ',' ',' ',' ',' ',' '};
+    unsigned char *dot = directory_sector;
+    unsigned char *dotdot = directory_sector + 32;
+    int dot_bad = memcmp(dot, dot_name, 11) || !(dot[11] & 0x10) ||
+        get_word(dot + 26) != self || get_dword(dot + 28) != 0;
+    int dotdot_bad = memcmp(dotdot, dotdot_name, 11) ||
+        !(dotdot[11] & 0x10) || get_word(dotdot + 26) != parent ||
+        get_dword(dotdot + 28) != 0;
+    int changed = 0;
+    if (dot_bad) {
+        report_problem(state, "A directory has an invalid . entry.");
+        if (permit_repair(state, "Repair the . directory entry")) {
+            memset(dot, 0, 32); memcpy(dot, dot_name, 11);
+            dot[11] = 0x10; put_word(dot + 26, self);
+            ++state->repaired; changed = 1;
+        } else ++state->unrepaired;
+    }
+    if (dotdot_bad) {
+        report_problem(state, "A directory has an invalid .. entry.");
+        if (permit_repair(state, "Repair the .. directory entry")) {
+            memset(dotdot, 0, 32); memcpy(dotdot, dotdot_name, 11);
+            dotdot[11] = 0x10; put_word(dotdot + 26, parent);
+            ++state->repaired; changed = 1;
+        } else ++state->unrepaired;
+    }
+    if (changed && repair_directory_sector(state, sector))
+        ++state->unrepaired;
+}
+
 static int scan_directory(struct scan_state *state, unsigned first,
-                          unsigned depth)
+                          unsigned parent, unsigned depth)
 {
     unsigned cluster = first;
     unsigned next;
@@ -561,6 +597,8 @@ static int scan_directory(struct scan_state *state, unsigned first,
                 ++state->unrepaired;
                 continue;
             }
+            if (!root && cluster == first && sector_index == 0)
+                validate_dot_entries(state, position, first, parent);
             for (entry_offset = 0; entry_offset < 512; entry_offset += 32) {
                 unsigned char *entry = directory_sector + entry_offset;
                 unsigned child;
@@ -581,11 +619,27 @@ static int scan_directory(struct scan_state *state, unsigned first,
                     if (dot_entry(entry))
                         continue;
                     ++state->directories;
+                    if (!child) {
+                        report_problem(state,
+                            "A directory has no starting cluster.");
+                        ++state->unrepaired;
+                        continue;
+                    }
+                    if (size) {
+                        report_problem(state,
+                            "A directory entry has a nonzero file size.");
+                        if (permit_repair(state,
+                                "Set the directory size to zero")) {
+                            put_dword(entry + 28, 0);
+                            changed = 1;
+                            ++state->repaired;
+                        } else ++state->unrepaired;
+                    }
                     count = scan_chain(state, child, 0, 1, entry, &changed);
                     if (changed)
                         repair_directory_sector(state, position);
                     if (count && child) {
-                        scan_directory(state, child, depth + 1);
+                        scan_directory(state, child, first, depth + 1);
                         if (fat_volume_io(&state->volume, 0, position, 1,
                                           directory_sector))
                             return 1;
@@ -955,7 +1009,7 @@ static int scan_drive(unsigned drive, const struct options *options)
         return 1;
     }
     compare_fat_mirrors(&state);
-    scan_directory(&state, 0, 0);
+    scan_directory(&state, 0, 0, 0);
     find_lost_clusters(&state);
     if (state.options.surface)
         surface_scan(&state);
