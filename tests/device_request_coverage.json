@@ -75,7 +75,7 @@
   },
   "forwarding_interfaces": {
     "DRIVER.SYS": {"source": "src/DEV/DRIVER/DRIVER.ASM", "level": "contract", "evidence": ["tests/test_driver_sys_qemu.sh"], "note": "INIT creates the logical block device; later requests are translated and forwarded through INT 2Fh/AX=0802h, with exact read and persisted write payloads proved on the separate physical disk"},
-    "INTERLNK.EXE": {"source": "src/CMD/INTERLNK/INTERLNKD.ASM", "level": "contract", "evidence": ["tests/test_interlnk_qemu.sh"], "note": "INIT discovers two units and negotiates each BPB; DOS media, BPB, read, write, status, flush, open, close, and non-removable requests operate through the live block header, with byte-exact files on both units proving transport forwarding"},
+    "INTERLNK.EXE": {"source": "src/CMD/INTERLNK/INTERLNKD.ASM", "level": "contract", "evidence": ["tests/test_interlnk_qemu.sh"], "note": "INIT discovers two units and negotiates each BPB; DOS media, BPB, read, write, status, flush, open, close, and non-removable requests operate through the live block header, with byte-exact files on both units proving forwarding and a disconnected boot proving bounded failure"},
     "PRINTER.SYS": {"source": "src/DEV/PRINTER/CPSPM10.ASM", "level": "contract", "evidence": ["tests/test_printer_driver_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "Initialization and code-page generic-IOCTL prepare, select, and status paths are asserted; exact host-captured PRINT output proves the sparse interceptor chains ordinary LPT writes"}
   }
 }

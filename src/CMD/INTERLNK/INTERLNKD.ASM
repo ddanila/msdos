@@ -81,6 +81,7 @@ request_init:
         xor     al,al
         xor     dx,dx
         call    send_request
+        jc      init_failed
         call    receive_status
         jc      init_failed
         call    receive_byte
@@ -99,6 +100,7 @@ init_geometry_loop:
         mov     al,1
         xor     dx,dx
         call    send_request
+        jc      init_failed
         call    receive_status
         jc      init_failed
         push    cs
@@ -170,6 +172,7 @@ request_read:
         jc      request_io_error
 read_sector_loop:
         call    send_current_request
+        jc      request_io_error
         call    receive_status
         jc      request_io_error
         les     di,cs:transfer_ptr
@@ -186,8 +189,10 @@ request_write:
         jc      request_io_error
 write_sector_loop:
         call    send_current_request
+        jc      request_io_error
         les     si,cs:transfer_ptr
         call    send_sector
+        jc      request_io_error
         call    receive_status
         jc      request_io_error
         call    advance_transfer
@@ -270,20 +275,31 @@ send_request PROC NEAR
         push    ax
         mov     al,0a5h
         call    send_byte
+        jc      short send_request_failed_pop
         mov     al,05ah
         call    send_byte
+        jc      short send_request_failed_pop
         pop     ax
         call    send_byte
+        jc      short send_request_failed
         mov     al,cs:current_unit
         call    send_byte
+        jc      short send_request_failed
         mov     al,dl
         call    send_byte
+        jc      short send_request_failed
         mov     al,dh
         call    send_byte
+        jc      short send_request_failed
         mov     al,byte ptr cs:sector_number+2
         call    send_byte
+        jc      short send_request_failed
         mov     al,byte ptr cs:sector_number+3
         call    send_byte
+        ret
+send_request_failed_pop:
+        pop     ax
+send_request_failed:
         ret
 send_request ENDP
 
@@ -313,7 +329,10 @@ send_sector_loop:
         mov     al,es:[si]
         inc     si
         call    send_byte
+        jc      short send_sector_done
         loop    send_sector_loop
+        clc
+send_sector_done:
         ret
 send_sector ENDP
 
@@ -331,32 +350,59 @@ receive_sector ENDP
 
 send_byte PROC NEAR
         push    ax
+        push    cx
         push    dx
         mov     dx,03fdh
+        mov     cx,0ffffh
 client_send_ready:
         in      al,dx
         test    al,20h
-        jz      client_send_ready
+        jnz     short client_send_now
+        loop    client_send_ready
         pop     dx
+        pop     cx
+        pop     ax
+        stc
+        ret
+client_send_now:
+        pop     dx
+        pop     cx
         pop     ax
         push    dx
         mov     dx,03f8h
         out     dx,al
         pop     dx
+        clc
         ret
 send_byte ENDP
 
 receive_byte PROC NEAR
+        push    bx
+        push    cx
         push    dx
         mov     dx,03fdh
+        mov     bx,32
+client_receive_retry:
+        mov     cx,0ffffh
 client_receive_ready:
         in      al,dx
         test    al,1
-        jz      client_receive_ready
+        jnz     short client_receive_now
+        loop    client_receive_ready
+        dec     bx
+        jnz     client_receive_retry
+        pop     dx
+        pop     cx
+        pop     bx
+        stc
+        ret
+client_receive_now:
         mov     dx,03f8h
         in      al,dx
         clc
         pop     dx
+        pop     cx
+        pop     bx
         ret
 receive_byte ENDP
 
