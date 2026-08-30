@@ -364,11 +364,11 @@ init_serial PROC NEAR
         mov     al,80h
         out     dx,al
         mov     dx,cs:com_port
-        mov     al,1
+        mov     ax,cs:baud_divisor
         out     dx,al
         mov     dx,cs:com_port
         inc     dx
-        xor     al,al
+        mov     al,ah
         out     dx,al
         mov     dx,cs:com_port
         add     dx,3
@@ -447,6 +447,29 @@ parse_switch:
 parse_switch_bad:
         jmp     parse_bad
 parse_monochrome:
+        cmp     cx,4
+        jb      short parse_monochrome_flag
+        mov     al,es:[si]
+        and     al,0dfh
+        cmp     al,'A'
+        jne     short parse_monochrome_flag
+        mov     al,es:[si+1]
+        and     al,0dfh
+        cmp     al,'U'
+        jne     parse_bad
+        mov     al,es:[si+2]
+        and     al,0dfh
+        cmp     al,'D'
+        jne     parse_bad
+        cmp     byte ptr es:[si+3],':'
+        jne     parse_bad
+        add     si,4
+        sub     cx,4
+        call    parse_baud_rate
+        jc      parse_bad
+        mov     cs:baud_divisor,bx
+        jmp     parse_space
+parse_monochrome_flag:
         mov     cs:monochrome_mode,1
         jmp     short parse_flag_end
 parse_timer_safe:
@@ -504,6 +527,78 @@ parse_bad:
         ret
 parse_tail ENDP
 
+; Parse one of the five retail baud rates from ES:SI. Consume its trailing
+; space, if present, and return the UART divisor in BX.
+parse_baud_rate PROC NEAR
+        xor     ax,ax
+        xor     dx,dx
+baud_digit:
+        jcxz    short baud_done
+        mov     bl,es:[si]
+        cmp     bl,' '
+        je      short baud_space
+        sub     bl,'0'
+        cmp     bl,9
+        ja      short baud_bad
+        inc     si
+        dec     cx
+        xor     bh,bh
+        mov     di,dx
+        push    bx
+        mov     bx,ax
+        shl     ax,1
+        rcl     dx,1
+        shl     bx,1
+        rcl     di,1
+        shl     bx,1
+        rcl     di,1
+        shl     bx,1
+        rcl     di,1
+        add     ax,bx
+        adc     dx,di
+        pop     bx
+        add     ax,bx
+        adc     dx,0
+        jmp     baud_digit
+baud_space:
+        inc     si
+        dec     cx
+baud_done:
+        cmp     dx,0
+        jne     short baud_115200
+        cmp     ax,9600
+        jne     short baud_19200
+        mov     bx,12
+        jmp     short baud_good
+baud_19200:
+        cmp     ax,19200
+        jne     short baud_38400
+        mov     bx,6
+        jmp     short baud_good
+baud_38400:
+        cmp     ax,38400
+        jne     short baud_57600
+        mov     bx,3
+        jmp     short baud_good
+baud_57600:
+        cmp     ax,57600
+        jne     short baud_bad
+        mov     bx,2
+        jmp     short baud_good
+baud_115200:
+        cmp     dx,1
+        jne     short baud_bad
+        cmp     ax,0c200h
+        jne     short baud_bad
+        mov     bx,1
+baud_good:
+        clc
+        ret
+baud_bad:
+        stc
+        ret
+parse_baud_rate ENDP
+
 syntax_error:
         mov     dx,OFFSET usage
         mov     ah,9
@@ -519,6 +614,7 @@ server_help:
 
 com_port        dw 03f8h
 com_number      db 1
+baud_divisor    dw 1
 monochrome_mode db 0
 timer_safe_mode db 0
 drive_count     db 0
@@ -534,7 +630,7 @@ banner          db 'Microsoft Interlnk server compatible transport',13,10
                 db 'Port-COM'
 banner_port     db '1  Drives $'
 banner_suffix   db ' available',13,10,'$'
-usage           db 'Syntax: INTERSVR [drive: ...] [/COM:n] [/B] [/V]',13,10,'$'
+usage           db 'Syntax: INTERSVR [drive: ...] [/COM:n] [/BAUD:rate] [/B] [/V]',13,10,'$'
 sector_buffer   db 512 dup(0)
 com_bases       dw 03f8h,02f8h,03e8h,02e8h
 

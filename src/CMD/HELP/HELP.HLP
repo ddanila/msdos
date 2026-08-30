@@ -242,11 +242,11 @@ Syntax: INCLUDE=blockname
 Displays or renews the installed Interlnk client connection.
 Syntax: INTERLNK [/RECONNECT]
 Load INTERLNK.EXE with DEVICE in CONFIG.SYS to mount up to five server volumes.
-Options: /DRIVES:n (1-5), /NOPRINTER, and /COM:n (1-4).
+Options: /DRIVES:n (1-5), /NOPRINTER, /COM:n (1-4), and /BAUD:rate.
 /RECONNECT repeats server discovery and per-volume BPB negotiation.
 @INTERSVR
 Shares a DOS volume with an Interlnk client over COM1.
-Syntax: INTERSVR [drive: ...] [/COM:n] [/B] [/V]
+Syntax: INTERSVR [drive: ...] [/COM:n] [/BAUD:rate] [/B] [/V]
 COM ports 1 through 4 are supported.
 Use /B for monochrome output and /V for timer-safe polling.
 The server remains active while the client reads and writes the shared volume.

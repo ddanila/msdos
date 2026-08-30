@@ -31,13 +31,13 @@ mformat -C -i "$SERVER_IMAGE_TWO" -f 1440 ::
 printf 'Byte-exact Interlnk transport\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::REMOTE.TXT
 printf 'Second Interlnk volume\r\n' | mcopy -o -i "$SERVER_IMAGE_TWO" - ::REMOTE2.TXT
 mcopy -o -i "$SERVER_IMAGE" "$ROOT/src/CMD/INTERSVR/INTERSVR.EXE" ::INTERSVR.EXE
-printf '@ECHO OFF\r\nINTERSVR A: B: /B /V /COM:2\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::AUTOEXEC.BAT
+printf '@ECHO OFF\r\nINTERSVR A: B: /B /V /BAUD:57600 /COM:2\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::AUTOEXEC.BAT
 printf '\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::CONFIG.SYS
 
 mcopy -o -i "$CLIENT_IMAGE" "$ROOT/src/CMD/INTERLNK/INTERLNK.EXE" ::INTERLNK.EXE
 mcopy -o -i "$CLIENT_IMAGE" "$PROBE" ::ILPROBE.COM
 mcopy -o -i "$CLIENT_IMAGE" "$QEXIT" ::QEXIT.COM
-printf 'LASTDRIVE=Z\r\nDEVICE=A:\\INTERLNK.EXE /DRIVES:2 /NOPRINTER\r\n' | mcopy -o -i "$CLIENT_IMAGE" - ::CONFIG.SYS
+printf 'LASTDRIVE=Z\r\nDEVICE=A:\\INTERLNK.EXE /DRIVES:2 /NOPRINTER /BAUD:57600\r\n' | mcopy -o -i "$CLIENT_IMAGE" - ::CONFIG.SYS
 printf '@ECHO OFF\r\nINTERLNK /RECONNECT\r\nIF ERRORLEVEL 1 ECHO failed>RECONERR.TAG\r\nILPROBE.COM\r\nQEXIT.COM\r\n' | mcopy -o -i "$CLIENT_IMAGE" - ::AUTOEXEC.BAT
 
 rm -f "$LOG" "$SERVER_LOG" "$CLIENT_LOG"
@@ -74,7 +74,7 @@ grep -Fq 'INTERLNK_TRANSPORT_PASS' "$LOG" || {
 ! mdir -b -i "$CLIENT_IMAGE" :: 2>/dev/null | grep -Fq 'RECONERR.TAG'
 mcopy -i "$SERVER_IMAGE" ::WRITTEN.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx '001122334455aaff'
 mcopy -i "$SERVER_IMAGE_TWO" ::WRITTN2.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx 'fedcba9876543210'
-echo '  PASS: Interlnk recovers from a truncated header, auto-discovers COM2, and redirects two FAT volumes'
+echo '  PASS: Interlnk recovers from a truncated header and redirects two FAT volumes over auto-discovered COM2 at 57600 baud'
 
 # A missing server must fail installation and continue boot instead of waiting
 # forever in the serial receive loop.

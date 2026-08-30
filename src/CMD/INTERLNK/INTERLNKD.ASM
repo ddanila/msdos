@@ -479,11 +479,11 @@ init_serial PROC NEAR
         mov     al,80h
         out     dx,al
         mov     dx,cs:com_port
-        mov     al,1
+        mov     ax,cs:baud_divisor
         out     dx,al
         mov     dx,cs:com_port
         inc     dx
-        xor     al,al
+        mov     al,ah
         out     dx,al
         mov     dx,cs:com_port
         add     dx,3
@@ -525,9 +525,39 @@ config_check_switch:
         cmp     al,'C'
         je      short config_com
         cmp     al,'D'
-        je      short config_drives
+        jne     short config_check_noprinter
+        jmp     config_drives
+config_check_noprinter:
         cmp     al,'N'
-        je      short config_noprinter
+        jne     short config_check_baud
+        jmp     config_noprinter
+config_check_baud:
+        cmp     al,'B'
+        je      short config_baud
+        jmp     config_bad
+config_baud:
+        lodsb
+        and     al,0dfh
+        cmp     al,'A'
+        jne     short config_baud_bad
+        lodsb
+        and     al,0dfh
+        cmp     al,'U'
+        jne     short config_baud_bad
+        lodsb
+        and     al,0dfh
+        cmp     al,'D'
+        jne     short config_baud_bad
+        lodsb
+        cmp     al,':'
+        jne     short config_baud_bad
+        call    parse_config_baud_rate
+        jc      short config_baud_bad
+        mov     cs:baud_divisor,bx
+        cmp     al,' '
+        je      config_scan
+        jmp     config_ok
+config_baud_bad:
         jmp     config_bad
 config_com:
         lodsw
@@ -604,6 +634,79 @@ config_bad:
         ret
 parse_config ENDP
 
+parse_config_baud_rate PROC NEAR
+        xor     ax,ax
+        xor     dx,dx
+config_baud_digit:
+        mov     bl,[si]
+        inc     si
+        cmp     bl,' '
+        je      short config_baud_done
+        cmp     bl,0
+        je      short config_baud_done
+        cmp     bl,13
+        je      short config_baud_done
+        cmp     bl,10
+        je      short config_baud_done
+        sub     bl,'0'
+        cmp     bl,9
+        ja      short config_baud_rate_bad
+        xor     bh,bh
+        mov     di,dx
+        push    bx
+        mov     bx,ax
+        shl     ax,1
+        rcl     dx,1
+        shl     bx,1
+        rcl     di,1
+        shl     bx,1
+        rcl     di,1
+        shl     bx,1
+        rcl     di,1
+        add     ax,bx
+        adc     dx,di
+        pop     bx
+        add     ax,bx
+        adc     dx,0
+        jmp     config_baud_digit
+config_baud_done:
+        mov     cs:baud_terminator,bl
+        cmp     dx,0
+        jne     short config_baud_115200
+        cmp     ax,9600
+        jne     short config_baud_19200
+        mov     bx,12
+        jmp     short config_baud_rate_good
+config_baud_19200:
+        cmp     ax,19200
+        jne     short config_baud_38400
+        mov     bx,6
+        jmp     short config_baud_rate_good
+config_baud_38400:
+        cmp     ax,38400
+        jne     short config_baud_57600
+        mov     bx,3
+        jmp     short config_baud_rate_good
+config_baud_57600:
+        cmp     ax,57600
+        jne     short config_baud_rate_bad
+        mov     bx,2
+        jmp     short config_baud_rate_good
+config_baud_115200:
+        cmp     dx,1
+        jne     short config_baud_rate_bad
+        cmp     ax,0c200h
+        jne     short config_baud_rate_bad
+        mov     bx,1
+config_baud_rate_good:
+        mov     al,cs:baud_terminator
+        clc
+        ret
+config_baud_rate_bad:
+        stc
+        ret
+parse_config_baud_rate ENDP
+
 install_multiplex PROC NEAR
         mov     ax,352fh
         int     21h
@@ -668,6 +771,8 @@ old_int2f       dd 0
 transfer_ptr    dd 0
 io_command      db 0
 io_remaining    dw 0
+baud_divisor    dw 1
+baud_terminator db 0
 com_bases       dw 03f8h,02f8h,03e8h,02e8h
 resident_end LABEL BYTE
 
