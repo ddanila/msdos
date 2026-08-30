@@ -57,3 +57,67 @@ for case_spec in 'ON|ON|EMM386 Active\.' \
 done
 
 echo "EMM386 driver-load ON/OFF/AUTO and W= options passed"
+
+handle_com="$OUT/emm386-handle.com"
+boot_img="$OUT/floppy-emm386-handle.img"
+serial_log="$OUT/emm386-handle.log"
+nasm -f bin "$REPO_ROOT/tests/emm386_handle_probe.asm" -o "$handle_com"
+cp "$FLOPPY" "$boot_img"
+mcopy -o -i "$boot_img" "$handle_com" ::HANDLE.COM
+printf 'DEVICE=A:\\EMM386.EXE H=2\r\n' | mcopy -o -i "$boot_img" - ::CONFIG.SYS
+{
+    printf '@ECHO OFF\r\n'
+    printf 'CTTY AUX\r\n'
+    printf 'HANDLE.COM\r\n'
+} | mcopy -o -i "$boot_img" - ::AUTOEXEC.BAT
+timeout 35 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 4 \
+    -drive if=floppy,index=0,format=raw,file="$boot_img",cache=writethrough \
+    -boot a -serial stdio -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    >"$serial_log" 2>&1 || true
+if ! grep -q 'EMM386_HANDLE_LIMIT_PASS' "$serial_log"; then
+    echo "FAIL: EMM386 H= handle limit" >&2
+    sed -n '1,120p' "$serial_log"
+    exit 1
+fi
+
+echo "EMM386 H= handle limit passed"
+
+for case_spec in 'LVALID|256 L=2000|installed' \
+    'LRESERVE|1024 L=3500|rejected'; do
+    IFS='|' read -r case_name options expectation <<<"$case_spec"
+    probe_com="$OUT/emm386-install-${case_name}.com"
+    boot_img="$OUT/floppy-emm386-install-${case_name}.img"
+    serial_log="$OUT/emm386-install-${case_name}.log"
+    nasm_args=(-f bin)
+    if [[ "$expectation" == installed ]]; then
+        nasm_args+=(-DEXPECT_INSTALLED)
+    fi
+    nasm "${nasm_args[@]}" "$REPO_ROOT/tests/emm386_install_probe.asm" \
+        -o "$probe_com"
+    cp "$FLOPPY" "$boot_img"
+    mcopy -o -i "$boot_img" "$probe_com" ::INSTALL.COM
+    {
+        printf 'DEVICE=A:\\HIMEM.SYS\r\n'
+        printf 'DEVICE=A:\\EMM386.EXE %s\r\n' "$options"
+    } | mcopy -o -i "$boot_img" - ::CONFIG.SYS
+    {
+        printf '@ECHO OFF\r\n'
+        printf 'CTTY AUX\r\n'
+        printf 'INSTALL.COM\r\n'
+    } | mcopy -o -i "$boot_img" - ::AUTOEXEC.BAT
+    timeout 35 qemu-system-i386 \
+        -display none -monitor none -machine pc -cpu 486 -m 4 \
+        -drive if=floppy,index=0,format=raw,file="$boot_img",cache=writethrough \
+        -boot a -serial stdio -no-reboot \
+        -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+        >"$serial_log" 2>&1 || true
+    if ! grep -q 'EMM386_INSTALL_EXPECTATION_PASS' "$serial_log"; then
+        echo "FAIL: EMM386 $options was not $expectation" >&2
+        sed -n '1,120p' "$serial_log"
+        exit 1
+    fi
+done
+
+echo "EMM386 L= XMS reservation passed"

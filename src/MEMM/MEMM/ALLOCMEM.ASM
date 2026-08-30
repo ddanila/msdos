@@ -96,6 +96,7 @@ _DATA	segment
 
 	extrn	dos_version:byte
 	extrn	pool_size:word
+	extrn	min_xms:word
 	extrn	msg_flag:word
 
 ifndef	NOHIMEM
@@ -255,6 +256,13 @@ XMSAlloc proc near
 	int	2fh
 	mov	word ptr [xms_entry],bx
 	mov	word ptr [xms_entry+2],es
+	mov	ah,08h
+	call	dword ptr [xms_entry]
+	mov	ax,[pool_size]
+	add	ax,[min_xms]
+	jc	short XA_reserve_fail
+	cmp	dx,ax
+	jb	short XA_reserve_fail
 	mov	dx,[pool_size]
 	mov	ah,09h
 	call	dword ptr [xms_entry]
@@ -286,6 +294,10 @@ XA_release:
 	mov	[xms_handle],0
 XA_fail:
 	stc
+	jmp	short XA_done
+XA_reserve_fail:
+	or	[msg_flag],MEM_ERR_MSG
+	clc
 XA_done:
 	pop	es
 	pop	dx

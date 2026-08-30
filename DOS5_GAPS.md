@@ -107,7 +107,7 @@ Complete limit/error/order parity remains unverified outside the cases in
 | Driver | Status | Missing DOS 5 surface |
 | --- | --- | --- |
 | `HIMEM.SYS` | Partial XMS 2.00 implementation | On 386+ systems it parses every documented DOS 5 option; HMA thresholds, 1-128 handles, INT 15h reservation, and generic A20 backends are tested. 286 execution and representative validation of machine-specific A20, shadow-RAM, and CPU-clock behavior remain missing. |
-| `EMM386.EXE` | Partial DOS 5 EMM386 replacement | Driver-load `Pn=`, `B=`, `L=`, `A=`, `H=`, and `D=` controls remain. Driver and runtime loading implement `ON`, `OFF`, `AUTO`, `W=ON`, and `W=OFF`; driver loading also implements pool size, `M1`-`M14`, `FRAME=`, `/P`, `I=`, `X=`, `RAM`, and `NOEMS`. The effect of `W=ON` on real Weitek hardware is unverified. |
+| `EMM386.EXE` | Partial DOS 5 EMM386 replacement | Driver-load `Pn=`, `B=`, `A=`, and `D=` controls remain. Driver and runtime loading implement `ON`, `OFF`, `AUTO`, `W=ON`, and `W=OFF`; driver loading also implements pool size, `M1`-`M14`, `FRAME=`, `/P`, `I=`, `X=`, `L=`, `H=`, `RAM`, and `NOEMS`. The effect of `W=ON` on real Weitek hardware is unverified. |
 | `EGA.SYS` | Missing | DOSSHELL Task Swapper display save/restore support. |
 | `SETVER.EXE` | Present | Persistent table loading through CONFIG.SYS and reboot-stable command edits are tested. |
 | `ANSI.SYS` | Present | No known DOS 5 `/X` or `/K` omission; exhaustive escape-sequence and adapter conformance is not complete. |

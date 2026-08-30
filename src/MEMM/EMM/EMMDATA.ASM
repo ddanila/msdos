@@ -335,7 +335,7 @@ _Handle_Name_Table LABEL QWORD
 ;15. book-keeping variables for handle table
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 _handle_table_size 	LABEL	WORD
-	DW	HANDLE_CNT
+	DW	64			; DOS 5 default; H= may select 2..255
 
 _handle_count	LABEL	WORD
 	DW	0

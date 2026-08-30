@@ -54,6 +54,7 @@
 	public	Init_MEMM386
 
 	public	pool_size
+	public	min_xms
 	public	msg_flag
 	public	Active_Status
 	public	Auto_Mode
@@ -127,6 +128,7 @@ _DATA	segment
 	extrn	_emm_free:word
 	extrn	_pft386:word
 	extrn	PageT_Seg:word
+	extrn	_handle_table_size:word
 
 _DATA	ends
 
@@ -207,6 +209,7 @@ _DATA	segment
 ;
 dos_version	db	0h	; MS-DOS version
 pool_size	dw	0	; size of EMM Pages Pool in kbytes
+min_xms		dw	0	; extended memory that L= keeps available to XMS
 msg_flag	dw	0	; Message flag byte
 umb_mode	db	0	; RAM or NOEMS requested paging-backed UMBs
 noems_mode	db	0	; NOEMS suppresses the EMS page frame
@@ -758,6 +761,8 @@ ploop1:
 	je	chk_initial_auto
 	cmp	al,'w'			; q: W=ON or W=OFF?
 	je	chk_weitek
+	cmp	al,'l'			; q: L= minimum remaining XMS?
+	je	chk_min_xms
 	cmp	al,'r'			; q: RAM activation mode?
 	je	chk_RAM
 	cmp	al,'n'			; q: NOEMS activation mode?
@@ -830,6 +835,18 @@ weitek_check_on_length:
 	jne	inv_prm
 weitek_on:
 	mov	[weitek_mode],1
+	jmp	ploop1
+
+chk_min_xms:
+	cmp	cx,3
+	jb	inv_prm
+	cmp	byte ptr [si],'='
+	jne	inv_prm
+	inc	si
+	dec	cx
+	call	parse_decimal_token
+	jc	inv_prm
+	mov	[min_xms],ax
 	jmp	ploop1
 
 chk_RAM:
@@ -1012,28 +1029,22 @@ chk_PF:
 	jmp	ploop1			; get next parameter
 
 ;
-; supporting use of Hi Ram.  We are providing a command line option for this
-; the parameter is specified as He for himem enable or Hd for Himem disable
-; this parameter may be specified only once in a command line.	Also
-;
+; H= selects the caller-visible LIM handle-table size. Handle zero remains
+; reserved for the operating system, as required by the existing allocator.
 chk_Hx:
-;	 cmp	 cx,2			 ; q: 2 and only 2 chars in argument
-;	 jne	 inv_prm		 ; n: error
-;	 lodsb				 ; get Hx specifier
-;;
-;	 cmp	 [himem_use],0ffh	 ; has this already been specified
-;	 jnz	 inv_parm
-;;
-;	 cmp	 al,'e' 		 ; is user asking us to enable
-;	 jne	 Hx$1			 ; no, go to check enable
-;;
-;	 mov	 [himem_use],01h	 ; enable himem use
-;	 jmp	 ploop1
-;Hx$1:
-;	 cmp	 al,'d'
-;	 jne	 inv_parm		 ; if neither d or e it is invalid
-;;
-;	 mov	 [himem_use],00h
+	cmp	cx,3
+	jb	inv_prm
+	cmp	byte ptr [si],'='
+	jne	inv_prm
+	inc	si
+	dec	cx
+	call	parse_decimal_token
+	jc	inv_prm
+	cmp	ax,2
+	jb	inv_prm
+	cmp	ax,255
+	ja	inv_prm
+	mov	[_handle_table_size],ax
 	jmp	ploop1
 
 ;
