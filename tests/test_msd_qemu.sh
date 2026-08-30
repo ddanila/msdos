@@ -56,7 +56,8 @@ for marker in \
     'Operating System' 'Computer' 'Memory' 'Video' 'Disk Drives' \
     'COM and LPT Ports' 'Input Devices' 'DOS Configuration' 'IRQ Vectors' 'Device Drivers' 'Network' \
     'Reported DOS version: 6.22' 'True DOS version:     6.22' \
-    'BIOS machine ID:' 'BIOS date:' 'COM1 base address:     03F8h' \
+    'BIOS machine ID:' 'BIOS date:' 'BIOS base memory:' \
+    'Startup display:' 'Game adapter:' 'COM1 base address:     03F8h' \
     'Keyboard shift flags:' 'Mouse driver:          Not probed (/I)' \
     'Allocation strategy:' 'UMB chain linked:' 'Write verification:' \
     'Extended BREAK check:' 'Code pages:' 'Environment:' \

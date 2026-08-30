@@ -70,6 +70,9 @@ static void report_computer(void)
 {
     union REGS inregs, outregs;
     unsigned equipment;
+    static const char *display_types[] = {
+        "EGA/VGA", "40-column color", "80-column color", "Monochrome"
+    };
     const unsigned char far *bios_date =
         (const unsigned char far *)MK_FP(0xf000, 0xfff5);
     const unsigned char far *model =
@@ -81,11 +84,17 @@ static void report_computer(void)
     fprintf(report, "BIOS equipment word:  %04Xh\n", equipment);
     fprintf(report, "Math coprocessor:      %s\n",
             equipment & 2 ? "Present" : "Not reported");
+    fprintf(report, "Startup display:       %s\n",
+            display_types[(equipment >> 4) & 3]);
+    fprintf(report, "Game adapter:          %s\n",
+            equipment & 0x1000 ? "Present" : "Not reported");
     fprintf(report, "Floppy drives:         %u\n",
             equipment & 1 ? ((equipment >> 6) & 3) + 1 : 0);
     fprintf(report, "Serial ports:          %u\n", (equipment >> 9) & 7);
     fprintf(report, "Parallel ports:        %u\n", (equipment >> 14) & 3);
     fprintf(report, "BIOS machine ID:       %02Xh\n", *model);
+    int86(0x12, &inregs, &outregs);
+    fprintf(report, "BIOS base memory:      %u KB\n", outregs.x.ax);
     fputs("BIOS date:             ", report);
     for (i = 0; i < 8; ++i)
         fputc(bios_date[i] >= 32 && bios_date[i] < 127 ? bios_date[i] : '?',
