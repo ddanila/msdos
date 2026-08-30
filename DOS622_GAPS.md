@@ -87,7 +87,7 @@ Known gaps in commands already shipped:
 | `MEM` | Existing `/C`, `/D`, `/F`, `/M`, and `/PROGRAM` views need differential validation against DOS 6.22's enhanced reports and EMM386 integration. |
 | `SETVER` | Retail 6.2/6.22 defaults, persistent editing, driver loading, and 6.22 identity behavior are covered. |
 | `UNDELETE` | DOS protection modes exist, but the enhanced 6.22 UI/configuration and Windows companion are absent. The Windows companion is out of scope. |
-| `XCOPY` | `/Y`, `/-Y`, `COPYCMD`, DOS 6 overwrite prompts, and the 6.22 rule that hidden/system files are not copied. |
+| `XCOPY` | Present: `/Y`, `/-Y`, `COPYCMD`, overwrite prompts, and hidden/system exclusion are covered. |
 
 ## Startup, drivers, and APIs
 

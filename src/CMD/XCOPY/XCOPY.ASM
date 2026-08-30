@@ -376,6 +376,8 @@ PUBLIC	MY_FLAG
 PUBLIC	SYS_FLAG
 PUBLIC	COPY_STATUS
 PUBLIC	OPTION_FLAG
+PUBLIC	OVERWRITE_POLICY
+PUBLIC	OVERWRITE_SKIP
 PUBLIC	INPUT_DATE
 PUBLIC	INPUT_TIME
 
@@ -574,6 +576,8 @@ SYS_FLAG DB	0			;system information
 ;	reset_default_s_dir  equ  0FBh	;reset default_s_dir_flag
 ;
 OPTION_FLAG DB	0
+OVERWRITE_POLICY DB 0			; 0 prompts, 1 replaces without prompting
+OVERWRITE_SKIP DB 0			; current buffered file was declined
 ;	slash_a 	   equ	  01h	;soft archieve ?
 ;	slash_d 	   equ	  02h	;date?
 ;	slash_e 	   equ	  04h	;create empty dir?
@@ -612,7 +616,7 @@ DTAS	Find_DTA 32 dup (<>)		;DTA STACK for find dir
 ;For example, DS:[BP].dta_filename.
 XCOPY_HELP_STR	DB "Copies files and directory trees.",0Dh,0Ah
 		DB 0Dh,0Ah
-		DB "XCOPY source [dest] [/A|/M] [/D[:date]] [/P] [/S [/E]] [/V] [/W]",0Dh,0Ah
+		DB "XCOPY source [dest] [/A|/M] [/D[:date]] [/P] [/S [/E]] [/V] [/W] [/Y|/-Y]",0Dh,0Ah
 		DB 0Dh,0Ah
 		DB "  /A      Copy files with archive attribute set (don't clear it)",0Dh,0Ah
 		DB "  /M      Copy files with archive attribute set (clear it)",0Dh,0Ah
@@ -621,7 +625,10 @@ XCOPY_HELP_STR	DB "Copies files and directory trees.",0Dh,0Ah
 		DB "  /S      Copy directories and subdirectories except empty ones",0Dh,0Ah
 		DB "  /E      Copy subdirectories, including empty ones (use with /S)",0Dh,0Ah
 		DB "  /V      Verify each new file",0Dh,0Ah
-		DB "  /W      Wait for a keypress before starting to copy files",0Dh,0Ah,"$"
+		DB "  /W      Wait for a keypress before starting to copy files",0Dh,0Ah
+		DB "  /Y      Replace existing files without prompting",0Dh,0Ah
+		DB "  /-Y     Prompt before replacing existing files",0Dh,0Ah
+		DB "COPYCMD supplies the default /Y or /-Y policy.",0Dh,0Ah,"$"
 
 DSEG	ENDS
 
@@ -1958,10 +1965,14 @@ WFB_DEC_DEPTH:
 
 WFB_FILE:				;Handling a file
 	AND	ES:MY_FLAG, RESET_MISSING_LINK ;if found a file, then current dir is not empty.
+	CMP	ES:OVERWRITE_SKIP,0
+	JNZ	WFB_SKIP
 	TEST	ES:FILE_FLAG, CREATED_FLAG ; A file handle is created ?
 	JNZ	WFB_WRITE		;yes, skip create again.
 	CALL	CREATE_A_FILE		;create a file in the cur dir
 	JC	WFB_ERROR		;file creation error?
+	CMP	ES:OVERWRITE_SKIP,0
+	JNZ	WFB_SKIP
 WFB_WRITE:
 	CALL	WRITE_A_FILE
 	JC	WFB_EXIT_A		;target file has been already deleted.
@@ -1989,6 +2000,19 @@ $$IF111:
 	JE	WFB_EXIT_A		;then exit
 	MOV	DS, DS:NEXT_PTR 	;else set ds to the next ptr
 	JMP	WFB_CHATT		;handle the next header
+WFB_SKIP:
+	CMP	DS:CONTINUE_INFO,0
+	JE	WFB_SKIP_DONE
+	CMP	DS:CONTINUE_INFO,3
+	JNE	WFB_SKIP_NEXT
+WFB_SKIP_DONE:
+	MOV	ES:OVERWRITE_SKIP,0
+WFB_SKIP_NEXT:
+	MOV	AX,DS
+	CMP	ES:OLD_BUFFER_PTR,AX
+	JE	WFB_EXIT_A
+	MOV	DS,DS:NEXT_PTR
+	JMP	WFB_CHATT
 WFB_ERROR:
 	jmp	main_exit		;meaningful when MKDIR failed because
 					;of there already exist same named file,
@@ -2410,6 +2434,19 @@ $$IF154:
 $$EN150:
 ;	$ENDIF
 $$EN146:
+	CMP	ES:OVERWRITE_POLICY,0
+	JNZ	CAF_OVERWRITE_OK
+	MOV	SI,OFFSET TARGET_DRV_LET
+	MOV	DX,SI
+	MOV	AX,4300H
+	INT	21H
+	JC	CAF_OVERWRITE_OK
+	CALL	PROMPT_OVERWRITE
+	JNC	CAF_OVERWRITE_OK
+	MOV	ES:OVERWRITE_SKIP,1
+	CLC
+	JMP	CAF_EXIT
+CAF_OVERWRITE_OK:
 ;-------------------------------------------------------------------------
 ; Use extended open DOS call to create the target file, use attribute list
 ; obtained from the previous Get Extended attribute DOS call
@@ -2449,6 +2486,76 @@ CAF_EXIT:
 	POP	DS
 	RET
 CREATE_A_FILE ENDP
+
+PROMPT_OVERWRITE PROC NEAR
+	PUSH	AX
+	PUSH	BX
+	PUSH	CX
+	PUSH	DX
+	PUSH	SI
+	CLD
+	PUSH	DS
+	PUSH	CS
+	POP	DS
+	MOV	DX,OFFSET OVERWRITE_PREFIX
+	MOV	AH,09H
+	INT	21H
+	POP	DS
+	MOV	SI,OFFSET TARGET_DRV_LET
+PO_NAME:
+	LODSB
+	OR	AL,AL
+	JZ	PO_QUESTION
+	MOV	DL,AL
+	MOV	AH,02H
+	INT	21H
+	JMP	SHORT PO_NAME
+PO_QUESTION:
+	PUSH	DS
+	PUSH	CS
+	POP	DS
+	MOV	DX,OFFSET OVERWRITE_SUFFIX
+	MOV	AH,09H
+	INT	21H
+PO_READ:
+	MOV	AH,01H
+	INT	21H
+	CMP	AL,'a'
+	JB	PO_UPPER
+	CMP	AL,'z'
+	JA	PO_UPPER
+	SUB	AL,20H
+PO_UPPER:
+	CMP	AL,'Y'
+	JE	PO_YES
+	CMP	AL,'A'
+	JE	PO_ALL
+	CMP	AL,'N'
+	JNE	PO_READ
+	STC
+	JMP	SHORT PO_RESULT
+PO_ALL:
+	MOV	ES:OVERWRITE_POLICY,1
+PO_YES:
+	CLC
+PO_RESULT:
+	PUSHF
+	MOV	DX,OFFSET OVERWRITE_CRLF
+	MOV	AH,09H
+	INT	21H
+	POPF
+	POP	DS
+	POP	SI
+	POP	DX
+	POP	CX
+	POP	BX
+	POP	AX
+	RET
+PROMPT_OVERWRITE ENDP
+
+OVERWRITE_PREFIX DB 'Overwrite $'
+OVERWRITE_SUFFIX DB '? (Yes/No/All): $'
+OVERWRITE_CRLF DB 13,10,'$'
 ;
 chk_t_res_device proc near
 ;check the target handle if it is for reserved device

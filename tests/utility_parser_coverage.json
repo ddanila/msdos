@@ -216,7 +216,9 @@
       "/P": {"level": "contract", "evidence": ["tests/test_prompt_yesno.sh"], "note": "Prompts for each source and copies both accepted files"},
       "/S": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Recursively copies a subdirectory payload"},
       "/V": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Verified copying produces the exact destination payload"},
-      "/W": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Waits for supplied input before copying"}
+      "/W": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Waits for supplied input before copying"},
+      "/Y": {"level": "contract", "evidence": ["tests/test_xcopy_dos6_qemu.sh"], "note": "Replaces an existing destination without prompting and overrides COPYCMD=/-Y"},
+      "/-Y": {"level": "contract", "evidence": ["tests/test_xcopy_dos6_qemu.sh"], "note": "Prompts before replacement and preserves the declined destination"}
     }}
   }
 }

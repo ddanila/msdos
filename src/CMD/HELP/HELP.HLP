@@ -335,4 +335,6 @@ Displays a disk volume label and serial number.
 Syntax: VOL [drive:]
 @XCOPY
 Copies files and directory trees.
-Syntax: XCOPY source [destination] [/A|/M] [/D:date] [/P] [/S] [/E] [/V] [/W]
+Syntax: XCOPY source [destination] [/A|/M] [/D:date] [/P] [/S] [/E] [/V] [/W] [/Y|/-Y]
+Prompts before replacing files unless /Y or COPYCMD=/Y selects automatic replacement.
+Hidden and system files are not copied.
