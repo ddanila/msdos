@@ -1,14 +1,9 @@
 name: CI
 
 on:
-  push:
-    branches: [master]
-    paths-ignore:
-      - '**.md'
-  pull_request:
-    branches: [master]
-    paths-ignore:
-      - '**.md'
+  # Automatic CI is temporarily paused during active development.
+  # Keep manual runs available for explicit validation.
+  workflow_dispatch:
 
 jobs:
   build:

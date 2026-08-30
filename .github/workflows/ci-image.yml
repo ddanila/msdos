@@ -1,10 +1,7 @@
 name: CI image
 
 on:
-  push:
-    branches: [master]
-    paths:
-      - '.github/ci.Dockerfile'
+  # Automatic image rebuilds are temporarily paused with CI.
   workflow_dispatch:
 
 env:
