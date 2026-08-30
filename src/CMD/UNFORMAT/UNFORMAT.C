@@ -12,6 +12,7 @@ extern unsigned __cdecl abs_write(unsigned drive, unsigned long sector,
                                   unsigned count, void *buffer);
 
 static unsigned char sector[1024];
+static unsigned char directory_sector[512];
 static unsigned char present[8192];
 
 struct scan_volume {
@@ -24,6 +25,7 @@ struct scan_volume {
     unsigned root_sectors;
     unsigned sectors_per_track;
     unsigned heads;
+    unsigned media;
     unsigned long total_sectors;
     unsigned long root_start;
     unsigned long data_start;
@@ -32,6 +34,7 @@ struct scan_volume {
 };
 
 static struct scan_volume recovery_volume;
+static int read_choice(const char *prompt, const char *choices);
 
 static unsigned short get_word(const unsigned char *p)
 {
@@ -49,6 +52,12 @@ static void put_word(unsigned char *p, unsigned value)
     p[1] = (unsigned char)(value >> 8);
 }
 
+static void put_dword(unsigned char *p, unsigned long value)
+{
+    put_word(p, (unsigned)value);
+    put_word(p + 2, (unsigned)(value >> 16));
+}
+
 static int load_scan_volume(struct scan_volume *volume, unsigned drive)
 {
     unsigned long data_sectors;
@@ -64,6 +73,7 @@ static int load_scan_volume(struct scan_volume *volume, unsigned drive)
     volume->sectors_per_fat = get_word(sector + 22);
     volume->sectors_per_track = get_word(sector + 24);
     volume->heads = get_word(sector + 26);
+    volume->media = sector[21];
     volume->total_sectors = get_word(sector + 19);
     if (!volume->total_sectors)
         volume->total_sectors = get_dword(sector + 32);
@@ -201,22 +211,64 @@ static void claim_cluster(unsigned cluster)
     present[cluster >> 3] |= 1 << (cluster & 7);
 }
 
+static void release_cluster(unsigned cluster)
+{
+    present[cluster >> 3] &= ~(1 << (cluster & 7));
+}
+
 static int rebuild_chain(const struct scan_volume *volume, unsigned first,
-                         unsigned count, int test_only)
+                         unsigned count, int test_only, unsigned *partial)
 {
     unsigned cluster;
+    unsigned next;
     unsigned index;
+    unsigned visited = 0;
     unsigned maximum = volume->clusters + 1;
 
+    *partial = 0;
     if (!count)
         return 0;
-    if (first < 2 || first > maximum || count > maximum - first + 1)
+    if (first < 2 || first > maximum)
+        return 1;
+    cluster = first;
+    for (index = 0; index < count; ++index) {
+        if (cluster < 2 || cluster > maximum || cluster_claimed(cluster))
+            break;
+        claim_cluster(cluster);
+        ++visited;
+        next = scan_fat_get(volume, cluster);
+        if (index + 1 == count) {
+            if (!test_only) {
+                cluster = first;
+                for (index = 0; index < count; ++index) {
+                    next = scan_fat_get(volume, cluster);
+                    if (scan_fat_set(volume, cluster, index + 1 == count
+                            ? (volume->fat16 ? 0xffff : 0x0fff) : next))
+                        return 1;
+                    cluster = next;
+                }
+            }
+            return 0;
+        }
+        if (next == 0xffff)
+            break;
+        cluster = next;
+    }
+    *partial = visited;
+    cluster = first;
+    for (index = 0; index < visited; ++index) {
+        next = scan_fat_get(volume, cluster);
+        release_cluster(cluster);
+        cluster = next;
+    }
+    if (count > maximum - first + 1)
         return 1;
     for (index = 0, cluster = first; index < count; ++index, ++cluster)
         if (cluster_claimed(cluster))
             return 1;
     for (index = 0, cluster = first; index < count; ++index, ++cluster)
         claim_cluster(cluster);
+    *partial = 0;
     if (test_only)
         return 0;
     for (index = 0, cluster = first; index < count; ++index, ++cluster) {
@@ -224,6 +276,24 @@ static int rebuild_chain(const struct scan_volume *volume, unsigned first,
             ? (volume->fat16 ? 0xffff : 0x0fff) : cluster + 1;
         if (scan_fat_set(volume, cluster, next))
             return 1;
+    }
+    return 0;
+}
+
+static int truncate_chain(const struct scan_volume *volume, unsigned first,
+                          unsigned count)
+{
+    unsigned cluster = first;
+    unsigned next;
+    unsigned index;
+
+    for (index = 0; index < count; ++index) {
+        next = scan_fat_get(volume, cluster);
+        claim_cluster(cluster);
+        if (scan_fat_set(volume, cluster, index + 1 == count
+                ? (volume->fat16 ? 0xffff : 0x0fff) : next))
+            return 1;
+        cluster = next;
     }
     return 0;
 }
@@ -246,24 +316,26 @@ static int scan_directory(const struct scan_volume *volume, unsigned directory,
     sectors = directory ? volume->sectors_per_cluster : volume->root_sectors;
     entries_left = directory ? 0xffff : volume->root_entries;
     for (sector_index = 0; sector_index < sectors; ++sector_index) {
-        if (scan_io(volume, 0, base + sector_index, 1, sector))
+        if (scan_io(volume, 0, base + sector_index, 1, directory_sector))
             return 1;
         for (offset = 0; offset < 512 && entries_left; offset += 32) {
             unsigned attributes;
             unsigned first;
             unsigned count;
+            unsigned partial;
             unsigned long size;
             unsigned long cluster_bytes;
             if (!directory)
                 --entries_left;
-            if (!sector[offset])
+            if (!directory_sector[offset])
                 return 0;
-            if (sector[offset] == 0xe5 || sector[offset + 11] == 0x0f)
+            if (directory_sector[offset] == 0xe5 ||
+                directory_sector[offset + 11] == 0x0f)
                 continue;
-            attributes = sector[offset + 11];
+            attributes = directory_sector[offset + 11];
             if (attributes & 0x08)
                 continue;
-            memcpy(saved, sector + offset, sizeof(saved));
+            memcpy(saved, directory_sector + offset, sizeof(saved));
             if ((attributes & 0x10) && saved[0] == '.')
                 continue;
             first = get_word(saved + 26);
@@ -274,9 +346,31 @@ static int scan_directory(const struct scan_volume *volume, unsigned directory,
                                          cluster_bytes) : 0);
             scan_name(saved, name);
             ++*found;
-            if (rebuild_chain(volume, first, count, test_only)) {
+            if (rebuild_chain(volume, first, count, test_only, &partial)) {
                 ++*damaged;
                 printf("Fragmented or conflicting: %s\n", name);
+                if (partial && !(attributes & 0x10) && !test_only) {
+                    int choice = read_choice("Truncate or delete this file (T/D)? ",
+                                             "TD");
+                    if (choice == 'T') {
+                        if (truncate_chain(volume, first, partial))
+                            return 1;
+                        put_dword(directory_sector + offset + 28,
+                                  (unsigned long)partial * cluster_bytes);
+                        if (scan_io(volume, 1, base + sector_index, 1,
+                                    directory_sector))
+                            return 1;
+                        puts("File truncated to its recoverable prefix.");
+                        --*damaged;
+                    } else if (choice == 'D') {
+                        directory_sector[offset] = 0xe5;
+                        if (scan_io(volume, 1, base + sector_index, 1,
+                                    directory_sector))
+                            return 1;
+                        puts("File removed from the rebuilt directory.");
+                        --*damaged;
+                    }
+                }
                 continue;
             }
             if (list_all)
@@ -302,6 +396,13 @@ static int reconstruct_without_mirror(unsigned drive, int list_all,
         return 1;
     }
     memset(present, 0, sizeof(present));
+    if (!test_only &&
+        (scan_fat_set(&volume, 0, volume.fat16
+            ? 0xff00U | volume.media : 0x0f00U | volume.media) ||
+         scan_fat_set(&volume, 1, volume.fat16 ? 0xffff : 0x0fff))) {
+        fputs("UNFORMAT: cannot initialize the file allocation tables.\n", stderr);
+        return 1;
+    }
     if (scan_directory(&volume, 0, list_all, test_only, 0, &found, &damaged)) {
         fputs("UNFORMAT: directory scan failed.\n", stderr);
         return 1;
