@@ -13,6 +13,8 @@ SERIAL_BASE="$OUT/msd-interactive-serial"
 SERIAL_IN="$SERIAL_BASE.in"
 SERIAL_OUT="$SERIAL_BASE.out"
 INTERACTIVE_LOG="$OUT/msd-interactive.log"
+MANAGER_IMAGE="$OUT/msd-manager.img"
+MANAGER_LOG="$OUT/msd-manager.log"
 
 cp "$BASE" "$IMAGE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
@@ -71,6 +73,34 @@ for marker in \
     grep -Fq "$marker" "$LOG" || {
         echo "FAIL: missing MSD evidence: $marker" >&2
         sed -n '1,240p' "$LOG" >&2
+        exit 1
+    }
+done
+
+cp "$BASE" "$MANAGER_IMAGE"
+mcopy -o -i "$MANAGER_IMAGE" "$ROOT/src/CMD/MSD/MSD.EXE" ::MSD.EXE
+mcopy -o -i "$MANAGER_IMAGE" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
+mcopy -o -i "$MANAGER_IMAGE" "$ROOT/src/MEMM/MEMM/EMM386.EXE" ::EMM386.EXE
+mcopy -o -i "$MANAGER_IMAGE" "$EXIT_COM" ::QEXIT.COM
+printf 'DEVICE=A:\\HIMEM.SYS\r\nDEVICE=A:\\EMM386.EXE RAM M5\r\n' | \
+    mcopy -o -i "$MANAGER_IMAGE" - ::CONFIG.SYS
+printf '@ECHO OFF\r\nCTTY AUX\r\nMSD /P A:\\MSDMEM.TXT\r\nTYPE A:\\MSDMEM.TXT\r\nQEXIT.COM\r\n' | \
+    mcopy -o -i "$MANAGER_IMAGE" - ::AUTOEXEC.BAT
+rm -f "$MANAGER_LOG"
+timeout 35 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -boot a -m 16 \
+    -drive if=floppy,index=0,format=raw,file="$MANAGER_IMAGE",cache=writethrough \
+    -serial stdio -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 2>/dev/null \
+    >"$MANAGER_LOG" || true
+for marker in \
+    'XMS manager:           Installed' 'XMS version:' 'XMS driver version:' \
+    'HMA available:' 'Largest free XMS:' 'Total free XMS:' \
+    'EMS manager:           Installed' 'EMS version:' 'EMS page frame:' \
+    'Free EMS pages:' 'Total EMS pages:'; do
+    grep -Fq "$marker" "$MANAGER_LOG" || {
+        echo "FAIL: missing MSD memory-manager evidence: $marker" >&2
+        sed -n '1,180p' "$MANAGER_LOG" >&2
         exit 1
     }
 done

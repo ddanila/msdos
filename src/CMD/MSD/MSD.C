@@ -9,6 +9,12 @@ static int skip_detection;
 static char report_name[64];
 static char report_company[64];
 extern char **environ;
+extern unsigned MsdXmsVersion;
+extern unsigned MsdXmsDriverVersion;
+extern unsigned MsdXmsHma;
+extern unsigned MsdXmsLargestFree;
+extern unsigned MsdXmsTotalFree;
+extern int MsdReadXmsInfo(void);
 
 /* DOS's internal tables contain unaligned words.  Decode them bytewise so
  * this remains correct regardless of the compiler's structure packing. */
@@ -187,24 +193,20 @@ static void report_configuration(void)
 static int ems_present(void)
 {
     void interrupt far (*handler)(void) = _dos_getvect(0x67);
-    const char far *signature;
-    static const char expected[] = "EMMXXXX0";
-    unsigned i;
+    union REGS inregs, outregs;
 
-    if (handler == 0)
+    if (!handler || (FP_SEG(handler) == 0 && FP_OFF(handler) == 0))
         return 0;
-    signature = (const char far *)MK_FP(FP_SEG(handler),
-                                        FP_OFF(handler) + 10);
-    for (i = 0; i < 8; ++i)
-        if (signature[i] != expected[i])
-            return 0;
-    return 1;
+    inregs.h.ah = 0x40;
+    int86(0x67, &inregs, &outregs);
+    return outregs.h.ah == 0;
 }
 
 static void report_memory(void)
 {
     union REGS inregs, outregs;
     unsigned conventional, largest;
+    int have_ems;
     heading("Memory");
     int86(0x12, &inregs, &outregs);
     conventional = outregs.x.ax;
@@ -215,12 +217,41 @@ static void report_memory(void)
     largest = outregs.x.bx;
     fprintf(report, "Largest free block:    %lu bytes\n",
             (unsigned long)largest * 16UL);
-    inregs.x.ax = 0x4300;
-    int86(0x2f, &inregs, &outregs);
-    fprintf(report, "XMS manager:           %s\n",
-            outregs.h.al == 0x80 ? "Installed" : "Not installed");
+    if (MsdReadXmsInfo()) {
+        fputs("XMS manager:           Installed\n", report);
+        fprintf(report, "XMS version:           %u.%02u\n",
+                MsdXmsVersion >> 8, MsdXmsVersion & 0xff);
+        fprintf(report, "XMS driver version:    %u.%02u\n",
+                MsdXmsDriverVersion >> 8, MsdXmsDriverVersion & 0xff);
+        fprintf(report, "HMA available:         %s\n",
+                MsdXmsHma ? "Yes" : "No");
+        fprintf(report, "Largest free XMS:      %u KB\n", MsdXmsLargestFree);
+        fprintf(report, "Total free XMS:        %u KB\n", MsdXmsTotalFree);
+    } else {
+        fputs("XMS manager:           Not installed\n", report);
+    }
+    have_ems = ems_present();
     fprintf(report, "EMS manager:           %s\n",
-            ems_present() ? "Installed" : "Not installed");
+            have_ems ? "Installed" : "Not installed");
+    if (have_ems) {
+        inregs.h.ah = 0x46;
+        int86(0x67, &inregs, &outregs);
+        if (outregs.h.ah == 0)
+            fprintf(report, "EMS version:           %u.%u\n",
+                    outregs.h.al >> 4, outregs.h.al & 0x0f);
+        inregs.h.ah = 0x41;
+        int86(0x67, &inregs, &outregs);
+        if (outregs.h.ah == 0)
+            fprintf(report, "EMS page frame:        %04Xh\n", outregs.x.bx);
+        inregs.h.ah = 0x42;
+        int86(0x67, &inregs, &outregs);
+        if (outregs.h.ah == 0) {
+            fprintf(report, "Free EMS pages:        %u (%lu KB)\n",
+                    outregs.x.bx, (unsigned long)outregs.x.bx * 16UL);
+            fprintf(report, "Total EMS pages:       %u (%lu KB)\n",
+                    outregs.x.dx, (unsigned long)outregs.x.dx * 16UL);
+        }
+    }
 }
 
 static void report_video(void)
