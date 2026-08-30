@@ -115,7 +115,9 @@ save_path_character:
         mov     ah, 4dh
         int     21h
         or      al, al
-        jnz     short save_failed
+        jz      short save_not_needed
+        cmp     al, 2                   ; MIRROR: blank media
+        jne     short save_failed
 save_not_needed:
         xor     ax, ax
         jmp     short save_done

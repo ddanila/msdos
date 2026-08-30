@@ -50,7 +50,7 @@
     "TIME": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_command_startup_qemu.sh"], "note": "Prompt-and-empty input is covered; hours, minutes, seconds, and ticking hundredths are set and reported, while an out-of-range hour is rejected deterministically"},
     "TRUENAME": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "A path is resolved to its canonical absolute spelling"},
     "TYPE": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Exact file payload is emitted; missing and excess filespecs require exact diagnostics"},
-    "VER": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "The built command interpreter reports the exact MS-DOS 5.00 identity"},
+    "VER": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "The built command interpreter reports the exact MS-DOS 6.22 identity"},
     "VERIFY": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Query plus ON/OFF state transitions are asserted"},
     "VOL": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Volume information is obtained from the active drive; unavailable and excess drive forms require exact diagnostics"}
   }

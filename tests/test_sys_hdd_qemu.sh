@@ -131,8 +131,8 @@ run_case() {
         -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$boot_log" 2>&1 || true
 
     if grep -q "SYS_HDD_${name}_BOOTED" "$boot_log" \
-        && grep -Eq 'MS-DOS Version 5\.00' "$boot_log"; then
-        ok "SYS-created $name fixed disk boots DOS 5"
+        && grep -Eq 'MS-DOS Version 6\.22' "$boot_log"; then
+        ok "SYS-created $name fixed disk boots DOS 6.22"
     else
         fail "SYS-created $name fixed disk did not boot"
         sed -n '1,120p' "$boot_log"

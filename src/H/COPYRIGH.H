@@ -1,2 +1,2 @@
-char	*copyright1 =  "MS DOS Version 5.00 (C)Copyright 1988 Microsoft Corp";
+char	*copyright1 =  "MS DOS Version 6.22 (C)Copyright 1988 Microsoft Corp";
 char	*copyright2 =  "Licensed Material - Property of Microsoft  ";

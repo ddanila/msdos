@@ -58,7 +58,7 @@ ok() { echo "  PASS: $1"; PASS=$((PASS+1)); }
 fail() { echo "  FAIL: $1"; FAIL=$((FAIL+1)); }
 
 run_expand() {
-    "$KVIKDOS" --dos-version=5 --mount=c:"$WORK"/ --drive=c \
+    "$KVIKDOS" --dos-version=6.22 --mount=c:"$WORK"/ --drive=c \
         --prog='C:\EXPAND.EXE' "$WORK/EXPAND.EXE" "$@" 2>&1
 }
 

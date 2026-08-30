@@ -67,17 +67,17 @@ timeout 30 qemu-system-i386 \
 
 versions=$(grep -o 'SETVER_PROBE_VERSION=[0-9][0-9]*\.[0-9][0-9]' "$LOG" || true)
 expected=$(printf '%s\n' \
-    SETVER_PROBE_VERSION=5.00 \
+    SETVER_PROBE_VERSION=6.22 \
     SETVER_PROBE_VERSION=3.30 \
     SETVER_PROBE_VERSION=6.22 \
-    SETVER_PROBE_VERSION=5.00 \
+    SETVER_PROBE_VERSION=6.22 \
     SETVER_PROBE_VERSION=4.01 \
-    SETVER_PROBE_VERSION=5.00 \
-    SETVER_PROBE_VERSION=5.00 \
+    SETVER_PROBE_VERSION=6.22 \
+    SETVER_PROBE_VERSION=6.22 \
     SETVER_PROBE_VERSION=2.11 \
-    SETVER_PROBE_VERSION=5.00 \
+    SETVER_PROBE_VERSION=6.22 \
     SETVER_PROBE_VERSION=4.20 \
-    SETVER_PROBE_VERSION=5.00 \
+    SETVER_PROBE_VERSION=6.22 \
     SETVER_PROBE_VERSION=4.20)
 if [[ "$versions" != "$expected" ]]; then
     echo 'FAIL: SETVER version transitions differ' >&2
@@ -126,7 +126,7 @@ timeout 20 qemu-system-i386 \
     -drive if=floppy,index=0,format=raw,file="$IMAGE",cache=writethrough \
     -boot a -serial stdio -no-reboot \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$CLEAR_LOG" 2>&1 || true
-grep -Fq 'SETVER_PROBE_VERSION=5.00' "$CLEAR_LOG" || {
+grep -Fq 'SETVER_PROBE_VERSION=6.22' "$CLEAR_LOG" || {
     echo 'FAIL: persisted SETVER deletion did not survive reboot' >&2
     sed -n '1,160p' "$CLEAR_LOG" >&2
     exit 1

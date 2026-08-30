@@ -41,7 +41,7 @@ for cpu in 386 486; do
         'INT2F_CHAIN_RETURNED' \
         'A20 AX=0001' \
         'HMA_REFERENCE_END' \
-        'DOS_VERSION_AX=0005' \
+        'DOS_VERSION_AX=1606' \
         'CYCLE_ACCEPTANCE_DONE'
     do
         grep -Fq "$expected" <<<"$result" || {

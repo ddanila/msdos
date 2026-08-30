@@ -11,6 +11,8 @@ CD         Displays or changes the current directory.
 CHCP       Displays or changes the active code page.
 CHDIR      Displays or changes the current directory.
 CHKDSK     Checks a disk and displays a report.
+CHOICE     Prompts for a key and returns its choice number.
+DELTREE    Deletes a directory tree.
 CLS        Clears the screen.
 COMMAND    Starts a command interpreter.
 COMP       Compares two files or sets of files.
@@ -44,6 +46,7 @@ IF         Performs conditional batch processing.
 JOIN       Joins a drive to a directory.
 KEYB       Configures a national keyboard.
 LABEL      Creates or changes a volume label.
+LOADFIX    Loads a program above the first 64K of memory.
 LH         Loads a program into upper memory.
 LOADHIGH   Loads a program into upper memory.
 MD         Creates a directory.
@@ -52,6 +55,7 @@ MKDIR      Creates a directory.
 MIRROR     Records disk information for recovery.
 MODE       Configures system devices.
 MORE       Displays output one screen at a time.
+MOVE       Moves files or renames files and directories.
 NLSFUNC    Loads country-specific information.
 PATH       Displays or sets the program search path.
 PAUSE      Suspends batch processing.
@@ -112,6 +116,12 @@ Syntax: CHCP [nnn]
 @CHKDSK
 Checks a disk and displays a status report.
 Syntax: CHKDSK [drive:][[path]filename] [/F] [/V]
+@CHOICE
+Prompts for one key from a selectable list and returns its one-based position.
+Syntax: CHOICE [/C[:]choices] [/N] [/S] [/T[:]choice,seconds] [text]
+@DELTREE
+Deletes directories, their files, and all subdirectories.
+Syntax: DELTREE [/Y] [drive:]path [[drive:]path ...]
 @CLS
 Clears the screen.
 Syntax: CLS
@@ -211,6 +221,9 @@ Syntax: KEYB [xx[,[yyy][,[drive:][path]filename]]] [/E] [/ID:nnn]
 @LABEL
 Creates, changes, or deletes a disk volume label.
 Syntax: LABEL [drive:][label]
+@LOADFIX
+Loads a child program above the first 64K of conventional memory.
+Syntax: LOADFIX [drive:][path]filename [arguments]
 @LH
 Loads a program into upper memory.
 Syntax: LH [drive:][path]filename [arguments]
@@ -235,6 +248,9 @@ Syntax: MODE device parameters
 @MORE
 Displays output one screen at a time.
 Syntax: MORE [drive:][path]filename or command | MORE
+@MOVE
+Moves files, or renames files and directories.
+Syntax: MOVE [/Y | /-Y] source [source ...] target
 @NLSFUNC
 Loads country-specific information.
 Syntax: NLSFUNC [[drive:][path]country-file]

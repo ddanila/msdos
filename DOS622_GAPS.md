@@ -33,9 +33,9 @@ valid lightweight interface.
 
 | Area | Status | Gap |
 | --- | --- | --- |
-| DOS identity and compatibility | Missing | The kernel, boot records, banners, `VER`, and default SETVER data still identify DOS 5.00 rather than 6.22. |
+| DOS identity and compatibility | Partial | The kernel and true-version API identify 6.22; the retail SETVER defaults still need to replace the inherited DOS 5 table. The `MSDOS5.0` FAT OEM identifier is correct for 6.22 and remains unchanged. |
 | Startup and configuration | Partial | No configuration blocks, boot menus, `CONFIG` selection variable, interactive startup bypass, or batch stepping. |
-| Everyday command additions | Missing | `CHOICE`, `DELTREE`, `LOADFIX`, and `MOVE`; overwrite policy additions to `COPY` and `XCOPY`. |
+| Everyday command additions | Partial | `CHOICE`, `DELTREE`, `LOADFIX`, and `MOVE` are present; overwrite policy additions to `COPY` and `XCOPY` remain. |
 | Disk health and performance | Missing | `SCANDISK` and `DEFRAG`; no ScanDisk repair log or undo flow. |
 | Memory optimization | Partial | Strong DOS 5 HMA/UMB base, but not the complete DOS 6 EMM386/MEM/loader contract or `MEMMAKER`. |
 | SMARTDrive | Partial | A DOS 5 block driver and control helper exist, not the DOS 6 dual-purpose `SMARTDRV.EXE` cache interface and write-behind behavior. |
@@ -54,16 +54,16 @@ DOS 5 commands inherit their status from `DOS5_GAPS.md`.
 
 | Command | Status | Missing 6.22 surface |
 | --- | --- | --- |
-| `CHOICE` | Missing | Prompt plus `/C[:]choices`, `/N`, `/S`, `/T[:]choice,seconds`, key-index errorlevels, and redirected/batch behavior. |
+| `CHOICE` | Present | Prompt, `/C[:]choices`, `/N`, `/S`, `/T[:]choice,seconds`, key-index errorlevels, and redirected input are covered. |
 | `DEFRAG` | Missing | Full-screen and command-line operation; `/F`, `/U`, `/S[:]order`, `/B`, `/SKIPHIGH`, `/LCD`, `/BW`, `/G0`, `/H`, documented errorlevels, progress/error reporting, and safe interruption. |
-| `DELTREE` | Missing | Recursive deletion, multiple targets, hidden/system/read-only handling, prompting, and `/Y`. |
+| `DELTREE` | Present | Recursive and wildcard deletion, multiple targets, protected attributes, prompting, and `/Y` are covered. |
 | `DRVSPACE` | Separate epic | Interactive and command-line DriveSpace manager; `/AUTOMOUNT`, `/CHKDSK`, `/COMPRESS`, `/CREATE`, `/DELETE`, `/FORMAT`, `/INFO`, `/MOUNT`, `/RATIO`, `/SIZE`, `/UNCOMPRESS`, `/UNMOUNT`, host-drive swapping, and the driver/format/API integration listed below. |
 | `FASTHELP` | Missing | Compact command list/summary interface. The repository's `HELP` is not this alias. |
 | `INTERLNK` | Missing | Client installation/status, drive and printer redirection, server discovery, and the driver options and transports listed below. |
 | `INTERSVR` | Missing | Serial/parallel file and printer server, `/B`, `/V`, `/LPT`, `/COM`, `/X`, drive selection, connection status, and client bootstrap transfer. |
-| `LOADFIX` | Missing | Loading a child above the first 64 KiB, argument forwarding, and child exit propagation. |
+| `LOADFIX` | Present | Placement above the first 64 KiB, argument forwarding, and child exit propagation are covered. |
 | `MEMMAKER` | Missing | Express/custom analysis, reboot passes, CONFIG.SYS/AUTOEXEC.BAT rewriting, undo, batch/session modes, `/B`, `/T`, `/UNDO`, `/W`, and swap-drive control. |
-| `MOVE` | Missing | Moving files, renaming directories, multiple sources, overwrite prompts, `/Y`, `/-Y`, `COPYCMD`, cross-drive behavior, and errorlevels. |
+| `MOVE` | Present | Files, directory rename, multiple sources, prompts, `/Y`, `/-Y`, `COPYCMD`, cross-drive recursion, and errorlevels are covered. |
 | `MSAV` | Missing | Interactive scanning and `drive:`, `/S`, `/C`, `/R`, `/A`, `/L`, `/N`, `/P`, `/F`, `/VIDEO` and its display switches; removal, reports, checksums, exit code 86, configuration, and signature database. |
 | `MSBACKUP` | Missing | Interactive backup/restore/compare, `.SET` setup and catalog files, full/incremental/differential sets, compression, verification, scheduling, spanning, destination devices, and `setup_file`, `/BW`, `/LCD`, `/MDA`. DOS 5 `RESTORE` remains responsible for old `BACKUP` sets. |
 | `MSCDEX` | Missing | CD-ROM redirector installation and `/D`, `/L`, `/M`, `/E`, `/S`, `/V`, `/K`; driver discovery, ISO 9660 access, audio/control IOCTLs, and multiplex API. A hardware-specific CD-ROM device driver remains external. |
@@ -157,8 +157,8 @@ and Supplemental Disk utilities are not compatibility requirements.
 
 ## Delivery stages
 
-1. **DOS 6.22 platform contract.** Change the reported/true version and SETVER
-   defaults; implement configuration blocks, boot menus, `CONFIG`, startup
+1. **DOS 6.22 platform contract.** Complete the SETVER defaults; implement
+   configuration blocks, boot menus, `CONFIG`, startup
    bypass/confirmation, `COMMAND /K` and `/Y`; add `CHOICE`, `DELTREE`,
    `LOADFIX`, `MOVE`, COPY/XCOPY overwrite policy, and complete lean Help topics.
 2. **Core maintenance and memory.** Add `SCANDISK` and `DEFRAG`; close DOS 6.22

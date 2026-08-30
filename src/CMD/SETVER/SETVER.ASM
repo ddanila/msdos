@@ -1,4 +1,4 @@
-; MS-DOS 5 SETVER-compatible resident version-table editor.
+; MS-DOS 6.22 SETVER-compatible resident version-table editor.
 
 CODE SEGMENT PUBLIC
         ORG     100h
@@ -157,7 +157,11 @@ delete_entry:
         sub     cx,ax
         mov     si,di
         mov     di,bx
+        push    ds
+        mov     ax,cs:table_seg
+        mov     ds,ax
         rep     movsb                    ; overlap is forward-safe
+        pop     ds
         call    save_persist
         cmp     cs:quiet_flag,0
         jne     exit_ok
@@ -251,6 +255,8 @@ persist_open:
         jc      persist_corrupt
         inc     cx
         mov     di,OFFSET persist_image
+        push    cs
+        pop     es                      ; marker and image are both in our segment
 persist_scan:
         push    cx
         push    di

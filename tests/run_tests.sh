@@ -29,6 +29,10 @@ ARTIFACTS=(
     CMD/EXPAND/EXPAND.EXE
     CMD/SETUP/SETUP.EXE
     CMD/CHKDSK/CHKDSK.COM
+    CMD/CHOICE/CHOICE.COM
+    CMD/DELTREE/DELTREE.EXE
+    CMD/LOADFIX/LOADFIX.COM
+    CMD/MOVE/MOVE.EXE
     DEV/ANSI/ANSI.SYS
     DEV/VDISK/VDISK.SYS
     DEV/COUNTRY/COUNTRY.SYS
@@ -169,6 +173,10 @@ check_help "PRINT"    "CMD/PRINT/PRINT.COM"          "PRINT"
 check_help "EDLIN"    "CMD/EDLIN/EDLIN.COM"          "EDLIN"
 check_help "RECOVER"  "CMD/RECOVER/RECOVER.COM"      "RECOVER"
 check_help "CHKDSK"   "CMD/CHKDSK/CHKDSK.COM"        "CHKDSK"
+check_help "CHOICE"   "CMD/CHOICE/CHOICE.COM"        "CHOICE"
+check_help "DELTREE"  "CMD/DELTREE/DELTREE.EXE"      "DELTREE"
+check_help "LOADFIX"  "CMD/LOADFIX/LOADFIX.COM"      "LOADFIX"
+check_help "MOVE"     "CMD/MOVE/MOVE.EXE"            "MOVE"
 check_help "FILESYS"  "CMD/FILESYS/FILESYS.EXE"      "FILESYS"
 check_help "DEBUG"    "CMD/DEBUG/DEBUG.COM"           "DEBUG"
 check_help "FDISK"    "CMD/FDISK/FDISK.EXE"           "FDISK"
@@ -1611,11 +1619,11 @@ else
 fi
 
 out=$(run_dos CMD/COMMAND/COMMAND.COM /C VER) || true
-if echo "$out" | grep -Fq "MS-DOS Version 5.00" \
+if echo "$out" | grep -Fq "MS-DOS Version 6.22" \
     && ! echo "$out" | grep -Fq "Version 4.00"; then
-    ok "COMMAND.COM VER reports the DOS 5.00 product version"
+    ok "COMMAND.COM VER reports the DOS 6.22 product version"
 else
-    fail "COMMAND.COM VER (expected DOS 5.00 without stale 4.00 text, got: $out)"
+    fail "COMMAND.COM VER (expected DOS 6.22 without stale 5.00 text, got: $out)"
 fi
 
 out=$(run_dos CMD/COMMAND/COMMAND.COM /C 'ECHO HELLO_KVIKDOS_TEST') || true

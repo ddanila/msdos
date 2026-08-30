@@ -56,7 +56,7 @@ fi
 
 "$KVIKDOS" \
     "${KVIKDOS_ARGS[@]}" \
-    --dos-version=5 \
+    --dos-version=6.22 \
     --mount=c:"$SRC_ROOT"/ \
     --drive=c \
     $CWD_ARG \

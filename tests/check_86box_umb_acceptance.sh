@@ -33,7 +33,7 @@ for expected in \
     'A20 AX=0001' \
     'HMA_REQUEST AX=0000 BL=0391' \
     'HMA_REFERENCE_END' \
-    'DOS_VERSION_AX=0005' \
+    'DOS_VERSION_AX=1606' \
     'CYCLE_ACCEPTANCE_DONE'
 do
     if ! grep -Fq "$expected" <<<"$RESULT"; then

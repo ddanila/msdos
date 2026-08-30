@@ -1,6 +1,6 @@
 # System architecture
 
-This repository builds and tests a DOS 5.00-compatible system from the
+This repository builds and tests a DOS 6.22-compatible system from the
 maintained sources in `src/`. The production build is host-native: it does not
 run DOS programs or proprietary Microsoft tools.
 

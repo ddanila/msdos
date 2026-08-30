@@ -448,7 +448,7 @@ done
 
 if [[ -S "$QMP_SOCK5" ]] && python3 "$REPO_ROOT/tests/screen_expect.py" \
     "$QMP_SOCK5" "$SCREEN_LOG5" \
-    "MS-DOS Version 5.00" "1+ret" \
+    "MS-DOS Version 6.22" "1+ret" \
     "Create DOS Partition or Logical DOS Drive" "1+ret" \
     "Create Primary DOS Partition" "ret" \
     "System will now restart" ""; then
@@ -529,7 +529,7 @@ done
 
 if [[ -S "$QMP_SOCK4" ]] && python3 "$REPO_ROOT/tests/screen_expect.py" \
     "$QMP_SOCK4" "$SCREEN_LOG4" \
-    "MS-DOS Version 5.00" "4+ret" \
+    "MS-DOS Version 6.22" "4+ret" \
     "Display Partition Information" "esc" \
     "FDISK Options" "2+ret" \
     "Set Active Partition" "1+ret" \
@@ -551,12 +551,12 @@ else
     fail "Interactive FDISK workflow did not complete"
 fi
 
-if grep -Fq "MS-DOS Version 5.00" "$SCREEN_LOG4" \
+if grep -Fq "MS-DOS Version 6.22" "$SCREEN_LOG4" \
     && grep -Fq "Copyright Microsoft Corp. 1983, 1990" "$SCREEN_LOG4" \
     && ! grep -Fq "MS-DOS Version 4.00" "$SCREEN_LOG4"; then
-    ok "FDISK displays the retail DOS 5 product banner"
+    ok "FDISK displays the DOS 6.22 product banner"
 else
-    fail "FDISK product banner does not match retail DOS 5"
+    fail "FDISK product banner does not match DOS 6.22"
 fi
 
 kill "$QEMU_PID4" 2>/dev/null || true

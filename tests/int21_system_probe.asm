@@ -176,7 +176,7 @@ dta_ok:
 
     mov ah, 30h
     int 21h
-    cmp al, 5
+    cmp al, 6
     je version_ok
     mov dx, fail_30
     jmp fail
@@ -184,7 +184,7 @@ version_ok:
 
     mov ax, 3306h
     int 21h
-    cmp bx, 0005h
+    cmp bx, 1606h
     jne true_version_failed
     or dx, dx
     jz true_version_ok

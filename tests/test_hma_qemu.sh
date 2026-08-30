@@ -140,8 +140,8 @@ grep -Fq 'HMA not available: Loading DOS low' "$NO_XMS_SCREEN_LOG" || {
 }
 
 for log in "$OUT/hma-high.log" "$OUT/hma-low.log"; do
-    grep -Fq 'DOS_VERSION_AX=0005' "$log" || {
-        echo "FAIL: runtime did not report DOS 5.00 in $log" >&2
+    grep -Fq 'DOS_VERSION_AX=1606' "$log" || {
+        echo "FAIL: runtime did not report DOS 6.22 in $log" >&2
         exit 1
     }
 done

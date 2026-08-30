@@ -1,14 +1,15 @@
-# DOS 5 memory model
+# DOS 6.22 memory model
 
 This document records the durable HMA, UMB, XMS, and EMS constraints. Detailed
 delivery history and test results belong in Git and CI.
 
 ## Public behavior
 
-The system reports DOS 5.00 consistently through `INT 21h/AH=30h`,
-`AX=3306h`, system banners, `COMMAND.COM VER`, and the `MSDOS5.0` boot-sector
-identifier. The existing per-program fake-version hook affects the documented
-call but not the true-version query.
+The system reports DOS 6.22 consistently through `INT 21h/AH=30h`,
+`AX=3306h`, system banners, and `COMMAND.COM VER`. It retains the `MSDOS5.0`
+boot-sector OEM identifier used by retail MS-DOS 6.22. The existing
+per-program fake-version hook affects the documented call but not the
+true-version query.
 
 The supported memory surface includes:
 

@@ -1,11 +1,11 @@
 
-major_version	    equ     5	    ;Major DOS version
-minor_version	    equ     00	    ;Minor DOS Version
+major_version	    equ     6	    ;Major DOS version
+minor_version	    equ     22	    ;Minor DOS Version
 
 expected_version    equ     (MINOR_VERSION SHL 8)+MAJOR_VERSION
 
        if1
-       %OUT  ... for DOS Version 5.00 ...
+       %OUT  ... for DOS Version 6.22 ...
        endif
 
        ;******************************

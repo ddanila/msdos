@@ -34,6 +34,10 @@
       "/F": {"level": "contract", "evidence": ["tests/test_chkdsk_fix.sh"], "note": "Repairs an injected orphan chain, preserves exact data, and leaves a clean filesystem"},
       "/V": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Verbose reporting exposes an actual file in the volume scan"}
     }},
+    "DELTREE.EXE": {"source": "src/CMD/DELTREE/DELTREE.C", "extractor": "c_parser_literals", "switches": {
+      "/?": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Displays concise syntax without touching any target"},
+      "/Y": {"level": "contract", "evidence": ["tests/test_deltree_qemu.sh"], "note": "Deletes multiple recursive targets without prompting, including protected files and wildcard matches"}
+    }},
     "DISKCOMP.COM": {"source": "src/CMD/DISKCOMP/DCOMPPAR.ASM", "switches": {
       "/1": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Limits comparison to one side and composes with /8"},
       "/8": {"level": "contract", "evidence": ["tests/test_diskcomp_diskcopy.sh"], "note": "Limits comparison to eight sectors per track and composes with /1"}
@@ -153,6 +157,11 @@
       "/STA": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Shortest synonym reports live console status"},
       "/STAT": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Intermediate synonym reports live console status"},
       "/STATUS": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_drivers_qemu.sh"], "note": "Long synonym reports console and prepared code-page status"}
+    }},
+    "MOVE.EXE": {"source": "src/CMD/MOVE/MOVE.C", "extractor": "c_parser_literals", "switches": {
+      "/-Y": {"level": "contract", "evidence": ["tests/test_move_qemu.sh"], "note": "Overrides an affirmative COPYCMD policy and restores overwrite prompting"},
+      "/?": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Displays concise syntax without moving data"},
+      "/Y": {"level": "contract", "evidence": ["tests/test_move_qemu.sh"], "note": "Overwrites an existing target without prompting"}
     }},
     "PRINT.COM": {"source": "src/CMD/PRINT/PRINT_T.ASM", "switches": {
       "/B": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "The 512-byte and 16-KiB bounds are enforced before a functionally verified resident installation"},

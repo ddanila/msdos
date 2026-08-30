@@ -7,6 +7,7 @@ SRC="$REPO_ROOT/src"
 OUT="$REPO_ROOT/out"
 FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 COMMAND_COM="$SRC/CMD/COMMAND/COMMAND.COM"
+SYS_BASE="$OUT/floppy-sys-base.img"
 
 SYS_BOOT="$OUT/floppy-sys-boot.img"
 SYS_TARGET="$OUT/floppy-sys-target.img"
@@ -41,7 +42,20 @@ trap 'kill ${QEMU_PID:-} 2>/dev/null; rm -f "$SYS_SERIAL_IN" "$SYS_SERIAL_OUT" "
 echo "=== SYS.COM e2e test ==="
 
 echo "Building test images..."
-cp "$FLOPPY" "$SYS_BOOT"
+# Keep drive A at 1.44 MB while testing 1.44/2.88 MB media in drive B.
+# Some real BIOSes, and this DOS FORMAT implementation, derive the secondary
+# drive's default media behavior from the boot-drive class.
+dd if=/dev/zero bs=512 count=2880 of="$SYS_BASE" status=none
+dd if="$SRC/BOOT/MSBOOT.BIN" of="$SYS_BASE" bs=1 skip=31744 count=512 conv=notrunc status=none
+"$REPO_ROOT/bin/patch-bpb" "$SYS_BASE"
+mformat -i "$SYS_BASE" -k ::
+mcopy -i "$SYS_BASE" "$SRC/BIOS/IO.SYS" ::IO.SYS
+mcopy -i "$SYS_BASE" "$SRC/DOS/MSDOS.SYS" ::MSDOS.SYS
+mcopy -i "$SYS_BASE" "$COMMAND_COM" ::COMMAND.COM
+mcopy -i "$SYS_BASE" "$SRC/CMD/FORMAT/FORMAT.COM" ::FORMAT.COM
+mcopy -i "$SYS_BASE" "$SRC/CMD/SYS/SYS.COM" ::SYS.COM
+mcopy -i "$SYS_BASE" "$SRC/CMD/MIRROR/MIRROR.COM" ::MIRROR.COM
+cp "$SYS_BASE" "$SYS_BOOT"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 mcopy -o -i "$SYS_BOOT" "$EXIT_COM" ::QEXIT.COM
 {
@@ -96,7 +110,7 @@ else
 fi
 
 if [[ $(dd if="$SYS_TARGET" bs=1 skip=3 count=8 2>/dev/null) == "MSDOS5.0" ]]; then
-    ok "SYS installed the DOS 5.00 boot-sector OEM identifier"
+    ok "SYS retained the MS-DOS 6.22-compatible MSDOS5.0 OEM identifier"
 else
     fail "SYS did not install the MSDOS5.0 boot-sector OEM identifier"
 fi
@@ -114,15 +128,15 @@ timeout 15 qemu-system-i386 \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     2>/dev/null; true
 
-if grep -Eq "MS-DOS Version 5\.00" "$SYS_BOOT2_LOG"; then
+if grep -Eq "MS-DOS Version 6\.22" "$SYS_BOOT2_LOG"; then
     ok "SYS'd floppy boots MS-DOS successfully"
 else
-    fail "SYS'd floppy did not boot as MS-DOS 5.00"
+    fail "SYS'd floppy did not boot as MS-DOS 6.22"
     echo "--- serial log ---"; cat "$SYS_BOOT2_LOG"; echo "---"
 fi
 
 echo "Testing SYS-created 2.88 MB boot media..."
-cp "$FLOPPY" "$SYS_288_BOOT"
+cp "$SYS_BASE" "$SYS_288_BOOT"
 mcopy -o -i "$SYS_288_BOOT" "$EXIT_COM" ::QEXIT.COM
 {
     printf '@ECHO OFF\r\n'
@@ -179,15 +193,15 @@ print(struct.unpack_from('<H', b, 11)[0], struct.unpack_from('<H', b, 19)[0],
 
 if grep -q 'SYS_2880_TRANSFER_DONE' "$SYS_288_LOG" \
     && grep -q 'System transferred' "$SYS_288_LOG" \
-    && grep -Eq 'MS-DOS Version 5\.00' "$SYS_288_BOOT_LOG" \
+    && grep -Eq 'MS-DOS Version 6\.22' "$SYS_288_BOOT_LOG" \
     && [[ "$bps288 $total288 $media288 $spf288 $spt288 $heads288" == '512 5760 240 9 36 2' ]]; then
-    ok "SYS creates bootable DOS 5 media with exact 2.88 MB geometry"
+    ok "SYS creates bootable DOS 6.22 media with exact 2.88 MB geometry"
 else
     fail "SYS-created 2.88 MB media did not transfer, boot, or retain exact geometry"
 fi
 
 echo "Testing SYS against a read-only target..."
-cp "$FLOPPY" "$SYS_RO_BOOT"
+cp "$SYS_BASE" "$SYS_RO_BOOT"
 mcopy -o -i "$SYS_RO_BOOT" "$EXIT_COM" ::QEXIT.COM
 {
     printf '@ECHO OFF\r\n'

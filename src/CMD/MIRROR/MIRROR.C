@@ -173,11 +173,16 @@ static int snapshot_drive(unsigned drive, int latest_only)
     char save_name[] = "A:\\MIRORSAV.FIL";
     char prior_name[] = "A:\\MIRORSAV.BAK";
     FILE *file;
+    unsigned i;
 
     if (abs_read(drive, 0, 1, sector)) {
         fprintf(stderr, "MIRROR: cannot read drive %c:.\n", 'A' + drive);
         return 1;
     }
+    for (i = 0; i < sizeof(sector) && sector[i] == 0; ++i)
+        ;
+    if (i == sizeof(sector))
+        return 2;               /* blank media: there is nothing to preserve */
     if (get_word(sector + 11) != 512 || !sector[16] || !get_word(sector + 22)) {
         fprintf(stderr, "MIRROR: drive %c: has an unsupported filesystem.\n", 'A' + drive);
         return 1;

@@ -1,9 +1,24 @@
 #!/usr/bin/env python3
-"""Patch the BPB in a DOS boot sector for a 1.44MB floppy (in-place, byte 11-61)."""
-import struct, sys
+"""Patch a DOS boot-sector BPB for a supported floppy image."""
+import os
+import struct
+import sys
 
 if len(sys.argv) != 2:
     print(f"Usage: {sys.argv[0]} <image>", file=sys.stderr)
+    sys.exit(1)
+
+geometries = {
+    1440 * 1024: (224, 2880, 9, 18),
+    2880 * 1024: (240, 5760, 9, 36),
+}
+
+try:
+    root_entries, total_sectors, sectors_per_fat, sectors_per_track = geometries[
+        os.path.getsize(sys.argv[1])
+    ]
+except KeyError:
+    print("Unsupported floppy image size", file=sys.stderr)
     sys.exit(1)
 
 with open(sys.argv[1], 'r+b') as f:
@@ -13,11 +28,11 @@ with open(sys.argv[1], 'r+b') as f:
         1,
         1,
         2,
-        224,
-        2880,
+        root_entries,
+        total_sectors,
         0xF0,
-        9,
-        18,
+        sectors_per_fat,
+        sectors_per_track,
         2,
         0,
         0,
