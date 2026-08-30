@@ -863,14 +863,10 @@ SKIPCC:
 	MOV	CX,12
 	REP	MOVSW
 ;
-; Transfer Above Board Information
+; Transfer current, maximum, and minimum cache sizes in 16K pages.
+; These fields apply to both extended- and expanded-memory caches.
 ;
 	xor	dx,dx
-	mov	es:[di][0],dx
-	mov	es:[di][2],dx
-	mov	es:[di][4],dx
-	cmp	[driver_sel],dl		; is it expanded memory?
-	jz	no_ems			; no, info already set
 	mov	cx,16
 	mov	ax,[current_dev_size]
 	div	cx
@@ -889,7 +885,6 @@ no_remaind:
 	stosw
 	mov	ax,MIN_CACHE_SIZE_K / 16
 	stosw
-no_ems:
 	LDS	BX,[PTRSAV]
 ASSUME	DS:NOTHING
 	MOV	[BX.RW_COUNT],STATISTICS_SIZE ; transfer amount
@@ -1274,8 +1269,8 @@ ioctl_reduce_cache_size:
 	assume	es:nothing
 	assume	ss:nothing
 
-	cmp	byte ptr [driver_sel],1 ; Make sure using Above Board
-	jnz	error_reduce_exitj
+	cmp	cx,3			; Function plus a 16-bit page count
+	jb	error_reduce_exitj
 	mov	ax,es:[di.1]		; Get second byte
 	or	ax,ax			; Reduce by a non-0 amount?
 	jnz	do_it
@@ -1294,11 +1289,14 @@ do_it:	mov	cl,4			; Multiply by 16 to get # of K bytes
 ; Request Reallocation of Pages from EMM
 ;
 	push	ax
+	cmp	byte ptr [driver_sel],1 ; Expanded memory must be reallocated
+	jne	reduce_memory_ready	; Extended memory remains reserved
 	mov	dx,word ptr [above_pid]
 	mov	ah,ABOVE_REALLOCATE_PID
 	int	67h
 	or	ah,ah
 	jnz	real_fail
+reduce_memory_ready:
 ;
 ; Determine how many cache tracks will be lost
 ;
@@ -1401,8 +1399,8 @@ ioctl_increase_cache_size:
 	assume	es:nothing
 	assume	ss:nothing
 
-	cmp	[driver_sel],1		; Make sure using Above Board
-	jnz	error_increase_exitj
+	cmp	cx,3			; Function plus a 16-bit page count
+	jb	error_increase_exitj
 	mov	ax,es:[di.1]		; Get second byte
 	mov	cl,4			; Multiply by 16 to get # of K bytes
 	shl	ax,cl			; AX has requested addition in K
@@ -1422,11 +1420,14 @@ increase_size_ok:
 ; Request Reallocation of Pages from EMM
 ;
 	push	ax
+	cmp	byte ptr [driver_sel],1 ; Expanded memory must be reallocated
+	jne	increase_memory_ready	; Extended allocation already has max size
 	mov	dx,[above_pid]
 	mov	ah,ABOVE_REALLOCATE_PID
 	int	67h
 	or	ah,ah
 	jnz	realloc_fail
+increase_memory_ready:
 ;
 ; Determine how many cache tracks will be gained
 ;

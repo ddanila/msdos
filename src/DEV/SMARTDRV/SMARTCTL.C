@@ -92,10 +92,35 @@ int h, extended;
     }
     printf("Cache enabled: %s   Delayed writes: %s\n",
         s.enable_13 ? "yes" : "no", s.write_buff ? "yes" : "no");
-    if (extended)
+    if (extended) {
+        printf("Cache size: %uK current, %uK maximum, %uK minimum\n",
+            s.current_size * 16, s.initial_size * 16, s.minimum_size * 16);
         printf("Tracks: %u total, %u used, %u dirty; reads %lu/%lu hits, writes %lu/%lu hits\n",
             s.ttracks, s.total_used, s.total_dirty,
             s.read_hits, s.total_reads, s.write_hits, s.total_writes);
+    }
+}
+
+static void set_cache_size(h, requested)
+int h;
+unsigned requested;
+{
+    status s;
+    unsigned current, maximum, pages;
+    char p[3];
+
+    if (IOCTLRead(h, &s, sizeof(s)) == -1)
+        fail(h, "cannot read cache size");
+    current = s.current_size * 16;
+    maximum = s.initial_size * 16;
+    if ((requested & 15) || requested < s.minimum_size * 16 || requested > maximum)
+        fail(h, "cache size is outside the resident cache range");
+    if (requested == current) return;
+    pages = (requested > current ? requested - current : current - requested) / 16;
+    p[0] = requested > current ? 0x0c : 0x0b;
+    p[1] = pages & 0xff;
+    p[2] = pages >> 8;
+    send(h, p, 3);
 }
 
 int main(argc, argv)
@@ -103,7 +128,7 @@ int argc;
 char **argv;
 {
     int h, i, action = 0, extended = 0, verbose = 0, numbers = 0, ok;
-    unsigned n;
+    unsigned n, cache_size = 0;
     char p[3];
 
     for (i = 1; i < argc; ++i)
@@ -153,8 +178,10 @@ char **argv;
         }
         n = getnum(a, &ok);
         if (!ok || ++numbers > 2) fail(h, "invalid cache size");
+        if (numbers == 1) cache_size = n;
         action = 1;
     }
+    if (cache_size) set_cache_size(h, cache_size);
     if (!quiet && (!action || verbose || extended)) show_status(h, extended || verbose);
     IOCTLClose(h);
     return 0;

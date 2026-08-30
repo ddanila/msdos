@@ -35,8 +35,13 @@ printf 'DEVICE=SMARTDRV.SYS 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
     printf 'SMARTDRV /?\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_HELP_FAILED\r\n'
+    printf 'ECHO SMARTDRV_SIZE_256_BEGIN\r\nSMARTDRV /S\r\nECHO SMARTDRV_SIZE_256_END\r\n'
     printf 'ECHO SMARTDRV_QUIET_BEGIN\r\nSMARTDRV /B:32 /E:4096 /L /U /Q 128 64\r\nECHO SMARTDRV_QUIET_END\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_INSTALL_OPTIONS_FAILED\r\n'
+    printf 'ECHO SMARTDRV_SIZE_128_BEGIN\r\nSMARTDRV /S\r\nECHO SMARTDRV_SIZE_128_END\r\n'
+    printf 'SMARTDRV 256 /Q\r\n'
+    printf 'ECHO SMARTDRV_SIZE_RESTORED_BEGIN\r\nSMARTDRV /S\r\nECHO SMARTDRV_SIZE_RESTORED_END\r\n'
+    printf 'SMARTDRV 129 /Q\r\nIF NOT ERRORLEVEL 1 ECHO SMARTDRV_BAD_SIZE_ACCEPTED\r\n'
     printf 'SMARTDRV /E:1234\r\nIF NOT ERRORLEVEL 1 ECHO SMARTDRV_BAD_ELEMENT_ACCEPTED\r\n'
     printf 'ECHO SMARTDRV_OFF_BEGIN\r\nSMARTDRV C- /S\r\nECHO SMARTDRV_OFF_END\r\n'
     printf 'ECHO SMARTDRV_READ_BEGIN\r\nSMARTDRV C /S\r\nECHO SMARTDRV_READ_END\r\n'
@@ -67,6 +72,9 @@ quiet_output="$(sed -n '/SMARTDRV_QUIET_BEGIN/,/SMARTDRV_QUIET_END/p' "$SERIAL_L
 off_status="$(sed -n '/SMARTDRV_OFF_BEGIN/,/SMARTDRV_OFF_END/p' "$SERIAL_LOG")"
 read_status="$(sed -n '/SMARTDRV_READ_BEGIN/,/SMARTDRV_READ_END/p' "$SERIAL_LOG")"
 nowrite_status="$(sed -n '/SMARTDRV_NOWRITE_BEGIN/,/SMARTDRV_NOWRITE_END/p' "$SERIAL_LOG")"
+size_256="$(sed -n '/SMARTDRV_SIZE_256_BEGIN/,/SMARTDRV_SIZE_256_END/p' "$SERIAL_LOG")"
+size_128="$(sed -n '/SMARTDRV_SIZE_128_BEGIN/,/SMARTDRV_SIZE_128_END/p' "$SERIAL_LOG")"
+size_restored="$(sed -n '/SMARTDRV_SIZE_RESTORED_BEGIN/,/SMARTDRV_SIZE_RESTORED_END/p' "$SERIAL_LOG")"
 sector_matches="$(python3 - "$HDD_IMG" <<'PY'
 import sys
 with open(sys.argv[1], 'rb') as f:
@@ -77,6 +85,12 @@ PY
 )"
 
 if [[ "$(grep -c 'SMARTDRV_QUIET_' <<<"$quiet_output")" == 2 ]] \
+    && grep -q 'Cache size: 256K current, 256K maximum, 128K minimum' <<<"$size_256" \
+    && grep -q 'Tracks: 8 total' <<<"$size_256" \
+    && grep -q 'Cache size: 128K current, 256K maximum, 128K minimum' <<<"$size_128" \
+    && grep -q 'Tracks: 4 total' <<<"$size_128" \
+    && grep -q 'Cache size: 256K current, 256K maximum, 128K minimum' <<<"$size_restored" \
+    && grep -q 'Tracks: 8 total' <<<"$size_restored" \
     && grep -q 'C:  Read cache no  Write cache no' <<<"$off_status" \
     && grep -q 'C:  Read cache yes  Write cache no' <<<"$read_status" \
     && grep -q 'C:  Read cache yes  Write cache no' <<<"$nowrite_status" \
@@ -85,7 +99,7 @@ if [[ "$(grep -c 'SMARTDRV_QUIET_' <<<"$quiet_output")" == 2 ]] \
     && grep -q '0 dirty' <<<"$clean" \
     && [[ "$sector_matches" == yes ]] \
     && grep -q 'SMARTDRV: invalid cache element or read-ahead size' "$SERIAL_LOG" \
-    && ! grep -q 'SMARTDRV_.*_FAILED\|SMARTDRV_BAD_ELEMENT_ACCEPTED' "$SERIAL_LOG"; then
+    && ! grep -q 'SMARTDRV_.*_FAILED\|SMARTDRV_BAD_ELEMENT_ACCEPTED\|SMARTDRV_BAD_SIZE_ACCEPTED' "$SERIAL_LOG"; then
     echo "  PASS: DOS 6 SMARTDRV policy delayed and explicitly flushed a fixed-disk write"
     exit 0
 fi
