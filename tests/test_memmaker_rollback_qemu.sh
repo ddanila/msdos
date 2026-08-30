@@ -8,6 +8,10 @@ BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 FAULT_OBJ="$OUT/memmaker_fault.obj"
 FAULT_EXE="$OUT/memmaker_fault.exe"
 QEXIT="$OUT/memmaker-fault-exit.com"
+SERIAL_IN="$OUT/memmaker-fault-serial.in"
+SERIAL_OUT="$OUT/memmaker-fault-serial.out"
+
+trap 'rm -f "$SERIAL_IN" "$SERIAL_OUT" 2>/dev/null; true' EXIT
 
 for tool in mcopy mdir nasm qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || {
@@ -31,19 +35,21 @@ for point in CONFIG AUTOEXEC STATUS; do
     mcopy -o -i "$image" "$FAULT_EXE" ::MEMMAKER.EXE
     mcopy -o -i "$image" "$QEXIT" ::QEXIT.COM
     printf 'FILES=20\r\n' | mcopy -o -i "$image" - ::CONFIG.SYS
-    {
-        printf '@ECHO OFF\r\nCTTY AUX\r\n'
-        printf 'SET MEMMAKER_FAULT=%s\r\n' "$point"
-        printf 'MEMMAKER /BATCH /SWAP:A\r\n'
-        printf 'IF ERRORLEVEL 1 ECHO MEMMAKER_%s_ROLLBACK_PASS\r\n' "$point"
-        printf 'QEXIT.COM\r\n'
-    } | mcopy -o -i "$image" - ::AUTOEXEC.BAT
+    printf '@ECHO OFF\r\nCTTY AUX\r\n' | mcopy -o -i "$image" - ::AUTOEXEC.BAT
 
+    rm -f "$SERIAL_IN" "$SERIAL_OUT"
+    mkfifo "$SERIAL_IN" "$SERIAL_OUT"
+    exec 3<>"$SERIAL_IN"
     timeout 25 qemu-system-i386 \
         -display none -monitor none -machine pc -cpu 486 -m 16 \
         -drive if=floppy,index=0,format=raw,file="$image",cache=writethrough \
-        -boot a -serial stdio -no-reboot \
-        -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$log" 2>&1 || true
+        -boot a -serial pipe:"$OUT/memmaker-fault-serial" -no-reboot \
+        -device isa-debug-exit,iobase=0xf4,iosize=0x04 2>/dev/null &
+    qemu_pid=$!
+    python3 "$ROOT/tests/serial_expect.py" "$SERIAL_IN" "$SERIAL_OUT" "$log" \
+        'A>' "SET MEMMAKER_FAULT=$point\rMEMMAKER /BATCH /SWAP:A\rIF ERRORLEVEL 1 ECHO MEMMAKER_${point}_ROLLBACK_PASS\rQEXIT.COM\r"
+    wait "$qemu_pid" || true
+    exec 3>&-
 
     grep -Fq "MEMMAKER_${point}_ROLLBACK_PASS" "$log"
     grep -Fq 'MemMaker rolled back an incomplete startup-file update.' "$log"

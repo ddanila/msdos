@@ -13,6 +13,9 @@ struct options {
     int batch;
     int session;
     int final;
+    int custom;
+    unsigned high_drivers;
+    unsigned high_tsrs;
     int no_token_ring;
     int undo;
     int swap_set;
@@ -28,6 +31,8 @@ static unsigned baseline_umb_k;
 static unsigned baseline_conventional_k;
 static unsigned config_umb_k;
 static unsigned config_conventional_k;
+static unsigned selected_high_drivers;
+static unsigned selected_high_tsrs;
 
 static unsigned probe_largest_block(unsigned strategy, unsigned link_umbs)
 {
@@ -128,7 +133,7 @@ static int contains_name(const char *line, const char *name)
 static void usage(void)
 {
     puts("Optimizes conventional memory by loading drivers and TSRs high.");
-    puts("Syntax: MEMMAKER [/B] [/BATCH] [/SESSION] [/FINAL] [/SWAP:drive]");
+    puts("Syntax: MEMMAKER [/B] [/BATCH|/CUSTOM] [/SESSION] [/FINAL] [/SWAP:drive]");
     puts("                [/T] [/UNDO] [/W:size1,size2]");
 }
 
@@ -152,6 +157,8 @@ static int parse_options(int argc, char **argv, struct options *options)
 {
     int index;
     memset(options, 0, sizeof(*options));
+    options->high_drivers = 1;
+    options->high_tsrs = 1;
     for (index = 1; index < argc; ++index) {
         char *argument = argv[index];
         char *name;
@@ -171,6 +178,7 @@ static int parse_options(int argc, char **argv, struct options *options)
         else if (switch_is(name, "BATCH")) options->batch = 1;
         else if (switch_is(name, "SESSION")) options->session = 1;
         else if (switch_is(name, "FINAL")) options->final = 1;
+        else if (switch_is(name, "CUSTOM")) options->custom = 1;
         else if (switch_is(name, "T")) options->no_token_ring = 1;
         else if (switch_is(name, "UNDO")) options->undo = 1;
         else if (!strnicmp(name, SWAP_SWITCH + 1, 5) && isalpha(name[5]) &&
@@ -192,6 +200,10 @@ static int parse_options(int argc, char **argv, struct options *options)
     }
     if (options->undo && (options->batch || options->session || options->final)) {
         fputs("/UNDO cannot be combined with /BATCH, /SESSION, or /FINAL.\n", stderr);
+        return 1;
+    }
+    if (options->batch && options->custom) {
+        fputs("/BATCH and /CUSTOM cannot be combined.\n", stderr);
         return 1;
     }
     return 0;
@@ -317,7 +329,7 @@ static int transform_config(unsigned drive, const struct options *options,
             ++body;
         if (starts_with(body, "DOS="))
             continue;
-        if (starts_with(body, "DEVICE=") && line_is_high_driver(body) &&
+        if (options->high_drivers && starts_with(body, "DEVICE=") && line_is_high_driver(body) &&
             !contains_name(body, "HIMEM.SYS") &&
             !contains_name(body, "EMM386.EXE")) {
             fputs("DEVICEHIGH=", output);
@@ -361,7 +373,7 @@ static int transform_autoexec(unsigned drive, const struct options *options,
     while (fgets(line, sizeof(line), input)) {
         if (starts_with(line, "MEMMAKER ") || starts_with(line, "MEMMAKER\n"))
             continue;
-        if (!starts_with(line, "LH ") && !starts_with(line, "LOADHIGH ") &&
+        if (options->high_tsrs && !starts_with(line, "LH ") && !starts_with(line, "LOADHIGH ") &&
             line_is_tsr(line))
             fputs("LH ", output);
         fputs(line, output);
@@ -409,6 +421,9 @@ static int write_status(unsigned drive, const struct options *options,
                 baseline_umb_k, baseline_conventional_k,
                 config_umb_k, config_conventional_k,
                 (int)measured_conventional_k - (int)baseline_conventional_k);
+        fprintf(file, "Custom driver-high choice: %s\nCustom TSR-high choice: %s\n",
+                selected_high_drivers ? "yes" : "no",
+                selected_high_tsrs ? "yes" : "no");
     }
     return fclose(file) != 0;
 }
@@ -463,7 +478,7 @@ static int finish_session(unsigned drive, const struct options *options)
     return 0;
 }
 
-static int write_baseline(unsigned drive)
+static int write_baseline(unsigned drive, const struct options *options)
 {
     char path[32];
     FILE *file;
@@ -472,7 +487,9 @@ static int write_baseline(unsigned drive)
     if (!file)
         return 1;
     if (fwrite(&measured_umb_k, sizeof(measured_umb_k), 1, file) != 1 ||
-        fwrite(&measured_conventional_k, sizeof(measured_conventional_k), 1, file) != 1) {
+        fwrite(&measured_conventional_k, sizeof(measured_conventional_k), 1, file) != 1 ||
+        fwrite(&options->high_drivers, sizeof(options->high_drivers), 1, file) != 1 ||
+        fwrite(&options->high_tsrs, sizeof(options->high_tsrs), 1, file) != 1) {
         fclose(file);
         return 1;
     }
@@ -493,6 +510,8 @@ static int finish_final(unsigned drive, const struct options *options)
         return 1;
     if (fread(&baseline_umb_k, sizeof(baseline_umb_k), 1, measure) != 1 ||
         fread(&baseline_conventional_k, sizeof(baseline_conventional_k), 1, measure) != 1 ||
+        fread(&selected_high_drivers, sizeof(selected_high_drivers), 1, measure) != 1 ||
+        fread(&selected_high_tsrs, sizeof(selected_high_tsrs), 1, measure) != 1 ||
         fread(&config_umb_k, sizeof(config_umb_k), 1, measure) != 1 ||
         fread(&config_conventional_k, sizeof(config_conventional_k), 1, measure) != 1) {
         fclose(measure);
@@ -521,7 +540,18 @@ static int finish_final(unsigned drive, const struct options *options)
     return 0;
 }
 
-static int optimize(unsigned drive, const struct options *options,
+static int ask_yes_no(const char *prompt)
+{
+    int answer;
+    fputs(prompt, stdout);
+    fflush(stdout);
+    do answer = toupper(getchar());
+    while (answer == '\r' || answer == '\n' || answer == ' ');
+    putchar('\n');
+    return answer == 'Y';
+}
+
+static int optimize(unsigned drive, struct options *options,
                     const char *program)
 {
     char config[32], autoexec[32], config_backup[32], auto_backup[32];
@@ -536,13 +566,20 @@ static int optimize(unsigned drive, const struct options *options,
     make_path(auto_temp, drive, "AUTOEXEC.MMT");
     make_path(status, drive, "MEMMAKER.STS");
     if (!options->batch) {
-        fputs("Use Express Setup to optimize memory (Y/N)? ", stdout);
-        fflush(stdout);
-        do answer = toupper(getchar());
-        while (answer == '\r' || answer == '\n' || answer == ' ');
-        putchar('\n');
-        if (answer != 'Y')
-            return 3;
+        if (options->custom) {
+            options->high_drivers = ask_yes_no(
+                "Load eligible device drivers into upper memory (Y/N)? ");
+            options->high_tsrs = ask_yes_no(
+                "Load eligible TSRs into upper memory (Y/N)? ");
+        } else {
+            fputs("Use Express Setup to optimize memory (Y/N)? ", stdout);
+            fflush(stdout);
+            do answer = toupper(getchar());
+            while (answer == '\r' || answer == '\n' || answer == ' ');
+            putchar('\n');
+            if (answer != 'Y')
+                return 3;
+        }
     }
     if (copy_file(config, config_backup) || copy_file(autoexec, auto_backup) ||
         transform_config(drive, options, program, config, config_temp) ||
@@ -553,7 +590,7 @@ static int optimize(unsigned drive, const struct options *options,
         return 1;
     }
     measure_memory();
-    if (write_baseline(drive) ||
+    if (write_baseline(drive, options) ||
         replace_file(config_temp, config) ||
         injected_failure("CONFIG") ||
         replace_file(auto_temp, autoexec) ||

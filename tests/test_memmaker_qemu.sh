@@ -48,7 +48,9 @@ timeout 15 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 
     2>/dev/null &
 QEMU_PID=$!
 python3 "$ROOT/tests/serial_expect.py" "$SERIAL_IN" "$SERIAL_OUT" "$LOG" \
-    'A>' 'MEMMAKER /BATCH /SWAP:A /W:4,8\r'
+    'A>' 'MEMMAKER /CUSTOM /SWAP:A /W:4,8\r' \
+    'Load eligible device drivers into upper memory (Y/N)?' 'N\r' \
+    'Load eligible TSRs into upper memory (Y/N)?' 'Y\r'
 wait "$QEMU_PID" || true
 exec 3>&-
 
@@ -68,7 +70,7 @@ exec 3>&-
 cat "$SESSION_LOG" >>"$LOG"
 
 if grep -q 'MEMMAKER_SESSION_DONE' "$LOG"; then
-    ok "batch optimization schedules and completes its own /SESSION pass"
+    ok "Custom optimization schedules and completes its own /SESSION pass"
 else
     fail "MemMaker reboot/session workflow"
     tail -80 "$LOG"
@@ -80,8 +82,9 @@ status="$(mcopy -i "$IMAGE" ::MEMMAKER.STS - 2>/dev/null | tr -d '\r')"
 if grep -qi '^DEVICE=A:\\HIMEM.SYS /TESTMEM:ON' <<<"$config" &&
    grep -qi '^DEVICE=A:\\EMM386.EXE RAM M5' <<<"$config" &&
    grep -qi '^DOS=HIGH,UMB' <<<"$config" &&
-   grep -qi '^DEVICEHIGH=A:\\DRIVER.SYS' <<<"$config"; then
-    ok "CONFIG.SYS gains memory managers, DOS high/UMB, and DEVICEHIGH"
+   grep -qi '^DEVICE=A:\\DRIVER.SYS' <<<"$config" &&
+   ! grep -qi '^DEVICEHIGH=A:\\DRIVER.SYS' <<<"$config"; then
+    ok "CONFIG.SYS honors the Custom driver-high choice"
 else
     fail "optimized CONFIG.SYS contents"
 fi
@@ -98,8 +101,10 @@ if grep -q 'optimization completed after measured reboot passes' <<<"$status" &&
    grep -Eq 'Post-CONFIG largest UMB: [1-9][0-9]*K' <<<"$status" &&
    grep -Eq 'Post-CONFIG largest conventional block: [1-9][0-9]*K' <<<"$status" &&
    grep -Eq 'Baseline largest conventional block: [1-9][0-9]*K' <<<"$status" &&
-   grep -Eq 'Measured UMB after /W reserve: [0-9]+K' <<<"$status"; then
-    ok "MEMMAKER.STS records measured post-reboot memory and /W policy"
+   grep -Eq 'Measured UMB after /W reserve: [0-9]+K' <<<"$status" &&
+   grep -q 'Custom driver-high choice: no' <<<"$status" &&
+   grep -q 'Custom TSR-high choice: yes' <<<"$status"; then
+    ok "MEMMAKER.STS records measurements, /W policy, and Custom choices"
 else
     fail "MemMaker status report"
 fi
