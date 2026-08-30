@@ -69,6 +69,11 @@ static void report_computer(void)
 {
     union REGS inregs, outregs;
     unsigned equipment;
+    const unsigned char far *bios_date =
+        (const unsigned char far *)MK_FP(0xf000, 0xfff5);
+    const unsigned char far *model =
+        (const unsigned char far *)MK_FP(0xf000, 0xfffe);
+    unsigned i;
     heading("Computer");
     int86(0x11, &inregs, &outregs);
     equipment = outregs.x.ax;
@@ -79,8 +84,58 @@ static void report_computer(void)
             equipment & 1 ? ((equipment >> 6) & 3) + 1 : 0);
     fprintf(report, "Serial ports:          %u\n", (equipment >> 9) & 7);
     fprintf(report, "Parallel ports:        %u\n", (equipment >> 14) & 3);
+    fprintf(report, "BIOS machine ID:       %02Xh\n", *model);
+    fputs("BIOS date:             ", report);
+    for (i = 0; i < 8; ++i)
+        fputc(bios_date[i] >= 32 && bios_date[i] < 127 ? bios_date[i] : '?',
+              report);
+    fputc('\n', report);
     if (skip_detection)
         fprintf(report, "Extended probing:      Skipped (/I)\n");
+}
+
+static void report_ports(void)
+{
+    const unsigned far *bda = (const unsigned far *)MK_FP(0x40, 0);
+    unsigned i;
+    heading("COM and LPT Ports");
+    for (i = 0; i < 4; ++i)
+        if (bda[i])
+            fprintf(report, "COM%u base address:     %04Xh\n", i + 1, bda[i]);
+        else
+            fprintf(report, "COM%u base address:     Not installed\n", i + 1);
+    for (i = 0; i < 3; ++i)
+        if (bda[4 + i])
+            fprintf(report, "LPT%u base address:     %04Xh\n", i + 1,
+                    bda[4 + i]);
+        else
+            fprintf(report, "LPT%u base address:     Not installed\n", i + 1);
+}
+
+static void report_input(void)
+{
+    union REGS inregs, outregs;
+    void interrupt far (*mouse)(void);
+    heading("Input Devices");
+    inregs.h.ah = 2;
+    int86(0x16, &inregs, &outregs);
+    fprintf(report, "Keyboard shift flags:  %02Xh\n", outregs.h.al);
+    if (skip_detection) {
+        fputs("Mouse driver:          Not probed (/I)\n", report);
+        return;
+    }
+    mouse = _dos_getvect(0x33);
+    if (!mouse || (FP_SEG(mouse) == 0 && FP_OFF(mouse) == 0)) {
+        fputs("Mouse driver:          Not installed\n", report);
+        return;
+    }
+    inregs.x.ax = 0;
+    int86(0x33, &inregs, &outregs);
+    if (outregs.x.ax == 0xffff)
+        fprintf(report, "Mouse driver:          Installed, %u buttons\n",
+                outregs.x.bx);
+    else
+        fputs("Mouse driver:          Not installed\n", report);
 }
 
 static int ems_present(void)
@@ -283,6 +338,8 @@ static void report_summary(void)
     report_computer();
     report_memory();
     report_video();
+    report_ports();
+    report_input();
     report_disks();
     report_irqs();
     report_drivers();
@@ -326,7 +383,8 @@ static void interactive(void)
         puts("\nMicrosoft Diagnostics");
         puts("  C  Computer       M  Memory        V  Video");
         puts("  D  Disk drives    I  IRQs          R  Drivers");
-        puts("  N  Network        O  Operating system");
+        puts("  P  Ports          K  Input         N  Network");
+        puts("  O  Operating system");
         puts("  A  All reports    X  Exit");
         fputs("Selection: ", stdout);
         key = getch();
@@ -335,6 +393,8 @@ static void interactive(void)
         case 'c': case 'C': report_computer(); break;
         case 'm': case 'M': report_memory(); break;
         case 'v': case 'V': report_video(); break;
+        case 'p': case 'P': report_ports(); break;
+        case 'k': case 'K': report_input(); break;
         case 'd': case 'D': report_disks(); break;
         case 'i': case 'I': report_irqs(); break;
         case 'r': case 'R': report_drivers(); break;
