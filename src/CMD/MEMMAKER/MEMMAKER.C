@@ -8,6 +8,7 @@
 #define SWAP_SWITCH "/SWAP:"
 #define WINDOW_SWITCH "/W:"
 #define SIZER_MAGIC 0x5a53
+#define DRIVER_MAGIC 0x4453
 #define MAX_MEASUREMENTS 64
 
 struct size_record {
@@ -50,6 +51,8 @@ static int windows_ini_found;
 static int windows_version;
 static unsigned measured_tsr_count;
 static unsigned measured_tsr_paragraphs;
+static unsigned measured_driver_count;
+static unsigned measured_driver_paragraphs;
 
 #define WINDOWS_UNKNOWN 0
 #define WINDOWS_30      30
@@ -140,6 +143,138 @@ static int starts_with(const char *line, const char *prefix)
         ++prefix;
     }
     return 1;
+}
+
+static unsigned far_word(const unsigned char far *p)
+{
+    return p[0] | ((unsigned)p[1] << 8);
+}
+
+static void driver_name(const char *line, char name[9])
+{
+    const char *start = strchr(line, '=');
+    const char *base;
+    unsigned length = 0;
+    memset(name, ' ', 8);
+    name[8] = 0;
+    if (!start)
+        return;
+    ++start;
+    while (*start == ' ' || *start == '\t')
+        ++start;
+    base = start;
+    while (*start && *start != ' ' && *start != '\t' &&
+           *start != '\r' && *start != '\n') {
+        if (*start == '\\' || *start == '/' || *start == ':')
+            base = start + 1;
+        ++start;
+    }
+    while (base < start && *base != '.' && length < 8)
+        name[length++] = (char)toupper((unsigned char)*base++);
+}
+
+static int devmark_size(const char name[9], unsigned *paragraphs)
+{
+    union REGS regs;
+    struct SREGS segregs;
+    const unsigned char far *lists;
+    unsigned arena_segment;
+    unsigned arenas = 0;
+    unsigned saved_link;
+    int found = 0;
+    memset(&regs, 0, sizeof(regs));
+    regs.x.ax = 0x5802;
+    intdos(&regs, &regs);
+    saved_link = regs.x.ax;
+    memset(&regs, 0, sizeof(regs));
+    regs.x.ax = 0x5803;
+    regs.x.bx = 1;
+    intdos(&regs, &regs);
+    memset(&regs, 0, sizeof(regs));
+    memset(&segregs, 0, sizeof(segregs));
+    regs.h.ah = 0x52;
+    intdosx(&regs, &regs, &segregs);
+    lists = (const unsigned char far *)MK_FP(segregs.es, regs.x.bx);
+    arena_segment = far_word(lists - 2);
+    while (arena_segment && arena_segment < 0xffff && arenas++ < 512) {
+        const unsigned char far *arena =
+            (const unsigned char far *)MK_FP(arena_segment, 0);
+        unsigned size = far_word(arena + 3);
+        if (far_word(arena + 1) == 8) {
+            unsigned cursor = arena_segment + 1;
+            unsigned limit = cursor + size;
+            unsigned entries = 0;
+            while (cursor < limit && entries++ < 256) {
+                const unsigned char far *mark =
+                    (const unsigned char far *)MK_FP(cursor, 0);
+                unsigned mark_size = far_word(mark + 3);
+                unsigned i;
+                if (mark[0] == 'D') {
+                    for (i = 0; i < 8; ++i)
+                        if ((char)toupper(mark[8 + i]) != name[i])
+                            break;
+                    if (i == 8) {
+                        *paragraphs = mark_size;
+                        found = 1;
+                        break;
+                    }
+                }
+                if (!mark_size || cursor + mark_size + 1 <= cursor)
+                    break;
+                cursor += mark_size + 1;
+            }
+        }
+        if (found)
+            break;
+        if (arena[0] == 'Z' || !size || arena_segment + size + 1 <= arena_segment)
+            break;
+        arena_segment += size + 1;
+    }
+    memset(&regs, 0, sizeof(regs));
+    regs.x.ax = 0x5803;
+    regs.x.bx = saved_link;
+    intdos(&regs, &regs);
+    return found;
+}
+
+static int record_driver_sizes(const char *config, const char *sizes_path)
+{
+    char line[256];
+    char name[9];
+    unsigned index = 0;
+    FILE *input = fopen(config, "r");
+    FILE *output;
+    if (!input)
+        return 1;
+    output = fopen(sizes_path, "ab");
+    if (!output) {
+        fclose(input);
+        return 1;
+    }
+    while (fgets(line, sizeof(line), input)) {
+        const char *body = line;
+        struct size_record record;
+        unsigned paragraphs;
+        while (*body == ' ' || *body == '\t')
+            ++body;
+        if (!starts_with(body, "DEVICEHIGH="))
+            continue;
+        driver_name(body, name);
+        if (index < MAX_MEASUREMENTS && devmark_size(name, &paragraphs)) {
+            record.magic = DRIVER_MAGIC;
+            record.index = index;
+            record.before = paragraphs;
+            record.after = 0;
+            if (fwrite(&record, sizeof(record), 1, output) != 1) {
+                fclose(input);
+                fclose(output);
+                return 1;
+            }
+        }
+        ++index;
+    }
+    fclose(input);
+    return fclose(output) != 0;
 }
 
 static int contains_name(const char *line, const char *name)
@@ -791,9 +926,11 @@ static int write_status(unsigned drive, const struct options *options,
                 (int)measured_conventional_k - (int)baseline_conventional_k);
         fprintf(file,
                 "Drivers selected for upper memory: %u of %u\n"
+                "Drivers measured from CONFIG: %u, %u paragraphs resident\n"
                 "TSRs selected for upper memory: %u of %u\n"
                 "TSRs measured by SIZER: %u, %u paragraphs resident\n",
                 selected_high_drivers, eligible_high_drivers,
+                measured_driver_count, measured_driver_paragraphs,
                 selected_high_tsrs, eligible_high_tsrs,
                 measured_tsr_count, measured_tsr_paragraphs);
     }
@@ -835,7 +972,7 @@ static int restore_files(unsigned drive, const struct options *options)
 
 static int finish_session(unsigned drive, const struct options *options)
 {
-    char config[32], temporary[32], memory[32], line[256];
+    char config[32], temporary[32], memory[32], sizes[32], line[256];
     FILE *input;
     FILE *output;
     make_path(config, drive, "CONFIG.SYS");
@@ -853,6 +990,9 @@ static int finish_session(unsigned drive, const struct options *options)
             fputs(line, output);
     fclose(input);
     if (fclose(output) || replace_file(temporary, config))
+        return 1;
+    make_path(sizes, drive, "MEMMAKER.SIZ");
+    if (record_driver_sizes(config, sizes))
         return 1;
     measure_memory();
     make_path(memory, drive, "MEMMAKER.MEM");
@@ -920,7 +1060,10 @@ static int finish_final(unsigned drive, const struct options *options)
     measure = fopen(sizes_path, "rb");
     if (measure) {
         while (fread(&record, sizeof(record), 1, measure) == 1) {
-            if (record.magic == SIZER_MAGIC && record.index < MAX_MEASUREMENTS &&
+            if (record.magic == DRIVER_MAGIC && record.index < MAX_MEASUREMENTS) {
+                ++measured_driver_count;
+                measured_driver_paragraphs += record.before;
+            } else if (record.magic == SIZER_MAGIC && record.index < MAX_MEASUREMENTS &&
                 record.before >= record.after) {
                 sizes[record.index] = record.before - record.after;
                 ++measured_tsr_count;

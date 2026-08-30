@@ -32,7 +32,7 @@ mcopy -o -i "$IMAGE" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
 mcopy -o -i "$IMAGE" "$ROOT/src/MEMM/MEMM/EMM386.EXE" ::EMM386.EXE
 mcopy -o -i "$IMAGE" "$QEXIT" ::QEXIT.COM
 mmd -i "$IMAGE" ::WINDOWS
-printf 'FCBS=4,0\r\nDEVICE=A:\\DRIVER.SYS\r\nLASTDRIVE=Z\r\nFILES=20\r\nBUFFERS=15\r\n' >"$ORIGINAL_CONFIG"
+printf 'FCBS=4,0\r\nDEVICE=A:\\DRIVER.SYS /D:1 /F:9\r\nLASTDRIVE=Z\r\nFILES=20\r\nBUFFERS=15\r\n' >"$ORIGINAL_CONFIG"
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\nSET WINDIR=A:\\WINDOWS\r\nNLSFUNC A:\\COUNTRY.SYS\r\n'
     printf 'IF EXIST A:\\MEMMAKER.STS ECHO MEMMAKER_SESSION_DONE\r\n'
@@ -57,7 +57,7 @@ python3 "$ROOT/tests/serial_expect.py" "$SERIAL_IN" "$SERIAL_OUT" "$LOG" \
     'A>' 'MEMMAKER /CUSTOM /SWAP:A /W:4,8\r' \
     'Do programs require expanded memory (Y/N)?' 'Y\r' \
     'Use monochrome region B000-B7FF for programs (Y/N)?' 'N\r' \
-    'Load this driver into upper memory (Y/N)?' 'N\r' \
+    'Load this driver into upper memory (Y/N)?' 'Y\r' \
     'Load this TSR into upper memory (Y/N)?' 'Y\r'
 wait "$QEMU_PID" || true
 exec 3>&-
@@ -90,8 +90,7 @@ status="$(mcopy -i "$IMAGE" ::MEMMAKER.STS - 2>/dev/null | tr -d '\r')"
 if grep -qi '^DEVICE=A:\\HIMEM.SYS /TESTMEM:ON' <<<"$config" &&
    grep -qi '^DEVICE=A:\\EMM386.EXE RAM M5' <<<"$config" &&
    grep -qi '^DOS=HIGH,UMB' <<<"$config" &&
-   grep -qi '^DEVICE=A:\\DRIVER.SYS' <<<"$config" &&
-   ! grep -qi '^DEVICEHIGH=A:\\DRIVER.SYS' <<<"$config"; then
+   grep -qi '^DEVICEHIGH=A:\\DRIVER.SYS' <<<"$config"; then
     ok "CONFIG.SYS honors the Custom driver-high choice"
 else
     fail "optimized CONFIG.SYS contents"
@@ -120,12 +119,14 @@ if grep -q 'optimization completed after measured reboot passes' <<<"$status" &&
    grep -Eq 'Baseline largest conventional block: [1-9][0-9]*K' <<<"$status" &&
    grep -Eq 'Measured UMB after /W reserve: [0-9]+K' <<<"$status" &&
    grep -q 'Windows SYSTEM.INI: Windows 3.0 settings applied and backed up' <<<"$status" &&
-   grep -q 'Drivers selected for upper memory: 0 of 1' <<<"$status" &&
+   grep -q 'Drivers selected for upper memory: 1 of 1' <<<"$status" &&
+   grep -Eq 'Drivers measured from CONFIG: 1, [1-9][0-9]* paragraphs resident' <<<"$status" &&
    grep -q 'TSRs selected for upper memory: 1 of 1' <<<"$status" &&
    grep -Eq 'TSRs measured by SIZER: 1, [1-9][0-9]* paragraphs resident' <<<"$status"; then
     ok "MEMMAKER.STS records measurements, /W policy, and Custom choices"
 else
     fail "MemMaker status report"
+    printf '%s\n' "$status"
 fi
 if ! mdir -b -i "$IMAGE" :: 2>/dev/null | grep -Eq 'MEMMAKER\.(MEM|SIZ)'; then
     ok "measurement handoff is removed after the final pass"
