@@ -7,7 +7,6 @@ OUT="$ROOT/out"
 BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 IMAGE="$OUT/msd-test.img"
 LOG="$OUT/msd-test.log"
-PRINT_OUT="$OUT/msd-printer.txt"
 EXIT_COM="$OUT/msd-qexit.com"
 INTERACTIVE_IMAGE="$OUT/msd-interactive.img"
 SERIAL_BASE="$OUT/msd-interactive-serial"
@@ -19,47 +18,50 @@ cp "$BASE" "$IMAGE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 mcopy -o -i "$IMAGE" "$ROOT/src/CMD/MSD/MSD.EXE" ::MSD.EXE
 mcopy -o -i "$IMAGE" "$EXIT_COM" ::QEXIT.COM
+printf 'Ada Lovelace\r\nAnalytical Engines\r\n' | \
+    mcopy -o -i "$IMAGE" - ::MSDINFO.TXT
 printf 'DEVICE=A:\\RAMDRIVE.SYS 64\r\n' | \
     mcopy -o -i "$IMAGE" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
     printf 'MSD /?\r\n'
-    printf 'MSD /B /S /F A:\\MSDRPT.TXT\r\n'
+    printf 'MSD /B /S A:\\MSDRPT.TXT\r\n'
     printf 'IF ERRORLEVEL 1 ECHO MSD_FILE_FAIL\r\n'
     printf 'TYPE A:\\MSDRPT.TXT\r\n'
-    printf 'MSD /F /S\r\n'
-    printf 'IF EXIST A:\\MSD.TXT ECHO MSD_DEFAULT_FILE\r\n'
-    printf 'MSD /I /S /F A:\\MSDI.TXT\r\n'
+    printf 'MSD /I /P A:\\MSDI.TXT\r\n'
     printf 'TYPE A:\\MSDI.TXT\r\n'
+    printf 'MSD /F A:\\MSDF.TXT < A:\\MSDINFO.TXT\r\n'
+    printf 'TYPE A:\\MSDF.TXT\r\n'
     printf 'MD A:\\MSDMAP\r\n'
     printf 'SUBST D: A:\\MSDMAP\r\n'
-    printf 'MSD /S /F A:\\MSDMAP.TXT\r\n'
+    printf 'MSD /P A:\\MSDMAP.TXT\r\n'
     printf 'TYPE A:\\MSDMAP.TXT\r\n'
-    printf 'MSD /S /P\r\n'
+    printf 'MSD /S\r\n'
     printf 'MSD /NOPE\r\n'
     printf 'IF ERRORLEVEL 1 ECHO MSD_BAD_SWITCH_LEVEL1\r\n'
     printf 'ECHO MSD_TEST_DONE\r\n'
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$IMAGE" - ::AUTOEXEC.BAT
 
-rm -f "$LOG" "$PRINT_OUT"
+rm -f "$LOG"
 timeout 25 qemu-system-i386 \
     -display none -monitor none -boot a -m 4 \
     -drive if=floppy,index=0,format=raw,file="$IMAGE",cache=writethrough \
-    -serial stdio -parallel "file:$PRINT_OUT" \
+    -serial stdio \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 2>/dev/null | tee "$LOG" || true
 
 for marker in \
-    'Microsoft Diagnostics-compatible report' \
+    'Computer: IBM PC/AT compatible' \
     'Operating System' 'Computer' 'Memory' 'Video' 'Disk Drives' \
     'IRQ Vectors' 'Device Drivers' 'Network' \
     'Reported DOS version: 6.22' 'True DOS version:     6.22' \
     'B:  logical alias of A: (one physical floppy)' \
     'C:  total      62464 bytes  512-byte sectors  FAT12' \
     'D:  substituted path A:\MSDMAP' \
-    'MSD [/B] [/I] [/F [filename]] [/P] [/S]' 'MSD_DEFAULT_FILE' \
+    'MSD [/I] [/F[drive:][path]filename] [/P[drive:][path]filename]' \
     'Extended probing:      Skipped (/I)' \
+    'Name: Ada Lovelace' 'Company: Analytical Engines' \
     'MSD_BAD_SWITCH_LEVEL1' 'MSD_TEST_DONE'; do
     grep -Fq "$marker" "$LOG" || {
         echo "FAIL: missing MSD evidence: $marker" >&2
@@ -67,11 +69,6 @@ for marker in \
         exit 1
     }
 done
-
-grep -Fq 'Microsoft Diagnostics-compatible report' "$PRINT_OUT" || {
-    echo 'FAIL: MSD /P did not emit a printer report' >&2
-    exit 1
-}
 
 cp "$BASE" "$INTERACTIVE_IMAGE"
 mcopy -o -i "$INTERACTIVE_IMAGE" "$ROOT/src/CMD/MSD/MSD.EXE" ::MSD.EXE
@@ -94,4 +91,4 @@ exec 3>&-
 grep -Fq 'Largest free block:' "$INTERACTIVE_LOG"
 grep -Fq 'MSD_INTERACTIVE_RETURNED' "$INTERACTIVE_LOG"
 
-echo '  PASS: MSD summary, file, printer, /I, interactive, and error paths'
+echo '  PASS: MSD retail syntax, summary, report file, /I, interactive, and error paths'

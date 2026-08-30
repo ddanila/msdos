@@ -6,6 +6,8 @@
 
 static FILE *report;
 static int skip_detection;
+static char report_name[64];
+static char report_company[64];
 
 /* DOS's internal tables contain unaligned words.  Decode them bytewise so
  * this remains correct regardless of the compiler's structure packing. */
@@ -22,8 +24,20 @@ static unsigned long table_pointer(const unsigned char far *p)
 
 static void usage(void)
 {
-    puts("Displays Microsoft Diagnostics information.");
-    puts("MSD [/B] [/I] [/F [filename]] [/P] [/S]");
+    puts("Provides detailed technical information about your computer.");
+    puts("MSD [/I] [/F[drive:][path]filename] [/P[drive:][path]filename]");
+    puts("    [/S[drive:][path][filename]]");
+    puts("MSD [/B][/I]");
+    puts("  /B                         Runs MSD using a black and white color scheme.");
+    puts("  /I                         Bypasses initial hardware detection.");
+    puts("  /F[drive:][path]filename   Requests input and writes an MSD report to the");
+    puts("                             specified file.");
+    puts("  /P[drive:][path]filename   Writes an MSD report to the specified file");
+    puts("                             without first requesting input.");
+    puts("  /S[drive:][path][filename] Writes a summary MSD report to the specified");
+    puts("                             file. If no filename is specified, output is to");
+    puts("                             the screen.");
+    puts("Use MSD [/B] [/I] to examine technical information through the MSD interface.");
 }
 
 static void heading(const char *name)
@@ -275,6 +289,36 @@ static void report_summary(void)
     report_network();
 }
 
+static void report_short_summary(void)
+{
+    union REGS inregs, outregs;
+    unsigned conventional;
+
+    int86(0x12, &inregs, &outregs);
+    conventional = outregs.x.ax;
+    fprintf(report, "           Computer: IBM PC/AT compatible\n");
+    fprintf(report, "             Memory: %uK conventional\n", conventional);
+    fprintf(report, "              Video: BIOS mode detected\n");
+    inregs.x.ax = 0x1100;
+    int86(0x2f, &inregs, &outregs);
+    fprintf(report, "            Network: %s\n",
+            outregs.h.al == 0xff ? "DOS Redirector" : "No Network");
+    inregs.x.ax = 0x3306;
+    int86(0x21, &inregs, &outregs);
+    fprintf(report, "         OS Version: MS-DOS %u.%02u\n",
+            outregs.h.bl, outregs.h.bh);
+}
+
+static void request_report_input(void)
+{
+    fputs("Name: ", stdout);
+    if (!fgets(report_name, sizeof(report_name), stdin)) report_name[0] = 0;
+    fputs("Company: ", stdout);
+    if (!fgets(report_company, sizeof(report_company), stdin)) report_company[0] = 0;
+    report_name[strcspn(report_name, "\r\n")] = 0;
+    report_company[strcspn(report_company, "\r\n")] = 0;
+}
+
 static void interactive(void)
 {
     int key;
@@ -306,7 +350,7 @@ static void interactive(void)
 int main(int argc, char **argv)
 {
     const char *filename = 0;
-    int summary = 0, printer = 0, i;
+    int summary = 0, request_input = 0, i;
     report = stdout;
     for (i = 1; i < argc; ++i) {
         char *arg = argv[i];
@@ -317,30 +361,34 @@ int main(int argc, char **argv)
         if (option == '?' && !arg[2]) { usage(); return 0; }
         if (option == 'B' && !arg[2]) continue;
         if (option == 'I' && !arg[2]) { skip_detection = 1; continue; }
-        if (option == 'P' && !arg[2]) { printer = 1; continue; }
-        if (option == 'S' && !arg[2]) { summary = 1; continue; }
-        if (option == 'F') {
+        if (option == 'F' || option == 'P' || option == 'S') {
             char *value = arg + 2;
-            if (*value == ':') ++value;
             if (!*value && i + 1 < argc && argv[i + 1][0] != '/' &&
                 argv[i + 1][0] != '-')
                 value = argv[++i];
-            filename = *value ? value : "MSD.TXT";
+            if (option != 'S' && !*value) goto bad_switch;
+            if (*value) filename = value;
+            summary = option == 'S';
+            request_input = option == 'F';
             continue;
         }
         goto bad_switch;
     }
+    if (request_input)
+        request_report_input();
     if (filename) {
         report = fopen(filename, "w");
         if (!report) { fprintf(stderr, "Unable to create %s\n", filename); return 2; }
-    } else if (printer) {
-        report = fopen("PRN", "w");
-        if (!report) { fputs("Unable to open printer.\n", stderr); return 2; }
     }
     setvbuf(report, 0, _IONBF, 0);
-    if (summary || report != stdout)
+    if (summary)
+        report_short_summary();
+    else if (report != stdout) {
+        fprintf(report, "MSD Microsoft Diagnostics Version 2.11\n");
+        if (report_name[0]) fprintf(report, "Name: %s\n", report_name);
+        if (report_company[0]) fprintf(report, "Company: %s\n", report_company);
         report_summary();
-    else
+    } else
         interactive();
     if (report != stdout && fclose(report))
         return 2;
