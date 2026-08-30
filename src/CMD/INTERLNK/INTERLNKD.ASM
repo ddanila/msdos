@@ -14,7 +14,8 @@ unit_count      db      0
 
 request_ptr     dd 0
 connected       db 0
-com_port        dw 0
+com_port        dw 03f8h
+com_number      db 1
 sector_number   dd 0
 bpb_pointers    dw 5 dup(0)
 remote_bpbs     db 125 dup(0)
@@ -352,7 +353,8 @@ send_byte PROC NEAR
         push    ax
         push    cx
         push    dx
-        mov     dx,03fdh
+        mov     dx,cs:com_port
+        add     dx,5
         mov     cx,0ffffh
 client_send_ready:
         in      al,dx
@@ -369,7 +371,7 @@ client_send_now:
         pop     cx
         pop     ax
         push    dx
-        mov     dx,03f8h
+        mov     dx,cs:com_port
         out     dx,al
         pop     dx
         clc
@@ -380,7 +382,8 @@ receive_byte PROC NEAR
         push    bx
         push    cx
         push    dx
-        mov     dx,03fdh
+        mov     dx,cs:com_port
+        add     dx,5
         mov     bx,32
 client_receive_retry:
         mov     cx,0ffffh
@@ -397,7 +400,7 @@ client_receive_ready:
         stc
         ret
 client_receive_now:
-        mov     dx,03f8h
+        mov     dx,cs:com_port
         in      al,dx
         clc
         pop     dx
@@ -407,32 +410,37 @@ client_receive_now:
 receive_byte ENDP
 
 init_serial PROC NEAR
-        mov     dx,03f9h
+        mov     dx,cs:com_port
+        inc     dx
         xor     al,al
         out     dx,al
-        mov     dx,03fbh
+        mov     dx,cs:com_port
+        add     dx,3
         mov     al,80h
         out     dx,al
-        mov     dx,03f8h
+        mov     dx,cs:com_port
         mov     al,1
         out     dx,al
-        mov     dx,03f9h
+        mov     dx,cs:com_port
+        inc     dx
         xor     al,al
         out     dx,al
-        mov     dx,03fbh
+        mov     dx,cs:com_port
+        add     dx,3
         mov     al,3
         out     dx,al
-        mov     dx,03fah
+        mov     dx,cs:com_port
+        add     dx,2
         mov     al,0c7h
         out     dx,al
-        mov     dx,03fch
+        mov     dx,cs:com_port
+        add     dx,4
         mov     al,0bh
         out     dx,al
         ret
 init_serial ENDP
 
-; Parse the tail supplied after DEVICE=... in CONFIG.SYS.  Serial COM1 is the
-; implemented transport; /NOPRINTER records the supported drive-only mode.
+; Parse the tail supplied after DEVICE=... in CONFIG.SYS.
 parse_config PROC NEAR
         lds     bx,cs:request_ptr
         lds     si,dword ptr [bx+18]
@@ -460,16 +468,31 @@ config_check_switch:
         je      short config_drives
         cmp     al,'N'
         je      short config_noprinter
-        jmp     short config_bad
+        jmp     config_bad
 config_com:
         lodsw
         and     ax,0dfdfh
         cmp     ax,'MO'
-        jne     short config_bad
-        lodsw
-        cmp     ax,'1:'
-        jne     short config_bad
+        jne     short config_com_bad
+        lodsb
+        cmp     al,':'
+        jne     short config_com_bad
+        lodsb
+        sub     al,'0'
+        cmp     al,1
+        jb      short config_com_bad
+        cmp     al,4
+        ja      short config_com_bad
+        mov     cs:com_number,al
+        dec     al
+        xor     ah,ah
+        shl     ax,1
+        mov     bx,ax
+        mov     ax,cs:com_bases[bx]
+        mov     cs:com_port,ax
         jmp     config_scan
+config_com_bad:
+        jmp     config_bad
 config_drives:
         lodsw
         and     ax,0dfdfh
@@ -543,6 +566,8 @@ multiplex PROC FAR
         mov     bl,cs:connected
         xor     cx,cx
         mov     cl,cs:unit_count
+        xor     dx,dx
+        mov     dl,cs:com_number
         iret
 chain_multiplex:
         jmp     dword ptr cs:old_int2f
@@ -552,6 +577,7 @@ old_int2f       dd 0
 transfer_ptr    dd 0
 io_command      db 0
 io_remaining    dw 0
+com_bases       dw 03f8h,02f8h,03e8h,02e8h
 resident_end LABEL BYTE
 
 CODE ENDS

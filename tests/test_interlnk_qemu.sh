@@ -30,13 +30,13 @@ mformat -C -i "$SERVER_IMAGE_TWO" -f 1440 ::
 printf 'Byte-exact Interlnk transport\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::REMOTE.TXT
 printf 'Second Interlnk volume\r\n' | mcopy -o -i "$SERVER_IMAGE_TWO" - ::REMOTE2.TXT
 mcopy -o -i "$SERVER_IMAGE" "$ROOT/src/CMD/INTERSVR/INTERSVR.EXE" ::INTERSVR.EXE
-printf '@ECHO OFF\r\nINTERSVR A: B: /COM:1\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::AUTOEXEC.BAT
+printf '@ECHO OFF\r\nINTERSVR A: B: /COM:2\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::AUTOEXEC.BAT
 printf '\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::CONFIG.SYS
 
 mcopy -o -i "$CLIENT_IMAGE" "$ROOT/src/CMD/INTERLNK/INTERLNK.EXE" ::INTERLNK.EXE
 mcopy -o -i "$CLIENT_IMAGE" "$PROBE" ::ILPROBE.COM
 mcopy -o -i "$CLIENT_IMAGE" "$QEXIT" ::QEXIT.COM
-printf 'LASTDRIVE=Z\r\nDEVICE=A:\\INTERLNK.EXE /DRIVES:2 /NOPRINTER /COM:1\r\n' | mcopy -o -i "$CLIENT_IMAGE" - ::CONFIG.SYS
+printf 'LASTDRIVE=Z\r\nDEVICE=A:\\INTERLNK.EXE /DRIVES:2 /NOPRINTER /COM:2\r\n' | mcopy -o -i "$CLIENT_IMAGE" - ::CONFIG.SYS
 printf '@ECHO OFF\r\nILPROBE.COM\r\nQEXIT.COM\r\n' | mcopy -o -i "$CLIENT_IMAGE" - ::AUTOEXEC.BAT
 
 rm -f "$LOG" "$SERVER_LOG" "$CLIENT_LOG"
@@ -44,7 +44,7 @@ timeout 60 qemu-system-i386 \
     -display none -monitor none -machine pc -cpu 486 -m 8 \
     -drive if=floppy,index=0,format=raw,file="$SERVER_IMAGE",cache=writethrough \
     -drive if=floppy,index=1,format=raw,file="$SERVER_IMAGE_TWO",cache=writethrough \
-    -boot a -serial tcp:127.0.0.1:$PORT,server=on,wait=off -no-reboot \
+    -boot a -serial null -serial tcp:127.0.0.1:$PORT,server=on,wait=off -no-reboot \
     >"$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
 trap 'kill "$SERVER_PID" 2>/dev/null || true; wait "$SERVER_PID" 2>/dev/null || true' EXIT
@@ -53,7 +53,7 @@ sleep 2
 timeout 45 qemu-system-i386 \
     -display none -monitor none -machine pc -cpu 486 -m 8 \
     -drive if=floppy,index=0,format=raw,file="$CLIENT_IMAGE",cache=writethrough \
-    -boot a -serial tcp:127.0.0.1:$PORT -debugcon file:"$LOG" -global isa-debugcon.iobase=0xe9 \
+    -boot a -serial null -serial tcp:127.0.0.1:$PORT -debugcon file:"$LOG" -global isa-debugcon.iobase=0xe9 \
     -no-reboot -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     >"$CLIENT_LOG" 2>&1 || true
 
@@ -66,7 +66,7 @@ grep -Fq 'INTERLNK_TRANSPORT_PASS' "$LOG" || {
 }
 mcopy -i "$SERVER_IMAGE" ::WRITTEN.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx '001122334455aaff'
 mcopy -i "$SERVER_IMAGE_TWO" ::WRITTN2.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx 'fedcba9876543210'
-echo '  PASS: Interlnk redirects two FAT volumes with byte-exact reads and writes over COM1'
+echo '  PASS: Interlnk redirects two FAT volumes with byte-exact reads and writes over COM2'
 
 # A missing server must fail installation and continue boot instead of waiting
 # forever in the serial receive loop.

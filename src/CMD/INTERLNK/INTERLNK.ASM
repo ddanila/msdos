@@ -52,6 +52,9 @@ command_query:
         mov     al,cl
         add     al,'0'
         mov     cs:banner_count,al
+        mov     al,dl
+        add     al,'0'
+        mov     cs:banner_port,al
         mov     dx,OFFSET banner
         mov     ah,9
         int     21h
@@ -64,14 +67,15 @@ not_installed:
         mov     ax,4c01h
         int     21h
 banner  db 'Microsoft Interlnk version 1.00',13,10
-        db 'Port-COM1',13,10
+        db 'Port-COM'
+banner_port db '0',13,10
         db 'Drive letters redirected: '
 banner_count db '0',13,10,'$'
 missing db 'INTERLNK is not installed or the server is unavailable.',13,10,'$'
 syntax  db 'Invalid INTERLNK parameter.',13,10,'$'
 help    db 'Displays Interlnk client connection status.',13,10
         db 'Syntax: INTERLNK',13,10
-        db 'CONFIG.SYS: DEVICE=INTERLNK.EXE [/DRIVES:n] [/NOPRINTER] [/COM:1]',13,10,'$'
+        db 'CONFIG.SYS: DEVICE=INTERLNK.EXE [/DRIVES:n] [/NOPRINTER] [/COM:n]',13,10,'$'
 CODE ENDS
 STACKSEG SEGMENT PARA STACK 'STACK'
         db 256 dup(0)

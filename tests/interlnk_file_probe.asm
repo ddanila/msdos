@@ -4,6 +4,16 @@ org 100h
 start:
     push cs
     pop ds
+    mov ax, 0e900h
+    int 2fh
+    cmp ax, 0ff00h
+    jne failed
+    cmp bx, 1
+    jne failed
+    cmp cx, 2
+    jne failed
+    cmp dx, 2
+    jne failed
     mov dx, remote_name
     mov ax, 3d00h
     int 21h

@@ -288,7 +288,8 @@ send_byte PROC NEAR
         push    ax
         push    cx
         push    dx
-        mov     dx,03fdh
+        mov     dx,cs:com_port
+        add     dx,5
         mov     cx,0ffffh
 send_ready:
         in      al,dx
@@ -305,7 +306,7 @@ send_now:
         pop     cx
         pop     ax
         push    dx
-        mov     dx,03f8h
+        mov     dx,cs:com_port
         out     dx,al
         pop     dx
         clc
@@ -316,7 +317,8 @@ receive_byte PROC NEAR
         push    bx
         push    cx
         push    dx
-        mov     dx,03fdh
+        mov     dx,cs:com_port
+        add     dx,5
         mov     bx,32
 receive_retry:
         mov     cx,0ffffh
@@ -333,7 +335,7 @@ receive_ready:
         stc
         ret
 receive_now:
-        mov     dx,03f8h
+        mov     dx,cs:com_port
         in      al,dx
         clc
         pop     dx
@@ -343,25 +345,31 @@ receive_now:
 receive_byte ENDP
 
 init_serial PROC NEAR
-        mov     dx,03f9h
+        mov     dx,cs:com_port
+        inc     dx
         xor     al,al
         out     dx,al
-        mov     dx,03fbh
+        mov     dx,cs:com_port
+        add     dx,3
         mov     al,80h
         out     dx,al
-        mov     dx,03f8h
+        mov     dx,cs:com_port
         mov     al,1
         out     dx,al
-        mov     dx,03f9h
+        mov     dx,cs:com_port
+        inc     dx
         xor     al,al
         out     dx,al
-        mov     dx,03fbh
+        mov     dx,cs:com_port
+        add     dx,3
         mov     al,3
         out     dx,al
-        mov     dx,03fah
+        mov     dx,cs:com_port
+        add     dx,2
         mov     al,0c7h
         out     dx,al
-        mov     dx,03fch
+        mov     dx,cs:com_port
+        add     dx,4
         mov     al,0bh
         out     dx,al
         ret
@@ -392,7 +400,7 @@ parse_space:
         jae     parse_bad
         mov     cs:server_drives[bx],al
         inc     cs:drive_count
-        jcxz    parse_done
+        jcxz    short parse_drive_at_end
         mov     al,es:[si]
         inc     si
         dec     cx
@@ -401,6 +409,8 @@ parse_space:
         cmp     al,' '
         jne     parse_bad
         jmp     parse_space
+parse_drive_at_end:
+        jmp     parse_done
 parse_drive_tail:
         jcxz    parse_done
         mov     al,es:[si]
@@ -412,8 +422,7 @@ parse_drive_tail:
 parse_at_end:
         jmp     parse_done
 parse_switch:
-        ; /COM:1 is the first transport contract.  Other retail transports
-        ; remain diagnosed instead of being silently accepted.
+        ; Serial COM1 through COM4 are supported; parallel ports remain a gap.
         jcxz    parse_bad
         mov     al,es:[si]
         inc     si
@@ -440,9 +449,20 @@ parse_switch:
         mov     al,es:[si]
         inc     si
         sub     cx,4
-        cmp     al,'1'
-        jne     parse_bad
-        mov     cs:com_port,0
+        sub     al,'0'
+        cmp     al,1
+        jb      parse_bad
+        cmp     al,4
+        ja      parse_bad
+        mov     cs:com_number,al
+        mov     cs:banner_port,al
+        add     cs:banner_port,'0'
+        dec     al
+        xor     ah,ah
+        shl     ax,1
+        mov     bx,ax
+        mov     ax,cs:com_bases[bx]
+        mov     cs:com_port,ax
         jmp     parse_space
 parse_done:
         cmp     cs:drive_count,0
@@ -470,7 +490,8 @@ server_help:
         mov     ax,4c00h
         int     21h
 
-com_port        dw 0
+com_port        dw 03f8h
+com_number      db 1
 drive_count     db 0
 server_drives   db 5 dup(0)
 request_command db 0
@@ -481,10 +502,12 @@ bios_sector     db 0
 bios_heads      db 0
 sector_number   dd 0
 banner          db 'Microsoft Interlnk server compatible transport',13,10
-                db 'Port-COM1  Drives $'
+                db 'Port-COM'
+banner_port     db '1  Drives $'
 banner_suffix   db ' available',13,10,'$'
-usage           db 'Syntax: INTERSVR [drive: ...] [/COM:1]',13,10,'$'
+usage           db 'Syntax: INTERSVR [drive: ...] [/COM:n]',13,10,'$'
 sector_buffer   db 512 dup(0)
+com_bases       dw 03f8h,02f8h,03e8h,02e8h
 
 CODE ENDS
 STACKSEG SEGMENT PARA STACK 'STACK'
