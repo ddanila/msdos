@@ -1,0 +1,46 @@
+#!/bin/bash
+set -euo pipefail
+export LC_ALL=C MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+OUT="$ROOT/out"
+BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
+IMAGE="$OUT/power.img"
+LOG="$OUT/power.log"
+PROBE="$OUT/power-probe.com"
+QEXIT="$OUT/power-qexit.com"
+
+for tool in nasm mcopy qemu-system-i386 timeout; do
+    command -v "$tool" >/dev/null || { echo "ERROR: missing $tool" >&2; exit 1; }
+done
+cp "$BASE" "$IMAGE"
+nasm -f bin "$ROOT/tests/power_probe.asm" -o "$PROBE"
+nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
+mcopy -o -i "$IMAGE" "$ROOT/src/CMD/POWER/POWER.COM" ::POWER.COM
+mcopy -o -i "$IMAGE" "$ROOT/src/CMD/POWER/POWER.EXE" ::POWER.EXE
+mcopy -o -i "$IMAGE" "$PROBE" ::PWRPROBE.COM
+mcopy -o -i "$IMAGE" "$QEXIT" ::QEXIT.COM
+printf 'DEVICE=A:\\POWER.EXE\r\n' | mcopy -o -i "$IMAGE" - ::CONFIG.SYS
+{
+    printf '@ECHO OFF\r\nCTTY AUX\r\n'
+    printf 'POWER\r\nPOWER OFF\r\nPOWER\r\nPOWER STD\r\nPOWER\r\n'
+    printf 'POWER ADV:MIN\r\nPOWER ADV:REG\r\nPOWER ADV:MAX\r\nPOWER\r\n'
+    printf 'PWRPROBE.COM\r\n'
+    printf 'POWER ADV:FAST\r\nIF ERRORLEVEL 1 ECHO POWER_REJECT_PASS\r\n'
+    printf 'QEXIT.COM\r\n'
+} | mcopy -o -i "$IMAGE" - ::AUTOEXEC.BAT
+
+timeout 35 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 16 \
+    -drive if=floppy,index=0,format=raw,file="$IMAGE",cache=writethrough \
+    -boot a -serial stdio -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    </dev/null >"$LOG" 2>&1 || true
+
+grep -Fq 'Power management setting = ADV:REG' "$LOG"
+grep -Fq 'Power management setting = OFF' "$LOG"
+grep -Fq 'Power management setting = STD' "$LOG"
+grep -Fq 'Power management setting = ADV:MAX' "$LOG"
+grep -Fq POWER_IDLE_PASS "$LOG"
+grep -Fq POWER_REJECT_PASS "$LOG"
+! grep -Fq POWER_IDLE_FAIL "$LOG"
+echo '  PASS: POWER device, controller modes, idle action, and parser rejection'

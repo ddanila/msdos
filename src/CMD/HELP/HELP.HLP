@@ -68,6 +68,7 @@ NLSFUNC    Loads country-specific information.
 PATH       Displays or sets the program search path.
 PAUSE      Suspends batch processing.
 PRINT      Prints text files in the background.
+POWER      Controls the resident power-management driver.
 PROMPT     Changes the command prompt.
 RD         Removes an empty directory.
 RECOVER    Recovers readable data from a damaged disk or file.
@@ -304,6 +305,11 @@ Syntax: PAUSE
 @PRINT
 Prints a text file in the background.
 Syntax: PRINT [/D:device] [/B:size] [/U:ticks] [/M:ticks] [/S:ticks] [/Q:size] files
+@POWER
+Reports or changes the resident POWER.EXE driver's conservation policy.
+Install it first with DEVICE=POWER.EXE in CONFIG.SYS.
+Syntax: POWER [ADV[:MAX|REG|MIN]|STD|OFF]
+ADV uses software idle detection. STD uses the computer's APM support.
 @PROMPT
 Changes the command prompt.
 Syntax: PROMPT [text]

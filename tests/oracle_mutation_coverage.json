@@ -53,6 +53,8 @@
     "MSD.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_msd_qemu.sh"},
     "NLSFUNC.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_share_nlsfunc_exe2bin.sh"},
     "PRINT.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_print_spooler_qemu.sh"},
+    "POWER.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_power_qemu.sh"},
+    "POWER.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_power_qemu.sh"},
     "PRINTER.SYS": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_printer_driver_qemu.sh"},
     "RAMDRIVE.SYS": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_drivers_qemu.sh"},
     "RECOVER.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_recover.sh"},

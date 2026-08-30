@@ -199,6 +199,9 @@
       "/SURFACE": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Reads every data cluster and marks unclaimed unreadable clusters bad during automatic repair"},
       "/UNDO": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Is recognized but currently diagnoses the missing undo-disk implementation; the gap remains explicit"}
     }},
+    "POWER.COM": {"source": "src/CMD/POWER/POWER.ASM", "switches": {
+      "/?": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Displays the documented POWER syntax without requiring the resident driver"}
+    }},
     "PRINT.COM": {"source": "src/CMD/PRINT/PRINT_T.ASM", "switches": {
       "/B": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh", "tests/test_print_spooler_qemu.sh"], "note": "The 512-byte and 16-KiB bounds are enforced before a functionally verified resident installation"},
       "/C": {"level": "contract", "evidence": ["tests/test_misc_qemu.sh"], "note": "Cancels a named queued file and returns to the batch"},
