@@ -33,12 +33,12 @@ features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
 
 | DOS 5 feature | Repository status | Gap |
 | --- | --- | --- |
-| DOS in the HMA and programs/drivers in UMBs | Present; broader validation pending | HIMEM runs on a 286 and HIMEM/EMM386 HMA/UMB integration is exercised end to end on 386+ systems. A cycle-oriented 286 XMS move gate and broader physical-machine validation remain. |
+| DOS in the HMA and programs/drivers in UMBs | Present; broader validation pending | HIMEM runs on a fixed-cycle 286 gate, including byte-exact XMS moves, and HIMEM/EMM386 HMA/UMB integration is exercised end to end on 386+ systems. Broader physical-machine validation remains. |
 | MS-DOS Shell and Task Swapper | Missing | No DOSSHELL UI, program groups, file manager, session switching, EGA save driver, or task-switcher API. |
 | Command history and macros | Present | DOSKEY provides resident history, macros, edit modes, redirected input, INT 2Fh services, and the DOS 5 interactive history/editing keys. |
 | Full-screen Editor and QBasic | Missing | No EDIT, QBASIC, BASIC runtime, help, or sample programs. EDLIN remains available. |
 | Online command help | Present | HELP provides a described command index and case-insensitive topic lookup from a separate searchable database; shipped executable `/?` surfaces are also tested. |
-| Delete/format recovery | Missing | MIRROR, UNDELETE, and UNFORMAT are absent. |
+| Delete/format recovery | Partial | MIRROR, UNDELETE, UNFORMAT, and safe-FORMAT metadata are shipped. Resident real-time delete tracking and prior-generation selection remain. |
 | Partitions up to 2 GiB | Present | Automated and interactive FDISK paths create and validate a near-2-GiB FAT16 partition on a sparse 2-GiB disk. |
 | More than two hard disks | Present | FDISK models up to eight BIOS fixed disks; automated creation and interactive selection, display, and deletion are validated through disk 3. |
 | 2.88 MiB floppy support | Present | FORMAT creates the standard FAT12 layout, SYS creates bootable media, and DRIVER.SYS `/F:9` provides DOS-side read/write access. |
@@ -56,10 +56,7 @@ Every documented option of a missing command is necessarily unsupported.
 | --- | --- |
 | `DOSSHELL` | Text/graphics Shell, `/T`, `/G`, resolution selection, `/B`, program groups, file operations, help, and task swapping. |
 | `EDIT` | Full-screen text editor and `/B`, `/G`, `/H`, `/NOHI`; depends on QBASIC. |
-| `MIRROR` | Delete-tracking file, disk/partition recovery metadata, `/1`, `/T`, `/U`, and `/PARTN`. |
 | `QBASIC` | BASIC editor/interpreter, `/B`, `/EDITOR`, `/G`, `/H`, `/MBF`, `/NOHI`, `/RUN`, online help, and bundled examples. |
-| `UNDELETE` | File recovery, `/LIST`, `/ALL`, `/DOS`, and delete-tracking modes. |
-| `UNFORMAT` | Disk recovery/reconstruction, `/J`, `/U`, `/L`, `/TEST`, `/P`, and `/PARTN`. |
 
 `EGA.SYS`, required by DOSSHELL Task Swapper on EGA systems, is also absent.
 
@@ -71,8 +68,11 @@ Every documented option of a missing command is necessarily unsupported.
 | `DISKCOPY` | Copy, `/1`, and `/V` read-back verification | No known DOS 5 option gap. |
 | `FDISK` | Automated primary, extended, and logical creation; interactive display, near-2-GiB creation, active selection, deletion, and multi-disk selection, with resulting MBR state validated | No known DOS 5 workflow gap. |
 | `FIND` | `/V`, `/C`, `/N`, `/I` | No known DOS 5 option gap. |
-| `FORMAT` | Safe, `/Q`, and `/U` modes on floppy and FAT16 fixed media; bad-cluster marking; hard-disk warning/errorlevel 5; `/1`, `/4`, `/8`, `/B`, `/F` including 2.88 MiB, `/N`, `/S`, `/T`, `/V`, and inherited private switches | UNFORMAT-compatible recovery metadata belongs to Stage 4. |
+| `FORMAT` | Safe, `/Q`, and `/U` modes on floppy and FAT16 fixed media; bad-cluster marking; hard-disk warning/errorlevel 5; `/1`, `/4`, `/8`, `/B`, `/F` including 2.88 MiB, `/N`, `/S`, `/T`, `/V`, inherited private switches, and automatic UNFORMAT-compatible recovery metadata | No known DOS 5 workflow gap. |
+| `MIRROR` | Transactional FAT/root snapshots, prior snapshot retention, `/1`, `/Tdrive[-entries]`, `/U`, and exact geometry-checked `/PARTN` metadata | `/T` creates a bounded tracking snapshot but does not yet install the documented real-time TSR; `/U` therefore removes tracking state rather than unloading a resident hook. |
 | `SYS` | Default and explicit source paths; bootable 1.44 and 2.88 MiB targets; fresh and upgrade transfers across small and large FAT16 fixed-disk geometries | No known DOS 5 workflow gap. |
+| `UNDELETE` | FAT12/FAT16 root and nested recovery, exact tracked chains/names, `/LIST`, `/ALL`, `/DOS`, and `/DT` | Tracking cannot yet record files created after MIRROR `/T`; removed directories remain unsupported as documented. |
+| `UNFORMAT` | Signed mirror recovery, `/J`, BIOS-level mirror-independent `/U`, `/L`, `/TEST`, LPT1 `/P`, and exact `/PARTN` restoration | Mirror-independent reconstruction currently recovers intact directory records with nonconflicting contiguous chains; interactive latest/prior mirror-generation selection remains. |
 
 ### Present commands without a known parser omission
 
@@ -105,7 +105,7 @@ Complete limit/error/order parity remains unverified outside the cases in
 
 | Driver | Status | Missing DOS 5 surface |
 | --- | --- | --- |
-| `HIMEM.SYS` | Partial XMS 2.00 implementation | It uses a 286 instruction baseline and a 286 runtime gate covers installation, allocation, locking, and release. On 386+ systems every documented DOS 5 option, HMA thresholds, 1-128 handles, INT 15h reservation, generic A20 backends, moves, and resizing are tested. A cycle-oriented 286 move gate and representative machine-specific A20, shadow-RAM, and CPU-clock validation remain. |
+| `HIMEM.SYS` | Partial XMS 2.00 implementation | It uses a 286 instruction baseline and a fixed-cycle 286 runtime gate covers installation, allocation, locking, release, and 64 byte-exact bidirectional moves. On 386+ systems every documented DOS 5 option, HMA thresholds, 1-128 handles, INT 15h reservation, generic A20 backends, moves, and resizing are tested. Representative machine-specific A20, shadow-RAM, and CPU-clock validation remains. |
 | `EMM386.EXE` | Present DOS 5 command-line surface; hardware validation remains | Driver and runtime loading implement `ON`, `OFF`, `AUTO`, `W=ON`, and `W=OFF`. Driver loading implements pool size, `M1`-`M14`, `FRAME=`, `/P`, sparse `Pn=` physical-page assignments, `I=`, `X=`, `B=`, `L=`, `A=`, `H=`, `D=`, `RAM`, and `NOEMS`. The effect of `W=ON` on real Weitek hardware and the low-memory `M10`-`M14` cases remain unverified on representative hardware. |
 | `EGA.SYS` | Missing | DOSSHELL Task Swapper display save/restore support. |
 | `SETVER.EXE` | Present | Persistent table loading through CONFIG.SYS and reboot-stable command edits are tested. |
@@ -176,12 +176,11 @@ and must not be represented by no-op stubs if compatibility is claimed.
 - Fixed-disk and removable formatting, partition-boundary behavior, and SYS
   upgrades have focused coverage. Recovery metadata and interrupted-write
   reconstruction belong to Stage 4.
-- COUNTRY.SYS, KEYB, DISPLAY, PRINTER, and CPI files provide working NLS and
-  code-page paths, but every retail keyboard, country, printer, and code-page
-  combination has not been compared.
-- HIMEM installs and serves its core XMS lifecycle on a 286, and its move
-  engine contains no 386-only instructions. A cycle-oriented 286 move test is
-  still required in addition to the complete 386+ move contract.
+- COUNTRY.SYS and KEYBOARD.SYS contain exact retail BR, CZ, SL, HU, PL, and YU
+  records, with structural and live selection gates. DISPLAY, PRINTER, and the
+  complete CPI/device combination matrix remain only partially compared.
+- HIMEM installs and serves its core XMS lifecycle on a fixed-cycle 286 gate,
+  including 64 byte-exact bidirectional XMS moves without 386 opcodes.
 - Hardware validation is dominated by QEMU. The recorded 86Box 486 gate does
   not replace testing on representative 8086/286/386 systems and controllers.
 
@@ -215,9 +214,10 @@ The compatibility work is split into four independently useful stages:
 3. **Memory, locale, and hardware breadth.** Complete HIMEM configuration and
    286 support, EMM386 driver-load options, media geometries, NLS combinations,
    and representative 286/386/486 hardware validation.
-4. **Help and recovery.** HELP and its database are present. Add the MIRROR,
-   UNDELETE, and UNFORMAT recovery workflow, including recovery metadata and
-   interrupted-write tests.
+4. **Help and recovery.** HELP and its database are present. MIRROR, UNDELETE,
+   UNFORMAT, safe-FORMAT metadata, forensic reconstruction, and interrupted-
+   write validation are present. Complete the real-time deletion TSR and
+   latest/prior mirror-generation selection.
 
 DOSSHELL/Task Swapper and EDIT/QBASIC are separate product-scale projects and
 are not hidden inside these four stages. EGA.SYS belongs with Task Swapper if

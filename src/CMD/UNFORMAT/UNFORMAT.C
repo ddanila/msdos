@@ -11,8 +11,25 @@ extern unsigned __cdecl abs_read(unsigned drive, unsigned long sector,
 extern unsigned __cdecl abs_write(unsigned drive, unsigned long sector,
                                   unsigned count, void *buffer);
 
-static unsigned char sector[512];
+static unsigned char sector[1024];
 static unsigned char present[8192];
+
+struct scan_volume {
+    unsigned drive;
+    unsigned sectors_per_cluster;
+    unsigned reserved;
+    unsigned fats;
+    unsigned root_entries;
+    unsigned sectors_per_fat;
+    unsigned root_sectors;
+    unsigned sectors_per_track;
+    unsigned heads;
+    unsigned long total_sectors;
+    unsigned long root_start;
+    unsigned long data_start;
+    unsigned clusters;
+    int fat16;
+};
 
 static unsigned short get_word(const unsigned char *p)
 {
@@ -22,6 +39,282 @@ static unsigned short get_word(const unsigned char *p)
 static unsigned long get_dword(const unsigned char *p)
 {
     return (unsigned long)get_word(p) | ((unsigned long)get_word(p + 2) << 16);
+}
+
+static void put_word(unsigned char *p, unsigned value)
+{
+    p[0] = (unsigned char)value;
+    p[1] = (unsigned char)(value >> 8);
+}
+
+static int load_scan_volume(struct scan_volume *volume, unsigned drive)
+{
+    unsigned long data_sectors;
+
+    if (abs_read(drive, 0, 1, sector) || get_word(sector + 11) != 512)
+        return 1;
+    memset(volume, 0, sizeof(*volume));
+    volume->drive = drive;
+    volume->sectors_per_cluster = sector[13];
+    volume->reserved = get_word(sector + 14);
+    volume->fats = sector[16];
+    volume->root_entries = get_word(sector + 17);
+    volume->sectors_per_fat = get_word(sector + 22);
+    volume->sectors_per_track = get_word(sector + 24);
+    volume->heads = get_word(sector + 26);
+    volume->total_sectors = get_word(sector + 19);
+    if (!volume->total_sectors)
+        volume->total_sectors = get_dword(sector + 32);
+    if (!volume->sectors_per_cluster || !volume->fats ||
+        !volume->sectors_per_fat || !volume->root_entries)
+        return 1;
+    volume->root_sectors = (volume->root_entries * 32U + 511U) / 512U;
+    volume->root_start = volume->reserved +
+                         (unsigned long)volume->fats * volume->sectors_per_fat;
+    volume->data_start = volume->root_start + volume->root_sectors;
+    if (volume->data_start >= volume->total_sectors)
+        return 1;
+    data_sectors = volume->total_sectors - volume->data_start;
+    volume->clusters = (unsigned)(data_sectors / volume->sectors_per_cluster);
+    volume->fat16 = volume->clusters >= 4085;
+    return volume->clusters > 65533U ? 1 : 0;
+}
+
+static int scan_io(const struct scan_volume *volume, int write,
+                   unsigned long position, unsigned count, void *buffer)
+{
+    union REGS inregs, outregs;
+    struct SREGS segregs;
+    void far *far_buffer = (void far *)buffer;
+    unsigned long track;
+    unsigned cylinder;
+    unsigned head;
+
+    if (count != 1) {
+        unsigned index;
+        for (index = 0; index < count; ++index)
+            if (scan_io(volume, write, position + index, 1,
+                        (unsigned char *)buffer + index * 512U))
+                return 1;
+        return 0;
+    }
+    if (volume->drive >= 2 ||
+        !volume->sectors_per_track || !volume->heads)
+        return write ? abs_write(volume->drive, position, count, buffer)
+                     : abs_read(volume->drive, position, count, buffer);
+    track = position / volume->sectors_per_track;
+    cylinder = (unsigned)(track / volume->heads);
+    head = (unsigned)(track % volume->heads);
+    memset(&inregs, 0, sizeof(inregs));
+    segread(&segregs);
+    inregs.h.ah = (unsigned char)(write ? 3 : 2);
+    inregs.h.al = 1;
+    inregs.h.ch = (unsigned char)cylinder;
+    inregs.h.cl = (unsigned char)((position % volume->sectors_per_track) + 1 |
+                    ((cylinder >> 2) & 0xc0));
+    inregs.h.dh = (unsigned char)head;
+    inregs.h.dl = (unsigned char)volume->drive;
+    inregs.x.bx = FP_OFF(far_buffer);
+    segregs.es = FP_SEG(far_buffer);
+    int86x(0x13, &inregs, &outregs, &segregs);
+    return outregs.x.cflag ? 1 : 0;
+}
+
+static unsigned scan_fat_get(const struct scan_volume *volume, unsigned cluster)
+{
+    unsigned long byte_offset = volume->fat16
+        ? (unsigned long)cluster * 2UL
+        : (unsigned long)cluster * 3UL / 2UL;
+    unsigned long position = volume->reserved + byte_offset / 512UL;
+    unsigned offset = (unsigned)(byte_offset & 511U);
+    unsigned value;
+
+    if (scan_io(volume, 0, position, offset == 511 ? 2 : 1, sector))
+        return 0xffff;
+    value = get_word(sector + offset);
+    if (!volume->fat16)
+        value = cluster & 1 ? value >> 4 : value & 0x0fff;
+    return value;
+}
+
+static int scan_fat_set(const struct scan_volume *volume, unsigned cluster,
+                        unsigned value)
+{
+    unsigned long byte_offset = volume->fat16
+        ? (unsigned long)cluster * 2UL
+        : (unsigned long)cluster * 3UL / 2UL;
+    unsigned copy;
+    unsigned offset = (unsigned)(byte_offset & 511U);
+    unsigned count = offset == 511 ? 2 : 1;
+
+    for (copy = 0; copy < volume->fats; ++copy) {
+        unsigned long position = volume->reserved +
+            (unsigned long)copy * volume->sectors_per_fat + byte_offset / 512UL;
+        unsigned old;
+        if (scan_io(volume, 0, position, count, sector))
+            return 1;
+        if (volume->fat16)
+            put_word(sector + offset, value);
+        else {
+            old = get_word(sector + offset);
+            old = cluster & 1
+                ? (old & 0x000f) | ((value & 0x0fff) << 4)
+                : (old & 0xf000) | (value & 0x0fff);
+            put_word(sector + offset, old);
+        }
+        if (scan_io(volume, 1, position, count, sector))
+            return 1;
+    }
+    return 0;
+}
+
+static unsigned long scan_cluster_sector(const struct scan_volume *volume,
+                                         unsigned cluster)
+{
+    return volume->data_start +
+           (unsigned long)(cluster - 2) * volume->sectors_per_cluster;
+}
+
+static void scan_name(const unsigned char *raw, char *name)
+{
+    unsigned source;
+    unsigned target = 0;
+    for (source = 0; source < 8 && raw[source] != ' '; ++source)
+        name[target++] = (char)raw[source];
+    if (raw[8] != ' ') {
+        name[target++] = '.';
+        for (source = 8; source < 11 && raw[source] != ' '; ++source)
+            name[target++] = (char)raw[source];
+    }
+    name[target] = 0;
+}
+
+static int cluster_claimed(unsigned cluster)
+{
+    return present[cluster >> 3] & (1 << (cluster & 7));
+}
+
+static void claim_cluster(unsigned cluster)
+{
+    present[cluster >> 3] |= 1 << (cluster & 7);
+}
+
+static int rebuild_chain(const struct scan_volume *volume, unsigned first,
+                         unsigned count, int test_only)
+{
+    unsigned cluster;
+    unsigned index;
+    unsigned maximum = volume->clusters + 1;
+
+    if (!count)
+        return 0;
+    if (first < 2 || first > maximum || count > maximum - first + 1)
+        return 1;
+    for (index = 0, cluster = first; index < count; ++index, ++cluster)
+        if (cluster_claimed(cluster))
+            return 1;
+    for (index = 0, cluster = first; index < count; ++index, ++cluster)
+        claim_cluster(cluster);
+    if (test_only)
+        return 0;
+    for (index = 0, cluster = first; index < count; ++index, ++cluster) {
+        unsigned next = index + 1 == count
+            ? (volume->fat16 ? 0xffff : 0x0fff) : cluster + 1;
+        if (scan_fat_set(volume, cluster, next))
+            return 1;
+    }
+    return 0;
+}
+
+static int scan_directory(const struct scan_volume *volume, unsigned directory,
+                          int list_all, int test_only, unsigned depth,
+                          unsigned *found, unsigned *damaged)
+{
+    unsigned long base;
+    unsigned sectors;
+    unsigned entries_left;
+    unsigned sector_index;
+    unsigned offset;
+    unsigned char saved[32];
+    char name[13];
+
+    if (depth > 32)
+        return 1;
+    base = directory ? scan_cluster_sector(volume, directory) : volume->root_start;
+    sectors = directory ? volume->sectors_per_cluster : volume->root_sectors;
+    entries_left = directory ? 0xffff : volume->root_entries;
+    for (sector_index = 0; sector_index < sectors; ++sector_index) {
+        if (scan_io(volume, 0, base + sector_index, 1, sector))
+            return 1;
+        for (offset = 0; offset < 512 && entries_left; offset += 32) {
+            unsigned attributes;
+            unsigned first;
+            unsigned count;
+            unsigned long size;
+            unsigned long cluster_bytes;
+            if (!directory)
+                --entries_left;
+            if (!sector[offset])
+                return 0;
+            if (sector[offset] == 0xe5 || sector[offset + 11] == 0x0f)
+                continue;
+            attributes = sector[offset + 11];
+            if (attributes & 0x08)
+                continue;
+            memcpy(saved, sector + offset, sizeof(saved));
+            if ((attributes & 0x10) && saved[0] == '.')
+                continue;
+            first = get_word(saved + 26);
+            size = get_dword(saved + 28);
+            cluster_bytes = (unsigned long)volume->sectors_per_cluster * 512UL;
+            count = attributes & 0x10 ? (first ? 1 : 0)
+                    : (size ? (unsigned)((size + cluster_bytes - 1) /
+                                         cluster_bytes) : 0);
+            scan_name(saved, name);
+            ++*found;
+            if (rebuild_chain(volume, first, count, test_only)) {
+                ++*damaged;
+                printf("Fragmented or conflicting: %s\n", name);
+                continue;
+            }
+            if (list_all)
+                printf("%s%s\n", name, attributes & 0x10 ? "\\" : "");
+            if ((attributes & 0x10) && first &&
+                scan_directory(volume, first, list_all, test_only,
+                               depth + 1, found, damaged))
+                return 1;
+        }
+    }
+    return 0;
+}
+
+static int reconstruct_without_mirror(unsigned drive, int list_all,
+                                      int test_only)
+{
+    struct scan_volume volume;
+    unsigned found = 0;
+    unsigned damaged = 0;
+
+    if (load_scan_volume(&volume, drive)) {
+        fprintf(stderr, "UNFORMAT: cannot inspect drive %c:.\n", 'A' + drive);
+        return 1;
+    }
+    memset(present, 0, sizeof(present));
+    if (scan_directory(&volume, 0, list_all, test_only, 0, &found, &damaged)) {
+        fputs("UNFORMAT: directory scan failed.\n", stderr);
+        return 1;
+    }
+    if (!found) {
+        puts("No recoverable directory records were found.");
+        return 1;
+    }
+    printf("%u file or subdirectory record(s) found; %u fragmented or conflicting.\n",
+           found, damaged);
+    if (test_only)
+        puts("Test completed; the disk was not changed.");
+    else
+        puts("Disk reconstruction completed.");
+    return damaged ? 1 : 0;
 }
 
 static unsigned short checksum(const unsigned char *p, unsigned count)
@@ -270,6 +563,10 @@ int main(int argc, char **argv)
     unsigned long generation;
     unsigned short commit_sequence = 0;
     int verify_only = 0;
+    int force_scan = 0;
+    int list_all = 0;
+    int test_only = 0;
+    int printer = 0;
     int i;
     int answer;
 
@@ -296,7 +593,27 @@ int main(int argc, char **argv)
             verify_only = 1;
             continue;
         }
-        fprintf(stderr, "UNFORMAT: that mode is not implemented yet: %s\n", argv[i]);
+        if (!stricmp(argv[i], "/U"))
+            force_scan = 1;
+        else if (!stricmp(argv[i], "/L")) {
+            force_scan = 1;
+            list_all = 1;
+        } else if (!stricmp(argv[i], "/TEST")) {
+            force_scan = 1;
+            test_only = 1;
+        } else if (!stricmp(argv[i], "/P"))
+            printer = 1;
+        else {
+            usage();
+            return 1;
+        }
+    }
+    if ((verify_only && argc != 3) || (test_only && list_all)) {
+        usage();
+        return 1;
+    }
+    if (printer && !freopen("LPT1", "w", stdout)) {
+        fputs("UNFORMAT: cannot open LPT1.\n", stderr);
         return 1;
     }
     if (abs_read(drive, 0, 1, sector) || get_word(sector + 11) != 512) {
@@ -306,11 +623,12 @@ int main(int argc, char **argv)
     total = get_word(sector + 19);
     if (!total)
         total = get_dword(sector + 32);
+    if (force_scan)
+        return reconstruct_without_mirror(drive, list_all, test_only);
     if (find_generation(drive, total, &generation, &commit_sequence, &header) ||
         inventory_generation(drive, total, generation, commit_sequence)) {
-        fprintf(stderr, "UNFORMAT: no complete recovery information exists for drive %c:.\n",
-                'A' + drive);
-        return 1;
+        puts("No complete mirror information was found; scanning the disk.");
+        return reconstruct_without_mirror(drive, 0, 0);
     }
     printf("Complete recovery information found for drive %c:.\n", 'A' + drive);
     if (verify_only)

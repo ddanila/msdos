@@ -7,9 +7,12 @@ BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT="$OUT/recovery-test-boot.img"
 TARGET="$OUT/recovery-test-target.img"
 UNSAFE_TARGET="$OUT/recovery-test-unsafe-target.img"
+REBUILD_TARGET="$OUT/recovery-test-rebuild-target.img"
 HDD="$OUT/recovery-test-hdd.img"
 LOG="$OUT/recovery-test.log"
 UNSAFE_LOG="$OUT/recovery-test-unsafe.log"
+REBUILD_LOG="$OUT/recovery-test-rebuild.log"
+PRINT_LOG="$OUT/recovery-test-printer.log"
 PART_LOG="$OUT/recovery-partition-test.log"
 QEXIT="$OUT/recovery-test-qexit.com"
 PASS=0
@@ -17,6 +20,12 @@ FAIL=0
 
 ok() { echo "  PASS: $1"; PASS=$((PASS+1)); }
 fail() { echo "  FAIL: $1"; FAIL=$((FAIL+1)); }
+
+erase_floppy_fats() {
+    local image="$1"
+    dd if=/dev/zero of="$image" bs=1 seek=515 count=4605 conv=notrunc status=none
+    dd if=/dev/zero of="$image" bs=1 seek=5123 count=4605 conv=notrunc status=none
+}
 
 [[ -f "$BASE" ]] || { echo "missing $BASE; run make deploy" >&2; exit 1; }
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
@@ -84,6 +93,86 @@ if [[ "$payload" == 'RECOVERY EXACT PAYLOAD' ]]; then
     ok "UNFORMAT restores the exact FAT/root file payload"
 else
     fail "UNFORMAT payload mismatch"
+fi
+
+dd if=/dev/zero of="$REBUILD_TARGET" bs=512 count=2880 status=none
+mformat -i "$REBUILD_TARGET" -f 1440 ::
+for unused in 1 2 3 4 5 6 7 8; do
+    printf 'FORENSIC RECONSTRUCTION PAYLOAD %s\r\n' "$unused"
+done | mcopy -i "$REBUILD_TARGET" - ::FORENSIC.TXT
+erase_floppy_fats "$REBUILD_TARGET"
+before_test="$(dd if="$REBUILD_TARGET" bs=512 count=19 status=none | shasum -a 256)"
+{
+    printf '@ECHO OFF\r\nCTTY AUX\r\nUNFORMAT B: /TEST\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO FORENSIC_TEST_FAILED\r\nQEXIT.COM\r\n'
+} | mcopy -o -i "$BOOT" - ::AUTOEXEC.BAT
+timeout 30 qemu-system-i386 -display none \
+    -drive if=floppy,index=0,format=raw,file="$BOOT",cache=writethrough \
+    -drive if=floppy,index=1,format=raw,file="$REBUILD_TARGET",cache=writethrough \
+    -boot a -m 4 -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    </dev/null >"$REBUILD_LOG" 2>&1 || true
+after_test="$(dd if="$REBUILD_TARGET" bs=512 count=19 status=none | shasum -a 256)"
+if [[ "$before_test" == "$after_test" ]] &&
+   grep -q 'Test completed; the disk was not changed.' "$REBUILD_LOG" &&
+   ! grep -q 'FORENSIC_TEST_FAILED' "$REBUILD_LOG"; then
+    ok "UNFORMAT /TEST performs a read-only mirror-independent reconstruction"
+else
+    fail "UNFORMAT /TEST dry run"
+fi
+
+{
+    printf '@ECHO OFF\r\nCTTY AUX\r\nUNFORMAT B: /TEST /P\r\nQEXIT.COM\r\n'
+} | mcopy -o -i "$BOOT" - ::AUTOEXEC.BAT
+: >"$PRINT_LOG"
+timeout 30 qemu-system-i386 -display none \
+    -drive if=floppy,index=0,format=raw,file="$BOOT",cache=writethrough \
+    -drive if=floppy,index=1,format=raw,file="$REBUILD_TARGET",cache=writethrough \
+    -boot a -m 4 -serial stdio -parallel "file:$PRINT_LOG" \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    </dev/null >>"$REBUILD_LOG" 2>&1 || true
+if grep -q 'Test completed; the disk was not changed.' "$PRINT_LOG"; then
+    ok "UNFORMAT /P sends reconstruction output to LPT1"
+else
+    fail "UNFORMAT /P printer output"
+fi
+
+{
+    printf '@ECHO OFF\r\nCTTY AUX\r\nUNFORMAT B: /L\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO FORENSIC_LIST_FAILED\r\nQEXIT.COM\r\n'
+} | mcopy -o -i "$BOOT" - ::AUTOEXEC.BAT
+timeout 30 qemu-system-i386 -display none \
+    -drive if=floppy,index=0,format=raw,file="$BOOT",cache=writethrough \
+    -drive if=floppy,index=1,format=raw,file="$REBUILD_TARGET",cache=writethrough \
+    -boot a -m 4 -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    </dev/null >>"$REBUILD_LOG" 2>&1 || true
+rebuild_payload="$(mcopy -i "$REBUILD_TARGET" ::FORENSIC.TXT - 2>/dev/null | tr -d '\r\n')"
+if grep -q 'FORENSIC.TXT' "$REBUILD_LOG" &&
+   [[ "$rebuild_payload" == *'FORENSIC RECONSTRUCTION PAYLOAD 8' ]] &&
+   ! grep -q 'FORENSIC_LIST_FAILED' "$REBUILD_LOG"; then
+    ok "UNFORMAT /L lists records and rebuilds an exact contiguous chain"
+else
+    fail "UNFORMAT /L reconstruction"
+fi
+
+erase_floppy_fats "$REBUILD_TARGET"
+{
+    printf '@ECHO OFF\r\nCTTY AUX\r\nUNFORMAT B: /U\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO FORENSIC_U_FAILED\r\nQEXIT.COM\r\n'
+} | mcopy -o -i "$BOOT" - ::AUTOEXEC.BAT
+timeout 30 qemu-system-i386 -display none \
+    -drive if=floppy,index=0,format=raw,file="$BOOT",cache=writethrough \
+    -drive if=floppy,index=1,format=raw,file="$REBUILD_TARGET",cache=writethrough \
+    -boot a -m 4 -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    </dev/null >>"$REBUILD_LOG" 2>&1 || true
+rebuild_payload="$(mcopy -i "$REBUILD_TARGET" ::FORENSIC.TXT - 2>/dev/null | tr -d '\r\n')"
+if [[ "$rebuild_payload" == *'FORENSIC RECONSTRUCTION PAYLOAD 8' ]] &&
+   ! grep -q 'FORENSIC_U_FAILED' "$REBUILD_LOG"; then
+    ok "UNFORMAT /U ignores mirror data and rebuilds the exact file chain"
+else
+    fail "UNFORMAT /U reconstruction"
 fi
 
 cp "$OUT/format-hdd-template.img" "$HDD"
