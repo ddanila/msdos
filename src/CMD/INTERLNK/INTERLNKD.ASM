@@ -272,15 +272,16 @@ request_read:
         call    prepare_io
         jc      request_io_error
 read_sector_loop:
-        mov     byte ptr cs:read_retries,2
+        mov     byte ptr cs:read_retries,3
 read_sector_retry:
         call    send_current_request
-        jc      request_io_error
+        jc      short read_sector_failed
         call    receive_status
-        jc      request_io_error
+        jc      short read_sector_failed
         les     di,cs:transfer_ptr
         call    receive_sector
         jnc     short read_sector_complete
+read_sector_failed:
         dec     byte ptr cs:read_retries
         jnz     read_sector_retry
         jmp     request_io_error

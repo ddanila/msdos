@@ -65,7 +65,7 @@ trap 'kill "$PROXY_PID" "$SERVER_PID" 2>/dev/null || true; wait "$PROXY_PID" "$S
 sleep 2
 python3 "$ROOT/tests/serial_fault_proxy.py" \
     --listen "$PROXY_PORT" --upstream "$PORT" --inject a5 --corrupt-request 4 \
-    --corrupt-sector 3 --corrupt-write 1 \
+    --drop-sector 2 --corrupt-sector 4 --corrupt-write 1 \
     >"$OUT/interlnk-proxy.log" 2>&1 &
 PROXY_PID=$!
 sleep 1
@@ -84,14 +84,15 @@ grep -Fq 'INTERLNK_TRANSPORT_PASS' "$LOG" || {
     cat "$CLIENT_LOG" >&2
     exit 1
 }
-grep -Fq 'corrupted sector response 3' "$OUT/interlnk-proxy.log"
-grep -Fq 'retried corrupted read sector' "$OUT/interlnk-proxy.log"
+grep -Fq 'dropped sector response 2' "$OUT/interlnk-proxy.log"
+grep -Fq 'corrupted sector response 4' "$OUT/interlnk-proxy.log"
+[[ $(grep -Fc 'retried corrupted read sector' "$OUT/interlnk-proxy.log") -eq 2 ]]
 grep -Fq 'corrupted request header 4' "$OUT/interlnk-proxy.log"
 grep -Fq 'corrupted write payload 1' "$OUT/interlnk-proxy.log"
 ! mdir -b -i "$CLIENT_IMAGE" :: 2>/dev/null | grep -Fq 'RECONERR.TAG'
 mcopy -i "$SERVER_IMAGE" ::WRITTEN.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx '001122334455aaff'
 mcopy -i "$SERVER_IMAGE_TWO" ::WRITTN2.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx 'fedcba9876543210'
-echo '  PASS: Interlnk retries corrupt reads and writes, reconnects after header faults, and redirects two FAT volumes over COM2'
+echo '  PASS: Interlnk retries lost/corrupt reads and corrupt writes, reconnects after header faults, and redirects two FAT volumes over COM2'
 
 # Without /AUTO, a missing server leaves an offline resident driver and must
 # continue boot instead of waiting forever in the serial receive loop.
