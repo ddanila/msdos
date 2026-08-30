@@ -32,6 +32,7 @@ erase_floppy_fats() {
 [[ -f "$BASE" ]] || { echo "missing $BASE; run make deploy" >&2; exit 1; }
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 cp "$BASE" "$BOOT"
+mdel -i "$BOOT" ::HELP.HLP >/dev/null 2>&1 || true
 mcopy -o -i "$BOOT" "$ROOT/src/CMD/FORMAT/FORMAT.COM" ::FORMAT.COM
 mcopy -o -i "$BOOT" "$ROOT/src/CMD/MIRROR/MIRROR.COM" ::MIRROR.COM
 mcopy -o -i "$BOOT" "$ROOT/src/CMD/UNFORMAT/UNFORMAT.COM" ::UNFORMAT.COM

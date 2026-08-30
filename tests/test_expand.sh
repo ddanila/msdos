@@ -153,6 +153,7 @@ QEMU_LOG="$WORK/EXPAND-QEMU.LOG"
 QEXIT="$WORK/QEXIT.COM"
 QEMU_RESULT="$WORK/QEMU-RESULT.TXT"
 cp "$OUT/floppy.img" "$QEMU_IMAGE"
+mdel -i "$QEMU_IMAGE" ::HELP.HLP >/dev/null 2>&1 || true
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 mcopy -o -i "$QEMU_IMAGE" "$QEXIT" ::QEXIT.COM
 mcopy -o -i "$QEMU_IMAGE" "$WORK/ONE.TX_" ::ONE.TX_

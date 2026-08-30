@@ -38,7 +38,7 @@ features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
 | Command history and macros | Present | DOSKEY provides resident history, macros, edit modes, redirected input, INT 2Fh services, and the DOS 5 interactive history/editing keys. |
 | Full-screen Editor and QBasic | Missing | No EDIT, QBASIC, BASIC runtime, help, or sample programs. EDLIN remains available. |
 | Online command help | Present | HELP provides a described command index and case-insensitive topic lookup from a separate searchable database; shipped executable `/?` surfaces are also tested. |
-| Delete/format recovery | Partial | MIRROR, UNDELETE, UNFORMAT, safe-FORMAT metadata, and latest/prior mirror selection are shipped. Resident real-time delete tracking remains. |
+| Delete/format recovery | Partial | MIRROR, resident bounded deletion tracking, UNDELETE, UNFORMAT, safe-FORMAT metadata, and latest/prior mirror selection are shipped. Mirror-independent fragmented-file reconstruction remains limited. |
 | Partitions up to 2 GiB | Present | Automated and interactive FDISK paths create and validate a near-2-GiB FAT16 partition on a sparse 2-GiB disk. |
 | More than two hard disks | Present | FDISK models up to eight BIOS fixed disks; automated creation and interactive selection, display, and deletion are validated through disk 3. |
 | 2.88 MiB floppy support | Present | FORMAT creates the standard FAT12 layout, SYS creates bootable media, and DRIVER.SYS `/F:9` provides DOS-side read/write access. |
@@ -69,9 +69,9 @@ Every documented option of a missing command is necessarily unsupported.
 | `FDISK` | Automated primary, extended, and logical creation; interactive display, near-2-GiB creation, active selection, deletion, and multi-disk selection, with resulting MBR state validated | No known DOS 5 workflow gap. |
 | `FIND` | `/V`, `/C`, `/N`, `/I` | No known DOS 5 option gap. |
 | `FORMAT` | Safe, `/Q`, and `/U` modes on floppy and FAT16 fixed media; bad-cluster marking; hard-disk warning/errorlevel 5; `/1`, `/4`, `/8`, `/B`, `/F` including 2.88 MiB, `/N`, `/S`, `/T`, `/V`, inherited private switches, and automatic UNFORMAT-compatible recovery metadata | No known DOS 5 workflow gap. |
-| `MIRROR` | Transactional FAT/root snapshots, prior snapshot retention, `/1`, `/Tdrive[-entries]`, `/U`, and exact geometry-checked `/PARTN` metadata | `/T` creates a bounded tracking snapshot but does not yet install the documented real-time TSR; `/U` therefore removes tracking state rather than unloading a resident hook. |
+| `MIRROR` | Transactional FAT/root snapshots, prior snapshot retention, `/1`, a bounded rotating `/Tdrive[-entries]` INT 21h deletion TSR, last-loaded-safe `/U`, and exact geometry-checked `/PARTN` metadata | The resident implementation retains about 32 KiB rather than the retail program's documented 6.4 KiB. |
 | `SYS` | Default and explicit source paths; bootable 1.44 and 2.88 MiB targets; fresh and upgrade transfers across small and large FAT16 fixed-disk geometries | No known DOS 5 workflow gap. |
-| `UNDELETE` | FAT12/FAT16 root and nested recovery, exact tracked chains/names, `/LIST`, `/ALL`, `/DOS`, and `/DT` | Tracking cannot yet record files created after MIRROR `/T`; removed directories remain unsupported as documented. |
+| `UNDELETE` | FAT12/FAT16 root and nested recovery, exact tracked chains/names for files created before or after tracker installation, `/LIST`, `/ALL`, `/DOS`, and `/DT` | Removed directories remain unsupported, as documented for DOS 5. |
 | `UNFORMAT` | Signed latest/prior mirror recovery, `/J`, BIOS-level mirror-independent `/U`, `/L`, `/TEST`, LPT1 `/P`, and exact `/PARTN` restoration | Mirror-independent reconstruction currently recovers intact directory records with nonconflicting contiguous chains. |
 
 ### Present commands without a known parser omission
@@ -216,8 +216,9 @@ The compatibility work is split into four independently useful stages:
    and representative 286/386/486 hardware validation.
 4. **Help and recovery.** HELP and its database are present. MIRROR, UNDELETE,
    UNFORMAT, safe-FORMAT metadata, forensic reconstruction, and interrupted-
-   write validation and latest/prior mirror selection are present. Complete
-   the real-time deletion TSR.
+   write validation, latest/prior mirror selection, and real-time bounded
+   deletion tracking are present. Remaining recovery work is limited to the
+   mirror-independent fragmented-file behavior listed above.
 
 DOSSHELL/Task Swapper and EDIT/QBASIC are separate product-scale projects and
 are not hidden inside these four stages. EGA.SYS belongs with Task Swapper if

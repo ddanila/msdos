@@ -18,6 +18,7 @@ done
 nasm -f bin "$ROOT/tests/himem_options_probe.asm" -o "$PROBE"
 nasm -f bin "$ROOT/tests/himem_reject_probe.asm" -o "$REJECT_PROBE"
 cp "$FLOPPY" "$IMAGE"
+mdel -i "$IMAGE" ::HELP.HLP >/dev/null 2>&1 || true
 mcopy -o -i "$IMAGE" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
 mcopy -o -i "$IMAGE" "$PROBE" ::HIMOPT.COM
 {
@@ -48,6 +49,7 @@ do
     reject_image="$OUT/floppy-himem-reject-$tag.img"
     reject_log="$OUT/himem-reject-$tag.log"
     cp "$FLOPPY" "$reject_image"
+    mdel -i "$reject_image" ::HELP.HLP >/dev/null 2>&1 || true
     mcopy -o -i "$reject_image" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
     mcopy -o -i "$reject_image" "$REJECT_PROBE" ::HIMREJ.COM
     printf 'DEVICE=A:\\HIMEM.SYS %s\r\n' "$option" \

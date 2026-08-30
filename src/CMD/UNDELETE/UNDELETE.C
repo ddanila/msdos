@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <dos.h>
+#include <process.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,6 +11,10 @@ extern unsigned __cdecl abs_read(unsigned drive, unsigned long sector,
                                  unsigned count, void *buffer);
 extern unsigned __cdecl abs_write(unsigned drive, unsigned long sector,
                                   unsigned count, void *buffer);
+extern unsigned __cdecl tracker_install(void);
+extern unsigned __cdecl tracker_probe(void);
+extern unsigned __cdecl tracker_remove(void);
+extern unsigned __cdecl tracker_keep_paragraphs(void);
 
 struct volume {
     unsigned drive;
@@ -444,7 +449,8 @@ done:
 static int tracker_name(const unsigned char name[11])
 {
     return !memcmp(name, "PCTRACKRDEL", 11) ||
-           !memcmp(name, "PCTRACKRTMP", 11);
+           !memcmp(name, "PCTRACKRTMP", 11) ||
+           !memcmp(name, "PCTRACKRACT", 11);
 }
 
 static unsigned chain_length(const struct volume *volume, unsigned first)
@@ -493,20 +499,52 @@ static int write_tracked_file(const struct volume *volume, unsigned directory,
     return 0;
 }
 
-static int track_directory(const struct volume *volume, unsigned directory,
-                           FILE *file, unsigned maximum, unsigned *count,
-                           unsigned depth)
+static int create_tracker(unsigned drive, unsigned maximum)
 {
-    unsigned char saved[32];
+    struct volume volume;
+    struct tracker_header header;
+    char final_name[] = "A:\\PCTRACKR.DEL";
+    char active_name[] = "A:\\PCTRACKR.ACT";
+    FILE *file;
+
+    if (!maximum || maximum > 999 || load_volume(&volume, drive))
+        return 1;
+    final_name[0] = active_name[0] = (char)('A' + drive);
+    memset(&header, 0, sizeof(header));
+    memcpy(header.magic, "MSD5TRK", 8);
+    header.version = RECOVERY_VERSION;
+    header.drive = (unsigned char)drive;
+    header.maximum_entries = maximum;
+    _dos_setfileattr(final_name, 0);
+    remove(final_name);
+    _dos_setfileattr(active_name, 0);
+    remove(active_name);
+    file = fopen(active_name, "wb");
+    if (!file)
+        return 1;
+    if (fwrite(&header, 1, sizeof(header), file) != sizeof(header)) {
+        fclose(file);
+        remove(active_name);
+        return 1;
+    }
+    if (fclose(file)) {
+        remove(active_name);
+        return 1;
+    }
+    _dos_setfileattr(active_name, 0x06);
+    printf("Deletion tracking file initialized on drive %c:.\n", 'A' + drive);
+    return 0;
+}
+
+static int find_live_entry(const struct volume *volume, unsigned directory,
+                           const unsigned char wanted[11], unsigned char raw[32])
+{
     unsigned long sector_number;
     unsigned sector_index;
     unsigned offset;
     unsigned cluster = directory;
     unsigned entries_left = volume->root_entries;
-    unsigned child;
 
-    if (depth > 32)
-        return 1;
     for (;;) {
         sector_number = directory ? cluster_sector(volume, cluster)
                                   : volume->root_start;
@@ -514,30 +552,20 @@ static int track_directory(const struct volume *volume, unsigned directory,
              sector_index < (directory ? volume->sectors_per_cluster
                                        : volume->root_sectors);
              ++sector_index) {
-            for (offset = 0; offset < 512 && (directory || entries_left); offset += 32) {
+            if (abs_read(volume->drive, sector_number + sector_index, 1, io_buffer))
+                return 1;
+            for (offset = 0; offset < 512 && (directory || entries_left);
+                 offset += 32) {
                 if (!directory)
                     --entries_left;
-                if (abs_read(volume->drive, sector_number + sector_index, 1, io_buffer))
+                if (!io_buffer[offset])
                     return 1;
-                if (io_buffer[offset] == 0)
+                if (io_buffer[offset] != 0xe5 &&
+                    io_buffer[offset + 11] != 0x0f &&
+                    !(io_buffer[offset + 11] & 0x10) &&
+                    !memcmp(io_buffer + offset, wanted, 11)) {
+                    memcpy(raw, io_buffer + offset, 32);
                     return 0;
-                if (io_buffer[offset] == 0xe5 || io_buffer[offset + 11] == 0x0f ||
-                    (io_buffer[offset + 11] & 0x08))
-                    continue;
-                memcpy(saved, io_buffer + offset, sizeof(saved));
-                if (saved[11] & 0x10) {
-                    if (saved[0] == '.')
-                        continue;
-                    child = get_word(saved + 26);
-                    if (track_directory(volume, child, file, maximum, count,
-                                        depth + 1))
-                        return 1;
-                } else if (!tracker_name(saved)) {
-                    if (*count >= maximum)
-                        return 0;
-                    if (write_tracked_file(volume, directory, saved, file))
-                        return 1;
-                    ++*count;
                 }
             }
         }
@@ -547,54 +575,107 @@ static int track_directory(const struct volume *volume, unsigned directory,
         if (cluster < 2 || cluster >= (volume->fat16 ? 0xfff8 : 0x0ff8))
             break;
     }
+    return 1;
+}
+
+static int copy_tracker_record(FILE *source, FILE *target)
+{
+    struct tracker_entry tracked;
+    unsigned cluster;
+    unsigned index;
+
+    if (fread(&tracked, 1, sizeof(tracked), source) != sizeof(tracked) ||
+        (target && fwrite(&tracked, 1, sizeof(tracked), target) != sizeof(tracked)))
+        return 1;
+    for (index = 0; index < tracked.cluster_count; ++index) {
+        if (fread(&cluster, 1, sizeof(cluster), source) != sizeof(cluster) ||
+            (target && fwrite(&cluster, 1, sizeof(cluster), target) != sizeof(cluster)))
+            return 1;
+    }
     return 0;
 }
 
-static int create_tracker(unsigned drive, unsigned maximum)
+static int append_tracker(const struct volume *volume, unsigned directory,
+                          const unsigned char raw[32])
 {
-    struct volume volume;
     struct tracker_header header;
-    char temp_name[] = "A:\\PCTRACKR.TMP";
     char final_name[] = "A:\\PCTRACKR.DEL";
-    char active_name[] = "A:\\PCTRACKR.ACT";
-    FILE *file;
-    unsigned count = 0;
+    char temp_name[] = "A:\\PCTRACKR.TMP";
+    FILE *source;
+    FILE *target;
+    unsigned index;
 
-    if (!maximum || maximum > 999 || load_volume(&volume, drive))
+    final_name[0] = temp_name[0] = (char)('A' + volume->drive);
+    source = fopen(final_name, "rb+");
+    if (!source) {
+        char active_name[] = "A:\\PCTRACKR.ACT";
+        active_name[0] = (char)('A' + volume->drive);
+        source = fopen(active_name, "rb");
+        if (!source || fread(&header, 1, sizeof(header), source) != sizeof(header)) {
+            if (source)
+                fclose(source);
+            return 1;
+        }
+        fclose(source);
+        source = fopen(final_name, "wb+");
+        if (!source || fwrite(&header, 1, sizeof(header), source) != sizeof(header)) {
+            if (source)
+                fclose(source);
+            return 1;
+        }
+        _dos_setfileattr(final_name, 0x06);
+        rewind(source);
+    }
+    if (!source || fread(&header, 1, sizeof(header), source) != sizeof(header) ||
+        memcmp(header.magic, "MSD5TRK", 8) ||
+        header.version != RECOVERY_VERSION || header.drive != volume->drive) {
+        if (source)
+            fclose(source);
         return 1;
-    temp_name[0] = final_name[0] = active_name[0] = (char)('A' + drive);
+    }
+    if (header.entry_count < header.maximum_entries) {
+        fseek(source, 0, SEEK_END);
+        if (write_tracked_file(volume, directory, raw, source)) {
+            fclose(source);
+            return 1;
+        }
+        ++header.entry_count;
+        rewind(source);
+        if (fwrite(&header, 1, sizeof(header), source) != sizeof(header) ||
+            fclose(source))
+            return 1;
+        return 0;
+    }
+
     remove(temp_name);
-    file = fopen(temp_name, "wb");
-    if (!file)
+    target = fopen(temp_name, "wb");
+    if (!target) {
+        fclose(source);
         return 1;
-    memset(&header, 0, sizeof(header));
-    memcpy(header.magic, "MSD5TRK", 8);
-    header.version = RECOVERY_VERSION;
-    header.drive = (unsigned char)drive;
-    header.maximum_entries = maximum;
-    if (fwrite(&header, 1, sizeof(header), file) != sizeof(header) ||
-        track_directory(&volume, 0, file, maximum, &count, 0)) {
-        fclose(file);
+    }
+    if (fwrite(&header, 1, sizeof(header), target) != sizeof(header) ||
+        copy_tracker_record(source, NULL))
+        goto rotate_error;
+    for (index = 1; index < header.entry_count; ++index)
+        if (copy_tracker_record(source, target))
+            goto rotate_error;
+    if (write_tracked_file(volume, directory, raw, target) ||
+        fclose(source) || fclose(target)) {
         remove(temp_name);
         return 1;
     }
-    header.entry_count = count;
-    rewind(file);
-    if (fwrite(&header, 1, sizeof(header), file) != sizeof(header) || fclose(file)) {
-        remove(temp_name);
-        return 1;
-    }
+    _dos_setfileattr(final_name, 0);
     remove(final_name);
     if (rename(temp_name, final_name))
         return 1;
-    file = fopen(active_name, "wb");
-    if (!file)
-        return 1;
-    fputs("DOS5 deletion tracking active\n", file);
-    fclose(file);
-    printf("Deletion information for %u file(s) saved on drive %c:.\n",
-           count, 'A' + drive);
+    _dos_setfileattr(final_name, 0x06);
     return 0;
+
+rotate_error:
+    fclose(source);
+    fclose(target);
+    remove(temp_name);
+    return 1;
 }
 
 static int find_deleted_entry(const struct volume *volume, unsigned directory,
@@ -799,6 +880,103 @@ static void usage(void)
     puts("UNDELETE [[drive:][path]filename] [/LIST|/ALL] [/DOS|/DT]");
 }
 
+void __cdecl tracker_capture_far(const char far *far_path)
+{
+    struct volume volume;
+    unsigned drive;
+    unsigned directory;
+    unsigned char wanted[11];
+    unsigned char raw[32];
+    char path[128];
+    char combined[128];
+    char directory_path[67];
+    char *filespec;
+    unsigned index;
+
+    for (index = 0; index + 1 < sizeof(path) && far_path[index]; ++index)
+        path[index] = far_path[index];
+    path[index] = 0;
+    if (!*path || strchr(path, '*') || strchr(path, '?'))
+        return;
+    _dos_getdrive(&drive);
+    --drive;
+    if (isalpha(path[0]) && path[1] == ':') {
+        drive = (unsigned)(toupper(path[0]) - 'A');
+        memmove(path, path + 2, strlen(path + 2) + 1);
+    }
+    if (load_volume(&volume, drive))
+        return;
+    if (path[0] != '\\' && path[0] != '/') {
+        if (current_path(drive, directory_path))
+            return;
+        if (*directory_path) {
+            if (strlen(directory_path) + strlen(path) + 2 > sizeof(combined))
+                return;
+            strcpy(combined, directory_path);
+            strcat(combined, "\\");
+            strcat(combined, path);
+            strcpy(path, combined);
+        }
+    }
+    if (resolve_directory(&volume, path, &directory, &filespec) || !*filespec)
+        return;
+    make_83(filespec, wanted, 0);
+    if (tracker_name(wanted) ||
+        find_live_entry(&volume, directory, wanted, raw))
+        return;
+    append_tracker(&volume, directory, raw);
+}
+
+void __cdecl tracker_capture_fcb(const unsigned char far *far_fcb)
+{
+    struct find_t found;
+    union REGS inregs, outregs;
+    struct SREGS segregs;
+    void far *old_dta;
+    char pattern[16];
+    char candidate[16];
+    unsigned drive;
+    unsigned source;
+    unsigned target = 0;
+
+    if (far_fcb[0] == 0xff)
+        far_fcb += 7;
+    drive = far_fcb[0];
+    if (drive) {
+        pattern[target++] = candidate[0] = (char)('A' + drive - 1);
+        pattern[target++] = candidate[1] = ':';
+    }
+    for (source = 1; source < 9 && far_fcb[source] != ' '; ++source)
+        pattern[target++] = (char)far_fcb[source];
+    if (far_fcb[9] != ' ') {
+        pattern[target++] = '.';
+        for (source = 9; source < 12 && far_fcb[source] != ' '; ++source)
+            pattern[target++] = (char)far_fcb[source];
+    }
+    pattern[target] = 0;
+    memset(&inregs, 0, sizeof(inregs));
+    segread(&segregs);
+    inregs.h.ah = 0x2f;
+    int86x(0x21, &inregs, &outregs, &segregs);
+    old_dta = MK_FP(segregs.es, outregs.x.bx);
+    if (!_dos_findfirst(pattern, 0x27, &found)) {
+        do {
+            target = 0;
+            if (drive) {
+                candidate[target++] = (char)('A' + drive - 1);
+                candidate[target++] = ':';
+            }
+            strcpy(candidate + target, found.name);
+            tracker_capture_far(candidate);
+        } while (!_dos_findnext(&found));
+    }
+    memset(&inregs, 0, sizeof(inregs));
+    inregs.h.ah = 0x1a;
+    inregs.x.dx = FP_OFF(old_dta);
+    segregs.ds = FP_SEG(old_dta);
+    int86x(0x21, &inregs, &outregs, &segregs);
+}
+
 int main(int argc, char **argv)
 {
     struct volume volume;
@@ -817,11 +995,34 @@ int main(int argc, char **argv)
     int i;
 
     if (argc == 4 && !stricmp(argv[1], "/TRACK")) {
+        int installed;
+        unsigned environment;
         if (strlen(argv[2]) != 2 || argv[2][1] != ':' || !isalpha(argv[2][0]))
             return 1;
         drive = (unsigned)(toupper(argv[2][0]) - 'A');
-        return create_tracker(drive, (unsigned)atoi(argv[3]));
+        installed = tracker_probe();
+        if (create_tracker(drive, (unsigned)atoi(argv[3])))
+            return 1;
+        if (installed)
+            return 0;
+        tracker_install();
+        environment = *(unsigned far *)MK_FP(_psp, 0x2c);
+        if (environment)
+            _dos_freemem(environment);
+        i = tracker_keep_paragraphs();
+        if (i < 0x0800)
+            i = 0x0800;
+        _dos_keep(0, (unsigned)i);
+        return 0;
     }
+    if (argc == 2 && !stricmp(argv[1], "/UNTRACK")) {
+        unsigned resident = tracker_remove();
+        if (!resident)
+            return 1;
+        return _dos_freemem(resident);
+    }
+    if (argc == 2 && !stricmp(argv[1], "/TRACKSTATUS"))
+        return tracker_probe() ? 0 : 1;
 
     _dos_getdrive(&drive);
     --drive;

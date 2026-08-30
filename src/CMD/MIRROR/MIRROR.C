@@ -308,7 +308,8 @@ static int install_tracker(unsigned drive, unsigned entries)
     sprintf(count_arg, "%u", entries);
     result = spawnlp(P_WAIT, "UNDELETE.COM", "UNDELETE.COM", "/TRACK",
                      drive_arg, count_arg, NULL);
-    if (result) {
+    if (result && spawnlp(P_WAIT, "UNDELETE.COM", "UNDELETE.COM",
+                          "/TRACKSTATUS", NULL)) {
         fprintf(stderr, "MIRROR: deletion tracking failed for drive %c:.\n",
                 'A' + drive);
         return 1;
@@ -323,14 +324,26 @@ static int unload_trackers(void)
     char active_name[] = "A:\\PCTRACKR.ACT";
     unsigned drive;
     unsigned removed = 0;
+    int resident_result;
+
+    resident_result = spawnlp(P_WAIT, "UNDELETE.COM", "UNDELETE.COM",
+                              "/UNTRACK", NULL);
+    if (resident_result &&
+        !spawnlp(P_WAIT, "UNDELETE.COM", "UNDELETE.COM",
+                 "/TRACKSTATUS", NULL)) {
+        fputs("MIRROR: unload resident programs loaded after deletion tracking first.\n",
+              stderr);
+        return 1;
+    }
     for (drive = 0; drive < 26; ++drive) {
         active_name[0] = (char)('A' + drive);
+        _dos_setfileattr(active_name, 0);
         if (!remove(active_name))
             ++removed;
     }
-    puts(removed ? "Deletion tracking disabled."
-                 : "Deletion tracking was not active.");
-    return removed ? 0 : 1;
+    puts((removed || !resident_result) ? "Deletion tracking disabled."
+                                      : "Deletion tracking was not active.");
+    return (removed || !resident_result) ? 0 : 1;
 }
 
 static void usage(void)
@@ -416,7 +429,7 @@ int main(int argc, char **argv)
         }
         return unload_trackers();
     }
-    if (!count) {
+    if (!count && !tracker_count) {
         _dos_getdrive(&drive);
         drives[count++] = drive - 1;
     }
