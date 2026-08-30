@@ -3,7 +3,7 @@
 ; It shares no source with Microsoft's published HIMEM implementation.
 
         .model  tiny
-        .286
+        .386
         .code
         org     0
 
@@ -66,8 +66,6 @@ move_length     dd      0
 move_source     dd      0
 move_dest       dd      0
 move_chunk      dd      0
-move_error      db      0
-move_offset     dd      0
 handles         db      MAX_HANDLES * HANDLE_SIZE dup (0)
 umb_count       dw      0
 umb_committed   db      0
@@ -120,6 +118,11 @@ endif
         je      init_fail
 
         call    parse_options
+        jc      init_fail
+
+        ; The move engine uses 80386 registers. Reject earlier processors
+        ; before publishing any XMS vectors.
+        call    cpu_is_386
         jc      init_fail
 
 ifdef DEBUG
@@ -279,6 +282,36 @@ parse_options_bad:
         stc
         ret
 parse_options endp
+
+; Carry clear on an 80386 or newer, carry set on an 8086/80186/80286.
+; This real-mode FLAGS test itself contains no 386 opcodes.
+cpu_is_386 proc near
+        push    ax
+        pushf
+        xor     ax, ax
+        push    ax
+        popf
+        pushf
+        pop     ax
+        test    ax, 08000h
+        jnz     short cpu_not_386
+        mov     ax, 07000h
+        push    ax
+        popf
+        pushf
+        pop     ax
+        test    ax, 07000h
+        jz      short cpu_not_386
+        popf
+        pop     ax
+        clc
+        ret
+cpu_not_386:
+        popf
+        pop     ax
+        stc
+        ret
+cpu_is_386 endp
 
 parse_one_option proc near
         mov     si, offset option_buffer
@@ -1092,19 +1125,17 @@ realloc_move:
         jc      short realloc_no_memory
         push    bx
         push    ax
-        mov     dx, word ptr [si+4]
-        call    kb_to_length
-        mov     word ptr [move_length], ax
-        mov     word ptr [move_length+2], dx
-        mov     dx, word ptr [si+2]
-        call    kb_to_physical
-        mov     word ptr [move_source], ax
-        mov     word ptr [move_source+2], dx
-        pop     dx                      ; inspect the saved new base
-        push    dx
-        call    kb_to_physical
-        mov     word ptr [move_dest], ax
-        mov     word ptr [move_dest+2], dx
+        movzx   ecx, word ptr [si+4]
+        shl     ecx, 10
+        mov     [move_length], ecx
+        movzx   edx, word ptr [si+2]
+        shl     edx, 10
+        add     edx, 00100000h
+        mov     [move_source], edx
+        movzx   edx, ax
+        shl     edx, 10
+        add     edx, 00100000h
+        mov     [move_dest], edx
         call    copy_move_blocks
         pop     ax
         pop     bx
@@ -1126,30 +1157,26 @@ xms_move proc near
         push    es
         mov     es, [caller_ds]
         mov     di, [caller_si]
-        mov     ax, word ptr es:[di]
-        mov     dx, word ptr es:[di+2]
+        mov     eax, dword ptr es:[di]
         test    al, 1
         jnz     short move_bad_length
-        mov     word ptr [move_length], ax
-        mov     word ptr [move_length+2], dx
-        or      ax, dx
+        mov     [move_length], eax
+        or      eax, eax
         jz      move_success
 
         mov     dx, word ptr es:[di+4]
-        mov     ax, word ptr es:[di+6]
-        mov     bx, word ptr es:[di+8]
+        mov     eax, dword ptr es:[di+6]
+        mov     ecx, [move_length]
         call    resolve_move_address
         jc      short move_bad_source
-        mov     word ptr [move_source], ax
-        mov     word ptr [move_source+2], cx
+        mov     [move_source], eax
 
         mov     dx, word ptr es:[di+10]
-        mov     ax, word ptr es:[di+12]
-        mov     bx, word ptr es:[di+14]
+        mov     eax, dword ptr es:[di+12]
+        mov     ecx, [move_length]
         call    resolve_move_address
         jc      short move_bad_dest
-        mov     word ptr [move_dest], ax
-        mov     word ptr [move_dest+2], cx
+        mov     [move_dest], eax
 
 move_copy:
         call    copy_move_blocks
@@ -1164,13 +1191,13 @@ move_bad_length:
         jmp     short move_failure
 move_bad_source:
         mov     bl, ERR_BAD_SOURCE
-        cmp     [move_error], ERR_BAD_SRC_OFF
+        cmp     bh, ERR_BAD_SRC_OFF
         jne     short move_failure
         mov     bl, ERR_BAD_LENGTH
         jmp     short move_failure
 move_bad_dest:
         mov     bl, ERR_BAD_DEST
-        cmp     [move_error], ERR_BAD_SRC_OFF
+        cmp     bh, ERR_BAD_SRC_OFF
         jne     short move_failure
         mov     bl, ERR_BAD_LENGTH
         jmp     short move_failure
@@ -1356,112 +1383,65 @@ remove_umb_done:
         ret
 remove_next_umb endp
 
-; Resolve an endpoint with 16-bit arithmetic so HIMEM can run on a 286.
-; DX is a handle (zero means packed segment:offset), BX:AX is the offset,
-; and move_length is the byte count. Return CX:AX as a physical address.
+; Resolve an XMS move endpoint. DX is a handle (zero means a packed
+; segment:offset conventional address), EAX is its offset, and ECX is length.
+; Returns EAX=physical address. On an invalid nonzero-handle offset, BH=A4h.
 resolve_move_address proc near
-        mov     [move_error], 0
+        xor     bh, bh
         or      dx, dx
         jnz     short resolve_handle
-        mov     cx, bx
-        mov     dx, bx
-        push    cx
-        mov     cl, 12
-        shr     cx, cl
-        pop     bx
-        mov     dx, bx
-        mov     cl, 4
-        shl     dx, cl
-        add     ax, dx
-        adc     cx, 0
+        mov     edx, eax
+        and     eax, 0ffffh
+        shr     edx, 16
+        shl     edx, 4
+        add     eax, edx
         clc
         ret
 resolve_handle:
-        push    bx
-        push    ax
         push    dx
         call    validate_handle
         pop     dx
-        pop     ax
-        pop     bx
         jc      short resolve_bad_handle
-        mov     word ptr [move_offset], ax
-        mov     word ptr [move_offset+2], bx
-        mov     cx, ax
-        mov     di, bx
-        add     cx, word ptr [move_length]
-        adc     di, word ptr [move_length+2]
+        mov     ebx, ecx
+        add     ebx, eax
         jc      short resolve_bad_offset
-        push    dx
-        mov     dx, word ptr [si+4]
-        call    kb_to_length
-        cmp     di, dx
-        ja      short resolve_bad_offset_pop
-        jb      short resolve_offset_valid
-        cmp     cx, ax
-        ja      short resolve_bad_offset_pop
-resolve_offset_valid:
-        pop     dx
-        mov     bx, word ptr [move_offset]
-        mov     cx, word ptr [move_offset+2]
-        mov     dx, word ptr [si+2]
-        call    kb_to_physical
-        add     ax, bx
-        adc     dx, cx
-        mov     cx, dx
+        movzx   edx, word ptr [si+4]
+        shl     edx, 10
+        cmp     ebx, edx
+        ja      short resolve_bad_offset
+        movzx   edx, word ptr [si+2]
+        shl     edx, 10
+        add     edx, 00100000h
+        add     eax, edx
         clc
         ret
-resolve_bad_offset_pop:
-        pop     dx
 resolve_bad_offset:
-        mov     [move_error], ERR_BAD_SRC_OFF
+        mov     bh, ERR_BAD_SRC_OFF
 resolve_bad_handle:
         stc
         ret
 resolve_move_address endp
 
-; Convert DX KiB to a byte count DX:AX.
-kb_to_length proc near
-        mov     ax, dx
-        mov     cl, 6
-        shr     dx, cl
-        mov     cl, 10
-        shl     ax, cl
-        ret
-kb_to_length endp
-
-; Convert a KiB offset above 1 MiB to physical DX:AX.
-kb_to_physical proc near
-        call    kb_to_length
-        add     dx, 0010h
-        ret
-kb_to_physical endp
-
 copy_move_blocks proc near
 copy_move_next:
-        mov     ax, word ptr [move_length]
-        mov     dx, word ptr [move_length+2]
-        or      ax, dx
+        mov     eax, [move_length]
+        or      eax, eax
         jz      short copy_move_done
-        mov     cx, 0fffeh
-        or      dx, dx
-        jnz     short copy_move_chunk
-        cmp     ax, cx
-        ja      short copy_move_chunk
-        mov     cx, ax
+        cmp     eax, 0000fffeh
+        jbe     short copy_move_final
+        mov     ecx, 0000fffeh
+        jmp     short copy_move_chunk
+copy_move_final:
+        mov     ecx, eax
 copy_move_chunk:
-        mov     word ptr [move_chunk], cx
-        mov     word ptr [move_chunk+2], 0
-        mov     ax, word ptr [move_source]
-        mov     cx, word ptr [move_source+2]
+        mov     [move_chunk], ecx
+        mov     eax, [move_source]
         mov     di, offset move_source_desc
         call    set_move_descriptor
-        mov     ax, word ptr [move_dest]
-        mov     cx, word ptr [move_dest+2]
+        mov     eax, [move_dest]
         mov     di, offset move_dest_desc
         call    set_move_descriptor
-        mov     cx, word ptr [move_chunk]
-        shr     cx, 1
+        shr     ecx, 1
         push    ds
         push    es
         push    si
@@ -1476,13 +1456,10 @@ copy_move_chunk:
         pop     es
         pop     ds
         jc      short copy_move_fail
-        mov     ax, word ptr [move_chunk]
-        add     word ptr [move_source], ax
-        adc     word ptr [move_source+2], 0
-        add     word ptr [move_dest], ax
-        adc     word ptr [move_dest+2], 0
-        sub     word ptr [move_length], ax
-        sbb     word ptr [move_length+2], 0
+        mov     ecx, [move_chunk]
+        add     [move_source], ecx
+        add     [move_dest], ecx
+        sub     [move_length], ecx
         jmp     short copy_move_next
 copy_move_done:
         clc
@@ -1492,14 +1469,15 @@ copy_move_fail:
         ret
 copy_move_blocks endp
 
-; CX:AX=linear base, DI=descriptor. The BIOS move service uses 16-bit limits.
+; EAX=linear base, DI=descriptor. The BIOS move service uses 16-bit limits.
 set_move_descriptor proc near
         mov     word ptr [di], 0ffffh
         mov     word ptr [di+2], ax
-        mov     byte ptr [di+4], cl
+        shr     eax, 16
+        mov     byte ptr [di+4], al
         mov     byte ptr [di+5], 093h
         mov     byte ptr [di+6], 0
-        mov     byte ptr [di+7], ch
+        mov     byte ptr [di+7], ah
         ret
 set_move_descriptor endp
 
@@ -1520,6 +1498,7 @@ xms_unknown_function proc near
 xms_unknown_function endp
 
 validate_handle proc near
+        push    ax
         or      dx, dx
         jz      short validate_bad
         xor     ax, ax
@@ -1533,9 +1512,11 @@ validate_handle proc near
         add     si, offset handles
         cmp     byte ptr [si], 1
         jne     short validate_bad
+        pop     ax
         clc
         ret
 validate_bad:
+        pop     ax
         stc
         ret
 validate_handle endp

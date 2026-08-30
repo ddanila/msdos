@@ -33,7 +33,7 @@ features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
 
 | DOS 5 feature | Repository status | Gap |
 | --- | --- | --- |
-| DOS in the HMA and programs/drivers in UMBs | Present; broader validation pending | HIMEM now assembles for and avoids post-286 instructions, while 386+ HMA/UMB integration is exercised end to end. A representative 286 machine gate remains to be recorded. |
+| DOS in the HMA and programs/drivers in UMBs | Present on 386+; broader validation pending | HIMEM and EMM386 HMA/UMB integration is exercised end to end on 386+ systems. HIMEM execution on a 286 remains missing. |
 | MS-DOS Shell and Task Swapper | Missing | No DOSSHELL UI, program groups, file manager, session switching, EGA save driver, or task-switcher API. |
 | Command history and macros | Present | DOSKEY provides resident history, macros, edit modes, redirected input, INT 2Fh services, and the DOS 5 interactive history/editing keys. |
 | Full-screen Editor and QBasic | Missing | No EDIT, QBASIC, BASIC runtime, help, or sample programs. EDLIN remains available. |
@@ -106,7 +106,7 @@ Complete limit/error/order parity remains unverified outside the cases in
 
 | Driver | Status | Missing DOS 5 surface |
 | --- | --- | --- |
-| `HIMEM.SYS` | Partial XMS 2.00 implementation | The 286-compatible implementation parses every documented DOS 5 option; HMA thresholds, 1-128 handles, INT 15h reservation, and generic verified A20 backends are tested. Machine-specific A20, shadow-RAM, and CPU-clock behavior still needs representative hardware validation. |
+| `HIMEM.SYS` | Partial XMS 2.00 implementation | On 386+ systems it parses every documented DOS 5 option; HMA thresholds, 1-128 handles, INT 15h reservation, and generic A20 backends are tested. 286 execution and representative validation of machine-specific A20, shadow-RAM, and CPU-clock behavior remain missing. |
 | `EMM386.EXE` | Partial DOS 5 EMM386 replacement | Driver-load `ON`/`OFF`/`AUTO`, `W=`, `FRAME=`, `Pn=`, `B=`, `L=`, `A=`, `H=`, and `D=` controls. The dual-purpose retail-named executable implements runtime status, `ON`, `OFF`, `AUTO`, `W=ON`, and `W=OFF`; driver loading implements pool size, page-frame selection, `I=`, `X=`, `RAM`, and `NOEMS`. |
 | `EGA.SYS` | Missing | DOSSHELL Task Swapper display save/restore support. |
 | `SETVER.EXE` | Present | Persistent table loading through CONFIG.SYS and reboot-stable command edits are tested. |
@@ -180,9 +180,9 @@ and must not be represented by no-op stubs if compatibility is claimed.
 - COUNTRY.SYS, KEYB, DISPLAY, PRINTER, and CPI files provide working NLS and
   code-page paths, but every retail keyboard, country, printer, and code-page
   combination has not been compared.
-- HIMEM contains no post-286 instructions and its documented configuration
-  semantics have focused tests, but a representative 286 machine acceptance
-  run is still required.
+- HIMEM's documented configuration semantics have focused tests on 386+
+  systems. Its move engine currently requires a 386, so 286 execution remains
+  an implementation gap rather than only an acceptance-test gap.
 - Hardware validation is dominated by QEMU. The recorded 86Box 486 gate does
   not replace testing on representative 8086/286/386 systems and controllers.
 
