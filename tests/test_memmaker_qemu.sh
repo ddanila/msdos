@@ -27,6 +27,7 @@ trap 'rm -f "$SERIAL_IN" "$SERIAL_OUT" 2>/dev/null; true' EXIT
 cp "$BASE" "$IMAGE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 mcopy -o -i "$IMAGE" "$ROOT/src/CMD/MEMMAKER/MEMMAKER.EXE" ::MEMMAKER.EXE
+mcopy -o -i "$IMAGE" "$ROOT/src/CMD/SIZER/SIZER.EXE" ::SIZER.EXE
 mcopy -o -i "$IMAGE" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
 mcopy -o -i "$IMAGE" "$ROOT/src/MEMM/MEMM/EMM386.EXE" ::EMM386.EXE
 mcopy -o -i "$IMAGE" "$QEXIT" ::QEXIT.COM
@@ -120,12 +121,13 @@ if grep -q 'optimization completed after measured reboot passes' <<<"$status" &&
    grep -Eq 'Measured UMB after /W reserve: [0-9]+K' <<<"$status" &&
    grep -q 'Windows SYSTEM.INI: Windows 3.0 settings applied and backed up' <<<"$status" &&
    grep -q 'Drivers selected for upper memory: 0 of 1' <<<"$status" &&
-   grep -q 'TSRs selected for upper memory: 1 of 1' <<<"$status"; then
+   grep -q 'TSRs selected for upper memory: 1 of 1' <<<"$status" &&
+   grep -Eq 'TSRs measured by SIZER: 1, [1-9][0-9]* paragraphs resident' <<<"$status"; then
     ok "MEMMAKER.STS records measurements, /W policy, and Custom choices"
 else
     fail "MemMaker status report"
 fi
-if ! mdir -b -i "$IMAGE" :: 2>/dev/null | grep -q 'MEMMAKER.MEM'; then
+if ! mdir -b -i "$IMAGE" :: 2>/dev/null | grep -Eq 'MEMMAKER\.(MEM|SIZ)'; then
     ok "measurement handoff is removed after the final pass"
 else
     fail "stale MemMaker measurement handoff"

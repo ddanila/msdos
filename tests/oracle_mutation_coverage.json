@@ -47,6 +47,7 @@
     "LOADFIX.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_loadfix_qemu.sh"},
     "MEM.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_drivers_qemu.sh"},
     "MEMMAKER.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_memmaker_qemu.sh"},
+    "SIZER.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_memmaker_qemu.sh"},
     "MIRROR.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_mirror_unformat_qemu.sh"},
     "MODE.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_misc_qemu.sh"},
     "MORE.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_more_paging_qemu.sh"},

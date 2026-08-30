@@ -53,6 +53,7 @@
     ["src/CMD/LABEL/LABEL.COM", "LABEL.COM"],
     ["src/CMD/MEM/MEM.EXE", "MEM.EXE"],
     ["src/CMD/MEMMAKER/MEMMAKER.EXE", "MEMMAKER.EXE"],
+    ["src/CMD/SIZER/SIZER.EXE", "SIZER.EXE"],
     ["src/CMD/MODE/MODE.COM", "MODE.COM"],
     ["src/CMD/MOVE/MOVE.EXE", "MOVE.EXE"],
     ["src/CMD/MSD/MSD.EXE", "MSD.EXE"],

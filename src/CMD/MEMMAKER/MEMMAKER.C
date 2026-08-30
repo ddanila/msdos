@@ -7,6 +7,15 @@
 
 #define SWAP_SWITCH "/SWAP:"
 #define WINDOW_SWITCH "/W:"
+#define SIZER_MAGIC 0x5a53
+#define MAX_MEASUREMENTS 64
+
+struct size_record {
+    unsigned magic;
+    unsigned index;
+    unsigned before;
+    unsigned after;
+};
 
 struct options {
     int monochrome;
@@ -39,6 +48,8 @@ static unsigned eligible_high_drivers;
 static unsigned eligible_high_tsrs;
 static int windows_ini_found;
 static int windows_version;
+static unsigned measured_tsr_count;
+static unsigned measured_tsr_paragraphs;
 
 #define WINDOWS_UNKNOWN 0
 #define WINDOWS_30      30
@@ -722,7 +733,8 @@ static int transform_autoexec(unsigned drive, const struct options *options,
             }
             if (place_high) {
                 ++selected_high_tsrs;
-                fputs("LH ", output);
+                fprintf(output, "%c:\\SIZER.EXE /M:%u /SWAP:%c ",
+                        'A' + drive, eligible_high_tsrs, 'A' + drive);
             }
         }
         fputs(line, output);
@@ -779,9 +791,11 @@ static int write_status(unsigned drive, const struct options *options,
                 (int)measured_conventional_k - (int)baseline_conventional_k);
         fprintf(file,
                 "Drivers selected for upper memory: %u of %u\n"
-                "TSRs selected for upper memory: %u of %u\n",
+                "TSRs selected for upper memory: %u of %u\n"
+                "TSRs measured by SIZER: %u, %u paragraphs resident\n",
                 selected_high_drivers, eligible_high_drivers,
-                selected_high_tsrs, eligible_high_tsrs);
+                selected_high_tsrs, eligible_high_tsrs,
+                measured_tsr_count, measured_tsr_paragraphs);
     }
     return fclose(file) != 0;
 }
@@ -789,6 +803,7 @@ static int write_status(unsigned drive, const struct options *options,
 static int restore_files(unsigned drive, const struct options *options)
 {
     char config[32], autoexec[32], config_backup[32], auto_backup[32];
+    char handoff[32];
     char system_ini[128], system_backup[128];
     make_path(config, drive, "CONFIG.SYS");
     make_path(autoexec, drive, "AUTOEXEC.BAT");
@@ -809,6 +824,10 @@ static int restore_files(unsigned drive, const struct options *options)
             windows_ini_found = 1;
         }
     }
+    make_path(handoff, drive, "MEMMAKER.MEM");
+    remove(handoff);
+    make_path(handoff, drive, "MEMMAKER.SIZ");
+    remove(handoff);
     write_status(drive, options, "The previous memory configuration was restored.");
     puts("The previous startup files were restored.");
     return 0;
@@ -871,12 +890,18 @@ static int write_baseline(unsigned drive, const struct options *options)
 static int finish_final(unsigned drive, const struct options *options)
 {
     char autoexec[32], temporary[32], memory[32], line[256];
+    char sizes_path[32];
+    unsigned sizes[MAX_MEASUREMENTS];
+    unsigned available;
     FILE *input;
     FILE *output;
     FILE *measure;
+    struct size_record record;
+    memset(sizes, 0, sizeof(sizes));
     make_path(autoexec, drive, "AUTOEXEC.BAT");
     make_path(temporary, drive, "AUTOEXEC.MMT");
     make_path(memory, drive, "MEMMAKER.MEM");
+    make_path(sizes_path, drive, "MEMMAKER.SIZ");
     measure = fopen(memory, "rb");
     if (!measure)
         return 1;
@@ -892,6 +917,24 @@ static int finish_final(unsigned drive, const struct options *options)
         return 1;
     }
     fclose(measure);
+    measure = fopen(sizes_path, "rb");
+    if (measure) {
+        while (fread(&record, sizeof(record), 1, measure) == 1) {
+            if (record.magic == SIZER_MAGIC && record.index < MAX_MEASUREMENTS &&
+                record.before >= record.after) {
+                sizes[record.index] = record.before - record.after;
+                ++measured_tsr_count;
+                measured_tsr_paragraphs += sizes[record.index];
+            }
+        }
+        fclose(measure);
+    }
+    measure_memory();
+    available = measured_umb_k * 64U;
+    if (available > (options->reserve_one + options->reserve_two) * 64U)
+        available -= (options->reserve_one + options->reserve_two) * 64U;
+    else
+        available = 0;
     input = fopen(autoexec, "r");
     output = fopen(temporary, "w");
     if (!input || !output) {
@@ -899,17 +942,39 @@ static int finish_final(unsigned drive, const struct options *options)
         if (output) fclose(output);
         return 1;
     }
-    while (fgets(line, sizeof(line), input))
-        if (!(contains_name(line, "MEMMAKER.EXE") && contains_name(line, "/FINAL")))
-            fputs(line, output);
+    while (fgets(line, sizeof(line), input)) {
+        if (contains_name(line, "MEMMAKER.EXE") && contains_name(line, "/FINAL"))
+            continue;
+        if (contains_name(line, "SIZER.EXE") && contains_name(line, "/M:")) {
+            char *marker = find_text(line, "/M:");
+            char *swap = find_text(line, "/SWAP:");
+            unsigned index = marker ? (unsigned)atoi(marker + 3) : 0;
+            char *command = swap;
+            if (command) {
+                while (*command && *command != ' ' && *command != '\t')
+                    ++command;
+                while (*command == ' ' || *command == '\t')
+                    ++command;
+            }
+            if (command && index < MAX_MEASUREMENTS) {
+                if (sizes[index] && sizes[index] <= available) {
+                    fputs("LH ", output);
+                    available -= sizes[index];
+                }
+                fputs(command, output);
+                continue;
+            }
+        }
+        fputs(line, output);
+    }
     fclose(input);
     if (fclose(output) || replace_file(temporary, autoexec))
         return 1;
-    measure_memory();
     if (write_status(drive, options,
             "Memory optimization completed after measured reboot passes."))
         return 1;
     remove(memory);
+    remove(sizes_path);
     puts("MemMaker measured memory optimization is complete.");
     return 0;
 }
@@ -940,6 +1005,11 @@ static int optimize(unsigned drive, struct options *options,
     make_path(config_temp, drive, "CONFIG.MMT");
     make_path(auto_temp, drive, "AUTOEXEC.MMT");
     make_path(status, drive, "MEMMAKER.STS");
+    {
+        char sizes[32];
+        make_path(sizes, drive, "MEMMAKER.SIZ");
+        remove(sizes);
+    }
     windows_ini_found = windows_paths(system_ini, system_backup);
     if (windows_ini_found && windows_version == WINDOWS_30) {
         char *separator;

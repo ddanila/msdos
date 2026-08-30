@@ -172,6 +172,8 @@
       "/?": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Displays concise syntax"},
       "/B": {"level": "contract", "evidence": ["tests/test_memmaker_qemu.sh"], "note": "Selects monochrome-compatible presentation"},
       "/BATCH": {"level": "contract", "evidence": ["tests/test_memmaker_qemu.sh"], "note": "Uses unattended Express defaults and records status"},
+      "/CUSTOM": {"level": "contract", "evidence": ["tests/test_memmaker_qemu.sh"], "note": "Prompts for EMS, monochrome-region, driver, and TSR optimization choices"},
+      "/FINAL": {"level": "contract", "evidence": ["tests/test_memmaker_qemu.sh"], "note": "Consumes post-AUTOEXEC SIZER measurements, selects final LH placement, writes status, and removes handoff files"},
       "/SESSION": {"level": "contract", "evidence": ["tests/test_memmaker_qemu.sh"], "note": "Completes the post-reboot status pass"},
       "/SWAP:": {"level": "contract", "evidence": ["tests/test_memmaker_qemu.sh"], "note": "Selects the startup-files drive; drive A is exercised"},
       "/T": {"level": "contract", "evidence": ["tests/test_memmaker_qemu.sh"], "note": "Disables token-ring probing and is retained in status policy"},
