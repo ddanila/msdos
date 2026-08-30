@@ -53,6 +53,9 @@ static unsigned measured_tsr_count;
 static unsigned measured_tsr_paragraphs;
 static unsigned measured_driver_count;
 static unsigned measured_driver_paragraphs;
+static unsigned optimized_tsr_count;
+static unsigned optimized_tsr_paragraphs;
+static char injected_point[16];
 
 #define WINDOWS_UNKNOWN 0
 #define WINDOWS_30      30
@@ -111,13 +114,7 @@ static void measure_memory(void)
 
 static int injected_failure(const char *point)
 {
-#ifdef MEMMAKER_TEST_FAULTS
-    const char *selected = getenv("MEMMAKER_FAULT");
-    return selected && !stricmp(selected, point);
-#else
-    (void)point;
-    return 0;
-#endif
+    return injected_point[0] && !stricmp(injected_point, point);
 }
 
 static int switch_is(const char *left, const char *right)
@@ -940,11 +937,13 @@ static int write_status(unsigned drive, const struct options *options,
                 "Drivers selected for upper memory: %u of %u\n"
                 "Drivers measured from CONFIG: %u, %u paragraphs resident\n"
                 "TSRs selected for upper memory: %u of %u\n"
-                "TSRs measured by SIZER: %u, %u paragraphs resident\n",
+                "TSRs measured by SIZER: %u, %u paragraphs resident\n"
+                "TSRs placed high by measured optimizer: %u, %u paragraphs\n",
                 selected_high_drivers, eligible_high_drivers,
                 measured_driver_count, measured_driver_paragraphs,
                 selected_high_tsrs, eligible_high_tsrs,
-                measured_tsr_count, measured_tsr_paragraphs);
+                measured_tsr_count, measured_tsr_paragraphs,
+                optimized_tsr_count, optimized_tsr_paragraphs);
     }
     return fclose(file) != 0;
 }
@@ -1044,12 +1043,15 @@ static int finish_final(unsigned drive, const struct options *options)
     char autoexec[32], temporary[32], memory[32], line[256];
     char sizes_path[32];
     unsigned sizes[MAX_MEASUREMENTS];
+    unsigned char selected[MAX_MEASUREMENTS];
     unsigned available;
+    unsigned char *choice = NULL;
     FILE *input;
     FILE *output;
     FILE *measure;
     struct size_record record;
     memset(sizes, 0, sizeof(sizes));
+    memset(selected, 0, sizeof(selected));
     make_path(autoexec, drive, "AUTOEXEC.BAT");
     make_path(temporary, drive, "AUTOEXEC.MMT");
     make_path(memory, drive, "MEMMAKER.MEM");
@@ -1090,6 +1092,42 @@ static int finish_final(unsigned drive, const struct options *options)
         available -= (options->reserve_one + options->reserve_two) * 64U;
     else
         available = 0;
+    if (available) {
+        unsigned index;
+        unsigned sum;
+        choice = malloc(available + 1U);
+        if (choice) {
+            memset(choice, 0xff, available + 1U);
+            choice[0] = 0;
+            for (index = 1; index < MAX_MEASUREMENTS; ++index) {
+                unsigned size = sizes[index];
+                if (!size || size > available)
+                    continue;
+                sum = available;
+                for (;;) {
+                    if (choice[sum] == 0xffU &&
+                        choice[sum - size] != 0xffU) {
+                        choice[sum] = (unsigned char)index;
+                    }
+                    if (sum == size)
+                        break;
+                    --sum;
+                }
+            }
+            for (sum = available; sum && choice[sum] == 0xffU; --sum)
+                ;
+            optimized_tsr_paragraphs = sum;
+            while (sum) {
+                index = choice[sum];
+                if (!index)
+                    break;
+                selected[index] = 1;
+                ++optimized_tsr_count;
+                sum -= sizes[index];
+            }
+        }
+        free(choice);
+    }
     input = fopen(autoexec, "r");
     output = fopen(temporary, "w");
     if (!input || !output) {
@@ -1112,9 +1150,8 @@ static int finish_final(unsigned drive, const struct options *options)
                     ++command;
             }
             if (command && index < MAX_MEASUREMENTS) {
-                if (sizes[index] && sizes[index] <= available) {
+                if (selected[index]) {
                     fputs("LH ", output);
-                    available -= sizes[index];
                 }
                 fputs(command, output);
                 continue;
@@ -1244,6 +1281,11 @@ int main(int argc, char **argv)
     struct options options;
     union REGS regs;
     unsigned drive;
+    const char *fault = getenv("MEMMAKER_FAULT");
+    if (fault) {
+        strncpy(injected_point, fault, sizeof(injected_point) - 1U);
+        injected_point[sizeof(injected_point) - 1U] = 0;
+    }
     if (parse_options(argc, argv, &options)) {
         usage();
         return 1;

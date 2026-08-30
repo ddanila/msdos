@@ -416,6 +416,7 @@ test-defrag-fat16-qemu: deploy
 
 test-memmaker-qemu: deploy
 	bash tests/test_memmaker_qemu.sh
+	bash tests/test_memmaker_optimizer_qemu.sh
 
 test-mem-dos6-qemu: deploy
 	bash tests/test_mem_dos6_qemu.sh

@@ -122,7 +122,8 @@ if grep -q 'optimization completed after measured reboot passes' <<<"$status" &&
    grep -q 'Drivers selected for upper memory: 1 of 1' <<<"$status" &&
    grep -Eq 'Drivers measured from CONFIG: 1, [1-9][0-9]* paragraphs resident' <<<"$status" &&
    grep -q 'TSRs selected for upper memory: 1 of 1' <<<"$status" &&
-   grep -Eq 'TSRs measured by SIZER: 1, [1-9][0-9]* paragraphs resident' <<<"$status"; then
+   grep -Eq 'TSRs measured by SIZER: 1, [1-9][0-9]* paragraphs resident' <<<"$status" &&
+   grep -Eq 'TSRs placed high by measured optimizer: 1, [1-9][0-9]* paragraphs' <<<"$status"; then
     ok "MEMMAKER.STS records measurements, /W policy, and Custom choices"
 else
     fail "MemMaker status report"

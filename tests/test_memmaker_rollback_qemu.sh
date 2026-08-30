@@ -5,8 +5,7 @@ export LC_ALL=C MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT="$ROOT/out"
 BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
-FAULT_OBJ="$OUT/memmaker_fault.obj"
-FAULT_EXE="$OUT/memmaker_fault.exe"
+FAULT_EXE="$ROOT/src/CMD/MEMMAKER/MEMMAKER.EXE"
 QEXIT="$OUT/memmaker-fault-exit.com"
 SERIAL_IN="$OUT/memmaker-fault-serial.in"
 SERIAL_OUT="$OUT/memmaker-fault-serial.out"
@@ -21,11 +20,6 @@ for tool in mcopy mdir nasm qemu-system-i386 timeout; do
 done
 [[ -f "$BASE" ]] || { echo "ERROR: run make deploy first" >&2; exit 1; }
 
-(
-    cd "$OUT"
-    ../bin/wcc '-AS -Os -Zp -DMEMMAKER_TEST_FAULTS -c -Fomemmaker_fault.obj ../src/CMD/MEMMAKER/MEMMAKER.C'
-    ../bin/wlink 'memmaker_fault.obj,memmaker_fault.exe,,;'
-)
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 
 for point in CONFIG AUTOEXEC SYSTEM STATUS; do
