@@ -34,7 +34,7 @@ valid lightweight interface.
 | Area | Status | Gap |
 | --- | --- | --- |
 | DOS identity and compatibility | Present | The kernel and true-version API identify 6.22, and SETVER ships the retail 6.2/6.22 default table. The `MSDOS5.0` FAT OEM identifier is correct for 6.22 and remains unchanged. |
-| Startup and configuration | Partial | Configuration blocks, boot menus, and the `CONFIG` selection variable remain; F5/Shift bypass and F8 CONFIG/AUTOEXEC stepping are present. |
+| Startup and configuration | Partial | Named blocks, nested boot menus, ordered `INCLUDE`, `MENUCOLOR`, defaults/timeouts, keyboard recovery, and `CONFIG` propagation are present alongside F5/Shift bypass and F8 stepping. Reference diagnostics and selected-block interaction coverage remain. |
 | Everyday command additions | Partial | `CHOICE`, `DELTREE`, `LOADFIX`, and `MOVE` are present; overwrite policy additions to `COPY` and `XCOPY` remain. |
 | Disk health and performance | Missing | `SCANDISK` and `DEFRAG`; no ScanDisk repair log or undo flow. |
 | Memory optimization | Partial | Strong DOS 5 HMA/UMB base, but not the complete DOS 6 EMM386/MEM/loader contract or `MEMMAKER`. |
@@ -77,7 +77,7 @@ Known gaps in commands already shipped:
 
 | Existing command | Missing 6.22 behavior |
 | --- | --- |
-| `COMMAND` | `/K`, `/Y` batch single-stepping, F5/Shift startup bypass, and F8 CONFIG/AUTOEXEC confirmation are present. Selected-configuration propagation remains. |
+| `COMMAND` | `/K`, `/Y` batch single-stepping, F5/Shift startup bypass, F8 CONFIG/AUTOEXEC confirmation, and selected-configuration propagation are present. |
 | `COPY` | Present: `/Y`, `/-Y`, overwrite prompting, `COPYCMD`, and command-line precedence are covered. |
 | `DIR` | `/C[H]` compression ratios and `O:C`/`O:-C`; these depend on DriveSpace. |
 | `EMM386` | The DOS 6 enhanced automatic EMS/UMB behavior and remaining 6.22 parser/API/hardware differences need a reference differential audit. Existing DOS 5 modes and memory regions are a strong base. |
@@ -93,16 +93,15 @@ Known gaps in commands already shipped:
 
 ### CONFIG.SYS and boot
 
-CONFIG.SYS `SET` environment propagation and `NUMLOCK=ON|OFF` are present.
-Missing 6.22 configuration behavior:
+CONFIG.SYS `SET`, `NUMLOCK=ON|OFF`, named blocks, `[menu]`, `[common]`,
+`MENUITEM`, `MENUDEFAULT`, `MENUCOLOR`, `SUBMENU`, and recursive `INCLUDE` are
+present. Selection, invalid-key recovery, zero and finite timeouts, nesting,
+source-order flattening, missing-submenu filtering, and the `CONFIG` variable
+passed to AUTOEXEC.BAT have QEMU coverage.
 
-- named configuration blocks plus `[menu]` and `[common]`;
-- `MENUITEM`, `MENUDEFAULT`, `MENUCOLOR`, `SUBMENU`, and `INCLUDE`;
-- the `CONFIG` environment variable passed to AUTOEXEC.BAT;
-- section selection, invalid-menu recovery, timeouts, nesting, and common-section
-  ordering;
-- 6.22 parsing limits, diagnostics, and interaction with `DEVICEHIGH`,
-  `INSTALL`, `SHELL`, and AUTOEXEC.BAT.
+Remaining work is a reference differential of exact diagnostics and parsing
+boundaries, plus selected-block tests combining `DEVICEHIGH`, `INSTALL`,
+`SHELL`, F5/F8, and AUTOEXEC.BAT.
 
 `DEVICEHIGH /L:region[,minsize][;...] /S` and the corresponding `LOADHIGH`
 region grammar are already implemented and covered. `INSTALLHIGH` is a useful

@@ -43,6 +43,7 @@ GRAFTABL   Loads extended characters for graphics mode.
 GRAPHICS   Loads graphics-screen printing support.
 HELP       Displays command help.
 IF         Performs conditional batch processing.
+INCLUDE    Includes another CONFIG.SYS configuration block.
 JOIN       Joins a drive to a directory.
 KEYB       Configures a national keyboard.
 LABEL      Creates or changes a volume label.
@@ -51,6 +52,9 @@ LH         Loads a program into upper memory.
 LOADHIGH   Loads a program into upper memory.
 MD         Creates a directory.
 MEM        Displays allocated and free memory.
+MENUCOLOR  Sets startup-menu text and background colors.
+MENUDEFAULT Selects a startup-menu default and timeout.
+MENUITEM   Adds a choice to a CONFIG.SYS startup menu.
 MKDIR      Creates a directory.
 MIRROR     Records disk information for recovery.
 MODE       Configures system devices.
@@ -75,6 +79,7 @@ SHARE      Installs file sharing and locking support.
 SHIFT      Shifts batch parameters.
 SORT       Sorts input.
 SUBST      Associates a path with a drive letter.
+SUBMENU    Adds a nested CONFIG.SYS startup menu.
 SYS        Transfers system files to a disk.
 TIME       Displays or sets the time.
 TREE       Displays a directory tree.
@@ -216,6 +221,9 @@ Syntax: HELP [command]
 @IF
 Performs conditional processing in batch programs.
 Syntax: IF [NOT] condition command
+@INCLUDE
+Includes another named CONFIG.SYS block at this position.
+Syntax: INCLUDE=blockname
 @JOIN
 Joins a disk drive to a directory on another drive.
 Syntax: JOIN drive: [drive:]path or JOIN drive: /D
@@ -240,6 +248,15 @@ Syntax: MD [drive:]path
 @MEM
 Displays allocated and free memory.
 Syntax: MEM [/CLASSIFY|/DEBUG|/FREE|/MODULE name|/PAGE]
+@MENUCOLOR
+Sets startup-menu foreground and background colors from 0 through 15.
+Syntax: MENUCOLOR=textcolor[,backgroundcolor]
+@MENUDEFAULT
+Selects the default startup-menu block and optional 0-to-90-second timeout.
+Syntax: MENUDEFAULT=blockname[,timeout]
+@MENUITEM
+Adds a selectable configuration block to a CONFIG.SYS menu.
+Syntax: MENUITEM=blockname[,menu text]
 @MKDIR
 Creates a directory.
 Syntax: MKDIR [drive:]path
@@ -314,6 +331,9 @@ Syntax: SORT [/R] [/+n] [< input] [> output]
 @SUBST
 Associates a path with a drive letter.
 Syntax: SUBST drive: [drive:]path or SUBST drive: /D
+@SUBMENU
+Adds a nested menu block; missing menu blocks are not displayed.
+Syntax: SUBMENU=blockname[,menu text]
 @SYS
 Transfers system files and writes a boot sector.
 Syntax: SYS [drive1:][path] drive2:

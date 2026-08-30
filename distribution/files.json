@@ -3,6 +3,7 @@
   "boot": [
     ["src/BIOS/IO.SYS", "IO.SYS"],
     ["src/DOS/MSDOS.SYS", "MSDOS.SYS"],
+    ["src/BIOS/SYSMENU.OVL", "SYSMENU.OVL"],
     ["src/CMD/COMMAND/COMMAND.COM", "COMMAND.COM"],
     ["src/CMD/EXPAND/EXPAND.EXE", "EXPAND.EXE"],
     ["src/CMD/SYS/SYS.COM", "SYS.COM"],

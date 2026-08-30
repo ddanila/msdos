@@ -29,7 +29,7 @@ AINC     := -I. -ID:\\TOOLS\\INC
 .PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest deploy minimal-floppy run-boot test-sys test-help-qemu test-command-startup-qemu test-more-paging-qemu test-misc-qemu test-graftabl-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-setver-qemu test-doskey-qemu test-share-nlsfunc-exe2bin test-append test-format test-format-hdd-qemu test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu test-ansi-driver-qemu test-display-chain-qemu test-driver-sys-qemu test-driver-geometry-qemu test-printer-driver-qemu test-smartdrv-flush-qemu test-xma-drivers-qemu test-himem-qemu test-himem-286-dosbox test-hardware-matrix test-hma-qemu test-pre386-dosbox test-mem-umb-qemu test-loadhigh-qemu test-devicehigh-qemu test-installhigh-qemu test-root-exhaustion-qemu test-disk-exhaustion-qemu test-config-state-qemu test-config-switches-qemu test-config-stacks-qemu test-config-dos-qemu test-xms-umb-transaction-qemu test-config-ifs-qemu test-ifsfunc-filesys-qemu test-config-multitrack-qemu test-emm386-qemu test-int21-file-memory-qemu test-int21-path-errors-qemu test-int21-system-qemu test-int21-fcb-qemu test-int21-compat-qemu test-int21-console-qemu test-int21-process-qemu test-int21-tsr-qemu test-int21-media-qemu test-int21-readonly-media-qemu test-dos-interrupt-qemu test-dos-async-interrupt-qemu
 .PHONY: test-utility-parser-coverage-manifest test-keyboard-records test-country-records test-country-matrix-qemu
 .PHONY: test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-szdd-tool distribution test-distribution test-setup-qemu test-mirror-unformat-qemu test-undelete-qemu
-.PHONY: test-command-step-qemu test-msd-qemu
+.PHONY: test-command-step-qemu test-msd-qemu test-config-menu-qemu test-config-menu-input-qemu
 .PHONY: test-copy-policy-qemu
 .PHONY: test-xcopy-dos6-qemu
 .PHONY: test-config-numlock-qemu
@@ -166,6 +166,7 @@ ARTIFACTS := \
     MAPPER/MAPPER.LIB \
     INC/boot.inc \
     BIOS/IO.SYS \
+    BIOS/SYSMENU.OVL \
     DOS/MSDOS.SYS \
     DEV/HIMEM/HIMEM.SYS \
     CMD/COMMAND/COMMAND.COM \
@@ -327,9 +328,11 @@ minimal-floppy: boot bios dos cmd_command
 	mcopy -i $(FLOPPY) $(IO_SYS) ::IO.SYS
 	mcopy -i $(FLOPPY) $(MSDOS_SYS) ::MSDOS.SYS
 	mcopy -i $(FLOPPY) $(COMMAND_COM) ::COMMAND.COM
+	mcopy -i $(FLOPPY) $(SYSMENU_OVL) ::SYSMENU.OVL
 	echo 'drive a: file="$(FLOPPY)"' > $(OUT)/.mtoolsrc
 	MTOOLSRC=$(OUT)/.mtoolsrc mattrib +h +s +r a:/IO.SYS
 	MTOOLSRC=$(OUT)/.mtoolsrc mattrib +h +s +r a:/MSDOS.SYS
+	MTOOLSRC=$(OUT)/.mtoolsrc mattrib +h +s +r a:/SYSMENU.OVL
 	rm -f $(OUT)/.mtoolsrc
 	@echo "Minimal floppy built: $(FLOPPY)"
 
@@ -390,6 +393,12 @@ test-format-hdd-qemu: deploy
 
 test-msd-qemu: deploy
 	bash tests/test_msd_qemu.sh
+
+test-config-menu-qemu: deploy
+	bash tests/test_config_menu_qemu.sh
+
+test-config-menu-input-qemu: deploy
+	bash tests/test_config_menu_input_qemu.sh
 
 test-format-one: deploy
 	bash tests/test_format.sh $(VARIANT)
@@ -563,6 +572,7 @@ BOOT_OFF    := 31744
 
 IO_SYS      := $(SRC)/BIOS/IO.SYS
 MSDOS_SYS   := $(SRC)/DOS/MSDOS.SYS
+SYSMENU_OVL := $(SRC)/BIOS/SYSMENU.OVL
 COMMAND_COM := $(SRC)/CMD/COMMAND/COMMAND.COM
 SYS_COM     := $(SRC)/CMD/SYS/SYS.COM
 FORMAT_COM  := $(SRC)/CMD/FORMAT/FORMAT.COM
@@ -639,7 +649,7 @@ EGA_CPI      := $(SRC)/DEV/DISPLAY/EGA/EGA.CPI
 HIMEM_SYS    := $(SRC)/DEV/HIMEM/HIMEM.SYS
 EMM386_EXE   := $(MEMM_DIR)/EMM386.EXE
 
-$(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT_COM) $(EXPAND_COM) $(SETUP_EXE) $(CHKDSK_COM) $(DEBUG_COM) $(MEM_EXE) $(FDISK_EXE) \
+$(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OVL) $(COMMAND_COM) $(SYS_COM) $(FORMAT_COM) $(EXPAND_COM) $(SETUP_EXE) $(CHKDSK_COM) $(DEBUG_COM) $(MEM_EXE) $(FDISK_EXE) \
            $(MORE_COM) $(SORT_EXE) $(LABEL_COM) $(FIND_EXE) $(TREE_COM) $(COMP_COM) \
            $(ATTRIB_EXE) $(EDLIN_COM) $(FC_EXE) \
            $(NLSFUNC_EXE) $(ASSIGN_COM) $(XCOPY_EXE) $(DISKCOMP_COM) $(DISKCOPY_COM) $(SETVER_COM) $(SETVER_EXE) $(DOSKEY_COM) \
@@ -665,10 +675,12 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
 	mcopy -i $@ $(IO_SYS) ::IO.SYS
 	mcopy -i $@ $(MSDOS_SYS) ::MSDOS.SYS
 	mcopy -i $@ $(COMMAND_COM) ::COMMAND.COM
+	mcopy -i $@ $(SYSMENU_OVL) ::SYSMENU.OVL
 	# mtools 4.0.49 broke mattrib's -i handling, so expose the image through MTOOLSRC.
 	echo 'drive a: file="$@"' > $(OUT)/.mtoolsrc
 	MTOOLSRC=$(OUT)/.mtoolsrc mattrib +h +s +r a:/IO.SYS
 	MTOOLSRC=$(OUT)/.mtoolsrc mattrib +h +s +r a:/MSDOS.SYS
+	MTOOLSRC=$(OUT)/.mtoolsrc mattrib +h +s +r a:/SYSMENU.OVL
 	rm -f $(OUT)/.mtoolsrc
 	mcopy -i $@ $(SYS_COM) ::SYS.COM
 	mcopy -i $@ $(FORMAT_COM) ::FORMAT.COM

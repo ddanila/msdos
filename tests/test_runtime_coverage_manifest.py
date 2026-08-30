@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "tests/runtime_coverage.json"
-RUNTIME_SUFFIXES = ("COM", "EXE", "SYS")
+RUNTIME_SUFFIXES = ("COM", "EXE", "SYS", "OVL")
 VALID_LEVELS = {"uncovered", "observed", "contract"}
 
 
@@ -39,12 +39,21 @@ def shipped_runtime_components(make_text):
 
 def config_directives(source_text):
     table = source_text.split("COMTAB\tLABEL\tBYTE", 1)[1].split("\n\tDB\t0", 1)[0]
-    return {
+    directives = {
         name.upper()
         for name in re.findall(
             r'^\s*DB\s+\d+,\s*"([A-Z]+)"', table, re.IGNORECASE | re.MULTILINE
         )
     }
+    directives.update(
+        name.upper()
+        for name in re.findall(
+            r"^[a-z_]+_lit\s+db\s+'([A-Z]+)'",
+            source_text,
+            re.IGNORECASE | re.MULTILINE,
+        )
+    )
+    return directives
 
 
 def select_modes(source_text):
@@ -152,9 +161,9 @@ def main():
     validate_items(
         directives,
         config_directives(
-            (ROOT / "src/BIOS/SYSINIT2.ASM").read_text(
-                encoding="latin-1"
-            )
+            (ROOT / "src/BIOS/SYSINIT2.ASM").read_text(encoding="latin-1")
+            + "\n"
+            + (ROOT / "src/BIOS/SYSMENU.ASM").read_text(encoding="latin-1")
         ),
         "CONFIG.SYS directive",
         ci_corpus,

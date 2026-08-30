@@ -132,6 +132,7 @@ ASSUME	CS:SYSINITSEG,DS:NOTHING,ES:NOTHING,SS:NOTHING
 	EXTRN	DOSINFO:dword,ENTRY_POINT:dword
 	EXTRN	FCBS:byte,KEEP:byte
 	EXTRN	CONFBOT:word,ALLOCLIM:word,COMMAND_LINE:byte
+	EXTRN	RawConfigSeg:word,MenuScratch:word,MenuCodeSeg:word
 	EXTRN	ZERO:byte,SEPCHR:byte
 	EXTRN	COUNT:word,CHRPTR:word,CNTRYFILEHANDLE:word
 	EXTRN	MEMLO:word,MEMHI:word,PRMBLK:word,LDOFF:word
@@ -154,6 +155,7 @@ ASSUME	CS:SYSINITSEG,DS:NOTHING,ES:NOTHING,SS:NOTHING
 	extrn	Multi_Pass_Id:byte		;AN026;
 	extrn	ConfigEnv:byte,ConfigEnvUsed:word
 	extrn	BootStep:byte
+	extrn	TempStack:byte
 
 	EXTRN	MEM_ERR:NEAR,SetDOSCountryInfo:NEAR
 	EXTRN	PARAROUND:NEAR,TEMPCDS:NEAR
@@ -203,7 +205,10 @@ Badparm_Off	dw	0		;AN007;
 Badparm_Seg	dw	0		;AN007;
 
 XMAEM_file	db	'XMAEM.SYS',0	;AN029;
-ConfigSetLine	db	256 dup (0)
+; The relocation stack is dead by the time CONFIG.SYS is parsed.  Reuse its
+; 256-byte region and the following one-shot initialization code as SET's
+; line scratch instead of extending the size-sensitive resident SYSINIT.
+ConfigSetLine	equ	TempStack
 ConfigSetLength	dw	0
 ConfigSetNameLen	dw	0
 BootStepPrompt	db	'Process next CONFIG.SYS line? [Y,N] ',0
@@ -752,13 +757,22 @@ NOPROB: 				;GET FILE SIZE (NOTE < 64K!!)
 	MOV	AX,[COUNT]
 	mov	[config_size], ax	;save the size of config.sys file.
 	call	ParaRound
+	PUSH	AX
 	SUB	DX,AX
 	SUB	DX,11H			;ROOM FOR HEADER
-	MOV	[CONFBOT],DX		; Config starts here. New CONBOT value.
+	MOV	[RawConfigSeg],DX	; Original CONFIG.SYS remains available to INCLUDE.
+	POP	AX
+	SHL	AX,1
+	SHL	AX,1			; INCLUDE may expand a section more than once.
+	SUB	DX,AX			; Transient processing buffer (4x source size).
+	MOV	[MenuScratch],DX
+	SUB	DX,200H			; 8 KiB transient menu overlay.
+	MOV	[MenuCodeSeg],DX
+	MOV	[CONFBOT],DX		; Lowest address reserved for configuration data.
 	CALL	TEMPCDS 		; Finally get CDS to "safe" location
 ASSUME	DS:NOTHING,ES:NOTHING
 
-	MOV	DX,[CONFBOT]
+	MOV	DX,[RawConfigSeg]
 	MOV	DS,DX
 	MOV	ES,DX
 	XOR	DX,DX
@@ -816,7 +830,7 @@ Multi_Pass:				;AN018;AN026; called to execute IFS=,  INSTALL= commands
 	pop	ds			;AN018;
 	cmp	Multi_Pass_id, 10	;J.K.
 	jae	Endconv 		;J.K. Do nothing. Just return.
-	push	Confbot 		;AN018;
+	push	MenuScratch 		; Organized CONFIG.SYS work image.
 	pop	es			;AN018; ES -> Confbot
 	mov	si, Org_Count		;AN018;
 	mov	Count, si		;AN018; set Count
@@ -826,8 +840,70 @@ Multi_Pass:				;AN018;AN026; called to execute IFS=,  INSTALL= commands
 	call	GetChr			;AN018;
 	jmp	Conflp			;AN018;
 GETCOM:
+	call	PrepareConfigMenus
 	invoke	ORGANIZE		;ORGANIZE THE FILE
 	CALL	GETCHR
+	jmp	CONFLP
+
+
+MenuOverlayName db '\SYSMENU.OVL',0
+MenuOverlayEntry dw 0,0
+MenuOverlaySize dw 0
+
+; Keep an untouched source image and organize a separate transient copy.
+; The source remains available for ordered INCLUDE expansion.
+PrepareConfigMenus proc near
+	mov	dx,offset MenuOverlayName
+	mov	ax,OPEN shl 8
+	int	21h
+	jc	short MenuOverlayFallback
+	mov	bx,ax
+	push	ds
+	mov	ax,MenuCodeSeg
+	mov	ds,ax
+	xor	dx,dx
+	mov	cx,2000h
+	mov	ah,READ
+	int	21h
+	pop	ds
+	jc	short MenuOverlayReadFailed
+	mov	MenuOverlaySize,ax
+	jmp	short MenuOverlayClose
+MenuOverlayReadFailed:
+	mov	MenuOverlaySize,0
+MenuOverlayClose:
+	mov	ah,CLOSE
+	int	21h
+	cmp	MenuOverlaySize,0
+	je	short MenuOverlayFallback
+	mov	ax,MenuCodeSeg
+	mov	word ptr MenuOverlayEntry+2,ax
+	mov	ax,RawConfigSeg
+	mov	bx,MenuScratch
+	mov	cx,Count
+	mov	dx,cs
+	mov	si,offset ConfigEnv
+	mov	di,offset ConfigEnvUsed
+	call	dword ptr cs:MenuOverlayEntry
+	mov	Count,ax
+	mov	Config_Size,ax
+	jmp	short MenuPrepared
+MenuOverlayFallback:
+	mov	ax,cs:RawConfigSeg
+	mov	ds,ax
+	mov	ax,cs:MenuScratch
+	mov	es,ax
+	xor	si,si
+	xor	di,di
+	mov	cx,cs:Count
+	cld
+	rep	movsb
+MenuPrepared:
+	push	cs
+	pop	ds
+	mov	es,MenuScratch
+	ret
+PrepareConfigMenus endp
 
 CONFLP: JC	ENDCONV
 	call	Reset_DOS_Version	;AN024;AN026; Still need to reset version even IBMDOS handles this through
@@ -2768,13 +2844,13 @@ TryQDefBad:				;Default file has been used.
 	mov	si, offset CNTRY_ROOT	;ES:SI -> \COUNTRY.SYS in SYSINIT_SEG
 TryQBADLOAD:
 	call	BADLOAD 		;DS will be restored to SYSINIT_SEG
-	mov	cx, cs:[CONFBOT]
+	mov	cx, cs:[MenuScratch]
 	mov	es, cx			;Restore ES -> CONFBOT.
 	jmp	short CoffJ4
 TryQMemory:
 	MOV	DX,OFFSET INSUFMEMORY
 TryQChkErr:
-	mov	cx, cs:[CONFBOT]
+	mov	cx, cs:[MenuScratch]
 	mov	es, cx			;restore ES -> CONFBOT seg
 	push	cs
 	pop	ds			;retore DS to SYSINIT_SEG
