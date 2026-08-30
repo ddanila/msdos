@@ -40,6 +40,31 @@ org 100h
     int 0x2f
     cmp dx, bp
     jbe fail
+    mov ax, 0xe803
+    int 0x2f
+    cmp ax, 0xe8ff
+    jne fail
+    mov [poll_before], bx
+    mov [busy_before], cx
+    mov [halt_before], si
+    mov cx, 16
+.poll:
+    mov ah, 1
+    int 0x16
+    loop .poll
+    mov ah, 0x0f
+    int 0x10
+    mov ah, 0x30
+    int 0x21
+    mov ax, 0xe803
+    int 0x2f
+    sub bx, [poll_before]
+    cmp bx, 16
+    jb fail
+    cmp cx, [busy_before]
+    jbe fail
+    cmp si, [halt_before]
+    jbe fail
     mov bl, 5
     mov ax, 0xe801
     int 0x2f
@@ -65,3 +90,6 @@ pass_message db 'POWER_IDLE_PASS', 13, 10, '$'
 fail_message db 'POWER_IDLE_FAIL', 13, 10, '$'
 apm_present db 0
 apm_before dw 0
+poll_before dw 0
+busy_before dw 0
+halt_before dw 0
