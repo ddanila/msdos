@@ -131,6 +131,15 @@ drive_range_error:
         mov     al,1
         jmp     terminate
 drive_range_ok:
+        cmp     cs:use_ems,0
+        je      short cache_storage_ready
+        call    initialize_ems_cache
+        jnc     short cache_storage_ready
+        mov     dx,OFFSET no_ems_msg
+        call    print_dollar
+        mov     al,1
+        jmp     terminate
+cache_storage_ready:
         ; Publish the first assigned drive letter in each unique device header.
         xor     si,si
         xor     bx,bx
@@ -172,6 +181,10 @@ driver_letters_done:
         je      installation_line
         mov     dx,OFFSET version_msg
         call    print_dollar
+        cmp     cs:use_ems,0
+        je      installation_line
+        mov     dx,OFFSET ems_cache_msg
+        call    print_dollar
 installation_line:
         mov     dx,OFFSET installed_msg
         call    print_dollar
@@ -185,10 +198,15 @@ installation_line:
         call    print_dollar
         ; Keep only the selected number of 2 KiB cache buffers resident.
         ; The parser caps the count so the COM image remains below 64 KiB.
-        mov     ax,cs:buffer_count
+        mov     ax,(cache_data-start+100h+15)/16
+        cmp     cs:use_ems,0
+        jne     short resident_size_ready
+        mov     bx,cs:buffer_count
         mov     dx,128                 ; paragraphs per 2048-byte sector
+        xchg    ax,bx
         mul     dx
-        add     ax,(cache_data-start+100h+15)/16
+        add     ax,bx
+resident_size_ready:
         mov     dx,ax
         mov     ax,3100h
         int     21h
@@ -957,15 +975,29 @@ cache_find_loop:
         shl     ax,cl
         mov     si,OFFSET cache_data
         add     si,ax
+        cmp     cs:use_ems,0
+        je      short cache_hit_conventional
+        mov     ax,dx
+        call    map_ems_cache_slot
+        mov     si,ax
+        mov     ax,cs:ems_frame
+        mov     ds,ax
+        jmp     short cache_hit_copy
+cache_hit_conventional:
+        push    cs
+        pop     ds
+cache_hit_copy:
         mov     ax,cs:cache_target_seg
         mov     es,ax
         mov     di,cs:cache_target_off
-        push    ds
-        push    cs
-        pop     ds
         mov     cx,1024
         rep     movsw
+        push    cs
         pop     ds
+        cmp     cs:use_ems,0
+        je      short cache_hit_complete
+        call    restore_ems_cache_map
+cache_hit_complete:
         xor     ax,ax
         clc
         ret
@@ -993,7 +1025,7 @@ cache_miss:
         mov     ax,0015h
         stc
 read_raw_done:
-        jc      short read_raw_return
+        jc      read_raw_return
         xor     ax,ax
         mov     al,cs:cache_next
         xor     dx,dx
@@ -1017,22 +1049,102 @@ cache_next_ready:
         shl     ax,cl
         mov     di,OFFSET cache_data
         add     di,ax
+        cmp     cs:use_ems,0
+        je      short cache_store_conventional
+        xor     ah,ah
+        mov     al,cs:cache_next
+        or      al,al
+        jnz     short cache_store_slot_ready
+        mov     al,byte ptr cs:buffer_count
+cache_store_slot_ready:
+        dec     al
+        xor     ah,ah
+        call    map_ems_cache_slot
+        mov     di,ax
+        mov     ax,cs:ems_frame
+        mov     es,ax
+        jmp     short cache_store_copy
+cache_store_conventional:
+        push    cs
+        pop     es
+cache_store_copy:
         mov     ax,cs:cache_target_seg
         mov     ds,ax
         mov     si,cs:cache_target_off
-        push    es
-        push    cs
-        pop     es
         mov     cx,1024
         rep     movsw
-        pop     es
         push    cs
         pop     ds
+        push    cs
+        pop     es
+        cmp     cs:use_ems,0
+        je      short cache_store_complete
+        call    restore_ems_cache_map
+cache_store_complete:
         xor     ax,ax
         clc
 read_raw_return:
         ret
 read_raw_sector ENDP
+
+initialize_ems_cache PROC NEAR
+        mov     ah,41h
+        int     67h
+        or      ah,ah
+        jnz     short initialize_ems_failed
+        mov     cs:ems_frame,bx
+        mov     bx,cs:buffer_count
+        add     bx,7
+        mov     cl,3
+        shr     bx,cl
+        mov     ah,43h
+        int     67h
+        or      ah,ah
+        jnz     short initialize_ems_failed
+        mov     cs:ems_handle,dx
+        clc
+        ret
+initialize_ems_failed:
+        stc
+        ret
+initialize_ems_cache ENDP
+
+; Map the 2 KiB cache slot in AX into EMS physical page zero.  The copy path
+; explicitly unmaps the page before returning from the resident service.
+map_ems_cache_slot PROC NEAR
+        mov     cs:ems_slot,ax
+        push    bx
+        push    cx
+        push    dx
+        mov     bx,cs:ems_slot
+        mov     ax,bx
+        and     ax,7
+        mov     cl,11
+        shl     ax,cl
+        mov     cs:ems_offset,ax
+        mov     cl,3
+        shr     bx,cl
+        mov     dx,cs:ems_handle
+        mov     ax,4400h
+        int     67h
+        pop     dx
+        pop     cx
+        pop     bx
+        mov     ax,cs:ems_offset
+        ret
+map_ems_cache_slot ENDP
+
+restore_ems_cache_map PROC NEAR
+        push    bx
+        push    dx
+        mov     bx,0ffffh
+        mov     dx,cs:ems_handle
+        mov     ax,4400h
+        int     67h
+        pop     dx
+        pop     bx
+        ret
+restore_ems_cache_map ENDP
 
 old_2f_off      dw 0
 old_2f_seg      dw 0
@@ -1097,6 +1209,10 @@ cache_target_off dw 0
 cache_target_seg dw 0
 cache_drive     dw 0
 cache_sector    dd 0
+ems_handle      dw 0
+ems_frame       dw 0
+ems_slot        dw 0
+ems_offset      dw 0
 cache_data      db MAX_BUFFERS*2048 dup(0)
 resident_end LABEL BYTE
 
@@ -1403,6 +1519,7 @@ quote_crlf         db "'.",13,10,'No valid CDROM device drivers selected',13,10,
 drive_range_msg    db 'Not enough drive letters available',13,10,'$'
 already_msg        db 'MSCDEX already installed.',13,10,'$'
 version_msg        db 'MSCDEX Version 2.23',13,10,'$'
+ems_cache_msg      db 'Cache storage: expanded memory',13,10,'$'
 installed_msg      db 'Drive assigned to driver: $'
 colon_crlf         db ':',13,10,'$'
 
