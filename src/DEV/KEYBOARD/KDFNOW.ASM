@@ -55,12 +55,12 @@ CODE	SEGMENT PUBLIC 'CODE'          ;;
 				     ;;
 DB   0FFh,'KEYB   '                  ;; signature
 DB   8 DUP(0)			     ;; reserved
-DW   650			     ;; maximum size of Common Xlat Sect
-DW   350			     ;; max size of Specific Xlat Sect
-DW   400			     ;; max size of State Logic
+DW   1120			     ;; maximum size of Common Xlat Sect
+DW   496			     ;; max size of Specific Xlat Sect
+DW   640			     ;; max size of State Logic
 DW   0				     ;;AC000;reserved
-DW   19 			     ;;AC000 number of IDs
-DW   17 			     ;;AC000 number of languages
+DW   25 			     ;;AC000 number of IDs
+DW   23 			     ;;AC000 number of languages
 DB   'GR'                            ;; LANGUAGE CODE TABLE
 DW   OFFSET GE_LANG_ENT,0	     ;;
 DB   'SP'                            ;;
@@ -93,6 +93,18 @@ DB   'SU'                            ;;
 DW   OFFSET Su_LANG_ENT,0	     ;;
 DB   'LA'                            ;;
 DW   OFFSET LA_LANG_ENT,0	     ;;
+DB   'BR'
+DW   OFFSET BR_LANG_ENT,0
+DB   'PL'
+DW   OFFSET PL_LANG_ENT,0
+DB   'CZ'
+DW   OFFSET CZ_LANG_ENT,0
+DB   'SL'
+DW   OFFSET SL_LANG_ENT,0
+DB   'YU'
+DW   OFFSET YU_LANG_ENT,0
+DB   'HU'
+DW   OFFSET HU_LANG_ENT,0
 DB   'US'                            ;;
 DW   OFFSET DUMMY_ENT,0 	     ;;
 DW    172			     ;;AN000;ID CODE TABLE ***************************
@@ -131,6 +143,18 @@ DW    153			     ;;AN000;
 DW   OFFSET SV_LANG_ENT,0	     ;;AN000;
 DW    171			     ;;AN000;
 DW   OFFSET LA_LANG_ENT,0	     ;;AN000;
+DW    274
+DW   OFFSET BR_LANG_ENT,0
+DW    214
+DW   OFFSET PL_LANG_ENT,0
+DW    243
+DW   OFFSET CZ_LANG_ENT,0
+DW    245
+DW   OFFSET SL_LANG_ENT,0
+DW    234
+DW   OFFSET YU_LANG_ENT,0
+DW    208
+DW   OFFSET HU_LANG_ENT,0
 DW    103			     ;;AN000;
 DW   OFFSET DUMMY_ENT,0 	     ;;AN000;
 ;				     ;;
@@ -449,6 +473,72 @@ BE_LANG_ENT:				 ;; language entry for BELGIUM
     DW	 437				 ;; code page  ; default to 437 -same as country.sys
     DW	 OFFSET LA_437_XLAT,0		 ;; table pointer
 					 ;;
+;*****************************************************************************
+   EXTRN BR_LOGIC:NEAR, BR_437_XLAT:NEAR, BR_850_XLAT:NEAR
+BR_LANG_ENT:
+   DB 'BR'
+   DW 274
+   DW OFFSET BR_LOGIC,0
+   DB 1,2
+   DW 850
+   DW OFFSET BR_850_XLAT,0
+   DW 437
+   DW OFFSET BR_437_XLAT,0
+;*****************************************************************************
+   EXTRN PL_LOGIC:NEAR, PL_850_XLAT:NEAR, PL_852_XLAT:NEAR
+PL_LANG_ENT:
+   DB 'PL'
+   DW 214
+   DW OFFSET PL_LOGIC,0
+   DB 1,2
+   DW 850
+   DW OFFSET PL_850_XLAT,0
+   DW 852
+   DW OFFSET PL_852_XLAT,0
+;*****************************************************************************
+   EXTRN CZ_LOGIC:NEAR, CZ_850_XLAT:NEAR, CZ_852_XLAT:NEAR
+CZ_LANG_ENT:
+   DB 'CZ'
+   DW 243
+   DW OFFSET CZ_LOGIC,0
+   DB 1,2
+   DW 850
+   DW OFFSET CZ_850_XLAT,0
+   DW 852
+   DW OFFSET CZ_852_XLAT,0
+;*****************************************************************************
+   EXTRN SL_LOGIC:NEAR, SL_850_XLAT:NEAR, SL_852_XLAT:NEAR
+SL_LANG_ENT:
+   DB 'SL'
+   DW 245
+   DW OFFSET SL_LOGIC,0
+   DB 1,2
+   DW 850
+   DW OFFSET SL_850_XLAT,0
+   DW 852
+   DW OFFSET SL_852_XLAT,0
+;*****************************************************************************
+   EXTRN YU_LOGIC:NEAR, YU_850_XLAT:NEAR, YU_852_XLAT:NEAR
+YU_LANG_ENT:
+   DB 'YU'
+   DW 234
+   DW OFFSET YU_LOGIC,0
+   DB 1,2
+   DW 850
+   DW OFFSET YU_850_XLAT,0
+   DW 852
+   DW OFFSET YU_852_XLAT,0
+;*****************************************************************************
+   EXTRN HU_LOGIC:NEAR, HU_850_XLAT:NEAR, HU_852_XLAT:NEAR
+HU_LANG_ENT:
+   DB 'HU'
+   DW 208
+   DW OFFSET HU_LOGIC,0
+   DB 1,2
+   DW 850
+   DW OFFSET HU_850_XLAT,0
+   DW 852
+   DW OFFSET HU_852_XLAT,0
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 				       ;;
 DUMMY_ENT:			       ;; language entry
@@ -456,11 +546,13 @@ DUMMY_ENT:			       ;; language entry
   DW   103			       ;;AC000; ID entry
   DW   OFFSET DUMMY_LOGIC,0	       ;; pointer to LANG kb table
   DB   1			       ;;AC000; number of ids
-  DB   5			       ;;AC000; number of code pages
+  DB   6			       ;;AC000; number of code pages
   DW   437			       ;; code page
   DW   OFFSET DUMMY_XLAT_437,0	       ;; table pointer
   DW   850			       ;; code page
   DW   OFFSET DUMMY_XLAT_850,0	       ;; table pointer
+  DW   852			       ;; code page
+  DW   OFFSET DUMMY_XLAT_852,0	       ;; table pointer
   DW   860			       ;; code page
   DW   OFFSET DUMMY_XLAT_860,0	       ;; table pointer
   DW   863			       ;; code page
@@ -483,6 +575,11 @@ DUMMY_XLAT_850: 		       ;;
    DW	  6			       ;; length of section
    DW	  850			       ;; code page
    DW	  0			       ;; LAST STATE
+				       ;;
+DUMMY_XLAT_852:
+   DW     6
+   DW     852
+   DW     0
 				       ;;
 DUMMY_XLAT_860: 		       ;;
    DW	  6			       ;; length of section

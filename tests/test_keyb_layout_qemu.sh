@@ -21,6 +21,16 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
     printf 'CTTY AUX\r\n'
     printf 'KEYB GR,,KEYBOARD.SYS\r\n'
     printf 'KEYB\r\n'
+    for code in BR PL CZ SL YU HU; do
+        if [[ "$code" == BR ]]; then
+            page=437
+        else
+            page=850
+        fi
+        printf 'KEYB %s,%s,KEYBOARD.SYS\r\n' "$code" "$page"
+        printf 'IF ERRORLEVEL 1 ECHO %s_LAYOUT_FAILED\r\n' "$code"
+        printf 'KEYB\r\n'
+    done
     printf 'ECHO KEYB_LAYOUT_DONE\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
@@ -39,6 +49,15 @@ if grep -qi "Current keyboard code.*GR\|code.*GR" "$SERIAL_LOG"; then
 else
     echo "  FAIL: KEYB did not load/report the German layout"
 fi
+for code in BR PL CZ SL YU HU; do
+    if grep -qi "Current keyboard code: $code" "$SERIAL_LOG" &&
+       ! grep -q "${code}_LAYOUT_FAILED" "$SERIAL_LOG"; then
+        echo "  PASS: KEYB loaded and reported the $code DOS 5 layout"
+        PASS=$((PASS+1))
+    else
+        echo "  FAIL: KEYB did not load/report the $code DOS 5 layout"
+    fi
+done
 if grep -q "KEYB_LAYOUT_DONE" "$SERIAL_LOG"; then
     echo "  PASS: command interpreter resumed after KEYB"
     PASS=$((PASS+1))
@@ -46,5 +65,5 @@ else
     echo "  FAIL: command interpreter did not resume after KEYB"
 fi
 
-echo "Results: $PASS passed, $((2-PASS)) failed"
-[[ $PASS -eq 2 ]]
+echo "Results: $PASS passed, $((8-PASS)) failed"
+[[ $PASS -eq 8 ]]
