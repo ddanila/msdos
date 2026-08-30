@@ -45,6 +45,23 @@ banner_done:
         mov     ah,9
         int     21h
 server_loop:
+        mov     ah,2
+        int     16h
+        test    al,8                   ; Alt held?
+        jz      short server_receive
+        mov     ah,1
+        int     16h
+        jz      short server_receive
+        cmp     ah,3eh                 ; F4 scan code
+        je      short server_shutdown
+        cmp     ah,6bh                 ; enhanced BIOS Alt+F4 code
+        jne     short server_receive
+server_shutdown:
+        mov     ah,0
+        int     16h                    ; consume the shutdown key
+        mov     ax,4c00h
+        int     21h
+server_receive:
         call    receive_byte
         jc      server_loop
         cmp     al,0a5h

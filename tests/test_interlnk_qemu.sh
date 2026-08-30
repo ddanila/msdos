@@ -9,12 +9,14 @@ SERVER_IMAGE="$OUT/intersvr.img"
 SERVER_IMAGE_TWO="$OUT/intersvr-two.img"
 CLIENT_IMAGE="$OUT/interlnk.img"
 DISCONNECTED_IMAGE="$OUT/interlnk-disconnected.img"
+SHUTDOWN_IMAGE="$OUT/intersvr-shutdown.img"
 LOG="$OUT/interlnk-debug.log"
 SERVER_LOG="$OUT/intersvr-qemu.log"
 CLIENT_LOG="$OUT/interlnk-qemu.log"
 DISCONNECTED_LOG="$OUT/interlnk-disconnected.log"
 PROBE="$OUT/ILPROBE.COM"
 QEXIT="$OUT/interlnk-qexit.com"
+ALT_F4="$OUT/alt-f4.com"
 PORT=18666
 PROXY_PORT=18667
 
@@ -25,6 +27,7 @@ done
 
 nasm -f bin "$ROOT/tests/interlnk_file_probe.asm" -o "$PROBE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
+nasm -f bin "$ROOT/tests/alt_f4_inject.asm" -o "$ALT_F4"
 cp "$BASE" "$SERVER_IMAGE"
 cp "$BASE" "$CLIENT_IMAGE"
 mformat -C -i "$SERVER_IMAGE_TWO" -f 1440 ::
@@ -97,3 +100,20 @@ set -e
 [[ $DISCONNECTED_RC -ne 124 ]]
 grep -Fq 'INTERLNK_TRANSPORT_FAIL' "$DISCONNECTED_LOG"
 echo '  PASS: Interlnk returns control when its server is unavailable'
+
+# The interactive server must consume Alt+F4 and return to its caller.
+cp "$BASE" "$SHUTDOWN_IMAGE"
+mcopy -o -i "$SHUTDOWN_IMAGE" "$ROOT/src/CMD/INTERSVR/INTERSVR.EXE" ::INTERSVR.EXE
+mcopy -o -i "$SHUTDOWN_IMAGE" "$ALT_F4" ::ALTF4.COM
+mcopy -o -i "$SHUTDOWN_IMAGE" "$QEXIT" ::QEXIT.COM
+printf '\r\n' | mcopy -o -i "$SHUTDOWN_IMAGE" - ::CONFIG.SYS
+printf '@ECHO OFF\r\nALTF4.COM\r\nINTERSVR A: /COM:2\r\nECHO PASS>ALTF4.TAG\r\nQEXIT.COM\r\n' \
+    | mcopy -o -i "$SHUTDOWN_IMAGE" - ::AUTOEXEC.BAT
+timeout 15 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 8 \
+    -drive if=floppy,index=0,format=raw,file="$SHUTDOWN_IMAGE",cache=writethrough \
+    -boot a -serial null -serial null -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    >/dev/null 2>&1 || true
+mcopy -i "$SHUTDOWN_IMAGE" ::ALTF4.TAG - 2>/dev/null | grep -Fq PASS
+echo '  PASS: Interserver Alt+F4 shutdown returns control to DOS'
