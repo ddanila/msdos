@@ -76,11 +76,17 @@ server_sync_second:
         call    receive_byte
         jc      server_loop
         mov     cs:request_command,al
+        mov     cs:request_checksum,al
         call    receive_byte
         jc      server_loop
         mov     cs:request_unit,al
+        add     cs:request_checksum,al
         call    receive_sector_number
         jc      server_loop
+        call    receive_byte
+        jc      server_loop
+        cmp     al,cs:request_checksum
+        jne     server_loop
         mov     al,cs:request_command
         cmp     al,0
         je      discovery_request
@@ -140,15 +146,19 @@ receive_sector_number PROC NEAR
         call    receive_byte
         jc      short receive_sector_failed
         mov     byte ptr cs:sector_number,al
+        add     cs:request_checksum,al
         call    receive_byte
         jc      short receive_sector_failed
         mov     byte ptr cs:sector_number+1,al
+        add     cs:request_checksum,al
         call    receive_byte
         jc      short receive_sector_failed
         mov     byte ptr cs:sector_number+2,al
+        add     cs:request_checksum,al
         call    receive_byte
         jc      short receive_sector_failed
         mov     byte ptr cs:sector_number+3,al
+        add     cs:request_checksum,al
         clc
 receive_sector_failed:
         ret
@@ -726,6 +736,7 @@ drive_count     db 0
 server_drives   db 5 dup(0)
 request_command db 0
 request_unit    db 0
+request_checksum db 0
 bios_drive      db 0
 bios_command    db 0
 bios_sector     db 0

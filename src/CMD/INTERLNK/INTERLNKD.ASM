@@ -374,6 +374,7 @@ advance_transfer ENDP
 
 send_request PROC NEAR
         ; AL command, DX low sector; high word is resident sector_number+2.
+        mov     cs:packet_checksum,al
         push    ax
         mov     al,0a5h
         call    send_byte
@@ -385,18 +386,26 @@ send_request PROC NEAR
         call    send_byte
         jc      short send_request_failed
         mov     al,cs:current_unit
+        add     cs:packet_checksum,al
         call    send_byte
         jc      short send_request_failed
         mov     al,dl
+        add     cs:packet_checksum,al
         call    send_byte
         jc      short send_request_failed
         mov     al,dh
+        add     cs:packet_checksum,al
         call    send_byte
         jc      short send_request_failed
         mov     al,byte ptr cs:sector_number+2
+        add     cs:packet_checksum,al
         call    send_byte
         jc      short send_request_failed
         mov     al,byte ptr cs:sector_number+3
+        add     cs:packet_checksum,al
+        call    send_byte
+        jc      short send_request_failed
+        mov     al,cs:packet_checksum
         call    send_byte
         ret
 send_request_failed_pop:
@@ -877,6 +886,7 @@ old_int2f       dd 0
 transfer_ptr    dd 0
 io_command      db 0
 io_remaining    dw 0
+packet_checksum db 0
 baud_divisor    dw 1
 baud_terminator db 0
 auto_install    db 0
