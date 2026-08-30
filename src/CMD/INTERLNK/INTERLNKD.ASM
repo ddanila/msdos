@@ -296,7 +296,7 @@ request_write:
         call    prepare_io
         jc      request_io_error
 write_sector_loop:
-        mov     byte ptr cs:write_retries,2
+        mov     byte ptr cs:write_retries,3
 write_sector_retry:
         call    send_current_request
         jc      short write_sector_failed

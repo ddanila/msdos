@@ -14,10 +14,14 @@ parser.add_argument("--corrupt-sector", type=int, default=0,
                     help="flip one byte in this 1-based read-sector response")
 parser.add_argument("--drop-sector", type=int, default=0,
                     help="drop this 1-based read-sector response")
+parser.add_argument("--truncate-sector", type=int, default=0,
+                    help="truncate this 1-based read-sector response mid-payload")
 parser.add_argument("--corrupt-request", type=int, default=0,
                     help="flip one byte in this 1-based request header")
 parser.add_argument("--corrupt-write", type=int, default=0,
                     help="flip one byte in this 1-based write payload")
+parser.add_argument("--truncate-write", type=int, default=0,
+                    help="truncate this 1-based write request mid-payload")
 args = parser.parse_args()
 
 upstream = socket.create_connection(("127.0.0.1", args.upstream), timeout=10)
@@ -73,6 +77,10 @@ def forward_requests(data):
         if request_number == args.corrupt_request:
             request[3] ^= 0x01
             print(f"corrupted request header {request_number}", flush=True)
+        elif command == 3 and write_request == args.truncate_write:
+            upstream.sendall(request[:100])
+            print(f"truncated write payload {write_request}", flush=True)
+            continue
         else:
             pending.append((command, identity))
             if command == 3 and write_request == args.corrupt_write:
@@ -99,6 +107,11 @@ def forward_replies(data):
                 retry_identity = identity
                 print(f"dropped sector response {sector_response}", flush=True)
                 continue
+            if sector_response == args.truncate_sector:
+                retry_identity = identity
+                client.sendall(response[:131])
+                print(f"truncated sector response {sector_response}", flush=True)
+                continue
             if sector_response == args.corrupt_sector:
                 response[3 + 100] ^= 0x40
                 retry_identity = identity
@@ -119,7 +132,7 @@ while selector.get_map():
             continue
         if key.fileobj is client:
             forward_requests(data)
-        elif args.corrupt_sector or args.drop_sector:
+        elif args.corrupt_sector or args.drop_sector or args.truncate_sector:
             forward_replies(data)
         else:
             peer.sendall(data)
