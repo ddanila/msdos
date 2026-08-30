@@ -28,13 +28,15 @@ The tables use these terms:
 OEM additions and localized editions can contain extra files. This inventory
 uses the Microsoft retail English product and does not count later DOS 6
 features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
+DOSSHELL, Task Swapper, and EGA.SYS are permanent project non-goals rather than
+open compatibility work. QBASIC and the QBASIC-based Editor are a separate
+epic.
 
 ## Product-level gap summary
 
 | DOS 5 feature | Repository status | Gap |
 | --- | --- | --- |
 | DOS in the HMA and programs/drivers in UMBs | Present | HIMEM runs on a fixed-cycle 286 gate, including byte-exact XMS moves, and a CI-hosted 286/386/486 model matrix exercises HIMEM/EMM386 HMA/UMB integration. Physical-machine validation remains an external confidence activity. |
-| MS-DOS Shell and Task Swapper | Missing | No DOSSHELL UI, program groups, file manager, session switching, EGA save driver, or task-switcher API. |
 | Command history and macros | Present | DOSKEY provides resident history, macros, edit modes, redirected input, INT 2Fh services, and the DOS 5 interactive history/editing keys. |
 | Full-screen Editor and QBasic | Missing | No EDIT, QBASIC, BASIC runtime, help, or sample programs. EDLIN remains available. |
 | Online command help | Present | HELP provides a described command index and case-insensitive topic lookup from a separate searchable database; shipped executable `/?` surfaces are also tested. |
@@ -54,11 +56,8 @@ Every documented option of a missing command is necessarily unsupported.
 
 | Command | Missing DOS 5 surface |
 | --- | --- |
-| `DOSSHELL` | Text/graphics Shell, `/T`, `/G`, resolution selection, `/B`, program groups, file operations, help, and task swapping. |
 | `EDIT` | Full-screen text editor and `/B`, `/G`, `/H`, `/NOHI`; depends on QBASIC. |
 | `QBASIC` | BASIC editor/interpreter, `/B`, `/EDITOR`, `/G`, `/H`, `/MBF`, `/NOHI`, `/RUN`, online help, and bundled examples. |
-
-`EGA.SYS`, required by DOSSHELL Task Swapper on EGA systems, is also absent.
 
 ### Present commands with known gaps
 
@@ -107,7 +106,6 @@ Complete limit/error/order parity remains unverified outside the cases in
 | --- | --- | --- |
 | `HIMEM.SYS` | Partial XMS 2.00 implementation | It uses a 286 instruction baseline and a fixed-cycle 286 runtime gate covers installation, allocation, locking, release, and 64 byte-exact bidirectional moves. On 386+ systems every documented DOS 5 option, HMA thresholds, 1-128 handles, INT 15h reservation, generic A20 backends, moves, and resizing are tested. Representative machine-specific A20, shadow-RAM, and CPU-clock validation remains. |
 | `EMM386.EXE` | Present DOS 5 command-line surface; hardware validation remains | Driver and runtime loading implement `ON`, `OFF`, `AUTO`, `W=ON`, and `W=OFF`. Driver loading implements pool size, `M1`-`M14`, `FRAME=`, `/P`, sparse `Pn=` physical-page assignments, `I=`, `X=`, `B=`, `L=`, `A=`, `H=`, `D=`, `RAM`, and `NOEMS`. The effect of `W=ON` on real Weitek hardware and the low-memory `M10`-`M14` cases remain unverified on representative hardware. |
-| `EGA.SYS` | Missing | DOSSHELL Task Swapper display save/restore support. |
 | `SETVER.EXE` | Present | Persistent table loading through CONFIG.SYS and reboot-stable command edits are tested. |
 | `ANSI.SYS` | Present | No known DOS 5 `/X` or `/K` omission; exhaustive escape-sequence and adapter conformance is not complete. |
 | `DISPLAY.SYS`, `PRINTER.SYS` | Present | Core code-page flow is tested; the full adapter/printer type and code-page matrix is unverified. |
@@ -138,18 +136,12 @@ Known limitations remain:
 - Critical-error handling, sharing, locking, redirector, and asynchronous paths
   have representative contracts rather than exhaustive cross-product coverage.
 
-### Multiplex and task-switching APIs
+### Multiplex APIs
 
 - DOSKEY `INT 2Fh/4800h` installed-state and `4810h` command-line service are
   implemented and runtime-tested.
-- Task-switcher `INT 2Fh/4B01h` through `4B05h`: notification-chain building,
-  switcher detection/ID allocation/free, and instance-data discovery.
-- Task-switcher notification functions `0000h` through `0007h` and service
-  functions `0000h` through `0006h`, including session suspend/resume,
-  instance data, memory-region tests, and API-chain management.
-
-The DOSKEY services are present. DOSSHELL/Task Swapper services remain absent
-and must not be represented by no-op stubs if compatibility is claimed.
+The DOSKEY services are present. DOSSHELL/Task Swapper services are excluded
+from the project and must not be represented by no-op compatibility stubs.
 
 ### XMS, EMS, and device APIs
 
@@ -224,9 +216,8 @@ The compatibility work is split into four independently useful stages:
    are present. This stage is complete; MIRROR's resident-size difference is
    retained above as an optimization target rather than a missing workflow.
 
-DOSSHELL/Task Swapper and EDIT/QBASIC are separate product-scale projects and
-are not hidden inside these four stages. EGA.SYS belongs with Task Swapper if
-that project is accepted.
+QBASIC and EDIT are a separate product-scale epic and are not hidden inside
+these four stages. DOSSHELL, Task Swapper, and EGA.SYS are permanent non-goals.
 
 Update this file whenever a listed gap closes or a new source/reference
 difference is demonstrated. Machine-readable manifests remain authoritative

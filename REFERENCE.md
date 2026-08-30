@@ -13,3 +13,7 @@ gs -q -dNOPAUSE -dBATCH -sDEVICE=txtwrite \
   -sOutputFile=.reference/msdos5/users-guide.txt \
   .reference/msdos5/users-guide.pdf
 ```
+
+Use the same process for the 1994 Microsoft *MS-DOS 6.22 User's Guide* linked
+from `DOS622_GAPS.md`, storing it as
+`.reference/msdos622/users-guide.{pdf,txt}`.

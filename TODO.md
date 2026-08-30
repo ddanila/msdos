@@ -6,6 +6,12 @@ The canonical feature inventory and recommended order are in
 [DOS5_GAPS.md](DOS5_GAPS.md). Keep each implementation backed by a black-box
 contract and update the inventory when its gap closes.
 
+## MS-DOS 6.22 compatibility
+
+The staged upgrade plan and complete known delta are in
+[DOS622_GAPS.md](DOS622_GAPS.md). Implement stages in order unless a component
+is explicitly marked as a separate epic or non-goal.
+
 ## Maintenance
 
 - Keep strict coverage manifests complete and add tests for meaningful
