@@ -36,6 +36,11 @@ static unsigned selected_high_tsrs;
 static unsigned eligible_high_drivers;
 static unsigned eligible_high_tsrs;
 static int windows_ini_found;
+static int windows_version;
+
+#define WINDOWS_UNKNOWN 0
+#define WINDOWS_30      30
+#define WINDOWS_31      31
 
 static int ask_yes_no(const char *prompt);
 
@@ -222,6 +227,43 @@ static void make_path(char *path, unsigned drive, const char *name)
     strcpy(path + 3, name);
 }
 
+static int detect_windows_version(const char *directory)
+{
+    char path[128];
+    char window[5] = { 0, 0, 0, 0, 0 };
+    size_t length = strlen(directory);
+    size_t count, index;
+    int saw_30 = 0;
+    FILE *file;
+    if (length > 118)
+        return WINDOWS_UNKNOWN;
+    strcpy(path, directory);
+    if (length && path[length - 1] != '\\' && path[length - 1] != '/')
+        path[length++] = '\\';
+    strcpy(path + length, "WIN.COM");
+    file = fopen(path, "rb");
+    if (!file)
+        return WINDOWS_UNKNOWN;
+    while ((count = fread(file_buffer, 1, sizeof(file_buffer), file)) != 0) {
+        for (index = 0; index < count; ++index) {
+            window[0] = window[1];
+            window[1] = window[2];
+            window[2] = window[3];
+            window[3] = (char)file_buffer[index];
+            if (!memcmp(window, "3.10", 4) ||
+                !memcmp(window + 1, "3.1", 3)) {
+                fclose(file);
+                return WINDOWS_31;
+            }
+            if (!memcmp(window, "3.00", 4) ||
+                !memcmp(window + 1, "3.0", 3))
+                saw_30 = 1;
+        }
+    }
+    fclose(file);
+    return saw_30 ? WINDOWS_30 : WINDOWS_UNKNOWN;
+}
+
 static int windows_paths(char *system_ini, char *system_backup)
 {
     const char *directory = getenv("WINDIR");
@@ -229,6 +271,7 @@ static int windows_paths(char *system_ini, char *system_backup)
     FILE *file;
     if (!directory || !*directory)
         return 0;
+    windows_version = detect_windows_version(directory);
     length = strlen(directory);
     if (length > 110)
         return 0;
@@ -622,7 +665,10 @@ static int write_status(unsigned drive, const struct options *options,
             message, options->reserve_one, options->reserve_two,
             options->no_token_ring ? "disabled" : "enabled");
     fprintf(file, "Windows SYSTEM.INI: %s\n",
-            windows_ini_found ? "examined and backed up" : "not found");
+            !windows_ini_found ? "not found" :
+            windows_version == WINDOWS_30 ? "Windows 3.0 settings applied and backed up" :
+            windows_version == WINDOWS_31 ? "Windows 3.1 detected; unchanged" :
+            "version unknown; unchanged");
     if (measured_umb_k || measured_conventional_k) {
         unsigned reserve = options->reserve_one + options->reserve_two;
         unsigned usable = measured_umb_k > reserve ? measured_umb_k - reserve : 0;
@@ -804,7 +850,7 @@ static int optimize(unsigned drive, struct options *options,
     make_path(auto_temp, drive, "AUTOEXEC.MMT");
     make_path(status, drive, "MEMMAKER.STS");
     windows_ini_found = windows_paths(system_ini, system_backup);
-    if (windows_ini_found) {
+    if (windows_ini_found && windows_version == WINDOWS_30) {
         char *separator;
         strcpy(system_temp, system_ini);
         separator = strrchr(system_temp, '\\');
@@ -824,13 +870,15 @@ static int optimize(unsigned drive, struct options *options,
         }
     }
     if (copy_file(config, config_backup) || copy_file(autoexec, auto_backup) ||
-        (windows_ini_found && copy_file(system_ini, system_backup)) ||
-        (windows_ini_found && transform_system_ini(system_ini, system_temp)) ||
+        (windows_ini_found && windows_version == WINDOWS_30 &&
+         copy_file(system_ini, system_backup)) ||
+        (windows_ini_found && windows_version == WINDOWS_30 &&
+         transform_system_ini(system_ini, system_temp)) ||
         transform_config(drive, options, program, config, config_temp) ||
         transform_autoexec(drive, options, program, autoexec, auto_temp)) {
         remove(config_temp);
         remove(auto_temp);
-        if (windows_ini_found)
+        if (windows_ini_found && windows_version == WINDOWS_30)
             remove(system_temp);
         fputs("MemMaker could not prepare the startup files.\n", stderr);
         return 1;
@@ -841,18 +889,19 @@ static int optimize(unsigned drive, struct options *options,
         injected_failure("CONFIG") ||
         replace_file(auto_temp, autoexec) ||
         injected_failure("AUTOEXEC") ||
-        (windows_ini_found && replace_file(system_temp, system_ini)) ||
+        (windows_ini_found && windows_version == WINDOWS_30 &&
+         replace_file(system_temp, system_ini)) ||
         injected_failure("SYSTEM") ||
         write_status(drive, options,
             "Startup files optimized; beginning the reboot pass.") ||
         injected_failure("STATUS")) {
         copy_file(config_backup, config);
         copy_file(auto_backup, autoexec);
-        if (windows_ini_found)
+        if (windows_ini_found && windows_version == WINDOWS_30)
             copy_file(system_backup, system_ini);
         remove(config_temp);
         remove(auto_temp);
-        if (windows_ini_found)
+        if (windows_ini_found && windows_version == WINDOWS_30)
             remove(system_temp);
         remove(status);
         make_path(status, drive, "MEMMAKER.MEM");

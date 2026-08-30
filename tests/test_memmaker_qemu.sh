@@ -38,6 +38,7 @@ printf 'FCBS=4,0\r\nDEVICE=A:\\DRIVER.SYS\r\nLASTDRIVE=Z\r\nFILES=20\r\nBUFFERS=
     printf 'IF EXIST A:\\MEMMAKER.STS QEXIT.COM\r\n'
 } >"$ORIGINAL_AUTOEXEC"
 printf '[boot]\r\nshell=progman.exe\r\n[386Enh]\r\nMinTimeSlice=20\r\n' >"$ORIGINAL_SYSTEM"
+printf 'Microsoft Windows Version 3.00\r\n' | mcopy -o -i "$IMAGE" - ::WINDOWS/WIN.COM
 mcopy -o -i "$IMAGE" "$ORIGINAL_CONFIG" ::CONFIG.SYS
 mcopy -o -i "$IMAGE" "$ORIGINAL_AUTOEXEC" ::AUTOEXEC.BAT
 mcopy -o -i "$IMAGE" "$ORIGINAL_SYSTEM" ::WINDOWS/SYSTEM.INI
@@ -115,7 +116,7 @@ if grep -q 'optimization completed after measured reboot passes' <<<"$status" &&
    grep -Eq 'Post-CONFIG largest conventional block: [1-9][0-9]*K' <<<"$status" &&
    grep -Eq 'Baseline largest conventional block: [1-9][0-9]*K' <<<"$status" &&
    grep -Eq 'Measured UMB after /W reserve: [0-9]+K' <<<"$status" &&
-   grep -q 'Windows SYSTEM.INI: examined and backed up' <<<"$status" &&
+   grep -q 'Windows SYSTEM.INI: Windows 3.0 settings applied and backed up' <<<"$status" &&
    grep -q 'Drivers selected for upper memory: 0 of 1' <<<"$status" &&
    grep -q 'TSRs selected for upper memory: 1 of 1' <<<"$status"; then
     ok "MEMMAKER.STS records measurements, /W policy, and Custom choices"

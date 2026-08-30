@@ -42,6 +42,7 @@ for point in CONFIG AUTOEXEC SYSTEM STATUS; do
         printf '@ECHO OFF\r\nCTTY AUX\r\nSET WINDIR=A:\\W\r\n' | mcopy -o -i "$image" - ::AUTOEXEC.BAT
         mmd -i "$image" ::W
         printf '[386Enh]\r\nMinTimeSlice=20\r\n' | mcopy -o -i "$image" - ::W/SYSTEM.INI
+        printf 'Microsoft Windows Version 3.00\r\n' | mcopy -o -i "$image" - ::W/WIN.COM
     fi
 
     rm -f "$SERIAL_IN" "$SERIAL_OUT"
