@@ -118,19 +118,36 @@ static void report_computer(void)
 static void report_ports(void)
 {
     const unsigned far *bda = (const unsigned far *)MK_FP(0x40, 0);
+    union REGS inregs, outregs;
     unsigned i;
     heading("COM and LPT Ports");
     for (i = 0; i < 4; ++i)
-        if (bda[i])
+        if (bda[i]) {
             fprintf(report, "COM%u base address:     %04Xh\n", i + 1, bda[i]);
-        else
+            if (!skip_detection) {
+                inregs.h.ah = 3;
+                inregs.x.dx = i;
+                int86(0x14, &inregs, &outregs);
+                fprintf(report, "COM%u BIOS status:      %04Xh\n", i + 1,
+                        outregs.x.ax);
+            }
+        } else
             fprintf(report, "COM%u base address:     Not installed\n", i + 1);
     for (i = 0; i < 3; ++i)
-        if (bda[4 + i])
+        if (bda[4 + i]) {
             fprintf(report, "LPT%u base address:     %04Xh\n", i + 1,
                     bda[4 + i]);
-        else
+            if (!skip_detection) {
+                inregs.h.ah = 2;
+                inregs.x.dx = i;
+                int86(0x17, &inregs, &outregs);
+                fprintf(report, "LPT%u BIOS status:      %02Xh\n", i + 1,
+                        outregs.h.ah);
+            }
+        } else
             fprintf(report, "LPT%u base address:     Not installed\n", i + 1);
+    if (skip_detection)
+        fputs("Port status probing:   Skipped (/I)\n", report);
 }
 
 static void report_input(void)
