@@ -121,6 +121,13 @@ fi
 system_backup_hash="$(mcopy -i "$IMAGE" ::WINDOWS/SYSTEM.UMB - 2>/dev/null | sha256sum | awk '{print $1}')"
 [[ "$system_backup_hash" == "$(sha256sum "$ORIGINAL_SYSTEM" | awk '{print $1}')" ]] &&
     ok "Windows SYSTEM.INI backup is byte-exact" || fail "Windows SYSTEM.INI backup"
+system_ini="$(mcopy -i "$IMAGE" ::WINDOWS/SYSTEM.INI - 2>/dev/null | tr -d '\r')"
+if grep -qi '^SYSTEMROMBREAKPOINT=FALSE$' <<<"$system_ini" &&
+   grep -qi '^EMMEXCLUDE=A000-FFFF$' <<<"$system_ini"; then
+    ok "Windows 3.0 compatibility settings are written"
+else
+    fail "Windows 3.0 SYSTEM.INI compatibility settings"
+fi
 config_backup_hash="$(mcopy -i "$IMAGE" ::CONFIG.MM - 2>/dev/null | sha256sum | awk '{print $1}')"
 auto_backup_hash="$(mcopy -i "$IMAGE" ::AUTOEXEC.MM - 2>/dev/null | sha256sum | awk '{print $1}')"
 [[ "$config_backup_hash" == "$(sha256sum "$ORIGINAL_CONFIG" | awk '{print $1}')" &&

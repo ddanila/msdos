@@ -28,14 +28,21 @@ done
 )
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 
-for point in CONFIG AUTOEXEC STATUS; do
+for point in CONFIG AUTOEXEC SYSTEM STATUS; do
     image="$OUT/memmaker-fault-${point}.img"
     log="$OUT/memmaker-fault-${point}.log"
     cp "$BASE" "$image"
     mcopy -o -i "$image" "$FAULT_EXE" ::MEMMAKER.EXE
     mcopy -o -i "$image" "$QEXIT" ::QEXIT.COM
-    printf 'FILES=20\r\n' | mcopy -o -i "$image" - ::CONFIG.SYS
-    printf '@ECHO OFF\r\nCTTY AUX\r\n' | mcopy -o -i "$image" - ::AUTOEXEC.BAT
+    if [[ "$point" == CONFIG || "$point" == AUTOEXEC ]]; then
+        printf 'FILES=20\r\n' | mcopy -o -i "$image" - ::CONFIG.SYS
+        printf '@ECHO OFF\r\nCTTY AUX\r\n' | mcopy -o -i "$image" - ::AUTOEXEC.BAT
+    else
+        printf 'SHELL=A:\\COMMAND.COM /E:512 /P\r\nFILES=20\r\n' | mcopy -o -i "$image" - ::CONFIG.SYS
+        printf '@ECHO OFF\r\nCTTY AUX\r\nSET WINDIR=A:\\W\r\n' | mcopy -o -i "$image" - ::AUTOEXEC.BAT
+        mmd -i "$image" ::W
+        printf '[386Enh]\r\nMinTimeSlice=20\r\n' | mcopy -o -i "$image" - ::W/SYSTEM.INI
+    fi
 
     rm -f "$SERIAL_IN" "$SERIAL_OUT"
     mkfifo "$SERIAL_IN" "$SERIAL_OUT"
@@ -51,7 +58,9 @@ for point in CONFIG AUTOEXEC STATUS; do
     wait "$qemu_pid" || true
     exec 3>&-
 
-    grep -Fq "MEMMAKER_${point}_ROLLBACK_PASS" "$log"
+    if [[ "$point" == CONFIG || "$point" == AUTOEXEC ]]; then
+        grep -Fq "MEMMAKER_${point}_ROLLBACK_PASS" "$log"
+    fi
     grep -Fq 'MemMaker rolled back an incomplete startup-file update.' "$log"
     current_config=$(mcopy -i "$image" ::CONFIG.SYS - 2>/dev/null | tr -d '\r')
     current_autoexec=$(mcopy -i "$image" ::AUTOEXEC.BAT - 2>/dev/null | tr -d '\r')
@@ -60,6 +69,12 @@ for point in CONFIG AUTOEXEC STATUS; do
     [[ "$current_config" == "$backup_config" ]]
     [[ "$current_autoexec" == "$backup_autoexec" ]]
     ! mdir -b -i "$image" :: 2>/dev/null | grep -Eq 'MEMMAKER\.STS|CONFIG\.MMT|AUTOEXEC\.MMT'
+    if [[ "$point" != CONFIG && "$point" != AUTOEXEC ]]; then
+        current_system=$(mcopy -i "$image" ::W/SYSTEM.INI - 2>/dev/null | tr -d '\r')
+        backup_system=$(mcopy -i "$image" ::W/SYSTEM.UMB - 2>/dev/null | tr -d '\r')
+        [[ "$current_system" == "$backup_system" ]]
+        ! mdir -b -i "$image" ::W 2>/dev/null | grep -q 'SYSTEM.MMT'
+    fi
 done
 
-echo '  PASS: MemMaker rolls both startup files back at every commit boundary'
+echo '  PASS: MemMaker rolls all startup files back at every commit boundary'

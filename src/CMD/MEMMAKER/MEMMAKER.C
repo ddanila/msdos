@@ -274,6 +274,106 @@ static int copy_file(const char *source, const char *target)
     return 0;
 }
 
+static int ini_section_is(const char *line, const char *name)
+{
+    const char *end;
+    size_t length;
+    while (*line == ' ' || *line == '\t')
+        ++line;
+    if (*line++ != '[')
+        return 0;
+    end = strchr(line, ']');
+    if (!end)
+        return 0;
+    length = (size_t)(end - line);
+    return strlen(name) == length && !strnicmp(line, name, length);
+}
+
+static int ini_key_is(const char *line, const char *name)
+{
+    size_t length = strlen(name);
+    while (*line == ' ' || *line == '\t')
+        ++line;
+    if (strnicmp(line, name, length))
+        return 0;
+    line += length;
+    while (*line == ' ' || *line == '\t')
+        ++line;
+    return *line == '=';
+}
+
+static void write_windows_30_settings(FILE *output, int *rom, int *exclude)
+{
+    if (!*rom) {
+        fputs("SYSTEMROMBREAKPOINT=FALSE\n", output);
+        *rom = 1;
+    }
+    if (!*exclude) {
+        fputs("EMMEXCLUDE=A000-FFFF\n", output);
+        *exclude = 1;
+    }
+}
+
+static int transform_system_ini(const char *source, const char *temporary)
+{
+    FILE *input = fopen(source, "r");
+    FILE *output;
+    char line[256];
+    int in_386enh = 0;
+    int found_386enh = 0;
+    int wrote_rom = 0;
+    int wrote_exclude = 0;
+    if (!input)
+        return 1;
+    output = fopen(temporary, "w");
+    if (!output) {
+        fclose(input);
+        return 1;
+    }
+    while (fgets(line, sizeof(line), input)) {
+        if (!strchr(line, '\n') && !feof(input)) {
+            fclose(input);
+            fclose(output);
+            remove(temporary);
+            return 1;
+        }
+        if (line[0] == '[' || line[0] == ' ' || line[0] == '\t') {
+            int is_386enh = ini_section_is(line, "386Enh");
+            if (in_386enh && !is_386enh && strchr(line, '['))
+                write_windows_30_settings(output, &wrote_rom, &wrote_exclude);
+            if (strchr(line, '['))
+                in_386enh = is_386enh;
+            if (is_386enh)
+                found_386enh = 1;
+        }
+        if (in_386enh && ini_key_is(line, "SYSTEMROMBREAKPOINT")) {
+            if (!wrote_rom) {
+                fputs("SYSTEMROMBREAKPOINT=FALSE\n", output);
+                wrote_rom = 1;
+            }
+        } else if (in_386enh && ini_key_is(line, "EMMEXCLUDE")) {
+            if (!wrote_exclude) {
+                fputs("EMMEXCLUDE=A000-FFFF\n", output);
+                wrote_exclude = 1;
+            }
+        } else {
+            fputs(line, output);
+        }
+    }
+    if (in_386enh)
+        write_windows_30_settings(output, &wrote_rom, &wrote_exclude);
+    else if (!found_386enh) {
+        fputs("[386Enh]\n", output);
+        write_windows_30_settings(output, &wrote_rom, &wrote_exclude);
+    }
+    fclose(input);
+    if (fclose(output)) {
+        remove(temporary);
+        return 1;
+    }
+    return 0;
+}
+
 static int replace_file(const char *temporary, const char *target)
 {
     remove(target);
@@ -630,7 +730,7 @@ static int optimize(unsigned drive, struct options *options,
 {
     char config[32], autoexec[32], config_backup[32], auto_backup[32];
     char config_temp[32], auto_temp[32], status[32];
-    char system_ini[128], system_backup[128];
+    char system_ini[128], system_backup[128], system_temp[128];
     union REGS regs;
     int answer;
     make_path(config, drive, "CONFIG.SYS");
@@ -641,6 +741,14 @@ static int optimize(unsigned drive, struct options *options,
     make_path(auto_temp, drive, "AUTOEXEC.MMT");
     make_path(status, drive, "MEMMAKER.STS");
     windows_ini_found = windows_paths(system_ini, system_backup);
+    if (windows_ini_found) {
+        char *separator;
+        strcpy(system_temp, system_ini);
+        separator = strrchr(system_temp, '\\');
+        if (!separator)
+            separator = strrchr(system_temp, '/');
+        strcpy(separator + 1, "SYSTEM.MMT");
+    }
     if (!options->batch) {
         if (!options->custom) {
             fputs("Use Express Setup to optimize memory (Y/N)? ", stdout);
@@ -654,10 +762,13 @@ static int optimize(unsigned drive, struct options *options,
     }
     if (copy_file(config, config_backup) || copy_file(autoexec, auto_backup) ||
         (windows_ini_found && copy_file(system_ini, system_backup)) ||
+        (windows_ini_found && transform_system_ini(system_ini, system_temp)) ||
         transform_config(drive, options, program, config, config_temp) ||
         transform_autoexec(drive, options, program, autoexec, auto_temp)) {
         remove(config_temp);
         remove(auto_temp);
+        if (windows_ini_found)
+            remove(system_temp);
         fputs("MemMaker could not prepare the startup files.\n", stderr);
         return 1;
     }
@@ -667,6 +778,8 @@ static int optimize(unsigned drive, struct options *options,
         injected_failure("CONFIG") ||
         replace_file(auto_temp, autoexec) ||
         injected_failure("AUTOEXEC") ||
+        (windows_ini_found && replace_file(system_temp, system_ini)) ||
+        injected_failure("SYSTEM") ||
         write_status(drive, options,
             "Startup files optimized; beginning the reboot pass.") ||
         injected_failure("STATUS")) {
@@ -676,6 +789,8 @@ static int optimize(unsigned drive, struct options *options,
             copy_file(system_backup, system_ini);
         remove(config_temp);
         remove(auto_temp);
+        if (windows_ini_found)
+            remove(system_temp);
         remove(status);
         make_path(status, drive, "MEMMAKER.MEM");
         remove(status);
