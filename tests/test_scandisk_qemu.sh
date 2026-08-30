@@ -134,7 +134,7 @@ PY
 cp "$TARGET" "$BEFORE"
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
-    printf 'SCANDISK /FRAGMENT B:\\FRAG.BIN\r\n'
+    printf 'SCANDISK /FRAGMENT B:\\*.BIN\r\n'
     printf 'IF ERRORLEVEL 1 ECHO FRAGMENT_FAILED\r\n'
     printf 'SCANDISK B: /CHECKONLY /NOSUMMARY\r\n'
     printf 'IF ERRORLEVEL 255 ECHO CHECKONLY_FOUND_ERRORS\r\n'

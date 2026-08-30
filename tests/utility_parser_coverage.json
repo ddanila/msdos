@@ -206,7 +206,7 @@
       "/AUTOFIX": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Repairs detected FAT allocation problems without prompting"},
       "/CHECKONLY": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Reports corruption and returns failure without enabling automatic repair"},
       "/CUSTOM": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Reads AUTOFIX, SURFACE, and SAVELOST policy from SCANDISK.INI"},
-      "/FRAGMENT": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Reports noncontiguous cluster-chain transitions"},
+      "/FRAGMENT": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Expands a wildcard filespec and reports the exact physical extent count of the matching file"},
       "/MONO": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Selects monochrome-compatible output; the current text interface has no color dependency"},
       "/NOSAVE": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Frees repaired lost chains instead of creating FILEnnnn.CHK entries"},
       "/NOSUMMARY": {"level": "contract", "evidence": ["tests/test_scandisk_qemu.sh"], "note": "Suppresses the final file and repair counts"},

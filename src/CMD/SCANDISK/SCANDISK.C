@@ -1388,6 +1388,39 @@ static int analyze_fragmentation(const char *specification)
     return 0;
 }
 
+static int analyze_fragmentation_spec(const char *specification)
+{
+    struct find_t found;
+    char resolved[192];
+    const char *separator = specification;
+    const char *scan;
+    unsigned prefix;
+    unsigned matches = 0;
+    int status = 0;
+    for (scan = specification; *scan; ++scan)
+        if (*scan == '\\' || *scan == '/' || *scan == ':')
+            separator = scan + 1;
+    prefix = (unsigned)(separator - specification);
+    if (_dos_findfirst(specification,
+            _A_NORMAL | _A_RDONLY | _A_HIDDEN | _A_SYSTEM | _A_ARCH,
+            &found)) {
+        fprintf(stderr, "SCANDISK cannot find %s.\n", specification);
+        return 2;
+    }
+    do {
+        if (prefix + strlen(found.name) >= sizeof(resolved)) {
+            status = 2;
+            break;
+        }
+        memcpy(resolved, specification, prefix);
+        strcpy(resolved + prefix, found.name);
+        if (analyze_fragmentation(resolved))
+            status = 2;
+        ++matches;
+    } while (!_dos_findnext(&found));
+    return matches ? status : 2;
+}
+
 int main(int argc, char **argv)
 {
     struct options options;
@@ -1407,7 +1440,7 @@ int main(int argc, char **argv)
         return restore_undo_disk(drive);
     }
     if (options.fragment) {
-        return analyze_fragmentation(options.fragment_spec);
+        return analyze_fragmentation_spec(options.fragment_spec);
     }
     if (options.all) {
         for (drive = 0; drive < 26; ++drive) {
