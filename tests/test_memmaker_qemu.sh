@@ -92,8 +92,11 @@ else
     fail "optimized AUTOEXEC.BAT contents"
 fi
 if grep -q 'optimization completed after the reboot pass' <<<"$status" &&
-   grep -q 'Windows UMB reserve: 4,8' <<<"$status"; then
-    ok "MEMMAKER.STS records completion and /W policy"
+   grep -q 'Windows UMB reserve: 4,8' <<<"$status" &&
+   grep -Eq 'Measured largest UMB: [1-9][0-9]*K' <<<"$status" &&
+   grep -Eq 'Measured largest conventional block: [1-9][0-9]*K' <<<"$status" &&
+   grep -Eq 'Measured UMB after /W reserve: [0-9]+K' <<<"$status"; then
+    ok "MEMMAKER.STS records measured post-reboot memory and /W policy"
 else
     fail "MemMaker status report"
 fi

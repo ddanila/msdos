@@ -21,6 +21,57 @@ struct options {
 };
 
 static unsigned char file_buffer[2048];
+static unsigned measured_umb_k;
+static unsigned measured_conventional_k;
+
+static unsigned probe_largest_block(unsigned strategy, unsigned link_umbs)
+{
+    union REGS regs;
+    memset(&regs, 0, sizeof(regs));
+    regs.x.ax = 0x5801;
+    regs.x.bx = strategy;
+    intdos(&regs, &regs);
+    memset(&regs, 0, sizeof(regs));
+    regs.x.ax = 0x5803;
+    regs.x.bx = link_umbs;
+    intdos(&regs, &regs);
+    memset(&regs, 0, sizeof(regs));
+    regs.h.ah = 0x48;
+    regs.x.bx = 0xffff;
+    intdos(&regs, &regs);
+    return regs.x.bx;
+}
+
+static void measure_memory(void)
+{
+    union REGS regs;
+    unsigned saved_strategy;
+    unsigned saved_link;
+    unsigned paragraphs;
+
+    memset(&regs, 0, sizeof(regs));
+    regs.x.ax = 0x5800;
+    intdos(&regs, &regs);
+    saved_strategy = regs.x.ax;
+    memset(&regs, 0, sizeof(regs));
+    regs.x.ax = 0x5802;
+    intdos(&regs, &regs);
+    saved_link = regs.x.ax;
+
+    paragraphs = probe_largest_block(0x80, 1); /* high memory only */
+    measured_umb_k = paragraphs / 64;
+    paragraphs = probe_largest_block(0, 0);    /* conventional only */
+    measured_conventional_k = paragraphs / 64;
+
+    memset(&regs, 0, sizeof(regs));
+    regs.x.ax = 0x5801;
+    regs.x.bx = saved_strategy;
+    intdos(&regs, &regs);
+    memset(&regs, 0, sizeof(regs));
+    regs.x.ax = 0x5803;
+    regs.x.bx = saved_link;
+    intdos(&regs, &regs);
+}
 
 static int injected_failure(const char *point)
 {
@@ -325,6 +376,15 @@ static int write_status(unsigned drive, const struct options *options,
     fprintf(file, "%s\nWindows UMB reserve: %u,%u\nToken-ring probe: %s\n",
             message, options->reserve_one, options->reserve_two,
             options->no_token_ring ? "disabled" : "enabled");
+    if (measured_umb_k || measured_conventional_k) {
+        unsigned reserve = options->reserve_one + options->reserve_two;
+        unsigned usable = measured_umb_k > reserve ? measured_umb_k - reserve : 0;
+        fprintf(file,
+                "Measured largest UMB: %uK\n"
+                "Measured largest conventional block: %uK\n"
+                "Measured UMB after /W reserve: %uK\n",
+                measured_umb_k, measured_conventional_k, usable);
+    }
     return fclose(file) != 0;
 }
 
@@ -365,6 +425,7 @@ static int finish_session(unsigned drive, const struct options *options)
     fclose(input);
     if (fclose(output) || replace_file(temporary, config))
         return 1;
+    measure_memory();
     if (write_status(drive, options,
             "Memory optimization completed after the reboot pass."))
         return 1;
