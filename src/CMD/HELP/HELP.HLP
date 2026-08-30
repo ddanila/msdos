@@ -62,6 +62,7 @@ MIRROR     Records disk information for recovery.
 MODE       Configures system devices.
 MORE       Displays output one screen at a time.
 MOVE       Moves files or renames files and directories.
+MSCDEX     Installs the CD-ROM redirector.
 MSD        Displays system diagnostic information.
 SCANDISK   Checks and repairs FAT12 and FAT16 disks.
 NLSFUNC    Loads country-specific information.
@@ -289,6 +290,11 @@ Syntax: MORE [drive:][path]filename or command | MORE
 @MOVE
 Moves files, or renames files and directories.
 Syntax: MOVE [/Y | /-Y] source [source ...] target
+@MSCDEX
+Installs the CD-ROM redirector for an external device driver.
+Syntax: MSCDEX [/E/K/S/V] [/D:driver ...] [/L:letter] [/M:buffers]
+The current implementation provides installation and the core INT 2Fh discovery
+API. ISO 9660 file access and media-control calls are not yet implemented.
 @MSD
 Displays operating-system, computer, memory, video, disk, IRQ, driver, and network information.
 Syntax: MSD [/B] [/I] [/F [filename]] [/P] [/S]

@@ -51,6 +51,7 @@
     "MOVE.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_move_qemu.sh"},
     "MSDOS.SYS": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_sys.sh"},
     "MSD.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_msd_qemu.sh"},
+    "MSCDEX.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_mscdex_qemu.sh"},
     "NLSFUNC.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_share_nlsfunc_exe2bin.sh"},
     "PRINT.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_print_spooler_qemu.sh"},
     "POWER.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_power_qemu.sh"},

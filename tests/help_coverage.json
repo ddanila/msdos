@@ -4,6 +4,7 @@
     "COMMAND.COM": {"source": "src/CMD/COMMAND/UINIT.ASM", "marker": "COMMAND_SWITCH6 LABEL", "evidence": ["tests/test_command_startup_qemu.sh", "tests/command_coverage.json"], "note": "The shell has source-derived startup switches and per-built-in help, but no top-level /? command-line contract"},
     "EMM386.EXE": {"source": "src/MEMM/MEMM/MEMM_MSG.INC", "marker": "Usage: EMM386", "evidence": ["tests/test_emm386_qemu.sh", "tests/test_emm386_load_options_qemu.sh"], "note": "The dual-purpose driver command exposes ON, OFF, AUTO, and W= runtime control; it has no accepted /? form"},
     "FLUSH13.EXE": {"source": "src/DEV/SMARTDRV/FLUSH13.C", "marker": "/* Parse the arguments */", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "The control utility exposes status and mutation forms; malformed input prints usage but /? is not a distinct accepted form"},
+    "MSCDEX.EXE": {"source": "src/CMD/MSCDEX/MSCDEX.ASM", "marker": "Illegal option '?'", "evidence": ["tests/test_mscdex_qemu.sh"], "note": "Matching DOS 6.22, /? is rejected and followed by the usage line instead of being an accepted help form"},
     "SELECT.COM": {"source": "src/SELECT/SSTUB.ASM", "marker": "SELECT.EXE", "evidence": ["tests/test_select.sh"], "note": "The bootstrap stub accepts keyboard input and launches SELECT.EXE without parsing a help form"},
     "SELECT.EXE": {"source": "src/SELECT/SCN_PARM.ASM", "marker": "KEYWORD_MENU", "evidence": ["tests/test_select.sh"], "note": "The source-derived grammar contains only MENU and FDISK modes; unknown forms are rejected"}
   }
