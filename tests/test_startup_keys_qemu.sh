@@ -35,7 +35,12 @@ boot_with_key() {
 F5_IMAGE="$OUT/startup-f5.img"
 F5_SCREEN="$OUT/startup-f5-screen.log"
 cp "$BASE" "$F5_IMAGE"
-printf 'NUMLOCK=ON\r\n' | mcopy -o -i "$F5_IMAGE" - ::CONFIG.SYS
+{
+    printf '[menu]\r\n'
+    printf 'menuitem=one,Configuration that must be bypassed\r\n'
+    printf '[one]\r\n'
+    printf 'NUMLOCK=ON\r\n'
+} | mcopy -o -i "$F5_IMAGE" - ::CONFIG.SYS
 printf '@ECHO OFF\r\nECHO RAN>AUTOEXEC.RAN\r\n' | \
     mcopy -o -i "$F5_IMAGE" - ::AUTOEXEC.BAT
 mcopy -o -i "$F5_IMAGE" "$PROBE" ::NLPROBE.COM
@@ -47,7 +52,12 @@ boot_with_key "$F5_IMAGE" f5 "$F5_SCREEN" \
 SHIFT_IMAGE="$OUT/startup-shift.img"
 SHIFT_SCREEN="$OUT/startup-shift-screen.log"
 cp "$BASE" "$SHIFT_IMAGE"
-printf 'NUMLOCK=ON\r\n' | mcopy -o -i "$SHIFT_IMAGE" - ::CONFIG.SYS
+{
+    printf '[menu]\r\n'
+    printf 'menuitem=one,Configuration that must be bypassed\r\n'
+    printf '[one]\r\n'
+    printf 'NUMLOCK=ON\r\n'
+} | mcopy -o -i "$SHIFT_IMAGE" - ::CONFIG.SYS
 printf '@ECHO OFF\r\nECHO RAN>AUTOEXEC.RAN\r\n' | \
     mcopy -o -i "$SHIFT_IMAGE" - ::AUTOEXEC.BAT
 mcopy -o -i "$SHIFT_IMAGE" "$PROBE" ::NLPROBE.COM
@@ -60,6 +70,9 @@ F8_IMAGE="$OUT/startup-f8.img"
 F8_SCREEN="$OUT/startup-f8-screen.log"
 cp "$BASE" "$F8_IMAGE"
 {
+    printf '[menu]\r\n'
+    printf 'menuitem=one,Stepped configuration\r\n'
+    printf '[one]\r\n'
     printf 'NUMLOCK=ON\r\n'
     printf 'SET CFGSTEP=YES\r\n'
 } | mcopy -o -i "$F8_IMAGE" - ::CONFIG.SYS
@@ -71,6 +84,7 @@ cp "$BASE" "$F8_IMAGE"
 } | mcopy -o -i "$F8_IMAGE" - ::AUTOEXEC.BAT
 mcopy -o -i "$F8_IMAGE" "$PROBE" ::NLPROBE.COM
 boot_with_key "$F8_IMAGE" f8 "$F8_SCREEN" \
+    'Enter a choice: 1' '1' \
     'Process next CONFIG.SYS line? [Y,N]' 'n' \
     'Process next CONFIG.SYS line? [Y,N]' 'y' \
     'Process line? [Y,N]' 'y+y+y+n' \
@@ -80,4 +94,4 @@ mtype -i "$F8_IMAGE" ::CFGSTEP.TXT | grep -Fq YES
 mtype -i "$F8_IMAGE" ::FIRST.TXT | grep -Fq FIRST
 ! mdir -i "$F8_IMAGE" ::SECOND.TXT >/dev/null 2>&1
 
-echo '  PASS: F5/Shift bypass startup files and F8 confirms CONFIG/AUTOEXEC lines'
+echo '  PASS: F5/Shift bypass startup menus and F8 steps selected CONFIG/AUTOEXEC lines'

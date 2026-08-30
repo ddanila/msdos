@@ -100,7 +100,8 @@ source-order flattening, missing-submenu filtering, and the `CONFIG` variable
 passed to AUTOEXEC.BAT have QEMU coverage.
 
 Remaining work is a reference differential of exact diagnostics and parsing
-boundaries, plus selected-block interaction with F5/F8. Selected `DEVICEHIGH`,
+boundaries. F5/Shift bypass menus completely; F8 selects a block before
+stepping its flattened lines and AUTOEXEC.BAT. Selected `DEVICEHIGH`,
 `INSTALL`, `SHELL`, and AUTOEXEC.BAT behavior is covered across fresh
 multipass working images.
 
