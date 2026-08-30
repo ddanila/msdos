@@ -43,6 +43,26 @@ start:
     or ax, [device_list + 3]
     jz fail
 
+    push ds
+    pop es
+    mov bx, request_header
+    mov cx, 4
+    mov ax, 1510h
+    int 2fh
+    cmp word [request_header + 3], 0100h
+    jne fail
+    cmp byte [request_header + 0dh], 0a5h
+    jne fail
+    cmp byte [request_header + 1], 0
+    jne fail
+    mov word [request_header + 3], 0
+    mov bx, request_header
+    mov cx, 3
+    mov ax, 1510h
+    int 2fh
+    cmp word [request_header + 3], 810fh
+    jne fail
+
     mov dx, pass_message
     mov ah, 9
     int 21h
@@ -58,5 +78,10 @@ fail:
 
 drive_list  times 8 db 0ffh
 device_list times 40 db 0
+request_header db 32,0,3
+               dw 0
+               times 8 db 0
+               db 0
+               times 18 db 0
 pass_message db 'MSCDEX_API_PASS',13,10,'$'
 fail_message db 'MSCDEX_API_FAIL',13,10,'$'

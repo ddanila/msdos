@@ -26,9 +26,12 @@ interrupt:
     mov es, ax
     mov di, [cs:request_offset]
     cmp byte [es:di + 2], 0
-    jne .complete
+    jne .forwarded
     mov word [es:di + 0eh], resident_end
     mov word [es:di + 10h], cs
+    jmp .complete
+.forwarded:
+    mov byte [es:di + 0dh], 0a5h
 .complete:
     mov word [es:di + 3], 0100h
     pop di

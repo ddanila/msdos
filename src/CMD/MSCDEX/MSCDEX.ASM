@@ -162,6 +162,8 @@ int2f_handler PROC FAR
         je      api_version
         cmp     al,0dh
         je      api_drive_list
+        cmp     al,10h
+        je      api_driver_request
 chain_2f:
         jmp     dword ptr cs:old_2f_off
 
@@ -230,10 +232,70 @@ api_drive_next:
         pop     cx
         pop     ax
         iret
+
+; AX=1510h, CX=zero-based DOS drive, ES:BX=request header.  Forward the
+; packet through the selected CD-ROM driver's strategy and interrupt entries.
+api_driver_request:
+        push    ax
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        push    di
+        push    ds
+        push    es
+        mov     cs:request_offset,bx
+        mov     cs:request_segment,es
+        mov     ax,cx
+        xor     dx,dx
+        mov     dl,cs:first_drive
+        sub     ax,dx
+        jc      short api_request_bad
+        xor     dx,dx
+        mov     dl,cs:driver_count
+        cmp     ax,dx
+        jae     short api_request_bad
+        shl     ax,1
+        mov     si,ax
+        mov     di,cs:driver_offsets[si]
+        mov     ax,cs:driver_segments[si]
+        mov     ds,ax
+        mov     ax,[di+6]
+        mov     word ptr cs:strategy_entry,ax
+        mov     ax,[di+8]
+        mov     word ptr cs:interrupt_entry,ax
+        mov     word ptr cs:strategy_entry+2,ds
+        mov     word ptr cs:interrupt_entry+2,ds
+        mov     ax,cs:request_segment
+        mov     es,ax
+        mov     bx,cs:request_offset
+        mov     byte ptr es:[bx+1],0
+        call    dword ptr cs:strategy_entry
+        call    dword ptr cs:interrupt_entry
+        jmp     short api_request_done
+api_request_bad:
+        mov     ax,cs:request_segment
+        mov     es,ax
+        mov     bx,cs:request_offset
+        mov     word ptr es:[bx+3],810fh
+api_request_done:
+        pop     es
+        pop     ds
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
+        iret
 int2f_handler ENDP
 
 old_2f_off      dw 0
 old_2f_seg      dw 0
+strategy_entry  dd 0
+interrupt_entry dd 0
+request_offset  dw 0
+request_segment dw 0
 psp_segment     dw 0
 driver_offsets  dw MAX_DRIVERS dup(0)
 driver_segments dw MAX_DRIVERS dup(0)
