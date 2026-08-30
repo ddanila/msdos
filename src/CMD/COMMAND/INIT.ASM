@@ -88,6 +88,7 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	RSWITCHAR:BYTE
 	EXTRN	SINGLECOM:WORD
 	EXTRN	KEEPCOM:BYTE
+	EXTRN	BATCHSTEP:BYTE
 	EXTRN	SUM:WORD
 	EXTRN	TRNSEG:WORD
 	EXTRN	TrnMvFlg:BYTE
@@ -153,6 +154,7 @@ INIT	SEGMENT PUBLIC PARA
 	EXTRN	CHUCKENV:byte
 	EXTRN	command_c_syn:byte	;AN000;
 	EXTRN	command_k_syn:byte
+	EXTRN	command_y_syn:byte
 	EXTRN	command_d_syn:byte	;AN000;
 	EXTRN	command_e_syn:byte	;AN000;
 	EXTRN	command_f_syn:byte	;AN000;
@@ -236,7 +238,7 @@ CMD_HLP_DONE:
 CMD_HELP_STR	DB  "Starts a new instance of the MS-DOS command interpreter.", 0DH, 0AH
 		DB  0DH, 0AH
 		DB  "COMMAND [[drive:]path] [device] [/E:nnnnn] [/P] [/MSG]", 0DH, 0AH
-		DB  "        [/C string | /K string]", 0DH, 0AH
+		DB  "        [/Y] [/C string | /K string]", 0DH, 0AH
 		DB  0DH, 0AH
 		DB  "  [drive:]path  Directory containing COMMAND.COM.", 0DH, 0AH
 		DB  "  device        Device to use for command input and output.", 0DH, 0AH
@@ -244,7 +246,8 @@ CMD_HELP_STR	DB  "Starts a new instance of the MS-DOS command interpreter.", 0DH
 		DB  "  /P            Makes the new command interpreter permanent.", 0DH, 0AH
 		DB  "  /MSG          Stores error messages in memory.", 0DH, 0AH
 		DB  "  /C string     Runs the specified command string, then returns.", 0DH, 0AH
-		DB  "  /K string     Runs the specified command string, then remains active.", 0DH, 0AH, "$"
+		DB  "  /K string     Runs the specified command string, then remains active.", 0DH, 0AH
+		DB  "  /Y            Steps through the batch file named by /C or /K.", 0DH, 0AH, "$"
 
 CMD_HLP_PAST:
 	CALL	SYSLOADMSG			;AN000; check dos version
@@ -563,6 +566,8 @@ parse_cont:
 	jz	SetSSwitch				 ;AC000; yes go set up SINGLECOM
 	cmp	comnd1_syn,offset resgroup:command_k_syn
 	jz	SetKSwitch
+	cmp	comnd1_syn,offset resgroup:command_y_syn
+	jz	SetYSwitch
 	cmp	comnd1_syn,offset resgroup:command_e_syn ;AC000; was /E entered?
 	jz	SetESwitch				 ;AC000; yes go set up environment
 	cmp	comnd1_syn,offset resgroup:command_m_syn ;AN000; was /MSG entered?
@@ -642,6 +647,10 @@ SetKSwitch:
 	MOV	[PERMCOM],0
 	MOV	BYTE PTR [PRDATTM],1
 	JMP	ArgsDone
+
+SetYSwitch:
+	MOV	[BATCHSTEP],1
+	JMP	parse_command_line
 ;
 ; Look for environment-size setting switch
 ;

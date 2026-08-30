@@ -77,7 +77,7 @@ Known gaps in commands already shipped:
 
 | Existing command | Missing 6.22 behavior |
 | --- | --- |
-| `COMMAND` | `/K` is present. `/Y` batch single-stepping, F5 startup bypass and F8 confirmation, and selected-configuration propagation to AUTOEXEC.BAT remain. |
+| `COMMAND` | `/K` and `/Y` batch single-stepping are present. F5 startup bypass, F8 confirmation, and selected-configuration propagation to AUTOEXEC.BAT remain. |
 | `COPY` | `/Y`, `/-Y`, overwrite prompting, and `COPYCMD` policy. |
 | `DIR` | `/C[H]` compression ratios and `O:C`/`O:-C`; these depend on DriveSpace. |
 | `EMM386` | The DOS 6 enhanced automatic EMS/UMB behavior and remaining 6.22 parser/API/hardware differences need a reference differential audit. Existing DOS 5 modes and memory regions are a strong base. |

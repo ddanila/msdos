@@ -32,6 +32,7 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	PIPEFLAG:BYTE
 	EXTRN	RES_TPA:WORD
 	EXTRN	SINGLECOM:WORD
+	EXTRN	BATCHSTEP:BYTE
 	EXTRN	SUPPRESS:BYTE		;AC000;
 DATARES ENDS
 
@@ -314,6 +315,12 @@ Found_EOL:
 	MOV	ES:[COMBUF+1],AL		; Set length of line
 	invoke	GetBatByt			; Eat linefeed
 	invoke	BATCLOSE
+	CMP	[BATCHSTEP],0
+	JZ	StepDone
+	CMP	BYTE PTR ES:[COMBUF+1],0	; Do not prompt for the synthetic EOF line
+	JZ	StepDone
+	CALL	StepBatchLine
+StepDone:
 	CMP	SUPPRESS, NO_ECHO		;G
 	JZ	Reset				;G
 	test	[echoflag],1			; To echo or not to echo, that is the
@@ -343,6 +350,77 @@ ASSUME DS:TRANGROUP
 	invoke	CRPRINT
 	invoke	CRLF2
 	return
+
+StepBatchLine:
+	ASSUME	DS:RESGROUP
+	PUSH	AX
+	PUSH	BX
+	PUSH	CX
+	PUSH	DX
+	PUSH	SI
+	PUSH	ES
+	MOV	SI,OFFSET TRANGROUP:COMBUF
+	MOV	CX,(COMBUFLEN+2)/2
+StepSave:
+	PUSH	WORD PTR ES:[SI]
+	ADD	SI,2
+	LOOP	StepSave
+	PUSH	DS
+	PUSH	CS
+	POP	DS
+	MOV	DX,OFFSET TRANGROUP:StepPrompt
+	MOV	AH,09H
+	PUSH	ES
+	INT	21H
+	POP	ES
+	POP	DS
+StepRead:
+	XOR	AH,AH
+	INT	16H
+	CMP	AL,'a'
+	JB	StepUpper
+	CMP	AL,'z'
+	JA	StepUpper
+	SUB	AL,20H
+StepUpper:
+	CMP	AL,'Y'
+	JE	StepYes
+	CMP	AL,'N'
+	JNE	StepRead
+	XOR	BX,BX
+	JMP	SHORT StepRestore
+StepYes:
+	MOV	BX,1
+	PUSH	ES
+	INVOKE	CRLF2
+	POP	ES
+	JMP	SHORT StepRestoreStart
+StepRestore:
+	PUSH	ES
+	INVOKE	CRLF2
+	POP	ES
+StepRestoreStart:
+	MOV	SI,OFFSET TRANGROUP:COMBUF+COMBUFLEN+2
+	MOV	CX,(COMBUFLEN+2)/2
+StepRestoreLoop:
+	SUB	SI,2
+	POP	AX
+	MOV	ES:[SI],AX
+	LOOP	StepRestoreLoop
+	OR	BX,BX
+	JNZ	StepRestored
+	MOV	BYTE PTR ES:[COMBUF+1],0
+	MOV	BYTE PTR ES:[COMBUF+2],0DH
+StepRestored:
+	POP	ES
+	POP	SI
+	POP	DX
+	POP	CX
+	POP	BX
+	POP	AX
+	RET
+
+StepPrompt DB 13,10,'Process line? [Y,N] $'
 ;
 ; The line was too long.  Eat remainder of input text up until the CR
 ;

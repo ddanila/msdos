@@ -167,6 +167,7 @@ DATARES SEGMENT PUBLIC BYTE
 	PUBLIC	SAVE_PDB
 	PUBLIC	SINGLECOM
 	PUBLIC	KEEPCOM
+	PUBLIC	BATCHSTEP
 	PUBLIC	SUM
 	PUBLIC	SUPPRESS
 	PUBLIC	TRANS
@@ -485,6 +486,7 @@ RESTDIR 	DB	0
 PERMCOM 	DB	0			; TRUE => permanent command
 SINGLECOM	DW	0			; TRUE => single command version
 KEEPCOM		DB	0			; /K initial command remains interactive
+BATCHSTEP	DB	0			; /Y confirms each /C or /K batch line
 VERVAL		DW	-1
 fFail		DB	0			; TRUE => FAIL all INT 24s
 IFFLAG		DB	0			; TRUE => If statement in progress

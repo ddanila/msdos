@@ -14,7 +14,8 @@
     "F": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_command_startup_qemu.sh"], "note": "Automatically chooses Fail for an actual INT 24h error from an unformatted B: disk and continues without input"},
     "K": {"level": "contract", "evidence": ["tests/test_command_startup_qemu.sh"], "note": "Executes the initial command, consumes further redirected commands in the same secondary interpreter, and returns only after EXIT"},
     "MSG": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_command_startup_qemu.sh"], "note": "Without /P the required relationship is diagnosed; with /P resident messages are accepted by the live permanent shell"},
-    "P": {"level": "contract", "evidence": ["tests/test_command_startup_qemu.sh"], "note": "A child permanent interpreter ignores EXIT, executes the following redirected command, and never returns to its parent batch"}
+    "P": {"level": "contract", "evidence": ["tests/test_command_startup_qemu.sh"], "note": "A child permanent interpreter ignores EXIT, executes the following redirected command, and never returns to its parent batch"},
+    "Y": {"level": "contract", "evidence": ["tests/test_command_step_qemu.sh"], "note": "Prompts for each line of a /C batch and selectively executes or bypasses commands from queued Y/N decisions"}
   },
   "commands": {
     "BREAK": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Query plus ON/OFF state transitions are asserted"},

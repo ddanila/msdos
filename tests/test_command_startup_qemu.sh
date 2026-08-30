@@ -186,7 +186,6 @@ if grep -q '^COMMAND_KEEP_INITIAL' "$SERIAL_LOG" \
 else
     fail "COMMAND /K did not preserve the secondary interpreter"
 fi
-
 if grep -q '^COMMAND_FAIL_ALL_CONTINUED' "$FAIL_SERIAL_LOG" \
     && grep -q 'Fail on INT 24' "$FAIL_SERIAL_LOG"; then
     ok "COMMAND /F automatically selects Fail for a real critical disk error"
