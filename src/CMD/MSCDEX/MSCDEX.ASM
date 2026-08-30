@@ -3,7 +3,8 @@
 ; Hardware-specific CD-ROM drivers remain separate.  MSCDEX discovers their
 ; character-device headers by /D:name and publishes the standard 15xxh API.
 
-MAX_DRIVERS EQU 8
+MAX_NAMES   EQU 8
+MAX_DRIVES  EQU 26
 
 CODE SEGMENT PUBLIC
         ORG     100h
@@ -43,6 +44,9 @@ first_install:
         jmp     terminate
 
 have_driver_names:
+        mov     al,cs:driver_count
+        mov     cs:name_count,al
+        mov     cs:driver_count,0
         cmp     cs:use_ems,0
         je      discover_drivers
         mov     ax,4300h
@@ -79,12 +83,31 @@ find_next_driver:
         mov     al,1
         jmp     terminate
 driver_found:
-        mov     si,bx
+        mov     al,es:[di+21]         ; CD-ROM header number of subunits
+        or      al,al
+        jnz     short driver_units_known
+        mov     al,1
+driver_units_known:
+        mov     cs:found_units,al
+        mov     cs:found_subunit,0
+driver_add_unit:
+        mov     al,cs:driver_count
+        cmp     al,MAX_DRIVES
+        jae     drive_range_error
+        xor     ah,ah
+        mov     si,ax
+        mov     al,cs:found_subunit
+        mov     cs:driver_subunits[si],al
         shl     si,1
         mov     cs:driver_offsets[si],di
         mov     cs:driver_segments[si],es
+        inc     cs:driver_count
+        inc     cs:found_subunit
+        mov     al,cs:found_subunit
+        cmp     al,cs:found_units
+        jb      driver_add_unit
         inc     bx
-        cmp     bl,cs:driver_count
+        cmp     bl,cs:name_count
         jb      find_next_driver
 
         cmp     cs:first_drive,0ffh
@@ -101,11 +124,32 @@ drive_selected:
         add     ax,bx
         cmp     ax,26
         jbe     drive_range_ok
+drive_range_error:
         mov     dx,OFFSET drive_range_msg
         call    print_dollar
         mov     al,1
         jmp     terminate
 drive_range_ok:
+        ; Publish the first assigned drive letter in each unique device header.
+        xor     si,si
+        xor     bx,bx
+publish_driver_letters:
+        cmp     bl,cs:driver_count
+        jae     short driver_letters_done
+        cmp     cs:driver_subunits[bx],0
+        jne     short publish_next_drive
+        mov     di,cs:driver_offsets[si]
+        mov     ax,cs:driver_segments[si]
+        mov     es,ax
+        mov     al,cs:first_drive
+        add     al,bl
+        inc     al
+        mov     es:[di+20],al
+publish_next_drive:
+        inc     bx
+        add     si,2
+        jmp     publish_driver_letters
+driver_letters_done:
 
         mov     ax,352fh
         int     21h
@@ -211,25 +255,33 @@ api_version:
 
 api_device_list:
         push    ax
+        push    bx
         push    cx
+        push    dx
         push    si
         push    di
         mov     di,bx
         xor     cx,cx
         mov     cl,cs:driver_count
         xor     si,si
+        xor     dx,dx
 api_device_next:
-        mov     byte ptr es:[di],0    ; subunit number
+        mov     bx,dx
+        mov     al,cs:driver_subunits[bx]
+        mov     byte ptr es:[di],al
         mov     ax,cs:driver_offsets[si]
         mov     es:[di+1],ax
         mov     ax,cs:driver_segments[si]
         mov     es:[di+3],ax
         add     di,5
         add     si,2
+        inc     dx
         loop    api_device_next
         pop     di
         pop     si
+        pop     dx
         pop     cx
+        pop     bx
         pop     ax
         iret
 
@@ -713,6 +765,10 @@ forward_driver_request PROC NEAR
         mov     dl,cs:driver_count
         cmp     ax,dx
         jae     short api_request_bad
+        mov     bx,ax
+        mov     al,cs:driver_subunits[bx]
+        mov     cs:request_subunit,al
+        mov     ax,bx
         shl     ax,1
         mov     si,ax
         mov     di,cs:driver_offsets[si]
@@ -727,7 +783,8 @@ forward_driver_request PROC NEAR
         mov     ax,cs:request_segment
         mov     es,ax
         mov     bx,cs:request_offset
-        mov     byte ptr es:[bx+1],0
+        mov     al,cs:request_subunit
+        mov     byte ptr es:[bx+1],al
         call    dword ptr cs:strategy_entry
         call    dword ptr cs:interrupt_entry
         test    word ptr es:[bx+3],8000h
@@ -814,6 +871,7 @@ strategy_entry  dd 0
 interrupt_entry dd 0
 request_offset  dw 0
 request_segment dw 0
+request_subunit db 0
 api_result      dw 0
 api_failed      db 0
 metadata_function db 0
@@ -844,10 +902,14 @@ read_request    db 27,0,80h
 vtoc_buffer     db 2048 dup(0)
 directory_buffer db 2048 dup(0)
 psp_segment     dw 0
-driver_offsets  dw MAX_DRIVERS dup(0)
-driver_segments dw MAX_DRIVERS dup(0)
-volume_preferences dw MAX_DRIVERS dup(0100h)
+driver_offsets  dw MAX_DRIVES dup(0)
+driver_segments dw MAX_DRIVES dup(0)
+driver_subunits db MAX_DRIVES dup(0)
+volume_preferences dw MAX_DRIVES dup(0100h)
 driver_count    db 0
+name_count      db 0
+found_units     db 0
+found_subunit   db 0
 first_drive     db 0ffh
 buffer_count    dw 10
 use_ems         db 0
@@ -939,7 +1001,7 @@ parse_driver_colon:
         inc     si
         dec     cx
         mov     al,cs:driver_count
-        cmp     al,MAX_DRIVERS
+        cmp     al,MAX_NAMES
         jae     parse_error
         xor     ah,ah
         mov     di,ax
@@ -1140,7 +1202,7 @@ print_dollar PROC NEAR
 print_dollar ENDP
 
 minus_one          dw 0ffffh
-driver_names       db MAX_DRIVERS*8 dup(' ')
+driver_names       db MAX_NAMES*8 dup(' ')
 illegal_help_msg   db "Illegal option '?'",13,10,'$'
 usage_msg          db 'usage: MSCDEX [/E/K/S/V] [/D:<driver> ... ] [/L:<letter>] [/M:<buffers>]',13,10,'$'
 no_ems_msg         db 'Expanded memory not present or not-usable',13,10,'$'

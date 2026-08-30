@@ -9,6 +9,9 @@ device_header:
     dw strategy
     dw interrupt
     db 'MSCD001 '
+    dw 0
+    db 0
+    db 2
 
 request_offset  dw 0
 request_segment dw 0

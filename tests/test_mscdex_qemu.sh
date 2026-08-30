@@ -56,4 +56,4 @@ if grep -Eq 'MSCDEX_(HELP_STATUS_BAD|MISSING_ACCEPTED|INSTALL_FAILED|API_FAILED)
     exit 1
 fi
 
-echo '  PASS: MSCDEX VTOC, metadata, nested directory, read, and driver APIs'
+echo '  PASS: MSCDEX multi-subunit discovery, ISO lookup, read, and driver APIs'

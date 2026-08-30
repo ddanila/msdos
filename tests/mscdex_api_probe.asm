@@ -5,12 +5,17 @@ start:
     mov ax, 1500h
     xor bx, bx
     int 2fh
-    cmp bx, 1
+    cmp bx, 2
     jne fail
     cmp cx, 4
     jne fail
 
     mov bx, 4
+    mov ax, 150bh
+    int 2fh
+    cmp ax, 0adadh
+    jne fail
+    mov bx, 5
     mov ax, 150bh
     int 2fh
     cmp ax, 0adadh
@@ -33,6 +38,8 @@ start:
     int 2fh
     cmp byte [drive_list], 4
     jne fail
+    cmp byte [drive_list + 1], 5
+    jne fail
 
     mov bx, device_list
     mov ax, 1501h
@@ -42,6 +49,21 @@ start:
     mov ax, [device_list + 1]
     or ax, [device_list + 3]
     jz fail
+    cmp byte [device_list + 5], 1
+    jne fail
+    mov ax, [device_list + 1]
+    cmp ax, [device_list + 6]
+    jne fail
+    mov ax, [device_list + 3]
+    cmp ax, [device_list + 8]
+    jne fail
+    push es
+    mov bx, [device_list + 1]
+    mov ax, [device_list + 3]
+    mov es, ax
+    cmp byte [es:bx + 20], 5
+    pop es
+    jne fail
 
     push ds
     pop es
@@ -54,6 +76,14 @@ start:
     cmp byte [request_header + 0dh], 0a5h
     jne fail
     cmp byte [request_header + 1], 0
+    jne fail
+    mov word [request_header + 3], 0
+    mov bx, request_header
+    mov cx, 5
+    mov ax, 1510h
+    int 2fh
+    jc fail
+    cmp byte [request_header + 1], 1
     jne fail
     mov word [request_header + 3], 0
     mov bx, request_header
