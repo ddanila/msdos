@@ -18,6 +18,9 @@ request_segment dw 0
 fail_reads      db 0
 audio_state     db 0
 media_open      db 0
+door_locked     db 0
+reset_count     db 0
+channel_value   db 0
 
 strategy:
     mov [cs:request_offset], bx
@@ -106,10 +109,58 @@ interrupt:
     mov bx, [es:di + 14]
     mov ax, [es:di + 16]
     mov ds, ax
+    cmp byte [bx], 1
+    je .head_location
+    cmp byte [bx], 4
+    je .audio_channels
     cmp byte [bx], 6
-    jne .request_error
+    je .device_status
+    cmp byte [bx], 8
+    je .volume_size
+    cmp byte [bx], 9
+    je .media_change
+    cmp byte [bx], 10
+    je .disc_info
+    cmp byte [bx], 11
+    je .track_info
+    cmp byte [bx], 12
+    je .q_channel
+    cmp byte [bx], 15
+    je .audio_status
+    jmp .request_error
+.head_location:
+    mov byte [bx + 1], 11h
+    jmp .complete
+.audio_channels:
+    mov byte [bx + 1], 44h
+    jmp .complete
+.volume_size:
+    mov byte [bx + 1], 88h
+    jmp .complete
+.media_change:
+    mov byte [bx + 1], 99h
+    jmp .complete
+.disc_info:
+    mov byte [bx + 1], 0aah
+    jmp .complete
+.track_info:
+    mov byte [bx + 1], 0bbh
+    jmp .complete
+.q_channel:
+    mov byte [bx + 1], 0cch
+    jmp .complete
+.audio_status:
+    mov byte [bx + 1], 0ffh
+    jmp .complete
+.device_status:
     mov byte [bx + 1], 10h       ; audio and door-control capabilities
     mov byte [bx + 2], 0
+    mov al, [cs:door_locked]
+    mov [bx + 3], al
+    mov al, [cs:reset_count]
+    mov [bx + 4], al
+    mov al, [cs:channel_value]
+    mov [bx + 5], al
     cmp byte [cs:media_open], 0
     je .complete
     or byte [bx + 2], 8          ; door open
@@ -122,12 +173,30 @@ interrupt:
     mov ds, ax
     cmp byte [bx], 0
     je .media_eject
+    cmp byte [bx], 1
+    je .door_lock
+    cmp byte [bx], 2
+    je .drive_reset
+    cmp byte [bx], 3
+    je .channel_control
     cmp byte [bx], 5
     jne .request_error
     mov byte [cs:media_open], 0
     jmp .complete
 .media_eject:
     mov byte [cs:media_open], 1
+    jmp .complete
+.door_lock:
+    mov al, [bx + 1]
+    and al, 1
+    mov [cs:door_locked], al
+    jmp .complete
+.drive_reset:
+    inc byte [cs:reset_count]
+    jmp .complete
+.channel_control:
+    mov al, [bx + 1]
+    mov [cs:channel_value], al
     jmp .complete
 .vtoc_read:
     cmp word [es:di + 22], 0

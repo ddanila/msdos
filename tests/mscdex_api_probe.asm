@@ -1,6 +1,39 @@
 bits 16
 org 100h
 
+%macro check_ioctl_input 2
+    mov byte [media_buffer], %1
+    mov byte [request_header + 2], 3
+    mov word [request_header + 3], 0
+    mov word [request_header + 14], media_buffer
+    mov word [request_header + 16], ds
+    push ds
+    pop es
+    mov bx, request_header
+    mov cx, 5
+    mov ax, 1510h
+    int 2fh
+    jc fail
+    cmp byte [media_buffer + 1], %2
+    jne fail
+%endmacro
+
+%macro send_ioctl_output 2
+    mov byte [media_buffer], %1
+    mov byte [media_buffer + 1], %2
+    mov byte [request_header + 2], 12
+    mov word [request_header + 3], 0
+    mov word [request_header + 14], media_buffer
+    mov word [request_header + 16], ds
+    push ds
+    pop es
+    mov bx, request_header
+    mov cx, 5
+    mov ax, 1510h
+    int 2fh
+    jc fail
+%endmacro
+
 start:
     mov ax, 1500h
     xor bx, bx
@@ -153,6 +186,28 @@ start:
     jnz fail
     test byte [media_buffer + 1], 10h
     jz fail
+    ; Exercise every standard query/control family through the same selected
+    ; subunit.  Sentinels prove buffers are returned by the backing driver,
+    ; rather than synthesized by MSCDEX.
+    check_ioctl_input 1, 11h
+    check_ioctl_input 4, 44h
+    check_ioctl_input 8, 88h
+    check_ioctl_input 9, 99h
+    check_ioctl_input 10, 0aah
+    check_ioctl_input 11, 0bbh
+    check_ioctl_input 12, 0cch
+    check_ioctl_input 15, 0ffh
+    send_ioctl_output 1, 1
+    send_ioctl_output 2, 0
+    send_ioctl_output 3, 5ah
+    check_ioctl_input 6, 10h
+    cmp byte [media_buffer + 3], 1
+    jne fail
+    cmp byte [media_buffer + 4], 1
+    jne fail
+    cmp byte [media_buffer + 5], 5ah
+    jne fail
+    send_ioctl_output 1, 0
     mov word [request_header + 3], 0
     mov byte [request_header + 2], 3
     mov bx, request_header
