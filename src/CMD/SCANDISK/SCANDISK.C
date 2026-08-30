@@ -9,6 +9,21 @@
 #define BIT_BYTES 8192
 #define MAX_DEPTH 64
 
+#define POLICY_PROMPT 0
+#define POLICY_FIX    1
+#define POLICY_QUIT   2
+#define POLICY_SKIP   3
+#define POLICY_DELETE 4
+#define POLICY_SAVE   5
+
+#define CAT_OKAY       0
+#define CAT_BAD_CHAIN  1
+#define CAT_CROSSLINK  2
+#define CAT_MISMATCH   3
+#define CAT_BAD_CLUSTER 4
+#define CAT_BAD_ENTRY  5
+#define CAT_LOST       6
+
 struct options {
     int all;
     int autofix;
@@ -19,7 +34,15 @@ struct options {
     int no_save;
     int no_summary;
     int surface;
+    int surface_explicit;
+    int surface_prompt;
     int undo;
+    int undo_prompt;
+    int label_check;
+    int lfn_check;
+    unsigned surface_passes;
+    unsigned save_log;
+    unsigned char policies[7];
     unsigned drive_count;
     unsigned long drive_mask;
     char fragment_spec[128];
@@ -130,7 +153,10 @@ static int parse_options(int argc, char **argv, struct options *options)
             else if (equal_switch(argument, "MONO")) options->mono = 1;
             else if (equal_switch(argument, "NOSAVE")) options->no_save = 1;
             else if (equal_switch(argument, "NOSUMMARY")) options->no_summary = 1;
-            else if (equal_switch(argument, "SURFACE")) options->surface = 1;
+            else if (equal_switch(argument, "SURFACE")) {
+                options->surface = 1;
+                options->surface_explicit = 1;
+            }
             else if (equal_switch(argument, "UNDO")) options->undo = 1;
             else {
                 fprintf(stderr, "Invalid switch - %s\n", argument);
@@ -194,35 +220,111 @@ static int parse_options(int argc, char **argv, struct options *options)
     return 0;
 }
 
-static void load_custom_options(struct options *options)
+static char *trim(char *text)
+{
+    char *end;
+    while (*text == ' ' || *text == '\t') ++text;
+    end = text + strlen(text);
+    while (end > text && (end[-1] == ' ' || end[-1] == '\t' ||
+                          end[-1] == '\r' || end[-1] == '\n'))
+        --end;
+    *end = 0;
+    return text;
+}
+
+static int ini_value(const char *value, const char *expected)
+{
+    return !stricmp(value, expected);
+}
+
+static unsigned char action_value(const char *value)
+{
+    if (ini_value(value, "FIX")) return POLICY_FIX;
+    if (ini_value(value, "QUIT")) return POLICY_QUIT;
+    if (ini_value(value, "SKIP")) return POLICY_SKIP;
+    if (ini_value(value, "DELETE")) return POLICY_DELETE;
+    if (ini_value(value, "SAVE")) return POLICY_SAVE;
+    return POLICY_PROMPT;
+}
+
+static void load_custom_options(struct options *options, const char *program)
 {
     FILE *file;
-    char line[96];
-    if (!options->custom)
-        return;
+    char line[160];
+    char path[160];
+    int section = 0;
+    options->surface_passes = 1;
+    options->save_log = 1;
+    options->undo_prompt = 1;
+    options->lfn_check = 1;
     file = fopen("SCANDISK.INI", "r");
-    if (!file)
-        return;
+    if (!file && program && strlen(program) < sizeof(path)) {
+        char *slash;
+        strcpy(path, program);
+        slash = strrchr(path, '\\');
+        if (!slash) slash = strrchr(path, '/');
+        if (slash) {
+            strcpy(slash + 1, "SCANDISK.INI");
+            file = fopen(path, "r");
+        }
+    }
+    if (!file) return;
     while (fgets(line, sizeof(line), file)) {
-        char *equal = strchr(line, '=');
-        char *p;
-        if (!equal)
+        char *equal, *comment, *key, *value;
+        comment = strchr(line, ';');
+        if (comment) *comment = 0;
+        key = trim(line);
+        if (*key == '[') {
+            section = !stricmp(key, "[ENVIRONMENT]") ? 1 :
+                (!stricmp(key, "[CUSTOM]") ? 2 : 0);
             continue;
+        }
+        equal = strchr(key, '=');
+        if (!equal) continue;
         *equal++ = 0;
-        for (p = line; *p; ++p)
-            *p = (char)toupper((unsigned char)*p);
-        while (*equal == ' ' || *equal == '\t')
-            ++equal;
-        if (!strcmp(line, "AUTOFIX"))
-            options->autofix = toupper((unsigned char)*equal) == 'Y';
-        else if (!strcmp(line, "SURFACE"))
-            options->surface = toupper((unsigned char)*equal) == 'Y';
-        else if (!strcmp(line, "SAVELOST"))
-            options->no_save = toupper((unsigned char)*equal) != 'Y';
+        key = trim(key); value = trim(equal);
+        if (section == 1) {
+            if (!stricmp(key, "DISPLAY") && ini_value(value, "MONO"))
+                options->mono = 1;
+            else if (!stricmp(key, "NUMPASSES")) {
+                unsigned long passes = strtoul(value, NULL, 10);
+                if (passes >= 1 && passes <= 65535UL)
+                    options->surface_passes = (unsigned)passes;
+            } else if (!stricmp(key, "LABELCHECK"))
+                options->label_check = ini_value(value, "ON");
+            else if (!stricmp(key, "LFNCHECK"))
+                options->lfn_check = !ini_value(value, "OFF");
+        } else if (section == 2 && options->custom) {
+            if (!stricmp(key, "DRIVESUMMARY") && ini_value(value, "OFF"))
+                options->no_summary = 1;
+            else if (!stricmp(key, "SURFACE")) {
+                if (!options->surface_explicit) {
+                    options->surface = ini_value(value, "ALWAYS");
+                    options->surface_prompt = ini_value(value, "PROMPT");
+                }
+            } else if (!stricmp(key, "SAVELOG"))
+                options->save_log = ini_value(value, "APPEND") ? 1 :
+                    (ini_value(value, "OVERWRITE") ? 2 : 0);
+            else if (!stricmp(key, "UNDO"))
+                options->undo_prompt = ini_value(value, "PROMPT");
+            else if (!stricmp(key, "OKAY_ENTRIES"))
+                options->policies[CAT_OKAY] = action_value(value);
+            else if (!stricmp(key, "BAD_CHAIN"))
+                options->policies[CAT_BAD_CHAIN] = action_value(value);
+            else if (!stricmp(key, "CROSSLINKS"))
+                options->policies[CAT_CROSSLINK] = action_value(value);
+            else if (!stricmp(key, "MISMATCH_FAT"))
+                options->policies[CAT_MISMATCH] = action_value(value);
+            else if (!stricmp(key, "BAD_CLUSTERS"))
+                options->policies[CAT_BAD_CLUSTER] = action_value(value);
+            else if (!stricmp(key, "BAD_ENTRIES"))
+                options->policies[CAT_BAD_ENTRY] = action_value(value);
+            else if (!stricmp(key, "LOSTCLUST"))
+                options->policies[CAT_LOST] = action_value(value);
+        }
     }
     fclose(file);
-    if (options->check_only)
-        options->autofix = 0;
+    if (options->check_only) options->autofix = 0;
 }
 
 static void report_problem(struct scan_state *state, const char *message)
@@ -264,6 +366,8 @@ static int begin_undo_disk(struct scan_state *state)
     if (state->undo_decided)
         return 0;
     state->undo_decided = 1;
+    if (state->options.custom && !state->options.undo_prompt)
+        return 0;
     if (state->options.no_summary)
         return 0;
     fputs("Create an Undo disk (Y/N)? ", stdout);
@@ -359,13 +463,23 @@ static void finish_undo_disk(struct scan_state *state)
     state->undo_file = NULL;
 }
 
-static int permit_repair(struct scan_state *state, const char *action)
+static int permit_repair(struct scan_state *state, const char *action,
+                         unsigned category)
 {
     int answer;
+    unsigned policy = category < 7 ? state->options.policies[category] : 0;
     if (state->options.check_only)
         return 0;
     if (state->options.autofix || state->repair_all)
         return begin_undo_disk(state), 1;
+    if (state->options.custom && policy != POLICY_PROMPT) {
+        if (policy == POLICY_QUIT)
+            state->aborted = 1;
+        if (policy == POLICY_FIX || policy == POLICY_DELETE ||
+            policy == POLICY_SAVE)
+            return begin_undo_disk(state), 1;
+        return 0;
+    }
     printf("%s (Y/N/A/Q)? ", action);
     fflush(stdout);
     do {
@@ -391,9 +505,9 @@ static int permit_repair(struct scan_state *state, const char *action)
 }
 
 static int repair_fat(struct scan_state *state, unsigned cluster,
-                      unsigned value)
+                      unsigned value, unsigned category)
 {
-    if (!permit_repair(state, "Repair this allocation-table error")) {
+    if (!permit_repair(state, "Repair this allocation-table error", category)) {
         ++state->unrepaired;
         return 1;
     }
@@ -437,7 +551,7 @@ static unsigned scan_chain(struct scan_state *state, unsigned first,
     if (!first) {
         if (size) {
             report_problem(state, "File size is nonzero but its cluster chain is empty.");
-            if (permit_repair(state, "Set the file size to zero")) {
+            if (permit_repair(state, "Set the file size to zero", CAT_BAD_CHAIN)) {
                 put_dword(entry + 28, 0);
                 *entry_changed = 1;
                 ++state->repaired;
@@ -447,7 +561,7 @@ static unsigned scan_chain(struct scan_state *state, unsigned first,
     }
     if (!fat_volume_valid_cluster(&state->volume, first)) {
         report_problem(state, "A file or directory has an invalid starting cluster.");
-        if (permit_repair(state, "Detach the invalid starting cluster")) {
+        if (permit_repair(state, "Detach the invalid starting cluster", CAT_BAD_CHAIN)) {
             put_word(entry + 26, 0);
             if (!directory)
                 put_dword(entry + 28, 0);
@@ -458,7 +572,7 @@ static unsigned scan_chain(struct scan_state *state, unsigned first,
     }
     if (!directory && !size) {
         report_problem(state, "A zero-length file owns allocated clusters.");
-        if (permit_repair(state, "Detach the unused cluster chain")) {
+        if (permit_repair(state, "Detach the unused cluster chain", CAT_OKAY)) {
             put_word(entry + 26, 0);
             *entry_changed = 1;
             ++state->repaired;
@@ -473,15 +587,18 @@ static unsigned scan_chain(struct scan_state *state, unsigned first,
             report_problem(state, "A cluster chain contains a loop.");
             if (previous)
                 repair_fat(state, previous,
-                           state->volume.fat16 ? 0xffffU : 0x0fffU);
+                           state->volume.fat16 ? 0xffffU : 0x0fffU,
+                           CAT_BAD_CHAIN);
             break;
         }
         if (bit_get(claimed, current)) {
             report_problem(state, "Two files or directories share a cluster.");
             if (previous)
                 repair_fat(state, previous,
-                           state->volume.fat16 ? 0xffffU : 0x0fffU);
-            else if (permit_repair(state, "Detach the cross-linked file")) {
+                           state->volume.fat16 ? 0xffffU : 0x0fffU,
+                           CAT_CROSSLINK);
+            else if (permit_repair(state, "Detach the cross-linked file",
+                                   CAT_CROSSLINK)) {
                 put_word(entry + 26, 0);
                 put_dword(entry + 28, 0);
                 *entry_changed = 1;
@@ -501,7 +618,8 @@ static unsigned scan_chain(struct scan_state *state, unsigned first,
             report_problem(state, "A file chain points to a bad cluster marker.");
             if (previous)
                 repair_fat(state, previous,
-                           state->volume.fat16 ? 0xffffU : 0x0fffU);
+                           state->volume.fat16 ? 0xffffU : 0x0fffU,
+                           CAT_BAD_CHAIN);
             break;
         }
         if (fat_volume_valid_cluster(&state->volume, next) &&
@@ -511,7 +629,8 @@ static unsigned scan_chain(struct scan_state *state, unsigned first,
             !fat_volume_eoc(&state->volume, next)) {
             report_problem(state, "A file owns more clusters than its size requires.");
             repair_fat(state, current,
-                       state->volume.fat16 ? 0xffffU : 0x0fffU);
+                       state->volume.fat16 ? 0xffffU : 0x0fffU,
+                       CAT_BAD_CHAIN);
             break;
         }
         if (fat_volume_eoc(&state->volume, next))
@@ -519,7 +638,8 @@ static unsigned scan_chain(struct scan_state *state, unsigned first,
         if (!fat_volume_valid_cluster(&state->volume, next)) {
             report_problem(state, "A cluster chain contains an invalid link.");
             repair_fat(state, current,
-                       state->volume.fat16 ? 0xffffU : 0x0fffU);
+                       state->volume.fat16 ? 0xffffU : 0x0fffU,
+                       CAT_BAD_CHAIN);
             break;
         }
         previous = current;
@@ -527,7 +647,8 @@ static unsigned scan_chain(struct scan_state *state, unsigned first,
     }
     if (!directory && expected > count) {
         report_problem(state, "A file is longer than its available cluster chain.");
-        if (permit_repair(state, "Shorten the file to its readable chain")) {
+        if (permit_repair(state, "Shorten the file to its readable chain",
+                          CAT_BAD_CHAIN)) {
             put_dword(entry + 28, (unsigned long)count * cluster_bytes);
             *entry_changed = 1;
             ++state->repaired;
@@ -559,7 +680,7 @@ static void validate_dot_entries(struct scan_state *state,
     int changed = 0;
     if (dot_bad) {
         report_problem(state, "A directory has an invalid . entry.");
-        if (permit_repair(state, "Repair the . directory entry")) {
+        if (permit_repair(state, "Repair the . directory entry", CAT_OKAY)) {
             memset(dot, 0, 32); memcpy(dot, dot_name, 11);
             dot[11] = 0x10; put_word(dot + 26, self);
             ++state->repaired; changed = 1;
@@ -567,7 +688,7 @@ static void validate_dot_entries(struct scan_state *state,
     }
     if (dotdot_bad) {
         report_problem(state, "A directory has an invalid .. entry.");
-        if (permit_repair(state, "Repair the .. directory entry")) {
+        if (permit_repair(state, "Repair the .. directory entry", CAT_OKAY)) {
             memset(dotdot, 0, 32); memcpy(dotdot, dotdot_name, 11);
             dotdot[11] = 0x10; put_word(dotdot + 26, parent);
             ++state->repaired; changed = 1;
@@ -594,6 +715,16 @@ static int valid_short_name(const unsigned char *name)
             return 0;
     }
     return 1;
+}
+
+static int valid_volume_label(const unsigned char *name)
+{
+    static const char illegal[] = "\"*+,./:;<=>?[\\]|";
+    unsigned index;
+    for (index = 0; index < 11; ++index)
+        if (name[index] < 0x20 || strchr(illegal, name[index]))
+            return 0;
+    return name[0] != ' ';
 }
 
 static int name_seen_before(struct fat_volume *volume, unsigned first,
@@ -738,15 +869,46 @@ static int scan_directory(struct scan_state *state, unsigned first,
                 if (entry[0] == 0)
                     break;
                 /* 05h is the on-disk escape for a live E5h first byte. */
-                if (entry[0] == 0xe5 || (entry[11] & 0x0f) == 0x0f)
+                if (entry[0] == 0xe5)
                     continue;
+                if ((entry[11] & 0x0f) == 0x0f) {
+                    if (!state->options.lfn_check) {
+                        report_problem(state,
+                            "A long-filename directory entry was found.");
+                        if (permit_repair(state,
+                                "Remove the long-filename entry",
+                                CAT_BAD_ENTRY)) {
+                            entry[0] = 0xe5;
+                            repair_directory_sector(state, position);
+                            ++state->repaired;
+                        } else ++state->unrepaired;
+                    }
+                    continue;
+                }
                 if (entry[11] & 0x08) {
                     if (!root) {
                         report_problem(state,
                             "A subdirectory contains a volume-label entry.");
                         if (permit_repair(state,
-                                "Remove the misplaced volume label")) {
+                                "Remove the misplaced volume label",
+                                CAT_BAD_ENTRY)) {
                             entry[0] = 0xe5;
+                            repair_directory_sector(state, position);
+                            ++state->repaired;
+                        } else ++state->unrepaired;
+                    } else if (state->options.label_check &&
+                               !valid_volume_label(entry)) {
+                        unsigned label_index;
+                        report_problem(state,
+                            "The volume label contains invalid characters.");
+                        if (permit_repair(state,
+                                "Repair the volume label", CAT_OKAY)) {
+                            for (label_index = 0; label_index < 11;
+                                 ++label_index)
+                                if (entry[label_index] < 0x20 ||
+                                    strchr("\"*+,./:;<=>?[\\]|",
+                                           entry[label_index]))
+                                    entry[label_index] = '_';
                             repair_directory_sector(state, position);
                             ++state->repaired;
                         } else ++state->unrepaired;
@@ -760,7 +922,8 @@ static int scan_directory(struct scan_state *state, unsigned first,
                     report_problem(state,
                         "A directory entry has an invalid or duplicate name.");
                     if (permit_repair(state,
-                            "Give the entry a unique recovery name")) {
+                            "Give the entry a unique recovery name",
+                            CAT_OKAY)) {
                         make_recovery_name(state, &state->volume, first, entry);
                         repair_directory_sector(state, position);
                         ++state->repaired;
@@ -770,7 +933,8 @@ static int scan_directory(struct scan_state *state, unsigned first,
                     report_problem(state,
                         "A directory entry has invalid attributes.");
                     if (permit_repair(state,
-                            "Repair the directory-entry attributes")) {
+                            "Repair the directory-entry attributes",
+                            CAT_OKAY)) {
                         entry[11] &= 0x3f;
                         if ((entry[11] & 0x18) == 0x18)
                             entry[11] &= (unsigned char)~0x08;
@@ -782,7 +946,7 @@ static int scan_directory(struct scan_state *state, unsigned first,
                     report_problem(state,
                         "A directory entry has an invalid date or time.");
                     if (permit_repair(state,
-                            "Replace the invalid date and time")) {
+                            "Replace the invalid date and time", CAT_OKAY)) {
                         set_current_timestamp(entry);
                         repair_directory_sector(state, position);
                         ++state->repaired;
@@ -798,7 +962,8 @@ static int scan_directory(struct scan_state *state, unsigned first,
                         report_problem(state,
                             "A directory has an invalid starting cluster.");
                         if (permit_repair(state,
-                                "Remove the invalid directory entry")) {
+                                "Remove the invalid directory entry",
+                                CAT_BAD_ENTRY)) {
                             entry[0] = 0xe5;
                             repair_directory_sector(state, position);
                             ++state->repaired;
@@ -809,7 +974,7 @@ static int scan_directory(struct scan_state *state, unsigned first,
                         report_problem(state,
                             "A directory entry has a nonzero file size.");
                         if (permit_repair(state,
-                                "Set the directory size to zero")) {
+                                "Set the directory size to zero", CAT_OKAY)) {
                             put_dword(entry + 28, 0);
                             changed = 1;
                             ++state->repaired;
@@ -869,7 +1034,8 @@ static int compare_fat_mirrors(struct scan_state *state)
                 if (!difference)
                     report_problem(state, "The file allocation table copies differ.");
                 difference = 1;
-                if (permit_repair(state, "Replace the damaged FAT copy")) {
+                if (permit_repair(state, "Replace the damaged FAT copy",
+                                  CAT_MISMATCH)) {
                     if (fat_volume_io(&state->volume, 1, other, 1, fat_buffer))
                         ++state->unrepaired;
                     else
@@ -936,6 +1102,12 @@ static void find_lost_clusters(struct scan_state *state)
     unsigned value;
     unsigned long cluster_bytes =
         (unsigned long)state->volume.sectors_per_cluster * 512UL;
+    if (state->options.custom &&
+        state->options.policies[CAT_LOST] == POLICY_DELETE)
+        state->options.no_save = 1;
+    else if (state->options.custom &&
+             state->options.policies[CAT_LOST] == POLICY_SAVE)
+        state->options.no_save = 0;
     memset(incoming, 0, sizeof(incoming));
     for (cluster = 2; cluster <= state->volume.clusters + 1U; ++cluster) {
         if (state->aborted)
@@ -960,7 +1132,7 @@ static void find_lost_clusters(struct scan_state *state)
         report_problem(state, "Lost clusters were found.");
         if (!permit_repair(state, state->options.no_save
                 ? "Free this lost cluster chain"
-                : "Save this lost cluster chain as a file")) {
+                : "Save this lost cluster chain as a file", CAT_LOST)) {
             ++state->unrepaired;
             chain_length(state, cluster);
             continue;
@@ -972,7 +1144,7 @@ static void find_lost_clusters(struct scan_state *state)
                 unsigned next;
                 fat_volume_get(&state->volume, current, &next, fat_buffer);
                 bit_set(claimed, current);
-                repair_fat(state, current, 0);
+                repair_fat(state, current, 0, CAT_LOST);
                 if (fat_volume_eoc(&state->volume, next))
                     break;
                 current = next;
@@ -1001,7 +1173,7 @@ static void find_lost_clusters(struct scan_state *state)
         report_problem(state, "A cyclic lost cluster chain was found.");
         if (!permit_repair(state, state->options.no_save
                 ? "Free this cyclic lost cluster chain"
-                : "Save this cyclic lost cluster chain as a file")) {
+                : "Save this cyclic lost cluster chain as a file", CAT_LOST)) {
             chain_length(state, cluster);
             ++state->unrepaired;
             continue;
@@ -1017,10 +1189,11 @@ static void find_lost_clusters(struct scan_state *state)
             if (fat_volume_get(&state->volume, current, &next, fat_buffer))
                 break;
             if (state->options.no_save)
-                repair_fat(state, current, 0);
+                repair_fat(state, current, 0, CAT_LOST);
             else if (bit_get(chain_seen, next)) {
                 repair_fat(state, current,
-                           state->volume.fat16 ? 0xffffU : 0x0fffU);
+                           state->volume.fat16 ? 0xffffU : 0x0fffU,
+                           CAT_LOST);
                 break;
             }
             current = next;
@@ -1065,7 +1238,8 @@ static void surface_scan(struct scan_state *state)
             report_problem(state, "An unreadable data cluster was found.");
             if (!bit_get(claimed, cluster))
                 repair_fat(state, cluster,
-                           state->volume.fat16 ? 0xfff7U : 0x0ff7U);
+                           state->volume.fat16 ? 0xfff7U : 0x0ff7U,
+                           CAT_BAD_CLUSTER);
             else
                 ++state->unrepaired;
         }
@@ -1075,9 +1249,10 @@ static void surface_scan(struct scan_state *state)
 static void write_repair_log(const struct scan_state *state)
 {
     FILE *file;
-    if (!state->errors)
+    if (!state->errors || !state->options.save_log)
         return;
-    file = fopen("SCANDISK.LOG", "a");
+    file = fopen("SCANDISK.LOG",
+                 state->options.save_log == 2 ? "w" : "a");
     if (!file)
         return;
     fprintf(file,
@@ -1192,8 +1367,25 @@ static int scan_drive(unsigned drive, const struct options *options)
     compare_fat_mirrors(&state);
     scan_directory(&state, 0, 0, 0);
     find_lost_clusters(&state);
-    if (state.options.surface)
-        surface_scan(&state);
+    if (state.options.surface_prompt && !state.options.surface) {
+        int answer;
+        fputs("Perform a surface scan (Y/N)? ", stdout);
+        fflush(stdout);
+        do answer = toupper(getchar());
+        while (answer == '\r' || answer == '\n' || answer == ' ');
+        putchar('\n');
+        state.options.surface = answer == 'Y';
+    }
+    if (state.options.surface) {
+        unsigned pass;
+        for (pass = 0; pass < state.options.surface_passes &&
+                       !state.aborted; ++pass) {
+            if (state.options.surface_passes > 1)
+                printf("Surface scan pass %u of %u.\n", pass + 1,
+                       state.options.surface_passes);
+            surface_scan(&state);
+        }
+    }
     finish_undo_disk(&state);
     write_repair_log(&state);
     if (state.aborted) {
@@ -1431,7 +1623,7 @@ int main(int argc, char **argv)
         usage();
         return 1;
     }
-    load_custom_options(&options);
+    load_custom_options(&options, argv[0]);
     if (options.undo) {
         drive = options.drive_count ? 0 : 0;
         if (options.drive_count)

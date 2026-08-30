@@ -31,6 +31,15 @@ cp "$BASE" "$BOOT"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 mcopy -o -i "$BOOT" "$ROOT/src/CMD/SCANDISK/SCANDISK.EXE" ::SCANDISK.EXE
 mcopy -o -i "$BOOT" "$QEXIT" ::QEXIT.COM
+{
+    printf '[Environment]\r\nNumPasses=2\r\nLabelCheck=On\r\nLfnCheck=Off\r\n'
+    printf '[Custom]\r\nDriveSummary=Off\r\nSurface=Always\r\n'
+    printf 'SaveLog=Overwrite\r\nUndo=Never\r\n'
+    printf 'Okay_Entries=Fix\r\nBad_Chain=Fix\r\nCrosslinks=Fix\r\n'
+    printf 'Mismatch_FAT=Fix\r\nBad_Clusters=Fix\r\nBad_Entries=Delete\r\n'
+    printf 'LostClust=Save\r\n'
+} | mcopy -o -i "$BOOT" - ::SCANDISK.INI
+printf 'OLD LOG MUST BE REPLACED\r\n' | mcopy -o -i "$BOOT" - ::SCANDISK.LOG
 
 dd if=/dev/zero of="$TARGET" bs=512 count=2880 status=none
 mformat -i "$TARGET" -f 1440 ::
@@ -124,6 +133,14 @@ disk[badname_entry] = ord('*')
 badclus_entry = root_entry(b'BADCLUS TXT')
 struct.pack_into('<H', disk, badclus_entry + 26, 0x0b50)
 
+free_entry = next(root + off for off in range(0, 224 * 32, 32)
+                  if disk[root + off] == 0)
+disk[free_entry:free_entry + 11] = b'LFNENTRYBAD'
+disk[free_entry + 11] = 0x0f
+label_entry = free_entry + 32
+disk[label_entry:label_entry + 11] = b'BAD*LABEL  '
+disk[label_entry + 11] = 0x08
+
 data = 33 * 512
 for cluster in (100, 101, 102):
     start = data + (cluster - 2) * 512
@@ -138,9 +155,9 @@ cp "$TARGET" "$BEFORE"
     printf 'IF ERRORLEVEL 1 ECHO FRAGMENT_FAILED\r\n'
     printf 'SCANDISK B: /CHECKONLY /NOSUMMARY\r\n'
     printf 'IF ERRORLEVEL 255 ECHO CHECKONLY_FOUND_ERRORS\r\n'
-    printf 'SCANDISK B: /AUTOFIX /NOSUMMARY\r\n'
-    printf 'IF ERRORLEVEL 255 ECHO AUTOFIX_FAILED\r\n'
-    printf 'IF ERRORLEVEL 254 ECHO AUTOFIX_REPAIRED\r\n'
+    printf 'SCANDISK B: /CUSTOM\r\n'
+    printf 'IF ERRORLEVEL 255 ECHO CUSTOM_FAILED\r\n'
+    printf 'IF ERRORLEVEL 254 ECHO CUSTOM_REPAIRED\r\n'
     printf 'IF EXIST B:\\FILE0000.CHK ECHO RECOVERED_FILE_PRESENT\r\n'
     printf 'SCANDISK B: /CHECKONLY\r\n'
     printf 'IF ERRORLEVEL 1 ECHO RESCAN_FAILED\r\n'
@@ -188,11 +205,23 @@ if grep -q 'subdirectory contains a volume-label entry' "$LOG" &&
 else
     fail "directory structural corruption was not fully diagnosed"
 fi
+if grep -q 'long-filename directory entry was found' "$LOG" &&
+   grep -q 'volume label contains invalid characters' "$LOG"; then
+    ok "SCANDISK.INI LfnCheck and LabelCheck policies are active"
+else
+    fail "SCANDISK.INI filename or label validation was not applied"
+fi
+if grep -q 'Surface scan pass 1 of 2' "$LOG" &&
+   grep -q 'Surface scan pass 2 of 2' "$LOG"; then
+    ok "SCANDISK.INI NumPasses controls repeated surface verification"
+else
+    fail "SCANDISK.INI NumPasses was not honored"
+fi
 grep -q 'RECOVERED_FILE_PRESENT' "$LOG" &&
     ok "/AUTOFIX converts the orphan chain to FILE0000.CHK" ||
     fail "lost chain was not recovered"
-if grep -Eq 'AUTOFIX_FAILED|RESCAN_FAILED|SURFACE_FAILED' "$LOG" ||
-   ! grep -q 'AUTOFIX_REPAIRED' "$LOG"; then
+if grep -Eq 'CUSTOM_FAILED|RESCAN_FAILED|SURFACE_FAILED' "$LOG" ||
+   ! grep -q 'CUSTOM_REPAIRED' "$LOG"; then
     fail "repair or clean rescan returned failure"
 else
     ok "repair succeeds and a second /CHECKONLY scan is clean"
@@ -275,6 +304,12 @@ badclus = next(root + off for off in range(0, 224 * 32, 32)
                if disk[root + off:root + off + 11] == b'BADCLUS TXT')
 assert struct.unpack_from('<H', disk, badclus + 26)[0] == 0
 assert struct.unpack_from('<I', disk, badclus + 28)[0] == 0
+
+assert any(disk[root + off:root + off + 11] == b'BAD_LABEL  '
+           for off in range(0, 224 * 32, 32))
+assert not any(disk[root + off] not in (0, 0xe5) and
+               (disk[root + off + 11] & 0x0f) == 0x0f
+               for off in range(0, 224 * 32, 32))
 PY
 
 grep -q 'SCANDISK_DONE' "$LOG" && ok "DOS batch completed" || {
@@ -282,10 +317,11 @@ grep -q 'SCANDISK_DONE' "$LOG" && ok "DOS batch completed" || {
     tail -40 "$LOG"
 }
 repair_log="$(mcopy -i "$BOOT" ::SCANDISK.LOG - 2>/dev/null | tr -d '\r' || true)"
-if grep -q 'Drive B:.*problem(s).*repair(s)' <<<"$repair_log"; then
-    ok "logical checks and repairs append SCANDISK.LOG"
+if grep -q 'Drive B:.*problem(s).*repair(s)' <<<"$repair_log" &&
+   ! grep -q 'OLD LOG MUST BE REPLACED' <<<"$repair_log"; then
+    ok "/CUSTOM applies automatic policies, surface passes, Undo=Never, and log overwrite"
 else
-    fail "SCANDISK.LOG lacks the drive repair summary"
+    fail "SCANDISK.INI custom log or repair policy was not applied"
 fi
 
 echo "Testing Undo-disk creation and reverse-order restoration..."

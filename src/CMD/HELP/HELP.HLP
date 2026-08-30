@@ -341,6 +341,7 @@ Syntax: SCANDISK [drive:] [/ALL] [/AUTOFIX] [/CHECKONLY] [/CUSTOM]
                 [/FRAGMENT] [/MONO] [/NOSAVE] [/NOSUMMARY] [/SURFACE] [/UNDO]
 /CHECKONLY never repairs; /AUTOFIX repairs without prompting. /NOSAVE frees
 lost chains instead of saving FILEnnnn.CHK files. /SURFACE reads data clusters.
+With /CUSTOM, environment and repair policy come from SCANDISK.INI.
 @SET
 Displays, sets, or removes environment variables.
 Syntax: SET [variable=[string]]
