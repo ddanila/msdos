@@ -607,9 +607,21 @@ string_equal_loop:
         clc
         ret
 string_not_equal:
+        ; DOS 6 documents /V as the abbreviation of /VERBOSE. This mismatch
+        ; is the exact point where a NUL after '/V' meets its next 'E'.
+        or      al, al
+        jnz     short string_really_not_equal
+        cmp     bx, offset opt_verbose+3
+        je      short string_equal_abbrev
+string_really_not_equal:
         pop     bx
         pop     si
         stc
+        ret
+string_equal_abbrev:
+        pop     bx
+        pop     si
+        clc
         ret
 string_equal endp
 

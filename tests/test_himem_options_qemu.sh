@@ -50,7 +50,7 @@ grep -Fq 'HIMEM_OPTIONS_PASS' "$LOG" || {
 cp "$FLOPPY" "$VERBOSE_IMAGE"
 mcopy -o -i "$VERBOSE_IMAGE" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
 mcopy -o -i "$VERBOSE_IMAGE" "$QEXIT" ::QEXIT.COM
-printf 'DEVICE=A:\\HIMEM.SYS /VERBOSE\r\n' | \
+printf 'DEVICE=A:\\HIMEM.SYS /V\r\n' | \
     mcopy -o -i "$VERBOSE_IMAGE" - ::CONFIG.SYS
 printf '@ECHO OFF\r\nPAUSE\r\nCHOICE /N /T:Y,2 >NUL\r\nQEXIT.COM\r\n' | \
     mcopy -o -i "$VERBOSE_IMAGE" - ::AUTOEXEC.BAT
