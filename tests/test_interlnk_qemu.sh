@@ -31,7 +31,7 @@ mformat -C -i "$SERVER_IMAGE_TWO" -f 1440 ::
 printf 'Byte-exact Interlnk transport\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::REMOTE.TXT
 printf 'Second Interlnk volume\r\n' | mcopy -o -i "$SERVER_IMAGE_TWO" - ::REMOTE2.TXT
 mcopy -o -i "$SERVER_IMAGE" "$ROOT/src/CMD/INTERSVR/INTERSVR.EXE" ::INTERSVR.EXE
-printf '@ECHO OFF\r\nINTERSVR A: B: /COM:2\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::AUTOEXEC.BAT
+printf '@ECHO OFF\r\nINTERSVR A: B: /B /V /COM:2\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::AUTOEXEC.BAT
 printf '\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::CONFIG.SYS
 
 mcopy -o -i "$CLIENT_IMAGE" "$ROOT/src/CMD/INTERLNK/INTERLNK.EXE" ::INTERLNK.EXE

@@ -422,7 +422,7 @@ parse_space:
 parse_drive_at_end:
         jmp     parse_done
 parse_drive_tail:
-        jcxz    parse_done
+        jcxz    parse_at_end
         mov     al,es:[si]
         inc     si
         dec     cx
@@ -433,13 +433,30 @@ parse_at_end:
         jmp     parse_done
 parse_switch:
         ; Serial COM1 through COM4 are supported; parallel ports remain a gap.
-        jcxz    parse_bad
+        jcxz    short parse_switch_bad
         mov     al,es:[si]
         inc     si
         dec     cx
         and     al,0dfh
         cmp     al,'C'
+        je      short parse_com
+        cmp     al,'B'
+        je      short parse_monochrome
+        cmp     al,'V'
+        je      short parse_timer_safe
+parse_switch_bad:
+        jmp     parse_bad
+parse_monochrome:
+        mov     cs:monochrome_mode,1
+        jmp     short parse_flag_end
+parse_timer_safe:
+        mov     cs:timer_safe_mode,1
+parse_flag_end:
+        jcxz    parse_done
+        cmp     byte ptr es:[si],' '
         jne     parse_bad
+        jmp     parse_space
+parse_com:
         cmp     cx,4
         jb      parse_bad
         mov     al,es:[si]
@@ -502,6 +519,8 @@ server_help:
 
 com_port        dw 03f8h
 com_number      db 1
+monochrome_mode db 0
+timer_safe_mode db 0
 drive_count     db 0
 server_drives   db 5 dup(0)
 request_command db 0
@@ -515,7 +534,7 @@ banner          db 'Microsoft Interlnk server compatible transport',13,10
                 db 'Port-COM'
 banner_port     db '1  Drives $'
 banner_suffix   db ' available',13,10,'$'
-usage           db 'Syntax: INTERSVR [drive: ...] [/COM:n]',13,10,'$'
+usage           db 'Syntax: INTERSVR [drive: ...] [/COM:n] [/B] [/V]',13,10,'$'
 sector_buffer   db 512 dup(0)
 com_bases       dw 03f8h,02f8h,03e8h,02e8h
 
