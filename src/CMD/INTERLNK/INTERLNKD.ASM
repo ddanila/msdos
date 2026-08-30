@@ -46,6 +46,10 @@ interrupt PROC FAR
         je      request_init
         cmp     cs:connected,0
         jne     short request_dispatch
+        cmp     al,1                   ; offline media/BPB use placeholders
+        je      short request_dispatch
+        cmp     al,2
+        je      short request_dispatch
         push    ax
         call    connect_server
         pop     ax
@@ -83,8 +87,15 @@ request_init:
         call    parse_config
         jc      init_failed
         call    init_serial
+        cmp     cs:no_scan,0
+        jne     short init_offline
         call    connect_server
-        jc      init_failed
+        jnc     short init_install
+        cmp     cs:auto_install,0
+        jne     init_failed
+init_offline:
+        call    prepare_offline_units
+init_install:
         lds     bx,cs:request_ptr
         mov     al,cs:unit_count
         mov     byte ptr [bx+13],al
@@ -101,6 +112,36 @@ init_failed:
         mov     word ptr [bx+16],cs
         mov     word ptr [bx+3],8102h
         jmp     request_exit
+
+prepare_offline_units PROC NEAR
+        push    cs
+        pop     ds
+        push    cs
+        pop     es
+        mov     al,cs:drive_limit
+        mov     cs:unit_count,al
+        mov     cs:installed_units,al
+        xor     bx,bx
+offline_bpb_loop:
+        mov     ax,bx
+        mov     dx,25
+        mul     dx
+        mov     di,OFFSET remote_bpbs
+        add     di,ax
+        mov     ax,bx
+        shl     ax,1
+        mov     si,ax
+        mov     word ptr cs:bpb_pointers[si],di
+        mov     si,OFFSET default_bpb
+        mov     cx,25
+        rep     movsb
+        inc     bx
+        xor     ax,ax
+        mov     al,cs:unit_count
+        cmp     bx,ax
+        jb      short offline_bpb_loop
+        ret
+prepare_offline_units ENDP
 
 connect_server PROC NEAR
         cmp     cs:com_explicit,0
@@ -530,10 +571,30 @@ config_check_switch:
 config_check_noprinter:
         cmp     al,'N'
         jne     short config_check_baud
-        jmp     config_noprinter
+        jmp     config_n_option
 config_check_baud:
         cmp     al,'B'
         je      short config_baud
+        cmp     al,'A'
+        je      short config_auto
+        cmp     al,'V'
+        je      short config_timer_safe
+        jmp     config_bad
+config_auto:
+        lodsb
+        and     al,0dfh
+        cmp     al,'U'
+        jne     short config_auto_bad
+        lodsw
+        and     ax,0dfdfh
+        cmp     ax,'OT'
+        jne     short config_auto_bad
+        mov     cs:auto_install,1
+        jmp     config_scan
+config_timer_safe:
+        mov     cs:timer_safe_mode,1
+        jmp     config_scan
+config_auto_bad:
         jmp     config_bad
 config_baud:
         lodsb
@@ -588,7 +649,9 @@ config_drives:
         lodsw
         and     ax,0dfdfh
         cmp     ax,'IR'
-        jne     short config_bad
+        je      short config_drives_ev
+        jmp     config_bad
+config_drives_ev:
         lodsw
         and     ax,0dfdfh
         cmp     ax,'EV'
@@ -608,11 +671,20 @@ config_drives:
         ja      short config_bad
         mov     cs:drive_limit,al
         jmp     config_scan
+config_n_option:
+        lodsb
+        and     al,0dfh
+        cmp     al,'O'
+        jne     short config_n_bad
+        lodsb
+        and     al,0dfh
+        cmp     al,'P'
+        je      short config_noprinter
+        cmp     al,'S'
+        je      short config_noscan
+config_n_bad:
+        jmp     config_bad
 config_noprinter:
-        lodsw
-        and     ax,0dfdfh
-        cmp     ax,'PO'
-        jne     short config_bad
         lodsw
         and     ax,0dfdfh
         cmp     ax,'IR'
@@ -625,6 +697,17 @@ config_noprinter:
         and     ax,0dfdfh
         cmp     ax,'RE'
         jne     short config_bad
+        jmp     config_scan
+config_noscan:
+        lodsw
+        and     ax,0dfdfh
+        cmp     ax,'AC'
+        jne     short config_n_bad
+        lodsb
+        and     al,0dfh
+        cmp     al,'N'
+        jne     short config_n_bad
+        mov     cs:no_scan,1
         jmp     config_scan
 config_ok:
         clc
@@ -773,6 +856,17 @@ io_command      db 0
 io_remaining    dw 0
 baud_divisor    dw 1
 baud_terminator db 0
+auto_install    db 0
+no_scan         db 0
+timer_safe_mode db 0
+default_bpb     dw 512
+                db 1
+                dw 1
+                db 2
+                dw 224,2880
+                db 0f0h
+                dw 9,18,2
+                dd 0,0
 com_bases       dw 03f8h,02f8h,03e8h,02e8h
 resident_end LABEL BYTE
 

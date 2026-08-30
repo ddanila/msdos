@@ -109,7 +109,7 @@ missing db 'INTERLNK is not installed or the server is unavailable.',13,10,'$'
 syntax  db 'Invalid INTERLNK parameter.',13,10,'$'
 help    db 'Displays or renews the Interlnk client connection.',13,10
         db 'Syntax: INTERLNK [/RECONNECT]',13,10
-        db 'CONFIG.SYS: DEVICE=INTERLNK.EXE [/DRIVES:n] [/NOPRINTER] [/COM:n] [/BAUD:rate]',13,10,'$'
+        db 'CONFIG.SYS: DEVICE=INTERLNK.EXE [/DRIVES:n] [/NOPRINTER] [/COM:n] [/BAUD:rate] [/AUTO] [/NOSCAN] [/V]',13,10,'$'
 reconnect_name db 'RECONNECT'
 reconnected db 'Interlnk connection renewed.',13,10,'$'
 CODE ENDS
