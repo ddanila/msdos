@@ -287,6 +287,8 @@ extern void sysloadmsg(union REGS *, union REGS *);                             
 extern void sysdispmsg(union REGS *, union REGS *);                                                                              /* ;an000; */
 extern void sysgetmsg(union REGS *, struct SREGS *, union REGS *);                                                               /* ;an000; */
 extern void parse(union REGS *, union REGS *);                                                                                   /* ;an000; */
+extern int ReadXmsInfo(void);
+extern unsigned XmsVersion, XmsDriverVersion, XmsLargestFree, XmsTotalFree;
                                                                                                                                  /* ;an000; */
                                                                                                                                 /* ;an000; */
 /*���������������������������������������������������������������������������*/                                                  /* ;an000; */
@@ -562,6 +564,8 @@ char *RequestedModule;
         unsigned long UpperTotal;
         unsigned long UpperFree;
         unsigned long UpperLargest;
+        unsigned long ExtendedTotal;
+        unsigned long ExtendedFree;
         unsigned long RegionFree[MAX_UMB_REGIONS];
         unsigned long RegionLargest[MAX_UMB_REGIONS];
         unsigned long ModuleBytes;
@@ -594,6 +598,14 @@ char *RequestedModule;
         UpperFree = 0l;
         UpperLargest = 0l;
         MemModuleCount = 0;
+        ExtendedTotal = 0l;
+        ExtendedFree = 0l;
+        InRegs.h.ah = 0x52;
+        intdosx(&InRegs,&OutRegs,&SegRegs);
+        SET_FP(SysVarsPtr,SegRegs.es,OutRegs.x.bx);
+        ExtendedTotal = ((unsigned long)SysVarsPtr->ExtendedMemory) * 1024l;
+        if (ReadXmsInfo())
+                ExtendedFree = ((unsigned long)XmsTotalFree) * 1024l;
         for (Index = 0; Index < MAX_UMB_REGIONS; Index++) {
                 RegionFree[Index] = 0l;
                 RegionLargest[Index] = 0l;
@@ -632,7 +644,8 @@ char *RequestedModule;
         Found = FALSE;
 
         if (Mode == MEM_MODE_DEBUG) {
-                printf("\r\n  Address     Name          Size       Type       Region\r\n");
+                printf("\r\nConventional Memory Detail:\r\n\r\n");
+                printf("  Address     Name          Size       Type       Region\r\n");
                 printf("  -------     --------      --------   --------   ------\r\n");
                 }
         if (Mode == MEM_MODE_FREE) {
@@ -770,10 +783,16 @@ char *RequestedModule;
                                         if (ConfigBytes <= SystemUpper)
                                                 SystemUpper -= ConfigBytes;
                                         }
-                                if (Mode == MEM_MODE_DEBUG)
-                                        printf("               %-8s  %10lu   Config %c\r\n",
-                                               Name,((unsigned long)ConfigArena->Paragraphs) * 16l,
-                                               ConfigArena->Signature);
+                                if (Mode == MEM_MODE_DEBUG) {
+                                        if (ConfigArena->Signature == 'D')
+                                                printf("               %-8s  %10lu   Installed Device=%s\r\n",
+                                                       Name,((unsigned long)ConfigArena->Paragraphs) * 16l,
+                                                       Name);
+                                        else
+                                                printf("               %-8s  %10lu   Config %c\r\n",
+                                                       Name,((unsigned long)ConfigArena->Paragraphs) * 16l,
+                                                       ConfigArena->Signature);
+                                        }
                                 if (Mode == MEM_MODE_MODULE &&
                                     stricmp(Name,RequestedModule) == 0) {
                                         Found = TRUE;
@@ -820,14 +839,18 @@ char *RequestedModule;
                 }
 
         if (Mode == MEM_MODE_FREE) {
-                printf("\r\nFree Upper Memory:\r\n\r\n");
-                printf("  Region   Largest free       Total free      Region size\r\n");
-                printf("  ------   ------------       ----------      -----------\r\n");
-                for (Index = 0; Index < UmbRegionCount; Index++)
-                        printf("  %6d   %12lu       %10lu      %11lu\r\n",Index + 1,
-                               RegionLargest[Index],RegionFree[Index],
-                               ((unsigned long)(UmbRegions[Index].End -
-                                UmbRegions[Index].Start)) * 16l);
+                if (UmbRegionCount == 0)
+                        printf("\r\nNo upper memory available\r\n");
+                else {
+                        printf("\r\nFree Upper Memory:\r\n\r\n");
+                        printf("  Region   Largest free       Total free      Region size\r\n");
+                        printf("  ------   ------------       ----------      -----------\r\n");
+                        for (Index = 0; Index < UmbRegionCount; Index++)
+                                printf("  %6d   %12lu       %10lu      %11lu\r\n",Index + 1,
+                                       RegionLargest[Index],RegionFree[Index],
+                                       ((unsigned long)(UmbRegions[Index].End -
+                                        UmbRegions[Index].Start)) * 16l);
+                        }
                 }
 
         if (Mode == MEM_MODE_MODULE) {
@@ -848,14 +871,23 @@ char *RequestedModule;
         if (Mode == MEM_MODE_SUMMARY || Mode == MEM_MODE_CLASSIFY ||
             Mode == MEM_MODE_DEBUG) {
                 printf("\r\nMemory Summary:\r\n\r\n");
-                printf("  Type              Total        Used        Free\r\n");
-                printf("  -------------  ----------  ----------  ----------\r\n");
+                printf("  Type of Memory       Total   =    Used    +    Free\r\n");
+                printf("  ----------------  ----------   ----------   ----------\r\n");
                 printf("  Conventional   %10lu  %10lu  %10lu\r\n",
                        ConventionalTotal,ConventionalTotal - ConventionalFree,
                        ConventionalFree);
                 printf("  Upper          %10lu  %10lu  %10lu\r\n",
                        UpperTotal,UpperTotal - UpperFree,UpperFree);
                 printf("  Reserved                0           0           0\r\n");
+                printf("  Extended (XMS) %10lu  %10lu  %10lu\r\n",
+                       ExtendedTotal,ExtendedTotal > ExtendedFree ?
+                       ExtendedTotal - ExtendedFree : 0l,ExtendedFree);
+                printf("  ----------------  ----------   ----------   ----------\r\n");
+                printf("  Total memory     %10lu  %10lu  %10lu\r\n",
+                       ConventionalTotal + UpperTotal + ExtendedTotal,
+                       ConventionalTotal + UpperTotal + ExtendedTotal -
+                       ConventionalFree - UpperFree - ExtendedFree,
+                       ConventionalFree + UpperFree + ExtendedFree);
                 printf("  Total under 1 MB %9lu  %10lu  %10lu\r\n",
                        ConventionalTotal + UpperTotal,
                        ConventionalTotal + UpperTotal - ConventionalFree - UpperFree,
@@ -866,6 +898,12 @@ char *RequestedModule;
                         printf("MS-DOS is resident in the high memory area.\r\n");
                 else
                         printf("The high memory area is available.\r\n");
+                if (Mode == MEM_MODE_DEBUG && ReadXmsInfo()) {
+                        printf("Memory accessible using Int 15h %10lu\r\n",0l);
+                        printf("XMS version  %u.%02u; driver version  %u.%02u\r\n",
+                               XmsVersion >> 8,XmsVersion & 0xff,
+                               XmsDriverVersion >> 8,XmsDriverVersion & 0xff);
+                        }
                 }
 }
                                                                                                                                  /* ;an000; */

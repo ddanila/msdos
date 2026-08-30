@@ -84,15 +84,15 @@ if grep -Fq 'MEM_SYNONYM_FAIL' "$LOG"; then
     exit 1
 fi
 
-if ! grep -Eq '^  Upper +49152 +' "$LOG" \
+if ! grep -Eq '^  Upper +49152 +48 +49104' "$LOG" \
     || ! grep -Eq '^  HIMEM +[1-9][0-9]* +[1-9][0-9]* +0' "$LOG" \
     || ! grep -Eq '^  EMM386 +[1-9][0-9]* +[1-9][0-9]* +0' "$LOG" \
     || ! grep -Eq '^  Free +[1-9][0-9]* +[1-9][0-9]* +[1-9][0-9]*' "$LOG" \
-    || ! grep -Eq '^ +1 +32736 +32736 +32768' "$LOG" \
-    || ! grep -Eq '^ +2 +16368 +16368 +16384' "$LOG" \
-    || ! grep -Eq '^  CC00:0000 +FREE +32736 +Free +1' "$LOG" \
-    || ! grep -Eq '^  D3FF:0000 +SYSTEM +65536 +System +1' "$LOG" \
-    || ! grep -Eq '^  E400:0000 +FREE +16368 +Free +2' "$LOG"
+    || ! grep -Eq '^ +1 +16352 +16352 +16384' "$LOG" \
+    || ! grep -Eq '^ +2 +32752 +32752 +32768' "$LOG" \
+    || ! grep -Eq '^  CC00:0000 +FREE +16352 +Free +1' "$LOG" \
+    || ! grep -Eq '^  CFFF:0000 +SYSTEM +65536 +System +1' "$LOG" \
+    || ! grep -Eq '^  E000:0000 +FREE +32752 +Free +2' "$LOG"
 then
     echo 'FAIL: MEM did not preserve exact split UMB region accounting' >&2
     strings -a "$LOG" | sed -n '1,260p' >&2

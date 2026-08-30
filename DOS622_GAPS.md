@@ -84,7 +84,7 @@ Known gaps in commands already shipped:
 | `FORMAT` | `/C` retests previously marked bad clusters, while normal formatting preserves their marks. Compressed/host-drive interaction depends on the DriveSpace epic. |
 | `HELP` | The current searchable text database lacks the retail full-screen hypertext UI, complete 6.22 topic corpus, mouse navigation, syntax/notes/examples links, and full-text search. The UI belongs to the QBASIC epic; lean text topics can grow with each stage. |
 | `HIMEM.SYS` | XMS 3.00 identity and 32-bit functions 88h, 89h, 8Eh, and 8Fh match DOS 6.22 reference behavior within the manager's 64 MiB pool. The DOS 5 options, `/EISA`, diagnostics, and destructive `/TESTMEM:ON|OFF` paths are covered. Remaining gaps are machine-specific option behavior and physical-hardware validation. |
-| `MEM` | Existing `/C`, `/D`, `/F`, `/M`, and `/PROGRAM` views need differential validation against DOS 6.22's enhanced reports and EMM386 integration. |
+| `MEM` | Summary, `/C`, `/D`, `/F`, `/M`, and `/PROGRAM` use the DOS 6.22 report structure and include XMS 3 identity/free space, device detail, HMA state, and split EMM386 UMB accounting. Locale-dependent spacing and physical-machine totals are not compatibility claims. |
 | `SETVER` | Retail 6.2/6.22 defaults, persistent editing, driver loading, and 6.22 identity behavior are covered. |
 | `UNDELETE` | DOS protection modes exist, but the enhanced 6.22 UI/configuration and Windows companion are absent. The Windows companion is out of scope. |
 | `XCOPY` | Present: `/Y`, `/-Y`, `COPYCMD`, overwrite prompts, and hidden/system exclusion are covered. |
