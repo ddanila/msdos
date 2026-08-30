@@ -134,7 +134,11 @@ char **argv;
             if (same(a, "C")) { p[0] = 0; send(h, p, 1); action = 1; }
             else if (same(a, "R")) { p[0] = 1; send(h, p, 1); p[0] = 3; send(h, p, 1); action = 1; }
             else if (same(a, "X") || same(a, "N")) { p[0] = 4; p[1] = 2; send(h, p, 2); action = 1; }
-            else if (same(a, "F")) { p[0] = 4; p[1] = 3; send(h, p, 2); action = 1; }
+            else if (same(a, "F")) {
+                p[0] = 4; p[1] = 3; send(h, p, 2);
+                p[0] = 8; p[1] = 1; send(h, p, 2);
+                action = 1;
+            }
             else if (same(a, "Q")) quiet = 1;
             else if (same(a, "V")) verbose = 1;
             else if (same(a, "S")) extended = 1;

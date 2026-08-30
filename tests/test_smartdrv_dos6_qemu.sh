@@ -35,7 +35,15 @@ printf 'DEVICE=SMARTDRV.SYS 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
     printf 'SMARTDRV /?\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_HELP_FAILED\r\n'
-    printf 'SMARTDRV C+ /F /S\r\n'
+    printf 'ECHO SMARTDRV_QUIET_BEGIN\r\nSMARTDRV /B:32 /E:4096 /L /U /Q 128 64\r\nECHO SMARTDRV_QUIET_END\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_INSTALL_OPTIONS_FAILED\r\n'
+    printf 'SMARTDRV /E:1234\r\nIF NOT ERRORLEVEL 1 ECHO SMARTDRV_BAD_ELEMENT_ACCEPTED\r\n'
+    printf 'ECHO SMARTDRV_OFF_BEGIN\r\nSMARTDRV C- /S\r\nECHO SMARTDRV_OFF_END\r\n'
+    printf 'ECHO SMARTDRV_READ_BEGIN\r\nSMARTDRV C /S\r\nECHO SMARTDRV_READ_END\r\n'
+    printf 'ECHO SMARTDRV_NOWRITE_BEGIN\r\nSMARTDRV C+ /X /S\r\nECHO SMARTDRV_NOWRITE_END\r\n'
+    printf 'SMARTDRV /N /Q\r\n'
+    printf 'SMARTDRV /R\r\n'
+    printf 'SMARTDRV C+ /F /V\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_CONFIG_FAILED\r\n'
     printf 'SDIO.COM\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_IO_FAILED\r\n'
@@ -55,6 +63,10 @@ timeout 25 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 
 
 dirty="$(sed -n '/SMARTDRV_DIRTY_BEGIN/,/SMARTDRV_DIRTY_END/p' "$SERIAL_LOG")"
 clean="$(sed -n '/SMARTDRV_CLEAN_BEGIN/,/SMARTDRV_CLEAN_END/p' "$SERIAL_LOG")"
+quiet_output="$(sed -n '/SMARTDRV_QUIET_BEGIN/,/SMARTDRV_QUIET_END/p' "$SERIAL_LOG")"
+off_status="$(sed -n '/SMARTDRV_OFF_BEGIN/,/SMARTDRV_OFF_END/p' "$SERIAL_LOG")"
+read_status="$(sed -n '/SMARTDRV_READ_BEGIN/,/SMARTDRV_READ_END/p' "$SERIAL_LOG")"
+nowrite_status="$(sed -n '/SMARTDRV_NOWRITE_BEGIN/,/SMARTDRV_NOWRITE_END/p' "$SERIAL_LOG")"
 sector_matches="$(python3 - "$HDD_IMG" <<'PY'
 import sys
 with open(sys.argv[1], 'rb') as f:
@@ -64,11 +76,16 @@ print('yes' if actual == expected else 'no')
 PY
 )"
 
-if grep -q 'C:  Read cache yes  Write cache yes' "$SERIAL_LOG" \
+if [[ "$(grep -c 'SMARTDRV_QUIET_' <<<"$quiet_output")" == 2 ]] \
+    && grep -q 'C:  Read cache no  Write cache no' <<<"$off_status" \
+    && grep -q 'C:  Read cache yes  Write cache no' <<<"$read_status" \
+    && grep -q 'C:  Read cache yes  Write cache no' <<<"$nowrite_status" \
+    && grep -q 'C:  Read cache yes  Write cache yes' "$SERIAL_LOG" \
     && grep -Eq '[1-9][0-9]* dirty' <<<"$dirty" \
     && grep -q '0 dirty' <<<"$clean" \
     && [[ "$sector_matches" == yes ]] \
-    && ! grep -q 'SMARTDRV_.*_FAILED\|SMARTDRV: ' "$SERIAL_LOG"; then
+    && grep -q 'SMARTDRV: invalid cache element or read-ahead size' "$SERIAL_LOG" \
+    && ! grep -q 'SMARTDRV_.*_FAILED\|SMARTDRV_BAD_ELEMENT_ACCEPTED' "$SERIAL_LOG"; then
     echo "  PASS: DOS 6 SMARTDRV policy delayed and explicitly flushed a fixed-disk write"
     exit 0
 fi
