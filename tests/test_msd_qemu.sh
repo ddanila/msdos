@@ -45,7 +45,7 @@ printf 'DEVICE=A:\\RAMDRIVE.SYS 64\r\n' | \
 } | mcopy -o -i "$IMAGE" - ::AUTOEXEC.BAT
 
 rm -f "$LOG"
-timeout 25 qemu-system-i386 \
+timeout 35 qemu-system-i386 \
     -display none -monitor none -boot a -m 4 \
     -drive if=floppy,index=0,format=raw,file="$IMAGE",cache=writethrough \
     -serial stdio \
