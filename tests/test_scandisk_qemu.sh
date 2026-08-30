@@ -123,6 +123,8 @@ def root_entry(name):
                 if disk[root + off:root + off + 11] == name)
 
 control_entry = root_entry(b'CONTROL TXT')
+control_cluster = struct.unpack_from('<H', disk, control_entry + 26)[0]
+Path(str(path) + '.control').write_text(str(control_cluster))
 disk[control_entry + 11] |= 0xc0
 dup2_entry = root_entry(b'DUP2    TXT')
 disk[dup2_entry:dup2_entry + 11] = b'DUP1    TXT'
@@ -148,9 +150,12 @@ for cluster in (100, 101, 102):
 path.write_bytes(disk)
 PY
 
+control_cluster="$(cat "$TARGET.control")"
+
 cp "$TARGET" "$BEFORE"
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
+    printf 'SET SCANDISK_FAILCLUSTER=%s\r\n' "$control_cluster"
     printf 'SCANDISK /FRAGMENT B:\\*.BIN\r\n'
     printf 'IF ERRORLEVEL 1 ECHO FRAGMENT_FAILED\r\n'
     printf 'SCANDISK B: /CHECKONLY /NOSUMMARY\r\n'
@@ -217,8 +222,13 @@ if grep -q 'Surface scan pass 1 of 2' "$LOG" &&
 else
     fail "SCANDISK.INI NumPasses was not honored"
 fi
+if grep -q 'unreadable data cluster was found' "$LOG"; then
+    ok "occupied-cluster surface fault is detected"
+else
+    fail "injected occupied-cluster surface fault was not detected"
+fi
 grep -q 'RECOVERED_FILE_PRESENT' "$LOG" &&
-    ok "/AUTOFIX converts the orphan chain to FILE0000.CHK" ||
+    ok "/CUSTOM converts orphan chains to FILEnnnn.CHK files" ||
     fail "lost chain was not recovered"
 if grep -Eq 'CUSTOM_FAILED|RESCAN_FAILED|SURFACE_FAILED' "$LOG" ||
    ! grep -q 'CUSTOM_REPAIRED' "$LOG"; then
@@ -262,6 +272,21 @@ control="$(mcopy -i "$TARGET" ::CONTROL.TXT - 2>/dev/null | tr -d '\r\n')"
 [[ "$control" == 'SCANDISK CONTROL PAYLOAD' ]] &&
     ok "referenced file data is preserved" ||
     fail "referenced file data changed"
+
+python3 - "$TARGET" "$control_cluster" <<'PY' && ok "occupied data was relocated and its old cluster marked bad" || fail "occupied-cluster relocation metadata is wrong"
+from pathlib import Path
+import struct, sys
+disk = Path(sys.argv[1]).read_bytes(); old = int(sys.argv[2])
+root = 19 * 512
+entry = next(root + off for off in range(0, 224 * 32, 32)
+             if disk[root + off:root + off + 11] == b'CONTROL TXT')
+new = struct.unpack_from('<H', disk, entry + 26)[0]
+def fat12(cluster):
+    off = 512 + cluster * 3 // 2
+    word = struct.unpack_from('<H', disk, off)[0]
+    return ((word >> 4) & 0xfff) if cluster & 1 else (word & 0xfff)
+assert new != old and fat12(old) == 0xff7 and fat12(new) >= 0xff8
+PY
 
 python3 - "$TARGET" <<'PY' && ok "all FAT copies match after repair" || fail "FAT copies still differ"
 from pathlib import Path

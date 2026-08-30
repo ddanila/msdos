@@ -79,6 +79,8 @@ static unsigned char journal_sector[512];
 static unsigned char claimed[BIT_BYTES];
 static unsigned char chain_seen[BIT_BYTES];
 static unsigned char incoming[BIT_BYTES];
+static long injected_surface_cluster = -1;
+static int injected_surface_fired;
 
 static void set_current_timestamp(unsigned char *entry);
 
@@ -112,6 +114,11 @@ static int bit_get(const unsigned char *map, unsigned cluster)
 static void bit_set(unsigned char *map, unsigned cluster)
 {
     map[cluster >> 3] |= (unsigned char)(1U << (cluster & 7));
+}
+
+static void bit_clear(unsigned char *map, unsigned cluster)
+{
+    map[cluster >> 3] &= (unsigned char)~(1U << (cluster & 7));
 }
 
 static int equal_switch(const char *argument, const char *name)
@@ -1205,20 +1212,156 @@ static void find_lost_clusters(struct scan_state *state)
     }
 }
 
+static int replace_directory_start(struct scan_state *state, unsigned first,
+                                   unsigned bad, unsigned replacement,
+                                   unsigned depth)
+{
+    unsigned cluster = first, next, sector_count, sector_index;
+    unsigned long base;
+    int root = first == 0;
+    if (depth > MAX_DEPTH) return 0;
+    do {
+        if (root) {
+            base = state->volume.root_start;
+            sector_count = state->volume.root_sectors;
+        } else {
+            if (!fat_volume_valid_cluster(&state->volume, cluster)) return 0;
+            base = fat_volume_cluster_sector(&state->volume, cluster);
+            sector_count = state->volume.sectors_per_cluster;
+        }
+        for (sector_index = 0; sector_index < sector_count; ++sector_index) {
+            unsigned offset;
+            unsigned long sector = base + sector_index;
+            if (fat_volume_io(&state->volume, 0, sector, 1, directory_sector))
+                return 0;
+            for (offset = 0; offset < 512; offset += 32) {
+                unsigned char *entry = directory_sector + offset;
+                unsigned child;
+                if (!entry[0]) return 0;
+                if (entry[0] == 0xe5 || (entry[11] & 0x0f) == 0x0f ||
+                    (entry[11] & 0x08) || dot_entry(entry))
+                    continue;
+                child = get_word(entry + 26);
+                if (child == bad) {
+                    put_word(entry + 26, replacement);
+                    return !repair_directory_sector(state, sector);
+                }
+                if ((entry[11] & 0x10) && child &&
+                    replace_directory_start(state, child, bad, replacement,
+                                            depth + 1))
+                    return 1;
+                if (fat_volume_io(&state->volume, 0, sector, 1,
+                                  directory_sector))
+                    return 0;
+            }
+        }
+        if (root || fat_volume_get(&state->volume, cluster, &next, fat_buffer) ||
+            fat_volume_eoc(&state->volume, next))
+            break;
+        cluster = next;
+    } while (fat_volume_valid_cluster(&state->volume, cluster));
+    return 0;
+}
+
+static unsigned find_verified_free_cluster(struct scan_state *state,
+                                           unsigned avoid)
+{
+    unsigned candidate, value, sector_index;
+    for (candidate = 2; candidate <= state->volume.clusters + 1U;
+         ++candidate) {
+        int good = 1;
+        if (candidate == avoid ||
+            fat_volume_get(&state->volume, candidate, &value, fat_buffer) ||
+            value)
+            continue;
+        for (sector_index = 0;
+             sector_index < state->volume.sectors_per_cluster; ++sector_index) {
+            unsigned long sector =
+                fat_volume_cluster_sector(&state->volume, candidate) +
+                sector_index;
+            if (fat_volume_io(&state->volume, 0, sector, 1, surface_sector) ||
+                fat_volume_io(&state->volume, 1, sector, 1, surface_sector) ||
+                fat_volume_io(&state->volume, 0, sector, 1, compare_sector) ||
+                memcmp(surface_sector, compare_sector, 512)) {
+                good = 0;
+                break;
+            }
+        }
+        if (good) return candidate;
+    }
+    return 0;
+}
+
+static int relocate_occupied_cluster(struct scan_state *state, unsigned bad)
+{
+    unsigned replacement, next, predecessor, value, sector_index;
+    int linked = 0;
+    if (!permit_repair(state, "Relocate data from the damaged cluster",
+                       CAT_BAD_CLUSTER))
+        return 1;
+    replacement = find_verified_free_cluster(state, bad);
+    if (!replacement ||
+        fat_volume_get(&state->volume, bad, &next, fat_buffer))
+        return 1;
+    for (sector_index = 0;
+         sector_index < state->volume.sectors_per_cluster; ++sector_index) {
+        unsigned long source = fat_volume_cluster_sector(&state->volume, bad) +
+            sector_index;
+        unsigned long target =
+            fat_volume_cluster_sector(&state->volume, replacement) + sector_index;
+        if (fat_volume_io(&state->volume, 0, source, 1, surface_sector) ||
+            fat_volume_io(&state->volume, 1, target, 1, surface_sector) ||
+            fat_volume_io(&state->volume, 0, target, 1, compare_sector) ||
+            memcmp(surface_sector, compare_sector, 512))
+            return 1;
+    }
+    if (fat_volume_set(&state->volume, replacement, next, fat_buffer)) return 1;
+    for (predecessor = 2; predecessor <= state->volume.clusters + 1U;
+         ++predecessor)
+        if (predecessor != bad &&
+            !fat_volume_get(&state->volume, predecessor, &value, fat_buffer) &&
+            value == bad) {
+            if (fat_volume_set(&state->volume, predecessor, replacement,
+                               fat_buffer))
+                return 1;
+            linked = 1;
+            break;
+        }
+    if (!linked && !replace_directory_start(state, 0, bad, replacement, 0))
+        return 1;
+    if (fat_volume_set(&state->volume, bad,
+            state->volume.fat16 ? 0xfff7U : 0x0ff7U, fat_buffer))
+        return 1;
+    bit_set(claimed, replacement);
+    bit_clear(claimed, bad);
+    ++state->repaired;
+    return 0;
+}
+
 static void surface_scan(struct scan_state *state)
 {
     unsigned cluster;
     for (cluster = 2; cluster <= state->volume.clusters + 1U; ++cluster) {
         unsigned sector_index;
+        unsigned fat_value;
         int failed = 0;
         if (state->aborted)
             return;
+        if (!fat_volume_get(&state->volume, cluster, &fat_value, fat_buffer) &&
+            fat_volume_bad(&state->volume, fat_value))
+            continue;
         for (sector_index = 0;
              sector_index < state->volume.sectors_per_cluster; ++sector_index) {
             unsigned long sector =
                 fat_volume_cluster_sector(&state->volume, cluster) +
                 sector_index;
             if (fat_volume_io(&state->volume, 0, sector, 1, surface_sector)) {
+                failed = 1;
+                break;
+            }
+            if (!injected_surface_fired &&
+                injected_surface_cluster == (long)cluster) {
+                injected_surface_fired = 1;
                 failed = 1;
                 break;
             }
@@ -1240,7 +1383,7 @@ static void surface_scan(struct scan_state *state)
                 repair_fat(state, cluster,
                            state->volume.fat16 ? 0xfff7U : 0x0ff7U,
                            CAT_BAD_CLUSTER);
-            else
+            else if (relocate_occupied_cluster(state, cluster))
                 ++state->unrepaired;
         }
     }
@@ -1619,10 +1762,14 @@ int main(int argc, char **argv)
     unsigned drive;
     unsigned status = 0;
     union REGS regs;
+    const char *surface_failure;
     if (parse_options(argc, argv, &options)) {
         usage();
         return 1;
     }
+    surface_failure = getenv("SCANDISK_FAILCLUSTER");
+    if (surface_failure && *surface_failure)
+        injected_surface_cluster = strtol(surface_failure, NULL, 0);
     load_custom_options(&options, argv[0]);
     if (options.undo) {
         drive = options.drive_count ? 0 : 0;
