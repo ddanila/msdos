@@ -49,8 +49,8 @@ timeout 15 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 
 QEMU_PID=$!
 python3 "$ROOT/tests/serial_expect.py" "$SERIAL_IN" "$SERIAL_OUT" "$LOG" \
     'A>' 'MEMMAKER /CUSTOM /SWAP:A /W:4,8\r' \
-    'Load eligible device drivers into upper memory (Y/N)?' 'N\r' \
-    'Load eligible TSRs into upper memory (Y/N)?' 'Y\r'
+    'Load this driver into upper memory (Y/N)?' 'N\r' \
+    'Load this TSR into upper memory (Y/N)?' 'Y\r'
 wait "$QEMU_PID" || true
 exec 3>&-
 
@@ -102,8 +102,8 @@ if grep -q 'optimization completed after measured reboot passes' <<<"$status" &&
    grep -Eq 'Post-CONFIG largest conventional block: [1-9][0-9]*K' <<<"$status" &&
    grep -Eq 'Baseline largest conventional block: [1-9][0-9]*K' <<<"$status" &&
    grep -Eq 'Measured UMB after /W reserve: [0-9]+K' <<<"$status" &&
-   grep -q 'Custom driver-high choice: no' <<<"$status" &&
-   grep -q 'Custom TSR-high choice: yes' <<<"$status"; then
+   grep -q 'Drivers selected for upper memory: 0 of 1' <<<"$status" &&
+   grep -q 'TSRs selected for upper memory: 1 of 1' <<<"$status"; then
     ok "MEMMAKER.STS records measurements, /W policy, and Custom choices"
 else
     fail "MemMaker status report"

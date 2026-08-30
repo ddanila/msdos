@@ -33,6 +33,10 @@ static unsigned config_umb_k;
 static unsigned config_conventional_k;
 static unsigned selected_high_drivers;
 static unsigned selected_high_tsrs;
+static unsigned eligible_high_drivers;
+static unsigned eligible_high_tsrs;
+
+static int ask_yes_no(const char *prompt);
 
 static unsigned probe_largest_block(unsigned strategy, unsigned link_umbs)
 {
@@ -329,11 +333,22 @@ static int transform_config(unsigned drive, const struct options *options,
             ++body;
         if (starts_with(body, "DOS="))
             continue;
-        if (options->high_drivers && starts_with(body, "DEVICE=") && line_is_high_driver(body) &&
+        if (starts_with(body, "DEVICE=") && line_is_high_driver(body) &&
             !contains_name(body, "HIMEM.SYS") &&
             !contains_name(body, "EMM386.EXE")) {
-            fputs("DEVICEHIGH=", output);
-            fputs(strchr(body, '=') + 1, output);
+            int place_high = options->high_drivers;
+            ++eligible_high_drivers;
+            if (options->custom) {
+                printf("Driver candidate: %s", strchr(body, '=') + 1);
+                place_high = ask_yes_no("Load this driver into upper memory (Y/N)? ");
+            }
+            if (place_high) {
+                ++selected_high_drivers;
+                fputs("DEVICEHIGH=", output);
+                fputs(strchr(body, '=') + 1, output);
+            } else {
+                fputs(line, output);
+            }
         } else if (starts_with(body, "INSTALL=")) {
             fputs("INSTALLHIGH=", output);
             fputs(strchr(body, '=') + 1, output);
@@ -373,9 +388,19 @@ static int transform_autoexec(unsigned drive, const struct options *options,
     while (fgets(line, sizeof(line), input)) {
         if (starts_with(line, "MEMMAKER ") || starts_with(line, "MEMMAKER\n"))
             continue;
-        if (options->high_tsrs && !starts_with(line, "LH ") && !starts_with(line, "LOADHIGH ") &&
-            line_is_tsr(line))
-            fputs("LH ", output);
+        if (!starts_with(line, "LH ") && !starts_with(line, "LOADHIGH ") &&
+            line_is_tsr(line)) {
+            int place_high = options->high_tsrs;
+            ++eligible_high_tsrs;
+            if (options->custom) {
+                printf("TSR candidate: %s", line);
+                place_high = ask_yes_no("Load this TSR into upper memory (Y/N)? ");
+            }
+            if (place_high) {
+                ++selected_high_tsrs;
+                fputs("LH ", output);
+            }
+        }
         fputs(line, output);
     }
     if (strchr(program, ':') || strchr(program, '\\') || strchr(program, '/'))
@@ -421,9 +446,11 @@ static int write_status(unsigned drive, const struct options *options,
                 baseline_umb_k, baseline_conventional_k,
                 config_umb_k, config_conventional_k,
                 (int)measured_conventional_k - (int)baseline_conventional_k);
-        fprintf(file, "Custom driver-high choice: %s\nCustom TSR-high choice: %s\n",
-                selected_high_drivers ? "yes" : "no",
-                selected_high_tsrs ? "yes" : "no");
+        fprintf(file,
+                "Drivers selected for upper memory: %u of %u\n"
+                "TSRs selected for upper memory: %u of %u\n",
+                selected_high_drivers, eligible_high_drivers,
+                selected_high_tsrs, eligible_high_tsrs);
     }
     return fclose(file) != 0;
 }
@@ -488,8 +515,10 @@ static int write_baseline(unsigned drive, const struct options *options)
         return 1;
     if (fwrite(&measured_umb_k, sizeof(measured_umb_k), 1, file) != 1 ||
         fwrite(&measured_conventional_k, sizeof(measured_conventional_k), 1, file) != 1 ||
-        fwrite(&options->high_drivers, sizeof(options->high_drivers), 1, file) != 1 ||
-        fwrite(&options->high_tsrs, sizeof(options->high_tsrs), 1, file) != 1) {
+        fwrite(&selected_high_drivers, sizeof(selected_high_drivers), 1, file) != 1 ||
+        fwrite(&eligible_high_drivers, sizeof(eligible_high_drivers), 1, file) != 1 ||
+        fwrite(&selected_high_tsrs, sizeof(selected_high_tsrs), 1, file) != 1 ||
+        fwrite(&eligible_high_tsrs, sizeof(eligible_high_tsrs), 1, file) != 1) {
         fclose(file);
         return 1;
     }
@@ -511,7 +540,9 @@ static int finish_final(unsigned drive, const struct options *options)
     if (fread(&baseline_umb_k, sizeof(baseline_umb_k), 1, measure) != 1 ||
         fread(&baseline_conventional_k, sizeof(baseline_conventional_k), 1, measure) != 1 ||
         fread(&selected_high_drivers, sizeof(selected_high_drivers), 1, measure) != 1 ||
+        fread(&eligible_high_drivers, sizeof(eligible_high_drivers), 1, measure) != 1 ||
         fread(&selected_high_tsrs, sizeof(selected_high_tsrs), 1, measure) != 1 ||
+        fread(&eligible_high_tsrs, sizeof(eligible_high_tsrs), 1, measure) != 1 ||
         fread(&config_umb_k, sizeof(config_umb_k), 1, measure) != 1 ||
         fread(&config_conventional_k, sizeof(config_conventional_k), 1, measure) != 1) {
         fclose(measure);
@@ -566,12 +597,7 @@ static int optimize(unsigned drive, struct options *options,
     make_path(auto_temp, drive, "AUTOEXEC.MMT");
     make_path(status, drive, "MEMMAKER.STS");
     if (!options->batch) {
-        if (options->custom) {
-            options->high_drivers = ask_yes_no(
-                "Load eligible device drivers into upper memory (Y/N)? ");
-            options->high_tsrs = ask_yes_no(
-                "Load eligible TSRs into upper memory (Y/N)? ");
-        } else {
+        if (!options->custom) {
             fputs("Use Express Setup to optimize memory (Y/N)? ", stdout);
             fflush(stdout);
             do answer = toupper(getchar());
