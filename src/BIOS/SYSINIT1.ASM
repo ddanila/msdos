@@ -207,6 +207,7 @@ ASSUME	CS:SYSINITSEG,DS:NOTHING,ES:NOTHING,SS:NOTHING
 	public ConfigMsgFlag			;AN014;
 	public Do_Install_Exec			;AN019;
 	public Multi_Pass_Id			;AN024;
+	public ConfigEnv,ConfigEnvUsed
 
 
 ;
@@ -286,6 +287,8 @@ FOOSTRNG		DB	"A:\",0
 COMMAND_LINE		DB	2,0,"P" ;Default Command.com Args
 			DB	29 DUP (0)
 ZERO			DB	0
+ConfigEnvUsed		DW	2
+ConfigEnv		DB	1024 DUP (0)
 SepChr			DB	0
 LineCount		dw	0	;AN000;  Line count in config.sys
 ShowCount		db	'     ',CR,LF,'$' ;AN000;  Used to convert Linecount to ASCII.
@@ -694,6 +697,7 @@ DoLast:
 	pop	bx			       ;AN013;
 	pop	es			       ;AN013;
 Skip_Free_SYSINITBASE:			       ;AN013;
+	call	BuildConfigEnvironment
 	call	AcquireUmbs
 	; DOS=UMB makes the acquired upper arena available to scoped high loaders,
 	; but DOS 5/6 leave it unlinked from the public MCB chain at the prompt.
@@ -1977,6 +1981,39 @@ Set_Sysinit_Base:
 
 ENDFILE_Ret:
 	return
+
+
+; Build the environment inherited by the first command interpreter when
+; CONFIG.SYS supplied one or more SET directives.  EXEC copies this block,
+; so the temporary allocation may remain owned by SYSINIT until the shell
+; eventually exits.
+BuildConfigEnvironment proc near
+	cmp	ConfigEnvUsed,2
+	jbe	short BuildConfigEnvironmentDone
+	mov	ax,ConfigEnvUsed
+	add	ax,15
+	mov	cl,4
+	shr	ax,cl
+	mov	bx,ax
+	mov	ah,ALLOC
+	int	21h
+	jc	short BuildConfigEnvironmentDone
+	mov	COMEXE.EXEC0_ENVIRON,ax
+	push	ds
+	push	es
+	push	cs
+	pop	ds
+	mov	si,offset ConfigEnv
+	mov	es,ax
+	xor	di,di
+	mov	cx,ConfigEnvUsed
+	cld
+	rep	movsb
+	pop	es
+	pop	ds
+BuildConfigEnvironmentDone:
+	ret
+BuildConfigEnvironment endp
 
 
 Do_Install_Exec proc near			;AN000; Now, handles INSTALL= command.

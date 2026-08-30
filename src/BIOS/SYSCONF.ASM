@@ -152,6 +152,7 @@ ASSUME	CS:SYSINITSEG,DS:NOTHING,ES:NOTHING,SS:NOTHING
 	extrn	ConfigMsgFlag:Word		;AN015;
 	extrn	Org_Count:Word			;AN018;
 	extrn	Multi_Pass_Id:byte		;AN026;
+	extrn	ConfigEnv:byte,ConfigEnvUsed:word
 
 	EXTRN	MEM_ERR:NEAR,SetDOSCountryInfo:NEAR
 	EXTRN	PARAROUND:NEAR,TEMPCDS:NEAR
@@ -201,6 +202,9 @@ Badparm_Off	dw	0		;AN007;
 Badparm_Seg	dw	0		;AN007;
 
 XMAEM_file	db	'XMAEM.SYS',0	;AN029;
+ConfigSetLine	db	256 dup (0)
+ConfigSetLength	dw	0
+ConfigSetNameLen	dw	0
 
 ;IBMCACHE_file	 db	 'IBMCACHE.SYS',0;AN024;AN026;To cope with the IBMCACHE.SYS
 					; problem of DOS version checking.
@@ -3249,7 +3253,7 @@ $$SR95:
 ;------------------------------------------------------------------------------
 TRY3:
 	CMP	AH,'3'
-	JNZ	TRYY
+	JNZ	TRY4
 	CMP	AL,'O'
 	JNE	TRY3_BAD
 	CALL	GETCHR
@@ -3276,6 +3280,136 @@ TRY3_ON:
 	POP	DS
 	JMP	COFF
 TRY3_BAD:
+	JMP	BADOP
+
+;------------------------------------------------------------------------------
+; SET name=value -- prepend the assignment to the first shell's environment.
+; Later CONFIG.SYS assignments therefore shadow earlier assignments, matching
+; command-interpreter SET behavior even before duplicate compaction.
+;------------------------------------------------------------------------------
+TRY4:
+	CMP	AH,'4'
+	JNZ	TRYY
+	MOV	DI,OFFSET ConfigSetLine
+	XOR	BX,BX
+	XOR	DX,DX
+TRY4_COPY:
+	CMP	AL,CR
+	JE	TRY4_READY
+	CMP	AL,LF
+	JE	TRY4_READY
+	CMP	BX,255
+	JAE	TRY4_BAD
+	MOV	[DI],AL
+	INC	DI
+	INC	BX
+	CMP	AL,'='
+	JNE	TRY4_NEXT
+	OR	DL,DL
+	JNZ	TRY4_NEXT
+	MOV	ConfigSetNameLen,BX
+	MOV	DL,1
+TRY4_NEXT:
+	CALL	GETCHR
+	JNC	TRY4_COPY
+TRY4_READY:
+	OR	DL,DL
+	JZ	TRY4_BAD
+	OR	BX,BX
+	JZ	TRY4_BAD
+	CMP	BYTE PTR ConfigSetLine,'='
+	JE	TRY4_BAD
+	MOV	ConfigSetLength,BX
+
+; Remove an earlier assignment with the same name.  The compacted block
+; always retains its final double NUL.
+	PUSH	ES
+	PUSH	DS
+	POP	ES
+	MOV	SI,OFFSET ConfigEnv
+TRY4_FIND_OLD:
+	CMP	BYTE PTR [SI],0
+	JE	TRY4_OLD_REMOVED
+	MOV	BP,SI
+	MOV	DI,OFFSET ConfigSetLine
+	MOV	CX,ConfigSetNameLen
+TRY4_COMPARE_NAME:
+	JCXZ	TRY4_COMPARE_EQUAL
+	MOV	AL,[SI]
+	CMP	AL,[DI]
+	JNE	TRY4_SKIP_OLD
+	INC	SI
+	INC	DI
+	DEC	CX
+	JMP	TRY4_COMPARE_NAME
+TRY4_COMPARE_EQUAL:
+	CMP	BYTE PTR [SI],'='
+	JNE	TRY4_SKIP_OLD
+	MOV	SI,BP
+TRY4_FIND_OLD_END:
+	CMP	BYTE PTR [SI],0
+	JE	TRY4_DELETE_OLD
+	INC	SI
+	JMP	TRY4_FIND_OLD_END
+TRY4_DELETE_OLD:
+	INC	SI
+	MOV	DX,SI
+	SUB	DX,BP
+	MOV	DI,BP
+	MOV	CX,OFFSET ConfigEnv
+	ADD	CX,ConfigEnvUsed
+	SUB	CX,SI
+	CLD
+	REP	MOVSB
+	SUB	ConfigEnvUsed,DX
+	JMP	SHORT TRY4_OLD_REMOVED
+TRY4_SKIP_OLD:
+	MOV	SI,BP
+TRY4_SKIP_OLD_LOOP:
+	CMP	BYTE PTR [SI],0
+	JE	TRY4_SKIP_OLD_DONE
+	INC	SI
+	JMP	TRY4_SKIP_OLD_LOOP
+TRY4_SKIP_OLD_DONE:
+	INC	SI
+	JMP	TRY4_FIND_OLD
+TRY4_OLD_REMOVED:
+	POP	ES
+
+; An empty right-hand side deletes the variable.
+	MOV	AX,ConfigSetNameLen
+	INC	AX
+	CMP	AX,ConfigSetLength
+	JE	COFF
+	MOV	BX,ConfigSetLength
+	MOV	AX,ConfigEnvUsed
+	ADD	AX,BX
+	INC	AX
+	CMP	AX,1024
+	JA	TRY4_BAD
+	PUSH	ES
+	PUSH	DS
+	POP	ES
+	MOV	CX,ConfigEnvUsed
+	MOV	SI,OFFSET ConfigEnv
+	ADD	SI,CX
+	DEC	SI
+	MOV	DI,SI
+	ADD	DI,BX
+	INC	DI
+	STD
+	REP	MOVSB
+	CLD
+	MOV	SI,OFFSET ConfigSetLine
+	MOV	DI,OFFSET ConfigEnv
+	MOV	CX,BX
+	REP	MOVSB
+	MOV	BYTE PTR [DI],0
+	ADD	ConfigEnvUsed,BX
+	INC	ConfigEnvUsed
+	POP	ES
+	JMP	COFF
+TRY4_BAD:
 	JMP	BADOP
 
 ;------------------------------------------------------------------------------

@@ -1517,6 +1517,7 @@ COMTAB	LABEL	BYTE
 	DB	9,"LASTDRIVE",'L'
 	db     10,"MULTITRACK", 'M'     ;AN002;
 	DB	7,"NUMLOCK",  '3'
+	DB	3,"SET",      '4'
 	DB	8,"DRIVPARM", 'P'       ; RS for DOS 3.2
 		IF     STACKSW
 	DB	6,"STACKS",   'K'       ; BAS for DOS 3.2
