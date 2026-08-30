@@ -274,7 +274,7 @@ Displays allocated and free memory.
 Syntax: MEM [/CLASSIFY|/DEBUG|/FREE|/MODULE name|/PAGE]
 @MEMMAKER
 Optimizes startup files so drivers and resident programs use upper memory.
-Syntax: MEMMAKER [/B] [/BATCH] [/SESSION] [/SWAP:drive] [/T]
+Syntax: MEMMAKER [/B] [/BATCH] [/SESSION] [/FINAL] [/SWAP:drive] [/T]
                 [/UNDO] [/W:size1,size2]
 /BATCH selects unattended defaults. /SESSION completes the reboot pass.
 /UNDO restores the byte-exact CONFIG.SYS and AUTOEXEC.BAT backups.

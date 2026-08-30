@@ -91,14 +91,22 @@ if grep -qi '^LH NLSFUNC A:\\COUNTRY.SYS' <<<"$autoexec" &&
 else
     fail "optimized AUTOEXEC.BAT contents"
 fi
-if grep -q 'optimization completed after the reboot pass' <<<"$status" &&
+if grep -q 'optimization completed after measured reboot passes' <<<"$status" &&
    grep -q 'Windows UMB reserve: 4,8' <<<"$status" &&
    grep -Eq 'Measured largest UMB: [1-9][0-9]*K' <<<"$status" &&
    grep -Eq 'Measured largest conventional block: [1-9][0-9]*K' <<<"$status" &&
+   grep -Eq 'Post-CONFIG largest UMB: [1-9][0-9]*K' <<<"$status" &&
+   grep -Eq 'Post-CONFIG largest conventional block: [1-9][0-9]*K' <<<"$status" &&
+   grep -Eq 'Baseline largest conventional block: [1-9][0-9]*K' <<<"$status" &&
    grep -Eq 'Measured UMB after /W reserve: [0-9]+K' <<<"$status"; then
     ok "MEMMAKER.STS records measured post-reboot memory and /W policy"
 else
     fail "MemMaker status report"
+fi
+if ! mdir -b -i "$IMAGE" :: 2>/dev/null | grep -q 'MEMMAKER.MEM'; then
+    ok "measurement handoff is removed after the final pass"
+else
+    fail "stale MemMaker measurement handoff"
 fi
 config_backup_hash="$(mcopy -i "$IMAGE" ::CONFIG.MM - 2>/dev/null | sha256sum | awk '{print $1}')"
 auto_backup_hash="$(mcopy -i "$IMAGE" ::AUTOEXEC.MM - 2>/dev/null | sha256sum | awk '{print $1}')"

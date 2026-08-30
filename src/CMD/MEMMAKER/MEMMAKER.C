@@ -12,6 +12,7 @@ struct options {
     int monochrome;
     int batch;
     int session;
+    int final;
     int no_token_ring;
     int undo;
     int swap_set;
@@ -23,6 +24,10 @@ struct options {
 static unsigned char file_buffer[2048];
 static unsigned measured_umb_k;
 static unsigned measured_conventional_k;
+static unsigned baseline_umb_k;
+static unsigned baseline_conventional_k;
+static unsigned config_umb_k;
+static unsigned config_conventional_k;
 
 static unsigned probe_largest_block(unsigned strategy, unsigned link_umbs)
 {
@@ -123,7 +128,7 @@ static int contains_name(const char *line, const char *name)
 static void usage(void)
 {
     puts("Optimizes conventional memory by loading drivers and TSRs high.");
-    puts("Syntax: MEMMAKER [/B] [/BATCH] [/SESSION] [/SWAP:drive]");
+    puts("Syntax: MEMMAKER [/B] [/BATCH] [/SESSION] [/FINAL] [/SWAP:drive]");
     puts("                [/T] [/UNDO] [/W:size1,size2]");
 }
 
@@ -165,6 +170,7 @@ static int parse_options(int argc, char **argv, struct options *options)
         } else if (switch_is(name, "B")) options->monochrome = 1;
         else if (switch_is(name, "BATCH")) options->batch = 1;
         else if (switch_is(name, "SESSION")) options->session = 1;
+        else if (switch_is(name, "FINAL")) options->final = 1;
         else if (switch_is(name, "T")) options->no_token_ring = 1;
         else if (switch_is(name, "UNDO")) options->undo = 1;
         else if (!strnicmp(name, SWAP_SWITCH + 1, 5) && isalpha(name[5]) &&
@@ -184,8 +190,8 @@ static int parse_options(int argc, char **argv, struct options *options)
             return 1;
         }
     }
-    if (options->undo && (options->batch || options->session)) {
-        fputs("/UNDO cannot be combined with /BATCH or /SESSION.\n", stderr);
+    if (options->undo && (options->batch || options->session || options->final)) {
+        fputs("/UNDO cannot be combined with /BATCH, /SESSION, or /FINAL.\n", stderr);
         return 1;
     }
     return 0;
@@ -338,7 +344,9 @@ static int transform_config(unsigned drive, const struct options *options,
     return 0;
 }
 
-static int transform_autoexec(const char *source, const char *temporary)
+static int transform_autoexec(unsigned drive, const struct options *options,
+                              const char *program, const char *source,
+                              const char *temporary)
 {
     FILE *input = fopen(source, "r");
     FILE *output;
@@ -358,6 +366,14 @@ static int transform_autoexec(const char *source, const char *temporary)
             fputs("LH ", output);
         fputs(line, output);
     }
+    if (strchr(program, ':') || strchr(program, '\\') || strchr(program, '/'))
+        fprintf(output, "%s /FINAL /SWAP:%c /W:%u,%u\n",
+                program, 'A' + drive,
+                options->reserve_one, options->reserve_two);
+    else
+        fprintf(output, "%c:\\MEMMAKER.EXE /FINAL /SWAP:%c /W:%u,%u\n",
+                'A' + drive, 'A' + drive,
+                options->reserve_one, options->reserve_two);
     fclose(input);
     if (fclose(output))
         return 1;
@@ -384,6 +400,15 @@ static int write_status(unsigned drive, const struct options *options,
                 "Measured largest conventional block: %uK\n"
                 "Measured UMB after /W reserve: %uK\n",
                 measured_umb_k, measured_conventional_k, usable);
+        fprintf(file,
+                "Baseline largest UMB: %uK\n"
+                "Baseline largest conventional block: %uK\n"
+                "Post-CONFIG largest UMB: %uK\n"
+                "Post-CONFIG largest conventional block: %uK\n"
+                "Measured conventional-memory gain: %dK\n",
+                baseline_umb_k, baseline_conventional_k,
+                config_umb_k, config_conventional_k,
+                (int)measured_conventional_k - (int)baseline_conventional_k);
     }
     return fclose(file) != 0;
 }
@@ -406,7 +431,7 @@ static int restore_files(unsigned drive, const struct options *options)
 
 static int finish_session(unsigned drive, const struct options *options)
 {
-    char config[32], temporary[32], line[256];
+    char config[32], temporary[32], memory[32], line[256];
     FILE *input;
     FILE *output;
     make_path(config, drive, "CONFIG.SYS");
@@ -426,10 +451,73 @@ static int finish_session(unsigned drive, const struct options *options)
     if (fclose(output) || replace_file(temporary, config))
         return 1;
     measure_memory();
-    if (write_status(drive, options,
-            "Memory optimization completed after the reboot pass."))
+    make_path(memory, drive, "MEMMAKER.MEM");
+    output = fopen(memory, "ab");
+    if (!output)
         return 1;
-    puts("MemMaker memory optimization is complete.");
+    if (fwrite(&measured_umb_k, sizeof(measured_umb_k), 1, output) != 1 ||
+        fwrite(&measured_conventional_k, sizeof(measured_conventional_k), 1, output) != 1 ||
+        fclose(output))
+        return 1;
+    puts("MemMaker completed the post-CONFIG measurement pass.");
+    return 0;
+}
+
+static int write_baseline(unsigned drive)
+{
+    char path[32];
+    FILE *file;
+    make_path(path, drive, "MEMMAKER.MEM");
+    file = fopen(path, "wb");
+    if (!file)
+        return 1;
+    if (fwrite(&measured_umb_k, sizeof(measured_umb_k), 1, file) != 1 ||
+        fwrite(&measured_conventional_k, sizeof(measured_conventional_k), 1, file) != 1) {
+        fclose(file);
+        return 1;
+    }
+    return fclose(file) != 0;
+}
+
+static int finish_final(unsigned drive, const struct options *options)
+{
+    char autoexec[32], temporary[32], memory[32], line[256];
+    FILE *input;
+    FILE *output;
+    FILE *measure;
+    make_path(autoexec, drive, "AUTOEXEC.BAT");
+    make_path(temporary, drive, "AUTOEXEC.MMT");
+    make_path(memory, drive, "MEMMAKER.MEM");
+    measure = fopen(memory, "rb");
+    if (!measure)
+        return 1;
+    if (fread(&baseline_umb_k, sizeof(baseline_umb_k), 1, measure) != 1 ||
+        fread(&baseline_conventional_k, sizeof(baseline_conventional_k), 1, measure) != 1 ||
+        fread(&config_umb_k, sizeof(config_umb_k), 1, measure) != 1 ||
+        fread(&config_conventional_k, sizeof(config_conventional_k), 1, measure) != 1) {
+        fclose(measure);
+        return 1;
+    }
+    fclose(measure);
+    input = fopen(autoexec, "r");
+    output = fopen(temporary, "w");
+    if (!input || !output) {
+        if (input) fclose(input);
+        if (output) fclose(output);
+        return 1;
+    }
+    while (fgets(line, sizeof(line), input))
+        if (!(contains_name(line, "MEMMAKER.EXE") && contains_name(line, "/FINAL")))
+            fputs(line, output);
+    fclose(input);
+    if (fclose(output) || replace_file(temporary, autoexec))
+        return 1;
+    measure_memory();
+    if (write_status(drive, options,
+            "Memory optimization completed after measured reboot passes."))
+        return 1;
+    remove(memory);
+    puts("MemMaker measured memory optimization is complete.");
     return 0;
 }
 
@@ -458,13 +546,15 @@ static int optimize(unsigned drive, const struct options *options,
     }
     if (copy_file(config, config_backup) || copy_file(autoexec, auto_backup) ||
         transform_config(drive, options, program, config, config_temp) ||
-        transform_autoexec(autoexec, auto_temp)) {
+        transform_autoexec(drive, options, program, autoexec, auto_temp)) {
         remove(config_temp);
         remove(auto_temp);
         fputs("MemMaker could not prepare the startup files.\n", stderr);
         return 1;
     }
-    if (replace_file(config_temp, config) ||
+    measure_memory();
+    if (write_baseline(drive) ||
+        replace_file(config_temp, config) ||
         injected_failure("CONFIG") ||
         replace_file(auto_temp, autoexec) ||
         injected_failure("AUTOEXEC") ||
@@ -476,9 +566,12 @@ static int optimize(unsigned drive, const struct options *options,
         remove(config_temp);
         remove(auto_temp);
         remove(status);
+        make_path(status, drive, "MEMMAKER.MEM");
+        remove(status);
         fputs("MemMaker rolled back an incomplete startup-file update.\n", stderr);
         return 1;
     }
+    remove(status);
     puts("MemMaker updated the startup files and is restarting the computer.");
     outp(0x64, 0xfe);
     memset(&regs, 0, sizeof(regs));
@@ -507,5 +600,7 @@ int main(int argc, char **argv)
         return restore_files(drive, &options);
     if (options.session)
         return finish_session(drive, &options);
+    if (options.final)
+        return finish_final(drive, &options);
     return optimize(drive, &options, argv[0]);
 }
