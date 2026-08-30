@@ -67,11 +67,15 @@ interrupt:
     cmp word [es:di + 20], 16
     je .primary_vtoc
     cmp word [es:di + 20], 17
+    je .supplementary_vtoc
+    cmp word [es:di + 20], 18
     je .terminating_vtoc
     cmp word [es:di + 20], 20
     je .root_directory
     cmp word [es:di + 20], 21
     je .nested_directory
+    cmp word [es:di + 20], 22
+    je .supplementary_directory
     jne .request_error
 .terminating_vtoc:
     mov byte [bx], 0ffh
@@ -101,6 +105,21 @@ interrupt:
     mov word [bx + 786], ';1'
     mov byte [bx + 156], 34
     mov word [bx + 158], 20
+    mov word [bx + 160], 0
+    mov word [bx + 166], 2048
+    mov word [bx + 168], 0
+    mov byte [bx + 181], 2
+    mov byte [bx + 188], 1
+    mov byte [bx + 189], 0
+    jmp .complete
+.supplementary_vtoc:
+    mov byte [bx], 2
+    mov word [bx + 1], 'CD'
+    mov word [bx + 3], '00'
+    mov byte [bx + 5], '1'
+    mov word [bx + 88], '%/'
+    mov byte [bx + 90], '@'
+    mov word [bx + 158], 22
     mov word [bx + 160], 0
     mov word [bx + 166], 2048
     mov word [bx + 168], 0
@@ -146,6 +165,20 @@ interrupt:
     mov word [bx + 39], 'TX'
     mov word [bx + 41], 'T;'
     mov byte [bx + 43], '1'
+    jmp .complete
+.supplementary_directory:
+    mov byte [bx], 44
+    mov word [bx + 2], 32
+    mov word [bx + 4], 0
+    mov word [bx + 10], 9
+    mov word [bx + 12], 0
+    mov byte [bx + 25], 0
+    mov byte [bx + 32], 9
+    mov word [bx + 33], 'JP'
+    mov word [bx + 35], 'N.'
+    mov word [bx + 37], 'TX'
+    mov word [bx + 39], 'T;'
+    mov byte [bx + 41], '1'
     jmp .complete
 .request_error:
     mov word [es:di + 3], 810bh

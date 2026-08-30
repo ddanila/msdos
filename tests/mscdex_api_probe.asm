@@ -173,6 +173,12 @@ start:
     mov ax, 1505h
     int 2fh
     jc fail
+    or ax, ax
+    jne fail
+    mov dx, 2
+    mov ax, 1505h
+    int 2fh
+    jc fail
     cmp ax, 0ffh
     jne fail
 
@@ -187,6 +193,7 @@ start:
     repe cmpsb
     jne fail
     mov bx, name_buffer
+    mov cx,4
     mov ax, 1503h
     int 2fh
     jc fail
@@ -196,6 +203,7 @@ start:
     repe cmpsb
     jne fail
     mov bx, name_buffer
+    mov cx,4
     mov ax, 1504h
     int 2fh
     jc fail
@@ -234,6 +242,23 @@ start:
     jc fail
     cmp dx, 0201h
     jne fail
+    push ds
+    pop es
+    push ds
+    pop si
+    mov bx, supplementary_path
+    mov di, directory_record
+    mov cx, 4
+    mov ax, 150fh
+    int 2fh
+    jc fail
+    cmp word [directory_record + 2], 32
+    jne fail
+    mov bx, 1
+    mov dx, 0100h
+    mov ax, 150eh
+    int 2fh
+    jc fail
     mov bx, 1
     mov dx, 0202h
     mov ax, 150eh
@@ -280,6 +305,7 @@ biblio_end:
 root_file_path db '\README.TXT',0
 versioned_file_path db '\readme.txt;1',0
 nested_file_path db '\DOCS\INNER.TXT',0
+supplementary_path db '\JPN.TXT',0
 missing_path db '\MISSING.TXT',0
 root_path db '\',0
 directory_record times 255 db 0

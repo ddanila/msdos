@@ -409,8 +409,7 @@ api_metadata_name:
         push    cs
         pop     es
         mov     bx,OFFSET vtoc_buffer
-        xor     dx,dx
-        call    read_vtoc_sector
+        call    load_preferred_vtoc
         jc      short api_metadata_failed
         mov     si,702
         cmp     cs:metadata_function,2
@@ -475,11 +474,13 @@ api_directory_entry:
         push    cs
         pop     es
         mov     bx,OFFSET vtoc_buffer
-        xor     dx,dx
-        call    read_vtoc_sector
+        call    load_preferred_vtoc
         jc      lookup_failed
         cmp     byte ptr cs:vtoc_buffer,1
+        je      short lookup_descriptor_type_ok
+        cmp     byte ptr cs:vtoc_buffer,2
         jne     lookup_not_ready
+lookup_descriptor_type_ok:
         cmp     word ptr cs:vtoc_buffer+1,'DC'
         jne     lookup_not_ready
         cmp     word ptr cs:vtoc_buffer+3,'00'
@@ -845,6 +846,91 @@ read_vtoc_done:
         ret
 read_vtoc_sector ENDP
 
+; Load the descriptor selected by function 150Eh into vtoc_buffer.  SVD mode
+; scans for type 2 and falls back to the first PVD at the terminator.
+load_preferred_vtoc PROC NEAR
+        mov     cs:preferred_drive,cx
+        mov     ax,cx
+        xor     dx,dx
+        mov     dl,cs:first_drive
+        sub     ax,dx
+        jnc     short preferred_check_high
+        jmp     preferred_invalid_drive
+preferred_check_high:
+        xor     dx,dx
+        mov     dl,cs:driver_count
+        cmp     ax,dx
+        jb      short preferred_drive_valid
+        jmp     preferred_invalid_drive
+preferred_drive_valid:
+        shl     ax,1
+        mov     si,ax
+        mov     ax,cs:volume_preferences[si]
+        mov     cs:preferred_setting,ax
+        mov     cs:preferred_fallback,0
+        xor     dx,dx
+preferred_scan:
+        push    cs
+        pop     es
+        mov     bx,OFFSET vtoc_buffer
+        call    read_vtoc_sector
+        jc      short preferred_done
+        mov     al,cs:vtoc_buffer
+        cmp     al,1
+        je      short preferred_primary
+        cmp     al,2
+        je      short preferred_supplementary
+        cmp     al,0ffh
+        je      short preferred_terminator
+preferred_next:
+        inc     dx
+        cmp     dx,32
+        jb      preferred_scan
+        jmp     short preferred_not_ready
+preferred_primary:
+        cmp     cs:preferred_setting,0100h
+        je      short preferred_success
+        push    cs
+        pop     ds
+        push    cs
+        pop     es
+        mov     si,OFFSET vtoc_buffer
+        mov     di,OFFSET primary_vtoc_buffer
+        mov     cx,1024
+        rep     movsw
+        mov     cs:preferred_fallback,1
+        mov     cx,cs:preferred_drive
+        jmp     preferred_next
+preferred_supplementary:
+        cmp     cs:preferred_setting,0201h
+        je      short preferred_success
+        jmp     preferred_next
+preferred_terminator:
+        cmp     cs:preferred_fallback,0
+        je      short preferred_not_ready
+        push    cs
+        pop     ds
+        push    cs
+        pop     es
+        mov     si,OFFSET primary_vtoc_buffer
+        mov     di,OFFSET vtoc_buffer
+        mov     cx,1024
+        rep     movsw
+preferred_success:
+        xor     ax,ax
+        clc
+preferred_done:
+        ret
+preferred_invalid_drive:
+        mov     ax,000fh
+        stc
+        ret
+preferred_not_ready:
+        mov     ax,0015h
+        stc
+        ret
+load_preferred_vtoc ENDP
+
 ; Read one cooked sector SI:DI from CX drive into ES:BX.
 read_raw_sector PROC NEAR
         mov     word ptr cs:read_request+14,bx
@@ -877,6 +963,9 @@ api_failed      db 0
 metadata_function db 0
 metadata_target_off dw 0
 metadata_target_seg dw 0
+preferred_setting   dw 0
+preferred_drive     dw 0
+preferred_fallback  db 0
 lookup_drive        dw 0
 lookup_path_off     dw 0
 lookup_path_seg     dw 0
@@ -900,6 +989,7 @@ read_request    db 27,0,80h
                 dd 0                   ; starting sector
                 db 0,0,0               ; cooked, no interleave
 vtoc_buffer     db 2048 dup(0)
+primary_vtoc_buffer db 2048 dup(0)
 directory_buffer db 2048 dup(0)
 psp_segment     dw 0
 driver_offsets  dw MAX_DRIVES dup(0)
