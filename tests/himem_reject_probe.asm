@@ -3,8 +3,13 @@ org 100h
 
     mov ax,4300h
     int 2fh
+%ifdef EXPECT_INSTALLED
+    cmp al,80h
+    jne fail
+%else
     cmp al,80h
     je fail
+%endif
     mov dx,pass_msg
     jmp short finish
 fail:

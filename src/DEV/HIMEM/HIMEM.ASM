@@ -70,6 +70,8 @@ move_source     dd      0
 move_dest       dd      0
 move_chunk      dd      0
 move_offset_error db    0
+test_address    dd      0
+test_remaining dw      0
 handles         db      MAX_HANDLES * HANDLE_SIZE dup (0)
 umb_count       dw      0
 umb_committed   db      0
@@ -188,6 +190,14 @@ init_extended_ok:
         mov     [extended_kb], ax
         or      ax, ax
         jz      init_fail
+        cmp     [testmem_mode], 0
+        je      short init_memory_tested
+        call    test_extended_memory
+        jnc     short init_memory_tested
+        mov     si, offset testmem_failure_message
+        call    print_bios_string
+        jmp     init_fail
+init_memory_tested:
 ifdef DEBUG
         mov     al, 'D'
         call    debug_mark
@@ -657,6 +667,7 @@ machine_at2     db 'AT2',0
 machine_at3     db 'AT3',0
 machine_fasthp  db 'FASTHP',0
 verbose_message db 13,10,'HIMEM: DOS 6 extended-memory manager installed',13,10,0
+testmem_failure_message db 13,10,'HIMEM: Extended-memory test failed',13,10,0
 
 print_bios_string proc near
         push    ax
@@ -674,6 +685,135 @@ print_bios_done:
         pop     ax
         ret
 print_bios_string endp
+
+; Destructively verify every byte of the XMS span before the manager publishes
+; it. Each 1-KiB block is written and read back with complementary patterns.
+; INT 15h/87h keeps this path 286-safe and reuses the same transfer mechanism
+; later exposed through XMS function 0Bh.
+test_extended_memory proc near
+        push    ax
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        push    di
+        push    es
+        mov     word ptr [test_address], 0
+        mov     word ptr [test_address+2], 0010h
+        mov     ax, [extended_kb]
+        mov     [test_remaining], ax
+testmem_block:
+        mov     ax, 0aa55h
+        call    test_memory_pattern
+        jc      short testmem_failed
+        mov     ax, 055aah
+        call    test_memory_pattern
+        jc      short testmem_failed
+        add     word ptr [test_address], 1024
+        adc     word ptr [test_address+2], 0
+        dec     [test_remaining]
+        jnz     short testmem_block
+        clc
+        jmp     short testmem_done
+testmem_failed:
+        stc
+testmem_done:
+        pop     es
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
+        ret
+test_extended_memory endp
+
+; AX is the word pattern. Write and verify one complete 1-KiB block at the
+; physical address in test_address.
+test_memory_pattern proc near
+        push    ax
+        push    cx
+        push    si
+        push    di
+        push    es
+        push    ax
+        push    cs
+        pop     es
+        mov     di, offset test_pattern
+        mov     cx, 512
+        cld
+        rep     stosw
+
+        mov     ax, offset test_pattern
+        call    conventional_physical
+        mov     word ptr [move_source], ax
+        mov     word ptr [move_source+2], dx
+        mov     ax, word ptr [test_address]
+        mov     dx, word ptr [test_address+2]
+        mov     word ptr [move_dest], ax
+        mov     word ptr [move_dest+2], dx
+        mov     word ptr [move_length], 1024
+        mov     word ptr [move_length+2], 0
+        call    copy_move_blocks
+        jc      short test_pattern_bad_pop
+
+        mov     ax, word ptr [test_address]
+        mov     dx, word ptr [test_address+2]
+        mov     word ptr [move_source], ax
+        mov     word ptr [move_source+2], dx
+        mov     ax, offset test_verify
+        call    conventional_physical
+        mov     word ptr [move_dest], ax
+        mov     word ptr [move_dest+2], dx
+        mov     word ptr [move_length], 1024
+        mov     word ptr [move_length+2], 0
+        call    copy_move_blocks
+        jc      short test_pattern_bad_pop
+
+ifdef TESTMEM_FAULT
+        ; Test-only mutation: prove that the readback comparison gates install.
+        inc     byte ptr [test_verify]
+endif
+        pop     ax
+        push    ax
+        mov     si, offset test_verify
+        mov     cx, 512
+test_pattern_compare:
+        cmp     word ptr [si], ax
+        jne     short test_pattern_bad_pop
+        add     si, 2
+        loop    test_pattern_compare
+        pop     ax
+        clc
+        jmp     short test_pattern_done
+test_pattern_bad_pop:
+        pop     ax
+        stc
+test_pattern_done:
+        pop     es
+        pop     di
+        pop     si
+        pop     cx
+        pop     ax
+        ret
+test_memory_pattern endp
+
+; Convert CS:AX to a physical DX:AX address.
+conventional_physical proc near
+        push    bx
+        push    cx
+        mov     dx, cs
+        mov     bx, dx
+        mov     cl, 12
+        shr     dx, cl
+        mov     cl, 4
+        shl     bx, cl
+        add     ax, bx
+        adc     dx, 0
+        pop     cx
+        pop     bx
+        ret
+conventional_physical endp
 
 ifdef DEBUG
 debug_mark proc near
@@ -1867,4 +2007,6 @@ total_free_next:
 total_free endp
 
 resident_end label byte
+test_pattern    db      1024 dup (0)
+test_verify     db      1024 dup (0)
         end

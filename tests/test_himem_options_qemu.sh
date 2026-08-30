@@ -10,6 +10,8 @@ IMAGE="$OUT/floppy-himem-options.img"
 LOG="$OUT/himem-options.log"
 PROBE="$OUT/himem-options.com"
 REJECT_PROBE="$OUT/himem-reject.com"
+ACCEPT_PROBE="$OUT/himem-accept.com"
+FAULT_HIMEM="$OUT/himem-testmem-fault.sys"
 VERBOSE_IMAGE="$OUT/floppy-himem-verbose.img"
 VERBOSE_QMP="$OUT/himem-verbose-qmp.sock"
 VERBOSE_SCREEN="$OUT/himem-verbose-screen.log"
@@ -22,7 +24,10 @@ done
 
 nasm -f bin "$ROOT/tests/himem_options_probe.asm" -o "$PROBE"
 nasm -f bin "$ROOT/tests/himem_reject_probe.asm" -o "$REJECT_PROBE"
+nasm -f bin -DEXPECT_INSTALLED=1 "$ROOT/tests/himem_reject_probe.asm" -o "$ACCEPT_PROBE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
+"$ROOT/bin/jwasm-bin" -DTESTMEM_FAULT -Fo"$FAULT_HIMEM" \
+    "$ROOT/src/DEV/HIMEM/HIMEM.ASM"
 cp "$FLOPPY" "$IMAGE"
 mdel -i "$IMAGE" ::HELP.HLP >/dev/null 2>&1 || true
 mcopy -o -i "$IMAGE" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
@@ -46,6 +51,30 @@ grep -Fq 'HIMEM_OPTIONS_PASS' "$LOG" || {
     sed -n '1,160p' "$LOG" >&2
     exit 1
 }
+
+for testmem_mode in ON OFF; do
+    testmem_image="$OUT/floppy-himem-testmem-$testmem_mode.img"
+    testmem_log="$OUT/himem-testmem-$testmem_mode.log"
+    cp "$FLOPPY" "$testmem_image"
+    mdel -i "$testmem_image" ::HELP.HLP >/dev/null 2>&1 || true
+    mcopy -o -i "$testmem_image" "$FAULT_HIMEM" ::HIMEM.SYS
+    if [[ "$testmem_mode" == ON ]]; then
+        testmem_probe="$REJECT_PROBE"
+    else
+        testmem_probe="$ACCEPT_PROBE"
+    fi
+    mcopy -o -i "$testmem_image" "$testmem_probe" ::HIMTEST.COM
+    printf 'DEVICE=A:\\HIMEM.SYS /TESTMEM:%s\r\n' "$testmem_mode" | \
+        mcopy -o -i "$testmem_image" - ::CONFIG.SYS
+    printf '@ECHO OFF\r\nCTTY AUX\r\nHIMTEST.COM\r\n' | \
+        mcopy -o -i "$testmem_image" - ::AUTOEXEC.BAT
+    timeout 20 qemu-system-i386 \
+        -display none -monitor none -machine pc -cpu 486 -m 16 \
+        -drive if=floppy,index=0,format=raw,file="$testmem_image",cache=writethrough \
+        -boot a -serial stdio -no-reboot \
+        -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$testmem_log" 2>&1 || true
+    grep -Fq HIMEM_REJECT_PASS "$testmem_log"
+done
 
 cp "$FLOPPY" "$VERBOSE_IMAGE"
 mcopy -o -i "$VERBOSE_IMAGE" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
@@ -72,10 +101,10 @@ for eisa_mode in EISA LEGACY; do
     cp "$FLOPPY" "$eisa_image"
     if [[ "$eisa_mode" == EISA ]]; then
         nasm -f bin -DEXPECT_EISA=1 "$ROOT/tests/himem_eisa_probe.asm" -o "$EISA_PROBE"
-        option=/EISA
+        option='/EISA /TESTMEM:OFF'
     else
         nasm -f bin "$ROOT/tests/himem_eisa_probe.asm" -o "$EISA_PROBE"
-        option=
+        option=/TESTMEM:OFF
     fi
     mcopy -o -i "$eisa_image" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
     mcopy -o -i "$eisa_image" "$EISA_PROBE" ::EISAPRB.COM
