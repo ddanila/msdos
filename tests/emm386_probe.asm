@@ -22,6 +22,9 @@ start:
     cmp al, 40h
     jne version_failed
 
+    call test_external_map_rejection
+    jc external_map_failed
+
     push ds
     pop es
     mov di, frame_array
@@ -110,6 +113,59 @@ start:
     mov ax, 4c00h
     int 21h
 
+test_external_map_rejection:
+    push ds
+    pop es
+    mov di, saved_map
+    mov ax, 4e00h
+    int 67h
+    test ah, ah
+    jnz .failed
+
+    mov si, saved_map
+    mov di, corrupt_map
+    mov cx, 130
+    rep movsw
+
+    inc word [corrupt_map]
+    mov si, corrupt_map
+    mov ax, 4e01h
+    int 67h
+    cmp ah, 0a3h
+    jne .failed
+
+    mov ah, 40h
+    int 67h
+    test ah, ah
+    jnz .failed
+
+    mov si, saved_map
+    mov di, corrupt_map
+    mov cx, 130
+    rep movsw
+    mov word [corrupt_map + 2], 0fffeh
+    mov si, corrupt_map
+    mov ax, 4e01h
+    int 67h
+    cmp ah, 0a3h
+    jne .failed
+
+    mov si, saved_map
+    mov ax, 4e01h
+    int 67h
+    test ah, ah
+    jnz .failed
+
+    mov ah, 40h
+    int 67h
+    test ah, ah
+    jnz .failed
+    clc
+    ret
+.failed:
+    stc
+    ret
+
 map_failed:
     mov dx, [handle]
     mov ah, 45h
@@ -157,6 +213,9 @@ alloc_failed:
     jmp fail
 release_failed:
     mov dx, release_fail
+    jmp fail
+external_map_failed:
+    mov dx, external_map_fail
 
 fail:
     mov ah, 09h
@@ -179,6 +238,9 @@ alloc_fail   db 'EMM386_ALLOC_FAIL', 13, 10, '$'
 map_fail     db 'EMM386_MAP_FAIL', 13, 10, '$'
 memory_fail  db 'EMM386_MEMORY_FAIL', 13, 10, '$'
 release_fail db 'EMM386_RELEASE_FAIL', 13, 10, '$'
+external_map_fail db 'EMM386_EXTERNAL_MAP_FAIL', 13, 10, '$'
 partial_map  dw 1, 0
 frame_array  times 64 dw 0, 0
 partial_state times 130 dw 0
+saved_map    times 130 dw 0
+corrupt_map  times 130 dw 0

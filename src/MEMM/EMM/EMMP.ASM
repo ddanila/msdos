@@ -900,6 +900,8 @@ _set_map	proc	near
 	jmp	_set_windows			; make it effective
 
 sm_inv_source:
+	push	es
+	pop	ds				; DS <-- DGROUP
 	mov	byte ptr [bp.rAX+1], SOURCE_CORRUPTED
 	ret
 
@@ -964,7 +966,6 @@ sw_unmap_page:
 
 sw_corrupt:
 	mov	byte ptr [bp.rAX+1], SOURCE_CORRUPTED
-	pop	dx
 	ret
 
 _set_windows	endp
