@@ -718,6 +718,10 @@ jmp_Xs:
 	jmp	chk_Xs
 jmp_Is:
 	jmp	chk_Is
+jmp_FRAME:
+	jmp	chk_FRAME
+jmp_slash_P:
+	jmp	chk_slash_P
 
 ploop1:
 	mov	si,offset DGROUP:arg_str; ds:si = storage for argument
@@ -734,6 +738,10 @@ ploop1:
 	je	jmp_Xs			;   maybe: go validate it
 	cmp	al,'i'			; q: Include segment parameter
 	je	jmp_Is			;   maybe: go validate it
+	cmp	al,'f'			; q: FRAME= direct page frame?
+	je	jmp_FRAME
+	cmp	al,'/'			; q: /Pmmmm direct page frame?
+	je	jmp_slash_P
 	cmp	al,'r'			; q: RAM activation mode?
 	je	short chk_RAM
 	cmp	al,'n'			; q: NOEMS activation mode?
@@ -829,6 +837,86 @@ siz_msg:
 set_siz:
 	mov	[pool_size],bx		; save it
 	jmp	ploop1			; go check more parameters
+
+; FRAME=mmmm and /Pmmmm select the same documented page-frame addresses as
+; M1-M14. Store the corresponding Map_tbl byte offset in PF_Base.
+chk_FRAME:
+	cmp	cx,10
+	jne	inv_prm
+	cmp	byte ptr [si],'r'
+	jne	inv_prm
+	cmp	byte ptr [si+1],'a'
+	jne	inv_prm
+	cmp	byte ptr [si+2],'m'
+	jne	inv_prm
+	cmp	byte ptr [si+3],'e'
+	jne	inv_prm
+	cmp	byte ptr [si+4],'='
+	jne	inv_prm
+	add	si,5
+	mov	cx,4
+	call	htoi
+	or	cx,cx
+	jnz	inv_prm
+	call	page_frame_to_index
+	jc	inv_prm
+	jmp	store_page_frame
+
+chk_slash_P:
+	cmp	cx,6
+	jne	inv_prm
+	cmp	byte ptr [si],'p'
+	jne	inv_prm
+	inc	si
+	mov	cx,4
+	call	htoi
+	or	cx,cx
+	jnz	inv_prm
+	call	page_frame_to_index
+	jc	inv_prm
+store_page_frame:
+	cmp	[PF_Base],0ffffh
+	jne	inv_prm
+	mov	[PF_Base],ax
+	jmp	ploop1
+
+; AX=segment; return AX=word-table offset for the M1-M14 frame list.
+page_frame_to_index proc near
+	push	bx
+	mov	bx,ax
+	cmp	bx,0c000h
+	jb	short page_frame_low
+	cmp	bx,0e000h
+	ja	short page_frame_bad
+	sub	bx,0c000h
+	test	bx,03ffh
+	jnz	short page_frame_bad
+	mov	cl,9
+	shr	bx,cl
+	mov	ax,bx
+	pop	bx
+	clc
+	ret
+page_frame_low:
+	cmp	bx,08000h
+	jb	short page_frame_bad
+	cmp	bx,09000h
+	ja	short page_frame_bad
+	sub	bx,08000h
+	test	bx,03ffh
+	jnz	short page_frame_bad
+	mov	cl,9
+	shr	bx,cl
+	add	bx,18
+	mov	ax,bx
+	pop	bx
+	clc
+	ret
+page_frame_bad:
+	pop	bx
+	stc
+	ret
+page_frame_to_index endp
 
 
 ;
