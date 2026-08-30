@@ -47,6 +47,25 @@ struct partition_record {
     unsigned short checksum;
     unsigned char mbr[512];
 };
+
+struct tracker_header {
+    char magic[8];
+    unsigned short version;
+    unsigned char drive;
+    unsigned short maximum_entries;
+    unsigned short entry_count;
+};
+
+struct tracker_entry {
+    unsigned short directory_cluster;
+    unsigned char name[11];
+    unsigned char attributes;
+    unsigned short time;
+    unsigned short date;
+    unsigned short first_cluster;
+    unsigned long size;
+    unsigned short cluster_count;
+};
 #pragma pack()
 
 #endif

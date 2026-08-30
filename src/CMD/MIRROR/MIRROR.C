@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <dos.h>
+#include <process.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -270,6 +271,68 @@ write_error:
     return 1;
 }
 
+static unsigned default_tracker_entries(unsigned drive)
+{
+    unsigned long total;
+    if (abs_read(drive, 0, 1, sector))
+        return 0;
+    total = get_word(sector + 19);
+    if (!total)
+        total = get_dword(sector + 32);
+    if (total <= 720)
+        return 25;
+    if (total <= 1440)
+        return 50;
+    if (total <= 2880)
+        return 75;
+    if (total <= 40960UL)
+        return 101;
+    if (total <= 65536UL)
+        return 202;
+    return 303;
+}
+
+static int install_tracker(unsigned drive, unsigned entries)
+{
+    char drive_arg[] = "A:";
+    char count_arg[5];
+    int result;
+
+    if (!entries)
+        entries = default_tracker_entries(drive);
+    if (!entries) {
+        fprintf(stderr, "MIRROR: cannot inspect drive %c:.\n", 'A' + drive);
+        return 1;
+    }
+    drive_arg[0] = (char)('A' + drive);
+    sprintf(count_arg, "%u", entries);
+    result = spawnlp(P_WAIT, "UNDELETE.COM", "UNDELETE.COM", "/TRACK",
+                     drive_arg, count_arg, NULL);
+    if (result) {
+        fprintf(stderr, "MIRROR: deletion tracking failed for drive %c:.\n",
+                'A' + drive);
+        return 1;
+    }
+    printf("Deletion tracking enabled for drive %c: (%u entries).\n",
+           'A' + drive, entries);
+    return 0;
+}
+
+static int unload_trackers(void)
+{
+    char active_name[] = "A:\\PCTRACKR.ACT";
+    unsigned drive;
+    unsigned removed = 0;
+    for (drive = 0; drive < 26; ++drive) {
+        active_name[0] = (char)('A' + drive);
+        if (!remove(active_name))
+            ++removed;
+    }
+    puts(removed ? "Deletion tracking disabled."
+                 : "Deletion tracking was not active.");
+    return removed ? 0 : 1;
+}
+
 static void usage(void)
 {
     puts("Records disk information for UNFORMAT.");
@@ -280,10 +343,14 @@ static void usage(void)
 int main(int argc, char **argv)
 {
     unsigned drives[26];
+    unsigned tracker_drives[26];
+    unsigned tracker_entries[26];
     unsigned count = 0;
+    unsigned tracker_count = 0;
     unsigned drive;
     int latest_only = 0;
     int partition_mode = 0;
+    int unload_mode = 0;
     int status = 0;
     int i;
 
@@ -298,6 +365,30 @@ int main(int argc, char **argv)
         }
         if (!stricmp(argv[i], "/PARTN")) {
             partition_mode = 1;
+            continue;
+        }
+        if (!stricmp(argv[i], "/U")) {
+            unload_mode = 1;
+            continue;
+        }
+        if ((argv[i][0] == '/' || argv[i][0] == '-') &&
+            toupper(argv[i][1]) == 'T' && isalpha(argv[i][2])) {
+            char *suffix = argv[i] + 3;
+            unsigned entries = 0;
+            if (*suffix) {
+                if (*suffix++ != '-' || !*suffix) {
+                    usage();
+                    return 1;
+                }
+                entries = (unsigned)atoi(suffix);
+                if (!entries || entries > 999) {
+                    usage();
+                    return 1;
+                }
+            }
+            tracker_drives[tracker_count] =
+                (unsigned)(toupper(argv[i][2]) - 'A');
+            tracker_entries[tracker_count++] = entries;
             continue;
         }
         if (argv[i][0] == '/' || argv[i][0] == '-') {
@@ -318,11 +409,20 @@ int main(int argc, char **argv)
         }
         return save_partitions();
     }
+    if (unload_mode) {
+        if (count || tracker_count || latest_only || argc != 2) {
+            usage();
+            return 1;
+        }
+        return unload_trackers();
+    }
     if (!count) {
         _dos_getdrive(&drive);
         drives[count++] = drive - 1;
     }
     for (i = 0; i < (int)count; ++i)
         status |= snapshot_drive(drives[i], latest_only);
+    for (i = 0; i < (int)tracker_count; ++i)
+        status |= install_tracker(tracker_drives[i], tracker_entries[i]);
     return status;
 }

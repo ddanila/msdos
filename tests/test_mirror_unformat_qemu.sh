@@ -6,8 +6,10 @@ OUT="$ROOT/out"
 BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT="$OUT/recovery-test-boot.img"
 TARGET="$OUT/recovery-test-target.img"
+UNSAFE_TARGET="$OUT/recovery-test-unsafe-target.img"
 HDD="$OUT/recovery-test-hdd.img"
 LOG="$OUT/recovery-test.log"
+UNSAFE_LOG="$OUT/recovery-test-unsafe.log"
 PART_LOG="$OUT/recovery-partition-test.log"
 QEXIT="$OUT/recovery-test-qexit.com"
 PASS=0
@@ -19,6 +21,7 @@ fail() { echo "  FAIL: $1"; FAIL=$((FAIL+1)); }
 [[ -f "$BASE" ]] || { echo "missing $BASE; run make deploy" >&2; exit 1; }
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 cp "$BASE" "$BOOT"
+mcopy -o -i "$BOOT" "$ROOT/src/CMD/FORMAT/FORMAT.COM" ::FORMAT.COM
 mcopy -o -i "$BOOT" "$ROOT/src/CMD/MIRROR/MIRROR.COM" ::MIRROR.COM
 mcopy -o -i "$BOOT" "$ROOT/src/CMD/UNFORMAT/UNFORMAT.COM" ::UNFORMAT.COM
 mcopy -o -i "$BOOT" "$QEXIT" ::QEXIT.COM
@@ -28,7 +31,6 @@ mformat -i "$TARGET" -f 1440 ::
 printf 'RECOVERY EXACT PAYLOAD\r\n' | mcopy -i "$TARGET" - ::KEEP.TXT
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
-    printf 'MIRROR B:\r\n'
     printf 'FORMAT B: /Q /AUTOTEST\r\n'
     printf 'UNFORMAT B: /J\r\n'
     printf 'IF ERRORLEVEL 1 ECHO VERIFY_FAILED\r\n'
@@ -44,12 +46,38 @@ timeout 30 qemu-system-i386 -display none \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     </dev/null >"$LOG" 2>&1 || true
 
-if grep -q 'Complete recovery information found for drive B:' "$LOG" &&
+if grep -q 'Recovery information saved for drive B:' "$LOG" &&
+   grep -q 'Complete recovery information found for drive B:' "$LOG" &&
    grep -q 'RECOVERY_FILE_PRESENT' "$LOG" &&
    ! grep -Eq 'VERIFY_FAILED|RESTORE_FAILED' "$LOG"; then
-    ok "MIRROR metadata survives quick FORMAT and passes /J"
+    ok "safe FORMAT records recovery metadata and UNFORMAT /J validates it"
 else
     fail "MIRROR/UNFORMAT workflow"
+fi
+
+dd if=/dev/zero of="$UNSAFE_TARGET" bs=512 count=2880 status=none
+mformat -i "$UNSAFE_TARGET" -f 1440 ::
+printf 'DESTRUCTIVE FORMAT PAYLOAD\r\n' | mcopy -i "$UNSAFE_TARGET" - ::ERASED.TXT
+{
+    printf '@ECHO OFF\r\nCTTY AUX\r\n'
+    printf 'FORMAT B: /U /AUTOTEST\r\n'
+    printf 'UNFORMAT B: /J\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO UNCONDITIONAL_NOT_RECOVERABLE\r\n'
+    printf 'IF EXIST B:\\ERASED.TXT ECHO UNCONDITIONAL_FILE_PRESENT\r\n'
+    printf 'QEXIT.COM\r\n'
+} | mcopy -o -i "$BOOT" - ::AUTOEXEC.BAT
+timeout 35 qemu-system-i386 -display none \
+    -drive if=floppy,index=0,format=raw,file="$BOOT",cache=writethrough \
+    -drive if=floppy,index=1,format=raw,file="$UNSAFE_TARGET",cache=writethrough \
+    -boot a -m 4 -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    </dev/null >"$UNSAFE_LOG" 2>&1 || true
+if grep -q 'UNCONDITIONAL_NOT_RECOVERABLE' "$UNSAFE_LOG" &&
+   ! grep -q 'UNCONDITIONAL_FILE_PRESENT' "$UNSAFE_LOG" &&
+   ! grep -aq 'MSD5REC' "$UNSAFE_TARGET"; then
+    ok "FORMAT /U bypasses recovery metadata and is not recoverable"
+else
+    fail "FORMAT /U recovery exclusion"
 fi
 payload="$(mcopy -i "$TARGET" ::KEEP.TXT - 2>/dev/null | tr -d '\r\n')"
 if [[ "$payload" == 'RECOVERY EXACT PAYLOAD' ]]; then

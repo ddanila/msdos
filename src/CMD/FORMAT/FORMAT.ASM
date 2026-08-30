@@ -487,6 +487,7 @@ data	ends
 	extrn	Main_Init:near
 	extrn	Read_Disk:near
 	extrn	Write_Disk:near
+	extrn	Format_Save:near
 
 data	segment public	para	'DATA'
 	extrn	BiosFile:byte,DosFile:byte
@@ -2277,6 +2278,20 @@ foofoo	=	INSTALL_FAKE_BPB or TRACKLAYOUT_IS_GOOD
 	call	Cluster_Buffer_Allocate 					;an000; dms;get room for retry buffer
 
 	call	Prompt_User_For_Disk						;an016; dms;
+
+	; DOS 5 safe FORMAT records the existing FAT and root directory.  /U is
+	; explicitly destructive and bypasses this recovery transaction.
+	test	SwitchMap,Switch_U
+	jnz	RecoverySnapshotDone
+	xor	ax,ax
+	mov	al,drive
+	call	Format_Save
+	or	ax,ax
+	jz	RecoverySnapshotDone
+	mov	FormatError,1
+	stc
+	return
+RecoverySnapshotDone:
 
 	test	switchmap,switch_8		; DCL 5/12/86 avoid Naples AH=18h
 	jnz	stdBpB				; lackof support for 8 sectors/track
