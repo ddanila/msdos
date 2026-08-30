@@ -2,7 +2,7 @@
   "schema": 1,
   "dispatch_source": "src/CMD/COMMAND/TDATA.ASM",
   "operational_switches": {
-    "COPY": ["A", "B", "V"],
+    "COPY": ["-Y", "A", "B", "V", "Y"],
     "DEL": ["P"],
     "DIR": ["A", "B", "L", "O", "P", "S", "W"],
     "ERASE": ["P"]
@@ -24,7 +24,7 @@
     "CHCP": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_drivers_qemu.sh"], "note": "The default page is queried exactly and configured page 850 is selected and reported"},
     "CHDIR": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "The long form reaches the shared directory-change implementation and reports the resulting path"},
     "CLS": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "The exact ESC[2J console clear sequence is asserted"},
-    "COPY": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_command_startup_qemu.sh"], "note": "Ordinary, verified, concatenated, wildcard, ASCII, and binary copies assert resulting bytes; self-copy and missing-source failures preserve prior data, a missing later concatenation member is skipped, destination mode interactions are byte-exact on real DOS, and missing, excess, duplicate, and unknown syntax requires exact diagnostics"},
+    "COPY": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_command_startup_qemu.sh", "tests/test_copy_policy_qemu.sh"], "note": "Ordinary, verified, concatenated, wildcard, ASCII, and binary copies assert resulting bytes; overwrite prompting, /Y, /-Y, COPYCMD, and command-line precedence preserve or replace exact payloads; self-copy and missing-source failures preserve prior data"},
     "CTTY": {"level": "contract", "evidence": ["tests/test_assign_subst_join.sh"], "note": "CTTY AUX redirects a complete live batch session to serial output"},
     "DATE": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_command_startup_qemu.sh"], "note": "Prompt-and-empty input is covered; a valid date is set and reported exactly, while an impossible calendar date is rejected before empty input returns"},
     "DEL": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_prompt_yesno.sh"], "note": "Single-file and wildcard deletion are asserted through absence; /P decline preserves a file, while duplicate /P is rejected exactly"},

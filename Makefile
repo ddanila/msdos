@@ -30,6 +30,7 @@ AINC     := -I. -ID:\\TOOLS\\INC
 .PHONY: test-utility-parser-coverage-manifest test-keyboard-records test-country-records test-country-matrix-qemu
 .PHONY: test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-szdd-tool distribution test-distribution test-setup-qemu test-mirror-unformat-qemu test-undelete-qemu
 .PHONY: test-command-step-qemu
+.PHONY: test-copy-policy-qemu
 
 KVIKDOS_SOFT_SRCS := kvikdos/kvikdos.c kvikdos/cpu8086.c
 KVIKDOS_SOFT_DEPS := $(KVIKDOS_SOFT_SRCS) kvikdos/mini_kvm.h kvikdos/cpu8086.h \
@@ -434,6 +435,9 @@ test-command-startup-qemu: deploy
 
 test-command-step-qemu: deploy
 	bash tests/test_command_step_qemu.sh
+
+test-copy-policy-qemu: deploy
+	bash tests/test_copy_policy_qemu.sh
 
 test-screen-expect: deploy
 	bash tests/test_screen_expect.sh

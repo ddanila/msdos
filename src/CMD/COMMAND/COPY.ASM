@@ -94,6 +94,7 @@ TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	MELSTART:WORD
 	EXTRN	msg_flag:byte		;AN022;
 	EXTRN	NOWRITE:BYTE
+	EXTRN	OVERWRITECANCEL:BYTE
 	EXTRN	NXTADD:WORD
 	EXTRN	objcnt:byte
 	EXTRN	one_char_val:byte	;AN000;
@@ -131,6 +132,7 @@ TRANSPACE	ENDS
 ;
 
 TRANCODE	SEGMENT PUBLIC BYTE
+	EXTRN	FIND_NAME_IN_ENVIRONMENT:NEAR
 
 	EXTRN	CERROR:NEAR
 	EXTRN	COPERR:NEAR
@@ -145,13 +147,16 @@ assume	ds:trangroup,es:trangroup
 COPY_HELP_STR	DB	"Copies one or more files to another location.", 0DH, 0AH
 		DB	0DH, 0AH
 		DB	"COPY [/A | /B] source [/A | /B] [+ source [/A | /B] [+ ...]]", 0DH, 0AH
-		DB	"     [destination [/A | /B]] [/V]", 0DH, 0AH
+		DB	"     [destination [/A | /B]] [/V] [/Y | /-Y]", 0DH, 0AH
 		DB	0DH, 0AH
 		DB	"  source       Specifies the file or files to be copied.", 0DH, 0AH
 		DB	"  /A           Indicates an ASCII text file.", 0DH, 0AH
 		DB	"  /B           Indicates a binary file.", 0DH, 0AH
 		DB	"  destination  Specifies the directory and/or filename for the new file(s).", 0DH, 0AH
-		DB	"  /V           Verifies that new files are written correctly.", 0DH, 0AH, "$"
+		DB	"  /V           Verifies that new files are written correctly.", 0DH, 0AH
+		DB	"  /Y           Replaces existing files without prompting.", 0DH, 0AH
+		DB	"  /-Y          Prompts before replacing existing files.", 0DH, 0AH
+		DB	"The COPYCMD environment variable supplies the default /Y or /-Y policy.", 0DH, 0AH, "$"
 
 COPY:
 	; Check for /?
@@ -198,6 +203,7 @@ COPY_NORM:
 	mov	SrcVars,AL
 	mov	UserDir1,AL
 	mov	NoWrite,AL
+	mov	OverwriteCancel,AL
 	mov	RdEOF,AL
 	mov	SrcHand,AX
 	mov	CpDate,AX
@@ -209,6 +215,7 @@ COPY_NORM:
 	mov	plus_comma,al			;g
 	mov	msg_flag,al			;AN022;
 	mov	[ALLSWITCH],AX			; no switches
+	call	LoadCopyCmdPolicy
 	mov	[ARGC],al			; no arguments
 	mov	[PLUS],al			; no concatenation
 	mov	[BINARY],al			; Binary not specifically specified
@@ -259,6 +266,14 @@ NOPLUS:
 	or	BP,FBadSwitch			;AN018; Set up bad switch
 
 not_slashv:					;AN038;
+	test	BP,SwitchY
+	jz	CopyNotYes
+	and	[ALLSWITCH],NOT SwitchNoY
+CopyNotYes:
+	test	BP,SwitchNoY
+	jz	CopyNotNo
+	and	[ALLSWITCH],NOT SwitchY
+CopyNotNo:
 	or	[DESTSWITCH],BP 		; Yes, assume destination
 	or	[ALLSWITCH],BP			; keep tabs on all switches
 
@@ -375,9 +390,7 @@ CHKSWTCHES:
 ; Now know most of the information needed about the destination
 
 ;AD018; NOT_BAD_SWITCH:
-if not ibmcopyright
 	mov	ax, [allswitch]			; Which switches were requested?  Hmmm?
-endif
 	TEST	AX,SwitchV			; Verify requested?
 	JZ	NOVERIF 			; No
 	MOV	AH,GET_VERIFY_ON_WRITE
@@ -411,7 +424,53 @@ NOSETCASC:
 	call	source_set
 	call	FRSTSRC
 	jmp	FIRSTENT
+LoadCopyCmdPolicy:
+	PUSH	AX
+	PUSH	BX
+	PUSH	CX
+	PUSH	DX
+	PUSH	SI
+	PUSH	DI
+	PUSH	ES
+	MOV	SI,OFFSET TRANGROUP:CopyCmdName
+	CALL	FIND_NAME_IN_ENVIRONMENT
+	JC	CopyCmdDone
+CopyCmdScan:
+	MOV	AL,ES:[DI]
+	OR	AL,AL
+	JZ	CopyCmdDone
+	INC	DI
+	CMP	AL,'/'
+	JNE	CopyCmdScan
+	MOV	AL,ES:[DI]
+	CMP	AL,'-'
+	JNE	CopyCmdYes
+	INC	DI
+	MOV	AL,ES:[DI]
+	AND	AL,0DFH
+	CMP	AL,'Y'
+	JNE	CopyCmdScan
+	AND	[ALLSWITCH],NOT SwitchY
+	OR	[ALLSWITCH],SwitchNoY
+	JMP	SHORT CopyCmdScan
+CopyCmdYes:
+	AND	AL,0DFH
+	CMP	AL,'Y'
+	JNE	CopyCmdScan
+	AND	[ALLSWITCH],NOT SwitchNoY
+	OR	[ALLSWITCH],SwitchY
+	JMP	SHORT CopyCmdScan
+CopyCmdDone:
+	POP	ES
+	POP	DI
+	POP	SI
+	POP	DX
+	POP	CX
+	POP	BX
+	POP	AX
+	RET
 
+CopyCmdName DB 'COPYCMD=',0
 PUBLIC	EndCopy
 ENDCOPY:
 	CALL	CLOSEDEST
@@ -510,6 +569,7 @@ SETNMEL:
 	rep	movsb				; Save very first source name
 NEXTAMBIG:
 	xor	al,al
+	mov	[OVERWRITECANCEL],al
 	mov	[NOWRITE],al			; Turn off NOWRITE
 	mov	di,[SRCTAIL]
 	mov	si,offset trangroup:DIRBUF + 1
@@ -814,6 +874,8 @@ CLOSESRC:
 CLOSEDEST:
 	cmp	[DESTCLOSED],0
 	retnz					; Don't double close
+	cmp	[OVERWRITECANCEL],0
+	retnz					; User declined this existing destination
 	MOV	AL,BYTE PTR [DESTSWITCH]
 	invoke	SETASC				; Check for B or A switch on destination
 	JZ	BINCLOS
@@ -842,6 +904,8 @@ PUTZ:
 BINCLOS:
 	invoke	TRYFLUSH
 	jnz	CONCHNG
+	cmp	[OVERWRITECANCEL],0
+	retnz					; Prompt declined before any open/truncate
 	cmp	[WRITTEN],0
 ForgetItJ:
 	jnz	no_forget			;AC000; Wrote something

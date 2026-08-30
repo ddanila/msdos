@@ -49,7 +49,7 @@ def live_operational_switches(commands):
                     break
             switches = {
                 switch.upper()
-                for switch in re.findall(r'/([A-Z])\b', " ".join(block), re.IGNORECASE)
+                for switch in re.findall(r'/(-?[A-Z])\b', " ".join(block), re.IGNORECASE)
                 if switch != "?"
             }
             if switches:

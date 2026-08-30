@@ -41,7 +41,7 @@ ASSUME	CS:TRANGROUP,DS:TRANGROUP,ES:TRANGROUP,SS:NOTHING
 	PUBLIC	BADCDERR		;AC022;
 	PUBLIC	CPARSE
 
-SWCOUNT EQU	5			; Must agree with length of switch_list
+SWCOUNT EQU	6			; Must agree with length of switch_list
 
 ;-----------------------------------------------------------------------;
 ; ENTRY:								;
@@ -360,6 +360,21 @@ a_switch:
 	or	bp,fBadSwitch			;AN057; DBCS switch is invalid
 	jmp	short out_token 		;AN057; don't bother checking switch
 a_switch_notkanj:				;AN057;
+	cmp	al,'-'			; DOS 6 COPY/XCOPY-style /-Y switch?
+	jne	Store_swt
+	call	move_char
+	lodsb
+	invoke	UPCONV
+	cmp	al,'Y'
+	jne	a_switch_bad_negative
+	call	move_char
+	or	bp,SwitchNoY
+	jmp	short out_token
+a_switch_bad_negative:
+	dec	si
+	or	bp,fBadSwitch
+	jmp	short out_token
+
 	cmp	al,0DH
 	jne	Store_swt
 	mov	al,0

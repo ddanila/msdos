@@ -135,7 +135,7 @@ SWLOOP:
 BADSW:
 	JMP	SHORT SWLOOP
 
-SWCOUNT EQU	5				; Length of switch_list
+SWCOUNT EQU	6				; Length of switch_list
 
 DRVBAD:
 	MOV	DX,OFFSET TRANGROUP:BADDRV_ptr

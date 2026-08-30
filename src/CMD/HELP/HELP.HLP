@@ -133,7 +133,8 @@ Compares the contents of two files or sets of files.
 Syntax: COMP data1 [data2] [/D] [/A] [/L] [/N=number] [/C]
 @COPY
 Copies one or more files.
-Syntax: COPY [/A|/B] source [/A|/B] [+ source ...] [destination] [/A|/B] [/V]
+Syntax: COPY [/A|/B] source [/A|/B] [+ source ...] [destination] [/A|/B] [/V] [/Y|/-Y]
+Prompts before replacing files unless /Y or COPYCMD=/Y selects automatic replacement.
 @CTTY
 Changes the terminal device used to control the system.
 Syntax: CTTY device

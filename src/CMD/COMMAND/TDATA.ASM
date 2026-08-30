@@ -361,7 +361,7 @@ comext	dB	".COM"
 exeext	dB	".EXE"
 batext	dB	".BAT"
 
-switch_list	DB	"VBAPW"                 ; flags we can recognize
+switch_list	DB	"YVBAPW"                ; flags we can recognize
 
 
 XA_cp	Label	  byte				;AN030; list for one extended attribute

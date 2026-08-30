@@ -25,6 +25,7 @@ TRANDATA	SEGMENT PUBLIC BYTE	;AC000;
 TRANDATA ENDS
 
 TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
+	EXTRN	ALLSWITCH:WORD
 	EXTRN	ASCII:BYTE
 	EXTRN	BINARY:BYTE
 	EXTRN	CFLAG:BYTE
@@ -37,6 +38,7 @@ TRANSPACE	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	DESTSWITCH:WORD
 	EXTRN	INEXACT:BYTE
 	EXTRN	NOWRITE:BYTE
+	EXTRN	OVERWRITECANCEL:BYTE
 	EXTRN	NXTADD:WORD
 	EXTRN	plus_comma:byte 	;AN000;
 	EXTRN	RDEOF:BYTE
@@ -94,6 +96,21 @@ NO_CONCAT_ERR:					;AC000;
 	MOV	[NOWRITE],1			; Flag not writting (just seeking)
 
 PROCDEST:
+	CMP	[NOWRITE],0
+	JNZ	OverwriteDone
+	TEST	[ALLSWITCH],SwitchY
+	JNZ	OverwriteDone
+	MOV	DX,OFFSET TRANGROUP:DESTBUF
+	MOV	AX,4300H			; Does a destination file already exist?
+	INT	int_command
+	JC	OverwriteDone
+	CALL	ConfirmOverwrite
+	JNC	OverwriteDone
+	MOV	[NXTADD],0
+	INC	[TERMREAD]
+	INC	[OVERWRITECANCEL]		; Preserve the unopened existing file
+	RET
+OverwriteDone:
 	MOV	AX,EXTOPEN SHL 8		;AC000; open the file
 	mov	si,offset trangroup:destbuf	;AN030; get file name
 	mov	di,-1				;AN030; indicate no parameters
@@ -165,7 +182,7 @@ TESTBOTH:
 	jmp	short EXISTS
 
 COPERRJ:
-	jmp	SHORT COPERR
+	jmp	COPERR
 
 EXSETA:
 ;
@@ -197,11 +214,77 @@ EXISTS:
 RET60:
 	return
 
+; Carry clear means replace the existing destination.  /-Y and the default
+; policy prompt; A selects Yes for the rest of this COPY invocation.
+ConfirmOverwrite:
+	PUSH	AX
+	PUSH	BX
+	PUSH	CX
+	PUSH	DX
+	PUSH	SI
+	CLD
+	MOV	DX,OFFSET TRANGROUP:OverwritePrefix
+	MOV	AH,09H
+	INT	int_command
+	MOV	SI,OFFSET TRANGROUP:DESTBUF
+OverwriteName:
+	LODSB
+	OR	AL,AL
+	JZ	OverwriteQuestion
+	MOV	DL,AL
+	MOV	AH,02H
+	INT	int_command
+	JMP	SHORT OverwriteName
+OverwriteQuestion:
+	MOV	DX,OFFSET TRANGROUP:OverwriteSuffix
+	MOV	AH,09H
+	INT	int_command
+OverwriteRead:
+	MOV	AH,01H
+	INT	int_command
+	CMP	AL,'a'
+	JB	OverwriteUpper
+	CMP	AL,'z'
+	JA	OverwriteUpper
+	SUB	AL,20H
+OverwriteUpper:
+	CMP	AL,'Y'
+	JE	OverwriteYes
+	CMP	AL,'A'
+	JE	OverwriteAll
+	CMP	AL,'N'
+	JNE	OverwriteRead
+	STC
+	JMP	SHORT OverwriteResult
+OverwriteAll:
+	OR	[ALLSWITCH],SwitchY
+OverwriteYes:
+	CLC
+OverwriteResult:
+	PUSHF
+	MOV	DX,OFFSET TRANGROUP:OverwriteCRLF
+	MOV	AH,09H
+	INT	int_command
+	POPF
+	POP	SI
+	POP	DX
+	POP	CX
+	POP	BX
+	POP	AX
+	RET
+
+OverwritePrefix DB 'Overwrite $'
+OverwriteSuffix DB '? (Yes/No/All): $'
+OverwriteCRLF DB 13,10,'$'
+
 NOCHECKING:
 	mov	bx,[DESTHAND]			; Get handle
 	XOR	CX,CX
 	XCHG	CX,[NXTADD]
-	JCXZ	RET60				; If Nothing to write, forget it
+	OR	CX,CX
+	JNZ	HaveWriteData
+	JMP	RET60				; If Nothing to write, forget it
+HaveWriteData:
 	INC	[WRITTEN]			; Flag that we wrote something
 	CMP	[NOWRITE],0			; If NOWRITE set, just seek CX bytes
 	JNZ	SEEKEND

@@ -211,6 +211,8 @@ arg_unit    ENDS
 parseflags RECORD special_delim:1, unused:4, path_sep:1, wildcard:1, sw_flag:1
 
 SwitchV 	EQU	10h
+SwitchY 	EQU	20h
+SwitchNoY	EQU	40h
 SwitchB 	EQU	08h
 SwitchA 	EQU	04h
 SwitchP 	EQU	02h
@@ -221,7 +223,7 @@ fSwitch 	EQU	8000h
 fBadSwitch	EQU	4000h
 
 SwitchDir	EQU	SwitchP + SwitchW + fSwitch
-SwitchCopy	EQU	SwitchV + SwitchA + SwitchB + fSwitch
+SwitchCopy	EQU	SwitchV + SwitchY + SwitchNoY + SwitchA + SwitchB + fSwitch
 
 break <Trap:  Get the attention of MSDOS>
 ;   TRAP snares the operating system for a service call
