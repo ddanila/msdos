@@ -1,15 +1,13 @@
 ; Clean-room XMS 2.00 manager for the repository MS-DOS tree.
 ;
-; This driver is intentionally not added to production media until the full
-; XMS 2.00 conformance suite passes.  It shares no source with Microsoft's
-; published HIMEM implementation.
+; It shares no source with Microsoft's published HIMEM implementation.
 
         .model  tiny
-        .386
+        .286
         .code
         org     0
 
-MAX_HANDLES     equ     32
+MAX_HANDLES     equ     128
 HANDLE_SIZE     equ     8
 MAX_UMB_BLOCKS  equ     32
 UMB_BLOCK_SIZE  equ     6
@@ -49,6 +47,14 @@ request_ptr     dd      0
 old_int2f       dd      0
 old_int15       dd      0
 extended_kb     dw      0
+hma_min_kb      db      0
+handle_limit    db      32
+int15_kb        dw      0
+a20_control     db      1
+machine_code    db      1
+shadow_ram      db      0
+cpu_clock       db      0
+option_buffer   db      40 dup (0)
 hma_owned       db      0
 a20_initial     db      0
 a20_local       dw      0
@@ -60,6 +66,8 @@ move_length     dd      0
 move_source     dd      0
 move_dest       dd      0
 move_chunk      dd      0
+move_error      db      0
+move_offset     dd      0
 handles         db      MAX_HANDLES * HANDLE_SIZE dup (0)
 umb_count       dw      0
 umb_committed   db      0
@@ -111,10 +119,9 @@ endif
         cmp     al, 0ffh
         je      init_fail
 
-        ; The clean-room move engine uses 80386 registers.  Reject earlier
-        ; processors before publishing any XMS vectors.
-        call    cpu_is_386
+        call    parse_options
         jc      init_fail
+
 ifdef DEBUG
         mov     al, 'B'
         call    debug_mark
@@ -135,6 +142,10 @@ endif
 
         mov     ah, 088h
         int     015h
+        sub     ax, [int15_kb]
+        jnc     short init_extended_ok
+        xor     ax, ax
+init_extended_ok:
         mov     [extended_kb], ax
         or      ax, ax
         jz      init_fail
@@ -147,6 +158,11 @@ endif
         ; avoids assuming that port 92h exists or accurately reports the gate.
         call    query_a20_hardware
         mov     [a20_initial], al
+        cmp     al, 0
+        je      short init_disable_a20
+        cmp     [a20_control], 0
+        je      short init_keep_a20
+init_disable_a20:
         xor     al, al
         call    set_a20_hardware
         jc      short init_keep_a20
@@ -188,41 +204,341 @@ init_fail:
         ret
 initialize endp
 
-; Carry clear on an 80386 or newer, carry set on an 8086/80186/80286.
-; This is the documented real-mode FLAGS test and contains no 386 opcodes.
-cpu_is_386 proc near
-        push    ax
-        pushf
-        xor     ax, ax
-        push    ax
-        popf
-        pushf
-        pop     ax
-        test    ax, 08000h
-        jnz     short cpu_not_386
-        mov     ax, 07000h
-        push    ax
-        popf
-        pushf
-        pop     ax
-        test    ax, 07000h
-        jz      short cpu_not_386
-        popf
-        pop     ax
-        clc
-        ret
-cpu_not_386:
-        popf
-        pop     ax
+; Parse the documented DOS 5 HIMEM switches from the INIT request line.
+; Machine-specific compatibility hints are retained even where the generic,
+; verified A20 backends are safer than poking undocumented chipset ports.
+parse_options proc near
+        les     bx, [request_ptr]
+        les     si, dword ptr es:[bx+18]
+parse_skip_driver:
+        mov     al, es:[si]
+        inc     si
+        cmp     al, 0
+        je      short parse_options_done
+        cmp     al, 13
+        je      short parse_options_done
+        cmp     al, 10
+        je      short parse_options_done
+        cmp     al, ' '
+        je      short parse_next
+        cmp     al, 9
+        jne     short parse_skip_driver
+parse_next:
+        mov     al, es:[si]
+        cmp     al, ' '
+        je      short parse_advance
+        cmp     al, 9
+        je      short parse_advance
+        cmp     al, 0
+        je      short parse_options_done
+        cmp     al, 13
+        je      short parse_options_done
+        cmp     al, 10
+        je      short parse_options_done
+        mov     di, offset option_buffer
+        mov     cx, 39
+parse_copy_token:
+        mov     al, es:[si]
+        cmp     al, ' '
+        je      short parse_token_done
+        cmp     al, 9
+        je      short parse_token_done
+        cmp     al, 0
+        je      short parse_token_done
+        cmp     al, 13
+        je      short parse_token_done
+        cmp     al, 10
+        je      short parse_token_done
+        or      al, 20h
+        cmp     al, 'a'
+        jb      short parse_store
+        cmp     al, 'z'
+        ja      short parse_store
+        and     al, 0dfh
+parse_store:
+        mov     [di], al
+        inc     di
+        inc     si
+        loop    parse_copy_token
         stc
         ret
-cpu_is_386 endp
+parse_token_done:
+        mov     byte ptr [di], 0
+        push    si
+        call    parse_one_option
+        pop     si
+        jc      short parse_options_bad
+        jmp     short parse_next
+parse_advance:
+        inc     si
+        jmp     short parse_next
+parse_options_done:
+        clc
+        ret
+parse_options_bad:
+        stc
+        ret
+parse_options endp
+
+parse_one_option proc near
+        mov     si, offset option_buffer
+        mov     dx, offset opt_hmamin
+        call    match_prefix
+        jnc     short option_hmamin
+        mov     si, offset option_buffer
+        mov     dx, offset opt_numhandles
+        call    match_prefix
+        jnc     short option_numhandles
+        mov     si, offset option_buffer
+        mov     dx, offset opt_int15
+        call    match_prefix
+        jnc     short option_int15
+        mov     si, offset option_buffer
+        mov     dx, offset opt_machine
+        call    match_prefix
+        jnc     short option_machine
+        mov     si, offset option_buffer
+        mov     dx, offset opt_a20control
+        call    match_prefix
+        jnc     short option_a20
+        mov     si, offset option_buffer
+        mov     dx, offset opt_shadowram
+        call    match_prefix
+        jnc     short option_shadow
+        mov     si, offset option_buffer
+        mov     dx, offset opt_cpuclock
+        call    match_prefix
+        jnc     short option_cpuclock
+        stc
+        ret
+option_hmamin:
+        call    parse_decimal
+        jc      short option_bad
+        cmp     ax, 63
+        ja      short option_bad
+        mov     [hma_min_kb], al
+        clc
+        ret
+option_numhandles:
+        call    parse_decimal
+        jc      short option_bad
+        cmp     ax, 1
+        jb      short option_bad
+        cmp     ax, MAX_HANDLES
+        ja      short option_bad
+        mov     [handle_limit], al
+        clc
+        ret
+option_int15:
+        call    parse_decimal
+        jc      short option_bad
+        cmp     ax, 64
+        jae     short option_int15_store
+        xor     ax, ax
+option_int15_store:
+        mov     [int15_kb], ax
+        clc
+        ret
+option_machine:
+        call    parse_machine
+        jc      short option_bad
+        mov     [machine_code], al
+        clc
+        ret
+option_a20:
+        call    parse_on_off
+        jc      short option_bad
+        mov     [a20_control], al
+        clc
+        ret
+option_shadow:
+        call    parse_on_off
+        jc      short option_bad
+        mov     [shadow_ram], al
+        clc
+        ret
+option_cpuclock:
+        call    parse_on_off
+        jc      short option_bad
+        mov     [cpu_clock], al
+        clc
+        ret
+option_bad:
+        stc
+        ret
+parse_one_option endp
+
+; Match DS:SI against the NUL-terminated prefix at DS:DX. On success SI is
+; positioned at the option value.
+match_prefix proc near
+        push    bx
+        mov     bx, dx
+match_prefix_loop:
+        mov     al, [bx]
+        inc     bx
+        or      al, al
+        jz      short match_prefix_yes
+        cmp     al, [si]
+        jne     short match_prefix_no
+        inc     si
+        jmp     short match_prefix_loop
+match_prefix_yes:
+        pop     bx
+        clc
+        ret
+match_prefix_no:
+        pop     bx
+        stc
+        ret
+match_prefix endp
+
+parse_decimal proc near
+        xor     ax, ax
+        xor     cx, cx
+parse_decimal_loop:
+        mov     bl, [si]
+        or      bl, bl
+        jz      short parse_decimal_done
+        cmp     bl, '0'
+        jb      short parse_decimal_bad
+        cmp     bl, '9'
+        ja      short parse_decimal_bad
+        mov     dx, 10
+        mul     dx
+        jc      short parse_decimal_bad
+        sub     bl, '0'
+        xor     bh, bh
+        add     ax, bx
+        jc      short parse_decimal_bad
+        inc     si
+        inc     cx
+        jmp     short parse_decimal_loop
+parse_decimal_done:
+        or      cx, cx
+        jz      short parse_decimal_bad
+        clc
+        ret
+parse_decimal_bad:
+        stc
+        ret
+parse_decimal endp
+
+parse_on_off proc near
+        mov     dx, offset value_on
+        call    string_equal
+        jnc     short parse_on
+        mov     dx, offset value_off
+        call    string_equal
+        jc      short parse_on_off_bad
+        xor     al, al
+        clc
+        ret
+parse_on:
+        mov     al, 1
+        clc
+        ret
+parse_on_off_bad:
+        stc
+        ret
+parse_on_off endp
+
+parse_machine proc near
+        push    si
+        call    parse_decimal
+        pop     si
+        jc      short parse_machine_name
+        cmp     ax, 1
+        jb      short parse_machine_bad
+        cmp     ax, 14
+        ja      short parse_machine_bad
+        clc
+        ret
+parse_machine_name:
+        mov     bx, offset machine_names
+        mov     al, 1
+parse_machine_loop:
+        mov     dx, [bx]
+        or      dx, dx
+        jz      short parse_machine_bad
+        call    string_equal
+        jnc     short parse_machine_found
+        add     bx, 2
+        inc     al
+        jmp     short parse_machine_loop
+parse_machine_found:
+        clc
+        ret
+parse_machine_bad:
+        stc
+        ret
+parse_machine endp
+
+string_equal proc near
+        push    si
+        push    bx
+        mov     bx, dx
+string_equal_loop:
+        mov     ah, [bx]
+        mov     al, [si]
+        inc     bx
+        inc     si
+        cmp     al, ah
+        jne     short string_not_equal
+        or      al, al
+        jnz     short string_equal_loop
+        pop     bx
+        pop     si
+        clc
+        ret
+string_not_equal:
+        pop     bx
+        pop     si
+        stc
+        ret
+string_equal endp
+
+opt_hmamin      db '/HMAMIN=',0
+opt_numhandles  db '/NUMHANDLES=',0
+opt_int15       db '/INT15=',0
+opt_machine     db '/MACHINE:',0
+opt_a20control  db '/A20CONTROL:',0
+opt_shadowram   db '/SHADOWRAM:',0
+opt_cpuclock    db '/CPUCLOCK:',0
+value_on        db 'ON',0
+value_off       db 'OFF',0
+machine_names   dw offset machine_at, offset machine_ps2
+                dw offset machine_ptl, offset machine_hp, offset machine_att
+                dw offset machine_acer, offset machine_toshiba, offset machine_wyse
+                dw offset machine_tulip, offset machine_zenith, offset machine_at1
+                dw offset machine_at2, offset machine_at3, offset machine_fasthp, 0
+machine_at      db 'AT',0
+machine_ps2     db 'PS2',0
+machine_ptl     db 'PTLCASCADE',0
+machine_hp      db 'HPVECTRA',0
+machine_att     db 'ATT6300PLUS',0
+machine_acer    db 'ACERL100',0
+machine_toshiba db 'TOSHIBA',0
+machine_wyse    db 'WYSE',0
+machine_tulip   db 'TULIP',0
+machine_zenith  db 'ZENITH',0
+machine_at1     db 'AT1',0
+machine_at2     db 'AT2',0
+machine_at3     db 'AT3',0
+machine_fasthp  db 'FASTHP',0
 
 ifdef DEBUG
 debug_mark proc near
         push    dx
+ifdef DEBUG_SERIAL
+        push    ax
+        mov     ah, 1
+        xor     dx, dx
+        int     14h
+        pop     ax
+else
         mov     dx, 0e9h
         out     dx, al
+endif
         pop     dx
         ret
 debug_mark endp
@@ -363,7 +679,7 @@ private_unregister_done:
 int15_handler proc far
         cmp     ah, 088h
         jne     short int15_chain
-        xor     ax, ax
+        mov     ax, cs:[int15_kb]
         clc
         retf    2
 int15_chain:
@@ -441,6 +757,12 @@ xms_hma_request proc near
         je      short hma_missing
         cmp     [hma_owned], 0
         jne     short hma_used
+        xor     ax, ax
+        mov     al, [hma_min_kb]
+        mov     cl, 10
+        shl     ax, cl
+        cmp     dx, ax
+        jb      short hma_too_small
         mov     [hma_owned], 1
         jmp     xms_success
 hma_missing:
@@ -448,6 +770,9 @@ hma_missing:
         jmp     xms_failure
 hma_used:
         mov     bl, ERR_HMA_USED
+        jmp     xms_failure
+hma_too_small:
+        mov     bl, ERR_HMA_SMALL
         jmp     xms_failure
 xms_hma_request endp
 
@@ -767,17 +1092,19 @@ realloc_move:
         jc      short realloc_no_memory
         push    bx
         push    ax
-        movzx   ecx, word ptr [si+4]
-        shl     ecx, 10
-        mov     [move_length], ecx
-        movzx   edx, word ptr [si+2]
-        shl     edx, 10
-        add     edx, 00100000h
-        mov     [move_source], edx
-        movzx   edx, ax
-        shl     edx, 10
-        add     edx, 00100000h
-        mov     [move_dest], edx
+        mov     dx, word ptr [si+4]
+        call    kb_to_length
+        mov     word ptr [move_length], ax
+        mov     word ptr [move_length+2], dx
+        mov     dx, word ptr [si+2]
+        call    kb_to_physical
+        mov     word ptr [move_source], ax
+        mov     word ptr [move_source+2], dx
+        pop     dx                      ; inspect the saved new base
+        push    dx
+        call    kb_to_physical
+        mov     word ptr [move_dest], ax
+        mov     word ptr [move_dest+2], dx
         call    copy_move_blocks
         pop     ax
         pop     bx
@@ -799,26 +1126,30 @@ xms_move proc near
         push    es
         mov     es, [caller_ds]
         mov     di, [caller_si]
-        mov     eax, dword ptr es:[di]
+        mov     ax, word ptr es:[di]
+        mov     dx, word ptr es:[di+2]
         test    al, 1
         jnz     short move_bad_length
-        mov     [move_length], eax
-        or      eax, eax
+        mov     word ptr [move_length], ax
+        mov     word ptr [move_length+2], dx
+        or      ax, dx
         jz      move_success
 
         mov     dx, word ptr es:[di+4]
-        mov     eax, dword ptr es:[di+6]
-        mov     ecx, [move_length]
+        mov     ax, word ptr es:[di+6]
+        mov     bx, word ptr es:[di+8]
         call    resolve_move_address
         jc      short move_bad_source
-        mov     [move_source], eax
+        mov     word ptr [move_source], ax
+        mov     word ptr [move_source+2], cx
 
         mov     dx, word ptr es:[di+10]
-        mov     eax, dword ptr es:[di+12]
-        mov     ecx, [move_length]
+        mov     ax, word ptr es:[di+12]
+        mov     bx, word ptr es:[di+14]
         call    resolve_move_address
         jc      short move_bad_dest
-        mov     [move_dest], eax
+        mov     word ptr [move_dest], ax
+        mov     word ptr [move_dest+2], cx
 
 move_copy:
         call    copy_move_blocks
@@ -833,13 +1164,13 @@ move_bad_length:
         jmp     short move_failure
 move_bad_source:
         mov     bl, ERR_BAD_SOURCE
-        cmp     bh, ERR_BAD_SRC_OFF
+        cmp     [move_error], ERR_BAD_SRC_OFF
         jne     short move_failure
         mov     bl, ERR_BAD_LENGTH
         jmp     short move_failure
 move_bad_dest:
         mov     bl, ERR_BAD_DEST
-        cmp     bh, ERR_BAD_SRC_OFF
+        cmp     [move_error], ERR_BAD_SRC_OFF
         jne     short move_failure
         mov     bl, ERR_BAD_LENGTH
         jmp     short move_failure
@@ -1025,65 +1356,112 @@ remove_umb_done:
         ret
 remove_next_umb endp
 
-; Resolve an XMS move endpoint. DX is a handle (zero means a packed
-; segment:offset conventional address), EAX is its offset, and ECX is length.
-; Returns EAX=physical address. On an invalid nonzero-handle offset, BH=A4h.
+; Resolve an endpoint with 16-bit arithmetic so HIMEM can run on a 286.
+; DX is a handle (zero means packed segment:offset), BX:AX is the offset,
+; and move_length is the byte count. Return CX:AX as a physical address.
 resolve_move_address proc near
-        xor     bh, bh
+        mov     [move_error], 0
         or      dx, dx
         jnz     short resolve_handle
-        mov     edx, eax
-        and     eax, 0ffffh
-        shr     edx, 16
-        shl     edx, 4
-        add     eax, edx
+        mov     cx, bx
+        mov     dx, bx
+        push    cx
+        mov     cl, 12
+        shr     cx, cl
+        pop     bx
+        mov     dx, bx
+        mov     cl, 4
+        shl     dx, cl
+        add     ax, dx
+        adc     cx, 0
         clc
         ret
 resolve_handle:
+        push    bx
+        push    ax
         push    dx
         call    validate_handle
         pop     dx
+        pop     ax
+        pop     bx
         jc      short resolve_bad_handle
-        mov     ebx, ecx
-        add     ebx, eax
+        mov     word ptr [move_offset], ax
+        mov     word ptr [move_offset+2], bx
+        mov     cx, ax
+        mov     di, bx
+        add     cx, word ptr [move_length]
+        adc     di, word ptr [move_length+2]
         jc      short resolve_bad_offset
-        movzx   edx, word ptr [si+4]
-        shl     edx, 10
-        cmp     ebx, edx
-        ja      short resolve_bad_offset
-        movzx   edx, word ptr [si+2]
-        shl     edx, 10
-        add     edx, 00100000h
-        add     eax, edx
+        push    dx
+        mov     dx, word ptr [si+4]
+        call    kb_to_length
+        cmp     di, dx
+        ja      short resolve_bad_offset_pop
+        jb      short resolve_offset_valid
+        cmp     cx, ax
+        ja      short resolve_bad_offset_pop
+resolve_offset_valid:
+        pop     dx
+        mov     bx, word ptr [move_offset]
+        mov     cx, word ptr [move_offset+2]
+        mov     dx, word ptr [si+2]
+        call    kb_to_physical
+        add     ax, bx
+        adc     dx, cx
+        mov     cx, dx
         clc
         ret
+resolve_bad_offset_pop:
+        pop     dx
 resolve_bad_offset:
-        mov     bh, ERR_BAD_SRC_OFF
+        mov     [move_error], ERR_BAD_SRC_OFF
 resolve_bad_handle:
         stc
         ret
 resolve_move_address endp
 
+; Convert DX KiB to a byte count DX:AX.
+kb_to_length proc near
+        mov     ax, dx
+        mov     cl, 6
+        shr     dx, cl
+        mov     cl, 10
+        shl     ax, cl
+        ret
+kb_to_length endp
+
+; Convert a KiB offset above 1 MiB to physical DX:AX.
+kb_to_physical proc near
+        call    kb_to_length
+        add     dx, 0010h
+        ret
+kb_to_physical endp
+
 copy_move_blocks proc near
 copy_move_next:
-        mov     eax, [move_length]
-        or      eax, eax
+        mov     ax, word ptr [move_length]
+        mov     dx, word ptr [move_length+2]
+        or      ax, dx
         jz      short copy_move_done
-        cmp     eax, 0000fffeh
-        jbe     short copy_move_final
-        mov     ecx, 0000fffeh
-        jmp     short copy_move_chunk
-copy_move_final:
-        mov     ecx, eax
+        mov     cx, 0fffeh
+        or      dx, dx
+        jnz     short copy_move_chunk
+        cmp     ax, cx
+        ja      short copy_move_chunk
+        mov     cx, ax
 copy_move_chunk:
-        mov     [move_chunk], ecx
-        mov     eax, [move_source]
+        mov     word ptr [move_chunk], cx
+        mov     word ptr [move_chunk+2], 0
+        mov     ax, word ptr [move_source]
+        mov     cx, word ptr [move_source+2]
         mov     di, offset move_source_desc
         call    set_move_descriptor
-        mov     eax, [move_dest]
+        mov     ax, word ptr [move_dest]
+        mov     cx, word ptr [move_dest+2]
         mov     di, offset move_dest_desc
         call    set_move_descriptor
-        shr     ecx, 1
+        mov     cx, word ptr [move_chunk]
+        shr     cx, 1
         push    ds
         push    es
         push    si
@@ -1098,10 +1476,13 @@ copy_move_chunk:
         pop     es
         pop     ds
         jc      short copy_move_fail
-        mov     ecx, [move_chunk]
-        add     [move_source], ecx
-        add     [move_dest], ecx
-        sub     [move_length], ecx
+        mov     ax, word ptr [move_chunk]
+        add     word ptr [move_source], ax
+        adc     word ptr [move_source+2], 0
+        add     word ptr [move_dest], ax
+        adc     word ptr [move_dest+2], 0
+        sub     word ptr [move_length], ax
+        sbb     word ptr [move_length+2], 0
         jmp     short copy_move_next
 copy_move_done:
         clc
@@ -1111,15 +1492,14 @@ copy_move_fail:
         ret
 copy_move_blocks endp
 
-; EAX=linear base, DI=descriptor. The BIOS move service uses 16-bit limits.
+; CX:AX=linear base, DI=descriptor. The BIOS move service uses 16-bit limits.
 set_move_descriptor proc near
         mov     word ptr [di], 0ffffh
         mov     word ptr [di+2], ax
-        shr     eax, 16
-        mov     byte ptr [di+4], al
+        mov     byte ptr [di+4], cl
         mov     byte ptr [di+5], 093h
         mov     byte ptr [di+6], 0
-        mov     byte ptr [di+7], ah
+        mov     byte ptr [di+7], ch
         ret
 set_move_descriptor endp
 
@@ -1142,7 +1522,9 @@ xms_unknown_function endp
 validate_handle proc near
         or      dx, dx
         jz      short validate_bad
-        cmp     dx, MAX_HANDLES
+        xor     ax, ax
+        mov     al, [handle_limit]
+        cmp     dx, ax
         ja      short validate_bad
         mov     si, dx
         dec     si
@@ -1160,7 +1542,8 @@ validate_handle endp
 
 find_free_handle proc near
         mov     si, offset handles
-        mov     cx, MAX_HANDLES
+        xor     ch, ch
+        mov     cl, [handle_limit]
 find_free_loop:
         cmp     byte ptr [si], 0
         je      short find_free_found
@@ -1178,7 +1561,8 @@ count_free_handles proc near
         push    si
         xor     ax, ax
         mov     si, offset handles
-        mov     cx, MAX_HANDLES
+        xor     ch, ch
+        mov     cl, [handle_limit]
 count_handles_loop:
         cmp     byte ptr [si], 0
         jne     short count_handles_used
@@ -1203,7 +1587,8 @@ find_gap_retry:
         cmp     di, [extended_kb]
         ja      short find_gap_fail
         mov     si, offset handles
-        mov     cx, MAX_HANDLES
+        xor     ch, ch
+        mov     cl, [handle_limit]
 find_gap_scan:
         cmp     byte ptr [si], 1
         jne     short find_gap_next
@@ -1233,7 +1618,8 @@ gap_after_handle proc near
         cmp     ax, [extended_kb]
         ja      short gap_after_fail
         mov     di, offset handles
-        mov     cx, MAX_HANDLES
+        xor     ch, ch
+        mov     cl, [handle_limit]
 gap_after_loop:
         cmp     di, si
         je      short gap_after_next
@@ -1266,7 +1652,8 @@ largest_retry:
         mov     dx, [extended_kb]       ; next used base, or pool end
         mov     di, 0ffffh              ; next handle offset
         mov     si, offset handles
-        mov     cx, MAX_HANDLES
+        xor     ch, ch
+        mov     cl, [handle_limit]
 largest_scan:
         cmp     byte ptr [si], 1
         jne     short largest_next
@@ -1312,7 +1699,8 @@ total_free_has_xms:
         sub     ax, HMA_KB
 total_free_scan:
         mov     si, offset handles
-        mov     cx, MAX_HANDLES
+        xor     ch, ch
+        mov     cl, [handle_limit]
 total_free_loop:
         cmp     byte ptr [si], 1
         jne     short total_free_next

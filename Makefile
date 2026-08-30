@@ -222,7 +222,7 @@ ARTIFACTS := \
     CMD/DOSKEY/DOSKEY.COM \
     MEMM/MEMM/EMM386.EXE
 
-test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-szdd-tool test-distribution test-expand test-setup-qemu test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
+test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-szdd-tool test-distribution test-expand test-setup-qemu test-himem-options-qemu test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
 	bash tests/run_tests.sh
 
 test-native-build-tools:
@@ -242,6 +242,9 @@ test-distribution: deploy
 
 test-setup-qemu: distribution
 	bash tests/test_setup_qemu.sh
+
+test-himem-options-qemu: deploy
+	bash tests/test_himem_options_qemu.sh
 
 test-batch-oracles:
 	python3 tests/test_batch_oracles.py
