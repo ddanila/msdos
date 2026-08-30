@@ -274,6 +274,30 @@ start:
     cmp ax, 000fh
     jne fail
 
+    ; Disable READ LONG in the backing driver.  Repeating a warmed lookup
+    ; must still succeed from MSCDEX's /M resident sector buffers.
+    mov byte [request_header + 2], 0feh
+    mov word [request_header + 3], 0
+    push ds
+    pop es
+    mov bx, request_header
+    mov cx, 4
+    mov ax, 1510h
+    int 2fh
+    jc fail
+    push ds
+    pop es
+    push ds
+    pop si
+    mov bx, root_file_path
+    mov di, directory_record
+    mov cx, 4
+    mov ax, 150fh
+    int 2fh
+    jc fail
+    cmp word [directory_record + 2], 30
+    jne fail
+
     mov dx, pass_message
     mov ah, 9
     int 21h

@@ -5,6 +5,7 @@
 
 MAX_NAMES   EQU 8
 MAX_DRIVES  EQU 26
+MAX_BUFFERS EQU 16
 
 CODE SEGMENT PUBLIC
         ORG     100h
@@ -182,7 +183,13 @@ installation_line:
         int     21h
         mov     dx,OFFSET colon_crlf
         call    print_dollar
-        mov     dx,(resident_end-start+100h+15)/16
+        ; Keep only the selected number of 2 KiB cache buffers resident.
+        ; The parser caps the count so the COM image remains below 64 KiB.
+        mov     ax,cs:buffer_count
+        mov     dx,128                 ; paragraphs per 2048-byte sector
+        mul     dx
+        add     ax,(cache_data-start+100h+15)/16
+        mov     dx,ax
         mov     ax,3100h
         int     21h
 
@@ -826,24 +833,11 @@ forward_driver_request ENDP
 
 ; Read volume descriptor 16+DX to ES:BX through the selected CX drive.
 read_vtoc_sector PROC NEAR
-        mov     word ptr cs:read_request+14,bx
-        mov     word ptr cs:read_request+16,es
-        mov     word ptr cs:read_request+18,1
         mov     ax,dx
         add     ax,16
-        mov     word ptr cs:read_request+20,ax
-        mov     word ptr cs:read_request+22,0
-        push    cs
-        pop     es
-        mov     bx,OFFSET read_request
-        call    forward_driver_request
-        jnc     short read_vtoc_done
-        cmp     ax,000fh
-        je      short read_vtoc_done
-        mov     ax,0015h
-        stc
-read_vtoc_done:
-        ret
+        mov     di,ax
+        xor     si,si
+        jmp     read_raw_sector
 read_vtoc_sector ENDP
 
 ; Load the descriptor selected by function 150Eh into vtoc_buffer.  SVD mode
@@ -933,6 +927,57 @@ load_preferred_vtoc ENDP
 
 ; Read one cooked sector SI:DI from CX drive into ES:BX.
 read_raw_sector PROC NEAR
+        mov     cs:cache_target_off,bx
+        mov     cs:cache_target_seg,es
+        mov     word ptr cs:read_request+14,bx
+        mov     word ptr cs:read_request+16,es
+        mov     cs:cache_drive,cx
+        mov     word ptr cs:cache_sector,di
+        mov     word ptr cs:cache_sector+2,si
+        xor     dx,dx
+cache_find_loop:
+        cmp     dx,cs:buffer_count
+        jae     short cache_miss
+        mov     bx,dx
+        cmp     byte ptr cs:cache_valid[bx],0
+        je      short cache_find_next
+        shl     bx,1
+        mov     ax,cs:cache_drive
+        cmp     cs:cache_drives[bx],ax
+        jne     short cache_find_next
+        shl     bx,1
+        mov     ax,word ptr cs:cache_sector
+        cmp     word ptr cs:cache_sectors[bx],ax
+        jne     short cache_find_next
+        mov     ax,word ptr cs:cache_sector+2
+        cmp     word ptr cs:cache_sectors[bx+2],ax
+        jne     short cache_find_next
+        mov     ax,dx
+        mov     cl,11
+        shl     ax,cl
+        mov     si,OFFSET cache_data
+        add     si,ax
+        mov     ax,cs:cache_target_seg
+        mov     es,ax
+        mov     di,cs:cache_target_off
+        push    ds
+        push    cs
+        pop     ds
+        mov     cx,1024
+        rep     movsw
+        pop     ds
+        xor     ax,ax
+        clc
+        ret
+cache_find_next:
+        inc     dx
+        jmp     cache_find_loop
+cache_miss:
+        mov     bx,cs:cache_target_off
+        mov     es,cs:cache_target_seg
+        mov     cx,cs:cache_drive
+        mov     di,word ptr cs:cache_sector
+        mov     si,word ptr cs:cache_sector+2
         mov     word ptr cs:read_request+14,bx
         mov     word ptr cs:read_request+16,es
         mov     word ptr cs:read_request+18,1
@@ -948,6 +993,44 @@ read_raw_sector PROC NEAR
         mov     ax,0015h
         stc
 read_raw_done:
+        jc      short read_raw_return
+        xor     ax,ax
+        mov     al,cs:cache_next
+        xor     dx,dx
+        mov     dl,byte ptr cs:buffer_count
+        inc     cs:cache_next
+        cmp     cs:cache_next,dl
+        jb      short cache_next_ready
+        mov     cs:cache_next,0
+cache_next_ready:
+        mov     bx,ax
+        mov     byte ptr cs:cache_valid[bx],1
+        shl     bx,1
+        mov     dx,cs:cache_drive
+        mov     cs:cache_drives[bx],dx
+        shl     bx,1
+        mov     dx,word ptr cs:cache_sector
+        mov     word ptr cs:cache_sectors[bx],dx
+        mov     dx,word ptr cs:cache_sector+2
+        mov     word ptr cs:cache_sectors[bx+2],dx
+        mov     cl,11
+        shl     ax,cl
+        mov     di,OFFSET cache_data
+        add     di,ax
+        mov     ax,cs:cache_target_seg
+        mov     ds,ax
+        mov     si,cs:cache_target_off
+        push    es
+        push    cs
+        pop     es
+        mov     cx,1024
+        rep     movsw
+        pop     es
+        push    cs
+        pop     ds
+        xor     ax,ax
+        clc
+read_raw_return:
         ret
 read_raw_sector ENDP
 
@@ -1006,6 +1089,15 @@ use_ems         db 0
 kanji_mode      db 0
 share_mode      db 0
 verbose         db 0
+cache_next      db 0
+cache_valid     db MAX_BUFFERS dup(0)
+cache_drives    dw MAX_BUFFERS dup(0)
+cache_sectors   dd MAX_BUFFERS dup(0)
+cache_target_off dw 0
+cache_target_seg dw 0
+cache_drive     dw 0
+cache_sector    dd 0
+cache_data      db MAX_BUFFERS*2048 dup(0)
 resident_end LABEL BYTE
 
 ; ---------------------------------------------------------------------------
@@ -1135,12 +1227,18 @@ parse_driver_end:
         jmp     parse_skip_space
 
 parse_letter:
-        jcxz    parse_error
+        or      cx,cx
+        jnz     short parse_letter_colon
+        jmp     parse_error
+parse_letter_colon:
         cmp     byte ptr es:[si],':'
         jne     parse_error
         inc     si
         dec     cx
-        jcxz    parse_error
+        or      cx,cx
+        jnz     short parse_letter_value
+        jmp     parse_error
+parse_letter_value:
         mov     al,es:[si]
         and     al,0dfh
         sub     al,'A'
@@ -1186,6 +1284,10 @@ parse_buffer_end:
         or      ax,ax
         jz      parse_error
         mov     cs:buffer_count,ax
+        cmp     ax,MAX_BUFFERS
+        jbe     short parse_buffer_stored
+        mov     cs:buffer_count,MAX_BUFFERS
+parse_buffer_stored:
         jmp     parse_skip_space
 
 parse_illegal_help:

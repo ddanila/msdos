@@ -15,6 +15,7 @@ device_header:
 
 request_offset  dw 0
 request_segment dw 0
+fail_reads      db 0
 
 strategy:
     mov [cs:request_offset], bx
@@ -38,8 +39,15 @@ interrupt:
     jmp .complete
 .forwarded:
     mov byte [es:di + 0dh], 0a5h
+    cmp byte [es:di + 2], 0feh
+    jne .check_read
+    mov byte [cs:fail_reads], 1
+    jmp .complete
+.check_read:
     cmp byte [es:di + 2], 80h
     jne .complete
+    cmp byte [cs:fail_reads], 0
+    jne .request_error
     cmp word [es:di + 18], 1
     jne .request_error
     mov bx, [es:di + 14]
