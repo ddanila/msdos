@@ -166,6 +166,7 @@ DATARES SEGMENT PUBLIC BYTE
 	PUBLIC	RSWITCHAR
 	PUBLIC	SAVE_PDB
 	PUBLIC	SINGLECOM
+	PUBLIC	KEEPCOM
 	PUBLIC	SUM
 	PUBLIC	SUPPRESS
 	PUBLIC	TRANS
@@ -483,6 +484,7 @@ IO_SAVE 	DW	?
 RESTDIR 	DB	0
 PERMCOM 	DB	0			; TRUE => permanent command
 SINGLECOM	DW	0			; TRUE => single command version
+KEEPCOM		DB	0			; /K initial command remains interactive
 VERVAL		DW	-1
 fFail		DB	0			; TRUE => FAIL all INT 24s
 IFFLAG		DB	0			; TRUE => If statement in progress

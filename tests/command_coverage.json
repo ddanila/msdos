@@ -12,6 +12,7 @@
     "D": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_command_startup_qemu.sh"], "note": "Suppresses startup date/time input while a new permanent interpreter begins processing commands"},
     "E": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_command_startup_qemu.sh"], "note": "Both 160 and 32768 byte bounds, adjacent rejections, duplication, and an observable 160-versus-512 environment-capacity difference are asserted"},
     "F": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_command_startup_qemu.sh"], "note": "Automatically chooses Fail for an actual INT 24h error from an unformatted B: disk and continues without input"},
+    "K": {"level": "contract", "evidence": ["tests/test_command_startup_qemu.sh"], "note": "Executes the initial command, consumes further redirected commands in the same secondary interpreter, and returns only after EXIT"},
     "MSG": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_command_startup_qemu.sh"], "note": "Without /P the required relationship is diagnosed; with /P resident messages are accepted by the live permanent shell"},
     "P": {"level": "contract", "evidence": ["tests/test_command_startup_qemu.sh"], "note": "A child permanent interpreter ignores EXIT, executes the following redirected command, and never returns to its parent batch"}
   },

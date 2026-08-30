@@ -42,6 +42,7 @@ mcopy -o -i "$BOOT_IMG" "$ENV_PROBE" ::ENVPROBE.COM
 } | mcopy -o -i "$BOOT_IMG" - ::PERM.IN
 
 printf '\r\n' | mcopy -o -i "$BOOT_IMG" - ::EMPTY.IN
+printf 'ECHO COMMAND_KEEP_CONTINUED\r\nEXIT\r\n' | mcopy -o -i "$BOOT_IMG" - ::KEEP.IN
 printf 'RENAME_SOURCE_PAYLOAD\r\n' | mcopy -o -i "$BOOT_IMG" - ::RENSRC.TXT
 printf 'RENAME_DEST_PAYLOAD\r\n' | mcopy -o -i "$BOOT_IMG" - ::RENDST.TXT
 printf 'DESTMODE' | mcopy -o -i "$BOOT_IMG" - ::DMODE.BIN
@@ -73,6 +74,8 @@ printf 'BEFORE\032AFTER' | mcopy -o -i "$BOOT_IMG" - ::SMODE.BIN
     printf 'COMMAND /E:160 /C ENVPROBE.COM\r\n'
     printf 'ECHO ---COMMAND-E-LARGE---\r\n'
     printf 'COMMAND /E:512 /C ENVPROBE.COM\r\n'
+    printf 'COMMAND /K ECHO COMMAND_KEEP_INITIAL < KEEP.IN\r\n'
+    printf 'ECHO COMMAND_KEEP_RETURNED\r\n'
     printf 'ECHO COMMAND_PERMANENT_START\r\n'
     printf 'COMMAND /P /D /MSG < PERM.IN\r\n'
     printf 'ECHO COMMAND_PERMANENT_RETURNED_WRONG\r\n'
@@ -174,6 +177,14 @@ if [[ "$small_environment" == "000A" && "$large_environment" == "0020" ]]; then
     ok "COMMAND /E assigns the exact requested child environment capacity"
 else
     fail "COMMAND /E capacities (160=$small_environment, 512=$large_environment)"
+fi
+
+if grep -q '^COMMAND_KEEP_INITIAL' "$SERIAL_LOG" \
+    && grep -q '^COMMAND_KEEP_CONTINUED' "$SERIAL_LOG" \
+    && grep -q '^COMMAND_KEEP_RETURNED' "$SERIAL_LOG"; then
+    ok "COMMAND /K executes its initial command and remains active until EXIT"
+else
+    fail "COMMAND /K did not preserve the secondary interpreter"
 fi
 
 if grep -q '^COMMAND_FAIL_ALL_CONTINUED' "$FAIL_SERIAL_LOG" \
