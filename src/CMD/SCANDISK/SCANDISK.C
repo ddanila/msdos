@@ -57,6 +57,8 @@ static unsigned char claimed[BIT_BYTES];
 static unsigned char chain_seen[BIT_BYTES];
 static unsigned char incoming[BIT_BYTES];
 
+static void set_current_timestamp(unsigned char *entry);
+
 static unsigned get_word(const unsigned char *p)
 {
     return (unsigned)(p[0] | ((unsigned)p[1] << 8));
@@ -443,6 +445,17 @@ static unsigned scan_chain(struct scan_state *state, unsigned first,
         }
         return 0;
     }
+    if (!fat_volume_valid_cluster(&state->volume, first)) {
+        report_problem(state, "A file or directory has an invalid starting cluster.");
+        if (permit_repair(state, "Detach the invalid starting cluster")) {
+            put_word(entry + 26, 0);
+            if (!directory)
+                put_dword(entry + 28, 0);
+            *entry_changed = 1;
+            ++state->repaired;
+        } else ++state->unrepaired;
+        return 0;
+    }
     if (!directory && !size) {
         report_problem(state, "A zero-length file owns allocated clusters.");
         if (permit_repair(state, "Detach the unused cluster chain")) {
@@ -641,6 +654,43 @@ static void make_recovery_name(struct scan_state *state,
              name_seen_before(volume, directory, ~0UL, 0, name));
 }
 
+static int valid_write_timestamp(const unsigned char *entry)
+{
+    static const unsigned char month_days[12] =
+        {31,28,31,30,31,30,31,31,30,31,30,31};
+    unsigned time = get_word(entry + 22);
+    unsigned date = get_word(entry + 24);
+    unsigned year = 1980U + (date >> 9);
+    unsigned month = (date >> 5) & 15U;
+    unsigned day = date & 31U;
+    unsigned limit;
+    if ((time >> 11) > 23U || ((time >> 5) & 63U) > 59U ||
+        month < 1U || month > 12U || day < 1U)
+        return 0;
+    limit = month_days[month - 1U];
+    if (month == 2U && (!(year % 4U) && (year % 100U || !(year % 400U))))
+        ++limit;
+    return day <= limit;
+}
+
+static void set_current_timestamp(unsigned char *entry)
+{
+    union REGS regs;
+    unsigned date, time;
+    memset(&regs, 0, sizeof(regs));
+    regs.h.ah = 0x2a;
+    intdos(&regs, &regs);
+    date = ((regs.x.cx - 1980U) << 9) |
+        ((unsigned)regs.h.dh << 5) | regs.h.dl;
+    memset(&regs, 0, sizeof(regs));
+    regs.h.ah = 0x2c;
+    intdos(&regs, &regs);
+    time = ((unsigned)regs.h.ch << 11) |
+        ((unsigned)regs.h.cl << 5) | ((unsigned)regs.h.dh >> 1);
+    put_word(entry + 22, time);
+    put_word(entry + 24, date);
+}
+
 static int scan_directory(struct scan_state *state, unsigned first,
                           unsigned parent, unsigned depth)
 {
@@ -728,16 +778,31 @@ static int scan_directory(struct scan_state *state, unsigned first,
                         ++state->repaired;
                     } else ++state->unrepaired;
                 }
+                if (!valid_write_timestamp(entry)) {
+                    report_problem(state,
+                        "A directory entry has an invalid date or time.");
+                    if (permit_repair(state,
+                            "Replace the invalid date and time")) {
+                        set_current_timestamp(entry);
+                        repair_directory_sector(state, position);
+                        ++state->repaired;
+                    } else ++state->unrepaired;
+                }
                 child = get_word(entry + 26);
                 size = get_dword(entry + 28);
                 if (entry[11] & 0x10) {
                     if (dot_entry(entry))
                         continue;
                     ++state->directories;
-                    if (!child) {
+                    if (!fat_volume_valid_cluster(&state->volume, child)) {
                         report_problem(state,
-                            "A directory has no starting cluster.");
-                        ++state->unrepaired;
+                            "A directory has an invalid starting cluster.");
+                        if (permit_repair(state,
+                                "Remove the invalid directory entry")) {
+                            entry[0] = 0xe5;
+                            repair_directory_sector(state, position);
+                            ++state->repaired;
+                        } else ++state->unrepaired;
                         continue;
                     }
                     if (size) {
@@ -857,6 +922,7 @@ static int create_chk_entry(struct scan_state *state, unsigned first,
                 entry[11] = 0x20;
                 put_word(entry + 26, first);
                 put_dword(entry + 28, size);
+                set_current_timestamp(entry);
                 return repair_directory_sector(state, position);
             }
         }

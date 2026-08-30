@@ -42,6 +42,7 @@ printf 'nested payload\r\n' | mcopy -o -i "$TARGET" - ::BROKEN/KEEP.TXT
 printf 'duplicate one\r\n' | mcopy -o -i "$TARGET" - ::DUP1.TXT
 printf 'duplicate two\r\n' | mcopy -o -i "$TARGET" - ::DUP2.TXT
 printf 'invalid name\r\n' | mcopy -o -i "$TARGET" - ::BADNAME.TXT
+printf 'lost by invalid cluster\r\n' | mcopy -o -i "$TARGET" - ::BADCLUS.TXT
 
 python3 - "$TARGET" <<'PY'
 from pathlib import Path
@@ -102,6 +103,11 @@ struct.pack_into('<I', disk, broken_entry + 28, 123)
 broken_sector = data_offset + (broken_cluster - 2) * 512
 struct.pack_into('<H', disk, broken_sector + 26, 999)
 struct.pack_into('<H', disk, broken_sector + 32 + 26, 999)
+# A volume label is legal only in the root. Put one in the first unused
+# subdirectory slot; ScanDisk should remove the metadata-only entry.
+label = broken_sector + 32 * 3
+disk[label:label + 11] = b'BAD LABEL  '
+disk[label + 11] = 0x08
 
 def root_entry(name):
     return next(root + off for off in range(0, 224 * 32, 32)
@@ -111,8 +117,12 @@ control_entry = root_entry(b'CONTROL TXT')
 disk[control_entry + 11] |= 0xc0
 dup2_entry = root_entry(b'DUP2    TXT')
 disk[dup2_entry:dup2_entry + 11] = b'DUP1    TXT'
+dup1_entry = root_entry(b'DUP1    TXT')
+struct.pack_into('<HH', disk, dup1_entry + 22, 0xffff, 0x01ff)
 badname_entry = root_entry(b'BADNAME TXT')
 disk[badname_entry] = ord('*')
+badclus_entry = root_entry(b'BADCLUS TXT')
+struct.pack_into('<H', disk, badclus_entry + 26, 0x0b50)
 
 data = 33 * 512
 for cluster in (100, 101, 102):
@@ -166,10 +176,17 @@ else
     fail "directory metadata corruption was not fully diagnosed"
 fi
 if grep -q 'invalid or duplicate name' "$LOG" &&
-   grep -q 'invalid attributes' "$LOG"; then
-    ok "invalid names, duplicate names, and reserved attributes are detected"
+   grep -q 'invalid attributes' "$LOG" &&
+   grep -q 'invalid date or time' "$LOG"; then
+    ok "invalid names, duplicates, attributes, and timestamps are detected"
 else
-    fail "directory name or attribute corruption was not diagnosed"
+    fail "directory name, attribute, or timestamp corruption was not diagnosed"
+fi
+if grep -q 'subdirectory contains a volume-label entry' "$LOG" &&
+   grep -q 'invalid starting cluster' "$LOG"; then
+    ok "misplaced labels and invalid starting clusters are detected"
+else
+    fail "directory structural corruption was not fully diagnosed"
 fi
 grep -q 'RECOVERED_FILE_PRESENT' "$LOG" &&
     ok "/AUTOFIX converts the orphan chain to FILE0000.CHK" ||
@@ -190,8 +207,9 @@ data = b''.join(bytes((cluster + i) & 0xff for i in range(512))
 print(hashlib.sha256(data).hexdigest())
 PY
 )"
-actual="$(mcopy -i "$TARGET" ::FILE0000.CHK - 2>/dev/null | sha256sum | awk '{print $1}')"
-[[ "$actual" == "$expected" ]] &&
+actual0="$(mcopy -i "$TARGET" ::FILE0000.CHK - 2>/dev/null | sha256sum | awk '{print $1}')"
+actual1="$(mcopy -i "$TARGET" ::FILE0001.CHK - 2>/dev/null | sha256sum | awk '{print $1}')"
+[[ "$actual0" == "$expected" || "$actual1" == "$expected" ]] &&
     ok "recovered chain payload is byte-exact" ||
     fail "recovered chain payload differs"
 
@@ -201,6 +219,14 @@ if [[ "$dup_payload" == 'duplicate two' && "$bad_payload" == 'invalid name' ]]; 
     ok "name repairs preserve both formerly ambiguous file payloads"
 else
     fail "name repairs did not preserve the renamed file payloads"
+fi
+if (mcopy -i "$TARGET" ::FILE0000.CHK - 2>/dev/null |
+        strings | grep -qx 'lost by invalid cluster') ||
+   (mcopy -i "$TARGET" ::FILE0001.CHK - 2>/dev/null |
+        strings | grep -qx 'lost by invalid cluster'); then
+    ok "the chain orphaned by an invalid start is recovered byte-exactly"
+else
+    fail "invalid-start repair did not recover the original chain"
 fi
 
 control="$(mcopy -i "$TARGET" ::CONTROL.TXT - 2>/dev/null | tr -d '\r\n')"
@@ -236,6 +262,19 @@ assert disk[sector:sector + 11] == b'.          '
 assert struct.unpack_from('<H', disk, sector + 26)[0] == cluster
 assert disk[sector + 32:sector + 43] == b'..         '
 assert struct.unpack_from('<H', disk, sector + 32 + 26)[0] == 0
+assert disk[sector + 32 * 3] == 0xe5
+
+dup = next(root + off for off in range(0, 224 * 32, 32)
+           if disk[root + off:root + off + 11] == b'DUP1    TXT')
+time, date = struct.unpack_from('<HH', disk, dup + 22)
+month, day = (date >> 5) & 15, date & 31
+assert (time >> 11) <= 23 and ((time >> 5) & 63) <= 59
+assert 1 <= month <= 12 and 1 <= day <= 31
+
+badclus = next(root + off for off in range(0, 224 * 32, 32)
+               if disk[root + off:root + off + 11] == b'BADCLUS TXT')
+assert struct.unpack_from('<H', disk, badclus + 26)[0] == 0
+assert struct.unpack_from('<I', disk, badclus + 28)[0] == 0
 PY
 
 grep -q 'SCANDISK_DONE' "$LOG" && ok "DOS batch completed" || {
