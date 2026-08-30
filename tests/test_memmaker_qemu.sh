@@ -14,6 +14,7 @@ SERIAL_IN="$OUT/memmaker-serial.in"
 SERIAL_OUT="$OUT/memmaker-serial.out"
 ORIGINAL_CONFIG="$OUT/memmaker-config.original"
 ORIGINAL_AUTOEXEC="$OUT/memmaker-autoexec.original"
+ORIGINAL_SYSTEM="$OUT/memmaker-system.original"
 PASS=0
 FAIL=0
 
@@ -29,14 +30,17 @@ mcopy -o -i "$IMAGE" "$ROOT/src/CMD/MEMMAKER/MEMMAKER.EXE" ::MEMMAKER.EXE
 mcopy -o -i "$IMAGE" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
 mcopy -o -i "$IMAGE" "$ROOT/src/MEMM/MEMM/EMM386.EXE" ::EMM386.EXE
 mcopy -o -i "$IMAGE" "$QEXIT" ::QEXIT.COM
+mmd -i "$IMAGE" ::WINDOWS
 printf 'FILES=20\r\nDEVICE=A:\\DRIVER.SYS\r\n' >"$ORIGINAL_CONFIG"
 {
-    printf '@ECHO OFF\r\nCTTY AUX\r\nNLSFUNC A:\\COUNTRY.SYS\r\n'
+    printf '@ECHO OFF\r\nCTTY AUX\r\nSET WINDIR=A:\\WINDOWS\r\nNLSFUNC A:\\COUNTRY.SYS\r\n'
     printf 'IF EXIST A:\\MEMMAKER.STS ECHO MEMMAKER_SESSION_DONE\r\n'
     printf 'IF EXIST A:\\MEMMAKER.STS QEXIT.COM\r\n'
 } >"$ORIGINAL_AUTOEXEC"
+printf '[boot]\r\nshell=progman.exe\r\n[386Enh]\r\nMinTimeSlice=20\r\n' >"$ORIGINAL_SYSTEM"
 mcopy -o -i "$IMAGE" "$ORIGINAL_CONFIG" ::CONFIG.SYS
 mcopy -o -i "$IMAGE" "$ORIGINAL_AUTOEXEC" ::AUTOEXEC.BAT
+mcopy -o -i "$IMAGE" "$ORIGINAL_SYSTEM" ::WINDOWS/SYSTEM.INI
 
 rm -f "$SERIAL_IN" "$SERIAL_OUT"
 mkfifo "$SERIAL_IN" "$SERIAL_OUT"
@@ -102,6 +106,7 @@ if grep -q 'optimization completed after measured reboot passes' <<<"$status" &&
    grep -Eq 'Post-CONFIG largest conventional block: [1-9][0-9]*K' <<<"$status" &&
    grep -Eq 'Baseline largest conventional block: [1-9][0-9]*K' <<<"$status" &&
    grep -Eq 'Measured UMB after /W reserve: [0-9]+K' <<<"$status" &&
+   grep -q 'Windows SYSTEM.INI: examined and backed up' <<<"$status" &&
    grep -q 'Drivers selected for upper memory: 0 of 1' <<<"$status" &&
    grep -q 'TSRs selected for upper memory: 1 of 1' <<<"$status"; then
     ok "MEMMAKER.STS records measurements, /W policy, and Custom choices"
@@ -113,6 +118,9 @@ if ! mdir -b -i "$IMAGE" :: 2>/dev/null | grep -q 'MEMMAKER.MEM'; then
 else
     fail "stale MemMaker measurement handoff"
 fi
+system_backup_hash="$(mcopy -i "$IMAGE" ::WINDOWS/SYSTEM.UMB - 2>/dev/null | sha256sum | awk '{print $1}')"
+[[ "$system_backup_hash" == "$(sha256sum "$ORIGINAL_SYSTEM" | awk '{print $1}')" ]] &&
+    ok "Windows SYSTEM.INI backup is byte-exact" || fail "Windows SYSTEM.INI backup"
 config_backup_hash="$(mcopy -i "$IMAGE" ::CONFIG.MM - 2>/dev/null | sha256sum | awk '{print $1}')"
 auto_backup_hash="$(mcopy -i "$IMAGE" ::AUTOEXEC.MM - 2>/dev/null | sha256sum | awk '{print $1}')"
 [[ "$config_backup_hash" == "$(sha256sum "$ORIGINAL_CONFIG" | awk '{print $1}')" &&
@@ -120,8 +128,9 @@ auto_backup_hash="$(mcopy -i "$IMAGE" ::AUTOEXEC.MM - 2>/dev/null | sha256sum | 
     ok "startup-file backups are byte-exact" || fail "startup-file backup mismatch"
 
 {
-    printf '@ECHO OFF\r\nCTTY AUX\r\n'
+    printf '@ECHO OFF\r\nCTTY AUX\r\nSET WINDIR=A:\\WINDOWS\r\n'
 } | mcopy -o -i "$IMAGE" - ::AUTOEXEC.BAT
+printf '[damaged]\r\n' | mcopy -o -i "$IMAGE" - ::WINDOWS/SYSTEM.INI
 rm -f "$SERIAL_IN" "$SERIAL_OUT"
 mkfifo "$SERIAL_IN" "$SERIAL_OUT"
 exec 3<>"$SERIAL_IN"
@@ -138,11 +147,13 @@ exec 3>&-
 
 restored_config="$(mcopy -i "$IMAGE" ::CONFIG.SYS - 2>/dev/null | sha256sum | awk '{print $1}')"
 restored_auto="$(mcopy -i "$IMAGE" ::AUTOEXEC.BAT - 2>/dev/null | sha256sum | awk '{print $1}')"
+restored_system="$(mcopy -i "$IMAGE" ::WINDOWS/SYSTEM.INI - 2>/dev/null | sha256sum | awk '{print $1}')"
 if grep -q 'MEMMAKER_UNDO_DONE' "$UNDO_LOG" &&
    ! grep -q '^MEMMAKER_UNDO_FAILED' "$UNDO_LOG" &&
    [[ "$restored_config" == "$(sha256sum "$ORIGINAL_CONFIG" | awk '{print $1}')" ]] &&
-   [[ "$restored_auto" == "$(sha256sum "$ORIGINAL_AUTOEXEC" | awk '{print $1}')" ]]; then
-    ok "/UNDO restores both startup files byte-for-byte"
+   [[ "$restored_auto" == "$(sha256sum "$ORIGINAL_AUTOEXEC" | awk '{print $1}')" ]] &&
+   [[ "$restored_system" == "$(sha256sum "$ORIGINAL_SYSTEM" | awk '{print $1}')" ]]; then
+    ok "/UNDO restores all startup files byte-for-byte"
 else
     fail "MemMaker /UNDO"
     tail -60 "$UNDO_LOG"

@@ -35,6 +35,7 @@ static unsigned selected_high_drivers;
 static unsigned selected_high_tsrs;
 static unsigned eligible_high_drivers;
 static unsigned eligible_high_tsrs;
+static int windows_ini_found;
 
 static int ask_yes_no(const char *prompt);
 
@@ -219,6 +220,32 @@ static void make_path(char *path, unsigned drive, const char *name)
     path[1] = ':';
     path[2] = '\\';
     strcpy(path + 3, name);
+}
+
+static int windows_paths(char *system_ini, char *system_backup)
+{
+    const char *directory = getenv("WINDIR");
+    size_t length;
+    FILE *file;
+    if (!directory || !*directory)
+        return 0;
+    length = strlen(directory);
+    if (length > 110)
+        return 0;
+    strcpy(system_ini, directory);
+    if (system_ini[length - 1] != '\\' && system_ini[length - 1] != '/')
+        system_ini[length++] = '\\';
+    strcpy(system_ini + length, "SYSTEM.INI");
+    file = fopen(system_ini, "rb");
+    if (!file)
+        return 0;
+    fclose(file);
+    strcpy(system_backup, directory);
+    length = strlen(system_backup);
+    if (system_backup[length - 1] != '\\' && system_backup[length - 1] != '/')
+        system_backup[length++] = '\\';
+    strcpy(system_backup + length, "SYSTEM.UMB");
+    return 1;
 }
 
 static int copy_file(const char *source, const char *target)
@@ -421,7 +448,9 @@ static int write_status(unsigned drive, const struct options *options,
                         const char *message)
 {
     char path[32];
+    char system_ini[128], system_backup[128];
     FILE *file;
+    windows_ini_found = windows_paths(system_ini, system_backup);
     make_path(path, drive, "MEMMAKER.STS");
     file = fopen(path, "w");
     if (!file)
@@ -429,6 +458,8 @@ static int write_status(unsigned drive, const struct options *options,
     fprintf(file, "%s\nWindows UMB reserve: %u,%u\nToken-ring probe: %s\n",
             message, options->reserve_one, options->reserve_two,
             options->no_token_ring ? "disabled" : "enabled");
+    fprintf(file, "Windows SYSTEM.INI: %s\n",
+            windows_ini_found ? "examined and backed up" : "not found");
     if (measured_umb_k || measured_conventional_k) {
         unsigned reserve = options->reserve_one + options->reserve_two;
         unsigned usable = measured_umb_k > reserve ? measured_umb_k - reserve : 0;
@@ -458,6 +489,7 @@ static int write_status(unsigned drive, const struct options *options,
 static int restore_files(unsigned drive, const struct options *options)
 {
     char config[32], autoexec[32], config_backup[32], auto_backup[32];
+    char system_ini[128], system_backup[128];
     make_path(config, drive, "CONFIG.SYS");
     make_path(autoexec, drive, "AUTOEXEC.BAT");
     make_path(config_backup, drive, "CONFIG.MM");
@@ -466,8 +498,19 @@ static int restore_files(unsigned drive, const struct options *options)
         fputs("MemMaker cannot restore its startup-file backups.\n", stderr);
         return 1;
     }
+    if (windows_paths(system_ini, system_backup)) {
+        FILE *backup = fopen(system_backup, "rb");
+        if (backup) {
+            fclose(backup);
+            if (copy_file(system_backup, system_ini)) {
+                fputs("MemMaker cannot restore SYSTEM.INI.\n", stderr);
+                return 1;
+            }
+            windows_ini_found = 1;
+        }
+    }
     write_status(drive, options, "The previous memory configuration was restored.");
-    puts("The previous CONFIG.SYS and AUTOEXEC.BAT were restored.");
+    puts("The previous startup files were restored.");
     return 0;
 }
 
@@ -587,6 +630,7 @@ static int optimize(unsigned drive, struct options *options,
 {
     char config[32], autoexec[32], config_backup[32], auto_backup[32];
     char config_temp[32], auto_temp[32], status[32];
+    char system_ini[128], system_backup[128];
     union REGS regs;
     int answer;
     make_path(config, drive, "CONFIG.SYS");
@@ -596,6 +640,7 @@ static int optimize(unsigned drive, struct options *options,
     make_path(config_temp, drive, "CONFIG.MMT");
     make_path(auto_temp, drive, "AUTOEXEC.MMT");
     make_path(status, drive, "MEMMAKER.STS");
+    windows_ini_found = windows_paths(system_ini, system_backup);
     if (!options->batch) {
         if (!options->custom) {
             fputs("Use Express Setup to optimize memory (Y/N)? ", stdout);
@@ -608,6 +653,7 @@ static int optimize(unsigned drive, struct options *options,
         }
     }
     if (copy_file(config, config_backup) || copy_file(autoexec, auto_backup) ||
+        (windows_ini_found && copy_file(system_ini, system_backup)) ||
         transform_config(drive, options, program, config, config_temp) ||
         transform_autoexec(drive, options, program, autoexec, auto_temp)) {
         remove(config_temp);
@@ -626,6 +672,8 @@ static int optimize(unsigned drive, struct options *options,
         injected_failure("STATUS")) {
         copy_file(config_backup, config);
         copy_file(auto_backup, autoexec);
+        if (windows_ini_found)
+            copy_file(system_backup, system_ini);
         remove(config_temp);
         remove(auto_temp);
         remove(status);
