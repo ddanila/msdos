@@ -22,6 +22,17 @@ struct options {
 
 static unsigned char file_buffer[2048];
 
+static int injected_failure(const char *point)
+{
+#ifdef MEMMAKER_TEST_FAULTS
+    const char *selected = getenv("MEMMAKER_FAULT");
+    return selected && !stricmp(selected, point);
+#else
+    (void)point;
+    return 0;
+#endif
+}
+
 static int switch_is(const char *left, const char *right)
 {
     while (*left && *right) {
@@ -354,7 +365,7 @@ static int finish_session(unsigned drive, const struct options *options)
 static int optimize(unsigned drive, const struct options *options)
 {
     char config[32], autoexec[32], config_backup[32], auto_backup[32];
-    char config_temp[32], auto_temp[32];
+    char config_temp[32], auto_temp[32], status[32];
     union REGS regs;
     int answer;
     make_path(config, drive, "CONFIG.SYS");
@@ -363,6 +374,7 @@ static int optimize(unsigned drive, const struct options *options)
     make_path(auto_backup, drive, "AUTOEXEC.MM");
     make_path(config_temp, drive, "CONFIG.MMT");
     make_path(auto_temp, drive, "AUTOEXEC.MMT");
+    make_path(status, drive, "MEMMAKER.STS");
     if (!options->batch) {
         fputs("Use Express Setup to optimize memory (Y/N)? ", stdout);
         fflush(stdout);
@@ -380,15 +392,21 @@ static int optimize(unsigned drive, const struct options *options)
         fputs("MemMaker could not prepare the startup files.\n", stderr);
         return 1;
     }
-    if (replace_file(config_temp, config) || replace_file(auto_temp, autoexec)) {
+    if (replace_file(config_temp, config) ||
+        injected_failure("CONFIG") ||
+        replace_file(auto_temp, autoexec) ||
+        injected_failure("AUTOEXEC") ||
+        write_status(drive, options,
+            "Startup files optimized; beginning the reboot pass.") ||
+        injected_failure("STATUS")) {
         copy_file(config_backup, config);
         copy_file(auto_backup, autoexec);
+        remove(config_temp);
+        remove(auto_temp);
+        remove(status);
         fputs("MemMaker rolled back an incomplete startup-file update.\n", stderr);
         return 1;
     }
-    if (write_status(drive, options,
-            "Startup files optimized; beginning the reboot pass."))
-        return 1;
     puts("MemMaker updated the startup files and is restarting the computer.");
     outp(0x64, 0xfe);
     memset(&regs, 0, sizeof(regs));

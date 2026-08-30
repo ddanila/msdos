@@ -30,6 +30,7 @@ mcopy -o -i "$WORK_DIR/mem-reference.img" "$WORK_DIR/QEXIT.COM" ::QEXIT.COM
 } | mcopy -o -i "$WORK_DIR/mem-reference.img" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
+    printf 'IF NOT EXIST A:\\MEM.EXE A:\\EXPAND A:\\MEM.EX_ A:\\MEM.EXE > NUL\r\n'
     printf 'ECHO MEM_REFERENCE_BEGIN DOS=6.22\r\n'
     printf 'ECHO CASE=SUMMARY\r\nMEM\r\nECHO CASE_END=SUMMARY\r\n'
     printf 'ECHO CASE=CLASSIFY\r\nMEM /C\r\nECHO CASE_END=CLASSIFY\r\n'
