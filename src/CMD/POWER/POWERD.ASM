@@ -26,6 +26,7 @@ old_int13       dd      0
 old_int16       dd      0
 old_int21       dd      0
 power_mode      db      MODE_ADV_REG
+retail_mode_code db     3
 apm_available   db      0
 idle_divider    db      0
 poll_streak     db      0
@@ -127,13 +128,112 @@ interrupt_done:
 interrupt ENDP
 
 multiplex_handler PROC FAR
+        cmp     ax,05400h
+        je      retail_install_query
+        cmp     ax,05401h
+        je      retail_mode
+        cmp     ax,05403h
+        je      retail_level
+        cmp     ax,05481h
+        je      retail_statistics
         cmp     ax,0e800h
-        je      short multiplex_query
+        je      multiplex_query
         cmp     ax,0e801h
-        je      short multiplex_set
+        je      multiplex_set
         cmp     ax,0e803h
-        je      short multiplex_diagnostics
+        je      multiplex_diagnostics
         jmp     dword ptr cs:old_int2f
+retail_install_query:
+        mov     ax,0100h
+        mov     bx,504dh                ; genuine POWER manager signature
+        iret
+retail_mode:
+        or      bh,bh
+        jnz     short retail_mode_set
+        xor     bx,bx
+        mov     bl,cs:retail_mode_code
+        mov     bh,bl
+        xor     ax,ax
+        iret
+retail_mode_set:
+        cmp     bh,1
+        jne     short retail_mode_bad
+        cmp     bl,3
+        ja      short retail_mode_bad
+        mov     bh,cs:retail_mode_code
+        mov     cs:retail_mode_code,bl
+        cmp     bl,0
+        je      short retail_set_off
+        cmp     bl,2
+        je      short retail_set_std
+        ; Retail modes 1 and 3 are advanced. DL optionally selects the
+        ; conservation level returned by function 5403h (5/6/7).
+        mov     al,MODE_ADV_REG
+        cmp     dl,5
+        jne     short retail_check_reg
+        mov     al,MODE_ADV_MAX
+        jmp     short retail_store_mode
+retail_check_reg:
+        cmp     dl,7
+        jne     short retail_store_mode
+        mov     al,MODE_ADV_MIN
+        jmp     short retail_store_mode
+retail_set_off:
+        mov     al,MODE_OFF
+        jmp     short retail_store_mode
+retail_set_std:
+        mov     al,MODE_STD
+retail_store_mode:
+        mov     cs:power_mode,al
+        xor     ax,ax
+        iret
+retail_mode_bad:
+        mov     ax,0087h
+        iret
+retail_level:
+        mov     al,cs:power_mode
+        mov     bx,6
+        cmp     al,MODE_ADV_MAX
+        jne     short retail_level_min
+        mov     bx,5
+        jmp     short retail_level_done
+retail_level_min:
+        cmp     al,MODE_ADV_MIN
+        jne     short retail_level_done
+        mov     bx,7
+retail_level_done:
+        xor     ax,ax
+        iret
+retail_statistics:
+        cmp     cx,28
+        jb      short retail_mode_bad
+        push    es
+        push    di
+        push    cx
+        push    ax
+        push    ds
+        pop     es
+        mov     di,si
+        xor     ax,ax
+        mov     cx,14
+        rep     stosw
+        mov     ax,cs:idle_calls
+        mov     [si],ax
+        mov     ax,cs:halt_calls
+        mov     [si+2],ax
+        mov     ax,cs:apm_calls
+        mov     [si+4],ax
+        mov     ax,cs:poll_calls
+        mov     [si+6],ax
+        mov     ax,cs:busy_calls
+        mov     [si+8],ax
+        pop     ax
+        pop     cx
+        pop     di
+        pop     es
+        xor     ax,ax
+        xor     bx,bx
+        iret
 multiplex_query:
         mov     ax,0e8ffh
         xor     bx,bx
@@ -148,6 +248,16 @@ multiplex_set:
         cmp     bl,MODE_ADV_MAX
         ja      short multiplex_bad
         mov     cs:power_mode,bl
+        mov     byte ptr cs:retail_mode_code,3
+        cmp     bl,MODE_OFF
+        jne     short multiplex_set_std
+        mov     byte ptr cs:retail_mode_code,0
+        jmp     short multiplex_set_done
+multiplex_set_std:
+        cmp     bl,MODE_STD
+        jne     short multiplex_set_done
+        mov     byte ptr cs:retail_mode_code,2
+multiplex_set_done:
         mov     ax,0e8ffh
         xor     bh,bh
         iret

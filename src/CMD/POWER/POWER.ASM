@@ -75,42 +75,51 @@ arg_done:
         jmp     syntax_error
 set_off:
         mov     bl,0
+        xor     dl,dl
         jmp     short set_mode
 set_std:
-        mov     bl,1
+        mov     bl,2
+        xor     dl,dl
         jmp     short set_mode
 set_min:
-        mov     bl,2
+        mov     bl,3
+        mov     dl,7
         jmp     short set_mode
 set_reg:
         mov     bl,3
+        mov     dl,6
         jmp     short set_mode
 set_max:
-        mov     bl,4
+        mov     bl,3
+        mov     dl,5
 set_mode:
-        mov     ax,0e801h
+        mov     bh,1
+        mov     ax,05401h
         int     2fh
-        cmp     ax,0e8ffh
-        jne     short not_installed
-        cmp     bh,0
-        jne     short syntax_error
+        or      ax,ax
+        jnz     short not_installed
 query:
-        mov     ax,0e800h
+        xor     bx,bx
+        mov     ax,05401h
         int     2fh
-        cmp     ax,0e8ffh
+        or      ax,ax
         jne     short not_installed
         mov     dx,OFFSET setting_msg
         call    print
         cmp     bl,0
         je      short print_off
-        cmp     bl,1
-        je      short print_std
         cmp     bl,2
-        je      short print_min
+        je      short print_std
         cmp     bl,3
-        je      short print_reg
-        mov     dx,OFFSET max_text
-        jmp     short print_done
+        jne     short not_installed
+        xor     bx,bx
+        mov     ax,05403h
+        int     2fh
+        cmp     bx,5
+        je      short print_max
+        cmp     bx,7
+        je      short print_min
+        jmp     short print_reg
 print_off:
         mov     dx,OFFSET off_text
         jmp     short print_done
@@ -122,6 +131,9 @@ print_min:
         jmp     short print_done
 print_reg:
         mov     dx,OFFSET reg_text
+        jmp     short print_done
+print_max:
+        mov     dx,OFFSET max_text
 print_done:
         call    print
         mov     ax,4c00h
