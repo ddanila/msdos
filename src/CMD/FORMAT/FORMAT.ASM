@@ -320,6 +320,8 @@ RW_TRF_Area	db    512     dup(0)
 
 startSector dw	?
 fatSpace dd	?
+oldFatSpace dd	0
+oldFatValid db	FALSE
 fBigFat db	FALSE
 
 firstHead dw	?
@@ -2037,6 +2039,20 @@ TrackLayoutSet:
 	xor	ax,ax
 	mov	word ptr fatSpace,ax
 
+; Keep the pre-format FAT long enough to preserve or retest its bad-cluster
+; entries.  FORMAT /C changes the treatment of those entries, not merely the
+; command-line grammar.
+	test	SwitchMap,Switch_S
+	jnz	Old_Fat_Allocation_Done
+	mov	bx,Paras_Per_Fat
+	mov	ah,Alloc
+	int	21H
+	retc
+	mov	word ptr oldFatSpace+2,ax
+	xor	ax,ax
+	mov	word ptr oldFatSpace,ax
+Old_Fat_Allocation_Done:
+
 	call	SetStartSector
 	call	SetfBigFat
 
@@ -2245,27 +2261,22 @@ GetDeviceParameters endp
 
 DiskFormat proc near
 
-
-;
-; Initialise fatSpace
-;
-
-
+	; SYS/BIOS formatting code expects the in-memory FAT header to exist before
+	; device parameters are installed and the insertion prompt is issued.
 	push	es
-
-	call	Fat_Init			;an000; initialize the FAT
-
-	mov	di, word ptr fatspace+2 	;an000; get segment of FAT
-	mov	es, di				;an000; place it in es
-	mov	di, word ptr fatSpace		;Should be 0
-	mov	al, deviceParameters.DP_BPB.BPB_MediaDescriptor
-	mov	ah, 0ffH
+	call	Fat_Init
+	mov	di,word ptr fatSpace+2
+	mov	es,di
+	mov	di,word ptr fatSpace
+	mov	al,deviceParameters.DP_BPB.BPB_MediaDescriptor
+	mov	ah,0ffh
 	stosw
-	mov	ax, 00ffH
-	test	fBigFat, (TRUE) AND 0FFh
-	jz	NotBig
-	mov	ax, 0ffffH
-NotBig: stosw
+	mov	ax,00ffh
+	test	fBigFat,(TRUE) AND 0ffh
+	jz	Initial_Fat_Not_Big
+	mov	ax,0ffffh
+Initial_Fat_Not_Big:
+	stosw
 	pop	es
 
 Keep_Going:
@@ -2278,6 +2289,29 @@ foofoo	=	INSTALL_FAKE_BPB or TRACKLAYOUT_IS_GOOD
 	call	Cluster_Buffer_Allocate 					;an000; dms;get room for retry buffer
 
 	call	Prompt_User_For_Disk						;an016; dms;
+
+	test	SwitchMap,Switch_Q
+	jz	No_Old_Fat
+	call	Load_Old_Fat
+No_Old_Fat:
+	cmp	oldFatValid,(TRUE) AND 0ffh
+	jne	New_Fat_Ready
+	call	Fat_Init			; initialize the new FAT
+	push	es
+	mov	di, word ptr fatspace+2
+	mov	es, di
+	mov	di, word ptr fatSpace
+	mov	al, deviceParameters.DP_BPB.BPB_MediaDescriptor
+	mov	ah, 0ffH
+	stosw
+	mov	ax, 00ffH
+	test	fBigFat, (TRUE) AND 0FFh
+	jz	NotBig
+	mov	ax, 0ffffH
+NotBig:	stosw
+	pop	es
+	call	Reconcile_Old_Bad_Clusters
+New_Fat_Ready:
 
 	; DOS 5 safe FORMAT records the existing FAT and root directory.  /U is
 	; explicitly destructive and bypasses this recovery transaction.
@@ -3045,6 +3079,237 @@ Procedure Divide_32_Bits							;an000; dms;
 	ret									;an000; dms;
 
 Divide_32_Bits	endp								;an000; dms;
+
+
+;=========================================================================
+; Load_Old_Fat / Reconcile_Old_Bad_Clusters
+;
+; DOS 6 FORMAT preserves clusters already marked bad.  /C verifies the
+; corresponding data sectors and preserves only marks that still fail.
+; A malformed or unreadable old FAT is ignored, as it is on blank media.
+;=========================================================================
+
+Load_Old_Fat proc near
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	si
+	push	bp
+	push	ds
+	push	es
+	mov	oldFatValid,FALSE
+	cmp	word ptr oldFatSpace+2,0
+	je	Load_Old_Fat_Done
+	mov	al,drive
+	mov	bx,offset RW_TRF_Area
+	mov	cx,1
+	xor	dx,dx
+	mov	Read_Write_Relative.Start_Sector_High,0
+	call	Read_Disk
+	jc	Load_Old_Fat_Done
+	mov	ax,word ptr RW_TRF_Area[11]
+	cmp	ax,deviceParameters.DP_BPB.BPB_BytesPerSector
+	jne	Load_Old_Fat_Done
+	mov	al,RW_TRF_Area[13]
+	cmp	al,deviceParameters.DP_BPB.BPB_SectorsPerCluster
+	jne	Load_Old_Fat_Done
+	mov	ax,word ptr RW_TRF_Area[14]
+	cmp	ax,deviceParameters.DP_BPB.BPB_ReservedSectors
+	jne	Load_Old_Fat_Done
+	mov	al,RW_TRF_Area[16]
+	cmp	al,deviceParameters.DP_BPB.BPB_NumberOfFATs
+	jne	Load_Old_Fat_Done
+	mov	ax,word ptr RW_TRF_Area[17]
+	cmp	ax,deviceParameters.DP_BPB.BPB_RootEntries
+	jne	Load_Old_Fat_Done
+	mov	ax,word ptr RW_TRF_Area[22]
+	cmp	ax,deviceParameters.DP_BPB.BPB_SectorsPerFAT
+	jne	Load_Old_Fat_Done
+	mov	si,word ptr oldFatSpace+2
+	mov	bp,deviceParameters.DP_BPB.BPB_SectorsPerFAT
+	mov	dx,deviceParameters.DP_BPB.BPB_ReservedSectors
+Load_Old_Fat_Sector:
+	or	bp,bp
+	jz	Load_Old_Fat_Check
+	mov	al,drive
+	push	ds
+	mov	ds,si
+	xor	bx,bx
+	mov	cx,1
+	mov	word ptr es:Read_Write_Relative.Start_Sector_High,0
+	call	Read_Disk
+	pop	ds
+	jc	Load_Old_Fat_Done
+	mov	ax,deviceParameters.DP_BPB.BPB_BytesPerSector
+	mov	cl,4
+	shr	ax,cl
+	add	si,ax
+	inc	dx
+	dec	bp
+	jmp	Load_Old_Fat_Sector
+Load_Old_Fat_Check:
+	mov	es,word ptr oldFatSpace+2
+	mov	al,deviceParameters.DP_BPB.BPB_MediaDescriptor
+	cmp	es:[0],al
+	jne	Load_Old_Fat_Done
+	cmp	word ptr es:[1],0ffffh
+	jne	Load_Old_Fat_Done
+	mov	oldFatValid,(TRUE) AND 0ffh
+Load_Old_Fat_Done:
+	pop	es
+	pop	ds
+	pop	bp
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	ret
+Load_Old_Fat endp
+
+; AX = cluster; returns AX = old FAT entry.
+Get_Old_Fat_Entry proc near
+	push	bx
+	push	cx
+	push	dx
+	push	si
+	push	es
+	mov	si,ax
+	mov	es,word ptr oldFatSpace+2
+	cmp	fBigFat,(TRUE) AND 0ffh
+	je	Get_Old_Fat_16
+	mov	bx,ax
+	shr	bx,1
+	add	bx,ax
+	mov	ax,es:[bx]
+	test	si,1
+	jz	Get_Old_Fat_12_Mask
+	mov	cl,4
+	shr	ax,cl
+Get_Old_Fat_12_Mask:
+	and	ax,0fffh
+	jmp	short Get_Old_Fat_Done
+Get_Old_Fat_16:
+	mov	ax,si
+	xor	dx,dx
+	mov	bx,2
+	mul	bx
+	mov	bx,dx
+	mov	cx,es
+	call	BadClus_Address_Adjust
+	mov	es,cx
+	mov	bx,ax
+	mov	ax,es:[bx]
+Get_Old_Fat_Done:
+	pop	es
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bx
+	ret
+Get_Old_Fat_Entry endp
+
+; AX = cluster.  Carry is set if any sector in it cannot be read.
+Verify_Old_Bad_Cluster proc near
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	si
+	sub	ax,2
+	xor	dx,dx
+	xor	bx,bx
+	mov	bl,deviceParameters.DP_BPB.BPB_SectorsPerCluster
+	mul	bx
+	add	ax,startSector
+	adc	dx,0
+	mov	si,dx
+	mov	dx,ax
+	xor	cx,cx
+	mov	cl,deviceParameters.DP_BPB.BPB_SectorsPerCluster
+Verify_Old_Bad_Sector:
+	push	cx
+	mov	Read_Write_Relative.Start_Sector_High,si
+	mov	al,drive
+	mov	bx,offset RW_TRF_Area
+	mov	cx,1
+	call	Read_Disk
+	pop	cx
+	jc	Verify_Old_Bad_Done
+	inc	dx
+	jnz	Verify_Old_Bad_Next
+	inc	si
+Verify_Old_Bad_Next:
+	loop	Verify_Old_Bad_Sector
+	clc
+Verify_Old_Bad_Done:
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	ret
+Verify_Old_Bad_Cluster endp
+
+Reconcile_Old_Bad_Clusters proc near
+	cmp	oldFatValid,(TRUE) AND 0ffh
+	jne	Reconcile_Old_Done
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	di
+	mov	ax,deviceParameters.DP_BPB.BPB_TotalSectors
+	mov	dx,word ptr deviceParameters.DP_BPB.BPB_BigTotalSectors+2
+	or	dx,word ptr deviceParameters.DP_BPB.BPB_BigTotalSectors
+	jz	Reconcile_Have_Total
+	mov	ax,word ptr deviceParameters.DP_BPB.BPB_BigTotalSectors
+	mov	dx,word ptr deviceParameters.DP_BPB.BPB_BigTotalSectors+2
+Reconcile_Have_Total:
+	sub	ax,startSector
+	sbb	dx,0
+	xor	bx,bx
+	mov	bl,deviceParameters.DP_BPB.BPB_SectorsPerCluster
+	div	bx
+	mov	cx,ax
+	mov	di,2
+Reconcile_Old_Loop:
+	or	cx,cx
+	jz	Reconcile_Old_Exit
+	mov	ax,di
+	call	Get_Old_Fat_Entry
+	cmp	fBigFat,(TRUE) AND 0ffh
+	je	Reconcile_Test_16
+	cmp	ax,0ff7h
+	jne	Reconcile_Old_Next
+	jmp	short Reconcile_Maybe_Mark
+Reconcile_Test_16:
+	cmp	ax,0fff7h
+	jne	Reconcile_Old_Next
+Reconcile_Maybe_Mark:
+	test	SwitchMap,Switch_C
+	jz	Reconcile_Mark
+	mov	ax,di
+	call	Verify_Old_Bad_Cluster
+	jnc	Reconcile_Old_Next
+Reconcile_Mark:
+	mov	ax,di
+	xor	dx,dx
+	call	BadClus
+Reconcile_Old_Next:
+	inc	di
+	dec	cx
+	jmp	Reconcile_Old_Loop
+Reconcile_Old_Exit:
+	pop	di
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+Reconcile_Old_Done:
+	ret
+Reconcile_Old_Bad_Clusters endp
 
 
 

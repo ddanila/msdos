@@ -47,7 +47,7 @@ FORMAT_CMDS=(
     "FORMAT B: /4"
     "FORMAT B: /4 /1"
     "FORMAT B: /8"
-    "FORMAT B: /C"
+    "FORMAT B: /Q /C /AUTOTEST"
     "FORMAT B: /Z"
     "FORMAT B: /SELECT /V:SELTEST"
     "FORMAT B: /AUTOTEST /V:AUTO"
@@ -55,7 +55,7 @@ FORMAT_CMDS=(
 )
 B_SECTORS=(2880 2880 2880 2880 2880 1440 5760 1440 2400 2400 720
            2880 2880 2880 2880 2880)
-NO_LABEL_NAMES=(VLABEL Q U EIGHT SELECT AUTOTEST BACKUP)
+NO_LABEL_NAMES=(VLABEL Q U EIGHT SWITCHC SELECT AUTOTEST BACKUP)
 
 if [[ ${#SELECTED_VARIANTS[@]} -eq 0 && "${FORMAT_2880_CHILD:-0}" != 1 ]]; then
     # QEMU fixes the emulated floppy-drive type at boot.  Exercise 2.88 MB
@@ -113,9 +113,33 @@ for i in "${!NAMES[@]}"; do
     B_IMGS+=("$OUT/format-b-${NAMES[$i]}.img")
     SAVED_IMGS+=("$OUT/format-saved-${NAMES[$i]}.img")
     dd if=/dev/zero bs=512 count="${B_SECTORS[$i]}" of="${B_IMGS[$i]}" status=none
-    if [[ "${NAMES[$i]}" == "VLABEL" || "${NAMES[$i]}" == "Q" || "${NAMES[$i]}" == "U" ]]; then
+    if [[ "${NAMES[$i]}" == "VLABEL" || "${NAMES[$i]}" == "Q" || "${NAMES[$i]}" == "U" || "${NAMES[$i]}" == "SWITCHC" ]]; then
         mformat -i "${B_IMGS[$i]}" ::
         printf '%s-format-marker\r\n' "${NAMES[$i]}" | mcopy -i "${B_IMGS[$i]}" - ::MARKER.TXT
+    fi
+    if [[ "${NAMES[$i]}" == "Q" || "${NAMES[$i]}" == "SWITCHC" ]]; then
+        python3 - "${B_IMGS[$i]}" <<'PYEOF'
+import struct, sys
+path = sys.argv[1]
+cluster = 5
+with open(path, 'r+b') as f:
+    boot = f.read(64)
+    bps = struct.unpack_from('<H', boot, 11)[0]
+    reserved = struct.unpack_from('<H', boot, 14)[0]
+    fats = boot[16]
+    spf = struct.unpack_from('<H', boot, 22)[0]
+    off = cluster + cluster // 2
+    for copy in range(fats):
+        pos = (reserved + copy * spf) * bps + off
+        f.seek(pos)
+        word = struct.unpack('<H', f.read(2))[0]
+        if cluster & 1:
+            word = (word & 0x000F) | (0x0FF7 << 4)
+        else:
+            word = (word & 0xF000) | 0x0FF7
+        f.seek(pos)
+        f.write(struct.pack('<H', word))
+PYEOF
     fi
 done
 
@@ -273,6 +297,23 @@ for i in "${!NAMES[@]}"; do
         else
             fail "FORMAT /Q metadata-only behavior"
         fi
+        q_entry=$(python3 - "$img" <<'PYEOF'
+import struct, sys
+with open(sys.argv[1], 'rb') as f:
+    boot = f.read(64)
+    bps = struct.unpack_from('<H', boot, 11)[0]
+    reserved = struct.unpack_from('<H', boot, 14)[0]
+    cluster = 5
+    f.seek(reserved * bps + cluster + cluster // 2)
+    word = struct.unpack('<H', f.read(2))[0]
+print((word >> 4) & 0xFFF if cluster & 1 else word & 0xFFF)
+PYEOF
+)
+        if [[ "$q_entry" == 4087 ]]; then
+            ok "FORMAT /Q preserves a cluster previously marked bad"
+        else
+            fail "FORMAT /Q bad-cluster preservation (entry=$q_entry)"
+        fi
     fi
     if [[ "$name" == "U" ]]; then
         if ! mdir -i "$img" ::MARKER.TXT >/dev/null 2>&1; then
@@ -342,16 +383,28 @@ if [[ $_tn_selected -eq 1 ]]; then
 fi
 
 echo ""
-echo "--- FORMAT undocumented switch error checks ---"
+echo "--- FORMAT DOS 6 cluster retest and private-switch checks ---"
 
 _c_selected=0
 for _n in "${NAMES[@]}"; do [[ "$_n" == "SWITCHC" ]] && _c_selected=1 && break; done
 if [[ $_c_selected -eq 1 ]]; then
-    if sed -n '/---FORMAT-SWITCHC---/,/FORMAT_SWITCHC_DONE/p' "$SERIAL_LOG" | grep -q 'Invalid switch - /C' \
-        && ! grep -q 'FORMAT_SWITCHC_NONZERO' "$SERIAL_LOG"; then
-        ok "FORMAT /C prints its exact rejection and preserves historical zero status"
+    c_entry=$(python3 - "${SAVED_IMGS[$(for i in "${!NAMES[@]}"; do [[ "${NAMES[$i]}" == SWITCHC ]] && echo "$i" && break; done)]}" <<'PYEOF'
+import struct, sys
+with open(sys.argv[1], 'rb') as f:
+    boot = f.read(64)
+    bps = struct.unpack_from('<H', boot, 11)[0]
+    reserved = struct.unpack_from('<H', boot, 14)[0]
+    cluster = 5
+    off = cluster + cluster // 2
+    f.seek(reserved * bps + off)
+    word = struct.unpack('<H', f.read(2))[0]
+print((word >> 4) & 0xFFF if cluster & 1 else word & 0xFFF)
+PYEOF
+)
+    if [[ "$c_entry" == 0 ]] && ! sed -n '/---FORMAT-SWITCHC---/,/FORMAT_SWITCHC_DONE/p' "$SERIAL_LOG" | grep -q 'Invalid switch'; then
+        ok "FORMAT /C retests and releases a readable cluster previously marked bad"
     else
-        fail "FORMAT /C diagnostic or status contract"
+        fail "FORMAT /C bad-cluster retest contract (entry=$c_entry)"
     fi
 fi
 
@@ -366,7 +419,7 @@ if [[ $_z_selected -eq 1 ]]; then
     fi
 fi
 
-for rejected_name in TN SWITCHC SWITCHZ; do
+for rejected_name in TN SWITCHZ; do
     for i in "${!NAMES[@]}"; do
         [[ "${NAMES[$i]}" == "$rejected_name" ]] || continue
         if python3 - "${SAVED_IMGS[$i]}" <<'PYEOF'

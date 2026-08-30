@@ -87,7 +87,7 @@ def build_rules(n: int, names: list, no_label_prompt: set,
 
         # Swap on the batch marker because prompt-suppressing variants never
         # produce a later synchronization point before touching the new disk.
-        if names[i] not in {"SELECT", "AUTOTEST", "BACKUP"}:
+        if names[i] not in {"SWITCHC", "SELECT", "AUTOTEST", "BACKUP"}:
             rules.append([b"press ENTER when ready", b'\r', None, None])
 
         if i not in no_label_prompt:

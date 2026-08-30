@@ -71,6 +71,7 @@
       "/AUTOTEST": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Runs unattended and intentionally leaves the volume unlabeled"},
       "/B": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Formats a valid default-geometry volume through the reserved-system-area path"},
       "/BACKUP": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Suppresses the insertion prompt and produces an exact BPB and requested label"},
+      "/C": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Retests clusters previously marked bad and releases a readable FAT12 cluster; ordinary /Q preserves the same bad-cluster mark"},
       "/F": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Selects verified 720KB and 2.88MB layouts, including every documented 2.88 alias"},
       "/N": {"level": "contract", "evidence": ["tests/test_format.sh"], "note": "Explicit sectors-per-track reaches the drive-specific validation path with /T"},
       "/Q": {"level": "contract", "evidence": ["tests/test_format.sh", "tests/test_format_hdd_qemu.sh"], "note": "Clears FAT and root metadata without scanning or overwriting file payload sectors on floppy and FAT16 fixed media"},

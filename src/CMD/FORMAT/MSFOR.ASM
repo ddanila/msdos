@@ -298,7 +298,7 @@ ExclChkDone:
 ; Formatting a hard disk so we must repatch the boot sector
 ;	 mov	 Boot.Boot_PhyDrv, 80H		 ;AC000;
 	mov	Boot.EXT_PHYDRV, 80H		;AN00?;
-	test	switchmap, not (SWITCH_S or SWITCH_V or SWITCH_Q or SWITCH_U or SWITCH_Select or SWITCH_AUTOTEST or Switch_B) ;AN007;
+	test	switchmap, not (SWITCH_S or SWITCH_V or SWITCH_Q or SWITCH_U or SWITCH_C or SWITCH_Select or SWITCH_AUTOTEST or Switch_B) ;AN007;
 	jz	SwitchesOkForHardDisk
 
 	Message msgIncompatibleParametersForHardDisk ;			     ;AC000;
@@ -372,7 +372,7 @@ CheckFor5InchDrives:
 	je	Got48
 
 	xor	ax,ax								;an000; dms;clear reg
-	or	ax,(Switch_V or Switch_S or Switch_Q or Switch_U or Switch_N or Switch_T or Switch_B) ;an000; dms;set up switch mask
+	or	ax,(Switch_V or Switch_S or Switch_Q or Switch_U or Switch_C or Switch_N or Switch_T or Switch_B) ;an000; dms;set up switch mask
 	or	ax,(Switch_Backup or Switch_Select or Switch_Autotest)		;an000; dms;
 IF ShipDisk
 	or	ax,Switch_Z							;an000; dms;
@@ -416,7 +416,7 @@ Got48:
 
 						;Are any interesting switches set?
 CheckForInterestingSwitches:
-	test	switchmap, not (SWITCH_V or SWITCH_S or SWITCH_Q or SWITCH_U or Switch_Backup or SWITCH_SELECT or SWITCH_AUTOTEST or Switch_B)
+	test	switchmap, not (SWITCH_V or SWITCH_S or SWITCH_Q or SWITCH_U or SWITCH_C or Switch_Backup or SWITCH_SELECT or SWITCH_AUTOTEST or Switch_B)
 	jz	Goto_EndSwitchCheck		;No, everything ok
 
 						;At this point there are switches other than /v/s/h
@@ -424,7 +424,7 @@ CheckForInterestingSwitches:
 	jz	Use_48tpi			;Not /n/t, so must be /b/1/8/4
 
 						;We've got /N/T, see if there are others
-	test	SwitchMap, not (SWITCH_N or SWITCH_T or SWITCH_V or SWITCH_S or SWITCH_Q or SWITCH_U or Switch_Backup or SWITCH_SELECT or SWITCH_AUTOTEST)
+	test	SwitchMap, not (SWITCH_N or SWITCH_T or SWITCH_V or SWITCH_S or SWITCH_Q or SWITCH_U or SWITCH_C or Switch_Backup or SWITCH_SELECT or SWITCH_AUTOTEST)
 	jz	NT_Compatible			;Nope, all is well
 
 						;If 96tpi drive and /1 exists with /N/T, then okay, otherwise error
@@ -433,7 +433,7 @@ CheckForInterestingSwitches:
 
 	test	SwitchMap, not (SWITCH_1 or SWITCH_N or SWITCH_T or SWITCH_V)
 	jnz	Bad_NT_Combo
-	test	SwitchMap, not (SWITCH_S or SWITCH_Q or SWITCH_U or Switch_Backup or SWITCH_SELECT or Switch_Autotest)
+	test	SwitchMap, not (SWITCH_S or SWITCH_Q or SWITCH_U or SWITCH_C or Switch_Backup or SWITCH_SELECT or Switch_Autotest)
 	jz	Goto_Got_BPB
 
 Bad_NT_Combo:
