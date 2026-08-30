@@ -97,7 +97,7 @@ static void measure_memory(void)
     intdos(&regs, &regs);
     saved_link = regs.x.ax;
 
-    paragraphs = probe_largest_block(0x80, 1); /* high memory only */
+    paragraphs = probe_largest_block(0x40, 1); /* high memory only */
     measured_umb_k = paragraphs / 64;
     paragraphs = probe_largest_block(0, 0);    /* conventional only */
     measured_conventional_k = paragraphs / 64;

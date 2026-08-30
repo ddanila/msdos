@@ -9,6 +9,7 @@ IMAGE="$OUT/memmaker.img"
 LOG="$OUT/memmaker.log"
 UNDO_LOG="$OUT/memmaker-undo.log"
 SESSION_LOG="$OUT/memmaker-session.log"
+PLACEMENT_LOG="$OUT/memmaker-placement.log"
 QEXIT="$OUT/memmaker-qexit.com"
 SERIAL_IN="$OUT/memmaker-serial.in"
 SERIAL_OUT="$OUT/memmaker-serial.out"
@@ -77,8 +78,26 @@ wait "$QEMU_PID" || true
 exec 3>&-
 cat "$SESSION_LOG" >>"$LOG"
 
-if grep -q 'MEMMAKER_SESSION_DONE' "$LOG"; then
-    ok "Custom optimization schedules and completes its own /SESSION pass"
+# Boot the finalized files once more: this executes the generated LH command
+# before the existing status guard exits through QEXIT.COM.
+rm -f "$SERIAL_IN" "$SERIAL_OUT"
+mkfifo "$SERIAL_IN" "$SERIAL_OUT"
+exec 3<>"$SERIAL_IN"
+timeout 30 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 16 \
+    -drive if=floppy,index=0,format=raw,file="$IMAGE",cache=writethrough \
+    -boot a -serial pipe:"$OUT/memmaker-serial" -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    2>/dev/null &
+QEMU_PID=$!
+python3 "$ROOT/tests/serial_expect.py" "$SERIAL_IN" "$SERIAL_OUT" "$PLACEMENT_LOG" \
+    'MEMMAKER_SESSION_DONE' ''
+wait "$QEMU_PID" || true
+exec 3>&-
+cat "$PLACEMENT_LOG" >>"$LOG"
+
+if grep -q 'MEMMAKER_SESSION_DONE' "$PLACEMENT_LOG" &&
+   ! grep -Eqi 'invalid switch|bad command|not enough memory' "$PLACEMENT_LOG"; then
+    ok "Custom optimization completes /SESSION and boots optimized TSR placement"
 else
     fail "MemMaker reboot/session workflow"
     tail -80 "$LOG"

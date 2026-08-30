@@ -39,9 +39,9 @@ import sys
 # Eight 16-bit handoff fields: memory snapshots and selection counts.
 open(sys.argv[1], "wb").write(struct.pack("<8H", 0, 0, 0, 0, 3, 3, 0, 0))
 records = [
-    (0x5A53, 1, 20001, 1),
-    (0x5A53, 2, 12001, 1),
-    (0x5A53, 3, 12001, 1),
+    (0x5A53, 1, 5001, 1),
+    (0x5A53, 2, 3501, 1),
+    (0x5A53, 3, 3501, 1),
 ]
 open(sys.argv[2], "wb").write(b"".join(struct.pack("<4H", *r) for r in records))
 PY
@@ -57,7 +57,7 @@ autoexec="$(mcopy -i "$IMAGE" ::AUTOEXEC.BAT - 2>/dev/null | tr -d '\r')"
 status="$(mcopy -i "$IMAGE" ::MEMMAKER.STS - 2>/dev/null | tr -d '\r')"
 grep -q '^ECHO LARGE$' <<<"$autoexec"
 ! grep -q '^LH ECHO LARGE$' <<<"$autoexec"
-grep -q '^LH ECHO MEDIUM1$' <<<"$autoexec"
-grep -q '^LH ECHO MEDIUM2$' <<<"$autoexec"
-grep -q 'TSRs placed high by measured optimizer: 2, 24000 paragraphs' <<<"$status"
-echo '  PASS: MemMaker exact optimizer selects 24000 paragraphs over the 20000-paragraph first fit'
+grep -Eq '^LH ECHO MEDIUM1$' <<<"$autoexec"
+grep -Eq '^LH ECHO MEDIUM2$' <<<"$autoexec"
+grep -q 'TSRs placed high by measured optimizer: 2, 7000 paragraphs' <<<"$status"
+echo '  PASS: MemMaker exact optimizer selects 7000 paragraphs over the 5000-paragraph first fit'
