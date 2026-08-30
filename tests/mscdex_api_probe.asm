@@ -115,6 +115,44 @@ start:
     mov ax, 1510h
     int 2fh
     jnc fail
+    ; Exercise media-control IOCTL output and input on subunit one.
+    mov byte [media_buffer], 0
+    mov byte [request_header + 2], 12
+    mov word [request_header + 3], 0
+    mov word [request_header + 14], media_buffer
+    mov word [request_header + 16], ds
+    mov bx, request_header
+    mov cx, 5
+    mov ax, 1510h
+    int 2fh
+    jc fail
+    mov byte [media_buffer], 6
+    mov byte [request_header + 2], 3
+    mov word [request_header + 3], 0
+    mov bx, request_header
+    mov ax, 1510h
+    int 2fh
+    jc fail
+    test byte [media_buffer + 2], 8
+    jz fail
+    mov byte [media_buffer], 5
+    mov byte [request_header + 2], 12
+    mov word [request_header + 3], 0
+    mov bx, request_header
+    mov ax, 1510h
+    int 2fh
+    jc fail
+    mov byte [media_buffer], 6
+    mov byte [request_header + 2], 3
+    mov word [request_header + 3], 0
+    mov bx, request_header
+    mov ax, 1510h
+    int 2fh
+    jc fail
+    test byte [media_buffer + 2], 8
+    jnz fail
+    test byte [media_buffer + 1], 10h
+    jz fail
     mov word [request_header + 3], 0
     mov byte [request_header + 2], 3
     mov bx, request_header
@@ -344,12 +382,13 @@ fail:
 
 drive_list  times 8 db 0ffh
 device_list times 40 db 0
-request_header db 32,0,3
+request_header db 32,0,13
                dw 0
                times 8 db 0
                db 0
                times 18 db 0
 sector_buffer times 2048 db 0
+media_buffer times 8 db 0
 name_buffer times 38 db 0
 copyright_name db 'COPY.TXT;1',0
 copyright_end:

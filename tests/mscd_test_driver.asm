@@ -17,6 +17,7 @@ request_offset  dw 0
 request_segment dw 0
 fail_reads      db 0
 audio_state     db 0
+media_open      db 0
 
 strategy:
     mov [cs:request_offset], bx
@@ -46,6 +47,10 @@ interrupt:
     je .audio_stop
     cmp byte [es:di + 2], 88h
     je .audio_resume
+    cmp byte [es:di + 2], 3
+    je .ioctl_input
+    cmp byte [es:di + 2], 12
+    je .ioctl_output
     cmp byte [es:di + 2], 0feh
     jne .check_read
     mov byte [cs:fail_reads], 1
@@ -94,6 +99,35 @@ interrupt:
     cmp byte [cs:audio_state], 2
     jne .request_error
     mov byte [cs:audio_state], 1
+    jmp .complete
+.ioctl_input:
+    cmp byte [es:di + 1], 1
+    jne .request_error
+    mov bx, [es:di + 14]
+    mov ax, [es:di + 16]
+    mov ds, ax
+    cmp byte [bx], 6
+    jne .request_error
+    mov byte [bx + 1], 10h       ; audio and door-control capabilities
+    mov byte [bx + 2], 0
+    cmp byte [cs:media_open], 0
+    je .complete
+    or byte [bx + 2], 8          ; door open
+    jmp .complete
+.ioctl_output:
+    cmp byte [es:di + 1], 1
+    jne .request_error
+    mov bx, [es:di + 14]
+    mov ax, [es:di + 16]
+    mov ds, ax
+    cmp byte [bx], 0
+    je .media_eject
+    cmp byte [bx], 5
+    jne .request_error
+    mov byte [cs:media_open], 0
+    jmp .complete
+.media_eject:
+    mov byte [cs:media_open], 1
     jmp .complete
 .vtoc_read:
     cmp word [es:di + 22], 0
