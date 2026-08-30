@@ -145,6 +145,7 @@ R_CODE	segment
 extrn	i15_Entry:near		; int15h patch code
 extrn	EMM_rEntry:near 	; int67h patch code
 extrn	i15_Old:word		; old int15 vector
+extrn	ELIM_Entry:far		; installed ON/OFF/AUTO control
 R_CODE	ends
 
 ;
@@ -223,6 +224,9 @@ arg_str 	db	max_arg_len+1	dup(0)
 ;
 Active_Status	db	0FFh	; 0 => OFF , non-zero => ON
 Auto_Mode	db	0h	; non-zero => auto mode
+initial_mode	db	0h	; 0 => ON, 1 => OFF, 2 => AUTO
+mode_seen	db	0h
+weitek_mode	db	0h	; parsed DOS 5 W= setting; hardware remains optional
 
 ;
 ;  The following pointers are segment addresses for various segments
@@ -521,6 +525,12 @@ IE_setbrk:
 	pop	ds
 
 	call	FarGoVirtual		;  N: go into virtual mode
+	mov	al,[initial_mode]
+	or	al,al
+	jz	short IE_initial_mode_done
+	mov	ah,1
+	call	ELIM_Entry
+IE_initial_mode_done:
 
 ;
 ;  exit - display status messages and set exit status
@@ -742,15 +752,16 @@ ploop1:
 	je	jmp_FRAME
 	cmp	al,'/'			; q: /Pmmmm direct page frame?
 	je	jmp_slash_P
+	cmp	al,'o'			; q: ON or OFF initial state?
+	je	chk_initial_onoff
+	cmp	al,'a'			; q: AUTO initial state?
+	je	chk_initial_auto
+	cmp	al,'w'			; q: W=ON or W=OFF?
+	je	chk_weitek
 	cmp	al,'r'			; q: RAM activation mode?
-	je	short chk_RAM
+	je	chk_RAM
 	cmp	al,'n'			; q: NOEMS activation mode?
-	je	short chk_NOEMS
-;	 cmp	 al,'o' 		 ; q: ON/OFF?
-;	 je	 jmp_onf		 ;   maybe: go validate it
-;	 cmp	 al,'a' 		 ; q: AUTO?
-;	 je	 jmp_auto		 ;   maybe: go validate it
-
+	je	chk_NOEMS
 	cmp	al,'0'			; q: is it a digit (size)
 	jb	inv_parm		; n: invalid
 	cmp	al,'9'			; q: is it a digit?
@@ -758,6 +769,68 @@ ploop1:
 inv_parm:
 	or	[msg_flag],INV_PARM_MSG ; set invalid parameter flag
 	jmp	short ploop1		; continue
+
+chk_initial_onoff:
+	cmp	[mode_seen],0
+	jne	inv_prm
+	cmp	cx,2
+	je	short chk_initial_on
+	cmp	cx,3
+	jne	inv_prm
+	cmp	byte ptr [si],'f'
+	jne	inv_prm
+	cmp	byte ptr [si+1],'f'
+	jne	inv_prm
+	mov	[initial_mode],1
+	jmp	short initial_mode_done
+chk_initial_on:
+	cmp	byte ptr [si],'n'
+	jne	inv_prm
+	mov	[initial_mode],0
+initial_mode_done:
+	mov	[mode_seen],1
+	jmp	ploop1
+
+chk_initial_auto:
+	cmp	[mode_seen],0
+	jne	inv_prm
+	cmp	cx,4
+	jne	inv_prm
+	cmp	byte ptr [si],'u'
+	jne	inv_prm
+	cmp	byte ptr [si+1],'t'
+	jne	inv_prm
+	cmp	byte ptr [si+2],'o'
+	jne	inv_prm
+	mov	[initial_mode],2
+	mov	[mode_seen],1
+	jmp	ploop1
+
+chk_weitek:
+	cmp	cx,4
+	jb	inv_prm
+	cmp	cx,5
+	ja	inv_prm
+	cmp	byte ptr [si],'='
+	jne	inv_prm
+	cmp	byte ptr [si+1],'o'
+	jne	inv_prm
+	cmp	byte ptr [si+2],'n'
+	je	short weitek_check_on_length
+	cmp	cx,5
+	jne	inv_prm
+	cmp	byte ptr [si+2],'f'
+	jne	inv_prm
+	cmp	byte ptr [si+3],'f'
+	jne	inv_prm
+	mov	[weitek_mode],0
+	jmp	ploop1
+weitek_check_on_length:
+	cmp	cx,4
+	jne	inv_prm
+weitek_on:
+	mov	[weitek_mode],1
+	jmp	ploop1
 
 chk_RAM:
 	cmp	cx,3
