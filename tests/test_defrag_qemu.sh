@@ -8,8 +8,6 @@ BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT="$OUT/defrag-boot.img"
 TARGET="$OUT/defrag-target.img"
 INTERRUPT_TARGET="$OUT/defrag-interrupt-target.img"
-INTERRUPT_BOOT="$OUT/defrag-interrupt-boot.img"
-INTERRUPT_LOG="$OUT/defrag-interrupt.log"
 LOG="$OUT/defrag.log"
 QEXIT="$OUT/defrag-qexit.com"
 PAYLOAD="$OUT/defrag-payload.bin"
@@ -181,40 +179,49 @@ for off in range(root, root + 14 * 512, 32):
 assert names == sorted(names, key=lambda value: value[:8]), names
 PY
 
-cp "$BASE" "$INTERRUPT_BOOT"
-mcopy -o -i "$INTERRUPT_BOOT" "$ROOT/src/CMD/DEFRAG/DEFRAG.EXE" ::DEFRAG.EXE
-mcopy -o -i "$INTERRUPT_BOOT" "$ROOT/src/CMD/SCANDISK/SCANDISK.EXE" ::SCANDISK.EXE
-mcopy -o -i "$INTERRUPT_BOOT" "$QEXIT" ::QEXIT.COM
-{
-    printf '@ECHO OFF\r\nCTTY AUX\r\n'
-    printf 'SET DEFRAG_FAILSTEP=2\r\n'
-    printf 'DEFRAG B: /U\r\n'
-    printf 'IF ERRORLEVEL 3 ECHO DEFRAG_INTERRUPTED\r\n'
-    printf 'SET DEFRAG_FAILSTEP=\r\n'
-    printf 'SCANDISK B: /CHECKONLY /NOSUMMARY\r\n'
-    printf 'IF ERRORLEVEL 255 ECHO INTERRUPT_ORPHAN_FOUND\r\n'
-    printf 'SCANDISK B: /AUTOFIX /NOSAVE /NOSUMMARY\r\n'
-    printf 'IF ERRORLEVEL 254 ECHO INTERRUPT_RECOVERED\r\n'
-    printf 'SCANDISK B: /CHECKONLY /NOSUMMARY\r\n'
-    printf 'IF ERRORLEVEL 1 ECHO INTERRUPT_RESCAN_FAILED\r\n'
-    printf 'ECHO INTERRUPT_DONE\r\nQEXIT.COM\r\n'
-} | mcopy -o -i "$INTERRUPT_BOOT" - ::AUTOEXEC.BAT
-timeout 45 qemu-system-i386 -display none \
-    -drive if=floppy,index=0,format=raw,file="$INTERRUPT_BOOT",cache=writethrough \
-    -drive if=floppy,index=1,format=raw,file="$INTERRUPT_TARGET",cache=writethrough \
-    -boot a -m 4 -serial stdio \
-    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
-    </dev/null >"$INTERRUPT_LOG" 2>&1 || true
-interrupt_payload="$(mcopy -i "$INTERRUPT_TARGET" ::FRAGMENT.BIN - 2>/dev/null | sha256sum | awk '{print $1}')"
-if [[ "$interrupt_payload" == "$expected" ]] &&
-   grep -q 'DEFRAG_INTERRUPTED' "$INTERRUPT_LOG" &&
-   grep -q 'INTERRUPT_ORPHAN_FOUND' "$INTERRUPT_LOG" &&
-   grep -q 'INTERRUPT_RECOVERED' "$INTERRUPT_LOG" &&
-   ! grep -q 'INTERRUPT_RESCAN_FAILED' "$INTERRUPT_LOG"; then
-    ok "interruption leaves referenced data exact and only a recoverable orphan"
+interrupt_failures=0
+for interrupt_mode in U F; do
+    for interrupt_step in 1 2 3; do
+        case_target="$OUT/defrag-interrupt-$interrupt_mode-$interrupt_step.img"
+        case_boot="$OUT/defrag-interrupt-$interrupt_mode-$interrupt_step-boot.img"
+        case_log="$OUT/defrag-interrupt-$interrupt_mode-$interrupt_step.log"
+        cp "$INTERRUPT_TARGET" "$case_target"
+        cp "$BASE" "$case_boot"
+        mcopy -o -i "$case_boot" "$ROOT/src/CMD/DEFRAG/DEFRAG.EXE" ::DEFRAG.EXE
+        mcopy -o -i "$case_boot" "$ROOT/src/CMD/SCANDISK/SCANDISK.EXE" ::SCANDISK.EXE
+        mcopy -o -i "$case_boot" "$QEXIT" ::QEXIT.COM
+        {
+            printf '@ECHO OFF\r\nCTTY AUX\r\n'
+            printf 'SET DEFRAG_FAILSTEP=%s\r\n' "$interrupt_step"
+            printf 'DEFRAG B: /%s\r\n' "$interrupt_mode"
+            printf 'IF ERRORLEVEL 3 ECHO DEFRAG_INTERRUPTED\r\n'
+            printf 'SET DEFRAG_FAILSTEP=\r\n'
+            printf 'SCANDISK B: /AUTOFIX /NOSAVE /NOSUMMARY\r\n'
+            printf 'SCANDISK B: /CHECKONLY /NOSUMMARY\r\n'
+            printf 'IF ERRORLEVEL 1 ECHO INTERRUPT_RESCAN_FAILED\r\n'
+            printf 'ECHO INTERRUPT_DONE\r\nQEXIT.COM\r\n'
+        } | mcopy -o -i "$case_boot" - ::AUTOEXEC.BAT
+        timeout 45 qemu-system-i386 -display none \
+            -drive if=floppy,index=0,format=raw,file="$case_boot",cache=writethrough \
+            -drive if=floppy,index=1,format=raw,file="$case_target",cache=writethrough \
+            -boot a -m 4 -serial stdio \
+            -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+            </dev/null >"$case_log" 2>&1 || true
+        fragment_after="$(mcopy -i "$case_target" ::FRAGMENT.BIN - 2>/dev/null | sha256sum | awk '{print $1}')"
+        single_after="$(mcopy -i "$case_target" ::SINGLE.BIN - 2>/dev/null | sha256sum | awk '{print $1}')"
+        if [[ "$fragment_after" != "$expected" || "$single_after" != "$single_expected" ]] ||
+           ! grep -q 'DEFRAG_INTERRUPTED' "$case_log" ||
+           ! grep -q 'INTERRUPT_DONE' "$case_log" ||
+           grep -q 'INTERRUPT_RESCAN_FAILED' "$case_log"; then
+            interrupt_failures=$((interrupt_failures + 1))
+            tail -40 "$case_log"
+        fi
+    done
+done
+if [[ "$interrupt_failures" == 0 ]]; then
+    ok "all /U and /F transaction boundaries preserve data and remain ScanDisk-recoverable"
 else
-    fail "transaction-boundary interruption was not safely recoverable"
-    tail -60 "$INTERRUPT_LOG"
+    fail "$interrupt_failures Defrag transaction-boundary case(s) were unsafe"
 fi
 
 echo "Results: $PASS passed, $FAIL failed"
