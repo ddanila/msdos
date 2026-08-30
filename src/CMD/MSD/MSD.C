@@ -8,6 +8,7 @@ static FILE *report;
 static int skip_detection;
 static char report_name[64];
 static char report_company[64];
+extern char **environ;
 
 /* DOS's internal tables contain unaligned words.  Decode them bytewise so
  * this remains correct regardless of the compiler's structure packing. */
@@ -136,6 +137,42 @@ static void report_input(void)
                 outregs.x.bx);
     else
         fputs("Mouse driver:          Not installed\n", report);
+}
+
+static void report_configuration(void)
+{
+    union REGS inregs, outregs;
+    unsigned env_count = 0;
+    unsigned long env_bytes = 0;
+    char **entry;
+    heading("DOS Configuration");
+    memset(&inregs, 0, sizeof(inregs));
+    inregs.x.ax = 0x5800;
+    intdos(&inregs, &outregs);
+    fprintf(report, "Allocation strategy:   %04Xh\n", outregs.x.ax);
+    inregs.x.ax = 0x5802;
+    intdos(&inregs, &outregs);
+    fprintf(report, "UMB chain linked:      %s\n",
+            outregs.x.ax ? "Yes" : "No");
+    inregs.h.ah = 0x54;
+    intdos(&inregs, &outregs);
+    fprintf(report, "Write verification:    %s\n",
+            outregs.h.al ? "On" : "Off");
+    inregs.x.ax = 0x3300;
+    intdos(&inregs, &outregs);
+    fprintf(report, "Extended BREAK check:  %s\n",
+            outregs.h.dl ? "On" : "Off");
+    inregs.x.ax = 0x6601;
+    intdos(&inregs, &outregs);
+    if (!outregs.x.cflag)
+        fprintf(report, "Code pages:            %u active, %u system\n",
+                outregs.x.bx, outregs.x.dx);
+    for (entry = environ; entry && *entry; ++entry) {
+        ++env_count;
+        env_bytes += strlen(*entry) + 1UL;
+    }
+    fprintf(report, "Environment:           %u variables, %lu bytes\n",
+            env_count, env_bytes);
 }
 
 static int ems_present(void)
@@ -340,6 +377,7 @@ static void report_summary(void)
     report_video();
     report_ports();
     report_input();
+    report_configuration();
     report_disks();
     report_irqs();
     report_drivers();
@@ -383,7 +421,8 @@ static void interactive(void)
         puts("\nMicrosoft Diagnostics");
         puts("  C  Computer       M  Memory        V  Video");
         puts("  D  Disk drives    I  IRQs          R  Drivers");
-        puts("  P  Ports          K  Input         N  Network");
+        puts("  P  Ports          K  Input         G  DOS configuration");
+        puts("  N  Network");
         puts("  O  Operating system");
         puts("  A  All reports    X  Exit");
         fputs("Selection: ", stdout);
@@ -395,6 +434,7 @@ static void interactive(void)
         case 'v': case 'V': report_video(); break;
         case 'p': case 'P': report_ports(); break;
         case 'k': case 'K': report_input(); break;
+        case 'g': case 'G': report_configuration(); break;
         case 'd': case 'D': report_disks(); break;
         case 'i': case 'I': report_irqs(); break;
         case 'r': case 'R': report_drivers(); break;

@@ -54,10 +54,12 @@ timeout 25 qemu-system-i386 \
 for marker in \
     'Computer: IBM PC/AT compatible' \
     'Operating System' 'Computer' 'Memory' 'Video' 'Disk Drives' \
-    'COM and LPT Ports' 'Input Devices' 'IRQ Vectors' 'Device Drivers' 'Network' \
+    'COM and LPT Ports' 'Input Devices' 'DOS Configuration' 'IRQ Vectors' 'Device Drivers' 'Network' \
     'Reported DOS version: 6.22' 'True DOS version:     6.22' \
     'BIOS machine ID:' 'BIOS date:' 'COM1 base address:     03F8h' \
     'Keyboard shift flags:' 'Mouse driver:          Not probed (/I)' \
+    'Allocation strategy:' 'UMB chain linked:' 'Write verification:' \
+    'Extended BREAK check:' 'Code pages:' 'Environment:' \
     'B:  logical alias of A: (one physical floppy)' \
     'C:  total      62464 bytes  512-byte sectors  FAT12' \
     'D:  substituted path A:\MSDMAP' \
@@ -87,12 +89,13 @@ timeout 25 qemu-system-i386 -display none -boot a -m 4 \
 QEMU_PID=$!
 python3 "$ROOT/tests/serial_expect.py" \
     "$SERIAL_IN" "$SERIAL_OUT" "$INTERACTIVE_LOG" \
-    'Selection:' 'm' 'Selection:' 'p' 'Selection:' 'k' 'Selection:' 'x'
+    'Selection:' 'm' 'Selection:' 'p' 'Selection:' 'k' 'Selection:' 'g' 'Selection:' 'x'
 wait "$QEMU_PID" || true
 exec 3>&-
 grep -Fq 'Largest free block:' "$INTERACTIVE_LOG"
 grep -Fq 'COM1 base address:' "$INTERACTIVE_LOG"
 grep -Fq 'Keyboard shift flags:' "$INTERACTIVE_LOG"
+grep -Fq 'Allocation strategy:' "$INTERACTIVE_LOG"
 grep -Fq 'MSD_INTERACTIVE_RETURNED' "$INTERACTIVE_LOG"
 
 echo '  PASS: MSD retail syntax, summary, report file, /I, interactive, and error paths'
