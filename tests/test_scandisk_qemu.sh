@@ -110,6 +110,8 @@ cp "$TARGET" "$BEFORE"
     printf 'IF EXIST B:\\FILE0000.CHK ECHO RECOVERED_FILE_PRESENT\r\n'
     printf 'SCANDISK B: /CHECKONLY\r\n'
     printf 'IF ERRORLEVEL 1 ECHO RESCAN_FAILED\r\n'
+    printf 'SCANDISK B: /CHECKONLY /SURFACE /NOSUMMARY\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SURFACE_FAILED\r\n'
     printf 'ECHO SCANDISK_DONE\r\nQEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT" - ::AUTOEXEC.BAT
 
@@ -135,12 +137,14 @@ grep -q 'file allocation table copies differ' "$LOG" &&
 grep -q 'RECOVERED_FILE_PRESENT' "$LOG" &&
     ok "/AUTOFIX converts the orphan chain to FILE0000.CHK" ||
     fail "lost chain was not recovered"
-if grep -Eq 'AUTOFIX_FAILED|RESCAN_FAILED' "$LOG" ||
+if grep -Eq 'AUTOFIX_FAILED|RESCAN_FAILED|SURFACE_FAILED' "$LOG" ||
    ! grep -q 'AUTOFIX_REPAIRED' "$LOG"; then
     fail "repair or clean rescan returned failure"
 else
     ok "repair succeeds and a second /CHECKONLY scan is clean"
 fi
+grep -q 'SURFACE_FAILED' "$LOG" ||
+    ok "/SURFACE completes non-destructive read/write verification of free space"
 
 expected="$(python3 - <<'PY'
 import hashlib

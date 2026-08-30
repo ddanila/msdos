@@ -806,13 +806,25 @@ static void surface_scan(struct scan_state *state)
         if (state->aborted)
             return;
         for (sector_index = 0;
-             sector_index < state->volume.sectors_per_cluster; ++sector_index)
-            if (fat_volume_io(&state->volume, 0,
-                    fat_volume_cluster_sector(&state->volume, cluster) +
-                        sector_index, 1, surface_sector)) {
+             sector_index < state->volume.sectors_per_cluster; ++sector_index) {
+            unsigned long sector =
+                fat_volume_cluster_sector(&state->volume, cluster) +
+                sector_index;
+            if (fat_volume_io(&state->volume, 0, sector, 1, surface_sector)) {
                 failed = 1;
                 break;
             }
+            /* Free space can be verified through the complete write/read
+               path without risking live file data.  Re-write the original
+               bytes so /SURFACE remains non-destructive. */
+            if (!bit_get(claimed, cluster) &&
+                (fat_volume_io(&state->volume, 1, sector, 1, surface_sector) ||
+                 fat_volume_io(&state->volume, 0, sector, 1, compare_sector) ||
+                 memcmp(surface_sector, compare_sector, 512))) {
+                failed = 1;
+                break;
+            }
+        }
         if (failed) {
             ++state->bad_clusters;
             report_problem(state, "An unreadable data cluster was found.");
