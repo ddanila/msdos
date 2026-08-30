@@ -174,6 +174,8 @@ int2f_handler PROC FAR
         je      api_version
         cmp     al,0dh
         je      api_drive_list
+        cmp     al,0eh
+        je      api_volume_preference
         cmp     al,08h
         je      api_absolute_read
         cmp     al,10h
@@ -250,6 +252,51 @@ api_drive_next:
 api_debug_noop:
         xor     ax,ax
         jmp     api_return_clear
+
+; AX=150Eh, BX=0 get or 1 set, CX=drive, DX=preference.  The supported DOS
+; 6.22 preferences are primary ISO (0100h) and shift-JIS supplementary (0201h).
+api_volume_preference:
+        push    si
+        mov     ax,cx
+        xor     si,si
+        mov     si,ax
+        xor     ax,ax
+        mov     al,cs:first_drive
+        sub     si,ax
+        jc      short api_preference_bad_drive
+        xor     ax,ax
+        mov     al,cs:driver_count
+        cmp     si,ax
+        jae     short api_preference_bad_drive
+        shl     si,1
+        or      bx,bx
+        jz      short api_preference_get
+        cmp     bx,1
+        jne     short api_preference_bad_function
+        cmp     dx,0100h
+        je      short api_preference_set
+        cmp     dx,0201h
+        jne     short api_preference_bad_function
+api_preference_set:
+        mov     cs:volume_preferences[si],dx
+        xor     ax,ax
+        pop     si
+        jmp     api_return_clear
+api_preference_get:
+        mov     dx,cs:volume_preferences[si]
+        xor     ax,ax
+        pop     si
+        jmp     api_return_clear
+api_preference_bad_drive:
+        xor     dx,dx
+        mov     ax,000fh
+        pop     si
+        jmp     api_return_carry
+api_preference_bad_function:
+        xor     dx,dx
+        mov     ax,0001h
+        pop     si
+        jmp     api_return_carry
 
 ; AX=1505h, ES:BX=2048-byte buffer, CX=drive, DX=descriptor index.
 api_read_vtoc:
@@ -532,6 +579,7 @@ vtoc_buffer     db 2048 dup(0)
 psp_segment     dw 0
 driver_offsets  dw MAX_DRIVERS dup(0)
 driver_segments dw MAX_DRIVERS dup(0)
+volume_preferences dw MAX_DRIVERS dup(0100h)
 driver_count    db 0
 first_drive     db 0ffh
 buffer_count    dw 10

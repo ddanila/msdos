@@ -141,6 +141,41 @@ start:
     int 2fh
     jc fail
 
+    xor bx, bx
+    mov cx, 4
+    xor dx, dx
+    mov ax, 150eh
+    int 2fh
+    jc fail
+    cmp dx, 0100h
+    jne fail
+    mov bx, 1
+    mov dx, 0201h
+    mov ax, 150eh
+    int 2fh
+    jc fail
+    xor bx, bx
+    xor dx, dx
+    mov ax, 150eh
+    int 2fh
+    jc fail
+    cmp dx, 0201h
+    jne fail
+    mov bx, 1
+    mov dx, 0202h
+    mov ax, 150eh
+    int 2fh
+    jnc fail
+    cmp ax, 1
+    jne fail
+    mov cx, 3
+    xor bx, bx
+    mov ax, 150eh
+    int 2fh
+    jnc fail
+    cmp ax, 000fh
+    jne fail
+
     mov dx, pass_message
     mov ah, 9
     int 21h
