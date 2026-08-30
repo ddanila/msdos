@@ -54,6 +54,8 @@ a20_control     db      1
 machine_code    db      1
 shadow_ram      db      0
 cpu_clock       db      0
+eisa_memory     db      0
+verbose_mode    db      0
 option_buffer   db      40 dup (0)
 hma_owned       db      0
 a20_initial     db      0
@@ -147,8 +149,37 @@ ifdef DEBUG
         call    debug_mark
 endif
 
+        cmp     [eisa_memory], 0
+        je      short init_query_88
+        mov     ax, 0e801h
+        int     015h
+        jc      short init_query_88
+        or      ax, ax
+        jnz     short init_eisa_values
+        mov     ax, cx
+        mov     bx, dx
+init_eisa_values:
+        ; AX is KiB between 1 and 16 MiB; BX counts 64-KiB blocks above
+        ; 16 MiB.  The XMS 2.00 pool is bounded to 65535 KiB.
+        mov     cx, bx
+        cmp     cx, 1024
+        jae     short init_eisa_saturate
+        push    ax
+        mov     ax, cx
+        mov     cl, 6
+        shl     ax, cl
+        mov     bx, ax
+        pop     ax
+        add     ax, bx
+        jc      short init_eisa_saturate
+        jmp     short init_memory_found
+init_eisa_saturate:
+        mov     ax, 0ffffh
+        jmp     short init_memory_found
+init_query_88:
         mov     ah, 088h
         int     015h
+init_memory_found:
         sub     ax, [int15_kb]
         jnc     short init_extended_ok
         xor     ax, ax
@@ -175,6 +206,11 @@ init_disable_a20:
         jc      short init_keep_a20
         mov     [a20_initial], 0
 init_keep_a20:
+        cmp     [verbose_mode], 0
+        je      short init_no_verbose
+        mov     si, offset verbose_message
+        call    print_bios_string
+init_no_verbose:
 
         push    ds
         push    cs
@@ -211,7 +247,7 @@ init_fail:
         ret
 initialize endp
 
-; Parse the documented DOS 5 HIMEM switches from the INIT request line.
+; Parse the documented DOS 6 HIMEM switches implemented by this driver.
 ; Machine-specific compatibility hints are retained even where the generic,
 ; verified A20 backends are safer than poking undocumented chipset ports.
 parse_options proc near
@@ -362,6 +398,14 @@ parse_one_option proc near
         mov     dx, offset opt_cpuclock
         call    match_prefix
         jnc     short option_cpuclock
+        mov     si, offset option_buffer
+        mov     dx, offset opt_eisa
+        call    string_equal
+        jnc     short option_eisa
+        mov     si, offset option_buffer
+        mov     dx, offset opt_verbose
+        call    string_equal
+        jnc     short option_verbose
         stc
         ret
 option_hmamin:
@@ -414,6 +458,14 @@ option_cpuclock:
         call    parse_on_off
         jc      short option_bad
         mov     [cpu_clock], al
+        clc
+        ret
+option_eisa:
+        mov     [eisa_memory], 1
+        clc
+        ret
+option_verbose:
+        mov     [verbose_mode], 1
         clc
         ret
 option_bad:
@@ -557,6 +609,8 @@ opt_machine     db '/MACHINE:',0
 opt_a20control  db '/A20CONTROL:',0
 opt_shadowram   db '/SHADOWRAM:',0
 opt_cpuclock    db '/CPUCLOCK:',0
+opt_eisa        db '/EISA',0
+opt_verbose     db '/VERBOSE',0
 value_on        db 'ON',0
 value_off       db 'OFF',0
 machine_names   dw offset machine_at, offset machine_ps2
@@ -578,6 +632,24 @@ machine_at1     db 'AT1',0
 machine_at2     db 'AT2',0
 machine_at3     db 'AT3',0
 machine_fasthp  db 'FASTHP',0
+verbose_message db 13,10,'HIMEM: DOS 6 extended-memory manager installed',13,10,0
+
+print_bios_string proc near
+        push    ax
+        push    bx
+print_bios_next:
+        lodsb
+        or      al, al
+        jz      short print_bios_done
+        mov     ah, 0eh
+        mov     bx, 0007h
+        int     010h
+        jmp     short print_bios_next
+print_bios_done:
+        pop     bx
+        pop     ax
+        ret
+print_bios_string endp
 
 ifdef DEBUG
 debug_mark proc near

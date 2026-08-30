@@ -83,7 +83,7 @@ Known gaps in commands already shipped:
 | `EMM386` | The DOS 6 enhanced automatic EMS/UMB behavior and remaining 6.22 parser/API/hardware differences need a reference differential audit. Existing DOS 5 modes and memory regions are a strong base. |
 | `FORMAT` | `/C` retests previously marked bad clusters, while normal formatting preserves their marks. Compressed/host-drive interaction depends on the DriveSpace epic. |
 | `HELP` | The current searchable text database lacks the retail full-screen hypertext UI, complete 6.22 topic corpus, mouse navigation, syntax/notes/examples links, and full-text search. The UI belongs to the QBASIC epic; lean text topics can grow with each stage. |
-| `HIMEM.SYS` | XMS 2.00 and DOS 5 options exist; exact 6.22 version/API identity, defaults, diagnostics, and machine-option parity remain unverified. |
+| `HIMEM.SYS` | XMS 2.00, the DOS 5 option set, DOS 6 `/EISA` memory discovery, and `/VERBOSE` diagnostics are covered. `/TESTMEM`, exact 6.22 version/API identity, defaults, and remaining machine-option parity still require reference work. |
 | `MEM` | Existing `/C`, `/D`, `/F`, `/M`, and `/PROGRAM` views need differential validation against DOS 6.22's enhanced reports and EMM386 integration. |
 | `SETVER` | Retail 6.2/6.22 defaults, persistent editing, driver loading, and 6.22 identity behavior are covered. |
 | `UNDELETE` | DOS protection modes exist, but the enhanced 6.22 UI/configuration and Windows companion are absent. The Windows companion is out of scope. |

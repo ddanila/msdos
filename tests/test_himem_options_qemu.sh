@@ -10,19 +10,25 @@ IMAGE="$OUT/floppy-himem-options.img"
 LOG="$OUT/himem-options.log"
 PROBE="$OUT/himem-options.com"
 REJECT_PROBE="$OUT/himem-reject.com"
+VERBOSE_IMAGE="$OUT/floppy-himem-verbose.img"
+VERBOSE_QMP="$OUT/himem-verbose-qmp.sock"
+VERBOSE_SCREEN="$OUT/himem-verbose-screen.log"
+QEXIT="$OUT/himem-options-qexit.com"
+EISA_PROBE="$OUT/himem-eisa.com"
 
-for tool in nasm mcopy qemu-system-i386 timeout; do
+for tool in nasm mcopy python3 qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null || { echo "ERROR: missing $tool"; exit 1; }
 done
 
 nasm -f bin "$ROOT/tests/himem_options_probe.asm" -o "$PROBE"
 nasm -f bin "$ROOT/tests/himem_reject_probe.asm" -o "$REJECT_PROBE"
+nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
 cp "$FLOPPY" "$IMAGE"
 mdel -i "$IMAGE" ::HELP.HLP >/dev/null 2>&1 || true
 mcopy -o -i "$IMAGE" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
 mcopy -o -i "$IMAGE" "$PROBE" ::HIMOPT.COM
 {
-    printf 'DEVICE=A:\\HIMEM.SYS /HMAMIN=1 /NUMHANDLES=3 /INT15=128 /MACHINE:PS2 /A20CONTROL:ON /SHADOWRAM:OFF /CPUCLOCK:OFF\r\n'
+    printf 'DEVICE=A:\\HIMEM.SYS /HMAMIN=1 /NUMHANDLES=3 /INT15=128 /MACHINE:PS2 /A20CONTROL:ON /SHADOWRAM:OFF /CPUCLOCK:OFF /EISA /VERBOSE\r\n'
 } | mcopy -o -i "$IMAGE" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'
@@ -41,9 +47,54 @@ grep -Fq 'HIMEM_OPTIONS_PASS' "$LOG" || {
     exit 1
 }
 
+cp "$FLOPPY" "$VERBOSE_IMAGE"
+mcopy -o -i "$VERBOSE_IMAGE" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
+mcopy -o -i "$VERBOSE_IMAGE" "$QEXIT" ::QEXIT.COM
+printf 'DEVICE=A:\\HIMEM.SYS /VERBOSE\r\n' | \
+    mcopy -o -i "$VERBOSE_IMAGE" - ::CONFIG.SYS
+printf '@ECHO OFF\r\nPAUSE\r\nCHOICE /N /T:Y,2 >NUL\r\nQEXIT.COM\r\n' | \
+    mcopy -o -i "$VERBOSE_IMAGE" - ::AUTOEXEC.BAT
+rm -f "$VERBOSE_QMP" "$VERBOSE_SCREEN"
+timeout 20 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 16 \
+    -drive if=floppy,index=0,format=raw,file="$VERBOSE_IMAGE",cache=writethrough \
+    -boot a -qmp unix:"$VERBOSE_QMP",server,nowait -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 >/dev/null 2>&1 &
+verbose_pid=$!
+python3 "$ROOT/tests/screen_expect.py" "$VERBOSE_QMP" "$VERBOSE_SCREEN" \
+    'HIMEM: DOS 6 extended-memory manager installed' 'ret'
+wait "$verbose_pid" || true
+grep -Fq 'HIMEM: DOS 6 extended-memory manager installed' "$VERBOSE_SCREEN"
+
+for eisa_mode in EISA LEGACY; do
+    eisa_image="$OUT/floppy-himem-eisa-$eisa_mode.img"
+    eisa_log="$OUT/himem-eisa-$eisa_mode.log"
+    cp "$FLOPPY" "$eisa_image"
+    if [[ "$eisa_mode" == EISA ]]; then
+        nasm -f bin -DEXPECT_EISA=1 "$ROOT/tests/himem_eisa_probe.asm" -o "$EISA_PROBE"
+        option=/EISA
+    else
+        nasm -f bin "$ROOT/tests/himem_eisa_probe.asm" -o "$EISA_PROBE"
+        option=
+    fi
+    mcopy -o -i "$eisa_image" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
+    mcopy -o -i "$eisa_image" "$EISA_PROBE" ::EISAPRB.COM
+    printf 'DEVICE=A:\\HIMEM.SYS %s\r\n' "$option" | \
+        mcopy -o -i "$eisa_image" - ::CONFIG.SYS
+    printf '@ECHO OFF\r\nCTTY AUX\r\nEISAPRB.COM\r\n' | \
+        mcopy -o -i "$eisa_image" - ::AUTOEXEC.BAT
+    timeout 20 qemu-system-i386 \
+        -display none -monitor none -machine pc -cpu 486 -m 128 \
+        -drive if=floppy,index=0,format=raw,file="$eisa_image",cache=writethrough \
+        -boot a -serial stdio -no-reboot \
+        -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$eisa_log" 2>&1 || true
+    grep -Fq HIMEM_EISA_PASS "$eisa_log"
+done
+
 for option in \
     '/HMAMIN=64' '/NUMHANDLES=0' '/NUMHANDLES=129' '/INT15=65536' \
-    '/MACHINE:UNKNOWN' '/A20CONTROL:MAYBE' '/SHADOWRAM:MAYBE' '/CPUCLOCK:MAYBE'
+    '/MACHINE:UNKNOWN' '/A20CONTROL:MAYBE' '/SHADOWRAM:MAYBE' '/CPUCLOCK:MAYBE' \
+    '/EISA:ON' '/VERBOSE:ON'
 do
     tag=$(printf '%s' "$option" | tr -c 'A-Za-z0-9' '_')
     reject_image="$OUT/floppy-himem-reject-$tag.img"
