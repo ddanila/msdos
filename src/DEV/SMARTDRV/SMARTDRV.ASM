@@ -903,7 +903,7 @@ BREAK	<IOCTL Write functions (set device control parms and do flushes)>
 ;	table. The first byte is the maximum legal function code, then the word
 ;	addresses of the handlers for each function.
 ;
-IOCTLTBL DB	0Ch
+IOCTLTBL DB	0Eh
 	DW	IOCTL_FLUSH		  ; Function 0h
 	DW	IOCTL_FLUSH_INVALID	  ; Function 1h
 	DW	IOCTL_DISABLE		  ; Function 2h
@@ -917,6 +917,8 @@ IOCTLTBL DB	0Ch
 	DW	IOCTL_ALL_CACHE 	  ; Function Ah
 	dw	ioctl_reduce_cache_size   ; Function Bh
 	dw	ioctl_increase_cache_size ; Function Ch
+	DW	IOCTL_DRIVE_POLICY	  ; Function Dh
+	DW	IOCTL_DRIVE_QUERY	  ; Function Eh
 
 SET_ZR:
 ASSUME	DS:INT13CODE,ES:NOTHING,SS:NOTHING
@@ -1207,6 +1209,42 @@ ASSUME	DS:INT13CODE,ES:NOTHING,SS:NOTHING
 
 SET_ZRJ2:
 	JMP	SET_ZR
+
+; Packet: 0Dh, BIOS hard-disk index (0 = 80h), policy.  Policy 0 bypasses
+; caching, 1 caches reads, and 2 caches reads plus delayed writes.
+IOCTL_DRIVE_POLICY:
+ASSUME	DS:INT13CODE,ES:NOTHING,SS:NOTHING
+	CMP	CX,3
+	JB	SET_ZRJ2
+	XOR	BX,BX
+	MOV	BL,ES:[DI.1]
+	CMP	BX,MAX_HARD_FILES
+	JAE	SET_ZRJ2
+	MOV	AL,ES:[DI.2]
+	CMP	AL,2
+	JA	SET_ZRJ2
+	CMP	AL,[BX.DRIVE_POLICY]
+	JE	DRIVE_POLICY_DONE
+	MOV	[INT_13_BUSY],1
+	CALL	FLUSH_WHOLE_CACHE
+	CALL	INVALIDATE_CACHE
+	MOV	[INT_13_BUSY],0
+	MOV	[BX.DRIVE_POLICY],AL
+DRIVE_POLICY_DONE:
+	JMP	DEVEXIT
+
+; Packet: 0Eh, BIOS hard-disk index; byte 2 receives the policy.
+IOCTL_DRIVE_QUERY:
+ASSUME	DS:INT13CODE,ES:NOTHING,SS:NOTHING
+	CMP	CX,3
+	JB	SET_ZRJ2
+	XOR	BX,BX
+	MOV	BL,ES:[DI.1]
+	CMP	BX,MAX_HARD_FILES
+	JAE	SET_ZRJ2
+	MOV	AL,[BX.DRIVE_POLICY]
+	MOV	ES:[DI.2],AL
+	JMP	DEVEXIT
 
 ;**	ioctl_reduce_cache_size  Dynamically reduce the size of the cache
 ;
@@ -1557,6 +1595,9 @@ SECTRKARRAY	DB  MAX_HARD_FILES DUP (0)
 ;
 HDARRAY 	DB  MAX_HARD_FILES DUP (0FFH)
 
+; 0 = bypass, 1 = read cache, 2 = read and delayed-write cache.
+DRIVE_POLICY	DB  MAX_HARD_FILES DUP (1)
+
 ifdef	OMTI
 OMTI_SET_CYL	EQU	0EEh
 OMTI_GET_CYL	EQU	0FEh
@@ -1712,6 +1753,17 @@ IS_HARD:
 ASSUME	DS:INT13CODE
 	CMP	[ENABLE_13],0		; Are we enabled?
 	JZ	POP_NO_PROC		; No, ignore
+	MOV	SI,[BP.USER_DX]
+	AND	SI,000FH
+	CMP	SI,MAX_HARD_FILES
+	JAE	POP_NO_PROC
+	CMP	BYTE PTR [SI.DRIVE_POLICY],0
+	JE	POP_NO_PROC
+	CMP	BX,3			; Write request on read-only drive?
+	JNE	DRIVE_POLICY_OK
+	CMP	BYTE PTR [SI.DRIVE_POLICY],2
+	JB	FLUSH_INVALID_PASS
+DRIVE_POLICY_OK:
 
 ifdef	OMTI
 ;
@@ -1891,6 +1943,7 @@ error:
 ;	jmp	operation_done
 ;
 pop_no_procw:
+	call	flush_whole_cache
 	call	invalidate_cache
 	jmp	pop_no_proc
 ;
@@ -1914,6 +1967,11 @@ cache_write:
 ;
 ;	writes always update disk, i.e., write through always operational
 ;
+	cmp	[write_buff],0
+	je	write_disk_now
+	mov	dx,[bp.user_dx]
+	jmp	short cw$1
+write_disk_now:
 	mov	ax,[bp.user_ax] 	; restore int13 registers
 	mov	cx,[bp.user_cx] 	;
 	mov	dx,[bp.user_dx] 	;
@@ -1964,7 +2022,32 @@ cw$3:	test	[REGION.FLAG],REG3_P	; is region3 present
 	call	process_write_partial		;
 	jnc	operation_donew 		; no error - finish
 ;
-errorw: call	invalidate_cache		; we are not sure of the
+errorw:
+	cmp	[write_buff],0
+	je	errorw_invalidate
+	; A delayed write must never be reported successful if it could not be
+	; represented in cache.  Preserve earlier dirty data, discard uncertain
+	; cache state, and retry the caller's complete request synchronously.
+	call	flush_whole_cache
+	call	invalidate_cache
+	mov	ax,[bp.user_ax]
+	mov	cx,[bp.user_cx]
+	mov	dx,[bp.user_dx]
+	mov	bx,[bp.user_bx]
+	mov	es,[bp.user_es]
+	pushf
+	cli
+	call	[old_13]
+	jnc	errorw_sync_ok
+	or	[bp.user_fl],f_Carry
+	mov	byte ptr [bp.user_ax.1],ah
+	jmp	operation_donew
+errorw_sync_ok:
+	and	[bp.user_fl],not f_Carry
+	mov	byte ptr [bp.user_ax.1],0
+	jmp	operation_donew
+errorw_invalidate:
+	call	invalidate_cache		; we are not sure of the
 operation_donew:
 	jmp	operation_done
 ;
@@ -2494,6 +2577,7 @@ not_in_memw:
 	pop	dx
 	jc	err_cw
 	call	cache_is_mru
+	call	mark_cache_dirty
 	clc
 	ret
 ;
@@ -2578,8 +2662,17 @@ wr$2:
 	and	[si.track_flags], not track_free
 	mov	word ptr [track_buffer_cyln],cx
 	mov	word ptr [track_buffer_hddr],dx
+	cmp	[write_buff],0
+	je	wr$2_cached
+	; In delayed-write mode the disk track we just fetched does not yet
+	; contain the caller's partial-sector update.  Overlay it in cache now.
+	mov	[track_buffer_cyln],-1
+	mov	[track_buffer_hddr],-1
+	jmp	not_in_memw
 ;
+wr$2_cached:
 	call	cache_is_mru
+	call	mark_cache_dirty
 ;
 	shl	ax,1
 	add	[bp.user_off],ax
@@ -2665,6 +2758,7 @@ pbw$21:
 	jmp	err_cw
 ;
 pbw$22: and	[si.track_flags],not track_free
+	call	mark_cache_dirty
 ;
 	inc	dh		;go to next track
 	call	adj_hd_trk
@@ -2686,6 +2780,17 @@ pbw$4:	pop	di
 	ret
 ;
 process_block_write	endp
+
+mark_cache_dirty proc near
+	cmp	[write_buff],0
+	je	mcd_done
+	test	[si.track_flags],track_dirty
+	jnz	mcd_done
+	or	[si.track_flags],track_dirty
+	inc	[dirty_cache]
+mcd_done:
+	ret
+mark_cache_dirty endp
 ;
 check_parameters	proc	near
 ;

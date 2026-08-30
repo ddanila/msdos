@@ -77,6 +77,13 @@ def source_switches(text, extractor="asm_db"):
             write = parser.split("case 'w':", 1)[1].split("break;", 1)[0]
             for suffix in re.findall(r"\*cptr\s*==\s*'([a-z])'", write):
                 values += [f"/W{suffix}:ON", f"/W{suffix}:OFF"]
+    elif extractor == "smartdrv_code":
+        values = [
+            f"/{value}" for value in re.findall(
+                r'same\(a,\s*"([A-Z])"\)', text, re.IGNORECASE
+            )
+        ]
+        values += ["/E:NNNN", "/B:NNNN"]
     elif extractor == "attrib_header":
         values = re.findall(
             r"^\s*char\s+\w+\[\]\s*=\s*[\"']([+-][ARHS])[\"']",
@@ -160,6 +167,11 @@ def main():
         if item.get("extractor") == "flush13_code"
     } != {"src/DEV/SMARTDRV/FLUSH13.C"}:
         raise AssertionError("FLUSH13 code-driven parser source is missing or stale")
+    if {
+        item["source"] for item in manifest["utilities"].values()
+        if item.get("extractor") == "smartdrv_code"
+    } != {"src/DEV/SMARTDRV/SMARTCTL.C"}:
+        raise AssertionError("SMARTDRV code-driven parser source is missing or stale")
     specialized_sources = {
         item.get("extractor"): item["source"] for item in manifest["utilities"].values()
         if item.get("extractor") in {"attrib_header", "c_define_switches", "fastopen_code"}

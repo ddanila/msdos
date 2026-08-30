@@ -183,6 +183,7 @@ ARTIFACTS := \
     DEV/PRINTER/PRINTER.SYS \
     DEV/DISPLAY/DISPLAY.SYS \
     DEV/SMARTDRV/SMARTDRV.SYS \
+    DEV/SMARTDRV/SMARTDRV.EXE \
     DEV/SMARTDRV/FLUSH13.EXE \
     DEV/XMA2EMS/XMA2EMS.SYS \
     DEV/XMAEM/XMAEM.SYS \
@@ -518,6 +519,9 @@ test-print-spooler-qemu: deploy
 test-smartdrv-flush-qemu: deploy
 	bash tests/test_smartdrv_flush_qemu.sh
 
+test-smartdrv-dos6-qemu: deploy
+	bash tests/test_smartdrv_dos6_qemu.sh
+
 test-xma-drivers-qemu: deploy
 	bash tests/test_xma_drivers_qemu.sh
 
@@ -663,6 +667,7 @@ COUNTRY_SYS  := $(SRC)/DEV/COUNTRY/COUNTRY.SYS
 PRINTER_SYS  := $(SRC)/DEV/PRINTER/PRINTER.SYS
 PRINTER_CPI  := $(SRC)/DEV/PRINTER/4201/4201.CPI
 SMARTDRV_SYS := $(SRC)/DEV/SMARTDRV/SMARTDRV.SYS
+SMARTDRV_EXE := $(SRC)/DEV/SMARTDRV/SMARTDRV.EXE
 FLUSH13_EXE  := $(SRC)/DEV/SMARTDRV/FLUSH13.EXE
 DRIVER_SYS   := $(SRC)/DEV/DRIVER/DRIVER.SYS
 XMA2EMS_SYS  := $(SRC)/DEV/XMA2EMS/XMA2EMS.SYS
@@ -687,7 +692,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OVL) $(COMMAND_COM) $(SY
            $(IFSFUNC_EXE) $(MODE_COM) \
            $(ANSI_SYS) $(RAMDRIVE_SYS) \
            $(VDISK_SYS) $(DISPLAY_SYS) $(COUNTRY_SYS) $(PRINTER_SYS) $(PRINTER_CPI) \
-           $(SMARTDRV_SYS) $(FLUSH13_EXE) $(DRIVER_SYS) $(XMA2EMS_SYS) $(XMAEM_SYS) \
+           $(SMARTDRV_SYS) $(SMARTDRV_EXE) $(FLUSH13_EXE) $(DRIVER_SYS) $(XMA2EMS_SYS) $(XMAEM_SYS) \
            $(SELECT_COM) $(SELECT_EXE) $(SELECT_DAT) $(SELECT_HLP) \
            $(EGA_CPI) $(HIMEM_SYS) $(EMM386_EXE)
 	mkdir -p $(OUT)
@@ -776,6 +781,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OVL) $(COMMAND_COM) $(SY
 	mcopy -i $@ $(PRINTER_SYS) ::PRINTER.SYS
 	mcopy -i $@ $(PRINTER_CPI) ::4201.CPI
 	mcopy -i $@ $(SMARTDRV_SYS) ::SMARTDRV.SYS
+	mcopy -i $@ $(SMARTDRV_EXE) ::SMARTDRV.EXE
 	mcopy -i $@ $(FLUSH13_EXE) ::FLUSH13.EXE
 	mcopy -i $@ $(DRIVER_SYS) ::DRIVER.SYS
 	mcopy -i $@ $(XMA2EMS_SYS) ::XMA2EMS.SYS

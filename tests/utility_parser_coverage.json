@@ -124,6 +124,20 @@
       "/WT:OFF": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Disables write-through mode and status reports the resulting policy"},
       "/WT:ON": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Enables write-through mode and status reports the resulting policy"}
     }},
+    "SMARTDRV.EXE": {"source": "src/DEV/SMARTDRV/SMARTCTL.C", "extractor": "smartdrv_code", "switches": {
+      "/B:NNNN": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Accepts a bounded decimal read-ahead buffer size"},
+      "/C": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Flushes delayed writes and the host verifies the exact persisted sector"},
+      "/E:NNNN": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Accepts only the documented 1024, 2048, 4096, or 8192-byte elements"},
+      "/F": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Enables delayed writes; live status observes a dirty track before flush"},
+      "/L": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Accepts the installation-time low-memory policy"},
+      "/N": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Disables delayed writes"},
+      "/Q": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Suppresses status output after mutation"},
+      "/R": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Flushes, invalidates, and restarts the resident cache"},
+      "/S": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Reports live occupancy, dirty tracks, and hit counters"},
+      "/U": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Accepts the installation-time no-CD-module policy"},
+      "/V": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Selects verbose live status"},
+      "/X": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Disables delayed writes globally"}
+    }},
     "GRAFTABL.COM": {"source": "src/CMD/GRAFTABL/GRTABPAR.ASM", "switches": {
       "/STA": {"level": "contract", "evidence": ["tests/run_tests.sh"], "note": "Short status synonym reaches the live code-page query"},
       "/STATUS": {"level": "contract", "evidence": ["tests/run_tests.sh", "tests/test_graftabl_qemu.sh"], "note": "Long status synonym reports the active resident code page"}

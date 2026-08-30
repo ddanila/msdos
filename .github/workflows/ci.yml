@@ -307,6 +307,9 @@ jobs:
       - name: SMARTDRV.SYS and FLUSH13.EXE cache control
         run: bash tests/test_smartdrv_flush_qemu.sh
 
+      - name: SMARTDRV.EXE DOS 6 policy and delayed writes
+        run: bash tests/test_smartdrv_dos6_qemu.sh
+
       - name: Focused CONFIG.SYS state contracts
         run: bash tests/test_config_state_qemu.sh
 

@@ -80,6 +80,7 @@ RMDIR      Removes an empty directory.
 SET        Displays or changes environment variables.
 SETVER     Displays or changes the DOS version table.
 SHARE      Installs file sharing and locking support.
+SMARTDRV   Configures and reports the disk cache.
 SHIFT      Shifts batch parameters.
 SORT       Sorts input.
 SUBST      Associates a path with a drive letter.
@@ -349,6 +350,13 @@ Syntax: SETVER [filename n.nn | filename /DELETE]
 @SHARE
 Installs file sharing and locking support.
 Syntax: SHARE [/F:space] [/L:locks]
+@SMARTDRV
+Configures and reports the resident disk cache.
+Syntax: SMARTDRV [/X] [[drive[+|-]]...] [/U] [/C|/R] [/F|/N] [/L]
+                [/V|/Q|/S] [InitCacheSize [WinCacheSize]]
+                [/E:ElementSize] [/B:BufferSize]
+A drive letter enables read caching, + enables reads and delayed writes, and
+- disables caching. /C flushes delayed writes; /X and /N disable them.
 @SHIFT
 Shifts replaceable batch parameters.
 Syntax: SHIFT
