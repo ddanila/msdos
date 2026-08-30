@@ -12,6 +12,7 @@ PRIOR_TARGET="$OUT/recovery-test-prior-target.img"
 FRAGMENT_TARGET="$OUT/recovery-test-fragment-target.img"
 TRUNCATE_TARGET="$OUT/recovery-test-truncate-target.img"
 DELETE_TARGET="$OUT/recovery-test-delete-target.img"
+INTERRUPT_TARGET="$OUT/recovery-test-interrupted-target.img"
 HDD="$OUT/recovery-test-hdd.img"
 LOG="$OUT/recovery-test.log"
 UNSAFE_LOG="$OUT/recovery-test-unsafe.log"
@@ -20,6 +21,7 @@ PRIOR_LOG="$OUT/recovery-test-prior.log"
 FRAGMENT_LOG="$OUT/recovery-test-fragment.log"
 TRUNCATE_LOG="$OUT/recovery-test-truncate.log"
 DELETE_LOG="$OUT/recovery-test-delete.log"
+INTERRUPT_LOG="$OUT/recovery-test-interrupted.log"
 PRINT_LOG="$OUT/recovery-test-printer.log"
 PART_LOG="$OUT/recovery-partition-test.log"
 QEXIT="$OUT/recovery-test-qexit.com"
@@ -123,6 +125,46 @@ timeout 30 qemu-system-i386 -display none \
     -boot a -m 4 -serial stdio \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     </dev/null >>"$PRIOR_LOG" 2>&1 || true
+cp "$PRIOR_TARGET" "$INTERRUPT_TARGET"
+python3 - "$INTERRUPT_TARGET" <<'PY'
+from pathlib import Path
+import struct
+import sys
+
+path = Path(sys.argv[1])
+disk = bytearray(path.read_bytes())
+commits = []
+for offset in range(512, len(disk), 512):
+    if disk[offset:offset + 8] != b"MSD5REC\x00":
+        continue
+    generation, sequence, kind = struct.unpack_from("<IHH", disk, offset + 8)
+    if kind == 3:
+        commits.append((generation, sequence, offset))
+if len(commits) < 2:
+    raise SystemExit("fixture does not contain two committed generations")
+latest = max(commits)[2]
+disk[latest + 18] ^= 0x01
+path.write_bytes(disk)
+PY
+dd if=/dev/zero of="$INTERRUPT_TARGET" bs=512 seek=1 count=32 conv=notrunc status=none
+{
+    printf '@ECHO OFF\r\nCTTY AUX\r\nECHO Y|UNFORMAT B:\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO INTERRUPTED_FALLBACK_FAILED\r\nQEXIT.COM\r\n'
+} | mcopy -o -i "$BOOT" - ::AUTOEXEC.BAT
+timeout 30 qemu-system-i386 -display none \
+    -drive if=floppy,index=0,format=raw,file="$BOOT",cache=writethrough \
+    -drive if=floppy,index=1,format=raw,file="$INTERRUPT_TARGET",cache=writethrough \
+    -boot a -m 4 -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    </dev/null >"$INTERRUPT_LOG" 2>&1 || true
+interrupted_payload="$(mcopy -i "$INTERRUPT_TARGET" ::PRIOR.TXT - 2>/dev/null | tr -d '\r\n')"
+if [[ "$interrupted_payload" == 'PRIOR GENERATION PAYLOAD' ]] &&
+   ! mdir -i "$INTERRUPT_TARGET" ::LATEST.TXT >/dev/null 2>&1 &&
+   ! grep -q 'INTERRUPTED_FALLBACK_FAILED' "$INTERRUPT_LOG"; then
+    ok "UNFORMAT rejects a torn latest commit and falls back to the prior generation"
+else
+    fail "UNFORMAT interrupted-generation fallback"
+fi
 dd if=/dev/zero of="$PRIOR_TARGET" bs=512 seek=1 count=32 conv=notrunc status=none
 printf 'P\r\nY\r\n' | mcopy -o -i "$BOOT" - ::CHOICE.TXT
 {

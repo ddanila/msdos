@@ -173,8 +173,8 @@ and must not be represented by no-op stubs if compatibility is claimed.
 - FORMAT, SYS, DRIVER.SYS, and the BIOS have end-to-end 2.88 MiB FAT12
   coverage, including DOS-side I/O and bootability.
 - Fixed-disk and removable formatting, partition-boundary behavior, and SYS
-  upgrades have focused coverage. Recovery metadata and interrupted-write
-  reconstruction belong to Stage 4.
+  upgrades have focused coverage. Recovery metadata, torn-generation fallback,
+  and mirror-independent reconstruction are covered by the Stage 4 gates.
 - COUNTRY.SYS and KEYBOARD.SYS contain exact retail BR, CZ, SL, HU, PL, and YU
   records, with structural and live selection gates. DISPLAY, PRINTER, and the
   complete CPI/device combination matrix remain only partially compared.
@@ -206,10 +206,10 @@ Remaining project-level gaps are:
 
 The compatibility work is split into four independently useful stages:
 
-1. **Core command and runtime compatibility.** Complete FDISK workflows and
-   2 GiB boundaries, remaining DIR behavior, fixed/removable FORMAT and SYS
-   cases, persistent SETVER loading, DOSKEY navigation, and EMM386 runtime
-   control.
+1. **Core command and runtime compatibility (complete).** FDISK workflows and
+   2 GiB boundaries, DOS 5 DIR behavior, fixed/removable FORMAT and SYS cases,
+   persistent SETVER loading, DOSKEY navigation, and EMM386 runtime control are
+   present and contract-tested.
 2. **Distribution and installation (complete).** EXPAND, the DOS 5
    compressed-file format, reproducible two-disk media, and tested guided
    fresh-install/upgrade flows are present.
@@ -217,7 +217,7 @@ The compatibility work is split into four independently useful stages:
    286 execution, EMM386 driver-load options, media geometries, retail English
    NLS combinations, and a CI-hosted 286/386/486 model matrix are present.
    Physical-hardware breadth remains an ongoing confidence activity.
-4. **Help and recovery.** HELP and its database are present. MIRROR, UNDELETE,
+4. **Help and recovery (complete).** HELP and its database are present. MIRROR, UNDELETE,
    UNFORMAT, safe-FORMAT metadata, forensic reconstruction, and interrupted-
    write validation, latest/prior mirror selection, and real-time bounded
    deletion tracking, fragmented-chain recovery, and truncate/delete choices
