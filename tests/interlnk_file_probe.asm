@@ -14,25 +14,37 @@ start:
     jne failed
     cmp dx, 2
     jne failed
+    mov byte [read_attempts],2
+first_file_attempt:
     mov dx, remote_name
     mov ax, 3d00h
     int 21h
-    jc failed
+    jc first_file_retry
     mov bx, ax
     mov dx, buffer
     mov cx, payload_end - payload
     mov ah, 3fh
     int 21h
-    jc failed_close
+    jc first_file_retry_close
     cmp ax, payload_end - payload
-    jne failed_close
+    jne first_file_retry_close
     mov si, payload
     mov di, buffer
     mov cx, payload_end - payload
     repe cmpsb
-    jne failed_close
+    jne first_file_retry_close
     mov ah, 3eh
     int 21h
+    jmp first_file_done
+
+first_file_retry_close:
+    mov ah, 3eh
+    int 21h
+first_file_retry:
+    dec byte [read_attempts]
+    jnz first_file_attempt
+    jmp failed
+first_file_done:
 
     ; Force a complete discovery/BPB renegotiation over the live transport.
     ; Subsequent access proves the resident client remains synchronized.
@@ -147,3 +159,4 @@ write_two_end:
 pass_message db 'INTERLNK_TRANSPORT_PASS',13,10,0
 fail_message db 'INTERLNK_TRANSPORT_FAIL',13,10,0
 buffer times 64 db 0
+read_attempts db 0

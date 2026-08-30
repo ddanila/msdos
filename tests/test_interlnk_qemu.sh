@@ -64,7 +64,7 @@ PROXY_PID=
 trap 'kill "$PROXY_PID" "$SERVER_PID" 2>/dev/null || true; wait "$PROXY_PID" "$SERVER_PID" 2>/dev/null || true' EXIT
 sleep 2
 python3 "$ROOT/tests/serial_fault_proxy.py" \
-    --listen "$PROXY_PORT" --upstream "$PORT" --inject a5 \
+    --listen "$PROXY_PORT" --upstream "$PORT" --inject a5 --corrupt-sector 3 \
     >"$OUT/interlnk-proxy.log" 2>&1 &
 PROXY_PID=$!
 sleep 1
@@ -83,10 +83,11 @@ grep -Fq 'INTERLNK_TRANSPORT_PASS' "$LOG" || {
     cat "$CLIENT_LOG" >&2
     exit 1
 }
+grep -Fq 'corrupted sector response 3' "$OUT/interlnk-proxy.log"
 ! mdir -b -i "$CLIENT_IMAGE" :: 2>/dev/null | grep -Fq 'RECONERR.TAG'
 mcopy -i "$SERVER_IMAGE" ::WRITTEN.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx '001122334455aaff'
 mcopy -i "$SERVER_IMAGE_TWO" ::WRITTN2.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx 'fedcba9876543210'
-echo '  PASS: Interlnk recovers from a truncated header and redirects two FAT volumes over auto-discovered COM2 at 57600 baud'
+echo '  PASS: Interlnk rejects a corrupt payload, reconnects after header noise, and redirects two FAT volumes over COM2'
 
 # Without /AUTO, a missing server leaves an offline resident driver and must
 # continue boot instead of waiting forever in the serial receive loop.

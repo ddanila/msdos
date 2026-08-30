@@ -427,12 +427,21 @@ receive_status ENDP
 
 send_sector PROC NEAR
         mov     cx,512
+        xor     dx,dx
 send_sector_loop:
         mov     al,es:[si]
         inc     si
+        xor     ah,ah
+        add     dx,ax
         call    send_byte
         jc      short send_sector_done
         loop    send_sector_loop
+        mov     al,dl
+        call    send_byte
+        jc      short send_sector_done
+        mov     al,dh
+        call    send_byte
+        jc      short send_sector_done
         clc
 send_sector_done:
         ret
@@ -440,12 +449,26 @@ send_sector ENDP
 
 receive_sector PROC NEAR
         mov     cx,512
+        xor     bx,bx
 receive_sector_loop:
         call    receive_byte
         jc      short receive_sector_done
         stosb
+        xor     ah,ah
+        add     bx,ax
         loop    receive_sector_loop
+        call    receive_byte
+        jc      short receive_sector_done
+        cmp     al,bl
+        jne     short receive_sector_bad
+        call    receive_byte
+        jc      short receive_sector_done
+        cmp     al,bh
+        jne     short receive_sector_bad
         clc
+        ret
+receive_sector_bad:
+        stc
 receive_sector_done:
         ret
 receive_sector ENDP
