@@ -12,6 +12,7 @@ extern char **environ;
 extern unsigned MsdXmsVersion;
 extern unsigned MsdXmsDriverVersion;
 extern unsigned MsdXmsHma;
+extern unsigned MsdXmsA20;
 extern unsigned MsdXmsLargestFree;
 extern unsigned MsdXmsTotalFree;
 extern int MsdReadXmsInfo(void);
@@ -225,6 +226,8 @@ static void report_memory(void)
                 MsdXmsDriverVersion >> 8, MsdXmsDriverVersion & 0xff);
         fprintf(report, "HMA available:         %s\n",
                 MsdXmsHma ? "Yes" : "No");
+        fprintf(report, "A20 line:              %s\n",
+                MsdXmsA20 == 1 ? "Enabled" : "Disabled");
         fprintf(report, "Largest free XMS:      %u KB\n", MsdXmsLargestFree);
         fprintf(report, "Total free XMS:        %u KB\n", MsdXmsTotalFree);
     } else {

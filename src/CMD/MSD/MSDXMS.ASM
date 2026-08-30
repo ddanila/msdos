@@ -4,11 +4,12 @@
         .model  small,c
 
         .data
-        public  MsdXmsVersion, MsdXmsDriverVersion, MsdXmsHma
+        public  MsdXmsVersion, MsdXmsDriverVersion, MsdXmsHma, MsdXmsA20
         public  MsdXmsLargestFree, MsdXmsTotalFree
 MsdXmsVersion       dw      0
 MsdXmsDriverVersion dw      0
 MsdXmsHma           dw      0
+MsdXmsA20           dw      0
 MsdXmsLargestFree   dw      0
 MsdXmsTotalFree     dw      0
 
@@ -31,6 +32,9 @@ MsdReadXmsInfo proc near
         mov     MsdXmsVersion, ax
         mov     MsdXmsDriverVersion, bx
         mov     MsdXmsHma, dx
+        mov     ah, 07h
+        call    dword ptr cs:[xms_entry]
+        mov     MsdXmsA20, ax
         mov     ah, 08h
         call    dword ptr cs:[xms_entry]
         mov     MsdXmsLargestFree, ax

@@ -95,7 +95,8 @@ timeout 35 qemu-system-i386 \
     >"$MANAGER_LOG" || true
 for marker in \
     'XMS manager:           Installed' 'XMS version:' 'XMS driver version:' \
-    'HMA available:' 'Largest free XMS:' 'Total free XMS:' \
+    'HMA available:' 'A20 line:' \
+    'Largest free XMS:' 'Total free XMS:' \
     'EMS manager:           Installed' 'EMS version:' 'EMS page frame:' \
     'Free EMS pages:' 'Total EMS pages:'; do
     grep -Fq "$marker" "$MANAGER_LOG" || {
