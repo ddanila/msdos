@@ -49,8 +49,11 @@ server_loop:
         jc      server_loop
         cmp     al,0a5h
         jne     server_loop
+server_sync_second:
         call    receive_byte
         jc      server_loop
+        cmp     al,0a5h
+        je      server_sync_second     ; retain a repeated sync-start byte
         cmp     al,05ah
         jne     server_loop
         call    receive_byte
@@ -60,6 +63,7 @@ server_loop:
         jc      server_loop
         mov     cs:request_unit,al
         call    receive_sector_number
+        jc      server_loop
         mov     al,cs:request_command
         cmp     al,0
         je      discovery_request
@@ -117,13 +121,19 @@ request_failed:
 ; the legacy absolute-I/O interface here, so reject a nonzero high word.
 receive_sector_number PROC NEAR
         call    receive_byte
+        jc      short receive_sector_failed
         mov     byte ptr cs:sector_number,al
         call    receive_byte
+        jc      short receive_sector_failed
         mov     byte ptr cs:sector_number+1,al
         call    receive_byte
+        jc      short receive_sector_failed
         mov     byte ptr cs:sector_number+2,al
         call    receive_byte
+        jc      short receive_sector_failed
         mov     byte ptr cs:sector_number+3,al
+        clc
+receive_sector_failed:
         ret
 receive_sector_number ENDP
 

@@ -16,8 +16,9 @@ DISCONNECTED_LOG="$OUT/interlnk-disconnected.log"
 PROBE="$OUT/ILPROBE.COM"
 QEXIT="$OUT/interlnk-qexit.com"
 PORT=18666
+PROXY_PORT=18667
 
-for tool in nasm mcopy qemu-system-i386 timeout; do
+for tool in nasm mcopy python3 qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || { echo "missing required tool: $tool" >&2; exit 1; }
 done
 [[ -f "$BASE" ]] || { echo 'run make deploy first' >&2; exit 1; }
@@ -47,13 +48,19 @@ timeout 60 qemu-system-i386 \
     -boot a -serial null -serial tcp:127.0.0.1:$PORT,server=on,wait=off -no-reboot \
     >"$SERVER_LOG" 2>&1 &
 SERVER_PID=$!
-trap 'kill "$SERVER_PID" 2>/dev/null || true; wait "$SERVER_PID" 2>/dev/null || true' EXIT
+PROXY_PID=
+trap 'kill "$PROXY_PID" "$SERVER_PID" 2>/dev/null || true; wait "$PROXY_PID" "$SERVER_PID" 2>/dev/null || true' EXIT
 sleep 2
+python3 "$ROOT/tests/serial_fault_proxy.py" \
+    --listen "$PROXY_PORT" --upstream "$PORT" --inject a5 \
+    >"$OUT/interlnk-proxy.log" 2>&1 &
+PROXY_PID=$!
+sleep 1
 
 timeout 45 qemu-system-i386 \
     -display none -monitor none -machine pc -cpu 486 -m 8 \
     -drive if=floppy,index=0,format=raw,file="$CLIENT_IMAGE",cache=writethrough \
-    -boot a -serial null -serial tcp:127.0.0.1:$PORT -debugcon file:"$LOG" -global isa-debugcon.iobase=0xe9 \
+    -boot a -serial null -serial tcp:127.0.0.1:$PROXY_PORT -debugcon file:"$LOG" -global isa-debugcon.iobase=0xe9 \
     -no-reboot -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     >"$CLIENT_LOG" 2>&1 || true
 
@@ -67,7 +74,7 @@ grep -Fq 'INTERLNK_TRANSPORT_PASS' "$LOG" || {
 ! mdir -b -i "$CLIENT_IMAGE" :: 2>/dev/null | grep -Fq 'RECONERR.TAG'
 mcopy -i "$SERVER_IMAGE" ::WRITTEN.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx '001122334455aaff'
 mcopy -i "$SERVER_IMAGE_TWO" ::WRITTN2.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx 'fedcba9876543210'
-echo '  PASS: Interlnk auto-discovers COM2, reconnects, and redirects two FAT volumes with byte-exact I/O'
+echo '  PASS: Interlnk recovers from a truncated header, auto-discovers COM2, and redirects two FAT volumes'
 
 # A missing server must fail installation and continue boot instead of waiting
 # forever in the serial receive loop.
