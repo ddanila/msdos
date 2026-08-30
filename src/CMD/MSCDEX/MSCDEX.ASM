@@ -156,6 +156,18 @@ int2f_handler PROC FAR
         je      api_install_check
         cmp     al,01h
         je      api_device_list
+        cmp     al,02h
+        je      api_metadata_name
+        cmp     al,03h
+        je      api_metadata_name
+        cmp     al,04h
+        je      api_metadata_name
+        cmp     al,05h
+        je      api_read_vtoc
+        cmp     al,06h
+        je      api_debug_noop
+        cmp     al,07h
+        je      api_debug_noop
         cmp     al,0bh
         je      api_drive_check
         cmp     al,0ch
@@ -234,6 +246,115 @@ api_drive_next:
         pop     cx
         pop     ax
         iret
+
+api_debug_noop:
+        xor     ax,ax
+        jmp     api_return_clear
+
+; AX=1505h, ES:BX=2048-byte buffer, CX=drive, DX=descriptor index.
+api_read_vtoc:
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        push    di
+        push    ds
+        push    es
+        call    read_vtoc_sector
+        jc      short api_vtoc_failed
+        mov     bx,word ptr cs:read_request+14
+        mov     ax,word ptr cs:read_request+16
+        mov     es,ax
+        mov     al,es:[bx]
+        xor     ah,ah
+        cmp     al,1
+        je      short api_vtoc_save
+        cmp     al,0ffh
+        je      short api_vtoc_save
+        xor     ax,ax
+api_vtoc_save:
+        mov     cs:api_result,ax
+        mov     cs:api_failed,0
+        jmp     short api_vtoc_restore
+api_vtoc_failed:
+        mov     cs:api_result,ax
+        mov     cs:api_failed,1
+api_vtoc_restore:
+        pop     es
+        pop     ds
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        mov     ax,cs:api_result
+        cmp     cs:api_failed,0
+        jne     api_return_carry
+        jmp     api_return_clear
+
+; AX=1502h..1504h.  Read the primary ISO descriptor and return its fixed-width
+; copyright, abstract, or bibliographic filename as a trimmed ASCIIZ string.
+api_metadata_name:
+        mov     cs:metadata_function,al
+        mov     cs:metadata_target_off,bx
+        mov     cs:metadata_target_seg,es
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        push    di
+        push    ds
+        push    es
+        push    cs
+        pop     es
+        mov     bx,OFFSET vtoc_buffer
+        xor     dx,dx
+        call    read_vtoc_sector
+        jc      short api_metadata_failed
+        mov     si,702
+        cmp     cs:metadata_function,2
+        je      short api_metadata_offset_ready
+        mov     si,739
+        cmp     cs:metadata_function,3
+        je      short api_metadata_offset_ready
+        mov     si,776
+api_metadata_offset_ready:
+        add     si,OFFSET vtoc_buffer
+        mov     ax,cs:metadata_target_seg
+        mov     es,ax
+        mov     di,cs:metadata_target_off
+        mov     cx,37
+api_metadata_copy:
+        mov     al,cs:[si]
+        inc     si
+        cmp     al,' '
+        je      short api_metadata_terminate
+        or      al,al
+        jz      short api_metadata_terminate
+        stosb
+        loop    api_metadata_copy
+api_metadata_terminate:
+        xor     al,al
+        stosb
+        xor     ax,ax
+        mov     cs:api_result,ax
+        mov     cs:api_failed,0
+        jmp     short api_metadata_restore
+api_metadata_failed:
+        mov     cs:api_result,ax
+        mov     cs:api_failed,1
+api_metadata_restore:
+        pop     es
+        pop     ds
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        mov     ax,cs:api_result
+        cmp     cs:api_failed,0
+        jne     api_return_carry
+        jmp     api_return_clear
 
 ; AX=1508h, ES:BX=destination, CX=drive, DX=count, SI:DI=starting sector.
 ; Convert the call to the CD-ROM driver's command 80h READ LONG packet.
@@ -366,6 +487,28 @@ forward_failed:
         ret
 forward_driver_request ENDP
 
+; Read volume descriptor 16+DX to ES:BX through the selected CX drive.
+read_vtoc_sector PROC NEAR
+        mov     word ptr cs:read_request+14,bx
+        mov     word ptr cs:read_request+16,es
+        mov     word ptr cs:read_request+18,1
+        mov     ax,dx
+        add     ax,16
+        mov     word ptr cs:read_request+20,ax
+        mov     word ptr cs:read_request+22,0
+        push    cs
+        pop     es
+        mov     bx,OFFSET read_request
+        call    forward_driver_request
+        jnc     short read_vtoc_done
+        cmp     ax,000fh
+        je      short read_vtoc_done
+        mov     ax,0015h
+        stc
+read_vtoc_done:
+        ret
+read_vtoc_sector ENDP
+
 old_2f_off      dw 0
 old_2f_seg      dw 0
 strategy_entry  dd 0
@@ -374,6 +517,9 @@ request_offset  dw 0
 request_segment dw 0
 api_result      dw 0
 api_failed      db 0
+metadata_function db 0
+metadata_target_off dw 0
+metadata_target_seg dw 0
 read_request    db 27,0,80h
                 dw 0
                 db 8 dup(0)
@@ -382,6 +528,7 @@ read_request    db 27,0,80h
                 dw 0                   ; sector count
                 dd 0                   ; starting sector
                 db 0,0,0               ; cooked, no interleave
+vtoc_buffer     db 2048 dup(0)
 psp_segment     dw 0
 driver_offsets  dw MAX_DRIVERS dup(0)
 driver_segments dw MAX_DRIVERS dup(0)
