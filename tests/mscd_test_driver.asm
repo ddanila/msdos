@@ -16,6 +16,7 @@ device_header:
 request_offset  dw 0
 request_segment dw 0
 fail_reads      db 0
+audio_state     db 0
 
 strategy:
     mov [cs:request_offset], bx
@@ -39,6 +40,12 @@ interrupt:
     jmp .complete
 .forwarded:
     mov byte [es:di + 0dh], 0a5h
+    cmp byte [es:di + 2], 84h
+    je .audio_play
+    cmp byte [es:di + 2], 85h
+    je .audio_stop
+    cmp byte [es:di + 2], 88h
+    je .audio_resume
     cmp byte [es:di + 2], 0feh
     jne .check_read
     mov byte [cs:fail_reads], 1
@@ -68,6 +75,25 @@ interrupt:
     jne .request_error
     mov word [bx], 'CD'
     mov word [bx + 2], '22'
+    jmp .complete
+.audio_play:
+    cmp byte [es:di + 1], 1
+    jne .request_error
+    mov byte [cs:audio_state], 1
+    jmp .complete
+.audio_stop:
+    cmp byte [es:di + 1], 1
+    jne .request_error
+    cmp byte [cs:audio_state], 1
+    jne .request_error
+    mov byte [cs:audio_state], 2
+    jmp .complete
+.audio_resume:
+    cmp byte [es:di + 1], 1
+    jne .request_error
+    cmp byte [cs:audio_state], 2
+    jne .request_error
+    mov byte [cs:audio_state], 1
     jmp .complete
 .vtoc_read:
     cmp word [es:di + 22], 0

@@ -85,7 +85,38 @@ start:
     jc fail
     cmp byte [request_header + 1], 1
     jne fail
+    mov byte [request_header + 2], 84h
     mov word [request_header + 3], 0
+    mov bx, request_header
+    mov cx, 5
+    mov ax, 1510h
+    int 2fh
+    jc fail
+    cmp byte [request_header + 1], 1
+    jne fail
+    mov byte [request_header + 2], 85h
+    mov word [request_header + 3], 0
+    mov bx, request_header
+    mov ax, 1510h
+    int 2fh
+    jc fail
+    mov byte [request_header + 2], 88h
+    mov word [request_header + 3], 0
+    mov bx, request_header
+    mov ax, 1510h
+    int 2fh
+    jc fail
+    ; The same play request must be rejected on subunit zero, proving that
+    ; media commands route to the selected drive rather than merely succeed.
+    mov byte [request_header + 2], 84h
+    mov word [request_header + 3], 0
+    mov bx, request_header
+    mov cx, 4
+    mov ax, 1510h
+    int 2fh
+    jnc fail
+    mov word [request_header + 3], 0
+    mov byte [request_header + 2], 3
     mov bx, request_header
     mov cx, 3
     mov ax, 1510h
