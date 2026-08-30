@@ -20,7 +20,7 @@ if [[ ! -f "$FLOPPY" ]]; then
     exit 1
 fi
 
-echo "=== EXEPACK integrity test (QEMU) ==="
+echo "=== command help and EXEPACK integrity test (QEMU) ==="
 
 
 echo "Building test floppy..."
@@ -29,6 +29,16 @@ cp "$FLOPPY" "$TEST_IMG"
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
+    printf 'HELP\r\n'
+    printf 'ECHO ---AFTER_HELP_INDEX---\r\n'
+    printf 'HELP format\r\n'
+    printf 'ECHO ---AFTER_HELP_TOPIC---\r\n'
+    printf 'HELP DOESNOTEXIST\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO ---HELP_NOT_FOUND_STATUS---\r\n'
+    printf 'HELP FORMAT EXTRA\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO ---HELP_BAD_ARGS_STATUS---\r\n'
+    printf 'HELP /?\r\n'
+    printf 'ECHO ---AFTER_HELP_USAGE---\r\n'
     printf 'MEM /?\r\n'
     printf 'ATTRIB /?\r\n'
     printf 'XCOPY /?\r\n'
@@ -81,6 +91,36 @@ if grep -qi "Packed file is corrupt" "$SERIAL_LOG"; then
     fail "EXEPACK corruption detected in one or more tools"
 else
     ok "EXEPACK: no corruption in any tool"
+fi
+
+if grep -q "MS-DOS command help" "$SERIAL_LOG" && grep -q -- "---AFTER_HELP_INDEX---" "$SERIAL_LOG"; then
+    ok "HELP lists the command index"
+else
+    fail "HELP did not render its command index"
+fi
+
+if grep -q "Formats a disk for use with MS-DOS" "$SERIAL_LOG" && grep -q "Syntax: FORMAT drive:" "$SERIAL_LOG" && grep -q -- "---AFTER_HELP_TOPIC---" "$SERIAL_LOG"; then
+    ok "HELP resolves a lowercase topic and prints its syntax"
+else
+    fail "HELP did not render the FORMAT topic"
+fi
+
+if grep -q "No help is available for that command" "$SERIAL_LOG" && grep -q -- "---HELP_NOT_FOUND_STATUS---" "$SERIAL_LOG"; then
+    ok "HELP rejects an unknown topic with errorlevel 1"
+else
+    fail "HELP unknown-topic contract failed"
+fi
+
+if grep -q -- "---HELP_BAD_ARGS_STATUS---" "$SERIAL_LOG"; then
+    ok "HELP rejects excess operands with errorlevel 1"
+else
+    fail "HELP excess-operand contract failed"
+fi
+
+if grep -q "HELP \[command\]" "$SERIAL_LOG" && grep -q -- "---AFTER_HELP_USAGE---" "$SERIAL_LOG"; then
+    ok "HELP /? prints usage and returns"
+else
+    fail "HELP /? contract failed"
 fi
 
 for tool in FIND EXE2BIN FDISK IFSFUNC; do

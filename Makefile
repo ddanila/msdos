@@ -220,6 +220,8 @@ ARTIFACTS := \
     CMD/SETVER/SETVER.COM \
     CMD/SETVER/SETVER.EXE \
     CMD/DOSKEY/DOSKEY.COM \
+    CMD/HELP/HELP.COM \
+    CMD/HELP/HELP.HLP \
     MEMM/MEMM/EMM386.EXE
 
 test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-szdd-tool test-distribution test-expand test-setup-qemu test-himem-options-qemu test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
@@ -523,6 +525,8 @@ DISKCOPY_COM := $(SRC)/CMD/DISKCOPY/DISKCOPY.COM
 SETVER_COM := $(SRC)/CMD/SETVER/SETVER.COM
 SETVER_EXE := $(SRC)/CMD/SETVER/SETVER.EXE
 DOSKEY_COM := $(SRC)/CMD/DOSKEY/DOSKEY.COM
+HELP_COM   := $(SRC)/CMD/HELP/HELP.COM
+HELP_HLP   := $(SRC)/CMD/HELP/HELP.HLP
 APPEND_EXE   := $(SRC)/CMD/APPEND/APPEND.EXE
 RECOVER_COM  := $(SRC)/CMD/RECOVER/RECOVER.COM
 FASTOPEN_EXE := $(SRC)/CMD/FASTOPEN/FASTOPEN.EXE
@@ -566,7 +570,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
            $(MORE_COM) $(SORT_EXE) $(LABEL_COM) $(FIND_EXE) $(TREE_COM) $(COMP_COM) \
            $(ATTRIB_EXE) $(EDLIN_COM) $(FC_EXE) \
            $(NLSFUNC_EXE) $(ASSIGN_COM) $(XCOPY_EXE) $(DISKCOMP_COM) $(DISKCOPY_COM) $(SETVER_COM) $(SETVER_EXE) $(DOSKEY_COM) \
-           $(APPEND_EXE) $(RECOVER_COM) $(FASTOPEN_EXE) $(PRINT_COM) \
+           $(APPEND_EXE) $(RECOVER_COM) $(FASTOPEN_EXE) $(PRINT_COM) $(HELP_COM) $(HELP_HLP) \
            $(FILESYS_EXE) $(REPLACE_EXE) $(JOIN_EXE) $(SUBST_EXE) \
            $(BACKUP_COM) $(RESTORE_COM) $(GRAFTABL_COM) $(KEYB_COM) $(KEYBOARD_SYS) $(SHARE_EXE) \
            $(EXE2BIN_SRC) $(GRAPHICS_COM) $(GRAPHICS_PRO) \
@@ -615,6 +619,8 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(COMMAND_COM) $(SYS_COM) $(FORMAT
 	mcopy -i $@ $(SETVER_COM) ::SETVER.COM
 	mcopy -i $@ $(SETVER_EXE) ::SETVER.EXE
 	mcopy -i $@ $(DOSKEY_COM) ::DOSKEY.COM
+	mcopy -i $@ $(HELP_COM) ::HELP.COM
+	mcopy -i $@ $(HELP_HLP) ::HELP.HLP
 	mcopy -i $@ $(APPEND_EXE) ::APPEND.EXE
 	mcopy -i $@ $(RECOVER_COM) ::RECOVER.COM
 	mcopy -i $@ $(FASTOPEN_EXE) ::FASTOPEN.EXE

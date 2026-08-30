@@ -1,0 +1,309 @@
+@INDEX
+MS-DOS command help
+
+APPEND     Makes selected directories available to programs.
+ASSIGN     Redirects one drive to another.
+ATTRIB     Displays or changes file attributes.
+BACKUP     Backs up files.
+BREAK      Controls extended CTRL+C checking.
+CALL       Calls another batch program.
+CD         Displays or changes the current directory.
+CHCP       Displays or changes the active code page.
+CHDIR      Displays or changes the current directory.
+CHKDSK     Checks a disk and displays a report.
+CLS        Clears the screen.
+COMMAND    Starts a command interpreter.
+COMP       Compares two files or sets of files.
+COPY       Copies files.
+CTTY       Changes the controlling terminal.
+DATE       Displays or sets the date.
+DEBUG      Tests and edits programs.
+DEL        Deletes files.
+DIR        Displays files and directories.
+DISKCOMP   Compares two floppy disks.
+DISKCOPY   Copies one floppy disk to another.
+DOSKEY     Recalls commands and defines macros.
+ECHO       Displays messages or controls command echoing.
+EDLIN      Starts the line editor.
+EMM386     Controls the expanded-memory manager.
+ERASE      Deletes files.
+EXE2BIN    Converts an executable file to binary format.
+EXIT       Exits the command interpreter.
+EXPAND     Expands compressed distribution files.
+FASTOPEN   Speeds access to frequently opened files.
+FC         Displays differences between files.
+FDISK      Manages disk partitions.
+FIND       Searches for a text string.
+FOR        Repeats a command for items in a set.
+FORMAT     Formats a disk.
+GOTO       Transfers batch execution to a label.
+GRAFTABL   Loads extended characters for graphics mode.
+GRAPHICS   Loads graphics-screen printing support.
+HELP       Displays command help.
+IF         Performs conditional batch processing.
+JOIN       Joins a drive to a directory.
+KEYB       Configures a national keyboard.
+LABEL      Creates or changes a volume label.
+LH         Loads a program into upper memory.
+LOADHIGH   Loads a program into upper memory.
+MD         Creates a directory.
+MEM        Displays allocated and free memory.
+MKDIR      Creates a directory.
+MODE       Configures system devices.
+MORE       Displays output one screen at a time.
+NLSFUNC    Loads country-specific information.
+PATH       Displays or sets the program search path.
+PAUSE      Suspends batch processing.
+PRINT      Prints text files in the background.
+PROMPT     Changes the command prompt.
+RD         Removes an empty directory.
+RECOVER    Recovers readable data from a damaged disk or file.
+REN        Renames files.
+RENAME     Renames files.
+REPLACE    Replaces destination files.
+RESTORE    Restores files created by BACKUP.
+RMDIR      Removes an empty directory.
+SET        Displays or changes environment variables.
+SETVER     Displays or changes the DOS version table.
+SHARE      Installs file sharing and locking support.
+SHIFT      Shifts batch parameters.
+SORT       Sorts input.
+SUBST      Associates a path with a drive letter.
+SYS        Transfers system files to a disk.
+TIME       Displays or sets the time.
+TREE       Displays a directory tree.
+TYPE       Displays a text file.
+VER        Displays the MS-DOS version.
+VERIFY     Controls disk-write verification.
+VOL        Displays a volume label and serial number.
+XCOPY      Copies files and directory trees.
+
+Type HELP command for syntax, or command /? for detailed help.
+@APPEND
+Makes files in selected directories available as if they were current.
+Syntax: APPEND [drive:]path[;...] [/X[:ON|OFF]] [/PATH:ON|OFF] [/E]
+@ASSIGN
+Redirects drive references to another drive.
+Syntax: ASSIGN [drive1=drive2 ...] [/STATUS]
+@ATTRIB
+Displays or changes file attributes.
+Syntax: ATTRIB [+R|-R] [+A|-A] [+S|-S] [+H|-H] [filespec] [/S]
+@BACKUP
+Backs up files from one disk to another.
+Syntax: BACKUP source target [options]
+@BREAK
+Controls extended CTRL+C checking.
+Syntax: BREAK [ON|OFF]
+@CALL
+Calls one batch program from another.
+Syntax: CALL batchfile [arguments]
+@CD
+Displays or changes the current directory.
+Syntax: CD [drive:][path]
+@CHDIR
+Displays or changes the current directory.
+Syntax: CHDIR [drive:][path]
+@CHCP
+Displays or changes the active code page.
+Syntax: CHCP [nnn]
+@CHKDSK
+Checks a disk and displays a status report.
+Syntax: CHKDSK [drive:][[path]filename] [/F] [/V]
+@CLS
+Clears the screen.
+Syntax: CLS
+@COMMAND
+Starts a new command interpreter.
+Syntax: COMMAND [[drive:]path] [device] [/E:nnnn] [/P] [/C command] [/MSG]
+@COMP
+Compares the contents of two files or sets of files.
+Syntax: COMP data1 [data2] [/D] [/A] [/L] [/N=number] [/C]
+@COPY
+Copies one or more files.
+Syntax: COPY [/A|/B] source [/A|/B] [+ source ...] [destination] [/A|/B] [/V]
+@CTTY
+Changes the terminal device used to control the system.
+Syntax: CTTY device
+@DATE
+Displays or sets the date.
+Syntax: DATE [date]
+@DEBUG
+Runs the program testing and editing tool.
+Syntax: DEBUG [[drive:][path]filename [arguments]]
+@DEL
+Deletes files.
+Syntax: DEL [drive:][path]filename [/P]
+@DIR
+Displays files and subdirectories.
+Syntax: DIR [drive:][path][filename] [/P] [/W] [/A[:attributes]] [/O[:sort]] [/S] [/B] [/L]
+@DISKCOMP
+Compares two floppy disks.
+Syntax: DISKCOMP [drive1: [drive2:]] [/1] [/8]
+@DISKCOPY
+Copies one floppy disk to another.
+Syntax: DISKCOPY [drive1: [drive2:]] [/1] [/V]
+@DOSKEY
+Edits command lines, recalls commands, and creates macros.
+Syntax: DOSKEY [/REINSTALL] [/BUFSIZE=size] [/MACROS] [/HISTORY] [macro=[text]]
+@ECHO
+Displays messages or controls batch-command echoing.
+Syntax: ECHO [ON|OFF] or ECHO message
+@EDLIN
+Starts the line-oriented text editor.
+Syntax: EDLIN [drive:][path]filename [/B]
+@EMM386
+Controls the installed EMM386 expanded-memory manager.
+Syntax: EMM386 [ON|OFF|AUTO] [W=ON|W=OFF]
+@ERASE
+Deletes files.
+Syntax: ERASE [drive:][path]filename [/P]
+@EXE2BIN
+Converts an executable file to binary format.
+Syntax: EXE2BIN [drive:][path]input-file [[drive:][path]output-file]
+@EXIT
+Exits the current command interpreter.
+Syntax: EXIT
+@EXPAND
+Expands a compressed distribution file.
+Syntax: EXPAND source [destination]
+@FASTOPEN
+Improves access time for frequently opened files.
+Syntax: FASTOPEN drive:[[=]entries] [...] [/X]
+@FC
+Compares files and displays their differences.
+Syntax: FC [/A] [/C] [/L] [/LBn] [/N] [/T] [/W] file1 file2
+@FDISK
+Creates, displays, selects, or deletes disk partitions.
+Syntax: FDISK
+@FIND
+Searches for a text string.
+Syntax: FIND [/V] [/C] [/N] [/I] "string" [[drive:][path]filename ...]
+@FOR
+Runs a command for each item in a set.
+Syntax: FOR %variable IN (set) DO command
+@FORMAT
+Formats a disk for use with MS-DOS.
+Syntax: FORMAT drive: [/V[:label]] [/Q] [/U] [/S] [/F:size] [/1] [/4] [/8] [/B]
+@GOTO
+Transfers batch execution to a label.
+Syntax: GOTO label
+@GRAFTABL
+Loads a table of extended characters for graphics mode.
+Syntax: GRAFTABL [codepage] [/STATUS]
+@GRAPHICS
+Loads support for printing graphics screens.
+Syntax: GRAPHICS [printer-type] [profile] [/B] [/R] [/LCD] [/PRINTBOX:STD|LCD]
+@HELP
+Displays help for MS-DOS commands.
+Syntax: HELP [command]
+@IF
+Performs conditional processing in batch programs.
+Syntax: IF [NOT] condition command
+@JOIN
+Joins a disk drive to a directory on another drive.
+Syntax: JOIN drive: [drive:]path or JOIN drive: /D
+@KEYB
+Configures a keyboard for a language.
+Syntax: KEYB [xx[,[yyy][,[drive:][path]filename]]] [/E] [/ID:nnn]
+@LABEL
+Creates, changes, or deletes a disk volume label.
+Syntax: LABEL [drive:][label]
+@LH
+Loads a program into upper memory.
+Syntax: LH [drive:][path]filename [arguments]
+@LOADHIGH
+Loads a program into upper memory.
+Syntax: LOADHIGH [drive:][path]filename [arguments]
+@MD
+Creates a directory.
+Syntax: MD [drive:]path
+@MEM
+Displays allocated and free memory.
+Syntax: MEM [/CLASSIFY|/DEBUG|/FREE|/MODULE name|/PAGE]
+@MKDIR
+Creates a directory.
+Syntax: MKDIR [drive:]path
+@MODE
+Configures system devices.
+Syntax: MODE device parameters
+@MORE
+Displays output one screen at a time.
+Syntax: MORE [drive:][path]filename or command | MORE
+@NLSFUNC
+Loads country-specific information.
+Syntax: NLSFUNC [[drive:][path]country-file]
+@PATH
+Displays or sets the executable search path.
+Syntax: PATH [[drive:]path[;...]]
+@PAUSE
+Suspends batch processing until a key is pressed.
+Syntax: PAUSE
+@PRINT
+Prints a text file in the background.
+Syntax: PRINT [/D:device] [/B:size] [/U:ticks] [/M:ticks] [/S:ticks] [/Q:size] files
+@PROMPT
+Changes the command prompt.
+Syntax: PROMPT [text]
+@RD
+Removes an empty directory.
+Syntax: RD [drive:]path
+@RECOVER
+Recovers readable information from a damaged disk or file.
+Syntax: RECOVER drive: or RECOVER [drive:][path]filename
+@REN
+Renames files.
+Syntax: REN [drive:][path]filename1 filename2
+@RENAME
+Renames files.
+Syntax: RENAME [drive:][path]filename1 filename2
+@REPLACE
+Replaces files in a destination directory.
+Syntax: REPLACE [drive:][path]filename [drive:][path] [/A] [/P] [/R] [/S] [/W] [/U]
+@RESTORE
+Restores files created by BACKUP.
+Syntax: RESTORE drive1: drive2:[path][filename] [options]
+@RMDIR
+Removes an empty directory.
+Syntax: RMDIR [drive:]path
+@SET
+Displays, sets, or removes environment variables.
+Syntax: SET [variable=[string]]
+@SETVER
+Displays or changes the DOS version table.
+Syntax: SETVER [filename n.nn | filename /DELETE]
+@SHARE
+Installs file sharing and locking support.
+Syntax: SHARE [/F:space] [/L:locks]
+@SHIFT
+Shifts replaceable batch parameters.
+Syntax: SHIFT
+@SORT
+Sorts input and writes the result.
+Syntax: SORT [/R] [/+n] [< input] [> output]
+@SUBST
+Associates a path with a drive letter.
+Syntax: SUBST drive: [drive:]path or SUBST drive: /D
+@SYS
+Transfers system files and writes a boot sector.
+Syntax: SYS [drive1:][path] drive2:
+@TIME
+Displays or sets the system time.
+Syntax: TIME [time]
+@TREE
+Graphically displays a directory structure.
+Syntax: TREE [drive:][path] [/F] [/A]
+@TYPE
+Displays a text file.
+Syntax: TYPE [drive:][path]filename
+@VER
+Displays the MS-DOS version.
+Syntax: VER
+@VERIFY
+Controls verification of disk writes.
+Syntax: VERIFY [ON|OFF]
+@VOL
+Displays a disk volume label and serial number.
+Syntax: VOL [drive:]
+@XCOPY
+Copies files and directory trees.
+Syntax: XCOPY source [destination] [/A|/M] [/D:date] [/P] [/S] [/E] [/V] [/W]

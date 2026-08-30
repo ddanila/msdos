@@ -33,11 +33,11 @@ features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
 
 | DOS 5 feature | Repository status | Gap |
 | --- | --- | --- |
-| DOS in the HMA and programs/drivers in UMBs | Present on 386+; broader validation pending | HIMEM and EMM386 HMA/UMB integration is exercised end to end on 386+ systems. HIMEM execution on a 286 remains missing. |
+| DOS in the HMA and programs/drivers in UMBs | Present; broader validation pending | HIMEM runs on a 286 and HIMEM/EMM386 HMA/UMB integration is exercised end to end on 386+ systems. A cycle-oriented 286 XMS move gate and broader physical-machine validation remain. |
 | MS-DOS Shell and Task Swapper | Missing | No DOSSHELL UI, program groups, file manager, session switching, EGA save driver, or task-switcher API. |
 | Command history and macros | Present | DOSKEY provides resident history, macros, edit modes, redirected input, INT 2Fh services, and the DOS 5 interactive history/editing keys. |
 | Full-screen Editor and QBasic | Missing | No EDIT, QBASIC, BASIC runtime, help, or sample programs. EDLIN remains available. |
-| Online command help | Partial | Shipped executable `/?` surfaces are tested, but HELP and its searchable help database are absent. |
+| Online command help | Present | HELP provides a described command index and case-insensitive topic lookup from a separate searchable database; shipped executable `/?` surfaces are also tested. |
 | Delete/format recovery | Missing | MIRROR, UNDELETE, and UNFORMAT are absent. |
 | Partitions up to 2 GiB | Present | Automated and interactive FDISK paths create and validate a near-2-GiB FAT16 partition on a sparse 2-GiB disk. |
 | More than two hard disks | Present | FDISK models up to eight BIOS fixed disks; automated creation and interactive selection, display, and deletion are validated through disk 3. |
@@ -56,7 +56,6 @@ Every documented option of a missing command is necessarily unsupported.
 | --- | --- |
 | `DOSSHELL` | Text/graphics Shell, `/T`, `/G`, resolution selection, `/B`, program groups, file operations, help, and task swapping. |
 | `EDIT` | Full-screen text editor and `/B`, `/G`, `/H`, `/NOHI`; depends on QBASIC. |
-| `HELP` | Command index, `HELP command`, and the DOS 5 help database. |
 | `MIRROR` | Delete-tracking file, disk/partition recovery metadata, `/1`, `/T`, `/U`, and `/PARTN`. |
 | `QBASIC` | BASIC editor/interpreter, `/B`, `/EDITOR`, `/G`, `/H`, `/MBF`, `/NOHI`, `/RUN`, online help, and bundled examples. |
 | `UNDELETE` | File recovery, `/LIST`, `/ALL`, `/DOS`, and delete-tracking modes. |
@@ -216,7 +215,7 @@ The compatibility work is split into four independently useful stages:
 3. **Memory, locale, and hardware breadth.** Complete HIMEM configuration and
    286 support, EMM386 driver-load options, media geometries, NLS combinations,
    and representative 286/386/486 hardware validation.
-4. **Help and recovery.** Add the HELP command/database and the MIRROR,
+4. **Help and recovery.** HELP and its database are present. Add the MIRROR,
    UNDELETE, and UNFORMAT recovery workflow, including recovery metadata and
    interrupted-write tests.
 

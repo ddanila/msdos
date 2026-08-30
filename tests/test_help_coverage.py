@@ -40,6 +40,32 @@ def main():
     if manifest.get("schema") != 1:
         raise AssertionError("unsupported help coverage schema")
     excluded = manifest["no_help_interfaces"]
+
+    database = (ROOT / "src/CMD/HELP/HELP.HLP").read_text().splitlines()
+    markers = [line[1:] for line in database if line.startswith("@")]
+    if not markers or markers[0] != "INDEX" or len(markers) != len(set(markers)):
+        raise AssertionError("HELP database topic markers are missing, reordered, or duplicated")
+    first_topic = next(index for index, line in enumerate(database) if line.startswith("@") and line != "@INDEX")
+    indexed = {
+        line.split()[0]
+        for line in database[2:first_topic]
+        if line and not line.startswith("Type HELP ")
+    }
+    topics = set(markers[1:])
+    if indexed != topics:
+        raise AssertionError(
+            f"HELP index mismatch; missing={sorted(topics-indexed)}, stale={sorted(indexed-topics)}"
+        )
+    for index, marker in enumerate(markers[1:], 1):
+        start = database.index(f"@{marker}") + 1
+        end = len(database)
+        for pos in range(start, len(database)):
+            if database[pos].startswith("@"):
+                end = pos
+                break
+        body = database[start:end]
+        if not body or not body[0] or not any(line.startswith("Syntax:") for line in body):
+            raise AssertionError(f"HELP topic {marker} lacks a description or syntax")
     if tested & set(excluded):
         raise AssertionError(f"help-tested interfaces are also excluded: {sorted(tested & set(excluded))}")
     if tested | set(excluded) != shipped:
@@ -66,6 +92,7 @@ def main():
     print(f"Shipped executable help surfaces: {len(shipped)}")
     print(f"  /? behavior tested: {len(tested)}")
     print(f"  source-justified no-help interfaces: {len(excluded)}")
+    print(f"  indexed HELP database topics: {len(topics)}")
     print("  unaccounted: 0")
 
 
