@@ -641,17 +641,9 @@ INITSTACK LABEL BYTE
 ;fake_count: ff means the version will be reset when Abort or Exec is encountered
 ;	     n means the version will be reset after n DOS version calls are issued
 ;
-SETVER_TABLE_CAPACITY EQU 512
+SETVER_TABLE_CAPACITY EQU 1024
 Version_Fake_Table:			    ;AN007  starting address for special
-	DB	12,"IBMCACHE.COM",3,40,255  ;AN007  ibmcache     1
-	DB	12,"IBMCACHE.SYS",3,40,255  ;AN007  ibmcache     2
-	DB	12,"DXMA0MOD.SYS",3,40,255  ;AN007  lan support  3
-	DB	10,"WIN200.BIN"  ,3,40,4    ;AN008  windows      4
-	DB	 9,"PSCPG.COM"   ,3,40,255  ;AN008  vittoria     5
-	DB	11,"DCJSS02.EXE" ,3,40,255  ;AN008  netview      6
-	DB	 8,"ISAM.EXE"    ,3,40,255  ;AN008  basic        7
-	DB	 9,"ISAM2.EXE"   ,3,40,255  ;AN008  basic        8
-	DB	12,"DFIA0MOD.SYS",3,40,255  ;AN008  lan support  9
+	INCLUDE SETVER62.INC
 	; Keep the resident table writable.  SETVER uses the first zero-length
 	; entry as the terminator and may consume the remaining zero-filled space.
 	DB	(SETVER_TABLE_CAPACITY-($-Version_Fake_Table)) dup(0)

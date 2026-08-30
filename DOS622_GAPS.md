@@ -33,7 +33,7 @@ valid lightweight interface.
 
 | Area | Status | Gap |
 | --- | --- | --- |
-| DOS identity and compatibility | Partial | The kernel and true-version API identify 6.22; the retail SETVER defaults still need to replace the inherited DOS 5 table. The `MSDOS5.0` FAT OEM identifier is correct for 6.22 and remains unchanged. |
+| DOS identity and compatibility | Present | The kernel and true-version API identify 6.22, and SETVER ships the retail 6.2/6.22 default table. The `MSDOS5.0` FAT OEM identifier is correct for 6.22 and remains unchanged. |
 | Startup and configuration | Partial | No configuration blocks, boot menus, `CONFIG` selection variable, interactive startup bypass, or batch stepping. |
 | Everyday command additions | Partial | `CHOICE`, `DELTREE`, `LOADFIX`, and `MOVE` are present; overwrite policy additions to `COPY` and `XCOPY` remain. |
 | Disk health and performance | Missing | `SCANDISK` and `DEFRAG`; no ScanDisk repair log or undo flow. |
@@ -58,7 +58,7 @@ DOS 5 commands inherit their status from `DOS5_GAPS.md`.
 | `DEFRAG` | Missing | Full-screen and command-line operation; `/F`, `/U`, `/S[:]order`, `/B`, `/SKIPHIGH`, `/LCD`, `/BW`, `/G0`, `/H`, documented errorlevels, progress/error reporting, and safe interruption. |
 | `DELTREE` | Present | Recursive and wildcard deletion, multiple targets, protected attributes, prompting, and `/Y` are covered. |
 | `DRVSPACE` | Separate epic | Interactive and command-line DriveSpace manager; `/AUTOMOUNT`, `/CHKDSK`, `/COMPRESS`, `/CREATE`, `/DELETE`, `/FORMAT`, `/INFO`, `/MOUNT`, `/RATIO`, `/SIZE`, `/UNCOMPRESS`, `/UNMOUNT`, host-drive swapping, and the driver/format/API integration listed below. |
-| `FASTHELP` | Missing | Compact command list/summary interface. The repository's `HELP` is not this alias. |
+| `FASTHELP` | Present | Compact command list/topic interface backed by the lean text Help database. |
 | `INTERLNK` | Missing | Client installation/status, drive and printer redirection, server discovery, and the driver options and transports listed below. |
 | `INTERSVR` | Missing | Serial/parallel file and printer server, `/B`, `/V`, `/LPT`, `/COM`, `/X`, drive selection, connection status, and client bootstrap transfer. |
 | `LOADFIX` | Present | Placement above the first 64 KiB, argument forwarding, and child exit propagation are covered. |
@@ -85,7 +85,7 @@ Known gaps in commands already shipped:
 | `HELP` | The current searchable text database lacks the retail full-screen hypertext UI, complete 6.22 topic corpus, mouse navigation, syntax/notes/examples links, and full-text search. The UI belongs to the QBASIC epic; lean text topics can grow with each stage. |
 | `HIMEM.SYS` | XMS 2.00 and DOS 5 options exist; exact 6.22 version/API identity, defaults, diagnostics, and machine-option parity remain unverified. |
 | `MEM` | Existing `/C`, `/D`, `/F`, `/M`, and `/PROGRAM` views need differential validation against DOS 6.22's enhanced reports and EMM386 integration. |
-| `SETVER` | Requires the retail 6.22 default compatibility table and 6.22 identity behavior. |
+| `SETVER` | Retail 6.2/6.22 defaults, persistent editing, driver loading, and 6.22 identity behavior are covered. |
 | `UNDELETE` | DOS protection modes exist, but the enhanced 6.22 UI/configuration and Windows companion are absent. The Windows companion is out of scope. |
 | `XCOPY` | `/Y`, `/-Y`, `COPYCMD`, DOS 6 overwrite prompts, and the 6.22 rule that hidden/system files are not copied. |
 

@@ -21,7 +21,7 @@ query_table:
         jne     not_supported
         mov     ax,1231h                ; resident SETVER table
         int     2fh
-        cmp     cx,512
+        cmp     cx,1024
         jne     not_supported
         mov     cs:table_off,di
         mov     cs:table_seg,es
@@ -245,13 +245,13 @@ persist_open:
         mov     cs:persist_handle,ax
         mov     bx,ax
         mov     dx,OFFSET persist_image
-        mov     cx,1024
+        mov     cx,2048
         mov     ah,3fh
         int     21h
         jc      persist_read_error
         mov     cs:persist_size,ax
         mov     cx,ax
-        sub     cx,520                   ; marker plus complete table
+        sub     cx,1032                  ; marker plus complete table
         jc      persist_corrupt
         inc     cx
         mov     di,OFFSET persist_image
@@ -286,7 +286,7 @@ save_persist:
         push    cs
         pop     es
         mov     di,cs:persist_table
-        mov     cx,512
+        mov     cx,1024
         rep     movsb
         pop     es
         pop     ds
@@ -712,9 +712,9 @@ name_buf    db 12 dup(0)
 delete_word db 'DELETE'
 quiet_word  db 'QUIET'
 persist_name db 'SETVER.EXE',0
-table_marker db 'SVTAB5',0,1
+table_marker db 'SVTAB6',0,1
 persist_path db 128 dup(0)
-persist_image db 1024 dup(0)
+persist_image db 2048 dup(0)
 crlf        db 13,10,'$'
 heading     db 'MS-DOS Version Table',13,10,'$'
 added_msg   db 'Entry added.',13,10,'$'

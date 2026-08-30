@@ -1,0 +1,42 @@
+; Retail MS-DOS 6.2/6.22 default SETVER table (Microsoft KB Q90571).
+; Entry format: name length, name, reported major, reported minor, call count.
+; A count of 255 keeps the reported version for the process lifetime.
+        DB      10,"KERNEL.EXE",5,0,255
+        DB       8,"NETX.COM",5,0,255
+        DB       8,"NETX.EXE",6,0,255
+        DB       8,"NET5.COM",5,0,255
+        DB       9,"BNETX.COM",5,0,255
+        DB       9,"BNETX.EXE",6,0,255
+        DB      11,"EMSNETX.EXE",6,0,255
+        DB      11,"EMSNET5.EXE",5,0,255
+        DB      11,"XMSNETX.EXE",6,0,255
+        DB      11,"XMSNET5.EXE",5,0,255
+        DB      10,"DOSOAD.SYS",5,0,255
+        DB      11,"EXTDISK.SYS",6,0,255
+        DB      11,"REDIR50.EXE",5,0,255
+        DB      10,"REDIR5.EXE",5,0,255
+        DB      12,"REDIRALL.EXE",5,0,255
+        DB      12,"REDIRNP4.EXE",5,0,255
+        DB       9,"EDLIN.EXE",5,0,255
+        DB      10,"BACKUP.EXE",5,0,255
+        DB      10,"ASSIGN.COM",5,0,255
+        DB      11,"EXE2BIN.EXE",5,0,255
+        DB       8,"JOIN.EXE",5,0,255
+        DB      11,"RECOVER.EXE",5,0,255
+        DB      12,"GRAFTABL.COM",5,0,255
+        DB      11,"LMSETUP.EXE",5,0,255
+        DB      11,"STACKER.COM",5,0,255
+        DB      10,"NCACHE.EXE",5,0,255
+        DB      11,"NCACHE2.EXE",5,0,255
+        DB      12,"IBMCACHE.SYS",5,0,255
+        DB      11,"XTRADRV.SYS",5,0,255
+        DB       8,"2XON.COM",5,0,255
+        DB      11,"WINWORD.EXE",4,10,255
+        DB       9,"EXCEL.EXE",4,10,255
+        DB       7,"LL3.EXE",4,1,255
+        DB      10,"REDIR4.EXE",4,0,255
+        DB      11,"REDIR40.EXE",4,0,255
+        DB      11,"MSREDIR.EXE",4,0,255
+        DB      10,"WIN200.BIN",3,40,255
+        DB       9,"METRO.EXE",3,31,255
+        DB       9,"VDISK.SYS",4,0,255

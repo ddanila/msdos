@@ -39,6 +39,8 @@ cp "$FLOPPY" "$TEST_IMG"
     printf 'IF ERRORLEVEL 1 ECHO ---HELP_BAD_ARGS_STATUS---\r\n'
     printf 'HELP /?\r\n'
     printf 'ECHO ---AFTER_HELP_USAGE---\r\n'
+    printf 'FASTHELP format\r\n'
+    printf 'ECHO ---AFTER_FASTHELP---\r\n'
     printf 'MEM /?\r\n'
     printf 'ATTRIB /?\r\n'
     printf 'XCOPY /?\r\n'
@@ -121,6 +123,12 @@ if grep -q "HELP \[command\]" "$SERIAL_LOG" && grep -q -- "---AFTER_HELP_USAGE--
     ok "HELP /? prints usage and returns"
 else
     fail "HELP /? contract failed"
+fi
+
+if grep -q -- "---AFTER_FASTHELP---" "$SERIAL_LOG"; then
+    ok "FASTHELP uses the lean text-help interface"
+else
+    fail "FASTHELP did not return from a topic lookup"
 fi
 
 for tool in FIND EXE2BIN FDISK IFSFUNC; do

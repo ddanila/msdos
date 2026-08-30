@@ -23,6 +23,7 @@
     "SETUP.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_setup_qemu.sh"},
     "IO.SYS": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_sys.sh"},
     "FDISK.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_fdisk.sh"},
+    "FASTHELP.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_help_qemu.sh"},
     "FASTOPEN.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_fastopen_cache_qemu.sh"},
     "FILESYS.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_ifsfunc_filesys_qemu.sh"},
     "FC.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_backup_restore.sh"},

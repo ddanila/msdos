@@ -90,6 +90,52 @@ grep -Fq 'SETPROBE.COM 3.30' "$LOG" || {
     sed -n '1,200p' "$LOG" >&2
     exit 1
 }
+while read -r expected_entry; do
+    grep -Fq "$expected_entry" "$LOG" || {
+        echo "FAIL: retail SETVER default missing: $expected_entry" >&2
+        exit 1
+    }
+done <<'EOF'
+KERNEL.EXE 5.00
+NETX.COM 5.00
+NETX.EXE 6.00
+NET5.COM 5.00
+BNETX.COM 5.00
+BNETX.EXE 6.00
+EMSNETX.EXE 6.00
+EMSNET5.EXE 5.00
+XMSNETX.EXE 6.00
+XMSNET5.EXE 5.00
+DOSOAD.SYS 5.00
+EXTDISK.SYS 6.00
+REDIR50.EXE 5.00
+REDIR5.EXE 5.00
+REDIRALL.EXE 5.00
+REDIRNP4.EXE 5.00
+EDLIN.EXE 5.00
+BACKUP.EXE 5.00
+ASSIGN.COM 5.00
+EXE2BIN.EXE 5.00
+JOIN.EXE 5.00
+RECOVER.EXE 5.00
+GRAFTABL.COM 5.00
+LMSETUP.EXE 5.00
+STACKER.COM 5.00
+NCACHE.EXE 5.00
+NCACHE2.EXE 5.00
+IBMCACHE.SYS 5.00
+XTRADRV.SYS 5.00
+2XON.COM 5.00
+WINWORD.EXE 4.10
+EXCEL.EXE 4.10
+LL3.EXE 4.01
+REDIR4.EXE 4.00
+REDIR40.EXE 4.00
+MSREDIR.EXE 4.00
+WIN200.BIN 3.40
+METRO.EXE 3.31
+VDISK.SYS 4.00
+EOF
 grep -Fq 'Entry added.' "$LOG"
 grep -Fq 'Entry updated.' "$LOG"
 grep -Fq 'Entry deleted.' "$LOG"
@@ -132,4 +178,4 @@ grep -Fq 'SETVER_PROBE_VERSION=6.22' "$CLEAR_LOG" || {
     exit 1
 }
 
-echo '  PASS: SETVER editing, persistence, CONFIG.SYS loading, and per-program versions'
+echo '  PASS: SETVER retail defaults, editing, persistence, CONFIG.SYS loading, and per-program versions'

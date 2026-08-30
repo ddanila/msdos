@@ -619,7 +619,7 @@ Procedure   INT2F_etcetera,NEAR
 	MOV	DI,CS:[Special_Entries]
 	PUSH	CS
 	POP	ES
-	MOV	CX,512
+	MOV	CX,1024
 	return
 EndProc INT2F_etcetera
 

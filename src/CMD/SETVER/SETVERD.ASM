@@ -38,12 +38,12 @@ interrupt PROC FAR
         jne     init_failed
         mov     ax,1231h
         int     2fh
-        cmp     cx,512
+        cmp     cx,1024
         jne     init_failed
         push    cs
         pop     ds
         mov     si,OFFSET version_table
-        mov     cx,512
+        mov     cx,1024
         cld
         rep     movsb
 
@@ -76,18 +76,10 @@ interrupt ENDP
 
 resident_end LABEL BYTE
 
-table_marker db 'SVTAB5',0,1
+table_marker db 'SVTAB6',0,1
 version_table:
-        db      12,'IBMCACHE.COM',3,40,255
-        db      12,'IBMCACHE.SYS',3,40,255
-        db      12,'DXMA0MOD.SYS',3,40,255
-        db      10,'WIN200.BIN',3,40,4
-        db       9,'PSCPG.COM',3,40,255
-        db      11,'DCJSS02.EXE',3,40,255
-        db       8,'ISAM.EXE',3,40,255
-        db       9,'ISAM2.EXE',3,40,255
-        db      12,'DFIA0MOD.SYS',3,40,255
-        db      (512-($-version_table)) dup(0)
+        INCLUDE ..\..\INC\SETVER62.INC
+        db      (1024-($-version_table)) dup(0)
 
 CODE ENDS
         END
