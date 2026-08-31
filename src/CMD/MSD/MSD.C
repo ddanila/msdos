@@ -664,6 +664,25 @@ static void report_disks(void)
 
     int86(0x11, &inregs, &outregs);
     floppy_count = outregs.x.ax & 1 ? ((outregs.x.ax >> 6) & 3) + 1 : 0;
+    for (i = 0; i < floppy_count && i < 2; ++i) {
+        unsigned cylinders, heads, sectors;
+        memset(&inregs, 0, sizeof(inregs));
+        inregs.h.ah = 8;
+        inregs.h.dl = (unsigned char)i;
+        int86(0x13, &inregs, &outregs);
+        if (outregs.x.cflag) {
+            fprintf(report, "%c:  physical geometry unavailable\n", 'A' + i);
+            continue;
+        }
+        cylinders = outregs.h.ch |
+            ((unsigned)(outregs.h.cl & 0xc0) << 2);
+        heads = (unsigned)outregs.h.dh + 1;
+        sectors = outregs.h.cl & 0x3f;
+        fprintf(report,
+                "%c:  physical geometry %u cylinders, %u heads, "
+                "512 bytes/sector, %u sectors/track\n",
+                'A' + i, cylinders + 1, heads, sectors);
+    }
 
     inregs.h.ah = 0x19;
     int86(0x21, &inregs, &outregs);

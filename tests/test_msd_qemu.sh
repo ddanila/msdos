@@ -84,6 +84,7 @@ for marker in \
     'Allocation strategy:' 'UMB chain linked:' 'Write verification:' \
     'Extended BREAK check:' 'Code pages:' 'Country code:' 'Date format:' 'Environment:' \
     'B:  logical alias of A: (one physical floppy)' \
+    'A:  physical geometry 80 cylinders, 2 heads, 512 bytes/sector, 36 sectors/track' \
     'C:  total      62464 bytes  512-byte sectors  FAT12' \
     'LASTDRIVE=E:' \
     'D:  substituted path A:\MSDMAP' \
