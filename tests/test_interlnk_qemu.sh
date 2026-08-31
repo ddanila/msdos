@@ -106,12 +106,18 @@ grep -Fq 'corrupted write payload 4' "$OUT/interlnk-proxy.log"
 grep -Fq 'printer request unit 0 byte 50' "$OUT/interlnk-proxy.log"
 grep -Fq 'printer request unit 1 byte 51' "$OUT/interlnk-proxy.log"
 grep -Fq 'printer request unit 2 byte 52' "$OUT/interlnk-proxy.log"
+grep -Fq 'printer request unit 0 byte 45' "$OUT/interlnk-proxy.log"
+grep -Fq 'printer request unit 0 byte 48' "$OUT/interlnk-proxy.log"
+grep -Fq 'printer request unit 1 byte 46' "$OUT/interlnk-proxy.log"
+grep -Fq 'printer request unit 1 byte 49' "$OUT/interlnk-proxy.log"
+grep -Fq 'printer request unit 2 byte 47' "$OUT/interlnk-proxy.log"
+! grep -Fq 'printer request unit 0 byte 4a' "$OUT/interlnk-proxy.log"
 ! mdir -b -i "$CLIENT_IMAGE" :: 2>/dev/null | grep -Fq 'RECONERR.TAG'
 mcopy -i "$SERVER_IMAGE" ::WRITTEN.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx '001122334455aaff'
 mcopy -i "$SERVER_IMAGE_TWO" ::WRITTN2.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx 'fedcba9876543210'
-od -An -tx1 "$PRINTER1_OUT" | tr -d ' \n' | grep -qx '5044'
-od -An -tx1 "$PRINTER2_OUT" | tr -d ' \n' | grep -qx '51'
-echo '  PASS: Interlnk redirects two FAT volumes, BIOS LPT1-LPT3, and DOS printer-handle output while recovering serial faults'
+od -An -tx1 "$PRINTER1_OUT" | tr -d ' \n' | grep -qx '50444548'
+od -An -tx1 "$PRINTER2_OUT" | tr -d ' \n' | grep -qx '514649'
+echo '  PASS: Interlnk redirects disks plus BIOS, named, inherited, and duplicated printer handles while recovering serial faults'
 
 # Without /AUTO, a missing server leaves an offline resident driver and must
 # continue boot instead of waiting forever in the serial receive loop.

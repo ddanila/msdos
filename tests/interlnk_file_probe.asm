@@ -37,6 +37,7 @@ first_file_attempt:
     jne first_file_retry_close
     mov ah, 3eh
     int 21h
+
     jmp first_file_done
 
 first_file_retry_close:
@@ -145,6 +146,103 @@ first_file_done:
     cmp ax, 1
     jne failed
 
+    mov dx, prn_name
+    mov ax, 3d01h
+    int 21h
+    jc failed
+    mov bx, ax
+    mov dx, named_prn_byte
+    mov cx, 1
+    mov ah, 40h
+    int 21h
+    jc failed_close
+    cmp ax, 1
+    jne failed_close
+    mov di, bx
+    mov ah, 45h
+    int 21h
+    jc failed_close
+    mov bp, ax
+    mov bx, di
+    mov ah, 3eh
+    int 21h
+    mov bx, bp
+    mov dx, duplicated_prn_byte
+    mov cx, 1
+    mov ah, 40h
+    int 21h
+    jc failed_close
+    cmp ax, 1
+    jne failed_close
+    mov ah, 3eh
+    int 21h
+
+    mov dx, lpt2_name
+    mov ax, 3d01h
+    int 21h
+    jc failed
+    mov bx, ax
+    mov dx, named_lpt2_byte
+    mov cx, 1
+    mov ah, 40h
+    int 21h
+    jc failed_close
+    cmp ax, 1
+    jne failed_close
+    mov di, bx
+    mov cx, 10
+    mov ah, 46h
+    int 21h
+    jc failed_close
+    mov bx, di
+    mov ah, 3eh
+    int 21h
+    mov bx, 10
+    mov dx, forced_lpt2_byte
+    mov cx, 1
+    mov ah, 40h
+    int 21h
+    jc failed_close
+    cmp ax, 1
+    jne failed_close
+    mov ah, 3eh
+    int 21h
+
+    mov dx, lpt3_name
+    mov ax, 3d01h
+    int 21h
+    jc failed
+    mov bx, ax
+    mov dx, named_lpt3_byte
+    mov cx, 1
+    mov ah, 40h
+    int 21h
+    jc failed_close
+    cmp ax, 1
+    jne failed_close
+    mov ah, 3eh
+    int 21h
+
+    mov dx, nul_name
+    mov ax, 3d01h
+    int 21h
+    jc failed
+    mov bx, ax
+    mov cx, 4
+    mov ah, 46h
+    int 21h
+    jc failed_close
+    mov ah, 3eh
+    int 21h
+    mov bx, 4
+    mov dx, ordinary_forced_byte
+    mov cx, 1
+    mov ah, 40h
+    int 21h
+    jc failed
+    cmp ax, 1
+    jne failed
+
     mov si, pass_message
     call debug_print
     mov ax, 4c00h
@@ -172,6 +270,10 @@ remote_name db 'C:\REMOTE.TXT',0
 remote_name_two db 'D:\REMOTE2.TXT',0
 written_name db 'C:\WRITTEN.BIN',0
 written_name_two db 'D:\WRITTN2.BIN',0
+prn_name db 'PRN',0
+lpt2_name db 'LPT2',0
+lpt3_name db 'LPT3',0
+nul_name db 'NUL',0
 payload db 'Byte-exact Interlnk transport',13,10
 payload_end:
 payload_two db 'Second Interlnk volume',13,10
@@ -181,6 +283,12 @@ write_end:
 write_payload_two db 0feh,0dch,0bah,098h,076h,054h,032h,010h
 write_two_end:
 dos_printer_byte db 'D'
+named_prn_byte db 'E'
+duplicated_prn_byte db 'H'
+named_lpt2_byte db 'F'
+forced_lpt2_byte db 'I'
+named_lpt3_byte db 'G'
+ordinary_forced_byte db 'J'
 pass_message db 'INTERLNK_TRANSPORT_PASS',13,10,0
 fail_message db 'INTERLNK_TRANSPORT_FAIL',13,10,0
 buffer times 64 db 0

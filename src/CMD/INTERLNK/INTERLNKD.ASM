@@ -534,18 +534,23 @@ receive_byte PROC NEAR
         push    bx
         push    cx
         push    dx
-        mov     dx,cs:com_port
-        add     dx,5
-        mov     bx,32
-client_receive_retry:
-        mov     cx,0ffffh
+        push    si
+        mov     bx,cs:com_port
+        add     bx,5
+        mov     ah,0
+        int     1ah
+        mov     si,dx
 client_receive_ready:
+        mov     dx,bx
         in      al,dx
         test    al,1
         jnz     short client_receive_now
-        loop    client_receive_ready
-        dec     bx
-        jnz     client_receive_retry
+        mov     ah,0
+        int     1ah
+        sub     dx,si
+        cmp     dx,18
+        jb      client_receive_ready
+        pop     si
         pop     dx
         pop     cx
         pop     bx
@@ -555,6 +560,7 @@ client_receive_now:
         mov     dx,cs:com_port
         in      al,dx
         clc
+        pop     si
         pop     dx
         pop     cx
         pop     bx
@@ -900,15 +906,113 @@ printer_send_failed:
         ret
 send_printer_connected ENDP
 
+identify_printer_name PROC NEAR
+        mov     si,dx
+        mov     di,si
+        cmp     byte ptr [si+1],':'
+        jne     short printer_name_scan
+        lea     di,[si+2]
+printer_name_scan:
+        mov     al,[si]
+        or      al,al
+        jz      short printer_name_compare
+        cmp     al,5ch
+        je      short printer_name_new_base
+        cmp     al,'/'
+        jne     short printer_name_next
+printer_name_new_base:
+        lea     di,[si+1]
+printer_name_next:
+        inc     si
+        jmp     printer_name_scan
+printer_name_compare:
+        mov     al,[di]
+        and     al,0dfh
+        cmp     al,'P'
+        jne     short printer_name_not_prn
+        mov     al,[di+1]
+        and     al,0dfh
+        cmp     al,'R'
+        jne     short printer_name_lpt
+        mov     al,[di+2]
+        and     al,0dfh
+        cmp     al,'N'
+        jne     short printer_name_lpt
+        mov     al,[di+3]
+        call    printer_name_end
+        jc      short printer_name_none
+        mov     al,1
+        ret
+printer_name_not_prn:
+        cmp     al,'L'
+        jne     short printer_name_none
+printer_name_lpt:
+        mov     al,[di]
+        and     al,0dfh
+        cmp     al,'L'
+        jne     short printer_name_none
+        mov     al,[di+1]
+        and     al,0dfh
+        cmp     al,'P'
+        jne     short printer_name_none
+        mov     al,[di+2]
+        and     al,0dfh
+        cmp     al,'T'
+        jne     short printer_name_none
+        mov     al,[di+3]
+        cmp     al,'1'
+        jb      short printer_name_none
+        cmp     al,'3'
+        ja      short printer_name_none
+        mov     ah,al
+        mov     al,[di+4]
+        call    printer_name_end
+        jc      short printer_name_none
+        mov     al,ah
+        sub     al,'0'                 ; 1..3 encodes unit+1
+        ret
+printer_name_none:
+        xor     al,al
+        ret
+identify_printer_name ENDP
+
+printer_name_end PROC NEAR
+        or      al,al
+        jz      short printer_name_valid_end
+        cmp     al,':'
+        je      short printer_name_valid_end
+        cmp     al,'.'
+        je      short printer_name_valid_end
+        stc
+        ret
+printer_name_valid_end:
+        clc
+        ret
+printer_name_end ENDP
+
 dos_printer_handler PROC FAR
-        cmp     ah,40h
-        jne     short chain_dos_printer
-        cmp     bx,4                    ; inherited DOS standard printer handle
-        jne     short chain_dos_printer
         cmp     cs:printer_enabled,0
-        je      short chain_dos_printer
+        je      chain_dos_printer
+        cmp     ah,3dh
+        je      dos_printer_open
+        cmp     ah,3eh
+        je      dos_printer_close
+        cmp     ah,45h
+        je      dos_printer_duplicate
+        cmp     ah,46h
+        je      dos_printer_force_duplicate
+        cmp     ah,40h
+        jne     chain_dos_printer
         cmp     cs:connected,0
-        je      short chain_dos_printer
+        je      chain_dos_printer
+        cmp     bx,256
+        jae     chain_dos_printer
+        mov     al,cs:printer_handles[bx]
+        cmp     al,0ffh
+        je      chain_dos_printer
+        mov     cs:printer_write_unit,al
+        jmp     short dos_printer_write
+dos_printer_write:
         push    bx
         push    cx
         push    dx
@@ -922,6 +1026,7 @@ dos_printer_loop:
         jcxz    short dos_printer_success
         mov     al,[si]
         xor     dx,dx
+        mov     dl,cs:printer_write_unit
         call    send_printer_connected
         jc      short dos_printer_error
         inc     si
@@ -954,9 +1059,147 @@ dos_printer_error:
         or      word ptr ss:[bp+6],1
         pop     bp
         iret
+dos_printer_open:
+        push    ax
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        push    di
+        push    es
+        call    identify_printer_name
+        mov     cs:pending_printer_unit,al
+        pop     es
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
+        cmp     cs:pending_printer_unit,0
+        je      chain_dos_printer
+        push    bx
+        pushf
+        call    dword ptr cs:old_int21
+        jc      short dos_printer_open_error
+        cmp     ax,256
+        jae     short dos_printer_open_success
+        push    ax
+        mov     bx,ax
+        mov     al,cs:pending_printer_unit
+        dec     al
+        mov     cs:printer_handles[bx],al
+        pop     ax
+dos_printer_open_success:
+        pop     bx
+        jmp     dos_printer_clear_carry
+dos_printer_open_error:
+        pop     bx
+        jmp     dos_printer_set_carry
+dos_printer_close:
+        cmp     bx,256
+        jae     chain_dos_printer
+        cmp     byte ptr cs:printer_handles[bx],0ffh
+        je      chain_dos_printer
+        push    bx
+        pushf
+        call    dword ptr cs:old_int21
+        jc      short dos_printer_close_error
+        pop     bx
+        mov     byte ptr cs:printer_handles[bx],0ffh
+        jmp     dos_printer_clear_carry
+dos_printer_close_error:
+        pop     bx
+        jmp     dos_printer_set_carry
+dos_printer_duplicate:
+        call    printer_unit_for_handle
+        or      al,al
+        jz      chain_dos_printer
+        mov     cs:pending_printer_unit,al
+        push    bx
+        pushf
+        call    dword ptr cs:old_int21
+        jc      short dos_printer_duplicate_error
+        cmp     ax,256
+        jae     short dos_printer_duplicate_success
+        push    ax
+        mov     bx,ax
+        mov     al,cs:pending_printer_unit
+        dec     al
+        mov     cs:printer_handles[bx],al
+        pop     ax
+dos_printer_duplicate_success:
+        pop     bx
+        jmp     short dos_printer_clear_carry
+dos_printer_duplicate_error:
+        pop     bx
+        jmp     short dos_printer_set_carry
+dos_printer_force_duplicate:
+        call    printer_unit_for_handle
+        mov     cs:pending_printer_unit,al
+        or      al,al
+        jnz     short dos_printer_force_call
+        cmp     cx,256
+        jae     chain_dos_printer
+        push    bx
+        mov     bx,cx
+        cmp     byte ptr cs:printer_handles[bx],0ffh
+        pop     bx
+        je      chain_dos_printer
+dos_printer_force_call:
+        push    ax
+        push    bx
+        pushf
+        call    dword ptr cs:old_int21
+        jc      short dos_printer_force_error
+        cmp     cx,256
+        jae     short dos_printer_force_success
+        mov     bx,cx
+        mov     al,cs:pending_printer_unit
+        or      al,al
+        jnz     short dos_printer_force_decrement
+        mov     al,0ffh
+        jmp     short dos_printer_force_store
+dos_printer_force_decrement:
+        dec     al
+dos_printer_force_store:
+        mov     cs:printer_handles[bx],al
+dos_printer_force_success:
+        pop     bx
+        pop     ax
+        jmp     short dos_printer_clear_carry
+dos_printer_force_error:
+        pop     bx
+        pop     ax
+dos_printer_set_carry:
+        push    bp
+        mov     bp,sp
+        or      word ptr ss:[bp+6],1
+        pop     bp
+        iret
+dos_printer_clear_carry:
+        push    bp
+        mov     bp,sp
+        and     word ptr ss:[bp+6],0fffeh
+        pop     bp
+        iret
 chain_dos_printer:
         jmp     dword ptr cs:old_int21
 dos_printer_handler ENDP
+
+; Return zero for an ordinary handle or unit+1 for a redirected printer.
+printer_unit_for_handle PROC NEAR
+        cmp     bx,256
+        jae     short printer_unit_none
+        mov     al,cs:printer_handles[bx]
+        cmp     al,0ffh
+        je      short printer_unit_none
+        inc     al
+        ret
+printer_unit_none:
+        xor     al,al
+        ret
+printer_unit_for_handle ENDP
 
 printer_handler PROC FAR
         cmp     ah,0
@@ -1063,6 +1306,9 @@ printer_enabled db 1
 printer_byte    db 0
 printer_status  db 0
 printer_count   dw 0
+printer_write_unit db 0
+pending_printer_unit db 0
+printer_handles db 4 dup(0ffh),0,251 dup(0ffh)
 default_bpb     dw 512
                 db 1
                 dw 1

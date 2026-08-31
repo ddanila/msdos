@@ -395,18 +395,23 @@ receive_byte PROC NEAR
         push    bx
         push    cx
         push    dx
-        mov     dx,cs:com_port
-        add     dx,5
-        mov     bx,32
-receive_retry:
-        mov     cx,0ffffh
+        push    si
+        mov     bx,cs:com_port
+        add     bx,5
+        mov     ah,0
+        int     1ah
+        mov     si,dx
 receive_ready:
+        mov     dx,bx
         in      al,dx
         test    al,1
         jnz     short receive_now
-        loop    receive_ready
-        dec     bx
-        jnz     receive_retry
+        mov     ah,0
+        int     1ah
+        sub     dx,si
+        cmp     dx,18
+        jb      receive_ready
+        pop     si
         pop     dx
         pop     cx
         pop     bx
@@ -416,6 +421,7 @@ receive_now:
         mov     dx,cs:com_port
         in      al,dx
         clc
+        pop     si
         pop     dx
         pop     cx
         pop     bx
