@@ -17,6 +17,7 @@ extern unsigned MsdXmsLargestFree;
 extern unsigned MsdXmsTotalFree;
 extern int MsdReadXmsInfo(void);
 extern unsigned MsdCpuClass(void);
+static void heading(const char *name);
 
 /* DOS's internal tables contain unaligned words.  Decode them bytewise so
  * this remains correct regardless of the compiler's structure packing. */
@@ -29,6 +30,88 @@ static unsigned long table_pointer(const unsigned char far *p)
 {
     return (unsigned long)table_word(p) |
            ((unsigned long)table_word(p + 2) << 16);
+}
+
+static unsigned rom_checksum(unsigned segment, unsigned long bytes)
+{
+    unsigned long i;
+    unsigned sum = 0;
+    for (i = 0; i < bytes; ++i) {
+        const unsigned char far *p =
+            (const unsigned char far *)MK_FP(segment + (unsigned)(i >> 4),
+                                              (unsigned)(i & 15));
+        sum = (sum + *p) & 0xff;
+    }
+    return sum;
+}
+
+static void report_roms(void)
+{
+    unsigned segment;
+    unsigned found = 0;
+    heading("ROM Inventory");
+    fprintf(report, "BIOS ROM range:        F0000h-FFFFFh (64 KB)\n");
+    fprintf(report, "BIOS ROM checksum:     %02Xh\n",
+            rom_checksum(0xf000, 65536UL));
+    if (skip_detection) {
+        fputs("Option ROM scan:       Skipped (/I)\n", report);
+        return;
+    }
+    for (segment = 0xc000; segment < 0xf000; segment += 0x80) {
+        const unsigned char far *rom =
+            (const unsigned char far *)MK_FP(segment, 0);
+        unsigned blocks, paragraphs, checksum;
+        unsigned long bytes;
+        if (rom[0] != 0x55 || rom[1] != 0xaa || rom[2] == 0)
+            continue;
+        blocks = rom[2];
+        bytes = (unsigned long)blocks * 512UL;
+        paragraphs = blocks * 32;
+        if (paragraphs > 0xf000 - segment) {
+            fprintf(report, "Option ROM %05lXh:     invalid %lu KB extent\n",
+                    (unsigned long)segment << 4,
+                    (bytes + 1023UL) / 1024UL);
+            ++found;
+            continue;
+        }
+        checksum = rom_checksum(segment, bytes);
+        fprintf(report,
+                "Option ROM %05lXh:     %5lu KB  checksum %02Xh (%s)\n",
+                (unsigned long)segment << 4, (bytes + 1023UL) / 1024UL,
+                checksum, checksum == 0 ? "valid" : "invalid");
+        ++found;
+        if (paragraphs > 0x80)
+            segment += paragraphs - 0x80;
+    }
+    if (!found)
+        fputs("Option ROMs:           None detected\n", report);
+}
+
+static const char *uart_type(unsigned base, unsigned *divisor)
+{
+    unsigned lcr = inp(base + 3);
+    unsigned scratch = inp(base + 7);
+    unsigned iir;
+    const char *type;
+    outp(base + 7, 0x5a);
+    if (inp(base + 7) != 0x5a) {
+        type = "8250";
+    } else {
+        outp(base + 2, 1);
+        iir = inp(base + 2) & 0xc0;
+        outp(base + 2, 0);
+        if (iir == 0xc0)
+            type = "16550A-compatible";
+        else if (iir == 0x80)
+            type = "16550 (non-working FIFO)";
+        else
+            type = "16450-compatible";
+    }
+    outp(base + 7, scratch);
+    outp(base + 3, lcr | 0x80);
+    *divisor = inp(base) | ((unsigned)inp(base + 1) << 8);
+    outp(base + 3, lcr);
+    return type;
 }
 
 static void usage(void)
@@ -261,11 +344,17 @@ static void report_ports(void)
         if (bda[i]) {
             fprintf(report, "COM%u base address:     %04Xh\n", i + 1, bda[i]);
             if (!skip_detection) {
+                unsigned divisor;
                 inregs.h.ah = 3;
                 inregs.x.dx = i;
                 int86(0x14, &inregs, &outregs);
                 fprintf(report, "COM%u BIOS status:      %04Xh\n", i + 1,
                         outregs.x.ax);
+                fprintf(report, "COM%u UART:             %s\n", i + 1,
+                        uart_type(bda[i], &divisor));
+                if (divisor)
+                    fprintf(report, "COM%u current rate:     %lu baud (divisor %u)\n",
+                            i + 1, 115200UL / divisor, divisor);
             }
         } else
             fprintf(report, "COM%u base address:     Not installed\n", i + 1);
@@ -283,7 +372,10 @@ static void report_ports(void)
         } else
             fprintf(report, "LPT%u base address:     Not installed\n", i + 1);
     if (skip_detection)
+    {
         fputs("Port status probing:   Skipped (/I)\n", report);
+        fputs("UART detection:        Skipped (/I)\n", report);
+    }
 }
 
 static void report_input(void)
@@ -609,6 +701,7 @@ static void report_summary(void)
     fprintf(report, "Microsoft Diagnostics-compatible report\n");
     report_os();
     report_computer();
+    report_roms();
     report_memory();
     report_video();
     report_ports();
@@ -657,7 +750,7 @@ static void interactive(void)
     int key;
     for (;;) {
         puts("\nMicrosoft Diagnostics");
-        puts("  C  Computer       M  Memory        V  Video");
+        puts("  C  Computer/ROM   M  Memory        V  Video");
         puts("  D  Disk drives    I  IRQs          R  Drivers");
         puts("  P  Ports          K  Input         G  DOS configuration");
         puts("  N  Network        T  Resident programs  W  Windows");
@@ -667,7 +760,7 @@ static void interactive(void)
         key = getch();
         putchar(key); puts("");
         switch (key) {
-        case 'c': case 'C': report_computer(); break;
+        case 'c': case 'C': report_computer(); report_roms(); break;
         case 'm': case 'M': report_memory(); break;
         case 'v': case 'V': report_video(); break;
         case 'p': case 'P': report_ports(); break;
