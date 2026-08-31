@@ -170,6 +170,7 @@ driver_letters_done:
         mov     dx,OFFSET int2f_handler
         mov     ax,252fh
         int     21h
+        call    install_redirected_drives
 
         mov     es,cs:psp_segment
         mov     es,word ptr es:[2ch]
@@ -219,6 +220,8 @@ terminate:
 ; Resident MSCDEX multiplex API
 ; ---------------------------------------------------------------------------
 int2f_handler PROC FAR
+        cmp     ah,11h
+        je      redirector_dispatch
         cmp     ah,15h
         jne     chain_2f
         cmp     al,00h
@@ -253,6 +256,286 @@ int2f_handler PROC FAR
         je      api_driver_request
 chain_2f:
         jmp     dword ptr cs:old_2f_off
+
+redirector_dispatch:
+        or      al,al
+        jz      redirector_install_check
+        cmp     al,05h
+        je      redirector_chdir
+        cmp     al,06h
+        je      redirector_close
+        cmp     al,07h
+        je      redirector_commit
+        cmp     al,08h
+        je      redirector_read
+        cmp     al,0ch
+        je      redirector_disk_info
+        cmp     al,16h
+        je      redirector_open
+        cmp     al,21h
+        je      redirector_seek_end
+        cmp     al,2eh
+        je      redirector_open
+        jmp     chain_2f
+
+redirector_install_check:
+        mov     al,0ffh
+        iret
+
+redirector_chdir:
+redirector_commit:
+        jmp     api_return_clear
+
+redirector_disk_info:
+        ; One 2048-byte sector per allocation unit; report read-only space.
+        mov     ax,1
+        mov     bx,0ffffh
+        mov     cx,2048
+        xor     dx,dx
+        jmp     api_return_clear
+
+redirector_close:
+        cmp     word ptr es:[di],0
+        je      redirector_close_done
+        dec     word ptr es:[di]
+redirector_close_done:
+        jmp     api_return_clear
+
+redirector_seek_end:
+        add     dx,word ptr es:[di+17]
+        adc     cx,word ptr es:[di+19]
+        mov     word ptr es:[di+21],dx
+        mov     word ptr es:[di+23],cx
+        jmp     api_return_clear
+
+; Resolve the caller's canonical filename with MSCDEX's ISO API and fill the
+; SFT as a read-only remote file.
+redirector_open:
+        cld
+        mov     cs:redir_sft_off,di
+        mov     cs:redir_sft_seg,es
+        push    ds
+        mov     ax,1218h
+        int     2fh
+        mov     bx,[si+6]
+        mov     ax,[si+14]
+        mov     es,ax
+        mov     al,es:[bx]
+        and     al,0dfh
+        sub     al,'A'
+        cmp     al,cs:first_drive
+        jb      redirector_open_not_ours
+        mov     dl,cs:first_drive
+        add     dl,cs:driver_count
+        cmp     al,dl
+        jae     redirector_open_not_ours
+        xor     cx,cx
+        mov     cl,al
+        mov     cs:redir_open_drive,cl
+        add     bx,2
+        push    cs
+        pop     si
+        mov     di,OFFSET vtoc_buffer
+        mov     cs:redir_direct_io,1
+        mov     ax,150fh
+        call    redirector_nested_int2f
+        mov     cs:redir_direct_io,0
+        jnc     short redirector_open_lookup_ok
+        pop     ds
+        jmp     redirector_open_failed
+redirector_open_lookup_ok:
+        pop     ds
+        test    byte ptr cs:vtoc_buffer+25,2
+        jnz     redirector_open_is_dir
+        mov     di,cs:redir_sft_off
+        mov     ax,cs:redir_sft_seg
+        mov     es,ax
+        or      byte ptr es:[di+2],2
+        mov     byte ptr es:[di+4],1
+        mov     ax,8040h
+        xor     bx,bx
+        mov     bl,cs:redir_open_drive
+        or      ax,bx
+        mov     es:[di+5],ax
+        mov     word ptr es:[di+13],0
+        mov     word ptr es:[di+15],0
+        mov     ax,word ptr cs:vtoc_buffer+10
+        mov     word ptr es:[di+17],ax
+        mov     ax,word ptr cs:vtoc_buffer+12
+        mov     word ptr es:[di+19],ax
+        mov     word ptr es:[di+21],0
+        mov     word ptr es:[di+23],0
+        mov     ax,word ptr cs:vtoc_buffer+2
+        mov     word ptr es:[di+25],ax
+        mov     ax,word ptr cs:vtoc_buffer+4
+        mov     word ptr es:[di+27],ax
+        mov     word ptr es:[di+29],0
+        mov     byte ptr es:[di+31],0
+        push    es
+        push    di
+        add     di,32
+        mov     cx,11
+        mov     al,' '
+        rep     stosb
+        pop     di
+        pop     es
+        mov     cx,1
+        xor     ax,ax
+        jmp     api_return_clear
+redirector_open_not_ours:
+        pop     ds
+        jmp     chain_2f
+redirector_open_is_dir:
+        mov     ax,5
+        jmp     api_return_carry
+redirector_open_failed:
+        jmp     api_return_carry
+
+; DOS invokes redirectors with very little stack space.  Run nested MSCDEX
+; filesystem work on a private resident stack before returning to DOS.
+redirector_nested_int2f PROC NEAR
+        pushf
+        pop     cs:redir_saved_flags
+        cli
+        mov     cs:redir_saved_ss,ss
+        mov     cs:redir_saved_sp,sp
+        push    cs
+        pop     ss
+        mov     sp,OFFSET redir_stack_top
+        push    cs:redir_saved_flags
+        popf
+        int     2fh
+        mov     cs:redir_nested_ax,ax
+        pushf
+        pop     cs:redir_nested_flags
+        cli
+        mov     ss,cs:redir_saved_ss
+        mov     sp,cs:redir_saved_sp
+        push    cs:redir_saved_flags
+        popf
+        mov     ax,cs:redir_nested_ax
+        test    cs:redir_nested_flags,1
+        jnz     short redirector_nested_carry
+        clc
+        ret
+redirector_nested_carry:
+        stc
+        ret
+redirector_nested_int2f ENDP
+
+; Copy CX bytes from the ISO extent stored in the SFT to DOS's current DTA.
+redirector_read:
+        cld
+        mov     cs:redir_caller_ds,ds
+        mov     cs:redir_entry_bx,bx
+        mov     cs:redir_entry_dx,dx
+        mov     cs:redir_entry_si,si
+        mov     cs:redir_entry_di,di
+        mov     cs:redir_entry_es,es
+        mov     cs:redir_entry_bp,bp
+        mov     cs:redir_sft_off,di
+        mov     cs:redir_sft_seg,es
+        mov     ax,1218h
+        int     2fh
+        mov     bx,[si+6]
+        mov     ax,[si+14]
+        mov     cs:redir_target_off,bx
+        mov     cs:redir_target_seg,ax
+        mov     ax,cs:redir_sft_seg
+        mov     es,ax
+        mov     di,cs:redir_sft_off
+        mov     ax,word ptr es:[di+17]
+        sub     ax,word ptr es:[di+21]
+        mov     dx,word ptr es:[di+19]
+        sbb     dx,word ptr es:[di+23]
+        or      dx,dx
+        jnz     redirector_read_count_ready
+        cmp     cx,ax
+        jbe     redirector_read_count_ready
+        mov     cx,ax
+redirector_read_count_ready:
+        mov     cs:redir_remaining,cx
+        mov     cs:redir_completed,0
+        or      cx,cx
+        jnz     redirector_read_have_bytes
+        jmp     redirector_read_done
+redirector_read_have_bytes:
+redirector_read_loop:
+        mov     ax,cs:redir_sft_seg
+        mov     es,ax
+        mov     di,cs:redir_sft_off
+        mov     ax,word ptr es:[di+21]
+        mov     dx,word ptr es:[di+23]
+        mov     bx,ax
+        and     bx,2047
+        mov     cs:redir_sector_offset,bx
+        mov     cl,11
+redirector_read_shift:
+        shr     dx,1
+        rcr     ax,1
+        dec     cl
+        jnz     redirector_read_shift
+        add     ax,word ptr es:[di+25]
+        adc     dx,word ptr es:[di+27]
+        push    cs
+        pop     es
+        mov     bx,OFFSET directory_buffer
+        xor     cx,cx
+        mov     cl,cs:redir_open_drive
+        mov     di,ax
+        mov     si,dx
+        mov     dx,1
+        mov     ax,1508h
+        mov     cs:redir_direct_io,1
+        call    redirector_nested_int2f
+        mov     cs:redir_direct_io,0
+        jc      redirector_read_error
+        mov     ax,2048
+        sub     ax,cs:redir_sector_offset
+        cmp     ax,cs:redir_remaining
+        jbe     redirector_read_piece_ready
+        mov     ax,cs:redir_remaining
+redirector_read_piece_ready:
+        mov     cs:redir_piece,ax
+        push    cs
+        pop     ds
+        mov     si,OFFSET directory_buffer
+        add     si,cs:redir_sector_offset
+        mov     es,cs:redir_target_seg
+        mov     di,cs:redir_target_off
+        mov     cx,ax
+        rep     movsb
+        mov     cs:redir_target_off,di
+        mov     ax,cs:redir_piece
+        add     cs:redir_completed,ax
+        sub     cs:redir_remaining,ax
+        mov     bx,cs:redir_sft_off
+        mov     es,cs:redir_sft_seg
+        add     word ptr es:[bx+21],ax
+        adc     word ptr es:[bx+23],0
+        cmp     cs:redir_remaining,0
+        jne     redirector_read_loop
+redirector_read_done:
+        mov     cx,cs:redir_completed
+        mov     ds,cs:redir_caller_ds
+        mov     bx,cs:redir_entry_bx
+        mov     dx,cs:redir_entry_dx
+        mov     si,cs:redir_entry_si
+        mov     di,cs:redir_entry_di
+        mov     es,cs:redir_entry_es
+        mov     bp,cs:redir_entry_bp
+        xor     ax,ax
+        jmp     api_return_clear
+redirector_read_error:
+        mov     ds,cs:redir_caller_ds
+        mov     bx,cs:redir_entry_bx
+        mov     dx,cs:redir_entry_dx
+        mov     si,cs:redir_entry_si
+        mov     di,cs:redir_entry_di
+        mov     es,cs:redir_entry_es
+        mov     bp,cs:redir_entry_bp
+        mov     ax,21
+        jmp     api_return_carry
 
 api_install_check:
         xor     bx,bx
@@ -952,6 +1235,10 @@ read_raw_sector PROC NEAR
         mov     cs:cache_drive,cx
         mov     word ptr cs:cache_sector,di
         mov     word ptr cs:cache_sector+2,si
+        cmp     cs:redir_direct_io,0
+        je      short cache_scan
+        jmp     NEAR PTR cache_miss
+cache_scan:
         xor     dx,dx
 cache_find_loop:
         cmp     dx,cs:buffer_count
@@ -1026,6 +1313,10 @@ cache_miss:
         stc
 read_raw_done:
         jc      read_raw_return
+        cmp     cs:redir_direct_io,0
+        je      short read_raw_cache_store
+        jmp     NEAR PTR read_raw_direct_done
+read_raw_cache_store:
         xor     ax,ax
         mov     al,cs:cache_next
         xor     dx,dx
@@ -1081,15 +1372,72 @@ cache_store_copy:
         je      short cache_store_complete
         call    restore_ems_cache_map
 cache_store_complete:
+read_raw_direct_done:
         xor     ax,ax
         clc
 read_raw_return:
         ret
 read_raw_sector ENDP
 
+; Publish each assigned CD-ROM letter as a read-only network-style CDS.  DOS
+; then routes ordinary path operations through the 11xx redirector calls.
+install_redirected_drives PROC NEAR
+        push    ax
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        push    di
+        push    es
+        mov     ah,52h
+        int     21h
+        mov     dl,es:[bx+33]
+        mov     al,cs:first_drive
+        add     al,cs:driver_count
+        cmp     al,dl
+        ja      install_redirected_done
+        les     di,es:[bx+22]
+        xor     ax,ax
+        mov     al,cs:first_drive
+        mov     cx,88
+        mul     cx
+        add     di,ax
+        xor     cx,cx
+        mov     cl,cs:driver_count
+        mov     al,cs:first_drive
+install_redirected_next:
+        mov     ah,al
+        add     ah,'A'
+        mov     es:[di],ah
+        mov     byte ptr es:[di+1],':'
+        mov     byte ptr es:[di+2],'\'
+        mov     byte ptr es:[di+3],0
+        mov     word ptr es:[di+67],0c000h
+        mov     word ptr es:[di+69],OFFSET redirector_device
+        mov     word ptr es:[di+71],cs
+        mov     word ptr es:[di+73],0
+        mov     word ptr es:[di+75],0
+        mov     word ptr es:[di+77],0
+        mov     word ptr es:[di+79],2
+        mov     byte ptr es:[di+81],4
+        mov     word ptr es:[di+82],0
+        mov     word ptr es:[di+84],0
+        mov     word ptr es:[di+86],0
+        add     di,88
+        inc     al
+        loop    install_redirected_next
+install_redirected_done:
+        pop     es
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
+        ret
+install_redirected_drives ENDP
+
 initialize_ems_cache PROC NEAR
-        ; The resident cache must be able to save and restore the caller's
-        ; complete physical-page map around its temporary page-zero mapping.
         mov     ax,4e03h
         int     67h
         or      ah,ah
@@ -1272,7 +1620,36 @@ ems_frame       dw 0
 ems_slot        dw 0
 ems_offset      dw 0
 ems_map_saved   db 0
+        ALIGN   16
 ems_saved_map   db 256 dup(0)
+redirector_device dd 0ffffffffh
+                  dw 0c800h
+                  dw 0,0
+                  db 'MSCDROM '
+redir_sft_off    dw 0
+redir_sft_seg    dw 0
+redir_open_drive db 0
+redir_direct_io  db 0
+redir_saved_ss    dw 0
+redir_saved_sp    dw 0
+redir_saved_flags dw 0
+redir_nested_ax   dw 0
+redir_nested_flags dw 0
+redir_remaining  dw 0
+redir_completed  dw 0
+redir_target_off dw 0
+redir_target_seg dw 0
+redir_sector_offset dw 0
+redir_piece      dw 0
+redir_caller_ds  dw 0
+redir_entry_bx   dw 0
+redir_entry_dx   dw 0
+redir_entry_si   dw 0
+redir_entry_di   dw 0
+redir_entry_es   dw 0
+redir_entry_bp   dw 0
+redir_stack      db 2048 dup(0)
+redir_stack_top  LABEL BYTE
 cache_data      db MAX_BUFFERS*2048 dup(0)
 resident_end LABEL BYTE
 

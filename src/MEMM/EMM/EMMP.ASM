@@ -842,8 +842,7 @@ _get_map	proc
 	movzx	ecx, [_cntxt_pages]
 	mov	ax, cx
 	stosw					; save # pages
-	shr	cx, 1				; now dwords
-	rep movsd				; mov bytes to current map area
+	rep movsw				; save every mapping word, including an odd tail
 	mov	byte ptr [bp.rAX+1],OK		; ok return
 	ret
 
@@ -893,11 +892,42 @@ _set_map	proc	near
 	lodsw					; saved size
 	cmp	ax, cx				; should be this
 	jne	short sm_inv_source		; Wrong, saved data corrupted
-	shr	cx, 1				; now a word count
-	rep movsd
+	push	fs
+	push	ds
+	pop	fs				; FS:SI -> client's saved map
 	push	es
 	pop	ds				; DS <-- DGROUP
-	jmp	_set_windows			; make it effective
+	Get_FRS_window	DI			; current live mappings
+	xor	ax,ax				; physical page index
+sm_apply_loop:
+	mov	bx,fs:[si]
+	add	si,2
+	cmp	bx,[di]
+	je	short sm_apply_next		; leave unchanged UMB mappings alone
+	cmp	bx,0ffffh
+	je	short sm_apply_unmap
+	push	ax
+	call	map_EMM_page
+	pop	ax
+	jc	short sm_apply_corrupt
+	jmp	short sm_apply_next
+sm_apply_unmap:
+	push	ax
+	call	unmap_Page
+	pop	ax
+sm_apply_next:
+	add	di,2
+	inc	ax
+	loop	sm_apply_loop
+	mov	eax,cr3
+	mov	cr3,eax				; make changed mappings effective
+	pop	fs
+	ret
+
+sm_apply_corrupt:
+	mov	byte ptr [bp.rAX+1],SOURCE_CORRUPTED
+	pop	fs
+	ret
 
 sm_inv_source:
 	push	es

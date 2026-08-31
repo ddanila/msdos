@@ -10,6 +10,7 @@ LOG="$OUT/mscdex-test.log"
 DRIVER="$OUT/MSCDDRV.SYS"
 PROBE="$OUT/MSCAPI.COM"
 EXIT_COM="$OUT/mscdex-qexit.com"
+DOS_PROBE="$OUT/MSCDFILE.COM"
 
 for tool in nasm mcopy qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || { echo "missing required tool: $tool" >&2; exit 1; }
@@ -19,12 +20,15 @@ done
 nasm -f bin "$ROOT/tests/mscd_test_driver.asm" -o "$DRIVER"
 nasm -f bin "$ROOT/tests/mscdex_api_probe.asm" -o "$PROBE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
+nasm -f bin "$ROOT/tests/mscdex_dos_file_probe.asm" -o "$DOS_PROBE"
 cp "$BASE" "$IMAGE"
 mcopy -o -i "$IMAGE" "$ROOT/src/CMD/MSCDEX/MSCDEX.EXE" ::MSCDEX.EXE
 mcopy -o -i "$IMAGE" "$DRIVER" ::MSCDDRV.SYS
 mcopy -o -i "$IMAGE" "$PROBE" ::MSCAPI.COM
 mcopy -o -i "$IMAGE" "$EXIT_COM" ::QEXIT.COM
+mcopy -o -i "$IMAGE" "$DOS_PROBE" ::MSCDFILE.COM
 {
+    printf 'LASTDRIVE=Z\r\n'
     printf 'DEVICE=A:\\HIMEM.SYS /TESTMEM:OFF\r\n'
     printf 'DEVICE=A:\\EMM386.EXE RAM\r\n'
     printf 'DEVICE=A:\\MSCDDRV.SYS /D:MSCD001\r\n'
@@ -37,6 +41,7 @@ mcopy -o -i "$IMAGE" "$EXIT_COM" ::QEXIT.COM
     printf 'IF ERRORLEVEL 1 ECHO MSCDEX_INSTALL_FAILED\r\n'
     printf 'MSCDEX\r\n'
     printf 'ECHO MSCDEX_TEST_DONE\r\n'
+    printf 'MSCDFILE.COM\r\nIF ERRORLEVEL 1 ECHO MSCDEX_DOS_FILE_FAILED\r\n'
     printf 'MSCAPI.COM\r\nIF ERRORLEVEL 1 ECHO MSCDEX_API_FAILED\r\nQEXIT.COM\r\n'
 } | mcopy -o -i "$IMAGE" - ::AUTOEXEC.BAT
 
@@ -52,13 +57,13 @@ for marker in \
     "Device driver not found: 'NOTHERE'." \
     'No valid CDROM device drivers selected' \
     'MSCDEX Version 2.23' 'Cache storage: expanded memory' \
-    'Drive assigned to driver: E:' \
+    'Drive assigned to driver: E:' 'MSCDEX_DOS_FILE_PASS' \
     'MSCDEX_API_PASS' 'MSCDEX already installed.' 'MSCDEX_TEST_DONE'; do
     grep -Fq "$marker" "$LOG" || { echo "missing MSCDEX evidence: $marker" >&2; sed -n '1,180p' "$LOG" >&2; exit 1; }
 done
-if grep -Eq 'MSCDEX_(HELP_STATUS_BAD|MISSING_ACCEPTED|INSTALL_FAILED|API_FAILED)' "$LOG"; then
+if grep -Eq 'MSCDEX_(HELP_STATUS_BAD|MISSING_ACCEPTED|INSTALL_FAILED|DOS_FILE_FAILED|API_FAILED)' "$LOG"; then
     sed -n '1,180p' "$LOG" >&2
     exit 1
 fi
 
-echo '  PASS: MSCDEX ISO/media APIs, EMS caching, and external page-map preservation'
+echo '  PASS: MSCDEX DOS file access, ISO/media APIs, EMS caching, and external page-map preservation'

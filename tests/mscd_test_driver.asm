@@ -213,7 +213,19 @@ interrupt:
     je .nested_directory
     cmp word [es:di + 20], 22
     je .supplementary_directory
+    cmp word [es:di + 20], 30
+    je .root_file
     jne .request_error
+.root_file:
+    mov word [bx], 'DO'
+    mov word [bx + 2], 'S_'
+    mov word [bx + 4], 'FI'
+    mov word [bx + 6], 'LE'
+    mov word [bx + 8], '_O'
+    mov byte [bx + 10], 'K'
+    mov byte [bx + 11], 13
+    mov byte [bx + 12], 10
+    jmp .complete
 .terminating_vtoc:
     mov byte [bx], 0ffh
     jmp .complete
@@ -268,7 +280,7 @@ interrupt:
     mov byte [bx], 46
     mov word [bx + 2], 30
     mov word [bx + 4], 0
-    mov word [bx + 10], 12
+    mov word [bx + 10], 13
     mov word [bx + 12], 0
     mov byte [bx + 25], 0
     mov byte [bx + 32], 12
