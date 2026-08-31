@@ -35,6 +35,7 @@ struct options {
     unsigned reserve_two;
     int expanded_memory;
     int monochrome_region;
+    int interactive_selected;
 };
 
 static unsigned char file_buffer[2048];
@@ -62,12 +63,19 @@ static unsigned tsr_load_sizes[MAX_MEASUREMENTS];
 static unsigned char tsr_selected[MAX_MEASUREMENTS];
 static unsigned char tsr_regions[MAX_MEASUREMENTS];
 static unsigned umb_region_sizes[16];
+static int ui_mouse_available;
+static int ui_mouse_latched;
+static unsigned ui_mouse_x;
+static unsigned ui_mouse_y;
+
+#define UI_MOUSE_KEY 0x100
 
 #define WINDOWS_UNKNOWN 0
 #define WINDOWS_30      30
 #define WINDOWS_31      31
 
 static int ask_yes_no(const char *prompt);
+static int interactive_mode(struct options *options);
 
 static unsigned umb_region_size(unsigned region)
 {
@@ -1260,6 +1268,89 @@ static int ask_yes_no(const char *prompt)
     return answer == 'Y';
 }
 
+static void clear_interface(void)
+{
+    union REGS regs;
+    memset(&regs, 0, sizeof(regs));
+    regs.h.ah = 6;
+    regs.h.bh = 7;
+    regs.x.dx = 0x184f;
+    int86(0x10, &regs, &regs);
+    memset(&regs, 0, sizeof(regs));
+    regs.h.ah = 2;
+    int86(0x10, &regs, &regs);
+}
+
+static void initialize_ui_mouse(void)
+{
+    union REGS regs;
+    void interrupt far (*handler)(void) = _dos_getvect(0x33);
+    ui_mouse_available = 0;
+    if (!handler || (!FP_SEG(handler) && !FP_OFF(handler))) return;
+    memset(&regs, 0, sizeof(regs));
+    int86(0x33, &regs, &regs);
+    if (regs.x.ax != 0xffff) return;
+    ui_mouse_available = 1;
+    regs.x.ax = 1;
+    int86(0x33, &regs, &regs);
+}
+
+static int interface_key(void)
+{
+    union REGS regs;
+    for (;;) {
+        if (kbhit()) return getch();
+        if (ui_mouse_available) {
+            memset(&regs, 0, sizeof(regs));
+            regs.x.ax = 3;
+            int86(0x33, &regs, &regs);
+            if (!(regs.x.bx & 1)) {
+                ui_mouse_latched = 0;
+            } else if (!ui_mouse_latched) {
+                ui_mouse_latched = 1;
+                ui_mouse_x = regs.x.cx;
+                ui_mouse_y = regs.x.dx;
+                return UI_MOUSE_KEY;
+            }
+        }
+        memset(&regs, 0, sizeof(regs));
+        int86(0x28, &regs, &regs);
+    }
+}
+
+static int interactive_mode(struct options *options)
+{
+    int key;
+    initialize_ui_mouse();
+again:
+    clear_interface();
+    puts("Microsoft MemMaker");
+    puts("==================");
+    puts("Choose a memory-optimization setup:");
+    puts("[ Express ]   [ Custom ]   [ Undo ]   [ Exit ]");
+    puts("E/C/U selects a mode; ESC exits.");
+    printf("Mouse navigation: %s.\n",
+           ui_mouse_available ? "available" : "not installed");
+    key = interface_key();
+    if (key == UI_MOUSE_KEY) {
+        if (ui_mouse_y / 8U != 3) goto again;
+        if (ui_mouse_x < 88) key = 'E';
+        else if (ui_mouse_x < 184) key = 'C';
+        else if (ui_mouse_x < 264) key = 'U';
+        else key = 27;
+    }
+    if (key == 27) return -1;
+    if (key == 'e' || key == 'E') {
+        options->custom = 0;
+    } else if (key == 'c' || key == 'C') {
+        options->custom = 1;
+    } else if (key == 'u' || key == 'U') {
+        options->undo = 1;
+    } else goto again;
+    options->interactive_selected = 1;
+    return 0;
+}
+
 static int optimize(unsigned drive, struct options *options,
                     const char *program)
 {
@@ -1289,7 +1380,7 @@ static int optimize(unsigned drive, struct options *options,
             separator = strrchr(system_temp, '/');
         strcpy(separator + 1, "SYSTEM.MMT");
     }
-    if (!options->batch) {
+    if (!options->batch && !options->interactive_selected) {
         if (!options->custom) {
             fputs("Use Express Setup to optimize memory (Y/N)? ", stdout);
             fflush(stdout);
@@ -1359,6 +1450,7 @@ int main(int argc, char **argv)
     struct options options;
     union REGS regs;
     unsigned drive;
+    int result;
     const char *fault = getenv("MEMMAKER_FAULT");
     if (fault) {
         strncpy(injected_point, fault, sizeof(injected_point) - 1U);
@@ -1375,6 +1467,11 @@ int main(int argc, char **argv)
         regs.x.ax = 0x3305;
         intdos(&regs, &regs);
         drive = regs.h.dl ? regs.h.dl - 1U : 2U;
+    }
+    if (!options.batch && !options.custom && !options.undo &&
+        !options.session && !options.final) {
+        result = interactive_mode(&options);
+        if (result < 0) return 0;
     }
     if (options.undo)
         return restore_files(drive, &options);
