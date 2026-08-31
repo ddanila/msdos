@@ -107,6 +107,13 @@ discovery_request:
         call    send_status
         mov     al,cs:drive_count
         call    send_byte
+        xor     bx,bx
+discovery_drive_loop:
+        mov     al,cs:server_drives[bx]
+        call    send_byte
+        inc     bx
+        cmp     bl,cs:drive_count
+        jb      discovery_drive_loop
         jmp     server_loop
 
 geometry_request:

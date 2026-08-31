@@ -21,6 +21,7 @@ QEXIT="$OUT/interlnk-qexit.com"
 ALT_F4="$OUT/alt-f4.com"
 OFFLINE_PROBE="$OUT/interlnk-offline.com"
 OFFLINE_CONTINUE="$OUT/interlnk-offline-continue.com"
+MAPPING_PROBE="$OUT/interlnk-mapping.com"
 AUTO_PROBE="$OUT/interlnk-auto.com"
 PORT=18666
 PROXY_PORT=18667
@@ -40,6 +41,7 @@ nasm -DEXPECT_INSTALLED -DEXPECT_PRINTER_OFF -f bin \
     "$ROOT/tests/interlnk_offline_probe.asm" -o "$OFFLINE_PROBE"
 nasm -DEXPECT_INSTALLED -DDO_RECONNECT -DNO_QEMU_EXIT -f bin "$ROOT/tests/interlnk_offline_probe.asm" -o "$OFFLINE_CONTINUE"
 nasm -f bin "$ROOT/tests/interlnk_offline_probe.asm" -o "$AUTO_PROBE"
+nasm -f bin "$ROOT/tests/interlnk_mapping_probe.asm" -o "$MAPPING_PROBE"
 cp "$BASE" "$SERVER_IMAGE"
 cp "$BASE" "$CLIENT_IMAGE"
 mformat -C -i "$SERVER_IMAGE_TWO" -f 1440 ::
@@ -52,9 +54,10 @@ printf '\r\n' | mcopy -o -i "$SERVER_IMAGE" - ::CONFIG.SYS
 mcopy -o -i "$CLIENT_IMAGE" "$ROOT/src/CMD/INTERLNK/INTERLNK.EXE" ::INTERLNK.EXE
 mcopy -o -i "$CLIENT_IMAGE" "$PROBE" ::ILPROBE.COM
 mcopy -o -i "$CLIENT_IMAGE" "$OFFLINE_CONTINUE" ::OFFLINE.COM
+mcopy -o -i "$CLIENT_IMAGE" "$MAPPING_PROBE" ::MAPPING.COM
 mcopy -o -i "$CLIENT_IMAGE" "$QEXIT" ::QEXIT.COM
 printf 'LASTDRIVE=Z\r\nDEVICE=A:\\INTERLNK.EXE /DRIVES:2 /NOSCAN /BAUD:57600\r\n' | mcopy -o -i "$CLIENT_IMAGE" - ::CONFIG.SYS
-printf '@ECHO OFF\r\nOFFLINE.COM\r\nIF ERRORLEVEL 1 ECHO failed>RECONERR.TAG\r\nINTERLNK /RECONNECT\r\nIF ERRORLEVEL 1 ECHO failed>RECONERR.TAG\r\nILPROBE.COM\r\nQEXIT.COM\r\n' | mcopy -o -i "$CLIENT_IMAGE" - ::AUTOEXEC.BAT
+printf '@ECHO OFF\r\nOFFLINE.COM\r\nIF ERRORLEVEL 1 ECHO failed>RECONERR.TAG\r\nINTERLNK C:=B:\r\nINTERLNK D:=\r\nMAPPING.COM\r\nILPROBE.COM\r\nQEXIT.COM\r\n' | mcopy -o -i "$CLIENT_IMAGE" - ::AUTOEXEC.BAT
 
 rm -f "$LOG" "$SERVER_LOG" "$CLIENT_LOG" \
     "$PRINTER1_OUT" "$PRINTER2_OUT" "$PRINTER3_OUT"
@@ -98,6 +101,7 @@ grep -Fq 'INTERLNK_TRANSPORT_PASS' "$LOG" || {
     cat "$CLIENT_LOG" >&2
     exit 1
 }
+grep -Fq 'INTERLNK_MAPPING_PASS' "$LOG"
 grep -Fq 'blackout dropped sector response 3' "$OUT/interlnk-proxy.log"
 grep -Fq 'truncated sector response 5' "$OUT/interlnk-proxy.log"
 grep -Fq 'corrupted sector response 7' "$OUT/interlnk-proxy.log"

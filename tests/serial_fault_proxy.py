@@ -70,6 +70,7 @@ def forward_requests(data):
         request = bytearray(client_stream[:request_size])
         del client_stream[:request_size]
         request_number += 1
+        print(f"request {request_number} command {command} unit {request[3]}", flush=True)
         identity = bytes(request[3:8])
         if command == 2 and retry_identity == identity:
             print("retried read sector", flush=True)
@@ -100,10 +101,16 @@ def forward_replies(data):
     server_stream.extend(data)
     while pending:
         command, identity = pending[0]
-        response_size = 4 if command in (0, 4) else (517 if command in (1, 2) else 3)
+        if command == 0:
+            if len(server_stream) < 4:
+                return
+            response_size = 4 + server_stream[3]
+        else:
+            response_size = 4 if command == 4 else (517 if command in (1, 2) else 3)
         if len(server_stream) < response_size:
             return
         response = bytearray(server_stream[:response_size])
+        print(f"reply command {command} bytes {response_size}", flush=True)
         del server_stream[:response_size]
         pending.pop(0)
         if command == 2 and response[:3] == b"\x5a\xa5\x00":

@@ -8,14 +8,20 @@ start:
         mov     cl,byte ptr ds:[80h]
         mov     si,81h
 command_skip_space:
-        jcxz    command_query
+        or      cx,cx
+        jnz     short command_have_character
+        jmp     command_query
+command_have_character:
         lodsb
         dec     cx
         cmp     al,' '
         je      command_skip_space
         cmp     al,'/'
-        jne     command_syntax
-        jcxz    command_syntax
+        jne     command_mapping
+        or      cx,cx
+        jnz     short command_have_switch
+        jmp     command_syntax
+command_have_switch:
         lodsb
         dec     cx
         cmp     al,'?'
@@ -50,6 +56,63 @@ command_reconnect:
         cmp     ax,0ff00h
         jne     not_installed
         mov     dx,OFFSET reconnected
+        mov     ah,9
+        int     21h
+        mov     ax,4c00h
+        int     21h
+command_mapping:
+        and     al,0dfh
+        sub     al,'A'
+        cmp     al,25
+        ja      command_syntax
+        mov     bl,al
+        jcxz    command_syntax
+        lodsb
+        dec     cx
+        cmp     al,':'
+        jne     short command_mapping_equal
+        jcxz    command_syntax
+        lodsb
+        dec     cx
+command_mapping_equal:
+        cmp     al,'='
+        jne     command_syntax
+        mov     bh,0ffh
+command_mapping_server_space:
+        jcxz    command_mapping_apply
+        lodsb
+        dec     cx
+        cmp     al,' '
+        je      command_mapping_server_space
+        and     al,0dfh
+        sub     al,'A'
+        cmp     al,25
+        ja      command_syntax
+        mov     bh,al
+        jcxz    command_mapping_apply
+        lodsb
+        dec     cx
+        cmp     al,':'
+        jne     short command_mapping_tail_char
+        jcxz    command_mapping_apply
+        lodsb
+        dec     cx
+command_mapping_tail_char:
+        cmp     al,' '
+        jne     command_syntax
+command_mapping_tail:
+        jcxz    command_mapping_apply
+        lodsb
+        dec     cx
+        cmp     al,' '
+        je      command_mapping_tail
+        jmp     command_syntax
+command_mapping_apply:
+        mov     ax,0e903h
+        int     2fh
+        cmp     ax,0ff00h
+        jne     not_installed
+        mov     dx,OFFSET remapped
         mov     ah,9
         int     21h
         mov     ax,4c00h
@@ -107,11 +170,13 @@ banner_port db '0',13,10
 banner_count db '0',13,10,'$'
 missing db 'INTERLNK is not installed or the server is unavailable.',13,10,'$'
 syntax  db 'Invalid INTERLNK parameter.',13,10,'$'
-help    db 'Displays or renews the Interlnk client connection.',13,10
-        db 'Syntax: INTERLNK [/RECONNECT]',13,10
+help    db 'Displays or changes the Interlnk client connection.',13,10
+        db 'Syntax: INTERLNK [client[:]=[server][:]]',13,10
+        db 'Repository extension: INTERLNK /RECONNECT',13,10
         db 'CONFIG.SYS: DEVICE=INTERLNK.EXE [/DRIVES:n] [/NOPRINTER] [/COM:n] [/BAUD:rate] [/AUTO] [/NOSCAN] [/V]',13,10,'$'
 reconnect_name db 'RECONNECT'
 reconnected db 'Interlnk connection renewed.',13,10,'$'
+remapped db 'Interlnk drive redirection updated.',13,10,'$'
 CODE ENDS
 STACKSEG SEGMENT PARA STACK 'STACK'
         db 256 dup(0)

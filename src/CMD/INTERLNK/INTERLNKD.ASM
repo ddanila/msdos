@@ -22,8 +22,14 @@ bpb_pointers    dw 5 dup(0)
 remote_bpbs     db 125 dup(0)
 boot_sector     db 512 dup(0)
 current_unit    db 0
+io_unit         db 0
 drive_limit     db 5
 installed_units db 0
+server_units    db 0
+first_drive     db 0
+unit_map        db 0,1,2,3,4
+unit_changed    db 5 dup(0)
+remote_drives   db 5 dup(0ffh)
 
 strategy PROC FAR
         mov     word ptr cs:request_ptr,bx
@@ -108,6 +114,9 @@ init_install:
         je      short request_init_done
         call    install_printer
 request_init_done:
+        lds     bx,cs:request_ptr
+        mov     al,[bx+22]
+        mov     cs:first_drive,al
         jmp     request_done
 init_failed:
         lds     bx,cs:request_ptr
@@ -125,6 +134,8 @@ prepare_offline_units PROC NEAR
         mov     al,cs:drive_limit
         mov     cs:unit_count,al
         mov     cs:installed_units,al
+        or      al,al
+        jz      short offline_bpb_done
         xor     bx,bx
 offline_bpb_loop:
         mov     ax,bx
@@ -144,6 +155,7 @@ offline_bpb_loop:
         mov     al,cs:unit_count
         cmp     bx,ax
         jb      short offline_bpb_loop
+offline_bpb_done:
         ret
 prepare_offline_units ENDP
 
@@ -196,6 +208,7 @@ connect_on_port PROC NEAR
         jz      init_failed_connect
         cmp     al,5
         ja      init_failed_connect
+        mov     cs:server_units,al
         cmp     al,cs:drive_limit
         jbe     short init_count_ready
         mov     al,cs:drive_limit
@@ -209,6 +222,14 @@ init_store_count:
         mov     cs:unit_count,al
         mov     cs:installed_units,al
 init_have_count:
+        xor     bx,bx
+init_drive_name_loop:
+        call    receive_byte
+        jc      init_failed_connect
+        mov     cs:remote_drives[bx],al
+        inc     bx
+        cmp     bl,cs:server_units
+        jb      init_drive_name_loop
         mov     cs:current_unit,0
 init_geometry_loop:
         mov     al,1
@@ -239,7 +260,7 @@ init_geometry_loop:
         rep     movsb
         inc     cs:current_unit
         mov     al,cs:current_unit
-        cmp     al,cs:unit_count
+        cmp     al,cs:server_units
         jb      init_geometry_loop
         mov     cs:connected,1
         clc
@@ -251,6 +272,17 @@ init_failed_connect:
 connect_on_port ENDP
 
 request_media:
+        xor     ax,ax
+        mov     al,[bx+1]
+        cmp     al,cs:unit_count
+        jae     request_bad_command
+        mov     si,ax
+        cmp     cs:unit_changed[si],0
+        je      short request_media_unchanged
+        mov     byte ptr cs:unit_changed[si],0
+        mov     byte ptr [bx+14],0ffh
+        jmp     request_done
+request_media_unchanged:
         mov     byte ptr [bx+14],1
         jmp     request_done
 request_bpb:
@@ -258,6 +290,12 @@ request_bpb:
         mov     al,[bx+1]
         cmp     al,cs:unit_count
         jae     request_bad_command
+        xor     ah,ah
+        mov     si,ax
+        mov     al,cs:unit_map[si]
+        cmp     al,0ffh
+        je      request_not_ready
+        xor     ah,ah
         shl     ax,1
         mov     si,ax
         mov     ax,cs:bpb_pointers[si]
@@ -369,7 +407,13 @@ prepare_io PROC NEAR
         mov     al,[bx+1]
         cmp     al,cs:unit_count
         jae     short prepare_bad
+        xor     ah,ah
+        xor     si,si
+        mov     si,ax
+        cmp     cs:unit_map[si],0ffh
+        je      short prepare_bad
         mov     cs:current_unit,al
+        mov     cs:io_unit,al
         mov     cx,[bx+18]
         jcxz    short prepare_bad
         mov     cs:io_remaining,cx
@@ -388,9 +432,17 @@ prepare_bad:
 prepare_io ENDP
 
 send_current_request PROC NEAR
+        push    bx
+        xor     bx,bx
+        mov     bl,cs:io_unit
+        mov     bl,cs:unit_map[bx]
+        mov     bh,cs:current_unit
+        mov     cs:current_unit,bl
         mov     al,cs:io_command
         mov     dx,word ptr cs:sector_number
         call    send_request
+        mov     cs:current_unit,bh
+        pop     bx
         ret
 send_current_request ENDP
 
@@ -1255,12 +1307,16 @@ chain_printer:
 printer_handler ENDP
 
 multiplex PROC FAR
+        cmp     ax,0e904h
+        je      multiplex_query_map
+        cmp     ax,0e903h
+        je      multiplex_set_map
         cmp     ax,0e902h
-        je      short multiplex_disconnect
+        je      multiplex_disconnect
         cmp     ax,0e901h
-        je      short multiplex_reconnect
+        je      multiplex_reconnect
         cmp     ax,0e900h
-        jne     short chain_multiplex
+        jne     chain_multiplex
         mov     ax,0ff00h
         xor     bx,bx
         mov     bl,cs:connected
@@ -1273,6 +1329,68 @@ multiplex PROC FAR
         je      short multiplex_status_done
         inc     si
 multiplex_status_done:
+        iret
+multiplex_query_map:
+        cmp     bl,cs:unit_count
+        jae     multiplex_map_error
+        xor     bh,bh
+        mov     dl,cs:first_drive
+        add     dl,bl
+        mov     al,cs:unit_map[bx]
+        mov     dh,0ffh
+        cmp     al,0ffh
+        je      short multiplex_map_query_done
+        xor     bx,bx
+        mov     bl,al
+        mov     dh,cs:remote_drives[bx]
+multiplex_map_query_done:
+        mov     ax,0ff00h
+        iret
+multiplex_set_map:
+        cmp     bl,cs:first_drive
+        jb      short multiplex_map_error
+        sub     bl,cs:first_drive
+        cmp     bl,cs:unit_count
+        jae     short multiplex_map_error
+        cmp     bh,0ffh
+        je      short multiplex_map_store
+        push    bx
+        xor     si,si
+multiplex_map_find:
+        cmp     bh,cs:remote_drives[si]
+        je      short multiplex_map_found
+        inc     si
+        xor     ax,ax
+        mov     al,cs:unit_count
+        cmp     si,ax
+        jb      multiplex_map_find
+        pop     bx
+        jmp     short multiplex_map_error
+multiplex_map_found:
+        pop     ax
+        mov     bl,al
+        mov     ax,si
+        mov     bh,al
+multiplex_map_store:
+        mov     dl,bh
+        xor     bh,bh
+        mov     cs:unit_map[bx],dl
+        mov     byte ptr cs:unit_changed[bx],1
+        cmp     dl,0ffh
+        je      short multiplex_map_success
+        mov     al,dl
+        xor     ah,ah
+        mov     si,ax
+        mov     ax,25
+        mul     si
+        add     ax,OFFSET remote_bpbs
+        shl     bx,1
+        mov     cs:bpb_pointers[bx],ax
+multiplex_map_success:
+        mov     ax,0ff00h
+        iret
+multiplex_map_error:
+        xor     ax,ax
         iret
 multiplex_disconnect:
         mov     cs:connected,0
