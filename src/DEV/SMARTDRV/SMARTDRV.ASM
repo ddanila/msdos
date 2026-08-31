@@ -424,6 +424,7 @@ INT13TBL  LABEL   WORD
 BREAK	<Device Control data>
 
 STATISTICS_SIZE EQU	40
+STATISTICS_EXTENDED_SIZE EQU 48
 
 DRIVER_SEL	DB	0	; 0 if /E (TYPE 1), 1 if /A (TYPE 2),
 
@@ -571,6 +572,16 @@ LOCK_CACHE DB	0
 ; Non-0 if ALL I/O is to be cached
 ;
 ALL_CACHE DB 1
+
+; DOS 6 SMARTDRV-compatible transfer tuning.  ELEMENT_WORDS is used by
+; the 386 protected-mode mover; the byte values are exposed through the
+; status IOCTL so SMARTDRV.EXE can preserve either setting when changing
+; the other.
+ELEMENT_SIZE DW 8192
+READ_AHEAD_SIZE DW 16384
+ELEMENT_WORDS DW 4096
+MOVE_CHUNKS DD 0
+STATUS_EXTENDED DB 0
 
 ;
 ; 0 if reboot flush is disabled
@@ -819,6 +830,11 @@ ASSUME	DS:INT13CODE,ES:NOTHING,SS:NOTHING
 	CLD
 	CMP	CX,STATISTICS_SIZE	; Must have room to transfer data.
 	JB	SET_ZRJ3		; Not enough room from user
+	MOV	[STATUS_EXTENDED],0
+	CMP	CX,STATISTICS_EXTENDED_SIZE
+	JB	STATUS_SIZE_READY
+	MOV	[STATUS_EXTENDED],1
+STATUS_SIZE_READY:
 	MOV	[TOTAL_USED],0
 	MOV	[TOTAL_LOCKED],0
 	MOV	[TOTAL_DIRTY],0
@@ -885,9 +901,25 @@ no_remaind:
 	stosw
 	mov	ax,MIN_CACHE_SIZE_K / 16
 	stosw
+	CMP	BYTE PTR [STATUS_EXTENDED],0
+	JE	STATUS_TRANSFER_DONE
+	mov	ax,[ELEMENT_SIZE]
+	stosw
+	mov	ax,[READ_AHEAD_SIZE]
+	stosw
+	mov	ax,word ptr [MOVE_CHUNKS]
+	stosw
+	mov	ax,word ptr [MOVE_CHUNKS + 2]
+	stosw
+STATUS_TRANSFER_DONE:
 	LDS	BX,[PTRSAV]
 ASSUME	DS:NOTHING
-	MOV	[BX.RW_COUNT],STATISTICS_SIZE ; transfer amount
+	MOV	AX,STATISTICS_SIZE
+	CMP	BYTE PTR CS:[STATUS_EXTENDED],0
+	JE	STATUS_COUNT_READY
+	MOV	AX,STATISTICS_EXTENDED_SIZE
+STATUS_COUNT_READY:
+	MOV	[BX.RW_COUNT],AX 	; transfer amount
 	JMP	DEVEXIT
 
 BREAK	<IOCTL Write functions (set device control parms and do flushes)>
@@ -898,7 +930,7 @@ BREAK	<IOCTL Write functions (set device control parms and do flushes)>
 ;	table. The first byte is the maximum legal function code, then the word
 ;	addresses of the handlers for each function.
 ;
-IOCTLTBL DB	0Eh
+IOCTLTBL DB	0Fh
 	DW	IOCTL_FLUSH		  ; Function 0h
 	DW	IOCTL_FLUSH_INVALID	  ; Function 1h
 	DW	IOCTL_DISABLE		  ; Function 2h
@@ -914,6 +946,7 @@ IOCTLTBL DB	0Eh
 	dw	ioctl_increase_cache_size ; Function Ch
 	DW	IOCTL_DRIVE_POLICY	  ; Function Dh
 	DW	IOCTL_DRIVE_QUERY	  ; Function Eh
+	DW	IOCTL_TRANSFER_TUNING	  ; Function Fh
 
 SET_ZR:
 ASSUME	DS:INT13CODE,ES:NOTHING,SS:NOTHING
@@ -1177,6 +1210,8 @@ ASSUME	DS:INT13CODE,ES:NOTHING,SS:NOTHING
 	MOV	WORD PTR [TOTAL_READS + 2],AX
 	MOV	WORD PTR [READ_HITS],AX
 	MOV	WORD PTR [READ_HITS + 2],AX
+	MOV	WORD PTR [MOVE_CHUNKS],AX
+	MOV	WORD PTR [MOVE_CHUNKS + 2],AX
 	JMP	DEVEXIT
 
 ;**	IOCTL_ALL_CACHE -- En/Disable All cache
@@ -1204,6 +1239,38 @@ ASSUME	DS:INT13CODE,ES:NOTHING,SS:NOTHING
 
 SET_ZRJ2:
 	JMP	SET_ZR
+
+; Packet: 0Fh, element size word, read-ahead size word.  Element size is
+; one of 1K, 2K, 4K, or 8K; read-ahead is a multiple of the element size.
+IOCTL_TRANSFER_TUNING:
+ASSUME	DS:INT13CODE,ES:NOTHING,SS:NOTHING
+	CMP	CX,5
+	JB	SET_ZRJ2
+	MOV	AX,ES:[DI+1]
+	CMP	AX,1024
+	JE	TRANSFER_ELEMENT_OK
+	CMP	AX,2048
+	JE	TRANSFER_ELEMENT_OK
+	CMP	AX,4096
+	JE	TRANSFER_ELEMENT_OK
+	CMP	AX,8192
+	JNE	SET_ZRJ2
+TRANSFER_ELEMENT_OK:
+	MOV	BX,ES:[DI+3]
+	OR	BX,BX
+	JZ	SET_ZRJ2
+	XCHG	AX,BX
+	XOR	DX,DX
+	DIV	BX
+	OR	DX,DX
+	JNZ	SET_ZRJ2
+	MOV	AX,ES:[DI+1]
+	MOV	[ELEMENT_SIZE],AX
+	SHR	AX,1
+	MOV	[ELEMENT_WORDS],AX
+	MOV	AX,ES:[DI+3]
+	MOV	[READ_AHEAD_SIZE],AX
+	JMP	DEVEXIT
 
 ; Packet: 0Dh, BIOS hard-disk index (0 = 80h), policy.  Policy 0 bypasses
 ; caching, 1 caches reads, and 2 caches reads plus delayed writes.
@@ -4096,12 +4163,16 @@ set_trans_1:
 	mov	bx,cx
 assume ds:nothing
 pr_io_agn_1:
-	mov	cx,1024
+	mov	cx,cs:[ELEMENT_WORDS]
 	cmp	bx,cx
 	ja	pr_strt_1
 	mov	cx,bx
 pr_strt_1:
 	sub	bx,cx
+	inc	word ptr cs:[MOVE_CHUNKS]
+	jnz	move_chunk_counted
+	inc	word ptr cs:[MOVE_CHUNKS + 2]
+move_chunk_counted:
 	cli		; Un interruptable
 	cld
 	lgdt	fword ptr emm_gdt

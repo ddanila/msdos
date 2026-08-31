@@ -37,7 +37,7 @@ printf 'DEVICE=SMARTDRV.SYS 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
     printf 'SMARTDRV /?\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_HELP_FAILED\r\n'
     printf 'ECHO SMARTDRV_SIZE_256_BEGIN\r\nSMARTDRV /S\r\nECHO SMARTDRV_SIZE_256_END\r\n'
-    printf 'ECHO SMARTDRV_QUIET_BEGIN\r\nSMARTDRV /B:32 /E:4096 /L /U /Q 128 64\r\nECHO SMARTDRV_QUIET_END\r\n'
+    printf 'ECHO SMARTDRV_QUIET_BEGIN\r\nSMARTDRV /B:16384 /E:4096 /L /U /Q 128 64\r\nECHO SMARTDRV_QUIET_END\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_INSTALL_OPTIONS_FAILED\r\n'
     printf 'ECHO SMARTDRV_SIZE_128_BEGIN\r\nSMARTDRV /S\r\nECHO SMARTDRV_SIZE_128_END\r\n'
     printf 'SMARTDRV 256 /Q\r\n'
@@ -51,6 +51,15 @@ printf 'DEVICE=SMARTDRV.SYS 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
     printf 'SMARTDRV /R\r\n'
     printf 'SMARTDRV C+ /F /V\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_CONFIG_FAILED\r\n'
+    printf 'SMARTDRV /E:1024 /Q\r\n'
+    printf 'ECHO SMARTDRV_SMALL_BEFORE_BEGIN\r\nSMARTDRV /S\r\nECHO SMARTDRV_SMALL_BEFORE_END\r\n'
+    printf 'SDIO.COM\r\nSMARTDRV /C\r\n'
+    printf 'ECHO SMARTDRV_SMALL_AFTER_BEGIN\r\nSMARTDRV /S\r\nECHO SMARTDRV_SMALL_AFTER_END\r\n'
+    printf 'SMARTDRV /R\r\nSMARTDRV /E:8192 /Q\r\n'
+    printf 'ECHO SMARTDRV_LARGE_BEFORE_BEGIN\r\nSMARTDRV /S\r\nECHO SMARTDRV_LARGE_BEFORE_END\r\n'
+    printf 'SDIO.COM\r\nSMARTDRV /C\r\n'
+    printf 'ECHO SMARTDRV_LARGE_AFTER_BEGIN\r\nSMARTDRV /S\r\nECHO SMARTDRV_LARGE_AFTER_END\r\n'
+    printf 'SMARTDRV /E:4096 /Q\r\nSMARTDRV /R\r\n'
     printf 'SDIO.COM\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_IO_FAILED\r\n'
     printf 'ECHO SMARTDRV_DIRTY_BEGIN\r\nSMARTDRV /S\r\nECHO SMARTDRV_DIRTY_END\r\n'
@@ -80,6 +89,17 @@ nowrite_status="$(sed -n '/SMARTDRV_NOWRITE_BEGIN/,/SMARTDRV_NOWRITE_END/p' "$SE
 size_256="$(sed -n '/SMARTDRV_SIZE_256_BEGIN/,/SMARTDRV_SIZE_256_END/p' "$SERIAL_LOG")"
 size_128="$(sed -n '/SMARTDRV_SIZE_128_BEGIN/,/SMARTDRV_SIZE_128_END/p' "$SERIAL_LOG")"
 size_restored="$(sed -n '/SMARTDRV_SIZE_RESTORED_BEGIN/,/SMARTDRV_SIZE_RESTORED_END/p' "$SERIAL_LOG")"
+move_count() {
+    sed -n "/$1_BEGIN/,/$1_END/p" "$SERIAL_LOG" \
+        | sed -n 's/.*movement chunks: \([0-9][0-9]*\).*/\1/p' \
+        | tail -1
+}
+small_before="$(move_count SMARTDRV_SMALL_BEFORE)"
+small_after="$(move_count SMARTDRV_SMALL_AFTER)"
+large_before="$(move_count SMARTDRV_LARGE_BEFORE)"
+large_after="$(move_count SMARTDRV_LARGE_AFTER)"
+small_delta=$((small_after - small_before))
+large_delta=$((large_after - large_before))
 sector_matches="$(python3 - "$HDD_IMG" <<'PY'
 import sys
 with open(sys.argv[1], 'rb') as f:
@@ -96,6 +116,8 @@ if [[ "$(grep -c 'SMARTDRV_QUIET_' <<<"$quiet_output")" == 2 ]] \
     && grep -q 'Tracks: 4 total' <<<"$size_128" \
     && grep -q 'Cache size: 256K current, 256K maximum, 128K minimum' <<<"$size_restored" \
     && grep -q 'Tracks: 8 total' <<<"$size_restored" \
+    && grep -q 'Transfer element: 4096 bytes; read-ahead: 16384 bytes' <<<"$size_128" \
+    && (( small_delta > large_delta )) \
     && grep -q 'C:  Read cache no  Write cache no' <<<"$off_status" \
     && grep -q 'C:  Read cache yes  Write cache no' <<<"$read_status" \
     && grep -q 'C:  Read cache yes  Write cache no' <<<"$nowrite_status" \

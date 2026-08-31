@@ -9,6 +9,8 @@ typedef struct {
     unsigned long total_writes, write_hits, total_reads, read_hits;
     unsigned int ttracks, total_used, total_locked, total_dirty;
     unsigned int current_size, initial_size, minimum_size;
+    unsigned int element_size, read_ahead_size;
+    unsigned long move_chunks;
 } status;
 
 extern int IOCTLOpen(char *);
@@ -100,6 +102,8 @@ int h, extended;
             s.read_hits, s.total_reads, s.write_hits, s.total_writes);
         printf("Cache lock: %s, %u tracks locked\n",
             s.lock_cache ? "on" : "off", s.total_locked);
+        printf("Transfer element: %u bytes; read-ahead: %u bytes; movement chunks: %lu\n",
+            s.element_size, s.read_ahead_size, s.move_chunks);
     }
 }
 
@@ -130,8 +134,10 @@ int argc;
 char **argv;
 {
     int h, i, action = 0, extended = 0, verbose = 0, numbers = 0, ok;
-    unsigned n, cache_size = 0;
-    char p[3];
+    int tuning = 0;
+    unsigned n, cache_size = 0, element_size, read_ahead_size;
+    status initial;
+    char p[5];
 
     for (i = 1; i < argc; ++i)
         if (strlen(argv[i]) == 2 && argv[i][0] == '/' && argv[i][1] == '?') {
@@ -140,6 +146,10 @@ char **argv;
         }
     h = IOCTLOpen("SMARTAAR");
     if (h == -1) fail(-1, "SMARTDrive is not installed (load SMARTDRV.SYS in CONFIG.SYS)");
+    if (IOCTLRead(h, &initial, sizeof(initial)) == -1)
+        fail(h, "cannot read cache status");
+    element_size = initial.element_size;
+    read_ahead_size = initial.read_ahead_size;
 
     for (i = 1; i < argc; ++i) {
         char *a = argv[i];
@@ -175,6 +185,9 @@ char **argv;
                 n = getnum(a + 2, &ok);
                 if (!ok || (upper(a[0]) == 'E' && n != 1024 && n != 2048 && n != 4096 && n != 8192))
                     fail(h, "invalid cache element or read-ahead size");
+                if (upper(a[0]) == 'E') element_size = n;
+                else read_ahead_size = n;
+                tuning = 1;
                 action = 1;
             } else fail(h, "invalid switch; use SMARTDRV /?");
             continue;
@@ -183,6 +196,14 @@ char **argv;
         if (!ok || ++numbers > 2) fail(h, "invalid cache size");
         if (numbers == 1) cache_size = n;
         action = 1;
+    }
+    if (tuning) {
+        if (!read_ahead_size || read_ahead_size % element_size)
+            fail(h, "read-ahead size must be a multiple of the cache element size");
+        p[0] = 0x0f;
+        p[1] = element_size & 0xff; p[2] = element_size >> 8;
+        p[3] = read_ahead_size & 0xff; p[4] = read_ahead_size >> 8;
+        send(h, p, 5);
     }
     if (cache_size) set_cache_size(h, cache_size);
     if (!quiet && (!action || verbose || extended)) show_status(h, extended || verbose);

@@ -125,9 +125,9 @@
       "/WT:ON": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "Enables write-through mode and status reports the resulting policy"}
     }},
     "SMARTDRV.EXE": {"source": "src/DEV/SMARTDRV/SMARTCTL.C", "extractor": "smartdrv_code", "switches": {
-      "/B:NNNN": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Accepts a bounded decimal read-ahead buffer size"},
+      "/B:NNNN": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Validates and reports a read-ahead size that is a multiple of the element size; runtime read-ahead remains open"},
       "/C": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Flushes delayed writes and the host verifies the exact persisted sector"},
-      "/E:NNNN": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Accepts only the documented 1024, 2048, 4096, or 8192-byte elements"},
+      "/E:NNNN": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Selects 1024, 2048, 4096, or 8192-byte resident transfer elements; identical QEMU disk I/O verifies the movement-count difference"},
       "/F": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Enables delayed writes; live status observes a dirty track before flush"},
       "/L": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Accepts the installation-time low-memory policy"},
       "/N": {"level": "contract", "evidence": ["tests/test_smartdrv_dos6_qemu.sh"], "note": "Disables delayed writes"},
