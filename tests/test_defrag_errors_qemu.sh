@@ -22,10 +22,14 @@ mformat -C -i "$PRISTINE" -f 1440 ::
 printf 'chain validation payload\r\n' | mcopy -o -i "$PRISTINE" - ::CHAIN.TXT
 
 make_case() {
-    local kind="$1" expected="$2"
+    local kind="$1" expected="$2" mode="${3:-/U}"
     local image="$OUT/defrag-error-$kind.img"
     local log="$OUT/defrag-error-$kind.log"
-    cp "$PRISTINE" "$image"
+    if [[ "$kind" == directory-limit ]]; then
+        mformat -C -i "$image" -f 1440 ::
+    else
+        cp "$PRISTINE" "$image"
+    fi
     python3 - "$image" "$kind" <<'PY'
 from pathlib import Path
 import struct
@@ -72,6 +76,30 @@ elif kind == 'full':
             put(base, cluster, 0xfff)
 elif kind == 'invalid-boot':
     struct.pack_into('<H', disk, 11, 0)
+elif kind == 'directory-limit':
+    first, last = 2, 34
+    for base in fat_offsets:
+        for cluster in range(first, last):
+            put(base, cluster, cluster + 1)
+        put(base, last, 0xfff)
+    root = root_start
+    disk[root:root + 11] = b'BIGDIR     '
+    disk[root + 11] = 0x10
+    struct.pack_into('<H', disk, root + 26, first)
+    entries = []
+    dot = bytearray(32); dot[:11] = b'.          '; dot[11] = 0x10
+    dotdot = bytearray(32); dotdot[:11] = b'..         '; dotdot[11] = 0x10
+    struct.pack_into('<H', dot, 26, first)
+    entries.extend((dot, dotdot))
+    for number in range(513):
+        entry = bytearray(32)
+        entry[:11] = ('F%07dTXT' % number).encode('ascii')
+        entry[11] = 0x20
+        entries.append(entry)
+    raw = b''.join(entries) + bytes(32)
+    for index, cluster in enumerate(range(first, last + 1)):
+        offset = (data_start + (cluster - 2) * spc) * bps
+        disk[offset:offset + bps] = raw[index * bps:(index + 1) * bps]
 else:
     raise AssertionError(kind)
 path.write_bytes(disk)
@@ -79,7 +107,7 @@ PY
     local before
     before="$(sha256sum "$image" | awk '{print $1}')"
     {
-        printf '@ECHO OFF\r\nCTTY AUX\r\nDEFRAG B: /U\r\n'
+        printf '@ECHO OFF\r\nCTTY AUX\r\nDEFRAG B: %s\r\n' "$mode"
         printf 'IF ERRORLEVEL %s GOTO TOO_HIGH\r\n' "$((expected + 1))"
         printf 'IF ERRORLEVEL %s GOTO EXPECTED\r\n' "$expected"
         printf ':TOO_HIGH\r\nECHO DEFRAG_ERRORLEVEL_FAIL\r\nGOTO DONE\r\n'
@@ -102,3 +130,4 @@ make_case lost 7
 make_case invalid-chain 7
 make_case full 2
 make_case invalid-boot 4
+make_case directory-limit 9 '/F /SN'
