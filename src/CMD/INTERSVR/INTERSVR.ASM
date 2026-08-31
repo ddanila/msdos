@@ -45,6 +45,16 @@ banner_done:
         mov     ah,9
         int     21h
 server_loop:
+        mov     ah,1
+        int     16h
+        jz      short server_receive
+        cmp     ah,3bh                 ; F1: live connection statistics
+        jne     short server_check_shutdown
+        mov     ah,0
+        int     16h
+        call    display_status
+        jmp     server_loop
+server_check_shutdown:
         mov     ah,2
         int     16h
         test    al,8                   ; Alt held?
@@ -86,7 +96,7 @@ server_sync_second:
         call    receive_byte
         jc      server_loop
         cmp     al,cs:request_checksum
-        jne     server_loop
+        jne     protocol_failed
         mov     al,cs:request_command
         cmp     al,0
         je      discovery_request
@@ -103,6 +113,8 @@ server_sync_second:
         jmp     server_loop
 
 discovery_request:
+        inc     cs:discovery_count
+        mov     cs:connected,1
         xor     al,al
         call    send_status
         mov     al,cs:drive_count
@@ -117,6 +129,7 @@ discovery_drive_loop:
         jmp     server_loop
 
 geometry_request:
+        inc     cs:geometry_count
         call    read_boot_sector
         jc      request_failed
         xor     al,al
@@ -126,6 +139,7 @@ geometry_request:
         jmp     server_loop
 
 read_request:
+        inc     cs:read_count
         call    absolute_read
         jc      request_failed
         xor     al,al
@@ -135,6 +149,7 @@ read_request:
         jmp     server_loop
 
 write_request:
+        inc     cs:write_count
         mov     di,OFFSET sector_buffer
         call    receive_sector
         jc      request_failed
@@ -145,6 +160,7 @@ write_request:
         jmp     server_loop
 
 printer_request:
+        inc     cs:printer_count
         cmp     cs:request_unit,2
         ja      request_failed
         mov     al,byte ptr cs:sector_number
@@ -160,9 +176,87 @@ printer_request:
         jmp     server_loop
 
 request_failed:
+        inc     cs:error_count
         mov     al,1
         call    send_status
         jmp     server_loop
+
+protocol_failed:
+        inc     cs:error_count
+        jmp     server_loop
+
+display_status PROC NEAR
+        mov     dx,OFFSET status_heading
+        mov     ah,9
+        int     21h
+        cmp     cs:connected,0
+        je      short display_status_offline
+        mov     dx,OFFSET status_connected
+        jmp     short display_status_connection
+display_status_offline:
+        mov     dx,OFFSET status_waiting
+display_status_connection:
+        mov     ah,9
+        int     21h
+        mov     dx,OFFSET status_discovery
+        mov     ax,cs:discovery_count
+        call    display_counter
+        mov     dx,OFFSET status_geometry
+        mov     ax,cs:geometry_count
+        call    display_counter
+        mov     dx,OFFSET status_reads
+        mov     ax,cs:read_count
+        call    display_counter
+        mov     dx,OFFSET status_writes
+        mov     ax,cs:write_count
+        call    display_counter
+        mov     dx,OFFSET status_printer
+        mov     ax,cs:printer_count
+        call    display_counter
+        mov     dx,OFFSET status_errors
+        mov     ax,cs:error_count
+        call    display_counter
+        ret
+display_status ENDP
+
+display_counter PROC NEAR
+        push    ax
+        mov     ah,9
+        int     21h
+        pop     ax
+        call    display_decimal
+        mov     dx,OFFSET newline
+        mov     ah,9
+        int     21h
+        ret
+display_counter ENDP
+
+display_decimal PROC NEAR
+        push    ax
+        push    bx
+        push    cx
+        push    dx
+        xor     cx,cx
+        mov     bx,10
+display_decimal_split:
+        xor     dx,dx
+        div     bx
+        push    dx
+        inc     cx
+        or      ax,ax
+        jnz     display_decimal_split
+display_decimal_emit:
+        pop     dx
+        add     dl,'0'
+        mov     ah,2
+        int     21h
+        loop    display_decimal_emit
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
+        ret
+display_decimal ENDP
 
 ; Request sector is little-endian 32-bit.  DOS 6 FAT volumes are bounded by
 ; the legacy absolute-I/O interface here, so reject a nonzero high word.
@@ -776,10 +870,28 @@ sector_number   dd 0
 banner          db 'Microsoft Interlnk server compatible transport',13,10
                 db 'Port-COM'
 banner_port     db '1  Drives $'
-banner_suffix   db ' available',13,10,'$'
+banner_suffix   db ' available',13,10
+                db 'F1 displays status; Alt+F4 exits.',13,10,'$'
 printer_status  db 0
 usage           db 'Syntax: INTERSVR [drive: ...] [/X=drive: ...] [/COM:n] [/BAUD:rate] [/B] [/V]',13,10,'$'
 sector_buffer   db 512 dup(0)
+connected       db 0
+discovery_count dw 0
+geometry_count  dw 0
+read_count      dw 0
+write_count     dw 0
+printer_count   dw 0
+error_count     dw 0
+status_heading  db 13,10,'Interlnk server status',13,10,'$'
+status_connected db 'Connection: active',13,10,'$'
+status_waiting  db 'Connection: waiting',13,10,'$'
+status_discovery db 'Discovery requests: $'
+status_geometry db 'Geometry requests:  $'
+status_reads    db 'Sector reads:       $'
+status_writes   db 'Sector writes:      $'
+status_printer  db 'Printer bytes:      $'
+status_errors   db 'Protocol/I/O errors: $'
+newline         db 13,10,'$'
 com_bases       dw 03f8h,02f8h,03e8h,02e8h
 
 CODE ENDS

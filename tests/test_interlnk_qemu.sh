@@ -224,7 +224,7 @@ mcopy -o -i "$SHUTDOWN_IMAGE" "$ROOT/src/CMD/INTERSVR/INTERSVR.EXE" ::INTERSVR.E
 mcopy -o -i "$SHUTDOWN_IMAGE" "$ALT_F4" ::ALTF4.COM
 mcopy -o -i "$SHUTDOWN_IMAGE" "$QEXIT" ::QEXIT.COM
 printf '\r\n' | mcopy -o -i "$SHUTDOWN_IMAGE" - ::CONFIG.SYS
-printf '@ECHO OFF\r\nALTF4.COM\r\nINTERSVR A: /COM:2\r\nECHO PASS>ALTF4.TAG\r\nQEXIT.COM\r\n' \
+printf '@ECHO OFF\r\nALTF4.COM\r\nINTERSVR A: /COM:2 >ISTATUS.TXT\r\nECHO PASS>ALTF4.TAG\r\nQEXIT.COM\r\n' \
     | mcopy -o -i "$SHUTDOWN_IMAGE" - ::AUTOEXEC.BAT
 timeout 15 qemu-system-i386 \
     -display none -monitor none -machine pc -cpu 486 -m 8 \
@@ -233,4 +233,8 @@ timeout 15 qemu-system-i386 \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     >/dev/null 2>&1 || true
 mcopy -i "$SHUTDOWN_IMAGE" ::ALTF4.TAG - 2>/dev/null | grep -Fq PASS
-echo '  PASS: Interserver Alt+F4 shutdown returns control to DOS'
+for marker in 'F1 displays status; Alt+F4 exits.' 'Interlnk server status' \
+    'Connection: waiting' 'Discovery requests: 0' 'Protocol/I/O errors: 0'; do
+    mcopy -i "$SHUTDOWN_IMAGE" ::ISTATUS.TXT - 2>/dev/null | grep -Fq "$marker"
+done
+echo '  PASS: Interserver F1 status and Alt+F4 shutdown return control to DOS'
