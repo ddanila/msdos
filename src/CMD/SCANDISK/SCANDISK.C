@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <conio.h>
 #include <dos.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -45,6 +46,7 @@ struct options {
     unsigned char policies[7];
     unsigned drive_count;
     unsigned long drive_mask;
+    int interactive;
     char fragment_spec[128];
 };
 
@@ -81,6 +83,12 @@ static unsigned char chain_seen[BIT_BYTES];
 static unsigned char incoming[BIT_BYTES];
 static long injected_surface_cluster = -1;
 static int injected_surface_fired;
+static int ui_mouse_available;
+static int ui_mouse_latched;
+static unsigned ui_mouse_x;
+static unsigned ui_mouse_y;
+
+#define UI_MOUSE_KEY 0x100
 
 static void set_current_timestamp(unsigned char *entry);
 
@@ -1759,6 +1767,96 @@ static int analyze_fragmentation_spec(const char *specification)
     return matches ? status : 2;
 }
 
+static void clear_interface(void)
+{
+    union REGS regs;
+    memset(&regs, 0, sizeof(regs));
+    regs.h.ah = 6;
+    regs.h.bh = 7;
+    regs.x.dx = 0x184f;
+    int86(0x10, &regs, &regs);
+    memset(&regs, 0, sizeof(regs));
+    regs.h.ah = 2;
+    int86(0x10, &regs, &regs);
+}
+
+static void initialize_ui_mouse(void)
+{
+    union REGS regs;
+    void interrupt far (*handler)(void) = _dos_getvect(0x33);
+    ui_mouse_available = 0;
+    if (!handler || (!FP_SEG(handler) && !FP_OFF(handler))) return;
+    memset(&regs, 0, sizeof(regs));
+    int86(0x33, &regs, &regs);
+    if (regs.x.ax != 0xffff) return;
+    ui_mouse_available = 1;
+    regs.x.ax = 1;
+    int86(0x33, &regs, &regs);
+}
+
+static int interface_key(void)
+{
+    union REGS regs;
+    for (;;) {
+        if (kbhit()) return getch();
+        if (ui_mouse_available) {
+            memset(&regs, 0, sizeof(regs));
+            regs.x.ax = 3;
+            int86(0x33, &regs, &regs);
+            if (!(regs.x.bx & 1)) {
+                ui_mouse_latched = 0;
+            } else if (!ui_mouse_latched) {
+                ui_mouse_latched = 1;
+                ui_mouse_x = regs.x.cx;
+                ui_mouse_y = regs.x.dx;
+                return UI_MOUSE_KEY;
+            }
+        }
+        memset(&regs, 0, sizeof(regs));
+        int86(0x28, &regs, &regs);
+    }
+}
+
+static int interactive_setup(struct options *options, unsigned drive)
+{
+    int key;
+    initialize_ui_mouse();
+    options->interactive = 1;
+again:
+    clear_interface();
+    puts("Microsoft ScanDisk");
+    puts("==================");
+    printf("Drive %c: is ready to be checked.\n", 'A' + drive);
+    printf("Test type: %s; automatic repair: %s.\n",
+           options->surface ? "thorough surface" : "standard",
+           options->autofix ? "on" : "off");
+    puts("[ Start ]   [ Thorough ]   [ Auto Fix ]   [ Exit ]");
+    puts("ENTER starts; T and A change options; ESC exits.");
+    printf("Mouse navigation: %s.\n",
+           ui_mouse_available ? "available" : "not installed");
+    key = interface_key();
+    if (key == UI_MOUSE_KEY) {
+        if (ui_mouse_y / 8U != 4) goto again;
+        if (ui_mouse_x < 80) key = '\r';
+        else if (ui_mouse_x < 208) key = 'T';
+        else if (ui_mouse_x < 336) key = 'A';
+        else key = 27;
+    }
+    if (key == 27) return -1;
+    if (key == 't' || key == 'T') {
+        options->surface = !options->surface;
+        options->surface_explicit = 1;
+        goto again;
+    }
+    if (key == 'a' || key == 'A') {
+        options->autofix = !options->autofix;
+        options->check_only = 0;
+        goto again;
+    }
+    if (key != '\r' && key != '\n') goto again;
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     struct options options;
@@ -1785,6 +1883,14 @@ int main(int argc, char **argv)
     }
     if (options.fragment) {
         return analyze_fragmentation_spec(options.fragment_spec);
+    }
+    if (argc == 1 && !options.drive_count) {
+        memset(&regs, 0, sizeof(regs));
+        regs.h.ah = 0x19;
+        intdos(&regs, &regs);
+        options.drive_mask = 1UL << regs.h.al;
+        options.drive_count = 1;
+        if (interactive_setup(&options, regs.h.al) < 0) return 0;
     }
     if (options.all) {
         for (drive = 0; drive < 26; ++drive) {

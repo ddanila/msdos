@@ -408,6 +408,7 @@ test-msd-qemu: deploy
 test-scandisk-qemu: deploy
 	bash tests/test_scandisk_qemu.sh
 	bash tests/test_scandisk_errors_qemu.sh
+	bash tests/test_scandisk_interactive_qemu.sh
 	bash tests/test_scandisk_fat16_qemu.sh
 
 test-defrag-qemu: deploy
