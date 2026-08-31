@@ -306,6 +306,13 @@ NOPIPE:
 	JNZ	NOPDRV				; G
 	TEST	[BATCH], -1			; G  Don't print prompt if in batch
 	JNZ	TESTFORBAT			; G
+	PUSH	AX
+	PUSH	BX
+	MOV	AX,4A11H			; Commit SMARTDrive writes before the prompt
+	MOV	BX,1
+	INT	2FH
+	POP	BX
+	POP	AX
 	INVOKE	PRINT_PROMPT			; Prompt the user
 
 NOPDRV:

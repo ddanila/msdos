@@ -4684,6 +4684,9 @@ OLD_9	LABEL	DWORD
 OLD_15	LABEL	DWORD
 	DW	-1
 	DW	-1
+OLD_2F	LABEL	DWORD
+	DW	-1
+	DW	-1
 int15_size  dw	0
 ;
 ;
@@ -4711,6 +4714,22 @@ mem_det:
 	sti
 	iret
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; DOS 6 COMMAND.COM calls AX=4A11h, BX=1 before displaying a new prompt.
+; Commit delayed writes synchronously so the visible prompt is a safe
+; power-off boundary.  All other SMARTDrive multiplex calls remain chained.
+INT_2F:
+ASSUME DS:NOTHING,SS:NOTHING,ES:NOTHING
+	cmp	ax,4a11h
+	jne	short CHAIN_2F
+	cmp	bx,1
+	jne	short CHAIN_2F
+	call	FLUSH_WHOLE_CACHE_SAV
+	xor	ax,ax
+	xor	bx,bx
+	iret
+CHAIN_2F:
+	jmp	[OLD_2F]
+
 ;**	INT 9 Keyboard handler
 ;
 ;	All this piece of code does is look for the Ctrl-Alt-Del event.
@@ -4866,6 +4885,10 @@ no_flush:
 	MOV	WORD PTR DS:[19H * 4],AX
 	MOV	AX,WORD PTR [OLD_19 + 2]
 	MOV	WORD PTR DS:[(19H * 4) + 2],AX
+	MOV	AX,WORD PTR [OLD_2F]
+	MOV	WORD PTR DS:[2FH * 4],AX
+	MOV	AX,WORD PTR [OLD_2F + 2]
+	MOV	WORD PTR DS:[(2FH * 4) + 2],AX
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;   removed from smartdrv
 ;	MOV	AX,WORD PTR [OLD_9]
@@ -5622,6 +5645,10 @@ notHP:
 	INT	21H
 	MOV	WORD PTR [OLD_1C],BX
 	MOV	WORD PTR [OLD_1C + 2],ES
+	MOV	AX,(Get_Interrupt_Vector SHL 8) OR 2FH
+	INT	21H
+	MOV	WORD PTR [OLD_2F],BX
+	MOV	WORD PTR [OLD_2F + 2],ES
 	LDS	SI,[PTRSAV]
 ASSUME	DS:NOTHING
 	MOV	DX,OFFSET HEADERMES
@@ -5940,6 +5967,9 @@ ENDIF
     ;
 	MOV	DX,OFFSET INT_13_HANDLER
 	MOV	AX,(Set_Interrupt_Vector SHL 8) OR 13H
+	INT	21H
+	MOV	DX,OFFSET INT_2F
+	MOV	AX,(Set_Interrupt_Vector SHL 8) OR 2FH
 	INT	21H
 ;	MOV	DX,OFFSET INT_1C_HANDLER
 ;	MOV	AX,(Set_Interrupt_Vector SHL 8) OR 1CH

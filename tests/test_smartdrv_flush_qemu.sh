@@ -9,8 +9,12 @@ FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT_IMG="$OUT/floppy-smartdrv-flush.img"
 HDD_IMG="$OUT/smartdrv-flush-hdd.img"
 SERIAL_LOG="$OUT/smartdrv-flush.log"
+PROMPT_IMG="$OUT/floppy-smartdrv-prompt.img"
+PROMPT_HDD="$OUT/smartdrv-prompt-hdd.img"
+PROMPT_LOG="$OUT/smartdrv-prompt.log"
 EXIT_COM="$OUT/smartdrv-flush-exit.com"
 IO_COM="$OUT/smartdrv-io.com"
+PROMPT_COM="$OUT/smartdrv-prompt-flush.com"
 
 if [[ ! -f "$FLOPPY" ]]; then
     echo "ERROR: $FLOPPY not found — run 'make deploy' first"
@@ -39,8 +43,10 @@ mformat -i "$HDD_IMG@@32256" -t 31 -h 16 -n 63 -H 63 -c 4 ::
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 nasm -f bin "$REPO_ROOT/tests/smartdrv_io_probe.asm" -o "$IO_COM"
+nasm -f bin "$REPO_ROOT/tests/smartdrv_prompt_flush_probe.asm" -o "$PROMPT_COM"
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 mcopy -o -i "$BOOT_IMG" "$IO_COM" ::SDIO.COM
+mcopy -o -i "$BOOT_IMG" "$PROMPT_COM" ::SDPROMPT.COM
 printf 'DEVICE=SMARTDRV.EXE 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'
@@ -72,6 +78,8 @@ printf 'DEVICE=SMARTDRV.EXE 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
     printf 'ECHO SMARTDRV_POPULATED_BEGIN\r\n'
     printf 'SDIO.COM\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_IO_FAILED\r\n'
+    printf 'SDPROMPT.COM\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_PROMPT_FLUSH_FAILED\r\n'
     printf 'FLUSH13 /L /S\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_LOCK_FAILED\r\n'
     printf 'FLUSH13 /U\r\n'
@@ -97,6 +105,14 @@ printf 'DEVICE=SMARTDRV.EXE 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
+cp "$BOOT_IMG" "$PROMPT_IMG"
+cp "$HDD_IMG" "$PROMPT_HDD"
+{
+    printf '@ECHO OFF\r\nCTTY AUX\r\n'
+    printf 'FLUSH13 /WC:ON\r\n'
+    printf 'SDIO.COM\r\n'
+} | mcopy -o -i "$PROMPT_IMG" - ::AUTOEXEC.BAT
+
 rm -f "$SERIAL_LOG"
 timeout 25 qemu-system-i386 \
     -display none \
@@ -108,6 +124,14 @@ timeout 25 qemu-system-i386 \
     -boot a -serial stdio -no-reboot \
     >"$SERIAL_LOG" 2>&1 || true
 
+# AUTOEXEC leaves one dirty sector and returns to COMMAND.  Its DOS 6 prompt
+# notification must flush that sector before the interactive prompt appears.
+timeout 8 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 4 \
+    -drive if=floppy,index=0,format=raw,file="$PROMPT_IMG",cache=writethrough \
+    -drive if=ide,index=0,format=raw,file="$PROMPT_HDD",cache=writethrough \
+    -boot a -serial stdio -no-reboot >"$PROMPT_LOG" 2>&1 || true
+
 enabled_count="$(grep -c 'Caching is ENABLED' "$SERIAL_LOG" || true)"
 populated_status="$(sed -n '/SMARTDRV_POPULATED_BEGIN/,/SMARTDRV_POPULATED_END/p' "$SERIAL_LOG")"
 clean_status="$(sed -n '/SMARTDRV_CLEAN_BEGIN/,/SMARTDRV_CLEAN_END/p' "$SERIAL_LOG")"
@@ -117,6 +141,16 @@ reset_status="$(sed -n '/SMARTDRV_RESET_BEGIN/,/SMARTDRV_RESET_END/p' "$SERIAL_L
 sector_matches="$(python3 - "$HDD_IMG" <<'PY'
 import sys
 
+offset = (63 + 1000) * 512
+with open(sys.argv[1], "rb") as image:
+    image.seek(offset)
+    actual = image.read(512)
+expected = b"SMARTDRV_SECTOR_OK" + bytes([0xA5]) * (512 - len(b"SMARTDRV_SECTOR_OK"))
+print("yes" if actual == expected else "no")
+PY
+)"
+prompt_sector_matches="$(python3 - "$PROMPT_HDD" <<'PY'
+import sys
 offset = (63 + 1000) * 512
 with open(sys.argv[1], "rb") as image:
     image.seek(offset)
@@ -144,11 +178,13 @@ if (( enabled_count >= 2 )) \
     && grep -Eq '0 +Total operations' <<<"$reset_status" \
     && grep -q '  0 are dirty' <<<"$clean_status" \
     && [[ "$sector_matches" == 'yes' ]] \
+    && [[ "$prompt_sector_matches" == 'yes' ]] \
     && grep -q 'SMARTDRV_FLUSH_DONE' "$SERIAL_LOG" \
+    && grep -q 'SMARTDRV_PROMPT_FLUSH_PASS' "$SERIAL_LOG" \
     && grep -q 'SMARTDRV_CONFLICT_REJECTED' "$SERIAL_LOG" \
     && grep -q 'SMARTDRV_MALFORMED_REJECTED' "$SERIAL_LOG" \
     && ! grep -q 'SMARTDRV_.*_FAILED\|device not found\|device function failed' "$SERIAL_LOG"; then
-    echo "  PASS: SMARTDRV cached real C: I/O and preserved the exact write-through payload"
+    echo "  PASS: SMARTDRV exact disk I/O plus explicit and COMMAND prompt-boundary flushing"
     exit 0
 fi
 
