@@ -26,6 +26,10 @@ with open(sys.argv[1], 'r+b') as f:
     f.write(p)
 PY
 mformat -i "$TEMPLATE@@$PART_OFFSET" -t 31 -h 16 -n 63 -H 63 -c 4 ::
+# SAFE and /Q store UNFORMAT recovery metadata at the start of the data area.
+# Put the preservation marker beyond that reserved working space.
+dd if=/dev/zero of="$OUT/format-hdd-pad.bin" bs=512 count=512 status=none
+mcopy -i "$TEMPLATE@@$PART_OFFSET" "$OUT/format-hdd-pad.bin" ::PAD.BIN
 printf 'fixed-disk-payload\r\n' | mcopy -i "$TEMPLATE@@$PART_OFFSET" - ::MARKER.TXT
 
 PASS=0

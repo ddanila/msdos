@@ -562,6 +562,14 @@ FatAllocated:
 	INT	21H
 	OR	BX,BX
 	JZ	MEMERRJ 			;No memory
+	; Keep conventional memory available for DOS to establish the target
+	; removable-media state.  The original code consumed the entire largest
+	; block; its existing partial-file path already streams anything larger
+	; than this staging area.
+	CMP	BX,3000H			;192 KiB staging buffer
+	JBE	SHORT FORMAT_SYSTEM_BUFFER_READY
+	MOV	BX,3000H
+FORMAT_SYSTEM_BUFFER_READY:
 	MOV	[MSIZE],BX
 	MOV	AH,ALLOC
 	INT	21H
