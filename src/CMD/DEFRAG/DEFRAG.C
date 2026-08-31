@@ -51,6 +51,7 @@ static unsigned char sort_entries[512][32];
 static char active_sort[16];
 static unsigned transaction_step;
 static int interrupt_at = -1;
+static void render_progress(const struct defrag_state *state);
 
 static void transaction_boundary(void)
 {
@@ -383,6 +384,7 @@ static int relocate_file(struct defrag_state *state, unsigned first,
         current = next;
     }
     ++state->moved;
+    render_progress(state);
     return 0;
 }
 
@@ -620,6 +622,7 @@ static int compact_free_space(struct defrag_state *state)
         if (move_cluster(state, source, target))
             return 1;
         ++state->moved;
+        render_progress(state);
         ++source;
     }
     return 0;
@@ -644,6 +647,16 @@ static void render_disk_map(const struct defrag_state *state,
         if ((cell & 15) == 15) putchar('\n');
     }
     puts("Legend: # used  + mixed  . free");
+}
+
+static void render_progress(const struct defrag_state *state)
+{
+    char title[64];
+    if (!state->options.interactive ||
+        (state->moved != 1 && (state->moved & 15) != 0))
+        return;
+    sprintf(title, "Disk map progress: %lu move(s) completed.", state->moved);
+    render_disk_map(state, title);
 }
 
 static void reset_analysis(struct defrag_state *state)
