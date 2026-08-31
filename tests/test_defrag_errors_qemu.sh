@@ -8,6 +8,7 @@ BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT="$OUT/defrag-errors-boot.img"
 PRISTINE="$OUT/defrag-errors-pristine.img"
 QEXIT="$OUT/defrag-errors-qexit.com"
+FAILIO="$OUT/defrag-errors-failio.com"
 
 for tool in mcopy mformat nasm python3 qemu-system-i386 sha256sum timeout; do
     command -v "$tool" >/dev/null 2>&1 || { echo "missing required tool: $tool" >&2; exit 1; }
@@ -16,10 +17,14 @@ done
 
 cp "$BASE" "$BOOT"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
+nasm -f bin "$ROOT/tests/int13_fail_tsr.asm" -o "$FAILIO"
 mcopy -o -i "$BOOT" "$ROOT/src/CMD/DEFRAG/DEFRAG.EXE" ::DEFRAG.EXE
 mcopy -o -i "$BOOT" "$QEXIT" ::QEXIT.COM
+mcopy -o -i "$BOOT" "$FAILIO" ::FAILIO.COM
 mformat -C -i "$PRISTINE" -f 1440 ::
 printf 'chain validation payload\r\n' | mcopy -o -i "$PRISTINE" - ::CHAIN.TXT
+printf 'zeta\r\n' | mcopy -o -i "$PRISTINE" - ::ZETA.TXT
+printf 'alpha\r\n' | mcopy -o -i "$PRISTINE" - ::ALPHA.TXT
 
 make_case() {
     local kind="$1" expected="$2" mode="${3:-/U}"
@@ -76,6 +81,8 @@ elif kind == 'full':
             put(base, cluster, 0xfff)
 elif kind == 'invalid-boot':
     struct.pack_into('<H', disk, 11, 0)
+elif kind in ('physical-read', 'physical-write'):
+    pass
 elif kind == 'directory-limit':
     first, last = 2, 34
     for base in fat_offsets:
@@ -107,7 +114,10 @@ PY
     local before
     before="$(sha256sum "$image" | awk '{print $1}')"
     {
-        printf '@ECHO OFF\r\nCTTY AUX\r\nDEFRAG B: %s\r\n' "$mode"
+        printf '@ECHO OFF\r\nCTTY AUX\r\n'
+        if [[ "$kind" == physical-read ]]; then printf 'FAILIO.COM R\r\n'; fi
+        if [[ "$kind" == physical-write ]]; then printf 'FAILIO.COM W\r\n'; fi
+        printf 'DEFRAG B: %s\r\n' "$mode"
         printf 'IF ERRORLEVEL %s GOTO TOO_HIGH\r\n' "$((expected + 1))"
         printf 'IF ERRORLEVEL %s GOTO EXPECTED\r\n' "$expected"
         printf ':TOO_HIGH\r\nECHO DEFRAG_ERRORLEVEL_FAIL\r\nGOTO DONE\r\n'
@@ -131,3 +141,5 @@ make_case invalid-chain 7
 make_case full 2
 make_case invalid-boot 4
 make_case directory-limit 9 '/F /SN'
+make_case physical-read 5 '/U'
+make_case physical-write 6 '/F /SN'
