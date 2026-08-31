@@ -1035,7 +1035,7 @@ static int compare_fat_mirrors(struct scan_state *state)
                 fat_volume_io(&state->volume, 0, other, 1, compare_sector)) {
                 report_problem(state, "A file allocation table cannot be read.");
                 ++state->unrepaired;
-                return 1;
+                return -1;
             }
             if (memcmp(fat_buffer, compare_sector, 512)) {
                 if (!difference)
@@ -1507,7 +1507,10 @@ static int scan_drive(unsigned drive, const struct options *options)
                     ? "read error" : "unsupported or invalid FAT volume");
         return 1;
     }
-    compare_fat_mirrors(&state);
+    if (compare_fat_mirrors(&state) < 0) {
+        puts("ScanDisk was stopped after a physical disk read failure.");
+        return 3;
+    }
     scan_directory(&state, 0, 0, 0);
     find_lost_clusters(&state);
     if (state.options.surface_prompt && !state.options.surface) {
