@@ -1458,7 +1458,12 @@ install_redirected_next:
         mov     byte ptr es:[di+1],':'
         mov     byte ptr es:[di+2],'\'
         mov     byte ptr es:[di+3],0
-        mov     word ptr es:[di+67],0c000h
+        mov     dx,0c000h             ; in use, redirector-managed
+        cmp     cs:share_mode,0
+        je      short install_redirected_flags_ready
+        or      dx,1000h              ; local redirector, eligible to share
+install_redirected_flags_ready:
+        mov     es:[di+67],dx
         mov     word ptr es:[di+69],OFFSET redirector_device
         mov     word ptr es:[di+71],cs
         mov     word ptr es:[di+73],0

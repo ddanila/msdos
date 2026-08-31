@@ -314,12 +314,13 @@ Syntax: MOVE [/Y | /-Y] source [source ...] target
 Installs the CD-ROM redirector for an external device driver.
 Syntax: MSCDEX [/E/K/S/V] [/D:driver ...] [/L:letter] [/M:buffers]
 The current implementation provides installation and the core INT 2Fh discovery
-API. ISO 9660 file access and media-control calls are not yet implemented.
+API, DOS read-only ISO file access, media control, caching, and driver forwarding.
+/S marks assigned CD-ROM drives as local and shareable by a network server.
 @MSD
-Displays operating-system, computer, memory, video, disk, IRQ, driver, and network information.
-Syntax: MSD [/B] [/I] [/F [filename]] [/P] [/S]
-/B uses the text-only display, /I skips extended probing, /F writes a report,
-/P sends a report to the printer, and /S selects the complete report.
+Displays operating-system, computer, ROM, memory, video, disk, port, IRQ, driver, and network information.
+Syntax: MSD [/B] [/I] [/Ffilename] [/Pfilename] [/S[filename]]
+/I skips extended probing, /F prompts for report identity, /P writes a detailed
+report directly, and /S writes a summary or displays it when no file is named.
 @NLSFUNC
 Loads country-specific information.
 Syntax: NLSFUNC [[drive:][path]country-file]
