@@ -136,7 +136,7 @@ static int equal_switch(const char *argument, const char *name)
 static void usage(void)
 {
     puts("Checks and repairs FAT12 and FAT16 drives.");
-    puts("Syntax: SCANDISK [drive:] [/ALL] [/AUTOFIX] [/CHECKONLY]");
+    puts("Syntax: SCANDISK [drive: [drive: ...]] [/ALL] [/AUTOFIX] [/CHECKONLY]");
     puts("                [/CUSTOM] [/FRAGMENT] [/MONO] [/NOSAVE]");
     puts("                [/NOSUMMARY] [/SURFACE] [/UNDO]");
 }
@@ -1771,6 +1771,8 @@ int main(int argc, char **argv)
     if (surface_failure && *surface_failure)
         injected_surface_cluster = strtol(surface_failure, NULL, 0);
     load_custom_options(&options, argv[0]);
+    if (options.mono)
+        puts("Output mode: monochrome text.");
     if (options.undo) {
         drive = options.drive_count ? 0 : 0;
         if (options.drive_count)

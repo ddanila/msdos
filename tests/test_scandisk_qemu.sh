@@ -158,6 +158,8 @@ control_cluster="$(cat "$TARGET.control")"
 cp "$TARGET" "$BEFORE"
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
+    printf 'SCANDISK A: B: /CHECKONLY /NOSUMMARY /MONO\r\n'
+    printf 'IF ERRORLEVEL 255 ECHO MULTIDRIVE_FOUND_ERRORS\r\n'
     printf 'I13FAIL.COM\r\n'
     printf 'SET SCANDISK_FAILCLUSTER=%s\r\n' "$control_cluster"
     printf 'SCANDISK /FRAGMENT B:\\*.BIN\r\n'
@@ -185,6 +187,13 @@ timeout 45 qemu-system-i386 -display none \
 grep -q 'CHECKONLY_FOUND_ERRORS' "$LOG" &&
     ok "/CHECKONLY detects corruption and returns failure" ||
     fail "/CHECKONLY did not report corruption through its status"
+if grep -q 'MULTIDRIVE_FOUND_ERRORS' "$LOG" &&
+   grep -q 'Checking drive A:' "$LOG" && grep -q 'Checking drive B:' "$LOG" &&
+   grep -q 'Output mode: monochrome text.' "$LOG"; then
+    ok "multiple explicit drives and /MONO use one ordered scan"
+else
+    fail "multi-drive or monochrome presentation behavior"
+fi
 if grep -q 'INT13 transient-read fault armed' "$LOG" &&
    grep -q 'B:\\FRAG.BIN occupies' "$LOG"; then
     ok "physical floppy reads reset and retry after a transient BIOS failure"
