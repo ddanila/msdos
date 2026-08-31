@@ -141,7 +141,9 @@ static void heading(const char *name)
 static void report_os(void)
 {
     union REGS inregs, outregs;
-    unsigned oem, serial;
+    unsigned oem, revision;
+    unsigned long serial;
+    char **entry;
     heading("Operating System");
     inregs.h.ah = 0x30;
     inregs.h.al = 0;
@@ -149,16 +151,29 @@ static void report_os(void)
     fprintf(report, "Reported DOS version: %u.%02u\n",
             outregs.h.al, outregs.h.ah);
     oem = outregs.h.bh;
-    serial = outregs.x.cx;
-    fprintf(report, "DOS OEM/serial:        %u / %u\n", oem, serial);
+    serial = ((unsigned long)outregs.h.bl << 16) | outregs.x.cx;
+    fprintf(report, "DOS OEM/serial:        %02Xh / %06lXh\n", oem, serial);
     inregs.x.ax = 0x3306;
     int86(0x21, &inregs, &outregs);
-    if (!outregs.x.cflag)
+    if (!outregs.x.cflag) {
+        revision = outregs.h.dl;
         fprintf(report, "True DOS version:     %u.%02u\n",
                 outregs.h.bl, outregs.h.bh);
+        fprintf(report, "Internal revision:     %02Xh\n", revision);
+        fprintf(report, "DOS memory location:   %s\n",
+                outregs.h.dh & 0x10 ? "High Memory Area" :
+                                      "Conventional Memory");
+    }
+    inregs.x.ax = 0x3305;
+    int86(0x21, &inregs, &outregs);
+    fprintf(report, "Boot drive:            %c:\n", 'A' + outregs.h.dl - 1);
     inregs.h.ah = 0x19;
     int86(0x21, &inregs, &outregs);
-    fprintf(report, "Current drive:        %c:\n", 'A' + outregs.h.al);
+    fprintf(report, "Current drive:         %c:\n", 'A' + outregs.h.al);
+    fprintf(report, "Path to program:       %s\n", _pgmptr);
+    fputs("Environment strings:\n", report);
+    for (entry = environ; entry && *entry; ++entry)
+        fprintf(report, "  %s\n", *entry);
 }
 
 static void report_computer(void)
@@ -479,6 +494,11 @@ static void report_memory(void)
     int86(0x12, &inregs, &outregs);
     conventional = outregs.x.ax;
     fprintf(report, "Conventional memory:   %u KB\n", conventional);
+    inregs.h.ah = 0x88;
+    int86(0x15, &inregs, &outregs);
+    if (!outregs.x.cflag)
+        fprintf(report, "Extended memory:       %u KB (BIOS INT 15h)\n",
+                outregs.x.ax);
     inregs.h.ah = 0x48;
     inregs.x.bx = 0xffff;
     int86(0x21, &inregs, &outregs);
@@ -718,10 +738,17 @@ static void report_summary(void)
 static void report_short_summary(void)
 {
     union REGS inregs, outregs;
-    unsigned conventional;
+    const unsigned far *bda = (const unsigned far *)MK_FP(0x40, 0);
+    void interrupt far (*mouse)(void);
+    const char *windir = getenv("WINDIR");
+    unsigned conventional, equipment, com_count = 0, lpt_count = 0, i;
+    char path[96];
+    FILE *candidate = 0;
 
     int86(0x12, &inregs, &outregs);
     conventional = outregs.x.ax;
+    int86(0x11, &inregs, &outregs);
+    equipment = outregs.x.ax;
     fprintf(report, "           Computer: IBM PC/AT compatible\n");
     fprintf(report, "             Memory: %uK conventional\n", conventional);
     fprintf(report, "              Video: BIOS mode detected\n");
@@ -733,6 +760,34 @@ static void report_short_summary(void)
     int86(0x21, &inregs, &outregs);
     fprintf(report, "         OS Version: MS-DOS %u.%02u\n",
             outregs.h.bl, outregs.h.bh);
+    mouse = _dos_getvect(0x33);
+    if (mouse && (FP_SEG(mouse) || FP_OFF(mouse))) {
+        inregs.x.ax = 0;
+        int86(0x33, &inregs, &outregs);
+    } else {
+        outregs.x.ax = 0;
+    }
+    fprintf(report, "              Mouse: %s\n",
+            outregs.x.ax == 0xffff ? "Driver installed" : "Not detected");
+    fprintf(report, "     Other Adapters: %s\n",
+            equipment & 0x1000 ? "Game adapter" : "None detected");
+    fprintf(report, "        Disk Drives: %u floppy drive(s)\n",
+            equipment & 1 ? ((equipment >> 6) & 3) + 1 : 0);
+    for (i = 0; i < 4; ++i)
+        if (bda[i]) ++com_count;
+    for (i = 0; i < 3; ++i)
+        if (bda[4 + i]) ++lpt_count;
+    fprintf(report, "          LPT Ports: %u\n", lpt_count);
+    fprintf(report, "          COM Ports: %u\n", com_count);
+    if (windir && *windir && strlen(windir) + 9 < sizeof(path)) {
+        strcpy(path, windir);
+        if (path[strlen(path) - 1] != '\\') strcat(path, "\\");
+        strcat(path, "WIN.COM");
+        candidate = fopen(path, "rb");
+    }
+    fprintf(report, "Windows Information: %s\n",
+            candidate ? windir : "Not Detected");
+    if (candidate) fclose(candidate);
 }
 
 static void request_report_input(void)

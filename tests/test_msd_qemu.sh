@@ -55,11 +55,17 @@ timeout 35 qemu-system-i386 \
 
 for marker in \
     'Computer: IBM PC/AT compatible' \
+    'Mouse: Not detected' 'Other Adapters: None detected' \
+    'Disk Drives: 1 floppy drive(s)' 'LPT Ports: 1' 'COM Ports: 1' \
+    'Windows Information: Not Detected' \
     'Operating System' 'Computer' 'ROM Inventory' 'Memory' 'Video' 'Disk Drives' \
     'COM and LPT Ports' 'Input Devices' 'DOS Configuration' 'IRQ Vectors' 'Resident Programs' 'Device Drivers' 'Network' 'Windows Information' \
     'Reported DOS version: 6.22' 'True DOS version:     6.22' 'DOS OEM/serial:' \
+    'Internal revision:' 'DOS memory location:' 'Boot drive:            A:' \
+    'Current drive:         A:' 'Path to program:' 'Environment strings:' 'COMSPEC=' \
     'Processor:             486-class x86' \
     'BIOS machine ID:' 'BIOS date:' 'BIOS base memory:' 'Bus type:              ISA/AT compatible' 'DMA controller:        Present' \
+    'Extended memory:' \
     'Startup display:' 'Game adapter:' 'COM1 base address:     03F8h' \
     'BIOS ROM range:' 'BIOS ROM checksum:' 'Option ROM ' 'Option ROM scan:       Skipped (/I)' \
     'COM1 BIOS status:' 'COM1 UART:' 'COM1 current rate:' 'LPT1 BIOS status:' \
