@@ -44,7 +44,10 @@ exec 3>&-
 for marker in \
     'Microsoft Defragmenter' 'Selected drive B:' \
     'Recommended optimization: unfragment files.' \
-    'Analyzing drive B:' 'Optimizing drive B:' 'DEFRAG_INTERACTIVE_RETURNED'; do
+    'Analyzing drive B:' 'Disk map before optimization:' \
+    'Legend: # used  + mixed  . free' 'Analysis:' \
+    'Optimizing drive B:' 'Disk map after optimization:' \
+    'DEFRAG_INTERACTIVE_RETURNED'; do
     grep -Fq "$marker" "$LOG"
 done
 payload="$(mcopy -i "$TARGET" ::CONTROL.TXT - 2>/dev/null | tr -d '\r\n')"

@@ -24,6 +24,7 @@ struct options {
     char sort[16];
     unsigned drive;
     int drive_set;
+    int interactive;
 };
 
 struct defrag_state {
@@ -624,6 +625,37 @@ static int compact_free_space(struct defrag_state *state)
     return 0;
 }
 
+static void render_disk_map(const struct defrag_state *state,
+                            const char *title)
+{
+    unsigned cell;
+    unsigned total = state->volume.clusters;
+    printf("%s\n", title);
+    for (cell = 0; cell < 64; ++cell) {
+        unsigned first = 2U + (unsigned)((unsigned long)total * cell / 64UL);
+        unsigned last = 2U +
+            (unsigned)((unsigned long)total * (cell + 1U) / 64UL);
+        unsigned cluster, used = 0, count = 0;
+        for (cluster = first; cluster < last; ++cluster) {
+            ++count;
+            if (bit_get(allocated, cluster)) ++used;
+        }
+        putchar(!used ? '.' : used == count ? '#' : '+');
+        if ((cell & 15) == 15) putchar('\n');
+    }
+    puts("Legend: # used  + mixed  . free");
+}
+
+static void reset_analysis(struct defrag_state *state)
+{
+    state->files = 0;
+    state->directories = 0;
+    state->fragmented = 0;
+    state->moved = 0;
+    memset(claimed, 0, sizeof(claimed));
+    memset(movable, 0, sizeof(movable));
+}
+
 static int compare_field(const unsigned char *left, const unsigned char *right,
                          char key)
 {
@@ -842,8 +874,19 @@ static int defragment(unsigned drive, const struct options *options)
     }
     if (allocation_result)
         return 5;
-    memset(claimed, 0, sizeof(claimed));
-    memset(movable, 0, sizeof(movable));
+    reset_analysis(&state);
+    if (state.options.interactive) {
+        if (process_directory(&state, 0, 0, 0) ||
+            validate_claimed_allocations(&state)) {
+            if (state.read_error) return 5;
+            return 7;
+        }
+        render_disk_map(&state, "Disk map before optimization:");
+        printf("Analysis: %lu file(s), %lu director%s, %lu fragmented.\n",
+               state.files, state.directories,
+               state.directories == 1 ? "y" : "ies", state.fragmented);
+        reset_analysis(&state);
+    }
     if (process_directory(&state, 0, 0, 1)) {
         if (state.read_error) return 5;
         if (state.write_error) return 6;
@@ -866,6 +909,8 @@ static int defragment(unsigned drive, const struct options *options)
         if (sort_result)
             return sort_result;
     }
+    if (state.options.interactive)
+        render_disk_map(&state, "Disk map after optimization:");
     printf("%lu file(s), %lu director%s; %lu fragmented, %lu moved.\n",
            state.files, state.directories,
            state.directories == 1 ? "y" : "ies", state.fragmented,
@@ -975,6 +1020,7 @@ configure_again:
     if (key != '\r' && key != '\n') goto configure_again;
     options->drive = selected;
     options->drive_set = 1;
+    options->interactive = 1;
     return 0;
 }
 
