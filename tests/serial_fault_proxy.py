@@ -22,6 +22,8 @@ parser.add_argument("--corrupt-write", type=int, default=0,
                     help="flip one byte in this 1-based write payload")
 parser.add_argument("--truncate-write", type=int, default=0,
                     help="truncate this 1-based write request mid-payload")
+parser.add_argument("--drop-read-replies", type=int, default=0,
+                    help="drop this many consecutive read replies before recovery")
 args = parser.parse_args()
 
 upstream = socket.create_connection(("127.0.0.1", args.upstream), timeout=10)
@@ -106,6 +108,10 @@ def forward_replies(data):
         pending.pop(0)
         if command == 2 and response[:3] == b"\x5a\xa5\x00":
             sector_response += 1
+            if sector_response <= args.drop_read_replies:
+                retry_identity = identity
+                print(f"blackout dropped sector response {sector_response}", flush=True)
+                continue
             if sector_response == args.drop_sector:
                 retry_identity = identity
                 print(f"dropped sector response {sector_response}", flush=True)
@@ -135,7 +141,8 @@ while selector.get_map():
             continue
         if key.fileobj is client:
             forward_requests(data)
-        elif args.corrupt_sector or args.drop_sector or args.truncate_sector:
+        elif (args.corrupt_sector or args.drop_sector or args.truncate_sector or
+              args.drop_read_replies):
             forward_replies(data)
         else:
             peer.sendall(data)

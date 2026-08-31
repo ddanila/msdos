@@ -77,8 +77,9 @@ PROXY_PID=
 trap 'kill "$PROXY_PID" "$SERVER_PID" 2>/dev/null || true; wait "$PROXY_PID" "$SERVER_PID" 2>/dev/null || true' EXIT
 sleep 2
 python3 "$ROOT/tests/serial_fault_proxy.py" \
-    --listen "$PROXY_PORT" --upstream "$PORT" --inject a5 --corrupt-request 4 \
-    --truncate-sector 2 --corrupt-sector 4 --truncate-write 1 --corrupt-write 4 \
+    --listen "$PROXY_PORT" --upstream "$PORT" --inject a5 --corrupt-request 7 \
+    --drop-read-replies 3 --truncate-sector 5 --corrupt-sector 7 \
+    --truncate-write 1 --corrupt-write 4 \
     >"$OUT/interlnk-proxy.log" 2>&1 &
 PROXY_PID=$!
 sleep 1
@@ -97,10 +98,11 @@ grep -Fq 'INTERLNK_TRANSPORT_PASS' "$LOG" || {
     cat "$CLIENT_LOG" >&2
     exit 1
 }
-grep -Fq 'truncated sector response 2' "$OUT/interlnk-proxy.log"
-grep -Fq 'corrupted sector response 4' "$OUT/interlnk-proxy.log"
-[[ $(grep -Fc 'retried read sector' "$OUT/interlnk-proxy.log") -eq 2 ]]
-grep -Fq 'corrupted request header 4' "$OUT/interlnk-proxy.log"
+grep -Fq 'blackout dropped sector response 3' "$OUT/interlnk-proxy.log"
+grep -Fq 'truncated sector response 5' "$OUT/interlnk-proxy.log"
+grep -Fq 'corrupted sector response 7' "$OUT/interlnk-proxy.log"
+[[ $(grep -Fc 'retried read sector' "$OUT/interlnk-proxy.log") -ge 5 ]]
+grep -Fq 'corrupted request header 7' "$OUT/interlnk-proxy.log"
 grep -Fq 'truncated write payload 1' "$OUT/interlnk-proxy.log"
 grep -Fq 'corrupted write payload 4' "$OUT/interlnk-proxy.log"
 grep -Fq 'printer request unit 0 byte 50' "$OUT/interlnk-proxy.log"
@@ -117,7 +119,7 @@ mcopy -i "$SERVER_IMAGE" ::WRITTEN.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n'
 mcopy -i "$SERVER_IMAGE_TWO" ::WRITTN2.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx 'fedcba9876543210'
 od -An -tx1 "$PRINTER1_OUT" | tr -d ' \n' | grep -qx '50444548'
 od -An -tx1 "$PRINTER2_OUT" | tr -d ' \n' | grep -qx '514649'
-echo '  PASS: Interlnk redirects disks plus BIOS, named, inherited, and duplicated printer handles while recovering serial faults'
+echo '  PASS: Interlnk redirects disks and printers while reconnecting through sustained serial faults'
 
 # Without /AUTO, a missing server leaves an offline resident driver and must
 # continue boot instead of waiting forever in the serial receive loop.

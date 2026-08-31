@@ -277,6 +277,7 @@ request_read:
         jc      request_io_error
 read_sector_loop:
         mov     byte ptr cs:read_retries,3
+        mov     byte ptr cs:read_reconnects,1
 read_sector_retry:
         call    send_current_request
         jc      short read_sector_failed
@@ -288,7 +289,14 @@ read_sector_retry:
 read_sector_failed:
         dec     byte ptr cs:read_retries
         jnz     read_sector_retry
-        jmp     request_io_error
+        cmp     byte ptr cs:read_reconnects,0
+        je      request_io_error
+        dec     byte ptr cs:read_reconnects
+        mov     cs:connected,0
+        call    connect_server
+        jc      request_io_error
+        mov     byte ptr cs:read_retries,3
+        jmp     read_sector_retry
 read_sector_complete:
         call    advance_transfer
         dec     word ptr cs:io_remaining
@@ -301,6 +309,7 @@ request_write:
         jc      request_io_error
 write_sector_loop:
         mov     byte ptr cs:write_retries,4
+        mov     byte ptr cs:write_reconnects,1
 write_sector_retry:
         call    send_current_request
         jc      short write_sector_failed
@@ -312,7 +321,14 @@ write_sector_retry:
 write_sector_failed:
         dec     byte ptr cs:write_retries
         jnz     write_sector_retry
-        jmp     request_io_error
+        cmp     byte ptr cs:write_reconnects,0
+        je      request_io_error
+        dec     byte ptr cs:write_reconnects
+        mov     cs:connected,0
+        call    connect_server
+        jc      request_io_error
+        mov     byte ptr cs:write_retries,4
+        jmp     write_sector_retry
 write_sector_complete:
         call    advance_transfer
         dec     word ptr cs:io_remaining
@@ -1297,6 +1313,8 @@ io_remaining    dw 0
 packet_checksum db 0
 read_retries    db 0
 write_retries   db 0
+read_reconnects db 0
+write_reconnects db 0
 baud_divisor    dw 1
 baud_terminator db 0
 auto_install    db 0
