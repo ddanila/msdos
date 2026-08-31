@@ -1,4 +1,5 @@
-; INTERLNK block-device client for the serial INTERSVR transport.
+; INTERLNK block-device client for serial and LapLink-style parallel INTERSVR
+; transports.
 
 CODE SEGMENT PUBLIC
         ORG     0
@@ -17,6 +18,10 @@ connected       db 0
 com_port        dw 03f8h
 com_number      db 1
 com_explicit    db 0
+baud_explicit   db 0
+transport_type  db 0                    ; 0=COM UART, 1=LPT nibble cable
+lpt_port        dw 0378h
+lpt_shadow      db 0
 sector_number   dd 0
 bpb_pointers    dw 5 dup(0)
 remote_bpbs     db 125 dup(0)
@@ -597,6 +602,10 @@ receive_sector_done:
 receive_sector ENDP
 
 send_byte PROC NEAR
+        cmp     cs:transport_type,0
+        je      short send_byte_serial
+        jmp     send_byte_parallel
+send_byte_serial:
         push    ax
         push    cx
         push    dx
@@ -625,7 +634,81 @@ client_send_now:
         ret
 send_byte ENDP
 
+send_byte_parallel PROC NEAR
+        ; LapLink-compatible cable: remote data pins 2-5 appear on local
+        ; status bits 3-6, while remote data pin 6 appears as inverted BUSY.
+        ; D0-D3 carry a nibble and D4 toggles for request/acknowledge.
+        push    ax
+        push    bx
+        push    cx
+        mov     bl,al
+        and     al,0fh
+        call    send_parallel_nibble
+        jc      short send_byte_parallel_done
+        mov     al,bl
+        mov     cl,4
+        shr     al,cl
+        call    send_parallel_nibble
+send_byte_parallel_done:
+        pop     cx
+        pop     bx
+        pop     ax
+        ret
+send_byte_parallel ENDP
+
+send_parallel_nibble PROC NEAR
+        push    ax
+        push    bx
+        push    dx
+        push    si
+        and     al,0fh
+        mov     bl,al
+        mov     al,cs:lpt_shadow
+        xor     al,10h
+        and     al,10h
+        or      al,bl
+        mov     cs:lpt_shadow,al
+        mov     dx,cs:lpt_port
+        out     dx,al
+        mov     ah,0
+        int     1ah
+        mov     si,dx
+send_parallel_wait:
+        mov     dx,cs:lpt_port
+        inc     dx
+        in      al,dx
+        and     al,80h                 ; BUSY is inverted by PC hardware
+        test    byte ptr cs:lpt_shadow,10h
+        jnz     short send_parallel_expect_low
+        cmp     al,80h
+        je      short send_parallel_ok
+        jmp     short send_parallel_timeout
+send_parallel_expect_low:
+        or      al,al
+        jz      short send_parallel_ok
+send_parallel_timeout:
+        mov     ah,0
+        int     1ah
+        sub     dx,si
+        cmp     dx,18
+        jb      send_parallel_wait
+        stc
+        jmp     short send_parallel_return
+send_parallel_ok:
+        clc
+send_parallel_return:
+        pop     si
+        pop     dx
+        pop     bx
+        pop     ax
+        ret
+send_parallel_nibble ENDP
+
 receive_byte PROC NEAR
+        cmp     cs:transport_type,0
+        je      short receive_byte_serial
+        jmp     receive_byte_parallel
+receive_byte_serial:
         push    bx
         push    cx
         push    dx
@@ -662,7 +745,81 @@ client_receive_now:
         ret
 receive_byte ENDP
 
+receive_byte_parallel PROC NEAR
+        push    bx
+        push    cx
+        call    receive_parallel_nibble
+        jc      short receive_byte_parallel_done
+        mov     bl,al
+        call    receive_parallel_nibble
+        jc      short receive_byte_parallel_done
+        mov     cl,4
+        shl     al,cl
+        or      al,bl
+        clc
+receive_byte_parallel_done:
+        pop     cx
+        pop     bx
+        ret
+receive_byte_parallel ENDP
+
+receive_parallel_nibble PROC NEAR
+        push    bx
+        push    dx
+        push    si
+        mov     ah,0
+        int     1ah
+        mov     si,dx
+receive_parallel_wait:
+        mov     dx,cs:lpt_port
+        inc     dx
+        in      al,dx
+        mov     bl,al
+        and     al,80h
+        test    byte ptr cs:lpt_shadow,10h
+        jnz     short receive_parallel_expect_high
+        or      al,al                  ; remote toggled from 0 to 1
+        jz      short receive_parallel_ready
+        jmp     short receive_parallel_timeout
+receive_parallel_expect_high:
+        cmp     al,80h                 ; remote toggled from 1 to 0
+        je      short receive_parallel_ready
+receive_parallel_timeout:
+        mov     ah,0
+        int     1ah
+        sub     dx,si
+        cmp     dx,18
+        jb      receive_parallel_wait
+        stc
+        jmp     short receive_parallel_return
+receive_parallel_ready:
+        mov     al,cs:lpt_shadow
+        xor     al,10h
+        and     al,10h
+        mov     cs:lpt_shadow,al
+        mov     dx,cs:lpt_port
+        out     dx,al                  ; acknowledge the observed toggle
+        mov     al,bl
+        mov     cl,3
+        shr     al,cl
+        and     al,0fh
+        clc
+receive_parallel_return:
+        pop     si
+        pop     dx
+        pop     bx
+        ret
+receive_parallel_nibble ENDP
+
 init_serial PROC NEAR
+        cmp     cs:transport_type,0
+        je      short init_uart
+        mov     cs:lpt_shadow,0
+        mov     dx,cs:lpt_port
+        xor     al,al
+        out     dx,al
+        ret
+init_uart:
         mov     dx,cs:com_port
         inc     dx
         xor     al,al
@@ -726,13 +883,21 @@ config_check_noprinter:
         jmp     config_n_option
 config_check_baud:
         cmp     al,'B'
-        je      short config_baud
+        je      config_baud
         cmp     al,'A'
         je      short config_auto
         cmp     al,'V'
-        je      short config_timer_safe
+        je      config_timer_safe
         cmp     al,'L'
+        je      short config_l_option
+        jmp     config_bad
+config_l_option:
+        mov     al,[si]
+        and     al,0dfh
+        cmp     al,'O'
         je      short config_low
+        cmp     al,'P'
+        je      config_lpt
         jmp     config_bad
 config_low:
         lodsw
@@ -742,6 +907,34 @@ config_low:
         mov     cs:low_requested,1
         jmp     config_scan
 config_low_bad:
+        jmp     config_bad
+config_lpt:
+        cmp     cs:com_explicit,0
+        jne     short config_lpt_bad
+        lodsw
+        and     ax,0dfdfh
+        cmp     ax,'TP'
+        jne     short config_lpt_bad
+        lodsb
+        cmp     al,':'
+        jne     short config_lpt_bad
+        lodsb
+        sub     al,'0'
+        cmp     al,1
+        jb      short config_lpt_bad
+        cmp     al,3
+        ja      short config_lpt_bad
+        mov     cs:com_number,al
+        mov     cs:com_explicit,1
+        mov     cs:transport_type,1
+        dec     al
+        xor     ah,ah
+        shl     ax,1
+        mov     bx,ax
+        mov     ax,cs:lpt_bases[bx]
+        mov     cs:lpt_port,ax
+        jmp     config_scan
+config_lpt_bad:
         jmp     config_bad
 config_auto:
         lodsb
@@ -778,12 +971,15 @@ config_baud:
         call    parse_config_baud_rate
         jc      short config_baud_bad
         mov     cs:baud_divisor,bx
+        mov     cs:baud_explicit,1
         cmp     al,' '
         je      config_scan
         jmp     config_ok
 config_baud_bad:
         jmp     config_bad
 config_com:
+        cmp     cs:com_explicit,0
+        jne     short config_com_bad
         lodsw
         and     ax,0dfdfh
         cmp     ax,'MO'
@@ -818,20 +1014,20 @@ config_drives_ev:
         lodsw
         and     ax,0dfdfh
         cmp     ax,'EV'
-        jne     short config_bad
+        jne     config_bad
         lodsb
         and     al,0dfh
         cmp     al,'S'
-        jne     short config_bad
+        jne     config_bad
         lodsb
         cmp     al,':'
-        jne     short config_bad
+        jne     config_bad
         lodsb
         sub     al,'0'
         cmp     al,0
-        jb      short config_bad
+        jb      config_bad
         cmp     al,5
-        ja      short config_bad
+        ja      config_bad
         mov     cs:drive_limit,al
         jmp     config_scan
 config_n_option:
@@ -874,6 +1070,11 @@ config_noscan:
         mov     cs:no_scan,1
         jmp     config_scan
 config_ok:
+        cmp     cs:transport_type,0
+        je      short config_valid
+        cmp     cs:baud_explicit,0
+        jne     short config_bad
+config_valid:
         clc
         ret
 config_bad:
@@ -1364,6 +1565,7 @@ multiplex PROC FAR
         mov     cl,cs:installed_units
         xor     dx,dx
         mov     dl,cs:com_number
+        mov     dh,cs:transport_type
         xor     si,si
         cmp     cs:printer_enabled,0
         je      short multiplex_status_done
@@ -1499,6 +1701,7 @@ default_bpb     dw 512
                 dw 9,18,2
                 dd 0,0
 com_bases       dw 03f8h,02f8h,03e8h,02e8h
+lpt_bases       dw 0378h,0278h,03bch
 resident_end LABEL BYTE
 
 CODE ENDS

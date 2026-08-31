@@ -1,6 +1,6 @@
-; Serial Interlnk server.  Exports up to five DOS volumes as remote block
-; devices; INTERLNK.EXE performs ordinary DOS filesystem work through sector
-; requests.
+; Serial and LapLink-style parallel Interlnk server. Exports up to five DOS
+; volumes as remote block devices; INTERLNK.EXE performs ordinary DOS
+; filesystem work through sector requests.
 
 CODE SEGMENT PUBLIC
         ASSUME  CS:CODE,DS:CODE,ES:CODE,SS:CODE
@@ -464,6 +464,10 @@ receive_sector_done:
 receive_sector ENDP
 
 send_byte PROC NEAR
+        cmp     cs:transport_type,0
+        je      short send_byte_serial
+        jmp     send_byte_parallel
+send_byte_serial:
         push    ax
         push    cx
         push    dx
@@ -492,7 +496,78 @@ send_now:
         ret
 send_byte ENDP
 
+send_byte_parallel PROC NEAR
+        push    ax
+        push    bx
+        push    cx
+        mov     bl,al
+        and     al,0fh
+        call    send_parallel_nibble
+        jc      short server_send_parallel_done
+        mov     al,bl
+        mov     cl,4
+        shr     al,cl
+        call    send_parallel_nibble
+server_send_parallel_done:
+        pop     cx
+        pop     bx
+        pop     ax
+        ret
+send_byte_parallel ENDP
+
+send_parallel_nibble PROC NEAR
+        push    ax
+        push    bx
+        push    dx
+        push    si
+        and     al,0fh
+        mov     bl,al
+        mov     al,cs:lpt_shadow
+        xor     al,10h
+        and     al,10h
+        or      al,bl
+        mov     cs:lpt_shadow,al
+        mov     dx,cs:lpt_port
+        out     dx,al
+        mov     ah,0
+        int     1ah
+        mov     si,dx
+server_parallel_send_wait:
+        mov     dx,cs:lpt_port
+        inc     dx
+        in      al,dx
+        and     al,80h
+        test    byte ptr cs:lpt_shadow,10h
+        jnz     short server_parallel_send_expect_low
+        cmp     al,80h
+        je      short server_parallel_send_ok
+        jmp     short server_parallel_send_timeout
+server_parallel_send_expect_low:
+        or      al,al
+        jz      short server_parallel_send_ok
+server_parallel_send_timeout:
+        mov     ah,0
+        int     1ah
+        sub     dx,si
+        cmp     dx,18
+        jb      server_parallel_send_wait
+        stc
+        jmp     short server_parallel_send_return
+server_parallel_send_ok:
+        clc
+server_parallel_send_return:
+        pop     si
+        pop     dx
+        pop     bx
+        pop     ax
+        ret
+send_parallel_nibble ENDP
+
 receive_byte PROC NEAR
+        cmp     cs:transport_type,0
+        je      short receive_byte_serial
+        jmp     receive_byte_parallel
+receive_byte_serial:
         push    bx
         push    cx
         push    dx
@@ -529,7 +604,81 @@ receive_now:
         ret
 receive_byte ENDP
 
+receive_byte_parallel PROC NEAR
+        push    bx
+        push    cx
+        call    receive_parallel_nibble
+        jc      short server_receive_parallel_done
+        mov     bl,al
+        call    receive_parallel_nibble
+        jc      short server_receive_parallel_done
+        mov     cl,4
+        shl     al,cl
+        or      al,bl
+        clc
+server_receive_parallel_done:
+        pop     cx
+        pop     bx
+        ret
+receive_byte_parallel ENDP
+
+receive_parallel_nibble PROC NEAR
+        push    bx
+        push    dx
+        push    si
+        mov     ah,0
+        int     1ah
+        mov     si,dx
+server_parallel_receive_wait:
+        mov     dx,cs:lpt_port
+        inc     dx
+        in      al,dx
+        mov     bl,al
+        and     al,80h
+        test    byte ptr cs:lpt_shadow,10h
+        jnz     short server_parallel_receive_expect_high
+        or      al,al
+        jz      short server_parallel_receive_ready
+        jmp     short server_parallel_receive_timeout
+server_parallel_receive_expect_high:
+        cmp     al,80h
+        je      short server_parallel_receive_ready
+server_parallel_receive_timeout:
+        mov     ah,0
+        int     1ah
+        sub     dx,si
+        cmp     dx,18
+        jb      server_parallel_receive_wait
+        stc
+        jmp     short server_parallel_receive_return
+server_parallel_receive_ready:
+        mov     al,cs:lpt_shadow
+        xor     al,10h
+        and     al,10h
+        mov     cs:lpt_shadow,al
+        mov     dx,cs:lpt_port
+        out     dx,al
+        mov     al,bl
+        mov     cl,3
+        shr     al,cl
+        and     al,0fh
+        clc
+server_parallel_receive_return:
+        pop     si
+        pop     dx
+        pop     bx
+        ret
+receive_parallel_nibble ENDP
+
 init_serial PROC NEAR
+        cmp     cs:transport_type,0
+        je      short server_init_uart
+        mov     cs:lpt_shadow,0
+        mov     dx,cs:lpt_port
+        xor     al,al
+        out     dx,al
+        ret
+server_init_uart:
         mov     dx,cs:com_port
         inc     dx
         xor     al,al
@@ -640,6 +789,8 @@ parse_check_b:
 parse_check_x:
         cmp     al,'X'
         je      short parse_exclude
+        cmp     al,'L'
+        je      parse_lpt
 parse_switch_bad:
         jmp     parse_bad
 parse_exclude:
@@ -676,6 +827,7 @@ parse_monochrome:
         call    parse_baud_rate
         jc      parse_bad
         mov     cs:baud_divisor,bx
+        mov     cs:baud_explicit,1
         jmp     parse_space
 parse_monochrome_flag:
         mov     cs:monochrome_mode,1
@@ -683,11 +835,16 @@ parse_monochrome_flag:
 parse_timer_safe:
         mov     cs:timer_safe_mode,1
 parse_flag_end:
-        jcxz    parse_done
+        or      cx,cx
+        jnz     short parse_flag_more
+        jmp     parse_done
+parse_flag_more:
         cmp     byte ptr es:[si],' '
         jne     parse_bad
         jmp     parse_space
 parse_com:
+        cmp     cs:port_selected,0
+        jne     parse_bad
         cmp     cx,4
         jb      parse_bad
         mov     al,es:[si]
@@ -713,6 +870,7 @@ parse_com:
         cmp     al,4
         ja      parse_bad
         mov     cs:com_number,al
+        mov     cs:port_selected,1
         mov     cs:banner_port,al
         add     cs:banner_port,'0'
         dec     al
@@ -722,7 +880,54 @@ parse_com:
         mov     ax,cs:com_bases[bx]
         mov     cs:com_port,ax
         jmp     parse_space
+parse_lpt:
+        cmp     cs:port_selected,0
+        jne     parse_bad
+        cmp     cx,4
+        jb      parse_bad
+        mov     al,es:[si]
+        inc     si
+        and     al,0dfh
+        cmp     al,'P'
+        jne     parse_bad
+        mov     al,es:[si]
+        inc     si
+        and     al,0dfh
+        cmp     al,'T'
+        jne     parse_bad
+        mov     al,es:[si]
+        inc     si
+        cmp     al,':'
+        jne     parse_bad
+        mov     al,es:[si]
+        inc     si
+        sub     cx,4
+        sub     al,'0'
+        cmp     al,1
+        jb      parse_bad
+        cmp     al,3
+        ja      parse_bad
+        mov     cs:com_number,al
+        mov     cs:port_selected,1
+        mov     cs:banner_port,al
+        add     cs:banner_port,'0'
+        mov     byte ptr cs:banner_kind,'L'
+        mov     byte ptr cs:banner_kind+1,'P'
+        mov     byte ptr cs:banner_kind+2,'T'
+        mov     cs:transport_type,1
+        dec     al
+        xor     ah,ah
+        shl     ax,1
+        mov     bx,ax
+        mov     ax,cs:lpt_bases[bx]
+        mov     cs:lpt_port,ax
+        jmp     parse_space
 parse_done:
+        cmp     cs:transport_type,0
+        je      short parse_transport_valid
+        cmp     cs:baud_explicit,0
+        jne     short parse_bad
+parse_transport_valid:
         cmp     cs:drive_count,0
         jne     short parse_have_drive
         call    enumerate_default_drives
@@ -851,6 +1056,11 @@ server_help:
 
 com_port        dw 03f8h
 com_number      db 1
+port_selected   db 0
+baud_explicit   db 0
+transport_type  db 0
+lpt_port        dw 0378h
+lpt_shadow      db 0
 baud_divisor    dw 1
 monochrome_mode db 0
 timer_safe_mode db 0
@@ -868,12 +1078,13 @@ bios_sector     db 0
 bios_heads      db 0
 sector_number   dd 0
 banner          db 'Microsoft Interlnk server compatible transport',13,10
-                db 'Port-COM'
+                db 'Port-'
+banner_kind     db 'COM'
 banner_port     db '1  Drives $'
 banner_suffix   db ' available',13,10
                 db 'F1 displays status; Alt+F4 exits.',13,10,'$'
 printer_status  db 0
-usage           db 'Syntax: INTERSVR [drive: ...] [/X=drive: ...] [/COM:n] [/BAUD:rate] [/B] [/V]',13,10,'$'
+usage           db 'Syntax: INTERSVR [drive: ...] [/X=drive: ...] [/COM:n | /LPT:n] [/BAUD:rate] [/B] [/V]',13,10,'$'
 sector_buffer   db 512 dup(0)
 connected       db 0
 discovery_count dw 0
@@ -893,6 +1104,7 @@ status_printer  db 'Printer bytes:      $'
 status_errors   db 'Protocol/I/O errors: $'
 newline         db 13,10,'$'
 com_bases       dw 03f8h,02f8h,03e8h,02e8h
+lpt_bases       dw 0378h,0278h,03bch
 
 CODE ENDS
 STACKSEG SEGMENT PARA STACK 'STACK'

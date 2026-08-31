@@ -8,6 +8,12 @@ cmp ax, 0ff00h
 jne fail
 cmp bx, 0
 jne fail
+%ifdef EXPECT_PARALLEL
+cmp dh, 1
+jne fail
+cmp dl, 1
+jne fail
+%endif
 %ifdef EXPECT_ZERO_DRIVES
 cmp cx, 0
 jne fail

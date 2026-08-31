@@ -152,6 +152,12 @@ command_query:
         mov     al,dl
         add     al,'0'
         mov     cs:banner_port,al
+        or      dh,dh
+        jz      short command_query_kind_done
+        mov     byte ptr cs:banner_kind,'L'
+        mov     byte ptr cs:banner_kind+1,'P'
+        mov     byte ptr cs:banner_kind+2,'T'
+command_query_kind_done:
         mov     dx,OFFSET banner
         mov     ah,9
         int     21h
@@ -164,7 +170,8 @@ not_installed:
         mov     ax,4c01h
         int     21h
 banner  db 'Microsoft Interlnk version 1.00',13,10
-        db 'Port-COM'
+        db 'Port-'
+banner_kind db 'COM'
 banner_port db '0',13,10
         db 'Drive letters redirected: '
 banner_count db '0',13,10,'$'
@@ -173,7 +180,7 @@ syntax  db 'Invalid INTERLNK parameter.',13,10,'$'
 help    db 'Displays or changes the Interlnk client connection.',13,10
         db 'Syntax: INTERLNK [client[:]=[server][:]]',13,10
         db 'Repository extension: INTERLNK /RECONNECT',13,10
-        db 'CONFIG.SYS: DEVICE=INTERLNK.EXE [/DRIVES:n] [/NOPRINTER] [/COM:n] [/BAUD:rate] [/AUTO] [/NOSCAN] [/LOW] [/V]',13,10,'$'
+        db 'CONFIG.SYS: DEVICE=INTERLNK.EXE [/DRIVES:n] [/NOPRINTER] [/COM:n | /LPT:n] [/BAUD:rate] [/AUTO] [/NOSCAN] [/LOW] [/V]',13,10,'$'
 reconnect_name db 'RECONNECT'
 reconnected db 'Interlnk connection renewed.',13,10,'$'
 remapped db 'Interlnk drive redirection updated.',13,10,'$'
