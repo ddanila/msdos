@@ -989,8 +989,7 @@ Getentries:				;AN007;MS.
 	JNZ    not_matched		;AN007;MS. no
 	MOV    AX,ES:[DI]		;AN007;MS. get special version
 	MOV    CS:[Special_Version],AX	;AN007;MS. save it
-	MOV    AL,ES:[DI+2]		;AN008;MS. get fake count
-	MOV    CS:[Fake_Count],AL	;AN007;MS. save it
+	MOV    CS:[Fake_Count],0FFH	; All compact SETVER entries are process-local
 	POP    SI			;AN007;MS.
 	POP    CX			;AN007;MS.
 	JMP    SHORT end_list		;AN007;MS.
@@ -1001,7 +1000,7 @@ skipone:				;AN007;MS.
 	MOV    DI,CS:[Temp_Var2]	;AN007;MS. restore old di
 	XOR    AH,AH			;AN007;MS. position to next entry
 	ADD    DI,AX			;AN007;MS.
-	ADD    DI,4			;AN007;MS.
+	ADD    DI,3			; length byte, name, and version word
 	JMP    Getentries		;AN007;MS.
 
 

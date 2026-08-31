@@ -91,6 +91,8 @@
 ;Message text for VDISK is in module VDISKMSG.
 .xlist
 	INCLUDE VDISKSYS.INC
+	; SETVER's retail compatibility table reports DOS 4.00 to VDISK.SYS.
+	EXPECTED_VERSION EQU 0004H
 	INCLUDE SYSMSG.INC
 	MSG_UTILNAME<VDISK>
 .list
@@ -1296,6 +1298,7 @@ DOS_Page_Size_Word dw DOS_Page_Sz	;an000;
 
 err_flag2 db	0
 err_baddos equ	01h			; Invalid DOS Version
+PARM_COUNT db 0
 
 ;-----------------------------------------------------------------------;
 ;	SUBLIST definitions and EQUATES for Message Retreiver		;
@@ -1483,6 +1486,21 @@ VDISK_CONTINUE_1:			;AN000;
 	CALL	PC_386_CHK		;AN000;SEE IF WE HAVE A 386 PC
 					; Yes, continue
 	CALL	GET_PARMS		;get parameters from CONFIG.SYS line
+	; Message initialization and DOS 4 compatibility both share this overlay.
+	; Reassert omitted positional parameters from what the parser actually saw,
+	; instead of accepting stale overlay bytes as explicit values.
+	CMP	CS:PARM_COUNT,1
+	JAE	VDISK_HAVE_BUFFER_ARG
+	MOV	CS:BUFF_SIZE,0
+VDISK_HAVE_BUFFER_ARG:
+	CMP	CS:PARM_COUNT,2
+	JAE	VDISK_HAVE_SECTOR_ARG
+	MOV	CS:BPB_SSZ,0
+VDISK_HAVE_SECTOR_ARG:
+	CMP	CS:PARM_COUNT,3
+	JAE	VDISK_HAVE_DIR_ARG
+	MOV	CS:BPB_DIRN,0
+VDISK_HAVE_DIR_ARG:
 
 	PUSH	CS
 	POP	DS			;set DS = CS
@@ -1622,6 +1640,7 @@ PC_386_CHK ENDP 			;AN000;
 	ASSUME	DS:NOTHING		;DS:BX point to Request Header
 GET_PARMS PROC				;get parameters from CONFIG.SYS line
 	PUSH	DS			;save DS
+	MOV	CS:PARM_COUNT,0
 	LDS	SI,RH.RH0_BPBA		;DS:SI point to all after DEVICE=
 					;in CONFIG.SYS line
 	XOR	AL,AL			;not at end of line
@@ -1711,18 +1730,21 @@ Get_Parms_X_Exit:
 
 	CALL	GET_NUMBER		;extract digits, convert to binary
 	MOV	CS:BUFF_SIZE,CX 	;store buffer size
+	INC	CS:PARM_COUNT
 
 	CALL	SKIP_TO_DIGIT		;skip to next digit
 	JZ	GET_PARMS_X		;found EOL, no digits remain
 
 	CALL	GET_NUMBER		;extract digits, convert to binary
 	MOV	CS:BPB_SSZ,CX		;store sector size
+	INC	CS:PARM_COUNT
 
 	CALL	SKIP_TO_DIGIT		;skip to next digit
 	JZ	GET_PARMS_X		;found EOL, no digits remain
 
 	CALL	GET_NUMBER		;extract digits, convert to binary
 	MOV	CS:BPB_DIRN,CX		;store number of directory entries
+	INC	CS:PARM_COUNT
 
 
 

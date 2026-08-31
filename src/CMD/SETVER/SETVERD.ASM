@@ -38,12 +38,12 @@ interrupt PROC FAR
         jne     init_failed
         mov     ax,1231h
         int     2fh
-        cmp     cx,1024
+        cmp     cx,640
         jne     init_failed
         push    cs
         pop     ds
         mov     si,OFFSET version_table
-        mov     cx,1024
+        mov     cx,640
         cld
         rep     movsb
 

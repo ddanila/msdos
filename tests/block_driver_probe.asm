@@ -9,6 +9,7 @@ start:
     pop es
     cld
 
+    mov byte [failure_stage], '1'
     mov bl, 3
     call non_removable
     jc failed
@@ -16,6 +17,7 @@ start:
     call non_removable
     jc failed
 
+    mov byte [failure_stage], '2'
     mov al, 2
     call load_block_driver
     jc failed
@@ -24,6 +26,7 @@ start:
     call verify_request_commands
     jc failed
 
+    mov byte [failure_stage], '3'
     mov al, 3
     call load_block_driver
     jc failed
@@ -32,6 +35,7 @@ start:
     call verify_request_commands
     jc failed
 
+    mov byte [failure_stage], '4'
     mov al, 2
     xor dx, dx
     mov bx, sector_buffer
@@ -49,23 +53,31 @@ start:
     repe cmpsb
     jne failed
 
+    mov byte [failure_stage], '5'
     mov al, 3
     xor dx, dx
     mov bx, sector_buffer
     call absolute_read
     jc failed
+    mov byte [failure_stage], 'A'
     cmp word [sector_buffer + 11], 128
     jne failed
-    cmp word [sector_buffer + 17], 64
+    mov byte [failure_stage], 'B'
+    mov ax, [sector_buffer + 17]
+    mov [failure_value], ax
+    cmp ax, 4
     jne failed
-    cmp word [sector_buffer + 19], 512
+    mov byte [failure_stage], 'C'
+    cmp word [sector_buffer + 19], 8
     jne failed
+    mov byte [failure_stage], 'D'
     mov si, vdisk_oem
     mov di, sector_buffer + 3
     mov cx, 8
     repe cmpsb
     jne failed
 
+    mov byte [failure_stage], '6'
     mov di, write_buffer
     mov cx, 512
     mov al, 0a5h
@@ -86,17 +98,18 @@ start:
     repe cmpsb
     jne failed
 
+    mov byte [failure_stage], '7'
     mov di, write_buffer
     mov cx, 128
     mov al, 05ah
     rep stosb
     mov al, 3
-    mov dx, 511
+    mov dx, 7
     mov bx, write_buffer
     call absolute_write
     jc failed
     mov al, 3
-    mov dx, 511
+    mov dx, 7
     mov bx, sector_buffer
     call absolute_read
     jc failed
@@ -106,6 +119,7 @@ start:
     repe cmpsb
     jne failed
 
+    mov byte [failure_stage], '8'
     mov al, 2
     mov dx, 127
     mov bx, sector_buffer
@@ -228,6 +242,15 @@ absolute_write:
 failed:
     mov si, fail_message
     call serial_print
+    mov al, [failure_stage]
+    mov dx, 03f8h
+    out dx, al
+    mov al, '/'
+    out dx, al
+    mov ax, [failure_value]
+    call serial_hex_word
+    mov si, newline
+    call serial_print
     mov ax, 4c01h
     int 21h
 
@@ -248,6 +271,30 @@ serial_print:
 .done:
     ret
 
+serial_hex_word:
+    push ax
+    mov al, ah
+    call serial_hex_byte
+    pop ax
+serial_hex_byte:
+    push ax
+    shr al, 1
+    shr al, 1
+    shr al, 1
+    shr al, 1
+    call serial_hex_nibble
+    pop ax
+    and al, 0fh
+serial_hex_nibble:
+    add al, '0'
+    cmp al, '9'
+    jbe serial_hex_emit
+    add al, 7
+serial_hex_emit:
+    mov dx, 03f8h
+    out dx, al
+    ret
+
 ram_oem db 'RDV 1.20'
 vdisk_oem db 'VDISKx.x'
 ram_success_commands db 5, 6, 7, 10, 11, 12, 13, 14, 0ffh
@@ -255,7 +302,10 @@ ram_error_commands db 3, 16, 0ffh
 vdisk_success_commands db 13, 14, 0ffh
 vdisk_error_commands db 3, 5, 6, 7, 10, 11, 12, 16, 0ffh
 pass_message db 'BLOCK_DRIVER_REQUEST_PASS', 13, 10, 0
-fail_message db 'BLOCK_DRIVER_REQUEST_FAIL', 13, 10, 0
+fail_message db 'BLOCK_DRIVER_REQUEST_FAIL_STAGE=', 0
+newline db 13, 10, 0
+failure_stage db '?'
+failure_value dw 0
 driver_strategy dd 0
 driver_interrupt dd 0
 driver_header dd 0

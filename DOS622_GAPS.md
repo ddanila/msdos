@@ -34,8 +34,8 @@ valid lightweight interface.
 | Area | Status | Gap |
 | --- | --- | --- |
 | DOS identity and compatibility | Present | The kernel and true-version API identify 6.22, and SETVER ships the retail 6.2/6.22 default table. The `MSDOS5.0` FAT OEM identifier is correct for 6.22 and remains unchanged. |
-| Startup and configuration | Partial | Named blocks, nested boot menus, ordered `INCLUDE`, `MENUCOLOR`, defaults/timeouts, keyboard recovery, and `CONFIG` propagation are present alongside F5/Shift bypass and F8 stepping. Reference diagnostics and selected-block interaction coverage remain. |
-| Everyday command additions | Partial | `CHOICE`, `DELTREE`, `LOADFIX`, and `MOVE` are present; overwrite policy additions to `COPY` and `XCOPY` remain. |
+| Startup and configuration | Present | Named blocks, nested boot menus, ordered `INCLUDE`, `MENUCOLOR`, defaults/timeouts, keyboard recovery, and `CONFIG` propagation are covered alongside F5/Shift bypass, F8 stepping, and selected-block `DEVICEHIGH`, `INSTALL`, `SHELL`, and AUTOEXEC behavior. |
+| Everyday command additions | Present | `CHOICE`, `DELTREE`, `LOADFIX`, and `MOVE` are present; `/Y`, `/-Y`, `COPYCMD`, prompting, and precedence are covered for `COPY` and `XCOPY`. |
 | Disk health and performance | Partial | ScanDisk has a shipped FAT12/FAT16 logical-repair core, repair log, stale-safe undo flow, and surface recovery. Defrag has byte-preserving FAT12/FAT16 `/U` relocation, `/F` compaction, physical directory sorting, hidden/nested coverage, reboot behavior, and recoverable transaction boundaries. Remaining reference UI and compatibility details are listed below. |
 | Memory optimization | Partial | Strong HMA/UMB base plus a reversible MemMaker startup-file/reboot workflow with measured baseline, post-CONFIG, and post-AUTOEXEC memory states and per-candidate Custom driver/TSR placement. MemMaker now distinguishes transient EXEC demand from resident size and pins bounded programs to safe UMB regions; unbounded COM/MZ programs deliberately retain ordinary `LH` placement. Exact retail UI behavior and remaining DOS 6 EMM386/MEM/HIMEM differentials remain. |
 | SMARTDrive | Present | The dual-purpose `SMARTDRV.EXE` loads through CONFIG.SYS or self-installs at runtime, then controls live per-drive policy, delayed writes, command-boundary and reboot flushing, sizing, transfer elements, bounded read-ahead, and MSCDEX CD caching with `/U` opt-out. |
@@ -99,9 +99,8 @@ present. Selection, invalid-key recovery, zero and finite timeouts, nesting,
 source-order flattening, missing-submenu filtering, and the `CONFIG` variable
 passed to AUTOEXEC.BAT have QEMU coverage.
 
-Remaining work is a reference differential of exact diagnostics and parsing
-boundaries. F5/Shift bypass menus completely; F8 selects a block before
-stepping its flattened lines and AUTOEXEC.BAT. Selected `DEVICEHIGH`,
+F5/Shift bypass menus completely; F8 selects a block before stepping its
+flattened lines and AUTOEXEC.BAT. Selected `DEVICEHIGH`,
 `INSTALL`, `SHELL`, and AUTOEXEC.BAT behavior is covered across fresh
 multipass working images.
 

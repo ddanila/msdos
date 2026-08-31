@@ -10,6 +10,7 @@ BOOT_IMG="$OUT/floppy-drivers-qemu.img"
 SERIAL_LOG="$OUT/drivers-qemu-serial.log"
 PROBE_COM="$OUT/block-driver-request.com"
 COUNTRY_PROBE_COM="$OUT/country-config-probe.com"
+EXIT_COM="$OUT/drivers-qemu-exit.com"
 
 PASS=0
 FAIL=0
@@ -28,17 +29,19 @@ echo "Building test image..."
 cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/block_driver_probe.asm" -o "$PROBE_COM"
 nasm -f bin "$REPO_ROOT/tests/country_config_probe.asm" -o "$COUNTRY_PROBE_COM"
+nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::BLKREQ.COM
 mcopy -o -i "$BOOT_IMG" "$COUNTRY_PROBE_COM" ::CNTRYCHK.COM
+mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 
 {
     printf 'COUNTRY=049,,COUNTRY.SYS\r\n'
     printf 'DEVICE=ANSI.SYS\r\n'
     printf 'DEVICE=RAMDRIVE.SYS 64\r\n'
-    printf 'DEVICE=VDISK.SYS 64\r\n'
+    printf 'DEVICE=VDISK.SYS 1 128 4\r\n'
     printf 'DEVICE=DISPLAY.SYS CON=(EGA,,1)\r\n'
     printf 'DEVICE=SMARTDRV.EXE 256\r\n'
     printf 'BUFFERS=20\r\n'
@@ -109,6 +112,7 @@ mcopy -o -i "$BOOT_IMG" "$COUNTRY_PROBE_COM" ::CNTRYCHK.COM
     printf 'ECHO CHCP_VERIFY_DONE\r\n'
 
     printf 'ECHO ===DONE===\r\n'
+    printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
 echo "Booting QEMU (may take ~90s)..."
@@ -119,6 +123,7 @@ timeout 120 qemu-system-i386 \
     -drive if=floppy,index=0,format=raw,file="$BOOT_IMG",cache=writethrough \
     -boot a -m 4 \
     -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     2>/dev/null | tee "$SERIAL_LOG" > /dev/null; true
 
 if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then
@@ -155,7 +160,7 @@ echo ""
 echo "--- VDISK.SYS tests ---"
 
 if grep -q "VDISK_DONE" "$SERIAL_LOG"; then
-    ok "VDISK.SYS (boot completed with DEVICE=VDISK.SYS 64, batch continued)"
+    ok "VDISK.SYS (boot completed with DEVICE=VDISK.SYS 1 128 4, batch continued)"
 else
     fail "VDISK.SYS (batch hung or crashed — driver load may have failed)"
 fi

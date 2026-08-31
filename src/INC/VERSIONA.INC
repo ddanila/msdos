@@ -1,8 +1,10 @@
 
+ifndef expected_version
 major_version	    equ     6	    ;Major DOS version
 minor_version	    equ     22	    ;Minor DOS Version
 
 expected_version    equ     (MINOR_VERSION SHL 8)+MAJOR_VERSION
+endif
 
        if1
        %OUT  ... for DOS Version 6.22 ...

@@ -21,7 +21,7 @@ query_table:
         jne     not_supported
         mov     ax,1231h                ; resident SETVER table
         int     2fh
-        cmp     cx,1024
+        cmp     cx,640
         jne     not_supported
         mov     cs:table_off,di
         mov     cs:table_seg,es
@@ -99,7 +99,7 @@ parse_name:
         sub     ax,cs:table_off
         xor     bx,bx
         mov     bl,cs:name_len
-        add     bx,5
+        add     bx,4
         add     ax,bx
         cmp     ax,cs:table_size
         ja      table_full
@@ -118,8 +118,6 @@ parse_name:
         stosb
         mov     al,cs:new_minor
         stosb
-        mov     al,0ffh
-        stosb
         xor     al,al
         stosb
         mov     dx,OFFSET added_msg
@@ -134,7 +132,6 @@ update_entry:
         mov     es:[di],al
         mov     al,cs:new_minor
         mov     es:[di+1],al
-        mov     byte ptr es:[di+2],0ffh
         mov     dx,OFFSET updated_msg
 mutation_success:
         call    save_persist
@@ -149,7 +146,7 @@ delete_entry:
         mov     bx,di                    ; destination
         xor     ax,ax
         mov     al,es:[di]
-        add     ax,4
+        add     ax,3
         add     di,ax                    ; source
         mov     ax,di
         sub     ax,cs:table_off
@@ -194,7 +191,7 @@ list_name:
         call    print_two_digits
         mov     dx,OFFSET crlf
         call    print_dollar
-        add     di,3
+        add     di,2
         pop     cx
         jmp     short list_next
 list_done:
@@ -225,7 +222,7 @@ find_next:
 find_skip:
         xor     ah,ah
         add     di,ax
-        add     di,4
+        add     di,3
         jmp     short find_next
 find_hit:
         clc
@@ -286,7 +283,7 @@ save_persist:
         push    cs
         pop     es
         mov     di,cs:persist_table
-        mov     cx,1024
+        mov     cx,cs:table_size
         rep     movsb
         pop     es
         pop     ds

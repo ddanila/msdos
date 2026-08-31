@@ -111,6 +111,7 @@ SETFINDPB:
 	MOV	SI,OFFSET DOSGROUP:Version_Fake_Table ;MS.;AN007;move special
 	MOV	DI,ES:[Special_Entries] 	      ;MS.;AN007;entries
 	MOV	CX,ES:[Temp_Var]		      ;MS.;AN007;
+	CLD
 	REP	MOVSB				      ;MS.;AN007;
 
 	ASSUME	ES:DOSGroup
@@ -350,8 +351,8 @@ TRUEDPBAD:
 	STOSW			; End of list
 
 	MOV	[Special_Entries],BP ;MS.;AN007 save starting address of Special entries
-	; Reserve and copy the complete writable SETVER table, not merely the
-	; seeded entries through the first terminator.
+	; The transient workspace has 640 bytes before the remaining SYSINIT code.
+	; This holds the complete 550-byte retail table and several local entries.
 	MOV	[Temp_Var],SETVER_TABLE_CAPACITY
 	ADD	BP,SETVER_TABLE_CAPACITY
 
@@ -641,11 +642,9 @@ INITSTACK LABEL BYTE
 ;fake_count: ff means the version will be reset when Abort or Exec is encountered
 ;	     n means the version will be reset after n DOS version calls are issued
 ;
-SETVER_TABLE_CAPACITY EQU 1024
+SETVER_TABLE_CAPACITY EQU 640
 Version_Fake_Table:			    ;AN007  starting address for special
 	INCLUDE SETVER62.INC
-	; Keep the resident table writable.  SETVER uses the first zero-length
-	; entry as the terminator and may consume the remaining zero-filled space.
 	DB	(SETVER_TABLE_CAPACITY-($-Version_Fake_Table)) dup(0)
 
 MEMSTRT LABEL	WORD

@@ -21,7 +21,9 @@ def main():
     runtime = load("runtime_coverage.json")["runtime_components"]
     shipped = {
         name for name, item in runtime.items()
-        if item["kind"] in {"command", "driver_command", "tsr", "command_tsr", "shell"}
+        if item["kind"] in {
+            "command", "driver_command", "command+driver", "tsr", "command_tsr", "shell"
+        }
     }
     run_tests = (ROOT / "tests/run_tests.sh").read_text()
     calls = re.findall(
