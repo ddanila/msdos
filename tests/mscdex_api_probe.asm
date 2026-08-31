@@ -217,6 +217,28 @@ start:
     cmp word [request_header + 3], 810fh
     jne fail
 
+    ; Establish a third-party EMS physical-page-zero mapping immediately
+    ; before an uncached MSCDEX read.
+    mov bx, 1
+    mov ah, 43h
+    int 67h
+    or ah, ah
+    jnz ems_setup_fail
+    mov [external_ems_handle], dx
+    xor bx, bx
+    mov ax, 4400h
+    int 67h
+    or ah, ah
+    jnz ems_setup_fail
+    mov ah, 41h
+    int 67h
+    or ah, ah
+    jnz ems_setup_fail
+    mov [external_ems_frame], bx
+    mov es, bx
+    mov word [es:0], 4d45h
+    mov word [es:2], 5353h
+
     push ds
     pop es
     mov bx, sector_buffer
@@ -226,11 +248,11 @@ start:
     mov di, 5678h
     mov ax, 1508h
     int 2fh
-    jc fail
+    jc cache_fail
     cmp word [sector_buffer], 'CD'
-    jne fail
+    jne cache_fail
     cmp word [sector_buffer + 2], '22'
-    jne fail
+    jne cache_fail
     mov cx, 3
     mov ax, 1508h
     int 2fh
@@ -252,6 +274,16 @@ start:
     jne fail
     cmp word [directory_record + 2], 30
     jne fail
+
+    mov es, [external_ems_frame]
+    cmp word [es:0], 4d45h
+    jne ems_fail
+    cmp word [es:2], 5353h
+    jne ems_fail
+    push cs
+    pop ds
+    push cs
+    pop es
     cmp byte [directory_record + 32], 12
     jne fail
     mov bx, versioned_file_path
@@ -425,11 +457,41 @@ start:
     mov dx, pass_message
     mov ah, 9
     int 21h
-    mov ax, 4c00h
-    int 21h
+    ; Keep the modeled third-party owner allocated for the VM lifetime.
+    mov dx, 0f4h
+    mov al, 10h
+    out dx, al
+    hlt
 
 fail:
     mov dx, fail_message
+    mov ah, 9
+    int 21h
+    mov ax, 4c01h
+    int 21h
+
+ems_fail:
+    push ds
+    pop es
+    mov dx, ems_fail_message
+    mov ah, 9
+    int 21h
+    mov ax, 4c01h
+    int 21h
+
+ems_setup_fail:
+    push ds
+    pop es
+    mov dx, ems_setup_fail_message
+    mov ah, 9
+    int 21h
+    mov ax, 4c01h
+    int 21h
+
+cache_fail:
+    push ds
+    pop es
+    mov dx, cache_fail_message
     mov ah, 9
     int 21h
     mov ax, 4c01h
@@ -458,5 +520,10 @@ supplementary_path db '\JPN.TXT',0
 missing_path db '\MISSING.TXT',0
 root_path db '\',0
 directory_record times 255 db 0
+external_ems_handle dw 0
+external_ems_frame dw 0
 pass_message db 'MSCDEX_API_PASS',13,10,'$'
 fail_message db 'MSCDEX_API_FAIL',13,10,'$'
+ems_fail_message db 'MSCDEX_EMS_MAP_FAIL',13,10,'$'
+ems_setup_fail_message db 'MSCDEX_EMS_SETUP_FAIL',13,10,'$'
+cache_fail_message db 'MSCDEX_EMS_CACHE_FAIL',13,10,'$'

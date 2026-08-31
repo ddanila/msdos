@@ -35,9 +35,9 @@ mcopy -o -i "$IMAGE" "$EXIT_COM" ::QEXIT.COM
     printf 'MSCDEX /D:NOTHERE /L:E\r\nIF NOT ERRORLEVEL 1 ECHO MSCDEX_MISSING_ACCEPTED\r\n'
     printf 'MSCDEX /D:MSCD001 /L:E /M:12 /E /K /S /V\r\n'
     printf 'IF ERRORLEVEL 1 ECHO MSCDEX_INSTALL_FAILED\r\n'
-    printf 'MSCAPI.COM\r\nIF ERRORLEVEL 1 ECHO MSCDEX_API_FAILED\r\n'
     printf 'MSCDEX\r\n'
-    printf 'ECHO MSCDEX_TEST_DONE\r\nQEXIT.COM\r\n'
+    printf 'ECHO MSCDEX_TEST_DONE\r\n'
+    printf 'MSCAPI.COM\r\nIF ERRORLEVEL 1 ECHO MSCDEX_API_FAILED\r\nQEXIT.COM\r\n'
 } | mcopy -o -i "$IMAGE" - ::AUTOEXEC.BAT
 
 timeout 60 qemu-system-i386 \
@@ -61,4 +61,4 @@ if grep -Eq 'MSCDEX_(HELP_STATUS_BAD|MISSING_ACCEPTED|INSTALL_FAILED|API_FAILED)
     exit 1
 fi
 
-echo '  PASS: MSCDEX multi-subunit, PVD/SVD, ISO lookup, read, and complete media-control routing'
+echo '  PASS: MSCDEX ISO/media APIs, EMS caching, and external page-map preservation'

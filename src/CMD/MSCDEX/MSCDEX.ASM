@@ -1088,6 +1088,12 @@ read_raw_return:
 read_raw_sector ENDP
 
 initialize_ems_cache PROC NEAR
+        ; The resident cache must be able to save and restore the caller's
+        ; complete physical-page map around its temporary page-zero mapping.
+        mov     ax,4e03h
+        int     67h
+        or      ah,ah
+        jnz     short initialize_ems_failed
         mov     ah,41h
         int     67h
         or      ah,ah
@@ -1109,10 +1115,36 @@ initialize_ems_failed:
         ret
 initialize_ems_cache ENDP
 
-; Map the 2 KiB cache slot in AX into EMS physical page zero.  The copy path
-; explicitly unmaps the page before returning from the resident service.
+; Map the 2 KiB cache slot in AX into EMS physical page zero.  Preserve the
+; complete pre-existing map because another resident client may own that page.
 map_ems_cache_slot PROC NEAR
         mov     cs:ems_slot,ax
+        mov     cs:ems_map_saved,0
+        push    ax
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        push    di
+        push    ds
+        push    es
+        push    cs
+        pop     es
+        mov     di,OFFSET ems_saved_map
+        mov     ax,4e00h
+        int     67h
+        or      ah,ah
+        jnz     short ems_map_not_saved
+        mov     cs:ems_map_saved,1
+ems_map_not_saved:
+        pop     es
+        pop     ds
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
         push    bx
         push    cx
         push    dx
@@ -1135,6 +1167,32 @@ map_ems_cache_slot PROC NEAR
 map_ems_cache_slot ENDP
 
 restore_ems_cache_map PROC NEAR
+        cmp     cs:ems_map_saved,0
+        je      short restore_ems_unmap
+        push    ax
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        push    di
+        push    ds
+        push    es
+        push    cs
+        pop     ds
+        mov     si,OFFSET ems_saved_map
+        mov     ax,4e01h
+        int     67h
+        pop     es
+        pop     ds
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
+        mov     cs:ems_map_saved,0
+        ret
+restore_ems_unmap:
         push    bx
         push    dx
         mov     bx,0ffffh
@@ -1213,6 +1271,8 @@ ems_handle      dw 0
 ems_frame       dw 0
 ems_slot        dw 0
 ems_offset      dw 0
+ems_map_saved   db 0
+ems_saved_map   db 256 dup(0)
 cache_data      db MAX_BUFFERS*2048 dup(0)
 resident_end LABEL BYTE
 
