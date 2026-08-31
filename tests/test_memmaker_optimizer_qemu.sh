@@ -40,8 +40,11 @@ import sys
 open(sys.argv[1], "wb").write(struct.pack("<8H", 0, 0, 0, 0, 3, 3, 0, 0))
 records = [
     (0x5A53, 1, 5001, 1),
+    (0x4C53, 1, 6000, 0),
     (0x5A53, 2, 3501, 1),
+    (0x4C53, 2, 3600, 0),
     (0x5A53, 3, 3501, 1),
+    (0x4C53, 3, 3600, 0),
 ]
 open(sys.argv[2], "wb").write(b"".join(struct.pack("<4H", *r) for r in records))
 PY
@@ -57,7 +60,7 @@ autoexec="$(mcopy -i "$IMAGE" ::AUTOEXEC.BAT - 2>/dev/null | tr -d '\r')"
 status="$(mcopy -i "$IMAGE" ::MEMMAKER.STS - 2>/dev/null | tr -d '\r')"
 grep -q '^ECHO LARGE$' <<<"$autoexec"
 ! grep -q '^LH ECHO LARGE$' <<<"$autoexec"
-grep -Eq '^LH ECHO MEDIUM1$' <<<"$autoexec"
-grep -Eq '^LH ECHO MEDIUM2$' <<<"$autoexec"
+grep -Eq '^LH /L:[0-9]+,57600 ECHO MEDIUM1$' <<<"$autoexec"
+grep -Eq '^LH /L:[0-9]+,57600 ECHO MEDIUM2$' <<<"$autoexec"
 grep -q 'TSRs placed high by measured optimizer: 2, 7000 paragraphs' <<<"$status"
 echo '  PASS: MemMaker exact optimizer selects 7000 paragraphs over the 5000-paragraph first fit'

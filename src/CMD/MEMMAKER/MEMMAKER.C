@@ -8,6 +8,7 @@
 #define SWAP_SWITCH "/SWAP:"
 #define WINDOW_SWITCH "/W:"
 #define SIZER_MAGIC 0x5a53
+#define SIZER_LOAD_MAGIC 0x4c53
 #define DRIVER_MAGIC 0x4453
 #define MAX_MEASUREMENTS 64
 
@@ -56,12 +57,30 @@ static unsigned measured_driver_paragraphs;
 static unsigned optimized_tsr_count;
 static unsigned optimized_tsr_paragraphs;
 static char injected_point[16];
+static unsigned tsr_sizes[MAX_MEASUREMENTS];
+static unsigned tsr_load_sizes[MAX_MEASUREMENTS];
+static unsigned char tsr_selected[MAX_MEASUREMENTS];
+static unsigned char tsr_regions[MAX_MEASUREMENTS];
+static unsigned umb_region_sizes[16];
 
 #define WINDOWS_UNKNOWN 0
 #define WINDOWS_30      30
 #define WINDOWS_31      31
 
 static int ask_yes_no(const char *prompt);
+
+static unsigned umb_region_size(unsigned region)
+{
+    union REGS regs;
+    memset(&regs, 0, sizeof(regs));
+    regs.x.ax = 0x5809;
+    regs.x.bx = region;
+    regs.x.cx = 0x4d55;
+    regs.x.si = 0x2142;
+    regs.x.di = 0xa55a;
+    intdos(&regs, &regs);
+    return regs.x.cflag ? 0 : regs.x.ax;
+}
 
 static unsigned probe_largest_block(unsigned strategy, unsigned link_umbs)
 {
@@ -1042,16 +1061,22 @@ static int finish_final(unsigned drive, const struct options *options)
 {
     char autoexec[32], temporary[32], memory[32], line[256];
     char sizes_path[32];
-    unsigned sizes[MAX_MEASUREMENTS];
-    unsigned char selected[MAX_MEASUREMENTS];
+    unsigned *sizes = tsr_sizes;
+    unsigned *load_sizes = tsr_load_sizes;
+    unsigned char *selected = tsr_selected;
+    unsigned char *regions = tsr_regions;
+    unsigned *region_sizes = umb_region_sizes;
     unsigned available;
     unsigned char *choice = NULL;
     FILE *input;
     FILE *output;
     FILE *measure;
     struct size_record record;
-    memset(sizes, 0, sizeof(sizes));
-    memset(selected, 0, sizeof(selected));
+    memset(sizes, 0, sizeof(tsr_sizes));
+    memset(load_sizes, 0, sizeof(tsr_load_sizes));
+    memset(selected, 0, sizeof(tsr_selected));
+    memset(regions, 0, sizeof(tsr_regions));
+    memset(region_sizes, 0, sizeof(umb_region_sizes));
     make_path(autoexec, drive, "AUTOEXEC.BAT");
     make_path(temporary, drive, "AUTOEXEC.MMT");
     make_path(memory, drive, "MEMMAKER.MEM");
@@ -1082,12 +1107,22 @@ static int finish_final(unsigned drive, const struct options *options)
                 sizes[record.index] = record.before - record.after;
                 ++measured_tsr_count;
                 measured_tsr_paragraphs += sizes[record.index];
+            } else if (record.magic == SIZER_LOAD_MAGIC &&
+                       record.index < MAX_MEASUREMENTS) {
+                load_sizes[record.index] = record.before;
             }
         }
         fclose(measure);
     }
     measure_memory();
-    available = measured_umb_k * 64U;
+    {
+        unsigned region;
+        available = 0;
+        for (region = 1; region <= 16; ++region) {
+            region_sizes[region - 1] = umb_region_size(region);
+            available += region_sizes[region - 1];
+        }
+    }
     if (available > (options->reserve_one + options->reserve_two) * 64U)
         available -= (options->reserve_one + options->reserve_two) * 64U;
     else
@@ -1125,6 +1160,43 @@ static int finish_final(unsigned drive, const struct options *options)
                 ++optimized_tsr_count;
                 sum -= sizes[index];
             }
+            /* A resident footprint determines long-term capacity, but the
+             * selected region must first fit the larger EXEC-time image. */
+            for (;;) {
+                unsigned best_index = 0;
+                unsigned best_load = 0;
+                unsigned region;
+                unsigned best_region = 0;
+                unsigned best_capacity = 0xffffU;
+                for (index = 1; index < MAX_MEASUREMENTS; ++index) {
+                    if (selected[index] && !regions[index] &&
+                        (!best_index || load_sizes[index] > best_load)) {
+                        best_index = index;
+                        best_load = load_sizes[index];
+                    }
+                }
+                if (!best_index)
+                    break;
+                if (!best_load || best_load == 0xffffU) {
+                    regions[best_index] = 0xffU;
+                    continue;
+                }
+                for (region = 0; region < 16; ++region) {
+                    if (region_sizes[region] >= best_load &&
+                        region_sizes[region] < best_capacity) {
+                        best_region = region + 1;
+                        best_capacity = region_sizes[region];
+                    }
+                }
+                if (!best_region) {
+                    selected[best_index] = 0;
+                    optimized_tsr_paragraphs -= sizes[best_index];
+                    --optimized_tsr_count;
+                    continue;
+                }
+                regions[best_index] = (unsigned char)best_region;
+                region_sizes[best_region - 1] -= sizes[best_index];
+            }
         }
         free(choice);
     }
@@ -1151,7 +1223,13 @@ static int finish_final(unsigned drive, const struct options *options)
             }
             if (command && index < MAX_MEASUREMENTS) {
                 if (selected[index]) {
-                    fputs("LH ", output);
+                    if (regions[index] == 0xffU) {
+                        fputs("LH ", output);
+                    } else {
+                        unsigned long minimum =
+                            (unsigned long)load_sizes[index] * 16UL;
+                        fprintf(output, "LH /L:%u,%lu ", regions[index], minimum);
+                    }
                 }
                 fputs(command, output);
                 continue;
