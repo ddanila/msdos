@@ -136,6 +136,15 @@ first_file_done:
     xor ah, ah
     int 17h
 
+    mov bx, 4
+    mov dx, dos_printer_byte
+    mov cx, 1
+    mov ah, 40h
+    int 21h
+    jc failed
+    cmp ax, 1
+    jne failed
+
     mov si, pass_message
     call debug_print
     mov ax, 4c00h
@@ -171,6 +180,7 @@ write_payload db 00h,11h,22h,33h,44h,55h,0aah,0ffh
 write_end:
 write_payload_two db 0feh,0dch,0bah,098h,076h,054h,032h,010h
 write_two_end:
+dos_printer_byte db 'D'
 pass_message db 'INTERLNK_TRANSPORT_PASS',13,10,0
 fail_message db 'INTERLNK_TRANSPORT_FAIL',13,10,0
 buffer times 64 db 0

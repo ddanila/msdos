@@ -868,9 +868,95 @@ install_printer PROC NEAR
         mov     dx,OFFSET printer_handler
         mov     ax,2517h
         int     21h
+        mov     ax,3521h
+        int     21h
+        mov     word ptr cs:old_int21,bx
+        mov     word ptr cs:old_int21+2,es
+        mov     dx,OFFSET dos_printer_handler
+        mov     ax,2521h
+        int     21h
         pop     ds
         ret
 install_printer ENDP
+
+; AL is the character and DL is the zero-based printer number. The caller
+; has already established a live connection and preserved its registers.
+send_printer_connected PROC NEAR
+        mov     cs:printer_byte,al
+        mov     cs:current_unit,dl
+        xor     dx,dx
+        mov     dl,cs:printer_byte
+        mov     word ptr cs:sector_number+2,0
+        mov     al,4
+        call    send_request
+        jc      short printer_send_failed
+        call    receive_status
+        jc      short printer_send_failed
+        call    receive_byte
+        ret
+printer_send_failed:
+        mov     cs:connected,0
+        stc
+        ret
+send_printer_connected ENDP
+
+dos_printer_handler PROC FAR
+        cmp     ah,40h
+        jne     short chain_dos_printer
+        cmp     bx,4                    ; inherited DOS standard printer handle
+        jne     short chain_dos_printer
+        cmp     cs:printer_enabled,0
+        je      short chain_dos_printer
+        cmp     cs:connected,0
+        je      short chain_dos_printer
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        push    di
+        push    ds
+        push    es
+        mov     cs:printer_count,cx
+        mov     si,dx
+dos_printer_loop:
+        jcxz    short dos_printer_success
+        mov     al,[si]
+        xor     dx,dx
+        call    send_printer_connected
+        jc      short dos_printer_error
+        inc     si
+        loop    dos_printer_loop
+dos_printer_success:
+        pop     es
+        pop     ds
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        mov     ax,cs:printer_count
+        push    bp
+        mov     bp,sp
+        and     word ptr ss:[bp+6],0fffeh
+        pop     bp
+        iret
+dos_printer_error:
+        pop     es
+        pop     ds
+        pop     di
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        mov     ax,29                   ; write fault
+        push    bp
+        mov     bp,sp
+        or      word ptr ss:[bp+6],1
+        pop     bp
+        iret
+chain_dos_printer:
+        jmp     dword ptr cs:old_int21
+dos_printer_handler ENDP
 
 printer_handler PROC FAR
         cmp     ah,0
@@ -879,7 +965,6 @@ printer_handler PROC FAR
         ja      short chain_printer
         cmp     cs:connected,0
         je      short chain_printer
-        mov     cs:printer_byte,al
         push    ax
         push    bx
         push    cx
@@ -888,16 +973,7 @@ printer_handler PROC FAR
         push    di
         push    ds
         push    es
-        mov     cs:current_unit,dl
-        xor     dx,dx
-        mov     dl,cs:printer_byte
-        mov     word ptr cs:sector_number+2,0
-        mov     al,4
-        call    send_request
-        jc      short printer_failed
-        call    receive_status
-        jc      short printer_failed
-        call    receive_byte
+        call    send_printer_connected
         jc      short printer_failed
         mov     cs:printer_status,al
         jmp     short printer_return
@@ -971,6 +1047,7 @@ multiplex ENDP
 
 old_int2f       dd 0
 old_int17       dd 0
+old_int21       dd 0
 transfer_ptr    dd 0
 io_command      db 0
 io_remaining    dw 0
@@ -985,6 +1062,7 @@ timer_safe_mode db 0
 printer_enabled db 1
 printer_byte    db 0
 printer_status  db 0
+printer_count   dw 0
 default_bpb     dw 512
                 db 1
                 dw 1

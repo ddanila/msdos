@@ -109,9 +109,9 @@ grep -Fq 'printer request unit 2 byte 52' "$OUT/interlnk-proxy.log"
 ! mdir -b -i "$CLIENT_IMAGE" :: 2>/dev/null | grep -Fq 'RECONERR.TAG'
 mcopy -i "$SERVER_IMAGE" ::WRITTEN.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx '001122334455aaff'
 mcopy -i "$SERVER_IMAGE_TWO" ::WRITTN2.BIN - 2>/dev/null | od -An -tx1 | tr -d ' \n' | grep -qx 'fedcba9876543210'
-od -An -tx1 "$PRINTER1_OUT" | tr -d ' \n' | grep -qx '50'
+od -An -tx1 "$PRINTER1_OUT" | tr -d ' \n' | grep -qx '5044'
 od -An -tx1 "$PRINTER2_OUT" | tr -d ' \n' | grep -qx '51'
-echo '  PASS: Interlnk redirects two FAT volumes and LPT1-LPT3 while recovering truncated/corrupt serial transfers'
+echo '  PASS: Interlnk redirects two FAT volumes, BIOS LPT1-LPT3, and DOS printer-handle output while recovering serial faults'
 
 # Without /AUTO, a missing server leaves an offline resident driver and must
 # continue boot instead of waiting forever in the serial receive loop.
