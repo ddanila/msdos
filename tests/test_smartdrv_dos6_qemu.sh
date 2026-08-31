@@ -44,7 +44,7 @@ mcopy -o -i "$BOOT_IMG" "$IO_COM" ::SDIO.COM
 mcopy -o -i "$BOOT_IMG" "$READ_COM" ::SDREAD.COM
 mcopy -o -i "$BOOT_IMG" "$EVICT_COM" ::SDEVICT.COM
 mcopy -o -i "$BOOT_IMG" "$REPO_ROOT/src/DEV/SMARTDRV/SMARTDRV.EXE" ::SMARTDRV.EXE
-printf 'DEVICE=SMARTDRV.SYS 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
+printf 'DEVICE=SMARTDRV.EXE 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
     printf 'SMARTDRV /?\r\n'

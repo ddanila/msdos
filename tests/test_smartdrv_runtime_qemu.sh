@@ -12,7 +12,7 @@ LOG="$OUT/smartdrv-runtime.log"
 EXIT_COM="$OUT/smartdrv-runtime-exit.com"
 
 [[ -f "$BASE" ]] || { echo "ERROR: run 'make deploy' first"; exit 1; }
-for tool in dd mcopy mdel nasm qemu-system-i386 timeout; do
+for tool in dd mcopy nasm qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || { echo "ERROR: missing $tool"; exit 1; }
 done
 
@@ -21,7 +21,6 @@ dd if=/dev/zero of="$HDD" bs=1M count=16 status=none
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 mcopy -o -i "$IMAGE" "$ROOT/src/DEV/SMARTDRV/SMARTDRV.EXE" ::SMARTDRV.EXE
 mcopy -o -i "$IMAGE" "$EXIT_COM" ::QEXIT.COM
-mdel -i "$IMAGE" ::SMARTDRV.SYS 2>/dev/null || true
 printf '\r\n' | mcopy -o -i "$IMAGE" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\n'

@@ -40,7 +40,7 @@ mcopy -o -i "$BOOT_IMG" "$COUNTRY_PROBE_COM" ::CNTRYCHK.COM
     printf 'DEVICE=RAMDRIVE.SYS 64\r\n'
     printf 'DEVICE=VDISK.SYS 64\r\n'
     printf 'DEVICE=DISPLAY.SYS CON=(EGA,,1)\r\n'
-    printf 'DEVICE=SMARTDRV.SYS 256\r\n'
+    printf 'DEVICE=SMARTDRV.EXE 256\r\n'
     printf 'BUFFERS=20\r\n'
     printf 'FILES=30\r\n'
     printf 'LASTDRIVE=Z\r\n'
@@ -191,12 +191,12 @@ else
 fi
 
 echo ""
-echo "--- SMARTDRV.SYS tests ---"
+echo "--- SMARTDRV.EXE device tests ---"
 
 if grep -q "SMARTDRV_DONE" "$SERIAL_LOG"; then
-    ok "SMARTDRV.SYS (boot completed with DEVICE=SMARTDRV.SYS 256, batch continued)"
+    ok "SMARTDRV.EXE (boot completed with DEVICE=SMARTDRV.EXE 256, batch continued)"
 else
-    fail "SMARTDRV.SYS (batch hung or crashed — driver load may have failed)"
+    fail "SMARTDRV.EXE (batch hung or crashed — driver load may have failed)"
 fi
 
 echo ""

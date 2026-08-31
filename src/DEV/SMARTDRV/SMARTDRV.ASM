@@ -340,7 +340,11 @@ TRACK_LOCKED	EQU	0000000000000100B	; Track is locked
 
 BREAK	<Device header>
 
-INT13CODE SEGMENT
+; Keep the device header in the linker's first load-image segment.  DOS's
+; CONFIG.SYS overlay loader treats offset zero as the driver header, while the
+; ordinary MZ entry point still selects the controller.
+INT13CODE TEXTEQU <BEGTEXT>
+INT13CODE SEGMENT PARA PUBLIC 'CODE'
 ASSUME	CS:INT13CODE,DS:NOTHING,ES:NOTHING,SS:NOTHING
 
 	IF	DEBUG

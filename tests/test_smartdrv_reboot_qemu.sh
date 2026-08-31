@@ -35,7 +35,7 @@ nasm -f bin "$ROOT/tests/smartdrv_io_probe.asm" -o "$IO_COM"
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 mcopy -o -i "$BOOT_IMG" "$REBOOT_COM" ::REBOOT.COM
 mcopy -o -i "$BOOT_IMG" "$IO_COM" ::SDIO.COM
-printf 'DEVICE=SMARTDRV.SYS 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
+printf 'DEVICE=SMARTDRV.EXE 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
     printf 'IF EXIST REBOOT.TAG GOTO SECOND\r\n'

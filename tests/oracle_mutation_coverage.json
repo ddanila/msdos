@@ -69,7 +69,6 @@
     "SETVER.COM": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_setver_qemu.sh"},
     "SETVER.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_setver_qemu.sh"},
     "SHARE.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_share_nlsfunc_exe2bin.sh"},
-    "SMARTDRV.SYS": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_smartdrv_flush_qemu.sh"},
     "SMARTDRV.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_smartdrv_runtime_qemu.sh"},
     "SORT.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_misc_qemu.sh"},
     "SUBST.EXE": {"level": "killed", "mutation": "remove_artifact", "test": "tests/test_assign_subst_join.sh"},

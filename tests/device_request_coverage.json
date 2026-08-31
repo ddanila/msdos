@@ -4,7 +4,7 @@
     "ANSI.SYS": {"source": "src/DEV/ANSI/ANSI.ASM", "label": "CONTBL", "max_command": 19},
     "DISPLAY.SYS": {"source": "src/DEV/DISPLAY/DISPLAY.ASM", "label": "CMD_TABLE", "max_command": 19},
     "RAMDRIVE.SYS": {"source": "src/DEV/RAMDRIVE/RAMDRIVE.ASM", "label": "RAMTBL", "max_command": 15},
-    "SMARTDRV.SYS": {"source": "src/DEV/SMARTDRV/SMARTDRV.ASM", "label": "INT13TBL", "max_command": 15},
+    "SMARTDRV.EXE": {"source": "src/DEV/SMARTDRV/SMARTDRV.ASM", "label": "INT13TBL", "max_command": 15},
     "VDISK.SYS": {"source": "src/DEV/VDISK/VDISKSYS.ASM", "label": "CMD_TABLE", "max_command": 15},
     "XMA2EMS.SYS": {"source": "src/DEV/XMA2EMS/XMA2EMS.ASM", "label": "CMD_TABLE", "max_command": 24},
     "XMAEM.SYS": {"source": "src/DEV/XMAEM/INDEINI.ASM", "label": "CMD_TABLE", "max_command": 24}
@@ -39,7 +39,7 @@
       "10-14": {"level": "contract", "evidence": ["tests/block_driver_probe.asm", "tests/test_drivers_qemu.sh"], "note": "Direct character-status, flush, IOCTL, open, and close requests all complete as successful no-ops"},
       "15": {"level": "contract", "evidence": ["tests/block_driver_probe.asm", "tests/test_drivers_qemu.sh"], "note": "Generic IOCTL removable-media query returns the driver's non-removable result"}
     },
-    "SMARTDRV.SYS": {
+    "SMARTDRV.EXE": {
       "0": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "CONFIG.SYS initializes SMARTDRV on a fixed disk"},
       "1-2": {"level": "contract", "evidence": ["tests/smartdrv_io_probe.asm", "tests/test_smartdrv_flush_qemu.sh"], "note": "Direct media-check and BPB requests through the live SMARTAAR entries return done, error, and unknown-command status"},
       "3": {"level": "contract", "evidence": ["tests/test_smartdrv_flush_qemu.sh"], "note": "FLUSH13 reads cache policy and status through IOCTL input"},
