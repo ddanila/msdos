@@ -114,6 +114,20 @@ static void usage(void)
     puts("              [/SKIPHIGH] [/LCD | /BW | /G0] [/H]");
 }
 
+static void describe_presentation(const struct options *options)
+{
+    if (options->lcd)
+        puts("Display mode: LCD-compatible high contrast.");
+    else if (options->bw)
+        puts("Display mode: black and white.");
+    else if (options->g0)
+        puts("Display mode: basic text (graphics level 0).");
+    else
+        puts("Display mode: automatic text.");
+    if (options->skip_high)
+        puts("Memory policy: conventional memory only.");
+}
+
 static int valid_sort(const char *order)
 {
     while (*order) {
@@ -812,7 +826,8 @@ static int defragment(unsigned drive, const struct options *options)
     int allocation_result;
     memset(&state, 0, sizeof(state));
     state.options = *options;
-    printf("Optimizing drive %c:...\n", 'A' + drive);
+    describe_presentation(options);
+    printf("Analyzing drive %c:...\n", 'A' + drive);
     if (fat_volume_open(&state.volume, drive, boot_sector) != FATVOL_OK) {
         fputs("DEFRAG cannot access the selected FAT12/FAT16 drive.\n", stderr);
         return 4;
@@ -835,6 +850,9 @@ static int defragment(unsigned drive, const struct options *options)
     }
     if (validate_claimed_allocations(&state))
         return state.read_error ? 5 : 7;
+    printf("Optimizing drive %c: (%s, hidden files %s)\n", 'A' + drive,
+           state.options.full ? "full compaction" : "file unfragmentation",
+           state.options.hidden ? "included" : "left in place");
     if (state.options.full && compact_free_space(&state)) {
         if (state.read_error) return 5;
         if (state.write_error) return 6;

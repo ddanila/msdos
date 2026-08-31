@@ -108,6 +108,8 @@ static void report_computer(void)
     fprintf(report, "BIOS machine ID:       %02Xh\n", *model);
     int86(0x12, &inregs, &outregs);
     fprintf(report, "BIOS base memory:      %u KB\n", outregs.x.ax);
+    fputs("Bus type:              ISA/AT compatible\n", report);
+    fputs("DMA controller:        Present\n", report);
     fputs("BIOS date:             ", report);
     for (i = 0; i < 8; ++i)
         fputc(bios_date[i] >= 32 && bios_date[i] < 127 ? bios_date[i] : '?',
@@ -115,6 +117,138 @@ static void report_computer(void)
     fputc('\n', report);
     if (skip_detection)
         fprintf(report, "Extended probing:      Skipped (/I)\n");
+}
+
+static void resident_name(unsigned owner, unsigned block_segment,
+                          const unsigned char far *block, char *name)
+{
+    const unsigned char far *psp;
+    const unsigned char far *primary;
+    const unsigned char far *environment;
+    unsigned env_segment, offset, start, length = 0;
+    if (owner == 0) {
+        strcpy(name, "Free");
+        return;
+    }
+    if (owner == 8) {
+        strcpy(name, "System");
+        return;
+    }
+    if (owner == block_segment + 1U) {
+        for (length = 0; length < 8 && block[8 + length] != ' '; ++length) {
+            unsigned char ch = block[8 + length];
+            if (ch < 33 || ch >= 127) {
+                length = 0;
+                break;
+            }
+            name[length] = ch;
+        }
+        if (length) {
+            name[length] = 0;
+            return;
+        }
+    }
+    primary = (const unsigned char far *)MK_FP(owner - 1U, 0);
+    if (primary[0] == 'M' || primary[0] == 'Z') {
+        for (length = 0; length < 8 && primary[8 + length] != ' '; ++length) {
+            unsigned char ch = primary[8 + length];
+            if (ch < 33 || ch >= 127) {
+                length = 0;
+                break;
+            }
+            name[length] = ch;
+        }
+        if (length) {
+            name[length] = 0;
+            return;
+        }
+    }
+    psp = (const unsigned char far *)MK_FP(owner, 0);
+    env_segment = table_word(psp + 0x2c);
+    if (!env_segment) {
+        strcpy(name, "Program");
+        return;
+    }
+    environment = (const unsigned char far *)MK_FP(env_segment, 0);
+    for (offset = 0; offset < 32760; ++offset)
+        if (!environment[offset] && !environment[offset + 1])
+            break;
+    if (offset >= 32760) {
+        strcpy(name, "Program");
+        return;
+    }
+    offset += 4; /* double NUL and the executable-path count word */
+    start = offset;
+    while (environment[offset] && offset < 32767) {
+        if (environment[offset] == '\\' || environment[offset] == ':')
+            start = offset + 1;
+        ++offset;
+    }
+    length = 0;
+    while (start + length < offset && length < 12) {
+        unsigned char ch = environment[start + length];
+        name[length] = ch >= 32 && ch < 127 ? ch : '?';
+        ++length;
+    }
+    name[length] = 0;
+    if (!length || !strchr(name, '.'))
+        strcpy(name, "Program");
+}
+
+static void report_programs(void)
+{
+    union REGS inregs, outregs;
+    struct SREGS segregs;
+    unsigned char far *lists;
+    unsigned segment, count = 0;
+
+    heading("Resident Programs");
+    segread(&segregs);
+    inregs.h.ah = 0x52;
+    intdosx(&inregs, &outregs, &segregs);
+    lists = (unsigned char far *)MK_FP(segregs.es, outregs.x.bx);
+    segment = table_word(lists - 2);
+    while (segment && count++ < 256) {
+        unsigned char far *mcb = (unsigned char far *)MK_FP(segment, 0);
+        unsigned owner, paragraphs;
+        char name[13];
+        if (mcb[0] != 'M' && mcb[0] != 'Z') {
+            fputs("MCB chain:             Invalid or unavailable\n", report);
+            return;
+        }
+        owner = table_word(mcb + 1);
+        paragraphs = table_word(mcb + 3);
+        resident_name(owner, segment, mcb, name);
+        fprintf(report, "%04X  %7lu bytes  owner=%04X  %s\n",
+                segment, (unsigned long)paragraphs * 16UL, owner, name);
+        if (mcb[0] == 'Z')
+            return;
+        if ((unsigned)(segment + paragraphs + 1U) <= segment)
+            break;
+        segment += paragraphs + 1U;
+    }
+    fputs("MCB chain:             Truncated\n", report);
+}
+
+static void report_windows(void)
+{
+    const char *windir = getenv("WINDIR");
+    char path[96];
+    FILE *candidate = 0;
+    heading("Windows Information");
+    if (windir && *windir && strlen(windir) + 9 < sizeof(path)) {
+        strcpy(path, windir);
+        if (path[strlen(path) - 1] != '\\')
+            strcat(path, "\\");
+        strcat(path, "WIN.COM");
+        candidate = fopen(path, "rb");
+    }
+    if (candidate) {
+        fclose(candidate);
+        fprintf(report, "Windows installation:  %s\n", windir);
+    } else {
+        fputs("Windows installation:  Not detected\n", report);
+    }
 }
 
 static void report_ports(void)
@@ -482,8 +616,10 @@ static void report_summary(void)
     report_configuration();
     report_disks();
     report_irqs();
+    report_programs();
     report_drivers();
     report_network();
+    report_windows();
 }
 
 static void report_short_summary(void)
@@ -524,7 +660,7 @@ static void interactive(void)
         puts("  C  Computer       M  Memory        V  Video");
         puts("  D  Disk drives    I  IRQs          R  Drivers");
         puts("  P  Ports          K  Input         G  DOS configuration");
-        puts("  N  Network");
+        puts("  N  Network        T  Resident programs  W  Windows");
         puts("  O  Operating system");
         puts("  A  All reports    X  Exit");
         fputs("Selection: ", stdout);
@@ -541,6 +677,8 @@ static void interactive(void)
         case 'i': case 'I': report_irqs(); break;
         case 'r': case 'R': report_drivers(); break;
         case 'n': case 'N': report_network(); break;
+        case 't': case 'T': report_programs(); break;
+        case 'w': case 'W': report_windows(); break;
         case 'o': case 'O': report_os(); break;
         case 'a': case 'A': report_summary(); break;
         case 'x': case 'X': return;

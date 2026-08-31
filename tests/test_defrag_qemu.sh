@@ -108,6 +108,12 @@ cp "$TARGET" "$INTERRUPT_TARGET"
     printf 'IF ERRORLEVEL 4 ECHO DEFRAG_CONFLICT_REJECTED\r\n'
     printf 'DEFRAG B: /BW /G0 /U\r\n'
     printf 'IF ERRORLEVEL 4 ECHO DEFRAG_DISPLAY_CONFLICT_REJECTED\r\n'
+    printf 'DEFRAG B: /U /LCD /SKIPHIGH\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO DEFRAG_LCD_FAILED\r\n'
+    printf 'DEFRAG B: /U /BW\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO DEFRAG_BW_FAILED\r\n'
+    printf 'DEFRAG B: /U /G0\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO DEFRAG_G0_FAILED\r\n'
     printf 'ECHO DEFRAG_DONE\r\nQEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT" - ::AUTOEXEC.BAT
 
@@ -121,7 +127,12 @@ timeout 45 qemu-system-i386 -display none \
 if grep -q 'DEFRAG_DONE' "$LOG" && ! grep -Eq 'DEFRAG_FAILED|DEFRAG_FULL_FAILED' "$LOG" &&
    grep -q '1 fragmented, 1 moved' "$LOG" &&
    grep -q 'DEFRAG_CONFLICT_REJECTED' "$LOG" &&
-   grep -q 'DEFRAG_DISPLAY_CONFLICT_REJECTED' "$LOG"; then
+   grep -q 'DEFRAG_DISPLAY_CONFLICT_REJECTED' "$LOG" &&
+   grep -q 'Display mode: LCD-compatible high contrast.' "$LOG" &&
+   grep -q 'Display mode: black and white.' "$LOG" &&
+   grep -q 'Display mode: basic text (graphics level 0).' "$LOG" &&
+   grep -q 'Memory policy: conventional memory only.' "$LOG" &&
+   ! grep -Eq 'DEFRAG_(LCD|BW|G0)_FAILED' "$LOG"; then
     ok "/U relocates the fragmented FAT12 file"
 else
     fail "DEFRAG /U runtime"

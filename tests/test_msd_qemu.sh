@@ -56,10 +56,10 @@ timeout 35 qemu-system-i386 \
 for marker in \
     'Computer: IBM PC/AT compatible' \
     'Operating System' 'Computer' 'Memory' 'Video' 'Disk Drives' \
-    'COM and LPT Ports' 'Input Devices' 'DOS Configuration' 'IRQ Vectors' 'Device Drivers' 'Network' \
+    'COM and LPT Ports' 'Input Devices' 'DOS Configuration' 'IRQ Vectors' 'Resident Programs' 'Device Drivers' 'Network' 'Windows Information' \
     'Reported DOS version: 6.22' 'True DOS version:     6.22' 'DOS OEM/serial:' \
     'Processor:             486-class x86' \
-    'BIOS machine ID:' 'BIOS date:' 'BIOS base memory:' \
+    'BIOS machine ID:' 'BIOS date:' 'BIOS base memory:' 'Bus type:              ISA/AT compatible' 'DMA controller:        Present' \
     'Startup display:' 'Game adapter:' 'COM1 base address:     03F8h' \
     'COM1 BIOS status:' 'LPT1 BIOS status:' 'Port status probing:   Skipped (/I)' \
     'Text rows:' 'Character height:' 'Active adapter:        VGA color' \
@@ -70,6 +70,7 @@ for marker in \
     'B:  logical alias of A: (one physical floppy)' \
     'C:  total      62464 bytes  512-byte sectors  FAT12' \
     'D:  substituted path A:\MSDMAP' \
+    'owner=0000' 'Windows installation:  Not detected' \
     'MSD [/I] [/F[drive:][path]filename] [/P[drive:][path]filename]' \
     'Extended probing:      Skipped (/I)' \
     'Name: Ada Lovelace' 'Company: Analytical Engines' \
@@ -125,13 +126,15 @@ timeout 25 qemu-system-i386 -display none -boot a -m 4 \
 QEMU_PID=$!
 python3 "$ROOT/tests/serial_expect.py" \
     "$SERIAL_IN" "$SERIAL_OUT" "$INTERACTIVE_LOG" \
-    'Selection:' 'm' 'Selection:' 'p' 'Selection:' 'k' 'Selection:' 'g' 'Selection:' 'x'
+    'Selection:' 'm' 'Selection:' 'p' 'Selection:' 'k' 'Selection:' 'g' 'Selection:' 't' 'Selection:' 'w' 'Selection:' 'x'
 wait "$QEMU_PID" || true
 exec 3>&-
 grep -Fq 'Largest free block:' "$INTERACTIVE_LOG"
 grep -Fq 'COM1 base address:' "$INTERACTIVE_LOG"
 grep -Fq 'Keyboard shift flags:' "$INTERACTIVE_LOG"
 grep -Fq 'Allocation strategy:' "$INTERACTIVE_LOG"
+grep -Fq 'Resident Programs' "$INTERACTIVE_LOG"
+grep -Fq 'Windows installation:' "$INTERACTIVE_LOG"
 grep -Fq 'MSD_INTERACTIVE_RETURNED' "$INTERACTIVE_LOG"
 
 echo '  PASS: MSD retail syntax, summary, report file, /I, interactive, and error paths'
