@@ -250,10 +250,12 @@ An empty server name cancels that client-drive mapping. /RECONNECT is a reposito
 @INTERSVR
 Shares DOS volumes with an Interlnk client over a serial or parallel cable.
 Syntax: INTERSVR [drive: ...] [/X=drive: ...] [/COM[:][n|address] | /LPT[:][n|address]] [/BAUD:rate] [/B] [/V]
+        INTERSVR /RCOPY [/COM[:][n|address]] [/BAUD:rate]
 Bare /COM or /LPT scans that port family. A number or hexadecimal I/O address selects one port.
 Use /B for monochrome output and /V for timer-safe polling.
 With no drive list, all available drives except those named by /X are shared.
 The server remains active while the client reads and writes the shared volume.
+/RCOPY transfers INTERLNK.EXE and INTERSVR.EXE to a remote MODE/CTTY console.
 @JOIN
 Joins a disk drive to a directory on another drive.
 Syntax: JOIN drive: [drive:]path or JOIN drive: /D

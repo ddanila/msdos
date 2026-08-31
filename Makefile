@@ -5,6 +5,7 @@ BIN      := $(CURDIR)/bin
 OUT      := $(CURDIR)/out
 
 MASM     := $(BIN)/jwasm-masm
+NASM     := nasm
 WCC      := $(BIN)/wcc
 WLINK    := $(BIN)/wlink
 WLIB     := $(BIN)/wlib
@@ -435,6 +436,7 @@ test-mscdex-qemu: deploy
 
 test-interlnk-qemu: deploy
 	bash tests/test_interlnk_qemu.sh
+	bash tests/test_intersvr_rcopy_qemu.sh
 
 test-config-menu-qemu: deploy
 	bash tests/test_config_menu_qemu.sh

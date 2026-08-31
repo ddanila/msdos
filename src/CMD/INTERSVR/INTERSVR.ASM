@@ -23,6 +23,12 @@ server_parse:
         jc      syntax_error
         push    cs
         pop     es
+        cmp     cs:rcopy_mode,0
+        je      short server_normal
+        call    remote_copy
+        mov     ah,4ch
+        int     21h
+server_normal:
         call    init_serial            ; 115200 baud, 8-N-1
         mov     dx,OFFSET banner
         mov     ah,9
@@ -538,6 +544,50 @@ send_now:
         ret
 send_byte ENDP
 
+; Remote copy also runs at the retail 2400-baud default, so use a real-time
+; deadline instead of the normal transport's deliberately tight retry loop.
+rcopy_send_byte PROC NEAR
+        push    ax
+        push    bx
+        push    cx
+        push    dx
+        push    si
+        mov     bx,cs:com_port
+        add     bx,5
+        mov     ah,0
+        int     1ah
+        mov     si,dx
+rcopy_send_ready:
+        mov     dx,bx
+        in      al,dx
+        test    al,20h
+        jnz     short rcopy_send_now
+        mov     ah,0
+        int     1ah
+        sub     dx,si
+        cmp     dx,18
+        jb      rcopy_send_ready
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
+        stc
+        ret
+rcopy_send_now:
+        pop     si
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
+        push    dx
+        mov     dx,cs:com_port
+        out     dx,al
+        pop     dx
+        clc
+        ret
+rcopy_send_byte ENDP
+
 send_byte_parallel PROC NEAR
         push    ax
         push    bx
@@ -751,6 +801,352 @@ server_init_uart:
         ret
 init_serial ENDP
 
+; Reproduce the retail remote-copy workflow.  The remote machine has issued
+; MODE and CTTY, so its command interpreter is listening on the selected COM
+; port. Install a temporary receiver, then stream the two Interlnk executables
+; with sizes and additive checksums.
+remote_copy PROC NEAR
+        call    rcopy_preflight
+        jc      rcopy_missing
+        mov     dx,OFFSET rcopy_intro
+        mov     ah,9
+        int     21h
+        call    init_serial
+        call    rcopy_pause
+        mov     al,cs:com_number
+        or      al,al
+        jnz     short rcopy_have_number
+        mov     al,1
+rcopy_have_number:
+        add     al,'0'
+        mov     cs:rcopy_run_port,al
+        call    rcopy_install_fxb
+        jc      rcopy_link_error
+        call    rcopy_pause
+        mov     si,OFFSET rcopy_run_command
+        mov     cx,rcopy_run_command_end-rcopy_run_command
+        call    rcopy_send_buffer
+        jc      rcopy_link_error
+        call    rcopy_pause
+        call    rcopy_drain_input
+        mov     si,OFFSET rcopy_magic
+        mov     cx,5
+        call    rcopy_send_buffer
+        jc      rcopy_link_error
+        mov     dx,OFFSET interlnk_name
+        mov     si,OFFSET interlnk_header_name
+        call    rcopy_send_file
+        jc      rcopy_link_error
+        mov     dx,OFFSET intersvr_name
+        mov     si,OFFSET intersvr_header_name
+        call    rcopy_send_file
+        jc      rcopy_link_error
+        mov     bl,04h
+        call    rcopy_wait_control
+        jc      rcopy_link_error
+        call    rcopy_pause
+        call    rcopy_pause
+        call    rcopy_pause
+        call    rcopy_pause
+        mov     si,OFFSET rcopy_cleanup_command
+        mov     cx,rcopy_cleanup_command_end-rcopy_cleanup_command
+        call    rcopy_send_buffer
+        mov     dx,OFFSET rcopy_complete
+        mov     ah,9
+        int     21h
+        xor     al,al
+        ret
+rcopy_missing:
+        mov     dx,OFFSET rcopy_missing_files
+        jmp     short rcopy_report_error
+rcopy_link_error:
+        mov     dx,OFFSET rcopy_failed
+rcopy_report_error:
+        mov     ah,9
+        int     21h
+        mov     al,1
+        ret
+remote_copy ENDP
+
+; Build FXB.COM through DEBUG commands on the remote console.  This avoids
+; relying on device-EOF behavior while retaining the documented MODE/CTTY
+; setup and temporary-receiver workflow.
+rcopy_install_fxb PROC NEAR
+        mov     si,OFFSET rcopy_debug_command
+        mov     cx,rcopy_debug_command_end-rcopy_debug_command
+        call    rcopy_send_buffer
+        jc      rcopy_install_done
+        call    rcopy_pause
+        mov     si,OFFSET rcopy_name_command
+        mov     cx,rcopy_name_command_end-rcopy_name_command
+        call    rcopy_send_buffer
+        jc      rcopy_install_done
+        mov     si,OFFSET fxb_image
+        mov     dx,100h
+        mov     bp,fxb_image_end-fxb_image
+rcopy_debug_line:
+        or      bp,bp
+        jz      short rcopy_debug_finish
+        push    si
+        mov     si,OFFSET rcopy_enter_prefix
+        mov     cx,2
+        call    rcopy_send_buffer
+        pop     si
+        jc      short rcopy_install_done
+        mov     ax,dx
+        call    rcopy_send_hex_word
+        jc      short rcopy_install_done
+        mov     cx,16
+        cmp     bp,cx
+        jae     short rcopy_debug_have_count
+        mov     cx,bp
+rcopy_debug_have_count:
+        sub     bp,cx
+        add     dx,cx
+rcopy_debug_byte:
+        mov     al,' '
+        call    rcopy_send_byte
+        jc      short rcopy_install_done
+        lodsb
+        call    rcopy_send_hex_byte
+        jc      short rcopy_install_done
+        loop    rcopy_debug_byte
+        mov     al,13
+        call    rcopy_send_byte
+        jc      short rcopy_install_done
+        jmp     rcopy_debug_line
+rcopy_debug_finish:
+        mov     si,OFFSET rcopy_cx_command
+        mov     cx,rcopy_cx_command_end-rcopy_cx_command
+        call    rcopy_send_buffer
+        jc      short rcopy_install_done
+        mov     ax,fxb_image_end-fxb_image
+        call    rcopy_send_hex_word
+        jc      short rcopy_install_done
+        mov     si,OFFSET rcopy_write_command
+        mov     cx,rcopy_write_command_end-rcopy_write_command
+        call    rcopy_send_buffer
+        jc      short rcopy_install_done
+        call    rcopy_pause
+        clc
+rcopy_install_done:
+        ret
+rcopy_install_fxb ENDP
+
+rcopy_send_hex_word PROC NEAR
+        push    ax
+        mov     al,ah
+        call    rcopy_send_hex_byte
+        pop     ax
+        jc      short rcopy_send_hex_word_done
+        call    rcopy_send_hex_byte
+rcopy_send_hex_word_done:
+        ret
+rcopy_send_hex_word ENDP
+
+rcopy_send_hex_byte PROC NEAR
+        push    ax
+        push    cx
+        mov     ah,al
+        mov     cl,4
+        shr     al,cl
+        call    rcopy_send_hex_nibble
+        pop     cx
+        pop     ax
+        jc      short rcopy_send_hex_byte_done
+        and     al,0fh
+        call    rcopy_send_hex_nibble
+rcopy_send_hex_byte_done:
+        ret
+rcopy_send_hex_byte ENDP
+
+rcopy_send_hex_nibble PROC NEAR
+        and     al,0fh
+        add     al,'0'
+        cmp     al,'9'
+        jbe     short rcopy_send_hex_nibble_emit
+        add     al,'A'-'9'-1
+rcopy_send_hex_nibble_emit:
+        call    rcopy_send_byte
+        ret
+rcopy_send_hex_nibble ENDP
+
+rcopy_preflight PROC NEAR
+        mov     dx,OFFSET interlnk_name
+        call    rcopy_check_file
+        jc      short rcopy_preflight_done
+        mov     dx,OFFSET intersvr_name
+        call    rcopy_check_file
+rcopy_preflight_done:
+        ret
+rcopy_preflight ENDP
+
+rcopy_check_file PROC NEAR
+        mov     ax,3d00h
+        int     21h
+        jc      short rcopy_check_done
+        mov     bx,ax
+        mov     ah,3eh
+        int     21h
+        clc
+rcopy_check_done:
+        ret
+rcopy_check_file ENDP
+
+; DS:DX is the local ASCIIZ name and DS:SI is its 12-byte wire name.
+rcopy_send_file PROC NEAR
+        push    si
+        mov     ax,3d00h
+        int     21h
+        jc      rcopy_send_file_bad_pop
+        mov     cs:rcopy_handle,ax
+        mov     bx,ax
+        xor     cx,cx
+        xor     dx,dx
+        mov     ax,4202h
+        int     21h
+        jc      rcopy_send_file_close_bad_pop
+        mov     cs:rcopy_size_low,ax
+        mov     cs:rcopy_size_high,dx
+        xor     cx,cx
+        xor     dx,dx
+        mov     ax,4200h
+        int     21h
+        pop     si
+        mov     cx,12
+        call    rcopy_send_buffer
+        jc      rcopy_send_file_close_bad
+        mov     ax,cs:rcopy_size_low
+        call    rcopy_send_word
+        jc      short rcopy_send_file_close_bad
+        mov     ax,cs:rcopy_size_high
+        call    rcopy_send_word
+        jc      short rcopy_send_file_close_bad
+        mov     bl,06h
+        call    rcopy_wait_control
+        jc      short rcopy_send_file_close_bad
+        call    rcopy_pause
+        mov     word ptr cs:rcopy_checksum,0
+rcopy_file_block:
+        mov     bx,cs:rcopy_handle
+        mov     dx,OFFSET sector_buffer
+        mov     cx,16
+        mov     ah,3fh
+        int     21h
+        jc      short rcopy_file_read_error
+        or      ax,ax
+        jz      short rcopy_file_sent
+        mov     cx,ax
+        mov     si,OFFSET sector_buffer
+rcopy_file_byte:
+        lodsb
+        xor     ah,ah
+        add     cs:rcopy_checksum,ax
+        call    rcopy_send_byte
+        jc      short rcopy_file_send_error
+        loop    rcopy_file_byte
+        mov     bl,06h
+        call    rcopy_wait_control
+        jc      short rcopy_send_file_close_bad
+        jmp     rcopy_file_block
+rcopy_file_read_error:
+        mov     dx,OFFSET rcopy_read_failed
+        mov     ah,9
+        int     21h
+        jmp     short rcopy_send_file_close_bad
+rcopy_file_send_error:
+        mov     dx,OFFSET rcopy_send_failed
+        mov     ah,9
+        int     21h
+        jmp     short rcopy_send_file_close_bad
+rcopy_file_sent:
+        mov     ax,cs:rcopy_checksum
+        call    rcopy_send_word
+        jc      short rcopy_send_file_close_bad
+        mov     bx,cs:rcopy_handle
+        mov     ah,3eh
+        int     21h
+        mov     bl,06h
+        call    rcopy_wait_control
+        ret
+rcopy_send_file_close_bad_pop:
+        pop     si
+rcopy_send_file_close_bad:
+        mov     bx,cs:rcopy_handle
+        mov     ah,3eh
+        int     21h
+        stc
+        ret
+rcopy_send_file_bad_pop:
+        pop     si
+        stc
+        ret
+rcopy_send_file ENDP
+
+rcopy_send_word PROC NEAR
+        push    ax
+        call    rcopy_send_byte
+        pop     ax
+        jc      short rcopy_send_word_done
+        mov     al,ah
+        call    rcopy_send_byte
+rcopy_send_word_done:
+        ret
+rcopy_send_word ENDP
+
+rcopy_send_buffer PROC NEAR
+        lodsb
+        call    rcopy_send_byte
+        jc      short rcopy_send_buffer_done
+        loop    rcopy_send_buffer
+        clc
+rcopy_send_buffer_done:
+        ret
+rcopy_send_buffer ENDP
+
+; Ignore command echoes and bootstrap diagnostics until the receiver's control
+; byte arrives. receive_byte already supplies a one-second deadline.
+rcopy_wait_control PROC NEAR
+        mov     cx,30
+rcopy_wait_again:
+        call    receive_byte
+        jc      short rcopy_wait_next
+        cmp     al,15h
+        je      short rcopy_wait_bad
+        cmp     al,bl
+        je      short rcopy_wait_good
+rcopy_wait_next:
+        loop    rcopy_wait_again
+rcopy_wait_bad:
+        stc
+        ret
+rcopy_wait_good:
+        clc
+        ret
+rcopy_wait_control ENDP
+
+; DEBUG and COMMAND echo the bootstrap script over CTTY.  Consume that text
+; through the first one-second idle interval before expecting binary ACKs.
+rcopy_drain_input PROC NEAR
+rcopy_drain_again:
+        call    receive_byte
+        jnc     rcopy_drain_again
+        ret
+rcopy_drain_input ENDP
+
+rcopy_pause PROC NEAR
+        mov     ah,0
+        int     1ah
+        mov     bx,dx
+rcopy_pause_loop:
+        mov     ah,0
+        int     1ah
+        sub     dx,bx
+        cmp     dx,9
+        jb      rcopy_pause_loop
+        ret
+rcopy_pause ENDP
+
 parse_tail PROC NEAR
         mov     si,81h
         xor     cx,cx
@@ -833,6 +1229,8 @@ parse_check_x:
         je      short parse_exclude
         cmp     al,'L'
         je      parse_lpt
+        cmp     al,'R'
+        je      parse_rcopy
 parse_switch_bad:
         jmp     parse_bad
 parse_exclude:
@@ -847,6 +1245,21 @@ parse_exclude:
         mov     cs:exclude_mode,1
         mov     cs:has_exclusions,1
         jmp     parse_space
+parse_rcopy:
+        cmp     cx,4
+        jb      parse_bad
+        mov     ax,es:[si]
+        and     ax,0dfdfh
+        cmp     ax,'OC'
+        jne     parse_bad
+        mov     ax,es:[si+2]
+        and     ax,0dfdfh
+        cmp     ax,'YP'
+        jne     parse_bad
+        add     si,4
+        sub     cx,4
+        mov     cs:rcopy_mode,1
+        jmp     parse_flag_end
 parse_monochrome:
         cmp     cx,4
         jb      short parse_monochrome_flag
@@ -1059,6 +1472,21 @@ parse_port_bad:
         ret
 parse_port_spec ENDP
 parse_done:
+        cmp     cs:rcopy_mode,0
+        je      short parse_regular_server
+        cmp     cs:drive_count,0
+        jne     short parse_bad
+        cmp     cs:has_exclusions,0
+        jne     short parse_bad
+        cmp     cs:transport_type,0
+        jne     short parse_bad
+        cmp     cs:baud_explicit,0
+        jne     short parse_rcopy_rate_ready
+        mov     cs:baud_divisor,48      ; retail bootstrap default is 2400 baud
+parse_rcopy_rate_ready:
+        clc
+        ret
+parse_regular_server:
         cmp     cs:transport_type,0
         je      short parse_transport_valid
         cmp     cs:baud_explicit,0
@@ -1205,6 +1633,11 @@ transport_type  db 0
 lpt_port        dw 0378h
 lpt_shadow      db 0
 baud_divisor    dw 1
+rcopy_mode      db 0
+rcopy_handle    dw 0
+rcopy_size_low  dw 0
+rcopy_size_high dw 0
+rcopy_checksum  dw 0
 monochrome_mode db 0
 timer_safe_mode db 0
 exclude_mode    db 0
@@ -1228,7 +1661,34 @@ banner_suffix   db ' available',13,10
                 db 'F1 displays status; Alt+F4 exits.',13,10,'$'
 printer_status  db 0
 usage           db 'Syntax: INTERSVR [drive: ...] [/X=drive: ...]',13,10
-                db '       [/COM[:][n|address] | /LPT[:][n|address]] [/BAUD:rate] [/B] [/V]',13,10,'$'
+                db '       [/COM[:][n|address] | /LPT[:][n|address]] [/BAUD:rate] [/B] [/V]',13,10
+                db '       INTERSVR /RCOPY [/COM[:][n|address]] [/BAUD:rate]',13,10,'$'
+rcopy_intro     db 'Remote copy over COM; the default rate is 2400 baud.',13,10
+                db 'On the remote machine run MODE COMn:rate,N,8,1,P, then CTTY COMn.',13,10,'$'
+rcopy_missing_files db 'INTERSVR: INTERLNK.EXE and INTERSVR.EXE must be in the current directory.',13,10,'$'
+rcopy_failed    db 'INTERSVR: Remote copy failed.',13,10,'$'
+rcopy_read_failed db 'INTERSVR: Could not read a transfer source.',13,10,'$'
+rcopy_send_failed db 'INTERSVR: Serial transmit timed out.',13,10,'$'
+rcopy_complete  db 'Remote copy complete.',13,10,'$'
+rcopy_debug_command db 'DEBUG',13
+rcopy_debug_command_end label byte
+rcopy_name_command db 'N FXB.COM',13
+rcopy_name_command_end label byte
+rcopy_enter_prefix db 'E '
+rcopy_cx_command db 'RCX',13
+rcopy_cx_command_end label byte
+rcopy_write_command db 13,'W',13,'Q',13
+rcopy_write_command_end label byte
+rcopy_run_command db 'FXB.COM '
+rcopy_run_port db '1',13
+rcopy_run_command_end label byte
+rcopy_cleanup_command db 'DEL FXB.COM',13,'CTTY CON',13
+rcopy_cleanup_command_end label byte
+rcopy_magic     db 'IRCP',2
+interlnk_name   db 'INTERLNK.EXE',0
+intersvr_name   db 'INTERSVR.EXE',0
+interlnk_header_name db 'INTERLNK.EXE'
+intersvr_header_name db 'INTERSVR.EXE'
 sector_buffer   db 512 dup(0)
 connected       db 0
 discovery_count dw 0
@@ -1249,6 +1709,10 @@ status_errors   db 'Protocol/I/O errors: $'
 newline         db 13,10,'$'
 com_bases       dw 03f8h,02f8h,03e8h,02e8h
 lpt_bases       dw 0378h,0278h,03bch
+
+fxb_image label byte
+        INCBIN <FXB.COM>
+fxb_image_end label byte
 
 CODE ENDS
 STACKSEG SEGMENT PARA STACK 'STACK'
