@@ -70,6 +70,12 @@ for marker in \
     'Startup display:' 'Game adapter:' 'COM1 base address:     03F8h' \
     'BIOS ROM range:' 'BIOS ROM checksum:' 'Option ROM ' 'Option ROM scan:       Skipped (/I)' \
     'COM1 BIOS status:' 'COM1 UART:' 'COM1 current rate:' 'LPT1 BIOS status:' \
+    'COM1 parity:           None' 'COM1 data bits:        8' 'COM1 stop bits:        1' \
+    'COM1 carrier detect:   Yes' 'COM1 ring indicator:   No' \
+    'COM1 data set ready:   Yes' 'COM1 clear to send:    Yes' \
+    'LPT1 on line:          Yes' 'LPT1 paper out:        No' \
+    'LPT1 I/O error:        No' 'LPT1 timeout:          No' \
+    'LPT1 busy:             No' 'LPT1 acknowledge:      No' \
     'Port status probing:   Skipped (/I)' 'UART detection:        Skipped (/I)' \
     'Text rows:' 'Character height:' 'Active adapter:        VGA color' \
     'Alternate adapter:' 'VESA support:          Installed' 'VESA version:' \

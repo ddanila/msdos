@@ -368,7 +368,11 @@ static void report_ports(void)
         if (bda[i]) {
             fprintf(report, "COM%u base address:     %04Xh\n", i + 1, bda[i]);
             if (!skip_detection) {
-                unsigned divisor;
+                static const char *parity_names[] = {
+                    "None", "Odd", "Unknown", "Even",
+                    "Unknown", "Mark", "Unknown", "Space"
+                };
+                unsigned divisor, lcr, msr;
                 inregs.h.ah = 3;
                 inregs.x.dx = i;
                 int86(0x14, &inregs, &outregs);
@@ -379,6 +383,23 @@ static void report_ports(void)
                 if (divisor)
                     fprintf(report, "COM%u current rate:     %lu baud (divisor %u)\n",
                             i + 1, 115200UL / divisor, divisor);
+                lcr = inp(bda[i] + 3);
+                msr = inp(bda[i] + 6);
+                fprintf(report, "COM%u parity:           %s\n", i + 1,
+                        parity_names[(lcr >> 3) & 7]);
+                fprintf(report, "COM%u data bits:        %u\n", i + 1,
+                        (lcr & 3) + 5);
+                fprintf(report, "COM%u stop bits:        %s\n", i + 1,
+                        !(lcr & 4) ? "1" :
+                        (lcr & 3) == 0 ? "1.5" : "2");
+                fprintf(report, "COM%u carrier detect:   %s\n", i + 1,
+                        msr & 0x80 ? "Yes" : "No");
+                fprintf(report, "COM%u ring indicator:   %s\n", i + 1,
+                        msr & 0x40 ? "Yes" : "No");
+                fprintf(report, "COM%u data set ready:   %s\n", i + 1,
+                        msr & 0x20 ? "Yes" : "No");
+                fprintf(report, "COM%u clear to send:    %s\n", i + 1,
+                        msr & 0x10 ? "Yes" : "No");
             }
         } else
             fprintf(report, "COM%u base address:     Not installed\n", i + 1);
@@ -392,6 +413,18 @@ static void report_ports(void)
                 int86(0x17, &inregs, &outregs);
                 fprintf(report, "LPT%u BIOS status:      %02Xh\n", i + 1,
                         outregs.h.ah);
+                fprintf(report, "LPT%u on line:          %s\n", i + 1,
+                        outregs.h.ah & 0x10 ? "Yes" : "No");
+                fprintf(report, "LPT%u paper out:        %s\n", i + 1,
+                        outregs.h.ah & 0x20 ? "Yes" : "No");
+                fprintf(report, "LPT%u I/O error:        %s\n", i + 1,
+                        outregs.h.ah & 0x08 ? "Yes" : "No");
+                fprintf(report, "LPT%u timeout:          %s\n", i + 1,
+                        outregs.h.ah & 0x01 ? "Yes" : "No");
+                fprintf(report, "LPT%u busy:             %s\n", i + 1,
+                        outregs.h.ah & 0x80 ? "No" : "Yes");
+                fprintf(report, "LPT%u acknowledge:      %s\n", i + 1,
+                        outregs.h.ah & 0x40 ? "Yes" : "No");
             }
         } else
             fprintf(report, "LPT%u base address:     Not installed\n", i + 1);
