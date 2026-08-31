@@ -8,6 +8,7 @@ static FILE *report;
 static int skip_detection;
 static char report_name[64];
 static char report_company[64];
+static unsigned char vbe_info[512];
 extern char **environ;
 extern unsigned MsdXmsVersion;
 extern unsigned MsdXmsDriverVersion;
@@ -547,6 +548,7 @@ static void report_memory(void)
 static void report_video(void)
 {
     union REGS inregs, outregs;
+    struct SREGS segregs;
     const unsigned char far *bda =
         (const unsigned char far *)MK_FP(0x40, 0);
     static const char *displays[] = {
@@ -570,6 +572,36 @@ static void report_video(void)
                 outregs.h.bl < 13 ? displays[outregs.h.bl] : "Unknown");
         fprintf(report, "Alternate adapter:     %s\n",
                 outregs.h.bh < 13 ? displays[outregs.h.bh] : "Unknown");
+    }
+    if (skip_detection) {
+        fputs("VESA probing:          Skipped (/I)\n", report);
+    } else {
+        const unsigned char far *oem;
+        unsigned long pointer;
+        unsigned i;
+        memset(vbe_info, 0, sizeof(vbe_info));
+        memcpy(vbe_info, "VBE2", 4);
+        memset(&inregs, 0, sizeof(inregs));
+        segread(&segregs);
+        inregs.x.ax = 0x4f00;
+        inregs.x.di = FP_OFF(vbe_info);
+        segregs.es = FP_SEG(vbe_info);
+        int86x(0x10, &inregs, &outregs, &segregs);
+        if (outregs.x.ax != 0x004f || memcmp(vbe_info, "VESA", 4)) {
+            fputs("VESA support:          Not installed\n", report);
+        } else {
+            fprintf(report, "VESA support:          Installed\n");
+            fprintf(report, "VESA version:          %u.%02u\n",
+                    vbe_info[5], vbe_info[4]);
+            pointer = table_pointer(vbe_info + 6);
+            oem = (const unsigned char far *)
+                MK_FP((unsigned)(pointer >> 16), (unsigned)pointer);
+            fputs("VESA OEM name:         ", report);
+            for (i = 0; i < 80 && oem[i]; ++i)
+                fputc(oem[i] >= 32 && oem[i] < 127 ? oem[i] : '?', report);
+            if (!i) fputs("Unknown", report);
+            fputc('\n', report);
+        }
     }
 }
 

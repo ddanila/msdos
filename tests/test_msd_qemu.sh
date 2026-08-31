@@ -71,7 +71,8 @@ for marker in \
     'COM1 BIOS status:' 'COM1 UART:' 'COM1 current rate:' 'LPT1 BIOS status:' \
     'Port status probing:   Skipped (/I)' 'UART detection:        Skipped (/I)' \
     'Text rows:' 'Character height:' 'Active adapter:        VGA color' \
-    'Alternate adapter:' \
+    'Alternate adapter:' 'VESA support:          Installed' 'VESA version:' \
+    'VESA OEM name:' 'VESA probing:          Skipped (/I)' \
     'Keyboard shift flags:' 'Mouse driver:          Not probed (/I)' \
     'Allocation strategy:' 'UMB chain linked:' 'Write verification:' \
     'Extended BREAK check:' 'Code pages:' 'Country code:' 'Date format:' 'Environment:' \
