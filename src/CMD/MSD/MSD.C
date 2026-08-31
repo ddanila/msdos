@@ -180,7 +180,8 @@ static void report_os(void)
 static void report_computer(void)
 {
     union REGS inregs, outregs;
-    unsigned equipment;
+    const unsigned far *bda_words = (const unsigned far *)MK_FP(0x40, 0);
+    unsigned equipment, ebda_segment;
     static const char *display_types[] = {
         "EGA/VGA", "40-column color", "80-column color", "Monochrome"
     };
@@ -209,6 +210,13 @@ static void report_computer(void)
     fprintf(report, "BIOS base memory:      %u KB\n", outregs.x.ax);
     fputs("Bus type:              ISA/AT compatible\n", report);
     fputs("DMA controller:        Present\n", report);
+    fputs("Cascaded IRQ2:         Yes\n", report);
+    ebda_segment = bda_words[7];
+    if (ebda_segment >= 0x8000 && ebda_segment < 0xa000)
+        fprintf(report, "BIOS data segment:     %04Xh (%u KB)\n",
+                ebda_segment, (0xa000U - ebda_segment) / 64U);
+    else
+        fputs("BIOS data segment:     Not reported\n", report);
     fputs("BIOS date:             ", report);
     for (i = 0; i < 8; ++i)
         fputc(bios_date[i] >= 32 && bios_date[i] < 127 ? bios_date[i] : '?',
@@ -682,6 +690,7 @@ static void report_disks(void)
                     path);
         }
     }
+    fprintf(report, "LASTDRIVE=%c:\n", 'A' + lists[33] - 1);
 }
 
 static void report_irqs(void)

@@ -65,6 +65,7 @@ for marker in \
     'Current drive:         A:' 'Path to program:' 'Environment strings:' 'COMSPEC=' \
     'Processor:             486-class x86' \
     'BIOS machine ID:' 'BIOS date:' 'BIOS base memory:' 'Bus type:              ISA/AT compatible' 'DMA controller:        Present' \
+    'Cascaded IRQ2:         Yes' 'BIOS data segment:' \
     'Extended memory:' \
     'Startup display:' 'Game adapter:' 'COM1 base address:     03F8h' \
     'BIOS ROM range:' 'BIOS ROM checksum:' 'Option ROM ' 'Option ROM scan:       Skipped (/I)' \
@@ -78,6 +79,7 @@ for marker in \
     'Extended BREAK check:' 'Code pages:' 'Country code:' 'Date format:' 'Environment:' \
     'B:  logical alias of A: (one physical floppy)' \
     'C:  total      62464 bytes  512-byte sectors  FAT12' \
+    'LASTDRIVE=E:' \
     'D:  substituted path A:\MSDMAP' \
     'owner=0000' 'Windows installation:  Not detected' \
     'MSD [/I] [/F[drive:][path]filename] [/P[drive:][path]filename]' \
