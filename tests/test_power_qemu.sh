@@ -6,8 +6,10 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/out"
 BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 IMAGE="$OUT/power.img"
+MISSING_IMAGE="$OUT/power-missing.img"
 APM_IMAGE="$OUT/power-apm.img"
 LOG="$OUT/power.log"
+MISSING_LOG="$OUT/power-missing.log"
 APM_LOG="$OUT/power-apm.log"
 PROBE="$OUT/power-probe.com"
 APM_DRIVER="$OUT/apm-test.sys"
@@ -42,14 +44,37 @@ timeout 35 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     </dev/null >"$LOG" 2>&1 || true
 
-grep -Fq 'Power management setting = ADV:REG' "$LOG"
-grep -Fq 'Power management setting = OFF' "$LOG"
-grep -Fq 'Power management setting = STD' "$LOG"
-grep -Fq 'Power management setting = ADV:MAX' "$LOG"
+grep -Fq 'Power Management Status' "$LOG"
+grep -Fq 'Setting =  ADV: REG' "$LOG"
+grep -Fq 'Setting =  OFF' "$LOG"
+grep -Fq 'Setting =  STD' "$LOG"
+grep -Fq 'Setting =  ADV: MAX' "$LOG"
+grep -Eq 'CPU: idle [0-9]+% of time\.' "$LOG"
+grep -Fq 'AC Line Status : ONLINE' "$LOG"
 grep -Fq POWER_IDLE_PASS "$LOG"
-grep -Fq POWER_REJECT_PASS "$LOG"
+grep -Fq 'Invalid parameter - adv:fast' "$LOG"
+! grep -Fq POWER_REJECT_PASS "$LOG"
 ! grep -Fq POWER_IDLE_FAIL "$LOG"
-echo '  PASS: POWER device, controller modes, idle action, and parser rejection'
+echo '  PASS: POWER device, retail status, controller modes, and idle action'
+
+cp "$BASE" "$MISSING_IMAGE"
+mcopy -o -i "$MISSING_IMAGE" "$ROOT/src/CMD/POWER/POWER.EXE" ::POWER.EXE
+mcopy -o -i "$MISSING_IMAGE" "$QEXIT" ::QEXIT.COM
+printf '' | mcopy -o -i "$MISSING_IMAGE" - ::CONFIG.SYS
+{
+    printf '@ECHO OFF\r\nCTTY AUX\r\nPOWER\r\n'
+    printf 'IF ERRORLEVEL 2 ECHO POWER_MISSING_BAD_LEVEL\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO POWER_MISSING_LEVEL1\r\nQEXIT.COM\r\n'
+} | mcopy -o -i "$MISSING_IMAGE" - ::AUTOEXEC.BAT
+timeout 25 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 16 \
+    -drive if=floppy,index=0,format=raw,file="$MISSING_IMAGE",cache=writethrough \
+    -boot a -serial stdio -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    </dev/null >"$MISSING_LOG" 2>&1 || true
+grep -Fq 'Power Manager (POWER.EXE) not installed.' "$MISSING_LOG"
+grep -Fq POWER_MISSING_LEVEL1 "$MISSING_LOG"
+! grep -Fq POWER_MISSING_BAD_LEVEL "$MISSING_LOG"
+echo '  PASS: POWER matches the retail missing-driver diagnostic and errorlevel'
 
 cp "$BASE" "$APM_IMAGE"
 mcopy -o -i "$APM_IMAGE" "$ROOT/src/CMD/POWER/POWER.EXE" ::POWER.EXE

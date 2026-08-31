@@ -220,16 +220,7 @@ retail_statistics:
         xor     ax,ax
         mov     cx,14
         rep     stosw
-        mov     ax,cs:idle_calls
-        mov     [si],ax
-        mov     ax,cs:halt_calls
-        mov     [si+2],ax
-        mov     ax,cs:apm_calls
-        mov     [si+4],ax
-        mov     ax,cs:poll_calls
-        mov     [si+6],ax
-        mov     ax,cs:busy_calls
-        mov     [si+8],ax
+        mov     word ptr [si],1        ; genuine 6.22 diagnostics block ID
         pop     ax
         pop     cx
         pop     di

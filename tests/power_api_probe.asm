@@ -39,6 +39,21 @@ org 100h
     int 2fh
     mov si,stats_label
     call print_result
+    mov dx,stats_data_label
+    mov ah,9
+    int 21h
+    mov si,stats
+    mov cx,14
+.stats_loop:
+    lodsw
+    call print_hex
+    mov dl,' '
+    mov ah,2
+    int 21h
+    loop .stats_loop
+    mov dx,newline
+    mov ah,9
+    int 21h
 
     mov dx,done_label
     mov ah,9
@@ -97,6 +112,7 @@ set_label     db 'SET AX/BX=','$'
 query_label   db 'QUERY AX/BX=','$'
 level_query_label db 'LEVEL_QUERY AX/BX=','$'
 stats_label   db 'STATS AX/BX=','$'
+stats_data_label db 'STATS_DATA=','$'
 done_label    db 'POWER_API_DONE',13,10,'$'
 newline       db 13,10,'$'
 setting       db 0
