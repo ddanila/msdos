@@ -35,6 +35,7 @@ AINC     := -I. -ID:\\TOOLS\\INC
 .PHONY: test-config-numlock-qemu
 .PHONY: test-config-set-qemu
 .PHONY: test-startup-keys-qemu
+.PHONY: test-smartdrv-runtime-qemu
 
 KVIKDOS_SOFT_SRCS := kvikdos/kvikdos.c kvikdos/cpu8086.c
 KVIKDOS_SOFT_DEPS := $(KVIKDOS_SOFT_SRCS) kvikdos/mini_kvm.h kvikdos/cpu8086.h \
@@ -541,6 +542,9 @@ test-smartdrv-flush-qemu: deploy
 
 test-smartdrv-dos6-qemu: deploy
 	bash tests/test_smartdrv_dos6_qemu.sh
+
+test-smartdrv-runtime-qemu: deploy
+	bash tests/test_smartdrv_runtime_qemu.sh
 
 test-smartdrv-reboot-qemu: deploy
 	bash tests/test_smartdrv_reboot_qemu.sh

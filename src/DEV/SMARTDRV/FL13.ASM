@@ -13,7 +13,6 @@ include cmacros.inc
 ;extern int	 IOCTLWrite(int,char *,int);
 ;extern int	 IOCTLRead(int,status *,int);
 ;extern int	 IOCTLClose(int);
-
 sBegin	CODE
 
 assumes CS, CODE
@@ -141,7 +140,6 @@ RERR:
 	mov	ax,-1
 RDONE:
 cEnd
-
 
 sEnd	CODE
 

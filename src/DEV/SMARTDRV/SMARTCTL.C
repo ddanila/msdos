@@ -17,8 +17,11 @@ extern int IOCTLOpen(char *);
 extern int IOCTLWrite(int, char *, int);
 extern int IOCTLRead(int, status *, int);
 extern int IOCTLClose(int);
+extern int InstallEmbedded(void);
+extern void KeepResident(int);
 
 static int quiet;
+static int installed_here;
 
 static int upper(c)
 int c;
@@ -47,6 +50,7 @@ char *message;
 {
     if (h >= 0) IOCTLClose(h);
     fprintf(stderr, "SMARTDRV: %s\n", message);
+    if (installed_here) KeepResident(1);
     exit(1);
 }
 
@@ -145,7 +149,13 @@ char **argv;
             return 0;
         }
     h = IOCTLOpen("SMARTAAR");
-    if (h == -1) fail(-1, "SMARTDrive is not installed (load SMARTDRV.SYS in CONFIG.SYS)");
+    if (h == -1) {
+        if (InstallEmbedded() == -1)
+            fail(-1, "cannot install the embedded cache driver");
+        installed_here = 1;
+        h = IOCTLOpen("SMARTAAR");
+        if (h == -1) fail(-1, "embedded cache driver did not become available");
+    }
     if (IOCTLRead(h, &initial, sizeof(initial)) == -1)
         fail(h, "cannot read cache status");
     element_size = initial.element_size;
@@ -208,5 +218,6 @@ char **argv;
     if (cache_size) set_cache_size(h, cache_size);
     if (!quiet && (!action || verbose || extended)) show_status(h, extended || verbose);
     IOCTLClose(h);
+    if (installed_here) KeepResident(0);
     return 0;
 }
