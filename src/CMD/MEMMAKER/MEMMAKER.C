@@ -956,7 +956,7 @@ static int write_status(unsigned drive, const struct options *options,
                 "Baseline largest conventional block: %uK\n"
                 "Post-CONFIG largest UMB: %uK\n"
                 "Post-CONFIG largest conventional block: %uK\n"
-                "Measured conventional-memory gain: %dK\n",
+                "Measured conventional-memory change: %+dK\n",
                 baseline_umb_k, baseline_conventional_k,
                 config_umb_k, config_conventional_k,
                 (int)measured_conventional_k - (int)baseline_conventional_k);
@@ -1032,7 +1032,11 @@ static int finish_session(unsigned drive, const struct options *options)
     make_path(sizes, drive, "MEMMAKER.SIZ");
     if (record_driver_sizes(config, sizes))
         return 1;
+    puts("MemMaker Progress - Step 2 of 3");
+    puts("Measuring memory after CONFIG.SYS drivers loaded...");
     measure_memory();
+    printf("Largest conventional block: %uK\n", measured_conventional_k);
+    printf("Largest upper-memory block: %uK\n", measured_umb_k);
     make_path(memory, drive, "MEMMAKER.MEM");
     output = fopen(memory, "ab");
     if (!output)
@@ -1122,6 +1126,8 @@ static int finish_final(unsigned drive, const struct options *options)
         }
         fclose(measure);
     }
+    puts("MemMaker Progress - Step 3 of 3");
+    puts("Measuring memory after startup programs loaded...");
     measure_memory();
     {
         unsigned region;
@@ -1253,7 +1259,20 @@ static int finish_final(unsigned drive, const struct options *options)
         return 1;
     remove(memory);
     remove(sizes_path);
-    puts("MemMaker measured memory optimization is complete.");
+    puts("");
+    puts("MemMaker Results");
+    puts("================");
+    printf("Largest conventional block before: %uK\n",
+           baseline_conventional_k);
+    printf("Largest conventional block after:  %uK\n",
+           measured_conventional_k);
+    printf("Conventional memory change:         %+dK\n",
+           (int)measured_conventional_k - (int)baseline_conventional_k);
+    printf("Largest upper-memory block before:  %uK\n", baseline_umb_k);
+    printf("Largest upper-memory block after:   %uK\n", measured_umb_k);
+    printf("Programs placed in upper memory:    %u\n",
+           selected_high_drivers + optimized_tsr_count);
+    puts("Memory optimization is complete.");
     return 0;
 }
 
@@ -1411,7 +1430,11 @@ static int optimize(unsigned drive, struct options *options,
         fputs("MemMaker could not prepare the startup files.\n", stderr);
         return 1;
     }
+    puts("MemMaker Progress - Step 1 of 3");
+    puts("Measuring memory and analyzing startup files...");
     measure_memory();
+    printf("Largest conventional block: %uK\n", measured_conventional_k);
+    printf("Largest upper-memory block: %uK\n", measured_umb_k);
     if (write_baseline(drive, options) ||
         replace_file(config_temp, config) ||
         injected_failure("CONFIG") ||

@@ -101,6 +101,12 @@ cat "$PLACEMENT_LOG" >>"$LOG"
 if grep -q 'MEMMAKER_SESSION_DONE' "$PLACEMENT_LOG" &&
    grep -q 'Mouse navigation: available.' "$LOG" &&
    grep -q 'Choose a memory-optimization setup:' "$LOG" &&
+   grep -q 'MemMaker Progress - Step 1 of 3' "$LOG" &&
+   grep -q 'MemMaker Progress - Step 3 of 3' "$LOG" &&
+   grep -q 'MemMaker Results' "$LOG" &&
+   grep -Eq 'Largest conventional block before: [1-9][0-9]*K' "$LOG" &&
+   grep -Eq 'Largest conventional block after:  [1-9][0-9]*K' "$LOG" &&
+   grep -Eq 'Conventional memory change: +[+-][0-9]+K' "$LOG" &&
    ! grep -Eqi 'invalid switch|bad command|not enough memory' "$PLACEMENT_LOG"; then
     ok "Custom optimization completes /SESSION and boots optimized TSR placement"
 else
