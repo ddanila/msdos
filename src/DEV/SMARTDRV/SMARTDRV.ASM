@@ -325,8 +325,10 @@ TRACK_CYLN	DW	?	; INT 13 cylinder
 				;	 are 0. This makes it easy to load the
 				;	 CX register for an INT 13 for this
 				;	 track:
-				;		 MOV	CX,STRC.CACHE_CYLN
-				;		 OR	CL,1
+			;		 MOV	CX,STRC.CACHE_CYLN
+			;		 OR	CL,1
+VALID_START	DB	?	; First cached sector (one based)
+VALID_COUNT	DB	?	; Consecutive cached sectors
 CACHE_CONTROL	ENDS
 
 ;
@@ -582,6 +584,7 @@ READ_AHEAD_SIZE DW 16384
 ELEMENT_WORDS DW 4096
 MOVE_CHUNKS DD 0
 STATUS_EXTENDED DB 0
+READ_WINDOW_COUNT DB 0
 
 ;
 ; 0 if reboot flush is disabled
@@ -2154,6 +2157,26 @@ process_read_partial	proc	near
 ;
 	call	track_in_cache		; is track in cache
 	jc	read_disk		; if not we have to read from disk
+	; A clean partial-read entry may contain only a read-ahead window.
+	; Confirm that the caller's complete sector range is present.
+	push	cx
+	mov	di,ax
+	mov	cl,8
+	shr	di,cl			; requested sectors
+	pop	cx
+	mov	al,[si.valid_start]
+	xor	ah,ah
+	cmp	bx,ax
+	jb	read_window_miss
+	mov	al,[si.valid_count]
+	add	ax,word ptr [si.valid_start]
+	add	di,bx
+	cmp	di,ax
+	jbe	read_window_hit
+read_window_miss:
+	mov	di,si			; Reuse and refill this clean entry.
+	jmp	read_disk
+read_window_hit:
 ;
 	cmp	cx,[track_buffer_cyln]	; is it in the track buffer
 	jnz	not_in_mem		; no
@@ -2203,7 +2226,7 @@ read_disk:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 read_bufferj:
-	jmp	      short read_buffer
+	jmp	read_buffer
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
@@ -2212,6 +2235,16 @@ read_bufferj:
 ;
 rd_part:
 	mov	si,di		;get element in si
+	push	dx
+	push	cx
+	push	bx
+	push	ax
+	call	flush_cache		; preserve delayed writes before eviction
+	pop	ax
+	pop	bx
+	pop	cx
+	pop	dx
+	jc	rd_part_flush_error
 	mov	[track_buffer_cyln],-1	;invalidate present track buffer
 	mov	[track_buffer_hddr],-1
 	mov	[si.track_flags],track_free	;if read fails
@@ -2219,13 +2252,40 @@ rd_part:
 	push	cx
 	push	bx
 	push	ax
-	or	cl,1
+	; Read the requested sectors plus /B read-ahead, bounded by the track.
+	mov	al,ah			; AX input is sectors * 256 words
+	xor	ah,ah
+	mov	di,[READ_AHEAD_SIZE]
+	push	cx
+	mov	cl,9
+	shr	di,cl
+	pop	cx
+	add	ax,di
+	mov	di,[bytes_in_trk]
+	push	cx
+	mov	cl,9
+	shr	di,cl
+	pop	cx
+	sub	di,bx
+	inc	di			; sectors remaining in this track
+	cmp	ax,di
+	jbe	read_window_bounded
+	mov	ax,di
+read_window_bounded:
+	mov	[READ_WINDOW_COUNT],al
+	or	cx,bx			; requested starting sector
 	or	dl,80h
-	mov	al,[sect_in_trk]
 	mov	ah,2			; read
 	push	cs
 	pop	es
-	mov	bx,[track_buffer_ptr]
+	mov	di,bx
+	dec	di
+	push	cx
+	mov	cl,9
+	shl	di,cl
+	pop	cx
+	add	di,[track_buffer_ptr]
+	mov	bx,di
 	pushf
 	cli
 	call	[old_13]
@@ -2237,16 +2297,26 @@ rd_part:
 	mov	al,ah
 	stc
 	ret
+rd_part_flush_error:
+	stc
+	ret
 ;
 ;	transfer track buffer to cache
 ;
 rd$1:
-	mov	di,[track_buffer_ptr]	;es:di is transfer address
-	mov	cx,[bytes_in_trk]
-	shr	cx,1			; cx is number words in track
+	mov	di,bx			; es:di is the read-ahead window
+	xor	ah,ah
+	mov	al,[READ_WINDOW_COUNT]
+	mov	cl,8
+	shl	ax,cl
+	mov	cx,ax			; words in cached window
 	mov	bh,1		;write
 	mov	ax,word ptr [si.base_offset]	;address of cache
 	mov	dx,word ptr [si.base_offset.2]	;
+	sub	di,[track_buffer_ptr]
+	add	ax,di
+	adc	dx,0
+	add	di,[track_buffer_ptr]
 	push	ds
 	push	si
 	push	bp
@@ -2278,9 +2348,14 @@ endif
 rd$2:
 	mov	word ptr [si.track_cyln],cx
 	mov	word ptr [si.track_drive],dx
+	mov	[si.valid_start],bl
+	mov	al,[READ_WINDOW_COUNT]
+	mov	[si.valid_count],al
 	and	[si.track_flags], not track_free
-	mov	word ptr [track_buffer_cyln],cx
-	mov	word ptr [track_buffer_hddr],dx
+	; A partial window must not advertise the conventional buffer as a
+	; complete track to write-back or later cache-hit paths.
+	mov	word ptr [track_buffer_cyln],-1
+	mov	word ptr [track_buffer_hddr],-1
 ;
 ;	perform user i/o from track buffer
 ;
@@ -2335,7 +2410,16 @@ pbr$1:
 	push	dx		; save start track
 	xor	ah,ah		;number of accumulated tracks
 pbr$2:	call	track_in_cache	;
-	jnc	pbr$4		; if current track in cache start processing
+	jc	pbr$2_miss
+	cmp	byte ptr [si.valid_start],1
+	jne	pbr$2_partial
+	mov	bl,[sect_in_trk]
+	cmp	[si.valid_count],bl
+	je	pbr$4		; complete current track is cached
+pbr$2_partial:
+	mov	[si.track_flags],track_free ; discard a clean partial window
+	call	cache_is_lru
+pbr$2_miss:
 	inc	dh		; go to next track
 	call	adj_hd_trk	;
 	inc	ah		;accumulate the tracks
@@ -2447,6 +2531,16 @@ pat$2:
 ;
 	cmp	si,-1		;was there an element
 	je	pat$5		;cache saturated exit
+	push	cx
+	push	dx
+	push	ax
+	push	di
+	call	flush_cache
+	pop	di
+	pop	ax
+	pop	dx
+	pop	cx
+	jc	pat$5
 ;
 ;	check if track is in track buffer
 ;
@@ -2505,6 +2599,9 @@ pat$5:
 ;
 pat$3:	mov	word ptr [si.track_cyln],cx
 	mov	word ptr [si.track_drive],dx
+	mov	byte ptr [si.valid_start],1
+	mov	bl,[sect_in_trk]
+	mov	[si.valid_count],bl
 	and	[si.track_flags],not track_free
 	call	cache_is_mru
 
@@ -2606,6 +2703,15 @@ process_write_partial	proc	near
 ;
 	call	track_in_cache		;is track in cache
 	jc	read_diskw		;if not we have to read from disk
+	cmp	byte ptr [si.valid_start],1
+	jne	write_window_miss
+	mov	al,[sect_in_trk]
+	cmp	[si.valid_count],al
+	je	write_window_hit
+write_window_miss:
+	mov	di,si
+	jmp	read_diskw		; expand a clean partial window first
+write_window_hit:
 ;
 	cmp	cx,[track_buffer_cyln]	;is it in the track buffer
 	jnz	not_in_memw		;no
@@ -2668,6 +2774,16 @@ read_diskw:
 ;
 rd_partw:
 	mov	si,di		;get element in si
+	push	dx
+	push	cx
+	push	bx
+	push	ax
+	call	flush_cache
+	pop	ax
+	pop	bx
+	pop	cx
+	pop	dx
+	jc	rd_partw_flush_error
 	mov	[track_buffer_cyln],-1
 	mov	[track_buffer_hddr],-1
 	mov	[si.track_flags],track_free
@@ -2691,6 +2807,9 @@ rd_partw:
 	mov	[int13err],TRUE
 	add	sp,8
 	mov	al,ah
+	stc
+	ret
+rd_partw_flush_error:
 	stc
 	ret
 ;
@@ -2727,6 +2846,9 @@ wr$1:	mov	di,[track_buffer_ptr]	;es:di is transfer address
 wr$2:
 	mov	word ptr [si.track_cyln],cx
 	mov	word ptr [si.track_drive],dx
+	mov	byte ptr [si.valid_start],1
+	mov	al,[sect_in_trk]
+	mov	[si.valid_count],al
 	and	[si.track_flags], not track_free
 	mov	word ptr [track_buffer_cyln],cx
 	mov	word ptr [track_buffer_hddr],dx
@@ -2778,6 +2900,16 @@ pbw$1:	push	di		;save it because next call destroys di
 	je	pbw$4		;error exit
 ;
 	mov	si,di		;track was not in cache. now there will be one
+	push	cx
+	push	dx
+	push	ax
+	push	di
+	call	flush_cache
+	pop	di
+	pop	ax
+	pop	dx
+	pop	cx
+	jc	pbw$4
 	mov	[si.track_flags],track_free
 	mov	word ptr [si.track_cyln],cx
 	mov	word ptr [si.track_drive],dx
@@ -2826,6 +2958,9 @@ pbw$21:
 	jmp	err_cw
 ;
 pbw$22: and	[si.track_flags],not track_free
+	mov	byte ptr [si.valid_start],1
+	mov	bl,[sect_in_trk]
+	mov	[si.valid_count],bl
 	call	mark_cache_dirty
 ;
 	inc	dh		;go to next track
