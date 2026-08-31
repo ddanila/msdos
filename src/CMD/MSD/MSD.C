@@ -9,6 +9,8 @@ static int skip_detection;
 static char report_name[64];
 static char report_company[64];
 static unsigned char vbe_info[512];
+static int ui_mouse_available;
+static int ui_mouse_latched;
 extern char **environ;
 extern unsigned MsdXmsVersion;
 extern unsigned MsdXmsDriverVersion;
@@ -921,19 +923,84 @@ static void request_report_input(void)
     report_company[strcspn(report_company, "\r\n")] = 0;
 }
 
+static void clear_interface(void)
+{
+    union REGS regs;
+    memset(&regs, 0, sizeof(regs));
+    regs.h.ah = 6;
+    regs.h.bh = 7;
+    regs.x.dx = 0x184f;
+    int86(0x10, &regs, &regs);
+    memset(&regs, 0, sizeof(regs));
+    regs.h.ah = 2;
+    int86(0x10, &regs, &regs);
+}
+
+static void initialize_ui_mouse(void)
+{
+    union REGS regs;
+    void interrupt far (*handler)(void) = _dos_getvect(0x33);
+    ui_mouse_available = 0;
+    if (!handler || (!FP_SEG(handler) && !FP_OFF(handler))) return;
+    memset(&regs, 0, sizeof(regs));
+    int86(0x33, &regs, &regs);
+    if (regs.x.ax != 0xffff) return;
+    ui_mouse_available = 1;
+    regs.x.ax = 1;
+    int86(0x33, &regs, &regs);
+}
+
+static int interactive_key(void)
+{
+    static const char choices[5][3] = {
+        { 'C', 'M', 'V' }, { 'D', 'I', 'R' }, { 'P', 'K', 'G' },
+        { 'N', 'T', 'W' }, { 'O', 'A', 'X' }
+    };
+    union REGS regs;
+    for (;;) {
+        unsigned row, column;
+        if (kbhit()) return getch();
+        if (ui_mouse_available) {
+            memset(&regs, 0, sizeof(regs));
+            regs.x.ax = 3;
+            int86(0x33, &regs, &regs);
+            if (!(regs.x.bx & 1)) {
+                ui_mouse_latched = 0;
+            } else if (!ui_mouse_latched) {
+                ui_mouse_latched = 1;
+                row = regs.x.dx / 8U;
+                column = regs.x.cx / 8U;
+                if (row >= 4 && row <= 8) {
+                    if (column < 24) column = 0;
+                    else if (column < 48) column = 1;
+                    else column = 2;
+                    return choices[row - 4][column];
+                }
+            }
+        }
+        memset(&regs, 0, sizeof(regs));
+        int86(0x28, &regs, &regs);
+    }
+}
+
 static void interactive(void)
 {
     int key;
+    initialize_ui_mouse();
     for (;;) {
-        puts("\nMicrosoft Diagnostics");
-        puts("  C  Computer/ROM   M  Memory        V  Video");
-        puts("  D  Disk drives    I  IRQs          R  Drivers");
-        puts("  P  Ports          K  Input         G  DOS configuration");
-        puts("  N  Network        T  Resident programs  W  Windows");
-        puts("  O  Operating system");
-        puts("  A  All reports    X  Exit");
+        clear_interface();
+        puts("Microsoft Diagnostics");
+        puts("=====================");
+        puts("Select an information category:");
+        puts("[C Computer/ROM]       [M Memory]              [V Video]");
+        puts("[D Disk Drives]        [I IRQs]                [R Drivers]");
+        puts("[P Ports]              [K Input]               [G DOS Config]");
+        puts("[N Network]            [T Resident Programs]   [W Windows]");
+        puts("[O Operating System]   [A All Reports]         [X Exit]");
+        printf("Mouse navigation: %s\n",
+               ui_mouse_available ? "available" : "not installed");
         fputs("Selection: ", stdout);
-        key = getch();
+        key = interactive_key();
         putchar(key); puts("");
         switch (key) {
         case 'c': case 'C': report_computer(); report_roms(); break;

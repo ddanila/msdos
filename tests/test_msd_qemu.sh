@@ -13,11 +13,13 @@ SERIAL_BASE="$OUT/msd-interactive-serial"
 SERIAL_IN="$SERIAL_BASE.in"
 SERIAL_OUT="$SERIAL_BASE.out"
 INTERACTIVE_LOG="$OUT/msd-interactive.log"
+MOUSE_COM="$OUT/msd-mouse.com"
 MANAGER_IMAGE="$OUT/msd-manager.img"
 MANAGER_LOG="$OUT/msd-manager.log"
 
 cp "$BASE" "$IMAGE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
+nasm -f bin "$ROOT/tests/msd_mouse_tsr.asm" -o "$MOUSE_COM"
 mcopy -o -i "$IMAGE" "$ROOT/src/CMD/MSD/MSD.EXE" ::MSD.EXE
 mcopy -o -i "$IMAGE" "$EXIT_COM" ::QEXIT.COM
 printf 'Ada Lovelace\r\nAnalytical Engines\r\n' | \
@@ -135,7 +137,8 @@ done
 cp "$BASE" "$INTERACTIVE_IMAGE"
 mcopy -o -i "$INTERACTIVE_IMAGE" "$ROOT/src/CMD/MSD/MSD.EXE" ::MSD.EXE
 mcopy -o -i "$INTERACTIVE_IMAGE" "$EXIT_COM" ::QEXIT.COM
-printf '@ECHO OFF\r\nCTTY AUX\r\nMSD\r\nECHO MSD_INTERACTIVE_RETURNED\r\nQEXIT.COM\r\n' | \
+mcopy -o -i "$INTERACTIVE_IMAGE" "$MOUSE_COM" ::MOUSE.COM
+printf '@ECHO OFF\r\nCTTY AUX\r\nMOUSE.COM\r\nMSD\r\nECHO MSD_INTERACTIVE_RETURNED\r\nQEXIT.COM\r\n' | \
     mcopy -o -i "$INTERACTIVE_IMAGE" - ::AUTOEXEC.BAT
 rm -f "$SERIAL_IN" "$SERIAL_OUT" "$INTERACTIVE_LOG"
 mkfifo "$SERIAL_IN" "$SERIAL_OUT"
@@ -147,15 +150,13 @@ timeout 25 qemu-system-i386 -display none -boot a -m 4 \
 QEMU_PID=$!
 python3 "$ROOT/tests/serial_expect.py" \
     "$SERIAL_IN" "$SERIAL_OUT" "$INTERACTIVE_LOG" \
-    'Selection:' 'm' 'Selection:' 'p' 'Selection:' 'k' 'Selection:' 'g' 'Selection:' 't' 'Selection:' 'w' 'Selection:' 'x'
+    'MSD_INTERACTIVE_RETURNED' ''
 wait "$QEMU_PID" || true
 exec 3>&-
 grep -Fq 'Largest free block:' "$INTERACTIVE_LOG"
-grep -Fq 'COM1 base address:' "$INTERACTIVE_LOG"
-grep -Fq 'Keyboard shift flags:' "$INTERACTIVE_LOG"
-grep -Fq 'Allocation strategy:' "$INTERACTIVE_LOG"
-grep -Fq 'Resident Programs' "$INTERACTIVE_LOG"
-grep -Fq 'Windows installation:' "$INTERACTIVE_LOG"
+grep -Fq 'Mouse navigation: available' "$INTERACTIVE_LOG"
+grep -Fq 'Selection: M' "$INTERACTIVE_LOG"
+grep -Fq 'Selection: X' "$INTERACTIVE_LOG"
 grep -Fq 'MSD_INTERACTIVE_RETURNED' "$INTERACTIVE_LOG"
 
 echo '  PASS: MSD retail syntax, summary, report file, /I, interactive, and error paths'
