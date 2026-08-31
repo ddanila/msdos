@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <conio.h>
 #include <dos.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -872,6 +873,111 @@ static int defragment(unsigned drive, const struct options *options)
     return 0;
 }
 
+static void clear_interface(void)
+{
+    union REGS regs;
+    memset(&regs, 0, sizeof(regs));
+    regs.h.ah = 6;
+    regs.h.bh = 7;
+    regs.x.dx = 0x184f;
+    int86(0x10, &regs, &regs);
+    memset(&regs, 0, sizeof(regs));
+    regs.h.ah = 2;
+    int86(0x10, &regs, &regs);
+}
+
+static int drive_available(unsigned drive)
+{
+    union REGS regs;
+    memset(&regs, 0, sizeof(regs));
+    regs.h.ah = 0x36;
+    regs.h.dl = (unsigned char)(drive + 1);
+    intdos(&regs, &regs);
+    return regs.x.ax != 0xffff;
+}
+
+static int interactive_select(struct options *options)
+{
+    union REGS regs;
+    unsigned selected, drive;
+    int key;
+    memset(&regs, 0, sizeof(regs));
+    regs.h.ah = 0x19;
+    intdos(&regs, &regs);
+    selected = regs.h.al;
+    if (!drive_available(selected))
+        for (selected = 0; selected < 26 && !drive_available(selected);
+             ++selected) { }
+    if (selected >= 26) {
+        fputs("DEFRAG cannot find an accessible drive.\n", stderr);
+        return 4;
+    }
+select_again:
+    clear_interface();
+    puts("Microsoft Defragmenter");
+    puts("======================");
+    puts("Select a drive to optimize:");
+    for (drive = 0; drive < 26; ++drive)
+        if (drive_available(drive))
+            printf("  %c %c:\n", drive == selected ? '>' : ' ', 'A' + drive);
+    printf("Selected drive %c:\n", 'A' + selected);
+    puts("Use UP/DOWN or a drive letter; ENTER selects, ESC exits.");
+    key = getch();
+    if (key == 0 || key == 0xe0) {
+        int scan = getch();
+        int direction = scan == 72 ? -1 : scan == 80 ? 1 : 0;
+        if (direction) {
+            int candidate = (int)selected;
+            do {
+                candidate = (candidate + 26 + direction) % 26;
+            } while (!drive_available((unsigned)candidate) &&
+                     candidate != (int)selected);
+            selected = (unsigned)candidate;
+        }
+        goto select_again;
+    }
+    if (key == 27) return -1;
+    if (isalpha((unsigned char)key)) {
+        drive = toupper((unsigned char)key) - 'A';
+        if (drive_available(drive)) selected = drive;
+        goto select_again;
+    }
+    if (key != '\r' && key != '\n') goto select_again;
+
+configure_again:
+    clear_interface();
+    printf("Drive %c: selected.\n", 'A' + selected);
+    puts("Recommended optimization: unfragment files.");
+    printf("Current method: %s; hidden files: %s.\n",
+           options->full ? "full compaction" : "file unfragmentation",
+           options->hidden ? "included" : "left in place");
+    puts("Press ENTER to begin, C to configure, or ESC to cancel.");
+    key = getch();
+    if (key == 27) return -1;
+    if (key == 'c' || key == 'C') {
+        clear_interface();
+        puts("Optimize configuration");
+        puts("U  Unfragment files");
+        puts("F  Full compaction");
+        puts("H  Toggle hidden-file movement");
+        puts("ENTER accepts the current settings; ESC cancels.");
+        key = getch();
+        if (key == 27) return -1;
+        if (key == 'u' || key == 'U') {
+            options->full = 0; options->unfragment = 1;
+        } else if (key == 'f' || key == 'F') {
+            options->full = 1; options->unfragment = 0;
+        } else if (key == 'h' || key == 'H') {
+            options->hidden = !options->hidden;
+        }
+        goto configure_again;
+    }
+    if (key != '\r' && key != '\n') goto configure_again;
+    options->drive = selected;
+    options->drive_set = 1;
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
     struct options options;
@@ -880,6 +986,11 @@ int main(int argc, char **argv)
     if (parse_options(argc, argv, &options)) {
         usage();
         return 4;
+    }
+    if (argc == 1) {
+        result = interactive_select(&options);
+        if (result < 0) return 0;
+        if (result) return result;
     }
     if (!options.drive_set) {
         memset(&regs, 0, sizeof(regs));

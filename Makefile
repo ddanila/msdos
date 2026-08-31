@@ -413,6 +413,7 @@ test-scandisk-qemu: deploy
 test-defrag-qemu: deploy
 	bash tests/test_defrag_qemu.sh
 	bash tests/test_defrag_errors_qemu.sh
+	bash tests/test_defrag_interactive_qemu.sh
 
 test-defrag-fat16-qemu: deploy
 	bash tests/test_defrag_fat16_qemu.sh
