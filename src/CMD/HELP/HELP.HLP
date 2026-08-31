@@ -165,6 +165,7 @@ Syntax: DEFRAG [drive:] [/F [/S[:]order] | /U] [/B] [/SKIPHIGH]
               [/LCD | /BW | /G0] [/H]
 /U makes file chains contiguous. /F also requests free-space compaction and
 /S selects directory order. /H includes hidden files.
+Corrupt or inconsistent allocation metadata is refused before any disk write.
 @DEL
 Deletes files.
 Syntax: DEL [drive:][path]filename [/P]
