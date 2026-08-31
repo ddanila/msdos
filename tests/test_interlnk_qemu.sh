@@ -23,6 +23,9 @@ OFFLINE_PROBE="$OUT/interlnk-offline.com"
 OFFLINE_CONTINUE="$OUT/interlnk-offline-continue.com"
 MAPPING_PROBE="$OUT/interlnk-mapping.com"
 AUTO_PROBE="$OUT/interlnk-auto.com"
+PRINTER_ONLY_PROBE="$OUT/interlnk-printer-only.com"
+PRINTER_ONLY_IMAGE="$OUT/interlnk-printer-only.img"
+PRINTER_ONLY_LOG="$OUT/interlnk-printer-only.log"
 PORT=18666
 PROXY_PORT=18667
 PRINTER1_OUT="$OUT/intersvr-printer1.out"
@@ -41,6 +44,8 @@ nasm -DEXPECT_INSTALLED -DEXPECT_PRINTER_OFF -f bin \
     "$ROOT/tests/interlnk_offline_probe.asm" -o "$OFFLINE_PROBE"
 nasm -DEXPECT_INSTALLED -DDO_RECONNECT -DNO_QEMU_EXIT -f bin "$ROOT/tests/interlnk_offline_probe.asm" -o "$OFFLINE_CONTINUE"
 nasm -f bin "$ROOT/tests/interlnk_offline_probe.asm" -o "$AUTO_PROBE"
+nasm -DEXPECT_INSTALLED -DEXPECT_ZERO_DRIVES -f bin \
+    "$ROOT/tests/interlnk_offline_probe.asm" -o "$PRINTER_ONLY_PROBE"
 nasm -f bin "$ROOT/tests/interlnk_mapping_probe.asm" -o "$MAPPING_PROBE"
 cp "$BASE" "$SERVER_IMAGE"
 cp "$BASE" "$CLIENT_IMAGE"
@@ -162,6 +167,24 @@ timeout 15 qemu-system-i386 \
     >/dev/null 2>&1 || true
 grep -Fq 'INTERLNK_OFFLINE_PASS' "$AUTO_LOG"
 echo '  PASS: Interlnk /AUTO declines installation without a server'
+
+# /DRIVES:0 retains the character-device companion and printer hooks without
+# asking DOS to create a block-device drive letter.
+cp "$BASE" "$PRINTER_ONLY_IMAGE"
+mcopy -o -i "$PRINTER_ONLY_IMAGE" "$ROOT/src/CMD/INTERLNK/INTERLNK.EXE" ::INTERLNK.EXE
+mcopy -o -i "$PRINTER_ONLY_IMAGE" "$PRINTER_ONLY_PROBE" ::PRNONLY.COM
+printf 'LASTDRIVE=Z\r\nDEVICE=A:\\INTERLNK.EXE /DRIVES:0 /COM:1 /NOSCAN\r\n' \
+    | mcopy -o -i "$PRINTER_ONLY_IMAGE" - ::CONFIG.SYS
+printf '@ECHO OFF\r\nPRNONLY.COM\r\n' | mcopy -o -i "$PRINTER_ONLY_IMAGE" - ::AUTOEXEC.BAT
+rm -f "$PRINTER_ONLY_LOG"
+timeout 15 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 8 \
+    -drive if=floppy,index=0,format=raw,file="$PRINTER_ONLY_IMAGE",cache=writethrough \
+    -boot a -serial null -debugcon file:"$PRINTER_ONLY_LOG" -global isa-debugcon.iobase=0xe9 \
+    -no-reboot -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    >/dev/null 2>&1 || true
+grep -Fq 'INTERLNK_OFFLINE_PASS' "$PRINTER_ONLY_LOG"
+echo '  PASS: Interlnk /DRIVES:0 installs a printer-only resident client'
 
 # The interactive server must consume Alt+F4 and return to its caller.
 cp "$BASE" "$SHUTDOWN_IMAGE"

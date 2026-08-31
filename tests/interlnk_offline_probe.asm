@@ -8,7 +8,11 @@ cmp ax, 0ff00h
 jne fail
 cmp bx, 0
 jne fail
+%ifdef EXPECT_ZERO_DRIVES
+cmp cx, 0
+%else
 cmp cx, 2
+%endif
 jne fail
 %ifdef EXPECT_PRINTER_OFF
 cmp si, 0

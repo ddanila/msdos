@@ -4,6 +4,14 @@ CODE SEGMENT PUBLIC
         ORG     0
         ASSUME  CS:CODE,DS:NOTHING,ES:NOTHING,SS:NOTHING
 
+character_header:
+        dw      OFFSET device_header
+        dw      SEG device_header
+        dw      08000h
+        dw      character_strategy
+        dw      character_interrupt
+        db      'INTERL$ '
+
 device_header:
         dd      0ffffffffh
         dw      0800h
@@ -13,6 +21,7 @@ unit_count      db      0
         db      7 dup(0)
 
 request_ptr     dd 0
+character_request_ptr dd 0
 connected       db 0
 com_port        dw 03f8h
 com_number      db 1
@@ -30,6 +39,62 @@ first_drive     db 0
 unit_map        db 0,1,2,3,4
 unit_changed    db 5 dup(0)
 remote_drives   db 5 dup(0ffh)
+
+character_strategy PROC FAR
+        mov     word ptr cs:character_request_ptr,bx
+        mov     word ptr cs:character_request_ptr+2,es
+        ret
+character_strategy ENDP
+
+character_interrupt PROC FAR
+        push    ax
+        push    bx
+        push    dx
+        push    ds
+        lds     bx,cs:character_request_ptr
+        cmp     byte ptr [bx+2],0
+        jne     short character_done
+        mov     word ptr cs:request_ptr,bx
+        mov     word ptr cs:request_ptr+2,ds
+        call    parse_config
+        jc      short character_failed
+        cmp     cs:drive_limit,0
+        jne     short character_keep_chain
+        mov     word ptr cs:character_header,0ffffh
+        mov     word ptr cs:character_header+2,0ffffh
+        call    init_serial
+        cmp     cs:no_scan,0
+        jne     short character_offline
+        call    connect_server
+        jnc     short character_install
+        cmp     cs:auto_install,0
+        jne     short character_failed
+character_offline:
+        call    prepare_offline_units
+character_install:
+        call    install_multiplex
+        cmp     cs:printer_enabled,0
+        je      short character_keep_chain
+        call    install_printer
+character_keep_chain:
+        lds     bx,cs:character_request_ptr
+        mov     word ptr [bx+14],OFFSET resident_end
+        mov     word ptr [bx+16],cs
+character_done:
+        mov     word ptr [bx+3],0100h
+        jmp     short character_exit
+character_failed:
+        lds     bx,cs:character_request_ptr
+        mov     word ptr [bx+14],OFFSET resident_end
+        mov     word ptr [bx+16],cs
+        mov     word ptr [bx+3],8102h
+character_exit:
+        pop     ds
+        pop     dx
+        pop     bx
+        pop     ax
+        ret
+character_interrupt ENDP
 
 strategy PROC FAR
         mov     word ptr cs:request_ptr,bx
@@ -790,7 +855,7 @@ config_drives_ev:
         jne     short config_bad
         lodsb
         sub     al,'0'
-        cmp     al,1
+        cmp     al,0
         jb      short config_bad
         cmp     al,5
         ja      short config_bad
