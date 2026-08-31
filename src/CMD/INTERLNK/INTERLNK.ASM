@@ -150,6 +150,10 @@ command_query:
         add     al,'0'
         mov     cs:banner_count,al
         mov     al,dl
+        or      al,al
+        jnz     short command_query_numbered_port
+        mov     al,'@'-'0'
+command_query_numbered_port:
         add     al,'0'
         mov     cs:banner_port,al
         or      dh,dh
@@ -180,7 +184,8 @@ syntax  db 'Invalid INTERLNK parameter.',13,10,'$'
 help    db 'Displays or changes the Interlnk client connection.',13,10
         db 'Syntax: INTERLNK [client[:]=[server][:]]',13,10
         db 'Repository extension: INTERLNK /RECONNECT',13,10
-        db 'CONFIG.SYS: DEVICE=INTERLNK.EXE [/DRIVES:n] [/NOPRINTER] [/COM:n | /LPT:n] [/BAUD:rate] [/AUTO] [/NOSCAN] [/LOW] [/V]',13,10,'$'
+        db 'CONFIG.SYS: DEVICE=INTERLNK.EXE [/DRIVES:n] [/NOPRINTER]',13,10
+        db ' [/COM[:][n|address] | /LPT[:][n|address]] [/BAUD:rate] [/AUTO] [/NOSCAN] [/LOW] [/V]',13,10,'$'
 reconnect_name db 'RECONNECT'
 reconnected db 'Interlnk connection renewed.',13,10,'$'
 remapped db 'Interlnk drive redirection updated.',13,10,'$'

@@ -11,8 +11,13 @@ jne fail
 %ifdef EXPECT_PARALLEL
 cmp dh, 1
 jne fail
+%ifdef EXPECT_ADDRESS
+cmp dl, 0
+jne fail
+%else
 cmp dl, 1
 jne fail
+%endif
 %endif
 %ifdef EXPECT_ZERO_DRIVES
 cmp cx, 0

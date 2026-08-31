@@ -18,6 +18,7 @@ connected       db 0
 com_port        dw 03f8h
 com_number      db 1
 com_explicit    db 0
+port_selected   db 0
 baud_explicit   db 0
 transport_type  db 0                    ; 0=COM UART, 1=LPT nibble cable
 lpt_port        dw 0378h
@@ -173,6 +174,29 @@ prepare_offline_units ENDP
 connect_server PROC NEAR
         cmp     cs:com_explicit,0
         jne     short connect_selected_port
+        cmp     cs:transport_type,0
+        je      short connect_scan_com
+        push    bx
+        mov     bl,1
+connect_scan_lpt:
+        mov     cs:com_number,bl
+        xor     bh,bh
+        dec     bx
+        shl     bx,1
+        mov     ax,cs:lpt_bases[bx]
+        mov     cs:lpt_port,ax
+        shr     bx,1
+        inc     bx
+        call    init_serial
+        call    connect_on_port
+        jnc     short connect_scan_found
+        inc     bl
+        cmp     bl,3
+        jbe     short connect_scan_lpt
+        pop     bx
+        stc
+        ret
+connect_scan_com:
         push    bx
         mov     bl,1
 connect_scan_port:
@@ -909,29 +933,23 @@ config_low:
 config_low_bad:
         jmp     config_bad
 config_lpt:
-        cmp     cs:com_explicit,0
+        cmp     cs:port_selected,0
         jne     short config_lpt_bad
         lodsw
         and     ax,0dfdfh
         cmp     ax,'TP'
         jne     short config_lpt_bad
-        lodsb
-        cmp     al,':'
-        jne     short config_lpt_bad
-        lodsb
-        sub     al,'0'
-        cmp     al,1
-        jb      short config_lpt_bad
-        cmp     al,3
-        ja      short config_lpt_bad
+        mov     cs:port_table,OFFSET lpt_bases
+        mov     cs:port_maximum,3
+        call    parse_config_port_spec
+        jc      short config_lpt_bad
+        mov     al,cs:parsed_number
         mov     cs:com_number,al
-        mov     cs:com_explicit,1
+        mov     al,cs:parsed_explicit
+        mov     cs:com_explicit,al
+        mov     cs:port_selected,1
         mov     cs:transport_type,1
-        dec     al
-        xor     ah,ah
-        shl     ax,1
-        mov     bx,ax
-        mov     ax,cs:lpt_bases[bx]
+        mov     ax,cs:parsed_port
         mov     cs:lpt_port,ax
         jmp     config_scan
 config_lpt_bad:
@@ -978,28 +996,22 @@ config_baud:
 config_baud_bad:
         jmp     config_bad
 config_com:
-        cmp     cs:com_explicit,0
+        cmp     cs:port_selected,0
         jne     short config_com_bad
         lodsw
         and     ax,0dfdfh
         cmp     ax,'MO'
         jne     short config_com_bad
-        lodsb
-        cmp     al,':'
-        jne     short config_com_bad
-        lodsb
-        sub     al,'0'
-        cmp     al,1
-        jb      short config_com_bad
-        cmp     al,4
-        ja      short config_com_bad
+        mov     cs:port_table,OFFSET com_bases
+        mov     cs:port_maximum,4
+        call    parse_config_port_spec
+        jc      short config_com_bad
+        mov     al,cs:parsed_number
         mov     cs:com_number,al
-        mov     cs:com_explicit,1
-        dec     al
-        xor     ah,ah
-        shl     ax,1
-        mov     bx,ax
-        mov     ax,cs:com_bases[bx]
+        mov     al,cs:parsed_explicit
+        mov     cs:com_explicit,al
+        mov     cs:port_selected,1
+        mov     ax,cs:parsed_port
         mov     cs:com_port,ax
         jmp     config_scan
 config_com_bad:
@@ -1081,6 +1093,102 @@ config_bad:
         stc
         ret
 parse_config ENDP
+
+parse_config_port_spec PROC NEAR
+        mov     cs:parsed_explicit,0
+        mov     cs:parsed_number,1
+        mov     bx,cs:port_table
+        mov     ax,cs:[bx]
+        mov     cs:parsed_port,ax
+        mov     al,[si]
+        cmp     al,':'
+        jne     short config_port_check_bare
+        inc     si
+        mov     al,[si]
+        call    config_port_is_delimiter
+        jnz     short config_port_value
+        jmp     config_port_bad
+config_port_check_bare:
+        call    config_port_is_delimiter
+        jnz     short config_port_value
+        jmp     config_port_good
+config_port_value:
+        xor     ax,ax
+        xor     dx,dx
+config_port_digit:
+        mov     bl,[si]
+        cmp     bl,' '
+        je      short config_port_digits_done
+        or      bl,bl
+        je      short config_port_digits_done
+        cmp     bl,13
+        je      short config_port_digits_done
+        cmp     bl,10
+        je      short config_port_digits_done
+        cmp     bl,'0'
+        jb      short config_port_bad
+        cmp     bl,'9'
+        jbe     short config_port_decimal
+        and     bl,0dfh
+        sub     bl,'A'-10
+        cmp     bl,15
+        ja      short config_port_bad
+        jmp     short config_port_have_digit
+config_port_decimal:
+        sub     bl,'0'
+config_port_have_digit:
+        cmp     ax,0fffh
+        ja      short config_port_bad
+        mov     bh,0
+        shl     ax,1
+        shl     ax,1
+        shl     ax,1
+        shl     ax,1
+        add     ax,bx
+        inc     si
+        inc     dx
+        jmp     config_port_digit
+config_port_digits_done:
+        or      dx,dx
+        jz      short config_port_bad
+        mov     cs:parsed_number,0
+        cmp     dx,1
+        jne     short config_port_address
+        cmp     al,1
+        jb      short config_port_address
+        cmp     al,cs:port_maximum
+        ja      short config_port_address
+        mov     cs:parsed_number,al
+        dec     al
+        xor     ah,ah
+        shl     ax,1
+        mov     bx,cs:port_table
+        add     bx,ax
+        mov     ax,cs:[bx]
+config_port_address:
+        or      ax,ax
+        jz      short config_port_bad
+        mov     cs:parsed_port,ax
+        mov     cs:parsed_explicit,1
+config_port_good:
+        clc
+        ret
+config_port_bad:
+        stc
+        ret
+parse_config_port_spec ENDP
+
+config_port_is_delimiter PROC NEAR
+        cmp     al,' '
+        je      short config_port_delimiter
+        or      al,al
+        je      short config_port_delimiter
+        cmp     al,13
+        je      short config_port_delimiter
+        cmp     al,10
+config_port_delimiter:
+        ret
+config_port_is_delimiter ENDP
 
 parse_config_baud_rate PROC NEAR
         xor     ax,ax
@@ -1702,6 +1810,11 @@ default_bpb     dw 512
                 dd 0,0
 com_bases       dw 03f8h,02f8h,03e8h,02e8h
 lpt_bases       dw 0378h,0278h,03bch
+port_table      dw 0
+port_maximum    db 0
+parsed_explicit db 0
+parsed_number   db 0
+parsed_port     dw 0
 resident_end LABEL BYTE
 
 CODE ENDS

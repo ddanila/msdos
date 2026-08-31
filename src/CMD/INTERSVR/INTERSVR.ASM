@@ -73,7 +73,10 @@ server_shutdown:
         int     21h
 server_receive:
         call    receive_byte
-        jc      server_loop
+        jnc     short server_have_byte
+        call    advance_scan_port
+        jmp     server_loop
+server_have_byte:
         cmp     al,0a5h
         jne     server_loop
 server_sync_second:
@@ -184,6 +187,45 @@ request_failed:
 protocol_failed:
         inc     cs:error_count
         jmp     server_loop
+
+advance_scan_port PROC NEAR
+        cmp     cs:scan_ports,0
+        je      short advance_scan_done
+        inc     cs:scan_index
+        mov     al,cs:scan_index
+        cmp     cs:transport_type,0
+        jne     short advance_scan_lpt
+        cmp     al,4
+        jb      short advance_scan_load_com
+        mov     cs:scan_index,0
+advance_scan_load_com:
+        xor     ah,ah
+        shl     ax,1
+        mov     bx,ax
+        mov     ax,cs:com_bases[bx]
+        mov     cs:com_port,ax
+        mov     al,cs:scan_index
+        inc     al
+        mov     cs:com_number,al
+        call    init_serial
+        ret
+advance_scan_lpt:
+        cmp     al,3
+        jb      short advance_scan_load_lpt
+        mov     cs:scan_index,0
+advance_scan_load_lpt:
+        xor     ah,ah
+        shl     ax,1
+        mov     bx,ax
+        mov     ax,cs:lpt_bases[bx]
+        mov     cs:lpt_port,ax
+        mov     al,cs:scan_index
+        inc     al
+        mov     cs:com_number,al
+        call    init_serial
+advance_scan_done:
+        ret
+advance_scan_port ENDP
 
 display_status PROC NEAR
         mov     dx,OFFSET status_heading
@@ -845,83 +887,177 @@ parse_flag_more:
 parse_com:
         cmp     cs:port_selected,0
         jne     parse_bad
-        cmp     cx,4
+        cmp     cx,2
         jb      parse_bad
         mov     al,es:[si]
         inc     si
+        dec     cx
         and     al,0dfh
         cmp     al,'O'
         jne     parse_bad
         mov     al,es:[si]
         inc     si
+        dec     cx
         and     al,0dfh
         cmp     al,'M'
         jne     parse_bad
-        mov     al,es:[si]
-        inc     si
-        cmp     al,':'
-        jne     parse_bad
-        mov     al,es:[si]
-        inc     si
-        sub     cx,4
-        sub     al,'0'
-        cmp     al,1
-        jb      parse_bad
-        cmp     al,4
-        ja      parse_bad
+        mov     cs:port_table,OFFSET com_bases
+        mov     cs:port_maximum,4
+        call    parse_port_spec
+        jc      parse_bad
+        mov     al,cs:parsed_number
         mov     cs:com_number,al
         mov     cs:port_selected,1
-        mov     cs:banner_port,al
-        add     cs:banner_port,'0'
-        dec     al
-        xor     ah,ah
-        shl     ax,1
-        mov     bx,ax
-        mov     ax,cs:com_bases[bx]
+        mov     ax,cs:parsed_port
         mov     cs:com_port,ax
+        mov     al,cs:parsed_number
+        or      al,al
+        jz      short parse_com_address_banner
+        add     al,'0'
+        jmp     short parse_com_store_banner
+parse_com_address_banner:
+        mov     al,'@'
+parse_com_store_banner:
+        mov     cs:banner_port,al
+        mov     al,cs:parsed_explicit
+        xor     al,1
+        mov     cs:scan_ports,al
         jmp     parse_space
 parse_lpt:
         cmp     cs:port_selected,0
         jne     parse_bad
-        cmp     cx,4
+        cmp     cx,2
         jb      parse_bad
         mov     al,es:[si]
         inc     si
+        dec     cx
         and     al,0dfh
         cmp     al,'P'
         jne     parse_bad
         mov     al,es:[si]
         inc     si
+        dec     cx
         and     al,0dfh
         cmp     al,'T'
         jne     parse_bad
-        mov     al,es:[si]
-        inc     si
-        cmp     al,':'
-        jne     parse_bad
-        mov     al,es:[si]
-        inc     si
-        sub     cx,4
-        sub     al,'0'
-        cmp     al,1
-        jb      parse_bad
-        cmp     al,3
-        ja      parse_bad
+        mov     cs:port_table,OFFSET lpt_bases
+        mov     cs:port_maximum,3
+        call    parse_port_spec
+        jc      parse_bad
+        mov     al,cs:parsed_number
         mov     cs:com_number,al
         mov     cs:port_selected,1
+        or      al,al
+        jz      short parse_lpt_address_banner
+        add     al,'0'
+        jmp     short parse_lpt_store_banner
+parse_lpt_address_banner:
+        mov     al,'@'
+parse_lpt_store_banner:
         mov     cs:banner_port,al
-        add     cs:banner_port,'0'
         mov     byte ptr cs:banner_kind,'L'
         mov     byte ptr cs:banner_kind+1,'P'
         mov     byte ptr cs:banner_kind+2,'T'
         mov     cs:transport_type,1
+        mov     ax,cs:parsed_port
+        mov     cs:lpt_port,ax
+        mov     al,cs:parsed_explicit
+        xor     al,1
+        mov     cs:scan_ports,al
+        jmp     parse_space
+
+; Parse the suffix of /COM or /LPT. A missing suffix selects all ports in the
+; corresponding BIOS order. An optional colon may precede a one-digit port
+; number or a hexadecimal I/O base address.
+parse_port_spec PROC NEAR
+        mov     cs:parsed_explicit,0
+        mov     cs:parsed_number,0
+        or      cx,cx
+        jnz     short parse_port_have_suffix
+        jmp     parse_port_bare
+parse_port_have_suffix:
+        cmp     byte ptr es:[si],' '
+        jne     short parse_port_check_colon
+        jmp     parse_port_bare
+parse_port_check_colon:
+        cmp     byte ptr es:[si],':'
+        jne     short parse_port_value
+        inc     si
+        dec     cx
+        or      cx,cx
+        jnz     short parse_port_after_colon
+        jmp     parse_port_bad
+parse_port_after_colon:
+        cmp     byte ptr es:[si],' '
+        jne     short parse_port_value
+        jmp     parse_port_bad
+parse_port_value:
+        xor     ax,ax
+        xor     dx,dx                    ; digit count
+parse_port_digit:
+        or      cx,cx
+        jz      short parse_port_digits_done
+        mov     bl,es:[si]
+        cmp     bl,' '
+        je      short parse_port_digits_done
+        cmp     bl,'0'
+        jb      short parse_port_bad
+        cmp     bl,'9'
+        jbe     short parse_port_decimal
+        and     bl,0dfh
+        sub     bl,'A'-10
+        cmp     bl,15
+        ja      short parse_port_bad
+        jmp     short parse_port_have_digit
+parse_port_decimal:
+        sub     bl,'0'
+parse_port_have_digit:
+        cmp     ax,0fffh
+        ja      short parse_port_bad
+        mov     bh,0
+        shl     ax,1
+        shl     ax,1
+        shl     ax,1
+        shl     ax,1
+        add     ax,bx
+        inc     si
+        dec     cx
+        inc     dx
+        jmp     parse_port_digit
+parse_port_digits_done:
+        or      dx,dx
+        jz      short parse_port_bad
+        cmp     dx,1
+        jne     short parse_port_address
+        cmp     al,1
+        jb      short parse_port_address
+        cmp     al,cs:port_maximum
+        ja      short parse_port_address
+        mov     cs:parsed_number,al
         dec     al
         xor     ah,ah
         shl     ax,1
-        mov     bx,ax
-        mov     ax,cs:lpt_bases[bx]
-        mov     cs:lpt_port,ax
-        jmp     parse_space
+        mov     bx,cs:port_table
+        add     bx,ax
+        mov     ax,cs:[bx]
+parse_port_address:
+        or      ax,ax
+        jz      short parse_port_bad
+        mov     cs:parsed_port,ax
+        mov     cs:parsed_explicit,1
+        clc
+        ret
+parse_port_bare:
+        mov     bx,cs:port_table
+        mov     ax,cs:[bx]
+        mov     cs:parsed_port,ax
+        mov     cs:parsed_number,1
+        clc
+        ret
+parse_port_bad:
+        stc
+        ret
+parse_port_spec ENDP
 parse_done:
         cmp     cs:transport_type,0
         je      short parse_transport_valid
@@ -1058,6 +1194,13 @@ com_port        dw 03f8h
 com_number      db 1
 port_selected   db 0
 baud_explicit   db 0
+scan_ports      db 0
+scan_index      db 0
+port_table      dw 0
+port_maximum    db 0
+parsed_explicit db 0
+parsed_number   db 0
+parsed_port     dw 0
 transport_type  db 0
 lpt_port        dw 0378h
 lpt_shadow      db 0
@@ -1084,7 +1227,8 @@ banner_port     db '1  Drives $'
 banner_suffix   db ' available',13,10
                 db 'F1 displays status; Alt+F4 exits.',13,10,'$'
 printer_status  db 0
-usage           db 'Syntax: INTERSVR [drive: ...] [/X=drive: ...] [/COM:n | /LPT:n] [/BAUD:rate] [/B] [/V]',13,10,'$'
+usage           db 'Syntax: INTERSVR [drive: ...] [/X=drive: ...]',13,10
+                db '       [/COM[:][n|address] | /LPT[:][n|address]] [/BAUD:rate] [/B] [/V]',13,10,'$'
 sector_buffer   db 512 dup(0)
 connected       db 0
 discovery_count dw 0

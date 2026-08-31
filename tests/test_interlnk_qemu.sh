@@ -11,6 +11,7 @@ CLIENT_IMAGE="$OUT/interlnk.img"
 DISCONNECTED_IMAGE="$OUT/interlnk-disconnected.img"
 AUTO_IMAGE="$OUT/interlnk-auto.img"
 LPT_IMAGE="$OUT/interlnk-lpt.img"
+LPT_ADDRESS_IMAGE="$OUT/interlnk-lpt-address.img"
 SHUTDOWN_IMAGE="$OUT/intersvr-shutdown.img"
 LOG="$OUT/interlnk-debug.log"
 SERVER_LOG="$OUT/intersvr-qemu.log"
@@ -18,6 +19,7 @@ CLIENT_LOG="$OUT/interlnk-qemu.log"
 DISCONNECTED_LOG="$OUT/interlnk-disconnected.log"
 AUTO_LOG="$OUT/interlnk-auto.log"
 LPT_LOG="$OUT/interlnk-lpt.log"
+LPT_ADDRESS_LOG="$OUT/interlnk-lpt-address.log"
 PROBE="$OUT/ILPROBE.COM"
 QEXIT="$OUT/interlnk-qexit.com"
 ALT_F4="$OUT/alt-f4.com"
@@ -26,6 +28,7 @@ OFFLINE_CONTINUE="$OUT/interlnk-offline-continue.com"
 MAPPING_PROBE="$OUT/interlnk-mapping.com"
 AUTO_PROBE="$OUT/interlnk-auto.com"
 LPT_PROBE="$OUT/interlnk-lpt.com"
+LPT_ADDRESS_PROBE="$OUT/interlnk-lpt-address.com"
 PRINTER_ONLY_PROBE="$OUT/interlnk-printer-only.com"
 PRINTER_ONLY_IMAGE="$OUT/interlnk-printer-only.img"
 PRINTER_ONLY_LOG="$OUT/interlnk-printer-only.log"
@@ -55,6 +58,8 @@ nasm -DEXPECT_INSTALLED -DDO_RECONNECT -DNO_QEMU_EXIT -f bin "$ROOT/tests/interl
 nasm -f bin "$ROOT/tests/interlnk_offline_probe.asm" -o "$AUTO_PROBE"
 nasm -DEXPECT_INSTALLED -DEXPECT_PRINTER_OFF -DEXPECT_PARALLEL -f bin \
     "$ROOT/tests/interlnk_offline_probe.asm" -o "$LPT_PROBE"
+nasm -DEXPECT_INSTALLED -DEXPECT_PRINTER_OFF -DEXPECT_PARALLEL -DEXPECT_ADDRESS -f bin \
+    "$ROOT/tests/interlnk_offline_probe.asm" -o "$LPT_ADDRESS_PROBE"
 nasm -DEXPECT_INSTALLED -DEXPECT_ZERO_DRIVES -f bin \
     "$ROOT/tests/interlnk_offline_probe.asm" -o "$PRINTER_ONLY_PROBE"
 nasm -DEXPECT_HIGH -f bin "$ROOT/tests/interlnk_placement_probe.asm" -o "$HIGH_PROBE"
@@ -168,7 +173,7 @@ echo '  PASS: Interlnk remains installed offline and /NOPRINTER suppresses its p
 cp "$BASE" "$LPT_IMAGE"
 mcopy -o -i "$LPT_IMAGE" "$ROOT/src/CMD/INTERLNK/INTERLNK.EXE" ::INTERLNK.EXE
 mcopy -o -i "$LPT_IMAGE" "$LPT_PROBE" ::LPTPROBE.COM
-printf 'LASTDRIVE=Z\r\nDEVICE=A:\\INTERLNK.EXE /DRIVES:2 /LPT:1 /NOSCAN /NOPRINTER\r\n' | mcopy -o -i "$LPT_IMAGE" - ::CONFIG.SYS
+printf 'LASTDRIVE=Z\r\nDEVICE=A:\\INTERLNK.EXE /DRIVES:2 /LPT /NOSCAN /NOPRINTER\r\n' | mcopy -o -i "$LPT_IMAGE" - ::CONFIG.SYS
 printf '@ECHO OFF\r\nLPTPROBE.COM\r\n' | mcopy -o -i "$LPT_IMAGE" - ::AUTOEXEC.BAT
 rm -f "$LPT_LOG"
 timeout 15 qemu-system-i386 \
@@ -178,7 +183,22 @@ timeout 15 qemu-system-i386 \
     -no-reboot -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     >/dev/null 2>&1 || true
 grep -Fq 'INTERLNK_OFFLINE_PASS' "$LPT_LOG"
-echo '  PASS: Interlnk /LPT:1 installs the parallel resident transport'
+echo '  PASS: Interlnk bare /LPT installs the scanning parallel transport'
+
+cp "$BASE" "$LPT_ADDRESS_IMAGE"
+mcopy -o -i "$LPT_ADDRESS_IMAGE" "$ROOT/src/CMD/INTERLNK/INTERLNK.EXE" ::INTERLNK.EXE
+mcopy -o -i "$LPT_ADDRESS_IMAGE" "$LPT_ADDRESS_PROBE" ::LPTADDR.COM
+printf 'LASTDRIVE=Z\r\nDEVICE=A:\\INTERLNK.EXE /DRIVES:2 /LPT:378 /NOSCAN /NOPRINTER\r\n' | mcopy -o -i "$LPT_ADDRESS_IMAGE" - ::CONFIG.SYS
+printf '@ECHO OFF\r\nLPTADDR.COM\r\n' | mcopy -o -i "$LPT_ADDRESS_IMAGE" - ::AUTOEXEC.BAT
+rm -f "$LPT_ADDRESS_LOG"
+timeout 15 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 8 \
+    -drive if=floppy,index=0,format=raw,file="$LPT_ADDRESS_IMAGE",cache=writethrough \
+    -boot a -serial null -debugcon file:"$LPT_ADDRESS_LOG" -global isa-debugcon.iobase=0xe9 \
+    -no-reboot -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    >/dev/null 2>&1 || true
+grep -Fq 'INTERLNK_OFFLINE_PASS' "$LPT_ADDRESS_LOG"
+echo '  PASS: Interlnk accepts an explicit parallel I/O address'
 
 # /AUTO retains the historical opt-in behavior of declining installation when
 # no server can be found during CONFIG.SYS processing.
@@ -246,7 +266,7 @@ mcopy -o -i "$SHUTDOWN_IMAGE" "$ROOT/src/CMD/INTERSVR/INTERSVR.EXE" ::INTERSVR.E
 mcopy -o -i "$SHUTDOWN_IMAGE" "$ALT_F4" ::ALTF4.COM
 mcopy -o -i "$SHUTDOWN_IMAGE" "$QEXIT" ::QEXIT.COM
 printf '\r\n' | mcopy -o -i "$SHUTDOWN_IMAGE" - ::CONFIG.SYS
-printf '@ECHO OFF\r\nALTF4.COM\r\nINTERSVR A: /LPT:1 >ISTATUS.TXT\r\nECHO PASS>ALTF4.TAG\r\nQEXIT.COM\r\n' \
+printf '@ECHO OFF\r\nALTF4.COM\r\nINTERSVR A: /LPT >ISCAN.TXT\r\nECHO SCANPASS>ISCAN.TAG\r\nALTF4.COM\r\nINTERSVR A: /LPT:378 >ISTATUS.TXT\r\nECHO PASS>ALTF4.TAG\r\nQEXIT.COM\r\n' \
     | mcopy -o -i "$SHUTDOWN_IMAGE" - ::AUTOEXEC.BAT
 timeout 15 qemu-system-i386 \
     -display none -monitor none -machine pc -cpu 486 -m 8 \
@@ -255,8 +275,10 @@ timeout 15 qemu-system-i386 \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     >/dev/null 2>&1 || true
 mcopy -i "$SHUTDOWN_IMAGE" ::ALTF4.TAG - 2>/dev/null | grep -Fq PASS
-for marker in 'Port-LPT1' 'F1 displays status; Alt+F4 exits.' 'Interlnk server status' \
+mcopy -i "$SHUTDOWN_IMAGE" ::ISCAN.TAG - 2>/dev/null | grep -Fq SCANPASS
+mcopy -i "$SHUTDOWN_IMAGE" ::ISCAN.TXT - 2>/dev/null | grep -Fq 'Port-LPT1'
+for marker in 'Port-LPT@' 'F1 displays status; Alt+F4 exits.' 'Interlnk server status' \
     'Connection: waiting' 'Discovery requests: 0' 'Protocol/I/O errors: 0'; do
     mcopy -i "$SHUTDOWN_IMAGE" ::ISTATUS.TXT - 2>/dev/null | grep -Fq "$marker"
 done
-echo '  PASS: Interserver F1 status and Alt+F4 shutdown return control to DOS'
+echo '  PASS: Interserver bare-port scanning, explicit address, F1 status, and Alt+F4 shutdown'
