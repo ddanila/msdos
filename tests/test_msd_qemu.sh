@@ -89,6 +89,9 @@ for marker in \
     'LASTDRIVE=E:' \
     'D:  substituted path A:\MSDMAP' \
     'owner=0000' 'Windows installation:  Not detected' \
+    'Timer Tick' 'Second 8259A' 'COM1/COM3' 'Floppy Disk' \
+    'Real-Time Clock' 'Redirected IRQ2' 'Math Coprocessor' 'Fixed Disk' \
+    'detected=Yes' 'System Area' 'BIOS' \
     'MSD [/I] [/F[drive:][path]filename] [/P[drive:][path]filename]' \
     'Extended probing:      Skipped (/I)' \
     'Name: Ada Lovelace' 'Company: Analytical Engines' \

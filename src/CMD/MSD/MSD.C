@@ -747,14 +747,42 @@ static void report_disks(void)
 
 static void report_irqs(void)
 {
-    unsigned irq, vector;
+    static const char *descriptions[] = {
+        "Timer Tick", "Keyboard", "Second 8259A", "COM2/COM4",
+        "COM1/COM3", "LPT2", "Floppy Disk", "LPT1",
+        "Real-Time Clock", "Redirected IRQ2", "(Reserved)", "(Reserved)",
+        "(Reserved)", "Math Coprocessor", "Fixed Disk", "(Reserved)"
+    };
+    const unsigned far *bda_words = (const unsigned far *)MK_FP(0x40, 0);
+    const unsigned char far *bda =
+        (const unsigned char far *)MK_FP(0x40, 0);
+    union REGS inregs, outregs;
+    unsigned irq, vector, equipment;
     void interrupt far (*handler)(void);
     heading("IRQ Vectors");
+    int86(0x11, &inregs, &outregs);
+    equipment = outregs.x.ax;
     for (irq = 0; irq < 16; ++irq) {
+        int detected = 0;
         vector = irq < 8 ? irq + 8 : irq + 0x68;
         handler = _dos_getvect(vector);
-        fprintf(report, "IRQ %-2u  INT %02Xh  %04X:%04X\n", irq, vector,
-                FP_SEG(handler), FP_OFF(handler));
+        switch (irq) {
+        case 0: case 1: case 2: case 8: case 9:
+            detected = 1; break;
+        case 3: detected = bda_words[1] || bda_words[3]; break;
+        case 4: detected = bda_words[0] || bda_words[2]; break;
+        case 5: detected = bda_words[5] != 0; break;
+        case 6: detected = (equipment & 1) != 0; break;
+        case 7: detected = bda_words[4] != 0; break;
+        case 13: detected = (equipment & 2) != 0; break;
+        case 14: detected = bda[0x75] != 0; break;
+        default: break;
+        }
+        fprintf(report,
+                "IRQ %-2u  INT %02Xh  %04X:%04X  %-16s  detected=%-3s  %s\n",
+                irq, vector, FP_SEG(handler), FP_OFF(handler),
+                descriptions[irq], detected ? "Yes" : "No",
+                FP_SEG(handler) >= 0xf000 ? "BIOS" : "System Area");
     }
 }
 
