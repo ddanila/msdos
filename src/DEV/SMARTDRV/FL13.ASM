@@ -141,6 +141,29 @@ RERR:
 RDONE:
 cEnd
 
+; Set MSCDEX's bounded CD sector cache if MSCDEX is resident.  Absence is not
+; an error because SMARTDrive is also valid on systems without CD-ROM support.
+cProc MSCDEXCache, <PUBLIC>, <si,di,es>
+
+ParmW CacheMode
+
+cBegin
+	mov	ax,1500h
+	xor	bx,bx
+	int	2fh
+	or	bx,bx
+	jz	short MSCDEX_NOT_PRESENT
+	mov	bx,CacheMode
+	mov	ax,1511h
+	int	2fh
+	jc	short MSCDEX_NOT_PRESENT
+	xor	ax,ax
+	jmp	short MSCDEX_CACHE_DONE
+MSCDEX_NOT_PRESENT:
+	mov	ax,-1
+MSCDEX_CACHE_DONE:
+cEnd
+
 sEnd	CODE
 
 	end

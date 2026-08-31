@@ -13,6 +13,8 @@ EXIT_COM="$OUT/smartdrv-dos6-exit.com"
 IO_COM="$OUT/smartdrv-dos6-io.com"
 READ_COM="$OUT/smartdrv-dos6-read.com"
 EVICT_COM="$OUT/smartdrv-dos6-evict.com"
+CACHE_COM="$OUT/smartdrv-dos6-mscdctl.com"
+MSCD_DRIVER="$OUT/smartdrv-dos6-mscddrv.sys"
 
 [[ -f "$FLOPPY" ]] || { echo "ERROR: run 'make deploy' first"; exit 1; }
 for tool in mcopy mformat nasm python3 qemu-system-i386 timeout; do
@@ -39,14 +41,27 @@ nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 nasm -f bin "$REPO_ROOT/tests/smartdrv_io_probe.asm" -o "$IO_COM"
 nasm -f bin "$REPO_ROOT/tests/smartdrv_read_probe.asm" -o "$READ_COM"
 nasm -f bin "$REPO_ROOT/tests/smartdrv_eviction_probe.asm" -o "$EVICT_COM"
+nasm -f bin "$REPO_ROOT/tests/mscdex_cache_control_probe.asm" -o "$CACHE_COM"
+nasm -f bin "$REPO_ROOT/tests/mscd_test_driver.asm" -o "$MSCD_DRIVER"
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 mcopy -o -i "$BOOT_IMG" "$IO_COM" ::SDIO.COM
 mcopy -o -i "$BOOT_IMG" "$READ_COM" ::SDREAD.COM
 mcopy -o -i "$BOOT_IMG" "$EVICT_COM" ::SDEVICT.COM
+mcopy -o -i "$BOOT_IMG" "$CACHE_COM" ::MSCDCTL.COM
+mcopy -o -i "$BOOT_IMG" "$MSCD_DRIVER" ::MSCDDRV.SYS
+mcopy -o -i "$BOOT_IMG" "$REPO_ROOT/src/CMD/MSCDEX/MSCDEX.EXE" ::MSCDEX.EXE
 mcopy -o -i "$BOOT_IMG" "$REPO_ROOT/src/DEV/SMARTDRV/SMARTDRV.EXE" ::SMARTDRV.EXE
-printf 'DEVICE=SMARTDRV.EXE 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
+{
+    printf 'LASTDRIVE=Z\r\n'
+    printf 'DEVICE=SMARTDRV.EXE 256\r\n'
+    printf 'DEVICE=MSCDDRV.SYS /D:MSCD001\r\n'
+} | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
+    printf 'MSCDEX /D:MSCD001 /L:E\r\nIF ERRORLEVEL 1 ECHO SMARTDRV_MSCDEX_INSTALL_FAILED\r\n'
+    printf 'MSCDCTL.COM 1\r\nIF ERRORLEVEL 1 ECHO SMARTDRV_MSCDEX_DEFAULT_FAILED\r\n'
+    printf 'SMARTDRV /U /Q\r\nMSCDCTL.COM 0\r\nIF ERRORLEVEL 1 ECHO SMARTDRV_MSCDEX_DISABLE_FAILED\r\n'
+    printf 'SMARTDRV /Q\r\nMSCDCTL.COM 0\r\nIF ERRORLEVEL 1 ECHO SMARTDRV_MSCDEX_PERSIST_FAILED\r\n'
     printf 'SMARTDRV /?\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_HELP_FAILED\r\n'
     printf 'ECHO SMARTDRV_SIZE_256_BEGIN\r\nSMARTDRV /S\r\nECHO SMARTDRV_SIZE_256_END\r\n'
@@ -87,8 +102,7 @@ printf 'DEVICE=SMARTDRV.EXE 256\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
     printf 'SDIO.COM\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_IO_FAILED\r\n'
     printf 'ECHO SMARTDRV_DIRTY_BEGIN\r\nSMARTDRV /S\r\nECHO SMARTDRV_DIRTY_END\r\n'
-    printf 'ECHO SMARTDRV_LOCKED_BEGIN\r\nSMARTDRV /L /S\r\nECHO SMARTDRV_LOCKED_END\r\n'
-    printf 'ECHO SMARTDRV_UNLOCKED_BEGIN\r\nSMARTDRV /U /S\r\nECHO SMARTDRV_UNLOCKED_END\r\n'
+    printf 'SMARTDRV /L /U /Q\r\nIF ERRORLEVEL 1 ECHO SMARTDRV_PLACEMENT_CD_FAILED\r\n'
     printf 'SMARTDRV /C\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SMARTDRV_FLUSH_FAILED\r\n'
     printf 'ECHO SMARTDRV_CLEAN_BEGIN\r\nSMARTDRV /S\r\nECHO SMARTDRV_CLEAN_END\r\n'
@@ -103,8 +117,6 @@ timeout 25 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 
     >"$SERIAL_LOG" 2>&1 || true
 
 dirty="$(sed -n '/SMARTDRV_DIRTY_BEGIN/,/SMARTDRV_DIRTY_END/p' "$SERIAL_LOG")"
-locked="$(sed -n '/SMARTDRV_LOCKED_BEGIN/,/SMARTDRV_LOCKED_END/p' "$SERIAL_LOG")"
-unlocked="$(sed -n '/SMARTDRV_UNLOCKED_BEGIN/,/SMARTDRV_UNLOCKED_END/p' "$SERIAL_LOG")"
 clean="$(sed -n '/SMARTDRV_CLEAN_BEGIN/,/SMARTDRV_CLEAN_END/p' "$SERIAL_LOG")"
 quiet_output="$(sed -n '/SMARTDRV_QUIET_BEGIN/,/SMARTDRV_QUIET_END/p' "$SERIAL_LOG")"
 off_status="$(sed -n '/SMARTDRV_OFF_BEGIN/,/SMARTDRV_OFF_END/p' "$SERIAL_LOG")"
@@ -166,14 +178,13 @@ if [[ "$(grep -c 'SMARTDRV_QUIET_' <<<"$quiet_output")" == 2 ]] \
     && grep -q 'C:  Read cache yes  Write cache no' <<<"$nowrite_status" \
     && grep -q 'C:  Read cache yes  Write cache yes' "$SERIAL_LOG" \
     && grep -Eq '[1-9][0-9]* dirty' <<<"$dirty" \
-    && grep -Eq 'Cache lock: on, [1-9][0-9]* tracks locked' <<<"$locked" \
-    && grep -q 'Cache lock: off, 0 tracks locked' <<<"$unlocked" \
     && grep -q '0 dirty' <<<"$clean" \
     && [[ "$sector_matches" == yes ]] \
     && [[ "$eviction_matches" == yes ]] \
+    && [[ "$(grep -c 'MSCDEX_SMARTDRV_CACHE_PASS' "$SERIAL_LOG")" == 3 ]] \
     && grep -q 'SMARTDRV: invalid cache element or read-ahead size' "$SERIAL_LOG" \
     && ! grep -q 'SMARTDRV_.*_FAILED\|SMARTDRV_BAD_ELEMENT_ACCEPTED\|SMARTDRV_BAD_SIZE_ACCEPTED' "$SERIAL_LOG"; then
-    echo "  PASS: DOS 6 SMARTDRV read-ahead, transfer sizing, eviction, and write-behind"
+    echo "  PASS: DOS 6 SMARTDRV disk/CD caching, transfer sizing, eviction, and write-behind"
     exit 0
 fi
 

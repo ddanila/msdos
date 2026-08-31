@@ -66,4 +66,4 @@ if grep -Eq 'MSCDEX_(HELP_STATUS_BAD|MISSING_ACCEPTED|INSTALL_FAILED|DOS_FILE_FA
     exit 1
 fi
 
-echo '  PASS: MSCDEX DOS file access, ISO/media APIs, EMS caching, and external page-map preservation'
+echo '  PASS: MSCDEX DOS files, ISO/media APIs, and EMS map preservation'

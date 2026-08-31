@@ -254,6 +254,8 @@ int2f_handler PROC FAR
         je      api_absolute_read
         cmp     al,10h
         je      api_driver_request
+        cmp     al,11h
+        je      api_smartdrv_cache
 chain_2f:
         jmp     dword ptr cs:old_2f_off
 
@@ -614,6 +616,42 @@ api_drive_next:
 api_debug_noop:
         xor     ax,ax
         jmp     api_return_clear
+
+; Private cooperation point used by SMARTDRV.EXE.  BX=0 disables the CD
+; sector cache, BX=1 enables it, and BX=2 queries the current state in BX.
+api_smartdrv_cache:
+        cmp     bx,2
+        je      short api_smartdrv_query
+        cmp     bx,1
+        ja      short api_smartdrv_bad_function
+        mov     cs:cache_enabled,bl
+        call    invalidate_sector_cache
+api_smartdrv_query:
+        xor     bx,bx
+        mov     bl,cs:cache_enabled
+        xor     ax,ax
+        jmp     api_return_clear
+api_smartdrv_bad_function:
+        mov     ax,1
+        jmp     api_return_carry
+
+invalidate_sector_cache PROC NEAR
+        push    ax
+        push    cx
+        push    di
+        push    es
+        push    cs
+        pop     es
+        mov     di,OFFSET cache_valid
+        mov     cx,MAX_BUFFERS
+        xor     al,al
+        rep     stosb
+        pop     es
+        pop     di
+        pop     cx
+        pop     ax
+        ret
+invalidate_sector_cache ENDP
 
 ; AX=150Eh, BX=0 get or 1 set, CX=drive, DX=preference.  The supported DOS
 ; 6.22 preferences are primary ISO (0100h) and shift-JIS supplementary (0201h).
@@ -1239,6 +1277,10 @@ read_raw_sector PROC NEAR
         je      short cache_scan
         jmp     NEAR PTR cache_miss
 cache_scan:
+        cmp     cs:cache_enabled,0
+        jne     short cache_scan_enabled
+        jmp     NEAR PTR cache_miss
+cache_scan_enabled:
         xor     dx,dx
 cache_find_loop:
         cmp     dx,cs:buffer_count
@@ -1317,6 +1359,10 @@ read_raw_done:
         je      short read_raw_cache_store
         jmp     NEAR PTR read_raw_direct_done
 read_raw_cache_store:
+        cmp     cs:cache_enabled,0
+        jne     short read_raw_cache_enabled
+        jmp     NEAR PTR read_raw_direct_done
+read_raw_cache_enabled:
         xor     ax,ax
         mov     al,cs:cache_next
         xor     dx,dx
@@ -1608,6 +1654,7 @@ kanji_mode      db 0
 share_mode      db 0
 verbose         db 0
 cache_next      db 0
+cache_enabled   db 1
 cache_valid     db MAX_BUFFERS dup(0)
 cache_drives    dw MAX_BUFFERS dup(0)
 cache_sectors   dd MAX_BUFFERS dup(0)

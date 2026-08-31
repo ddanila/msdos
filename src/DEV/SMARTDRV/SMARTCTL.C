@@ -19,6 +19,7 @@ extern int IOCTLRead(int, status *, int);
 extern int IOCTLClose(int);
 extern int InstallEmbedded(void);
 extern void KeepResident(int);
+extern int MSCDEXCache(int);
 
 static int quiet;
 static int installed_here;
@@ -138,7 +139,7 @@ int argc;
 char **argv;
 {
     int h, i, action = 0, extended = 0, verbose = 0, numbers = 0, ok;
-    int tuning = 0;
+    int tuning = 0, cd_cache = -1;
     unsigned n, cache_size = 0, element_size, read_ahead_size;
     status initial;
     char p[5];
@@ -189,8 +190,8 @@ char **argv;
             else if (same(a, "Q")) quiet = 1;
             else if (same(a, "V")) verbose = 1;
             else if (same(a, "S")) extended = 1;
-            else if (same(a, "L")) { p[0] = 6; send(h, p, 1); action = 1; }
-            else if (same(a, "U")) { p[0] = 7; send(h, p, 1); action = 1; }
+            else if (same(a, "L")) { action = 1; }
+            else if (same(a, "U")) { cd_cache = 0; action = 1; }
             else if ((upper(a[0]) == 'E' || upper(a[0]) == 'B') && a[1] == ':') {
                 n = getnum(a + 2, &ok);
                 if (!ok || (upper(a[0]) == 'E' && n != 1024 && n != 2048 && n != 4096 && n != 8192))
@@ -216,6 +217,7 @@ char **argv;
         send(h, p, 5);
     }
     if (cache_size) set_cache_size(h, cache_size);
+    if (cd_cache >= 0) MSCDEXCache(cd_cache);
     if (!quiet && (!action || verbose || extended)) show_status(h, extended || verbose);
     IOCTLClose(h);
     if (installed_here) KeepResident(0);
