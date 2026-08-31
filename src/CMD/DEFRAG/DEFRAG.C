@@ -51,7 +51,13 @@ static unsigned char sort_entries[512][32];
 static char active_sort[16];
 static unsigned transaction_step;
 static int interrupt_at = -1;
+static int mouse_available;
+static int mouse_latched;
+static unsigned mouse_x;
+static unsigned mouse_y;
 static void render_progress(const struct defrag_state *state);
+
+#define MOUSE_KEY 0x100
 
 static void transaction_boundary(void)
 {
@@ -954,6 +960,43 @@ static int drive_available(unsigned drive)
     return regs.x.ax != 0xffff;
 }
 
+static void initialize_mouse(void)
+{
+    union REGS regs;
+    void interrupt far (*handler)(void) = _dos_getvect(0x33);
+    mouse_available = 0;
+    if (!handler || (!FP_SEG(handler) && !FP_OFF(handler))) return;
+    memset(&regs, 0, sizeof(regs));
+    int86(0x33, &regs, &regs);
+    if (regs.x.ax != 0xffff) return;
+    mouse_available = 1;
+    regs.x.ax = 1;
+    int86(0x33, &regs, &regs);
+}
+
+static int interface_key(void)
+{
+    union REGS regs;
+    for (;;) {
+        if (kbhit()) return getch();
+        if (mouse_available) {
+            memset(&regs, 0, sizeof(regs));
+            regs.x.ax = 3;
+            int86(0x33, &regs, &regs);
+            if (!(regs.x.bx & 1)) {
+                mouse_latched = 0;
+            } else if (!mouse_latched) {
+                mouse_latched = 1;
+                mouse_x = regs.x.cx;
+                mouse_y = regs.x.dx;
+                return MOUSE_KEY;
+            }
+        }
+        memset(&regs, 0, sizeof(regs));
+        int86(0x28, &regs, &regs);
+    }
+}
+
 static int interactive_select(struct options *options)
 {
     union REGS regs;
@@ -970,6 +1013,7 @@ static int interactive_select(struct options *options)
         fputs("DEFRAG cannot find an accessible drive.\n", stderr);
         return 4;
     }
+    initialize_mouse();
 select_again:
     clear_interface();
     puts("Microsoft Defragmenter");
@@ -980,7 +1024,22 @@ select_again:
             printf("  %c %c:\n", drive == selected ? '>' : ' ', 'A' + drive);
     printf("Selected drive %c:\n", 'A' + selected);
     puts("Use UP/DOWN or a drive letter; ENTER selects, ESC exits.");
-    key = getch();
+    printf("Mouse navigation: %s.\n",
+           mouse_available ? "available" : "not installed");
+    key = interface_key();
+    if (key == MOUSE_KEY) {
+        unsigned row = mouse_y / 8U;
+        unsigned visible_row = 3;
+        for (drive = 0; drive < 26; ++drive)
+            if (drive_available(drive)) {
+                if (row == visible_row) {
+                    selected = drive;
+                    break;
+                }
+                ++visible_row;
+            }
+        goto select_again;
+    }
     if (key == 0 || key == 0xe0) {
         int scan = getch();
         int direction = scan == 72 ? -1 : scan == 80 ? 1 : 0;
@@ -1010,7 +1069,15 @@ configure_again:
            options->full ? "full compaction" : "file unfragmentation",
            options->hidden ? "included" : "left in place");
     puts("Press ENTER to begin, C to configure, or ESC to cancel.");
-    key = getch();
+    puts("[ Begin ]   [ Configure ]   [ Cancel ]");
+    key = interface_key();
+    if (key == MOUSE_KEY) {
+        if (mouse_y / 8U == 4) {
+            if (mouse_x < 80) key = '\r';
+            else if (mouse_x < 208) key = 'C';
+            else key = 27;
+        } else goto configure_again;
+    }
     if (key == 27) return -1;
     if (key == 'c' || key == 'C') {
         clear_interface();
@@ -1019,7 +1086,15 @@ configure_again:
         puts("F  Full compaction");
         puts("H  Toggle hidden-file movement");
         puts("ENTER accepts the current settings; ESC cancels.");
-        key = getch();
+        key = interface_key();
+        if (key == MOUSE_KEY) {
+            unsigned row = mouse_y / 8U;
+            if (row == 1) key = 'U';
+            else if (row == 2) key = 'F';
+            else if (row == 3) key = 'H';
+            else if (row == 4) key = '\r';
+            else goto configure_again;
+        }
         if (key == 27) return -1;
         if (key == 'u' || key == 'U') {
             options->full = 0; options->unfragment = 1;

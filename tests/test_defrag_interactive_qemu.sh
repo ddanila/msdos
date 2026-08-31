@@ -8,6 +8,7 @@ BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT="$OUT/defrag-interactive-boot.img"
 TARGET="$OUT/defrag-interactive-target.img"
 QEXIT="$OUT/defrag-interactive-qexit.com"
+MOUSE="$OUT/defrag-mouse.com"
 SERIAL_BASE="$OUT/defrag-interactive-serial"
 SERIAL_IN="$SERIAL_BASE.in"
 SERIAL_OUT="$SERIAL_BASE.out"
@@ -55,9 +56,11 @@ struct.pack_into('<H', disk, entry + 26, target)
 path.write_bytes(disk)
 PY
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
+nasm -f bin "$ROOT/tests/defrag_mouse_tsr.asm" -o "$MOUSE"
 mcopy -o -i "$BOOT" "$ROOT/src/CMD/DEFRAG/DEFRAG.EXE" ::DEFRAG.EXE
 mcopy -o -i "$BOOT" "$QEXIT" ::QEXIT.COM
-printf '@ECHO OFF\r\nCTTY AUX\r\nDEFRAG\r\nECHO DEFRAG_INTERACTIVE_RETURNED\r\nQEXIT.COM\r\n' |
+mcopy -o -i "$BOOT" "$MOUSE" ::MOUSE.COM
+printf '@ECHO OFF\r\nCTTY AUX\r\nMOUSE.COM\r\nDEFRAG\r\nECHO DEFRAG_INTERACTIVE_RETURNED\r\nQEXIT.COM\r\n' |
     mcopy -o -i "$BOOT" - ::AUTOEXEC.BAT
 
 rm -f "$SERIAL_IN" "$SERIAL_OUT" "$LOG"
@@ -71,7 +74,6 @@ timeout 30 qemu-system-i386 -display none -boot a -m 4 \
 QEMU_PID=$!
 python3 "$ROOT/tests/serial_expect.py" \
     "$SERIAL_IN" "$SERIAL_OUT" "$LOG" \
-    'Select a drive to optimize:' 'b' \
     'Selected drive B:' '\r' \
     'Press ENTER to begin' '\r'
 wait "$QEMU_PID" || true
@@ -79,6 +81,7 @@ exec 3>&-
 
 for marker in \
     'Microsoft Defragmenter' 'Selected drive B:' \
+    'Mouse navigation: available.' \
     'Recommended optimization: unfragment files.' \
     'Analyzing drive B:' 'Disk map before optimization:' \
     'Legend: # used  + mixed  . free' 'Analysis:' \
@@ -119,4 +122,4 @@ grep -Fq 'DEFRAG_CONFIGURE_RETURNED' "$CONFIG_LOG"
 payload="$(mcopy -i "$TARGET" ::CONTROL.TXT - 2>/dev/null | tr -d '\r\n')"
 [[ "$payload" == 'interactive defragmenter payload' ]]
 
-echo '  PASS: Defrag full-screen selection, recommendation, confirmation, and configuration'
+echo '  PASS: Defrag mouse/keyboard selection, configuration, maps, and progress'
