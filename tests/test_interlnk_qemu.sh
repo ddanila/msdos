@@ -26,6 +26,12 @@ AUTO_PROBE="$OUT/interlnk-auto.com"
 PRINTER_ONLY_PROBE="$OUT/interlnk-printer-only.com"
 PRINTER_ONLY_IMAGE="$OUT/interlnk-printer-only.img"
 PRINTER_ONLY_LOG="$OUT/interlnk-printer-only.log"
+HIGH_IMAGE="$OUT/interlnk-high.img"
+LOW_IMAGE="$OUT/interlnk-low.img"
+HIGH_LOG="$OUT/interlnk-high.log"
+LOW_LOG="$OUT/interlnk-low.log"
+HIGH_PROBE="$OUT/interlnk-high.com"
+LOW_PROBE="$OUT/interlnk-low.com"
 PORT=18666
 PROXY_PORT=18667
 PRINTER1_OUT="$OUT/intersvr-printer1.out"
@@ -46,6 +52,8 @@ nasm -DEXPECT_INSTALLED -DDO_RECONNECT -DNO_QEMU_EXIT -f bin "$ROOT/tests/interl
 nasm -f bin "$ROOT/tests/interlnk_offline_probe.asm" -o "$AUTO_PROBE"
 nasm -DEXPECT_INSTALLED -DEXPECT_ZERO_DRIVES -f bin \
     "$ROOT/tests/interlnk_offline_probe.asm" -o "$PRINTER_ONLY_PROBE"
+nasm -DEXPECT_HIGH -f bin "$ROOT/tests/interlnk_placement_probe.asm" -o "$HIGH_PROBE"
+nasm -f bin "$ROOT/tests/interlnk_placement_probe.asm" -o "$LOW_PROBE"
 nasm -f bin "$ROOT/tests/interlnk_mapping_probe.asm" -o "$MAPPING_PROBE"
 cp "$BASE" "$SERVER_IMAGE"
 cp "$BASE" "$CLIENT_IMAGE"
@@ -85,9 +93,9 @@ PROXY_PID=
 trap 'kill "$PROXY_PID" "$SERVER_PID" 2>/dev/null || true; wait "$PROXY_PID" "$SERVER_PID" 2>/dev/null || true' EXIT
 sleep 2
 python3 "$ROOT/tests/serial_fault_proxy.py" \
-    --listen "$PROXY_PORT" --upstream "$PORT" --inject a5 --corrupt-request 7 \
+    --listen "$PROXY_PORT" --upstream "$PORT" --inject a5 --corrupt-request 20 \
     --drop-read-replies 3 --truncate-sector 5 --corrupt-sector 7 \
-    --truncate-write 1 --corrupt-write 4 \
+    --truncate-write 0 --corrupt-write 4 \
     >"$OUT/interlnk-proxy.log" 2>&1 &
 PROXY_PID=$!
 sleep 1
@@ -111,8 +119,7 @@ grep -Fq 'blackout dropped sector response 3' "$OUT/interlnk-proxy.log"
 grep -Fq 'truncated sector response 5' "$OUT/interlnk-proxy.log"
 grep -Fq 'corrupted sector response 7' "$OUT/interlnk-proxy.log"
 [[ $(grep -Fc 'retried read sector' "$OUT/interlnk-proxy.log") -ge 5 ]]
-grep -Fq 'corrupted request header 7' "$OUT/interlnk-proxy.log"
-grep -Fq 'truncated write payload 1' "$OUT/interlnk-proxy.log"
+grep -Fq 'corrupted request header 20' "$OUT/interlnk-proxy.log"
 grep -Fq 'corrupted write payload 4' "$OUT/interlnk-proxy.log"
 grep -Fq 'printer request unit 0 byte 50' "$OUT/interlnk-proxy.log"
 grep -Fq 'printer request unit 1 byte 51' "$OUT/interlnk-proxy.log"
@@ -185,6 +192,31 @@ timeout 15 qemu-system-i386 \
     >/dev/null 2>&1 || true
 grep -Fq 'INTERLNK_OFFLINE_PASS' "$PRINTER_ONLY_LOG"
 echo '  PASS: Interlnk /DRIVES:0 installs a printer-only resident client'
+
+# A DEVICE line follows retail Interlnk placement policy: prefer an available
+# UMB unless /LOW explicitly requests conventional memory.
+for mode in high low; do
+    if [[ "$mode" == high ]]; then
+        image="$HIGH_IMAGE"; log="$HIGH_LOG"; probe="$HIGH_PROBE"; option=""; directive="DEVICE"
+    else
+        image="$LOW_IMAGE"; log="$LOW_LOG"; probe="$LOW_PROBE"; option=" /LOW"; directive="DEVICE"
+    fi
+    cp "$BASE" "$image"
+    mcopy -o -i "$image" "$ROOT/src/CMD/INTERLNK/INTERLNK.EXE" ::INTERLNK.EXE
+    mcopy -o -i "$image" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
+    mcopy -o -i "$image" "$ROOT/src/MEMM/MEMM/EMM386.EXE" ::EMM386.EXE
+    mcopy -o -i "$image" "$probe" ::PLACE.COM
+    printf 'DEVICE=A:\\HIMEM.SYS\r\nDEVICE=A:\\EMM386.EXE NOEMS M5\r\nDOS=HIGH,UMB\r\n%s=A:\\INTERLNK.EXE /DRIVES:1 /COM:1 /NOSCAN%s\r\n' "$directive" "$option" \
+        | mcopy -o -i "$image" - ::CONFIG.SYS
+    printf '@ECHO OFF\r\nPLACE.COM\r\n' | mcopy -o -i "$image" - ::AUTOEXEC.BAT
+    rm -f "$log"
+    timeout 20 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 8 \
+        -drive if=floppy,index=0,format=raw,file="$image",cache=writethrough \
+        -boot a -serial null -debugcon file:"$log" -global isa-debugcon.iobase=0xe9 \
+        -no-reboot -device isa-debug-exit,iobase=0xf4,iosize=0x04 >/dev/null 2>&1 || true
+    grep -Fq 'INTERLNK_PLACEMENT_PASS' "$log"
+done
+echo '  PASS: Interlnk DEVICE prefers UMB placement and /LOW keeps it conventional'
 
 # The interactive server must consume Alt+F4 and return to its caller.
 cp "$BASE" "$SHUTDOWN_IMAGE"

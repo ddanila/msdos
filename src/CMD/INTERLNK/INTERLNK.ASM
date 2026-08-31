@@ -173,7 +173,7 @@ syntax  db 'Invalid INTERLNK parameter.',13,10,'$'
 help    db 'Displays or changes the Interlnk client connection.',13,10
         db 'Syntax: INTERLNK [client[:]=[server][:]]',13,10
         db 'Repository extension: INTERLNK /RECONNECT',13,10
-        db 'CONFIG.SYS: DEVICE=INTERLNK.EXE [/DRIVES:n] [/NOPRINTER] [/COM:n] [/BAUD:rate] [/AUTO] [/NOSCAN] [/V]',13,10,'$'
+        db 'CONFIG.SYS: DEVICE=INTERLNK.EXE [/DRIVES:n] [/NOPRINTER] [/COM:n] [/BAUD:rate] [/AUTO] [/NOSCAN] [/LOW] [/V]',13,10,'$'
 reconnect_name db 'RECONNECT'
 reconnected db 'Interlnk connection renewed.',13,10,'$'
 remapped db 'Interlnk drive redirection updated.',13,10,'$'

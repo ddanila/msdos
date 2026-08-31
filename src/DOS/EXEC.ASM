@@ -470,6 +470,14 @@ exec_find_res:
 
 exec_big_read:				; Read resident into memory
 	MOV	BX,exec_res_len_para
+	; Device-driver overlays may target an EMM386-backed UMB. Keep each DOS
+	; transfer to one sector so a request never spans mapped UMA pages.
+	TEST	BYTE PTR exec_func,exec_func_overlay
+	JZ	SHORT exec_read_size_checked
+	CMP	BX,20h
+	JBE	SHORT exec_read_size_checked
+	MOV	BX,20h
+exec_read_size_checked:
 	CMP	BX,1000h		; too many bytes to read?
 	JB	exec_read_ok
 	MOV	BX,0FE0h		; max in one chunk FE00 bytes

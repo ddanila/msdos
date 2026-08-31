@@ -4,24 +4,15 @@ CODE SEGMENT PUBLIC
         ORG     0
         ASSUME  CS:CODE,DS:NOTHING,ES:NOTHING,SS:NOTHING
 
-character_header:
-        dw      OFFSET device_header
-        dw      SEG device_header
-        dw      08000h
-        dw      character_strategy
-        dw      character_interrupt
-        db      'INTERL$ '
-
 device_header:
         dd      0ffffffffh
-        dw      0800h
+        dw      00800h
         dw      strategy
         dw      interrupt
-unit_count      db      0
-        db      7 dup(0)
 
+unit_count      db 0
+                db 7 dup(0)
 request_ptr     dd 0
-character_request_ptr dd 0
 connected       db 0
 com_port        dw 03f8h
 com_number      db 1
@@ -39,63 +30,6 @@ first_drive     db 0
 unit_map        db 0,1,2,3,4
 unit_changed    db 5 dup(0)
 remote_drives   db 5 dup(0ffh)
-
-character_strategy PROC FAR
-        mov     word ptr cs:character_request_ptr,bx
-        mov     word ptr cs:character_request_ptr+2,es
-        ret
-character_strategy ENDP
-
-character_interrupt PROC FAR
-        push    ax
-        push    bx
-        push    dx
-        push    ds
-        lds     bx,cs:character_request_ptr
-        cmp     byte ptr [bx+2],0
-        jne     short character_done
-        mov     word ptr cs:request_ptr,bx
-        mov     word ptr cs:request_ptr+2,ds
-        call    parse_config
-        jc      short character_failed
-        cmp     cs:drive_limit,0
-        jne     short character_keep_chain
-        mov     word ptr cs:character_header,0ffffh
-        mov     word ptr cs:character_header+2,0ffffh
-        call    init_serial
-        cmp     cs:no_scan,0
-        jne     short character_offline
-        call    connect_server
-        jnc     short character_install
-        cmp     cs:auto_install,0
-        jne     short character_failed
-character_offline:
-        call    prepare_offline_units
-character_install:
-        call    install_multiplex
-        cmp     cs:printer_enabled,0
-        je      short character_keep_chain
-        call    install_printer
-character_keep_chain:
-        lds     bx,cs:character_request_ptr
-        mov     word ptr [bx+14],OFFSET resident_end
-        mov     word ptr [bx+16],cs
-character_done:
-        mov     word ptr [bx+3],0100h
-        jmp     short character_exit
-character_failed:
-        lds     bx,cs:character_request_ptr
-        mov     word ptr [bx+14],OFFSET resident_end
-        mov     word ptr [bx+16],cs
-        mov     word ptr [bx+3],8102h
-character_exit:
-        pop     ds
-        pop     dx
-        pop     bx
-        pop     ax
-        ret
-character_interrupt ENDP
-
 strategy PROC FAR
         mov     word ptr cs:request_ptr,bx
         mov     word ptr cs:request_ptr+2,es
@@ -157,9 +91,9 @@ request_dispatch:
 request_init:
         call    parse_config
         jc      init_failed
-        call    init_serial
         cmp     cs:no_scan,0
         jne     short init_offline
+        call    init_serial
         call    connect_server
         jnc     short init_install
         cmp     cs:auto_install,0
@@ -182,6 +116,13 @@ request_init_done:
         lds     bx,cs:request_ptr
         mov     al,[bx+22]
         mov     cs:first_drive,al
+        cmp     cs:unit_count,0
+        jne     request_done
+        mov     word ptr cs:device_header+4,08000h
+        mov     word ptr cs:device_header+10,04e49h
+        mov     word ptr cs:device_header+12,04554h
+        mov     word ptr cs:device_header+14,04c52h
+        mov     word ptr cs:device_header+16,02024h
         jmp     request_done
 init_failed:
         lds     bx,cs:request_ptr
@@ -339,7 +280,7 @@ connect_on_port ENDP
 request_media:
         xor     ax,ax
         mov     al,[bx+1]
-        cmp     al,cs:unit_count
+        cmp     al,cs:installed_units
         jae     request_bad_command
         mov     si,ax
         cmp     cs:unit_changed[si],0
@@ -353,7 +294,7 @@ request_media_unchanged:
 request_bpb:
         xor     ax,ax
         mov     al,[bx+1]
-        cmp     al,cs:unit_count
+        cmp     al,cs:installed_units
         jae     request_bad_command
         xor     ah,ah
         mov     si,ax
@@ -423,7 +364,10 @@ write_sector_retry:
         jnc     short write_sector_complete
 write_sector_failed:
         dec     byte ptr cs:write_retries
-        jnz     write_sector_retry
+        jz      short write_retry_exhausted
+        call    wait_retry_tick
+        jmp     write_sector_retry
+write_retry_exhausted:
         cmp     byte ptr cs:write_reconnects,0
         je      request_io_error
         dec     byte ptr cs:write_reconnects
@@ -470,7 +414,7 @@ prepare_io PROC NEAR
         mov     cs:io_command,al
         lds     bx,cs:request_ptr
         mov     al,[bx+1]
-        cmp     al,cs:unit_count
+        cmp     al,cs:installed_units
         jae     short prepare_bad
         xor     ah,ah
         xor     si,si
@@ -522,6 +466,24 @@ sector_advanced:
 transfer_advanced:
         ret
 advance_transfer ENDP
+
+wait_retry_tick PROC NEAR
+        push    ax
+        push    cx
+        push    dx
+        mov     ah,0
+        int     1ah
+        mov     cx,dx
+wait_retry_tick_loop:
+        mov     ah,0
+        int     1ah
+        cmp     dx,cx
+        je      short wait_retry_tick_loop
+        pop     dx
+        pop     cx
+        pop     ax
+        ret
+wait_retry_tick ENDP
 
 send_request PROC NEAR
         ; AL command, DX low sector; high word is resident sector_number+2.
@@ -754,7 +716,7 @@ config_check_switch:
         lodsb
         and     al,0dfh
         cmp     al,'C'
-        je      short config_com
+        je      config_com
         cmp     al,'D'
         jne     short config_check_noprinter
         jmp     config_drives
@@ -769,6 +731,17 @@ config_check_baud:
         je      short config_auto
         cmp     al,'V'
         je      short config_timer_safe
+        cmp     al,'L'
+        je      short config_low
+        jmp     config_bad
+config_low:
+        lodsw
+        and     ax,0dfdfh
+        cmp     ax,'WO'
+        jne     short config_low_bad
+        mov     cs:low_requested,1
+        jmp     config_scan
+config_low_bad:
         jmp     config_bad
 config_auto:
         lodsb
@@ -1372,6 +1345,8 @@ chain_printer:
 printer_handler ENDP
 
 multiplex PROC FAR
+        cmp     ax,0e905h
+        je      short multiplex_resident_segment
         cmp     ax,0e904h
         je      multiplex_query_map
         cmp     ax,0e903h
@@ -1386,7 +1361,7 @@ multiplex PROC FAR
         xor     bx,bx
         mov     bl,cs:connected
         xor     cx,cx
-        mov     cl,cs:unit_count
+        mov     cl,cs:installed_units
         xor     dx,dx
         mov     dl,cs:com_number
         xor     si,si
@@ -1395,8 +1370,12 @@ multiplex PROC FAR
         inc     si
 multiplex_status_done:
         iret
+multiplex_resident_segment:
+        mov     bx,cs
+        mov     ax,0ff00h
+        iret
 multiplex_query_map:
-        cmp     bl,cs:unit_count
+        cmp     bl,cs:installed_units
         jae     multiplex_map_error
         xor     bh,bh
         mov     dl,cs:first_drive
@@ -1415,7 +1394,7 @@ multiplex_set_map:
         cmp     bl,cs:first_drive
         jb      short multiplex_map_error
         sub     bl,cs:first_drive
-        cmp     bl,cs:unit_count
+        cmp     bl,cs:installed_units
         jae     short multiplex_map_error
         cmp     bh,0ffh
         je      short multiplex_map_store
@@ -1426,7 +1405,7 @@ multiplex_map_find:
         je      short multiplex_map_found
         inc     si
         xor     ax,ax
-        mov     al,cs:unit_count
+        mov     al,cs:installed_units
         cmp     si,ax
         jb      multiplex_map_find
         pop     bx
@@ -1503,6 +1482,7 @@ baud_terminator db 0
 auto_install    db 0
 no_scan         db 0
 timer_safe_mode db 0
+low_requested   db 0
 printer_enabled db 1
 printer_byte    db 0
 printer_status  db 0

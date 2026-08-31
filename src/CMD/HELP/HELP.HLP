@@ -242,9 +242,10 @@ Syntax: INCLUDE=blockname
 Displays or changes the installed Interlnk client connection.
 Syntax: INTERLNK [client[:]=[server][:]]
 Load INTERLNK.EXE with DEVICE in CONFIG.SYS to mount up to five server volumes.
-Options: /DRIVES:n (0-5), /NOPRINTER, /COM:n (1-4), /BAUD:rate, /AUTO, /NOSCAN, and /V.
+Options: /DRIVES:n (0-5), /NOPRINTER, /COM:n (1-4), /BAUD:rate, /AUTO, /NOSCAN, /LOW, and /V.
 /DRIVES:0 installs only printer redirection and consumes no client drive letter.
 /NOSCAN installs offline; /AUTO installs only when startup discovery succeeds.
+DEVICE prefers upper memory when available; /LOW keeps the client conventional.
 An empty server name cancels that client-drive mapping. /RECONNECT is a repository extension.
 @INTERSVR
 Shares a DOS volume with an Interlnk client over COM1.

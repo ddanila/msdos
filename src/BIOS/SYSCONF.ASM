@@ -1599,7 +1599,11 @@ GOTDJ:
 	MOV	BX,CS			;DEVICE= or IFS= command.
 	MOV	DS,BX
 	cmp	cs:[DeviceHighLine],0
-	je	short GOTDJ_Memory_Ready
+	jne	short GOTDJ_Prepare_High
+	call	InterlnkPreferHigh
+	jnc	short GOTDJ_Memory_Ready
+	mov	cs:[DeviceHighLine],1
+GOTDJ_Prepare_High:
 	call	DeviceHighParseOptions
 	jc	BADBRK_1
 	mov	word ptr cs:[BPB_ADDR],si
@@ -2010,6 +2014,104 @@ Bad_BPB_Size_Sector:
 Skip2_ResetMEMHI:
 	call	DeviceHighAbort
 	JMP	COFF
+
+; INTERLNK is the DOS 6 driver whose DEVICE form prefers a UMB unless /LOW is
+; present. ES:SI addresses the ASCIIZ filename and INIT tail. Return carry set
+; only for that exact basename without the override.
+InterlnkPreferHigh PROC NEAR
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	di
+	push	bp
+	mov	di,si
+	mov	bp,si
+InterlnkNameScan:
+	mov	al,es:[di]
+	or	al,al
+	jz	short InterlnkNameEnd
+	cmp	al,' '
+	je	short InterlnkNameEnd
+	cmp	al,9
+	je	short InterlnkNameEnd
+	cmp	al,5ch
+	je	short InterlnkRememberBase
+	cmp	al,'/'
+	je	short InterlnkRememberBase
+	cmp	al,':'
+	jne	short InterlnkNameNext
+InterlnkRememberBase:
+	mov	bp,di
+	inc	bp
+InterlnkNameNext:
+	inc	di
+	jmp	short InterlnkNameScan
+InterlnkNameEnd:
+	mov	bx,OFFSET InterlnkDeviceName
+	mov	cx,12
+InterlnkNameCompare:
+	cmp	bp,di
+	jae	short InterlnkNotPreferred
+	mov	al,es:[bp]
+	cmp	al,'a'
+	jb	short InterlnkNameUpper
+	cmp	al,'z'
+	ja	short InterlnkNameUpper
+	sub	al,20h
+InterlnkNameUpper:
+	cmp	al,cs:[bx]
+	jne	short InterlnkNotPreferred
+	inc	bp
+	inc	bx
+	loop	InterlnkNameCompare
+	cmp	bp,di
+	jne	short InterlnkNotPreferred
+	cmp	byte ptr es:[di],0
+	jne	short InterlnkTailScan
+	inc	di
+InterlnkTailScan:
+	mov	al,es:[di]
+	or	al,al
+	jz	short InterlnkPreferred
+	inc	di
+	cmp	al,'/'
+	jne	short InterlnkTailScan
+	mov	ax,word ptr es:[di]
+	and	ax,0dfdfh
+	cmp	ax,'OL'
+	jne	short InterlnkTailScan
+	mov	al,es:[di+2]
+	and	al,0dfh
+	cmp	al,'W'
+	jne	short InterlnkTailScan
+	mov	al,es:[di+3]
+	or	al,al
+	jz	short InterlnkNotPreferred
+	cmp	al,13
+	je	short InterlnkNotPreferred
+	cmp	al,10
+	je	short InterlnkNotPreferred
+	cmp	al,' '
+	je	short InterlnkNotPreferred
+	cmp	al,9
+	je	short InterlnkNotPreferred
+	jmp	short InterlnkTailScan
+InterlnkPreferred:
+	stc
+	jmp	short InterlnkPreferenceDone
+InterlnkNotPreferred:
+	clc
+InterlnkPreferenceDone:
+	pop	bp
+	pop	di
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	ret
+InterlnkDeviceName db 'INTERLNK.EXE'
+InterlnkPreferHigh ENDP
 
 ;------------------------------------------------------------------------------
 ; DEVICEHIGH allocator transaction

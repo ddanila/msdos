@@ -10,10 +10,22 @@ cmp bx, 0
 jne fail
 %ifdef EXPECT_ZERO_DRIVES
 cmp cx, 0
+jne fail
+mov ax, 0e904h
+xor bx, bx
+int 2fh
+cmp ax, 0ff00h
+je fail
+mov ax, 0e903h
+xor bx, bx
+mov bh, 0ffh
+int 2fh
+cmp ax, 0ff00h
+je fail
 %else
 cmp cx, 2
-%endif
 jne fail
+%endif
 %ifdef EXPECT_PRINTER_OFF
 cmp si, 0
 jne fail
