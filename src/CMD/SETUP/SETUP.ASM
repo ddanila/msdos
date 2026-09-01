@@ -2,12 +2,12 @@
 .stack 512
 .data
 
-title_msg       db 'MS-DOS 5.0 Setup',13,10,'$'
+title_msg       db 'MS-DOS 6.22 Setup',13,10,'$'
 usage_msg       db 'Usage: SETUP [drive:\directory] [/Y]',13,10,'$'
 fresh_msg       db 'Fresh installation to $'
 upgrade_msg     db 'Upgrade installation in $'
 confirm_msg     db 13,10,'Continue (Y/N)? $'
-disk2_msg       db 13,10,'Insert MS-DOS 5.0 Disk 2 in drive A and press ENTER.',13,10,'$'
+disk2_msg       db 13,10,'Insert MS-DOS 6.22 Disk 2 in drive A and press ENTER.',13,10,'$'
 wrong_disk_msg  db 'Disk 2 was not found. Press ENTER to try again.',13,10,'$'
 complete_msg    db 13,10,'Setup completed successfully.',13,10,'$'
 cancel_msg      db 13,10,'Setup cancelled.',13,10,'$'
@@ -22,9 +22,12 @@ auto_suffix     db '\AUTOEXEC.BAT',0
 expand_suffix   db '\EXPAND.EXE',0
 command_suffix  db '\COMMAND.COM',0
 config_prefix   db 'DEVICE=',0
-config_tail     db '\HIMEM.SYS',13,10,'DOS=HIGH,UMB',13,10
+config_himem    db '\HIMEM.SYS',13,10,'DEVICE=',0
+config_memory   db '\EMM386.EXE NOEMS',13,10,'DOS=HIGH,UMB',13,10
                 db 'FILES=30',13,10,'BUFFERS=20',13,10,0
 auto_prefix     db '@ECHO OFF',13,10,'PATH ',0
+auto_cache      db 13,10,0
+smartdrv_suffix db '\SMARTDRV.EXE',13,10,0
 
 core_sources    dw offset core_command, offset core_expand, offset core_sys
                 dw offset core_format, offset core_fdisk, offset core_setup, 0
@@ -571,7 +574,13 @@ create_fresh_configuration proc near
         mov     si,offset destination
         call    copy_string
         dec     di
-        mov     si,offset config_tail
+        mov     si,offset config_himem
+        call    copy_string
+        dec     di
+        mov     si,offset destination
+        call    copy_string
+        dec     di
+        mov     si,offset config_memory
         call    copy_string
         dec     di
         mov     cx,di
@@ -599,9 +608,15 @@ config_exists:
         mov     si,offset destination
         call    copy_string
         dec     di
-        mov     byte ptr [di],13
-        mov     byte ptr [di+1],10
-        add     di,2
+        mov     si,offset auto_cache
+        call    copy_string
+        dec     di
+        mov     si,offset destination
+        call    copy_string
+        dec     di
+        mov     si,offset smartdrv_suffix
+        call    copy_string
+        dec     di
         mov     cx,di
         sub     cx,offset copy_buffer
         mov     dx,offset target_path

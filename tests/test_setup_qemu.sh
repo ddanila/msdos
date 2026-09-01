@@ -45,9 +45,10 @@ printf 'preserve-during-setup\r\n' | mcopy -i "$HDD@@$PART_OFFSET" - ::KEEP.TXT
 
 unlink "$SERIAL_IN" 2>/dev/null || true
 unlink "$SERIAL_OUT" 2>/dev/null || true
+unlink "$QMP" 2>/dev/null || true
 mkfifo "$SERIAL_IN" "$SERIAL_OUT"
 exec 3<>"$SERIAL_IN"
-timeout 100 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 8 \
+qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 8 \
     -drive if=floppy,index=0,format=raw,file="$FLOPPY_IMAGE",cache=writethrough \
     -drive if=ide,index=0,format=raw,file="$HDD",cache=writethrough \
     -qmp unix:"$QMP",server,nowait -boot a -serial pipe:"$OUT/setup-serial" \
@@ -77,7 +78,7 @@ fi
 missing=0
 while read -r destination; do
     case "$destination" in
-        IO.SYS|MSDOS.SYS)
+        IO.SYS|MSDOS.SYS|SYSMENU.OVL)
             mdir -a -i "$HDD@@$PART_OFFSET" "::$destination" >/dev/null 2>&1 || missing=$((missing+1))
             ;;
         *)
@@ -106,9 +107,11 @@ else
     fail "fresh SETUP damaged an unrelated target file"
 fi
 if grep -Fq 'DEVICE=C:\DOS\HIMEM.SYS' <<<"$config" \
+    && grep -Fq 'DEVICE=C:\DOS\EMM386.EXE NOEMS' <<<"$config" \
     && grep -Fq 'DOS=HIGH,UMB' <<<"$config" \
-    && grep -Fq 'PATH C:\DOS' <<<"$autoexec"; then
-    ok "fresh SETUP creates lean DOS 5 CONFIG.SYS and AUTOEXEC.BAT defaults"
+    && grep -Fq 'PATH C:\DOS' <<<"$autoexec" \
+    && grep -Fq 'C:\DOS\SMARTDRV.EXE' <<<"$autoexec"; then
+    ok "fresh SETUP creates DOS 6.22 memory and cache startup defaults"
 else
     fail "fresh SETUP configuration defaults"
 fi
@@ -130,9 +133,10 @@ mcopy -i "$HDD@@$PART_OFFSET" ::CONFIG.SYS "$UPGRADE_CONFIG"
 mcopy -i "$HDD@@$PART_OFFSET" ::AUTOEXEC.BAT "$UPGRADE_AUTOEXEC"
 unlink "$SERIAL_IN" 2>/dev/null || true
 unlink "$SERIAL_OUT" 2>/dev/null || true
+unlink "$QMP" 2>/dev/null || true
 mkfifo "$SERIAL_IN" "$SERIAL_OUT"
 exec 3<>"$SERIAL_IN"
-timeout 100 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 8 \
+qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 8 \
     -drive if=floppy,index=0,format=raw,file="$FLOPPY_IMAGE",cache=writethrough \
     -drive if=ide,index=0,format=raw,file="$HDD",cache=writethrough \
     -qmp unix:"$QMP",server,nowait -boot a -serial pipe:"$OUT/setup-serial" \

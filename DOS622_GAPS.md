@@ -83,6 +83,11 @@ The remaining durable gaps are:
 interfaces. Full-screen Help is planned before, and independently of, the
 QBASIC/EDIT epic; shared UI code may be reused later.
 
+The current installer identifies itself as 6.22 and its fresh-install defaults
+load HIMEM, EMM386 with `NOEMS`, upper-memory DOS, and SMARTDrive. It still
+lacks retail-style component selection, rollback/uninstall, and emergency-disk
+workflows; upgrade mode deliberately preserves user startup files byte-for-byte.
+
 ### EGA.SYS
 
 `EGA.SYS` is implemented as the isolated driver/API compatibility feature from

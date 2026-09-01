@@ -48,7 +48,7 @@ with open(log_path, "wb") as log:
                 log.write(chunk)
                 log.flush()
                 buffer += chunk
-                if not swapped and b"Insert MS-DOS 5.0 Disk 2" in buffer:
+                if not swapped and b"Insert MS-DOS 6.22 Disk 2" in buffer:
                     change_disk()
                     os.write(in_fd, b"\r")
                     swapped = True
