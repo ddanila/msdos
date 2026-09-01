@@ -36,7 +36,7 @@ QBASIC and the QBASIC-based Editor are a separate epic.
 
 | DOS 5 feature | Repository status | Gap |
 | --- | --- | --- |
-| DOS in the HMA and programs/drivers in UMBs | Present | Fixed-cycle emulator gates cover byte-exact XMS moves and HIMEM/EMM386 HMA/UMB integration across supported CPU models. Physical-machine validation remains external. |
+| DOS in the HMA and programs/drivers in UMBs | Partial | HMA/UMB behavior is functional, but EMM386 retains about 109 KiB more conventional memory than the HIMEM-only baseline and leaves roughly 163 KiB less largest-block memory than retail DOS 6.22 in the current VC 4.05 comparison. See `MEMORY.md`. |
 | Command history and macros | Present | DOSKEY provides resident history, macros, edit modes, redirected input, INT 2Fh services, and the DOS 5 interactive history/editing keys. |
 | Full-screen Editor and QBasic | Missing | No EDIT, QBASIC, BASIC runtime, help, or sample programs. EDLIN remains available. |
 | Online command help | Present | HELP provides a standalone full-screen keyboard/mouse browser, links, and full-corpus search; FASTHELP retains compact text lookup, and shipped executable `/?` surfaces are tested. |

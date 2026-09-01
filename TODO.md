@@ -3,9 +3,11 @@
 The complete product comparison and unsupported option surfaces are in
 [DOS622_GAPS.md](DOS622_GAPS.md). Current priorities are:
 
-1. implement retail-compatible DriveSpace, followed optionally by an explicit
+1. reduce EMM386's conventional-memory footprint to the same practical class
+   as retail DOS 6.22, using the VC 4.05 MCB view as a comparison oracle;
+2. implement retail-compatible DriveSpace, followed optionally by an explicit
    extended format; and
-2. treat QBASIC/EDIT, AccessDOS, the Microsoft Network Client, and additional
+3. treat QBASIC/EDIT, AccessDOS, the Microsoft Network Client, and additional
    DOS 6 locale packs as independent epics.
 
 MSBACKUP, MSAV, VSAFE, DOSSHELL, and Task Swapper are deliberate non-goals.

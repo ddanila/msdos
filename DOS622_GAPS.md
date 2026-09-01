@@ -12,8 +12,9 @@ and the archived
 
 ## Current position
 
-The core operating system, command, driver, installation, Help, observable-API,
-and tooling scope is complete against the declared contracts. It is not a
+The command, driver, installation, Help, observable-API, and tooling contracts
+are substantially complete, but EMM386 conventional-memory footprint parity is
+open. The system is not a
 complete replacement for every bundled retail product: DriveSpace,
 QBASIC/EDIT, and the other explicitly classified additions are separate epics,
 while the listed non-goals remain excluded.
@@ -22,7 +23,7 @@ while the listed non-goals remain excluded.
 | --- | --- | --- |
 | Identity, kernel, and startup | Implemented | Reports 6.22; SETVER, configuration menus, startup bypass/stepping, and DOS 6 startup behavior are covered. The `MSDOS5.0` FAT OEM identifier is correct for 6.22. |
 | Commands and maintenance | Implemented | CHOICE, DELTREE, LOADFIX, MOVE, COPY/XCOPY overwrite policy, ScanDisk, and Defrag ship with focused contracts. |
-| Memory management | Implemented | HIMEM, EMM386, MEM, DEVICEHIGH/LOADHIGH, and MemMaker cover the intended 6.22 surface on the supported machine models. |
+| Memory management | Partial | HIMEM, EMM386, MEM, DEVICEHIGH/LOADHIGH, and MemMaker are functional, but EMM386 leaves a 128,688-byte low system block and about 163 KiB less largest-block conventional memory than retail 6.22 under the same VC 4.05 comparison. |
 | Cache, diagnostics, and power | Implemented | SMARTDrive, MSD, and POWER ship. |
 | Connectivity and CD-ROM | Implemented | INTERLNK, INTERSVR, and MSCDEX ship; a hardware-specific CD-ROM driver remains external. |
 | Data protection | Implemented | UNDELETE implements all three DOS protection methods, the structured DOS recovery inventory, and retail Sentry storage. MSBACKUP, MSAV, and VSAFE are deliberate non-goals. |
@@ -200,7 +201,7 @@ disk ID files are superseded by this repository's reproducible distribution.
 | Stage | Scope | Status |
 | --- | --- | --- |
 | 1 | 6.22 identity, startup/configuration, command additions, and overwrite policy | Complete |
-| 2 | ScanDisk, Defrag, memory-manager differences, and MemMaker | Complete |
+| 2 | ScanDisk, Defrag, memory-manager differences, and MemMaker | Reopened: EMM386 footprint parity |
 | 3 | SMARTDrive, MSD, POWER, INTERLNK/INTERSVR, and MSCDEX | Complete |
 | 4 | Close observable API, internal-structure, locale, and Supplemental gaps | Complete |
 | 5 | Retail-compatible DriveSpace and all compressed-volume integration | Separate epic |
