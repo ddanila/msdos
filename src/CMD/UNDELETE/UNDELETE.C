@@ -19,22 +19,44 @@ extern unsigned __cdecl tracker_remove(void);
 extern unsigned __cdecl tracker_keep_paragraphs(void);
 extern void __cdecl tracker_set_sentry(unsigned mode);
 
-#define SENTRY_VERSION 2
 #define SENTRY_RULES_SIZE 160
+#define SENTRY_NONE ((short)-1)
+#define SENTRY_HEADER_SIZE 32L
+#define SENTRY_RECORD_SIZE 116L
 
 struct sentry_header {
-    char magic[8];
-    unsigned version;
-    unsigned long next_id;
+    short free_record;
+    short first_record;
+    short last_record;
+    char magic[10];
+    char last_name[8];
+    unsigned records;
+    unsigned created_date;
+    unsigned created_time;
+    unsigned reserved;
 };
 
 struct sentry_record {
-    unsigned active;
-    unsigned long deleted_time;
+    short previous;
+    short next;
+    char stored_name[11];
+    unsigned char attributes;
+    unsigned char deleted_date_high;
+    unsigned deleted_time;
+    unsigned char reserved0;
+    unsigned original_date;
+    unsigned original_time;
     unsigned long size;
-    char stored_name[13];
-    char original_path[128];
+    unsigned path_length;
+    unsigned reserved1;
+    unsigned reserved2;
+    char original_path[82];
 };
+
+typedef char sentry_header_must_be_32_bytes[
+    sizeof(struct sentry_header) == 32 ? 1 : -1];
+typedef char sentry_record_must_be_116_bytes[
+    sizeof(struct sentry_record) == 116 ? 1 : -1];
 
 struct volume {
     unsigned drive;
@@ -57,6 +79,7 @@ static char sentry_rules[SENTRY_RULES_SIZE] =
 static unsigned sentry_archive = 0;
 static unsigned sentry_days = 7;
 static unsigned sentry_percentage = 20;
+static char undelete_ini_path[128] = "UNDELETE.INI";
 
 static int create_sentry(unsigned drive);
 
@@ -614,7 +637,7 @@ static int report_protection_status(void)
 {
     char active_name[] = "A:\\PCTRACKR.ACT";
     char final_name[] = "A:\\PCTRACKR.DEL";
-    char sentry_name[] = "A:\\SENTRY\\CONTROL.DAT";
+    char sentry_name[] = "A:\\SENTRY\\CONTROL.FIL";
     unsigned drive;
     unsigned found = 0;
     int resident = tracker_probe() != 0;
@@ -683,7 +706,7 @@ static int true_value(const char *value)
 
 static int write_default_undelete_ini(unsigned drive)
 {
-    FILE *file = fopen("UNDELETE.INI", "wt");
+    FILE *file = fopen(undelete_ini_path, "wt");
     if (!file)
         return 1;
     fprintf(file,
@@ -725,7 +748,7 @@ static int load_undelete_ini(int forced_sentry_drive)
     sentry_archive = 0;
     sentry_days = 7;
     sentry_percentage = 20;
-    file = fopen("UNDELETE.INI", "rt");
+    file = fopen(undelete_ini_path, "rt");
     if (!file) {
         _dos_getdrive(&current_drive);
         drive = forced_sentry_drive >= 0 ? (unsigned)forced_sentry_drive
@@ -910,11 +933,176 @@ static int path_exists(const char *path)
     return !_dos_findfirst(path, 0x37, &found);
 }
 
+static int valid_sentry_header(const struct sentry_header *header)
+{
+    return !memcmp(header->magic, "SENTRY!CPS", 10) &&
+           header->first_record >= SENTRY_NONE &&
+           header->last_record >= SENTRY_NONE &&
+           header->free_record >= SENTRY_NONE;
+}
+
+static long sentry_record_offset(short index)
+{
+    return SENTRY_HEADER_SIZE + (long)index * SENTRY_RECORD_SIZE;
+}
+
+static int read_sentry_record(FILE *file, short index,
+                              struct sentry_record *record)
+{
+    return index < 0 || fseek(file, sentry_record_offset(index), SEEK_SET) ||
+           fread(record, 1, sizeof(*record), file) != sizeof(*record);
+}
+
+static int write_sentry_record(FILE *file, short index,
+                               const struct sentry_record *record)
+{
+    return index < 0 || fseek(file, sentry_record_offset(index), SEEK_SET) ||
+           fwrite(record, 1, sizeof(*record), file) != sizeof(*record);
+}
+
+static void current_dos_datetime(unsigned *date_value, unsigned *time_value)
+{
+    struct dosdate_t date;
+    struct dostime_t time_value_parts;
+
+    _dos_getdate(&date);
+    _dos_gettime(&time_value_parts);
+    *date_value = ((date.year - 1980) << 9) | (date.month << 5) | date.day;
+    *time_value = (time_value_parts.hour << 11) |
+                  (time_value_parts.minute << 5) |
+                  (time_value_parts.second >> 1);
+}
+
+static unsigned long dos_datetime_seconds(unsigned date, unsigned time_value)
+{
+    struct tm value;
+
+    memset(&value, 0, sizeof(value));
+    value.tm_year = ((date >> 9) & 0x7f) + 80;
+    value.tm_mon = ((date >> 5) & 0x0f) - 1;
+    value.tm_mday = date & 0x1f;
+    value.tm_hour = (time_value >> 11) & 0x1f;
+    value.tm_min = (time_value >> 5) & 0x3f;
+    value.tm_sec = (time_value & 0x1f) * 2;
+    return (unsigned long)mktime(&value);
+}
+
+static void sentry_stored_filename(const char raw[11], char name[13])
+{
+    unsigned source;
+    unsigned target = 0;
+
+    for (source = 0; source < 8 && raw[source] != ' '; ++source)
+        name[target++] = raw[source];
+    if (raw[8] != ' ') {
+        name[target++] = '.';
+        for (source = 8; source < 11 && raw[source] != ' '; ++source)
+            name[target++] = raw[source];
+    }
+    name[target] = 0;
+}
+
+static void sentry_original_path(const char stored[82], char path[128])
+{
+    unsigned source = 0;
+    unsigned target = 0;
+
+    while (stored[source] && source < 81 && target < 127) {
+        if (stored[source] == ' ') {
+            unsigned after = source;
+            while (after < 81 && stored[after] == ' ')
+                ++after;
+            if (stored[after] == '.') {
+                source = after;
+                continue;
+            }
+        }
+        path[target++] = stored[source++];
+    }
+    path[target] = 0;
+}
+
+static int sentry_store_path(const char *path, char stored[82])
+{
+    const char *name = strrchr(path, '\\');
+    const char *dot;
+    unsigned prefix;
+    unsigned target;
+
+    name = name ? name + 1 : path;
+    prefix = (unsigned)(name - path);
+    dot = strrchr(name, '.');
+    if (!dot)
+        dot = name + strlen(name);
+    if (prefix + 8 + (*dot ? strlen(dot) : 0) + 1 > 82 ||
+        dot - name > 8 || (*dot && strlen(dot + 1) > 3))
+        return 1;
+    memcpy(stored, path, prefix);
+    target = prefix;
+    memcpy(stored + target, name, (unsigned)(dot - name));
+    target += (unsigned)(dot - name);
+    while (target < prefix + 8)
+        stored[target++] = ' ';
+    if (*dot)
+        strcpy(stored + target, dot);
+    else
+        stored[target] = 0;
+    return 0;
+}
+
+static void next_sentry_name(struct sentry_header *header, char raw[11])
+{
+    int position;
+
+    if (header->last_name[0] != '#')
+        memcpy(header->last_name, "#0000000", 8);
+    for (position = 7; position > 0; --position) {
+        if (header->last_name[position] < '9') {
+            ++header->last_name[position];
+            break;
+        }
+        header->last_name[position] = '0';
+    }
+    memcpy(raw, header->last_name, 8);
+    memcpy(raw + 8, "MS ", 3);
+}
+
+static int unlink_sentry_record(FILE *file, struct sentry_header *header,
+                                short index, struct sentry_record *record)
+{
+    struct sentry_record linked;
+
+    if (record->previous != SENTRY_NONE) {
+        if (read_sentry_record(file, record->previous, &linked))
+            return 1;
+        linked.next = record->next;
+        if (write_sentry_record(file, record->previous, &linked))
+            return 1;
+    } else {
+        header->first_record = record->next;
+    }
+    if (record->next != SENTRY_NONE) {
+        if (read_sentry_record(file, record->next, &linked))
+            return 1;
+        linked.previous = record->previous;
+        if (write_sentry_record(file, record->next, &linked))
+            return 1;
+    } else {
+        header->last_record = record->previous;
+    }
+    record->previous = SENTRY_NONE;
+    record->next = header->free_record;
+    header->free_record = index;
+    if (header->records)
+        --header->records;
+    return write_sentry_record(file, index, record);
+}
+
 static int create_sentry(unsigned drive)
 {
     struct sentry_header header;
     char directory[] = "A:\\SENTRY";
-    char control[] = "A:\\SENTRY\\CONTROL.DAT";
+    char control[] = "A:\\SENTRY\\CONTROL.FIL";
     FILE *file;
 
     directory[0] = control[0] = (char)('A' + drive);
@@ -927,8 +1115,7 @@ static int create_sentry(unsigned drive)
     file = fopen(control, "rb");
     if (file) {
         int valid = fread(&header, 1, sizeof(header), file) == sizeof(header) &&
-                    !memcmp(header.magic, "MSD6SNT", 8) &&
-                    header.version == SENTRY_VERSION;
+                    valid_sentry_header(&header);
         fclose(file);
         if (!valid) {
             fprintf(stderr, "UNDELETE: invalid SENTRY metadata on drive %c:.\n",
@@ -938,9 +1125,11 @@ static int create_sentry(unsigned drive)
         return 0;
     }
     memset(&header, 0, sizeof(header));
-    memcpy(header.magic, "MSD6SNT", 8);
-    header.version = SENTRY_VERSION;
-    header.next_id = 1;
+    header.free_record = SENTRY_NONE;
+    header.first_record = SENTRY_NONE;
+    header.last_record = SENTRY_NONE;
+    memcpy(header.magic, "SENTRY!CPS", 10);
+    current_dos_datetime(&header.created_date, &header.created_time);
     file = fopen(control, "wb");
     if (!file) {
         fprintf(stderr, "UNDELETE: cannot initialize SENTRY on drive %c:.\n",
@@ -1049,20 +1238,19 @@ static int sentry_file_policy(const char *path, unsigned long *size)
     return protect;
 }
 
-static int discard_sentry_record(unsigned drive, FILE *file, long offset,
+static int discard_sentry_record(unsigned drive, FILE *file,
+                                 struct sentry_header *header, short index,
                                  struct sentry_record *record)
 {
     char stored[32];
+    char name[13];
 
-    sprintf(stored, "%c:\\SENTRY\\%s", 'A' + drive, record->stored_name);
+    sentry_stored_filename(record->stored_name, name);
+    sprintf(stored, "%c:\\SENTRY\\%s", 'A' + drive, name);
     _dos_setfileattr(stored, 0);
     if (remove(stored))
         return 1;
-    record->active = 0;
-    fseek(file, offset, SEEK_SET);
-    if (fwrite(record, 1, sizeof(*record), file) != sizeof(*record))
-        return 1;
-    return 0;
+    return unlink_sentry_record(file, header, index, record);
 }
 
 static int enforce_sentry_limits(unsigned drive, unsigned long incoming)
@@ -1070,12 +1258,13 @@ static int enforce_sentry_limits(unsigned drive, unsigned long incoming)
     struct sentry_header header;
     struct sentry_record record;
     struct volume volume;
-    char control[] = "A:\\SENTRY\\CONTROL.DAT";
+    char control[] = "A:\\SENTRY\\CONTROL.FIL";
     unsigned long total = 0;
     unsigned long limit;
     unsigned long now = (unsigned long)time(NULL);
     unsigned long maximum_age = (unsigned long)sentry_days * 86400UL;
-    long offset;
+    short index;
+    short next;
     FILE *file;
 
     if (load_volume(&volume, drive))
@@ -1086,49 +1275,52 @@ static int enforce_sentry_limits(unsigned drive, unsigned long incoming)
     control[0] = (char)('A' + drive);
     file = fopen(control, "rb+");
     if (!file || fread(&header, 1, sizeof(header), file) != sizeof(header) ||
-        memcmp(header.magic, "MSD6SNT", 8) || header.version != SENTRY_VERSION) {
+        !valid_sentry_header(&header)) {
         if (file)
             fclose(file);
         return 1;
     }
-    for (;;) {
-        offset = ftell(file);
-        if (fread(&record, 1, sizeof(record), file) != sizeof(record))
-            break;
-        if (!record.active)
-            continue;
-        if (sentry_days && record.deleted_time && now >= record.deleted_time &&
-            now - record.deleted_time > maximum_age) {
-            if (discard_sentry_record(drive, file, offset, &record)) {
-                fclose(file);
-                return 1;
-            }
-            fseek(file, offset + (long)sizeof(record), SEEK_SET);
-        } else {
-            total += record.size;
-        }
-    }
-    while (total + incoming > limit) {
-        int discarded = 0;
-        fseek(file, sizeof(header), SEEK_SET);
-        for (;;) {
-            offset = ftell(file);
-            if (fread(&record, 1, sizeof(record), file) != sizeof(record))
-                break;
-            if (!record.active)
-                continue;
-            if (discard_sentry_record(drive, file, offset, &record)) {
-                fclose(file);
-                return 1;
-            }
-            total = total >= record.size ? total - record.size : 0;
-            discarded = 1;
-            break;
-        }
-        if (!discarded) {
+    index = header.first_record;
+    while (index != SENTRY_NONE) {
+        if (read_sentry_record(file, index, &record)) {
             fclose(file);
             return 1;
         }
+        next = record.next;
+        if (sentry_days && record.deleted_date_high) {
+            unsigned deleted_date = ((unsigned)record.deleted_date_high << 8) |
+                                    (record.original_date & 0xff);
+            unsigned long deleted = dos_datetime_seconds(deleted_date,
+                                                          record.deleted_time);
+            if (now >= deleted && now - deleted > maximum_age) {
+                if (discard_sentry_record(drive, file, &header, index, &record)) {
+                    fclose(file);
+                    return 1;
+                }
+            } else {
+                total += record.size;
+            }
+        } else {
+            total += record.size;
+        }
+        index = next;
+    }
+    while (total + incoming > limit) {
+        index = header.first_record;
+        if (index == SENTRY_NONE || read_sentry_record(file, index, &record)) {
+            fclose(file);
+            return 1;
+        }
+        if (discard_sentry_record(drive, file, &header, index, &record)) {
+                fclose(file);
+                return 1;
+        }
+        total = total >= record.size ? total - record.size : 0;
+    }
+    rewind(file);
+    if (fwrite(&header, 1, sizeof(header), file) != sizeof(header)) {
+        fclose(file);
+        return 1;
     }
     return fclose(file) ? 1 : 0;
 }
@@ -1137,16 +1329,22 @@ unsigned __cdecl sentry_capture_far(const char far *far_path)
 {
     struct sentry_header header;
     struct sentry_record record;
+    struct sentry_record free_record;
+    struct find_t found;
     char original[128];
-    char control[] = "A:\\SENTRY\\CONTROL.DAT";
+    char control[] = "A:\\SENTRY\\CONTROL.FIL";
     char stored[32];
+    char stored_name[13];
     unsigned drive;
     unsigned long file_size;
+    short index;
     FILE *file;
 
     if (canonical_delete_path(far_path, original, &drive))
         return 0;
     if (!sentry_file_policy(original, &file_size))
+        return 0;
+    if (_dos_findfirst(original, 0x27, &found))
         return 0;
     if (enforce_sentry_limits(drive, file_size))
         return 0;
@@ -1155,33 +1353,71 @@ unsigned __cdecl sentry_capture_far(const char far *far_path)
     if (!file)
         return 0;
     if (fread(&header, 1, sizeof(header), file) != sizeof(header) ||
-        memcmp(header.magic, "MSD6SNT", 8) ||
-        header.version != SENTRY_VERSION) {
+        !valid_sentry_header(&header)) {
         fclose(file);
         return 0;
     }
     for (;;) {
-        sprintf(stored, "%c:\\SENTRY\\%08lX.DEL", 'A' + drive,
-                header.next_id++);
+        next_sentry_name(&header, record.stored_name);
+        sentry_stored_filename(record.stored_name, stored_name);
+        sprintf(stored, "%c:\\SENTRY\\%s", 'A' + drive, stored_name);
         if (!path_exists(stored))
             break;
-        if (!header.next_id) {
-            fclose(file);
-            return 0;
-        }
     }
     if (rename(original, stored)) {
         fclose(file);
         return 0;
     }
     memset(&record, 0, sizeof(record));
-    record.active = 1;
-    record.deleted_time = (unsigned long)time(NULL);
+    memcpy(record.stored_name, header.last_name, 8);
+    memcpy(record.stored_name + 8, "MS ", 3);
+    record.previous = header.last_record;
+    record.next = SENTRY_NONE;
+    record.attributes = 0x21;
+    {
+        unsigned deleted_date;
+        current_dos_datetime(&deleted_date, &record.deleted_time);
+        record.deleted_date_high = (unsigned char)(deleted_date >> 8);
+    }
+    record.original_date = found.wr_date;
+    record.original_time = found.wr_time;
     record.size = file_size;
-    strcpy(record.stored_name, strrchr(stored, '\\') + 1);
-    strcpy(record.original_path, original);
-    fseek(file, 0, SEEK_END);
-    if (fwrite(&record, 1, sizeof(record), file) != sizeof(record)) {
+    record.path_length = (unsigned)strlen(original) + 1;
+    if (sentry_store_path(original, record.original_path)) {
+        fclose(file);
+        rename(stored, original);
+        return 0;
+    }
+    if (header.free_record != SENTRY_NONE) {
+        index = header.free_record;
+        if (read_sentry_record(file, index, &free_record)) {
+            fclose(file);
+            rename(stored, original);
+            return 0;
+        }
+        header.free_record = free_record.next;
+    } else {
+        fseek(file, 0, SEEK_END);
+        index = (short)((ftell(file) - SENTRY_HEADER_SIZE) / SENTRY_RECORD_SIZE);
+    }
+    if (header.last_record != SENTRY_NONE) {
+        if (read_sentry_record(file, header.last_record, &free_record)) {
+            fclose(file);
+            rename(stored, original);
+            return 0;
+        }
+        free_record.next = index;
+        if (write_sentry_record(file, header.last_record, &free_record)) {
+            fclose(file);
+            rename(stored, original);
+            return 0;
+        }
+    } else {
+        header.first_record = index;
+    }
+    header.last_record = index;
+    ++header.records;
+    if (write_sentry_record(file, index, &record)) {
         fclose(file);
         rename(stored, original);
         return 0;
@@ -1280,7 +1516,7 @@ static int process_sentry(unsigned drive, const char *path,
 {
     struct sentry_header header;
     struct sentry_record record;
-    char control[] = "A:\\SENTRY\\CONTROL.DAT";
+    char control[] = "A:\\SENTRY\\CONTROL.FIL";
     char stored[32];
     char wanted_directory[128];
     char record_path[128];
@@ -1289,7 +1525,9 @@ static int process_sentry(unsigned drive, const char *path,
     unsigned char raw_name[11];
     unsigned found = 0;
     int status = 0;
-    long record_offset;
+    short record_index;
+    short current_record;
+    short next_record;
     FILE *file;
 
     control[0] = (char)('A' + drive);
@@ -1297,19 +1535,22 @@ static int process_sentry(unsigned drive, const char *path,
         return 1;
     file = fopen(control, "rb+");
     if (!file || fread(&header, 1, sizeof(header), file) != sizeof(header) ||
-        memcmp(header.magic, "MSD6SNT", 8) || header.version != SENTRY_VERSION) {
+        !valid_sentry_header(&header)) {
         if (file)
             fclose(file);
         puts("No Delete Sentry files were found.");
         return 1;
     }
-    for (;;) {
-        record_offset = ftell(file);
-        if (fread(&record, 1, sizeof(record), file) != sizeof(record))
+    record_index = header.first_record;
+    while (record_index != SENTRY_NONE) {
+        current_record = record_index;
+        if (read_sentry_record(file, current_record, &record)) {
+            status = 1;
             break;
-        if (!record.active)
-            continue;
-        strcpy(record_path, record.original_path);
+        }
+        next_record = record.next;
+        record_index = next_record;
+        sentry_original_path(record.original_path, record_path);
         name = strrchr(record_path, '\\');
         if (!name)
             continue;
@@ -1336,28 +1577,30 @@ static int process_sentry(unsigned drive, const char *path,
             if (toupper(answer) != 'Y')
                 continue;
         }
-        if (path_exists(record.original_path)) {
-            printf("%s already exists.\n", record.original_path);
+        sentry_original_path(record.original_path, record_path);
+        if (path_exists(record_path)) {
+            printf("%s already exists.\n", record_path);
             status = 1;
             continue;
         }
-        sprintf(stored, "%c:\\SENTRY\\%s", 'A' + drive,
-                record.stored_name);
-        if (rename(stored, record.original_path)) {
-            printf("Cannot restore %s.\n", record.original_path);
+        sentry_stored_filename(record.stored_name, original_name);
+        sprintf(stored, "%c:\\SENTRY\\%s", 'A' + drive, original_name);
+        sentry_original_path(record.original_path, record_path);
+        if (rename(stored, record_path)) {
+            printf("Cannot restore %s.\n", record_path);
             status = 1;
             continue;
         }
-        record.active = 0;
-        fseek(file, record_offset, SEEK_SET);
-        if (fwrite(&record, 1, sizeof(record), file) != sizeof(record)) {
-            rename(record.original_path, stored);
+        if (unlink_sentry_record(file, &header, current_record, &record)) {
+            rename(record_path, stored);
             fclose(file);
             return 1;
         }
-        fseek(file, record_offset + (long)sizeof(record), SEEK_SET);
-        printf("Restored %s\n", record.original_path);
+        printf("Restored %s\n", record_path);
     }
+    rewind(file);
+    if (fwrite(&header, 1, sizeof(header), file) != sizeof(header))
+        status = 1;
     fclose(file);
     if (!found) {
         puts("No Delete Sentry files were found.");
@@ -1370,39 +1613,48 @@ static int purge_sentry(unsigned drive)
 {
     struct sentry_header header;
     struct sentry_record record;
-    char control[] = "A:\\SENTRY\\CONTROL.DAT";
+    char control[] = "A:\\SENTRY\\CONTROL.FIL";
     char stored[32];
+    char name[13];
     FILE *file;
     unsigned purged = 0;
+    short index;
+    short next;
 
     control[0] = (char)('A' + drive);
-    file = fopen(control, "rb");
+    file = fopen(control, "rb+");
     if (!file || fread(&header, 1, sizeof(header), file) != sizeof(header) ||
-        memcmp(header.magic, "MSD6SNT", 8) || header.version != SENTRY_VERSION) {
+        !valid_sentry_header(&header)) {
         if (file)
             fclose(file);
         puts("No Delete Sentry files were found.");
         return 1;
     }
-    while (fread(&record, 1, sizeof(record), file) == sizeof(record)) {
-        if (!record.active)
-            continue;
-        sprintf(stored, "%c:\\SENTRY\\%s", 'A' + drive,
-                record.stored_name);
+    index = header.first_record;
+    while (index != SENTRY_NONE) {
+        if (read_sentry_record(file, index, &record)) {
+            fclose(file);
+            return 1;
+        }
+        next = record.next;
+        sentry_stored_filename(record.stored_name, name);
+        sprintf(stored, "%c:\\SENTRY\\%s", 'A' + drive, name);
         _dos_setfileattr(stored, 0);
         if (remove(stored)) {
             fclose(file);
             fprintf(stderr, "UNDELETE: cannot purge %s.\n", stored);
             return 1;
         }
-        ++purged;
-    }
-    fclose(file);
-    header.next_id = 1;
-    file = fopen(control, "wb");
-    if (!file || fwrite(&header, 1, sizeof(header), file) != sizeof(header)) {
-        if (file)
+        if (unlink_sentry_record(file, &header, index, &record)) {
             fclose(file);
+            return 1;
+        }
+        ++purged;
+        index = next;
+    }
+    rewind(file);
+    if (fwrite(&header, 1, sizeof(header), file) != sizeof(header)) {
+        fclose(file);
         return 1;
     }
     if (fclose(file))
@@ -1856,6 +2108,26 @@ void __cdecl tracker_capture_fcb(const unsigned char far *far_fcb)
     int86x(0x21, &inregs, &outregs, &segregs);
 }
 
+static void initialize_ini_path(const char *program)
+{
+    const char *slash = strrchr(program, '\\');
+    const char *other = strrchr(program, '/');
+    unsigned prefix;
+
+    if (!slash || (other && other > slash))
+        slash = other;
+    if (slash)
+        prefix = (unsigned)(slash - program + 1);
+    else if (isalpha(program[0]) && program[1] == ':')
+        prefix = 2;
+    else
+        return;
+    if (prefix + 13 >= sizeof(undelete_ini_path))
+        return;
+    memcpy(undelete_ini_path, program, prefix);
+    strcpy(undelete_ini_path + prefix, "UNDELETE.INI");
+}
+
 int main(int argc, char **argv)
 {
     struct volume volume;
@@ -1874,6 +2146,8 @@ int main(int argc, char **argv)
     int source_ds = 0;
     int have_operand = 0;
     int i;
+
+    initialize_ini_path(argv[0]);
 
     if (argc == 2 && argv[1][0] == '/' && toupper(argv[1][1]) == 'S' &&
         (argv[1][2] == 0 || (isalpha(argv[1][2]) && argv[1][3] == 0))) {
@@ -2022,7 +2296,7 @@ int main(int argc, char **argv)
         filespec = "*.*";
     make_83(filespec, pattern, 1);
     if (!source_dos && !source_dt && !source_ds) {
-        char sentry_name[] = "A:\\SENTRY\\CONTROL.DAT";
+        char sentry_name[] = "A:\\SENTRY\\CONTROL.FIL";
         FILE *sentry;
         sentry_name[0] = (char)('A' + drive);
         sentry = fopen(sentry_name, "rb");

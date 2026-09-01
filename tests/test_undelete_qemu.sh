@@ -202,7 +202,7 @@ mmd -i "$SENTRY_TARGET" ::SUB
     printf 'DEL B:\\SENTRY.TXT\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SENTRY_DELETE_FAILED\r\n'
     printf 'IF EXIST B:\\SENTRY.TXT ECHO SENTRY_ORIGINAL_REMAINS\r\n'
-    printf 'IF NOT EXIST B:\\SENTRY\\CONTROL.DAT ECHO SENTRY_CONTROL_MISSING\r\n'
+    printf 'IF NOT EXIST B:\\SENTRY\\CONTROL.FIL ECHO SENTRY_CONTROL_MISSING\r\n'
     printf 'UNDELETE B:\\SENTRY.TXT /LIST /DS\r\n'
     printf 'IF ERRORLEVEL 1 ECHO SENTRY_LIST_FAILED\r\n'
     printf 'UNDELETE B:\\SENTRY.TXT /ALL\r\n'
@@ -248,7 +248,7 @@ if grep -q 'Delete Sentry enabled on drive B:' "$SENTRY_LOG" &&
    [[ "$sentry_payload" == 'DELETE SENTRY EXACT PAYLOAD' ]] &&
    [[ "$nested_sentry_payload" == 'NESTED SENTRY EXACT PAYLOAD' ]] &&
    ! mdir -i "$SENTRY_TARGET" ::PURGE.TXT >/dev/null 2>&1 &&
-   ! mdir -i "$SENTRY_TARGET" ::SENTRY/00000003.DEL >/dev/null 2>&1 &&
+   ! mdir -i "$SENTRY_TARGET" '::SENTRY/#0000003.MS' >/dev/null 2>&1 &&
    ! grep -Eq 'SENTRY_(LOAD|STATUS|DELETE|LIST|RESTORE|PURGE|UNLOAD|NESTED_LIST|NESTED_RESTORE|FILTER_DELETE)_FAILED|SENTRY_(ORIGINAL_REMAINS|CONTROL_MISSING|FILTER_PROTECTED)' "$SENTRY_LOG"; then
     ok "retail /S, /DS selection, automatic restore, and /PURGE preserve SENTRY semantics"
 else
@@ -276,13 +276,14 @@ timeout 30 qemu-system-i386 -display none \
     -boot a -m 4 -serial stdio \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     </dev/null >"$SENTRY_LOAD_LOG" 2>&1 || true
-default_sentry_payload="$(mcopy -i "$SENTRY_LOAD_TARGET" ::SENTRY/00000001.DEL - 2>/dev/null | tr -d '\r\n')"
-default_ini="$(mcopy -i "$SENTRY_LOAD_TARGET" ::UNDELETE.INI - 2>/dev/null | tr -d '\r')"
+default_sentry_payload="$(mcopy -i "$SENTRY_LOAD_TARGET" '::SENTRY/#0000001.MS' - 2>/dev/null | tr -d '\r\n')"
+default_ini="$(mcopy -i "$BOOT" ::UNDELETE.INI - 2>/dev/null | tr -d '\r')"
 if grep -q 'Delete Sentry enabled on drive B:' "$SENTRY_LOAD_LOG" &&
    grep -q 'DEFAULT.TXT  protected by Delete Sentry' "$SENTRY_LOAD_LOG" &&
    [[ "$default_sentry_payload" == 'DEFAULT INI SENTRY PAYLOAD' ]] &&
    grep -q '\[sentry.drives\]' <<<"$default_ini" &&
    grep -q 'd.sentry=TRUE' <<<"$default_ini" &&
+   ! mdir -i "$SENTRY_LOAD_TARGET" ::UNDELETE.INI >/dev/null 2>&1 &&
    ! grep -Eq 'SENTRY_DEFAULT_(LOAD|LIST)_FAILED' "$SENTRY_LOAD_LOG"; then
     ok "retail /LOAD creates and applies the default Sentry UNDELETE.INI"
 else
@@ -295,7 +296,7 @@ dd if=/dev/zero of="$OUT/undelete-sentry-large.bin" bs=1024 count=10 status=none
 mcopy -i "$SENTRY_LIMIT_TARGET" "$OUT/undelete-sentry-large.bin" ::ONE.DAT
 mcopy -i "$SENTRY_LIMIT_TARGET" "$OUT/undelete-sentry-large.bin" ::TWO.DAT
 printf '[sentry.drives]\r\nB=\r\n[sentry.files]\r\n*.*\r\n[configuration]\r\narchive=TRUE\r\ndays=7\r\npercentage=1\r\n[defaults]\r\nd.sentry=TRUE\r\nd.tracker=FALSE\r\n' |
-    mcopy -o -i "$SENTRY_LIMIT_TARGET" - ::UNDELETE.INI
+    mcopy -o -i "$BOOT" - ::UNDELETE.INI
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\nB:\r\n'
     printf 'A:\\UNDELETE /LOAD\r\n'
@@ -317,20 +318,20 @@ timeout 30 qemu-system-i386 -display none \
     -boot a -m 4 -serial stdio \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     </dev/null >"$SENTRY_LIMIT_LOG" 2>&1 || true
-newest_size="$(mcopy -i "$SENTRY_LIMIT_TARGET" ::SENTRY/00000002.DEL - 2>/dev/null | wc -c | tr -d ' ')"
+newest_size="$(mcopy -i "$SENTRY_LIMIT_TARGET" '::SENTRY/#0000002.MS' - 2>/dev/null | wc -c | tr -d ' ')"
 if grep -q 'No Delete Sentry files were found' "$SENTRY_LIMIT_LOG" &&
    grep -q 'TWO.DAT  protected by Delete Sentry' "$SENTRY_LIMIT_LOG" &&
    [[ "$newest_size" == 10240 ]] &&
-   ! mdir -i "$SENTRY_LIMIT_TARGET" ::SENTRY/00000001.DEL >/dev/null 2>&1 &&
+   ! mdir -i "$SENTRY_LIMIT_TARGET" '::SENTRY/#0000001.MS' >/dev/null 2>&1 &&
    ! grep -Eq 'SENTRY_LIMIT_(LOAD|FIRST_DELETE|SECOND_DELETE)_FAILED|SENTRY_LIMIT_(OLDEST_REMAINS|NEWEST_MISSING)' "$SENTRY_LIMIT_LOG"; then
     ok "Sentry INI filters, archive policy, and percentage limit purge oldest data"
 else
     fail "Sentry retention policy"
 fi
 
-mcopy -i "$SENTRY_LIMIT_TARGET" ::SENTRY/CONTROL.DAT "$OUT/undelete-sentry-control.dat"
-printf '\001\000\000\000' | dd of="$OUT/undelete-sentry-control.dat" bs=1 seek=167 conv=notrunc status=none
-mcopy -o -i "$SENTRY_LIMIT_TARGET" "$OUT/undelete-sentry-control.dat" ::SENTRY/CONTROL.DAT
+mcopy -i "$SENTRY_LIMIT_TARGET" ::SENTRY/CONTROL.FIL "$OUT/undelete-sentry-control.fil"
+printf '\041\000' | dd of="$OUT/undelete-sentry-control.fil" bs=1 seek=48 conv=notrunc status=none
+mcopy -o -i "$SENTRY_LIMIT_TARGET" "$OUT/undelete-sentry-control.fil" ::SENTRY/CONTROL.FIL
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\nB:\r\n'
     printf 'A:\\UNDELETE /LOAD\r\n'
@@ -353,7 +354,7 @@ timeout 30 qemu-system-i386 -display none \
     </dev/null >"$SENTRY_AGE_LOG" 2>&1 || true
 if grep -q 'No Delete Sentry files were found' "$SENTRY_AGE_LOG" &&
    grep -q 'THREE.TXT  protected by Delete Sentry' "$SENTRY_AGE_LOG" &&
-   ! mdir -i "$SENTRY_LIMIT_TARGET" ::SENTRY/00000002.DEL >/dev/null 2>&1 &&
+   ! mdir -i "$SENTRY_LIMIT_TARGET" '::SENTRY/#0000002.MS' >/dev/null 2>&1 &&
    ! grep -Eq 'SENTRY_AGE_(LOAD|DELETE)_FAILED|SENTRY_AGE_(EXPIRED_REMAINS|NEWEST_MISSING)' "$SENTRY_AGE_LOG"; then
     ok "Sentry days policy purges expired protected files before new deletion"
 else
