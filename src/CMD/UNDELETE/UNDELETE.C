@@ -611,6 +611,164 @@ static int report_tracker_status(void)
     return 0;
 }
 
+static void keep_tracker_resident(void)
+{
+    unsigned environment;
+    unsigned paragraphs;
+
+    tracker_install();
+    environment = *(unsigned far *)MK_FP(_psp, 0x2c);
+    if (environment)
+        _dos_freemem(environment);
+    paragraphs = tracker_keep_paragraphs();
+    if (paragraphs < 0x0c00)
+        paragraphs = 0x0c00;
+    _dos_keep(0, paragraphs);
+}
+
+static char *trim_text(char *text)
+{
+    char *end;
+
+    while (*text && isspace(*text))
+        ++text;
+    end = text + strlen(text);
+    while (end > text && isspace(end[-1]))
+        *--end = 0;
+    return text;
+}
+
+static int true_value(const char *value)
+{
+    return !stricmp(value, "TRUE") || !stricmp(value, "YES") ||
+           !strcmp(value, "1") || !stricmp(value, "ON");
+}
+
+static int load_undelete_ini(void)
+{
+    enum { SECTION_NONE, SECTION_MIRROR, SECTION_DEFAULTS } section = SECTION_NONE;
+    unsigned tracker_drives[26];
+    unsigned drive;
+    unsigned current_drive;
+    unsigned configured = 0;
+    int tracker_default = 0;
+    int sentry_default = 1;
+    int installed = tracker_probe();
+    int read_error;
+    char line[160];
+    FILE *file;
+
+    memset(tracker_drives, 0, sizeof(tracker_drives));
+    file = fopen("UNDELETE.INI", "rt");
+    if (!file) {
+        fputs("UNDELETE: the default Delete Sentry configuration requires /S support.\n",
+              stderr);
+        return 1;
+    }
+    while (fgets(line, sizeof(line), file)) {
+        char *text = trim_text(line);
+        char *equals;
+        if (!*text || *text == ';' || *text == '#')
+            continue;
+        if (*text == '[') {
+            char *close = strchr(text, ']');
+            if (!close) {
+                fclose(file);
+                fputs("UNDELETE: invalid UNDELETE.INI section.\n", stderr);
+                return 1;
+            }
+            *close = 0;
+            if (!stricmp(text + 1, "mirror.drives"))
+                section = SECTION_MIRROR;
+            else if (!stricmp(text + 1, "defaults"))
+                section = SECTION_DEFAULTS;
+            else
+                section = SECTION_NONE;
+            continue;
+        }
+        equals = strchr(text, '=');
+        if (!equals)
+            continue;
+        *equals++ = 0;
+        text = trim_text(text);
+        equals = trim_text(equals);
+        if (section == SECTION_MIRROR && isalpha(text[0]) && !text[1]) {
+            unsigned entries;
+            drive = (unsigned)(toupper(text[0]) - 'A');
+            if (*equals) {
+                char *end;
+                unsigned long value = strtoul(equals, &end, 10);
+                if (*end || value < 1 || value > 999) {
+                    fclose(file);
+                    fputs("UNDELETE: invalid tracker entry count in UNDELETE.INI.\n",
+                          stderr);
+                    return 1;
+                }
+                entries = (unsigned)value;
+            } else {
+                entries = default_tracker_entries(drive);
+                if (!entries) {
+                    fclose(file);
+                    fprintf(stderr, "UNDELETE: cannot inspect drive %c:.\n",
+                            'A' + drive);
+                    return 1;
+                }
+            }
+            tracker_drives[drive] = entries;
+        } else if (section == SECTION_DEFAULTS) {
+            if (!stricmp(text, "d.tracker"))
+                tracker_default = true_value(equals);
+            else if (!stricmp(text, "d.sentry"))
+                sentry_default = true_value(equals);
+        }
+    }
+    read_error = ferror(file);
+    if (fclose(file) || read_error) {
+        fputs("UNDELETE: cannot read UNDELETE.INI.\n", stderr);
+        return 1;
+    }
+    if (tracker_default && sentry_default) {
+        fputs("UNDELETE: UNDELETE.INI enables conflicting protection methods.\n",
+              stderr);
+        return 1;
+    }
+    if (!tracker_default) {
+        if (sentry_default)
+            fputs("UNDELETE: Delete Sentry configuration requires /S support.\n",
+                  stderr);
+        else
+            fputs("UNDELETE: no protection method is enabled in UNDELETE.INI.\n",
+                  stderr);
+        return 1;
+    }
+    for (drive = 0; drive < 26; ++drive) {
+        if (!tracker_drives[drive])
+            continue;
+        if (create_tracker(drive, tracker_drives[drive])) {
+            fprintf(stderr, "UNDELETE: cannot enable Delete Tracker on drive %c:.\n",
+                    'A' + drive);
+            return 1;
+        }
+        printf("Delete Tracker enabled on drive %c: for %u entries.\n",
+               'A' + drive, tracker_drives[drive]);
+        ++configured;
+    }
+    if (!configured) {
+        _dos_getdrive(&current_drive);
+        drive = current_drive - 1;
+        tracker_drives[drive] = default_tracker_entries(drive);
+        if (!tracker_drives[drive] || create_tracker(drive, tracker_drives[drive])) {
+            fputs("UNDELETE: cannot configure the current drive.\n", stderr);
+            return 1;
+        }
+        printf("Delete Tracker enabled on drive %c: for %u entries.\n",
+               'A' + drive, tracker_drives[drive]);
+    }
+    if (!installed)
+        keep_tracker_resident();
+    return 0;
+}
+
 static int find_live_entry(const struct volume *volume, unsigned directory,
                            const unsigned char wanted[11], unsigned char raw[32])
 {
@@ -953,7 +1111,7 @@ static void usage(void)
 {
     puts("Restores files deleted with DEL.");
     puts("UNDELETE [[drive:][path]filename] [/LIST|/ALL] [/DOS|/DT]");
-    puts("UNDELETE /Tdrive[-entries] | /STATUS | /UNLOAD");
+    puts("UNDELETE /LOAD | /Tdrive[-entries] | /STATUS | /UNLOAD");
 }
 
 void __cdecl tracker_capture_far(const char far *far_path)
@@ -1074,7 +1232,6 @@ int main(int argc, char **argv)
         stricmp(argv[1], "/TRACK") && stricmp(argv[1], "/TRACKSTATUS")) {
         unsigned entries;
         int installed;
-        unsigned environment;
         if (parse_tracker_switch(argv[1], &drive, &entries)) {
             usage();
             return 1;
@@ -1089,16 +1246,11 @@ int main(int argc, char **argv)
                'A' + drive, entries);
         if (installed)
             return 0;
-        tracker_install();
-        environment = *(unsigned far *)MK_FP(_psp, 0x2c);
-        if (environment)
-            _dos_freemem(environment);
-        i = tracker_keep_paragraphs();
-        if (i < 0x0800)
-            i = 0x0800;
-        _dos_keep(0, (unsigned)i);
+        keep_tracker_resident();
         return 0;
     }
+    if (argc == 2 && !stricmp(argv[1], "/LOAD"))
+        return load_undelete_ini();
     if (argc == 2 && !stricmp(argv[1], "/STATUS"))
         return report_tracker_status();
     if (argc == 2 && !stricmp(argv[1], "/UNLOAD")) {
@@ -1114,7 +1266,6 @@ int main(int argc, char **argv)
     }
     if (argc == 4 && !stricmp(argv[1], "/TRACK")) {
         int installed;
-        unsigned environment;
         if (strlen(argv[2]) != 2 || argv[2][1] != ':' || !isalpha(argv[2][0]))
             return 1;
         drive = (unsigned)(toupper(argv[2][0]) - 'A');
@@ -1123,14 +1274,7 @@ int main(int argc, char **argv)
             return 1;
         if (installed)
             return 0;
-        tracker_install();
-        environment = *(unsigned far *)MK_FP(_psp, 0x2c);
-        if (environment)
-            _dos_freemem(environment);
-        i = tracker_keep_paragraphs();
-        if (i < 0x0800)
-            i = 0x0800;
-        _dos_keep(0, (unsigned)i);
+        keep_tracker_resident();
         return 0;
     }
     if (argc == 2 && !stricmp(argv[1], "/UNTRACK")) {

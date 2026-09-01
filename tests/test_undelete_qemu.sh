@@ -30,6 +30,8 @@ mcopy -o -i "$BOOT" "$QEXIT" ::QEXIT.COM
 mcopy -o -i "$BOOT" "$HDELETE" ::HDELETE.COM
 mcopy -o -i "$BOOT" "$LATER_TSR" ::LATER.COM
 printf 'Y\r\nA\r\n' | mcopy -o -i "$BOOT" - ::ANSWERS.TXT
+printf '[mirror.drives]\r\nB=3\r\n[defaults]\r\nd.sentry=FALSE\r\nd.tracker=TRUE\r\n' |
+    mcopy -o -i "$BOOT" - ::UNDELETE.INI
 
 dd if=/dev/zero of="$TARGET" bs=512 count=2880 status=none
 mformat -i "$TARGET" -f 1440 ::
@@ -96,7 +98,7 @@ dd if=/dev/zero of="$TRACK_TARGET" bs=512 count=2880 status=none
 mformat -i "$TRACK_TARGET" -f 1440 ::
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
-    printf 'UNDELETE /TB-2\r\n'
+    printf 'UNDELETE /LOAD\r\n'
     printf 'IF ERRORLEVEL 1 ECHO PUBLIC_TRACK_LOAD_FAILED\r\n'
     printf 'UNDELETE /STATUS\r\n'
     printf 'IF ERRORLEVEL 1 ECHO PUBLIC_TRACK_STATUS_FAILED\r\n'
@@ -106,6 +108,13 @@ mformat -i "$TRACK_TARGET" -f 1440 ::
     printf 'IF ERRORLEVEL 1 ECHO PUBLIC_TRACK_RESTORE_FAILED\r\n'
     printf 'UNDELETE /UNLOAD\r\n'
     printf 'IF ERRORLEVEL 1 ECHO PUBLIC_TRACK_UNLOAD_FAILED\r\n'
+    printf 'ECHO [mirror.drives]>A:\\UNDELETE.INI\r\n'
+    printf 'ECHO B=1000>>A:\\UNDELETE.INI\r\n'
+    printf 'ECHO [defaults]>>A:\\UNDELETE.INI\r\n'
+    printf 'ECHO d.tracker=TRUE>>A:\\UNDELETE.INI\r\n'
+    printf 'ECHO d.sentry=FALSE>>A:\\UNDELETE.INI\r\n'
+    printf 'UNDELETE /LOAD\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO PUBLIC_BAD_INI_ACCEPTED\r\n'
     printf 'UNDELETE /TB-0\r\n'
     printf 'IF NOT ERRORLEVEL 1 ECHO PUBLIC_TRACK_ZERO_ACCEPTED\r\n'
     printf 'UNDELETE /TB-1000\r\n'
@@ -148,13 +157,14 @@ timeout 30 qemu-system-i386 -display none \
     </dev/null >"$TRACK_LOG" 2>&1 || true
 tracked_payload="$(mcopy -i "$TRACK_TARGET" ::SECOND.TXT - 2>/dev/null | tr -d '\r\n')"
 public_payload="$(mcopy -i "$TRACK_TARGET" ::PUBLIC.TXT - 2>/dev/null | tr -d '\r\n')"
-if grep -q 'Delete Tracker enabled on drive B: for 2 entries' "$TRACK_LOG" &&
+if grep -q 'Delete Tracker enabled on drive B: for 3 entries' "$TRACK_LOG" &&
    grep -q 'Drive B: Delete Tracker is active' "$TRACK_LOG" &&
    grep -q 'The Undelete memory-resident program was unloaded' "$TRACK_LOG" &&
    grep -q 'Delete Tracker enabled on drive B: for 75 entries' "$TRACK_LOG" &&
    [[ "$public_payload" == 'PUBLIC TRACKER PAYLOAD' ]] &&
-   ! grep -Eq 'PUBLIC_TRACK_(LOAD|STATUS|RESTORE|UNLOAD|DEFAULT)_FAILED|PUBLIC_TRACK_(ZERO|LARGE)_ACCEPTED' "$TRACK_LOG"; then
-    ok "retail /T defaults and bounds, /STATUS, and /UNLOAD manage Delete Tracker"
+   grep -q 'invalid tracker entry count in UNDELETE.INI' "$TRACK_LOG" &&
+   ! grep -Eq 'PUBLIC_TRACK_(LOAD|STATUS|RESTORE|UNLOAD|DEFAULT)_FAILED|PUBLIC_TRACK_(ZERO|LARGE)_ACCEPTED|PUBLIC_BAD_INI_ACCEPTED' "$TRACK_LOG"; then
+    ok "retail /LOAD, /T defaults and bounds, /STATUS, and /UNLOAD manage Delete Tracker"
 else
     fail "public Delete Tracker management"
 fi

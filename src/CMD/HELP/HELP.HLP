@@ -415,7 +415,7 @@ Syntax: TYPE [drive:][path]filename
 @UNDELETE
 Restores files deleted with DEL.
 Syntax: UNDELETE [[drive:][path]filename] [/LIST|/ALL] [/DOS|/DT]
-Protection: UNDELETE /Tdrive[-entries] | /STATUS | /UNLOAD
+Protection: UNDELETE /LOAD | /Tdrive[-entries] | /STATUS | /UNLOAD
 @UNFORMAT
 Restores formatted disks or saved hard-disk partition tables.
 Syntax: UNFORMAT drive: [/J] or UNFORMAT drive: [/U] [/L] [/TEST] [/P] or UNFORMAT /PARTN [/L]
