@@ -587,6 +587,8 @@ Syntax: SETUP [drive:\directory] [/Y] [/B] [/F] or SETUP /E
 reserved for Windows companions that this distribution deliberately excludes.
 Interactive fresh installation selects memory, cache, and Delete Sentry startup
 components; /Y accepts the default memory and cache choices.
+An upgrade creates C:\UNINSTAL.EXE, which restores the preserved previous DOS
+tree and retains the replaced installation as NEW_DOS.1.
 @SHELL
 Selects the command interpreter and its permanent-shell parameters.
 Syntax: SHELL=[drive:][path]COMMAND.COM [drive:][path] [/E:n] [/P]

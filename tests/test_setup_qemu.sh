@@ -130,8 +130,16 @@ printf 'REM user config\r\nFILES=17\r\n' | mcopy -o -i "$HDD@@$PART_OFFSET" - ::
 printf '@ECHO OFF\r\nREM user autoexec\r\n' | mcopy -o -i "$HDD@@$PART_OFFSET" - ::AUTOEXEC.BAT
 UPGRADE_CONFIG="$OUT/setup-upgrade-config.txt"
 UPGRADE_AUTOEXEC="$OUT/setup-upgrade-autoexec.txt"
+OLD_ROOT_IO="$OUT/setup-old-io.sys"
+OLD_SORT="$OUT/setup-old-sort.exe"
+OLD_IO_ATTR="$OUT/setup-old-io.attr"
+OLD_SORT_ENTRY="$OUT/setup-old-sort.entry"
 mcopy -i "$HDD@@$PART_OFFSET" ::CONFIG.SYS "$UPGRADE_CONFIG"
 mcopy -i "$HDD@@$PART_OFFSET" ::AUTOEXEC.BAT "$UPGRADE_AUTOEXEC"
+mcopy -o -i "$HDD@@$PART_OFFSET" ::IO.SYS "$OLD_ROOT_IO"
+mcopy -o -i "$HDD@@$PART_OFFSET" ::DOS/SORT.EXE "$OLD_SORT"
+python3 "$ROOT/tests/fat_entry_metadata.py" "$HDD" "$PART_OFFSET" IO.SYS >"$OLD_IO_ATTR"
+mdir -i "$HDD@@$PART_OFFSET" ::DOS/SORT.EXE | grep SORT >"$OLD_SORT_ENTRY"
 unlink "$SERIAL_IN" 2>/dev/null || true
 unlink "$SERIAL_OUT" 2>/dev/null || true
 unlink "$QMP" 2>/dev/null || true
@@ -156,6 +164,60 @@ if grep -Fq 'Upgrade installation in C:\DOS' "$LOG.upgrade" \
     ok "upgrade SETUP detects the installed tree and preserves startup files byte-exactly"
 else
     fail "upgrade SETUP behavior"
+fi
+
+# Upgrade keeps the complete old DOS directory and exact root boot files, then
+# installs a root-level UNINSTAL image. Corrupt the new installation and prove
+# that invoking it from Setup Disk 1 atomically restores the old bytes.
+if mdir -i "$HDD@@$PART_OFFSET" ::OLD_DOS.1/COMMAND.COM >/dev/null 2>&1 \
+    && mdir -i "$HDD@@$PART_OFFSET" ::UNINSTAL.EXE >/dev/null 2>&1 \
+    && mdir -i "$HDD@@$PART_OFFSET" ::UNINSTAL.INI >/dev/null 2>&1 \
+    && mdir -a -i "$HDD@@$PART_OFFSET" ::OLD_DOS.1/IO.SYS >/dev/null 2>&1 \
+    && mdir -a -i "$HDD@@$PART_OFFSET" ::OLD_DOS.1/MSDOS.SYS >/dev/null 2>&1; then
+    ok "upgrade preserves an exact rollback tree and installs UNINSTAL"
+else
+    fail "upgrade rollback artifacts"
+fi
+printf 'corrupt-new-sort\r\n' | mcopy -o -i "$HDD@@$PART_OFFSET" - ::DOS/SORT.EXE
+mattrib -i "$HDD@@$PART_OFFSET" -h -s -r ::IO.SYS
+printf 'corrupt-new-kernel\r\n' | mcopy -o -i "$HDD@@$PART_OFFSET" - ::IO.SYS
+ROLLBACK_IMAGE="$OUT/setup-rollback.img"
+ROLLBACK_LOG="$OUT/setup-rollback.log"
+cp "$DISK1" "$ROLLBACK_IMAGE"
+nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$OUT/setup-qexit.com"
+mcopy -o -i "$ROLLBACK_IMAGE" "$OUT/setup-qexit.com" ::QEXIT.COM
+printf '@ECHO OFF\r\nCTTY AUX\r\nC:\\UNINSTAL.EXE /Y\r\nIF ERRORLEVEL 1 ECHO SETUP_ROLLBACK_FAILED\r\nECHO SETUP_ROLLBACK_DONE\r\nC:\\UNINSTAL.EXE /Y\r\nIF ERRORLEVEL 1 ECHO SETUP_REPEAT_ROLLBACK_REJECTED\r\nSETUP C:\\DOS /Y\r\nIF ERRORLEVEL 1 ECHO SETUP_STALE_NEW_REJECTED\r\nQEXIT.COM\r\n' |
+    mcopy -o -i "$ROLLBACK_IMAGE" - ::AUTOEXEC.BAT
+timeout 30 qemu-system-i386 -display none -monitor none -machine pc -cpu 486 -m 8 \
+    -drive if=floppy,index=0,format=raw,file="$ROLLBACK_IMAGE",cache=writethrough \
+    -drive if=ide,index=0,format=raw,file="$HDD",cache=writethrough \
+    -boot a -serial stdio -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    </dev/null >"$ROLLBACK_LOG" 2>&1 || true
+RESTORED_ROOT_IO="$OUT/setup-restored-io.sys"
+RESTORED_SORT="$OUT/setup-restored-sort.exe"
+RESTORED_IO_ATTR="$OUT/setup-restored-io.attr"
+RESTORED_SORT_ENTRY="$OUT/setup-restored-sort.entry"
+NEW_SORT="$OUT/setup-new-sort.txt"
+mcopy -o -i "$HDD@@$PART_OFFSET" ::IO.SYS "$RESTORED_ROOT_IO"
+mcopy -o -i "$HDD@@$PART_OFFSET" ::DOS/SORT.EXE "$RESTORED_SORT"
+python3 "$ROOT/tests/fat_entry_metadata.py" "$HDD" "$PART_OFFSET" IO.SYS >"$RESTORED_IO_ATTR"
+mdir -i "$HDD@@$PART_OFFSET" ::DOS/SORT.EXE | grep SORT >"$RESTORED_SORT_ENTRY"
+mtype -i "$HDD@@$PART_OFFSET" ::NEW_DOS.1/SORT.EXE >"$NEW_SORT"
+if grep -Fq 'The previous DOS installation was restored' "$ROLLBACK_LOG" \
+    && grep -q SETUP_ROLLBACK_DONE "$ROLLBACK_LOG" \
+    && grep -q SETUP_REPEAT_ROLLBACK_REJECTED "$ROLLBACK_LOG" \
+    && grep -q SETUP_STALE_NEW_REJECTED "$ROLLBACK_LOG" \
+    && ! grep -q SETUP_ROLLBACK_FAILED "$ROLLBACK_LOG" \
+    && cmp -s "$OLD_ROOT_IO" "$RESTORED_ROOT_IO" \
+    && cmp -s "$OLD_SORT" "$RESTORED_SORT" \
+    && cmp -s "$OLD_IO_ATTR" "$RESTORED_IO_ATTR" \
+    && cmp -s "$OLD_SORT_ENTRY" "$RESTORED_SORT_ENTRY" \
+    && grep -q corrupt-new-sort "$NEW_SORT"; then
+    ok "UNINSTAL restores the previous DOS tree and root system bytes exactly"
+else
+    fail "UNINSTAL rollback behavior"
+    sed -n '1,120p' "$ROLLBACK_LOG"
 fi
 
 # Replace AUTOEXEC only for the boot assertion; the preservation check above

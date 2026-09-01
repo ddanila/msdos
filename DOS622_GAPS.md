@@ -15,8 +15,7 @@ and the archived
 The system is substantially DOS 6.22-compatible, but it is not yet a complete
 replacement for the retail product. The platform, maintenance, memory,
 caching, diagnostics, connectivity, and CD-ROM stages are implemented. The
-next stage is product completion: improve SETUP and recovery media and close
-observable API gaps.
+next stage is product completion: close observable API and locale gaps.
 DriveSpace and QBASIC/EDIT are separate large epics.
 
 | Area | Status | Current boundary |
@@ -27,7 +26,7 @@ DriveSpace and QBASIC/EDIT are separate large epics.
 | Cache, diagnostics, and power | Implemented | SMARTDrive, MSD, and POWER ship. |
 | Connectivity and CD-ROM | Implemented | INTERLNK, INTERSVR, and MSCDEX ship; a hardware-specific CD-ROM driver remains external. |
 | Data protection | Implemented | UNDELETE implements all three DOS protection methods, the structured DOS recovery inventory, and retail Sentry storage. MSBACKUP, MSAV, and VSAFE are deliberate non-goals. |
-| Installation | Partial | SETUP installs or upgrades a bootable 6.22 system with hardware-aware defaults and can create a minimal bootable recovery floppy; component selection and rollback remain. |
+| Installation | Implemented | SETUP installs or upgrades a bootable 6.22 system, selects core components, creates a minimal recovery floppy, and generates a tested one-shot rollback image. |
 | Online Help | Implemented | HELP is an independent full-screen hypertext browser with keyboard/mouse navigation and full-corpus search; FASTHELP remains the compact redirectable interface. |
 | EGA display-state driver | Implemented | EGA.SYS exposes the documented register-shadow, installation, version, custom-multiplex, and default-state contracts independently of Task Swapper. |
 | Observable DOS internals | Partial | Documented and undocumented APIs and data structures are compatibility targets wherever applications can observe or depend on them. |
@@ -71,10 +70,6 @@ The following retail programs remain absent by decision, not as open work:
 
 ### Installation and Help
 
-The remaining durable gaps are:
-
-- rollback/uninstall with recoverable startup-file and system backups.
-
 Standalone `HELP` now provides the full-screen browser independently of
 QBASIC: an alphabetized topic index, full-corpus search, keyboard paging,
 bracketed topic links, mouse selection, and clean return to DOS. Its 137-topic
@@ -91,7 +86,16 @@ configures excluded Windows companions and therefore reports that boundary
 explicitly. Upgrade mode deliberately preserves user startup files
 byte-for-byte. Interactive fresh installation selects memory management,
 SMARTDrive startup, and Delete Sentry independently; `/Y` applies the safe
-memory/cache defaults without enabling Sentry. Rollback/uninstall remains.
+memory/cache defaults without enabling Sentry.
+
+Before an upgrade, SETUP renames the complete prior DOS directory intact and
+copies the previous root system sources into it with their attributes and
+timestamps. It installs root-level `UNINSTAL.EXE` plus its destination record.
+UNINSTAL swaps the preserved tree back, uses the restored `SYS.COM` and exact
+system-file sources to rebuild the boot layout, preserves startup files, and
+keeps the replaced installation as `NEW_DOS.1` for recovery. Byte-exact root
+and command restoration, metadata, repeat-run refusal, and fixed-disk boot are
+covered in QEMU.
 
 ### EGA.SYS
 
@@ -162,7 +166,7 @@ superseded, a separate epic, or a non-goal.
 | 1 | 6.22 identity, startup/configuration, command additions, and overwrite policy | Complete |
 | 2 | ScanDisk, Defrag, memory-manager differences, and MemMaker | Complete |
 | 3 | SMARTDrive, MSD, POWER, INTERLNK/INTERSVR, and MSCDEX | Complete |
-| 4 | Improve SETUP/recovery media and close observable API gaps | Next |
+| 4 | Close observable API, internal-structure, locale, and Supplemental gaps | Next |
 | 5 | Retail-compatible DriveSpace and all compressed-volume integration | Separate epic |
 | 6 | Optional versioned extended DriveSpace format | Follows Stage 5 |
 
