@@ -25,11 +25,14 @@ echo "=== command help and EXEPACK integrity test (QEMU) ==="
 
 echo "Building test floppy..."
 cp "$FLOPPY" "$TEST_IMG"
+nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$OUT/help-qexit.com"
+mcopy -o -i "$TEST_IMG" "$OUT/help-qexit.com" ::QEXIT.COM
 
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
-    printf 'HELP\r\n'
+    printf 'HELP > HELP.OUT\r\n'
+    printf 'TYPE HELP.OUT\r\n'
     printf 'ECHO ---AFTER_HELP_INDEX---\r\n'
     printf 'HELP format\r\n'
     printf 'ECHO ---AFTER_HELP_TOPIC---\r\n'
@@ -73,6 +76,7 @@ cp "$FLOPPY" "$TEST_IMG"
     printf 'IFSFUNC /?\r\n'
     printf 'ECHO ---AFTER_IFSFUNC---\r\n'
     printf 'ECHO ---DONE---\r\n'
+    printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$TEST_IMG" - ::AUTOEXEC.BAT
 
 echo "Booting QEMU (headless, up to 120s)..."
@@ -82,6 +86,7 @@ timeout 120 qemu-system-i386 \
     -fda "$TEST_IMG" \
     -boot a -m 4 \
     -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     </dev/null 2>/dev/null | tee "$SERIAL_LOG" > /dev/null; true
 
 if [[ ! -f "$SERIAL_LOG" || ! -s "$SERIAL_LOG" ]]; then

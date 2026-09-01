@@ -15,8 +15,8 @@ and the archived
 The system is substantially DOS 6.22-compatible, but it is not yet a complete
 replacement for the retail product. The platform, maintenance, memory,
 caching, diagnostics, connectivity, and CD-ROM stages are implemented. The
-next stage is product completion: improve SETUP and recovery
-media, add full-screen Help, and close observable API gaps.
+next stage is product completion: improve SETUP and recovery media and close
+observable API gaps.
 DriveSpace and QBASIC/EDIT are separate large epics.
 
 | Area | Status | Current boundary |
@@ -27,7 +27,8 @@ DriveSpace and QBASIC/EDIT are separate large epics.
 | Cache, diagnostics, and power | Implemented | SMARTDrive, MSD, and POWER ship. |
 | Connectivity and CD-ROM | Implemented | INTERLNK, INTERSVR, and MSCDEX ship; a hardware-specific CD-ROM driver remains external. |
 | Data protection | Implemented | UNDELETE implements all three DOS protection methods, the structured DOS recovery inventory, and retail Sentry storage. MSBACKUP, MSAV, and VSAFE are deliberate non-goals. |
-| Installation and Help | Partial | SETUP remains closer to the DOS 5 two-disk installer. HELP is a lean text implementation rather than the complete retail full-screen system. |
+| Installation | Partial | SETUP installs a bootable 6.22 system with hardware-aware memory/cache defaults, but component selection, rollback, and recovery workflows remain. |
+| Online Help | Implemented | HELP is an independent full-screen hypertext browser with keyboard/mouse navigation and full-corpus search; FASTHELP remains the compact redirectable interface. |
 | EGA display-state driver | Implemented | EGA.SYS exposes the documented register-shadow, installation, version, custom-multiplex, and default-state contracts independently of Task Swapper. |
 | Observable DOS internals | Partial | Documented and undocumented APIs and data structures are compatibility targets wherever applications can observe or depend on them. |
 | Drive compression | Separate epic | DriveSpace is not implemented. |
@@ -75,19 +76,22 @@ The remaining durable gaps are:
 - 6.22-style install and upgrade behavior rather than only the current DOS 5
   two-disk compressed installation;
 - rollback/uninstall, emergency/startup-disk, and recovery workflows;
-- SETUP integration for the implemented memory, cache, and protection tools;
-- a complete 6.22 Help topic corpus; and
-- a standalone full-screen hypertext UI with mouse, topic links, and search.
+- SETUP component choices for the implemented memory, cache, and protection
+  tools.
 
-`FASTHELP` and the current searchable text `HELP` remain useful lightweight
-interfaces. Full-screen Help is planned before, and independently of, the
-QBASIC/EDIT epic; shared UI code may be reused later.
+Standalone `HELP` now provides the full-screen browser independently of
+QBASIC: an alphabetized topic index, full-corpus search, keyboard paging,
+bracketed topic links, mouse selection, and clean return to DOS. Its 137-topic
+clean-room corpus covers every shipped loadable driver and CONFIG.SYS directive
+plus core conceptual topics. `FASTHELP` remains the separate compact text entry
+point, and redirected `HELP` output remains script-friendly.
 
 The current installer identifies itself as 6.22 and its fresh-install defaults
 load HIMEM, upper-memory DOS, and SMARTDrive; on a 386 or newer it also selects
-EMM386 with `NOEMS`, while 286 startup files omit the incompatible driver. It still
-lacks retail-style component selection, rollback/uninstall, and emergency-disk
-workflows; upgrade mode deliberately preserves user startup files byte-for-byte.
+EMM386 with `NOEMS`, while 286 startup files omit the incompatible driver. It
+still lacks retail-style component selection, rollback/uninstall, and
+emergency-disk workflows; upgrade mode deliberately preserves user startup
+files byte-for-byte.
 
 ### EGA.SYS
 
@@ -158,7 +162,7 @@ superseded, a separate epic, or a non-goal.
 | 1 | 6.22 identity, startup/configuration, command additions, and overwrite policy | Complete |
 | 2 | ScanDisk, Defrag, memory-manager differences, and MemMaker | Complete |
 | 3 | SMARTDrive, MSD, POWER, INTERLNK/INTERSVR, and MSCDEX | Complete |
-| 4 | Improve SETUP/recovery media; add full-screen Help; close observable API gaps | Next |
+| 4 | Improve SETUP/recovery media and close observable API gaps | Next |
 | 5 | Retail-compatible DriveSpace and all compressed-volume integration | Separate epic |
 | 6 | Optional versioned extended DriveSpace format | Follows Stage 5 |
 

@@ -58,6 +58,28 @@ def main():
         raise AssertionError(
             f"HELP index mismatch; missing={sorted(topics-indexed)}, stale={sorted(indexed-topics)}"
         )
+    config_topics = set(load("runtime_coverage.json")["config_directives"])
+    missing_config = config_topics - topics
+    if missing_config:
+        raise AssertionError(f"CONFIG.SYS Help topics missing: {sorted(missing_config)}")
+    driver_aliases = {
+        "EMM386.EXE": "EMM386", "INTERLNK.EXE": "INTERLNK",
+        "POWER.EXE": "POWER", "SETVER.EXE": "SETVER",
+        "SMARTDRV.EXE": "SMARTDRV",
+    }
+    driver_topics = {
+        driver_aliases.get(name, name)
+        for name, item in runtime.items()
+        if item["kind"] in {"driver", "driver_command", "command+driver"}
+    }
+    missing_drivers = driver_topics - topics
+    if missing_drivers:
+        raise AssertionError(f"loadable-driver Help topics missing: {sorted(missing_drivers)}")
+    required_topics = set(manifest.get("required_topics", []))
+    if required_topics - topics:
+        raise AssertionError(
+            f"core conceptual Help topics missing: {sorted(required_topics-topics)}"
+        )
     for index, marker in enumerate(markers[1:], 1):
         start = database.index(f"@{marker}") + 1
         end = len(database)

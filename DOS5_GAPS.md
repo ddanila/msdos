@@ -39,7 +39,7 @@ QBASIC and the QBASIC-based Editor are a separate epic.
 | DOS in the HMA and programs/drivers in UMBs | Present | Fixed-cycle emulator gates cover byte-exact XMS moves and HIMEM/EMM386 HMA/UMB integration across supported CPU models. Physical-machine validation remains external. |
 | Command history and macros | Present | DOSKEY provides resident history, macros, edit modes, redirected input, INT 2Fh services, and the DOS 5 interactive history/editing keys. |
 | Full-screen Editor and QBasic | Missing | No EDIT, QBASIC, BASIC runtime, help, or sample programs. EDLIN remains available. |
-| Online command help | Present | HELP provides a described command index and case-insensitive topic lookup from a separate searchable database; shipped executable `/?` surfaces are also tested. |
+| Online command help | Present | HELP provides a standalone full-screen keyboard/mouse browser, links, and full-corpus search; FASTHELP retains compact text lookup, and shipped executable `/?` surfaces are tested. |
 | Delete/format recovery | Present | MIRROR, resident bounded deletion tracking, UNDELETE, UNFORMAT, safe-FORMAT metadata, latest/prior mirror selection, fragmented-chain recovery, and truncate/delete choices are shipped. The resident footprint difference is recorded below. |
 | Partitions up to 2 GiB | Present | Automated and interactive FDISK paths create and validate a near-2-GiB FAT16 partition on a sparse 2-GiB disk. |
 | More than two hard disks | Present | FDISK models up to eight BIOS fixed disks; automated creation and interactive selection, display, and deletion are validated through disk 3. |

@@ -100,6 +100,46 @@ VOL        Displays a volume label and serial number.
 XCOPY      Copies files and directory trees.
 
 Type HELP command for syntax, or command /? for detailed help.
+ANSI.SYS   Provides ANSI console escape-sequence support.
+BATCH      Describes batch-file commands.
+BUFFERS    Sets disk-buffer counts.
+COMMENT    Adds explanatory CONFIG.SYS text.
+CONFIG.SYS Describes system startup directives.
+COUNTRY    Selects national conventions.
+CPSW       Controls code-page switching support.
+DEVICE     Loads a device driver.
+DEVICES    Introduces installable device drivers.
+DEVICEHIGH Loads a device driver into upper memory.
+DISPLAY.SYS Supports console code pages.
+DOS        Controls high and upper-memory use.
+DRIVER.SYS Creates a logical disk device.
+DRIVPARM   Overrides physical-drive geometry.
+EGA.SYS    Maintains EGA/VGA register state.
+FASTHELP   Prints compact command help.
+FCBS       Sets file-control-block counts.
+FILES      Sets open-file counts.
+HIMEM.SYS  Provides XMS and HMA services.
+IFS        Loads an installable file system.
+IFSFUNC    Supports installable file systems.
+INSTALL    Loads a resident program during startup.
+INSTALLHIGH Loads a startup program into upper memory.
+INTERNATIONAL Summarizes national-language configuration.
+LASTDRIVE  Sets the highest reserved drive letter.
+MULTICONFIG Describes selectable startup configurations.
+MULTITRACK Controls multi-track disk operations.
+NUMLOCK    Selects the startup Num Lock state.
+PRINTER.SYS Supports printer code pages.
+RAMDRIVE.SYS Creates a memory-backed disk.
+REM        Adds a batch or CONFIG.SYS comment.
+SETUP      Installs or upgrades MS-DOS.
+SHELL      Selects the command interpreter.
+SIZER.EXE  Measures resident program memory.
+STACKS     Sets hardware-interrupt stacks.
+SWITCHES   Controls startup compatibility options.
+VDISK.SYS  Creates a DOS 5 virtual disk.
+WHATSNEW   Summarizes core release additions.
+XMA2EMS.SYS Provides EMS through an extended-memory adapter.
+XMAEM.SYS  Manages compatible extended-memory adapters.
 @APPEND
 Makes files in selected directories available as if they were current.
 Syntax: APPEND [drive:]path[;...] [/X[:ON|OFF]] [/PATH:ON|OFF] [/E]
@@ -130,6 +170,7 @@ Syntax: CHCP [nnn]
 @CHKDSK
 Checks a disk and displays a status report.
 Syntax: CHKDSK [drive:][[path]filename] [/F] [/V]
+See also: [SCANDISK], [DEFRAG], [RECOVER]
 @CHOICE
 Prompts for one key from a selectable list and returns its one-based position.
 Syntax: CHOICE [/C[:]choices] [/N] [/S] [/T[:]choice,seconds] [text]
@@ -168,6 +209,7 @@ Syntax: DEFRAG [drive:] [/F [/S[:]order] | /U] [/B] [/SKIPHIGH]
 Corrupt or inconsistent allocation metadata is refused before any disk write.
 Errorlevels distinguish full media, interruption, syntax/access, read, write,
 allocation corruption, and directory-capacity failures.
+See also: [SCANDISK], [CHKDSK]
 @DEL
 Deletes files.
 Syntax: DEL [drive:][path]filename [/P]
@@ -223,6 +265,7 @@ Syntax: FOR %variable IN (set) DO command
 Formats a disk for use with MS-DOS.
 Syntax: FORMAT drive: [/V[:label]] [/Q] [/U] [/C] [/S] [/F:size] [/1] [/4] [/8] [/B]
 /C retests clusters already marked bad; otherwise FORMAT preserves their marks.
+See also: [SYS], [FDISK], [SCANDISK]
 @GOTO
 Transfers batch execution to a label.
 Syntax: GOTO label
@@ -235,6 +278,8 @@ Syntax: GRAPHICS [printer-type] [profile] [/B] [/R] [/LCD] [/PRINTBOX:STD|LCD]
 @HELP
 Displays help for MS-DOS commands.
 Syntax: HELP [command]
+With no command, opens the full-screen browser. F3 searches all topics.
+See also: [FASTHELP]
 @IF
 Performs conditional processing in batch programs.
 Syntax: IF [NOT] condition command
@@ -372,6 +417,7 @@ Syntax: SCANDISK [drive:] [/ALL] [/AUTOFIX] [/CHECKONLY] [/CUSTOM]
 /CHECKONLY never repairs; /AUTOFIX repairs without prompting. /NOSAVE frees
 lost chains instead of saving FILEnnnn.CHK files. /SURFACE reads data clusters.
 With /CUSTOM, environment and repair policy come from SCANDISK.INI.
+See also: [CHKDSK], [DEFRAG], [RECOVER]
 @SET
 Displays, sets, or removes environment variables.
 Syntax: SET [variable=[string]]
@@ -433,3 +479,131 @@ Copies files and directory trees.
 Syntax: XCOPY source [destination] [/A|/M] [/D:date] [/P] [/S] [/E] [/V] [/W] [/Y|/-Y]
 Prompts before replacing files unless /Y or COPYCMD=/Y selects automatic replacement.
 Hidden and system files are not copied.
+@ANSI.SYS
+Provides ANSI escape-sequence display and keyboard control through CON.
+Syntax: DEVICE=[drive:][path]ANSI.SYS [/X] [/K] [/R]
+@BATCH
+Explains commands used in BAT files and COMMAND.COM command procedures.
+Syntax: CALL, ECHO, FOR, GOTO, IF, PAUSE, REM, SHIFT
+See also: [COMMAND], [CALL], [IF], [FOR]
+@BUFFERS
+Sets the number of disk buffers and optional secondary-cache buffers.
+Syntax: BUFFERS=n[,m]
+@COMMENT
+Marks a CONFIG.SYS line as explanatory text in a configuration block.
+Syntax: COMMENT=text
+See also: [REM], [MULTICONFIG]
+@CONFIG.SYS
+Describes startup directives processed before COMMAND.COM begins.
+Syntax: one CONFIG.SYS directive per line; menu blocks use [name] headings
+See also: [DEVICE], [DOS], [FILES], [MULTICONFIG]
+@COUNTRY
+Selects country-specific date, time, currency, and character conventions.
+Syntax: COUNTRY=country-code[,[code-page][,[drive:][path]COUNTRY.SYS]]
+@CPSW
+Enables or disables CONFIG.SYS code-page switching support.
+Syntax: CPSW=ON|OFF
+@DEVICE
+Loads a character or block device driver during CONFIG.SYS processing.
+Syntax: DEVICE=[drive:][path]driver [parameters]
+See also: [DEVICEHIGH], [DEVICES]
+@DEVICES
+Introduces installable DOS character and block drivers and request packets.
+Syntax: DEVICE=driver or DEVICEHIGH=driver
+See also: [ANSI.SYS], [DISPLAY.SYS], [DRIVER.SYS]
+@DEVICEHIGH
+Loads a device driver into an upper-memory block when space is available.
+Syntax: DEVICEHIGH [/L:region[,minsize]] [/S] =driver [parameters]
+@DISPLAY.SYS
+Adds code-page preparation and selection support to the console driver.
+Syntax: DEVICE=DISPLAY.SYS CON=(type,[hardware-code-page],[buffers])
+@DOS
+Controls high-memory residency, upper-memory linking, and automatic UMB use.
+Syntax: DOS=HIGH|LOW[,UMB|NOUMB][,AUTO|NOAUTO]
+@DRIVER.SYS
+Creates a logical block device with explicitly selected drive geometry.
+Syntax: DEVICE=DRIVER.SYS /D:number [/C] [/F:factor] [/H:heads] [/S:sectors] [/T:tracks]
+@DRIVPARM
+Overrides the BIOS geometry DOS uses for a physical disk drive.
+Syntax: DRIVPARM=/D:number [/C] [/F:factor] [/H:heads] [/I] [/N] [/S:sectors] [/T:tracks]
+@EGA.SYS
+Maintains EGA/VGA register state for programs using the EGA Register Interface.
+Syntax: DEVICE=EGA.SYS [FUNC=80..FF]
+@FASTHELP
+Prints the compact command index or one topic without opening full-screen Help.
+Syntax: FASTHELP [command]
+See also: [HELP]
+@FCBS
+Sets the number of file-control blocks DOS can keep open concurrently.
+Syntax: FCBS=n[,m]
+@FILES
+Sets the number of simultaneously open file handles available to DOS.
+Syntax: FILES=n
+@HIMEM.SYS
+Provides XMS memory, HMA ownership, A20 control, and upper-memory services.
+Syntax: DEVICE=HIMEM.SYS [/TESTMEM:ON|OFF] [/NUMHANDLES=n] [/MACHINE:n]
+@IFS
+Loads an installable file-system helper through CONFIG.SYS.
+Syntax: IFS=[drive:][path]driver [parameters]
+@IFSFUNC
+Provides resident support required by installable file-system redirectors.
+Syntax: IFSFUNC [NAMES=n]
+@INSTALL
+Runs a TSR or other resident program while CONFIG.SYS is processed.
+Syntax: INSTALL=[drive:][path]program [parameters]
+@INSTALLHIGH
+Runs a CONFIG.SYS resident program in upper memory when space is available.
+Syntax: INSTALLHIGH=[drive:][path]program [parameters]
+@INTERNATIONAL
+Summarizes national keyboard, country, code-page, and NLS configuration.
+Syntax: COUNTRY, CHCP, KEYB, MODE CON CP, DISPLAY.SYS, NLSFUNC
+See also: [COUNTRY], [KEYB], [CHCP]
+@LASTDRIVE
+Sets the highest drive letter DOS reserves for block devices and redirectors.
+Syntax: LASTDRIVE=letter
+@MULTICONFIG
+Builds selectable CONFIG.SYS menus and named startup configurations.
+Syntax: [MENU], [COMMON], or [block]; use MENUITEM, MENUDEFAULT, SUBMENU, INCLUDE
+See also: [MENUITEM], [MENUDEFAULT], [INCLUDE]
+@MULTITRACK
+Controls whether DOS reads and writes across track boundaries.
+Syntax: MULTITRACK=ON|OFF
+@NUMLOCK
+Selects the keyboard Num Lock state after CONFIG.SYS processing.
+Syntax: NUMLOCK=ON|OFF
+@PRINTER.SYS
+Adds prepared code-page support for compatible parallel printers.
+Syntax: DEVICE=PRINTER.SYS LPTn=(type,[hardware-code-page],[buffers])
+@RAMDRIVE.SYS
+Creates a memory-backed block device using conventional, extended, or expanded memory.
+Syntax: DEVICE=RAMDRIVE.SYS [size [sector-size [entries]]] [/E|/A]
+@REM
+Marks the rest of a batch or CONFIG.SYS line as a comment.
+Syntax: REM text
+@SETUP
+Installs or upgrades the system from the distribution disks.
+Syntax: SETUP [drive:\directory] [/Y]
+@SHELL
+Selects the command interpreter and its permanent-shell parameters.
+Syntax: SHELL=[drive:][path]COMMAND.COM [drive:][path] [/E:n] [/P]
+@SIZER.EXE
+Measures the resident memory used by a driver or TSR for MemMaker optimization.
+Syntax: SIZER.EXE program [parameters]
+@STACKS
+Sets the number and size of hardware-interrupt stacks reserved by DOS.
+Syntax: STACKS=n,size or STACKS=0,0
+@SWITCHES
+Controls conventional keyboard handling and the location of BIOS data.
+Syntax: SWITCHES=/F [/K] [/N] [/W]
+@VDISK.SYS
+Creates a DOS 5-compatible virtual disk in conventional or extended memory.
+Syntax: DEVICE=VDISK.SYS [size [sector-size [entries]]] [/E]
+@WHATSNEW
+Summarizes core additions retained from MS-DOS 5.0 through MS-DOS 6.22.
+Syntax: HELP command for details on configuration menus, memory, maintenance, and connectivity
+@XMA2EMS.SYS
+Maps supported extended-memory adapter storage through an EMS-compatible interface.
+Syntax: DEVICE=XMA2EMS.SYS [parameters]
+@XMAEM.SYS
+Provides extended-memory adapter management for compatible historical hardware.
+Syntax: DEVICE=XMAEM.SYS [parameters]

@@ -6,8 +6,8 @@ Watcom. The maintained source lives directly under `src`; the system reports
 DOS 6.22 and implements its UMB/HMA memory surface. The build is fully native
 and open source; it does not execute Microsoft build tools or DOS emulators.
 
-Stages 1-3 of the 6.22 roadmap and DOS UNDELETE are complete. The next stage
-finishes SETUP/recovery media, full-screen Help, and observable API parity.
+Stages 1-3 of the 6.22 roadmap, DOS UNDELETE, EGA.SYS, and full-screen Help are
+complete. The next stage finishes SETUP/recovery media and observable API parity.
 DriveSpace and QBASIC/EDIT are separate epics. See
 [DOS622_GAPS.md](DOS622_GAPS.md) for the current parity map and scope decisions.
 

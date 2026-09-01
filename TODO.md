@@ -4,11 +4,10 @@ The complete product comparison and unsupported option surfaces are in
 [DOS622_GAPS.md](DOS622_GAPS.md). Current priorities are:
 
 1. improve SETUP, upgrade, rollback, recovery media, and component selection;
-2. add standalone full-screen Help;
-3. audit and close application-visible documented and undocumented API gaps;
-4. implement retail-compatible DriveSpace, followed optionally by an explicit
+2. audit and close application-visible documented and undocumented API gaps;
+3. implement retail-compatible DriveSpace, followed optionally by an explicit
    extended format; and
-5. audit the rest of the Supplemental Disk while keeping QBASIC/EDIT as a
+4. audit the rest of the Supplemental Disk while keeping QBASIC/EDIT as a
    separate epic.
 
 MSBACKUP, MSAV, VSAFE, DOSSHELL, and Task Swapper are deliberate non-goals.

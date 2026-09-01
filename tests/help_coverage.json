@@ -1,5 +1,9 @@
 {
   "schema": 1,
+  "required_topics": [
+    "BATCH", "CONFIG.SYS", "DEVICES", "INTERNATIONAL", "MULTICONFIG",
+    "WHATSNEW"
+  ],
   "no_help_interfaces": {
     "COMMAND.COM": {"source": "src/CMD/COMMAND/UINIT.ASM", "marker": "COMMAND_SWITCH6 LABEL", "evidence": ["tests/test_command_startup_qemu.sh", "tests/command_coverage.json"], "note": "The shell has source-derived startup switches and per-built-in help, but no top-level /? command-line contract"},
     "EMM386.EXE": {"source": "src/MEMM/MEMM/MEMM_MSG.INC", "marker": "Usage: EMM386", "evidence": ["tests/test_emm386_qemu.sh", "tests/test_emm386_load_options_qemu.sh"], "note": "The dual-purpose driver command exposes ON, OFF, AUTO, and W= runtime control; it has no accepted /? form"},
