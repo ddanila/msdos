@@ -31,7 +31,7 @@ AINC     := -I. -ID:\\TOOLS\\INC
 .PHONY: test-utility-parser-coverage-manifest test-keyboard-records test-country-records test-country-matrix-qemu
 .PHONY: test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-szdd-tool distribution test-distribution test-setup-qemu test-mirror-unformat-qemu test-undelete-qemu
 .PHONY: test-command-step-qemu test-msd-qemu test-scandisk-qemu test-defrag-qemu test-defrag-fat16-qemu test-mem-dos6-qemu test-memmaker-qemu test-memmaker-rollback-qemu test-power-qemu test-power-api-qemu test-config-menu-qemu test-config-menu-input-qemu
-.PHONY: test-copy-policy-qemu test-86box-286-boot
+.PHONY: test-copy-policy-qemu test-86box-286-boot test-platform-286-86box test-pre386-memory-86box test-startup-reboot-286-86box
 .PHONY: test-xcopy-dos6-qemu
 .PHONY: test-config-numlock-qemu
 .PHONY: test-config-set-qemu
@@ -596,10 +596,22 @@ test-86box-286-boot:
 test-himem-286-86box: deploy
 	bash tests/test_himem_286_86box.sh
 
+test-platform-286-86box: deploy
+	bash tests/test_platform_286_86box.sh
+
+test-pre386-memory-86box: deploy
+	bash tests/test_pre386_memory_86box.sh
+
+test-startup-reboot-286-86box: deploy
+	bash tests/test_startup_reboot_286_86box.sh
+
 # Deliberately local-only while hosted CI is disabled.
 test-286-acceptance: deploy
 	bash tests/test_86box_286_boot.sh
 	bash tests/test_himem_286_86box.sh
+	bash tests/test_platform_286_86box.sh
+	bash tests/test_pre386_memory_86box.sh
+	bash tests/test_startup_reboot_286_86box.sh
 
 test-hardware-matrix: deploy
 	bash tests/test_hardware_matrix.sh

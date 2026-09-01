@@ -77,6 +77,59 @@ static unsigned ui_mouse_y;
 static int ask_yes_no(const char *prompt);
 static int interactive_mode(struct options *options);
 
+static int cpu_at_least_386(void)
+{
+    unsigned original;
+    unsigned cleared;
+    unsigned raised;
+
+    _asm {
+        pushf
+        pop ax
+        mov original, ax
+        and ax, 0x0fff
+        push ax
+        popf
+        pushf
+        pop ax
+        mov cleared, ax
+        mov ax, original
+        or ax, 0xf000
+        push ax
+        popf
+        pushf
+        pop ax
+        mov raised, ax
+        mov ax, original
+        push ax
+        popf
+    }
+    return (cleared & 0xf000U) == 0 && (raised & 0xf000U) != 0;
+}
+
+static int emm386_installed(void)
+{
+    static char device[] = "EMMXXXX0";
+    union REGS regs;
+    struct SREGS segments;
+    unsigned handle;
+
+    memset(&regs, 0, sizeof(regs));
+    segread(&segments);
+    regs.x.ax = 0x3d00;
+    regs.x.dx = FP_OFF(device);
+    segments.ds = FP_SEG(device);
+    intdosx(&regs, &regs, &segments);
+    if (regs.x.cflag)
+        return 0;
+    handle = regs.x.ax;
+    memset(&regs, 0, sizeof(regs));
+    regs.h.ah = 0x3e;
+    regs.x.bx = handle;
+    intdos(&regs, &regs);
+    return 1;
+}
+
 static unsigned umb_region_size(unsigned region)
 {
     union REGS regs;
@@ -1481,6 +1534,10 @@ int main(int argc, char **argv)
     }
     if (parse_options(argc, argv, &options)) {
         usage();
+        return 1;
+    }
+    if (!cpu_at_least_386() && !emm386_installed()) {
+        fputs("MemMaker requires an 80386 or higher processor.\n", stderr);
         return 1;
     }
     if (options.swap_set)

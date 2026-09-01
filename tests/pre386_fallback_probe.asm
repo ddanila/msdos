@@ -18,9 +18,14 @@ start:
     mov ah, 30h
     int 21h
     cmp al, 5
-    jne fail_version
-    cmp ah, 0
-    jne fail_version
+    jb fail_version
+
+%ifdef CHECK_EMM_DEVICE
+    mov dx, emm_device
+    mov ax, 3d00h
+    int 21h
+    jnc fail_link
+%endif
 
     mov ax, 5802h
     int 21h
@@ -69,6 +74,9 @@ pass_message db 'PRE386_FALLBACK_PASS', 13, 10, '$'
 fail_version_message db 'PRE386_VERSION_FAIL', 13, 10, '$'
 fail_link_message db 'PRE386_LINK_FAIL', 13, 10, '$'
 fail_alloc_message db 'PRE386_ALLOC_FAIL', 13, 10, '$'
+%ifdef CHECK_EMM_DEVICE
+emm_device db 'EMMXXXX0', 0
+%endif
 stack_space times 128 db 0
 stack_top:
 program_end:

@@ -113,9 +113,11 @@ embedded in AUTOEXEC.BAT from satisfying its own output assertion.
 ## Runtime layers
 
 kvikdos is the fast layer for deterministic command behavior that does not
-depend on a complete machine. QEMU is required for kernel and hardware
+depend on a complete machine. QEMU covers 386-and-newer kernel and hardware
 contracts, boot flow, interrupts, filesystems, block devices, drivers, TSRs,
-interactive console behavior, and EMM386.
+interactive console behavior, and EMM386. The local 86Box suite is authoritative
+for IBM AT 80286 BIOS, A20/HMA, CPU rejection, fallback, and reboot contracts;
+see [EMULATION.md](../EMULATION.md).
 
 Tests that mutate disks or files use private copies and accept a `FLOPPY_IMAGE`
 override where appropriate. This permits parallel execution and supports the

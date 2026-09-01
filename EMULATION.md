@@ -57,8 +57,9 @@ status alone.
 
 ## Implementation stages
 
-Current status: Stages 1 and 2 are complete. A clean IBM AT BIOS boot, the
-standalone BIOS block move, and the HIMEM XMS lifecycle pass in 86Box 6.0.
+Current status: Stages 1 through 3 are complete. The local suite covers clean
+boot, BIOS block moves, the DOS 6.22 memory stack, AT hardware interfaces, and
+pre-386 fallback on 86Box 6.0.
 
 ### 1. Prove the HIMEM path
 
@@ -77,6 +78,9 @@ captured without interaction, and the test has a bounded shutdown path.
 
 Run `gmake test-286-acceptance` for the real-BIOS acceptance path and
 `gmake test-himem-286-dosbox` for the faster synthesized-BIOS comparison.
+DOSBox-X 2026.08.02 passes the focused HIMEM lifecycle but does not reach
+AUTOEXEC in the broader HIMEM-plus-EMM386 pre-386 image; keep
+`test-pre386-dosbox` diagnostic and non-blocking.
 
 ### Local prerequisites
 
@@ -99,17 +103,26 @@ result, and timeout.
 
 ### 3. Expand 286 coverage
 
-Move hardware-sensitive contracts to the 86Box acceptance set as they become
-relevant:
+Goal: extend the real-BIOS IBM AT suite so every hardware-sensitive DOS 6.22
+component has an explicit 80286 contract, and fix any incompatibilities it
+finds. Keep 86Box authoritative for AT hardware behavior, DOSBox-X as the fast
+comparison, and QEMU for 386-and-newer coverage.
 
-- HIMEM A20 methods, HMA ownership, XMS moves, and `/TESTMEM`;
-- EMM386 rejection and diagnostics on a real 286;
-- CPU detection and unsupported-instruction paths;
-- BIOS disk geometry, reboot, and keyboard-controller behavior;
-- startup paths whose outcome differs between 286 and 386 machines.
+- [x] Cover HIMEM A20 methods, HMA ownership, XMS moves, and `/TESTMEM`.
+- [x] Prove that EMM386 rejects a 286 cleanly without leaving hooks or damaged
+  DOS state.
+- [x] Exercise CPU detection and unsupported-instruction paths.
+- [x] Prove safe fallback for `DEVICEHIGH`, `LOADHIGH`, and MemMaker when 386 or
+  UMB facilities are unavailable.
+- [x] Cover startup selection, keyboard handling, disk geometry, and reboot on
+  the reference IBM AT.
+- [x] Include the completed contracts in `gmake test-286-acceptance` and update
+  the gap and runtime-coverage manifests.
 
-Keep pure command parsing, filesystem logic, and fast smoke coverage on the
-existing backends.
+Acceptance: every test uses a fresh temporary image, emits a bounded result,
+and leaves no 386-only instruction reachable on a supported 286 path. Keep pure
+command parsing, filesystem logic, and fast smoke coverage on the existing
+backends.
 
 ### 4. Add an independent oracle only when needed
 
