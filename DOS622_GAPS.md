@@ -73,9 +73,7 @@ The following retail programs remain absent by decision, not as open work:
 
 The remaining durable gaps are:
 
-- rollback/uninstall with recoverable startup-file and system backups;
-- SETUP component choices for the implemented memory, cache, and protection
-  tools.
+- rollback/uninstall with recoverable startup-file and system backups.
 
 Standalone `HELP` now provides the full-screen browser independently of
 QBASIC: an alphabetized topic index, full-corpus search, keyboard paging,
@@ -91,7 +89,9 @@ accepts the retail `/B` display form, and `/F` creates a self-contained bootable
 recovery floppy without references to omitted Disk 2 components. Retail `/E`
 configures excluded Windows companions and therefore reports that boundary
 explicitly. Upgrade mode deliberately preserves user startup files
-byte-for-byte. Component selection and rollback/uninstall remain.
+byte-for-byte. Interactive fresh installation selects memory management,
+SMARTDrive startup, and Delete Sentry independently; `/Y` applies the safe
+memory/cache defaults without enabling Sentry. Rollback/uninstall remains.
 
 ### EGA.SYS
 

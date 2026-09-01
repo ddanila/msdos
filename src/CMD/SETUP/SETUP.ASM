@@ -9,6 +9,9 @@ fresh_msg       db 'Fresh installation to $'
 upgrade_msg     db 'Upgrade installation in $'
 floppy_msg      db 'Minimal startup-disk installation to $'
 confirm_msg     db 13,10,'Continue (Y/N)? $'
+memory_prompt   db 'Configure HIMEM and 386+ EMM386 (Y/N)? $'
+cache_prompt    db 'Load SMARTDrive at startup (Y/N)? $'
+sentry_prompt   db 'Enable UNDELETE Delete Sentry at startup (Y/N)? $'
 disk2_msg       db 13,10,'Insert MS-DOS 6.22 Disk 2 in drive A and press ENTER.',13,10,'$'
 wrong_disk_msg  db 'Disk 2 was not found. Press ENTER to try again.',13,10,'$'
 complete_msg    db 13,10,'Setup completed successfully.',13,10,'$'
@@ -30,11 +33,12 @@ config_prefix   db 'DEVICE=',0
 config_himem    db '\HIMEM.SYS',13,10,0
 config_device   db 'DEVICE=',0
 config_memory   db '\EMM386.EXE NOEMS',13,10,0
-config_high     db 'DOS=HIGH,UMB',13,10,'FILES=30',13,10
-                db 'BUFFERS=20',13,10,0
+config_high     db 'DOS=HIGH,UMB',13,10,0
+config_files    db 'FILES=30',13,10,'BUFFERS=20',13,10,0
 auto_prefix     db '@ECHO OFF',13,10,'PATH ',0
 auto_cache      db 13,10,0
 smartdrv_suffix db '\SMARTDRV.EXE',13,10,0
+sentry_suffix   db '\UNDELETE.COM /S',13,10,0
 recovery_config db 'FILES=20',13,10,'BUFFERS=10',13,10,'LASTDRIVE=Z',13,10,0
 
 core_sources    dw offset core_command, offset core_expand, offset core_sys
@@ -53,6 +57,9 @@ cpu_386         db 0
 mono_mode       db 0
 floppy_mode     db 0
 windows_mode    db 0
+use_memory      db 1
+use_cache       db 1
+use_sentry      db 0
 core_index      dw 0
 destination     db 64 dup (0)
 source_path     db 128 dup (0)
@@ -144,6 +151,14 @@ show_mode:
         cmp     al,'Y'
         jne     setup_cancel
 confirmed:
+        cmp     auto_yes,0
+        jne     choices_done
+        cmp     upgrade_mode,0
+        jne     choices_done
+        cmp     floppy_mode,0
+        jne     choices_done
+        call    choose_components
+choices_done:
         call    copy_core_files
         jc      setup_fail
         call    transfer_system
@@ -629,6 +644,8 @@ create_fresh_configuration proc near
         int     21h
         jnc     config_exists
         mov     di,offset copy_buffer
+        cmp     use_memory,0
+        je      config_without_memory
         mov     si,offset config_prefix
         call    copy_string
         dec     di
@@ -651,6 +668,10 @@ create_fresh_configuration proc near
         dec     di
 config_without_emm386:
         mov     si,offset config_high
+        call    copy_string
+        dec     di
+config_without_memory:
+        mov     si,offset config_files
         call    copy_string
         dec     di
         mov     cx,di
@@ -681,12 +702,24 @@ config_exists:
         mov     si,offset auto_cache
         call    copy_string
         dec     di
+        cmp     use_cache,0
+        je      auto_without_cache
         mov     si,offset destination
         call    copy_string
         dec     di
         mov     si,offset smartdrv_suffix
         call    copy_string
         dec     di
+auto_without_cache:
+        cmp     use_sentry,0
+        je      auto_without_sentry
+        mov     si,offset destination
+        call    copy_string
+        dec     di
+        mov     si,offset sentry_suffix
+        call    copy_string
+        dec     di
+auto_without_sentry:
         mov     cx,di
         sub     cx,offset copy_buffer
         mov     dx,offset target_path
@@ -700,6 +733,44 @@ config_failed:
         stc
         ret
 create_fresh_configuration endp
+
+choose_components proc near
+        mov     dx,offset memory_prompt
+        mov     bl,1
+        call    ask_yes_no
+        mov     use_memory,al
+        mov     dx,offset cache_prompt
+        mov     bl,1
+        call    ask_yes_no
+        mov     use_cache,al
+        mov     dx,offset sentry_prompt
+        xor     bl,bl
+        call    ask_yes_no
+        mov     use_sentry,al
+        ret
+choose_components endp
+
+; DX is a prompt and BL is the default for an empty response. Returns AL=0/1.
+ask_yes_no proc near
+ask_yes_no_again:
+        call    print
+        call    read_line
+        mov     al,bl
+        cmp     input_buffer[1],0
+        je      short ask_yes_no_done
+        mov     al,input_buffer[2]
+        and     al,0dfh
+        cmp     al,'Y'
+        je      short ask_yes_no_yes
+        cmp     al,'N'
+        jne     short ask_yes_no_again
+        xor     al,al
+        jmp     short ask_yes_no_done
+ask_yes_no_yes:
+        mov     al,1
+ask_yes_no_done:
+        ret
+ask_yes_no endp
 
 ; A /F system is intentionally self-contained on the target floppy and does
 ; not reference compressed Disk 2 components that were not copied there.

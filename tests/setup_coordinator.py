@@ -38,6 +38,10 @@ in_fd = os.open(serial_in, os.O_WRONLY)
 out_fd = os.open(serial_out, os.O_RDONLY | os.O_NONBLOCK)
 buffer = bytearray()
 swapped = False
+confirmed = False
+memory_selected = False
+cache_selected = False
+sentry_selected = False
 deadline = time.time() + 90
 with open(log_path, "wb") as log:
     while time.time() < deadline:
@@ -48,6 +52,18 @@ with open(log_path, "wb") as log:
                 log.write(chunk)
                 log.flush()
                 buffer += chunk
+                if not confirmed and b"Continue (Y/N)?" in buffer:
+                    os.write(in_fd, b"Y\r")
+                    confirmed = True
+                if not memory_selected and b"Configure HIMEM" in buffer:
+                    os.write(in_fd, b"Y\r")
+                    memory_selected = True
+                if not cache_selected and b"Load SMARTDrive" in buffer:
+                    os.write(in_fd, b"N\r")
+                    cache_selected = True
+                if not sentry_selected and b"Enable UNDELETE Delete Sentry" in buffer:
+                    os.write(in_fd, b"Y\r")
+                    sentry_selected = True
                 if not swapped and b"Insert MS-DOS 6.22 Disk 2" in buffer:
                     change_disk()
                     os.write(in_fd, b"\r")

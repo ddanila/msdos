@@ -24,7 +24,7 @@ cp "$DISK1" "$FLOPPY_IMAGE"
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
-    printf 'SETUP C:\\DOS /Y\r\n'
+    printf 'SETUP C:\\DOS\r\n'
 } | mcopy -o -i "$FLOPPY_IMAGE" - ::AUTOEXEC.BAT
 
 dd if=/dev/zero of="$HDD" bs=512 count=64512 status=none
@@ -110,8 +110,9 @@ if grep -Fq 'DEVICE=C:\DOS\HIMEM.SYS' <<<"$config" \
     && grep -Fq 'DEVICE=C:\DOS\EMM386.EXE NOEMS' <<<"$config" \
     && grep -Fq 'DOS=HIGH,UMB' <<<"$config" \
     && grep -Fq 'PATH C:\DOS' <<<"$autoexec" \
-    && grep -Fq 'C:\DOS\SMARTDRV.EXE' <<<"$autoexec"; then
-    ok "fresh SETUP creates DOS 6.22 memory and cache startup defaults"
+    && ! grep -Fq 'SMARTDRV.EXE' <<<"$autoexec" \
+    && grep -Fq 'C:\DOS\UNDELETE.COM /S' <<<"$autoexec"; then
+    ok "fresh SETUP applies mixed memory, cache, and protection choices"
 else
     fail "fresh SETUP configuration defaults"
 fi

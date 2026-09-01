@@ -585,6 +585,8 @@ Installs or upgrades the system from the distribution disks.
 Syntax: SETUP [drive:\directory] [/Y] [/B] [/F] or SETUP /E
 /B selects monochrome text, /F creates a minimal bootable floppy, and /E is
 reserved for Windows companions that this distribution deliberately excludes.
+Interactive fresh installation selects memory, cache, and Delete Sentry startup
+components; /Y accepts the default memory and cache choices.
 @SHELL
 Selects the command interpreter and its permanent-shell parameters.
 Syntax: SHELL=[drive:][path]COMMAND.COM [drive:][path] [/E:n] [/P]
