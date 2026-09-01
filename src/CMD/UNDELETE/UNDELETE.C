@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <direct.h>
 #include <dos.h>
 #include <process.h>
 #include <stdio.h>
@@ -15,6 +16,21 @@ extern unsigned __cdecl tracker_install(void);
 extern unsigned __cdecl tracker_probe(void);
 extern unsigned __cdecl tracker_remove(void);
 extern unsigned __cdecl tracker_keep_paragraphs(void);
+extern void __cdecl tracker_set_sentry(unsigned mode);
+
+#define SENTRY_VERSION 1
+
+struct sentry_header {
+    char magic[8];
+    unsigned version;
+    unsigned long next_id;
+};
+
+struct sentry_record {
+    unsigned active;
+    char stored_name[13];
+    char original_path[128];
+};
 
 struct volume {
     unsigned drive;
@@ -583,10 +599,11 @@ static int parse_tracker_switch(const char *argument, unsigned *drive,
     return 0;
 }
 
-static int report_tracker_status(void)
+static int report_protection_status(void)
 {
     char active_name[] = "A:\\PCTRACKR.ACT";
     char final_name[] = "A:\\PCTRACKR.DEL";
+    char sentry_name[] = "A:\\SENTRY\\CONTROL.DAT";
     unsigned drive;
     unsigned found = 0;
     int resident = tracker_probe() != 0;
@@ -594,6 +611,15 @@ static int report_tracker_status(void)
     for (drive = 0; drive < 26; ++drive) {
         FILE *file;
         active_name[0] = final_name[0] = (char)('A' + drive);
+        sentry_name[0] = (char)('A' + drive);
+        file = fopen(sentry_name, "rb");
+        if (file) {
+            fclose(file);
+            ++found;
+            printf("Drive %c: Delete Sentry %s.\n", 'A' + drive,
+                   resident ? "is active" : "is configured but not loaded");
+            continue;
+        }
         file = fopen(active_name, "rb");
         if (!file)
             file = fopen(final_name, "rb");
@@ -766,6 +792,373 @@ static int load_undelete_ini(void)
     }
     if (!installed)
         keep_tracker_resident();
+    return 0;
+}
+
+static int path_exists(const char *path)
+{
+    struct find_t found;
+    return !_dos_findfirst(path, 0x37, &found);
+}
+
+static int create_sentry(unsigned drive)
+{
+    struct sentry_header header;
+    char directory[] = "A:\\SENTRY";
+    char control[] = "A:\\SENTRY\\CONTROL.DAT";
+    FILE *file;
+
+    directory[0] = control[0] = (char)('A' + drive);
+    if (_mkdir(directory) && !path_exists(directory)) {
+        fprintf(stderr, "UNDELETE: cannot create SENTRY on drive %c:.\n",
+                'A' + drive);
+        return 1;
+    }
+    _dos_setfileattr(directory, 0x06);
+    file = fopen(control, "rb");
+    if (file) {
+        int valid = fread(&header, 1, sizeof(header), file) == sizeof(header) &&
+                    !memcmp(header.magic, "MSD6SNT", 8) &&
+                    header.version == SENTRY_VERSION;
+        fclose(file);
+        if (!valid) {
+            fprintf(stderr, "UNDELETE: invalid SENTRY metadata on drive %c:.\n",
+                    'A' + drive);
+            return 1;
+        }
+        return 0;
+    }
+    memset(&header, 0, sizeof(header));
+    memcpy(header.magic, "MSD6SNT", 8);
+    header.version = SENTRY_VERSION;
+    header.next_id = 1;
+    file = fopen(control, "wb");
+    if (!file) {
+        fprintf(stderr, "UNDELETE: cannot initialize SENTRY on drive %c:.\n",
+                'A' + drive);
+        return 1;
+    }
+    {
+        int write_error = fwrite(&header, 1, sizeof(header), file) != sizeof(header);
+        int close_error = fclose(file);
+        if (write_error || close_error) {
+        remove(control);
+        fprintf(stderr, "UNDELETE: cannot initialize SENTRY on drive %c:.\n",
+                'A' + drive);
+        return 1;
+        }
+    }
+    _dos_setfileattr(control, 0x06);
+    printf("Delete Sentry enabled on drive %c:.\n", 'A' + drive);
+    return 0;
+}
+
+static int canonical_delete_path(const char far *far_path, char path[128],
+                                 unsigned *drive)
+{
+    char relative[128];
+    char current[67];
+    unsigned index;
+    unsigned current_drive;
+
+    for (index = 0; index + 1 < sizeof(relative) && far_path[index]; ++index)
+        relative[index] = far_path[index];
+    relative[index] = 0;
+    if (!*relative || strchr(relative, '*') || strchr(relative, '?'))
+        return 1;
+    _dos_getdrive(&current_drive);
+    *drive = current_drive - 1;
+    if (isalpha(relative[0]) && relative[1] == ':') {
+        *drive = (unsigned)(toupper(relative[0]) - 'A');
+        memmove(relative, relative + 2, strlen(relative + 2) + 1);
+    }
+    if (relative[0] == '\\' || relative[0] == '/') {
+        if (strlen(relative) + 3 > 128)
+            return 1;
+        sprintf(path, "%c:%s", 'A' + *drive, relative);
+    } else {
+        if (current_path(*drive, current))
+            return 1;
+        if (strlen(current) + strlen(relative) + 4 > 128)
+            return 1;
+        if (*current)
+            sprintf(path, "%c:\\%s\\%s", 'A' + *drive, current, relative);
+        else
+            sprintf(path, "%c:\\%s", 'A' + *drive, relative);
+    }
+    return !strnicmp(path + 2, "\\SENTRY\\", 8);
+}
+
+unsigned __cdecl sentry_capture_far(const char far *far_path)
+{
+    struct sentry_header header;
+    struct sentry_record record;
+    char original[128];
+    char control[] = "A:\\SENTRY\\CONTROL.DAT";
+    char stored[32];
+    unsigned drive;
+    FILE *file;
+
+    if (canonical_delete_path(far_path, original, &drive))
+        return 0;
+    control[0] = (char)('A' + drive);
+    file = fopen(control, "rb+");
+    if (!file)
+        return 0;
+    if (fread(&header, 1, sizeof(header), file) != sizeof(header) ||
+        memcmp(header.magic, "MSD6SNT", 8) ||
+        header.version != SENTRY_VERSION) {
+        fclose(file);
+        return 0;
+    }
+    for (;;) {
+        sprintf(stored, "%c:\\SENTRY\\%08lX.DEL", 'A' + drive,
+                header.next_id++);
+        if (!path_exists(stored))
+            break;
+        if (!header.next_id) {
+            fclose(file);
+            return 0;
+        }
+    }
+    if (rename(original, stored)) {
+        fclose(file);
+        return 0;
+    }
+    memset(&record, 0, sizeof(record));
+    record.active = 1;
+    strcpy(record.stored_name, strrchr(stored, '\\') + 1);
+    strcpy(record.original_path, original);
+    fseek(file, 0, SEEK_END);
+    if (fwrite(&record, 1, sizeof(record), file) != sizeof(record)) {
+        fclose(file);
+        rename(stored, original);
+        return 0;
+    }
+    rewind(file);
+    {
+        int write_error = fwrite(&header, 1, sizeof(header), file) != sizeof(header);
+        int close_error = fclose(file);
+        if (write_error || close_error) {
+        rename(stored, original);
+        return 0;
+        }
+    }
+    return 1;
+}
+
+unsigned __cdecl sentry_capture_fcb(const unsigned char far *far_fcb)
+{
+    struct find_t found;
+    union REGS inregs, outregs;
+    struct SREGS segregs;
+    void far *old_dta;
+    char pattern[16];
+    char candidate[16];
+    unsigned drive;
+    unsigned source;
+    unsigned target = 0;
+    unsigned handled = 0;
+
+    if (far_fcb[0] == 0xff)
+        far_fcb += 7;
+    drive = far_fcb[0];
+    if (drive) {
+        pattern[target++] = candidate[0] = (char)('A' + drive - 1);
+        pattern[target++] = candidate[1] = ':';
+    }
+    for (source = 1; source < 9 && far_fcb[source] != ' '; ++source)
+        pattern[target++] = (char)far_fcb[source];
+    if (far_fcb[9] != ' ') {
+        pattern[target++] = '.';
+        for (source = 9; source < 12 && far_fcb[source] != ' '; ++source)
+            pattern[target++] = (char)far_fcb[source];
+    }
+    pattern[target] = 0;
+    memset(&inregs, 0, sizeof(inregs));
+    segread(&segregs);
+    inregs.h.ah = 0x2f;
+    int86x(0x21, &inregs, &outregs, &segregs);
+    old_dta = MK_FP(segregs.es, outregs.x.bx);
+    if (!_dos_findfirst(pattern, 0x27, &found)) {
+        do {
+            target = 0;
+            if (drive) {
+                candidate[target++] = (char)('A' + drive - 1);
+                candidate[target++] = ':';
+            }
+            strcpy(candidate + target, found.name);
+            handled |= sentry_capture_far(candidate);
+        } while (!_dos_findnext(&found));
+    }
+    memset(&inregs, 0, sizeof(inregs));
+    inregs.h.ah = 0x1a;
+    inregs.x.dx = FP_OFF(old_dta);
+    segregs.ds = FP_SEG(old_dta);
+    int86x(0x21, &inregs, &outregs, &segregs);
+    return handled;
+}
+
+static int sentry_requested_directory(unsigned drive, const char *path,
+                                      char directory[128])
+{
+    const char *slash;
+    const char *other;
+    unsigned length;
+
+    while (*path == '\\' || *path == '/')
+        ++path;
+    slash = strrchr(path, '\\');
+    other = strrchr(path, '/');
+    if (!slash || (other && other > slash))
+        slash = other;
+    sprintf(directory, "%c:\\", 'A' + drive);
+    if (!slash)
+        return 0;
+    length = (unsigned)(slash - path);
+    if (length && 3 + length >= 128)
+        return 1;
+    memcpy(directory + 3, path, length);
+    directory[3 + length] = 0;
+    return 0;
+}
+
+static int process_sentry(unsigned drive, const char *path,
+                          const unsigned char pattern[11], int list_only,
+                          int automatic)
+{
+    struct sentry_header header;
+    struct sentry_record record;
+    char control[] = "A:\\SENTRY\\CONTROL.DAT";
+    char stored[32];
+    char wanted_directory[128];
+    char record_path[128];
+    char original_name[13];
+    char *name;
+    unsigned char raw_name[11];
+    unsigned found = 0;
+    int status = 0;
+    long record_offset;
+    FILE *file;
+
+    control[0] = (char)('A' + drive);
+    if (sentry_requested_directory(drive, path, wanted_directory))
+        return 1;
+    file = fopen(control, "rb+");
+    if (!file || fread(&header, 1, sizeof(header), file) != sizeof(header) ||
+        memcmp(header.magic, "MSD6SNT", 8) || header.version != SENTRY_VERSION) {
+        if (file)
+            fclose(file);
+        puts("No Delete Sentry files were found.");
+        return 1;
+    }
+    for (;;) {
+        record_offset = ftell(file);
+        if (fread(&record, 1, sizeof(record), file) != sizeof(record))
+            break;
+        if (!record.active)
+            continue;
+        strcpy(record_path, record.original_path);
+        name = strrchr(record_path, '\\');
+        if (!name)
+            continue;
+        strcpy(original_name, name + 1);
+        *name = 0;
+        if (record_path[1] == ':' && !record_path[2])
+            strcat(record_path, "\\");
+        if (stricmp(record_path, wanted_directory))
+            continue;
+        make_83(original_name, raw_name, 0);
+        if (!name_matches(raw_name, pattern, 0))
+            continue;
+        ++found;
+        if (list_only) {
+            printf("%s  protected by Delete Sentry\n", original_name);
+            continue;
+        }
+        if (!automatic) {
+            int answer;
+            printf("Restore %s (Y/N)? ", original_name);
+            answer = getchar();
+            while (answer != '\n' && getchar() != '\n')
+                ;
+            if (toupper(answer) != 'Y')
+                continue;
+        }
+        if (path_exists(record.original_path)) {
+            printf("%s already exists.\n", record.original_path);
+            status = 1;
+            continue;
+        }
+        sprintf(stored, "%c:\\SENTRY\\%s", 'A' + drive,
+                record.stored_name);
+        if (rename(stored, record.original_path)) {
+            printf("Cannot restore %s.\n", record.original_path);
+            status = 1;
+            continue;
+        }
+        record.active = 0;
+        fseek(file, record_offset, SEEK_SET);
+        if (fwrite(&record, 1, sizeof(record), file) != sizeof(record)) {
+            rename(record.original_path, stored);
+            fclose(file);
+            return 1;
+        }
+        fseek(file, record_offset + (long)sizeof(record), SEEK_SET);
+        printf("Restored %s\n", record.original_path);
+    }
+    fclose(file);
+    if (!found) {
+        puts("No Delete Sentry files were found.");
+        return 1;
+    }
+    return status;
+}
+
+static int purge_sentry(unsigned drive)
+{
+    struct sentry_header header;
+    struct sentry_record record;
+    char control[] = "A:\\SENTRY\\CONTROL.DAT";
+    char stored[32];
+    FILE *file;
+    unsigned purged = 0;
+
+    control[0] = (char)('A' + drive);
+    file = fopen(control, "rb");
+    if (!file || fread(&header, 1, sizeof(header), file) != sizeof(header) ||
+        memcmp(header.magic, "MSD6SNT", 8) || header.version != SENTRY_VERSION) {
+        if (file)
+            fclose(file);
+        puts("No Delete Sentry files were found.");
+        return 1;
+    }
+    while (fread(&record, 1, sizeof(record), file) == sizeof(record)) {
+        if (!record.active)
+            continue;
+        sprintf(stored, "%c:\\SENTRY\\%s", 'A' + drive,
+                record.stored_name);
+        _dos_setfileattr(stored, 0);
+        if (remove(stored)) {
+            fclose(file);
+            fprintf(stderr, "UNDELETE: cannot purge %s.\n", stored);
+            return 1;
+        }
+        ++purged;
+    }
+    fclose(file);
+    header.next_id = 1;
+    file = fopen(control, "wb");
+    if (!file || fwrite(&header, 1, sizeof(header), file) != sizeof(header)) {
+        if (file)
+            fclose(file);
+        return 1;
+    }
+    if (fclose(file))
+        return 1;
+    _dos_setfileattr(control, 0x06);
+    printf("Purged %u Delete Sentry file(s) from drive %c:.\n",
+           purged, 'A' + drive);
     return 0;
 }
 
@@ -1110,8 +1503,9 @@ static int process_tracker(const struct volume *volume, unsigned directory,
 static void usage(void)
 {
     puts("Restores files deleted with DEL.");
-    puts("UNDELETE [[drive:][path]filename] [/LIST|/ALL] [/DOS|/DT]");
-    puts("UNDELETE /LOAD | /Tdrive[-entries] | /STATUS | /UNLOAD");
+    puts("UNDELETE [[drive:][path]filename] [/LIST|/ALL] [/DOS|/DT|/DS]");
+    puts("UNDELETE /LOAD | /S[drive] | /Tdrive[-entries]");
+    puts("         /PURGE[drive] | /STATUS | /UNLOAD");
 }
 
 void __cdecl tracker_capture_far(const char far *far_path)
@@ -1218,6 +1612,7 @@ int main(int argc, char **argv)
     unsigned directory;
     unsigned char pattern[11];
     char path[128] = "*.*";
+    char sentry_path[128];
     char combined[128];
     char directory_path[67];
     char *filespec;
@@ -1225,9 +1620,27 @@ int main(int argc, char **argv)
     int automatic = 0;
     int source_dos = 0;
     int source_dt = 0;
+    int source_ds = 0;
     int have_operand = 0;
     int i;
 
+    if (argc == 2 && argv[1][0] == '/' && toupper(argv[1][1]) == 'S' &&
+        (argv[1][2] == 0 || (isalpha(argv[1][2]) && argv[1][3] == 0))) {
+        int installed = tracker_probe();
+        if (installed) {
+            fputs("UNDELETE: unload the current protection method first.\n", stderr);
+            return 1;
+        }
+        _dos_getdrive(&drive);
+        --drive;
+        if (argv[1][2])
+            drive = (unsigned)(toupper(argv[1][2]) - 'A');
+        if (create_sentry(drive))
+            return 1;
+        tracker_set_sentry(1);
+        keep_tracker_resident();
+        return 0;
+    }
     if (argc == 2 && !strnicmp(argv[1], "/T", 2) &&
         stricmp(argv[1], "/TRACK") && stricmp(argv[1], "/TRACKSTATUS")) {
         unsigned entries;
@@ -1252,7 +1665,7 @@ int main(int argc, char **argv)
     if (argc == 2 && !stricmp(argv[1], "/LOAD"))
         return load_undelete_ini();
     if (argc == 2 && !stricmp(argv[1], "/STATUS"))
-        return report_tracker_status();
+        return report_protection_status();
     if (argc == 2 && !stricmp(argv[1], "/UNLOAD")) {
         unsigned resident = tracker_remove();
         if (!resident) {
@@ -1263,6 +1676,14 @@ int main(int argc, char **argv)
             return 1;
         puts("The Undelete memory-resident program was unloaded.");
         return 0;
+    }
+    if (argc == 2 && !strnicmp(argv[1], "/PURGE", 6) &&
+        (argv[1][6] == 0 || (isalpha(argv[1][6]) && argv[1][7] == 0))) {
+        _dos_getdrive(&drive);
+        --drive;
+        if (argv[1][6])
+            drive = (unsigned)(toupper(argv[1][6]) - 'A');
+        return purge_sentry(drive);
     }
     if (argc == 4 && !stricmp(argv[1], "/TRACK")) {
         int installed;
@@ -1300,6 +1721,8 @@ int main(int argc, char **argv)
             source_dos = 1;
         } else if (!stricmp(argv[i], "/DT")) {
             source_dt = 1;
+        } else if (!stricmp(argv[i], "/DS")) {
+            source_ds = 1;
         } else if (argv[i][0] == '/' || argv[i][0] == '-') {
             usage();
             return 1;
@@ -1319,7 +1742,8 @@ int main(int argc, char **argv)
         usage();
         return 1;
     }
-    if ((source_dos && source_dt) || (automatic && (source_dos || source_dt))) {
+    if ((source_dos + source_dt + source_ds > 1) ||
+        (automatic && (source_dos || source_dt || source_ds))) {
         usage();
         return 1;
     }
@@ -1347,6 +1771,7 @@ int main(int argc, char **argv)
             strcpy(path, combined);
         }
     }
+    strcpy(sentry_path, path);
     if (resolve_directory(&volume, path, &directory, &filespec)) {
         fputs("UNDELETE: directory not found.\n", stderr);
         return 1;
@@ -1354,7 +1779,17 @@ int main(int argc, char **argv)
     if (!*filespec)
         filespec = "*.*";
     make_83(filespec, pattern, 1);
-    if (!source_dos) {
+    if (!source_dos && !source_dt && !source_ds) {
+        char sentry_name[] = "A:\\SENTRY\\CONTROL.DAT";
+        FILE *sentry;
+        sentry_name[0] = (char)('A' + drive);
+        sentry = fopen(sentry_name, "rb");
+        if (sentry) {
+            fclose(sentry);
+            source_ds = 1;
+        }
+    }
+    if (!source_dos && !source_ds && !source_dt) {
         char tracker_name[] = "A:\\PCTRACKR.DEL";
         FILE *tracker;
         tracker_name[0] = (char)('A' + drive);
@@ -1364,9 +1799,12 @@ int main(int argc, char **argv)
             source_dt = 1;
         }
     }
-    i = source_dt
-      ? process_tracker(&volume, directory, pattern, list_only, automatic)
-      : process_directory(&volume, directory, pattern, list_only, automatic);
+    if (source_ds)
+        i = process_sentry(drive, sentry_path, pattern, list_only, automatic);
+    else if (source_dt)
+        i = process_tracker(&volume, directory, pattern, list_only, automatic);
+    else
+        i = process_directory(&volume, directory, pattern, list_only, automatic);
     if (!list_only) {
         union REGS inregs, outregs;
         inregs.h.ah = 0x0d;

@@ -47,9 +47,12 @@ not.
 `UNDELETE` supports FAT12/FAT16 recovery, `/LIST`, `/ALL`, `/DOS`, and `/DT`,
 including tracked chains and names. Retail `/Tdrive[-entries]`, `/STATUS`, and
 `/UNLOAD` manage Delete Tracker, and `/LOAD` applies tracker-drive and default
-settings from `UNDELETE.INI`. Delete Sentry, `/DS`, `/S`, `/PURGE`, Sentry-mode
-configuration, and the enhanced recovery UI remain. The Windows companion is
-outside this project's scope.
+settings from `UNDELETE.INI`. Delete Sentry `/S` intercepts handle and FCB
+deletion, preserves exact file data in a hidden SENTRY area, takes priority for
+automatic recovery, and supports `/DS`, `/LIST`, restoration, `/PURGE`, status,
+and unload. Sentry-mode `UNDELETE.INI`, retail on-disk interoperability and
+retention policy, and the enhanced recovery UI remain. The Windows companion
+is outside this project's scope.
 
 The following retail programs remain absent by decision, not as open work:
 

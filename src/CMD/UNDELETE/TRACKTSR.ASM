@@ -12,10 +12,13 @@ resident_top    label   byte
         .code
         extrn   tracker_capture_far:near
         extrn   tracker_capture_fcb:near
+        extrn   sentry_capture_far:near
+        extrn   sentry_capture_fcb:near
         public  tracker_install
         public  tracker_probe
         public  tracker_remove
         public  tracker_keep_paragraphs
+        public  tracker_set_sentry
 
 old_21          dd      0
 old_2f          dd      0
@@ -26,6 +29,8 @@ path_segment    dw      0
 saved_ss        dw      0
 saved_sp        dw      0
 delete_function db      0
+protection_mode db      0
+delete_handled  db      0
 
 tracker_hook proc far
         cmp     ah, 41h
@@ -58,13 +63,26 @@ hook_candidate:
         mov     ds, ax
         push    cs:path_segment
         push    cs:path_offset
+        cmp     cs:protection_mode, 0
+        jne     capture_sentry
         cmp     cs:delete_function, 13h
         jne     capture_handle
         call    tracker_capture_fcb
+        xor     ax, ax
         jmp     short capture_done
 capture_handle:
         call    tracker_capture_far
+        xor     ax, ax
+        jmp     short capture_done
+capture_sentry:
+        cmp     cs:delete_function, 13h
+        jne     capture_sentry_handle
+        call    sentry_capture_fcb
+        jmp     short capture_done
+capture_sentry_handle:
+        call    sentry_capture_far
 capture_done:
+        mov     cs:delete_handled, al
         add     sp, 4
         cli
         mov     ax, cs:saved_ss
@@ -81,8 +99,23 @@ capture_done:
         pop     bx
         pop     ax
         mov     cs:busy, 0
+        cmp     cs:delete_handled, 0
+        jne     hook_sentry_success
 hook_chain:
         jmp     dword ptr cs:old_21
+hook_sentry_success:
+        cmp     cs:delete_function, 13h
+        je      hook_sentry_fcb
+        xor     ax, ax
+        jmp     short hook_sentry_return
+hook_sentry_fcb:
+        xor     al, al
+hook_sentry_return:
+        push    bp
+        mov     bp, sp
+        and     word ptr ss:[bp+6], 0fffeh
+        pop     bp
+        iret
 tracker_hook endp
 
 tracker_mux proc far
@@ -182,6 +215,11 @@ tracker_install proc near
         pop     ds
         ret
 tracker_install endp
+
+tracker_set_sentry proc near
+        mov     cs:protection_mode, al
+        ret
+tracker_set_sentry endp
 
 tracker_keep_paragraphs proc near
         mov     ax, ss

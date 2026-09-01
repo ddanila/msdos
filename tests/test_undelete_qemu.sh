@@ -7,8 +7,10 @@ BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT="$OUT/undelete-test-boot.img"
 TARGET="$OUT/undelete-test-target.img"
 TRACK_TARGET="$OUT/undelete-track-target.img"
+SENTRY_TARGET="$OUT/undelete-sentry-target.img"
 LOG="$OUT/undelete-test.log"
 TRACK_LOG="$OUT/undelete-track.log"
+SENTRY_LOG="$OUT/undelete-sentry.log"
 QEXIT="$OUT/undelete-test-qexit.com"
 HDELETE="$OUT/undelete-test-hdelete.com"
 LATER_TSR="$OUT/undelete-test-later-tsr.com"
@@ -179,6 +181,64 @@ if grep -q 'Deletion tracking enabled for drive B:' "$TRACK_LOG" &&
     ok "resident tracking captures post-install deletes, rotates, restores, and unloads"
 else
     fail "resident deletion-tracking lifecycle"
+fi
+
+dd if=/dev/zero of="$SENTRY_TARGET" bs=512 count=2880 status=none
+mformat -i "$SENTRY_TARGET" -f 1440 ::
+mmd -i "$SENTRY_TARGET" ::SUB
+{
+    printf '@ECHO OFF\r\nCTTY AUX\r\n'
+    printf 'UNDELETE /SB\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SENTRY_LOAD_FAILED\r\n'
+    printf 'UNDELETE /STATUS\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SENTRY_STATUS_FAILED\r\n'
+    printf 'ECHO DELETE SENTRY EXACT PAYLOAD>B:\\SENTRY.TXT\r\n'
+    printf 'DEL B:\\SENTRY.TXT\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SENTRY_DELETE_FAILED\r\n'
+    printf 'IF EXIST B:\\SENTRY.TXT ECHO SENTRY_ORIGINAL_REMAINS\r\n'
+    printf 'IF NOT EXIST B:\\SENTRY\\CONTROL.DAT ECHO SENTRY_CONTROL_MISSING\r\n'
+    printf 'UNDELETE B:\\SENTRY.TXT /LIST /DS\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SENTRY_LIST_FAILED\r\n'
+    printf 'UNDELETE B:\\SENTRY.TXT /ALL\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SENTRY_RESTORE_FAILED\r\n'
+    printf 'ECHO NESTED SENTRY EXACT PAYLOAD>B:\\SUB\\NESTED.DAT\r\n'
+    printf 'DEL B:\\SUB\\NESTED.DAT\r\n'
+    printf 'UNDELETE B:\\SUB\\NESTED.DAT /LIST /DS\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SENTRY_NESTED_LIST_FAILED\r\n'
+    printf 'UNDELETE B:\\SUB\\NESTED.DAT /ALL\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SENTRY_NESTED_RESTORE_FAILED\r\n'
+    printf 'ECHO PURGE SENTRY PAYLOAD>B:\\PURGE.TXT\r\n'
+    printf 'DEL B:\\PURGE.TXT\r\n'
+    printf 'UNDELETE /PURGEB\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SENTRY_PURGE_FAILED\r\n'
+    printf 'UNDELETE /UNLOAD\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO SENTRY_UNLOAD_FAILED\r\n'
+    printf 'QEXIT.COM\r\n'
+} | mcopy -o -i "$BOOT" - ::AUTOEXEC.BAT
+timeout 30 qemu-system-i386 -display none \
+    -drive if=floppy,index=0,format=raw,file="$BOOT",cache=writethrough \
+    -drive if=floppy,index=1,format=raw,file="$SENTRY_TARGET",cache=writethrough \
+    -boot a -m 4 -serial stdio \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    </dev/null >"$SENTRY_LOG" 2>&1 || true
+sentry_payload="$(mcopy -i "$SENTRY_TARGET" ::SENTRY.TXT - 2>/dev/null | tr -d '\r\n')"
+nested_sentry_payload="$(mcopy -i "$SENTRY_TARGET" ::SUB/NESTED.DAT - 2>/dev/null | tr -d '\r\n')"
+if grep -q 'Delete Sentry enabled on drive B:' "$SENTRY_LOG" &&
+   grep -q 'Drive B: Delete Sentry is active' "$SENTRY_LOG" &&
+   grep -q 'SENTRY.TXT  protected by Delete Sentry' "$SENTRY_LOG" &&
+   grep -q 'Restored B:\\SENTRY.TXT' "$SENTRY_LOG" &&
+   grep -q 'NESTED.DAT  protected by Delete Sentry' "$SENTRY_LOG" &&
+   grep -q 'Restored B:\\SUB\\NESTED.DAT' "$SENTRY_LOG" &&
+   grep -q 'Purged 1 Delete Sentry file(s) from drive B:' "$SENTRY_LOG" &&
+   grep -q 'The Undelete memory-resident program was unloaded' "$SENTRY_LOG" &&
+   [[ "$sentry_payload" == 'DELETE SENTRY EXACT PAYLOAD' ]] &&
+   [[ "$nested_sentry_payload" == 'NESTED SENTRY EXACT PAYLOAD' ]] &&
+   ! mdir -i "$SENTRY_TARGET" ::PURGE.TXT >/dev/null 2>&1 &&
+   ! mdir -i "$SENTRY_TARGET" ::SENTRY/00000003.DEL >/dev/null 2>&1 &&
+   ! grep -Eq 'SENTRY_(LOAD|STATUS|DELETE|LIST|RESTORE|PURGE|UNLOAD|NESTED_LIST|NESTED_RESTORE)_FAILED|SENTRY_(ORIGINAL_REMAINS|CONTROL_MISSING)' "$SENTRY_LOG"; then
+    ok "retail /S, /DS selection, automatic restore, and /PURGE preserve SENTRY semantics"
+else
+    fail "Delete Sentry interception"
 fi
 
 echo "Results: $PASS passed, $FAIL failed"
