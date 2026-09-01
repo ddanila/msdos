@@ -27,11 +27,11 @@ CFLAGS   := -AS -Os -Zp
 
 AINC     := -I. -ID:\\TOOLS\\INC
 
-.PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest deploy minimal-floppy run-boot test-sys test-help-qemu test-command-startup-qemu test-more-paging-qemu test-misc-qemu test-graftabl-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-setver-qemu test-doskey-qemu test-share-nlsfunc-exe2bin test-append test-format test-format-hdd-qemu test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu test-ansi-driver-qemu test-display-chain-qemu test-driver-sys-qemu test-driver-geometry-qemu test-printer-driver-qemu test-smartdrv-flush-qemu test-smartdrv-reboot-qemu test-xma-drivers-qemu test-himem-qemu test-himem-xms3-qemu test-himem-286-dosbox test-hardware-matrix test-hma-qemu test-pre386-dosbox test-mem-umb-qemu test-loadhigh-qemu test-devicehigh-qemu test-installhigh-qemu test-root-exhaustion-qemu test-disk-exhaustion-qemu test-config-state-qemu test-config-switches-qemu test-config-stacks-qemu test-config-dos-qemu test-xms-umb-transaction-qemu test-config-ifs-qemu test-ifsfunc-filesys-qemu test-config-multitrack-qemu test-emm386-qemu test-int21-file-memory-qemu test-int21-path-errors-qemu test-int21-system-qemu test-int21-fcb-qemu test-int21-compat-qemu test-int21-console-qemu test-int21-process-qemu test-int21-tsr-qemu test-int21-media-qemu test-int21-readonly-media-qemu test-dos-interrupt-qemu test-dos-async-interrupt-qemu
+.PHONY: all build-all messages mapper boot inc bios dos cmd cmd_command dev select memm clean test test-native-build-tools test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest deploy minimal-floppy run-boot test-sys test-help-qemu test-command-startup-qemu test-more-paging-qemu test-misc-qemu test-graftabl-qemu test-mode-redirect-qemu test-keyb-layout-qemu test-backup-restore test-diskcomp-diskcopy test-setver-qemu test-doskey-qemu test-share-nlsfunc-exe2bin test-append test-format test-format-hdd-qemu test-format-one test-format-parallel test-label test-fdisk test-recover test-assign-subst-join test-debug-qemu test-edlin-qemu test-chkdsk-fix test-prompt-yesno test-screen-expect test-select test-drivers-qemu test-ansi-driver-qemu test-display-chain-qemu test-driver-sys-qemu test-driver-geometry-qemu test-printer-driver-qemu test-smartdrv-flush-qemu test-smartdrv-reboot-qemu test-xma-drivers-qemu test-himem-qemu test-himem-xms3-qemu test-himem-286-dosbox test-himem-286-86box test-286-acceptance test-hardware-matrix test-hma-qemu test-pre386-dosbox test-mem-umb-qemu test-loadhigh-qemu test-devicehigh-qemu test-installhigh-qemu test-root-exhaustion-qemu test-disk-exhaustion-qemu test-config-state-qemu test-config-switches-qemu test-config-stacks-qemu test-config-dos-qemu test-xms-umb-transaction-qemu test-config-ifs-qemu test-ifsfunc-filesys-qemu test-config-multitrack-qemu test-emm386-qemu test-int21-file-memory-qemu test-int21-path-errors-qemu test-int21-system-qemu test-int21-fcb-qemu test-int21-compat-qemu test-int21-console-qemu test-int21-process-qemu test-int21-tsr-qemu test-int21-media-qemu test-int21-readonly-media-qemu test-dos-interrupt-qemu test-dos-async-interrupt-qemu
 .PHONY: test-utility-parser-coverage-manifest test-keyboard-records test-country-records test-country-matrix-qemu
 .PHONY: test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-szdd-tool distribution test-distribution test-setup-qemu test-mirror-unformat-qemu test-undelete-qemu
 .PHONY: test-command-step-qemu test-msd-qemu test-scandisk-qemu test-defrag-qemu test-defrag-fat16-qemu test-mem-dos6-qemu test-memmaker-qemu test-memmaker-rollback-qemu test-power-qemu test-power-api-qemu test-config-menu-qemu test-config-menu-input-qemu
-.PHONY: test-copy-policy-qemu
+.PHONY: test-copy-policy-qemu test-86box-286-boot
 .PHONY: test-xcopy-dos6-qemu
 .PHONY: test-config-numlock-qemu
 .PHONY: test-config-set-qemu
@@ -589,6 +589,17 @@ test-himem-xms3-qemu: deploy
 
 test-himem-286-dosbox: deploy
 	bash tests/test_himem_286_dosbox.sh
+
+test-86box-286-boot:
+	bash tests/test_86box_286_boot.sh
+
+test-himem-286-86box: deploy
+	bash tests/test_himem_286_86box.sh
+
+# Deliberately local-only while hosted CI is disabled.
+test-286-acceptance: deploy
+	bash tests/test_86box_286_boot.sh
+	bash tests/test_himem_286_86box.sh
 
 test-hardware-matrix: deploy
 	bash tests/test_hardware_matrix.sh

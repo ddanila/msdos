@@ -1,4 +1,5 @@
 bits 16
+cpu 286
 org 0
 
 %define CR 13

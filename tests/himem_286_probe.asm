@@ -155,6 +155,11 @@ release_fail:
     call far [entry]
 fail:
     mov dx, fail_message
+    mov ah, 09h
+    int 21h
+    mov ax, 4c01h
+    int 21h
+
 print:
     mov ah, 09h
     int 21h

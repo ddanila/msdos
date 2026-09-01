@@ -135,7 +135,8 @@ mode interfaces are not part of the 6.22 target.
 
 ## Installation, media, and project tooling
 
-The current deterministic build, manifests, emulators, and CI remain suitable.
+The current deterministic build, manifests, and emulators remain suitable.
+Hosted CI is temporarily disabled; local test runs are authoritative meanwhile.
 Closing the 6.22 product gap additionally requires:
 
 - 6.22 boot/install/upgrade media and versioned SETUP behavior;
@@ -188,4 +189,5 @@ repository currently claims to ship and test.
 Physical parallel cables, unusual BIOS implementations, and laptop APM timing
 remain useful hardware-validation targets, but are not missing DOS interfaces
 and do not hold Stages 1-3 open. Their emulated protocols, timeout/error paths,
-and externally visible contracts are covered locally.
+and externally visible contracts are covered locally. See
+[EMULATION.md](EMULATION.md) for the 286 acceptance plan and result policy.

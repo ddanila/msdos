@@ -20,6 +20,9 @@ macOS with Homebrew:
 brew install coreutils git make mtools nasm python qemu
 ```
 
+The optional real-BIOS 286 acceptance suite also needs the 86Box cask and its
+separately installed ROM set; see [EMULATION.md](EMULATION.md).
+
 Use `gmake` instead of `make` on macOS when Homebrew installs GNU Make under
 that name.
 
@@ -40,12 +43,20 @@ The deployed floppy is written to `out/floppy.img`. Boot it interactively with:
 ./run-qemu.sh
 ```
 
+Run the local IBM AT acceptance suite with:
+
+```sh
+gmake test-286-acceptance
+```
+
 ## Documentation
 
 - [ARCHITECTURE.md](ARCHITECTURE.md) - system and toolchain design.
 - [TODO.md](TODO.md) - open work.
 - [MAINTAINING.md](MAINTAINING.md) - maintainer constraints and diagnostics.
 - [MEMORY.md](MEMORY.md) - DOS 5 HMA/UMB/XMS/EMS invariants.
+- [EMULATION.md](EMULATION.md) - emulator roles and the actionable 286
+  acceptance-test plan.
 - [DOS5_GAPS.md](DOS5_GAPS.md) - complete known DOS 5 feature and tooling gaps.
 - [DOS622_GAPS.md](DOS622_GAPS.md) - staged delta from the current system to
   MS-DOS 6.22 compatibility.
