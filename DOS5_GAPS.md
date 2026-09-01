@@ -170,8 +170,9 @@ from the project and must not be represented by no-op compatibility stubs.
   upgrades have focused coverage. Recovery metadata, torn-generation fallback,
   and mirror-independent reconstruction have focused recovery gates.
 - COUNTRY.SYS and KEYBOARD.SYS contain exact retail BR, CZ, SL, HU, PL, and YU
-  records, with structural and live selection gates. DISPLAY, PRINTER, and the
-  complete CPI/device combination matrix remain only partially compared.
+  records, with structural and live selection gates. DISPLAY and PRINTER ship
+  the EGA, LCD, 4201, 4208, and 5202 data paths with live preparation and
+  selection contracts. Later DOS 6 locale packs are tracked separately.
 - HIMEM installs and serves its core XMS lifecycle on a fixed-cycle 286 gate,
   including 64 byte-exact bidirectional XMS moves without 386 opcodes.
 - 86Box is authoritative for the real-BIOS 286 path. QEMU covers 386-and-newer

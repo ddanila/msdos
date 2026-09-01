@@ -29,7 +29,8 @@ DriveSpace and QBASIC/EDIT are separate large epics.
 | Installation | Implemented | SETUP installs or upgrades a bootable 6.22 system, selects core components, creates a minimal recovery floppy, and generates a tested one-shot rollback image. |
 | Online Help | Implemented | HELP is an independent full-screen hypertext browser with keyboard/mouse navigation and full-corpus search; FASTHELP remains the compact redirectable interface. |
 | EGA display-state driver | Implemented | EGA.SYS exposes the documented register-shadow, installation, version, custom-multiplex, and default-state contracts independently of Task Swapper. |
-| Observable DOS internals | Partial | Documented and undocumented APIs and data structures are compatibility targets wherever applications can observe or depend on them. |
+| Observable DOS internals | Partial | Interrupt, error, device-request, and core structure inventories are complete; network redirector and full EMS interoperability remain evidence gaps. |
+| National-language support | Implemented core | COUNTRY, KEYB, DISPLAY, PRINTER, EGA/LCD fonts, and supported code-page switching are covered. Additional DOS 6 locale packs remain a separate data-focused epic. |
 | Drive compression | Separate epic | DriveSpace is not implemented. |
 | BASIC and Editor | Separate epic | QBASIC and the QBASIC-backed EDIT are not implemented. |
 | Bundled applications | Non-goal | MSBACKUP, MSAV, VSAFE, DOSSHELL, and Task Swapper will not be implemented. |
@@ -128,7 +129,10 @@ is enforced by `tests/internal_structure_coverage.json`.
 - HIMEM and EMM386 have real-BIOS 286 and emulated 386+ coverage, but unusual
   chipsets, real Weitek behavior, and broad physical-hardware timing remain
   validation limits.
-- Locale-dependent presentation is not yet an exhaustive compatibility claim.
+- The supported national-language records and code pages are covered, but the
+  additional `KEYBRD2.SYS`, `EGA2.CPI`, `EGA3.CPI`, and `ISO.CPI` locale packs
+  are a separate data-focused epic. Localized message catalogs are not part of
+  the retail English baseline.
 
 ## Separate epics
 
@@ -160,9 +164,28 @@ independent of the operating-system stages.
 
 ### Supplemental Disk audit
 
-Supplemental Disk contents are not automatically parity requirements. Audit
-them item by item and classify each as already covered, worth implementing,
-superseded, a separate epic, or a non-goal.
+The archived [Microsoft KB Q117600 inventory](https://ftp.zx.net.nz/pub/archive/ftp.microsoft.com/MISC/KB/en-us/117/600.HTM)
+is fully classified below.
+Compressed copies, setup batches, readme files, and disk-identification helpers
+are packaging rather than independent product features.
+
+| Contents | Decision |
+| --- | --- |
+| ASSIGN, BACKUP/RESTORE, COMP, EDLIN, EXE2BIN, GRAFTABL, JOIN, MIRROR, CHOICE, and EXPAND | Implemented and shipped. |
+| EGA.SYS | Implemented and shipped independently of DOSSHELL. |
+| PRINTER.SYS, 4201.CPI, 4208.CPI, 5202.CPI, and LCD.CPI | Implemented and shipped; every added printer/display data path has a live prepare/select contract. |
+| AccessDOS (`ADOS`, `AM`, and FAKEMOUS), Dvorak layouts, and their documentation | Separate accessibility epic; not core DOS parity. |
+| KBDBUF.SYS | Non-goal legacy BIOS keyboard-buffer workaround; supported emulators do not lose keystrokes through the ROM buffer. |
+| DRVBOOT.BAT | Part of the DriveSpace epic because its purpose is creating compressed boot media. |
+| CV.COM | Non-goal compatibility launcher for obsolete CodeView 3.00-3.13. |
+| PRINTFIX.COM | Non-goal workaround for parallel-port hardware that rejects DOS extended status checks. |
+| MSHERC.COM and the BASIC samples | Part of the QBASIC/EDIT epic and its Hercules-display support. |
+| Microsoft Network Client files (`NET`, NETBEUI, NETWKSTA, REDIR, and SETNAME) | Separate networking-product epic; kernel redirector compatibility remains a core API target. |
+| DOSSHELL, DOSSWAP, and `.GRB`/`.INI`/`.VID` display resources | Permanent DOSSHELL/Task Swapper non-goal. |
+
+`ISO.CPI` belongs with the additional DOS 6 locale packs rather than the core
+English system. Installer-only `SETUP.BAT`, `SD6COPY.BAT`, `GET_FUNC.COM`, and
+disk ID files are superseded by this repository's reproducible distribution.
 
 ## Delivery roadmap
 
@@ -171,14 +194,14 @@ superseded, a separate epic, or a non-goal.
 | 1 | 6.22 identity, startup/configuration, command additions, and overwrite policy | Complete |
 | 2 | ScanDisk, Defrag, memory-manager differences, and MemMaker | Complete |
 | 3 | SMARTDrive, MSD, POWER, INTERLNK/INTERSVR, and MSCDEX | Complete |
-| 4 | Close observable API, internal-structure, locale, and Supplemental gaps | Next |
+| 4 | Close observable API, internal-structure, locale, and Supplemental gaps | In progress: API interoperability remains |
 | 5 | Retail-compatible DriveSpace and all compressed-volume integration | Separate epic |
 | 6 | Optional versioned extended DriveSpace format | Follows Stage 5 |
 
 QBASIC/EDIT remains an independent epic. MSBACKUP, MSAV, VSAFE, DOSSHELL, Task
 Swapper, Windows-only companions, FAT32, VFAT long filenames, and Windows 9x
-protected-mode extensions are out of scope. Supplemental Disk contents remain
-undecided until their itemized audit.
+protected-mode extensions are out of scope. AccessDOS, the Microsoft Network
+Client, and the additional DOS 6 locale packs are separate epics.
 
 Hosted CI is intentionally manual-only during active development. Local tests
 are authoritative until the maintainer re-enables automatic CI. Every new

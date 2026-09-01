@@ -37,6 +37,7 @@ AINC     := -I. -ID:\\TOOLS\\INC
 .PHONY: test-config-set-qemu
 .PHONY: test-startup-keys-qemu
 .PHONY: test-smartdrv-runtime-qemu
+.PHONY: test-supplemental-locale-qemu
 
 KVIKDOS_SOFT_SRCS := kvikdos/kvikdos.c kvikdos/cpu8086.c
 KVIKDOS_SOFT_DEPS := $(KVIKDOS_SOFT_SRCS) kvikdos/mini_kvm.h kvikdos/cpu8086.h \
@@ -250,7 +251,7 @@ ARTIFACTS := \
     CMD/INTERSVR/INTERSVR.EXE \
     MEMM/MEMM/EMM386.EXE
 
-test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-keyboard-records test-country-records test-szdd-tool test-distribution test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-scandisk-qemu test-defrag-qemu test-defrag-fat16-qemu test-mem-dos6-qemu test-memmaker-qemu test-memmaker-rollback-qemu test-smartdrv-reboot-qemu test-power-qemu test-power-api-qemu test-mscdex-qemu test-interlnk-qemu test-setup-qemu test-setup-floppy-qemu test-ega-qemu test-help-ui-qemu test-himem-options-qemu test-himem-xms3-qemu test-internal-structures-qemu test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-internal-structure-coverage-manifest test-device-request-coverage-manifest
+test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-keyboard-records test-country-records test-szdd-tool test-distribution test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-scandisk-qemu test-defrag-qemu test-defrag-fat16-qemu test-mem-dos6-qemu test-memmaker-qemu test-memmaker-rollback-qemu test-smartdrv-reboot-qemu test-power-qemu test-power-api-qemu test-mscdex-qemu test-interlnk-qemu test-setup-qemu test-setup-floppy-qemu test-ega-qemu test-help-ui-qemu test-himem-options-qemu test-himem-xms3-qemu test-internal-structures-qemu test-supplemental-locale-qemu test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-internal-structure-coverage-manifest test-device-request-coverage-manifest
 	bash tests/run_tests.sh
 
 test-native-build-tools:
@@ -342,6 +343,9 @@ test-internal-structure-coverage-manifest:
 
 test-internal-structures-qemu: deploy
 	bash tests/test_internal_structures_qemu.sh
+
+test-supplemental-locale-qemu: deploy
+	bash tests/test_supplemental_locale_qemu.sh
 
 test-device-request-coverage-manifest:
 	python3 tests/test_device_request_coverage.py --require-complete
@@ -744,6 +748,8 @@ DISPLAY_SYS  := $(SRC)/DEV/DISPLAY/DISPLAY.SYS
 COUNTRY_SYS  := $(SRC)/DEV/COUNTRY/COUNTRY.SYS
 PRINTER_SYS  := $(SRC)/DEV/PRINTER/PRINTER.SYS
 PRINTER_CPI  := $(SRC)/DEV/PRINTER/4201/4201.CPI
+PRINTER_4208_CPI := $(SRC)/DEV/PRINTER/4208/4208.CPI
+PRINTER_5202_CPI := $(SRC)/DEV/PRINTER/5202/5202.CPI
 SMARTDRV_EXE := $(SRC)/DEV/SMARTDRV/SMARTDRV.EXE
 FLUSH13_EXE  := $(SRC)/DEV/SMARTDRV/FLUSH13.EXE
 DRIVER_SYS   := $(SRC)/DEV/DRIVER/DRIVER.SYS
@@ -754,6 +760,7 @@ SELECT_EXE   := $(SRC)/SELECT/SELECT.EXE
 SELECT_DAT   := $(SRC)/SELECT/SELECT.DAT
 SELECT_HLP   := $(SRC)/SELECT/SELECT.HLP
 EGA_CPI      := $(SRC)/DEV/DISPLAY/EGA/EGA.CPI
+LCD_CPI      := $(SRC)/DEV/DISPLAY/LCD/LCD.CPI
 EGA_SYS      := $(SRC)/DEV/EGA/EGA.SYS
 HIMEM_SYS    := $(SRC)/DEV/HIMEM/HIMEM.SYS
 EMM386_EXE   := $(MEMM_DIR)/EMM386.EXE
@@ -769,10 +776,10 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OVL) $(COMMAND_COM) $(SY
            $(EXE2BIN_SRC) $(GRAPHICS_COM) $(GRAPHICS_PRO) \
            $(IFSFUNC_EXE) $(MODE_COM) \
            $(ANSI_SYS) $(RAMDRIVE_SYS) \
-           $(VDISK_SYS) $(DISPLAY_SYS) $(COUNTRY_SYS) $(PRINTER_SYS) $(PRINTER_CPI) \
+           $(VDISK_SYS) $(DISPLAY_SYS) $(COUNTRY_SYS) $(PRINTER_SYS) $(PRINTER_CPI) $(PRINTER_4208_CPI) $(PRINTER_5202_CPI) \
            $(SMARTDRV_SYS) $(SMARTDRV_EXE) $(FLUSH13_EXE) $(DRIVER_SYS) $(XMA2EMS_SYS) $(XMAEM_SYS) \
            $(SELECT_COM) $(SELECT_EXE) $(SELECT_DAT) $(SELECT_HLP) \
-           $(EGA_CPI) $(EGA_SYS) $(HIMEM_SYS) $(EMM386_EXE)
+           $(EGA_CPI) $(LCD_CPI) $(EGA_SYS) $(HIMEM_SYS) $(EMM386_EXE)
 	mkdir -p $(OUT)
 	# The complete developer image needs room for test probes and the growing
 	# DOS 6.22 tool set.  The minimal-floppy target remains a 1.44 MB image.
@@ -862,6 +869,8 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OVL) $(COMMAND_COM) $(SY
 	mcopy -i $@ $(COUNTRY_SYS) ::COUNTRY.SYS
 	mcopy -i $@ $(PRINTER_SYS) ::PRINTER.SYS
 	mcopy -i $@ $(PRINTER_CPI) ::4201.CPI
+	mcopy -i $@ $(PRINTER_4208_CPI) ::4208.CPI
+	mcopy -i $@ $(PRINTER_5202_CPI) ::5202.CPI
 	mcopy -i $@ $(SMARTDRV_EXE) ::SMARTDRV.EXE
 	mcopy -i $@ $(FLUSH13_EXE) ::FLUSH13.EXE
 	mcopy -i $@ $(DRIVER_SYS) ::DRIVER.SYS
@@ -872,6 +881,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OVL) $(COMMAND_COM) $(SY
 	mcopy -i $@ $(SELECT_DAT) ::SELECT.DAT
 	mcopy -i $@ $(SELECT_HLP) ::SELECT.HLP
 	mcopy -i $@ $(EGA_CPI) ::EGA.CPI
+	mcopy -i $@ $(LCD_CPI) ::LCD.CPI
 	mcopy -i $@ $(EGA_SYS) ::EGA.SYS
 	mcopy -i $@ $(HIMEM_SYS) ::HIMEM.SYS
 	mcopy -i $@ $(EMM386_EXE) ::EMM386.EXE
