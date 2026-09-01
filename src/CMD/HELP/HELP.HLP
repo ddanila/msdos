@@ -582,7 +582,9 @@ Marks the rest of a batch or CONFIG.SYS line as a comment.
 Syntax: REM text
 @SETUP
 Installs or upgrades the system from the distribution disks.
-Syntax: SETUP [drive:\directory] [/Y]
+Syntax: SETUP [drive:\directory] [/Y] [/B] [/F] or SETUP /E
+/B selects monochrome text, /F creates a minimal bootable floppy, and /E is
+reserved for Windows companions that this distribution deliberately excludes.
 @SHELL
 Selects the command interpreter and its permanent-shell parameters.
 Syntax: SHELL=[drive:][path]COMMAND.COM [drive:][path] [/E:n] [/P]

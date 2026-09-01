@@ -3,18 +3,23 @@
 .data
 
 title_msg       db 'MS-DOS 6.22 Setup',13,10,'$'
-usage_msg       db 'Usage: SETUP [drive:\directory] [/Y]',13,10,'$'
+usage_msg       db 'Usage: SETUP [drive:\directory] [/Y] [/B] [/F]',13,10
+                db '       SETUP /E',13,10,'$'
 fresh_msg       db 'Fresh installation to $'
 upgrade_msg     db 'Upgrade installation in $'
+floppy_msg      db 'Minimal startup-disk installation to $'
 confirm_msg     db 13,10,'Continue (Y/N)? $'
 disk2_msg       db 13,10,'Insert MS-DOS 6.22 Disk 2 in drive A and press ENTER.',13,10,'$'
 wrong_disk_msg  db 'Disk 2 was not found. Press ENTER to try again.',13,10,'$'
 complete_msg    db 13,10,'Setup completed successfully.',13,10,'$'
 cancel_msg      db 13,10,'Setup cancelled.',13,10,'$'
 error_msg       db 13,10,'Setup could not complete.',13,10,'$'
+windows_msg     db 13,10,'SETUP /E configures Windows companion programs,',13,10
+                db 'which are not included in this distribution.',13,10,'$'
 crlf            db 13,10,'$'
 
 default_dest    db 'C:\DOS',0
+floppy_dest     db 'B:\DOS',0
 sys_program     db 'A:\SYS.COM',0
 data_file       db 'A:\SETUP.DAT',0
 config_suffix   db '\CONFIG.SYS',0
@@ -30,6 +35,7 @@ config_high     db 'DOS=HIGH,UMB',13,10,'FILES=30',13,10
 auto_prefix     db '@ECHO OFF',13,10,'PATH ',0
 auto_cache      db 13,10,0
 smartdrv_suffix db '\SMARTDRV.EXE',13,10,0
+recovery_config db 'FILES=20',13,10,'BUFFERS=10',13,10,'LASTDRIVE=Z',13,10,0
 
 core_sources    dw offset core_command, offset core_expand, offset core_sys
                 dw offset core_format, offset core_fdisk, offset core_setup, 0
@@ -44,6 +50,9 @@ psp_segment     dw 0
 auto_yes        db 0
 upgrade_mode    db 0
 cpu_386         db 0
+mono_mode       db 0
+floppy_mode     db 0
+windows_mode    db 0
 core_index      dw 0
 destination     db 64 dup (0)
 source_path     db 128 dup (0)
@@ -104,14 +113,21 @@ main proc near
         call    print
         call    parse_arguments
         jc      setup_fail
+        cmp     windows_mode,0
+        jne     setup_windows
         call    detect_386
         call    ensure_destination
         jc      setup_fail
         call    detect_upgrade
         mov     dx,offset fresh_msg
+        cmp     floppy_mode,0
+        jne     show_floppy_mode
         cmp     upgrade_mode,0
         je      show_mode
         mov     dx,offset upgrade_msg
+        jmp     show_mode
+show_floppy_mode:
+        mov     dx,offset floppy_msg
 show_mode:
         call    print
         mov     dx,offset destination
@@ -134,6 +150,8 @@ confirmed:
         jc      setup_fail
         call    install_root_command
         jc      setup_fail
+        cmp     floppy_mode,0
+        jne     setup_floppy_config
         call    wait_for_disk2
         jc      setup_cancel
         call    install_compressed
@@ -141,6 +159,10 @@ confirmed:
         cmp     upgrade_mode,0
         jne     setup_done
         call    create_fresh_configuration
+        jc      setup_fail
+        jmp     setup_done
+setup_floppy_config:
+        call    create_recovery_configuration
         jc      setup_fail
 setup_done:
         mov     dx,offset complete_msg
@@ -154,6 +176,11 @@ setup_cancel:
         int     21h
 setup_fail:
         mov     dx,offset error_msg
+        call    print
+        mov     ax,4c01h
+        int     21h
+setup_windows:
+        mov     dx,offset windows_msg
         call    print
         mov     ax,4c01h
         int     21h
@@ -174,7 +201,8 @@ copy_default:
         jnz     copy_default
         xor     bp,bp
 parse_next:
-        jcxz    parse_ok
+        or      cx,cx
+        jz      parse_ok
         mov     al,[si]
         cmp     al,' '
         je      parse_advance
@@ -206,10 +234,31 @@ parse_at_end:
         mov     al,[di+1]
         and     al,0dfh
         cmp     al,'Y'
-        jne     parse_help
+        jne     parse_blackwhite
         cmp     byte ptr [di+2],0
         jne     parse_bad
         mov     auto_yes,1
+        jmp     parse_next
+parse_blackwhite:
+        cmp     al,'B'
+        jne     parse_floppy
+        cmp     byte ptr [di+2],0
+        jne     parse_bad
+        mov     mono_mode,1
+        jmp     parse_next
+parse_floppy:
+        cmp     al,'F'
+        jne     parse_windows
+        cmp     byte ptr [di+2],0
+        jne     parse_bad
+        mov     floppy_mode,1
+        jmp     parse_next
+parse_windows:
+        cmp     al,'E'
+        jne     parse_help
+        cmp     byte ptr [di+2],0
+        jne     parse_bad
+        mov     windows_mode,1
         jmp     parse_next
 parse_help:
         cmp     byte ptr [di+1],'?'
@@ -246,6 +295,14 @@ parse_bad:
         stc
         ret
 parse_ok:
+        cmp     floppy_mode,0
+        je      short parse_really_ok
+        cmp     bp,0
+        jne     short parse_really_ok
+        mov     si,offset floppy_dest
+        mov     di,offset destination
+        call    copy_string
+parse_really_ok:
         clc
         ret
 parse_arguments endp
@@ -643,6 +700,55 @@ config_failed:
         stc
         ret
 create_fresh_configuration endp
+
+; A /F system is intentionally self-contained on the target floppy and does
+; not reference compressed Disk 2 components that were not copied there.
+create_recovery_configuration proc near
+        mov     al,destination
+        mov     target_path,al
+        mov     byte ptr target_path[1],':'
+        mov     byte ptr target_path[2],0
+        mov     di,offset target_path+2
+        mov     si,offset config_suffix
+        call    append_string
+        mov     di,offset copy_buffer
+        mov     si,offset recovery_config
+        call    copy_string
+        dec     di
+        mov     cx,di
+        sub     cx,offset copy_buffer
+        mov     dx,offset target_path
+        mov     si,offset copy_buffer
+        call    create_data_file
+        jc      short recovery_config_failed
+
+        mov     al,destination
+        mov     target_path,al
+        mov     byte ptr target_path[1],':'
+        mov     byte ptr target_path[2],0
+        mov     di,offset target_path+2
+        mov     si,offset auto_suffix
+        call    append_string
+        mov     di,offset copy_buffer
+        mov     si,offset auto_prefix
+        call    copy_string
+        dec     di
+        mov     si,offset destination
+        call    copy_string
+        dec     di
+        mov     byte ptr [di],13
+        mov     byte ptr [di+1],10
+        add     di,2
+        mov     cx,di
+        sub     cx,offset copy_buffer
+        mov     dx,offset target_path
+        mov     si,offset copy_buffer
+        call    create_data_file
+        ret
+recovery_config_failed:
+        stc
+        ret
+create_recovery_configuration endp
 
 ; In real mode a 286 clears IOPL/NT when POPF attempts to set them; a 386 or
 ; newer retains those bits.  Do not install EMM386 in a 286 startup file.

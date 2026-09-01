@@ -27,7 +27,7 @@ DriveSpace and QBASIC/EDIT are separate large epics.
 | Cache, diagnostics, and power | Implemented | SMARTDrive, MSD, and POWER ship. |
 | Connectivity and CD-ROM | Implemented | INTERLNK, INTERSVR, and MSCDEX ship; a hardware-specific CD-ROM driver remains external. |
 | Data protection | Implemented | UNDELETE implements all three DOS protection methods, the structured DOS recovery inventory, and retail Sentry storage. MSBACKUP, MSAV, and VSAFE are deliberate non-goals. |
-| Installation | Partial | SETUP installs a bootable 6.22 system with hardware-aware memory/cache defaults, but component selection, rollback, and recovery workflows remain. |
+| Installation | Partial | SETUP installs or upgrades a bootable 6.22 system with hardware-aware defaults and can create a minimal bootable recovery floppy; component selection and rollback remain. |
 | Online Help | Implemented | HELP is an independent full-screen hypertext browser with keyboard/mouse navigation and full-corpus search; FASTHELP remains the compact redirectable interface. |
 | EGA display-state driver | Implemented | EGA.SYS exposes the documented register-shadow, installation, version, custom-multiplex, and default-state contracts independently of Task Swapper. |
 | Observable DOS internals | Partial | Documented and undocumented APIs and data structures are compatibility targets wherever applications can observe or depend on them. |
@@ -73,9 +73,7 @@ The following retail programs remain absent by decision, not as open work:
 
 The remaining durable gaps are:
 
-- 6.22-style install and upgrade behavior rather than only the current DOS 5
-  two-disk compressed installation;
-- rollback/uninstall, emergency/startup-disk, and recovery workflows;
+- rollback/uninstall with recoverable startup-file and system backups;
 - SETUP component choices for the implemented memory, cache, and protection
   tools.
 
@@ -89,9 +87,11 @@ point, and redirected `HELP` output remains script-friendly.
 The current installer identifies itself as 6.22 and its fresh-install defaults
 load HIMEM, upper-memory DOS, and SMARTDrive; on a 386 or newer it also selects
 EMM386 with `NOEMS`, while 286 startup files omit the incompatible driver. It
-still lacks retail-style component selection, rollback/uninstall, and
-emergency-disk workflows; upgrade mode deliberately preserves user startup
-files byte-for-byte.
+accepts the retail `/B` display form, and `/F` creates a self-contained bootable
+recovery floppy without references to omitted Disk 2 components. Retail `/E`
+configures excluded Windows companions and therefore reports that boundary
+explicitly. Upgrade mode deliberately preserves user startup files
+byte-for-byte. Component selection and rollback/uninstall remain.
 
 ### EGA.SYS
 
