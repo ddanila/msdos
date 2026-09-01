@@ -45,9 +45,10 @@ not.
 ### Stage 4: product completion
 
 `UNDELETE` supports FAT12/FAT16 recovery, `/LIST`, `/ALL`, `/DOS`, and `/DT`,
-including tracked chains and names. It still lacks the enhanced DOS 6.22
-interface and configuration. The Windows companion is outside this project's
-scope.
+including tracked chains and names. Retail `/Tdrive[-entries]`, `/STATUS`, and
+`/UNLOAD` manage Delete Tracker. Delete Sentry, `/DS`, `/S`, `/PURGE`,
+`UNDELETE.INI`-driven `/LOAD`, and the enhanced recovery UI remain. The Windows
+companion is outside this project's scope.
 
 The following retail programs remain absent by decision, not as open work:
 

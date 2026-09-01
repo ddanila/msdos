@@ -536,6 +536,81 @@ static int create_tracker(unsigned drive, unsigned maximum)
     return 0;
 }
 
+static unsigned default_tracker_entries(unsigned drive)
+{
+    unsigned char sector[512];
+    unsigned long total;
+
+    if (abs_read(drive, 0, 1, sector))
+        return 0;
+    total = get_word(sector + 19);
+    if (!total)
+        total = get_dword(sector + 32);
+    if (total <= 720)
+        return 25;
+    if (total <= 1440)
+        return 50;
+    if (total <= 2880)
+        return 75;
+    if (total <= 40960UL)
+        return 101;
+    if (total <= 65536UL)
+        return 202;
+    return 303;
+}
+
+static int parse_tracker_switch(const char *argument, unsigned *drive,
+                                unsigned *entries)
+{
+    const char *value = argument + 2;
+    char *end;
+    unsigned long parsed;
+
+    if (!isalpha(value[0]))
+        return 1;
+    *drive = (unsigned)(toupper(value[0]) - 'A');
+    value++;
+    if (!*value) {
+        *entries = default_tracker_entries(*drive);
+        return *entries ? 0 : 1;
+    }
+    if (*value++ != '-' || !isdigit(*value))
+        return 1;
+    parsed = strtoul(value, &end, 10);
+    if (*end || parsed < 1 || parsed > 999)
+        return 1;
+    *entries = (unsigned)parsed;
+    return 0;
+}
+
+static int report_tracker_status(void)
+{
+    char active_name[] = "A:\\PCTRACKR.ACT";
+    char final_name[] = "A:\\PCTRACKR.DEL";
+    unsigned drive;
+    unsigned found = 0;
+    int resident = tracker_probe() != 0;
+
+    for (drive = 0; drive < 26; ++drive) {
+        FILE *file;
+        active_name[0] = final_name[0] = (char)('A' + drive);
+        file = fopen(active_name, "rb");
+        if (!file)
+            file = fopen(final_name, "rb");
+        if (!file)
+            continue;
+        fclose(file);
+        ++found;
+        printf("Drive %c: Delete Tracker %s.\n", 'A' + drive,
+               resident ? "is active" : "is configured but not loaded");
+    }
+    if (!found)
+        puts("No Undelete protection is configured.");
+    else if (!resident)
+        puts("The Undelete memory-resident program is not loaded.");
+    return 0;
+}
+
 static int find_live_entry(const struct volume *volume, unsigned directory,
                            const unsigned char wanted[11], unsigned char raw[32])
 {
@@ -878,6 +953,7 @@ static void usage(void)
 {
     puts("Restores files deleted with DEL.");
     puts("UNDELETE [[drive:][path]filename] [/LIST|/ALL] [/DOS|/DT]");
+    puts("UNDELETE /Tdrive[-entries] | /STATUS | /UNLOAD");
 }
 
 void __cdecl tracker_capture_far(const char far *far_path)
@@ -994,6 +1070,48 @@ int main(int argc, char **argv)
     int have_operand = 0;
     int i;
 
+    if (argc == 2 && !strnicmp(argv[1], "/T", 2) &&
+        stricmp(argv[1], "/TRACK") && stricmp(argv[1], "/TRACKSTATUS")) {
+        unsigned entries;
+        int installed;
+        unsigned environment;
+        if (parse_tracker_switch(argv[1], &drive, &entries)) {
+            usage();
+            return 1;
+        }
+        installed = tracker_probe();
+        if (create_tracker(drive, entries)) {
+            fprintf(stderr, "UNDELETE: cannot enable Delete Tracker on drive %c:.\n",
+                    'A' + drive);
+            return 1;
+        }
+        printf("Delete Tracker enabled on drive %c: for %u entries.\n",
+               'A' + drive, entries);
+        if (installed)
+            return 0;
+        tracker_install();
+        environment = *(unsigned far *)MK_FP(_psp, 0x2c);
+        if (environment)
+            _dos_freemem(environment);
+        i = tracker_keep_paragraphs();
+        if (i < 0x0800)
+            i = 0x0800;
+        _dos_keep(0, (unsigned)i);
+        return 0;
+    }
+    if (argc == 2 && !stricmp(argv[1], "/STATUS"))
+        return report_tracker_status();
+    if (argc == 2 && !stricmp(argv[1], "/UNLOAD")) {
+        unsigned resident = tracker_remove();
+        if (!resident) {
+            puts("The Undelete memory-resident program is not loaded.");
+            return 1;
+        }
+        if (_dos_freemem(resident))
+            return 1;
+        puts("The Undelete memory-resident program was unloaded.");
+        return 0;
+    }
     if (argc == 4 && !stricmp(argv[1], "/TRACK")) {
         int installed;
         unsigned environment;

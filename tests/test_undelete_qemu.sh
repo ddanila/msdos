@@ -96,6 +96,23 @@ dd if=/dev/zero of="$TRACK_TARGET" bs=512 count=2880 status=none
 mformat -i "$TRACK_TARGET" -f 1440 ::
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
+    printf 'UNDELETE /TB-2\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO PUBLIC_TRACK_LOAD_FAILED\r\n'
+    printf 'UNDELETE /STATUS\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO PUBLIC_TRACK_STATUS_FAILED\r\n'
+    printf 'ECHO PUBLIC TRACKER PAYLOAD>B:\\PUBLIC.TXT\r\n'
+    printf 'DEL B:\\PUBLIC.TXT\r\n'
+    printf 'UNDELETE B:\\PUBLIC.TXT /ALL\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO PUBLIC_TRACK_RESTORE_FAILED\r\n'
+    printf 'UNDELETE /UNLOAD\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO PUBLIC_TRACK_UNLOAD_FAILED\r\n'
+    printf 'UNDELETE /TB-0\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO PUBLIC_TRACK_ZERO_ACCEPTED\r\n'
+    printf 'UNDELETE /TB-1000\r\n'
+    printf 'IF NOT ERRORLEVEL 1 ECHO PUBLIC_TRACK_LARGE_ACCEPTED\r\n'
+    printf 'UNDELETE /TB\r\n'
+    printf 'IF ERRORLEVEL 1 ECHO PUBLIC_TRACK_DEFAULT_FAILED\r\n'
+    printf 'UNDELETE /UNLOAD\r\n'
     printf 'MIRROR /TB-1\r\n'
     printf 'IF EXIST B:\\PCTRACKR.DEL ECHO TRACK_FILE_CREATED_EARLY\r\n'
     printf 'ECHO HANDLE API PAYLOAD>B:\\HANDLE.TXT\r\n'
@@ -130,6 +147,17 @@ timeout 30 qemu-system-i386 -display none \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     </dev/null >"$TRACK_LOG" 2>&1 || true
 tracked_payload="$(mcopy -i "$TRACK_TARGET" ::SECOND.TXT - 2>/dev/null | tr -d '\r\n')"
+public_payload="$(mcopy -i "$TRACK_TARGET" ::PUBLIC.TXT - 2>/dev/null | tr -d '\r\n')"
+if grep -q 'Delete Tracker enabled on drive B: for 2 entries' "$TRACK_LOG" &&
+   grep -q 'Drive B: Delete Tracker is active' "$TRACK_LOG" &&
+   grep -q 'The Undelete memory-resident program was unloaded' "$TRACK_LOG" &&
+   grep -q 'Delete Tracker enabled on drive B: for 75 entries' "$TRACK_LOG" &&
+   [[ "$public_payload" == 'PUBLIC TRACKER PAYLOAD' ]] &&
+   ! grep -Eq 'PUBLIC_TRACK_(LOAD|STATUS|RESTORE|UNLOAD|DEFAULT)_FAILED|PUBLIC_TRACK_(ZERO|LARGE)_ACCEPTED' "$TRACK_LOG"; then
+    ok "retail /T defaults and bounds, /STATUS, and /UNLOAD manage Delete Tracker"
+else
+    fail "public Delete Tracker management"
+fi
 if grep -q 'Deletion tracking enabled for drive B:' "$TRACK_LOG" &&
    grep -q 'Restored SECOND.TXT' "$TRACK_LOG" &&
    grep -q 'Deletion tracking disabled.' "$TRACK_LOG" &&
