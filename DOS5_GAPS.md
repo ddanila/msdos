@@ -44,7 +44,7 @@ QBASIC and the QBASIC-based Editor are a separate epic.
 | Partitions up to 2 GiB | Present | Automated and interactive FDISK paths create and validate a near-2-GiB FAT16 partition on a sparse 2-GiB disk. |
 | More than two hard disks | Present | FDISK models up to eight BIOS fixed disks; automated creation and interactive selection, display, and deletion are validated through disk 3. |
 | 2.88 MiB floppy support | Present | FORMAT creates the standard FAT12 layout, SYS creates bootable media, and DRIVER.SYS `/F:9` provides DOS-side read/write access. |
-| Guided Setup with online help | Partial | SETUP performs tested fresh and upgrade installs from the two-disk compressed set and produces a bootable fixed disk. Its concise `/?` help is not the retail interactive help system. |
+| Guided Setup with online help | Present | SETUP performs tested guided fresh and upgrade installs from the two-disk compressed set, produces bootable fixed and recovery media, and installs a tested rollback path. Standalone HELP documents SETUP; exact retail screen presentation is not a compatibility target. |
 | Compressed installation media | Present | `EXPAND.EXE` and the deterministic host encoder share the DOS 5 SZDD format; the build produces boot and compressed-data FAT12 images with `PACKING.LST`. The host SELECT panel tool named `compress` is unrelated. |
 | DOS 5 version compatibility table | Present | SETVER edits the persistent table in SETVER.EXE, `DEVICE=SETVER.EXE` loads it during CONFIG.SYS, and EXEC applies the selected version. |
 
@@ -129,8 +129,9 @@ Known limitations remain:
 
 - `AH=30h` and SETVER provide per-process fake versions through EXEC; the
   filename database is persisted and loaded through CONFIG.SYS.
-- Network/server calls are present, but interoperability with a complete DOS 5
-  network redirector stack is not established.
+- The installed MSCDEX redirector exercises DOS path dispatch, open, read,
+  seek, close, remote SFT state, CDS flags, IOCTL classification, and `/S`
+  sharing. The Microsoft Network Client itself is a separate product epic.
 - The externally consumed PSP, owning MCB, List of Lists, DPB, CDS, SFT, SDA,
   and device-chain layouts have a joint runtime contract, including a live
   JFT-to-SFT mapping. The same probe passes genuine DOS 6.22. Private fields
@@ -150,10 +151,10 @@ from the project and must not be represented by no-op compatibility stubs.
 - The repository HIMEM exposes XMS 3.00 HMA, A20, handle, move, lock, resize,
   and UMB calls. Documented configuration semantics and 286 execution are
   gated; exhaustive machine-specific error and timing parity is not claimed.
-- EMM386 contains the LIM EMS dispatcher through the 4.0 function range and
-  focused allocation, mapping, save/restore, and warm-boot tests. Complete LIM
-  4.0 semantic conformance and third-party application compatibility are still
-  unverified.
+- EMM386's complete LIM EMS 4.0 dispatcher (`40h` through `5Dh`) is
+  source-derived and contract-tested. Coverage includes allocation, mapping,
+  save/restore, handle metadata, map-and-jump/call, moves, raw pages, alternate
+  register sets, warm boot, and the OS/E access-key lifecycle.
 - Strict manifests account for every source-declared request command of shipped
   drivers. That proves coverage of this tree, not equivalence for missing DOS 5
   drivers or unsupported hardware.
@@ -184,10 +185,12 @@ from the project and must not be represented by no-op compatibility stubs.
 The repository's native build, deterministic artifacts, strict manifests, and
 parallel emulator tests are project capabilities that the retail product did
 not expose. They are strengths, not DOS 5 compatibility features.
-Remaining project-level gaps are:
+Remaining project-level boundaries are:
 
-- no uninstall workflow or reproduction of the exact retail disk layout and UI;
-- no user manual/help corpus for the implemented commands beyond `/?` output;
+- deterministic distribution images replace the exact retail disk layout and
+  presentation;
+- the clean-room full-screen Help corpus documents shipped commands and system
+  topics, but is not a reproduction of the retail manual;
 - no automated differential runner against user-supplied genuine DOS 5 media;
 - no maintained physical-hardware lab for controller-, chipset-, and
   shadow-RAM-specific validation;

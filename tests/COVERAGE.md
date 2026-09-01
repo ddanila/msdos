@@ -98,6 +98,11 @@ the built DOS system, including asynchronous behavior where applicable.
 observable PSP, owning MCB, List of Lists, DPB and CDS links, a live JFT-to-SFT
 mapping, the swappable DOS data area, and the device-header chain.
 
+`ems40_coverage.json` is checked by `test_ems40_coverage.py`. It derives all
+INT 67h functions `40h` through `5Dh` from EMM386's live dispatcher. Contracts
+cover basic allocation/mapping and the extended handle, mapping, transfer,
+flow-control, alternate-register-set, raw-page, warm-boot, and OS/E lifecycles.
+
 `device_request_coverage.json` is checked by
 `test_device_request_coverage.py`. The verifier derives command numbers and
 handlers from every explicit shipped-driver request table and records forwarding
@@ -151,6 +156,7 @@ make test-debug-command-coverage-manifest
 make test-help-coverage-manifest
 make test-dos-interrupt-coverage-manifest
 make test-internal-structure-coverage-manifest
+make test-ems40-coverage-manifest
 make test-device-request-coverage-manifest
 ```
 

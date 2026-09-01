@@ -8,9 +8,8 @@ and open source; it does not execute Microsoft build tools or DOS emulators.
 
 Stages 1-3 of the 6.22 roadmap, DOS UNDELETE, SETUP/recovery, EGA.SYS,
 full-screen Help, observable internal structures, and the supported locale
-surface are complete. The remaining core stage closes network-redirector and
-EMS interoperability evidence. DriveSpace and other product-scale additions
-are separate epics. See
+surface are complete. DriveSpace and other product-scale additions are separate
+epics. See
 [DOS622_GAPS.md](DOS622_GAPS.md) for the current parity map and scope decisions.
 
 ## Requirements

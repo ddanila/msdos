@@ -3,10 +3,9 @@
 The complete product comparison and unsupported option surfaces are in
 [DOS622_GAPS.md](DOS622_GAPS.md). Current priorities are:
 
-1. close the remaining network-redirector and EMS interoperability evidence;
-2. implement retail-compatible DriveSpace, followed optionally by an explicit
+1. implement retail-compatible DriveSpace, followed optionally by an explicit
    extended format; and
-3. treat QBASIC/EDIT, AccessDOS, the Microsoft Network Client, and additional
+2. treat QBASIC/EDIT, AccessDOS, the Microsoft Network Client, and additional
    DOS 6 locale packs as independent epics.
 
 MSBACKUP, MSAV, VSAFE, DOSSHELL, and Task Swapper are deliberate non-goals.

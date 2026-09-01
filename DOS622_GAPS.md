@@ -12,11 +12,11 @@ and the archived
 
 ## Current position
 
-The system is substantially DOS 6.22-compatible, but it is not yet a complete
-replacement for the retail product. The platform, maintenance, memory,
-caching, diagnostics, connectivity, and CD-ROM stages are implemented. The
-next stage is product completion: close observable API and locale gaps.
-DriveSpace and QBASIC/EDIT are separate large epics.
+The core operating system, command, driver, installation, Help, observable-API,
+and tooling scope is complete against the declared contracts. It is not a
+complete replacement for every bundled retail product: DriveSpace,
+QBASIC/EDIT, and the other explicitly classified additions are separate epics,
+while the listed non-goals remain excluded.
 
 | Area | Status | Current boundary |
 | --- | --- | --- |
@@ -29,7 +29,7 @@ DriveSpace and QBASIC/EDIT are separate large epics.
 | Installation | Implemented | SETUP installs or upgrades a bootable 6.22 system, selects core components, creates a minimal recovery floppy, and generates a tested one-shot rollback image. |
 | Online Help | Implemented | HELP is an independent full-screen hypertext browser with keyboard/mouse navigation and full-corpus search; FASTHELP remains the compact redirectable interface. |
 | EGA display-state driver | Implemented | EGA.SYS exposes the documented register-shadow, installation, version, custom-multiplex, and default-state contracts independently of Task Swapper. |
-| Observable DOS internals | Partial | Interrupt, error, device-request, and core structure inventories are complete; network redirector and full EMS interoperability remain evidence gaps. |
+| Observable DOS internals | Implemented | Interrupt, error, device-request, internal-structure, redirector, and LIM EMS 4.0 contracts are covered. |
 | National-language support | Implemented core | COUNTRY, KEYB, DISPLAY, PRINTER, EGA/LCD fonts, and supported code-page switching are covered. Additional DOS 6 locale packs remain a separate data-focused epic. |
 | Drive compression | Separate epic | DriveSpace is not implemented. |
 | BASIC and Editor | Separate epic | QBASIC and the QBASIC-backed EDIT are not implemented. |
@@ -41,9 +41,9 @@ identical presentation or every physical machine. Observable documented and
 undocumented interfaces are targets; unobservable implementation identity is
 not.
 
-## Remaining product gaps
+## Completed core work and excluded product gaps
 
-### Stage 4: product completion
+### Stage 4: completed product work
 
 `UNDELETE` supports FAT12/FAT16 recovery, `/LIST`, `/ALL`, `/DOS`, and `/DT`,
 including tracked chains and names. Retail `/Tdrive[-entries]`, `/STATUS`, and
@@ -121,6 +121,14 @@ SDA, and device chain now have one executable layout contract. The clean-room
 probe passes both this system and genuine DOS 6.22; its source-derived inventory
 is enforced by `tests/internal_structure_coverage.json`.
 
+The installed MSCDEX redirector drives ordinary DOS path dispatch, remote SFT
+and CDS state, IOCTL classification, sharing, open/read/seek/close, and failure
+paths. EMM386's source-derived inventory covers every LIM EMS 4.0 function from
+`40h` through `5Dh`, including map-and-jump/call, memory transfer, raw pages,
+alternate register sets, warm boot, and OS/E access control. Shipping the
+Microsoft Network Client remains a separate application-suite epic, not a
+kernel API gap.
+
 ### Known boundaries in shipped components
 
 - `DIR` lacks compressed-volume ratios (`/C[H]`, `O:C`, and `O:-C`).
@@ -194,7 +202,7 @@ disk ID files are superseded by this repository's reproducible distribution.
 | 1 | 6.22 identity, startup/configuration, command additions, and overwrite policy | Complete |
 | 2 | ScanDisk, Defrag, memory-manager differences, and MemMaker | Complete |
 | 3 | SMARTDrive, MSD, POWER, INTERLNK/INTERSVR, and MSCDEX | Complete |
-| 4 | Close observable API, internal-structure, locale, and Supplemental gaps | In progress: API interoperability remains |
+| 4 | Close observable API, internal-structure, locale, and Supplemental gaps | Complete |
 | 5 | Retail-compatible DriveSpace and all compressed-volume integration | Separate epic |
 | 6 | Optional versioned extended DriveSpace format | Follows Stage 5 |
 
