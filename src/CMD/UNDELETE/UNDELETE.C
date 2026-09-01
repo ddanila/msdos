@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 #include "../RECOVERY/RECOVERY.H"
 
@@ -18,7 +19,8 @@ extern unsigned __cdecl tracker_remove(void);
 extern unsigned __cdecl tracker_keep_paragraphs(void);
 extern void __cdecl tracker_set_sentry(unsigned mode);
 
-#define SENTRY_VERSION 1
+#define SENTRY_VERSION 2
+#define SENTRY_RULES_SIZE 160
 
 struct sentry_header {
     char magic[8];
@@ -28,6 +30,8 @@ struct sentry_header {
 
 struct sentry_record {
     unsigned active;
+    unsigned long deleted_time;
+    unsigned long size;
     char stored_name[13];
     char original_path[128];
 };
@@ -48,6 +52,13 @@ struct volume {
 
 static unsigned char io_buffer[1024];
 static unsigned char entry[32];
+static char sentry_rules[SENTRY_RULES_SIZE] =
+    "*.* -*.TMP -*.VM? -*.WOA -*.SWP -*.SPL -*.RMG -*.IMG -*.THM -*.DOV";
+static unsigned sentry_archive = 0;
+static unsigned sentry_days = 7;
+static unsigned sentry_percentage = 20;
+
+static int create_sentry(unsigned drive);
 
 static unsigned get_word(const unsigned char *p)
 {
@@ -670,10 +681,29 @@ static int true_value(const char *value)
            !strcmp(value, "1") || !stricmp(value, "ON");
 }
 
-static int load_undelete_ini(void)
+static int write_default_undelete_ini(unsigned drive)
 {
-    enum { SECTION_NONE, SECTION_MIRROR, SECTION_DEFAULTS } section = SECTION_NONE;
+    FILE *file = fopen("UNDELETE.INI", "wt");
+    if (!file)
+        return 1;
+    fprintf(file,
+            "[sentry.drives]\n%c=\n"
+            "[sentry.files]\n%s\n"
+            "[mirror.drives]\n"
+            "[configuration]\narchive=FALSE\ndays=7\npercentage=20\n"
+            "[defaults]\nd.sentry=TRUE\nd.tracker=FALSE\n",
+            'A' + drive, sentry_rules);
+    return fclose(file) ? 1 : 0;
+}
+
+static int load_undelete_ini(int forced_sentry_drive)
+{
+    enum {
+        SECTION_NONE, SECTION_SENTRY_DRIVES, SECTION_SENTRY_FILES,
+        SECTION_MIRROR, SECTION_CONFIGURATION, SECTION_DEFAULTS
+    } section = SECTION_NONE;
     unsigned tracker_drives[26];
+    unsigned sentry_drives[26];
     unsigned drive;
     unsigned current_drive;
     unsigned configured = 0;
@@ -684,12 +714,30 @@ static int load_undelete_ini(void)
     char line[160];
     FILE *file;
 
+    if (installed) {
+        fputs("UNDELETE: unload the current protection method first.\n", stderr);
+        return 1;
+    }
     memset(tracker_drives, 0, sizeof(tracker_drives));
+    memset(sentry_drives, 0, sizeof(sentry_drives));
+    strcpy(sentry_rules,
+           "*.* -*.TMP -*.VM? -*.WOA -*.SWP -*.SPL -*.RMG -*.IMG -*.THM -*.DOV");
+    sentry_archive = 0;
+    sentry_days = 7;
+    sentry_percentage = 20;
     file = fopen("UNDELETE.INI", "rt");
     if (!file) {
-        fputs("UNDELETE: the default Delete Sentry configuration requires /S support.\n",
-              stderr);
-        return 1;
+        _dos_getdrive(&current_drive);
+        drive = forced_sentry_drive >= 0 ? (unsigned)forced_sentry_drive
+                                          : current_drive - 1;
+        if (write_default_undelete_ini(drive)) {
+            fputs("UNDELETE: cannot create UNDELETE.INI.\n", stderr);
+            return 1;
+        }
+        sentry_drives[drive] = 1;
+        sentry_default = 1;
+        tracker_default = 0;
+        goto configure;
     }
     while (fgets(line, sizeof(line), file)) {
         char *text = trim_text(line);
@@ -704,12 +752,27 @@ static int load_undelete_ini(void)
                 return 1;
             }
             *close = 0;
-            if (!stricmp(text + 1, "mirror.drives"))
+            if (!stricmp(text + 1, "sentry.drives"))
+                section = SECTION_SENTRY_DRIVES;
+            else if (!stricmp(text + 1, "sentry.files"))
+                section = SECTION_SENTRY_FILES;
+            else if (!stricmp(text + 1, "mirror.drives"))
                 section = SECTION_MIRROR;
+            else if (!stricmp(text + 1, "configuration"))
+                section = SECTION_CONFIGURATION;
             else if (!stricmp(text + 1, "defaults"))
                 section = SECTION_DEFAULTS;
             else
                 section = SECTION_NONE;
+            continue;
+        }
+        if (section == SECTION_SENTRY_FILES) {
+            if (strlen(text) >= sizeof(sentry_rules)) {
+                fclose(file);
+                fputs("UNDELETE: sentry.files is too long.\n", stderr);
+                return 1;
+            }
+            strcpy(sentry_rules, text);
             continue;
         }
         equals = strchr(text, '=');
@@ -718,7 +781,11 @@ static int load_undelete_ini(void)
         *equals++ = 0;
         text = trim_text(text);
         equals = trim_text(equals);
-        if (section == SECTION_MIRROR && isalpha(text[0]) && !text[1]) {
+        if (section == SECTION_SENTRY_DRIVES &&
+            isalpha(text[0]) && !text[1]) {
+            sentry_drives[toupper(text[0]) - 'A'] = 1;
+        } else if (section == SECTION_MIRROR && forced_sentry_drive < 0 &&
+                   isalpha(text[0]) && !text[1]) {
             unsigned entries;
             drive = (unsigned)(toupper(text[0]) - 'A');
             if (*equals) {
@@ -741,6 +808,28 @@ static int load_undelete_ini(void)
                 }
             }
             tracker_drives[drive] = entries;
+        } else if (section == SECTION_CONFIGURATION) {
+            char *end;
+            unsigned long value;
+            if (!stricmp(text, "archive")) {
+                sentry_archive = true_value(equals);
+            } else if (!stricmp(text, "days")) {
+                value = strtoul(equals, &end, 10);
+                if (*end || value > 3650) {
+                    fclose(file);
+                    fputs("UNDELETE: invalid days value in UNDELETE.INI.\n", stderr);
+                    return 1;
+                }
+                sentry_days = (unsigned)value;
+            } else if (!stricmp(text, "percentage")) {
+                value = strtoul(equals, &end, 10);
+                if (*end || value < 1 || value > 100) {
+                    fclose(file);
+                    fputs("UNDELETE: invalid percentage in UNDELETE.INI.\n", stderr);
+                    return 1;
+                }
+                sentry_percentage = (unsigned)value;
+            }
         } else if (section == SECTION_DEFAULTS) {
             if (!stricmp(text, "d.tracker"))
                 tracker_default = true_value(equals);
@@ -753,16 +842,36 @@ static int load_undelete_ini(void)
         fputs("UNDELETE: cannot read UNDELETE.INI.\n", stderr);
         return 1;
     }
+configure:
+    if (forced_sentry_drive >= 0) {
+        sentry_default = 1;
+        tracker_default = 0;
+        sentry_drives[forced_sentry_drive] = 1;
+    }
     if (tracker_default && sentry_default) {
         fputs("UNDELETE: UNDELETE.INI enables conflicting protection methods.\n",
               stderr);
         return 1;
     }
+    if (sentry_default) {
+        for (drive = 0; drive < 26; ++drive) {
+            if (!sentry_drives[drive])
+                continue;
+            if (create_sentry(drive))
+                return 1;
+            ++configured;
+        }
+        if (!configured) {
+            _dos_getdrive(&current_drive);
+            drive = current_drive - 1;
+            if (create_sentry(drive))
+                return 1;
+        }
+        tracker_set_sentry(1);
+        keep_tracker_resident();
+        return 0;
+    }
     if (!tracker_default) {
-        if (sentry_default)
-            fputs("UNDELETE: Delete Sentry configuration requires /S support.\n",
-                  stderr);
-        else
             fputs("UNDELETE: no protection method is enabled in UNDELETE.INI.\n",
                   stderr);
         return 1;
@@ -842,10 +951,10 @@ static int create_sentry(unsigned drive)
         int write_error = fwrite(&header, 1, sizeof(header), file) != sizeof(header);
         int close_error = fclose(file);
         if (write_error || close_error) {
-        remove(control);
-        fprintf(stderr, "UNDELETE: cannot initialize SENTRY on drive %c:.\n",
-                'A' + drive);
-        return 1;
+            remove(control);
+            fprintf(stderr, "UNDELETE: cannot initialize SENTRY on drive %c:.\n",
+                    'A' + drive);
+            return 1;
         }
     }
     _dos_setfileattr(control, 0x06);
@@ -889,6 +998,141 @@ static int canonical_delete_path(const char far *far_path, char path[128],
     return !strnicmp(path + 2, "\\SENTRY\\", 8);
 }
 
+static int wildcard_match(const char *pattern, const char *name)
+{
+    while (*pattern) {
+        if (*pattern == '*') {
+            ++pattern;
+            if (!*pattern)
+                return 1;
+            while (*name) {
+                if (wildcard_match(pattern, name))
+                    return 1;
+                ++name;
+            }
+            return wildcard_match(pattern, name);
+        }
+        if (*pattern != '?' && toupper(*pattern) != toupper(*name))
+            return 0;
+        if (!*name)
+            return 0;
+        ++pattern;
+        ++name;
+    }
+    return !*name;
+}
+
+static int sentry_file_policy(const char *path, unsigned long *size)
+{
+    struct find_t found;
+    char rules[SENTRY_RULES_SIZE];
+    char *token;
+    const char *name = strrchr(path, '\\');
+    int protect = 0;
+
+    name = name ? name + 1 : path;
+    if (_dos_findfirst(path, 0x27, &found) || (found.attrib & 0x10))
+        return 0;
+    if (!sentry_archive && (found.attrib & 0x20))
+        return 0;
+    *size = found.size;
+    strcpy(rules, sentry_rules);
+    token = strtok(rules, " \t");
+    while (token) {
+        int include = *token != '-';
+        if (!include)
+            ++token;
+        if (*token && wildcard_match(token, name))
+            protect = include;
+        token = strtok(NULL, " \t");
+    }
+    return protect;
+}
+
+static int discard_sentry_record(unsigned drive, FILE *file, long offset,
+                                 struct sentry_record *record)
+{
+    char stored[32];
+
+    sprintf(stored, "%c:\\SENTRY\\%s", 'A' + drive, record->stored_name);
+    _dos_setfileattr(stored, 0);
+    if (remove(stored))
+        return 1;
+    record->active = 0;
+    fseek(file, offset, SEEK_SET);
+    if (fwrite(record, 1, sizeof(*record), file) != sizeof(*record))
+        return 1;
+    return 0;
+}
+
+static int enforce_sentry_limits(unsigned drive, unsigned long incoming)
+{
+    struct sentry_header header;
+    struct sentry_record record;
+    struct volume volume;
+    char control[] = "A:\\SENTRY\\CONTROL.DAT";
+    unsigned long total = 0;
+    unsigned long limit;
+    unsigned long now = (unsigned long)time(NULL);
+    unsigned long maximum_age = (unsigned long)sentry_days * 86400UL;
+    long offset;
+    FILE *file;
+
+    if (load_volume(&volume, drive))
+        return 1;
+    limit = (volume.total_sectors * 512UL / 100UL) * sentry_percentage;
+    if (incoming > limit)
+        return 1;
+    control[0] = (char)('A' + drive);
+    file = fopen(control, "rb+");
+    if (!file || fread(&header, 1, sizeof(header), file) != sizeof(header) ||
+        memcmp(header.magic, "MSD6SNT", 8) || header.version != SENTRY_VERSION) {
+        if (file)
+            fclose(file);
+        return 1;
+    }
+    for (;;) {
+        offset = ftell(file);
+        if (fread(&record, 1, sizeof(record), file) != sizeof(record))
+            break;
+        if (!record.active)
+            continue;
+        if (sentry_days && record.deleted_time && now >= record.deleted_time &&
+            now - record.deleted_time > maximum_age) {
+            if (discard_sentry_record(drive, file, offset, &record)) {
+                fclose(file);
+                return 1;
+            }
+            fseek(file, offset + (long)sizeof(record), SEEK_SET);
+        } else {
+            total += record.size;
+        }
+    }
+    while (total + incoming > limit) {
+        int discarded = 0;
+        fseek(file, sizeof(header), SEEK_SET);
+        for (;;) {
+            offset = ftell(file);
+            if (fread(&record, 1, sizeof(record), file) != sizeof(record))
+                break;
+            if (!record.active)
+                continue;
+            if (discard_sentry_record(drive, file, offset, &record)) {
+                fclose(file);
+                return 1;
+            }
+            total = total >= record.size ? total - record.size : 0;
+            discarded = 1;
+            break;
+        }
+        if (!discarded) {
+            fclose(file);
+            return 1;
+        }
+    }
+    return fclose(file) ? 1 : 0;
+}
+
 unsigned __cdecl sentry_capture_far(const char far *far_path)
 {
     struct sentry_header header;
@@ -897,9 +1141,14 @@ unsigned __cdecl sentry_capture_far(const char far *far_path)
     char control[] = "A:\\SENTRY\\CONTROL.DAT";
     char stored[32];
     unsigned drive;
+    unsigned long file_size;
     FILE *file;
 
     if (canonical_delete_path(far_path, original, &drive))
+        return 0;
+    if (!sentry_file_policy(original, &file_size))
+        return 0;
+    if (enforce_sentry_limits(drive, file_size))
         return 0;
     control[0] = (char)('A' + drive);
     file = fopen(control, "rb+");
@@ -927,6 +1176,8 @@ unsigned __cdecl sentry_capture_far(const char far *far_path)
     }
     memset(&record, 0, sizeof(record));
     record.active = 1;
+    record.deleted_time = (unsigned long)time(NULL);
+    record.size = file_size;
     strcpy(record.stored_name, strrchr(stored, '\\') + 1);
     strcpy(record.original_path, original);
     fseek(file, 0, SEEK_END);
@@ -940,8 +1191,8 @@ unsigned __cdecl sentry_capture_far(const char far *far_path)
         int write_error = fwrite(&header, 1, sizeof(header), file) != sizeof(header);
         int close_error = fclose(file);
         if (write_error || close_error) {
-        rename(stored, original);
-        return 0;
+            rename(stored, original);
+            return 0;
         }
     }
     return 1;
@@ -1626,20 +1877,11 @@ int main(int argc, char **argv)
 
     if (argc == 2 && argv[1][0] == '/' && toupper(argv[1][1]) == 'S' &&
         (argv[1][2] == 0 || (isalpha(argv[1][2]) && argv[1][3] == 0))) {
-        int installed = tracker_probe();
-        if (installed) {
-            fputs("UNDELETE: unload the current protection method first.\n", stderr);
-            return 1;
-        }
         _dos_getdrive(&drive);
         --drive;
         if (argv[1][2])
             drive = (unsigned)(toupper(argv[1][2]) - 'A');
-        if (create_sentry(drive))
-            return 1;
-        tracker_set_sentry(1);
-        keep_tracker_resident();
-        return 0;
+        return load_undelete_ini((int)drive);
     }
     if (argc == 2 && !strnicmp(argv[1], "/T", 2) &&
         stricmp(argv[1], "/TRACK") && stricmp(argv[1], "/TRACKSTATUS")) {
@@ -1663,7 +1905,7 @@ int main(int argc, char **argv)
         return 0;
     }
     if (argc == 2 && !stricmp(argv[1], "/LOAD"))
-        return load_undelete_ini();
+        return load_undelete_ini(-1);
     if (argc == 2 && !stricmp(argv[1], "/STATUS"))
         return report_protection_status();
     if (argc == 2 && !stricmp(argv[1], "/UNLOAD")) {

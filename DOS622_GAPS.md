@@ -50,9 +50,11 @@ including tracked chains and names. Retail `/Tdrive[-entries]`, `/STATUS`, and
 settings from `UNDELETE.INI`. Delete Sentry `/S` intercepts handle and FCB
 deletion, preserves exact file data in a hidden SENTRY area, takes priority for
 automatic recovery, and supports `/DS`, `/LIST`, restoration, `/PURGE`, status,
-and unload. Sentry-mode `UNDELETE.INI`, retail on-disk interoperability and
-retention policy, and the enhanced recovery UI remain. The Windows companion
-is outside this project's scope.
+and unload. Sentry-mode `/LOAD` creates or reads the five-section
+`UNDELETE.INI`, including drive selection, file filters, archive policy, expiry,
+and disk-percentage limits with oldest-first purging. Retail SENTRY on-disk
+interoperability and the enhanced recovery UI remain. The Windows companion is
+outside this project's scope.
 
 The following retail programs remain absent by decision, not as open work:
 
