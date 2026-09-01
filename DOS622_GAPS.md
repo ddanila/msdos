@@ -1,193 +1,137 @@
-# MS-DOS 6.22 compatibility gaps
+# MS-DOS 6.22 parity
 
-This is the canonical plan for moving the current DOS 5-compatible system to
-the retail English MS-DOS 6.22 surface. [DOS5_GAPS.md](DOS5_GAPS.md) remains
-the detailed inventory for inherited DOS 5 behavior; this file records the
-6.22 delta and the order in which it should be closed.
+This is the canonical product-level comparison with the retail English
+MS-DOS 6.22 base system. The live source, `distribution/files.json`, and the
+strict manifests under `tests/` are authoritative for implementation and test
+status. [DOS5_GAPS.md](DOS5_GAPS.md) records inherited DOS 5 compatibility.
 
-## Baseline and scope
+The reference baseline is Microsoft's 1994
+[MS-DOS 6.22 User's Guide](https://bitsavers.trailing-edge.com/pdf/microsoft/msdos_6.22/DOS_6.22_Users_Manual_1994.pdf)
+and the archived
+[MS-DOS 6.22 Help corpus](https://www.infania.net/misc/dos622help/).
 
-The product baseline is Microsoft's 1994
-[MS-DOS 6.22 User's Guide](https://bitsavers.trailing-edge.com/pdf/microsoft/msdos_6.22/DOS_6.22_Users_Manual_1994.pdf),
-especially its new-feature summary and command/driver appendix. Exact syntax
-comes from the archived
-[MS-DOS 6.22 online Help corpus](https://www.infania.net/misc/dos622help/).
-Repository status comes from the live source, `distribution/files.json`, and
-strict manifests under `tests/`.
+## Current position
 
-Status means:
+The system is substantially DOS 6.22-compatible, but it is not yet a complete
+replacement for the retail product. The platform, maintenance, memory,
+caching, diagnostics, connectivity, and CD-ROM stages are implemented. The
+main product gap is Stage 4 data protection. Installation and Help are also
+less complete than the retail experience. DriveSpace and QBASIC are separate
+large epics.
 
-- **Present**: the documented 6.22 surface is implemented and covered.
-- **Partial**: useful behavior exists, but listed 6.22 behavior is absent.
-- **Missing**: no shipped implementation exists.
-- **Separate epic**: part of 6.22, but intentionally planned independently.
-- **Non-goal**: deliberately excluded and not counted toward completion.
-
-OEM additions and the optional Supplemental Disk are outside the retail base
-system. Windows-only companion applications are also outside this DOS project.
-DOSSHELL and Task Swapper are permanent non-goals. QBASIC and the QBASIC-based
-EDIT and Help UI form a separate epic; the present text Help command remains a
-valid lightweight interface.
-
-## Executive gap map
-
-| Area | Status | Gap |
+| Area | Status | Current boundary |
 | --- | --- | --- |
-| DOS identity and compatibility | Present | The kernel and true-version API identify 6.22, and SETVER ships the retail 6.2/6.22 default table. The `MSDOS5.0` FAT OEM identifier is correct for 6.22 and remains unchanged. |
-| Startup and configuration | Present | Named blocks, nested boot menus, ordered `INCLUDE`, `MENUCOLOR`, defaults/timeouts, keyboard recovery, and `CONFIG` propagation are covered alongside F5/Shift bypass, F8 stepping, and selected-block `DEVICEHIGH`, `INSTALL`, `SHELL`, and AUTOEXEC behavior. |
-| Everyday command additions | Present | `CHOICE`, `DELTREE`, `LOADFIX`, and `MOVE` are present; `/Y`, `/-Y`, `COPYCMD`, prompting, and precedence are covered for `COPY` and `XCOPY`. |
-| Disk health and performance | Present | ScanDisk provides FAT12/FAT16 logical repair, repair logging, stale-safe undo, surface recovery, and a mouse/keyboard interface. Defrag provides byte-preserving `/U` relocation, `/F` compaction, physical directory sorting, hidden/nested coverage, reboot behavior, recoverable transaction boundaries, allocation maps, and mouse/keyboard control. Compressed volumes belong to the DriveSpace epic. |
-| Memory optimization | Present | Reversible MemMaker startup-file/reboot workflow with measured baseline, post-CONFIG, and post-AUTOEXEC memory states, staged progress/results, and per-candidate Custom driver/TSR placement. MemMaker distinguishes transient EXEC demand from resident size and pins bounded programs to safe UMB regions; unbounded COM/MZ programs deliberately retain ordinary `LH` placement. On a 286 it rejects before changing startup files, while EMM386, DEVICEHIGH, and LOADHIGH retain safe low-memory behavior. |
-| SMARTDrive | Present | The dual-purpose `SMARTDRV.EXE` loads through CONFIG.SYS or self-installs at runtime, then controls live per-drive policy, delayed writes, command-boundary and reboot flushing, sizing, transfer elements, bounded read-ahead, and MSCDEX CD caching with `/U` opt-out. |
-| Diagnostics and power | Present | `MSD` ships with mouse/keyboard interactive categories and complete report modes. POWER has an installable driver, all controller modes, application-idle and keyboard-poll detection, disk/video/DOS activity resets, CPU-idle action, APM discovery, and reference-derived status and API diagnostics. |
-| Machine-to-machine and CD-ROM access | Present | `INTERLNK.EXE` and `INTERSVR.EXE` redirect multiple remote FAT volumes and printer ports over serial or LapLink-compatible parallel transports. `MSCDEX.EXE` installs over an external driver and provides DOS-visible read-only ISO files, its ISO and driver APIs, and network-shareable drive publication. |
-| Backup | Missing | The shipped DOS 5 `BACKUP`/`RESTORE` pair does not replace Microsoft Backup. |
-| Anti-virus | Missing | `MSAV` and resident `VSAFE`. |
-| Drive compression | Separate epic | No DriveSpace loader, driver, CVF implementation, manager, integration, or API. |
-| QBASIC and Editor | Separate epic | No BASIC interpreter/IDE or QBASIC-backed `EDIT`; full-screen 6.22 Help shares technology with this epic. |
-| DOSSHELL and Task Swapper | Non-goal | Will not be implemented; `EGA.SYS` and the Shell task-switching UI/API are excluded with it. |
+| Identity, kernel, and startup | Implemented | Reports 6.22; SETVER, configuration menus, startup bypass/stepping, and DOS 6 startup behavior are covered. The `MSDOS5.0` FAT OEM identifier is correct for 6.22. |
+| Commands and maintenance | Implemented | CHOICE, DELTREE, LOADFIX, MOVE, COPY/XCOPY overwrite policy, ScanDisk, and Defrag ship with focused contracts. |
+| Memory management | Implemented | HIMEM, EMM386, MEM, DEVICEHIGH/LOADHIGH, and MemMaker cover the intended 6.22 surface on the supported machine models. |
+| Cache, diagnostics, and power | Implemented | SMARTDrive, MSD, and POWER ship. |
+| Connectivity and CD-ROM | Implemented | INTERLNK, INTERSVR, and MSCDEX ship; a hardware-specific CD-ROM driver remains external. |
+| Data protection | Missing/partial | MSBACKUP is absent. UNDELETE has DOS protection modes but lacks the enhanced 6.22 interface. MSAV and VSAFE are absent and optional to the roadmap. |
+| Installation and Help | Partial | SETUP remains closer to the DOS 5 two-disk installer. HELP is a lean text implementation rather than the complete retail full-screen system. |
+| Drive compression | Separate epic | DriveSpace is not implemented. |
+| BASIC and Editor | Separate epic | QBASIC and the QBASIC-backed EDIT are not implemented. |
+| DOSSHELL and Task Swapper | Non-goal | These will not be implemented. EGA.SYS and the Shell task-switching surface are excluded with them. |
 
-## Commands and user-visible options
+“Implemented” means the repository ships the feature and its declared
+interfaces have contract evidence. It does not claim byte-identical binaries,
+identical presentation, every physical machine, or every undocumented internal
+field.
 
-Every option below is unsupported unless explicitly marked partial. Unchanged
-DOS 5 commands inherit their status from `DOS5_GAPS.md`.
+## Remaining product gaps
 
-| Command | Status | Missing 6.22 surface |
-| --- | --- | --- |
-| `CHOICE` | Present | Prompt, `/C[:]choices`, `/N`, `/S`, `/T[:]choice,seconds`, key-index errorlevels, and redirected input are covered. |
-| `DEFRAG` | Present | `/U` relocates fragmented FAT12/FAT16 file chains into contiguous free runs; `/F` compacts movable clusters and `/S[:]order` physically sorts directory entries while preserving byte-exact files. No-argument operation provides mouse and keyboard drive selection, recommendation and confirmation, configuration of unfragmentation, full compaction, and hidden-file handling, plus allocation maps and statistics before, during, and after optimization. Live refresh is throttled on large relocation sets. Nested and hidden-file policy, `/B` reboot, `/SKIPHIGH`, and distinct `/LCD`, `/BW`, and `/G0` text presentations are covered. Divergent FAT copies, lost allocations, invalid chains, full volumes, invalid boot records, oversized sortable directories, and injected physical read/write failures are handled without media changes. Every defined result—success and errorlevels 2 through 7 and 9—has an image-level contract. Every `/U` and `/F` relocation write boundary is fault-injected and proven byte-preserving and ScanDisk-recoverable. |
-| `DELTREE` | Present | Recursive and wildcard deletion, multiple targets, protected attributes, prompting, and `/Y` are covered. |
-| `DRVSPACE` | Separate epic | Interactive and command-line DriveSpace manager; `/AUTOMOUNT`, `/CHKDSK`, `/COMPRESS`, `/CREATE`, `/DELETE`, `/FORMAT`, `/INFO`, `/MOUNT`, `/RATIO`, `/SIZE`, `/UNCOMPRESS`, `/UNMOUNT`, host-drive swapping, and the driver/format/API integration listed below. |
-| `FASTHELP` | Present | Compact command list/topic interface backed by the lean text Help database. |
-| `INTERLNK` | Present | The dual-purpose EXE installs as a multi-unit block-device client, discovers up to five server volumes, negotiates an independent BPB for each, forwards sector reads/writes, and reports the live drive count and port. `/DRIVES:0` provides printer redirection without a client drive. Drive mappings, media-change notification, BIOS/DOS/named-printer routing, duplication semantics, `/NOPRINTER`, `/DRIVES`, `/COM`, `/LPT`, explicit addresses, all five `/BAUD` rates, `/V`, `/AUTO`, `/NOSCAN`, and `/LOW` are covered. Serial and LapLink-compatible nibble transports have bounded deadlines, checksums, retry, renegotiation, and byte-exact QEMU wire contracts. |
-| `INTERSVR` | Present | Up to five selected DOS volumes and BIOS/DOS LPT1-LPT3 output are exported over numbered, scanning, or explicit-address serial and LapLink-compatible parallel transports. Drive enumeration and `/X`, `/B`, `/V`, status/error display, clean exit, physical floppy distinction, checksummed retry/renegotiation, and `/RCOPY` byte-exact bootstrapping are covered between independent QEMU machines. |
-| `LOADFIX` | Present | Placement above the first 64 KiB, argument forwarding, and child exit propagation are covered. |
-| `MEMMAKER` | Present | Express and interactive Custom rewriting, byte-exact backups and `/UNDO`, scheduled CONFIG `/SESSION` and AUTOEXEC `/FINAL` passes, `/SWAP`, memory-manager insertion, retail leading-entry ordering, DEVICEHIGH/INSTALLHIGH, and eligible TSR `LH` conversion are live. The full-screen entry panel provides mouse and keyboard Express, Custom, Undo, and Exit actions; the measured three-pass workflow reports progress and final before/after conventional and upper-memory results. `SIZER.EXE` records resident deltas and executable load demand; the final pass uses exact subset-sum selection, assigns bounded programs across the live UMB-region map, and emits safe `/L:region,minbytes` forms. COM programs and MZ programs requesting unlimited allocation fall back to ordinary `LH`. The CONFIG pass matches selected drivers to live `DEVMARK` records and records exact resident paragraphs. Custom independently controls every eligible driver and TSR, EMS, and monochrome-region use. Windows 3.0 discovery, backup, and transactional `SYSTEM.INI` compatibility updates are covered; Windows 3.1 and unknown installations remain unchanged. DOS probes record baseline, post-CONFIG, and final memory blocks plus the measured change and `/W` reserve accounting while restoring allocation state; fault injection covers every commit boundary. |
-| `MOVE` | Present | Files, directory rename, multiple sources, prompts, `/Y`, `/-Y`, `COPYCMD`, cross-drive recursion, and errorlevels are covered. |
-| `MSAV` | Missing | Interactive scanning and `drive:`, `/S`, `/C`, `/R`, `/A`, `/L`, `/N`, `/P`, `/F`, `/VIDEO` and its display switches; removal, reports, checksums, exit code 86, configuration, and signature database. |
-| `MSBACKUP` | Missing | Interactive backup/restore/compare, `.SET` setup and catalog files, full/incremental/differential sets, compression, verification, scheduling, spanning, destination devices, and `setup_file`, `/BW`, `/LCD`, `/MDA`. DOS 5 `RESTORE` remains responsible for old `BACKUP` sets. |
-| `MSCDEX` | Present | `/D`, `/L`, `/M`, `/E`, `/S`, `/V`, and `/K`; multi-subunit driver discovery; residency; drive assignment; DOS read-only open/read/seek/close; and `INT 2Fh` functions 1500h-1508h and 150Bh-1510h are live. Coverage includes ISO metadata and path traversal, PVD/SVD selection, READ LONG, driver requests, media/audio controls, bounded conventional or EMS caching, preservation of third-party EMS maps, and `/S` publication of local/shareable redirector drives to network servers. A hardware-specific CD-ROM driver remains external. |
-| `MSD` | Present | The full-screen mouse/keyboard category panel and reference-derived `/B`, `/I`, prompted `/F`, direct `/P`, and summary `/S` grammar are covered. Reports include processor, BIOS/ROM, memory-manager, bus/DMA, video/VESA, COM/LPT/UART, input, DOS configuration and identity, resident programs and drivers, IRQ ownership, disk geometry/capacity and mappings, network, and Windows-installation information. The summary includes the retail field groups; machine-dependent values are reported from live BIOS, DOS, and hardware state. |
-| `POWER` | Present | One dual-purpose `POWER.EXE` installs through CONFIG.SYS and controls status, `OFF`, `STD`, `ADV`, and `ADV:MIN|REG|MAX`. The resident service recognizes DOS and keyboard idleness, resets on activity, and performs level-dependent CPU halts. Its APM path verifies installation and connection before advertising availability, enables or disables management with the selected mode, and issues CPU-idle notifications. The status report, CPU-idle percentage, AC-line diagnosis, invalid-setting behavior, missing-driver errorlevel, and INT 2Fh 5400h/5401h/5403h/5481h results match local genuine 6.22 captures. |
-| `SCANDISK` | Present | FAT12/FAT16 traversal, allocation and directory repair, ordered multi-drive and `/ALL` scans, monochrome text output, wildcard `/FRAGMENT`, free and occupied-cluster `/SURFACE` verification with live-file relocation, bounded BIOS reset/retry for transient physical failures, repair logging, stale-safe `/UNDO`, and uncompressed-volume `SCANDISK.INI` policies are live. No-argument operation provides a full-screen current-drive panel with mouse and keyboard control of standard/thorough checking, automatic repair, start, and exit. Fault corpora cover transient reads, sustained FAT-read aborts, exhausted surface-write retries, and occupied-cluster recovery without false diagnoses or unintended media changes. `CheckHost` and compressed-volume policies belong to the DriveSpace epic. |
-| `SMARTDRV` | Present | The dual-purpose `SMARTDRV.EXE` loads through CONFIG.SYS or self-installs its embedded driver, then supplies status, fixed-drive read/read-write/off selection, `/C`, `/F`, `/L`, `/N`, `/Q`, `/R`, `/S`, `/U`, `/V`, `/X`, live resizing, write-behind, flushing, `/E` transfer elements, and `/B` read-ahead. `/L` keeps runtime placement low, `/U` suppresses MSCDEX CD caching, and the DOS 6 `INT 2Fh` 4A11h command-boundary notification commits dirty data before COMMAND displays a new prompt. |
-| `VSAFE` | Missing | Resident monitoring options `1` through `8`, `/NE`, `/NX`, `/Ax`, `/Cx`, `/N`, `/D`, `/U`, hotkeys, checksums, network monitoring, and MSAV signature sharing. |
+### Stage 4: data protection
 
-Known gaps in commands already shipped:
+`MSBACKUP` is missing. A compatible implementation needs:
 
-| Existing command | Missing 6.22 behavior |
+- interactive backup, restore, and compare workflows;
+- `.SET` setup files and catalog files;
+- full, incremental, and differential sets;
+- compression, verification, scheduling, and media spanning;
+- supported destination-device behavior; and
+- `setup_file`, `/BW`, `/LCD`, and `/MDA` command-line forms.
+
+The DOS 5 `BACKUP` and `RESTORE` pair remains available for its own historical
+format; it is not a substitute for Microsoft Backup.
+
+`UNDELETE` supports FAT12/FAT16 recovery, `/LIST`, `/ALL`, `/DOS`, and `/DT`,
+including tracked chains and names. It still lacks the enhanced DOS 6.22
+interface and configuration. The Windows companion is outside this project's
+scope.
+
+`MSAV` and `VSAFE` are not implemented. They should be accepted as Stage 4
+work only if their historical compatibility value justifies maintaining an
+obsolete signature database and resident scanner. Their missing surfaces are:
+
+| Program | Unsupported surface |
 | --- | --- |
-| `COMMAND` | `/K`, `/Y` batch single-stepping, F5/Shift startup bypass, F8 CONFIG/AUTOEXEC confirmation, and selected-configuration propagation are present. |
-| `COPY` | Present: `/Y`, `/-Y`, overwrite prompting, `COPYCMD`, and command-line precedence are covered. |
-| `DIR` | `/C[H]` compression ratios and `O:C`/`O:-C`; these depend on DriveSpace. |
-| `EMM386` | DOS 6 command-mode statistics and diagnostics, ON/OFF/AUTO state transitions, application-handle-driven AUTO activation/release, W= handling, EMS/UMB modes, memory regions, M1-M14 frame selection, and LIM 4.0 APIs are covered, including safe rejection of corrupt external page maps. Remaining compatibility limits are real Weitek behavior and physical-hardware timing validation. |
-| `FORMAT` | `/C` retests previously marked bad clusters, while normal formatting preserves their marks. Compressed/host-drive interaction depends on the DriveSpace epic. |
-| `HELP` | The current searchable text database lacks the retail full-screen hypertext UI, complete 6.22 topic corpus, mouse navigation, syntax/notes/examples links, and full-text search. The UI belongs to the QBASIC epic; lean text topics can grow with each stage. |
-| `HIMEM.SYS` | XMS 3.00 identity and 32-bit functions 88h, 89h, 8Eh, and 8Fh match DOS 6.22 reference behavior within the manager's 64 MiB pool. The DOS 5 options, `/EISA`, diagnostics, destructive `/TESTMEM:ON|OFF`, A20 ownership, HMA ownership, and XMS moves are covered, including a real IBM AT BIOS under 80286 emulation. Unusual chipsets and physical hardware remain validation targets. |
-| `MEM` | Summary, `/C`, `/D`, `/F`, `/M`, and `/PROGRAM` use the DOS 6.22 report structure and include XMS 3 identity/free space, device detail, HMA state, and split EMM386 UMB accounting. Locale-dependent spacing and physical-machine totals are not compatibility claims. |
-| `SETVER` | Retail 6.2/6.22 defaults, persistent editing, driver loading, and 6.22 identity behavior are covered. |
-| `UNDELETE` | DOS protection modes exist, but the enhanced 6.22 UI/configuration and Windows companion are absent. The Windows companion is out of scope. |
-| `XCOPY` | Present: `/Y`, `/-Y`, `COPYCMD`, overwrite prompts, and hidden/system exclusion are covered. |
+| `MSAV` | Interactive scanning; `drive:`, `/S`, `/C`, `/R`, `/A`, `/L`, `/N`, `/P`, `/F`, `/VIDEO` and display forms; removal, reports, checksums, exit code 86, configuration, and signatures. |
+| `VSAFE` | Resident modes `1` through `8`; `/NE`, `/NX`, `/Ax`, `/Cx`, `/N`, `/D`, `/U`; hotkeys, checksums, network monitoring, and shared MSAV signatures. |
 
-## Startup, drivers, and APIs
+### Installation and Help
 
-### CONFIG.SYS and boot
+The remaining durable gaps are:
 
-CONFIG.SYS `SET`, `NUMLOCK=ON|OFF`, named blocks, `[menu]`, `[common]`,
-`MENUITEM`, `MENUDEFAULT`, `MENUCOLOR`, `SUBMENU`, and recursive `INCLUDE` are
-present. Selection, invalid-key recovery, zero and finite timeouts, nesting,
-source-order flattening, missing-submenu filtering, and the `CONFIG` variable
-passed to AUTOEXEC.BAT have QEMU coverage.
+- 6.22-style install and upgrade behavior rather than only the current DOS 5
+  two-disk compressed installation;
+- rollback/uninstall, emergency/startup-disk, and recovery workflows;
+- SETUP integration for the implemented memory, cache, and protection tools;
+- a complete 6.22 Help topic corpus; and
+- the retail full-screen hypertext, mouse, link, and search experience, which
+  belongs with the QBASIC/editor UI epic.
 
-F5/Shift bypass menus completely; F8 selects a block before stepping its
-flattened lines and AUTOEXEC.BAT. Selected `DEVICEHIGH`,
-`INSTALL`, `SHELL`, and AUTOEXEC.BAT behavior is covered across fresh
-multipass working images.
+`FASTHELP` and the current searchable text `HELP` remain useful lightweight
+interfaces and should grow as components are added.
 
-`DEVICEHIGH /L:region[,minsize][;...] /S` and the corresponding `LOADHIGH`
-region grammar are already implemented and covered. `INSTALLHIGH` is a useful
-repository extension, not a retail 6.22 directive.
+### Known boundaries in shipped components
 
-### New driver and multiplex surfaces
+- `DIR` lacks compressed-volume ratios (`/C[H]`, `O:C`, and `O:-C`).
+- FORMAT, ScanDisk, Defrag, SYS, and SETUP do not understand compressed or host
+  volumes. These are DriveSpace dependencies, not independent gaps.
+- HIMEM and EMM386 have real-BIOS 286 and emulated 386+ coverage, but unusual
+  chipsets, real Weitek behavior, and broad physical-hardware timing remain
+  validation limits.
+- Locale-dependent presentation and exhaustive undocumented DOS internal
+  layouts are not current compatibility claims.
 
-- `INTERLNK.EXE`: block/character device behavior, serial and parallel
-  transports,
-  `/DRIVES`, `/NOPRINTER`, port selection, redirector semantics,
-  drive/printer mapping, and unload/reconnect behavior.
-- `POWER.EXE`: installation, runtime policy, application-idle and keyboard-poll
-  detection, disk/video/DOS activity resets, CPU halt, APM lifecycle, reference
-  diagnostics, and the DOS 6 multiplex API are present.
-- `SMARTDRV.EXE`: DOS 6 device mode, cache command/multiplex interface,
-  write-behind consistency, and CD-ROM cooperation.
-- `MSCDEX.EXE`: redirector and `INT 2Fh` CD-ROM extensions, ISO 9660/Joliet-era
-  8.3 presentation expected by 6.22, IOCTL forwarding, and network sharing are
-  present.
-- DriveSpace: boot-time `DRVSPACE.BIN`, `DRVSPACE.SYS`, `DRVSPACE.EXE`, CVF
-  mount/compress/uncompress/resize, drive-letter swapping, `DRVSPACE.INI`,
-  DoubleSpace coexistence/conversion, compression-ratio queries, IOCTL and
-  multiplex APIs, and crash-consistent metadata.
+## Separate epics
 
-The documented DOS 6.22 kernel `INT 21h` surface is largely inherited from DOS
-5. The version result, internal structure revisions, redirector interactions,
-startup state, and new multiplex consumers still need reference-derived binary
-contracts. FAT32, VFAT long filenames, Windows 9x DOS extensions, and protected
-mode interfaces are not part of the 6.22 target.
+### DriveSpace
 
-## Installation, media, and project tooling
+No DriveSpace implementation ships. The epic includes:
 
-The current deterministic build, manifests, and emulators remain suitable.
-Hosted CI is temporarily disabled; local test runs are authoritative meanwhile.
-Closing the 6.22 product gap additionally requires:
+- `DRVSPACE.EXE` interactive operation and `/AUTOMOUNT`, `/CHKDSK`,
+  `/COMPRESS`, `/CREATE`, `/DELETE`, `/FORMAT`, `/INFO`, `/MOUNT`, `/RATIO`,
+  `/SIZE`, `/UNCOMPRESS`, and `/UNMOUNT`;
+- boot-time `DRVSPACE.BIN`, `DRVSPACE.SYS`, CVF mounting, drive-letter and host
+  swapping, and `DRVSPACE.INI`;
+- compression, resizing, repair, conversion, DoubleSpace coexistence, IOCTL,
+  multiplex, and ratio-query contracts; and
+- integration with DIR, FORMAT, SYS, SETUP, ScanDisk, Defrag, and recovery
+  media, including torn-write and low-space behavior.
 
-- 6.22 boot/install/upgrade media and versioned SETUP behavior;
-- SETUP configuration for SMARTDrive, memory management, Undelete, Backup, and
-  Anti-Virus, with DriveSpace added only in its epic;
-- upgrade, rollback/uninstall-disk, emergency/startup-disk, and compressed-drive
-  recovery flows;
-- a complete 6.22 text Help database as components land;
-- clean-room black-box captures from user-supplied genuine 6.22 media for every
-  new parser, errorlevel, file-format, API, and state transition;
-- strict command, driver-request, interrupt/multiplex, artifact, and runtime
-  manifests for each new shipped component;
-- differential FAT12/FAT16 corruption corpora for ScanDisk and Defrag, transport
-  fault injection for Interlnk, and power/cache interruption tests;
-- if DriveSpace is accepted, independently generated CVF corpora and torn-write,
-  low-space, host-drive, boot, repair, and conversion matrices.
+### QBASIC, EDIT, and full-screen Help
 
-Exact Microsoft disk layout, timestamps, byte-identical binaries, Windows-only
-tools (`MWBACKUP`, `MWAV`, and Windows Undelete), bundled Windows integration,
-and Supplemental Disk utilities are not compatibility requirements.
+This epic includes the BASIC interpreter and runtime, IDE/editor, QBASIC-backed
+`EDIT`, and reusable full-screen Help UI. It is intentionally independent of
+the operating-system stages.
 
-## Delivery stages
+## Delivery roadmap
 
-1. **DOS 6.22 platform contract.** Complete the SETVER defaults; implement
-   configuration blocks, boot menus, `CONFIG`, startup
-   bypass/confirmation, `COMMAND /K` and `/Y`; add `CHOICE`, `DELTREE`,
-   `LOADFIX`, `MOVE`, COPY/XCOPY overwrite policy, and complete lean Help topics.
-2. **Core maintenance and memory.** Add `SCANDISK` and `DEFRAG`; close DOS 6.22
-   MEM, HIMEM, EMM386, DEVICEHIGH/LOADHIGH, and FORMAT differences; then build
-   `MEMMAKER` on the proven configuration and memory-region model.
-3. **Caching, diagnostics, and connectivity.** Replace the DOS 5 SMARTDrive
-   product surface, then add `MSD`, `POWER`, `INTERLNK`/`INTERSVR`, and `MSCDEX`.
-   This stage makes the system broadly useful without the large application
-   suites.
-4. **Data-protection suites.** Add Microsoft Backup compatibility and finish
-   the DOS 6 Undelete product surface. Treat `MSAV`/`VSAFE` as optional within
-   this stage: their historical signature database has little modern security
-   value, but their interfaces remain recorded above.
-5. **DriveSpace epic.** Implement the CVF format, boot loader, driver, manager,
-   APIs, DIR/SCANDISK/DEFRAG/SYS/SETUP integration, DoubleSpace transition, and
-   recovery testing as one explicit, separately accepted milestone.
+| Stage | Scope | Status |
+| --- | --- | --- |
+| 1 | 6.22 identity, startup/configuration, command additions, and overwrite policy | Complete |
+| 2 | ScanDisk, Defrag, memory-manager differences, and MemMaker | Complete |
+| 3 | SMARTDrive, MSD, POWER, INTERLNK/INTERSVR, and MSCDEX | Complete |
+| 4 | MSBACKUP and enhanced UNDELETE; decide whether MSAV/VSAFE are worthwhile | Next |
+| 5 | DriveSpace and all compressed-volume integration | Separate epic |
 
-The QBASIC/EDIT/full-screen Help epic is independent of these stages. DOSSHELL,
-Task Swapper, and their EGA support remain excluded permanently.
+QBASIC/EDIT/full-screen Help remains an independent epic. Installation and
+reference-corpus improvements can proceed alongside Stage 4. DOSSHELL, Task
+Swapper, EGA.SYS, Windows-only companions, Supplemental Disk utilities, FAT32,
+VFAT long filenames, and Windows 9x protected-mode extensions are out of scope.
 
-Update this file whenever a gap closes or a reference comparison discovers a
-new difference. Machine-readable manifests remain authoritative for what the
-repository currently claims to ship and test.
-
-Physical parallel cables, unusual BIOS implementations, and laptop APM timing
-remain useful hardware-validation targets, but are not missing DOS interfaces
-and do not hold Stages 1-3 open. Their emulated protocols, timeout/error paths,
-and externally visible contracts are covered locally. See
-[EMULATION.md](EMULATION.md) for the 286 acceptance plan and result policy.
+Hosted CI is intentionally manual-only during active development. Local tests
+are authoritative until the maintainer re-enables automatic CI. Every new
+component still requires source-derived manifest coverage, focused success and
+failure contracts, reproducible artifacts, and clean-room comparison with
+user-supplied genuine media where exact behavior is uncertain.

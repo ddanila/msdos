@@ -1,7 +1,7 @@
 # DOS 6.22 memory model
 
 This document records the durable HMA, UMB, XMS, and EMS constraints. Detailed
-delivery history and test results belong in Git and CI.
+delivery history belongs in Git; current evidence belongs in the test manifests.
 
 ## Public behavior
 

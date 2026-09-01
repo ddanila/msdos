@@ -52,8 +52,8 @@ small-model programs that use floating-point arithmetic.
 
 Host builds are deterministic within each pinned toolset, but independently
 built Linux GCC and macOS Clang host compilers do not promise byte-identical
-16-bit code generation. Every supported host runs the same behavioral and QEMU
-contracts.
+16-bit code generation. Every supported host runs the applicable behavioral
+and emulator contracts.
 
 ## Updating the vendored tools
 
@@ -66,7 +66,7 @@ Treat a refresh as a toolchain change, not a binary-copy operation:
 4. record the base snapshot, custom revisions, workflow provenance, and hashes
    in this file;
 5. run focused adapter tests, pristine `-j1`/`-j4`/`-j8` builds, `make test`,
-   deployment, and the complete QEMU matrix.
+   deployment, and the applicable QEMU and 86Box matrices.
 
 The upstream snapshot extraction command, when needed, is:
 

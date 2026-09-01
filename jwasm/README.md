@@ -39,4 +39,4 @@ the exact pin and installs the binary for the current platform:
 
 `tests/test_toolchain_transforms.py` covers parsing and include lookup. The
 release gate additionally requires reproducible `-j1`, `-j4`, and `-j8` builds
-and a booting QEMU image; see [ARCHITECTURE.md](../ARCHITECTURE.md).
+and the applicable emulator gates; see [ARCHITECTURE.md](../ARCHITECTURE.md).

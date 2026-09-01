@@ -9,10 +9,10 @@ exercised by focused runtime evidence or has a source-backed exclusion.
 ## Enforcement
 
 The normal `make test` target runs every manifest verifier with
-`--require-complete`. CI also sets `FAIL_ON_SKIP=1`, so a host test that
-unexpectedly skips is a failure. A new source-derived interface, stale manifest
-entry, missing evidence file, observation-only entry, or uncovered contract
-fails the build.
+`--require-complete`. Set `FAIL_ON_SKIP=1` for a strict host run so an
+unexpected skip is a failure. Automatic CI is paused; local test results are
+authoritative. A new source-derived interface, stale manifest entry, missing
+evidence file, observation-only entry, or uncovered contract fails the build.
 
 Verifier output is the authoritative inventory and count. Exclusions must
 identify the live source condition that makes a path absent, disabled,
@@ -30,8 +30,10 @@ Manifest entries use these levels where applicable:
 - `uncovered`: no acceptable evidence exists; strict completion rejects it.
 
 Evidence must name a runnable test file. Verifiers reject missing files and,
-for runtime claims, evidence that is not wired into the CI workflow. Tests must
-assert behavior rather than merely execute a program successfully.
+for runtime claims, evidence that is not wired into the Makefile or retained
+workflow test graph. Tests must assert behavior rather than merely execute a
+program successfully. Some verifier diagnostics retain the phrase “wired into
+CI”; it refers to this graph, not to automatic hosted execution.
 
 ## Source-derived inventories
 

@@ -77,13 +77,14 @@ focused tests support compact valid headers emitted by WLINK.
 ## Testing model
 
 `make test` is a test target, not a build dependency. Build first. It runs fast
-kvikdos behavior plus strict machine-readable coverage checks. The QEMU targets
-test behavior that needs a real DOS machine model: boot, interrupts, block
-devices, filesystem mutation, drivers, TSRs, interactive I/O, and EMM386.
+kvikdos behavior plus strict machine-readable coverage checks. QEMU tests 386+
+machine behavior; 86Box is authoritative for real-BIOS 286 behavior. See
+`EMULATION.md` for the backend split.
 
 Coverage is contract based rather than source-line based. The manifests derive
 their inventories from source and build metadata, reject stale evidence, and
-require runnable tests wired into CI. See `tests/COVERAGE.md`.
+require runnable tests wired into the local test graph. Automatic CI is paused;
+see `tests/COVERAGE.md`.
 
 ## Repository ownership
 

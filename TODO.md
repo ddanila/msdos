@@ -1,25 +1,22 @@
 # Open work
 
-## DOS 5 compatibility
+The complete product comparison and unsupported option surfaces are in
+[DOS622_GAPS.md](DOS622_GAPS.md). Current priorities are:
 
-The canonical feature inventory and recommended order are in
-[DOS5_GAPS.md](DOS5_GAPS.md). Keep each implementation backed by a black-box
-contract and update the inventory when its gap closes.
+1. implement Stage 4 data protection: MSBACKUP and the enhanced DOS 6.22
+   UNDELETE experience;
+2. decide explicitly whether obsolete MSAV/VSAFE compatibility is worth its
+   maintenance cost;
+3. improve the 6.22 SETUP, upgrade, recovery-media, and Help experience; and
+4. plan DriveSpace and QBASIC/EDIT only as separate product-scale epics.
 
-## MS-DOS 6.22 compatibility
+For every change, keep source-derived manifests complete and add focused
+success, failure, and state-transition contracts. Automatic CI remains paused;
+use local tests and the emulator roles in [EMULATION.md](EMULATION.md).
 
-The staged upgrade plan and complete known delta are in
-[DOS622_GAPS.md](DOS622_GAPS.md). Implement stages in order unless a component
-is explicitly marked as a separate epic or non-goal.
+Toolchain maintenance should update one pinned fork at a time and pass the
+applicable reproducibility and runtime gates. Remove a build adapter only after
+its replacement provides equivalent behavior.
 
-## Maintenance
-
-- Keep strict coverage manifests complete and add tests for meaningful
-  boundaries, failures, and state transitions rather than test counts.
-- Evaluate `ddanila/JWasm`, `ddanila/open-watcom-v2`, and `ddanila/kvikdos`
-  `custom` revisions one tool family at a time through the full release gate.
-- Remove retained build adapters only when the underlying tool supplies
-  equivalent behavior and reproducibility plus runtime tests remain green.
-
-Commercial DOS binaries and derived content must not be committed. Reference
-media may be used only as an external black-box oracle.
+Commercial DOS binaries and derived content must not be committed. Genuine
+media may be used only as an external clean-room oracle.

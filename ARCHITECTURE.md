@@ -12,7 +12,7 @@ run DOS programs or proprietary Microsoft tools.
 | 16-bit C compilation | vendored custom Open Watcom via `bin/wcc` |
 | OMF linking and libraries | vendored custom Open Watcom via `bin/wlink` and `bin/wlib` |
 | Historical data/image tools | native programs and scripts under `bin/` |
-| Runtime testing | kvikdos for fast command tests; QEMU for the complete machine |
+| Runtime testing | kvikdos for fast command tests; QEMU for 386+ machines; 86Box for real-BIOS 286 acceptance |
 
 Exact tool revisions and provenance are recorded in `jwasm/README.md` and
 `watcom/README.md`. The wrappers implement only the historical command-line
@@ -51,9 +51,11 @@ invocation. The release contract is:
 2. byte-identical declared artifacts across `make -j1`, `-j4`, and `-j8`;
 3. `make test` with complete coverage manifests and no unexpected skips;
 4. `make deploy`;
-5. the complete QEMU matrix for kernel, utilities, drivers, filesystems, and
-   memory managers;
-6. green GitHub Actions for the exact commit.
+5. the applicable QEMU and 86Box matrices for kernel, utilities, drivers,
+   filesystems, and memory managers.
+
+Automatic GitHub Actions are intentionally paused during active development.
+Local results are the release authority until they are re-enabled.
 
 Coverage is contract-based rather than line-based. Its enforced inventories
 and commands are documented in [tests/COVERAGE.md](tests/COVERAGE.md).
