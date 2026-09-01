@@ -84,7 +84,8 @@ interfaces. Full-screen Help is planned before, and independently of, the
 QBASIC/EDIT epic; shared UI code may be reused later.
 
 The current installer identifies itself as 6.22 and its fresh-install defaults
-load HIMEM, EMM386 with `NOEMS`, upper-memory DOS, and SMARTDrive. It still
+load HIMEM, upper-memory DOS, and SMARTDrive; on a 386 or newer it also selects
+EMM386 with `NOEMS`, while 286 startup files omit the incompatible driver. It still
 lacks retail-style component selection, rollback/uninstall, and emergency-disk
 workflows; upgrade mode deliberately preserves user startup files byte-for-byte.
 

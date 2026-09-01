@@ -22,9 +22,11 @@ auto_suffix     db '\AUTOEXEC.BAT',0
 expand_suffix   db '\EXPAND.EXE',0
 command_suffix  db '\COMMAND.COM',0
 config_prefix   db 'DEVICE=',0
-config_himem    db '\HIMEM.SYS',13,10,'DEVICE=',0
-config_memory   db '\EMM386.EXE NOEMS',13,10,'DOS=HIGH,UMB',13,10
-                db 'FILES=30',13,10,'BUFFERS=20',13,10,0
+config_himem    db '\HIMEM.SYS',13,10,0
+config_device   db 'DEVICE=',0
+config_memory   db '\EMM386.EXE NOEMS',13,10,0
+config_high     db 'DOS=HIGH,UMB',13,10,'FILES=30',13,10
+                db 'BUFFERS=20',13,10,0
 auto_prefix     db '@ECHO OFF',13,10,'PATH ',0
 auto_cache      db 13,10,0
 smartdrv_suffix db '\SMARTDRV.EXE',13,10,0
@@ -41,6 +43,7 @@ core_setup      db 'A:\SETUP.EXE',0
 psp_segment     dw 0
 auto_yes        db 0
 upgrade_mode    db 0
+cpu_386         db 0
 core_index      dw 0
 destination     db 64 dup (0)
 source_path     db 128 dup (0)
@@ -101,6 +104,7 @@ main proc near
         call    print
         call    parse_arguments
         jc      setup_fail
+        call    detect_386
         call    ensure_destination
         jc      setup_fail
         call    detect_upgrade
@@ -577,10 +581,19 @@ create_fresh_configuration proc near
         mov     si,offset config_himem
         call    copy_string
         dec     di
+        cmp     cpu_386,0
+        je      config_without_emm386
+        mov     si,offset config_device
+        call    copy_string
+        dec     di
         mov     si,offset destination
         call    copy_string
         dec     di
         mov     si,offset config_memory
+        call    copy_string
+        dec     di
+config_without_emm386:
+        mov     si,offset config_high
         call    copy_string
         dec     di
         mov     cx,di
@@ -630,6 +643,25 @@ config_failed:
         stc
         ret
 create_fresh_configuration endp
+
+; In real mode a 286 clears IOPL/NT when POPF attempts to set them; a 386 or
+; newer retains those bits.  Do not install EMM386 in a 286 startup file.
+detect_386 proc near
+        push    ax
+        pushf
+        mov     ax,07000h
+        push    ax
+        popf
+        pushf
+        pop     ax
+        and     ax,07000h
+        jz      short detect_386_done
+        mov     cpu_386,1
+detect_386_done:
+        popf
+        pop     ax
+        ret
+detect_386 endp
 
 create_data_file proc near
         push    si
