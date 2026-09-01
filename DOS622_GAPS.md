@@ -15,9 +15,9 @@ and the archived
 The system is substantially DOS 6.22-compatible, but it is not yet a complete
 replacement for the retail product. The platform, maintenance, memory,
 caching, diagnostics, connectivity, and CD-ROM stages are implemented. The
-main product gap is Stage 4 data protection. Installation and Help are also
-less complete than the retail experience. DriveSpace and QBASIC are separate
-large epics.
+next stage is product completion: finish UNDELETE, improve SETUP and recovery
+media, add EGA.SYS and full-screen Help, and close observable API gaps.
+DriveSpace and QBASIC/EDIT are separate large epics.
 
 | Area | Status | Current boundary |
 | --- | --- | --- |
@@ -26,46 +26,37 @@ large epics.
 | Memory management | Implemented | HIMEM, EMM386, MEM, DEVICEHIGH/LOADHIGH, and MemMaker cover the intended 6.22 surface on the supported machine models. |
 | Cache, diagnostics, and power | Implemented | SMARTDrive, MSD, and POWER ship. |
 | Connectivity and CD-ROM | Implemented | INTERLNK, INTERSVR, and MSCDEX ship; a hardware-specific CD-ROM driver remains external. |
-| Data protection | Missing/partial | MSBACKUP is absent. UNDELETE has DOS protection modes but lacks the enhanced 6.22 interface. MSAV and VSAFE are absent and optional to the roadmap. |
+| Data protection | Partial | UNDELETE has DOS protection modes but lacks the enhanced 6.22 interface. MSBACKUP, MSAV, and VSAFE are deliberate non-goals. |
 | Installation and Help | Partial | SETUP remains closer to the DOS 5 two-disk installer. HELP is a lean text implementation rather than the complete retail full-screen system. |
+| EGA display-state driver | Missing | EGA.SYS will be implemented as an isolated compatibility driver despite Task Swapper being excluded. |
+| Observable DOS internals | Partial | Documented and undocumented APIs and data structures are compatibility targets wherever applications can observe or depend on them. |
 | Drive compression | Separate epic | DriveSpace is not implemented. |
 | BASIC and Editor | Separate epic | QBASIC and the QBASIC-backed EDIT are not implemented. |
-| DOSSHELL and Task Swapper | Non-goal | These will not be implemented. EGA.SYS and the Shell task-switching surface are excluded with them. |
+| Bundled applications | Non-goal | MSBACKUP, MSAV, VSAFE, DOSSHELL, and Task Swapper will not be implemented. |
 
 “Implemented” means the repository ships the feature and its declared
 interfaces have contract evidence. It does not claim byte-identical binaries,
-identical presentation, every physical machine, or every undocumented internal
-field.
+identical presentation or every physical machine. Observable documented and
+undocumented interfaces are targets; unobservable implementation identity is
+not.
 
 ## Remaining product gaps
 
-### Stage 4: data protection
-
-`MSBACKUP` is missing. A compatible implementation needs:
-
-- interactive backup, restore, and compare workflows;
-- `.SET` setup files and catalog files;
-- full, incremental, and differential sets;
-- compression, verification, scheduling, and media spanning;
-- supported destination-device behavior; and
-- `setup_file`, `/BW`, `/LCD`, and `/MDA` command-line forms.
-
-The DOS 5 `BACKUP` and `RESTORE` pair remains available for its own historical
-format; it is not a substitute for Microsoft Backup.
+### Stage 4: product completion
 
 `UNDELETE` supports FAT12/FAT16 recovery, `/LIST`, `/ALL`, `/DOS`, and `/DT`,
 including tracked chains and names. It still lacks the enhanced DOS 6.22
 interface and configuration. The Windows companion is outside this project's
 scope.
 
-`MSAV` and `VSAFE` are not implemented. They should be accepted as Stage 4
-work only if their historical compatibility value justifies maintaining an
-obsolete signature database and resident scanner. Their missing surfaces are:
+The following retail programs remain absent by decision, not as open work:
 
-| Program | Unsupported surface |
+| Program | Excluded surface |
 | --- | --- |
+| `MSBACKUP` | Microsoft Backup UI, set/catalog formats, scheduling, compression, verification, spanning, and device support. DOS 5 BACKUP/RESTORE continues to support its historical format. |
 | `MSAV` | Interactive scanning; `drive:`, `/S`, `/C`, `/R`, `/A`, `/L`, `/N`, `/P`, `/F`, `/VIDEO` and display forms; removal, reports, checksums, exit code 86, configuration, and signatures. |
 | `VSAFE` | Resident modes `1` through `8`; `/NE`, `/NX`, `/Ax`, `/Cx`, `/N`, `/D`, `/U`; hotkeys, checksums, network monitoring, and shared MSAV signatures. |
+| `DOSSHELL` and Task Swapper | Shell UI and suspended-application switching. |
 
 ### Installation and Help
 
@@ -76,11 +67,27 @@ The remaining durable gaps are:
 - rollback/uninstall, emergency/startup-disk, and recovery workflows;
 - SETUP integration for the implemented memory, cache, and protection tools;
 - a complete 6.22 Help topic corpus; and
-- the retail full-screen hypertext, mouse, link, and search experience, which
-  belongs with the QBASIC/editor UI epic.
+- a standalone full-screen hypertext UI with mouse, topic links, and search.
 
 `FASTHELP` and the current searchable text `HELP` remain useful lightweight
-interfaces and should grow as components are added.
+interfaces. Full-screen Help is planned before, and independently of, the
+QBASIC/EDIT epic; shared UI code may be reused later.
+
+### EGA.SYS
+
+Implement the documented device-driver surface and EGA display-state
+save/restore contracts. DOSSHELL and Task Swapper remain excluded, so EGA.SYS
+is an isolated driver/API compatibility feature rather than the start of a
+Shell implementation.
+
+### Observable APIs and internals
+
+Compatibility includes documented and undocumented behavior visible to DOS
+applications. Use published technical references and clean-room behavioral
+contracts for interrupts, multiplex APIs, IOCTLs, device requests, error and
+register behavior, and structures such as the list of lists, PSP, MCB, SFT,
+CDS, DPB, SDA, and device chain. Version and SETVER-dependent behavior is also
+in scope. Internal layouts or algorithms that no program can observe are not.
 
 ### Known boundaries in shipped components
 
@@ -90,8 +97,7 @@ interfaces and should grow as components are added.
 - HIMEM and EMM386 have real-BIOS 286 and emulated 386+ coverage, but unusual
   chipsets, real Weitek behavior, and broad physical-hardware timing remain
   validation limits.
-- Locale-dependent presentation and exhaustive undocumented DOS internal
-  layouts are not current compatibility claims.
+- Locale-dependent presentation is not yet an exhaustive compatibility claim.
 
 ## Separate epics
 
@@ -99,6 +105,7 @@ interfaces and should grow as components are added.
 
 No DriveSpace implementation ships. The epic includes:
 
+- exact read/write compatibility with CVFs produced by genuine DOS 6.22;
 - `DRVSPACE.EXE` interactive operation and `/AUTOMOUNT`, `/CHKDSK`,
   `/COMPRESS`, `/CREATE`, `/DELETE`, `/FORMAT`, `/INFO`, `/MOUNT`, `/RATIO`,
   `/SIZE`, `/UNCOMPRESS`, and `/UNMOUNT`;
@@ -109,11 +116,22 @@ No DriveSpace implementation ships. The epic includes:
 - integration with DIR, FORMAT, SYS, SETUP, ScanDisk, Defrag, and recovery
   media, including torn-write and low-space behavior.
 
-### QBASIC, EDIT, and full-screen Help
+An optional extended mode may add faster or denser compression and stronger
+integrity. It must use an explicit versioned format, never silently convert a
+retail-compatible CVF, and remain clearly distinguishable from media that
+genuine DOS 6.22 can mount.
+
+### QBASIC and EDIT
 
 This epic includes the BASIC interpreter and runtime, IDE/editor, QBASIC-backed
-`EDIT`, and reusable full-screen Help UI. It is intentionally independent of
-the operating-system stages.
+`EDIT`, bundled examples, and their own online Help. It is intentionally
+independent of the operating-system stages.
+
+### Supplemental Disk audit
+
+Supplemental Disk contents are not automatically parity requirements. Audit
+them item by item and classify each as already covered, worth implementing,
+superseded, a separate epic, or a non-goal.
 
 ## Delivery roadmap
 
@@ -122,13 +140,14 @@ the operating-system stages.
 | 1 | 6.22 identity, startup/configuration, command additions, and overwrite policy | Complete |
 | 2 | ScanDisk, Defrag, memory-manager differences, and MemMaker | Complete |
 | 3 | SMARTDrive, MSD, POWER, INTERLNK/INTERSVR, and MSCDEX | Complete |
-| 4 | MSBACKUP and enhanced UNDELETE; decide whether MSAV/VSAFE are worthwhile | Next |
-| 5 | DriveSpace and all compressed-volume integration | Separate epic |
+| 4 | Finish UNDELETE; improve SETUP/recovery media; add EGA.SYS and full-screen Help; close observable API gaps | Next |
+| 5 | Retail-compatible DriveSpace and all compressed-volume integration | Separate epic |
+| 6 | Optional versioned extended DriveSpace format | Follows Stage 5 |
 
-QBASIC/EDIT/full-screen Help remains an independent epic. Installation and
-reference-corpus improvements can proceed alongside Stage 4. DOSSHELL, Task
-Swapper, EGA.SYS, Windows-only companions, Supplemental Disk utilities, FAT32,
-VFAT long filenames, and Windows 9x protected-mode extensions are out of scope.
+QBASIC/EDIT remains an independent epic. MSBACKUP, MSAV, VSAFE, DOSSHELL, Task
+Swapper, Windows-only companions, FAT32, VFAT long filenames, and Windows 9x
+protected-mode extensions are out of scope. Supplemental Disk contents remain
+undecided until their itemized audit.
 
 Hosted CI is intentionally manual-only during active development. Local tests
 are authoritative until the maintainer re-enables automatic CI. Every new

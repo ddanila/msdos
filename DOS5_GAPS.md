@@ -28,9 +28,9 @@ The tables use these terms:
 OEM additions and localized editions can contain extra files. This inventory
 uses the Microsoft retail English product and does not count later DOS 6
 features such as DELTREE, DEFRAG, MEMMAKER, MOVE, or SCANDISK.
-DOSSHELL, Task Swapper, and EGA.SYS are permanent project non-goals rather than
-open compatibility work. QBASIC and the QBASIC-based Editor are a separate
-epic.
+DOSSHELL and Task Swapper are permanent project non-goals rather than open
+compatibility work. EGA.SYS is planned as an isolated compatibility driver.
+QBASIC and the QBASIC-based Editor are a separate epic.
 
 ## Product-level gap summary
 
@@ -193,8 +193,8 @@ Remaining project-level gaps are:
   tool update still requires the complete reproducibility/runtime gate.
 
 The earlier DOS 5 delivery stages are complete and belong in Git history.
-QBASIC and EDIT remain a separate product-scale epic. DOSSHELL, Task Swapper,
-and EGA.SYS are permanent non-goals.
+QBASIC and EDIT remain a separate product-scale epic. DOSSHELL and Task Swapper
+are permanent non-goals; EGA.SYS is tracked in the DOS 6.22 completion stage.
 
 Update this file whenever a listed gap closes or a new source/reference
 difference is demonstrated. Machine-readable manifests remain authoritative
