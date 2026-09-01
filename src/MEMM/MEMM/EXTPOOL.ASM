@@ -40,6 +40,7 @@
 ;		P U B L I C   D E C L A R A T I O N S
 ;******************************************************************************
 	public	    pool_initialise
+	public	    pool_initialise_abs
 	public	    get_buffer
 
 	page
@@ -135,6 +136,23 @@ Pool_Initialise     proc    near
 	ret
 ;
 Pool_Initialise     endp
+
+; Initialise the relocation pool from an absolute locked physical address.
+; This is the XMS-backed counterpart of the historical 1 MiB-relative entry.
+; Input: DX:AX = physical start, CX = size in KiB.
+Pool_Initialise_Abs proc near
+	push	eax
+	push	cx
+	mov	cs:[ext_start],ax
+	mov	cs:[ext_start+2],dx
+	xor	eax,eax
+	mov	ax,cx
+	shl	eax,10
+	mov	dword ptr cs:[ext_size],eax
+	pop	cx
+	pop	eax
+	ret
+Pool_Initialise_Abs endp
 
 
 

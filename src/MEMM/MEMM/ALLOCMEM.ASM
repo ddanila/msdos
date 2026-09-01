@@ -115,6 +115,7 @@ LAST	segment
 					; reported by int15 handler
 	extrn	memreq:near		; memory requirements for move
 	extrn	pool_initialise:near	; initialise the pool of extended
+	extrn	pool_initialise_abs:near ; initialise from locked XMS address
 					; memory
 
 ifndef	NOHIMEM
@@ -144,6 +145,7 @@ total_mem	dw	0	; size of extended memory available at any moment
 avail_mem	dw	0	; total size (hi+ext) available for MEMM
 xms_entry	dd	0	; installed XMS manager control entry
 xms_handle	dw	0	; locked backing-store handle retained resident
+reloc_size	dw	0	; KiB reserved after the EMS pool for init relocation
 ;
 
 _DATA	ends
@@ -251,19 +253,35 @@ XMSAlloc proc near
 	mov	ax,4300h
 	int	2fh
 	cmp	al,80h
-	jne	short XA_fail
+	je	short XA_have_xms
+	jmp	XA_fail
+XA_have_xms:
 	mov	ax,4310h
 	int	2fh
 	mov	word ptr [xms_entry],bx
 	mov	word ptr [xms_entry+2],es
 	mov	ah,08h
 	call	dword ptr [xms_entry]
+	call	memreq			; reserve the discarded PAGESEG/LAST span
+	mov	[reloc_size],cx
 	mov	ax,[pool_size]
+	add	ax,cx
+	jnc	short XA_size_no_carry
+	jmp	XA_reserve_fail
+XA_size_no_carry:
 	add	ax,[min_xms]
-	jc	short XA_reserve_fail
+	jnc	short XA_min_no_carry
+	jmp	XA_reserve_fail
+XA_min_no_carry:
 	cmp	dx,ax
-	jb	short XA_reserve_fail
+	jae	short XA_size_available
+	jmp	XA_reserve_fail
+XA_size_available:
 	mov	dx,[pool_size]
+	add	dx,[reloc_size]
+	jnc	short XA_allocate
+	jmp	XA_reserve_fail
+XA_allocate:
 	mov	ah,09h
 	call	dword ptr [xms_entry]
 	or	ax,ax
@@ -277,6 +295,19 @@ XMSAlloc proc near
 	jnz	short XA_unlock_release
 	mov	[xbase_addr_l],bx
 	mov	[xbase_addr_h],dl
+	; The EMS pool occupies the first pool_size KiB of the locked handle.
+	; Give InitTab the reserved tail so its compiled NOHIMEM path can move
+	; PAGESEG/LAST and return a reduced driver break address.
+	push	dx
+	mov	ax,[pool_size]
+	mov	cx,1024
+	mul	cx
+	mov	cx,dx
+	pop	dx
+	add	ax,bx
+	adc	dx,cx
+	mov	cx,[reloc_size]
+	call	pool_initialise_abs
 	mov	ax,[pool_size]
 	mov	[ext_size],ax
 	mov	[avail_mem],ax

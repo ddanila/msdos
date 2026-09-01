@@ -444,9 +444,18 @@ IE_InitEMM:
 IE_InitVDM:
 	call	VDM_Init
 	test	[msg_flag],KILLER_MSG	;Q: any killer messages?
-	jz	IE_InitTAB		;  N: init TABLES
+	jz	IE_CommitUMB		;  N: finish low-table consumers
 	jmp	IE_exit 		;  Y: exit
 ;
+;  Install UMB mappings while the initialization-only state in LAST and the
+;  original page tables are still resident. InitTab may then copy the complete
+;  mappings and discard PAGESEG/LAST safely.
+;
+IE_CommitUMB:
+	cmp	[umb_mode],0
+	je	short IE_InitTAB
+	call	Commit_UMB		; map backing and publish atomically
+
 ;  set up segment pointers to Tables & OEM table init
 ;
 IE_InitTAB:
@@ -456,10 +465,6 @@ IE_InitTAB:
 IE_InitT_Good:
 	test	[msg_flag],KILLER_MSG	;Q: any killer messages?
 	jnz	short IE_table_error
-	cmp	[umb_mode],0
-	je	short IE_skip_commit_umb
-	call	Commit_UMB		; map backing and publish atomically
-IE_skip_commit_umb:
 	jmp	IE_chkbase		; check base memory left
 IE_table_error:
 	jmp	IE_exit 		; exit

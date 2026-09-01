@@ -561,6 +561,19 @@ set_entries:
     ;
 	mov	word ptr [Page_Dir],ax	; DX,AX = 32 bit addr of Page Directory
 	mov	word ptr [Page_Dir+2],dx	; save it
+	; VDM_Init built the TSS while CR3 still named the low PAGESEG copy.
+	; Keep the task-state CR3 synchronized before DOS releases that copy.
+	push	ax
+	push	dx
+	push	di
+	mov	di,seg TSS
+	mov	es,di
+	xor	di,di
+	db	66h
+	mov	word ptr es:[di.TSS386_CR3],ax
+	pop	di
+	pop	dx
+	pop	ax
 ;
 ;  reset PAGET_GSEL descriptor
 ;

@@ -141,7 +141,7 @@ extrn	_handle_table_size:word
 ;
 ;   save area for handles
 ;
-extrn	_save_map:byte
+extrn	_save_map:word
 
 ;
 ; Save area and misc variables for 4.0 function 27
@@ -665,7 +665,8 @@ _SavePageMap	proc	near
 					; check state of handle's page area
 	imul	bx,ax,SIZE SaveMap_struc ; BX = offset within Save Area for
 					;  this handle's save area
-	lea	di,_save_map[bx]	; DS:DI points to handle's save area
+	add	bx,[_save_map]
+	mov	di,bx			; DS:DI points to handle's save area
 	cmp	[di].s_handle,NULL_HANDLE
 					;Q: save area in use ?
 	jne	short spm_prev_saved	; Y: return error
@@ -727,7 +728,8 @@ _RestorePageMap	proc	near
 					; check state of handle's page area
 	imul	bx,ax,SIZE SaveMap_struc ; BX = offset within Save Area for
 					;  this handle's save area
-	lea	si,_save_map[bx]	; DS:SI points to handle's save area
+	add	bx,[_save_map]
+	mov	si,bx			; DS:SI points to handle's save area
 	cmp	[si].s_handle,NULL_HANDLE
 					;Q: save area in use ?
 	je	short rpm_no_map_saved	; N: return error
@@ -2873,7 +2875,7 @@ AMRS_set:
 	movzx	eax, bl
 	imul	eax, size FRS_struc
 	xchg	ax, bx
-	lea	bx, FRS_array[bx]		; Get pointer to the new Reg Set
+	add	bx, [FRS_array]			; Get pointer to the new Reg Set
 	cmp	[bx.FRS_alloc], 0		; Make sure it is allocated
 	xchg	ax, bx
 	je	AMRS_undef_FRS			;   unallocated, go complain
@@ -2968,7 +2970,7 @@ AMRS_allocate:
 	je	short AMRS_noRS			;   no, none available
 						; Search for first free set
 	dec	[FRS_free]			; We are going to take one
-	lea	di, [FRS_array]			; Start of FRS structures
+	mov	di, [FRS_array]			; Start of FRS structures
 	xor	bl, bl				; FRS number
 AMRS_search:
 	cmp	[di.FRS_alloc], 0		; This one free?
@@ -3021,11 +3023,12 @@ AMRS_deallocate:
 	movzx	eax, bl
 	imul	eax, size FRS_struc		; Offset into array
 	xchg	ax, bx
-	cmp	FRS_array[bx.FRS_alloc], 0	; Paranoid...
+	add	bx,[FRS_array]
+	cmp	[bx.FRS_alloc], 0		; Paranoid...
 	xchg	ax, bx
 	je	short AMRS_undef_FRS		;   Not allocated, complain
 	xchg	ax, bx
-	mov	FRS_array[bx.FRS_alloc], 0	; Mark it free
+	mov	[bx.FRS_alloc], 0		; Mark it free
 	xchg	ax, bx
 	inc	[FRS_free]			; one more set free
 	ret

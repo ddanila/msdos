@@ -272,10 +272,7 @@ _altreg_count	LABEL	WORD
 ; Used to emulate FRS. FRS 0..FRS_COUNT-1. FRS 0
 ; is the normal mapping set.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-FRS_array	LABEL	WORD		; Array of Fast Register Set structures
-	REPT	FRS_COUNT
-FRS_struc	<>
-	ENDM
+FRS_array	dw	0		; Pointer to runtime-sized FRS structures
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;09. Variables to support FRS Implementation
@@ -308,10 +305,7 @@ VEMMD_SSbase	dd	0		; Linear base of Stack Segment
 ;	This is an array of structures that save
 ;	the current mapping state.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-_save_map	LABEL	BYTE
-	REPT	HANDLE_CNT		; one save area per handle
-SaveMap_struc	<>			; save area
-	ENDM
+_save_map	dw	0		; Pointer to runtime-sized save areas
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;13. handle_table
@@ -321,10 +315,7 @@ SaveMap_struc	<>			; save area
 ;	to the handle in emm_page array is given
 ;	emm_page index of NULL_PAGE means free
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-_handle_table	LABEL	WORD
-	REPT	HANDLE_CNT		; one table per handle
-HandleTable_struc	<>		; initialized handle table
-	ENDM
+_handle_table	dw	0		; Pointer to runtime-sized handle table
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;14. handle name table
@@ -332,8 +323,7 @@ HandleTable_struc	<>		; initialized handle table
 ;	be given a 8 byte name. this array keeps
 ;	track of the handle names
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-_Handle_Name_Table LABEL QWORD
-	DQ	HANDLE_CNT dup (0)	; 8 0 bytes for every handle name
+_Handle_Name_Table dw	0	; Pointer to runtime-sized handle names
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;15. book-keeping variables for handle table

@@ -39,8 +39,8 @@
  *	This is an array of handle pointers.
  *	page_index of zero means free
  */
-extern struct handle_ptr handle_table[];
-extern Handle_Name Handle_Name_Table[]; 	/* Handle names */
+extern struct handle_ptr *handle_table;
+extern Handle_Name *Handle_Name_Table; 	/* Handle names */
 extern unsigned short	handle_table_size;	/* number of entries */
 extern unsigned short	handle_count;		/* active handle count */
 

@@ -293,7 +293,7 @@ Validate_Handle MACRO	Death_Label
 	cmp	dx, [_handle_table_size]	;Q: handle in range ?
 	jae	Death_Label			;  N: go to error label
 	shl	dx, 2				;  Y: convert handle to
-	add	dx, offset _handle_table	;     pointer
+	add	dx, [_handle_table]		;     pointer
 	xchg	bx, dx
 	cmp	[bx.ht_index], NULL_PAGE	;Q: is this handle active ?
 	xchg	bx, dx
@@ -316,7 +316,7 @@ Validate_Handle MACRO	Death_Label
 Handle2HandlePtr MACRO
 
 	shl	dx, 2				;  Y: convert handle to
-	add	dx, offset _handle_table	;     pointer
+	add	dx, [_handle_table]		;     pointer
 
 	ENDM
 

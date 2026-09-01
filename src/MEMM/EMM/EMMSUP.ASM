@@ -504,7 +504,7 @@ _valid_handle	proc	near
 	cmp	bx,[_handle_table_size]	;Q: handle in range ?
 	jae	vh_fail			;  N: return invalid handle error
 	shl	bx,2			;  Y: BX = handle's table offset
-	add	bx,offset DGROUP:_handle_table	; BX = offset to handle's data
+	add	bx,[_handle_table]		; BX = offset to handle's data
 	cmp	[bx.ht_index],NULL_PAGE	;Q: is this an active handle ?
 	je	vh_fail			;    N: return invalid handle error
 	mov	ax,bx			;    Y: return ptr to handle's data

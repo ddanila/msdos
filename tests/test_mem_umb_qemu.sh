@@ -84,6 +84,18 @@ if grep -Fq 'MEM_SYNONYM_FAIL' "$LOG"; then
     exit 1
 fi
 
+# Retail EMM386 is exceptionally small, but exact byte parity depends on its
+# proprietary monitor layout. Keep this implementation in the same practical
+# class: a normal RAM configuration must not regress to the historical 100+ KiB
+# conventional allocation.
+emm386_conventional=$(awk '$1 == "EMM386" { print $3; exit }' "$LOG" | tr -d '\r')
+if [[ ! "$emm386_conventional" =~ ^[0-9]+$ ]] || (( emm386_conventional > 40960 )); then
+    echo 'FAIL: EMM386 exceeds the 40 KiB conventional-memory footprint budget' >&2
+    echo "  EMM386=${emm386_conventional:-unparsed}" >&2
+    strings -a "$LOG" | sed -n '1,180p' >&2
+    exit 1
+fi
+
 if ! grep -Eq '^  Upper +49152 +48 +49104' "$LOG" \
     || ! grep -Eq '^  HIMEM +[1-9][0-9]* +[1-9][0-9]* +0' "$LOG" \
     || ! grep -Eq '^  EMM386 +[1-9][0-9]* +[1-9][0-9]* +0' "$LOG" \
@@ -176,4 +188,4 @@ then
     exit 1
 fi
 
-echo '  PASS: MEM UMB summary, /C, /D, /F, /M, regions, HMA, and state restoration'
+echo '  PASS: MEM UMB reporting, state restoration, and EMM386 footprint budget'

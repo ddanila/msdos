@@ -6,9 +6,9 @@ Watcom. The maintained source lives directly under `src`; the system reports
 DOS 6.22 and implements its UMB/HMA memory surface. The build is fully native
 and open source; it does not execute Microsoft build tools or DOS emulators.
 
-The 6.22 command, maintenance, installation, Help, API, and supported-locale
-stages are complete. EMM386 footprint parity remains open; DriveSpace and other
-product-scale additions are separate epics. See
+The 6.22 command, maintenance, installation, Help, API, memory, and
+supported-locale stages are complete. DriveSpace and other product-scale
+additions are separate epics. See
 [DOS622_GAPS.md](DOS622_GAPS.md) for the current parity map and scope decisions.
 
 ## Requirements

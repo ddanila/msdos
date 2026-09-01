@@ -103,7 +103,7 @@ extrn	_pft386:word		; ptr to array of page table entries
 
 extrn	_emm_brk:word		; offset for emm data break address
 
-extrn	FRS_array:word		; 
+extrn	FRS_array:word		; pointer to runtime-sized FRS array
 extrn	CurRegSetn:byte
 extrn	CurRegSet:word
 extrn	FRS_free:byte
@@ -112,6 +112,9 @@ extrn	banking_base:word
 
 extrn	_handle_table:word
 extrn	_handle_count:word
+extrn	_handle_table_size:word
+extrn	_save_map:word
+extrn	_Handle_Name_Table:word
 
 _DATA	ends
 
@@ -379,7 +382,9 @@ EMM_Init	proc	near
 	shr	cx,4			; CX = # of EMM pages available
 	mov	[_total_pages],cx	; pages total
 ;
-; init ptrs for _emm_page, _emm_free and _pft386
+; Lay out option-sized resident tables at the start of VDATA. Keeping only the
+; requested A= and H= capacities avoids charging every machine for the maxima
+; while preserving the complete documented ranges.
 ;
 	shl	cx,1			; CX = bytes in total_pages words
 
@@ -389,7 +394,56 @@ else
 	sub	ax,seg DGROUP
 	shl	ax,4			; convert into offset from dgroup
 	add	ax,offset VDATA:vdata_begin
-	mov	[_emm_page],ax
+	mov	di,ax
+
+	mov	[FRS_array],di
+	mov	bx,[_altreg_count]
+	inc	bx			; set zero plus A= alternate sets
+EMIN_init_frs:
+	push	bx
+	mov	ax,NULL_PAGE
+	mov	cx,MAX_PHYS_PAGES
+	rep	stosw
+	xor	ax,ax
+	stosw				; FRS_alloc
+	pop	bx
+	dec	bx
+	jnz	short EMIN_init_frs
+
+	mov	[_save_map],di
+	mov	bx,[_handle_table_size]
+EMIN_init_save_maps:
+	push	bx
+	mov	ax,NULL_HANDLE
+	stosw				; s_handle
+	mov	ax,NULL_PAGE
+	mov	cx,EMM32_PHYS_PAGES	; unmapped windows
+	rep	stosw
+	pop	bx
+	dec	bx
+	jnz	short EMIN_init_save_maps
+
+	mov	[_handle_table],di
+	mov	bx,[_handle_table_size]
+EMIN_init_handles:
+	mov	ax,NULL_PAGE
+	stosw				; ht_index
+	xor	ax,ax
+	stosw				; ht_count
+	dec	bx
+	jnz	short EMIN_init_handles
+
+	mov	[_Handle_Name_Table],di
+	mov	ax,[_handle_table_size]
+	mov	bx,4			; eight-byte name = four words
+	mul	bx
+	mov	cx,ax
+	xor	ax,ax
+	rep	stosw
+
+	mov	[_emm_page],di
+	mov	cx,[_total_pages]
+	shl	cx,1			; bytes in each word-sized page array
 endif
 
 
@@ -646,7 +700,7 @@ EMIN_9:
 ;
 ; initialize FRS_array
 ;
-	lea	si,FRS_array		; DS:SI <-- FRS_array
+	mov	si,[FRS_array]		; DS:SI <-- FRS_array
 	mov	[si.FRS_alloc], 1	; mark FRS set 0 as allocated
 	mov	[CurRegSetn], 0		; use FRS set 0
 	mov	ax,[_altreg_count]
@@ -689,8 +743,9 @@ EMIN_9:
     ; fix entry for handle 0 in handle table
     ;
 	mov	dx, [_emmpt_start]
-	mov	_handle_table[0],dx ; offset into emm_page array
-	mov	_handle_table[2],cx ; number of pages
+	mov	di,[_handle_table]
+	mov	[di.ht_index],dx	; offset into emm_page array
+	mov	[di.ht_count],cx		; number of pages
     ;
     ; handle_count needs to be incremented to indicate that handle 0 is
     ; allocated
@@ -708,7 +763,8 @@ EMIN_9:
 ; di = pointer into FRS. bx = physical page number. si = pointer into emm_page
 ; cx = number of pages mapped.
 ;
-	mov	si,_handle_table[0] ; get pointer into emm_page
+	mov	si,[_handle_table]
+	mov	si,[si.ht_index]	; get pointer into emm_page
 	shl	si,1		    ; emm_page is a word array
 	add	si,[_emm_page]	    ;
     ;

@@ -61,34 +61,35 @@ A third-party XMS provider remains valid for DOS. Repository EMM386 may decline
 its UMB feature when its private HIMEM peer is absent, but must not replace or
 damage the third-party manager.
 
-## Open EMM386 footprint defect
+## EMM386 footprint
 
-Volkov Commander 4.05's `Alt+F5` MCB walk exposes a material conventional-memory
-gap with identical 8 MiB QEMU hardware and startup files. Retail DOS 6.22 leaves
-a 618,736-byte largest conventional block; this system leaves 455,984 bytes.
-Exact addresses and small accounting differences are not parity requirements,
-but losing roughly 163 KiB is.
+Volkov Commander 4.05's `Alt+F5` MCB walk is the comparison oracle, using
+identical 8 MiB QEMU hardware and startup files. Retail DOS 6.22 leaves a
+618,736-byte largest conventional block. Before relocation was repaired, this
+system left 455,984 bytes and a 128,688-byte low `system` block.
 
-The low `system` MCB beginning at `0C5Bh` is the main symptom. With HIMEM and
-`DOS=HIGH` alone it is 20,144 bytes. Loading repository EMM386 increases it to
-128,688 bytes in both `NOEMS M5` and `RAM M5`, an EMM386-attributable increase
-of 108,544 bytes. `RAM` separately changes the upper arena, so the low-memory
-increase is not the EMS page frame or UMB backing pool.
+With HIMEM and `DOS=HIGH` alone the low block is 20,144 bytes. The former
+EMM386-attributable increase was 108,544 bytes in both `NOEMS M5` and `RAM M5`;
+`RAM` separately changes the upper arena, so that increase was not the EMS page
+frame or UMB backing pool.
 
-The leading source-level explanation is incomplete resident-image relocation.
-`InitTab` in `src/MEMM/MEMM/INITTAB.ASM` can shrink `driver_end` only after
-moving page tables and resident state through `HiSysAlloc`. That allocator in
-`OEMPROC.ASM` depends on the historical high-system control words at
-`F000:FFE0`; ordinary QEMU hardware does not provide that OEM facility. The
-newer XMS path in `ALLOCMEM.ASM` allocates and locks the EMS backing pool but
-does not provide an equivalent relocation destination for the resident image.
-The size corroborates that path precisely: `INIT.ASM` initializes `driver_end`
-to `seg LAST`, and the link map places `LAST` at relative segment `1A7Fh`.
-Including the MCB paragraph gives `1A80h * 16 = 108,544` bytes, exactly the
-observed increase. The first `HiSysAlloc` failure therefore leaves the initial
-break address unchanged. What remains unproven is the correct replacement
-relocation design; a future fix needs break-address tracing and must preserve
-the existing EMS/UMB contracts.
+This build defines `NOHIMEM`, so `InitTab` uses the extended-buffer
+`get_buffer`/`moveb` path before shrinking `driver_end`. The XMS allocator had
+initialized only the EMS backing pool, leaving `get_buffer` unable to relocate
+`PAGESEG` and `LAST`. It now reserves a relocation tail in the same locked XMS
+handle. UMB mappings are committed before the initialization-only `LAST` state
+is discarded, and the relocated page directory is installed in both the live
+descriptor state and TSS.
+
+The other large fixed cost was allocating maximum-capacity tables for all 255
+handles and 255 fast register sets. These tables now occupy resident `VDATA`
+according to the selected `H=` and `A=` capacities; the full option ranges are
+unchanged. Under the comparison configuration, EMM386 now consumes 33,280
+conventional bytes, the low `system` block is 53,424 bytes, and VC leaves a
+531,248-byte largest conventional block. The remaining 87,488-byte aggregate
+gap to retail includes the different DOS/HIMEM/COMMAND layout and is not an
+oversized EMM386 allocation. Exact parity is not required; the enforced normal
+configuration budget is 40 KiB.
 
 ## Evidence
 
@@ -97,5 +98,6 @@ HMA residency and fallback, high loaders, MEM reporting, EMM386 modes and
 mapping stability, A20 backends, filesystem/redirector traffic, interrupts,
 warm reboot, and provider absence. The machine-readable inventories under
 `tests/` and [tests/COVERAGE.md](tests/COVERAGE.md) are authoritative for
-current test names and counts. These functional contracts do not yet enforce
-retail-comparable EMM386 conventional-memory footprint.
+current test names and counts. `test_mem_umb_qemu.sh` also enforces the 40 KiB
+EMM386 conventional-memory budget; load-option tests cover the maximum `H=` and
+`A=` capacities.
