@@ -72,17 +72,20 @@ timeout 30 qemu-system-i386 -display none \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     </dev/null >"$LOG" 2>&1 || true
 
-if grep -q '?LPHA.TXT  26 bytes' "$LOG" && ! grep -q 'LIST_FAILED' "$LOG"; then
+if grep -Eq '\?LPHA\.TXT +26 ' "$LOG" &&
+   grep -q 'Using the MS-DOS directory method' "$LOG" &&
+   ! grep -q 'LIST_FAILED' "$LOG"; then
     ok "/LIST reports the deleted DOS directory entry"
 else
     fail "/LIST contract"
 fi
-if grep -q 'Restored ALPHA.TXT' "$LOG" && ! grep -q 'INTERACTIVE_FAILED' "$LOG"; then
+if grep -q 'File successfully undeleted' "$LOG" && ! grep -q 'INTERACTIVE_FAILED' "$LOG"; then
     ok "/DOS accepts an interactive first character"
 else
     fail "/DOS interactive recovery"
 fi
-if grep -q 'Restored %ESTED.DAT' "$LOG" && ! grep -q 'NESTED_FAILED' "$LOG"; then
+if grep -Fq 'File Specifications: *.DAT' "$LOG" &&
+   grep -Eq '\?ESTED\.DAT +22 ' "$LOG" && ! grep -q 'NESTED_FAILED' "$LOG"; then
     ok "/ALL uses the next collision-free replacement in a current subdirectory"
 else
     fail "/ALL nested recovery"
@@ -176,7 +179,8 @@ else
     fail "public Delete Tracker management"
 fi
 if grep -q 'Deletion tracking enabled for drive B:' "$TRACK_LOG" &&
-   grep -q 'Restored SECOND.TXT' "$TRACK_LOG" &&
+   grep -q 'SECOND.TXT' "$TRACK_LOG" &&
+   grep -q 'File successfully undeleted' "$TRACK_LOG" &&
    grep -q 'Deletion tracking disabled.' "$TRACK_LOG" &&
    [[ "$tracked_payload" == 'SECOND TSR PAYLOAD' ]] &&
    ! mdir -i "$TRACK_TARGET" ::PCTRACKR.ACT >/dev/null 2>&1 &&
@@ -239,10 +243,10 @@ sentry_payload="$(mcopy -i "$SENTRY_TARGET" ::SENTRY.TXT - 2>/dev/null | tr -d '
 nested_sentry_payload="$(mcopy -i "$SENTRY_TARGET" ::SUB/NESTED.DAT - 2>/dev/null | tr -d '\r\n')"
 if grep -q 'Delete Sentry enabled on drive B:' "$SENTRY_LOG" &&
    grep -q 'Drive B: Delete Sentry is active' "$SENTRY_LOG" &&
-   grep -q 'SENTRY.TXT  protected by Delete Sentry' "$SENTRY_LOG" &&
-   grep -q 'Restored B:\\SENTRY.TXT' "$SENTRY_LOG" &&
-   grep -q 'NESTED.DAT  protected by Delete Sentry' "$SENTRY_LOG" &&
-   grep -q 'Restored B:\\SUB\\NESTED.DAT' "$SENTRY_LOG" &&
+   grep -q 'SENTRY.TXT' "$SENTRY_LOG" &&
+   grep -q 'NESTED.DAT' "$SENTRY_LOG" &&
+   grep -q 'Protected by Delete Sentry' "$SENTRY_LOG" &&
+   [[ "$(grep -c 'File successfully undeleted' "$SENTRY_LOG")" -ge 2 ]] &&
    grep -q 'Purged 1 Delete Sentry file(s) from drive B:' "$SENTRY_LOG" &&
    grep -q 'The Undelete memory-resident program was unloaded' "$SENTRY_LOG" &&
    [[ "$sentry_payload" == 'DELETE SENTRY EXACT PAYLOAD' ]] &&
@@ -279,7 +283,8 @@ timeout 30 qemu-system-i386 -display none \
 default_sentry_payload="$(mcopy -i "$SENTRY_LOAD_TARGET" '::SENTRY/#0000001.MS' - 2>/dev/null | tr -d '\r\n')"
 default_ini="$(mcopy -i "$BOOT" ::UNDELETE.INI - 2>/dev/null | tr -d '\r')"
 if grep -q 'Delete Sentry enabled on drive B:' "$SENTRY_LOAD_LOG" &&
-   grep -q 'DEFAULT.TXT  protected by Delete Sentry' "$SENTRY_LOAD_LOG" &&
+   grep -q 'DEFAULT.TXT' "$SENTRY_LOAD_LOG" &&
+   grep -q 'Protected by Delete Sentry' "$SENTRY_LOAD_LOG" &&
    [[ "$default_sentry_payload" == 'DEFAULT INI SENTRY PAYLOAD' ]] &&
    grep -q '\[sentry.drives\]' <<<"$default_ini" &&
    grep -q 'd.sentry=TRUE' <<<"$default_ini" &&
@@ -320,7 +325,8 @@ timeout 30 qemu-system-i386 -display none \
     </dev/null >"$SENTRY_LIMIT_LOG" 2>&1 || true
 newest_size="$(mcopy -i "$SENTRY_LIMIT_TARGET" '::SENTRY/#0000002.MS' - 2>/dev/null | wc -c | tr -d ' ')"
 if grep -q 'No Delete Sentry files were found' "$SENTRY_LIMIT_LOG" &&
-   grep -q 'TWO.DAT  protected by Delete Sentry' "$SENTRY_LIMIT_LOG" &&
+   grep -q 'TWO.DAT' "$SENTRY_LIMIT_LOG" &&
+   grep -q 'Protected by Delete Sentry' "$SENTRY_LIMIT_LOG" &&
    [[ "$newest_size" == 10240 ]] &&
    ! mdir -i "$SENTRY_LIMIT_TARGET" '::SENTRY/#0000001.MS' >/dev/null 2>&1 &&
    ! grep -Eq 'SENTRY_LIMIT_(LOAD|FIRST_DELETE|SECOND_DELETE)_FAILED|SENTRY_LIMIT_(OLDEST_REMAINS|NEWEST_MISSING)' "$SENTRY_LIMIT_LOG"; then
@@ -353,7 +359,8 @@ timeout 30 qemu-system-i386 -display none \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     </dev/null >"$SENTRY_AGE_LOG" 2>&1 || true
 if grep -q 'No Delete Sentry files were found' "$SENTRY_AGE_LOG" &&
-   grep -q 'THREE.TXT  protected by Delete Sentry' "$SENTRY_AGE_LOG" &&
+   grep -q 'THREE.TXT' "$SENTRY_AGE_LOG" &&
+   grep -q 'Protected by Delete Sentry' "$SENTRY_AGE_LOG" &&
    ! mdir -i "$SENTRY_LIMIT_TARGET" '::SENTRY/#0000002.MS' >/dev/null 2>&1 &&
    ! grep -Eq 'SENTRY_AGE_(LOAD|DELETE)_FAILED|SENTRY_AGE_(EXPIRED_REMAINS|NEWEST_MISSING)' "$SENTRY_AGE_LOG"; then
     ok "Sentry days policy purges expired protected files before new deletion"

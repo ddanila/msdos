@@ -15,7 +15,7 @@ and the archived
 The system is substantially DOS 6.22-compatible, but it is not yet a complete
 replacement for the retail product. The platform, maintenance, memory,
 caching, diagnostics, connectivity, and CD-ROM stages are implemented. The
-next stage is product completion: finish UNDELETE, improve SETUP and recovery
+next stage is product completion: improve SETUP and recovery
 media, add EGA.SYS and full-screen Help, and close observable API gaps.
 DriveSpace and QBASIC/EDIT are separate large epics.
 
@@ -26,7 +26,7 @@ DriveSpace and QBASIC/EDIT are separate large epics.
 | Memory management | Implemented | HIMEM, EMM386, MEM, DEVICEHIGH/LOADHIGH, and MemMaker cover the intended 6.22 surface on the supported machine models. |
 | Cache, diagnostics, and power | Implemented | SMARTDrive, MSD, and POWER ship. |
 | Connectivity and CD-ROM | Implemented | INTERLNK, INTERSVR, and MSCDEX ship; a hardware-specific CD-ROM driver remains external. |
-| Data protection | Partial | UNDELETE implements all three DOS protection methods and retail Sentry storage; its structured textual inventory still needs completion. MSBACKUP, MSAV, and VSAFE are deliberate non-goals. |
+| Data protection | Implemented | UNDELETE implements all three DOS protection methods, the structured DOS recovery inventory, and retail Sentry storage. MSBACKUP, MSAV, and VSAFE are deliberate non-goals. |
 | Installation and Help | Partial | SETUP remains closer to the DOS 5 two-disk installer. HELP is a lean text implementation rather than the complete retail full-screen system. |
 | EGA display-state driver | Missing | EGA.SYS will be implemented as an isolated compatibility driver despite Task Swapper being excluded. |
 | Observable DOS internals | Partial | Documented and undocumented APIs and data structures are compatibility targets wherever applications can observe or depend on them. |
@@ -55,9 +55,9 @@ and unload. Sentry-mode `/LOAD` creates or reads the five-section
 and disk-percentage limits with oldest-first purging. Its `CONTROL.FIL`, fixed
 records, linked active/free lists, stored names, and padded paths interoperate in
 both directions with genuine DOS 6.22 UNDELETE. `UNDELETE.INI` is resolved beside
-the executable, as in the retail tool. The remaining interface work is the
-structured textual inventory and recovery report used by DOS UNDELETE—not a
-full-screen interface. The Windows companion is outside this project's scope.
+the executable, as in the retail tool. Recovery uses the retail-style structured
+textual directory, filespec, method, metadata, protection, and result report—not
+a full-screen interface. The Windows companion is outside this project's scope.
 
 The following retail programs remain absent by decision, not as open work:
 
@@ -150,7 +150,7 @@ superseded, a separate epic, or a non-goal.
 | 1 | 6.22 identity, startup/configuration, command additions, and overwrite policy | Complete |
 | 2 | ScanDisk, Defrag, memory-manager differences, and MemMaker | Complete |
 | 3 | SMARTDrive, MSD, POWER, INTERLNK/INTERSVR, and MSCDEX | Complete |
-| 4 | Finish UNDELETE; improve SETUP/recovery media; add EGA.SYS and full-screen Help; close observable API gaps | Next |
+| 4 | Improve SETUP/recovery media; add EGA.SYS and full-screen Help; close observable API gaps | Next |
 | 5 | Retail-compatible DriveSpace and all compressed-volume integration | Separate epic |
 | 6 | Optional versioned extended DriveSpace format | Follows Stage 5 |
 

@@ -244,6 +244,72 @@ static void display_name(const unsigned char raw[11], int deleted)
     }
 }
 
+static void display_attributes(unsigned attributes)
+{
+    putchar(attributes & 0x20 ? 'A' : '.');
+    putchar(attributes & 0x02 ? 'H' : '.');
+    putchar(attributes & 0x04 ? 'S' : '.');
+    putchar(attributes & 0x01 ? 'R' : '.');
+}
+
+static void display_file_details(const unsigned char raw[11], int deleted,
+                                 unsigned long size, unsigned date,
+                                 unsigned time_value, unsigned attributes)
+{
+    unsigned year = 1980 + ((date >> 9) & 0x7f);
+    unsigned month = (date >> 5) & 0x0f;
+    unsigned day = date & 0x1f;
+    unsigned hour = (time_value >> 11) & 0x1f;
+    unsigned minute = (time_value >> 5) & 0x3f;
+    char suffix = hour >= 12 ? 'p' : 'a';
+
+    display_name(raw, deleted);
+    printf("  %10lu  %2u-%02u-%02u  %2u:%02u%c  ", size, month, day,
+           year % 100, hour % 12 ? hour % 12 : 12, minute, suffix);
+    display_attributes(attributes);
+    putchar('\n');
+}
+
+static void display_deleted_datetime(unsigned date, unsigned time_value)
+{
+    unsigned year = 1980 + ((date >> 9) & 0x7f);
+    unsigned hour = (time_value >> 11) & 0x1f;
+
+    printf("    Deleted: %u-%02u-%02u %u:%02u%c\n",
+           (date >> 5) & 0x0f, date & 0x1f, year % 100,
+           hour % 12 ? hour % 12 : 12, (time_value >> 5) & 0x3f,
+           hour >= 12 ? 'p' : 'a');
+}
+
+static void display_recovery_header(unsigned drive, const char *path,
+                                    const char *filespec)
+{
+    char directory[128];
+    const char *slash = strrchr(path, '\\');
+    const char *other = strrchr(path, '/');
+    unsigned length;
+
+    if (!slash || (other && other > slash))
+        slash = other;
+    length = slash ? (unsigned)(slash - path) : 0;
+
+    puts("\nUNDELETE - A delete protection facility\n");
+    printf("Directory: %c:\\", 'A' + drive);
+    if (length) {
+        if (path[0] == '\\' || path[0] == '/') {
+            ++path;
+            --length;
+        }
+        while (length && (path[length - 1] == '\\' || path[length - 1] == '/'))
+            --length;
+        memcpy(directory, path, length);
+        directory[length] = 0;
+        fputs(directory, stdout);
+    }
+    putchar('\n');
+    printf("File Specifications: %s\n\n", *filespec ? filespec : "*.*");
+}
+
 static int find_in_directory(const struct volume *volume, unsigned directory,
                              const unsigned char wanted[11], unsigned *found_cluster)
 {
@@ -365,6 +431,9 @@ static int restore_entry(const struct volume *volume, unsigned directory,
     int answer;
 
     memcpy(wanted, raw, 11);
+    if (automatic)
+        display_file_details(raw, 1, size, get_word(raw + 24),
+                             get_word(raw + 22), raw[11]);
     if (automatic) {
         for (index = 0; replacements[index]; ++index) {
             wanted[0] = replacements[index];
@@ -374,9 +443,9 @@ static int restore_entry(const struct volume *volume, unsigned directory,
         if (!replacements[index])
             return 1;
     } else {
-        printf("Restore ");
-        display_name(raw, 1);
-        printf(" (Y/N)? ");
+        display_file_details(raw, 1, size, get_word(raw + 24),
+                             get_word(raw + 22), raw[11]);
+        printf("Undelete (Y/N)? ");
         answer = getchar();
         while (answer != '\n' && getchar() != '\n')
             ;
@@ -413,9 +482,7 @@ static int restore_entry(const struct volume *volume, unsigned directory,
     io_buffer[dir_offset] = wanted[0];
     if (abs_write(volume->drive, dir_sector, 1, io_buffer))
         goto rollback;
-    printf("Restored ");
-    display_name(wanted, 0);
-    putchar('\n');
+    puts("File successfully undeleted.");
     return 0;
 
 rollback:
@@ -473,8 +540,9 @@ static int process_directory(const struct volume *volume, unsigned directory,
                 memcpy(entry, io_buffer + offset, sizeof(entry));
                 ++found;
                 if (list_only) {
-                    display_name(entry, 1);
-                    printf("  %lu bytes\n", get_dword(entry + 28));
+                    display_file_details(entry, 1, get_dword(entry + 28),
+                                         get_word(entry + 24),
+                                         get_word(entry + 22), entry[11]);
                 } else {
                     status |= restore_entry(volume, directory,
                                             sector_number + sector_index,
@@ -489,6 +557,7 @@ static int process_directory(const struct volume *volume, unsigned directory,
             break;
     }
 done:
+    printf("\nMS-DOS directory contains %4u matching deleted file(s).\n", found);
     if (!found) {
         puts("No deleted files were found.");
         return 1;
@@ -1564,13 +1633,18 @@ static int process_sentry(unsigned drive, const char *path,
         if (!name_matches(raw_name, pattern, 0))
             continue;
         ++found;
+        display_file_details(raw_name, 0, record.size, record.original_date,
+                             record.original_time, 0);
+        display_deleted_datetime(
+            ((unsigned)record.deleted_date_high << 8) |
+            (record.original_date & 0xff), record.deleted_time);
+        puts("    Protected by Delete Sentry.");
         if (list_only) {
-            printf("%s  protected by Delete Sentry\n", original_name);
             continue;
         }
         if (!automatic) {
             int answer;
-            printf("Restore %s (Y/N)? ", original_name);
+            printf("Undelete (Y/N)? ");
             answer = getchar();
             while (answer != '\n' && getchar() != '\n')
                 ;
@@ -1596,12 +1670,14 @@ static int process_sentry(unsigned drive, const char *path,
             fclose(file);
             return 1;
         }
-        printf("Restored %s\n", record_path);
+        puts("File successfully undeleted.");
     }
     rewind(file);
     if (fwrite(&header, 1, sizeof(header), file) != sizeof(header))
         status = 1;
     fclose(file);
+    printf("\nDelete Sentry control file contains %4u matching deleted file(s).\n",
+           found);
     if (!found) {
         puts("No Delete Sentry files were found.");
         return 1;
@@ -1863,9 +1939,7 @@ static int tracked_name(const struct volume *volume, unsigned directory,
     memcpy(wanted, tracked->name, 11);
     if (!name_exists(volume, directory, wanted)) {
         if (!automatic) {
-            printf("Restore ");
-            display_name(wanted, 0);
-            printf(" (Y/N)? ");
+            printf("Undelete (Y/N)? ");
             answer = getchar();
             while (answer != '\n' && getchar() != '\n')
                 ;
@@ -1931,9 +2005,7 @@ static int restore_tracked(const struct volume *volume, unsigned directory,
     put_word(io_buffer + dir_offset + 24, tracked->date);
     if (abs_write(volume->drive, dir_sector, 1, io_buffer))
         goto rollback;
-    printf("Restored ");
-    display_name(wanted, 0);
-    putchar('\n');
+    puts("File successfully undeleted.");
     return 0;
 
 rollback:
@@ -1983,10 +2055,10 @@ static int process_tracker(const struct volume *volume, unsigned directory,
             !find_deleted_entry(volume, directory, &tracked, &dir_sector,
                                 &dir_offset, raw)) {
             ++found;
-            if (list_only) {
-                display_name(tracked.name, 0);
-                printf("  %lu bytes\n", tracked.size);
-            } else {
+            display_file_details(tracked.name, 0, tracked.size, tracked.date,
+                                 tracked.time, tracked.attributes);
+            puts("    Protected by Delete Tracker.");
+            if (!list_only) {
                 status |= restore_tracked(volume, directory, &tracked, file,
                                           chain_offset, dir_sector, dir_offset,
                                           automatic);
@@ -1996,6 +2068,8 @@ static int process_tracker(const struct volume *volume, unsigned directory,
                     (long)tracked.cluster_count * sizeof(unsigned), SEEK_SET);
     }
     fclose(file);
+    printf("\nDeletion-tracking file contains %4u matching deleted file(s).\n",
+           found);
     if (!found) {
         puts("No tracked deleted files were found.");
         return 1;
@@ -2315,12 +2389,17 @@ int main(int argc, char **argv)
             source_dt = 1;
         }
     }
-    if (source_ds)
+    display_recovery_header(drive, path, filespec);
+    if (source_ds) {
+        puts("Using the Delete Sentry method.\n");
         i = process_sentry(drive, sentry_path, pattern, list_only, automatic);
-    else if (source_dt)
+    } else if (source_dt) {
+        puts("Using the Delete Tracker method.\n");
         i = process_tracker(&volume, directory, pattern, list_only, automatic);
-    else
+    } else {
+        puts("Using the MS-DOS directory method.\n");
         i = process_directory(&volume, directory, pattern, list_only, automatic);
+    }
     if (!list_only) {
         union REGS inregs, outregs;
         inregs.h.ah = 0x0d;
