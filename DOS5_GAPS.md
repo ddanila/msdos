@@ -131,8 +131,10 @@ Known limitations remain:
   filename database is persisted and loaded through CONFIG.SYS.
 - Network/server calls are present, but interoperability with a complete DOS 5
   network redirector stack is not established.
-- List-of-Lists, PSP, SFT, CDS, DPB, country, and driver structures have focused
-  tests, not a byte-for-byte audit of every DOS 5 internal field and flag.
+- The externally consumed PSP, owning MCB, List of Lists, DPB, CDS, SFT, SDA,
+  and device-chain layouts have a joint runtime contract, including a live
+  JFT-to-SFT mapping. The same probe passes genuine DOS 6.22. Private fields
+  with no application-visible contract are not compatibility targets.
 - Critical-error handling, sharing, locking, redirector, and asynchronous paths
   have representative contracts rather than exhaustive cross-product coverage.
 

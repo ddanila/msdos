@@ -115,6 +115,11 @@ register behavior, and structures such as the list of lists, PSP, MCB, SFT,
 CDS, DPB, SDA, and device chain. Version and SETVER-dependent behavior is also
 in scope. Internal layouts or algorithms that no program can observe are not.
 
+The PSP, owning MCB, List of Lists, DPB and CDS links, live JFT-to-SFT mapping,
+SDA, and device chain now have one executable layout contract. The clean-room
+probe passes both this system and genuine DOS 6.22; its source-derived inventory
+is enforced by `tests/internal_structure_coverage.json`.
+
 ### Known boundaries in shipped components
 
 - `DIR` lacks compressed-volume ratios (`/C[H]`, `O:C`, and `O:-C`).

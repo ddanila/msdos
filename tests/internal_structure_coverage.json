@@ -1,0 +1,13 @@
+{
+  "schema": 1,
+  "surfaces": {
+    "PSP": {"source": "src/INC/PDB.INC", "evidence": ["tests/internal_structures_probe.asm", "tests/test_internal_structures_qemu.sh"]},
+    "MCB": {"source": "src/INC/ARENA.INC", "evidence": ["tests/internal_structures_probe.asm", "tests/test_internal_structures_qemu.sh"]},
+    "List of Lists": {"source": "src/INC/SYSVAR.INC", "evidence": ["tests/internal_structures_probe.asm", "tests/test_internal_structures_qemu.sh"]},
+    "DPB": {"source": "src/INC/DPB.INC", "evidence": ["tests/internal_structures_probe.asm", "tests/test_internal_structures_qemu.sh"]},
+    "CDS": {"source": "src/INC/CURDIR.INC", "evidence": ["tests/internal_structures_probe.asm", "tests/test_internal_structures_qemu.sh"]},
+    "SFT": {"source": "src/INC/SF.INC", "evidence": ["tests/internal_structures_probe.asm", "tests/test_internal_structures_qemu.sh"]},
+    "SDA": {"source": "src/INC/CONST2.ASM", "evidence": ["tests/internal_structures_probe.asm", "tests/test_internal_structures_qemu.sh"]},
+    "device chain": {"source": "src/INC/DEVSYM.INC", "evidence": ["tests/internal_structures_probe.asm", "tests/test_internal_structures_qemu.sh"]}
+  }
+}

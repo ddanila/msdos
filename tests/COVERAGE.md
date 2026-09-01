@@ -87,11 +87,16 @@ nested EMS commands; inactive error entries do not satisfy the inventory.
 shipped executable interfaces against actual `/?` test calls or an explicit
 source-backed classification for interfaces without top-level help.
 
-### DOS interrupts and device requests
+### DOS interrupts, internal structures, and device requests
 
 `dos_interrupt_coverage.json` is checked by
 `test_dos_interrupt_coverage.py`. It covers the interrupt vectors installed by
 the built DOS system, including asynchronous behavior where applicable.
+
+`internal_structure_coverage.json` is checked by
+`test_internal_structure_coverage.py`. Its joint runtime contract validates the
+observable PSP, owning MCB, List of Lists, DPB and CDS links, a live JFT-to-SFT
+mapping, the swappable DOS data area, and the device-header chain.
 
 `device_request_coverage.json` is checked by
 `test_device_request_coverage.py`. The verifier derives command numbers and
@@ -145,6 +150,7 @@ make test-program-interface-coverage-manifest
 make test-debug-command-coverage-manifest
 make test-help-coverage-manifest
 make test-dos-interrupt-coverage-manifest
+make test-internal-structure-coverage-manifest
 make test-device-request-coverage-manifest
 ```
 
