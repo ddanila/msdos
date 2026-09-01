@@ -1,0 +1,11 @@
+JWASM ?= jwasm
+
+.PHONY: all clean
+
+all: EGA.SYS
+
+EGA.SYS: EGA.ASM
+	$(JWASM) -q -bin -Fo$@ $<
+
+clean:
+	rm -f EGA.SYS

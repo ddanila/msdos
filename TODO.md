@@ -3,13 +3,13 @@
 The complete product comparison and unsupported option surfaces are in
 [DOS622_GAPS.md](DOS622_GAPS.md). Current priorities are:
 
-1. finish the enhanced DOS 6.22 UNDELETE experience;
-2. improve SETUP, upgrade, rollback, recovery media, and component selection;
-3. add EGA.SYS and standalone full-screen Help;
-4. audit and close application-visible documented and undocumented API gaps;
-5. implement retail-compatible DriveSpace, followed optionally by an explicit
+1. improve SETUP, upgrade, rollback, recovery media, and component selection;
+2. add standalone full-screen Help;
+3. audit and close application-visible documented and undocumented API gaps;
+4. implement retail-compatible DriveSpace, followed optionally by an explicit
    extended format; and
-6. audit the Supplemental Disk while keeping QBASIC/EDIT as a separate epic.
+5. audit the rest of the Supplemental Disk while keeping QBASIC/EDIT as a
+   separate epic.
 
 MSBACKUP, MSAV, VSAFE, DOSSHELL, and Task Swapper are deliberate non-goals.
 

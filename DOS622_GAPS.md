@@ -16,7 +16,7 @@ The system is substantially DOS 6.22-compatible, but it is not yet a complete
 replacement for the retail product. The platform, maintenance, memory,
 caching, diagnostics, connectivity, and CD-ROM stages are implemented. The
 next stage is product completion: improve SETUP and recovery
-media, add EGA.SYS and full-screen Help, and close observable API gaps.
+media, add full-screen Help, and close observable API gaps.
 DriveSpace and QBASIC/EDIT are separate large epics.
 
 | Area | Status | Current boundary |
@@ -28,7 +28,7 @@ DriveSpace and QBASIC/EDIT are separate large epics.
 | Connectivity and CD-ROM | Implemented | INTERLNK, INTERSVR, and MSCDEX ship; a hardware-specific CD-ROM driver remains external. |
 | Data protection | Implemented | UNDELETE implements all three DOS protection methods, the structured DOS recovery inventory, and retail Sentry storage. MSBACKUP, MSAV, and VSAFE are deliberate non-goals. |
 | Installation and Help | Partial | SETUP remains closer to the DOS 5 two-disk installer. HELP is a lean text implementation rather than the complete retail full-screen system. |
-| EGA display-state driver | Missing | EGA.SYS will be implemented as an isolated compatibility driver despite Task Swapper being excluded. |
+| EGA display-state driver | Implemented | EGA.SYS exposes the documented register-shadow, installation, version, custom-multiplex, and default-state contracts independently of Task Swapper. |
 | Observable DOS internals | Partial | Documented and undocumented APIs and data structures are compatibility targets wherever applications can observe or depend on them. |
 | Drive compression | Separate epic | DriveSpace is not implemented. |
 | BASIC and Editor | Separate epic | QBASIC and the QBASIC-backed EDIT are not implemented. |
@@ -85,10 +85,12 @@ QBASIC/EDIT epic; shared UI code may be reused later.
 
 ### EGA.SYS
 
-Implement the documented device-driver surface and EGA display-state
-save/restore contracts. DOSSHELL and Task Swapper remain excluded, so EGA.SYS
-is an isolated driver/API compatibility feature rather than the start of a
-Shell implementation.
+`EGA.SYS` is implemented as the isolated driver/API compatibility feature from
+the 6.22 Supplemental Disk. It supports `FUNC=80..FF`, INT 2Fh installation and
+version queries, and the INT 10h EGA Register Interface for single, range, and
+record-set access plus caller-defined default-state restoration. Its register
+shadow is resynchronized after BIOS mode, palette, font, and alternate-function
+calls. DOSSHELL and Task Swapper remain excluded.
 
 ### Observable APIs and internals
 
@@ -150,7 +152,7 @@ superseded, a separate epic, or a non-goal.
 | 1 | 6.22 identity, startup/configuration, command additions, and overwrite policy | Complete |
 | 2 | ScanDisk, Defrag, memory-manager differences, and MemMaker | Complete |
 | 3 | SMARTDrive, MSD, POWER, INTERLNK/INTERSVR, and MSCDEX | Complete |
-| 4 | Improve SETUP/recovery media; add EGA.SYS and full-screen Help; close observable API gaps | Next |
+| 4 | Improve SETUP/recovery media; add full-screen Help; close observable API gaps | Next |
 | 5 | Retail-compatible DriveSpace and all compressed-volume integration | Separate epic |
 | 6 | Optional versioned extended DriveSpace format | Follows Stage 5 |
 

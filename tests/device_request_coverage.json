@@ -3,6 +3,7 @@
   "tables": {
     "ANSI.SYS": {"source": "src/DEV/ANSI/ANSI.ASM", "label": "CONTBL", "max_command": 19},
     "DISPLAY.SYS": {"source": "src/DEV/DISPLAY/DISPLAY.ASM", "label": "CMD_TABLE", "max_command": 19},
+    "EGA.SYS": {"source": "src/DEV/EGA/EGA.ASM", "label": "REQUEST_TABLE", "max_command": 0},
     "RAMDRIVE.SYS": {"source": "src/DEV/RAMDRIVE/RAMDRIVE.ASM", "label": "RAMTBL", "max_command": 15},
     "SMARTDRV.EXE": {"source": "src/DEV/SMARTDRV/SMARTDRV.ASM", "label": "INT13TBL", "max_command": 15},
     "VDISK.SYS": {"source": "src/DEV/VDISK/VDISKSYS.ASM", "label": "CMD_TABLE", "max_command": 15},
@@ -27,6 +28,9 @@
       "12": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "MODE prepares code page 850 through IOCTL output"},
       "13-18": {"level": "contract", "evidence": ["tests/display_chain_probe.asm", "tests/test_display_chain_qemu.sh"], "note": "Direct requests through the live DISPLAY header return the exact lower-chain status for open, close, removable-media, output-until-busy, and both reserved slots"},
       "19": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "Generic IOCTL selects and reports code page 850"}
+    },
+    "EGA.SYS": {
+      "0": {"level": "contract", "evidence": ["tests/ega_api_probe.asm", "tests/test_ega_qemu.sh"], "note": "CONFIG.SYS initialization installs both interrupt hooks; default and FUNC-selected multiplex probes then exercise the resident RIL contract"}
     },
     "RAMDRIVE.SYS": {
       "0": {"level": "contract", "evidence": ["tests/test_drivers_qemu.sh"], "note": "CONFIG.SYS initializes the block device"},

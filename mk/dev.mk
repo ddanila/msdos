@@ -3,6 +3,7 @@ DEV_AINC := -I. -ID:\\TOOLS\\INC -I..\\..\\INC -I..\\..\\DOS
 
 dev: \
     $(DEV_DIR)/HIMEM/HIMEM.SYS \
+    $(DEV_DIR)/EGA/EGA.SYS \
     $(DEV_DIR)/DRIVER/DRIVER.SYS \
     $(DEV_DIR)/ANSI/ANSI.SYS \
     $(DEV_DIR)/VDISK/VDISK.SYS \
@@ -20,6 +21,11 @@ dev: \
 HIMEM_DIR := $(DEV_DIR)/HIMEM
 
 $(HIMEM_DIR)/HIMEM.SYS: $(HIMEM_DIR)/HIMEM.ASM $(BIN)/jwasm-bin
+	$(BIN)/jwasm-bin -Fo$@ $<
+
+EGA_SYS_DIR := $(DEV_DIR)/EGA
+
+$(EGA_SYS_DIR)/EGA.SYS: $(EGA_SYS_DIR)/EGA.ASM $(BIN)/jwasm-bin
 	$(BIN)/jwasm-bin -Fo$@ $<
 
 DRIVER_DIR := $(DEV_DIR)/DRIVER

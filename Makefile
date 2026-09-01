@@ -32,7 +32,7 @@ AINC     := -I. -ID:\\TOOLS\\INC
 .PHONY: test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-szdd-tool distribution test-distribution test-setup-qemu test-mirror-unformat-qemu test-undelete-qemu
 .PHONY: test-command-step-qemu test-msd-qemu test-scandisk-qemu test-defrag-qemu test-defrag-fat16-qemu test-mem-dos6-qemu test-memmaker-qemu test-memmaker-rollback-qemu test-power-qemu test-power-api-qemu test-config-menu-qemu test-config-menu-input-qemu
 .PHONY: test-copy-policy-qemu test-86box-286-boot test-platform-286-86box test-pre386-memory-86box test-startup-reboot-286-86box
-.PHONY: test-xcopy-dos6-qemu
+.PHONY: test-xcopy-dos6-qemu test-ega-qemu
 .PHONY: test-config-numlock-qemu
 .PHONY: test-config-set-qemu
 .PHONY: test-startup-keys-qemu
@@ -171,6 +171,7 @@ ARTIFACTS := \
     BIOS/SYSMENU.OVL \
     DOS/MSDOS.SYS \
     DEV/HIMEM/HIMEM.SYS \
+    DEV/EGA/EGA.SYS \
     CMD/COMMAND/COMMAND.COM \
     CMD/SYS/SYS.COM \
     CMD/FORMAT/FORMAT.COM \
@@ -249,7 +250,7 @@ ARTIFACTS := \
     CMD/INTERSVR/INTERSVR.EXE \
     MEMM/MEMM/EMM386.EXE
 
-test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-keyboard-records test-country-records test-szdd-tool test-distribution test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-scandisk-qemu test-defrag-qemu test-defrag-fat16-qemu test-mem-dos6-qemu test-memmaker-qemu test-memmaker-rollback-qemu test-smartdrv-reboot-qemu test-power-qemu test-power-api-qemu test-mscdex-qemu test-interlnk-qemu test-setup-qemu test-himem-options-qemu test-himem-xms3-qemu test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
+test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-keyboard-records test-country-records test-szdd-tool test-distribution test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-scandisk-qemu test-defrag-qemu test-defrag-fat16-qemu test-mem-dos6-qemu test-memmaker-qemu test-memmaker-rollback-qemu test-smartdrv-reboot-qemu test-power-qemu test-power-api-qemu test-mscdex-qemu test-interlnk-qemu test-setup-qemu test-ega-qemu test-himem-options-qemu test-himem-xms3-qemu test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-device-request-coverage-manifest
 	bash tests/run_tests.sh
 
 test-native-build-tools:
@@ -263,6 +264,9 @@ test-country-records: $(COUNTRY_SYS)
 
 test-country-matrix-qemu: deploy
 	bash tests/test_country_matrix_qemu.sh
+
+test-ega-qemu: deploy
+	bash tests/test_ega_qemu.sh
 
 test-expand: deploy $(KVIKDOS_SOFT_BIN)
 	bash tests/test_expand.sh
@@ -738,6 +742,7 @@ SELECT_EXE   := $(SRC)/SELECT/SELECT.EXE
 SELECT_DAT   := $(SRC)/SELECT/SELECT.DAT
 SELECT_HLP   := $(SRC)/SELECT/SELECT.HLP
 EGA_CPI      := $(SRC)/DEV/DISPLAY/EGA/EGA.CPI
+EGA_SYS      := $(SRC)/DEV/EGA/EGA.SYS
 HIMEM_SYS    := $(SRC)/DEV/HIMEM/HIMEM.SYS
 EMM386_EXE   := $(MEMM_DIR)/EMM386.EXE
 
@@ -755,7 +760,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OVL) $(COMMAND_COM) $(SY
            $(VDISK_SYS) $(DISPLAY_SYS) $(COUNTRY_SYS) $(PRINTER_SYS) $(PRINTER_CPI) \
            $(SMARTDRV_SYS) $(SMARTDRV_EXE) $(FLUSH13_EXE) $(DRIVER_SYS) $(XMA2EMS_SYS) $(XMAEM_SYS) \
            $(SELECT_COM) $(SELECT_EXE) $(SELECT_DAT) $(SELECT_HLP) \
-           $(EGA_CPI) $(HIMEM_SYS) $(EMM386_EXE)
+           $(EGA_CPI) $(EGA_SYS) $(HIMEM_SYS) $(EMM386_EXE)
 	mkdir -p $(OUT)
 	# The complete developer image needs room for test probes and the growing
 	# DOS 6.22 tool set.  The minimal-floppy target remains a 1.44 MB image.
@@ -855,6 +860,7 @@ $(FLOPPY): $(BOOT_BIN) $(IO_SYS) $(MSDOS_SYS) $(SYSMENU_OVL) $(COMMAND_COM) $(SY
 	mcopy -i $@ $(SELECT_DAT) ::SELECT.DAT
 	mcopy -i $@ $(SELECT_HLP) ::SELECT.HLP
 	mcopy -i $@ $(EGA_CPI) ::EGA.CPI
+	mcopy -i $@ $(EGA_SYS) ::EGA.SYS
 	mcopy -i $@ $(HIMEM_SYS) ::HIMEM.SYS
 	mcopy -i $@ $(EMM386_EXE) ::EMM386.EXE
 
