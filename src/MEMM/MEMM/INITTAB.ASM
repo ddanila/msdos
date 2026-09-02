@@ -92,13 +92,9 @@ PAGESEG ends
 
 _DATA	segment
 	extrn	TEXT_Seg:word		; segment for TEXT
-	extrn	TEXT_Phys:dword		; protected-mode TEXT physical address
 	extrn	Active_Status:byte
-	extrn	STACK_Seg:word		; segment for STACK
 	extrn	GDT_Seg:word		; segment for GDT
-	extrn	IDT_Seg:word		; segment for IDT
 	extrn	TSS_Seg:word		; segment for TSS
-	extrn	PageD_Seg:word		; segment for page dir
 	extrn	PageT_Seg:word		; segment for page table
 	extrn	Page_Dir:word		; 32 bit address for Page directory
 	extrn	_emm_brk:word		; break address for EMM data
@@ -116,6 +112,10 @@ _DATA	ends
 LAST	segment
 	extrn	LAST_start:byte
 	extrn	driver_end:dword	; ending address for MEMM.EXE
+	extrn	TEXT_Phys:dword		; protected-mode TEXT physical address
+	extrn	STACK_Seg:word		; initialization stack segment
+	extrn	IDT_Seg:word		; initialization IDT segment
+	extrn	PageD_Seg:word		; initialization page-directory segment
 ifndef	NOHIMEM
 	extrn	HiSysAlloc:near 	; allocate high system memory
 	extrn	UnLockROM:near

@@ -50,7 +50,6 @@
 ;******************************************************************************
 ;
 	public	ErrHndlr		; Display message and continue or reboot
-	public	Error_Flag
 ;******************************************************************************
 ;  	Externs
 ;******************************************************************************
@@ -102,7 +101,6 @@ CPOSN		=	5*256+0		; cursor position to write
 ;		LOCAL DATA     
 ;******************************************************************************
 _DATA	segment
-Error_Flag	dw	0		; flags for Instruction Prefixes
 masterp		db	0		; save master port value
 slavep		db	0		; save slave port value
 mode		db	0		; save mode

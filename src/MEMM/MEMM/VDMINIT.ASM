@@ -136,9 +136,14 @@ exe_stack	label	byte
 
 STACK ENDS
 
+LAST	SEGMENT
+
+PageD_Seg	dw	0		; initialization Page Directory segment
+
+LAST	ENDS
+
 _DATA	SEGMENT
 
-PageD_Seg	dw	0		; segment for Page Directory
 PageT_Seg	dw	0		; segment for Page Tables
 Page_Dir	dd	0		; 32 bit address of Page Directory
 

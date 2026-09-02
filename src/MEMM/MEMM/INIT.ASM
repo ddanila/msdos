@@ -235,10 +235,7 @@ Auto_Mode	db	0h	; non-zero => auto mode
 ;  The following pointers are segment addresses for various segments
 ;
 TEXT_Seg	dw	seg _TEXT	; current segment for _TEXT
-TEXT_Phys	dd	0		; protected-mode copy in locked XMS
-STACK_Seg	dw	seg STACK	; current segment for STACK
 GDT_Seg 	dw	seg GDT 	; current segment for GDT
-IDT_Seg 	dw	seg IDT 	; current segment for IDT
 TSS_Seg 	dw	seg TSS 	; current segment for TSS
 
 _DATA	ends
@@ -248,6 +245,9 @@ LAST	segment
 ; installed driver. Later ON/OFF/AUTO invocations load their own image.
 msg_flag	dw	0	; installation message flags
 arg_str 	db	max_arg_len+1	dup(0)
+TEXT_Phys	dd	0		; protected-mode copy in locked XMS
+STACK_Seg	dw	seg STACK	; initialization stack segment
+IDT_Seg 	dw	seg IDT 	; initialization IDT segment
 LAST	ends
 
 

@@ -95,9 +95,7 @@ ABS0	segment at 0000h
 ABS0	ends
 ;
 _DATA	segment
-RR_Last 	db	0		; last RR port trapped
-RR85save	db	0FFh
-RR84save	db	0FFh
+RR84save	db	0FFh		; pending port 84h return token
 _DATA	ends
 
 ;
@@ -165,7 +163,6 @@ RRP_Handler	endp
 P84_Handler	proc	near
 ;
 	mov	[RR84save],al	;  Y: save value written to 84
-	mov	[RR_Last],84h	; save this RR port #
 	stc			; don't bother to emulate it
 	ret
 ;
@@ -200,17 +197,14 @@ P84_Handler	endp
 ;------------------------------------------------------------------------------
 P85_Handler	proc	near
 ;
-	mov	[RR85save],al	;  Y: save value for 85h
 	cmp	al,RR85_Value	;    Q: return to real value output to 85 ?
-	jne	P85_Exit	;      N: save port # and leave
-	cmp	[RR_Last],84h	;      Y: Q: was last 84h last RR port output ?
-	jne	P85_Exit	;	   N: save port # and leave
+	jne	P85_Exit	;      N: invalidate sequence and leave
 	cmp	[RR84Save],RR84_Value	;  Y: Q: was 84h value RR value ?
-	jne	P85_Exit	;		N: save port # and leave
+	jne	P85_Exit	;		N: invalidate sequence and leave
 	out	85h,al		;		Y: emulate output and
 	jmp	RR_GoReal	;		  return to real(we're in real)
 P85_Exit:
-	mov	[RR_Last],85h	; save this RR port addr
+	mov	[RR84save],0FFh ; a port 85h output ends any pending sequence
 	stc			; don't bother to emulate it
 	ret
 ;
@@ -299,8 +293,6 @@ RRProc		endp
 ;
 ;******************************************************************************
 RR_Trap_Init	 proc	 near
-	mov	[RR_Last],0		    ; reset Return to real trap vars
-	mov	[RR85save],0FFh
 	mov	[RR84save],0FFh
 	mov	bh, 00h 		    ; only set for 0084h and 0085h
 	mov	ax, 84h
