@@ -293,7 +293,7 @@ capture pass.
 | Order | Area | Experiment | Decision evidence |
 | ---: | --- | --- | --- |
 | 1 | Measurement | Add linker/map boundaries and paragraph deltas to the paired report; account for `0000h..0477h` and every gap between MCBs | Every byte of the 9,728-byte layout row has an owner or an explicitly unknown range |
-| 2 | HIMEM | Make `umb_count` byte-sized, provided the extra instructions do not erase the data saving | Default and 32-extent transaction tests; installed paragraph and VC delta |
+| 2 | EMM386 | Make installation and the first virtual-to-real continuation independent of the preceding driver's paragraph count | Boot after HIMEM endings at `0B80h`, `0B90h`, and `0BA0h`; runtime modes and warm reboot |
 | 3 | HIMEM | Pack boolean HMA/A20 state into fields with proved spare bits, or derive it from existing nesting/ownership state | All A20 backends, nested local/global enable, HMA ownership, DOS-high and warm reboot |
 | 4 | HIMEM | Audit duplicate error exits, request dispatch, range checks and paragraph-tail padding as one map-guided pass | Exact XMS error codes, XMS 2/3, 128 handles and legacy-driver bounce path |
 | 5 | EMM386 | Produce a resident-symbol census grouped as real-only, protected-only, dual-mapped, mutable runtime, or initialization-only | No unclassified symbol in the 13,824-byte allocation; measured size per group |
@@ -307,11 +307,12 @@ capture pass.
 | 13 | Placement | Remove alignment/MCB islands, adjust load order, or place eligible permanent state high | Largest conventional block grows and usable UMB remains at least 47,888 bytes |
 | 14 | Regression | Enforce the fixed-image VC floor and retain component/UMB budgets locally | At least 618,736 bytes across clean rebuilds and the full release suite |
 
-The immediate queue is deliberately conservative: finish attribution, try the
-small HIMEM field/layout changes, then census EMM386 before changing another
-transition boundary. COMMAND and EBDA work follow once their maps identify a
-destination rather than merely a source of bytes. The architectural EMM386 and
-COMMAND changes remain available if small compactions cannot close the gap.
+The immediate queue is deliberately conservative: finish attribution, repair
+EMM386's load-address dependency, then resume small HIMEM field/layout changes
+and census EMM386 before changing another transition boundary. COMMAND and EBDA
+work follow once their maps identify a destination rather than merely a source
+of bytes. The architectural EMM386 and COMMAND changes remain available if
+small compactions cannot close the gap.
 
 Two HIMEM shortcuts have already been rejected and must not be retried without a
 different design. Recovering saved caller registers from fixed stack offsets
@@ -320,6 +321,23 @@ stable ABI. Carrying source/destination move errors in `BL` corrupts the `BX`
 handle consumed by endpoint resolution. The retained implementation therefore
 keeps explicit caller state and move-error state until a reentrant replacement
 has its own stable storage or calling convention.
+
+Making `umb_count` byte-sized is also rejected on the 286 path: each consumer
+would need an additional instruction to clear the high half of its loop count,
+growing resident code by more than the one data byte recovered.
+
+The next HIMEM paragraph exposed a separate EMM386 prerequisite. A prototype
+packed HMA ownership into `/HMAMIN=`'s unused high bit and shared the identical
+local/global A20 success tails. Focused HMA, A20, XMS 3, option-limit, and UMB
+transaction/model tests passed, and the default HIMEM break moved from `0B9Dh`
+to `0B8Bh`. The fixed hard-disk boot then stalled immediately after EMM386's
+installation banner when DOS released the resulting paragraph. The same code
+boots when diagnostic padding keeps the old `0BA0h` allocation; reducing the
+handle count enough to move the following driver another paragraph earlier does
+not. This demonstrates an EMM386 load-address/first-continuation dependency,
+not a failure of the packed HIMEM state. Keep the prototype unretained until
+EMM386 boots after arbitrary preceding-driver paragraph counts. A focused
+address-phase boot matrix must become its regression gate.
 
 ### Milestones to the target
 
