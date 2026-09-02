@@ -769,7 +769,7 @@ CompactVData proc near
 	shl	ax,4
 	add	ax,offset _TEXT:IOTrap_Tab
 	mov	di,ax
-	mov	si,[FRS_array]
+	mov	si,[_save_map]
 	mov	bx,si
 	sub	bx,di
 	mov	cx,[_emm_brk]

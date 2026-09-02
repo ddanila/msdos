@@ -260,8 +260,8 @@ mem_struct	ends
 ; Fast Register Set Description
 ;
 FRS_struc	struc
-FRS_Window	dw	MAX_PHYS_PAGES dup (NULL_PAGE)	; emm page numbers
 FRS_alloc	dw	0				; Is this set allocated
+FRS_Window	dw	MAX_PHYS_PAGES dup (NULL_PAGE)	; maximum-sized map template
 FRS_struc	ends
 
 	page

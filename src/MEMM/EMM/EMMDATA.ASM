@@ -86,6 +86,7 @@ _DATA	SEGMENT
 	PUBLIC	_CurRegSet
 	PUBLIC	CurRegSetn
 	PUBLIC	FRS_array
+	PUBLIC	_frs_size
 	PUBLIC	FRS_free
 	PUBLIC	PF_Base
 	PUBLIC	_PF_Base
@@ -273,6 +274,7 @@ _altreg_count	LABEL	WORD
 ; is the normal mapping set.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 FRS_array	dw	0		; Pointer to runtime-sized FRS structures
+_frs_size	dw	size FRS_struc	; Runtime stride: allocation word plus map
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;09. Variables to support FRS Implementation

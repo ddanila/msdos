@@ -154,6 +154,7 @@ extrn	FRS_free:byte
 extrn	_altreg_count:word
 extrn	CurRegSet:dword
 extrn	FRS_array:word
+extrn	_frs_size:word
 
 extrn	_regp:word
 _DATA	ENDS
@@ -2863,7 +2864,8 @@ AMRS_set:
 	cmp	bl, byte ptr [_altreg_count]	; Validate new Reg Set
 	ja	AMRS_inv_FRS
 	movzx	eax, bl
-	imul	eax, size FRS_struc
+	movzx	edx, word ptr [_frs_size]
+	imul	eax, edx
 	xchg	ax, bx
 	add	bx, [FRS_array]			; Get pointer to the new Reg Set
 	cmp	[bx.FRS_alloc], 0		; Make sure it is allocated
@@ -2965,7 +2967,7 @@ AMRS_allocate:
 AMRS_search:
 	cmp	[di.FRS_alloc], 0		; This one free?
 	je	short AMRS_foundRS		;   yes, bl has the number
-	add	di, size FRS_struc		; on to the next one
+	add	di, [_frs_size]		; on to the next one
 	inc	bl
 	cmp	bl, byte ptr [_altreg_count]	; Safety... should never fail
 	jbe	short AMRS_search
@@ -3011,7 +3013,8 @@ AMRS_deallocate:
 	cmp	bl, byte ptr [_altreg_count]
 	ja	short AMRS_undef_FRS		; Invalid Register set
 	movzx	eax, bl
-	imul	eax, size FRS_struc		; Offset into array
+	movzx	edx, word ptr [_frs_size]
+	imul	eax, edx			; Offset into array
 	xchg	ax, bx
 	add	bx,[FRS_array]
 	cmp	[bx.FRS_alloc], 0		; Paranoid...

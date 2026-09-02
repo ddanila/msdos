@@ -108,10 +108,10 @@ fi
 # Retail EMM386 is exceptionally small, but exact byte parity depends on its
 # proprietary monitor layout. Keep this implementation in the same practical
 # class: a normal RAM configuration must retain the relocated TSS and stay
-# below 15 KiB of conventional memory.
+# below 14 KiB of conventional memory.
 emm386_conventional=$(awk '$1 == "EMM386" { print $3; exit }' "$LOG" | tr -d '\r')
-if [[ ! "$emm386_conventional" =~ ^[0-9]+$ ]] || (( emm386_conventional > 15360 )); then
-    echo 'FAIL: EMM386 exceeds the 15 KiB conventional-memory footprint budget' >&2
+if [[ ! "$emm386_conventional" =~ ^[0-9]+$ ]] || (( emm386_conventional > 14336 )); then
+    echo 'FAIL: EMM386 exceeds the 14 KiB conventional-memory footprint budget' >&2
     echo "  EMM386=${emm386_conventional:-unparsed}" >&2
     strings -a "$LOG" | sed -n '1,180p' >&2
     exit 1

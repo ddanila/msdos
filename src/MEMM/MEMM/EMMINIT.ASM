@@ -89,8 +89,8 @@ extrn	requested_page_ids:byte
 extrn	requested_page_segments:word
 extrn	_mappable_page_count:word   ; number of mappable pages
 
-extrn	_cntxt_pages:word	; pages in a context
-extrn	_cntxt_bytes:word	; bytes in a context
+extrn	_cntxt_pages:byte	; pages in a context
+extrn	_cntxt_bytes:byte	; bytes in a context
 
 extrn	_emm_page:word		; ptr to array of EMM pages
 extrn	_free_count:word	; # of free EMM pages
@@ -104,6 +104,7 @@ extrn	_pft386:word		; ptr to array of page table entries
 extrn	_emm_brk:word		; offset for emm data break address
 
 extrn	FRS_array:word		; pointer to runtime-sized FRS array
+extrn	_frs_size:word		; runtime FRS structure stride
 extrn	CurRegSetn:byte
 extrn	CurRegSet:word
 extrn	FRS_free:byte
@@ -396,20 +397,6 @@ else
 	add	ax,offset VDATA:vdata_begin
 	mov	di,ax
 
-	mov	[FRS_array],di
-	mov	bx,[_altreg_count]
-	inc	bx			; set zero plus A= alternate sets
-EMIN_init_frs:
-	push	bx
-	mov	ax,NULL_PAGE
-	mov	cx,MAX_PHYS_PAGES
-	rep	stosw
-	xor	ax,ax
-	stosw				; FRS_alloc
-	pop	bx
-	dec	bx
-	jnz	short EMIN_init_frs
-
 	mov	[_save_map],di
 	mov	bx,[_handle_table_size]
 EMIN_init_save_maps:
@@ -690,11 +677,35 @@ EMIN_9:
 	inc	si			; cntxt_pages = (physical_page_count
 					; + 1) & NOT 1
 	and	si, NOT 0001h		; to round up si to higher even #
-	mov	[_cntxt_pages],si	; number of pages in a context
+	mov	ax,si
+	mov	[_cntxt_pages],al	; number of pages in a context
 ;
 	shl	si,1
 	add	si,2			; cntxt_bytes = cntxt_pages*2 + 2
-	mov	[_cntxt_bytes],si	;
+	mov	ax,si
+	mov	[_cntxt_bytes],al	;
+;
+	; Allocate each alternate register set for the mapping context exposed by
+	; this machine, not the 52-window architectural maximum. The maximum B=/A=
+	; configuration still computes and retains the full structure.
+	xor	ah,ah
+	mov	[_frs_size],ax
+	mov	di,[_emm_brk]
+	mov	[FRS_array],di
+	mov	bx,[_altreg_count]
+	inc	bx			; set zero plus A= alternate sets
+EMIN_init_frs:
+	push	bx
+	xor	ax,ax
+	stosw				; FRS_alloc
+	mov	ax,NULL_PAGE
+	xor	ch,ch
+	mov	cl,[_cntxt_pages]
+	rep	stosw
+	pop	bx
+	dec	bx
+	jnz	short EMIN_init_frs
+	mov	[_emm_brk],di
 ;
 
 ;
