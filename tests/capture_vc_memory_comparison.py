@@ -21,7 +21,7 @@ SCREEN_EXPECT = ROOT / "tests" / "screen_expect.py"
 
 
 def require_tools() -> None:
-    missing = [name for name in ("mcopy", "mtype", "qemu-system-i386") if not shutil.which(name)]
+    missing = [name for name in ("mcopy", "mtype", "nasm", "qemu-system-i386") if not shutil.which(name)]
     if missing:
         raise SystemExit("missing required tool(s): " + ", ".join(missing))
 
@@ -45,13 +45,14 @@ def image_file(image: Path, dos_path: str) -> bytes:
     return subprocess.check_output(["mtype", "-i", spec, dos_path], env=env)
 
 
-def install_autoexec(image: Path) -> None:
+def install_autoexec(image: Path, ceiling_probe: Path) -> None:
     spec = f"{image}@@{partition_offset(image)}"
     autoexec = (
         "@ECHO OFF\r\n"
         "PATH C:\\DOS;C:\\VC\r\n"
         "PROMPT $P$G\r\n"
         "CTTY AUX\r\n"
+        "CEILING.COM\r\n"
         "ECHO PARITY_MEM_BEGIN\r\n"
         "MEM /D\r\n"
         "ECHO PARITY_MEM_END\r\n"
@@ -62,6 +63,11 @@ def install_autoexec(image: Path) -> None:
     env = os.environ.copy()
     env.update({"MTOOLS_NO_VFAT": "1", "MTOOLS_SKIP_CHECK": "1"})
     subprocess.run(
+        ["mcopy", "-o", "-i", spec, str(ceiling_probe), "::CEILING.COM"],
+        env=env,
+        check=True,
+    )
+    subprocess.run(
         ["mcopy", "-o", "-i", spec, "-", "::AUTOEXEC.BAT"],
         input=autoexec,
         env=env,
@@ -69,13 +75,13 @@ def install_autoexec(image: Path) -> None:
     )
 
 
-def capture(label: str, source: Path, directory: Path) -> tuple[Path, Path]:
+def capture(label: str, source: Path, directory: Path, ceiling_probe: Path) -> tuple[Path, Path]:
     image = directory / f"{label}.img"
     serial_log = directory / f"{label}-serial.log"
     screen_log = directory / f"{label}-screen.log"
     qmp_socket = directory / f"{label}.qmp"
     shutil.copyfile(source, image)
-    install_autoexec(image)
+    install_autoexec(image, ceiling_probe)
 
     command = [
         "qemu-system-i386",
@@ -138,6 +144,10 @@ MEM_COMPONENT = re.compile(
     r"^\s+(HIMEM|EMM386|MSDOS)\s+([0-9]+)\s+(.+?)\s*$",
     re.MULTILINE,
 )
+CEILING_ROW = re.compile(
+    r"^MEMORY_CEILING INT12=([0-9A-F]{4}) BDA=([0-9A-F]{4}) EBDA=([0-9A-F]{4})$",
+    re.MULTILINE,
+)
 
 
 def parse_capture(serial_log: Path, screen_log: Path) -> dict[str, object]:
@@ -145,6 +155,9 @@ def parse_capture(serial_log: Path, screen_log: Path) -> dict[str, object]:
     screen = screen_log.read_text(encoding="utf-8", errors="replace")
     if "PARITY_MEM_END" not in serial:
         raise ValueError(f"MEM /D did not complete in {serial_log}")
+    ceiling_match = CEILING_ROW.search(serial)
+    if not ceiling_match:
+        raise ValueError(f"memory ceiling probe did not complete in {serial_log}")
 
     vc_rows = [
         {"segment": int(segment, 16), "size": int(size.replace(",", "")), "name": name.strip()}
@@ -192,6 +205,9 @@ def parse_capture(serial_log: Path, screen_log: Path) -> dict[str, object]:
         "upper_free": sum(row["size"] for row in upper_free),
         "components": components,
         "mem_rows": mem_rows,
+        "int12_kb": int(ceiling_match.group(1), 16),
+        "bda_kb": int(ceiling_match.group(2), 16),
+        "ebda_segment": int(ceiling_match.group(3), 16),
     }
 
 
@@ -219,6 +235,9 @@ def report(current: dict[str, object], retail: dict[str, object], config_hash: s
         f"| VC first conventional free segment | {hex_segment(current['first_free'])} | {hex_segment(retail['first_free'])} | — |",
         f"| VC COMMAND allocation | {number(current['command'])} | {number(retail['command'])} | {int(current['command']) - int(retail['command']):+,} |",
         f"| Conventional ceiling/system segment | {hex_segment(current['ceiling'])} | {hex_segment(retail['ceiling'])} | — |",
+        f"| `INT 12h` conventional memory | {number(current['int12_kb'])} KiB | {number(retail['int12_kb'])} KiB | {int(current['int12_kb']) - int(retail['int12_kb']):+,} KiB |",
+        f"| BDA conventional-memory word | {number(current['bda_kb'])} KiB | {number(retail['bda_kb'])} KiB | {int(current['bda_kb']) - int(retail['bda_kb']):+,} KiB |",
+        f"| BDA EBDA segment | {hex_segment(current['ebda_segment'])} | {hex_segment(retail['ebda_segment'])} | — |",
         f"| VC free UMB total | {number(current['upper_free'])} | {number(retail['upper_free'])} | {int(current['upper_free']) - int(retail['upper_free']):+,} |",
         "",
         "## Installed memory managers (`MEM /D`)",
@@ -275,8 +294,21 @@ def main() -> None:
 
     with tempfile.TemporaryDirectory(prefix="msdos-memory-parity-") as temporary:
         directory = Path(temporary)
-        current_logs = capture("current", args.current_image.resolve(), directory)
-        retail_logs = capture("retail", args.retail_image.resolve(), directory)
+        ceiling_probe = directory / "CEILING.COM"
+        subprocess.run(
+            [
+                "nasm", "-f", "bin",
+                str(ROOT / "tests" / "memory_ceiling_probe.asm"),
+                "-o", str(ceiling_probe),
+            ],
+            check=True,
+        )
+        current_logs = capture(
+            "current", args.current_image.resolve(), directory, ceiling_probe
+        )
+        retail_logs = capture(
+            "retail", args.retail_image.resolve(), directory, ceiling_probe
+        )
         output = report(
             parse_capture(*current_logs),
             parse_capture(*retail_logs),

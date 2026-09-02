@@ -192,8 +192,9 @@ between labels.
 `tests/capture_vc_memory_comparison.py` implements the paired capture. It
 rejects images whose `CONFIG.SYS` or VC binary differs, boots each private copy,
 runs `MEM /D`, opens VC 4.05 Memory Info, and writes a Markdown comparison with
-the raw conventional MCB rows. Run it against prepared current and retail hard
-disk images:
+the raw conventional MCB rows. Its focused probe also records `INT 12h`, the
+BIOS Data Area memory-size word, and the EBDA segment after CONFIG.SYS. Run it
+against prepared current and retail hard disk images:
 
 ```sh
 python3 tests/capture_vc_memory_comparison.py \
@@ -289,6 +290,17 @@ several independent effects. Investigate:
   reducing the largest UMB below retail or changing the startup files; and
 - whether free blocks can be reordered or coalesced so recovered bytes actually
   extend the largest conventional block.
+
+The ceiling probe explains the first item. This system leaves the QEMU EBDA at
+`9FC0h`; both `INT 12h` and BDA word `40h:13h` therefore report 639 KiB. Retail
+DOS 6.22 moves the EBDA pointer to `035Ch` and changes both reports to 640 KiB.
+That accounts for exactly 1,024 bytes of the ceiling row, but changing the
+reported values alone would corrupt the live EBDA. A retained implementation
+must copy the EBDA into explicitly owned low memory, update `40h:0Eh` only after
+the copy, preserve BIOS users of the area, and prove that its destination does
+not consume the same 1 KiB from the largest block. Reusing verified slack in an
+existing resident system allocation can yield the full gain; adding a new 1 KiB
+allocation cannot.
 
 Do not reclaim ROM, video, page-frame, exclusion, provider-gap, or real-mode
 near-pointer space merely to improve the number. Preserve the current 1,216-byte
