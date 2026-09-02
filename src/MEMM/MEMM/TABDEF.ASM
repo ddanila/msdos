@@ -163,6 +163,7 @@ TSS	segment
 	TssArea 	TSS386STRUC	<>
 ;
 ;   I/O Bit Map for Virtual Mode I/O trapping
+;   InitTab relocates this complete TSS with PAGESEG in NOHIMEM builds.
 ;
 	public	IOBitMap
 IOBitMap	label	byte

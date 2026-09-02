@@ -54,7 +54,7 @@ CONST		ENDS
 _BSS		SEGMENT WORD USE16 PUBLIC 'BSS'
 _BSS		ENDS
 
-;* Ring 0 stack in VDM
+;* Initialization stack and ring 0 stack template
 STACK		SEGMENT PARA USE16 STACK 'STACK'
 STACK		ENDS
 
@@ -111,14 +111,6 @@ GDT		ENDS
 LDT		SEGMENT PARA USE16 COMMON
 LDT		ENDS
 
-;*	Interrupt Descriptor Table
-IDT		SEGMENT PARA USE16 COMMON
-IDT		ENDS
-
-;*	Task State Segment
-TSS		SEGMENT PARA USE16 COMMON
-TSS		ENDS
-
 ;*	Contains initialized variables and variables used at startup.
 _DATA		SEGMENT WORD USE16 PUBLIC 'DATA'
 _DATA		ENDS
@@ -151,6 +143,13 @@ VDATA		ENDS
 ;*	Contains initialized variables and variables used at startup.
 PAGESEG 	SEGMENT PARA USE16 PUBLIC 'PAGES'
 PAGESEG 	ENDS
+
+;*	Protected-mode tables and stack relocated with PAGESEG during initialization.
+IDT		SEGMENT PARA USE16 COMMON 'PAGES'
+IDT		ENDS
+
+TSS		SEGMENT PARA USE16 COMMON 'PAGES'
+TSS		ENDS
 
 ;*	Initialization code and variables.  Used for data later.
 ;	Must be last segment.

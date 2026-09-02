@@ -151,6 +151,9 @@ def read_screen_text(qmp: QMPConnection, tmp_path: str) -> str:
 
 def send_keys(qmp: QMPConnection, keys_str: str) -> None:
     """Send a sequence of keystrokes.  Keys separated by '+'."""
+    if keys_str.startswith("hmp:"):
+        qmp.human_cmd(keys_str[4:])
+        return
     for key in keys_str.split('+'):
         key = key.strip()
         if not key:

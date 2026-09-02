@@ -306,7 +306,10 @@ Break	<TestNet - determine if a CDS is for the network>
 
 Procedure   TestNet,NEAR
 	ASSUME	CS:DOSGroup,DS:NOTHING,ES:NOTHING,SS:NOTHING
-	LES	DI,ThisCDS
+	; THISCDS is mutable SDA state owned by the retained-low DOS data image.
+	; Once code is relocated, a default CS override would read the stale HMA
+	; copy and can misclassify a local drive as a network drive.
+	LES	DI,SS:ThisCDS
 	CMP	DI,-1
 	JZ	CMCRet			; UNC? carry is clear
 	TEST	ES:[DI].curdir_flags,curdir_isnet

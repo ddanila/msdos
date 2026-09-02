@@ -81,8 +81,10 @@ Int&AA	PROC	FAR
 	Old&AA	dd	  0		;Forward pointer
 		dw	  424Bh 	;compatible signature for Int. Sharing
 	FirstFlag&AA db   0		;the firstly hooked.
-	jmp	short	Intret_&AA	;Reset routine. We don't care this.
-		db	  7 dup (0)	;Reserved for future.
+		jmp	short	IntReset&AA	;Reset routine. We don't care this.
+IntReset&AA:
+		iret
+		db	  6 dup (0)	;Reserved for future.
 Entry_Int&AA&_Stk:
 ;-----------------------------
 	endif
@@ -151,73 +153,10 @@ Normal&aa:
 
 	endif
 
-	push	bp
-	push	es
-	mov	es, cs:[STACKS+2]	; Get segment of stacks
-
-	mov	bp,NextEntry		; get most likely candidate
-	mov	al,Allocated
-	xchg	AllocByte,al		; grab the entry
-	cmp	al,Free 		; still avail?
-	jne	NotFree&aa
-
-	sub	NextEntry,EntrySize	; set for next interrupt
-
-Found&aa:
-	mov	SavedSP,sp		; save sp value
-	mov	SavedSS,ss		; save ss also
-;	mov	IntLevel,aa&h		; save the int level
-
-	mov	ax,bp			; temp save of table offset
-
-	mov	bp,NewSP		; get new SP value
-	cmp	es:[bp],ax		; check for offset into table
-	jne	FoundBad&aa
-
-	mov	ax,es			; point ss,sp to the new stack
-	mov	ss,ax
-	mov	sp,bp
-
-	pushf				; go execute the real interrupt handler
-	call	dword ptr old&aa	;  which will iret back to here
-
-	mov	bp,sp			; retrieve the table offset for us
-	mov	bp,es:[bp]		   ;  but leave it on the stack
-	mov	ss,SavedSS	     ; get old stack back
-	mov	sp,SavedSP
-
-;	cmp	AllocByte,Allocated	; If an error occured,
-;	jne	NewError&aa		;  do not free us
-
-	mov	AllocByte,Free		; free the entry
-	mov	NextEntry,bp		; setup to use next time
-
-NewError&aa:
-	pop	es
-	pop	bp			; saved on entry
-	pop	ax			; saved on entry
-
-INTRET_&AA:								  ;3.30
-	iret				; done with this interrupt
-
-NotFree&aa:
-	cmp	al,Allocated		; error flag
-	je	findnext&aa		;  no, continue
-	xchg	AllocByte,al		;  yes, restore error value
-
-FindNext&aa:
-	call	LongPath
-	jmp	Found&aa
-
-FoundBad&aa:
-	cmp	bp,FirstEntry
-	jc	findnext&aa
-	mov	bp,ax			; flag this entry
-	mov	AllocByte,Clobbered
-;	add	bp,EntrySize		;  and previous entry
-;	mov	AllocByte,Overflowed
-;	sub	bp,EntrySize
-	jmp	findnext&aa		; keep looking
+	; AX was saved above. Pass this vector's private successor slot to the
+	; common switching path without introducing shared mutable dispatch state.
+	mov	ax,offset Old&AA
+	jmp	StackCommon
 
 int&aa	endp
 
@@ -241,6 +180,67 @@ int&aa	endp
 									  ;3.30
 ;********************************************************************	  ;3.30
 ;Common routines							  ;3.30
+
+; The successor offset is preserved first on the interrupted stack and then
+; on the selected private stack. An interrupt nested inside the successor can
+; therefore use another pool entry without overwriting its caller's dispatch.
+StackCommon:
+	push	bp
+	push	es
+	push	si
+	mov	si,ax
+	mov	es,cs:[STACKS+2]
+
+	mov	bp,NextEntry
+	mov	al,Allocated
+	xchg	AllocByte,al
+	cmp	al,Free
+	jne	short StackNotFree
+	sub	NextEntry,EntrySize
+
+StackFound:
+	mov	SavedSP,sp
+	mov	SavedSS,ss
+	mov	ax,bp
+	mov	bp,NewSP
+	cmp	es:[bp],ax
+	jne	short StackFoundBad
+
+	mov	ax,es
+	mov	ss,ax
+	mov	sp,bp
+	push	si
+	pushf
+	call	dword ptr cs:[si]
+	pop	si
+
+	mov	bp,sp
+	mov	bp,es:[bp]
+	mov	ss,SavedSS
+	mov	sp,SavedSP
+	mov	AllocByte,Free
+	mov	NextEntry,bp
+
+	pop	si
+	pop	es
+	pop	bp
+	pop	ax
+	iret
+
+StackNotFree:
+	cmp	al,Allocated
+	je	short StackFindNext
+	xchg	AllocByte,al
+StackFindNext:
+	call	LongPath
+	jmp	short StackFound
+
+StackFoundBad:
+	cmp	bp,FirstEntry
+	jc	short StackFindNext
+	mov	bp,ax
+	mov	AllocByte,Clobbered
+	jmp	short StackFindNext
 
 longpath:
 	mov	bp,LastEntry		; start with last entry in table

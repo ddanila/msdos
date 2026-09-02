@@ -65,6 +65,7 @@
 	public	Auto_Mode
 	public	dos_version
 	public	TEXT_Seg
+	public	TEXT_Phys
 	public	STACK_Seg
 	public	GDT_Seg
 	public	IDT_Seg
@@ -166,6 +167,8 @@ _TEXT	segment
 _TEXT	ends
 ;
 LAST	segment
+	extrn	RelocateText:near
+	extrn	CompactVData:near
 
 	extrn	VerifyMachine:near
 	extrn	InitMess:byte
@@ -249,6 +252,7 @@ weitek_mode	db	0h	; parsed DOS 5 W= setting; hardware remains optional
 ;  The following pointers are segment addresses for various segments
 ;
 TEXT_Seg	dw	seg _TEXT	; current segment for _TEXT
+TEXT_Phys	dd	0		; protected-mode copy in locked XMS
 STACK_Seg	dw	seg STACK	; current segment for STACK
 GDT_Seg 	dw	seg GDT 	; current segment for GDT
 IDT_Seg 	dw	seg IDT 	; current segment for IDT
@@ -546,6 +550,7 @@ IE_setbrk:
 	pop	es
 	pop	ds
 
+	call	RelocateText
 	call	FarGoVirtual		;  N: go into virtual mode
 	mov	al,[initial_mode]
 	or	al,al
@@ -553,6 +558,16 @@ IE_setbrk:
 	mov	ah,1
 	call	ELIM_Entry
 IE_initial_mode_done:
+	call	CompactVData
+	; CompactVData may lower the resident break after the request header was
+	; first populated. Publish the final value returned to SYSINIT.
+	mov	bx,[bp+2]
+	mov	es,bx
+	mov	bx,[bp+10]
+	mov	ax,[driver_end]
+	mov	es:[bx.BRK_OFF],ax
+	mov	ax,[driver_end+2]
+	mov	es:[bx.BRK_SEG],ax
 
 ;
 ;  exit - display status messages and set exit status

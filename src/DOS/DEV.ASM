@@ -74,6 +74,14 @@ include version.inc
 	EXTRN	hma_low_segment:WORD
 	EXTRN	hma_resident:BYTE
 	EXTRN	hma_driver_trampoline_entry:DWORD
+	EXTRN	hma_xms_entry:DWORD
+	EXTRN	hma_buffer_bounce:DWORD
+	EXTRN	hma_buffers_active:BYTE
+	EXTRN	hma_buffer_size:WORD
+	EXTRN	hma_bounce_original:DWORD
+	EXTRN	hma_bounce_direction:BYTE
+	EXTRN	hma_driver_requests:BYTE
+	EXTRN	hma_driver_xms:DWORD
 	i_need	DOS34_FLAG,WORD ;AN000;
 	i_need	fshare,BYTE	;AN010; share flag
 
@@ -477,9 +485,15 @@ chksector:			       ;AN000; >32mb
 	CMP	[HIGH_SECTOR],0        ;AN000; >32mb   if >32mb
 	JZ	chardev2	       ;AN000; >32mb   then fake error
 	MOV	ES:[BX.REQSTAT],STERR+STDON+ERROR_I24_NOT_DOS_DISK  ;AN000; >32mb
-	JMP	SHORT dev_exit	       ;AN000; >32mb
+	JMP	dev_exit	       ;AN000; >32mb
 
 chardev2:			       ;AN000;
+	; Keep bounce ownership on this invocation's stack. Device requests may
+	; nest, so the original transfer pointer cannot live in shared globals.
+	push	word ptr es:[bx+16]
+	push	word ptr es:[bx+14]
+	call	HMA_BUFFER_BEGIN
+	pushf
 	; Legacy real-mode drivers may not preserve access to an HMA request
 	; packet across their BIOS calls. Finish constructing the request in the
 	; high image, then mirror the complete extended workspace into retained low
@@ -500,27 +514,75 @@ chardev2:			       ;AN000;
 	jbe	short dev_packet_copy_length_ready
 	mov	cx,30
 dev_packet_copy_length_ready:
+	push	dx
+	mov	dx,bx
 	push	es
 	pop	ds
 	mov	ax,cs:[hma_low_segment]
 	mov	es,ax
-	mov	si,bx
-	mov	di,bx
+	mov	di,offset DOSGROUP:hma_driver_requests
+	pushf
+	cli
+	mov	cx,2
+dev_packet_find_slot:
+	cmp	byte ptr es:[di+34],0
+	je	short dev_packet_slot_found
+	add	di,35
+	loop	dev_packet_find_slot
+	popf
+	push	ds
+	pop	es
+	pop	dx
+	jmp	short dev_packet_copy_restore
+dev_packet_slot_found:
+	mov	byte ptr es:[di+34],1
+	popf
+	mov	word ptr es:[di+30],dx
+	mov	word ptr es:[di+32],ds
+	mov	si,dx
+	push	di
+	xor	cx,cx
+	mov	cl,ds:[si]
+	cmp	cx,30
+	jbe	short dev_packet_slot_length_ready
+	mov	cx,30
+dev_packet_slot_length_ready:
 	cld
 	rep	movsb
+	pop	bx
+	pop	dx
+dev_packet_copy_restore:
 	pop	cx
 	pop	di
 	pop	si
 	pop	ds
 dev_packet_ready:
 ; As above only DS:SI points to device header on entry, and DS:SI is preserved
+	cmp	cs:[hma_resident],0
+	je	short dev_driver_calls_low
+	MOV	AX,[SI.SDEVSTRAT]
+	MOV	DX,[SI.SDEVINT]
+	PUSH	DX
+	CALL	HMA_SAFE_DRIVER_CALL
+	POP	AX
+	CALL	HMA_SAFE_DRIVER_CALL
+	jmp	short dev_driver_calls_done
+dev_driver_calls_low:
 	MOV	AX,[SI.SDEVSTRAT]
 	MOV	WORD PTR [CALLDEVAD],AX
 	MOV	WORD PTR [CALLDEVAD+2],DS
-	CALL	HMA_SAFE_DRIVER_CALL
+	call	dword ptr [CALLDEVAD]
 	MOV	AX,[SI.SDEVINT]
 	MOV	WORD PTR [CALLDEVAD],AX
-	CALL	HMA_SAFE_DRIVER_CALL
+	call	dword ptr [CALLDEVAD]
+dev_driver_calls_done:
+	popf
+	jnc	short dev_driver_discard_bounce
+	CALL	HMA_BUFFER_FINISH
+	jmp	short dev_driver_no_bounce
+dev_driver_discard_bounce:
+	add	sp,4
+dev_driver_no_bounce:
 	CALL	VIRREAD 		;AN000;LB. move data from SC to buffer
 	JC	chardev2		;AN000;LB. bad sector or exceeds max sec
 dev_exit:
@@ -533,6 +595,16 @@ dev_exit:
 	cmp	ax,dx
 	pop	dx
 	jne	short dev_packet_done
+	; A normal SYSINIT packet can share DOS's retained-low segment. Only the
+	; two exact private slot addresses carry copy-back metadata.
+	cmp	bx,offset DOSGROUP:hma_driver_requests
+	je	short dev_packet_return_slot_found
+	cmp	bx,offset DOSGROUP:hma_driver_requests+35
+	je	short dev_packet_return_slot_found
+	jmp	short dev_packet_done
+dev_packet_return_slot_found:
+	cmp	byte ptr es:[bx+34],1
+	jne	short dev_packet_return_not_owned
 	push	ds
 	push	si
 	push	di
@@ -543,18 +615,27 @@ dev_exit:
 	jbe	short dev_packet_return_length_ready
 	mov	cx,30
 dev_packet_return_length_ready:
+	push	dx
+	push	bp
+	mov	si,bx
+	mov	di,es:[si+30]
+	mov	dx,es:[si+32]
 	push	es
 	pop	ds
-	push	cs
-	pop	es
-	mov	si,bx
-	mov	di,bx
+	mov	es,dx
+	mov	bx,di
+	mov	bp,si
 	cld
 	rep	movsb
+	mov	byte ptr ds:[bp+34],0
+	pop	bp
+	pop	dx
 	pop	cx
 	pop	di
 	pop	si
 	pop	ds
+	jmp	short dev_packet_done
+dev_packet_return_not_owned:
 dev_packet_done:
 	LeaveCrit   critDevice
 	return
@@ -562,15 +643,147 @@ EndProc DEVIOCALL
 
 ; HMA code calls the retained-low trampoline so a driver that disables A20
 ; cannot wrap the return into reclaimed kernel storage.
+PUBLIC HMA_SAFE_DRIVER_CALL
 HMA_SAFE_DRIVER_CALL proc near
-	cmp	cs:[hma_resident],0
-	je	short hma_driver_call_low
+	; Publish the invariant XMS entry in storage retained with the trampoline.
+	; Pass the target already in AX and DS on the stack. Keeping it off the
+	; shared CALLDEVAD slot preserves normal nested device-call behavior.
+	; ES:BX is the request packet used by our copy-back and bounce cleanup.
+	; Device entry points may destroy both registers, so retain that ownership
+	; explicitly across the call.
+	push	bx
+	push	es
+	push	ax
+	push	es
+	mov	ax,cs:[hma_low_segment]
+	mov	es,ax
+	mov	ax,word ptr cs:[hma_xms_entry]
+	mov	word ptr es:[hma_driver_xms],ax
+	mov	ax,word ptr cs:[hma_xms_entry+2]
+	mov	word ptr es:[hma_driver_xms+2],ax
+	pop	es
+	pop	ax
+	push	ds
+	push	ax
 	call	dword ptr cs:[hma_driver_trampoline_entry]
-	ret
-hma_driver_call_low:
-	call	dword ptr [CALLDEVAD]
+	pop	es
+	pop	bx
 	ret
 HMA_SAFE_DRIVER_CALL endp
+
+HMA_BUFFER_BEGIN proc near
+	cmp	cs:[hma_buffers_active],0
+	je	short hma_buffer_begin_inactive
+	test	[si.SDEVATT],DevTyp
+	jnz	short hma_buffer_begin_inactive
+	cmp	word ptr es:[bx+16],0ffffh
+	jne	short hma_buffer_begin_inactive
+	cmp	word ptr es:[bx+18],1
+	jne	short hma_buffer_begin_inactive
+	mov	al,es:[bx.REQFUNC]
+	cmp	al,DEVRD
+	je	short hma_buffer_begin_read
+	cmp	al,DEVWRT
+	je	short hma_buffer_begin_write
+	cmp	al,DEVWRTV
+	jne	short hma_buffer_begin_inactive
+hma_buffer_begin_write:
+	mov	cs:[hma_bounce_direction],2
+	jmp	short hma_buffer_begin_save
+hma_buffer_begin_read:
+	mov	cs:[hma_bounce_direction],1
+hma_buffer_begin_save:
+	push	ax
+	mov	ax,es:[bx+14]
+	mov	word ptr cs:[hma_bounce_original],ax
+	mov	ax,es:[bx+16]
+	mov	word ptr cs:[hma_bounce_original+2],ax
+	mov	ax,word ptr cs:[hma_buffer_bounce]
+	mov	word ptr cs:[CALLXAD],ax
+	mov	es:[bx+14],ax
+	mov	ax,word ptr cs:[hma_buffer_bounce+2]
+	mov	word ptr cs:[CALLXAD+2],ax
+	mov	es:[bx+16],ax
+	pop	ax
+	cmp	cs:[hma_bounce_direction],2
+	jne	short hma_buffer_begin_active
+	call	HMA_BUFFER_COPY_TO_LOW
+hma_buffer_begin_active:
+	stc
+	ret
+hma_buffer_begin_inactive:
+	clc
+	ret
+HMA_BUFFER_BEGIN endp
+
+HMA_BUFFER_FINISH proc near
+	push	bp
+	mov	bp,sp
+	cmp	byte ptr es:[bx.REQFUNC],DEVRD
+	jne	short hma_buffer_finish_restore
+	test	es:[bx.REQSTAT],STERR
+	jnz	short hma_buffer_finish_restore
+	push	ax
+	push	di
+	mov	di,ss:[bp+4]
+	mov	ax,ss:[bp+6]
+	call	HMA_BUFFER_COPY_FROM_LOW
+	pop	di
+	pop	ax
+hma_buffer_finish_restore:
+	push	ax
+	mov	ax,ss:[bp+4]
+	mov	word ptr cs:[CALLXAD],ax
+	mov	es:[bx+14],ax
+	mov	ax,ss:[bp+6]
+	mov	word ptr cs:[CALLXAD+2],ax
+	mov	es:[bx+16],ax
+	pop	ax
+	pop	bp
+	ret	4
+HMA_BUFFER_FINISH endp
+
+HMA_BUFFER_COPY_TO_LOW proc near
+	push	ax
+	push	cx
+	push	si
+	push	di
+	push	ds
+	push	es
+	lds	si,cs:[hma_bounce_original]
+	les	di,cs:[hma_buffer_bounce]
+	mov	cx,cs:[hma_buffer_size]
+	cld
+	rep	movsb
+	pop	es
+	pop	ds
+	pop	di
+	pop	si
+	pop	cx
+	pop	ax
+	ret
+HMA_BUFFER_COPY_TO_LOW endp
+
+HMA_BUFFER_COPY_FROM_LOW proc near
+	push	ax
+	push	cx
+	push	si
+	push	di
+	push	ds
+	push	es
+	lds	si,cs:[hma_buffer_bounce]
+	mov	es,ax
+	mov	cx,cs:[hma_buffer_size]
+	cld
+	rep	movsb
+	pop	es
+	pop	ds
+	pop	di
+	pop	si
+	pop	cx
+	pop	ax
+	ret
+HMA_BUFFER_COPY_FROM_LOW endp
 
 Break	<SETREAD, SETWRITE -- SET UP HEADER BLOCK>
 

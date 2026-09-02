@@ -244,7 +244,7 @@ jump_target_segment:
     test ah, ah
     jnz fail_alter
 
-    ; 56/02 reports stack space; 56/00 calls and restores an empty map.
+    ; 56/02 reports stack space; 56/00 calls and restores a physical map.
     mov ax, 5602h
     int 67h
     test ah, ah
@@ -253,6 +253,12 @@ jump_target_segment:
     jz fail_alter
     mov word [call_struct], call_target
     mov word [call_struct+2], cs
+    mov byte [call_struct+4], 1
+    mov word [call_struct+5], map_array
+    mov word [call_struct+7], cs
+    mov byte [call_struct+9], 1
+    mov word [call_struct+10], map_array
+    mov word [call_struct+12], cs
     mov dx, [handle]
     mov si, call_struct
     mov ax, 5600h
@@ -263,6 +269,8 @@ jump_target_segment:
     jne fail_alter
     mov byte [call_seen], 0
     mov word [call_struct], call_target
+    mov word [call_struct+5], map_array_segment
+    mov word [call_struct+10], map_array_segment
     mov dx, [handle]
     mov si, call_struct
     mov ax, 5601h

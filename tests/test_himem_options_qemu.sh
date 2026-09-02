@@ -9,6 +9,7 @@ FLOPPY="$OUT/floppy.img"
 IMAGE="$OUT/floppy-himem-options.img"
 LOG="$OUT/himem-options.log"
 PROBE="$OUT/himem-options.com"
+MAX_HANDLES_PROBE="$OUT/himem-max-handles.com"
 REJECT_PROBE="$OUT/himem-reject.com"
 ACCEPT_PROBE="$OUT/himem-accept.com"
 FAULT_HIMEM="$OUT/himem-testmem-fault.sys"
@@ -23,6 +24,8 @@ for tool in nasm mcopy python3 qemu-system-i386 timeout; do
 done
 
 nasm -f bin "$ROOT/tests/himem_options_probe.asm" -o "$PROBE"
+nasm -f bin -DHANDLE_COUNT=128 "$ROOT/tests/himem_options_probe.asm" \
+    -o "$MAX_HANDLES_PROBE"
 nasm -f bin "$ROOT/tests/himem_reject_probe.asm" -o "$REJECT_PROBE"
 nasm -f bin -DEXPECT_INSTALLED=1 "$ROOT/tests/himem_reject_probe.asm" -o "$ACCEPT_PROBE"
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$QEXIT"
@@ -49,6 +52,26 @@ timeout 25 qemu-system-i386 \
 
 grep -Fq 'HIMEM_OPTIONS_PASS' "$LOG" || {
     sed -n '1,160p' "$LOG" >&2
+    exit 1
+}
+
+max_handles_image="$OUT/floppy-himem-max-handles.img"
+max_handles_log="$OUT/himem-max-handles.log"
+cp "$FLOPPY" "$max_handles_image"
+mdel -i "$max_handles_image" ::HELP.HLP >/dev/null 2>&1 || true
+mcopy -o -i "$max_handles_image" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
+mcopy -o -i "$max_handles_image" "$MAX_HANDLES_PROBE" ::HIMOPT.COM
+printf 'DEVICE=A:\\HIMEM.SYS /HMAMIN=1 /NUMHANDLES=128 /INT15=128 /EISA /TESTMEM:OFF\r\n' | \
+    mcopy -o -i "$max_handles_image" - ::CONFIG.SYS
+printf '@ECHO OFF\r\nCTTY AUX\r\nHIMOPT.COM\r\n' | \
+    mcopy -o -i "$max_handles_image" - ::AUTOEXEC.BAT
+timeout 25 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 16 \
+    -drive if=floppy,index=0,format=raw,file="$max_handles_image",cache=writethrough \
+    -boot a -serial stdio -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$max_handles_log" 2>&1 || true
+grep -Fq 'HIMEM_OPTIONS_PASS' "$max_handles_log" || {
+    sed -n '1,160p' "$max_handles_log" >&2
     exit 1
 }
 

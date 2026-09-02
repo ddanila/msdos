@@ -103,6 +103,12 @@ INT_2F_NEXT DD	   ?
 
 RET_ADDR    DD	   ?
 
+; SYSINIT may compact all six BIOS-provided drive DPBs after DOS moves high.
+; Keep their final copies in the resident BIOS segment, outside DOS's fixed
+; loader layout and the disposable SYSINIT image.
+PUBLIC  CompactDpbStorage
+CompactDpbStorage DB 6 * 33 DUP (0)
+
 	PATHEND 005,DISK
 ; = = = = = = = = = = = = = = = = = = = =
 
@@ -208,9 +214,20 @@ MYNUM	EQU	8
 
 	PUBLIC	INT2F_DISK
 INT2F_DISK PROC FAR
+	CMP	AX,0E704H		; repository SYSINIT chain rebase
+	JE	REBASE_DOS_2F
 	CMP	AH,MYNUM
 	JE	MINE
 	JMP	CS:[INT_2F_NEXT]	; CHAIN TO NEXT INT 2F HANDLER
+REBASE_DOS_2F:
+	CMP	WORD PTR CS:[INT_2F_NEXT+2],DX
+	JNE	REBASE_DOS_2F_FAIL
+	MOV	WORD PTR CS:[INT_2F_NEXT+2],BX
+	MOV	AX,0E7FFH
+	IRET
+REBASE_DOS_2F_FAIL:
+	XOR	AX,AX
+	IRET
 MINE:
 	CMP	AL,0F8H 		; IRET ON RESERVED FUNCTIONS
 	JB	DO_FUNC

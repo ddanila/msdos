@@ -878,6 +878,21 @@ CALLDEV:MOV	DS,WORD PTR CS:[ENTRY_POINT+2]
 	PUSH	WORD PTR CS:[ENTRY_POINT]
 	MOV	WORD PTR CS:[ENTRY_POINT],AX
 	MOV	BX,OFFSET PACKET
+	cmp	word ptr cs:[DOSINFO+2],0ffffh
+	jne	short CallDevLow
+	CALL	[ENTRY_POINT]
+	POP	WORD PTR CS:[ENTRY_POINT]
+	; A CONFIG.SYS driver can change the physical A20 gate behind XMS's
+	; nesting counters. DOS may already live in the HMA, so restore the gate
+	; at the SYSINIT boundary before any subsequent DOS call or high return.
+	; The repository HIMEM peer implements this private request without
+	; changing the public global/local enable counts.
+	push	ax
+	mov	ax,0e705h
+	int	2fh
+	pop	ax
+	return
+CallDevLow:
 	CALL	[ENTRY_POINT]
 	POP	WORD PTR CS:[ENTRY_POINT]
 	return

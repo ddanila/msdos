@@ -52,8 +52,9 @@ page	58,132
 	include VDMseg.inc
 	include VDMsel.inc
 	include desc.inc
-	include instr386.inc
-	include oemdep.inc
+include instr386.inc
+include oemdep.inc
+include elim.inc
 
 FALSE		equ	0
 TRUE		equ	not FALSE
@@ -69,12 +70,12 @@ extrn	TSS_Seg:word		; segment address of TSS
 extrn	Page_Dir:word		; 32-bit address of Page Directory Table
 
 extrn	Active_Status:byte
+extrn	DMARegSav:byte
 
 _DATA	ENDS
 
 _TEXT SEGMENT
 
-extrn	InitDMA:near		; (elimtrap.asm)
 extrn	EnableA20:near		; (modesw.asm)
 extrn	A20_Trap_Init:near	; (a20trap.asm)
 extrn	RR_Trap_Init:near	; (RRTrap.asm)
@@ -105,6 +106,68 @@ endif
 
 _TEXT SEGMENT
 	assume cs:_TEXT, ds:DGROUP, es:DGROUP
+
+InitDMALowChannel MACRO chan_num
+	lea	di,[DMARegSav.Chnl&chan_num]
+	xor	eax,eax
+	in	al,DMA_P&chan_num
+	jmp	$+2
+	jmp	$+2
+	shl	eax,16
+	in	al,DMA_B&chan_num
+	jmp	$+2
+	jmp	$+2
+	mov	ah,al
+	in	al,DMA_B&chan_num
+	xchg	ah,al
+	stosd
+	stosd
+	xor	eax,eax
+	jmp	$+2
+	jmp	$+2
+	in	al,DMA_C&chan_num
+	jmp	$+2
+	jmp	$+2
+	mov	ah,al
+	in	al,DMA_C&chan_num
+	xchg	ah,al
+	stosd
+	add	di,4
+ENDM
+
+; GoVirtual runs from the retained prefix on every ON/AUTO transition. Keep
+; only the hardware snapshot here; the DMA trap engine itself runs protected.
+InitDMALow proc near
+	push	eax
+	push	di
+	push	es
+	pushf
+	cli
+	cld
+	push	ds
+	pop	es
+	xor	al,al
+	out	DMA1_CLR_FF,al
+	mov	[DMARegSav.DMAFF1],al
+	jmp	$+2
+	jmp	$+2
+	InitDMALowChannel 1
+	InitDMALowChannel 2
+	InitDMALowChannel 3
+	xor	al,al
+	out	DMA2_CLR_FF,al
+	mov	[DMARegSav.DMAFF2],al
+	jmp	$+2
+	jmp	$+2
+	InitDMALowChannel 5
+	InitDMALowChannel 6
+	InitDMALowChannel 7
+	popf
+	pop	es
+	pop	di
+	pop	eax
+	ret
+InitDMALow endp
 
 ;******************************************************************************
 ;	FarGoVirtual - far link for GoVirtual
@@ -151,6 +214,7 @@ GoVirtual	proc	near
 ;
 ;   init VDM state variables
 ;
+	ifndef NOHIMEM
 	push	es
 	mov	ax,[TSS_Seg]
 	mov	es,ax			; ES -> TSS
@@ -158,10 +222,11 @@ GoVirtual	proc	near
 	call	RR_Trap_Init		; init return to real watch
 	call	OEM_Trap_Init		; init any other I/O port watches
 	pop	es
+	endif
 
 	mov	[Active_Status],1
 
-	call	InitDMA 		; init DMA watcher
+	call	InitDMALow 		; init DMA watcher
 
 ifndef	NOHIMEM
 	call	FAR PTR InitLOCK	; init status of TABLE lock

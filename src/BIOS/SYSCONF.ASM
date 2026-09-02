@@ -130,12 +130,14 @@ ASSUME	CS:SYSINITSEG,DS:NOTHING,ES:NOTHING,SS:NOTHING
 	EXTRN	BUFFERS:word
 	EXTRN	FILES:byte,NUM_CDS:byte
 	EXTRN	DOSINFO:dword,ENTRY_POINT:dword
+	EXTRN	CompactDpbStorage:byte
+	EXTRN	DEVICE_LIST:dword
 	EXTRN	FCBS:byte,KEEP:byte
 	EXTRN	CONFBOT:word,ALLOCLIM:word,COMMAND_LINE:byte
 	EXTRN	RawConfigSeg:word,MenuScratch:word,MenuPristine:word,MenuCodeSeg:word
 	EXTRN	ZERO:byte,SEPCHR:byte
 	EXTRN	COUNT:word,CHRPTR:word,CNTRYFILEHANDLE:word
-	EXTRN	MEMLO:word,MEMHI:word,PRMBLK:word,LDOFF:word
+	EXTRN	MEMLO:word,MEMHI:word,AREA:word,PRMBLK:word,LDOFF:word
 	EXTRN	PACKET:byte,UNITCOUNT:byte,BREAK_ADDR:dword
 	EXTRN	BPB_ADDR:dword,DRIVENUMBER:byte,SYSI_COUNTRY:dword
 	extrn	Config_Size:word		;AN000;
@@ -1822,6 +1824,7 @@ End_Init_Call:
 
 	PUSH	CS
 	POP	DS
+	call	CompactFirstHimem
 
 	test	[IFS_Flag], IS_IFS	;AN000;
 	jz	Was_Device_Com		;AN000;
@@ -2014,6 +2017,201 @@ Bad_BPB_Size_Sector:
 Skip2_ResetMEMHI:
 	call	DeviceHighAbort
 	JMP	COFF
+
+; DOS=HIGH is known from the CONFIG pre-scan. Once repository HIMEM has
+; completed INIT, move DOS high, copy HIMEM into the released tail, and rebase
+; SYSINIT's single boot-owned arena before any later resident object is built.
+CompactFirstHimem PROC NEAR
+	cmp	cs:[DosHighRequested],0
+	jne	short CFH_check
+	ret
+CFH_check:
+	cmp	word ptr cs:[ENTRY_POINT],0
+	je	short CFH_save
+	ret
+CFH_save:
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	si
+	push	di
+	push	bp
+	push	ds
+	push	es
+	mov	ax,word ptr cs:[ENTRY_POINT+2]
+	mov	ds,ax
+	cmp	word ptr ds:[10],'IH'
+	jne	CFH_restore
+	cmp	word ptr ds:[12],'EM'
+	jne	CFH_restore
+	cmp	word ptr ds:[14],'$M'
+	jne	CFH_restore
+	mov	ax,0e700h
+	int	2fh
+	cmp	ax,0e7ffh
+	jne	CFH_restore
+	cmp	bx,04d55h
+	jne	CFH_restore
+	mov	bp,word ptr cs:[DOSINFO+2]	; current low DOS segment
+	; Reserve the HMA and obtain DOS's dedicated conventional DPB target.
+	; The resident BIOS provides room for all six BIOS drive slots.
+	les	bx,cs:[DOSINFO]
+	mov	ax,1232h
+	int	2fh
+	or	ax,ax
+	jz	CFH_restore
+	les	bx,cs:[DOSINFO]
+	cmp	byte ptr es:[bx.SYSI_NUMIO],6
+	ja	CFH_restore
+	mov	di,offset CODE:CompactDpbStorage
+	mov	dx,word ptr cs:[DEVICE_LIST+2]
+	call	CompactInitialDpbs
+	mov	ax,1230h
+	int	2fh
+	cmp	ax,1
+	jne	CFH_restore
+	mov	si,bx			; relocated DOS arena head
+	; RE_INIT inserted the BIOS disk gate ahead of DOS before HIMEM loaded.
+	; Rebase that gate's saved successor as well as DOS's direct IVT entries;
+	; otherwise an unhandled multiplex call returns to the reclaimed low tail.
+	mov	dx,bp
+	mov	bx,0ffffh
+	mov	ax,0e704h
+	int	2fh
+	cmp	ax,0e7ffh
+	jne	CFH_restore
+	mov	di,si			; new arena head
+	mov	ax,cs:[AREA]
+	dec	ax			; old arena head
+	cmp	di,ax
+	jae	CFH_restore
+	mov	dx,ax
+	sub	dx,di			; paragraph relocation delta
+
+	; Expand the existing boot MCB downward and copy its used prefix. HIMEM's
+	; break is a far byte address, so include its rounded offset explicitly.
+	mov	ds,ax
+	mov	es,di
+	xor	si,si
+	xor	di,di
+	mov	cx,8
+	cld
+	rep	movsw
+	mov	ax,es:[3]
+	add	ax,dx
+	mov	es:[3],ax
+	mov	ax,cs:[AREA]
+	mov	ds,ax
+	mov	ax,word ptr cs:[BREAK_ADDR]
+	add	ax,15
+	mov	cl,4
+	shr	ax,cl
+	mov	cx,word ptr cs:[BREAK_ADDR+2]
+	sub	cx,cs:[AREA]
+	add	cx,ax
+	mov	ax,cs:[AREA]
+	sub	ax,dx
+	mov	es,ax
+	xor	si,si
+	xor	di,di
+	shl	cx,1
+	shl	cx,1
+	shl	cx,1
+	rep	movsw
+	; The copied MEM device mark contains the driver's load segment as well as
+	; SYSINIT's external pointer to the mark. Both follow the resident image.
+	sub	word ptr es:[DEVMARK_SEG],dx
+
+	sub	cs:[AREA],dx
+	sub	cs:[MEMHI],dx
+	sub	word ptr cs:[ENTRY_POINT+2],dx
+	sub	word ptr cs:[BREAK_ADDR+2],dx
+	sub	cs:[DevMark_Addr],dx
+	sub	cs:[LDOFF],dx
+	mov	word ptr cs:[DOSINFO+2],0ffffh
+	mov	word ptr cs:[SYSI_COUNTRY+2],0ffffh
+	mov	dx,word ptr cs:[ENTRY_POINT+2]
+	; The move overlaps HIMEM's old interrupt entry points. Rebase their
+	; segments directly before issuing another INT 2Fh through the chain.
+	xor	ax,ax
+	mov	ds,ax
+	cli
+	mov	word ptr ds:[02fh*4+2],dx
+	mov	word ptr ds:[015h*4+2],dx
+	sti
+	; DOS cached HIMEM's XMS entry before this resident copy moved. Its offset
+	; is unchanged, but the segment must follow the compacted driver.
+	mov	ax,1234h
+	int	2fh
+CFH_restore:
+	pop	es
+	pop	ds
+	pop	bp
+	pop	di
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	ret
+CompactFirstHimem ENDP
+
+; Move the two built-in DPBs out of SYSBUF before DOS reclaims its old tail.
+; BP is the low DOS source segment; DX:DI is resident BIOS storage.
+CompactInitialDpbs PROC NEAR
+	push	bp
+	mov	bx,di
+	les	di,cs:[DOSINFO]
+	mov	si,word ptr es:[di.SYSI_DPB]
+	xor	ax,ax
+	mov	al,byte ptr es:[di.SYSI_NUMIO]
+	mov	cl,DPBSIZ
+	mul	cl
+	mov	cx,ax
+	push	es
+	pop	ds
+	mov	es,dx
+	mov	di,bx
+	cld
+	rep	movsb
+
+	mov	di,bx
+	xor	cx,cx
+	les	si,cs:[DOSINFO]
+	mov	cl,byte ptr es:[si.SYSI_NUMIO]
+	push	es
+	pop	ds
+	mov	es,dx
+CompactDpbLinkLoop:
+	dec	cx
+	jz	short CompactDpbLastLink
+	mov	ax,di
+	add	ax,DPBSIZ
+	mov	word ptr es:[di.DPB_NEXT_DPB],ax
+	mov	word ptr es:[di.DPB_NEXT_DPB+2],dx
+	add	di,DPBSIZ
+	jmp	short CompactDpbLinkLoop
+CompactDpbLastLink:
+	mov	word ptr es:[di.DPB_NEXT_DPB],-1
+	mov	word ptr es:[di.DPB_NEXT_DPB+2],-1
+
+	les	si,cs:[DOSINFO]
+	mov	word ptr es:[si.SYSI_DPB],bx
+	mov	word ptr es:[si.SYSI_DPB+2],dx
+	mov	cl,byte ptr es:[si.SYSI_NUMIO]
+	xor	ch,ch
+	les	di,dword ptr es:[si.SYSI_CDS]
+	mov	si,bx
+CompactDpbCdsLoop:
+	mov	word ptr es:[di.curdir_devptr],si
+	mov	word ptr es:[di.curdir_devptr+2],dx
+	add	si,DPBSIZ
+	add	di,curdirLen
+	loop	CompactDpbCdsLoop
+	pop	bp
+	ret
+CompactInitialDpbs ENDP
 
 ; INTERLNK is the DOS 6 driver whose DEVICE form prefers a UMB unless /LOW is
 ; present. ES:SI addresses the ASCIIZ filename and INIT tail. Return carry set

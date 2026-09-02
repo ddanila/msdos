@@ -92,6 +92,8 @@ PAGESEG ends
 
 _DATA	segment
 	extrn	TEXT_Seg:word		; segment for TEXT
+	extrn	TEXT_Phys:dword		; protected-mode TEXT physical address
+	extrn	Active_Status:byte
 	extrn	STACK_Seg:word		; segment for STACK
 	extrn	GDT_Seg:word		; segment for GDT
 	extrn	IDT_Seg:word		; segment for IDT
@@ -101,6 +103,14 @@ _DATA	segment
 	extrn	Page_Dir:word		; 32 bit address for Page directory
 	extrn	driver_end:dword	; ending address for MEMM.EXE
 	extrn	_emm_brk:word		; break address for EMM data
+	extrn	FRS_array:word
+	extrn	CurRegSet:word
+	extrn	_save_map:word
+	extrn	_handle_table:word
+	extrn	_Handle_Name_Table:word
+	extrn	_emm_page:word
+	extrn	_emm_free:word
+	extrn	_pft386:word
 
 _DATA	ends
 
@@ -121,6 +131,7 @@ LAST	ends
 
 _TEXT	segment
 	extrn	Real_Seg:word	; fixup for _TEXT in RetReal (retreal.asm)
+	extrn	IOTrap_Tab:byte
 _TEXT	ends
 
 R_CODE	segment
@@ -549,6 +560,22 @@ set_entries:
 	pop	dx
 	pop	ax
     ;
+	; VDM_Init recorded the low page directory in the TSS.  Update the
+	; source before copying PAGESEG and TSS together to extended memory.
+	mov	word ptr [Page_Dir],ax
+	mov	word ptr [Page_Dir+2],dx
+	push	es
+	push	di
+	mov	di,seg TSS
+	mov	es,di
+	xor	di,di
+	db	66h
+	mov	ax,[Page_Dir]
+	db	66h
+	mov	word ptr es:[di.TSS386_CR3],ax
+	pop	di
+	pop	es
+    ;
 	xor	di,di		    ; es:di is now the beginning, cx count of
 				    ; number of bytes in segment and dx:ax area
 				    ; where it is to be moved
@@ -561,24 +588,46 @@ set_entries:
     ;
 	mov	word ptr [Page_Dir],ax	; DX,AX = 32 bit addr of Page Directory
 	mov	word ptr [Page_Dir+2],dx	; save it
-	; VDM_Init built the TSS while CR3 still named the low PAGESEG copy.
-	; Keep the task-state CR3 synchronized before DOS releases that copy.
-	push	ax
-	push	dx
-	push	di
-	mov	di,seg TSS
-	mov	es,di
-	xor	di,di
-	db	66h
-	mov	word ptr es:[di.TSS386_CR3],ax
-	pop	di
-	pop	dx
-	pop	ax
 ;
-;  reset PAGET_GSEL descriptor
+;  reset protected table and stack descriptors to their relocated copies
 ;
 	mov	cx,seg GDT			; GDT has not yet moved!!!
 	mov	es,cx				; ES pts to GDT
+
+	mov	ax,word ptr [Page_Dir]
+	mov	dx,word ptr [Page_Dir+2]
+	mov	bx,seg IDT
+	sub	bx,[PageD_Seg]
+	shl	bx,4
+	add	ax,bx
+	adc	dx,0
+	xchg	ax,dx
+	mov	cx,IDTLEN
+	mov	ah,D_DATA0
+	mov	bx,IDTD_GSEL
+	call	SetSegDesc
+
+	mov	ax,word ptr [Page_Dir]
+	mov	dx,word ptr [Page_Dir+2]
+	mov	bx,seg TSS
+	sub	bx,[PageD_Seg]
+	shl	bx,4
+	add	ax,bx
+	adc	dx,0
+	xchg	ax,dx				; AL:DX = 24-bit descriptor base
+	mov	cx,TSSLEN
+	mov	ah,D_386TSS0
+	mov	bx,TSS_GSEL
+	call	SetSegDesc
+	mov	ah,D_DATA0
+	mov	bx,TSSD_GSEL
+	call	SetSegDesc
+
+;
+;  reset PAGET_GSEL descriptor
+;
+	mov	ax,word ptr [Page_Dir]
+	mov	dx,word ptr [Page_Dir+2]
 
 	add	ax,1000h
 	adc	dx,0
@@ -641,6 +690,121 @@ end_inittab:
 	ret
 ;
 InitTab endp
+
+; Copy the complete logical code segment while its low image is still needed
+; for the initial real-to-protected transition. Protected selectors retain the
+; same offsets but use the locked-XMS copy.
+	public	RelocateText
+RelocateText proc near
+	push	es
+	push	di
+	push	eax
+	push	dx
+	push	cx
+	push	bx
+
+	mov	ax,seg VDATA
+	sub	ax,seg _TEXT
+	shl	ax,4
+	add	ax,10h
+	mov	cx,ax
+	call	get_buffer
+	jc	RT_done
+	mov	word ptr [TEXT_Phys],ax
+	mov	word ptr [TEXT_Phys+2],dx
+	push	dx
+	push	ax
+	mov	ax,seg _TEXT
+	mov	es,ax
+	xor	di,di
+	pop	ax
+	pop	dx
+	call	moveb
+	jnz	RT_failed
+
+	mov	es,[GDT_Seg]
+	mov	ax,word ptr [TEXT_Phys]
+	mov	dx,word ptr [TEXT_Phys+2]
+	xchg	ax,dx
+	mov	cx,0
+	mov	ah,D_CODE0
+	mov	bx,VDMC_GSEL
+	call	SetSegDesc
+	mov	ah,D_DATA0
+	mov	bx,VDMCA_GSEL
+	call	SetSegDesc
+	jmp	short RT_done
+
+RT_failed:
+	mov	word ptr [TEXT_Phys],0
+	mov	word ptr [TEXT_Phys+2],0
+RT_done:
+	pop	bx
+	pop	cx
+	pop	dx
+	pop	eax
+	pop	di
+	pop	es
+	ret
+RelocateText endp
+
+; GoVirtual has now made its final real-mode calls into the trap engine. Reuse
+; that protected-only low suffix for the selected dynamic VDATA extent.
+	public	CompactVData
+CompactVData proc near
+	push	es
+	push	si
+	push	di
+	push	cx
+	push	bx
+	push	ax
+
+	mov	ax,word ptr [TEXT_Phys]
+	or	ax,word ptr [TEXT_Phys+2]
+	jz	short CV_done
+	cmp	[Active_Status],0
+	je	short CV_done
+	mov	ax,seg _TEXT
+	sub	ax,seg DGROUP
+	shl	ax,4
+	add	ax,offset _TEXT:IOTrap_Tab
+	mov	di,ax
+	mov	si,[FRS_array]
+	mov	bx,si
+	sub	bx,di
+	mov	cx,[_emm_brk]
+	sub	cx,si
+	push	ds
+	pop	es
+	cld
+	rep	movsb
+
+	sub	[FRS_array],bx
+	sub	[CurRegSet],bx
+	sub	[_save_map],bx
+	sub	[_handle_table],bx
+	sub	[_Handle_Name_Table],bx
+	sub	[_emm_page],bx
+	sub	[_emm_free],bx
+	sub	[_pft386],bx
+	sub	[_emm_brk],bx
+
+	mov	ax,[_emm_brk]
+	add	ax,15
+	shr	ax,4
+	add	ax,seg DGROUP
+	mov	word ptr [driver_end],10h
+	mov	word ptr [driver_end+2],ax
+CV_done:
+	pop	ax
+	pop	bx
+	pop	cx
+	pop	di
+	pop	si
+	pop	es
+	ret
+CompactVData endp
+
 ;
 LAST	ends				; end of segment
 ;

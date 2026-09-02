@@ -50,28 +50,40 @@ run_case() {
 
 run_case disabled 0,0 &
 disabled_pid=$!
+run_case default 9,128 &
+default_pid=$!
 run_case allocated 9,256 &
 allocated_pid=$!
 wait "$disabled_pid"
+wait "$default_pid"
 wait "$allocated_pid"
 
 disabled_hex="$(sed -n 's/.*CONFIG_STACKS_FREE=\([0-9A-F][0-9A-F]*\).*/\1/p' "$OUT/config-stacks-disabled.log" | tail -1)"
+default_hex="$(sed -n 's/.*CONFIG_STACKS_FREE=\([0-9A-F][0-9A-F]*\).*/\1/p' "$OUT/config-stacks-default.log" | tail -1)"
 allocated_hex="$(sed -n 's/.*CONFIG_STACKS_FREE=\([0-9A-F][0-9A-F]*\).*/\1/p' "$OUT/config-stacks-allocated.log" | tail -1)"
 
-if [[ -z "$disabled_hex" || -z "$allocated_hex" ]]; then
+if [[ -z "$disabled_hex" || -z "$default_hex" || -z "$allocated_hex" ]]; then
     echo "  FAIL: STACKS probes did not report free memory"
     sed -n '1,80p' "$OUT/config-stacks-disabled.log"
+    sed -n '1,80p' "$OUT/config-stacks-default.log"
     sed -n '1,80p' "$OUT/config-stacks-allocated.log"
     exit 1
 fi
 
 disabled=$((16#$disabled_hex))
+default=$((16#$default_hex))
 allocated=$((16#$allocated_hex))
+default_delta=$((disabled - default))
 delta=$((disabled - allocated))
+
+if (( default_delta > 116 )); then
+    echo "  FAIL: STACKS=9,128 reserved $default_delta paragraphs (budget 116)"
+    exit 1
+fi
 
 if (( delta < 149 )); then
     echo "  FAIL: STACKS=9,256 reserved only $delta paragraphs (expected >=149)"
     exit 1
 fi
 
-echo "  PASS: STACKS=9,256 reserved $delta paragraphs versus STACKS=0,0"
+echo "  PASS: STACKS=9,128 uses $default_delta paragraphs; STACKS=9,256 uses $delta"

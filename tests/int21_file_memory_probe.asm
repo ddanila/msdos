@@ -4,6 +4,7 @@ org 100h
 
 %macro fail_if_carry 1
     jnc %%ok
+    mov [last_error], ax
     mov dx, fail_%1
     jmp fail
 %%ok:
@@ -601,8 +602,41 @@ dup_exhaust_failed:
 fail:
     mov ah, 09h
     int 21h
+    mov dx, error_prefix
+    mov ah, 09h
+    int 21h
+    mov ax, [last_error]
+    call print_hex_word
+    mov dx, error_newline
+    mov ah, 09h
+    int 21h
     mov ax, 4c01h
     int 21h
+
+print_hex_word:
+    push ax
+    mov al, ah
+    call print_hex_byte
+    pop ax
+print_hex_byte:
+    push ax
+    shr al, 1
+    shr al, 1
+    shr al, 1
+    shr al, 1
+    call print_hex_nibble
+    pop ax
+print_hex_nibble:
+    and al, 0fh
+    add al, '0'
+    cmp al, '9'
+    jbe .emit
+    add al, 'A' - '9' - 1
+.emit:
+    mov dl, al
+    mov ah, 02h
+    int 21h
+    ret
 
 directory      db 'I21TEST', 0
 root_directory db '\', 0
@@ -612,6 +646,9 @@ missing_name   db 'MISSING.BIN', 0
 payload        db 'DOS4TEST'
 payload_size   equ $ - payload
 pass_message   db 'INT21_FILE_MEMORY_PASS', 13, 10, '$'
+error_prefix   db 'ERROR_AX=', '$'
+error_newline  db 13, 10, '$'
+last_error     dw 0
 fail_1a        db 'INT21_1A_FAIL', 13, 10, '$'
 fail_39        db 'INT21_39_FAIL', 13, 10, '$'
 fail_3a        db 'INT21_3A_FAIL', 13, 10, '$'

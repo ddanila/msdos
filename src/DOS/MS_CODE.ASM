@@ -47,6 +47,7 @@ ASSUME	CS:DOSGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
     I_need  sft_addr,DWORD
     I_need  COUNTRY_CDPG,BYTE
     I_need  SysInitTable,BYTE
+    I_need  FastOpenTable,BYTE
     I_need  SYSINITVAR,BYTE
     I_need  IFS_DOS_CALL,DWORD
     I_need  SWAP_ALWAYS_AREA,DWORD
@@ -55,8 +56,23 @@ ASSUME	CS:DOSGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
     I_need  CALLDEVAD,DWORD
     I_need  arena_head,WORD
     I_need  Special_Entries,WORD
+    I_need  BUF_HASH_PTR,DWORD
+    I_need  BUF_HASH_COUNT,WORD
+    I_need  HASHINITVAR,WORD
+    I_need  NUMIO,BYTE
 
     EXTRN   DOS_CODE_START:BYTE
+
+; Fixed request workspace kept below DOS_LOW_GATE_END for legacy drivers that
+; cannot consume an HMA request packet directly.
+PUBLIC  hma_driver_requests
+hma_driver_requests db 2 * 35 dup (0)
+PUBLIC  hma_low_dpbs
+hma_low_dpbs db 2 * DPBSIZ dup (0)
+; Preserve the fixed DOSINIT offset expected by IO.SYS.
+db 10 dup (0)
+PUBLIC  hma_driver_xms
+hma_driver_xms dd 0
 
 BREAK <NullDev -- Driver for null device>
 
@@ -102,7 +118,9 @@ MSC001E label byte
 ; the driver's complete result.
 PUBLIC  HMA_DRIVER_TRAMPOLINE
 HMA_DRIVER_TRAMPOLINE proc far
-        call    dword ptr cs:[CALLDEVAD]
+        push    bp
+        mov     bp, sp
+        call    dword ptr ss:[bp+6]
         pushf
         push    ax
         push    bx
@@ -113,17 +131,11 @@ HMA_DRIVER_TRAMPOLINE proc far
         push    bp
         push    ds
         push    es
-        ; Reassert A20 through a balanced local-enable transaction.  DOS owns
-        ; one persistent local request while resident in the HMA; pairing the
-        ; calls preserves that nesting count while recovering if a driver
-        ; changed the physical gate behind the XMS manager's back.
-        mov     ah, 03h
-        call    dword ptr cs:[hma_xms_entry]
-        or      ax, ax
-        jz      short hma_driver_a20_done
-        mov     ah, 04h
-        call    dword ptr cs:[hma_xms_entry]
-hma_driver_a20_done:
+        ; A legacy driver may change the physical gate behind XMS's counters.
+        ; The repository HIMEM peer restores hardware state without changing
+        ; the public global/local nesting counts.
+        mov     ax, 0e705h
+        int     02fh
         pop     es
         pop     ds
         pop     bp
@@ -134,7 +146,8 @@ hma_driver_a20_done:
         pop     bx
         pop     ax
         popf
-        retf
+        pop     bp
+        retf    4
 HMA_DRIVER_TRAMPOLINE endp
 
 TABLE	ENDS
@@ -332,20 +345,16 @@ GETBP_CDS:
 	entry	GOTDPB
 	DOSAssume   CS,<DS>,"GotDPB"
 ; Load THISDPB from ES:BP
-	; DPBs remain in the retained conventional-memory image.  Code running
-	; from the HMA can synthesize a same-offset DOSGROUP pointer while walking
-	; a CDS; canonicalize that alias before publishing the driver-visible DPB.
+	MOV	WORD PTR CS:[THISDPB],BP
+	MOV	WORD PTR CS:[THISDPB+2],ES
 	CMP	CS:[hma_resident],0
-	JE	SHORT gotdpb_segment_ready
-	MOV	AX,ES
-	CMP	AX,0FFFFH
-	JNE	SHORT gotdpb_segment_ready
-	MOV	AX,CS:[hma_low_segment]
-	MOV	ES,AX
-gotdpb_segment_ready:
-
-	MOV	WORD PTR [THISDPB],BP
-	MOV	WORD PTR [THISDPB+2],ES
+	JE	SHORT gotdpb_done
+	PUSH	DS
+	MOV	DS,WORD PTR CS:[hma_low_segment]
+	MOV	WORD PTR DS:[THISDPB],BP
+	MOV	WORD PTR DS:[THISDPB+2],ES
+	POP	DS
+gotdpb_done:
 	return
 EndProc GetBP
 
@@ -580,6 +589,9 @@ INT2FDOS:
 					; of the list
 INT2F	ENDP
 
+; IO.SYS enters DOSINIT at the historical fixed offset. Keep the reclaimed
+; low/HMA split paragraph-aligned without shifting that loader ABI.
+	DB	4 DUP (090H)
 PUBLIC  DOS_LOW_GATE_END
 DOS_LOW_GATE_END LABEL BYTE
 
@@ -640,6 +652,12 @@ DOS_HMA_RELOCATE proc near
         push    ds
         push    es
 
+        cmp     cs:[hma_owned],0
+        jne     short hma_relocate_reserved
+        call    DOS_HMA_PREPARE
+        or      ax,ax
+        jz      hma_relocate_fail
+hma_relocate_reserved:
         mov     ax, 04300h
         int     02fh
         cmp     al, 080h
@@ -648,17 +666,6 @@ DOS_HMA_RELOCATE proc near
         int     02fh
         mov     word ptr cs:[hma_xms_entry], bx
         mov     word ptr cs:[hma_xms_entry+2], es
-        mov     ah, 01h
-        mov     dx, 0ffffh
-        call    dword ptr cs:[hma_xms_entry]
-        or      ax, ax
-        jz      hma_relocate_fail
-        mov     cs:[hma_owned], 1
-        mov     ah, 03h
-        call    dword ptr cs:[hma_xms_entry]
-        or      ax, ax
-        jz      hma_relocate_release
-
         cli
         push    cs
         pop     ds
@@ -682,9 +689,10 @@ hma_fixup_loop:
         mov     di, cs:[si]
         cmp     word ptr es:[di], bx
         jne     short hma_fixup_next
-        cmp     word ptr es:[di-2], offset DOSGROUP:DOS_CODE_START
+        cmp     word ptr es:[di-2], offset DOSGROUP:HASHINITVAR
         jb      short hma_fixup_next
         mov     word ptr es:[di], 0ffffh
+        mov     word ptr cs:[di], 0ffffh
 hma_fixup_next:
         add     si, 2
         loop    hma_fixup_loop
@@ -698,33 +706,37 @@ hma_share_fixups:
         cmp     word ptr es:[di-2], offset DOSGROUP:DOS_CODE_START
         jb      short hma_share_fixup_next
         mov     word ptr es:[di], 0ffffh
+        mov     word ptr cs:[di], 0ffffh
 hma_share_fixup_next:
         add     di, 4
         loop    hma_share_fixups
 
-        ; Redirect every DOS-owned interrupt vector atomically. Non-DOS
-        ; vectors retain their existing segment and chaining order.
-        xor     ax, ax
-        mov     ds, ax
-        mov     si, 2
-        mov     cx, 256
         push    cs
         pop     dx
         mov     word ptr es:[hma_low_segment], dx
+        mov     word ptr cs:[hma_low_segment], dx
         mov     word ptr es:[hma_driver_trampoline_entry], offset DOSGROUP:HMA_DRIVER_TRAMPOLINE
         mov     word ptr es:[hma_driver_trampoline_entry+2], dx
+        ; Redirect every DOS-owned interrupt vector atomically. Non-DOS
+        ; vectors retain their existing segment and chaining order.
+        xor     ax,ax
+        mov     ds,ax
+        mov     si,2
+        mov     cx,256
 hma_vector_loop:
-        cmp     word ptr ds:[si], dx
+        cmp     word ptr ds:[si],dx
         jne     short hma_vector_next
-        mov     word ptr ds:[si], 0ffffh
+        mov     word ptr ds:[si],0ffffh
 hma_vector_next:
-        add     si, 4
+        add     si,4
         loop    hma_vector_loop
+        mov     ax,0ffffh
+        mov     es,ax
 
-        ; The DATA/TABLE prefix remains low.  Publish the relocated CODE/LAST
-        ; tail as a leading free arena block, immediately before the arena DOS
-        ; created at initialization.  Later allocator scans may coalesce it
-        ; with the existing first free block.
+        ; SYSINIT still occupies the apparent gap above the relocated DOS
+        ; tail. IO.SYS reserves a disposable SYSINIT prefix over this exact
+        ; destination, so the tail can be published without overwriting live
+        ; initialization code or data.
         mov     ax, dx
         mov     bx, offset DOSGROUP:DOS_LOW_GATE_END
         add     bx, 0fh
@@ -748,6 +760,7 @@ hma_vector_next:
         push    cs
         pop     ds
         mov     cs:[arena_head], ax
+        mov     es:[arena_head], ax
 hma_skip_low_reclaim:
 
         mov     byte ptr es:[hma_resident], 1
@@ -759,6 +772,7 @@ hma_skip_low_reclaim:
         pop     dx
         pop     cx
         pop     bx
+        mov     bx, cs:[arena_head]
         mov     ax, 1
         ret
 
@@ -777,9 +791,123 @@ hma_relocate_fail:
         xor     ax, ax
         ret
 hma_already_high:
+        ; SYSINIT continues updating the exchange block through DOSINFO after
+        ; the code image has moved. Publish those final values to the retained
+        ; low data copy before COMMAND takes ownership of conventional memory.
+        call    HMA_SYNC_SYSINIT
         mov     ax, 1
         ret
 DOS_HMA_RELOCATE endp
+
+; Internal SYSINIT callback (INT 2Fh/AX=1234h). HIMEM's resident copy moves
+; after DOS has cached the XMS entry, while the entry offset remains stable.
+PUBLIC  DOS_HMA_REBASE_XMS
+DOS_HMA_REBASE_XMS proc near
+        mov     word ptr cs:[hma_xms_entry+2], dx
+        ret
+DOS_HMA_REBASE_XMS endp
+
+PUBLIC  DOS_HMA_PREPARE
+DOS_HMA_PREPARE proc near
+        cmp     cs:[hma_owned],0
+        jne     short hma_prepare_ready
+        push    dx
+        push    es
+        mov     ax,04300h
+        int     02fh
+        cmp     al,080h
+        jne     short hma_prepare_error
+        mov     ax,04310h
+        int     02fh
+        mov     word ptr cs:[hma_xms_entry],bx
+        mov     word ptr cs:[hma_xms_entry+2],es
+        mov     ah,01h
+        mov     dx,0ffffh
+        call    dword ptr cs:[hma_xms_entry]
+        or      ax,ax
+        jz      short hma_prepare_error
+        mov     cs:[hma_owned],1
+        mov     ah,03h
+        call    dword ptr cs:[hma_xms_entry]
+        or      ax,ax
+        jnz     short hma_prepare_success
+        mov     ah,02h
+        call    dword ptr cs:[hma_xms_entry]
+        mov     cs:[hma_owned],0
+        jmp     short hma_prepare_error
+hma_prepare_success:
+        pop     es
+        pop     dx
+hma_prepare_ready:
+        mov     bx,offset DOSGROUP:SYSBUF
+        mov     di,offset DOSGROUP:hma_low_dpbs
+        mov     ax,1
+        ret
+hma_prepare_error:
+        pop     es
+        pop     dx
+        xor     ax,ax
+        ret
+DOS_HMA_PREPARE endp
+
+PUBLIC  DOS_HMA_BUFFERS
+DOS_HMA_BUFFERS proc near
+        or      cx,cx
+        jz      short hma_buffers_sync
+        mov     word ptr cs:[hma_buffer_bounce],di
+        mov     word ptr cs:[hma_buffer_bounce+2],es
+        mov     cs:[hma_buffer_size],cx
+        mov     cs:[hma_buffers_active],1
+hma_buffers_sync:
+        ; High DOS sometimes runs with the retained-low data segment. Keep
+        ; its buffer-hash pointer synchronized with the HMA-owned copy that
+        ; SYSINIT has just published.
+        les     bx,cs:[hma_driver_trampoline_entry]
+        mov     ax,word ptr cs:[BUF_HASH_PTR]
+        mov     word ptr es:[BUF_HASH_PTR],ax
+        mov     ax,word ptr cs:[BUF_HASH_PTR+2]
+        mov     word ptr es:[BUF_HASH_PTR+2],ax
+        mov     ax,word ptr cs:[BUF_HASH_COUNT]
+        mov     word ptr es:[BUF_HASH_COUNT],ax
+        mov     ax,1
+        ret
+DOS_HMA_BUFFERS endp
+
+; SYSINIT publishes its boot exchange block through the HMA DOSINFO pointer
+; after DOS code moves high. Copy that final block to the retained-low data
+; image used by DOS code whose historical ABI requires a low DS or SS.
+HMA_SYNC_SYSINIT proc near
+        push    ax
+        push    bx
+        push    cx
+        push    si
+        push    di
+        push    ds
+        push    es
+        mov     bx,cs:[hma_low_segment]
+        push    cs
+        pop     ds
+        mov     es,bx
+        mov     si,offset DOSGROUP:SYSINITVAR
+        mov     di,si
+        mov     cx,offset DOSGROUP:JShare
+        sub     cx,si
+        cld
+        rep     movsb
+        mov     si,offset DOSGROUP:THISCDS
+        mov     di,si
+        mov     cx,4
+        rep     movsb
+hma_sync_sysinit_done:
+        pop     es
+        pop     ds
+        pop     di
+        pop     si
+        pop     cx
+        pop     bx
+        pop     ax
+        ret
+HMA_SYNC_SYSINIT endp
 
 PUBLIC  hma_xms_entry
 hma_xms_entry  dd      0
@@ -790,6 +918,16 @@ PUBLIC  hma_low_segment
 hma_low_segment dw     0
 PUBLIC  hma_driver_trampoline_entry
 hma_driver_trampoline_entry dd offset DOSGROUP:HMA_DRIVER_TRAMPOLINE
+PUBLIC  hma_buffer_bounce
+hma_buffer_bounce dd 0
+PUBLIC  hma_buffers_active
+hma_buffers_active db 0
+PUBLIC  hma_buffer_size
+hma_buffer_size dw 0
+PUBLIC  hma_bounce_original
+hma_bounce_original dd 0
+PUBLIC  hma_bounce_direction
+hma_bounce_direction db 0
 
 hma_segment_fixups:
         dw      offset DOSGROUP:sft_addr+2
@@ -801,6 +939,9 @@ hma_segment_fixups:
         dw      offset DOSGROUP:COUNTRY_CDPG+ccDBCS_ptr+2
         dw      offset DOSGROUP:SysInitTable+SYSI_Country_Tab+2
         dw      offset DOSGROUP:SysInitTable+SYSI_InitVars+2
+        dw      offset DOSGROUP:BUF_HASH_PTR+2
+        dw      offset DOSGROUP:FastOpenTable+4
+        dw      offset DOSGROUP:FastOpenTable+8
         dw      offset DOSGROUP:SYSINITVAR+SYSI_SFT+2
         dw      offset DOSGROUP:SYSINITVAR+SYSI_BUF+2
         dw      offset DOSGROUP:SYSINITVAR+SYSI_FCB+2

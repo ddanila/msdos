@@ -469,6 +469,9 @@ DOSTable    LABEL   WORD
         Short_addr  Fake_Version        ;   47  Fake_Version  DOS 4.0  ;AN006;
         Short_addr  DOS_HMA_RELOCATE    ;   48  internal SYSINIT callback
         Short_addr  DOSGetVersionTable  ;   49  SETVER resident table
+        Short_addr  DOS_HMA_PREPARE     ;   50  reserve HMA before final tables
+        Short_addr  DOS_HMA_BUFFERS     ;   51  publish low buffer bounce area
+        Short_addr  DOS_HMA_REBASE_XMS  ;   52  compacted HIMEM segment handoff
 
 DOSTableEnd LABEL   BYTE
 

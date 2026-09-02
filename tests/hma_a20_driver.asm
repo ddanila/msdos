@@ -15,7 +15,9 @@ old_int21 dd 0
 strategy:
     mov [cs:request_offset], bx
     mov [cs:request_segment], es
+%ifndef A20_NO_STRATEGY_DISABLE
     call disable_a20
+%endif
     retf
 
 interrupt:
@@ -23,12 +25,15 @@ interrupt:
     push ds
     push es
     push di
+%ifndef A20_NO_INTERRUPT_DISABLE
     call disable_a20
+%endif
     mov ax, [cs:request_segment]
     mov es, ax
     mov di, [cs:request_offset]
     cmp byte [es:di + 2], 0
     jne .complete
+%ifndef A20_NO_INT21_HOOK
     xor ax, ax
     mov ds, ax
     mov ax, [ds:21h * 4]
@@ -39,6 +44,7 @@ interrupt:
     mov word [ds:21h * 4], int21_hook
     mov word [ds:21h * 4 + 2], cs
     sti
+%endif
     mov word [es:di + 0eh], resident_end
     mov word [es:di + 10h], cs
 .complete:

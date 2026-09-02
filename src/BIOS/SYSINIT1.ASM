@@ -270,6 +270,9 @@ SingleBufferSize	dw	?	;AN000; Maximum sector size + buffer header
 MaxNumBuf1		db     15	;AN026;Num of buffers in a bucket group 1.
 MaxNumBuf2		db     15	;AN026;Num of buffers in a possible bucket group 2.
 NthBuck 		db	0	;AN026; 1st bucket group = 1st bucket through Nth Bucket. The rest = second group
+HmaBuffersPrepared	db	0
+HmaBufferBase		dw	0
+HmaBucketStart		dw	0
 
 IF	BUFFERFLAG
 
@@ -680,6 +683,7 @@ BootConfigReady:
 	inc	cs:Multi_Pass_Id	;AN024;
 	call	Multi_Pass		;AN024;
 	call	EndFile
+	call	TryPostEndFileDosHigh
 	test	Install_Flag, HAVE_INSTALL_CMD		;AN019;
 	jz	DoLast					;AN019;
 	inc	cs:Multi_Pass_Id			;AN024;
@@ -869,17 +873,14 @@ OKLD:
 	MOV	WORD PTR [BX.EXEC0_COM_LINE+2],CS	; Set segments
 	MOV	WORD PTR [BX.EXEC0_5C_FCB+2],CS
 	MOV	WORD PTR [BX.EXEC0_6C_FCB+2],CS
-	; Switch the kernel to its HMA image only after CONFIG.SYS processing and
-	; boot-time driver initialization have completed.  SYSINIT's far pointers
-	; are updated before COMMAND.COM is executed through the relocated kernel.
+	; The post-EndFile callback normally moved the kernel already. Keep this
+	; idempotent callback as the final DOS=HIGH fallback.
 	cmp	cs:[DosHighRequested],0
 	je	short Dos_High_Done
 	mov	ax,1230h
 	int	2fh
 	cmp	ax,1
 	jne	short Dos_High_Failed
-	mov	word ptr cs:[DosInfo+2],0ffffh
-	mov	word ptr cs:[SYSI_Country+2],0ffffh
 	jmp	short Dos_High_Done
 Dos_High_Failed:
 	push	dx
@@ -902,6 +903,17 @@ COMERR:
 	MOV	DX,OFFSET BADCOM	;WANT TO PRINT COMMAND ERROR
 	INVOKE	BADFIL
 STALL:	JMP	STALL
+
+; Move DOS high at the final quiescent boundary, after EndFile has built the
+; resident DOS tables and published the last boot-owned fields.
+TryPostEndFileDosHigh PROC NEAR
+	cmp	cs:[DosHighRequested],0
+	je	short TPEFDH_done
+	mov	ax,1230h
+	int	2fh
+TPEFDH_done:
+	ret
+TryPostEndFileDosHigh ENDP
 
 	PUBLIC	AcquireUmbs
 AcquireUmbs PROC NEAR
@@ -1233,6 +1245,15 @@ MulTrk_Flag_Done:			    ;AN002;
 
 	MOV	AX,[CONFBOT]
 	MOV	[ALLOCLIM],AX
+	cmp	cs:[DosHighRequested],0
+	je	short EndFileHmaPrepared
+	mov	ax,1232h
+	int	2fh
+	or	ax,ax
+	jz	short EndFileHmaPrepared
+	mov	cs:[HmaBufferBase],bx
+	mov	cs:[HmaBuffersPrepared],1
+EndFileHmaPrepared:
 
 	PUSH	CS
 	POP	DS
@@ -1565,6 +1586,13 @@ $$IF1:
 	    mov   ds:[bx.HASH_COUNT], ax	;AN000;
 ;	$ENDIF					;AN000;
 $$EN1:
+	cmp	cs:[HmaBuffersPrepared],0
+	je	short AllocateLowBuffers
+	cmp	ds:[bx.EMS_MODE],-1
+	jne	short AllocateLowBuffers
+	call	Set_HMA_Buffers
+	jnc	HmaBuffersAllocated
+AllocateLowBuffers:
 	invoke Round				;AN000; get [MEMHI]:[MEMLO]
 	mov	al, DEVMARK_BUF 		;AN005; ='B'
 	call	SetDevMark			;AN005;
@@ -1595,6 +1623,7 @@ $$IF13:
 $$EN13:
 	pop	bx				;AN000;
 	pop	ds				;AN000;
+HmaBuffersAllocated:
 ;Now set the secondary buffer if specified.
 	cmp	[H_Buffers], 0			;AN000;
 ;	$IF	NE				;AN000;
@@ -2512,6 +2541,126 @@ $$EN18:
 DoEMS	endp
 
 ;
+;
+
+; Build the normal buffer hash and buckets above the relocated DOS image. A
+; maximum-sector conventional area remains for legacy block-driver transfers.
+Set_HMA_Buffers proc near
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	si
+	push	di
+	push	ds
+	push	es
+	mov	ax,cs:[Buffers]
+	mul	cs:[SingleBufferSize]
+	or	dx,dx
+	jnz	HmaBuffersFail
+	mov	cx,cs:[BufferBuckets]
+	shl	cx,1
+	shl	cx,1
+	shl	cx,1
+	add	ax,cx
+	jc	HmaBuffersFail
+	add	ax,cs:[HmaBufferBase]
+	jc	HmaBuffersFail
+	cmp	ax,0fff0h
+	ja	HmaBuffersFail
+
+	; Publish the final HMA hash pointer before the DOS callback mirrors it
+	; into the retained-low data copy.
+	mov	si,cs:[HmaBufferBase]
+	mov	word ptr ds:[bx.HASH_PTR],si
+	mov	word ptr ds:[bx.HASH_PTR+2],0ffffh
+
+	push	ds
+	push	bx
+	push	cs
+	pop	ds
+	invoke	Round
+	mov	al,DEVMARK_BUF
+	call	SetDevMark
+	mov	di,[MemLo]
+	mov	es,[MemHi]
+	mov	ax,[SingleBufferSize]
+	sub	ax,BUFINSIZ
+	mov	cx,ax
+	push	es
+	push	di
+	push	cx
+	add	[MemLo],ax
+	or	[SetDevMarkFlag],FOR_DEVMARK
+	invoke	Round
+	pop	cx
+	pop	di
+	pop	es
+	mov	ax,1233h
+	int	2fh
+	mov	si,cs:[HmaBufferBase]
+	pop	bx
+	pop	ds
+
+	mov	ax,cs:[BufferBuckets]
+	mov	cx,size BUFFER_HASH_ENTRY
+	mul	cx
+	mov	di,si
+	add	di,ax
+	mov	ax,0ffffh
+	mov	ds,ax
+	mov	es,ax
+	mov	bx,si
+	xor	dx,dx
+HmaBucketLoop:
+	inc	dl
+	mov	word ptr ds:[bx.EMS_PAGE_NUM],-1
+	mov	word ptr ds:[bx.BUFFER_BUCKET],di
+	mov	word ptr ds:[bx.BUFFER_BUCKET+2],0ffffh
+	mov	word ptr ds:[bx.DIRTY_COUNT],0
+	mov	cs:[HmaBucketStart],di
+	xor	cx,cx
+	mov	cl,cs:[MaxNumBuf2]
+	cmp	dl,cs:[NthBuck]
+	ja	short HmaBucketCountReady
+	mov	cl,cs:[MaxNumBuf1]
+HmaBucketCountReady:
+	mov	si,di
+HmaBufferLoop:
+	mov	es:[di.BUF_PREV],si
+	mov	ax,di
+	add	ax,cs:[SingleBufferSize]
+	mov	es:[di.BUF_NEXT],ax
+	mov	word ptr es:[di.BUF_ID],00ffh
+	mov	word ptr es:[di.BUF_SECTOR],0
+	mov	word ptr es:[di.BUF_SECTOR+2],0
+	mov	si,di
+	mov	di,ax
+	loop	HmaBufferLoop
+	mov	ax,cs:[HmaBucketStart]
+	mov	es:[si.BUF_NEXT],ax
+	xchg	ax,di
+	mov	es:[di.BUF_PREV],si
+	xchg	ax,di
+	add	bx,size BUFFER_HASH_ENTRY
+	cmp	dl,byte ptr cs:[BufferBuckets]
+	jb	HmaBucketLoop
+	clc
+	jmp	short HmaBuffersDone
+HmaBuffersFail:
+	stc
+HmaBuffersDone:
+	pop	es
+	pop	ds
+	pop	di
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	ret
+Set_HMA_Buffers endp
+
 Set_Buffer	proc	near
 ;*******************************************************************************
 ;Function: Set buffers in the real memory.				       *

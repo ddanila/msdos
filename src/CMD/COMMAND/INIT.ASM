@@ -1006,52 +1006,15 @@ EnvMaximum:
 	MOV	AH,SETBLOCK
 	INT	int_command			; Shrink me to the resident only
 ;
-; Load in the transient and compute the checksum.  We may do this in one of
-; two ways:  First, cheat and use the transient loading code that exists in
-; the resident piece.  This may be OK except that it will hit the disk.
-;
-; But we do not need to hit the disk!  The transient is already loaded but is
-; in the wrong place.  We need to block transfer it up to the correct spot.
+; Load the canonical transient from disk before recording its checksum.  The
+; historical move optimization copied an already-executed initialization
+; image, whose modified bytes differ from a later COMMAND.COM reload.  Its
+; selection also depended on the conventional arena layout.
 ;
 GOTENVIR:
 	MOV	TrnMvFlg, 1			; Indicate that transient has been moved
 	PUSH	ES
-	MOV	SI,OFFSET RESGroup:TranStart
-	MOV	DI,0
-	mov	ES,Trnseg
-	MOV	CX,OFFSET TRANGROUP:TRANSPACEEND
-;
-; We need to ensure that we do not have the potential of overwriting our
-; existing code in this move
-; It is OK to move if (SI+CX+Segment of Transient < TrnSeg).
-;
-	push	cx
-	mov	ax,cx				; Get size of transient in bytes
-	add	ax,si				; Calculate end of transient section
-	mov	cl,4
-	shr	ax,cl				; Convert to paragraphs
-	inc	ax				; Round up (for partial paragraph)
-	mov	cx,ds
-	add	ax,cx				; Add in current segment
-	cmp	ax,Trnseg			; See if there is overlap
-	pop	cx
-; If we are too close to be safe, call LOADCOM instead of moving the code.
-	jb	Ok_To_Move
 	invoke	LOADCOM
-	jmp	short Trans_Loaded
-Ok_To_Move:
-;
-; Everything is set for an upward move. WRONG!	We must move downward.
-;
-	ADD	SI,CX
-	DEC	SI
-	ADD	DI,CX
-	DEC	DI
-	STD
-	REP	MOVSB
-	CLD
-
-Trans_Loaded:
 	POP	ES
 
 	INVOKE	CHKSUM				; Compute the checksum

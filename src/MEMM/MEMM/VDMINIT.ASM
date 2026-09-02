@@ -123,7 +123,14 @@ stkstrt label	byte
 	public	kstack_top
 kstack_top	label	byte
 
+	ifdef NOHIMEM
+	; InitTab rebases VDMS_GSEL on dynamic resident storage before the first
+	; virtual-mode entry.  The initialization stack may therefore share the
+	; otherwise disposable ring-stack template while retaining 1 KiB depth.
+	db	200h dup (0)
+	else
 	db	400h dup (0)
+	endif
 	public	exe_stack
 exe_stack	label	byte
 

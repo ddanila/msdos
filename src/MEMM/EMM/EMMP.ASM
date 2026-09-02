@@ -1469,18 +1469,9 @@ _AlterMapAndCall    PROC    NEAR
 	Set_EMM_GDT	EMM2_GSEL
 	push	bx				; client's Stack Selector
 	;
-	; get CS's Base to "push" on stack for later retf from client
-	;
-	push	GDTD_GSEL
-	pop	es				; ES:0 <-- GDT
-	mov	bx, cs				; selector
-	and	bl, SEL_LOW_MASK
-	mov	dx, word ptr es:[bx + 2]	; get lower 16 bit of Base
-	mov	al, byte ptr es:[bx + 4]	; get upper 8 bit of Base
-	shr	dx, 4
-	shl	al, 4
-	or	dh, al				; get the segment value
-	mov	bx, dx				; into BX
+	; Protected _TEXT lives in locked XMS and cannot be represented by a
+	; real-mode segment. This return gateway remains in the low prefix.
+	mov	bx, seg _TEXT
 
 	pop	es				; ES:DI <-- client's SS
 	pop	cx				; CX <-- Client's stack Segment
@@ -1586,10 +1577,10 @@ _AlterMapAndCall    PROC    NEAR
 	Set_EMM_GDT	USER1_GSEL
 	pop	es
 	mov	fs, bx					; FS:0 <-- map array
-	xor	si, si
 	pop	dx					; restore handle
 	pop	ax					; restore subfunction
 	movzx	ecx, byte ptr gs:[si.mac_new_page_map_len]
+	xor	si, si					; FS:SI <-- map array
 	call	MapHandleArray_Entry_2	    ; Map the array
 	pop	si			    ; Restore structure pointer
 	pop	di			    ; restore "stack" pointer
@@ -1724,9 +1715,8 @@ _AlterMapAndCall    ENDP
 AMC_return_address proc	far
 
 ;
-; This will causes an illegal instruction trap and goes into protected
-; mode. The handler will return back to the point right after the
-; 2 bytes ARPL instruction with ring0 stack having and IRETD stack frame
+; This causes an illegal instruction trap and enters protected mode. The
+; handler resumes after the two-byte ARPL with the IRETD frame on ring 0.
 ;
 	arpl	ax, ax
 	;

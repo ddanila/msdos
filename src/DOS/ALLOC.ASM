@@ -521,18 +521,18 @@ procedure RegisterUmb,NEAR
 	PUSH    DS
 	PUSH    ES
 	PUSH    SI
-	CMP     CS:[UmbRegionCount],16
+	CMP     SS:[UmbRegionCount],16
 	JAE     RegisterUmbError
 	CMP     DX,3
 	JB      RegisterUmbError
 	MOV     AX,BX
 	ADD     AX,DX
 	JC      RegisterUmbError
-	CMP     CS:[UmbArenaHead],0
+	CMP     SS:[UmbArenaHead],0
 	JNZ     RegisterUmbAppend
 
 	MOV     DI,arena_signature
-	MOV     AX,CS:[arena_head]
+	MOV     AX,SS:[arena_head]
 	CALL    Check_Signature
 	JC      RegisterUmbError
 RegisterUmbFindLowTail:
@@ -558,8 +558,8 @@ RegisterUmbLowTailFound:
 	JA      RegisterUmbError
 	DEC     DS:[arena_size]
 	DEC     AX
-	MOV     CS:[UmbLinkMcb],DS
-	MOV     CS:[UmbArenaHead],AX
+	MOV     SS:[UmbLinkMcb],DS
+	MOV     SS:[UmbArenaHead],AX
 	CMP     AX,BX
 	JZ      RegisterUmbMakeExtent
 	MOV     ES,AX
@@ -574,7 +574,7 @@ RegisterUmbLowTailFound:
 	JMP     RegisterUmbMakeExtent
 
 RegisterUmbAppend:
-	MOV     AX,CS:[UmbArenaTail]
+	MOV     AX,SS:[UmbArenaTail]
 	OR      AX,AX
 	JZ      RegisterUmbError
 	MOV     ES,AX
@@ -603,17 +603,17 @@ RegisterUmbMakeExtent:
 	MOV     ES:[arena_size],0
 	MOV     BYTE PTR ES:[arena_name],'S'
 	MOV     BYTE PTR ES:[arena_name+1],'M'
-	MOV     CS:[UmbArenaTail],AX
+	MOV     SS:[UmbArenaTail],AX
 	XOR     AX,AX
-	MOV     AL,CS:[UmbRegionCount]
+	MOV     AL,SS:[UmbRegionCount]
 	SHL     AX,1
 	MOV     SI,AX
-	MOV     WORD PTR CS:[UmbRegionStarts+SI],BX
+	MOV     WORD PTR SS:[UmbRegionStarts+SI],BX
 	MOV     AX,BX
 	ADD     AX,DX
-	MOV     WORD PTR CS:[UmbRegionEnds+SI],AX
-	MOV     WORD PTR CS:[UmbRegionLimits+SI],0FFFFH
-	INC     CS:[UmbRegionCount]
+	MOV     WORD PTR SS:[UmbRegionEnds+SI],AX
+	MOV     WORD PTR SS:[UmbRegionLimits+SI],0FFFFH
+	INC     SS:[UmbRegionCount]
 	POP     SI
 	POP     ES
 	POP     DS

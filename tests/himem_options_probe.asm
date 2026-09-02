@@ -1,6 +1,10 @@
 bits 16
 org 100h
 
+%ifndef HANDLE_COUNT
+%define HANDLE_COUNT 3
+%endif
+
 start:
     mov ax,4300h
     int 2fh
@@ -28,7 +32,7 @@ start:
     cmp ax,1
     jne fail
 
-    mov cx,3
+    mov cx,HANDLE_COUNT
 allocate_loop:
     mov ah,9
     xor dx,dx

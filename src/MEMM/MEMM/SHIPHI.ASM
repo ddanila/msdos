@@ -316,6 +316,11 @@ MEMREQ	    proc    near
 
 	add	ax, (P_SIZE - 1)	     ; round byte span up to next page
 	shr	ax, 10			    ; find the size in K
+	mov	cx,seg VDATA
+	sub	cx,seg _TEXT
+	shr	cx,6			    ; paragraphs to KiB, rounded below
+	inc	cx
+	add	ax,cx			    ; complete protected-mode TEXT copy
 	add	ax,16			    ; throw in 4 more pages for safety
 	mov	cx,ax			    ; and return the size needed
 ;

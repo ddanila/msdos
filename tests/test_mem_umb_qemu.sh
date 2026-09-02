@@ -84,14 +84,46 @@ if grep -Fq 'MEM_SYNONYM_FAIL' "$LOG"; then
     exit 1
 fi
 
+# COMMAND reloads its transient half after startup. A stale low copy of
+# SYSINIT's CDS pointer made the reload OPEN fail only after DOS reclaimed its
+# relocation hole, even though the MCB chain itself remained structurally valid.
+if grep -Fq 'Invalid COMMAND.COM' "$LOG" \
+    || grep -Fq 'Cannot load COMMAND' "$LOG"
+then
+    echo 'FAIL: COMMAND could not reload after DOS-high arena reclamation' >&2
+    strings -a "$LOG" | sed -n '1,180p' >&2
+    exit 1
+fi
+
+# The normal 32-handle configuration must not retain capacity for all 128
+# documented handles. Maximum-capacity behavior is covered separately.
+himem_conventional=$(awk '$1 == "HIMEM" { print $3; exit }' "$LOG" | tr -d '\r')
+if [[ ! "$himem_conventional" =~ ^[0-9]+$ ]] || (( himem_conventional > 3200 )); then
+    echo 'FAIL: HIMEM exceeds the 3.125 KiB conventional-memory footprint budget' >&2
+    echo "  HIMEM=${himem_conventional:-unparsed}" >&2
+    strings -a "$LOG" | sed -n '1,180p' >&2
+    exit 1
+fi
+
 # Retail EMM386 is exceptionally small, but exact byte parity depends on its
 # proprietary monitor layout. Keep this implementation in the same practical
-# class: a normal RAM configuration must not regress to the historical 100+ KiB
-# conventional allocation.
+# class: a normal RAM configuration must retain the relocated TSS and stay
+# below 15 KiB of conventional memory.
 emm386_conventional=$(awk '$1 == "EMM386" { print $3; exit }' "$LOG" | tr -d '\r')
-if [[ ! "$emm386_conventional" =~ ^[0-9]+$ ]] || (( emm386_conventional > 40960 )); then
-    echo 'FAIL: EMM386 exceeds the 40 KiB conventional-memory footprint budget' >&2
+if [[ ! "$emm386_conventional" =~ ^[0-9]+$ ]] || (( emm386_conventional > 15360 )); then
+    echo 'FAIL: EMM386 exceeds the 15 KiB conventional-memory footprint budget' >&2
     echo "  EMM386=${emm386_conventional:-unparsed}" >&2
+    strings -a "$LOG" | sed -n '1,180p' >&2
+    exit 1
+fi
+
+# DOS-high keeps the hash and normal cache slots in the HMA. Only the
+# maximum-sector legacy-driver transfer area remains conventional.
+buffers_conventional=$(tr -d '\r' < "$LOG" \
+    | awk '$1 == "MSDOS" && $3 == "Config" && $4 == "B" { print $2; exit }')
+if [[ "$buffers_conventional" != 512 ]]; then
+    echo 'FAIL: DOS-high BUFFERS footprint is not the 512-byte transfer area' >&2
+    echo "  BUFFERS=${buffers_conventional:-unparsed}" >&2
     strings -a "$LOG" | sed -n '1,180p' >&2
     exit 1
 fi
@@ -188,4 +220,4 @@ then
     exit 1
 fi
 
-echo '  PASS: MEM UMB reporting, state restoration, and EMM386 footprint budget'
+echo '  PASS: MEM UMB reporting, state restoration, and memory-manager footprint budgets'
