@@ -283,6 +283,44 @@ overwriting or page-mapping the live EBDA, reclaiming ROM/video/excluded ranges,
 dropping supported option capacity, weakening rollback or warm-reboot behavior,
 or consuming unreported UMB space merely to improve the conventional number.
 
+### Actionable candidate register
+
+This register turns the inventory into experiments. It is complete for the
+currently known opportunities; new map evidence may add candidates. A candidate
+is not an achievement until its focused compatibility tests and paired VC
+capture pass.
+
+| Order | Area | Experiment | Decision evidence |
+| ---: | --- | --- | --- |
+| 1 | Measurement | Add linker/map boundaries and paragraph deltas to the paired report; account for `0000h..0477h` and every gap between MCBs | Every byte of the 9,728-byte layout row has an owner or an explicitly unknown range |
+| 2 | HIMEM | Make `umb_count` byte-sized, provided the extra instructions do not erase the data saving | Default and 32-extent transaction tests; installed paragraph and VC delta |
+| 3 | HIMEM | Pack boolean HMA/A20 state into fields with proved spare bits, or derive it from existing nesting/ownership state | All A20 backends, nested local/global enable, HMA ownership, DOS-high and warm reboot |
+| 4 | HIMEM | Audit duplicate error exits, request dispatch, range checks and paragraph-tail padding as one map-guided pass | Exact XMS error codes, XMS 2/3, 128 handles and legacy-driver bounce path |
+| 5 | EMM386 | Produce a resident-symbol census grouped as real-only, protected-only, dual-mapped, mutable runtime, or initialization-only | No unclassified symbol in the 13,824-byte allocation; measured size per group |
+| 6 | EMM386 | Compact remaining runtime arrays, descriptors, flags and alignment; size storage from selected options where maximum growth remains possible | Normal and maximum `H=`/`A=`/`B=`/`D=`/frame configurations and EMS 4.0 maps |
+| 7 | EMM386 | Relocate the next self-contained protected-only table or routine into the existing locked XMS image | Fault, DMA, mapping, `ON`/`OFF`/`AUTO`, inactive query and warm-reboot paths |
+| 8 | EMM386 | Replace the shared `RRProc` continuation with a small relocation-safe low gateway, allowing its transition module to move high | Repeated real/virtual transitions plus all runtime command modes |
+| 9 | COMMAND | Generate a `CODERES`/`DATARES` symbol and string census; mark state that must survive transient overwrite | Every resident range has a survival reason and size |
+| 10 | COMMAND | Move rare messages/formatting and reloadable services transient; merge scratch and descriptors whose lifetimes do not overlap | External-program reload, batch, pipe, `INT 2Eh`, Ctrl+C and critical-error tests |
+| 11 | DOS/layout | Attribute retained low DOS/BIOS anchors and near-pointer tables, then move or compact only individually proved owners | Internal-structure and redirector suites plus a larger contiguous VC block |
+| 12 | Ceiling | Relocate the 1 KiB EBDA into verified already-owned slack and update the BDA pointer atomically | BIOS users, DMA and warm reboot pass; `INT 12h` becomes 640 KiB without a new 1 KiB allocation |
+| 13 | Placement | Remove alignment/MCB islands, adjust load order, or place eligible permanent state high | Largest conventional block grows and usable UMB remains at least 47,888 bytes |
+| 14 | Regression | Enforce the fixed-image VC floor and retain component/UMB budgets locally | At least 618,736 bytes across clean rebuilds and the full release suite |
+
+The immediate queue is deliberately conservative: finish attribution, try the
+small HIMEM field/layout changes, then census EMM386 before changing another
+transition boundary. COMMAND and EBDA work follow once their maps identify a
+destination rather than merely a source of bytes. The architectural EMM386 and
+COMMAND changes remain available if small compactions cannot close the gap.
+
+Two HIMEM shortcuts have already been rejected and must not be retried without a
+different design. Recovering saved caller registers from fixed stack offsets
+passed narrow probes but hung the paired boot because the call depth is not a
+stable ABI. Carrying source/destination move errors in `BL` corrupts the `BX`
+handle consumed by endpoint resolution. The retained implementation therefore
+keeps explicit caller state and move-error state until a reentrant replacement
+has its own stable storage or calling convention.
+
 ### Milestones to the target
 
 The work proceeds by evidence, not by assuming all component excess is
