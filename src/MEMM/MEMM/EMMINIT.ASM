@@ -84,9 +84,6 @@ extrn	_EMM_MPindex:byte	; index into mappable page array
 extrn	_physical_page_count:word   ; number of physical pages
 extrn	_VM1_EMM_Pages:word
 extrn	_physical_page_ids:byte
-extrn	requested_page_count:byte
-extrn	requested_page_ids:byte
-extrn	requested_page_segments:word
 extrn	_mappable_page_count:word   ; number of mappable pages
 
 extrn	_cntxt_pages:byte	; pages in a context
@@ -128,6 +125,9 @@ endif
 
 LAST	segment
 extrn	mappable_segs:byte
+extrn	requested_page_count:byte
+extrn	requested_page_ids:byte
+extrn	requested_page_segments:word
 LAST	ends
 
 _TEXT	segment

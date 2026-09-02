@@ -221,11 +221,6 @@ pool_size	dw	0	; size of EMM Pages Pool in kbytes
 min_xms		dw	0	; extended memory that L= keeps available to XMS
 dma_page_limit	dw	1	; D= buffered DMA capacity in 16 KiB pages
 banking_base	dw	4000h	; B= lowest conventional banking segment
-requested_page_count db	0
-requested_page_ids db	20 dup (0)
-requested_page_segments dw 20 dup (0)
-p_frame_seen	db	0
-p_frame_segments dw	4 dup (0ffffh)
 page_id_temp	db	0
 msg_flag	dw	0	; Message flag byte
 umb_mode	db	0	; RAM or NOEMS requested paging-backed UMBs
@@ -285,6 +280,15 @@ _TEXT	ends
 
 LAST	segment
 	assume	cs:LAST, ds:DGROUP, es:DGROUP
+
+; P=/FRAME option bookkeeping is consumed only while the discardable LAST
+; initialization code builds the physical-page map. Keep it out of resident
+; DGROUP and address it through CS from all initialization modules.
+requested_page_count db	0
+requested_page_ids db	20 dup (0)
+requested_page_segments dw 20 dup (0)
+p_frame_seen	db	0
+p_frame_segments dw	4 dup (0ffffh)
 
 UMB_FIRST_PAGE	equ	0a000h / 0400h
 UMB_PAGE_COUNT	equ	(0f000h - 0a000h) / 0400h

@@ -80,9 +80,6 @@ _DATA	segment
 
 	extrn	PF_Base:word
 	extrn	banking_base:word
-	extrn	requested_page_count:byte
-	extrn	requested_page_ids:byte
-	extrn	requested_page_segments:word
 	extrn	msg_flag:word
 
 _DATA	ends
@@ -91,6 +88,9 @@ _DATA	ends
 LAST	segment
 ;
 	extrn	rom_srch:near
+	extrn	requested_page_count:byte
+	extrn	requested_page_ids:byte
+	extrn	requested_page_segments:word
 ;
 LAST	ends
 
