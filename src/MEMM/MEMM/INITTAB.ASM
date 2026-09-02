@@ -101,7 +101,6 @@ _DATA	segment
 	extrn	PageD_Seg:word		; segment for page dir
 	extrn	PageT_Seg:word		; segment for page table
 	extrn	Page_Dir:word		; 32 bit address for Page directory
-	extrn	driver_end:dword	; ending address for MEMM.EXE
 	extrn	_emm_brk:word		; break address for EMM data
 	extrn	FRS_array:word
 	extrn	CurRegSet:word
@@ -116,6 +115,7 @@ _DATA	ends
 
 LAST	segment
 	extrn	LAST_start:byte
+	extrn	driver_end:dword	; ending address for MEMM.EXE
 ifndef	NOHIMEM
 	extrn	HiSysAlloc:near 	; allocate high system memory
 	extrn	UnLockROM:near

@@ -221,13 +221,7 @@ pool_size	dw	0	; size of EMM Pages Pool in kbytes
 min_xms		dw	0	; extended memory that L= keeps available to XMS
 dma_page_limit	dw	1	; D= buffered DMA capacity in 16 KiB pages
 banking_base	dw	4000h	; B= lowest conventional banking segment
-page_id_temp	db	0
 msg_flag	dw	0	; Message flag byte
-umb_mode	db	0	; RAM or NOEMS requested paging-backed UMBs
-noems_mode	db	0	; NOEMS suppresses the EMS page frame
-
-driver_end	dw	0	; end of driver -> driver brk address
-		dw	seg LAST
 powr10		dw	1,10,100,1000,10000
 max_arg_len	equ	11		; maximum length of argument on cmd line
 arg_str 	db	max_arg_len+1	dup(0)
@@ -239,9 +233,6 @@ arg_str 	db	max_arg_len+1	dup(0)
 ;
 Active_Status	db	0FFh	; 0 => OFF , non-zero => ON
 Auto_Mode	db	0h	; non-zero => auto mode
-initial_mode	db	0h	; 0 => ON, 1 => OFF, 2 => AUTO
-mode_seen	db	0h
-weitek_mode	db	0h	; parsed DOS 5 W= setting; hardware remains optional
 
 ;
 ;  The following pointers are segment addresses for various segments
@@ -289,6 +280,14 @@ requested_page_ids db	20 dup (0)
 requested_page_segments dw 20 dup (0)
 p_frame_seen	db	0
 p_frame_segments dw	4 dup (0ffffh)
+page_id_temp	db	0
+umb_mode	db	0	; RAM or NOEMS requested paging-backed UMBs
+noems_mode	db	0	; NOEMS suppresses the EMS page frame
+initial_mode	db	0h	; 0 => ON, 1 => OFF, 2 => AUTO
+mode_seen	db	0h
+weitek_mode	db	0h	; parsed DOS 5 W= setting; hardware remains optional
+driver_end	dw	0	; end of driver -> driver brk address
+		dw	seg LAST
 
 UMB_FIRST_PAGE	equ	0a000h / 0400h
 UMB_PAGE_COUNT	equ	(0f000h - 0a000h) / 0400h
