@@ -96,11 +96,13 @@ extrn	_pft386:word		; ptr to dword array of Page Table entries
 
 _DATA	ends
 
-;******************************************************************************
-;			S E G M E N T	D E F I N I T I O N
-;******************************************************************************
-_DATA	segment
+;------------------------------------------------------------------------------
+LAST	segment
+	assume	cs:LAST, ds:DGROUP, es:DGROUP, ss:DGROUP
+	extrn	dma_page_limit:word	; requested DOS 5 D= capacity
 
+; Temporary candidates used only while InitEPage constructs the resident DMA
+; page list.  Keep them in the discardable initialization segment.
 ifndef	NOHIMEM
 DMA_hi_begin	dw	0	; EMM page # for begin of DMA area in hi mem
 DMA_hi_cnt	dw	0	; # of contiguous EMM pages in hi mem DMA area
@@ -109,22 +111,11 @@ endif
 DMA_ext_begin	dw	0	; EMM page # for begin of DMA area in ext mem
 DMA_ext_cnt	dw	0	; # of contiguous EMM pages in ext mem DMA area
 
-;
-; FindDMA variables
-;
 crossed 	db	0	; flag => crossed 1st 64k bndry
 b_start 	dw	0	; 1st EMM page before 1st 64k bndry
 b_cnt		dw	0	; # of EMM pages before 1st 64k bndry
 a_start 	dw	0	; 1st EMM page after 1st 64k bndry
 a_cnt		dw	0	; # of EMM pages after 1st 64k bndry
-
-
-_DATA	ends
-;
-;------------------------------------------------------------------------------
-LAST	segment
-	assume	cs:LAST, ds:DGROUP, es:DGROUP, ss:DGROUP
-	extrn	dma_page_limit:word	; requested DOS 5 D= capacity
 	page
 ;******************************************************************************
 ;   InitEPage - init EMM_PTE - array of pointers for EMM pages.
