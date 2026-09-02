@@ -207,6 +207,8 @@ LAST	segment
 	extrn	estb_mach_state:near	; establish machine environment
 	extrn	mappable_segs:byte
 
+powr10		dw	1,10,100,1000,10000
+
 LAST	ends
 
 	page
@@ -220,7 +222,6 @@ LAST	ends
 ;******************************************************************************
 _DATA	segment
 ;
-powr10		dw	1,10,100,1000,10000
 max_arg_len	equ	11		; maximum length of argument on cmd line
 ;
 ;  Active_Status is used to signal the termination condition for the
@@ -1965,7 +1966,7 @@ b2asc10 proc	near
 ;
 b2_loop:
 	xor	dx,dx			; clear word extension
-	mov	cx,powr10[si]
+	mov	cx,CS:powr10[si]
 	div	cx			; divide by power of 10
 	or	bl,bl
 	jnz	b2_ascii

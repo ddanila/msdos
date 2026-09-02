@@ -60,7 +60,6 @@ _TEXT	segment
 _TEXT	ends
 
 _DATA	segment
-	extrn	powr10:word		; power of 10's table
 	extrn	POE_Mess:byte		; privileged operation error
 	extrn	POE_Num:byte 		; where to put error code
 	extrn	POE_Len:abs		; length of message
@@ -103,13 +102,12 @@ CPOSN		=	5*256+0		; cursor position to write
 _DATA	segment
 masterp		db	0		; save master port value
 slavep		db	0		; save slave port value
-mode		db	0		; save mode
-boot		db	0		; value to reboot
-continue	db	0		; value to continue
-
+boot		label	byte		; fault record is dead before these
 GPsavERR	dw	0		; GP fault Error Code save
+mode		label	byte		; dialog values are written
 GPsavEIP	dd	0		; GP fault EIP save
 GPsavCS		dw	0		; GP fault CS save
+continue	equ	boot+1
 
 _DATA	ends
 ;	
@@ -289,45 +287,21 @@ b2asc10 proc    near
 ;
 	push	ax
 	push	bx
-	push	cx
 	push	dx
-	push	si
 	push	di
 ;
-	mov	si,2			; pointer to base 10 table
-	mov	bl,1			; leading zeroes on
-;
-;   convert binary number to decimal ascii
-;
-b2_loop:
 	xor	dx,dx			; clear word extension
-	mov	cx,powr10[si]
-	div	cx          		; divide by power of 10
-	or	bl,bl
-	jnz	b2_ascii
-;
-	or	ax,ax			; q: zero result?
-	jnz	b2_ascii		;  n: go convert to ascii
-;
-	mov	al,' '			;  y: go blank fill
-	jmp	b2_make_strg		;
-;
-b2_ascii:
+	mov	bx,10
+	div	bx			; AL = tens, DL = units
 	add	al,'0'			; put into ascii format
-	mov	bl,1			; leading zeroes on
-;
-b2_make_strg:
 	mov	ds:[di],al		; put ascii number into string
-	xchg	ax,dx
 	inc	di			; increment buffer string pointer
-	dec	si			; decrement power of 10 pointer
-	dec	si			; 
-	jge	b2_loop			; Q: Last digit?  N: Jump if not
+	mov	al,dl
+	add	al,'0'
+	mov	ds:[di],al
 ;
 	pop	di
-	pop	si
 	pop	dx
-	pop	cx
 	pop	bx
 	pop	ax
 	ret				; *** return ***

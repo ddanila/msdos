@@ -80,7 +80,7 @@ endif
 ;
 _DATA	segment
 	extrn	gdt_mb:word
-	extrn	MB_Stat:word
+	extrn	MB_Stat:byte
 _DATA	ends
 
 
