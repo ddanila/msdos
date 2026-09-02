@@ -233,6 +233,52 @@ three measured component sizes recovers at most 14,928 bytes and therefore
 cannot meet the goal; layout work is mandatory unless a component becomes
 smaller than retail by the remaining amount.
 
+### Success equation and critical path
+
+Treat the 24,640-byte gap as a portfolio, not as four independent size targets.
+For every retained change record:
+
+```text
+remaining gap = 24,640 - EMM386 gain - HIMEM gain - COMMAND gain
+                         - DOS/layout gain - ceiling gain
+```
+
+Only growth of the largest VC block counts as a gain. Component shrinkage that
+lands in a separate free island is pending layout work until that island is
+joined to the largest block. No workstream is required to match retail's
+private size: one may beat retail and cover an irreducible difference elsewhere.
+
+The currently proved upper bound from matching the three named components is
+14,928 bytes. Moving the 1 KiB EBDA without allocating a replacement block
+raises that to 15,952 bytes, still leaving **8,688 bytes**. The final route must
+therefore include at least one of these outcomes:
+
+- recover at least 8,688 bytes from retained DOS/BIOS layout and fragmentation;
+- make EMM386, HIMEM, or COMMAND collectively at least 8,688 bytes smaller than
+  their retail counterparts; or
+- combine smaller layout and better-than-retail component gains to the same
+  total.
+
+The critical path is:
+
+1. make EMM386 independent of its load paragraph, because the present defect
+   blocks even a proved one-paragraph HIMEM saving;
+2. complete byte attribution and symbol censuses so safe compaction has a
+   measured yield and destination;
+3. take paragraph-scale HIMEM/EMM386 wins, then the bounded COMMAND wins, while
+   updating the equation after every paired capture;
+4. recover the EBDA ceiling paragraph only after identifying already-owned
+   destination storage;
+5. close the still-measured remainder through DOS layout compaction or the
+   smallest necessary EMM386/COMMAND architectural split; and
+6. defend retail-or-better memory with a local fixed-image regression floor.
+
+This ordering is a dependency order, not a promise that the early inexpensive
+work is sufficient. If the censuses show that safe compaction plus the EBDA and
+layout work cannot close the then-current gap, proceed directly to the
+architectural EMM386 gateway split; do not spend time chasing isolated bytes
+that cannot reach the largest block.
+
 ### Complete improvement inventory
 
 This is the backlog for reaching the target. An item is an opportunity, not an
@@ -306,6 +352,21 @@ capture pass.
 | 12 | Ceiling | Relocate the 1 KiB EBDA into verified already-owned slack and update the BDA pointer atomically | BIOS users, DMA and warm reboot pass; `INT 12h` becomes 640 KiB without a new 1 KiB allocation |
 | 13 | Placement | Remove alignment/MCB islands, adjust load order, or place eligible permanent state high | Largest conventional block grows and usable UMB remains at least 47,888 bytes |
 | 14 | Regression | Enforce the fixed-image VC floor and retain component/UMB budgets locally | At least 618,736 bytes across clean rebuilds and the full release suite |
+
+### Decision gates
+
+| Gate | Required evidence | Decision |
+| --- | --- | --- |
+| Address independence | EMM386 boots and completes the first return-to-real continuation after HIMEM endings at `0B80h`, `0B90h`, and `0BA0h` | Unblock paragraph-changing HIMEM and linker work |
+| Attribution | All conventional ranges and every EMM386, HIMEM, and COMMAND resident symbol have an owner, lifetime, and size | Replace opportunity ranges with measured candidates |
+| Safe compaction exhausted | Every low-risk candidate has an A/B component delta and VC largest-block delta | Calculate the exact architectural/layout remainder |
+| Layout route chosen | EBDA destination and all low islands are proved safe, or their gains are rejected explicitly | Implement only gains that join the largest block |
+| Architecture required | Remaining gap exceeds the sum of proved safe layout candidates | Redesign EMM386's gateway first; redesign COMMAND only for the residual need |
+| Target reached | VC reports at least 618,736 bytes and usable UMB capacity is at least 47,888 bytes | Run all compatibility gates and establish regression floors |
+
+At each gate, update the baseline rather than carrying projected savings
+forward. The roadmap is complete only when the equation reaches zero on a clean
+build and the fixed comparison remains reproducible.
 
 The immediate queue is deliberately conservative: finish attribution, repair
 EMM386's load-address dependency, then resume small HIMEM field/layout changes
