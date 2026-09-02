@@ -174,6 +174,86 @@ three measured component sizes recovers at most 15,200 bytes and therefore
 cannot meet the goal; layout work is mandatory unless a component becomes
 smaller than retail by the remaining amount.
 
+### Complete improvement inventory
+
+This is the backlog for reaching the target. An item is an opportunity, not an
+assumed saving: retain it only when the paired capture shows that its bytes join
+the largest conventional block. Estimates are deliberately ranges until a map
+or A/B image measures them.
+
+| Priority | Opportunity | Available evidence | Likely scale | Principal constraint |
+| --- | --- | --- | ---: | --- |
+| 1 | Compact EMM386 runtime-sized metadata and alignment | 9,888-byte component excess; two table reductions already measured | tens to hundreds of bytes per item | Full `H=`/`A=` ranges and EMS 4.0 formats |
+| 1 | Remove remaining HIMEM init-only state and padding | 1,952-byte component excess; resident break is explicit | tens to hundreds of bytes | 128 handles, 32 UMB extents, all A20 backends |
+| 1 | Classify every byte below the first MCB | Current first system MCB begins at `0478h`; retail describes allocations from `0070h` | attribution first | Some low addresses are ABI or BIOS fixed |
+| 2 | Move more EMM386 protected-only code/data to locked XMS | Low retained prefix dominates its allocation | low kilobytes | Real/virtual transitions, inactive `AUTO`, DMA and faults |
+| 2 | Move COMMAND messages and rare resident services transient | 3,360-byte shell excess; resident messages occupy a material map range | low kilobytes | Reload, critical error, `INT 2Eh`, batch and pipe survival |
+| 2 | Compact DOS-high low anchors and tables | Component parity alone remains 9,712 bytes short | low kilobytes | Real-mode near pointers and driver-visible internals |
+| 3 | Relocate the EBDA into already-owned safe low storage | Exact 1,024-byte ceiling loss is measured | 1,024 bytes | Physical BIOS/DMA access; destination must not consume the gain |
+| 3 | Remove MCB/alignment islands or change load order | Compare first-free and every allocation boundary | paragraphs to kilobytes | Identical startup files and stable ownership |
+| 3 | Place eligible permanent allocations high | Local UMB advantage is only 1,216 bytes | at most 1,216 bytes without falling below retail UMB capacity | Must not disguise a conventional regression |
+| 4 | Redesign EMM386's low entry/return architecture | Largest remaining single component opportunity | several kilobytes | High complexity and broad compatibility surface |
+| 4 | Redesign COMMAND's resident/transient boundary | Map proves the tail is already cut correctly | up to 3,360 bytes to parity, possibly more | Shell state must survive transient overwrite |
+
+The following ideas are valid only behind explicit measurement and compatibility
+gates:
+
+- make fixed arrays dynamic only when their worst-case runtime growth remains
+  possible; saving default-image bytes by silently reducing maximum capacity is
+  not an improvement;
+- share identical resident routines, strings, descriptors, scratch buffers, and
+  error exits across modules where their lifetime and calling conventions match;
+- replace word fields with bytes, bit sets, sentinels, or derived values only
+  after proving every public numeric value still fits and unallocated states stay
+  unambiguous;
+- reorder resident segments to remove paragraph padding and place variable tails
+  at the allocation break;
+- copy immutable protected-mode tables to the existing locked EMM386 XMS image
+  and keep only relocation-safe low gateways;
+- use HMA space left after DOS only for data that is valid while A20 is enabled
+  and whose ownership cannot collide with DOS, buffers, or third-party users;
+- use UMBs for permanent state only when the fixed comparison remains
+  deterministic and total usable UMB capacity remains at least retail's 47,888
+  bytes; and
+- become smaller than a retail component when that is simpler and safer than
+  reproducing retail's private layout. The user-visible target is available
+  memory and compatibility, not byte-for-byte internal identity.
+
+These tempting shortcuts are excluded: falsifying `INT 12h` or the BDA size,
+overwriting or page-mapping the live EBDA, reclaiming ROM/video/excluded ranges,
+dropping supported option capacity, weakening rollback or warm-reboot behavior,
+or consuming unreported UMB space merely to improve the conventional number.
+
+### Milestones to the target
+
+The work proceeds by evidence, not by assuming all component excess is
+recoverable:
+
+1. **Finish attribution.** Extend the capture with retained boundaries from the
+   DOS, BIOS, HIMEM, EMM386, and COMMAND maps. Explain the current `0000h..0477h`
+   region, retail's `0070h..0252h` DOS/IO allocations, every paragraph between
+   installed components, and the first-free difference `0EC5h` versus `08F0h`.
+2. **Take safe component wins.** Finish table, field, duplicate-code, init-state,
+   and alignment audits. Require an A/B result and focused maximum-option tests
+   for every retained change.
+3. **Reach component parity or document the irreducible difference.** Target
+   HIMEM 1,104, EMM386 4,128, and COMMAND 2,960 bytes as comparison points, not
+   hard implementation limits. If all three are matched, the projected largest
+   block is 609,024 bytes.
+4. **Recover real layout bytes.** Safely relocating the EBDA raises that
+   projection to 610,048 bytes. At least another 8,688 bytes must then come from
+   DOS/BIOS low-layout compaction, fragmentation removal, safe high placement,
+   or making one or more components smaller than retail.
+5. **Cross and defend 618,736.** Once the fixed image reaches the retail floor,
+   run the full local release suite, maximum-capacity configurations, warm
+   reboot, and paired UMB comparison. Add a regression assertion for the largest
+   conventional block and retain any margin rather than stopping at an
+   alignment-sensitive exact tie.
+
+After each milestone, update the table above with measured—not projected—bytes.
+If a saving changes a component allocation but not the largest block, classify
+the resulting island and keep it open as layout work.
+
 ### 1. Make each byte attributable
 
 Before another structural change, turn the paired boot comparison into a
