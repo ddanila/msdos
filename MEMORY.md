@@ -134,12 +134,152 @@ undifferentiated target:
 | Status | Accounted difference | Measured effect or opportunity |
 | --- | --- | ---: |
 | Complete | DOS relocation hole fragmented below resident HIMEM | 32,928 bytes recovered |
-| Accepted | Larger resident system components | 12,336 bytes |
-| Accepted | Larger resident COMMAND | 3,360 bytes |
-| Accepted | Retained DOS layout and conventional ceiling | 9,728 bytes |
+| Open | Larger resident system components | 12,336 bytes |
+| Open | Larger resident COMMAND | 3,360 bytes |
+| Open | Retained DOS layout and conventional ceiling | 9,728 bytes |
 
 The relocation row is closed. Remeasure the remaining rows after each retained
 change instead of assuming that every byte is another oversized component.
+
+## Road to retail-or-better conventional memory
+
+The target is a largest conventional block of at least **618,736 bytes** in the
+fixed VC 4.05 comparison, without reducing supported memory-manager options or
+usable UMB space. The current result is 593,312 bytes, so 25,424 more bytes must
+join the largest free block. Total free memory is supporting evidence, not a
+substitute for this metric: saving bytes below a resident island may leave the
+largest block unchanged.
+
+The present accounting identifies the whole target but not yet every individual
+symbol responsible for it:
+
+| Workstream | Current excess or opportunity | Cumulative result if fully recovered |
+| --- | ---: | ---: |
+| EMM386 resident allocation | 10,336 bytes | 603,648 bytes |
+| HIMEM resident allocation | 2,016 bytes | 605,664 bytes |
+| COMMAND resident allocation | 3,360 bytes | 609,024 bytes |
+| Layout and conventional ceiling | 9,728 bytes | 618,752 bytes |
+
+The extra 16 bytes in the arithmetic are paragraph rounding. Matching only the
+three measured component sizes recovers at most 15,712 bytes and therefore
+cannot meet the goal; layout work is mandatory unless a component becomes
+smaller than retail by the remaining amount.
+
+### 1. Make each byte attributable
+
+Before another structural change, turn the paired boot comparison into a
+repeatable local measurement that records the VC largest block, `MEM /D` MCB
+chain, component sizes, first free paragraph, conventional-memory ceiling, and
+UMB regions for both systems. Keep the hardware, startup files, VC binary, and
+environment size identical. Add retained-allocation boundaries from linker maps
+or generated manifests for HIMEM, EMM386, COMMAND, DOS, and BIOS.
+
+For each experiment, report both the allocation-size change and the largest-
+block change. Classify any difference as resident code, resident data, alignment
+or MCB overhead, an unavailable conventional range, or fragmentation. This is
+the prerequisite for resolving the 9,728-byte layout row rather than moving it
+between labels.
+
+### 2. Reduce EMM386's low allocation
+
+EMM386 is the largest component opportunity: 14,464 bytes here versus 4,128 in
+retail. Potential reductions, in preferred order, are:
+
+- compact retained data and descriptor metadata, size every table from the
+  selected `H=`, `A=`, frame, and DMA configuration, and remove paragraph or
+  linker padding that is not an address-stability requirement;
+- move additional protected-only code and immutable tables into the locked XMS
+  image while retaining explicit low gateways for real-mode entry and return;
+- redesign the EMS dispatcher so ordinary and mapping-sensitive functions can
+  execute from the relocated image without losing inactive `AUTO` queries;
+- replace the shared `RRProc`/return-to-real continuation with a relocation-safe
+  gateway, then move the return trap module as one unit;
+- separate installation and transient `ON`/`OFF`/`AUTO` command parsing from
+  state genuinely needed by the installed driver; and
+- audit low GDT, stack, DMA snapshot, exception diagnostics, and compatibility
+  state for duplication with the relocated GDT, IDT, TSS, `_TEXT`, or VDATA.
+
+This work must preserve EMS 3.2/4.0 services, non-empty function 56h maps,
+alternate register sets, DMA, page frames, `RAM`/`NOEMS`, runtime
+`ON`/`OFF`/`AUTO`, warm reboot, and maximum `H=`/`A=` capacities. Moving a
+module solely because its normal path appears protected-only is unsafe; entry,
+return, fault, inactive, and transition paths must all be identified first.
+
+### 3. Reduce HIMEM's low allocation
+
+HIMEM occupies 3,120 bytes versus retail's 1,104. Audit its resident break at
+each `/NUMHANDLES=` capacity and distinguish fixed code/data from option-sized
+records. Candidate work includes:
+
+- pack handle and UMB ownership records further where the full numeric ranges
+  and transactional rollback can be retained;
+- merge duplicate range validation, A20, request-header, and error paths;
+- discard all detection, parser, diagnostic, and memory-test state after
+  initialization, verifying the paragraph-rounded break directly;
+- relocate immutable data or safe state into the HMA after DOS has reserved it,
+  without consuming space needed by the DOS-high image and buffers; and
+- reduce the permanent device stub only if the XMS entry point, request chain,
+  third-party coexistence, and all A20 backends remain compatible.
+
+The default and 128-handle configurations, all 32 UMB extents, XMS 2/3 calls,
+HMA ownership, nested A20 state, transactional UMB behavior, and legacy-driver
+bounce path are non-negotiable gates.
+
+### 4. Reduce COMMAND's resident allocation
+
+COMMAND occupies 6,320 bytes versus retail's 2,960. Its retained allocation
+already ends at `DATARESEND`; the opportunity is inside resident code and data,
+not an accidentally retained transient tail. Inspect `CODERES`, `DATARES`, the
+resident message blocks, batch/environment bookkeeping, reload code, and their
+alignment separately. Potential approaches are:
+
+- move rarely used commands, messages, and error formatting to the reloadable
+  transient part;
+- consolidate resident message descriptors, duplicated strings, scratch areas,
+  and compatibility variables;
+- shrink reload, `INT 2Eh`, critical-error, pipe, batch, and termination paths
+  after proving which portions must survive transient overwrite; and
+- consider an optional UMB-resident permanent shell only after the identical
+  comparison configuration can select it deterministically. It must not hide a
+  regression by consuming UMBs or changing the public default.
+
+The shell must still reload after external programs, preserve batch and pipe
+state, handle critical errors and Ctrl+C, maintain its environment and
+`COMSPEC`, and support the complete internal-command surface.
+
+### 5. Recover the layout and ceiling difference
+
+After every component change, compare MCB start/end addresses rather than
+inferring layout from component totals. The current 9,728-byte row may contain
+several independent effects. Investigate:
+
+- the top-of-conventional-memory value and every BIOS reservation below it;
+- the location and order of DOS, device, shell, environment, and free MCBs;
+- paragraph rounding, MCB headers, alignment gaps, and zero-sized or stranded
+  blocks between resident allocations;
+- whether DOS relocation leaves any additional low copy, compatibility anchor,
+  transfer area, table, or arena bridge that can safely move to the HMA;
+- whether eligible post-EMM386 allocations can use existing UMBs without
+  reducing the largest UMB below retail or changing the startup files; and
+- whether free blocks can be reordered or coalesced so recovered bytes actually
+  extend the largest conventional block.
+
+Do not reclaim ROM, video, page-frame, exclusion, provider-gap, or real-mode
+near-pointer space merely to improve the number. Preserve the current 1,216-byte
+usable-UMB advantage unless an explicit trade yields a larger conventional
+block and still leaves at least retail UMB capacity.
+
+### 6. Lock in the target
+
+Implement small, independently measured changes, starting with table and
+alignment reductions before transition-path redesigns. After each retained
+change, run the focused component suite and the paired memory capture; run the
+full local release suite at workstream boundaries. Once the result reaches
+618,736 bytes, add that value as a regression floor for the fixed comparison
+image, retain the component ceilings, and record any margin above retail.
+
+CI remains disabled by project decision. These gates run locally until CI is
+explicitly restored.
 
 Paired `MEM /D` captures account for the conventional system block as follows:
 
