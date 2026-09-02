@@ -96,7 +96,7 @@ _DATA	SEGMENT
 ;extrn	_VEMMD_PgFrame:word
 ;extrn	_VEMMD_Last_Offset:word
 extrn	PF_Base:word
-extrn	_OSEnabled:dword
+extrn	_OSEnabled:byte
 ;extrn	NullAvailPTE:dword
 ;extrn	NullUnavailPTE:dword
 

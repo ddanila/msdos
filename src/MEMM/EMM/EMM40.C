@@ -98,7 +98,7 @@ extern unsigned short VM1_EMM_Pages;
 /*extern unsigned short VM1_EMM_Offset;*/
 extern long	page_frame_base[];
 extern char	EMM_MPindex[];
-extern long	OSEnabled;			/* OS/E function flag */
+extern char	OSEnabled;			/* OS/E function flag */
 extern long	OSKey;				/* Key for OS/E function */
 
 /******************************************************************************

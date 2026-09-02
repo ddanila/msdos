@@ -293,14 +293,9 @@ EMM_savDI	dw	0		; by user on frs function
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;10. Variable to support OS access functions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-_OSEnabled	dd	0		; Security feature
+_OSEnabled	db	0		; OS_IDLE, OS_ENABLED, or OS_DISABLED
 _OSKey		dd	?		; Key for security functions
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;11. Mysterious variable right now
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-VEMMD_SSbase	dd	0		; Linear base of Stack Segment
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;12. save_map
