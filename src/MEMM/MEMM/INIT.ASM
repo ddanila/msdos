@@ -121,13 +121,17 @@ PRINT_MSG	macro
 ;******************************************************************************
 ;
 ;
-_DATA	segment
-
-	extrn	PF_Base:word
-;	 extrn	 himem_use:byte      ;* this is defined in oemproc.asm since it
-				    ;  deals with memory so oem dependent
+LAST	segment
 	extrn	ext_size:word	    ; size of extended memory allocated
 	extrn	sys_size:word	    ; size of system memory allocated
+
+LAST	ends
+
+_DATA	segment
+
+;	 extrn	 himem_use:byte      ;* this is defined in oemproc.asm since it
+				    ;  deals with memory so oem dependent
+	extrn	PF_Base:word
 	extrn	_page_frame_pages:word
 	extrn	_free_count:word
 	extrn	_free_top:word
@@ -216,10 +220,8 @@ LAST	ends
 ;******************************************************************************
 _DATA	segment
 ;
-msg_flag	dw	0	; Message flag byte
 powr10		dw	1,10,100,1000,10000
 max_arg_len	equ	11		; maximum length of argument on cmd line
-arg_str 	db	max_arg_len+1	dup(0)
 ;
 ;  Active_Status is used to signal the termination condition for the
 ;	driver.  After the driver installs, Active_Status holds the
@@ -240,6 +242,13 @@ IDT_Seg 	dw	seg IDT 	; current segment for IDT
 TSS_Seg 	dw	seg TSS 	; current segment for TSS
 
 _DATA	ends
+
+LAST	segment
+; Installation diagnostics and tokenization state are not used by the
+; installed driver. Later ON/OFF/AUTO invocations load their own image.
+msg_flag	dw	0	; installation message flags
+arg_str 	db	max_arg_len+1	dup(0)
+LAST	ends
 
 
 ;******************************************************************************
@@ -774,12 +783,17 @@ jmp_slash_P:
 	jmp	chk_slash_P
 
 ploop1:
-	mov	si,offset DGROUP:arg_str; ds:si = storage for argument
+	push	ds
+	push	cs
+	pop	ds
+	mov	si,offset LAST:arg_str ; discardable token storage
 	mov	cx,max_arg_len		; maximum length of argument
 	call	get_token_far		; get next token
+	pop	ds
 	or	cx,cx			; q: anything there?
 	jz	jmp_def 		; n: go set default values
-	lodsb				; y: get 1st char
+	mov	al,cs:[si]		; y: get 1st char
+	inc	si
 	cmp	al,'m'			; q: PF base address?
 	je	jmp_PF			;   maybe: go validate it
 	cmp	al,'h'			; q: Himem enable /disable?
@@ -798,7 +812,7 @@ ploop1:
 	je	chk_initial_onoff
 	cmp	al,'a'			; q: AUTO initial state?
 	jne	short dispatch_not_a
-	cmp	byte ptr [si],'='
+	cmp	byte ptr cs:[si],'='
 	je	chk_altregs
 	jmp	chk_initial_auto
 dispatch_not_a:
@@ -829,14 +843,14 @@ chk_initial_onoff:
 	je	short chk_initial_on
 	cmp	cx,3
 	jne	inv_prm
-	cmp	byte ptr [si],'f'
+	cmp	byte ptr cs:[si],'f'
 	jne	inv_prm
-	cmp	byte ptr [si+1],'f'
+	cmp	byte ptr cs:[si+1],'f'
 	jne	inv_prm
 	mov	[initial_mode],1
 	jmp	short initial_mode_done
 chk_initial_on:
-	cmp	byte ptr [si],'n'
+	cmp	byte ptr cs:[si],'n'
 	jne	inv_prm
 	mov	[initial_mode],0
 initial_mode_done:
@@ -848,11 +862,11 @@ chk_initial_auto:
 	jne	inv_prm
 	cmp	cx,4
 	jne	inv_prm
-	cmp	byte ptr [si],'u'
+	cmp	byte ptr cs:[si],'u'
 	jne	inv_prm
-	cmp	byte ptr [si+1],'t'
+	cmp	byte ptr cs:[si+1],'t'
 	jne	inv_prm
-	cmp	byte ptr [si+2],'o'
+	cmp	byte ptr cs:[si+2],'o'
 	jne	inv_prm
 	mov	[initial_mode],2
 	mov	[mode_seen],1
@@ -863,17 +877,17 @@ chk_weitek:
 	jb	inv_prm
 	cmp	cx,5
 	ja	inv_prm
-	cmp	byte ptr [si],'='
+	cmp	byte ptr cs:[si],'='
 	jne	inv_prm
-	cmp	byte ptr [si+1],'o'
+	cmp	byte ptr cs:[si+1],'o'
 	jne	inv_prm
-	cmp	byte ptr [si+2],'n'
+	cmp	byte ptr cs:[si+2],'n'
 	je	short weitek_check_on_length
 	cmp	cx,5
 	jne	inv_prm
-	cmp	byte ptr [si+2],'f'
+	cmp	byte ptr cs:[si+2],'f'
 	jne	inv_prm
-	cmp	byte ptr [si+3],'f'
+	cmp	byte ptr cs:[si+3],'f'
 	jne	inv_prm
 	mov	[weitek_mode],0
 	jmp	ploop1
@@ -887,7 +901,7 @@ weitek_on:
 chk_min_xms:
 	cmp	cx,3
 	jb	inv_prm
-	cmp	byte ptr [si],'='
+	cmp	byte ptr cs:[si],'='
 	jne	inv_prm
 	inc	si
 	dec	cx
@@ -899,7 +913,7 @@ chk_min_xms:
 chk_dma_size:
 	cmp	cx,3
 	jb	inv_prm
-	cmp	byte ptr [si],'='
+	cmp	byte ptr cs:[si],'='
 	jne	inv_prm
 	inc	si
 	dec	cx
@@ -918,7 +932,7 @@ chk_dma_size:
 chk_banking_base:
 	cmp	cx,6
 	jne	inv_prm
-	cmp	byte ptr [si],'='
+	cmp	byte ptr cs:[si],'='
 	jne	inv_prm
 	inc	si
 	mov	cx,4
@@ -940,9 +954,9 @@ chk_page_assignment:
 	dec	cx			; the dispatcher consumed the leading 'P'
 	xor	ax,ax
 page_number_loop:
-	cmp	byte ptr [si],'='
+	cmp	byte ptr cs:[si],'='
 	je	short page_number_done
-	mov	bl,[si]
+	mov	bl,cs:[si]
 	cmp	bl,'0'
 	jb	inv_prm
 	cmp	bl,'9'
@@ -1032,7 +1046,7 @@ validate_page_segment endp
 chk_altregs:
 	cmp	cx,3
 	jb	inv_prm
-	cmp	byte ptr [si],'='
+	cmp	byte ptr cs:[si],'='
 	jne	inv_prm
 	inc	si
 	dec	cx
@@ -1046,9 +1060,9 @@ chk_altregs:
 chk_RAM:
 	cmp	cx,3
 	jne	inv_parm
-	cmp	byte ptr [si],'a'
+	cmp	byte ptr cs:[si],'a'
 	jne	inv_parm
-	cmp	byte ptr [si+1],'m'
+	cmp	byte ptr cs:[si+1],'m'
 	jne	inv_parm
 	mov	[umb_mode],1
 	jmp	ploop1
@@ -1056,20 +1070,20 @@ chk_RAM:
 chk_NOEMS:
 	cmp	cx,5
 	jne	inv_parm
-	cmp	byte ptr [si],'o'
+	cmp	byte ptr cs:[si],'o'
 	jne	inv_parm
-	cmp	byte ptr [si+1],'e'
+	cmp	byte ptr cs:[si+1],'e'
 	jne	inv_parm
-	cmp	byte ptr [si+2],'m'
+	cmp	byte ptr cs:[si+2],'m'
 	jne	inv_parm
-	cmp	byte ptr [si+3],'s'
+	cmp	byte ptr cs:[si+3],'s'
 	jne	inv_parm
 	mov	[umb_mode],1
 	mov	[noems_mode],1
 	jmp	ploop1
 chk_siz:
 	mov	bx,cx			; bx = number of digits
-	mov	byte ptr [bx+si-1],' '	; terminate string
+	mov	byte ptr cs:[bx+si-1],' ' ; terminate string
 	mov	cx,10			; decimal multiplier
 	xor	dx,dx			; clear upper 16 bits
 	xor	bx,bx			; clear temporary accumulator
@@ -1087,7 +1101,8 @@ dig_loop:
 	xchg	ax,bx			; temporary value to bx
 ;
 new_digit:
-	lodsb				; get new char into al
+	mov	al,cs:[si]		; get new char into al
+	inc	si
 	cmp	al,'0'			; q: between 0 & 9?
 	jb	dig_exit		; n: done
 	cmp	al,'9'
@@ -1127,15 +1142,15 @@ set_siz:
 chk_FRAME:
 	cmp	cx,10
 	jne	inv_prm
-	cmp	byte ptr [si],'r'
+	cmp	byte ptr cs:[si],'r'
 	jne	inv_prm
-	cmp	byte ptr [si+1],'a'
+	cmp	byte ptr cs:[si+1],'a'
 	jne	inv_prm
-	cmp	byte ptr [si+2],'m'
+	cmp	byte ptr cs:[si+2],'m'
 	jne	inv_prm
-	cmp	byte ptr [si+3],'e'
+	cmp	byte ptr cs:[si+3],'e'
 	jne	inv_prm
-	cmp	byte ptr [si+4],'='
+	cmp	byte ptr cs:[si+4],'='
 	jne	inv_prm
 	add	si,5
 	mov	cx,4
@@ -1149,7 +1164,7 @@ chk_FRAME:
 chk_slash_P:
 	cmp	cx,6
 	jne	inv_prm
-	cmp	byte ptr [si],'p'
+	cmp	byte ptr cs:[si],'p'
 	jne	inv_prm
 	inc	si
 	mov	cx,4
@@ -1232,7 +1247,7 @@ chk_PF:
 chk_Hx:
 	cmp	cx,3
 	jb	inv_prm
-	cmp	byte ptr [si],'='
+	cmp	byte ptr cs:[si],'='
 	jne	inv_prm
 	inc	si
 	dec	cx
@@ -1412,7 +1427,7 @@ page
 ;******************************************************************************
 ; handle_Xswitch - processes the X switch to make some segments non-mappable  ;
 ;									      ;
-; entry: ds:di string with X switch parameters in form "X:nnnn-mmmm" or      ;
+; entry: CS:SI string with X switch parameters in form "X:nnnn-mmmm" or      ;
 ;        the DOS 5/6 form "X=nnnn-mmmm"                                      ;
 ;	 cx is length of string
 ;									      ;
@@ -1430,7 +1445,8 @@ handle_XSwitch	proc	near
 	cmp	cx,5	    ; must have atleast 5 symbols
 	jb	error_Xs    ;
 ;
-	lodsb		    ; get the next letter ":"
+	mov	al,cs:[si]	; get the next letter ":"
+	inc	si
 	sub	cx,2	    ;
 ;
 	cmp	al,":"	    ; accept the historical spelling
@@ -1444,7 +1460,8 @@ Xs_delimiter_ok:
 ;
 	mov	bx,ax	    ; save in bx the start segment to be excluded
 ;
-	lodsb		    ; get the next letter
+	mov	al,cs:[si]	; get the next letter
+	inc	si
 	dec	cx	    ;
 	jcxz	error_Xs
 	cmp	al,"-"	    ; is it the letter "-"
@@ -1474,14 +1491,16 @@ handle_XSwitch	endp
 handle_ISwitch	proc	near
 	cmp	cx,5
 	jb	error_Is
-	lodsb
+	mov	al,cs:[si]
+	inc	si
 	sub	cx,2
 	cmp	al,"="
 	jne	error_Is
 	call	htoi
 	jcxz	error_Is
 	mov	bx,ax
-	lodsb
+	mov	al,cs:[si]
+	inc	si
 	dec	cx
 	jcxz	error_Is
 	cmp	al,"-"
@@ -1574,11 +1593,11 @@ Apply_User_UMA_Ranges endp
 ; Converts a string to an integer.					;
 ; 									;
 ; Arguments:								;
-; 	DS:SI = string							;
+; 	CS:SI = string							;
 ; 	CX    = length							;
 ; Returns:								;
 ; 	AX    = integer							;
-; 	DS:SI = remaining string					;
+; 	CS:SI = remaining string					;
 ; 	CX    = remaining length					;
 ; Alters:								;
 ; 	nothing								;
@@ -1591,13 +1610,13 @@ Apply_User_UMA_Ranges endp
 
 
 ; Parse the decimal suffix of a one-character option. CX includes that option
-; character and DS:SI points at the first digit. Return AX and carry status.
+; character and CS:SI points at the first digit. Return AX and carry status.
 parse_decimal_token proc near
 	dec	cx
 	jcxz	short parse_decimal_error
 	xor	ax,ax
 parse_decimal_loop:
-	mov	bl,[si]
+	mov	bl,cs:[si]
 	inc	si
 	cmp	bl,'0'
 	jb	short parse_decimal_error
@@ -1630,7 +1649,7 @@ htoi_loop:
 
 ; get the next character
 
-	mov	bl,[si]
+	mov	bl,cs:[si]
 	inc	si
 	dec	cx
 

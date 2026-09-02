@@ -65,11 +65,15 @@ EMM_HW_ERROR	equ	81h		; EMM h/w error status
 ;			E X T E R N A L    R E F E R E N C E S
 ;******************************************************************************
 ;
-_DATA	segment
-
+LAST	segment
 extrn	xbase_addr_h:byte	; bit 16-24 of address of first byte of emm memory
 extrn	xbase_addr_l:word	; bit  0-15 of address of first byte of emm memory
 extrn	sys_size:word		; number of 16k pages taken away from conv. mem
+
+LAST	ends
+
+_DATA	segment
+
 extrn	PageT_Seg:word		; segment of system page table
 
 extrn	_PF_Base:word		 ; segment addr of page frame base

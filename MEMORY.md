@@ -121,6 +121,15 @@ bytes and crosses an allocation boundary, reclaiming one 16-byte paragraph.
 The final DMA page list remains resident. Accepted and rejected `D=` reserves
 and the extended EMS 4.0 lifecycle remain covered.
 
+Installation message flags and the 12-byte option-token buffer now live in
+`LAST`; the parser writes and reads the latter explicitly through that segment.
+The pool base and sizes, temporary availability totals, XMS entry and handle,
+and relocation-tail size are likewise used only while allocation, table setup,
+or failed-install cleanup is running. Moving those 19 bytes out of DGROUP with
+the parser state removes 34 linked resident bytes after alignment and reduces
+the installed allocation by 32 bytes. The complete option grammar, allocation
+failure paths, and runtime command parser remain covered.
+
 The IDT and complete TSS, including its 8 KiB I/O bitmap, now follow `PAGESEG`
 in the load image. Initialization builds them conventionally, then copies them
 with the page tables into the locked XMS relocation tail and repoints their
@@ -141,7 +150,7 @@ control, interrupt masking, and the return path stay in the low prefix.
 The transient `EMM386 ON`/`OFF`/`AUTO` parser now follows the protected-only
 suffix boundary. Later command invocations execute their own loaded image, so
 that parser need not remain in the installed driver. The comparison
-configuration reports about 13.58 KiB of conventional memory for EMM386. The
+configuration reports about 13.55 KiB of conventional memory for EMM386. The
 exact paired measurement is recorded in the plan below.
 The enforced normal EMM386 budget is 14 KiB.
 
@@ -166,7 +175,7 @@ Use identical 8 MiB QEMU hardware, startup files, and VC 4.05 binaries for all
 comparisons. Retail leaves a 618,736-byte largest conventional block; the
 pre-compaction baseline leaves 558,240 bytes. The validated compacted build
 with shared system-stack dispatch and the protected DMA trap engine leaves
-594,000 bytes, a 24,736-byte gap.
+594,032 bytes, a 24,704-byte gap.
 Exact byte parity is not required, but a large unexplained loss is not
 acceptable.
 
@@ -176,7 +185,7 @@ undifferentiated target:
 | Status | Accounted difference | Measured effect or opportunity |
 | --- | --- | ---: |
 | Complete | DOS relocation hole fragmented below resident HIMEM | 32,928 bytes recovered |
-| Open | Larger resident system components | 11,648 bytes |
+| Open | Larger resident system components | 11,616 bytes |
 | Open | Larger resident COMMAND | 3,360 bytes |
 | Open | Retained DOS layout and conventional ceiling | 9,728 bytes |
 
@@ -187,7 +196,7 @@ change instead of assuming that every byte is another oversized component.
 
 The target is a largest conventional block of at least **618,736 bytes** in the
 fixed VC 4.05 comparison, without reducing supported memory-manager options or
-usable UMB space. The current result is 594,000 bytes, so 24,736 more bytes must
+usable UMB space. The current result is 594,032 bytes, so 24,704 more bytes must
 join the largest free block. Total free memory is supporting evidence, not a
 substitute for this metric: saving bytes below a resident island may leave the
 largest block unchanged.
@@ -197,7 +206,7 @@ symbol responsible for it:
 
 | Workstream | Current excess or opportunity | Cumulative result if fully recovered |
 | --- | ---: | ---: |
-| EMM386 resident allocation | 9,776 bytes | 603,776 bytes |
+| EMM386 resident allocation | 9,744 bytes | 603,776 bytes |
 | HIMEM resident allocation | 1,888 bytes | 605,664 bytes |
 | COMMAND resident allocation | 3,360 bytes | 609,024 bytes |
 | Layout and conventional ceiling | 9,728 bytes | 618,752 bytes |
@@ -216,7 +225,7 @@ or A/B image measures them.
 
 | Priority | Opportunity | Available evidence | Likely scale | Principal constraint |
 | --- | --- | --- | ---: | --- |
-| 1 | Compact EMM386 runtime-sized metadata and alignment | 9,776-byte component excess; initialization state and three tables reduced | tens to hundreds of bytes per item | Full `H=`/`A=` ranges and EMS 4.0 formats |
+| 1 | Compact EMM386 runtime-sized metadata and alignment | 9,744-byte component excess; initialization state and three tables reduced | tens to hundreds of bytes per item | Full `H=`/`A=` ranges and EMS 4.0 formats |
 | 1 | Remove remaining HIMEM init-only state and padding | 1,888-byte component excess; resident break is explicit | tens to hundreds of bytes | 128 handles, 32 UMB extents, all A20 backends |
 | 1 | Classify every byte below the first MCB | Current first system MCB begins at `0478h`; retail describes allocations from `0070h` | attribution first | Some low addresses are ABI or BIOS fixed |
 | 2 | Move more EMM386 protected-only code/data to locked XMS | Low retained prefix dominates its allocation | low kilobytes | Real/virtual transitions, inactive `AUTO`, DMA and faults |
@@ -265,7 +274,7 @@ recoverable:
 1. **Finish attribution.** Extend the capture with retained boundaries from the
    DOS, BIOS, HIMEM, EMM386, and COMMAND maps. Explain the current `0000h..0477h`
    region, retail's `0070h..0252h` DOS/IO allocations, every paragraph between
-   installed components, and the first-free difference `0EBAh` versus `08F0h`.
+   installed components, and the first-free difference `0EB8h` versus `08F0h`.
 2. **Take safe component wins.** Finish table, field, duplicate-code, init-state,
    and alignment audits. Require an A/B result and focused maximum-option tests
    for every retained change.
@@ -314,7 +323,7 @@ python3 tests/capture_vc_memory_comparison.py \
   CURRENT.IMG RETAIL-622.IMG out/vc-memory-comparison.md
 ```
 
-The validated baseline reproduces 594,000 versus 618,736 bytes, the component
+The validated baseline reproduces 594,032 versus 618,736 bytes, the component
 figures below, a conventional ceiling of `9FC0h` versus retail's `A000h`, and
 the 1,216-byte local UMB advantage. This completes the repeatable measurement
 foundation; generated reports remain build evidence rather than tracked
@@ -322,7 +331,7 @@ documentation.
 
 ### 2. Reduce EMM386's low allocation
 
-EMM386 is the largest component opportunity: 13,904 bytes here versus 4,128 in
+EMM386 is the largest component opportunity: 13,872 bytes here versus 4,128 in
 retail. Potential reductions, in preferred order, are:
 
 - compact retained data and descriptor metadata, size every table from the
@@ -437,15 +446,15 @@ Paired `MEM /D` captures account for the conventional system block as follows:
 | Component | This system | Retail 6.22 | Excess |
 | --- | ---: | ---: | ---: |
 | HIMEM | 2,992 | 1,104 | 1,888 |
-| EMM386 | 13,904 | 4,128 | 9,776 |
+| EMM386 | 13,872 | 4,128 | 9,744 |
 | FILES | 896 | 896 | 0 |
 | FCBS | 256 | 256 | 0 |
 | BUFFERS | 512 | 512 | 0 |
 | LASTDRIVE | 2,288 | 2,288 | 0 |
 | STACKS | 1,840 | 1,856 | -16 |
-| Total | 22,688 | 11,040 | 11,648 |
+| Total | 22,656 | 11,040 | 11,616 |
 
-`MEM` reports 22,800 and 11,168 bytes after each block's arena overhead. Both
+`MEM` reports 22,768 and 11,168 bytes after each block's arena overhead. Both
 systems use `BUFFERS=15` and now retain only one 512-byte conventional transfer
 area. A direct retail probe found its buffer hash at `FFFF:B3D4`, confirming
 that DOS 6.22 also places the normal buffer state in the HMA.
@@ -511,7 +520,7 @@ transition needs a focused regression.
 
 ### Stage 3: reduce and account for resident components — complete
 
-The measured system-component excess is 11,648 bytes. The current paired VC
+The measured system-component excess is 11,616 bytes. The current paired VC
 capture reports COMMAND at 6,320 bytes versus retail's 2,960, a separate
 3,360-byte excess. The retained boundaries are:
 
@@ -572,7 +581,7 @@ bytes at `CC00h` and 32,752 bytes at `E000h`. Retail exposes 15,152 bytes near
 upper-memory bytes. VC hides the first local region only while the public chain
 is unlinked; this is reporting state, not lost memory.
 
-The current 594,000-byte largest block is 24,736 bytes (4.0%) below retail and
+The current 594,032-byte largest block is 24,704 bytes (4.0%) below retail and
 every material difference is assigned to a measured component or layout
 workstream above. This is an explained baseline, not completion: the fixed
 comparison must reach at least 618,736 bytes without reducing option capacity

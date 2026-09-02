@@ -85,12 +85,6 @@ _DATA	segment
 
 extrn	DMA_Pages:word		; DMA EMM pages buffer
 extrn	DMA_PAGE_COUNT:word	; number of DMA pages
-extrn	msg_flag:word
-
-extrn	xbase_addr_l:word	; 24 bit address of beginning of extended mem
-extrn	xbase_addr_h:byte	; pool of EMM pages.
-extrn	ext_size:word		; size of extended memory in kbytes
-extrn	sys_size:word		; size of system memory in kbytes
 
 extrn	_pft386:word		; ptr to dword array of Page Table entries
 
@@ -99,7 +93,12 @@ _DATA	ends
 ;------------------------------------------------------------------------------
 LAST	segment
 	assume	cs:LAST, ds:DGROUP, es:DGROUP, ss:DGROUP
+	extrn	msg_flag:word
 	extrn	dma_page_limit:word	; requested DOS 5 D= capacity
+	extrn	xbase_addr_l:word	; 24 bit address of beginning of extended mem
+	extrn	xbase_addr_h:byte	; pool of EMM pages
+	extrn	ext_size:word		; size of extended memory in kbytes
+	extrn	sys_size:word		; size of system memory in kbytes
 
 ; Temporary candidates used only while InitEPage constructs the resident DMA
 ; page list.  Keep them in the discardable initialization segment.

@@ -94,8 +94,6 @@ TRUE	equ	not FALSE
 ;
 _DATA	segment
 
-	extrn	msg_flag:word
-
 ifndef	NOHIMEM
 	extrn	hi_size:word		; size of hi memory in kbytes
 	extrn	hi_alloc:word		; hi memory allocated
@@ -107,6 +105,7 @@ _DATA	ends
 
 
 LAST	segment
+	extrn	msg_flag:word
 	extrn	dos_version:byte
 	extrn	pool_size:word
 	extrn	min_xms:word
@@ -132,10 +131,10 @@ LAST	ends
 
 	page
 ;******************************************************************************
-;	Data segment
+;	Discardable allocation state
 ;******************************************************************************
-_DATA	segment
-	ASSUME	CS:DGROUP,DS:DGROUP
+LAST	segment
+	ASSUME	CS:LAST,DS:DGROUP
 
 xbase_addr_l	dw	0000h	; 24 bit address of beginning of
 xbase_addr_h	db	10h	; extended mem pool of EMM pages. (1M initially)
@@ -144,11 +143,11 @@ sys_size	dw	0	; size of system memory from 4000h in emm pool
 total_mem	dw	0	; size of extended memory available at any moment
 avail_mem	dw	0	; total size (hi+ext) available for MEMM
 xms_entry	dd	0	; installed XMS manager control entry
-xms_handle	dw	0	; locked backing-store handle retained resident
+xms_handle	dw	0	; locked backing-store handle during installation
 reloc_size	dw	0	; KiB reserved after the EMS pool for init relocation
 ;
 
-_DATA	ends
+LAST	ends
 
 
 ;******************************************************************************

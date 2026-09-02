@@ -79,13 +79,13 @@ LAST_CONV_UMAP_SEG	=  03FFFh
 _DATA	segment
 
 	extrn	PF_Base:word
-	extrn	msg_flag:word
 
 _DATA	ends
 
 ;
 LAST	segment
 ;
+	extrn	msg_flag:word
 	extrn	rom_srch:near
 	extrn	banking_base:word
 	extrn	requested_page_count:byte
