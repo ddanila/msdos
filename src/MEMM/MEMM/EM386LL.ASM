@@ -146,20 +146,12 @@ CurCopy 	MACRO
 	stosw				; store into cache for 386 buffer
 	ENDM
 
-;******************************************************************************
-;			L O C A L   D A T A   A R E A
-;******************************************************************************
-
-_DATA	 segment
-extrn	ELOff:word		; offset of 386 loadall buffer
-_DATA	 ends
-
-
 R_CODE	segment
 extrn	JumpReal:far		; continue client in real mode (rrtrap.asm)
 R_CODE	ends
 
 _TEXT	segment
+extrn	ELbuff:byte		; protected high 386 loadall buffer
 extrn	MapLinear:near		; maps linear addresses	 (maplin.asm)
 extrn	PortTrap:near		; IOBM trap set function (vminit.asm)
 extrn	ErrHndlr:near		; error handler		 (errhndlr.asm)
@@ -221,11 +213,12 @@ EM386ll proc	near
 
 ;   Point ES:EDI to start of our 386 loadall buffer
 
-	mov	ax,VDMD_GSEL
+	mov	ax,VDMCA_GSEL
 	mov	es,ax
 	OP32
 	xor	di,di			; clear EDI
-	mov	di,ES:[ELOff]		; ES:EDI pts to our 386 loadall buffer
+	mov	di,offset _TEXT:ELbuff + 3
+	and	di,0fffch		; ES:EDI pts to aligned loadall buffer
 ;
 	cld
 
@@ -352,7 +345,8 @@ CopyCac:				; ES:DI pts to our 386 buf cache entry
 
 	OP32
 	xor	di,di			    ; XOR EDI,EDI - clear EDI
-	mov	di,ES:[ELOff]		    ; ES:EDI pts to loadall buffer
+	mov	di,offset _TEXT:ELbuff + 3
+	and	di,0fffch		    ; ES:EDI pts to aligned buffer
 	dw	LODAL386		    ; execute 386 LOADALL
 
 	ASSUME	DS:DGROUP

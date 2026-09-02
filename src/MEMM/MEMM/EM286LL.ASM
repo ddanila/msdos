@@ -49,7 +49,7 @@ page	58,132
 ;******************************************************************************
 ;
 	public	EM286ll
-	public	ELOff
+	public	ELbuff
 ;
 	page
 ;******************************************************************************
@@ -151,21 +151,6 @@ _TEXT	segment
 
 _TEXT	ends
 
-;
-;******************************************************************************
-;			L O C A L   D A T A   A R E A
-;******************************************************************************
-
-_DATA	 segment
-
-ELOff	dw		offset ELbuff	; offset of 386 loadall buffer
-ELbuff	LoadAllBuf386	<>		; 386 loadall buffer
-	dd		0		; filler - allow dword align
-
-;(0.03)extrn	A20watch:byte			; Loadall/KBD A20 disable flag
-
-_DATA	 ends
-
 	page
 ;******************************************************************************
 ;			S E G M E N T	D E F I N I T I O N
@@ -173,6 +158,13 @@ _DATA	 ends
 ;
 _TEXT	 segment
 	ASSUME CS:_TEXT,DS:DGROUP,ES:DGROUP
+
+; LOADALL consumes a dword-aligned writable buffer. Both emulators run in
+; protected mode, where VDMCA_GSEL is the data alias for the locked high _TEXT
+; copy. RelocateText aligns that copy; three spare bytes let each caller round
+; this byte-segment label forward. The discarded low suffix may still be
+; overlaid by VDATA after installation.
+ELbuff	db	(size LoadAllBuf386 + 3) dup (0)
 
 ;******************************************************************************
 ;	EM286ll - emulate 286 Loadall
@@ -201,9 +193,10 @@ EM286ll proc	near
 	mov	ds,bx			; DS:0 points to 286 loadall buffer
 	ASSUME	DS:L286BUFF
 ;
-	mov	ax,VDMD_GSEL
+	mov	ax,VDMCA_GSEL
 	mov	es,ax
-	mov	di,ES:[ELOff]		; ES:DI pts to 386 loadall buffer
+	mov	di,offset _TEXT:ELbuff + 3
+	and	di,0fffch		; ES:DI pts to aligned loadall buffer
 ;
 	cld
 ;
@@ -345,7 +338,8 @@ CopyCac:				; ES:DI pts to our 386 ll cache entry
 
 	OP32
 	xor	di,di			; clear EDI
-	mov	di,ES:[ELOff]		; ES:EDI pts to loadall buffer
+	mov	di,offset _TEXT:ELbuff + 3
+	and	di,0fffch		; ES:EDI pts to aligned loadall buffer
 	dw	LODAL386		; execute 386 LOADALL
 
 	ASSUME	DS:DGROUP

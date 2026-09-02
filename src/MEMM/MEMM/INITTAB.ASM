@@ -708,8 +708,13 @@ RelocateText proc near
 	shl	ax,4
 	add	ax,10h
 	mov	cx,ax
+	add	cx,3				; permit dword alignment of high _TEXT
 	call	get_buffer
 	jc	RT_done
+	sub	cx,3				; restore the logical copy length
+	add	ax,3
+	adc	dx,0
+	and	ax,0fffch			; LOADALL scratch needs aligned base
 	mov	word ptr [TEXT_Phys],ax
 	mov	word ptr [TEXT_Phys+2],dx
 	push	dx

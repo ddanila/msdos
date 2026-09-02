@@ -74,7 +74,6 @@ LF		equ	0ah
 ;******************************************************************************
 _DATA	SEGMENT
 extrn	P_TABLE_CNT:abs
-extrn	ELOff:word		; offset of LL buffer
 _DATA	ENDS
 
 _TEXT SEGMENT
@@ -217,15 +216,6 @@ VDM_Init	proc	near
 	mov	es, ax			; DS:0 = ptr to gdt
 
 	and	byte ptr ES:[TSS_GSEL + 5], 11111101B
-
-;
-;  dword align the LL buffer (move foward)
-;
-	mov	ax,[ELOff]
-	and	ax,0003h		; MOD 4
-	mov	bx,4
-	sub	bx,ax			; BX = amount to add to dword align
-	add	[ELOff],bx		;  dword align it...
 
 ;
 ; and return
