@@ -116,7 +116,6 @@ extrn	_mappable_page_count:word		; how many in the table
 extrn	_page_frame_pages:word			; how many in the page frame
 extrn	_physical_page_count:word		; number of physical pages
 extrn	_physical_page_ids:byte
-extrn	_VM1_EMM_Pages:word			; pages not in the page frame
 ;extrn	_VM1_EMM_Offset:word			; offset of these in a context
 extrn	_cntxt_pages:byte			; number of pages in a context
 extrn	_cntxt_bytes:byte			; number of bytes in a context

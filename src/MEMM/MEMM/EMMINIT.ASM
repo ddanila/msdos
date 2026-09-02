@@ -85,7 +85,6 @@ extrn	_page_frame_base:word	; pointers into page tables for each window
 extrn	_mappable_pages:word	; mappable page array
 extrn	_EMM_MPindex:byte	; index into mappable page array
 extrn	_physical_page_count:word   ; number of physical pages
-extrn	_VM1_EMM_Pages:word
 extrn	_physical_page_ids:byte
 extrn	_mappable_page_count:word   ; number of mappable pages
 
@@ -637,7 +636,6 @@ EMIN_7:
     ;
 	mov	cx,40			; max page #
 	sub	cx,dx			;
-	mov	[_VM1_EMM_Pages],cx	; conventional banking-window count
 					; number of pages to be examined
     ;
     ; setup loop

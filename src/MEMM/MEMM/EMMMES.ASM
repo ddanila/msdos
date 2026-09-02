@@ -186,10 +186,8 @@ POE_Mess	db	CR,LF
 		db	BEL
 		db	"EMM386 Privileged operation error #"
 POE_Num		db	"xx -",CR,LF
-		db	"Deactivate EMM386 and Continue (C) or reBoot (B)"
-		db	" (C or B) ? "
+		db	"Deactivate EMM386: continue (C) or reboot (B)? "
 POE_Len		=	$-POE_Mess
-		db	"$"
 
 EXCPE_Mess	db	CR,LF
 		db	BEL
@@ -200,7 +198,6 @@ EXCPE_EIP	db	"xxxxxxxx Code "
 EXCPE_ERR	db	"xxxx"
 		db	CR,LF,"Press enter to reboot"
 EXCPE_Len	=	$-EXCPE_Mess
-		db	"$"
 
 ;
 _DATA	ends

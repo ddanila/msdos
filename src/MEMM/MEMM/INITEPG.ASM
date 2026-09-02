@@ -84,7 +84,7 @@ ABS0	ends
 _DATA	segment
 
 extrn	DMA_Pages:word		; DMA EMM pages buffer
-extrn	DMA_PAGE_COUNT:word	; number of DMA pages
+extrn	DMA_PAGE_COUNT:byte	; number of DMA pages
 
 extrn	_pft386:word		; ptr to dword array of Page Table entries
 
@@ -257,7 +257,7 @@ IEP_Dset:
 IEP_Dlimit:
 	mov	cx,[dma_page_limit]
 IEP_Dstore:
-	mov	DMA_Page_Count,cx
+	mov	DMA_Page_Count,cl
 	mov	di,offset DGROUP:DMA_Pages	; ES:DI ->dest array
 	cld
 DMA_Pg_St:

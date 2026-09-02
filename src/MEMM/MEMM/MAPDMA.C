@@ -54,7 +54,7 @@ extern char EMM_MPindex[];    /* index from 4000H to 10000H in steps of 16K */
 extern struct mappable_page mappable_pages[];
 extern long *pft386;
 extern unsigned DMA_Pages[];
-extern DMA_PAGE_COUNT;                 /* size of DMA_Pages[] */
+extern unsigned char DMA_PAGE_COUNT;   /* size of DMA_Pages[] */
 extern unsigned physical_page_count;
 
 /* routines imported from elimtrap.asm */

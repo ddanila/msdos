@@ -92,7 +92,6 @@ _DATA	SEGMENT
 	PUBLIC	_PF_Base
 	PUBLIC	_OSEnabled
 	PUBLIC	_OSKey
-	PUBLIC	_VM1_EMM_Pages
 	PUBLIC	_cntxt_pages
 	PUBLIC	_cntxt_bytes
 
@@ -233,11 +232,6 @@ _physical_page_ids	db	MAX_PHYS_PAGES dup (0ffh) ; external Pn= numbers
 
 
 _page_frame_pages	dw	4		; pages in the page frame
-ifdef	CGA
-_VM1_EMM_Pages		dw	30		; 4000h to B800h for now
-else
-_VM1_EMM_Pages		dw	24		; 4000h to A000h for now
-endif
 
 ; don't need it (used only in _set_40windows)
 ;

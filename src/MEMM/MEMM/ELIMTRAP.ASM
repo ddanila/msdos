@@ -352,8 +352,8 @@ _DATA	segment
 ;
 _DMA_Pages	LABEL	WORD
 DMA_Pages	dw	16 dup (NULL_PAGE)  ; DOS 5 D= supports up to 256 KiB
-_DMA_PAGE_COUNT	LABEL	WORD
-DMA_PAGE_COUNT	dw	0		    ; number of above initialised
+_DMA_PAGE_COUNT	LABEL	BYTE
+DMA_PAGE_COUNT	db	0		    ; number of above initialised
 
 
 _DATA	ends
