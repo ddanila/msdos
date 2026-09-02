@@ -295,6 +295,10 @@ _DATA	segment
 
 DMARegSav   DMARegBuf	<>		; DMA Register buffer
 
+_DATA	ends
+
+LAST	segment
+
 DMAP_Page label word
 ;	dw	DMA_P0			; DMA page registers
 	dw	DMA_P1
@@ -335,6 +339,10 @@ DMAP_Mode label word
 	dw	DMA2_MODE
 
 LIMDMAP_CNT	   =	   ($ - DMAP_Page) / 2
+
+LAST	ends
+
+_DATA	segment
 ;
 ;    DMA_Pages - EMM Pages for DMA relocation. Each is an index into pft386.
 ;	To access actual entry in pft386 you need to multiply index by 4.
@@ -1218,7 +1226,7 @@ InitELIM proc	 far
 
 	cld
 
-	mov	ax,seg DGROUP
+	mov	ax,seg LAST
 	mov	ds,ax
 ;
 ; now set entries in I/O Bit Map
@@ -1229,7 +1237,7 @@ InitELIM proc	 far
 ;   now set DMA ports in I/O Bit Map
 ;
 	mov	cx,LIMDMAP_CNT
-	mov	si,offset DGROUP:DMAP_Page	; DS:SI -> DMA ports
+	mov	si,offset LAST:DMAP_Page	; DS:SI -> DMA ports
 	mov	bx,8000h			; trap it every 1k
 IE_maploop:
 	lodsw					; AX = port to trap
