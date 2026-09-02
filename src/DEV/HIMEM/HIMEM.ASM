@@ -16,6 +16,7 @@ MAX_UMB_BLOCKS  equ     32
 UMB_BLOCK_SIZE  equ     4
 UMB_ALLOCATED   equ     08000h
 HMA_KB          equ     64
+HMA_OWNED       equ     080h
 
 ERR_NOT_IMPLEMENTED equ 080h
 ERR_A20         equ     082h
@@ -55,7 +56,6 @@ hma_min_kb      db      0
 handle_limit    db      32
 int15_kb        dw      0
 cpu_386         db      0
-hma_owned       db      0
 a20_initial     db      0
 a20_local       dw      0
 a20_global      dw      0
@@ -586,15 +586,15 @@ endif
 xms_hma_request proc near
         cmp     [extended_kb], 0
         je      short hma_missing
-        cmp     [hma_owned], 0
+        test    [hma_min_kb], HMA_OWNED
         jne     short hma_used
-        xor     ax, ax
-        mov     al, [hma_min_kb]
+        mov     ax, word ptr [hma_min_kb]
+        and     ax, 007fh
         mov     cl, 10
         shl     ax, cl
         cmp     dx, ax
         jb      short hma_too_small
-        mov     [hma_owned], 1
+        or      [hma_min_kb], HMA_OWNED
         jmp     xms_success
 hma_missing:
         mov     bl, ERR_HMA_MISSING
@@ -608,9 +608,9 @@ hma_too_small:
 xms_hma_request endp
 
 xms_hma_release proc near
-        cmp     [hma_owned], 0
+        test    [hma_min_kb], HMA_OWNED
         je      short hma_not_owned
-        mov     [hma_owned], 0
+        and     [hma_min_kb], NOT HMA_OWNED
         jmp     xms_success
 hma_not_owned:
         mov     bl, ERR_HMA_FREE
@@ -619,9 +619,7 @@ xms_hma_release endp
 
 xms_global_enable proc near
         inc     [a20_global]
-        call    enable_a20
-        jc      xms_a20_failed
-        jmp     xms_success
+        jmp     short xms_enable_a20
 xms_global_enable endp
 
 xms_global_disable proc near
@@ -629,29 +627,34 @@ xms_global_disable proc near
         je      short global_disable_now
         dec     [a20_global]
 global_disable_now:
-        call    reconcile_a20
-        jc      xms_a20_failed
-        jmp     xms_success
+        jmp     short xms_reconcile_a20
 xms_global_disable endp
 
 xms_local_enable proc near
         inc     [a20_local]
+xms_local_enable endp
+
+xms_enable_a20 proc near
         call    enable_a20
         jc      xms_a20_failed
         jmp     xms_success
-xms_local_enable endp
+xms_enable_a20 endp
 
 xms_local_disable proc near
         cmp     [a20_local], 0
         je      short a20_underflow
         dec     [a20_local]
+xms_local_disable endp
+
+xms_reconcile_a20 proc near
         call    reconcile_a20
         jc      xms_a20_failed
         jmp     xms_success
+xms_reconcile_a20 endp
+
 a20_underflow:
         mov     bl, ERR_A20
         jmp     xms_failure
-xms_local_disable endp
 
 xms_a20_query proc near
         call    query_a20_hardware
