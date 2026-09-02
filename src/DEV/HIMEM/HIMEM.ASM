@@ -197,7 +197,7 @@ private_register:
 ifdef UMB_TEST_REJECT
         jmp     short private_bad
 endif
-        cmp     [umb_committed], 0
+        cmp     [umb_count], 0
         jne     short private_bad
         cmp     word ptr es:[si], 1
         jne     short private_bad
@@ -238,7 +238,6 @@ private_copy:
         add     si, 4
         add     di, UMB_BLOCK_SIZE
         loop    private_copy
-        mov     [umb_committed], 1
         mov     ax, 1
         xor     bx, bx
         jmp     short private_done
@@ -271,7 +270,6 @@ private_unregister_scan:
         loop    private_unregister_scan
 private_unregister_clear:
         mov     [umb_count], 0
-        mov     [umb_committed], 0
         mov     ax, 1
         xor     bx, bx
         jmp     short private_unregister_done
@@ -1555,7 +1553,6 @@ total_free endp
 ; initialization break includes only /NUMHANDLES= records; the full table is
 ; still present in the load image for the documented maximum.
 umb_count       dw      0
-umb_committed   db      0
 umb_blocks      db      MAX_UMB_BLOCKS * UMB_BLOCK_SIZE dup (0)
 handles         db      MAX_HANDLES * HANDLE_SIZE dup (0)
 resident_end label byte
