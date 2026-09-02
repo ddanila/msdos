@@ -362,12 +362,27 @@ capture pass.
 | 13 | Placement | Remove alignment/MCB islands, adjust load order, or place eligible permanent state high | Largest conventional block grows and usable UMB remains at least 47,888 bytes |
 | 14 | Regression | Enforce the fixed-image VC floor and retain component/UMB budgets locally | At least 618,736 bytes across clean rebuilds and the full release suite |
 
+The EMM386 census is reproducible from a clean linker map:
+
+```sh
+python3 tests/report_emm386_residency.py --check \
+  src/MEMM/MEMM/EMM386.MAP
+```
+
+The current map divides `_TEXT` at `IOTrap_Tab`: 8,222 low bytes precede the
+boundary and 9,379 protected-only bytes follow it. The map exposes 80 symbols
+in the retained or dual-mode prefix, 100 in the protected-only suffix, and 67
+in mutable runtime data, with no unclassified linker-visible symbol. This
+completes the first EMM386 symbol-ownership pass, but not byte attribution:
+local labels, padding, and the dynamically overlaid VDATA range still require
+range-level accounting before selecting the next relocation.
+
 ### Decision gates
 
 | Gate | Required evidence | Decision |
 | --- | --- | --- |
 | Address independence | Passed: EMM386 boots and completes the first continuation across `/NUMHANDLES=24..32` | Paragraph-changing HIMEM and linker work is unblocked |
-| Attribution | All conventional ranges and every EMM386, HIMEM, and COMMAND resident symbol have an owner, lifetime, and size | Replace opportunity ranges with measured candidates |
+| Attribution | All conventional ranges and every EMM386, HIMEM, and COMMAND resident symbol have an owner, lifetime, and size | EMM386 symbol ownership complete; range accounting plus HIMEM, COMMAND, DOS, and BIOS remain |
 | Safe compaction exhausted | Every low-risk candidate has an A/B component delta and VC largest-block delta | Calculate the exact architectural/layout remainder |
 | Layout route chosen | EBDA destination and all low islands are proved safe, or their gains are rejected explicitly | Implement only gains that join the largest block |
 | Architecture required | Remaining gap exceeds the sum of proved safe layout candidates | Redesign EMM386's gateway first; redesign COMMAND only for the residual need |
