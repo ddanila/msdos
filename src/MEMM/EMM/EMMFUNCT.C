@@ -514,7 +514,6 @@ DeallocatePages()
 {
 #define	handle ((unsigned)regp->hregs.x.rdx)
 	register struct handle_ptr	*hp;
-	struct save_map			*smp;	/* save map table ptr */
 	long	*Name ;		/* points to handle name entry to clear */
 
 	if ( handle == 0 ) {		/* Special handle, don't release */
@@ -530,7 +529,7 @@ DeallocatePages()
 	/*
 	 * check for save area in use for this handle
 	 */
-	if( save_map[ (handle & 0x00FF) ].s_handle != (unsigned)NULL_HANDLE )
+	if( save_map[ (handle & 0x00FF) ].s_handle != NULL_SAVE_HANDLE )
 	{
 		setAH(SAVED_PAGE_DEALLOC);
 		return;
@@ -657,4 +656,3 @@ GetLogicalToPhysicalPageTrans()
 {
 	setAH(INVALID_FUNCTION);
 }
-

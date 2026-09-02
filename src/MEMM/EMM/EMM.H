@@ -51,6 +51,7 @@
 #define NULL_HANDLE	(struct handle_ptr *)0x0FFF
 #define	NULL_PAGE	0xFFFF
 #define NULL_SAVE	(struct save_map *)0
+#define NULL_SAVE_HANDLE 0xFF
 
 #define	GET		0x00		/* get/set page map sub codes */
 #define	SET		0x01
@@ -94,10 +95,12 @@ union pft386{
  *	This is an array of structures that save the 
  *	current mapping state. Size is dynamically determined.
  */
+#pragma pack(1)
 struct save_map{
-	unsigned short	s_handle;
+	unsigned char	s_handle;
 	unsigned short	window[4];
 	};
+#pragma pack()
 /*
  * handle_table
  *	This is an array of handle pointers. It

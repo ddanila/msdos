@@ -401,8 +401,8 @@ else
 	mov	bx,[_handle_table_size]
 EMIN_init_save_maps:
 	push	bx
-	mov	ax,NULL_HANDLE
-	stosw				; s_handle
+	mov	al,NULL_SAVE_HANDLE
+	stosb				; s_handle
 	mov	ax,NULL_PAGE
 	mov	cx,EMM32_PHYS_PAGES	; unmapped windows
 	rep	stosw

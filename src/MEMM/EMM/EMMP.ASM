@@ -668,14 +668,14 @@ _SavePageMap	proc	near
 					;  this handle's save area
 	add	bx,[_save_map]
 	mov	di,bx			; DS:DI points to handle's save area
-	cmp	[di].s_handle,NULL_HANDLE
+	cmp	[di].s_handle,NULL_SAVE_HANDLE
 					;Q: save area in use ?
 	jne	short spm_prev_saved	; Y: return error
 					; N: use it now
 	cld
 	push	ds
 	pop	es
-	stosw					; store handle # in s_handle
+	stosb					; store handle # in s_handle
 	Get_FRS_window	SI			; Current FRS page mappings
 	movsd					; move to save area
 	movsd					; Lim 3.2 has only 4 page frames
@@ -731,13 +731,13 @@ _RestorePageMap	proc	near
 					;  this handle's save area
 	add	bx,[_save_map]
 	mov	si,bx			; DS:SI points to handle's save area
-	cmp	[si].s_handle,NULL_HANDLE
+	cmp	[si].s_handle,NULL_SAVE_HANDLE
 					;Q: save area in use ?
 	je	short rpm_no_map_saved	; N: return error
 					; Y: restore it
 
 	mov	byte ptr [bp.rAX+1],OK		; Assume success
-	mov	[si].s_handle,NULL_HANDLE	; null handle's save area
+	mov	[si].s_handle,NULL_SAVE_HANDLE	; null handle's save area
 
 	lea	si,[si].s_map			; SI -> handle's save area
 	Get_FRS_window	DI			; Get pointer to current window
