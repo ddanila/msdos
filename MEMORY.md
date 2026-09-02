@@ -180,6 +180,23 @@ or MCB overhead, an unavailable conventional range, or fragmentation. This is
 the prerequisite for resolving the 9,728-byte layout row rather than moving it
 between labels.
 
+`tests/capture_vc_memory_comparison.py` implements the paired capture. It
+rejects images whose `CONFIG.SYS` or VC binary differs, boots each private copy,
+runs `MEM /D`, opens VC 4.05 Memory Info, and writes a Markdown comparison with
+the raw conventional MCB rows. Run it against prepared current and retail hard
+disk images:
+
+```sh
+python3 tests/capture_vc_memory_comparison.py \
+  CURRENT.IMG RETAIL-622.IMG out/vc-memory-comparison.md
+```
+
+The validated baseline reproduces 593,312 versus 618,736 bytes, the component
+figures below, a conventional ceiling of `9FC0h` versus retail's `A000h`, and
+the 1,216-byte local UMB advantage. This completes the repeatable measurement
+foundation; generated reports remain build evidence rather than tracked
+documentation.
+
 ### 2. Reduce EMM386's low allocation
 
 EMM386 is the largest component opportunity: 14,464 bytes here versus 4,128 in
