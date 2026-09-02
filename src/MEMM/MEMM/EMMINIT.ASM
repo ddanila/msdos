@@ -67,7 +67,6 @@ EMM_HW_ERROR	equ	81h		; EMM h/w error status
 ;
 _DATA	segment
 
-extrn	pool_size:word    	; size of EMM Pages Pool in kbytes
 extrn	xbase_addr_h:byte	; bit 16-24 of address of first byte of emm memory
 extrn	xbase_addr_l:word	; bit  0-15 of address of first byte of emm memory
 extrn	sys_size:word		; number of 16k pages taken away from conv. mem
@@ -106,7 +105,6 @@ extrn	CurRegSetn:byte
 extrn	CurRegSet:word
 extrn	FRS_free:byte
 extrn	_altreg_count:word
-extrn	banking_base:word
 
 extrn	_handle_table:word
 extrn	_handle_count:word
@@ -125,6 +123,8 @@ endif
 
 LAST	segment
 extrn	mappable_segs:byte
+extrn	pool_size:word    	; size of EMM Pages Pool in kbytes
+extrn	banking_base:word
 extrn	requested_page_count:byte
 extrn	requested_page_ids:byte
 extrn	requested_page_segments:word

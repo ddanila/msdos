@@ -94,9 +94,6 @@ TRUE	equ	not FALSE
 ;
 _DATA	segment
 
-	extrn	dos_version:byte
-	extrn	pool_size:word
-	extrn	min_xms:word
 	extrn	msg_flag:word
 
 ifndef	NOHIMEM
@@ -110,6 +107,9 @@ _DATA	ends
 
 
 LAST	segment
+	extrn	dos_version:byte
+	extrn	pool_size:word
+	extrn	min_xms:word
 	extrn	mappable_segs:byte	; mappable segment map
 	extrn	set_ext:near		; routine to set amount of ext mem
 					; reported by int15 handler

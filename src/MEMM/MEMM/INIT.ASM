@@ -216,11 +216,6 @@ LAST	ends
 ;******************************************************************************
 _DATA	segment
 ;
-dos_version	db	0h	; MS-DOS version
-pool_size	dw	0	; size of EMM Pages Pool in kbytes
-min_xms		dw	0	; extended memory that L= keeps available to XMS
-dma_page_limit	dw	1	; D= buffered DMA capacity in 16 KiB pages
-banking_base	dw	4000h	; B= lowest conventional banking segment
 msg_flag	dw	0	; Message flag byte
 powr10		dw	1,10,100,1000,10000
 max_arg_len	equ	11		; maximum length of argument on cmd line
@@ -280,6 +275,11 @@ requested_page_ids db	20 dup (0)
 requested_page_segments dw 20 dup (0)
 p_frame_seen	db	0
 p_frame_segments dw	4 dup (0ffffh)
+dos_version	db	0h	; MS-DOS version during installation
+pool_size	dw	0	; requested EMM pool in KiB
+min_xms		dw	0	; extended memory that L= keeps available to XMS
+dma_page_limit	dw	1	; D= buffered DMA capacity in 16 KiB pages
+banking_base	dw	4000h	; B= lowest conventional banking segment
 page_id_temp	db	0
 umb_mode	db	0	; RAM or NOEMS requested paging-backed UMBs
 noems_mode	db	0	; NOEMS suppresses the EMS page frame

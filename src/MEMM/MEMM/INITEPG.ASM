@@ -85,7 +85,6 @@ _DATA	segment
 
 extrn	DMA_Pages:word		; DMA EMM pages buffer
 extrn	DMA_PAGE_COUNT:word	; number of DMA pages
-extrn	dma_page_limit:word	; requested DOS 5 D= capacity
 extrn	msg_flag:word
 
 extrn	xbase_addr_l:word	; 24 bit address of beginning of extended mem
@@ -125,6 +124,7 @@ _DATA	ends
 ;------------------------------------------------------------------------------
 LAST	segment
 	assume	cs:LAST, ds:DGROUP, es:DGROUP, ss:DGROUP
+	extrn	dma_page_limit:word	; requested DOS 5 D= capacity
 	page
 ;******************************************************************************
 ;   InitEPage - init EMM_PTE - array of pointers for EMM pages.
