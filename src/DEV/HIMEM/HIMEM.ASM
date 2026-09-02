@@ -8,7 +8,8 @@
         org     0
 
 MAX_HANDLES     equ     128
-HANDLE_SIZE     equ     8
+; active byte, lock count, base KiB, size KiB
+HANDLE_SIZE     equ     6
 MAX_UMB_BLOCKS  equ     32
 UMB_BLOCK_SIZE  equ     5
 HMA_KB          equ     64
@@ -822,8 +823,11 @@ xms_allocate proc near
         mov     word ptr [si+4], dx
         mov     dx, si
         sub     dx, offset handles
-        mov     cl, 3
-        shr     dx, cl
+        mov     ax, dx
+        mov     cl, HANDLE_SIZE
+        div     cl
+        xor     ah, ah
+        mov     dx, ax
         inc     dx
         jmp     xms_success
 allocate_no_memory:
@@ -1361,8 +1365,7 @@ validate_handle proc near
         ja      short validate_bad
         mov     si, dx
         dec     si
-        mov     cl, 3
-        shl     si, cl
+        imul    si, HANDLE_SIZE
         add     si, offset handles
         cmp     byte ptr [si], 1
         jne     short validate_bad
@@ -1710,8 +1713,8 @@ endif
         les     bx, cs:[request_ptr]
         xor     ax, ax
         mov     al, cs:[handle_limit]
-        mov     cl, 3
-        shl     ax, cl
+        mov     dl, HANDLE_SIZE
+        mul     dl
         add     ax, offset handles
         add     ax, 15
         and     ax, 0fff0h

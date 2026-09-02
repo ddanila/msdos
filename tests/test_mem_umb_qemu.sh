@@ -98,8 +98,8 @@ fi
 # The normal 32-handle configuration must not retain capacity for all 128
 # documented handles. Maximum-capacity behavior is covered separately.
 himem_conventional=$(awk '$1 == "HIMEM" { print $3; exit }' "$LOG" | tr -d '\r')
-if [[ ! "$himem_conventional" =~ ^[0-9]+$ ]] || (( himem_conventional > 3200 )); then
-    echo 'FAIL: HIMEM exceeds the 3.125 KiB conventional-memory footprint budget' >&2
+if [[ ! "$himem_conventional" =~ ^[0-9]+$ ]] || (( himem_conventional > 3072 )); then
+    echo 'FAIL: HIMEM exceeds the 3 KiB conventional-memory footprint budget' >&2
     echo "  HIMEM=${himem_conventional:-unparsed}" >&2
     strings -a "$LOG" | sed -n '1,180p' >&2
     exit 1
