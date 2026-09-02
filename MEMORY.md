@@ -339,6 +339,17 @@ not a failure of the packed HIMEM state. Keep the prototype unretained until
 EMM386 boots after arbitrary preceding-driver paragraph counts. A focused
 address-phase boot matrix must become its regression gate.
 
+Historical A/B builds narrow the dependency to `1dec794`, which moved 19 bytes
+of allocation state from DGROUP to LAST. Its parent `75aa2da` boots behind
+stock HIMEM `/NUMHANDLES=29`; `1dec794` and later builds stall. Restoring those
+variables to DGROUP fixes the shifted boot, but leaving them discardable and
+adding an equal DGROUP pad also fixes it. A 12-byte pad moves `_TEXT` and all
+later segments by one paragraph and exactly cancels HIMEM's one-paragraph load
+shift; that configuration boots as well. The variables are therefore not live
+after installation. The active defect is an absolute-address or page-boundary
+assumption in the EMM386 protected-text/first-continuation layout. Repair that
+calculation rather than restoring dead state or retaining alignment padding.
+
 ### Milestones to the target
 
 The work proceeds by evidence, not by assuming all component excess is
