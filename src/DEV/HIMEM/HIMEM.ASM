@@ -530,23 +530,17 @@ xms_query_any_free endp
 
 xms_allocate_any proc near
         cmp     [cpu_386], 0
-        je      short xms3_allocate_unsupported
+        je      short xms3_unsupported
         mov     eax, edx
         shr     eax, 16
-        jnz     short xms3_allocate_too_large
+        jnz     short xms3_request_no_memory
         call    xms_allocate
         ret
-xms3_allocate_too_large:
-        mov     bl, ERR_NO_MEMORY
-        jmp     xms_failure
-xms3_allocate_unsupported:
-        mov     bl, ERR_NOT_IMPLEMENTED
-        jmp     xms_failure
 xms_allocate_any endp
 
 xms_extended_handle_info proc near
         cmp     [cpu_386], 0
-        je      short xms3_info_unsupported
+        je      short xms3_unsupported
         push    cx
         call    validate_handle
         jc      short xms3_info_bad_handle
@@ -560,23 +554,22 @@ xms_extended_handle_info proc near
 xms3_info_bad_handle:
         pop     cx
         jmp     xms_bad_handle
-xms3_info_unsupported:
-        mov     bl, ERR_NOT_IMPLEMENTED
-        jmp     xms_failure
 xms_extended_handle_info endp
 
 xms_reallocate_any proc near
         cmp     [cpu_386], 0
-        je      short xms3_reallocate_unsupported
+        je      short xms3_unsupported
         mov     eax, ebx
         shr     eax, 16
-        jnz     short xms3_reallocate_too_large
+        jnz     short xms3_request_no_memory
         call    xms_reallocate
         ret
-xms3_reallocate_too_large:
+; The XMS 3 request wrappers use the same BL error contract. Keep one copy of
+; each tail so adding a wrapper does not retain another identical exit.
+xms3_request_no_memory::
         mov     bl, ERR_NO_MEMORY
         jmp     xms_failure
-xms3_reallocate_unsupported:
+xms3_unsupported::
         mov     bl, ERR_NOT_IMPLEMENTED
         jmp     xms_failure
 xms_reallocate_any endp
