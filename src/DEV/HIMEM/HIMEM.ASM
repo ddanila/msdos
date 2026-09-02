@@ -11,7 +11,10 @@ MAX_HANDLES     equ     128
 ; active byte, lock count, base KiB, size KiB
 HANDLE_SIZE     equ     6
 MAX_UMB_BLOCKS  equ     32
-UMB_BLOCK_SIZE  equ     5
+; segment and paragraph size; bit 15 of size marks an allocated block. A UMB
+; is wholly below F000h, so its size is always less than 5000h paragraphs.
+UMB_BLOCK_SIZE  equ     4
+UMB_ALLOCATED   equ     08000h
 HMA_KB          equ     64
 
 ERR_NOT_IMPLEMENTED equ 080h
@@ -234,7 +237,6 @@ private_copy:
         mov     word ptr [di], ax
         mov     ax, word ptr es:[si+2]
         mov     word ptr [di+2], ax
-        mov     byte ptr [di+4], 0       ; free
         add     si, 4
         add     di, UMB_BLOCK_SIZE
         loop    private_copy
@@ -264,8 +266,8 @@ private_unregister:
         mov     cx, [umb_count]
         jcxz    short private_unregister_clear
 private_unregister_scan:
-        cmp     byte ptr [si+4], 0
-        jne     short private_unregister_busy
+        test    word ptr [si+2], UMB_ALLOCATED
+        jnz     short private_unregister_busy
         add     si, UMB_BLOCK_SIZE
         loop    private_unregister_scan
 private_unregister_clear:
@@ -1025,8 +1027,8 @@ xms_umb_request proc near
         mov     di, 0ffffh              ; first suitable block
         jcxz    umb_request_fail
 umb_request_scan:
-        cmp     byte ptr [si+4], 0
-        jne     short umb_request_next
+        test    word ptr [si+2], UMB_ALLOCATED
+        jnz     short umb_request_next
         mov     ax, word ptr [si+2]
         cmp     ax, bp
         jbe     short umb_request_size
@@ -1054,10 +1056,9 @@ umb_request_next:
         mov     ax, word ptr [di+2]
         sub     ax, dx
         mov     word ptr [di+UMB_BLOCK_SIZE+2], ax
-        mov     byte ptr [di+UMB_BLOCK_SIZE+4], 0
         mov     word ptr [di+2], dx
 umb_request_exact:
-        mov     byte ptr [di+4], 1
+        or      word ptr [di+2], UMB_ALLOCATED
         jmp     xms_success
 umb_request_fail:
         mov     dx, bp
@@ -1078,8 +1079,8 @@ xms_umb_release proc near
 umb_release_find:
         cmp     word ptr [si], dx
         jne     short umb_release_next
-        cmp     byte ptr [si+4], 1
-        je      short umb_release_found
+        test    word ptr [si+2], UMB_ALLOCATED
+        jnz     short umb_release_found
 umb_release_next:
         inc     di
         add     si, UMB_BLOCK_SIZE
@@ -1088,7 +1089,7 @@ umb_release_bad:
         mov     bl, ERR_BAD_UMB
         jmp     xms_failure
 umb_release_found:
-        mov     byte ptr [si+4], 0
+        and     word ptr [si+2], NOT UMB_ALLOCATED
         call    coalesce_umb_blocks
         jmp     xms_success
 xms_umb_release endp
@@ -1114,8 +1115,6 @@ insert_umb_shift:
         mov     word ptr [si], ax
         mov     ax, word ptr [si-UMB_BLOCK_SIZE+2]
         mov     word ptr [si+2], ax
-        mov     al, byte ptr [si-UMB_BLOCK_SIZE+4]
-        mov     byte ptr [si+4], al
         sub     si, UMB_BLOCK_SIZE
         loop    insert_umb_shift
 insert_umb_done:
@@ -1136,10 +1135,10 @@ coalesce_umb_blocks proc near
         dec     cx
         jcxz    short coalesce_done
 coalesce_scan:
-        cmp     byte ptr [si+4], 0
-        jne     short coalesce_next
-        cmp     byte ptr [si+UMB_BLOCK_SIZE+4], 0
-        jne     short coalesce_next
+        test    word ptr [si+2], UMB_ALLOCATED
+        jnz     short coalesce_next
+        test    word ptr [si+UMB_BLOCK_SIZE+2], UMB_ALLOCATED
+        jnz     short coalesce_next
         mov     ax, word ptr [si]
         add     ax, word ptr [si+2]
         cmp     ax, word ptr [si+UMB_BLOCK_SIZE]
@@ -1180,8 +1179,6 @@ remove_umb_shift:
         mov     word ptr [di-UMB_BLOCK_SIZE], cx
         mov     cx, word ptr [di+2]
         mov     word ptr [di-UMB_BLOCK_SIZE+2], cx
-        mov     cl, byte ptr [di+4]
-        mov     byte ptr [di-UMB_BLOCK_SIZE+4], cl
         jmp     short remove_umb_shift
 remove_umb_done:
         pop     di
