@@ -65,7 +65,6 @@ caller_si       dw      0
 move_length     dd      0
 move_source     dd      0
 move_dest       dd      0
-move_chunk      dd      0
 move_offset_error db    0
 highest_page   dw      0
 
@@ -1259,8 +1258,6 @@ copy_move_large:
 copy_move_final:
         mov     cx, ax
 copy_move_chunk:
-        mov     word ptr [move_chunk], cx
-        mov     word ptr [move_chunk+2], 0
         mov     ax, word ptr [move_source]
         mov     dx, word ptr [move_source+2]
         mov     di, offset move_source_desc
@@ -1269,6 +1266,7 @@ copy_move_chunk:
         mov     dx, word ptr [move_dest+2]
         mov     di, offset move_dest_desc
         call    set_move_descriptor
+        push    cx
         shr     cx, 1
         push    ds
         push    es
@@ -1283,8 +1281,8 @@ copy_move_chunk:
         pop     si
         pop     es
         pop     ds
+        pop     cx
         jc      short copy_move_fail
-        mov     cx, word ptr [move_chunk]
         add     word ptr [move_source], cx
         adc     word ptr [move_source+2], 0
         add     word ptr [move_dest], cx
