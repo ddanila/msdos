@@ -761,9 +761,9 @@ CompactVData proc near
 
 	mov	ax,word ptr [TEXT_Phys]
 	or	ax,word ptr [TEXT_Phys+2]
-	jz	short CV_done
+	jz	CV_done
 	cmp	[Active_Status],0
-	je	short CV_done
+	je	CV_done
 	mov	ax,seg _TEXT
 	sub	ax,seg DGROUP
 	shl	ax,4
@@ -789,11 +789,27 @@ CompactVData proc near
 	sub	[_pft386],bx
 	sub	[_emm_brk],bx
 
+	; The ring-0 stack was originally placed immediately after the dynamic
+	; VDATA break.  Compaction moves that break, so retaining the old stack
+	; descriptor would leave it in storage that DOS is about to reclaim.
+	; No protected frame is active here: FarGoVirtual has returned to real
+	; mode.  Rebase the descriptor on the new paragraph boundary and retain
+	; the complete stack in the installed driver allocation.
 	mov	ax,[_emm_brk]
 	add	ax,15
 	shr	ax,4
 	add	ax,seg DGROUP
-	mov	word ptr [driver_end],10h
+	mov	[STACK_Seg],ax
+	mov	es,[GDT_Seg]
+	call	SegTo24
+	mov	cx,offset STACK0_SIZE
+	mov	ah,D_DATA0
+	mov	bx,VDMS_GSEL
+	call	SetSegDesc
+
+	mov	word ptr [driver_end],0
+	mov	ax,[STACK_Seg]
+	add	ax,STACK0_SIZE/10h
 	mov	word ptr [driver_end+2],ax
 CV_done:
 	pop	ax
