@@ -298,19 +298,19 @@ therefore include at least one of these outcomes:
 - combine smaller layout and better-than-retail component gains to the same
   total.
 
-The critical path is:
+The load-paragraph dependency and first EMM386 symbol census are complete. The
+remaining critical path is:
 
-1. make EMM386 independent of its load paragraph, because the present defect
-   blocks even a proved one-paragraph HIMEM saving;
-2. complete byte attribution and symbol censuses so safe compaction has a
-   measured yield and destination;
-3. take paragraph-scale HIMEM/EMM386 wins, then the bounded COMMAND wins, while
-   updating the equation after every paired capture;
-4. recover the EBDA ceiling paragraph only after identifying already-owned
+1. finish range-level attribution for EMM386 and attribute HIMEM, COMMAND, DOS,
+   BIOS, and every MCB gap so each proposed saving has a known destination;
+2. take paragraph-scale HIMEM and EMM386 data, code-sharing, and alignment wins,
+   then the bounded COMMAND wins, updating the equation after every paired
+   capture;
+3. recover the EBDA ceiling paragraph only after identifying already-owned
    destination storage;
-5. close the still-measured remainder through DOS layout compaction or the
+4. close the still-measured remainder through DOS layout compaction or the
    smallest necessary EMM386/COMMAND architectural split; and
-6. defend retail-or-better memory with a local fixed-image regression floor.
+5. defend retail-or-better memory with a local fixed-image regression floor.
 
 This ordering is a dependency order, not a promise that the early inexpensive
 work is sufficient. If the censuses show that safe compaction plus the EBDA and
@@ -378,10 +378,10 @@ capture pass.
 | Order | Area | Experiment | Decision evidence |
 | ---: | --- | --- | --- |
 | 1 | Measurement | Add linker/map boundaries and paragraph deltas to the paired report; account for `0000h..0477h` and every gap between MCBs | Every byte of the 9,712-byte layout row has an owner or an explicitly unknown range |
-| 2 | EMM386 | Keep installation and the first virtual-to-real continuation independent of the preceding driver's paragraph count | Passed across `/NUMHANDLES=24..32`; retain runtime-mode and warm-reboot coverage |
+| Complete | EMM386 | Keep installation and the first virtual-to-real continuation independent of the preceding driver's paragraph count | Passed across `/NUMHANDLES=24..32`; retain runtime-mode and warm-reboot coverage |
 | 3 | HIMEM | Pack boolean HMA/A20 state into fields with proved spare bits, or derive it from existing nesting/ownership state | All A20 backends, nested local/global enable, HMA ownership, DOS-high and warm reboot |
 | 4 | HIMEM | Audit duplicate error exits, request dispatch, range checks and paragraph-tail padding as one map-guided pass | Exact XMS error codes, XMS 2/3, 128 handles and legacy-driver bounce path |
-| 5 | EMM386 | Produce a resident-symbol census grouped as real-only, protected-only, dual-mapped, mutable runtime, or initialization-only | No unclassified symbol in the 13,792-byte allocation; measured size per group |
+| Complete | EMM386 | Produce a resident-symbol census grouped as real-only, protected-only, dual-mapped, mutable runtime, or initialization-only | No unclassified linker-visible symbol; range-level accounting remains open |
 | 6 | EMM386 | Compact remaining runtime arrays, descriptors, flags and alignment; size storage from selected options where maximum growth remains possible | Normal and maximum `H=`/`A=`/`B=`/`D=`/frame configurations and EMS 4.0 maps |
 | 7 | EMM386 | Relocate the next self-contained protected-only table or routine into the existing locked XMS image | Fault, DMA, mapping, `ON`/`OFF`/`AUTO`, inactive query and warm-reboot paths |
 | 8 | EMM386 | Replace the shared `RRProc` continuation with a small relocation-safe low gateway, allowing its transition module to move high | Repeated real/virtual transitions plus all runtime command modes |
@@ -422,11 +422,31 @@ At each gate, update the baseline rather than carrying projected savings
 forward. The roadmap is complete only when the equation reaches zero on a clean
 build and the fixed comparison remains reproducible.
 
-The immediate queue is deliberately conservative: finish attribution and
-census EMM386 before changing another transition boundary. COMMAND and EBDA
-work follow once their maps identify a destination rather than merely a source
-of bytes. The architectural EMM386 and COMMAND changes remain available if
-small compactions cannot close the gap.
+The immediate queue is deliberately conservative: finish EMM386 range
+attribution, then audit its retained DGROUP and low prefix for whole-paragraph
+wins before changing another transition boundary. The DMA register snapshot
+and final DMA page list remain low: real-mode transition code refreshes the
+snapshot and initialization constructs the page list before protected state is
+available. Moving either requires a gateway or dual-copy design, not a linker
+move. COMMAND, DOS-layout, and EBDA work follow once their maps identify a safe
+destination rather than merely a source of bytes. The architectural EMM386 and
+COMMAND changes remain the fallback if measured safe compactions cannot close
+the gap.
+
+The next implementation tranche is therefore:
+
+1. complete byte-range accounting inside EMM386's 8,196-byte retained code
+   prefix and 1,112-byte DGROUP, including local labels and alignment;
+2. correct or remove over-wide and duplicated retained state only in bundles
+   large enough to cross an allocation paragraph, checking cross-module symbol
+   types as part of that audit;
+3. repeat maximum `H=`/`A=`/`B=`/`D=`, EMS 4.0, DMA, runtime-mode, warm-reboot,
+   shifted-load, and paired VC tests for every retained bundle;
+4. perform the equivalent map census for HIMEM, followed by COMMAND's
+   `CODERES` and `DATARES`; and
+5. use the measured residual to choose between the EMM386 low-gateway split
+   and DOS/COMMAND layout work. Do not begin the larger split merely because
+   isolated byte savings become harder to find.
 
 Two HIMEM shortcuts have already been rejected and must not be retried without a
 different design. Recovering saved caller registers from fixed stack offsets
