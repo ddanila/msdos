@@ -493,6 +493,16 @@ Making `umb_count` byte-sized is also rejected on the 286 path: each consumer
 would need an additional instruction to clear the high half of its loop count,
 growing resident code by more than the one data byte recovered.
 
+Sharing the two EMM386 fatal-error messages through one conventional output
+buffer is also deferred. A prototype moved their immutable templates into the
+protected `_TEXT` copy and reduced `_DATA` by 76 bytes, but the additional 209
+protected bytes changed the later VDATA/relocation geometry and stalled the
+hard-disk boot immediately after EMM386's installation banner. The source and
+destination lifetimes are valid; the failure is an address-phase dependency,
+not a reason to retain duplicate messages permanently. Retry only after the
+relocated-text and VDATA placement is independent of protected-suffix growth,
+and retain a deliberate exception-screen probe with that redesign.
+
 The next HIMEM paragraph exposed a separate EMM386 prerequisite. A prototype
 packed HMA ownership into `/HMAMIN=`'s unused high bit and shared the identical
 local/global A20 success tails. Focused HMA, A20, XMS 3, option-limit, and UMB
