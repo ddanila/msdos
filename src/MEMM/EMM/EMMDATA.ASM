@@ -225,7 +225,6 @@ _page_frame_pages	dw	4		; pages in the page frame
 ;_VMn_cntxt_bytes	db	0
 
 _cntxt_pages		db	0		; Pages in context
-_cntxt_bytes		db	0		; Bytes in context
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;07. HARDWARE INFORMATION
@@ -236,6 +235,9 @@ _emm40_info	LABEL	WORD
 	dw	0400h			; raw page size in paragraphs (16k)
 _altreg_count	LABEL	WORD
 	dw	7			; DOS 5 A= default extra register sets
+	; The initialized context size is also the canonical function 59h field.
+_cntxt_bytes	LABEL	BYTE
+_frs_size	LABEL	WORD
 	dw	size FRS_window+2	; max. number of bytes to save a context
 					; ( FRS_window size + 2 )
 	dw	0			; settable DMA channels
@@ -248,7 +250,6 @@ _altreg_count	LABEL	WORD
 ; is the normal mapping set.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 FRS_array	dw	0		; Pointer to runtime-sized FRS structures
-_frs_size	dw	size FRS_struc	; Runtime stride: allocation word plus map
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;09. Variables to support FRS Implementation

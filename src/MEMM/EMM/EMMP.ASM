@@ -198,16 +198,13 @@ _GetUnallocatedPageCount proc near
 	mov	word ptr [bp.rBX], ax
 	mov	ax, [_total_pages]
 	mov	word ptr [bp.rDX], ax
-	xor	al, al				; OK status
-	mov	byte ptr [bp.rAX+1], al
+	mov	byte ptr [bp.rAX+1], OK
 	ret
 _GetUnallocatedPageCount endp
 
 _GetEMMVersion proc near
 	; Dispatcher-only entry: BP already identifies the saved registers.
-	mov	al, 40h				; LIM EMS version 4.0
-	xor	ah, ah				; OK status
-	mov	word ptr [bp.rAX], ax
+	mov	word ptr [bp.rAX], 0040h	; OK, LIM EMS version 4.0
 	ret
 _GetEMMVersion endp
 
@@ -224,8 +221,7 @@ _GetEMMHandleCount proc near
 _GetEMMHandleCount endp
 
 _GetStatus proc near
-	xor	al, al				; OK status
-	mov	byte ptr [bp.rAX+1], al
+	mov	byte ptr [bp.rAX+1], OK
 	ret
 _GetStatus endp
 
@@ -1124,8 +1120,7 @@ gmpa_success:
 	mov	bp, [_regp]
 	mov	cx, [_mappable_page_count]
 	mov	word ptr [bp.rCX], cx
-	xor	al, al				; OK status
-	mov	byte ptr [bp.rAX+1], al
+	mov	byte ptr [bp.rAX+1], OK
 	ret
 
 gmpa_invalid:

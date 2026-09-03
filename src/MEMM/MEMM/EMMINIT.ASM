@@ -101,7 +101,6 @@ extrn	_pft386:word		; ptr to array of page table entries
 extrn	_emm_brk:word		; offset for emm data break address
 
 extrn	FRS_array:word		; pointer to runtime-sized FRS array
-extrn	_frs_size:word		; runtime FRS structure stride
 extrn	CurRegSetn:byte
 extrn	CurRegSet:word
 extrn	FRS_free:byte
@@ -676,10 +675,9 @@ EMIN_9:
 	mov	[_cntxt_bytes],al	;
 ;
 	; Allocate each alternate register set for the mapping context exposed by
-	; this machine, not the 52-window architectural maximum. The maximum B=/A=
-	; configuration still computes and retains the full structure.
-	xor	ah,ah
-	mov	[_frs_size],ax
+	; this machine, not the 52-window architectural maximum. _frs_size aliases
+	; this word-sized context value. The maximum B=/A= configuration still
+	; computes and retains the full structure.
 	mov	di,[_emm_brk]
 	mov	[FRS_array],di
 	mov	bx,[_altreg_count]

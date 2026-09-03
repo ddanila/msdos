@@ -73,8 +73,6 @@ extern unsigned short emm40_info[5];		/* hardware information */
 /*extern char	VMn_cntxt_pages;		/* pages in a VM context */
 /*extern char	VM1_cntxt_bytes;		/* bytes in a VM1 context */
 /*extern char	VMn_cntxt_bytes;		/* bytes in a VM context */
-extern char cntxt_pages;		/* pages in context */
-extern char cntxt_bytes;		/* bytes in context */
 extern unsigned short PF_Base;
 /*extern unsigned short VM1_EMM_Offset;*/
 extern unsigned short page_frame_base[];
@@ -211,7 +209,6 @@ GetInformation()
 
 	if ( regp->hregs.h.ral == 0 ) {
 		u_ptr = dest_addr();		/* ES:DI */
-		emm40_info[2] = (short)cntxt_bytes;	/* update size */
 		copyout(u_ptr, emm40_info, sizeof(emm40_info));
 		setAH(OK);
 	} else if ( regp->hregs.h.ral == 1 ) {
