@@ -780,7 +780,7 @@ capture pass.
 | ---: | --- | --- | --- |
 | Complete A1 | Measurement | Keep VC aggregates and block counts distinct from the earlier raw `MEM /D` process snapshot | The report labels both accounting models and its parser has a local regression test |
 | Complete A2 | Measurement | Reconcile the full VC gap through system, COMMAND, VC, free-block, and ceiling spans, isolating the retained DOS/BIOS remainder | The current report proves `18,528 + 3,360 + 0 + 1,024 = 22,912`; the component census isolates 8,096 bytes for A3 |
-| A3 in progress | Measurement | Add reproducible HIMEM, EMM386, COMMAND, DOS, and BIOS resident-range reports from their linker maps | HIMEM and EMM386 are accounted exactly; the fixed BIOS boundary is selected exactly; COMMAND and byte-level DOS ownership remain |
+| A3 in progress | Measurement | Add reproducible HIMEM, EMM386, COMMAND, DOS, and BIOS resident-range reports from their linker maps | HIMEM, EMM386, and COMMAND top-level lifetimes are accounted; the fixed BIOS boundary is selected exactly; byte-level COMMAND and DOS ownership plus the runtime HMA map remain |
 | B1 | HIMEM | Continue the map-guided audit of dispatch, validation, move, lock, A20, HMA, request-header, and error paths; share tails only where outputs and reentrancy agree | Exact XMS 2/3 errors, all A20 backends, HMA, moves, warm reboot, and 286 execution pass |
 | B2 | HIMEM | Audit the move descriptor, UMB transaction records, handle records, counters, sentinels, immutable values, and alignment for narrower or derived representation | Zero-length and 128 handles, 32 UMB extents, rollback, locks, reallocations, and legacy bounce pass |
 | B3 | HIMEM | Move every remaining parser, CPU/memory detection, destructive test, message, and installation temporary beyond the rounded resident break | Map proves no runtime reference crosses the break; normal and maximum option footprints are budgeted |
@@ -791,7 +791,7 @@ capture pass.
 | C4 | EMM386 | Split ordinary EMS service dispatch from mapping-sensitive activation so services that do not require virtual mode can live in the relocated image | EMS 3.2/4.0, non-empty function 56h maps, alternate sets, and inactive queries pass |
 | C5 | EMM386 | Replace `RRProc` and the return-to-real continuation with a small position-independent low gateway, then relocate the remaining transition module | Repeated real/virtual transitions, fault returns, runtime modes, shifted loads, and warm reboot pass |
 | C6 | EMM386 | Revisit the deferred shared exception-message buffer only with a probe around both protected-to-real copies | The buffer is correct before and after return, and installation plus exception dialogs complete |
-| D1 | COMMAND | Generate a `CODERES`/`DATARES` byte-range census, including resident strings, message descriptors, reload code, batch/environment state, and alignment | Every resident byte has a reason it must survive transient overwrite |
+| D1 in progress | COMMAND | Refine the generated `CODERES`/`DATARES` byte-range census from lifetime classes to symbol/module ownership | The report checks every top-level range and break; each resident symbol still needs a reason it must survive transient overwrite |
 | D2 | COMMAND | Move rare formatting, help/error text, and callable services to the reloadable transient; merge mutually exclusive scratch and descriptors | Reload after external programs, batch, pipes, `INT 2Eh`, Ctrl+C, critical errors, and termination pass |
 | D3 | COMMAND | If necessary, redesign the resident/transient interface around a smaller stable state block and reload gateway | The complete internal-command surface and shell state survive every reload path |
 | E1 | DOS/BIOS | Attribute and compact retained-low DOS/BIOS gateways, DPBs, SFT/CDS anchors, device-chain state, tables, buffers, stacks, and compatibility data | Internal structures, drivers, redirectors, filesystem, async interrupts, EXEC, and warm reboot pass |
@@ -1470,7 +1470,25 @@ COMMAND occupies 6,320 bytes versus retail's 2,960. Its retained allocation
 already ends at `DATARESEND`; the opportunity is inside resident code and data,
 not an accidentally retained transient tail. Inspect `CODERES`, `DATARES`, the
 resident message blocks, batch/environment bookkeeping, reload code, and their
-alignment separately. Potential approaches are:
+alignment separately.
+
+`tests/report_command_residency.py` now checks the linker map and binary on
+every local `make test`. The default break is exactly 6,112 bytes: a 256-byte
+PSP, 3,548 bytes of resident code, a 125-byte resident stack, 643 bytes of
+mutable shell state, 1,054 bytes of resident message-service data, and 486
+bytes of critical-error messages. The 1,000-byte parse/extended catalog tail
+is resident only with `/MSG`; 3,816 bytes of initialization/templates and the
+48,584-byte command body are already outside the default resident break. This
+closes the top-level census but not D1: symbol/module ownership within the two
+message ranges and resident code must be established before moving them.
+
+Reproduce the checked census with:
+
+```sh
+make test-command-residency
+```
+
+Potential approaches are:
 
 - move rarely used commands, messages, and error formatting to the reloadable
   transient part;

@@ -1,0 +1,162 @@
+#!/usr/bin/env python3
+"""Report COMMAND's resident, optional-message, and discardable ranges."""
+
+from __future__ import annotations
+
+import argparse
+from dataclasses import dataclass
+from pathlib import Path
+import re
+
+
+SEGMENT_RE = re.compile(
+    r"^(\S+)\s+.*?([0-9A-F]{4}):([0-9A-F]{4})\s+([0-9A-F]{8})$",
+    re.IGNORECASE,
+)
+SYMBOL_RE = re.compile(
+    r"^([0-9A-F]{4}):([0-9A-F]{4})(?:[*+])?\s+(\S.*)$",
+    re.IGNORECASE,
+)
+
+
+@dataclass(frozen=True)
+class Segment:
+    name: str
+    start: int
+    size: int
+
+    @property
+    def end(self) -> int:
+        return self.start + self.size
+
+
+def parse_map(path: Path) -> tuple[dict[str, Segment], dict[str, int]]:
+    segments: dict[str, Segment] = {}
+    symbols: dict[str, int] = {}
+    section = ""
+    for raw in path.read_text(encoding="latin-1").splitlines():
+        if "|   Segments   |" in raw:
+            section = "segments"
+            continue
+        if "|   Absolute Segments   |" in raw:
+            section = "absolute"
+            continue
+        if "|   Memory Map   |" in raw:
+            section = "symbols"
+            continue
+        if section == "segments":
+            match = SEGMENT_RE.match(raw)
+            if match:
+                name, paragraph, offset, size = match.groups()
+                start = int(paragraph, 16) * 16 + int(offset, 16)
+                segments[name] = Segment(name, start, int(size, 16))
+        elif section == "symbols":
+            match = SYMBOL_RE.match(raw)
+            if match:
+                paragraph, offset, name = match.groups()
+                symbols.setdefault(name, int(paragraph, 16) * 16 + int(offset, 16))
+    if not segments or not symbols:
+        raise ValueError(f"could not parse segments and symbols from {path}")
+    return segments, symbols
+
+
+def require(mapping: dict[str, int], name: str) -> int:
+    try:
+        return mapping[name]
+    except KeyError as error:
+        raise ValueError(f"required linker symbol {name!r} is missing") from error
+
+
+def rounded(value: int) -> int:
+    return (value + 15) & ~15
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("map", type=Path, help="COMMAND linker map")
+    parser.add_argument("binary", type=Path, help="COMMAND.COM built from the map")
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args()
+
+    segments, symbols = parse_map(args.map)
+    required_segments = (
+        "CODERES", "DATARES", "BATARENA", "BATSEG", "ENVARENA",
+        "ENVIRONMENT", "INIT", "TAIL", "TRANCODE", "TRANDATA",
+        "TRANSPACE", "TRANEXT", "TRANTAIL",
+    )
+    missing = [name for name in required_segments if name not in segments]
+    if missing:
+        raise ValueError(f"required linker segments are missing: {', '.join(missing)}")
+
+    datares_end = require(symbols, "DATARESEND")
+    parse_messages = require(symbols, "parse_msg_start")
+    extended_messages = require(symbols, "extended_msg_start")
+    extended_end = require(symbols, "extmsgend")
+    resident_state_end = require(symbols, "resmsgend")
+    critical_messages = require(symbols, "critical_msg_start")
+    resident_code_end = require(symbols, "RES_CODE_END")
+    tran_start = require(symbols, "TranStart")
+    tran_data_end = require(symbols, "TRANDATAEND")
+    code = segments["CODERES"]
+    data = segments["DATARES"]
+    errors: list[str] = []
+
+    if code.start != 0 or data.start != code.end:
+        errors.append("CODERES and DATARES are no longer contiguous at offset zero")
+    if not (data.start <= resident_state_end <= critical_messages <= datares_end):
+        errors.append("default resident DATARES ownership boundaries are not ordered")
+    if not (datares_end == parse_messages <= extended_messages <= extended_end == data.end):
+        errors.append("optional resident-message boundaries do not cover the DATARES tail")
+    if not (0x100 <= resident_code_end <= code.end):
+        errors.append("resident code/stack boundary falls outside CODERES")
+    if tran_start != segments["TRANCODE"].start:
+        errors.append("TranStart no longer equals the transient-group start")
+    if tran_data_end > segments["TRANDATA"].end:
+        errors.append("TRANDATAEND exceeds TRANDATA")
+    image_end = args.binary.stat().st_size + 0x100
+    if image_end != segments["TRANEXT"].end:
+        errors.append("binary size plus the PSP origin no longer equals the initialized image end")
+
+    print("# COMMAND residency census\n")
+    print("## Default resident image\n")
+    print("| Range | Offset | Bytes | Owner/lifetime |")
+    print("| --- | ---: | ---: | --- |")
+    ranges = [
+        ("PSP and command tail", 0, 0x100, "DOS process ABI; resident"),
+        ("Resident code", 0x100, resident_code_end, "EXEC/reload, INT 22h/23h/24h/2Eh, messages; resident"),
+        ("Resident stack", resident_code_end, code.end, "asynchronous and reload paths; resident"),
+        ("Mutable shell state", data.start, resident_state_end, "batch, pipe, environment, EXEC, reload; resident"),
+        ("Resident message service data", resident_state_end, critical_messages, "resident formatter/catalog state"),
+        ("Critical-error messages", critical_messages, datares_end, "INT 24h and reload failures; resident"),
+    ]
+    for name, start, end, owner in ranges:
+        print(f"| {name} | `{start:04X}h..{end:04X}h` | {end - start:,} | {owner} |")
+    print(f"| **Default resident break** | `0000h..{datares_end:04X}h` | **{datares_end:,}** | **{rounded(datares_end):,} paragraph-rounded** |")
+
+    print("\n## Optional and discardable ranges\n")
+    print("| Range | Offset | Bytes | Lifetime |")
+    print("| --- | ---: | ---: | --- |")
+    optional = [
+        ("Parse-error catalog", parse_messages, extended_messages, "resident only with `/MSG`"),
+        ("Extended-error catalog", extended_messages, extended_end, "resident only with `/MSG`"),
+        ("Batch arena header", segments["BATARENA"].start, segments["BATARENA"].end, "runtime allocation template"),
+        ("Initial batch block", segments["BATSEG"].start, segments["BATSEG"].end, "runtime allocation template"),
+        ("Environment arena header", segments["ENVARENA"].start, segments["ENVARENA"].end, "runtime allocation template"),
+        ("Initial environment", segments["ENVIRONMENT"].start, segments["ENVIRONMENT"].end, "moved to its own allocation"),
+        ("Initialization", segments["INIT"].start, segments["INIT"].end, "discarded after startup"),
+        ("Reloadable transient", tran_start, image_end, "overwritable and reloaded after EXEC"),
+    ]
+    for name, start, end, lifetime in optional:
+        print(f"| {name} | `{start:04X}h..{end:04X}h` | {end - start:,} | {lifetime} |")
+    print(f"\n`/MSG` raises the resident break by {extended_end - datares_end:,} bytes "
+          f"to {rounded(extended_end):,} paragraph-rounded bytes.")
+
+    if errors:
+        print("\n## Census errors\n")
+        for error in errors:
+            print(f"- {error}")
+    return 1 if args.check and errors else 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

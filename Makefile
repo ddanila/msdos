@@ -32,7 +32,7 @@ AINC     := -I. -ID:\\TOOLS\\INC
 .PHONY: test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-szdd-tool distribution test-distribution test-setup-qemu test-setup-floppy-qemu test-mirror-unformat-qemu test-undelete-qemu
 .PHONY: test-command-step-qemu test-msd-qemu test-scandisk-qemu test-defrag-qemu test-defrag-fat16-qemu test-mem-dos6-qemu test-memmaker-qemu test-memmaker-rollback-qemu test-power-qemu test-power-api-qemu test-config-menu-qemu test-config-menu-input-qemu
 .PHONY: test-copy-policy-qemu test-86box-286-boot test-platform-286-86box test-pre386-memory-86box test-startup-reboot-286-86box test-himem-residency
-.PHONY: test-xcopy-dos6-qemu test-ega-qemu test-help-ui-qemu
+.PHONY: test-xcopy-dos6-qemu test-ega-qemu test-help-ui-qemu test-command-residency
 .PHONY: test-config-numlock-qemu
 .PHONY: test-config-set-qemu
 .PHONY: test-startup-keys-qemu
@@ -254,7 +254,7 @@ ARTIFACTS := \
     CMD/INTERSVR/INTERSVR.EXE \
     MEMM/MEMM/EMM386.EXE
 
-test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-keyboard-records test-country-records test-szdd-tool test-distribution test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-scandisk-qemu test-defrag-qemu test-defrag-fat16-qemu test-mem-dos6-qemu test-memmaker-qemu test-memmaker-rollback-qemu test-smartdrv-reboot-qemu test-power-qemu test-power-api-qemu test-mscdex-qemu test-interlnk-qemu test-setup-qemu test-setup-floppy-qemu test-ega-qemu test-help-ui-qemu test-himem-options-qemu test-himem-xms3-qemu test-ems40-extended-qemu test-internal-structures-qemu test-supplemental-locale-qemu test-vc-memory-report test-dos-bios-residency test-himem-residency test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-internal-structure-coverage-manifest test-ems40-coverage-manifest test-device-request-coverage-manifest
+test: $(KVIKDOS_SOFT_BIN) test-native-build-tools test-keyboard-records test-country-records test-szdd-tool test-distribution test-expand test-choice test-loadfix-qemu test-deltree-qemu test-move-qemu test-scandisk-qemu test-defrag-qemu test-defrag-fat16-qemu test-mem-dos6-qemu test-memmaker-qemu test-memmaker-rollback-qemu test-smartdrv-reboot-qemu test-power-qemu test-power-api-qemu test-mscdex-qemu test-interlnk-qemu test-setup-qemu test-setup-floppy-qemu test-ega-qemu test-help-ui-qemu test-himem-options-qemu test-himem-xms3-qemu test-ems40-extended-qemu test-internal-structures-qemu test-supplemental-locale-qemu test-vc-memory-report test-dos-bios-residency test-command-residency test-himem-residency test-batch-oracles test-oracle-mutation-coverage test-coverage-manifest test-int21-error-coverage-manifest test-runtime-coverage-manifest test-command-coverage-manifest test-utility-parser-coverage-manifest test-program-interface-coverage-manifest test-debug-command-coverage-manifest test-help-coverage-manifest test-dos-interrupt-coverage-manifest test-internal-structure-coverage-manifest test-ems40-coverage-manifest test-device-request-coverage-manifest
 	bash tests/run_tests.sh
 
 test-native-build-tools:
@@ -266,6 +266,10 @@ test-vc-memory-report:
 test-dos-bios-residency: dos bios
 	python3 tests/report_dos_bios_residency.py --check \
 		src/DOS/MSDOS.MAP src/BIOS/msBIO.map
+
+test-command-residency: cmd_command
+	python3 tests/report_command_residency.py --check \
+		src/CMD/COMMAND/COMMAND.MAP src/CMD/COMMAND/COMMAND.COM
 
 test-himem-residency: $(BIN)/jwasm-bin
 	mkdir -p $(OUT)
