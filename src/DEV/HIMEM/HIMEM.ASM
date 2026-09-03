@@ -272,7 +272,7 @@ private_unregister_scan:
         add     si, UMB_BLOCK_SIZE
         loop    private_unregister_scan
 private_unregister_clear:
-        mov     [umb_count], 0
+        mov     [umb_count], cx
         mov     ax, 1
         xor     bx, bx
         jmp     short private_unregister_done
@@ -658,21 +658,15 @@ verify_a20_failed:
 verify_a20_target endp
 
 kbc_wait_input proc near
-        push    ax
-        push    cx
         mov     cx, 0ffffh
 kbc_wait_loop:
         in      al, 064h
         test    al, 2
         jz      short kbc_wait_ready
         loop    kbc_wait_loop
-        pop     cx
-        pop     ax
         stc
         ret
 kbc_wait_ready:
-        pop     cx
-        pop     ax
         clc
         ret
 kbc_wait_input endp
@@ -985,12 +979,10 @@ xms_umb_release endp
 ; The caller needs DI afterward, but this helper does not modify it. All other
 ; scratch registers are restored by the enclosing XMS dispatcher.
 insert_umb_after proc near
-        mov     ax, [umb_count]
-        inc     ax
-        mov     [umb_count], ax
-        dec     ax
-        mov     cx, ax
+        mov     cx, [umb_count]
+        inc     word ptr [umb_count]
         mov     si, offset umb_blocks
+        mov     ax, cx
         imul    ax, UMB_BLOCK_SIZE
         add     si, ax
 insert_umb_shift:
@@ -1037,24 +1029,22 @@ coalesce_done:
 coalesce_umb_blocks endp
 
 remove_next_umb proc near
-        push    cx
         mov     di, si
         add     di, UMB_BLOCK_SIZE
         mov     ax, offset umb_blocks
-        mov     cx, [umb_count]
-        imul    cx, UMB_BLOCK_SIZE
-        add     ax, cx
+        mov     bp, [umb_count]
+        imul    bp, UMB_BLOCK_SIZE
+        add     ax, bp
 remove_umb_shift:
         add     di, UMB_BLOCK_SIZE
         cmp     di, ax
         jae     short remove_umb_done
-        mov     cx, word ptr [di]
-        mov     word ptr [di-UMB_BLOCK_SIZE], cx
-        mov     cx, word ptr [di+2]
-        mov     word ptr [di-UMB_BLOCK_SIZE+2], cx
+        mov     bp, word ptr [di]
+        mov     word ptr [di-UMB_BLOCK_SIZE], bp
+        mov     bp, word ptr [di+2]
+        mov     word ptr [di-UMB_BLOCK_SIZE+2], bp
         jmp     short remove_umb_shift
 remove_umb_done:
-        pop     cx
         ret
 remove_next_umb endp
 
@@ -1141,17 +1131,13 @@ copy_move_chunk:
         push    cx
         shr     cx, 1
         push    ds
-        push    es
         push    si
-        push    di
         push    cs
         pop     es
         mov     si, offset move_gdt
         mov     ah, 087h
         int     015h
-        pop     di
         pop     si
-        pop     es
         pop     ds
         pop     cx
         jc      short copy_move_fail
