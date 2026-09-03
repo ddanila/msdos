@@ -560,12 +560,14 @@ dev_packet_ready:
 ; As above only DS:SI points to device header on entry, and DS:SI is preserved
 	cmp	cs:[hma_resident],0
 	je	short dev_driver_calls_low
+	PUSH	DX			; DEVIOCALL preserves the caller's transfer pointer
 	MOV	AX,[SI.SDEVSTRAT]
 	MOV	DX,[SI.SDEVINT]
 	PUSH	DX
 	CALL	HMA_SAFE_DRIVER_CALL
 	POP	AX
 	CALL	HMA_SAFE_DRIVER_CALL
+	POP	DX
 	jmp	short dev_driver_calls_done
 dev_driver_calls_low:
 	MOV	AX,[SI.SDEVSTRAT]

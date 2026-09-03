@@ -153,8 +153,6 @@ DATARES SEGMENT PUBLIC BYTE
 	PUBLIC	PIPEPTR
 	PUBLIC	PIPESTR
 	PUBLIC	RDIRCHAR
-	PUBLIC	RE_OUT_APP
-	PUBLIC	RE_OUTSTR
 	PUBLIC	RemMsg
 	PUBLIC	resmsgend		;AN000;
 	PUBLIC	RES_TPA
@@ -509,9 +507,6 @@ Dbcs_vector_addr DW	0			;AN000; DBCS vector offset
 		DW	0			;AN000; DBCS vector segment
 APPEND_STATE	DW	0			;AN020; current state of append (if flag = -1)
 APPEND_FLAG	DB	0			;AN020; set if APPEND state valid
-
-RE_OUT_APP	DB	0
-RE_OUTSTR	DB	64+3+13 DUP (?)
 
 ;
 ; We flag the state of COMMAND in order to correctly handle the ^Cs at

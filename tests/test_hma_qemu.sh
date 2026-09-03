@@ -204,6 +204,17 @@ for log in "$OUT/hma-high.log" "$OUT/hma-low.log"; do
     }
 done
 
+python3 - "$OUT/hma-high.log" <<'PY' || {
+import sys
+
+data = open(sys.argv[1], "rb").read()
+expected = b"\r\nA20_DRIVER_RETURNED\r\n"
+raise SystemExit(0 if data.startswith(expected) else 1)
+PY
+    echo 'FAIL: DOS=HIGH emitted data before the post-driver marker' >&2
+    exit 1
+}
+
 grep -Eq '^A20 AX=0001 ' "$OUT/hma-high.log" || {
     echo 'FAIL: DOS=HIGH did not leave A20 enabled' >&2
     exit 1
