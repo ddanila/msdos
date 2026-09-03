@@ -665,21 +665,24 @@ therefore include at least one of these outcomes:
 The first EMM386 symbol census is complete, but paragraph independence is
 reopened by the latest compaction probes. The critical path is:
 
-1. keep every mutable symbol in DOS's relocated tail addressed through the HMA
+1. complete the documentation-and-measurement investigation of how DR-DOS
+   produces its larger HMA-mode free block, separating portable techniques from
+   low-memory and video-memory compatibility extensions;
+2. keep every mutable symbol in DOS's relocated tail addressed through the HMA
    copy, and retain `/NUMHANDLES=24..32` as a mandatory gate;
-2. finish byte-range attribution for EMM386, COMMAND, DOS, BIOS, and every MCB
+3. finish byte-range attribution for EMM386, COMMAND, DOS, BIOS, and every MCB
    gap so each proposed saving has a known destination; keep HIMEM's generated
    fixed/UMB/handle/tail census current;
-3. pause incremental HIMEM work and investigate EMM386's 8,960-byte excess
+4. pause incremental HIMEM work and investigate EMM386's 8,960-byte excess
    first, while completing the exact BIOS resident boundary and DOS low-prefix
    ownership censuses;
-4. take the resulting EMM386 and DOS/BIOS wins, then address COMMAND, updating
+5. take the resulting EMM386 and DOS/BIOS wins, then address COMMAND, updating
    the equation after every paired capture;
-5. recover the EBDA ceiling paragraph only after identifying already-owned
+6. recover the EBDA ceiling paragraph only after identifying already-owned
    destination storage;
-6. close the still-measured remainder through DOS layout compaction or the
+7. close the still-measured remainder through DOS layout compaction or the
    smallest necessary EMM386/COMMAND architectural split; and
-7. defend retail-or-better memory with a local fixed-image regression floor.
+8. defend retail-or-better memory with a local fixed-image regression floor.
 
 This ordering is a dependency order, not a promise that the early inexpensive
 work is sufficient. If the censuses show that safe compaction plus the EBDA and
@@ -698,6 +701,7 @@ until an A/B image measures them.
 
 | Priority | Opportunity | Available evidence | Likely scale | Principal constraint |
 | --- | --- | --- | ---: | --- |
+| 0 | Attribute DR-DOS's HMA-mode advantage | Published MemoryMAX policies exist, but no controlled local DR-DOS capture yet | research first | No source code; identical inputs and compatibility modes must be separated |
 | 1 | Compact EMM386 runtime-sized metadata and alignment | 8,960-byte component excess; initialization state, four tables, LOADALL scratch, and OS/E state reduced or relocated | tens to hundreds of bytes per item | Full `H=`/`A=` ranges and EMS 4.0 formats |
 | 2 | Revisit HIMEM only after larger ranges | 1,488-byte component excess; resident break is explicit | tens to hundreds of bytes | 128 handles, 32 UMB extents, all A20 backends |
 | 1 | Classify every byte below the first MCB | Current first system MCB begins at `0478h`; retail describes allocations from `0070h` | attribution first | Some low addresses are ABI or BIOS fixed |
@@ -1104,16 +1108,72 @@ block.
 | 11 | Split EMM386's ordinary dispatcher and transition gateway | Architectural fallback | Start only if safe compaction cannot close the residual; preserve every EMS 3.2/4.0 map and runtime mode |
 | 12 | Redesign the DOS-low or COMMAND resident/transient boundary | Last-resort fallback | Choose the smallest design with a byte budget that covers the remaining measured gap and compatibility margin |
 
-The execution sequence is: investigate EMM386 first while identifying the exact
-DOS and BIOS resident boundaries; take those paragraph wins; reduce COMMAND;
-coalesce layout; then recover the bounded EBDA paragraph. Recalculate the success
-equation after every retained step. Only if that portfolio remains below
-618,736 bytes do the dispatcher or resident-boundary redesigns begin.
+The execution sequence starts with the bounded DR-DOS investigation below.
+Use its evidence to reprioritize the existing EMM386 and DOS/BIOS work, then
+take measured paragraph wins, reduce COMMAND, coalesce layout, and recover the
+bounded EBDA paragraph. Recalculate the success equation after every retained
+step. Only if that portfolio remains below 618,736 bytes do the dispatcher or
+resident-boundary redesigns begin.
 
-### Documentation-only lessons from DR-DOS
+### Priority investigation: DR-DOS HMA-mode memory
 
-This section is derived only from published Digital Research and Novell
-documentation; no DR-DOS source code was consulted.
+The immediate research goal is to explain, byte by byte where possible, why a
+comparable DR-DOS system exposes a larger conventional block in HMA mode and to
+identify techniques that can safely improve this implementation. Do not obtain,
+inspect, or use DR-DOS source code. Published documentation, normal program and
+API behavior, executable metadata, runtime memory maps, debugger observations,
+and measurements of legitimately available binaries are allowed. Record
+techniques and externally visible contracts, never copied code or instruction
+sequences.
+
+Run the investigation before resuming broad memory optimization:
+
+1. **Build reproducible images.** Use the same 8 MiB 386-class hardware profile,
+   disk geometry, VC 4.05 binary, shell environment, and semantically equivalent
+   `CONFIG.SYS`/`AUTOEXEC.BAT` settings for this DOS, retail MS-DOS 6.22, and
+   each available DR-DOS/Novell DOS release. Record exact versions and hashes;
+   repeat supported kernel/XMS cases on the established 286 profile separately.
+2. **Establish a minimal HMA baseline.** Boot only the kernel, its documented
+   XMS/UMB manager, COMMAND, and VC. Match `FILES`, `FCBS`, `BUFFERS`,
+   `LASTDRIVE`, `STACKS`, environment size, EMS-page-frame policy, and loaded
+   drivers. Do not count extra low-memory, text-video, or relocated-EBDA modes
+   in the fair baseline.
+3. **Capture the full layout.** Record VC's largest block and totals, `MEM` or
+   the vendor equivalent, `INT 12h`, BDA conventional-memory and EBDA fields,
+   the MCB chain, device and system allocations, UMB regions, EMS frame, first
+   free owner, COMMAND boundary, and conventional ceiling. Reconcile the
+   largest-block result as owner-to-owner spans as done for MS-DOS.
+4. **Toggle one documented policy at a time.** Measure kernel-high/HMA,
+   `HIDOS`, `HIBUFFERS`, driver/TSR-high placement, UMB linking, EMS versus
+   `NOEMS`, load order, low-memory recovery, text-video recovery, `/XBDA`, and
+   DPMS where the selected release supports them. Attribute every delta to a
+   changed resident block, joined hole, or raised ceiling.
+5. **Probe observable contracts.** Determine HMA ownership and A20 behavior,
+   XMS/EMS/UMB API results, allocation order, initialization-versus-resident
+   size, buffer placement, device-chain ownership, warm reboot behavior, and
+   compatibility fallbacks. Use runtime watches only to establish ownership and
+   lifetime boundaries, not to reproduce proprietary implementation details.
+6. **Classify each gain.** Mark it as a portable implementation technique, a
+   configuration choice already available here, an optional compatibility-risk
+   extension, or an unexplained delta requiring another controlled probe. A
+   DR-DOS number alone is not evidence for a design change.
+7. **Produce an adoption table.** For every portable technique, name the local
+   owner/range it could replace, expected largest-block gain, prerequisites,
+   compatibility risks, and focused tests. Reorder the EMM386, DOS/BIOS,
+   COMMAND, layout, and EBDA backlog only after this table reconciles the
+   observed DR-DOS advantage.
+
+The investigation is complete when identical-input captures reproduce each
+system, every material DR-DOS advantage is attributed or explicitly bounded as
+unknown, and each adoptable technique has a local byte budget and regression
+gate. Generated disk images, memory dumps, and reports remain untracked build
+evidence; durable commands, hashes, conclusions, and decisions belong here or
+in a focused checked-in measurement script.
+
+#### Published leads already identified
+
+The following preliminary conclusions come only from published Digital
+Research and Novell documentation; no DR-DOS source code was consulted.
 
 DR-DOS 6 MemoryMAX combines several policies that MS-DOS exposes less
 cohesively: move the kernel to the HMA, move eligible DOS data structures to
@@ -1147,11 +1207,11 @@ programs and is outside the parity target. See the [Novell DOS 7 User
 Guide](https://bitsavers.org/pdf/novell/dr_dos/DR_DOS_7_User_Guide_1993.pdf) and
 Novell's [memory-management application note](https://ftp.zx.net.nz/pub/archive/novell/doc/app_notes/9310_Managing_Memory_in_a_DOS_Workstation_using_Novell_DOS_7.pdf).
 
-The actionable conclusions are therefore narrow: keep the current order of
-EMM386 compaction, exact DOS/BIOS ownership, COMMAND, layout coalescing, and the
-bounded EBDA step; add no DR-DOS-specific baseline shortcut. Later, separately
-test low-memory and text-video recovery as explicit opt-in modes, and consider a
-DPMS-like interface only if it serves repository drivers beyond EMM386.
+These leads define hypotheses, not the conclusion. Measure them before choosing
+between EMM386 compaction, DOS/BIOS ownership changes, COMMAND, layout
+coalescing, and the bounded EBDA step. Low-memory and text-video recovery remain
+separate opt-in experiments, and a DPMS-like interface is relevant only if it
+serves repository drivers beyond EMM386.
 
 A trial shared DOS HMA-entry routine removed 12 linked low-prefix bytes but did
 not cross the 7,600-byte allocation boundary, so VC remained at 594,544 bytes.
