@@ -341,8 +341,9 @@ therefore include at least one of these outcomes:
 The first EMM386 symbol census is complete, but paragraph independence is
 reopened by the latest compaction probes. The critical path is:
 
-1. make the first VM86-reflected DOS resize independent of EMM386's installed
-   paragraph count, then retain `/NUMHANDLES=24..32` as a mandatory gate;
+1. make DOS EXEC's COM load and environment-owner restoration safe when a
+   resident driver changes the conventional layout by one paragraph, then
+   retain `/NUMHANDLES=24..32` as a mandatory gate;
 2. finish range-level attribution for EMM386 and attribute HIMEM, COMMAND, DOS,
    BIOS, and every MCB gap so each proposed saving has a known destination;
 3. take paragraph-scale HIMEM and EMM386 data, code-sharing, and alignment wins,
@@ -420,7 +421,7 @@ capture pass.
 | Order | Area | Experiment | Decision evidence |
 | ---: | --- | --- | --- |
 | 1 | Measurement | Add linker/map boundaries and paragraph deltas to the paired report; account for `0000h..0477h` and every gap between MCBs | Every byte of the 9,712-byte layout row has an owner or an explicitly unknown range |
-| 2 | EMM386 | Make the reflected `INT 21h/AH=4Ah` return path independent of EMM386's installed paragraph count and relocated protected-text address | `/NUMHANDLES=24..32`, runtime modes, faults, and warm reboot all pass after an actual paragraph reduction |
+| 2 | DOS EXEC | Prevent the inherited-environment MCB header from overlapping a COM image when layout shifts by one paragraph | COMMAND's entry bytes remain intact and `/NUMHANDLES=24..32`, runtime modes, faults, and warm reboot pass after an actual paragraph reduction |
 | 3 | HIMEM | Pack boolean HMA/A20 state into fields with proved spare bits, or derive it from existing nesting/ownership state | All A20 backends, nested local/global enable, HMA ownership, DOS-high and warm reboot |
 | 4 | HIMEM | Audit duplicate error exits, request dispatch, range checks and paragraph-tail padding as one map-guided pass | Exact XMS error codes, XMS 2/3, 128 handles and legacy-driver bounce path |
 | Complete | EMM386 | Produce a resident-symbol census grouped as real-only, protected-only, dual-mapped, mutable runtime, or initialization-only | No unclassified linker-visible symbol; range-level accounting remains open |
@@ -453,7 +454,7 @@ range-level accounting before selecting the next relocation.
 
 | Gate | Required evidence | Decision |
 | --- | --- | --- |
-| Address independence | Reopened: the baseline passes `/NUMHANDLES=24..32`, but three independent one-paragraph reductions expose post-install stalls at particular phases; instruction traces now localize the first failure to the reflected `INT 21h/AH=4Ah` return during SYSINIT's EMM386 block resize | Compare the passing and failing protected-handler path, find the stale or mis-relocated offset, and repeat the matrix after a real paragraph reduction |
+| Layout independence | Reopened: the baseline passes `/NUMHANDLES=24..32`, but one-paragraph reductions expose a DOS EXEC boundary collision while loading COMMAND.COM; the smaller layout places its entry at the inherited environment's MCB header, whose restored owner overwrites bytes 1 and 2 | Correct the allocation or owner-restoration lifetime, prove the loaded entry remains intact, and repeat the matrix after a real paragraph reduction |
 | Attribution | All conventional ranges and every EMM386, HIMEM, and COMMAND resident symbol have an owner, lifetime, and size | EMM386 symbol ownership complete; range accounting plus HIMEM, COMMAND, DOS, and BIOS remain |
 | Safe compaction exhausted | Every low-risk candidate has an A/B component delta and VC largest-block delta | Calculate the exact architectural/layout remainder |
 | Layout route chosen | EBDA destination and all low islands are proved safe, or their gains are rejected explicitly | Implement only gains that join the largest block |
@@ -464,16 +465,30 @@ At each gate, update the baseline rather than carrying projected savings
 forward. The roadmap is complete only when the equation reaches zero on a clean
 build and the fixed comparison remains reproducible.
 
-The immediate queue is to remove the reflected-resize address dependency. A
-15-byte retained-code reduction changes SYSINIT's resize request from `0586h`
-to `0585h` paragraphs. Both builds enter EMM386's virtual-8086 reflection path;
-the baseline returns to SYSINIT after `INT 21h/AH=4Ah`, while the reduced build
-does not. The relocated TSS is intact, so the next comparison belongs in the
-general-protection/reflection handler, its stack frame, and its embedded or
-derived protected-text offsets. Normalize the 15-byte code displacement when
-comparing traces, verify the vector 0Dh gate target against the linked symbol,
-and identify the first differing instruction or saved return value. Only then
-reapply the reduction and run every shifted load phase.
+The immediate queue is to remove the DOS EXEC layout dependency exposed by a
+one-paragraph EMM386 reduction. A 15-byte retained-code reduction changes
+SYSINIT's resize request from `0586h` to `0585h` paragraphs, but paired
+instruction traces prove that both calls return correctly and remain aligned
+through the rest of initialization. The first functional divergence is the far
+return into COMMAND.COM: the baseline enters at physical `A070h` with the
+expected `E9 CD 1B` jump, while the smaller layout enters at `A060h` with
+`E9 00 E6`.
+
+The disk image is intact, and RAM matches the file after byte 2. The isolated
+word corruption is therefore a post-read write. DOS EXEC temporarily changes
+the owners of `exec_environ` and `exec_load_block` around each `$READ`, then
+restores them through `ChangeOwner`, whose `mov [arena_owner],bx` writes at
+offset 1 of the preceding MCB. In the failing layout that environment header is
+at `A060h`, exactly where COMMAND's entry was loaded, and `E600h` is the owner
+word written there. This is a DOS allocation/lifetime collision exposed by the
+smaller driver, not an EMM386 reflection failure.
+
+Before retaining another paragraph reduction, fix the overlap at its ownership
+or allocation source. The regression must inspect COMMAND's first bytes after
+the final owner restoration, boot every `/NUMHANDLES=24..32` phase, and retain
+the existing runtime-mode, EMS, DMA, exception, UMB, and warm-reboot gates. Do
+not mask the problem with padding: HIMEM, EMM386, and load-order changes must be
+free to move this boundary.
 
 The DMA register snapshot and final DMA page list remain low:
 real-mode transition code refreshes the snapshot and initialization constructs
@@ -483,7 +498,7 @@ work follow once their maps identify a safe destination rather than merely a
 source of bytes. The architectural EMM386 and COMMAND changes remain the
 fallback if measured safe compactions cannot close the gap.
 
-After address independence is restored, the next implementation tranche is:
+After layout independence is restored, the next implementation tranche is:
 
 1. complete byte-range accounting inside EMM386's 8,195-byte retained code
    prefix and 1,010-byte `_DATA`, including local labels and alignment;
@@ -520,26 +535,23 @@ or the destination layout. Retry only with a deliberate exception-screen probe
 that proves the buffer before and after return to real mode.
 
 Three later compaction probes show that the earlier stack fix did not close all
-address dependencies. Shortening the resident privileged-error dialog by 28
+layout dependencies. Shortening the resident privileged-error dialog by 28
 data bytes moved `_TEXT` one paragraph earlier and stalled `/NUMHANDLES=24`.
 Independently,
 shrinking the retained `GetPageFrameAddress` code by 15 bytes left `_TEXT` at
 the same segment but moved the compacted VDATA/stack break one paragraph
 earlier; it produced the same stall. A 14-byte HIMEM handle-scan reduction
 crossed HIMEM's default break, passed `/NUMHANDLES=24`, and stalled at 25.
-All three reach the installation banner and then fail before SYSINIT continues,
-while ordinary configurations and focused component suites pass. Instruction
-traces of paired `/NUMHANDLES=24` images sharpen this result: the first failure
-occurs while reflecting SYSINIT's `INT 21h/AH=4Ah` request that releases the
-installed EMM386 block. The passing request uses `BX=0586h`; the one-paragraph
-smaller image uses `BX=0585h`. Both enter the vector 0Dh handler, but only the
-baseline returns to SYSINIT. This is earlier and more specific than the former
-`RRProc` hypothesis. Later execution beyond the retained `_TEXT` prefix is
-fallout, not the first divergence. The relocated TSS contains the expected
-ring-0 stack, selector, and page-directory values in both layouts; do not treat
-it as the present corruption source. Compare the normalized handler streams,
-IDT gate target, exception frame, and reflected interrupt return state before
-accepting another paragraph gain.
+All three reach the installation banner and then fail before the shell prompt,
+while ordinary configurations and focused component suites pass. Paired
+instruction traces disprove the earlier reflected-`INT 21h/AH=4Ah` hypothesis:
+the passing `BX=0586h` and reduced `BX=0585h` resizes both return, and execution
+remains functionally aligned until DOS EXEC transfers control to COMMAND.COM.
+The reduced layout loads COMMAND one paragraph earlier, on top of the inherited
+environment's MCB header; the post-read `ChangeOwner` store replaces only the
+COM entry jump's displacement with the owner word. Execution then follows that
+corrupt jump into zero-filled memory. The relocated TSS and later protected
+execution are not the corruption source.
 
 The next HIMEM paragraph exposed a separate EMM386 prerequisite. A prototype
 packed HMA ownership into `/HMAMIN=`'s unused high bit and shared the identical
