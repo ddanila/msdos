@@ -135,6 +135,12 @@ run_case() {
         sed -n '1,180p' "$log" >&2
         exit 1
     fi
+    if ! python3 -c \
+        'import sys; raise SystemExit(b"\0" in open(sys.argv[1], "rb").read())' \
+        "$log"; then
+        echo "FAIL: DOS=$mode emitted NUL data through a wrapped HMA pointer" >&2
+        exit 1
+    fi
 }
 
 run_case HIGH

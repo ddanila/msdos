@@ -1577,21 +1577,25 @@ failure, child shells, and `/MSG` keep the catalog low; that fallback break is
 6,116 bytes, rounded to 6,128. The 1,000-byte parse/extended catalog tail is
 resident only with `/MSG`; initialization/templates and the reloadable command
 body remain outside the normal break. This closes the first relocation tranche,
-but D1 still requires symbol ownership for the remaining resident ranges. The
-next bounded experiment is to separate the immutable utility catalog from its
-callable lookup routine and mutable message workspace, then measure its exact
-relocatable size. The resident message table must become explicitly
-far-addressable before that catalog can move to HMA.
+but D1 still requires symbol ownership for the remaining resident ranges.
 
-A whole-catalog far-pointer prototype is rejected for now. Ordinary utility
-messages worked from HMA, but the real DOS-high `INT 24h` test printed the
-critical description and then lost the Abort/Retry/Fail prompt fragments. The
-prototype and its projected saving were reverted. This proves that normal
-message lookup is not a sufficient gate: any renewed attempt must first explain
-the asynchronous handler's segment/A20 contract and preserve both direct
-display and `SYSGETMSG` substitution paths. A compact low asynchronous catalog
-is acceptable only if it remains localized and its measured duplication still
-produces a worthwhile net gain.
+The whole utility-plus-critical catalog experiment is rejected under the
+current access contract. Splitting the mutable 256-byte formatter table from
+the immutable catalogs exposed a 1,281-byte HMA payload and projected an
+additional 800-byte conventional gain. Far class pointers and far substitution
+descriptors made ordinary messages and the real DOS-high `INT 24h` prompt pass.
+The full HMA gate then found the decisive failure: after a test driver disables
+A20, COMMAND can run before the next DOS entry restores it, so its direct read
+of a utility string wraps below 1 MiB and emits binary data. The prototype was
+reverted; the DOS-mediated 475-byte critical catalog remains safe.
+
+Do not retry direct HMA placement of general utility strings without an
+explicit, reentrant A20 acquisition contract that is safe during `INT 24h` and
+balances every exit. Prefer moving those strings into the reloadable transient
+body, or retain a compact low asynchronous subset if measured duplication
+still yields a worthwhile net gain. Any renewed HMA design must pass ordinary
+display, `SYSGETMSG` substitutions, real critical errors, the deliberate
+A20-off callback, DOS=LOW, `/MSG`, child shells, and the real-286 gate.
 
 Reproduce the checked census with:
 
