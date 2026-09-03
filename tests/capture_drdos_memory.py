@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import os
 from pathlib import Path
 import re
@@ -22,7 +23,7 @@ SCREEN_EXPECT = ROOT / "tests" / "screen_expect.py"
 FLOPPY_BYTES = 1_474_560
 VC_ROW = re.compile(
     r"(?:^|║)\s*([0-9A-F]{4})\s+(\d+)\s+([0-9][0-9,]*)\s+"
-    r"(DOS 6\.00|COMMAND|VC\.COM|free memory|system)(?:\s|║)",
+    r"(DOS (?:3\.31|6\.00)|COMMAND(?:\.COM)?|VC\.COM|free memory|system)(?:\s|║)",
     re.MULTILINE,
 )
 CEILING_ROW = re.compile(
@@ -30,7 +31,7 @@ CEILING_ROW = re.compile(
 )
 
 
-VARIANTS = {
+OPENDOS_VARIANTS = {
     "low": ["DOS=LOW", "HIDOS=OFF", "BUFFERS=15"],
     "himem-high": ["DEVICE=HIMEM.SYS", "DOS=HIGH", "HIDOS=OFF", "BUFFERS=15"],
     "emm-high": [
@@ -48,6 +49,30 @@ VARIANTS = {
     "emm-hibuffers": [
         "DEVICE=EMM386.EXE /FRAME=NONE",
         "DOS=HIGH",
+        "HIDOS=ON",
+        "HIBUFFERS=15",
+    ],
+}
+
+DRDOS6_VARIANTS = {
+    "low": ["HIDOS=OFF", "BUFFERS=15"],
+    "hidos-high": [
+        "DEVICE=HIDOS.SYS /BDOS=FFFF",
+        "HIDOS=OFF",
+        "BUFFERS=15",
+    ],
+    "emm-high": [
+        "DEVICE=EMM386.SYS /FRAME=NONE /BDOS=FFFF",
+        "HIDOS=OFF",
+        "BUFFERS=15",
+    ],
+    "emm-hidos": [
+        "DEVICE=EMM386.SYS /FRAME=NONE /BDOS=FFFF",
+        "HIDOS=ON",
+        "BUFFERS=15",
+    ],
+    "emm-hibuffers": [
+        "DEVICE=EMM386.SYS /FRAME=NONE /BDOS=FFFF",
         "HIDOS=ON",
         "HIBUFFERS=15",
     ],
@@ -105,7 +130,7 @@ def install_file(image: Path, source: Path, dos_path: str) -> None:
     )
 
 
-def prepare_base(archive: Path, vc_image: Path, work: Path) -> tuple[Path, str]:
+def prepare_opendos(archive: Path, vc_image: Path, work: Path) -> tuple[Path, str]:
     disk1 = work / "disk1.ima"
     disk2 = work / "disk2.ima"
     disk3 = work / "disk3.ima"
@@ -137,6 +162,30 @@ def prepare_base(archive: Path, vc_image: Path, work: Path) -> tuple[Path, str]:
         image_copy(source, name, extracted)
         install_file(base, extracted, name)
 
+    return base, add_common_tools(base, vc_image, work)
+
+
+def pcjs_to_image(source: Path, destination: Path) -> str:
+    document = json.loads(source.read_text(encoding="utf-8"))
+    output = bytearray()
+    for cylinder in document["diskData"]:
+        for head in cylinder:
+            for sector in head:
+                values = sector.get("d", [])
+                raw = b"".join(struct.pack("<I", value & 0xFFFFFFFF) for value in values)
+                if len(raw) < sector["l"]:
+                    fill = struct.pack("<I", (values[-1] if values else 0) & 0xFFFFFFFF)
+                    raw += (fill * ((sector["l"] - len(raw) + 3) // 4))[:sector["l"] - len(raw)]
+                output.extend(raw[:sector["l"]])
+    destination.write_bytes(output)
+    actual = hashlib.md5(output).hexdigest()
+    expected = document["imageInfo"]["hash"]
+    if actual != expected:
+        raise ValueError(f"PCjs disk MD5 mismatch: expected {expected}, got {actual}")
+    return actual
+
+
+def add_common_tools(base: Path, vc_image: Path, work: Path) -> str:
     vc = work / "VC.COM"
     vc_spec = f"{vc_image}@@{partition_offset(vc_image)}"
     subprocess.run(
@@ -151,7 +200,26 @@ def prepare_base(archive: Path, vc_image: Path, work: Path) -> tuple[Path, str]:
         check=True,
     )
     install_file(base, ceiling, "CEILING.COM")
-    return base, sha256(vc)
+    return sha256(vc)
+
+
+def prepare_drdos6(media: Path, vc_image: Path, work: Path) -> tuple[Path, str, str]:
+    base = work / "base.img"
+    disk_md5 = pcjs_to_image(media, base)
+    removable = (
+        "SUPERPCK.EXE", "SUPERPCK.SB1", "SUPERPCK.SB6", "SUPERPCK.SB7",
+        "SUPERPCK.SB8", "UNDELETE.EXE", "DISKOPT.EXE", "SETUP.EXE",
+        "INSTALL.EXE", "SECURITY.EXE",
+    )
+    for name in removable:
+        subprocess.run(
+            ["mdel", "-i", str(base), f"::{name}"],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            env=mtools_env(),
+        )
+    return base, add_common_tools(base, vc_image, work), disk_md5
 
 
 def write_startup(work: Path, lines: list[str]) -> tuple[Path, Path]:
@@ -213,8 +281,8 @@ def parse(screen_path: Path, mem: str, ceiling: str) -> dict[str, int]:
     if not conventional:
         raise ValueError(f"no conventional VC row in {screen_path}")
     first = min(conventional)
-    dos = min((row for row in rows if row[3] == "DOS 6.00"), default=None)
-    command = min((row for row in rows if row[3] == "COMMAND"), default=None)
+    dos = min((row for row in rows if row[3].startswith("DOS ")), default=None)
+    command = min((row for row in rows if row[3].startswith("COMMAND")), default=None)
     vc = min((row for row in rows if row[3] == "VC.COM"), default=None)
     upper_free = sum(row[2] for row in rows if row[3] == "free memory" and row[0] >= 0xA000)
     if not (dos and command and vc):
@@ -247,11 +315,20 @@ def parse(screen_path: Path, mem: str, ceiling: str) -> dict[str, int]:
     }
 
 
-def report(results: dict[str, dict[str, int]], archive: Path, vc_hash: str) -> str:
+def report(
+    results: dict[str, dict[str, int]],
+    media: Path,
+    vc_hash: str,
+    release: str,
+    variants: dict[str, list[str]],
+    disk_md5: str | None,
+) -> str:
     lines = [
         "# DR-DOS memory investigation", "",
         "Generated from user-supplied binary media; no DR-DOS source code is used.", "",
-        f"- OpenDOS archive SHA-256: `{sha256(archive)}`",
+        f"- Release: {release}",
+        f"- Binary media SHA-256: `{sha256(media)}`",
+        *( [f"- Decoded disk MD5: `{disk_md5}`"] if disk_md5 else [] ),
         f"- VC 4.05 SHA-256: `{vc_hash}`",
         "- Hardware: QEMU `pc`, 486 CPU, 8 MiB RAM", "",
         "| Variant | Largest block | System span | COMMAND span | Free UMB | Free HMA |",
@@ -267,23 +344,35 @@ def report(results: dict[str, dict[str, int]], archive: Path, vc_hash: str) -> s
         "`STACKS=9,256`, and a 512-byte shell environment.",
         "", "## Startup matrix", "",
     ])
-    for name, config in VARIANTS.items():
+    for name, config in variants.items():
         lines.extend([f"### {name}", "", "```ini", *config, "```", ""])
     return "\n".join(lines)
 
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("archive", type=Path, help="Caldera OpenDOS 7.01 DODL701.EXE binary archive")
+    parser.add_argument(
+        "media",
+        type=Path,
+        help="OpenDOS 7.01 DODL701.EXE archive or PCjs DR-DOS 6 disk JSON",
+    )
     parser.add_argument("vc_image", type=Path, help="hard-disk image containing VC 4.05 in C:\\VC")
     parser.add_argument("report", type=Path)
     args = parser.parse_args()
     require_tools()
     with tempfile.TemporaryDirectory(prefix="drdos-memory-") as temporary:
         work = Path(temporary)
-        base, vc_hash = prepare_base(args.archive, args.vc_image, work)
+        if zipfile.is_zipfile(args.media):
+            release = "Caldera OpenDOS 7.01"
+            variants = OPENDOS_VARIANTS
+            base, vc_hash = prepare_opendos(args.media, args.vc_image, work)
+            disk_md5 = None
+        else:
+            release = "Digital Research DR-DOS 6.0"
+            variants = DRDOS6_VARIANTS
+            base, vc_hash, disk_md5 = prepare_drdos6(args.media, args.vc_image, work)
         results: dict[str, dict[str, int]] = {}
-        for name, lines in VARIANTS.items():
+        for name, lines in variants.items():
             image = work / f"{name}.ima"
             shutil.copyfile(base, image)
             config, autoexec = write_startup(work, lines)
@@ -292,7 +381,10 @@ def main() -> None:
             screen, mem, ceiling = capture(image, name, work)
             results[name] = parse(screen, mem, ceiling)
         args.report.parent.mkdir(parents=True, exist_ok=True)
-        args.report.write_text(report(results, args.archive, vc_hash), encoding="utf-8")
+        args.report.write_text(
+            report(results, args.media, vc_hash, release, variants, disk_md5),
+            encoding="utf-8",
+        )
     print(f"wrote {args.report}")
 
 

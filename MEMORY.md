@@ -1242,9 +1242,100 @@ The controlled transitions identify four mechanisms:
 OpenDOS leaves `INT 12h`, the BDA conventional-memory word, and the EBDA at
 639 KiB, 639 KiB, and `9FC0h`. Thus its ordinary advantage is not produced by
 the risky first-64-KiB or video-memory extensions, nor by EBDA recovery. Those
-remain separate experiments. The next evidence tranche is the DR-DOS 6 version
-comparison followed by isolated `MEMMAX +L`, `/VIDEO` plus `MEMMAX +V`, EMS
-frame, `/XBDA`, and HMA/UMB ownership probes.
+remain separate experiments. This OpenDOS pass validates the tooling and shows
+that the later EMM386 design no longer spends the 28 KiB UMB used by DR-DOS 6;
+the actual DR-DOS 6 comparison follows.
+
+#### Primary result: DR-DOS 6.0
+
+The same tool accepts the PCjs archival JSON representation of the original
+Digital Research 1.2 MiB startup disk, verifies its declared disk MD5, and
+creates only temporary working images. The tested JSON SHA-256 is
+`8902dc7040ae08c2941c48ce0540277ae2f3005f8e564ea45a602f414286b40f`;
+the decoded disk MD5 is `a01ecc2548744606c0d8baa74daa64ae`. The image and
+directory listing are published at [PCjs DR-DOS
+6.00](https://www.pcjs.org/software/pcx86/sys/dos/dresearch/6.00/). Reproduce
+the capture with:
+
+```sh
+python3 tests/capture_drdos_memory.py \
+  DRDOS600-STARTUP.json out/msdos622-original-vc405.img \
+  out/drdos6-memory-investigation.md
+```
+
+| Configuration | VC largest block | Pre-COMMAND system span | COMMAND span | Free UMB | Free HMA |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Kernel and buffers low; no memory manager | 571,328 | 62,240 | 6,256 | 0 | 0 |
+| HIDOS driver; kernel high; DOS data low | 611,808 | 26,752 | 1,264 | 0 | 18,800 |
+| EMM386; no frame; kernel high; DOS data low | 615,024 | 23,520 | 1,264 | 90,096 | 18,800 |
+| Same, with `HIDOS=ON` | **627,824** | **10,720** | **1,264** | 77,280 | 18,800 |
+| Same, with `HIBUFFERS=15` | 627,824 | 10,720 | 1,264 | **84,688** | 10,880 |
+
+DR-DOS 6 therefore leaves 9,088 bytes more than retail MS-DOS 6.22 and 32,000
+bytes more than this implementation. The fair ordinary comparison reconciles
+without counting recovered low or video memory:
+
+| Owner-to-owner contribution | DR-DOS 6.0 | Retail MS-DOS 6.22 | DR-DOS gain |
+| --- | ---: | ---: | ---: |
+| System start through COMMAND start | 10,720 | 18,992 | 8,272 |
+| COMMAND start through VC start | 1,264 | 3,104 | 1,840 |
+| VC start through free block | 12,720 | 12,720 | 0 |
+| Conventional ceiling loss | 1,024 | 0 | -1,024 |
+| **VC largest-block advantage** | **627,824** | **618,736** | **9,088** |
+
+The transitions explain how it gets there:
+
+- Kernel-high moves 37,952 bytes of kernel, 3,552 bytes of DOS BIOS, and 4,992
+  bytes of COMMAND to the HMA. It reduces the pre-COMMAND system span by 35,488
+  bytes and COMMAND by 4,992, growing VC's block by 40,480 bytes. The allocations
+  are sequential apart from 224 bytes of HMA gaps/overhead and leave 18,800
+  bytes free before moving buffers.
+- Replacing the 286-capable HIDOS provider with EMM386 reduces the conventional
+  system span by another 3,232 bytes and grows VC's block by 3,216 bytes. With
+  the EMS frame disabled, DR-DOS 6 explicitly places 28,672 bytes of EMM386
+  driver code in a UMB and leaves 90,096 UMB bytes free.
+- `HIDOS=ON` reduces the conventional system span by exactly 12,800 bytes. The
+  corresponding DOS UMB allocation is 12,816 bytes including its MCB and
+  contains the 7,680-byte buffer set plus other mutable DOS structures.
+- `HIBUFFERS=15` does not change conventional memory. It moves the 7,680-byte
+  buffer payload from UMB to HMA, increasing free UMB by 7,408 bytes while free
+  HMA falls by 7,920 bytes. The 512-byte difference is placement overhead split
+  across the two arenas and needs a boundary probe before imitating the layout.
+- The final conventional owner spans are only 10,720 bytes for the system and
+  1,264 bytes for COMMAND. The current implementation uses 37,520 and 6,464,
+  respectively; these two differences exactly explain its 32,000-byte deficit
+  to DR-DOS because both have the same `9FC0h` ceiling.
+
+#### Adoption priorities from the measured design
+
+The measurements change emphasis but do not justify copying DR-DOS placement
+blindly:
+
+1. **Move COMMAND cold state high or transient.** DR-DOS 6 proves a shell can
+   retain 4,992 bytes in the HMA and operate with a 1,264-byte conventional
+   span. Our HMA DOS image is 39,520 bytes, so a similarly sized experiment fits
+   within the nominal 65,520-byte area before accounting for ownership and A20
+   constraints. This is the cleanest measured route toward COMMAND's 5,152-byte
+   deficit to DR-DOS.
+2. **Prefer the later small-gateway EMM386 architecture.** Spending DR-DOS 6's
+   28,672 UMB bytes would violate our requirement to preserve at least retail's
+   47,888 free UMB bytes. OpenDOS 7.01 demonstrates the same services with only
+   an 800-byte reported EMM386 UMB allocation. Continue the protected/XMS
+   relocation and low-gateway split rather than copying the older UMB layout.
+3. **Give mutable DOS state a high-placement ladder.** DR-DOS gains 12,800
+   conventional bytes by putting DOS state in a UMB, then moves buffers to HMA
+   to recover most of that UMB. Locally, place HMA-safe state in proved DOS-owned
+   HMA slack first, use relocation-safe XMS storage where callbacks permit it,
+   and use deterministic UMB placement only within the measured 1,216-byte UMB
+   advantage over retail. Fall back transactionally when a tier is unavailable.
+4. **Keep low-memory, video-memory, and EBDA recovery separate.** Neither
+   measured ordinary DR-DOS result uses them. They cannot explain the advantage
+   and must remain optional or bounded finishing work.
+
+The remaining investigation is narrower: isolate `MEMMAX +L`, `/VIDEO` plus
+`MEMMAX +V`, the EMS-frame cost, `/XBDA`, exact HMA gaps, and observable
+XMS/EMS/UMB ownership and fallback behavior. These complete the compatibility
+picture but no longer block identifying the main portable architecture.
 
 #### Published leads already identified
 
