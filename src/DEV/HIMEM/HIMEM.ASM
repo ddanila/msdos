@@ -716,8 +716,19 @@ xms_query_free endp
 
 xms_allocate proc near
         mov     bx, dx
-        call    find_free_handle
-        jc      short allocate_no_handle
+        mov     si, offset handles
+        mov     cx, [handle_limit]
+allocate_handle_scan:
+        cmp     word ptr [si+HANDLE_BASE], 0
+        je      short allocate_handle_found
+        add     si, HANDLE_SIZE
+        loop    allocate_handle_scan
+        jmp     short allocate_no_handle
+allocate_handle_found:
+        mov     dl, byte ptr [handle_limit]
+        sub     dl, cl
+        xor     dh, dh
+        inc     dx
         push    si
         call    find_gap
         pop     si
@@ -781,7 +792,18 @@ xms_unlock endp
 xms_handle_info proc near
         call    validate_handle
         jc      xms_bad_handle
-        call    count_free_handles
+        push    si
+        xor     bx, bx
+        mov     si, offset handles
+        mov     cx, [handle_limit]
+handle_info_count_loop:
+        cmp     word ptr [si+HANDLE_BASE], 0
+        jne     short handle_info_count_used
+        inc     bl
+handle_info_count_used:
+        add     si, HANDLE_SIZE
+        loop    handle_info_count_loop
+        pop     si
         mov     bh, byte ptr [si+HANDLE_LOCK]
         mov     dx, word ptr [si+HANDLE_LENGTH]
         jmp     xms_success
@@ -813,7 +835,13 @@ realloc_move:
         push    bx
         push    ax
         mov     ax, word ptr [si+HANDLE_LENGTH]
-        call    kb_to_length
+        mov     dx, ax
+        mov     cl, 6
+        shr     dx, cl
+        mov     cl, 10
+        shl     ax, cl
+        mov     word ptr [move_length], ax
+        mov     word ptr [move_length+2], dx
         mov     ax, word ptr [si+HANDLE_BASE]
         call    kb_to_physical
         mov     word ptr [move_source], ax
@@ -1160,18 +1188,6 @@ set_move_descriptor proc near
         ret
 set_move_descriptor endp
 
-; Convert AX kilobytes to a byte length in move_length.
-kb_to_length proc near
-        mov     dx, ax
-        mov     cl, 6
-        shr     dx, cl
-        mov     cl, 10
-        shl     ax, cl
-        mov     word ptr [move_length], ax
-        mov     word ptr [move_length+2], dx
-        ret
-kb_to_length endp
-
 ; Convert AX kilobytes above the XMS base to DX:AX physical bytes.
 kb_to_physical proc near
         mov     dx, ax
@@ -1211,41 +1227,6 @@ validate_bad:
         stc
         ret
 validate_handle endp
-
-find_free_handle proc near
-        mov     si, offset handles
-        mov     cx, [handle_limit]
-find_free_loop:
-        cmp     word ptr [si+HANDLE_BASE], 0
-        je      short find_free_found
-        add     si, HANDLE_SIZE
-        loop    find_free_loop
-        stc
-        ret
-find_free_found:
-        mov     dl, byte ptr [handle_limit]
-        sub     dl, cl
-        xor     dh, dh
-        inc     dx
-        clc
-        ret
-find_free_handle endp
-
-count_free_handles proc near
-        push    si
-        xor     bx, bx
-        mov     si, offset handles
-        mov     cx, [handle_limit]
-count_handles_loop:
-        cmp     word ptr [si+HANDLE_BASE], 0
-        jne     short count_handles_used
-        inc     bl
-count_handles_used:
-        add     si, HANDLE_SIZE
-        loop    count_handles_loop
-        pop     si
-        ret
-count_free_handles endp
 
 ; Find a first-fit gap of BX KiB. Returns AX=base KiB.  Handle offsets are
 ; relative to physical 1 MiB, so the first 64 KiB must remain reserved for the
