@@ -1017,10 +1017,9 @@ _set_windows	endp
 ;
 ; _GetMappablePAddrArrayFixed - get the LIM 4.0 physical-page array
 ;
-; The original C used a post-increment on a cast far pointer and compared an
-; implementation-defined plain char with -1.  Keep that historical function in
-; the reproducible C object, but dispatch function 58h here so every four-byte
-; record advances exactly once and 0ffh indexes are skipped on every host.
+; This is the sole function 58h implementation.  Keeping the API boundary in
+; assembly makes every four-byte public record advance exactly once and skips
+; 0ffh indexes independently of host-C signed-char and far-pointer behavior.
 ;
 ; ENTRY: AL = 0 copies records to ES:DI; AL = 1 returns only the count
 ; EXIT:  CX = number of mappable pages, AH = EMM status

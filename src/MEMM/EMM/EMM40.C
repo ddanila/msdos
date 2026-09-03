@@ -82,11 +82,6 @@ extern unsigned short EMMstatus;
  */
 
 extern unsigned short emm40_info[5];		/* hardware information */
-extern struct mappable_page mappable_pages[];	/* mappable segments in dense order */
-extern short	mappable_page_count;		/* number of entries in above */
-extern short	page_frame_pages;		/* pages in the page frame */
-extern short	physical_page_count;		/* number of physical pages */
-extern unsigned char physical_page_ids[];	/* public Pn= page numbers */
 /*extern char	VM1_cntxt_pages;		/* pages in a VM1 context */
 /*extern char	VMn_cntxt_pages;		/* pages in a VM context */
 /*extern char	VM1_cntxt_bytes;		/* bytes in a VM1 context */
@@ -209,53 +204,6 @@ ReallocatePages()
 UndefinedFunction() 
 {
 	setAH(INVALID_FUNCTION);
-}
-
-/*
- * Get Mappable Physical Address Array
- *	parameters:
- *		al == 0
- *		es:di -- destination
- *	returns:
- *		cx    -- number of mappable pages
- *
- *	parameters:
- *		al == 1
- *	returns:
- *		cx    -- number of mappable pages
- * 
- * Get the number of mappable pages and the segment address for each
- * physical page.
- *
- * ISP	5/23/88 Updated for MEMM.  u_ptr made into a far pointer.
- */
-GetMappablePAddrArray() 
-{
-	unsigned far *u_ptr;
-	int	n_pages;
-	int	i;
-	unsigned index;
-	struct mappable_page *mp = mappable_pages;
-
-		n_pages = mappable_page_count;
-
-	if ( regp->hregs.h.ral == 0 ) {
-		if ( n_pages > 0 ) {
-			u_ptr = dest_addr();		/* ES:DI */
-			for (i=0 ; i < 60 ; i++) {
-				index = (unsigned char)EMM_MPindex[i];
-				if (index < MAX_MAPPABLE_PAGES) {
-					*u_ptr++ = mp[index].page_seg;
-					*u_ptr++ = physical_page_ids[index + 4 - page_frame_pages];
-				}
-			}
-		}
-	} else if ( regp->hregs.h.ral != 1 ) {
-		setAH(INVALID_SUBFUNCTION);
-		return;
-	}
-	setCX(n_pages);
-	setAH((unsigned char)EMMstatus);
 }
 
 /*
