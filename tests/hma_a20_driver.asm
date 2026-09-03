@@ -11,8 +11,29 @@ device_header:
 request_offset dw 0
 request_segment dw 0
 old_int21 dd 0
+%ifdef A20_DEBUG
+debug_saved_ax dw 0
+%endif
 
 strategy:
+%ifdef A20_DEBUG
+    mov [cs:debug_saved_ax], ax
+    mov al, 'S'
+    out 0e9h, al
+    in al, 92h
+    and al, 2
+    shr al, 1
+    add al, '0'
+    out 0e9h, al
+    mov ax, ss
+    cmp ax, 0ffffh
+    mov al, 'L'
+    jne short strategy_debug_stack
+    mov al, 'H'
+strategy_debug_stack:
+    out 0e9h, al
+    mov ax, [cs:debug_saved_ax]
+%endif
     mov [cs:request_offset], bx
     mov [cs:request_segment], es
 %ifndef A20_NO_STRATEGY_DISABLE
@@ -21,6 +42,24 @@ strategy:
     retf
 
 interrupt:
+%ifdef A20_DEBUG
+    mov [cs:debug_saved_ax], ax
+    mov al, 'I'
+    out 0e9h, al
+    in al, 92h
+    and al, 2
+    shr al, 1
+    add al, '0'
+    out 0e9h, al
+    mov ax, ss
+    cmp ax, 0ffffh
+    mov al, 'L'
+    jne short interrupt_debug_stack
+    mov al, 'H'
+interrupt_debug_stack:
+    out 0e9h, al
+    mov ax, [cs:debug_saved_ax]
+%endif
     push ax
     push ds
     push es

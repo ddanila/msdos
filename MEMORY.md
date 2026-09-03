@@ -1642,6 +1642,17 @@ post-strategy and post-interrupt boundaries, prove physical A20 and `SS:SP`,
 then trace the redirected ECHO source/substitution pointer. Once fixed, tighten
 the HMA gate to reject all unexpected control/binary output, not only NUL.
 
+The first boundary instrumentation is complete. A compile-time `A20_DEBUG`
+mode in the synthetic driver writes stack-free strategy/interrupt observations
+to QEMU's debug port. Every sampled entry reports the fast A20 bit enabled and
+`SS` below `FFFFh`, including repeated character writes; strategy-only and
+interrupt-only disable variants agree. Replacing the trampoline's private
+`INT 2Fh` recovery with a direct call through the cached low XMS entry also
+leaves the corruption unchanged and was reverted. This rules out delayed gate
+recovery, an HMA stack, and the multiplex indirection as primary causes. Trace
+`CRPRINT`/`STD_PRINTF`'s `string_ptr_2` and the character-device write request
+across the first callback next.
+
 Reproduce the checked census with:
 
 ```sh
