@@ -418,60 +418,6 @@ version_done:
         ret
 xms_version endp
 
-; Record the highest installed physical 64-KiB page for XMS 3 function 88h.
-; E801 reports hardware extent independently of memory already reserved from
-; the legacy AH=88h pool. DOS 6.22 returns this page number rather than a byte
-; address in ECX.
-detect_highest_page proc near
-        push    ax
-        push    bx
-        push    cx
-        push    dx
-        cmp     [cpu_386], 0
-        je      short highest_page_done
-        ; AT CMOS registers 30h/31h report KiB installed above 1 MiB.
-        in      al, 070h
-        mov     dl, al
-        mov     al, 030h
-        out     070h, al
-        in      al, 071h
-        mov     bl, al
-        mov     al, 031h
-        out     070h, al
-        in      al, 071h
-        mov     bh, al
-        mov     al, dl
-        out     070h, al
-        mov     cl, 6
-        shr     bx, cl
-        add     bx, 16
-        dec     bx
-        mov     [highest_page], bx
-
-        mov     ax, 0e801h
-        int     015h
-        jc      short highest_page_done
-        or      ax, ax
-        jnz     short highest_page_values
-        mov     ax, cx
-        mov     bx, dx
-highest_page_values:
-        mov     cl, 6
-        shr     ax, cl
-        add     bx, ax
-        add     bx, 16
-        dec     bx
-        cmp     bx, [highest_page]
-        jbe     short highest_page_done
-        mov     [highest_page], bx
-highest_page_done:
-        pop     dx
-        pop     cx
-        pop     bx
-        pop     ax
-        ret
-detect_highest_page endp
-
 ; XMS 3.0 super-extended-memory functions. The manager's physical pool remains
 ; bounded to 65535 KiB, but these entry points honor the specification's
 ; 32-bit register contracts and reject unrepresentable requests safely.
@@ -1547,6 +1493,62 @@ umb_count       dw      0
 umb_blocks      db      MAX_UMB_BLOCKS * UMB_BLOCK_SIZE dup (0)
 handles         db      MAX_HANDLES * HANDLE_SIZE dup (0)
 resident_end label byte
+
+; Record the highest installed physical 64-KiB page for XMS 3 function 88h.
+; This is installation-only code and deliberately follows resident_end.
+; E801 reports hardware extent independently of memory already reserved from
+; the legacy AH=88h pool. DOS 6.22 returns this page number rather than a byte
+; address in ECX.
+detect_highest_page proc near
+        push    ax
+        push    bx
+        push    cx
+        push    dx
+        cmp     [cpu_386], 0
+        je      short highest_page_done
+        ; AT CMOS registers 30h/31h report KiB installed above 1 MiB.
+        in      al, 070h
+        mov     dl, al
+        mov     al, 030h
+        out     070h, al
+        in      al, 071h
+        mov     bl, al
+        mov     al, 031h
+        out     070h, al
+        in      al, 071h
+        mov     bh, al
+        mov     al, dl
+        out     070h, al
+        mov     cl, 6
+        shr     bx, cl
+        add     bx, 16
+        dec     bx
+        mov     [highest_page], bx
+
+        mov     ax, 0e801h
+        int     015h
+        jc      short highest_page_done
+        or      ax, ax
+        jnz     short highest_page_values
+        mov     ax, cx
+        mov     bx, dx
+highest_page_values:
+        mov     cl, 6
+        shr     ax, cl
+        add     bx, ax
+        add     bx, 16
+        dec     bx
+        cmp     bx, [highest_page]
+        jbe     short highest_page_done
+        mov     [highest_page], bx
+highest_page_done:
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     ax
+        ret
+detect_highest_page endp
+
 test_pattern    db      1024 dup (0)
 test_verify     db      1024 dup (0)
 a20_control     db      1
