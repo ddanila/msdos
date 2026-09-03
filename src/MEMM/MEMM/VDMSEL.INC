@@ -80,22 +80,20 @@ DEB3_GSEL	equ	098h or TAB_GDT		; deb386 word descr
 DEB4_GSEL	equ	0A0h or TAB_GDT		; deb386 word descr
 DEB5_GSEL	equ	0A8h or TAB_GDT		; deb386 word descr
 DEBX_GSEL	equ	0B0h or TAB_GDT		; deb386 descr for all of addressing space
-K_PUTC286	equ	0B8h OR TAB_GDT 	; 286 call gate to kputc
-K_GETC286	equ	0C0h OR TAB_GDT 	; 286 call gate to kgetc
-RCODEA_GSEL	equ	0C8h OR TAB_GDT 	; data alias for R_CODE segment
-VM1_GSEL	equ	0D0h OR TAB_GDT 	; scratch for vm handler
-VM2_GSEL	equ	0D8h OR TAB_GDT 	; scratch for vm handler
-MBSRC_GSEL	equ	0E0h OR TAB_GDT 	; source sel for move blk
-MBTAR_GSEL	equ	0E8h OR TAB_GDT 	; target sel for move blk
-PAGET_GSEL	equ	0F0h OR TAB_GDT 	; page table area sel
-VDMCA_GSEL	equ	0F8h OR TAB_GDT 	; VDM code segment alias
-EMM1_GSEL	equ	100h OR TAB_GDT 	; EMM scratch selector
-EMM2_GSEL	equ	108h OR TAB_GDT 	; EMM scratch selector
-OEM0_GSEL	equ	110h OR TAB_GDT 	; OEM specific selector
-OEM1_GSEL	equ	118h OR TAB_GDT 	; OEM specific selector
-OEM2_GSEL	equ	120h OR TAB_GDT 	; OEM specific selector
-OEM3_GSEL	equ	128h OR TAB_GDT 	; OEM specific selector
-USER1_GSEL	equ	130h OR TAB_GDT		; USER data structure 
+RCODEA_GSEL	equ	0B8h OR TAB_GDT 	; data alias for R_CODE segment
+VM1_GSEL	equ	0C0h OR TAB_GDT 	; scratch for vm handler
+VM2_GSEL	equ	0C8h OR TAB_GDT 	; scratch for vm handler
+MBSRC_GSEL	equ	0D0h OR TAB_GDT 	; source sel for move blk
+MBTAR_GSEL	equ	0D8h OR TAB_GDT 	; target sel for move blk
+PAGET_GSEL	equ	0E0h OR TAB_GDT 	; page table area sel
+VDMCA_GSEL	equ	0E8h OR TAB_GDT 	; VDM code segment alias
+EMM1_GSEL	equ	0F0h OR TAB_GDT 	; EMM scratch selector
+EMM2_GSEL	equ	0F8h OR TAB_GDT 	; EMM scratch selector
+OEM0_GSEL	equ	100h OR TAB_GDT 	; OEM specific selector
+OEM1_GSEL	equ	108h OR TAB_GDT 	; OEM specific selector
+OEM2_GSEL	equ	110h OR TAB_GDT 	; OEM specific selector
+OEM3_GSEL	equ	118h OR TAB_GDT 	; OEM specific selector
+USER1_GSEL	equ	120h OR TAB_GDT		; USER data structure
 
 .list	; end of VDMSEL.INC
 

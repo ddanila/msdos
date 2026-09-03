@@ -37,6 +37,17 @@ class Symbol:
     module: str
 
 
+@dataclass(frozen=True)
+class Range:
+    start: int
+    end: int
+    owner: str
+
+    @property
+    def size(self) -> int:
+        return self.end - self.start
+
+
 def parse_map(path: Path) -> tuple[list[Segment], list[Symbol]]:
     segments: list[Segment] = []
     symbols: list[Symbol] = []
@@ -113,6 +124,37 @@ def classify_symbol(
     return segment_categories.get(symbol.paragraph)
 
 
+def linear(paragraph: int, offset: int) -> int:
+    return paragraph * 16 + offset
+
+
+def symbol_offset(symbols: list[Symbol], name: str, paragraph: int) -> int:
+    matches = [
+        symbol.offset
+        for symbol in symbols
+        if symbol.name == name and symbol.paragraph == paragraph
+    ]
+    if len(matches) != 1:
+        raise ValueError(f"expected exactly one {name} symbol in segment {paragraph:04X}")
+    return matches[0]
+
+
+def print_ranges(title: str, ranges: list[Range]) -> None:
+    print(f"\n## {title}\n")
+    print("| Range | Bytes | Owner |")
+    print("| ---: | ---: | --- |")
+    for item in ranges:
+        print(f"| `{item.start:04X}h..{item.end:04X}h` | {item.size:,} | {item.owner} |")
+    print(f"| **Total** | **{sum(item.size for item in ranges):,}** | — |")
+
+
+def display_module(module: str) -> str:
+    match = re.search(r"emmlib\.lib\((.*)\)$", module, re.IGNORECASE)
+    if match:
+        return f"emmlib:{Path(match.group(1)).name}"
+    return module
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("map", type=Path, help="Open Watcom EMM386 map file")
@@ -154,6 +196,63 @@ def main() -> int:
             f"| {segment.name} | `{segment.paragraph:04X}:{segment.offset:04X}` "
             f"| {segment.size:,} | {category} |"
         )
+
+    const = next(segment for segment in segments if segment.name == "CONST" and segment.size)
+    bss = by_name["_BSS"]
+    stack = by_name["STACK"]
+    static_end = linear(text.paragraph, split)
+    static_ranges: list[Range] = []
+    cursor = 0
+    for start, end, owner in (
+        (linear(r_code.paragraph, r_code.offset), linear(r_code.paragraph, r_code.offset) + r_code.size, "R_CODE real-mode gateway"),
+        (linear(by_name["GDT"].paragraph, by_name["GDT"].offset), linear(by_name["GDT"].paragraph, by_name["GDT"].offset) + by_name["GDT"].size, "GDT descriptor state"),
+        (linear(by_name["_DATA"].paragraph, by_name["_DATA"].offset), linear(by_name["_DATA"].paragraph, by_name["_DATA"].offset) + by_name["_DATA"].size, "DGROUP mutable data"),
+        (linear(const.paragraph, const.offset), linear(const.paragraph, const.offset) + const.size, "DGROUP constants"),
+        (linear(bss.paragraph, bss.offset), linear(bss.paragraph, bss.offset) + bss.size, "DGROUP BSS"),
+        (linear(stack.paragraph, stack.offset), linear(stack.paragraph, stack.offset) + stack.size, "linked stack template"),
+        (linear(text.paragraph, text.offset), static_end, "retained/dual-mode _TEXT prefix"),
+    ):
+        if start > cursor:
+            static_ranges.append(Range(cursor, start, "anonymous alignment gap"))
+        if start < cursor:
+            raise ValueError(f"overlapping retained ranges before {owner}")
+        static_ranges.append(Range(start, end, owner))
+        cursor = end
+    if cursor != static_end:
+        raise ValueError("retained static layout does not end at the _TEXT split")
+    print_ranges("Retained static low-image layout", static_ranges)
+    print(
+        "\nThe linked stack is an initialization template. After VDATA compaction, "
+        "the installed image places a 512-byte protected stack after the selected "
+        "runtime-sized data; it does not retain this template at its link address."
+    )
+
+    low_text_modules: dict[str, int] = {}
+    for symbol in symbols:
+        if symbol.paragraph == text.paragraph and symbol.offset < split:
+            low_text_modules.setdefault(symbol.module, symbol.offset)
+            low_text_modules[symbol.module] = min(low_text_modules[symbol.module], symbol.offset)
+    starts = sorted((offset, module) for module, offset in low_text_modules.items())
+    text_ranges: list[Range] = []
+    if not starts or starts[0][0] != 0:
+        text_ranges.append(Range(0, starts[0][0], "anonymous _TEXT prefix"))
+    for index, (start, module) in enumerate(starts):
+        end = starts[index + 1][0] if index + 1 < len(starts) else split
+        text_ranges.append(Range(start, end, display_module(module)))
+    if sum(item.size for item in text_ranges) != split:
+        raise ValueError("module ranges do not cover the retained _TEXT prefix")
+    print_ranges("Retained `_TEXT` ranges by linked module", text_ranges)
+
+    data_segment = by_name["_DATA"].paragraph
+    data_ranges = [
+        Range(0, symbol_offset(symbols, "_total_pages", data_segment), "driver state and fatal-error text"),
+        Range(symbol_offset(symbols, "_total_pages", data_segment), symbol_offset(symbols, "EMM_dynamic_data_area", data_segment), "EMS runtime tables, counters, and pointers"),
+        Range(symbol_offset(symbols, "EMM_dynamic_data_area", data_segment), symbol_offset(symbols, "ROM_BIOS_Machine_ID", data_segment), "OEM NMI state and alignment"),
+        Range(symbol_offset(symbols, "ROM_BIOS_Machine_ID", data_segment), symbol_offset(symbols, "DMARegSav", data_segment), "OEM machine identifier and alignment"),
+        Range(symbol_offset(symbols, "DMARegSav", data_segment), symbol_offset(symbols, "MB_Stat", data_segment), "DMA snapshot and page metadata"),
+        Range(symbol_offset(symbols, "MB_Stat", data_segment), by_name["_DATA"].size, "move-block status and padding"),
+    ]
+    print_ranges("Retained `_DATA` ownership", data_ranges)
 
     counts: Counter[str] = Counter()
     unknown_symbols: list[Symbol] = []

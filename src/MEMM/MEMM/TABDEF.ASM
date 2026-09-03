@@ -127,8 +127,6 @@ GDT_ENTRY	0, 0, 0, 0			; debugger work	3
 GDT_ENTRY	0, 0, 0, 0			; debugger work	4
 GDT_ENTRY	0, 0, 0, 0			; debugger work	5
 GDT_ENTRY	0, 0, 0, 0			; debugger work	(Addresses all memory)
-GDT_ENTRY	0, 0, 0, 0			; general work
-GDT_ENTRY	0, 0, 0, 0			; general work
 GDT_ENTRY	0, 0, 0, D_CODE0		; maps CODE segment
 GDT_ENTRY	0, 0, 0, D_DATA0		; VM1_GSEL - vm trap scratch
 GDT_ENTRY	0, 0, 0, D_DATA0		; VM2_GSEL - vm trap scratch
