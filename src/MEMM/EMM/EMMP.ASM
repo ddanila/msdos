@@ -62,6 +62,7 @@ _TEXT	segment
 	public	_GetMappablePAddrArrayFixed
 	public	_AlternateMapRegisterSet
 	public	_GetUnallocatedPageCount
+	public	_GetPageFrameAddress
 	public	_GetEMMVersion
 	public	_UnsupportedFunction
 ;	public	VEMMD_Set_Map_Region
@@ -171,6 +172,24 @@ assume	cs:_TEXT, ds:DGROUP, ss:DGROUP
 
 	page
 ; Small register-only services stay in assembly to avoid a C call frame.
+_GetPageFrameAddress proc near
+	; Called only by int67_Entry, which leaves BP on the saved register frame.
+	mov	ax, [PF_Base]
+	cmp	[_page_frame_pages], 4
+	jb	short gpf_no_frame
+	mov	dl, byte ptr [_EMMstatus]
+	jmp	short gpf_return
+gpf_no_frame:
+	mov	dl, EMM_HW_MALFUNCTION
+	cmp	ax, 0ffffh
+	jne	short gpf_return
+	mov	ax, 0b000h			; fallback if the error is ignored
+gpf_return:
+	mov	word ptr [bp.rBX], ax
+	mov	byte ptr [bp.rAX+1], dl
+	ret
+_GetPageFrameAddress endp
+
 _GetUnallocatedPageCount proc near
 	mov	bp, [_regp]
 	mov	ax, [_free_count]

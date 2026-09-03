@@ -341,36 +341,6 @@ GetStatus()
 
 
 /*
- * get page frame address
- *	no parameters
- *
- * return the address of where the pages get mapped 
- * in user space
- *
- *	05/06/88  ISP	Updated this routine from WIN386 sources.
- */
-GetPageFrameAddress()
-{
-	extern unsigned short PF_Base;
-	extern unsigned short page_frame_pages;
-	unsigned short frame = PF_Base;
-
-	/*
-	 * return the 8086 style base address of
-	 * the page frame base. 
-	 */
-	if ( page_frame_pages < 4 ) {
-		setAH(EMM_HW_MALFUNCTION);	/* GET LOST!!! */
-		if ( frame == 0xFFFF )
-			frame = 0xB000;	/* In case error is ignored */
-	} else {
-		setAH((unsigned char)EMMstatus);	/* OK return */
-	}
-	setBX(frame);
-}
-
-
-/*
  * allocate pages
  *	parameters:
  *		n_pages (bx) -- allocation size request
