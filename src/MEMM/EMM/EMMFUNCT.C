@@ -142,19 +142,8 @@
  */
 /*extern char		map_known; */
 
-/*
- * page frame base
- *	this is a map of the linear addresses of the
- *	4 16Kb EMM `physical' windows that the user
- *	accesses the EMM pages through. The entries
- *	of this array are far pointers into the page table.
- *	Thus, the address defined by page_frame_base[0]
- *	is the address of the long word that is the page
- *	table entry for the first EMM window. The reason for 
- *	this obscurity is in speed of mapping -- it is used
- *	to directly obtain access to the entry to be programmed
- */
-extern unsigned	long page_frame_base[];
+/* Offsets of physical-window PTEs within the shared page-table selector. */
+extern unsigned short page_frame_base[];
 
 /*
  * save_map

@@ -174,9 +174,8 @@ Get_FRS_window	MACRO	Reg
 
 ;******************************************************************************
 ;**init_PAGE_FRAME_BASE: macro to fill in the page_frame_base array.  this
-;  array contains the selector:offset into page table. The selector is already
-;  initialised.  So the offset of each of the physical pages into the page
-;  table needs to be filled in.
+;  array contains offsets into the page table. All entries use PAGET_GSEL, so
+;  only the varying offset is retained.
 ;
 ;  ENTRY: SI = INDEX INTO _page_frame_base, also physical page #
 ;	  BX = Segment of physical page
@@ -187,7 +186,7 @@ init_page_frame_base	MACRO
     push    si
     push    bx
 ;
-    shl     si,2		    ; convert index into offset in dword array
+    shl     si,1		    ; convert index into offset in word array
 ;
     shr     bx,6		    ; convert segment into page table offset
 				    ; since there is 1 dword entry for each 4k
@@ -524,13 +523,13 @@ EMIN_3:
 ;   Each entry reps	    Each entry reps	     Each entry reps
 ;   a physical page.	    a mappable ph. page      a system page
 ;
-;   DWORD.		    DWORD		     Byte
+;   WORD.		    DWORD		     Byte
 ;
 ;   1st WORD: offset	    1st WORD: segment	     Index into
 ;   into page table	    of ph. page 	     _mappable_pages
 ;						     which reps the page
-;   2nd WORD: sel.	    2nd WORD: physical
-;   of page table	    page # of ph. page
+;			    2nd WORD: physical
+;			    page # of ph. page
 ;
 ;
 ; 1. Set up for the page frame pages.  Note that they may or may not exist.

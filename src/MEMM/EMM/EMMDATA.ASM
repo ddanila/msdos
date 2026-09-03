@@ -191,16 +191,14 @@ _PF_Base	label	word
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;04. PAGE FRAME BASE
-;	this is the map of linear addr.
-;	of the n 16kb physical pages used to
-;	access the EMM pages.  The contents
-;	far pointers into the system page
-;	table.	If a lim 3.2 page frame is
+;	this is the map of page-table offsets for the n 16kb physical pages
+;	used to access the EMM pages. Every entry uses PAGET_GSEL, so retaining
+;	the same selector beside every offset is redundant. If a lim 3.2 frame is
 ;	available it gets the entries at the
 ;	beginning
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-_page_frame_base	LABEL	DWORD
-	DW	MAX_PHYS_PAGES dup (0, PAGET_GSEL)	    ; PTE offsets of physical pages
+_page_frame_base	LABEL	WORD
+	DW	MAX_PHYS_PAGES dup (0)	    ; PTE offsets of physical pages
 
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

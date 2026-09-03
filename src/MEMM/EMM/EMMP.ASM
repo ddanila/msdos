@@ -107,7 +107,7 @@ extrn	_EMMstatus:word
 ; table of offsets into in to the first page table
 ; for user logical emm page map
 ;
-extrn	_page_frame_base:dword
+extrn	_page_frame_base:word
 
 extrn	_pft386:word
 
@@ -378,9 +378,11 @@ map_EMM_page	proc	near
 	; page frame
 	;
 
-	shl	bx,2	 		; bx <-- index * 4
+	shl	bx,1	 		; bx <-- index * 2
 	add	bx,offset DGROUP:_page_frame_base ; bx = offset for entry in _page_frame_base
-	les	di,[bx]			; es:di <-- page frame address
+	mov	di,[bx]			; di <-- page-table offset
+	push	PAGET_GSEL
+	pop	es			; es:di <-- page frame address
 
 	;
 	; now, 
@@ -461,9 +463,11 @@ unmap_page_found:
 	; page frame
 	;
 	xchg	ax,bx
-	shl	bx,2	 		; bx <-- index * 4
+	shl	bx,1	 		; bx <-- index * 2
 	add	bx,offset DGROUP:_page_frame_base ; bx <-- points to PTE address of phys page#
-	les	di,[bx]			; es:di <-- points to PTE of page frame
+	mov	di,[bx]			; di <-- page-table offset
+	push	PAGET_GSEL
+	pop	es			; es:di <-- points to PTE of page frame
 	xchg	ax,bx
 
 	;

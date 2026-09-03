@@ -95,7 +95,7 @@ extern char cntxt_pages;		/* pages in context */
 extern char cntxt_bytes;		/* bytes in context */
 extern unsigned short PF_Base;
 /*extern unsigned short VM1_EMM_Offset;*/
-extern long	page_frame_base[];
+extern unsigned short page_frame_base[];
 extern char	EMM_MPindex[];
 extern char	OSEnabled;			/* OS/E function flag */
 extern long	OSKey;				/* Key for OS/E function */
