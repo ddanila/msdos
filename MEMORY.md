@@ -1606,6 +1606,16 @@ file or transient layout. This removes 12 bytes, crosses the allocation
 boundary, and adds 16 bytes to VC's largest block. The paired result is 601,920
 bytes; COMMAND occupies 5,840 bytes and its excess over retail is 2,880 bytes.
 
+Keep the resident message workspace at 64 bytes until its complete runtime
+contract is attributed. The disk-loaded parse and extended catalogs need at
+most 40 bytes per length-prefixed record, but a 48-byte workspace experiment
+failed the deliberate A20-off HMA gate by emitting NUL/binary data; the same
+build passed all 14 startup cases, so startup coverage alone is insufficient.
+This is not a valid 16-byte saving. Before retrying, trace every formatter,
+disk-read, substitution, and asynchronous use of `$M_TEMP_BUF`, then add a
+direct capacity assertion for the proven maximum rather than inferring the
+bound from only two catalogs.
+
 Reproduce the checked census with:
 
 ```sh
