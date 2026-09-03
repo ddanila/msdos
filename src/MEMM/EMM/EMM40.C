@@ -195,18 +195,6 @@ ReallocatePages()
 }
 
 /*
- * UndefinedFunction
- *
- * An undefined or unsupported function.
- *
- * 05/10/88  ISP  No update needed
- */
-UndefinedFunction() 
-{
-	setAH(INVALID_FUNCTION);
-}
-
-/*
  * Get Expanded Memory Hardware Information
  *	parameters:
  *		al == 0
@@ -331,7 +319,7 @@ GetSetHandleName()
 		Name = (char far *)dest_addr(); 	   /* ES:DI */
 		copyout(Name, Handle_Name_Table[handle & 0xFF], Handle_Name_Len);
 		setAH((unsigned char)EMMstatus);
-	} else if ( regp->hregs.h.ral == 1 ) {
+	} else {
 		GetHandleDirectory();		/* See if already there */
 		switch ( regp->hregs.h.rah ) {
 		case NAMED_HANDLE_NOT_FOUND:
@@ -348,8 +336,7 @@ GetSetHandleName()
 		Name = (char far *)source_addr();
 		copyin(Handle_Name_Table[handle & 0xFF], Name, Handle_Name_Len);
 		setAH((unsigned char)EMMstatus);
-	} else
-		setAH(INVALID_SUBFUNCTION);
+	}
 
 }
 
