@@ -348,19 +348,6 @@ xms_extended_dispatch:
         je      short xms_extended_info
         cmp     ah, 08fh
         je      short xms_extended_reallocate
-        jmp     short xms_extended_unknown
-xms_extended_query:
-        call    xms_query_any_free
-        jmp     short xms_extended_return
-xms_extended_allocate:
-        call    xms_allocate_any
-        jmp     short xms_extended_return
-xms_extended_info:
-        call    xms_extended_handle_info
-        jmp     short xms_extended_return
-xms_extended_reallocate:
-        call    xms_reallocate_any
-        jmp     short xms_extended_return
 xms_extended_unknown:
         ; DOS 6.22 aliases otherwise undefined 8xh calls to their low-seven-bit
         ; XMS 2.x function (for example, 8Ah behaves as Free EMB/0Ah).
@@ -372,6 +359,18 @@ xms_extended_unknown:
         mov     si, ax
         shl     si, 1
         call    word ptr cs:[xms_table+si]
+        jmp     short xms_extended_return
+xms_extended_query:
+        call    xms_query_any_free
+        jmp     short xms_extended_return
+xms_extended_allocate:
+        call    xms_allocate_any
+        jmp     short xms_extended_return
+xms_extended_info:
+        call    xms_extended_handle_info
+        jmp     short xms_extended_return
+xms_extended_reallocate:
+        call    xms_reallocate_any
         jmp     short xms_extended_return
 xms_extended_reject:
         mov     bl, ERR_NOT_IMPLEMENTED
@@ -559,8 +558,7 @@ xms_local_enable endp
 
 xms_enable_a20 proc near
         call    enable_a20
-        jc      xms_a20_failed
-        jmp     xms_success
+        jmp     short xms_a20_result
 xms_enable_a20 endp
 
 xms_local_disable proc near
@@ -571,6 +569,7 @@ xms_local_disable endp
 
 xms_reconcile_a20 proc near
         call    reconcile_a20
+xms_a20_result::
         jc      xms_a20_failed
         jmp     xms_success
 xms_reconcile_a20 endp
@@ -815,7 +814,6 @@ xms_reallocate proc near
         jbe     short realloc_resize
         push    dx
         mov     dx, bx
-        xor     ch, ch
         call    gap_after_handle
         pop     dx
         jc      short realloc_move
@@ -1269,8 +1267,7 @@ validate_handle endp
 
 find_free_handle proc near
         mov     si, offset handles
-        xor     ch, ch
-        mov     cl, byte ptr [handle_limit]
+        mov     cx, [handle_limit]
 find_free_loop:
         cmp     word ptr [si+HANDLE_BASE], 0
         je      short find_free_found
@@ -1292,8 +1289,7 @@ count_free_handles proc near
         push    si
         xor     bx, bx
         mov     si, offset handles
-        xor     ch, ch
-        mov     cl, byte ptr [handle_limit]
+        mov     cx, [handle_limit]
 count_handles_loop:
         cmp     word ptr [si+HANDLE_BASE], 0
         jne     short count_handles_used
@@ -1318,7 +1314,7 @@ find_gap_retry:
         cmp     di, [extended_kb]
         ja      short find_gap_fail
         mov     si, offset handles
-        mov     cl, byte ptr [handle_limit]
+        mov     cx, [handle_limit]
 find_gap_scan:
         cmp     word ptr [si+HANDLE_BASE], 0
         je      short find_gap_next
@@ -1348,7 +1344,7 @@ gap_after_handle proc near
         cmp     ax, [extended_kb]
         ja      short gap_after_fail
         mov     di, offset handles
-        mov     cl, byte ptr [handle_limit]
+        mov     cx, [handle_limit]
 gap_after_loop:
         cmp     di, si
         je      short gap_after_next
@@ -1381,8 +1377,7 @@ largest_retry:
         mov     dx, [extended_kb]       ; next used base, or pool end
         mov     di, 0ffffh              ; next handle offset
         mov     si, offset handles
-        xor     ch, ch
-        mov     cl, byte ptr [handle_limit]
+        mov     cx, [handle_limit]
 largest_scan:
         cmp     word ptr [si+HANDLE_BASE], 0
         je      short largest_next
@@ -1428,7 +1423,7 @@ total_free_has_xms:
         sub     ax, HMA_KB
 total_free_scan:
         mov     si, offset handles
-        mov     cl, byte ptr [handle_limit]
+        mov     cx, [handle_limit]
 total_free_loop:
         cmp     word ptr [si+HANDLE_BASE], 0
         je      short total_free_next
