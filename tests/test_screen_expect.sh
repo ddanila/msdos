@@ -8,6 +8,8 @@ FLOPPY="$OUT/floppy.img"
 
 BOOT_IMG="$OUT/screen-test-boot.img"
 SCREEN_LOG="$OUT/screen-test.log"
+TIMEOUT_LOG="$OUT/screen-test-timeout.log"
+TIMEOUT_OUTPUT="$OUT/screen-test-timeout-output.log"
 QMP_SOCK="$OUT/screen-test-qmp.sock"
 
 PASS=0
@@ -58,6 +60,17 @@ python3 "$REPO_ROOT/tests/screen_expect.py" \
     'Enter new time' 'ret' \
     '>' 'v+e+r+ret' \
     'MS-DOS' 'ret'
+
+if SCREEN_EXPECT_TIMEOUT=1 python3 "$REPO_ROOT/tests/screen_expect.py" \
+    "$QMP_SOCK" "$TIMEOUT_LOG" \
+    'PATTERN-THAT-CANNOT-APPEAR' 'ret' >"$TIMEOUT_OUTPUT" 2>&1; then
+    fail "Unmatched pattern should return failure"
+elif grep -q 'TIMEOUT after 1.0s' "$TIMEOUT_OUTPUT" \
+    && ! grep -q 'Traceback' "$TIMEOUT_OUTPUT"; then
+    ok "Timeout returns a clean failure without a Python exception"
+else
+    fail "Timeout did not return the expected clean diagnostic"
+fi
 
 kill $QEMU_PID 2>/dev/null
 wait $QEMU_PID 2>/dev/null || true

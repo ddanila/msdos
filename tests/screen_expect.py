@@ -44,7 +44,7 @@ COLS = 80
 ROWS = 25
 POLL_INTERVAL = 0.3
 KEY_DELAY = 0.05
-TIMEOUT = 120
+TIMEOUT = float(os.environ.get('SCREEN_EXPECT_TIMEOUT', '120'))
 
 
 class QMPConnection:
@@ -177,6 +177,7 @@ def main() -> None:
 
     qmp = QMPConnection(qmp_sock)
     rule_idx = 0
+    completed = False
     deadline = time.monotonic() + TIMEOUT
 
     with tempfile.NamedTemporaryFile(suffix='.bin', delete=False) as tmp:

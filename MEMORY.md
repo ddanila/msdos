@@ -451,7 +451,7 @@ range-level accounting before selecting the next relocation.
 
 | Gate | Required evidence | Decision |
 | --- | --- | --- |
-| Address independence | Passed: EMM386 boots and completes the first continuation across `/NUMHANDLES=24..32` | Paragraph-changing HIMEM and linker work is unblocked |
+| Address independence | Reopened: the current image passes `/NUMHANDLES=24..32`, but three independent one-paragraph reductions expose post-install stalls at particular phases | Diagnose the first return-to-real continuation before accepting another paragraph-changing EMM386 or HIMEM change |
 | Attribution | All conventional ranges and every EMM386, HIMEM, and COMMAND resident symbol have an owner, lifetime, and size | EMM386 symbol ownership complete; range accounting plus HIMEM, COMMAND, DOS, and BIOS remain |
 | Safe compaction exhausted | Every low-risk candidate has an A/B component delta and VC largest-block delta | Calculate the exact architectural/layout remainder |
 | Layout route chosen | EBDA destination and all low islands are proved safe, or their gains are rejected explicitly | Implement only gains that join the largest block |
@@ -462,18 +462,16 @@ At each gate, update the baseline rather than carrying projected savings
 forward. The roadmap is complete only when the equation reaches zero on a clean
 build and the fixed comparison remains reproducible.
 
-The immediate queue is deliberately conservative: finish EMM386 range
-attribution, then audit its retained DGROUP and low prefix for whole-paragraph
-wins before changing another transition boundary. The DMA register snapshot
-and final DMA page list remain low: real-mode transition code refreshes the
-snapshot and initialization constructs the page list before protected state is
-available. Moving either requires a gateway or dual-copy design, not a linker
-move. COMMAND, DOS-layout, and EBDA work follow once their maps identify a safe
-destination rather than merely a source of bytes. The architectural EMM386 and
-COMMAND changes remain the fallback if measured safe compactions cannot close
-the gap.
+The immediate queue is to remove the remaining first-continuation address
+dependency. The DMA register snapshot and final DMA page list remain low:
+real-mode transition code refreshes the snapshot and initialization constructs
+the page list before protected state is available. Moving either requires a
+gateway or dual-copy design, not a linker move. COMMAND, DOS-layout, and EBDA
+work follow once their maps identify a safe destination rather than merely a
+source of bytes. The architectural EMM386 and COMMAND changes remain the
+fallback if measured safe compactions cannot close the gap.
 
-The next implementation tranche is therefore:
+After address independence is restored, the next implementation tranche is:
 
 1. complete byte-range accounting inside EMM386's 8,195-byte retained code
    prefix and 1,010-byte `_DATA`, including local labels and alignment;
@@ -508,6 +506,24 @@ template through the writable `VDMCA_GSEL` alias did not fix the prototype.
 The unresolved dependency is therefore in the copy mechanism, its addressing,
 or the destination layout. Retry only with a deliberate exception-screen probe
 that proves the buffer before and after return to real mode.
+
+Three later compaction probes show that address independence is not yet fully
+closed. Shortening the resident privileged-error dialog by 28 data bytes moved
+`_TEXT` one paragraph earlier and stalled `/NUMHANDLES=24`. Independently,
+shrinking the retained `GetPageFrameAddress` code by 15 bytes left `_TEXT` at
+the same segment but moved the compacted VDATA/stack break one paragraph
+earlier; it produced the same stall. A 14-byte HIMEM handle-scan reduction
+crossed HIMEM's default break, passed `/NUMHANDLES=24`, and stalled at 25.
+All three reach the installation banner and then fail before SYSINIT continues,
+while their ordinary configurations and focused component suites pass. This
+rules out the changed messages and handle logic themselves and makes the first
+virtual-to-real continuation or its retained break the active prerequisite.
+Stopping the failed VM shows CPL 3 virtual-8086 execution running beyond the
+retained low `_TEXT` prefix into the compacted suffix instead of completing the
+port-84h/85h return sequence. The next probe should trace `RRProc`, both port
+handlers, `RR_GoReal`, and `JumpReal` at the passing and failing phases.
+Do not accept another paragraph gain until every shifted phase boots after the
+gain, not merely before it.
 
 The next HIMEM paragraph exposed a separate EMM386 prerequisite. A prototype
 packed HMA ownership into `/HMAMIN=`'s unused high bit and shared the identical
