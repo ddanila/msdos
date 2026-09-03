@@ -670,11 +670,15 @@ reopened by the latest compaction probes. The critical path is:
    from low-memory and video-memory compatibility extensions;
 2. keep every mutable symbol in DOS's relocated tail addressed through the HMA
    copy, and retain `/NUMHANDLES=24..32` as a mandatory gate;
-3. finish COMMAND's `CODERES`/`DATARES` census and the exact HMA
-   owner/lifetime/slack census; keep the EMM386, DOS, BIOS, MCB-gap, and HIMEM
-   attribution reports current;
-4. make COMMAND's cold resident state high or reloadable, using DR-DOS's small
-   HMA-resident shell as the measured precedent and preserving every reload and
+3. **Complete:** the top-level COMMAND census and exact HMA
+   owner/lifetime/slack census establish a checked 486-byte first payload and
+   17,884 bytes of DOS-owned HMA tail storage; continue the symbol-level
+   COMMAND and DOS/BIOS ownership work while keeping all attribution reports
+   current;
+4. make COMMAND's cold resident state high or reloadable, beginning with its
+   critical-error catalog through the bounded DOS HMA-tail allocator; use
+   DR-DOS's small HMA-resident shell as the measured precedent while preserving
+   every reload and
    asynchronous entry path;
 5. replace EMM386's large retained prefix with the smallest practical low
    gateway backed by protected/XMS-resident code and state; take safe metadata
@@ -706,7 +710,7 @@ until an A/B image measures them.
 | Priority | Opportunity | Available evidence | Likely scale | Principal constraint |
 | --- | --- | --- | ---: | --- |
 | Complete | Attribute DR-DOS's HMA-mode advantage | Controlled DR-DOS 6.0 and OpenDOS 7.01 matrices reconcile their ordinary advantages and isolate optional policies | research complete | No source code used; identical inputs and compatibility modes remain separated |
-| 1 | Census HMA ownership and COMMAND's resident ranges | DR-DOS leaves a roughly 5 KiB resident shell while the local shell costs 5,200 bytes more | attribution first | A20 state, DOS buffers, reload, interrupts, and third-party HMA users |
+| Complete | Census fixed HMA ownership and COMMAND's top-level resident ranges | The checked map identifies 17,884 bytes of DOS-owned HMA tail and a 486-byte critical-error catalog | attribution complete at the first payload boundary | Symbol-level COMMAND and DOS/BIOS ownership remains in D1/A3 |
 | 1 | Move COMMAND cold state high or transient | COMMAND costs 3,360 bytes more than retail and 5,200 more than DR-DOS | low kilobytes | Reload, critical error, `INT 2Eh`, batch and pipe survival |
 | 2 | Build a small EMM386 low gateway backed by locked XMS | Local EMM386 costs 8,960 bytes more than retail; OpenDOS demonstrates a much smaller reported low resident | several kilobytes | Real/virtual transitions, inactive `AUTO`, DMA, faults, and all EMS maps |
 | 2 | Compact EMM386 runtime-sized metadata and alignment | Measured subranges can supplement the gateway redesign | tens to hundreds of bytes per item | Full `H=`/`A=` ranges and EMS 4.0 formats |
@@ -791,8 +795,8 @@ capture pass.
 | C4 | EMM386 | Split ordinary EMS service dispatch from mapping-sensitive activation so services that do not require virtual mode can live in the relocated image | EMS 3.2/4.0, non-empty function 56h maps, alternate sets, and inactive queries pass |
 | C5 | EMM386 | Replace `RRProc` and the return-to-real continuation with a small position-independent low gateway, then relocate the remaining transition module | Repeated real/virtual transitions, fault returns, runtime modes, shifted loads, and warm reboot pass |
 | C6 | EMM386 | Revisit the deferred shared exception-message buffer only with a probe around both protected-to-real copies | The buffer is correct before and after return, and installation plus exception dialogs complete |
-| D1 in progress | COMMAND | Refine the generated `CODERES`/`DATARES` byte-range census from lifetime classes to symbol/module ownership | The report checks every top-level range and break; each resident symbol still needs a reason it must survive transient overwrite |
-| D2 | COMMAND | Move rare formatting, help/error text, and callable services to the reloadable transient; merge mutually exclusive scratch and descriptors | Reload after external programs, batch, pipes, `INT 2Eh`, Ctrl+C, critical errors, and termination pass |
+| D1 in progress | COMMAND | Refine the generated `CODERES`/`DATARES` byte-range census from lifetime classes to symbol/module ownership | The report checks every top-level range and break; the 486-byte critical-error catalog is the first coherent cold payload, while remaining resident symbols still need a lifetime reason |
+| D2 next | COMMAND | Reserve HMA tail storage, copy and register the critical-error catalog there, and lower the default resident break from `17E0h` to `15FAh`; then move further rare formatting, help/error text, and callable services high or to the reloadable transient | The first change yields the expected 480 paragraph-rounded bytes; DOS=LOW falls back cleanly; reload after external programs, `/MSG`, batch, pipes, `INT 2Eh`, Ctrl+C, critical errors, and termination pass |
 | D3 | COMMAND | If necessary, redesign the resident/transient interface around a smaller stable state block and reload gateway | The complete internal-command surface and shell state survive every reload path |
 | E1 | DOS/BIOS | Attribute and compact retained-low DOS/BIOS gateways, DPBs, SFT/CDS anchors, device-chain state, tables, buffers, stacks, and compatibility data | Internal structures, drivers, redirectors, filesystem, async interrupts, EXEC, and warm reboot pass |
 | E2 | DOS/BIOS | Move only explicitly HMA-safe DOS state above the resident image; consolidate low bounce areas and workspaces whose lifetimes cannot overlap | A20-off callbacks and real-mode near pointers never target HMA; maximum buffers and sector sizes pass |
@@ -802,8 +806,11 @@ capture pass.
 | F1 | Architecture | If B through E leave a measured remainder, choose the smallest of the EMM386 gateway split, DOS-low ownership redesign, or COMMAND boundary redesign that covers it with margin | A written byte budget shows why smaller changes cannot reach the target |
 | F2 | Regression | Enforce VC largest block >=618,736, free UMB >=47,888, component budgets, identical inputs, and clean-build reproducibility in the local suite | Floors pass repeatedly and across the supported machine/option matrix; CI remains off until requested |
 
-The execution order is A3 followed by D1/D2: measure HMA ownership and make
-COMMAND's cold state high or reloadable. C2-C5 then pursue an OpenDOS-style
+The immediate execution order is D1/D2: use the completed HMA census and tail
+allocator for COMMAND's critical-error catalog, while continuing the remaining
+symbol-level COMMAND and DOS/BIOS attribution in A3. Confirm the predicted
+480-byte largest-block gain with paired VC captures before expanding the moved
+payload. C2-C5 then pursue an OpenDOS-style
 small EMM386 gateway, followed by E1-E4 for the DOS placement ladder and layout
 coalescing. E5 is a bounded 1,024-byte finishing step. The remaining HIMEM B
 items stay paused unless the measured residual justifies them. D3 and F1 remain
