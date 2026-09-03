@@ -955,7 +955,6 @@ xms_umb_request endp
 xms_umb_release proc near
         mov     si, offset umb_blocks
         mov     cx, [umb_count]
-        xor     di, di
         jcxz    umb_release_bad
 umb_release_find:
         cmp     word ptr [si], dx
@@ -963,7 +962,6 @@ umb_release_find:
         test    word ptr [si+2], UMB_ALLOCATED
         jnz     short umb_release_found
 umb_release_next:
-        inc     di
         add     si, UMB_BLOCK_SIZE
         loop    umb_release_find
 umb_release_bad:
@@ -971,8 +969,7 @@ umb_release_bad:
         jmp     xms_failure
 umb_release_found:
         and     word ptr [si+2], NOT UMB_ALLOCATED
-        call    coalesce_umb_blocks
-        jmp     xms_success
+        jmp     coalesce_umb_blocks
 xms_umb_release endp
 
 ; Insert an empty UMB entry after DI, shifting later entries upward.
@@ -1025,19 +1022,15 @@ coalesce_next:
         add     si, UMB_BLOCK_SIZE
         loop    coalesce_scan
 coalesce_done:
-        ret
+        jmp     xms_success
 coalesce_umb_blocks endp
 
 remove_next_umb proc near
         mov     di, si
         add     di, UMB_BLOCK_SIZE
-        mov     ax, offset umb_blocks
-        mov     bp, [umb_count]
-        imul    bp, UMB_BLOCK_SIZE
-        add     ax, bp
 remove_umb_shift:
         add     di, UMB_BLOCK_SIZE
-        cmp     di, ax
+        cmp     di, offset handles
         jae     short remove_umb_done
         mov     bp, word ptr [di]
         mov     word ptr [di-UMB_BLOCK_SIZE], bp
