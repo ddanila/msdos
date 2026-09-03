@@ -218,47 +218,6 @@ GetInformation()
 }
 
 /*
- * GetSetHandleAttribute
- *
- *	parameters:
- *		al == 0
- *	returns:
- *		al == 0 -- volatile handles
- *
- *	parameters:
- *		al == 1
- *	returns:
- *		ah = 91h -- Feature not supported
- *
- *	parameters:
- *		al == 2
- *	returns:
- *		al == 0 -- Supports ONLY volatile handles
- *
- * 05/09/88 ISP No update needed
- */
-GetSetHandleAttribute()
-{
-#define	handle	((unsigned short)regp->hregs.x.rdx)
-
-	if ( regp->hregs.h.ral == 0 ) {
-		if (valid_handle(handle) == NULL_HANDLE)
-			return;						/* (error code already set) */
-		setAX(0);			/* AL = 0 [volatile attribute] */
-	} else if ( regp->hregs.h.ral == 1 ) {
-		setAH(FEATURE_NOT_SUPPORTED);
-	} else if ( regp->hregs.h.ral == 2 ) {
-		setAX(0);			/* AL = 0 [volatile attribute] */
-	} else
-		setAH(INVALID_SUBFUNCTION);
-
-#undef	handle
-}
-
-
-
-
-/*
  * GetSetHandleName
  *
  *  Subfunction 0 Gets the name of a given handle

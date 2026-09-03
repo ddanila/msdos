@@ -65,6 +65,7 @@ _TEXT	segment
 	public	_GetPageFrameAddress
 	public	_GetEMMVersion
 	public	_UnsupportedFunction
+	public	_GetSetHandleAttribute
 	public	_GetEMMHandleCount
 	public	_GetStatus
 ;	public	VEMMD_Set_Map_Region
@@ -83,6 +84,7 @@ _TEXT	segment
 
 extrn	_source_addr:near
 extrn	_dest_addr:near
+extrn	_valid_handle:near
 
 extrn	SetDescInfoResident:near
 extrn	SegOffTo24Resident:near
@@ -213,6 +215,29 @@ _UnsupportedFunction proc near
 	mov	byte ptr [bp.rAX+1], INVALID_FUNCTION
 	ret
 _UnsupportedFunction endp
+
+_GetSetHandleAttribute proc near
+	mov	al, byte ptr [bp.rAX]
+	or	al, al
+	jnz	short gsha_nonzero
+	call	_valid_handle
+	cmp	ax, NULL_HANDLE
+	je	short gsha_return		; helper returned INVALID_HANDLE
+gsha_zero:
+	mov	word ptr [bp.rAX], 0		; volatile handles, OK
+gsha_return:
+	ret
+gsha_nonzero:
+	cmp	al, 2
+	je	short gsha_zero			; only volatile handles supported
+	cmp	al, 1
+	jne	short gsha_invalid
+	mov	byte ptr [bp.rAX+1], FEATURE_NOT_SUPPORTED
+	ret
+gsha_invalid:
+	mov	byte ptr [bp.rAX+1], INVALID_SUBFUNCTION
+	ret
+_GetSetHandleAttribute endp
 
 _GetEMMHandleCount proc near
 	mov	ax, [_handle_count]
