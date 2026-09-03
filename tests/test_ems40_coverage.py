@@ -27,7 +27,7 @@ def main():
         )
     source = (ROOT / manifest["dispatcher"]).read_text(encoding="latin-1")
     block = source.split("dispatch_vector", 2)[2].split(";*************************************", 1)[0]
-    handlers = re.findall(r"^\s*mkvect\s+(\w+)", block, re.MULTILINE)
+    handlers = re.findall(r"^\s*mkvect(?:_alias)?\s+(\w+)", block, re.MULTILINE)
     fixed = re.search(r"extrn\s+_(GetMappablePAddrArrayFixed):near\s*\n\s*dw", block)
     if fixed:
         handlers.insert(24, fixed.group(1))

@@ -103,7 +103,6 @@ extern	unsigned far	*source_addr(); 		/* get DS:SI far ptr */
 extern	unsigned far	*dest_addr();			/* get ES:DI far ptr */
 extern	unsigned	wcopyb();
 extern	unsigned	copyout();
-extern	unsigned short	Avail_Pages();
 
 
 /******************************************************************************
@@ -146,7 +145,7 @@ ReallocatePages()
 			return;
 		}
 		n_pages = new_size - hp->page_count;
-		if ( n_pages > Avail_Pages() ) {
+		if ( n_pages > free_count ) {
 			setAH(NOT_ENOUGH_FREE_MEM);
 			return;
 		}
@@ -433,24 +432,6 @@ GetHandleDirectory()
 		setAH(INVALID_SUBFUNCTION);
 
 #undef	handle
-}
-
-/*
- * Prepare For Warm Boot
- *
- *	Always ready to reboot the system so just return status = OK
- *
- *	parameters:
- *		None
- *	returns:
- *		AH = EMMstatus
- *
- * 05/09/88 ISP No update needed.
- *
- */
-PrepareForWarmBoot()
-{
-	setAH((unsigned char)EMMstatus);
 }
 
 /*

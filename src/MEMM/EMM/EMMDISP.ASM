@@ -65,6 +65,11 @@ mkvect	MACRO	name
 	dw	offset _TEXT:_&name
 endm
 
+mkvect_alias MACRO name,target
+	extrn	_&target:near
+	dw	offset _TEXT:_&target
+endm
+
 ;******************************************************************************
 ;	E X T E R N A L S 
 ;******************************************************************************
@@ -128,7 +133,7 @@ dispatch_vector	label word
 	mkvect	GetInformation
 	mkvect	AllocateRawPages
 	mkvect	AlternateMapRegisterSet
-	mkvect	PrepareForWarmBoot
+	mkvect_alias PrepareForWarmBoot,GetStatus
 	mkvect	OSDisable
 
 ;*************************************

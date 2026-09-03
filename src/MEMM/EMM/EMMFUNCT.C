@@ -228,18 +228,6 @@ extern	void			reallocate();
  ******************************************************************************/ 
 
 /*
- * Avail_Pages()
- * returns: number of available emm pages
- *
- *	06/09/88	PC	added the function
- */
-unsigned short
-Avail_Pages()
-{
-	return(free_count) ;
-}
-
-/*
  * get_pages(num,pto)
  *	num --- number of pages desired
  *      pto --- offset into emm_page array where the pages got are to be copied
