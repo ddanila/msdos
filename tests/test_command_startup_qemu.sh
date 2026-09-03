@@ -10,6 +10,8 @@ B_IMG="$OUT/command-startup-unformatted-b.img"
 SERIAL_LOG="$OUT/command-startup-serial.log"
 FAIL_BOOT_IMG="$OUT/command-fail-boot.img"
 FAIL_SERIAL_LOG="$OUT/command-fail-serial.log"
+FAIL_SERIAL_IN="$OUT/command-fail-serial.in"
+FAIL_SERIAL_OUT="$OUT/command-fail-serial.out"
 EXIT_COM="$OUT/command-startup-qexit.com"
 ENV_PROBE="$OUT/command-environment-probe.com"
 COPY_ASCII_OUT="$OUT/command-copy-destination-ascii.bin"
@@ -92,27 +94,42 @@ timeout 120 qemu-system-i386 \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     2>/dev/null | tee "$SERIAL_LOG" >/dev/null; true
 
-# Exercise /F from a clean interpreter state. The main image deliberately
-# performs extensive redirection and DATE/TIME recovery first; keeping the
-# critical-error contract independent makes failures attributable to /F.
+# Exercise a real INT 24h in the permanent DOS-high interpreter. This forces
+# the text lookup through COMMAND's relocated HMA catalog; the serial
+# coordinator selects Fail at the prompt and proves normal return.
 cp "$FLOPPY" "$FAIL_BOOT_IMG"
 mcopy -o -i "$FAIL_BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 {
+    printf 'DEVICE=A:\\HIMEM.SYS\r\n'
+    printf 'DOS=HIGH\r\n'
+} | mcopy -o -i "$FAIL_BOOT_IMG" - ::CONFIG.SYS
+{
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
+    printf 'TYPE B:\\NOFILE.TXT\r\n'
+    printf 'ECHO COMMAND_CRITICAL_HMA_CONTINUED\r\n'
     printf 'COMMAND /F /C TYPE B:\\NOFILE.TXT\r\n'
     printf 'ECHO COMMAND_FAIL_ALL_CONTINUED\r\n'
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$FAIL_BOOT_IMG" - ::AUTOEXEC.BAT
-rm -f "$FAIL_SERIAL_LOG"
+rm -f "$FAIL_SERIAL_LOG" "$FAIL_SERIAL_IN" "$FAIL_SERIAL_OUT"
+mkfifo "$FAIL_SERIAL_IN" "$FAIL_SERIAL_OUT"
+exec 3<>"$FAIL_SERIAL_IN"
 timeout 30 qemu-system-i386 \
     -display none \
     -drive if=floppy,index=0,format=raw,file="$FAIL_BOOT_IMG",cache=writethrough \
     -drive if=floppy,index=1,format=raw,file="$B_IMG",cache=writethrough \
     -boot a -m 4 \
-    -serial stdio \
+    -serial pipe:"$OUT/command-fail-serial" \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
-    2>/dev/null | tee "$FAIL_SERIAL_LOG" >/dev/null; true
+    2>/dev/null &
+FAIL_QEMU_PID=$!
+python3 "$REPO_ROOT/tests/serial_expect.py" \
+    "$FAIL_SERIAL_IN" "$FAIL_SERIAL_OUT" "$FAIL_SERIAL_LOG" \
+    'Abort, Retry, Fail?' 'F\r'
+wait "$FAIL_QEMU_PID" || true
+exec 3>&-
+rm -f "$FAIL_SERIAL_IN" "$FAIL_SERIAL_OUT"
 
 if grep -q '^COMMAND_PERMANENT_EXIT_IGNORED' "$SERIAL_LOG"; then
     ok "COMMAND /P ignores EXIT and continues reading the permanent shell"
@@ -186,11 +203,13 @@ if grep -q '^COMMAND_KEEP_INITIAL' "$SERIAL_LOG" \
 else
     fail "COMMAND /K did not preserve the secondary interpreter"
 fi
-if grep -q '^COMMAND_FAIL_ALL_CONTINUED' "$FAIL_SERIAL_LOG" \
+if grep -q '^COMMAND_CRITICAL_HMA_CONTINUED' "$FAIL_SERIAL_LOG" \
+    && grep -q '^COMMAND_FAIL_ALL_CONTINUED' "$FAIL_SERIAL_LOG" \
+    && grep -q 'General failure reading drive B' "$FAIL_SERIAL_LOG" \
     && grep -q 'Fail on INT 24' "$FAIL_SERIAL_LOG"; then
-    ok "COMMAND /F automatically selects Fail for a real critical disk error"
+    ok "DOS-high permanent COMMAND reads the HMA critical catalog"
 else
-    fail "COMMAND /F did not automatically fail the critical disk error"
+    fail "DOS-high permanent COMMAND did not survive the critical disk error"
 fi
 
 if grep -q '^COMMAND_PERMANENT_RETURNED_WRONG' "$SERIAL_LOG"; then

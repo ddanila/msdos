@@ -121,6 +121,7 @@ SET_PARSE_MSG		EQU	3	;AN000;  set parse message address
 GET_CRITICAL_MSG	EQU	4	;AN000;  get critical message address
 SET_CRITICAL_MSG	EQU	5	;AN000;  set critical message address
 MESSAGE_2F		EQU	46	;AN000;  minor code for message retriever
+DOS_HMA_TAIL_ALLOC	EQU	1236H	; private DOS-owned HMA tail allocator
 
 ;*********************************
 ;* EQUATES FOR INT 10H

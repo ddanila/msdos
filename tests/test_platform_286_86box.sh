@@ -25,7 +25,17 @@ sysbuf_hex=$(awk '$2 == "SYSBUF" { split($1, address, ":"); print address[2]; ex
     exit 1
 }
 hma_tail=$((16#$sysbuf_hex + 15 * (512 + 20) + 8))
-nasm -DEXPECTED_TAIL="$hma_tail" -f bin "$ROOT/tests/hma_tail_probe.asm" \
+critical_start_hex=$(awk 'toupper($2) == "CRITICAL_MSG_START" { split($1, address, ":"); print address[2]; exit }' \
+    "$ROOT/src/CMD/COMMAND/COMMAND.MAP")
+dataresend_hex=$(awk 'toupper($2) == "DATARESEND" { split($1, address, ":"); print address[2]; exit }' \
+    "$ROOT/src/CMD/COMMAND/COMMAND.MAP")
+[[ "$critical_start_hex" =~ ^[0-9A-Fa-f]{4}$ && "$dataresend_hex" =~ ^[0-9A-Fa-f]{4}$ ]] || {
+    echo 'ERROR: could not read COMMAND critical-message range' >&2
+    exit 1
+}
+command_hma_bytes=$((16#$dataresend_hex - 16#$critical_start_hex))
+hma_tail_after_command=$((hma_tail + command_hma_bytes))
+nasm -DEXPECTED_TAIL="$hma_tail_after_command" -f bin "$ROOT/tests/hma_tail_probe.asm" \
     -o "$work/HMATAIL.COM"
 make_86box_286_boot_image "$image" "$ROOT"
 mcopy -o -i "$image" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS

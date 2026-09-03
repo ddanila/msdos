@@ -94,6 +94,7 @@ def main() -> int:
     extended_end = require(symbols, "extmsgend")
     resident_state_end = require(symbols, "resmsgend")
     critical_messages = require(symbols, "critical_msg_start")
+    critical_lookup = require(symbols, "$M_CLS_6")
     resident_code_end = require(symbols, "RES_CODE_END")
     tran_start = require(symbols, "TranStart")
     tran_data_end = require(symbols, "TRANDATAEND")
@@ -105,6 +106,8 @@ def main() -> int:
         errors.append("CODERES and DATARES are no longer contiguous at offset zero")
     if not (data.start <= resident_state_end <= critical_messages <= datares_end):
         errors.append("default resident DATARES ownership boundaries are not ordered")
+    if not (resident_state_end <= critical_lookup < critical_messages):
+        errors.append("critical-message lookup routine is not retained before its relocatable catalog")
     if not (datares_end == parse_messages <= extended_messages <= extended_end == data.end):
         errors.append("optional resident-message boundaries do not cover the DATARES tail")
     if not (0x100 <= resident_code_end <= code.end):
@@ -127,11 +130,12 @@ def main() -> int:
         ("Resident stack", resident_code_end, code.end, "asynchronous and reload paths; resident"),
         ("Mutable shell state", data.start, resident_state_end, "batch, pipe, environment, EXEC, reload; resident"),
         ("Resident message service data", resident_state_end, critical_messages, "resident formatter/catalog state"),
-        ("Critical-error messages", critical_messages, datares_end, "INT 24h and reload failures; resident"),
+        ("Critical-error messages", critical_messages, datares_end, "HMA for permanent DOS-high shell; low fallback otherwise"),
     ]
     for name, start, end, owner in ranges:
         print(f"| {name} | `{start:04X}h..{end:04X}h` | {end - start:,} | {owner} |")
-    print(f"| **Default resident break** | `0000h..{datares_end:04X}h` | **{datares_end:,}** | **{rounded(datares_end):,} paragraph-rounded** |")
+    print(f"| **DOS-high permanent break** | `0000h..{critical_messages:04X}h` | **{critical_messages:,}** | **{rounded(critical_messages):,} paragraph-rounded** |")
+    print(f"| Low/failure fallback break | `0000h..{datares_end:04X}h` | {datares_end:,} | {rounded(datares_end):,} paragraph-rounded |")
 
     print("\n## Optional and discardable ranges\n")
     print("| Range | Offset | Bytes | Lifetime |")
@@ -148,8 +152,9 @@ def main() -> int:
     ]
     for name, start, end, lifetime in optional:
         print(f"| {name} | `{start:04X}h..{end:04X}h` | {end - start:,} | {lifetime} |")
-    print(f"\n`/MSG` raises the resident break by {extended_end - datares_end:,} bytes "
-          f"to {rounded(extended_end):,} paragraph-rounded bytes.")
+    print(f"\n`/MSG` retains all catalogs and raises the DOS-high permanent break by "
+          f"{rounded(extended_end) - rounded(critical_messages):,} bytes to "
+          f"{rounded(extended_end):,} paragraph-rounded bytes.")
 
     if errors:
         print("\n## Census errors\n")

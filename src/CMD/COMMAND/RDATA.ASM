@@ -605,10 +605,7 @@ MSG_UTILNAME <COMMAND>				;AN000; define utility name
 ; dispatcher references. Omitting them leaves COMMAND.COM partially linked.
 MSG_SERVICES <COMR,MSGDATA,COMMAND.CLA,COMMAND.CL3,COMMAND.CL4>
 
-
-CRITICAL_MSG_START	LABEL	BYTE		;AN000; start of critical error messages
-
-MSG_SERVICES <COMR,COMMAND.CLD> 		;AN000; get critical error messages
+MSG_SERVICES <COMR,COMMAND.CDH> 		; get relocatable critical error messages
 
 DATARESEND		LABEL	BYTE		;AC060; end of resident portion if /msg not used
 

@@ -933,6 +933,8 @@ $MEN37:
 	    CMP     BX,$M_TERMINATING_FLAG		     ;;AN000;; Are we finished all classes?
 ;	    $IF     E					     ;;AN000;; Yes,
 	    JNE $MIF46
+	      CMP     DI,$M_TERMINATING_FLAG		     ;; FFFF:offset is a valid HMA pointer
+	      JNE     $MIF46
 	      CMP     DH,UTILITY_MSG_CLASS		     ;;AN000;;	  Was it a UTILITY class?
 ;	      $IF     E 				     ;;AN000;;	  Yes,
 	      JNE $MIF47
@@ -2137,6 +2139,8 @@ $MEN220:
 	    CMP     BX,$M_TERMINATING_FLAG		     ;;AN000;; Are we finished all classes?
 ;	    $IF     E					     ;;AN000;; Yes,
 	    JNE $MIF229
+	      CMP     DI,$M_TERMINATING_FLAG		     ;; FFFF:offset is a valid HMA pointer
+	      JNE     $MIF229
 	      CMP     DH,UTILITY_MSG_CLASS		     ;;AN000;;	  Was it a UTILITY class?
 ;	      $IF     E 				     ;;AN000;;	  Yes,
 	      JNE $MIF230
