@@ -90,10 +90,7 @@ VDMCA_GSEL	equ	0E8h OR TAB_GDT 	; VDM code segment alias
 EMM1_GSEL	equ	0F0h OR TAB_GDT 	; EMM scratch selector
 EMM2_GSEL	equ	0F8h OR TAB_GDT 	; EMM scratch selector
 OEM0_GSEL	equ	100h OR TAB_GDT 	; OEM specific selector
-OEM1_GSEL	equ	108h OR TAB_GDT 	; OEM specific selector
-OEM2_GSEL	equ	110h OR TAB_GDT 	; OEM specific selector
-OEM3_GSEL	equ	118h OR TAB_GDT 	; OEM specific selector
-USER1_GSEL	equ	120h OR TAB_GDT		; USER data structure
+USER1_GSEL	equ	108h OR TAB_GDT		; USER data structure
 
 .list	; end of VDMSEL.INC
 

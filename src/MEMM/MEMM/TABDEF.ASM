@@ -137,9 +137,6 @@ GDT_ENTRY	0, 0, 0, D_DATA0		; VDM Code - Data Alias
 GDT_ENTRY	0, 0, 0, D_DATA0		; EMM1 - EMM scratch selector
 GDT_ENTRY	0, 0, 0, D_DATA0		; EMM2 - EMM scratch selector
 GDT_ENTRY	0, 0, 0, D_DATA0		; OEM0 entry
-GDT_ENTRY	0, 0, 0, D_DATA0		; OEM1 entry
-GDT_ENTRY	0, 0, 0, D_DATA0		; OEM2 entry
-GDT_ENTRY	0, 0, 0, D_DATA0		; OEM3 entry
 GDT_ENTRY	0, 0, 0, D_DATA0		; USER1 entry
 
 	public	GDTLEN
