@@ -202,13 +202,14 @@ extern struct reg_frame  far *regp;
  */
 #define EMM32_PHYS_PAGES	4
 #define EMM40_PHYS_PAGES	(24 + EMM32_PHYS_PAGES)
+#define MAX_MAPPABLE_PAGES	52
 
 /*
- * structure of mappable physical page
+ * Dense mappable-page segment record.  Its internal physical page number is
+ * the dense index plus four minus the installed LIM 3.2 frame-page count.
  */
 struct mappable_page {
 	unsigned short page_seg;	      /* segment of physical page */
-	unsigned short physical_page;	      /* physical page number */
 };
 
 /* OS/E Enable/Disable defines */

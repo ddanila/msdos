@@ -187,11 +187,12 @@ SaveMap_struc	struc
 SaveMap_struc	ends
 
 ;
-; structure linking segment with physical page number
+; mappable-page segment table.  The internal physical page number is derived
+; from the dense table index and _page_frame_pages: frame entries are 0..P-1,
+; then the remaining entries begin at physical page 4.
 ;
 Mappable_Page	struc
 mappable_seg	dw	?
-mappable_pg	dw	?
 Mappable_Page	ends
 
 ;

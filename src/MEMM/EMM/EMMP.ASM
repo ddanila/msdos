@@ -443,20 +443,22 @@ unmap_page	proc	near
 	mov	[di], NULL_PAGE		; unmap the entry
 
 	;
-	; find out the segment of the physical page
+	; Convert the physical page to its dense segment-table index.  Missing
+	; frame slots P..3 have no mappable entry; pages from 4 onward follow the
+	; P frame entries contiguously.
 	;
-	mov	cx, [_physical_page_count]
-	mov	di, offset DGROUP:_mappable_pages
-unmap_page_loop:
-	cmp	ax, [di].mappable_pg
-	je	unmap_page_found
-	add	di, size Mappable_Page
-	loop	unmap_page_loop
-
-	jmp	short unmap_page_exit	; non-found : just return
-
-unmap_page_found:
-	mov	bx, [di].mappable_seg	; get segment into bx first
+	mov	di, ax
+	cmp	di, [_page_frame_pages]
+	jb	short unmap_page_dense
+	cmp	di, 4
+	jb	short unmap_page_exit
+	sub	di, 4
+	add	di, [_page_frame_pages]
+unmap_page_dense:
+	cmp	di, [_mappable_page_count]
+	jae	short unmap_page_exit
+	shl	di, 1
+	mov	bx, _mappable_pages[di]	; get segment into bx first
 
 	;
 	; construct pointer to physical address of
@@ -1040,16 +1042,16 @@ gmpa_loop:
 	cmp	bl, MAX_PHYS_PAGES		; 0ffh and every invalid index
 	jae	short gmpa_next
 	xor	bh, bh
-	shl	bx, 2				; sizeof mappable_page
+	mov	dx, bx				; preserve dense index
+	shl	bx, 1				; segment-table word index
 	add	bx, offset DGROUP:_mappable_pages
 	mov	ax, [bx]
 	stosw
-	mov	ax, [bx+2]
-	push	bx
-	mov	bx,ax
+	add	dx, 4				; derive internal physical page
+	sub	dx, [_page_frame_pages]
+	mov	bx, dx
 	xor	ah,ah
 	mov	al,_physical_page_ids[bx]
-	pop	bx
 	stosw
 gmpa_next:
 	inc	si
@@ -1123,17 +1125,14 @@ gsppm_get_loop:
 	cmp	al, -1				; does it exist
 	je	gsppm_inv_seg
 	mov	bx, ax
-	shl	bx, 2
-	lea	ax, _mappable_pages[bx]
-	mov	bx, ax
-	mov	bx, [bx.mappable_seg]		; segment for this page
+	shl	bx, 1
+	mov	bx, _mappable_pages[bx]
 	cmp	bx, fs:[si-2]
 	jne	gsppm_inv_seg			; must match exactly
-	mov	bx, ax
-	movzx	ebx, [bx.mappable_pg]		; the physical page
-	cmp	bx, dx
+	add	ax, 4				; derive the physical page
+	sub	ax, [_page_frame_pages]
+	cmp	ax, dx
 	ja	gsppm_inv_seg
-	mov	ax, bx
 	stosw					; Save physical page
 	Get_FRS_window	BX			; Get pointer to current window
 	add	bx, ax				; get ptr to emm page# in FRS
@@ -1304,11 +1303,14 @@ mha_sub1:
 	movsx	edi, EMM_MPindex[di]		; convert to physical page
 	cmp	edi, -1				; does it exist
 	je	short mha_inv_seg
-	shl	di, 2				; index * 4
+	movzx	ebx, di
+	add	bx, 4				; derive the physical page
+	sub	bx, [_page_frame_pages]
+	shl	di, 1				; segment-table word index
 	lea	di, _mappable_pages[di]
 	cmp	ax, [di.mappable_seg]		; segment for this page
 	jne	short mha_inv_seg		; must match exactly
-	movzx	eax, [di.mappable_pg]		; the physical page
+	mov	eax, ebx				; internal physical page
 	movzx	ebx, fs:[si.mha1_log_pg]	; the logical page
 	call	map_page			; try to map it
 	jc	short mha_exit			; error code already set

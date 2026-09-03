@@ -199,9 +199,8 @@ init_page_frame_base	MACRO
     ENDM
 
 ;******************************************************************************
-;**init_MAPPABLE_PAGES: macro to fill the _mappable_pages array.  this array
-;  contains the segment and physical page number of all the mappable physical
-;  pages.
+;**init_MAPPABLE_PAGES: macro to fill the _mappable_pages segment array.  The
+;  physical page is derived from the dense index and _page_frame_pages.
 ;
 ;  ENTRY: SI = INDEX INTO _page_frame_base, also physical page #
 ;	  BX = Segment of physical page
@@ -213,10 +212,9 @@ init_mappable_pages	MACRO
 	call	assign_external_page_id
     push    di
 ;
-    shl     di,2		    ; convert index into offset in dword array
+    shl     di,1		    ; convert index into offset in word array
 ;
     mov     _mappable_pages[di],bx  ; fill in segment
-    mov     _mappable_pages[di][2],si	; and physical page number
 ;
     pop     di
 ;
@@ -523,13 +521,11 @@ EMIN_3:
 ;   Each entry reps	    Each entry reps	     Each entry reps
 ;   a physical page.	    a mappable ph. page      a system page
 ;
-;   WORD.		    DWORD		     Byte
+;   WORD.		    WORD		     Byte
 ;
 ;   1st WORD: offset	    1st WORD: segment	     Index into
 ;   into page table	    of ph. page 	     _mappable_pages
 ;						     which reps the page
-;			    2nd WORD: physical
-;			    page # of ph. page
 ;
 ;
 ; 1. Set up for the page frame pages.  Note that they may or may not exist.

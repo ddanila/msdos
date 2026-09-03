@@ -203,13 +203,13 @@ _page_frame_base	LABEL	WORD
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;05. MAPPABLE PAGE ARRAY
-;	this is the segment, physical page
-;	correspondence array
+;	Dense segment table.  The physical page number is derived from the table
+;	index and _page_frame_pages; storing it in every record is redundant.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
 _mappable_pages	LABEL	WORD
 	REPT	MAX_PHYS_PAGES
-		Mappable_Page	<0, 0>
+		Mappable_Page	<0>
 	ENDM
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

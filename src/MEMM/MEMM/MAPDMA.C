@@ -26,8 +26,6 @@
 #define ALIGN64K        ~0x0FFFFL
 #define ALIGN16K        ~0x03FFFL
 
-#define MAX_PHYS_PAGES  40
-
 /* macros 
  * PT(a)       - pte from index a
  * INDEX(a)    - index from Linear Adr
@@ -46,7 +44,6 @@
 #define PFT(a)          (*(long *)(pft386+a))
 struct mappable_page {
    unsigned short page_seg;            /* segment of physical page */
-   unsigned short physical_page;       /* physical page number */
 };
 
 /* Xlates DosPhyPage into an index in mappable_pages[]. */
@@ -56,6 +53,10 @@ extern long *pft386;
 extern unsigned DMA_Pages[];
 extern unsigned char DMA_PAGE_COUNT;   /* size of DMA_Pages[] */
 extern unsigned physical_page_count;
+extern unsigned mappable_page_count;
+extern unsigned page_frame_pages;
+
+#define MAPPABLE_PHYSICAL_PAGE(i) ((i) + 4 - page_frame_pages)
 
 /* routines imported from elimtrap.asm */
 extern long GetPte();                  /* get a PT entry given index */
@@ -145,7 +146,7 @@ int i, j, k, bSwap,
       if (MPIndex == -1)   /* Adr not mappable */
          return FromAdr;
       else  {
-         PhyPages[i] = GetCRSEntry(mappable_pages[MPIndex].physical_page);
+         PhyPages[i] = GetCRSEntry(MAPPABLE_PHYSICAL_PAGE(MPIndex));
          if (PhyPages[i] == -1)  /* Adr not mapped currently */
             return FromAdr;
       }
@@ -279,7 +280,7 @@ int i, j;
 
 /* Find the pft386 entry for LinAdr */
    DosPhyPage = DOSPHYPAGE(LinAdr); /* Page at 256K is page zero */
-   EmmPhyPage = mappable_pages[EMM_MPindex[DosPhyPage]].physical_page;
+   EmmPhyPage = MAPPABLE_PHYSICAL_PAGE(EMM_MPindex[DosPhyPage]);
 
 /* get the CurRegSet entry for this physical page. */
    UserPFTIndex = GetCRSEntry(EmmPhyPage);
@@ -318,14 +319,14 @@ int i, j;
       UpdateUserPTE(LinAdr, UserPFTIndex);
    }
    else  {
-      /* ith EmmPhyPage mapped to DMA buffer 
-       * Scan mappable_pages[] array and find the Linear address that maps to it.
-       */
-      for (j = 0; j < MAX_PHYS_PAGES; j++)   {
-         if (mappable_pages[j].physical_page == i)
-            break;
-      }
-      if (j == MAX_PHYS_PAGES)
+      /* Convert the internal physical page back to its dense segment index. */
+      if (i < page_frame_pages)
+         j = i;
+      else if (i >= 4)
+         j = i - 4 + page_frame_pages;
+      else
+         j = mappable_page_count;
+      if (j >= mappable_page_count)
          FatalError(); /* invalid Phy page # - doesn't exist in mappable_pages[] */
       else
          DMALinAdr = ((long )mappable_pages[j].page_seg) << 4;
