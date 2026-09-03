@@ -76,6 +76,8 @@ printf 'BEFORE\032AFTER' | mcopy -o -i "$BOOT_IMG" - ::SMODE.BIN
     printf 'COMMAND /E:160 /C ENVPROBE.COM\r\n'
     printf 'ECHO ---COMMAND-E-LARGE---\r\n'
     printf 'COMMAND /E:512 /C ENVPROBE.COM\r\n'
+    printf 'ENVPROBE.COM > REOUT.TXT\r\n'
+    printf 'ECHO REDIRECT_APPEND>>REOUT.TXT\r\n'
     printf 'COMMAND /K ECHO COMMAND_KEEP_INITIAL < KEEP.IN\r\n'
     printf 'ECHO COMMAND_KEEP_RETURNED\r\n'
     printf 'ECHO COMMAND_PERMANENT_START\r\n'
@@ -194,6 +196,14 @@ if [[ "$small_environment" == "000A" && "$large_environment" == "0020" ]]; then
     ok "COMMAND /E assigns the exact requested child environment capacity"
 else
     fail "COMMAND /E capacities (160=$small_environment, 512=$large_environment)"
+fi
+
+redirection_output=$(mtype -i "$BOOT_IMG" ::REOUT.TXT 2>/dev/null | tr -d '\r')
+if echo "$redirection_output" | grep -q '^COMMAND_ENV_SIZE=' \
+    && echo "$redirection_output" | grep -q '^REDIRECT_APPEND$'; then
+    ok "output redirection survives external EXEC/reload and append"
+else
+    fail "output redirection did not survive external EXEC/reload and append"
 fi
 
 if grep -q '^COMMAND_KEEP_INITIAL' "$SERIAL_LOG" \

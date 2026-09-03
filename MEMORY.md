@@ -1616,6 +1616,17 @@ disk-read, substitution, and asynchronous use of `$M_TEMP_BUF`, then add a
 direct capacity assertion for the proven maximum rather than inferring the
 bound from only two catalogs.
 
+Keep the 81-byte output-redirection pathname and append flag resident for now.
+They appear transient because only transient modules reference them and an
+external-EXEC/reload plus `>`/`>>` regression passes when they move to
+initialized `TRANDATA`; the map would reduce COMMAND by 80 paragraph-rounded
+bytes. The deliberate `A20OFF$` redirection case nevertheless emits wrapped
+binary data after that move. Both initialized and uninitialized transient
+placements fail this boundary, while restoring the resident placement passes.
+The experiment is rejected until the post-driver redirection/reload segment
+contract is traced explicitly. The new external-EXEC redirection regression is
+retained because the prior startup suite did not cover this lifetime.
+
 Reproduce the checked census with:
 
 ```sh
