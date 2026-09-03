@@ -780,7 +780,7 @@ capture pass.
 | ---: | --- | --- | --- |
 | Complete A1 | Measurement | Keep VC aggregates and block counts distinct from the earlier raw `MEM /D` process snapshot | The report labels both accounting models and its parser has a local regression test |
 | Complete A2 | Measurement | Reconcile the full VC gap through system, COMMAND, VC, free-block, and ceiling spans, isolating the retained DOS/BIOS remainder | The current report proves `18,528 + 3,360 + 0 + 1,024 = 22,912`; the component census isolates 8,096 bytes for A3 |
-| A3 in progress | Measurement | Add reproducible HIMEM, EMM386, COMMAND, DOS, and BIOS resident-range reports from their linker maps | HIMEM, EMM386, and COMMAND top-level lifetimes are accounted; the fixed BIOS boundary is selected exactly; byte-level COMMAND and DOS ownership plus the runtime HMA map remain |
+| A3 in progress | Measurement | Add reproducible HIMEM, EMM386, COMMAND, DOS, and BIOS resident-range reports from their linker maps | HIMEM, EMM386, COMMAND top-level lifetimes, the fixed HMA layout, and the selected BIOS boundary are accounted; byte-level COMMAND and DOS ownership remain |
 | B1 | HIMEM | Continue the map-guided audit of dispatch, validation, move, lock, A20, HMA, request-header, and error paths; share tails only where outputs and reentrancy agree | Exact XMS 2/3 errors, all A20 backends, HMA, moves, warm reboot, and 286 execution pass |
 | B2 | HIMEM | Audit the move descriptor, UMB transaction records, handle records, counters, sentinels, immutable values, and alignment for narrower or derived representation | Zero-length and 128 handles, 32 UMB extents, rollback, locks, reallocations, and legacy bounce pass |
 | B3 | HIMEM | Move every remaining parser, CPU/memory detection, destructive test, message, and installation temporary beyond the rounded resident break | Map proves no runtime reference crosses the break; normal and maximum option footprints are budgeted |
@@ -1487,6 +1487,17 @@ Reproduce the checked census with:
 ```sh
 make test-command-residency
 ```
+
+The fixed HMA census is also checked from the DOS map. DOS owns the complete
+HMA for its high-mode lifetime and leaves A20 globally enabled; its retained
+driver trampoline restores that state after legacy callbacks. The DOS image
+occupies `0010h..9A70h` (39,520 bytes). With the fixed 15-buffer, 512-byte-sector
+configuration, the hash and slots occupy `9A70h..B9A4h` (7,988 bytes), leaving
+`B9A4h..FFF0h` (17,996 bytes) of unassigned but still DOS-owned space and a
+deliberately unused 16-byte safety tail. Thus a DR-DOS-sized 4,992-byte high
+COMMAND payload fits without displacing buffers. It must use a DOS-controlled
+allocation/entry contract rather than treating that slack as independently
+allocatable XMS memory.
 
 Potential approaches are:
 

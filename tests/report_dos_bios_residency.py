@@ -73,6 +73,8 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("dos_map", type=Path)
     parser.add_argument("bios_map", type=Path)
+    parser.add_argument("--buffers", type=int, default=15)
+    parser.add_argument("--sector-size", type=int, default=512)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
@@ -135,6 +137,32 @@ def main() -> int:
     print(f"| **Total** | **{composition_total + composition_gap:,}** | `DOS_LOW_GATE_END` |")
     if composition_total + composition_gap != low_gate:
         errors.append("DOS low-prefix composition does not reach DOS_LOW_GATE_END")
+
+    # BUFFINFO is 20 bytes and BUFFER_HASH_ENTRY is 8 bytes in BUFFER.INC.
+    # The fixed parity configuration uses one bucket for 15 buffers. SYSINIT
+    # rejects a layout ending above FFFF:FFF0, preserving the final 16 bytes.
+    buffer_header = 20
+    hash_entry = 8
+    hma_limit = 0xFFF0
+    hma_buffer_base = sysbuf
+    hma_buffer_bytes = args.buffers * (args.sector_size + buffer_header) + hash_entry
+    hma_buffer_end = hma_buffer_base + hma_buffer_bytes
+    hma_slack = hma_limit - hma_buffer_end
+    if args.buffers < 1:
+        errors.append("buffer count must be positive")
+    if args.sector_size < 128 or args.sector_size > 0xFFFF - buffer_header:
+        errors.append("sector size is outside the supported census range")
+    if hma_slack < 0:
+        errors.append("selected buffers do not fit below the HMA safety tail")
+
+    print("\n### Fixed HMA ownership\n")
+    print(f"Selected `{args.buffers}` buffers with {args.sector_size}-byte sectors.\n")
+    print("| Range | Offset | Bytes | Owner/lifetime |")
+    print("| --- | ---: | ---: | --- |")
+    print(f"| DOS high image | `0010h..{hma_buffer_base:04X}h` | {hma_buffer_base - 0x10:,} | DOS; entire high-mode lifetime |")
+    print(f"| Hash plus buffer slots | `{hma_buffer_base:04X}h..{hma_buffer_end:04X}h` | {hma_buffer_bytes:,} | DOS cache; entire high-mode lifetime |")
+    print(f"| Available DOS-owned high storage | `{hma_buffer_end:04X}h..{hma_limit:04X}h` | {max(0, hma_slack):,} | unassigned, but not available through XMS |")
+    print(f"| HMA safety tail | `{hma_limit:04X}h..10000h` | {0x10000 - hma_limit:,} | deliberately unused |")
 
     data_ranges = [
         ("Core file/disk workspace", "MSDAT001S", "RENAMEDMA"),
