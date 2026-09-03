@@ -1521,6 +1521,16 @@ callable lookup routine and mutable message workspace, then measure its exact
 relocatable size. The resident message table must become explicitly
 far-addressable before that catalog can move to HMA.
 
+A whole-catalog far-pointer prototype is rejected for now. Ordinary utility
+messages worked from HMA, but the real DOS-high `INT 24h` test printed the
+critical description and then lost the Abort/Retry/Fail prompt fragments. The
+prototype and its projected saving were reverted. This proves that normal
+message lookup is not a sufficient gate: any renewed attempt must first explain
+the asynchronous handler's segment/A20 contract and preserve both direct
+display and `SYSGETMSG` substitution paths. A compact low asynchronous catalog
+is acceptable only if it remains localized and its measured duplication still
+produces a worthwhile net gain.
+
 Reproduce the checked census with:
 
 ```sh
