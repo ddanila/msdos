@@ -57,7 +57,7 @@ old_int2f       dd      0
 old_int15       dd      0
 extended_kb     dw      0
 hma_min_kb      db      0
-handle_limit    db      32
+handle_limit    dw      32
 int15_kb        dw      0
 cpu_386         db      0
 a20_initial     db      0
@@ -611,11 +611,10 @@ enable_a20 proc near
 enable_a20 endp
 
 reconcile_a20 proc near
+        mov     ax, [a20_global]
+        or      ax, [a20_local]
+        jne     short reconcile_on
         cmp     [a20_initial], 0
-        jne     short reconcile_on
-        cmp     [a20_global], 0
-        jne     short reconcile_on
-        cmp     [a20_local], 0
         jne     short reconcile_on
         xor     al, al
         jmp     set_a20_hardware
@@ -755,24 +754,20 @@ xms_query_free proc near
 xms_query_free endp
 
 xms_allocate proc near
+        mov     bx, dx
         call    find_free_handle
         jc      short allocate_no_handle
         push    si
-        mov     bx, dx
         call    find_gap
         pop     si
-        jc      xms_no_memory
+        jnc     short allocate_found
+        mov     dx, bx
+        jmp     xms_no_memory
+allocate_found:
         ; A free record is already unlocked: release rejects nonzero locks.
         ; Its old length is ignored while base is zero and is replaced below.
         mov     word ptr [si+HANDLE_BASE], ax
-        mov     word ptr [si+HANDLE_LENGTH], dx
-        sub     si, offset handles
-        mov     ax, si
-        mov     cl, HANDLE_SIZE
-        div     cl
-        xor     ah, ah
-        mov     dx, ax
-        inc     dx
+        mov     word ptr [si+HANDLE_LENGTH], bx
         jmp     xms_success
 allocate_no_handle:
         mov     bl, ERR_NO_HANDLES
@@ -841,6 +836,7 @@ xms_reallocate proc near
         jbe     short realloc_resize
         push    dx
         mov     dx, bx
+        xor     ch, ch
         call    gap_after_handle
         pop     dx
         jc      short realloc_move
@@ -1275,12 +1271,9 @@ xms_unknown_function proc near
 xms_unknown_function endp
 
 validate_handle proc near
-        push    ax
         or      dx, dx
         jz      short validate_bad
-        xor     ax, ax
-        mov     al, [handle_limit]
-        cmp     dx, ax
+        cmp     dx, [handle_limit]
         ja      short validate_bad
         mov     si, dx
         dec     si
@@ -1288,11 +1281,9 @@ validate_handle proc near
         add     si, offset handles
         cmp     word ptr [si+HANDLE_BASE], 0
         je      short validate_bad
-        pop     ax
         clc
         ret
 validate_bad:
-        pop     ax
         stc
         ret
 validate_handle endp
@@ -1300,7 +1291,7 @@ validate_handle endp
 find_free_handle proc near
         mov     si, offset handles
         xor     ch, ch
-        mov     cl, [handle_limit]
+        mov     cl, byte ptr [handle_limit]
 find_free_loop:
         cmp     word ptr [si+HANDLE_BASE], 0
         je      short find_free_found
@@ -1309,6 +1300,10 @@ find_free_loop:
         stc
         ret
 find_free_found:
+        mov     dl, byte ptr [handle_limit]
+        sub     dl, cl
+        xor     dh, dh
+        inc     dx
         clc
         ret
 find_free_handle endp
@@ -1319,7 +1314,7 @@ count_free_handles proc near
         xor     bx, bx
         mov     si, offset handles
         xor     ch, ch
-        mov     cl, [handle_limit]
+        mov     cl, byte ptr [handle_limit]
 count_handles_loop:
         cmp     word ptr [si+HANDLE_BASE], 0
         jne     short count_handles_used
@@ -1344,8 +1339,7 @@ find_gap_retry:
         cmp     di, [extended_kb]
         ja      short find_gap_fail
         mov     si, offset handles
-        xor     ch, ch
-        mov     cl, [handle_limit]
+        mov     cl, byte ptr [handle_limit]
 find_gap_scan:
         cmp     word ptr [si+HANDLE_BASE], 0
         je      short find_gap_next
@@ -1375,8 +1369,7 @@ gap_after_handle proc near
         cmp     ax, [extended_kb]
         ja      short gap_after_fail
         mov     di, offset handles
-        xor     ch, ch
-        mov     cl, [handle_limit]
+        mov     cl, byte ptr [handle_limit]
 gap_after_loop:
         cmp     di, si
         je      short gap_after_next
@@ -1410,7 +1403,7 @@ largest_retry:
         mov     di, 0ffffh              ; next handle offset
         mov     si, offset handles
         xor     ch, ch
-        mov     cl, [handle_limit]
+        mov     cl, byte ptr [handle_limit]
 largest_scan:
         cmp     word ptr [si+HANDLE_BASE], 0
         je      short largest_next
@@ -1456,8 +1449,7 @@ total_free_has_xms:
         sub     ax, HMA_KB
 total_free_scan:
         mov     si, offset handles
-        xor     ch, ch
-        mov     cl, [handle_limit]
+        mov     cl, byte ptr [handle_limit]
 total_free_loop:
         cmp     word ptr [si+HANDLE_BASE], 0
         je      short total_free_next
@@ -1686,7 +1678,7 @@ endif
 
         les     bx, cs:[request_ptr]
         xor     ax, ax
-        mov     al, cs:[handle_limit]
+        mov     al, byte ptr cs:[handle_limit]
         mov     dl, HANDLE_SIZE
         mul     dl
         add     ax, offset handles
@@ -1884,7 +1876,7 @@ option_numhandles:
         jb      short option_bad
         cmp     ax, MAX_HANDLES
         ja      short option_bad
-        mov     [handle_limit], al
+        mov     byte ptr [handle_limit], al
         clc
         ret
 option_int15:
