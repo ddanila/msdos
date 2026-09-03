@@ -448,8 +448,6 @@ xms_reallocate_any endp
 else
         .386
 xms_query_any_free proc near
-        cmp     [cpu_386], 0
-        je      short xms3_not_implemented
         call    largest_gap
         push    ax
         call    total_free
@@ -474,16 +472,9 @@ xms3_no_memory:
         mov     bl, ERR_NO_MEMORY
         clc
         ret
-xms3_not_implemented:
-        xor     ax, ax
-        mov     bl, ERR_NOT_IMPLEMENTED
-        clc
-        ret
 xms_query_any_free endp
 
 xms_allocate_any proc near
-        cmp     [cpu_386], 0
-        je      short xms3_unsupported
         mov     eax, edx
         shr     eax, 16
         jnz     xms_no_memory
@@ -492,8 +483,6 @@ xms_allocate_any proc near
 xms_allocate_any endp
 
 xms_extended_handle_info proc near
-        cmp     [cpu_386], 0
-        je      short xms3_unsupported
         push    cx
         call    validate_handle
         jc      short xms3_info_bad_handle
@@ -510,18 +499,11 @@ xms3_info_bad_handle:
 xms_extended_handle_info endp
 
 xms_reallocate_any proc near
-        cmp     [cpu_386], 0
-        je      short xms3_unsupported
         mov     eax, ebx
         shr     eax, 16
         jnz     xms_no_memory
         call    xms_reallocate
         ret
-; The XMS 3 request wrappers use the same unsupported-error contract. Keep one
-; copy of the tail so adding a wrapper does not retain another identical exit.
-xms3_unsupported::
-        mov     bl, ERR_NOT_IMPLEMENTED
-        jmp     xms_failure
 xms_reallocate_any endp
         .286
 endif
