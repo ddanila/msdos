@@ -123,10 +123,6 @@ CONST		ENDS
 _BSS		SEGMENT WORD USE16 PUBLIC 'BSS'
 _BSS		ENDS
 
-;* Ring 0 stack in VDM
-STACK		SEGMENT PARA USE16 STACK 'STACK'
-STACK		ENDS
-
 ;
 ; data group
 ;
@@ -152,9 +148,15 @@ TSS		SEGMENT PARA USE16 COMMON 'PAGES'
 TSS		ENDS
 
 ;*	Initialization code and variables.  Used for data later.
-;	Must be last segment.
+;	Must be the last initialized segment.
 LAST		SEGMENT PARA USE16 PUBLIC 'LAST'
 LAST		ENDS
+
+;* Full-depth initialization stack. InitTab rebases the resident ring-0 stack
+;* before the first virtual-mode entry, so this uninitialized segment may sit
+;* after LAST and outside the installed driver allocation.
+STACK		SEGMENT PARA USE16 STACK 'STACK'
+STACK		ENDS
 endif
 ;
 ;  segment related equates

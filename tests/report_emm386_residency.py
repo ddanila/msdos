@@ -96,7 +96,7 @@ def classify_segment(name: str) -> str | None:
         "CONST": "retained runtime data",
         "CONST2": "retained runtime data",
         "_BSS": "retained mutable runtime data",
-        "STACK": "initialization stack template",
+        "STACK": "discarded initialization stack",
         "_TEXT": "split retained/relocated code",
         "VDATA": "dynamic data compacted into low _TEXT suffix",
         "PAGESEG": "relocated to locked XMS",
@@ -188,7 +188,7 @@ def main() -> int:
     segment_categories = {
         by_name["GDT"].paragraph: "retained descriptor state",
         by_name["_DATA"].paragraph: "retained mutable runtime data",
-        by_name["STACK"].paragraph: "initialization stack template",
+        by_name["STACK"].paragraph: "discarded initialization stack",
         by_name["VDATA"].paragraph: "dynamic data compacted into low _TEXT suffix",
         by_name["PAGESEG"].paragraph: "relocated to locked XMS",
         by_name["IDT"].paragraph: "relocated to locked XMS",
@@ -219,17 +219,26 @@ def main() -> int:
     bss = by_name["_BSS"]
     stack = by_name["STACK"]
     static_end = linear(text.paragraph, split)
+    stack_start = linear(stack.paragraph, stack.offset)
+    last = by_name["LAST"]
+    last_end = linear(last.paragraph, last.offset) + last.size
+    if args.check and stack_start < last_end:
+        raise ValueError("initialization stack is not after the discardable LAST image")
     static_ranges: list[Range] = []
     cursor = 0
-    for start, end, owner in (
+    retained_candidates = [
         (linear(r_code.paragraph, r_code.offset), linear(r_code.paragraph, r_code.offset) + r_code.size, "R_CODE real-mode gateway"),
         (linear(by_name["GDT"].paragraph, by_name["GDT"].offset), linear(by_name["GDT"].paragraph, by_name["GDT"].offset) + by_name["GDT"].size, "GDT descriptor state"),
         (linear(by_name["_DATA"].paragraph, by_name["_DATA"].offset), linear(by_name["_DATA"].paragraph, by_name["_DATA"].offset) + by_name["_DATA"].size, "DGROUP mutable data"),
         (linear(const.paragraph, const.offset), linear(const.paragraph, const.offset) + const.size, "DGROUP constants"),
         (linear(bss.paragraph, bss.offset), linear(bss.paragraph, bss.offset) + bss.size, "DGROUP BSS"),
-        (linear(stack.paragraph, stack.offset), linear(stack.paragraph, stack.offset) + stack.size, "linked stack template"),
         (linear(text.paragraph, text.offset), static_end, "retained/dual-mode _TEXT prefix"),
-    ):
+    ]
+    if stack_start < static_end:
+        retained_candidates.append(
+            (stack_start, stack_start + stack.size, "linked stack template")
+        )
+    for start, end, owner in sorted(retained_candidates):
         if start > cursor:
             static_ranges.append(Range(cursor, start, "anonymous alignment gap"))
         if start < cursor:
@@ -240,9 +249,10 @@ def main() -> int:
         raise ValueError("retained static layout does not end at the _TEXT split")
     print_ranges("Retained static low-image layout", static_ranges)
     print(
-        "\nThe linked stack is an initialization template. After VDATA compaction, "
-        "the installed image places a 512-byte protected stack after the selected "
-        "runtime-sized data; it does not retain this template at its link address."
+        "\nThe full-depth linked initialization stack follows the discardable LAST "
+        "segment and is outside the installed allocation. After VDATA compaction, "
+        "the installed image places a separate 512-byte protected stack after the "
+        "selected runtime-sized data."
     )
 
     low_text_modules: dict[str, int] = {}
