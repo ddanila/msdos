@@ -76,6 +76,31 @@ DRDOS6_VARIANTS = {
         "HIDOS=ON",
         "HIBUFFERS=15",
     ],
+    "emm-frame": [
+        "DEVICE=EMM386.SYS /FRAME=AUTO /BDOS=FFFF",
+        "HIDOS=ON",
+        "HIBUFFERS=15",
+    ],
+    "emm-xbda": [
+        "DEVICE=EMM386.SYS /FRAME=NONE /BDOS=FFFF /XBDA",
+        "HIDOS=ON",
+        "HIBUFFERS=15",
+    ],
+    "emm-lowmem": [
+        "DEVICE=EMM386.SYS /FRAME=NONE /BDOS=FFFF",
+        "HIDOS=ON",
+        "HIBUFFERS=15",
+    ],
+    "emm-video": [
+        "DEVICE=EMM386.SYS /FRAME=NONE /BDOS=FFFF /VIDEO",
+        "HIDOS=ON",
+        "HIBUFFERS=15",
+    ],
+}
+
+AUTOEXEC_COMMANDS = {
+    "emm-lowmem": ["MEMMAX +L"],
+    "emm-video": ["MEMMAX +V"],
 }
 
 
@@ -222,14 +247,13 @@ def prepare_drdos6(media: Path, vc_image: Path, work: Path) -> tuple[Path, str, 
     return base, add_common_tools(base, vc_image, work), disk_md5
 
 
-def write_startup(work: Path, lines: list[str]) -> tuple[Path, Path]:
+def write_startup(work: Path, lines: list[str], commands: list[str]) -> tuple[Path, Path]:
     config = work / "CONFIG.SYS"
     common = ["FILES=30", "FCBS=4,0", "LASTDRIVE=Z", "STACKS=9,256", "SHELL=COMMAND.COM /P /E:512"]
     config.write_bytes(("\r\n".join(lines + common) + "\r\n").encode("ascii"))
     autoexec = work / "AUTOEXEC.BAT"
-    autoexec.write_bytes(
-        b"@ECHO OFF\r\nMEM /A > MEMA.TXT\r\nCEILING.COM > CEIL.TXT\r\nVC.COM\r\n"
-    )
+    batch = ["@ECHO OFF", *commands, "MEM /A > MEMA.TXT", "CEILING.COM > CEIL.TXT", "VC.COM"]
+    autoexec.write_bytes(("\r\n".join(batch) + "\r\n").encode("ascii"))
     return config, autoexec
 
 
@@ -309,6 +333,7 @@ def parse(screen_path: Path, mem: str, ceiling: str) -> dict[str, int]:
         "vc_span": (first[0] - vc[0]) * 16,
         "upper_free": upper_free,
         "hma_free": available("High"),
+        "total_free": available("Conventional") + available("Upper"),
         "int12": int(ceiling_match.group(1), 16),
         "bda": int(ceiling_match.group(2), 16),
         "ebda": int(ceiling_match.group(3), 16),
@@ -323,21 +348,24 @@ def report(
     variants: dict[str, list[str]],
     disk_md5: str | None,
 ) -> str:
+    disk_identity = [f"- Decoded disk MD5: `{disk_md5}`"] if disk_md5 else []
     lines = [
         "# DR-DOS memory investigation", "",
         "Generated from user-supplied binary media; no DR-DOS source code is used.", "",
         f"- Release: {release}",
         f"- Binary media SHA-256: `{sha256(media)}`",
-        *( [f"- Decoded disk MD5: `{disk_md5}`"] if disk_md5 else [] ),
+        *disk_identity,
         f"- VC 4.05 SHA-256: `{vc_hash}`",
         "- Hardware: QEMU `pc`, 486 CPU, 8 MiB RAM", "",
-        "| Variant | Largest block | System span | COMMAND span | Free UMB | Free HMA |",
-        "| --- | ---: | ---: | ---: | ---: | ---: |",
+        "| Variant | Largest block | Total free | System span | COMMAND span | Free UMB | Free HMA | INT 12h | EBDA |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
     for name, data in results.items():
         lines.append(
-            f"| {name} | {data['largest']:,} | {data['system_span']:,} | "
-            f"{data['command_span']:,} | {data['upper_free']:,} | {data['hma_free']:,} |"
+            f"| {name} | {data['largest']:,} | {data['total_free']:,} | "
+            f"{data['system_span']:,} | {data['command_span']:,} | "
+            f"{data['upper_free']:,} | {data['hma_free']:,} | {data['int12']} KiB | "
+            f"{data['ebda']:04X}h |"
         )
     lines.extend([
         "", "Common settings: `FILES=30`, `FCBS=4,0`, `LASTDRIVE=Z`, "
@@ -346,6 +374,9 @@ def report(
     ])
     for name, config in variants.items():
         lines.extend([f"### {name}", "", "```ini", *config, "```", ""])
+        commands = AUTOEXEC_COMMANDS.get(name)
+        if commands:
+            lines.extend(["Before measurement:", "", "```bat", *commands, "```", ""])
     return "\n".join(lines)
 
 
@@ -375,7 +406,7 @@ def main() -> None:
         for name, lines in variants.items():
             image = work / f"{name}.ima"
             shutil.copyfile(base, image)
-            config, autoexec = write_startup(work, lines)
+            config, autoexec = write_startup(work, lines, AUTOEXEC_COMMANDS.get(name, []))
             install_file(image, config, "CONFIG.SYS")
             install_file(image, autoexec, "AUTOEXEC.BAT")
             screen, mem, ceiling = capture(image, name, work)

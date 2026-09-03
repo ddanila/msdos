@@ -665,9 +665,9 @@ therefore include at least one of these outcomes:
 The first EMM386 symbol census is complete, but paragraph independence is
 reopened by the latest compaction probes. The critical path is:
 
-1. complete the documentation-and-measurement investigation of how DR-DOS
-   produces its larger HMA-mode free block, separating portable techniques from
-   low-memory and video-memory compatibility extensions;
+1. **Complete:** the documentation-and-measurement investigation attributes
+   DR-DOS's larger ordinary HMA-mode block and separates portable techniques
+   from low-memory and video-memory compatibility extensions;
 2. keep every mutable symbol in DOS's relocated tail addressed through the HMA
    copy, and retain `/NUMHANDLES=24..32` as a mandatory gate;
 3. finish byte-range attribution for EMM386, COMMAND, DOS, BIOS, and every MCB
@@ -701,7 +701,7 @@ until an A/B image measures them.
 
 | Priority | Opportunity | Available evidence | Likely scale | Principal constraint |
 | --- | --- | --- | ---: | --- |
-| 0 | Complete attribution of DR-DOS's HMA-mode advantage | The first controlled OpenDOS 7.01 capture reconciles its ordinary 8,752-byte advantage over retail; version and optional-policy matrices remain | research first | No source code; identical inputs and compatibility modes must be separated |
+| Complete | Attribute DR-DOS's HMA-mode advantage | Controlled DR-DOS 6.0 and OpenDOS 7.01 matrices reconcile their ordinary advantages and isolate optional policies | research complete | No source code used; identical inputs and compatibility modes remain separated |
 | 1 | Compact EMM386 runtime-sized metadata and alignment | 8,960-byte component excess; initialization state, four tables, LOADALL scratch, and OS/E state reduced or relocated | tens to hundreds of bytes per item | Full `H=`/`A=` ranges and EMS 4.0 formats |
 | 2 | Revisit HIMEM only after larger ranges | 1,488-byte component excess; resident break is explicit | tens to hundreds of bytes | 128 handles, 32 UMB extents, all A20 backends |
 | 1 | Classify every byte below the first MCB | Current first system MCB begins at `0478h`; retail describes allocations from `0070h` | attribution first | Some low addresses are ABI or BIOS fixed |
@@ -1299,8 +1299,11 @@ The transitions explain how it gets there:
   contains the 7,680-byte buffer set plus other mutable DOS structures.
 - `HIBUFFERS=15` does not change conventional memory. It moves the 7,680-byte
   buffer payload from UMB to HMA, increasing free UMB by 7,408 bytes while free
-  HMA falls by 7,920 bytes. The 512-byte difference is placement overhead split
-  across the two arenas and needs a boundary probe before imitating the layout.
+  HMA falls by 7,920 bytes. The HMA map explains that cost: 208 bytes precede
+  COMMAND, 16 bytes separate COMMAND from a small free range, and moving buffers
+  to the end introduces 240 unused bytes after them. The compacted DOS UMB block
+  shrinks by 7,408 bytes; it is not a byte-for-byte migration because the arena
+  is repacked around the remaining DOS state.
 - The final conventional owner spans are only 10,720 bytes for the system and
   1,264 bytes for COMMAND. The current implementation uses 37,520 and 6,464,
   respectively; these two differences exactly explain its 32,000-byte deficit
@@ -1332,10 +1335,41 @@ blindly:
    measured ordinary DR-DOS result uses them. They cannot explain the advantage
    and must remain optional or bounded finishing work.
 
-The remaining investigation is narrower: isolate `MEMMAX +L`, `/VIDEO` plus
-`MEMMAX +V`, the EMS-frame cost, `/XBDA`, exact HMA gaps, and observable
-XMS/EMS/UMB ownership and fallback behavior. These complete the compatibility
-picture but no longer block identifying the main portable architecture.
+#### Optional policies and compatibility boundary
+
+The isolated DR-DOS 6 policy runs complete the numerical picture:
+
+| Policy added to the ordinary 627,824-byte configuration | Largest block | Total free DOS memory | Free UMB | Free HMA | Result |
+| --- | ---: | ---: | ---: | ---: | --- |
+| 64 KiB EMS frame | 627,824 | 656,208 | 15,568 | 10,880 | Conventional unchanged; 69,120 UMB bytes lost to the frame and resulting layout |
+| `/XBDA` | 627,824 | 725,328 | 84,688 | 10,880 | No change without video recovery on this BIOS |
+| `MEMMAX +L` | 627,824 | 725,328 | 84,688 | 10,880 | No usable additional block in this occupied low layout |
+| `/VIDEO` and `MEMMAX +V` | **726,128** | **823,632** | 84,688 | 10,880 | Adds exactly 96 KiB to the largest block |
+
+The video case raises the allocator's contiguous top by 99,328 bytes: 96 KiB
+of text-video address space plus the 1 KiB previously occupied by the EBDA. It
+also grows the low system span by 1,024 bytes because EMM386 relocates that EBDA
+to `02ACh` below COMMAND, leaving a net largest-block gain of exactly 98,304
+bytes. The BDA
+and `INT 12h` rise only from 639 to 640 KiB; the extra video range is managed by
+DR-DOS rather than advertised as ordinary BIOS conventional memory. This mode
+requires text-only operation and must be disabled before graphics software, so
+it remains an opt-in extension outside the parity baseline.
+
+An 86Box IBM AT run also boots DR-DOS 6's `HIDOS.SYS /BDOS=FFFF` path on an
+8 MHz 80286 and reaches the memory probe marker. This confirms that the
+kernel/COMMAND HMA design is not dependent on virtual-8086 mode; UMB placement
+and the EMM386 architecture remain 386-specific.
+
+The investigation completion gate is met: both releases reproduce from hashed
+binary media, every material ordinary-mode advantage reconciles through owner
+spans, optional gains are isolated, and the portable techniques have local byte
+budgets and regression constraints above. Further black-box work is now
+implementation-driven:
+probe the exact local HMA owner and A20 lifetimes before moving COMMAND, prove
+which EMM386 entries can execute from protected/XMS storage, and design the DOS
+state placement ladder against the existing UMB floor. No additional DR-DOS
+measurement is required to choose those experiments.
 
 #### Published leads already identified
 
