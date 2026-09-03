@@ -326,21 +326,6 @@ register struct handle_ptr *hp;
 }
 
 /*
- * get status
- *	no parameters
- *
- * return current status of EMM subsystem
- * (which, due to superior design is always just fine)
- *
- *  	05/06/88  ISP 	No Update needed for MEMM
- */
-GetStatus()
-{
-	setAH((unsigned char)EMMstatus);	/* if we got here, we're OK */
-}
-
-
-/*
  * allocate pages
  *	parameters:
  *		n_pages (bx) -- allocation size request
@@ -475,20 +460,6 @@ DeallocatePages()
 }
 #undef	handle 
 	
-
-/*
- * Get EMM handle count
- *	no parameters
- *
- * return the number of active EMM handles
- *
- * 	05/06/88  ISP 	No update needed for MEMM
- */
-GetEMMHandleCount()
-{
-	setBX(handle_count);
-	setAH((unsigned char)EMMstatus);
-}
 
 /*
  * Get EMM handle pages

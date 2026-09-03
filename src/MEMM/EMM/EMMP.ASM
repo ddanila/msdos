@@ -65,6 +65,8 @@ _TEXT	segment
 	public	_GetPageFrameAddress
 	public	_GetEMMVersion
 	public	_UnsupportedFunction
+	public	_GetEMMHandleCount
+	public	_GetStatus
 ;	public	VEMMD_Set_Map_Region
 ;	public	VEMMD_Unset_Map_Region
 ;	public	_VMpte_to_EMMpte
@@ -106,6 +108,7 @@ extrn	_OSEnabled:byte
 
 extrn	_total_pages:word			; total # of EMM pages in system
 extrn	_free_count:word			; unallocated EMM pages
+extrn	_handle_count:word			; active EMM handles
 extrn	_EMMstatus:word
 
 ;
@@ -202,7 +205,7 @@ _GetUnallocatedPageCount proc near
 _GetUnallocatedPageCount endp
 
 _GetEMMVersion proc near
-	mov	bp, [_regp]
+	; Dispatcher-only entry: BP already identifies the saved registers.
 	mov	al, 40h				; LIM EMS version 4.0
 	mov	ah, byte ptr [_EMMstatus]
 	mov	word ptr [bp.rAX], ax
@@ -210,10 +213,22 @@ _GetEMMVersion proc near
 _GetEMMVersion endp
 
 _UnsupportedFunction proc near
-	mov	bp, [_regp]
+	; Dispatcher-only entry: BP already identifies the saved registers.
 	mov	byte ptr [bp.rAX+1], INVALID_FUNCTION
 	ret
 _UnsupportedFunction endp
+
+_GetEMMHandleCount proc near
+	mov	ax, [_handle_count]
+	mov	word ptr [bp.rBX], ax
+	; Fall through to return the common status as well.
+_GetEMMHandleCount endp
+
+_GetStatus proc near
+	mov	al, byte ptr [_EMMstatus]
+	mov	byte ptr [bp.rAX+1], al
+	ret
+_GetStatus endp
 
 	page
 ;***********************************************
