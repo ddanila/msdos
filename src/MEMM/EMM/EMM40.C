@@ -94,6 +94,8 @@ extern	unsigned	copyout();
 	ROUTINES
  ******************************************************************************/ 
 
+#ifndef EMM40_QUERY_ONLY
+
 /*
  * Reallocate Pages
  *	parameters:
@@ -178,6 +180,11 @@ ReallocatePages()
 #undef	handle
 }
 
+
+#endif /* !EMM40_QUERY_ONLY */
+
+#ifndef EMM40_REALLOC_ONLY
+
 /*
  * Get Expanded Memory Hardware Information
  *	parameters:
@@ -427,3 +434,5 @@ OSDisable()
 
 	setAH(OK);
 }
+
+#endif /* !EMM40_REALLOC_ONLY */

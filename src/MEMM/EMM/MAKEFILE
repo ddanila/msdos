@@ -65,7 +65,7 @@ CFLAGS	=/ASw /G2 /Oat /Gs /Ze /Zl /Fc /c
 #
 # definition of objects
 #
-OBJS=emmfunct.obj emmalloc.obj emm40.obj emmp.obj emmsup.obj emmdisp.obj emmdata.obj emminc.obj
+OBJS=emmfunct.obj emmalloc.obj emm40.obj emmrealloc.obj emmp.obj emmsup.obj emmdisp.obj emmdata.obj emminc.obj
 LOBJS=emmfunct.obj+emm40.obj+emmp.obj+emmsup.obj+emmdisp.obj+emmdata.obj
 
 emmlib.lib:	$(OBJS)
@@ -79,7 +79,10 @@ emmalloc.obj:	emmfunct.c emm.h
 		$(C) $(CFLAGS) /DEMM_ALLOC_ONLY /Foemmalloc.obj emmfunct.c
 
 emm40.obj:	emm40.c emm.h
-		$(C) $(CFLAGS) emm40.c
+		$(C) $(CFLAGS) /DEMM40_QUERY_ONLY emm40.c
+
+emmrealloc.obj:	emm40.c emm.h
+		$(C) $(CFLAGS) /DEMM40_REALLOC_ONLY /Foemmrealloc.obj emm40.c
 
 emmp.obj:	emmp.asm $(AINC)
 		$(MASM) $(AFLAGS) emmp.asm,emmp.obj,emmp.lst;

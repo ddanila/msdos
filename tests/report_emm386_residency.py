@@ -206,6 +206,7 @@ def main() -> int:
             "_AllocatePages",
             "_AllocateRawPages",
             "_DeallocatePages",
+            "_ReallocatePages",
         ):
             if symbol_offset(symbols, name, text.paragraph) < split:
                 raise ValueError(f"protected allocation routine {name} remains low")
