@@ -59,7 +59,7 @@ gmake test-286-acceptance
 - [ARCHITECTURE.md](ARCHITECTURE.md) - system and toolchain design.
 - [TODO.md](TODO.md) - open work.
 - [MAINTAINING.md](MAINTAINING.md) - maintainer constraints and diagnostics.
-- [MEMORY.md](MEMORY.md) - DOS 6.22 HMA/UMB/XMS/EMS invariants.
+- [MEMORY.md](MEMORY.md) - memory invariants, measured DOS 6.22 gap, and parity roadmap.
 - [EMULATION.md](EMULATION.md) - emulator roles and the actionable 286
   acceptance-test plan.
 - [DOS5_GAPS.md](DOS5_GAPS.md) - complete known DOS 5 feature and tooling gaps.

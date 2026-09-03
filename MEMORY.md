@@ -436,10 +436,12 @@ that cannot reach the largest block.
 
 ### Complete improvement inventory
 
-This is the backlog for reaching the target. An item is an opportunity, not an
-assumed saving: retain it only when the paired capture shows that its bytes join
-the largest conventional block. Estimates are deliberately ranges until a map
-or A/B image measures them.
+This is the bounded backlog for reaching the target. It covers every currently
+identified way to increase the fixed image's largest conventional block without
+removing behavior. Add newly discovered map ranges here before optimizing them.
+An item is an opportunity, not an assumed saving: retain it only when the paired
+capture shows that its bytes join the largest block. Estimates remain ranges
+until an A/B image measures them.
 
 | Priority | Opportunity | Available evidence | Likely scale | Principal constraint |
 | --- | --- | --- | ---: | --- |
@@ -454,6 +456,30 @@ or A/B image measures them.
 | 3 | Place eligible permanent allocations high | Local UMB advantage is only 1,216 bytes | at most 1,216 bytes without falling below retail UMB capacity | Must not disguise a conventional regression |
 | 4 | Redesign EMM386's low entry/return architecture | Largest remaining single component opportunity | several kilobytes | High complexity and broad compatibility surface |
 | 4 | Redesign COMMAND's resident/transient boundary | Map proves the tail is already cut correctly | up to 3,360 bytes to parity, possibly more | Shell state must survive transient overwrite |
+
+There are six kinds of useful change:
+
+1. **Remove bytes:** delete dead or duplicate code/data; narrow fields; derive
+   values instead of storing them; share compatible exits, strings, and
+   workspaces.
+2. **Discard bytes:** move parser, detection, setup, diagnostics, and temporary
+   tables beyond a component's resident break.
+3. **Relocate bytes:** copy protected-only EMM386 state to its locked XMS image,
+   DOS state to the HMA, or eligible permanent allocations to UMBs.
+4. **Resize bytes:** allocate tables for selected runtime capacities while still
+   supporting their documented maximums when those maximums are requested.
+5. **Join bytes:** remove paragraph padding, MCB islands, and load-order holes so
+   a recovered range enlarges the largest block instead of creating a smaller
+   free island.
+6. **Raise the ceiling:** move the live EBDA safely and reclaim its original top
+   kilobyte; never fake the BIOS-reported size.
+
+Compression is useful only if the compressed object need not be resident or can
+execute from the relocated XMS copy. A resident decompressor plus workspace is
+otherwise merely another low-memory allocation. Likewise, changing `FILES`,
+`FCBS`, `BUFFERS`, `LASTDRIVE`, `STACKS`, the shell environment, the EMS frame,
+or the startup files is configuration tuning, not implementation parity, and is
+excluded from the fixed comparison.
 
 The following ideas are valid only behind explicit measurement and compatibility
 gates:
@@ -491,22 +517,37 @@ currently known opportunities; new map evidence may add candidates. A candidate
 is not an achievement until its focused compatibility tests and paired VC
 capture pass.
 
-| Order | Area | Experiment | Decision evidence |
+| Phase | Area | Experiment | Decision evidence |
 | ---: | --- | --- | --- |
-| 1 | Measurement | Add linker/map boundaries and paragraph deltas to the paired report; account for `0000h..0477h` and every gap between MCBs | Every byte of the 9,712-byte layout row has an owner or an explicitly unknown range |
-| Complete | DOS high | Address relocated buffer-tail state through its HMA copy instead of the released `SS` copy | COMMAND's entry remains intact and `/NUMHANDLES=24..32`, runtime modes, EMS 4.0, asynchronous callbacks, and HMA/EXEC paths pass after an actual paragraph reduction |
-| 3 | HIMEM | Pack boolean HMA/A20 state into fields with proved spare bits, or derive it from existing nesting/ownership state | All A20 backends, nested local/global enable, HMA ownership, DOS-high and warm reboot |
-| 4 | HIMEM | Audit duplicate error exits, request dispatch, range checks and paragraph-tail padding as one map-guided pass | Exact XMS error codes, XMS 2/3, 128 handles and legacy-driver bounce path |
-| Complete | EMM386 | Produce a resident-symbol census grouped as real-only, protected-only, dual-mapped, mutable runtime, or initialization-only | No unclassified linker-visible symbol; range-level accounting remains open |
-| 6 | EMM386 | Compact remaining runtime arrays, descriptors, flags and alignment; size storage from selected options where maximum growth remains possible | Normal and maximum `H=`/`A=`/`B=`/`D=`/frame configurations and EMS 4.0 maps |
-| 7 | EMM386 | Relocate the next self-contained protected-only table or routine into the existing locked XMS image | Fault, DMA, mapping, `ON`/`OFF`/`AUTO`, inactive query and warm-reboot paths |
-| 8 | EMM386 | Replace the shared `RRProc` continuation with a small relocation-safe low gateway, allowing its transition module to move high | Repeated real/virtual transitions plus all runtime command modes |
-| 9 | COMMAND | Generate a `CODERES`/`DATARES` symbol and string census; mark state that must survive transient overwrite | Every resident range has a survival reason and size |
-| 10 | COMMAND | Move rare messages/formatting and reloadable services transient; merge scratch and descriptors whose lifetimes do not overlap | External-program reload, batch, pipe, `INT 2Eh`, Ctrl+C and critical-error tests |
-| 11 | DOS/layout | Attribute retained low DOS/BIOS anchors and near-pointer tables, then move or compact only individually proved owners | Internal-structure and redirector suites plus a larger contiguous VC block |
-| 12 | Ceiling | Relocate the 1 KiB EBDA into verified already-owned slack and update the BDA pointer atomically | BIOS users, DMA and warm reboot pass; `INT 12h` becomes 640 KiB without a new 1 KiB allocation |
-| 13 | Placement | Remove alignment/MCB islands, adjust load order, or place eligible permanent state high | Largest conventional block grows and usable UMB remains at least 47,888 bytes |
-| 14 | Regression | Enforce the fixed-image VC floor and retain component/UMB budgets locally | At least 618,736 bytes across clean rebuilds and the full release suite |
+| A1 | Measurement | Teach the paired report to show VC aggregates, raw MCB payloads, MCB headers, linker boundaries, paragraph deltas, and free islands as distinct quantities | No component total is inferred by mixing VC and `MEM /D`; every changed paragraph has a destination |
+| A2 | Measurement | Account for `0000h..0477h`, retail's `0070h..0252h` IO/DOS ranges, both first-free addresses, every inter-MCB gap, and the `9FC0h..9FFFh` ceiling loss | Every byte of the 9,712-byte layout row has an owner or a named unknown range |
+| A3 | Measurement | Add reproducible HIMEM, EMM386, COMMAND, DOS, and BIOS resident-range reports from their linker maps | Every linker-visible range has size, lifetime, address domain, and paragraph cost |
+| B1 | HIMEM | Continue the map-guided audit of dispatch, validation, move, lock, A20, HMA, request-header, and error paths; share tails only where outputs and reentrancy agree | Exact XMS 2/3 errors, all A20 backends, HMA, moves, warm reboot, and 286 execution pass |
+| B2 | HIMEM | Audit the move descriptor, UMB transaction records, handle records, counters, sentinels, immutable values, and alignment for narrower or derived representation | Zero-length and 128 handles, 32 UMB extents, rollback, locks, reallocations, and legacy bounce pass |
+| B3 | HIMEM | Move every remaining parser, CPU/memory detection, destructive test, message, and installation temporary beyond the rounded resident break | Map proves no runtime reference crosses the break; normal and maximum option footprints are budgeted |
+| B4 | HIMEM | If compaction stalls, investigate storing immutable tables or cold state in DOS-owned HMA slack, or a relocation-safe XMS area | Ownership is explicit, third-party XMS coexistence works, and no DOS buffer/HMA capacity is lost |
+| C1 | EMM386 | Produce byte-range accounting inside the 8,180-byte low `_TEXT` prefix and 1,010-byte `_DATA`, including local labels, anonymous gaps, VDATA overlay, stack, and paragraph padding | Every retained byte is real-only, dual-mapped, mutable runtime, compatibility state, or unresolved |
+| C2 | EMM386 | Compact descriptors, flags, counters, map owners, DMA state, GDT entries, option-sized arrays, VDATA stride, and mutually exclusive workspaces | Normal and maximum `H=`/`A=`/`B=`/`D=`/frame layouts and every EMS 4.0 map format pass |
+| C3 | EMM386 | Move further immutable tables, exception support, protected dispatch, and protected-only routines into the existing locked XMS image | Faults, DMA, mappings, inactive `AUTO`, `ON`/`OFF`, UMBs, and warm reboot pass |
+| C4 | EMM386 | Split ordinary EMS service dispatch from mapping-sensitive activation so services that do not require virtual mode can live in the relocated image | EMS 3.2/4.0, non-empty function 56h maps, alternate sets, and inactive queries pass |
+| C5 | EMM386 | Replace `RRProc` and the return-to-real continuation with a small position-independent low gateway, then relocate the remaining transition module | Repeated real/virtual transitions, fault returns, runtime modes, shifted loads, and warm reboot pass |
+| C6 | EMM386 | Revisit the deferred shared exception-message buffer only with a probe around both protected-to-real copies | The buffer is correct before and after return, and installation plus exception dialogs complete |
+| D1 | COMMAND | Generate a `CODERES`/`DATARES` byte-range census, including resident strings, message descriptors, reload code, batch/environment state, and alignment | Every resident byte has a reason it must survive transient overwrite |
+| D2 | COMMAND | Move rare formatting, help/error text, and callable services to the reloadable transient; merge mutually exclusive scratch and descriptors | Reload after external programs, batch, pipes, `INT 2Eh`, Ctrl+C, critical errors, and termination pass |
+| D3 | COMMAND | If necessary, redesign the resident/transient interface around a smaller stable state block and reload gateway | The complete internal-command surface and shell state survive every reload path |
+| E1 | DOS/BIOS | Attribute and compact retained-low DOS/BIOS gateways, DPBs, SFT/CDS anchors, device-chain state, tables, buffers, stacks, and compatibility data | Internal structures, drivers, redirectors, filesystem, async interrupts, EXEC, and warm reboot pass |
+| E2 | DOS/BIOS | Move only explicitly HMA-safe DOS state above the resident image; consolidate low bounce areas and workspaces whose lifetimes cannot overlap | A20-off callbacks and real-mode near pointers never target HMA; maximum buffers and sector sizes pass |
+| E3 | Layout | Reorder or combine permanent allocations, eliminate avoidable MCBs and paragraph padding, and coalesce every recovered island into the main free block | VC's largest block grows by the measured amount; component accounting still reconciles |
+| E4 | Placement | Put eligible post-provider permanent allocations in existing UMBs only when deterministic under the unchanged startup file | Conventional gain is real and free UMB remains at least retail's 47,888 bytes |
+| E5 | Ceiling | Relocate the 1 KiB EBDA into verified already-owned slack, copy it before atomically updating `40h:0Eh`, and reclaim `9FC0h..9FFFh` | BIOS users, DMA, interrupts, and warm reboot pass; `INT 12h` becomes 640 KiB without a replacement allocation |
+| F1 | Architecture | If B through E leave a measured remainder, choose the smallest of the EMM386 gateway split, DOS-low ownership redesign, or COMMAND boundary redesign that covers it with margin | A written byte budget shows why smaller changes cannot reach the target |
+| F2 | Regression | Enforce VC largest block >=618,736, free UMB >=47,888, component budgets, identical inputs, and clean-build reproducibility in the local suite | Floors pass repeatedly and across the supported machine/option matrix; CI remains off until requested |
+
+The execution order is A, then safe B/C compaction in paragraph-sized bundles,
+then D and E after their censuses. C4/C5, D3, and F1 are architectural work and
+start only when the measured residual demands them. E5 may be done earlier once
+a destination is proved, but it is worth exactly 1,024 bytes and cannot replace
+the missing layout work.
 
 The EMM386 census is reproducible from a clean linker map:
 
