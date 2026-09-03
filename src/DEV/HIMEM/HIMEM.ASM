@@ -1285,7 +1285,6 @@ find_free_found:
 find_free_handle endp
 
 count_free_handles proc near
-        push    cx
         push    si
         xor     bx, bx
         mov     si, offset handles
@@ -1298,7 +1297,6 @@ count_handles_used:
         add     si, HANDLE_SIZE
         loop    count_handles_loop
         pop     si
-        pop     cx
         ret
 count_free_handles endp
 
@@ -1366,11 +1364,9 @@ gap_after_fail:
 gap_after_handle endp
 
 ; Return the largest unallocated interval in AX (KiB).
+; The XMS dispatcher owns CX, SI, DI, and BP across every public call, so this
+; internal scanner need not save the same registers a second time.
 largest_gap proc near
-        push    cx
-        push    si
-        push    di
-        push    bp
         xor     ax, ax                  ; largest
         mov     bx, HMA_KB              ; candidate base after the HMA
 largest_retry:
@@ -1403,17 +1399,12 @@ largest_keep:
         add     bx, word ptr [di+HANDLE_LENGTH]
         jmp     short largest_retry
 largest_done:
-        pop     bp
-        pop     di
-        pop     si
-        pop     cx
         ret
 largest_gap endp
 
 ; Return total unallocated extended memory in AX (KiB).
+; CX and SI are likewise covered by the enclosing XMS dispatcher.
 total_free proc near
-        push    cx
-        push    si
         mov     ax, [extended_kb]
         cmp     ax, HMA_KB
         jae     short total_free_has_xms
@@ -1431,8 +1422,6 @@ total_free_loop:
 total_free_next:
         add     si, HANDLE_SIZE
         loop    total_free_loop
-        pop     si
-        pop     cx
         ret
 total_free endp
 
