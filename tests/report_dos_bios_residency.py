@@ -136,6 +136,30 @@ def main() -> int:
     if composition_total + composition_gap != low_gate:
         errors.append("DOS low-prefix composition does not reach DOS_LOW_GATE_END")
 
+    data_ranges = [
+        ("Core file/disk workspace", "MSDAT001S", "RENAMEDMA"),
+        ("Rename/search workspace", "RENAMEDMA", "AuxStack"),
+        ("Auxiliary interrupt stack", "AuxStack", "DskStack"),
+        ("Disk interrupt stack", "DskStack", "IOStack"),
+        ("Resident I/O and fast-seek state", "IOStack", "SWAP_END"),
+        ("Required swap-rounding byte", "SWAP_END", "MSDAT001E"),
+    ]
+    print("\n### Retained DATA ownership\n")
+    print("| Range | Bytes | Owner |")
+    print("| ---: | ---: | --- |")
+    data_total = 0
+    for owner, start_name, end_name in data_ranges:
+        start = require(dos_symbols, start_name)
+        end = require(dos_symbols, end_name)
+        if end < start:
+            errors.append(f"DOS DATA range {start_name}..{end_name} is reversed")
+        size = end - start
+        data_total += size
+        print(f"| `{start:04X}h..{end:04X}h` | {size:,} | {owner} |")
+    print(f"| **Total** | **{data_total:,}** | `DATA` |")
+    if data_total != dos_segments["DATA"].size:
+        errors.append("DOS DATA ownership does not cover the complete segment")
+
     print("\n## BIOS\n")
     print(f"Linked `CODE` capacity: {bios_code.size:,} bytes. ")
     print(f"Discardable `SYSINITSEG`: {bios_init.size:,} bytes.\n")

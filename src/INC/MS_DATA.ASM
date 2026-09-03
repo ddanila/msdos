@@ -183,9 +183,7 @@ PUBLIC  SWAP_END
 ;   BE USED. If the size of the swap data area is ODD, it will be rounded up
 ;   to include this byte.
         DB      ?
- 
-            DB      (512+80+32-(SWAP_END-ibmpatch)) DUP (?)
- 
+
 MSDAT001e       label byte
  
 .xall
