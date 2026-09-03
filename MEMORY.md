@@ -1170,6 +1170,13 @@ and movable DOS state follow unless a targeted measurement changes that order.
 
 ### Completed baseline investigation: DR-DOS HMA-mode memory
 
+**Status and priority:** the clean-room baseline is complete. Apply its lessons
+in this order: finish coherent COMMAND/HMA relocation, build the small EMM386
+low gateway, then introduce the HMA/XMS/UMB placement ladder for movable DOS
+state. Return to DR-DOS black-box measurement only when a specific local owner
+or API contract cannot be resolved from the existing captures and published
+documentation.
+
 The research goal was to explain, byte by byte where possible, why a
 comparable DR-DOS system exposes a larger conventional block in HMA mode and to
 identify techniques that can safely improve this implementation. Do not obtain,
