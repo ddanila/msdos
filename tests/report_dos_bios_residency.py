@@ -106,6 +106,30 @@ def main() -> int:
     print(f"| HMA image after offset 0010h | {sysbuf - 0x10:,} | — | copied to `FFFF:0010` |")
     print(f"| LAST | {dos_last.size:,} | — | discarded initialization |")
 
+    print("\n### Low-prefix composition\n")
+    print("| Segment | Bytes below boundary | Role |")
+    print("| --- | ---: | --- |")
+    low_composition: list[tuple[str, int, str]] = []
+    roles = {
+        "START": "loader entry",
+        "CONSTANTS": "resident constants",
+        "DATA": "resident mutable data",
+        "TABLE": "resident dispatch/data tables",
+        "CODE": "low entry, driver, and interrupt gateway code",
+    }
+    for name in ("START", "CONSTANTS", "DATA", "TABLE", "CODE"):
+        segment = dos_segments[name]
+        start = segment.paragraph * 16 + segment.offset
+        retained = max(0, min(start + segment.size, low_gate) - start)
+        low_composition.append((name, retained, roles[name]))
+        print(f"| {name} | {retained:,} | {roles[name]} |")
+    composition_total = sum(size for _, size, _ in low_composition)
+    composition_gap = low_gate - composition_total
+    print(f"| Inter-segment alignment | {composition_gap:,} | linker padding |")
+    print(f"| **Total** | **{composition_total + composition_gap:,}** | `DOS_LOW_GATE_END` |")
+    if composition_total + composition_gap != low_gate:
+        errors.append("DOS low-prefix composition does not reach DOS_LOW_GATE_END")
+
     print("\n## BIOS\n")
     print(f"Linked `CODE` capacity: {bios_code.size:,} bytes. ")
     print(f"Discardable `SYSINITSEG`: {bios_init.size:,} bytes.\n")

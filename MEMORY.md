@@ -828,6 +828,12 @@ capacity and 20,074 discardable SYSINIT bytes; its hardware-selected resident
 boundaries range from 8,576 bytes for floppy-only through 12,832 bytes when all
 optional legacy blocks are retained.
 
+The DOS low prefix consists of 3 bytes of loader entry, 1,072 bytes of
+constants, 2,395 bytes of mutable data, 2,487 bytes of tables, 1,640 bytes of
+code, and one alignment byte. This is a coarse segment census, not permission
+to move a range: near pointers, asynchronous entries, device callbacks, and
+A20-off paths must first be classified.
+
 The fixed VC image's grouped pre-MCB payload is 16,512 bytes. Subtracting the
 7,600-byte DOS gateway leaves 8,912 bytes for the selected BIOS image and its
 runtime boundary/alignment. Inside the following system MCB, the enumerated
@@ -838,6 +844,40 @@ is 7,952 bytes, producing the already measured 8,704-byte excess. The likely
 large gains are therefore a smaller DOS low-gateway architecture and BIOS
 resident-code compaction; the 112-byte system-MCB residue and alignment are
 bounded secondary opportunities.
+
+### Complete opportunity inventory and execution road
+
+Every presently credible route to the target is listed below. Byte figures are
+measured excesses or hard ceilings, not forecasts. An unmeasured candidate earns
+no credit until a paired VC capture shows that its paragraphs joined the largest
+block.
+
+| Order | Opportunity | Evidence or ceiling | Next actionable result |
+| ---: | --- | ---: | --- |
+| 1 | Finish HIMEM code, data, and tail compaction | 1,584-byte excess over retail | Cross resident paragraph boundaries while preserving the full `/NUMHANDLES=` matrix, XMS 2/3 errors, A20, HMA, UMB rollback, moves, locks, and warm reboot |
+| 2 | Compact EMM386 low data, tables, descriptors, stack, VDATA, and alignment | 9,536-byte excess over retail | Complete byte-range ownership inside the measured low `_TEXT` and `_DATA`, then take independently testable paragraph wins |
+| 3 | Relocate EMM386 protected-only code and immutable state | Included in that 9,536-byte excess | Extend the locked XMS image while leaving explicit real-mode, transition, DMA, fault, inactive-`AUTO`, and return gateways low |
+| 4 | Census and shrink the DOS low prefix | Part of the 8,704-byte DOS/BIOS remainder; 7,600 bytes allocated locally | Classify every constant, mutable range, table, and gateway; move only HMA-safe ownership and consolidate bounce/work areas |
+| 5 | Select and compact the BIOS resident boundary | Part of the same 8,704-byte remainder; 8,912 bytes including inferred boundary/alignment | Identify the exact hardware-selected end, remove unused legacy blocks where configuration permits, and compact without changing BIOS-visible services |
+| 6 | Reduce COMMAND's resident half | 3,360-byte excess over retail | Produce `CODERES`/`DATARES` ranges, then move cold messages, formatting, scratch, and services into the reloadable transient |
+| 7 | Remove MCB, allocation-order, and paragraph fragmentation | 112 bytes inside the system MCB plus 32 bytes group-level overhead are bounded; further islands need a live map | Reorder or combine allocations so every saved paragraph grows VC's largest block rather than a separate hole |
+| 8 | Place eligible permanent allocations in existing UMBs | Local free UMB already exceeds retail by 1,216 bytes | Accept placement only if deterministic and remaining usable UMB stays at least 47,888 bytes |
+| 9 | Recover the EBDA ceiling paragraph | Exactly 1,024 bytes | Relocate the EBDA only into already-owned proved-safe storage; copy first, update the BDA atomically, then test BIOS, DMA, interrupts, and reboot |
+| 10 | Use DOS-owned HMA slack or relocation-safe XMS storage | Unmeasured and conditional | Prove ownership, lifetime, A20 availability, and coexistence; do not reduce DOS buffers or third-party capacity |
+| 11 | Split EMM386's ordinary dispatcher and transition gateway | Architectural fallback | Start only if safe compaction cannot close the residual; preserve every EMS 3.2/4.0 map and runtime mode |
+| 12 | Redesign the DOS-low or COMMAND resident/transient boundary | Last-resort fallback | Choose the smallest design with a byte budget that covers the remaining measured gap and compatibility margin |
+
+The execution sequence is: finish attribution; take low-risk HIMEM and EMM386
+paragraph wins; compact or relocate DOS and BIOS ranges; reduce COMMAND;
+coalesce layout; then recover the EBDA paragraph. Recalculate the success
+equation after every retained step. Only if that portfolio remains below
+618,736 bytes do the dispatcher or resident-boundary redesigns begin.
+
+A trial shared DOS HMA-entry routine removed 12 linked low-prefix bytes but did
+not cross the 7,600-byte allocation boundary, so VC remained at 594,544 bytes.
+It was rejected: subparagraph savings matter only when bundled with a nearby
+reduction that releases a paragraph, and shared entry machinery must justify
+its extra control-flow risk with an observed allocation gain.
 
 ### 2. Reduce EMM386's low allocation
 
