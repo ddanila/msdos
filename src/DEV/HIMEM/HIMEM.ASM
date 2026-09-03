@@ -982,11 +982,9 @@ umb_release_found:
 xms_umb_release endp
 
 ; Insert an empty UMB entry after DI, shifting later entries upward.
+; The caller needs DI afterward, but this helper does not modify it. All other
+; scratch registers are restored by the enclosing XMS dispatcher.
 insert_umb_after proc near
-        push    ax
-        push    cx
-        push    si
-        push    di
         mov     ax, [umb_count]
         inc     ax
         mov     [umb_count], ax
@@ -1005,18 +1003,12 @@ insert_umb_shift:
         sub     si, UMB_BLOCK_SIZE
         loop    insert_umb_shift
 insert_umb_done:
-        pop     di
-        pop     si
-        pop     cx
-        pop     ax
         ret
 insert_umb_after endp
 
+; No register result from this internal helper survives xms_umb_release; the
+; public dispatcher restores every scratch register used here.
 coalesce_umb_blocks proc near
-        push    ax
-        push    bx
-        push    cx
-        push    si
         mov     si, offset umb_blocks
         mov     cx, [umb_count]
         dec     cx
@@ -1041,17 +1033,11 @@ coalesce_next:
         add     si, UMB_BLOCK_SIZE
         loop    coalesce_scan
 coalesce_done:
-        pop     si
-        pop     cx
-        pop     bx
-        pop     ax
         ret
 coalesce_umb_blocks endp
 
 remove_next_umb proc near
-        push    ax
         push    cx
-        push    di
         mov     di, si
         add     di, UMB_BLOCK_SIZE
         mov     ax, offset umb_blocks
@@ -1068,9 +1054,7 @@ remove_umb_shift:
         mov     word ptr [di-UMB_BLOCK_SIZE+2], cx
         jmp     short remove_umb_shift
 remove_umb_done:
-        pop     di
         pop     cx
-        pop     ax
         ret
 remove_next_umb endp
 
