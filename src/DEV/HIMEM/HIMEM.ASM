@@ -940,12 +940,10 @@ move_bad_length:
         jmp     short move_failure
 move_bad_source:
         mov     bl, ERR_BAD_SOURCE
-        cmp     [move_offset_error], 0
-        je      short move_failure
-        mov     bl, ERR_BAD_LENGTH
-        jmp     short move_failure
+        jmp     short move_bad_address
 move_bad_dest:
         mov     bl, ERR_BAD_DEST
+move_bad_address:
         cmp     [move_offset_error], 0
         je      short move_failure
         mov     bl, ERR_BAD_LENGTH
