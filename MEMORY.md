@@ -1121,41 +1121,31 @@ coalesce layout and recover the bounded EBDA paragraph; revisit HIMEM only for
 a measured residual. Recalculate the success equation after every retained
 step and keep both the conventional and UMB floors visible.
 
-### Next priority: adopt the DR-DOS memory techniques cleanly
+### DR-DOS clean-room adoption register
 
-The comparative measurements below explain the gross DR-DOS advantage. The
-next research pass must turn that attribution into implementation decisions
-without consulting DR-DOS source code. Work in this order:
+Published DR-DOS manuals define the externally promised placement policies;
+the controlled measurements below quantify their effects. No DR-DOS source
+code is permitted. Runtime inspection is limited to public interfaces,
+allocation maps, addresses, and lifetimes and must not be used to reconstruct
+proprietary instruction sequences.
 
-1. Build a cited evidence index from published DR-DOS manuals, configuration
-   references, technical notes, and documented APIs. Record exact versions and
-   distinguish ordinary defaults from optional compatibility modes such as
-   `HIBUFFERS`, `HIDOS`, UMB placement, and video-memory reuse.
-2. Repeat controlled DR-DOS 6.0 and OpenDOS 7.01 boots on the same 286/386
-   profiles, RAM size, disk contents, shell workload, and VC 4.05 measurement
-   used for this system and retail MS-DOS 6.22. Hash every input image and save
-   generated reports outside the repository.
-3. Observe public interfaces and runtime state only: conventional and upper
-   MCB chains, HMA/XMS ownership, interrupt vectors, documented multiplex and
-   memory-manager calls, allocation order, first-free address, and behavior
-   across shell reload, EXEC, critical errors, A20 transitions, and reboot.
-   Debugger observation may establish addresses and lifetimes, but must not be
-   used to reconstruct proprietary implementation code.
-4. Change one documented option or workload at a time and reconcile every
-   byte of movement among COMMAND, memory managers, DOS data, UMBs, the largest
-   conventional block, and the conventional ceiling. Treat an unexplained
-   number as a measurement gap, not as a technique to copy.
-5. Convert each portable finding into an independent local design with an
-   explicit API/lifetime contract and byte budget. Accept it only after focused
-   compatibility tests and a paired VC capture show a larger conventional
-   block without reducing the retail UMB floor or supported option capacity.
+| Rank | Externally evidenced technique | Local budget and owner | State and decisive gate |
+| ---: | --- | --- | --- |
+| 1 | Keep the kernel and permanent shell payload in HMA; documented for 286-class HIDOS and measured on both DR-DOS generations | COMMAND is 2,896 bytes above retail; 17,409 bytes remain in the local DOS-owned HMA tail | In progress: the first catalog adds 464 bytes to VC. Continue only with coherent ranges that pass reload, `INT 2Eh`, `INT 24h`, A20, DOS=LOW, `/MSG`, and real-286 tests |
+| 2 | Retain only a small conventional/UMB gateway for the 386 memory manager; OpenDOS reports a 1,200-byte conventional device range and an 800-byte UMB owner | EMM386 is 8,960 bytes above retail | Split transition, fault, DMA, inactive-`AUTO`, and mapping-sensitive entries from protected/XMS state; all EMS maps, modes, shifted loads, and warm reboot must pass |
+| 3 | Place mutable DOS structures high, then prefer HMA for buffers; DR-DOS 6 measures a 12,800-byte conventional move and documents `HIDOS`/`HIBUFFERS` | The local DOS/BIOS remainder is 8,096 bytes; only 1,216 bytes of UMB advantage may be spent before falling below retail | Classify each owner, then use HMA, relocation-safe XMS, and finally deterministic UMB placement; filesystem, device, redirector, EXEC, A20-off, and rollback paths must pass |
+| 4 | Omit the EMS page frame when applications do not require it | Already represented by the fixed `NOEMS` comparison | Preserve as a configuration choice and test both framed and frameless EMS; it is not an implementation saving |
+| 5 | Recover text-video and low-memory ranges only as explicit compatibility modes | DR-DOS can add 96 KiB of text-video space, but neither ordinary comparison uses it | Excluded from the parity score; any future opt-in mode must withdraw the range before incompatible graphics use |
+| 6 | Relocate EBDA storage | Exactly 1,024 bytes at the fixed ceiling; not used by either ordinary DR-DOS result | Finishing step only, into already-owned proved-safe storage with BIOS, DMA, interrupt, and reboot coverage |
 
-The first deliverable is a ranked table of externally evidenced techniques,
-their estimated recoverable bytes, required local owner changes, and decisive
-tests. COMMAND/HMA placement is the first adoption experiment; the small
-EMM386 low gateway and DOS mutable-state placement ladder follow. Optional
-video-memory or compatibility tricks remain separate and cannot count toward
-the ordinary retail-or-better target.
+The evidence sources are the vendor [DR-DOS 6 Optimization and Configuration
+Tips](https://bitsavers.org/pdf/novell/dr_dos/DR_DOS_6.0_Optimization_and_Configuration_Tips_199109.pdf),
+the [DR-DOS 6 User Guide](https://www.bitsavers.org/pdf/novell/dr_dos/DR_DOS_6.0_User_Guide_2ed_199108.pdf),
+the [Novell DOS 7 User Guide](https://bitsavers.org/pdf/novell/dr_dos/DR_DOS_7_User_Guide_1993.pdf),
+and hashed DR-DOS media from the [PCjs DR-DOS 6 archive](https://www.pcjs.org/software/pcx86/sys/dos/dresearch/6.00/).
+Generated captures remain untracked. Repeat a DR-DOS run only to answer a
+specific unresolved ownership or behavioral question; the baseline comparison
+itself is complete.
 
 ### Completed baseline investigation: DR-DOS HMA-mode memory
 
@@ -1525,7 +1515,11 @@ failure, child shells, and `/MSG` keep the catalog low; that fallback break is
 6,116 bytes, rounded to 6,128. The 1,000-byte parse/extended catalog tail is
 resident only with `/MSG`; initialization/templates and the reloadable command
 body remain outside the normal break. This closes the first relocation tranche,
-but D1 still requires symbol ownership for the remaining resident ranges.
+but D1 still requires symbol ownership for the remaining resident ranges. The
+next bounded experiment is to separate the immutable utility catalog from its
+callable lookup routine and mutable message workspace, then measure its exact
+relocatable size. The resident message table must become explicitly
+far-addressable before that catalog can move to HMA.
 
 Reproduce the checked census with:
 
