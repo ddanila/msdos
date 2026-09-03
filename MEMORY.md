@@ -1630,6 +1630,18 @@ post-driver redirection/reload segment contract and the message pointer used on
 that path are traced explicitly. The new external-EXEC redirection regression
 is retained because the prior startup suite did not cover this lifetime.
 
+An audit of the restored resident layout shows that this is an older boundary
+defect, not a regression created by the relocation: the baseline emits a
+different 23-byte slice of transient code after the same redirected ECHO, but
+contains no NUL and therefore passed the existing NUL-only check. DOS=LOW with
+the same driver is clean, while DOS=HIGH reproduces the output when either the
+strategy entry or interrupt entry alone disables A20. HIMEM's runtime `INT 2Fh`
+segment is low (`044Eh` in the reference image), so a high interrupt-vector
+entry is ruled out. Before resuming this 80-byte move, instrument the immediate
+post-strategy and post-interrupt boundaries, prove physical A20 and `SS:SP`,
+then trace the redirected ECHO source/substitution pointer. Once fixed, tighten
+the HMA gate to reject all unexpected control/binary output, not only NUL.
+
 Reproduce the checked census with:
 
 ```sh
@@ -1787,9 +1799,11 @@ final exchange block to its low copy, publishes the reclaimed arena, and stores
 up to six initial DPBs in resident BIOS memory. It boots the A/B/C comparison
 image through `AUTOEXEC.BAT` and VC, recovering 32,928 bytes.
 
-The retained-low driver trampoline forces A20 on after each native strategy
-and interrupt entry point without changing public XMS nesting counts. The
-focused probe sees A20 enabled after the calls.
+The retained-low driver trampoline requests A20 after each native strategy and
+interrupt entry point without changing public XMS nesting counts. The focused
+probe sees A20 enabled after the complete calls, but the redirected-ECHO audit
+above shows that this end-state check does not yet prove a clean return
+boundary; immediate post-entry instrumentation remains required.
 
 External hardware-breakpoint traces reject an allocation-overlap explanation.
 The HMA-buffer callback publishes an active 512-byte low transfer area at
