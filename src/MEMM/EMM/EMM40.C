@@ -65,19 +65,6 @@ extern unsigned	emmpt_start;		/* next free entry in table */
 /*extern	unsigned free_stack_count;	/* number of entries */
 
 /*
- * Current status of `HW'. The way this is handled is that
- * when returning status to caller, normal status is reported 
- * via EMMstatus being moved into AX. Persistant errors
- * (such as internal datastructure inconsistancies, etc) are
- * placed in `EMMstatus' as HW failures. All other errors are 
- * transient in nature (out of memory, handles, ...) and are 
- * thus reported by directly setting AX. The EMMstatus variable
- * is provided for expansion and is not currently being
- * set to any other value.
- */
-extern unsigned short EMMstatus;
-
-/*
  * 4.0 EXTRAS
  */
 
@@ -134,7 +121,7 @@ ReallocatePages()
 	if ( (hp = valid_handle(handle)) == NULL_HANDLE )
 		return;		/* (error code already set) */
 
-	setAH((unsigned char)EMMstatus);	/* Assume success */
+	setAH(OK);			/* Assume success */
 	new_size = regp->hregs.x.rbx;
 	if ( new_size == hp->page_count )
 		return;				/* do nothing... */
@@ -226,7 +213,7 @@ GetInformation()
 		u_ptr = dest_addr();		/* ES:DI */
 		emm40_info[2] = (short)cntxt_bytes;	/* update size */
 		copyout(u_ptr, emm40_info, sizeof(emm40_info));
-		setAH((unsigned char)EMMstatus);
+		setAH(OK);
 	} else if ( regp->hregs.h.ral == 1 ) {
 		GetUnallocatedPageCount();	/* Use existing code */
 	} else
@@ -260,11 +247,11 @@ GetSetHandleAttribute()
 	if ( regp->hregs.h.ral == 0 ) {
 		if (valid_handle(handle) == NULL_HANDLE)
 			return;						/* (error code already set) */
-		setAX(EMMstatus << 8);		/* AL = 0 [volatile attribute] */
+		setAX(0);			/* AL = 0 [volatile attribute] */
 	} else if ( regp->hregs.h.ral == 1 ) {
 		setAH(FEATURE_NOT_SUPPORTED);
 	} else if ( regp->hregs.h.ral == 2 ) {
-		setAX(EMMstatus << 8);		/* AL = 0 [volatile attribute] */
+		setAX(0);			/* AL = 0 [volatile attribute] */
 	} else
 		setAH(INVALID_SUBFUNCTION);
 
@@ -317,7 +304,7 @@ GetSetHandleName()
 	if ( regp->hregs.h.ral == 0 ) {
 		Name = (char far *)dest_addr(); 	   /* ES:DI */
 		copyout(Name, Handle_Name_Table[handle & 0xFF], Handle_Name_Len);
-		setAH((unsigned char)EMMstatus);
+		setAH(OK);
 	} else {
 		GetHandleDirectory();		/* See if already there */
 		switch ( regp->hregs.h.rah ) {
@@ -334,7 +321,7 @@ GetSetHandleName()
 		}
 		Name = (char far *)source_addr();
 		copyin(Handle_Name_Table[handle & 0xFF], Name, Handle_Name_Len);
-		setAH((unsigned char)EMMstatus);
+		setAH(OK);
 	}
 
 }
@@ -397,7 +384,7 @@ GetHandleDirectory()
 			copyout(Dir_Entry->Dir_Handle_Name, Handle_Name_Table[Handle_Num], Handle_Name_Len);
 			Dir_Entry++;
 		    } hp++;
-		} setAX((EMMstatus << 8) + handle_count);
+		} setAX(handle_count);
 	} else if ( regp->hregs.h.ral == 1 ) {
 		NameAddress = (char far *)source_addr();
 		copyin(Name, NameAddress, Handle_Name_Len);
@@ -419,7 +406,7 @@ GetHandleDirectory()
 			break;
 		    case 1:
 			setDX(Real_Handle);
-			setAH((unsigned char)EMMstatus);
+			setAH(OK);
 			break;
 		    default:
 			setAH((unsigned char)DUPLICATE_HANDLE_NAMES);
@@ -427,7 +414,7 @@ GetHandleDirectory()
 
 	} else if ( regp->hregs.h.ral == 2 ) {
 		setBX(handle_table_size);
-		setAH((unsigned char)EMMstatus);
+		setAH(OK);
 	} else
 		setAH(INVALID_SUBFUNCTION);
 
@@ -445,7 +432,7 @@ GetHandleDirectory()
  *		AL = 2		Return Access Key
  *		BX, CX		Access Key
  *	returns:
- *		AH = EMMstatus
+ *		AH = OK
  *		BX, CX		Access Key if successful
  *
  * 05/09/88 ISP Updated for MEMM. Removed check for pCurVMID
@@ -482,5 +469,5 @@ OSDisable()
 	else if ( function == 2 )		/* return key */
 		OSEnabled = 0;
 
-	setAH((unsigned char)EMMstatus);
+	setAH(OK);
 }

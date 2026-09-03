@@ -108,7 +108,6 @@ ABS0	ends
 
 _DATA	segment
 
-extrn	_EMMstatus:word
 extrn	Active_Status:byte	; current VDM status
 extrn	Auto_Mode:byte		; current Auto mode status
 ;extrn	_map_known:byte 	; non-zero => I/O map known to a user

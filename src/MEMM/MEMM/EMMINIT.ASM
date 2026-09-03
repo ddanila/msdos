@@ -79,8 +79,6 @@ extrn	PageT_Seg:word		; segment of system page table
 extrn	_PF_Base:word		 ; segment addr of page frame base
 extrn	_page_frame_pages:word	; number of pages in 3.2 page frame
 
-extrn	_EMMstatus:word		; status of EMM
-
 extrn	_page_frame_base:word	; pointers into page tables for each window
 extrn	_mappable_pages:word	; mappable page array
 extrn	_EMM_MPindex:byte	; index into mappable page array
@@ -371,11 +369,6 @@ EMM_Init	proc	near
 	mov	es,ax
 ;
 	cld				; strings foward
-;
-;  init EMM status
-;
-	mov	[_EMMstatus],0
-
 ;
 ; set total # of EMM pages
 ;

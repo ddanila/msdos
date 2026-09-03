@@ -54,7 +54,6 @@ _DATA	SEGMENT
 	public	HANDLE_CNT
 
 	PUBLIC	_total_pages
-	PUBLIC	_EMMstatus
 	PUBLIC	_emm40_info
 	PUBLIC	_altreg_count
 	PUBLIC	_page_frame_base
@@ -78,6 +77,10 @@ _DATA	SEGMENT
 	PUBLIC	_pft386
 	PUBLIC	_emm_brk
 	PUBLIC	EMM_dynamic_data_area
+
+; Preserve the historical EMMDATA base offsets used by inactive-mode
+; transition paths. This anonymous word is absorbed by later segment alignment.
+	DW	0
 	PUBLIC	EMM_data_end
 	PUBLIC	_regp
 	PUBLIC	EMM_savES
@@ -140,27 +143,6 @@ _DATA	SEGMENT
 
 
 
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;00. EMM Status
-; Current status of `HW'. The way this is handled is that
-; when returning status to caller, normal status is reported 
-; via EMMstatus being moved into AX. Persistant errors
-; (such as internal datastructure inconsistancies, etc) are
-; placed in `EMMstatus' as HW failures. All other errors are 
-; transient in nature (out of memory, handles, ...) and are 
-; thus reported by directly setting AX. The EMMstatus variable
-; is provided for expansion and is not currently being
-; set to any other value.
-;
-; set to OK for now. when integrated, the value should be
-; set to EMM_HW_MALFUNCTION (81H) initially, then set to
-; OK (00H) when the `EMM ON' function is invoke
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-_EMMstatus	LABEL	WORD
-	DW	00H
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

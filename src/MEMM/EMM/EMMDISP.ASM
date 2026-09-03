@@ -75,7 +75,6 @@ endm
 ;******************************************************************************
 
 _DATA	SEGMENT
-extrn	_EMMstatus:word
 extrn	Active_Status:byte
 extrn	Auto_Mode:byte
 extrn	_regp:word

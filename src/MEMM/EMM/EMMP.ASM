@@ -109,7 +109,6 @@ extrn	_OSEnabled:byte
 extrn	_total_pages:word			; total # of EMM pages in system
 extrn	_free_count:word			; unallocated EMM pages
 extrn	_handle_count:word			; active EMM handles
-extrn	_EMMstatus:word
 
 ;
 ; table of offsets into in to the first page table
@@ -180,7 +179,7 @@ _GetPageFrameAddress proc near
 	mov	ax, [PF_Base]
 	cmp	[_page_frame_pages], 4
 	jb	short gpf_no_frame
-	mov	dl, byte ptr [_EMMstatus]
+	xor	dx, dx				; OK status
 	jmp	short gpf_return
 gpf_no_frame:
 	mov	dl, EMM_HW_MALFUNCTION
@@ -199,7 +198,7 @@ _GetUnallocatedPageCount proc near
 	mov	word ptr [bp.rBX], ax
 	mov	ax, [_total_pages]
 	mov	word ptr [bp.rDX], ax
-	mov	al, byte ptr [_EMMstatus]
+	xor	al, al				; OK status
 	mov	byte ptr [bp.rAX+1], al
 	ret
 _GetUnallocatedPageCount endp
@@ -207,7 +206,7 @@ _GetUnallocatedPageCount endp
 _GetEMMVersion proc near
 	; Dispatcher-only entry: BP already identifies the saved registers.
 	mov	al, 40h				; LIM EMS version 4.0
-	mov	ah, byte ptr [_EMMstatus]
+	xor	ah, ah				; OK status
 	mov	word ptr [bp.rAX], ax
 	ret
 _GetEMMVersion endp
@@ -225,7 +224,7 @@ _GetEMMHandleCount proc near
 _GetEMMHandleCount endp
 
 _GetStatus proc near
-	mov	al, byte ptr [_EMMstatus]
+	xor	al, al				; OK status
 	mov	byte ptr [bp.rAX+1], al
 	ret
 _GetStatus endp
@@ -1125,7 +1124,7 @@ gmpa_success:
 	mov	bp, [_regp]
 	mov	cx, [_mappable_page_count]
 	mov	word ptr [bp.rCX], cx
-	mov	al, byte ptr [_EMMstatus]
+	xor	al, al				; OK status
 	mov	byte ptr [bp.rAX+1], al
 	ret
 

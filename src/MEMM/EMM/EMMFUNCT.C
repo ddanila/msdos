@@ -193,19 +193,6 @@ extern union pft386 *pft386;		/* ptr to page frame table array */
 
 
 /*
- * Current status of `HW'. The way this is handled is that
- * when returning status to caller, normal status is reported 
- * via EMMstatus being moved into AX. Persistant errors
- * (such as internal datastructure inconsistancies, etc) are
- * placed in `EMMstatus' as HW failures. All other errors are 
- * transient in nature (out of memory, handles, ...) and are 
- * thus reported by directly setting AX. The EMMstatus variable
- * is provided for expansion and is not currently being
- * set to any other value.
- */
-extern unsigned short EMMstatus;
-
-/*
  * debug & such
  */
 /*unsigned null_count = 0;	/* number of attempts to map null pages */
@@ -396,7 +383,7 @@ AllocateRawPages()
 	 */
 	if((hp->page_index=get_pages(n_pages,emmpt_start)) != NULL_PAGE) {
 		emmpt_start += n_pages;
-		setAH((unsigned char)EMMstatus);	/* got them! */
+		setAH(OK);			/* got them! */
 	}
 	else {
 		setAH(NOT_ENOUGH_FREE_MEM);	/* out of pages */
@@ -456,7 +443,7 @@ DeallocatePages()
 	handle_count--; 	      /* one less active handle */
 
 /*	AutoUpdate();	/* update status of Auto mode */
-	setAH((unsigned char)EMMstatus);	/* done */
+	setAH(OK);			/* done */
 }
 #undef	handle 
 	
@@ -478,7 +465,7 @@ GetEMMHandlePages()
 	if((hp=valid_handle(handle))==NULL_HANDLE)	/*valid handle? */
 		return;				/* no */
 	setBX(hp->page_count);
-	setAH((unsigned char)EMMstatus);
+	setAH(OK);
 }
 
 /*
@@ -514,6 +501,6 @@ GetAllEMMHandlePages()
 		hp++;				/* next entry */
 	}
 	setBX(handle_count);			/* bx <-- handle count */
-	setAH((unsigned char)EMMstatus);
+	setAH(OK);
 }
 
