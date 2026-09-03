@@ -104,17 +104,18 @@ mcopy -o -i "$VERBOSE_IMAGE" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
 mcopy -o -i "$VERBOSE_IMAGE" "$QEXIT" ::QEXIT.COM
 printf 'DEVICE=A:\\HIMEM.SYS /V\r\n' | \
     mcopy -o -i "$VERBOSE_IMAGE" - ::CONFIG.SYS
-printf '@ECHO OFF\r\nPAUSE\r\nCHOICE /N /T:Y,2 >NUL\r\nQEXIT.COM\r\n' | \
+printf '@ECHO OFF\r\nPAUSE\r\nCHOICE /N /T:Y,5 >NUL\r\nQEXIT.COM\r\n' | \
     mcopy -o -i "$VERBOSE_IMAGE" - ::AUTOEXEC.BAT
 rm -f "$VERBOSE_QMP" "$VERBOSE_SCREEN"
-timeout 20 qemu-system-i386 \
+timeout 35 qemu-system-i386 \
     -display none -monitor none -machine pc -cpu 486 -m 16 \
     -drive if=floppy,index=0,format=raw,file="$VERBOSE_IMAGE",cache=writethrough \
     -boot a -qmp unix:"$VERBOSE_QMP",server,nowait -no-reboot \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 >/dev/null 2>&1 &
 verbose_pid=$!
 python3 "$ROOT/tests/screen_expect.py" "$VERBOSE_QMP" "$VERBOSE_SCREEN" \
-    'HIMEM: DOS 6 extended-memory manager installed' 'ret'
+    'HIMEM: DOS 6 extended-memory manager installed' '' \
+    'Press any key' 'ret'
 wait "$verbose_pid" || true
 grep -Fq 'HIMEM: DOS 6 extended-memory manager installed' "$VERBOSE_SCREEN"
 

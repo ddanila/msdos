@@ -762,7 +762,8 @@ xms_allocate proc near
         call    find_gap
         pop     si
         jc      xms_no_memory
-        mov     byte ptr [si+HANDLE_LOCK], 0
+        ; A free record is already unlocked: release rejects nonzero locks.
+        ; Its old length is ignored while base is zero and is replaced below.
         mov     word ptr [si+HANDLE_BASE], ax
         mov     word ptr [si+HANDLE_LENGTH], dx
         sub     si, offset handles
@@ -784,7 +785,6 @@ xms_free proc near
         cmp     byte ptr [si+HANDLE_LOCK], 0
         jne     short free_locked
         mov     word ptr [si+HANDLE_BASE], 0
-        mov     word ptr [si+HANDLE_LENGTH], 0
         jmp     xms_success
 free_locked:
         mov     bl, ERR_LOCKED
