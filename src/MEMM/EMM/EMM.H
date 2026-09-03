@@ -51,7 +51,7 @@
 #define NULL_HANDLE	(struct handle_ptr *)0x0FFF
 #define	NULL_PAGE	0xFFFF
 #define NULL_SAVE	(struct save_map *)0
-#define NULL_SAVE_HANDLE 0xFF
+#define NULL_SAVE_MAP 0xFFFE
 
 #define	GET		0x00		/* get/set page map sub codes */
 #define	SET		0x01
@@ -97,7 +97,6 @@ union pft386{
  */
 #pragma pack(1)
 struct save_map{
-	unsigned char	s_handle;
 	unsigned short	window[4];
 	};
 #pragma pack()

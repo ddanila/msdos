@@ -663,18 +663,17 @@ _SavePageMap	proc	near
 	mov	ax, dx			; Save for later
 	Validate_Handle	<short srpm_inv_handle>
 					; check state of handle's page area
-	imul	bx,ax,SIZE SaveMap_struc ; BX = offset within Save Area for
-					;  this handle's save area
+	mov	bx,ax
+	shl	bx,3			; four saved page-map words per handle
 	add	bx,[_save_map]
 	mov	di,bx			; DS:DI points to handle's save area
-	cmp	[di].s_handle,NULL_SAVE_HANDLE
+	cmp	[di].s_map,NULL_SAVE_MAP
 					;Q: save area in use ?
 	jne	short spm_prev_saved	; Y: return error
 					; N: use it now
 	cld
 	push	ds
 	pop	es
-	stosb					; store handle # in s_handle
 	Get_FRS_window	SI			; Current FRS page mappings
 	movsd					; move to save area
 	movsd					; Lim 3.2 has only 4 page frames
@@ -726,25 +725,24 @@ _RestorePageMap	proc	near
 	mov	ax, dx			; Save for later
 	Validate_Handle	srpm_inv_handle
 					; check state of handle's page area
-	imul	bx,ax,SIZE SaveMap_struc ; BX = offset within Save Area for
-					;  this handle's save area
+	mov	bx,ax
+	shl	bx,3			; four saved page-map words per handle
 	add	bx,[_save_map]
 	mov	si,bx			; DS:SI points to handle's save area
-	cmp	[si].s_handle,NULL_SAVE_HANDLE
+	cmp	[si].s_map,NULL_SAVE_MAP
 					;Q: save area in use ?
 	je	short rpm_no_map_saved	; N: return error
 					; Y: restore it
 
 	mov	byte ptr [bp.rAX+1],OK		; Assume success
-	mov	[si].s_handle,NULL_SAVE_HANDLE	; null handle's save area
-
-	lea	si,[si].s_map			; SI -> handle's save area
 	Get_FRS_window	DI			; Get pointer to current window
 	push	ds
 	pop	es				; ES <-- DGROUP
 	cld
 	movsd					; restore 4 words
 	movsd					; Lim 3.2 has only 4 page frames
+	mov	word ptr [si-SIZE SaveMap_struc],NULL_SAVE_MAP
+					; release the saved-map slot
 	jmp	_set_windows			; Restore mapping
 
 rpm_no_map_saved:

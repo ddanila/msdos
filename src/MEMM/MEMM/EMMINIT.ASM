@@ -404,10 +404,10 @@ else
 	mov	bx,[_handle_table_size]
 EMIN_init_save_maps:
 	push	bx
-	mov	al,NULL_SAVE_HANDLE
-	stosb				; s_handle
+	mov	ax,NULL_SAVE_MAP
+	stosw				; impossible first page marks slot free
 	mov	ax,NULL_PAGE
-	mov	cx,EMM32_PHYS_PAGES	; unmapped windows
+	mov	cx,EMM32_PHYS_PAGES-1	; remaining unmapped windows
 	rep	stosw
 	pop	bx
 	dec	bx

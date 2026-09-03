@@ -71,7 +71,7 @@ PAGE_NOT_MAPPABLE   equ       0h		    ;
 
 NULL_PAGE	= 0FFFFh
 NULL_HANDLE	= 00FFFh
-NULL_SAVE_HANDLE = 0FFh		; valid H=255 handles are 0..254
+NULL_SAVE_MAP = 0FFFEh		; impossible page index; FFFFh remains unmapped
 
 
 ;
@@ -183,7 +183,6 @@ HandleTable_struc	ends
 ; for _save_area
 ;
 SaveMap_struc	struc
-	s_handle	db	NULL_SAVE_HANDLE			; owning handle
 	s_map		dw	EMM32_PHYS_PAGES dup (NULL_PAGE)	; EMM page #s
 SaveMap_struc	ends
 

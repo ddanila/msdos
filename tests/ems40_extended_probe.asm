@@ -15,9 +15,10 @@ start:
     jnz fail_alloc
     mov [handle], dx
 
-    ; 47/48: save and restore a handle's mapping context.
+    ; 47/48: save and restore a handle's mapping context.  Keep the
+    ; first window unmapped so FFFFh is exercised as legitimate map data.
     xor al, al
-    xor bx, bx
+    mov bx, 0ffffh
     mov ah, 44h
     int 67h
     test ah, ah
@@ -27,10 +28,22 @@ start:
     int 67h
     test ah, ah
     jnz fail_save
+    mov ah, 47h
+    int 67h
+    cmp ah, 8dh                       ; map already saved
+    jne fail_save
+    mov ah, 45h
+    int 67h
+    cmp ah, 86h                       ; cannot release a saved handle
+    jne fail_save
     mov ah, 48h
     int 67h
     test ah, ah
     jnz fail_restore
+    mov ah, 48h
+    int 67h
+    cmp ah, 8eh                       ; no map remains saved
+    jne fail_restore
 
     ; 49/4A are explicitly unsupported by this software EMM.
     mov ah, 49h

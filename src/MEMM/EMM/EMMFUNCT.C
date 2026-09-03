@@ -528,7 +528,7 @@ DeallocatePages()
 	/*
 	 * check for save area in use for this handle
 	 */
-	if( save_map[ (handle & 0x00FF) ].s_handle != NULL_SAVE_HANDLE )
+	if( save_map[ (handle & 0x00FF) ].window[0] != NULL_SAVE_MAP )
 	{
 		setAH(SAVED_PAGE_DEALLOC);
 		return;

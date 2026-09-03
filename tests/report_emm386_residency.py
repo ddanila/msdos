@@ -276,7 +276,7 @@ def main() -> int:
     runtime_ranges: list[Range] = []
     cursor = static_end
     for size, owner in (
-        (args.handles * 9, "saved LIM 3.2 maps"),
+        (args.handles * 8, "saved LIM 3.2 maps"),
         (args.handles * 4, "handle page-index/count records"),
         (args.handles * 8, "eight-byte handle names"),
         (args.ems_pages * 2, "allocated-page index array"),
