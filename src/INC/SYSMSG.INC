@@ -200,7 +200,11 @@ $M_ADDR_SZ_NEAR 	EQU	2      ;; Size to increment if NEAR
 $M_ADDR_SZ_FAR		EQU	4      ;; Size to increment if FAR
 $M_SL			EQU   DS:[SI]  ;; Refer to SUBLIST as $M_SL
 $M_NO_HANDLE		EQU	-1     ;; No handle flag
+IFDEF COMMAND_MSG_TEMP_BUF_SZ
+$M_TEMP_BUF_SZ		EQU	COMMAND_MSG_TEMP_BUF_SZ ;; Utility-specific buffer bound
+ELSE
 $M_TEMP_BUF_SZ		EQU	64     ;; Size of temporary buffer	 ;AN003;
+ENDIF
 $M_NEXT_DBCS_VECTOR	EQU	2      ;; Amount to increment to get next vector
 $M_DBCS_TERM		EQU    0000    ;; DBCS vector table terminating flag
 $M_SPECIAL_MSG_NUM	EQU    0FFFFH  ;; Special generic message number

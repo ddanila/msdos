@@ -17,6 +17,10 @@ SYMBOL_RE = re.compile(
     r"^([0-9A-F]{4}):([0-9A-F]{4})(?:[*+])?\s+(\S.*)$",
     re.IGNORECASE,
 )
+WORKSPACE_RE = re.compile(
+    r"^COMMAND_MSG_TEMP_BUF_SZ\s+EQU\s+([0-9A-F]+H|\d+)\s*(?:;.*)?$",
+    re.IGNORECASE | re.MULTILINE,
+)
 
 
 @dataclass(frozen=True)
@@ -71,10 +75,47 @@ def rounded(value: int) -> int:
     return (value + 15) & ~15
 
 
+def parse_number(value: str) -> int:
+    return int(value[:-1], 16) if value.upper().endswith("H") else int(value)
+
+
+def catalog_record_lengths(
+    image: bytes, start: int, end: int, name: str
+) -> list[int]:
+    """Return length-byte-plus-payload sizes from one compiled message class."""
+    file_start = start - 0x100
+    file_end = end - 0x100
+    if not (0 <= file_start < file_end <= len(image)):
+        raise ValueError(f"{name} catalog falls outside COMMAND.COM")
+    if image[file_start] != 0xFF:
+        raise ValueError(f"{name} catalog has an invalid class identifier")
+    count = image[file_start + 3]
+    table_end = file_start + 4 + count * 4
+    if table_end > file_end:
+        raise ValueError(f"{name} catalog index exceeds its range")
+    lengths: list[int] = []
+    for index in range(count):
+        entry = file_start + 4 + index * 4
+        relative = int.from_bytes(image[entry + 2:entry + 4], "little")
+        message = entry + relative
+        if not (table_end <= message < file_end):
+            raise ValueError(f"{name} catalog message pointer falls outside its range")
+        record_length = image[message] + 1
+        if message + record_length > file_end:
+            raise ValueError(f"{name} catalog message exceeds its range")
+        lengths.append(record_length)
+    return lengths
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("map", type=Path, help="COMMAND linker map")
     parser.add_argument("binary", type=Path, help="COMMAND.COM built from the map")
+    parser.add_argument(
+        "--switches", type=Path,
+        default=Path("src/CMD/COMMAND/comsw.asm"),
+        help="COMMAND build switches containing its message-workspace bound",
+    )
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
@@ -108,10 +149,10 @@ def main() -> int:
         errors.append("default resident DATARES ownership boundaries are not ordered")
     if not (resident_state_end <= critical_lookup < critical_messages):
         errors.append("critical-message lookup routine is not retained before its relocatable catalog")
-    if rounded(critical_messages) > 5552:
-        errors.append("DOS-high permanent COMMAND exceeds its 5,552-byte budget")
-    if rounded(datares_end) > 6032:
-        errors.append("low/failure COMMAND fallback exceeds its 6,032-byte budget")
+    if rounded(critical_messages) > 5536:
+        errors.append("DOS-high permanent COMMAND exceeds its 5,536-byte budget")
+    if rounded(datares_end) > 6016:
+        errors.append("low/failure COMMAND fallback exceeds its 6,016-byte budget")
     if not (datares_end == parse_messages <= extended_messages <= extended_end == data.end):
         errors.append("optional resident-message boundaries do not cover the DATARES tail")
     if not (0x100 <= resident_code_end <= code.end):
@@ -120,9 +161,28 @@ def main() -> int:
         errors.append("TranStart no longer equals the transient-group start")
     if tran_data_end > segments["TRANDATA"].end:
         errors.append("TRANDATAEND exceeds TRANDATA")
-    image_end = args.binary.stat().st_size + 0x100
+    image = args.binary.read_bytes()
+    image_end = len(image) + 0x100
     if image_end != segments["TRANEXT"].end:
         errors.append("binary size plus the PSP origin no longer equals the initialized image end")
+
+    workspace_match = WORKSPACE_RE.search(args.switches.read_text(encoding="latin-1"))
+    if not workspace_match:
+        raise ValueError(f"COMMAND message-workspace bound is missing from {args.switches}")
+    workspace_size = parse_number(workspace_match.group(1))
+    catalog_lengths = []
+    for name, start, end in (
+        ("critical", critical_messages, datares_end),
+        ("parse", parse_messages, extended_messages),
+        ("extended", extended_messages, extended_end),
+    ):
+        catalog_lengths.extend(catalog_record_lengths(image, start, end, name))
+    largest_record = max(catalog_lengths)
+    if largest_record > workspace_size:
+        errors.append(
+            f"largest disk-loaded message record ({largest_record} bytes) exceeds "
+            f"the COMMAND workspace ({workspace_size} bytes)"
+        )
 
     print("# COMMAND residency census\n")
     print("## Default resident image\n")
@@ -159,6 +219,10 @@ def main() -> int:
     print(f"\n`/MSG` retains all catalogs and raises the DOS-high permanent break by "
           f"{rounded(extended_end) - rounded(critical_messages):,} bytes to "
           f"{rounded(extended_end):,} paragraph-rounded bytes.")
+    print(
+        f"The largest disk-loaded catalog record is {largest_record} bytes; "
+        f"COMMAND's checked message workspace is {workspace_size} bytes."
+    )
 
     if errors:
         print("\n## Census errors\n")
