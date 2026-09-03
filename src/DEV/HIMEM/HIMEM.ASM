@@ -338,10 +338,7 @@ xms_extended_control:
         push    cs
         pop     ds
         cmp     [cpu_386], 0
-        jne     short xms_extended_dispatch
-        mov     bl, ERR_NOT_IMPLEMENTED
-        xor     ax, ax
-        jmp     short xms_extended_return
+        je      short xms_extended_reject
 xms_extended_dispatch:
         cmp     ah, 088h
         je      short xms_extended_query
