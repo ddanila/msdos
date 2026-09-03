@@ -127,6 +127,8 @@ done
 for expected_re in \
     '^BAD_HANDLE_FREE CF=0 AX=0000 BX=..A2 ' \
     '^ALLOCATE_ZERO CF=0 AX=0001 ' \
+    '^ZERO_INFO CF=0 AX=0001 BX=001F DX=0000' \
+    '^ZERO_FREE CF=0 AX=0001 ' \
     '^LOCKED_FREE CF=0 AX=0000 BX=..AB ' \
     '^LOCKED_REALLOC CF=0 AX=0000 BX=..AB ' \
     '^UNLOCK_UNDERFLOW CF=0 AX=0000 BX=..AA ' \

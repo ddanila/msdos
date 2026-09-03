@@ -8,8 +8,12 @@
         org     0
 
 MAX_HANDLES     equ     128
-; active byte, lock count, base KiB, size KiB
-HANDLE_SIZE     equ     6
+; lock count, nonzero base KiB, size KiB. Base zero marks a free record; every
+; EMB begins above the separately reserved 64-KiB HMA, including zero-size EMBs.
+HANDLE_LOCK     equ     0
+HANDLE_BASE     equ     1
+HANDLE_LENGTH   equ     3
+HANDLE_SIZE     equ     5
 MAX_UMB_BLOCKS  equ     32
 ; segment and paragraph size; bit 15 of size marks an allocated block. A UMB
 ; is wholly below F000h, so its size is always less than 5000h paragraphs.
@@ -494,8 +498,8 @@ xms_extended_handle_info proc near
         call    validate_handle
         jc      short xms3_info_bad_handle
         pop     cx
-        mov     bh, byte ptr [si+1]
-        movzx   edx, word ptr [si+4]
+        mov     bh, byte ptr [si+HANDLE_LOCK]
+        movzx   edx, word ptr [si+HANDLE_LENGTH]
         mov     ax, 1
         xor     bl, bl
         clc
@@ -758,10 +762,9 @@ xms_allocate proc near
         call    find_gap
         pop     si
         jc      xms_no_memory
-        mov     byte ptr [si], 1
-        mov     byte ptr [si+1], 0
-        mov     word ptr [si+2], ax
-        mov     word ptr [si+4], dx
+        mov     byte ptr [si+HANDLE_LOCK], 0
+        mov     word ptr [si+HANDLE_BASE], ax
+        mov     word ptr [si+HANDLE_LENGTH], dx
         sub     si, offset handles
         mov     ax, si
         mov     cl, HANDLE_SIZE
@@ -778,11 +781,10 @@ xms_allocate endp
 xms_free proc near
         call    validate_handle
         jc      xms_bad_handle
-        cmp     byte ptr [si+1], 0
+        cmp     byte ptr [si+HANDLE_LOCK], 0
         jne     short free_locked
-        mov     byte ptr [si], 0
-        mov     word ptr [si+2], 0
-        mov     word ptr [si+4], 0
+        mov     word ptr [si+HANDLE_BASE], 0
+        mov     word ptr [si+HANDLE_LENGTH], 0
         jmp     xms_success
 free_locked:
         mov     bl, ERR_LOCKED
@@ -792,10 +794,10 @@ xms_free endp
 xms_lock proc near
         call    validate_handle
         jc      xms_bad_handle
-        cmp     byte ptr [si+1], 0ffh
+        cmp     byte ptr [si+HANDLE_LOCK], 0ffh
         je      short lock_overflow
-        inc     byte ptr [si+1]
-        mov     bx, word ptr [si+2]
+        inc     byte ptr [si+HANDLE_LOCK]
+        mov     bx, word ptr [si+HANDLE_BASE]
         mov     dx, bx
         mov     cl, 6
         shr     dx, cl
@@ -811,9 +813,9 @@ xms_lock endp
 xms_unlock proc near
         call    validate_handle
         jc      xms_bad_handle
-        cmp     byte ptr [si+1], 0
+        cmp     byte ptr [si+HANDLE_LOCK], 0
         je      short unlock_underflow
-        dec     byte ptr [si+1]
+        dec     byte ptr [si+HANDLE_LOCK]
         jmp     xms_success
 unlock_underflow:
         mov     bl, ERR_NOT_LOCKED
@@ -824,17 +826,17 @@ xms_handle_info proc near
         call    validate_handle
         jc      xms_bad_handle
         call    count_free_handles
-        mov     bh, byte ptr [si+1]
-        mov     dx, word ptr [si+4]
+        mov     bh, byte ptr [si+HANDLE_LOCK]
+        mov     dx, word ptr [si+HANDLE_LENGTH]
         jmp     xms_success
 xms_handle_info endp
 
 xms_reallocate proc near
         call    validate_handle
         jc      xms_bad_handle
-        cmp     byte ptr [si+1], 0
+        cmp     byte ptr [si+HANDLE_LOCK], 0
         jne     short realloc_locked
-        mov     ax, word ptr [si+4]
+        mov     ax, word ptr [si+HANDLE_LENGTH]
         cmp     bx, ax
         jbe     short realloc_resize
         push    dx
@@ -843,7 +845,7 @@ xms_reallocate proc near
         pop     dx
         jc      short realloc_move
 realloc_resize:
-        mov     word ptr [si+4], bx
+        mov     word ptr [si+HANDLE_LENGTH], bx
         jmp     xms_success
 realloc_move:
         push    si
@@ -854,9 +856,9 @@ realloc_move:
         jc      xms_no_memory
         push    bx
         push    ax
-        mov     ax, word ptr [si+4]
+        mov     ax, word ptr [si+HANDLE_LENGTH]
         call    kb_to_length
-        mov     ax, word ptr [si+2]
+        mov     ax, word ptr [si+HANDLE_BASE]
         call    kb_to_physical
         mov     word ptr [move_source], ax
         mov     word ptr [move_source+2], dx
@@ -869,8 +871,8 @@ realloc_move:
         pop     ax
         pop     bx
         jc      xms_no_memory
-        mov     word ptr [si+2], ax
-        mov     word ptr [si+4], bx
+        mov     word ptr [si+HANDLE_BASE], ax
+        mov     word ptr [si+HANDLE_LENGTH], bx
         jmp     xms_success
 realloc_locked:
         mov     bl, ERR_LOCKED
@@ -1138,7 +1140,7 @@ resolve_handle:
         add     bx, word ptr [move_length]
         adc     bp, word ptr [move_length+2]
         jc      short resolve_bad_offset
-        mov     dx, word ptr [si+4]
+        mov     dx, word ptr [si+HANDLE_LENGTH]
         mov     di, dx
         mov     cl, 6
         shr     dx, cl
@@ -1151,7 +1153,7 @@ resolve_handle:
         ja      short resolve_bad_offset
 resolve_offset_valid:
         mov     bx, ax
-        mov     ax, word ptr [si+2]
+        mov     ax, word ptr [si+HANDLE_BASE]
         call    kb_to_physical
         add     ax, bx
         adc     dx, bp
@@ -1284,8 +1286,8 @@ validate_handle proc near
         dec     si
         imul    si, HANDLE_SIZE
         add     si, offset handles
-        cmp     byte ptr [si], 1
-        jne     short validate_bad
+        cmp     word ptr [si+HANDLE_BASE], 0
+        je      short validate_bad
         pop     ax
         clc
         ret
@@ -1300,7 +1302,7 @@ find_free_handle proc near
         xor     ch, ch
         mov     cl, [handle_limit]
 find_free_loop:
-        cmp     byte ptr [si], 0
+        cmp     word ptr [si+HANDLE_BASE], 0
         je      short find_free_found
         add     si, HANDLE_SIZE
         loop    find_free_loop
@@ -1319,7 +1321,7 @@ count_free_handles proc near
         xor     ch, ch
         mov     cl, [handle_limit]
 count_handles_loop:
-        cmp     byte ptr [si], 0
+        cmp     word ptr [si+HANDLE_BASE], 0
         jne     short count_handles_used
         inc     bl
 count_handles_used:
@@ -1345,12 +1347,12 @@ find_gap_retry:
         xor     ch, ch
         mov     cl, [handle_limit]
 find_gap_scan:
-        cmp     byte ptr [si], 1
-        jne     short find_gap_next
-        mov     bp, word ptr [si+2]
+        cmp     word ptr [si+HANDLE_BASE], 0
+        je      short find_gap_next
+        mov     bp, word ptr [si+HANDLE_BASE]
         cmp     di, bp
         jbe     short find_gap_next
-        add     bp, word ptr [si+4]
+        add     bp, word ptr [si+HANDLE_LENGTH]
         cmp     ax, bp
         jae     short find_gap_next
         mov     ax, bp
@@ -1367,7 +1369,7 @@ find_gap endp
 
 ; Verify that growing SI's block to DX KiB does not overlap another handle.
 gap_after_handle proc near
-        mov     ax, word ptr [si+2]
+        mov     ax, word ptr [si+HANDLE_BASE]
         add     ax, dx
         jc      short gap_after_fail
         cmp     ax, [extended_kb]
@@ -1378,10 +1380,10 @@ gap_after_handle proc near
 gap_after_loop:
         cmp     di, si
         je      short gap_after_next
-        cmp     byte ptr [di], 1
-        jne     short gap_after_next
-        mov     bp, word ptr [di+2]
-        cmp     bp, word ptr [si+2]
+        cmp     word ptr [di+HANDLE_BASE], 0
+        je      short gap_after_next
+        mov     bp, word ptr [di+HANDLE_BASE]
+        cmp     bp, word ptr [si+HANDLE_BASE]
         jbe     short gap_after_next
         cmp     bp, ax
         jb      short gap_after_fail
@@ -1410,9 +1412,9 @@ largest_retry:
         xor     ch, ch
         mov     cl, [handle_limit]
 largest_scan:
-        cmp     byte ptr [si], 1
-        jne     short largest_next
-        mov     bp, word ptr [si+2]
+        cmp     word ptr [si+HANDLE_BASE], 0
+        je      short largest_next
+        mov     bp, word ptr [si+HANDLE_BASE]
         cmp     bp, bx
         jb      short largest_next
         cmp     bp, dx
@@ -1430,8 +1432,8 @@ largest_next:
 largest_keep:
         cmp     di, 0ffffh
         je      short largest_done
-        mov     bx, word ptr [di+2]
-        add     bx, word ptr [di+4]
+        mov     bx, word ptr [di+HANDLE_BASE]
+        add     bx, word ptr [di+HANDLE_LENGTH]
         jmp     short largest_retry
 largest_done:
         pop     bp
@@ -1457,9 +1459,9 @@ total_free_scan:
         xor     ch, ch
         mov     cl, [handle_limit]
 total_free_loop:
-        cmp     byte ptr [si], 1
-        jne     short total_free_next
-        sub     ax, word ptr [si+4]
+        cmp     word ptr [si+HANDLE_BASE], 0
+        je      short total_free_next
+        sub     ax, word ptr [si+HANDLE_LENGTH]
 total_free_next:
         add     si, HANDLE_SIZE
         loop    total_free_loop
