@@ -701,7 +701,7 @@ until an A/B image measures them.
 
 | Priority | Opportunity | Available evidence | Likely scale | Principal constraint |
 | --- | --- | --- | ---: | --- |
-| 0 | Attribute DR-DOS's HMA-mode advantage | Published MemoryMAX policies exist, but no controlled local DR-DOS capture yet | research first | No source code; identical inputs and compatibility modes must be separated |
+| 0 | Complete attribution of DR-DOS's HMA-mode advantage | The first controlled OpenDOS 7.01 capture reconciles its ordinary 8,752-byte advantage over retail; version and optional-policy matrices remain | research first | No source code; identical inputs and compatibility modes must be separated |
 | 1 | Compact EMM386 runtime-sized metadata and alignment | 8,960-byte component excess; initialization state, four tables, LOADALL scratch, and OS/E state reduced or relocated | tens to hundreds of bytes per item | Full `H=`/`A=` ranges and EMS 4.0 formats |
 | 2 | Revisit HIMEM only after larger ranges | 1,488-byte component excess; resident break is explicit | tens to hundreds of bytes | 128 handles, 32 UMB extents, all A20 backends |
 | 1 | Classify every byte below the first MCB | Current first system MCB begins at `0478h`; retail describes allocations from `0070h` | attribution first | Some low addresses are ABI or BIOS fixed |
@@ -1169,6 +1169,82 @@ unknown, and each adoptable technique has a local byte budget and regression
 gate. Generated disk images, memory dumps, and reports remain untracked build
 evidence; durable commands, hashes, conclusions, and decisions belong here or
 in a focused checked-in measurement script.
+
+#### First controlled result: OpenDOS 7.01
+
+`tests/capture_drdos_memory.py` builds temporary boot media from a user-supplied
+Caldera OpenDOS 7.01 binary archive, inserts the same VC 4.05 binary used by the
+MS-DOS comparison, and captures five configurations on the fixed QEMU `pc`, 486
+CPU, 8 MiB profile. It neither reads nor retains DR-DOS source or binary files.
+The tested `DODL701.EXE` SHA-256 is
+`4d25bb3f10cf13596c7b962ab7fdd4f9165e80bef318b72e22b450817b8ee151`;
+VC's SHA-256 remains
+`b408f14da5bcba174f5e86107437b22b2863ee6ec72f79bdadf1b812607405fb`.
+Reproduce the matrix with:
+
+```sh
+python3 tests/capture_drdos_memory.py \
+  DODL701.EXE out/msdos622-original-vc405.img \
+  out/drdos-memory-investigation.md
+```
+
+All variants use `FILES=30`, `FCBS=4,0`, `LASTDRIVE=Z`, `STACKS=9,256`,
+15 buffers, and a 512-byte shell environment. EMS and its 64 KiB frame are
+disabled. VC runs after the vendor `MEM /A` process exits.
+
+| Configuration | VC largest block | Pre-COMMAND system span | COMMAND span | Free UMB | Free HMA |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Kernel and buffers low; no memory manager | 579,840 | 53,376 | 6,608 | 0 | 0 |
+| HIMEM; `DOS=HIGH`; `HIDOS=OFF`; `BUFFERS=15` | 618,256 | 20,256 | 1,312 | 0 | 9,092 |
+| EMM386; no frame; `DOS=HIGH`; `HIDOS=OFF`; `BUFFERS=15` | 622,480 | 16,016 | 1,312 | 117,968 | 9,092 |
+| Same, with `HIDOS=ON` | **627,488** | **11,008** | **1,312** | 112,976 | 9,092 |
+| Same, with `HIBUFFERS=15` | 627,488 | 11,008 | 1,312 | 112,976 | 9,092 |
+
+The ordinary OpenDOS result is 8,752 bytes above retail MS-DOS 6.22 and 31,664
+bytes above this implementation. Its advantage over retail reconciles exactly:
+
+| Owner-to-owner contribution | OpenDOS 7.01 | Retail MS-DOS 6.22 | OpenDOS gain |
+| --- | ---: | ---: | ---: |
+| System start through COMMAND start | 11,008 | 18,992 | 7,984 |
+| COMMAND start through VC start | 1,312 | 3,104 | 1,792 |
+| VC start through free block | 12,720 | 12,720 | 0 |
+| Conventional ceiling loss | 1,024 | 0 | -1,024 |
+| **VC largest-block advantage** | **627,488** | **618,736** | **8,752** |
+
+The current implementation has the same 1 KiB ceiling loss as OpenDOS, so its
+31,664-byte deficit to OpenDOS is entirely below COMMAND: 26,512 bytes in the
+pre-shell system span and 5,152 bytes in COMMAND's span.
+
+The controlled transitions identify four mechanisms:
+
+- `DOS=HIGH` moves 28,464 bytes of kernel code, 3,968 bytes of DOS BIOS code,
+  7,980 bytes of buffers, and 5,296 bytes of COMMAND into the HMA. OpenDOS
+  reports 9,092 HMA bytes still free. The high COMMAND portion explains the
+  5,296-byte reduction from its low configuration and 1,792-byte advantage over
+  retail COMMAND; this is a direct precedent for our resident/transient work.
+- Replacing standalone HIMEM with the integrated no-frame EMM386 configuration
+  reduces the conventional system span by 4,240 bytes and grows VC's block by
+  4,224 bytes. The runtime map exposes only a 1,200-byte installed-device range
+  inside the conventional system block and an 800-byte EMM386 UMB allocation.
+  This supports a small-low-gateway architecture, but does not yet locate all
+  protected state; attribution needs runtime ownership probes rather than a
+  conclusion from the 179,585-byte executable size.
+- `HIDOS=ON` moves exactly 4,992 payload bytes of DOS system data into a UMB.
+  Its 16-byte MCB accounts for the 5,008-byte conventional gain. This is pure
+  relocation, not compaction, and maps directly to the open DOS-low ownership
+  and deterministic-high-placement workstreams.
+- `HIBUFFERS=15` produces no additional delta on OpenDOS 7.01 because the
+  ordinary `BUFFERS=15` configuration already reports all 7,980 buffer bytes in
+  the HMA. DR-DOS 6 documentation describes `HIBUFFERS` as the explicit policy,
+  so this behavior must be treated as a version difference until DR-DOS 6 is
+  measured.
+
+OpenDOS leaves `INT 12h`, the BDA conventional-memory word, and the EBDA at
+639 KiB, 639 KiB, and `9FC0h`. Thus its ordinary advantage is not produced by
+the risky first-64-KiB or video-memory extensions, nor by EBDA recovery. Those
+remain separate experiments. The next evidence tranche is the DR-DOS 6 version
+comparison followed by isolated `MEMMAX +L`, `/VIDEO` plus `MEMMAX +V`, EMS
+frame, `/XBDA`, and HMA/UMB ownership probes.
 
 #### Published leads already identified
 
