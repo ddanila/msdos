@@ -338,19 +338,21 @@ therefore include at least one of these outcomes:
 - combine smaller layout and better-than-retail component gains to the same
   total.
 
-The load-paragraph dependency and first EMM386 symbol census are complete. The
-remaining critical path is:
+The first EMM386 symbol census is complete, but paragraph independence is
+reopened by the latest compaction probes. The critical path is:
 
-1. finish range-level attribution for EMM386 and attribute HIMEM, COMMAND, DOS,
+1. make the first VM86-reflected DOS resize independent of EMM386's installed
+   paragraph count, then retain `/NUMHANDLES=24..32` as a mandatory gate;
+2. finish range-level attribution for EMM386 and attribute HIMEM, COMMAND, DOS,
    BIOS, and every MCB gap so each proposed saving has a known destination;
-2. take paragraph-scale HIMEM and EMM386 data, code-sharing, and alignment wins,
+3. take paragraph-scale HIMEM and EMM386 data, code-sharing, and alignment wins,
    then the bounded COMMAND wins, updating the equation after every paired
    capture;
-3. recover the EBDA ceiling paragraph only after identifying already-owned
+4. recover the EBDA ceiling paragraph only after identifying already-owned
    destination storage;
-4. close the still-measured remainder through DOS layout compaction or the
+5. close the still-measured remainder through DOS layout compaction or the
    smallest necessary EMM386/COMMAND architectural split; and
-5. defend retail-or-better memory with a local fixed-image regression floor.
+6. defend retail-or-better memory with a local fixed-image regression floor.
 
 This ordering is a dependency order, not a promise that the early inexpensive
 work is sufficient. If the censuses show that safe compaction plus the EBDA and
@@ -418,7 +420,7 @@ capture pass.
 | Order | Area | Experiment | Decision evidence |
 | ---: | --- | --- | --- |
 | 1 | Measurement | Add linker/map boundaries and paragraph deltas to the paired report; account for `0000h..0477h` and every gap between MCBs | Every byte of the 9,712-byte layout row has an owner or an explicitly unknown range |
-| Complete | EMM386 | Keep installation and the first virtual-to-real continuation independent of the preceding driver's paragraph count | Passed across `/NUMHANDLES=24..32`; retain runtime-mode and warm-reboot coverage |
+| 2 | EMM386 | Make the reflected `INT 21h/AH=4Ah` return path independent of EMM386's installed paragraph count and relocated protected-text address | `/NUMHANDLES=24..32`, runtime modes, faults, and warm reboot all pass after an actual paragraph reduction |
 | 3 | HIMEM | Pack boolean HMA/A20 state into fields with proved spare bits, or derive it from existing nesting/ownership state | All A20 backends, nested local/global enable, HMA ownership, DOS-high and warm reboot |
 | 4 | HIMEM | Audit duplicate error exits, request dispatch, range checks and paragraph-tail padding as one map-guided pass | Exact XMS error codes, XMS 2/3, 128 handles and legacy-driver bounce path |
 | Complete | EMM386 | Produce a resident-symbol census grouped as real-only, protected-only, dual-mapped, mutable runtime, or initialization-only | No unclassified linker-visible symbol; range-level accounting remains open |
@@ -451,7 +453,7 @@ range-level accounting before selecting the next relocation.
 
 | Gate | Required evidence | Decision |
 | --- | --- | --- |
-| Address independence | Reopened: the current image passes `/NUMHANDLES=24..32`, but three independent one-paragraph reductions expose post-install stalls at particular phases | Diagnose the first return-to-real continuation before accepting another paragraph-changing EMM386 or HIMEM change |
+| Address independence | Reopened: the baseline passes `/NUMHANDLES=24..32`, but three independent one-paragraph reductions expose post-install stalls at particular phases; instruction traces now localize the first failure to the reflected `INT 21h/AH=4Ah` return during SYSINIT's EMM386 block resize | Compare the passing and failing protected-handler path, find the stale or mis-relocated offset, and repeat the matrix after a real paragraph reduction |
 | Attribution | All conventional ranges and every EMM386, HIMEM, and COMMAND resident symbol have an owner, lifetime, and size | EMM386 symbol ownership complete; range accounting plus HIMEM, COMMAND, DOS, and BIOS remain |
 | Safe compaction exhausted | Every low-risk candidate has an A/B component delta and VC largest-block delta | Calculate the exact architectural/layout remainder |
 | Layout route chosen | EBDA destination and all low islands are proved safe, or their gains are rejected explicitly | Implement only gains that join the largest block |
@@ -462,8 +464,18 @@ At each gate, update the baseline rather than carrying projected savings
 forward. The roadmap is complete only when the equation reaches zero on a clean
 build and the fixed comparison remains reproducible.
 
-The immediate queue is to remove the remaining first-continuation address
-dependency. The DMA register snapshot and final DMA page list remain low:
+The immediate queue is to remove the reflected-resize address dependency. A
+15-byte retained-code reduction changes SYSINIT's resize request from `0586h`
+to `0585h` paragraphs. Both builds enter EMM386's virtual-8086 reflection path;
+the baseline returns to SYSINIT after `INT 21h/AH=4Ah`, while the reduced build
+does not. The relocated TSS is intact, so the next comparison belongs in the
+general-protection/reflection handler, its stack frame, and its embedded or
+derived protected-text offsets. Normalize the 15-byte code displacement when
+comparing traces, verify the vector 0Dh gate target against the linked symbol,
+and identify the first differing instruction or saved return value. Only then
+reapply the reduction and run every shifted load phase.
+
+The DMA register snapshot and final DMA page list remain low:
 real-mode transition code refreshes the snapshot and initialization constructs
 the page list before protected state is available. Moving either requires a
 gateway or dual-copy design, not a linker move. COMMAND, DOS-layout, and EBDA
@@ -507,23 +519,27 @@ The unresolved dependency is therefore in the copy mechanism, its addressing,
 or the destination layout. Retry only with a deliberate exception-screen probe
 that proves the buffer before and after return to real mode.
 
-Three later compaction probes show that address independence is not yet fully
-closed. Shortening the resident privileged-error dialog by 28 data bytes moved
-`_TEXT` one paragraph earlier and stalled `/NUMHANDLES=24`. Independently,
+Three later compaction probes show that the earlier stack fix did not close all
+address dependencies. Shortening the resident privileged-error dialog by 28
+data bytes moved `_TEXT` one paragraph earlier and stalled `/NUMHANDLES=24`.
+Independently,
 shrinking the retained `GetPageFrameAddress` code by 15 bytes left `_TEXT` at
 the same segment but moved the compacted VDATA/stack break one paragraph
 earlier; it produced the same stall. A 14-byte HIMEM handle-scan reduction
 crossed HIMEM's default break, passed `/NUMHANDLES=24`, and stalled at 25.
 All three reach the installation banner and then fail before SYSINIT continues,
-while their ordinary configurations and focused component suites pass. This
-rules out the changed messages and handle logic themselves and makes the first
-virtual-to-real continuation or its retained break the active prerequisite.
-Stopping the failed VM shows CPL 3 virtual-8086 execution running beyond the
-retained low `_TEXT` prefix into the compacted suffix instead of completing the
-port-84h/85h return sequence. The next probe should trace `RRProc`, both port
-handlers, `RR_GoReal`, and `JumpReal` at the passing and failing phases.
-Do not accept another paragraph gain until every shifted phase boots after the
-gain, not merely before it.
+while ordinary configurations and focused component suites pass. Instruction
+traces of paired `/NUMHANDLES=24` images sharpen this result: the first failure
+occurs while reflecting SYSINIT's `INT 21h/AH=4Ah` request that releases the
+installed EMM386 block. The passing request uses `BX=0586h`; the one-paragraph
+smaller image uses `BX=0585h`. Both enter the vector 0Dh handler, but only the
+baseline returns to SYSINIT. This is earlier and more specific than the former
+`RRProc` hypothesis. Later execution beyond the retained `_TEXT` prefix is
+fallout, not the first divergence. The relocated TSS contains the expected
+ring-0 stack, selector, and page-directory values in both layouts; do not treat
+it as the present corruption source. Compare the normalized handler streams,
+IDT gate target, exception frame, and reflected interrupt return state before
+accepting another paragraph gain.
 
 The next HIMEM paragraph exposed a separate EMM386 prerequisite. A prototype
 packed HMA ownership into `/HMAMIN=`'s unused high bit and shared the identical
@@ -541,10 +557,11 @@ variables to DGROUP fixes the shifted boot, but leaving them discardable and
 adding an equal DGROUP pad also fixes it. A 12-byte pad moves `_TEXT` and all
 later segments by one paragraph and exactly cancels HIMEM's one-paragraph load
 shift; that configuration boots as well. The variables are therefore not live
-after installation. The active defect is an absolute-address or page-boundary
-assumption in the EMM386 protected-text/first-continuation layout.
+after installation. At that point the evidence identified an address or
+page-boundary assumption in EMM386's protected-text layout.
 
-The root cause was the final VDATA compaction, not the discarded variables.
+The root cause of that earlier failure was the final VDATA compaction, not the
+discarded variables.
 `CompactVData` moved the dynamic arrays below `_TEXT` and lowered `driver_end`,
 but left `VDMS_GSEL` pointing at the old ring-0 stack beyond that break. DOS was
 therefore allowed to overwrite a live exception stack; the time and address of
