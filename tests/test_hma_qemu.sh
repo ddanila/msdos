@@ -10,6 +10,7 @@ PROBE="$OUT/hma-reference.com"
 A20_DRIVER="$OUT/hma-a20.sys"
 SYSTEM_PROBE="$OUT/hma-i21system.com"
 FILE_MEMORY_PROBE="$OUT/hma-i21fmem.com"
+TAIL_PROBE="$OUT/hma-tail.com"
 
 for tool in nasm mcopy qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || {
@@ -30,6 +31,14 @@ nasm -f bin "$ROOT/tests/hma_a20_driver.asm" -o "$A20_DRIVER"
 nasm -f bin "$ROOT/tests/int21_system_probe.asm" -o "$SYSTEM_PROBE"
 nasm -DNO_DEBUG_EXIT -f bin "$ROOT/tests/int21_file_memory_probe.asm" \
     -o "$FILE_MEMORY_PROBE"
+sysbuf_hex=$(awk '$2 == "SYSBUF" { split($1, address, ":"); print address[2]; exit }' \
+    "$ROOT/src/DOS/MSDOS.MAP")
+[[ "$sysbuf_hex" =~ ^[0-9A-Fa-f]{4}$ ]] || {
+    echo 'ERROR: could not read SYSBUF from MSDOS.MAP' >&2
+    exit 1
+}
+hma_tail=$((16#$sysbuf_hex + 15 * (512 + 20) + 8))
+nasm -DEXPECTED_TAIL="$hma_tail" -f bin "$ROOT/tests/hma_tail_probe.asm" -o "$TAIL_PROBE"
 
 run_case() {
     local mode=$1
@@ -44,6 +53,7 @@ run_case() {
     mcopy -o -i "$image" "$PROBE" ::HMAREF.COM
     mcopy -o -i "$image" "$SYSTEM_PROBE" ::I21SYS.COM
     mcopy -o -i "$image" "$FILE_MEMORY_PROBE" ::I21FMEM.COM
+    mcopy -o -i "$image" "$TAIL_PROBE" ::HMATAIL.COM
     {
         printf 'DEVICE=A:\\HIMEM.SYS\r\n'
         if [[ "$mode" == HIGH ]]; then
@@ -66,6 +76,7 @@ run_case() {
         fi
         printf 'DIR A:\\HMAREF.COM\r\n'
         printf 'A:\\HMAREF.COM\r\n'
+        printf 'HMATAIL.COM\r\n'
     } | mcopy -o -i "$image" - ::AUTOEXEC.BAT
 
     timeout 25 qemu-system-i386 \
@@ -83,6 +94,24 @@ run_case() {
         sed -n '1,160p' "$log" >&2
         exit 1
     }
+    if [[ "$mode" == HIGH ]]; then
+        grep -Fq 'HMA_TAIL_AVAILABLE' "$log" || {
+            echo 'FAIL: DOS=HIGH did not publish bounded HMA tail storage' >&2
+            sed -n '1,180p' "$log" >&2
+            exit 1
+        }
+    else
+        grep -Fq 'HMA_TAIL_UNAVAILABLE' "$log" || {
+            echo 'FAIL: DOS=LOW exposed HMA tail storage' >&2
+            sed -n '1,180p' "$log" >&2
+            exit 1
+        }
+    fi
+    if grep -Fq 'HMA_TAIL_FAILURE' "$log"; then
+        echo "FAIL: DOS=$mode HMA tail allocator corrupted its bounds" >&2
+        sed -n '1,180p' "$log" >&2
+        exit 1
+    fi
 }
 
 run_case HIGH

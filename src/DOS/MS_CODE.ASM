@@ -873,6 +873,54 @@ hma_buffers_sync:
         ret
 DOS_HMA_BUFFERS endp
 
+; Internal high-storage contract. SYSINIT publishes the first byte following
+; the final HMA buffer. COMMAND can then reserve immutable/cold storage from
+; the DOS-owned tail without guessing the buffer layout. The allocation is
+; monotonic for the lifetime of the boot and never enters the final 16-byte
+; HMA safety area.
+PUBLIC  DOS_HMA_TAIL_SET
+DOS_HMA_TAIL_SET proc near
+        cmp     cs:[hma_resident],0
+        je      short hma_tail_set_fail
+        cmp     cs:[hma_tail_floor],0
+        jne     short hma_tail_set_fail
+        cmp     bx,offset DOSGROUP:SYSBUF
+        jb      short hma_tail_set_fail
+        cmp     bx,0fff0h
+        ja      short hma_tail_set_fail
+        mov     cs:[hma_tail_floor],bx
+        mov     cs:[hma_tail_next],bx
+        mov     ax,1
+        ret
+hma_tail_set_fail:
+        xor     ax,ax
+        ret
+DOS_HMA_TAIL_SET endp
+
+PUBLIC  DOS_HMA_TAIL_ALLOC
+DOS_HMA_TAIL_ALLOC proc near
+        cmp     cs:[hma_resident],0
+        je      short hma_tail_alloc_fail
+        or      cx,cx
+        jz      short hma_tail_alloc_fail
+        mov     di,cs:[hma_tail_next]
+        cmp     di,cs:[hma_tail_floor]
+        jb      short hma_tail_alloc_fail
+        mov     ax,di
+        add     ax,cx
+        jc      short hma_tail_alloc_fail
+        cmp     ax,0fff0h
+        ja      short hma_tail_alloc_fail
+        mov     cs:[hma_tail_next],ax
+        mov     ax,0ffffh
+        mov     es,ax
+        mov     ax,1
+        ret
+hma_tail_alloc_fail:
+        xor     ax,ax
+        ret
+DOS_HMA_TAIL_ALLOC endp
+
 ; SYSINIT publishes its boot exchange block through the HMA DOSINFO pointer
 ; after DOS code moves high. Copy that final block to the retained-low data
 ; image used by DOS code whose historical ABI requires a low DS or SS.
@@ -924,6 +972,10 @@ PUBLIC  hma_buffers_active
 hma_buffers_active db 0
 PUBLIC  hma_buffer_size
 hma_buffer_size dw 0
+PUBLIC  hma_tail_floor
+hma_tail_floor dw 0
+PUBLIC  hma_tail_next
+hma_tail_next dw 0
 PUBLIC  hma_bounce_original
 hma_bounce_original dd 0
 PUBLIC  hma_bounce_direction

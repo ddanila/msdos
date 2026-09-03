@@ -2645,6 +2645,11 @@ HmaBufferLoop:
 	add	bx,size BUFFER_HASH_ENTRY
 	cmp	dl,byte ptr cs:[BufferBuckets]
 	jb	HmaBucketLoop
+	; Publish the first byte after the completed cache to DOS. This private
+	; interface is the only allocator for the remaining DOS-owned HMA tail.
+	mov	bx,di
+	mov	ax,1235h
+	int	2fh
 	clc
 	jmp	short HmaBuffersDone
 HmaBuffersFail:

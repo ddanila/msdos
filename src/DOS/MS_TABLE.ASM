@@ -472,6 +472,8 @@ DOSTable    LABEL   WORD
         Short_addr  DOS_HMA_PREPARE     ;   50  reserve HMA before final tables
         Short_addr  DOS_HMA_BUFFERS     ;   51  publish low buffer bounce area
         Short_addr  DOS_HMA_REBASE_XMS  ;   52  compacted HIMEM segment handoff
+        Short_addr  DOS_HMA_TAIL_SET    ;   53  publish first free HMA byte
+        Short_addr  DOS_HMA_TAIL_ALLOC  ;   54  reserve DOS-owned HMA tail
 
 DOSTableEnd LABEL   BYTE
 

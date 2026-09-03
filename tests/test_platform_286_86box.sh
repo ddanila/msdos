@@ -18,9 +18,19 @@ trap 'rm -rf "$work"' EXIT
 image="$work/platform-286.img"
 
 nasm -f bin "$ROOT/tests/platform_286_probe.asm" -o "$work/PLAT286.COM"
+sysbuf_hex=$(awk '$2 == "SYSBUF" { split($1, address, ":"); print address[2]; exit }' \
+    "$ROOT/src/DOS/MSDOS.MAP")
+[[ "$sysbuf_hex" =~ ^[0-9A-Fa-f]{4}$ ]] || {
+    echo 'ERROR: could not read SYSBUF from MSDOS.MAP' >&2
+    exit 1
+}
+hma_tail=$((16#$sysbuf_hex + 15 * (512 + 20) + 8))
+nasm -DEXPECTED_TAIL="$hma_tail" -f bin "$ROOT/tests/hma_tail_probe.asm" \
+    -o "$work/HMATAIL.COM"
 make_86box_286_boot_image "$image" "$ROOT"
 mcopy -o -i "$image" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
 mcopy -o -i "$image" "$work/PLAT286.COM" ::PLAT286.COM
+mcopy -o -i "$image" "$work/HMATAIL.COM" ::HMATAIL.COM
 {
     printf '[MENU]\r\n'
     printf 'MENUITEM=AT286, IBM AT 286 acceptance\r\n'
@@ -36,6 +46,8 @@ mcopy -o -i "$image" "$work/PLAT286.COM" ::PLAT286.COM
     printf 'GOTO FAIL\r\n'
     printf ':SELECTED\r\n'
     printf 'PLAT286.COM\r\n'
+    printf 'IF ERRORLEVEL 1 GOTO FAIL\r\n'
+    printf 'HMATAIL.COM\r\n'
     printf 'IF ERRORLEVEL 1 GOTO FAIL\r\n'
     printf 'ECHO 86BOX_PLATFORM_286_PASS>RESULT.TXT\r\n'
     printf 'TYPE RESULT.TXT\r\n'

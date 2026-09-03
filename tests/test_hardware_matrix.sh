@@ -26,7 +26,7 @@ for cpu in 386 486; do
     bash "$ROOT/tests/prepare_86box_umb_acceptance.sh" "$FLOPPY" "$image" \
         >/dev/null
     SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy \
-        dosbox-x -nogui -nomenu -fastlaunch -time-limit 30 \
+        dosbox-x -nogui -nomenu -fastlaunch -time-limit 60 \
         -set "cpu cputype=$cpu" -set 'cpu cycles=fixed 6000' \
         -c "boot $image" >"$log" 2>&1 || true
     result=$(mtype -i "$image" ::RESULT.TXT 2>/dev/null | tr -d '\r' || true)

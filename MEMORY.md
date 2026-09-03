@@ -1058,7 +1058,7 @@ make test-dos-bios-residency
 ```
 
 For the current build, `DOS_LOW_GATE_END` is 6,986 linked bytes and consumes
-6,992 paragraph-rounded bytes below the HMA. The HMA copy contains 39,520 bytes
+6,992 paragraph-rounded bytes below the HMA. The HMA copy contains 39,632 bytes
 after its fixed `0010h` entry offset, and DOS's `LAST` initialization segment is
 1,700 discardable bytes. The BIOS has 16,346 linked bytes of resident-code
 capacity and 20,074 discardable SYSINIT bytes; its possible hardware-selected
@@ -1314,7 +1314,7 @@ blindly:
 
 1. **Move COMMAND cold state high or transient.** DR-DOS 6 proves a shell can
    retain 4,992 bytes in the HMA and operate with a 1,264-byte conventional
-   span. Our HMA DOS image is 39,520 bytes, so a similarly sized experiment fits
+   span. Our HMA DOS image is 39,632 bytes, so a similarly sized experiment fits
    within the nominal 65,520-byte area before accounting for ownership and A20
    constraints. This is the cleanest measured route toward COMMAND's 5,152-byte
    deficit to DR-DOS.
@@ -1491,13 +1491,30 @@ make test-command-residency
 The fixed HMA census is also checked from the DOS map. DOS owns the complete
 HMA for its high-mode lifetime and leaves A20 globally enabled; its retained
 driver trampoline restores that state after legacy callbacks. The DOS image
-occupies `0010h..9A70h` (39,520 bytes). With the fixed 15-buffer, 512-byte-sector
-configuration, the hash and slots occupy `9A70h..B9A4h` (7,988 bytes), leaving
-`B9A4h..FFF0h` (17,996 bytes) of unassigned but still DOS-owned space and a
+occupies `0010h..9AE0h` (39,632 bytes). With the fixed 15-buffer, 512-byte-sector
+configuration, the hash and slots occupy `9AE0h..BA14h` (7,988 bytes), leaving
+`BA14h..FFF0h` (17,884 bytes) of unassigned but still DOS-owned space and a
 deliberately unused 16-byte safety tail. Thus a DR-DOS-sized 4,992-byte high
 COMMAND payload fits without displacing buffers. It must use a DOS-controlled
 allocation/entry contract rather than treating that slack as independently
 allocatable XMS memory.
+
+That contract is now implemented as private `INT 2Fh` functions 1235h/1236h.
+SYSINIT publishes the actual post-buffer boundary only after constructing the
+cache; DOS then provides monotonic, overflow-checked reservations below
+`FFFF:FFF0`. DOS=LOW and an unpublished or exhausted range fail without state
+change; zero-sized requests and attempts to republish the boundary are also
+rejected. The code adds 112 bytes to the HMA image but leaves the 6,992-byte low
+gateway allocation unchanged. `tests/hma_tail_probe.asm` proves writable high
+storage, overflow rollback, and high/low-mode gating during `make
+test-hma-qemu`. This is an internal implementation boundary, not a new public
+DOS API; COMMAND remains the intended consumer.
+The probe's expected first address is generated from the current `SYSBUF` map
+offset and the fixed buffer equation, so it also rejects an overlapping or
+stale published boundary. QEMU high/low cases, the 386/486 EMM386 matrix, and
+the cycle-accurate IBM AT 286 path pass; the DOSBox-X matrix uses a 60-second
+limit because the complete fixed-cycle boot exceeds its former 30-second cap
+on current hosts.
 
 Potential approaches are:
 
