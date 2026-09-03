@@ -638,7 +638,7 @@ capture pass.
 | B2 | HIMEM | Audit the move descriptor, UMB transaction records, handle records, counters, sentinels, immutable values, and alignment for narrower or derived representation | Zero-length and 128 handles, 32 UMB extents, rollback, locks, reallocations, and legacy bounce pass |
 | B3 | HIMEM | Move every remaining parser, CPU/memory detection, destructive test, message, and installation temporary beyond the rounded resident break | Map proves no runtime reference crosses the break; normal and maximum option footprints are budgeted |
 | B4 | HIMEM | If compaction stalls, investigate storing immutable tables or cold state in DOS-owned HMA slack, or a relocation-safe XMS area | Ownership is explicit, third-party XMS coexistence works, and no DOS buffer/HMA capacity is lost |
-| C1 | EMM386 | Produce byte-range accounting inside the 8,180-byte low `_TEXT` prefix and 1,010-byte `_DATA`, including local labels, anonymous gaps, VDATA overlay, stack, and paragraph padding | Every retained byte is real-only, dual-mapped, mutable runtime, compatibility state, or unresolved |
+| Complete C1 | EMM386 | Produce byte-range accounting inside the 8,180-byte low `_TEXT` prefix and 1,010-byte `_DATA`, including local labels, anonymous gaps, VDATA overlay, stack, and paragraph padding | Every retained byte is real-only, dual-mapped, mutable runtime, compatibility state, or unresolved |
 | C2 | EMM386 | Compact descriptors, flags, counters, map owners, DMA state, GDT entries, option-sized arrays, VDATA stride, and mutually exclusive workspaces | Normal and maximum `H=`/`A=`/`B=`/`D=`/frame layouts and every EMS 4.0 map format pass |
 | C3 | EMM386 | Move further immutable tables, exception support, protected dispatch, and protected-only routines into the existing locked XMS image | Faults, DMA, mappings, inactive `AUTO`, `ON`/`OFF`, UMBs, and warm reboot pass |
 | C4 | EMM386 | Split ordinary EMS service dispatch from mapping-sensitive activation so services that do not require virtual mode can live in the relocated image | EMS 3.2/4.0, non-empty function 56h maps, alternate sets, and inactive queries pass |
@@ -676,10 +676,13 @@ gateway, 272-byte GDT, 1,010-byte `_DATA`, 177-byte constants, 10-byte BSS,
 9 bytes of alignment, the 1,024-byte linked stack template, and the 8,180-byte
 dual-mode `_TEXT` prefix. It also divides that prefix by linked module and
 `_DATA` into driver/messages, EMS tables, OEM/NMI, DMA, and move-state ranges.
-The linked stack template is not mistaken for the installed layout: compaction
-places a 512-byte protected stack after the selected runtime VDATA. The next
-attribution step is to report each option-sized VDATA range and final paragraph
-padding from the live configuration.
+For the fixed configuration it then accounts for the complete 1,936-byte VDATA:
+576 bytes of saved maps, 256 bytes of handle records, 512 bytes of names,
+512 bytes of page arrays, and 80 bytes of normal/alternate register sets. After
+12 bytes of final alignment and the 512-byte protected stack, the computed
+13,616-byte installed allocation exactly matches `MEM /D`. Command-line counts
+allow the same layout equation to be checked for other supported configurations.
+C1 is complete; C2 now selects reductions from measured ranges.
 
 ### Decision gates
 

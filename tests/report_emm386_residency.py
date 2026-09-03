@@ -158,10 +158,28 @@ def display_module(module: str) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("map", type=Path, help="Open Watcom EMM386 map file")
+    parser.add_argument("--handles", type=int, default=64, help="selected H= capacity")
+    parser.add_argument(
+        "--alternate-registers", type=int, default=7, help="selected A= capacity"
+    )
+    parser.add_argument(
+        "--ems-pages", type=int, default=64, help="selected 16 KiB backing pages"
+    )
+    parser.add_argument(
+        "--physical-pages", type=int, default=4, help="selected mappable windows"
+    )
     parser.add_argument(
         "--check", action="store_true", help="fail if a segment or symbol is unclassified"
     )
     args = parser.parse_args()
+    if not 2 <= args.handles <= 255:
+        parser.error("--handles must be in 2..255")
+    if not 0 <= args.alternate_registers <= 255:
+        parser.error("--alternate-registers must be in 0..255")
+    if not 0 <= args.ems_pages <= 4095:
+        parser.error("--ems-pages must be in 0..4095")
+    if not 0 <= args.physical_pages <= 52:
+        parser.error("--physical-pages must be in 0..52")
     segments, symbols = parse_map(args.map)
 
     by_name = {segment.name: segment for segment in segments}
@@ -253,6 +271,37 @@ def main() -> int:
         Range(symbol_offset(symbols, "MB_Stat", data_segment), by_name["_DATA"].size, "move-block status and padding"),
     ]
     print_ranges("Retained `_DATA` ownership", data_ranges)
+
+    context_pages = (args.physical_pages + 1) & ~1
+    runtime_ranges: list[Range] = []
+    cursor = static_end
+    for size, owner in (
+        (args.handles * 9, "saved LIM 3.2 maps"),
+        (args.handles * 4, "handle page-index/count records"),
+        (args.handles * 8, "eight-byte handle names"),
+        (args.ems_pages * 2, "allocated-page index array"),
+        (args.ems_pages * 2, "free-page index array"),
+        (args.ems_pages * 4, "physical page-table entries"),
+        (
+            (args.alternate_registers + 1) * (2 + context_pages * 2),
+            "normal plus alternate register sets",
+        ),
+    ):
+        runtime_ranges.append(Range(cursor, cursor + size, owner))
+        cursor += size
+    if cursor - static_end > by_name["VDATA"].size:
+        raise ValueError("selected runtime data exceeds linked VDATA capacity")
+    aligned_stack = (cursor + 15) & ~15
+    if aligned_stack > cursor:
+        runtime_ranges.append(Range(cursor, aligned_stack, "installed stack alignment"))
+    runtime_ranges.append(Range(aligned_stack, aligned_stack + 512, "protected stack"))
+    print_ranges("Selected installed tail", runtime_ranges)
+    print(
+        f"\nSelected layout: `H={args.handles}`, `A={args.alternate_registers}`, "
+        f"{args.ems_pages} EMS pages, and {args.physical_pages} mappable windows. "
+        f"The computed paragraph-rounded installed allocation is "
+        f"**{runtime_ranges[-1].end:,} bytes**."
+    )
 
     counts: Counter[str] = Counter()
     unknown_symbols: list[Symbol] = []
