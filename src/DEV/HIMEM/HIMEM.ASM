@@ -406,6 +406,9 @@ xms_bad_handle:
 xms_a20_failed:
         mov     bl, ERR_A20
         jmp     xms_failure
+xms_no_memory:
+        mov     bl, ERR_NO_MEMORY
+        jmp     xms_failure
 
 xms_version proc near
         mov     ax, 0300h
@@ -479,7 +482,7 @@ xms_allocate_any proc near
         je      short xms3_unsupported
         mov     eax, edx
         shr     eax, 16
-        jnz     short xms3_request_no_memory
+        jnz     xms_no_memory
         call    xms_allocate
         ret
 xms_allocate_any endp
@@ -507,14 +510,11 @@ xms_reallocate_any proc near
         je      short xms3_unsupported
         mov     eax, ebx
         shr     eax, 16
-        jnz     short xms3_request_no_memory
+        jnz     xms_no_memory
         call    xms_reallocate
         ret
-; The XMS 3 request wrappers use the same BL error contract. Keep one copy of
-; each tail so adding a wrapper does not retain another identical exit.
-xms3_request_no_memory::
-        mov     bl, ERR_NO_MEMORY
-        jmp     xms_failure
+; The XMS 3 request wrappers use the same unsupported-error contract. Keep one
+; copy of the tail so adding a wrapper does not retain another identical exit.
 xms3_unsupported::
         mov     bl, ERR_NOT_IMPLEMENTED
         jmp     xms_failure
@@ -537,12 +537,13 @@ xms_hma_request proc near
         jmp     xms_success
 hma_missing:
         mov     bl, ERR_HMA_MISSING
-        jmp     xms_failure
+        jmp     short hma_failure
 hma_used:
         mov     bl, ERR_HMA_USED
-        jmp     xms_failure
+        jmp     short hma_failure
 hma_too_small:
         mov     bl, ERR_HMA_SMALL
+hma_failure:
         jmp     xms_failure
 xms_hma_request endp
 
@@ -592,8 +593,7 @@ xms_reconcile_a20 proc near
 xms_reconcile_a20 endp
 
 a20_underflow:
-        mov     bl, ERR_A20
-        jmp     xms_failure
+        jmp     xms_a20_failed
 
 xms_a20_query proc near
         call    query_a20_hardware
@@ -757,7 +757,7 @@ xms_allocate proc near
         mov     bx, dx
         call    find_gap
         pop     si
-        jc      short allocate_no_memory
+        jc      xms_no_memory
         mov     byte ptr [si], 1
         mov     byte ptr [si+1], 0
         mov     word ptr [si+2], ax
@@ -771,9 +771,6 @@ xms_allocate proc near
         mov     dx, ax
         inc     dx
         jmp     xms_success
-allocate_no_memory:
-        mov     bl, ERR_NO_MEMORY
-        jmp     xms_failure
 allocate_no_handle:
         mov     bl, ERR_NO_HANDLES
         jmp     xms_failure
@@ -804,16 +801,8 @@ xms_lock proc near
         mov     cl, 6
         shr     dx, cl
         add     dx, 0010h
-        shl     ax, 1
-        shl     ax, 1
-        shl     ax, 1
-        shl     ax, 1
-        shl     ax, 1
-        shl     ax, 1
-        shl     ax, 1
-        shl     ax, 1
-        shl     ax, 1
-        shl     ax, 1
+        mov     cl, 10
+        shl     ax, cl
         mov     bx, ax
         jmp     xms_success
 lock_overflow:
@@ -865,7 +854,7 @@ realloc_move:
         call    find_gap
         pop     bx
         pop     si
-        jc      short realloc_no_memory
+        jc      xms_no_memory
         push    bx
         push    ax
         mov     ax, word ptr [si+4]
@@ -882,15 +871,12 @@ realloc_move:
         call    copy_move_blocks
         pop     ax
         pop     bx
-        jc      short realloc_no_memory
+        jc      xms_no_memory
         mov     word ptr [si+2], ax
         mov     word ptr [si+4], bx
         jmp     xms_success
 realloc_locked:
         mov     bl, ERR_LOCKED
-        jmp     xms_failure
-realloc_no_memory:
-        mov     bl, ERR_NO_MEMORY
         jmp     xms_failure
 xms_reallocate endp
 
@@ -1004,9 +990,10 @@ umb_request_fail:
         or      bp, bp
         jz      short umb_none
         mov     bl, ERR_UMB_SMALL
-        jmp     xms_failure
+        jmp     short umb_failure
 umb_none:
         mov     bl, ERR_NO_UMBS
+umb_failure:
         jmp     xms_failure
 xms_umb_request endp
 
