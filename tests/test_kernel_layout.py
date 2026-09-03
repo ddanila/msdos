@@ -4,7 +4,9 @@
 from __future__ import annotations
 
 import re
+import shutil
 import struct
+import subprocess
 from pathlib import Path
 
 
@@ -68,6 +70,25 @@ def main() -> None:
         assert encoding not in kernel, (
             f"SS-relative CURADD access can overwrite released DOS memory: {encoding.hex()}"
         )
+
+    ndisasm = shutil.which("ndisasm")
+    assert ndisasm, "ndisasm is required for the relocated-tail addressing check"
+    disassembly = subprocess.check_output(
+        [ndisasm, "-b", "16", "-e", str(low_end), "-o", str(low_end), str(DOS / "MSDOS.SYS")],
+        text=True,
+    )
+    stale_ss: list[str] = []
+    for line in disassembly.splitlines():
+        fields = line.split(maxsplit=2)
+        if not fields or int(fields[0], 16) >= sysbuf:
+            break
+        for target in re.findall(r"\[ss:0x([0-9a-f]+)", line, re.I):
+            if int(target, 16) >= low_end:
+                stale_ss.append(line)
+    assert not stale_ss, (
+        "relocated DOS code addresses released tail storage through SS:\n"
+        + "\n".join(stale_ss)
+    )
 
     share_map = ROOT / "src/CMD/SHARE/share.map"
     assert map_offset(share_map, "DataVersion") - group_base(share_map) == data_version, (

@@ -489,9 +489,12 @@ linked after `DOS_LOW_GATE_END` and copied to the HMA with their code. The
 path incorrectly selected the released low copy through `SS`.
 
 All consumers now select the relocated copy through `CS`. The kernel-layout
-test rejects the former SS-prefixed `CURADD` encodings, and the actual reduced
-driver boots every `/NUMHANDLES=24..32` phase. Padding and load-order constraints
-are no longer needed to protect this boundary.
+test rejects the former SS-prefixed `CURADD` encodings and scans the complete
+released code tail for any SS-relative target inside that tail. The audit found
+and corrected one additional case: the private allocation query now reads
+`hma_resident` from its HMA copy. The actual reduced driver boots every
+`/NUMHANDLES=24..32` phase. Padding and load-order constraints are no longer
+needed to protect this boundary.
 
 The DMA register snapshot and final DMA page list remain low:
 real-mode transition code refreshes the snapshot and initialization constructs

@@ -995,7 +995,9 @@ AllocOperGetHmaState:
 	CMP     DI,0A55AH
 	JNZ     AllocOperError
 	XOR     AX,AX
-	MOV     AL,[hma_resident]
+	; This private query executes from the relocated tail.  Read the HMA copy;
+	; SS names low DOS data and this offset has already been released.
+	MOV     AL,CS:[hma_resident]
 	transfer SYS_RET_OK
 
 ; AX is the first MCB and SI is the exclusive provider end. Return the largest
