@@ -207,10 +207,25 @@ def main() -> int:
             "_AllocateRawPages",
             "_DeallocatePages",
             "_ReallocatePages",
+            "_MapHandlePage",
+            "_RestorePageMap",
+            "_GetSetPageMap",
+            "_GetSetPartial",
+            "_MapHandleArray",
+            "_AlterMapAndJump",
+            "_AlterMapAndCall",
+            "_MoveExchangeMemory",
+            "_AlternateMapRegisterSet",
         ):
             if symbol_offset(symbols, name, text.paragraph) < split:
-                raise ValueError(f"protected allocation routine {name} remains low")
-        for name in ("_GetEMMHandlePages", "_GetAllEMMHandlePages", "int67_Entry"):
+                raise ValueError(f"protected EMS service {name} remains low")
+        for name in (
+            "_GetEMMHandlePages",
+            "_GetAllEMMHandlePages",
+            "_SavePageMap",
+            "_GetMappablePAddrArrayFixed",
+            "int67_Entry",
+        ):
             if symbol_offset(symbols, name, text.paragraph) >= split:
                 raise ValueError(f"inactive-query routine {name} is not retained low")
 

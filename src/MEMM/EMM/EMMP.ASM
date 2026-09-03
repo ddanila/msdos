@@ -49,8 +49,8 @@ page	58,132
 ;	P U B L I C S
 ;******************************************************************************
 _TEXT	segment
+	IFNDEF	EMMP_QUERY_ONLY
 	public	_MapHandlePage
-	public	_SavePageMap
 	public	_RestorePageMap
 	public	_GetSetPageMap
 	public	_GetSetPartial
@@ -59,8 +59,11 @@ _TEXT	segment
 	public	_AlterMapAndCall
 ;	public	TS_VEMMD_MC_Ret
 	public	_MoveExchangeMemory
-	public	_GetMappablePAddrArrayFixed
 	public	_AlternateMapRegisterSet
+	ENDIF
+	IFNDEF	EMMP_PROT_ONLY
+	public	_SavePageMap
+	public	_GetMappablePAddrArrayFixed
 	public	_GetUnallocatedPageCount
 	public	_GetPageFrameAddress
 	public	_GetEMMVersion
@@ -73,6 +76,7 @@ _TEXT	segment
 ;	public	_VMpte_to_EMMpte
 ;	public	_Remap_EMM
 	public	_Get_Key_Val
+	ENDIF
 _TEXT	ends
 
 	page
@@ -174,6 +178,8 @@ _DATA	ENDS
 _TEXT	SEGMENT
 assume	cs:_TEXT, ds:DGROUP, ss:DGROUP
 
+	IFNDEF	EMMP_PROT_ONLY
+
 	page
 ; Small register-only services stay in assembly to avoid a C call frame.
 _GetPageFrameAddress proc near
@@ -249,6 +255,9 @@ _GetStatus proc near
 	mov	byte ptr [bp.rAX+1], OK
 	ret
 _GetStatus endp
+
+	ENDIF
+	IFNDEF	EMMP_QUERY_ONLY
 
 	page
 ;***********************************************
@@ -725,6 +734,15 @@ mhp_inv_page:
 
 _MapHandlePage	endp
 
+	ENDIF
+	IFNDEF	EMMP_PROT_ONLY
+	IFDEF	EMMP_QUERY_ONLY
+Get_FRS_window	MACRO	Reg
+	mov	Reg, word ptr [CurRegSet]
+	add	Reg, FRS_window
+	ENDM
+	ENDIF
+
 	page
 ;***********************************************
 ;
@@ -732,7 +750,7 @@ _MapHandlePage	endp
 ;
 ;	This routine save the current page mapping context for a handle.
 ;
-; ENTRY: PROTECTED MODE
+; ENTRY: REAL OR VIRTUAL MODE
 ;	 AH = 07h = save page map function # 
 ;	 DX = EMM handle
 ; 	REGS on STACK:	SI = not used by this function
@@ -786,6 +804,9 @@ srpm_nopf:
 
 _SavePageMap	endp
 
+	ENDIF
+	IFNDEF	EMMP_QUERY_ONLY
+
 	page
 ;***********************************************
 ;
@@ -811,10 +832,10 @@ _SavePageMap	endp
 Dword_Align	_TEXT
 _RestorePageMap	proc	near
 	cmp	[_page_frame_pages], 4
-	jb	short srpm_nopf		; no page frame
+	jb	short rrpm_nopf		; no page frame
 
 	mov	ax, dx			; Save for later
-	Validate_Handle	srpm_inv_handle
+	Validate_Handle	rrpm_inv_handle
 					; check state of handle's page area
 	mov	bx,ax
 	shl	bx,3			; four saved page-map words per handle
@@ -838,6 +859,14 @@ _RestorePageMap	proc	near
 
 rpm_no_map_saved:
 	mov	byte ptr [bp.rAX+1],NO_MAP_SAVED
+	ret
+
+rrpm_inv_handle:
+	mov	byte ptr [bp.rAX+1],INVALID_HANDLE
+	ret
+
+rrpm_nopf:
+	mov	byte ptr [bp.rAX+1], EMM_HW_MALFUNCTION
 	ret
 
 _RestorePageMap	endp
@@ -1091,6 +1120,9 @@ sw_corrupt:
 
 _set_windows	endp
 
+	ENDIF
+	IFNDEF	EMMP_PROT_ONLY
+
 	page
 ;*******************************************************************************
 ;
@@ -1153,6 +1185,9 @@ gmpa_invalid:
 	mov	byte ptr [bp.rAX+1], INVALID_SUBFUNCTION
 	ret
 _GetMappablePAddrArrayFixed endp
+
+	ENDIF
+	IFNDEF	EMMP_QUERY_ONLY
 
 ;***********************************************
 ;
@@ -3119,6 +3154,9 @@ AMRS_undef_FRS:
 
 _AlternateMapRegisterSet	endp
 
+	ENDIF
+	IFNDEF	EMMP_PROT_ONLY
+
 
 	page
 ;******************************************************************************
@@ -3179,6 +3217,8 @@ Latch_Counter	    EQU 0
 	ret
 
 Get_Counter_Value	ENDP
+
+	ENDIF
 
 
 _TEXT	ENDS

@@ -29,6 +29,7 @@ vminst+
 iotrap+
 ..\emm\emmalloc+
 ..\emm\emmrealloc+
+..\emm\emmprot+
 initepg+
 vminit+
 em286ll+
