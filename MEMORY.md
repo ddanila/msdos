@@ -534,7 +534,7 @@ capture pass.
 | ---: | --- | --- | --- |
 | Complete A1 | Measurement | Keep VC aggregates and block counts distinct from the earlier raw `MEM /D` process snapshot | The report labels both accounting models and its parser has a local regression test |
 | Complete A2 | Measurement | Reconcile the full VC gap through system, COMMAND, VC, free-block, and ceiling spans, isolating the retained DOS/BIOS remainder | The generated report proves `19,840 + 3,360 + 0 + 1,024 = 24,224`; the component census isolates 8,704 bytes for A3 |
-| A3 | Measurement | Add reproducible HIMEM, EMM386, COMMAND, DOS, and BIOS resident-range reports from their linker maps | Every linker-visible range has size, lifetime, address domain, and paragraph cost |
+| A3 in progress | Measurement | Add reproducible HIMEM, EMM386, COMMAND, DOS, and BIOS resident-range reports from their linker maps | EMM386 and DOS/BIOS boundaries are reported; HIMEM, COMMAND, and byte-range ownership remain |
 | B1 | HIMEM | Continue the map-guided audit of dispatch, validation, move, lock, A20, HMA, request-header, and error paths; share tails only where outputs and reentrancy agree | Exact XMS 2/3 errors, all A20 backends, HMA, moves, warm reboot, and 286 execution pass |
 | B2 | HIMEM | Audit the move descriptor, UMB transaction records, handle records, counters, sentinels, immutable values, and alignment for narrower or derived representation | Zero-length and 128 handles, 32 UMB extents, rollback, locks, reallocations, and legacy bounce pass |
 | B3 | HIMEM | Move every remaining parser, CPU/memory detection, destructive test, message, and installation temporary beyond the rounded resident break | Map proves no runtime reference crosses the break; normal and maximum option footprints are budgeted |
@@ -797,6 +797,31 @@ Subtracting those measured components leaves **8,704 bytes** of retained
 DOS/BIOS payload and layout. This closes owner-level accounting; A3 must turn
 that aggregate into linker- and runtime-owned ranges before it can safely be
 reclaimed.
+
+The first A3 map census is reproducible with:
+
+```sh
+make test-dos-bios-residency
+```
+
+For the current build, `DOS_LOW_GATE_END` is 7,598 linked bytes and consumes
+7,600 paragraph-rounded bytes below the HMA. The HMA copy contains 40,128 bytes
+after its fixed `0010h` entry offset, and DOS's `LAST` initialization segment is
+1,700 discardable bytes. The BIOS has 16,346 linked bytes of resident-code
+capacity and 20,074 discardable SYSINIT bytes; its hardware-selected resident
+boundaries range from 8,576 bytes for floppy-only through 12,832 bytes when all
+optional legacy blocks are retained.
+
+The fixed VC image's grouped pre-MCB payload is 16,512 bytes. Subtracting the
+7,600-byte DOS gateway leaves 8,912 bytes for the selected BIOS image and its
+runtime boundary/alignment. Inside the following system MCB, the enumerated
+components occupy 22,176 of 22,288 bytes, leaving 112 bytes. Together with the
+32 bytes of group-level MCB/gap overhead, these ranges account for the current
+16,656-byte non-component system footprint. Retail's corresponding remainder
+is 7,952 bytes, producing the already measured 8,704-byte excess. The likely
+large gains are therefore a smaller DOS low-gateway architecture and BIOS
+resident-code compaction; the 112-byte system-MCB residue and alignment are
+bounded secondary opportunities.
 
 ### 2. Reduce EMM386's low allocation
 
