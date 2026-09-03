@@ -1149,9 +1149,20 @@ Tips](https://bitsavers.org/pdf/novell/dr_dos/DR_DOS_6.0_Optimization_and_Config
 the [DR-DOS 6 User Guide](https://www.bitsavers.org/pdf/novell/dr_dos/DR_DOS_6.0_User_Guide_2ed_199108.pdf),
 the [Novell DOS 7 User Guide](https://bitsavers.org/pdf/novell/dr_dos/DR_DOS_7_User_Guide_1993.pdf),
 and hashed DR-DOS media from the [PCjs DR-DOS 6 archive](https://www.pcjs.org/software/pcx86/sys/dos/dresearch/6.00/).
-Generated captures remain untracked. Repeat a DR-DOS run only to answer a
-specific unresolved ownership or behavioral question; the baseline comparison
-itself is complete.
+Generated captures remain untracked. The baseline comparison is complete; do
+not repeat broad DR-DOS surveys. Use this implementation-led loop next:
+
+1. choose the next local owner in rank order above and state the exact byte or
+   placement question;
+2. consult published DR-DOS documentation for the external policy and contract;
+3. when documentation is insufficient, run one controlled black-box comparison
+   using identical hardware and configuration, recording public APIs, memory
+   ownership, addresses, and lifetimes only; and
+4. convert the result into a local design, byte budget, and regression gate.
+
+DR-DOS source code and reconstruction of proprietary instruction sequences are
+out of scope. The immediate application is COMMAND/HMA; EMM386's low gateway
+and movable DOS state follow unless a targeted measurement changes that order.
 
 ### Completed baseline investigation: DR-DOS HMA-mode memory
 
