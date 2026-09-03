@@ -199,6 +199,19 @@ def main() -> int:
     if len(split_symbols) != 1:
         raise ValueError("expected exactly one IOTrap_Tab split symbol")
     split = split_symbols[0].offset
+    if args.check:
+        for name in (
+            "_get_pages",
+            "_free_pages",
+            "_AllocatePages",
+            "_AllocateRawPages",
+            "_DeallocatePages",
+        ):
+            if symbol_offset(symbols, name, text.paragraph) < split:
+                raise ValueError(f"protected allocation routine {name} remains low")
+        for name in ("_GetEMMHandlePages", "_GetAllEMMHandlePages", "int67_Entry"):
+            if symbol_offset(symbols, name, text.paragraph) >= split:
+                raise ValueError(f"inactive-query routine {name} is not retained low")
 
     print("# EMM386 residency census\n")
     print(f"Map: `{args.map}`\n")

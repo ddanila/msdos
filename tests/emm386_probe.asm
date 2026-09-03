@@ -2,6 +2,25 @@ bits 16
 org 100h
 
 start:
+%ifdef EXPECT_OFF
+    mov bx, 1
+    mov ah, 43h
+    int 67h
+    cmp ah, 81h
+    jne off_failed
+    mov dx, off_pass_message
+    mov ah, 09h
+    int 21h
+    mov ax, 4c00h
+    int 21h
+off_failed:
+    mov dx, off_fail_message
+    mov ah, 09h
+    int 21h
+    mov ax, 4c01h
+    int 21h
+%endif
+
     mov ah, 40h
     int 67h
     test ah, ah
@@ -238,6 +257,8 @@ alloc_fail   db 'EMM386_ALLOC_FAIL', 13, 10, '$'
 map_fail     db 'EMM386_MAP_FAIL', 13, 10, '$'
 memory_fail  db 'EMM386_MEMORY_FAIL', 13, 10, '$'
 release_fail db 'EMM386_RELEASE_FAIL', 13, 10, '$'
+off_pass_message db 'EMM386_OFF_API_PASS', 13, 10, '$'
+off_fail_message db 'EMM386_OFF_API_FAIL', 13, 10, '$'
 external_map_fail db 'EMM386_EXTERNAL_MAP_FAIL', 13, 10, '$'
 partial_map  dw 1, 0
 frame_array  times 64 dw 0, 0

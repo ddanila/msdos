@@ -9,6 +9,7 @@ FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 BOOT_IMG="$OUT/floppy-emm386-qemu.img"
 PROBE_COM="$OUT/emm386-probe.com"
 AUTO_PROBE_COM="$OUT/emm386-auto-probe.com"
+OFF_PROBE_COM="$OUT/emm386-off-probe.com"
 SERIAL_LOG="$OUT/emm386-qemu.log"
 
 if [[ ! -f "$FLOPPY" ]]; then
@@ -26,10 +27,12 @@ done
 cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/emm386_probe.asm" -o "$PROBE_COM"
 nasm -DNO_QEMU_EXIT -f bin "$REPO_ROOT/tests/emm386_probe.asm" -o "$AUTO_PROBE_COM"
+nasm -DEXPECT_OFF -DNO_QEMU_EXIT -f bin "$REPO_ROOT/tests/emm386_probe.asm" -o "$OFF_PROBE_COM"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::EMMPROBE.COM
 mcopy -o -i "$BOOT_IMG" "$AUTO_PROBE_COM" ::AUTOPRB.COM
+mcopy -o -i "$BOOT_IMG" "$OFF_PROBE_COM" ::OFFPROBE.COM
 printf 'DEVICE=A:\\EMM386.EXE M5\r\n' \
     | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
@@ -37,6 +40,7 @@ printf 'DEVICE=A:\\EMM386.EXE M5\r\n' \
     printf 'CTTY AUX\r\n'
     printf 'EMM386\r\n'
     printf 'EMM386 OFF\r\n'
+    printf 'OFFPROBE.COM\r\n'
     printf 'EMM386\r\n'
     printf 'EMM386 ON\r\n'
     printf 'EMM386\r\n'
@@ -66,6 +70,7 @@ timeout 35 qemu-system-i386 \
 
 if grep -q 'EMM386_API_PASS' "$SERIAL_LOG" \
     && grep -q 'EMM386_COMMAND_PASS' "$SERIAL_LOG" \
+    && grep -q 'EMM386_OFF_API_PASS' "$SERIAL_LOG" \
     && [[ $(grep -c 'EMM386 Active\.' "$SERIAL_LOG") -eq 5 ]] \
     && [[ $(grep -c 'EMM386 Inactive\.' "$SERIAL_LOG") -eq 6 ]] \
     && [[ $(grep -c 'EMM386 is in Auto mode\.' "$SERIAL_LOG") -eq 4 ]] \

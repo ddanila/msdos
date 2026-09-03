@@ -82,14 +82,18 @@ TRUE	equ	not FALSE
 ;
 ;   these EMM functions are handled in protected mode
 ;
+EMM_ALLOCATE		equ	43h	; allocate pages
 EMM_MAP_PAGE		equ	44h	; map handle page
+EMM_DEALLOCATE		equ	45h	; deallocate pages
 EMM_RESTORE		equ	48h	; restore page map
 EMM_GET_SET		equ	4Eh	; get/set page map
 EMM_GET_SET_PARTIAL	equ	4Fh	; get/set partial page map
 EMM_MAP_PAGE_ARRAY	equ	50h	; map handle page array
+EMM_REALLOCATE		equ	51h	; resize a handle
 EMM_ALTER_MAP_JUMP	equ	55h	; alter mapping and jump
 EMM_ALTER_MAP_CALL	equ	56h	; alter mapping and call
 EMM_MOVE_XCHG_MEM	equ	57h	; move/xchg memory region
+EMM_ALLOCATE_RAW	equ	5Ah	; allocate raw pages
 EMM_ALTER_MAP_REG_SET	equ	5Bh	; alternate map register set
 
 EMM_HW_MALFUNCTION	equ	81h	;
@@ -128,8 +132,10 @@ extrn	_GetStatus:near
 extrn	_GetPageFrameAddress:near
 extrn	_GetUnallocatedPageCount:near
 extrn	_AllocatePages:near
+extrn	_AllocateRawPages:near
 extrn	_MapHandlePage:near
 extrn	_DeallocatePages:near
+extrn	_ReallocatePages:near
 extrn	_GetEMMVersion:near
 extrn	_SavePageMap:near
 extrn	_RestorePageMap:near
@@ -167,43 +173,44 @@ _TEXT	segment
 	assume	cs:_TEXT, ds:DGROUP, es:DGROUP
 ;******************************************************************************
 ;	protected mode dispatch table
-;   allocate(43h)/deallocate(45h) pages  and get I/O map (49h)
-;	MUST be reflected to Virtual mode
+;   Allocation mutations and mapping-sensitive services run protected so their
+;   implementation can reside only in the locked-XMS copy. Query services stay
+;   reflected so inactive AUTO mode does not activate the VDM.
 ;	MapHandlePage,RestorePageMap,GetSetPageMap,GetSetPartial,
 ;	MapHandleArray,MoveExchangeMemory,AlterMapAndJump,
 ;	AlterMapAndCall and AlternateMapRegisterSet are protected mode ONLY.
 ;******************************************************************************
 EpE_Dispatch	label	word
-	dw	offset _TEXT:EpE_Null
-	dw	offset _TEXT:EpE_Null
-	dw	offset _TEXT:EpE_Null
-	dw	offset _TEXT:EpE_Null
+	dw	offset _TEXT:EpE_Null		;40h
+	dw	offset _TEXT:EpE_Null		;41h
+	dw	offset _TEXT:EpE_Null		;42h
+	dw	offset _TEXT:_AllocatePages		;43h
 	dw	offset _TEXT:_MapHandlePage		;44h
-	dw	offset _TEXT:EpE_Null
-	dw	offset _TEXT:EpE_Null
-	dw	offset _TEXT:EpE_Null
+	dw	offset _TEXT:_DeallocatePages	;45h
+	dw	offset _TEXT:EpE_Null		;46h
+	dw	offset _TEXT:EpE_Null		;47h
 	dw	offset _TEXT:_RestorePageMap		;48h
-	dw	offset _TEXT:EpE_Null
-	dw	offset _TEXT:EpE_Null
-	dw	offset _TEXT:EpE_Null
-	dw	offset _TEXT:EpE_Null
-	dw	offset _TEXT:EpE_Null
+	dw	offset _TEXT:EpE_Null		;49h
+	dw	offset _TEXT:EpE_Null		;4ah
+	dw	offset _TEXT:EpE_Null		;4bh
+	dw	offset _TEXT:EpE_Null		;4ch
+	dw	offset _TEXT:EpE_Null		;4dh
 	dw	offset _TEXT:_GetSetPageMap		;4eh
 	dw	offset _TEXT:_GetSetPartial		;4fh
 	dw	offset _TEXT:_MapHandleArray		;50h
-	dw	offset _TEXT:EpE_Null
-	dw	offset _TEXT:EpE_Null
-	dw	offset _TEXT:EpE_Null
-	dw	offset _TEXT:EpE_Null
+	dw	offset _TEXT:_ReallocatePages	;51h
+	dw	offset _TEXT:EpE_Null		;52h
+	dw	offset _TEXT:EpE_Null		;53h
+	dw	offset _TEXT:EpE_Null		;54h
 	dw	offset _TEXT:_AlterMapAndJump		;55h
 	dw	offset _TEXT:_AlterMapAndCall		;56h
 	dw	offset _TEXT:_MoveExchangeMemory	;57h
-	dw	offset _TEXT:EpE_Null
-	dw	offset _TEXT:EpE_Null
-	dw	offset _TEXT:EpE_Null
+	dw	offset _TEXT:EpE_Null		;58h
+	dw	offset _TEXT:EpE_Null		;59h
+	dw	offset _TEXT:_AllocateRawPages	;5ah
 	dw	offset _TEXT:_AlternateMapRegisterSet	;5bh
-	dw	offset _TEXT:EpE_Null
-	dw	offset _TEXT:EpE_Null
+	dw	offset _TEXT:EpE_Null		;5ch
+	dw	offset _TEXT:EpE_Null		;5dh
 
 	page
 ;******************************************************************************
@@ -218,10 +225,6 @@ EpE_Dispatch	label	word
 ;			registers as set by EMM functions
 ;		else
 ;			reflect int 67 to virtual mode EMM code
-;
-;	NOTE: *****
-;		Allocate(43h)/deallocate(44h) pages and get I/O map (49h)
-;		MUST be reflected to Virtual mode.
 ;
 ;	USED:	none
 ;
@@ -367,8 +370,12 @@ EMM_rLINK	proc	far
 	;
 	;   check for protected mode ONLY function
 	;
+	cmp	ah,EMM_ALLOCATE
+	je	ErE_GoProt
 	cmp	ah,EMM_MAP_PAGE 	;Q: map handle page function ?
 	je	ErE_GoProt		;  Y: do it in protected mode
+	cmp	ah,EMM_DEALLOCATE
+	je	ErE_GoProt
 	cmp	ah,EMM_RESTORE		;Q: restore page map function ?
 	je	ErE_GoProt		;  Y: do it in protected mode
 	cmp	ah,EMM_GET_SET		;Q: get/set page map function ?
@@ -377,12 +384,16 @@ EMM_rLINK	proc	far
 	je	ErE_GoProt		;  Y: do it in protected mode
 	cmp	ah,EMM_MAP_PAGE_ARRAY	;Q: map handle page array ?
 	je	ErE_GoProt		;  Y: do it in protected mode
+	cmp	ah,EMM_REALLOCATE
+	je	ErE_GoProt
 	cmp	ah,EMM_ALTER_MAP_JUMP	;Q: alter map and jump ?
 	je	ErE_GoProt		;  Y: do it in protected mode
 	cmp	ah,EMM_ALTER_MAP_CALL	;Q: alter map and call ?
 	je	ErE_GoProt		;  Y: do it in protected mode
 	cmp	ah,EMM_MOVE_XCHG_MEM	;Q: move/xchg memory region ?
 	je	ErE_GoProt		;  Y: do it in protected mode
+	cmp	ah,EMM_ALLOCATE_RAW
+	je	ErE_GoProt
 	cmp	ah,EMM_ALTER_MAP_REG_SET;Q: alternate map register set ?
 	je	ErE_GoProt		;  Y: do it in protected mode
 					;  N: do it in real/virtual mode
@@ -416,7 +427,11 @@ ErE_GoProt:
 	cmp	[Active_Status],0	;Q: are we in Virtual Mode ?
 	jne	ErE_Pcall		;  Y: call protected mode function
 	cmp	[Auto_Mode],0		;  N: may an EMS request activate AUTO?
-	je	ErE_Pcall		;     explicit OFF remains inaccessible
+	jne	ErE_Activate		;  Y: activate for this request
+	mov	ah,EMM_HW_MALFUNCTION	;  N: explicit OFF remains inaccessible
+	pop	ds
+	ret
+ErE_Activate:
 	mov	[Active_Status],1
 	call	GoVirtual		;     service request in virtual mode
 ErE_Pcall:

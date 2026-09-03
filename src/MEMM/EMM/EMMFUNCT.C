@@ -214,6 +214,8 @@ extern	void			reallocate();
 	ROUTINES
  ******************************************************************************/ 
 
+#ifndef EMM_QUERY_ONLY
+
 /*
  * get_pages(num,pto)
  *	num --- number of pages desired
@@ -446,6 +448,10 @@ DeallocatePages()
 	setAH(OK);			/* done */
 }
 #undef	handle 
+
+#endif /* !EMM_QUERY_ONLY */
+
+#ifndef EMM_ALLOC_ONLY
 	
 
 /*
@@ -468,6 +474,7 @@ GetEMMHandlePages()
 	setAH(OK);
 }
 
+
 /*
  * Get All EMM Handle Pages
  *	parameters:
@@ -504,3 +511,5 @@ GetAllEMMHandlePages()
 	setAH(OK);
 }
 
+
+#endif /* !EMM_ALLOC_ONLY */
