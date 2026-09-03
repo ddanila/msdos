@@ -87,6 +87,10 @@ def main() -> int:
         (name, require(bios_symbols, name))
         for name in ("ENDFLOPPY", "ENDONEHARD", "ENDTWOHARD", "END96TPI", "ENDATROM", "ENDK09")
     ]
+    day_to_day = require(bios_symbols, "Daycnt_to_day")
+    day_to_day_end = require(bios_symbols, "EndDaycntToDay")
+    bin_to_bcd = require(bios_symbols, "Bin_to_bcd")
+    bin_to_bcd_end = require(bios_symbols, "EndCMOSClockset")
 
     errors: list[str] = []
     if low_gate >= sysbuf:
@@ -97,6 +101,8 @@ def main() -> int:
         errors.append("BIOS selectable resident boundaries are not ordered")
     if bios_boundaries[-1][1] > bios_code.size:
         errors.append("BIOS selectable resident boundary exceeds CODE")
+    if not (day_to_day < day_to_day_end <= bin_to_bcd < bin_to_bcd_end):
+        errors.append("BIOS CMOS helper ranges are not ordered")
 
     print("# DOS and BIOS residency census\n")
     print("## DOS high\n")
@@ -137,6 +143,24 @@ def main() -> int:
     print("| --- | ---: | ---: |")
     for name, value in bios_boundaries:
         print(f"| {name} | `{value:04X}h` | {rounded(value):,} |")
+
+    # The fixed parity image presents one hard disk and a CMOS clock. MSINIT
+    # starts at ENDONEHARD, then independently copies and paragraph-aligns the
+    # two clock helpers. The paired MCB capture provides an external check: this
+    # computed boundary is the BIOS part of the grouped pre-MCB payload.
+    selected = require(bios_symbols, "ENDONEHARD")
+    day_size = day_to_day_end - day_to_day
+    bcd_size = bin_to_bcd_end - bin_to_bcd
+    after_day = rounded(selected + day_size)
+    selected = rounded(after_day + bcd_size)
+    print("\n### Fixed comparison selection\n")
+    print("QEMU `pc` selects one hard disk, no 96-TPI extension, no legacy AT-ROM fix, a CMOS clock, and no K09 extension.\n")
+    print("| Retained piece | Input boundary | Copied bytes | Output boundary |")
+    print("| --- | ---: | ---: | ---: |")
+    print(f"| One-hard-disk base (`ENDONEHARD`) | — | {require(bios_symbols, 'ENDONEHARD'):,} | `{require(bios_symbols, 'ENDONEHARD'):04X}h` |")
+    print(f"| `Daycnt_to_day` | `{require(bios_symbols, 'ENDONEHARD'):04X}h` | {day_size:,} | `{after_day:04X}h` |")
+    print(f"| `Bin_to_bcd` | `{after_day:04X}h` | {bcd_size:,} | `{selected:04X}h` |")
+    print(f"| **Selected resident BIOS** | — | — | **{selected:,} bytes** |")
 
     if errors:
         print("\n## Census errors\n")
