@@ -528,7 +528,7 @@ capture pass.
 
 | Phase | Area | Experiment | Decision evidence |
 | ---: | --- | --- | --- |
-| A1 | Measurement | Teach the paired report to show VC aggregates, raw MCB payloads, MCB headers, linker boundaries, paragraph deltas, and free islands as distinct quantities | No component total is inferred by mixing VC and `MEM /D`; every changed paragraph has a destination |
+| Complete A1 | Measurement | Keep VC aggregates and block counts distinct from the earlier raw `MEM /D` process snapshot | The report labels both accounting models and its parser has a local regression test |
 | A2 | Measurement | Account for `0000h..0477h`, retail's `0070h..0252h` IO/DOS ranges, both first-free addresses, every inter-MCB gap, and the `9FC0h..9FFFh` ceiling loss | Every byte of the 9,712-byte layout row has an owner or a named unknown range |
 | A3 | Measurement | Add reproducible HIMEM, EMM386, COMMAND, DOS, and BIOS resident-range reports from their linker maps | Every linker-visible range has size, lifetime, address domain, and paragraph cost |
 | B1 | HIMEM | Continue the map-guided audit of dispatch, validation, move, lock, A20, HMA, request-header, and error paths; share tails only where outputs and reentrancy agree | Exact XMS 2/3 errors, all A20 backends, HMA, moves, warm reboot, and 286 execution pass |
@@ -765,6 +765,17 @@ figures below, a conventional ceiling of `9FC0h` versus retail's `A000h`, and
 the 1,216-byte local UMB advantage. This completes the repeatable measurement
 foundation; generated reports remain build evidence rather than tracked
 documentation.
+
+The report also records every VC row's address, block count, grouped payload,
+and owner. These rows belong to the VC snapshot after `MEM` exits; the raw
+`MEM /D` rows were captured while MEM itself was allocated. The two views are
+therefore displayed separately and must not be added together. In the current
+VC snapshot, the grouped `DOS 6.22` payload is 38,800 bytes versus retail's
+18,880, a 19,920-byte difference that includes the memory managers and retained
+DOS layout. COMMAND contributes another 3,360 bytes, while the one-kilobyte
+ceiling difference acts at the opposite end of the largest block. Phase A2
+must decompose that DOS aggregate and its intervening block overhead without
+mixing in the earlier MEM process image.
 
 ### 2. Reduce EMM386's low allocation
 

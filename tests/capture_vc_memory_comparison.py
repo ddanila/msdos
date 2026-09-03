@@ -127,7 +127,7 @@ def capture(label: str, source: Path, directory: Path, ceiling_probe: Path) -> t
 
 
 VC_ROW = re.compile(
-    r"(?:^|\u2551)\s*([0-9A-F]{4})\s+\d+\s+([0-9][0-9,]*)\s+"
+    r"(?:^|\u2551)\s*([0-9A-F]{4})\s+(\d+)\s+([0-9][0-9,]*)\s+"
     r"(DOS 6\.22|COMMAND|VC\.COM|free memory|system)(?:\s|\u2551)",
     re.MULTILINE,
 )
@@ -160,11 +160,19 @@ def parse_capture(serial_log: Path, screen_log: Path) -> dict[str, object]:
         raise ValueError(f"memory ceiling probe did not complete in {serial_log}")
 
     vc_rows = [
-        {"segment": int(segment, 16), "size": int(size.replace(",", "")), "name": name.strip()}
-        for segment, size, name in VC_ROW.findall(screen)
+        {
+            "segment": int(segment, 16),
+            "blocks": int(blocks),
+            "size": int(size.replace(",", "")),
+            "name": name.strip(),
+        }
+        for segment, blocks, size, name in VC_ROW.findall(screen)
     ]
     # screen_expect records the matched screen and the final screen; deduplicate it.
-    vc_rows = list({(row["segment"], row["size"], row["name"]): row for row in vc_rows}.values())
+    vc_rows = list({
+        (row["segment"], row["blocks"], row["size"], row["name"]): row
+        for row in vc_rows
+    }.values())
     conventional_free = [row for row in vc_rows if row["name"] == "free memory" and row["segment"] < 0xA000]
     if not conventional_free:
         raise ValueError(f"VC conventional free block was not found in {screen_log}")
@@ -203,6 +211,7 @@ def parse_capture(serial_log: Path, screen_log: Path) -> dict[str, object]:
         "command": command["size"] if command else None,
         "ceiling": max((row["segment"] for row in low_system), default=None),
         "upper_free": sum(row["size"] for row in upper_free),
+        "vc_rows": vc_rows,
         "components": components,
         "mem_rows": mem_rows,
         "int12_kb": int(ceiling_match.group(1), 16),
@@ -253,7 +262,36 @@ def report(current: dict[str, object], retail: dict[str, object], config_hash: s
         difference = "unknown" if ours is None or theirs is None else f"{ours - theirs:+,}"
         lines.append(f"| {component} | {number(ours)} | {number(theirs)} | {difference} |")
 
-    lines.extend(["", "## Conventional MCB rows (`MEM /D`)", ""])
+    lines.extend([
+        "",
+        "## VC allocation rows",
+        "",
+        "VC groups adjacent blocks by owner. Its size is the grouped payload;",
+        "`Blocks` is retained separately and must not be treated as payload bytes.",
+        "",
+    ])
+    for label, data in (("Current", current), ("Retail DOS 6.22", retail)):
+        lines.extend([
+            f"### {label}",
+            "",
+            "| Address | Blocks | Payload | Owner |",
+            "| ---: | ---: | ---: | --- |",
+        ])
+        for row in sorted(data["vc_rows"], key=lambda item: item["segment"]):
+            lines.append(
+                f"| {row['segment']:04X}h | {row['blocks']} | "
+                f"{row['size']:,} | {row['name']} |"
+            )
+        lines.append("")
+
+    lines.extend([
+        "## Conventional rows from `MEM /D`",
+        "",
+        "These rows were captured while `MEM` was resident; VC ran only after `MEM`",
+        "exited. They describe a different process snapshot and are raw supporting",
+        "evidence, not operands to combine directly with VC's grouped totals.",
+        "",
+    ])
     for label, data in (("Current", current), ("Retail DOS 6.22", retail)):
         lines.extend([
             f"### {label}",
