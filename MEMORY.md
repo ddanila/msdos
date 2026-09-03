@@ -999,29 +999,46 @@ equation after every retained step. Only if that portfolio remains below
 
 ### Documentation-only lessons from DR-DOS
 
-DR-DOS documentation is useful as design evidence without consulting its source
-code. Digital Research described MemoryMAX as an integrated policy rather than
-only a pair of small drivers: `HIDOS=ON` relocates eligible DOS data structures
-to UMBs, `HIBUFFERS` places as many disk buffers as possible outside conventional
-memory, and the kernel itself moves to the HMA. Its optimizer also treats load
-order and UMB fragmentation as first-class concerns. These reinforce the DOS
-low-prefix census, HMA-buffer ownership, and allocation-coalescing work already
-in this plan. See the [DR-DOS 6 Optimization and Configuration Tips](https://bitsavers.computerhistory.org/pdf/novell/dr_dos/DR_DOS_6.0_Optimization_and_Configuration_Tips_199109.pdf).
+This section is derived only from published Digital Research and Novell
+documentation; no DR-DOS source code was consulted.
 
-Two more aggressive techniques belong behind explicit compatibility policy.
-MemoryMAX can expose much of the normally reserved first 64 KiB as application
-memory and can temporarily expose unused text-mode video memory; its own manual
-warns that packed applications or graphics use may require disabling those
-regions. Novell DOS 7 can also relocate the XBDA when video-memory recovery is
-enabled. The fixed parity configuration must not count these optional gains,
-but compatible opt-in modes may be considered after the baseline reaches retail.
+DR-DOS 6 MemoryMAX combines several policies that MS-DOS exposes less
+cohesively: move the kernel to the HMA, move eligible DOS data structures to
+UMBs with `HIDOS=ON`, place as many disk buffers as possible outside
+conventional memory with `HIBUFFERS`, and load drivers and TSRs high. The manual
+also recommends placing hardware reservations at an edge of the UMA, loading
+the largest residents first, allowing for a driver's larger initialization
+footprint, and omitting the 64 KiB EMS page frame when no application needs it.
+These are directly relevant to our DOS-prefix ownership, buffer placement, UMB
+coalescing, load-order tooling, and `NOEMS` tests. They do not explain a smaller
+EMM386 implementation by themselves. See the [DR-DOS 6 Optimization and
+Configuration Tips](https://bitsavers.org/pdf/novell/dr_dos/DR_DOS_6.0_Optimization_and_Configuration_Tips_199109.pdf).
 
-Novell DOS 7's DPMS lets cooperating TSRs and drivers keep execution or data in
-extended memory behind an approximately 1 KiB conventional gateway. That is a
-valuable model for a future resident-services API and for reasoning about a
-minimal EMM386 gateway, but it does not shrink unmodified DOS applications and
-is not required for the current parity target. See Novell's [memory-management
-application note](https://ftp.zx.net.nz/pub/archive/novell/doc/app_notes/9310_Managing_Memory_in_a_DOS_Workstation_using_Novell_DOS_7.pdf).
+DR-DOS memory figures must not be compared blindly with the fixed MS-DOS 6.22
+baseline. MemoryMAX can make most of the first 64 KiB address range available
+to applications as "low memory"; its published example consequently reports
+626 KiB conventional memory available. The same manual warns that some packed
+programs fail there and provides `MEMMAX -L` to hide the range. MemoryMAX can
+also expose up to 96 KiB of unused text-video address space, which must be
+disabled before graphics software. These are useful opt-in compatibility modes,
+not honest credits toward the retail-or-better baseline.
+
+Novell DOS 7 adds two further ideas. Its documented `/XBDA` policy can relocate
+the extended BIOS data area when recovering video address space; this supports
+our bounded EBDA investigation but does not relax its copy, ownership, BDA
+update, and hardware-test requirements. DPMS lets specially written drivers and
+TSRs keep most code or data in extended memory behind a small conventional
+gateway. That is a useful precedent for the proposed EMM386 low-gateway split
+and a possible future resident-service API, but it cannot shrink unmodified
+programs and is outside the parity target. See the [Novell DOS 7 User
+Guide](https://bitsavers.org/pdf/novell/dr_dos/DR_DOS_7_User_Guide_1993.pdf) and
+Novell's [memory-management application note](https://ftp.zx.net.nz/pub/archive/novell/doc/app_notes/9310_Managing_Memory_in_a_DOS_Workstation_using_Novell_DOS_7.pdf).
+
+The actionable conclusions are therefore narrow: keep the current order of
+EMM386 compaction, exact DOS/BIOS ownership, COMMAND, layout coalescing, and the
+bounded EBDA step; add no DR-DOS-specific baseline shortcut. Later, separately
+test low-memory and text-video recovery as explicit opt-in modes, and consider a
+DPMS-like interface only if it serves repository drivers beyond EMM386.
 
 A trial shared DOS HMA-entry routine removed 12 linked low-prefix bytes but did
 not cross the 7,600-byte allocation boundary, so VC remained at 594,544 bytes.
