@@ -191,12 +191,12 @@ POE_Len		=	$-POE_Mess
 
 EXCPE_Mess	db	CR,LF
 		db	BEL
-		db	"EMM386 Exception error #"
+		db	"EMM386 exception #"
 EXCPE_Num	db	"xx @"
 EXCPE_CS	db	"xxxx:"
 EXCPE_EIP	db	"xxxxxxxx Code "
 EXCPE_ERR	db	"xxxx"
-		db	CR,LF,"Press enter to reboot"
+		db	CR,LF,"Enter to reboot"
 EXCPE_Len	=	$-EXCPE_Mess
 
 ;
