@@ -157,7 +157,6 @@ private_installed:
 ; SYSINIT separately rebases the BIOS gate's DOS successor before reclaiming
 ; low DOS. Move only HIMEM's two vector heads to this copy.
 private_relocate:
-        push    ax
         push    ds
         xor     ax, ax
         mov     ds, ax
@@ -168,7 +167,6 @@ private_relocate:
         mov     word ptr ds:[015h*4+2], dx
         sti
         pop     ds
-        pop     ax
         mov     ax, 0e7ffh
         iret
 
@@ -413,11 +411,9 @@ xms_no_memory:
 xms_version proc near
         mov     ax, 0300h
         mov     bx, 0310h
-        xor     dx, dx
-        cmp     [extended_kb], 0
-        je      short version_done
+        cmp     [extended_kb], 1
+        sbb     dx, dx
         inc     dx
-version_done:
         ret
 xms_version endp
 
@@ -445,10 +441,8 @@ else
         .386
 xms_query_any_free proc near
         call    largest_gap
-        push    ax
         call    total_free
-        movzx   edx, ax
-        pop     ax
+        movzx   edx, dx
         movzx   eax, ax
         movzx   ecx, word ptr [highest_page]
         or      ecx, ecx
@@ -474,8 +468,7 @@ xms_allocate_any proc near
         mov     eax, edx
         shr     eax, 16
         jnz     xms_no_memory
-        call    xms_allocate
-        ret
+        jmp     xms_allocate
 xms_allocate_any endp
 
 xms_extended_handle_info proc near
@@ -498,8 +491,7 @@ xms_reallocate_any proc near
         mov     eax, ebx
         shr     eax, 16
         jnz     xms_no_memory
-        call    xms_reallocate
-        ret
+        jmp     xms_reallocate
 xms_reallocate_any endp
         .286
 endif
@@ -509,8 +501,8 @@ xms_hma_request proc near
         je      short hma_missing
         test    [hma_min_kb], HMA_OWNED
         jne     short hma_used
-        mov     ax, word ptr [hma_min_kb]
-        and     ax, 007fh
+        xor     ah, ah
+        mov     al, [hma_min_kb]
         mov     cl, 10
         shl     ax, cl
         cmp     dx, ax
@@ -723,10 +715,7 @@ query_a20_hardware endp
 
 xms_query_free proc near
         call    largest_gap
-        push    ax
         call    total_free
-        mov     dx, ax
-        pop     ax
         clc
         ret
 xms_query_free endp
@@ -1242,11 +1231,6 @@ move_dest_desc:
         dq      0
         dq      0
 
-xms_unknown_function proc near
-        mov     bl, ERR_NOT_IMPLEMENTED
-        jmp     xms_failure
-xms_unknown_function endp
-
 validate_handle proc near
         or      dx, dx
         jz      short validate_bad
@@ -1402,23 +1386,24 @@ largest_done:
         ret
 largest_gap endp
 
-; Return total unallocated extended memory in AX (KiB).
-; CX and SI are likewise covered by the enclosing XMS dispatcher.
+; Return total unallocated extended memory in DX (KiB), leaving the largest
+; interval in AX when called after largest_gap. CX and SI are covered by the
+; enclosing XMS dispatcher.
 total_free proc near
-        mov     ax, [extended_kb]
-        cmp     ax, HMA_KB
+        mov     dx, [extended_kb]
+        cmp     dx, HMA_KB
         jae     short total_free_has_xms
-        xor     ax, ax
+        xor     dx, dx
         jmp     short total_free_scan
 total_free_has_xms:
-        sub     ax, HMA_KB
+        sub     dx, HMA_KB
 total_free_scan:
         mov     si, offset handles
         mov     cx, [handle_limit]
 total_free_loop:
         cmp     word ptr [si+HANDLE_BASE], 0
         je      short total_free_next
-        sub     ax, word ptr [si+HANDLE_LENGTH]
+        sub     dx, word ptr [si+HANDLE_LENGTH]
 total_free_next:
         add     si, HANDLE_SIZE
         loop    total_free_loop
