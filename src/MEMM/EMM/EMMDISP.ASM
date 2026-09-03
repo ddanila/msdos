@@ -112,8 +112,8 @@ dispatch_vector	label word
 	mkvect	GetEMMVersion
 	mkvect	SavePageMap
 	mkvect	RestorePageMap
-	mkvect	GetPageMappingRegisterIOArray
-	mkvect	GetLogicalToPhysicalPageTrans
+	mkvect_alias GetPageMappingRegisterIOArray,UnsupportedFunction
+	mkvect_alias GetLogicalToPhysicalPageTrans,UnsupportedFunction
 	mkvect	GetEMMHandleCount
 	mkvect	GetEMMHandlePages
 	mkvect	GetAllEMMHandlePages

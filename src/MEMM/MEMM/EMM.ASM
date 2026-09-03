@@ -134,8 +134,6 @@ extrn	_DeallocatePages:near
 extrn	_GetEMMVersion:near
 extrn	_SavePageMap:near
 extrn	_RestorePageMap:near
-extrn	_GetPageMappingRegisterIOArray:near
-extrn	_GetLogicalToPhysicalPageTrans:near
 extrn	_GetEMMHandleCount:near
 extrn	_GetEMMHandlePages:near
 extrn	_GetAllEMMHandlePages:near

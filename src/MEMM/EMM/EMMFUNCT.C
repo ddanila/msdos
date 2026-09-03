@@ -318,7 +318,6 @@ register struct handle_ptr *hp;
 	 * their page index fields
 	 */
 	h_size = hp->page_count;
-	hp->page_count = 0;		/* not really necessary */
 	for(hp=handle_table;hp < &handle_table[handle_table_size];hp++)
 		if((hp->page_index != NULL_PAGE) &&
 		   (hp->page_index >= next) )
@@ -370,23 +369,6 @@ GetPageFrameAddress()
 	setBX(frame);
 }
 
-
-/*
- * get unallocated page count
- *	no parameters
- *
- * returns:
- *	bx -- count of free pages
- *	dx -- total number of pages (free and allocated)
- *
- *	05/06/88  ISP	No update needed for MEMM
- */
-GetUnallocatedPageCount()
-{
-	setBX(free_count);
-	setDX(total_pages);
-	setAH((unsigned char)EMMstatus);
-}
 
 /*
  * allocate pages
@@ -525,19 +507,6 @@ DeallocatePages()
 	
 
 /*
- * get emm version
- *	no parameters
- *
- * returns the version number of the emm driver
- *
- * 	05/06/88  ISP	No update needed for MEMM
- */
-GetEMMVersion()
-{
-	setAX( (EMMstatus<<8) | EMM_VERSION );
-}
-
-/*
  * Get EMM handle count
  *	no parameters
  *
@@ -607,28 +576,3 @@ GetAllEMMHandlePages()
 	setAH((unsigned char)EMMstatus);
 }
 
-/*
- * Get Page Mapping Register I/O Port Array
- *	parameters:
-		es:di -- user array
- *
- *  05/09/88  ISP   Function not supported
- */
-GetPageMappingRegisterIOArray() 
-{
-
-	setAH(INVALID_FUNCTION);
-}
-
-/*
- * Get Logical to Physical Page Translation Array
- *	parameters:
- *		es:di -- pointer to user array
- *		dx ----- EMM handle
- *
- *  05/09/88  ISP   Function not supported
- */
-GetLogicalToPhysicalPageTrans()
-{
-	setAH(INVALID_FUNCTION);
-}

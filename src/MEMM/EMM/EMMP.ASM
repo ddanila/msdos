@@ -61,6 +61,9 @@ _TEXT	segment
 	public	_MoveExchangeMemory
 	public	_GetMappablePAddrArrayFixed
 	public	_AlternateMapRegisterSet
+	public	_GetUnallocatedPageCount
+	public	_GetEMMVersion
+	public	_UnsupportedFunction
 ;	public	VEMMD_Set_Map_Region
 ;	public	VEMMD_Unset_Map_Region
 ;	public	_VMpte_to_EMMpte
@@ -101,6 +104,7 @@ extrn	_OSEnabled:byte
 ;extrn	NullUnavailPTE:dword
 
 extrn	_total_pages:word			; total # of EMM pages in system
+extrn	_free_count:word			; unallocated EMM pages
 extrn	_EMMstatus:word
 
 ;
@@ -164,6 +168,33 @@ _DATA	ENDS
 ;******************************************************************************
 _TEXT	SEGMENT
 assume	cs:_TEXT, ds:DGROUP, ss:DGROUP
+
+	page
+; Small register-only services stay in assembly to avoid a C call frame.
+_GetUnallocatedPageCount proc near
+	mov	bp, [_regp]
+	mov	ax, [_free_count]
+	mov	word ptr [bp.rBX], ax
+	mov	ax, [_total_pages]
+	mov	word ptr [bp.rDX], ax
+	mov	al, byte ptr [_EMMstatus]
+	mov	byte ptr [bp.rAX+1], al
+	ret
+_GetUnallocatedPageCount endp
+
+_GetEMMVersion proc near
+	mov	bp, [_regp]
+	mov	al, 40h				; LIM EMS version 4.0
+	mov	ah, byte ptr [_EMMstatus]
+	mov	word ptr [bp.rAX], ax
+	ret
+_GetEMMVersion endp
+
+_UnsupportedFunction proc near
+	mov	bp, [_regp]
+	mov	byte ptr [bp.rAX+1], INVALID_FUNCTION
+	ret
+_UnsupportedFunction endp
 
 	page
 ;***********************************************
