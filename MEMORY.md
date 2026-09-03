@@ -1623,9 +1623,12 @@ initialized `TRANDATA`; the map would reduce COMMAND by 80 paragraph-rounded
 bytes. The deliberate `A20OFF$` redirection case nevertheless emits wrapped
 binary data after that move. Both initialized and uninitialized transient
 placements fail this boundary, while restoring the resident placement passes.
-The experiment is rejected until the post-driver redirection/reload segment
-contract is traced explicitly. The new external-EXEC redirection regression is
-retained because the prior startup suite did not cover this lifetime.
+The 23-byte binary prefix matches COMMAND.COM at file offset `5D28h`, inside
+the transient `fcb_to_ascz` routine, so this is concrete wrapped/stale pointer
+evidence rather than random serial noise. The experiment is rejected until the
+post-driver redirection/reload segment contract and the message pointer used on
+that path are traced explicitly. The new external-EXEC redirection regression
+is retained because the prior startup suite did not cover this lifetime.
 
 Reproduce the checked census with:
 
