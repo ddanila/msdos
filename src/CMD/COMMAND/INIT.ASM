@@ -1743,6 +1743,7 @@ INCLUDE SYSMSG.INC				;AN000; include message services
 .list
 .cref
 
+COMMAND_RESIDENT_CLASSES EQU 5		; match the resident message table in RDATA
 MSG_UTILNAME <COMMAND>				;AN000; define utility name
 
 MSG_SERVICES <COMR,NEARmsg,LOADmsg,NOCHECKSTDIN,NOCHECKSTDOUT>	;AC026; include message services macro

@@ -599,6 +599,7 @@ INCLUDE SYSMSG.INC				;AN000; include message services
 
 ASSUME DS:RESGROUP,ES:RESGROUP,CS:RESGROUP
 
+COMMAND_RESIDENT_CLASSES EQU 5		; $M_MAKE_COMR builds classes A through E
 MSG_UTILNAME <COMMAND>				;AN000; define utility name
 
 ; CL3 and CL4 define $M_CLS_1/$M_CLS_2, which the resident message

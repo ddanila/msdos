@@ -285,6 +285,11 @@ ENDM
 MSG_UTILNAME  Macro   utilname	       ;
 				       ;
    INCLUDE &utilname.CTL	       ;  Include the control file for the utility
+   IFDEF COMMAND_RESIDENT_CLASSES
+     $M_TABLE_CLS = COMMAND_RESIDENT_CLASSES ; Bound a known resident pointer table
+   ELSE
+     $M_TABLE_CLS = $M_NUM_CLS
+   ENDIF
    $M_STRUC = $M_TRUE		       ;
    INCLUDE MSGSERV.ASM		       ;  Get structure definitions
 				       ;

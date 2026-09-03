@@ -279,6 +279,7 @@ INCLUDE SYSMSG.INC				;AN000; get message services routine
 
 ASSUME DS:RESGROUP,ES:RESGROUP,CS:RESGROUP
 
+COMMAND_RESIDENT_CLASSES EQU 5		; match the resident message table in RDATA
 MSG_UTILNAME <COMMAND>				;AN000; define utility name
 
 MSG_SERVICES <COMR,COMMAND.CLB> 		;AN000; include initialization messages

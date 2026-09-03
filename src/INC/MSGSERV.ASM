@@ -129,7 +129,7 @@ $M_RES_ADDRS STRUC					     ;;AN000;;
     $M_CRIT_COMMAND  DD        0			     ;;AN000;;
     $M_CRIT_TERM     DD        -1			     ;;AN000;;
     $M_DISK_PROC_ADDR DD       -1			     ;;AN004;; Address of READ_DISK_PROC
-    $M_CLASS_ADDRS   DD        $M_NUM_CLS DUP(0)	     ;;AN000;; Allow pointers to specified classes
+    $M_CLASS_ADDRS   DD        $M_TABLE_CLS DUP(0)	     ;;AN000;; Allow pointers to specified classes
     $M_CLS_TERM      DD        -1			     ;;AN000;;
     $M_DBCS_VEC      DD        0			     ;;AN000;; Save DBCS vector
     $M_HANDLE	     DW        ?			     ;;AN000;;
