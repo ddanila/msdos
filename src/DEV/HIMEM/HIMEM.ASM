@@ -742,10 +742,10 @@ query_a20_hardware endp
 
 xms_query_free proc near
         call    largest_gap
-        mov     bx, ax
+        push    ax
         call    total_free
         mov     dx, ax
-        mov     ax, bx
+        pop     ax
         clc
         ret
 xms_query_free endp
@@ -762,9 +762,8 @@ xms_allocate proc near
         mov     byte ptr [si+1], 0
         mov     word ptr [si+2], ax
         mov     word ptr [si+4], dx
-        mov     dx, si
-        sub     dx, offset handles
-        mov     ax, dx
+        sub     si, offset handles
+        mov     ax, si
         mov     cl, HANDLE_SIZE
         div     cl
         xor     ah, ah
@@ -796,14 +795,13 @@ xms_lock proc near
         cmp     byte ptr [si+1], 0ffh
         je      short lock_overflow
         inc     byte ptr [si+1]
-        mov     ax, word ptr [si+2]
-        mov     dx, ax
+        mov     bx, word ptr [si+2]
+        mov     dx, bx
         mov     cl, 6
         shr     dx, cl
         add     dx, 0010h
         mov     cl, 10
-        shl     ax, cl
-        mov     bx, ax
+        shl     bx, cl
         jmp     xms_success
 lock_overflow:
         mov     bl, ERR_LOCK_OVER
@@ -825,9 +823,8 @@ xms_unlock endp
 xms_handle_info proc near
         call    validate_handle
         jc      xms_bad_handle
-        mov     bh, byte ptr [si+1]
         call    count_free_handles
-        mov     bl, al
+        mov     bh, byte ptr [si+1]
         mov     dx, word ptr [si+4]
         jmp     xms_success
 xms_handle_info endp
@@ -1317,14 +1314,14 @@ find_free_handle endp
 count_free_handles proc near
         push    cx
         push    si
-        xor     ax, ax
+        xor     bx, bx
         mov     si, offset handles
         xor     ch, ch
         mov     cl, [handle_limit]
 count_handles_loop:
         cmp     byte ptr [si], 0
         jne     short count_handles_used
-        inc     al
+        inc     bl
 count_handles_used:
         add     si, HANDLE_SIZE
         loop    count_handles_loop
