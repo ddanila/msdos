@@ -356,21 +356,25 @@ with shared system-stack dispatch and the protected DMA trap engine leaves
 Exact byte parity is not required, but a large unexplained loss is not
 acceptable.
 
-The remaining difference is accounted for rather than treated as an
-undifferentiated target:
+The VC owner-to-owner spans now reconcile the complete difference rather than
+treating it as an undifferentiated target:
 
-| Status | Accounted difference | Measured effect or opportunity |
+| Status | Accounted difference | Bytes |
 | --- | --- | ---: |
-| Complete | DOS relocation hole fragmented below resident HIMEM | 32,928 bytes recovered |
-| Open | Larger resident system components | 11,136 bytes |
-| Open | Larger resident COMMAND | 3,360 bytes |
-| Open | Retained DOS layout and conventional ceiling | 9,728 bytes |
+| Open | EMM386 resident excess | 9,536 |
+| Open | HIMEM resident excess | 1,616 |
+| Advantage | FILES/FCBS/BUFFERS/LASTDRIVE/STACKS aggregate | -16 |
+| Open | Retained DOS/BIOS pre-shell payload and layout | 8,704 |
+| Open | COMMAND owner-to-owner span | 3,360 |
+| Equal | VC owner-to-free span | 0 |
+| Open | Conventional ceiling/EBDA | 1,024 |
+| **Total** | **VC largest-block gap** | **24,224** |
 
-The relocation row is closed. Remeasure the remaining rows after each retained
-change instead of assuming that every byte is another oversized component.
-This accounting table includes the 16 bytes by which STACKS is already smaller
-than retail, so its layout row is 16 bytes larger than the component-only
-workstream below.
+The earlier 32,928-byte DOS relocation-hole recovery remains closed. Remeasure
+the rows above after each retained change instead of assuming that every byte
+is another oversized component. The 8,704-byte DOS/BIOS row is an exact
+owner-level remainder, not yet a symbol-level census; phase A3 must split it
+into individually actionable ranges.
 
 ## Road to retail-or-better conventional memory
 
@@ -529,7 +533,7 @@ capture pass.
 | Phase | Area | Experiment | Decision evidence |
 | ---: | --- | --- | --- |
 | Complete A1 | Measurement | Keep VC aggregates and block counts distinct from the earlier raw `MEM /D` process snapshot | The report labels both accounting models and its parser has a local regression test |
-| A2 | Measurement | Account for `0000h..0477h`, retail's `0070h..0252h` IO/DOS ranges, both first-free addresses, every inter-MCB gap, and the `9FC0h..9FFFh` ceiling loss | Every byte of the 9,712-byte layout row has an owner or a named unknown range |
+| Complete A2 | Measurement | Reconcile the full VC gap through system, COMMAND, VC, free-block, and ceiling spans, isolating the retained DOS/BIOS remainder | The generated report proves `19,840 + 3,360 + 0 + 1,024 = 24,224`; the component census isolates 8,704 bytes for A3 |
 | A3 | Measurement | Add reproducible HIMEM, EMM386, COMMAND, DOS, and BIOS resident-range reports from their linker maps | Every linker-visible range has size, lifetime, address domain, and paragraph cost |
 | B1 | HIMEM | Continue the map-guided audit of dispatch, validation, move, lock, A20, HMA, request-header, and error paths; share tails only where outputs and reentrancy agree | Exact XMS 2/3 errors, all A20 backends, HMA, moves, warm reboot, and 286 execution pass |
 | B2 | HIMEM | Audit the move descriptor, UMB transaction records, handle records, counters, sentinels, immutable values, and alignment for narrower or derived representation | Zero-length and 128 handles, 32 UMB extents, rollback, locks, reallocations, and legacy bounce pass |
@@ -774,8 +778,25 @@ VC snapshot, the grouped `DOS 6.22` payload is 38,800 bytes versus retail's
 18,880, a 19,920-byte difference that includes the memory managers and retained
 DOS layout. COMMAND contributes another 3,360 bytes, while the one-kilobyte
 ceiling difference acts at the opposite end of the largest block. Phase A2
-must decompose that DOS aggregate and its intervening block overhead without
-mixing in the earlier MEM process image.
+must decompose that DOS aggregate without mixing in the earlier MEM process
+image.
+
+The generated owner-to-owner spans provide an exact top-level reconciliation:
+
+| Span | Difference |
+| --- | ---: |
+| System start through COMMAND start | 19,840 bytes |
+| COMMAND start through VC start | 3,360 bytes |
+| VC start through conventional free block | 0 bytes |
+| Conventional ceiling | 1,024 bytes |
+| **Total** | **24,224 bytes** |
+
+The pre-COMMAND system span contains the 9,536-byte EMM386 excess, 1,616-byte
+HIMEM excess, and a 16-byte advantage in the other configured system tables.
+Subtracting those measured components leaves **8,704 bytes** of retained
+DOS/BIOS payload and layout. This closes owner-level accounting; A3 must turn
+that aggregate into linker- and runtime-owned ranges before it can safely be
+reclaimed.
 
 ### 2. Reduce EMM386's low allocation
 

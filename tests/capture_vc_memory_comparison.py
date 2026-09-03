@@ -228,9 +228,43 @@ def hex_segment(value: object) -> str:
     return "unknown" if value is None else f"{int(value):04X}h"
 
 
+def vc_prefix_accounting(data: dict[str, object]) -> dict[str, int]:
+    """Split VC's conventional prefix into comparable owner-to-owner spans."""
+    rows = sorted(
+        (row for row in data["vc_rows"] if row["segment"] < 0xA000),
+        key=lambda row: row["segment"],
+    )
+
+    def first(name: str) -> dict[str, object]:
+        row = next((item for item in rows if item["name"] == name), None)
+        if row is None:
+            raise ValueError(f"VC row {name!r} is required for prefix accounting")
+        return row
+
+    command = first("COMMAND")
+    vc = first("VC.COM")
+    free = first("free memory")
+    system_rows = [row for row in rows if row["segment"] < command["segment"]]
+    if not system_rows:
+        raise ValueError("VC has no conventional system row before COMMAND")
+    base = system_rows[0]
+    system_span = (command["segment"] - base["segment"]) * 16
+    system_payload = sum(row["size"] for row in system_rows)
+    return {
+        "system_span": system_span,
+        "system_payload": system_payload,
+        "system_overhead": system_span - system_payload,
+        "command_span": (vc["segment"] - command["segment"]) * 16,
+        "vc_span": (free["segment"] - vc["segment"]) * 16,
+        "ceiling_loss": (0xA000 - int(data["ceiling"])) * 16,
+    }
+
+
 def report(current: dict[str, object], retail: dict[str, object], config_hash: str, vc_hash: str) -> str:
     current_largest = int(current["largest"])
     retail_largest = int(retail["largest"])
+    current_prefix = vc_prefix_accounting(current)
+    retail_prefix = vc_prefix_accounting(retail)
     lines = [
         "# Conventional-memory comparison",
         "",
@@ -283,6 +317,45 @@ def report(current: dict[str, object], retail: dict[str, object], config_hash: s
                 f"{row['size']:,} | {row['name']} |"
             )
         lines.append("")
+
+    lines.extend([
+        "## Conventional-prefix accounting",
+        "",
+        "Owner-to-owner spans include their intervening MCBs and gaps. Unlike raw",
+        "payload totals, their differences reconcile directly with the largest-block",
+        "difference when the conventional-ceiling loss is included.",
+        "",
+        "| Span | Current | Retail DOS 6.22 | Difference |",
+        "| --- | ---: | ---: | ---: |",
+    ])
+    prefix_labels = (
+        ("System start to COMMAND", "system_span"),
+        ("System payload before COMMAND", "system_payload"),
+        ("System MCB/gap overhead", "system_overhead"),
+        ("COMMAND to VC.COM", "command_span"),
+        ("VC.COM to conventional free block", "vc_span"),
+        ("Unavailable memory below A000h", "ceiling_loss"),
+    )
+    for label, key in prefix_labels:
+        ours = current_prefix[key]
+        theirs = retail_prefix[key]
+        lines.append(f"| {label} | {ours:,} | {theirs:,} | {ours - theirs:+,} |")
+    reconciled_gap = (
+        current_prefix["system_span"] - retail_prefix["system_span"]
+        + current_prefix["command_span"] - retail_prefix["command_span"]
+        + current_prefix["vc_span"] - retail_prefix["vc_span"]
+        + current_prefix["ceiling_loss"] - retail_prefix["ceiling_loss"]
+    )
+    if reconciled_gap != retail_largest - current_largest:
+        raise ValueError(
+            "VC prefix spans do not reconcile with the largest-block difference: "
+            f"{reconciled_gap} != {retail_largest - current_largest}"
+        )
+    lines.extend([
+        "",
+        f"The span differences reconcile exactly to the {reconciled_gap:,}-byte gap.",
+        "",
+    ])
 
     lines.extend([
         "## Conventional rows from `MEM /D`",

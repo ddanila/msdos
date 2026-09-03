@@ -34,6 +34,7 @@ class ComparisonReportTest(unittest.TestCase):
             screen.write_text(
                 "║ 0070 2 39,984 DOS 6.22 ║\n"
                 "║ 0A35 3 6,320 COMMAND ║\n"
+                "║ 0BC9 2 12,784 VC.COM ║\n"
                 "║ 0EE4 2 594,512 free memory ║\n"
                 "║ 9FC0 1 181,248 system ║\n",
                 encoding="utf-8",
@@ -47,6 +48,8 @@ class ComparisonReportTest(unittest.TestCase):
             self.assertIn("| 0A35h | 3 | 6,320 | COMMAND |", report)
             self.assertIn("captured while `MEM` was resident", report)
             self.assertIn("different process snapshot", report)
+            self.assertIn("| System start to COMMAND | 40,016 | 40,016 | +0 |", report)
+            self.assertIn("span differences reconcile exactly to the 0-byte gap", report)
 
 
 if __name__ == "__main__":
