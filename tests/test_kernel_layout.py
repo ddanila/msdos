@@ -47,11 +47,33 @@ def main() -> None:
         f"kernel HMA bias places DataVersion at {data_version:04x}, expected 0014"
     )
 
+    low_end = map_offset(kernel_map, "DOS_LOW_GATE_END")
+    sysbuf = map_offset(kernel_map, "SYSBUF")
+    curadd = map_offset(kernel_map, "CURADD")
+    assert low_end < curadd < sysbuf, "CURADD is not in the relocated DOS tail"
+    address = struct.pack("<H", curadd)
+    expected = (
+        b"\x2e\xa3" + address,       # mov cs:[CURADD],ax
+        b"\x2e\xa1" + address,       # mov ax,cs:[CURADD]
+        b"\x2e\x89\x3e" + address,  # mov cs:[CURADD],di
+    )
+    for encoding in expected:
+        assert encoding in kernel, f"missing CS-relative CURADD access {encoding.hex()}"
+    forbidden = (
+        b"\x36\xa3" + address,
+        b"\x36\xa1" + address,
+        b"\x36\x89\x3e" + address,
+    )
+    for encoding in forbidden:
+        assert encoding not in kernel, (
+            f"SS-relative CURADD access can overwrite released DOS memory: {encoding.hex()}"
+        )
+
     share_map = ROOT / "src/CMD/SHARE/share.map"
     assert map_offset(share_map, "DataVersion") - group_base(share_map) == data_version, (
         "SHARE and the kernel disagree on the replicated DOSGROUP layout"
     )
-    print("unpatched kernel entry layout test passed")
+    print("kernel entry and relocated-tail layout tests passed")
 
 
 if __name__ == "__main__":

@@ -377,6 +377,7 @@ GetPageFrameAddress()
 {
 	extern unsigned short PF_Base;
 	extern unsigned short page_frame_pages;
+	unsigned short frame = PF_Base;
 
 	/*
 	 * return the 8086 style base address of
@@ -384,14 +385,12 @@ GetPageFrameAddress()
 	 */
 	if ( page_frame_pages < 4 ) {
 		setAH(EMM_HW_MALFUNCTION);	/* GET LOST!!! */
-		if ( PF_Base == 0xFFFF )
-			setBX(0xB000);		/* In case error is ignored */
-		else
-			setBX(PF_Base);	/* stunted page frame */
-		return;
+		if ( frame == 0xFFFF )
+			frame = 0xB000;	/* In case error is ignored */
+	} else {
+		setAH((unsigned char)EMMstatus);	/* OK return */
 	}
-	setBX(PF_Base);
-	setAH((unsigned char)EMMstatus);	/* OK return */
+	setBX(frame);
 }
 
 

@@ -134,7 +134,9 @@ IF	(NOT	BUFFERFLAG) AND 0FFFFh
 ELSE
 	push	ax
 	mov	ax, [NEXTADD]
-	mov	[CURADD], ax
+	; CURADD is linked with this relocated tail.  CS names its active copy
+	; both before and after DOS moves high; SS continues to name low data.
+	mov	cs:[CURADD], ax
 	pop	ax
 	CALL	SET_MAP_PAGE		  ;LB. activate handle if EMS there	;AN000;
 	LDS	DI,[DI.BUFFER_BUCKET]	  ;LB. ds:di is 1st buffer addr 	;AN000;
@@ -215,8 +217,10 @@ Procedure   SAVE_MAP,NEAR							 ;AN000;
 	MOV	SI,OFFSET DOSGROUP:BUF_EMS_SEG_CNT     ;LB.			;AN000;
 	MOV	DI,OFFSET DOSGROUP:BUF_EMS_MAP_BUF     ;LB.			;AN000;
 
-	Context ES
-	Context DS			  ;LB. ds:si -> ems seg count		;AN000;
+	PUSH	CS
+	POP	ES
+	PUSH	CS
+	POP	DS			  ; relocated map buffer follows CS		;AN000;
 
 	MOV	AX,4F00H		  ;LB. save map 			;AN000;
 	EnterCrit  critDisk		  ;LB. enter critical section		;AN000;
@@ -251,7 +255,8 @@ Procedure   RESTORE_MAP,NEAR							 ;AN000;
 	PUSH	SI			  ;LB.					;AN000;
 	MOV	SI,OFFSET DOSGROUP:BUF_EMS_MAP_BUF     ;LB.			;AN000;
 
-	Context DS
+	PUSH	CS
+	POP	DS			  ; relocated map buffer follows CS		;AN000;
 	MOV	AX,4F01H		  ;LB. restore map			;AN000;
 	EnterCrit  critDisk		  ;LB. enter critical section		;AN000;
 	INT	67H			  ;LB.					;AN000;
@@ -893,7 +898,7 @@ ASSUME	DS:NOTHING,ES:NOTHING
 	cmp	[BUF_EMS_MODE], -1
 	jz	fin_detect_coll
 
-	mov	ax, [CURADD]	; current offset 
+	mov	ax, cs:[CURADD]	; current offset in relocated DOS tail
 
 	cmp	[BYTCNT1], 0
 	je	no_partial_sector
@@ -913,7 +918,7 @@ no_partial_sector:
 	push	ax
 	mov	ax, word ptr [DMAADD]
 	mov	ax, [NEXTADD]
-	mov	ax, [CURADD]
+	mov	ax, cs:[CURADD]
 	mov	ax, [BYTCNT1]
 	pop	ax
 

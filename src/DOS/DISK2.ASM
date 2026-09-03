@@ -631,7 +631,9 @@ ELSE
 	MOV	CX,ES:[BP.dpb_sector_size]
 	MUL	CX
 	ADD	DI,AX		; Put the buffer here
-	mov	[CURADD], di
+	; CURADD follows this code into the HMA.  SS names retained low data and
+	; can overlap a child once the relocated DOS tail has been released.
+	mov	cs:[CURADD], di
 	
 	pop	cx
 	pop	dx
