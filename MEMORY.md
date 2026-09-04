@@ -810,7 +810,7 @@ capture pass.
 | ---: | --- | --- | --- |
 | Complete A1 | Measurement | Keep VC aggregates and block counts distinct from the earlier raw `MEM /D` process snapshot | The report labels both accounting models and its parser has a local regression test |
 | Complete A2 | Measurement | Reconcile the full VC gap through system, COMMAND, VC, free-block, and ceiling spans, isolating the retained DOS/BIOS remainder | The current report proves `9,456 + 880 + 0 + 1,024 = 11,360`; the component census isolates 7,984 bytes for A3 |
-| A3 in progress | Measurement | Add reproducible HIMEM, EMM386, COMMAND, DOS, and BIOS resident-range reports from their linker maps | HIMEM, EMM386, COMMAND top-level lifetimes, the fixed HMA layout, and the selected BIOS boundary are accounted; byte-level COMMAND and DOS ownership remain |
+| A3 in progress | Measurement | Add reproducible HIMEM, EMM386, COMMAND, DOS, and BIOS resident-range reports from their linker maps | HIMEM, EMM386, COMMAND top-level lifetimes, fixed HMA layout, selected BIOS, and all 1,640 bytes of retained DOS CODE are accounted; DOS constants and tables remain coarse |
 | B1 | HIMEM | Continue the map-guided audit of dispatch, validation, move, lock, A20, HMA, request-header, and error paths; share tails only where outputs and reentrancy agree | Exact XMS 2/3 errors, all A20 backends, HMA, moves, warm reboot, and 286 execution pass |
 | B2 | HIMEM | Audit the move descriptor, UMB transaction records, handle records, counters, sentinels, immutable values, and alignment for narrower or derived representation | Zero-length and 128 handles, 32 UMB extents, rollback, locks, reallocations, and legacy bounce pass |
 | B3 | HIMEM | Move every remaining parser, CPU/memory detection, destructive test, message, and installation temporary beyond the rounded resident break | Map proves no runtime reference crosses the break; normal and maximum option footprints are budgeted |
@@ -1126,6 +1126,15 @@ constants, 1,783 bytes of mutable data, 2,491 bytes of tables, 1,640 bytes of
 code, and one alignment byte. This is a coarse segment census, not permission
 to move a range: near pointers, asynchronous entries, device callbacks, and
 A20-off paths must first be classified.
+
+The checked CODE census now covers every byte below `DOS_LOW_GATE_END`: 13
+bytes of setup flags, 816 bytes of core system-call dispatch, 70 bytes of HMA
+driver request entry, 76 bytes of low DPB pointer workspace, 11 bytes of the
+HMA driver/XMS tail, 387 bytes of absolute-disk services, 199 bytes of shared
+system/FCB return and error handling, and 68 bytes of the INT 2F gateway. The
+largest next classification targets are therefore the 816-byte dispatcher and
+387-byte absolute-disk gateway; the DPB, asynchronous entry, return, and INT 2F
+ranges remain low until their pointer and A20-off contracts are proved.
 
 The fixed VC image's grouped pre-MCB payload is 15,792 bytes: the exact
 6,992-byte paragraph-rounded DOS gateway plus the exact 8,800-byte selected

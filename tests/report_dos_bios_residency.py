@@ -188,6 +188,34 @@ def main() -> int:
     if data_total != dos_segments["DATA"].size:
         errors.append("DOS DATA ownership does not cover the complete segment")
 
+    code_ranges = [
+        ("Low setup flags", "SETVECTFLAG", "DOS_CODE_START"),
+        ("Core system-call dispatcher", "DOS_CODE_START", "hma_driver_requests"),
+        ("HMA driver request entry", "hma_driver_requests", "hma_low_dpbs"),
+        ("Low DPB pointer workspace", "hma_low_dpbs", "hma_driver_xms"),
+        ("HMA driver/XMS tail", "hma_driver_xms", "AbsSetup"),
+        ("Absolute-disk gateway", "AbsSetup", "SYS_RETURN"),
+        ("System/FCB return and error gateway", "SYS_RETURN", "INT2F"),
+        ("INT 2F gateway", "INT2F", "DOS_LOW_GATE_END"),
+    ]
+    print("\n### Retained CODE ownership\n")
+    print("| Range | Bytes | Owner |")
+    print("| ---: | ---: | --- |")
+    code_total = 0
+    for owner, start_name, end_name in code_ranges:
+        start = require(dos_symbols, start_name)
+        end = require(dos_symbols, end_name)
+        if end < start:
+            errors.append(f"DOS CODE range {start_name}..{end_name} is reversed")
+        size = end - start
+        code_total += size
+        print(f"| `{start:04X}h..{end:04X}h` | {size:,} | {owner} |")
+    print(f"| **Total** | **{code_total:,}** | retained `CODE` |")
+    code_segment = dos_segments["CODE"]
+    retained_code = low_gate - (code_segment.paragraph * 16 + code_segment.offset)
+    if code_total != retained_code:
+        errors.append("DOS CODE ownership does not cover the complete retained prefix")
+
     print("\n## BIOS\n")
     print(f"Linked `CODE` capacity: {bios_code.size:,} bytes. ")
     print(f"Discardable `SYSINITSEG`: {bios_init.size:,} bytes.\n")
