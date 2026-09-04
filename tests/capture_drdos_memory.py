@@ -15,6 +15,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from typing import Any
 import zipfile
 
 
@@ -23,12 +24,19 @@ SCREEN_EXPECT = ROOT / "tests" / "screen_expect.py"
 FLOPPY_BYTES = 1_474_560
 VC_ROW = re.compile(
     r"(?:^|║)\s*([0-9A-F]{4})\s+(\d+)\s+([0-9][0-9,]*)\s+"
-    r"(DOS (?:3\.31|6\.00)|COMMAND(?:\.COM)?|VC\.COM|free memory|system)(?:\s|║)",
+    r"(.{1,15})",
     re.MULTILINE,
 )
 CEILING_ROW = re.compile(
     r"MEMORY_CEILING INT12=([0-9A-F]{4}) BDA=([0-9A-F]{4}) EBDA=([0-9A-F]{4})"
 )
+
+KNOWN_MEDIA_SHA256 = {
+    "Caldera OpenDOS 7.01": "4d25bb3f10cf13596c7b962ab7fdd4f9165e80bef318b72e22b450817b8ee151",
+    "Digital Research DR-DOS 6.0": "8902dc7040ae08c2941c48ce0540277ae2f3005f8e564ea45a602f414286b40f",
+}
+KNOWN_DRDOS6_DISK_MD5 = "a01ecc2548744606c0d8baa74daa64ae"
+KNOWN_VC_SHA256 = "b408f14da5bcba174f5e86107437b22b2863ee6ec72f79bdadf1b812607405fb"
 
 
 OPENDOS_VARIANTS = {
@@ -295,12 +303,17 @@ def capture(image: Path, label: str, work: Path) -> tuple[Path, str, str]:
     return screen, mem, ceiling
 
 
-def parse(screen_path: Path, mem: str, ceiling: str) -> dict[str, int]:
-    screen = screen_path.read_text(encoding="utf-8")
+def parse_vc_rows(screen: str) -> list[tuple[int, int, int, str]]:
     rows = {
-        (int(segment, 16), int(blocks), int(size.replace(",", "")), owner)
+        (int(segment, 16), int(blocks), int(size.replace(",", "")), owner.strip())
         for segment, blocks, size, owner in VC_ROW.findall(screen)
     }
+    return sorted(rows)
+
+
+def parse(screen_path: Path, mem: str, ceiling: str) -> dict[str, Any]:
+    screen = screen_path.read_text(encoding="utf-8")
+    rows = parse_vc_rows(screen)
     conventional = [row for row in rows if row[3] == "free memory" and row[0] < 0xA000]
     if not conventional:
         raise ValueError(f"no conventional VC row in {screen_path}")
@@ -337,16 +350,40 @@ def parse(screen_path: Path, mem: str, ceiling: str) -> dict[str, int]:
         "int12": int(ceiling_match.group(1), 16),
         "bda": int(ceiling_match.group(2), 16),
         "ebda": int(ceiling_match.group(3), 16),
+        "owners": [
+            {"segment": segment, "blocks": blocks, "bytes": size, "owner": owner}
+            for segment, blocks, size, owner in rows
+        ],
+        "mem_sha256": hashlib.sha256(mem.encode("cp437")).hexdigest(),
+        "screen_sha256": hashlib.sha256(screen.encode("utf-8")).hexdigest(),
+        "ceiling_sha256": hashlib.sha256(ceiling.encode("ascii", errors="replace")).hexdigest(),
     }
 
 
+def qemu_identity() -> str:
+    return subprocess.check_output(
+        ["qemu-system-i386", "--version"], text=True
+    ).splitlines()[0]
+
+
+def comparison_identities_match(
+    release: str, media_hash: str, vc_hash: str, disk_md5: str | None
+) -> bool:
+    return (
+        media_hash == KNOWN_MEDIA_SHA256[release]
+        and vc_hash == KNOWN_VC_SHA256
+        and (disk_md5 is None or disk_md5 == KNOWN_DRDOS6_DISK_MD5)
+    )
+
+
 def report(
-    results: dict[str, dict[str, int]],
+    results: dict[str, dict[str, Any]],
     media: Path,
     vc_hash: str,
     release: str,
     variants: dict[str, list[str]],
     disk_md5: str | None,
+    emulator: str,
 ) -> str:
     disk_identity = [f"- Decoded disk MD5: `{disk_md5}`"] if disk_md5 else []
     lines = [
@@ -356,7 +393,10 @@ def report(
         f"- Binary media SHA-256: `{sha256(media)}`",
         *disk_identity,
         f"- VC 4.05 SHA-256: `{vc_hash}`",
-        "- Hardware: QEMU `pc`, 486 CPU, 8 MiB RAM", "",
+        f"- Emulator: `{emulator}`",
+        "- Hardware: QEMU `pc`, 486 CPU, 8 MiB RAM; default firmware",
+        "- Capture command fixes `-machine pc -cpu 486 -m 8`, floppy boot, "
+        "writethrough caching, and no reboot", "",
         "| Variant | Largest block | Total free | System span | COMMAND span | Free UMB | Free HMA | INT 12h | EBDA |",
         "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
@@ -377,6 +417,21 @@ def report(
         commands = AUTOEXEC_COMMANDS.get(name)
         if commands:
             lines.extend(["Before measurement:", "", "```bat", *commands, "```", ""])
+    lines.extend(["## Normalized ownership evidence", ""])
+    for name, data in results.items():
+        lines.extend([
+            f"### {name}", "",
+            f"Raw evidence SHA-256: VC screen `{data['screen_sha256']}`, "
+            f"`MEM /A` `{data['mem_sha256']}`, ceiling `{data['ceiling_sha256']}`.", "",
+            "| Segment | Blocks | Bytes | Owner |",
+            "| ---: | ---: | ---: | --- |",
+        ])
+        for owner in data["owners"]:
+            lines.append(
+                f"| {owner['segment']:04X}h | {owner['blocks']} | "
+                f"{owner['bytes']:,} | {owner['owner']} |"
+            )
+        lines.append("")
     return "\n".join(lines)
 
 
@@ -389,6 +444,16 @@ def main() -> None:
     )
     parser.add_argument("vc_image", type=Path, help="hard-disk image containing VC 4.05 in C:\\VC")
     parser.add_argument("report", type=Path)
+    parser.add_argument(
+        "--evidence-dir",
+        type=Path,
+        help="retain raw VC screen, MEM /A, and ceiling outputs for each variant",
+    )
+    parser.add_argument(
+        "--allow-unknown-media",
+        action="store_true",
+        help="permit media or VC hashes other than the recorded comparison artifacts",
+    )
     args = parser.parse_args()
     require_tools()
     with tempfile.TemporaryDirectory(prefix="drdos-memory-") as temporary:
@@ -402,7 +467,18 @@ def main() -> None:
             release = "Digital Research DR-DOS 6.0"
             variants = DRDOS6_VARIANTS
             base, vc_hash, disk_md5 = prepare_drdos6(args.media, args.vc_image, work)
-        results: dict[str, dict[str, int]] = {}
+        media_hash = sha256(args.media)
+        identities_match = comparison_identities_match(
+            release, media_hash, vc_hash, disk_md5
+        )
+        if not identities_match and not args.allow_unknown_media:
+            raise SystemExit(
+                "comparison artifact hash mismatch; use --allow-unknown-media "
+                "only for an intentional non-baseline capture"
+            )
+        if args.evidence_dir:
+            args.evidence_dir.mkdir(parents=True, exist_ok=True)
+        results: dict[str, dict[str, Any]] = {}
         for name, lines in variants.items():
             image = work / f"{name}.ima"
             shutil.copyfile(base, image)
@@ -410,10 +486,19 @@ def main() -> None:
             install_file(image, config, "CONFIG.SYS")
             install_file(image, autoexec, "AUTOEXEC.BAT")
             screen, mem, ceiling = capture(image, name, work)
+            if args.evidence_dir:
+                shutil.copyfile(screen, args.evidence_dir / f"{name}-vc.txt")
+                (args.evidence_dir / f"{name}-mem.txt").write_text(mem, encoding="utf-8")
+                (args.evidence_dir / f"{name}-ceiling.txt").write_text(
+                    ceiling, encoding="ascii", errors="replace"
+                )
             results[name] = parse(screen, mem, ceiling)
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(
-            report(results, args.media, vc_hash, release, variants, disk_md5),
+            report(
+                results, args.media, vc_hash, release, variants, disk_md5,
+                qemu_identity(),
+            ),
             encoding="utf-8",
         )
     print(f"wrote {args.report}")

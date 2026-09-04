@@ -738,7 +738,7 @@ until an A/B image measures them.
 
 | Priority | Opportunity | Available evidence | Likely scale | Principal constraint |
 | --- | --- | --- | ---: | --- |
-| Complete | Attribute DR-DOS's HMA-mode advantage | Controlled DR-DOS 6.0 and OpenDOS 7.01 matrices reconcile their ordinary advantages and isolate optional policies | research complete | No source code used; identical inputs and compatibility modes remain separated |
+| In progress | Audit DR-DOS's HMA-mode advantage | Controlled DR-DOS 6.0 and OpenDOS 7.01 matrices reconcile the coarse owner spans; the capture tool now pins artifact identities and retains normalized ownership evidence | mechanism checkpoint | Finish page-level policy attribution and separate decisive placement controls from optional compatibility modes; no source code |
 | Complete | Census fixed HMA ownership and COMMAND's top-level resident ranges | The checked map identifies 17,932 initially free bytes of DOS-owned HMA tail and the 1,281-byte normal resident catalog range | attribution complete through the first full payload range | Symbol-level COMMAND and DOS/BIOS ownership remains in D1/A3 |
 | Paused | Move more COMMAND cold state high or transient | The 1,281-byte normal catalog and 1,166-byte code range are high; 820 of the remaining 955 low service bytes belong to the installed interrupt handler and registered disk callback | under one kilobyte, then better-than-retail opportunities | Resume only as a coherent interrupt/data redesign, not for gateway-scale helpers |
 | 1 | Complete the small EMM386 low gateway backed by locked XMS | Local EMM386 now matches retail at 4,128 bytes; services, return and A20/NMI trap handling, protected `RetReal`, stack-selector conversion, OEM mapping/parity handling, and the protected `GoVirtual` continuation execute from locked XMS; command-mode client and unused production descriptors are nonresident | better-than-retail headroom remains possible | Remaining transition, DMA, and fault gateways; inactive `AUTO`; all EMS maps |
@@ -1254,7 +1254,7 @@ and measurements of legitimately available binaries are allowed. Record
 techniques and externally visible contracts, never copied code or instruction
 sequences.
 
-The completed investigation followed this reproducible method:
+The focused checkpoint uses this reproducible method:
 
 1. **Build reproducible images.** Use the same 8 MiB 386-class hardware profile,
    disk geometry, VC 4.05 binary, shell environment, and semantically equivalent
@@ -1271,11 +1271,12 @@ The completed investigation followed this reproducible method:
    the MCB chain, device and system allocations, UMB regions, EMS frame, first
    free owner, COMMAND boundary, and conventional ceiling. Reconcile the
    largest-block result as owner-to-owner spans as done for MS-DOS.
-4. **Toggle one documented policy at a time.** Measure kernel-high/HMA,
-   `HIDOS`, `HIBUFFERS`, driver/TSR-high placement, UMB linking, EMS versus
-   `NOEMS`, load order, low-memory recovery, text-video recovery, `/XBDA`, and
-   DPMS where the selected release supports them. Attribute every delta to a
-   changed resident block, joined hole, or raised ceiling.
+4. **Toggle one documented policy at a time.** The decisive matrix covers
+   kernel-high/HMA, `HIDOS`, `HIBUFFERS`, EMS-frame policy, low-memory recovery,
+   text-video recovery, and `/XBDA`. Driver/TSR-high placement, UMB linking, and
+   load order are established local features rather than explanations of the
+   kernel baseline; DPMS serves only as a published architectural precedent.
+   Do not hold the checkpoint open for those non-decisive controls.
 5. **Probe observable contracts.** Determine HMA ownership and A20 behavior,
    XMS/EMS/UMB API results, allocation order, initialization-versus-resident
    size, buffer placement, device-chain ownership, warm reboot behavior, and
@@ -1304,6 +1305,9 @@ in a focused checked-in measurement script.
 Caldera OpenDOS 7.01 binary archive, inserts the same VC 4.05 binary used by the
 MS-DOS comparison, and captures five configurations on the fixed QEMU `pc`, 486
 CPU, 8 MiB profile. It neither reads nor retains DR-DOS source or binary files.
+The harness rejects media or VC identity drift unless explicitly overridden,
+records the emulator identity, retains every normalized VC owner row, and can
+preserve the raw VC, `MEM /A`, and ceiling outputs with `--evidence-dir`.
 The tested `DODL701.EXE` SHA-256 is
 `4d25bb3f10cf13596c7b962ab7fdd4f9165e80bef318b72e22b450817b8ee151`;
 VC's SHA-256 remains
@@ -1388,8 +1392,14 @@ the capture with:
 ```sh
 python3 tests/capture_drdos_memory.py \
   DRDOS600-STARTUP.json out/msdos622-original-vc405.img \
-  out/drdos6-memory-investigation.md
+  out/drdos6-memory-investigation.md \
+  --evidence-dir out/drdos6-memory-evidence
 ```
+
+The strengthened harness reproduced all nine DR-DOS 6 variants under QEMU
+11.1.1 with the expected media, decoded-disk, and VC hashes. The aggregate
+figures below are unchanged; the report now also records raw-evidence hashes
+and normalized owner rows for each variant.
 
 | Configuration | VC largest block | Pre-COMMAND system span | COMMAND span | Free UMB | Free HMA |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -1489,15 +1499,14 @@ An 86Box IBM AT run also boots DR-DOS 6's `HIDOS.SYS /BDOS=FFFF` path on an
 kernel/COMMAND HMA design is not dependent on virtual-8086 mode; UMB placement
 and the EMM386 architecture remain 386-specific.
 
-The investigation completion gate is met: both releases reproduce from hashed
-binary media, every material ordinary-mode advantage reconciles through owner
-spans, optional gains are isolated, and the portable techniques have local byte
-budgets and regression constraints above. Further black-box work is now
-implementation-driven:
-probe the exact local HMA owner and A20 lifetimes before moving COMMAND, prove
-which EMM386 entries can execute from protected/XMS storage, and design the DOS
-state placement ladder against the existing UMB floor. No additional DR-DOS
-measurement is required to choose those experiments.
+The baseline-capture gate is met: both releases reproduce from hashed binary
+media, the coarse ordinary-mode advantage reconciles through owner spans, and
+optional gains are separated. The focused mechanism checkpoint remains open
+until the documented controls, normalized owner rows, and adoption decisions
+are cross-checked. It does not require reverse engineering implementation
+details. After it closes, probe the exact local HMA owner and A20 lifetimes,
+prove which EMM386 entries can execute from protected/XMS storage, and design
+the DOS state placement ladder against the existing UMB floor.
 
 #### Published leads already identified
 
@@ -1514,7 +1523,9 @@ footprint, and omitting the 64 KiB EMS page frame when no application needs it.
 These are directly relevant to our DOS-prefix ownership, buffer placement, UMB
 coalescing, load-order tooling, and `NOEMS` tests. They do not explain a smaller
 EMM386 implementation by themselves. See the [DR-DOS 6 Optimization and
-Configuration Tips](https://bitsavers.org/pdf/novell/dr_dos/DR_DOS_6.0_Optimization_and_Configuration_Tips_199109.pdf).
+Configuration Tips](https://bitsavers.org/pdf/novell/dr_dos/DR_DOS_6.0_Optimization_and_Configuration_Tips_199109.pdf),
+pp. 4–12, and the [DR-DOS 6 User Guide](https://www.bitsavers.org/pdf/novell/dr_dos/DR_DOS_6.0_User_Guide_2ed_199108.pdf),
+pp. 379 and 382.
 
 DR-DOS memory figures must not be compared blindly with the fixed MS-DOS 6.22
 baseline. MemoryMAX can make most of the first 64 KiB address range available
@@ -1532,7 +1543,9 @@ update, and hardware-test requirements. DPMS lets specially written drivers and
 TSRs keep most code or data in extended memory behind a small conventional
 gateway. That is a useful precedent for the proposed EMM386 low-gateway split
 and a possible future resident-service API, but it cannot shrink unmodified
-programs and is outside the parity target. See the [Novell DOS 7 User
+programs and is outside the parity target. `/VIDEO`, `/XBDA`, and `MEMMAX`
+are documented in the DR-DOS 6 User Guide, pp. 260–262 and 413–415. The later
+placement and DPMS descriptions are in the [Novell DOS 7 User
 Guide](https://bitsavers.org/pdf/novell/dr_dos/DR_DOS_7_User_Guide_1993.pdf) and
 Novell's [memory-management application note](https://ftp.zx.net.nz/pub/archive/novell/doc/app_notes/9310_Managing_Memory_in_a_DOS_Workstation_using_Novell_DOS_7.pdf).
 
