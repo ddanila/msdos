@@ -722,7 +722,7 @@ until an A/B image measures them.
 | Priority | Opportunity | Available evidence | Likely scale | Principal constraint |
 | --- | --- | --- | ---: | --- |
 | Complete | Attribute DR-DOS's HMA-mode advantage | Controlled DR-DOS 6.0 and OpenDOS 7.01 matrices reconcile their ordinary advantages and isolate optional policies | research complete | No source code used; identical inputs and compatibility modes remain separated |
-| Complete | Census fixed HMA ownership and COMMAND's top-level resident ranges | The checked map identifies 17,884 initially free bytes of DOS-owned HMA tail and a 475-byte critical-error catalog | attribution complete at the first payload boundary | Symbol-level COMMAND and DOS/BIOS ownership remains in D1/A3 |
+| Complete | Census fixed HMA ownership and COMMAND's top-level resident ranges | The checked map identifies 17,884 initially free bytes of DOS-owned HMA tail and the 1,281-byte normal resident catalog range | attribution complete through the first full payload range | Symbol-level COMMAND and DOS/BIOS ownership remains in D1/A3 |
 | 1 | Move COMMAND cold state high or transient | All 1,281 normal resident catalog bytes are high; COMMAND still costs 2,000 bytes more than retail and 3,840 more than DR-DOS | low kilobytes | Reload, critical error, `INT 2Eh`, batch and pipe survival |
 | 2 | Build a small EMM386 low gateway backed by locked XMS | Local EMM386 costs 3,344 bytes more than retail; protected mapping services and allocation mutations are high | several kilobytes | Real/virtual transitions, inactive `AUTO`, DMA, faults, and all EMS maps |
 | 2 | Compact EMM386 runtime-sized metadata and alignment | Measured subranges can supplement the gateway redesign | tens to hundreds of bytes per item | Full `H=`/`A=` ranges and EMS 4.0 formats |
@@ -807,8 +807,8 @@ capture pass.
 | C4 | EMM386 | Split ordinary EMS service dispatch from mapping-sensitive activation so services that do not require virtual mode can live in the relocated image | EMS 3.2/4.0, non-empty function 56h maps, alternate sets, and inactive queries pass |
 | C5 | EMM386 | Replace `RRProc` and the return-to-real continuation with a small position-independent low gateway, then relocate the remaining transition module | Repeated real/virtual transitions, fault returns, runtime modes, shifted loads, and warm reboot pass |
 | C6 | EMM386 | Revisit the deferred shared exception-message buffer only with a probe around both protected-to-real copies | The buffer is correct before and after return, and installation plus exception dialogs complete |
-| D1 in progress | COMMAND | Refine the generated `CODERES`/`DATARES` byte-range census from lifetime classes to symbol/module ownership | The report checks every top-level range and break; the 475-byte critical-error catalog is the first coherent cold payload, while remaining resident symbols still need a lifetime reason |
-| D2 in progress | COMMAND | Continue after the completed critical-error-catalog relocation with rare formatting, help/error text, and callable services that can safely live high or in the reloadable transient | The first tranche adds 464 bytes to VC's largest block; DOS=LOW and `/MSG` retain the low catalog; reload, `/F`, batch, pipes, `INT 2Eh`, Ctrl+C, real critical errors, termination, and 286 execution remain gates |
+| D1 in progress | COMMAND | Refine the generated `CODERES`/`DATARES` byte-range census from lifetime classes to symbol/module ownership | The checked report now anchors eight permanent-low ranges totaling the exact 4,486 bytes after the PSP; next split the 2,073-byte error/message-service range by caller and asynchronous-entry contract |
+| D2 in progress | COMMAND | Continue after the completed normal resident catalog relocation with rare formatting, help/error text, and callable services that can safely live high or in the reloadable transient | The complete catalog tranche adds 784 bytes to VC's largest block over the critical-only baseline; DOS=LOW and `/MSG` retain the low catalog; reload, `/F`, batch, pipes, `INT 2Eh`, Ctrl+C, real critical errors, termination, and 286 execution remain gates |
 | D3 | COMMAND | If necessary, redesign the resident/transient interface around a smaller stable state block and reload gateway | The complete internal-command surface and shell state survive every reload path |
 | E1 | DOS/BIOS | Attribute and compact retained-low DOS/BIOS gateways, DPBs, SFT/CDS anchors, device-chain state, tables, buffers, stacks, and compatibility data | Internal structures, drivers, redirectors, filesystem, async interrupts, EXEC, and warm reboot pass |
 | E2 | DOS/BIOS | Move only explicitly HMA-safe DOS state above the resident image; consolidate low bounce areas and workspaces whose lifetimes cannot overlap | A20-off callbacks and real-mode near pointers never target HMA; maximum buffers and sector sizes pass |
@@ -818,10 +818,11 @@ capture pass.
 | F1 | Architecture | If B through E leave a measured remainder, choose the smallest of the EMM386 gateway split, DOS-low ownership redesign, or COMMAND boundary redesign that covers it with margin | A written byte budget shows why smaller changes cannot reach the target |
 | F2 | Regression | Enforce VC largest block >=618,736, free UMB >=47,888, component budgets, identical inputs, and clean-build reproducibility in the local suite | Floors pass repeatedly and across the supported machine/option matrix; CI remains off until requested |
 
-The immediate execution order remains D1/D2: expand the completed 475-byte
-COMMAND HMA tranche while continuing the remaining symbol-level COMMAND and
-DOS/BIOS attribution in A3. The paired VC capture proves a 464-byte
-largest-block gain. C2-C5 then pursue an OpenDOS-style
+The immediate execution order remains D1/D2: use the checked eight-range
+COMMAND census to split the 2,073-byte resident error/message-service range,
+then move only a coherent subrange whose callers and asynchronous contract are
+proved. The complete catalog tranche adds 784 bytes over the critical-only
+baseline. C2-C5 then pursue an OpenDOS-style
 small EMM386 gateway, followed by E1-E4 for the DOS placement ladder and layout
 coalescing. E5 is a bounded 1,024-byte finishing step. The remaining HIMEM B
 items stay paused unless the measured residual justifies them. D3 and F1 remain
@@ -1593,6 +1594,17 @@ resident only with `/MSG`; initialization/templates and the reloadable command
 body remain outside the normal break. This closes the first relocation tranche,
 but D1 still requires symbol ownership for the remaining resident ranges.
 
+The checked census now divides every byte after the PSP and before the high
+catalog boundary into eight symbol-anchored ownership ranges: 1,496 bytes of
+entry/EXEC/reload paths, 2,073 bytes of error and message services, a 125-byte
+stack, 179 bytes each of substitution/critical state and interpreter control
+state, 164 bytes of pipe state, 40 bytes of EXEC/environment state, and 230
+bytes of mutable message runtime. This prevents a gain from being credited to
+an unmeasured gap. It also identifies the next investigation precisely: split
+the 2,073-byte service range by callers and asynchronous-entry requirements;
+the mutable pipe and EXEC ranges are not cold-placement candidates merely
+because they are small.
+
 The complete normal utility-plus-critical catalog relocation is retained.
 `MSGDATA` is emitted before the immutable classes, leaving the writable
 formatter and five far class slots low. After `SYSLOADMSG` initializes those
@@ -1607,7 +1619,8 @@ The prior prototype's binary output was not evidence that COMMAND observed A20
 disabled. It was the independent high-driver `DX` corruption described below.
 With that fixed, ordinary display, substitutions, real critical errors, the
 deliberate A20-off callback, DOS=LOW, `/MSG`, child shells, and the real-286
-gate pass. The paired VC capture measures the full 800-byte additional gain.
+gate pass. The paired VC capture measures a 784-byte additional gain over the
+critical-only baseline; the far-access support consumes the other paragraph.
 
 The resident message builder installs exactly five utility classes (A through
 E), although the generated control file counts all eight classes used across

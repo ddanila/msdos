@@ -139,6 +139,10 @@ def main() -> int:
     critical_messages = require(symbols, "critical_msg_start")
     critical_lookup = require(symbols, "$M_CLS_6")
     resident_code_end = require(symbols, "RES_CODE_END")
+    resident_service_start = require(symbols, "ASKEND")
+    substitution_state_end = require(symbols, "ERRCD_24")
+    pipe_state_start = require(symbols, "PIPEFILES")
+    exec_state_start = require(symbols, "INPIPEPTR")
     tran_start = require(symbols, "TranStart")
     tran_data_end = require(symbols, "TRANDATAEND")
     code = segments["CODERES"]
@@ -159,6 +163,13 @@ def main() -> int:
         errors.append("optional resident-message boundaries do not cover the DATARES tail")
     if not (0x100 <= resident_code_end <= code.end):
         errors.append("resident code/stack boundary falls outside CODERES")
+    if not (0x100 < resident_service_start < resident_code_end):
+        errors.append("resident code ownership boundaries are not ordered")
+    if not (
+        data.start < substitution_state_end < pipe_state_start
+        < exec_state_start < resident_state_end < resident_catalog_start
+    ):
+        errors.append("resident data ownership boundaries are not ordered")
     if tran_start != segments["TRANCODE"].start:
         errors.append("TranStart no longer equals the transient-group start")
     if tran_data_end > segments["TRANDATA"].end:
@@ -203,6 +214,30 @@ def main() -> int:
         print(f"| {name} | `{start:04X}h..{end:04X}h` | {end - start:,} | {owner} |")
     print(f"| **DOS-high permanent break** | `0000h..{resident_catalog_start:04X}h` | **{resident_catalog_start:,}** | **{rounded(resident_catalog_start):,} paragraph-rounded** |")
     print(f"| Low/failure fallback break | `0000h..{datares_end:04X}h` | {datares_end:,} | {rounded(datares_end):,} paragraph-rounded |")
+
+    print("\n## Permanent low ownership\n")
+    print("| Range | Offset | Bytes | Required lifetime |")
+    print("| --- | ---: | ---: | --- |")
+    permanent_low = [
+        ("Entry, EXEC, reload, and interrupt paths", 0x100, resident_service_start,
+         "survives transient overwrite and asynchronous entry"),
+        ("Resident error and message services", resident_service_start, resident_code_end,
+         "batch abort, INT 24h, and message display"),
+        ("Resident stack", resident_code_end, code.end,
+         "nested asynchronous and reload paths"),
+        ("Message substitutions and critical-error state", data.start, substitution_state_end,
+         "mutable formatter inputs and INT 24h state"),
+        ("Shell, batch, and load-high control state", substitution_state_end, pipe_state_start,
+         "persistent interpreter control state"),
+        ("Pipe path and hand-off state", pipe_state_start, exec_state_start,
+         "survives both sides of pipeline EXEC/reload"),
+        ("EXEC, environment, and transient-image state", exec_state_start, resident_state_end,
+         "reload and child-shell bookkeeping"),
+        ("Mutable message runtime", resident_state_end, resident_catalog_start,
+         "formatter workspace and five far class slots"),
+    ]
+    for name, start, end, lifetime in permanent_low:
+        print(f"| {name} | `{start:04X}h..{end:04X}h` | {end - start:,} | {lifetime} |")
 
     print("\n## Optional and discardable ranges\n")
     print("| Range | Offset | Bytes | Lifetime |")
