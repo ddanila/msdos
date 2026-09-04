@@ -40,10 +40,6 @@
 ; variables for real time clock setting
 	public	HaveCMOSClock
 HaveCMOSClock	db	0	;set by MSINIT.
-	public	base_century
-base_century	db	19
-	public	base_year
-base_year	db	80
 	public	month_tab
 month_tab	db	31,28,31,30,31,30,31,31,30,31,30,31
 

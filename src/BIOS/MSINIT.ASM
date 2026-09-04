@@ -44,8 +44,6 @@ ENDATROM LABEL	BYTE
 ;CMOS Clock setting support routines used by MSCLOCK.
 ;J.K. 10/2/86 Waring!!! This code will be dynamically relocated by MSINIT.
 
-	EXTRN	base_century:byte
-	EXTRN	base_year:byte
 	EXTRN	month_tab:byte
 
 	public	Daycnt_to_day	;J.K. 4/30/86 for real time clock support
@@ -57,10 +55,10 @@ Daycnt_to_day	proc	near	;J.K. 4/30/86 for real time clock support
 	mov	bp, daycnt		;keep the working count in a register
 	cmp	bp, (365*20+(20/4)) ;# of days from 1-1-1980 to 1-1-2000
 	jae	century20
-	mov	word ptr base_century, 5013h ;century 19, year 80
+	mov	cx, 5013h		;CL = century 19, CH = year 80
 	jmp	years
 century20:				;20th century
-	mov	word ptr base_century, 0014h ;century 20, year 0
+	mov	cx, 0014h		;CL = century 20, CH = year 0
 	sub	bp, (365*20+(20/4)) ;adjust daycnt
 years:
 	xor	dx, dx
@@ -75,19 +73,18 @@ years:
 ;OK1:
 	mov	bl,4
 	mul	bl			;AX = # of years. Less than 100 years!
-	add	base_year, al		;So, ah = 0. Adjust year accordingly.
+	add	ch, al			;So, ah = 0. Adjust year accordingly.
 	cmp	bp, 366			;the daycnt here is the remainder of the leap year block.
 	jbe	Leapyear		;So, it should within 366+355+355+355 days.
-	inc	base_year		;First if daycnt <= 366, then leap year
+	inc	ch			;First if daycnt <= 366, then leap year
 	sub	bp, 366			;else daycnt--, base_year++;
 					;And the next three years are regular years.
-	mov	cx, 3
 Regularyear:
 	cmp	bp, 365			;for(i=1; i>3 or daycnt <=365;i++)
 	jbe	YearDone		;{if (daycnt > 365)
-	inc	base_year		;  { daycnt -= 365
+	inc	ch			;  { daycnt -= 365
 	sub	bp, 365			;  }
-	loop	regularyear		;}
+	jmp	regularyear		;normalized remainder bounds the loop
 ;	 jmp	 Erroroccur		 ;cannot come to here
 Leapyear:
 	mov	byte ptr month_tab+1,29 ;leap year. change the month table.
@@ -108,8 +105,7 @@ Months:
 Month_done:
 	mov	byte ptr month_tab+1, 28 ;restore month table value
 	mov	dl, bl
-	mov	dh, base_year
-	mov	cl, base_century	;now, al=day, dl=month,dh=year,cl=century
+	mov	dh, ch			;now, al=day, dl=month,dh=year,cl=century
 	call	word ptr BinToBCD	;Oh my!!! To save 15 bytes, Bin_To_BCD proc
 					;was relocated seperately from Daycnt_to_Day proc.
 ;	call Bin_to_bcd 		;convert "day" to bcd
