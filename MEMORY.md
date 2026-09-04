@@ -1119,7 +1119,7 @@ block.
 
 | Order | Opportunity | Evidence or ceiling | Next actionable result |
 | ---: | --- | ---: | --- |
-| 1 | Continue the COMMAND/HMA census | The normal catalogs and first relocatable code family are high; COMMAND remains 1,968 bytes above retail | Extend the proven gateway to the next coherent service family without weakening behavior |
+| 1 | Continue the COMMAND/HMA census | The normal catalogs and first relocatable code family are high; COMMAND remains 1,968 bytes above retail | Trace the generated message entry/return ABI before retrying that family, or select a different self-contained family; preserve every child-shell path |
 | 2 | Move COMMAND cold state high or transient | DR-DOS demonstrates a roughly 5 KiB resident shell in the comparable mode | Move messages, formatting, scratch, and cold services while preserving every reload and asynchronous path |
 | 3 | Extend the EMM386 low gateway | 3,120-byte excess over retail; protected mapping and allocation services execute from locked XMS | Move the next coherent service family while leaving save-map/query, transition, DMA, fault, inactive-`AUTO`, and return gateways low; preserve every EMS map |
 | 4 | Compact EMM386 metadata while changing that boundary | The loader stack is discarded, duplicate PTE offsets and inverse segment index are gone, and mapping/allocation code is high; remaining work is included in the 3,120-byte excess | Take independently testable descriptor, VDATA, table, and alignment wins without delaying the gateway design |
@@ -1682,6 +1682,18 @@ raises the paired VC block to 603,056 bytes. The low fallback grows from 6,016
 to 6,080 bytes; larger code families can amortize that fixed gateway cost.
 Startup, critical-error, batch-step, HMA/A20, DOS-low, `/MSG`, 286 86Box, and
 the 386/486 memory-manager matrix pass.
+
+A follow-up prototype moved the generated GET, DISPLAY, character, and numeric
+message engine as one 1,166-byte HMA range while leaving its disk callback low.
+It would have reduced the DOS-high COMMAND break by about 1 KiB, and ordinary
+startup, `/MSG`, and disk-backed error cases passed. It is not retained:
+`COMMAND /Y /C` in a child shell returned into message data during
+initialization. Direct, wrapped, near-fallback, and patched-return gateways all
+failed the existing batch-step gate, while the `1d35809` baseline passed the
+identical image. Do not repeat a whole-engine gateway move until the generated
+SYSGETMSG/SYSDISPMSG entry, return, flags, and child-resident stack contract is
+traced end to end. The registered disk callback must remain low unless its
+DOS re-entry and disk-backed `INT 24h` path are proved separately.
 
 The complete normal utility-plus-critical catalog relocation is retained.
 `MSGDATA` is emitted before the immutable classes, leaving the writable
