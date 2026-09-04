@@ -37,8 +37,6 @@ public	OEM_Trap_Init
 endif
 public	ROM_BIOS_Machine_ID
 public	OEM_Init_Diag_Page
-public	NMI_Old
-public	NMI_New
 ENDIF
 IFNDEF OEMPROC_LOW_ONLY
 public	Map_Lin_OEM
@@ -51,6 +49,8 @@ endif
 public	Rest_Par_Vect
 public	Set_Par_Vect
 public	Parity_Handler
+public	NMI_Old
+public	NMI_New
 ENDIF
 ENDIF
 IFNDEF OMIT_DISABLE_NMI
@@ -167,16 +167,6 @@ ENDIF
 _DATA	segment
 
 IFNDEF OEMPROC_DISABLE_ONLY
-IFDEF OEMPROC_PROTECTED_ONLY
-extrn	NMI_Old:byte
-extrn	NMI_New:byte
-ELSE
-NMI_Old 	db	8 dup (0)	; save area for old NMI handler
-
-NMI_New label	byte		; descriptor for new NMI handler
-IDT_ENTRY	VDMC_GSEL,<offset _TEXT:Parity_Handler>,D_386INT0
-ENDIF
-
 ;
 IFNDEF OEMPROC_PROTECTED_ONLY
 ifndef	NOHIMEM 		; if high memory in this model
@@ -211,6 +201,13 @@ _DATA	ends
 _TEXT	segment
 	ASSUME	CS:_TEXT, DS:DGROUP
 IFNDEF OEMPROC_DISABLE_ONLY
+IFDEF OEMPROC_PROTECTED_ONLY
+; Parity-vector state is used only by protected MOVEBLOCK paths. Keep it with
+; those paths in the writable locked-XMS code image instead of resident DGROUP.
+NMI_Old 	db	8 dup (0)
+NMI_New label	byte
+IDT_ENTRY	VDMC_GSEL,<offset _TEXT:Parity_Handler>,D_386INT0
+ENDIF
 IFNDEF OEMPROC_PROTECTED_ONLY
 
 ;******************************************************************************
@@ -540,27 +537,29 @@ endif
 ;*************************************************************************
 	assume	cs:_TEXT, ds:NOTHING, es:NOTHING
 Set_Par_Vect   proc    near
-	push	VDMD_GSEL
-	pop	es		; ES pts to DGROUP
+	push	VDMCA_GSEL
+	pop	es		; ES pts to writable protected _TEXT
 	push	IDTD_GSEL
 	pop	ds		; DS points to IDT
 
 	mov	si,0010h	; DS:[SI] points to NMI descr address in IDT
-	mov	di,offset DGROUP:NMI_Old	; ES:[DI] pts to store area
+	mov	di,offset _TEXT:NMI_Old	; ES:[DI] pts to store area
 	OP32
 	movsw
 	OP32
 	movsw			; save current NMI descriptor
 	push	ds
 	push	es
-	pop	ds		; DS = DGROUP
+	pop	ds		; DS = writable protected _TEXT
 	pop	es		; ES = IDT
 	mov	di,0010h	; ES:[DI] points to NMI descr address in IDT
-	mov	si,offset DGROUP:NMI_New ; DS:[SI] pts to new NMI descr
+	mov	si,offset _TEXT:NMI_New ; DS:[SI] pts to new NMI descr
 	OP32
 	movsw
 	OP32
 	movsw			; set up new NMI descriptor in IDT
+	push	VDMD_GSEL
+	pop	ds		; restore the caller's DGROUP selector
 	ret
 Set_Par_Vect   endp
 
@@ -581,20 +580,24 @@ Set_Par_Vect   endp
 ;	note: entry is from protected mode -> DS,ES are same as during
 ;		move block.
 ;*************************************************************************
-	assume	cs:_TEXT, ds:DGROUP, es:NOTHING
+	assume	cs:_TEXT, ds:NOTHING, es:NOTHING
 Rest_Par_Vect	proc	near
 ifndef	NOHIMEM
 	call	HwMemUnlock		    ; in case IDT is in high mem
 endif
 	push	IDTD_GSEL		    ; selector for IDT
 	pop	es			    ; ES points to IDT
+	push	VDMCA_GSEL
+	pop	ds			    ; DS points to writable protected _TEXT
 
 	mov	di,0010h		    ; ES:[DI] points to NMI descr address in IDT
-	mov	si,offset DGROUP:NMI_Old    ; DS:[SI] pts to store area
+	mov	si,offset _TEXT:NMI_Old     ; DS:[SI] pts to store area
 	OP32
 	movsw
 	OP32
 	movsw				    ; restore previous NMI descriptor
+	push	VDMD_GSEL
+	pop	ds			    ; restore the caller's DGROUP selector
 ifndef	NOHIMEM
 	call	HwMemLock
 endif

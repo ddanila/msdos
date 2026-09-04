@@ -212,8 +212,8 @@ def main() -> int:
     by_name = {segment.name: segment for segment in segments}
     if args.check and by_name["GDT"].size > 224:
         raise ValueError("production GDT retains debugger-only descriptors")
-    if args.check and by_name["_DATA"].size > 454:
-        raise ValueError("EMM386 retained mutable data exceeds 454 bytes")
+    if args.check and by_name["_DATA"].size > 438:
+        raise ValueError("EMM386 retained mutable data exceeds 438 bytes")
     symbol_by_name = {symbol.name: symbol for symbol in symbols}
     if args.check:
         dma_pages = symbol_by_name.get("DMA_Pages")
@@ -315,6 +315,8 @@ def main() -> int:
             "Set_Par_Vect",
             "Rest_Par_Vect",
             "Parity_Handler",
+            "NMI_Old",
+            "NMI_New",
             "GoVirtualHigh",
             "AMC_return_high",
             "SelToSeg",
@@ -416,7 +418,7 @@ def main() -> int:
     data_ranges = [
         Range(0, symbol_offset(symbols, "_total_pages", data_segment), "driver state and fatal-error text"),
         Range(symbol_offset(symbols, "_total_pages", data_segment), symbol_offset(symbols, "EMM_dynamic_data_area", data_segment), "EMS runtime tables, counters, and pointers"),
-        Range(symbol_offset(symbols, "EMM_dynamic_data_area", data_segment), symbol_offset(symbols, "ROM_BIOS_Machine_ID", data_segment), "OEM NMI state and alignment"),
+        Range(symbol_offset(symbols, "EMM_dynamic_data_area", data_segment), symbol_offset(symbols, "ROM_BIOS_Machine_ID", data_segment), "OEM runtime state and alignment"),
         Range(symbol_offset(symbols, "ROM_BIOS_Machine_ID", data_segment), symbol_offset(symbols, "DMARegSav", data_segment), "OEM machine identifier and alignment"),
         Range(symbol_offset(symbols, "DMARegSav", data_segment), symbol_offset(symbols, "MB_Stat", data_segment), "DMA snapshot and page metadata"),
         Range(symbol_offset(symbols, "MB_Stat", data_segment), by_name["_DATA"].size, "move-block status and padding"),
@@ -459,9 +461,9 @@ def main() -> int:
             args.dma_pages,
         )
         == (64, 7, 64, 6, 1)
-        and runtime_ranges[-1].end > 4208
+        and runtime_ranges[-1].end > 4192
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 4,208 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 4,192 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     dma_page_label = "DMA page" if args.dma_pages == 1 else "DMA pages"
     print(
