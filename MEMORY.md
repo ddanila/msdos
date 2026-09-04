@@ -900,16 +900,19 @@ gateway or dual-copy design, not a linker move.
 
 After layout independence is restored, the next implementation tranche is:
 
-1. map COMMAND's `CODERES`/`DATARES` and all HMA owners, then move cold shell
-   state high or transient;
-2. design the EMM386 low gateway around the existing locked XMS image, keeping
+1. design the EMM386 low gateway around the existing locked XMS image, keeping
    its complete byte accounting current and bundling safe metadata reductions;
-3. classify DOS low-prefix ownership and apply the HMA/XMS/bounded-UMB
+2. classify DOS low-prefix ownership and apply the HMA/XMS/bounded-UMB
    placement ladder;
-4. coalesce layout and take the bounded EBDA paragraph after proving its
+3. coalesce layout and take the bounded EBDA paragraph after proving its
    destination; and
-5. use the measured residual to decide whether HIMEM or a deeper resident
+4. use the measured residual to decide whether HIMEM, COMMAND, or a deeper resident
    boundary redesign is warranted.
+
+The first COMMAND/HMA tranche is complete and further shell relocation is
+paused: catalogs, character services, and the message engine are high. Resume
+COMMAND only as a coherent interrupt/data redesign after the larger EMM386 and
+DOS opportunities have been measured.
 
 Every tranche retains maximum-option, EMS, DMA, runtime-mode, warm-reboot,
 shifted-load, 286 where applicable, and paired VC tests.
@@ -934,6 +937,15 @@ template through the writable `VDMCA_GSEL` alias did not fix the prototype.
 The unresolved dependency is therefore in the copy mechanism, its addressing,
 or the destination layout. Retry only with a deliberate exception-screen probe
 that proves the buffer before and after return to real mode.
+
+Splitting `MEMM386.EXE`'s utility entry, installation check, and link routine
+beyond `IOTrap_Tab` is also rejected for now. It saved 80 installed bytes, but
+the extended EMS sequence hung while returning from function 58h after earlier
+alter-map and move operations. Tracing proved that the function handler,
+`int67_Entry`, and `_AutoUpdate` completed; instrumentation changed the later
+failure point, demonstrating a hidden layout-sensitive return dependency.
+Retry only after the real/virtual return frame and offset ownership are fully
+accounted, and require the complete EMS 4.0 sequence rather than narrow probes.
 
 Three later compaction probes show that the earlier stack fix did not close all
 layout dependencies. Shortening the resident privileged-error dialog by 28
@@ -1131,8 +1143,9 @@ block.
 | 10 | Revisit HIMEM only if the measured residual requires it | 1,488-byte excess over retail; incremental work paused | Resume only with a paragraph-scale, map-supported opportunity and preserve every existing gate |
 | 11 | Redesign the DOS-low or COMMAND boundary further | Architectural fallback | Choose the smallest design with a byte budget that covers the remaining measured gap and compatibility margin |
 
-The completed DR-DOS investigation below sets the order: COMMAND/HMA first,
-the EMM386 low-gateway split second, and the DOS placement ladder third. Then
+The completed DR-DOS investigation below now sets the order: extend the EMM386
+low gateway first, then apply the DOS placement ladder. The initial COMMAND/HMA
+gain is retained, but deeper shell work is paused. Then
 coalesce layout and recover the bounded EBDA paragraph; revisit HIMEM only for
 a measured residual. Recalculate the success equation after every retained
 step and keep both the conventional and UMB floors visible.
@@ -1146,9 +1159,9 @@ allocation maps, addresses, and lifetimes and must not be used to reconstruct
 proprietary instruction sequences.
 
 **Restart priority:** use the completed documentation and controlled-memory
-baseline before doing more local byte harvesting. First test the DR-DOS lesson
-with the highest plausible payoff—permanent shell and kernel payload in HMA—then
-the small EMM386 gateway, then movable DOS state. New DR-DOS measurement is a
+baseline before doing more local byte harvesting. The first shell/HMA tranche
+has validated the DR-DOS lesson; now build the small EMM386 gateway, then move
+eligible DOS state. New DR-DOS measurement is a
 targeted fallback for an unresolved owner, lifetime, or public API question;
 it is not a reason to repeat the broad survey. Every such run must use the same
 hardware and startup policy as the MS-DOS comparison, record hashes and public
@@ -1180,15 +1193,16 @@ not repeat broad DR-DOS surveys. Use this implementation-led loop next:
 4. convert the result into a local design, byte budget, and regression gate.
 
 DR-DOS source code and reconstruction of proprietary instruction sequences are
-out of scope. The immediate application is COMMAND/HMA; EMM386's low gateway
-and movable DOS state follow unless a targeted measurement changes that order.
+out of scope. The immediate application is EMM386's low gateway; movable DOS
+state follows unless a targeted measurement changes that order.
 
 ### Completed baseline investigation: DR-DOS HMA-mode memory
 
-**Status and priority:** the clean-room baseline is complete. Apply its lessons
-in this order: finish coherent COMMAND/HMA relocation, build the small EMM386
-low gateway, then introduce the HMA/XMS/UMB placement ladder for movable DOS
-state. Return to DR-DOS black-box measurement only when a specific local owner
+**Status and priority:** the clean-room baseline is complete. The first coherent
+COMMAND/HMA relocation is complete and deeper shell work is paused. Apply the
+remaining lessons by building the small EMM386 low gateway, then introducing
+the HMA/XMS/UMB placement ladder for movable DOS state. Return to DR-DOS
+black-box measurement only when a specific local owner
 or API contract cannot be resolved from the existing captures and published
 documentation.
 
