@@ -155,10 +155,10 @@ def main() -> int:
         errors.append("default resident DATARES ownership boundaries are not ordered")
     if not (resident_catalog_start <= critical_lookup < critical_messages):
         errors.append("critical-message lookup routine is not retained before its relocatable catalog")
-    if rounded(resident_catalog_start) > 4752:
-        errors.append("DOS-high permanent COMMAND exceeds its 4,752-byte budget")
-    if rounded(datares_end) > 6032:
-        errors.append("low/failure COMMAND fallback exceeds its 6,032-byte budget")
+    if rounded(resident_catalog_start) > 4736:
+        errors.append("DOS-high permanent COMMAND exceeds its 4,736-byte budget")
+    if rounded(datares_end) > 6016:
+        errors.append("low/failure COMMAND fallback exceeds its 6,016-byte budget")
     if not (datares_end == parse_messages <= extended_messages <= extended_end == data.end):
         errors.append("optional resident-message boundaries do not cover the DATARES tail")
     if not (0x100 <= resident_code_end <= code.end):

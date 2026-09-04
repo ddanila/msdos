@@ -682,7 +682,8 @@ ktret:						;AN000;  3/3/KK
 ; *
 ; * INPUT:	 none
 ; *
-; * OUTPUT:	 none
+; * OUTPUT:	 AX, DX, DI, and ES destroyed.  Both resident callers exit
+; *		 immediately after restoring the DOS message pointer.
 ; *
 ; ****************************************************************
 
@@ -690,10 +691,6 @@ reset_msg_pointers	proc	near
 
 assume	ds:resgroup, es:nothing
 
-	push	es				;AN000; save used registers
-	push	ax				;AN000;
-	push	dx				;AN000;
-	push	di				;AN000;
 ;AD060; mov	ah,multdos			;AN000; reset parse message pointers
 ;AD060; mov	al,message_2f			;AN000; call for message retriever
 ;AD060; mov	dl,set_parse_msg		;AN000; set up parse message address
@@ -708,10 +705,6 @@ assume	ds:resgroup, es:nothing
 	mov	di,crit_msg_off 		;AN000; old offset of critical messages
 	mov	es,crit_msg_seg 		;AN000; old segment of critical messages
 	int	2fh				;AN000; go set it
-	pop	di				;AN000; restore used registers
-	pop	dx				;AN000;
-	pop	ax				;AN000;
-	pop	es				;AN000;
 
 	ret
 
