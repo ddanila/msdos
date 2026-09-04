@@ -272,6 +272,11 @@ def main() -> int:
             "_AlterMapAndCall",
             "_MoveExchangeMemory",
             "_AlternateMapRegisterSet",
+            "Map_Lin_OEM",
+            "UMap_Lin_OEM",
+            "Set_Par_Vect",
+            "Rest_Par_Vect",
+            "Parity_Handler",
         ):
             if symbol_offset(symbols, name, text.paragraph) < split:
                 raise ValueError(f"protected EMS service {name} remains low")
@@ -399,9 +404,9 @@ def main() -> int:
         args.check
         and (args.handles, args.alternate_registers, args.ems_pages, args.physical_pages)
         == (64, 7, 64, 4)
-        and runtime_ranges[-1].end > 5088
+        and runtime_ranges[-1].end > 4976
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 5,088 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 4,976 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     print(
         f"\nSelected layout: `H={args.handles}`, `A={args.alternate_registers}`, "

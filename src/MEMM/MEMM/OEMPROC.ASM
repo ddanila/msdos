@@ -28,12 +28,19 @@
 .lfcond 				; list false conditionals
 
 IFNDEF OEMPROC_DISABLE_ONLY
+IFNDEF OEMPROC_PROTECTED_ONLY
 public	VerifyMachine
 public	MaskIntAll
 public	RestIntMask
 ifndef NOHIMEM
 public	OEM_Trap_Init
 endif
+public	ROM_BIOS_Machine_ID
+public	OEM_Init_Diag_Page
+public	NMI_Old
+public	NMI_New
+ENDIF
+IFNDEF OEMPROC_LOW_ONLY
 public	Map_Lin_OEM
 public	UMap_Lin_OEM
 ifndef NOHIMEM
@@ -43,9 +50,8 @@ public	MB_Start
 endif
 public	Rest_Par_Vect
 public	Set_Par_Vect
-
-public	ROM_BIOS_Machine_ID
-public	OEM_Init_Diag_Page
+public	Parity_Handler
+ENDIF
 ENDIF
 IFNDEF OMIT_DISABLE_NMI
 public	DisableNMI
@@ -152,15 +158,27 @@ DIAGSEG ends
 ;
 ; data definitions
 ;
+IFDEF OEMPROC_LOW_ONLY
+_TEXT	segment
+extrn	Parity_Handler:far
+_TEXT	ends
+ENDIF
+
 _DATA	segment
 
 IFNDEF OEMPROC_DISABLE_ONLY
+IFDEF OEMPROC_PROTECTED_ONLY
+extrn	NMI_Old:byte
+extrn	NMI_New:byte
+ELSE
 NMI_Old 	db	8 dup (0)	; save area for old NMI handler
 
 NMI_New label	byte		; descriptor for new NMI handler
 IDT_ENTRY	VDMC_GSEL,<offset _TEXT:Parity_Handler>,D_386INT0
+ENDIF
 
 ;
+IFNDEF OEMPROC_PROTECTED_ONLY
 ifndef	NOHIMEM 		; if high memory in this model
 ;Next two entries MUST stay together!
 hbase_addr_l	dw	0000h	; 24 bit address of beginning of hi memory
@@ -183,6 +201,7 @@ ROM_BIOS_Machine_ID db	0fch	; hard coded right now to AT model byte.
 				; should be changed to be initialised at
 				; init time ...isp
 ENDIF
+ENDIF
 
 
 _DATA	ends
@@ -192,6 +211,7 @@ _DATA	ends
 _TEXT	segment
 	ASSUME	CS:_TEXT, DS:DGROUP
 IFNDEF OEMPROC_DISABLE_ONLY
+IFNDEF OEMPROC_PROTECTED_ONLY
 
 ;******************************************************************************
 ;
@@ -336,6 +356,9 @@ HTL_exit:
 HwMemLock	endp
 
 endif				;end of "high" memory routines(ifndef NOHIMEM)
+
+ENDIF
+IFNDEF OEMPROC_LOW_ONLY
 
 ;******************************************************************************
 ;
@@ -624,6 +647,7 @@ endif
 
 Parity_Handler	endp
 ENDIF
+ENDIF
 
 ;*************************************************************************
 ;	DisableNMI -   This is called by the NMI handler to disable the
@@ -648,6 +672,7 @@ ENDIF
 _TEXT	ends
 
 IFNDEF OEMPROC_DISABLE_ONLY
+IFNDEF OEMPROC_PROTECTED_ONLY
 LAST	segment
 
 ;******************************************************************************
@@ -1128,6 +1153,8 @@ InitLOCK	endp
 R_CODE	ENDS
 
 endif					; end of code for not NOHIMEM
+
+ENDIF
 
 	end				; of module
 
