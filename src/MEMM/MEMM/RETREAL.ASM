@@ -51,8 +51,14 @@ page	58,132
 ;			P U B L I C   D E C L A R A T I O N S
 ;******************************************************************************
 ;
+	IFNDEF	RETREAL_HIGH_ONLY
 	public	RetReal
+	public	RetRealResume
+	ENDIF
+	IFNDEF	RETREAL_LOW_ONLY
+	public	RetRealHigh
 	public	Real_Seg
+	ENDIF
 
 	page
 ;******************************************************************************
@@ -74,9 +80,14 @@ _DATA	segment
 _DATA	ends
 
 _TEXT	segment
-
+	IFNDEF	RETREAL_LOW_ONLY
 	extrn	SelToSeg:near		; selector to segment	(I286)
+	extrn	RetRealResume:near
+	ENDIF
+	IFNDEF	RETREAL_HIGH_ONLY
+	extrn	RetRealHigh:near
 	extrn	DisableA20:near 	; disable A20 line	(MODESW)
+	ENDIF
 
 _TEXT	ends
 ;******************************************************************************
@@ -93,6 +104,19 @@ TRUE	equ	not FALSE
 
 _TEXT	segment
 	assume	cs:_TEXT, ds:DGROUP
+	IFNDEF	RETREAL_HIGH_ONLY
+
+real_gdt	label	qword
+real_idt	dw	0FFFFh		; limit
+		dw	0000		; base
+		dw	0000
+		dw	0000		; just in case
+
+RetReal proc near
+	jmp	RetRealHigh		; enter protected-only body in relocated copy
+RetReal endp
+
+	ENDIF
 
 ;***	RetReal - cause a 386 mode switch to real mode
 ;
@@ -120,14 +144,8 @@ endif
 ;
 ;	DESCRIPTION
 ;
-real_gdt	label	qword
-real_idt	dw	0FFFFh		; limit
-		dw	0000		; base
-		dw	0000
-		dw	0000		; just in case
-
-	public	RetReal
-RetReal proc near
+	IFNDEF	RETREAL_LOW_ONLY
+RetRealHigh proc near
 	PUSH_EAX			; save two scratch registers
 	push	bx
 	cli				; disable ints
@@ -193,10 +211,14 @@ rl386_a:
 
 					; flush prefetched instructions with:
 	db	0EAh			; Far Jump opcode
-	dw	offset _TEXT:rl386_b	; destination offset
+	dw	offset _TEXT:RetRealResume ; destination offset in retained low copy
 Real_Seg	label	word
 	dw	_TEXT			; destination segment
-rl386_b:
+RetRealHigh endp
+	ENDIF
+
+	IFNDEF	RETREAL_HIGH_ONLY
+RetRealResume:
 	OP32				; load up full IDT address
 	lidt	fword ptr cs:[real_idt]
 
@@ -219,7 +241,7 @@ rl386_b:
 	pop	bx
 	POP_EAX
 	ret				; *** RETURN ***
-RetReal endp
+	ENDIF
 
 _TEXT	ends
 	end
