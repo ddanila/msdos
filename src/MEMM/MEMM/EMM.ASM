@@ -119,10 +119,10 @@ EMM_HW_MALFUNCTION	equ	81h	;
 EMM_PROTECTED_FIRST	equ	40h
 EMM_PROTECTED_LAST	equ	5Ch
 EMM_PROTECTED_HIGH_BASE equ	EMM_PROTECTED_FIRST+16
-; Low selects 40h..46h, 48h, 4Bh, and 4Eh..4Fh.  High selects 50h..57h and
+; Low selects 40h..46h, 48h, and 4Bh..4Fh.  High selects 50h..57h and
 ; 59h..5Ch.  Compact constants also avoid JWasm's limit on
 ; the expanded length of continued EQU expressions.
-EMM_PROTECTED_MASK_LOW equ 0C97Fh
+EMM_PROTECTED_MASK_LOW equ 0F97Fh
 EMM_PROTECTED_MASK_HIGH equ 01EFFh
 
 ;******************************************************************************

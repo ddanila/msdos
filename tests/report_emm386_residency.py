@@ -220,6 +220,8 @@ def main() -> int:
             "_GetUnallocatedPageCount",
             "_GetEMMVersion",
             "_GetEMMHandleCount",
+            "_GetEMMHandlePages",
+            "_GetAllEMMHandlePages",
             "_get_pages",
             "_free_pages",
             "_AllocatePages",
@@ -242,8 +244,6 @@ def main() -> int:
             "EMM_Protected_Functions",
             "EMM_rLink",
             "dispatch_vector",
-            "_GetEMMHandlePages",
-            "_GetAllEMMHandlePages",
             "_SavePageMap",
             "_GetMappablePAddrArrayFixed",
             "int67_Entry",
@@ -361,9 +361,9 @@ def main() -> int:
         args.check
         and (args.handles, args.alternate_registers, args.ems_pages, args.physical_pages)
         == (64, 7, 64, 4)
-        and runtime_ranges[-1].end > 6416
+        and runtime_ranges[-1].end > 6320
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 6,416 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 6,320 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     print(
         f"\nSelected layout: `H={args.handles}`, `A={args.alternate_registers}`, "
