@@ -40,6 +40,7 @@ PUBLIC_RECORD = re.compile(
 PUBLIC_RECORD_NAMES = {
     "DOS_VERSION", "DOS_ALLOC_STRATEGY", "DOS_UMB_LINK", "XMS_PRESENT",
     "XMS_VERSION", "A20_QUERY", "XMS_FREE", "XMS_UMB_LARGEST",
+    "HMA_REQUEST", "HMA_RELEASE", "A20_FINAL",
     "EMS_STATUS", "EMS_VERSION", "EMS_FRAME", "EMS_PAGES",
 }
 
@@ -401,11 +402,21 @@ def parse_public_interfaces(output: str) -> dict[str, Any]:
         raise ValueError("missing public-interface record(s): " + ", ".join(sorted(missing)))
 
     xms_available = records["XMS_PRESENT"]["ax"] & 0xff == 0x80
-    xms_records = {"XMS_VERSION", "A20_QUERY", "XMS_FREE", "XMS_UMB_LARGEST"}
+    xms_records = {
+        "XMS_VERSION", "A20_QUERY", "XMS_FREE", "XMS_UMB_LARGEST",
+        "HMA_REQUEST", "A20_FINAL",
+    }
     if xms_available:
         missing = xms_records - records.keys()
         if missing:
             raise ValueError("missing XMS record(s): " + ", ".join(sorted(missing)))
+        hma_acquired = records["HMA_REQUEST"]["ax"] != 0
+        if hma_acquired and "HMA_RELEASE" not in records:
+            raise ValueError("missing HMA_RELEASE after successful request")
+        if not hma_acquired and "HMA_RELEASE" in records:
+            raise ValueError("unexpected HMA_RELEASE after failed request")
+        if records["A20_QUERY"]["ax"] != records["A20_FINAL"]["ax"]:
+            raise ValueError("HMA transaction changed A20 state")
     elif "XMS_UNAVAILABLE" not in output:
         raise ValueError("missing XMS_UNAVAILABLE record")
 

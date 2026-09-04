@@ -1428,8 +1428,15 @@ The XMS UMB query matches VC's free-UMB total exactly in every EMM386 case.
 high-placement policy does not depend on publicly linking the MS-DOS UMB arena.
 `/FRAME=NONE` removes the EMS interface rather than merely hiding a frame;
 `/FRAME=AUTO` supplies EMS 4.0. These are observable API contracts, not evidence
-about proprietary internal code. A disposable transactional HMA request and a
-warm-reboot comparison remain before the focused mechanism checkpoint closes.
+about proprietary internal code.
+
+The isolated HMA transaction is also complete. `HIDOS.SYS`, EMM386 with
+`HIDOS=ON`, and EMM386 with `HIBUFFERS=15` all report A20 enabled, reject a
+whole-HMA request with XMS error `91h` (already allocated), and report A20 still
+enabled afterward. No release is issued after a failed request. Thus DR-DOS's
+reported free-HMA value is unused tail inside the system-owned HMA allocation,
+not a second allocatable HMA. A warm-reboot comparison remains before the
+focused mechanism checkpoint closes.
 
 DR-DOS 6 therefore leaves 9,088 bytes more than retail MS-DOS 6.22 and 32,000
 bytes more than this implementation. The fair ordinary comparison reconciles

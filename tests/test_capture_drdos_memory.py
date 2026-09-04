@@ -39,6 +39,8 @@ XMS_VERSION CF=0 AX=0200 BX=0200 DX=0001
 A20_QUERY CF=0 AX=0001 BX=0200 DX=0001
 XMS_FREE CF=0 AX=1C00 BX=0000 DX=1C00
 XMS_UMB_LARGEST CF=0 AX=0000 BX=00B0 DX=1234
+HMA_REQUEST CF=0 AX=0000 BX=0091 DX=FFFF
+A20_FINAL CF=0 AX=0001 BX=0091 DX=FFFF
 EMS_STATUS CF=0 AX=0000 BX=00B0 DX=1234
 EMS_VERSION CF=0 AX=0040 BX=00B0 DX=1234
 EMS_FRAME CF=0 AX=0000 BX=D000 DX=1234
@@ -92,6 +94,23 @@ class CaptureParserTest(unittest.TestCase):
         self.assertTrue(result["ems_available"])
         self.assertEqual(result["records"]["XMS_VERSION"]["ax"], 0x0200)
         self.assertEqual(result["records"]["EMS_FRAME"]["bx"], 0xD000)
+
+    def test_successful_hma_transaction_requires_release(self) -> None:
+        successful = INTERFACES.replace(
+            "HMA_REQUEST CF=0 AX=0000 BX=0091 DX=FFFF",
+            "HMA_REQUEST CF=0 AX=0001 BX=0000 DX=FFFF",
+        ).replace(
+            "A20_FINAL CF=0 AX=0001 BX=0091 DX=FFFF",
+            "HMA_RELEASE CF=0 AX=0001 BX=0000 DX=FFFF\n"
+            "A20_FINAL CF=0 AX=0001 BX=0091 DX=FFFF",
+        )
+        self.assertIn(
+            "HMA_RELEASE", CAPTURE.parse_public_interfaces(successful)["records"]
+        )
+        with self.assertRaisesRegex(ValueError, "missing HMA_RELEASE"):
+            CAPTURE.parse_public_interfaces(successful.replace(
+                "HMA_RELEASE CF=0 AX=0001 BX=0000 DX=FFFF\n", ""
+            ))
 
     def test_public_interface_parser_rejects_duplicates(self) -> None:
         with self.assertRaisesRegex(ValueError, "duplicate"):

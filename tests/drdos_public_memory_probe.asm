@@ -52,6 +52,23 @@ start:
     call far [xms_entry]
     mov si, umb_largest_label
     call print_record
+
+    mov ah, 01h
+    mov dx, 0ffffh
+    call far [xms_entry]
+    mov si, hma_request_label
+    call print_record
+    or ax, ax
+    jz short .hma_not_acquired
+    mov ah, 02h
+    call far [xms_entry]
+    mov si, hma_release_label
+    call print_record
+.hma_not_acquired:
+    mov ah, 07h
+    call far [xms_entry]
+    mov si, a20_final_label
+    call print_record
     jmp short probe_ems
 
 no_xms:
@@ -218,6 +235,9 @@ xms_version_label db 'XMS_VERSION', 0
 a20_initial_label db 'A20_QUERY', 0
 xms_free_label db 'XMS_FREE', 0
 umb_largest_label db 'XMS_UMB_LARGEST', 0
+hma_request_label db 'HMA_REQUEST', 0
+hma_release_label db 'HMA_RELEASE', 0
+a20_final_label db 'A20_FINAL', 0
 ems_status_label db 'EMS_STATUS', 0
 ems_version_label db 'EMS_VERSION', 0
 ems_frame_label db 'EMS_FRAME', 0
