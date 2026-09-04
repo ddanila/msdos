@@ -1142,6 +1142,15 @@ code is permitted. Runtime inspection is limited to public interfaces,
 allocation maps, addresses, and lifetimes and must not be used to reconstruct
 proprietary instruction sequences.
 
+**Restart priority:** use the completed documentation and controlled-memory
+baseline before doing more local byte harvesting. First test the DR-DOS lesson
+with the highest plausible payoff—permanent shell and kernel payload in HMA—then
+the small EMM386 gateway, then movable DOS state. New DR-DOS measurement is a
+targeted fallback for an unresolved owner, lifetime, or public API question;
+it is not a reason to repeat the broad survey. Every such run must use the same
+hardware and startup policy as the MS-DOS comparison, record hashes and public
+memory/API observations, and remain source-free.
+
 | Rank | Externally evidenced technique | Local budget and owner | State and decisive gate |
 | ---: | --- | --- | --- |
 | 1 | Keep the kernel and permanent shell payload in HMA; documented for 286-class HIDOS and measured on both DR-DOS generations | COMMAND is 1,984 bytes above retail; 16,603 bytes remain in the local DOS-owned HMA tail | In progress: the normal resident catalog range adds 1,248 bytes to VC, the exact resident-class bound adds 16, transient redirection state adds 80, the checked message workspace adds 16, and the first service audit adds 16. Continue only with coherent ranges that pass reload, `INT 2Eh`, `INT 24h`, A20, DOS=LOW, `/MSG`, and real-286 tests |
