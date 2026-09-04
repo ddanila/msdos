@@ -112,20 +112,21 @@ EMM_GET_INFORMATION	equ	59h	; get hardware information
 EMM_ALLOCATE_RAW	equ	5Ah	; allocate raw pages
 EMM_ALTER_MAP_REG_SET	equ	5Bh	; alternate map register set
 EMM_PREPARE_WARM_BOOT	equ	5Ch	; prepare manager for warm boot
+EMM_OS_DISABLE		equ	5Dh	; enable/disable OS/E function set
 
 EMM_HW_MALFUNCTION	equ	81h	;
 
-; Bits 0..28 correspond to functions 40h..5Ch.  A set bit selects the
+; Bits 0..29 correspond to functions 40h..5Dh.  A set bit selects the
 ; protected/locked-XMS implementation.  Keep this in the retained _TEXT
 ; prefix because EMM_rLink consults it before entering protected mode.
 EMM_PROTECTED_FIRST	equ	40h
-EMM_PROTECTED_LAST	equ	5Ch
+EMM_PROTECTED_LAST	equ	5Dh
 EMM_PROTECTED_HIGH_BASE equ	EMM_PROTECTED_FIRST+16
-; Low selects 40h..48h and 4Bh..4Fh.  High selects 50h..5Ch.
+; Low selects 40h..48h and 4Bh..4Fh.  High selects 50h..5Dh.
 ; Compact constants also avoid JWasm's limit on
 ; the expanded length of continued EQU expressions.
 EMM_PROTECTED_MASK_LOW equ 0F9FFh
-EMM_PROTECTED_MASK_HIGH equ 01FFFh
+EMM_PROTECTED_MASK_HIGH equ 03FFFh
 
 ;******************************************************************************
 ;			E X T E R N A L    R E F E R E N C E S

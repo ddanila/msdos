@@ -35,6 +35,8 @@ emmpent+
 ..\emm\emmfunct+
 ..\emm\emmmapp+
 ..\emm\emmsave+
+..\emm\emm40+
+..\emm\emmkey+
 ..\emm\emmsup+
 ..\emm\emmalloc+
 ..\emm\emmrealloc+
