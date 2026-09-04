@@ -27,6 +27,7 @@
 .386p
 .lfcond 				; list false conditionals
 
+IFNDEF OEMPROC_DISABLE_ONLY
 public	VerifyMachine
 public	MaskIntAll
 public	RestIntMask
@@ -39,9 +40,12 @@ public	MB_Start
 public	Rest_Par_Vect
 public	Set_Par_Vect
 
-public	DisableNMI
 public	ROM_BIOS_Machine_ID
 public	OEM_Init_Diag_Page
+ENDIF
+IFNDEF OMIT_DISABLE_NMI
+public	DisableNMI
+ENDIF
 
 
 ifndef	NOHIMEM
@@ -146,6 +150,7 @@ DIAGSEG ends
 ;
 _DATA	segment
 
+IFNDEF OEMPROC_DISABLE_ONLY
 NMI_Old 	db	8 dup (0)	; save area for old NMI handler
 
 NMI_New label	byte		; descriptor for new NMI handler
@@ -173,6 +178,7 @@ int_mask    db	?		; save for restoring masked interrupts
 ROM_BIOS_Machine_ID db	0fch	; hard coded right now to AT model byte.
 				; should be changed to be initialised at
 				; init time ...isp
+ENDIF
 
 
 _DATA	ends
@@ -181,6 +187,7 @@ _DATA	ends
 
 _TEXT	segment
 	ASSUME	CS:_TEXT, DS:DGROUP
+IFNDEF OEMPROC_DISABLE_ONLY
 
 ;******************************************************************************
 ;
@@ -502,10 +509,10 @@ MB_Start	endp
 ;*************************************************************************
 	assume	cs:_TEXT, ds:NOTHING, es:NOTHING
 Set_Par_Vect   proc    near
-	mov	ax,VDMD_GSEL
-	mov	es,ax		; ES pts to DGROUP
-	mov	ax,IDTD_GSEL	;
-	mov	ds,ax		; DS points to IDT
+	push	VDMD_GSEL
+	pop	es		; ES pts to DGROUP
+	push	IDTD_GSEL
+	pop	ds		; DS points to IDT
 
 	mov	si,0010h	; DS:[SI] points to NMI descr address in IDT
 	mov	di,offset DGROUP:NMI_Old	; ES:[DI] pts to store area
@@ -546,8 +553,8 @@ Rest_Par_Vect	proc	near
 ifndef	NOHIMEM
 	call	HwMemUnlock		    ; in case IDT is in high mem
 endif
-	mov	ax,IDTD_GSEL		    ; selector for IDT
-	mov	es,ax			    ; ES points to IDT
+	push	IDTD_GSEL		    ; selector for IDT
+	pop	es			    ; ES points to IDT
 
 	mov	di,0010h		    ; ES:[DI] points to NMI descr address in IDT
 	mov	si,offset DGROUP:NMI_Old    ; DS:[SI] pts to store area
@@ -582,8 +589,7 @@ Parity_Handler	proc	far
 	in	al,PPI		;;; Get parity error flags, reset then set
 	jmp	$+2		;;; parity checking to reset parity on
 	jmp	$+2		;;; system board
-	or	al,PPO_MASK_IOCHECK	;;; disable IOCHECK
-	or	al,PPO_MASK_PCHECK	;;; disable PCHECK
+	or	al,PPO_MASK_IOCHECK OR PPO_MASK_PCHECK ; disable parity checks
 	out	PPO,al		;;; disable them
 	jmp	$+2
 	jmp	$+2
@@ -593,20 +599,20 @@ ifndef	NOHIMEM
 	call	HwMemlock	;;; LOCK high sys mem
 endif
 
-	and	al, NOT PPO_MASK_IOCHECK	;;; enable IOCHECK
-	and	al, NOT PPO_MASK_PCHECK 	;;; enable PCHECK
+	and	al,NOT (PPO_MASK_IOCHECK OR PPO_MASK_PCHECK) ; enable checks
 	out	PPO,al		;;; enable them
 				;;; system board parity now reset
 
 ;
-	mov	ax,VDMD_GSEL	;;;
-	mov	ds,ax		;;; set DS to data seg
+	push	VDMD_GSEL	;;;
+	pop	ds		;;; set DS to data seg
 	assume	ds:DGROUP
 	mov	[MB_Stat],1	;;; set parity error
 	add	sp,12		;;; remove NMI stuff from stack
 	jmp	MB_Exit 	;;; and exit move block
 
 Parity_Handler	endp
+ENDIF
 
 ;*************************************************************************
 ;	DisableNMI -   This is called by the NMI handler to disable the
@@ -617,6 +623,7 @@ Parity_Handler	endp
 ;
 ;	note: entry is from 386 protected mode
 ;*************************************************************************
+IFNDEF OMIT_DISABLE_NMI
 	assume	cs:_TEXT, ds:NOTHING, es:NOTHING
 DisableNMI     proc    near
 	push	ax
@@ -625,9 +632,11 @@ DisableNMI     proc    near
 	pop	ax
 	ret
 DisableNMI     endp
+ENDIF
 
 _TEXT	ends
 
+IFNDEF OEMPROC_DISABLE_ONLY
 LAST	segment
 
 ;******************************************************************************
@@ -1063,6 +1072,7 @@ IT_set_entry:
 OEM_Init_Diag_Page  endp
 
 LAST	ends				; End of segment
+ENDIF
 
 ifndef	NOHIMEM 			; if high memory in this model
 
