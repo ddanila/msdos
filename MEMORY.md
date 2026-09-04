@@ -1130,7 +1130,7 @@ block.
 | ---: | --- | ---: | --- |
 | Complete | Split the remaining COMMAND service census | The normal catalogs and 1,166-byte relocatable code range are high; the checked 955-byte low range is now divided into nine ownership spans | 820 bytes are asynchronous or registered handlers; independent helpers are gateway-scale |
 | Paused | Move more COMMAND cold state high or transient | COMMAND remains 880 bytes above retail and DR-DOS demonstrates a smaller resident shell | Resume as a coherent interrupt/data redesign after larger workstreams, preserving reload and asynchronous paths |
-| 1 | Extend the EMM386 low gateway | 1,008-byte excess over retail; services, return and A20 trap handling, and protected `RetReal` execute from locked XMS | Redesign the remaining active transition, DMA, fault, and return gateways; preserve every EMS map |
+| 1 | Extend the EMM386 low gateway | 1,008-byte excess over retail; services, return and A20 trap handling, and protected `RetReal` execute from locked XMS | Treat OEM mapping/parity handling as one coupled EMS boundary, then redesign the remaining transition, DMA, fault, and return gateways; preserve every EMS map |
 | 1 | Compact EMM386 metadata while changing that boundary | The loader stack is discarded, duplicate PTE offsets and inverse segment index are gone, protected entry/services/helpers are high, and duplicate null requests are gone; remaining work is included in the 1,008-byte excess | Take independently testable descriptor, VDATA, table, and alignment wins without delaying the gateway design |
 | 5 | Census and relocate eligible DOS low state | Part of the 8,096-byte DOS/BIOS remainder; 6,992 bytes allocated locally | Apply HMA, relocation-safe XMS, then bounded UMB placement according to ownership and lifetime |
 | 6 | Compact the selected BIOS resident image | Part of the same 8,096-byte remainder; the fixed hardware path is exactly 8,912 bytes | Attribute the `ENDONEHARD` base and relocated CMOS helpers, then compact without changing BIOS-visible services |
@@ -1775,6 +1775,13 @@ paragraph rounding reduces EMM386 from 5,312 to 5,136 bytes and raises VC from
 606,080 to 606,256 bytes, leaving a 12,480-byte gap. Fast port-92 and 8042 A20
 virtualization, move-block toggles, modes, transactions, warm reboot, all
 frames/options, shifted loads, and the hardware matrix pass locally.
+
+The next apparent OEM split is not an independent byte harvest. Moving parity
+handling together with the OEM mapping hooks, or leaving parity low while
+moving only `Map_Lin_OEM`, `UMap_Lin_OEM`, and the move-block hooks, makes the
+extended EMS 4.0 probe stop completing. Both trials are rejected. Revisit this
+range only as a coupled mapping/parity gateway with an explicit cross-boundary
+contract; keep the current 5,136-byte image as the proven baseline meanwhile.
 
 A prior whole-library linker reorder was rejected because it moved the service
 dispatcher without first giving real-mode and inactive-`AUTO` callers an
