@@ -5,54 +5,70 @@ start:
     push cs
     pop ds
 
+    xor bx, bx
+    xor dx, dx
     mov ah, 30h
     int 21h
     mov si, dos_version_label
     call print_record
 
+    xor bx, bx
+    xor dx, dx
     mov ax, 5800h
     int 21h
     mov si, dos_strategy_label
     call print_record
 
+    xor bx, bx
+    xor dx, dx
     mov ax, 5802h
     int 21h
     mov si, dos_umb_link_label
     call print_record
 
+    xor bx, bx
+    xor dx, dx
     mov ax, 4300h
     int 2fh
     mov si, xms_present_label
     call print_record
     cmp al, 80h
-    jne short no_xms
+    jne no_xms
 
     mov ax, 4310h
     int 2fh
     mov [xms_entry], bx
     mov [xms_entry+2], es
 
+    xor bx, bx
+    xor dx, dx
     xor ah, ah
     call far [xms_entry]
     mov si, xms_version_label
     call print_record
 
+    xor bx, bx
+    xor dx, dx
     mov ah, 07h
     call far [xms_entry]
     mov si, a20_initial_label
     call print_record
 
+    xor bx, bx
+    xor dx, dx
     mov ah, 08h
     call far [xms_entry]
     mov si, xms_free_label
     call print_record
 
+    xor bx, bx
     mov ah, 10h
     mov dx, 0ffffh
     call far [xms_entry]
     mov si, umb_largest_label
     call print_record
 
+    xor bx, bx
     mov ah, 01h
     mov dx, 0ffffh
     call far [xms_entry]
@@ -60,11 +76,15 @@ start:
     call print_record
     or ax, ax
     jz short .hma_not_acquired
+    xor bx, bx
+    xor dx, dx
     mov ah, 02h
     call far [xms_entry]
     mov si, hma_release_label
     call print_record
 .hma_not_acquired:
+    xor bx, bx
+    xor dx, dx
     mov ah, 07h
     call far [xms_entry]
     mov si, a20_final_label
@@ -93,21 +113,29 @@ probe_ems:
     loop .signature_loop
     pop ds
 
+    xor bx, bx
+    xor dx, dx
     mov ah, 40h
     int 67h
     mov si, ems_status_label
     call print_record
 
+    xor bx, bx
+    xor dx, dx
     mov ah, 46h
     int 67h
     mov si, ems_version_label
     call print_record
 
+    xor bx, bx
+    xor dx, dx
     mov ah, 41h
     int 67h
     mov si, ems_frame_label
     call print_record
 
+    xor bx, bx
+    xor dx, dx
     mov ah, 42h
     int 67h
     mov si, ems_pages_label

@@ -738,7 +738,7 @@ until an A/B image measures them.
 
 | Priority | Opportunity | Available evidence | Likely scale | Principal constraint |
 | --- | --- | --- | ---: | --- |
-| In progress | Audit DR-DOS's HMA-mode advantage | Controlled DR-DOS 6.0 and OpenDOS 7.01 matrices reconcile the coarse owner spans; the capture tool now pins artifact identities and retains normalized ownership evidence | mechanism checkpoint | Finish page-level policy attribution and separate decisive placement controls from optional compatibility modes; no source code |
+| Complete | Audit DR-DOS's HMA-mode advantage | Controlled DR-DOS 6.0 and OpenDOS 7.01 matrices reconcile owner spans, public memory APIs, HMA ownership, optional policies, and warm reset | research complete | No source code used; pinned artifacts, identical inputs, isolated probes, and compatibility modes remain separated |
 | Complete | Census fixed HMA ownership and COMMAND's top-level resident ranges | The checked map identifies 17,932 initially free bytes of DOS-owned HMA tail and the 1,281-byte normal resident catalog range | attribution complete through the first full payload range | Symbol-level COMMAND and DOS/BIOS ownership remains in D1/A3 |
 | Paused | Move more COMMAND cold state high or transient | The 1,281-byte normal catalog and 1,166-byte code range are high; 820 of the remaining 955 low service bytes belong to the installed interrupt handler and registered disk callback | under one kilobyte, then better-than-retail opportunities | Resume only as a coherent interrupt/data redesign, not for gateway-scale helpers |
 | 1 | Complete the small EMM386 low gateway backed by locked XMS | Local EMM386 now matches retail at 4,128 bytes; services, return and A20/NMI trap handling, protected `RetReal`, stack-selector conversion, OEM mapping/parity handling, and the protected `GoVirtual` continuation execute from locked XMS; command-mode client and unused production descriptors are nonresident | better-than-retail headroom remains possible | Remaining transition, DMA, and fault gateways; inactive `AUTO`; all EMS maps |
@@ -1171,14 +1171,12 @@ block.
 | 10 | Revisit HIMEM only if the measured residual requires it | 1,488-byte excess over retail; incremental work paused | Resume only with a paragraph-scale, map-supported opportunity and preserve every existing gate |
 | 11 | Redesign the DOS-low or COMMAND boundary further | Architectural fallback | Choose the smallest design with a byte budget that covers the remaining measured gap and compatibility margin |
 
-The DR-DOS evidence below sets the order. First validate, from documentation
-and controlled runtime observations, which placement policies produce its
-larger ordinary HMA-mode block. Then extend the EMM386 low gateway and apply the
-DOS placement ladder. The initial COMMAND/HMA gain is retained, but deeper
-shell work is paused. Next coalesce layout and recover the bounded EBDA
-paragraph; revisit HIMEM only for a measured residual. Recalculate the success
-equation after every retained step and keep both the conventional and UMB
-floors visible.
+The completed DR-DOS checkpoint sets the order: extend the EMM386 low gateway,
+then apply the DOS placement ladder. The initial COMMAND/HMA gain is retained,
+but deeper shell work is paused. Next coalesce layout and recover the bounded
+EBDA paragraph; revisit HIMEM only for a measured residual. Recalculate the
+success equation after every retained step and keep both the conventional and
+UMB floors visible.
 
 ### DR-DOS clean-room adoption register
 
@@ -1188,13 +1186,10 @@ code is permitted. Runtime inspection is limited to public interfaces,
 allocation maps, addresses, and lifetimes and must not be used to reconstruct
 proprietary instruction sequences.
 
-**Restart priority:** pause local byte harvesting for one focused clean-room
-checkpoint. Reconcile the existing DR-DOS measurements with its published
-placement controls and verify the decisive cases at runtime. This is not a
-general product survey: it must answer which documented techniques create the
-larger ordinary HMA-mode block and which can be adopted without weakening DOS,
-UMB, XMS, or EMS compatibility. After that checkpoint, build the small EMM386
-gateway and then move eligible DOS state.
+**Restart priority:** the focused clean-room checkpoint is complete. Build the
+small EMM386 gateway next, then move eligible DOS state. Further DR-DOS work is
+limited to a targeted unresolved owner, lifetime, or public API question; do
+not resume a general product survey.
 
 Use this sequence:
 
@@ -1232,17 +1227,15 @@ the [DR-DOS 6 User Guide](https://www.bitsavers.org/pdf/novell/dr_dos/DR_DOS_6.0
 the [Novell DOS 7 User Guide](https://bitsavers.org/pdf/novell/dr_dos/DR_DOS_7_User_Guide_1993.pdf),
 and hashed DR-DOS media from the [PCjs DR-DOS 6 archive](https://www.pcjs.org/software/pcx86/sys/dos/dresearch/6.00/).
 Generated captures remain untracked. The baseline comparison is complete; do
-not repeat broad DR-DOS surveys. Use the focused checkpoint above to audit its
-attribution and adoption choices. DR-DOS source code and reconstruction of
-proprietary instruction sequences are out of scope.
+not repeat broad DR-DOS surveys. DR-DOS source code and reconstruction of
+proprietary instruction sequences remain out of scope.
 
 ### Completed baseline investigation: DR-DOS HMA-mode memory
 
-**Status and priority:** the clean-room baseline capture is complete. Its
-mechanism attribution and adoption choices are now the next focused checkpoint.
-The first coherent COMMAND/HMA relocation is complete and deeper shell work is
-paused. After the checkpoint, apply the validated lessons by building the small
-EMM386 low gateway, then introducing the HMA/XMS/UMB placement ladder for
+**Status and priority:** the clean-room baseline and focused mechanism
+checkpoint are complete. The first coherent COMMAND/HMA relocation is complete
+and deeper shell work is paused. Apply the validated lessons by building the
+small EMM386 low gateway, then introducing the HMA/XMS/UMB placement ladder for
 movable DOS state.
 
 The research goal was to explain, byte by byte where possible, why a
@@ -1435,8 +1428,9 @@ The isolated HMA transaction is also complete. `HIDOS.SYS`, EMM386 with
 whole-HMA request with XMS error `91h` (already allocated), and report A20 still
 enabled afterward. No release is issued after a failed request. Thus DR-DOS's
 reported free-HMA value is unused tail inside the system-owned HMA allocation,
-not a second allocatable HMA. A warm-reboot comparison remains before the
-focused mechanism checkpoint closes.
+not a second allocatable HMA. In the ordinary `HIDOS=ON`, `HIBUFFERS=15`
+configuration, the complete public-interface record is byte-for-byte identical
+before and after a controlled warm reset.
 
 DR-DOS 6 therefore leaves 9,088 bytes more than retail MS-DOS 6.22 and 32,000
 bytes more than this implementation. The fair ordinary comparison reconciles
@@ -1528,14 +1522,13 @@ An 86Box IBM AT run also boots DR-DOS 6's `HIDOS.SYS /BDOS=FFFF` path on an
 kernel/COMMAND HMA design is not dependent on virtual-8086 mode; UMB placement
 and the EMM386 architecture remain 386-specific.
 
-The baseline-capture gate is met: both releases reproduce from hashed binary
-media, the coarse ordinary-mode advantage reconciles through owner spans, and
-optional gains are separated. The focused mechanism checkpoint remains open
-until the documented controls, normalized owner rows, and adoption decisions
-are cross-checked. It does not require reverse engineering implementation
-details. After it closes, probe the exact local HMA owner and A20 lifetimes,
-prove which EMM386 entries can execute from protected/XMS storage, and design
-the DOS state placement ladder against the existing UMB floor.
+The clean-room gate is met: both releases reproduce from hashed binary media;
+the ordinary-mode advantage reconciles through owner spans and documented
+policies; optional gains are separated; public XMS, UMB, EMS, HMA, A20, and
+warm-reset behavior is recorded; and each portable technique has a local owner
+and regression boundary. Further work is implementation-led: complete the
+EMM386 low gateway, then design the DOS state placement ladder against the
+existing HMA and UMB floors.
 
 #### Published leads already identified
 

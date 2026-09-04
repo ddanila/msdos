@@ -10,6 +10,7 @@ import os
 from pathlib import Path
 import re
 import shutil
+import socket
 import struct
 import subprocess
 import sys
@@ -23,6 +24,7 @@ ROOT = Path(__file__).resolve().parents[1]
 SCREEN_EXPECT = ROOT / "tests" / "screen_expect.py"
 PUBLIC_PROBE_SOURCE = ROOT / "tests" / "drdos_public_memory_probe.asm"
 QEMU_EXIT_SOURCE = ROOT / "tests" / "qemu_exit.asm"
+WARM_REBOOT_SOURCE = ROOT / "tests" / "warm_reboot.asm"
 FLOPPY_BYTES = 1_474_560
 VC_ROW = re.compile(
     r"(?:^|║)\s*([0-9A-F]{4})\s+(\d+)\s+([0-9][0-9,]*)\s+"
@@ -249,9 +251,10 @@ def add_common_tools(base: Path, vc_image: Path, work: Path) -> str:
     return sha256(vc)
 
 
-def build_public_probe(work: Path) -> tuple[Path, Path, str]:
+def build_public_probe(work: Path) -> tuple[Path, Path, Path, str]:
     probe = work / "DRPROBE.COM"
     qexit = work / "QEXIT.COM"
+    warmboot = work / "WARMBOOT.COM"
     subprocess.run(
         ["nasm", "-f", "bin", str(PUBLIC_PROBE_SOURCE), "-o", str(probe)],
         check=True,
@@ -260,7 +263,11 @@ def build_public_probe(work: Path) -> tuple[Path, Path, str]:
         ["nasm", "-f", "bin", str(QEMU_EXIT_SOURCE), "-o", str(qexit)],
         check=True,
     )
-    return probe, qexit, sha256(probe)
+    subprocess.run(
+        ["nasm", "-f", "bin", str(WARM_REBOOT_SOURCE), "-o", str(warmboot)],
+        check=True,
+    )
+    return probe, qexit, warmboot, sha256(probe)
 
 
 def prepare_drdos6(media: Path, vc_image: Path, work: Path) -> tuple[Path, str, str]:
@@ -374,6 +381,114 @@ def capture_public_interfaces(
     return output
 
 
+def qmp_system_reset(socket_path: Path) -> None:
+    connection = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    connection.settimeout(10)
+    connection.connect(str(socket_path))
+    stream = connection.makefile("rwb", buffering=0)
+
+    def receive_response() -> dict[str, Any]:
+        while True:
+            line = stream.readline()
+            if not line:
+                raise RuntimeError("QMP connection closed")
+            response = json.loads(line)
+            if "return" in response or "error" in response:
+                return response
+
+    stream.readline()
+    stream.write(b'{"execute":"qmp_capabilities"}\n')
+    if "error" in receive_response():
+        raise RuntimeError("QMP capability negotiation failed")
+    stream.write(b'{"execute":"system_reset"}\n')
+    if "error" in receive_response():
+        raise RuntimeError("QMP system_reset failed")
+    stream.close()
+    connection.close()
+
+
+def capture_warm_public_interfaces(
+    configured_image: Path,
+    label: str,
+    work: Path,
+    probe: Path,
+    qexit: Path,
+    warmboot: Path,
+) -> tuple[str, str]:
+    image = work / f"{label}-interfaces-warm.ima"
+    autoexec = work / f"{label}-interfaces-warm.bat"
+    qmp = Path("/tmp") / f"drwarm-{os.getpid()}-{label}.qmp"
+    serial = work / f"{label}-interfaces-warm.log"
+    shutil.copyfile(configured_image, image)
+    for source, name in (
+        (probe, "DRPROBE.COM"),
+        (qexit, "QEXIT.COM"),
+        (warmboot, "WARMBOOT.COM"),
+    ):
+        install_file(image, source, name)
+    autoexec.write_bytes(
+        b"@ECHO OFF\r\n"
+        b"IF EXIST WARM.OK GOTO SECOND\r\n"
+        b"DRPROBE.COM > BEFORE.TXT\r\n"
+        b"ECHO READY>WARM.OK\r\n"
+        b"CTTY AUX\r\n"
+        b"WARMBOOT.COM\r\n"
+        b":SECOND\r\n"
+        b"DRPROBE.COM > AFTER.TXT\r\n"
+        b"QEXIT.COM\r\n"
+    )
+    install_file(image, autoexec, "AUTOEXEC.BAT")
+    qmp.unlink(missing_ok=True)
+    command = [
+        "qemu-system-i386", "-display", "none", "-monitor", "none",
+        "-machine", "pc", "-cpu", "486", "-m", "8",
+        "-drive", f"if=floppy,index=0,format=raw,file={image},cache=writethrough",
+        "-boot", "a", "-qmp", f"unix:{qmp},server=on,wait=off",
+        "-serial", f"file:{serial}",
+        "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    ]
+    process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    try:
+        deadline = time.monotonic() + 30
+        while time.monotonic() < deadline:
+            if process.poll() is not None:
+                raise RuntimeError(f"warm-reboot probe exited before reset for {label}")
+            if qmp.exists() and serial.exists() and "WARM_RESET_READY" in serial.read_text(
+                encoding="ascii", errors="replace"
+            ):
+                break
+            time.sleep(0.1)
+        else:
+            raise RuntimeError(f"warm-reboot probe did not reach reset point for {label}")
+        qmp_system_reset(qmp)
+        try:
+            process.wait(timeout=40)
+        except subprocess.TimeoutExpired as error:
+            raise RuntimeError(f"warm-reboot second boot timed out for {label}") from error
+    finally:
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
+        qmp.unlink(missing_ok=True)
+
+    outputs = []
+    for name in ("BEFORE.TXT", "AFTER.TXT"):
+        try:
+            value = subprocess.check_output(
+                ["mtype", "-i", str(image), f"::{name}"], env=mtools_env()
+            ).decode("ascii", errors="replace")
+        except subprocess.CalledProcessError as error:
+            raise RuntimeError(f"warm-reboot output {name} missing for {label}") from error
+        if "DRDOS_PUBLIC_MEMORY_END" not in value:
+            raise RuntimeError(f"warm-reboot output {name} incomplete for {label}")
+        outputs.append(value)
+    return outputs[0], outputs[1]
+
+
 def parse_vc_rows(screen: str) -> list[tuple[int, int, int, str]]:
     rows = {
         (int(segment, 16), int(blocks), int(size.replace(",", "")), owner.strip())
@@ -432,6 +547,35 @@ def parse_public_interfaces(output: str) -> dict[str, Any]:
         "ems_available": ems_available,
         "sha256": hashlib.sha256(output.encode("ascii", errors="replace")).hexdigest(),
     }
+
+
+def public_interface_semantics(parsed: dict[str, Any]) -> dict[str, tuple[int, ...]]:
+    records = parsed["records"]
+    semantics: dict[str, tuple[int, ...]] = {}
+    for name, record in records.items():
+        ax, bx, dx = record["ax"], record["bx"], record["dx"]
+        if name in {"DOS_VERSION", "XMS_VERSION"}:
+            semantics[name] = (ax, bx, dx)
+        elif name in {"DOS_ALLOC_STRATEGY", "DOS_UMB_LINK"}:
+            semantics[name] = (record["cf"], ax)
+        elif name == "XMS_PRESENT":
+            semantics[name] = (ax & 0xff,)
+        elif name in {"A20_QUERY", "A20_FINAL"}:
+            semantics[name] = (ax, bx & 0xff)
+        elif name == "XMS_FREE":
+            semantics[name] = (ax, dx, bx & 0xff)
+        elif name in {"XMS_UMB_LARGEST", "HMA_REQUEST", "HMA_RELEASE"}:
+            semantics[name] = (ax, bx & 0xff, dx)
+        elif name in {"EMS_STATUS", "EMS_VERSION"}:
+            semantics[name] = (ax,)
+        elif name == "EMS_FRAME":
+            semantics[name] = (ax >> 8, bx)
+        elif name == "EMS_PAGES":
+            semantics[name] = (ax >> 8, bx, dx)
+    semantics["AVAILABILITY"] = (
+        int(parsed["xms_available"]), int(parsed["ems_available"])
+    )
+    return semantics
 
 
 def parse(screen_path: Path, mem: str, ceiling: str) -> dict[str, Any]:
@@ -576,6 +720,13 @@ def report(
         if not interfaces["ems_available"]:
             lines.append("| EMS_UNAVAILABLE | — | — | — | — |")
         lines.append("")
+        warm = data.get("warm_reboot")
+        if warm:
+            lines.extend([
+                "Warm-reset public-interface comparison: **stable**. "
+                f"Before SHA-256 `{warm['before']['sha256']}`; after SHA-256 "
+                f"`{warm['after']['sha256']}`.", "",
+            ])
     return "\n".join(lines)
 
 
@@ -607,7 +758,7 @@ def main() -> None:
     require_tools()
     with tempfile.TemporaryDirectory(prefix="drdos-memory-") as temporary:
         work = Path(temporary)
-        public_probe, qexit, probe_hash = build_public_probe(work)
+        public_probe, qexit, warmboot, probe_hash = build_public_probe(work)
         if zipfile.is_zipfile(args.media):
             release = "Caldera OpenDOS 7.01"
             variants = OPENDOS_VARIANTS
@@ -640,6 +791,8 @@ def main() -> None:
             config, autoexec = write_startup(work, lines, AUTOEXEC_COMMANDS.get(name, []))
             install_file(image, config, "CONFIG.SYS")
             install_file(image, autoexec, "AUTOEXEC.BAT")
+            configured_image = work / f"{name}-configured.ima"
+            shutil.copyfile(image, configured_image)
             screen, mem, ceiling = capture(image, name, work)
             if args.evidence_dir:
                 shutil.copyfile(screen, args.evidence_dir / f"{name}-vc.txt")
@@ -649,13 +802,29 @@ def main() -> None:
                 )
             results[name] = parse(screen, mem, ceiling)
             interface_output = capture_public_interfaces(
-                image, name, work, public_probe, qexit
+                configured_image, name, work, public_probe, qexit
             )
             results[name]["interfaces"] = parse_public_interfaces(interface_output)
             if args.evidence_dir:
                 (args.evidence_dir / f"{name}-interfaces.txt").write_text(
                     interface_output, encoding="ascii", errors="replace"
                 )
+            if name == "emm-hibuffers":
+                before_output, after_output = capture_warm_public_interfaces(
+                    configured_image, name, work, public_probe, qexit, warmboot
+                )
+                before = parse_public_interfaces(before_output)
+                after = parse_public_interfaces(after_output)
+                if public_interface_semantics(before) != public_interface_semantics(after):
+                    raise RuntimeError(
+                        f"public memory interfaces changed across warm reset for {name}"
+                    )
+                results[name]["warm_reboot"] = {"before": before, "after": after}
+                if args.evidence_dir:
+                    for suffix, value in (("before-reset", before_output), ("after-reset", after_output)):
+                        (args.evidence_dir / f"{name}-interfaces-{suffix}.txt").write_text(
+                            value, encoding="ascii", errors="replace"
+                        )
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(
             report(

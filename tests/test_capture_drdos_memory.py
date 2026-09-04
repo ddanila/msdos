@@ -52,9 +52,10 @@ DRDOS_PUBLIC_MEMORY_END
 class CaptureParserTest(unittest.TestCase):
     def test_public_probe_builds(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
-            probe, qexit, digest = CAPTURE.build_public_probe(Path(temporary))
+            probe, qexit, warmboot, digest = CAPTURE.build_public_probe(Path(temporary))
             self.assertGreater(probe.stat().st_size, 0)
             self.assertGreater(qexit.stat().st_size, 0)
+            self.assertGreater(warmboot.stat().st_size, 0)
             self.assertEqual(len(digest), 64)
 
     def test_comparison_artifact_identities_are_pinned(self) -> None:
