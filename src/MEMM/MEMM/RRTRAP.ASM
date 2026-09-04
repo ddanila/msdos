@@ -59,10 +59,13 @@ page	58,132
 	public	RR_Trap_Init
 	ENDIF
 	IFNDEF	RRTRAP_HIGH_ONLY
-	public	RRP_Handler
+	public	P84_Handler
 	public	P85_Handler
 	public	RRProc
 	public	JumpReal
+	ENDIF
+	IFNDEF	RRTRAP_LOW_ONLY
+	public	RRP_Handler
 	ENDIF
 ;
 ;******************************************************************************
@@ -74,6 +77,10 @@ _TEXT	segment
 	ENDIF
 	IFNDEF	RRTRAP_HIGH_ONLY
 	extrn	RetReal:near
+	ENDIF
+	IFDEF	RRTRAP_HIGH_ONLY
+	extrn	P84_Handler:near
+	extrn	P85_Handler:near
 	ENDIF
 _TEXT	ends
 
@@ -113,7 +120,7 @@ _DATA	ends
 ;------------------------------------------------------------------------------
 _TEXT	segment
 	assume	cs:_TEXT, ds:DGROUP, es:DGROUP, ss:DGROUP
-	IFNDEF	RRTRAP_HIGH_ONLY
+	IFNDEF	RRTRAP_LOW_ONLY
 
 	page
 ;******************************************************************************
@@ -148,6 +155,7 @@ RRP_Bye:
 	stc			; don't bother to emulate it
 	ret
 RRP_Handler	endp
+	ENDIF
 
 ;******************************************************************************
 ;   P84_Handler - I/O Trap handler for port 84h
@@ -170,6 +178,7 @@ RRP_Handler	endp
 ;   USED:  Flags
 ;   STACK:
 ;------------------------------------------------------------------------------
+	IFNDEF	RRTRAP_HIGH_ONLY
 P84_Handler	proc	near
 ;
 	mov	[RR84save],al	;  Y: save value written to 84
