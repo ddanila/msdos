@@ -121,7 +121,7 @@ def main() -> int:
 
     segments, symbols = parse_map(args.map)
     required_segments = (
-        "CODERES", "DATARES", "BATARENA", "BATSEG", "ENVARENA",
+        "CODERES", "DATARES", "HMACODE", "MSGOPT", "BATARENA", "BATSEG", "ENVARENA",
         "ENVIRONMENT", "INIT", "TAIL", "TRANCODE", "TRANDATA",
         "TRANSPACE", "TRANEXT", "TRANTAIL",
     )
@@ -139,6 +139,8 @@ def main() -> int:
     critical_messages = require(symbols, "critical_msg_start")
     critical_lookup = require(symbols, "$M_CLS_6")
     resident_code_end = require(symbols, "RES_CODE_END")
+    hma_code_start = require(symbols, "hma_code_start")
+    hma_code_end = require(symbols, "hma_code_end")
     resident_service_start = require(symbols, "ASKEND")
     substitution_state_end = require(symbols, "ERRCD_24")
     pipe_state_start = require(symbols, "PIPEFILES")
@@ -155,12 +157,16 @@ def main() -> int:
         errors.append("default resident DATARES ownership boundaries are not ordered")
     if not (resident_catalog_start <= critical_lookup < critical_messages):
         errors.append("critical-message lookup routine is not retained before its relocatable catalog")
-    if rounded(resident_catalog_start) > 4736:
-        errors.append("DOS-high permanent COMMAND exceeds its 4,736-byte budget")
-    if rounded(datares_end) > 6016:
-        errors.append("low/failure COMMAND fallback exceeds its 6,016-byte budget")
-    if not (datares_end == parse_messages <= extended_messages <= extended_end == data.end):
-        errors.append("optional resident-message boundaries do not cover the DATARES tail")
+    if rounded(resident_catalog_start) > 4720:
+        errors.append("DOS-high permanent COMMAND exceeds its 4,720-byte budget")
+    if rounded(hma_code_end) > 6080:
+        errors.append("low/failure COMMAND fallback exceeds its 6,080-byte budget")
+    if not (
+        datares_end == data.end <= hma_code_start < hma_code_end
+        <= parse_messages == segments["MSGOPT"].start
+        <= extended_messages <= extended_end == segments["MSGOPT"].end
+    ):
+        errors.append("resident, HMA-code, and optional-message boundaries are not ordered")
     if not (0x100 <= resident_code_end <= code.end):
         errors.append("resident code/stack boundary falls outside CODERES")
     if not (0x100 < resident_service_start < resident_code_end):
@@ -174,6 +180,12 @@ def main() -> int:
         errors.append("TranStart no longer equals the transient-group start")
     if tran_data_end > segments["TRANDATA"].end:
         errors.append("TRANDATAEND exceeds TRANDATA")
+    if not (
+        hma_code_start == segments["HMACODE"].start
+        and hma_code_end == segments["HMACODE"].end
+        and segments["DATARES"].end <= hma_code_start
+    ):
+        errors.append("HMA code boundaries do not cover the separately releasable segment")
     image = args.binary.read_bytes()
     image_end = len(image) + 0x100
     if image_end != segments["TRANEXT"].end:
@@ -213,7 +225,7 @@ def main() -> int:
     for name, start, end, owner in ranges:
         print(f"| {name} | `{start:04X}h..{end:04X}h` | {end - start:,} | {owner} |")
     print(f"| **DOS-high permanent break** | `0000h..{resident_catalog_start:04X}h` | **{resident_catalog_start:,}** | **{rounded(resident_catalog_start):,} paragraph-rounded** |")
-    print(f"| Low/failure fallback break | `0000h..{datares_end:04X}h` | {datares_end:,} | {rounded(datares_end):,} paragraph-rounded |")
+    print(f"| Low/failure fallback break | `0000h..{hma_code_end:04X}h` | {hma_code_end:,} | {rounded(hma_code_end):,} paragraph-rounded |")
 
     print("\n## Permanent low ownership\n")
     print("| Range | Offset | Bytes | Required lifetime |")
@@ -243,6 +255,8 @@ def main() -> int:
     print("| Range | Offset | Bytes | Lifetime |")
     print("| --- | ---: | ---: | --- |")
     optional = [
+        ("Relocatable resident code", hma_code_start, hma_code_end,
+         "HMA for permanent DOS-high shell; low fallback otherwise"),
         ("Parse-error catalog", parse_messages, extended_messages, "resident only with `/MSG`"),
         ("Extended-error catalog", extended_messages, extended_end, "resident only with `/MSG`"),
         ("Batch arena header", segments["BATARENA"].start, segments["BATARENA"].end, "runtime allocation template"),

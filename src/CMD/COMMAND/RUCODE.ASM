@@ -53,6 +53,8 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	fFail:BYTE
 	EXTRN	FORFLAG:BYTE
 	EXTRN	ignore_char:byte
+	EXTRN	hma_in_char_xlat_entry:dword
+	EXTRN	hma_test_kanj_entry:dword
 	EXTRN	InitFlag:BYTE
 	EXTRN	In_Batch:byte
 	EXTRN	LOADING:BYTE
@@ -610,6 +612,31 @@ endif
 assume	ds:resgroup
 
 in_char_xlat	proc	near
+	cmp	word ptr cs:[hma_in_char_xlat_entry+2],0
+	jne	short in_char_xlat_high
+	call	hma_in_char_xlat_body
+	ret
+in_char_xlat_high:
+	call	dword ptr cs:[hma_in_char_xlat_entry]
+	ret
+
+in_char_xlat	endp
+
+CODERES ENDS
+
+; This self-contained body remains in the low fallback image, but permanent
+; DOS-high COMMAND copies it to DOS-owned HMA and releases the original.
+HMACODE SEGMENT PUBLIC BYTE
+ASSUME CS:RESGROUP,DS:RESGROUP
+
+PUBLIC hma_code_start,hma_code_end,hma_in_char_xlat_body
+hma_code_start LABEL BYTE
+hma_in_char_xlat_high proc far
+	call	hma_in_char_xlat_body
+	retf
+hma_in_char_xlat_high endp
+
+hma_in_char_xlat_body proc near
 
 	cmp	al,80h				;g see if char is above ascii 128
 	jb	other_xlat			;g no - upper case math
@@ -621,24 +648,48 @@ in_char_xlat	proc	near
 	xlat	ds:byte ptr [bx]		;g convert to upper case
 	pop	bx
 	pop	ds
-	jmp	short in_char_xlat_end		;g we finished - exit
+	jmp	short hma_in_char_xlat_end	;g we finished - exit
 
 other_xlat:
 	cmp	al,'a'                          ;g if between "a" and "z", subtract
-	jb	in_char_xlat_end		;g    20h to get upper case
+	jb	hma_in_char_xlat_end		;g    20h to get upper case
 	cmp	al,'z'                          ;g    equivalent.
-	ja	in_char_xlat_end		;g
+	ja	hma_in_char_xlat_end		;g
 	sub	al,20h				;g Lower-case changed to upper-case
 
-in_char_xlat_end:
+hma_in_char_xlat_end:
 
 	ret
 
-in_char_xlat	endp
+hma_in_char_xlat_body endp
+HMACODE ENDS
+
+CODERES SEGMENT PUBLIC BYTE
+ASSUME CS:RESGROUP,DS:RESGROUP
 ;---------------------- DBCS lead byte check. this is resident code ; 3/3/KK
 
 ITESTKANJ:					;AN000;
 TestKanjR:					;AN000;  3/3/KK
+	cmp	word ptr cs:[hma_test_kanj_entry+2],0
+	jne	short test_kanj_high
+	call	hma_test_kanj_body
+	ret
+test_kanj_high:
+	call	dword ptr cs:[hma_test_kanj_entry]
+	ret
+
+CODERES ENDS
+
+HMACODE SEGMENT PUBLIC BYTE
+ASSUME CS:RESGROUP,DS:RESGROUP
+
+PUBLIC hma_test_kanj_high,hma_test_kanj_body
+hma_test_kanj_high proc far
+	call	hma_test_kanj_body
+	retf
+hma_test_kanj_high endp
+
+hma_test_kanj_body proc near
 	push	ds				;AN000;  3/3/KK
 	push	si				;AN000;  3/3/KK
 	push	ax				;AN000;  3/3/KK
@@ -670,6 +721,15 @@ ktret:						;AN000;  3/3/KK
 	pop	si				;AN000;  3/3/KK
 	pop	ds				;AN000;  3/3/KK
 	return					;AN000;  3/3/KK
+
+hma_test_kanj_body endp
+
+hma_code_end LABEL BYTE
+
+HMACODE ENDS
+
+CODERES SEGMENT PUBLIC BYTE
+ASSUME CS:RESGROUP,DS:RESGROUP
 
 
 ; ****************************************************************

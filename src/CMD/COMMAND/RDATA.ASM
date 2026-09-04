@@ -156,6 +156,8 @@ DATARES SEGMENT PUBLIC BYTE
 	PUBLIC	RemMsg
 	PUBLIC	resident_catalog_start
 	PUBLIC	resident_class_ptrs
+	PUBLIC	hma_in_char_xlat_entry
+	PUBLIC	hma_test_kanj_entry
 	PUBLIC	resmsgend		;AN000;
 	PUBLIC	RES_TPA
 	PUBLIC	RESTDIR
@@ -586,6 +588,9 @@ olderrno	dw	?
 
 RESMSGEND	DW	0			;AN000;; holds offset of msg end (end of resident)
 
+hma_in_char_xlat_entry dd 0
+hma_test_kanj_entry dd 0
+
 .xlist
 .xcref
 
@@ -613,6 +618,11 @@ MSG_SERVICES <COMMAND.CDH> 		; get relocatable critical error messages
 
 DATARESEND		LABEL	BYTE		;AC060; end of resident portion if /msg not used
 
+DATARES ENDS
+
+MSGOPT SEGMENT PUBLIC BYTE
+ASSUME DS:RESGROUP,ES:RESGROUP,CS:RESGROUP
+
 PARSE_MSG_START 	LABEL	BYTE		;AN000; start of parse error messages
 
 MSG_SERVICES <COMR,COMMAND.CLC> 		;AN000; get parse error messages
@@ -627,5 +637,5 @@ EXTMSGEND		LABEL	BYTE		;AN000; end of extended error messages
 
 include msgdcl.inc
 
-DATARES ENDS
+MSGOPT ENDS
 	END

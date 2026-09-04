@@ -63,8 +63,6 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	ERR15_OP_SEG:WORD	;AN000;
 	EXTRN	ERR15_OP_SEG2:WORD	;AN000;
 	EXTRN	ERR15_OP_SEG3:WORD	;AN000;
-	EXTRN	extended_msg_start:byte ;AN000;
-	EXTRN	extmsgend:byte		;AN000;
 	EXTRN	fFail:BYTE
 	EXTRN	fucase_addr:word	;AN000;
 	EXTRN	InitFlag:BYTE
@@ -80,12 +78,13 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	PARENT:WORD
 ;AD060; EXTRN	pars_msg_off:word	;AN000;
 ;AD060; EXTRN	pars_msg_seg:word	;AN000;
-	EXTRN	parse_msg_start:byte	;AN000;
 	EXTRN	parsemes_ptr:word	;AN000;
 	EXTRN	PERMCOM:BYTE
 	EXTRN	RES_TPA:WORD
 	EXTRN	resident_catalog_start:byte
 	EXTRN	resident_class_ptrs:dword
+	EXTRN	hma_in_char_xlat_entry:dword
+	EXTRN	hma_test_kanj_entry:dword
 	EXTRN	resmsgend:word		;AN000;
 	EXTRN	RSWITCHAR:BYTE
 	EXTRN	SINGLECOM:WORD
@@ -95,6 +94,18 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	TRNSEG:WORD
 	EXTRN	TrnMvFlg:BYTE
 DATARES ENDS
+
+HMACODE SEGMENT PUBLIC BYTE
+	EXTRN	hma_code_start:byte
+	EXTRN	hma_code_end:byte
+	EXTRN	hma_test_kanj_high:byte
+HMACODE ENDS
+
+MSGOPT SEGMENT PUBLIC BYTE
+	EXTRN	parse_msg_start:byte	;AN000;
+	EXTRN	extended_msg_start:byte ;AN000;
+	EXTRN	extmsgend:byte		;AN000;
+MSGOPT ENDS
 
 BATARENA	SEGMENT PUBLIC PARA	;AC000;
 BATARENA ENDS
@@ -325,7 +336,7 @@ set_msg_addr:
 	mov	di,offset resgroup:critical_msg_start ;AN000; start address
 	int	2fh				;AN000;
 
-	mov	di,offset resgroup:dataresend+15 ;AN000; get address of resident end
+	mov	di,offset resgroup:hma_code_end+15 ; include the low code fallback
 	mov	[resmsgend],di			;AN000; save it
 	call	sysloadmsg			;AN000; load message addresses
 	call	get_msg_ptr			;AN000; set up pointers to some translated chars
@@ -1612,7 +1623,7 @@ setup_for_messages	proc	near		;AN060;
 permcom_slash_msg:				;AN060; Keep messages in memory
 	mov	di,offset resgroup:extended_msg_start ;AN060; start address
 	call	set_ext_2f			;AN060; set the extended message address
-	mov	di,offset resgroup:extmsgend+15 ;AN060; get address of resident end
+	mov	di,offset resgroup:extmsgend+15 ;AN060; keep optional messages and code
 	mov	[resmsgend],di			;AN060; save it
 	jmp	short permcom_end		;AN060; exit
 
@@ -1665,6 +1676,8 @@ relocate_resident_catalogs proc near
 
 	mov	cx,offset resgroup:dataresend
 	sub	cx,offset resgroup:resident_catalog_start
+	add	cx,offset resgroup:hma_code_end
+	sub	cx,offset resgroup:hma_code_start
 	mov	ax,DOS_HMA_TAIL_ALLOC
 	int	2fh
 	or	ax,ax
@@ -1672,8 +1685,25 @@ relocate_resident_catalogs proc near
 
 	push	di				; preserve the allocated catalog base
 	mov	si,offset resgroup:resident_catalog_start
+	mov	cx,offset resgroup:dataresend
+	sub	cx,offset resgroup:resident_catalog_start
 	cld
 	rep	movsb				; DS is RESGROUP, ES is the HMA destination
+
+	; The next byte is the HMA entry for the independently linked code body.
+	; Its internal relative branches survive the copy; its data references
+	; continue to use COMMAND's resident DS.
+	mov	word ptr [hma_in_char_xlat_entry],di
+	mov	word ptr [hma_in_char_xlat_entry+2],es
+	mov	ax,di
+	add	ax,offset resgroup:hma_test_kanj_high
+	sub	ax,offset resgroup:hma_code_start
+	mov	word ptr [hma_test_kanj_entry],ax
+	mov	word ptr [hma_test_kanj_entry+2],es
+	mov	si,offset resgroup:hma_code_start
+	mov	cx,offset resgroup:hma_code_end
+	sub	cx,offset resgroup:hma_code_start
+	rep	movsb
 	pop	di
 
 	; SYSLOADMSG initialized five far slots to their low class structures.
