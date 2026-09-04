@@ -1161,8 +1161,9 @@ block.
 | ---: | --- | ---: | --- |
 | Complete | Split the remaining COMMAND service census | The normal catalogs and 1,166-byte relocatable code range are high; the checked 955-byte low range is now divided into nine ownership spans | 820 bytes are asynchronous or registered handlers; independent helpers are gateway-scale |
 | Paused | Move more COMMAND cold state high or transient | COMMAND remains 880 bytes above retail and DR-DOS demonstrates a smaller resident shell | Resume as a coherent interrupt/data redesign after larger workstreams, preserving reload and asynchronous paths |
-| 1 | Complete the EMM386 low gateway | The 4,128-byte allocation now matches retail; services, return and A20/NMI trap handling, protected `RetReal`, stack-selector conversion, OEM mapping/parity, and the `GoVirtual` continuation execute from locked XMS; command-mode client code and unused production descriptors are nonresident | Redesign the remaining transition, DMA, and fault gateways for better-than-retail headroom; preserve inactive `AUTO` and every EMS map |
-| 1 | Compact EMM386 metadata while changing that boundary | The loader stack is discarded, duplicate PTE offsets and inverse segment index are gone, physical-window segments, public `Pn=` identifiers, DMA pages, mappable-window indexes, bounded counters, and parity-vector state are runtime-sized, narrowed, derived, shared, or protected-high; protected entry/services/helpers are high, the two-function control gateway is table-free, the production GDT omits six debugger and six unused legacy descriptors, and `NOHIMEM` hooks are absent | Take further independently testable VDATA, table, and alignment wins only when they create better-than-retail margin or support the gateway design |
+| 1 | Close the EMM386 mode-transition regression | `EMM386.EXE M5` reaches DOS when DOS remains low or only UMB linking is requested, but currently stalls when `DOS=HIGH` relocates the kernel; `RAM M5` with `DOS=HIGH,UMB` succeeds | Separate `RAM M5` from `DOS=UMB`, then trace HIMEM `E705h`, physical and logical A20, HMA PTE `100h`, and the return stack; fix the shared transition contract and retain a focused QEMU regression |
+| 2 | Complete the EMM386 low gateway | The 4,128-byte allocation now matches retail; services, return and A20/NMI trap handling, protected `RetReal`, stack-selector conversion, OEM mapping/parity, and the `GoVirtual` continuation execute from locked XMS; command-mode client code and unused production descriptors are nonresident | Redesign the remaining transition, DMA, and fault gateways for better-than-retail headroom; preserve inactive `AUTO` and every EMS map |
+| 2 | Compact EMM386 metadata while changing that boundary | The loader stack is discarded, duplicate PTE offsets and inverse segment index are gone, physical-window segments, public `Pn=` identifiers, DMA pages, mappable-window indexes, bounded counters, and parity-vector state are runtime-sized, narrowed, derived, shared, or protected-high; protected entry/services/helpers are high, the two-function control gateway is table-free, the production GDT omits six debugger and six unused legacy descriptors, and `NOHIMEM` hooks are absent | Take further independently testable VDATA, table, and alignment wins only when they create better-than-retail margin or support the gateway design |
 | 5 | Census and relocate eligible DOS low state | Part of the 7,584-byte DOS/BIOS remainder; 6,944 bytes allocated locally | Apply HMA, relocation-safe XMS, then bounded UMB placement according to ownership and lifetime |
 | 6 in progress | Compact the selected BIOS resident image | Part of the same 7,584-byte remainder; the fixed hardware path is now exactly 8,448 bytes | Continue map-guided compaction without changing BIOS-visible services |
 | 7 | Remove MCB, allocation-order, and paragraph fragmentation | 112 bytes inside the system MCB plus 32 bytes group-level overhead are bounded; further islands need a live map | Make every recovered paragraph grow VC's largest block rather than a separate hole |
@@ -1171,10 +1172,13 @@ block.
 | 10 | Revisit HIMEM only if the measured residual requires it | 1,488-byte excess over retail; incremental work paused | Resume only with a paragraph-scale, map-supported opportunity and preserve every existing gate |
 | 11 | Redesign the DOS-low or COMMAND boundary further | Architectural fallback | Choose the smallest design with a byte budget that covers the remaining measured gap and compatibility margin |
 
-The completed DR-DOS checkpoint sets the order: extend the EMM386 low gateway,
-then apply the DOS placement ladder. The initial COMMAND/HMA gain is retained,
-but deeper shell work is paused. Next coalesce layout and recover the bounded
-EBDA paragraph; revisit HIMEM only for a measured residual. Recalculate the
+The completed DR-DOS checkpoint sets the architectural order: extend the
+EMM386 low gateway, then apply the DOS placement ladder. Before changing that
+boundary again, close the `M5` plus `DOS=HIGH` transition regression; it is a
+supported configuration and its RAM-mode contrast may expose the missing A20,
+page-map, or return-state invariant. The initial COMMAND/HMA gain is retained,
+but deeper shell work is paused. Recover the bounded EBDA paragraph only near
+the end, and revisit HIMEM only for a measured residual. Recalculate the
 success equation after every retained step and keep both the conventional and
 UMB floors visible.
 
@@ -1186,10 +1190,11 @@ code is permitted. Runtime inspection is limited to public interfaces,
 allocation maps, addresses, and lifetimes and must not be used to reconstruct
 proprietary instruction sequences.
 
-**Restart priority:** the focused clean-room checkpoint is complete. Build the
-small EMM386 gateway next, then move eligible DOS state. Further DR-DOS work is
-limited to a targeted unresolved owner, lifetime, or public API question; do
-not resume a general product survey.
+**Restart priority:** the focused clean-room checkpoint is complete. First fix
+the supported `EMM386 M5` plus `DOS=HIGH` transition, then continue the small
+EMM386 gateway and move eligible DOS state. Further DR-DOS work is limited to a
+targeted unresolved owner, lifetime, or public API question; do not resume a
+general product survey.
 
 Use this sequence:
 
