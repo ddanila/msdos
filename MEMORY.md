@@ -1171,12 +1171,14 @@ block.
 | 10 | Revisit HIMEM only if the measured residual requires it | 1,488-byte excess over retail; incremental work paused | Resume only with a paragraph-scale, map-supported opportunity and preserve every existing gate |
 | 11 | Redesign the DOS-low or COMMAND boundary further | Architectural fallback | Choose the smallest design with a byte budget that covers the remaining measured gap and compatibility margin |
 
-The completed DR-DOS investigation below now sets the order: extend the EMM386
-low gateway first, then apply the DOS placement ladder. The initial COMMAND/HMA
-gain is retained, but deeper shell work is paused. Then
-coalesce layout and recover the bounded EBDA paragraph; revisit HIMEM only for
-a measured residual. Recalculate the success equation after every retained
-step and keep both the conventional and UMB floors visible.
+The DR-DOS evidence below sets the order. First validate, from documentation
+and controlled runtime observations, which placement policies produce its
+larger ordinary HMA-mode block. Then extend the EMM386 low gateway and apply the
+DOS placement ladder. The initial COMMAND/HMA gain is retained, but deeper
+shell work is paused. Next coalesce layout and recover the bounded EBDA
+paragraph; revisit HIMEM only for a measured residual. Recalculate the success
+equation after every retained step and keep both the conventional and UMB
+floors visible.
 
 ### DR-DOS clean-room adoption register
 
@@ -1186,14 +1188,34 @@ code is permitted. Runtime inspection is limited to public interfaces,
 allocation maps, addresses, and lifetimes and must not be used to reconstruct
 proprietary instruction sequences.
 
-**Restart priority:** use the completed documentation and controlled-memory
-baseline before doing more local byte harvesting. The first shell/HMA tranche
-has validated the DR-DOS lesson; now build the small EMM386 gateway, then move
-eligible DOS state. New DR-DOS measurement is a
-targeted fallback for an unresolved owner, lifetime, or public API question;
-it is not a reason to repeat the broad survey. Every such run must use the same
-hardware and startup policy as the MS-DOS comparison, record hashes and public
-memory/API observations, and remain source-free.
+**Restart priority:** pause local byte harvesting for one focused clean-room
+checkpoint. Reconcile the existing DR-DOS measurements with its published
+placement controls and verify the decisive cases at runtime. This is not a
+general product survey: it must answer which documented techniques create the
+larger ordinary HMA-mode block and which can be adopted without weakening DOS,
+UMB, XMS, or EMS compatibility. After that checkpoint, build the small EMM386
+gateway and then move eligible DOS state.
+
+Use this sequence:
+
+1. inventory the relevant vendor documentation for kernel, shell, buffer,
+   driver, UMB, HMA, XMS, EMS, and page-frame placement;
+2. reproduce the fixed DR-DOS baseline on the same CPU, RAM, BIOS, startup
+   policy, and tools used for the MS-DOS 6.22 comparison, recording media hashes;
+3. vary one documented control at a time, including `HIDOS`, `HIBUFFERS`, the
+   memory manager, EMS page-frame policy, and high-loading policy;
+4. capture the largest conventional block, MCB/UMB ownership, HMA usage,
+   XMS/EMS reports, resident device spans, and relevant public API behavior;
+5. reconcile every material delta to a documented policy or mark it unknown;
+   do not infer implementation details from the binary; and
+6. translate only portable results into local owners, byte budgets, compatibility
+   risks, and regression gates, then resume implementation in ranked order.
+
+The checkpoint is complete when the ordinary-mode advantage is accounted for
+well enough to choose our next design, optional compatibility tradeoffs are
+separated from the main score, and every proposed adoption has a local owner
+and testable contract. Additional DR-DOS runs then return to being targeted
+fallbacks for unresolved owner, lifetime, or public API questions.
 
 | Priority | Externally evidenced technique | Local budget and owner | State and decisive gate |
 | --- | --- | --- | --- |
@@ -1210,29 +1232,18 @@ the [DR-DOS 6 User Guide](https://www.bitsavers.org/pdf/novell/dr_dos/DR_DOS_6.0
 the [Novell DOS 7 User Guide](https://bitsavers.org/pdf/novell/dr_dos/DR_DOS_7_User_Guide_1993.pdf),
 and hashed DR-DOS media from the [PCjs DR-DOS 6 archive](https://www.pcjs.org/software/pcx86/sys/dos/dresearch/6.00/).
 Generated captures remain untracked. The baseline comparison is complete; do
-not repeat broad DR-DOS surveys. Use this implementation-led loop next:
-
-1. choose the next local owner in rank order above and state the exact byte or
-   placement question;
-2. consult published DR-DOS documentation for the external policy and contract;
-3. when documentation is insufficient, run one controlled black-box comparison
-   using identical hardware and configuration, recording public APIs, memory
-   ownership, addresses, and lifetimes only; and
-4. convert the result into a local design, byte budget, and regression gate.
-
-DR-DOS source code and reconstruction of proprietary instruction sequences are
-out of scope. The immediate application is EMM386's low gateway; movable DOS
-state follows unless a targeted measurement changes that order.
+not repeat broad DR-DOS surveys. Use the focused checkpoint above to audit its
+attribution and adoption choices. DR-DOS source code and reconstruction of
+proprietary instruction sequences are out of scope.
 
 ### Completed baseline investigation: DR-DOS HMA-mode memory
 
-**Status and priority:** the clean-room baseline is complete. The first coherent
-COMMAND/HMA relocation is complete and deeper shell work is paused. Apply the
-remaining lessons by building the small EMM386 low gateway, then introducing
-the HMA/XMS/UMB placement ladder for movable DOS state. Return to DR-DOS
-black-box measurement only when a specific local owner
-or API contract cannot be resolved from the existing captures and published
-documentation.
+**Status and priority:** the clean-room baseline capture is complete. Its
+mechanism attribution and adoption choices are now the next focused checkpoint.
+The first coherent COMMAND/HMA relocation is complete and deeper shell work is
+paused. After the checkpoint, apply the validated lessons by building the small
+EMM386 low gateway, then introducing the HMA/XMS/UMB placement ladder for
+movable DOS state.
 
 The research goal was to explain, byte by byte where possible, why a
 comparable DR-DOS system exposes a larger conventional block in HMA mode and to
