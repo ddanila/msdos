@@ -69,6 +69,7 @@ LAST	segment
 extrn	xbase_addr_h:byte	; bit 16-24 of address of first byte of emm memory
 extrn	xbase_addr_l:word	; bit  0-15 of address of first byte of emm memory
 extrn	sys_size:word		; number of 16k pages taken away from conv. mem
+extrn	dma_page_limit:word	; requested DOS 5 D= capacity
 
 LAST	ends
 
@@ -110,6 +111,7 @@ extrn	_handle_count:word
 extrn	_handle_table_size:word
 extrn	_save_map:word
 extrn	_Handle_Name_Table:word
+extrn	DMA_Pages:word		; pointer to runtime-sized DMA page list
 
 _DATA	ends
 
@@ -393,6 +395,11 @@ endif
 	shl	bx,1			; one (internal, public) byte pair per Pn=
 	add	[_emm_brk],bx
 	mov	[_physical_page_exception_count],0
+	mov	ax,[_emm_brk]
+	mov	[DMA_Pages],ax
+	mov	bx,[dma_page_limit]
+	shl	bx,1			; one word per reserved 16 KiB DMA page
+	add	[_emm_brk],bx
 	shr	cx,2			; CX = total_pages again
 ;
 ; init free pages array

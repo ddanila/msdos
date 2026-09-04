@@ -117,8 +117,6 @@ Chnl6	db	(size DMARegRec - 4) dup (00), DMA_P6, DMA_B6, DMA_C6, DMA_M_16BIT
 Chnl7	db	(size DMARegRec - 4) dup (00), DMA_P7, DMA_B7, DMA_C7, DMA_M_16BIT
 DMAFF1	db	00		; Controller 1 FlipFlop State
 DMAFF2	db	00		; Controller 2 FlipFlop State
-DMA_Xfun	db	0	; Extended Operation Function
-DMA_Xchn	db	0	; Extended Operation Channel
 DMARegBuf	ends
 
 DMAREG_CTRL2_INDEX	equ	4 * 2	; 2 * 1st channel # on 2nd cntlr

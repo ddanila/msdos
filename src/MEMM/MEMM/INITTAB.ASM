@@ -107,6 +107,7 @@ _DATA	segment
 	extrn	_emm_page:word
 	extrn	_emm_free:word
 	extrn	_pft386:word
+	extrn	DMA_Pages:word
 
 _DATA	ends
 
@@ -786,6 +787,7 @@ CompactVData proc near
 	sub	[_emm_page],bx
 	sub	[_emm_free],bx
 	sub	[_pft386],bx
+	sub	[DMA_Pages],bx
 	sub	[_emm_brk],bx
 
 	; The ring-0 stack was originally placed immediately after the dynamic

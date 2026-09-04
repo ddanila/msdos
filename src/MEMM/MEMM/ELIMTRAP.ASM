@@ -343,14 +343,15 @@ LAST	ends
 
 _DATA	segment
 ;
-;    DMA_Pages - EMM Pages for DMA relocation. Each is an index into pft386.
+;    DMA_Pages - pointer to the runtime-sized EMM pages used for DMA
+;    relocation. Each entry is an index into pft386.
 ;	To access actual entry in pft386 you need to multiply index by 4.
 ;	If eight contingous 16k EMM pages are not available - the unavailable
 ;	entries are left at NULL_PAGE.
 ;	This array should be initialized at boot time.
 ;
 _DMA_Pages	LABEL	WORD
-DMA_Pages	dw	16 dup (NULL_PAGE)  ; DOS 5 D= supports up to 256 KiB
+DMA_Pages	dw	0		    ; allocated from VDATA according to D=
 _DMA_PAGE_COUNT	LABEL	BYTE
 DMA_PAGE_COUNT	db	0		    ; number of above initialised
 

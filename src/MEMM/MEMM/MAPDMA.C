@@ -41,7 +41,7 @@
 #define PFT(a)          (*(long *)(pft386+a))
 extern unsigned char mappable_pages[]; /* physical address >> 14 */
 extern long *pft386;
-extern unsigned DMA_Pages[];
+extern unsigned *DMA_Pages;
 extern unsigned char DMA_PAGE_COUNT;   /* size of DMA_Pages[] */
 extern unsigned physical_page_count;
 extern unsigned mappable_page_count;
