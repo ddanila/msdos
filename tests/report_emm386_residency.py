@@ -199,6 +199,9 @@ def main() -> int:
     if len(split_symbols) != 1:
         raise ValueError("expected exactly one IOTrap_Tab split symbol")
     split = split_symbols[0].offset
+    low_text_size = split - text.offset
+    if low_text_size < 0 or low_text_size > text.size:
+        raise ValueError("IOTrap_Tab falls outside the linked _TEXT segment")
     if args.check:
         for name in (
             "_get_pages",
@@ -220,6 +223,8 @@ def main() -> int:
             if symbol_offset(symbols, name, text.paragraph) < split:
                 raise ValueError(f"protected EMS service {name} remains low")
         for name in (
+            "EMM_Protected_Functions",
+            "EMM_rLink",
             "_GetEMMHandlePages",
             "_GetAllEMMHandlePages",
             "_SavePageMap",
@@ -286,17 +291,18 @@ def main() -> int:
 
     low_text_modules: dict[str, int] = {}
     for symbol in symbols:
-        if symbol.paragraph == text.paragraph and symbol.offset < split:
-            low_text_modules.setdefault(symbol.module, symbol.offset)
-            low_text_modules[symbol.module] = min(low_text_modules[symbol.module], symbol.offset)
+        if text.offset <= symbol.offset < split and symbol.paragraph == text.paragraph:
+            offset = symbol.offset - text.offset
+            low_text_modules.setdefault(symbol.module, offset)
+            low_text_modules[symbol.module] = min(low_text_modules[symbol.module], offset)
     starts = sorted((offset, module) for module, offset in low_text_modules.items())
     text_ranges: list[Range] = []
     if not starts or starts[0][0] != 0:
         text_ranges.append(Range(0, starts[0][0], "anonymous _TEXT prefix"))
     for index, (start, module) in enumerate(starts):
-        end = starts[index + 1][0] if index + 1 < len(starts) else split
+        end = starts[index + 1][0] if index + 1 < len(starts) else low_text_size
         text_ranges.append(Range(start, end, display_module(module)))
-    if sum(item.size for item in text_ranges) != split:
+    if sum(item.size for item in text_ranges) != low_text_size:
         raise ValueError("module ranges do not cover the retained _TEXT prefix")
     print_ranges("Retained `_TEXT` ranges by linked module", text_ranges)
 
@@ -334,6 +340,13 @@ def main() -> int:
     if aligned_stack > cursor:
         runtime_ranges.append(Range(cursor, aligned_stack, "installed stack alignment"))
     runtime_ranges.append(Range(aligned_stack, aligned_stack + 512, "protected stack"))
+    if (
+        args.check
+        and (args.handles, args.alternate_registers, args.ems_pages, args.physical_pages)
+        == (64, 7, 64, 4)
+        and runtime_ranges[-1].end > 7440
+    ):
+        raise ValueError("default EMM386 installed allocation exceeds 7,440 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     print(
         f"\nSelected layout: `H={args.handles}`, `A={args.alternate_registers}`, "
@@ -356,8 +369,8 @@ def main() -> int:
     print("\n## Linker-visible symbols\n")
     print(
         f"The `_TEXT` ownership boundary is `IOTrap_Tab` at "
-        f"`{text.paragraph:04X}:{split:04X}`: {split:,} low bytes and "
-        f"{text.size - split:,} protected-only bytes.\n"
+        f"`{text.paragraph:04X}:{split:04X}`: {low_text_size:,} low bytes and "
+        f"{text.size - low_text_size:,} protected-only bytes.\n"
     )
     print("| Lifetime | Symbols |")
     print("| --- | ---: |")

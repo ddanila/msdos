@@ -61,6 +61,8 @@
 	public	EMM_pEntry		; protected mode entry point
 	public	EMM_rEntry		; real mode entry point
 	public	EMM_rEfix		; label for far jump to int67_entry
+	public	EMM_rLink		; real/virtual service-selection gateway
+	public	EMM_Protected_Functions ; protected-service bitmap
 	public	_AutoUpdate		; update auto mode of VDM/EMM
 	public	EMM_Flag		; flag for EMM calls
 
@@ -97,6 +99,28 @@ EMM_ALLOCATE_RAW	equ	5Ah	; allocate raw pages
 EMM_ALTER_MAP_REG_SET	equ	5Bh	; alternate map register set
 
 EMM_HW_MALFUNCTION	equ	81h	;
+
+; Bits 0..24 correspond to functions 43h..5Bh.  A set bit selects the
+; protected/locked-XMS implementation.  Keep this in the retained _TEXT
+; prefix because EMM_rLink consults it before entering protected mode.
+EMM_PROTECTED_FIRST	equ	43h
+EMM_PROTECTED_LAST	equ	5Bh
+EMM_PROTECTED_HIGH_BASE equ	EMM_PROTECTED_FIRST+16
+EMM_PROTECTED_MASK_LOW equ \
+	(1 shl (EMM_ALLOCATE-EMM_PROTECTED_FIRST)) or \
+	(1 shl (EMM_MAP_PAGE-EMM_PROTECTED_FIRST)) or \
+	(1 shl (EMM_DEALLOCATE-EMM_PROTECTED_FIRST)) or \
+	(1 shl (EMM_RESTORE-EMM_PROTECTED_FIRST)) or \
+	(1 shl (EMM_GET_SET-EMM_PROTECTED_FIRST)) or \
+	(1 shl (EMM_GET_SET_PARTIAL-EMM_PROTECTED_FIRST)) or \
+	(1 shl (EMM_MAP_PAGE_ARRAY-EMM_PROTECTED_FIRST)) or \
+	(1 shl (EMM_REALLOCATE-EMM_PROTECTED_FIRST))
+EMM_PROTECTED_MASK_HIGH equ \
+	(1 shl (EMM_ALTER_MAP_JUMP-EMM_PROTECTED_HIGH_BASE)) or \
+	(1 shl (EMM_ALTER_MAP_CALL-EMM_PROTECTED_HIGH_BASE)) or \
+	(1 shl (EMM_MOVE_XCHG_MEM-EMM_PROTECTED_HIGH_BASE)) or \
+	(1 shl (EMM_ALLOCATE_RAW-EMM_PROTECTED_HIGH_BASE)) or \
+	(1 shl (EMM_ALTER_MAP_REG_SET-EMM_PROTECTED_HIGH_BASE))
 
 ;******************************************************************************
 ;			E X T E R N A L    R E F E R E N C E S
@@ -211,6 +235,10 @@ EpE_Dispatch	label	word
 	dw	offset _TEXT:_AlternateMapRegisterSet	;5bh
 	dw	offset _TEXT:EpE_Null		;5ch
 	dw	offset _TEXT:EpE_Null		;5dh
+
+EMM_Protected_Functions label word
+	dw	EMM_PROTECTED_MASK_LOW		; 43h..52h
+	dw	EMM_PROTECTED_MASK_HIGH		; 53h..5Bh
 
 	page
 ;******************************************************************************
@@ -370,36 +398,22 @@ EMM_rLINK	proc	far
 	;
 	;   check for protected mode ONLY function
 	;
-	cmp	ah,EMM_ALLOCATE
-	je	ErE_GoProt
-	cmp	ah,EMM_MAP_PAGE 	;Q: map handle page function ?
-	je	ErE_GoProt		;  Y: do it in protected mode
-	cmp	ah,EMM_DEALLOCATE
-	je	ErE_GoProt
-	cmp	ah,EMM_RESTORE		;Q: restore page map function ?
-	je	ErE_GoProt		;  Y: do it in protected mode
-	cmp	ah,EMM_GET_SET		;Q: get/set page map function ?
-	je	ErE_GoProt		;  Y: do it in protected mode
-	cmp	ah,EMM_GET_SET_PARTIAL	;Q: get/set partial function ?
-	je	ErE_GoProt		;  Y: do it in protected mode
-	cmp	ah,EMM_MAP_PAGE_ARRAY	;Q: map handle page array ?
-	je	ErE_GoProt		;  Y: do it in protected mode
-	cmp	ah,EMM_REALLOCATE
-	je	ErE_GoProt
-	cmp	ah,EMM_ALTER_MAP_JUMP	;Q: alter map and jump ?
-	je	ErE_GoProt		;  Y: do it in protected mode
-	cmp	ah,EMM_ALTER_MAP_CALL	;Q: alter map and call ?
-	je	ErE_GoProt		;  Y: do it in protected mode
-	cmp	ah,EMM_MOVE_XCHG_MEM	;Q: move/xchg memory region ?
-	je	ErE_GoProt		;  Y: do it in protected mode
-	cmp	ah,EMM_ALLOCATE_RAW
-	je	ErE_GoProt
-	cmp	ah,EMM_ALTER_MAP_REG_SET;Q: alternate map register set ?
-	je	ErE_GoProt		;  Y: do it in protected mode
-					;  N: do it in real/virtual mode
+	cmp	ah,EMM_PROTECTED_FIRST
+	jb	short ErE_Real
+	cmp	ah,EMM_PROTECTED_LAST
+	ja	short ErE_Real
+	push	bx
+	mov	bl,ah
+	xor	bh,bh
+	sub	bl,EMM_PROTECTED_FIRST
+	bt	cs:EMM_Protected_Functions,bx
+	pop	bx
+	jc	ErE_GoProt
+					;  otherwise use the real/virtual dispatcher
 	;
 	;   here for real/virtual mode functions
 	;
+ErE_Real:
 	push	fs
 	push	gs
 	push	es
