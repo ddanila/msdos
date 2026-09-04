@@ -59,7 +59,8 @@ _DATA	SEGMENT
 	PUBLIC	_mappable_pages
 	PUBLIC	_mappable_page_count
 	PUBLIC	_physical_page_count
-	PUBLIC	_physical_page_ids
+	PUBLIC	_physical_page_exceptions
+	PUBLIC	_physical_page_exception_count
 	PUBLIC	_page_frame_pages
 	PUBLIC	_save_map
 	PUBLIC	_handle_table
@@ -181,7 +182,8 @@ _mappable_pages	LABEL	BYTE
 
 _mappable_page_count	dw	MAX_PHYS_PAGES	; number of entries in above
 _physical_page_count	dw	0		; number of physical pages
-_physical_page_ids	db	MAX_PHYS_PAGES dup (0ffh) ; external Pn= numbers
+_physical_page_exceptions dw 0		; ptr to (internal, public Pn=) pairs
+_physical_page_exception_count db 0
 
 
 _page_frame_pages	dw	4		; pages in the page frame

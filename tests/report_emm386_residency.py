@@ -169,6 +169,9 @@ def main() -> int:
         "--physical-pages", type=int, default=4, help="selected mappable windows"
     )
     parser.add_argument(
+        "--page-assignments", type=int, default=0, help="selected sparse Pn= assignments"
+    )
+    parser.add_argument(
         "--check", action="store_true", help="fail if a segment or symbol is unclassified"
     )
     args = parser.parse_args()
@@ -180,9 +183,13 @@ def main() -> int:
         parser.error("--ems-pages must be in 0..4095")
     if not 0 <= args.physical_pages <= 52:
         parser.error("--physical-pages must be in 0..52")
+    if not 0 <= args.page_assignments <= 20:
+        parser.error("--page-assignments must be in 0..20")
     segments, symbols = parse_map(args.map)
     if args.check and any(symbol.name == "_page_frame_base" for symbol in symbols):
         raise ValueError("redundant physical-window PTE-offset table is resident")
+    if args.check and any(symbol.name == "_physical_page_ids" for symbol in symbols):
+        raise ValueError("fixed physical-page public-ID table is resident")
     if args.check and any(
         symbol.name in {"EMM_MPindex", "_EMM_MPindex"} for symbol in symbols
     ):
@@ -200,8 +207,8 @@ def main() -> int:
     by_name = {segment.name: segment for segment in segments}
     if args.check and by_name["GDT"].size > 224:
         raise ValueError("production GDT retains debugger-only descriptors")
-    if args.check and by_name["_DATA"].size > 584:
-        raise ValueError("EMM386 retained mutable data exceeds 584 bytes")
+    if args.check and by_name["_DATA"].size > 536:
+        raise ValueError("EMM386 retained mutable data exceeds 536 bytes")
     symbol_by_name = {symbol.name: symbol for symbol in symbols}
     if args.check:
         mappable = symbol_by_name.get("_mappable_pages")
@@ -412,6 +419,7 @@ def main() -> int:
         (args.ems_pages * 2, "allocated-page index array"),
         (args.ems_pages * 2, "free-page index array"),
         (args.ems_pages * 4, "physical page-table entries"),
+        (args.page_assignments * 2, "sparse Pn= exception pairs"),
         (
             (args.alternate_registers + 1) * (2 + context_pages * 2),
             "normal plus alternate register sets",
@@ -429,13 +437,14 @@ def main() -> int:
         args.check
         and (args.handles, args.alternate_registers, args.ems_pages, args.physical_pages)
         == (64, 7, 64, 4)
-        and runtime_ranges[-1].end > 4304
+        and runtime_ranges[-1].end > 4256
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 4,304 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 4,256 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     print(
         f"\nSelected layout: `H={args.handles}`, `A={args.alternate_registers}`, "
-        f"{args.ems_pages} EMS pages, and {args.physical_pages} mappable windows. "
+        f"{args.ems_pages} EMS pages, {args.physical_pages} mappable windows, and "
+        f"{args.page_assignments} sparse `Pn=` assignments. "
         f"The computed paragraph-rounded installed allocation is "
         f"**{runtime_ranges[-1].end:,} bytes**."
     )

@@ -152,7 +152,8 @@ extrn	_mappable_pages:byte			; table of 16 KiB indexes
 extrn	_mappable_page_count:word		; how many in the table
 extrn	_page_frame_pages:word			; how many in the page frame
 extrn	_physical_page_count:word		; number of physical pages
-extrn	_physical_page_ids:byte
+extrn	_physical_page_exceptions:word
+extrn	_physical_page_exception_count:byte
 ;extrn	_VM1_EMM_Offset:word			; offset of these in a context
 extrn	_cntxt_pages:byte			; number of pages in a context
 extrn	_cntxt_bytes:byte			; number of bytes in a context
@@ -196,6 +197,9 @@ _DATA	ENDS
 ;******************************************************************************
 _TEXT	SEGMENT
 assume	cs:_TEXT, ds:DGROUP, ss:DGROUP
+	IFDEF	EMMP_PROT_ONLY
+extrn	physical_to_external_id:near
+	ENDIF
 
 ; Find an exact physical-window segment in the compact dense table.
 ; ENTRY: AX = segment. EXIT: BX = dense index, CF clear; CF set if absent.
@@ -742,16 +746,20 @@ map_page	endp
 translate_physical_id proc near
 	push	bx
 	push	cx
+	push	dx
 	push	si
-	mov	bl,al
+	mov	dl,al
 	xor	si,si
 	mov	cx,[_physical_page_count]
 translate_physical_loop:
-	cmp	bl,_physical_page_ids[si]
+	mov	ax,si
+	call	physical_to_external_id
+	cmp	dl,al
 	je	short translate_physical_found
 	inc	si
 	loop	translate_physical_loop
 	pop	si
+	pop	dx
 	pop	cx
 	pop	bx
 	stc
@@ -759,6 +767,7 @@ translate_physical_loop:
 translate_physical_found:
 	mov	ax,si
 	pop	si
+	pop	dx
 	pop	cx
 	pop	bx
 	clc
@@ -1217,6 +1226,70 @@ _set_windows	endp
 ;
 ;*******************************************************************************
 
+; Convert dense internal physical page AX to its caller-visible Pn= identifier.
+; Explicit assignments are retained as runtime-sized (internal, public) pairs;
+; all other identifiers are the lowest unused values, in dense-page order.
+	public	physical_to_external_id
+physical_to_external_id proc near
+	push	bx
+	push	cx
+	push	dx
+	push	si
+	mov	dl,al			; dense internal page
+	mov	si,[_physical_page_exceptions]
+	xor	cx,cx
+	mov	cl,[_physical_page_exception_count]
+physical_external_explicit_loop:
+	jcxz	short physical_external_implicit
+	cmp	dl,[si]
+	je	short physical_external_explicit
+	add	si,2
+	loop	physical_external_explicit_loop
+
+physical_external_implicit:
+	mov	bl,dl			; ordinal among non-explicit pages
+	mov	si,[_physical_page_exceptions]
+	xor	cx,cx
+	mov	cl,[_physical_page_exception_count]
+physical_external_internal_rank:
+	jcxz	short physical_external_first_candidate
+	cmp	[si],dl
+	jae	short physical_external_internal_next
+	dec	bl
+physical_external_internal_next:
+	add	si,2
+	loop	physical_external_internal_rank
+
+physical_external_first_candidate:
+	xor	al,al
+physical_external_candidate:
+	mov	si,[_physical_page_exceptions]
+	xor	cx,cx
+	mov	cl,[_physical_page_exception_count]
+physical_external_reserved_loop:
+	jcxz	short physical_external_candidate_free
+	cmp	al,[si+1]
+	je	short physical_external_candidate_used
+	add	si,2
+	loop	physical_external_reserved_loop
+physical_external_candidate_free:
+	or	bl,bl
+	jz	short physical_external_done
+	dec	bl
+physical_external_candidate_used:
+	inc	al
+	jmp	short physical_external_candidate
+
+physical_external_explicit:
+	mov	al,[si+1]
+physical_external_done:
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bx
+	ret
+physical_to_external_id endp
+
 ;***********************************************
 ;
 ; _GetMappablePAddrArrayFixed - get the LIM 4.0 physical-page array
@@ -1253,9 +1326,9 @@ gmpa_loop:
 	stosw
 	add	dx, 4				; derive internal physical page
 	sub	dx, [_page_frame_pages]
-	mov	bx, dx
+	mov	ax,dx
+	call	physical_to_external_id
 	xor	ah,ah
-	mov	al,_physical_page_ids[bx]
 	stosw
 gmpa_next:
 	inc	si

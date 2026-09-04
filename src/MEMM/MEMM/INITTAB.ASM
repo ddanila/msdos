@@ -101,6 +101,7 @@ _DATA	segment
 	extrn	FRS_array:word
 	extrn	CurRegSet:word
 	extrn	_save_map:word
+	extrn	_physical_page_exceptions:word
 	extrn	_handle_table:word
 	extrn	_Handle_Name_Table:word
 	extrn	_emm_page:word
@@ -778,6 +779,7 @@ CompactVData proc near
 
 	sub	[FRS_array],bx
 	sub	[CurRegSet],bx
+	sub	[_physical_page_exceptions],bx
 	sub	[_save_map],bx
 	sub	[_handle_table],bx
 	sub	[_Handle_Name_Table],bx

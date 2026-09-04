@@ -81,7 +81,8 @@ extrn	_page_frame_pages:word	; number of pages in 3.2 page frame
 
 extrn	_mappable_pages:byte	; 16 KiB mappable-page indexes
 extrn	_physical_page_count:word   ; number of physical pages
-extrn	_physical_page_ids:byte
+extrn	_physical_page_exceptions:word
+extrn	_physical_page_exception_count:byte
 extrn	_mappable_page_count:word   ; number of mappable pages
 
 extrn	_cntxt_pages:byte	; pages in a context
@@ -126,6 +127,7 @@ extrn	banking_base:word
 extrn	requested_page_count:byte
 extrn	requested_page_ids:byte
 extrn	requested_page_segments:word
+init_physical_page_ids db MAX_PHYS_PAGES dup (0ffh)
 LAST	ends
 
 _TEXT	segment
@@ -275,7 +277,7 @@ assign_external_check_used:
 	mov	cx,si
 assign_external_used_loop:
 	jcxz	short assign_external_store
-	cmp	al,_physical_page_ids[di]
+	cmp	al,cs:init_physical_page_ids[di]
 	je	short assign_external_next_candidate
 	inc	di
 	loop	assign_external_used_loop
@@ -286,8 +288,18 @@ assign_external_next_candidate:
 assign_external_found:
 	mov	di,dx
 	mov	al,requested_page_ids[di]
+	push	bx
+	mov	bx,[_physical_page_exceptions]
+	xor	dh,dh
+	mov	dl,[_physical_page_exception_count]
+	shl	dx,1
+	add	bx,dx
+	mov	[bx],si				; low byte is dense internal page
+	mov	[bx+1],al			; caller-visible sparse Pn= identifier
+	inc	[_physical_page_exception_count]
+	pop	bx
 assign_external_store:
-	mov	_physical_page_ids[si],al
+	mov	cs:init_physical_page_ids[si],al
 	pop	di
 	pop	dx
 	pop	cx
@@ -375,6 +387,12 @@ endif
 	shl	cx,1			; CX = bytes in total_pages dwords
 	add	ax,cx			; AX = ptr to word just past _pft386[]
 	mov	[_emm_brk],ax		; set break address for emm data
+	mov	[_physical_page_exceptions],ax
+	xor	bx,bx
+	mov	bl,[requested_page_count]
+	shl	bx,1			; one (internal, public) byte pair per Pn=
+	add	[_emm_brk],bx
+	mov	[_physical_page_exception_count],0
 	shr	cx,2			; CX = total_pages again
 ;
 ; init free pages array
