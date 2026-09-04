@@ -118,7 +118,7 @@ extrn	_pft386:word		; note: actually a dword array
 ;  handle data structure
 ;
 extrn	_handle_table:word
-extrn	_handle_table_size:word
+extrn	_handle_table_size:byte
 
 ;
 ;   save area for handles
@@ -495,7 +495,9 @@ _valid_handle	proc	near
 	push	bx
 ;
 	mov	bx,word ptr [bp.rDX]	; BX = entry handle
-	cmp	bx,[_handle_table_size]	;Q: handle in range ?
+	or	bh,bh			;Q: handle exceeds byte-sized table index?
+	jnz	vh_fail
+	cmp	bl,[_handle_table_size]	;Q: handle in range ?
 	jae	vh_fail			;  N: return invalid handle error
 	shl	bx,2			;  Y: BX = handle's table offset
 	add	bx,[_handle_table]		; BX = offset to handle's data

@@ -133,7 +133,7 @@ _DATA	segment
 extrn	Active_Status:byte	; current VDM status
 extrn	Auto_Mode:byte		; current Auto mode status
 ;extrn	_map_known:byte 	; non-zero => I/O map known to a user
-extrn	_handle_count:word	; number of active EMM handles
+extrn	_handle_count:byte	; number of active EMM handles
 extrn	_regp:word		; pointer to args on stack
 	IFDEF	EMM_PROTECTED_ENTRY
 extrn	EMM_Flag:byte		; owned by the retained gateway object

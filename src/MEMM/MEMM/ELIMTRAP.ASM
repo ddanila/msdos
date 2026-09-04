@@ -222,16 +222,12 @@ InitDMARegSav	MACRO	chan_num
 ;   USED:
 ;------------------------------------------------------------------------------
 DMA_WADDR_TO_BADDR	MACRO
-	LOCAL	Not_AT
-
-	cmp	[ROM_BIOS_Machine_ID], RBMI_Sys80
-	jbe	short Not_AT			; If running on EBIOS machine
-
+	; The supported build uses the AT-class DMA semantics formerly selected
+	; by the hard-coded 0FCh machine identifier.
 	ror	eax,16				; AX = high word
 	shr	al,1				; adjust for D0 null in page reg
 	rol	eax,17				; EAX = address w/ adjust for
 					        ; 'A0' offset
-Not_At:
 	shl	ecx, 1				; Adjust for word units
 	ENDM
 
@@ -249,17 +245,12 @@ Not_At:
 ;   USED:
 ;------------------------------------------------------------------------------
 DMA_BADDR_TO_WADDR	MACRO
-	LOCAL	Not_AT
-
-	cmp	[ROM_BIOS_Machine_ID], RBMI_Sys80
-	jbe	short Not_AT			; If running on EBIOS machine
-
+	; The supported build uses AT-class DMA semantics.
 	shr	eax, 1				; Adjust for implied 'A0'
 	push	ax				; Save A16-A1
 	xor	ax, ax
 	shl	eax, 1				; Adjust for unused Pg Reg D0
 	pop	ax				; Restore A16-A1
-Not_At:
         ENDM
 
 ;******************************************************************************
@@ -267,10 +258,10 @@ Not_At:
 ;******************************************************************************
 
 _DATA	segment
-extrn	ROM_BIOS_Machine_ID:byte
+extrn	int_mask:byte
 extrn	CurRegSet:word
 extrn	Page_Dir:word		
-SaveAL  db      ?
+SaveAL  equ     int_mask	; transition mask storage is idle in DMA traps
 _DATA	ends
 
 _TEXT	segment

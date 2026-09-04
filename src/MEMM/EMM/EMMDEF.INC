@@ -294,7 +294,9 @@ Dword_Align MACRO Seg_Name
 ;***********************************************
 Validate_Handle MACRO	Death_Label
 
-	cmp	dx, [_handle_table_size]	;Q: handle in range ?
+	or	dh,dh			;Q: handle exceeds byte-sized table index?
+	jnz	Death_Label
+	cmp	dl, [_handle_table_size]	;Q: handle in range ?
 	jae	Death_Label			;  N: go to error label
 	shl	dx, 2				;  Y: convert handle to
 	add	dx, [_handle_table]		;     pointer

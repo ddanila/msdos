@@ -35,8 +35,8 @@ public	RestIntMask
 ifndef NOHIMEM
 public	OEM_Trap_Init
 endif
-public	ROM_BIOS_Machine_ID
 public	OEM_Init_Diag_Page
+public	int_mask
 ENDIF
 IFNDEF OEMPROC_LOW_ONLY
 public	Map_Lin_OEM
@@ -187,9 +187,6 @@ endif
 int_mask    db	?		; save for restoring masked interrupts
 
 ;
-ROM_BIOS_Machine_ID db	0fch	; hard coded right now to AT model byte.
-				; should be changed to be initialised at
-				; init time ...isp
 ENDIF
 ENDIF
 

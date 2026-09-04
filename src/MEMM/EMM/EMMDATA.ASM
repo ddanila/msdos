@@ -54,7 +54,6 @@ _DATA	SEGMENT
 	public	HANDLE_CNT
 
 	PUBLIC	_total_pages
-	PUBLIC	_emm40_info
 	PUBLIC	_altreg_count
 	PUBLIC	_mappable_pages
 	PUBLIC	_mappable_page_count
@@ -178,13 +177,13 @@ _PF_Base	label	word
 ;
 _mappable_pages	dw	0
 
-_mappable_page_count	dw	0		; number of entries in above
-_physical_page_count	dw	0		; number of physical pages
+_mappable_page_count	db	0		; number of entries in above (0..52)
+_physical_page_count	db	0		; number of physical pages (0..52)
 _physical_page_exceptions dw 0		; ptr to (internal, public Pn=) pairs
 _physical_page_exception_count db 0
 
 
-_page_frame_pages	dw	4		; pages in the page frame
+_page_frame_pages	db	4		; pages in the page frame (0..4)
 
 ; don't need it (used only in _set_40windows)
 ;
@@ -204,17 +203,12 @@ _cntxt_pages		db	0		; Pages in context
 ; Hardware information returned by Get
 ; Information call
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-_emm40_info	LABEL	WORD
-	dw	0400h			; raw page size in paragraphs (16k)
-_altreg_count	LABEL	WORD
-	dw	7			; DOS 5 A= default extra register sets
-	; The initialized context size is also the canonical function 59h field.
+_altreg_count	db	7		; DOS 5 A= default extra register sets
+; Function 59h constructs its five-word result from these bounded values and
+; constants, instead of retaining a ten-byte response image.
 _cntxt_bytes	LABEL	BYTE
-_frs_size	LABEL	WORD
-	dw	size FRS_window+2	; max. number of bytes to save a context
-					; ( FRS_window size + 2 )
-	dw	0			; settable DMA channels
-	dw	0			; DMA_channel_operation
+_frs_size	LABEL	BYTE
+	db	size FRS_window+2	; bytes needed to save a context
 
 ;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -273,11 +267,11 @@ _Handle_Name_Table dw	0	; Pointer to runtime-sized handle names
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;15. book-keeping variables for handle table
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-_handle_table_size 	LABEL	WORD
-	DW	64			; DOS 5 default; H= may select 2..255
+_handle_table_size 	LABEL	BYTE
+	DB	64			; DOS 5 default; H= may select 2..255
 
-_handle_count	LABEL	WORD
-	DW	0
+_handle_count	LABEL	BYTE
+	DB	0
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;16. EMMPT_START

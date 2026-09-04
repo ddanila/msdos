@@ -78,13 +78,13 @@ _DATA	segment
 extrn	PageT_Seg:word		; segment of system page table
 
 extrn	_PF_Base:word		 ; segment addr of page frame base
-extrn	_page_frame_pages:word	; number of pages in 3.2 page frame
+extrn	_page_frame_pages:byte	; number of pages in 3.2 page frame
 
 extrn	_mappable_pages:word	; pointer to 16 KiB mappable-page indexes
-extrn	_physical_page_count:word   ; number of physical pages
+extrn	_physical_page_count:byte   ; number of physical pages
 extrn	_physical_page_exceptions:word
 extrn	_physical_page_exception_count:byte
-extrn	_mappable_page_count:word   ; number of mappable pages
+extrn	_mappable_page_count:byte   ; number of mappable pages
 
 extrn	_cntxt_pages:byte	; pages in a context
 extrn	_cntxt_bytes:byte	; bytes in a context
@@ -104,11 +104,11 @@ extrn	FRS_array:word		; pointer to runtime-sized FRS array
 extrn	CurRegSetn:byte
 extrn	CurRegSet:word
 extrn	FRS_free:byte
-extrn	_altreg_count:word
+extrn	_altreg_count:byte
 
 extrn	_handle_table:word
-extrn	_handle_count:word
-extrn	_handle_table_size:word
+extrn	_handle_count:byte
+extrn	_handle_table_size:byte
 extrn	_save_map:word
 extrn	_Handle_Name_Table:word
 extrn	DMA_Pages:word		; pointer to runtime-sized DMA page list
@@ -346,7 +346,8 @@ else
 	mov	di,ax
 
 	mov	[_save_map],di
-	mov	bx,[_handle_table_size]
+	xor	bx,bx
+	mov	bl,[_handle_table_size]
 EMIN_init_save_maps:
 	push	bx
 	mov	ax,NULL_SAVE_MAP
@@ -359,7 +360,8 @@ EMIN_init_save_maps:
 	jnz	short EMIN_init_save_maps
 
 	mov	[_handle_table],di
-	mov	bx,[_handle_table_size]
+	xor	bx,bx
+	mov	bl,[_handle_table_size]
 EMIN_init_handles:
 	mov	ax,NULL_PAGE
 	stosw				; ht_index
@@ -369,7 +371,8 @@ EMIN_init_handles:
 	jnz	short EMIN_init_handles
 
 	mov	[_Handle_Name_Table],di
-	mov	ax,[_handle_table_size]
+	xor	ax,ax
+	mov	al,[_handle_table_size]
 	mov	bx,4			; eight-byte name = four words
 	mul	bx
 	mov	cx,ax
@@ -496,7 +499,8 @@ EMIN_3:
     ;
     ; set up for page frame pages
     ;
-	mov	cx,[_page_frame_pages]	; get number
+	xor	cx,cx
+	mov	cl,[_page_frame_pages]	; get number
 	jcxz	EMIN_5			 ; if none exist then skip next portion
     ;
 	mov	bx,[_PF_base]		; get page frame base
@@ -613,8 +617,10 @@ EMIN_9:
 ; 5. finally use the indexes to fill up the counts of the number of entries in
 ;    each array.
 ;
-	mov	[_physical_page_count],si
-	mov	[_mappable_page_count],di
+	mov	ax,si
+	mov	[_physical_page_count],al
+	mov	ax,di
+	mov	[_mappable_page_count],al
 	push	si
 	push	di
 	push	cx
@@ -655,7 +661,8 @@ EMIN_9:
 	; computes and retains the full structure.
 	mov	di,[_emm_brk]
 	mov	[FRS_array],di
-	mov	bx,[_altreg_count]
+	xor	bx,bx
+	mov	bl,[_altreg_count]
 	inc	bx			; set zero plus A= alternate sets
 EMIN_init_frs:
 	push	bx
@@ -677,7 +684,8 @@ EMIN_init_frs:
 	mov	si,[FRS_array]		; DS:SI <-- FRS_array
 	mov	[si.FRS_alloc], 1	; mark FRS set 0 as allocated
 	mov	[CurRegSetn], 0		; use FRS set 0
-	mov	ax,[_altreg_count]
+	xor	ax,ax
+	mov	al,[_altreg_count]
 	mov	[FRS_free],al		; set 0 is the current mapping set
 	mov	word ptr [CurRegSet], SI; save current FRS pointer
 

@@ -132,14 +132,14 @@ _DATA	segment
 ;	 extrn	 himem_use:byte      ;* this is defined in oemproc.asm since it
 				    ;  deals with memory so oem dependent
 	extrn	PF_Base:word
-	extrn	_page_frame_pages:word
+	extrn	_page_frame_pages:byte
 	extrn	_free_count:word
 	extrn	_free_top:word
 	extrn	_emm_free:word
 	extrn	_pft386:word
 	extrn	PageT_Seg:word
-	extrn	_handle_table_size:word
-	extrn	_altreg_count:word
+	extrn	_handle_table_size:byte
+	extrn	_altreg_count:byte
 
 _DATA	ends
 
@@ -1057,7 +1057,7 @@ chk_altregs:
 	jc	inv_prm
 	cmp	ax,254
 	ja	inv_prm
-	mov	[_altreg_count],ax
+	mov	[_altreg_count],al
 	jmp	ploop1
 
 chk_RAM:
@@ -1260,7 +1260,7 @@ chk_Hx:
 	jb	inv_prm
 	cmp	ax,255
 	ja	inv_prm
-	mov	[_handle_table_size],ax
+	mov	[_handle_table_size],al
 	jmp	ploop1
 
 ;
@@ -1716,7 +1716,8 @@ PU_scan:
 	je	short PU_take
 	cmp	bx,ax
 	jb	short PU_take
-	mov	dx,[_page_frame_pages]
+	xor	dx,dx
+	mov	dl,[_page_frame_pages]
 	shl	dx,10
 	add	dx,ax
 	cmp	bx,dx

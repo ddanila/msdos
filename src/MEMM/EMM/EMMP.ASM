@@ -144,14 +144,14 @@ extrn	_OSEnabled:byte
 
 extrn	_total_pages:word			; total # of EMM pages in system
 extrn	_free_count:word			; unallocated EMM pages
-extrn	_handle_count:word			; active EMM handles
+extrn	_handle_count:byte			; active EMM handles
 
 extrn	_pft386:word
 
 extrn	_mappable_pages:word			; pointer to 16 KiB indexes
-extrn	_mappable_page_count:word		; how many in the table
-extrn	_page_frame_pages:word			; how many in the page frame
-extrn	_physical_page_count:word		; number of physical pages
+extrn	_mappable_page_count:byte		; how many in the table
+extrn	_page_frame_pages:byte			; how many in the page frame
+extrn	_physical_page_count:byte		; number of physical pages
 extrn	_physical_page_exceptions:word
 extrn	_physical_page_exception_count:byte
 ;extrn	_VM1_EMM_Offset:word			; offset of these in a context
@@ -168,7 +168,7 @@ extrn	_emm_page:word
 ;  handle data structure
 ;
 extrn	_handle_table:word
-extrn	_handle_table_size:word
+extrn	_handle_table_size:byte
 
 ;
 ;   save area for handles
@@ -183,10 +183,10 @@ extrn	EMM_savDI:word
 
 extrn	CurRegSetn:byte
 extrn	FRS_free:byte
-extrn	_altreg_count:word
+extrn	_altreg_count:byte
 extrn	CurRegSet:dword
 extrn	FRS_array:word
-extrn	_frs_size:word
+extrn	_frs_size:byte
 
 extrn	_regp:word
 _DATA	ENDS
@@ -217,7 +217,8 @@ find_mappable_segment proc near
 	shr	dx,10
 	xor	bx,bx
 	mov	si,[_mappable_pages]
-	mov	cx,[_mappable_page_count]
+	xor	cx,cx
+	mov	cl,[_mappable_page_count]
 	jcxz	find_mappable_absent
 find_mappable_loop:
 	cmp	dl,[bx+si]
@@ -325,7 +326,8 @@ _GetSetHandleAttribute endp
 
 	IFNDEF	EMMP_CORE_EXCLUDE
 _GetEMMHandleCount proc near
-	mov	ax, [_handle_count]
+	xor	ax,ax
+	mov	al, [_handle_count]
 	mov	word ptr [bp.rBX], ax
 	mov	byte ptr [bp.rAX+1], OK
 	ret
@@ -511,12 +513,17 @@ Get_FRS_window	MACRO	Reg
 ;
 ;***********************************************
 map_EMM_page	proc	near
-	cmp	ax,[_page_frame_pages]		; frame member, or a page above slot 3?
+	or	ah,ah
+	jnz	short mEp_not_frame
+	cmp	al,[_page_frame_pages]		; frame member, or a page above slot 3?
 	jb	short mEp_valid_slot
+mEp_not_frame:
 	cmp	ax,4
-	jb	short mEp_inv_page		; missing LIM 3.2 frame slot
+	jb	mEp_inv_page			; missing LIM 3.2 frame slot
 mEp_valid_slot:
-	cmp	ax,[_physical_page_count]	;Q: valid physical page# ?
+	or	ah,ah
+	jnz	short mEp_inv_page
+	cmp	al,[_physical_page_count]	;Q: valid physical page# ?
 	jae	short mEp_inv_page		;  N: invalid page number
 						;  Y: continue with it
 	cmp	bx,[_total_pages]		;Q: valid EMM page# ?
@@ -558,10 +565,11 @@ mEp_valid_slot:
 	; are numbered 0..P-1; later pages start at internal number 4.
 	;
 	mov	di,bx
-	cmp	di,[_page_frame_pages]
+	movzx	bx,[_page_frame_pages]
+	cmp	di,bx
 	jb	short map_page_frame_segment
 	sub	di,4
-	add	di,[_page_frame_pages]
+	add	di,bx
 	mov	bx,[_mappable_pages]
 	movzx	di,byte ptr [bx+di]
 	shl	di,4			; 16 KiB index -> page-table offset
@@ -638,14 +646,16 @@ unmap_page	proc	near
 	; P frame entries contiguously.
 	;
 	mov	di, ax
-	cmp	di, [_page_frame_pages]
+	movzx	bx,[_page_frame_pages]
+	cmp	di,bx
 	jb	short unmap_page_dense
 	cmp	di, 4
 	jb	short unmap_page_exit
 	sub	di, 4
-	add	di, [_page_frame_pages]
+	add	di,bx
 unmap_page_dense:
-	cmp	di, [_mappable_page_count]
+	movzx	bx,[_mappable_page_count]
+	cmp	di,bx
 	jae	short unmap_page_exit
 	mov	bx,[_mappable_pages]
 	movzx	bx,byte ptr [bx+di]	; 16 KiB page index
@@ -703,7 +713,9 @@ unmap_page	endp
 ;
 ;**********************************************************************
 map_page	proc	near
-	cmp	ax,[_physical_page_count]	;Q: valid physical page# ?
+	or	ah,ah
+	jnz	short mp_inv_phy
+	cmp	al,[_physical_page_count]	;Q: valid physical page# ?
 	jae	short mp_inv_phy		;  N: invalid page number
 						;  Y: continue with it
 	cmp	bx,0FFFFh			;Q: unmap ?
@@ -755,7 +767,8 @@ translate_physical_id proc near
 	push	si
 	mov	dl,al
 	xor	si,si
-	mov	cx,[_physical_page_count]
+	xor	cx,cx
+	mov	cl,[_physical_page_count]
 translate_physical_loop:
 	mov	ax,si
 	call	physical_to_external_id
@@ -1201,7 +1214,7 @@ sw_loop:
 	pop	eax
 sw_done_page:
 	inc	ax
-	cmp	ax, [_physical_page_count]
+	cmp	al, [_physical_page_count]
 	jb	sw_loop			; next page
 
 	mov	eax, cr3
@@ -1330,7 +1343,9 @@ gmpa_loop:
 	shl	ax,10				; public API returns a segment
 	stosw
 	add	dx, 4				; derive internal physical page
-	sub	dx, [_page_frame_pages]
+	xor	ax,ax
+	mov	al,[_page_frame_pages]
+	sub	dx,ax
 	mov	ax,dx
 	call	physical_to_external_id
 	xor	ah,ah
@@ -1341,7 +1356,8 @@ gmpa_next:
 
 gmpa_success:
 	mov	bp, [_regp]
-	mov	cx, [_mappable_page_count]
+	xor	cx,cx
+	mov	cl, [_mappable_page_count]
 	mov	word ptr [bp.rCX], cx
 	mov	byte ptr [bp.rAX+1], OK
 	ret
@@ -1397,7 +1413,8 @@ _GetSetPartial	proc	near
 	jz	gsppm_ok		; nothing to do
 	movzx	ecx, ax
 
-	mov	dx, [_mappable_page_count]
+	xor	dx,dx
+	mov	dl,[_mappable_page_count]
 	cmp	cx, dx
 	ja	gsppm_inv_phys
 gsppm_get_loop:
@@ -1413,7 +1430,8 @@ gsppm_get_loop:
 	cmp	bx, fs:[si-2]
 	jne	gsppm_inv_seg			; must match exactly
 	add	ax, 4				; derive the physical page
-	sub	ax, [_page_frame_pages]
+	movzx	bx,[_page_frame_pages]
+	sub	ax,bx
 	cmp	ax, dx
 	ja	gsppm_inv_seg
 	stosw					; Save physical page
@@ -1440,12 +1458,14 @@ gsppm_not0:
 	jecxz	gsppm_ok			; Zero count, do nothing
 
 	Get_FRS_window	DX			; Get pointer to current window
-	cmp	cx, [_mappable_page_count]
+	movzx	bx,[_mappable_page_count]
+	cmp	cx,bx
 	ja	short gsppm_corrupt		; can't be more than phys pages
 gsppm_set_loop:
 	push	esi
 	movzx	eax, word ptr fs:[si]		; Get Physical page
-	cmp	ax, [_mappable_page_count]
+	movzx	bx,[_mappable_page_count]
+	cmp	ax,bx
 	jae	gsppm_sl_bad
 
 	movzx	esi, word ptr fs:[si+2]		; Get mapping (emm page#)
@@ -1484,7 +1504,8 @@ gsppm_corrupt:
 gsppm_not1:
 	cmp	al, 2				; Size?
 	jne	gspm_inv_subfun
-	cmp	bx, [_mappable_page_count]	; # of page frames
+	movzx	ax,[_mappable_page_count]
+	cmp	bx,ax				; # of page frames
 	ja	short gsppm_inv_phys
 	shl	bx, 2				; Size = pages * 4 + 2
 	add	bx, 2
@@ -1584,7 +1605,10 @@ mha_sub1:
 	jc	short mha_inv_seg
 	mov	di,bx
 	add	bx, 4				; derive the physical page
-	sub	bx, [_page_frame_pages]
+	push	ax
+	movzx	ax,[_page_frame_pages]
+	sub	bx,ax
+	pop	ax
 	push	bx
 	mov	bx,[_mappable_pages]
 	movzx	di,byte ptr [bx+di]
@@ -1736,10 +1760,10 @@ _AlterMapAndCall    PROC    NEAR
 	;
 	xor	ch, ch
 	mov	cl, byte ptr gs:[si.mac_old_page_map_len] ; CX = Length of old map
-	cmp	cx, [_physical_page_count]
+	cmp	cl, [_physical_page_count]
 	jae	AMC_inv_phys_pages
 	mov	cl, byte ptr gs:[si.mac_new_page_map_len] ; CX = Length of new map
-	cmp	cx, [_physical_page_count]
+	cmp	cl, [_physical_page_count]
 	jae	AMC_inv_phys_pages
 	;
 	; get client's SS:ESP so we can push stuffs on it
@@ -1966,7 +1990,8 @@ AMC_map_Error:
 
 AMC_Stack_Fram_Size:
 	mov	byte ptr [bp.rAX+1], OK		; No error
-	mov	ax, [_mappable_page_count]	; assume ALL mappable pages
+	xor	ax,ax
+	mov	al, [_mappable_page_count]	; assume ALL mappable pages
 	shl	ax, 2				; 4 bytes per page
 	add	ax, 1 + (3+5)*2		; map length
 			       		; + 3 words already pushed by EMM_rEntry
@@ -3243,7 +3268,9 @@ AMRS_allocate:
 AMRS_search:
 	cmp	[di.FRS_alloc], 0		; This one free?
 	je	short AMRS_foundRS		;   yes, bl has the number
-	add	di, [_frs_size]		; on to the next one
+	xor	ax,ax
+	mov	al,[_frs_size]
+	add	di,ax				; on to the next one
 	inc	bl
 	cmp	bl, byte ptr [_altreg_count]	; Safety... should never fail
 	jbe	short AMRS_search

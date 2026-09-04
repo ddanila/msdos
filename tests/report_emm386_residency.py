@@ -212,8 +212,8 @@ def main() -> int:
     by_name = {segment.name: segment for segment in segments}
     if args.check and by_name["GDT"].size > 224:
         raise ValueError("production GDT retains debugger-only descriptors")
-    if args.check and by_name["_DATA"].size > 438:
-        raise ValueError("EMM386 retained mutable data exceeds 438 bytes")
+    if args.check and by_name["_DATA"].size > 424:
+        raise ValueError("EMM386 retained mutable data exceeds 424 bytes")
     symbol_by_name = {symbol.name: symbol for symbol in symbols}
     if args.check:
         dma_pages = symbol_by_name.get("DMA_Pages")
@@ -234,6 +234,24 @@ def main() -> int:
             or count.offset - mappable.offset != 2
         ):
             raise ValueError("mappable-page table is not represented by a resident pointer")
+        data_paragraph = by_name["_DATA"].paragraph
+        for first, second in (
+            ("_mappable_page_count", "_physical_page_count"),
+            ("_physical_page_count", "_physical_page_exceptions"),
+            ("_page_frame_pages", "_cntxt_pages"),
+            ("_altreg_count", "_cntxt_bytes"),
+            ("_handle_table_size", "_handle_count"),
+            ("_handle_count", "_emmpt_start"),
+        ):
+            if symbol_offset(symbols, second, data_paragraph) - symbol_offset(
+                symbols, first, data_paragraph
+            ) != 1:
+                raise ValueError(f"{first} is not retained as a byte-bounded counter")
+        if any(
+            symbol.name in {"_emm40_info", "ROM_BIOS_Machine_ID", "SaveAL"}
+            for symbol in symbols
+        ):
+            raise ValueError("derived or shared EMM386 state is retained separately")
     text = by_name["_TEXT"]
     r_code = by_name["R_CODE"]
     segment_categories = {
@@ -418,8 +436,7 @@ def main() -> int:
     data_ranges = [
         Range(0, symbol_offset(symbols, "_total_pages", data_segment), "driver state and fatal-error text"),
         Range(symbol_offset(symbols, "_total_pages", data_segment), symbol_offset(symbols, "EMM_dynamic_data_area", data_segment), "EMS runtime tables, counters, and pointers"),
-        Range(symbol_offset(symbols, "EMM_dynamic_data_area", data_segment), symbol_offset(symbols, "ROM_BIOS_Machine_ID", data_segment), "OEM runtime state and alignment"),
-        Range(symbol_offset(symbols, "ROM_BIOS_Machine_ID", data_segment), symbol_offset(symbols, "DMARegSav", data_segment), "OEM machine identifier and alignment"),
+        Range(symbol_offset(symbols, "EMM_dynamic_data_area", data_segment), symbol_offset(symbols, "DMARegSav", data_segment), "A20 and OEM transition state and alignment"),
         Range(symbol_offset(symbols, "DMARegSav", data_segment), symbol_offset(symbols, "MB_Stat", data_segment), "DMA snapshot and page metadata"),
         Range(symbol_offset(symbols, "MB_Stat", data_segment), by_name["_DATA"].size, "move-block status and padding"),
     ]
@@ -461,9 +478,9 @@ def main() -> int:
             args.dma_pages,
         )
         == (64, 7, 64, 6, 1)
-        and runtime_ranges[-1].end > 4192
+        and runtime_ranges[-1].end > 4176
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 4,192 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 4,176 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     dma_page_label = "DMA page" if args.dma_pages == 1 else "DMA pages"
     print(

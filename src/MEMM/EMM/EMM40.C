@@ -41,8 +41,8 @@
  */
 extern struct handle_ptr *handle_table;
 extern Handle_Name *Handle_Name_Table; 	/* Handle names */
-extern unsigned short	handle_table_size;	/* number of entries */
-extern unsigned short	handle_count;		/* active handle count */
+extern unsigned char	handle_table_size;	/* number of entries */
+extern unsigned char	handle_count;		/* active handle count */
 
 /*
  * EMM Page table
@@ -68,7 +68,8 @@ extern unsigned	emmpt_start;		/* next free entry in table */
  * 4.0 EXTRAS
  */
 
-extern unsigned short emm40_info[5];		/* hardware information */
+extern unsigned char altreg_count;		/* extra register sets */
+extern unsigned char cntxt_bytes;		/* bytes in a saved context */
 /*extern char	VM1_cntxt_pages;		/* pages in a VM1 context */
 /*extern char	VMn_cntxt_pages;		/* pages in a VM context */
 /*extern char	VM1_cntxt_bytes;		/* bytes in a VM1 context */
@@ -218,7 +219,11 @@ GetInformation()
 
 	if ( regp->hregs.h.ral == 0 ) {
 		u_ptr = dest_addr();		/* ES:DI */
-		copyout(u_ptr, emm40_info, sizeof(emm40_info));
+		u_ptr[0] = 0x0400;		/* raw page size in paragraphs */
+		u_ptr[1] = altreg_count;
+		u_ptr[2] = cntxt_bytes;
+		u_ptr[3] = 0;			/* settable DMA channels */
+		u_ptr[4] = 0;			/* DMA channel operation */
 		setAH(OK);
 	} else if ( regp->hregs.h.ral == 1 ) {
 		GetUnallocatedPageCount();	/* Use existing code */

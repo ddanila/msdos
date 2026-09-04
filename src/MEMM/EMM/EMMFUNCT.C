@@ -156,8 +156,8 @@ extern struct save_map *save_map;
  */
 extern struct handle_ptr *handle_table;
 extern Handle_Name *Handle_Name_Table;
-extern unsigned short	handle_table_size;	/* number of entries */
-extern unsigned short	handle_count;		/* active handle count */
+extern unsigned char	handle_table_size;	/* number of entries */
+extern unsigned char	handle_count;		/* active handle count */
 
 /*
  * EMM Page table
