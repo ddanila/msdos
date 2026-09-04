@@ -1662,10 +1662,10 @@ low bytes crosses two paragraphs, reducing EMM386 from 6,528 to 6,496 bytes and
 raising the paired VC block to 604,896. The focused, lifecycle, shifted-load,
 and hardware matrices pass.
 
-Do not extend this object to functions 46h and 58h without first resolving the
+Do not extend this object to functions 47h and 58h without first resolving the
 layout dependency. Moving all three produced a 6,320-byte image that corrupted
 installation state before COMMAND remained loaded; restoring 58h but leaving
-46h high produced the same extended-suite failure at 6,400 bytes. Keeping both
+47h high produced the same extended-suite failure at 6,400 bytes. Keeping both
 save-map and mappable-address discovery low while moving only 52h is stable.
 This is stronger than the earlier indirect function-58 observation: both APIs
 must retain their current placement until their entry, far-pointer, map-state,
