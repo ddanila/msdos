@@ -94,6 +94,7 @@ EMM_ALLOCATE		equ	43h	; allocate pages
 EMM_MAP_PAGE		equ	44h	; map handle page
 EMM_DEALLOCATE		equ	45h	; deallocate pages
 EMM_VERSION		equ	46h	; get LIM EMS version
+EMM_SAVE_MAP		equ	47h	; save page map
 EMM_RESTORE		equ	48h	; restore page map
 EMM_HANDLE_COUNT	equ	4Bh	; get active handle count
 EMM_GET_SET		equ	4Eh	; get/set page map
@@ -120,10 +121,10 @@ EMM_HW_MALFUNCTION	equ	81h	;
 EMM_PROTECTED_FIRST	equ	40h
 EMM_PROTECTED_LAST	equ	5Ch
 EMM_PROTECTED_HIGH_BASE equ	EMM_PROTECTED_FIRST+16
-; Low selects 40h..46h, 48h, and 4Bh..4Fh.  High selects 50h..5Ch.
+; Low selects 40h..48h and 4Bh..4Fh.  High selects 50h..5Ch.
 ; Compact constants also avoid JWasm's limit on
 ; the expanded length of continued EQU expressions.
-EMM_PROTECTED_MASK_LOW equ 0F97Fh
+EMM_PROTECTED_MASK_LOW equ 0F9FFh
 EMM_PROTECTED_MASK_HIGH equ 01FFFh
 
 ;******************************************************************************

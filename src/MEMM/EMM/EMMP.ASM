@@ -81,18 +81,22 @@ _TEXT	segment
 	IFNDEF	EMMP_CORE_ONLY
 	IFNDEF	EMMP_ATTR_ONLY
 	IFNDEF	EMMP_MAPPABLE_ONLY
+	IFNDEF	EMMP_SAVE_ONLY
 	public	_UnsupportedFunction
+	ENDIF
 	ENDIF
 	ENDIF
 	ENDIF
 	IFNDEF	EMMP_ATTR_ONLY
 	IFNDEF	EMMP_CORE_ONLY
 	IFNDEF	EMMP_MAPPABLE_ONLY
+	IFNDEF	EMMP_SAVE_ONLY
 ;	public	VEMMD_Set_Map_Region
 ;	public	VEMMD_Unset_Map_Region
 ;	public	_VMpte_to_EMMpte
 ;	public	_Remap_EMM
 	public	_Get_Key_Val
+	ENDIF
 	ENDIF
 	ENDIF
 	ENDIF
@@ -262,12 +266,14 @@ _GetEMMVersion endp
 	IFNDEF	EMMP_CORE_ONLY
 	IFNDEF	EMMP_ATTR_ONLY
 	IFNDEF	EMMP_MAPPABLE_ONLY
+	IFNDEF	EMMP_SAVE_ONLY
 _UnsupportedFunction proc near
 	; Unsupported calls never cross the protected-service bitmap.
 	mov	byte ptr [bp.rAX+1], INVALID_FUNCTION
 	ret
 _UnsupportedFunction endp
 
+	ENDIF
 	ENDIF
 	ENDIF
 	ENDIF
@@ -3221,6 +3227,7 @@ _AlternateMapRegisterSet	endp
 	IFNDEF	EMMP_ATTR_ONLY
 	IFNDEF	EMMP_CORE_ONLY
 	IFNDEF	EMMP_MAPPABLE_ONLY
+	IFNDEF	EMMP_SAVE_ONLY
 
 
 	page
@@ -3283,6 +3290,7 @@ Latch_Counter	    EQU 0
 
 Get_Counter_Value	ENDP
 
+	ENDIF
 	ENDIF
 	ENDIF
 	ENDIF
