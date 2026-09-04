@@ -57,15 +57,14 @@ page	58,132
 ;
 	IFNDEF	RRTRAP_LOW_ONLY
 	public	RR_Trap_Init
-	ENDIF
-	IFNDEF	RRTRAP_HIGH_ONLY
+	public	RRP_Handler
 	public	P84_Handler
 	public	P85_Handler
+	ENDIF
+	IFNDEF	RRTRAP_HIGH_ONLY
+	public	P85Switch
 	public	RRProc
 	public	JumpReal
-	ENDIF
-	IFNDEF	RRTRAP_LOW_ONLY
-	public	RRP_Handler
 	ENDIF
 ;
 ;******************************************************************************
@@ -78,9 +77,8 @@ _TEXT	segment
 	IFNDEF	RRTRAP_HIGH_ONLY
 	extrn	RetReal:near
 	ENDIF
-	IFDEF	RRTRAP_HIGH_ONLY
-	extrn	P84_Handler:near
-	extrn	P85_Handler:near
+	IFNDEF	RRTRAP_LOW_ONLY
+	extrn	P85Switch:near
 	ENDIF
 _TEXT	ends
 
@@ -178,7 +176,7 @@ RRP_Handler	endp
 ;   USED:  Flags
 ;   STACK:
 ;------------------------------------------------------------------------------
-	IFNDEF	RRTRAP_HIGH_ONLY
+	IFNDEF	RRTRAP_LOW_ONLY
 P84_Handler	proc	near
 ;
 	mov	[RR84save],al	;  Y: save value written to 84
@@ -220,14 +218,14 @@ P85_Handler	proc	near
 	jne	P85_Exit	;      N: invalidate sequence and leave
 	cmp	[RR84Save],RR84_Value	;  Y: Q: was 84h value RR value ?
 	jne	P85_Exit	;		N: invalidate sequence and leave
-	out	85h,al		;		Y: emulate output and
-	jmp	RR_GoReal	;		  return to real(we're in real)
+	jmp	P85Switch	;		Y: emulate output and return real
 P85_Exit:
 	mov	[RR84save],0FFh ; a port 85h output ends any pending sequence
 	stc			; don't bother to emulate it
 	ret
 ;
 P85_Handler	endp
+	ENDIF
 
 	page
 ;******************************************************************************
@@ -246,6 +244,9 @@ P85_Handler	endp
 ;**************
 ;******************************************************************************
 ;
+	IFNDEF	RRTRAP_HIGH_ONLY
+P85Switch:
+	out	85h,al			; emulate the triggering output
 RR_GoReal:
 	push	ax
 	mov	al,DISABLE_NMI
