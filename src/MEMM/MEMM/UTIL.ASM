@@ -360,38 +360,24 @@ VM_return:
 	ret
 GoVirtual	endp
 
-
-;**	SelToSeg - convert selector to a segment number
-;
-;	The protected mode selector value is converted to a
-;	real mode segment number.
-;
-;	ENTRY	BX = selector
-;	EXIT	AX = segment number
-;	USES	BX, Flags, other regs preserved
-;
-;	WARNING This code only works on a 286.	It can be
-;		called only in protected mode.
-
+; Convert the protected ring-0 stack selector to its real-mode segment. The
+; caller always supplies VDMS_GSEL and GoVirtual explicitly loads a null LDT,
+; so only the GDT path is reachable.
 SelToSeg proc near
 	push	ds
-	mov	ax,LDTD_GSEL
-	test	bx,TAB_LDT		; is the selector in the LDT?
-	jnz	sts_addr		;  yes,
-	mov	ax,GDTD_GSEL		; selector is in the GDT
-sts_addr:
+	mov	ax,GDTD_GSEL
 	mov	ds,ax
 	and	bl,0F8h
-
-	mov	ax,word ptr ds:[bx + 2] ; low 16 bits of base address
-	mov	bh,ds:[bx + 4]		; high 8 bits of base address
+	mov	ax,word ptr ds:[bx + 2]
+	mov	bh,ds:[bx + 4]
 	shr	ax,4
 	shl	bh,4
 	mov	bl,0
-	add	ax,bx			; AX = segment number for selector
+	add	ax,bx
 	pop	ds
 	ret
 SelToSeg endp
+
 
 _TEXT	ends
 

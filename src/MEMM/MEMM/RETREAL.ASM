@@ -81,7 +81,7 @@ _DATA	ends
 
 _TEXT	segment
 	IFNDEF	RETREAL_LOW_ONLY
-	extrn	SelToSeg:near		; selector to segment	(I286)
+	extrn	SelToSeg:near		; stack selector to segment
 	extrn	RetRealResume:near
 	ENDIF
 	IFNDEF	RETREAL_HIGH_ONLY
