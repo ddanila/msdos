@@ -52,4 +52,37 @@ for handles in {24..32}; do
     fi
 done
 
-echo '  PASS: EMM386 boots across HIMEM /NUMHANDLES=24..32 address phases'
+for mode in 'default|M5' 'auto|AUTO M5' 'ram|RAM M5' 'noems|NOEMS M5'; do
+    name=${mode%%|*}
+    options=${mode#*|}
+    upper_name=$(printf '%s' "$name" | tr '[:lower:]' '[:upper:]')
+    image="$OUT/floppy-emm386-$name-high.img"
+    log="$OUT/emm386-$name-high.log"
+    marker="EMM386_${upper_name}_HIGH_PASS"
+    cp "$BASE" "$image"
+    mcopy -o -i "$image" "$exit_com" ::QEXIT.COM
+    {
+        printf 'DEVICE=A:\\HIMEM.SYS /TESTMEM:OFF\r\n'
+        printf 'DEVICE=A:\\EMM386.EXE %s\r\n' "$options"
+        printf 'DOS=HIGH\r\n'
+    } | mcopy -o -i "$image" - ::CONFIG.SYS
+    {
+        printf '@ECHO OFF\r\n'
+        printf 'CTTY AUX\r\n'
+        printf 'ECHO %s\r\n' "$marker"
+        printf 'QEXIT.COM\r\n'
+    } | mcopy -o -i "$image" - ::AUTOEXEC.BAT
+
+    timeout 25 qemu-system-i386 \
+        -display none -monitor none -machine pc -cpu 486 -m 8 \
+        -drive if=floppy,index=0,format=raw,file="$image",cache=writethrough \
+        -boot a -serial stdio -no-reboot \
+        -device isa-debug-exit,iobase=0xf4,iosize=0x04 >"$log" 2>&1 || true
+    if ! grep -Fq "$marker" "$log"; then
+        echo "FAIL: EMM386 $options did not return to DOS=HIGH" >&2
+        sed -n '1,120p' "$log" >&2
+        exit 1
+    fi
+done
+
+echo '  PASS: EMM386 boots across RAM address phases and all DOS-high manager modes'

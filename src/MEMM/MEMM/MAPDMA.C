@@ -43,9 +43,9 @@ extern unsigned char *mappable_pages; /* physical address >> 14 */
 extern long *pft386;
 extern unsigned *DMA_Pages;
 extern unsigned char DMA_PAGE_COUNT;   /* size of DMA_Pages[] */
-extern unsigned physical_page_count;
-extern unsigned mappable_page_count;
-extern unsigned page_frame_pages;
+extern unsigned char physical_page_count;
+extern unsigned char mappable_page_count;
+extern unsigned char page_frame_pages;
 
 #define MAPPABLE_PHYSICAL_PAGE(i) ((i) + 4 - page_frame_pages)
 

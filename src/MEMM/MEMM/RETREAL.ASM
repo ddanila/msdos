@@ -77,6 +77,7 @@ include OEMDEP.INC
 ;
 _DATA	segment
 	extrn	Active_Status:byte
+	extrn	state_a20:byte
 _DATA	ends
 
 _TEXT	segment
@@ -234,7 +235,10 @@ RetRealResume:
 
 	mov	[Active_Status],0	; rest VDM status
 
-	call	DisableA20		; disable A20 line
+	cmp	[state_a20],0		; restore the client's logical A20 state
+	jne	short RetRealA20Done	; protected mode already left it enabled
+	call	DisableA20
+RetRealA20Done:
 
 	pop	bx
 	POP_EAX

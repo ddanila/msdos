@@ -3165,7 +3165,7 @@ AMRS_set:
 	cmp	bl, byte ptr [_altreg_count]	; Validate new Reg Set
 	ja	AMRS_inv_FRS
 	movzx	eax, bl
-	movzx	edx, word ptr [_frs_size]
+	movzx	edx, byte ptr [_frs_size]
 	imul	eax, edx
 	xchg	ax, bx
 	add	bx, [FRS_array]			; Get pointer to the new Reg Set
@@ -3316,7 +3316,7 @@ AMRS_deallocate:
 	cmp	bl, byte ptr [_altreg_count]
 	ja	short AMRS_undef_FRS		; Invalid Register set
 	movzx	eax, bl
-	movzx	edx, word ptr [_frs_size]
+	movzx	edx, byte ptr [_frs_size]
 	imul	eax, edx			; Offset into array
 	xchg	ax, bx
 	add	bx,[FRS_array]
