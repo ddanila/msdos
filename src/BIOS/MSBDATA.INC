@@ -348,7 +348,6 @@ MOTORSTARTUP	DB  ?			; VALUE FROM TABLE
 SETTLECURRENT	DB  ?			; VALUE FROM TABLE
 SETTLESLOW	DB  ?			; SLOW SETTLE VALUE
 
-NEXTSPEED	DB  ?			; VALUE OF SPEED TO BE USED
 	public	save_head_sttl
 Save_head_sttl	db  ?		;used by READ_SECTOR routine
 
