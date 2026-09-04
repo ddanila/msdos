@@ -107,16 +107,22 @@ gdtstart	label byte	; label for everyone to refer to the GDT
 GDT_ENTRY	0, 0, 1, 0			; null selector
 GDT_ENTRY	0, 0, 0, D_DATA0		; GDT alias
 GDT_ENTRY	0, 0, 0, D_DATA0		; IDT alias
+	ifndef NoBugMode
 GDT_ENTRY	0, 0, 0, D_LDT0 		; LDT
+	endif
 GDT_ENTRY	0, 0, 0, D_DATA0		; LDT alias
 GDT_ENTRY	0, 0, 0, D_386TSS0		; TSS
 GDT_ENTRY	0, 0, 0, D_DATA0		; TSS alias
 GDT_ENTRY	0, 0, <400h>, D_DATA3		; Real Mode IDT
+	ifndef NoBugMode
 GDT_ENTRY	400h, 0, <300h>, D_DATA0	; ROM Data
+	endif
 GDT_ENTRY	0, 0, 0, D_CODE0		; VDM Code
 GDT_ENTRY	0, 0, 0, D_DATA0		; VDM Data
 GDT_ENTRY	0, 0, 0, D_DATA0		; VDM Stack
+	ifndef NoBugMode
 GDT_ENTRY	0, 0bh, 1000h, D_DATA0		; Mono Display
+	endif
 GDT_ENTRY	8000h, 0bh, 4000h, D_DATA0	; Colour Disp
 	ifndef NoBugMode
 ; These legacy display/loadall descriptors have no production consumers. Keep

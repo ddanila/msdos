@@ -56,6 +56,7 @@ TAB_GDT 	equ	0h
 
 GDTD_GSEL	equ	008h OR TAB_GDT		; gdt data alias
 IDTD_GSEL	equ	010h OR TAB_GDT		; idt data alias
+ifndef NoBugMode
 LDT_GSEL	equ	018h OR TAB_GDT		; ldt
 LDTD_GSEL	equ	020h OR TAB_GDT		; ldt data alias
 TSS_GSEL	equ	028h OR TAB_GDT		; tss
@@ -67,7 +68,6 @@ VDMD_GSEL	equ	050h OR TAB_GDT		; VDM Data Selector
 VDMS_GSEL	equ	058h OR TAB_GDT		; VDM stack selector
 MONO_GSEL	equ	060h OR TAB_GDT		; monochrome display memory
 COLOUR_GSEL	equ	068h OR TAB_GDT		; colour display memory
-ifndef NoBugMode
 EGA1_GSEL	equ	070h OR TAB_GDT		; first EGA sel
 EGA2_GSEL	equ	078h OR TAB_GDT		; second EGA sel
 LOADALL_GSEL	equ	080h OR TAB_GDT		; loadall buffer - DON'T CHANGE
@@ -83,9 +83,17 @@ DEB5_GSEL	equ	0A8h or TAB_GDT		; deb386 word descr
 DEBX_GSEL	equ	0B0h or TAB_GDT		; deb386 full-address descriptor
 RCODEA_GSEL	equ	0B8h OR TAB_GDT 	; data alias for R_CODE segment
 else
-; Production has no users of the legacy EGA/loadall descriptors, so its
-; runtime selectors begin immediately after the colour-display entry.
-RCODEA_GSEL	equ	070h OR TAB_GDT 	; data alias for R_CODE segment
+; The active LDT is explicitly null, and the ROM-data and monochrome selectors
+; have no production consumers. Omit those plus the legacy/debugger entries.
+LDTD_GSEL	equ	018h OR TAB_GDT		; ldt data alias
+TSS_GSEL	equ	020h OR TAB_GDT		; tss
+TSSD_GSEL	equ	028h OR TAB_GDT		; tss data alias
+RM_IDT_GSEL	equ	030h OR TAB_GDT		; real mode idt (locn 0)
+VDMC_GSEL	equ	038h OR TAB_GDT		; VDM Code selector
+VDMD_GSEL	equ	040h OR TAB_GDT		; VDM Data Selector
+VDMS_GSEL	equ	048h OR TAB_GDT		; VDM stack selector
+COLOUR_GSEL	equ	050h OR TAB_GDT		; colour display memory
+RCODEA_GSEL	equ	058h OR TAB_GDT 	; data alias for R_CODE segment
 endif
 VM1_GSEL	equ	RCODEA_GSEL+08h 	; scratch for vm handler
 VM2_GSEL	equ	RCODEA_GSEL+10h 	; scratch for vm handler
