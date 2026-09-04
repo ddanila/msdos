@@ -87,10 +87,15 @@ TRUE	equ	not FALSE
 ;
 ;   these EMM functions are handled in protected mode
 ;
+EMM_STATUS		equ	40h	; get manager status
+EMM_PAGE_FRAME		equ	41h	; get page-frame segment
+EMM_PAGE_COUNTS	equ	42h	; get free and total pages
 EMM_ALLOCATE		equ	43h	; allocate pages
 EMM_MAP_PAGE		equ	44h	; map handle page
 EMM_DEALLOCATE		equ	45h	; deallocate pages
+EMM_VERSION		equ	46h	; get LIM EMS version
 EMM_RESTORE		equ	48h	; restore page map
+EMM_HANDLE_COUNT	equ	4Bh	; get active handle count
 EMM_GET_SET		equ	4Eh	; get/set page map
 EMM_GET_SET_PARTIAL	equ	4Fh	; get/set partial page map
 EMM_MAP_PAGE_ARRAY	equ	50h	; map handle page array
@@ -104,34 +109,21 @@ EMM_MOVE_XCHG_MEM	equ	57h	; move/xchg memory region
 EMM_GET_INFORMATION	equ	59h	; get hardware information
 EMM_ALLOCATE_RAW	equ	5Ah	; allocate raw pages
 EMM_ALTER_MAP_REG_SET	equ	5Bh	; alternate map register set
+EMM_PREPARE_WARM_BOOT	equ	5Ch	; prepare manager for warm boot
 
 EMM_HW_MALFUNCTION	equ	81h	;
 
-; Bits 0..24 correspond to functions 43h..5Bh.  A set bit selects the
+; Bits 0..28 correspond to functions 40h..5Ch.  A set bit selects the
 ; protected/locked-XMS implementation.  Keep this in the retained _TEXT
 ; prefix because EMM_rLink consults it before entering protected mode.
-EMM_PROTECTED_FIRST	equ	43h
-EMM_PROTECTED_LAST	equ	5Bh
+EMM_PROTECTED_FIRST	equ	40h
+EMM_PROTECTED_LAST	equ	5Ch
 EMM_PROTECTED_HIGH_BASE equ	EMM_PROTECTED_FIRST+16
-EMM_PROTECTED_MASK_LOW equ \
-	(1 shl (EMM_ALLOCATE-EMM_PROTECTED_FIRST)) or \
-	(1 shl (EMM_MAP_PAGE-EMM_PROTECTED_FIRST)) or \
-	(1 shl (EMM_DEALLOCATE-EMM_PROTECTED_FIRST)) or \
-	(1 shl (EMM_RESTORE-EMM_PROTECTED_FIRST)) or \
-	(1 shl (EMM_GET_SET-EMM_PROTECTED_FIRST)) or \
-	(1 shl (EMM_GET_SET_PARTIAL-EMM_PROTECTED_FIRST)) or \
-	(1 shl (EMM_MAP_PAGE_ARRAY-EMM_PROTECTED_FIRST)) or \
-	(1 shl (EMM_REALLOCATE-EMM_PROTECTED_FIRST)) or \
-	(1 shl (EMM_HANDLE_ATTRIBUTE-EMM_PROTECTED_FIRST))
-EMM_PROTECTED_MASK_HIGH equ \
-	(1 shl (EMM_SET_HANDLE_NAME-EMM_PROTECTED_HIGH_BASE)) or \
-	(1 shl (EMM_GET_HANDLE_DIRECTORY-EMM_PROTECTED_HIGH_BASE)) or \
-	(1 shl (EMM_ALTER_MAP_JUMP-EMM_PROTECTED_HIGH_BASE)) or \
-	(1 shl (EMM_ALTER_MAP_CALL-EMM_PROTECTED_HIGH_BASE)) or \
-	(1 shl (EMM_MOVE_XCHG_MEM-EMM_PROTECTED_HIGH_BASE)) or \
-	(1 shl (EMM_GET_INFORMATION-EMM_PROTECTED_HIGH_BASE)) or \
-	(1 shl (EMM_ALLOCATE_RAW-EMM_PROTECTED_HIGH_BASE)) or \
-	(1 shl (EMM_ALTER_MAP_REG_SET-EMM_PROTECTED_HIGH_BASE))
+; Low selects 40h..46h, 48h, 4Bh, and 4Eh..4Fh.  High selects 50h..57h and
+; 59h..5Ch.  Compact constants also avoid JWasm's limit on
+; the expanded length of continued EQU expressions.
+EMM_PROTECTED_MASK_LOW equ 0C97Fh
+EMM_PROTECTED_MASK_HIGH equ 01EFFh
 
 ;******************************************************************************
 ;			E X T E R N A L    R E F E R E N C E S
@@ -214,8 +206,8 @@ _TEXT	segment
 	assume	cs:_TEXT, ds:DGROUP, es:DGROUP
 	IFNDEF	EMM_PROTECTED_ENTRY
 EMM_Protected_Functions label word
-	dw	EMM_PROTECTED_MASK_LOW		; 43h..52h
-	dw	EMM_PROTECTED_MASK_HIGH		; 53h..5Bh
+	dw	EMM_PROTECTED_MASK_LOW		; 40h..4Fh
+	dw	EMM_PROTECTED_MASK_HIGH		; 50h..5Fh (used through 5Ch)
 	ENDIF
 
 	page

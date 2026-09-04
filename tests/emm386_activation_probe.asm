@@ -17,6 +17,21 @@ start:
     test bx, bx
     jz fail
 
+    ; Core status, page-frame, page-count, version, and handle-count queries
+    ; execute through the protected copy even while AUTO is initially idle.
+    mov ah, 40h
+    int 67h
+    test ah, ah
+    jnz fail
+    mov ah, 42h
+    int 67h
+    test ah, ah
+    jnz fail
+    test dx, dx
+    jz fail
+    cmp bx, dx
+    ja fail
+
     ; Function 59h is serviced through the protected/XMS copy.  In AUTO mode
     ; this must enter virtual mode for the request and return cleanly.
     mov ax, 5901h
@@ -27,6 +42,35 @@ start:
     jz fail
     cmp bx, dx
     ja fail
+    mov ah, 46h
+    int 67h
+    test ah, ah
+    jnz fail
+    cmp al, 40h
+    jne fail
+    mov ah, 4bh
+    int 67h
+    test ah, ah
+    jnz fail
+    cmp bx, 1
+    jb fail
+
+    ; Internal handle zero is always present.  Keep the far-buffer 4C/4D pair
+    ; covered here as retained-low neighbors while AUTO remains idle.
+    xor dx, dx
+    mov ah, 4ch
+    int 67h
+    test ah, ah
+    jnz fail
+    push cs
+    pop es
+    mov di, handle_rows
+    mov ah, 4dh
+    int 67h
+    test ah, ah
+    jnz fail
+    cmp bx, 1
+    jb fail
 
     ; Directory capacity is also protected and must make the same temporary
     ; AUTO transition without requiring an application handle.
@@ -137,5 +181,6 @@ restore_state:
 
 saved_strategy dw 0
 saved_link db 0
+handle_rows times 4 db 0
 pass_message db 'EMM386_ACTIVATION_PASS', 13, 10, '$'
 fail_message db 'EMM386_ACTIVATION_FAIL', 13, 10, '$'
