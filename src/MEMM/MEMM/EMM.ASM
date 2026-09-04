@@ -95,6 +95,8 @@ EMM_GET_SET		equ	4Eh	; get/set page map
 EMM_GET_SET_PARTIAL	equ	4Fh	; get/set partial page map
 EMM_MAP_PAGE_ARRAY	equ	50h	; map handle page array
 EMM_REALLOCATE		equ	51h	; resize a handle
+EMM_SET_HANDLE_NAME	equ	53h	; get/set handle name
+EMM_GET_HANDLE_DIRECTORY equ	54h	; enumerate and find handles
 EMM_ALTER_MAP_JUMP	equ	55h	; alter mapping and jump
 EMM_ALTER_MAP_CALL	equ	56h	; alter mapping and call
 EMM_MOVE_XCHG_MEM	equ	57h	; move/xchg memory region
@@ -120,6 +122,8 @@ EMM_PROTECTED_MASK_LOW equ \
 	(1 shl (EMM_MAP_PAGE_ARRAY-EMM_PROTECTED_FIRST)) or \
 	(1 shl (EMM_REALLOCATE-EMM_PROTECTED_FIRST))
 EMM_PROTECTED_MASK_HIGH equ \
+	(1 shl (EMM_SET_HANDLE_NAME-EMM_PROTECTED_HIGH_BASE)) or \
+	(1 shl (EMM_GET_HANDLE_DIRECTORY-EMM_PROTECTED_HIGH_BASE)) or \
 	(1 shl (EMM_ALTER_MAP_JUMP-EMM_PROTECTED_HIGH_BASE)) or \
 	(1 shl (EMM_ALTER_MAP_CALL-EMM_PROTECTED_HIGH_BASE)) or \
 	(1 shl (EMM_MOVE_XCHG_MEM-EMM_PROTECTED_HIGH_BASE)) or \

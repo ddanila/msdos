@@ -92,7 +92,8 @@ extern	unsigned	copyout();
 	ROUTINES
  ******************************************************************************/ 
 
-#if !defined(EMM40_QUERY_ONLY) && !defined(EMM40_INFO_ONLY)
+#if !defined(EMM40_QUERY_ONLY) && !defined(EMM40_INFO_ONLY) && \
+    !defined(EMM40_NAMES_ONLY)
 
 /*
  * Reallocate Pages
@@ -179,11 +180,12 @@ ReallocatePages()
 }
 
 
-#endif /* !EMM40_QUERY_ONLY && !EMM40_INFO_ONLY */
+#endif /* reallocation-only or full build */
 
 #ifndef EMM40_REALLOC_ONLY
 
-#if !defined(EMM40_QUERY_ONLY) || defined(EMM40_INFO_ONLY)
+#if defined(EMM40_INFO_ONLY) || \
+    (!defined(EMM40_QUERY_ONLY) && !defined(EMM40_NAMES_ONLY))
 
 /*
  * Get Expanded Memory Hardware Information
@@ -224,9 +226,10 @@ GetInformation()
 		setAH(INVALID_SUBFUNCTION);
 }
 
-#endif /* !EMM40_QUERY_ONLY || EMM40_INFO_ONLY */
+#endif /* EMM40_INFO_ONLY || full build */
 
-#ifndef EMM40_INFO_ONLY
+#if defined(EMM40_NAMES_ONLY) || \
+    (!defined(EMM40_INFO_ONLY) && !defined(EMM40_QUERY_ONLY))
 
 /*
  * GetSetHandleName
@@ -387,6 +390,10 @@ GetHandleDirectory()
 
 #undef	handle
 }
+
+#endif /* EMM40_NAMES_ONLY || full build */
+
+#if !defined(EMM40_INFO_ONLY) && !defined(EMM40_NAMES_ONLY)
 
 /*
  * Enable/Disable OS/E Function Set Functions
@@ -439,6 +446,6 @@ OSDisable()
 	setAH(OK);
 }
 
-#endif /* !EMM40_INFO_ONLY */
+#endif /* !EMM40_INFO_ONLY && !EMM40_NAMES_ONLY */
 
 #endif /* !EMM40_REALLOC_ONLY */

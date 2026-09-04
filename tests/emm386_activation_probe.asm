@@ -27,6 +27,15 @@ start:
     jz fail
     cmp bx, dx
     ja fail
+
+    ; Directory capacity is also protected and must make the same temporary
+    ; AUTO transition without requiring an application handle.
+    mov ax, 5402h
+    int 67h
+    test ah, ah
+    jnz fail
+    cmp bx, 2
+    jb fail
 %else
     test ah, ah
     jz fail
