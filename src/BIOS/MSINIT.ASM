@@ -68,6 +68,7 @@ years:
 	mov	ax, daycnt
 	mov	bx, (366+365*3) 	;# of days in a Leap year block
 	div	bx			;AX = # of leap block, DX = daycnt
+	inc	dx			;make the remainder one-based
 	mov	daycnt, dx		;save daycnt left
 ;	or	ah, ah			;ax should be less than 256
 ;	jz	OK1
@@ -76,7 +77,6 @@ years:
 	mov	bl,4
 	mul	bl			;AX = # of years. Less than 100 years!
 	add	base_year, al		;So, ah = 0. Adjust year accordingly.
-	inc	daycnt			;set daycnt to 1 base
 	cmp	daycnt, 366		;the daycnt here is the remainder of the leap year block.
 	jbe	Leapyear		;So, it should within 366+355+355+355 days.
 	inc	base_year		;First if daycnt <= 366, then leap year
