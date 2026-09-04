@@ -528,6 +528,7 @@ IE_setbrk:
 
 ; Initialize DEBX_GSEL GDT Selector and Deb386
 ;
+	ifndef NoBugMode
 	push	ds
 	push	es
 	push	ax
@@ -562,6 +563,7 @@ IE_setbrk:
 	pop	ax
 	pop	es
 	pop	ds
+	endif
 
 	call	RelocateText
 	call	FarGoVirtual		;  N: go into virtual mode

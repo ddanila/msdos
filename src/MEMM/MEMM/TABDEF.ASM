@@ -121,12 +121,14 @@ GDT_ENTRY	8000h, 0bh, 4000h, D_DATA0	; Colour Disp
 GDT_ENTRY	0, 0ah, 0, D_DATA0		; EGA Low
 GDT_ENTRY	0, 0ch, 0, D_DATA0		; EGA High
 GDT_ENTRY	800h, 0, 66h, D_DATA0		; LOADALL
+	ifndef NoBugMode
 GDT_ENTRY	0, 0, 0, 0			; debugger work 1
 GDT_ENTRY	0, 0, 0, 0			; debugger work	2
 GDT_ENTRY	0, 0, 0, 0			; debugger work	3
 GDT_ENTRY	0, 0, 0, 0			; debugger work	4
 GDT_ENTRY	0, 0, 0, 0			; debugger work	5
 GDT_ENTRY	0, 0, 0, 0			; debugger work	(Addresses all memory)
+	endif
 GDT_ENTRY	0, 0, 0, D_CODE0		; maps CODE segment
 GDT_ENTRY	0, 0, 0, D_DATA0		; VM1_GSEL - vm trap scratch
 GDT_ENTRY	0, 0, 0, D_DATA0		; VM2_GSEL - vm trap scratch

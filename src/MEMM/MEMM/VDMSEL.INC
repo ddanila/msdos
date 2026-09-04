@@ -74,23 +74,27 @@ LOADALL_GSEL	equ	080h OR TAB_GDT		; loadall buffer - DON'T CHANGE
 ;DEBD_GSEL	equ	090h or TAB_GDT		; debugger work descr
 ;DEBW1_GSEL	equ	098h or TAB_GDT		; debugger work descr
 ;DEBW2_GSEL	equ	0A0h or TAB_GDT 	; debugger work descr
+ifdef NoBugMode
+RCODEA_GSEL	equ	088h OR TAB_GDT 	; data alias for R_CODE segment
+else
 DEB1_GSEL	equ	088h or TAB_GDT		; deb386 word descr
 DEB2_GSEL	equ	090h or TAB_GDT		; deb386 word descr
 DEB3_GSEL	equ	098h or TAB_GDT		; deb386 word descr
 DEB4_GSEL	equ	0A0h or TAB_GDT		; deb386 word descr
 DEB5_GSEL	equ	0A8h or TAB_GDT		; deb386 word descr
-DEBX_GSEL	equ	0B0h or TAB_GDT		; deb386 descr for all of addressing space
+DEBX_GSEL	equ	0B0h or TAB_GDT		; deb386 full-address descriptor
 RCODEA_GSEL	equ	0B8h OR TAB_GDT 	; data alias for R_CODE segment
-VM1_GSEL	equ	0C0h OR TAB_GDT 	; scratch for vm handler
-VM2_GSEL	equ	0C8h OR TAB_GDT 	; scratch for vm handler
-MBSRC_GSEL	equ	0D0h OR TAB_GDT 	; source sel for move blk
-MBTAR_GSEL	equ	0D8h OR TAB_GDT 	; target sel for move blk
-PAGET_GSEL	equ	0E0h OR TAB_GDT 	; page table area sel
-VDMCA_GSEL	equ	0E8h OR TAB_GDT 	; VDM code segment alias
-EMM1_GSEL	equ	0F0h OR TAB_GDT 	; EMM scratch selector
-EMM2_GSEL	equ	0F8h OR TAB_GDT 	; EMM scratch selector
-OEM0_GSEL	equ	100h OR TAB_GDT 	; OEM specific selector
-USER1_GSEL	equ	108h OR TAB_GDT		; USER data structure
+endif
+VM1_GSEL	equ	RCODEA_GSEL+08h 	; scratch for vm handler
+VM2_GSEL	equ	RCODEA_GSEL+10h 	; scratch for vm handler
+MBSRC_GSEL	equ	RCODEA_GSEL+18h 	; source sel for move blk
+MBTAR_GSEL	equ	RCODEA_GSEL+20h 	; target sel for move blk
+PAGET_GSEL	equ	RCODEA_GSEL+28h 	; page table area sel
+VDMCA_GSEL	equ	RCODEA_GSEL+30h 	; VDM code segment alias
+EMM1_GSEL	equ	RCODEA_GSEL+38h 	; EMM scratch selector
+EMM2_GSEL	equ	RCODEA_GSEL+40h 	; EMM scratch selector
+OEM0_GSEL	equ	RCODEA_GSEL+48h 	; OEM specific selector
+USER1_GSEL	equ	RCODEA_GSEL+50h		; USER data structure
 
 .list	; end of VDMSEL.INC
 

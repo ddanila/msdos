@@ -198,6 +198,8 @@ def main() -> int:
         raise ValueError("NOHIMEM no-op OEM hook is linked")
 
     by_name = {segment.name: segment for segment in segments}
+    if args.check and by_name["GDT"].size > 224:
+        raise ValueError("production GDT retains debugger-only descriptors")
     text = by_name["_TEXT"]
     r_code = by_name["R_CODE"]
     segment_categories = {
@@ -414,9 +416,9 @@ def main() -> int:
         args.check
         and (args.handles, args.alternate_registers, args.ems_pages, args.physical_pages)
         == (64, 7, 64, 4)
-        and runtime_ranges[-1].end > 4400
+        and runtime_ranges[-1].end > 4352
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 4,400 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 4,352 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     print(
         f"\nSelected layout: `H={args.handles}`, `A={args.alternate_registers}`, "
