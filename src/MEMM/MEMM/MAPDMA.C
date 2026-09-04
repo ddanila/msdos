@@ -39,7 +39,7 @@
 #define OFFSET(a)       (((long)a) & 0xFFF)
 #define LIN2PHY(l)      ((PT(INDEX(l)) & ~0xFFFL)+(long)OFFSET(l))
 #define PFT(a)          (*(long *)(pft386+a))
-extern unsigned char mappable_pages[]; /* physical address >> 14 */
+extern unsigned char *mappable_pages; /* physical address >> 14 */
 extern long *pft386;
 extern unsigned *DMA_Pages;
 extern unsigned char DMA_PAGE_COUNT;   /* size of DMA_Pages[] */

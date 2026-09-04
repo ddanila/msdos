@@ -80,7 +80,7 @@ extrn	PageT_Seg:word		; segment of system page table
 extrn	_PF_Base:word		 ; segment addr of page frame base
 extrn	_page_frame_pages:word	; number of pages in 3.2 page frame
 
-extrn	_mappable_pages:byte	; 16 KiB mappable-page indexes
+extrn	_mappable_pages:word	; pointer to 16 KiB mappable-page indexes
 extrn	_physical_page_count:word   ; number of physical pages
 extrn	_physical_page_exceptions:word
 extrn	_physical_page_exception_count:byte
@@ -129,6 +129,7 @@ extrn	banking_base:word
 extrn	requested_page_count:byte
 extrn	requested_page_ids:byte
 extrn	requested_page_segments:word
+init_mappable_page_indexes db MAX_PHYS_PAGES dup (0)
 init_physical_page_ids db MAX_PHYS_PAGES dup (0ffh)
 LAST	ends
 
@@ -185,7 +186,7 @@ init_mappable_pages	MACRO
 	call	assign_external_page_id
     push    bx
     shr     bx,10		    ; aligned segment -> 16 KiB page index
-    mov     _mappable_pages[di],bl
+    mov     cs:init_mappable_page_indexes[di],bl
     pop     bx
 ;
     ENDM
@@ -614,6 +615,24 @@ EMIN_9:
 ;
 	mov	[_physical_page_count],si
 	mov	[_mappable_page_count],di
+	push	si
+	push	di
+	push	cx
+	mov	ax,[_emm_brk]
+	mov	[_mappable_pages],ax
+	mov	cx,di
+	mov	di,ax
+	push	ds
+	push	cs
+	pop	ds
+	mov	si,offset LAST:init_mappable_page_indexes
+	cld
+	rep	movsb
+	pop	ds
+	mov	[_emm_brk],di
+	pop	cx
+	pop	di
+	pop	si
 ;
 ;
 ; 6. and the pages in a context and the number of bytes needed to save a

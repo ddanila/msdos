@@ -148,7 +148,7 @@ extrn	_handle_count:word			; active EMM handles
 
 extrn	_pft386:word
 
-extrn	_mappable_pages:byte			; table of 16 KiB indexes
+extrn	_mappable_pages:word			; pointer to 16 KiB indexes
 extrn	_mappable_page_count:word		; how many in the table
 extrn	_page_frame_pages:word			; how many in the page frame
 extrn	_physical_page_count:word		; number of physical pages
@@ -210,15 +210,17 @@ extrn	physical_to_external_id:near
 find_mappable_segment proc near
 	push	cx
 	push	dx
+	push	si
 	mov	dx,ax
 	test	dx,03ffh			; physical windows are 16 KiB aligned
 	jnz	short find_mappable_absent
 	shr	dx,10
 	xor	bx,bx
+	mov	si,[_mappable_pages]
 	mov	cx,[_mappable_page_count]
 	jcxz	find_mappable_absent
 find_mappable_loop:
-	cmp	dl,_mappable_pages[bx]
+	cmp	dl,[bx+si]
 	je	short find_mappable_found
 	inc	bx
 	loop	find_mappable_loop
@@ -229,6 +231,7 @@ find_mappable_absent:
 find_mappable_found:
 	clc
 find_mappable_exit:
+	pop	si
 	pop	dx
 	pop	cx
 	ret
@@ -559,7 +562,8 @@ mEp_valid_slot:
 	jb	short map_page_frame_segment
 	sub	di,4
 	add	di,[_page_frame_pages]
-	movzx	di,_mappable_pages[di]
+	mov	bx,[_mappable_pages]
+	movzx	di,byte ptr [bx+di]
 	shl	di,4			; 16 KiB index -> page-table offset
 	jmp	short map_page_offset_ready
 map_page_frame_segment:
@@ -643,7 +647,8 @@ unmap_page	proc	near
 unmap_page_dense:
 	cmp	di, [_mappable_page_count]
 	jae	short unmap_page_exit
-	movzx	bx, _mappable_pages[di]	; 16 KiB page index
+	mov	bx,[_mappable_pages]
+	movzx	bx,byte ptr [bx+di]	; 16 KiB page index
 
 	;
 	; A physical window is 16 KiB aligned, so its page-table offset is the
@@ -1320,7 +1325,7 @@ gmpa_loop:
 	call	find_mappable_segment
 	jc	short gmpa_next
 	mov	dx, bx				; preserve dense index
-	add	bx, offset DGROUP:_mappable_pages
+	add	bx, [_mappable_pages]
 	movzx	ax, byte ptr [bx]
 	shl	ax,10				; public API returns a segment
 	stosw
@@ -1400,7 +1405,10 @@ gsppm_get_loop:
 	call	find_mappable_segment
 	jc	gsppm_inv_seg
 	mov	ax,bx				; preserve dense index for physical number
-	movzx	bx, _mappable_pages[bx]
+	push	si
+	mov	si,[_mappable_pages]
+	movzx	bx,byte ptr [bx+si]
+	pop	si
 	shl	bx,10
 	cmp	bx, fs:[si-2]
 	jne	gsppm_inv_seg			; must match exactly
@@ -1577,7 +1585,10 @@ mha_sub1:
 	mov	di,bx
 	add	bx, 4				; derive the physical page
 	sub	bx, [_page_frame_pages]
-	movzx	di, _mappable_pages[di]
+	push	bx
+	mov	bx,[_mappable_pages]
+	movzx	di,byte ptr [bx+di]
+	pop	bx
 	shl	di,10
 	cmp	ax, di				; segment for this page
 	jne	short mha_inv_seg		; must match exactly

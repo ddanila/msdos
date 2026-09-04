@@ -171,16 +171,14 @@ _PF_Base	label	word
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;05. MAPPABLE PAGE ARRAY
-;	Dense 16 KiB index table.  A full segment is index << 10.  The physical
-;	page number is derived from the table index and _page_frame_pages.
+;	Pointer to the runtime-sized dense 16 KiB index table. A full segment is
+;	index << 10. The physical page number is derived from the table index and
+;	_page_frame_pages.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-_mappable_pages	LABEL	BYTE
-	REPT	MAX_PHYS_PAGES
-		Mappable_Page	<0>
-	ENDM
+_mappable_pages	dw	0
 
-_mappable_page_count	dw	MAX_PHYS_PAGES	; number of entries in above
+_mappable_page_count	dw	0		; number of entries in above
 _physical_page_count	dw	0		; number of physical pages
 _physical_page_exceptions dw 0		; ptr to (internal, public Pn=) pairs
 _physical_page_exception_count db 0

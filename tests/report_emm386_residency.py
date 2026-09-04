@@ -166,7 +166,7 @@ def main() -> int:
         "--ems-pages", type=int, default=64, help="selected 16 KiB backing pages"
     )
     parser.add_argument(
-        "--physical-pages", type=int, default=4, help="selected mappable windows"
+        "--physical-pages", type=int, default=6, help="selected mappable windows"
     )
     parser.add_argument(
         "--page-assignments", type=int, default=0, help="selected sparse Pn= assignments"
@@ -212,8 +212,8 @@ def main() -> int:
     by_name = {segment.name: segment for segment in segments}
     if args.check and by_name["GDT"].size > 224:
         raise ValueError("production GDT retains debugger-only descriptors")
-    if args.check and by_name["_DATA"].size > 504:
-        raise ValueError("EMM386 retained mutable data exceeds 504 bytes")
+    if args.check and by_name["_DATA"].size > 454:
+        raise ValueError("EMM386 retained mutable data exceeds 454 bytes")
     symbol_by_name = {symbol.name: symbol for symbol in symbols}
     if args.check:
         dma_pages = symbol_by_name.get("DMA_Pages")
@@ -231,9 +231,9 @@ def main() -> int:
             mappable is None
             or count is None
             or mappable.paragraph != count.paragraph
-            or count.offset - mappable.offset != 52
+            or count.offset - mappable.offset != 2
         ):
-            raise ValueError("mappable-page table is not 52 byte-sized indexes")
+            raise ValueError("mappable-page table is not represented by a resident pointer")
     text = by_name["_TEXT"]
     r_code = by_name["R_CODE"]
     segment_categories = {
@@ -433,6 +433,7 @@ def main() -> int:
         (args.ems_pages * 2, "allocated-page index array"),
         (args.ems_pages * 2, "free-page index array"),
         (args.ems_pages * 4, "physical page-table entries"),
+        (args.physical_pages, "runtime-sized mappable-window indexes"),
         (args.page_assignments * 2, "sparse Pn= exception pairs"),
         (args.dma_pages * 2, "runtime-sized DMA page list"),
         (
@@ -457,10 +458,10 @@ def main() -> int:
             args.physical_pages,
             args.dma_pages,
         )
-        == (64, 7, 64, 4, 1)
-        and runtime_ranges[-1].end > 4224
+        == (64, 7, 64, 6, 1)
+        and runtime_ranges[-1].end > 4208
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 4,224 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 4,208 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     dma_page_label = "DMA page" if args.dma_pages == 1 else "DMA pages"
     print(
