@@ -1399,7 +1399,9 @@ python3 tests/capture_drdos_memory.py \
 The strengthened harness reproduced all nine DR-DOS 6 variants under QEMU
 11.1.1 with the expected media, decoded-disk, and VC hashes. The aggregate
 figures below are unchanged; the report now also records raw-evidence hashes
-and normalized owner rows for each variant.
+and normalized owner rows for each variant. A separate fresh boot runs the
+source-free public-interface recorder, so its queries cannot perturb the VC
+measurement.
 
 | Configuration | VC largest block | Pre-COMMAND system span | COMMAND span | Free UMB | Free HMA |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -1408,6 +1410,26 @@ and normalized owner rows for each variant.
 | EMM386; no frame; kernel high; DOS data low | 615,024 | 23,520 | 1,264 | 90,096 | 18,800 |
 | Same, with `HIDOS=ON` | **627,824** | **10,720** | **1,264** | 77,280 | 18,800 |
 | Same, with `HIBUFFERS=15` | 627,824 | 10,720 | 1,264 | **84,688** | 10,880 |
+
+The public-interface pass narrows the mechanism boundary without exposing
+implementation details:
+
+| Configuration | XMS | A20 | Largest XMS UMB | EMS |
+| --- | --- | ---: | ---: | --- |
+| Kernel and buffers low | unavailable | — | — | unavailable |
+| HIDOS kernel high | 2.00; driver 2.50 | on | unavailable | unavailable |
+| EMM386, no frame, DOS data low | 2.00; driver 2.50 | on | 90,096 bytes | unavailable |
+| Same, `HIDOS=ON` | 2.00; driver 2.50 | on | 77,280 bytes | unavailable |
+| Same, `HIBUFFERS=15` | 2.00; driver 2.50 | on | 84,688 bytes | unavailable |
+| EMM386 with automatic frame | 2.00; driver 2.50 | on | 15,568 bytes | 4.0; `CC00h`; 430 of 440 pages free |
+
+The XMS UMB query matches VC's free-UMB total exactly in every EMM386 case.
+`INT 21h/AX=5802h` returns carry set in every DR-DOS 6 configuration, so its
+high-placement policy does not depend on publicly linking the MS-DOS UMB arena.
+`/FRAME=NONE` removes the EMS interface rather than merely hiding a frame;
+`/FRAME=AUTO` supplies EMS 4.0. These are observable API contracts, not evidence
+about proprietary internal code. A disposable transactional HMA request and a
+warm-reboot comparison remain before the focused mechanism checkpoint closes.
 
 DR-DOS 6 therefore leaves 9,088 bytes more than retail MS-DOS 6.22 and 32,000
 bytes more than this implementation. The fair ordinary comparison reconciles

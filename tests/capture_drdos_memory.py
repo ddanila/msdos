@@ -21,6 +21,8 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 SCREEN_EXPECT = ROOT / "tests" / "screen_expect.py"
+PUBLIC_PROBE_SOURCE = ROOT / "tests" / "drdos_public_memory_probe.asm"
+QEMU_EXIT_SOURCE = ROOT / "tests" / "qemu_exit.asm"
 FLOPPY_BYTES = 1_474_560
 VC_ROW = re.compile(
     r"(?:^|║)\s*([0-9A-F]{4})\s+(\d+)\s+([0-9][0-9,]*)\s+"
@@ -30,6 +32,16 @@ VC_ROW = re.compile(
 CEILING_ROW = re.compile(
     r"MEMORY_CEILING INT12=([0-9A-F]{4}) BDA=([0-9A-F]{4}) EBDA=([0-9A-F]{4})"
 )
+PUBLIC_RECORD = re.compile(
+    r"^([A-Z0-9_]+) CF=([01]) AX=([0-9A-F]{4}) BX=([0-9A-F]{4}) "
+    r"DX=([0-9A-F]{4})$",
+    re.MULTILINE,
+)
+PUBLIC_RECORD_NAMES = {
+    "DOS_VERSION", "DOS_ALLOC_STRATEGY", "DOS_UMB_LINK", "XMS_PRESENT",
+    "XMS_VERSION", "A20_QUERY", "XMS_FREE", "XMS_UMB_LARGEST",
+    "EMS_STATUS", "EMS_VERSION", "EMS_FRAME", "EMS_PAGES",
+}
 
 KNOWN_MEDIA_SHA256 = {
     "Caldera OpenDOS 7.01": "4d25bb3f10cf13596c7b962ab7fdd4f9165e80bef318b72e22b450817b8ee151",
@@ -236,6 +248,20 @@ def add_common_tools(base: Path, vc_image: Path, work: Path) -> str:
     return sha256(vc)
 
 
+def build_public_probe(work: Path) -> tuple[Path, Path, str]:
+    probe = work / "DRPROBE.COM"
+    qexit = work / "QEXIT.COM"
+    subprocess.run(
+        ["nasm", "-f", "bin", str(PUBLIC_PROBE_SOURCE), "-o", str(probe)],
+        check=True,
+    )
+    subprocess.run(
+        ["nasm", "-f", "bin", str(QEMU_EXIT_SOURCE), "-o", str(qexit)],
+        check=True,
+    )
+    return probe, qexit, sha256(probe)
+
+
 def prepare_drdos6(media: Path, vc_image: Path, work: Path) -> tuple[Path, str, str]:
     base = work / "base.img"
     disk_md5 = pcjs_to_image(media, base)
@@ -303,12 +329,98 @@ def capture(image: Path, label: str, work: Path) -> tuple[Path, str, str]:
     return screen, mem, ceiling
 
 
+def capture_public_interfaces(
+    configured_image: Path,
+    label: str,
+    work: Path,
+    probe: Path,
+    qexit: Path,
+) -> str:
+    image = work / f"{label}-interfaces.ima"
+    autoexec = work / f"{label}-interfaces.bat"
+    shutil.copyfile(configured_image, image)
+    install_file(image, probe, "DRPROBE.COM")
+    install_file(image, qexit, "QEXIT.COM")
+    autoexec.write_bytes(
+        b"@ECHO OFF\r\nDRPROBE.COM > PROBE.TXT\r\nQEXIT.COM\r\n"
+    )
+    install_file(image, autoexec, "AUTOEXEC.BAT")
+    command = [
+        "qemu-system-i386", "-display", "none", "-monitor", "none",
+        "-machine", "pc", "-cpu", "486", "-m", "8",
+        "-drive", f"if=floppy,index=0,format=raw,file={image},cache=writethrough",
+        "-boot", "a", "-no-reboot",
+        "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
+    ]
+    try:
+        subprocess.run(
+            command,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=30,
+            check=False,
+        )
+    except subprocess.TimeoutExpired as error:
+        raise RuntimeError(f"public-interface probe timed out for {label}") from error
+    try:
+        output = subprocess.check_output(
+            ["mtype", "-i", str(image), "::PROBE.TXT"], env=mtools_env()
+        ).decode("ascii", errors="replace")
+    except subprocess.CalledProcessError as error:
+        raise RuntimeError(f"public-interface output missing for {label}") from error
+    if "DRDOS_PUBLIC_MEMORY_END" not in output:
+        raise RuntimeError(f"public-interface probe incomplete for {label}")
+    return output
+
+
 def parse_vc_rows(screen: str) -> list[tuple[int, int, int, str]]:
     rows = {
         (int(segment, 16), int(blocks), int(size.replace(",", "")), owner.strip())
         for segment, blocks, size, owner in VC_ROW.findall(screen)
     }
     return sorted(rows)
+
+
+def parse_public_interfaces(output: str) -> dict[str, Any]:
+    records: dict[str, dict[str, int]] = {}
+    for name, carry, ax, bx, dx in PUBLIC_RECORD.findall(output.replace("\r", "")):
+        if name not in PUBLIC_RECORD_NAMES:
+            raise ValueError(f"unknown public-interface record: {name}")
+        if name in records:
+            raise ValueError(f"duplicate public-interface record: {name}")
+        records[name] = {
+            "cf": int(carry),
+            "ax": int(ax, 16),
+            "bx": int(bx, 16),
+            "dx": int(dx, 16),
+        }
+
+    required = {"DOS_VERSION", "DOS_ALLOC_STRATEGY", "DOS_UMB_LINK", "XMS_PRESENT"}
+    missing = required - records.keys()
+    if missing:
+        raise ValueError("missing public-interface record(s): " + ", ".join(sorted(missing)))
+
+    xms_available = records["XMS_PRESENT"]["ax"] & 0xff == 0x80
+    xms_records = {"XMS_VERSION", "A20_QUERY", "XMS_FREE", "XMS_UMB_LARGEST"}
+    if xms_available:
+        missing = xms_records - records.keys()
+        if missing:
+            raise ValueError("missing XMS record(s): " + ", ".join(sorted(missing)))
+    elif "XMS_UNAVAILABLE" not in output:
+        raise ValueError("missing XMS_UNAVAILABLE record")
+
+    ems_records = {"EMS_STATUS", "EMS_VERSION", "EMS_FRAME", "EMS_PAGES"}
+    ems_available = ems_records <= records.keys()
+    if not ems_available and "EMS_UNAVAILABLE" not in output:
+        missing = ems_records - records.keys()
+        raise ValueError("incomplete EMS record(s): " + ", ".join(sorted(missing)))
+
+    return {
+        "records": records,
+        "xms_available": xms_available,
+        "ems_available": ems_available,
+        "sha256": hashlib.sha256(output.encode("ascii", errors="replace")).hexdigest(),
+    }
 
 
 def parse(screen_path: Path, mem: str, ceiling: str) -> dict[str, Any]:
@@ -384,6 +496,7 @@ def report(
     variants: dict[str, list[str]],
     disk_md5: str | None,
     emulator: str,
+    probe_hash: str,
 ) -> str:
     disk_identity = [f"- Decoded disk MD5: `{disk_md5}`"] if disk_md5 else []
     lines = [
@@ -393,6 +506,7 @@ def report(
         f"- Binary media SHA-256: `{sha256(media)}`",
         *disk_identity,
         f"- VC 4.05 SHA-256: `{vc_hash}`",
+        f"- Public memory probe SHA-256: `{probe_hash}`",
         f"- Emulator: `{emulator}`",
         "- Hardware: QEMU `pc`, 486 CPU, 8 MiB RAM; default firmware",
         "- Capture command fixes `-machine pc -cpu 486 -m 8`, floppy boot, "
@@ -432,6 +546,25 @@ def report(
                 f"{owner['bytes']:,} | {owner['owner']} |"
             )
         lines.append("")
+    lines.extend(["## Public memory interfaces", ""])
+    for name, data in results.items():
+        interfaces = data["interfaces"]
+        lines.extend([
+            f"### {name}", "",
+            f"Raw probe output SHA-256: `{interfaces['sha256']}`.", "",
+            "| Query | CF | AX | BX | DX |",
+            "| --- | ---: | ---: | ---: | ---: |",
+        ])
+        for record_name, record in interfaces["records"].items():
+            lines.append(
+                f"| {record_name} | {record['cf']} | {record['ax']:04X}h | "
+                f"{record['bx']:04X}h | {record['dx']:04X}h |"
+            )
+        if not interfaces["xms_available"]:
+            lines.append("| XMS_UNAVAILABLE | — | — | — | — |")
+        if not interfaces["ems_available"]:
+            lines.append("| EMS_UNAVAILABLE | — | — | — | — |")
+        lines.append("")
     return "\n".join(lines)
 
 
@@ -454,10 +587,16 @@ def main() -> None:
         action="store_true",
         help="permit media or VC hashes other than the recorded comparison artifacts",
     )
+    parser.add_argument(
+        "--variant",
+        action="append",
+        help="capture only the named variant; repeat for multiple focused cases",
+    )
     args = parser.parse_args()
     require_tools()
     with tempfile.TemporaryDirectory(prefix="drdos-memory-") as temporary:
         work = Path(temporary)
+        public_probe, qexit, probe_hash = build_public_probe(work)
         if zipfile.is_zipfile(args.media):
             release = "Caldera OpenDOS 7.01"
             variants = OPENDOS_VARIANTS
@@ -467,6 +606,11 @@ def main() -> None:
             release = "Digital Research DR-DOS 6.0"
             variants = DRDOS6_VARIANTS
             base, vc_hash, disk_md5 = prepare_drdos6(args.media, args.vc_image, work)
+        if args.variant:
+            unknown = set(args.variant) - variants.keys()
+            if unknown:
+                raise SystemExit("unknown variant(s): " + ", ".join(sorted(unknown)))
+            variants = {name: variants[name] for name in args.variant}
         media_hash = sha256(args.media)
         identities_match = comparison_identities_match(
             release, media_hash, vc_hash, disk_md5
@@ -493,11 +637,19 @@ def main() -> None:
                     ceiling, encoding="ascii", errors="replace"
                 )
             results[name] = parse(screen, mem, ceiling)
+            interface_output = capture_public_interfaces(
+                image, name, work, public_probe, qexit
+            )
+            results[name]["interfaces"] = parse_public_interfaces(interface_output)
+            if args.evidence_dir:
+                (args.evidence_dir / f"{name}-interfaces.txt").write_text(
+                    interface_output, encoding="ascii", errors="replace"
+                )
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(
             report(
                 results, args.media, vc_hash, release, variants, disk_md5,
-                qemu_identity(),
+                qemu_identity(), probe_hash,
             ),
             encoding="utf-8",
         )

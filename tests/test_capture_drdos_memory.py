@@ -31,8 +31,30 @@ MEM = """
 
 CEILING = "MEMORY_CEILING INT12=027F BDA=027F EBDA=9FC0\r\n"
 
+INTERFACES = """DOS_VERSION CF=0 AX=0006 BX=0000 DX=0000
+DOS_ALLOC_STRATEGY CF=0 AX=0000 BX=0000 DX=0000
+DOS_UMB_LINK CF=0 AX=0001 BX=0000 DX=0000
+XMS_PRESENT CF=0 AX=4380 BX=0000 DX=0000
+XMS_VERSION CF=0 AX=0200 BX=0200 DX=0001
+A20_QUERY CF=0 AX=0001 BX=0200 DX=0001
+XMS_FREE CF=0 AX=1C00 BX=0000 DX=1C00
+XMS_UMB_LARGEST CF=0 AX=0000 BX=00B0 DX=1234
+EMS_STATUS CF=0 AX=0000 BX=00B0 DX=1234
+EMS_VERSION CF=0 AX=0040 BX=00B0 DX=1234
+EMS_FRAME CF=0 AX=0000 BX=D000 DX=1234
+EMS_PAGES CF=0 AX=0000 BX=01C0 DX=01C0
+DRDOS_PUBLIC_MEMORY_END
+"""
+
 
 class CaptureParserTest(unittest.TestCase):
+    def test_public_probe_builds(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            probe, qexit, digest = CAPTURE.build_public_probe(Path(temporary))
+            self.assertGreater(probe.stat().st_size, 0)
+            self.assertGreater(qexit.stat().st_size, 0)
+            self.assertEqual(len(digest), 64)
+
     def test_comparison_artifact_identities_are_pinned(self) -> None:
         release = "Digital Research DR-DOS 6.0"
         self.assertTrue(CAPTURE.comparison_identities_match(
@@ -64,11 +86,25 @@ class CaptureParserTest(unittest.TestCase):
             result["owners"],
         )
 
+    def test_public_interface_records_are_normalized(self) -> None:
+        result = CAPTURE.parse_public_interfaces(INTERFACES)
+        self.assertTrue(result["xms_available"])
+        self.assertTrue(result["ems_available"])
+        self.assertEqual(result["records"]["XMS_VERSION"]["ax"], 0x0200)
+        self.assertEqual(result["records"]["EMS_FRAME"]["bx"], 0xD000)
+
+    def test_public_interface_parser_rejects_duplicates(self) -> None:
+        with self.assertRaisesRegex(ValueError, "duplicate"):
+            CAPTURE.parse_public_interfaces(INTERFACES.replace(
+                "DRDOS_PUBLIC_MEMORY_END", INTERFACES.splitlines()[0]
+            ))
+
     def test_report_includes_identity_and_normalized_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             screen = Path(temporary) / "screen.txt"
             screen.write_text(SCREEN, encoding="utf-8")
             result = CAPTURE.parse(screen, MEM, CEILING)
+            result["interfaces"] = CAPTURE.parse_public_interfaces(INTERFACES)
             media = Path(temporary) / "media.json"
             media.write_text("fixture", encoding="ascii")
             report = CAPTURE.report(
@@ -79,10 +115,12 @@ class CaptureParserTest(unittest.TestCase):
                 {"baseline": ["HIDOS=OFF"]},
                 CAPTURE.KNOWN_DRDOS6_DISK_MD5,
                 "QEMU emulator version test",
+                "1" * 64,
             )
         self.assertIn("QEMU emulator version test", report)
         self.assertIn("| 0141h | 2 | 2,048 | EMM386 |", report)
         self.assertIn("Raw evidence SHA-256", report)
+        self.assertIn("| XMS_VERSION | 0 | 0200h | 0200h | 0001h |", report)
 
 
 if __name__ == "__main__":
