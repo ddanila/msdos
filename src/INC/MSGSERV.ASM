@@ -812,7 +812,9 @@ $M_VERSION_CHECK ENDP					     ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 							     ;;
-IF	FARmsg						     ;;AN000;;
+IFDEF HMA_MSG_SERVICES
+	HMA_SYSGETMSG PROC NEAR
+ELSEIF FARmsg						     ;;AN000;;
 	SYSGETMSG PROC	FAR				     ;;AN000;;
 ELSE							     ;;AN000;;
 	SYSGETMSG PROC	NEAR				     ;;AN000;;
@@ -864,9 +866,16 @@ $MIF31:
 	POP	ES					     ;;AN000;;
 	POP	AX					     ;;AN000;;
 							     ;;
+IFDEF HMA_MSG_SERVICES
+HMA_SYSGETMSG_RETURN LABEL BYTE
+ENDIF
 	RET						     ;;AN000;;	  Return
 							     ;;
+IFDEF HMA_MSG_SERVICES
+	HMA_SYSGETMSG ENDP
+ELSE
 	SYSGETMSG ENDP					     ;;
+ENDIF
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	IF	$M_SUBS 				     ;;AN000;; Include the common subroutines if they haven't yet
 	  $M_SUBS = FALSE				     ;;AN000;; No, then include and reset the flag
@@ -1249,7 +1258,9 @@ $M_FIND_SPECIFIED_MSG ENDP				     ;;AN000;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 							     ;;
-IF	FARmsg						     ;;AN000;;
+IFDEF HMA_MSG_SERVICES
+	HMA_SYSDISPMSG PROC NEAR
+ELSEIF FARmsg						     ;;AN000;;
 	SYSDISPMSG PROC FAR				     ;;AN000;;
 ELSE							     ;;AN000;;
 	SYSDISPMSG PROC NEAR				     ;;AN000;;
@@ -1355,9 +1366,16 @@ $MIF104:
 ;	$ENDIF						     ;;AN000;;
 $MEN104:
 							     ;;
+IFDEF HMA_MSG_SERVICES
+HMA_SYSDISPMSG_RETURN LABEL BYTE
+ENDIF
 	RET						     ;;AN000;; Return
 							     ;;
+IFDEF HMA_MSG_SERVICES
+	HMA_SYSDISPMSG ENDP
+ELSE
 	SYSDISPMSG ENDP 				     ;;AN000;;
+ENDIF
 							     ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; 

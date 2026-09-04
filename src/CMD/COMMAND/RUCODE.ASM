@@ -724,8 +724,6 @@ ktret:						;AN000;  3/3/KK
 
 hma_test_kanj_body endp
 
-hma_code_end LABEL BYTE
-
 HMACODE ENDS
 
 CODERES SEGMENT PUBLIC BYTE
@@ -774,8 +772,6 @@ reset_msg_pointers	endp
 PUBLIC		MSG_SERV_ST			;AN000;
 MSG_SERV_ST	LABEL	BYTE			;AN000;
 
-PUBLIC	SYSGETMSG,SYSDISPMSG
-
 ASSUME	DS:RESGROUP, ES:RESGROUP
 
 .xlist
@@ -789,12 +785,42 @@ INCLUDE SYSMSG.INC				;AN000; include message services
 COMMAND_RESIDENT_CLASSES EQU 5		; match the resident message table in RDATA
 MSG_UTILNAME <COMMAND>				;AN000; define utility name
 
-MSG_SERVICES <COMR,NEARmsg,DISK_PROC,GETmsg,DISPLAYmsg,CHARmsg,NUMmsg> ;AC060; include message services macro
+MSG_SERVICES <COMR,NEARmsg,DISK_PROC>
+
+; Child, DOS-low, allocation-failure, and /MSG shells retain the original
+; near ABI.  Successful HMA relocation rewrites each six-byte gateway to
+; CALL FAR immediate followed by RET.
+PUBLIC SYSGETMSG,SYSDISPMSG
+PUBLIC hma_sysgetmsg_gateway,hma_sysdispmsg_gateway
+
+SYSGETMSG proc near
+hma_sysgetmsg_gateway LABEL BYTE
+	jmp	HMA_SYSGETMSG
+	db	3 dup (90h)
+SYSGETMSG endp
+
+SYSDISPMSG proc near
+hma_sysdispmsg_gateway LABEL BYTE
+	jmp	HMA_SYSDISPMSG
+	db	3 dup (90h)
+SYSDISPMSG endp
 
 PUBLIC		RES_CODE_END			;AN000;
 RES_CODE_END	LABEL	BYTE			;AN000;
 
+CODERES ENDS
+
+HMACODE SEGMENT PUBLIC BYTE
+ASSUME CS:RESGROUP,DS:RESGROUP,ES:RESGROUP
+
+HMA_MSG_SERVICES EQU 1
+PUBLIC HMA_SYSGETMSG,HMA_SYSDISPMSG
+PUBLIC HMA_SYSGETMSG_RETURN,HMA_SYSDISPMSG_RETURN
+MSG_SERVICES <COMR,NEARmsg,GETmsg,DISPLAYmsg,CHARmsg,NUMmsg> ;AC060; include message services macro
+
+hma_code_end LABEL BYTE
+
 include msgdcl.inc
 
-CODERES ENDS
+HMACODE ENDS
 	END

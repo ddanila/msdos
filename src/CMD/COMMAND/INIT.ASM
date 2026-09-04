@@ -30,6 +30,8 @@ CODERES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	INT_2E:NEAR
 	EXTRN	LODCOM:NEAR
 	EXTRN	RSTACK:WORD
+	EXTRN	hma_sysgetmsg_gateway:byte
+	EXTRN	hma_sysdispmsg_gateway:byte
 CODERES ENDS
 
 DATARES 	SEGMENT PUBLIC BYTE	;AC000;
@@ -99,6 +101,10 @@ HMACODE SEGMENT PUBLIC BYTE
 	EXTRN	hma_code_start:byte
 	EXTRN	hma_code_end:byte
 	EXTRN	hma_test_kanj_high:byte
+	EXTRN	HMA_SYSGETMSG:byte
+	EXTRN	HMA_SYSDISPMSG:byte
+	EXTRN	HMA_SYSGETMSG_RETURN:byte
+	EXTRN	HMA_SYSDISPMSG_RETURN:byte
 HMACODE ENDS
 
 MSGOPT SEGMENT PUBLIC BYTE
@@ -1681,7 +1687,7 @@ relocate_resident_catalogs proc near
 	mov	ax,DOS_HMA_TAIL_ALLOC
 	int	2fh
 	or	ax,ax
-	jz	short resident_catalogs_low
+	jz	resident_catalogs_low
 
 	push	di				; preserve the allocated catalog base
 	mov	si,offset resgroup:resident_catalog_start
@@ -1705,6 +1711,44 @@ relocate_resident_catalogs proc near
 	sub	cx,offset resgroup:hma_code_start
 	rep	movsb
 	pop	di
+
+	; Preserve the exact near entry ABI in every fallback image.  Only after
+	; the copy succeeds, patch the copied exits to RETF and rewrite the two
+	; six-byte low gateways as CALL FAR immediate; RET.
+	pushf
+	cli
+	mov	bx,di
+	add	bx,offset resgroup:dataresend
+	sub	bx,offset resgroup:resident_catalog_start
+	add	bx,offset resgroup:HMA_SYSGETMSG_RETURN
+	sub	bx,offset resgroup:hma_code_start
+	mov	byte ptr es:[bx],0cbh
+	mov	bx,di
+	add	bx,offset resgroup:dataresend
+	sub	bx,offset resgroup:resident_catalog_start
+	add	bx,offset resgroup:HMA_SYSDISPMSG_RETURN
+	sub	bx,offset resgroup:hma_code_start
+	mov	byte ptr es:[bx],0cbh
+
+	mov	ax,di
+	add	ax,offset resgroup:dataresend
+	sub	ax,offset resgroup:resident_catalog_start
+	add	ax,offset resgroup:HMA_SYSGETMSG
+	sub	ax,offset resgroup:hma_code_start
+	mov	word ptr cs:[hma_sysgetmsg_gateway+1],ax
+	mov	word ptr cs:[hma_sysgetmsg_gateway+3],es
+	mov	byte ptr cs:[hma_sysgetmsg_gateway+5],0c3h
+	mov	byte ptr cs:[hma_sysgetmsg_gateway],09ah
+	mov	ax,di
+	add	ax,offset resgroup:dataresend
+	sub	ax,offset resgroup:resident_catalog_start
+	add	ax,offset resgroup:HMA_SYSDISPMSG
+	sub	ax,offset resgroup:hma_code_start
+	mov	word ptr cs:[hma_sysdispmsg_gateway+1],ax
+	mov	word ptr cs:[hma_sysdispmsg_gateway+3],es
+	mov	byte ptr cs:[hma_sysdispmsg_gateway+5],0c3h
+	mov	byte ptr cs:[hma_sysdispmsg_gateway],09ah
+	popf
 
 	; SYSLOADMSG initialized five far slots to their low class structures.
 	; Rebase only classes in the retained catalog range.  Preserve the other
