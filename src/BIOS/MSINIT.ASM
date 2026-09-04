@@ -53,8 +53,9 @@ Daycnt_to_day	proc	near	;J.K. 4/30/86 for real time clock support
 ;Entry: [DAYCNT] = number of days since 1-1-80
 ;Return: CH - centry in BCD, CL - year in BCD, DH - month in BCD, DL - day in BCD
 
-	push	[daycnt]		;save daycnt
-	cmp	daycnt, (365*20+(20/4)) ;# of days from 1-1-1980 to 1-1-2000
+	push	bp			;preserve caller's frame register
+	mov	bp, daycnt		;keep the working count in a register
+	cmp	bp, (365*20+(20/4)) ;# of days from 1-1-1980 to 1-1-2000
 	jae	century20
 	mov	base_century, 19
 	mov	base_year, 80
@@ -62,14 +63,14 @@ Daycnt_to_day	proc	near	;J.K. 4/30/86 for real time clock support
 century20:				;20th century
 	mov	base_century, 20
 	mov	base_year, 0
-	sub	daycnt, (365*20+(20/4)) ;adjust daycnt
+	sub	bp, (365*20+(20/4)) ;adjust daycnt
 years:
 	xor	dx, dx
-	mov	ax, daycnt
+	mov	ax, bp
 	mov	bx, (366+365*3) 	;# of days in a Leap year block
 	div	bx			;AX = # of leap block, DX = daycnt
 	inc	dx			;make the remainder one-based
-	mov	daycnt, dx		;save daycnt left
+	mov	bp, dx			;save daycnt left
 ;	or	ah, ah			;ax should be less than 256
 ;	jz	OK1
 ;	 jmp	 Erroroccur
@@ -77,17 +78,17 @@ years:
 	mov	bl,4
 	mul	bl			;AX = # of years. Less than 100 years!
 	add	base_year, al		;So, ah = 0. Adjust year accordingly.
-	cmp	daycnt, 366		;the daycnt here is the remainder of the leap year block.
+	cmp	bp, 366			;the daycnt here is the remainder of the leap year block.
 	jbe	Leapyear		;So, it should within 366+355+355+355 days.
 	inc	base_year		;First if daycnt <= 366, then leap year
-	sub	daycnt, 366		;else daycnt--, base_year++;
+	sub	bp, 366			;else daycnt--, base_year++;
 					;And the next three years are regular years.
 	mov	cx, 3
 Regularyear:
-	cmp	daycnt, 365		;for(i=1; i>3 or daycnt <=365;i++)
+	cmp	bp, 365			;for(i=1; i>3 or daycnt <=365;i++)
 	jbe	YearDone		;{if (daycnt > 365)
 	inc	base_year		;  { daycnt -= 365
-	sub	daycnt, 365		;  }
+	sub	bp, 365			;  }
 	loop	regularyear		;}
 ;	 jmp	 Erroroccur		 ;cannot come to here
 Leapyear:
@@ -95,7 +96,7 @@ Leapyear:
 Yeardone:
 	xor	bx,bx
 	xor	dx,dx
-	mov	ax, daycnt
+	mov	ax, bp
 	mov	si, offset month_tab
 	mov	cx, 12
 Months:
@@ -125,7 +126,7 @@ Month_done:
 	call	word ptr BinToBCD
 ;	call Bin_to_bcd
 	mov	ch, al			;ch = bcd century
-	pop	[daycnt]		;restore original value
+	pop	bp
 	ret
 Daycnt_to_day	endp
 

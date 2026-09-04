@@ -205,8 +205,8 @@ def main() -> int:
     bcd_size = bin_to_bcd_end - bin_to_bcd
     after_day = rounded(selected + day_size)
     selected = rounded(after_day + bcd_size)
-    if selected > 8896:
-        errors.append("selected resident BIOS exceeds the 8,896-byte ceiling")
+    if selected > 8880:
+        errors.append("selected resident BIOS exceeds the 8,880-byte ceiling")
     print("\n### Fixed comparison selection\n")
     print("QEMU `pc` selects one hard disk, no 96-TPI extension, no legacy AT-ROM fix, a CMOS clock, and no K09 extension.\n")
     print("| Retained piece | Input boundary | Copied bytes | Output boundary |")
