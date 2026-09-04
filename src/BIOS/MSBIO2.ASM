@@ -83,6 +83,8 @@ INT19SEM DB	0			; INDICATE THAT ALL INT 19
 	public	Int19OLD&AA
 Int19OLD&AA	dd	-1		;Orignal hardware int. vectors for INT 19h.
 	ENDM
+Int19VectorNumbers DB 02H,08H,09H,0AH,0BH,0CH,0DH,0EH
+		   DB 70H,72H,73H,74H,76H,77H
 
 	EVENB
 	PUBLIC	DSKDRVS
@@ -151,23 +153,26 @@ INT19	PROC	FAR
 INT19VECS:
 	XOR	AX,AX
 	MOV	DS,AX
-
-	IRP	AA,<02,08,09,0A,0B,0C,0D,0E,70,72,73,74,76,77>
-
-	LES	DI,Int19OLD&AA
-;SB33103******************************************************************
-
-	mov	ax,es		;
-	cmp	ax,-1		;OPT 0ffffh is unlikely segment
-	je	skip_int&AA	;OPT no need to check selector too 
-	cmp	di,-1		;OPT 0ffffh is unlikely offset
-	je	skip_int&AA
-
-;SB33103******************************************************************
-	MOV	DS:[AA&H*4],DI
-	MOV	DS:[AA&H*4+2],ES
-skip_int&AA:
-	ENDM
+	MOV	SI,OFFSET Int19OLD02
+	MOV	BP,OFFSET Int19VectorNumbers
+	MOV	CX,14
+INT19VECLOOP:
+	LES	DI,CS:[SI]
+	MOV	AX,ES
+	CMP	AX,-1		; Ignore vectors that stack setup did not save.
+	JE	SHORT INT19VECSKIP
+	CMP	DI,-1
+	JE	SHORT INT19VECSKIP
+	MOV	BL,CS:[BP]
+	XOR	BH,BH
+	SHL	BX,1
+	SHL	BX,1
+	MOV	DS:[BX],DI
+	MOV	DS:[BX+2],ES
+INT19VECSKIP:
+	ADD	SI,4
+	INC	BP
+	LOOP	INT19VECLOOP
 
 DOINT19:
 	LES	DI,ORIG19
