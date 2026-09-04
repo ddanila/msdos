@@ -55,17 +55,26 @@ page	58,132
 ;******************************************************************************
 ;			P U B L I C   D E C L A R A T I O N S
 ;
-	public	RRP_Handler
+	IFNDEF	RRTRAP_LOW_ONLY
 	public	RR_Trap_Init
+	ENDIF
+	IFNDEF	RRTRAP_HIGH_ONLY
+	public	RRP_Handler
+	public	P85_Handler
 	public	RRProc
 	public	JumpReal
+	ENDIF
 ;
 ;******************************************************************************
 ;			E X T E R N A L   R E F E R E N C E S
 ;
 _TEXT	segment
-extrn	RetReal:near
-extrn	PortTrap:near
+	IFNDEF	RRTRAP_LOW_ONLY
+	extrn	PortTrap:near
+	ENDIF
+	IFNDEF	RRTRAP_HIGH_ONLY
+	extrn	RetReal:near
+	ENDIF
 _TEXT	ends
 
 	page
@@ -104,6 +113,7 @@ _DATA	ends
 ;------------------------------------------------------------------------------
 _TEXT	segment
 	assume	cs:_TEXT, ds:DGROUP, es:DGROUP, ss:DGROUP
+	IFNDEF	RRTRAP_HIGH_ONLY
 
 	page
 ;******************************************************************************
@@ -247,6 +257,7 @@ RR_GoReal:
 ;	   on to JumpReal code and continue in Real mode
 ;
 	jmp	FAR PTR JumpReal
+	ENDIF
 
 ;******************************************************************************
 ;
@@ -261,6 +272,7 @@ RR_GoReal:
 ;	stack:
 ;
 ;******************************************************************************
+	IFNDEF	RRTRAP_HIGH_ONLY
 RRProc		proc near
 	pushf
 	cli				; protect this sequence
@@ -272,6 +284,7 @@ RRProc		proc near
 	popf
 	ret
 RRProc		endp
+	ENDIF
 
 ;******************************************************************************
 ;
@@ -292,6 +305,7 @@ RRProc		endp
 ;	stack:
 ;
 ;******************************************************************************
+	IFNDEF	RRTRAP_LOW_ONLY
 RR_Trap_Init	 proc	 near
 	mov	[RR84save],0FFh
 	mov	bh, 00h 		    ; only set for 0084h and 0085h
@@ -301,12 +315,14 @@ RR_Trap_Init	 proc	 near
 	call	PortTrap		    ; return to real
 	ret
 RR_Trap_Init	 endp
+	ENDIF
 
 _TEXT	ends				    ; end of segment
 
 ;------------------------------------------------------------------------------
 ;	R_CODE code
 ;------------------------------------------------------------------------------
+	IFNDEF	RRTRAP_HIGH_ONLY
 R_CODE	segment
 	assume	cs:R_CODE, ds:DGROUP, es:DGROUP, ss:DGROUP
 ;
@@ -424,5 +440,6 @@ RR_CLIexit:
 	jmp	CS:[RR_Jump]		; far jump for return
 ;
 R_CODE	ends				; end of segment
+	ENDIF
 ;
 	end				; end of module
