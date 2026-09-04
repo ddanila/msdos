@@ -142,6 +142,14 @@ def main() -> int:
     hma_code_start = require(symbols, "hma_code_start")
     hma_code_end = require(symbols, "hma_code_end")
     resident_service_start = require(symbols, "ASKEND")
+    disk_error_start = require(symbols, "DSKERR")
+    crlf_start = require(symbols, "CRLF")
+    resident_print_start = require(symbols, "RPRINT")
+    kanji_gateway_start = require(symbols, "ITESTKANJ")
+    reset_messages_start = require(symbols, "reset_msg_pointers")
+    disk_message_start = require(symbols, "READ_DISK_PROC")
+    get_message_gateway = require(symbols, "SYSGETMSG")
+    display_message_gateway = require(symbols, "SYSDISPMSG")
     substitution_state_end = require(symbols, "ERRCD_24")
     pipe_state_start = require(symbols, "PIPEFILES")
     exec_state_start = require(symbols, "INPIPEPTR")
@@ -171,6 +179,13 @@ def main() -> int:
         errors.append("resident code/stack boundary falls outside CODERES")
     if not (0x100 < resident_service_start < resident_code_end):
         errors.append("resident code ownership boundaries are not ordered")
+    if not (
+        resident_service_start < disk_error_start < crlf_start
+        < resident_print_start < kanji_gateway_start < reset_messages_start
+        < disk_message_start < get_message_gateway < display_message_gateway
+        < resident_code_end
+    ):
+        errors.append("resident error/message-service boundaries are not ordered")
     if not (
         data.start < substitution_state_end < pipe_state_start
         < exec_state_start < resident_state_end < resident_catalog_start
@@ -249,6 +264,32 @@ def main() -> int:
          "formatter workspace and five far class slots"),
     ]
     for name, start, end, lifetime in permanent_low:
+        print(f"| {name} | `{start:04X}h..{end:04X}h` | {end - start:,} | {lifetime} |")
+
+    print("\n## Resident error and message services\n")
+    print("| Range | Offset | Bytes | Required lifetime |")
+    print("| --- | ---: | ---: | --- |")
+    resident_services = [
+        ("Batch-termination prompt", resident_service_start, disk_error_start,
+         "resident caller after transient teardown"),
+        ("Critical-error handler", disk_error_start, crlf_start,
+         "installed INT 24h target; asynchronous DOS and redirector entry"),
+        ("CR/LF entry", crlf_start, resident_print_start,
+         "shared resident display entry"),
+        ("Resident message-print wrapper", resident_print_start, kanji_gateway_start,
+         "resident fatal, batch, EXEC, and critical-error callers"),
+        ("DBCS test gateway", kanji_gateway_start, reset_messages_start,
+         "low/failure entry; permanent root body is in HMA"),
+        ("Message-pointer reset", reset_messages_start, disk_message_start,
+         "child and fatal-exit cleanup"),
+        ("Disk-backed message callback", disk_message_start, get_message_gateway,
+         "registered DOS callback and INT 24h disk-error path"),
+        ("GET-message gateway", get_message_gateway, display_message_gateway,
+         "near fallback; patched to far call only in permanent root"),
+        ("DISPLAY-message gateway", display_message_gateway, resident_code_end,
+         "near fallback; patched to far call only in permanent root"),
+    ]
+    for name, start, end, lifetime in resident_services:
         print(f"| {name} | `{start:04X}h..{end:04X}h` | {end - start:,} | {lifetime} |")
 
     print("\n## Optional and discardable ranges\n")

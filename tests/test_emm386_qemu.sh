@@ -10,6 +10,7 @@ BOOT_IMG="$OUT/floppy-emm386-qemu.img"
 PROBE_COM="$OUT/emm386-probe.com"
 AUTO_PROBE_COM="$OUT/emm386-auto-probe.com"
 OFF_PROBE_COM="$OUT/emm386-off-probe.com"
+DRIVER_PROBE_COM="$OUT/emm386-driver-request-probe.com"
 SERIAL_LOG="$OUT/emm386-qemu.log"
 
 if [[ ! -f "$FLOPPY" ]]; then
@@ -28,16 +29,19 @@ cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/emm386_probe.asm" -o "$PROBE_COM"
 nasm -DNO_QEMU_EXIT -f bin "$REPO_ROOT/tests/emm386_probe.asm" -o "$AUTO_PROBE_COM"
 nasm -DEXPECT_OFF -DNO_QEMU_EXIT -f bin "$REPO_ROOT/tests/emm386_probe.asm" -o "$OFF_PROBE_COM"
+nasm -f bin "$REPO_ROOT/tests/emm386_driver_request_probe.asm" -o "$DRIVER_PROBE_COM"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::EMMPROBE.COM
 mcopy -o -i "$BOOT_IMG" "$AUTO_PROBE_COM" ::AUTOPRB.COM
 mcopy -o -i "$BOOT_IMG" "$OFF_PROBE_COM" ::OFFPROBE.COM
+mcopy -o -i "$BOOT_IMG" "$DRIVER_PROBE_COM" ::DRVPROBE.COM
 printf 'DEVICE=A:\\EMM386.EXE M5\r\n' \
     | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
+    printf 'DRVPROBE.COM\r\n'
     printf 'EMM386\r\n'
     printf 'EMM386 OFF\r\n'
     printf 'OFFPROBE.COM\r\n'
@@ -68,7 +72,8 @@ timeout 35 qemu-system-i386 \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     >"$SERIAL_LOG" 2>&1 || true
 
-if grep -q 'EMM386_API_PASS' "$SERIAL_LOG" \
+if grep -q 'EMM386_DRIVER_REQUEST_PASS' "$SERIAL_LOG" \
+    && grep -q 'EMM386_API_PASS' "$SERIAL_LOG" \
     && grep -q 'EMM386_COMMAND_PASS' "$SERIAL_LOG" \
     && grep -q 'EMM386_OFF_API_PASS' "$SERIAL_LOG" \
     && [[ $(grep -c 'EMM386 Active\.' "$SERIAL_LOG") -eq 5 ]] \

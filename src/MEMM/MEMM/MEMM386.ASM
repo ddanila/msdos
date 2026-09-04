@@ -167,6 +167,7 @@ MS_DOS	equ	21h			; DOS interrupt
 GET_PSP equ	62h			; get program segment prefix
 
 NULL		EQU		0FFFFH			;Null address pointer
+TBL_LENGTH	EQU		0DH			;Driver commands 0 through 0Ch
 
 dospsp_str	struc
 		db	80h dup (?)
@@ -244,25 +245,6 @@ SIG_LENGTH	equ	($ - memmsig)
 ;			L O C A L   D A T A   A R E A
 ;******************************************************************************
 
-;
-;	Define the command dispatch table for the driver functions
-;
-Cmd_Table	LABEL		NEAR
-	DW		Init_Call		;0 - Initialization
-	DW		Null_Exit		;1 - Media Check
-	DW		Null_Exit		;2 - Get BPB
-	DW		Null_Exit		;3 - IOCTL input
-	DW		Null_Exit		;4 - Input (Destructive)
-	DW		Null_Exit		;5 - No wait input
-	DW		Null_Exit		;6 - Input status
-	DW		Null_Exit		;7 - Input buffer flush
-	DW		Null_Exit		;8 - Output (Write)
-	DW		Null_Exit		;9 - Output with verify
-	DW		Null_Exit		;A - Output status
-	DW		Null_Exit		;B - Output buffer flush
-	DW		Null_Exit		;C - IOCTL output
-TBL_LENGTH	EQU		($-CMD_TABLE)/2 ;Dispatch table length
-
 	public	ReqPtr
 ReqPtr		label	dword	; dword ptr to Request Header
 ReqOff		dw	0	; saved offset of Request Header
@@ -309,11 +291,13 @@ Interrupt	proc		far
 	mov	al,[bx.COMMAND_CODE]		;Get the command code
 	cmp	al,TBL_LENGTH			;Check for validity
 	jae	Invalid 			;Jump if command invalid
-	cbw					;Command to a full word
-	shl	ax,1				;Compute dispatch index
-	mov	si,OFFSET Cmd_Table		;Point to dispatch table
-	add	si,ax				;Index based on command
-	call	CS:[si] 			;Call correct routine
+	or	al,al				;Only command 0 initializes
+	jnz	Null_Command			;All other valid requests are null
+	call	Init_MEMM386
+	jmp	short Finish
+
+Null_Command:
+	xor	ax,ax
 
 ;
 ;   ENTRY:	AX = Status field for Request Header
@@ -337,38 +321,6 @@ Invalid:
 	stc
 	jmp	SHORT Finish		;Go return to caller
 Interrupt	endp
-
-;******************************************************************************
-;	Null_Exit: do nothing
-;
-;	ENTRY: DS:BX pts to request header
-;
-;	EXIT:	No error returned.
-;		CLC
-;
-;******************************************************************************
-Null_Exit	proc	near
-;
-	xor	ax,ax
-	clc
-	ret
-;
-Null_Exit	endp
-
-;******************************************************************************
-;	Init_Call - call initialization routine
-;
-;	ENTRY: DS:BX pts to request header
-;
-;	EXIT: AX = status field for request header
-;
-;******************************************************************************
-Init_Call	proc	near
-;
-	call	Init_MEMM386
-	ret
-;
-Init_Call	endp
 
 ;******************************************************************************
 	db	'SBP'
