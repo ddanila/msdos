@@ -62,7 +62,6 @@ CODE    SEGMENT BYTE PUBLIC 'CODE'
         ENDIF
 
 	IF	BUFFERFLAG
-	I_am	SETVECTFLAG,BYTE,<0>
 	i_need	BUF_EMS_SEG_CNT,WORD	     ; DOS 4.00 EMS seg count		;AN000;
 	i_need	BUF_EMS_MODE,BYTE	     ; DOS 4.00 EMS mode 		;AN000;
 	i_am	BUF_EMS_MAP_USER,12,<0,0,0,0,0,0,0,0,0,0,0,0>
@@ -444,13 +443,6 @@ DISPCALL:
         MOV     DS,SaveDS
 
 IF	BUFFERFLAG
-	mov	cs:[SETVECTFLAG], 0
-	cmp	ah, 25h
-	jne	saveuser
-	cmp	ah, 35h
-	jne	saveuser
-	mov	cs:[SETVECTFLAG], 1
-saveuser:
 	invoke	SAVE_USER_MAP		    ;AN000;LB.	save EMS map
 ENDIF
 
@@ -550,8 +542,6 @@ Procedure   SAVE_USER_MAP,NEAR							 ;AN000;
 										;AN000;
 	CMP	cs:[BUF_EMS_MODE],-1	  ;LB. EMS support			;AN000;
 	JZ	No_user_save 		  ;LB. no				;AN000;
-	CMP	cs:[SETVECTFLAG], 1
-	jz	No_user_save
 ;	MOV	[ACT_PAGE],-1		  ;LB. invalidate active page		;AN000;
 ;	MOV	WORD PTR [LASTBUFFER],-1  ;LB.	and last buffer pointer 	;AN000;
 	PUSH	AX			  ;LB. save regs			;AN000;
@@ -593,8 +583,6 @@ Procedure   RESTORE_USER_MAP,NEAR							 ;AN000;
 	
 	CMP	cs:[BUF_EMS_MODE],-1	  ;LB. EMS support			;AN000;
 	JZ	No_user_restore		  ;LB. no				;AN000;
-	CMP	cs:[SETVECTFLAG], 1
-	jz	No_user_restore
 	PUSH	AX			  ;LB. save regs			;AN000;
 	PUSH	DS			  ;LB. save regs			;AN000;
 	PUSH	SI			  ;LB.					;AN000;

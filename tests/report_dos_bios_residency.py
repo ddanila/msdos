@@ -189,7 +189,7 @@ def main() -> int:
         errors.append("DOS DATA ownership does not cover the complete segment")
 
     code_ranges = [
-        ("Low setup flags", "SETVECTFLAG", "DOS_CODE_START"),
+        ("EMS user-map buffer", "BUF_EMS_MAP_USER", "DOS_CODE_START"),
         ("Core system-call dispatcher", "DOS_CODE_START", "hma_driver_requests"),
         ("HMA driver request entry", "hma_driver_requests", "hma_low_dpbs"),
         ("Low DPB pointer workspace", "hma_low_dpbs", "hma_driver_xms"),
