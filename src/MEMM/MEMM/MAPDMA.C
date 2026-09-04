@@ -31,8 +31,6 @@
  * INDEX(a)    - index from Linear Adr
  * OFFSET(a)   - offset from Linear Adr
  * LIN2PHY(l)  - Physical Adr from Linear Adr
- * DosPhyPage  - consider 16K pages from 0 to 1MB. Let Page at 256K be page 0.
- * DOSPHYPAGE(a) - DosPhyPage for Adr in 1 MB range
  * PFT(a)      - pick up ith entry in pft386[] 
  */
 
@@ -40,14 +38,11 @@
 #define INDEX(a)        ((((long)a)>>12) & 0x3FF)
 #define OFFSET(a)       (((long)a) & 0xFFF)
 #define LIN2PHY(l)      ((PT(INDEX(l)) & ~0xFFFL)+(long)OFFSET(l))
-#define DOSPHYPAGE(a)   (((a)>>14)-16)
 #define PFT(a)          (*(long *)(pft386+a))
 struct mappable_page {
    unsigned short page_seg;            /* segment of physical page */
 };
 
-/* Xlates DosPhyPage into an index in mappable_pages[]. */
-extern char EMM_MPindex[];    /* index from 4000H to 10000H in steps of 16K */
 extern struct mappable_page mappable_pages[];
 extern long *pft386;
 extern unsigned DMA_Pages[];
@@ -65,6 +60,19 @@ extern unsigned GetCRSEntry();   /* get CurRegSet entry for given EmmPhyPage */
 extern long GetDMALinAdr();      /* Get Linear Adr for the DMA buffer */
 extern Exchange16K();                  /* exchange page contents */
 extern FatalError();
+
+/* Return the dense physical-window index containing this address. */
+static int MappableIndex(PhyAdr)
+long PhyAdr;
+{
+   unsigned i;
+   unsigned short Seg = (unsigned short)((PhyAdr & ALIGN16K) >> 4);
+
+   for (i = 0; i < mappable_page_count; i++)
+      if (mappable_pages[i].page_seg == Seg)
+         return i;
+   return -1;
+}
 
 /* forward declarations */
 long GetPteFromIndex(unsigned);
@@ -142,7 +150,7 @@ int i, j, k, bSwap,
  * fully programmed yet
  */
    for (i = 0, Adr = FromAdr16K; Adr <= ToAdr16K; Adr += HEX16K, i++)   {
-      MPIndex = EMM_MPindex[DOSPHYPAGE(Adr)];
+      MPIndex = MappableIndex(Adr);
       if (MPIndex == -1)   /* Adr not mappable */
          return FromAdr;
       else  {
@@ -269,8 +277,7 @@ void SwapAPage(LinAdr, k)
 long LinAdr;
 unsigned k;
 {
-unsigned DosPhyPage, /* each page 16K in size, page at 256K is Page 0 */
-         EmmPhyPage, /* Phy page numbering according to Emm */
+unsigned EmmPhyPage, /* Phy page numbering according to Emm */
          UserPFTIndex;  /* index into pft386 for Emm phy page at LinAdr */
 
 long DMAPhyAdr, DMALinAdr;
@@ -279,8 +286,7 @@ int i, j;
 /* Updating Emm data structures */
 
 /* Find the pft386 entry for LinAdr */
-   DosPhyPage = DOSPHYPAGE(LinAdr); /* Page at 256K is page zero */
-   EmmPhyPage = MAPPABLE_PHYSICAL_PAGE(EMM_MPindex[DosPhyPage]);
+   EmmPhyPage = MAPPABLE_PHYSICAL_PAGE(MappableIndex(LinAdr));
 
 /* get the CurRegSet entry for this physical page. */
    UserPFTIndex = GetCRSEntry(EmmPhyPage);
@@ -396,7 +402,7 @@ long PhyAdr;
    if (PhyAdr < HEX256K || PhyAdr >= HEX1MB)
       return (PhyAdr);
    
-   i = EMM_MPindex[DOSPHYPAGE(PhyAdr)];
+   i = MappableIndex(PhyAdr);
 
    if (i != -1)
       return GetPte(index);
@@ -417,7 +423,7 @@ long PhyAdr;
    if (PhyAdr < HEX256K || PhyAdr >= HEX1MB)
       return;
    
-   i = EMM_MPindex[DOSPHYPAGE(PhyAdr)];
+   i = MappableIndex(PhyAdr);
 
    if (i != -1)
       SetPte(index, pte);

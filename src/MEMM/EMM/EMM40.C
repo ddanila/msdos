@@ -75,7 +75,6 @@ extern unsigned short emm40_info[5];		/* hardware information */
 /*extern char	VMn_cntxt_bytes;		/* bytes in a VM context */
 extern unsigned short PF_Base;
 /*extern unsigned short VM1_EMM_Offset;*/
-extern char	EMM_MPindex[];
 extern char	OSEnabled;			/* OS/E function flag */
 extern long	OSKey;				/* Key for OS/E function */
 

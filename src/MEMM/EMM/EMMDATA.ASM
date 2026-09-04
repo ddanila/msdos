@@ -61,8 +61,6 @@ _DATA	SEGMENT
 	PUBLIC	_physical_page_count
 	PUBLIC	_physical_page_ids
 	PUBLIC	_page_frame_pages
-	PUBLIC	EMM_MPindex
-	PUBLIC	_EMM_MPindex
 	PUBLIC	_save_map
 	PUBLIC	_handle_table
 	PUBLIC	_Handle_Name_Table
@@ -180,18 +178,6 @@ _mappable_pages	LABEL	WORD
 	REPT	MAX_PHYS_PAGES
 		Mappable_Page	<0>
 	ENDM
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;06. MAPPABLE PAGE INDEX ARRAY
-;	the pages in system memory are numbered
-;	4000h onwards whereas the physical page
-;	numbers are arbitrarily numbered. this
-;	array indexes into the mappable page
-;	array.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-EMM_MPindex	LABEL	byte			; table of indexes into above
-_EMM_MPindex	LABEL	byte
-	db	60	dup (-1)		; 1000h to 10000h
 
 _mappable_page_count	dw	MAX_PHYS_PAGES	; number of entries in above
 _physical_page_count	dw	0		; number of physical pages

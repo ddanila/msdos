@@ -80,7 +80,6 @@ extrn	_PF_Base:word		 ; segment addr of page frame base
 extrn	_page_frame_pages:word	; number of pages in 3.2 page frame
 
 extrn	_mappable_pages:word	; mappable page array
-extrn	_EMM_MPindex:byte	; index into mappable page array
 extrn	_physical_page_count:word   ; number of physical pages
 extrn	_physical_page_ids:byte
 extrn	_mappable_page_count:word   ; number of mappable pages
@@ -187,34 +186,6 @@ init_mappable_pages	MACRO
     mov     _mappable_pages[di],bx  ; fill in segment
 ;
     pop     di
-;
-    ENDM
-
-;******************************************************************************
-;**init_MAPPABLE_INDEX: macro to fill in EMM_MPIndex array.  This array
-;  contains a cross reference for the memory from 4000h to 10000h into the
-;  mappable_pages array.  There is an entry for each 16k page. The pages in
-;  this range which are not mappable are initialised to -1.  The ones which
-;  are mappable are initialised to the index into the mappable_pages array
-;  for the entry which represents this page
-;
-;  ENTRY: DI = Index into _mappable_pages
-;	  BX = Segment of physical page
-;
-;******************************************************************************
-init_mappable_index	MACRO
-;
-    push    ax
-    push    bx
-;
-    shr     bx,10		    ; convert segment to 16k page #
-    sub     bx,CONV_STRT_PG	    ; first page in EMM_MPIndex array is 16
-;
-    mov     ax,di		    ; to extract the lower byte
-    mov     _EMM_MPIndex[bx],al     ; fill in index
-;
-    pop     bx
-    pop     ax
 ;
     ENDM
 
@@ -457,7 +428,6 @@ EMIN_2:
 EMIN_3:
 ;
 ; setting up _mappable_pages
-;	     _EMM_MPIndex
 ;	     _physical_page_count
 ;	     _mappable_page_count
 ;
@@ -480,16 +450,15 @@ EMIN_3:
 ;   |	  exist     |	    |		    |	    |		    |4000h
 ;   -----------------	    -----------------	    -----------------
 ;
-;   derived PTE offset	    _mappable_pages	     EMM_MPIndex
+;   derived PTE offset	    _mappable_pages
 ;
-;   Each entry reps	    Each entry reps	     Each entry reps
-;   a physical page.	    a mappable ph. page      a system page
+;   Each entry reps	    Each entry reps
+;   a physical page.	    a mappable ph. page
 ;
-;   WORD.		    WORD		     Byte
+;   WORD.		    WORD
 ;
-;   segment / 64		    1st WORD: segment	     Index into
-;   (not retained)	    of ph. page 	     _mappable_pages
-;						     which reps the page
+;   segment / 64		    1st WORD: segment
+;   (not retained)	    of ph. page
 ;
 ;
 ; 1. Set up the page frame pages when a complete frame exists. Missing frame
@@ -513,7 +482,6 @@ EMIN_3:
     ;
 EMIN_4:
 	init_mappable_pages
-	init_mappable_index
 	inv_mpbl
     ;
     ; update counters for next entry
@@ -561,7 +529,6 @@ EMIN_6:
     ; page mappable. set up entries for it
     ;
 	init_mappable_pages		; set up the mappable_pages entry
-	init_mappable_index		; set up the EMM_MPIndex
     ;
     ; update counters for next entry
     ;
@@ -607,7 +574,6 @@ EMIN_8:
     ; page mappable. set up entries for it
     ;
 	init_mappable_pages		; set up the mappable_pages entry
-	init_mappable_index		; set up the EMM_MPIndex
     ;
     ; update counters for next entry
     ;

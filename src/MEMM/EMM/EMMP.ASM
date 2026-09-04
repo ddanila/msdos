@@ -129,11 +129,6 @@ extrn	_cntxt_bytes:byte			; number of bytes in a context
 
 
 ;
-; table of indexes into the above - maps segment to physical page
-;
-extrn	EMM_MPindex:byte
-
-;
 ; ptr to table of emm page # for each handle's logical pages.
 ;
 extrn	_emm_page:word
@@ -171,6 +166,31 @@ _DATA	ENDS
 ;******************************************************************************
 _TEXT	SEGMENT
 assume	cs:_TEXT, ds:DGROUP, ss:DGROUP
+
+; Find an exact physical-window segment in the compact dense table.
+; ENTRY: AX = segment. EXIT: BX = dense index, CF clear; CF set if absent.
+; CX is preserved because several callers are iterating client arrays.
+find_mappable_segment proc near
+	push	cx
+	xor	bx,bx
+	mov	cx,[_mappable_page_count]
+	jcxz	find_mappable_absent
+find_mappable_loop:
+	cmp	ax,_mappable_pages[bx]
+	je	short find_mappable_found
+	add	bx,2
+	loop	find_mappable_loop
+
+find_mappable_absent:
+	stc
+	jmp	short find_mappable_exit
+find_mappable_found:
+	shr	bx,1
+	clc
+find_mappable_exit:
+	pop	cx
+	ret
+find_mappable_segment endp
 
 	IFNDEF	EMMP_PROT_ONLY
 
@@ -1159,10 +1179,11 @@ _GetMappablePAddrArrayFixed proc near
 	mov	cx, 60
 	cld
 gmpa_loop:
-	mov	bl, EMM_MPindex[si]
-	cmp	bl, MAX_PHYS_PAGES		; 0ffh and every invalid index
-	jae	short gmpa_next
-	xor	bh, bh
+	mov	ax,si
+	add	ax,CONV_STRT_PG
+	shl	ax,10				; segment represented by this slot
+	call	find_mappable_segment
+	jc	short gmpa_next
 	mov	dx, bx				; preserve dense index
 	shl	bx, 1				; segment-table word index
 	add	bx, offset DGROUP:_mappable_pages
@@ -1240,14 +1261,9 @@ _GetSetPartial	proc	near
 	ja	gsppm_inv_phys
 gsppm_get_loop:
 	lods	word ptr fs:[si]		; Get segment
-	shr	ax, 10				; 16k page number
-	sub	ax, CONV_STRT_PG		; first page in emm_mpindex arr
-	jb	gsppm_inv_seg			; only pages above 256k
-	mov	bx, ax
-	mov	al, EMM_MPindex[bx]		; convert to physical page
-	cmp	al, -1				; does it exist
-	je	gsppm_inv_seg
-	mov	bx, ax
+	call	find_mappable_segment
+	jc	gsppm_inv_seg
+	mov	ax,bx				; preserve dense index for physical number
 	shl	bx, 1
 	mov	bx, _mappable_pages[bx]
 	cmp	bx, fs:[si-2]
@@ -1420,13 +1436,9 @@ mha_sub0:
 mha_sub1:
 	mov	di, fs:[si.mha1_seg]		; segment to map
 	mov	ax, di				; save for later
-	shr	di, 10				; 16k page number
-	sub	di, CONV_STRT_PG		; first page in emm_mpindex arr
-	jb	short mha_inv_seg		; only pages above 256k
-	movsx	edi, EMM_MPindex[di]		; convert to physical page
-	cmp	edi, -1				; does it exist
-	je	short mha_inv_seg
-	movzx	ebx, di
+	call	find_mappable_segment
+	jc	short mha_inv_seg
+	mov	di,bx
 	add	bx, 4				; derive the physical page
 	sub	bx, [_page_frame_pages]
 	shl	di, 1				; segment-table word index
