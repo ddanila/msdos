@@ -115,37 +115,21 @@ BadVal:
 ;; DOS 4.00 File Tagging
 
 CPSWchk:                                ;AN000;
-;       PUSH    AX                      ;AN000;;FT.
-;       MOV     AL,[CPSWSAVE]           ;AN000;;FT. DOS 3.4
-;       MOV     [CPSWFLAG],AL           ;AN000;;FT. DOS 3.4 in case ABORT
-;       POP     AX                      ;AN000;;FT.
-        CMP     AL,3                    ;AN000;;FT get CPSW state ?
-        JNZ     CPSWset                 ;AN000;;FT. no
-;       MOV     DL,CPSWFLAG             ;AN000;;FT. return CPSW state
-        IRET                            ;AN000;
-CPSWset:                                ;AN000;
-        CMP     AL,4                     ;AN000;;FT. set CPSW state ?
-        JA      QueryDOSboot             ;AN000;;FT. check query dos boot drive
-;       PUSH    AX                       ;AN000;;FT.
-;       CallInstall NLSInstall,NLSFUNC,0 ;AN000;;FT. NLSFUNC installed ?
-;       CMP     AL,0FFH                  ;AN000;;FT.
-;       POP     AX                       ;AN000;;FT.
-;       JNZ     BadVal                   ;AN000;;FT. not loaded, therefore ignore
-;;;;    AND     DL,01H                   ;AN000;;FT. only 0 or 1
-;;;;    MOV     [CPSWFLAG],DL            ;AN000;;FT. set the flag
-;;;;    MOV     [CPSWSAVE],DL            ;AN000;;FT. save one copy
-        IRET                             ;AN000;;FT.
+        CMP     AL,4                    ; Code-page switching is unsupported.
+        JBE     CPSWreturn              ; Functions 3 and 4 remain no-ops.
 QueryDOSboot:                            ;AN000;
 	CMP	AL,6
-	JE	QueryTrueVersion
-	CMP     AL,5                ;AN000;MS.
-	JA      BadVal              ;AN000;MS.
-        MOV     DL,[BOOTDRIVE]      ;AN000;;MS. put boot drive in DL
-        IRET                        ;AN000;;MS.
+	JA	BadVal
+	JNE	QueryBootDrive
 QueryTrueVersion:
 	MOV	BX,[MSVERS]		; BL major, BH minor; never fake this value
 	XOR	DX,DX			; revision 0, no ROM/version flags
 	IRET
+QueryBootDrive:
+        MOV     DL,[BOOTDRIVE]      ;AN000;;MS. put boot drive in DL
+        IRET                        ;AN000;;MS.
+CPSWreturn:
+        IRET
 
 
 ;; DOS 4.00 File Tagging
