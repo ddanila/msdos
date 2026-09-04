@@ -154,6 +154,8 @@ DATARES SEGMENT PUBLIC BYTE
 	PUBLIC	PIPESTR
 	PUBLIC	RDIRCHAR
 	PUBLIC	RemMsg
+	PUBLIC	resident_catalog_start
+	PUBLIC	resident_class_ptrs
 	PUBLIC	resmsgend		;AN000;
 	PUBLIC	RES_TPA
 	PUBLIC	RESTDIR
@@ -597,11 +599,17 @@ ASSUME DS:RESGROUP,ES:RESGROUP,CS:RESGROUP
 COMMAND_RESIDENT_CLASSES EQU 5		; $M_MAKE_COMR builds classes A through E
 MSG_UTILNAME <COMMAND>				;AN000; define utility name
 
+MSG_SERVICES <COMR,MSGDATA>
+
+resident_class_ptrs EQU $M_RT2.$M_CLASS_ADDRS
+
+resident_catalog_start LABEL BYTE
+
 ; CL3 and CL4 define $M_CLS_1/$M_CLS_2, which the resident message
 ; dispatcher references. Omitting them leaves COMMAND.COM partially linked.
-MSG_SERVICES <COMR,MSGDATA,COMMAND.CLA,COMMAND.CL3,COMMAND.CL4>
+MSG_SERVICES <COMMAND.CLA,COMMAND.CL3,COMMAND.CL4>
 
-MSG_SERVICES <COMR,COMMAND.CDH> 		; get relocatable critical error messages
+MSG_SERVICES <COMMAND.CDH> 		; get relocatable critical error messages
 
 DATARESEND		LABEL	BYTE		;AC060; end of resident portion if /msg not used
 

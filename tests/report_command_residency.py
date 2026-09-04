@@ -134,6 +134,8 @@ def main() -> int:
     extended_messages = require(symbols, "extended_msg_start")
     extended_end = require(symbols, "extmsgend")
     resident_state_end = require(symbols, "resmsgend")
+    resident_catalog_start = require(symbols, "resident_catalog_start")
+    resident_class_ptrs = require(symbols, "resident_class_ptrs")
     critical_messages = require(symbols, "critical_msg_start")
     critical_lookup = require(symbols, "$M_CLS_6")
     resident_code_end = require(symbols, "RES_CODE_END")
@@ -145,14 +147,14 @@ def main() -> int:
 
     if code.start != 0 or data.start != code.end:
         errors.append("CODERES and DATARES are no longer contiguous at offset zero")
-    if not (data.start <= resident_state_end <= critical_messages <= datares_end):
+    if not (data.start <= resident_state_end <= resident_class_ptrs < resident_catalog_start <= critical_messages <= datares_end):
         errors.append("default resident DATARES ownership boundaries are not ordered")
-    if not (resident_state_end <= critical_lookup < critical_messages):
+    if not (resident_catalog_start <= critical_lookup < critical_messages):
         errors.append("critical-message lookup routine is not retained before its relocatable catalog")
-    if rounded(critical_messages) > 5536:
-        errors.append("DOS-high permanent COMMAND exceeds its 5,536-byte budget")
-    if rounded(datares_end) > 6016:
-        errors.append("low/failure COMMAND fallback exceeds its 6,016-byte budget")
+    if rounded(resident_catalog_start) > 4752:
+        errors.append("DOS-high permanent COMMAND exceeds its 4,752-byte budget")
+    if rounded(datares_end) > 6032:
+        errors.append("low/failure COMMAND fallback exceeds its 6,032-byte budget")
     if not (datares_end == parse_messages <= extended_messages <= extended_end == data.end):
         errors.append("optional resident-message boundaries do not cover the DATARES tail")
     if not (0x100 <= resident_code_end <= code.end):
@@ -193,12 +195,13 @@ def main() -> int:
         ("Resident code", 0x100, resident_code_end, "EXEC/reload, INT 22h/23h/24h/2Eh, messages; resident"),
         ("Resident stack", resident_code_end, code.end, "asynchronous and reload paths; resident"),
         ("Mutable shell state", data.start, resident_state_end, "batch, pipe, environment, EXEC, reload; resident"),
-        ("Resident message service data", resident_state_end, critical_messages, "resident formatter/catalog state"),
-        ("Critical-error messages", critical_messages, datares_end, "HMA for permanent DOS-high shell; low fallback otherwise"),
+        ("Resident message runtime data", resident_state_end, resident_catalog_start, "mutable formatter and far class pointers"),
+        ("Utility-message catalogs", resident_catalog_start, critical_messages, "HMA for permanent DOS-high shell; low fallback otherwise"),
+        ("Critical-error messages", critical_messages, datares_end, "same HMA payload; low fallback otherwise"),
     ]
     for name, start, end, owner in ranges:
         print(f"| {name} | `{start:04X}h..{end:04X}h` | {end - start:,} | {owner} |")
-    print(f"| **DOS-high permanent break** | `0000h..{critical_messages:04X}h` | **{critical_messages:,}** | **{rounded(critical_messages):,} paragraph-rounded** |")
+    print(f"| **DOS-high permanent break** | `0000h..{resident_catalog_start:04X}h` | **{resident_catalog_start:,}** | **{rounded(resident_catalog_start):,} paragraph-rounded** |")
     print(f"| Low/failure fallback break | `0000h..{datares_end:04X}h` | {datares_end:,} | {rounded(datares_end):,} paragraph-rounded |")
 
     print("\n## Optional and discardable ranges\n")
@@ -217,7 +220,7 @@ def main() -> int:
     for name, start, end, lifetime in optional:
         print(f"| {name} | `{start:04X}h..{end:04X}h` | {end - start:,} | {lifetime} |")
     print(f"\n`/MSG` retains all catalogs and raises the DOS-high permanent break by "
-          f"{rounded(extended_end) - rounded(critical_messages):,} bytes to "
+          f"{rounded(extended_end) - rounded(resident_catalog_start):,} bytes to "
           f"{rounded(extended_end):,} paragraph-rounded bytes.")
     print(
         f"The largest disk-loaded catalog record is {largest_record} bytes; "

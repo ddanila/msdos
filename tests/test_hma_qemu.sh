@@ -32,8 +32,6 @@ nasm -f bin "$ROOT/tests/hma_a20_driver.asm" -o "$A20_DRIVER"
 nasm -f bin "$ROOT/tests/int21_system_probe.asm" -o "$SYSTEM_PROBE"
 nasm -DNO_DEBUG_EXIT -f bin "$ROOT/tests/int21_file_memory_probe.asm" \
     -o "$FILE_MEMORY_PROBE"
-nasm -f bin "$ROOT/tests/command_critical_hma_probe.asm" \
-    -o "$COMMAND_CRITICAL_PROBE"
 sysbuf_hex=$(awk '$2 == "SYSBUF" { split($1, address, ":"); print address[2]; exit }' \
     "$ROOT/src/DOS/MSDOS.MAP")
 [[ "$sysbuf_hex" =~ ^[0-9A-Fa-f]{4}$ ]] || {
@@ -41,16 +39,22 @@ sysbuf_hex=$(awk '$2 == "SYSBUF" { split($1, address, ":"); print address[2]; ex
     exit 1
 }
 hma_tail=$((16#$sysbuf_hex + 15 * (512 + 20) + 8))
-critical_start_hex=$(awk 'toupper($2) == "CRITICAL_MSG_START" { split($1, address, ":"); print address[2]; exit }' \
+catalog_start_hex=$(awk 'toupper($2) == "RESIDENT_CATALOG_START" { split($1, address, ":"); print address[2]; exit }' \
     "$ROOT/src/CMD/COMMAND/COMMAND.MAP")
 dataresend_hex=$(awk 'toupper($2) == "DATARESEND" { split($1, address, ":"); print address[2]; exit }' \
     "$ROOT/src/CMD/COMMAND/COMMAND.MAP")
-[[ "$critical_start_hex" =~ ^[0-9A-Fa-f]{4}$ && "$dataresend_hex" =~ ^[0-9A-Fa-f]{4}$ ]] || {
-    echo 'ERROR: could not read COMMAND critical-message range' >&2
+class_ptrs_hex=$(awk 'toupper($2) == "RESIDENT_CLASS_PTRS" { split($1, address, ":"); print address[2]; exit }' \
+    "$ROOT/src/CMD/COMMAND/COMMAND.MAP")
+[[ "$catalog_start_hex" =~ ^[0-9A-Fa-f]{4}$ && "$dataresend_hex" =~ ^[0-9A-Fa-f]{4}$ && "$class_ptrs_hex" =~ ^[0-9A-Fa-f]{4}$ ]] || {
+    echo 'ERROR: could not read COMMAND resident-catalog range' >&2
     exit 1
 }
-command_hma_bytes=$((16#$dataresend_hex - 16#$critical_start_hex))
+command_hma_bytes=$((16#$dataresend_hex - 16#$catalog_start_hex))
 hma_tail_after_command=$((hma_tail + command_hma_bytes))
+nasm -DEXPECTED_CLASS_PTRS="0x$class_ptrs_hex" \
+    -DEXPECTED_CATALOG_BASE="$hma_tail" -DEXPECTED_CATALOG_END="$hma_tail_after_command" \
+    -DEXPECTED_HMA_CLASSES=2 \
+    -f bin "$ROOT/tests/command_critical_hma_probe.asm" -o "$COMMAND_CRITICAL_PROBE"
 nasm -DEXPECTED_TAIL="$hma_tail_after_command" -f bin \
     "$ROOT/tests/hma_tail_probe.asm" -o "$TAIL_PROBE"
 
@@ -113,8 +117,8 @@ run_case() {
         exit 1
     }
     if [[ "$mode" == HIGH ]]; then
-        grep -Fq 'COMMAND_CRITICAL_HMA_PASS' "$log" || {
-            echo 'FAIL: COMMAND did not publish its copied HMA critical catalog' >&2
+        grep -Fq 'COMMAND_CATALOG_HMA_PASS' "$log" || {
+            echo 'FAIL: COMMAND did not publish all copied HMA catalogs' >&2
             sed -n '1,180p' "$log" >&2
             exit 1
         }

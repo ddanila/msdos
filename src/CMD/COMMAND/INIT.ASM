@@ -84,6 +84,8 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	parsemes_ptr:word	;AN000;
 	EXTRN	PERMCOM:BYTE
 	EXTRN	RES_TPA:WORD
+	EXTRN	resident_catalog_start:byte
+	EXTRN	resident_class_ptrs:dword
 	EXTRN	resmsgend:word		;AN000;
 	EXTRN	RSWITCHAR:BYTE
 	EXTRN	SINGLECOM:WORD
@@ -927,6 +929,8 @@ ARGSDONE:
 	POP	ES				;Remember environment
 
 COMRETURNS:
+	PUSH	CS
+	POP	DS				; resident PSP and state live with initialization CS
 	MOV	AX,WORD PTR DS:[PDB_Parent_PID]
 	MOV	[PARENT],AX			; Save parent
 	MOV	WORD PTR DS:[PDB_Parent_PID],DS ; Parent is me
@@ -1594,7 +1598,6 @@ setup_for_messages	proc	near		;AN060;
 	mov	di,offset resgroup:parse_msg_start-0100h ;AN060; start address
 	call	set_parse_2f			;AN060; set parse error address
 	pop	es				;AN060;
-	call	relocate_critical_messages	; keep the cold catalog outside the low resident
 	IF2					;AN060;;
 	IFNDEF	READ_DISK_INFO			;AN060;;
 		Extrn	READ_DISK_PROC:Far	;AN060;;
@@ -1629,6 +1632,12 @@ no_slash_msg:
 
 permcom_end:
 	call	sysloadmsg			;AN060; load message addresses
+	cmp	[permcom],0
+	jz	short messages_ready
+	cmp	ext_msg,set_extended_msg
+	jz	short messages_ready
+	call	relocate_resident_catalogs
+messages_ready:
 	pop	di				;AN060;
 	pop	dx				;AN060;
 	pop	ax				;AN060;
@@ -1639,14 +1648,15 @@ permcom_end:
 
 setup_for_messages	endp			;AN060;
 
-; Move the immutable critical-error catalog into DOS-owned HMA tail storage.
+; Move the immutable utility and critical-error catalogs into DOS-owned HMA.
 ; This is called only for the permanent shell without /MSG: child COMMANDs
 ; must not consume monotonic boot-lifetime storage, and /MSG already retains
 ; the catalog as part of its larger resident message range.  Allocation
 ; failure (including DOS=LOW) deliberately retains the original low catalog.
 
-relocate_critical_messages proc near
+relocate_resident_catalogs proc near
 	push	ax
+	push	bx
 	push	cx
 	push	dx
 	push	si
@@ -1654,33 +1664,55 @@ relocate_critical_messages proc near
 	push	es
 
 	mov	cx,offset resgroup:dataresend
-	sub	cx,offset resgroup:critical_msg_start
+	sub	cx,offset resgroup:resident_catalog_start
 	mov	ax,DOS_HMA_TAIL_ALLOC
 	int	2fh
 	or	ax,ax
-	jz	short critical_messages_low
+	jz	short resident_catalogs_low
 
 	push	di				; preserve the allocated catalog base
-	mov	si,offset resgroup:critical_msg_start
+	mov	si,offset resgroup:resident_catalog_start
 	cld
 	rep	movsb				; DS is RESGROUP, ES is the HMA destination
 	pop	di
+
+	; SYSLOADMSG initialized five far slots to their low class structures.
+	; Rebase only classes in the retained catalog range.  Preserve the other
+	; initialization or optional /MSG class slots for the existing reload path.
+	mov	bx,di
+	sub	bx,offset resgroup:resident_catalog_start
+	mov	si,offset resgroup:resident_class_ptrs
+	mov	cx,5
+rebase_resident_class:
+	mov	ax,word ptr [si]
+	cmp	ax,offset resgroup:resident_catalog_start
+	jb	short next_resident_class
+	cmp	ax,offset resgroup:dataresend
+	jae	short next_resident_class
+	add	word ptr [si],bx
+	mov	word ptr [si+2],es
+next_resident_class:
+	add	si,4
+	loop	rebase_resident_class
+
+	add	di,offset resgroup:critical_msg_start
+	sub	di,offset resgroup:resident_catalog_start
 	mov	ax,(multdos shl 8 or message_2f)
 	mov	dl,set_critical_msg
 	int	2fh				; publish the relocated far pointer
-	mov	byte ptr [critical_msg_start],0	; disable the stale near utility-class entry
-	mov	di,offset resgroup:critical_msg_start+15
+	mov	di,offset resgroup:resident_catalog_start+15
 	mov	[resmsgend],di			; release the original low catalog
 
-critical_messages_low:
+resident_catalogs_low:
 	pop	es
 	pop	di
 	pop	si
 	pop	dx
 	pop	cx
+	pop	bx
 	pop	ax
 	ret
-relocate_critical_messages endp
+relocate_resident_catalogs endp
 
 ; ****************************************************************
 ; *

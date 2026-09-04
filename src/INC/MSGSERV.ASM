@@ -845,8 +845,13 @@ IF	    FARmsg					     ;;AN000;;	 Yes,
 	    PUSH    ES					     ;;AN000;;
 	    POP     DS					     ;;AN000;;	   Return message in DS:SI
 ELSE							     ;;AN000;;
+  IF        COMR
+	    PUSH    ES					     ;; Resident COMMAND classes may live in HMA
+	    POP     DS
+  ELSE
 	    PUSH    CS					     ;;AN000;;	   Return message in DS:SI
 	    POP     DS					     ;;AN000;;
+  ENDIF
 ENDIF							     ;;AN000;;
 ;	  $ENDIF					     ;;AN000;;
 $MEN32:
@@ -896,8 +901,17 @@ $MDO36:
 		LES	DI,DWORD PTR $M_RT.$M_CLASS_ADDRS[SI] ;;AN000;;  Get address of class
 		MOV	BX,ES				     ;;AN000;
 	      ELSE					     ;;AN000;;
-		MOV	DI,WORD PTR $M_RT.$M_CLASS_ADDRS[SI] ;;AN000;;	 Get address of class
-		MOV	BX,DI				     ;;AN000;
+	        IF      COMR
+		  LES	DI,DWORD PTR $M_RT.$M_CLASS_ADDRS[SI] ;; Resident COMMAND far class
+		  MOV	BX,ES
+		  OR	DI,DI
+		  JNZ	SHORT $M_COMR_CLASS_READY
+		  MOV	BX,DI			     ;; Preserve legacy absent-class test
+$M_COMR_CLASS_READY:
+	        ELSE
+		  MOV	DI,WORD PTR $M_RT.$M_CLASS_ADDRS[SI] ;;AN000;; Get address of class
+		  MOV	BX,DI				     ;;AN000;
+	        ENDIF
 	      ENDIF					     ;;AN000;;
 ;	    $ELSE					     ;;AN000;; No,
 	    JMP SHORT $MEN37
@@ -1085,14 +1099,22 @@ $MIF69:
 IF	      FARmsg					     ;;AN001;;
 	      CMP     BYTE PTR ES:[DI].$M_CLASS_ID,DH	     ;;AN002;; Check if class still exists at
 ELSE
+	IF    COMR
+	      CMP     BYTE PTR ES:[DI].$M_CLASS_ID,DH
+	ELSE
 	      CMP     BYTE PTR CS:[DI].$M_CLASS_ID,DH	     ;;AN002;; Check if class still exists at
+	ENDIF
 ENDIF
 ;	      $IF     E 				     ;;AN002;;	pointer (hopefully)
 	      JNE $MIF71
 IF		FARmsg					     ;;AN001;;
 		MOV	CL,BYTE PTR ES:[DI].$M_NUM_CLS_MSG   ;;AN000;;	   Get number of messages in class
 ELSE
+	IF	COMR
+		MOV	CL,BYTE PTR ES:[DI].$M_NUM_CLS_MSG
+	ELSE
 		MOV	CL,BYTE PTR CS:[DI].$M_NUM_CLS_MSG   ;;AN000;;	   Get number of messages in class
+	ENDIF
 ENDIF
 ;	      $ENDIF					     ;;AN002;;	  go on to the next class
 $MIF71:
@@ -1121,7 +1143,11 @@ $MIF78:
 IF		FARmsg					     ;;AN001;;
 		CMP	AX,WORD PTR ES:[DI].$M_NUM	     ;;AN000;; Is this the message requested?
 ELSE
+	IF	COMR
+		CMP	AX,WORD PTR ES:[DI].$M_NUM
+	ELSE
 		CMP	AX,WORD PTR CS:[DI].$M_NUM	     ;;AN000;; Is this the message requested?
+	ENDIF
 ENDIF
 ;	      $ENDIF
 $MEN78:
@@ -1148,8 +1174,11 @@ $MSR76:
 	      JNE $MIF87
 IF		FARmsg					     ;;AN001;;
 ELSE							     ;;AN000;;
+	IF	COMR
+	ELSE
 		PUSH	CS				     ;;AN000;;
 		POP	ES				     ;;AN000;;	 Return ES:DI pointing to the message
+	ENDIF
 ENDIF
 ;	      $ENDIF					     ;;AN001;;
 $MIF87:

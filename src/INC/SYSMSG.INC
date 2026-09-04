@@ -424,22 +424,27 @@ $M_MAKE_COMR   macro			     ;
 						 ;
     CALL    $M_CLS_3				 ;  Get addressibilty to class A
     MOV     WORD PTR $M_RT.$M_CLASS_ADDRS+$M_INDEX,DI ;
+    MOV     WORD PTR $M_RT.$M_CLASS_ADDRS+$M_INDEX+2,ES ;
 $M_INDEX =  $M_INDEX + 4			 ;  Set next available table location
 						 ;
     CALL    $M_CLS_4				 ;  Get addressibilty to class B
     MOV     WORD PTR $M_RT.$M_CLASS_ADDRS+$M_INDEX,DI ;
+    MOV     WORD PTR $M_RT.$M_CLASS_ADDRS+$M_INDEX+2,ES ;
 $M_INDEX =  $M_INDEX + 4			 ;  Set next available table location
 						 ;
     CALL    $M_CLS_5				 ;  Get addressibilty to class C
     MOV     WORD PTR $M_RT.$M_CLASS_ADDRS+$M_INDEX,DI ;
+    MOV     WORD PTR $M_RT.$M_CLASS_ADDRS+$M_INDEX+2,ES ;
 $M_INDEX =  $M_INDEX + 4			 ;  Set next available table location
 						 ;
     CALL    $M_CLS_6				 ;  Get addressibilty to class D
     MOV     WORD PTR $M_RT.$M_CLASS_ADDRS+$M_INDEX,DI ;
+    MOV     WORD PTR $M_RT.$M_CLASS_ADDRS+$M_INDEX+2,ES ;
 $M_INDEX =  $M_INDEX + 4			 ;  Set next available table location
 						 ;
     CALL    $M_CLS_7				 ;  Get addressibilty to class E
     MOV     WORD PTR $M_RT.$M_CLASS_ADDRS+$M_INDEX,DI ;
+    MOV     WORD PTR $M_RT.$M_CLASS_ADDRS+$M_INDEX+2,ES ;
 $M_INDEX =  $M_INDEX + 4			 ;  Set next available table location
 						 ;
 ENDM						 ;

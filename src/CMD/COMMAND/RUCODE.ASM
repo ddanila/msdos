@@ -38,10 +38,12 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	devemes_subst:byte	;AC000;
 	EXTRN	DEVENAM:BYTE
 	EXTRN	deve_op_off:word	;AC000;
+	EXTRN	deve_op_seg:word
 	EXTRN	disp_class:byte 	;AC000;
 	EXTRN	DRVLET:BYTE
 	EXTRN	drvnum_block:byte	;AC000;
 	EXTRN	drvnum_op_off:word	;AC000;
+	EXTRN	drvnum_op_seg:word
 	EXTRN	drvnum_subst:byte	;AC000;
 	EXTRN	err15mes_block:byte	;AC000;
 	EXTRN	err15mes_subst:byte	;AC000;
@@ -302,12 +304,16 @@ ContOld:
 	MOV	AX,SI				;AN000; get reading/writing for message
 	MOV	DH,UTIL_MSG_CLASS		;AN000; this is a utility message
 	CALL	SYSGETMSG			;AN000; get the message
+	MOV	BX,DS				; preserve the far HMA string segment
+	PUSH	CS
+	POP	DS				; restore resident COMMAND data access
 	ENDIF
 
 	TEST	[CDEVAT],DEVTYP SHR 8
 	JZ	BLKERR
 	MOV	DX,DEVEMES			;AC000; get message number for device message
 	MOV	DEVE_OP_OFF,SI			;AN000; put address of read/write in subst block
+	MOV	DEVE_OP_SEG,BX
 	MOV	AL,DEVEMES_SUBST		;AN000; get number of substitutions
 	MOV	NUMBER_SUBST,AL 		;AN000;
 	MOV	SI,OFFSET RESGROUP:DEVEMES_BLOCK;AN000; get address of subst block
@@ -318,6 +324,7 @@ ContOld:
 BLKERR:
 	MOV	DX,DRVNUM			;AN000; get drive message number
 	MOV	DRVNUM_OP_OFF,SI		;AN000; put address of read/write in subst block
+	MOV	DRVNUM_OP_SEG,BX
 	MOV	AL,DRVNUM_SUBST 		;AN000; get number of substitutions
 	MOV	NUMBER_SUBST,AL 		;AN000;
 	MOV	SI,OFFSET RESGROUP:DRVNUM_BLOCK ;AN000; get address of subst block
