@@ -170,11 +170,11 @@ _PF_Base	label	word
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;05. MAPPABLE PAGE ARRAY
-;	Dense segment table.  The physical page number is derived from the table
-;	index and _page_frame_pages; storing it in every record is redundant.
+;	Dense 16 KiB index table.  A full segment is index << 10.  The physical
+;	page number is derived from the table index and _page_frame_pages.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-_mappable_pages	LABEL	WORD
+_mappable_pages	LABEL	BYTE
 	REPT	MAX_PHYS_PAGES
 		Mappable_Page	<0>
 	ENDM

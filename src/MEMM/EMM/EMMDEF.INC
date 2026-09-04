@@ -188,12 +188,14 @@ SaveMap_struc	struc
 SaveMap_struc	ends
 
 ;
-; mappable-page segment table.  The internal physical page number is derived
-; from the dense table index and _page_frame_pages: frame entries are 0..P-1,
-; then the remaining entries begin at physical page 4.
+; Mappable-page 16 KiB index table.  Every window is aligned on 0400h
+; paragraphs, so retaining segment >> 10 preserves the complete segment in one
+; byte.  The internal physical page number is derived from the dense table
+; index and _page_frame_pages: frame entries are 0..P-1, then the remaining
+; entries begin at physical page 4.
 ;
 Mappable_Page	struc
-mappable_seg	dw	?
+mappable_index	db	?
 Mappable_Page	ends
 
 ;

@@ -148,7 +148,7 @@ extrn	_handle_count:word			; active EMM handles
 
 extrn	_pft386:word
 
-extrn	_mappable_pages:word			; table of mappable pages
+extrn	_mappable_pages:byte			; table of 16 KiB indexes
 extrn	_mappable_page_count:word		; how many in the table
 extrn	_page_frame_pages:word			; how many in the page frame
 extrn	_physical_page_count:word		; number of physical pages
@@ -205,22 +205,27 @@ assume	cs:_TEXT, ds:DGROUP, ss:DGROUP
 	IFNDEF	EMMP_MAPPABLE_EXCLUDE
 find_mappable_segment proc near
 	push	cx
+	push	dx
+	mov	dx,ax
+	test	dx,03ffh			; physical windows are 16 KiB aligned
+	jnz	short find_mappable_absent
+	shr	dx,10
 	xor	bx,bx
 	mov	cx,[_mappable_page_count]
 	jcxz	find_mappable_absent
 find_mappable_loop:
-	cmp	ax,_mappable_pages[bx]
+	cmp	dl,_mappable_pages[bx]
 	je	short find_mappable_found
-	add	bx,2
+	inc	bx
 	loop	find_mappable_loop
 
 find_mappable_absent:
 	stc
 	jmp	short find_mappable_exit
 find_mappable_found:
-	shr	bx,1
 	clc
 find_mappable_exit:
+	pop	dx
 	pop	cx
 	ret
 find_mappable_segment endp
@@ -550,14 +555,14 @@ mEp_valid_slot:
 	jb	short map_page_frame_segment
 	sub	di,4
 	add	di,[_page_frame_pages]
-	shl	di,1
-	mov	di,_mappable_pages[di]
-	jmp	short map_page_segment_ready
+	movzx	di,_mappable_pages[di]
+	shl	di,4			; 16 KiB index -> page-table offset
+	jmp	short map_page_offset_ready
 map_page_frame_segment:
 	shl	di,10
 	add	di,[PF_Base]
-map_page_segment_ready:
 	shr	di,6			; aligned segment -> page-table offset
+map_page_offset_ready:
 	push	PAGET_GSEL
 	pop	es			; es:di <-- page frame address
 
@@ -634,23 +639,22 @@ unmap_page	proc	near
 unmap_page_dense:
 	cmp	di, [_mappable_page_count]
 	jae	short unmap_page_exit
-	shl	di, 1
-	mov	bx, _mappable_pages[di]	; get segment into bx first
+	movzx	bx, _mappable_pages[di]	; 16 KiB page index
 
 	;
 	; A physical window is 16 KiB aligned, so its page-table offset is the
 	; segment divided by 64.
 	;
 	mov	di,bx
-	shr	di,6
+	shl	di,4
 	push	PAGET_GSEL
 	pop	es			; es:di <-- points to PTE of page frame
 
 	;
 	; construct PTE
 	;
-	movzx	eax, bx		; EAX <-- segment of physical page
-	shl	eax, 4
+	movzx	eax, bl		; EAX <-- 16 KiB index of physical page
+	shl	eax, 14
 	and	ax,0F000H	; clear the low 12 bits
 	or	ax,P_AVAIL	; page ctl bits <-- user,present,write
 
@@ -1243,9 +1247,9 @@ gmpa_loop:
 	call	find_mappable_segment
 	jc	short gmpa_next
 	mov	dx, bx				; preserve dense index
-	shl	bx, 1				; segment-table word index
 	add	bx, offset DGROUP:_mappable_pages
-	mov	ax, [bx]
+	movzx	ax, byte ptr [bx]
+	shl	ax,10				; public API returns a segment
 	stosw
 	add	dx, 4				; derive internal physical page
 	sub	dx, [_page_frame_pages]
@@ -1323,8 +1327,8 @@ gsppm_get_loop:
 	call	find_mappable_segment
 	jc	gsppm_inv_seg
 	mov	ax,bx				; preserve dense index for physical number
-	shl	bx, 1
-	mov	bx, _mappable_pages[bx]
+	movzx	bx, _mappable_pages[bx]
+	shl	bx,10
 	cmp	bx, fs:[si-2]
 	jne	gsppm_inv_seg			; must match exactly
 	add	ax, 4				; derive the physical page
@@ -1500,9 +1504,9 @@ mha_sub1:
 	mov	di,bx
 	add	bx, 4				; derive the physical page
 	sub	bx, [_page_frame_pages]
-	shl	di, 1				; segment-table word index
-	lea	di, _mappable_pages[di]
-	cmp	ax, [di.mappable_seg]		; segment for this page
+	movzx	di, _mappable_pages[di]
+	shl	di,10
+	cmp	ax, di				; segment for this page
 	jne	short mha_inv_seg		; must match exactly
 	mov	eax, ebx				; internal physical page
 	movzx	ebx, fs:[si.mha1_log_pg]	; the logical page

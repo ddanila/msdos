@@ -39,11 +39,7 @@
 #define OFFSET(a)       (((long)a) & 0xFFF)
 #define LIN2PHY(l)      ((PT(INDEX(l)) & ~0xFFFL)+(long)OFFSET(l))
 #define PFT(a)          (*(long *)(pft386+a))
-struct mappable_page {
-   unsigned short page_seg;            /* segment of physical page */
-};
-
-extern struct mappable_page mappable_pages[];
+extern unsigned char mappable_pages[]; /* physical address >> 14 */
 extern long *pft386;
 extern unsigned DMA_Pages[];
 extern unsigned char DMA_PAGE_COUNT;   /* size of DMA_Pages[] */
@@ -66,10 +62,10 @@ static int MappableIndex(PhyAdr)
 long PhyAdr;
 {
    unsigned i;
-   unsigned short Seg = (unsigned short)((PhyAdr & ALIGN16K) >> 4);
+   unsigned char Page = (unsigned char)((PhyAdr & ALIGN16K) >> 14);
 
    for (i = 0; i < mappable_page_count; i++)
-      if (mappable_pages[i].page_seg == Seg)
+      if (mappable_pages[i] == Page)
          return i;
    return -1;
 }
@@ -335,7 +331,7 @@ int i, j;
       if (j >= mappable_page_count)
          FatalError(); /* invalid Phy page # - doesn't exist in mappable_pages[] */
       else
-         DMALinAdr = ((long )mappable_pages[j].page_seg) << 4;
+         DMALinAdr = ((long)mappable_pages[j]) << 14;
       
       Exchange16K(LinAdr, DMALinAdr);
       ExchangePTEs(LinAdr, DMALinAdr);

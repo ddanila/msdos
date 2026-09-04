@@ -79,7 +79,7 @@ extrn	PageT_Seg:word		; segment of system page table
 extrn	_PF_Base:word		 ; segment addr of page frame base
 extrn	_page_frame_pages:word	; number of pages in 3.2 page frame
 
-extrn	_mappable_pages:word	; mappable page array
+extrn	_mappable_pages:byte	; 16 KiB mappable-page indexes
 extrn	_physical_page_count:word   ; number of physical pages
 extrn	_physical_page_ids:byte
 extrn	_mappable_page_count:word   ; number of mappable pages
@@ -179,13 +179,10 @@ Get_FRS_window	MACRO	Reg
 init_mappable_pages	MACRO
 ;
 	call	assign_external_page_id
-    push    di
-;
-    shl     di,1		    ; convert index into offset in word array
-;
-    mov     _mappable_pages[di],bx  ; fill in segment
-;
-    pop     di
+    push    bx
+    shr     bx,10		    ; aligned segment -> 16 KiB page index
+    mov     _mappable_pages[di],bl
+    pop     bx
 ;
     ENDM
 
@@ -455,9 +452,9 @@ EMIN_3:
 ;   Each entry reps	    Each entry reps
 ;   a physical page.	    a mappable ph. page
 ;
-;   WORD.		    WORD
+;   WORD.		    BYTE
 ;
-;   segment / 64		    1st WORD: segment
+;   segment / 64		    BYTE: segment / 0400h
 ;   (not retained)	    of ph. page
 ;
 ;

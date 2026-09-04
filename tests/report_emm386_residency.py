@@ -200,6 +200,19 @@ def main() -> int:
     by_name = {segment.name: segment for segment in segments}
     if args.check and by_name["GDT"].size > 224:
         raise ValueError("production GDT retains debugger-only descriptors")
+    if args.check and by_name["_DATA"].size > 584:
+        raise ValueError("EMM386 retained mutable data exceeds 584 bytes")
+    symbol_by_name = {symbol.name: symbol for symbol in symbols}
+    if args.check:
+        mappable = symbol_by_name.get("_mappable_pages")
+        count = symbol_by_name.get("_mappable_page_count")
+        if (
+            mappable is None
+            or count is None
+            or mappable.paragraph != count.paragraph
+            or count.offset - mappable.offset != 52
+        ):
+            raise ValueError("mappable-page table is not 52 byte-sized indexes")
     text = by_name["_TEXT"]
     r_code = by_name["R_CODE"]
     segment_categories = {
@@ -416,9 +429,9 @@ def main() -> int:
         args.check
         and (args.handles, args.alternate_registers, args.ems_pages, args.physical_pages)
         == (64, 7, 64, 4)
-        and runtime_ranges[-1].end > 4352
+        and runtime_ranges[-1].end > 4304
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 4,352 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 4,304 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     print(
         f"\nSelected layout: `H={args.handles}`, `A={args.alternate_registers}`, "
