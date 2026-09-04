@@ -57,6 +57,7 @@ _TEXT	segment
 	public	_MapHandleArray
 	public	_AlterMapAndJump
 	public	_AlterMapAndCall
+	public	AMC_return_high
 ;	public	TS_VEMMD_MC_Ret
 	public	_MoveExchangeMemory
 	public	_AlternateMapRegisterSet
@@ -122,6 +123,7 @@ extrn	SetDescInfoResident:near
 extrn	SegOffTo24Resident:near
 
 extrn	ErrHndlr:near
+extrn	AMC_return_gateway:far
 
 _TEXT	ends
 
@@ -1800,7 +1802,7 @@ _AlterMapAndCall    PROC    NEAR
 	stosw
 	mov	ax, bx				; CS for return from called code
 	stosw
-	mov	ax, offset AMC_return_address	; IP for return from called code
+	mov	ax, offset AMC_return_gateway	; low virtual-mode return gateway
 	mov	es:[di], ax			; "push" without decrement "SP"
 	cld
 	;
@@ -1899,7 +1901,7 @@ _AlterMapAndCall    ENDP
 
 ;******************************************************************************
 ;
-;	AMC_return_address -- Return from procedure called through a Map & Call
+;	AMC_return_high -- Protected continuation after the low return gateway
 ;
 ;	NOTE:	MapHandleArray will only access AH on the stack and so the
 ;		TSTF stack frame will work properly for this procedure.
@@ -1908,16 +1910,7 @@ _AlterMapAndCall    ENDP
 ;
 ;******************************************************************************
 
-AMC_return_address proc	far
-
-;
-; This causes an illegal instruction trap and enters protected mode. The
-; handler resumes after the two-byte ARPL with the IRETD frame on ring 0.
-;
-	arpl	ax, ax
-	;
-	; In Protected Mode Now
-	;
+AMC_return_high proc near
 	pushad				; saves all regs
 	mov	ax, sp			; saves stack frame address
 	mov	[_regp], ax		; to _regp
@@ -2004,7 +1997,7 @@ AMC_return_address proc	far
 
 	iretd
 
-AMC_return_address endp
+AMC_return_high endp
 
 	page
 ;******************************************************************************

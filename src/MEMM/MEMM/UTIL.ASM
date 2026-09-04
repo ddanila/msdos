@@ -42,9 +42,15 @@ page	58,132
 .lfcond 				; list false conditionals
 .386p
 
+	IFNDEF UTIL_HIGH_ONLY
 	public	GoVirtual
 	public	FarGoVirtual
+	public	VM_return
 	public	SelToSeg
+	ENDIF
+	IFNDEF UTIL_LOW_ONLY
+	public	GoVirtualHigh
+	ENDIF
 
 ;******************************************************************************
 ;	D E F I N E S
@@ -76,12 +82,18 @@ _DATA	ENDS
 
 _TEXT SEGMENT
 
+	IFNDEF UTIL_HIGH_ONLY
 extrn	EnableA20:near		; (modesw.asm)
 extrn	A20_Trap_Init:near	; (a20trap.asm)
 extrn	RR_Trap_Init:near	; (RRTrap.asm)
 ifndef NOHIMEM
 extrn	OEM_Trap_Init:near	; (OEMTrap.asm)
 endif
+	extrn	GoVirtualHigh:near
+	ENDIF
+	IFNDEF UTIL_LOW_ONLY
+	extrn	VM_return:near
+	ENDIF
 
 _TEXT	ENDS
 
@@ -137,6 +149,7 @@ InitDMALowChannel MACRO chan_num
 	add	di,4
 ENDM
 
+	IFNDEF UTIL_LOW_ONLY
 ; GoVirtual runs from the retained prefix on every ON/AUTO transition. Keep
 ; only the hardware snapshot here; the DMA trap engine itself runs protected.
 InitDMALow proc near
@@ -170,7 +183,9 @@ InitDMALow proc near
 	pop	eax
 	ret
 InitDMALow endp
+	ENDIF
 
+	IFNDEF UTIL_HIGH_ONLY
 ;******************************************************************************
 ;	FarGoVirtual - far link for GoVirtual
 ;
@@ -228,8 +243,6 @@ GoVirtual	proc	near
 
 	mov	[Active_Status],1
 
-	call	InitDMALow 		; init DMA watcher
-
 ifndef	NOHIMEM
 	call	FAR PTR InitLOCK	; init status of TABLE lock
 endif
@@ -274,9 +287,12 @@ endif
 ;	far jump to flush prefetch, and reload CS
 
 	db	0eah			; far jmp opcode
-	dw	offset _TEXT:pm1	; offset
+	dw	offset _TEXT:GoVirtualHigh ; offset in locked-XMS copy
 	dw	VDMC_GSEL		; selector
-pm1:
+	ENDIF
+
+	IFNDEF UTIL_LOW_ONLY
+GoVirtualHigh proc near
 ;
 ;   We are now protected, set the Task Register and LDT Register
 ;
@@ -304,6 +320,8 @@ pm1:
 	assume	ds:DGROUP
 	mov	es, ax
 	assume	es:DGROUP
+
+	call	InitDMALow		; snapshot DMA from protected ring 0
 
 ;
 ; reset NT bit so IRET won't attempt a task switch
@@ -344,6 +362,10 @@ pm1:
 	OP32				; 32 bit operand size override
 	iret
 
+GoVirtualHigh endp
+	ENDIF
+
+	IFNDEF UTIL_HIGH_ONLY
 ;
 ;	Enter Virtual Mode here
 ;
@@ -377,6 +399,8 @@ SelToSeg proc near
 	pop	ds
 	ret
 SelToSeg endp
+
+	ENDIF
 
 
 _TEXT	ends

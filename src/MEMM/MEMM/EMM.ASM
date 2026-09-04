@@ -63,6 +63,7 @@
 	public	EMM_rLink		; real/virtual service-selection gateway
 	public	_AutoUpdate		; update auto mode of VDM/EMM
 	public	EMM_Flag		; flag for EMM calls
+	public	AMC_return_gateway	; function 56h virtual return trap
 	ENDIF
 
 	page
@@ -171,6 +172,9 @@ extrn	_AlterMapAndJump:near
 extrn	_AlterMapAndCall:near
 extrn	_MoveExchangeMemory:near
 extrn	_AlternateMapRegisterSet:near
+	IFNDEF EMM_PROTECTED_ENTRY
+extrn	AMC_return_high:near
+	ENDIF
 
 _TEXT	ends
 
@@ -345,6 +349,13 @@ EMM_pEntry	endp
 ;
 ;******************************************************************************
 	IFNDEF	EMM_PROTECTED_ENTRY
+; Function 56h returns here through a real-mode far address. ARPL traps from
+; virtual mode; the fault handler resumes at the mirrored jump in locked XMS.
+AMC_return_gateway proc far
+	arpl	ax,ax
+	jmp	AMC_return_high
+AMC_return_gateway endp
+
 EMM_rLINK	proc	far
 
 	;
