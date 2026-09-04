@@ -149,3 +149,29 @@ if ! grep -q 'EMM386_ALTREG_LIMIT_PASS' "$serial_log"; then
 fi
 
 echo "EMM386 A= alternate-register limit passed"
+
+altreg_max_com="$OUT/emm386-altreg-max.com"
+boot_img="$OUT/floppy-emm386-altreg-max.img"
+serial_log="$OUT/emm386-altreg-max.log"
+nasm -f bin "$REPO_ROOT/tests/emm386_altreg_max_probe.asm" -o "$altreg_max_com"
+cp "$FLOPPY" "$boot_img"
+mcopy -o -i "$boot_img" "$altreg_max_com" ::ALTMAX.COM
+printf 'DEVICE=A:\\EMM386.EXE A=254\r\n' | mcopy -o -i "$boot_img" - ::CONFIG.SYS
+{
+    printf '@ECHO OFF\r\n'
+    printf 'CTTY AUX\r\n'
+    printf 'ALTMAX.COM\r\n'
+} | mcopy -o -i "$boot_img" - ::AUTOEXEC.BAT
+timeout 35 qemu-system-i386 \
+    -display none -monitor none -machine pc -cpu 486 -m 4 \
+    -drive if=floppy,index=0,format=raw,file="$boot_img",cache=writethrough \
+    -boot a -serial stdio -no-reboot \
+    -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
+    >"$serial_log" 2>&1 || true
+if ! grep -q 'EMM386_ALTREG_MAX_PASS' "$serial_log"; then
+    echo "FAIL: EMM386 A=254 alternate-register boundary" >&2
+    sed -n '1,120p' "$serial_log"
+    exit 1
+fi
+
+echo "EMM386 A=254 alternate-register boundary passed"

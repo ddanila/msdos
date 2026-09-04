@@ -63,6 +63,7 @@
 	public	msg_flag
 	public	Active_Status
 	public	Auto_Mode
+	public	initial_mode
 	public	dos_version
 	public	TEXT_Seg
 	public	TEXT_Phys

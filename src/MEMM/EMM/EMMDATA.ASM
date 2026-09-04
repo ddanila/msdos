@@ -86,7 +86,6 @@ _DATA	SEGMENT
 	PUBLIC	_CurRegSet
 	PUBLIC	CurRegSetn
 	PUBLIC	FRS_array
-	PUBLIC	_frs_size
 	PUBLIC	FRS_free
 	PUBLIC	PF_Base
 	PUBLIC	_PF_Base
@@ -207,7 +206,6 @@ _altreg_count	db	7		; DOS 5 A= default extra register sets
 ; Function 59h constructs its five-word result from these bounded values and
 ; constants, instead of retaining a ten-byte response image.
 _cntxt_bytes	LABEL	BYTE
-_frs_size	LABEL	BYTE
 	db	size FRS_window+2	; bytes needed to save a context
 
 ;

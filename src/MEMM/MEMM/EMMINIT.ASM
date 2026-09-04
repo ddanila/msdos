@@ -656,9 +656,9 @@ EMIN_9:
 	mov	[_cntxt_bytes],al	;
 ;
 	; Allocate each alternate register set for the mapping context exposed by
-	; this machine, not the 52-window architectural maximum. _frs_size aliases
-	; this word-sized context value. The maximum B=/A= configuration still
-	; computes and retains the full structure.
+	; this machine, not the 52-window architectural maximum. The internal
+	; record has a byte allocation flag followed by the word-sized map. The
+	; public save area remains a word count followed by the same map.
 	mov	di,[_emm_brk]
 	mov	[FRS_array],di
 	xor	bx,bx
@@ -667,7 +667,7 @@ EMIN_9:
 EMIN_init_frs:
 	push	bx
 	xor	ax,ax
-	stosw				; FRS_alloc
+	stosb				; FRS_alloc
 	mov	ax,NULL_PAGE
 	xor	ch,ch
 	mov	cl,[_cntxt_pages]
@@ -682,7 +682,7 @@ EMIN_init_frs:
 ; initialize FRS_array
 ;
 	mov	si,[FRS_array]		; DS:SI <-- FRS_array
-	mov	[si.FRS_alloc], 1	; mark FRS set 0 as allocated
+	mov	byte ptr [si.FRS_alloc], 1 ; mark FRS set 0 as allocated
 	mov	[CurRegSetn], 0		; use FRS set 0
 	xor	ax,ax
 	mov	al,[_altreg_count]

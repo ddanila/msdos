@@ -180,8 +180,8 @@ def main() -> int:
     args = parser.parse_args()
     if not 2 <= args.handles <= 255:
         parser.error("--handles must be in 2..255")
-    if not 0 <= args.alternate_registers <= 255:
-        parser.error("--alternate-registers must be in 0..255")
+    if not 0 <= args.alternate_registers <= 254:
+        parser.error("--alternate-registers must be in 0..254")
     if not 0 <= args.ems_pages <= 4095:
         parser.error("--ems-pages must be in 0..4095")
     if not 0 <= args.physical_pages <= 52:
@@ -456,7 +456,7 @@ def main() -> int:
         (args.page_assignments * 2, "sparse Pn= exception pairs"),
         (args.dma_pages * 2, "runtime-sized DMA page list"),
         (
-            (args.alternate_registers + 1) * (2 + context_pages * 2),
+            (args.alternate_registers + 1) * (1 + context_pages * 2),
             "normal plus alternate register sets",
         ),
     ):
@@ -478,9 +478,9 @@ def main() -> int:
             args.dma_pages,
         )
         == (64, 7, 64, 6, 1)
-        and runtime_ranges[-1].end > 4144
+        and runtime_ranges[-1].end > 4128
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 4,144 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 4,128 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     dma_page_label = "DMA page" if args.dma_pages == 1 else "DMA pages"
     print(

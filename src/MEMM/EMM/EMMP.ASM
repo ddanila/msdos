@@ -186,7 +186,6 @@ extrn	FRS_free:byte
 extrn	_altreg_count:byte
 extrn	CurRegSet:dword
 extrn	FRS_array:word
-extrn	_frs_size:byte
 
 extrn	_regp:word
 _DATA	ENDS
@@ -3165,11 +3164,12 @@ AMRS_set:
 	cmp	bl, byte ptr [_altreg_count]	; Validate new Reg Set
 	ja	AMRS_inv_FRS
 	movzx	eax, bl
-	movzx	edx, byte ptr [_frs_size]
+	movzx	edx, byte ptr [_cntxt_bytes]
+	dec	edx				; internal flag is one byte, not a word
 	imul	eax, edx
 	xchg	ax, bx
 	add	bx, [FRS_array]			; Get pointer to the new Reg Set
-	cmp	[bx.FRS_alloc], 0		; Make sure it is allocated
+	cmp	byte ptr [bx.FRS_alloc], 0	; Make sure it is allocated
 	xchg	ax, bx
 	je	AMRS_undef_FRS			;   unallocated, go complain
 
@@ -3266,10 +3266,11 @@ AMRS_allocate:
 	mov	di, [FRS_array]			; Start of FRS structures
 	xor	bl, bl				; FRS number
 AMRS_search:
-	cmp	[di.FRS_alloc], 0		; This one free?
+	cmp	byte ptr [di.FRS_alloc], 0	; This one free?
 	je	short AMRS_foundRS		;   yes, bl has the number
 	xor	ax,ax
-	mov	al,[_frs_size]
+	mov	al,[_cntxt_bytes]
+	dec	ax				; internal flag is one byte, not a word
 	add	di,ax				; on to the next one
 	inc	bl
 	cmp	bl, byte ptr [_altreg_count]	; Safety... should never fail
@@ -3279,7 +3280,7 @@ AMRS_search:
 	ret
 
 AMRS_foundRS:
-	mov	[di.FRS_alloc], 1		; Allocate it
+	mov	byte ptr [di.FRS_alloc], 1	; Allocate it
 	Get_FRS_Window	SI
 	lea	di, [di.FRS_Window]
 	movzx	ecx, [_cntxt_pages]
@@ -3316,15 +3317,16 @@ AMRS_deallocate:
 	cmp	bl, byte ptr [_altreg_count]
 	ja	short AMRS_undef_FRS		; Invalid Register set
 	movzx	eax, bl
-	movzx	edx, byte ptr [_frs_size]
+	movzx	edx, byte ptr [_cntxt_bytes]
+	dec	edx				; internal flag is one byte, not a word
 	imul	eax, edx			; Offset into array
 	xchg	ax, bx
 	add	bx,[FRS_array]
-	cmp	[bx.FRS_alloc], 0		; Paranoid...
+	cmp	byte ptr [bx.FRS_alloc], 0	; Paranoid...
 	xchg	ax, bx
 	je	short AMRS_undef_FRS		;   Not allocated, complain
 	xchg	ax, bx
-	mov	[bx.FRS_alloc], 0		; Mark it free
+	mov	byte ptr [bx.FRS_alloc], 0	; Mark it free
 	xchg	ax, bx
 	inc	[FRS_free]			; one more set free
 	ret

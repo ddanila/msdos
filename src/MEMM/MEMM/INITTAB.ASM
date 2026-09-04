@@ -114,6 +114,7 @@ _DATA	ends
 
 LAST	segment
 	extrn	LAST_start:byte
+	extrn	initial_mode:byte
 	extrn	driver_end:dword	; ending address for MEMM.EXE
 	extrn	TEXT_Phys:dword		; protected-mode TEXT physical address
 	extrn	STACK_Seg:word		; initialization stack segment
@@ -435,6 +436,10 @@ IT_move_tables:
 ;
 	mov	ax,[_emm_brk]		; get EMM break address
 	add	ax,15			; round up to next paragraph
+	cmp	byte ptr cs:[initial_mode],0 ; inactive starts retain their proven phase
+	je	short IT_stack_aligned
+	add	ax,16
+IT_stack_aligned:
 	shr	ax,4
 	add	ax,seg _DATA		; AX = new seg address for STACK
 	mov	[STACK_seg],ax		; save it
