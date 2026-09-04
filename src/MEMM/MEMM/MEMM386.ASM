@@ -139,17 +139,22 @@
 ;
 ;   R_CODE publics
 ;
+	IFNDEF MEMM386_UTILITY_ONLY
 	public	strategy
 	public	interrupt
 	public	MEMM_Entry
+	public	memmsig
+	ENDIF
 
 ;
 ;   _TEXT publics
 ;
+	IFNDEF MEMM386_LOW_ONLY
 	public	ELIM_EXE		; .EXE execution entry point
 	public	ELIM_link
 	public	Inst_chk		; Check to see if MEMM already installed
 	public	Inst_chk_f		; Far call version of above
+	ENDIF
 
 	page
 ;******************************************************************************
@@ -168,6 +173,7 @@ GET_PSP equ	62h			; get program segment prefix
 
 NULL		EQU		0FFFFH			;Null address pointer
 TBL_LENGTH	EQU		0DH			;Driver commands 0 through 0Ch
+SIG_LENGTH	equ	37			;installed-manager signature bytes
 
 dospsp_str	struc
 		db	80h dup (?)
@@ -186,14 +192,21 @@ int67	dw	?		; offset of vector
 	dw	?		; segment of vector
 abs0	ends
 
+	IFNDEF MEMM386_UTILITY_ONLY
 LAST	segment
 	public	LAST_start
 LAST_start	label	byte
 extrn	Init_MEMM386:far		; initializes VDM,EMM, and driver
 LAST	ends
+	ENDIF
 
 R_CODE	segment
+	IFDEF MEMM386_UTILITY_ONLY
+extrn	MEMM_Entry:word
+extrn	memmsig:byte
+	ELSE
 extrn	ELIM_Entry:far		; general entry point for MEMM functions
+	ENDIF
 R_CODE	ends
 
 _TEXT	segment
@@ -213,6 +226,7 @@ _TEXT	ends
 ;
 R_CODE	segment
 	assume	cs:R_CODE, ds:R_CODE, es:R_CODE, ss:R_CODE
+	IFNDEF MEMM386_UTILITY_ONLY
 
 Start:
 ;******************************************************************************
@@ -238,7 +252,6 @@ MEMM_Entry	dw	offset	ELIM_Entry		; general entry point
 ;	       MEMM signature
 ;******************************************************************************
 memmsig	db	'MICROSOFT EXPANDED MEMORY MANAGER 386'
-SIG_LENGTH	equ	($ - memmsig)
 
 	page
 ;******************************************************************************
@@ -322,12 +335,7 @@ Invalid:
 	jmp	SHORT Finish		;Go return to caller
 Interrupt	endp
 
-;******************************************************************************
-	db	'SBP'
-	db	'BMT'
-;******************************************************************************
-;
-
+	ENDIF
 R_CODE	ends
 
 	page
@@ -338,6 +346,7 @@ R_CODE	ends
 ;******************************************************************************
 _TEXT	segment
 	assume	cs:_TEXT, ds:_TEXT, es:_TEXT, ss:_TEXT
+	IFNDEF MEMM386_LOW_ONLY
 
 FarLink	dd	0		; far pointer to installed memm386 entry point
 				; OK as writeable because it is only used
@@ -449,8 +458,8 @@ ELIM_link	proc	near
 	ret
 ELIM_link	endp
 
+	ENDIF
 
 _TEXT	ends
 
-	end	MEMM
-
+	

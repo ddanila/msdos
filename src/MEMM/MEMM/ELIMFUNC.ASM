@@ -44,8 +44,7 @@
 ;******************************************************************************
 ;
 	public	ELIM_Entry
-	public	EFunTab
-	public	EFUN_CNT
+	public	EDispatchSeg
 ;
 	page
 ;******************************************************************************
@@ -86,16 +85,7 @@ _TEXT	ends
 R_CODE	segment
 	assume	cs:R_CODE, ds:DGROUP, es:DGROUP
 ;
-;	ELIM functions table	- far calls
-;
-EFunTab label	dword
-	dw	offset	E_GetStatus
-	dw	seg	_TEXT
-
-	dw	offset	E_ONOFF
-	dw	seg	_TEXT
-
-EFUN_CNT	equ	($-EFunTab)/4
+EFUN_CNT	equ	2
 
 	page
 ;******************************************************************************
@@ -118,22 +108,19 @@ EFUN_CNT	equ	($-EFunTab)/4
 ;******************************************************************************
 ELIM_Entry	proc	far
 ;
-	push	bx
 	push	ds
 ;
-	mov	bx,seg DGROUP
-	mov	ds,bx
+	push	seg DGROUP
+	pop	ds
 ;
 	cmp	ah,EFUN_CNT	;Q: valid function #
 	jae	EE_inv_func	;  N: return error
-	xor	bx,bx		;  Y: exec function
-	mov	bl,ah		; bx = function #
-	shl	bx,2		; dword index
-	call	CS:EFunTab[bx]	; call the function
+	db	09Ah			; far call to relocated _TEXT
+	dw	offset E_Dispatch
+EDispatchSeg dw	_TEXT
 ;
 EE_exit:
 	pop	ds
-	pop	bx
 	ret
 ;
 EE_inv_func:
@@ -153,6 +140,14 @@ R_CODE	ends
 ;******************************************************************************
 _TEXT	segment
 	assume	cs:_TEXT, ds:DGROUP, es:DGROUP
+
+; ELIM exposes exactly two functions. Keep one far transition in the resident
+; R_CODE gateway and select the implementation after entering _TEXT.
+E_Dispatch proc far
+	or	ah,ah
+	jz	E_GetStatus
+	jmp	E_ONOFF
+E_Dispatch endp
 
 ;******************************************************************************
 ;	E_GetStatus - get ELIM/VDM status

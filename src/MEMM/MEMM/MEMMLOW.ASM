@@ -1,0 +1,3 @@
+MEMM386_LOW_ONLY equ 1
+include MEMM386.ASM
+end

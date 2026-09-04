@@ -58,6 +58,7 @@ ekbd+
 initdeb+
 mapdma+
 oemprothi+
-utilhi
+utilhi+
+memmutil
 emm386.exe
 emm386.map/m

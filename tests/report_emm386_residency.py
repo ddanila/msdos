@@ -116,7 +116,7 @@ def classify_symbol(
     if symbol.paragraph == text_segment:
         if symbol.offset < split:
             return "retained/dual-mode _TEXT prefix"
-        return "protected-only _TEXT copy in locked XMS"
+        return "non-low _TEXT copy in locked XMS"
     if symbol.paragraph == 0:
         if symbol.offset < r_code_size:
             return "retained real-mode gateway"
@@ -187,8 +187,10 @@ def main() -> int:
         symbol.name in {"EMM_MPindex", "_EMM_MPindex"} for symbol in symbols
     ):
         raise ValueError("redundant segment-to-window index is resident")
-    if args.check and any(symbol.name == "EMM_Protected_Functions" for symbol in symbols):
-        raise ValueError("obsolete protected-service bitmap is resident")
+    if args.check and any(
+        symbol.name in {"EMM_Protected_Functions", "EFunTab"} for symbol in symbols
+    ):
+        raise ValueError("obsolete resident dispatch table is linked")
     if args.check and any(
         symbol.name in {"OEM_Trap_Init", "MB_Map_Src", "MB_Map_Dest", "MB_Start"}
         for symbol in symbols
@@ -280,6 +282,10 @@ def main() -> int:
             "GoVirtualHigh",
             "AMC_return_high",
             "SelToSeg",
+            "ELIM_EXE",
+            "Inst_chk",
+            "Inst_chk_f",
+            "ELIM_link",
         ):
             if symbol_offset(symbols, name, text.paragraph) < split:
                 raise ValueError(f"protected EMS service {name} remains low")
@@ -408,9 +414,9 @@ def main() -> int:
         args.check
         and (args.handles, args.alternate_registers, args.ems_pages, args.physical_pages)
         == (64, 7, 64, 4)
-        and runtime_ranges[-1].end > 4496
+        and runtime_ranges[-1].end > 4400
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 4,496 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 4,400 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     print(
         f"\nSelected layout: `H={args.handles}`, `A={args.alternate_registers}`, "

@@ -135,8 +135,7 @@ _TEXT	segment
 _TEXT	ends
 
 R_CODE	segment
-	extrn	EFunTab:word	; table of ELIM functions
-	extrn	EFUN_CNT:abs	; # of entries in table
+	extrn	EDispatchSeg:word ; relocated _TEXT segment for ELIM dispatcher
 	extrn	EMM_rEfix:near	; far call to EMM function dispatcher in _TEXT
 R_CODE	ends
 
@@ -165,8 +164,7 @@ LAST	segment
 ;	TSSLEN:abs = length of TSS
 ;	P_TABLE_CNT:abs = # of page TABLES
 ;	_TEXT:[Real_Seg] =  fixup location for _TEXT in RetReal
-;	R_CODE:[EFunTab] = table of ELIM functions
-;	R_CODE:EFUN_CNT = # of entries in table
+;	R_CODE:[EDispatchSeg] = ELIM dispatcher's relocated _TEXT segment
 ;	R_CODE:[EMM_rEfix] = far call to EMM function dispatcher in _TEXT
 ;
 ;   EXIT:  Real Mode
@@ -448,17 +446,11 @@ IT_move_tables:
 ; fixup far call / far jump references to _TEXT
 ;
 
-;	   far call pointers in ELIM function table
+;	   ELIM dispatcher far call
 	mov	ax,seg R_CODE
 	mov	es,ax				; ES -> R_CODE
-	mov	di,offset R_CODE:EFunTab+2	; ES:DI -> 1st seg in func tab
-	mov	cx,EFUN_CNT			; CX = # of dword entries
 	mov	ax,[TEXT_Seg]
-IT_Tloop:
-	stosw					; store new TEXT seg
-	inc	di
-	inc	di				; point to next seg in table
-	loop	IT_Tloop
+	mov	ES:[EDispatchSeg],ax
 
 ;	   ELIM_rEntry far call
 	mov	di,offset R_CODE:EMM_rEfix	; point to far call
