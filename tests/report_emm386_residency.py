@@ -236,6 +236,10 @@ def main() -> int:
             "P84_Handler",
             "P85_Handler",
             "RetRealHigh",
+            "A20_Handler",
+            "A20_Trap_Init",
+            "get_a20_state",
+            "togl_A20",
             "_source_addr",
             "_dest_addr",
             "_copyout",
@@ -265,7 +269,15 @@ def main() -> int:
         ):
             if symbol_offset(symbols, name, text.paragraph) < split:
                 raise ValueError(f"protected EMS service {name} remains low")
-        for name in ("EMM_rLink", "RetReal", "RetRealResume", "P85Switch", "RRProc"):
+        for name in (
+            "EMM_rLink",
+            "RetReal",
+            "RetRealResume",
+            "P85Switch",
+            "RRProc",
+            "EnableA20",
+            "DisableA20",
+        ):
             if symbol_offset(symbols, name, text.paragraph) >= split:
                 raise ValueError(f"real-mode gateway {name} is not retained low")
 
@@ -379,9 +391,9 @@ def main() -> int:
         args.check
         and (args.handles, args.alternate_registers, args.ems_pages, args.physical_pages)
         == (64, 7, 64, 4)
-        and runtime_ranges[-1].end > 5312
+        and runtime_ranges[-1].end > 5136
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 5,312 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 5,136 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     print(
         f"\nSelected layout: `H={args.handles}`, `A={args.alternate_registers}`, "

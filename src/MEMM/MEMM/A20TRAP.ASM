@@ -44,14 +44,18 @@ page	58,132
 ;			P U B L I C   D E C L A R A T I O N S
 ;******************************************************************************
 ;
+	IFNDEF	A20TRAP_LOW_ONLY
 	public	A20_Handler
 	public	A20_Trap_Init
-	public	EnableA20
-	public	DisableA20
 	public	togl_A20
 	public	get_a20_state
+	ENDIF
+	IFNDEF	A20TRAP_HIGH_ONLY
+	public	EnableA20
+	public	DisableA20
 	public	estb_a20_state
 	public	get_init_a20_state
+	ENDIF
 
 
 ;
@@ -66,8 +70,9 @@ _DATA	segment
 _DATA	ends
 
 _TEXT	segment
-
+	IFNDEF	A20TRAP_LOW_ONLY
 	extrn	PortTrap:near
+	ENDIF
 
 _TEXT	ends
 	page
@@ -110,9 +115,15 @@ WRAP_BIT	equ	00100000h	; page table entry bit
 ;  _DATA segment
 ;
 _DATA	segment
-
+	IFNDEF	A20TRAP_HIGH_ONLY
+	public	KbdComd
+	public	state_a20
 KbdComd db	0	; last CMD written to port 64h
 state_a20   db	0	; A20 line state: A20_ON is on, A20_OFF is off
+	ELSE
+	extrn	KbdComd:byte
+	extrn	state_a20:byte
+	ENDIF
 
 _DATA	ends
 
@@ -121,6 +132,7 @@ _DATA	ends
 ;------------------------------------------------------------------------------
 _TEXT	segment
 	assume	cs:_TEXT, ds:DGROUP, es:DGROUP, ss:DGROUP
+	IFNDEF	A20TRAP_LOW_ONLY
 ;
 ;******************************************************************************
 ;			L O C A L   D A T A   A R E A
@@ -250,6 +262,7 @@ A20_Trap_Init  proc    near
 	ret
 ;
 A20_Trap_Init  endp
+	ENDIF
 ;
 ;*****************************************************************************;
 ;***	EnableA20 - switch 20th address line				      ;
@@ -288,6 +301,7 @@ A20_Trap_Init  endp
 ;									      ;
 ;	8042 error handling						      ;
 ;*****************************************************************************;
+	IFNDEF	A20TRAP_HIGH_ONLY
 EnableA20 proc near
 	mov	ah,0dfh 		; code for enable
 	jmp	a20common		; jump to common code
@@ -362,6 +376,7 @@ emp1:
 	pop	cx
 	ret
 empty_8042 endp
+	ENDIF
 
 ;*****************************************************************************;
 ;***	check_a20_togl - check if a20 state emulated needs to be toggled      ;
@@ -373,6 +388,7 @@ empty_8042 endp
 ;	USES	Flags							      ;
 ;									      ;
 ;*****************************************************************************;
+	IFNDEF	A20TRAP_LOW_ONLY
 check_a20_togl	proc	near
 ;
 	push	ax
@@ -463,11 +479,13 @@ w64_loop:
 	ret
 ;
 togl_A20    endp
+	ENDIF
 
 
 
 _TEXT	ends				; end of segment
 
+	IFNDEF	A20TRAP_HIGH_ONLY
 LAST   segment
 
 	assume	cs:LAST, ds:DGROUP, es:DGROUP, ss:DGROUP
@@ -557,6 +575,7 @@ get_init_a20_state   proc    near
 get_init_a20_state   endp
 
 LAST   ends
+	ENDIF
 
 	end				; end of module
 
