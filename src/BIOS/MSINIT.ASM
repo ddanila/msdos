@@ -53,20 +53,19 @@ Daycnt_to_day	proc	near	;J.K. 4/30/86 for real time clock support
 
 	push	bp			;preserve caller's frame register
 	mov	bp, daycnt		;keep the working count in a register
-	cmp	bp, (365*20+(20/4)) ;# of days from 1-1-1980 to 1-1-2000
-	jae	century20
 	mov	cx, 5013h		;CL = century 19, CH = year 80
-	jmp	years
+	cmp	bp, (365*20+(20/4)) ;# of days from 1-1-1980 to 1-1-2000
+	jb	years
 century20:				;20th century
 	mov	cx, 0014h		;CL = century 20, CH = year 0
 	sub	bp, (365*20+(20/4)) ;adjust daycnt
 years:
 	xor	dx, dx
-	mov	ax, bp
+	xchg	ax, bp			;old AX is dead; BP is replaced below
 	mov	bx, (366+365*3) 	;# of days in a Leap year block
 	div	bx			;AX = # of leap block, DX = daycnt
-	inc	dx			;make the remainder one-based
-	mov	bp, dx			;save daycnt left
+	xchg	bp, dx			;save daycnt left; prior BP is dead
+	inc	bp			;make the remainder one-based
 ;	or	ah, ah			;ax should be less than 256
 ;	jz	OK1
 ;	 jmp	 Erroroccur
@@ -74,6 +73,7 @@ years:
 	mov	bl,4
 	mul	bl			;AX = # of years. Less than 100 years!
 	add	ch, al			;So, ah = 0. Adjust year accordingly.
+	xor	bx, bx			;BL = month, BH = leap-day adjustment
 	cmp	bp, 366			;the daycnt here is the remainder of the leap year block.
 	jbe	Leapyear		;So, it should within 366+355+355+355 days.
 	inc	ch			;First if daycnt <= 366, then leap year
@@ -87,15 +87,18 @@ Regularyear:
 	jmp	regularyear		;normalized remainder bounds the loop
 ;	 jmp	 Erroroccur		 ;cannot come to here
 Leapyear:
-	mov	byte ptr month_tab+1,29 ;leap year. change the month table.
+	mov	bh, 2			;mark February as the leap month
 Yeardone:
-	xor	bx,bx
 	xor	dx,dx
-	mov	ax, bp
+	xchg	ax, bp			;working count is no longer needed
 	mov	si, offset month_tab
 Months:
 	inc	bl			;
 	mov	dl, byte ptr ds:[si]	;compare daycnt for each month until fits
+	cmp	bl, bh
+	jne	Month_length_ready
+	inc	dl			;apply the leap day only to February
+Month_length_ready:
 	cmp	ax, dx			;dh=0.
 	jbe	Month_done
 	inc	si			;next month
@@ -103,21 +106,16 @@ Months:
 	jmp	Months			;normalized day count guarantees a match
 ;	 jmp	 Erroroccur
 Month_done:
-	mov	byte ptr month_tab+1, 28 ;restore month table value
 	mov	dl, bl
 	mov	dh, ch			;now, al=day, dl=month,dh=year,cl=century
-	call	word ptr BinToBCD	;Oh my!!! To save 15 bytes, Bin_To_BCD proc
-					;was relocated seperately from Daycnt_to_Day proc.
-;	call Bin_to_bcd 		;convert "day" to bcd
+	mov	si, BinToBCD
+	call	si
 	xchg	dl, al			;dl = bcd day, al = month
-	call	word ptr BinToBCD
-;	call Bin_to_bcd
+	call	si
 	xchg	dh, al			;dh = bcd month, al = year
-	call	word ptr BinToBCD
-;	call Bin_to_bcd
+	call	si
 	xchg	cl, al			;cl = bcd year, al = century
-	call	word ptr BinToBCD
-;	call Bin_to_bcd
+	call	si
 	mov	ch, al			;ch = bcd century
 	pop	bp
 	ret

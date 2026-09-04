@@ -200,7 +200,8 @@ def main() -> int:
     # starts at ENDONEHARD, then independently copies and paragraph-aligns the
     # two clock helpers. The paired MCB capture provides an external check: this
     # computed boundary is the BIOS part of the grouped pre-MCB payload.
-    selected = require(bios_symbols, "ENDONEHARD")
+    selected_base = rounded(require(bios_symbols, "ENDONEHARD"))
+    selected = selected_base
     day_size = day_to_day_end - day_to_day
     bcd_size = bin_to_bcd_end - bin_to_bcd
     after_day = selected + day_size
@@ -211,8 +212,8 @@ def main() -> int:
     print("QEMU `pc` selects one hard disk, no 96-TPI extension, no legacy AT-ROM fix, a CMOS clock, and no K09 extension.\n")
     print("| Retained piece | Input boundary | Copied bytes | Output boundary |")
     print("| --- | ---: | ---: | ---: |")
-    print(f"| One-hard-disk base (`ENDONEHARD`) | — | {require(bios_symbols, 'ENDONEHARD'):,} | `{require(bios_symbols, 'ENDONEHARD'):04X}h` |")
-    print(f"| `Daycnt_to_day` | `{require(bios_symbols, 'ENDONEHARD'):04X}h` | {day_size:,} | `{after_day:04X}h` |")
+    print(f"| One-hard-disk base (`ENDONEHARD`) | — | {require(bios_symbols, 'ENDONEHARD'):,} | `{selected_base:04X}h` |")
+    print(f"| `Daycnt_to_day` | `{selected_base:04X}h` | {day_size:,} | `{after_day:04X}h` |")
     print(f"| `Bin_to_bcd` | `{after_day:04X}h` | {bcd_size:,} | `{selected:04X}h` |")
     print(f"| **Selected resident BIOS** | — | — | **{selected:,} bytes** |")
 
