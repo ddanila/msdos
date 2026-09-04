@@ -98,6 +98,7 @@ EMM_REALLOCATE		equ	51h	; resize a handle
 EMM_ALTER_MAP_JUMP	equ	55h	; alter mapping and jump
 EMM_ALTER_MAP_CALL	equ	56h	; alter mapping and call
 EMM_MOVE_XCHG_MEM	equ	57h	; move/xchg memory region
+EMM_GET_INFORMATION	equ	59h	; get hardware information
 EMM_ALLOCATE_RAW	equ	5Ah	; allocate raw pages
 EMM_ALTER_MAP_REG_SET	equ	5Bh	; alternate map register set
 
@@ -122,6 +123,7 @@ EMM_PROTECTED_MASK_HIGH equ \
 	(1 shl (EMM_ALTER_MAP_JUMP-EMM_PROTECTED_HIGH_BASE)) or \
 	(1 shl (EMM_ALTER_MAP_CALL-EMM_PROTECTED_HIGH_BASE)) or \
 	(1 shl (EMM_MOVE_XCHG_MEM-EMM_PROTECTED_HIGH_BASE)) or \
+	(1 shl (EMM_GET_INFORMATION-EMM_PROTECTED_HIGH_BASE)) or \
 	(1 shl (EMM_ALLOCATE_RAW-EMM_PROTECTED_HIGH_BASE)) or \
 	(1 shl (EMM_ALTER_MAP_REG_SET-EMM_PROTECTED_HIGH_BASE))
 

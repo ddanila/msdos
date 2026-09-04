@@ -292,6 +292,7 @@ done
 
 for mode_spec in \
     'plain|0|1|M5|' \
+    'auto|0|1|AUTO M5|' \
     'ram|1|1|RAM M5|' \
     'noems|1|0|NOEMS|' \
     'exclude|1|1|RAM M5 X=E000-EFFF|-DEXPECT_ONE_REGION' \

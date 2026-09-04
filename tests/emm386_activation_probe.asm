@@ -16,6 +16,17 @@ start:
     jnz fail
     test bx, bx
     jz fail
+
+    ; Function 59h is serviced through the protected/XMS copy.  In AUTO mode
+    ; this must enter virtual mode for the request and return cleanly.
+    mov ax, 5901h
+    int 67h
+    test ah, ah
+    jnz fail
+    test dx, dx
+    jz fail
+    cmp bx, dx
+    ja fail
 %else
     test ah, ah
     jz fail

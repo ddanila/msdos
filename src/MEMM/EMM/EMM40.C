@@ -92,7 +92,7 @@ extern	unsigned	copyout();
 	ROUTINES
  ******************************************************************************/ 
 
-#ifndef EMM40_QUERY_ONLY
+#if !defined(EMM40_QUERY_ONLY) && !defined(EMM40_INFO_ONLY)
 
 /*
  * Reallocate Pages
@@ -179,9 +179,11 @@ ReallocatePages()
 }
 
 
-#endif /* !EMM40_QUERY_ONLY */
+#endif /* !EMM40_QUERY_ONLY && !EMM40_INFO_ONLY */
 
 #ifndef EMM40_REALLOC_ONLY
+
+#if !defined(EMM40_QUERY_ONLY) || defined(EMM40_INFO_ONLY)
 
 /*
  * Get Expanded Memory Hardware Information
@@ -221,6 +223,10 @@ GetInformation()
 	} else
 		setAH(INVALID_SUBFUNCTION);
 }
+
+#endif /* !EMM40_QUERY_ONLY || EMM40_INFO_ONLY */
+
+#ifndef EMM40_INFO_ONLY
 
 /*
  * GetSetHandleName
@@ -432,5 +438,7 @@ OSDisable()
 
 	setAH(OK);
 }
+
+#endif /* !EMM40_INFO_ONLY */
 
 #endif /* !EMM40_REALLOC_ONLY */
