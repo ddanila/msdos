@@ -30,6 +30,7 @@ iotrap+
 emmpent+
 ..\emm\emminfo+
 ..\emm\emmnames+
+..\emm\emmattr+
 ..\emm\emmalloc+
 ..\emm\emmrealloc+
 ..\emm\emmprot+

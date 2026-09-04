@@ -36,6 +36,20 @@ start:
     jnz fail
     cmp bx, 2
     jb fail
+
+    ; Attribute query runs protected from inactive AUTO.  Following it with a
+    ; retained-low mappable-address query proves the temporary return is clean.
+    xor dx, dx
+    mov ax, 5202h
+    int 67h
+    test ah, ah
+    jnz fail
+    mov ax, 5801h
+    int 67h
+    test ah, ah
+    jnz fail
+    test cx, cx
+    jz fail
 %else
     test ah, ah
     jz fail

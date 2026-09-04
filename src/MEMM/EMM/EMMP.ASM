@@ -62,13 +62,20 @@ _TEXT	segment
 	public	_AlternateMapRegisterSet
 	ENDIF
 	IFNDEF	EMMP_PROT_ONLY
+	IFNDEF	EMMP_ATTR_EXCLUDE
+	public	_GetSetHandleAttribute
+	ENDIF
+	IFNDEF	EMMP_SAVE_EXCLUDE
 	public	_SavePageMap
+	ENDIF
+	IFNDEF	EMMP_MAPPABLE_EXCLUDE
 	public	_GetMappablePAddrArrayFixed
+	ENDIF
+	IFNDEF	EMMP_ATTR_ONLY
 	public	_GetUnallocatedPageCount
 	public	_GetPageFrameAddress
 	public	_GetEMMVersion
 	public	_UnsupportedFunction
-	public	_GetSetHandleAttribute
 	public	_GetEMMHandleCount
 	public	_GetStatus
 ;	public	VEMMD_Set_Map_Region
@@ -76,6 +83,7 @@ _TEXT	segment
 ;	public	_VMpte_to_EMMpte
 ;	public	_Remap_EMM
 	public	_Get_Key_Val
+	ENDIF
 	ENDIF
 _TEXT	ends
 
@@ -170,6 +178,7 @@ assume	cs:_TEXT, ds:DGROUP, ss:DGROUP
 ; Find an exact physical-window segment in the compact dense table.
 ; ENTRY: AX = segment. EXIT: BX = dense index, CF clear; CF set if absent.
 ; CX is preserved because several callers are iterating client arrays.
+	IFNDEF	EMMP_ATTR_ONLY
 find_mappable_segment proc near
 	push	cx
 	xor	bx,bx
@@ -191,8 +200,10 @@ find_mappable_exit:
 	pop	cx
 	ret
 find_mappable_segment endp
+	ENDIF
 
 	IFNDEF	EMMP_PROT_ONLY
+	IFNDEF	EMMP_ATTR_ONLY
 
 	page
 ; Small register-only services stay in assembly to avoid a C call frame.
@@ -235,7 +246,9 @@ _UnsupportedFunction proc near
 	mov	byte ptr [bp.rAX+1], INVALID_FUNCTION
 	ret
 _UnsupportedFunction endp
+	ENDIF
 
+	IFNDEF	EMMP_ATTR_EXCLUDE
 _GetSetHandleAttribute proc near
 	mov	al, byte ptr [bp.rAX]
 	or	al, al
@@ -258,7 +271,9 @@ gsha_invalid:
 	mov	byte ptr [bp.rAX+1], INVALID_SUBFUNCTION
 	ret
 _GetSetHandleAttribute endp
+	ENDIF
 
+	IFNDEF	EMMP_ATTR_ONLY
 _GetEMMHandleCount proc near
 	mov	ax, [_handle_count]
 	mov	word ptr [bp.rBX], ax
@@ -269,6 +284,7 @@ _GetStatus proc near
 	mov	byte ptr [bp.rAX+1], OK
 	ret
 _GetStatus endp
+	ENDIF
 
 	ENDIF
 	IFNDEF	EMMP_QUERY_ONLY
@@ -761,6 +777,7 @@ _MapHandlePage	endp
 
 	ENDIF
 	IFNDEF	EMMP_PROT_ONLY
+	IFNDEF	EMMP_SAVE_EXCLUDE
 	IFDEF	EMMP_QUERY_ONLY
 Get_FRS_window	MACRO	Reg
 	mov	Reg, word ptr [CurRegSet]
@@ -829,6 +846,7 @@ srpm_nopf:
 
 _SavePageMap	endp
 
+	ENDIF
 	ENDIF
 	IFNDEF	EMMP_QUERY_ONLY
 
@@ -1147,6 +1165,7 @@ _set_windows	endp
 
 	ENDIF
 	IFNDEF	EMMP_PROT_ONLY
+	IFNDEF	EMMP_MAPPABLE_EXCLUDE
 
 	page
 ;*******************************************************************************
@@ -1212,6 +1231,7 @@ gmpa_invalid:
 	ret
 _GetMappablePAddrArrayFixed endp
 
+	ENDIF
 	ENDIF
 	IFNDEF	EMMP_QUERY_ONLY
 
@@ -3173,6 +3193,7 @@ _AlternateMapRegisterSet	endp
 
 	ENDIF
 	IFNDEF	EMMP_PROT_ONLY
+	IFNDEF	EMMP_ATTR_ONLY
 
 
 	page
@@ -3235,6 +3256,7 @@ Latch_Counter	    EQU 0
 
 Get_Counter_Value	ENDP
 
+	ENDIF
 	ENDIF
 
 
