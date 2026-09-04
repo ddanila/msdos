@@ -84,7 +84,9 @@ _TEXT	segment
 
 	extrn	A20_Trap_Init:near	; (a20trap.asm)
 	extrn	RR_Trap_Init:near	; (RRtrap.asm)
+ifndef NOHIMEM
 	extrn	OEM_Trap_Init:near	; (OEMProc.asm)
+endif
 
 _TEXT	ends
 ;
@@ -145,7 +147,9 @@ InitBitMap	proc	far
 ;
 ;  Turn on any other OEM specific trapping
 ;
+ifndef NOHIMEM
 	call	OEM_Trap_Init
+endif
 
 IB_exit:
 	pop	es

@@ -79,7 +79,9 @@ _TEXT SEGMENT
 extrn	EnableA20:near		; (modesw.asm)
 extrn	A20_Trap_Init:near	; (a20trap.asm)
 extrn	RR_Trap_Init:near	; (RRTrap.asm)
+ifndef NOHIMEM
 extrn	OEM_Trap_Init:near	; (OEMTrap.asm)
+endif
 
 _TEXT	ENDS
 
@@ -360,20 +362,18 @@ VM_return:
 	ret
 GoVirtual	endp
 
-; Convert the protected ring-0 stack selector to its real-mode segment. The
-; caller always supplies VDMS_GSEL and GoVirtual explicitly loads a null LDT,
-; so only the GDT path is reachable.
+; Convert the fixed protected ring-0 stack selector to its real-mode segment.
+; GoVirtual installs VDMS_GSEL and explicitly loads a null LDT.
 SelToSeg proc near
 	push	ds
-	mov	ax,GDTD_GSEL
-	mov	ds,ax
-	and	bl,0F8h
-	mov	ax,word ptr ds:[bx + 2]
-	mov	bh,ds:[bx + 4]
+	push	GDTD_GSEL
+	pop	ds
+	mov	ax,word ptr ds:[VDMS_GSEL + 2]
+	mov	bh,ds:[VDMS_GSEL + 4]
 	shr	ax,4
 	shl	bh,4
 	mov	bl,0
-	add	ax,bx
+	add	bx,ax
 	pop	ds
 	ret
 SelToSeg endp

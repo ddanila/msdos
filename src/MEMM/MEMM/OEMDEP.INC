@@ -39,9 +39,11 @@ extrn	RestIntMask:near		; restore interrupt mask routine
 
 extrn	Map_Lin_OEM:near		; MapLinear hook
 extrn	UMap_Lin_OEM:near		; UnMapLinear hook
+ifndef NOHIMEM
 extrn	MB_Map_Src:near 		; Move block map source hook
 extrn	MB_Map_Dest:near		; Move block map destination hook
 extrn	MB_Start:near			; Move block start move hook
+endif
 
 _TEXT	ends
 

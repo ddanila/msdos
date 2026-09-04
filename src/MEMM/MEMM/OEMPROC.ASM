@@ -31,12 +31,16 @@ IFNDEF OEMPROC_DISABLE_ONLY
 public	VerifyMachine
 public	MaskIntAll
 public	RestIntMask
+ifndef NOHIMEM
 public	OEM_Trap_Init
+endif
 public	Map_Lin_OEM
 public	UMap_Lin_OEM
+ifndef NOHIMEM
 public	MB_Map_Src
 public	MB_Map_Dest
 public	MB_Start
+endif
 public	Rest_Par_Vect
 public	Set_Par_Vect
 
@@ -247,6 +251,7 @@ RestIntMask	endp
 ;   USED:  AX,Flags
 ;   STACK:
 ;------------------------------------------------------------------------------
+ifndef NOHIMEM
 	assume	cs:_TEXT, ds:DGROUP, es:TSS
 OEM_Trap_Init  proc    near
 ;
@@ -268,6 +273,7 @@ OEM_Trap_Init  proc    near
 ;
 OEM_Trap_Init  endp
 ;
+endif
 
 ifndef	NOHIMEM 			; only for high memory
 
@@ -414,6 +420,7 @@ UMap_Lin_OEM	endp
 ;	stack:
 ;
 ;******************************************************************************
+ifndef NOHIMEM
 	assume	cs:_TEXT, ds:NOTHING, es:NOTHING
 MB_Map_Src	proc	near
 	ret
@@ -490,6 +497,7 @@ MB_nodiag:
 endif
 	ret
 MB_Start	endp
+endif
 
 ;*************************************************************************
 ;	Set_Par_Vect  - Set parity handling routine to routine below
@@ -516,18 +524,20 @@ Set_Par_Vect   proc    near
 
 	mov	si,0010h	; DS:[SI] points to NMI descr address in IDT
 	mov	di,offset DGROUP:NMI_Old	; ES:[DI] pts to store area
-	mov	cx,2
-	db	66h
-	rep	movsw		; store 2 dwords - save current NMI descriptor
+	OP32
+	movsw
+	OP32
+	movsw			; save current NMI descriptor
 	push	ds
 	push	es
 	pop	ds		; DS = DGROUP
 	pop	es		; ES = IDT
 	mov	di,0010h	; ES:[DI] points to NMI descr address in IDT
 	mov	si,offset DGROUP:NMI_New ; DS:[SI] pts to new NMI descr
-	mov	cx,2
-	db	66h
-	rep	movsw		; set up new NMI descriptor in IDT
+	OP32
+	movsw
+	OP32
+	movsw			; set up new NMI descriptor in IDT
 	ret
 Set_Par_Vect   endp
 
@@ -558,9 +568,10 @@ endif
 
 	mov	di,0010h		    ; ES:[DI] points to NMI descr address in IDT
 	mov	si,offset DGROUP:NMI_Old    ; DS:[SI] pts to store area
-	mov	cx,2
-	db	66h
-	rep	movsw			    ; restore previous NMI descriptor
+	OP32
+	movsw
+	OP32
+	movsw				    ; restore previous NMI descriptor
 ifndef	NOHIMEM
 	call	HwMemLock
 endif

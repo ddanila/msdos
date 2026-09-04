@@ -237,7 +237,9 @@ MB_setup:
 	rep movsw		; set move block source work descr
 	pop	si		; restore input descr table ptr
 	mov	di,MBSRC_GSEL	; ES:DI pts to source work descriptor in GDT
+ifndef NOHIMEM
 	call	MB_Map_Src
+endif
 	DescrMap		; fixup this descriptor's linear address
 
 	mov	di,MBTAR_GSEL	; ES:DI pts to target work descr in GDT
@@ -247,7 +249,9 @@ MB_setup:
 	rep movsw		; set move blk target work descr
 	pop	si		; restore input descr table ptr
 	mov	di,MBTAR_GSEL	; ES:DI pts to target work descr in GDT
+ifndef NOHIMEM
 	call	MB_Map_Dest
+endif
 	DescrMap	; fixup this descriptor's linear address
 
 ;
@@ -297,7 +301,9 @@ MB_Excp_Error:
 ;
 MB_move_block:
 
+ifndef NOHIMEM
 	call	MB_Start
+endif
 
 ;
 ;   MOVE the BLOCK - dwords

@@ -182,9 +182,7 @@ rl386_a:
 ;	We get the base address from the descriptor table,
 ;	and convert it to a paragraph number.
 ;
-	mov	bx,ss			; bx = selector for stack
-	call	SelToSeg		; AX = segment number for SS
-	mov	bx,ax			; BX = setup stack segment
+	call	SelToSeg		; BX = setup stack segment
 ;
 ;
 ;  Intel shows DS,ES,FS,GS,and SS set up to make sure 'Real Mode' type

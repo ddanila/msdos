@@ -189,6 +189,11 @@ def main() -> int:
         raise ValueError("redundant segment-to-window index is resident")
     if args.check and any(symbol.name == "EMM_Protected_Functions" for symbol in symbols):
         raise ValueError("obsolete protected-service bitmap is resident")
+    if args.check and any(
+        symbol.name in {"OEM_Trap_Init", "MB_Map_Src", "MB_Map_Dest", "MB_Start"}
+        for symbol in symbols
+    ):
+        raise ValueError("NOHIMEM no-op OEM hook is linked")
 
     by_name = {segment.name: segment for segment in segments}
     text = by_name["_TEXT"]
@@ -394,9 +399,9 @@ def main() -> int:
         args.check
         and (args.handles, args.alternate_registers, args.ems_pages, args.physical_pages)
         == (64, 7, 64, 4)
-        and runtime_ranges[-1].end > 5104
+        and runtime_ranges[-1].end > 5088
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 5,104 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 5,088 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     print(
         f"\nSelected layout: `H={args.handles}`, `A={args.alternate_registers}`, "
