@@ -27,6 +27,7 @@ memmonf+
 vmtrap+
 vminst+
 iotrap+
+emmpent+
 ..\emm\emmalloc+
 ..\emm\emmrealloc+
 ..\emm\emmprot+

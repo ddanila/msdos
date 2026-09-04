@@ -58,13 +58,16 @@
 ;			P U B L I C   D E C L A R A T I O N S
 ;******************************************************************************
 ;
+	IFDEF	EMM_PROTECTED_ENTRY
 	public	EMM_pEntry		; protected mode entry point
+	ELSE
 	public	EMM_rEntry		; real mode entry point
 	public	EMM_rEfix		; label for far jump to int67_entry
 	public	EMM_rLink		; real/virtual service-selection gateway
 	public	EMM_Protected_Functions ; protected-service bitmap
 	public	_AutoUpdate		; update auto mode of VDM/EMM
 	public	EMM_Flag		; flag for EMM calls
+	ENDIF
 
 	page
 ;******************************************************************************
@@ -141,6 +144,9 @@ extrn	Auto_Mode:byte		; current Auto mode status
 ;extrn	_map_known:byte 	; non-zero => I/O map known to a user
 extrn	_handle_count:word	; number of active EMM handles
 extrn	_regp:word		; pointer to args on stack
+	IFDEF	EMM_PROTECTED_ENTRY
+extrn	EMM_Flag:byte		; owned by the retained gateway object
+	ENDIF
 
 _DATA	ends
 
@@ -184,7 +190,9 @@ _TEXT	ends
 ;******************************************************************************
 ;
 _DATA	segment
+	IFNDEF	EMM_PROTECTED_ENTRY
 EMM_Flag	db	0	; non-zero => EMM function called by our code
+	ENDIF
 _DATA	ends
 
 	page
@@ -196,9 +204,11 @@ _DATA	ends
 ;
 _TEXT	segment
 	assume	cs:_TEXT, ds:DGROUP, es:DGROUP
+	IFNDEF	EMM_PROTECTED_ENTRY
 EMM_Protected_Functions label word
 	dw	EMM_PROTECTED_MASK_LOW		; 43h..52h
 	dw	EMM_PROTECTED_MASK_HIGH		; 53h..5Bh
+	ENDIF
 
 	page
 ;******************************************************************************
@@ -220,6 +230,7 @@ EMM_Protected_Functions label word
 ;
 ;  reflect EMM function to real mode
 ;
+	IFDEF	EMM_PROTECTED_ENTRY
 EpE_reflect:
 	push	67h		; refect
 	jmp	hw_int		; it...
@@ -333,6 +344,7 @@ EpE_inv_exit:				; set invalid function code error
 	jmp	EpE_Exit
 
 EMM_pEntry	endp
+	ENDIF
 
 	page
 ;******************************************************************************
@@ -348,6 +360,7 @@ EMM_pEntry	endp
 ;	USED:	none
 ;
 ;******************************************************************************
+	IFNDEF	EMM_PROTECTED_ENTRY
 EMM_rLINK	proc	far
 
 	;
@@ -467,6 +480,7 @@ AU_exit:
 	ret
 ;
 _AutoUpdate	endp
+	ENDIF
 
 _TEXT	ends
 
@@ -479,6 +493,7 @@ _TEXT	ends
 ;
 R_CODE	segment
 	assume	cs:R_CODE, ds:DGROUP, es:DGROUP
+	IFNDEF	EMM_PROTECTED_ENTRY
 
 	page
 ;******************************************************************************
@@ -502,6 +517,7 @@ EMM_rEfix:
 	iret			; return to caller
 ;
 EMM_rEntry	endp
+	ENDIF
 
 
 R_CODE	ends

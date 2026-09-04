@@ -101,7 +101,7 @@ MEMMOBJ = memm386.obj elimfunc.obj init.obj allocmem.obj ppage.obj emmmes.obj \
 		rrtrap.obj vdminit.obj initepg.obj errhndlr.obj maplin.obj \
 		ekbd.obj util.obj initdeb.obj emm.obj emminit.obj mapdma.obj \
 		iotrap.obj a20trap.obj oemproc.obj m_state.obj \
-		shiphi.obj extpool.obj
+		emmpent.obj shiphi.obj extpool.obj
 
 COMOBJ = memmcom.obj memmonf.obj
 
@@ -233,6 +233,9 @@ elimtrap.lst: elimtrap.asm $(MEMMINC) ..\emm\emmdef.inc
 	$(ASM) -l -n $(AFLAGS) $(AINC) $*.asm;
 
 iotrap.obj iotrap.lst: iotrap.asm $(MEMMINC)
+
+emmpent.obj: emm.asm $(MEMMINC) ..\emm\emmdef.inc
+	$(ASM) $(AFLAGS) $(AINC) -DEMM_PROTECTED_ENTRY emm.asm,emmpent.obj;
 
 initepg.obj: initepg.asm $(MEMMINC)
 	$(ASM) $(AFLAGS) $(AINC) $*.asm;

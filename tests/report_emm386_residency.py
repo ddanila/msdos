@@ -210,6 +210,7 @@ def main() -> int:
         raise ValueError("IOTrap_Tab falls outside the linked _TEXT segment")
     if args.check:
         for name in (
+            "EMM_pEntry",
             "_get_pages",
             "_free_pages",
             "_AllocatePages",
@@ -351,9 +352,9 @@ def main() -> int:
         args.check
         and (args.handles, args.alternate_registers, args.ems_pages, args.physical_pages)
         == (64, 7, 64, 4)
-        and runtime_ranges[-1].end > 7216
+        and runtime_ranges[-1].end > 7040
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 7,216 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 7,040 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     print(
         f"\nSelected layout: `H={args.handles}`, `A={args.alternate_registers}`, "
