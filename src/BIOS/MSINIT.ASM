@@ -98,7 +98,6 @@ Yeardone:
 	xor	dx,dx
 	mov	ax, bp
 	mov	si, offset month_tab
-	mov	cx, 12
 Months:
 	inc	bl			;
 	mov	dl, byte ptr ds:[si]	;compare daycnt for each month until fits
@@ -106,7 +105,7 @@ Months:
 	jbe	Month_done
 	inc	si			;next month
 	sub	ax, dx			;adjust daycnt
-	loop	Months
+	jmp	Months			;normalized day count guarantees a match
 ;	 jmp	 Erroroccur
 Month_done:
 	mov	byte ptr month_tab+1, 28 ;restore month table value
