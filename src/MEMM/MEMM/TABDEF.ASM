@@ -118,10 +118,12 @@ GDT_ENTRY	0, 0, 0, D_DATA0		; VDM Data
 GDT_ENTRY	0, 0, 0, D_DATA0		; VDM Stack
 GDT_ENTRY	0, 0bh, 1000h, D_DATA0		; Mono Display
 GDT_ENTRY	8000h, 0bh, 4000h, D_DATA0	; Colour Disp
+	ifndef NoBugMode
+; These legacy display/loadall descriptors have no production consumers. Keep
+; their historical slots only in debugger builds, whose selector ABI is fixed.
 GDT_ENTRY	0, 0ah, 0, D_DATA0		; EGA Low
 GDT_ENTRY	0, 0ch, 0, D_DATA0		; EGA High
 GDT_ENTRY	800h, 0, 66h, D_DATA0		; LOADALL
-	ifndef NoBugMode
 GDT_ENTRY	0, 0, 0, 0			; debugger work 1
 GDT_ENTRY	0, 0, 0, 0			; debugger work	2
 GDT_ENTRY	0, 0, 0, 0			; debugger work	3

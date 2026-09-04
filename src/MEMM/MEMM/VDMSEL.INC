@@ -67,6 +67,7 @@ VDMD_GSEL	equ	050h OR TAB_GDT		; VDM Data Selector
 VDMS_GSEL	equ	058h OR TAB_GDT		; VDM stack selector
 MONO_GSEL	equ	060h OR TAB_GDT		; monochrome display memory
 COLOUR_GSEL	equ	068h OR TAB_GDT		; colour display memory
+ifndef NoBugMode
 EGA1_GSEL	equ	070h OR TAB_GDT		; first EGA sel
 EGA2_GSEL	equ	078h OR TAB_GDT		; second EGA sel
 LOADALL_GSEL	equ	080h OR TAB_GDT		; loadall buffer - DON'T CHANGE
@@ -74,9 +75,6 @@ LOADALL_GSEL	equ	080h OR TAB_GDT		; loadall buffer - DON'T CHANGE
 ;DEBD_GSEL	equ	090h or TAB_GDT		; debugger work descr
 ;DEBW1_GSEL	equ	098h or TAB_GDT		; debugger work descr
 ;DEBW2_GSEL	equ	0A0h or TAB_GDT 	; debugger work descr
-ifdef NoBugMode
-RCODEA_GSEL	equ	088h OR TAB_GDT 	; data alias for R_CODE segment
-else
 DEB1_GSEL	equ	088h or TAB_GDT		; deb386 word descr
 DEB2_GSEL	equ	090h or TAB_GDT		; deb386 word descr
 DEB3_GSEL	equ	098h or TAB_GDT		; deb386 word descr
@@ -84,6 +82,10 @@ DEB4_GSEL	equ	0A0h or TAB_GDT		; deb386 word descr
 DEB5_GSEL	equ	0A8h or TAB_GDT		; deb386 word descr
 DEBX_GSEL	equ	0B0h or TAB_GDT		; deb386 full-address descriptor
 RCODEA_GSEL	equ	0B8h OR TAB_GDT 	; data alias for R_CODE segment
+else
+; Production has no users of the legacy EGA/loadall descriptors, so its
+; runtime selectors begin immediately after the colour-display entry.
+RCODEA_GSEL	equ	070h OR TAB_GDT 	; data alias for R_CODE segment
 endif
 VM1_GSEL	equ	RCODEA_GSEL+08h 	; scratch for vm handler
 VM2_GSEL	equ	RCODEA_GSEL+10h 	; scratch for vm handler

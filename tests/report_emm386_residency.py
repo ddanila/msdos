@@ -210,8 +210,8 @@ def main() -> int:
         raise ValueError("NOHIMEM no-op OEM hook is linked")
 
     by_name = {segment.name: segment for segment in segments}
-    if args.check and by_name["GDT"].size > 224:
-        raise ValueError("production GDT retains debugger-only descriptors")
+    if args.check and by_name["GDT"].size > 200:
+        raise ValueError("production GDT retains unused legacy descriptors")
     if args.check and by_name["_DATA"].size > 424:
         raise ValueError("EMM386 retained mutable data exceeds 424 bytes")
     symbol_by_name = {symbol.name: symbol for symbol in symbols}
@@ -478,9 +478,9 @@ def main() -> int:
             args.dma_pages,
         )
         == (64, 7, 64, 6, 1)
-        and runtime_ranges[-1].end > 4176
+        and runtime_ranges[-1].end > 4160
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 4,176 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 4,160 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     dma_page_label = "DMA page" if args.dma_pages == 1 else "DMA pages"
     print(
