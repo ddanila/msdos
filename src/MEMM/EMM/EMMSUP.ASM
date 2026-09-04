@@ -105,12 +105,6 @@ extrn	_regp:word
 extrn	_total_pages:word
 
 ;
-; table of offsets into in to the first page table
-; for user logical emm page map
-;
-extrn	_page_frame_base:dword
-
-;
 ; ptr to table of emm page # for each handle's logical pages.
 ;
 extrn	_emm_page:word

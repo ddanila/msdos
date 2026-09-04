@@ -181,6 +181,8 @@ def main() -> int:
     if not 0 <= args.physical_pages <= 52:
         parser.error("--physical-pages must be in 0..52")
     segments, symbols = parse_map(args.map)
+    if args.check and any(symbol.name == "_page_frame_base" for symbol in symbols):
+        raise ValueError("redundant physical-window PTE-offset table is resident")
 
     by_name = {segment.name: segment for segment in segments}
     text = by_name["_TEXT"]
@@ -345,9 +347,9 @@ def main() -> int:
         args.check
         and (args.handles, args.alternate_registers, args.ems_pages, args.physical_pages)
         == (64, 7, 64, 4)
-        and runtime_ranges[-1].end > 7376
+        and runtime_ranges[-1].end > 7264
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 7,376 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 7,264 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     print(
         f"\nSelected layout: `H={args.handles}`, `A={args.alternate_registers}`, "

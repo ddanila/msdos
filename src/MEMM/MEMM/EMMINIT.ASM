@@ -79,7 +79,6 @@ extrn	PageT_Seg:word		; segment of system page table
 extrn	_PF_Base:word		 ; segment addr of page frame base
 extrn	_page_frame_pages:word	; number of pages in 3.2 page frame
 
-extrn	_page_frame_base:word	; pointers into page tables for each window
 extrn	_mappable_pages:word	; mappable page array
 extrn	_EMM_MPindex:byte	; index into mappable page array
 extrn	_physical_page_count:word   ; number of physical pages
@@ -170,36 +169,10 @@ Get_FRS_window	MACRO	Reg
 	ENDM
 
 ;******************************************************************************
-;**init_PAGE_FRAME_BASE: macro to fill in the page_frame_base array.  this
-;  array contains offsets into the page table. All entries use PAGET_GSEL, so
-;  only the varying offset is retained.
-;
-;  ENTRY: SI = INDEX INTO _page_frame_base, also physical page #
-;	  BX = Segment of physical page
-;
-;******************************************************************************
-init_page_frame_base	MACRO
-;
-    push    si
-    push    bx
-;
-    shl     si,1		    ; convert index into offset in word array
-;
-    shr     bx,6		    ; convert segment into page table offset
-				    ; since there is 1 dword entry for each 4k
-				    ;
-    mov     _page_frame_base[si],bx ; fill this in
-;
-    pop     bx
-    pop     si
-;
-    ENDM
-
-;******************************************************************************
 ;**init_MAPPABLE_PAGES: macro to fill the _mappable_pages segment array.  The
 ;  physical page is derived from the dense index and _page_frame_pages.
 ;
-;  ENTRY: SI = INDEX INTO _page_frame_base, also physical page #
+;  ENTRY: SI = internal physical page number
 ;	  BX = Segment of physical page
 ;	  DI = Index into _mappable_pages
 ;
@@ -483,8 +456,7 @@ EMIN_2:
 ;
 EMIN_3:
 ;
-; setting up _page_frame_base
-;	     _mappable_pages
+; setting up _mappable_pages
 ;	     _EMM_MPIndex
 ;	     _physical_page_count
 ;	     _mappable_page_count
@@ -508,21 +480,20 @@ EMIN_3:
 ;   |	  exist     |	    |		    |	    |		    |4000h
 ;   -----------------	    -----------------	    -----------------
 ;
-;   _page_frame_base	    _mappable_pages	     EMM_MPIndex
+;   derived PTE offset	    _mappable_pages	     EMM_MPIndex
 ;
 ;   Each entry reps	    Each entry reps	     Each entry reps
 ;   a physical page.	    a mappable ph. page      a system page
 ;
 ;   WORD.		    WORD		     Byte
 ;
-;   1st WORD: offset	    1st WORD: segment	     Index into
-;   into page table	    of ph. page 	     _mappable_pages
+;   segment / 64		    1st WORD: segment	     Index into
+;   (not retained)	    of ph. page 	     _mappable_pages
 ;						     which reps the page
 ;
 ;
-; 1. Set up for the page frame pages.  Note that they may or may not exist.
-;    Even if they do not exist entries must be set up for them in the
-;    _page_frame_base.
+; 1. Set up the page frame pages when a complete frame exists. Missing frame
+;    slots still reserve internal physical numbers 0..3.
 ;
     ;
     ; initialise indexes.
@@ -541,7 +512,6 @@ EMIN_3:
     ; the setup loop:
     ;
 EMIN_4:
-	init_page_frame_base
 	init_mappable_pages
 	init_mappable_index
 	inv_mpbl
@@ -590,7 +560,6 @@ EMIN_6:
     ;
     ; page mappable. set up entries for it
     ;
-	init_page_frame_base		; set up the page_frame_base entry
 	init_mappable_pages		; set up the mappable_pages entry
 	init_mappable_index		; set up the EMM_MPIndex
     ;
@@ -637,7 +606,6 @@ EMIN_8:
     ;
     ; page mappable. set up entries for it
     ;
-	init_page_frame_base		; set up the page_frame_base entry
 	init_mappable_pages		; set up the mappable_pages entry
 	init_mappable_index		; set up the EMM_MPIndex
     ;

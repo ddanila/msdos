@@ -268,7 +268,6 @@ Not_At:
 
 _DATA	segment
 extrn	ROM_BIOS_Machine_ID:byte
-extrn	_page_frame_base:word
 extrn	CurRegSet:word
 extrn	Page_Dir:word		
 SaveAL  db      ?

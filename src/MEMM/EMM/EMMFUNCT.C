@@ -142,9 +142,6 @@
  */
 /*extern char		map_known; */
 
-/* Offsets of physical-window PTEs within the shared page-table selector. */
-extern unsigned short page_frame_base[];
-
 /*
  * save_map
  *	This is an array of structures that save the 

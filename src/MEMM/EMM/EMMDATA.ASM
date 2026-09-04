@@ -56,7 +56,6 @@ _DATA	SEGMENT
 	PUBLIC	_total_pages
 	PUBLIC	_emm40_info
 	PUBLIC	_altreg_count
-	PUBLIC	_page_frame_base
 	PUBLIC	_mappable_pages
 	PUBLIC	_mappable_page_count
 	PUBLIC	_physical_page_count
@@ -124,7 +123,7 @@ _DATA	SEGMENT
 ; given map_handle_page(phys_page, log_page, handle)
 ;
 ;   a. determine pte offset in system page table corresponding to phys_page
-;      from the _page_frame_base table.
+;      from the physical window's aligned segment.
 ;
 ;   b. access handle table for the handle and determine the start of the
 ;      emm pages allocated to the handle in the emm_page array.
@@ -171,18 +170,6 @@ _PF_Base	label	word
 	dw	0FFFFh			; Undefined initially
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;04. PAGE FRAME BASE
-;	this is the map of page-table offsets for the n 16kb physical pages
-;	used to access the EMM pages. Every entry uses PAGET_GSEL, so retaining
-;	the same selector beside every offset is redundant. If a lim 3.2 frame is
-;	available it gets the entries at the
-;	beginning
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-_page_frame_base	LABEL	WORD
-	DW	MAX_PHYS_PAGES dup (0)	    ; PTE offsets of physical pages
-
-;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;05. MAPPABLE PAGE ARRAY
 ;	Dense segment table.  The physical page number is derived from the table

@@ -116,12 +116,6 @@ extrn	_total_pages:word			; total # of EMM pages in system
 extrn	_free_count:word			; unallocated EMM pages
 extrn	_handle_count:word			; active EMM handles
 
-;
-; table of offsets into in to the first page table
-; for user logical emm page map
-;
-extrn	_page_frame_base:word
-
 extrn	_pft386:word
 
 extrn	_mappable_pages:word			; table of mappable pages
@@ -430,6 +424,11 @@ Get_FRS_window	MACRO	Reg
 ;
 ;***********************************************
 map_EMM_page	proc	near
+	cmp	ax,[_page_frame_pages]		; frame member, or a page above slot 3?
+	jb	short mEp_valid_slot
+	cmp	ax,4
+	jb	short mEp_inv_page		; missing LIM 3.2 frame slot
+mEp_valid_slot:
 	cmp	ax,[_physical_page_count]	;Q: valid physical page# ?
 	jae	short mEp_inv_page		;  N: invalid page number
 						;  Y: continue with it
@@ -468,13 +467,22 @@ map_EMM_page	proc	near
 	add	di,bx		;        entry in FRS
 	mov	[di],cx		; save mapping (emm page#) into FRS
 	;
-	; construct pointer to physical address of
-	; page frame
+	; Derive the physical segment from the compact dense table. Frame pages
+	; are numbered 0..P-1; later pages start at internal number 4.
 	;
-
-	shl	bx,1	 		; bx <-- index * 2
-	add	bx,offset DGROUP:_page_frame_base ; bx = offset for entry in _page_frame_base
-	mov	di,[bx]			; di <-- page-table offset
+	mov	di,bx
+	cmp	di,[_page_frame_pages]
+	jb	short map_page_frame_segment
+	sub	di,4
+	add	di,[_page_frame_pages]
+	shl	di,1
+	mov	di,_mappable_pages[di]
+	jmp	short map_page_segment_ready
+map_page_frame_segment:
+	shl	di,10
+	add	di,[PF_Base]
+map_page_segment_ready:
+	shr	di,6			; aligned segment -> page-table offset
 	push	PAGET_GSEL
 	pop	es			; es:di <-- page frame address
 
@@ -555,16 +563,13 @@ unmap_page_dense:
 	mov	bx, _mappable_pages[di]	; get segment into bx first
 
 	;
-	; construct pointer to physical address of
-	; page frame
+	; A physical window is 16 KiB aligned, so its page-table offset is the
+	; segment divided by 64.
 	;
-	xchg	ax,bx
-	shl	bx,1	 		; bx <-- index * 2
-	add	bx,offset DGROUP:_page_frame_base ; bx <-- points to PTE address of phys page#
-	mov	di,[bx]			; di <-- page-table offset
+	mov	di,bx
+	shr	di,6
 	push	PAGET_GSEL
 	pop	es			; es:di <-- points to PTE of page frame
-	xchg	ax,bx
 
 	;
 	; construct PTE
