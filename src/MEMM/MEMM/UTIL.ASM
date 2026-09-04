@@ -46,10 +46,10 @@ page	58,132
 	public	GoVirtual
 	public	FarGoVirtual
 	public	VM_return
-	public	SelToSeg
 	ENDIF
 	IFNDEF UTIL_LOW_ONLY
 	public	GoVirtualHigh
+	public	SelToSeg
 	ENDIF
 
 ;******************************************************************************
@@ -363,6 +363,22 @@ GoVirtualHigh proc near
 	iret
 
 GoVirtualHigh endp
+
+; Convert the fixed protected ring-0 stack selector to its real-mode segment.
+; This is called only by the protected RetRealHigh continuation.
+SelToSeg proc near
+	push	ds
+	push	GDTD_GSEL
+	pop	ds
+	mov	ax,word ptr ds:[VDMS_GSEL + 2]
+	mov	bh,ds:[VDMS_GSEL + 4]
+	shr	ax,4
+	shl	bh,4
+	mov	bl,0
+	add	bx,ax
+	pop	ds
+	ret
+SelToSeg endp
 	ENDIF
 
 	IFNDEF UTIL_HIGH_ONLY
@@ -383,22 +399,6 @@ VM_return:
 	POP_EAX
 	ret
 GoVirtual	endp
-
-; Convert the fixed protected ring-0 stack selector to its real-mode segment.
-; GoVirtual installs VDMS_GSEL and explicitly loads a null LDT.
-SelToSeg proc near
-	push	ds
-	push	GDTD_GSEL
-	pop	ds
-	mov	ax,word ptr ds:[VDMS_GSEL + 2]
-	mov	bh,ds:[VDMS_GSEL + 4]
-	shr	ax,4
-	shl	bh,4
-	mov	bl,0
-	add	bx,ax
-	pop	ds
-	ret
-SelToSeg endp
 
 	ENDIF
 

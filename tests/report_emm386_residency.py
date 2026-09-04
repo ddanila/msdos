@@ -279,6 +279,7 @@ def main() -> int:
             "Parity_Handler",
             "GoVirtualHigh",
             "AMC_return_high",
+            "SelToSeg",
         ):
             if symbol_offset(symbols, name, text.paragraph) < split:
                 raise ValueError(f"protected EMS service {name} remains low")
@@ -293,7 +294,6 @@ def main() -> int:
             "GoVirtual",
             "VM_return",
             "AMC_return_gateway",
-            "SelToSeg",
         ):
             if symbol_offset(symbols, name, text.paragraph) >= split:
                 raise ValueError(f"real-mode gateway {name} is not retained low")
@@ -408,9 +408,9 @@ def main() -> int:
         args.check
         and (args.handles, args.alternate_registers, args.ems_pages, args.physical_pages)
         == (64, 7, 64, 4)
-        and runtime_ranges[-1].end > 4528
+        and runtime_ranges[-1].end > 4496
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 4,528 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 4,496 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     print(
         f"\nSelected layout: `H={args.handles}`, `A={args.alternate_registers}`, "
