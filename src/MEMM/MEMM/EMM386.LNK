@@ -33,6 +33,7 @@ emmpent+
 ..\emm\emmattr+
 ..\emm\emmcore+
 ..\emm\emmfunct+
+..\emm\emmmapp+
 ..\emm\emmalloc+
 ..\emm\emmrealloc+
 ..\emm\emmprot+

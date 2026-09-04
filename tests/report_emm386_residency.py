@@ -222,6 +222,7 @@ def main() -> int:
             "_GetEMMHandleCount",
             "_GetEMMHandlePages",
             "_GetAllEMMHandlePages",
+            "_GetMappablePAddrArrayFixed",
             "_get_pages",
             "_free_pages",
             "_AllocatePages",
@@ -245,7 +246,6 @@ def main() -> int:
             "EMM_rLink",
             "dispatch_vector",
             "_SavePageMap",
-            "_GetMappablePAddrArrayFixed",
             "int67_Entry",
         ):
             if symbol_offset(symbols, name, text.paragraph) >= split:
@@ -361,9 +361,9 @@ def main() -> int:
         args.check
         and (args.handles, args.alternate_registers, args.ems_pages, args.physical_pages)
         == (64, 7, 64, 4)
-        and runtime_ranges[-1].end > 6320
+        and runtime_ranges[-1].end > 6208
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 6,320 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 6,208 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     print(
         f"\nSelected layout: `H={args.handles}`, `A={args.alternate_registers}`, "

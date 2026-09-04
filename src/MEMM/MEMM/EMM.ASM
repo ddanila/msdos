@@ -106,6 +106,7 @@ EMM_GET_HANDLE_DIRECTORY equ	54h	; enumerate and find handles
 EMM_ALTER_MAP_JUMP	equ	55h	; alter mapping and jump
 EMM_ALTER_MAP_CALL	equ	56h	; alter mapping and call
 EMM_MOVE_XCHG_MEM	equ	57h	; move/xchg memory region
+EMM_GET_MAPPABLE	equ	58h	; get mappable physical addresses
 EMM_GET_INFORMATION	equ	59h	; get hardware information
 EMM_ALLOCATE_RAW	equ	5Ah	; allocate raw pages
 EMM_ALTER_MAP_REG_SET	equ	5Bh	; alternate map register set
@@ -119,11 +120,11 @@ EMM_HW_MALFUNCTION	equ	81h	;
 EMM_PROTECTED_FIRST	equ	40h
 EMM_PROTECTED_LAST	equ	5Ch
 EMM_PROTECTED_HIGH_BASE equ	EMM_PROTECTED_FIRST+16
-; Low selects 40h..46h, 48h, and 4Bh..4Fh.  High selects 50h..57h and
-; 59h..5Ch.  Compact constants also avoid JWasm's limit on
+; Low selects 40h..46h, 48h, and 4Bh..4Fh.  High selects 50h..5Ch.
+; Compact constants also avoid JWasm's limit on
 ; the expanded length of continued EQU expressions.
 EMM_PROTECTED_MASK_LOW equ 0F97Fh
-EMM_PROTECTED_MASK_HIGH equ 01EFFh
+EMM_PROTECTED_MASK_HIGH equ 01FFFh
 
 ;******************************************************************************
 ;			E X T E R N A L    R E F E R E N C E S
