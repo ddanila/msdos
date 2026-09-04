@@ -147,6 +147,7 @@ _DATA	ends
 _TEXT	segment
 
 extrn	int67_Entry:far		; it's far because we need CS on stack too
+extrn	dispatch_vector:word	; shared real/protected LIM function table
 extrn	GoVirtual:near
 extrn	ErrHndlr:near
 extrn	hw_int:near
@@ -195,47 +196,6 @@ _DATA	ends
 ;
 _TEXT	segment
 	assume	cs:_TEXT, ds:DGROUP, es:DGROUP
-;******************************************************************************
-;	protected mode dispatch table
-;   Allocation mutations and mapping-sensitive services run protected so their
-;   implementation can reside only in the locked-XMS copy. Query services stay
-;   reflected so inactive AUTO mode does not activate the VDM.
-;	MapHandlePage,RestorePageMap,GetSetPageMap,GetSetPartial,
-;	MapHandleArray,MoveExchangeMemory,AlterMapAndJump,
-;	AlterMapAndCall and AlternateMapRegisterSet are protected mode ONLY.
-;******************************************************************************
-EpE_Dispatch	label	word
-	dw	offset _TEXT:EpE_Null		;40h
-	dw	offset _TEXT:EpE_Null		;41h
-	dw	offset _TEXT:EpE_Null		;42h
-	dw	offset _TEXT:_AllocatePages		;43h
-	dw	offset _TEXT:_MapHandlePage		;44h
-	dw	offset _TEXT:_DeallocatePages	;45h
-	dw	offset _TEXT:EpE_Null		;46h
-	dw	offset _TEXT:EpE_Null		;47h
-	dw	offset _TEXT:_RestorePageMap		;48h
-	dw	offset _TEXT:EpE_Null		;49h
-	dw	offset _TEXT:EpE_Null		;4ah
-	dw	offset _TEXT:EpE_Null		;4bh
-	dw	offset _TEXT:EpE_Null		;4ch
-	dw	offset _TEXT:EpE_Null		;4dh
-	dw	offset _TEXT:_GetSetPageMap		;4eh
-	dw	offset _TEXT:_GetSetPartial		;4fh
-	dw	offset _TEXT:_MapHandleArray		;50h
-	dw	offset _TEXT:_ReallocatePages	;51h
-	dw	offset _TEXT:EpE_Null		;52h
-	dw	offset _TEXT:EpE_Null		;53h
-	dw	offset _TEXT:EpE_Null		;54h
-	dw	offset _TEXT:_AlterMapAndJump		;55h
-	dw	offset _TEXT:_AlterMapAndCall		;56h
-	dw	offset _TEXT:_MoveExchangeMemory	;57h
-	dw	offset _TEXT:EpE_Null		;58h
-	dw	offset _TEXT:EpE_Null		;59h
-	dw	offset _TEXT:_AllocateRawPages	;5ah
-	dw	offset _TEXT:_AlternateMapRegisterSet	;5bh
-	dw	offset _TEXT:EpE_Null		;5ch
-	dw	offset _TEXT:EpE_Null		;5dh
-
 EMM_Protected_Functions label word
 	dw	EMM_PROTECTED_MASK_LOW		; 43h..52h
 	dw	EMM_PROTECTED_MASK_HIGH		; 53h..5Bh
@@ -332,7 +292,7 @@ EpE_jump:
 	xchg	ah,al		; AH = function code again
 	and	si,00FFh	; SI = function #
 	shl	si,1		; SI = table offset
-	call	CS:EpE_Dispatch[si] ; call function
+	call	CS:dispatch_vector[si] ; same table in the locked-XMS copy
 
 	;
 	; check to see if we need to patch CS:IP on the iretd stack frame
@@ -366,11 +326,6 @@ EpE_No_Patch:
 	HwTabLock		; lock ROM
 
 	iretd			; return to virtual mode caller
-;
-;  Null function - do nothing (should not get to here)
-EpE_Null:
-	ret			; return after doing nothing
-;
 ; EMM error handling
 ;
 EpE_inv_exit:				; set invalid function code error
