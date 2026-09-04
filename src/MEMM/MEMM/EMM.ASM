@@ -44,11 +44,8 @@
 ;   MEMM is ON (system in Virtual mode),  INT 67H calls transition to protected
 ;   mode and the EMM_pEntry entry point.  EMM_pEntry sets up the same stack
 ;   conditions as the generic int67_Entry dispatcher and calls the appropriate
-;   EMM function.   Some EMM functions cannot be executed in protected mode.
-;   These functions are called by reflecting the INT 67H to the real/virtual
-;   mode entry point.	EMM functions which are executed in PROTECTED mode
-;   will take less time (they don't suffer the extra time to reflect the
-;   INT 67H).
+;   EMM function. Unsupported calls are rejected by the real-mode gateway;
+;   supported functions execute in protected mode without an extra reflection.
 ;
 ;******************************************************************************
 .lfcond
@@ -64,7 +61,6 @@
 	public	EMM_rEntry		; real mode entry point
 	public	EMM_rEfix		; label for far jump to int67_entry
 	public	EMM_rLink		; real/virtual service-selection gateway
-	public	EMM_Protected_Functions ; protected-service bitmap
 	public	_AutoUpdate		; update auto mode of VDM/EMM
 	public	EMM_Flag		; flag for EMM calls
 	ENDIF
@@ -116,17 +112,8 @@ EMM_OS_DISABLE		equ	5Dh	; enable/disable OS/E function set
 
 EMM_HW_MALFUNCTION	equ	81h	;
 
-; Bits 0..29 correspond to functions 40h..5Dh.  A set bit selects the
-; protected/locked-XMS implementation.  Keep this in the retained _TEXT
-; prefix because EMM_rLink consults it before entering protected mode.
 EMM_PROTECTED_FIRST	equ	40h
 EMM_PROTECTED_LAST	equ	5Dh
-EMM_PROTECTED_HIGH_BASE equ	EMM_PROTECTED_FIRST+16
-; Low selects 40h..48h and 4Bh..4Fh.  High selects 50h..5Dh.
-; Compact constants also avoid JWasm's limit on
-; the expanded length of continued EQU expressions.
-EMM_PROTECTED_MASK_LOW equ 0F9FFh
-EMM_PROTECTED_MASK_HIGH equ 03FFFh
 
 ;******************************************************************************
 ;			E X T E R N A L    R E F E R E N C E S
@@ -207,12 +194,6 @@ _DATA	ends
 ;
 _TEXT	segment
 	assume	cs:_TEXT, ds:DGROUP, es:DGROUP
-	IFNDEF	EMM_PROTECTED_ENTRY
-EMM_Protected_Functions label word
-	dw	EMM_PROTECTED_MASK_LOW		; 40h..4Fh
-	dw	EMM_PROTECTED_MASK_HIGH		; 50h..5Fh (used through 5Ch)
-	ENDIF
-
 	page
 ;******************************************************************************
 ;	EMM_pEntry - protected mode entry point for EMM function calls
@@ -367,39 +348,21 @@ EMM_pEntry	endp
 EMM_rLINK	proc	far
 
 	;
-	;   check for protected mode ONLY function
+	; All supported services use the protected dispatcher. Reject the two
+	; reserved LIM slots and out-of-range functions without retaining a second
+	; dispatcher in conventional memory.
 	;
 	cmp	ah,EMM_PROTECTED_FIRST
-	jb	short ErE_Real
+	jb	short ErE_Invalid
 	cmp	ah,EMM_PROTECTED_LAST
-	ja	short ErE_Real
-	push	bx
-	mov	bl,ah
-	xor	bh,bh
-	sub	bl,EMM_PROTECTED_FIRST
-	bt	cs:EMM_Protected_Functions,bx
-	pop	bx
-	jc	ErE_GoProt
-					;  otherwise use the real/virtual dispatcher
-	;
-	;   here for real/virtual mode functions
-	;
-ErE_Real:
-	push	fs
-	push	gs
-	push	es
-	push	ds
-	push	00		; PFlag => real mode call to EMM functions
-	push	seg DGROUP
-	pop	ds		; set DS = DGROUP
-	call	int67_Entry	;   call dispatcher
-	add	sp,2		; drop PFlag arg
-	call	_AutoUpdate	; update AUTO after allocate/deallocate/query calls
-	pop	ds		; restore seg regs
-	pop	es
-	pop	gs
-	pop	fs
-	ret			; and return
+	ja	short ErE_Invalid
+	cmp	ah,49h
+	je	short ErE_Invalid
+	cmp	ah,4Ah
+	jne	short ErE_GoProt
+ErE_Invalid:
+	mov	ah,INVALID_FUNCTION
+	ret
 
 	;
 	;   Here if protected mode function called via real IDT

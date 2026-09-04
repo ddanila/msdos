@@ -187,6 +187,8 @@ def main() -> int:
         symbol.name in {"EMM_MPindex", "_EMM_MPindex"} for symbol in symbols
     ):
         raise ValueError("redundant segment-to-window index is resident")
+    if args.check and any(symbol.name == "EMM_Protected_Functions" for symbol in symbols):
+        raise ValueError("obsolete protected-service bitmap is resident")
 
     by_name = {segment.name: segment for segment in segments}
     text = by_name["_TEXT"]
@@ -226,6 +228,9 @@ def main() -> int:
             "_SavePageMap",
             "_OSDisable",
             "_Get_Key_Val",
+            "_UnsupportedFunction",
+            "dispatch_vector",
+            "int67_Entry",
             "_source_addr",
             "_dest_addr",
             "_copyout",
@@ -255,12 +260,7 @@ def main() -> int:
         ):
             if symbol_offset(symbols, name, text.paragraph) < split:
                 raise ValueError(f"protected EMS service {name} remains low")
-        for name in (
-            "EMM_Protected_Functions",
-            "EMM_rLink",
-            "dispatch_vector",
-            "int67_Entry",
-        ):
+        for name in ("EMM_rLink",):
             if symbol_offset(symbols, name, text.paragraph) >= split:
                 raise ValueError(f"inactive-query routine {name} is not retained low")
 
@@ -374,9 +374,9 @@ def main() -> int:
         args.check
         and (args.handles, args.alternate_registers, args.ems_pages, args.physical_pages)
         == (64, 7, 64, 4)
-        and runtime_ranges[-1].end > 5600
+        and runtime_ranges[-1].end > 5424
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 5,600 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 5,424 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     print(
         f"\nSelected layout: `H={args.handles}`, `A={args.alternate_registers}`, "

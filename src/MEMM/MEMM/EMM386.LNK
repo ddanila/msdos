@@ -28,6 +28,8 @@ vmtrap+
 vminst+
 iotrap+
 emmpent+
+..\emm\emmp+
+..\emm\emmdisp+
 ..\emm\emminfo+
 ..\emm\emmnames+
 ..\emm\emmattr+
