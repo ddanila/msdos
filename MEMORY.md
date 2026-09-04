@@ -944,6 +944,12 @@ failure point, demonstrating a hidden layout-sensitive return dependency.
 Retry only after the real/virtual return frame and offset ownership are fully
 accounted, and require the complete EMS 4.0 sequence rather than narrow probes.
 
+Inlining the single-use `MaskIntAll` and `RestIntMask` wrappers is likewise
+rejected for now. It reduced the installed allocation from 5,088 to 5,072
+bytes and passed the ordinary EMM386 boot, but the extended EMS 4.0 lifecycle
+hung. Keep the wrappers until the transition return-frame and layout dependency
+is explained; any retry must pass the complete extended sequence.
+
 Three later compaction probes show that the earlier stack fix did not close all
 layout dependencies. Shortening the resident privileged-error dialog by 28
 data bytes moved `_TEXT` one paragraph earlier and stalled `/NUMHANDLES=24`.
@@ -1164,14 +1170,14 @@ it is not a reason to repeat the broad survey. Every such run must use the same
 hardware and startup policy as the MS-DOS comparison, record hashes and public
 memory/API observations, and remain source-free.
 
-| Rank | Externally evidenced technique | Local budget and owner | State and decisive gate |
-| ---: | --- | --- | --- |
+| Priority | Externally evidenced technique | Local budget and owner | State and decisive gate |
+| --- | --- | --- | --- |
 | Paused | Keep the kernel and permanent shell payload in HMA; documented for 286-class HIDOS and measured on both DR-DOS generations | COMMAND is 880 bytes above retail; 15,437 bytes remain in the local DOS-owned HMA tail | First tranche complete: catalogs and the 1,166-byte relocatable code range recover 2,480 paragraph-rounded bytes. Resume only as a coherent interrupt/data redesign with reload, `INT 2Eh`, `INT 24h`, A20, DOS=LOW, `/MSG`, and real-286 gates |
-| 2 | Retain only a small conventional/UMB gateway for the 386 memory manager; OpenDOS reports a 1,200-byte conventional device range and an 800-byte UMB owner | EMM386 is now 960 bytes above retail after moving services, return/A20/NMI trap handling, and protected `RetReal` high | Continue toward the smaller 800-byte owner by redesigning active transition, fault, and DMA entries; all EMS maps, modes, shifted loads, and warm reboot must pass |
-| 3 | Place mutable DOS structures high, then prefer HMA for buffers; DR-DOS 6 measures a 12,800-byte conventional move and documents `HIDOS`/`HIBUFFERS` | The local DOS/BIOS remainder is 8,096 bytes; only 1,216 bytes of UMB advantage may be spent before falling below retail | Classify each owner, then use HMA, relocation-safe XMS, and finally deterministic UMB placement; filesystem, device, redirector, EXEC, A20-off, and rollback paths must pass |
-| 4 | Omit the EMS page frame when applications do not require it | Already represented by the fixed `NOEMS` comparison | Preserve as a configuration choice and test both framed and frameless EMS; it is not an implementation saving |
-| 5 | Recover text-video and low-memory ranges only as explicit compatibility modes | DR-DOS can add 96 KiB of text-video space, but neither ordinary comparison uses it | Excluded from the parity score; any future opt-in mode must withdraw the range before incompatible graphics use |
-| 6 | Relocate EBDA storage | Exactly 1,024 bytes at the fixed ceiling; not used by either ordinary DR-DOS result | Finishing step only, into already-owned proved-safe storage with BIOS, DMA, interrupt, and reboot coverage |
+| 1 | Retain only a small conventional/UMB gateway for the 386 memory manager; OpenDOS reports a 1,200-byte conventional device range and an 800-byte UMB owner | EMM386 is now 960 bytes above retail after moving services, return/A20/NMI trap handling, and protected `RetReal` high | Continue toward the smaller 800-byte owner by redesigning active transition, fault, and DMA entries; all EMS maps, modes, shifted loads, and warm reboot must pass |
+| 2 | Place mutable DOS structures high, then prefer HMA for buffers; DR-DOS 6 measures a 12,800-byte conventional move and documents `HIDOS`/`HIBUFFERS` | The local DOS/BIOS remainder is 8,096 bytes; only 1,216 bytes of UMB advantage may be spent before falling below retail | Classify each owner, then use HMA, relocation-safe XMS, and finally deterministic UMB placement; filesystem, device, redirector, EXEC, A20-off, and rollback paths must pass |
+| Config | Omit the EMS page frame when applications do not require it | Already represented by the fixed `NOEMS` comparison | Preserve as a configuration choice and test both framed and frameless EMS; it is not an implementation saving |
+| Excluded | Recover text-video and low-memory ranges only as explicit compatibility modes | DR-DOS can add 96 KiB of text-video space, but neither ordinary comparison uses it | Excluded from the parity score; any future opt-in mode must withdraw the range before incompatible graphics use |
+| Finish | Relocate EBDA storage | Exactly 1,024 bytes at the fixed ceiling; not used by either ordinary DR-DOS result | Finishing step only, into already-owned proved-safe storage with BIOS, DMA, interrupt, and reboot coverage |
 
 The evidence sources are the vendor [DR-DOS 6 Optimization and Configuration
 Tips](https://bitsavers.org/pdf/novell/dr_dos/DR_DOS_6.0_Optimization_and_Configuration_Tips_199109.pdf),
