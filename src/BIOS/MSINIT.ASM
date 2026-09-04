@@ -57,12 +57,10 @@ Daycnt_to_day	proc	near	;J.K. 4/30/86 for real time clock support
 	mov	bp, daycnt		;keep the working count in a register
 	cmp	bp, (365*20+(20/4)) ;# of days from 1-1-1980 to 1-1-2000
 	jae	century20
-	mov	base_century, 19
-	mov	base_year, 80
+	mov	word ptr base_century, 5013h ;century 19, year 80
 	jmp	years
 century20:				;20th century
-	mov	base_century, 20
-	mov	base_year, 0
+	mov	word ptr base_century, 0014h ;century 20, year 0
 	sub	bp, (365*20+(20/4)) ;adjust daycnt
 years:
 	xor	dx, dx
@@ -136,14 +134,8 @@ EndDaycntToDay label	byte
 Bin_to_bcd	proc	near		;J.K. 4/30/86 for real time clock support
 ;Convert a binary input in AL (less than 63h or 99 decimal)
 ;into a bcd value in AL.  AH destroyed.
-	push	cx
-	xor	ah, ah
-	mov	cl, 10
-	div	cl		;al - high digit for bcd, ah - low digit for bcd
-	mov	cl, 4
-	shl	al, cl		;mov the high digit to high nibble
-	or	al, ah
-	pop	cx
+	aam			;AH = tens, AL = units
+	db	0D5h, 10h	;AAD 16: AL = tens * 16 + units
 	ret
 Bin_to_bcd	endp
 
@@ -1291,13 +1283,10 @@ CheckCMOSClock:
 	sub	cx, si				;size of CMOS clock supporting routine
 	mov	di, ax
 	rep	movsb
-	mov	ax, di
-	call	Get_Para_Offset
-	mov	BinToBCD, ax			;set the address for MSCLOCK
+	mov	BinToBCD, di			;set the address for MSCLOCK
 	mov	cx, offset EndCMOSClockSet
 	mov	si, offset Bin_To_BCD
 	sub	cx, si
-	mov	di, ax
 	rep	movsb
 	mov	ax, di
 	call	Get_Para_Offset
