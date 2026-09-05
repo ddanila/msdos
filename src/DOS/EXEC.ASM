@@ -102,20 +102,23 @@ exec_init_CS	    DW	?
 
 exec_internal_buffer	EQU OpenBuf
 
-exec_signature	    DW	?		; must contain 4D5A  (yay zibo!)
-exec_len_mod_512    DW	?		; low 9 bits of length
-exec_pages	    DW	?		; number of 512b pages in file
-exec_rle_count	    DW	?		; count of reloc entries
-exec_par_dir	    DW	?		; number of paragraphs before image
-exec_min_BSS	    DW	?		; minimum number of para of BSS
-exec_max_BSS	    DW	?		; max number of para of BSS
-exec_SS 	    DW	?		; stack of image
-exec_SP 	    DW	?		; SP of image
-exec_chksum	    DW	?		; checksum  of file (ignored)
-exec_IP 	    DW	?		; IP of entry
-exec_CS 	    DW	?		; CS of entry
-exec_rle_table	    DW	?		; byte offset of reloc table
-Exec_header_len     EQU $-Exec_Signature
+; The MZ header is dead before the relocation reader reuses OpenBuf.  Alias the
+; header fields onto that existing workspace instead of retaining a second
+; 26-byte copy in the TABLE segment.
+exec_signature	    EQU exec_internal_buffer
+exec_len_mod_512    EQU exec_signature+2
+exec_pages	    EQU exec_signature+4
+exec_rle_count	    EQU exec_signature+6
+exec_par_dir	    EQU exec_signature+8
+exec_min_BSS	    EQU exec_signature+10
+exec_max_BSS	    EQU exec_signature+12
+exec_SS 	    EQU exec_signature+14
+exec_SP 	    EQU exec_signature+16
+exec_chksum	    EQU exec_signature+18
+exec_IP 	    EQU exec_signature+20
+exec_CS 	    EQU exec_signature+22
+exec_rle_table	    EQU exec_signature+24
+Exec_header_len     EQU 26
 
 exec_internal_buffer_size   EQU (128+128+53+curdirLEN)
 %out	Please make sure that the following are contiguous and of the
@@ -304,11 +307,11 @@ exec_read_header:
 	JZ	exec_bad_file
 	CMP	AX,exec_header_len	; did we read the right number?
 	JNZ	exec_com_filej		; yep... continue
-	TEST	exec_max_BSS,-1 	; indicate load high?
+	TEST	WORD PTR exec_max_BSS,-1 ; indicate load high?
 	JNZ	exec_check_sig
 	MOV	exec_load_high,-1
 exec_check_sig:
-	MOV	AX,exec_signature
+	MOV	AX,WORD PTR exec_signature
 	CMP	AX,exe_valid_signature	; zibo arises!
 	JZ	exec_save_start 	; assume com file if no signature
 	CMP	AX,exe_valid_old_signature  ; zibo arises!
@@ -321,10 +324,10 @@ exec_com_filej:
 ; We have the program header... determine memory requirements
 ;
 exec_save_start:
-	MOV	AX,exec_pages		; get 512-byte pages
+	MOV	AX,WORD PTR exec_pages	; get 512-byte pages
 	MOV	CL,5			; convert to paragraphs
 	SHL	AX,CL
-	SUB	AX,exec_par_dir 	; AX = size in paragraphs
+	SUB	AX,WORD PTR exec_par_dir ; AX = size in paragraphs
 	MOV	exec_res_len_para,AX
 
 ;
@@ -388,7 +391,7 @@ exec_allocate:
 	cmp	bx,11h
 	jb	short exec_allocate_visible
 	push	ax
-	add	ax,exec_min_BSS
+	add	ax,WORD PTR exec_min_BSS
 	jc	short exec_allocate_upper_too_small
 	cmp	ax,bx
 	pop	ax
@@ -413,12 +416,12 @@ exec_allocate_visible:
 exec_allocate_have_max:
 	TEST	exec_load_high,-1	; if load high, use max
 	JNZ	exec_BX_max		; use max
-	ADD	AX,exec_min_BSS 	; go for min allocation
+	ADD	AX,WORD PTR exec_min_BSS ; go for min allocation
 	JC	exec_no_mem		; oops! carry
 	CMP	AX,BX			; enough space?
 	JA	exec_no_mem		; nope...
-	SUB	AX,exec_min_BSS
-	ADD	AX,exec_max_BSS 	; go for the MAX
+	SUB	AX,WORD PTR exec_min_BSS
+	ADD	AX,WORD PTR exec_max_BSS ; go for the MAX
 	JC	exec_BX_max
 	CMP	AX,BX
 	JBE	exec_got_block
@@ -448,7 +451,7 @@ exec_use_ax:
 ; Determine the location in the file of the beginning of the resident
 ;
 exec_find_res:
-	MOV	DX,exec_par_dir
+	MOV	DX,WORD PTR exec_par_dir
 	PUSH	DX
 	MOV	CL,4
 	SHL	DX,CL			; low word of location
@@ -521,11 +524,11 @@ ExecCheckEnd:
 ;
 exec_do_reloc:
 	MOV	CX,exec_rel_fac
-	MOV	AX,exec_SS		; get initial SS
+	MOV	AX,WORD PTR exec_SS	; get initial SS
 	ADD	AX,CX			; and relocate him
 	MOV	exec_init_SS,AX
 
-	MOV	AX,exec_SP		; initial SP
+	MOV	AX,WORD PTR exec_SP	; initial SP
 	MOV	exec_init_SP,AX
 
 	LES	AX,DWORD PTR exec_IP
@@ -535,7 +538,9 @@ exec_do_reloc:
 	MOV	exec_init_CS,AX
 
 	XOR	CX,CX
-	MOV	DX,exec_rle_table
+	MOV	DX,WORD PTR exec_rle_table
+	MOV	AX,WORD PTR exec_rle_count
+	PUSH	AX			; OpenBuf is reused after this seek
 	MOV	BX,exec_fh
 	PUSH	DS
 	XOR	AX,AX
@@ -543,11 +548,12 @@ exec_do_reloc:
 	POP	DS
 
 	JNC	exec_get_entries
+	POP	AX
 exec_bad_filej:
 	JMP	exec_bad_file
 
 exec_get_entries:
-	MOV	DX,exec_rle_count	; Number of entries left
+	POP	DX			; Number of entries left
 
 exec_read_reloc:
 	ASSUME	DS:NOTHING

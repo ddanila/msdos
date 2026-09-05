@@ -246,7 +246,7 @@ def main() -> int:
         ("Create-mode lookup table", "CREAT001S", "DEV001S"),
         ("Device-character lookup table", "DEV001S", "FCB001S"),
         ("FCB character-class table", "FCB001S", "FCB001E"),
-        ("Module-local validation and lookup data", "FCB001E", "SRVC001S"),
+        ("EXEC launch pointers", "FCB001E", "SRVC001S"),
         ("Server-call dispatch table", "SRVC001S", table_end),
     ]
     print("\n### Retained TABLE ownership\n")
