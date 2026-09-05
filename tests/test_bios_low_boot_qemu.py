@@ -8,12 +8,14 @@ from pathlib import Path
 
 from build_bios_low_image import ROOT, build, run
 from build_bios_high_payload import build as build_high
+from build_bios_activation_fixture import write_fixture
 
 
 def main():
     scratch = Path(tempfile.mkdtemp(prefix="bios-low-boot-", dir=ROOT / "out"))
     manifest = build(scratch)
     high_manifest = build_high(scratch / "high", scratch)
+    write_fixture(scratch, manifest, high_manifest)
     if high_manifest["low_image_sha256"] != manifest["sha256"]:
         raise RuntimeError("high payload was bound against a different low BIOS")
     # Every named low gate/helper imported by the high payload now exists in
@@ -34,10 +36,18 @@ def main():
         "emm-high": (True, "DEVICE=HIMEM.SYS /TESTMEM:OFF\r\n"
                      "DEVICE=EMM386.EXE RAM\r\nDOS=HIGH,UMB\r\n"),
     }
+    variants["live-himem"] = variants["himem-high"]
+    variants["live-emm"] = variants["emm-high"]
+    variants["live-stale-entry"] = variants["himem-high"]
     env = {**os.environ, "MTOOLS_SKIP_CHECK": "1"}
     for name, (high, config) in variants.items():
         probe = scratch / f"{name}.com"
-        run(["nasm", "-f", "bin", f"-I{scratch}/", f"-DEXPECT_HIGH={int(high)}",
+        options = ["-DACTIVATE_HIGH"] if name.startswith("live-") else []
+        negative = name == "live-stale-entry"
+        if negative:
+            options.append("-DOMIT_LIVE_PUBLICATION")
+        run(["nasm", "-f", "bin", f"-I{scratch}/", f"-I{ROOT / 'tests'}/",
+             f"-DEXPECT_HIGH={int(high)}", *options,
              ROOT / "tests/bios_low_boot_probe.asm", "-o", probe], ROOT)
         image = scratch / f"{name}.img"
         shutil.copyfile(ROOT / "out/floppy.img", image)
@@ -60,7 +70,9 @@ def main():
             except subprocess.TimeoutExpired:
                 pass
         result = log.read_bytes()
-        if b"BIOS_LOW_BOOT_PASS" not in result or b"BIOS_LOW_BOOT_FAIL" in result:
+        passed = b"BIOS_LOW_BOOT_PASS" in result
+        if (passed == negative or (passed and b"BIOS_LOW_BOOT_FAIL" in result)
+                or (name.startswith("live-") and b"BIOS_LIVE_READY" not in result)):
             raise RuntimeError(f"FAIL {name}: {log}\n{result.decode(errors='replace')}")
         print(f"PASS {name}: {log}", flush=True)
 

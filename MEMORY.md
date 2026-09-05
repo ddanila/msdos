@@ -1745,8 +1745,10 @@ and low successor chain, plus 12 bytes for the INT 13h tail stub and high target
 slot. The multiplex filter must never call the A20 restorer: E705h itself must
 chain through it to HIMEM without recursive high entry. Both exchanged vectors
 remain authoritative low state; the disk stub preserves the original interrupt
-frame while restoring A20 and tail-jumping to high BLOCK13. Compilation changes
-neither installed IVT vector. Device and interrupt entries together cost 137
+frame while restoring A20 and tail-jumping to high BLOCK13. The default build
+keeps its original vectors. With interrupt entries enabled, RE_INIT installs
+the permanently low multiplex filter before HIMEM hooks the chain, avoiding
+later edits to memory managers' saved successors. Device and interrupt entries together cost 137
 low bytes before shared return/restoration gates and other binding storage.
 
 The runtime probe temporarily publishes these low entries in its own segment.
@@ -1762,9 +1764,9 @@ this does not install the boot-time BIOS relocation or cover all BLOCK13 paths.
 Repeat just these runtime cases with `python3 tests/test_bios_payload_qemu.py
 --mode interrupt-read --mode interrupt-error`; the default still runs every case.
 
-Next, integrate the production device dispatcher and low interrupt entries,
-bind the complete low/high call cycle, and implement the early reclaim
-transaction. Preserve code-table offsets, selected/purged code policy, and
+Next, move the validated late-publication path into the early SYSINIT
+transaction, reserve HMA before buffer construction, and reclaim/coalesce the
+old low range. Preserve code-table offsets, selected/purged code policy, and
 ROM-return contracts when binding.
 
 The combined low-side development image now links MSBIO1, MSDISK, and MSBIO2
@@ -1772,8 +1774,8 @@ with bindings, guarded calls, device/interrupt entries, and result helpers all
 enabled. `LOWBIND.INC` provides the actual low ROM/A20 gates and zeroed high
 import storage. `tests/build_bios_low_image.py` links against the remaining
 normal BIOS objects into a separate output directory; it does not replace the
-normal IO.SYS. All twenty named high-payload import contracts have corresponding
-low symbols (the resident owner segment is supplied separately by the loader).
+normal IO.SYS. All twenty high-payload import contracts are accounted for:
+nineteen named low symbols and the resident owner segment supplied by the loader.
 The high builder's `--low-directory` binds offsets and boot-patch bytes against
 this matching map/binary/image set and records that image's hash.
 
@@ -1789,12 +1791,31 @@ releasing the 3,578-byte service body. That is a gross/net design constraint,
 not a VC saving. The normal image remains byte-identical and all generated
 development images/maps stay under ignored `out/`.
 
-An assembled 5 KiB payload is not yet an installed high BIOS: the old 3,578-byte
-body must actually be released and its low hole coalesced before counting gain.
+The same gate now adds live activation under HIMEM alone and EMM386. A generated
+COM fixture validates the provider, current INT 13h owner, command-table
+targets, and original-or-purged boot patches before reserving HMA. It copies and
+rebases the matched payload, applies the observed patch policy, binds every high
+import and low target, then publishes DSKTBL, INT 13h, and ACTIVE with interrupts
+disabled. INT 2Fh already uses the permanently low filter installed at boot.
+This exercises the actual resident dispatcher and low/high cycle, not private
+BDS or completion fixtures.
 
-The loader has not bound or activated these pointers. Remaining integration
-includes incoming/outgoing control-flow gates, pointer fixups, and early
-low-allocation reclamation. The ownership
+After publication the fixture overwrites the old 3,578-byte service body with
+CLI/HLT pairs. File create/write/seek/read/close/delete, a forced disk flush, and
+a raw INT 13h boot-sector read still pass with both managers; the sector
+signature and buffer guards are checked. A stale-entry control reserves/copies
+the payload but omits publication before poisoning the old body: it reaches the
+pre-I/O marker but cannot pass. These are seven QEMU 486 cases in total (four
+inactive, two live, one negative), not complete media, EXEC, reboot, or hardware
+acceptance. The probe is development-only, uses late HMA allocation, and leaves
+the old allocation in place. It must not be used as a production loader.
+
+The old body must actually be released and its low hole coalesced before
+counting gain. Late live execution is established for these paths; early
+reservation, low-prefix rebasing, transactional failure tests, and the complete
+memory/filesystem/device/hardware regression gates remain.
+
+The normal boot loader has not bound or activated these pointers. The ownership
 audit moved `Prev_DX` into the authoritative low owner; the map checks its
 range and a source guard rejects additional named storage in the service body
 apart from the two code-dispatch tables (stack-frame structure fields allocate

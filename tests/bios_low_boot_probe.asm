@@ -1,6 +1,9 @@
 bits 16
 org 100h
 %include "low-defs.inc"
+%ifdef ACTIVATE_HIGH
+%include "activation-defs.inc"
+%endif
 start:
     mov ax,70h
     mov es,ax
@@ -29,6 +32,9 @@ start:
 %else
     or ax,ax
     jnz fail
+%endif
+%ifdef ACTIVATE_HIGH
+    call activate_live_bios
 %endif
     mov dx,filename
     xor cx,cx
@@ -68,6 +74,25 @@ start:
     mov ah,41h
     int 21h
     jc fail
+%ifdef ACTIVATE_HIGH
+    ; Force BIOS-backed writes, then a raw read through the live INT 13h entry.
+    mov ah,0dh
+    int 21h
+    push cs
+    pop es
+    mov bx,sector
+    mov ax,0201h
+    mov cx,1
+    xor dx,dx
+    int 13h
+    jc fail
+    cmp word [sector+510],0aa55h
+    jne fail
+    cmp word [sector_before],1234h
+    jne fail
+    cmp word [sector_after],5678h
+    jne fail
+%endif
     mov dx,passed
     mov ah,9
     int 21h
@@ -92,3 +117,9 @@ passed db 'BIOS_LOW_BOOT_PASS',13,10,'$'
 failed db 'BIOS_LOW_BOOT_FAIL',13,10,'$'
 slots:
 %include "low-slots.inc"
+%ifdef ACTIVATE_HIGH
+%include "bios_live_activate.inc"
+sector_before dw 1234h
+sector times 512 db 0
+sector_after dw 5678h
+%endif
