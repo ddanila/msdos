@@ -390,6 +390,13 @@ _def_emm_freev	    LABEL   WORD
 _def_pft386v	    LABEL   DWORD
 	DD	EMM_PAGE_CNT DUP(NULL_HANDLE AND 0fffh)
 
+; Runtime-sized handle, mapping, DMA, and alternate-register tables share this
+; overlay.  The original 16 KiB reserve covers only the three maximum page
+; arrays above; H=255 and A=254 with all 52 mapping windows require almost
+; another 32 KiB.  Keep PAGESEG beyond the complete documented option space so
+; initialization cannot overwrite protected code before SHIPHI relocates it.
+	DB	8000h DUP (?)
+
 VDATA	ENDS
 
 

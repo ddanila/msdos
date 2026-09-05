@@ -182,8 +182,8 @@ def main() -> int:
         parser.error("--handles must be in 2..255")
     if not 0 <= args.alternate_registers <= 254:
         parser.error("--alternate-registers must be in 0..254")
-    if not 0 <= args.ems_pages <= 4095:
-        parser.error("--ems-pages must be in 0..4095")
+    if not 0 <= args.ems_pages <= 2048:
+        parser.error("--ems-pages must be in 0..2048")
     if not 0 <= args.physical_pages <= 52:
         parser.error("--physical-pages must be in 0..52")
     if not 0 <= args.page_assignments <= 20:
@@ -464,6 +464,18 @@ def main() -> int:
         cursor += size
     if cursor - static_end > by_name["VDATA"].size:
         raise ValueError("selected runtime data exceeds linked VDATA capacity")
+    maximum_dynamic = (
+        255 * 8
+        + 255 * 4
+        + 255 * 8
+        + 2048 * 8
+        + 52
+        + 20 * 2
+        + 16 * 2
+        + 255 * (1 + 52 * 2)
+    )
+    if args.check and maximum_dynamic > by_name["VDATA"].size:
+        raise ValueError("linked VDATA cannot hold the documented option maxima")
     aligned_stack = (cursor + 15) & ~15
     if aligned_stack > cursor:
         runtime_ranges.append(Range(cursor, aligned_stack, "installed stack alignment"))
