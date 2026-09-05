@@ -118,3 +118,27 @@ BIOS_HMA_SAVED_RETURN:
         popf
         call    BIOS_HMA_ROM_RESTORE
         retf    6
+
+; Tail chain: existing caller frame stays untouched. Caller pushes low vector
+; slot segment/offset and FAR CALLs this gate, but execution never returns to
+; that call site. Discard its high return address and slot arguments, restore
+; all registers/live flags, and transfer to the current low-slot target.
+; Any original return into HMA must already have its own low A20 return gate.
+BIOS_HMA_CHAIN_VECTOR:
+        push    bp
+        mov     bp,sp
+        push    ax
+        push    bx
+        push    ds
+        mov     ds,ss:[bp+8]
+        mov     bx,ss:[bp+6]
+        mov     ax,ds:[bx]
+        mov     ss:[bp+6],ax
+        mov     ax,ds:[bx+2]
+        mov     ss:[bp+8],ax
+        pop     ds
+        pop     bx
+        pop     ax
+        lea     sp,[bp+6]
+        mov     bp,ss:[bp]
+        retf

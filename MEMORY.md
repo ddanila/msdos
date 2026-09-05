@@ -1378,11 +1378,11 @@ flag, forward/backward SI movement, and caller DS checked. Dedicated stack
 operations save the original SP and unwind the same conventional stack without
 overwriting live target words; these are not arbitrary stack-switch helpers.
 The complete separate-data MSDISK object also assembles, using a flag-preserving
-long LOOP trampoline where its enlarged track loop requires one. Its body is currently 5,005
+long LOOP trampoline where its enlarged track loop requires one. Its body is currently 5,025
 bytes versus the installed 3,578-byte body; the added code spends HMA capacity,
 not low-memory savings, once relocation exists. The default build still emits
 byte-identical IO.SYS. A source guard permits only the two IOCTL code-dispatch
-operands and the pending saved INT 2F chain jump as raw CS-relative operations.
+operands as raw CS-relative operations; both tail chains use explicit low gates.
 This is not yet a linked or activated high BIOS: control-flow gateways,
 implicit pointer contracts, owner/offset fixups, and the early reclaim
 transaction remain mandatory work.
@@ -1529,16 +1529,27 @@ All eight direct INT 13h sites and the single INT 1Ah site now use ROM-call
 operations. The normal build emits the original interrupts; the separate-data
 object calls imported far gate pointers. HIGHROM includes the matching low
 timer gate. All eight saved ORIG13 calls also use the explicit low-vector
-operation. Twelve LOW/HIGH disk, vector, timer, and supplied-frame cases pass
+operation. Sixteen LOW/HIGH disk, vector, timer, supplied-frame, and tail-chain cases pass
 with physical A20 disruption and result preservation; supplied-frame cases
 check differing live/frame flags and a changed vector target between calls.
 The missing-A20-restore negative control remains sensitive. A source guard
 rejects raw direct ROM interrupts and CALL ORIG13 in the candidate. The complete
 separate-data object assembles; default IO.SYS remains byte-identical.
 
+`BIOS_HMA_CHAIN_VECTOR` handles the ORIG13 and NEXT2F_13 tail exits. It resolves
+the low slot, discards its own far-call return and slot arguments, preserves
+registers/live FLAGS, and transfers with the original caller frame untouched.
+The target never returns to the high tail site. Four tail cases check both
+return forms, a changed target, differing frame/live FLAGS, balanced SP, and
+A20-off target returns into the original low caller; that caller restores A20
+before its next high entry. An original caller in HMA still needs its own low
+return gateway: this adapter does not make arbitrary high interrupt frames safe.
+Normal builds preserve the old operand widths, including NEXT2F_13's near
+same-segment jump. The relocated path consumes its stored far pointer instead.
+
 The loader has not bound or activated these pointers. Remaining integration
-includes incoming/outgoing control-flow gates, tail chains through ORIG13 and
-NEXT2F_13, pointer fixups, and early low-allocation reclamation. The ownership
+includes incoming/outgoing control-flow gates, pointer fixups, and early
+low-allocation reclamation. The ownership
 audit moved `Prev_DX` into the authoritative low owner; the map checks its
 range and a source guard rejects additional named storage in the service body
 apart from the two code-dispatch tables (stack-frame structure fields allocate

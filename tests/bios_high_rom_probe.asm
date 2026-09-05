@@ -77,7 +77,13 @@ start:
     xor dx,dx
     mov bp,0b00bh
     stc
+%ifdef USE_TAIL
+    push word [cs:supplied_flags]
+%endif
     call far [entry]
+%ifdef USE_TAIL
+    call BIOS_HMA_ROM_RESTORE
+%endif
 %ifdef TEST_TIMER
     pushf
     pop word [first_flags]
@@ -110,7 +116,13 @@ again:
     mov ax,0a111h
     mov bp,0b00bh
     stc
+%ifdef USE_TAIL
+    push word [cs:supplied_flags]
+%endif
     call far [entry]
+%ifdef USE_TAIL
+    call BIOS_HMA_ROM_RESTORE
+%endif
     pushf
     pop word [cs:result_flags]
     cmp sp,[cs:initial_sp]
@@ -313,7 +325,13 @@ BIOS_HMA_INT13:
 
 high_start:
 %ifdef USE_SUPPLIED_FLAGS
+%ifdef USE_TAIL
+    pushf
+    inc word [ss:high_seen]
+    popf
+%else
     push word [ss:supplied_flags]
+%endif
     push word [ss:hook_vector+2]
     push word [ss:vector_slot_offset]
 %else
@@ -324,7 +342,11 @@ high_start:
 %endif
     db 09ah                     ; FAR CALL to the retained low gate
 %ifdef USE_SUPPLIED_FLAGS
+%ifdef USE_TAIL
+    dw BIOS_HMA_CHAIN_VECTOR
+%else
     dw BIOS_HMA_SAVED_VECTOR
+%endif
 %else
 %ifdef USE_SAVED_VECTOR
     dw BIOS_HMA_VECTOR

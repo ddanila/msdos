@@ -39,6 +39,20 @@ BIOS_ROM_ORIG13 MACRO
         ENDIF
 ENDM
 
+; Tail exits retain the original caller frame; the low gate never returns here.
+BIOS_CHAIN_VECTOR MACRO vector,slot_offset
+        IFDEF BIOS_SERVICE_SEPARATE_DATA
+        BIOS_PUSH_DATA_SEG
+        PUSH WORD PTR CS:[slot_offset]
+        CALL DWORD PTR CS:[BIOS_SERVICE_CHAIN_VECTOR_GATE]
+        ELSE
+        ; Preserve legacy operand width: ORIG13 is DWORD, NEXT2F_13 WORD.
+        ; The latter's same-segment near chain uses a stored far pointer whose
+        ; segment becomes necessary only for the separately relocated body.
+        JMP CS:[vector]
+        ENDIF
+ENDM
+
 ; Store the original SP in a fixed low word, not the wrapper's deeper SP.
 ; Address must not depend on BP: BP is temporarily used to recover input SP.
 BIOS_LOW_SAVE_SP MACRO address

@@ -65,7 +65,7 @@ class DataSegmentTests(unittest.TestCase):
 
     def test_remaining_cs_operands_have_explicit_code_or_chain_ownership(self):
         expected = {
-            "MSDSKHIG.INC": ["JMP CS:[NEXT2F_13]"],
+            "MSDSKHIG.INC": [],
             "MSIOCTL.INC": ["CMP AL, CS:[SI]", "CALL CS:[SI]"],
         }
         for name, allowed in expected.items():
@@ -106,6 +106,15 @@ class DataSegmentTests(unittest.TestCase):
                     if declaration:
                         actual.append(declaration[1])
             self.assertEqual(actual, allowed, "new service-body storage needs ownership review")
+
+    def test_tail_chains_use_low_vector_gate(self):
+        code = [(line.split(";", 1)[0].strip().upper()) for line in
+                (ROOT / "src/BIOS/MSDSKHIG.INC").read_text().splitlines()]
+        chains = [line for line in code if line.startswith("BIOS_CHAIN_VECTOR ")]
+        self.assertEqual(chains, ["BIOS_CHAIN_VECTOR ORIG13,BIOS_SERVICE_ORIG13_OFFSET",
+                                  "BIOS_CHAIN_VECTOR NEXT2F_13,BIOS_SERVICE_NEXT2F_OFFSET"])
+        self.assertFalse(any(re.match(r"JMP\s+(?:ORIG13|CS:\[NEXT2F_13\])", line)
+                             for line in code))
 
 
 if __name__ == "__main__":
