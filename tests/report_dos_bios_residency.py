@@ -235,7 +235,7 @@ def main() -> int:
         ("Device-error translation map", "ErrMap24", "MAXCALL"),
         ("INT 21 dispatch table", "MAXCALL", "FOO"),
         ("Internal install-service dispatch", "FOO", "InterChar"),
-        ("Interim-console state and DOS banner", "InterChar", "SysInitTable"),
+        ("Interim-console state and optional banner", "InterChar", "SysInitTable"),
         ("SYSINIT communication table", "SysInitTable", "FastOpenTable"),
         ("FASTOPEN and directory exchange state", "FastOpenTable", "User_SP_2F"),
         ("INT 2F and configuration temporaries", "User_SP_2F", "MSG_EXTERROR"),

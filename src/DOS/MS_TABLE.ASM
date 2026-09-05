@@ -529,8 +529,6 @@ ENDIF
 
 MSTAB001E       label byte
 
-include copyrigh.inc                                                            ;AN000;
-
 ; SYS init extended table,   DOS 3.3   F.C. 5/29/86
 ;
        PUBLIC   SysInitTable

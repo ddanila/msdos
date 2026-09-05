@@ -178,6 +178,11 @@ ASSUME	CS:DOSGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
 INITIRET:			; Temp IRET instruction
 	IRET
 
+; Keep the binary identification record, but do not charge it to the permanent
+; DOS-low table image.  It has no runtime consumer and this segment is retained
+; until initialization finishes.
+INCLUDE COPYRIGH.INC
+
 	entry	DOSINIT
 	CLI
 	CLD
