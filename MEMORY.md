@@ -1695,6 +1695,20 @@ error exits use `BIOS_JUMP_HIGH`, which restores A20 and tail-transfers without
 adding a frame; HARDERR/HARDERR2 must own the saved high disk stack. This must
 not be enabled while mixing an old low DISKIO frame with a high error target.
 
+With `BIOS_SERVICE_LOW_CALLS`, these call/continuation sites now select their
+original low targets until the retained-low `BIOS_SERVICE_ACTIVE` byte is set.
+The guard preserves input flags and adds no surviving stack word. Inactive
+calls do not invoke the A20 restorer or read unbound high targets, so preparing
+bindings cannot prematurely redirect startup. Activation must join device/IVT
+publication in one validated, interrupt-disabled commit with no live low disk
+frame. It is one-way after reclamation; clearing the flag alone is not rollback.
+Native macro execution checks zero, partial, and fully prepared inactive
+bindings, then active near calls and non-local jumps, including carry, result,
+stack balance, and restoration counts. This is a call-selection test with a
+mock restorer, not a booted installer. The guards add low code and one state
+byte that the eventual linked reclaim budget must include; default IO.SYS is
+unchanged. Production high import storage and the boot transaction remain open.
+
 The HMA probe also exercises actual HARDERR2: it saves the original high
 service return SP in private low SPSAV, adds temporary frames, calls a low
 helper that disables A20, then restores A20 and jumps high. HARDERR2 restores

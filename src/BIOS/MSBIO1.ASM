@@ -612,6 +612,12 @@ GETDX	PROC	NEAR
 GETDX	ENDP
 	PAGE
 ;************************************************** ARR 2.15
+	IFDEF BIOS_SERVICE_LOW_CALLS
+	PUBLIC BIOS_SERVICE_ACTIVE
+; One-way commit after full binding/publication; never clear after reclaiming
+; the low body unless that body and all original pointers are reconstructed.
+BIOS_SERVICE_ACTIVE DB 0
+	ENDIF
 
 ;-----------------------------------------------
 ;

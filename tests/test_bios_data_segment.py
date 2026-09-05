@@ -13,11 +13,21 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 class DataSegmentTests(unittest.TestCase):
+    def test_low_call_activation_preserves_cold_boot(self):
+        with tempfile.TemporaryDirectory(prefix="msdos-bios-activation-") as scratch:
+            output = Path(scratch) / "activation.com"
+            subprocess.run([str(ROOT / "bin/jwasm-bin"), f"-I{ROOT / 'src/BIOS'}",
+                            f"-Fo{output}", str(ROOT / "tests/bios_activation_masm.asm")],
+                           check=True, capture_output=True)
+            result = subprocess.run([str(ROOT / "bin/dos-run"), str(output)],
+                                    cwd=ROOT, capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_interrupt_entries_assemble_with_device_entries(self):
         with tempfile.TemporaryDirectory(prefix="msdos-bios-interrupt-") as scratch:
             listing = Path(scratch) / "interrupt.lst"
             built = subprocess.run([str(ROOT / "bin/jwasm-masm"),
-                                    "-I. -I../INC -DBIOS_SERVICE_DEVICE_ENTRIES=1 "
+                                    "-I. -I../INC -DBIOS_SERVICE_DEVICE_ENTRIES=1 -DBIOS_SERVICE_LOW_CALLS=1 "
                                     f"-DBIOS_SERVICE_INTERRUPT_ENTRIES=1 -Fl{listing}",
                                     f"MSBIO1.ASM,{Path(scratch) / 'interrupt.obj'};"],
                                    cwd=ROOT / "src/BIOS", capture_output=True, text=True)

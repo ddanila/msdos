@@ -59,12 +59,24 @@ BIOS_ROM_ORIG13 MACRO
 ENDM
 
 ; LOW-side ordinary near call. Device and interrupt entries need different
-; stack contracts. These imports are published only after high installation.
+; stack contracts. Cold boot and failed preparation retain the low targets.
+; The installer sets ACTIVE only after binding the complete high/low cycle
+; and publishing device/interrupt entries in the same interrupt-disabled commit.
 BIOS_CALL_HIGH MACRO low_target,high_target_slot,high_entry_slot
+        LOCAL low_path,done
         IFDEF BIOS_SERVICE_LOW_CALLS
+        PUSHF
+        CMP BYTE PTR CS:[BIOS_SERVICE_ACTIVE],0
+        JE low_path
+        POPF
         CALL BIOS_HMA_ROM_RESTORE
         PUSH WORD PTR CS:[high_target_slot]
         CALL DWORD PTR CS:[high_entry_slot]
+        JMP SHORT done
+low_path:
+        POPF
+        CALL low_target
+done:
         ELSE
         CALL low_target
         ENDIF
@@ -73,9 +85,17 @@ ENDM
 ; LOW-to-HIGH non-local continuation: preserve the current frame until the
 ; target restores its own saved stack. Not an ordinary service call.
 BIOS_JUMP_HIGH MACRO low_target,high_entry_slot
+        LOCAL low_path
         IFDEF BIOS_SERVICE_LOW_CALLS
+        PUSHF
+        CMP BYTE PTR CS:[BIOS_SERVICE_ACTIVE],0
+        JE low_path
+        POPF
         CALL BIOS_HMA_ROM_RESTORE
         JMP DWORD PTR CS:[high_entry_slot]
+low_path:
+        POPF
+        JMP low_target
         ELSE
         JMP low_target
         ENDIF
