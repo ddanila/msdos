@@ -1174,14 +1174,13 @@ block.
 | 11 | Redesign the DOS-low or COMMAND boundary further | Architectural fallback | Choose the smallest design with a byte budget that covers the remaining measured gap and compatibility margin |
 
 The completed DR-DOS checkpoint sets the architectural order: extend the
-EMM386 low gateway, then apply the DOS placement ladder. Before changing that
-boundary again, close the `M5` plus `DOS=HIGH` transition regression; it is a
-supported configuration and its RAM-mode contrast may expose the missing A20,
-page-map, or return-state invariant. The initial COMMAND/HMA gain is retained,
-but deeper shell work is paused. Recover the bounded EBDA paragraph only near
-the end, and revisit HIMEM only for a measured residual. Recalculate the
-success equation after every retained step and keep both the conventional and
-UMB floors visible.
+EMM386 low gateway, then apply the DOS placement ladder. The `M5` plus
+`DOS=HIGH` transition regression is closed and remains a mandatory gate for
+later boundary changes. The initial COMMAND/HMA gain is retained, but deeper
+shell work is paused. Recover the bounded EBDA paragraph only near the end, and
+revisit HIMEM only for a measured residual. Recalculate the success equation
+after every retained step and keep both the conventional and UMB floors
+visible.
 
 ### DR-DOS clean-room adoption register
 
@@ -1191,11 +1190,14 @@ code is permitted. Runtime inspection is limited to public interfaces,
 allocation maps, addresses, and lifetimes and must not be used to reconstruct
 proprietary instruction sequences.
 
-**Restart priority:** the focused clean-room checkpoint is complete. First fix
-the supported `EMM386 M5` plus `DOS=HIGH` transition, then continue the small
-EMM386 gateway and move eligible DOS state. Further DR-DOS work is limited to a
-targeted unresolved owner, lifetime, or public API question; do not resume a
-general product survey.
+**Restart priority:** the focused clean-room checkpoint and the supported
+`EMM386 M5` plus `DOS=HIGH` transition fix are complete. Continue the small
+EMM386 gateway, then move eligible DOS state through the measured placement
+ladder. Reopen DR-DOS investigation only for a specific unresolved owner,
+lifetime, placement policy, or public API question. Such a checkpoint starts
+with published vendor documentation, then reproduces the pinned comparison and
+varies one documented control; it must not become a general product survey or
+use DR-DOS source code.
 
 Use this sequence:
 
