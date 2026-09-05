@@ -1524,8 +1524,34 @@ The ten matrix cases pass: four memory modes, the same four with SHARE and
 its retained boot cache, forced table-allocation fallback with high ANSI,
 and high ANSI across warm reset. This establishes real-resident coexistence,
 not natural upper-memory exhaustion handling or arbitrary-driver compatibility.
-The broader multi-sector read-to-UMB path still needs a direct data-integrity
-probe and root-cause analysis; bounded overlay reads do not qualify that path.
+The direct `--umb-read` probe confirms an ordinary file-I/O corruption:
+512-byte reads into an allocated UMB pass, but a 513-byte read returns the
+requested count while differing from the source at byte zero. The same
+512/513/4096/8192-byte cases pass in all three conventional-target modes.
+The probe writes a varying-word file, flushes/closes it, seeds the destination,
+compares every requested byte, and checks its immediate guards. The upper run
+stops at the first mismatch; it does not yet qualify the larger upper reads.
+
+```sh
+python3 tests/test_bios_low_boot_qemu.py \
+  --early --tail-body --rebase --compact --umb-read
+```
+
+The leading source-level cause is `MAPDMA.C:SwapDMAPages`: its EMS-window
+membership preflight returns the unmodified linear address when
+`MappableIndex` finds no window. UMB mappings intentionally are not EMS
+windows. Thus CPU-accessible UMB storage is not automatically a valid physical
+ISA DMA destination. The 513-byte request enters the direct-sector path that
+the 512-byte cached copy avoids. This is a strong diagnosis, not yet a verified
+manager fix; bounded overlay reads do not qualify ordinary file I/O.
+
+Next, verify the actual PTE-to-DMA-address transition and add a UMB-aware
+translation path. Check physical contiguity, the ISA address ceiling, and
+64/128 KiB physical boundaries before programming DMA. Non-contiguous ranges
+need a safe transfer policy, not EMS-page swapping of permanent UMB owners or
+silent fallback to their linear addresses. Test reads and writes, aligned and
+unaligned buffers, more than one upper extent, EMS remapping, and the unchanged
+resident tables before closing this promotion gate.
 The process suite independently checks raw overlays of 0, 1, 511, 512, 513,
 9,109, 65,534, and 65,535 bytes in conventional storage. It checks every loaded
 byte and the entire untouched destination tail, including bad-format rejection
