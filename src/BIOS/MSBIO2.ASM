@@ -373,40 +373,18 @@ WRMSG	ENDP
 ;
 
 ;J.K. 10/1/86 *******************************************************
-;Variables for Dynamic Relocatable modules
-;These should be stay resident.
-
-	public	INT6C_RET_ADDR
-INT6C_RET_ADDR	DD	?		; return address from INT 6C for P12 machine
-
 	PATHSTART 001,CLK
 ;
 ;   DATA STRUCTURES FOR REAL-TIME DATE AND TIME
 ;
 	public	BIN_DATE_TIME
-	public	MONTH_TABLE
 	public	DAYCNT2
-	public	FEB29
 BIN_DATE_TIME:
 	DB	0		; CENTURY (19 OR 20) OR HOURS (0-23)
 	DB	0		; YEAR IN CENTURY (0...99) OR MINUTES (0-59)
 	DB	0		; MONTH IN YEAR (1...12) OR SECONDS (0-59)
 	DB	0		; DAY IN MONTH (1...31)
-MONTH_TABLE:			;
-	DW	0		;MJB002 JANUARY
-	DW	31		;MJB002 FEBRUARY
-	DW	59		;MJB002
-	DW	90		;MJB002
-	DW	120		;MJB002
-	DW	151		;MJB002
-	DW	181		;MJB002
-	DW	212		;MJB002
-	DW	243		;MJB002
-	DW	273		;MJB002
-	DW	304		;MJB002
-	DW	334		;MJB002 DECEMBER
 DAYCNT2 DW	0000		;MJB002 TEMP FOR COUNT OF DAYS SINCE 1-1-80
-FEB29	DB	0		;MJB002 FEBRUARY 29 IN A LEAP YEAR FLAG
 	PATHEND 001,CLK
 
 ;********************************************************************

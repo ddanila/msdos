@@ -73,10 +73,18 @@ no_leap_adjustment:		;mjb002 ******* get days of month *******
 	mov	cl,byte ptr bin_date_time+2   ;mjb002 get month
 	xor	ch,ch		;mjb002
 	dec	cx		;mjb002 january starts at offset 0
-	shl	cx,1		;mjb002 word offset
-	mov	si,offset month_table	;mjb002 beginning of month_table
-	add	si,cx		;mjb002 point into month table
-	mov	ax,word ptr [si];mjb002 get # days in previous months
+	xor	ax,ax		;mjb002 sum lengths of preceding months
+	jcxz	month_sum_done
+	mov	bx,0ad5h	;mjb002 bit set for each 31-day month
+month_sum:
+	mov	dx,30
+	shr	bx,1
+	adc	ax,dx
+	loop	month_sum
+	cmp	byte ptr bin_date_time+2,2
+	jbe	month_sum_done
+	sub	ax,2		;mjb002 February has 28 days
+month_sum_done:
 	ADD	CS:DAYCNT2,AX	 ;MJB002 ...				  ;3.30
 r_d_ret:			;mjb002
 	MOV	SI,CS:DAYCNT2	 ;MJB002 RESULT IN SI			  ;3.30
