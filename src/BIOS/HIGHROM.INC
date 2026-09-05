@@ -142,3 +142,31 @@ BIOS_HMA_CHAIN_VECTOR:
         lea     sp,[bp+6]
         mov     bp,ss:[bp]
         retf
+
+; Ordinary near helper in this LOW segment. Caller pushes its low offset and
+; FAR CALLs here. The helper must return normally (RET), not discard frames,
+; unwind SPSAV, or escape into another service continuation.
+BIOS_HMA_NEAR_CALL:
+        push    bp
+        mov     bp,sp
+        push    ax
+        lea     ax,[BIOS_HMA_NEAR_RETURN]
+        push    ax
+        mov     ax,ss:[bp+6]
+        push    ax
+        mov     ax,ss:[bp-2]
+        mov     bp,ss:[bp]
+        ret
+BIOS_HMA_NEAR_RETURN:
+        pushf
+        push    ax
+        push    bp
+        mov     bp,sp
+        mov     ax,ss:[bp+4]
+        mov     ss:[bp+8],ax
+        pop     bp
+        pop     ax
+        add     sp,4
+        popf
+        call    BIOS_HMA_ROM_RESTORE
+        retf    2

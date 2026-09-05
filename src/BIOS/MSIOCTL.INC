@@ -155,7 +155,7 @@ GETDEVICEPARAMETERS PROC NEAR
 ; GET THE CORRECT DISK IN THE DRIVE
 	CALL	CHECKSINGLE
 ; BUILD THE BPB FROM SCRATCH
-	CALL	GETBP
+	BIOS_CALL_LOW GETBP,BIOS_LOW_GETBP
 	JC	GET_PARM_RET
 	LEA	SI,BYTE PTR [DI].BYTEPERSEC
 USE_BPB_PRESENT:
@@ -1173,7 +1173,7 @@ SetMediaID	proc	near
 	      rep  movsb			;AN000;
 	      pop  di				;AN011;Restore BDS pointer
 	      pop  ds				;AN011;
-	      call Mov_Media_IDs		;AN011; Update the BDS media ID info.
+	BIOS_CALL_LOW Mov_Media_IDs,BIOS_LOW_MEDIA_IDS
 	      mov  al, dl			;AN000; set drive number for Boot_IO
 	      BIOS_LOW_MEM MOV,<RFlag>,ROMWRITE,DS		;AN000;
 	      call Boot_IO			;AN000; write it back.
@@ -1276,7 +1276,7 @@ Changeline_Chk	proc	near			;AN010;
 	js	Chln_Chk_Ret			;AN010;Yes, skip it.
 	BIOS_LOW_MEM CMP,<[fHave96]>,1,DS 		;AN011;This ROM support change line?
 	jne	Chln_Chk_Ret			;AN011;
-	call	HasChange			;AN011;This drive support change line?
+	BIOS_CALL_LOW HasChange,BIOS_LOW_HASCHANGE
 	jz	Chln_Chk_Ret			;AN011;do nothing
 ;SB34IOCTL004*****************************************************************
 ;SB	Execute the ROM disk interrupt to check changeline activity. 2 LOCS
@@ -1286,7 +1286,7 @@ Changeline_Chk	proc	near			;AN010;
 ;SB34IOCTL004*****************************************************************
 	jnc	Chln_Chk_Ret			;AN010;no change line activity?
 	BIOS_LOW_MEM MOV,<word ptr [FLAGBITS]>,FCHANGED,DS ;AN010;
-	call	SET_CHANGED_DL			;AN010;Update FLAG in BDS for this physical drive
+	BIOS_CALL_LOW SET_CHANGED_DL,BIOS_LOW_SET_CHANGED
 Chln_Chk_Ret:					;AN010;
 	ret					;AN010;
 Changeline_Chk	endp				;AN010;

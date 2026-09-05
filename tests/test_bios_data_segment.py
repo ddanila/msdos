@@ -116,6 +116,16 @@ class DataSegmentTests(unittest.TestCase):
         self.assertFalse(any(re.match(r"JMP\s+(?:ORIG13|CS:\[NEXT2F_13\])", line)
                              for line in code))
 
+    def test_ordinary_low_calls_exclude_nonlocal_exits(self):
+        ordinary = []
+        for name in ("MSDSKHIG.INC", "MSIOCTL.INC"):
+            for line in (ROOT / "src/BIOS" / name).read_text().splitlines():
+                code = line.split(";", 1)[0].strip().upper()
+                if code.startswith("BIOS_CALL_LOW "):
+                    ordinary.append(code.split()[1].split(",")[0])
+        self.assertEqual(sorted(ordinary), ["GETBP", "HASCHANGE", "MOV_MEDIA_IDS",
+                                           "SET_CHANGED_DL", "SET_CHANGED_DL", "SWPDSK"])
+
 
 if __name__ == "__main__":
     unittest.main()

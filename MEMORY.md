@@ -1378,7 +1378,7 @@ flag, forward/backward SI movement, and caller DS checked. Dedicated stack
 operations save the original SP and unwind the same conventional stack without
 overwriting live target words; these are not arbitrary stack-switch helpers.
 The complete separate-data MSDISK object also assembles, using a flag-preserving
-long LOOP trampoline where its enlarged track loop requires one. Its body is currently 5,025
+long LOOP trampoline where its enlarged track loop requires one. Its body is currently 5,067
 bytes versus the installed 3,578-byte body; the added code spends HMA capacity,
 not low-memory savings, once relocation exists. The default build still emits
 byte-identical IO.SYS. A source guard permits only the two IOCTL code-dispatch
@@ -1529,7 +1529,8 @@ All eight direct INT 13h sites and the single INT 1Ah site now use ROM-call
 operations. The normal build emits the original interrupts; the separate-data
 object calls imported far gate pointers. HIGHROM includes the matching low
 timer gate. All eight saved ORIG13 calls also use the explicit low-vector
-operation. Sixteen LOW/HIGH disk, vector, timer, supplied-frame, and tail-chain cases pass
+operation. Eighteen LOW/HIGH disk, vector, timer, supplied-frame, tail-chain,
+and ordinary-near-helper cases pass
 with physical A20 disruption and result preservation; supplied-frame cases
 check differing live/frame flags and a changed vector target between calls.
 The missing-A20-restore negative control remains sensitive. A source guard
@@ -1546,6 +1547,30 @@ before its next high entry. An original caller in HMA still needs its own low
 return gateway: this adapter does not make arbitrary high interrupt frames safe.
 Normal builds preserve the old operand widths, including NEXT2F_13's near
 same-segment jump. The relocated path consumes its stored far pointer instead.
+
+Six ordinary helper calls (GETBP, Mov_Media_IDs, HasChange, two SET_CHANGED_DL
+sites, and SWPDSK) now use `BIOS_HMA_NEAR_CALL`. It invokes a near helper in
+the retained-low segment, preserves its results, and restores A20 before
+returning high. The LOW/HIGH probes check real disk reads, both synthetic carry
+outcomes, all result registers, changed targets, and balanced stacks. These
+tests validate the gateway, not the six production helper bodies executing in
+a relocated system; recursive low-to-high calls still need entry bindings.
+
+Two outbound calls are deliberately excluded from that contract:
+
+- `CHECKLATCHIO` reaches `RET_NO_ERROR_MAP`, which pops its caller's return
+  address into SI and returns to the next frame. A generic gateway's saved
+  registers would be mistaken for that frame.
+- `CHECKIO` can jump to `HARDERR`/`HARDERR2` in the service body, which restores
+  the saved `SPSAV` stack and exits non-locally. It cannot return through an
+  ordinary wrapper on those paths.
+
+The assembler rejects both targets in `BIOS_CALL_LOW`. Next, give these paths
+explicit normal/error outcomes with caller-owned unwind, or keep the complete
+non-local control-flow group together. Preserve the existing DISKIO_PATCH and
+DSKERR boot-time purge decisions in either design. Do not activate a high body
+with those raw near crossings or assume the fixed image's removed 96-TPI calls
+prove the supported floppy configurations safe.
 
 The loader has not bound or activated these pointers. Remaining integration
 includes incoming/outgoing control-flow gates, pointer fixups, and early

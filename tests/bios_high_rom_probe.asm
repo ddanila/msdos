@@ -111,6 +111,8 @@ start:
     mov byte [synthetic],1
 %ifdef USE_SUPPLIED_FLAGS
     mov word [hook_vector],hook13_alternate
+%elifdef USE_NEAR
+    mov word [hook_vector],hook13_alternate
 %endif
 again:
     mov ax,0a111h
@@ -160,6 +162,10 @@ again:
     inc byte [carry_result]
     jmp again
 checked:
+%ifdef USE_NEAR
+    cmp word [alternate_seen],2
+    jne fail
+%endif
 %ifdef USE_SUPPLIED_FLAGS
     cmp word [frame_seen],3
     jne fail
@@ -310,8 +316,13 @@ hook13:
     add sp,2
     iret
 %else
+%ifdef USE_NEAR
+    popf
+    ret
+%else
     popf
     retf 2                      ; preserve returned flags, discard caller FLAGS
+%endif
 %endif
 
 %ifdef OMIT_A20_RESTORE
@@ -324,6 +335,9 @@ BIOS_HMA_INT13:
 %endif
 
 high_start:
+%ifdef USE_NEAR
+    push word [ss:hook_vector]
+%endif
 %ifdef USE_SUPPLIED_FLAGS
 %ifdef USE_TAIL
     pushf
@@ -341,6 +355,9 @@ high_start:
 %endif
 %endif
     db 09ah                     ; FAR CALL to the retained low gate
+%ifdef USE_NEAR
+    dw BIOS_HMA_NEAR_CALL
+%else
 %ifdef USE_SUPPLIED_FLAGS
 %ifdef USE_TAIL
     dw BIOS_HMA_CHAIN_VECTOR
@@ -355,6 +372,7 @@ high_start:
     dw BIOS_HMA_INT1A
 %else
     dw BIOS_HMA_INT13
+%endif
 %endif
 %endif
 %endif

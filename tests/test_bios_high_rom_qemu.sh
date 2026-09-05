@@ -9,7 +9,7 @@ scratch=$(mktemp -d "$ROOT/out/bios-high-rom.XXXXXX")
 # Keep failed probes recoverable under out/, including image and serial log.
 "$ROOT/bin/jwasm-masm" "-I$ROOT/src/BIOS" \
     "$ROOT/tests/bios_high_rom_gate_masm.asm,$scratch/gate.obj;"
-for mode in LOW HIGH VECTOR_LOW VECTOR_HIGH IRET_LOW IRET_HIGH TIMER_LOW TIMER_HIGH FRAME_LOW FRAME_HIGH FRAME_IRET_LOW FRAME_IRET_HIGH TAIL_LOW TAIL_HIGH TAIL_IRET_LOW TAIL_IRET_HIGH; do
+for mode in LOW HIGH VECTOR_LOW VECTOR_HIGH IRET_LOW IRET_HIGH TIMER_LOW TIMER_HIGH FRAME_LOW FRAME_HIGH FRAME_IRET_LOW FRAME_IRET_HIGH TAIL_LOW TAIL_HIGH TAIL_IRET_LOW TAIL_IRET_HIGH NEAR_LOW NEAR_HIGH; do
     options=(-DEXPECT_LOW)
     dos_mode=LOW
     if [[ "$mode" == *HIGH ]]; then
@@ -23,6 +23,7 @@ for mode in LOW HIGH VECTOR_LOW VECTOR_HIGH IRET_LOW IRET_HIGH TIMER_LOW TIMER_H
     if [[ "$mode" == FRAME_IRET_* ]]; then options+=(-DVECTOR_IRET); fi
     if [[ "$mode" == TAIL_* ]]; then options+=(-DUSE_SUPPLIED_FLAGS -DUSE_TAIL); fi
     if [[ "$mode" == TAIL_IRET_* ]]; then options+=(-DVECTOR_IRET); fi
+    if [[ "$mode" == NEAR_* ]]; then options+=(-DUSE_NEAR); fi
     nasm -f bin -I"$ROOT/src/BIOS/" "${options[@]}" \
         "$ROOT/tests/bios_high_rom_probe.asm" -o "$scratch/probe.com"
     cp "$ROOT/out/floppy.img" "$scratch/$mode.img"

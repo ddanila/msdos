@@ -39,6 +39,23 @@ BIOS_ROM_ORIG13 MACRO
         ENDIF
 ENDM
 
+; Only helpers with ordinary near RET may use this gateway. CHECKIO and
+; CHECKLATCHIO have non-local exits and require separate contracts.
+BIOS_CALL_LOW MACRO target,low_offset
+        IFIDNI <target>,<CHECKIO>
+        .ERR <CHECKIO has a non-local error exit>
+        ENDIF
+        IFIDNI <target>,<CHECKLATCHIO>
+        .ERR <CHECKLATCHIO discards its caller frame>
+        ENDIF
+        IFDEF BIOS_SERVICE_SEPARATE_DATA
+        PUSH WORD PTR CS:[low_offset]
+        CALL DWORD PTR CS:[BIOS_SERVICE_NEAR_CALL_GATE]
+        ELSE
+        CALL target
+        ENDIF
+ENDM
+
 ; Tail exits retain the original caller frame; the low gate never returns here.
 BIOS_CHAIN_VECTOR MACRO vector,slot_offset
         IFDEF BIOS_SERVICE_SEPARATE_DATA
