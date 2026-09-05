@@ -626,7 +626,8 @@ INT 2Fh gateway tranche raises the current result to **609,520 bytes** and
 reduces the gap to **9,216 bytes**. Compacting the BIOS INT 13h vector exchange
 then raises the current result to **609,536 bytes** and leaves **9,200 bytes**.
 Using zero-based head-wrap arithmetic raises it again to **609,552 bytes** and
-leaves **9,184 bytes**.
+leaves **9,184 bytes**. Applying the same sector arithmetic and direct BDS
+field selection raises it to **609,568 bytes** and leaves **9,168 bytes**.
 Exact byte parity is not required, but a large unexplained loss is not
 acceptable.
 
@@ -638,24 +639,24 @@ treating it as an undifferentiated target:
 | Advantage | EMM386 resident allocation | -192 |
 | Open | HIMEM resident excess | 1,488 |
 | Advantage | FILES/FCBS/BUFFERS/LASTDRIVE/STACKS aggregate | -16 |
-| Open | Retained DOS/BIOS pre-shell payload and layout | 6,000 |
+| Open | Retained DOS/BIOS pre-shell payload and layout | 5,984 |
 | Open | COMMAND owner-to-owner span | 880 |
 | Equal | VC owner-to-free span | 0 |
 | Open | Conventional ceiling/EBDA | 1,024 |
-| **Total** | **VC largest-block gap** | **9,184** |
+| **Total** | **VC largest-block gap** | **9,168** |
 
 The earlier 32,928-byte DOS relocation-hole recovery remains closed. Remeasure
 the rows above after each retained change instead of assuming that every byte
-is another oversized component. The 6,000-byte DOS/BIOS row is an exact
+is another oversized component. The 5,984-byte DOS/BIOS row is an exact
 owner-level remainder. Phase A3 now accounts for every byte of both the
-5,392-byte DOS low prefix and the selected 8,416-byte BIOS image. E1 must turn
+5,392-byte DOS low prefix and the selected 8,400-byte BIOS image. E1 must turn
 those ownership ranges into proved address and lifetime contracts.
 
 ## Road to retail-or-better conventional memory
 
 The target is a largest conventional block of at least **618,736 bytes** in the
 fixed VC 4.05 comparison, without reducing supported memory-manager options or
-usable UMB space. The current result is 609,552 bytes, so 9,184 more bytes must
+usable UMB space. The current result is 609,568 bytes, so 9,168 more bytes must
 join the largest free block. Total free memory is supporting evidence, not a
 substitute for this metric: saving bytes below a resident island may leave the
 largest block unchanged.
@@ -665,10 +666,10 @@ symbol responsible for it:
 
 | Workstream | Current excess or opportunity | Cumulative result if fully recovered |
 | --- | ---: | ---: |
-| EMM386 resident allocation | -192 bytes | 609,552 bytes |
-| HIMEM resident allocation | 1,488 bytes | 611,040 bytes |
-| COMMAND resident allocation | 880 bytes | 611,920 bytes |
-| Layout and conventional ceiling | 6,816 bytes | 618,736 bytes |
+| EMM386 resident allocation | -192 bytes | 609,568 bytes |
+| HIMEM resident allocation | 1,488 bytes | 611,056 bytes |
+| COMMAND resident allocation | 880 bytes | 611,936 bytes |
+| Layout and conventional ceiling | 6,800 bytes | 618,736 bytes |
 
 Matching the two oversized named components recovers at most 2,368 bytes
 and therefore cannot meet the goal; layout work is mandatory unless a component
@@ -676,11 +677,11 @@ becomes smaller than retail by the remaining amount.
 
 ### Success equation and critical path
 
-Treat the 9,184-byte gap as a portfolio, not as four independent size targets.
+Treat the 9,168-byte gap as a portfolio, not as four independent size targets.
 For every retained change record:
 
 ```text
-remaining gap = 9,184 - EMM386 gain - HIMEM gain - COMMAND gain
+remaining gap = 9,168 - EMM386 gain - HIMEM gain - COMMAND gain
                          - DOS/layout gain - ceiling gain
 ```
 
@@ -691,12 +692,12 @@ private size: one may beat retail and cover an irreducible difference elsewhere.
 
 The currently proved upper bound from matching the remaining oversized named
 components is 2,368 bytes. Moving the 1 KiB EBDA without allocating a
-replacement block raises that to 3,392 bytes, still leaving **5,792 bytes**.
+replacement block raises that to 3,392 bytes, still leaving **5,776 bytes**.
 The final route must
 therefore include at least one of these outcomes:
 
-- recover at least 5,792 bytes from retained DOS/BIOS layout and fragmentation;
-- make EMM386, HIMEM, or COMMAND collectively at least 5,840 bytes smaller than
+- recover at least 5,776 bytes from retained DOS/BIOS layout and fragmentation;
+- make EMM386, HIMEM, or COMMAND collectively at least 5,824 bytes smaller than
   their retail counterparts; or
 - combine smaller layout and better-than-retail component gains to the same
   total.
@@ -766,7 +767,7 @@ until an A/B image measures them.
 | Paused | Move more COMMAND cold state high or transient | The 1,281-byte normal catalog and 1,166-byte code range are high; 820 of the remaining 955 low service bytes belong to the installed interrupt handler and registered disk callback | under one kilobyte, then better-than-retail opportunities | Resume only as a coherent interrupt/data redesign, not for gateway-scale helpers |
 | 1 | Complete the small EMM386 low gateway backed by locked XMS | Local active EMM386 is 192 bytes below retail after the real IDTR move and the VM-frame scratch compaction around a packed atomic `IRET` | create further better-than-retail headroom | Remaining transition, DMA, and fault gateways; inactive `AUTO`; all EMS maps |
 | 2 | Compact EMM386 runtime-sized metadata and alignment | Physical-page IDs, DMA pages, and mappable-window indexes now scale with the selected layout; measured subranges can supplement the gateway redesign | tens to hundreds of bytes per item | Full `H=`/`A=`/`D=`/banking ranges and EMS 4.0 formats |
-| 3 | Classify and relocate eligible DOS low state | The dispatcher and 652-byte absolute/system/INT 2Fh tranche are high; the local system-to-COMMAND span now costs 7,280 bytes more than retail and leaves 6,000 bytes of measured DOS/BIOS remainder | low kilobytes | Classify the remaining tables and mutable state; some low addresses are ABI/BIOS fixed |
+| 3 | Classify and relocate eligible DOS low state | The dispatcher and 652-byte absolute/system/INT 2Fh tranche are high; the local system-to-COMMAND span now costs 7,264 bytes more than retail and leaves 5,984 bytes of measured DOS/BIOS remainder | low kilobytes | Classify the remaining tables and mutable state; some low addresses are ABI/BIOS fixed |
 | 3 | Remove MCB/alignment islands or change load order | Compare first-free and every allocation boundary | paragraphs to kilobytes | Identical startup files and stable ownership |
 | 3 | Place eligible permanent allocations high | Local UMB advantage over retail is only 1,216 bytes | at most 1,216 bytes without falling below retail UMB capacity | Must not disguise a conventional regression |
 | 4 | Relocate the EBDA into already-owned safe low storage | Exact 1,024-byte ceiling loss is measured | 1,024 bytes | Physical BIOS/DMA access; destination must not consume the gain |
@@ -835,8 +836,8 @@ capture pass.
 | Phase | Area | Experiment | Decision evidence |
 | ---: | --- | --- | --- |
 | Complete A1 | Measurement | Keep VC aggregates and block counts distinct from the earlier raw `MEM /D` process snapshot | The report labels both accounting models and its parser has a local regression test |
-| Complete A2 | Measurement | Reconcile the full VC gap through system, COMMAND, VC, free-block, and ceiling spans, isolating the retained DOS/BIOS remainder | The current report proves `7,280 + 880 + 0 + 1,024 = 9,184`; the component census isolates 6,000 bytes for E1 |
-| Complete A3 | Measurement | Add reproducible HIMEM, EMM386, COMMAND, DOS, and BIOS resident-range reports from their linker maps | HIMEM, EMM386, COMMAND top-level lifetimes, fixed HMA layout, and every byte of the 5,392-byte DOS low prefix and selected 8,416-byte BIOS image are accounted |
+| Complete A2 | Measurement | Reconcile the full VC gap through system, COMMAND, VC, free-block, and ceiling spans, isolating the retained DOS/BIOS remainder | The current report proves `7,264 + 880 + 0 + 1,024 = 9,168`; the component census isolates 5,984 bytes for E1 |
+| Complete A3 | Measurement | Add reproducible HIMEM, EMM386, COMMAND, DOS, and BIOS resident-range reports from their linker maps | HIMEM, EMM386, COMMAND top-level lifetimes, fixed HMA layout, and every byte of the 5,392-byte DOS low prefix and selected 8,400-byte BIOS image are accounted |
 | B1 | HIMEM | Continue the map-guided audit of dispatch, validation, move, lock, A20, HMA, request-header, and error paths; share tails only where outputs and reentrancy agree | Exact XMS 2/3 errors, all A20 backends, HMA, moves, warm reboot, and 286 execution pass |
 | B2 | HIMEM | Audit the move descriptor, UMB transaction records, handle records, counters, sentinels, immutable values, and alignment for narrower or derived representation | Zero-length and 128 handles, 32 UMB extents, rollback, locks, reallocations, and legacy bounce pass |
 | B3 | HIMEM | Move every remaining parser, CPU/memory detection, destructive test, message, and installation temporary beyond the rounded resident break | Map proves no runtime reference crosses the break; normal and maximum option footprints are budgeted |
@@ -1098,7 +1099,7 @@ python3 tests/capture_vc_memory_comparison.py \
   CURRENT.IMG RETAIL-622.IMG out/vc-memory-comparison.md
 ```
 
-The current milestone reproduces 609,552 versus 618,736 bytes, the component
+The current milestone reproduces 609,568 versus 618,736 bytes, the component
 figures below, a conventional ceiling of `9FC0h` versus retail's `A000h`, and
 the 1,216-byte local UMB advantage. This completes the repeatable measurement
 foundation; generated reports remain build evidence rather than tracked
@@ -1108,8 +1109,8 @@ The report also records every VC row's address, block count, grouped payload,
 and owner. These rows belong to the VC snapshot after `MEM` exits; the raw
 `MEM /D` rows were captured while MEM itself was allocated. The two views are
 therefore displayed separately and must not be added together. In the current
-VC snapshot, the grouped `DOS 6.22` payload is 26,240 bytes versus retail's
-18,880, a 7,360-byte difference that includes the memory managers and retained
+VC snapshot, the grouped `DOS 6.22` payload is 26,224 bytes versus retail's
+18,880, a 7,344-byte difference that includes the memory managers and retained
 DOS layout. COMMAND contributes another 880 bytes, while the one-kilobyte
 ceiling difference acts at the opposite end of the largest block. Phase A2
 must decompose that DOS aggregate without mixing in the earlier MEM process
@@ -1119,15 +1120,15 @@ The generated owner-to-owner spans provide an exact top-level reconciliation:
 
 | Span | Difference |
 | --- | ---: |
-| System start through COMMAND start | 7,280 bytes |
+| System start through COMMAND start | 7,264 bytes |
 | COMMAND start through VC start | 880 bytes |
 | VC start through conventional free block | 0 bytes |
 | Conventional ceiling | 1,024 bytes |
-| **Total** | **9,184 bytes** |
+| **Total** | **9,168 bytes** |
 
 The pre-COMMAND system span contains EMM386's 192-byte advantage, a 1,488-byte
 HIMEM excess, and a 16-byte advantage in the other configured system tables.
-Subtracting those measured components leaves **6,000 bytes** of retained
+Subtracting those measured components leaves **5,984 bytes** of retained
 DOS/BIOS payload and layout. Owner-level accounting and A3 are closed; E1 must
 now prove which exact ranges can move or shrink without changing their public,
 interrupt, device, disk, or A20-off contracts.
@@ -1141,14 +1142,14 @@ make test-dos-bios-residency
 For the current build, `DOS_LOW_GATE_END` is 5,381 linked and 5,392
 paragraph-rounded bytes below the HMA. The HMA copy contains 39,440 bytes
 after its fixed `0010h` entry offset, and DOS's `LAST` initialization segment is
-1,795 discardable bytes. The BIOS has 15,854 linked bytes of resident-code
+1,795 discardable bytes. The BIOS has 15,838 linked bytes of resident-code
 capacity and 20,074 discardable SYSINIT bytes; its possible hardware-selected
 resident boundaries range from 8,224 bytes for floppy-only through 12,384 bytes
 when all optional legacy blocks are retained. The fixed QEMU comparison selects
 one hard disk, no 96-TPI or legacy AT-ROM extension, a CMOS clock, and no K09
 extension. `ENDONEHARD` contributes and rounds to 8,320 bytes; the
 contiguous relocated 121-byte day converter and 5-byte BCD converter establish
-the exact `20E0h` or 8,416-byte resident BIOS boundary.
+the exact `20D0h` or 8,400-byte resident BIOS boundary.
 
 The DOS low prefix consists of 3 bytes of loader entry, 1,072 bytes of
 constants, 1,783 bytes of mutable data, 2,365 bytes of tables, 157 bytes of
@@ -1166,8 +1167,8 @@ of FCB character classes, and the remaining communication and lookup tables.
 These are ownership budgets only; E1 must still prove each range's address and
 lifetime contract before selecting HMA, relocation-safe XMS, or UMB storage.
 
-The selected BIOS census likewise covers all 8,416 bytes. Its largest ranges
-are 1,769 bytes of generic disk IOCTL/INT 2F services, 1,575 bytes of core data
+The selected BIOS census likewise covers all 8,400 bytes. Its largest ranges
+are 1,762 bytes of generic disk IOCTL/INT 2F services, 1,575 bytes of core data
 and device headers, 1,480 bytes of disk transfer/error paths, 751 bytes of
 media-change/BPB services, and 741 bytes of sector/low-level I/O. The remaining
 2,098 bytes cover console, auxiliary, printer, clock, model/vector, disk-init,
@@ -1186,13 +1187,13 @@ driver callbacks. It is now released under DOS=HIGH and retained under
 DOS=LOW. The complete 783-byte system-call dispatcher contribution, including
 its 12-byte EMS map, remains linked above that tranche and copied to HMA.
 
-The fixed VC image's grouped pre-MCB payload is 13,808 bytes: the exact
-5,392-byte paragraph-rounded DOS gateway plus the exact 8,416-byte selected
+The fixed VC image's grouped pre-MCB payload is 13,792 bytes: the exact
+5,392-byte paragraph-rounded DOS gateway plus the exact 8,400-byte selected
 BIOS image. The following system MCB contains 12,432 bytes; enumerated
 components occupy 12,320 bytes, leaving 112 bytes. Together with 32 bytes of
-group-level MCB/gap overhead, these ranges account for the current 13,952-byte
+group-level MCB/gap overhead, these ranges account for the current 13,936-byte
 non-component system footprint. Retail's corresponding remainder is 7,952
-bytes, producing the already measured 6,000-byte excess. The likely
+bytes, producing the already measured 5,984-byte excess. The likely
 large gains are therefore a smaller DOS low-gateway architecture and BIOS
 resident-code compaction; the 112-byte system-MCB residue and alignment are
 bounded secondary opportunities.
@@ -1211,8 +1212,8 @@ block.
 | Complete | Close the EMM386 mode-transition regression | Narrowed EMS counters retained stale 16-bit C declarations and two FRS paths retained word reads; inactive modes also disabled physical A20 despite an enabled logical client state | C and assembly widths now agree, the return path preserves logical A20 state, and default, `AUTO`, `RAM`, and `NOEMS` boot with `DOS=HIGH` in the address-phase gate |
 | 2 | Complete the EMM386 low gateway | The active 3,936-byte allocation is 192 bytes below retail after loading the real IDTR before clearing PE and compacting VM-frame scratch around a packed atomic `IRET`; the required registers, segments, flags, and interrupt-state contracts remain intact | Redesign the remaining transition, DMA, and fault gateways for further headroom; preserve inactive `AUTO` and every EMS map |
 | 2 | Compact EMM386 metadata while changing that boundary | The loader stack is discarded, duplicate PTE offsets and inverse segment index are gone, physical-window segments, public `Pn=` identifiers, DMA pages, mappable-window indexes, bounded counters, and parity-vector state are runtime-sized, narrowed, derived, shared, or protected-high; protected entry/services/helpers are high, the two-function control gateway is table-free, the production GDT omits six debugger and six unused legacy descriptors, and `NOHIMEM` hooks are absent | Take further independently testable VDATA, table, and alignment wins only when they create better-than-retail margin or support the gateway design |
-| 5 in progress | Census and relocate eligible DOS low state | The dispatcher and contiguous 652-byte absolute/system/INT 2Fh tranche are HMA-resident under DOS=HIGH, reducing the DOS gateway to 5,392 bytes and the DOS/BIOS remainder to 6,000 bytes | Classify the remaining tables and mutable state, then apply HMA, relocation-safe XMS, and bounded UMB placement |
-| 6 in progress | Compact the selected BIOS resident image | Part of the same 6,000-byte remainder; the fixed hardware path is now exactly 8,416 bytes | Continue map-guided compaction without changing BIOS-visible services |
+| 5 in progress | Census and relocate eligible DOS low state | The dispatcher and contiguous 652-byte absolute/system/INT 2Fh tranche are HMA-resident under DOS=HIGH, reducing the DOS gateway to 5,392 bytes and the DOS/BIOS remainder to 5,984 bytes | Classify the remaining tables and mutable state, then apply HMA, relocation-safe XMS, and bounded UMB placement |
+| 6 in progress | Compact the selected BIOS resident image | Part of the same 5,984-byte remainder; the fixed hardware path is now exactly 8,400 bytes | Continue map-guided compaction without changing BIOS-visible services |
 | 7 | Remove MCB, allocation-order, and paragraph fragmentation | 112 bytes inside the system MCB plus 32 bytes group-level overhead are bounded; further islands need a live map | Make every recovered paragraph grow VC's largest block rather than a separate hole |
 | 8 | Place eligible permanent allocations in existing UMBs | Local free UMB exceeds retail by only 1,216 bytes | Accept only deterministic placement that leaves at least 47,888 usable UMB bytes |
 | 9 | Recover the EBDA ceiling paragraph | Exactly 1,024 bytes | Use already-owned proved-safe storage, update the BDA atomically, then test BIOS, DMA, interrupts, and reboot |
@@ -1296,7 +1297,7 @@ fallbacks for unresolved owner, lifetime, or public API questions.
 | --- | --- | --- | --- |
 | Paused | Keep the kernel and permanent shell payload in HMA; documented for 286-class HIDOS and measured on both DR-DOS generations | COMMAND is 880 bytes above retail; 15,485 bytes remain in the local DOS-owned HMA tail | First tranche complete: catalogs and the 1,166-byte relocatable code range recover 2,480 paragraph-rounded bytes. Resume only as a coherent interrupt/data redesign with reload, `INT 2Eh`, `INT 24h`, A20, DOS=LOW, `/MSG`, and real-286 gates |
 | 1 | Retain only a small conventional/UMB gateway for the 386 memory manager; OpenDOS reports a 1,200-byte conventional device range and an 800-byte UMB owner | Active EMM386 is 192 bytes below retail after the real IDTR move and VM-frame scratch compaction around a packed atomic `IRET`; services, return/A20/NMI trap handling, protected `RetReal`, stack-selector conversion, OEM mapping/parity handling, parity-vector state, and the `GoVirtual` continuation are high | Continue toward the smaller owner by redesigning remaining transition, fault, and DMA entries; all EMS maps, modes, shifted loads, and warm reboot must pass |
-| 2 | Place mutable DOS structures high, then prefer HMA for buffers; DR-DOS 6 measures a 12,800-byte conventional move and documents `HIDOS`/`HIBUFFERS` | The dispatcher and absolute/system/INT 2Fh tranche are high and the local DOS/BIOS remainder is 6,000 bytes; only 1,216 bytes of UMB advantage may be spent before falling below retail | Classify each remaining owner, then use HMA, relocation-safe XMS, and finally deterministic UMB placement; filesystem, device, redirector, EXEC, A20-off, and rollback paths must pass |
+| 2 | Place mutable DOS structures high, then prefer HMA for buffers; DR-DOS 6 measures a 12,800-byte conventional move and documents `HIDOS`/`HIBUFFERS` | The dispatcher and absolute/system/INT 2Fh tranche are high and the local DOS/BIOS remainder is 5,984 bytes; only 1,216 bytes of UMB advantage may be spent before falling below retail | Classify each remaining owner, then use HMA, relocation-safe XMS, and finally deterministic UMB placement; filesystem, device, redirector, EXEC, A20-off, and rollback paths must pass |
 | Config | Omit the EMS page frame when applications do not require it | Already represented by the fixed `NOEMS` comparison | Preserve as a configuration choice and test both framed and frameless EMS; it is not an implementation saving |
 | Excluded | Recover text-video and low-memory ranges only as explicit compatibility modes | DR-DOS can add 96 KiB of text-video space, but neither ordinary comparison uses it | Excluded from the parity score; any future opt-in mode must withdraw the range before incompatible graphics use |
 | Finish | Relocate EBDA storage | Exactly 1,024 bytes at the fixed ceiling; not used by either ordinary DR-DOS result | Finishing step only, into already-owned proved-safe storage with BIOS, DMA, interrupt, and reboot coverage |
@@ -2326,6 +2327,18 @@ result. Paired VC reaches 609,552 bytes, leaving a 9,184-byte gap and unchanged
 49,104-byte free UMB capacity. The vector-exchange probe, multitrack and raw
 disk paths, SMARTDRV, SYS, FORMAT, and 286/386/486 matrix pass locally.
 
+The sector half of `CHECK_WRAP` now divides `sector - 1`, making the quotient
+the head increment and the remainder the zero-based sector; incrementing only
+the remainder restores the BIOS one-based sector. This removes the former
+zero-remainder branch. `SETDRIVE` now stores the selected BDS field offset
+rather than a boolean and compares either adjacent `DRIVENUM` or `DRIVELET`
+through one indexed path; a build-time assertion protects that adjacency.
+Together with fall-through head cleanup, the selected BIOS falls from 8,416 to
+8,400 bytes. Paired VC receives all 16 bytes at 609,568, leaving a 9,168-byte
+gap and the same 49,104 free UMB bytes. The direct vector exchange, logical and
+physical disk selection, multitrack/raw I/O, SMARTDRV, SYS, FORMAT, and
+286/386/486 gates pass locally.
+
 Selected-BIOS compaction removes the now-unused century/year globals, keeps the
 temporary CMOS day count in preserved `BP` and century/year in the returned
 `CL`/`CH` registers, makes the division remainder one-based, records the leap
@@ -2868,7 +2881,7 @@ bytes at `CC00h` and 32,752 bytes at `E000h`. Retail exposes 15,152 bytes near
 upper-memory bytes. VC hides the first local region only while the public chain
 is unlinked; this is reporting state, not lost memory.
 
-The current 609,552-byte largest block is 9,184 bytes (1.5%) below retail and
+The current 609,568-byte largest block is 9,168 bytes (1.5%) below retail and
 every material difference is assigned to a measured component or layout
 workstream above. This is an explained baseline, not completion: the fixed
 comparison must reach at least 618,736 bytes without reducing option capacity
