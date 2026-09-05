@@ -2128,6 +2128,20 @@ that their earlier failure followed downstream placement, not internal
 `R_CODE` offsets, and preserves all supported modes without charging the active
 fixed comparison.
 
+The next paragraph is not yet safe to release. Shortening three independent
+low-gateway branches by 16 bytes moves the selected active layout from 4,096 to
+4,080 bytes; the basic API and address-phase probes pass, but the EMS 4.0
+function 56h segment-map-and-call case does not. An instruction trace shows
+the failed protected request returning to EMM386's own trapped `INT 67h`
+opcode, then recursively dispatching `AX=5601h` while the client stack falls by
+ten bytes per iteration. The physical-map form immediately before it completes.
+Changing the common trapped-return IP advances execution but breaks earlier
+directory results, so that is not a valid fix. Before releasing this paragraph,
+identify why the segment-form map takes its normal error return, then make the
+internal gateway unwind that result without changing successful EMS register
+contracts. Retain 4,096 bytes until the complete EMS 4.0, mode, mapping,
+capacity, shifted-load, warm-reboot, and hardware gates pass at 4,080 bytes.
+
 Selected-BIOS compaction removes the now-unused century/year globals, keeps the
 temporary CMOS day count in preserved `BP` and century/year in the returned
 `CL`/`CH` registers, makes the division remainder one-based, records the leap
