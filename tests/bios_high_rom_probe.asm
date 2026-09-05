@@ -54,6 +54,7 @@ start:
     mov ax,2513h
     int 21h
     mov byte [hooked],1
+    mov [hook_vector+2],cs
 
     ; Real sector read through the gate and an A20-disabling ROM wrapper.
     push cs
@@ -62,6 +63,7 @@ start:
     mov bx,sector
     mov cx,1
     xor dx,dx
+    mov bp,0b00bh
     call far [entry]
     jc fail
     cmp word [sector+510],0aa55h
@@ -74,6 +76,8 @@ start:
     ; Both carry outcomes and all ordinary result registers must survive.
     mov byte [synthetic],1
 again:
+    mov ax,0a111h
+    mov bp,0b00bh
     call far [entry]
     pushf
     pop word [cs:result_flags]
@@ -114,6 +118,8 @@ again:
 checked:
     cmp word [high_seen],3
     jne fail
+    cmp word [input_seen],3
+    jne fail
 %ifdef EXPECT_HIGH
     cmp word [disabled_seen],3
     jne fail
@@ -151,6 +157,17 @@ unhook:
     ret
 
 hook13:
+    pushf
+    cmp bp,0b00bh
+    jne .bad_input
+    cmp byte [cs:synthetic],0
+    je .input_ok
+    cmp ax,0a111h
+    jne .bad_input
+.input_ok:
+    inc word [cs:input_seen]
+.bad_input:
+    popf
     cmp byte [cs:synthetic],0
     jne .synthetic
     pushf
@@ -198,8 +215,22 @@ hook13:
     pop ds
 %endif
     pop ax
+%ifdef VECTOR_IRET
+    ; Move the captured result flags into the original interrupt frame while
+    ; retaining result AX/BP, then exercise the conventional IRET return.
+    push bp
+    mov bp,sp
+    push ax
+    mov ax,[ss:bp+2]
+    mov [ss:bp+8],ax
+    pop ax
+    pop bp
+    add sp,2
+    iret
+%else
     popf
     retf 2                      ; preserve returned flags, discard caller FLAGS
+%endif
 
 %ifdef OMIT_A20_RESTORE
 ; Negative control: identical high caller, but no low A20 restoration.
@@ -211,8 +242,16 @@ BIOS_HMA_INT13:
 %endif
 
 high_start:
+%ifdef USE_SAVED_VECTOR
+    push word [ss:hook_vector+2]
+    push word [ss:hook_vector]
+%endif
     db 09ah                     ; FAR CALL to the retained low gate
+%ifdef USE_SAVED_VECTOR
+    dw BIOS_HMA_VECTOR
+%else
     dw BIOS_HMA_INT13
+%endif
 high_gate_segment:
     dw 0                        ; patched after copying to allocated HMA offset
     ; Preserve the ROM result flags and registers while marking high execution.
@@ -224,6 +263,8 @@ high_end:
 
 entry dw 0,0
 old13 dd 0
+hook_vector dw hook13,0
+input_seen dw 0
 hooked db 0
 synthetic db 0
 carry_result db 0

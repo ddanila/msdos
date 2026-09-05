@@ -1466,6 +1466,20 @@ marker but cannot pass, confirming sensitivity to the missing gate operation.
 This validates one executable boundary, not the complete BIOS relocation,
 foreign-provider behavior, a real 286, or any additional conventional saving.
 
+The same include now supplies `BIOS_HMA_VECTOR` for the eight saved-ORIG13
+calls in the candidate body. Its private stack interface is: push target
+segment, push target offset, far-call the gate; it consumes the target words.
+It constructs an interrupt frame without changing input AX/BP, accepts either
+IRET or RETF 2 from the target, and restores physical A20 through the shared
+result-preserving low helper. Temporary state stays on the conventional stack,
+not in a global scratch slot. This is an interrupt-vector gateway, not a
+generic RETF-only device entry or a direct replacement for an interrupt-chain
+tail jump. The six positive local cases now cover direct INT 13h plus both
+saved-vector return forms in DOS=LOW/HIGH; each checks a real read, synthetic
+results, input AX/BP, and balanced SP. The missing-restore control still fails.
+Production dispatch/data separation and the early relocation transaction remain
+the next integration work; these gates alone do not release the BIOS body.
+
 `DOS_HMA_RELOCATE` in `src/DOS/MS_CODE.ASM` already copies the entire DOS image
 from offset `0010h` through `SYSBUF` to the same offsets in segment `FFFFh`.
 The 39,456-byte HMA image therefore includes the tables and data below

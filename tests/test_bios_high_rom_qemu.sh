@@ -9,14 +9,20 @@ scratch=$(mktemp -d "$ROOT/out/bios-high-rom.XXXXXX")
 # Keep failed probes recoverable under out/, including image and serial log.
 "$ROOT/bin/jwasm-masm" "-I$ROOT/src/BIOS" \
     "$ROOT/tests/bios_high_rom_gate_masm.asm,$scratch/gate.obj;"
-for mode in LOW HIGH; do
+for mode in LOW HIGH VECTOR_LOW VECTOR_HIGH IRET_LOW IRET_HIGH; do
     options=(-DEXPECT_LOW)
-    if [[ "$mode" == HIGH ]]; then options+=(-DEXPECT_HIGH); fi
+    dos_mode=LOW
+    if [[ "$mode" == *HIGH ]]; then
+        options+=(-DEXPECT_HIGH)
+        dos_mode=HIGH
+    fi
+    if [[ "$mode" == VECTOR_* || "$mode" == IRET_* ]]; then options+=(-DUSE_SAVED_VECTOR); fi
+    if [[ "$mode" == IRET_* ]]; then options+=(-DVECTOR_IRET); fi
     nasm -f bin -I"$ROOT/src/BIOS/" "${options[@]}" \
         "$ROOT/tests/bios_high_rom_probe.asm" -o "$scratch/probe.com"
     cp "$ROOT/out/floppy.img" "$scratch/$mode.img"
     mcopy -o -i "$scratch/$mode.img" "$scratch/probe.com" ::BIOROM.COM
-    printf 'DEVICE=A:\\HIMEM.SYS /TESTMEM:OFF\r\nDOS=%s\r\n' "$mode" \
+    printf 'DEVICE=A:\\HIMEM.SYS /TESTMEM:OFF\r\nDOS=%s\r\n' "$dos_mode" \
         | mcopy -o -i "$scratch/$mode.img" - ::CONFIG.SYS
     printf '@ECHO OFF\r\nCTTY AUX\r\nBIOROM.COM\r\n' \
         | mcopy -o -i "$scratch/$mode.img" - ::AUTOEXEC.BAT
@@ -26,11 +32,11 @@ for mode in LOW HIGH; do
         -drive "if=floppy,index=0,format=raw,file=$scratch/$mode.img,cache=writethrough" \
         > "$scratch/$mode.log" 2>&1 || true
     if ! rg -q 'BIOS_HIGH_ROM_PASS' "$scratch/$mode.log"; then
-        echo "FAIL: DOS=$mode BIOS ROM-return boundary; evidence: $scratch"
+        echo "FAIL: $mode BIOS ROM-return boundary; evidence: $scratch"
         sed -n '1,120p' "$scratch/$mode.log"
         exit 1
     fi
-    echo "PASS: DOS=$mode BIOS ROM-return boundary ($scratch/$mode.log)"
+    echo "PASS: $mode BIOS ROM-return boundary ($scratch/$mode.log)"
 done
 nasm -f bin -I"$ROOT/src/BIOS/" -DEXPECT_HIGH -DOMIT_A20_RESTORE \
     "$ROOT/tests/bios_high_rom_probe.asm" -o "$scratch/broken.com"
