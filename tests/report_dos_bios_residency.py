@@ -76,6 +76,8 @@ def main() -> int:
     parser.add_argument("--buffers", type=int, default=15)
     parser.add_argument("--sector-size", type=int, default=512)
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--tail-body", action="store_true",
+                        help="audit the development BIOS with its fallback disk body after initialization")
     args = parser.parse_args()
 
     dos_segments, dos_symbols = parse_map(args.dos_map)
@@ -393,6 +395,14 @@ def main() -> int:
         ("Clock swap state", "CLK001S", "ENDFLOPPY"),
         ("First hard-disk descriptor", "ENDFLOPPY", "ENDONEHARD"),
     ]
+    if args.tail_body:
+        # The original disk body is outside the permanent low image. Its
+        # READ_SECTOR/IOCTL symbols must not be used as low range boundaries.
+        first = next(i for i, row in enumerate(selected_bios_ranges)
+                     if row[0] == "Media-change and BPB services")
+        selected_bios_ranges[first:first + 4] = [
+            ("Media/BPB services and high-service bindings", "MEDIA$CHK", "DISK005S")
+        ]
     print("\n### Selected resident BIOS ownership\n")
     print("| Source range | Bytes | Owner |")
     print("| ---: | ---: | --- |")
@@ -419,9 +429,14 @@ def main() -> int:
     service_start = require(bios_symbols, "BIOS_SERVICE_START")
     service_end = require(bios_symbols, "BIOS_SERVICE_END")
     service_bytes = service_end - service_start
-    if not (0 <= service_start < service_end <= selected_base):
+    if args.tail_body:
+        if not (selected_base < require(bios_symbols, "END$") <= service_start
+                < service_end <= bios_code.size):
+            errors.append("fallback disk body is not wholly after permanent BIOS and initialization")
+    elif not (0 <= service_start < service_end <= selected_base):
         errors.append("BIOS service candidate is outside the selected low image")
-    if service_start != require(bios_symbols, "READ_SECTOR") or service_end > require(bios_symbols, "DISK005S"):
+    if service_start != require(bios_symbols, "READ_SECTOR") or (
+            not args.tail_body and service_end > require(bios_symbols, "DISK005S")):
         errors.append("BIOS service symbols do not bound the selected disk body")
     ioctl_low_start = require(bios_symbols, "BIOS_IOCTL_LOW_START")
     ioctl_low_end = require(bios_symbols, "BIOS_IOCTL_LOW_END")
@@ -440,7 +455,12 @@ def main() -> int:
     print("\n### Bulk-placement design budget (not achieved savings)\n")
     print("| Candidate | Current bytes | Unproved prerequisite |")
     print("| --- | ---: | --- |")
-    print(f"| BIOS_SERVICE_START..BIOS_SERVICE_END | {service_bytes:,} | split CS-relative low data, near control flow, and ROM-return gates |")
+    if args.tail_body:
+        print(f"| Fallback disk body (outside permanent low image) | {service_bytes:,} | already excluded from the selected low boundary; no additional saving |")
+        character_services = require(bios_symbols, "Fat_12_ID") - require(bios_symbols, "CON$READ")
+        print(f"| Console/serial/printer/clock service bodies | {character_services:,} | keep low device entries and ROM-return/A20 gates; subtract gateway costs |")
+    else:
+        print(f"| BIOS_SERVICE_START..BIOS_SERVICE_END | {service_bytes:,} | split CS-relative low data, near control flow, and ROM-return gates |")
     print(f"| Entire DOS low prefix | {rounded(low_gate):,} | subtract mandatory public anchors, stacks, and entry gates |")
     print(f"| Initial DOS-owned HMA tail | {hma_slack:,} | subtract COMMAND and every other reservation before choosing destinations |")
     print("\nThe candidate sizes are inventories, not guaranteed gains or a sum to")

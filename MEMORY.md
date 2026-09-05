@@ -89,6 +89,45 @@ EMM386 alone. OpenDOS's integrated provider is an experimental lead, not proof
 that merging our providers removes their summed allocations. Keep third-party
 XMS support and the 286 path when evaluating a shared-provider design.
 
+### Development placement budget: remaining BIOS is not another disk body
+
+Use `report_dos_bios_residency.py --check --tail-body DOS.MAP BIOS.map` for
+the development tail-body layout. Each tail-body boot test now retains this
+checked census as `residency.md` beside its image. The normal census remains
+separate: its disk-service symbols cannot delimit the development low image,
+because the fallback disk body has moved past initialization code.
+
+The development selected low BIOS is 5,152 bytes, fully partitioned as follows:
+
+| Retained allocation group | Bytes | Placement constraint |
+| --- | ---: | --- |
+| Loader, core device/data state and format descriptors | 1,841 | Device headers, DMA-facing buffers and mutable request state need stable low owners |
+| Strategy, request dispatch and existing high gates | 649 | External device entries and A20-safe returns must remain accessible |
+| Console, serial, printer and clock service bodies | 837 | Candidate high code; ROM/driver returns need low A20 gates |
+| Disk media constants | 44 | Inventory only, not a separate optimization tranche |
+| Media/BPB services and high-service bindings | 911 | Mixed code, helpers and bindings; not wholly movable |
+| BIOS model and saved-vector state | 264 | Interrupt and boot restoration ownership |
+| Disk initialization/reinitialization | 356 | Cannot discard based on its name; runtime reinitialization must survive |
+| Clock swap state and first hard-disk descriptor | 108 | Live state, not disposable boot storage |
+| Copied CMOS conversion helpers | 126 | Candidate code; include clock call/return contracts |
+| Alignment | 16 | Count only after the entire layout is repacked |
+| **Total** | **5,152** | No new saving claimed |
+
+The 3,578-byte fallback disk body is already outside this total. Counting it
+again as a new opportunity would double-count the completed disk placement.
+Even the 837-byte character/clock body plus 126-byte CMOS helpers cannot close
+the remaining 4,288-byte gap. Their 963-byte gross inventory precedes gateway
+and alignment costs; it is not a sufficient next architectural milestone.
+
+The placement design must therefore include another substantial owner: eligible
+DOS state, COMMAND's complete resident interface/state split, or the combined
+XMS/EMS low interface. Do not defer those ownership decisions behind serial
+small BIOS moves. Keep the 2,288-byte CDS allocation and interrupt-stack block
+low until their public-pointer/A20 contracts have an acceptable destination;
+the 16-byte UMB margin rules out simply copying DR-DOS's upper-data policy.
+The next design checkpoint remains open until exact net released intervals
+cover the gap; the census supplies bounds, not that proof.
+
 ## Public behavior
 
 The system reports DOS 6.22 consistently through `INT 21h/AH=30h`,

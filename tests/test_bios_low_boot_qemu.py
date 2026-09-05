@@ -4,6 +4,7 @@ import os
 import argparse
 import shutil
 import subprocess
+import sys
 import struct
 import socket
 import json
@@ -156,6 +157,11 @@ def main():
             run(["nasm", "-f", "bin", "-DNO_DEBUG_EXIT", ROOT / "tests/int21_compat_probe.asm",
                  "-o", scratch / "I21COMP.COM"], ROOT)
     write_fixture(scratch, manifest, high_manifest)
+    if args.tail_body:
+        with (scratch / "residency.md").open("w") as census:
+            subprocess.run([sys.executable, ROOT / "tests/report_dos_bios_residency.py",
+                            "--check", "--tail-body", ROOT / "src/DOS/MSDOS.MAP",
+                            scratch / "msBIO.map"], stdout=census, check=True)
     if high_manifest["low_image_sha256"] != manifest["sha256"]:
         raise RuntimeError("high payload was bound against a different low BIOS")
     # Every named low gate/helper imported by the high payload now exists in
