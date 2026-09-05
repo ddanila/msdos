@@ -46,6 +46,17 @@ check_public_graph:
     pop es
     push es
     les si,[es:bx+PUB_SYSI_FCB]
+%ifdef EXPECT_FCB_REPLACED
+    ; SHARE replaces the default 4,0 cache with its own resident 16,8 cache.
+    ; This is the active cache exercised by I21FCB, not the retired boot cache.
+    cmp word [es:si+PUB_SFCOUNT],16
+    jne fail
+    cmp word [es:si+PUB_SFLINK],0ffffh
+    jne fail
+    mov ax,es
+    cmp ax,0a000h
+    jae fail
+%else
     cmp word [es:si+PUB_SFCOUNT],4
     jne fail
     mov ax,es
@@ -56,6 +67,7 @@ check_public_graph:
 %else
     cmp ax,0a000h
     jae fail
+%endif
 %endif
     pop es
 %endif

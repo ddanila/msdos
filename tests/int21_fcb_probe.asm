@@ -25,6 +25,15 @@ start:
     mov dx, fail_resize
     jmp fail
 .resized:
+%ifdef REQUIRE_SHARE
+    mov ax, 1000h
+    int 2fh
+    cmp al, 0ffh
+    je .share_present
+    mov dx, fail_share_missing
+    jmp fail
+.share_present:
+%endif
 
     mov si, 18h
     mov di, initial_jfn_table
@@ -43,7 +52,7 @@ start:
     jne jfn_failed
     cmp word [file_fcb + 14], 128
     je record_size_ok
-    mov dx, fail_16
+    mov dx, fail_record_size
     jmp fail
 record_size_ok:
 
@@ -249,6 +258,7 @@ check_jfn_table:
     ret
 
 fail:
+    mov [failure_return], ax
     push dx
     mov ax,5900h
     xor bx,bx
@@ -260,6 +270,19 @@ fail:
     mov dx, extended_error_message
     mov ah, 09h
     int 21h
+    call print_hex
+    mov dx, return_message
+    mov ah, 09h
+    int 21h
+    mov bp, [failure_return]
+    call print_hex
+    mov dx, newline
+    mov ah, 09h
+    int 21h
+    mov ax, 4c01h
+    int 21h
+
+print_hex:
     mov cx,4
 .error_hex:
     push cx
@@ -276,15 +299,15 @@ fail:
     int 21h
     pop cx
     loop .error_hex
-    mov dx, newline
-    mov ah, 09h
-    int 21h
-    mov ax, 4c01h
-    int 21h
+    ret
 
 pass_message db 'INT21_FCB_PASS', 13, 10, '$'
 fail_resize db 'INT21_FCB_RESIZE_FAIL', 13, 10, '$'
+fail_record_size db 'INT21_FCB_RECORD_SIZE_FAIL', 13, 10, '$'
+fail_share_missing db 'INT21_FCB_SHARE_MISSING_FAIL', 13, 10, '$'
 extended_error_message db 'Extended error: $'
+return_message db ' Return AX: $'
+failure_return dw 0
 newline db 13, 10, '$'
 fail_0f     db 'INT21_0F_FAIL', 13, 10, '$'
 fail_10     db 'INT21_10_FAIL', 13, 10, '$'

@@ -1465,28 +1465,36 @@ original free-page count. A deliberately corrupted expected snapshot must fail
 only after reporting successful cleanup. These are fixed-profile accessibility
 checks, not proof of arbitrary redirector or memory-manager compatibility.
 
-Before promotion, test SHARE/redirector consumers, additional EMS mapping
-profiles, and real high-resident competition.
-The opt-in `--share` diagnostic currently fails in `bare-low`: FCB create
-(`INT 21h/AH=16h`) returns failure and extended error `0008h` after loading
-`SHARE.EXE /F:4096 /L:40`. An isolated SHARE-to-FCB sequence reproduces this
-without NLSFUNC, the compatibility probe, or the system probe; shrinking the
-FCB probe's allocation does not resolve it. Thus this is not evidence of an
-upper-table regression, and the extended error alone does not establish actual
-memory exhaustion. Reproduce with:
+SHARE acceptance exposed a pre-existing FCB pointer-ownership bug, including
+in DOS=LOW. Creation returned success (`AX=1600h`), but the caller's record-size
+field was not initialized. The earlier `INT21_16_FAIL` label conflated the
+return-code and record-size checks; extended error `0008h` was stale, not proof
+of allocation failure. `SaveFCBInfo` and `CheckFCB` changed DS to DOS ownership
+before calling SHARE's `ShSave` and `ShChk`, whose contract requires the
+caller's DS:SI FCB. They now preserve that pointer; SHARE's DOS state remains
+SS-relative. This correctness fix applies to normal and development builds.
+
+The dedicated local acceptance target is:
 
 ```sh
-python3 tests/test_bios_low_boot_qemu.py \
-  --early --tail-body --rebase --compact --share --mode bare-low
+make test-bios-share-tables-qemu
 ```
 
-Investigate SHARE's installation/publication and first FCB create next.
-`GSHARE2.ASM` replaces the default 4,0 FCB cache with a resident 16,8 cache;
-the existing upper-table census expects the original four-entry boot table.
-SHARE acceptance must distinguish that legitimate replacement from stale
-pointer ownership, test the active replacement, and separately exercise a
-non-default cache that SHARE leaves in place. Do not weaken the ordinary
-four-entry census or claim that a SHARE run proves access to the boot table.
+It covers four memory modes with each of two cache policies. With `FCBS=4,0`,
+SHARE replaces the boot cache with its own resident 16,8 cache, and the public
+graph checks that replacement. With `--fcb-keep 1` (`FCBS=4,1`), SHARE retains
+the boot cache, including its upper location in the eligible EMM386 case.
+Both run the complete FCB probe before and after the SHARE/NLSFUNC compatibility
+and system probes, require SHARE's installation response, and retain the
+ordinary four-entry and upper-owner checks for the retained-cache case.
+The FCB diagnostic now distinguishes record-size corruption and reports the
+observed AX alongside the possibly stale extended error.
+All eight SHARE/cache cases and thirteen existing upper-table cases pass
+locally, as do the normal HMA, standalone FCB, and compatibility suites.
+
+Before promotion, test redirector consumers, additional EMS mapping profiles,
+and real high-resident competition. The SHARE matrix does not establish those
+broader contracts or a new fixed-image memory gain.
 Larger tables or preloaded high residents need an explicit placement budget
 and fallback; the 16-byte
 fixed-profile margin is not general spare capacity. Stable UMB addresses avoid

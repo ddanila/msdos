@@ -304,6 +304,11 @@ test-bios-upper-tables-qemu: deploy
 	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --fail-table-allocation
 	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --upper-access-control --mode emm-high
 
+.PHONY: test-bios-share-tables-qemu
+test-bios-share-tables-qemu: deploy
+	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --share
+	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --share --fcb-keep 1
+
 test-bios-buffer-capacity-qemu: deploy
 	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --buffers 1
 	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --buffers 39 --mode himem-high --mode emm-high

@@ -484,7 +484,8 @@ SaveShare:
 ;----- In share support -----
 ;
 if installed
-	Context DS
+	; ShSave consumes the caller's DS:SI FCB, not DOS-group data.
+	; Its DOS state is addressed through the active DOS stack (SS).
 	Call	DWORD PTR SS:[JShare + 10 * 4]
 else
 	Call	ShSave
@@ -1035,7 +1036,7 @@ Procedure   CheckFCB,NEAR
 ;----- In share support -----
 ;
 if installed
-	Context DS
+	; ShChk compares the caller's DS:SI FCB with ES:DI's SFT.
 	Call	DWORD PTR SS:[JShare + 11 * 4]
 else
 	Call	ShChk

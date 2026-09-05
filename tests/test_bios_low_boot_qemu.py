@@ -71,9 +71,13 @@ def main():
     parser.add_argument("--fail-table-allocation", action="store_true", help="force the development UMB allocation to fail")
     parser.add_argument("--upper-access-control", action="store_true", help="require rejection of a corrupted table snapshot after EMS cleanup")
     parser.add_argument("--share", action="store_true", help="run SHARE/NLSFUNC compatibility contracts before the table probes")
+    parser.add_argument("--fcb-keep", type=int, choices=(0, 1), default=0,
+                        help="FCBS=4 keep count; 1 prevents SHARE replacing the boot cache")
     args = parser.parse_args()
     if args.share and not args.rebase:
         parser.error("--share requires --rebase")
+    if args.fcb_keep and not args.rebase:
+        parser.error("--fcb-keep requires --rebase")
     if args.fail_table_allocation and not args.rebase:
         parser.error("--fail-table-allocation requires --rebase")
     if args.upper_access_control and (not args.rebase or args.files > 20 or args.fail_table_allocation
@@ -109,7 +113,7 @@ def main():
         values = struct.unpack(f"<{len(names)}H", layout.read_bytes())
         (scratch / "public-layout.inc").write_text("".join(
             f"PUB_{name} equ {value}\n" for name, value in zip(names, values)))
-        run(["nasm", "-f", "bin", "-DNO_DEBUG_EXIT", ROOT / "tests/int21_fcb_probe.asm",
+        run(["nasm", "-f", "bin", "-DNO_DEBUG_EXIT", *(["-DREQUIRE_SHARE"] if args.share else []), ROOT / "tests/int21_fcb_probe.asm",
              "-o", scratch / "I21FCB.COM"], ROOT)
         if args.share:
             run(["nasm", "-f", "bin", "-DNO_DEBUG_EXIT", ROOT / "tests/int21_compat_probe.asm",
@@ -143,7 +147,7 @@ def main():
     if args.rebase:
         # Exercise CONFIG parsing after the pointer move, including its cached
         # DOS NLS/DBCS table addresses. Default values would hide lost directives.
-        variants = {name: (high, config + f"LASTDRIVE=Z\r\nFILES={args.files}\r\nFCBS=4,0\r\nBUFFERS={args.buffers}\r\n")
+        variants = {name: (high, config + f"LASTDRIVE=Z\r\nFILES={args.files}\r\nFCBS=4,{args.fcb_keep}\r\nBUFFERS={args.buffers}\r\n")
                     for name, (high, config) in variants.items()}
     if not args.early:
         variants["live-himem"] = variants["himem-high"]
@@ -169,6 +173,8 @@ def main():
             options.append(f"-DEXPECT_TABLE_PARAS={sft_paras + fcb_paras}")
             options.append(f"-DEXPECT_FCB_DELTA={sft_paras + 1}")
             options.append(f"-DEXPECT_EXTRA_SFT={args.files - 5}")
+            if args.share and args.fcb_keep == 0:
+                options.append("-DEXPECT_FCB_REPLACED")
         if args.compact:
             options.append("-DEXPECT_COMPACT")
         if args.warm_reset:
@@ -238,6 +244,8 @@ def main():
             raise RuntimeError(f"FCB/system regression with relocated tables: {log}")
         if args.share and b"INT21_COMPAT_PASS" not in result:
             raise RuntimeError(f"SHARE/NLSFUNC compatibility did not pass: {log}")
+        if args.share and result.count(b"INT21_FCB_PASS") != 2:
+            raise RuntimeError(f"FCB contracts must pass both before and after compatibility probes: {log}")
         if args.rebase and not negative:
             if name == "emm-high" and sft_paras + fcb_paras <= 74 and not args.fail_table_allocation:
                 if b"BIOS_UPPER_ACCESS_PASS" not in result:
