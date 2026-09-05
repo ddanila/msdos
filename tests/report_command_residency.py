@@ -117,6 +117,8 @@ def main() -> int:
         help="COMMAND build switches containing its message-workspace bound",
     )
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--critical-split", action="store_true",
+                        help="check the development low-entry/body/exit layout (body still low)")
     args = parser.parse_args()
 
     segments, symbols = parse_map(args.map)
@@ -169,10 +171,11 @@ def main() -> int:
     if not (resident_state_end <= resident_critical_ptr
             and resident_critical_ptr + 4 <= resident_class_ptrs):
         errors.append("cached critical-catalog pointer is not retained in low message state")
-    if rounded(resident_catalog_start) > 3632:
-        errors.append("DOS-high permanent COMMAND exceeds its 3,632-byte budget")
-    if rounded(hma_code_end) > 6080:
-        errors.append("low/failure COMMAND fallback exceeds its 6,080-byte budget")
+    prototype_allowance = 64 if args.critical_split else 0
+    if rounded(resident_catalog_start) > 3632 + prototype_allowance:
+        errors.append(f"DOS-high permanent COMMAND exceeds its {3632 + prototype_allowance:,}-byte budget")
+    if rounded(hma_code_end) > 6080 + prototype_allowance:
+        errors.append(f"low/failure COMMAND fallback exceeds its {6080 + prototype_allowance:,}-byte budget")
     if not (
         datares_end == data.end <= hma_code_start < hma_code_end
         <= parse_messages == segments["MSGOPT"].start
@@ -243,6 +246,20 @@ def main() -> int:
     ]
     for name, start, end, owner in ranges:
         print(f"| {name} | `{start:04X}h..{end:04X}h` | {end - start:,} | {owner} |")
+    if args.critical_split:
+        body_start = require(symbols, "critical_body_start")
+        body_end = require(symbols, "critical_body_end")
+        exits = [require(symbols, name) for name in (
+            "critical_return_low", "critical_reload_low",
+            "critical_terminate_low", "critical_dead_low",
+        )]
+        if not (disk_error_start < exits[0] < exits[1] < exits[2]
+                < exits[3] < body_start < body_end == crlf_start):
+            errors.append("development critical entry, exits and body are not separated")
+        print(f"| Development critical entry and exits | `{disk_error_start:04X}h..{body_start:04X}h` | {body_start - disk_error_start:,} | low interfaces |")
+        print(f"| Development complete critical body | `{body_start:04X}h..{body_end:04X}h` | {body_end - body_start:,} | still low; external calls not yet relocation-safe |")
+        print("\nDevelopment only: the 64-byte temporary support allowance is not")
+        print("a production budget increase or a claimed conventional-memory saving.\n")
     print(f"| **DOS-high permanent break** | `0000h..{resident_catalog_start:04X}h` | **{resident_catalog_start:,}** | **{rounded(resident_catalog_start):,} paragraph-rounded** |")
     print(f"| Low/failure fallback break | `0000h..{hma_code_end:04X}h` | {hma_code_end:,} | {rounded(hma_code_end):,} paragraph-rounded |")
 

@@ -151,6 +151,33 @@ ASSUME	DS:NOTHING,ES:NOTHING,SS:NOTHING
 	POP	DS				; Set up local data segment
 ASSUME	DS:RESGROUP
 
+	IFDEF COMMAND_CRITICAL_SPLIT
+	; Development whole-body boundary. DS names authoritative low state;
+	; the incoming interrupt frame and saved CX/SI/ES/DS stay on its stack.
+	JMP	critical_body_start
+	PUBLIC critical_return_low,critical_reload_low,critical_terminate_low
+	PUBLIC critical_dead_low,critical_body_start,critical_body_end
+critical_return_low:
+	INVOKE	RESTHAND
+	POP	CX
+	POP	SI
+	POP	ES
+	POP	DS
+	IRET
+critical_reload_low:
+	INVOKE	RESTHAND
+	JMP	GETCOMDSK2
+critical_terminate_low:
+	call	reset_msg_pointers
+	mov	ax,[PARENT]
+	mov	word ptr ds:[PDB_Parent_PID],ax
+	mov	ax,(Exit SHL 8) OR 255
+	int	21H
+critical_dead_low:
+	jmp	critical_dead_low
+critical_body_start:
+	ENDIF
+
 	PUSH	DX
 	CALL	CRLF
 	POP	DX
@@ -194,8 +221,14 @@ SAVMES:
 	POP	SI
 	POP	BP
 	POP	DS
+	IFDEF COMMAND_CRITICAL_SPLIT
+	; DS was restored above; the body need not share its data segment.
+	mov	word ptr [RemMsg],di
+	mov	word ptr [RemMsg+2],es
+	ELSE
 	mov	word ptr cs:[RemMsg],di 	;AC000; save pointer to remote message
 	mov	word ptr cs:[RemMsg+2],es	;AC000;    (only used on code 15)
+	ENDIF
 	pop	ES				;AN000;
 	XOR	AH,AH
 	mov	di,ax				; REAL error code to DI
@@ -305,9 +338,14 @@ ContOld:
 	IF	NOT Tokenized
 	MOV	AX,SI				;AN000; get reading/writing for message
 	MOV	DH,UTIL_MSG_CLASS		;AN000; this is a utility message
+	IFDEF COMMAND_CRITICAL_SPLIT
+	PUSH	DS				; preserve the low owner across string lookup
+	ENDIF
 	CALL	SYSGETMSG			;AN000; get the message
 	MOV	BX,DS				; preserve the far HMA string segment
+	IFNDEF COMMAND_CRITICAL_SPLIT
 	PUSH	CS
+	ENDIF
 	POP	DS				; restore resident COMMAND data access
 	ENDIF
 
@@ -333,8 +371,12 @@ BLKERR:
 	CALL	RPRINT
 	CMP	[LOADING],0
 	JZ	ASK
+	IFDEF COMMAND_CRITICAL_SPLIT
+	JMP	critical_reload_low
+	ELSE
 	INVOKE	RESTHAND
 	JMP	GETCOMDSK2			; If error loading COMMAND, re-prompt
+	ENDIF
 
 ASK:
 	cmp	[ERRCD_24],15			; Wait! Error 15 has an extra message
@@ -446,15 +488,23 @@ abort_process:
 	call	RPRINT				; Print it
 
 DeadInTheWater:
+	IFDEF COMMAND_CRITICAL_SPLIT
+	jmp	critical_dead_low
+	ELSE
 	jmp	DeadInTheWater			; Loop until the user reboots
+	ENDIF
 
 JustExit:
 ASSUME	DS:RESGROUP
+	IFDEF COMMAND_CRITICAL_SPLIT
+	jmp	critical_terminate_low
+	ELSE
 	call	reset_msg_pointers		;AN000; reset critical & parse message addresses
 	mov	ax,[PARENT]			; Load real parent PID
 	mov	word ptr ds:[PDB_Parent_PID],ax ; Put it back where it belongs
 	mov	ax,(Exit SHL 8) OR 255
 	int	21H
+	ENDIF
 
 AbortCont:
 	test	byte ptr [In_Batch],-1		; Are we accessing a batch file?
@@ -487,12 +537,16 @@ EEXIT:
 	MOV	DX,DI
 
 RESTHD:
+	IFDEF COMMAND_CRITICAL_SPLIT
+	JMP	critical_return_low
+	ELSE
 	INVOKE	RESTHAND
 	POP	CX
 	POP	SI				;AN000; restore registers
 	POP	ES
 	POP	DS
 	IRET
+	ENDIF
 
 FATERR:
 	MOV	DX,BADFAT			;AC000;
@@ -508,6 +562,9 @@ FATERR:
 
 	MOV	AL,2				; Abort
 	JMP	RESTHD
+	IFDEF COMMAND_CRITICAL_SPLIT
+critical_body_end LABEL BYTE
+	ENDIF
 
 ;*********************************************
 ; Print routines for Tokenized resident messages

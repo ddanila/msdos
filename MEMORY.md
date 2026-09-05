@@ -280,8 +280,32 @@ one generic far-return wrapper is not sufficient:
 
 Abort also updates batch, pipe and FOR state before the ordinary IRET exit.
 Keep those authoritative low-state effects in the design; verifying AL alone
-would miss them. Next prototype the whole body with explicit low entry/exit
-dispositions and PSP/data bindings, charging all gates against the joint budget.
+would miss them.
+
+`make test-command-critical-split-qemu` builds the development-only
+`COMMAND_CRITICAL_SPLIT` variant in a separate artifact directory. It separates
+all four exits from the complete handler body and uses the saved low DS, not
+CS, for remote-message state and for restoring data access after string lookup.
+The normal COMMAND binary is unchanged. The prototype currently measures:
+
+| Linked range | Bytes | Placement |
+| --- | ---: | --- |
+| Entry preparation and four low exits, `06F5h..073Dh` | 72 | Low interface |
+| Complete critical body, `073Dh..0988h` | 587 | Still low; not yet safe to copy high |
+| Permanent image after paragraph rounding | 3,648 | 16 more than normal while the body remains low |
+
+The checked census permits a bounded 64-byte support increase only with
+`--critical-split`; the production 3,632-byte limit is unchanged. Both real
+Fail and Retry cases pass against the prototype, including foreign-stack and
+JFN restoration. Reload, initialization termination, Abort side effects and
+A20 failure are not qualified by these two cases.
+
+Next replace the body's external near calls and interrupt/redirector returns
+with explicit cross-segment contracts, then copy and publish the complete body
+and reclaim its old range. The 587-byte body is an inventory, not a net saving:
+additional service thunks, A20 recovery, alignment and low-copy removal must be
+charged to the joint shell/manager budget. Do not promote this preparatory
+layout or use its temporarily larger allocation as the normal parity baseline.
 
 The eventual reclamation commits have three distinct owners:
 
