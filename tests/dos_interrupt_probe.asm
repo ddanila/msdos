@@ -38,6 +38,37 @@ start:
     cmp al, 0ffh
     jne fail_int2f_dos
 
+    ; The BIOS reset-vector service exchanges both INT 13h targets.
+    ; Restore the old pointers immediately, then verify that the second exchange
+    ; returns the exact runtime and warm-boot pointers installed by this probe.
+    push cs
+    pop es
+    mov dx, probe_int13
+    mov bx, probe_warm_int13
+    mov ax, 1300h
+    int 2fh
+    mov word [cs:saved_orig13], dx
+    mov word [cs:saved_orig13 + 2], ds
+    mov word [cs:saved_old13], bx
+    mov word [cs:saved_old13 + 2], es
+    lds dx, [cs:saved_orig13]
+    les bx, [cs:saved_old13]
+    mov ax, 1300h
+    int 2fh
+    mov cx, cs
+    mov ax, ds
+    cmp ax, cx
+    jne fail_int2f_13
+    cmp dx, probe_int13
+    jne fail_int2f_13
+    mov ax, es
+    cmp ax, cx
+    jne fail_int2f_13
+    cmp bx, probe_warm_int13
+    jne fail_int2f_13
+    push cs
+    pop ds
+
     mov dx, pass_message
     mov ah, 09h
     int 21h
@@ -61,6 +92,11 @@ fail_int2f_nls:
     jmp fail
 fail_int2f_dos:
     mov dx, fail_2f_dos
+    jmp fail
+fail_int2f_13:
+    push cs
+    pop ds
+    mov dx, fail_2f_13
 fail:
     mov ah, 09h
     int 21h
@@ -73,3 +109,11 @@ fail_2f_share db 'INT2F_SHARE_INSTALL_FAIL', 13, 10, '$'
 fail_2f_net db 'INT2F_NET_INSTALL_FAIL', 13, 10, '$'
 fail_2f_nls db 'INT2F_NLS_INSTALL_FAIL', 13, 10, '$'
 fail_2f_dos db 'INT2F_DOS_INSTALL_FAIL', 13, 10, '$'
+fail_2f_13 db 'INT2F_INT13_EXCHANGE_FAIL', 13, 10, '$'
+saved_orig13 dd 0
+saved_old13 dd 0
+
+probe_int13:
+    iret
+probe_warm_int13:
+    iret
