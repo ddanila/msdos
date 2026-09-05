@@ -1571,24 +1571,19 @@ not perform DMA during remapping, so that combined case remains open below.
 make test-bios-umb-io-qemu
 ```
 
-The promotion gate remains open: non-contiguous or physical-boundary-crossing
-UMB transfers still fall back to the linear address, which is unsafe for a
-non-identity mapping. Rejecting an out-of-ISA-range PTE from the fast path also
-does not signal failure to the DMA caller. Provide a safe transfer policy, not
-EMS-page swapping of permanent UMB owners. Add deliberately boundary-crossing,
-non-contiguous, and out-of-ISA-range backing cases, DMA concurrent with EMS
-remapping, and resident-table integrity checks. The current small-transfer
-cases do not cover all these conditions.
-Keep the bounded overlay workaround until the complete policy is verified.
+The DMA fallback to a linear address is unsafe for arbitrary non-identity
+mappings. Repository UMB creation now prevents the fragmented, boundary-shifted,
+and above-ISA layouts that previously reached it; this does not make that
+fallback a general transfer/error policy. Keep the bounded overlay workaround
+until the remaining combined DMA/EMS and broader transfer gates are verified.
 
 The 32 KiB probe adds offsets 8191, 12287, 16383, 20479, and 24575 to cross
-multiple 16 KiB backing pages. The ordinary four-mode matrix passes, but a
-diagnostic build reversing only the available EMS page stack reproduces an
+multiple 16 KiB backing pages. Before the selector fix, the ordinary four-mode
+matrix passed, but reversing only the available EMS page stack reproduced an
 8,192-byte read failure at offset 24,575, target `DC4Ch`, first mismatch zero.
 It preserves the set of free pages, counts, and ownership; the only changed
 input is allocation order. System/FCB and upper-table checks still pass after
-the I/O failure. Thus ordinary-layout success is not a backing-layout guarantee.
-Reproduce the **currently failing** case (not an accepted negative-control pass):
+the I/O failure. The same regression now passes with the new selector:
 
 ```sh
 python3 tests/test_bios_low_boot_qemu.py \
@@ -1598,24 +1593,34 @@ python3 tests/test_bios_low_boot_qemu.py \
 
 The harness builds the diagnostic EMM386 in its temporary output directory;
 `UMB_TEST_REVERSE_FREE` is absent from distribution builds. `--emm386-image`
-also accepts a separately built local diagnostic binary. The ordinary focused
-target passes all twelve cases, including both 12 and 32 KiB first/last-fit
-allocations. The reordered diagnostic fails independently of that green suite.
+also accepts a separately built local diagnostic binary. The focused target
+passes fourteen cases: the original twelve plus reversed-backing first-fit and
+reversed last-fit across warm reset. Both boots must pass the I/O probe.
 
-Prefer establishing DMA-safe backing at UMB creation over a new low bounce
-buffer: `Commit_UMB` currently pops arbitrary EMS free pages and coalesces only
-their virtual addresses. Investigate selecting below-16-MiB backing that is
-physically contiguous within each virtual 128 KiB DMA region and preserves the
-virtual address modulo 128 KiB. This also preserves byte-channel 64 KiB
-boundaries, so valid logical DMA spans would translate without page swapping
-or completion-time copying. Reserve only the actual UMB pages, not UMA holes;
-keep selector metadata in discarded initialization storage. A proposed selector
-must tolerate reordered free lists, publish only after complete reservation,
-restore all ownership on failure, and preserve the fixed conventional/UMB
-floors. Prove behavior when suitable backing is unavailable before replacing
-the current policy; do not silently publish unsafe pages or assume ordered XMS
-allocation. General EMS DMA and third-party mapping contracts remain separate
-acceptance requirements. This is a design candidate, not an implemented fix.
+`Commit_UMB` now selects below-16-MiB backing that is physically contiguous
+within each virtual 128 KiB DMA region and preserves the virtual address modulo
+128 KiB. This also preserves byte-channel 64 KiB boundaries: a valid logical
+DMA span wholly inside registered UMB storage translates without page swapping
+or completion-time copying. Each region's requested pages must all be free
+before reservation begins. Only actual UMB pages are removed from the EMS free
+stack; excluded UMA holes cost no backing. Selected entries are swapped onto
+the stack's reserved prefix, preserving set ownership despite reordered input.
+
+If any region cannot obtain safe backing, the entire unpublished UMB
+transaction rolls back: restore identity PTEs, return the reserved prefix, and
+leave EMS available without publishing an unsafe UMB provider. Initialization
+code and the six-byte selector workspace are discarded. The residency census
+and fresh fixed-image VC capture retain EMM386 at 3,888 bytes, conventional free
+memory at 610,256, and free UMB at 49,104; no new low-memory saving is claimed.
+The paired development capture also retains 614,448 conventional and 47,904 UMB
+bytes against retail's 618,736 and 47,888.
+The expanded HIMEM suite passes, including fault builds for failure after an
+earlier region was mapped and candidate addresses above the ISA ceiling, along
+with provider absence, EMS API, UMB isolation, and warm-reset checks. These do
+not substitute for testing naturally
+fragmented/limited pools, word-channel DMA, or DMA concurrent with EMS remaps.
+General EMS DMA and third-party mapping contracts remain separate acceptance
+requirements; the full BIOS/table promotion gate is not yet closed.
 
 The process suite independently checks raw overlays of 0, 1, 511, 512, 513,
 9,109, 65,534, and 65,535 bytes in conventional storage. It checks every loaded

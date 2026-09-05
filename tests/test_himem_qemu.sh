@@ -28,6 +28,8 @@ ROLLBACK_IMAGE="$OUT/floppy-himem-emm386-rollback.img"
 ROLLBACK_LOG="$OUT/himem-emm386-rollback.log"
 FAULT_AFTER_MAP_EMM="$OUT/emm386-fault-after-map.sys"
 FAULT_BEFORE_PUBLISH_EMM="$OUT/emm386-fault-before-publish.sys"
+DMA_UNAVAILABLE_EMM="$OUT/emm386-dma-unavailable.sys"
+DMA_ABOVE_ISA_EMM="$OUT/emm386-dma-above-isa.sys"
 WARMBOOT="$OUT/warm-reboot.com"
 QEXIT="$OUT/himem-qexit.com"
 WARM_IMAGE="$OUT/floppy-himem-emm386-warm.img"
@@ -85,6 +87,8 @@ build_fault_emm() {
 
 build_fault_emm UMB_TEST_FAIL_AFTER_MAP=1 "$FAULT_AFTER_MAP_EMM"
 build_fault_emm UMB_TEST_FAIL_BEFORE_PUBLISH "$FAULT_BEFORE_PUBLISH_EMM"
+build_fault_emm UMB_TEST_DMA_UNAVAILABLE "$DMA_UNAVAILABLE_EMM"
+build_fault_emm UMB_TEST_DMA_ABOVE_ISA "$DMA_ABOVE_ISA_EMM"
 
 cp "$FLOPPY" "$IMAGE"
 mcopy -o -i "$IMAGE" "$HIMEM" ::HIMEM.SYS
@@ -256,7 +260,9 @@ fi
 
 for fault_spec in \
     "after-map|$FAULT_AFTER_MAP_EMM" \
-    "before-publish|$FAULT_BEFORE_PUBLISH_EMM"
+    "before-publish|$FAULT_BEFORE_PUBLISH_EMM" \
+    "dma-unavailable|$DMA_UNAVAILABLE_EMM" \
+    "dma-above-isa|$DMA_ABOVE_ISA_EMM"
 do
     IFS='|' read -r fault_name fault_driver <<<"$fault_spec"
     fault_image="$OUT/floppy-himem-emm386-fault-$fault_name.img"

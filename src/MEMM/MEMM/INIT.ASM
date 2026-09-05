@@ -307,6 +307,9 @@ umb_candidates	db	UMB_PAGE_COUNT dup (0)
 umb_includes	db	UMB_PAGE_COUNT dup (0)
 umb_excludes	db	UMB_PAGE_COUNT dup (0)
 umb_backing_count dw	0
+; Discarded selector workspace: one physical base per current 128 KiB region.
+umb_dma_base	dd	0
+umb_dma_limit	dw	0
 umb_registered	db	0
 umb_registration dw	1, 0
 		dw	UMB_PAGE_COUNT dup (0, 0)
@@ -1776,14 +1779,30 @@ endif
 	mov	dx,0a000h
 	xor	bp,bp			; end segment of previous extent
 CU_scan:
+	test	si,7
+	jnz	short CU_group_ready
+	call	Choose_UMB_DMA_Group
+	jc	CU_rollback
+CU_group_ready:
 	cmp	cs:umb_candidates[si],0
-	je	short CU_next
+	je	CU_next
 	cmp	[_free_count],0
-	je	short CU_publish
-	mov	bx,[_free_top]
-	shl	bx,1
-	add	bx,[_emm_free]
-	mov	ax,[bx]			; backing EMM page number
+	je	CU_publish
+	movzx	eax,si
+	and	ax,7
+	shl	eax,14
+	add	eax,cs:[umb_dma_base]
+	call	Find_UMB_Free_Page
+	jc	CU_rollback		; never publish unsafe backing
+; Remove the selected page by swapping it onto the free-stack top. Rollback
+; restores the reserved prefix as a set; free-list ordering is not ownership.
+	mov	di,[_free_top]
+	shl	di,1
+	add	di,[_emm_free]
+	mov	ax,[bx]
+	xchg	ax,[di]
+	mov	[bx],ax
+	mov	ax,[di]			; selected backing EMM page number
 	inc	[_free_top]
 	dec	[_free_count]
 	inc	cs:[umb_backing_count]
@@ -1818,7 +1837,7 @@ CU_next:
 	inc	si
 	add	dx,0400h
 	cmp	si,UMB_PAGE_COUNT
-	jb	short CU_scan
+	jb	CU_scan
 CU_publish:
 ifdef UMB_TEST_FAIL_BEFORE_PUBLISH
 	jmp	CU_rollback
@@ -1858,6 +1877,127 @@ CU_done:
 	popa
 	ret
 Commit_UMB endp
+
+; SI starts an eight-page UMA region (last region may be shorter). Select a
+; below-16-MiB physical 128 KiB region containing every requested page, at the
+; same offset modulo 128 KiB. This guarantees contiguity and both DMA channel
+; boundary sizes without reserving pages for excluded UMA holes. No ownership
+; changes until the whole region has been checked. CF=1: no safe selection.
+Choose_UMB_DMA_Group proc near
+	pushad
+ifdef UMB_TEST_DMA_UNAVAILABLE
+; Reject the last region after earlier groups may already have been mapped.
+	cmp	si,16
+	jae	CUD_failed
+endif
+	mov	di,si
+	add	di,8
+	cmp	di,UMB_PAGE_COUNT
+	jbe	short CUD_limit
+	mov	di,UMB_PAGE_COUNT
+CUD_limit:
+	mov	cs:[umb_dma_limit],di
+	mov	bp,si
+CUD_first:
+	cmp	bp,di
+	jae	CUD_success		; no candidates in this region
+	cmp	cs:umb_candidates[bp],0
+	jne	short CUD_search
+	inc	bp
+	jmp	short CUD_first
+CUD_search:
+	mov	si,[_free_top]
+	shl	si,1
+	add	si,[_emm_free]
+	mov	cx,[_free_count]
+	jcxz	CUD_failed
+CUD_try:
+	mov	bx,[si]
+	shl	bx,1
+	shl	bx,1
+	add	bx,[_pft386]
+	mov	eax,[bx]
+	and	eax,0fffff000h
+ifdef UMB_TEST_DMA_ABOVE_ISA
+; Exercise the selector's physical-address ceiling without changing the PFT.
+	or	eax,01000000h
+endif
+	movzx	edx,bp
+	and	dx,7
+	shl	edx,14
+	mov	ebx,eax
+	and	ebx,01ffffh
+	cmp	ebx,edx
+	jne	short CUD_next
+	and	eax,0fffe0000h
+	cmp	eax,01000000h
+	jae	short CUD_next
+	mov	cs:[umb_dma_base],eax
+	mov	di,bp
+CUD_verify:
+	cmp	di,cs:[umb_dma_limit]
+	jae	short CUD_success
+	cmp	cs:umb_candidates[di],0
+	je	short CUD_verified_page
+	movzx	eax,di
+	and	ax,7
+	shl	eax,14
+	add	eax,cs:[umb_dma_base]
+	call	Find_UMB_Free_Page
+	jc	short CUD_next
+CUD_verified_page:
+	inc	di
+	jmp	short CUD_verify
+CUD_next:
+	add	si,2
+	dec	cx
+	jnz	CUD_try
+CUD_failed:
+	popad
+	stc
+	ret
+CUD_success:
+	popad
+	clc
+	ret
+Choose_UMB_DMA_Group endp
+
+; EAX=physical 16 KiB page address. Return DS:BX free-stack slot and CF=0.
+; Only available pages are searched; preserve the caller's iteration state.
+Find_UMB_Free_Page proc near
+	push	cx
+	push	di
+	push	edx
+	mov	cx,[_free_count]
+	mov	di,[_free_top]
+	shl	di,1
+	add	di,[_emm_free]
+	jcxz	short FUF_missing
+FUF_scan:
+	mov	bx,[di]
+	shl	bx,1
+	shl	bx,1
+	add	bx,[_pft386]
+	mov	edx,[bx]
+	and	edx,0fffff000h
+	cmp	eax,edx
+	je	short FUF_found
+	add	di,2
+	loop	FUF_scan
+FUF_missing:
+	pop	edx
+	pop	di
+	pop	cx
+	stc
+	ret
+FUF_found:
+	mov	bx,di
+	pop	edx
+	pop	di
+	pop	cx
+	clc
+	ret
+Find_UMB_Free_Page endp
 
 Rollback_UMB proc near
 	cmp	cs:[umb_registered],0
