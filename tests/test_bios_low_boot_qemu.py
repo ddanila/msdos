@@ -87,7 +87,7 @@ def main():
         names = ("SYSI_DPB", "SYSI_SFT", "SYSI_CDS", "SYSI_NUMIO", "SYSI_NCDS", "SYSI_DEV",
                  "DPB_NEXT_DPB", "DPB_DRIVER_ADDR", "DPB_SECTOR_SIZE", "CURDIR_DEVPTR", "CURDIRLEN",
                  "SFLINK", "SFCOUNT", "SFTABLE", "SF_ENTRY_SIZE", "SF_REF_COUNT", "SF_DEVPTR", "SF_NAME",
-                 "SDEVNEXT", "SDEVATT", "SDEVNAME")
+                 "SDEVNEXT", "SDEVATT", "SDEVNAME", "SYSI_CON")
         values = struct.unpack(f"<{len(names)}H", layout.read_bytes())
         (scratch / "public-layout.inc").write_text("".join(
             f"PUB_{name} equ {value}\n" for name, value in zip(names, values)))

@@ -122,6 +122,9 @@ start:
 %ifdef ACTIVATE_HIGH
     call activate_live_bios
 %endif
+%ifdef EXPECT_REBASE
+    call check_ctrlc_path
+%endif
     mov dx,filename
     xor cx,cx
     mov ah,3ch
@@ -247,6 +250,7 @@ slots:
 %include "low-slots.inc"
 %ifdef EXPECT_REBASE
 %include "bios_public_graph.inc"
+%include "bios_ctrlc_probe.inc"
 %endif
 %ifdef ACTIVATE_HIGH
 %include "bios_live_activate.inc"

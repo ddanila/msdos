@@ -89,26 +89,37 @@ BREAK <$Set_CTRL_C_Trapping -- En/Disable ^C check in dispatcher>
 
         procedure   $SET_CTRL_C_TRAPPING,NEAR
 ASSUME  DS:NOTHING,ES:NOTHING,SS:NOTHING
+        ; This fast call precedes save_world and the normal low-DS selection.
+        ; BREAK state must share the dispatcher's authoritative low owner.
+        PUSH    ES
+        PUSH    BX
+        MOV     BX,CS
+        CMP     CS:[hma_resident],0
+        JE      SHORT ctrl_c_owner_ready
+        MOV     BX,CS:[hma_low_segment]
+ctrl_c_owner_ready:
+        MOV     ES,BX
+        POP     BX
         OR      AL,AL
         JNZ     Check1
-        MOV     DL,CntCFlag
-        IRET
+        MOV     DL,ES:[CntCFlag]
+        JMP     SHORT ctrl_c_return
 Check1:
         CMP     AL,2
         JA      CPSWchk                        ;AN000;
         JZ      SetAndRet
         PUSH    DX
         AND     DL,01h
-        MOV     [CNTCFLAG],DL
+        MOV     ES:[CNTCFLAG],DL
         POP     DX
-        IRET
+        JMP     SHORT ctrl_c_return
 SetAndRet:
         AND     DL,01h
-        XCHG    CntCFlag,DL
-        IRET
+        XCHG    ES:[CntCFlag],DL
+        JMP     SHORT ctrl_c_return
 BadVal:
         MOV     AL,0FFH
-        IRET
+        JMP     SHORT ctrl_c_return
 ;; DOS 4.00 File Tagging
 
 CPSWchk:                                ;AN000;
@@ -119,13 +130,14 @@ QueryDOSboot:                            ;AN000;
 	JA	BadVal
 	JNE	QueryBootDrive
 QueryTrueVersion:
-	MOV	BX,[MSVERS]		; BL major, BH minor; never fake this value
+	MOV	BX,ES:[MSVERS]		; BL major, BH minor; never fake this value
 	XOR	DX,DX			; revision 0, no ROM/version flags
-	IRET
+	JMP	SHORT ctrl_c_return
 QueryBootDrive:
-        MOV     DL,[BOOTDRIVE]      ;AN000;;MS. put boot drive in DL
-        IRET                        ;AN000;;MS.
+        MOV     DL,ES:[BOOTDRIVE]    ;AN000;;MS. put boot drive in DL
 CPSWreturn:
+ctrl_c_return:
+        POP     ES
         IRET
 
 

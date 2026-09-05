@@ -15,4 +15,5 @@ dw DPB_NEXT_DPB,DPB_DRIVER_ADDR,DPB_SECTOR_SIZE
 dw curdir_devptr,curdirLen
 dw SFLink,SFCount,SFTable,SIZE sf_entry,sf_ref_count,sf_devptr,sf_name
 dw SDEVNEXT,SDEVATT,SDEVNAME
+dw SYSI_CON
 end

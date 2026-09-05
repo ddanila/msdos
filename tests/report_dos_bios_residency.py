@@ -342,8 +342,8 @@ def main() -> int:
         f"| `{dispatcher_start:04X}h..{dispatcher_end:04X}h` | "
         f"{dispatcher_end - dispatcher_start:,} | copied to HMA; retained only for DOS=LOW |"
     )
-    if dispatcher_start < low_gate or dispatcher_end - dispatcher_start != 783:
-        errors.append("DOS system-call dispatcher is not wholly above the low boundary")
+    if dispatcher_start < low_gate or dispatcher_end > sysbuf or dispatcher_end - dispatcher_start != 808:
+        errors.append("DOS dispatcher boundaries or audited 808-byte size changed")
 
     print("\n## BIOS\n")
     print(f"Linked `CODE` capacity: {bios_code.size:,} bytes. ")
