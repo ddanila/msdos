@@ -185,6 +185,24 @@ storage. In parallel in the design budget, split HIMEM's service/data ownership
 and identify the required shell contribution; standalone 286 HIMEM remains
 unchanged. High copies without reclaimed and coalesced low spans earn no credit.
 
+**First access-boundary implementation:** the 512-byte selected handle-name
+table is now reached through indexed `ReadHandleName`, `WriteHandleName`,
+`ClearHandleName` and `MatchHandleName` services in `EMMSUP.ASM`. No C consumer
+retains a near pointer to that table. The services preserve C's distinct DS/SS
+contract and accept far client buffers without exporting a table address.
+The current owner is still DGROUP; this is preparation for the whole-block
+move, not a high allocation or 512-byte saving. Saved maps, handle records,
+page/free/PFT arrays, DMA and alternate-register state still need their access
+boundaries before the full block can move.
+
+The expanded EMS lifecycle probe checks set/get/directory lookup, duplicate
+rejection, names differing only in their eighth byte, clearing on handle reuse,
+and survival of an unrelated name. It and the EMM386 API and address-phase
+suites pass locally. The census checks all four services are in protected-only
+code and retains the 3,888-byte installed allocation. The 32 KiB interleaved
+EMS/UMB read/write probe also passes with development BIOS/table placement
+across warm reset, including its later DOS system/FCB checks.
+
 ## Public behavior
 
 The system reports DOS 6.22 consistently through `INT 21h/AH=30h`,

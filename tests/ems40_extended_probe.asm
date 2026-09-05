@@ -236,6 +236,67 @@ start:
     cmp bx, 2
     jb fail_name
 
+    ; Indexed name ownership: compare all eight bytes, reject duplicates,
+    ; preserve an unrelated handle, and clear names on free/reallocation.
+    mov bx,1
+    mov ah,43h
+    int 67h
+    test ah,ah
+    jnz fail_name
+    mov [name_handle],dx
+    mov si,handle_name
+    mov ax,5301h
+    int 67h
+    cmp ah,0a1h
+    jne fail_name
+    mov dx,[name_handle]
+    mov si,other_name
+    mov ax,5301h
+    int 67h
+    test ah,ah
+    jnz fail_name
+    mov si,other_name
+    mov ax,5401h
+    int 67h
+    test ah,ah
+    jnz fail_name
+    cmp dx,[name_handle]
+    jne fail_name
+    mov ah,45h
+    int 67h
+    test ah,ah
+    jnz fail_name
+    mov bx,1
+    mov ah,43h
+    int 67h
+    test ah,ah
+    jnz fail_name
+    mov [name_handle],dx
+    push cs
+    pop es
+    mov di,name_result
+    mov ax,5300h
+    int 67h
+    test ah,ah
+    jnz fail_name
+    xor ax,ax
+    mov di,name_result
+    mov cx,8
+    repe scasb
+    jne fail_name
+    mov dx,[name_handle]
+    mov ah,45h
+    int 67h
+    test ah,ah
+    jnz fail_name
+    mov si,handle_name
+    mov ax,5401h
+    int 67h
+    test ah,ah
+    jnz fail_name
+    cmp dx,[handle]
+    jne fail_name
+
     ; 55 performs a far jump even when the mapping list is empty.
     mov word [jump_struct], jump_target
     mov word [jump_struct+2], cs
@@ -551,6 +612,8 @@ call_seen db 0
 os_key_low dw 0
 os_key_high dw 0
 handle_name db 'PARITY40'
+other_name db 'PARITY41'
+name_handle dw 0
 name_result times 8 db 0
 name_directory times 256 db 0
 handle_pages times 256 db 0

@@ -118,6 +118,15 @@ struct  handle_ptr{
  */
 typedef char Handle_Name[Handle_Name_Len];
 
+/* Dynamic-name ownership stays inside the service layer. No near pointer to
+ * the table escapes to C callers; indices are validated by the EMS handlers.
+ * Read/write take (index, far client buffer); compare takes (index, near name).
+ */
+extern unsigned ReadHandleName();
+extern unsigned WriteHandleName();
+extern unsigned ClearHandleName();
+extern unsigned MatchHandleName();
+
 /*
  * Handle_Dir_Entry
  *

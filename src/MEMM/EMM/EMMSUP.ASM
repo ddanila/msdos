@@ -119,6 +119,7 @@ extrn	_pft386:word		; note: actually a dword array
 ;
 extrn	_handle_table:word
 extrn	_handle_table_size:byte
+extrn	_Handle_Name_Table:word
 
 ;
 ;   save area for handles
@@ -534,45 +535,80 @@ public	_flush_tlb
 	ret
 _flush_tlb	endp
 
-;***********************************************
-;
-;   _Names_Match
-;
-;   Returns a boolean value (0 = false, FFFF = True) if 2 handle names match
-;
-; uses:
-;	cx, ax
-;
-; 05/09/88  ISP   Shifted in from WIN386 and modified for 16 bit ptrs
-;***********************************************
-name1	=	4
-name2	=	6
-	public	_Names_Match
-_Names_Match proc    near
-	push	bp		; entry prolog
-	mov	bp,sp
-	push	di		; reg var
-	push	si		; reg var
-
-	mov	ax,ds		; initialise es segment to
-	mov	es,ax		; DGROUP
-
-	xor	ax, ax	; Assume it did NOT work
-
-	mov	di, word ptr [bp+name1]	; First name
-	mov	si, word ptr [bp+name2]	; Second name
-	cld
-	mov	cx, 2				; Compare 2 dwords
-	rep 	cmpsd		; do it
-	jne	SHORT Names_Dont_Match
-	not	ax		; They match!
-
-Names_Dont_Match:
-	pop	si		; restore reg var
-	pop	di		; restore reg var
-	pop	bp
-	ret
-_Names_Match endp
+; Indexed access boundary for the complete dynamic handle-name table.
+; C ABI: index at BP+4; far client pointer or near comparison name at BP+6.
+; Only this service resolves the table's owner. The initial implementation
+; uses DGROUP; a high-data selector can replace that owner without exposing
+; selector:offset table pointers to callers. Preserve the distinct C SS/DS.
+        public _ReadHandleName, _WriteHandleName
+        public _ClearHandleName, _MatchHandleName
+_ReadHandleName proc near
+        xor ax,ax
+        jmp short HandleNameAccess
+_ReadHandleName endp
+_WriteHandleName proc near
+        mov ax,1
+        jmp short HandleNameAccess
+_WriteHandleName endp
+_ClearHandleName proc near
+        mov ax,2
+        jmp short HandleNameAccess
+_ClearHandleName endp
+_MatchHandleName proc near
+        mov ax,3
+HandleNameAccess:
+        push bp
+        mov bp,sp
+        push bx
+        push si
+        push di
+        push ds
+        push es
+        mov bx,ax
+        mov si,[bp+4]
+        shl si,3
+        add si,[_Handle_Name_Table]
+        push ds
+        pop es
+        cld
+        mov cx,8
+        cmp bx,3
+        je short HandleNameCompare
+        cmp bx,2
+        je short HandleNameClear
+        or bx,bx
+        jnz short HandleNameWrite
+        les di,[bp+6]
+        rep movsb
+        jmp short HandleNameDone
+HandleNameWrite:
+        mov di,si
+        lds si,[bp+6]
+        rep movsb
+        jmp short HandleNameDone
+HandleNameClear:
+        mov di,si
+        xor ax,ax
+        rep stosb
+        jmp short HandleNameDone
+HandleNameCompare:
+        mov di,[bp+6]
+        xor ax,ax
+        repe cmpsb
+        jne short HandleNameExit
+        not ax
+        jmp short HandleNameExit
+HandleNameDone:
+        xor ax,ax
+HandleNameExit:
+        pop es
+        pop ds
+        pop di
+        pop si
+        pop bx
+        pop bp
+        ret
+_MatchHandleName endp
 
 	page
 ;**	SetDescInfoResident - set descriptor information

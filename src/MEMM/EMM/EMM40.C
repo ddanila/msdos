@@ -40,7 +40,6 @@
  *	page_index of zero means free
  */
 extern struct handle_ptr *handle_table;
-extern Handle_Name *Handle_Name_Table; 	/* Handle names */
 extern unsigned char	handle_table_size;	/* number of entries */
 extern unsigned char	handle_count;		/* active handle count */
 
@@ -278,7 +277,7 @@ GetSetHandleName()
     /* Implement subfunctions 0 and 1 */
 	if ( regp->hregs.h.ral == 0 ) {
 		Name = (char far *)dest_addr(); 	   /* ES:DI */
-		copyout(Name, Handle_Name_Table[handle & 0xFF], Handle_Name_Len);
+		ReadHandleName(handle & 0xFF, Name);
 		setAH(OK);
 	} else {
 		GetHandleDirectory();		/* See if already there */
@@ -295,7 +294,7 @@ GetSetHandleName()
 			return;
 		}
 		Name = (char far *)source_addr();
-		copyin(Handle_Name_Table[handle & 0xFF], Name, Handle_Name_Len);
+		WriteHandleName(handle & 0xFF, Name);
 		setAH(OK);
 	}
 
@@ -341,7 +340,7 @@ GetHandleDirectory()
  * since all local variables are allocated on stack (SS seg)
  * and DS and SS has grown apart (ie DS != SS),
  * we need variables in DS seg (ie static variables) to pass
- * to copyout(),copyin() and Names_Match() which expects those
+ * to copyout(),copyin() and MatchHandleName() which expects those
  * parameters that are near pointers to be in DS
  *
  * PC 08/03/88
@@ -356,7 +355,7 @@ GetHandleDirectory()
 		    if ( hp->page_index != NULL_PAGE) {
 			Real_Handle =  Handle_Num;
 			copyout(Dir_Entry, &Real_Handle, sizeof(short));
-			copyout(Dir_Entry->Dir_Handle_Name, Handle_Name_Table[Handle_Num], Handle_Name_Len);
+			ReadHandleName(Handle_Num, Dir_Entry->Dir_Handle_Name);
 			Dir_Entry++;
 		    } hp++;
 		} setAX(handle_count);
@@ -368,7 +367,7 @@ GetHandleDirectory()
 		Handle_Num = 0;
 		while ((Handle_Num < handle_table_size) && (Found < 2)) {
 		    if ( hp->page_index != NULL_PAGE ) {
-			if (Names_Match(Name, Handle_Name_Table[Handle_Num])) {
+			if (MatchHandleName(Handle_Num, Name)) {
 			    Found++;
 			    Real_Handle = Handle_Num;
 			}

@@ -155,7 +155,6 @@ extern struct save_map *save_map;
  *	page_index of zero means free
  */
 extern struct handle_ptr *handle_table;
-extern Handle_Name *Handle_Name_Table;
 extern unsigned char	handle_table_size;	/* number of entries */
 extern unsigned char	handle_count;		/* active handle count */
 
@@ -413,7 +412,6 @@ DeallocatePages()
 {
 #define	handle ((unsigned)regp->hregs.x.rdx)
 	register struct handle_ptr	*hp;
-	long	*Name ;		/* points to handle name entry to clear */
 
 	if ( handle == 0 ) {		/* Special handle, don't release */
 		int savbx = regp->hregs.x.rbx;
@@ -437,8 +435,7 @@ DeallocatePages()
 	free_pages(hp); 	      /*free the pages associated with handle*/
 	hp->page_index = NULL_PAGE;   /*and then free the handle*/
 	hp->page_count = 0;	      /*bookkeeping*/
-	Name = (long *)Handle_Name_Table[handle & 0xFF];
-	*(Name+1) = *(Name) = 0L;     /* zero the eight byte name */
+	ClearHandleName(handle & 0xFF);
 	handle_count--; 	      /* one less active handle */
 
 /*	AutoUpdate();	/* update status of Auto mode */
