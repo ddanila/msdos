@@ -62,7 +62,13 @@ nasm -DEXPECTED_CLASS_PTRS="0x$class_ptrs_hex" \
     -DEXPECTED_CATALOG_BASE="$hma_tail" -DEXPECTED_CATALOG_END="$hma_tail_after_command" \
     -DEXPECTED_HMA_CLASSES=2 \
     -f bin "$ROOT/tests/command_critical_hma_probe.asm" -o "$COMMAND_CRITICAL_PROBE"
-nasm -DEXPECTED_TAIL="$hma_tail_after_command" -f bin \
+tail_floor_hex=$(awk 'toupper($2) == "HMA_TAIL_FLOOR" { split($1, address, ":"); sub(/\*$/, "", address[2]); print address[2]; exit }' \
+    "$ROOT/src/DOS/MSDOS.MAP")
+tail_next_hex=$(awk 'toupper($2) == "HMA_TAIL_NEXT" { split($1, address, ":"); sub(/\*$/, "", address[2]); print address[2]; exit }' \
+    "$ROOT/src/DOS/MSDOS.MAP")
+[[ "$tail_floor_hex" =~ ^[0-9A-Fa-f]{4}$ && "$tail_next_hex" =~ ^[0-9A-Fa-f]{4}$ ]] || exit 1
+nasm -DEXPECTED_TAIL="$hma_tail_after_command" \
+    -DTAIL_FLOOR="0x$tail_floor_hex" -DTAIL_NEXT="0x$tail_next_hex" -f bin \
     "$ROOT/tests/hma_tail_probe.asm" -o "$TAIL_PROBE"
 
 run_case() {

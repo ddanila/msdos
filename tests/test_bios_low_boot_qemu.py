@@ -65,7 +65,10 @@ def main():
     parser.add_argument("--stale-cds-control", action="store_true", help="require rejection of a deliberately stale external CDS pointer")
     parser.add_argument("--fail-reservation", action="store_true", help="force the early capacity check to reject")
     parser.add_argument("--mode", action="append", help="run only this mode; repeat as needed")
+    parser.add_argument("--buffers", type=int, default=15, help="verify actual configured buffer count (requires --rebase)")
     args = parser.parse_args()
+    if not 1 <= args.buffers <= 99 or (args.buffers != 15 and not args.rebase):
+        parser.error("--buffers must be 1..99 and custom counts require --rebase")
     if args.fail_reservation and not args.early:
         parser.error("--fail-reservation requires --early")
     if (args.scan or args.rebase) and not (args.early and args.tail_body):
@@ -87,7 +90,8 @@ def main():
         names = ("SYSI_DPB", "SYSI_SFT", "SYSI_CDS", "SYSI_NUMIO", "SYSI_NCDS", "SYSI_DEV",
                  "DPB_NEXT_DPB", "DPB_DRIVER_ADDR", "DPB_SECTOR_SIZE", "CURDIR_DEVPTR", "CURDIRLEN",
                  "SFLINK", "SFCOUNT", "SFTABLE", "SF_ENTRY_SIZE", "SF_REF_COUNT", "SF_DEVPTR", "SF_NAME",
-                 "SDEVNEXT", "SDEVATT", "SDEVNAME", "SYSI_CON")
+                 "SDEVNEXT", "SDEVATT", "SDEVNAME", "SYSI_CON",
+                 "SYSI_BUF", "HASH_PTR", "HASH_COUNT", "BUFFER_BUCKET", "HASH_ENTRY_SIZE", "BUF_NEXT")
         values = struct.unpack(f"<{len(names)}H", layout.read_bytes())
         (scratch / "public-layout.inc").write_text("".join(
             f"PUB_{name} equ {value}\n" for name, value in zip(names, values)))
@@ -120,7 +124,7 @@ def main():
     if args.rebase:
         # Exercise CONFIG parsing after the pointer move, including its cached
         # DOS NLS/DBCS table addresses. Default values would hide lost directives.
-        variants = {name: (high, config + "LASTDRIVE=Z\r\nFILES=20\r\nFCBS=4,0\r\nBUFFERS=15\r\n")
+        variants = {name: (high, config + f"LASTDRIVE=Z\r\nFILES=20\r\nFCBS=4,0\r\nBUFFERS={args.buffers}\r\n")
                     for name, (high, config) in variants.items()}
     if not args.early:
         variants["live-himem"] = variants["himem-high"]
@@ -138,6 +142,7 @@ def main():
         if args.rebase:
             options.append(f"-DEXPECT_REBASE={int(high and not args.fail_reservation)}")
             options.append("-DEXPECT_CDS=26")
+            options.append(f"-DEXPECT_BUFFERS={args.buffers}")
         if args.compact:
             options.append("-DEXPECT_COMPACT")
         if args.warm_reset:

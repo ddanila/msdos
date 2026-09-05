@@ -884,7 +884,8 @@ hma_buffers_sync:
 DOS_HMA_BUFFERS endp
 
 ; Internal high-storage contract. SYSINIT publishes the first byte following
-; the final HMA buffer. COMMAND can then reserve immutable/cold storage from
+; all high reservations (including buffers when placed high). COMMAND reserves
+; immutable/cold storage from
 ; the DOS-owned tail without guessing the buffer layout. The allocation is
 ; monotonic for the lifetime of the boot and never enters the final 16-byte
 ; HMA safety area.
@@ -910,6 +911,8 @@ DOS_HMA_TAIL_SET endp
 PUBLIC  DOS_HMA_TAIL_ALLOC
 DOS_HMA_TAIL_ALLOC proc near
         cmp     cs:[hma_resident],0
+        je      short hma_tail_alloc_fail
+        cmp     cs:[hma_tail_floor],0
         je      short hma_tail_alloc_fail
         or      cx,cx
         jz      short hma_tail_alloc_fail

@@ -103,6 +103,9 @@ start:
     jne fail
 %endif
     loop .slot
+%ifdef EXPECT_BUFFERS
+    call check_buffer_count
+%endif
     mov ax,1236h
     mov cx,16
     int 2fh
@@ -251,6 +254,7 @@ slots:
 %ifdef EXPECT_REBASE
 %include "bios_public_graph.inc"
 %include "bios_ctrlc_probe.inc"
+%include "bios_buffer_probe.inc"
 %endif
 %ifdef ACTIVATE_HIGH
 %include "bios_live_activate.inc"

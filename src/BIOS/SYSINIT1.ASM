@@ -1632,6 +1632,16 @@ $$IF13:
 $$EN13:
 	pop	bx				;AN000;
 	pop	ds				;AN000;
+	; The cache stayed low. Publish the unused high tail as well: COMMAND
+	; must not allocate from an uninitialized floor or lose usable HMA.
+	; HmaBufferBase already excludes the development BIOS reservation.
+	cmp	cs:[HmaBuffersPrepared],0
+	je	short HmaBuffersAllocated
+	push	bx
+	mov	bx,cs:[HmaBufferBase]
+	mov	ax,1235h
+	int	2fh
+	pop	bx
 HmaBuffersAllocated:
 ;Now set the secondary buffer if specified.
 	cmp	[H_Buffers], 0			;AN000;

@@ -23,6 +23,22 @@ start:
     cmp word [es:di], 05aa5h
     jne failure
 
+%ifdef TAIL_FLOOR
+    ; Reproduce the unpublished allocator state without writing its result.
+    ; Restore both words before diagnosing rejection, including on old DOS.
+    push word [es:TAIL_FLOOR]
+    push word [es:TAIL_NEXT]
+    mov word [es:TAIL_FLOOR],0
+    mov word [es:TAIL_NEXT],0
+    mov ax,1236h
+    mov cx,16
+    int 2fh
+    pop word [es:TAIL_NEXT]
+    pop word [es:TAIL_FLOOR]
+    or ax,ax
+    jnz failure
+%endif
+
     mov ax, 1235h
     int 2fh
     or ax, ax
