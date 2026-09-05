@@ -6,6 +6,7 @@ import re
 import subprocess
 import tempfile
 import unittest
+from report_bios_service_crossings import listing_rows
 
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -16,11 +17,17 @@ class DataSegmentTests(unittest.TestCase):
         # Syntax/range gate only: external low-owner binding and runtime
         # relocation are deliberately not supplied by this object-only build.
         with tempfile.TemporaryDirectory(prefix="msdos-bios-full-data-") as scratch:
+            listing = Path(scratch) / "MSDISK.lst"
             command = [str(ROOT / "bin/jwasm-masm"),
-                       "-I. -I../INC -DBIOS_SERVICE_SEPARATE_DATA=1",
+                       f"-I. -I../INC -DBIOS_SERVICE_SEPARATE_DATA=1 -Fl{listing}",
                        f"MSDISK.ASM,{Path(scratch) / 'MSDISK.OBJ'};"]
             built = subprocess.run(command, cwd=ROOT / "src/BIOS", capture_output=True, text=True)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
+            labels, rows = listing_rows(listing.read_text(encoding="latin-1"))
+            for address, _, code in rows:
+                if labels["BIOS_SERVICE_START"] <= address < labels["BIOS_SERVICE_END"]:
+                    self.assertFalse(re.match(r"CALL\s+(CHECKIO|CHECKLATCHIO)\b", code, re.I),
+                                     "high body retains a non-local low-helper call")
 
     def test_separate_low_operand_execution_and_rejected_contracts(self):
         with tempfile.TemporaryDirectory(prefix="msdos-bios-operands-") as scratch:
@@ -123,8 +130,24 @@ class DataSegmentTests(unittest.TestCase):
                 code = line.split(";", 1)[0].strip().upper()
                 if code.startswith("BIOS_CALL_LOW "):
                     ordinary.append(code.split()[1].split(",")[0])
-        self.assertEqual(sorted(ordinary), ["GETBP", "HASCHANGE", "MOV_MEDIA_IDS",
+        self.assertEqual(sorted(ordinary), ["BIOS_CHECKIO_RESULT", "BIOS_CHECKLATCH_RESULT",
+                                           "GETBP", "HASCHANGE", "MOV_MEDIA_IDS",
                                            "SET_CHANGED_DL", "SET_CHANGED_DL", "SWPDSK"])
+
+    def test_result_helpers_return_mapped_errors_without_unwinding(self):
+        with tempfile.TemporaryDirectory(prefix="msdos-bios-check-result-") as scratch:
+            output = Path(scratch) / "check.com"
+            subprocess.run(["nasm", "-f", "bin", f"-I{ROOT / 'src/BIOS'}/",
+                            str(ROOT / "tests/bios_check_result_probe.asm"), "-o", str(output)],
+                           check=True, capture_output=True)
+            result = subprocess.run([str(ROOT / "bin/dos-run"), str(output)],
+                                    cwd=ROOT, capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            built = subprocess.run([str(ROOT / "bin/jwasm-masm"),
+                                    "-I. -I../INC -DBIOS_SERVICE_RESULT_HELPERS=1",
+                                    f"MSBIO2.ASM,{Path(scratch) / 'MSBIO2.OBJ'};"],
+                                   cwd=ROOT / "src/BIOS", capture_output=True, text=True)
+            self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
 
 
 if __name__ == "__main__":

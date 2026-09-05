@@ -1378,7 +1378,7 @@ flag, forward/backward SI movement, and caller DS checked. Dedicated stack
 operations save the original SP and unwind the same conventional stack without
 overwriting live target words; these are not arbitrary stack-switch helpers.
 The complete separate-data MSDISK object also assembles, using a flag-preserving
-long LOOP trampoline where its enlarged track loop requires one. Its body is currently 5,067
+long LOOP trampoline where its enlarged track loop requires one. Its body is currently 5,089
 bytes versus the installed 3,578-byte body; the added code spends HMA capacity,
 not low-memory savings, once relocation exists. The default build still emits
 byte-identical IO.SYS. A source guard permits only the two IOCTL code-dispatch
@@ -1556,7 +1556,7 @@ outcomes, all result registers, changed targets, and balanced stacks. These
 tests validate the gateway, not the six production helper bodies executing in
 a relocated system; recursive low-to-high calls still need entry bindings.
 
-Two outbound calls are deliberately excluded from that contract:
+Two legacy entries are deliberately excluded from that contract:
 
 - `CHECKLATCHIO` reaches `RET_NO_ERROR_MAP`, which pops its caller's return
   address into SI and returns to the next frame. A generic gateway's saved
@@ -1565,12 +1565,23 @@ Two outbound calls are deliberately excluded from that contract:
   the saved `SPSAV` stack and exits non-locally. It cannot return through an
   ordinary wrapper on those paths.
 
-The assembler rejects both targets in `BIOS_CALL_LOW`. Next, give these paths
-explicit normal/error outcomes with caller-owned unwind, or keep the complete
-non-local control-flow group together. Preserve the existing DISKIO_PATCH and
-DSKERR boot-time purge decisions in either design. Do not activate a high body
-with those raw near crossings or assume the fixed image's removed 96-TPI calls
-prove the supported floppy configurations safe.
+The assembler rejects both legacy targets in `BIOS_CALL_LOW`. The separate
+high body now calls `BIOS_CHECKLATCH_RESULT` and `BIOS_CHECKIO_RESULT` instead:
+CF=0 continues, CF=1 returns an already mapped DOS error in AL. The caller
+returns from DISKIO or enters HARDERR2 to restore SPSAV; neither low helper
+discards frames. `MSCHKRSL.INC` supplies these result entries in MSBIO2 when
+`BIOS_SERVICE_RESULT_HELPERS` is enabled. Normal builds retain the existing
+entries and byte-identical IO.SYS; the result helpers are not installed yet.
+
+Twelve native branch scenarios execute the shared result-helper instructions
+with controlled subordinate-service outcomes, checking CF/AL, mapping counts,
+media-ID reporting, retry BP, and balanced SP. Both high MSDISK and optional
+result-helper MSBIO2 objects assemble, and the high listing rejects remaining
+calls to the legacy non-local entries. This does not prove a linked high BIOS
+or recursive calls through GETBP/MAPERROR and their future entry gates.
+Activation must also translate the existing DISKIO_PATCH and DSKERR purge
+decisions: three NOP bytes cannot erase an expanded gateway call. Do not infer
+floppy compatibility from the fixed image's removed 96-TPI calls.
 
 The loader has not bound or activated these pointers. Remaining integration
 includes incoming/outgoing control-flow gates, pointer fixups, and early
