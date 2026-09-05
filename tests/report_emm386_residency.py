@@ -212,8 +212,8 @@ def main() -> int:
     by_name = {segment.name: segment for segment in segments}
     if args.check and by_name["GDT"].size > 176:
         raise ValueError("production GDT retains unused legacy descriptors")
-    if args.check and by_name["_DATA"].size > 424:
-        raise ValueError("EMM386 retained mutable data exceeds 424 bytes")
+    if args.check and by_name["_DATA"].size > 396:
+        raise ValueError("EMM386 retained mutable data exceeds 396 bytes")
     symbol_by_name = {symbol.name: symbol for symbol in symbols}
     if args.check:
         dma_pages = symbol_by_name.get("DMA_Pages")
@@ -493,9 +493,9 @@ def main() -> int:
             args.dma_pages,
         )
         == (64, 7, 64, 6, 1)
-        and runtime_ranges[-1].end > 3952
+        and runtime_ranges[-1].end > 3920
     ):
-        raise ValueError("default EMM386 retained-layout end exceeds 3,952 bytes")
+        raise ValueError("default EMM386 retained-layout end exceeds 3,920 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     dma_page_label = "DMA page" if args.dma_pages == 1 else "DMA pages"
     print(
