@@ -61,7 +61,8 @@ ASSUME	CS:DOSGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
     I_need  HASHINITVAR,WORD
     I_need  NUMIO,BYTE
 
-    EXTRN   DOS_CODE_START:BYTE
+PUBLIC  DOS_CODE_START
+DOS_CODE_START LABEL BYTE
 
 ; Fixed request workspace kept below DOS_LOW_GATE_END for legacy drivers that
 ; cannot consume an HMA request packet directly.

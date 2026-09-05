@@ -266,8 +266,6 @@ def main() -> int:
         errors.append("DOS TABLE ownership does not cover the complete segment")
 
     code_ranges = [
-        ("EMS user-map buffer", "BUF_EMS_MAP_USER", "DOS_CODE_START"),
-        ("Core system-call dispatcher", "DOS_CODE_START", "hma_driver_requests"),
         ("HMA driver request entry", "hma_driver_requests", "hma_low_dpbs"),
         ("Low DPB pointer workspace", "hma_low_dpbs", "hma_driver_xms"),
         ("HMA driver/XMS tail", "hma_driver_xms", "AbsSetup"),
@@ -292,6 +290,18 @@ def main() -> int:
     retained_code = low_gate - (code_segment.paragraph * 16 + code_segment.offset)
     if code_total != retained_code:
         errors.append("DOS CODE ownership does not cover the complete retained prefix")
+
+    dispatcher_start = require(dos_symbols, "BUF_EMS_MAP_USER")
+    dispatcher_end = require(dos_symbols, "MAP_CASE")
+    print("\n### Relocated system-call dispatcher\n")
+    print("| Range | Bytes | Lifetime |")
+    print("| ---: | ---: | --- |")
+    print(
+        f"| `{dispatcher_start:04X}h..{dispatcher_end:04X}h` | "
+        f"{dispatcher_end - dispatcher_start:,} | copied to HMA; retained only for DOS=LOW |"
+    )
+    if dispatcher_start < low_gate or dispatcher_end - dispatcher_start != 783:
+        errors.append("DOS system-call dispatcher is not wholly above the low boundary")
 
     print("\n## BIOS\n")
     print(f"Linked `CODE` capacity: {bios_code.size:,} bytes. ")

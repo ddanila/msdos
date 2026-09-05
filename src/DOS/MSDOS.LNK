@@ -2,8 +2,8 @@
 ..\inc\const2.obj   +
 ..\inc\msdata.obj  +
 ..\inc\mstable.obj +
- msdisp.obj          +
  mscode.obj          +
+ msdisp.obj          +
 ..\inc\msdosme.obj +
  time.obj             +
  getset.obj           +
