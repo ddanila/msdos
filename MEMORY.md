@@ -891,8 +891,9 @@ capture pass.
 | F2 | Regression | Enforce VC largest block >=618,736, free UMB >=47,888, component budgets, identical inputs, and clean-build reproducibility in the local suite | Floors pass repeatedly and across the supported machine/option matrix; CI remains off until requested |
 
 The immediate execution order is now E1-E4: apply the DR-DOS-style bulk DOS
-placement ladder and coalesce layout while the 18,076-byte DOS-owned HMA tail
-can absorb the complete 5,744-byte measured DOS/BIOS remainder. C2-C5 are
+placement ladder and coalesce layout. The DOS-owned HMA tail has 15,485 bytes
+left after COMMAND, but capacity alone does not prove that the 5,744-byte
+DOS/BIOS remainder is relocatable. C2-C5 are
 paused because EMM386 is already smaller than retail and further paragraph
 harvesting does not address the dominant owner. E5 is a bounded 1,024-byte
 finishing step. Revisit HIMEM and COMMAND only against the measured residual;
@@ -1303,21 +1304,57 @@ the portable local design is:
 5. fall back transactionally to the current low layout for `DOS=LOW`, HMA
    failure, or an unsupported ownership contract.
 
-The first tranche should target the 2,365-byte `TABLE` contribution and the
-1,072-byte `CONSTANTS` contribution as a group, then add eligible portions of
-the 1,783-byte `DATA` contribution. That creates a multi-kilobyte result with
-one relocation boundary. The decisive gate is not the linked size of any one
+The first design audit targets the 2,365-byte `TABLE` contribution and the
+1,072-byte `CONSTANTS` contribution, then eligible portions of the 1,783-byte
+`DATA` contribution. These are ownership inventories, not movable-byte budgets:
+both TABLE and CONSTANTS contain mandatory low interfaces. The decisive gate
+is not the linked size of any one
 routine: the DOS low prefix and owner-to-COMMAND span must fall by whole
 paragraphs, the gain must join VC's largest block, and filesystem, device,
 redirector, EXEC, asynchronous interrupt, A20, DOS-low, and warm-reset tests
 must all pass. The 5,744-byte DOS/BIOS remainder is the target budget for this
-workstream; current HMA capacity is sufficient without taking UMB memory away
-from applications.
+workstream, not a proved saving. Even releasing the entire 5,392-byte DOS
+prefix could not cover that remainder; BIOS relocation or another owner must
+contribute, and the required low interfaces reduce that upper bound further.
 
 After this tranche, measure the residual before choosing among COMMAND's
 880-byte retail excess, HIMEM's 1,488-byte excess, and the bounded 1 KiB EBDA
 step. Further EMM386 compaction is explicitly deferred unless it is a coherent
 gateway relocation or the post-placement residual proves it necessary.
+
+##### Source contract audit: reuse the existing high copy
+
+`DOS_HMA_RELOCATE` in `src/DOS/MS_CODE.ASM` already copies the entire DOS image
+from offset `0010h` through `SYSBUF` to the same offsets in segment `FFFFh`.
+The 39,440-byte HMA image therefore includes the tables and data below
+`DOS_LOW_GATE_END`. A new copy in the HMA tail is not automatically necessary.
+The retained low duplicate is still used deliberately:
+
+| Owner or path | Current contract | Required design decision |
+| --- | --- | --- |
+| Main dispatcher (`DISP.ASM`) | Selects `hma_low_segment` for DS and SS; reentry restores DS from SS | Separate the data base from the low interrupt-stack base before migrating mutable workspaces |
+| Process state (`DISP.ASM`, `UTIL.ASM`) | Current PSP is read from the low copy; setters synchronize both copies | Choose one authoritative owner and update every reader, including fast calls and initialization |
+| SYSINIT exchange (`HMA_SYNC_SYSINIT`) | Copies the final exchange block from high DOS back into the low image | Preserve device-chain, SFT/CDS, and initialization pointers through the new boundary |
+| `CONSTANTS` | Contains fixed DataVersion fields, SYSINIT layout, NUL header, device request packets, and compatibility dispatch | Keep externally addressed fields low or prove each external pointer can be rebased; the segment name does not imply immutability |
+| `TABLE` | Contains error/dispatch tables alongside the A20-restoring driver-return trampoline and other mutable state | Separate private high-safe tables from the low trampoline and exposed tables before releasing a contiguous range |
+
+The first bounded implementation should give the private error and dispatch
+tables an explicit high owner and route all their readers through that owner.
+For example, `ETAB_LK` currently mixes low mutable error state with DS:SI table
+reads; changing only a pointer would still read the wrong segment. Preserve
+the existing symbol offsets where possible so the already copied high image
+can be reused. Reclaim the low range only after moving mandatory low stubs out
+of its way and updating `DOS_LOW_GATE_END`, BIOS loading, and initialization
+contracts together. A duplicate high copy with the old low allocation intact
+earns no memory credit.
+
+Treat BIOS as a separate bulk-placement candidate: its selected 8,160-byte
+resident image includes disk transfer and IOCTL bodies as well as device
+headers and BIOS-facing state. The DR-DOS capture places 3,552 BIOS-code bytes
+in HMA and retains 2,768 bytes of conventional device drivers. This establishes
+a placement precedent, not a local savings forecast. A local BIOS split must
+leave a low entry/return path that restores A20 and preserves request pointers,
+DMA access, interrupts, and warm reset.
 
 ### DR-DOS clean-room adoption register
 
