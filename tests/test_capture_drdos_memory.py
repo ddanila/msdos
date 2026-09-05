@@ -73,6 +73,20 @@ class CaptureParserTest(unittest.TestCase):
             CAPTURE.KNOWN_DRDOS6_DISK_MD5,
         ))
 
+    def test_known_drdos6_results_are_enforced(self) -> None:
+        fields = CAPTURE.KNOWN_RESULT_FIELDS
+        results = {
+            name: dict(zip(fields, expected))
+            for name, expected in CAPTURE.KNOWN_DRDOS6_RESULTS.items()
+        }
+        CAPTURE.validate_known_results("Digital Research DR-DOS 6.0", results)
+        results["emm-hibuffers"]["largest"] -= 16
+        with self.assertRaisesRegex(RuntimeError, "emm-hibuffers: largest"):
+            CAPTURE.validate_known_results("Digital Research DR-DOS 6.0", results)
+
+    def test_unknown_release_has_no_pinned_results(self) -> None:
+        CAPTURE.validate_known_results("Caldera OpenDOS 7.01", {"low": {}})
+
     def test_full_owner_rows_and_summary_are_retained(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             screen = Path(temporary) / "screen.txt"

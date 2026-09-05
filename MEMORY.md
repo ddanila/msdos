@@ -1200,18 +1200,15 @@ block.
 | 10 | Revisit HIMEM only if the measured residual requires it | 1,488-byte excess over retail; incremental work paused | Resume only with a paragraph-scale, map-supported opportunity and preserve every existing gate |
 | 11 | Redesign the DOS-low or COMMAND boundary further | Architectural fallback | Choose the smallest design with a byte budget that covers the remaining measured gap and compatibility margin |
 
-The completed broad DR-DOS checkpoint suggests the architectural order, but a
-focused clean-room revalidation is the next planning gate before more layout
-work: confirm the documented high-memory policies against a live comparable
-DR-DOS system, reconcile its larger block to owners, and turn only externally
-supported techniques into local byte budgets. Then extend the EMM386 low
-gateway and apply the DOS placement ladder in the resulting order. The `M5`
-plus `DOS=HIGH` transition regression is closed and remains a mandatory gate
-for later boundary changes. The initial COMMAND/HMA gain is retained, but
-deeper shell work is paused. Recover the bounded EBDA paragraph only near the
-end, and revisit HIMEM only for a measured residual. Recalculate the success
-equation after every retained step and keep both the conventional and UMB
-floors visible.
+The focused clean-room DR-DOS revalidation reproduces the prior owner and API
+results exactly and confirms the architectural order: extend the EMM386 low
+gateway, then apply the DOS placement ladder. The `M5` plus `DOS=HIGH`
+transition regression is closed and remains a mandatory gate for later
+boundary changes. The initial COMMAND/HMA gain is retained, but deeper shell
+work is paused. Recover the bounded EBDA paragraph only near the end, and
+revisit HIMEM only for a measured residual. Recalculate the success equation
+after every retained step and keep both the conventional and UMB floors
+visible.
 
 ### DR-DOS clean-room adoption register
 
@@ -1221,14 +1218,14 @@ code is permitted. Runtime inspection is limited to public interfaces,
 allocation maps, addresses, and lifetimes and must not be used to reconstruct
 proprietary instruction sequences.
 
-**Next priority:** revalidate the highest-value DR-DOS findings before further
-memory-layout implementation. Start from published vendor documentation,
-reproduce the pinned live comparison, and vary one documented control at a
-time. The deliverable is an owner-reconciled adoption table that ranks local
-changes by expected largest-block gain and compatibility risk. This is a
-focused follow-up to the completed broad survey, not a new product survey, and
-must not use DR-DOS source code. After that gate, continue the small EMM386
-gateway and move eligible DOS state through the measured placement ladder.
+**Status:** the focused follow-up is complete. A fresh nine-variant run with
+the pinned archival DR-DOS 6 startup disk and VC 4.05 image reproduced every
+recorded aggregate exactly under QEMU 11.1.1. The capture tool now treats those
+figures as executable expectations whenever all artifact identities match, so
+a later revalidation fails instead of silently publishing a changed baseline.
+Continue the small EMM386 gateway, then move eligible DOS state through the
+measured placement ladder. Reopen DR-DOS investigation only for a named
+unresolved owner, lifetime, placement policy, or public API question.
 
 Use this sequence:
 
@@ -1261,6 +1258,14 @@ Reuse the existing capture tooling and pinned media. Add a new probe only when
 an owner, lifetime, placement policy, or public API result remains unresolved;
 record commands, hashes, deltas, and conclusions, but keep generated images and
 captures untracked.
+
+The revalidated ordinary compatibility-safe maximum is 627,824 bytes. Its
+10,720-byte pre-COMMAND span, 1,264-byte COMMAND span, 84,688 free UMB bytes,
+10,880-byte unused HMA tail, 639 KiB conventional ceiling, HMA ownership, and
+warm-reset public API state all match the recorded checkpoint. Low-memory and
+text-video recovery remain excluded from the parity route; `/XBDA` alone still
+provides no gain on the fixed BIOS. This confirms the ranked adoption table
+below without introducing a new technique or compatibility exception.
 
 The checkpoint is complete when the ordinary-mode advantage is accounted for
 well enough to choose our next design, optional compatibility tradeoffs are

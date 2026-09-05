@@ -53,6 +53,22 @@ KNOWN_MEDIA_SHA256 = {
 KNOWN_DRDOS6_DISK_MD5 = "a01ecc2548744606c0d8baa74daa64ae"
 KNOWN_VC_SHA256 = "b408f14da5bcba174f5e86107437b22b2863ee6ec72f79bdadf1b812607405fb"
 
+KNOWN_DRDOS6_RESULTS = {
+    "low": (571_328, 584_128, 62_240, 6_256, 0, 0, 639, 0x9FC0),
+    "hidos-high": (611_808, 624_608, 26_752, 1_264, 0, 18_800, 639, 0x9FC0),
+    "emm-high": (615_024, 717_936, 23_520, 1_264, 90_096, 18_800, 639, 0x9FC0),
+    "emm-hidos": (627_824, 717_920, 10_720, 1_264, 77_280, 18_800, 639, 0x9FC0),
+    "emm-hibuffers": (627_824, 725_328, 10_720, 1_264, 84_688, 10_880, 639, 0x9FC0),
+    "emm-frame": (627_824, 656_208, 10_720, 1_264, 15_568, 10_880, 639, 0x9FC0),
+    "emm-xbda": (627_824, 725_328, 10_720, 1_264, 84_688, 10_880, 639, 0x9FC0),
+    "emm-lowmem": (627_824, 725_328, 10_720, 1_264, 84_688, 10_880, 639, 0x9FC0),
+    "emm-video": (726_128, 823_632, 11_744, 1_264, 84_688, 10_880, 640, 0x02AC),
+}
+KNOWN_RESULT_FIELDS = (
+    "largest", "total_free", "system_span", "command_span", "upper_free",
+    "hma_free", "int12", "ebda",
+)
+
 
 OPENDOS_VARIANTS = {
     "low": ["DOS=LOW", "HIDOS=OFF", "BUFFERS=15"],
@@ -643,6 +659,21 @@ def comparison_identities_match(
     )
 
 
+def validate_known_results(release: str, results: dict[str, dict[str, Any]]) -> None:
+    if release != "Digital Research DR-DOS 6.0":
+        return
+    for name, result in results.items():
+        expected = KNOWN_DRDOS6_RESULTS[name]
+        actual = tuple(result[field] for field in KNOWN_RESULT_FIELDS)
+        if actual != expected:
+            differences = ", ".join(
+                f"{field}={value!r} (expected {wanted!r})"
+                for field, value, wanted in zip(KNOWN_RESULT_FIELDS, actual, expected)
+                if value != wanted
+            )
+            raise RuntimeError(f"DR-DOS 6 baseline changed for {name}: {differences}")
+
+
 def report(
     results: dict[str, dict[str, Any]],
     media: Path,
@@ -825,6 +856,8 @@ def main() -> None:
                         (args.evidence_dir / f"{name}-interfaces-{suffix}.txt").write_text(
                             value, encoding="ascii", errors="replace"
                         )
+        if identities_match:
+            validate_known_results(release, results)
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(
             report(
