@@ -16,6 +16,12 @@ import tempfile
 from report_dos_bios_residency import parse_map
 
 ROOT = Path(__file__).resolve().parent.parent
+BOOT_PATCHES = {
+    "DISKIO_PATCH": ("BIOS_DISKIO_PATCH_END", "keep_96tpi", 3),
+    "DSKERR": ("BIOS_DSKERR_PATCH_END", "keep_96tpi", 3),
+    "CHANGED_PATCH": ("BIOS_CHANGED_PATCH_END", "keep_96tpi", 10),
+    "DOUBLEWORDMOV": ("BIOS_DWORD_PATCH_END", "cpu386", 3),
+}
 SLOT_TARGETS = {
     "BIOS_SERVICE_LOW_SEGMENT": (2, "resident low BIOS segment"),
     "BIOS_SERVICE_ORIG13_OFFSET": (2, "ORIG13"),
@@ -135,6 +141,19 @@ def build(output):
                     "exports": {name: offset for name, offset in symbols.items()
                                 if name not in low and name not in slots},
                     "warning": "Rebase internal offset words and bind every runtime slot before use; low entry gates remain required."}
+        low_binary = (ROOT / "src/BIOS/MSBIO.BIN").read_bytes()
+        patches = {}
+        for start, (end, policy, low_size) in BOOT_PATCHES.items():
+            first, last = symbols[start], symbols[end]
+            low_first, low_last = low_symbols[start], low_symbols[end]
+            if not (0 <= first < last <= manifest["service_bytes"]) or low_last - low_first != low_size:
+                raise ValueError(f"boot patch boundary changed: {start}")
+            original = low_binary[low_first:low_last]
+            if len(original) != low_size or original == bytes([0x90]) * low_size:
+                raise ValueError(f"missing original low patch bytes: {start}")
+            patches[start] = {"offset": first, "size": last-first, "policy": policy,
+                              "low_offset": low_first, "low_original": original.hex()}
+        manifest["boot_patches"] = patches
         (output / "bios-high.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
         print(f"Linked {len(data)} bytes ({manifest['service_bytes']} service bytes); "
               f"{len(runtime)} unbound runtime slots; {len(relocations)} checked offset fixups.")
@@ -179,6 +198,47 @@ def rebase(data, offsets, origin):
             raise ValueError("offset fixup overflows")
         result[offset:offset + 2] = value.to_bytes(2, "little")
         previous = offset
+    return bytes(result)
+
+
+def boot_policy(low_snapshot, manifest):
+    """Decode only known original/NOP states; never guess from partial patches."""
+    decisions = {}
+    for name, patch in manifest["boot_patches"].items():
+        original = bytes.fromhex(patch["low_original"])
+        offset = patch["low_offset"]
+        actual = low_snapshot[offset:offset + len(original)]
+        if actual == original:
+            enabled = True
+        elif actual == b"\x90" * len(original):
+            enabled = False
+        else:
+            raise ValueError(f"unrecognized installed patch: {name}")
+        policy = patch["policy"]
+        if policy in decisions and decisions[policy] != enabled:
+            raise ValueError(f"inconsistent installed policy: {policy}")
+        decisions[policy] = enabled
+    return decisions
+
+
+def prepare(data, manifest, origin, *, keep_96tpi, cpu386):
+    """Prepare a copy; runtime slot binding still follows this operation.
+
+    Rebase first: some offset-fixup words lie inside instructions being NOPed.
+    Applying fixups afterward would turn the NOP spans into executable garbage.
+    """
+    if type(keep_96tpi) is not bool or type(cpu386) is not bool:
+        raise ValueError("boot policies must be explicit booleans")
+    if hashlib.sha256(data).hexdigest() != manifest["sha256"]:
+        raise ValueError("payload identity mismatch")
+    result = bytearray(rebase(data, manifest["offset_fixups"], origin))
+    decisions = {"keep_96tpi": keep_96tpi, "cpu386": cpu386}
+    for patch in manifest["boot_patches"].values():
+        start, size = patch["offset"], patch["size"]
+        if not 0 <= start < start + size <= manifest["service_bytes"]:
+            raise ValueError("invalid high boot-patch extent")
+        if not decisions[patch["policy"]]:
+            result[start:start + size] = b"\x90" * size
     return bytes(result)
 
 

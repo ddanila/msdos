@@ -408,6 +408,8 @@ DISKIO_CHECK_CONTINUE:
 	ELSE
 	CALL	CHECKLATCHIO		;|
 	ENDIF
+	PUBLIC BIOS_DISKIO_PATCH_END
+BIOS_DISKIO_PATCH_END LABEL BYTE
 ;----------------------------------------|
 ;
 ; SET UP TABLES AND VARIABLES FOR I/O
@@ -755,6 +757,8 @@ DSKERR_CHECK_CONTINUE:
 	ELSE
 	CALL	CHECKIO 		;|
 	ENDIF
+	PUBLIC BIOS_DSKERR_PATCH_END
+BIOS_DSKERR_PATCH_END LABEL BYTE
 ;---------------------------------------;|
 
 	BIOS_LOW_MEM CMP,<MultiTrk_Format_Flag>,1,DS ;AN007;Multi trk format request?
@@ -956,6 +960,8 @@ BLOCK13 PROC	FAR
 CHANGED_PATCH:
 	BIOS_LOW_MEM MOV,<WORD PTR [FLAGBITS]>,FCHANGED_BY_FORMAT+FCHANGED,DS
 	BIOS_CALL_LOW SET_CHANGED_DL,BIOS_LOW_SET_CHANGED
+	PUBLIC BIOS_CHANGED_PATCH_END
+BIOS_CHANGED_PATCH_END LABEL BYTE
 ;							  |
 ;---------------------------------------------------------|
 NOT_FORMAT:
@@ -1567,6 +1573,8 @@ MOVE	PROC	NEAR
 DoubleWordMov:			;AN002;
 	shr	cx, 1		;AN002;Make it a double word.
 	db	66h		;AN002;Machine code for double word mov
+	PUBLIC BIOS_DWORD_PATCH_END
+BIOS_DWORD_PATCH_END LABEL BYTE
 ;----------------------------------------------------------------------------
 	REP	MOVSW
 	POP	CX

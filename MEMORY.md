@@ -1581,8 +1581,8 @@ media-ID reporting, retry BP, and balanced SP. Both high MSDISK and optional
 result-helper MSBIO2 objects assemble, and the high listing rejects remaining
 calls to the legacy non-local entries. This does not prove a linked high BIOS
 or recursive calls through GETBP/MAPERROR and their future entry gates.
-Activation must also translate the existing DISKIO_PATCH and DSKERR purge
-decisions: three NOP bytes cannot erase an expanded gateway call. Do not infer
+The payload preparation contract below translates the existing DISKIO_PATCH
+and DSKERR purge decisions; the installer still needs to apply it. Do not infer
 floppy compatibility from the fixed image's removed 96-TPI calls.
 
 ##### Isolated service object and completion exits
@@ -1621,6 +1621,19 @@ and one, then verifies exact rebased bytes against independent links at 16,
 a general OMF format implementation. Low absolute offsets remain fixed; code
 and import-slot references move together. Four tests cover the real build,
 word carries, malformed differences, overlap, and segment/offset overflow.
+
+The manifest also records original low bytes and labeled high spans for the
+four boot patches inside the payload. DISKIO_PATCH, DSKERR, and CHANGED_PATCH
+expand from 3/3/10 low bytes to 13/15/24 high bytes; the pre-386 copy patch
+remains three bytes. `boot_policy` accepts only complete original or NOP
+patterns from a low BIOS snapshot and rejects partial or inconsistent 96-TPI
+patching. `prepare` verifies payload identity, rebases internal offsets first,
+then NOPs the selected full spans. Runtime bindings must be filled afterward.
+Tests cover all four 96-TPI/CPU policy combinations, malformed snapshots,
+identity mismatch, and an intentionally reversed patch/fixup order. This is
+host-side preparation, not yet a boot-loader implementation or runtime proof
+of the optional high paths. Other low BIOS patches remain the low loader's
+responsibility; these four are only the patches inside the selected body.
 
 The first real payload execution gate is:
 
