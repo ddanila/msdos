@@ -71,11 +71,16 @@ def main():
     parser.add_argument("--fail-table-allocation", action="store_true", help="force the development UMB allocation to fail")
     parser.add_argument("--upper-access-control", action="store_true", help="require rejection of a corrupted table snapshot after EMS cleanup")
     parser.add_argument("--share", action="store_true", help="run SHARE/NLSFUNC compatibility contracts before the table probes")
+    parser.add_argument("--ansi-high", action="store_true", help="exercise real DEVICEHIGH ANSI residency and low fallback")
+    parser.add_argument("--ansi-low", action="store_true", help="control: load the same ANSI driver with DEVICE")
     parser.add_argument("--fcb-keep", type=int, choices=(0, 1), default=0,
                         help="FCBS=4 keep count; 1 prevents SHARE replacing the boot cache")
     args = parser.parse_args()
     if args.share and not args.rebase:
         parser.error("--share requires --rebase")
+    ansi_enabled = args.ansi_high or args.ansi_low
+    if ansi_enabled and (not args.rebase or (args.ansi_high and args.ansi_low)):
+        parser.error("choose one ANSI placement and use --rebase")
     if args.fcb_keep and not args.rebase:
         parser.error("--fcb-keep requires --rebase")
     if args.fail_table_allocation and not args.rebase:
@@ -149,6 +154,10 @@ def main():
         # DOS NLS/DBCS table addresses. Default values would hide lost directives.
         variants = {name: (high, config + f"LASTDRIVE=Z\r\nFILES={args.files}\r\nFCBS=4,{args.fcb_keep}\r\nBUFFERS={args.buffers}\r\n")
                     for name, (high, config) in variants.items()}
+    if ansi_enabled:
+        directive = "DEVICEHIGH" if args.ansi_high else "DEVICE"
+        variants = {name: (high, config + f"{directive}=ANSI.SYS\r\n")
+                    for name, (high, config) in variants.items()}
     if not args.early:
         variants["live-himem"] = variants["himem-high"]
         variants["live-emm"] = variants["emm-high"]
@@ -197,6 +206,10 @@ def main():
             subprocess.run(["mcopy", "-o", "-i", str(image), str(source), f"::{destination}"],
                            env=env, check=True)
         if args.rebase:
+            if ansi_enabled:
+                run(["nasm", "-f", "bin", f"-I{scratch}/", f"-DEXPECT_HIGH={int(args.ansi_high and name == 'emm-high')}",
+                     ROOT / "tests/bios_ansi_resident_probe.asm", "-o", scratch / "ANSICHK.COM"], ROOT)
+                subprocess.run(["mcopy", "-o", "-i", str(image), str(scratch / "ANSICHK.COM"), "::ANSICHK.COM"], env=env, check=True)
             run(["nasm", "-f", "bin", "-DNO_DEBUG_EXIT", *(["-DEXPECT_UMB"] if name == "emm-high" else []),
                  ROOT / "tests/int21_system_probe.asm", "-o", scratch / "I21SYS.COM"], ROOT)
             for test_name in ("I21FCB.COM", "I21SYS.COM") + (("I21COMP.COM",) if args.share else ()):
@@ -204,6 +217,7 @@ def main():
                                env=env, check=True)
         for destination, text in (("CONFIG.SYS", config), ("AUTOEXEC.BAT",
                                   "@ECHO OFF\r\nCTTY AUX\r\n"
+                                  + ("ANSICHK.COM\r\n" if ansi_enabled else "")
                                   + ("SHARE.EXE /F:4096 /L:40\r\nI21FCB.COM\r\nNLSFUNC.EXE\r\nI21COMP.COM\r\n" if args.share else "")
                                   + ("I21SYS.COM\r\nI21FCB.COM\r\n" if args.rebase else "") + "LOWBOOT.COM\r\n")):
             subprocess.run(["mcopy", "-o", "-i", str(image), "-", f"::{destination}"],
@@ -227,6 +241,8 @@ def main():
                 pass
         result = log.read_bytes()
         passed = b"BIOS_LOW_BOOT_PASS" in result
+        if ansi_enabled and (b"BIOS_ANSI_RESIDENT_PASS" not in result or b"BIOS_ANSI_RESIDENT_FAIL" in result):
+            raise RuntimeError(f"ANSI resident placement/behavior failed: {log}\n{result.decode(errors='replace')}")
         if args.warm_reset and result.count(b"BIOS_WARM_RESET_READY") != 1:
             raise RuntimeError(f"reset marker count was not exactly one: {log}")
         if args.stale_cds_control and high:

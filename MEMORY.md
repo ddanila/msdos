@@ -1495,6 +1495,35 @@ locally, as do the normal HMA, standalone FCB, and compatibility suites.
 Before promotion, test redirector consumers, additional EMS mapping profiles,
 and real high-resident competition. The SHARE matrix does not establish those
 broader contracts or a new fixed-image memory gain.
+
+The real-resident diagnostic now uses repository ANSI.SYS, not a synthetic
+allocation. `--ansi-high` adds `DEVICEHIGH=ANSI.SYS`; `--ansi-low` is the
+otherwise-identical `DEVICE` control. Its probe verifies the active CON
+location, a system-owned containing MCB for upper placement, ANSI generic
+IOCTL state, and cursor positioning through an explicitly opened CON handle
+(serial CTTY must not bypass ANSI). The existing DOS-table and filesystem
+checks follow it.
+
+Current result: DEVICEHIGH's low fallback passes in bare-low, himem-low, and
+himem-high. With EMM386, DEVICE ANSI passes but DEVICEHIGH ANSI stalls before
+AUTOEXEC/serial output. The latter also reproduces with the normal IO.SYS
+substituted into the same image and with forced table-allocation failure.
+QMP screen inspection reaches the EMM386 installation banner but no test
+markers. This is a pre-existing high-driver startup blocker, not evidence
+against the table transaction, and the high-resident gate remains open.
+
+```sh
+# Passing low-placement control, then unresolved high-placement case.
+python3 tests/test_bios_low_boot_qemu.py \
+  --early --tail-body --rebase --compact --ansi-low --mode emm-high
+python3 tests/test_bios_low_boot_qemu.py \
+  --early --tail-body --rebase --compact --ansi-high --mode emm-high
+```
+
+Trace DEVICEHIGH's load/initialization handoff and ANSI's saved underlying CON
+callbacks before changing residency policy. Then rerun alongside SHARE and
+across warm reset. This diagnostic does not yet establish upper-memory
+exhaustion handling or compatibility with arbitrary high residents.
 Larger tables or preloaded high residents need an explicit placement budget
 and fallback; the 16-byte
 fixed-profile margin is not general spare capacity. Stable UMB addresses avoid
