@@ -402,9 +402,14 @@ Ordinary full-map export now snapshots through `ReadCurrentMap`; full-map and
 saved-handle restoration compare indexed current values, leaving unchanged
 UMB mappings alone. Saving a handle's four frame entries stays entirely inside
 the table owner. Rebuilding mapped windows also reads values by index.
-Move/exchange's two-window snapshot and alternate-set switching still carry
-FRS pointers. These must be separated before the complete
-block can move. No high copy or reclamation exists.
+Move/exchange now saves/restores its two scratch windows as a packed value,
+preserving the original four-byte stack order. Register-set zero buffer
+export/import also uses the bulk owner services. Tests compare the complete
+map before/after move/exchange and restore page contents through a non-null
+register-zero buffer, including the exported buffer address.
+Alternate-set allocation, selection and deallocation still resolve FRS record
+pointers in EMMP. These must move behind the owner before the complete block
+can move. No high copy or reclamation exists.
 
 Count boundary: EMMINIT rounds `_cntxt_pages` up to an
 even word count; `_cntxt_bytes` adds a two-byte public header. Internal FRS

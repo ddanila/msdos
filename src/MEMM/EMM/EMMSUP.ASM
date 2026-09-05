@@ -578,6 +578,26 @@ WriteCurrentMapFromFS proc near
         ret
 WriteCurrentMapFromFS endp
 
+; Move/exchange saves two scratch windows in the original stack order:
+; high word = window 0, low word = window 1. ESI is a value, not a pointer.
+        public ReadScratchMapPair, WriteScratchMapPair
+ReadScratchMapPair proc near
+        push bx
+        mov bx,word ptr [CurRegSet]
+        mov esi,dword ptr [bx.FRS_window]
+        rol esi,16
+        pop bx
+        ret
+ReadScratchMapPair endp
+WriteScratchMapPair proc near
+        push bx
+        mov bx,word ptr [CurRegSet]
+        ror esi,16
+        mov dword ptr [bx.FRS_window],esi
+        pop bx
+        ret
+WriteScratchMapPair endp
+
 ; AX validated handle: save the four LIM frame entries inside the table owner.
 ; The intermediate current-map pointer is private to EMMSUP.
 SaveCurrentFrame proc near

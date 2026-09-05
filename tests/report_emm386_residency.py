@@ -325,6 +325,8 @@ def main() -> int:
             "WriteCurrentMapEntry",
             "ReadCurrentMap",
             "WriteCurrentMapFromFS",
+            "ReadScratchMapPair",
+            "WriteScratchMapPair",
             "SaveCurrentFrame",
             "physical_to_external_id",
             "CheckHandleDX",

@@ -390,6 +390,13 @@ jump_target_segment:
     call release_callback_set
 
     ; 57: conventional -> EMS -> conventional move, then byte comparison.
+    push cs
+    pop es
+    mov di,full_map_previous
+    mov ax,4e00h
+    int 67h
+    test ah,ah
+    jnz fail_move
     mov ax, cs
     mov [move_to_ems+9], ax
     mov [move_from_ems+16], ax
@@ -423,6 +430,21 @@ jump_target_segment:
     jne fail_move
     cmp byte [exchange_right], 'L'
     jne fail_move
+    push cs
+    pop es
+    mov di,full_map_saved
+    mov ax,4e00h
+    int 67h
+    test ah,ah
+    jnz fail_move
+    mov cx,[full_map_previous]
+    cmp cx,63
+    ja fail_move
+    inc cx
+    mov si,full_map_previous
+    mov di,full_map_saved
+    repe cmpsw
+    jne fail_move                  ; includes both borrowed scratch windows
 
     ; 58: both mappable-address array forms.
     mov ax, 5801h
@@ -499,6 +521,7 @@ jump_target_segment:
     jnz fail_altreg
     test bl, bl
     jnz fail_altreg
+    call register_zero_buffer
     mov al, 5
 .dma_subfunction:
     mov ah, 5bh
@@ -768,7 +791,64 @@ release_callback_set:
     jnz fail_alter
     ret
 
+register_zero_buffer:
+    mov ah,41h
+    int 67h
+    test ah,ah
+    jnz fail_altreg
+    mov [regset_frame],bx
+    mov dx,[handle]
+    xor bx,bx
+    mov ax,4400h
+    int 67h
+    test ah,ah
+    jnz fail_altreg
+    mov es,[regset_frame]
+    mov word [es:0],0c33ch
+    push cs
+    pop es
+    mov di,full_map_saved
+    mov ax,4e00h
+    int 67h
+    test ah,ah
+    jnz fail_altreg
+    mov dx,[handle]
+    mov bx,1
+    mov ax,4400h
+    int 67h
+    test ah,ah
+    jnz fail_altreg
+    mov es,[regset_frame]
+    mov word [es:0],03cc3h
+    push cs
+    pop es
+    mov di,full_map_saved
+    xor bx,bx
+    mov ax,5b01h
+    int 67h
+    test ah,ah
+    jnz fail_altreg
+    mov es,[regset_frame]
+    cmp word [es:0],0c33ch
+    jne fail_altreg
+    mov ax,5b00h
+    int 67h
+    test ah,ah
+    jnz fail_altreg
+    test bl,bl
+    jnz fail_altreg
+    mov ax,es
+    mov dx,cs
+    cmp ax,dx
+    jne fail_altreg
+    cmp di,full_map_saved
+    jne fail_altreg
+    cmp word [es:di],0
+    je fail_altreg
+    ret
+
 call_alt_set db 0
+regset_frame dw 0
 
 fail_alloc:       mov dx, msg_alloc
                   jmp fail

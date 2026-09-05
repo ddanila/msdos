@@ -58,6 +58,7 @@ _TEXT	segment
         extrn ReadCurrentMapEntry:near, WriteCurrentMapEntry:near
         extrn ReadCurrentMap:near, SaveCurrentFrame:near
         extrn WriteCurrentMapFromFS:near
+        extrn ReadScratchMapPair:near, WriteScratchMapPair:near
         extrn physical_to_external_id:near
 	IFNDEF	EMMP_QUERY_ONLY
 	public	_MapHandlePage
@@ -2304,9 +2305,8 @@ mem_no_overlap:
 	;
 	push	fs
 	pop	ds			; DS <-- DGROUP
-	get_FRS_Window	SI
-	push	word ptr [SI]	       ; save 1st pgae's mapping on stack
-	push	word ptr [SI+2]	       ; save 2st page's mapping on stack
+	call	ReadScratchMapPair
+	push	esi			; same four-byte stack layout, no table pointer
 
 	;
 	; setup dest
@@ -2835,9 +2835,8 @@ mem_mapping_error:
 mem_exit:
 	push	fs				; get DGROUP back into DS
 	pop	ds
-	get_FRS_Window	BX
-	pop	word ptr [bx+2]
-	pop	word ptr [bx]
+	pop	esi
+	call	WriteScratchMapPair
 	cld					; string forward again
 	jmp	_set_windows			; remap all pages
 
@@ -3086,12 +3085,10 @@ AMRS_get2:
 	xor	dx, dx
 	Set_EMM_GDT	EMM1_GSEL
 	mov	es, bx				; ES:DI <-- temp store
-	Get_FRS_window	SI			; Get pointer to current window
 	movzx	eax, [_cntxt_pages]		; how many pages
 	stosw					; save size
 	mov	ecx, eax
-	shr	ecx, 1				; convert to dwords
-	rep movsd				; save the map
+	call	ReadCurrentMap
 AMRS_get1:
 	ret
 	
@@ -3161,17 +3158,7 @@ AMRS_set0:					; Now set up new reg set
 	movzx	ecx, [_cntxt_pages]		; what it should be
 	cmp	ax, cx				; Sensible count?
 	jne	_set_windows			;   no, restore last context
-	Get_FRS_window	DI
-	shr	ecx, 1				; size in dwords
-	push	ds				; xchg ds,fs
-	push	fs
-	pop	ds
-	pop	fs				; use DS as default seg. reg.
-	rep movsd
-	push	ds
-	push	fs
-	pop	ds
-	pop	fs
+	call	WriteCurrentMapFromFS
 	jmp	_set_windows			; set up mappings
 
 	page
