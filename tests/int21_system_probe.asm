@@ -339,16 +339,34 @@ strategy_ok:
     mov bx, 1
     mov ax, 5803h
     int 21h
+%ifdef EXPECT_UMB
+    fail_if_carry 58
+    mov ax,5802h
+    int 21h
+    fail_if_carry 58
+    cmp al,1
+    jne strategy_failed
+%else
     fail_unless_carry 58
     cmp ax, 1
     jne strategy_failed
+%endif
 
     mov bx, 0
     mov ax, 5803h
     int 21h
+%ifdef EXPECT_UMB
+    fail_if_carry 58
+    mov ax,5802h
+    int 21h
+    fail_if_carry 58
+    or al,al
+    jnz strategy_failed
+%else
     fail_unless_carry 58
     cmp ax, 1
     jne strategy_failed
+%endif
 
     mov bx, 2
     mov ax, 5803h
@@ -507,7 +525,9 @@ missing_open_ok:
     int 21h
     mov dx, 0f4h
     mov ax, 10h
+%ifndef NO_DEBUG_EXIT
     out dx, ax
+%endif
     mov ax, 4c00h
     int 21h
 

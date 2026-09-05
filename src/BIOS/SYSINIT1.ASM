@@ -1268,6 +1268,10 @@ EndFileHmaPrepared:
 	PUSH	CS
 	POP	DS
 	INVOKE	ROUND
+	IFDEF BIOS_BOOT_REBASE
+	mov	ax,cs:[MemHi]
+	mov	cs:[TableLowStart],ax
+	ENDIF
 	MOV	AL,[FILES]
 	SUB	AL,5
 	JBE	DOFCBS
@@ -1347,6 +1351,9 @@ FillLoop:
 	MOV	WORD PTR ES:[DI-(SIZE sf_entry)+sf_position+2],0
 	POP	CX
 	LOOP	FillLoop
+	IFDEF BIOS_BOOT_REBASE
+	call	MoveBootTablesUpper
+	ENDIF
 
 ;------------------------------------------------------------------------------
 ; Allocate Buffers
@@ -2565,6 +2572,10 @@ DoEMS	endp
 
 ; Build the normal buffer hash and buckets above the relocated DOS image. A
 ; maximum-sector conventional area remains for legacy block-driver transfers.
+	IFDEF BIOS_BOOT_REBASE
+	INCLUDE TABLEUMB.INC
+	ENDIF
+
 Set_HMA_Buffers proc near
 	push	ax
 	push	bx

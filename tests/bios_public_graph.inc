@@ -17,6 +17,48 @@ check_public_graph:
     int 21h
     mov [cs:public_list],bx
     mov [cs:public_list+2],es
+%ifdef EXPECT_TABLES_UPPER
+    push es
+    push bx
+    les si,[es:bx+PUB_SYSI_SFT]
+    les si,[es:si+PUB_SFLINK]
+    mov ax,es
+%if EXPECT_TABLES_UPPER
+    cmp ax,0a000h
+    jb fail
+    dec ax
+    mov [cs:public_table_owner],ax
+    push es
+    dec ax
+    mov es,ax
+    cmp word [es:1],8
+    jne fail
+    cmp word [es:3],EXPECT_TABLE_PARAS
+    jne fail
+    pop es
+%else
+    cmp ax,0a000h
+    jae fail
+%endif
+    cmp word [es:si+PUB_SFCOUNT],EXPECT_EXTRA_SFT
+    jne fail
+    pop bx
+    pop es
+    push es
+    les si,[es:bx+PUB_SYSI_FCB]
+    cmp word [es:si+PUB_SFCOUNT],4
+    jne fail
+    mov ax,es
+%if EXPECT_TABLES_UPPER
+    sub ax,[cs:public_table_owner]
+    cmp ax,EXPECT_FCB_DELTA
+    jne fail
+%else
+    cmp ax,0a000h
+    jae fail
+%endif
+    pop es
+%endif
 %ifdef STALE_CDS_CONTROL
     ; Deliberately restore an external pointer to the retired owner. A simple
     ; successful DOS call must not let this broken graph earn a PASS result.
@@ -214,6 +256,7 @@ public_drives dw 0
 public_dpbs times 6 dd 0
 public_found db 0
 public_current_drive db 0
+public_table_owner dw 0
 public_name db 'LOWTEST TMP'
 %ifdef STALE_CDS_CONTROL
 public_control_ready db 'BIOS_PUBLIC_CONTROL_READY',13,10,'$'

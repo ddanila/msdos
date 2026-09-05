@@ -7,6 +7,7 @@ import subprocess
 import struct
 import socket
 import json
+import re
 import time
 import tempfile
 from pathlib import Path
@@ -66,9 +67,15 @@ def main():
     parser.add_argument("--fail-reservation", action="store_true", help="force the early capacity check to reject")
     parser.add_argument("--mode", action="append", help="run only this mode; repeat as needed")
     parser.add_argument("--buffers", type=int, default=15, help="verify actual configured buffer count (requires --rebase)")
+    parser.add_argument("--files", type=int, default=20, help="FILES count for table-placement tests (8..255)")
+    parser.add_argument("--fail-table-allocation", action="store_true", help="force the development UMB allocation to fail")
     args = parser.parse_args()
+    if args.fail_table_allocation and not args.rebase:
+        parser.error("--fail-table-allocation requires --rebase")
     if not 1 <= args.buffers <= 99 or (args.buffers != 15 and not args.rebase):
         parser.error("--buffers must be 1..99 and custom counts require --rebase")
+    if not 8 <= args.files <= 255 or (args.files != 20 and not args.rebase):
+        parser.error("--files must be 8..255 and custom counts require --rebase")
     if args.fail_reservation and not args.early:
         parser.error("--fail-reservation requires --early")
     if (args.scan or args.rebase) and not (args.early and args.tail_body):
@@ -81,7 +88,7 @@ def main():
         parser.error("--stale-cds-control requires successful rebasing without reset")
     scratch = Path(tempfile.mkdtemp(prefix="bios-low-boot-", dir=ROOT / "out"))
     manifest = build(scratch, early=args.early, tail_body=args.tail_body, scan=args.scan, rebase=args.rebase, compact=args.compact,
-                     reservation_limit=0x10 if args.fail_reservation else 0xfff0)
+                     reservation_limit=0x10 if args.fail_reservation else 0xfff0, fail_tables=args.fail_table_allocation)
     high_manifest = build_high(scratch / "high", scratch)
     if args.rebase:
         layout = scratch / "public-layout.bin"
@@ -91,10 +98,12 @@ def main():
                  "DPB_NEXT_DPB", "DPB_DRIVER_ADDR", "DPB_SECTOR_SIZE", "CURDIR_DEVPTR", "CURDIRLEN",
                  "SFLINK", "SFCOUNT", "SFTABLE", "SF_ENTRY_SIZE", "SF_REF_COUNT", "SF_DEVPTR", "SF_NAME",
                  "SDEVNEXT", "SDEVATT", "SDEVNAME", "SYSI_CON",
-                 "SYSI_BUF", "HASH_PTR", "HASH_COUNT", "BUFFER_BUCKET", "HASH_ENTRY_SIZE", "BUF_NEXT")
+                 "SYSI_BUF", "HASH_PTR", "HASH_COUNT", "BUFFER_BUCKET", "HASH_ENTRY_SIZE", "BUF_NEXT", "SYSI_FCB")
         values = struct.unpack(f"<{len(names)}H", layout.read_bytes())
         (scratch / "public-layout.inc").write_text("".join(
             f"PUB_{name} equ {value}\n" for name, value in zip(names, values)))
+        run(["nasm", "-f", "bin", "-DNO_DEBUG_EXIT", ROOT / "tests/int21_fcb_probe.asm",
+             "-o", scratch / "I21FCB.COM"], ROOT)
     write_fixture(scratch, manifest, high_manifest)
     if high_manifest["low_image_sha256"] != manifest["sha256"]:
         raise RuntimeError("high payload was bound against a different low BIOS")
@@ -124,7 +133,7 @@ def main():
     if args.rebase:
         # Exercise CONFIG parsing after the pointer move, including its cached
         # DOS NLS/DBCS table addresses. Default values would hide lost directives.
-        variants = {name: (high, config + f"LASTDRIVE=Z\r\nFILES=20\r\nFCBS=4,0\r\nBUFFERS={args.buffers}\r\n")
+        variants = {name: (high, config + f"LASTDRIVE=Z\r\nFILES={args.files}\r\nFCBS=4,0\r\nBUFFERS={args.buffers}\r\n")
                     for name, (high, config) in variants.items()}
     if not args.early:
         variants["live-himem"] = variants["himem-high"]
@@ -143,6 +152,13 @@ def main():
             options.append(f"-DEXPECT_REBASE={int(high and not args.fail_reservation)}")
             options.append("-DEXPECT_CDS=26")
             options.append(f"-DEXPECT_BUFFERS={args.buffers}")
+            fields = dict(zip(names, values))
+            sft_paras = ((args.files - 5) * fields['SF_ENTRY_SIZE'] + fields['SFTABLE'] + 15) // 16 + 1
+            fcb_paras = (4 * fields['SF_ENTRY_SIZE'] + fields['SFTABLE'] + 15) // 16 + 1
+            options.append(f"-DEXPECT_TABLES_UPPER={int(name == 'emm-high' and sft_paras + fcb_paras <= 74 and not args.fail_table_allocation)}")
+            options.append(f"-DEXPECT_TABLE_PARAS={sft_paras + fcb_paras}")
+            options.append(f"-DEXPECT_FCB_DELTA={sft_paras + 1}")
+            options.append(f"-DEXPECT_EXTRA_SFT={args.files - 5}")
         if args.compact:
             options.append("-DEXPECT_COMPACT")
         if args.warm_reset:
@@ -161,8 +177,14 @@ def main():
         for source, destination in ((scratch / "IO.SYS", "IO.SYS"), (probe, "LOWBOOT.COM")):
             subprocess.run(["mcopy", "-o", "-i", str(image), str(source), f"::{destination}"],
                            env=env, check=True)
+        if args.rebase:
+            run(["nasm", "-f", "bin", "-DNO_DEBUG_EXIT", *(["-DEXPECT_UMB"] if name == "emm-high" else []),
+                 ROOT / "tests/int21_system_probe.asm", "-o", scratch / "I21SYS.COM"], ROOT)
+            for test_name in ("I21FCB.COM", "I21SYS.COM"):
+                subprocess.run(["mcopy", "-o", "-i", str(image), str(scratch / test_name), f"::{test_name}"],
+                               env=env, check=True)
         for destination, text in (("CONFIG.SYS", config), ("AUTOEXEC.BAT",
-                                  "@ECHO OFF\r\nCTTY AUX\r\nLOWBOOT.COM\r\n")):
+                                  "@ECHO OFF\r\nCTTY AUX\r\n" + ("I21SYS.COM\r\nI21FCB.COM\r\n" if args.rebase else "") + "LOWBOOT.COM\r\n")):
             subprocess.run(["mcopy", "-o", "-i", str(image), "-", f"::{destination}"],
                            input=text.encode(), env=env, check=True)
         log = scratch / f"{name}.log"
@@ -192,6 +214,9 @@ def main():
         if (passed == negative or (passed and b"BIOS_LOW_BOOT_FAIL" in result)
                 or (name.startswith("live-") and b"BIOS_LIVE_READY" not in result)):
             raise RuntimeError(f"FAIL {name}: {log}\n{result.decode(errors='replace')}")
+        if args.rebase and (b"INT21_FCB_PASS" not in result or b"INT21_SYSTEM_PASS" not in result
+                            or re.search(rb"INT21_[^\r\n]*FAIL", result)):
+            raise RuntimeError(f"FCB/system regression with relocated tables: {log}")
         if args.rebase and not negative:
             placement = None
             if not high:
