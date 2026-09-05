@@ -16,6 +16,9 @@ start:
         shr dx,cl
         add ax,dx
         mov cs:[BIOS_SERVICE_LOW_SEGMENT],ax
+        BIOS_LOAD_DATA_SEG DI
+        cmp di,ax
+        jne fail
         mov ax,1111h
         mov ds,ax
         mov ax,2222h

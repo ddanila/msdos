@@ -1,5 +1,6 @@
 ; Disk-service body selected for the BIOS high-memory split.
-; Still emitted in the original CODE segment: no relocation is activated here.
+; Default: original CODE segment. BIOS_SERVICE_ISOLATED: standalone BIOSHIGH
+; segment with explicit low imports. Neither object mode activates relocation.
 ; Keep READ_SECTOR through DOINT together while converting low-data and gateway
 ; contracts. MSIOCTL.INC is part of this body; declarations stay in MSDISK.ASM.
 
@@ -103,10 +104,10 @@ DSK$REM PROC	NEAR			;ARR 2.41
 	CALL	SETDRIVE		; GET BDS FOR THIS DRIVE
 	TEST	WORD PTR [DI].FLAGS,FNON_REMOVABLE
 	JNZ	NON_REM
-	JMP	EXIT
+	BIOS_JUMP_LOW EXIT,BIOS_LOW_EXIT_ENTRY
 
 NON_REM:
-	JMP	BUS$EXIT		;ARR 2.41
+	BIOS_JUMP_LOW BUS$EXIT,BIOS_LOW_BUSY_ENTRY
 DSK$REM ENDP
 
 ; SETDRIVE SCANS THROUGH THE DATA STRUCTURE OF BDSS, AND RETURNS A POINTER TO
@@ -183,9 +184,9 @@ DSK$CL:
 	CALL	DISKIO
 DSK$IO:
 	JC	DSKBAD
-	JMP	EXIT
+	BIOS_JUMP_LOW EXIT,BIOS_LOW_EXIT_ENTRY
 DSKBAD:
-	JMP	ERR$CNT
+	BIOS_JUMP_LOW ERR$CNT,BIOS_LOW_ERRCNT_ENTRY
 DSK$WRITV ENDP
 
 DSK$READ PROC	NEAR
@@ -725,7 +726,7 @@ DOVERIFY PROC	NEAR
 
 	cmp	ah,11h			;SOFT ECC error ?
 	jnz	Not_SoftECC_Err
-	dec	SOFT_ECC_CNT
+	BIOS_LOW_UNARY DEC,<Soft_ECC_Cnt>
 	jz	NoVerify		;no more retry
 	call	ResetDisk		;reset disk
 	jmp	DskErr1			;retry
@@ -734,7 +735,7 @@ DOVERIFY PROC	NEAR
 
 Not_SoftECC_Err:			;AN003;Other error.
 	call	ResetDisk		;AN003;
-	dec	VRetry_Cnt		;AN003;
+	BIOS_LOW_UNARY DEC,<VRetry_Cnt>
 	jmp	DskErr0 		;AN003;
 DOVERIFY ENDP
 ;
@@ -905,7 +906,7 @@ DONE_SET:
 	RET
 SET_TIM ENDP
 
-	ASSUME	CS:CODE,DS:NOTHING,ES:NOTHING,SS:NOTHING
+	ASSUME	CS:BIOS_SERVICE_CS,DS:NOTHING,ES:NOTHING,SS:NOTHING
 
 ;
 ; THIS IS THE TRUE INT 13 HANDLER.  WE PARSE THE REQUEST TO SEE IF THERE IS
@@ -1527,7 +1528,7 @@ NO_WRAP:
 ;		DS:DX	== OLD ORIG13 VALUE
 ;		ES:BX	== OLD OLD13  VALUE
 
-	ASSUME CS:CODE,DS:NOTHING,ES:NOTHING,SS:NOTHING
+	ASSUME CS:BIOS_SERVICE_CS,DS:NOTHING,ES:NOTHING,SS:NOTHING
 
 	PUBLIC INT_2F_13
 INT_2F_13	PROC	FAR

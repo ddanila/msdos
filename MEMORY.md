@@ -1361,6 +1361,8 @@ error-table scanning, and boot-record copies all name low-data ownership.
 The installed form emits the original PUSH CS; the separately compiled form
 pushes `CS:[BIOS_SERVICE_LOW_SEGMENT]` without changing flags or scratch
 registers. Native tests verify both 8086 encodings and all fifteen consumers.
+The additional MOV-based materialization uses `BIOS_LOAD_DATA_SEG DI`; its
+IOCTL transfer pointer now selects low data too, not the relocated CS.
 A future high module must supply and relocate
 the owner word and its references. IOCTL's code jump table must remain high
 while its mutable track table stays low; do not apply a global CS substitution.
@@ -1372,13 +1374,13 @@ are handled by borrowing the other segment. Unsafe borrowed-result overlap,
 SS/CS borrowing, and SP operands are assembly errors. A native DOS probe with
 distinct code/data segments checks loads, stores, carry propagation, CMP/XCHG,
 LDS/LES, segment-valued stores, preserved segments/BP, and balanced SP; six
-invalid contracts are rejected. Three unary INC/DEC operations and two indexed
+invalid contracts are rejected. Five unary INC/DEC operations and two indexed
 track-descriptor reads now have explicit low owners too, with carry, direction
 flag, forward/backward SI movement, and caller DS checked. Dedicated stack
 operations save the original SP and unwind the same conventional stack without
 overwriting live target words; these are not arbitrary stack-switch helpers.
 The complete separate-data MSDISK object also assembles, using a flag-preserving
-long LOOP trampoline where its enlarged track loop requires one. Its body is currently 5,089
+long LOOP trampoline where its enlarged track loop requires one. Its body is currently 5,120
 bytes versus the installed 3,578-byte body; the added code spends HMA capacity,
 not low-memory savings, once relocation exists. The default build still emits
 byte-identical IO.SYS. A source guard permits only the two IOCTL code-dispatch
@@ -1451,8 +1453,8 @@ BIOS-body design.
 
 `make test-dos-bios-residency` now prints the map-derived BIOS service candidate,
 kernel low inventory, and initial HMA capacity separately from achieved
-residency. Next implementation gate: enumerate the BIOS body's crossings and
-fixups, choose the initialization transaction, then prototype the whole body
+residency. Next implementation gate: bind the isolated body and its incoming
+entries/fixups, choose the initialization transaction, then exercise the whole body
 with low-mode fallback. No positive net saving is claimed until gateways,
 padding, ownership, and the released low boundary are measured together.
 
@@ -1582,6 +1584,31 @@ or recursive calls through GETBP/MAPERROR and their future entry gates.
 Activation must also translate the existing DISKIO_PATCH and DSKERR purge
 decisions: three NOP bytes cannot erase an expanded gateway call. Do not infer
 floppy compatibility from the fixed image's removed 96-TPI calls.
+
+##### Isolated service object and completion exits
+
+`BIOS_SERVICE_ISOLATED=1` assembles MSDISK's service body alone in a separate
+`BIOSHIGH` segment, `0000h..1400h` (5,120 bytes), with explicit imports for the
+low disk prefix. The source/operand suite builds both this and the earlier
+same-segment separate-data form. Its emitted-branch check rejects direct
+external targets; indirect gates and dispatch tables still require binding.
+Isolation exposed and corrected the remaining MOV-CS transfer pointer, two
+implicit low-data accesses, and two retry-counter decrements. Default IO.SYS
+remains byte-identical to the validated low-drive-state image.
+
+Eight request-completion exits use imported low far-entry pointers without a
+CALL. Their targets must consume the original MSBIO1 device-entry frame, not
+a gateway frame. A native cross-segment probe executes the macro with all nine
+saved register words and checks SP, registers, and flags on return. Together
+with the low-segment operand probe and twelve result-helper scenarios, the
+twelve source/operand tests pass. This does not validate real device status
+completion under high relocation.
+
+Next, link the isolated body against a concrete import/fixup table and provide
+low-to-high entries for low helpers that recurse into it. Preserve code-table
+offsets, selected/purged code policy, and ROM-return contracts when binding.
+An assembled 5 KiB payload is not yet an installed high BIOS: the old 3,578-byte
+body must actually be released and its low hole coalesced before counting gain.
 
 The loader has not bound or activated these pointers. Remaining integration
 includes incoming/outgoing control-flow gates, pointer fixups, and early

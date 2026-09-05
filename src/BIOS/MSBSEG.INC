@@ -39,6 +39,25 @@ BIOS_ROM_ORIG13 MACRO
         ENDIF
 ENDM
 
+; Completion exits consume the original device-entry stack. Never CALL these
+; low targets from the high body: no extra return frame may be introduced.
+BIOS_JUMP_LOW MACRO target,low_entry
+        IFDEF BIOS_SERVICE_SEPARATE_DATA
+        JMP DWORD PTR CS:[low_entry]
+        ELSE
+        JMP target
+        ENDIF
+ENDM
+
+; Materialize the low data segment without borrowing a scratch register.
+BIOS_LOAD_DATA_SEG MACRO result
+        IFDEF BIOS_SERVICE_SEPARATE_DATA
+        MOV result,WORD PTR CS:[BIOS_SERVICE_LOW_SEGMENT]
+        ELSE
+        MOV result,CS
+        ENDIF
+ENDM
+
 ; Only helpers with ordinary near RET may use this gateway. CHECKIO and
 ; CHECKLATCHIO have non-local exits and require separate contracts.
 BIOS_CALL_LOW MACRO target,low_offset

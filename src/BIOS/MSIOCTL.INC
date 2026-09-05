@@ -116,13 +116,13 @@ NOTGENERICIOCTLWRITE:
 	LES	BX, ES:[BX].GENERICIOCTL_PACKET
 	CALL	CS:[SI]
 	JC	FAILGENERIC$IOCTL
-	JMP	EXIT
+	BIOS_JUMP_LOW EXIT,BIOS_LOW_EXIT_ENTRY
 
 FAILGENERIC$IOCTL:
-	JMP	ERR$EXIT
+	BIOS_JUMP_LOW ERR$EXIT,BIOS_LOW_ERREXIT_ENTRY
 
 IOCTL_FUNC_ERR:
-	JMP	CMDERR
+	BIOS_JUMP_LOW CMDERR,BIOS_LOW_CMDERR_ENTRY
 Cmd_Err_Proc:					;AN012;
 	pop	dx				;AN012;clear up stack
 	pop	dx				;AN012;clear up stack
@@ -943,7 +943,11 @@ IOCTL$GETOWN:
 	MOV	AL,BYTE PTR [DI].DRIVENUM	; GET PHYSICAL DRIVE NUMBER
 	BIOS_PUSH_DATA_SEG
 	POP	DS
+	IFDEF BIOS_SERVICE_SEPARATE_DATA
+	MOV DI,WORD PTR DS:[START_BDS]
+	ELSE
 	MOV	DI,WORD PTR START_BDS
+	ENDIF
 OWN_LOOP:
 	CMP	BYTE PTR [DI].DRIVENUM,AL
 	JNE	GETNEXTBDS
@@ -984,7 +988,7 @@ EXIT_OWN:
 EXIT_NO_MULT:
 	BIOS_LOW_READ LDS,BX,<[PTRSAV]>,ES
 	MOV	BYTE PTR [BX].UNIT,CL
-	JMP	EXIT
+	BIOS_JUMP_LOW EXIT,BIOS_LOW_EXIT_ENTRY
 
 
 ;
@@ -1236,12 +1240,16 @@ Boot_IO 	proc	near			;AN000;
 ;SB		- number of sectors <-- 1
 ;SB	7 LOCS
 
-	mov	di, cs
+	BIOS_LOAD_DATA_SEG DI
 	mov	ds, di
 	mov	es, di
 	mov	di, offset DiskSector	;es:di -> transfer address
 	xor	dx, dx			;first sector (H) -> 0
+	IFDEF BIOS_SERVICE_SEPARATE_DATA
+	mov DS:[Start_Sec_H],dx
+	ELSE
 	mov	[Start_Sec_H], dx	;start sector (H) -> 0
+	ENDIF
 	mov	cx, 01			;one sector
 	call	DISKIO
 ;SB34IOCTL003**************************************************************

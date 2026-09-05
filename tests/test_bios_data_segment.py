@@ -13,6 +13,34 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 class DataSegmentTests(unittest.TestCase):
+    def test_isolated_body_has_no_direct_external_branches(self):
+        with tempfile.TemporaryDirectory(prefix="msdos-bios-isolated-") as scratch:
+            listing = Path(scratch) / "high.lst"
+            built = subprocess.run([str(ROOT / "bin/jwasm-masm"),
+                                    f"-I. -I../INC -DBIOS_SERVICE_ISOLATED=1 -Fl{listing}",
+                                    f"MSDISK.ASM,{Path(scratch) / 'high.obj'};"],
+                                   cwd=ROOT / "src/BIOS", capture_output=True, text=True)
+            self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
+            labels, rows = listing_rows(listing.read_text(encoding="latin-1"))
+            self.assertEqual(labels["BIOS_SERVICE_START"], 0)
+            for _, encoding, code in rows:
+                if re.match(r"^(?:(?:26|2E|36|3E))*FF", encoding):
+                    continue  # imported gates and explicitly owned dispatch tables
+                branch = re.match(r"(?:CALL|J\w+|LOOP\w*)\s+(?:SHORT\s+)?([\w$]+)$", code, re.I)
+                if branch:
+                    self.assertIn(branch[1].upper(), labels, code)
+                    self.assertLess(labels[branch[1].upper()], labels["BIOS_SERVICE_END"], code)
+
+    def test_completion_preserves_original_device_frame(self):
+        with tempfile.TemporaryDirectory(prefix="msdos-bios-completion-") as scratch:
+            output = Path(scratch) / "complete.com"
+            subprocess.run([str(ROOT / "bin/jwasm-bin"), f"-I{ROOT / 'src/BIOS'}",
+                            f"-Fo{output}", str(ROOT / "tests/bios_completion_masm.asm")],
+                           check=True, capture_output=True)
+            result = subprocess.run([str(ROOT / "bin/dos-run"), str(output)],
+                                    cwd=ROOT, capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_full_separate_data_module_assembles(self):
         # Syntax/range gate only: external low-owner binding and runtime
         # relocation are deliberately not supplied by this object-only build.
