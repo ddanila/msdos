@@ -175,8 +175,67 @@ Evidence and regression coverage:
   All 37 staged ISO files remained byte-for-byte unchanged. The no-cache
   control `out/win95-normal-merged-01` also reached that screen.
 
-The launch failure is fixed at this checkpoint. Completing the wizard and
-verifying an installed Windows desktop from this cache-enabled path remain
-outstanding; reaching the welcome screen is not a complete installation.
+The launch failure was fixed at this checkpoint. The complete installation
+verification below was performed subsequently; the welcome-screen result
+alone was not treated as a complete installation.
 HIMEM/DOS=HIGH remains a separate observation. All screenshots, memory dumps,
 Microsoft binaries, and disk images remain ignored local evidence under `out/`.
+
+### Complete cache-enabled installation, 2026-09-05
+
+`out/win95-smartdrv-install-01` completed a fresh Typical Windows 95 installation
+using the corrected DOS build at `40cfc0f`. Runtime `A:\SMARTDRV.EXE` was loaded
+before normal `SETUP`, **without `/IS`**. CONFIG.SYS contained only `FILES=60`
+and `BUFFERS=30`; neither HIMEM nor DOS=HIGH was used. The QEMU machine and
+external OEM ISO were the same as the earlier reproduction.
+
+- Setup passed its disk checks, prepared the wizard, completed hardware
+  detection, and copied the recommended Windows components without errors.
+  No network services, printer, or startup floppy were configured.
+- At the restart prompt, the disposable boot floppy was ejected and boot order
+  changed to the hard disk. First-boot configuration completed, followed by
+  Setup's final restart and the Windows 95 desktop.
+- The desktop accepted keyboard input and launched `WINVER`. Windows shutdown
+  powered off QEMU. A separate boot of the same installed disk, with no floppy,
+  again reached the desktop; another Windows shutdown ended QEMU with status 0.
+- With that VM stopped, all **37** original `C:\WIN95` source files matched
+  their pre-install SHA-256 hashes. `WINDOWS\WIN.COM`, `EXPLORER.EXE`,
+  `SYSTEM.DAT`, and `USER.DAT` were present and readable offline.
+- Corrected SMARTDRV.EXE SHA-256:
+  `783927a8e989f9d2d6cd135796c06e46522053eb8b16464d780ec71ec38a0a4a`.
+  Modified test boot-floppy SHA-256:
+  `740ae8b04918ad40e44c85991966e7cf580515f72386a9433f46dc4c28bfbc53`.
+
+Local evidence includes `interactive-023.ppm` / `desktop.png` (first desktop),
+`interactive-025.ppm` (WINVER), `reboot-02.ppm` (independent second boot), and
+`reboot-shutdown.png` (Windows shutdown selection). The initial interactive
+harness reported `Broken pipe` when a screenshot was requested after Windows
+had powered off QEMU; this was a harness lifecycle error, not an installation
+failure. Normal process exit is now handled explicitly and recorded in
+`qemu_exit_code`. The independent boot/shutdown supplied the explicit exit-0
+check; the original report is retained unaltered rather than relabeled a pass.
+The focused `win95-smartdrv-harness-exit-01` run exercised a normal monitor
+`quit` during Setup and then collected exit code 0 with no harness error and
+unchanged sources. That run validates exit handling only, not installation.
+
+To repeat the supervised installation with your own media and identification:
+
+```sh
+uv run --with pycdlib python tests/win95_setup_probe.py \
+  --iso /path/to/WINDOWS95.ISO --output out/win95-install-new \
+  --mode fork-smartdrv --seconds 15 --interactive
+```
+
+After the initial bounded observation, the harness accepts QEMU human-monitor
+commands on stdin (for example `sendkey ret 30`), `shot` to retain a numbered
+screenshot and OCR text, or `finish` to stop the VM and compare source files.
+At Setup's restart prompt, use `eject floppy0` and `boot_set c` before continuing.
+After Windows powers the VM off, press Enter to collect its exit status and
+offline comparisons. Do not treat a normal harness exit as automatic evidence
+that the wizard completed; inspect the retained screens and installed guest.
+No product identification, ISO contents, or Windows installation is committed.
+
+This verifies installation through the fork's runtime cache, not continued use
+of that cache under Windows protected mode, HIMEM/DOS=HIGH compatibility,
+physical hardware, or endurance. The separate working Juku Windows VM was not
+modified by these experiments.

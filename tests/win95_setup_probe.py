@@ -29,6 +29,8 @@ def main():
     parser.add_argument('--mode', choices=('normal', 'skip-scandisk', 'fork-smartdrv'), default='normal')
     parser.add_argument('--seconds', type=int, default=30)
     parser.add_argument('--prompt-timeout', type=int, default=120)
+    parser.add_argument('--interactive', action='store_true',
+                        help='After the initial observation, accept HMP commands, shot, or finish on stdin')
     args = parser.parse_args()
     if not 1 <= args.seconds <= 300:
         parser.error('--seconds must be between 1 and 300')
@@ -138,10 +140,43 @@ def main():
             qmp('screendump',filename=str(out/'after.ppm'))
             report['after_text'] = run('tesseract',str(out/'after.ppm'),'stdout',
                                        capture_output=True,text=True).stdout
-            qmp('quit')
+            if args.interactive:
+                print(report['after_text'], flush=True)
+                report['interactive_screens'] = []
+                while True:
+                    if process.poll() is not None:
+                        break
+                    try:
+                        command_text = input('HMP command, shot, or finish> ').strip()
+                    except EOFError:
+                        break
+                    if process.poll() is not None:
+                        break
+                    if command_text == 'finish':
+                        break
+                    if command_text == 'shot':
+                        name = 'interactive-%03d.ppm' % len(report['interactive_screens'])
+                        qmp('screendump',filename=str(out/name))
+                        screen_text = run('tesseract',str(out/name),'stdout',
+                                          capture_output=True,text=True).stdout
+                        report['interactive_screens'].append({'file':name,'text':screen_text})
+                        print(screen_text, flush=True)
+                    elif command_text:
+                        print(qmp('human-monitor-command',
+                                  **{'command-line':command_text}), flush=True)
+            if process.poll() is None:
+                qmp('quit')
             process.wait(timeout=10)
         except Exception as error:
-            report['error'] = str(error)
+            # A guest-initiated power-off can close QMP between the liveness
+            # check and a command. A normal QEMU exit is not an installer error.
+            if args.interactive and process.poll() is None:
+                try:
+                    process.wait(timeout=1)
+                except subprocess.TimeoutExpired:
+                    pass
+            if not (args.interactive and process.poll() == 0):
+                report['error'] = str(error)
             try:
                 qmp('stop')
                 report['registers'] = qmp('human-monitor-command',
@@ -155,6 +190,9 @@ def main():
             if process.poll() is None:
                 process.terminate()
                 process.wait(timeout=10)
+            report['qemu_exit_code'] = process.returncode
+            if process.returncode != 0 and 'error' not in report:
+                report['error'] = 'QEMU exited with status '+str(process.returncode)
     changes=[]
     for original in sorted(source.iterdir()):
         result=subprocess.run(['mtype','-i',volume,'::WIN95/'+original.name],capture_output=True)
