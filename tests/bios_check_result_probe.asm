@@ -93,6 +93,7 @@ RETURNVID:
     stc
     ret
 MAPERROR:
+BIOS_RESULT_MAPERROR:
     inc byte [mapped]
     mov al,0fh
     stc

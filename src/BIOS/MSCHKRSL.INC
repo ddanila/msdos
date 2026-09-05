@@ -16,7 +16,7 @@ BIOS_CHECKLATCH_RESULT:
         jns BIOS_CHECK_NORMAL
         call RETURNVID
 BIOS_CHECK_MAP:
-        call MAPERROR
+        call BIOS_RESULT_MAPERROR
 BIOS_CHECK_ERROR:
         stc
         ret

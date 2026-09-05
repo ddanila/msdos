@@ -1664,9 +1664,10 @@ exactly 512 bytes, preserve CX, advance SI/DI by 512, and preserve destination
 guard words. Entry DF is deliberately set; MOVE must clear it. Removing only
 the operand-size prefix leaves the count-halving instruction active and copies
 too little; that negative control must reach an explicit FAIL result. Both
-copy paths execute on QEMU 486 here: this is not real-286 acceptance. The seven
+copy paths execute on QEMU 486 here: this is not real-286 acceptance. The eight
 runtime cases include the three read outcomes, word copy, partial-copy-patch
-rejection, missing-fixup rejection, and missing-entry-A20 rejection. The normal
+rejection, missing-fixup rejection, missing-entry-A20 rejection, and non-local
+error unwind. The normal
 IO.SYS remains byte-identical.
 
 `HIGHNEAR.INC` supplies the 40-byte high-side ordinary-near-call adapter. A low
@@ -1681,8 +1682,21 @@ The six SETDRIVE/MAPERROR/READ_SECTOR calls in MSDISK's retained prefix now use
 `BIOS_CALL_HIGH` when `BIOS_SERVICE_LOW_CALLS` is enabled. That object assembles
 and its call inventory is checked; default expansions remain the original
 near calls. Runtime import storage and publication are not installed yet,
-and MSBIO2/96-TPI callers still need conversion. The HMA probe validates the
-adapter with real read/copy code, not a complete production low/high cycle.
+and the MSBIO2/96-TPI ordinary calls now use the same operation: two SETDRIVE,
+one CHECKSINGLE, and two MAPERROR sites, plus the result helpers' mapping
+adapter. The combined low-call/result-helper object assembles. Legacy CHECKIO
+error exits use `BIOS_JUMP_HIGH`, which restores A20 and tail-transfers without
+adding a frame; HARDERR/HARDERR2 must own the saved high disk stack. This must
+not be enabled while mixing an old low DISKIO frame with a high error target.
+
+The HMA probe also exercises actual HARDERR2: it saves the original high
+service return SP in private low SPSAV, adds temporary frames, calls a low
+helper that disables A20, then restores A20 and jumps high. HARDERR2 restores
+SPSAV, returns the saved sector count and mapped error through the high near
+adapter, and reaches the original low caller with balanced SP/BP/ES. Private
+format state suppresses ROM DPT edits in this focused test. This validates the
+non-local boundary, not production DISKIO/media-change integration; device and
+interrupt entry publication and the complete installed low/high cycle remain.
 
 Next, extend execution beyond READ_SECTOR and bind production imports, including
 low-to-high entries for low helpers that recurse into the body. Preserve code-table

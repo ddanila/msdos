@@ -23,6 +23,7 @@ def main():
     definitions += [f"SLOT_{name} equ {slot['offset']}" for name, slot in manifest["runtime_slots"].items()]
     definitions += [f"ENTRY_READ_SECTOR equ {manifest['exports']['READ_SECTOR']}",
                     f"ENTRY_NEAR_GATE equ {manifest['exports']['BIOS_HMA_ENTER_NEAR']}",
+                    f"ENTRY_HARDERR2 equ {manifest['exports']['HARDERR2']}",
                     f"ENTRY_MOVE equ {manifest['exports']['MOVE']}",
                     f"CPU_PATCH_OFFSET equ {manifest['boot_patches']['DOUBLEWORDMOV']['offset']}",
                     f"CPU_PATCH_SIZE equ {manifest['boot_patches']['DOUBLEWORDMOV']['size']}",
@@ -36,6 +37,7 @@ def main():
     (scratch / "payload-tables.inc").write_text("\n".join(tables) + "\n")
     modes = (("success", 0, 1, 0, 0), ("retry", 2, 3, 2, 0),
              ("error", 3, 3, 3, 1), ("word-copy", 0, 1, 0, 0),
+             ("nonlocal-unwind", 0, 1, 0, 1),
              ("partial-copy-patch", 0, 1, 0, 0), ("missing-fixups", 0, 1, 0, 0),
              ("missing-entry-a20", 0, 1, 0, 0))
     env = {**os.environ, "MTOOLS_SKIP_CHECK": "1"}
@@ -47,6 +49,8 @@ def main():
             options.append("-DOMIT_FIXUPS")
         if name == "missing-entry-a20":
             options.append("-DOMIT_ENTRY_A20")
+        if name == "nonlocal-unwind":
+            options.append("-DTEST_UNWIND")
         copy_mode = 1 if name == "word-copy" else 2 if name == "partial-copy-patch" else 0
         options.append(f"-DCOPY_MODE={copy_mode}")
         run(["nasm", "-f", "bin", f"-I{scratch}/", f"-I{ROOT / 'src/BIOS'}/", *options,

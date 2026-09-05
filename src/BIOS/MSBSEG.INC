@@ -51,6 +51,17 @@ BIOS_CALL_HIGH MACRO low_target,high_target_slot,high_entry_slot
         ENDIF
 ENDM
 
+; LOW-to-HIGH non-local continuation: preserve the current frame until the
+; target restores its own saved stack. Not an ordinary service call.
+BIOS_JUMP_HIGH MACRO low_target,high_entry_slot
+        IFDEF BIOS_SERVICE_LOW_CALLS
+        CALL BIOS_HMA_ROM_RESTORE
+        JMP DWORD PTR CS:[high_entry_slot]
+        ELSE
+        JMP low_target
+        ENDIF
+ENDM
+
 ; Completion exits consume the original device-entry stack. Never CALL these
 ; low targets from the high body: no extra return frame may be introduced.
 BIOS_JUMP_LOW MACRO target,low_entry

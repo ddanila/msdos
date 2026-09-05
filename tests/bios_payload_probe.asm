@@ -28,6 +28,13 @@ start:
     mov cx,payload_end-payload
     cld
     rep movsb
+%ifdef TEST_UNWIND
+    mov [es:bx+unwind_gate_segment-payload],cs
+    mov ax,bx
+    add ax,ENTRY_HARDERR2
+    mov [unwind_entry],ax
+    mov [unwind_entry+2],es
+%endif
 %ifndef OMIT_FIXUPS
     mov si,fixups
     mov cx,FIXUP_COUNT
@@ -110,13 +117,18 @@ start:
     push word [service_target]
     call far [entry]
     mov [result_ax],ax
+    mov [result_cx],cx
     pushf
     pop word [result_flags]
     cmp sp,[saved_sp]
     jne fail
     cmp bp,7777h
     jne fail
+%ifdef TEST_UNWIND
+    cmp word [entry_disabled],2
+%else
     cmp word [entry_disabled],1
+%endif
     jne fail
     mov ax,es
     mov dx,cs
@@ -162,6 +174,10 @@ start:
     jne fail
     cmp word [copy_cx],7654h
     jne fail
+%ifdef TEST_UNWIND
+    cmp word [result_cx],0123h
+    jne fail
+%endif
     call unhook
     mov dx,pass_message
     mov ah,9
@@ -215,6 +231,14 @@ disable_entry_a20:
     pop ax
     popf
     ret
+%ifdef TEST_UNWIND
+low_unwind:
+    call disable_entry_a20
+    call BIOS_HMA_ROM_RESTORE
+    mov ax,200fh
+    stc
+    jmp far [cs:unwind_entry]
+%endif
 hook13:
     cmp ah,2
     jne .reset
@@ -259,6 +283,9 @@ old13 dd 0
 saved_sp dw 0
 result_flags dw 0
 result_ax dw 0
+result_cx dw 0
+unwind_sp dw 0
+unwind_entry dd 0
 low_segment dw 0
 read_count dw 0
 reset_count dw 0
@@ -301,6 +328,26 @@ high_entry:
     pop cx
     pop ax
     popf
+%ifdef TEST_UNWIND
+    mov [ss:unwind_sp],sp
+    push ax
+    push es
+    mov ax,[ss:low_segment]
+    mov es,ax
+    mov ax,[ss:unwind_sp]
+    mov [es:LOW_SPSAV],ax
+    mov word [es:LOW_SECCNT],0123h
+    mov byte [es:LOW_MEDIA_SET_FOR_FORMAT],1 ; no ROM DPT edit in this probe
+    pop es
+    pop ax
+    push word 1234h
+    push word 5678h
+    db 09ah
+    dw low_unwind
+unwind_gate_segment:
+    dw 0
+    jmp $                       ; unreachable: HARDERR2 unwinds this call
+%endif
     ret
 payload_end:
 copy_si dw 0

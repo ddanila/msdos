@@ -187,7 +187,7 @@ class DataSegmentTests(unittest.TestCase):
                                     cwd=ROOT, capture_output=True, text=True, timeout=10)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             built = subprocess.run([str(ROOT / "bin/jwasm-masm"),
-                                    "-I. -I../INC -DBIOS_SERVICE_RESULT_HELPERS=1",
+                                    "-I. -I../INC -DBIOS_SERVICE_RESULT_HELPERS=1 -DBIOS_SERVICE_LOW_CALLS=1",
                                     f"MSBIO2.ASM,{Path(scratch) / 'MSBIO2.OBJ'};"],
                                    cwd=ROOT / "src/BIOS", capture_output=True, text=True)
             self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
