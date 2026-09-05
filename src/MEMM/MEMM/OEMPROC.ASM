@@ -30,8 +30,6 @@
 IFNDEF OEMPROC_DISABLE_ONLY
 IFNDEF OEMPROC_PROTECTED_ONLY
 public	VerifyMachine
-public	MaskIntAll
-public	RestIntMask
 ifndef NOHIMEM
 public	OEM_Trap_Init
 endif
@@ -114,8 +112,6 @@ _TEXT	ends
 ;******************************************************************************
 ;
 
-MASTER_IMR	equ	21h		; mask port for master 8259
-
 ;
 ;  PPI port bit definitions
 ;
@@ -184,7 +180,7 @@ buffer		dw	0	; buffer for 1 word move blocks
 endif
 
 
-int_mask    db	?		; save for restoring masked interrupts
+int_mask    db	?		; legacy scratch reused by non-overlapping DMA traps
 
 ;
 ENDIF
@@ -206,46 +202,6 @@ NMI_New label	byte
 IDT_ENTRY	VDMC_GSEL,<offset _TEXT:Parity_Handler>,D_386INT0
 ENDIF
 IFNDEF OEMPROC_PROTECTED_ONLY
-
-;******************************************************************************
-;
-;	MaskIntAll  Save current interrupt mask state and mask all interrupts
-;
-;	entry:	    DS pts to DGROUP
-;
-;	exit:	    All interrupts disabled
-;
-;	used:	    AX
-;
-;	stack:
-;
-;******************************************************************************
-MaskIntAll	proc	near
-	in	al,MASTER_IMR
-	mov	[int_mask], al
-	mov	al,0ffh 			;;; all OFF
-	out	MASTER_IMR,al
-	ret
-MaskIntAll	endp
-
-;******************************************************************************
-;
-;	RestIntMask Restore interrupt mask saved in MaskIntAll
-;
-;	entry:	    DS pts to DGROUP
-;
-;	exit:	    Interrupts restored to state previous to MaskIntAll
-;
-;	used:	    AX
-;
-;	stack:
-;
-;******************************************************************************
-RestIntMask	proc	near
-	mov	al,[int_mask]			; restore interrupt mask
-	out	MASTER_IMR,al
-	ret
-RestIntMask	endp
 
 ;******************************************************************************
 ;   OEM_Trap_Init - turn on I/O bit map trapping for I/O port watching

@@ -64,6 +64,7 @@ include elim.inc
 
 FALSE		equ	0
 TRUE		equ	not FALSE
+MASTER_IMR	equ	21h		; master 8259 interrupt-mask port
 
 ;******************************************************************************
 ;	E X T E R N A L   R E F E R E N C E S
@@ -247,10 +248,12 @@ ifndef	NOHIMEM
 	call	FAR PTR InitLOCK	; init status of TABLE lock
 endif
 
-;
-;	mask off master 8259 to prevent all interrupts during setup
-;
-	call	MaskIntAll		; Mask all interrupts
+	; Save the master 8259 mask on the client frame that GoVirtualHigh
+	; preserves, then mask every IRQ during the mode switch.
+	in	al,MASTER_IMR
+	push	ax
+	mov	al,0ffh
+	out	MASTER_IMR,al
 ;
 ;	Set the CPU into 386 protected mode.
 ;
@@ -386,10 +389,8 @@ SelToSeg endp
 ;	Enter Virtual Mode here
 ;
 VM_return:
-;
-; re-enable interrupts
-;
-	call	RestIntMask		; Restore interrupt mask
+	pop	ax			; restore the saved master 8259 mask
+	out	MASTER_IMR,al
 	POP_GS
 	POP_FS
 	pop	es

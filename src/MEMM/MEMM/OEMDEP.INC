@@ -34,8 +34,6 @@ endif
 
 _TEXT	SEGMENT BYTE USE16 PUBLIC 'CODE'	;JWASM: explicit attrs (match VDMSEG.INC) so bare-first reopen doesnt A2078
 
-extrn	MaskIntAll:near 		; Mask interrupts routine
-extrn	RestIntMask:near		; restore interrupt mask routine
 
 extrn	Map_Lin_OEM:near		; MapLinear hook
 extrn	UMap_Lin_OEM:near		; UnMapLinear hook

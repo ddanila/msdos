@@ -304,7 +304,7 @@ A20_Trap_Init  endp
 	IFNDEF	A20TRAP_HIGH_ONLY
 EnableA20 proc near
 	mov	ah,0dfh 		; code for enable
-	jmp	a20common		; jump to common code
+	jmp	short a20common		; jump to common code
 
 EnableA20 endp
 
@@ -322,7 +322,6 @@ EnableA20 endp
 
 DisableA20 proc near
 	mov	ah,0ddh 		; code for disable
-	jmp	a20common		; jump to common code
 
 DisableA20 endp
 
