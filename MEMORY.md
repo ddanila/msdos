@@ -179,11 +179,8 @@ Source-audited implementation constraints still preventing acceptance:
   the shell's 867-byte allowance, not as additional savings. Audit nested
   INT 24h, INT 2Eh, Ctrl+C, EXEC and reload stack/return frames before moving
   other asynchronous bodies. Firmware/DOS callbacks can change A20.
-- `DOS_HMA_TAIL_ALLOC` is monotonic and cannot free reservations. The manager
-  loads before permanent COMMAND, whose existing relocation reserves its
-  own tail. Establish an explicit boot-stage reservation/publication contract
-  before placing HIMEM there; do not call a not-yet-initialized DOS service
-  from driver initialization or leak HMA across fallback attempts.
+- Use the early reservation contract below, not `DOS_HMA_TAIL_ALLOC` from
+  HIMEM initialization or a late COMMAND-triggered manager move.
 - Manager OFF/AUTO, real-mode continuation and third-party-provider contracts
   remain as specified below. Releasing low table storage must change the
   installed allocation boundary, not merely its pointers.
@@ -192,6 +189,48 @@ Next evidence needed: linked gate/body sizes against both ceilings, a complete
 call/return and boot-publication design, then paired runtime maps proving
 coalescing. The arithmetic makes this a viable budget to investigate; it does
 not pass the joint checkpoint or any runtime acceptance gate by itself.
+
+#### Boot reservation and reclamation contract
+
+The source order supplies an early integration point; a late HMA copy would
+not supply the promised contiguous reclamation:
+
+1. `SYSCONF.ASM` calls the driver's INIT, then `CompactFirstHimem`, before
+   `BREAKOK` calls `Set_Break` for the character driver. The hook recognizes
+   repository HIMEM, moves DOS high, compacts HIMEM downward and refreshes
+   DOS's cached XMS entry (`1234h`). Later resident drivers are not yet loaded
+   in the fixed HIMEM-first profile.
+2. Development `BiosBootActivate` already runs at the end of that hook. It
+   reserves the area above DOS's `SYSBUF` using a private SYSINIT-owned end
+   cursor (`HmaBiosEnd`), before buffers or the public tail allocator exist.
+3. End-of-CONFIG processing uses that end cursor as `HmaBufferBase`.
+   Completed buffer construction publishes the remaining tail through
+   `1235h`; permanent COMMAND subsequently reserves through `1236h`.
+
+Proposed implementation: generalize the early cursor to a shared boot HMA
+reservation, with ordered BIOS and HIMEM objects. Retain the current BIOS
+reservation when manager preflight fails. Preflight the manager's complete
+code/data object and low gateways, copy and fix up without publishing it,
+then atomically publish its service bindings and commit the cursor. Only
+after success reduce `BREAK_ADDR` to the repacked low HIMEM end, before
+`Set_Break` can place another resident above it. Refresh any affected cached
+entries while their low addresses are still owned. No post-publication path
+may fall back into the released service body.
+
+Do not shrink HIMEM at shell startup or after loading EMM386: later resident
+objects can separate that hole from the largest free block. Do not repurpose
+`1236h` as an early allocator: its floor is deliberately unset until cache
+placement finishes. The new cursor must feed both high-buffer and low-buffer
+fallback publication paths and protect requested buffer capacity; HMA space
+consumed by a service is not free if it pushes buffers back low.
+
+The first manager split is eligible only on the audited 386+ repository
+HIMEM/DOS-high path. Keep the 286, third-party-provider, failed-HMA and
+unrecognized-load cases unchanged. Standalone 386 HIMEM must remain functional
+after the split even if no EMM386 is subsequently loaded; do not assume a
+future protected-mode provider will make its HMA services callable. EMM386's
+own table relocation must separately complete before its INIT break is final.
+Warm-reset reconstruction and retry-without-reservation-leak remain gates.
 
 ### Development placement budget: remaining BIOS is not another disk body
 
