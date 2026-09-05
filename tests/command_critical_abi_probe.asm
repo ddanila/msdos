@@ -1,10 +1,18 @@
 ; Run under permanent COMMAND with stdout redirected and an unformatted B:.
-; The host selects Fail when prompted during two independent opens. DOS may
+; The host selects the configured first response, then Fail on later prompts.
+; DOS may
 ; reject the second open without another callback after the first media error.
 ; Chain the inherited handler
 ; and check its returning path without substituting a synthetic DOS error.
 bits 16
 org 100h
+
+%ifndef FIRST_CRITICAL_RESPONSE
+%define FIRST_CRITICAL_RESPONSE 3
+%endif
+%if FIRST_CRITICAL_RESPONSE != 1 && FIRST_CRITICAL_RESPONSE != 3
+%error Only returning Retry and Fail responses are supported by this probe
+%endif
 
 start:
     push cs
@@ -118,7 +126,13 @@ critical_entry:
     or byte [cs:violations], 4
 .registers_ok:
     pop ax
-    cmp al, 3                 ; every observed prompt: Fail
+    cmp word [cs:entries], 1
+    jne .later_response
+    cmp al, FIRST_CRITICAL_RESPONSE
+    je .return
+    jmp short .bad_result
+.later_response:
+    cmp al, 3                 ; subsequent observed prompts: Fail
     je .return
 .bad_result:
     or byte [cs:violations], 8

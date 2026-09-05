@@ -226,7 +226,8 @@ promotion remains behind the joint budget and compatibility gates.
 The returning critical-error gate is now passing after correcting catalog
 ownership. `test-command-critical-abi-qemu` runs a child COM
 program with stdout redirected, opens the unformatted B: twice, and chains the
-inherited INT 24h handler. It requires an observed Fail return with unchanged
+inherited INT 24h handler. Separate Fail and Retry runs require the selected
+first response in AL, unchanged
 SS:SP, DS, ES, SI and CX, a stack outside the handler's code segment, and exact
 stdin/stdout JFN restoration after each open. It does not demand a callback on
 the second open: DOS can reject it without prompting after the first error.
@@ -262,9 +263,25 @@ satisfy the ABI gate. The unchanged `test-command-startup-qemu` remains the
 passing built-in-error baseline. This closes the stale-cache regression, not
 general disk-call reentrancy or the complete high-shell contract. Include cached
 message and callback bindings in the whole-object publication audit, not only
-DOS's public pointers. The gate covers returning Fail,
-not Retry/Ignore/Abort, nested INT 24h, A20-off recovery, or the non-returning
-`GETCOMDSK2` reload path, which resets the shell stack through `LODCOM1`.
+DOS's public pointers. The gate covers returning Fail and Retry, not successful
+recovery of the bad medium, Ignore/Abort, nested INT 24h, A20-off recovery, or
+the non-returning reload path. `COMMAND_CRITICAL_ACTION=retry` selects Retry
+when running the script directly; the make target runs both cases sequentially.
+
+The complete high critical-error object must preserve these distinct exits;
+one generic far-return wrapper is not sufficient:
+
+| Current exit | Stack/control contract for the high-body split |
+| --- | --- |
+| `EEXIT` / `RESTHD`, including `FATERR` | Restore redirected handles and saved CX/SI/ES/DS, then IRET on the incoming interrupt stack; preserve the selected AL action |
+| `BLKERR` with `LOADING` set | Restore handles, transfer to `GETCOMDSK2`, then let `LODCOM1` reset SS:SP and reload the transient; do not return through the abandoned interrupt frame |
+| `JustExit` during interrupted initialization | Restore message ownership and parent PSP, then terminate through DOS; never resume the high body after process termination |
+| `DeadInTheWater` | Preserve the existing non-returning initialization-error behavior; do not turn it into an ordinary critical-error return |
+
+Abort also updates batch, pipe and FOR state before the ordinary IRET exit.
+Keep those authoritative low-state effects in the design; verifying AL alone
+would miss them. Next prototype the whole body with explicit low entry/exit
+dispositions and PSP/data bindings, charging all gates against the joint budget.
 
 The eventual reclamation commits have three distinct owners:
 

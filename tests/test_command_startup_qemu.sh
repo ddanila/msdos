@@ -23,9 +23,11 @@ FAIL=0
 CRITICAL_ABI=${COMMAND_CRITICAL_ABI:-0}
 CRITICAL_MESSAGES=${COMMAND_CRITICAL_MESSAGES:-disk}
 CRITICAL_NO_HOOK=${COMMAND_CRITICAL_NO_HOOK:-0}
+CRITICAL_ACTION=${COMMAND_CRITICAL_ACTION:-fail}
 if [[ "$CRITICAL_ABI" != 0 && "$CRITICAL_ABI" != 1 ]] \
     || [[ "$CRITICAL_MESSAGES" != disk && "$CRITICAL_MESSAGES" != resident ]] \
-    || [[ "$CRITICAL_NO_HOOK" != 0 && "$CRITICAL_NO_HOOK" != 1 ]]; then
+    || [[ "$CRITICAL_NO_HOOK" != 0 && "$CRITICAL_NO_HOOK" != 1 ]] \
+    || [[ "$CRITICAL_ACTION" != fail && "$CRITICAL_ACTION" != retry ]]; then
     echo 'ERROR: invalid critical ABI diagnostic configuration'
     exit 1
 fi
@@ -38,7 +40,7 @@ if [[ ! -f "$FLOPPY" ]]; then
 fi
 
 echo "=== COMMAND.COM startup-switch tests (QEMU) ==="
-echo "Critical ABI=$CRITICAL_ABI messages=$CRITICAL_MESSAGES no-hook=$CRITICAL_NO_HOOK"
+echo "Critical ABI=$CRITICAL_ABI messages=$CRITICAL_MESSAGES no-hook=$CRITICAL_NO_HOOK action=$CRITICAL_ACTION"
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
 cp "$FLOPPY" "$BOOT_IMG"
@@ -46,6 +48,9 @@ dd if=/dev/zero bs=512 count=2880 of="$B_IMG" status=none
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 nasm -f bin "$REPO_ROOT/tests/command_environment_probe.asm" -o "$ENV_PROBE"
 critical_defines=(-f bin)
+if [[ "$CRITICAL_ACTION" == retry ]]; then
+    critical_defines+=(-DFIRST_CRITICAL_RESPONSE=1)
+fi
 if [[ "$CRITICAL_NO_HOOK" == 1 ]]; then
     critical_defines+=(-DNO_CRITICAL_HOOK)
 fi
@@ -152,6 +157,9 @@ timeout 30 qemu-system-i386 \
 FAIL_QEMU_PID=$!
 critical_responses=('Abort, Retry, Fail?' 'F\r')
 if [[ "$CRITICAL_ABI" == 1 ]]; then
+    if [[ "$CRITICAL_ACTION" == retry ]]; then
+        critical_responses=('Abort, Retry, Fail?' 'R\r')
+    fi
     critical_responses+=('Abort, Retry, Fail?' 'F\r' 'Abort, Retry, Fail?' 'F\r')
 fi
 python3 "$REPO_ROOT/tests/serial_expect.py" \
@@ -259,7 +267,7 @@ fi
 if [[ "$CRITICAL_ABI" == 1 ]]; then
     if grep -q '^COMMAND_CRITICAL_ABI_PASS' "$FAIL_SERIAL_LOG" \
         && ! grep -q 'COMMAND_CRITICAL_ABI_FAIL' "$FAIL_SERIAL_LOG"; then
-        ok "critical Fail preserves foreign stack/registers and JFNs across repeated opens"
+        ok "critical $CRITICAL_ACTION preserves foreign stack/registers and JFNs across repeated opens"
     else
         fail "critical-error return ABI or redirected JFN restoration"
     fi
