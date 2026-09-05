@@ -169,11 +169,19 @@ catalogs remain where they are. No new UMB allocation is budgeted.
 
 Source-audited implementation constraints still preventing acceptance:
 
-- COMMAND's `COMMAND1.ASM` uses CS-relative LOADHIGH state and derives DS from
-  CS. `COMMAND2.ASM:SETVECT` publishes low INT 22h/23h/24h entries and the PSP
-  exit pointer. `RUCODE.ASM:DSKERR` writes CS-relative remote-message state and
-  returns through IRET. Preserve low entry/return gates and use an explicit
-  low-data segment throughout the high body, including transient callers.
+- COMMAND needs separate code, PSP/data and stack identities, not just a far
+  entry. `COMMAND2.ASM:LODCOM1` currently loads SS and DS from CS and resets SP
+  to `RSTACK`. Its parent/exit and JFN accesses also address the PSP through
+  CS. Copying this body to HMA unchanged would redirect stack and PSP accesses
+  into high code. Retain a low PSP/data binding, switch SS only to the low
+  stack owner, and rebase stack/data offsets when repacking the resident image.
+- `COMMAND1.ASM` uses CS-relative LOADHIGH state even when DS belongs to the
+  transient. Do not mechanically replace CS overrides with DS. Supply an
+  explicit low-owner access path preserving the caller's segment registers.
+  `COMMAND2.ASM:SETVECT` must continue publishing low INT 22h/23h/24h entries
+  and the PSP exit pointer. `RUCODE.ASM:DSKERR` writes CS-relative remote-message
+  state and returns through IRET; its high body needs a low interrupt return
+  path, including nested critical errors and failed A20 recovery.
 - Keep the registered disk-message callback low initially: its prior high
   move failed a real disk-backed diagnostic. Charge its 174 bytes against
   the shell's 867-byte allowance, not as additional savings. Audit nested
@@ -189,6 +197,47 @@ Next evidence needed: linked gate/body sizes against both ceilings, a complete
 call/return and boot-publication design, then paired runtime maps proving
 coalescing. The arithmetic makes this a viable budget to investigate; it does
 not pass the joint checkpoint or any runtime acceptance gate by itself.
+
+#### Decision gate: shell interrupt placement determines layout A
+
+`make test-command-residency test-himem-residency` reproduces the linked
+inventories above. The shell's current stack is `0A93h..0B10h` (125 bytes),
+mutable state is `0B10h..0E30h` (800), critical-error body is
+`06F5h..097Bh` (646), and disk-message callback is `09D9h..0A87h` (174).
+These are nested ranges, not additional allocations.
+
+The proposed 2,048-byte low shell ceiling implicitly requires moving most of
+the critical-error body. Retaining it together with the disk callback, PSP,
+stack and mutable state already costs **2,001 bytes**, leaving only **47** for
+every other low entry, A20 gate, binding and alignment. Retaining the existing
+18-byte DBCS and two six-byte message gates would leave just 17. A design that
+quietly keeps all asynchronous services low therefore has not justified this
+ceiling. Either prove the complete high INT 24h service/low-return contract or
+increase the shell ceiling and supply a replacement net gain from another
+owner; do not continue using 4,816 as an established combined saving.
+
+The next architectural implementation decision is this shell contract, not
+another EMM accessor tranche. Review EXEC/reload, INT 2Eh, Ctrl+C and critical
+errors as one service object, with the explicit PSP/data/stack bindings above.
+Use a development-only complete-object prototype to measure its linked gates;
+keep the normal layout and failed-relocation fallback intact. Production
+promotion remains behind the joint budget and compatibility gates.
+
+The eventual reclamation commits have three distinct owners:
+
+| Object | Destination and publication | Conventional reclamation point |
+| --- | --- | --- |
+| HIMEM services and selected handles | Early shared HMA cursor; stable low XMS/A20 entries | Repacked `BREAK_ADDR` before `Set_Break` and later drivers |
+| EMM option-sized table object | Locked XMS and a separate protected data selector; all roots published together | `INITTAB.ASM:CompactVData` replacement must repack the retained low transition stack and lower `driver_end` before INIT returns |
+| COMMAND resident service body | DOS-owned HMA; low external gates and authoritative low PSP/data/stack | Repacked permanent image end before shell initialization releases its allocation |
+
+Current `CompactVData` copies tables within DGROUP and retains them below the
+transition stack. Current `INIT.ASM:relocate_resident_catalogs` lowers the shell
+break only to `resident_catalog_start` (`0E30h`). Neither mechanism implements
+the proposed additional whole-object release. Require before/after owner maps
+and VC's largest block for each replacement; pointer publication alone is not
+reclamation. Preserve the already-counted development BIOS/FILES gains and
+charge all three objects against one HMA/XMS/UMB budget.
 
 #### Boot reservation and reclamation contract
 
