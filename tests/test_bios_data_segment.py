@@ -12,6 +12,31 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 class DataSegmentTests(unittest.TestCase):
+    def test_full_separate_data_module_assembles(self):
+        # Syntax/range gate only: external low-owner binding and runtime
+        # relocation are deliberately not supplied by this object-only build.
+        with tempfile.TemporaryDirectory(prefix="msdos-bios-full-data-") as scratch:
+            command = [str(ROOT / "bin/jwasm-masm"),
+                       "-I. -I../INC -DBIOS_SERVICE_SEPARATE_DATA=1",
+                       f"MSDISK.ASM,{Path(scratch) / 'MSDISK.OBJ'};"]
+            built = subprocess.run(command, cwd=ROOT / "src/BIOS", capture_output=True, text=True)
+            self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
+
+    def test_separate_low_operand_execution_and_rejected_contracts(self):
+        with tempfile.TemporaryDirectory(prefix="msdos-bios-operands-") as scratch:
+            output = Path(scratch) / "operands.com"
+            command = [str(ROOT / "bin/jwasm-bin"), f"-I{ROOT / 'src/BIOS'}", f"-Fo{output}"]
+            source = str(ROOT / "tests/bios_low_operand_masm.asm")
+            subprocess.run(command + [source], check=True, capture_output=True)
+            executed = subprocess.run(
+                [str(ROOT / "bin/dos-run"), str(output)], cwd=ROOT,
+                capture_output=True, text=True, timeout=30,
+            )
+            self.assertEqual(executed.returncode, 0, executed.stdout + executed.stderr)
+            for invalid in ("BAD_BORROW", "BAD_STACK", "BAD_SEGMENT", "BAD_VALUE", "BAD_RESULT"):
+                built = subprocess.run(command + [f"-D{invalid}=1", source], capture_output=True)
+                self.assertNotEqual(built.returncode, 0, f"accepted unsafe {invalid} contract")
+
     def test_assembled_contract(self):
         with tempfile.TemporaryDirectory(prefix="msdos-bios-segment-") as scratch:
             for separate, expected in (

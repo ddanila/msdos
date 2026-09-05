@@ -1361,9 +1361,23 @@ The installed form emits the original PUSH CS; the separately compiled form
 pushes `CS:[BIOS_SERVICE_LOW_SEGMENT]` without changing flags or scratch
 registers. Native tests verify both 8086 encodings and all fifteen consumers.
 A future high module must supply and relocate
-the owner word and its references. Ordinary CS-relative operands are not yet
-converted: in particular, IOCTL's code jump table must remain high while its
-mutable track table stays low. Do not apply a global CS-to-data substitution.
+the owner word and its references. IOCTL's code jump table must remain high
+while its mutable track table stays low; do not apply a global CS substitution.
+
+The 161 named binary low-state accesses now use `BIOS_LOW_READ/MEM`. Their
+separate-data forms borrow an explicitly chosen DS or ES and restore it without
+changing the operation's flags. LDS/LES outputs and segment-register operands
+are handled by borrowing the other segment. Unsafe borrowed-result overlap,
+SS/CS borrowing, and SP operands are assembly errors. A native DOS probe with
+distinct code/data segments checks loads, stores, carry propagation, CMP/XCHG,
+LDS/LES, segment-valued stores, preserved segments/BP, and balanced SP; five
+invalid contracts are rejected. The complete separate-data MSDISK object also
+assembles after relaxing one forced-short jump. Its body is currently 4,799
+bytes versus the installed 3,580-byte body; the added code spends HMA capacity,
+not low-memory savings, once relocation exists. The default build still emits
+byte-identical IO.SYS. This is not yet a linked or activated high BIOS: stack
+save/restore, unary/indexed state access, control-flow gateways, owner/offset
+fixups, and the early reclaim transaction remain mandatory work.
 
 Local media-ID, multitrack, LOW/HIGH read-only-media, warm-reboot, fixed-disk
 format, floppy FORMAT /U, and the 286 HIMEM/386/486 memory-manager matrix

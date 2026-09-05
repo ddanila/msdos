@@ -12,7 +12,7 @@ BIOS_SERVICE_START LABEL BYTE
 ;		CX HAS SECTOR AND CYLINDER
 ;		DH HAS HEAD
 ;   OUTPUTS:	CARRY CLEAR
-;		    CS:BX POINT TO SECTOR
+;		    LOW BIOS DATA SEGMENT:BX POINTS TO SECTOR (CS IN LOW LAYOUT)
 ;		CARRY SET
 ;		    AX HAS ROM ERROR CODE
 ; REGISTERS ES AND BP ARE PRESERVED.
@@ -41,13 +41,13 @@ Rd_rty:
 	jz	Err_RD_RET
 	test	word ptr ds:[di].flags,fNon_Removable
 	JNZ	RD_RET
-	cmp	cs:[Media_Set_For_Format], 0 ;AN012;
+	BIOS_LOW_MEM CMP,<[Media_Set_For_Format]>,0,DS
 	jne	Rd_Skip1_DPT	;AN012;
 	push	ds		;J.K. 11/7/86 For retry, set the head settle time
 	push	ax		;to 0Fh. PTM845.
-	lds	si,cs:DPT
+	BIOS_LOW_READ LDS,SI,<DPT>,ES
 	mov	al, ds:[si].disk_head_sttl
-	mov	cs:[save_head_sttl],al
+	BIOS_LOW_MEM MOV,<[save_head_sttl]>,AL,DS
 	mov	byte ptr ds:[si].disk_head_sttl, NormSettle
 	pop	ax
 	pop	ds
@@ -58,12 +58,12 @@ Rd_Skip1_DPT:			;AN012;
 	INT	13h			; CALL ROM-BIOS DISK ROUTINES ;SB ;3.30
 ;SB33017*****************************************************************
 	pushf			;AN012;
-	cmp	cs:[Media_Set_For_Format], 0	;AN012;
+	BIOS_LOW_MEM CMP,<[Media_Set_For_Format]>,0,DS
 	jne	Rd_Skip2_DPT	       ;AN012;
 	push	ds
 	push	ax
-	lds	si,cs:DPT
-	mov	al, cs:[save_head_sttl]
+	BIOS_LOW_READ LDS,SI,<DPT>,ES
+	BIOS_LOW_READ MOV,AL,<[save_head_sttl]>,DS
 	mov	byte ptr ds:[si].disk_head_sttl, al
 	pop	ax
 	pop	ds
@@ -77,8 +77,8 @@ ERR_RD_RET:
 ; UPDATE INFORMATION PERTAINING TO LAST DRIVE ACCESSED, TIME OF ACCESS, LAST
 ; TRACK ACCESSED IN THAT DRIVE.
 OKRET2:
-	MOV	CS:[STEP_DRV],DL	; SET UP FOR HEAD SETTLE LOGIC IN DISK.
-	MOV	CS:[TIM_DRV],DL 	;SAVE DRIVE LAST ACCESSED
+	BIOS_LOW_MEM MOV,<[STEP_DRV]>,DL,DS
+	BIOS_LOW_MEM MOV,<[TIM_DRV]>,DL,DS
 	MOV	BYTE PTR [DI].TRACK,CH	; SAVE LAST TRACK ACCESSED ON THIS DRIVE
 	PUSHF				; PRESERVE FLAGS IN CASE ERROR OCCURRED
 	CALL	SET_TIM
@@ -165,7 +165,7 @@ DSK$WRITV PROC	NEAR
 	MESSAGE FTESTDISK,<" FOR ">
 	MNUM	FTESTDISK,CX
 	MESSAGE FTESTDISK,<CR,LF>
-	MOV	CS:[WRTVERIFY],103H
+	BIOS_LOW_MEM MOV,<[WRTVERIFY]>,103H,DS
 	JMP	SHORT DSK$CL
 
 DSK$WRIT:
@@ -177,7 +177,7 @@ DSK$WRIT:
 	MESSAGE FTESTDISK,<" FOR ">
 	MNUM	FTESTDISK,CX
 	MESSAGE FTESTDISK,<CR,LF>
-	MOV	CS:[WRTVERIFY],ROMWRITE
+	BIOS_LOW_MEM MOV,<[WRTVERIFY]>,ROMWRITE,DS
 
 DSK$CL:
 	CALL	DISKIO
@@ -258,12 +258,12 @@ CHECK_OWN:
 ; CHECKSINGLE TO JUST SET THE OWNER OF A DRIVE. WE MUST NOT ISSUE THE PROMPT
 ; IN THIS CASE.
 ;
-	CMP	BYTE PTR CS:[FSETOWNER],1
+	BIOS_LOW_MEM CMP,<BYTE PTR [FSETOWNER]>,1,DS
 	JZ	SINGLERET
 ; TO SUPPORT "BACKWARD" COMPATIBILITY WITH IBM'S "SINGLE DRIVE STATUS BYTE"
 ; WE NOW CHECK TO SEE IF WE ARE IN A SINGLE DRIVE SYSTEM AND THE APPLICATION
 ; HAS "CLEVERLY" DIDDLED THE SDSB
-	CMP	CS:[SINGLE],2		    ; IF (SINGLE_DRIVE_SYSTEM)
+	BIOS_LOW_MEM CMP,<[SINGLE]>,2,DS		    ; IF (SINGLE_DRIVE_SYSTEM)
 	JNE	SHORT IGNORE_SDSB
 
 	SAVEREG <DS,DI,AX>		    ;	THEN
@@ -321,13 +321,13 @@ CHECKSINGLE ENDP
 ;
 	PUBLIC DISKRD
 DISKRD	PROC	NEAR
-	MOV	CS:[RFLAG],ROMREAD
+	BIOS_LOW_MEM MOV,<[RFLAG]>,ROMREAD,DS
 
 DISKIO:
 	MOV	BX,DI			; ES:BX = TRANSFER ADDRESS
 	CALL	SETDRIVE		; MAP LOGICAL AND PHYSICAL
 	MOV	AL,BYTE PTR DS:[DI].MEDIAD
-	MOV	CS:MEDBYT,AL		; PRESERVE MEDIA BYTE FOR DRIVE FOR USE
+	BIOS_LOW_MEM MOV,<MEDBYT>,AL,DS		; PRESERVE MEDIA BYTE FOR DRIVE FOR USE
 					; IN DETERMINING MEDIA CHANGE.
 	JCXZ	IORET
 ;SB34DISK006******************************************************************
@@ -338,7 +338,7 @@ DISKIO:
 	test	word ptr ds:[di].FLAGS, UNFORMATTED_MEDIA
 	jnz	UnformattedDrive
 ;SB34DISK006******************************************************************
-	mov	cs:[SECCNT],CX		;save sector count
+	BIOS_LOW_MEM MOV,<[SECCNT]>,CX,DS		;save sector count
 	MOV	CS:[SPSAV],SP		; SAVE SP
 
 ; ENSURE THAT WE ARE TRYING TO ACCESS VALID SECTORS ON THE DRIVE
@@ -356,20 +356,20 @@ DISKIO:
 	ja	BADDRIVE		;AN000;
 	jmp	short SanityOK		;AN000;
 Sanity32:				;AN000;
-	add	si, cs:[Start_Sec_H]	;AN000;
+	BIOS_LOW_READ ADD,si,<[Start_Sec_H]>,DS	;AN000;
 	cmp	si, [di].DrvLim_H	;AN000;
 	jb	SanityOK		;AN000;
 	ja	BADDRIVE		;AN000;
 	cmp	dx, [di].DrvLim_L	;AN000;
 	ja	BADDRIVE		;AN000;
 SanityOK:				;AN000;
-	mov	dx,cs:[Start_Sec_H]	;AN000;
+	BIOS_LOW_READ MOV,dx,<[Start_Sec_H]>,DS	;AN000;
 	add	ax,word ptr [di].HIDSEC_L    ;AN000;
 	adc	dx,word ptr [di].Hidsec_H    ;AN000;
 ;J.K. Now DX;AX have the physical first sector.
 ;Since the following procedures is going to destroy AX, let's
 ;save it temporarily to SAVED_WORD.
-	mov	cs:[Saved_Word], ax	;AN000; Save the sector number (low)
+	BIOS_LOW_MEM MOV,<[Saved_Word]>,ax,DS	;AN000; Save the sector number (low)
 
 ;	 MOV	 SI,DX
 ;	 ADD	 SI,CX
@@ -383,8 +383,8 @@ SanityOK:				;AN000;
 	XOR	AX,AX
 	MOV	DS,AX
 	LDS	SI,DWORD PTR DS:[DSKADR]; CURRENT DISK PARM TABLE
-	MOV	WORD PTR CS:DPT,SI
-	MOV	WORD PTR CS:DPT+2,DS
+	BIOS_LOW_MEM MOV,<WORD PTR DPT>,SI,DS
+	BIOS_LOW_MEM MOV,<WORD PTR DPT+2>,DS,ES
 	POP	DS
 	TEST	WORD PTR [DI].FLAGS,FNON_REMOVABLE
 	JNZ	SKIP_SETUP
@@ -413,35 +413,35 @@ SKIP_SETUP:
 	mov	ax,dx			;AN000;
 	xor	dx,dx			;AN000;
 	DIV	WORD PTR [DI].SECLIM	;DIVIDE BY SEC PER TRACK
-	mov	cs:[Temp_H],ax		;AN000;
-	mov	ax, cs:[Saved_Word]	;AN000; Restore the lower word
+	BIOS_LOW_MEM MOV,<[Temp_H]>,ax,DS		;AN000;
+	BIOS_LOW_READ MOV,ax,<[Saved_Word]>,DS	;AN000; Restore the lower word
 	div	word ptr [di].SecLim	;AN000;
 ;Now, [Temp_H],AX = track #, DX = sector
 	INC	DL			;Sector number is 1 based.
-	MOV	CS:[CURSEC],DL		;SAVE CURRENT SECTOR
+	BIOS_LOW_MEM MOV,<[CURSEC]>,DL,DS		;SAVE CURRENT SECTOR
 	MOV	CX,WORD PTR [DI].HDLIM	;GET NUMBER OF HEADS
 
 	push	ax			;AN000;
 	XOR	DX,DX			;DIVIDE TRACKS BY HEADS PER CYLINDER
-	mov	ax, cs:[Temp_H] 	;AN000;
+	BIOS_LOW_READ MOV,ax,<[Temp_H]>,DS 	;AN000;
 	DIV	CX
-	mov	cs:[Temp_H],ax		;AN000;
+	BIOS_LOW_MEM MOV,<[Temp_H]>,ax,DS		;AN000;
 	pop	ax			;AN000;
 	div	cx			;AN000;
 ;Now, [Temp_H],AX = cyliner #, DX = head
-	cmp	cs:[Temp_H],0		;AN000;
+	BIOS_LOW_MEM CMP,<[Temp_H]>,0,DS		;AN000;
 	ja	BADDRIVE_brdg		;AN000;
 	cmp	AX, 1024		;AN000; 2**10 currently maxium for track #.
 	ja	BADDRIVE_brdg		;AN000;
-	MOV	CS:[CURHD],DL		;SAVE CURRENT HEAD
-	MOV	CS:[CURTRK],AX		;SAVE CURRENT TRACK
+	BIOS_LOW_MEM MOV,<[CURHD]>,DL,DS		;SAVE CURRENT HEAD
+	BIOS_LOW_MEM MOV,<[CURTRK]>,AX,DS		;SAVE CURRENT TRACK
 
 ;
 ; WE ARE NOW SET UP FOR THE I/O.  NORMALLY, WE CONSIDER THE DMA BOUNDARY
 ; VIOLATIONS HERE.  NOT TRUE.  WE PERFORM THE OPERATION AS IF EVERYTHING IS
 ; SYMMETRIC; LET THE INT 13 HANDLER WORRY ABOUT THE DMA VIOLATIONS.
 ;
-	MOV	AX, CS:[SECCNT]
+	BIOS_LOW_READ MOV,AX,<[SECCNT]>,DS
 	CALL	BLOCK
 	CALL	DONE
 	RET
@@ -459,18 +459,18 @@ BADDRIVE_Brdg:jmp Baddrive
 	PUBLIC IOSETUP
 IOSETUP PROC	NEAR
 	MOV	AL,[DI].DRIVENUM
-	MOV	CS:[TIM_DRV],AL 	; SAVE DRIVE LETTER
+	BIOS_LOW_MEM MOV,<[TIM_DRV]>,AL,DS 	; SAVE DRIVE LETTER
 ;
 ; DETERMINE PROPER HEAD SETTLE VALUES
 ;
-	cmp	cs:[Media_Set_For_Format], 0	;AN012;
+	BIOS_LOW_MEM CMP,<[Media_Set_For_Format]>,0,DS	;AN012;
 	jne	Skip_DPT_Setting		;AN012;
 	MOV	CX,DS
-	LDS	SI,DWORD PTR CS:[DPT]	; GET POINTER TO DISK BASE TABLE
-	MOV	AL,CS:[EOT]
+	BIOS_LOW_READ LDS,SI,<DWORD PTR [DPT]>,ES	; GET POINTER TO DISK BASE TABLE
+	BIOS_LOW_READ MOV,AL,<[EOT]>,DS
 	MOV	[SI].DISK_EOT,AL	; BUMP FOR US
 	MOV	AL,[SI].DISK_MOTOR_STRT ; PRESERVE OLD MOTOR START TIME
-	MOV	CS:MOTORSTARTUP,AL
+	BIOS_LOW_MEM MOV,<MOTORSTARTUP>,AL,DS
 ;
 ; FOR 3.5" DRIVES, BOTH EXTERNAL AS WELL AS ON THE K09, WE NEED TO SET THE
 ; MOTOR START TIME TO 4. THIS CHECKING FOR EVERY I/O IS GOING TO AFFECT
@@ -491,11 +491,11 @@ MOTOR_START_OK:
 	XOR	AL,AL
 	INC	AL			; IBM WANTS FAST SETTLE TO BE 1 - RS.
 	XCHG	AL,[SI].DISK_HEAD_STTL	; GET SETTLE AND SET UP FOR FAST
-	MOV	CS:SETTLECURRENT,AL
+	BIOS_LOW_MEM MOV,<SETTLECURRENT>,AL,DS
 	MOV	AL,NORMSETTLE		; SOMEONE HAS DIDDLED THE SETTLE
 GOTSLOWSETTLE:
 	MOV	DS,CX
-	MOV	CS:SETTLESLOW,AL
+	BIOS_LOW_MEM MOV,<SETTLESLOW>,AL,DS
 Skip_DPT_Setting:			;AN012;
 	RET
 ;
@@ -510,13 +510,13 @@ DONE:
 ;
 DIDDLEBACK:
 	pushf					;AN013;Save flag
-	cmp	cs:[Media_Set_For_Format], 0	;AN012;
+	BIOS_LOW_MEM CMP,<[Media_Set_For_Format]>,0,DS	;AN012;
 	jne	NoDiddleBack			;AN012;
 	PUSH	AX
 	MOV	DX,DS
-	MOV	AL,CS:SETTLECURRENT
-	MOV	AH,CS:MOTORSTARTUP
-	LDS	SI,CS:DPT
+	BIOS_LOW_READ MOV,AL,<SETTLECURRENT>,DS
+	BIOS_LOW_READ MOV,AH,<MOTORSTARTUP>,DS
+	BIOS_LOW_READ LDS,SI,<DPT>,ES
 ;	 MOV	 [SI].DISK_EOT,9	 ;J.K. 4/25/86. Should not change the EOT value
 					;of diskbase to 9.  This cause a problem
 					;with 1.44M diskette in Polaris when the user
@@ -546,7 +546,7 @@ BLOCK:
 ;SB	Check to see if multi track operation is allowed.  If not
 ;SB	we have to go to the block_floppy below to break up the operation.
 ;SB		2 LOCS
-	test	word ptr CS:MulTrk_Flag, MulTrk_ON
+	BIOS_LOW_MEM TEST,<word ptr MulTrk_Flag>,MulTrk_ON,DS
 	jz	BLOCK_FLOPPY
 ;SB34DISK002*****************************************************************
 	call	DISK					;J.K.
@@ -558,7 +558,7 @@ BLOCK_FLOPPY:						;J.K.4/10/86
 ;
 	MOV	CL,BYTE PTR [DI].SECLIM
 	INC	CL
-	SUB	CL,CS:CURSEC		; LEEAC 3.20 ADD SEGMENT OVERRIDE
+	BIOS_LOW_READ SUB,CL,<CURSEC>,DS		; LEEAC 3.20 ADD SEGMENT OVERRIDE
 	XOR	CH,CH
 	CMP	AX,CX
 	JAE	GOTMIN
@@ -596,14 +596,14 @@ DskErr_Brdg: jmp DskErr 		;AN003;
 	PUBLIC DISK
 DISK	PROC	NEAR
 	MOV	BP,MAXERR		; SET UP RETRY COUNT
-	mov	cs:VRetry_Cnt, BP	;AN003;Verify op. retry cnt for Write-Verify.
-	mov	cs:Soft_ECC_Cnt, BP	;AN003;Soft ECC error retry count.
-	MOV	AH,CS:RFLAG		;GET READ/WRITE INDICATOR
+	BIOS_LOW_MEM MOV,<VRetry_Cnt>,BP,DS	;AN003;Verify op. retry cnt for Write-Verify.
+	BIOS_LOW_MEM MOV,<Soft_ECC_Cnt>,BP,DS	;AN003;Soft ECC error retry count.
+	BIOS_LOW_READ MOV,AH,<RFLAG>,DS		;GET READ/WRITE INDICATOR
 
 RETRY:
 	PUSH	AX
 
-	MOV	DX,CS:[CURTRK]		;LOAD CURRENT CYLINDER
+	BIOS_LOW_READ MOV,DX,<[CURTRK]>,DS		;LOAD CURRENT CYLINDER
 
 	test	word ptr [di].FLAGS, fNon_Removable ;Fixed disk? - J.K. 4/7/86
 	jz	DISK_NOT_MINI		;no, skip this. - J.K. 4/7/86
@@ -614,17 +614,17 @@ DISK_NOT_MINI:				;J.K. 4/7/86
 	ROR	DH,1
 	ROR	DH,1
 
-	OR	DH,CS:[CURSEC]
+	BIOS_LOW_READ OR,DH,<[CURSEC]>,DS
 	MOV	CX,DX
 	XCHG	CH,CL			; CL = SECTOR, CH = CYLINDER
-	MOV	DH,BYTE PTR CS:[CURHD]	; LOAD CURRENT HEAD NUMBER AND
+	BIOS_LOW_READ MOV,DH,<BYTE PTR [CURHD]>,DS	; LOAD CURRENT HEAD NUMBER AND
 	MOV	DL,BYTE PTR [DI].DRIVENUM  ; PHYSICAL DRIVE NUMBER
 	CMP	BYTE PTR [DI].FORMFACTOR,FFHARDFILE
 	JZ	DO_FAST 		; HARD FILES USE FAST SPEED
 ; IF WE HAVE [STEP_DRV] SET TO -1, WE USE THE SLOW SETTLE TIME.
 ; THIS HELPS WHEN WE HAVE JUST DONE A RESED DISK OPERATION AND THE HEAD HAS
 ; BEEN MOVED TO ANOTHER CYLINDER - THE PROBLEM CROPS UP WITH 3.5" DRIVES.
-	CMP	CS:[STEP_DRV],-1
+	BIOS_LOW_MEM CMP,<[STEP_DRV]>,-1,DS
 	JZ	DO_WRITEJ
 	CMP	AH,ROMREAD		; ARR 2.20
 	JE	DO_FAST
@@ -638,10 +638,10 @@ DO_FAST:				; ARR 2.20
 TESTERR:				; MZ  2.21
 	JC	DSKERR_brdg
 ; SET DRIVE AND TRACK OF LAST ACCESS
-	MOV	CS:[STEP_DRV],DL	; ARR 2.20 SET DRIVE
+	BIOS_LOW_MEM MOV,<[STEP_DRV]>,DL,DS	; ARR 2.20 SET DRIVE
 	MOV	BYTE PTR [DI].TRACK,CH	; ARR 2.20 SAVE TRACK
 NO_SET:
-	CMP	CS:WRTVERIFY,103H	; CHECK FOR WRITE AND VERIFY
+	BIOS_LOW_MEM CMP,<WRTVERIFY>,103H,DS	; CHECK FOR WRITE AND VERIFY
 	JZ	DOVERIFY
 NOVERIFY:
 	POP	AX
@@ -656,27 +656,27 @@ NOVERIFY:
 
 	test	word ptr [di].FLAGS, fNON_REMOVABLE
 	jz	ITS_REMOVABLE
-	test	CS:MulTrk_Flag, MulTrk_ON
+	BIOS_LOW_MEM TEST,<MulTrk_Flag>,MulTrk_ON,DS
 	jnz	DISK_RET
 ITS_REMOVABLE:
 ;SB34DISK003*****************************************************************
 	AND	CL,03FH 		; ELIMINATE CYLINDER BITS FROM SECTOR
 	XOR	AH,AH
-	SUB	CS:[SECCNT],AX		; REDUCE COUNT OF SECTORS TO GO
+	BIOS_LOW_MEM SUB,<[SECCNT]>,AX,DS		; REDUCE COUNT OF SECTORS TO GO
 	ADD	CL,AL			; NEXT SECTOR
-	MOV	CS:[CURSEC],CL
+	BIOS_LOW_MEM MOV,<[CURSEC]>,CL,DS
 	CMP	CL,BYTE PTR [DI].SECLIM ; SEE IF SECTOR/TRACK LIMIT REACHED
 	JBE	DISK_RET
 NEXTTRACK:
-	MOV	CS:[CURSEC],1		; START WITH FIRST SECTOR OF NEXT TRACK
-	MOV	DH,CS:[CURHD]
+	BIOS_LOW_MEM MOV,<[CURSEC]>,1,DS		; START WITH FIRST SECTOR OF NEXT TRACK
+	BIOS_LOW_READ MOV,DH,<[CURHD]>,DS
 	INC	DH
 	CMP	DH,BYTE PTR [DI].HDLIM
 	JB	NOXOR
 	XOR	DH,DH
 	INC	CS:[CURTRK]		;NEXT TRACK
 NOXOR:
-	MOV	CS:[CURHD],DH
+	BIOS_LOW_MEM MOV,<[CURHD]>,DH,DS
 DISK_RET:
 	CLC				; LEEAC
 	RET
@@ -687,7 +687,7 @@ DISK	ENDP
 ; TRACK AND DRIVE.  IF SO, USE THE FAST SPEED.
 
 DO_WRITE PROC	NEAR
-	CMP	DL,CS:[STEP_DRV]	; ARR 2.20
+	BIOS_LOW_READ CMP,DL,<[STEP_DRV]>,DS	; ARR 2.20
 	JNZ	DO_NORM 		;  WE HAVE CHANGED DRIVES
 
 	CMP	CH,BYTE PTR [DI].TRACK	; ARR 2.20
@@ -695,7 +695,7 @@ DO_WRITE PROC	NEAR
 
 DO_NORM:
 	CALL	NORMSPEED
-	JMP	SHORT TESTERR		; MZ  2.21 TEST FOR ERROR
+	JMP	TESTERR		; allow the separated-data body to grow
 DO_WRITE ENDP
 ;
 ; WE HAVE A VERIFY REQUEST ALSO.  GET STATE INFO AND GO VERIFY
@@ -742,10 +742,10 @@ DSKERR	PROC	NEAR			;|
 	CALL	CHECKIO 		;|
 ;---------------------------------------;|
 
-	cmp	cs:MultiTrk_Format_Flag, 1 ;AN007;Multi trk format request?
+	BIOS_LOW_MEM CMP,<MultiTrk_Format_Flag>,1,DS ;AN007;Multi trk format request?
 	jne	DoChkAgain		   ;AN007;
 	mov	bp, 1			   ;AN007;No more retry.
-	mov	cs:MultiTrk_Format_Flag, 0 ;AN007;Clear the flag.
+	BIOS_LOW_MEM MOV,<MultiTrk_Format_Flag>,0,DS ;AN007;Clear the flag.
 DoChkAgain:				   ;AN007;
 	CALL	AGAIN
 DskErr0:				;AN003;
@@ -757,7 +757,7 @@ DskErr0:				;AN003;
 Skip_TimeOut_Chk:			;AN009;
 	cmp	ah, 0cch		;AN003;Write Fault error?
 	jz	Write_Fault_Err 	;AN003; Then, don't retry.
-	mov	cs:Soft_ECC_Cnt, MAXERR ;AN003;Set Soft_ECC_Cnt back to MAXERR
+	BIOS_LOW_MEM MOV,<Soft_ECC_Cnt>,MAXERR,DS ;AN003;Set Soft_ECC_Cnt back to MAXERR
 DSKERR1:
 	POP	AX			;RESTORE SECTOR COUNT
 	JMP	RETRY
@@ -774,8 +774,8 @@ HARDERR:
 HARDERR2:			; FOR ROUTINES THAT CALL MAPERROR THEMSELVES
 	PUBLIC	HARDERR2
 
-	MOV	CS:[TIM_DRV],-1 	;FORCE A MEDIA CHECK THROUGH ROM
-	MOV	CX,CS:SECCNT		;GET COUNT OF SECTORS TO GO
+	BIOS_LOW_MEM MOV,<[TIM_DRV]>,-1,DS 	;FORCE A MEDIA CHECK THROUGH ROM
+	BIOS_LOW_READ MOV,CX,<SECCNT>,DS		;GET COUNT OF SECTORS TO GO
 	MOV	SP,CS:[SPSAV]		;RECOVER ENTRY STACK POINTER
 ;
 ; SINCE WE ARE PERFORMING A NON-LOCAL GOTO, RESTORE THE DISK PARAMETERS
@@ -790,18 +790,18 @@ DSKERR	ENDP
 ; NOTE THAT THIS ROUTINE IS NEVER CALLED FOR A FIXED DISK.
 ;
 NORMSPEED PROC	NEAR
-	cmp	cs:[Media_Set_For_Format], 0	;AN012;
+	BIOS_LOW_MEM CMP,<[Media_Set_For_Format]>,0,DS	;AN012;
 	jne	FASTSPEED			;AN012;
 	PUSH	DS
 	PUSH	AX
-	MOV	AL,CS:SETTLESLOW
-	LDS	SI,CS:DPT		; CURRENT DISK PARM TABLE
+	BIOS_LOW_READ MOV,AL,<SETTLESLOW>,DS
+	BIOS_LOW_READ LDS,SI,<DPT>,ES		; CURRENT DISK PARM TABLE
 	MOV	[SI].DISK_HEAD_STTL,AL
 	POP	AX
 	POP	DS
 	CALL	FASTSPEED
 	PUSH	DS
-	LDS	SI,CS:DPT
+	BIOS_LOW_READ LDS,SI,<DPT>,ES
 	MOV	[SI].DISK_HEAD_STTL,1	; 1 IS FAST SETTLE VALUE
 	POP	DS
 	RET
@@ -851,7 +851,7 @@ MAPERROR PROC	NEAR
 	BIOS_PUSH_DATA_SEG
 	POP	ES			;MAKE ES THE LOCAL SEGMENT
 	MOV	AL,AH			;PUT ERROR CODE IN AL
-	MOV	CS:[LSTERR],AL		;TERMINATE LIST WITH ERROR CODE
+	BIOS_LOW_MEM MOV,<[LSTERR]>,AL,DS		;TERMINATE LIST WITH ERROR CODE
 	MOV	CX,NUMERR		;NUMBER OF POSSIBLE ERROR CONDITIONS
 	MOV	DI,OFFSET ERRIN      ;POINT TO ERROR CONDITIONS
 	REPNE	SCASB
@@ -882,7 +882,7 @@ NOROLL3:
 	CMP	CX,WORD PTR [DI].TIM_HI
 	JZ	DONE_SET
 SETACCESS:
-	MOV	BYTE PTR CS:[ACCESSCOUNT],0
+	BIOS_LOW_MEM MOV,<BYTE PTR [ACCESSCOUNT]>,0,DS
 	MOV	WORD PTR [DI].TIM_LO,DX 	    ;SAVE IT
 	MOV	WORD PTR [DI].TIM_HI,CX
 DONE_SET:
@@ -934,7 +934,7 @@ BLOCK13 PROC	FAR
 ;
 ; LET THE OPPERATION PROCEED.  IF THERE IS A DMA VIOLATION, THEN WE DO THINGS.
 ;
-	MOV	CS:PREVOPER,AX		; SAVE REQUEST
+	BIOS_LOW_MEM MOV,<PREVOPER>,AX,DS		; SAVE REQUEST
 	PUSHF
 	CMP	AH,ROMFORMAT
 	JNZ	NOT_FORMAT
@@ -944,20 +944,20 @@ BLOCK13 PROC	FAR
 ; IT GETS PATCHED IN AT INIT TIME			  |
 	PUBLIC CHANGED_PATCH
 CHANGED_PATCH:
-	MOV	WORD PTR CS:[FLAGBITS],FCHANGED_BY_FORMAT+FCHANGED
+	BIOS_LOW_MEM MOV,<WORD PTR [FLAGBITS]>,FCHANGED_BY_FORMAT+FCHANGED,DS
 	CALL	SET_CHANGED_DL		; INDICATE THAT MEDIA CHANGED BY FORMAT
 ;							  |
 ;---------------------------------------------------------|
 NOT_FORMAT:
 	test	dl, 80h			; floppy or hard disk?
 	jnz	not_floppy		; if hard, skip this nonsense
-	cmp	cs:EC35_Flag, 0		; any electrically compat. drives?
+	BIOS_LOW_MEM CMP,<EC35_Flag>,0,DS		; any electrically compat. drives?
 	jz	not_floppy		; no; proceed unhindered
 	SAVEREG	<ax, bx, cx>
 	mov	cl, dl			; turn drive number into bit map:
 	mov	al, 1			;   assume drive 0
 	shl	al, cl			;   shift over correct number of times
-	test	al, cs:EC35_Flag	; is THIS drive an electrically compatible 3.5 incher?
+	BIOS_LOW_READ TEST,al,<EC35_Flag>,DS	; is THIS drive an electrically compatible 3.5 incher?
 	jz	not_EC35		; no; don't change anything
 	mov	bl, dl			; which drive was it?
 	xor	bh, bh			; need only one byte of index
@@ -969,7 +969,7 @@ NOT_FORMAT:
 not_EC35:
 	RESTOREREG <cx, bx, ax>
 not_floppy:
-	cmp	cs:[model_byte], mdl_ps2_30	; is this a ps2/30?
+	BIOS_LOW_MEM CMP,<[model_byte]>,mdl_ps2_30,DS	; is this a ps2/30?
 	jne	not_ps2_30		; if not, just do normal call
 	cmp	ah, 8			;J.K. 1/30/87 Read Driver Parm ?
 	je	ps2_30_Problem		;J.K. 1/30/87
@@ -988,7 +988,7 @@ GOTERR13_br: jmp Goterr13
 ;will issue AH=1 (Read Status) call to reset the buses.
 
 ps2_30_Problem: 			;J.K. 1/30/87; ps2_30 = PS2 Model 30.
-	mov	cs:Prev_DX, DX		;save orignal drive number
+	BIOS_LOW_MEM MOV,<Prev_DX>,DX,DS		;save orignal drive number
 	call	Orig13			;Do "Read drive parm"
 
 	pushf
@@ -1002,7 +1002,7 @@ ps2_30_Problem: 			;J.K. 1/30/87; ps2_30 = PS2 Model 30.
 	push	ds
 	push	es
 
-	mov	dx, cs:Prev_DX		;restore orignal drive
+	BIOS_LOW_READ MOV,dx,<Prev_DX>,DS		;restore orignal drive
 	pushf
 	mov	ah, 1			;Read Status.
 	call	Orig13			;Reset the bus as a side effect of this call.
@@ -1066,15 +1066,15 @@ CHECK_ECC:
 ;SB	returned in AH is the SOFT_ECC error and if so go to OK11 since
 ;SB	the error can be ignored.  6 LOCS
 
-	cmp	cs:[Media_Set_For_Format], 1 ; formatting?
+	BIOS_LOW_MEM CMP,<[Media_Set_For_Format]>,1,DS ; formatting?
 	je	Skip_Ecc_Check
-	cmp	cs:[Model_Byte], 0FEh	; PC or XT?
+	BIOS_LOW_MEM CMP,<[Model_Byte]>,0FEh,DS	; PC or XT?
 	jae	Go_Chk_Ecc
-	cmp	cs:[Model_Byte], 0FBh	; XT?
+	BIOS_LOW_MEM CMP,<[Model_Byte]>,0FBh,DS	; XT?
 	je	Go_Chk_Ecc
-	cmp	cs:[Model_Byte], 0FCh
+	BIOS_LOW_MEM CMP,<[Model_Byte]>,0FCh,DS
 	jne	Skip_Ecc_Check
-	cmp	cs:[Secondary_Model_Byte], 2 ; AT?
+	BIOS_LOW_MEM CMP,<[Secondary_Model_Byte]>,2,DS ; AT?
 	ja	Skip_Ecc_Check
 Go_Chk_Ecc:				; for PC, XT, AT
 	CMP	AH,11H
@@ -1104,7 +1104,7 @@ OK11:
 	xor	ah, ah
 	call	Orig13			;reset. Don't care about the result
 
-	MOV	AX,CS:[PREVOPER]	; RETRIEVE REQUEST
+	BIOS_LOW_READ MOV,AX,<[PREVOPER]>,DS	; RETRIEVE REQUEST
 ;
 ; THIS WILL PROVIDE A TERMINATION POINT.
 ;
@@ -1116,9 +1116,9 @@ OK11:
 	PUBLIC ECC_ERR_HANDLE
 ECC_ERR_HANDLE:
 	SAVEREG <BX,CX,DX>
-	MOV	CS:[NUMBER_OF_SEC],AL
+	BIOS_LOW_MEM MOV,<[NUMBER_OF_SEC]>,AL,DS
 LOOP_ECC:
-	MOV	AX,CS:[PREVOPER]
+	BIOS_LOW_READ MOV,AX,<[PREVOPER]>,DS
 	MOV	AL,1			; REQUEST FOR ONE SECTOR ONLY
 ;
 ; WE DO READS ONE SECTOR AT A TIME. THIS ENSURES THAT WE WILL EVENTUALLY
@@ -1164,7 +1164,7 @@ OK11_EXIT:
 ;
 GOTDMAERR:
 	POP	AX			; CLEAN UP STACK
-	MOV	AX,CS:PREVOPER
+	BIOS_LOW_READ MOV,AX,<PREVOPER>,DS
 	STI
 	CMP	AH,ROMREAD		; SAVE USER FLAGS
 	JB	INTDONE
@@ -1528,15 +1528,15 @@ INT_2F_13	PROC	FAR
 	JMP	CS:[NEXT2F_13]		;	THEN CONTINUE ON INT_2F CHAIN
 
 CHG_ORIG13:				;	ELSE
-	XCHG	DX,WORD PTR CS:[ORIG13]	; install new runtime offset and
+	BIOS_LOW_READ XCHG,DX,<WORD PTR [ORIG13]>,DS	; install new runtime offset and
 	PUSH	AX			; return the old pointer in DS:DX
 	MOV	AX,DS
-	XCHG	AX,WORD PTR CS:[ORIG13+2]
+	BIOS_LOW_READ XCHG,AX,<WORD PTR [ORIG13+2]>,DS
 	MOV	DS,AX
 
-	XCHG	BX,WORD PTR CS:[OLD13]	; install new warm-boot offset and
+	BIOS_LOW_READ XCHG,BX,<WORD PTR [OLD13]>,DS	; install new warm-boot offset and
 	MOV	AX,ES			; return the old pointer in ES:BX
-	XCHG	AX,WORD PTR CS:[OLD13+2]
+	BIOS_LOW_READ XCHG,AX,<WORD PTR [OLD13+2]>,DS
 	MOV	ES,AX
 	POP	AX
 
