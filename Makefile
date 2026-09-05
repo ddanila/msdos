@@ -273,6 +273,7 @@ test-dos-bios-residency: dos bios
 .PHONY: test-bios-service-crossings
 test-bios-service-crossings: bios
 	python3 tests/test_bios_service_crossings.py
+	python3 tests/test_bios_data_segment.py
 	python3 tests/report_bios_service_crossings.py
 
 .PHONY: test-bios-high-rom-qemu

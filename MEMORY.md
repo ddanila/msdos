@@ -1352,6 +1352,16 @@ Both reports use these symbols for the relocation candidate. Extraction and
 boundary labels preserve MSBIO.BIN and IO.SYS byte-for-byte; the object build
 depends explicitly on this include and its nested MSIOCTL include. No high
 placement or low-memory release is activated by this source split.
+The fifteen data-segment materializations in this body and MSIOCTL now use
+`BIOS_PUSH_DATA_SEG` from MSBSEG.INC: disk/track transfer buffers, BDS walks,
+error-table scanning, and boot-record copies all name low-data ownership.
+The installed form emits the original PUSH CS; the separately compiled form
+pushes `CS:[BIOS_SERVICE_LOW_SEGMENT]` without changing flags or scratch
+registers. Native tests verify both 8086 encodings and all fifteen consumers;
+IO.SYS remains byte-identical. A future high module must supply and relocate
+the owner word and its references. Ordinary CS-relative operands are not yet
+converted: in particular, IOCTL's code jump table must remain high while its
+mutable track table stays low. Do not apply a global CS-to-data substitution.
 
 For each candidate record the exact range, readers/writers, external pointer
 contract, A20/interrupt requirements, proposed destination, fallback, retained

@@ -312,7 +312,7 @@ UGLYTRACKLAYOUT:
 	LEA	SI, ES:[BX].DP_SECTORTABLE
 	PUSH	ES
 	POP	DS
-	PUSH	CS
+	BIOS_PUSH_DATA_SEG
 	POP	ES
 STORESECTORINFO:
 	INC	DI				; SKIP OVER CYLINDER
@@ -517,7 +517,7 @@ NO_SET_DASD:
 
 	PUSH	DI					; SAVE PTR TO BDS
 	MOV	DI, OFFSET TRACKTABLE
-	PUSH	CS
+	BIOS_PUSH_DATA_SEG
 	POP	ES
 	MOV	CX, CS:SECTORSPERTRACK
 STORECYLINDERHEAD:
@@ -531,7 +531,7 @@ STORECYLINDERHEAD:
 FORMATRETRY:
 	PUSH	CX
 	MOV	BX, OFFSET TRACKTABLE
-	PUSH	CS
+	BIOS_PUSH_DATA_SEG
 	POP	ES
 	MOV	AX, CS:SECTORSPERTRACK
 	MOV	AH, ROMFORMAT
@@ -976,7 +976,7 @@ GOT_VALID_DPT:
 IOCTL$GETOWN:
 	CALL	SETDRIVE
 	MOV	AL,BYTE PTR [DI].DRIVENUM	; GET PHYSICAL DRIVE NUMBER
-	PUSH	CS
+	BIOS_PUSH_DATA_SEG
 	POP	DS
 	MOV	DI,WORD PTR START_BDS
 OWN_LOOP:
@@ -1110,7 +1110,7 @@ GetMediaID	proc	near			;AN000;
 	      cmp   cs:Ext_Boot_Sig, EXT_BOOT_SIGNATURE ;AN000; =90h
 ;	   $IF	   E				;AN000; Extended Boot Record
 	   JNE $IOCTL$IF2
-	      push cs				;AN000;
+	      BIOS_PUSH_DATA_SEG				;AN000;
 	      pop  ds				;AN000;
 	      mov  si, offset Boot_Serial_L	;AN000;
 	      mov  di, bx			;AN000;
@@ -1199,7 +1199,7 @@ SetMediaID	proc	near
 	      push di				;AN011;
 	      push es				;AN000;
 	      pop  ds				;AN000;Now DS-> Request packet
-	      push cs				;AN000;
+	      BIOS_PUSH_DATA_SEG				;AN000;
 	      pop  es				;AN000;Now ES -> Boot Record
 	      mov  di, offset Boot_Serial_L	;AN000;
 	      mov  si, bx			;AN000;
