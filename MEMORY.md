@@ -1933,13 +1933,31 @@ paired evidence is `out/bios-compacted-final-vc.md`; generated images remain
 untracked and CI remains disabled.
 
 This is not normal-build or complete compatibility acceptance. Still required:
-live SFT/device/public-pointer traversal, Ctrl-C/request callbacks, warm reset,
-larger sector/buffer settings and optional media paths, 286 execution, and
+Ctrl-C/request callbacks, software reboot paths, larger sector/buffer settings
+and optional media paths, 286 execution, redirector/SHARE consumers, and
 foreign/late-provider fallback. The current rebase explicitly excludes
 overlapping low-prefix moves and later resident allocations. Complete those
 contracts before promotion; do not extrapolate the first-HIMEM proof to a
 general runtime compactor. Then recalculate the residual and return to packed
 DOS-state placement, not isolated HIMEM/EMM386 instruction savings.
+
+The rebase gate now walks the public INT 21h/52h graph while the temporary
+disk file is open. It checks the new low list owner, bounded DPB and device
+chains, 26 CDS entries with matching drive-to-DPB links, and the live file's
+SFT-to-DPB link. Structure offsets are assembled from the repository headers,
+not duplicated in the NASM probe. Rebasing without coalescing still verifies
+the poisoned old prefix; compacted tests permit legitimate reuse. A negative
+control restores one external CDS segment to the retired owner and must reach
+an explicit failure after its mutation marker. This detects exact stale-owner
+references, not every normalized segment alias or third-party cached pointer.
+
+HIMEM-only and EMM386 configurations also repeat the complete public-graph,
+CONFIG, file, and raw-disk checks across one QMP hardware reset in the same
+guest. The first pass flushes a marker file and waits at a reported boundary;
+the host verifies a live guest before resetting it, and the second pass removes
+the marker before success. This is controlled reset coverage, not INT 19h,
+Ctrl-Alt-Del, real-286, or arbitrary driver reset acceptance. These checks add
+no resident code and leave the development 613,264-byte VC result unchanged.
 
 The normal boot loader has not bound or activated these pointers. The ownership
 audit moved `Prev_DX` into the authoritative low owner; the map checks its

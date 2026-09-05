@@ -3,6 +3,7 @@ org 100h
 %include "low-defs.inc"
 %ifdef EXPECT_REBASE
 %include "BIOSREBASE_DEFS.INC"
+%include "public-layout.inc"
 %endif
 %ifndef EXPECT_ACTIVE
 %define EXPECT_ACTIVE 0
@@ -127,6 +128,9 @@ start:
     int 21h
     jc fail
     mov bx,ax
+%ifdef EXPECT_REBASE
+    call check_public_graph
+%endif
     mov dx,pattern
     mov cx,4
     mov ah,40h
@@ -178,6 +182,41 @@ start:
     cmp word [sector_after],5678h
     jne fail
 %endif
+%ifdef WARM_RESET
+    ; Repeat every preceding assertion after a host-controlled hardware reset.
+    mov dx,warm_tag
+    mov ax,3d00h
+    int 21h
+    jnc warm_second_boot
+    cmp ax,2
+    jne fail
+    xor cx,cx
+    mov ah,3ch
+    int 21h
+    jc fail
+    mov bx,ax
+    mov ah,3eh
+    int 21h
+    jc fail
+    mov ah,0dh
+    int 21h
+    mov dx,warm_ready
+    mov ah,9
+    int 21h
+warm_wait:
+    sti
+    hlt
+    jmp warm_wait
+warm_second_boot:
+    mov bx,ax
+    mov ah,3eh
+    int 21h
+    jc fail
+    mov dx,warm_tag
+    mov ah,41h
+    int 21h
+    jc fail
+%endif
     mov dx,passed
     mov ah,9
     int 21h
@@ -200,8 +239,15 @@ pattern db 'BIOS'
 buffer times 4 db 0
 passed db 'BIOS_LOW_BOOT_PASS',13,10,'$'
 failed db 'BIOS_LOW_BOOT_FAIL',13,10,'$'
+%ifdef WARM_RESET
+warm_tag db 'LOWWARM.TAG',0
+warm_ready db 'BIOS_WARM_RESET_READY',13,10,'$'
+%endif
 slots:
 %include "low-slots.inc"
+%ifdef EXPECT_REBASE
+%include "bios_public_graph.inc"
+%endif
 %ifdef ACTIVATE_HIGH
 %include "bios_live_activate.inc"
 %endif

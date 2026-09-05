@@ -4,12 +4,54 @@ import os
 import argparse
 import shutil
 import subprocess
+import struct
+import socket
+import json
+import time
 import tempfile
 from pathlib import Path
 
 from build_bios_low_image import ROOT, build, run
 from build_bios_high_payload import build as build_high
 from build_bios_activation_fixture import write_fixture
+
+
+def run_warm_reset(command, log, stream, qmp_path):
+    """Reset only a verified live guest stopped after its first successful pass."""
+    process = subprocess.Popen(command + ["-qmp", f"unix:{qmp_path},server=on,wait=off"],
+                               stdout=stream, stderr=subprocess.STDOUT)
+    try:
+        deadline = time.monotonic() + 35
+        while b"BIOS_WARM_RESET_READY" not in log.read_bytes():
+            if process.poll() is not None or time.monotonic() >= deadline:
+                raise RuntimeError(f"guest did not reach reset boundary: {log}")
+            time.sleep(0.05)
+        if process.poll() is not None:
+            raise RuntimeError("guest exited before reset")
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as connection:
+            connection.settimeout(5)
+            connection.connect(str(qmp_path))
+            with connection.makefile("rwb") as protocol:
+                if "QMP" not in json.loads(protocol.readline()):
+                    raise RuntimeError("missing QMP greeting")
+                for operation in ("qmp_capabilities", "system_reset"):
+                    protocol.write(json.dumps({"execute": operation, "id": operation}).encode() + b"\n")
+                    protocol.flush()
+                    while True:
+                        reply = json.loads(protocol.readline())
+                        if reply.get("id") == operation:
+                            if "return" not in reply:
+                                raise RuntimeError(f"QMP rejected {operation}: {reply}")
+                            break
+        process.wait(timeout=35)
+    finally:
+        if process.poll() is None:
+            process.terminate()
+            try:
+                process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.wait()
 
 
 def main():
@@ -19,6 +61,8 @@ def main():
     parser.add_argument("--scan", action="store_true", help="record activation-time pointer candidates on debug port")
     parser.add_argument("--rebase", action="store_true", help="move and poison the old low DOS prefix")
     parser.add_argument("--compact", action="store_true", help="move the HIMEM boot allocation after rebasing")
+    parser.add_argument("--warm-reset", action="store_true", help="repeat the full probe across a QMP hardware reset")
+    parser.add_argument("--stale-cds-control", action="store_true", help="require rejection of a deliberately stale external CDS pointer")
     parser.add_argument("--fail-reservation", action="store_true", help="force the early capacity check to reject")
     parser.add_argument("--mode", action="append", help="run only this mode; repeat as needed")
     args = parser.parse_args()
@@ -28,10 +72,25 @@ def main():
         parser.error("--scan/--rebase requires --early --tail-body")
     if args.compact and not args.rebase:
         parser.error("--compact requires --rebase")
+    if args.warm_reset and (not args.rebase or args.scan):
+        parser.error("--warm-reset requires --rebase and excludes --scan")
+    if args.stale_cds_control and (not args.rebase or args.fail_reservation or args.warm_reset):
+        parser.error("--stale-cds-control requires successful rebasing without reset")
     scratch = Path(tempfile.mkdtemp(prefix="bios-low-boot-", dir=ROOT / "out"))
     manifest = build(scratch, early=args.early, tail_body=args.tail_body, scan=args.scan, rebase=args.rebase, compact=args.compact,
                      reservation_limit=0x10 if args.fail_reservation else 0xfff0)
     high_manifest = build_high(scratch / "high", scratch)
+    if args.rebase:
+        layout = scratch / "public-layout.bin"
+        run([ROOT / "bin/jwasm-bin", f"-I{ROOT / 'src/INC'}", f"-Fo{layout}",
+             ROOT / "tests/bios_public_layout_masm.asm"], ROOT)
+        names = ("SYSI_DPB", "SYSI_SFT", "SYSI_CDS", "SYSI_NUMIO", "SYSI_NCDS", "SYSI_DEV",
+                 "DPB_NEXT_DPB", "DPB_DRIVER_ADDR", "DPB_SECTOR_SIZE", "CURDIR_DEVPTR", "CURDIRLEN",
+                 "SFLINK", "SFCOUNT", "SFTABLE", "SF_ENTRY_SIZE", "SF_REF_COUNT", "SF_DEVPTR", "SF_NAME",
+                 "SDEVNEXT", "SDEVATT", "SDEVNAME")
+        values = struct.unpack(f"<{len(names)}H", layout.read_bytes())
+        (scratch / "public-layout.inc").write_text("".join(
+            f"PUB_{name} equ {value}\n" for name, value in zip(names, values)))
     write_fixture(scratch, manifest, high_manifest)
     if high_manifest["low_image_sha256"] != manifest["sha256"]:
         raise RuntimeError("high payload was bound against a different low BIOS")
@@ -81,9 +140,13 @@ def main():
             options.append("-DEXPECT_CDS=26")
         if args.compact:
             options.append("-DEXPECT_COMPACT")
-        negative = name == "live-stale-entry"
-        if negative:
+        if args.warm_reset:
+            options.append("-DWARM_RESET")
+        negative = name == "live-stale-entry" or (args.stale_cds_control and high)
+        if name == "live-stale-entry":
             options.append("-DOMIT_LIVE_PUBLICATION")
+        if args.stale_cds_control and high:
+            options.append("-DSTALE_CDS_CONTROL")
         run(["nasm", "-f", "bin", f"-I{scratch}/", f"-I{ROOT / 'tests'}/",
              f"-DEXPECT_HIGH={int(high)}",
              f"-DEXPECT_ACTIVE={int(args.early and high and not args.fail_reservation)}", *options,
@@ -102,16 +165,25 @@ def main():
             debug_options = (["-debugcon", f"file:{scratch / (name + '.scan')}",
                               "-global", "isa-debugcon.iobase=0xe9"] if args.scan else [])
             try:
-                subprocess.run(["qemu-system-i386", "-machine", "pc", "-cpu", "486", "-m", "8",
+                command = ["qemu-system-i386", "-machine", "pc", "-cpu", "486", "-m", "8",
                                 "-display", "none", "-monitor", "none", "-serial", "stdio",
                                 "-boot", "a", "-no-reboot", *debug_options, "-device",
                                 "isa-debug-exit,iobase=0xf4,iosize=0x04", "-drive",
-                                f"if=floppy,index=0,format=raw,file={image},cache=writethrough"],
-                               stdout=stream, stderr=subprocess.STDOUT, timeout=35)
+                                f"if=floppy,index=0,format=raw,file={image},cache=writethrough"]
+                if args.warm_reset:
+                    command.remove("-no-reboot")
+                    run_warm_reset(command, log, stream, scratch / f"{name}.qmp")
+                else:
+                    subprocess.run(command, stdout=stream, stderr=subprocess.STDOUT, timeout=35)
             except subprocess.TimeoutExpired:
                 pass
         result = log.read_bytes()
         passed = b"BIOS_LOW_BOOT_PASS" in result
+        if args.warm_reset and result.count(b"BIOS_WARM_RESET_READY") != 1:
+            raise RuntimeError(f"reset marker count was not exactly one: {log}")
+        if args.stale_cds_control and high:
+            if b"BIOS_PUBLIC_CONTROL_READY" not in result or b"BIOS_LOW_BOOT_FAIL" not in result:
+                raise RuntimeError(f"stale CDS control did not reach explicit rejection: {log}")
         if (passed == negative or (passed and b"BIOS_LOW_BOOT_FAIL" in result)
                 or (name.startswith("live-") and b"BIOS_LIVE_READY" not in result)):
             raise RuntimeError(f"FAIL {name}: {log}\n{result.decode(errors='replace')}")
