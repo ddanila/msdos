@@ -1350,6 +1350,50 @@ gateway relocation or the post-placement residual proves it necessary.
 
 ##### Next milestone: whole-system placement design
 
+###### Next DOS-state tranche: bounded FILES/FCB UMB placement
+
+The first stable-address candidate is the contiguous extra SFT and FCB
+allocation built by `EndFile` in `SYSINIT1.ASM`. With the fixed `FILES=20`,
+`FCBS=4,0` settings, `SF.INC` defines 59-byte entries and a six-byte header:
+
+| Allocation | Payload calculation | Rounded payload | Marker | Low span |
+| --- | --- | ---: | ---: | ---: |
+| Additional FILES entries | 6 + (20 - 5) × 59 | 896 | 16 | 912 |
+| FCB entries | 6 + 4 × 59 | 256 | 16 | 272 |
+| Combined | | 1,152 | 32 | 1,184 |
+
+One UMB owner containing both existing marked allocations would cost 1,200
+bytes including its MCB. Against the fixed 49,104-byte free-UMB baseline this
+leaves **47,904 bytes**, just 16 above the 47,888-byte floor. The projected low
+gain is 1,184 bytes only if the entire original span is reclaimed; neither
+allocation nor gain has yet been implemented. The embedded first five SFT
+entries remain in the kernel prefix. This budget does not include LASTDRIVE.
+
+Implement at the boundary after FCB initialization and before buffer allocation:
+
+1. Record the paragraph-aligned start before the extra FILES marker. Verify
+   the completed range, table counts, terminal links, and absence of live
+   entries; do not infer a movable range from the budget alone.
+2. Acquire/register UMBs through `AcquireUmbs`, which already supports early
+   DEVICEHIGH allocation. Allocate one upper-only block transactionally,
+   restoring the caller's allocation strategy and UMB link state on every path.
+3. Copy the marked tables, rebase their marker segments, set a permanent system
+   MCB owner, and publish the extra-SFT link plus the authoritative FCB pointer.
+   Account for the later high/low SYSINIT-variable synchronization; do not leave
+   either public or kernel consumers pointing at the released copies.
+4. Rewind the low allocation cursor only after successful publication, so
+   subsequent buffers/CDS reuse the full range. Failure must leave the original
+   tables, low cursor, and UMB arena unchanged.
+5. Test FILES/FCBS counts, failed-open cleanup, handle/FCB I/O, SHARE/redirector
+   consumers, A20-off callbacks, EMS mapping stability, DOS=LOW/NOUMB, exhausted
+   UMB fallback, and reset. Require paired conventional and UMB measurements.
+
+Start as a development-only transaction; derive sizes from the selected
+counts rather than assuming the fixed profile. Larger tables or preloaded
+high residents need an explicit placement budget and fallback; the 16-byte
+fixed-profile margin is not general spare capacity. Stable UMB addresses avoid
+HMA's A20 exposure but do not remove pointer-ownership or compatibility gates.
+
 The acceptance unit is a released resident allocation, not an instruction-size
 reduction. Keep isolated HIMEM/EMM386 compaction paused. Complete BIOS acceptance
 against the development image's 3,008-byte gain, then implement the DOS-state
