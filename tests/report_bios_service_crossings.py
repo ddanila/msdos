@@ -49,7 +49,9 @@ def listing_rows(listing: str) -> tuple[dict[str, int], list[tuple[int, str, str
 def inventory(listing: str, symbols: dict[str, int]):
     labels, rows = listing_rows(listing)
     symbols = {name.upper(): value for name, value in symbols.items()}
-    start, end = symbols["READ_SECTOR"], symbols["DISK005S"]
+    start, end = symbols["BIOS_SERVICE_START"], symbols["BIOS_SERVICE_END"]
+    if not start == symbols["READ_SECTOR"] < end <= symbols["DISK005S"]:
+        raise ValueError("BIOS service boundaries do not match the selected module range")
     base = start - labels["READ_SECTOR"]
     targets = dict(symbols)
     targets.update({name: base + value for name, value in labels.items()})

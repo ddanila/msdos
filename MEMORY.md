@@ -1345,6 +1345,13 @@ entry points, CS-relative data, ROM calls, and request/buffer access across this
 range before deciding its high-body boundary. Contiguity does not prove that
 all 3,842 bytes are relocatable or that removing an interior range releases
 the same conventional allocation; the final BIOS layout must actually shrink.
+The body is now isolated in `src/BIOS/MSDSKHIG.INC`, included by MSDISK in its
+original segment. Explicit `BIOS_SERVICE_START/END` symbols bound
+`0D84h..1C85h`: 3,841 copyable bytes plus one following module-alignment byte.
+Both reports use these symbols for the relocation candidate. Extraction and
+boundary labels preserve MSBIO.BIN and IO.SYS byte-for-byte; the object build
+depends explicitly on this include and its nested MSIOCTL include. No high
+placement or low-memory release is activated by this source split.
 
 For each candidate record the exact range, readers/writers, external pointer
 contract, A20/interrupt requirements, proposed destination, fallback, retained
@@ -1369,7 +1376,7 @@ to prototype, rather than moving the existing mixed segment unchanged:
   and dispatches through near offsets. Preserve low strategy/device entry
   points and request completion; add explicit high dispatch only for the
   selected service body.
-- `MSDISK.ASM:READ_SECTOR` constructs `ES:BX = CS:DiskSector` for INT 13h;
+- `MSDSKHIG.INC:READ_SECTOR` constructs `ES:BX = CS:DiskSector` for INT 13h;
   `READFAT` also promises a CS-relative result. The transfer buffer must stay
   low, and both producer and consumer must use its explicit low segment.
   Mutable `DPT`, retry state, `ORIG13`, and other CS-relative data need the

@@ -25,7 +25,8 @@ class CrossingsTests(unittest.TestCase):
             row(0x50, "E90000r", "JMP OUTSIDE_CANDIDATE"),
         ])
         start, end, count, crossings = inventory(listing, {
-            "READ_SECTOR": 0x120, "DISK005S": 0x140, "LOW_HELPER": 0x40,
+            "READ_SECTOR": 0x120, "BIOS_SERVICE_START": 0x120,
+            "BIOS_SERVICE_END": 0x140, "DISK005S": 0x140, "LOW_HELPER": 0x40,
         })
         self.assertEqual((start, end, count), (0x120, 0x140, 7))
         self.assertEqual(crossings[("direct outside body", "CALL LOW_HELPER (0040h)")], [0x120])
@@ -45,7 +46,10 @@ class CrossingsTests(unittest.TestCase):
         labels, rows = listing_rows(listing)
         self.assertEqual(labels["TARGET"], 0x12)
         self.assertEqual(rows[0][2], "JMP SHORT target")
-        self.assertFalse(inventory(listing, {"READ_SECTOR": 0x110, "DISK005S": 0x120})[3])
+        self.assertFalse(inventory(listing, {
+            "READ_SECTOR": 0x110, "BIOS_SERVICE_START": 0x110,
+            "BIOS_SERVICE_END": 0x120, "DISK005S": 0x120,
+        })[3])
 
 
 if __name__ == "__main__":

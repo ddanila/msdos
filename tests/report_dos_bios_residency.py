@@ -415,15 +415,17 @@ def main() -> int:
 
     # Candidate inventory, deliberately separate from achieved residency.
     # A high copy earns no credit until the selected low image shrinks too.
-    service_start = require(bios_symbols, "READ_SECTOR")
-    service_end = require(bios_symbols, "DISK005S")
+    service_start = require(bios_symbols, "BIOS_SERVICE_START")
+    service_end = require(bios_symbols, "BIOS_SERVICE_END")
     service_bytes = service_end - service_start
     if not (0 <= service_start < service_end <= selected_base):
         errors.append("BIOS service candidate is outside the selected low image")
+    if service_start != require(bios_symbols, "READ_SECTOR") or service_end > require(bios_symbols, "DISK005S"):
+        errors.append("BIOS service symbols do not bound the selected disk body")
     print("\n### Bulk-placement design budget (not achieved savings)\n")
     print("| Candidate | Current bytes | Unproved prerequisite |")
     print("| --- | ---: | --- |")
-    print(f"| BIOS READ_SECTOR..DISK005S | {service_bytes:,} | split CS-relative low data, near control flow, and ROM-return gates |")
+    print(f"| BIOS_SERVICE_START..BIOS_SERVICE_END | {service_bytes:,} | split CS-relative low data, near control flow, and ROM-return gates |")
     print(f"| Entire DOS low prefix | {rounded(low_gate):,} | subtract mandatory public anchors, stacks, and entry gates |")
     print(f"| Initial DOS-owned HMA tail | {hma_slack:,} | subtract COMMAND and every other reservation before choosing destinations |")
     print("\nThe candidate sizes are inventories, not guaranteed gains or a sum to")
