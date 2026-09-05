@@ -45,6 +45,7 @@ start:
     cmp ah, 8eh                       ; no map remains saved
     jne fail_restore
     call saved_map_owners
+    call handle_record_owners
 
     ; 49/4A are explicitly unsupported by this software EMM.
     mov ah, 49h
@@ -592,6 +593,65 @@ saved_map_owners:
     pop es
     ret
 
+; Grow/shrink the earlier handle while a later handle has live data. Both
+; index-rebasing directions must leave that later handle's page reachable.
+handle_record_owners:
+    mov ah,41h
+    int 67h
+    test ah,ah
+    jnz fail_realloc
+    mov es,bx
+    mov bx,1
+    mov ah,43h
+    int 67h
+    test ah,ah
+    jnz fail_realloc
+    mov [record_owner],dx
+    xor bx,bx
+    mov ax,4400h
+    int 67h
+    test ah,ah
+    jnz fail_realloc
+    mov word [es:0],0abcdh
+    mov si,record_sizes
+    mov cx,2
+.resize:
+    mov dx,[handle]
+    mov bx,[si]
+    mov ah,51h
+    int 67h
+    test ah,ah
+    jnz fail_realloc
+    mov ah,4ch
+    int 67h
+    test ah,ah
+    jnz fail_realloc
+    cmp bx,[si]
+    jne fail_realloc
+    mov dx,[record_owner]
+    xor bx,bx
+    mov ax,4400h
+    int 67h
+    test ah,ah
+    jnz fail_realloc
+    cmp word [es:0],0abcdh
+    jne fail_realloc
+    add si,2
+    loop .resize
+    mov bx,0ffffh
+    mov ax,4400h
+    int 67h
+    test ah,ah
+    jnz fail_realloc
+    mov dx,[record_owner]
+    mov ah,45h
+    int 67h
+    test ah,ah
+    jnz fail_release
+    push cs
+    pop es
+    ret
+
 find_handle_pages:
     push ax
     push bx
@@ -680,6 +740,8 @@ handle_name db 'PARITY40'
 other_name db 'PARITY41'
 name_handle dw 0
 saved_owner dw 0
+record_owner dw 0
+record_sizes dw 5,3
 name_result times 8 db 0
 name_directory times 256 db 0
 handle_pages times 256 db 0

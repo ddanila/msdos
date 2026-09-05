@@ -518,6 +518,59 @@ vh_fail:
 ;
 _valid_handle	endp
 
+; C validation returns a boolean, never the legacy assembly near pointer.
+        public _HandleValid, _HandleIndex, _HandleCount
+        public _SetHandleIndex, _SetHandleCount
+_HandleValid proc near
+        call _valid_handle
+        cmp ax,NULL_HANDLE
+        mov ax,0
+        je short HandleValidDone
+        inc ax
+HandleValidDone:
+        ret
+_HandleValid endp
+
+; Field access: index at BP+4, optional new value at BP+6. No record pointer
+; escapes to C. CX bit 1 selects page_count; bit 2 selects a write.
+_HandleIndex proc near
+        xor cx,cx
+        jmp short HandleField
+_HandleIndex endp
+_HandleCount proc near
+        mov cx,2
+        jmp short HandleField
+_HandleCount endp
+_SetHandleIndex proc near
+        mov cx,4
+        jmp short HandleField
+_SetHandleIndex endp
+_SetHandleCount proc near
+        mov cx,6
+HandleField:
+        push bp
+        mov bp,sp
+        push si
+        mov si,[bp+4]
+        shl si,2
+        add si,[_handle_table]
+        test cx,2
+        jz short HandleFieldSelected
+        add si,2
+HandleFieldSelected:
+        test cx,4
+        jnz short HandleFieldWrite
+        mov ax,[si]
+        jmp short HandleFieldDone
+HandleFieldWrite:
+        mov ax,[bp+6]
+        mov [si],ax
+HandleFieldDone:
+        pop si
+        pop bp
+        ret
+_SetHandleCount endp
+
 ;***********************************************
 ;
 ; flush_tlb:

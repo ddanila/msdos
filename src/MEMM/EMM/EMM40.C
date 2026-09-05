@@ -39,7 +39,6 @@
  *	This is an array of handle pointers.
  *	page_index of zero means free
  */
-extern struct handle_ptr *handle_table;
 extern unsigned char	handle_table_size;	/* number of entries */
 extern unsigned char	handle_count;		/* active handle count */
 
@@ -81,7 +80,6 @@ extern long	OSKey;				/* Key for OS/E function */
 /******************************************************************************
 	EXTERNAL FUNCTIONS
  ******************************************************************************/ 
-extern	struct handle_ptr	*valid_handle();	/* validate handle */
 extern	unsigned far	*source_addr(); 		/* get DS:SI far ptr */
 extern	unsigned far	*dest_addr();			/* get ES:DI far ptr */
 extern	unsigned	wcopyb();
@@ -111,35 +109,36 @@ ReallocatePages()
 {
 #define	handle	((unsigned short)regp->hregs.x.rdx)
 
-	register struct handle_ptr	*hp;
-	struct handle_ptr		*hp_save;
+	unsigned count, index, h;
 	unsigned			new_size;
 	register unsigned 		n_pages;
 	register unsigned 		next;
 
-	if ( (hp = valid_handle(handle)) == NULL_HANDLE )
+	if (!HandleValid())
 		return;		/* (error code already set) */
 
 	setAH(OK);			/* Assume success */
 	new_size = regp->hregs.x.rbx;
-	if ( new_size == hp->page_count )
+	count = HandleCount(handle);
+	if ( new_size == count )
 		return;				/* do nothing... */
 
-	if ( new_size > hp->page_count ) {
+	if ( new_size > count ) {
 		if ( new_size > total_pages ) {
 			setAH(NOT_ENOUGH_EXT_MEM);
 			return;
 		}
-		n_pages = new_size - hp->page_count;
+		n_pages = new_size - count;
 		if ( n_pages > free_count ) {
 			setAH(NOT_ENOUGH_FREE_MEM);
 			return;
 		}
-		if ( hp->page_count == 0 )
-			next = hp->page_index = emmpt_start;
-		else
-			next = hp->page_index + hp->page_count;
-		hp->page_count = new_size;
+		if ( count == 0 ) {
+			next = emmpt_start;
+			SetHandleIndex(handle, next);
+		} else
+			next = HandleIndex(handle) + count;
+		SetHandleCount(handle, new_size);
 		if ( next != emmpt_start ) {
 				/*
 				 * Must shuffle emm_page array to make room
@@ -150,30 +149,28 @@ ReallocatePages()
 			wcopyb(emm_page+next, emm_page+next+n_pages,
 			       emmpt_start - next);
 			/* Now tell other handles where their pages went */
-			hp_save = hp;
-			for ( hp = handle_table;
-			      hp < &handle_table[handle_table_size]; hp++ )
-				if ( hp->page_index != NULL_PAGE &&
-				     hp->page_index >= next )
-					hp->page_index += n_pages;
-			hp = hp_save;
+			for (h = 0; h < handle_table_size; h++) {
+				index = HandleIndex(h);
+				if (index != NULL_PAGE && index >= next)
+					SetHandleIndex(h, index + n_pages);
+			}
 		}
 		emmpt_start += n_pages;
 		if ( get_pages(n_pages, next) == NULL_PAGE) { /* strange failure */
 			setAH(NOT_ENOUGH_FREE_MEM);
-			new_size = hp->page_count - n_pages;  /* as it was! */
+			new_size = HandleCount(handle) - n_pages;  /* as it was! */
 			setBX(new_size);
 			goto shrink;			/* and undo damage */
 		}
 	} else {
 		/* Shrinking - make handle point to unwanted pages */
 	shrink:
-		hp->page_count -= new_size;
-		hp->page_index += new_size;
-		free_pages(hp);    /* free space in emm_page array */
+		SetHandleCount(handle, HandleCount(handle) - new_size);
+		SetHandleIndex(handle, HandleIndex(handle) + new_size);
+		free_pages(handle);    /* free space in emm_page array */
 		/* Undo damage to handle, the index was not changed */
-		hp->page_count = new_size;
-		hp->page_index -= new_size;
+		SetHandleCount(handle, new_size);
+		SetHandleIndex(handle, HandleIndex(handle) - new_size);
 	}
 
 #undef	handle
@@ -271,7 +268,7 @@ GetSetHandleName()
 
     /* Validate handle */
 
-	if ( valid_handle(handle) == NULL_HANDLE )
+	if (!HandleValid())
 		return; 	/* (error code already set) */
 
     /* Implement subfunctions 0 and 1 */
@@ -333,7 +330,6 @@ GetSetHandleName()
 GetHandleDirectory()
 {
 	char far			*NameAddress;
-	register struct handle_ptr	*hp;
 	struct Handle_Dir_Entry far	*Dir_Entry;
 	unsigned short			Handle_Num, Found;
 /*
@@ -350,28 +346,26 @@ GetHandleDirectory()
 
 	if ( regp->hregs.h.ral == 0 ) {
 		Dir_Entry = (struct Handle_Dir_Entry far *)dest_addr();
-		hp = handle_table;
 		for (Handle_Num = 0; Handle_Num < handle_table_size; Handle_Num++) {
-		    if ( hp->page_index != NULL_PAGE) {
+		    if (HandleIndex(Handle_Num) != NULL_PAGE) {
 			Real_Handle =  Handle_Num;
 			copyout(Dir_Entry, &Real_Handle, sizeof(short));
 			ReadHandleName(Handle_Num, Dir_Entry->Dir_Handle_Name);
 			Dir_Entry++;
-		    } hp++;
+		    }
 		} setAX(handle_count);
 	} else if ( regp->hregs.h.ral == 1 ) {
 		NameAddress = (char far *)source_addr();
 		copyin(Name, NameAddress, Handle_Name_Len);
-		hp = handle_table;
 		Found = 0;
 		Handle_Num = 0;
 		while ((Handle_Num < handle_table_size) && (Found < 2)) {
-		    if ( hp->page_index != NULL_PAGE ) {
+		    if (HandleIndex(Handle_Num) != NULL_PAGE) {
 			if (MatchHandleName(Handle_Num, Name)) {
 			    Found++;
 			    Real_Handle = Handle_Num;
 			}
-		    } hp++;
+		    }
 		    Handle_Num++;
 		}
 		switch (Found) {

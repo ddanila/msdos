@@ -127,6 +127,15 @@ extern unsigned WriteHandleName();
 extern unsigned ClearHandleName();
 extern unsigned MatchHandleName();
 extern unsigned SavedMapInUse();
+/* HandleValid validates the current EMS entry frame and reports its error.
+ * Field access takes a bounded index, including unused slots during scans;
+ * setters take (index, value). No pointer or cached record is returned.
+ */
+extern unsigned HandleValid();
+extern unsigned HandleIndex();
+extern unsigned HandleCount();
+extern unsigned SetHandleIndex();
+extern unsigned SetHandleCount();
 
 /*
  * Handle_Dir_Entry

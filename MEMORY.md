@@ -201,6 +201,16 @@ not high allocations or savings. Handle records, page/free/PFT arrays, DMA and
 alternate-register state still need their access boundaries before the full
 block can move.
 
+Handle-record C consumers now use bounded index/count getters and setters;
+`HandleValid` returns a boolean rather than a near record pointer. Allocation,
+freeing, growth/shrink rollback and both directory enumerators no longer
+retain pointers into the 256-byte selected handle-record table. `free_pages`
+takes the handle index, snapshots its fields as values, and rebases other
+records through the owner services. Assembly still uses `Validate_Handle`,
+`Handle2HandlePtr` and the legacy `_valid_handle` pointer result; those paths
+must be converted before declaring the handle table relocation-ready. The
+field services currently resolve DGROUP, with no high copy or low reclamation.
+
 The expanded EMS lifecycle probe checks two independent saved contexts and
 their restored page contents, repeated-save/no-save errors, rejection of
 deallocation while saved, and set/get/directory name lookup, duplicate
@@ -210,6 +220,10 @@ suites pass locally. The census checks the indexed services are in protected-onl
 code and retains the 3,888-byte installed allocation. The 32 KiB interleaved
 EMS/UMB read/write probe also passes with development BIOS/table placement
 across warm reset, including its later DOS system/FCB checks.
+The handle-record regression additionally grows and shrinks an earlier
+allocation while checking that a later live handle retains its page contents
+after both index-rebasing directions. That probe and the interleaved warm-reset
+case pass after the C conversion.
 
 ## Public behavior
 

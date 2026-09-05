@@ -147,7 +147,6 @@
  *	This is an array of handle pointers.
  *	page_index of zero means free
  */
-extern struct handle_ptr *handle_table;
 extern unsigned char	handle_table_size;	/* number of entries */
 extern unsigned char	handle_count;		/* active handle count */
 
@@ -190,7 +189,6 @@ extern union pft386 *pft386;		/* ptr to page frame table array */
 /******************************************************************************
 	EXTERNAL FUNCTIONS
  ******************************************************************************/ 
-extern	struct handle_ptr	*valid_handle();	/* validate handle */
 extern  unsigned far		*source_addr();		/* get DS:SI far ptr */
 extern  unsigned far		*dest_addr();		/* get ES:DI far ptr */
 /*extern	unsigned		AutoUpdate();		/* update auto mode */
@@ -242,30 +240,33 @@ register unsigned pto;
 
 
 /*
- * free_pages(hp)
- *	hp --- handle whose pages should be deallocated
+ * free_pages(handle)
+ *	handle --- index whose pages should be deallocated
  *
  * Free the pages associated with the handle, but don't free the handle
  *
  *  05/09/88	ISP Pulled out from the deallocate page routine
  */
 void
-free_pages(hp)
-register struct handle_ptr *hp;
+free_pages(handle)
+unsigned handle;
 {
 	register unsigned		next;
 	unsigned			new_start;
 	unsigned			h_size;
+	unsigned index, count, h;
 
-	if (hp->page_count == 0) return ;
+	index = HandleIndex(handle);
+	count = HandleCount(handle);
+	if (count == 0) return ;
 	/*
 	 * copy freed pages to top of free stack 
 	 */
-	free_top -= hp->page_count;	/* free_top points to new top */
-	free_count += hp->page_count;	/* bookkeeping */
-	wcopy(emm_page+hp->page_index, /* addr of first of list */
+	free_top -= count;	/* free_top points to new top */
+	free_count += count;	/* bookkeeping */
+	wcopy(emm_page+index, /* addr of first of list */
 		emm_free+free_top,	 /* addr of free space */
-		hp->page_count);	 /* # of pages to be freed */
+		count);	 /* # of pages to be freed */
 
 	/*
 	 * now, the hard part. squeeze the newly created hole
@@ -278,28 +279,29 @@ register struct handle_ptr *hp;
 	 *	   location of the head element
 	 */
 
-	next = hp->page_index + hp->page_count;
+	next = index + count;
 	if(next == emmpt_start )	/* any lists below? */
 	{
 		/* no, all done */
-		emmpt_start -= hp->page_count;
+		emmpt_start -= count;
 		return;
 	}
 
-	new_start = emmpt_start - hp->page_count;
+	new_start = emmpt_start - count;
 	wcopy(emm_page+next,	/* 1st of rest of list */
-		emm_page+hp->page_index,/* addr of freed area */
+		emm_page+index,/* addr of freed area */
 		emmpt_start-next);	/* size of block of pages  */
 
 	/*
 	 * loop through the handle table entries, fixing up
 	 * their page index fields
 	 */
-	h_size = hp->page_count;
-	for(hp=handle_table;hp < &handle_table[handle_table_size];hp++)
-		if((hp->page_index != NULL_PAGE) &&
-		   (hp->page_index >= next) )
-			hp->page_index -= h_size;
+	h_size = count;
+	for(h=0; h < handle_table_size; h++) {
+		index = HandleIndex(h);
+		if(index != NULL_PAGE && index >= next)
+			SetHandleIndex(h, index - h_size);
+	}
 	emmpt_start = new_start;		/* fix emmpt_start */
 }
 
@@ -349,7 +351,7 @@ AllocateRawPages()
 {
 #define	n_pages	((unsigned)regp->hregs.x.rbx)
 	register unsigned handle;	/* handle table index */
-	register struct handle_ptr *hp;
+	unsigned index;
 
 	if(handle_count == handle_table_size){	/* no more handles? */
 		setAH(NO_MORE_HANDLES);	/* nope */
@@ -365,14 +367,15 @@ AllocateRawPages()
 	 * loop through table to
 	 * find available handle (page_index = NULL_PAGE)
 	 */
-	hp = (struct handle_ptr *)handle_table;
-	for(handle=0;handle<handle_table_size;handle++,hp++)
-		if(hp->page_index == NULL_PAGE) 
+	for(handle=0;handle<handle_table_size;handle++)
+		if(HandleIndex(handle) == NULL_PAGE)
 			break;		/* found a free one */
 	/*
 	 * try and allocate pages 
 	 */
-	if((hp->page_index=get_pages(n_pages,emmpt_start)) != NULL_PAGE) {
+	index = get_pages(n_pages,emmpt_start);
+	SetHandleIndex(handle, index);
+	if(index != NULL_PAGE) {
 		emmpt_start += n_pages;
 		setAH(OK);			/* got them! */
 	}
@@ -381,7 +384,7 @@ AllocateRawPages()
 		return;
 	}
 
-	hp->page_count=n_pages;	/* set count */
+	SetHandleCount(handle, n_pages);
 	handle_count++;
 	setDX(handle);
 
@@ -404,7 +407,6 @@ AllocateRawPages()
 DeallocatePages()
 {
 #define	handle ((unsigned)regp->hregs.x.rdx)
-	register struct handle_ptr	*hp;
 
 	if ( handle == 0 ) {		/* Special handle, don't release */
 		int savbx = regp->hregs.x.rbx;
@@ -414,7 +416,7 @@ DeallocatePages()
 		return;
 	}
 
-	if((hp=valid_handle(handle)) == NULL_HANDLE)
+	if(!HandleValid())
 		return;  /* invalid handle, error code set */
 	/*
 	 * check for save area in use for this handle
@@ -425,9 +427,9 @@ DeallocatePages()
 		return;
 	}
 
-	free_pages(hp); 	      /*free the pages associated with handle*/
-	hp->page_index = NULL_PAGE;   /*and then free the handle*/
-	hp->page_count = 0;	      /*bookkeeping*/
+	free_pages(handle);
+	SetHandleIndex(handle, NULL_PAGE);
+	SetHandleCount(handle, 0);
 	ClearHandleName(handle & 0xFF);
 	handle_count--; 	      /* one less active handle */
 
@@ -453,11 +455,10 @@ DeallocatePages()
 GetEMMHandlePages()
 {
 #define	handle	((unsigned)regp->hregs.x.rdx)
-	register struct handle_ptr *hp;
 
-	if((hp=valid_handle(handle))==NULL_HANDLE)	/*valid handle? */
+	if(!HandleValid())	/*valid handle? */
 		return;				/* no */
-	setBX(hp->page_count);
+	setBX(HandleCount(handle));
 	setAH(OK);
 }
 
@@ -474,7 +475,6 @@ GetEMMHandlePages()
 GetAllEMMHandlePages()
 {
 	unsigned far *u_ptr;
-	register struct handle_ptr *hp;
 	register unsigned h_index;
 
 	/*
@@ -483,16 +483,14 @@ GetAllEMMHandlePages()
 	 */
 	u_ptr = dest_addr();
 
-	hp=handle_table;
 	for(h_index=0;h_index<handle_table_size;h_index++)   
 	{
 		/* scan table for entries */
-		if(hp->page_index != NULL_PAGE)	/* valid entry? */
+		if(HandleIndex(h_index) != NULL_PAGE)	/* valid entry? */
 		{
 			*u_ptr++ = h_index;   /* handle */
-			*u_ptr++ = hp->page_count;	/*# of pgs for handle*/
+			*u_ptr++ = HandleCount(h_index);	/*# of pgs for handle*/
 		}
-		hp++;				/* next entry */
 	}
 	setBX(handle_count);			/* bx <-- handle count */
 	setAH(OK);
