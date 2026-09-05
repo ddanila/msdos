@@ -109,7 +109,7 @@ of the following owners, not a sequence of independently attractive savings:
 | --- | --- | --- |
 | DOS BIOS | Development retains 5,152 low bytes; disk body already moved | Partition stable device/interrupt/DMA state from high service bodies; identify exact released intervals |
 | DOS kernel and dynamic state | 4,992-byte low prefix; FILES/FCB relocation already counted | Identify authoritative public-pointer owners versus private HMA-safe state; include CDS and interrupt stacks explicitly |
-| Combined memory managers | 6,480 low bytes; first split has 3,754 gross candidate bytes | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback |
+| Combined memory managers | 6,480 low bytes; first split has 3,576 gross candidate bytes | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback |
 | COMMAND | 3,984-byte owner span versus OpenDOS's 1,312 | Separate environment/PSP and asynchronous entry state from movable resident handlers; preserve reload contracts |
 | Shared high storage | About 10,169 development HMA bytes; 16-byte UMB margin | Reserve destinations once across all owners; account for locked XMS, alignment and displaced buffers |
 
@@ -153,16 +153,16 @@ The following are proposed **design ceilings**, not measured new allocations:
 
 Meeting both ceilings would put development's largest block at 619,264 bytes,
 528 above retail, without counting EBDA or another BIOS/table move. The manager
-ceiling allows 523 bytes above the first split's 2,725-byte retained inventory;
+ceiling allows 345 bytes above the first split's 2,903-byte retained inventory;
 the shell ceiling allows 867 above its 1,181-byte PSP/stack/state inventory.
 Those allowances must absorb gateways, bindings, alignment and any retained
 service code. If the contracts require more, revise the joint layout rather
 than silently spending the 528-byte margin twice.
 
-Proposed destinations are the existing DOS-owned HMA for HIMEM's 1,850-byte
+Proposed destinations are the existing DOS-owned HMA for HIMEM's 1,672-byte
 service/data candidate and COMMAND's 2,451-byte body, and locked extended memory
 behind a protected selector for EMM386's complete 1,904-byte selected table
-object. The 4,301-byte additional HMA payload fits the calculated 10,169-byte
+object. The 4,123-byte additional HMA payload fits the calculated 10,169-byte
 tail before relocation support costs; size the final linked high objects and
 XMS/page alignment separately. Existing high BIOS, kernel, buffers and shell
 catalogs remain where they are. No new UMB allocation is budgeted.
@@ -281,17 +281,19 @@ HIMEM listing now partitions every fixed byte by service; reproduce with
 | --- | ---: | --- |
 | HIMEM device/vector/private-peer entries and initial state | 406 | Retain low in the first split; XMS callers can cache the entry pointer |
 | HIMEM HMA ownership and A20 control | 335 | Retain low; high service entry must not recursively require itself to enable A20 |
-| Other HIMEM service bodies | 1,560 | Candidate high service object; explicit state and BIOS-return contracts required |
-| HIMEM UMB records and selected XMS handle records | 290 | Candidate authoritative service data, not a second unsynchronized copy |
+| Other HIMEM service bodies, excluding BIOS descriptors | 1,512 | Candidate high service object; explicit state and BIOS-return contracts required |
+| HIMEM BIOS move descriptors | 48 | Retain low initially; firmware receives ES:SI and can change A20 |
+| HIMEM UMB records | 130 | Retain authoritative low owner for private register/unregister and high UMB services |
+| HIMEM selected XMS handle records | 160 | Candidate authoritative high service data, not a second unsynchronized copy |
 | HIMEM rounding | 1 | Recompute after layout |
 | EMM386 static low image | 1,471 | Retain initially; contains descriptors, transition state and low gateways |
 | EMM386 selected dynamic tables | 1,904 | Candidate high-data object behind a separate protected data selector |
 | EMM386 stack alignment and transition stack | 513 | Retain until the real-mode continuation has its own safe stack |
 | **Total** | **6,480** | No new saving yet |
 
-This first split has only **3,754 linked candidate bytes** before new gateways,
+This first split has only **3,576 linked candidate bytes** before new gateways,
 selectors, alignment and retained state. It therefore cannot by itself promise
-the 4,288-byte target: at least 534 additional net bytes plus those costs must
+the 4,288-byte target: at least 712 additional net bytes plus those costs must
 come from another owner or a deeper low-interface redesign. Keep COMMAND's
 resident-interface split in the joint budget; do not assume manager integration
 alone closes the gap.
@@ -318,6 +320,18 @@ Source constraints that determine the prototype:
   redirecting services. Cached XMS entries, private E703h rebasing and E705h A20
   recovery remain stable low interfaces. The INT 15h copy backend also needs a
   low return path if firmware changes A20.
+
+The checked HIMEM census separates the 48-byte `move_gdt` table from the
+285-byte move-backend inventory; those bytes were previously included in the
+high candidate. Keep that table and the 130-byte UMB records low in the first
+split. `private_register` and `private_unregister` access UMB records with
+DS=CS; relocating the records would also require converting those entry paths.
+High handle helpers instead need an explicit authoritative high-data segment,
+while pool bounds and move state remain low. `copy_move_blocks` currently
+returns directly from INT 15h into its caller's code segment: replace the
+firmware call with a low return/A20-recovery gate before moving its body.
+Preserve BIOS status across recovery, and never return high after failed A20
+restoration. The revised 345-byte manager support allowance is still unproven.
 
 After the joint layout checkpoint passes, the manager prototype order is:
 establish the EMM high-data access ABI, then allocate and

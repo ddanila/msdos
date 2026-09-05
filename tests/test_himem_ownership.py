@@ -4,10 +4,26 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from report_himem_residency import fixed_ownership
+from report_himem_residency import bios_descriptor_span, fixed_ownership
 
 
 class OwnershipTest(unittest.TestCase):
+    def test_bios_descriptor_data_is_not_code(self):
+        source = "\n".join((
+            "move_gdt . . . L Near 100h _TEXT",
+            "move_source_desc . . . L Near 110h _TEXT",
+            "move_dest_desc . . . L Near 118h _TEXT",
+            "validate_handle . . . P Near 0130 _TEXT 0010 Public",
+        ))
+        with tempfile.TemporaryDirectory() as temporary:
+            listing = Path(temporary) / "himem.lst"
+            listing.write_text(source)
+            self.assertEqual(bios_descriptor_span(listing), (256, 304))
+            for old, new in (("118h", "120h"), ("0130", "0132")):
+                listing.write_text(source.replace(old, new))
+                with self.assertRaises(ValueError):
+                    bios_descriptor_span(listing)
+
     def test_partition_and_reversed_boundary(self):
         names = ("xms_control", "xms_hma_request", "xms_query_free", "xms_move",
                  "xms_umb_request", "resolve_move_address", "validate_handle")

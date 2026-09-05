@@ -19,6 +19,26 @@ PROCEDURE_RE = re.compile(
     r"^(\w+)\s+(?:\.\s*)+P\s+(?:Near|Far)\s+([0-9A-F]+)\s+_TEXT\b",
     re.IGNORECASE,
 )
+LABEL_RE = re.compile(
+    r"^(\w+)\s+(?:\.\s*)+L\s+Near\s+([0-9A-F]+)h\s+_TEXT\s*$",
+    re.IGNORECASE,
+)
+
+
+def bios_descriptor_span(path: Path) -> tuple[int, int]:
+    """Identify firmware-facing data embedded in the move-backend inventory."""
+    addresses = {}
+    for line in path.read_text(encoding="latin-1").splitlines():
+        match = LABEL_RE.match(line) or PROCEDURE_RE.match(line)
+        if match:
+            addresses[match[1]] = int(match[2], 16)
+    start = addresses["move_gdt"]
+    end = addresses["validate_handle"]
+    if (end - start != 48
+            or addresses["move_source_desc"] != start + 16
+            or addresses["move_dest_desc"] != start + 24):
+        raise ValueError("BIOS move descriptor layout is not the expected six-slot table")
+    return start, end
 
 
 def parse_symbols(path: Path) -> tuple[dict[str, tuple[int, int]], dict[str, int]]:
@@ -122,6 +142,12 @@ def main() -> int:
     print("a service requires explicit entry, state and return ownership; A20")
     print("recovery cannot depend on code which requires A20 already enabled.")
     print("The BIOS-copy backend and caller stack are separate transition gates.")
+    descriptor_start, descriptor_end = bios_descriptor_span(args.listing)
+    print(f"\nThe move-backend range contains {descriptor_end - descriptor_start} bytes")
+    print(f"of BIOS-facing descriptor data at `{descriptor_start:04X}h..{descriptor_end:04X}h`;")
+    print("this is nested in the inventory above, not additional code or savings.")
+    print(f"The first split retains these descriptors and the {handles[0] - umb_count}-byte")
+    print("UMB table low for the private register/unregister entry points.")
 
     if errors:
         print("\n## Census errors\n")
