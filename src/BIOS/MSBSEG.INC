@@ -27,6 +27,18 @@ BIOS_ROM_INT1A MACRO
         ENDIF
 ENDM
 
+; Match CALL ORIG13 with an already-pushed frame FLAGS word. The high gate
+; resolves the current vector through its low slot; it consumes all 3 words.
+BIOS_ROM_ORIG13 MACRO
+        IFDEF BIOS_SERVICE_SEPARATE_DATA
+        BIOS_PUSH_DATA_SEG
+        PUSH WORD PTR CS:[BIOS_SERVICE_ORIG13_OFFSET]
+        CALL DWORD PTR CS:[BIOS_SERVICE_SAVED_VECTOR_GATE]
+        ELSE
+        CALL ORIG13
+        ENDIF
+ENDM
+
 ; Store the original SP in a fixed low word, not the wrapper's deeper SP.
 ; Address must not depend on BP: BP is temporarily used to recover input SP.
 BIOS_LOW_SAVE_SP MACRO address

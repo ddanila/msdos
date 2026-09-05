@@ -976,7 +976,7 @@ not_floppy:
 	cmp	ah, 15h
 	je	ps2_30_Problem
 not_ps2_30:
-	CALL	ORIG13			; SIMULATE INT 13
+	BIOS_ROM_ORIG13			; SIMULATE INT 13
 	JC	GOTERR13_br		; ERROR?
 	RET	2			; NO, RETURN AND CLEAR FLAGS
 
@@ -989,7 +989,7 @@ GOTERR13_br: jmp Goterr13
 
 ps2_30_Problem: 			;J.K. 1/30/87; ps2_30 = PS2 Model 30.
 	BIOS_LOW_MEM MOV,<Prev_DX>,DX,DS		;save orignal drive number
-	call	Orig13			;Do "Read drive parm"
+	BIOS_ROM_ORIG13			;Do "Read drive parm"
 
 	pushf
 	push	ax
@@ -1005,7 +1005,7 @@ ps2_30_Problem: 			;J.K. 1/30/87; ps2_30 = PS2 Model 30.
 	BIOS_LOW_READ MOV,dx,<Prev_DX>,DS		;restore orignal drive
 	pushf
 	mov	ah, 1			;Read Status.
-	call	Orig13			;Reset the bus as a side effect of this call.
+	BIOS_ROM_ORIG13			;Reset the bus as a side effect of this call.
 
 	pop	es			;restore first call's registers and flags
 	pop	ds
@@ -1102,7 +1102,7 @@ OK11:
 ;call Orig13 again
 
 	xor	ah, ah
-	call	Orig13			;reset. Don't care about the result
+	BIOS_ROM_ORIG13			;reset. Don't care about the result
 
 	BIOS_LOW_READ MOV,AX,<[PREVOPER]>,DS	; RETRIEVE REQUEST
 ;
@@ -1135,13 +1135,13 @@ LOOP_ECC:
 ;
 	CALL	CHECK_WRAP		; GET CORRECT PARAMETERS FOR INT 13
 	PUSHF
-	CALL	ORIG13
+	BIOS_ROM_ORIG13
 	JNC	OK11_OP
 	CMP	AH,11H			; ONLY ALLOW ECC ERRORS
 	JNZ	OK11_EXIT_err		;J.K. 8/26/86 Other error?
 	mov	ah, 0			;J.K. ECC error. Reset the system again.
 	pushf
-	call	Orig13
+	BIOS_ROM_ORIG13
 	xor	ax, ax			; clear the error code so that if this 
 					; was the last sector, no error code 
 					; will be returned for the corrected 
@@ -1227,7 +1227,7 @@ INTVERIFY:
 DOSIMPLE:
 	MOV	BX,OFFSET DISKSECTOR
 	PUSHF
-	CALL	ORIG13
+	BIOS_ROM_ORIG13
 	RESTOREREG  <BX,ES>
 	RET	2
 
@@ -1570,7 +1570,7 @@ DOINT	PROC	NEAR
 	JZ	DOINTDONE
 	MOV	AH,BYTE PTR [BP.OLDAX+1]	; GET REQUEST CODE
 	PUSH	[BP.OLDF]
-	CALL	ORIG13
+	BIOS_ROM_ORIG13
 	PUSHF
 	POP	[BP.OLDF]
 DOINTDONE:

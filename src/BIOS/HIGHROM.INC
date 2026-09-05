@@ -74,3 +74,47 @@ BIOS_HMA_ROM_RESTORE:
         pop     ax
         popf
         ret
+
+; Caller has already pushed the interrupt-frame FLAGS word, then pushes the
+; segment and offset of a mutable LOW far-vector slot, and FAR CALLs here.
+; Preserve live input flags separately from the supplied frame word. MOV,
+; PUSH, POP, LEA and RETF do not change those live flags before target entry.
+BIOS_HMA_SAVED_VECTOR:
+        push    bp
+        mov     bp,sp
+        push    ax
+        push    bx
+        push    ds
+        mov     ds,ss:[bp+8]
+        mov     bx,ss:[bp+6]
+        mov     ax,ds:[bx]
+        mov     ss:[bp+6],ax
+        mov     ax,ds:[bx+2]
+        mov     ss:[bp+8],ax
+        pop     ds
+        pop     bx
+        mov     ax,ss:[bp+10]
+        push    ax
+        push    cs
+        lea     ax,[BIOS_HMA_SAVED_RETURN]
+        push    ax
+        mov     ax,ss:[bp+8]
+        push    ax
+        mov     ax,ss:[bp+6]
+        push    ax
+        mov     ax,ss:[bp-2]
+        mov     bp,ss:[bp]
+        retf
+BIOS_HMA_SAVED_RETURN:
+        pushf
+        push    ax
+        push    bp
+        mov     bp,sp
+        mov     ax,ss:[bp+4]
+        mov     ss:[bp+8],ax
+        pop     bp
+        pop     ax
+        add     sp,4
+        popf
+        call    BIOS_HMA_ROM_RESTORE
+        retf    6

@@ -1377,7 +1377,7 @@ flag, forward/backward SI movement, and caller DS checked. Dedicated stack
 operations save the original SP and unwind the same conventional stack without
 overwriting live target words; these are not arbitrary stack-switch helpers.
 The complete separate-data MSDISK object also assembles, using a flag-preserving
-long LOOP trampoline where its enlarged track loop requires one. Its body is currently 4,927
+long LOOP trampoline where its enlarged track loop requires one. Its body is currently 5,007
 bytes versus the installed 3,580-byte body; the added code spends HMA capacity,
 not low-memory savings, once relocation exists. The default build still emits
 byte-identical IO.SYS. A source guard permits only the two IOCTL code-dispatch
@@ -1514,30 +1514,34 @@ marker but cannot pass, confirming sensitivity to the missing gate operation.
 This validates one executable boundary, not the complete BIOS relocation,
 foreign-provider behavior, a real 286, or any additional conventional saving.
 
-The same include now supplies `BIOS_HMA_VECTOR` for the eight saved-ORIG13
-calls in the candidate body. Its private stack interface is: push target
-segment, push target offset, far-call the gate; it consumes the target words.
-It constructs an interrupt frame without changing input AX/BP, accepts either
-IRET or RETF 2 from the target, and restores physical A20 through the shared
-result-preserving low helper. Temporary state stays on the conventional stack,
-not in a global scratch slot. This is an interrupt-vector gateway, not a
-generic RETF-only device entry or a direct replacement for an interrupt-chain
-tail jump. The six positive local cases now cover direct INT 13h plus both
-saved-vector return forms in DOS=LOW/HIGH; each checks a real read, synthetic
-results, input AX/BP, and balanced SP. The missing-restore control still fails.
-Production dispatch/data separation and the early relocation transaction remain
-the next integration work; these gates alone do not release the BIOS body.
+`BIOS_HMA_VECTOR` accepts a target segment/offset and constructs an interrupt
+frame from live FLAGS. The production saved-ORIG13 call sites instead use
+`BIOS_HMA_SAVED_VECTOR`: callers retain their previously pushed frame FLAGS,
+push the segment/offset of the authoritative low vector slot, and far-call
+the gate. It fetches the current target on every call while preserving live
+input FLAGS separately from the supplied frame word, including DOINT's saved
+`[BP.OLDF]`. Both gateways accept IRET or RETF 2, restore physical A20 before
+returning high, and keep temporary state on the conventional stack. Neither
+is a generic RETF-only device gateway or an interrupt-chain tail-jump adapter.
 
 All eight direct INT 13h sites and the single INT 1Ah site now use ROM-call
 operations. The normal build emits the original interrupts; the separate-data
 object calls imported far gate pointers. HIGHROM includes the matching low
-timer gate, and all eight LOW/HIGH disk, saved-vector, and timer cases pass
-with physical A20 disruption and result preservation. A source guard rejects
-new raw direct ROM interrupts inside the candidate. IO.SYS remains byte-identical.
-The loader has not yet bound or activated these pointers. Next, adapt the
-saved ORIG13 calls: their caller-supplied FLAGS word (including DOINT's saved
-`[BP.OLDF]`) must survive, rather than being silently replaced by live FLAGS.
-Their mutable target pointer belongs to low BIOS state, not the high code copy.
+timer gate. All eight saved ORIG13 calls also use the explicit low-vector
+operation. Twelve LOW/HIGH disk, vector, timer, and supplied-frame cases pass
+with physical A20 disruption and result preservation; supplied-frame cases
+check differing live/frame flags and a changed vector target between calls.
+The missing-A20-restore negative control remains sensitive. A source guard
+rejects raw direct ROM interrupts and CALL ORIG13 in the candidate. The complete
+separate-data object assembles; default IO.SYS remains byte-identical.
+
+The loader has not bound or activated these pointers. Remaining integration
+includes incoming/outgoing control-flow gates, tail chains through ORIG13 and
+NEXT2F_13, pointer fixups, and early low-allocation reclamation. The ownership
+audit also found `Prev_DX` still physically declared inside the service body
+despite its accesses selecting low state; move that mutable word into the low
+owner before relocation. Gateway tests prove these boundaries, not an installed
+high BIOS or any new conventional-memory gain.
 
 `DOS_HMA_RELOCATE` in `src/DOS/MS_CODE.ASM` already copies the entire DOS image
 from offset `0010h` through `SYSBUF` to the same offsets in segment `FFFFh`.

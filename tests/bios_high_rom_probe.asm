@@ -76,6 +76,7 @@ start:
     mov cx,1
     xor dx,dx
     mov bp,0b00bh
+    stc
     call far [entry]
 %ifdef TEST_TIMER
     pushf
@@ -102,9 +103,13 @@ start:
 
     ; Both carry outcomes and all ordinary result registers must survive.
     mov byte [synthetic],1
+%ifdef USE_SUPPLIED_FLAGS
+    mov word [hook_vector],hook13_alternate
+%endif
 again:
     mov ax,0a111h
     mov bp,0b00bh
+    stc
     call far [entry]
     pushf
     pop word [cs:result_flags]
@@ -143,6 +148,12 @@ again:
     inc byte [carry_result]
     jmp again
 checked:
+%ifdef USE_SUPPLIED_FLAGS
+    cmp word [frame_seen],3
+    jne fail
+    cmp word [alternate_seen],2
+    jne fail
+%endif
     cmp word [high_seen],3
     jne fail
     cmp word [input_seen],3
@@ -187,7 +198,30 @@ unhook:
 .done:
     ret
 
+hook13_alternate:
+    pushf
+    inc word [cs:alternate_seen]
+    popf
+    jmp hook13
+
 hook13:
+%ifdef USE_SUPPLIED_FLAGS
+    ; Entry frame FLAGS must differ from live CF; both are caller inputs.
+    pushf
+    push bp
+    mov bp,sp
+    push ax
+    mov ax,[ss:bp+8]
+    cmp ax,[cs:supplied_flags]
+    jne .bad_frame
+    test word [ss:bp+2],1
+    jz .bad_frame
+    inc word [cs:frame_seen]
+.bad_frame:
+    pop ax
+    pop bp
+    popf
+%endif
     pushf
     cmp bp,0b00bh
     jne .bad_input
@@ -278,11 +312,20 @@ BIOS_HMA_INT13:
 %endif
 
 high_start:
+%ifdef USE_SUPPLIED_FLAGS
+    push word [ss:supplied_flags]
+    push word [ss:hook_vector+2]
+    push word [ss:vector_slot_offset]
+%else
 %ifdef USE_SAVED_VECTOR
     push word [ss:hook_vector+2]
     push word [ss:hook_vector]
 %endif
+%endif
     db 09ah                     ; FAR CALL to the retained low gate
+%ifdef USE_SUPPLIED_FLAGS
+    dw BIOS_HMA_SAVED_VECTOR
+%else
 %ifdef USE_SAVED_VECTOR
     dw BIOS_HMA_VECTOR
 %else
@@ -290,6 +333,7 @@ high_start:
     dw BIOS_HMA_INT1A
 %else
     dw BIOS_HMA_INT13
+%endif
 %endif
 %endif
 high_gate_segment:
@@ -304,6 +348,10 @@ high_end:
 entry dw 0,0
 old13 dd 0
 hook_vector dw hook13,0
+vector_slot_offset dw hook_vector
+supplied_flags dw 0246h
+frame_seen dw 0
+alternate_seen dw 0
 input_seen dw 0
 hooked db 0
 synthetic db 0
