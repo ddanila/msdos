@@ -621,8 +621,6 @@ FETCHI_TAG     label  word               ; TAG to make DOS 3.3 work
                dw     0                  ; must be 22642
 ;;; The above  2 words must be adjacent for IBMDOS reasons
 ; DOS 3.3 F.C. 6/12/86
-      I_am     Del_ExtCluster,WORD       ; for dos_delete                       ;AN000;
-
       PUBLIC   MSG_EXTERROR              ; for system message addr              ;AN000;
 MSG_EXTERROR   label  DWORD                                                     ;AN000;
                dd     0                  ; for extended error                   ;AN000;
@@ -635,7 +633,6 @@ MSG_EXTERROR   label  DWORD                                                     
 SEQ_SECTOR     label  DWORD                                                     ;AN000;
                dd     -1                                                        ;AN000;
 
-      I_am     XA_CONDITION,BYTE,<0>     ; for Extended Attributes              ;AN000;
 ;     I_am     XA_ES,WORD                ; for extended find                    ;AN000;
 ;     I_am     XA_BP,WORD                ; for extended find                    ;AN000;
 ;     I_am     XA_handle,WORD            ; for get/set EA                       ;AN000;

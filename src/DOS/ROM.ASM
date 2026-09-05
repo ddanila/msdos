@@ -61,7 +61,6 @@ include EA.inc
         i_need  FSeek_logclus,WORD                   ; DOS 3.4
         i_need  FSeek_logsave,WORD                   ; DOS 3.4
         i_need  FastSeekFlg,BYTE                     ; DOS 3.4
-        i_need  XA_condition,BYTE                    ; DOS 3.4
         i_need  HIGH_SECTOR,WORD                     ; DOS 3.4
         i_need  DISK_FULL,BYTE                       ; DOS 3.4
         i_need  Temp_VAR2,WORD                       ; DOS 3.4

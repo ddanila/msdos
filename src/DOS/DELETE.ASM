@@ -64,7 +64,6 @@ Installed = TRUE
 	i_need	FSeek_logclus,WORD		  ; DOS 4.00
 	i_need	FSeek_logsave,WORD		  ; DOS 4.00
 	i_need	FastSeekflg,BYTE		  ; DOS 4.00
-	i_need	Del_ExtCluster,WORD		  ; DOS 4.00
 	i_need	SAVE_BX,WORD			  ; DOS 4.00
 	i_need	DMAADD,DWORD
 	i_need	RENAMEDMA,BYTE
