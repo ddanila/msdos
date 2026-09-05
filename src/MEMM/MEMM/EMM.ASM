@@ -424,31 +424,17 @@ EMM_rLINK	endp
 _AutoUpdate	proc	near
 ;
 	cmp	[Auto_Mode],0		;Q: in Auto mode now ?
-	je	AU_exit 		;  N: exit
-	cmp	[Active_Status],0	;  Y:Q: ON now ?
-	je	AU_chkoff		;	N: check OFF state status
-;
-;   here if we are currently ON
-;
-;	cmp	[_map_known],0		;	Y:Q: map known ?
-;	jne	AU_exit 		;	    Y: then stay ON...
-	cmp	[_handle_count],1	;	    N:Q: any application handles ?
-	ja	AU_exit 		;		Y: stay ON (handle 0 is internal)
-	push	ax
-	call	RRProc			; Force processor into real mode
-	pop	ax
-	jmp	AU_exit 		; and leave in real mode
-;
-;   here if we are currently OFF
-;
-AU_chkoff:
+	je	short AU_exit 		;  N: exit
 	cmp	[_handle_count],1	;Q: any application handles beyond handle 0?
-	jbe	AU_exit			;  N: stay off
+	ja	short AU_handles	;  Y: activate if currently off
+	cmp	[Active_Status],0	;  N:Q: already off?
+	je	short AU_exit		;     Y: stay off
+	jmp	RRProc			; return in real mode with AX preserved
 
-;	cmp	[_map_known],0		;;  Q: is the map known ?
-;	je	AU_exit 		;;    N: then stay OFF...
 
-AU_ON:					;  Y: turn ON EMM
+AU_handles:
+	cmp	[Active_Status],0	;Q: already active?
+	jne	short AU_exit		;  Y: stay on
 	call	GoVirtual		; go to virtual mode (ON)
 AU_exit:
 	ret

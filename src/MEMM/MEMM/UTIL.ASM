@@ -220,9 +220,7 @@ FarGoVirtual	endp
 ;******************************************************************************
 GoVirtual	proc	near
 ;
-	PUSH_EAX
-	push	bx
-	push	bp
+	pushad				; EMM386 may save the complete 32-bit frame
 	push	ds
 	push	es
 	PUSH_FS
@@ -242,8 +240,6 @@ GoVirtual	proc	near
 	pop	es
 	endif
 
-	mov	[Active_Status],1
-
 ifndef	NOHIMEM
 	call	FAR PTR InitLOCK	; init status of TABLE lock
 endif
@@ -253,6 +249,7 @@ endif
 	in	al,MASTER_IMR
 	push	ax
 	mov	al,0ffh
+	mov	[Active_Status],al
 	out	MASTER_IMR,al
 ;
 ;	Set the CPU into 386 protected mode.
@@ -395,9 +392,7 @@ VM_return:
 	POP_FS
 	pop	es
 	pop	ds
-	pop	bp
-	pop	bx
-	POP_EAX
+	popad
 	ret
 GoVirtual	endp
 

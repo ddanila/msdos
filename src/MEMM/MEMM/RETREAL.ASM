@@ -223,8 +223,8 @@ RetRealResume:
 
 	sti
 
-	MOV_EAX_CR3			; get CR3
-	MOV_CR3_EAX			; set CR3 => clear TLB
+	; RetRealHigh already cleared CR0.PG, which invalidates the 386/486 TLB.
+	; GoVirtual also reloads CR3 before paging is enabled again.
 
 	mov	ss,bx			; ss = real mode stack segment
 	mov	ax,DGROUP

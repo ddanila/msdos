@@ -277,13 +277,14 @@ RR_GoReal:
 ;
 ;	exit:	    Processor is in real mode
 ;
-;	used:	    AX
+;	used:	    none
 ;
 ;	stack:
 ;
 ;******************************************************************************
 	IFNDEF	RRTRAP_HIGH_ONLY
 RRProc		proc near
+	push	ax
 	pushf
 	cli				; protect this sequence
 	mov	al,RR84_Value		;
@@ -292,6 +293,7 @@ RRProc		proc near
 	out	85h,al			;
 	jmp	$+2			; clear prefetch/avoid race cond
 	popf
+	pop	ax
 	ret
 RRProc		endp
 	ENDIF
