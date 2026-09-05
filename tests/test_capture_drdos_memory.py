@@ -67,6 +67,34 @@ class CaptureParserTest(unittest.TestCase):
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
                 CAPTURE.common_settings(**kwargs)
 
+    def test_opendos_frame_changes_only_ems_policy(self) -> None:
+        baseline = CAPTURE.OPENDOS_VARIANTS["emm-hibuffers"]
+        framed = CAPTURE.OPENDOS_VARIANTS["emm-frame"]
+        self.assertEqual(framed, [line.replace("/FRAME=NONE", "/FRAME=AUTO")
+                                  for line in baseline])
+        self.assertEqual(sum("/FRAME=AUTO" in line for line in framed), 1)
+
+    def test_report_does_not_label_changed_reset_stable(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            media = root / "media"
+            media.write_bytes(b"fixture")
+            screen = root / "screen"
+            screen.write_text(SCREEN)
+            data = CAPTURE.parse(screen, MEM, CEILING)
+            before = CAPTURE.parse_public_interfaces(INTERFACES)
+            after = CAPTURE.parse_public_interfaces(INTERFACES.replace("BX=0091", "BX=0081"))
+            data["interfaces"] = before
+            data["warm_reboot"] = {"before": before, "after": after}
+            report = CAPTURE.report({"emm-frame": data}, media, "vc", "test",
+                                    {"emm-frame": CAPTURE.OPENDOS_VARIANTS["emm-frame"]}, None, "test", "probe")
+            self.assertIn("FAILED: interfaces changed", report)
+            self.assertNotIn("**stable**", report)
+            data["warm_reboot"]["after"] = before
+            report = CAPTURE.report({"emm-frame": data}, media, "vc", "test",
+                                    {"emm-frame": CAPTURE.OPENDOS_VARIANTS["emm-frame"]}, None, "test", "probe")
+            self.assertIn("**stable**", report)
+
     def test_report_records_effective_configuration(self) -> None:
         settings = CAPTURE.common_settings(files=20, stack_size=128)
         with tempfile.TemporaryDirectory() as temporary:

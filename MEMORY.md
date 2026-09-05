@@ -55,12 +55,13 @@ block. The pending UMB/DMA work is a correctness prerequisite, not a new
 memory-saving tranche. Do not replace this checkpoint with further isolated
 routine compaction.
 
-A targeted clean-room follow-up may compare OpenDOS 7.01 with an EMS frame
-enabled and the fixed resource settings. Its existing no-frame capture shows
-a much smaller UMB manager allocation than DR-DOS 6, but does not establish
-the framed layout or prove that merging our XMS/EMS providers saves memory.
-Record both conventional and upper ownership before proposing such a redesign;
-this experiment does not block the already justified BIOS/DOS placement work.
+The targeted OpenDOS 7.01 follow-up now reproduces a 628,080-byte conventional
+block with an EMS frame and 47,584 free UMB bytes, just 304 below the retail UMB
+floor. Its small manager UMB allocation survives the frame. This makes the
+combined XMS/EMS resident interface a serious architectural candidate alongside
+DOS/COMMAND placement, not a reason for further EMM386 instruction shrinking.
+The cold-boot comparison is usable placement evidence; the new warm-reset
+comparison fails and remains explicitly unqualified (details below).
 
 The development-to-retail residual reconciles as follows; these are accounting
 differences, not independently reclaimable allocations:
@@ -85,7 +86,7 @@ saves nothing. An additional 4,288 net bytes would meet retail; exceeding it
 requires a further measured placement budget.
 
 The DR-DOS comparison also needs the combined HIMEM/EMM386 ownership, not
-EMM386 alone. OpenDOS's integrated provider is an experimental lead, not proof
+EMM386 alone. OpenDOS's integrated provider is a measured placement lead, not proof
 that merging our providers removes their summed allocations. Keep third-party
 XMS support and the 286 path when evaluating a shared-provider design.
 
@@ -2859,6 +2860,65 @@ the risky first-64-KiB or video-memory extensions, nor by EBDA recovery. Those
 remain separate experiments. This OpenDOS pass validates the tooling and shows
 that the later EMM386 design no longer spends the 28 KiB UMB used by DR-DOS 6;
 the actual DR-DOS 6 comparison follows.
+
+#### OpenDOS 7.01 framed follow-up: cold placement, reset failure
+
+The pinned OpenDOS binary distribution and VC 4.05 were booted under QEMU
+11.1.1, `pc`, 486, 8 MiB. Both cases use FILES=20, FCBS=4,0, LASTDRIVE=Z,
+STACKS=9,128, `/E:512`, DOS=HIGH, HIDOS=ON and HIBUFFERS=15. Only
+EMM386's `/FRAME=NONE` versus `/FRAME=AUTO` changes. These documented policies
+disable versus enable EMS in the
+[Novell DOS 7 User Guide](https://bitsavers.computerhistory.org/pdf/novell/dr_dos/DR_DOS_7_User_Guide_1993.pdf),
+chapter 10; the probe independently verifies actual EMS availability.
+
+| Cold boot | VC largest block | System span | COMMAND span | Free UMB | Free HMA |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| No frame | 628,080 | 10,416 | 1,312 | 114,128 | 9,092 |
+| EMS frame at CC00h | 628,080 | 10,416 | 1,312 | 47,584 | 9,092 |
+
+Both retain a 639 KiB ceiling and EBDA at 9FC0h. MEM reports a 1,200-byte
+installed manager device range inside the low system allocation and an
+800-byte EMM386 UMB allocation in both cases. These are nested ownership rows,
+not the complete manager footprint: do not add them to their containing DOS
+span or assume all protected state has been located. The frame costs 66,544
+free UMB bytes after the associated DOS layout changes, without changing
+conventional memory. EMS 4.0 and XMS 3.0 are present in the framed probe.
+
+This narrows an important design uncertainty: a DR-DOS-family system can
+retain its large ordinary conventional block with EMS and nearly the retail
+UMB floor, without DR-DOS 6's 28 KiB manager UMB cost. The local development
+system-to-COMMAND span is 10,960 bytes larger and its COMMAND span is 2,672
+bytes larger, exactly accounting for the 13,632-byte conventional difference.
+Boot medium, device topology and resource semantics remain incompletely
+normalized; this is not a promise of 13,632 local reclaimable bytes.
+
+**Warm-reset gate failed in both new cases.** The whole-HMA request changes
+from error 91h before reset to 81h afterward. The largest XMS UMB query loses
+37,744 bytes: 114,128 to 76,384 without a frame, and 47,584 to 9,840 with one.
+A20, XMS free totals and framed EMS status/page counts remain unchanged in the
+recorded probes. The cause is not yet isolated between guest behavior and the
+reset fixture; do not describe the new matrix as reset-stable. The capture tool
+now retains the cold report and both reset outputs, marks the comparison
+FAILED, and still exits unsuccessfully. Its parser tests reject false stable
+labels; earlier default-resource evidence is a separate configuration.
+
+Reproduce (currently expected to exit nonzero at the reset gate):
+
+```sh
+python3 tests/capture_drdos_memory.py DODL701.EXE \
+  out/msdos622-original-vc405.img out/opendos-framed-placement.md \
+  --variant emm-hibuffers --variant emm-frame --files 20 --stack-size 128 \
+  --evidence-dir out/opendos-framed-placement-evidence
+```
+
+Next local design task: partition the combined 6,480-byte HIMEM/EMM386 low
+allocation into mandatory real-mode/A20 interfaces and protected-only state.
+Evaluate moving the latter as complete objects into already-owned locked XMS,
+not a new UMB allocation. Enumerate real-mode/off/auto transitions, XMS entry
+and A20 recovery calls, EMS table consumers, initialization rollback and third-
+party-provider fallback before assigning any net saving. Retain the standalone
+286 HIMEM path. Integration alone is not a saving; low copies must actually be
+released and joined to the application's largest block.
 
 #### Primary result: DR-DOS 6.0
 

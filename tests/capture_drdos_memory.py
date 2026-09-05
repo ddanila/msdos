@@ -91,6 +91,12 @@ OPENDOS_VARIANTS = {
         "HIDOS=ON",
         "HIBUFFERS=15",
     ],
+    "emm-frame": [
+        "DEVICE=EMM386.EXE /FRAME=AUTO",
+        "DOS=HIGH",
+        "HIDOS=ON",
+        "HIBUFFERS=15",
+    ],
 }
 
 DRDOS6_VARIANTS = {
@@ -774,8 +780,10 @@ def report(
         lines.append("")
         warm = data.get("warm_reboot")
         if warm:
+            stable = public_interface_semantics(warm["before"]) == public_interface_semantics(warm["after"])
+            status = "stable" if stable else "FAILED: interfaces changed"
             lines.extend([
-                "Warm-reset public-interface comparison: **stable**. "
+                f"Warm-reset public-interface comparison: **{status}**. "
                 f"Before SHA-256 `{warm['before']['sha256']}`; after SHA-256 "
                 f"`{warm['after']['sha256']}`.", "",
             ])
@@ -844,6 +852,7 @@ def main() -> None:
         if args.evidence_dir:
             args.evidence_dir.mkdir(parents=True, exist_ok=True)
         results: dict[str, dict[str, Any]] = {}
+        warm_failures = []
         for name, lines in variants.items():
             image = work / f"{name}.ima"
             shutil.copyfile(base, image)
@@ -870,22 +879,25 @@ def main() -> None:
                 (args.evidence_dir / f"{name}-interfaces.txt").write_text(
                     interface_output, encoding="ascii", errors="replace"
                 )
-            if name == "emm-hibuffers":
+            if name in {"emm-hibuffers", "emm-frame"}:
                 before_output, after_output = capture_warm_public_interfaces(
                     configured_image, name, work, public_probe, qexit, warmboot
                 )
                 before = parse_public_interfaces(before_output)
                 after = parse_public_interfaces(after_output)
-                if public_interface_semantics(before) != public_interface_semantics(after):
-                    raise RuntimeError(
-                        f"public memory interfaces changed across warm reset for {name}"
-                    )
-                results[name]["warm_reboot"] = {"before": before, "after": after}
                 if args.evidence_dir:
                     for suffix, value in (("before-reset", before_output), ("after-reset", after_output)):
                         (args.evidence_dir / f"{name}-interfaces-{suffix}.txt").write_text(
                             value, encoding="ascii", errors="replace"
                         )
+                before_semantics = public_interface_semantics(before)
+                after_semantics = public_interface_semantics(after)
+                if before_semantics != after_semantics:
+                    changed = {key: (before_semantics.get(key), after_semantics.get(key))
+                               for key in before_semantics.keys() | after_semantics.keys()
+                               if before_semantics.get(key) != after_semantics.get(key)}
+                    warm_failures.append(f"{name}: {changed}")
+                results[name]["warm_reboot"] = {"before": before, "after": after}
         if identities_match:
             validate_known_results(release, results, common)
         args.report.parent.mkdir(parents=True, exist_ok=True)
@@ -897,6 +909,9 @@ def main() -> None:
             encoding="utf-8",
         )
     print(f"wrote {args.report}")
+    if warm_failures:
+        raise SystemExit("warm-reset comparison failed (cold evidence retained): "
+                         + "; ".join(warm_failures))
 
 
 if __name__ == "__main__":
