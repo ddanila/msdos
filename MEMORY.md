@@ -1350,7 +1350,7 @@ gateway relocation or the post-placement residual proves it necessary.
 
 ##### Next milestone: whole-system placement design
 
-###### Next DOS-state tranche: bounded FILES/FCB UMB placement
+###### Development DOS-state tranche: bounded FILES/FCB UMB placement
 
 The first stable-address candidate is the contiguous extra SFT and FCB
 allocation built by `EndFile` in `SYSINIT1.ASM`. With the fixed `FILES=20`,
@@ -1362,14 +1362,14 @@ allocation built by `EndFile` in `SYSINIT1.ASM`. With the fixed `FILES=20`,
 | FCB entries | 6 + 4 × 59 | 256 | 16 | 272 |
 | Combined | | 1,152 | 32 | 1,184 |
 
-One UMB owner containing both existing marked allocations would cost 1,200
+One UMB owner containing both existing marked allocations costs 1,200
 bytes including its MCB. Against the fixed 49,104-byte free-UMB baseline this
-leaves **47,904 bytes**, just 16 above the 47,888-byte floor. The projected low
-gain is 1,184 bytes only if the entire original span is reclaimed; neither
-allocation nor gain has yet been implemented. The embedded first five SFT
+leaves **47,904 bytes**, just 16 above the 47,888-byte floor. The development
+transaction now reclaims the complete 1,184-byte low span. The embedded first five SFT
 entries remain in the kernel prefix. This budget does not include LASTDRIVE.
 
-Implement at the boundary after FCB initialization and before buffer allocation:
+`TABLEUMB.INC`, enabled only with the development BIOS rebase build, runs after
+FCB initialization and before buffer allocation. Its transaction contract is:
 
 1. Record the paragraph-aligned start before the extra FILES marker. Verify
    the completed range, table counts, terminal links, and absence of live
@@ -1383,21 +1383,47 @@ Implement at the boundary after FCB initialization and before buffer allocation:
    either public or kernel consumers pointing at the released copies.
 4. Rewind the low allocation cursor only after successful publication, so
    subsequent buffers/CDS reuse the full range. Failure must leave the original
-   tables, low cursor, and UMB arena unchanged.
-5. Test FILES/FCBS counts, failed-open cleanup, handle/FCB I/O, SHARE/redirector
-   consumers, A20-off callbacks, EMS mapping stability, DOS=LOW/NOUMB, exhausted
-   UMB fallback, and reset. Require paired conventional and UMB measurements.
+   tables and low cursor intact, with no leaked table allocation. UMB provider
+   registration itself remains the normal shared `AcquireUmbs` operation.
 
-Start as a development-only transaction; derive sizes from the selected
-counts rather than assuming the fixed profile. Larger tables or preloaded
-high residents need an explicit placement budget and fallback; the 16-byte
+The development policy limits the combined allocation to 74 paragraphs before
+the MCB, derives the actual span from the completed allocations, and leaves
+larger tables low. Public graph tests verify the extra SFT/FCB counts, their
+shared upper owner, relative positions, permanent MCB ownership, and size.
+`make test-bios-upper-tables-qemu` tests FILES=8 placement, FILES=30 budget
+fallback, and forced allocation failure; the rebase suite also covers the fixed
+FILES=20 layout, DOS=LOW, absence of UMBs, returned A20-off device callbacks,
+reset, and stale-pointer rejection. System and FCB probes run before the public
+graph check, including failed-open cleanup in the additional SFT entries.
+
+The FCB probe initially failed with DOS=HIGH even without UMB relocation.
+`LRUFCB`, `ResetLRU`, and `SetOpenAge` in `FCBIO.ASM` assumed SS had no DOS
+ownership, so implicit mutable-state references could select the high copy via
+CS. They now declare the DOS-stack SS owner, consistent with FCB dispatch and
+the existing explicit SS accesses. The FCB suite passes with low and upper
+tables; the normal HMA suite now runs it independently of BIOS relocation.
+This kernel correctness fix also applies to normal builds. All 42 combined
+table-placement, rebase/reset, and buffer-capacity cases pass locally, together
+with the normal HMA, FCB, system-contract, and residency gates.
+
+Fresh fixed captures `out/tables-upper-vc.md` and `out/tables-normal-vc.md` show
+**614,448** development conventional bytes versus **610,256** normal, with
+47,904 and 49,104 free UMB bytes respectively. The development gap to retail is
+now **4,288 bytes**. The 3,008-byte BIOS gain and 1,184-byte table gain are
+additive in this measured configuration; HMA image size remains 39,488 bytes.
+
+Before promotion, test SHARE/redirector consumers, direct A20-off public-table
+access, EMS remapping with upper tables, and real high-resident competition.
+Larger tables or preloaded high residents need an explicit placement budget
+and fallback; the 16-byte
 fixed-profile margin is not general spare capacity. Stable UMB addresses avoid
 HMA's A20 exposure but do not remove pointer-ownership or compatibility gates.
 
 The acceptance unit is a released resident allocation, not an instruction-size
 reduction. Keep isolated HIMEM/EMM386 compaction paused. Complete BIOS acceptance
-against the development image's 3,008-byte gain, then implement the DOS-state
-placement policy below. A test-only BIOS image is not the normal shipped layout.
+against the development image's 3,008-byte BIOS and 1,184-byte table gains.
+Further DOS-state placement must respect its remaining 16-byte UMB margin.
+A test-only BIOS image is not the normal shipped layout.
 
 Before another relocation, give every candidate one authoritative owner,
 destination, lifetime, fallback, and conventional/UMB budget:

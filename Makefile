@@ -297,6 +297,12 @@ test-bios-rebase-qemu: deploy
 	python3 tests/test_vc_memory_comparison.py
 
 .PHONY: test-bios-buffer-capacity-qemu
+.PHONY: test-bios-upper-tables-qemu
+test-bios-upper-tables-qemu: deploy
+	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --files 8
+	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --files 30
+	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --fail-table-allocation
+
 test-bios-buffer-capacity-qemu: deploy
 	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --buffers 1
 	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --buffers 39 --mode himem-high --mode emm-high

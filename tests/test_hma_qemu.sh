@@ -10,6 +10,7 @@ PROBE="$OUT/hma-reference.com"
 A20_DRIVER="$OUT/hma-a20.sys"
 SYSTEM_PROBE="$OUT/hma-i21system.com"
 FILE_MEMORY_PROBE="$OUT/hma-i21fmem.com"
+FCB_PROBE="$OUT/hma-i21fcb.com"
 TAIL_PROBE="$OUT/hma-tail.com"
 COMMAND_CRITICAL_PROBE="$OUT/command-critical-hma.com"
 
@@ -30,6 +31,7 @@ done
 nasm -f bin "$ROOT/tests/hma_reference_probe.asm" -o "$PROBE"
 nasm -f bin "$ROOT/tests/hma_a20_driver.asm" -o "$A20_DRIVER"
 nasm -f bin "$ROOT/tests/int21_system_probe.asm" -o "$SYSTEM_PROBE"
+nasm -DNO_DEBUG_EXIT -f bin "$ROOT/tests/int21_fcb_probe.asm" -o "$FCB_PROBE"
 nasm -DNO_DEBUG_EXIT -f bin "$ROOT/tests/int21_file_memory_probe.asm" \
     -o "$FILE_MEMORY_PROBE"
 sysbuf_hex=$(awk '$2 == "SYSBUF" { split($1, address, ":"); print address[2]; exit }' \
@@ -84,6 +86,7 @@ run_case() {
     mcopy -o -i "$image" "$PROBE" ::HMAREF.COM
     mcopy -o -i "$image" "$SYSTEM_PROBE" ::I21SYS.COM
     mcopy -o -i "$image" "$FILE_MEMORY_PROBE" ::I21FMEM.COM
+    mcopy -o -i "$image" "$FCB_PROBE" ::I21FCB.COM
     mcopy -o -i "$image" "$COMMAND_CRITICAL_PROBE" ::CMDCRIT.COM
     mcopy -o -i "$image" "$TAIL_PROBE" ::HMATAIL.COM
     {
@@ -103,6 +106,7 @@ run_case() {
             printf 'ECHO HMA_PROBE_BEFORE_STRESS\r\n'
             printf 'A:\\HMAREF.COM\r\n'
             printf 'I21FMEM.COM\r\n'
+            printf 'I21FCB.COM\r\n'
             printf 'I21SYS.COM\r\n'
             printf 'ECHO HMA_PROBE_AFTER_STRESS\r\n'
         fi
@@ -260,7 +264,7 @@ grep -Fq 'A20_DRIVER_RETURNED' "$OUT/hma-high.log" || {
     echo 'FAIL: DOS=HIGH did not recover from a driver disabling A20' >&2
     exit 1
 }
-for contract in INT21_SYSTEM_PASS INT21_FILE_MEMORY_PASS; do
+for contract in INT21_SYSTEM_PASS INT21_FILE_MEMORY_PASS INT21_FCB_PASS; do
     grep -Fq "$contract" "$OUT/hma-high.log" || {
         echo "FAIL: DOS=HIGH runtime contract did not pass: $contract" >&2
         sed -n '1,220p' "$OUT/hma-high.log" >&2

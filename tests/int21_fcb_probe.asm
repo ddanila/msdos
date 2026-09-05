@@ -211,7 +211,9 @@ parse_ok:
     int 21h
     mov dx, 0f4h
     mov ax, 10h
+%ifndef NO_DEBUG_EXIT
     out dx, ax
+%endif
     mov ax, 4c00h
     int 21h
 

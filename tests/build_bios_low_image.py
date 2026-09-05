@@ -12,7 +12,9 @@ from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False):
+def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False):
+    if fail_tables and not rebase:
+        raise ValueError("table allocation failure control requires rebasing")
     if compact and not rebase:
         raise ValueError("arena compaction requires low-prefix rebasing")
     if (scan or rebase) and not (early and tail_body):
@@ -110,6 +112,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         options += " -DBIOS_BOOT_SCAN=1"
     if rebase:
         options += " -DBIOS_BOOT_REBASE=1"
+    if fail_tables:
+        options += " -DBIOS_TABLES_FAIL_ALLOC=1"
     if compact:
         options += " -DBIOS_BOOT_COMPACT=1"
     for name in changed:
@@ -169,6 +173,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         if (output / "high/bios-high.bin").read_bytes() != embedded:
             raise ValueError("early link changed the embedded high payload")
         manifest["embedded_payload_bytes"] = final_high["bytes"]
+    manifest["upper_dos_tables"] = rebase
+    manifest["force_table_allocation_failure"] = fail_tables
     (output / "low.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
     print(f"Linked {'early-installer' if early else 'inactive'} development BIOS: {output / 'IO.SYS'}", flush=True)
     return manifest

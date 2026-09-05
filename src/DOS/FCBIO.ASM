@@ -545,7 +545,7 @@ Break	<ResetLRU - reset overflowed lru counts>
 ;   Registers modified: none
 
 Procedure   ResetLRU,NEAR
-	ASSUME CS:DOSGroup,DS:NOTHING,ES:NOTHING,SS:NOTHING
+	ASSUME CS:DOSGroup,DS:NOTHING,ES:NOTHING,SS:DOSGroup
 	Assert	ISSFT,<ES,DI>,"ResetLRU"
 	MOV	AX,8000h
 	SaveReg <ES,DI>
@@ -579,7 +579,7 @@ Break	<SetOpenAge - update the open age of a SFT>
 ;
 
 Procedure   SetOpenAge,NEAR
-	ASSUME CS:DOSGroup,DS:NOTHING,ES:NOTHING,SS:NOTHING
+	ASSUME CS:DOSGroup,DS:NOTHING,ES:NOTHING,SS:DOSGroup
 	Assert	ISSFT,<ES,DI>,"SetOpenAge"
 	MOV	AX,SS:[OpenLRU]
 	INC	AX
@@ -608,7 +608,9 @@ Break	<LRUFCB - perform LRU on FCB sfts>
 ;
 
 Procedure   LRUFCB,NEAR
-	ASSUME CS:DOSGroup,DS:NOTHING,ES:NOTHING,SS:NOTHING
+	; FCB dispatch runs on the DOS stack. Mutable table/workspace ownership
+	; follows SS, not the duplicate copied with code into the HMA.
+	ASSUME CS:DOSGroup,DS:NOTHING,ES:NOTHING,SS:DOSGroup
 	Invoke	Save_World
 ;
 ; Find nth oldest NET/SHARE FCB.  We want to find its age for the second scan
