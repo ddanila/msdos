@@ -1380,7 +1380,7 @@ flag, forward/backward SI movement, and caller DS checked. Dedicated stack
 operations save the original SP and unwind the same conventional stack without
 overwriting live target words; these are not arbitrary stack-switch helpers.
 The complete separate-data MSDISK object also assembles, using a flag-preserving
-long LOOP trampoline where its enlarged track loop requires one. Its body is currently 5,120
+long LOOP trampoline where its enlarged track loop requires one. Its body is currently 5,160
 bytes versus the installed 3,578-byte body; the added code spends HMA capacity,
 not low-memory savings, once relocation exists. The default build still emits
 byte-identical IO.SYS. A source guard permits only the two IOCTL code-dispatch
@@ -1588,7 +1588,7 @@ floppy compatibility from the fixed image's removed 96-TPI calls.
 ##### Isolated service object and completion exits
 
 `BIOS_SERVICE_ISOLATED=1` assembles MSDISK's service body alone in a separate
-`BIOSHIGH` segment, `0000h..1400h` (5,120 bytes), with explicit imports for the
+`BIOSHIGH` segment, `0000h..1428h` (5,160 bytes), with explicit imports for the
 low disk prefix. The source/operand suite builds both this and the earlier
 same-segment separate-data form. Its emitted-branch check rejects direct
 external targets; indirect gates and dispatch tables still require binding.
@@ -1601,7 +1601,7 @@ CALL. Their targets must consume the original MSBIO1 device-entry frame, not
 a gateway frame. A native cross-segment probe executes the macro with all nine
 saved register words and checks SP, registers, and flags on return. Together
 with the low-segment operand probe and twelve result-helper scenarios, the
-twelve source/operand tests pass. This does not validate real device status
+thirteen source/operand tests pass. This does not validate real device status
 completion under high relocation.
 
 The isolated body now links against low-map absolute symbols and a 60-byte
@@ -1611,11 +1611,11 @@ runtime import table. Reproduce with:
 make test-bios-high-payload
 ```
 
-`out/bios-high-payload/bios-high.bin` contains 5,180 bytes; its JSON manifest
+`out/bios-high-payload/bios-high.bin` contains 5,220 bytes; its JSON manifest
 pins IO.SYS and low-map hashes, records exported entry offsets, and names all
 twenty runtime slots with their widths and intended low targets. All runtime
 slots are zero: this is an uninstalled development payload, not callable code.
-The builder infers 269 internal offset16 fixups from links at origins zero
+The builder infers 270 internal offset16 fixups from links at origins zero
 and one, then verifies exact rebased bytes against independent links at 16,
 `0123h`, and `4000h`. This checks the current payload's relocation model, not
 a general OMF format implementation. Low absolute offsets remain fixed; code
@@ -1643,7 +1643,7 @@ make test-bios-payload-qemu
 
 The QEMU 486 probe obtains DOS-owned HMA storage, verifies segment FFFFh,
 copies and rebases the linked payload, and calls its actual READ_SECTOR entry
-through a small high near-call/far-return wrapper. It binds the data owner and
+through the shared high-side near-entry adapter and a test driver. It binds the data owner and
 INT 13h/1Ah gateways; unused far imports trap. Private low data and a probe-owned
 BDS avoid using live BIOS data as experimental workspace. BDS offsets come from the assembler's
 MSBDS.INC definitions, not duplicated numeric layout assumptions. A fixed-media
@@ -1664,9 +1664,25 @@ exactly 512 bytes, preserve CX, advance SI/DI by 512, and preserve destination
 guard words. Entry DF is deliberately set; MOVE must clear it. Removing only
 the operand-size prefix leaves the count-halving instruction active and copies
 too little; that negative control must reach an explicit FAIL result. Both
-copy paths execute on QEMU 486 here: this is not real-286 acceptance. The six
+copy paths execute on QEMU 486 here: this is not real-286 acceptance. The seven
 runtime cases include the three read outcomes, word copy, partial-copy-patch
-rejection, and missing-fixup rejection. The normal IO.SYS remains byte-identical.
+rejection, missing-fixup rejection, and missing-entry-A20 rejection. The normal
+IO.SYS remains byte-identical.
+
+`HIGHNEAR.INC` supplies the 40-byte high-side ordinary-near-call adapter. A low
+caller restores A20, pushes a relocated target offset, and far-calls the
+adapter; the service returns with near RET, and the adapter preserves results
+while returning low and consuming the target word. The runtime probe confirms
+physical A20-off entry and restores it before calling; omitting restoration
+reaches READY but cannot pass. This contract excludes interrupt and device
+entry frames, which need separate entry paths.
+
+The six SETDRIVE/MAPERROR/READ_SECTOR calls in MSDISK's retained prefix now use
+`BIOS_CALL_HIGH` when `BIOS_SERVICE_LOW_CALLS` is enabled. That object assembles
+and its call inventory is checked; default expansions remain the original
+near calls. Runtime import storage and publication are not installed yet,
+and MSBIO2/96-TPI callers still need conversion. The HMA probe validates the
+adapter with real read/copy code, not a complete production low/high cycle.
 
 Next, extend execution beyond READ_SECTOR and bind production imports, including
 low-to-high entries for low helpers that recurse into the body. Preserve code-table

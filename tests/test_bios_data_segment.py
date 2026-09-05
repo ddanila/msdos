@@ -13,6 +13,21 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 class DataSegmentTests(unittest.TestCase):
+    def test_low_prefix_high_calls_assemble(self):
+        with tempfile.TemporaryDirectory(prefix="msdos-bios-low-calls-") as scratch:
+            built = subprocess.run([str(ROOT / "bin/jwasm-masm"),
+                                    "-I. -I../INC -DBIOS_SERVICE_LOW_CALLS=1",
+                                    f"MSDISK.ASM,{Path(scratch) / 'low.obj'};"],
+                                   cwd=ROOT / "src/BIOS", capture_output=True, text=True)
+            self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
+        calls = []
+        for line in (ROOT / "src/BIOS/MSDISK.ASM").read_text().splitlines():
+            code = line.split(";", 1)[0].strip().upper()
+            if code.startswith("BIOS_CALL_HIGH "):
+                calls.append(code.split()[1].split(",")[0])
+        self.assertEqual(sorted(calls), ["MAPERROR", "MAPERROR", "READ_SECTOR",
+                                        "READ_SECTOR", "SETDRIVE", "SETDRIVE"])
+
     def test_isolated_body_has_no_direct_external_branches(self):
         with tempfile.TemporaryDirectory(prefix="msdos-bios-isolated-") as scratch:
             listing = Path(scratch) / "high.lst"

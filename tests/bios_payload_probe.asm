@@ -19,6 +19,9 @@ start:
     mov [entry+2],es
     mov ax,di
     add ax,high_entry-payload
+    mov [service_target],ax
+    mov ax,di
+    add ax,ENTRY_NEAR_GATE
     mov [entry],ax
     mov bx,di
     mov si,payload
@@ -100,6 +103,11 @@ start:
     xor dx,dx
     mov bp,7777h
     mov [saved_sp],sp
+    call disable_entry_a20
+%ifndef OMIT_ENTRY_A20
+    call BIOS_HMA_ROM_RESTORE
+%endif
+    push word [service_target]
     call far [entry]
     mov [result_ax],ax
     pushf
@@ -107,6 +115,8 @@ start:
     cmp sp,[saved_sp]
     jne fail
     cmp bp,7777h
+    jne fail
+    cmp word [entry_disabled],1
     jne fail
     mov ax,es
     mov dx,cs
@@ -184,6 +194,27 @@ unhook:
     mov byte [hooked],0
 .done:
     ret
+disable_entry_a20:
+    pushf
+    push ax
+    push bx
+    push ds
+    in al,92h
+    and al,0fdh
+    out 92h,al
+    mov ax,0ffffh
+    mov ds,ax
+    mov bx,[cs:alias_offset]
+    mov ax,[bx]
+    cmp ax,[cs:alias_value]
+    jne .not_disabled
+    inc word [cs:entry_disabled]
+.not_disabled:
+    pop ds
+    pop bx
+    pop ax
+    popf
+    ret
 hook13:
     cmp ah,2
     jne .reset
@@ -222,6 +253,8 @@ hook13:
 %include "HIGHROM.INC"
 origin dw 0
 entry dd 0
+service_target dw 0
+entry_disabled dw 0
 old13 dd 0
 saved_sp dw 0
 result_flags dw 0
@@ -268,7 +301,7 @@ high_entry:
     pop cx
     pop ax
     popf
-    retf
+    ret
 payload_end:
 copy_si dw 0
 copy_di dw 0

@@ -39,6 +39,18 @@ BIOS_ROM_ORIG13 MACRO
         ENDIF
 ENDM
 
+; LOW-side ordinary near call. Device and interrupt entries need different
+; stack contracts. These imports are published only after high installation.
+BIOS_CALL_HIGH MACRO low_target,high_target_slot,high_entry_slot
+        IFDEF BIOS_SERVICE_LOW_CALLS
+        CALL BIOS_HMA_ROM_RESTORE
+        PUSH WORD PTR CS:[high_target_slot]
+        CALL DWORD PTR CS:[high_entry_slot]
+        ELSE
+        CALL low_target
+        ENDIF
+ENDM
+
 ; Completion exits consume the original device-entry stack. Never CALL these
 ; low targets from the high body: no extra return frame may be introduced.
 BIOS_JUMP_LOW MACRO target,low_entry
