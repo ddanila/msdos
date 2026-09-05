@@ -171,7 +171,7 @@ def main() -> int:
     if not (resident_state_end <= resident_critical_ptr
             and resident_critical_ptr + 4 <= resident_class_ptrs):
         errors.append("cached critical-catalog pointer is not retained in low message state")
-    prototype_allowance = 64 if args.critical_split else 0
+    prototype_allowance = 192 if args.critical_split else 0
     if rounded(resident_catalog_start) > 3632 + prototype_allowance:
         errors.append(f"DOS-high permanent COMMAND exceeds its {3632 + prototype_allowance:,}-byte budget")
     if rounded(hma_code_end) > 6080 + prototype_allowance:
@@ -249,6 +249,7 @@ def main() -> int:
     if args.critical_split:
         body_start = require(symbols, "critical_body_start")
         body_end = require(symbols, "critical_body_end")
+        dispatch = require(symbols, "critical_dispatch")
         exits = [require(symbols, name) for name in (
             "critical_return_low", "critical_reload_low",
             "critical_terminate_low", "critical_dead_low",
@@ -256,9 +257,31 @@ def main() -> int:
         if not (disk_error_start < exits[0] < exits[1] < exits[2]
                 < exits[3] < body_start < body_end == crlf_start):
             errors.append("development critical entry, exits and body are not separated")
+        expected_dispatch = (b"\xe9" + ((body_start - dispatch - 3) & 0xFFFF).to_bytes(2, "little")
+                             + b"\x90\x90")
+        if not (dispatch + 5 == exits[0]
+                and image[dispatch - 0x100:dispatch - 0x100 + 5] == expected_dispatch):
+            errors.append("development critical dispatch lacks its five-byte publication window")
+        for name, opcode, size in [
+            (name, 0x9A, 6) for name in (
+                "CRLF", "RPRINT", "SYSGETMSG", "TestKanjR",
+                "IN_CHAR_XLAT", "ResPipeOff", "int21", "int2f",
+            )
+        ] + [(name, 0xEA, 5) for name in ("return", "reload", "terminate", "dead")]:
+            bridge = require(symbols, f"critical_{name}_bridge")
+            binding = require(symbols, f"critical_{name}_segment")
+            target = require(symbols, f"critical_{name}_low")
+            expected = bytes([opcode]) + target.to_bytes(2, "little") + b"\0\0"
+            if opcode == 0x9A:
+                expected += b"\xc3"
+            if not (body_start <= bridge < bridge + size <= body_end
+                    and binding == bridge + 3
+                    and disk_error_start <= target < body_start
+                    and image[bridge - 0x100:bridge - 0x100 + size] == expected):
+                errors.append(f"development critical {name} bridge has an invalid far binding")
         print(f"| Development critical entry and exits | `{disk_error_start:04X}h..{body_start:04X}h` | {body_start - disk_error_start:,} | low interfaces |")
-        print(f"| Development complete critical body | `{body_start:04X}h..{body_end:04X}h` | {body_end - body_start:,} | still low; external calls not yet relocation-safe |")
-        print("\nDevelopment only: the 64-byte temporary support allowance is not")
+        print(f"| Development complete critical body | `{body_start:04X}h..{body_end:04X}h` | {body_end - body_start:,} | still low; far services/exits, A20 return gates pending |")
+        print("\nDevelopment only: the 192-byte temporary support allowance is not")
         print("a production budget increase or a claimed conventional-memory saving.\n")
     print(f"| **DOS-high permanent break** | `0000h..{resident_catalog_start:04X}h` | **{resident_catalog_start:,}** | **{rounded(resident_catalog_start):,} paragraph-rounded** |")
     print(f"| Low/failure fallback break | `0000h..{hma_code_end:04X}h` | {hma_code_end:,} | {rounded(hma_code_end):,} paragraph-rounded |")

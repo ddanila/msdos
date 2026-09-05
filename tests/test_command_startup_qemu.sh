@@ -123,6 +123,9 @@ timeout 120 qemu-system-i386 \
 cp "$FLOPPY" "$FAIL_BOOT_IMG"
 mcopy -o -i "$FAIL_BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 mcopy -o -i "$FAIL_BOOT_IMG" "$CRITICAL_ABI_PROBE" ::CRITABI.COM
+if [[ -n ${COMMAND_CRITICAL_LOADER:-} ]]; then
+    mcopy -o -i "$FAIL_BOOT_IMG" "$COMMAND_CRITICAL_LOADER" ::CRITHIGH.COM
+fi
 {
     printf 'DEVICE=A:\\HIMEM.SYS\r\n'
     printf 'DOS=HIGH\r\n'
@@ -133,6 +136,9 @@ mcopy -o -i "$FAIL_BOOT_IMG" "$CRITICAL_ABI_PROBE" ::CRITABI.COM
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
+    if [[ -n ${COMMAND_CRITICAL_LOADER:-} ]]; then
+        printf 'CRITHIGH.COM\r\n'
+    fi
     if [[ "$CRITICAL_ABI" == 1 ]]; then
         printf 'CRITABI.COM > CRITABI.TXT\r\n'
         printf 'TYPE CRITABI.TXT\r\n'
@@ -265,6 +271,14 @@ else
 fi
 
 if [[ "$CRITICAL_ABI" == 1 ]]; then
+    if [[ -n ${COMMAND_CRITICAL_LOADER:-} ]]; then
+        if grep -q '^COMMAND_CRITICAL_BODY_HIGH' "$FAIL_SERIAL_LOG" \
+            && ! grep -q 'COMMAND_CRITICAL_BODY_LOAD_FAIL' "$FAIL_SERIAL_LOG"; then
+            ok "development critical body installed in HMA with old low body poisoned"
+        else
+            fail "development critical body HMA installation"
+        fi
+    fi
     if grep -q '^COMMAND_CRITICAL_ABI_PASS' "$FAIL_SERIAL_LOG" \
         && ! grep -q 'COMMAND_CRITICAL_ABI_FAIL' "$FAIL_SERIAL_LOG"; then
         ok "critical $CRITICAL_ACTION preserves foreign stack/registers and JFNs across repeated opens"

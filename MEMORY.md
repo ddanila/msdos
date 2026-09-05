@@ -290,22 +290,38 @@ The normal COMMAND binary is unchanged. The prototype currently measures:
 
 | Linked range | Bytes | Placement |
 | --- | ---: | --- |
-| Entry preparation and four low exits, `06F5h..073Dh` | 72 | Low interface |
-| Complete critical body, `073Dh..0988h` | 587 | Still low; not yet safe to copy high |
-| Permanent image after paragraph rounding | 3,648 | 16 more than normal while the body remains low |
+| Entry, bindings, service wrappers and four exits, `06F5h..0791h` | 156 | Low interface; includes temporary per-entry binding setup |
+| Complete critical body and bridges, `0791h..0A26h` | 661 | Executed in HMA by the test loader; low allocation retained |
+| Permanent image after paragraph rounding | 3,808 | 176 more than normal before reclamation |
 
-The checked census permits a bounded 64-byte support increase only with
-`--critical-split`; the production 3,632-byte limit is unchanged. Both real
-Fail and Retry cases pass against the prototype, including foreign-stack and
-JFN restoration. Reload, initialization termination, Abort side effects and
-A20 failure are not qualified by these two cases.
+Eight copy-local near-call bridges perform far calls to low wrappers for
+printing, message lookup, DBCS/character conversion, pipe cleanup, INT 21h and
+INT 2Fh. Four far jumps implement the non-returning low exit transfers. Their
+immediate segment operands are explicit bindings, independent of the caller's
+DS. The census checks all twelve encodings, targets and binding offsets plus
+the five-byte dispatch publication window.
 
-Next replace the body's external near calls and interrupt/redirector returns
-with explicit cross-segment contracts, then copy and publish the complete body
-and reclaim its old range. The 587-byte body is an inventory, not a net saving:
-additional service thunks, A20 recovery, alignment and low-copy removal must be
-charged to the joint shell/manager budget. Do not promote this preparatory
-layout or use its temporarily larger allocation as the normal parity baseline.
+The fixture now runs Fail and Retry with the body low, then with the complete
+661-byte object in HMA. `command_critical_body_loader.asm` verifies the dispatch
+window, reserves DOS-owned HMA, copies and binds the body, poisons the old body
+with INT 3 bytes, and atomically publishes a far entry. Both high cases pass
+with the old body unusable, including foreign-stack and JFN restoration.
+This proves high execution, **not reclamation**: the test loader leaves the
+conventional allocation intact. The current entry still writes bindings into
+the old low body, so that storage must not yet be returned to applications.
+
+The checked census permits a bounded 192-byte development support increase;
+the production 3,632-byte limit is unchanged and the normal binary remains
+byte-identical. Reload, initialization termination, Abort side effects and
+A20 failure are not qualified by these cases. In particular the low service
+wrappers do not yet recover A20 before returning to high code.
+
+Next move binding setup into initialization, before handler publication, and
+link the body after the permanent low data so successful HMA placement can
+release its complete fallback range. Preserve the low/failure, child and /MSG
+paths. Budget the final wrappers, A20 recovery and alignment together with the
+rest of COMMAND and the managers; do not count copied or poisoned bytes as
+conventional savings or promote the test-only loader as the installed design.
 
 The eventual reclamation commits have three distinct owners:
 

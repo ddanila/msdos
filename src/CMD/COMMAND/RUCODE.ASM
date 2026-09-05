@@ -22,6 +22,52 @@ DEBUG = 0				; NEED TO SET IT TO WHAT IT IS IN DOSSYM.INC
 
 Tokenized   =	FALSE
 
+; The development body's near calls terminate at copy-local bridges. Each
+; bridge uses an explicit far immediate to a low wrapper, independent of DS.
+CRITICAL_CALL MACRO entryname
+ IFDEF COMMAND_CRITICAL_SPLIT
+	call critical_&entryname&_bridge
+ ELSE
+	invoke entryname
+ ENDIF
+ENDM
+
+CRITICAL_INT MACRO vector,entryname
+ IFDEF COMMAND_CRITICAL_SPLIT
+	call critical_&entryname&_bridge
+ ELSE
+	int vector
+ ENDIF
+ENDM
+
+IFDEF COMMAND_CRITICAL_SPLIT
+CRITICAL_BIND MACRO entryname
+	mov word ptr cs:[critical_&entryname&_segment],ax
+ENDM
+CRITICAL_WRAPPER MACRO entryname
+critical_&entryname&_low PROC FAR
+	invoke entryname
+	retf
+critical_&entryname&_low ENDP
+ENDM
+CRITICAL_BRIDGE MACRO entryname
+	PUBLIC critical_&entryname&_bridge,critical_&entryname&_segment
+	PUBLIC critical_&entryname&_low
+critical_&entryname&_bridge:
+	db 09Ah
+	dw offset resgroup:critical_&entryname&_low
+critical_&entryname&_segment dw 0
+	ret
+ENDM
+CRITICAL_EXIT_BRIDGE MACRO entryname
+	PUBLIC critical_&entryname&_bridge,critical_&entryname&_segment
+critical_&entryname&_bridge:
+	db 0EAh
+	dw offset resgroup:critical_&entryname&_low
+critical_&entryname&_segment dw 0
+ENDM
+ENDIF
+
 DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	abort_char:byte
 	EXTRN	badfat_block:byte	;AC000;
@@ -154,7 +200,27 @@ ASSUME	DS:RESGROUP
 	IFDEF COMMAND_CRITICAL_SPLIT
 	; Development whole-body boundary. DS names authoritative low state;
 	; the incoming interrupt frame and saved CX/SI/ES/DS stay on its stack.
+	; Bind while the complete prototype is still low. High publication must
+	; bind the copied object before activation, not write into reclaimed code.
+	push ax
+	mov ax,cs
+	CRITICAL_BIND CRLF
+	CRITICAL_BIND RPRINT
+	CRITICAL_BIND SYSGETMSG
+	CRITICAL_BIND TestKanjR
+	CRITICAL_BIND IN_CHAR_XLAT
+	CRITICAL_BIND ResPipeOff
+	CRITICAL_BIND int21
+	CRITICAL_BIND int2f
+	CRITICAL_BIND return
+	CRITICAL_BIND reload
+	CRITICAL_BIND terminate
+	CRITICAL_BIND dead
+	pop ax
+	PUBLIC critical_dispatch
+critical_dispatch:
 	JMP	critical_body_start
+	db 2 dup (90h)			; development loader can publish a five-byte far JMP
 	PUBLIC critical_return_low,critical_reload_low,critical_terminate_low
 	PUBLIC critical_dead_low,critical_body_start,critical_body_end
 critical_return_low:
@@ -175,11 +241,25 @@ critical_terminate_low:
 	int	21H
 critical_dead_low:
 	jmp	critical_dead_low
+	CRITICAL_WRAPPER CRLF
+	CRITICAL_WRAPPER RPRINT
+	CRITICAL_WRAPPER SYSGETMSG
+	CRITICAL_WRAPPER TestKanjR
+	CRITICAL_WRAPPER IN_CHAR_XLAT
+	CRITICAL_WRAPPER ResPipeOff
+critical_int21_low PROC FAR
+	int 21h
+	retf
+critical_int21_low ENDP
+critical_int2f_low PROC FAR
+	int 2fh
+	retf
+critical_int2f_low ENDP
 critical_body_start:
 	ENDIF
 
 	PUSH	DX
-	CALL	CRLF
+	CRITICAL_CALL	CRLF
 	POP	DX
 	MOV	CRIT_ERR_INFO,AH		;G save so we know if R,I,F are valid
 
@@ -214,7 +294,7 @@ SAVMES:
 	PUSH	CX
 	PUSH	BX
 	mov	ah,GetExtendedError		; get extended error code
-	INT	21H
+	CRITICAL_INT 21h,int21
 	POP	BX
 	POP	CX
 	POP	DX
@@ -282,13 +362,13 @@ GotStyle:
 
 	MOV	DI,AX				; retrieve correct extended error...
 	mov	ax,0500h			; Is the redir there?
-	int	2fh
+	CRITICAL_INT 2fh,int2f
 	cmp	al,0ffh
 	jnz	NoHandler			; No, go to NoHandler
 	push	bx								   ;AN063;
 	mov	bx,di				; Get ErrType and ptr to error msg ;AC063;
 	mov	ax,0501h							   ;AC063;
-	int	2fh
+	CRITICAL_INT 2fh,int2f
 	pop	bx								   ;AC063;
 	jc	NoHandler
 
@@ -303,12 +383,12 @@ GotStyle:
 
 	IF	Tokenized
 	or	byte ptr [di-2],80h
-	call	rprint				; Print the message
+	CRITICAL_CALL	rprint				; Print the message
 	and	byte ptr [di-2], NOT 80h	; Restore msg to original condition
 	ELSE
 	mov	byte ptr [di-1],'$'
 	MOV	AH,Std_con_string_output	;AC000; Print the message
-	INT	21h				;AN000;
+	CRITICAL_INT 21h,int21				;AN000;
 	mov	byte ptr [di-1],0		; Restore msg to original condition
 	ENDIF
 
@@ -326,12 +406,12 @@ NormalError:
 	add	DI,error_write_protect		;AN054;
 	XCHG	DI,DX				; May need DX later
 	MOV	DISP_CLASS,EXT_CRLF_CLASS	;AN054; printing extended error class
-	CALL	RPRINT				; Print error type
+	CRITICAL_CALL	RPRINT				; Print error type
 
 CheckErrType:
 	cmp	ErrType,0			; Check error style...
 	je	ContOld
-	call	CRLF				; if new style then done printing
+	CRITICAL_CALL	CRLF				; if new style then done printing
 	jmp	short ASK
 
 ContOld:
@@ -341,7 +421,7 @@ ContOld:
 	IFDEF COMMAND_CRITICAL_SPLIT
 	PUSH	DS				; preserve the low owner across string lookup
 	ENDIF
-	CALL	SYSGETMSG			;AN000; get the message
+	CRITICAL_CALL	SYSGETMSG			;AN000; get the message
 	MOV	BX,DS				; preserve the far HMA string segment
 	IFNDEF COMMAND_CRITICAL_SPLIT
 	PUSH	CS
@@ -358,7 +438,7 @@ ContOld:
 	MOV	NUMBER_SUBST,AL 		;AN000;
 	MOV	SI,OFFSET RESGROUP:DEVEMES_BLOCK;AN000; get address of subst block
 
-	CALL	RPRINT				;AC000; print the message
+	CRITICAL_CALL	RPRINT				;AC000; print the message
 	JMP	SHORT ASK			; Don't ralph on COMMAND
 
 BLKERR:
@@ -368,11 +448,11 @@ BLKERR:
 	MOV	AL,DRVNUM_SUBST 		;AN000; get number of substitutions
 	MOV	NUMBER_SUBST,AL 		;AN000;
 	MOV	SI,OFFSET RESGROUP:DRVNUM_BLOCK ;AN000; get address of subst block
-	CALL	RPRINT
+	CRITICAL_CALL	RPRINT
 	CMP	[LOADING],0
 	JZ	ASK
 	IFDEF COMMAND_CRITICAL_SPLIT
-	JMP	critical_reload_low
+	jmp	critical_reload_bridge
 	ELSE
 	INVOKE	RESTHAND
 	JMP	GETCOMDSK2			; If error loading COMMAND, re-prompt
@@ -400,34 +480,34 @@ assume	ds:resgroup
 	MOV	AL,ERR15MES_SUBST		;AN000; get number of substitutions
 	MOV	NUMBER_SUBST,AL 		;AN000;
 	MOV	SI,OFFSET RESGROUP:ERR15MES_BLOCK ;AN000; get address of subst block
-	CALL	RPRINT
+	CRITICAL_CALL	RPRINT
 
 ; PRINT OUT ABORT, RETRY, IGNORE, FAIL MESSAGE.  ONLY PRINT OUT OPTIONS
 ; THAT ARE VALID
 
 Not15:
 	MOV	DX,REQ_ABORT			;AC000;G print out abort message
-	CALL	RPRINT				;G
+	CRITICAL_CALL	RPRINT				;G
 	TEST	CRIT_ERR_INFO,RETRY_ALLOWED	;G is retry allowed?
 	JZ	TRY_IGNORE			;G
 	MOV	DX,REQ_RETRY			;AC000;G yes,print out retry message
-	CALL	RPRINT				;G
+	CRITICAL_CALL	RPRINT				;G
 
 try_ignore:
 	TEST	CRIT_ERR_INFO,IGNORE_ALLOWED	;G is ignore allowed?
 	JZ	TRY_FAIL			;G
 	MOV	DX,REQ_IGNORE			;AC000;G yes,print out ignore message
-	CALL	RPRINT				;G
+	CRITICAL_CALL	RPRINT				;G
 
 try_fail:
 	TEST	CRIT_ERR_INFO,FAIL_ALLOWED	;G is FAIL allowed?
 	JZ	TERM_QUESTION			;G
 	MOV	DX,REQ_FAIL			;AC000;G yes,print out FAIL message
-	CALL	RPRINT				;G
+	CRITICAL_CALL	RPRINT				;G
 
 Term_Question:
 	MOV	DX,REQ_END			;AC000;G terminate the string
-	CALL	RPRINT				;G
+	CRITICAL_CALL	RPRINT				;G
 ;
 ; If the /f switch was given, we fail all requests...
 ;
@@ -438,18 +518,18 @@ Term_Question:
 
 DoPrompt:
 	MOV	AX,(STD_CON_INPUT_FLUSH SHL 8)+STD_CON_INPUT
-	INT	21H				; Get response
+	CRITICAL_INT 21h,int21				; Get response
 
-	invoke	TestKanjR			;AN000;  3/3/KK
+	CRITICAL_CALL	TestKanjR			;AN000;  3/3/KK
 	jz	notkanj 			;AN000;  3/3/KK
 	MOV	AX,(STD_CON_INPUT SHL 8)	;AN000;  eat the 2nd byte of ECS code  3/3/KK
-	INT	21H				;AN000;  3/3/KK
-	CALL	CRLF				;AN000;  3/3/KK
+	CRITICAL_INT 21h,int21				;AN000;  3/3/KK
+	CRITICAL_CALL	CRLF				;AN000;  3/3/KK
 	JMP	ASK				;AN000;  3/3/KK
 
 notkanj:					;AN000;  3/3/KK
-	CALL	CRLF
-	CALL	IN_CHAR_XLAT			;G Convert to upper case
+	CRITICAL_CALL	CRLF
+	CRITICAL_CALL	IN_CHAR_XLAT			;G Convert to upper case
 	MOV	AH,0				; Return code for ignore
 	TEST	CRIT_ERR_INFO,IGNORE_ALLOWED	;G is IGNORE allowed?
 	JZ	USER_RETRY			;G
@@ -485,11 +565,11 @@ abort_process:
 	cmp	PERMCOM,0			; Is this the top level process?
 	jz	JustExit			; Yes, just exit
 	mov	dx,Patricide			;AC000; No, load ptr to error msg
-	call	RPRINT				; Print it
+	CRITICAL_CALL	RPRINT				; Print it
 
 DeadInTheWater:
 	IFDEF COMMAND_CRITICAL_SPLIT
-	jmp	critical_dead_low
+	jmp	critical_dead_bridge
 	ELSE
 	jmp	DeadInTheWater			; Loop until the user reboots
 	ENDIF
@@ -497,13 +577,13 @@ DeadInTheWater:
 JustExit:
 ASSUME	DS:RESGROUP
 	IFDEF COMMAND_CRITICAL_SPLIT
-	jmp	critical_terminate_low
+	jmp	critical_terminate_bridge
 	ELSE
 	call	reset_msg_pointers		;AN000; reset critical & parse message addresses
 	mov	ax,[PARENT]			; Load real parent PID
 	mov	word ptr ds:[PDB_Parent_PID],ax ; Put it back where it belongs
 	mov	ax,(Exit SHL 8) OR 255
-	int	21H
+	CRITICAL_INT 21h,int21
 	ENDIF
 
 AbortCont:
@@ -513,7 +593,7 @@ AbortCont:
 
 Not_Batch_Abort:
 	mov	dl,PipeFlag
-	invoke	ResPipeOff
+	CRITICAL_CALL	ResPipeOff
 	OR	DL,DL
 	JZ	CHECKFORA
 	CMP	[SINGLECOM],0
@@ -538,7 +618,7 @@ EEXIT:
 
 RESTHD:
 	IFDEF COMMAND_CRITICAL_SPLIT
-	JMP	critical_return_low
+	jmp	critical_return_bridge
 	ELSE
 	INVOKE	RESTHAND
 	POP	CX
@@ -553,16 +633,28 @@ FATERR:
 	MOV	AL,BADFAT_SUBST 		;AN000; get number of substitutions
 	MOV	NUMBER_SUBST,AL 		;AN000;
 	MOV	SI,OFFSET RESGROUP:BADFAT_BLOCK ;AN000; get address of subst block
-	CALL	RPRINT
+	CRITICAL_CALL	RPRINT
 
 	IF	Tokenized
 	MOV	DX,OFFSET RESGROUP:ERRMES
-	CALL	RPRINT
+	CRITICAL_CALL	RPRINT
 	ENDIF
 
 	MOV	AL,2				; Abort
 	JMP	RESTHD
 	IFDEF COMMAND_CRITICAL_SPLIT
+	CRITICAL_BRIDGE CRLF
+	CRITICAL_BRIDGE RPRINT
+	CRITICAL_BRIDGE SYSGETMSG
+	CRITICAL_BRIDGE TestKanjR
+	CRITICAL_BRIDGE IN_CHAR_XLAT
+	CRITICAL_BRIDGE ResPipeOff
+	CRITICAL_BRIDGE int21
+	CRITICAL_BRIDGE int2f
+	CRITICAL_EXIT_BRIDGE return
+	CRITICAL_EXIT_BRIDGE reload
+	CRITICAL_EXIT_BRIDGE terminate
+	CRITICAL_EXIT_BRIDGE dead
 critical_body_end LABEL BYTE
 	ENDIF
 
