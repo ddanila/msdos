@@ -4,7 +4,11 @@ INCLUDE MSIOLIM.INC
 PUBLIC BIOS_IOCTL_LOW_START, BIOS_IOCTL_LOW_END
 PUBLIC SECTORSPERTRACK, TRACKTABLE, MEDIATYPE
 PUBLIC MEDIA_SET_FOR_FORMAT, Had_Format_Error, TEMPDPT
+PUBLIC Prev_DX
 BIOS_IOCTL_LOW_START LABEL BYTE
+; PS/2 model 30 status-reset drive; authoritative state must stay low even
+; when BLOCK13's service body runs high. BIOS results use the active stack.
+Prev_DX DW ?
 SECTORSPERTRACK DW	36
 TRACKTABLE	DB	0,0,1,2
 		DB	0,0,2,2

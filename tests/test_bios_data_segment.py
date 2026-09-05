@@ -88,6 +88,25 @@ class DataSegmentTests(unittest.TestCase):
         self.assertEqual(counts, {"BIOS_ROM_INT13": 8, "BIOS_ROM_INT1A": 1,
                                   "BIOS_ROM_ORIG13": 8})
 
+    def test_service_body_named_storage_is_only_code_dispatch(self):
+        # Structure fields describe stack frames; they allocate no body bytes.
+        # New named storage otherwise needs an explicit ownership decision.
+        for name, allowed in (("MSDSKHIG.INC", []),
+                              ("MSIOCTL.INC", ["IOREADJUMPTABLE", "IOWRITEJUMPTABLE"])):
+            fields = False
+            actual = []
+            for line in (ROOT / "src/BIOS" / name).read_text().splitlines():
+                code = line.split(";", 1)[0].strip().upper()
+                if re.match(r"\w+\s+STRUC\b", code):
+                    fields = True
+                elif re.match(r"\w+\s+ENDS\b", code):
+                    fields = False
+                elif not fields:
+                    declaration = re.match(r"(\w+)\s+(?:DB|DW|DD)\b", code)
+                    if declaration:
+                        actual.append(declaration[1])
+            self.assertEqual(actual, allowed, "new service-body storage needs ownership review")
+
 
 if __name__ == "__main__":
     unittest.main()

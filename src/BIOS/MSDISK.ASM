@@ -62,6 +62,7 @@
 	extrn ResetChanged:near 	;AN000; MS96TPI
 
 ;DATA
+	EXTRN Prev_DX:WORD		;retained low disk state
 	EXTRN OLD13:DWORD		;MSBIO2
 	EXTRN PTRSAV:DWORD		;MSBIO1
 	EXTRN COM1DEV:WORD		;MSAUX

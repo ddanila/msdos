@@ -427,8 +427,10 @@ def main() -> int:
     ioctl_low_end = require(bios_symbols, "BIOS_IOCTL_LOW_END")
     if not (ioctl_low_end == require(bios_symbols, "BIO001E") <= service_start):
         errors.append("IOCTL mutable state is not wholly in the retained low prefix")
-    if ioctl_low_end - ioctl_low_start != 261:
+    if ioctl_low_end - ioctl_low_start != 263:
         errors.append("IOCTL low-state inventory changed; review format capacity")
+    if not (ioctl_low_start <= require(bios_symbols, "Prev_DX") <= ioctl_low_end - 2):
+        errors.append("PS/2 saved drive is not owned by retained low disk state")
     if require(bios_symbols, "MEDIATYPE") - require(bios_symbols, "TRACKTABLE") != 63 * 4:
         errors.append("low format descriptor array does not cover 63 sectors")
     io_read = require(bios_symbols, "IOREADJUMPTABLE")

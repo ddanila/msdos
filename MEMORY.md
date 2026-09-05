@@ -1339,15 +1339,16 @@ cannot be counted again. The 5,344-byte retail DOS/BIOS remainder is an
 accounting difference, not the full candidate inventory or a movable block.
 
 The candidate is isolated in `src/BIOS/MSDSKHIG.INC`, included by MSDISK in its
-original segment. `BIOS_SERVICE_START/END` now bound `0E88h..1C84h`: 3,580 bytes
+original segment. `BIOS_SERVICE_START/END` now bound `0E8Ah..1C84h`: 3,578 bytes
 of sector I/O, transfer/error handling, and IOCTL/INT 2F services. Both reports
 use these symbols. Audit entry points, CS-relative operands, and request/buffer
 access before activation; contiguity alone does not prove relocatability or
 release the low allocation.
 
-The initial 3,841-byte body included 261 bytes of mutable IOCTL state. These
+The initial 3,841-byte body included 263 bytes of mutable disk/IOCTL state. These
 now belong to `MSIOLDAT.INC` in the retained low prefix: the 252-byte format
-descriptor array, sector count, three flags, and saved DPT pointer. Shared
+descriptor array, sector count, three flags, saved DPT pointer, and PS/2 saved
+drive word. Shared
 limits retain all 63 sector descriptors. The census rejects state inside the
 high candidate and checks that the IOCTL code-dispatch tables remain inside
 it. Build dependencies cover both new includes. Total conventional BIOS
@@ -1377,8 +1378,8 @@ flag, forward/backward SI movement, and caller DS checked. Dedicated stack
 operations save the original SP and unwind the same conventional stack without
 overwriting live target words; these are not arbitrary stack-switch helpers.
 The complete separate-data MSDISK object also assembles, using a flag-preserving
-long LOOP trampoline where its enlarged track loop requires one. Its body is currently 5,007
-bytes versus the installed 3,580-byte body; the added code spends HMA capacity,
+long LOOP trampoline where its enlarged track loop requires one. Its body is currently 5,005
+bytes versus the installed 3,578-byte body; the added code spends HMA capacity,
 not low-memory savings, once relocation exists. The default build still emits
 byte-identical IO.SYS. A source guard permits only the two IOCTL code-dispatch
 operands and the pending saved INT 2F chain jump as raw CS-relative operations.
@@ -1538,10 +1539,16 @@ separate-data object assembles; default IO.SYS remains byte-identical.
 The loader has not bound or activated these pointers. Remaining integration
 includes incoming/outgoing control-flow gates, tail chains through ORIG13 and
 NEXT2F_13, pointer fixups, and early low-allocation reclamation. The ownership
-audit also found `Prev_DX` still physically declared inside the service body
-despite its accesses selecting low state; move that mutable word into the low
-owner before relocation. Gateway tests prove these boundaries, not an installed
+audit moved `Prev_DX` into the authoritative low owner; the map checks its
+range and a source guard rejects additional named storage in the service body
+apart from the two code-dispatch tables (stack-frame structure fields allocate
+no storage). Gateway tests prove these boundaries, not an installed
 high BIOS or any new conventional-memory gain.
+The low-drive ownership change passes the seven source/operand tests, linked
+census, media-ID, DOS-low/high write-protection, multitrack, and HIMEM/EMM386
+rollback/warm-reboot suite. `out/bios-low-drive-state-vc.md` records the unchanged
+610,256-byte conventional block and 49,104 free UMB bytes; its image contains
+the rebuilt IO.SYS, verified byte-for-byte.
 
 `DOS_HMA_RELOCATE` in `src/DOS/MS_CODE.ASM` already copies the entire DOS image
 from offset `0010h` through `SYSBUF` to the same offsets in segment `FFFFh`.

@@ -915,11 +915,6 @@ OLDDD	DD  ?
 OLDF	DW  ?
 INT13FRAME  ENDS
 
-; Original drive for the PS/2 model 30 status-reset workaround. The result of
-; the first BIOS call is kept on the active DOS/BIOS stack, not in globals.
-Prev_DX   DW  ?
-
-
 ;   ENTRY CONDITIONS:
 ;	AH = FUNCTION
 ;	AL = NUMBER OF SECTORS
