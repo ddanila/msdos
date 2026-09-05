@@ -13,6 +13,7 @@ FILE_MEMORY_PROBE="$OUT/hma-i21fmem.com"
 FCB_PROBE="$OUT/hma-i21fcb.com"
 TAIL_PROBE="$OUT/hma-tail.com"
 COMMAND_CRITICAL_PROBE="$OUT/command-critical-hma.com"
+LOW_RETURN_PROBE="$OUT/hma-low-return.com"
 
 for tool in nasm mcopy qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || {
@@ -30,6 +31,7 @@ done
     "$ROOT/src/DEV/HIMEM/HIMEM.ASM"
 nasm -f bin "$ROOT/tests/hma_reference_probe.asm" -o "$PROBE"
 nasm -f bin "$ROOT/tests/hma_a20_driver.asm" -o "$A20_DRIVER"
+nasm -f bin -l "$OUT/hma-low-return.lst" "$ROOT/tests/hma_low_return_probe.asm" -o "$LOW_RETURN_PROBE"
 nasm -f bin "$ROOT/tests/int21_system_probe.asm" -o "$SYSTEM_PROBE"
 nasm -DNO_DEBUG_EXIT -f bin "$ROOT/tests/int21_fcb_probe.asm" -o "$FCB_PROBE"
 nasm -DNO_DEBUG_EXIT -f bin "$ROOT/tests/int21_file_memory_probe.asm" \
@@ -89,6 +91,7 @@ run_case() {
     mcopy -o -i "$image" "$FCB_PROBE" ::I21FCB.COM
     mcopy -o -i "$image" "$COMMAND_CRITICAL_PROBE" ::CMDCRIT.COM
     mcopy -o -i "$image" "$TAIL_PROBE" ::HMATAIL.COM
+    mcopy -o -i "$image" "$LOW_RETURN_PROBE" ::HMAGATE.COM
     {
         printf 'DEVICE=A:\\HIMEM.SYS\r\n'
         if [[ "$mode" == HIGH ]]; then
@@ -116,6 +119,9 @@ run_case() {
             printf 'CMDCRIT.COM\r\n'
         fi
         printf 'HMATAIL.COM\r\n'
+        if [[ "$mode" == HIGH ]]; then
+            printf 'HMAGATE.COM\r\n'
+        fi
     } | mcopy -o -i "$image" - ::AUTOEXEC.BAT
 
     timeout 25 qemu-system-i386 \
@@ -134,6 +140,11 @@ run_case() {
         exit 1
     }
     if [[ "$mode" == HIGH ]]; then
+        grep -Fq 'HMA_LOW_RETURN_PASS' "$log" || {
+            echo 'FAIL: HMA leaf did not survive low firmware A20 recovery' >&2
+            sed -n '1,180p' "$log" >&2
+            exit 1
+        }
         grep -Fq 'COMMAND_CATALOG_HMA_PASS' "$log" || {
             echo 'FAIL: COMMAND did not publish all copied HMA catalogs' >&2
             sed -n '1,180p' "$log" >&2

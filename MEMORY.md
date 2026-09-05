@@ -332,6 +332,15 @@ firmware call with a low return/A20-recovery gate before moving its body.
 Preserve BIOS status across recovery, and never return high after failed A20
 restoration. The revised 345-byte manager support allowance is still unproven.
 
+`tests/hma_low_return_probe.asm` provides a runtime witness for the return
+mechanism in `test_hma_qemu.sh`: a copied HMA leaf calls a low simulated firmware
+service, verifies that two previously distinct physical locations alias after
+A20 is disabled, then uses low E705h recovery before returning high. It checks
+the firmware's EAX, EDX and carry result survive. This is a 386+ QEMU test of
+the mechanism, not installed HIMEM relocation: production dispatch, nested
+failure unwinding, real BIOS clobbers and the complete low budget remain open.
+The probe's failure path aborts below 1 MiB instead of returning to HMA.
+
 After the joint layout checkpoint passes, the manager prototype order is:
 establish the EMM high-data access ABI, then allocate and
 publish the complete dynamic block transactionally in locked XMS. Keep the old
