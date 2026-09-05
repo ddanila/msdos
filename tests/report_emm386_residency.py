@@ -271,8 +271,8 @@ def main() -> int:
     low_text_size = split - text.offset
     if low_text_size < 0 or low_text_size > text.size:
         raise ValueError("IOTrap_Tab falls outside the linked _TEXT segment")
-    if args.check and low_text_size > 444:
-        raise ValueError("EMM386 retained _TEXT gateway exceeds 444 bytes")
+    if args.check and low_text_size > 428:
+        raise ValueError("EMM386 retained _TEXT gateway exceeds 428 bytes")
     if args.check:
         for name in (
             "EMM_pEntry",
@@ -349,7 +349,6 @@ def main() -> int:
                 raise ValueError(f"protected EMS service {name} remains low")
         for name in (
             "EMM_rLink",
-            "RetReal",
             "RetRealResume",
             "P85Switch",
             "RRProc",
@@ -492,9 +491,9 @@ def main() -> int:
             args.dma_pages,
         )
         == (64, 7, 64, 6, 1)
-        and runtime_ranges[-1].end > 4048
+        and runtime_ranges[-1].end > 4032
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 4,048 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 4,032 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     dma_page_label = "DMA page" if args.dma_pages == 1 else "DMA pages"
     print(

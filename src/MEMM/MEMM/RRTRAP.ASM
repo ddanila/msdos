@@ -75,7 +75,7 @@ _TEXT	segment
 	extrn	PortTrap:near
 	ENDIF
 	IFNDEF	RRTRAP_HIGH_ONLY
-	extrn	RetReal:near
+	extrn	RetRealHigh:near
 	ENDIF
 	IFNDEF	RRTRAP_LOW_ONLY
 	extrn	P85Switch:near
@@ -218,6 +218,10 @@ P85_Handler	proc	near
 	jne	P85_Exit	;      N: invalidate sequence and leave
 	cmp	[RR84Save],RR84_Value	;  Y: Q: was 84h value RR value ?
 	jne	P85_Exit	;		N: invalidate sequence and leave
+	push	ax
+	mov	al,DISABLE_NMI
+	out	RTC_CMD,al		; no NMI may enter during the mode switch
+	pop	ax
 	jmp	P85Switch	;		Y: emulate output and return real
 P85_Exit:
 	mov	[RR84save],0FFh ; a port 85h output ends any pending sequence
@@ -248,12 +252,7 @@ P85_Handler	endp
 P85Switch:
 	out	85h,al			; emulate the triggering output
 RR_GoReal:
-	push	ax
-	mov	al,DISABLE_NMI
-	out	RTC_CMD,al		; disable NMIs
-	pop	ax
-
-	call	RetReal 		; return to real mode, DS,ES = DGROUP
+	call	RetRealHigh		; return to real mode, DS,ES = DGROUP
 ;
 ;   now start resetting registers from the stack
 ;
@@ -291,7 +290,6 @@ RRProc		proc near
 	out	84h,al			; port 84/85 return to real
 	mov	al,RR85_Value		;     sequence ...
 	out	85h,al			;
-	jmp	$+2			; clear prefetch/avoid race cond
 	popf
 	pop	ax
 	ret

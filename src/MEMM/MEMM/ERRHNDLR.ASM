@@ -54,7 +54,7 @@
 ;  	Externs
 ;******************************************************************************
 _TEXT	segment
-	extrn	RetReal:near		; return to real mode
+	extrn	RetRealHigh:near	; return to real mode
 	extrn	egetc:near		; get keyboard character
 	extrn	WaitKBD:near		; wait for keyboard ready
 _TEXT	ends
@@ -148,7 +148,7 @@ ErrHndlr	proc	near
 	pop	ds
 	pop	eax
 
-  	call	RetReal			; return to real mode
+	call	RetRealHigh		; return to real mode
 ;
 	push	ax
 	push	bx

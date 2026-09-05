@@ -52,7 +52,6 @@ page	58,132
 ;******************************************************************************
 ;
 	IFNDEF	RETREAL_HIGH_ONLY
-	public	RetReal
 	public	RetRealResume
 	ENDIF
 	IFNDEF	RETREAL_LOW_ONLY
@@ -86,7 +85,6 @@ _TEXT	segment
 	extrn	RetRealResume:near
 	ENDIF
 	IFNDEF	RETREAL_HIGH_ONLY
-	extrn	RetRealHigh:near
 	extrn	DisableA20:near 	; disable A20 line	(MODESW)
 	ENDIF
 
@@ -112,10 +110,6 @@ real_idt	dw	0FFFFh		; limit
 		dw	0000		; base
 		dw	0000
 		dw	0000		; just in case
-
-RetReal proc near
-	jmp	RetRealHigh		; enter protected-only body in relocated copy
-RetReal endp
 
 	ENDIF
 
@@ -204,6 +198,7 @@ rl386_a:
 ;
 	MOV_EAX_CR0			;  get CR0
 
+	mov	[Active_Status],0	; publish the transition while DGROUP is selected
 	and	eax,07FFFFFFEh		; force real mode and shut down paging
 
 	MOV_CR0_EAX			; set CR0
@@ -232,8 +227,6 @@ RetRealResume:
 	mov	es,ax
 	MOV_FS_AX
 	MOV_GS_AX
-
-	mov	[Active_Status],0	; rest VDM status
 
 	cmp	[state_a20],0		; restore the client's logical A20 state
 	jne	short RetRealA20Done	; protected mode already left it enabled
