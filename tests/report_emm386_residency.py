@@ -254,8 +254,8 @@ def main() -> int:
             raise ValueError("derived or shared EMM386 state is retained separately")
     text = by_name["_TEXT"]
     r_code = by_name["R_CODE"]
-    if args.check and r_code.size > 351:
-        raise ValueError("EMM386 retained R_CODE gateway exceeds 351 bytes")
+    if args.check and r_code.size > 336:
+        raise ValueError("EMM386 retained R_CODE gateway exceeds 336 bytes")
     segment_categories = {
         by_name["GDT"].paragraph: "retained descriptor state",
         by_name["_DATA"].paragraph: "retained mutable runtime data",
@@ -493,9 +493,9 @@ def main() -> int:
             args.dma_pages,
         )
         == (64, 7, 64, 6, 1)
-        and runtime_ranges[-1].end > 3968
+        and runtime_ranges[-1].end > 3952
     ):
-        raise ValueError("default EMM386 retained-layout end exceeds 3,968 bytes")
+        raise ValueError("default EMM386 retained-layout end exceeds 3,952 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     dma_page_label = "DMA page" if args.dma_pages == 1 else "DMA pages"
     print(

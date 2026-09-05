@@ -106,10 +106,10 @@ if [[ ! "$himem_conventional" =~ ^[0-9]+$ ]] || (( himem_conventional > 3072 ));
 fi
 
 # This fixed RAM configuration adds two explicit include regions to the default
-# layout. Keep its live EMM386 payload at the measured 3,968-byte ceiling.
+# layout. Keep its live EMM386 payload at the measured 3,952-byte ceiling.
 emm386_conventional=$(awk '$1 == "EMM386" { print $3; exit }' "$LOG" | tr -d '\r')
-if [[ ! "$emm386_conventional" =~ ^[0-9]+$ ]] || (( emm386_conventional > 3968 )); then
-    echo 'FAIL: EMM386 exceeds the 3,968-byte fixed-config footprint budget' >&2
+if [[ ! "$emm386_conventional" =~ ^[0-9]+$ ]] || (( emm386_conventional > 3952 )); then
+    echo 'FAIL: EMM386 exceeds the 3,952-byte fixed-config footprint budget' >&2
     echo "  EMM386=${emm386_conventional:-unparsed}" >&2
     strings -a "$LOG" | sed -n '1,180p' >&2
     exit 1

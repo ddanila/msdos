@@ -336,11 +336,10 @@ RR_Jump 	label	dword		; ret addr for instr after out 84
 RR_JOff 	dw	0
 RR_JSeg 	dw	0
 
-RR_DS		dw	0		; DS for return
-RR_SS		dw	0		; SS for return
-RR_SP		dw	0		; SP for return
-
 RR_Flags	dw	0		; low word of flags for return
+RR_SP		dw	0		; SP for return
+RR_SS		dw	0		; SS for return
+RR_DS		dw	0		; DS for return
 
 ; Complete the port-trap unwind in otherwise unused R_CODE alignment space.
 ; This entry is reached only after RetRealHigh has restored real mode.
@@ -374,23 +373,22 @@ JumpReal	label	far
 	push	cs
 	pop	ds		; set DS= CS = R_CODE
 	ASSUME	DS:R_CODE
-					; set up return address
-	mov	bx,[bp.VTFOE+VMTF_EIP]	; get return IP
-	mov	[RR_JOff],bx		; save it
-	mov	bx,[bp.VTFOE+VMTF_CS]	; get return CS
-	mov	[RR_JSeg],bx		; save it
-;
-	mov	bx,[bp.VTFOE+VMTF_EFLAGS]	; get flags
-	mov	[RR_Flags],bx			; and save
-	and	[bp.VTFOE+VMTF_EFLAGS],RR_MASK	; mask off certain bits
-;
-	mov	bx,[bp.VTFOE+VMTF_DS]	; get DS
-	mov	[RR_DS],bx		; save it
-
-	mov	bx,[bp.VTFOE+VMTF_SS]	; get SS
-	mov	[RR_SS],bx		; save it
-	mov	bx,[bp.VTFOE+VMTF_ESP]	; get SP
-	mov	[RR_SP],bx		; save it
+	push	edi
+	push	ecx
+	push	ds
+	pop	es			; ES:DI -> contiguous R_CODE scratch words
+	cld
+	lea	si,[bp.VTFOE+VMTF_EIP]
+	mov	di,offset RR_JOff
+	mov	cx,5			; IP, CS, flags, SP, SS low words
+JR_SaveFrame:
+	movsw	es:[di],ss:[si]
+	add	si,2			; skip each high word in the VM frame
+	loop	JR_SaveFrame
+	add	si,4			; skip ES and its high word
+	movsw	es:[di],ss:[si]	; client DS
+	pop	ecx
+	pop	edi
 ;
 ; restore regs pushed by VM_Fault entry
 ;
