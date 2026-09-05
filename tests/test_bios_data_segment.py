@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check both 8086 segment-materialization forms and all fifteen call sites."""
+"""Check explicit BIOS low/high data, helper, and device-entry contracts."""
 
 from pathlib import Path
 import re
@@ -13,6 +13,36 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 class DataSegmentTests(unittest.TestCase):
+    def test_device_tail_entries_and_unpublished_table(self):
+        with tempfile.TemporaryDirectory(prefix="msdos-bios-device-") as scratch:
+            scratch = Path(scratch)
+            listing = scratch / "device.lst"
+            built = subprocess.run([str(ROOT / "bin/jwasm-masm"),
+                                    f"-I. -I../INC -DBIOS_SERVICE_DEVICE_ENTRIES=1 -Fl{listing}",
+                                    f"MSBIO1.ASM,{scratch / 'device.obj'};"],
+                                   cwd=ROOT / "src/BIOS", capture_output=True, text=True)
+            self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
+            labels, _ = listing_rows(listing.read_text(encoding="latin-1"))
+            self.assertEqual(labels["BIOS_DEVICE_ENTRIES_END"] -
+                             labels["BIOS_DEVICE_ENTRIES_START"], 84)
+            # Until an installer commits, compiling the feature must leave all
+            # original command targets in place, including the purge patch area.
+            table = (ROOT / "src/BIOS/MSBDATA.INC").read_text().split("DSKTBL", 1)[1]
+            table = table.split("CONTBL", 1)[0]
+            targets = re.findall(r"^\s*DW\s+([\w$]+)", table, re.M | re.I)
+            entries = re.findall(r"^BIOS_DEVICE_ENTRY (\d+),([^,]+),([^,]+),([^\s]+)$",
+                                 (ROOT / "src/BIOS/HIGHDEV.INC").read_text(), re.M)
+            self.assertEqual([int(row[0]) for row in entries], [4, 8, 9, 15, 19, 23, 24])
+            for command, stub, slot, target in entries:
+                self.assertEqual(targets[int(command)], target)
+            output = scratch / "device.com"
+            subprocess.run([str(ROOT / "bin/jwasm-bin"), f"-I{ROOT / 'src/BIOS'}",
+                            f"-Fo{output}", str(ROOT / "tests/bios_device_entry_masm.asm")],
+                           check=True, capture_output=True)
+            result = subprocess.run([str(ROOT / "bin/dos-run"), str(output)],
+                                    cwd=ROOT, capture_output=True, text=True, timeout=10)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
     def test_low_prefix_high_calls_assemble(self):
         with tempfile.TemporaryDirectory(prefix="msdos-bios-low-calls-") as scratch:
             built = subprocess.run([str(ROOT / "bin/jwasm-masm"),

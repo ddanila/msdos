@@ -2,6 +2,15 @@
 ; The installed low layout expands to exactly PUSH CS. A separately linked
 ; service body must provide its relocated BIOS_SERVICE_LOW_SEGMENT word.
 ; These operations separate data ownership; none activates HMA relocation.
+; LOW device tail entry; DSKTBL remains on its legacy targets until commit.
+BIOS_DEVICE_ENTRY MACRO command,entry,slot,service
+        PUBLIC entry,slot
+entry:
+        CALL BIOS_HMA_ROM_RESTORE
+        JMP DWORD PTR CS:[slot]
+slot    DD 0
+ENDM
+
 BIOS_PUSH_DATA_SEG MACRO
         IFDEF BIOS_SERVICE_SEPARATE_DATA
         PUSH WORD PTR CS:[BIOS_SERVICE_LOW_SEGMENT]

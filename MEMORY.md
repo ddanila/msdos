@@ -1281,8 +1281,14 @@ code to HMA, about 5 KiB of COMMAND to HMA, 28 KiB of EMM386 to a UMB, and
 12.8 KiB of buffers plus other DOS state out of conventional memory. DR-DOS is
 not winning by making each retained routine a few bytes shorter. Our kernel,
 buffers, part of COMMAND, and almost all protected EMM386 code are already
-high; the major technique still missing locally is relocation of DOS state as
-a packed owned block.
+high. The remaining architectural work is high BIOS service placement,
+authoritative high placement of eligible DOS state, and boot-time compaction
+that returns their old ranges to the largest conventional block. The 4,992-byte
+local kernel prefix and DR-DOS's 4,528-byte low DOS system region are already
+of similar scale; their different boundaries do not imply another kernel-sized
+gain. DR-DOS instead reports only 2,768 low BIOS/device bytes against our
+8,160-byte selected BIOS inventory. Treat that as placement evidence, not a
+promise that the implementations can use identical low boundaries.
 
 The old DR-DOS 6 placement cannot be copied literally. With an EMS frame it
 leaves only 15,568 free UMB bytes, below the 47,888-byte retail floor. The local
@@ -1290,10 +1296,10 @@ fixed image has only a 1,216-byte UMB advantage to spend, but has 15,469 bytes
 of unassigned DOS-owned HMA tail after the completed COMMAND move. Therefore
 the portable local design is:
 
-1. build one relocatable DOS high-state block rather than compacting isolated
-   low symbols;
-2. pack immutable tables and HMA-safe mutable workspaces into that block,
-   fixing their bases once during initialization;
+1. finish the high BIOS service split with explicit low interfaces and early
+   HMA reservation, then actually reclaim its old conventional range;
+2. group eligible DOS state by access contract, packing immutable tables and
+   HMA-safe mutable workspaces with bases fixed once during initialization;
 3. keep only address-stable interrupt/device gateways and state needed while
    A20 may be disabled in the 4,992-byte low prefix;
 4. use relocation-safe XMS storage only for state reached through an explicit
@@ -1664,10 +1670,10 @@ exactly 512 bytes, preserve CX, advance SI/DI by 512, and preserve destination
 guard words. Entry DF is deliberately set; MOVE must clear it. Removing only
 the operand-size prefix leaves the count-halving instruction active and copies
 too little; that negative control must reach an explicit FAIL result. Both
-copy paths execute on QEMU 486 here: this is not real-286 acceptance. The eight
+copy paths execute on QEMU 486 here: this is not real-286 acceptance. The twelve
 runtime cases include the three read outcomes, word copy, partial-copy-patch
-rejection, missing-fixup rejection, missing-entry-A20 rejection, and non-local
-error unwind. The normal
+rejection, missing-fixup rejection, missing-entry-A20 rejection, non-local
+error unwind, and the four device-entry cases below. The normal
 IO.SYS remains byte-identical.
 
 `HIGHNEAR.INC` supplies the 40-byte high-side ordinary-near-call adapter. A low
@@ -1695,12 +1701,33 @@ helper that disables A20, then restores A20 and jumps high. HARDERR2 restores
 SPSAV, returns the saved sector count and mapped error through the high near
 adapter, and reaches the original low caller with balanced SP/BP/ES. Private
 format state suppresses ROM DPT edits in this focused test. This validates the
-non-local boundary, not production DISKIO/media-change integration; device and
-interrupt entry publication and the complete installed low/high cycle remain.
+non-local boundary, not production DISKIO/media-change integration.
 
-Next, extend execution beyond READ_SECTOR and bind production imports, including
-low-to-high entries for low helpers that recurse into the body. Preserve code-table
-offsets, selected/purged code policy, and ROM-return contracts when binding.
+`HIGHDEV.INC` declares the seven device-command tail entries (4, 8, 9, 15, 19,
+23, 24). With `BIOS_SERVICE_DEVICE_ENTRIES`, MSBIO1 emits 56 bytes of low stubs
+and 28 bytes of far target slots. Each restores A20 and far-jumps high without
+adding a surviving return frame. Compilation leaves DSKTBL unchanged: a future
+installer must bind the selected high targets and completions before publishing
+the low stub offsets, preserving the 96-TPI purge policy. Failed preparation
+keeps the original table; reverting pointers after low-body reclamation is not
+a valid rollback. The 84-byte entry cost excludes shared A20/ROM gates and
+other imports, so the 3,578-byte low body is only a gross reclaim budget.
+
+Native execution checks all seven production stubs with distinct code segments,
+original incoming registers/flags, and the exact nine-word saved device frame.
+The HMA payload gate checks real DSK$REM for removable/fixed media and real
+GENERIC$IOCTL for an invalid category. Each tests low fallback before private
+table publication, physically disables A20 before high entry, and validates
+request status plus restored registers and SP. The error case also checks the
+remaining sector count. Omitting entry A20 restoration cannot pass. These use
+private BDS/request storage and a matching low completion fixture, not the
+installed DSK$IN dispatcher or all seven service implementations. Production
+device/interrupt publication and the complete installed low/high cycle remain.
+
+Next, integrate the production device dispatcher and low interrupt entries,
+bind the complete low/high call cycle, and implement the early reclaim
+transaction. Preserve code-table offsets, selected/purged code policy, and
+ROM-return contracts when binding.
 An assembled 5 KiB payload is not yet an installed high BIOS: the old 3,578-byte
 body must actually be released and its low hole coalesced before counting gain.
 
@@ -2085,7 +2112,7 @@ reconciles without counting recovered low or video memory:
 The transitions explain how it gets there:
 
 - Kernel-high moves 37,952 bytes of kernel, 3,552 bytes of DOS BIOS, and 4,992
-  bytes of COMMAND to the HMA. It reduces the pre-COMMAND system span by 35,088
+  bytes of COMMAND to the HMA. It reduces the pre-COMMAND system span by 35,488
   bytes and COMMAND by 4,992, growing VC's block by 40,480 bytes. The allocations
   are sequential apart from 224 bytes of HMA gaps/overhead and leave 18,800
   bytes free before moving buffers.

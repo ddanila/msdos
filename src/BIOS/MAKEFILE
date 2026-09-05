@@ -29,6 +29,8 @@ msload.com: msload.obj
 msbio1.obj: msbio1.asm \
 	makefile \
    	msbdata.inc \
+	msbseg.inc \
+	highdev.inc \
 	msgroup.inc \
 	jumpmac.inc \
 	pushpop.inc \
@@ -164,4 +166,3 @@ $(dest).sys: msbio.cl1 msbio1.obj mscon.obj  msaux.obj \
 	copy /b msload.com+msbio.bin $(dest).sys
 	del msbio.bin
 	del msbio.exe
-

@@ -93,6 +93,10 @@ start:
     mov dx,ready_message
     mov ah,9
     int 21h
+%ifdef TEST_DEVICE
+    call test_device_request
+    jmp report_pass
+%endif
     mov ax,3513h
     int 21h
     mov [old13],bx
@@ -178,6 +182,7 @@ start:
     cmp word [result_cx],0123h
     jne fail
 %endif
+report_pass:
     call unhook
     mov dx,pass_message
     mov ah,9
@@ -275,6 +280,163 @@ hook13:
     popf
     retf 2
 %include "HIGHROM.INC"
+%ifdef TEST_DEVICE
+; Use the same seven production entry declarations and instruction sequence.
+%macro BIOS_DEVICE_ENTRY 4
+%2:
+%ifndef OMIT_ENTRY_A20
+    call BIOS_HMA_ROM_RESTORE
+%endif
+    jmp far [cs:%3]
+%3: dd 0
+%endmacro
+%include "HIGHDEV.INC"
+test_device_request:
+    mov ax,[low_segment]
+    mov es,ax
+    mov word [es:LOW_START_BDS],3072
+    mov byte [es:3072+BDS_DRIVELET],0
+%if TEST_DEVICE = 2
+    mov word [es:3072+BDS_FLAGS],BDS_FIXED
+%endif
+    mov word [es:LOW_PTRSAV],device_request
+    mov [es:LOW_PTRSAV+2],cs
+    mov [device_call+2],cs
+    ; Pre-publication calls must still use the valid low implementation.
+    call exercise_device
+    cmp word [fallback_count],1
+    jne fail
+    cmp word [device_request+3],0100h
+    jne fail
+    ; Bind the exercised high service and its low completions before exposing
+    ; the low stub. This is a private probe table, not the installed DSKTBL.
+    mov ax,0ffffh
+    mov es,ax
+    mov bx,[origin]
+    mov word [es:bx+SLOT_BIOS_LOW_EXIT_ENTRY],device_exit
+    mov [es:bx+SLOT_BIOS_LOW_EXIT_ENTRY+2],cs
+    mov word [es:bx+SLOT_BIOS_LOW_BUSY_ENTRY],device_busy
+    mov [es:bx+SLOT_BIOS_LOW_BUSY_ENTRY+2],cs
+    mov word [es:bx+SLOT_BIOS_LOW_CMDERR_ENTRY],device_cmderr
+    mov [es:bx+SLOT_BIOS_LOW_CMDERR_ENTRY+2],cs
+%if TEST_DEVICE = 3
+    add bx,ENTRY_IOCTL
+    mov [BIOS_HIGH_IOCTL_ENTRY],bx
+    mov [BIOS_HIGH_IOCTL_ENTRY+2],es
+    mov ax,BIOS_DEVICE_IOCTL
+%else
+    add bx,ENTRY_REMOVABLE
+    mov [BIOS_HIGH_REMOVABLE_ENTRY],bx
+    mov [BIOS_HIGH_REMOVABLE_ENTRY+2],es
+    mov ax,BIOS_DEVICE_REMOVABLE
+%endif
+    pushf
+    cli
+    mov [device_target],ax
+    popf
+    mov word [device_request+18],2
+    call disable_entry_a20
+    call exercise_device
+    cmp word [entry_disabled],1
+    jne fail
+    cmp word [fallback_count],1
+    jne fail
+%if TEST_DEVICE = 3
+    cmp word [device_request+18],0
+    jne fail
+    cmp word [device_request+3],8103h
+%elif TEST_DEVICE = 2
+    cmp word [device_request+3],0300h
+%else
+    cmp word [device_request+3],0100h
+%endif
+    jne fail
+    push cs
+    pop es
+    ret
+exercise_device:
+    mov [saved_sp],sp
+    mov ax,1111h
+    mov bx,2222h
+    mov cx,3333h
+    mov dx,4444h
+    mov si,5555h
+    mov di,6666h
+    mov bp,7777h
+    mov ds,ax
+    mov es,bx
+    call far [cs:device_call]
+    cmp sp,[cs:saved_sp]
+    jne fail
+    cmp ax,1111h
+    jne fail
+    cmp bx,2222h
+    jne fail
+    cmp cx,3333h
+    jne fail
+    cmp dx,4444h
+    jne fail
+    cmp si,5555h
+    jne fail
+    cmp di,6666h
+    jne fail
+    cmp bp,7777h
+    jne fail
+    mov ax,ds
+    cmp ax,1111h
+    jne fail
+    mov ax,es
+    cmp ax,2222h
+    jne fail
+    push cs
+    pop ds
+    ret
+device_dispatch:
+    ; MSBIO1 saves this frame before decoding the request and tail-dispatching.
+    push si
+    push ax
+    push cx
+    push dx
+    push di
+    push bp
+    push ds
+    push es
+    push bx
+    mov ax,[cs:low_segment]
+    mov ds,ax
+    xor ax,ax                    ; logical drive 0, media 0
+    mov cx,2
+    cld
+    jmp [cs:device_target]
+device_fallback:
+    inc word [cs:fallback_count]
+device_exit:
+    mov ah,1
+    jmp device_complete
+device_busy:
+    mov ah,3
+    jmp device_complete
+device_cmderr:
+    mov al,3
+    sub [cs:device_request+18],cx
+    mov ah,81h
+device_complete:
+    mov [cs:device_request+3],ax
+    pop bx
+    pop es
+    pop ds
+    pop bp
+    pop di
+    pop dx
+    pop cx
+    pop ax
+    pop si
+    retf
+device_call dw device_dispatch,0
+device_target dw device_fallback
+fallback_count dw 0
+device_request times 32 db 0     ; major function 0 is invalid for disk IOCTL
+%endif
 origin dw 0
 entry dd 0
 service_target dw 0
