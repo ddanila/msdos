@@ -75,9 +75,19 @@ def main():
     parser.add_argument("--ansi-low", action="store_true", help="control: load the same ANSI driver with DEVICE")
     parser.add_argument("--umb-read", action="store_true", help="compare file reads/writes through low/upper allocations")
     parser.add_argument("--umb-last", action="store_true", help="use upper last-fit for the direct I/O probe")
+    parser.add_argument("--umb-span", type=int, choices=(12, 32), default=12,
+                        help="I/O allocation size in KiB; 32 exercises multiple backing pages")
+    parser.add_argument("--emm386-image", type=Path,
+                        help="override EMM386 with a locally built diagnostic image")
+    parser.add_argument("--reverse-umb-backing", action="store_true",
+                        help="build a diagnostic EMM386 with reversed free backing-page order")
     parser.add_argument("--fcb-keep", type=int, choices=(0, 1), default=0,
                         help="FCBS=4 keep count; 1 prevents SHARE replacing the boot cache")
     args = parser.parse_args()
+    if args.emm386_image and not args.emm386_image.is_file():
+        parser.error("--emm386-image must name an existing file")
+    if args.reverse_umb_backing and (not args.umb_read or args.emm386_image):
+        parser.error("--reverse-umb-backing requires --umb-read and excludes --emm386-image")
     if args.share and not args.rebase:
         parser.error("--share requires --rebase")
     ansi_enabled = args.ansi_high or args.ansi_low
@@ -85,6 +95,8 @@ def main():
         parser.error("--umb-read requires --rebase")
     if args.umb_last and not args.umb_read:
         parser.error("--umb-last requires --umb-read")
+    if args.umb_span != 12 and not args.umb_read:
+        parser.error("--umb-span requires --umb-read")
     if ansi_enabled and (not args.rebase or (args.ansi_high and args.ansi_low)):
         parser.error("choose one ANSI placement and use --rebase")
     if args.fcb_keep and not args.rebase:
@@ -109,6 +121,16 @@ def main():
     if args.stale_cds_control and (not args.rebase or args.fail_reservation or args.warm_reset):
         parser.error("--stale-cds-control requires successful rebasing without reset")
     scratch = Path(tempfile.mkdtemp(prefix="bios-low-boot-", dir=ROOT / "out"))
+    if args.reverse_umb_backing:
+        fixture = scratch / "memm-fixture"
+        for directory in ("MEMM", "EMM"):
+            shutil.copytree(ROOT / "src/MEMM" / directory, fixture / "MEMM" / directory,
+                            ignore=shutil.ignore_patterns("*.OBJ", "*.LIB", "EMM386.EXE"))
+        run(["make", "-s", f"SRC={fixture}",
+             "MEMM_AFLAGS=-Mx -t -DI386 -DNoBugMode -DNOHIMEM -DUMB_TEST_REVERSE_FREE -I. -I..\\EMM",
+             "memm"], ROOT)
+        args.emm386_image = fixture / "MEMM/MEMM/EMM386.EXE"
+        print(f"Diagnostic EMM386 (reversed backing): {args.emm386_image}", flush=True)
     manifest = build(scratch, early=args.early, tail_body=args.tail_body, scan=args.scan, rebase=args.rebase, compact=args.compact,
                      reservation_limit=0x10 if args.fail_reservation else 0xfff0, fail_tables=args.fail_table_allocation)
     high_manifest = build_high(scratch / "high", scratch)
@@ -208,12 +230,16 @@ def main():
              ROOT / "tests/bios_low_boot_probe.asm", "-o", probe], ROOT)
         image = scratch / f"{name}.img"
         shutil.copyfile(ROOT / "out/floppy.img", image)
+        if args.emm386_image:
+            subprocess.run(["mcopy", "-o", "-i", str(image), str(args.emm386_image), "::EMM386.EXE"],
+                           env=env, check=True)
         for source, destination in ((scratch / "IO.SYS", "IO.SYS"), (probe, "LOWBOOT.COM")):
             subprocess.run(["mcopy", "-o", "-i", str(image), str(source), f"::{destination}"],
                            env=env, check=True)
         if args.rebase:
             if args.umb_read:
-                run(["nasm", "-f", "bin", f"-DEXPECT_HIGH={int(name == 'emm-high')}", *(["-DUMB_LAST"] if args.umb_last else []),
+                run(["nasm", "-f", "bin", f"-DEXPECT_HIGH={int(name == 'emm-high')}",
+                     f"-DTARGET_KIB={args.umb_span}", *(["-DUMB_LAST"] if args.umb_last else []),
                      ROOT / "tests/umb_file_read_probe.asm", "-o", scratch / "UMBREAD.COM"], ROOT)
                 subprocess.run(["mcopy", "-o", "-i", str(image), str(scratch / "UMBREAD.COM"), "::UMBREAD.COM"], env=env, check=True)
             if ansi_enabled:

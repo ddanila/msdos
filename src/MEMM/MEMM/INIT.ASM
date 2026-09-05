@@ -1750,6 +1750,28 @@ Commit_UMB proc near
 	jz	CU_done
 	mov	cs:[umb_backing_count],0
 	mov	cs:[umb_registration+2],0
+ifdef UMB_TEST_REVERSE_FREE
+; Test fixture: reverse only the available EMS stack. Ownership/counts stay
+; unchanged, but sequential allocations no longer imply ascending physical
+; backing. This must not be enabled in a distribution build.
+	mov	di,[_free_top]
+	shl	di,1
+	add	di,[_emm_free]
+	mov	bx,[_free_count]
+	dec	bx
+	shl	bx,1
+	add	bx,di
+CU_reverse_free:
+	cmp	di,bx
+	jae	short CU_reverse_done
+	mov	ax,[di]
+	xchg	ax,[bx]
+	mov	[di],ax
+	add	di,2
+	sub	bx,2
+	jmp	short CU_reverse_free
+CU_reverse_done:
+endif
 	xor	si,si
 	mov	dx,0a000h
 	xor	bp,bp			; end segment of previous extent

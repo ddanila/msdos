@@ -1560,7 +1560,7 @@ The expanded probe tests reads and writes of 512/513/4096/8192 bytes at offsets
 requested byte, checks read guards, and reads written data back into low memory.
 All four memory modes pass, as does upper last-fit; observed upper targets are
 `DC4Ch` and `E500h`. Extended EMS lifecycle and EMM386 API/mode suites also pass.
-The seven-case focused target also passes high ANSI/SHARE coexistence and warm
+The focused target also passes high ANSI/SHARE coexistence and warm
 reset, requiring the I/O success marker on both boots. No passing case alone
 establishes physical-boundary coverage.
 `make test-himem-qemu` also passes XMS, concurrent UMB/EMS isolation, provider
@@ -1580,6 +1580,43 @@ non-contiguous, and out-of-ISA-range backing cases, DMA concurrent with EMS
 remapping, and resident-table integrity checks. The current small-transfer
 cases do not cover all these conditions.
 Keep the bounded overlay workaround until the complete policy is verified.
+
+The 32 KiB probe adds offsets 8191, 12287, 16383, 20479, and 24575 to cross
+multiple 16 KiB backing pages. The ordinary four-mode matrix passes, but a
+diagnostic build reversing only the available EMS page stack reproduces an
+8,192-byte read failure at offset 24,575, target `DC4Ch`, first mismatch zero.
+It preserves the set of free pages, counts, and ownership; the only changed
+input is allocation order. System/FCB and upper-table checks still pass after
+the I/O failure. Thus ordinary-layout success is not a backing-layout guarantee.
+Reproduce the **currently failing** case (not an accepted negative-control pass):
+
+```sh
+python3 tests/test_bios_low_boot_qemu.py \
+  --early --tail-body --rebase --compact --umb-read --umb-span 32 \
+  --mode emm-high --reverse-umb-backing
+```
+
+The harness builds the diagnostic EMM386 in its temporary output directory;
+`UMB_TEST_REVERSE_FREE` is absent from distribution builds. `--emm386-image`
+also accepts a separately built local diagnostic binary. The ordinary focused
+target passes all twelve cases, including both 12 and 32 KiB first/last-fit
+allocations. The reordered diagnostic fails independently of that green suite.
+
+Prefer establishing DMA-safe backing at UMB creation over a new low bounce
+buffer: `Commit_UMB` currently pops arbitrary EMS free pages and coalesces only
+their virtual addresses. Investigate selecting below-16-MiB backing that is
+physically contiguous within each virtual 128 KiB DMA region and preserves the
+virtual address modulo 128 KiB. This also preserves byte-channel 64 KiB
+boundaries, so valid logical DMA spans would translate without page swapping
+or completion-time copying. Reserve only the actual UMB pages, not UMA holes;
+keep selector metadata in discarded initialization storage. A proposed selector
+must tolerate reordered free lists, publish only after complete reservation,
+restore all ownership on failure, and preserve the fixed conventional/UMB
+floors. Prove behavior when suitable backing is unavailable before replacing
+the current policy; do not silently publish unsafe pages or assume ordered XMS
+allocation. General EMS DMA and third-party mapping contracts remain separate
+acceptance requirements. This is a design candidate, not an implemented fix.
+
 The process suite independently checks raw overlays of 0, 1, 511, 512, 513,
 9,109, 65,534, and 65,535 bytes in conventional storage. It checks every loaded
 byte and the entire untouched destination tail, including bad-format rejection

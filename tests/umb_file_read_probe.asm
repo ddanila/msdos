@@ -1,6 +1,9 @@
 ; Compare file reads/writes through conventional and mapped upper allocations.
 bits 16
 org 100h
+%ifndef TARGET_KIB
+%define TARGET_KIB 12
+%endif
 start:
     mov sp,program_end
     mov bx,(program_end-$$+100h+15)/16
@@ -29,7 +32,7 @@ start:
     int 21h
     jc fail
 %endif
-    mov bx,300h
+    mov bx,TARGET_KIB*64
     mov ah,48h
     int 21h
     jc fail
@@ -117,7 +120,7 @@ start:
     mov es,[target]
     xor di,di
     mov ax,0cccch
-    mov cx,1800h
+    mov cx,TARGET_KIB*512
     rep stosw
     mov bx,[handle]
     mov cx,[count]
@@ -271,6 +274,9 @@ test_index dw 0
 offset_index dw 0
 transfer_offset dw 0
 offsets dw 0,31,4095
+%if TARGET_KIB >= 32
+    dw 8191,12287,16383,20479,24575
+%endif
 offsets_end:
 offset_message db ' offset=$'
 sizes dw 512,513,4096,8192
