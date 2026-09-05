@@ -283,6 +283,10 @@ test-bios-high-payload: bios
 	python3 tests/build_bios_high_payload.py out/bios-high-payload
 
 .PHONY: test-bios-payload-qemu
+.PHONY: test-bios-low-boot-qemu
+test-bios-low-boot-qemu: deploy
+	python3 tests/test_bios_low_boot_qemu.py
+
 test-bios-payload-qemu: deploy
 	python3 tests/test_bios_payload_qemu.py
 

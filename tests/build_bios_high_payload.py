@@ -52,9 +52,10 @@ def run(command, cwd):
         raise RuntimeError(result.stdout + result.stderr)
 
 
-def build(output):
+def build(output, low_directory=None):
     output.mkdir(parents=True, exist_ok=True)
-    low_map = ROOT / "src/BIOS/msBIO.map"
+    low_directory = Path(low_directory) if low_directory is not None else ROOT / "src/BIOS"
+    low_map = low_directory / "msBIO.map"
     _, low_symbols = parse_map(low_map)
     low_symbols = {name.upper(): value for name, value in low_symbols.items()}
     with tempfile.TemporaryDirectory(prefix="msdos-high-link-") as scratch:
@@ -135,13 +136,13 @@ def build(output):
                     "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data),
                     "service_bytes": symbols["BIOS_SERVICE_END"],
                     "low_map_sha256": hashlib.sha256(low_map.read_bytes()).hexdigest(),
-                    "low_image_sha256": hashlib.sha256((ROOT / "src/BIOS/IO.SYS").read_bytes()).hexdigest(),
+                    "low_image_sha256": hashlib.sha256((low_directory / "IO.SYS").read_bytes()).hexdigest(),
                     "low_bindings": low, "runtime_slots": runtime,
                     "offset_fixups": relocations, "verified_origins": [0, 1, *origins],
                     "exports": {name: offset for name, offset in symbols.items()
                                 if name not in low and name not in slots},
                     "warning": "Rebase internal offset words and bind every runtime slot before use; low entry gates remain required."}
-        low_binary = (ROOT / "src/BIOS/MSBIO.BIN").read_bytes()
+        low_binary = (low_directory / "MSBIO.BIN").read_bytes()
         patches = {}
         for start, (end, policy, low_size) in BOOT_PATCHES.items():
             first, last = symbols[start], symbols[end]
@@ -245,4 +246,7 @@ def prepare(data, manifest, origin, *, keep_96tpi, cpu386):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output", type=Path)
-    build(parser.parse_args().output.resolve())
+    parser.add_argument("--low-directory", type=Path,
+                        help="bind to this matching msBIO.map, MSBIO.BIN and IO.SYS set")
+    args = parser.parse_args()
+    build(args.output.resolve(), args.low_directory)

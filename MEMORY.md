@@ -1707,7 +1707,8 @@ bindings, then active near calls and non-local jumps, including carry, result,
 stack balance, and restoration counts. This is a call-selection test with a
 mock restorer, not a booted installer. The guards add low code and one state
 byte that the eventual linked reclaim budget must include; default IO.SYS is
-unchanged. Production high import storage and the boot transaction remain open.
+unchanged. The combined development image below supplies import storage; filling
+it and committing the boot transaction remain open.
 
 The HMA probe also exercises actual HARDERR2: it saves the original high
 service return SP in private low SPSAV, adds temporary frames, calls a low
@@ -1765,6 +1766,29 @@ Next, integrate the production device dispatcher and low interrupt entries,
 bind the complete low/high call cycle, and implement the early reclaim
 transaction. Preserve code-table offsets, selected/purged code policy, and
 ROM-return contracts when binding.
+
+The combined low-side development image now links MSBIO1, MSDISK, and MSBIO2
+with bindings, guarded calls, device/interrupt entries, and result helpers all
+enabled. `LOWBIND.INC` provides the actual low ROM/A20 gates and zeroed high
+import storage. `tests/build_bios_low_image.py` links against the remaining
+normal BIOS objects into a separate output directory; it does not replace the
+normal IO.SYS. All twenty named high-payload import contracts have corresponding
+low symbols (the resident owner segment is supplied separately by the loader).
+The high builder's `--low-directory` binds offsets and boot-patch bytes against
+this matching map/binary/image set and records that image's hash.
+
+`make test-bios-low-boot-qemu` boots the combined inactive BIOS on QEMU 486 in
+four configurations: bare DOS=LOW, HIMEM with DOS=LOW, HIMEM with DOS=HIGH, and
+EMM386 RAM with DOS=HIGH,UMB. The probe verifies ACTIVE and all high target words
+remain zero, checks high-tail allocation succeeds only in high mode, and
+creates, writes, seeks, reads, closes, and deletes a file. All four pass. This
+proves inactive startup integration, not active high execution or reclamation.
+The fixed one-hard-disk linker census budgets 8,720 selected BIOS bytes for this
+prototype versus 8,160 normally: 560 bytes of current support overhead before
+releasing the 3,578-byte service body. That is a gross/net design constraint,
+not a VC saving. The normal image remains byte-identical and all generated
+development images/maps stay under ignored `out/`.
+
 An assembled 5 KiB payload is not yet an installed high BIOS: the old 3,578-byte
 body must actually be released and its low hole coalesced before counting gain.
 

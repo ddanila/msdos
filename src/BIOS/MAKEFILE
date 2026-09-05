@@ -32,6 +32,7 @@ msbio1.obj: msbio1.asm \
 	msbseg.inc \
 	highdev.inc \
 	lowint.inc \
+	lowbind.inc highrom.inc \
 	msgroup.inc \
 	jumpmac.inc \
 	pushpop.inc \
