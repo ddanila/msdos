@@ -2168,6 +2168,24 @@ internal gateway unwind that result without changing successful EMS register
 contracts. Retain 4,096 bytes until the complete EMS 4.0, mode, mapping,
 capacity, shifted-load, warm-reboot, and hardware gates pass at 4,080 bytes.
 
+A clean-build audit exposed a separate maximum-capacity prerequisite that an
+incremental build had falsely reported as passing. Both the production
+4,096-byte layout and an isolated four-byte A20-tail reduction pass ordinary
+runtime modes, address phases, EMS 4.0, frames, banking, sparse pages, and the
+normal `H=`, `L=`, `D=`, and `A=` limits, but fail the mandatory `A=254`
+allocation sequence after a forced rebuild. Temporary diagnostics show
+allocation 229 returning success with set 232 (`AH/BL/DL=00/E8/E5`), skipping
+IDs 229 through 231. Preserving the probe's expected value and loop state
+across the EMS interrupt does not change the result. This points to corruption
+or overlap of high-index FRS allocation flags after VDATA compaction, rather
+than A20 semantics or the earlier function 56h return gateway. Before
+attempting the 4,080-byte boundary again, verify the maximum-layout MCB and
+stack bounds, then watch those three flag addresses from initialization through
+VDATA relocation and first EMS entry to identify the unrebased writer or
+overlapping retained range. The production A20 layout and 4,096-byte budget
+remain unchanged meanwhile; clean forced builds are required for every future
+boundary claim.
+
 Selected-BIOS compaction removes the now-unused century/year globals, keeps the
 temporary CMOS day count in preserved `BP` and century/year in the returned
 `CL`/`CH` registers, makes the division remainder one-based, records the leap
