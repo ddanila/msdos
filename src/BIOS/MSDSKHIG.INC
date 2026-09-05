@@ -32,7 +32,7 @@ READ_SECTOR PROC NEAR
 RD_RET:
 ;SB33016*****************************************************************
 	mov	AX, 0201h		; number of sectors to 1 (AL=1);SB;3.30*
-	int	13h			; call rom-bios disk routines  ;SB;3.30*
+	BIOS_ROM_INT13			; call rom-bios disk routines  ;SB;3.30*
 
 ;SB33016*****************************************************************
 	JNC	OKRET2
@@ -55,7 +55,7 @@ Rd_Skip1_DPT:			;AN012;
 ;SB33017*****************************************************************
 					; SET CMD TO READ (AH=2) AND  ;SB ;3.30
 	MOV	AX, 0201h		; NUM OF SECTORS TO 1 (AL=1)  ;SB ;3.30
-	INT	13h			; CALL ROM-BIOS DISK ROUTINES ;SB ;3.30
+	BIOS_ROM_INT13			; CALL ROM-BIOS DISK ROUTINES ;SB ;3.30
 ;SB33017*****************************************************************
 	pushf			;AN012;
 	BIOS_LOW_MEM CMP,<[Media_Set_For_Format]>,0,DS
@@ -832,7 +832,7 @@ READY:
 	MESSAGE FTESTINIT,<",">
 	MNUM	FTESTINIT,DX
 	MESSAGE FTESTINIT,<">">
-	INT	13H
+	BIOS_ROM_INT13
 DEATH:
 	RET
 NOTREADY:
@@ -869,7 +869,7 @@ SET_TIM PROC	NEAR
 	PUSH	AX
 ;SB33018******************************************************************
 	xor	AH, AH			; set command to get time      ;SB;3.30*
-	int	1Ah			; call rom-bios timer function ;SB;3.30*
+	BIOS_ROM_INT1A			; call rom-bios timer function ;SB;3.30*
 ;SB33018******************************************************************
 	OR	AL,AL
 	JZ	NOROLL3

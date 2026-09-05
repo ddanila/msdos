@@ -10,6 +10,23 @@ BIOS_PUSH_DATA_SEG MACRO
         ENDIF
 ENDM
 
+; High service code must resume through a retained-low A20-restoring gate.
+; The loader must publish these far pointers only after validating its provider.
+BIOS_ROM_INT13 MACRO
+        IFDEF BIOS_SERVICE_SEPARATE_DATA
+        CALL DWORD PTR CS:[BIOS_SERVICE_INT13_GATE]
+        ELSE
+        INT 13h
+        ENDIF
+ENDM
+BIOS_ROM_INT1A MACRO
+        IFDEF BIOS_SERVICE_SEPARATE_DATA
+        CALL DWORD PTR CS:[BIOS_SERVICE_INT1A_GATE]
+        ELSE
+        INT 1Ah
+        ENDIF
+ENDM
+
 ; Store the original SP in a fixed low word, not the wrapper's deeper SP.
 ; Address must not depend on BP: BP is temporarily used to recover input SP.
 BIOS_LOW_SAVE_SP MACRO address

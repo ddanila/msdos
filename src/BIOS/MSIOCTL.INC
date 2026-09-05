@@ -346,7 +346,7 @@ Do_Set_Media_for_Format:
 	mov	dl,ds:[di.drivenum]	;get drive number	     ;SB  ;3.30*
 	mov	ah,18h			;set media for format	     ;SB  ;3.30*
 	SAVEREG <ES,DS,SI,DI>
-	int	13h			;call rom bios		     ;SB  ;3.30*
+	BIOS_ROM_INT13			;call rom bios		     ;SB  ;3.30*
 ;SB33031****************************************************************
 	JC	FORMAT_STAT_ERR
 ; ES:DI POINTS TO A DISK BASE TABLE FOR THIS COMBINATION FOR THIS DRIVE.
@@ -834,7 +834,7 @@ DO_SET:
 ;SB33032******************************************************************
 	mov	AH, 17h 		; set command to Set DASD type;SB ;3.30*
 	mov	DL, [di].DriveNum	; set drive number	      ;SB ;3.30*
-	int	13h			; call rom-bios 	      ;SB ;3.30*
+	BIOS_ROM_INT13			; call rom-bios 	      ;SB ;3.30*
 ;SB33032******************************************************************
 DASDHASBEENSET:
 	MOV	AH,BYTE PTR [DI].SECLIM
@@ -869,7 +869,7 @@ RESETDISK:
 	SAVEREG <AX>
 ;SB33033******************************************************************
 	xor	AH, AH			; set command to reset disk   ;SB ;3.30*
-	int	13h			; call the rom-bios	      ;SB ;3.30*
+	BIOS_ROM_INT13			; call the rom-bios	      ;SB ;3.30*
 ;SB33033******************************************************************
 	BIOS_LOW_MEM MOV,<[STEP_DRV]>,-1,DS	; ZAP UP THE SPEED
 	RESTOREREG <AX>
@@ -927,7 +927,7 @@ GOT_VALID_DPT:
 	mov	ch,dl			; set low 8 bits in ch	      ;SB ;3.30*
 	mov	DL, ds:[di].DriveNum	; set drive number	      ;SB ;3.30*
 	BIOS_LOW_READ MOV,DH,<[HDNUM]>,DS		; set head number	      ;SB ;3.30*
-	int	13h			; call the rom-bios  routines ;SB ;3.30*
+	BIOS_ROM_INT13			; call the rom-bios  routines ;SB ;3.30*
 ;SB33034*******************************************************************
 	RESTOREREG <SI,BX,ES,DI,DS>
 	RET
@@ -1282,7 +1282,7 @@ Changeline_Chk	proc	near			;AN010;
 ;SB	Execute the ROM disk interrupt to check changeline activity. 2 LOCS
 
 	mov	ah, 16h
-	int	13h
+	BIOS_ROM_INT13
 ;SB34IOCTL004*****************************************************************
 	jnc	Chln_Chk_Ret			;AN010;no change line activity?
 	BIOS_LOW_MEM MOV,<word ptr [FLAGBITS]>,FCHANGED,DS ;AN010;

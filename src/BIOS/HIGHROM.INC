@@ -10,6 +10,11 @@ BIOS_HMA_INT13:
         call    BIOS_HMA_ROM_RESTORE
         retf
 
+BIOS_HMA_INT1A:
+        int     1ah
+        call    BIOS_HMA_ROM_RESTORE
+        retf
+
 ; Saved interrupt-vector variant (ORIG13-style target returning with IRET
 ; or RETF 2). Caller pushes target segment, then offset, then FAR CALLs here.
 ; Build an interrupt-compatible frame without lending input BP or AX to the

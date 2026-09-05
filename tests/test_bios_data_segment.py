@@ -76,6 +76,16 @@ class DataSegmentTests(unittest.TestCase):
                     actual.append(code)
             self.assertEqual(actual, allowed, "new raw CS operand requires ownership review")
 
+    def test_direct_rom_calls_use_low_return_gates(self):
+        counts = {"BIOS_ROM_INT13": 0, "BIOS_ROM_INT1A": 0}
+        for name in ("MSDSKHIG.INC", "MSIOCTL.INC"):
+            for line in (ROOT / "src/BIOS" / name).read_text().splitlines():
+                code = line.split(";", 1)[0].strip().upper()
+                self.assertFalse(re.match(r"INT\s+(?:13|1A)H\b", code), name)
+                if code in counts:
+                    counts[code] += 1
+        self.assertEqual(counts, {"BIOS_ROM_INT13": 8, "BIOS_ROM_INT1A": 1})
+
 
 if __name__ == "__main__":
     unittest.main()

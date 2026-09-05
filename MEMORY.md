@@ -1377,7 +1377,7 @@ flag, forward/backward SI movement, and caller DS checked. Dedicated stack
 operations save the original SP and unwind the same conventional stack without
 overwriting live target words; these are not arbitrary stack-switch helpers.
 The complete separate-data MSDISK object also assembles, using a flag-preserving
-long LOOP trampoline where its enlarged track loop requires one. Its body is currently 4,897
+long LOOP trampoline where its enlarged track loop requires one. Its body is currently 4,927
 bytes versus the installed 3,580-byte body; the added code spends HMA capacity,
 not low-memory savings, once relocation exists. The default build still emits
 byte-identical IO.SYS. A source guard permits only the two IOCTL code-dispatch
@@ -1527,6 +1527,17 @@ saved-vector return forms in DOS=LOW/HIGH; each checks a real read, synthetic
 results, input AX/BP, and balanced SP. The missing-restore control still fails.
 Production dispatch/data separation and the early relocation transaction remain
 the next integration work; these gates alone do not release the BIOS body.
+
+All eight direct INT 13h sites and the single INT 1Ah site now use ROM-call
+operations. The normal build emits the original interrupts; the separate-data
+object calls imported far gate pointers. HIGHROM includes the matching low
+timer gate, and all eight LOW/HIGH disk, saved-vector, and timer cases pass
+with physical A20 disruption and result preservation. A source guard rejects
+new raw direct ROM interrupts inside the candidate. IO.SYS remains byte-identical.
+The loader has not yet bound or activated these pointers. Next, adapt the
+saved ORIG13 calls: their caller-supplied FLAGS word (including DOINT's saved
+`[BP.OLDF]`) must survive, rather than being silently replaced by live FLAGS.
+Their mutable target pointer belongs to low BIOS state, not the high code copy.
 
 `DOS_HMA_RELOCATE` in `src/DOS/MS_CODE.ASM` already copies the entire DOS image
 from offset `0010h` through `SYSBUF` to the same offsets in segment `FFFFh`.

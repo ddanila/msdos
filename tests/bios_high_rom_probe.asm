@@ -46,28 +46,55 @@ start:
     mov ah,9
     int 21h
     mov [initial_sp],sp
+%ifdef TEST_TIMER
+    mov ax,351ah
+%else
     mov ax,3513h
+%endif
     int 21h
     mov [old13],bx
     mov [old13+2],es
     mov dx,hook13
+%ifdef TEST_TIMER
+    mov ax,251ah
+%else
     mov ax,2513h
+%endif
     int 21h
     mov byte [hooked],1
     mov [hook_vector+2],cs
 
-    ; Real sector read through the gate and an A20-disabling ROM wrapper.
+    ; Real disk/clock call through the gate and an A20-disabling ROM wrapper.
     push cs
     pop es
+%ifdef TEST_TIMER
+    xor ax,ax
+%else
     mov ax,0201h
+%endif
     mov bx,sector
     mov cx,1
     xor dx,dx
     mov bp,0b00bh
     call far [entry]
+%ifdef TEST_TIMER
+    pushf
+    pop word [first_flags]
+    cmp ax,[rom_ax]
+    jne fail
+    cmp cx,[rom_cx]
+    jne fail
+    cmp dx,[rom_dx]
+    jne fail
+    mov ax,[first_flags]
+    xor ax,[rom_flags]
+    test ax,0ed5h
+    jnz fail
+%else
     jc fail
     cmp word [sector+510],0aa55h
     jne fail
+%endif
     cmp word [high_seen],1
     jne fail
     cmp sp,[initial_sp]
@@ -148,7 +175,11 @@ unhook:
     cmp byte [hooked],0
     je .done
     lds dx,[old13]
+%ifdef TEST_TIMER
+    mov ax,251ah
+%else
     mov ax,2513h
+%endif
     int 21h
     push cs
     pop ds
@@ -172,6 +203,11 @@ hook13:
     jne .synthetic
     pushf
     call far [cs:old13]
+    mov [cs:rom_ax],ax
+    mov [cs:rom_cx],cx
+    mov [cs:rom_dx],dx
+    pushf
+    pop word [cs:rom_flags]
     pushf
     jmp short .disable
 .synthetic:
@@ -250,7 +286,11 @@ high_start:
 %ifdef USE_SAVED_VECTOR
     dw BIOS_HMA_VECTOR
 %else
+%ifdef TEST_TIMER
+    dw BIOS_HMA_INT1A
+%else
     dw BIOS_HMA_INT13
+%endif
 %endif
 high_gate_segment:
     dw 0                        ; patched after copying to allocated HMA offset
@@ -274,6 +314,11 @@ alias_offset dw 0
 alias_value dw 0
 result_flags dw 0
 initial_sp dw 0
+rom_ax dw 0
+rom_cx dw 0
+rom_dx dw 0
+rom_flags dw 0
+first_flags dw 0
 begin_message db 'BIOS_HIGH_ROM_BEGIN',13,10,'$'
 pass_message db 'BIOS_HIGH_ROM_PASS',13,10,'$'
 fail_message db 'BIOS_HIGH_ROM_FAIL',13,10,'$'
