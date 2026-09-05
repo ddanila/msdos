@@ -630,8 +630,9 @@ treating it as an undifferentiated target:
 The earlier 32,928-byte DOS relocation-hole recovery remains closed. Remeasure
 the rows above after each retained change instead of assuming that every byte
 is another oversized component. The 7,584-byte DOS/BIOS row is an exact
-owner-level remainder, not yet a symbol-level census; phase A3 must split it
-into individually actionable ranges.
+owner-level remainder. Phase A3 now accounts for every byte of the 6,944-byte
+DOS low prefix; its remaining attribution work is to split the selected
+8,448-byte BIOS image into individually actionable ranges.
 
 ## Road to retail-or-better conventional memory
 
@@ -740,7 +741,7 @@ until an A/B image measures them.
 | Priority | Opportunity | Available evidence | Likely scale | Principal constraint |
 | --- | --- | --- | ---: | --- |
 | Complete | Audit DR-DOS's HMA-mode advantage | Controlled DR-DOS 6.0 and OpenDOS 7.01 matrices reconcile owner spans, public memory APIs, HMA ownership, optional policies, and warm reset | research complete | No source code used; pinned artifacts, identical inputs, isolated probes, and compatibility modes remain separated |
-| Complete | Census fixed HMA ownership and COMMAND's top-level resident ranges | The checked map identifies 17,932 initially free bytes of DOS-owned HMA tail and the 1,281-byte normal resident catalog range | attribution complete through the first full payload range | Symbol-level COMMAND and DOS/BIOS ownership remains in D1/A3 |
+| Complete | Census fixed HMA ownership and COMMAND's top-level resident ranges | The checked map identifies 17,932 initially free bytes of DOS-owned HMA tail and the 1,281-byte normal resident catalog range | attribution complete through the first full payload range | BIOS component ownership remains in A3; deeper COMMAND work is paused |
 | Paused | Move more COMMAND cold state high or transient | The 1,281-byte normal catalog and 1,166-byte code range are high; 820 of the remaining 955 low service bytes belong to the installed interrupt handler and registered disk callback | under one kilobyte, then better-than-retail opportunities | Resume only as a coherent interrupt/data redesign, not for gateway-scale helpers |
 | 1 | Complete the small EMM386 low gateway backed by locked XMS | Local active EMM386 is 32 bytes below retail after compacting internal fast-register-set flags and real-mode contribution alignment; services, return and A20/NMI trap handling, protected `RetReal`, stack-selector conversion, OEM mapping/parity handling, and the protected `GoVirtual` continuation execute from locked XMS | create further better-than-retail headroom | Remaining transition, DMA, and fault gateways; inactive `AUTO`; all EMS maps |
 | 2 | Compact EMM386 runtime-sized metadata and alignment | Physical-page IDs, DMA pages, and mappable-window indexes now scale with the selected layout; measured subranges can supplement the gateway redesign | tens to hundreds of bytes per item | Full `H=`/`A=`/`D=`/banking ranges and EMS 4.0 formats |
@@ -814,7 +815,7 @@ capture pass.
 | ---: | --- | --- | --- |
 | Complete A1 | Measurement | Keep VC aggregates and block counts distinct from the earlier raw `MEM /D` process snapshot | The report labels both accounting models and its parser has a local regression test |
 | Complete A2 | Measurement | Reconcile the full VC gap through system, COMMAND, VC, free-block, and ceiling spans, isolating the retained DOS/BIOS remainder | The current report proves `9,024 + 880 + 0 + 1,024 = 10,928`; the component census isolates 7,584 bytes for A3 |
-| A3 in progress | Measurement | Add reproducible HIMEM, EMM386, COMMAND, DOS, and BIOS resident-range reports from their linker maps | HIMEM, EMM386, COMMAND top-level lifetimes, fixed HMA layout, selected BIOS, and all 1,594 bytes of retained DOS CODE are accounted; DOS constants and tables remain coarse |
+| A3 in progress | Measurement | Add reproducible HIMEM, EMM386, COMMAND, DOS, and BIOS resident-range reports from their linker maps | HIMEM, EMM386, COMMAND top-level lifetimes, fixed HMA layout, and every byte of the 6,944-byte DOS low prefix are accounted; split the selected 8,448-byte BIOS image by component |
 | B1 | HIMEM | Continue the map-guided audit of dispatch, validation, move, lock, A20, HMA, request-header, and error paths; share tails only where outputs and reentrancy agree | Exact XMS 2/3 errors, all A20 backends, HMA, moves, warm reboot, and 286 execution pass |
 | B2 | HIMEM | Audit the move descriptor, UMB transaction records, handle records, counters, sentinels, immutable values, and alignment for narrower or derived representation | Zero-length and 128 handles, 32 UMB extents, rollback, locks, reallocations, and legacy bounce pass |
 | B3 | HIMEM | Move every remaining parser, CPU/memory detection, destructive test, message, and installation temporary beyond the rounded resident break | Map proves no runtime reference crosses the break; normal and maximum option footprints are budgeted |
@@ -1103,9 +1104,9 @@ The generated owner-to-owner spans provide an exact top-level reconciliation:
 The pre-COMMAND system span contains EMM386's 32-byte advantage, a 1,488-byte
 HIMEM excess, and a 16-byte advantage in the other configured system tables.
 Subtracting those measured components leaves **7,584 bytes** of retained
-DOS/BIOS payload and layout. This closes owner-level accounting; A3 must turn
-that aggregate into linker- and runtime-owned ranges before it can safely be
-reclaimed.
+DOS/BIOS payload and layout. Owner-level accounting and the DOS side of A3 are
+closed; the selected BIOS image still needs component ranges before the
+aggregate can be safely reclaimed.
 
 The first A3 map census is reproducible with:
 
@@ -1127,9 +1128,19 @@ the exact `2100h` or 8,448-byte resident BIOS boundary.
 
 The DOS low prefix consists of 3 bytes of loader entry, 1,072 bytes of
 constants, 1,783 bytes of mutable data, 2,491 bytes of tables, 1,594 bytes of
-code, and one alignment byte. This is a coarse segment census, not permission
-to move a range: near pointers, asynchronous entries, device callbacks, and
-A20-off paths must first be classified.
+code, and one alignment byte. The checked report assigns every byte of the
+constants, data, tables, and code to an ownership range. Exact coverage is not
+permission to move a range: near pointers, asynchronous entries, device
+callbacks, and A20-off paths must first be classified.
+
+The constants census isolates 301 bytes of bootstrap SFT, 261 bytes of console
+buffers, 119 bytes of UMB/lock state, 200 bytes of nucleus and SHARE-compatible
+state, and smaller request, error, process, and identity ranges. The table
+census isolates 623 bytes of error maps and INT 21 dispatch, 795 bytes of
+country/case-folding/messages, 283 bytes of swap/fake-version state, 256 bytes
+of FCB character classes, and the remaining communication and lookup tables.
+These are ownership budgets only; E1 must still prove each range's address and
+lifetime contract before selecting HMA, relocation-safe XMS, or UMB storage.
 
 The checked CODE census now covers every byte below `DOS_LOW_GATE_END`: 12
 bytes of EMS user-map storage, 771 bytes of core system-call dispatch, 70 bytes of HMA

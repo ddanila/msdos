@@ -138,6 +138,42 @@ def main() -> int:
     if composition_total + composition_gap != low_gate:
         errors.append("DOS low-prefix composition does not reach DOS_LOW_GATE_END")
 
+    constants_segment = dos_segments["CONSTANTS"]
+    constants_start = constants_segment.paragraph * 16 + constants_segment.offset
+    constants_end = constants_start + constants_segment.size
+    constants_ranges: list[tuple[str, int | str, int | str]] = [
+        ("Reserved DOSGROUP/HMA origin", constants_start, "MSCT001S"),
+        ("Nucleus identity, retry, and arena state", "MSCT001S", "SYSINITVAR"),
+        ("SYSINIT pointers and resident device state", "SYSINITVAR", "HASHINITVAR"),
+        ("Buffer and EMS initialization state", "HASHINITVAR", "JShare"),
+        ("SHARE compatibility dispatch", "JShare", "MSCT001E"),
+        ("Bootstrap system file table", "CONST001S", "CARPOS"),
+        ("Console input and editing buffers", "CARPOS", "PFLAG"),
+        ("Global flags and network name", "PFLAG", "CritPatch"),
+        ("Critical-section patch table", "CritPatch", "SWAP_START"),
+        ("Process, error, allocation, and calendar state", "SWAP_START", "DEVCALL"),
+        ("Device request packet", "DEVCALL", "IOCall"),
+        ("Disk I/O and status packet", "IOCall", "CreatePDB"),
+        ("UMB allocator and lock state", "CreatePDB", "CONST001E"),
+        ("Contribution alignment", "CONST001E", "DMES001S"),
+        ("DOS message identity fields", "DMES001S", constants_end),
+    ]
+    print("\n### Retained CONSTANTS ownership\n")
+    print("| Range | Bytes | Owner |")
+    print("| ---: | ---: | --- |")
+    constants_total = 0
+    for owner, start_ref, end_ref in constants_ranges:
+        start = require(dos_symbols, start_ref) if isinstance(start_ref, str) else start_ref
+        end = require(dos_symbols, end_ref) if isinstance(end_ref, str) else end_ref
+        if end < start:
+            errors.append(f"DOS CONSTANTS range {start_ref}..{end_ref} is reversed")
+        size = end - start
+        constants_total += size
+        print(f"| `{start:04X}h..{end:04X}h` | {size:,} | {owner} |")
+    print(f"| **Total** | **{constants_total:,}** | `CONSTANTS` |")
+    if constants_total != constants_segment.size:
+        errors.append("DOS CONSTANTS ownership does not cover the complete segment")
+
     # BUFFINFO is 20 bytes and BUFFER_HASH_ENTRY is 8 bytes in BUFFER.INC.
     # The fixed parity configuration uses one bucket for 15 buffers. SYSINIT
     # rejects a layout ending above FFFF:FFF0, preserving the final 16 bytes.
@@ -187,6 +223,47 @@ def main() -> int:
     print(f"| **Total** | **{data_total:,}** | `DATA` |")
     if data_total != dos_segments["DATA"].size:
         errors.append("DOS DATA ownership does not cover the complete segment")
+
+    table_segment = dos_segments["TABLE"]
+    table_start = table_segment.paragraph * 16 + table_segment.offset
+    table_end = table_start + table_segment.size
+    table_ranges: list[tuple[str, int | str, int | str]] = [
+        ("Version and calendar constants", table_start, "I21_MAP_E_TAB"),
+        ("INT 21 allowed-error map", "I21_MAP_E_TAB", "ERR_TABLE_21"),
+        ("INT 21 extended-error metadata", "ERR_TABLE_21", "ERR_TABLE_24"),
+        ("INT 24 critical-error metadata", "ERR_TABLE_24", "ErrMap24"),
+        ("Device-error translation map", "ErrMap24", "MAXCALL"),
+        ("INT 21 dispatch table", "MAXCALL", "FOO"),
+        ("Internal install-service dispatch", "FOO", "InterChar"),
+        ("Interim-console state and DOS banner", "InterChar", "SysInitTable"),
+        ("SYSINIT communication table", "SysInitTable", "FastOpenTable"),
+        ("FASTOPEN and directory exchange state", "FastOpenTable", "User_SP_2F"),
+        ("INT 2F and configuration temporaries", "User_SP_2F", "MSG_EXTERROR"),
+        ("Extended-error and cache metadata", "MSG_EXTERROR", "SWAP_AREA_TABLE"),
+        ("Swap and fake-version state", "SWAP_AREA_TABLE", "MSC001S"),
+        ("Absolute-disk map and HMA driver trampoline", "MSC001S", "DMES002S"),
+        ("Country, case-folding, and DOS messages", "DMES002S", "CREAT001S"),
+        ("Create-mode lookup table", "CREAT001S", "DEV001S"),
+        ("Device-character lookup table", "DEV001S", "FCB001S"),
+        ("FCB character-class table", "FCB001S", "FCB001E"),
+        ("Module-local validation and lookup data", "FCB001E", "SRVC001S"),
+        ("Server-call dispatch table", "SRVC001S", table_end),
+    ]
+    print("\n### Retained TABLE ownership\n")
+    print("| Range | Bytes | Owner |")
+    print("| ---: | ---: | --- |")
+    table_total = 0
+    for owner, start_ref, end_ref in table_ranges:
+        start = require(dos_symbols, start_ref) if isinstance(start_ref, str) else start_ref
+        end = require(dos_symbols, end_ref) if isinstance(end_ref, str) else end_ref
+        if end < start:
+            errors.append(f"DOS TABLE range {start_ref}..{end_ref} is reversed")
+        size = end - start
+        table_total += size
+        print(f"| `{start:04X}h..{end:04X}h` | {size:,} | {owner} |")
+    print(f"| **Total** | **{table_total:,}** | `TABLE` |")
+    if table_total != table_segment.size:
+        errors.append("DOS TABLE ownership does not cover the complete segment")
 
     code_ranges = [
         ("EMS user-map buffer", "BUF_EMS_MAP_USER", "DOS_CODE_START"),
