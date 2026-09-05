@@ -39,7 +39,7 @@ ifndef	NOHIMEM
 ;
 
 ;*     CODE area containing EMM/VDISK headers and writeable Real mode code
-R_CODE		SEGMENT PARA USE16 PUBLIC 'R_CODE'
+R_CODE		SEGMENT BYTE USE16 PUBLIC 'R_CODE'
 R_CODE		ENDS
 
 ;*	Contains initialized variables and variables used at startup.
@@ -100,7 +100,7 @@ else
 ;
 
 ;*     CODE area containing EMM/VDISK headers and writeable Real mode code
-R_CODE		SEGMENT PARA USE16 PUBLIC 'R_CODE'
+R_CODE		SEGMENT BYTE USE16 PUBLIC 'R_CODE'
 R_CODE		ENDS
 
 ;*	Global Descriptor Table

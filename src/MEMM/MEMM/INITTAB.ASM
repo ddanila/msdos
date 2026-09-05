@@ -438,7 +438,7 @@ IT_move_tables:
 	add	ax,15			; round up to next paragraph
 	cmp	byte ptr cs:[initial_mode],0 ; inactive starts retain their proven phase
 	je	short IT_stack_aligned
-	add	ax,16
+	add	ax,48			; preserve the pre-compaction absolute boundary
 IT_stack_aligned:
 	shr	ax,4
 	add	ax,seg _DATA		; AX = new seg address for STACK

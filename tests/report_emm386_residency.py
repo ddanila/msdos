@@ -478,9 +478,9 @@ def main() -> int:
             args.dma_pages,
         )
         == (64, 7, 64, 6, 1)
-        and runtime_ranges[-1].end > 4128
+        and runtime_ranges[-1].end > 4096
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 4,128 bytes")
+        raise ValueError("default EMM386 installed allocation exceeds 4,096 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     dma_page_label = "DMA page" if args.dma_pages == 1 else "DMA pages"
     print(

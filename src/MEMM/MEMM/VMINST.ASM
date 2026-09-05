@@ -80,7 +80,7 @@ page	58,132
 ;			E X T E R N A L   R E F E R E N C E S
 ;******************************************************************************
 ;
-R_CODE	SEGMENT PARA USE16 PUBLIC 'R_CODE'	;JWASM: explicit attrs (opened before vdmseg.inc; match it)
+R_CODE	SEGMENT BYTE USE16 PUBLIC 'R_CODE'	;JWASM: explicit attrs (opened before vdmseg.inc; match it)
 	extrn	JumpReal:far		; cont client in RM (rrtrap.asm)
 	extrn	MB_Flag:byte		; non-zero => do move block
 R_CODE	ends
