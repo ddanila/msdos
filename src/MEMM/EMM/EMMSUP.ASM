@@ -62,7 +62,6 @@ page	58,132
 	public _copyin
 	public _wcopy
 	public _wcopyb
-	public _valid_handle
 	public SetDescInfoResident
 	public SegOffTo24Resident
 ;
@@ -474,60 +473,67 @@ _wcopyb	proc	near
 	ret
 _wcopyb	endp
 	page
-;***********************************************
-;
-; _valid_handle - validate current handle
-;
-;  SYNOPSIS:	hp = _valid_handle()
-;		struct handle_ptr *hp;	/* ptr to handle's structure */
-;					/* OR NULL_HANDLE if invalid handle */
-;				/* also sets AH = INVALID_HANDLE if it fails */
-;
-;  DESCRIPTION:	This routine validates the current handle in regp->rDX and
-;		returns either an error or a ptr to the handle's index and
-;		page count structure.
-;
-; 05/09/88  ISP   No update needed for MEMM
-;***********************************************
-_valid_handle	proc	near
-;
-	push	bp
-	mov	bp,[_regp]		; get entry args pointer
-	push	bx
-;
-	mov	bx,word ptr [bp.rDX]	; BX = entry handle
-	or	bh,bh			;Q: handle exceeds byte-sized table index?
-	jnz	vh_fail
-	cmp	bl,[_handle_table_size]	;Q: handle in range ?
-	jae	vh_fail			;  N: return invalid handle error
-	shl	bx,2			;  Y: BX = handle's table offset
-	add	bx,[_handle_table]		; BX = offset to handle's data
-	cmp	[bx.ht_index],NULL_PAGE	;Q: is this an active handle ?
-	je	vh_fail			;    N: return invalid handle error
-	mov	ax,bx			;    Y: return ptr to handle's data
-;
-vh_exit:
-	pop	bx
-	pop	bp
-	ret
-vh_fail:
-	mov	byte ptr [bp.rAX+1],INVALID_HANDLE	; set AH on stack
-	mov	ax,NULL_HANDLE		; return NULL_HANDLE to caller
-	jmp	short vh_exit
+; Register validation preserves the index and all general registers.
+; No handle-record pointer escapes; CF reports an invalid/inactive index.
+        public CheckHandleDX, ReadHandleIndex, ReadHandleCount
+CheckHandleDX proc near
+        push si
+        or dh,dh
+        jnz short HandleDXInvalid
+        cmp dl,[_handle_table_size]
+        jae short HandleDXInvalid
+        mov si,dx
+        shl si,2
+        add si,[_handle_table]
+        cmp word ptr [si.ht_index],NULL_PAGE
+        je short HandleDXInvalid
+        pop si
+        clc
+        ret
+HandleDXInvalid:
+        pop si
+        stc
+        ret
+CheckHandleDX endp
 
-;
-_valid_handle	endp
+; AX = bounded handle index; AX returns a field, other registers preserved.
+ReadHandleIndex proc near
+        push si
+        mov si,ax
+        shl si,2
+        add si,[_handle_table]
+        mov ax,[si.ht_index]
+        pop si
+        ret
+ReadHandleIndex endp
+ReadHandleCount proc near
+        push si
+        mov si,ax
+        shl si,2
+        add si,[_handle_table]
+        mov ax,[si.ht_count]
+        pop si
+        ret
+ReadHandleCount endp
 
-; C validation returns a boolean, never the legacy assembly near pointer.
+; C validation returns a boolean and sets the saved EMS error on failure.
         public _HandleValid, _HandleIndex, _HandleCount
         public _SetHandleIndex, _SetHandleCount
 _HandleValid proc near
-        call _valid_handle
-        cmp ax,NULL_HANDLE
+        push bp
+        push dx
+        mov bp,[_regp]
+        mov dx,word ptr [bp.rDX]
+        call CheckHandleDX
         mov ax,0
-        je short HandleValidDone
+        jc short HandleValidFailed
         inc ax
+        jmp short HandleValidDone
+HandleValidFailed:
+        mov byte ptr [bp.rAX+1],INVALID_HANDLE
 HandleValidDone:
+        pop dx
+        pop bp
         ret
 _HandleValid endp
 

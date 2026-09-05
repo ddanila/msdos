@@ -287,45 +287,20 @@ Dword_Align MACRO Seg_Name
 ;	ENTRY:	Handle as per LIM4.0 spec. in DX
 ;
 ;	EXIT:	If the handle is invalid jump To Death_Label, otherwise,
-;		EDX points to the _handle_table entry for the handle
+;		DX remains the handle index; no record pointer escapes
 ;
-;	USES:	EDX
+;	USES:	Flags
 ;
 ;***********************************************
 Validate_Handle MACRO	Death_Label
 
-	or	dh,dh			;Q: handle exceeds byte-sized table index?
-	jnz	Death_Label
-	cmp	dl, [_handle_table_size]	;Q: handle in range ?
-	jae	Death_Label			;  N: go to error label
-	shl	dx, 2				;  Y: convert handle to
-	add	dx, [_handle_table]		;     pointer
-	xchg	bx, dx
-	cmp	[bx.ht_index], NULL_PAGE	;Q: is this handle active ?
-	xchg	bx, dx
-	je	Death_Label			;  N: return error
+	call	CheckHandleDX
+	jc	Death_Label
 
 	ENDM
 
 ;***********************************************
 ;
-; Handle2HandlePtr - convert the handle in DX to
-;		points into handle_table
-;
-;	ENTRY:	Handle as per LIM4.0 spec. in DX
-;
-;	EXIT:	EDX points to the _handle_table entry for the handle
-;
-;	USES:	EDX
-;
-;***********************************************
-Handle2HandlePtr MACRO
-
-	shl	dx, 2				;  Y: convert handle to
-	add	dx, [_handle_table]		;     pointer
-
-	ENDM
-
 .list		; end of EMMDEF.INC
 
 

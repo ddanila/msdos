@@ -613,6 +613,35 @@ handle_record_owners:
     test ah,ah
     jnz fail_realloc
     mov word [es:0],0abcdh
+    ; A nonzero high byte must not alias the live low-byte handle in either
+    ; register-based mapping/save validation or the C/attribute entry paths.
+    mov dx,[record_owner]
+    or dx,100h
+    xor bx,bx
+    mov ax,4400h
+    int 67h
+    cmp ah,83h
+    jne fail_realloc
+    mov dx,[record_owner]
+    or dx,100h
+    mov ah,47h
+    int 67h
+    cmp ah,83h
+    jne fail_realloc
+    mov dx,[record_owner]
+    or dx,100h
+    mov ax,5200h
+    int 67h
+    cmp ah,83h
+    jne fail_realloc
+    mov dx,[record_owner]
+    or dx,100h
+    mov ah,4ch
+    int 67h
+    cmp ah,83h
+    jne fail_realloc
+    cmp word [es:0],0abcdh
+    jne fail_realloc
     mov si,record_sizes
     mov cx,2
 .resize:

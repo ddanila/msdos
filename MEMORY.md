@@ -206,10 +206,14 @@ Handle-record C consumers now use bounded index/count getters and setters;
 freeing, growth/shrink rollback and both directory enumerators no longer
 retain pointers into the 256-byte selected handle-record table. `free_pages`
 takes the handle index, snapshots its fields as values, and rebases other
-records through the owner services. Assembly still uses `Validate_Handle`,
-`Handle2HandlePtr` and the legacy `_valid_handle` pointer result; those paths
-must be converted before declaring the handle table relocation-ready. The
-field services currently resolve DGROUP, with no high copy or low reclamation.
+records through the owner services. Assembly validation now preserves DX as
+the handle index and returns validity through CF. Logical mapping and
+move/exchange validation fetch fields by index; `Handle2HandlePtr` and the
+legacy `_valid_handle` pointer result are removed. Runtime access to all three
+named roots is confined to EMMSUP; the initialization/layout code retains its
+explicit roots. A source guard rejects named-root access elsewhere. The field
+services still resolve DGROUP, with no high copy or low reclamation; page,
+free/PFT, DMA and alternate-map consumers remain to be separated.
 
 The expanded EMS lifecycle probe checks two independent saved contexts and
 their restored page contents, repeated-save/no-save errors, rejection of
@@ -223,7 +227,9 @@ across warm reset, including its later DOS system/FCB checks.
 The handle-record regression additionally grows and shrinks an earlier
 allocation while checking that a later live handle retains its page contents
 after both index-rebasing directions. That probe and the interleaved warm-reset
-case pass after the C conversion.
+case pass after the C and assembly conversions. High-byte handle aliases are
+rejected by mapping, saved-map, attribute and C query paths without changing
+the live page's contents. The ownership guard and protected-service census pass.
 
 ## Public behavior
 

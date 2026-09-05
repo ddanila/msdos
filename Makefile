@@ -468,6 +468,7 @@ test-ems40-coverage-manifest:
 	python3 tests/test_ems40_coverage.py --require-complete
 
 test-ems40-extended-qemu: deploy
+	python3 tests/test_emm_table_ownership.py
 	bash tests/test_ems40_extended_qemu.sh
 
 test-device-request-coverage-manifest:

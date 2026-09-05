@@ -51,6 +51,7 @@ page	58,132
 _TEXT	segment
         extrn ReadSavedMap:near, WriteSavedMap:near
         extrn PeekSavedMap:near, ClearSavedMap:near
+        extrn CheckHandleDX:near, ReadHandleIndex:near, ReadHandleCount:near
 	IFNDEF	EMMP_QUERY_ONLY
 	public	_MapHandlePage
 	public	_RestorePageMap
@@ -119,7 +120,7 @@ _TEXT	segment
 
 extrn	_source_addr:near
 extrn	_dest_addr:near
-extrn	_valid_handle:near
+extrn	_HandleValid:near
 
 extrn	SetDescInfoResident:near
 extrn	SegOffTo24Resident:near
@@ -169,8 +170,6 @@ extrn	_emm_page:word
 ;
 ;  handle data structure
 ;
-extrn	_handle_table:word
-extrn	_handle_table_size:byte
 
 ;
 ; Save area and misc variables for 4.0 function 27
@@ -300,8 +299,8 @@ _GetSetHandleAttribute proc near
 	mov	al, byte ptr [bp.rAX]
 	or	al, al
 	jnz	short gsha_nonzero
-	call	_valid_handle
-	cmp	ax, NULL_HANDLE
+	call	_HandleValid
+	or	ax,ax
 	je	short gsha_return		; helper returned INVALID_HANDLE
 gsha_zero:
 	mov	word ptr [bp.rAX], 0		; volatile handles, OK
@@ -704,7 +703,7 @@ unmap_page	endp
 ;
 ;	ENTRY:	AX - physical page number to be mapped
 ;		BX - logical page number to map
-;		DX - handle pointer (do not destroy)
+;		DX - validated handle index (do not destroy)
 ;	DESTROY:EAX,BX
 ;
 ;**********************************************************************
@@ -717,15 +716,19 @@ map_page	proc	near
 	cmp	bx,0FFFFh			;Q: unmap ?
 	je	short mp_unmap_page		;  Y: go ahead
 
-	xchg	bx, dx
-	cmp	dx,[bx.ht_count]		;Q: valid logical page# ?
-	xchg	bx, dx
+	push	ax
+	mov	ax,dx
+	call	ReadHandleCount
+	cmp	bx,ax			;Q: valid logical page# ?
+	pop	ax
 	jae	short mp_inv_log		;  N: invalid page number
 						;  Y: continue with it
 
-	xchg	bx, dx
-	add	dx,[bx.ht_index]		; dx <-- index into _emm_page
-	xchg	bx, dx
+	push	ax
+	mov	ax,dx
+	call	ReadHandleIndex
+	add	bx,ax			; index into _emm_page
+	pop	ax
 	shl	bx,1				; bx <-- index * 2
 	add	bx,[_emm_page]
 	mov	bx,[bx]				; bx <-- emm page#
@@ -2431,7 +2434,6 @@ mem_map_dest_forward:
 
 	push	dx
 	mov	dx, gs:[bx.mem_dest.mem_handle]
-	Handle2HandlePtr
 	pop	bx
 	mov	ax, 1					; 2nd page frame
 	call	map_page
@@ -2507,7 +2509,6 @@ mem_map_source_forward:
 
 	push	dx
 	mov	dx, gs:[bx.mem_source.mem_handle]
-	Handle2HandlePtr
 	pop	bx
 	mov	ax, 0					; 1st page frame
 	call	map_page
@@ -2687,7 +2688,6 @@ mem_map_next_dest_do_map:
 	push	fs
 	pop	ds
 	mov	dx, gs:[bx.mem_dest.mem_handle]
-	Handle2HandlePtr
 	mov	ax, 1				; 2nd page frame
 	mov	bx, cx
 	call	map_page
@@ -2734,7 +2734,6 @@ mem_map_next_source_do_map:
 	push	fs
 	pop	ds
 	mov	dx, gs:[bx.mem_source.mem_handle]
-	Handle2HandlePtr
 	mov	ax, 0				; 1st page frame
 	mov	bx, cx
 	call	map_page
@@ -2953,11 +2952,10 @@ validate_for_Move_Or_Exchange    PROC NEAR
 	push	fs				; points to dgroup
 	pop	ds
 	Validate_Handle	ME_Map_Inv_Handle	; check it
+	mov	ax,dx
+	call	ReadHandleCount
 	pop	ds
 
-	xchg	bx, dx
-	mov	ax, fs:[bx.ht_count]	    ; EAX = # pages in handle
-	xchg	bx, dx
 	cmp	ax,[di.mem_initial_seg_page];Q: Is initial page in range
 	jbe	ME_Map_Invalid_log_page     ;	 N: Error
 	cmp	[di.mem_initial_offset], 04000h; Q: Is offset unreasonable?
