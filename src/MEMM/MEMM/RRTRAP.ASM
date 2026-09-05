@@ -410,43 +410,21 @@ JumpReal	label	far
 
 	POP_GS				; reset GS for return
 ;
-;  now set flags, DS, stack, and jump to return.
+;  Restore the client stack before enabling NMI. IRET then restores IP:CS and
+;  every saved flag, including IF, atomically from scratch below the client SP.
 ;
-	test	[RR_Flags],FLAGS_IF	;Q: IF bit set in return flags ?
-	jz	RR_CLIexit		;  N: then just return
-	push	[RR_Flags]		;  Y: enable interrupts on return
-	popf				; set flags
 	push	[RR_DS]
 	pop	ds			; set DS for exit
-	push	ax
-	mov	al,ENABLE_NMI
-	out	RTC_CMD,al		; enable NMIs
-	pop	ax
-					;*** there is a small window here
-					; --- NMI could occur with invalid
-					;     STACK
-
 	mov	ss,CS:[RR_SS]		; restore SS
 	mov	sp,CS:[RR_SP]		; restore SP
-	sti				; enable ints
-	jmp	CS:[RR_Jump]		;  and return
-
-RR_CLIexit:
-	push	[RR_Flags]		; leave interrupts disabled on return
-	popf				; set flags
-	push	[RR_DS]
-	pop	ds			; set DS for exit
 	push	ax
 	mov	al,ENABLE_NMI
-	out	RTC_CMD,al		; enable NMIs
+	out	RTC_CMD,al		; NMI now has a valid client stack
 	pop	ax
-					;*** there is a small window here
-					; --- NMI could occur with invalid
-					;     STACK
-
-	mov	ss,CS:[RR_SS]		; restore SS
-	mov	sp,CS:[RR_SP]		; restore SP
-	jmp	CS:[RR_Jump]		; far jump for return
+	push	CS:[RR_Flags]
+	push	CS:[RR_JSeg]
+	push	CS:[RR_JOff]
+	iret				; restore IP:CS and flags
 ;
 R_CODE	ends				; end of segment
 	ENDIF
