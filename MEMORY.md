@@ -1362,6 +1362,51 @@ EBDA recovery are not substitutes for the placement work.
 
 ##### Source contract audit: reuse the existing high copy
 
+The BIOS audit selects a **low-data/high-service split** as the next design
+to prototype, rather than moving the existing mixed segment unchanged:
+
+- `MSBIO1.ASM:ENTRY1` loads the request through low `PTRSAV`, sets DS from CS,
+  and dispatches through near offsets. Preserve low strategy/device entry
+  points and request completion; add explicit high dispatch only for the
+  selected service body.
+- `MSDISK.ASM:READ_SECTOR` constructs `ES:BX = CS:DiskSector` for INT 13h;
+  `READFAT` also promises a CS-relative result. The transfer buffer must stay
+  low, and both producer and consumer must use its explicit low segment.
+  Mutable `DPT`, retry state, `ORIG13`, and other CS-relative data need the
+  same ownership audit. DS is already used for BDS and caller data, so a global
+  DS replacement is not a valid conversion.
+- Near calls/jumps cross to low helpers and error exits. Keep internal high
+  relative branches together; enumerate and replace every crossing with an
+  explicit gateway. Loading code at an allocated HMA offset also requires
+  fixups for absolute code offsets and dispatch pointers, not just a segment
+  change.
+- ROM/third-party INT 13h returns must land low and restore A20 before
+  resuming high code. Keep INT 2Fh/AH=13h vector exchange and INT 19h restoration
+  low with their authoritative saved vectors; direct interrupt callers do not
+  necessarily arrive through DOS's existing A20 gate.
+- The low resident image is selected and compacted before final SYSINIT
+  allocations, while HMA-tail publication occurs after buffer construction.
+  Resolve this ordering before installation: either reserve the BIOS body
+  early in a unified HMA layout or implement a late low-layout compaction
+  transaction. Copying late while retaining the original hole is no gain.
+
+Dynamic-state audit: `SYSINIT1.ASM:ENDFILE`, `DOFCBS`, and `BUF1` already publish
+far SFT/FCB/CDS pointers; `UTIL.ASM:SFFromSFN` follows far SFT links. This removes
+one internal addressing obstacle, not the external compatibility obligation.
+These are exposed structures, so an HMA destination needs an A20-off
+external-reader test and redirector/SHARE coverage. UMB placement avoids HMA's
+A20 alias but the complete 3,440-byte inventory exceeds the current margin.
+Do not silently relocate these public structures into HMA just because normal
+DOS calls pass. Interrupt stacks and transfer buffers remain low in the first
+BIOS-body design.
+
+`make test-dos-bios-residency` now prints the map-derived BIOS service candidate,
+kernel low inventory, and initial HMA capacity separately from achieved
+residency. Next implementation gate: enumerate the BIOS body's crossings and
+fixups, choose the initialization transaction, then prototype the whole body
+with low-mode fallback. No positive net saving is claimed until gateways,
+padding, ownership, and the released low boundary are measured together.
+
 `DOS_HMA_RELOCATE` in `src/DOS/MS_CODE.ASM` already copies the entire DOS image
 from offset `0010h` through `SYSBUF` to the same offsets in segment `FFFFh`.
 The 39,456-byte HMA image therefore includes the tables and data below

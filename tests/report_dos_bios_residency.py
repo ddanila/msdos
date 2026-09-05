@@ -413,6 +413,24 @@ def main() -> int:
     if selected_bios_total != selected:
         errors.append("BIOS ownership does not cover the complete selected image")
 
+    # Candidate inventory, deliberately separate from achieved residency.
+    # A high copy earns no credit until the selected low image shrinks too.
+    service_start = require(bios_symbols, "READ_SECTOR")
+    service_end = require(bios_symbols, "DISK005S")
+    service_bytes = service_end - service_start
+    if not (0 <= service_start < service_end <= selected_base):
+        errors.append("BIOS service candidate is outside the selected low image")
+    print("\n### Bulk-placement design budget (not achieved savings)\n")
+    print("| Candidate | Current bytes | Unproved prerequisite |")
+    print("| --- | ---: | --- |")
+    print(f"| BIOS READ_SECTOR..DISK005S | {service_bytes:,} | split CS-relative low data, near control flow, and ROM-return gates |")
+    print(f"| Entire DOS low prefix | {rounded(low_gate):,} | subtract mandatory public anchors, stacks, and entry gates |")
+    print(f"| Initial DOS-owned HMA tail | {hma_slack:,} | subtract COMMAND and every other reservation before choosing destinations |")
+    print("\nThe candidate sizes are inventories, not guaranteed gains or a sum to")
+    print("subtract from VC's gap. The HMA tail is capacity, not conventional")
+    print("memory; copied low allocations must be released and coalesced. Dynamic")
+    print("SYSINIT allocations require the runtime census, not this linker map.")
+
     if errors:
         print("\n## Census errors\n")
         for error in errors:
