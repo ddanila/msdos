@@ -84,6 +84,9 @@ BiosBootFixup:
         mov ax,0f4fah
         rep stosw
         ENDIF
+        IFDEF BIOS_BOOT_SCAN
+        call BiosScan
+        ENDIF
 BiosBootFail:
 BiosBootDone:
         pop es
@@ -98,6 +101,9 @@ BiosBootDone:
         popf
         ret
 BiosBootActivate ENDP
+        IFDEF BIOS_BOOT_SCAN
+        INCLUDE BOOTSCAN.INC
+        ENDIF
         INCLUDE BIOSBOOT_DATA.INC
 BiosBootPayload LABEL BYTE
         INCLUDE BIOSBOOT_PAYLOAD.INC

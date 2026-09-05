@@ -1863,6 +1863,37 @@ low prefix and affected boot allocations into the released interval, updating
 every public/private low pointer before coalescing the arena. Count only the
 net application-block gain after retained gateway and alignment costs.
 
+Before implementing that rebase, use `make test-bios-rebase-scan-qemu` to
+capture the actual activation boundary without invoking DOS during collection.
+The development-only `BOOTSCAN.INC` writes raw HMA/low DOS, permanent BIOS,
+occupied boot allocation, SYSINIT, and initial CDS regions to QEMU's debug
+port. The host report checks the DOS owner and linker extents and attributes
+every aligned or unaligned word equal to the old DOS segment. Reports and raw
+snapshots stay in ignored `out/`; low and rejected boots must emit nothing.
+These are candidate references, not an automatic fixup list: instruction
+operands and dead stack words also match, and normalized aliases are not found.
+
+The first floppy-profile captures establish these additional rebase contracts:
+
+| Owner | Required treatment |
+| --- | --- |
+| `DPBHEAD`, the first two `hma_low_dpbs` records, initial CDS `curdir_devptr` fields | Rebase links to moved DOS records; retain BIOS overflow targets and terminal sentinels |
+| `DSKCHRET+3` | Rebase the request-buffer segment initialized by DOSINIT and consumed by the Ctrl-C device-read path; this is absent from the existing HMA code-relocation fixup list |
+| `SysInitTable.SYSI_InitVars`, `hma_low_segment`, `hma_driver_trampoline_entry` | Publish the new low owner in the authoritative high image and relevant low fields; subsequent SYSINIT synchronization must target the moved prefix |
+| `CurHashEntry`, `THISSFT`, `THISDPB`, SFT device pointers and request workspaces | Classify live versus completed-operation state and low-prefix versus discarded-tail targets; do not rebase every old-segment value indiscriminately |
+| BIOS `PTRSAV` and SYSINIT saved state | Prove no old request or stack frame remains live across publication; refresh legitimate retained pointers before allowing another callback |
+
+Both high configurations reach this point before EMM386 loads: their identical
+early ownership does not prove post-EMM relocation. The captured initial CDS
+table is outside all three resident DOS/BIOS regions, confirming that a kernel
+image-only fixup cannot cover external references. The existing 19-entry HMA
+fixup table moves code/high-data targets, not this complete low-owner graph.
+The next implementation must use declared fields and chain walkers, then move
+the occupied HIMEM boot prefix, refresh its IVT/XMS references, and coalesce the
+arena. A poisoned/reused old prefix, Ctrl-C, public DPB/CDS/device traversal,
+file I/O, and warm reset are required acceptance gates. No saving is credited
+by the recorder itself.
+
 The normal boot loader has not bound or activated these pointers. The ownership
 audit moved `Prev_DX` into the authoritative low owner; the map checks its
 range and a source guard rejects additional named storage in the service body

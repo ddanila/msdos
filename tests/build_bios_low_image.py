@@ -12,7 +12,9 @@ from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False):
+def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False):
+    if scan and not (early and tail_body):
+        raise ValueError("pointer census requires the early tail-body layout")
     if not 0 <= reservation_limit <= 0xfff0:
         raise ValueError("invalid development reservation ceiling")
     output = output.resolve()
@@ -22,6 +24,16 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False):
         from build_bios_high_payload import build as build_high
         from build_bios_activation_fixture import write_fixture
         seed = build(output, tail_body=tail_body)
+        if scan:
+            _, dos_symbols = parse_map(ROOT / "src/DOS/MSDOS.MAP")
+            scan_symbols = {"LOW_SEGMENT": dos_symbols["hma_low_segment"],
+                            "LOW_END": dos_symbols["DOS_LOW_GATE_END"],
+                            "HIGH_END": dos_symbols["SYSBUF"],
+                            "CDSCOUNT": dos_symbols["CDSCOUNT"],
+                            "CDSADDR": dos_symbols["CDSADDR"],
+                            "PERMANENT_END": seed["symbols"]["BIOS_PERMANENT_END"]}
+            (output / "BIOSSCAN_DEFS.INC").write_text("".join(
+                f"SCAN_{name} EQU {value}\n" for name, value in scan_symbols.items()))
         high = build_high(output / "high", output)
         write_fixture(output, seed, high)
         for source, target in (("defs", "DEFS"), ("preflight", "PREFLIGHT"),
@@ -61,6 +73,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False):
         options += f" -I{output} -DBIOS_SERVICE_BOOT=1 -DBIOS_BOOT_POISON=1"
     if tail_body:
         options += " -DBIOS_SERVICE_TAIL_BODY=1"
+    if scan:
+        options += " -DBIOS_BOOT_SCAN=1"
     for name in changed:
         object_options = options
         if tail_body and name == "MSDISK":
@@ -106,7 +120,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False):
     manifest = {"activated": False, "reclaimed_bytes": 0,
                 "sha256": hashlib.sha256(image).hexdigest(), "symbols": symbols,
                 "high_slot_words": sorted(slot_words), "early_boot_installer": early,
-                "reservation_limit": reservation_limit, "tail_body": tail_body}
+                "reservation_limit": reservation_limit, "tail_body": tail_body,
+                "pointer_census": scan}
     if early:
         # Init-segment growth must not invalidate any embedded low operands.
         for name, value in seed["symbols"].items():

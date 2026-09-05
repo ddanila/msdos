@@ -16,13 +16,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--early", action="store_true", help="activate during SYSINIT, before buffers and COMMAND")
     parser.add_argument("--tail-body", action="store_true", help="test last-linked fallback service layout")
+    parser.add_argument("--scan", action="store_true", help="record activation-time pointer candidates on debug port")
     parser.add_argument("--fail-reservation", action="store_true", help="force the early capacity check to reject")
     parser.add_argument("--mode", action="append", help="run only this mode; repeat as needed")
     args = parser.parse_args()
     if args.fail_reservation and not args.early:
         parser.error("--fail-reservation requires --early")
+    if args.scan and not (args.early and args.tail_body):
+        parser.error("--scan requires --early --tail-body")
     scratch = Path(tempfile.mkdtemp(prefix="bios-low-boot-", dir=ROOT / "out"))
-    manifest = build(scratch, early=args.early, tail_body=args.tail_body,
+    manifest = build(scratch, early=args.early, tail_body=args.tail_body, scan=args.scan,
                      reservation_limit=0x10 if args.fail_reservation else 0xfff0)
     high_manifest = build_high(scratch / "high", scratch)
     write_fixture(scratch, manifest, high_manifest)
@@ -82,10 +85,12 @@ def main():
                            input=text.encode(), env=env, check=True)
         log = scratch / f"{name}.log"
         with log.open("wb") as stream:
+            debug_options = (["-debugcon", f"file:{scratch / (name + '.scan')}",
+                              "-global", "isa-debugcon.iobase=0xe9"] if args.scan else [])
             try:
                 subprocess.run(["qemu-system-i386", "-machine", "pc", "-cpu", "486", "-m", "8",
                                 "-display", "none", "-monitor", "none", "-serial", "stdio",
-                                "-boot", "a", "-no-reboot", "-device",
+                                "-boot", "a", "-no-reboot", *debug_options, "-device",
                                 "isa-debug-exit,iobase=0xf4,iosize=0x04", "-drive",
                                 f"if=floppy,index=0,format=raw,file={image},cache=writethrough"],
                                stdout=stream, stderr=subprocess.STDOUT, timeout=35)
@@ -97,6 +102,14 @@ def main():
                 or (name.startswith("live-") and b"BIOS_LIVE_READY" not in result)):
             raise RuntimeError(f"FAIL {name}: {log}\n{result.decode(errors='replace')}")
         print(f"PASS {name}: {log}", flush=True)
+        if args.scan:
+            scan_path = scratch / (name + ".scan")
+            if high and not args.fail_reservation:
+                from report_bios_rebase_scan import report
+                report(scan_path, ROOT / "src/DOS/MSDOS.MAP", scratch / "msBIO.map",
+                       scratch / (name + "-scan.md"))
+            elif scan_path.read_bytes():
+                raise RuntimeError("inactive boot unexpectedly recorded an activation census")
 
 
 if __name__ == "__main__":
