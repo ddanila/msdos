@@ -1735,19 +1735,9 @@ OLDDD	DD  ?
 OLDF	DW  ?
 INT13FRAME  ENDS
 
-;J.K. 1/30/87 To handle the ps2_30 machine INT 13h, AH = 8 Problem.
-;Save Registers here.
-Save_AX   DW  ?
-Save_BX   DW  ?
-Save_CX   DW  ?
-Save_DX   DW  ?
-Save_DI   DW  ?
-Save_SI   DW  ?
-Save_BP   DW  ?
-Save_DS   DW  ?
-Save_ES   DW  ?
+; Original drive for the PS/2 model 30 status-reset workaround. The result of
+; the first BIOS call is kept on the active DOS/BIOS stack, not in globals.
 Prev_DX   DW  ?
-Save_Flag DW  ?
 
 
 ;   ENTRY CONDITIONS:
@@ -1821,33 +1811,31 @@ ps2_30_Problem: 			;J.K. 1/30/87; ps2_30 = PS2 Model 30.
 	mov	cs:Prev_DX, DX		;save orignal drive number
 	call	Orig13			;Do "Read drive parm"
 
-	mov	cs:Save_AX, AX		;Save registers,flag
-	mov	cs:Save_BX, BX
-	mov	cs:Save_CX, CX
-	mov	cs:Save_DX, DX
-	mov	cs:Save_DI, DI
-	mov	cs:Save_SI, SI
-	mov	cs:Save_BP, BP
-	mov	cs:Save_DS, DS
-	mov	cs:Save_ES, ES
 	pushf
-	pop	cs:Save_Flag
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	di
+	push	si
+	push	bp
+	push	ds
+	push	es
 
 	mov	dx, cs:Prev_DX		;restore orignal drive
 	pushf
 	mov	ah, 1			;Read Status.
 	call	Orig13			;Reset the bus as a side effect of this call.
 
-	mov	AX, cs:Save_AX		;restore registers,flag
-	mov	BX, cs:Save_BX
-	mov	CX, cs:Save_CX
-	mov	DX, cs:Save_DX
-	mov	DI, cs:Save_DI
-	mov	SI, cs:Save_SI
-	mov	BP, cs:Save_BP
-	mov	DS, cs:Save_DS
-	mov	ES, cs:Save_ES
-	push	cs:Save_Flag
+	pop	es			;restore first call's registers and flags
+	pop	ds
+	pop	bp
+	pop	si
+	pop	di
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
 	popf
 	jc	GotErr13		;AH=8 had been an error?
 	ret	2
