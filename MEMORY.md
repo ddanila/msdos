@@ -386,8 +386,12 @@ full-dword exchange returning the old first entry in DX:AX. No table pointer
 escapes those services. A source guard confines these six named roots to
 EMMSUP and their initialization/layout consumers. Historical `MAPDMA.ASM` is
 excluded only with a check that the build selects `MAPDMA.C`.
-Services still resolve DGROUP: DMA-page, mappable-window and alternate-map
-state remain to be separated before the complete block can move.
+The remaining C DMA-page and dense-window pointers are now replaced by indexed
+read/write services too, with a guard against direct C access. All services
+still resolve DGROUP. Assembly window and current/alternate register-set
+consumers remain to be separated before the complete block can move; in
+particular, EMMP carries FRS pointers across mapping calls and ELIMTRAP's
+`GetCRSEntry` still resolves that low owner. No high copy or reclamation exists.
 
 The expanded EMS lifecycle probe checks two independent saved contexts and
 their restored page contents, repeated-save/no-save errors, rejection of

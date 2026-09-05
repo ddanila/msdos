@@ -39,10 +39,11 @@
 #define OFFSET(a)       (((long)a) & 0xFFF)
 #define LIN2PHY(l)      ((PT(INDEX(l)) & ~0xFFFL)+(long)OFFSET(l))
 #define PFT(a)          ReadPft(a)
-extern unsigned char *mappable_pages; /* physical address >> 14 */
+extern unsigned ReadWindowEntry(); /* dense physical address >> 14 */
 extern long ReadPft();
 extern long SwapPft();
-extern unsigned *DMA_Pages;
+extern unsigned ReadDMAEntry();
+extern unsigned WriteDMAEntry();
 extern unsigned char DMA_PAGE_COUNT;   /* size of DMA_Pages[] */
 extern unsigned char physical_page_count;
 extern unsigned char mappable_page_count;
@@ -66,7 +67,7 @@ long PhyAdr;
    unsigned char Page = (unsigned char)((PhyAdr & ALIGN16K) >> 14);
 
    for (i = 0; i < mappable_page_count; i++)
-      if (mappable_pages[i] == Page)
+      if (ReadWindowEntry(i) == Page)
          return i;
    return -1;
 }
@@ -255,7 +256,7 @@ FromAdr64_128k-|        |       DMAPage[0]  -->|        |
 /* corresponding DMA Page - k value in the above figure */
    DMAPageK = (FromAdr16K - FromAdr64_128K) >> 14;
    
-   ExpectedAdr = PFT(DMA_Pages[DMAPageK]);
+   ExpectedAdr = PFT(ReadDMAEntry(DMAPageK));
 
    if (DMAPageK + n16KPages > DMA_PAGE_COUNT)
       FatalError("Insufficient DMA pages in the DMA Buffer");
@@ -299,7 +300,7 @@ int i, j;
       
 /* exchange pft386 entries at UserPFTIndex and DMA_Pages[k] */
 
-   DMAPhyAdr = SwapPft(DMA_Pages[k], UserPFTIndex);
+   DMAPhyAdr = SwapPft(ReadDMAEntry(k), UserPFTIndex);
 
 /* Fix Page table entries .
  * The contents of the user page and DMA buffer page are exchanged always.
@@ -316,7 +317,7 @@ int i, j;
 /* Does PT Entry exist for the DMA buffer below 1 MB? */
 
    for (i = 0; i < physical_page_count; i++) {
-      if (GetCRSEntry(i) == DMA_Pages[k])
+      if (GetCRSEntry(i) == ReadDMAEntry(k))
          break;
    }
 
@@ -336,7 +337,7 @@ int i, j;
       if (j >= mappable_page_count)
          FatalError(); /* invalid Phy page # - doesn't exist in mappable_pages[] */
       else
-         DMALinAdr = ((long)mappable_pages[j]) << 14;
+         DMALinAdr = ((long)ReadWindowEntry(j)) << 14;
       
       Exchange16K(LinAdr, DMALinAdr);
       ExchangePTEs(LinAdr, DMALinAdr);
@@ -345,14 +346,14 @@ int i, j;
 /* UserPFTIndex is present in DMA_Pages[] we should exchange the entries in
  * DMA_Pages[] */
    for (i = 0; i < DMA_PAGE_COUNT; i++)   {
-      if (DMA_Pages[i] == UserPFTIndex)   {
-         DMA_Pages[i] = DMA_Pages[k];
+      if (ReadDMAEntry(i) == UserPFTIndex)   {
+         WriteDMAEntry(i, ReadDMAEntry(k));
          break;
       }
    }
 
 /* Now, DMA_Pages[k] has a different index into the pft386[] array */
-   DMA_Pages[k] = UserPFTIndex; 
+   WriteDMAEntry(k, UserPFTIndex);
 }
 
 /* Update PT entry for LinAdr to map to pft386[UserPFTIndex] */

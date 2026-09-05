@@ -106,6 +106,7 @@ extrn	_total_pages:word
 ;
 extrn	_emm_page:word
 extrn	_emm_free:word
+extrn _DMA_Pages:word, _mappable_pages:word
 
 ;
 ; ptr to table of page table entries for the EMM pages
@@ -501,6 +502,48 @@ _SwapPft proc near
         pop bp
         ret
 _SwapPft endp
+
+; Remaining C DMA consumers use indexes, never pointers into movable VDATA.
+; Validation remains the caller's responsibility; these do not repair DMA
+; capacity or fatal-exit policy. Preserve DS/ES and C's index registers.
+        public _ReadDMAEntry, _WriteDMAEntry, _ReadWindowEntry
+_ReadDMAEntry proc near
+        push bp
+        mov bp,sp
+        push si
+        mov si,[bp+4]
+        shl si,1
+        add si,[_DMA_Pages]
+        mov ax,[si]
+        pop si
+        pop bp
+        ret
+_ReadDMAEntry endp
+_WriteDMAEntry proc near
+        push bp
+        mov bp,sp
+        push si
+        mov si,[bp+4]
+        shl si,1
+        add si,[_DMA_Pages]
+        mov ax,[bp+6]
+        mov [si],ax
+        pop si
+        pop bp
+        ret
+_WriteDMAEntry endp
+_ReadWindowEntry proc near
+        push bp
+        mov bp,sp
+        push si
+        mov si,[bp+4]
+        add si,[_mappable_pages]
+        xor ax,ax
+        mov al,[si]
+        pop si
+        pop bp
+        ret
+_ReadWindowEntry endp
 ; Register validation preserves the index and all general registers.
 ; No handle-record pointer escapes; CF reports an invalid/inactive index.
         public CheckHandleDX, ReadHandleIndex, ReadHandleCount

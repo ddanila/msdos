@@ -7,6 +7,7 @@ import unittest
 ROOT = Path(__file__).resolve().parents[1] / "src/MEMM"
 ROOT_NAMES = re.compile(r"\b_?(?:handle_table|save_map|Handle_Name_Table)\b", re.I)
 PAGE_ROOTS = re.compile(r"\b_?(?:emm_page|emm_free|pft386)\b", re.I)
+C_DMA_ROOTS = re.compile(r"\b_?(?:DMA_Pages|mappable_pages)\b", re.I)
 OWNERS = {"EMM/EMMSUP.ASM", "EMM/EMMDATA.ASM",
           "MEMM/EMMINIT.ASM", "MEMM/INITTAB.ASM"}
 PAGE_OWNERS = OWNERS | {"MEMM/INITEPG.ASM", "MEMM/INIT.ASM"}
@@ -22,6 +23,12 @@ def direct_roots(source, suffix, roots=ROOT_NAMES):
 
 
 class OwnershipTest(unittest.TestCase):
+    def test_c_dma_consumers_do_not_retain_table_pointers(self):
+        violations = [path.relative_to(ROOT).as_posix() for path in ROOT.rglob("*.C")
+                      if direct_roots(path.read_text(encoding="latin-1"), ".C", C_DMA_ROOTS)]
+        self.assertEqual(violations, [])
+        self.assertTrue(direct_roots("DMA_Pages[k] = p;", ".C", C_DMA_ROOTS))
+
     def test_page_roots_stay_with_owner_or_initialization(self):
         violations = []
         for path in ROOT.rglob("*"):
