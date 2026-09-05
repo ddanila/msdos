@@ -70,7 +70,10 @@ def main():
     parser.add_argument("--files", type=int, default=20, help="FILES count for table-placement tests (8..255)")
     parser.add_argument("--fail-table-allocation", action="store_true", help="force the development UMB allocation to fail")
     parser.add_argument("--upper-access-control", action="store_true", help="require rejection of a corrupted table snapshot after EMS cleanup")
+    parser.add_argument("--share", action="store_true", help="run SHARE/NLSFUNC compatibility contracts before the table probes")
     args = parser.parse_args()
+    if args.share and not args.rebase:
+        parser.error("--share requires --rebase")
     if args.fail_table_allocation and not args.rebase:
         parser.error("--fail-table-allocation requires --rebase")
     if args.upper_access_control and (not args.rebase or args.files > 20 or args.fail_table_allocation
@@ -108,6 +111,9 @@ def main():
             f"PUB_{name} equ {value}\n" for name, value in zip(names, values)))
         run(["nasm", "-f", "bin", "-DNO_DEBUG_EXIT", ROOT / "tests/int21_fcb_probe.asm",
              "-o", scratch / "I21FCB.COM"], ROOT)
+        if args.share:
+            run(["nasm", "-f", "bin", "-DNO_DEBUG_EXIT", ROOT / "tests/int21_compat_probe.asm",
+                 "-o", scratch / "I21COMP.COM"], ROOT)
     write_fixture(scratch, manifest, high_manifest)
     if high_manifest["low_image_sha256"] != manifest["sha256"]:
         raise RuntimeError("high payload was bound against a different low BIOS")
@@ -187,11 +193,13 @@ def main():
         if args.rebase:
             run(["nasm", "-f", "bin", "-DNO_DEBUG_EXIT", *(["-DEXPECT_UMB"] if name == "emm-high" else []),
                  ROOT / "tests/int21_system_probe.asm", "-o", scratch / "I21SYS.COM"], ROOT)
-            for test_name in ("I21FCB.COM", "I21SYS.COM"):
+            for test_name in ("I21FCB.COM", "I21SYS.COM") + (("I21COMP.COM",) if args.share else ()):
                 subprocess.run(["mcopy", "-o", "-i", str(image), str(scratch / test_name), f"::{test_name}"],
                                env=env, check=True)
         for destination, text in (("CONFIG.SYS", config), ("AUTOEXEC.BAT",
-                                  "@ECHO OFF\r\nCTTY AUX\r\n" + ("I21SYS.COM\r\nI21FCB.COM\r\n" if args.rebase else "") + "LOWBOOT.COM\r\n")):
+                                  "@ECHO OFF\r\nCTTY AUX\r\n"
+                                  + ("SHARE.EXE /F:4096 /L:40\r\nI21FCB.COM\r\nNLSFUNC.EXE\r\nI21COMP.COM\r\n" if args.share else "")
+                                  + ("I21SYS.COM\r\nI21FCB.COM\r\n" if args.rebase else "") + "LOWBOOT.COM\r\n")):
             subprocess.run(["mcopy", "-o", "-i", str(image), "-", f"::{destination}"],
                            input=text.encode(), env=env, check=True)
         log = scratch / f"{name}.log"
@@ -228,6 +236,8 @@ def main():
         if args.rebase and (b"INT21_FCB_PASS" not in result or b"INT21_SYSTEM_PASS" not in result
                             or re.search(rb"INT21_[^\r\n]*FAIL", result)):
             raise RuntimeError(f"FCB/system regression with relocated tables: {log}")
+        if args.share and b"INT21_COMPAT_PASS" not in result:
+            raise RuntimeError(f"SHARE/NLSFUNC compatibility did not pass: {log}")
         if args.rebase and not negative:
             if name == "emm-high" and sft_paras + fcb_paras <= 74 and not args.fail_table_allocation:
                 if b"BIOS_UPPER_ACCESS_PASS" not in result:

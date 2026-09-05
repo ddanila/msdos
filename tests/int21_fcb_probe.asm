@@ -16,6 +16,16 @@ start:
     push ds
     pop es
 
+    ; Leave allocation space for resident services such as SHARE.
+    mov sp, program_end
+    mov bx, (program_end - $$ + 100h + 15) / 16
+    mov ah, 4ah
+    int 21h
+    jnc .resized
+    mov dx, fail_resize
+    jmp fail
+.resized:
+
     mov si, 18h
     mov di, initial_jfn_table
     mov cx, 20
@@ -239,12 +249,43 @@ check_jfn_table:
     ret
 
 fail:
+    push dx
+    mov ax,5900h
+    xor bx,bx
+    int 21h
+    mov bp,ax
+    pop dx
+    mov ah, 09h
+    int 21h
+    mov dx, extended_error_message
+    mov ah, 09h
+    int 21h
+    mov cx,4
+.error_hex:
+    push cx
+    mov cl,4
+    rol bp,cl
+    mov dx,bp
+    and dl,0fh
+    add dl,'0'
+    cmp dl,'9'
+    jbe .digit
+    add dl,7
+.digit:
+    mov ah,2
+    int 21h
+    pop cx
+    loop .error_hex
+    mov dx, newline
     mov ah, 09h
     int 21h
     mov ax, 4c01h
     int 21h
 
 pass_message db 'INT21_FCB_PASS', 13, 10, '$'
+fail_resize db 'INT21_FCB_RESIZE_FAIL', 13, 10, '$'
+extended_error_message db 'Extended error: $'
+newline db 13, 10, '$'
 fail_0f     db 'INT21_0F_FAIL', 13, 10, '$'
 fail_10     db 'INT21_10_FAIL', 13, 10, '$'
 fail_11     db 'INT21_11_FAIL', 13, 10, '$'
@@ -284,3 +325,5 @@ parse_text db 'I21PARSE.DAT tail', 0
 initial_record times 128 db 'S'
 io_dta times 128 db 0
 search_dta times 128 db 0
+    times 512 db 0
+program_end:

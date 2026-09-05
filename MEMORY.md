@@ -3,6 +3,48 @@
 This document records the durable HMA, UMB, XMS, and EMS constraints. Detailed
 delivery history belongs in Git; current evidence belongs in the test manifests.
 
+## Current architectural priority
+
+Maximize the largest conventional block by relocating complete resident
+allocations, not by continuing isolated instruction or paragraph reductions.
+The DR-DOS runtime maps show kernel, BIOS services, shell, and buffers in HMA,
+with other DOS state in UMBs. Enabling `HIDOS=ON` alone recovers 12,800
+conventional bytes in the controlled DR-DOS 6 matrix. This is placement
+evidence, not a further 12,800-byte local opportunity: our buffers and kernel
+are already high.
+
+The normal fixed image leaves 610,256 conventional bytes and 49,104 free UMB
+bytes. Development BIOS/table relocation leaves 614,448 and 47,904, versus
+retail's 618,736 and 47,888. Its 4,192-byte gain comprises 3,008 bytes of BIOS
+reclamation and 1,184 bytes of FILES/FCB placement; promotion remains gated by
+compatibility tests. The framed DR-DOS FILES=20 capture leaves 628,352
+conventional bytes but only 16,032 free UMB bytes. Resource and device-topology
+differences remain; that result does not prove our two floors achievable by
+copying its UMB policy.
+
+Execution order:
+
+1. Finish acceptance of the bulk BIOS/table relocation, including SHARE and
+   redirector consumers. Distinguish pre-existing low-mode failures from
+   relocation regressions; neither is a passing acceptance result.
+2. Budget the remaining BIOS services and DOS state together. Assign each
+   allocation one authoritative owner, low/HMA/UMB destination, access contract,
+   fallback, and net reclaimable conventional span. Development retains 5,152
+   BIOS bytes and a 4,992-byte kernel prefix; these inventories are not promised
+   savings. Public A20-off pointers cannot automatically become HMA pointers.
+3. Share HMA capacity between BIOS, state, buffers, and COMMAND. At fifteen
+   buffers, the normal post-COMMAND tail is 15,437 bytes and the development
+   BIOS reservation costs 5,220 more. Development has only 16 bytes of free-UMB
+   margin; further UMB placement requires compensating reclamation.
+4. Revisit COMMAND as a complete resident-handler/state and reload-interface
+   redesign after the system placement budget. Keep isolated HIMEM/EMM386
+   harvesting paused; EMM386 is already 240 bytes below retail. EBDA recovery
+   remains a bounded 1 KiB finishing step.
+
+Use the controlled transitions and raw ownership maps in the DR-DOS sections
+below. No DR-DOS source or disassembly is permitted. Older incremental results
+are historical evidence, not the execution queue.
+
 ## Public behavior
 
 The system reports DOS 6.22 consistently through `INT 21h/AH=30h`,
@@ -1425,6 +1467,26 @@ checks, not proof of arbitrary redirector or memory-manager compatibility.
 
 Before promotion, test SHARE/redirector consumers, additional EMS mapping
 profiles, and real high-resident competition.
+The opt-in `--share` diagnostic currently fails in `bare-low`: FCB create
+(`INT 21h/AH=16h`) returns failure and extended error `0008h` after loading
+`SHARE.EXE /F:4096 /L:40`. An isolated SHARE-to-FCB sequence reproduces this
+without NLSFUNC, the compatibility probe, or the system probe; shrinking the
+FCB probe's allocation does not resolve it. Thus this is not evidence of an
+upper-table regression, and the extended error alone does not establish actual
+memory exhaustion. Reproduce with:
+
+```sh
+python3 tests/test_bios_low_boot_qemu.py \
+  --early --tail-body --rebase --compact --share --mode bare-low
+```
+
+Investigate SHARE's installation/publication and first FCB create next.
+`GSHARE2.ASM` replaces the default 4,0 FCB cache with a resident 16,8 cache;
+the existing upper-table census expects the original four-entry boot table.
+SHARE acceptance must distinguish that legitimate replacement from stale
+pointer ownership, test the active replacement, and separately exercise a
+non-default cache that SHARE leaves in place. Do not weaken the ordinary
+four-entry census or claim that a SHARE run proves access to the boot table.
 Larger tables or preloaded high residents need an explicit placement budget
 and fallback; the 16-byte
 fixed-profile margin is not general spare capacity. Stable UMB addresses avoid

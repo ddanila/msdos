@@ -383,6 +383,16 @@ extended_open_ok:
     mov ax, 5f08h
     int 21h
     fail_if_carry 5f
+%ifdef NO_DEBUG_EXIT
+    ; The standalone test exits the emulator with this drive disabled.
+    ; A chained invocation must leave its caller's batch drive usable.
+    mov ah,19h
+    int 21h
+    mov dl,al
+    mov ax,5f07h
+    int 21h
+    fail_if_carry 5f
+%endif
 
     mov ah, 62h
     int 21h
@@ -419,7 +429,9 @@ duplicated_psp_ok:
     int 21h
     mov dx, 0f4h
     mov ax, 10h
+%ifndef NO_DEBUG_EXIT
     out dx, ax
+%endif
     mov ax, 4c00h
     int 21h
 
