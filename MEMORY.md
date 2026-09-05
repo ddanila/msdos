@@ -1622,9 +1622,31 @@ a general OMF format implementation. Low absolute offsets remain fixed; code
 and import-slot references move together. Four tests cover the real build,
 word carries, malformed differences, overlap, and segment/offset overflow.
 
-Next, bind the runtime imports and provide low-to-high entries for low helpers
-that recurse into the body, then execute it at a real allocated HMA offset.
-Preserve code-table
+The first real payload execution gate is:
+
+```sh
+make test-bios-payload-qemu
+```
+
+The QEMU 486 probe obtains DOS-owned HMA storage, verifies segment FFFFh,
+copies and rebases the linked payload, and calls its actual READ_SECTOR entry
+through a small high near-call/far-return wrapper. It binds the data owner and
+INT 13h/1Ah gateways; unused far imports trap. Private low data and a probe-owned
+BDS avoid using live BIOS data as experimental workspace. BDS offsets come from the assembler's
+MSBDS.INC definitions, not duplicated numeric layout assumptions. A fixed-media
+flag bounds retry behavior without modifying the ROM disk-parameter table.
+
+Three runs pass: a real floppy boot-sector read with signature verification,
+success after two injected read failures, and three failed attempts returning
+BIOS error 20h. They check read/reset counts, returned CF, SP/BP/ES, and low
+last-drive state. The disk hook physically disables A20 before every return;
+a read-only alias check confirms the disable, and the shared low gate restores
+A20 before high execution resumes. Omitting all payload offset fixups reaches
+the allocated/bound READY marker but cannot pass. This validates actual payload
+execution and retry paths, not installation or conventional-memory reclamation.
+
+Next, extend execution beyond READ_SECTOR and bind production imports, including
+low-to-high entries for low helpers that recurse into the body. Preserve code-table
 offsets, selected/purged code policy, and ROM-return contracts when binding.
 An assembled 5 KiB payload is not yet an installed high BIOS: the old 3,578-byte
 body must actually be released and its low hole coalesced before counting gain.
