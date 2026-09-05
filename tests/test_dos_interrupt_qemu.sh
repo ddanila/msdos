@@ -43,7 +43,7 @@ timeout 35 qemu-system-i386 \
     >"$SERIAL_LOG" 2>&1 || true
 
 if grep -q 'DOS_INTERRUPT_PASS' "$SERIAL_LOG"; then
-    echo "  PASS: DOS INT 29h, default multiplex, and BIOS INT 13h vector-exchange contracts"
+    echo "  PASS: DOS interrupts, BIOS INT 13h vector exchange, and PS/2 result preservation"
     exit 0
 fi
 

@@ -632,8 +632,9 @@ Removing the selector state entirely raises it to **609,600 bytes** and leaves
 **9,136 bytes**. Keeping the PS/2 Model 25/30 disk-parameter result on the
 active BIOS stack instead of in ten resident words raises the measured result
 to **609,696 bytes** and leaves **9,040 bytes**. The ordinary disk-vector and
-286/386/486 gates pass; retain this change as provisional until a focused
-Model 25/30 `INT 13h/AH=08h` and `AH=15h` register/flags test passes.
+286/386/486 gates pass. A focused injected-underlay test forces the Model 25/30
+path and proves that both `INT 13h/AH=08h` and `AH=15h` preserve every returned
+register and the first call's carry while issuing exactly one status call.
 Exact byte parity is not required, but a large unexplained loss is not
 acceptable.
 
@@ -1219,7 +1220,7 @@ block.
 | 2 | Complete the EMM386 low gateway | The active 3,936-byte allocation is 192 bytes below retail after loading the real IDTR before clearing PE and compacting VM-frame scratch around a packed atomic `IRET`; the required registers, segments, flags, and interrupt-state contracts remain intact | Redesign the remaining transition, DMA, and fault gateways for further headroom; preserve inactive `AUTO` and every EMS map |
 | 2 | Compact EMM386 metadata while changing that boundary | The loader stack is discarded, duplicate PTE offsets and inverse segment index are gone, physical-window segments, public `Pn=` identifiers, DMA pages, mappable-window indexes, bounded counters, and parity-vector state are runtime-sized, narrowed, derived, shared, or protected-high; protected entry/services/helpers are high, the two-function control gateway is table-free, the production GDT omits six debugger and six unused legacy descriptors, and `NOHIMEM` hooks are absent | Take further independently testable VDATA, table, and alignment wins only when they create better-than-retail margin or support the gateway design |
 | 5 in progress | Census and relocate eligible DOS low state | The dispatcher and contiguous 652-byte absolute/system/INT 2Fh tranche are HMA-resident under DOS=HIGH, reducing the DOS gateway to 5,392 bytes and the DOS/BIOS remainder to 5,856 bytes | Classify the remaining tables and mutable state, then apply HMA, relocation-safe XMS, and bounded UMB placement |
-| 6 in progress | Compact the selected BIOS resident image | Part of the same 5,856-byte remainder; the fixed hardware path is now 8,272 bytes | Add the focused PS/2 Model 25/30 result-preservation gate, then continue map-guided compaction without changing BIOS-visible services |
+| 6 in progress | Compact the selected BIOS resident image | Part of the same 5,856-byte remainder; the fixed hardware path is now 8,272 bytes and its PS/2 Model 25/30 result-preservation gate passes | Continue map-guided compaction without changing BIOS-visible services |
 | 7 | Remove MCB, allocation-order, and paragraph fragmentation | 112 bytes inside the system MCB plus 32 bytes group-level overhead are bounded; further islands need a live map | Make every recovered paragraph grow VC's largest block rather than a separate hole |
 | 8 | Place eligible permanent allocations in existing UMBs | Local free UMB exceeds retail by only 1,216 bytes | Accept only deterministic placement that leaves at least 47,888 usable UMB bytes |
 | 9 | Recover the EBDA ceiling paragraph | Exactly 1,024 bytes | Use already-owned proved-safe storage, update the BDA atomically, then test BIOS, DMA, interrupts, and reboot |
@@ -2364,10 +2365,11 @@ This removes 20 data bytes and 80 code bytes, crosses six selected-image
 paragraphs, and reduces the fixed BIOS from 8,368 to 8,272 bytes. The paired
 VC capture receives all 96 bytes at 609,696, leaving a 9,040-byte gap and the
 same 49,104 free UMB bytes. The DOS interrupt contract and 286/386/486 hardware
-matrix pass locally. This is provisional: the next BIOS action is a focused
-Model 25/30 test proving that `AH=08h` and `AH=15h` return the first call's
-registers and carry after the status-reset call; do not close the candidate
-until that gate passes.
+matrix pass locally. The focused test replaces the underlying BIOS handler,
+forces the resident Model 25/30 branch without relying on the frontmost
+`INT 13h` vector, and proves success and error carry, all nine returned
+registers, and exactly one follow-up status call for both `AH=08h` and
+`AH=15h`. The candidate is therefore closed.
 
 Selected-BIOS compaction removes the now-unused century/year globals, keeps the
 temporary CMOS day count in preserved `BP` and century/year in the returned
