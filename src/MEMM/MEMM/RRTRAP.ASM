@@ -410,20 +410,20 @@ JumpReal	label	far
 
 	POP_GS				; reset GS for return
 ;
-;  Restore the client stack before enabling NMI. IRET then restores IP:CS and
-;  every saved flag, including IF, atomically from scratch below the client SP.
+;  Keep DS on R_CODE while building the return frame, restore the client stack
+;  before enabling NMI, then restore DS. IRET restores IP:CS and every saved
+;  flag, including IF, atomically from scratch below the client SP.
 ;
-	push	[RR_DS]
-	pop	ds			; set DS for exit
-	mov	ss,CS:[RR_SS]		; restore SS
-	mov	sp,CS:[RR_SP]		; restore SP
+	mov	ss,[RR_SS]		; restore SS
+	mov	sp,[RR_SP]		; restore SP
 	push	ax
 	mov	al,ENABLE_NMI
 	out	RTC_CMD,al		; NMI now has a valid client stack
 	pop	ax
-	push	CS:[RR_Flags]
-	push	CS:[RR_JSeg]
-	push	CS:[RR_JOff]
+	push	[RR_Flags]
+	push	dword ptr [RR_Jump]	; contiguous IP:CS words
+	push	[RR_DS]
+	pop	ds			; set DS for exit
 	iret				; restore IP:CS and flags
 ;
 R_CODE	ends				; end of segment
