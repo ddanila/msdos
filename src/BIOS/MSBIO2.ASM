@@ -75,10 +75,6 @@ Secondary_Model_Byte db 0
 	PUBLIC	ORIG19
 ORIG19	DD	?
 
-	PUBLIC	INT19SEM
-INT19SEM DB	0			; INDICATE THAT ALL INT 19
-					; INITIALIZATION IS COMPLETE
-
 	IRP	AA,<02,08,09,0A,0B,0C,0D,0E,70,72,73,74,76,77>
 	public	Int19OLD&AA
 Int19OLD&AA	dd	-1		;Orignal hardware int. vectors for INT 19h.
@@ -130,11 +126,9 @@ INT19	PROC	FAR
 	MOV	DS:[13H*4],DI
 	MOV	DS:[13H*4+2],ES
 
-	CMP	BYTE PTR INT19SEM,AL
-	JZ	DOINT19
-
 ;Stacks code has changed these hardware interrupt vectors
-;STKINIT in SYSINIT1 will initialzie Int19hOLDxx values.
+;STKINIT in SYSINIT1 initializes each Int19OLDxx value. Entries that have not
+;been installed retain their FFFFh segment sentinel and are skipped.
 INT19VECS:
 	MOV	SI,OFFSET Int19OLD02
 	MOV	CX,14
@@ -146,9 +140,6 @@ INT19VECLOOP:
 	INC	AX
 	LODSB	BYTE PTR CS:[SI]	; LODS preserves the sentinel flags.
 	JE	SHORT INT19VECSKIP
-	INC	DI
-	JE	SHORT INT19VECSKIP
-	DEC	DI
 	CBW
 	XCHG	AX,BX
 	SHL	BX,1

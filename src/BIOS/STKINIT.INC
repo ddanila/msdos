@@ -225,9 +225,6 @@ Skip_EnableNMIS:							       ;3.30
 ;	MOV	SI,OFFSET STKMSG1					       ;3.30
 ;	CALL	WRMSG							       ;3.30
 									       ;3.30
-	mov	[INT19SEM],1		; INDICATE THAT INT 19		       ;3.30
-					; INITIALIZATION IS COMPLETE	       ;3.30
-									       ;3.30
 	POP	BP			; RESTORE ALL			       ;3.30
 	POP	SI							       ;3.30
 	POP	DI							       ;3.30

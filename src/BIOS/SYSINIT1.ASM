@@ -118,8 +118,6 @@ clobbered		equ	3
 
 ;External variables in IBMBIO for INT19h handling rouitne. J.K. 10/23/86
 CODE segment public 'code'
-	EXTRN	Int19sem:byte
-
 	IRP	AA,<02,08,09,0A,0B,0C,0D,0E,70,72,73,74,76,77>
 		EXTRN Int19OLD&AA:dword
 	ENDM
