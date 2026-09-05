@@ -49,6 +49,8 @@ page	58,132
 ;	P U B L I C S
 ;******************************************************************************
 _TEXT	segment
+        extrn ReadSavedMap:near, WriteSavedMap:near
+        extrn PeekSavedMap:near, ClearSavedMap:near
 	IFNDEF	EMMP_QUERY_ONLY
 	public	_MapHandlePage
 	public	_RestorePageMap
@@ -169,11 +171,6 @@ extrn	_emm_page:word
 ;
 extrn	_handle_table:word
 extrn	_handle_table_size:byte
-
-;
-;   save area for handles
-;
-extrn	_save_map:word
 
 ;
 ; Save area and misc variables for 4.0 function 27
@@ -883,20 +880,16 @@ _SavePageMap	proc	near
 	mov	ax, dx			; Save for later
 	Validate_Handle	<short srpm_inv_handle>
 					; check state of handle's page area
-	mov	bx,ax
-	shl	bx,3			; four saved page-map words per handle
-	add	bx,[_save_map]
-	mov	di,bx			; DS:DI points to handle's save area
-	cmp	[di].s_map,NULL_SAVE_MAP
+	call	PeekSavedMap
+	cmp	bx,NULL_SAVE_MAP
 					;Q: save area in use ?
 	jne	short spm_prev_saved	; Y: return error
 					; N: use it now
 	cld
 	push	ds
 	pop	es
-	Get_FRS_window	SI			; Current FRS page mappings
-	movsd					; move to save area
-	movsd					; Lim 3.2 has only 4 page frames
+	Get_FRS_window	DI			; Current FRS page mappings
+	call	WriteSavedMap
 
 	mov	byte ptr [bp.rAX+1],OK	; ok return
 	ret
@@ -944,16 +937,19 @@ _SavePageMap	endp
 Dword_Align	_TEXT
 _RestorePageMap	proc	near
 	cmp	[_page_frame_pages], 4
-	jb	short rrpm_nopf		; no page frame
+	jb	rrpm_nopf		; no page frame
 
 	mov	ax, dx			; Save for later
 	Validate_Handle	rrpm_inv_handle
 					; check state of handle's page area
-	mov	bx,ax
-	shl	bx,3			; four saved page-map words per handle
-	add	bx,[_save_map]
-	mov	si,bx			; DS:SI points to handle's save area
-	cmp	[si].s_map,NULL_SAVE_MAP
+	push	ax			; validated handle, outside the four-word snapshot
+	sub	sp,8
+	mov	si,sp
+	mov	di,si
+	push	ss
+	pop	es
+	call	ReadSavedMap
+	cmp	word ptr ss:[si],NULL_SAVE_MAP
 					;Q: save area in use ?
 	je	short rpm_no_map_saved	; N: return error
 					; Y: restore it
@@ -968,7 +964,7 @@ _RestorePageMap	proc	near
 	mov	cx,4
 	xor	ax,ax
 rpm_apply:
-	mov	bx,[si]
+	mov	bx,ss:[si]
 	cmp	bx,[di]
 	je	short rpm_next
 	cmp	bx,NULL_PAGE
@@ -987,16 +983,20 @@ rpm_next:
 	add	di,2
 	inc	ax
 	loop	rpm_apply
-	mov	word ptr [si-SIZE SaveMap_struc],NULL_SAVE_MAP
+	add	sp,8
+	pop	ax
+	call	ClearSavedMap
 					; release the saved-map slot
 	mov	eax,cr3
 	mov	cr3,eax
 	ret
 rpm_corrupt:
+	add	sp,10
 	mov	byte ptr [bp.rAX+1],SOURCE_CORRUPTED
 	ret
 
 rpm_no_map_saved:
+	add	sp,10
 	mov	byte ptr [bp.rAX+1],NO_MAP_SAVED
 	ret
 

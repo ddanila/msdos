@@ -143,13 +143,6 @@
 /*extern char		map_known; */
 
 /*
- * save_map
- *	This is an array of structures that save the 
- *	current mapping state. Size is dynamically determined.
- */
-extern struct save_map *save_map;
-
-/*
  * handle_table
  *	This is an array of handle pointers.
  *	page_index of zero means free
@@ -426,7 +419,7 @@ DeallocatePages()
 	/*
 	 * check for save area in use for this handle
 	 */
-	if( save_map[ (handle & 0x00FF) ].window[0] != NULL_SAVE_MAP )
+	if( SavedMapInUse(handle & 0x00FF) )
 	{
 		setAH(SAVED_PAGE_DEALLOC);
 		return;

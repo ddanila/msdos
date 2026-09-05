@@ -126,6 +126,7 @@ extern unsigned ReadHandleName();
 extern unsigned WriteHandleName();
 extern unsigned ClearHandleName();
 extern unsigned MatchHandleName();
+extern unsigned SavedMapInUse();
 
 /*
  * Handle_Dir_Entry

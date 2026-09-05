@@ -124,7 +124,7 @@ extrn	_Handle_Name_Table:word
 ;
 ;   save area for handles
 ;
-extrn	_save_map:byte
+extrn	_save_map:word
 
 _DATA	ENDS
 
@@ -609,6 +609,84 @@ HandleNameExit:
         pop bp
         ret
 _MatchHandleName endp
+
+; Saved-map services: AX is a validated handle index. Read/write exchange
+; exactly four words with ES:DI, which may name a caller's distinct stack.
+; The table's near pointer never escapes this owner boundary.
+        public ReadSavedMap, WriteSavedMap, ClearSavedMap, PeekSavedMap
+        public _SavedMapInUse
+PeekSavedMap proc near
+        push si
+        mov si,ax
+        shl si,3
+        add si,[_save_map]
+        mov bx,[si]
+        pop si
+        ret
+PeekSavedMap endp
+_SavedMapInUse proc near
+        push bp
+        mov bp,sp
+        push bx
+        mov ax,[bp+4]
+        call PeekSavedMap
+        xor ax,ax
+        cmp bx,NULL_SAVE_MAP
+        je short SavedMapUnused
+        dec ax
+SavedMapUnused:
+        pop bx
+        pop bp
+        ret
+_SavedMapInUse endp
+ClearSavedMap proc near
+        push si
+        mov si,ax
+        shl si,3
+        add si,[_save_map]
+        mov word ptr [si],NULL_SAVE_MAP
+        pop si
+        ret
+ClearSavedMap endp
+ReadSavedMap proc near
+        push si
+        push di
+        push cx
+        mov si,ax
+        shl si,3
+        add si,[_save_map]
+        mov cx,4
+        cld
+        rep movsw
+        pop cx
+        pop di
+        pop si
+        ret
+ReadSavedMap endp
+WriteSavedMap proc near
+        push si
+        push di
+        push cx
+        push ds
+        push es
+        mov si,di
+        mov di,ax
+        shl di,3
+        add di,[_save_map]
+        push es
+        push ds
+        pop es
+        pop ds
+        mov cx,4
+        cld
+        rep movsw
+        pop es
+        pop ds
+        pop cx
+        pop di
+        pop si
+        ret
+WriteSavedMap endp
 
 	page
 ;**	SetDescInfoResident - set descriptor information

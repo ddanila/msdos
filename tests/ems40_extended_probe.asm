@@ -44,6 +44,7 @@ start:
     int 67h
     cmp ah, 8eh                       ; no map remains saved
     jne fail_restore
+    call saved_map_owners
 
     ; 49/4A are explicitly unsupported by this software EMM.
     mov ah, 49h
@@ -527,6 +528,70 @@ jump_target_segment:
     mov ax, 4c00h
     int 21h
 
+; Two live saved contexts must retain independent slot contents. Restoring
+; one releases only that handle's save slot, not the other owner's snapshot.
+saved_map_owners:
+    mov ah,41h
+    int 67h
+    test ah,ah
+    jnz fail_save
+    mov es,bx
+    mov bx,1
+    mov ah,43h
+    int 67h
+    test ah,ah
+    jnz fail_save
+    mov [saved_owner],dx
+    mov dx,[handle]
+    xor bx,bx
+    mov ax,4400h
+    int 67h
+    test ah,ah
+    jnz fail_save
+    mov word [es:0],1234h
+    mov ah,47h
+    int 67h
+    test ah,ah
+    jnz fail_save
+    mov dx,[saved_owner]
+    xor bx,bx
+    mov ax,4400h
+    int 67h
+    test ah,ah
+    jnz fail_save
+    mov word [es:0],5678h
+    mov ah,47h
+    int 67h
+    test ah,ah
+    jnz fail_save
+    mov dx,[handle]
+    mov ah,48h
+    int 67h
+    test ah,ah
+    jnz fail_restore
+    cmp word [es:0],1234h
+    jne fail_restore
+    mov dx,[saved_owner]
+    mov ah,48h
+    int 67h
+    test ah,ah
+    jnz fail_restore
+    cmp word [es:0],5678h
+    jne fail_restore
+    mov bx,0ffffh
+    mov ax,4400h
+    int 67h
+    test ah,ah
+    jnz fail_restore
+    mov dx,[saved_owner]
+    mov ah,45h
+    int 67h
+    test ah,ah
+    jnz fail_release
+    push cs
+    pop es
+    ret
+
 find_handle_pages:
     push ax
     push bx
@@ -614,6 +679,7 @@ os_key_high dw 0
 handle_name db 'PARITY40'
 other_name db 'PARITY41'
 name_handle dw 0
+saved_owner dw 0
 name_result times 8 db 0
 name_directory times 256 db 0
 handle_pages times 256 db 0
