@@ -374,6 +374,7 @@ jump_target_segment:
     jnz fail_alter
     cmp byte [call_seen], 1
     jne fail_alter
+    call release_callback_set
     mov byte [call_seen], 0
     mov word [call_struct], call_target
     mov word [call_struct+5], map_array_segment
@@ -386,6 +387,7 @@ jump_target_segment:
     jnz fail_alter
     cmp byte [call_seen], 1
     jne fail_alter
+    call release_callback_set
 
     ; 57: conventional -> EMS -> conventional move, then byte comparison.
     mov ax, cs
@@ -740,8 +742,33 @@ find_handle_pages:
     ret
 
 call_target:
+    ; Allocate the adjacent FRS while the caller's raw-map snapshot is saved.
+    ; Restoring that snapshot must not overwrite this new allocation flag.
+    push ax
+    push bx
+    mov ax,5b03h
+    int 67h
+    test ah,ah
+    jnz .allocation_failed
+    mov [cs:call_alt_set],bl
     mov byte [cs:call_seen], 1
+    jmp .done
+.allocation_failed:
+    mov byte [cs:call_seen],2
+.done:
+    pop bx
+    pop ax
     retf
+
+release_callback_set:
+    mov bl,[call_alt_set]
+    mov ax,5b04h
+    int 67h
+    test ah,ah
+    jnz fail_alter
+    ret
+
+call_alt_set db 0
 
 fail_alloc:       mov dx, msg_alloc
                   jmp fail

@@ -57,6 +57,7 @@ _TEXT	segment
         extrn ReadWindowIndex:near
         extrn ReadCurrentMapEntry:near, WriteCurrentMapEntry:near
         extrn ReadCurrentMap:near, SaveCurrentFrame:near
+        extrn WriteCurrentMapFromFS:near
         extrn physical_to_external_id:near
 	IFNDEF	EMMP_QUERY_ONLY
 	public	_MapHandlePage
@@ -1824,9 +1825,11 @@ _AlterMapAndCall    PROC    NEAR
 
 	push	si
 	push	di
-	get_FRS_Window		SI		; DS:SI <-- mapping context
-	shr	ecx, 1				; move words
-	rep movsw
+	movzx	ecx,[_cntxt_pages]
+	call	ReadCurrentMap
+	; Keep the documented stack reservation, but never copy its two bytes
+	; of header allowance from the neighboring internal FRS record.
+	mov	word ptr es:[di],0
 
 	pop	di
 	pop	si
@@ -2013,14 +2016,11 @@ AMC_return_high proc near
 
 	push	es
 	pop	ds			; DGROUP
-	get_FRS_Window	DI		; ES:DI <-- FRS mapping context regs
+	movzx	cx,[_cntxt_pages]
+	call	WriteCurrentMapFromFS
+	add	si,2			; skip reserved padding, not another map word
 	push	fs
 	pop	ds			; DS:SI <-- client's stack
-	xor	ch, ch
-	mov	cl, ES:[_cntxt_bytes]
-	shr	cx, 1			; move word
-	cld
-	rep movsw
 	;
 	; map old mapping
 	;

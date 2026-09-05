@@ -402,17 +402,19 @@ Ordinary full-map export now snapshots through `ReadCurrentMap`; full-map and
 saved-handle restoration compare indexed current values, leaving unchanged
 UMB mappings alone. Saving a handle's four frame entries stays entirely inside
 the table owner. Rebuilding mapped windows also reads values by index.
-Alter-map-and-call, move/exchange's two-window snapshot and alternate-set
-switching still carry FRS pointers. These must be separated before the complete
+Move/exchange's two-window snapshot and alternate-set switching still carry
+FRS pointers. These must be separated before the complete
 block can move. No high copy or reclamation exists.
 
-Count boundary for the next conversion: EMMINIT rounds `_cntxt_pages` up to an
+Count boundary: EMMINIT rounds `_cntxt_pages` up to an
 even word count; `_cntxt_bytes` adds a two-byte public header. Internal FRS
 records have a one-byte allocation flag followed by only the mapping words.
-Alter-map-and-call currently copies `_cntxt_bytes` from/to that raw map, thus
-including two bytes beyond its mapping payload. Audit its stack layout and
-test adjacent alternate-set preservation when fixing this; a successful call
-alone does not prove it preserves the neighboring record. The alternate-map
+Alter-map-and-call now copies only `_cntxt_pages` words through owner services,
+with two initialized padding bytes preserving its advertised stack reservation.
+Its former `_cntxt_bytes` raw copy read/wrote into the adjacent FRS record.
+The regression allocates that neighboring alternate set inside each callback
+and deallocates it after return: it failed before the fix and passes for both
+physical-page and segment-address call forms afterward. The alternate-map
 dword copy does not lose an odd word under the current rounded-count rule.
 
 The expanded EMS lifecycle probe checks two independent saved contexts and

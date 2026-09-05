@@ -544,7 +544,7 @@ WriteCurrentMapEntry endp
 
 ; Snapshot CX current mapping words to caller-owned ES:DI. DI advances;
 ; preserve CX/SI and the low data segment. Callers supply a bounded count.
-        public ReadCurrentMap, SaveCurrentFrame
+        public ReadCurrentMap, WriteCurrentMapFromFS, SaveCurrentFrame
 ReadCurrentMap proc near
         push si
         push cx
@@ -556,6 +556,27 @@ ReadCurrentMap proc near
         pop si
         ret
 ReadCurrentMap endp
+
+; Copy CX raw mapping words from FS:SI into the current map. SI advances;
+; consume CX, preserve AX/BX/DX/DI and caller DS/ES. There is no public header
+; in the internal record and no adjacent allocation flag may be overwritten.
+WriteCurrentMapFromFS proc near
+        push ds
+        push es
+        push di
+        mov di,word ptr [CurRegSet]
+        add di,FRS_window
+        push ds
+        pop es
+        push fs
+        pop ds
+        cld
+        rep movsw
+        pop di
+        pop es
+        pop ds
+        ret
+WriteCurrentMapFromFS endp
 
 ; AX validated handle: save the four LIM frame entries inside the table owner.
 ; The intermediate current-map pointer is private to EMMSUP.
