@@ -75,6 +75,8 @@ def main():
     parser.add_argument("--ansi-low", action="store_true", help="control: load the same ANSI driver with DEVICE")
     parser.add_argument("--umb-read", action="store_true", help="compare file reads/writes through low/upper allocations")
     parser.add_argument("--umb-last", action="store_true", help="use upper last-fit for the direct I/O probe")
+    parser.add_argument("--umb-ems", action="store_true",
+                        help="rotate and verify live EMS mappings between UMB reads/writes")
     parser.add_argument("--umb-span", type=int, choices=(12, 32), default=12,
                         help="I/O allocation size in KiB; 32 exercises multiple backing pages")
     parser.add_argument("--emm386-image", type=Path,
@@ -95,6 +97,8 @@ def main():
         parser.error("--umb-read requires --rebase")
     if args.umb_last and not args.umb_read:
         parser.error("--umb-last requires --umb-read")
+    if args.umb_ems and not args.umb_read:
+        parser.error("--umb-ems requires --umb-read")
     if args.umb_span != 12 and not args.umb_read:
         parser.error("--umb-span requires --umb-read")
     if ansi_enabled and (not args.rebase or (args.ansi_high and args.ansi_low)):
@@ -240,6 +244,7 @@ def main():
             if args.umb_read:
                 run(["nasm", "-f", "bin", f"-DEXPECT_HIGH={int(name == 'emm-high')}",
                      f"-DTARGET_KIB={args.umb_span}", *(["-DUMB_LAST"] if args.umb_last else []),
+                     *(["-DEMS_IO"] if args.umb_ems and name == "emm-high" else []),
                      ROOT / "tests/umb_file_read_probe.asm", "-o", scratch / "UMBREAD.COM"], ROOT)
                 subprocess.run(["mcopy", "-o", "-i", str(image), str(scratch / "UMBREAD.COM"), "::UMBREAD.COM"], env=env, check=True)
             if ansi_enabled:
@@ -279,6 +284,8 @@ def main():
         result = log.read_bytes()
         passed = b"BIOS_LOW_BOOT_PASS" in result
         io_passes = 2 if args.warm_reset else 1
+        if args.umb_ems and name == "emm-high" and result.count(b"UMB_EMS_IO_PASS") != io_passes:
+            raise RuntimeError(f"EMS/UMB I/O isolation failed: {log}\n{result.decode(errors='replace')}")
         if args.umb_read and (result.count(b"UMB_FILE_READ_PASS") != io_passes
                               or re.search(rb"UMB_FILE_READ_[^\r\n]*FAIL", result)):
             raise RuntimeError(f"direct memory I/O failed: {log}\n{result.decode(errors='replace')}")

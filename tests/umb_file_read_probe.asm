@@ -88,6 +88,9 @@ start:
     mov ah,3eh
     int 21h
     jc fail
+%ifdef EMS_IO
+    call ems_start
+%endif
     mov word [test_index],0
     mov word [offset_index],0
 .case:
@@ -122,6 +125,9 @@ start:
     mov ax,0cccch
     mov cx,TARGET_KIB*512
     rep stosw
+%ifdef EMS_IO
+    call ems_rotate
+%endif
     mov bx,[handle]
     mov cx,[count]
     mov dx,[transfer_offset]
@@ -133,25 +139,28 @@ start:
     jc fail
     cmp ax,[count]
     jne fail
-    mov es,[target]
-    mov si,data
-    mov di,[transfer_offset]
-    mov cx,[count]
-    repe cmpsb
-    jne data_fail
-    mov bx,[transfer_offset]
-    or bx,bx
-    jz .no_prefix
-    cmp byte [es:bx-1],0cch
-    jne data_fail
-.no_prefix:
-    cmp byte [es:di],0cch
-    jne data_fail
+    call check_target
+%ifdef EMS_IO
+    mov dx,ems_read_done
+    mov ah,09h
+    int 21h
+%endif
     mov bx,[handle]
     mov ah,3eh
     int 21h
     jc fail
+%ifdef EMS_IO
+    call ems_verify
+    call ems_rotate
+%endif
     call check_write
+    call check_target
+%ifdef EMS_IO
+    mov dx,ems_write_done
+    mov ah,09h
+    int 21h
+    call ems_verify
+%endif
     add word [test_index],2
     cmp word [test_index],sizes_end-sizes
     jb .case
@@ -159,6 +168,9 @@ start:
     add word [offset_index],2
     cmp word [offset_index],offsets_end-offsets
     jb .case
+%ifdef EMS_IO
+    call ems_finish
+%endif
     mov dx,filename
     mov ah,41h
     int 21h
@@ -191,6 +203,134 @@ print_fail:
     int 21h
     mov ax,4c01h
     int 21h
+check_target:
+    mov es,[target]
+    mov si,data
+    mov di,[transfer_offset]
+    mov cx,[count]
+    repe cmpsb
+    jne data_fail
+    mov bx,[transfer_offset]
+    or bx,bx
+    jz .no_prefix
+    cmp byte [es:bx-1],0cch
+    jne data_fail
+.no_prefix:
+    cmp byte [es:di],0cch
+    jne data_fail
+    ret
+
+%ifdef EMS_IO
+; Keep all four EMS pages live during I/O. Rotate every frame slot before each
+; read/write and verify the complete 64 KiB payload after each transfer pair.
+; These are interleaved synchronous operations, not calls from a DMA interrupt.
+ems_start:
+    mov ah,41h
+    int 67h
+    test ah,ah
+    jnz ems_fail
+    mov [ems_frame],bx
+    mov dx,ems_frame_message
+    mov ah,09h
+    int 21h
+    mov bp,[ems_frame]
+    call hex
+    mov dx,newline
+    mov ah,09h
+    int 21h
+    mov bx,4
+    mov ah,43h
+    int 67h
+    test ah,ah
+    jnz ems_fail
+    mov [ems_handle],dx
+    mov ah,47h
+    int 67h
+    test ah,ah
+    jnz ems_fail
+    mov word [ems_round],3
+    call ems_rotate
+    mov es,[ems_frame]
+    xor di,di
+    mov ax,0a500h
+.seed:
+    mov cx,8192
+    rep stosw
+    inc ax
+    or di,di
+    jnz .seed
+    ret
+ems_rotate:
+    pusha
+    inc word [ems_round]
+    and word [ems_round],3
+    xor si,si
+.slot:
+    mov ax,si
+    mov bx,si
+    add bx,[ems_round]
+    and bx,3
+    mov dx,[ems_handle]
+    mov ah,44h
+    int 67h
+    test ah,ah
+    jnz ems_fail
+    inc si
+    cmp si,4
+    jb .slot
+    popa
+    ret
+ems_verify:
+    pusha
+    push es
+    mov es,[ems_frame]
+    xor si,si
+    xor di,di
+.slot:
+    mov ax,si
+    add ax,[ems_round]
+    and ax,3
+    add ax,0a500h
+    mov cx,8192
+    repe scasw
+    jne ems_fail
+    inc si
+    cmp si,4
+    jb .slot
+    pop es
+    popa
+    ret
+ems_finish:
+    mov dx,[ems_handle]
+    mov ah,48h
+    int 67h
+    test ah,ah
+    jnz ems_fail
+    mov dx,[ems_handle]
+    mov ah,45h
+    int 67h
+    test ah,ah
+    jnz ems_fail
+    mov dx,ems_passed
+    mov ah,09h
+    int 21h
+    ret
+ems_fail:
+    push cs
+    pop ds
+    mov dx,ems_failed
+    jmp print_fail
+ems_handle dw 0
+ems_frame dw 0
+ems_round dw 0
+ems_passed db 'UMB_EMS_IO_PASS',13,10,'$'
+ems_frame_message db 'UMB_EMS_FRAME=$'
+ems_read_done db 'UMB_EMS_READ_DONE',13,10,'$'
+ems_write_done db 'UMB_EMS_WRITE_DONE',13,10,'$'
+ems_write_sent db 'UMB_EMS_WRITE_SENT',13,10,'$'
+ems_failed db 'UMB_FILE_READ_EMS_FAIL',13,10,'$'
+%endif
+
 check_write:
     mov dx,write_name
     xor cx,cx
@@ -209,6 +349,11 @@ check_write:
     jc fail
     cmp ax,[count]
     jne fail
+%ifdef EMS_IO
+    mov dx,ems_write_sent
+    mov ah,09h
+    int 21h
+%endif
     mov bx,[handle]
     mov ah,3eh
     int 21h

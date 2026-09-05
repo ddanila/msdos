@@ -1565,7 +1565,7 @@ reset, requiring the I/O success marker on both boots. No passing case alone
 establishes physical-boundary coverage.
 `make test-himem-qemu` also passes XMS, concurrent UMB/EMS isolation, provider
 activation/rollback, and warm reboot. Its patterned-UMB remapping check does
-not perform DMA during remapping, so that combined case remains open below.
+not replace the interleaved I/O test below or asynchronous DMA coverage.
 
 ```sh
 make test-bios-umb-io-qemu
@@ -1594,8 +1594,9 @@ python3 tests/test_bios_low_boot_qemu.py \
 The harness builds the diagnostic EMM386 in its temporary output directory;
 `UMB_TEST_REVERSE_FREE` is absent from distribution builds. `--emm386-image`
 also accepts a separately built local diagnostic binary. The focused target
-passes fourteen cases: the original twelve plus reversed-backing first-fit and
-reversed last-fit across warm reset. Both boots must pass the I/O probe.
+passes seventeen cases: the original twelve, reversed-backing first-fit and
+reversed last-fit across warm reset, and three interleaved EMS/I/O cases below.
+Both boots must pass the I/O probe.
 
 `Commit_UMB` now selects below-16-MiB backing that is physically contiguous
 within each virtual 128 KiB DMA region and preserves the virtual address modulo
@@ -1621,6 +1622,39 @@ not substitute for testing naturally
 fragmented/limited pools, word-channel DMA, or DMA concurrent with EMS remaps.
 General EMS DMA and third-party mapping contracts remain separate acceptance
 requirements; the full BIOS/table promotion gate is not yet closed.
+
+`--umb-ems` holds four patterned EMS pages while rotating all four frame slots
+before each UMB read and write. It verifies the complete 64 KiB EMS payload and
+the requested UMB data, saves/restores the caller's frame context with AH=47h/
+48h, and releases the handle. These are interleaved synchronous operations,
+not EMS calls from a DMA interrupt. The normal 32 KiB case, reversed last-fit
+across warm reset, and high ANSI/SHARE retained-cache case pass. The harness
+requires both EMS/I/O and subsequent DOS system/FCB/table success markers.
+
+This exposed a separate AH=48h restore bug: `_RestorePageMap` copied four saved
+words, then rebuilt every physical window via `_set_windows`, resetting
+unrelated mappings. The probe printed its I/O success but could not return to
+the later DOS checks; omitting context save/restore isolated the failure. The
+restore now compares/applies only the four LIM frame slots and flushes the TLB,
+leaving unrelated windows untouched. The combined test and extended EMS/API
+suites pass, and the residency census remains at 3,888 bytes.
+
+**Open low-BIOS control:** the same interleaved test with forced high-BIOS
+reservation failure stalls in its first 8,192-byte, offset-zero case, before
+completing the probe. The read completes; the write half does not reach its
+successful AH=40h completion marker. It reproduces with the AH=48h fix and must
+be investigated independently; the high-BIOS pass does not qualify low fallback.
+Reproduce with:
+
+```sh
+python3 tests/test_bios_low_boot_qemu.py \
+  --early --tail-body --rebase --compact --umb-read --umb-span 32 \
+  --umb-ems --mode emm-high --fail-reservation
+```
+
+Per-case read/write completion markers distinguish transfer stages. Keep this
+failure and the remaining word-channel/naturally constrained-pool checks open
+before removing the raw-overlay workaround or promoting the relocated layout.
 
 The process suite independently checks raw overlays of 0, 1, 511, 512, 513,
 9,109, 65,534, and 65,535 bytes in conventional storage. It checks every loaded

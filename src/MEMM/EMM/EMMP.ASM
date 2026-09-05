@@ -963,11 +963,38 @@ _RestorePageMap	proc	near
 	push	ds
 	pop	es				; ES <-- DGROUP
 	cld
-	movsd					; restore 4 words
-	movsd					; Lim 3.2 has only 4 page frames
+; LIM 3.2 restores only its four frame slots. Rebuilding every physical window
+; also resets unchanged non-frame/UMB mappings and can discard live DOS state.
+	mov	cx,4
+	xor	ax,ax
+rpm_apply:
+	mov	bx,[si]
+	cmp	bx,[di]
+	je	short rpm_next
+	cmp	bx,NULL_PAGE
+	je	short rpm_unmap
+	push	ax
+	call	map_EMM_page
+	pop	ax
+	jc	short rpm_corrupt
+	jmp	short rpm_next
+rpm_unmap:
+	push	ax
+	call	unmap_page
+	pop	ax
+rpm_next:
+	add	si,2
+	add	di,2
+	inc	ax
+	loop	rpm_apply
 	mov	word ptr [si-SIZE SaveMap_struc],NULL_SAVE_MAP
 					; release the saved-map slot
-	jmp	_set_windows			; Restore mapping
+	mov	eax,cr3
+	mov	cr3,eax
+	ret
+rpm_corrupt:
+	mov	byte ptr [bp.rAX+1],SOURCE_CORRUPTED
+	ret
 
 rpm_no_map_saved:
 	mov	byte ptr [bp.rAX+1],NO_MAP_SAVED
