@@ -542,6 +542,36 @@ WriteCurrentMapEntry proc near
         ret
 WriteCurrentMapEntry endp
 
+; Snapshot CX current mapping words to caller-owned ES:DI. DI advances;
+; preserve CX/SI and the low data segment. Callers supply a bounded count.
+        public ReadCurrentMap, SaveCurrentFrame
+ReadCurrentMap proc near
+        push si
+        push cx
+        mov si,word ptr [CurRegSet]
+        add si,FRS_window
+        cld
+        rep movsw
+        pop cx
+        pop si
+        ret
+ReadCurrentMap endp
+
+; AX validated handle: save the four LIM frame entries inside the table owner.
+; The intermediate current-map pointer is private to EMMSUP.
+SaveCurrentFrame proc near
+        push es
+        push di
+        push ds
+        pop es
+        mov di,word ptr [CurRegSet]
+        add di,FRS_window
+        call WriteSavedMap
+        pop di
+        pop es
+        ret
+SaveCurrentFrame endp
+
 ; AX internal physical page -> AL public Pn= identifier. Retain the complete
 ; explicit/implicit ranking operation with its sparse table owner.
         public physical_to_external_id

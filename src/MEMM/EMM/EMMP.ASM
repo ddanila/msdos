@@ -49,13 +49,14 @@ page	58,132
 ;	P U B L I C S
 ;******************************************************************************
 _TEXT	segment
-        extrn ReadSavedMap:near, WriteSavedMap:near
+        extrn ReadSavedMap:near
         extrn PeekSavedMap:near, ClearSavedMap:near
         extrn CheckHandleDX:near, ReadHandleIndex:near, ReadHandleCount:near
         extrn ReadPageEntry:near
         extrn ReadPftEntry:near
         extrn ReadWindowIndex:near
         extrn ReadCurrentMapEntry:near, WriteCurrentMapEntry:near
+        extrn ReadCurrentMap:near, SaveCurrentFrame:near
         extrn physical_to_external_id:near
 	IFNDEF	EMMP_QUERY_ONLY
 	public	_MapHandlePage
@@ -885,11 +886,7 @@ _SavePageMap	proc	near
 					;Q: save area in use ?
 	jne	short spm_prev_saved	; Y: return error
 					; N: use it now
-	cld
-	push	ds
-	pop	es
-	Get_FRS_window	DI			; Current FRS page mappings
-	call	WriteSavedMap
+	call	SaveCurrentFrame
 
 	mov	byte ptr [bp.rAX+1],OK	; ok return
 	ret
@@ -955,7 +952,6 @@ _RestorePageMap	proc	near
 					; Y: restore it
 
 	mov	byte ptr [bp.rAX+1],OK		; Assume success
-	Get_FRS_window	DI			; Get pointer to current window
 	push	ds
 	pop	es				; ES <-- DGROUP
 	cld
@@ -965,7 +961,10 @@ _RestorePageMap	proc	near
 	xor	ax,ax
 rpm_apply:
 	mov	bx,ss:[si]
-	cmp	bx,[di]
+	push	ax
+	call	ReadCurrentMapEntry
+	cmp	bx,ax
+	pop	ax
 	je	short rpm_next
 	cmp	bx,NULL_PAGE
 	je	short rpm_unmap
@@ -980,7 +979,6 @@ rpm_unmap:
 	pop	ax
 rpm_next:
 	add	si,2
-	add	di,2
 	inc	ax
 	loop	rpm_apply
 	add	sp,8
@@ -1097,11 +1095,10 @@ _get_map	proc
 	mov	es,dx
 	mov	di,ax				; ES:DI pts to clients buffer
 
-	Get_FRS_window	SI			; Get pointer to current window
 	movzx	ecx, [_cntxt_pages]
 	mov	ax, cx
 	stosw					; save # pages
-	rep movsw				; save every mapping word, including an odd tail
+	call	ReadCurrentMap			; includes an odd final mapping word
 	mov	byte ptr [bp.rAX+1],OK		; ok return
 	ret
 
@@ -1135,8 +1132,6 @@ Dword_Align	_TEXT
 _set_map	proc	near
 
 	mov	byte ptr [bp.rAX+1],OK		; Assume success
-	Get_FRS_window	DI			; Get pointer to current window
-						; before DS gets trashed
 	push	ds
 	pop	es				; use ES to address data
 	push	dx
@@ -1156,12 +1151,14 @@ _set_map	proc	near
 	pop	fs				; FS:SI -> client's saved map
 	push	es
 	pop	ds				; DS <-- DGROUP
-	Get_FRS_window	DI			; current live mappings
 	xor	ax,ax				; physical page index
 sm_apply_loop:
 	mov	bx,fs:[si]
 	add	si,2
-	cmp	bx,[di]
+	push	ax
+	call	ReadCurrentMapEntry
+	cmp	bx,ax
+	pop	ax
 	je	short sm_apply_next		; leave unchanged UMB mappings alone
 	cmp	bx,0ffffh
 	je	short sm_apply_unmap
@@ -1175,7 +1172,6 @@ sm_apply_unmap:
 	call	unmap_Page
 	pop	ax
 sm_apply_next:
-	add	di,2
 	inc	ax
 	loop	sm_apply_loop
 	mov	eax,cr3
@@ -1222,10 +1218,11 @@ _set_map	endp
 _set_windows	proc	near
 ;
 	xor	ax, ax			; start from PHYS page 0
-	Get_FRS_Window	SI		; SI <-- current FRS map
 sw_loop:
-	mov	bx, word ptr [si]	; BX <-- emm page #
-	add	si, 2		  	; prepare for next PHYS page
+	push	ax
+	call	ReadCurrentMapEntry
+	mov	bx,ax
+	pop	ax
 	cmp	bx, 0FFFFh	  	; not mapped ?
 	je	sw_unmap_page		;  Y: unmap it
 	cmp	bx, [_total_pages]	; emm page out of range ?

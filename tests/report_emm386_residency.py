@@ -323,6 +323,8 @@ def main() -> int:
             "ReadWindowIndex",
             "ReadCurrentMapEntry",
             "WriteCurrentMapEntry",
+            "ReadCurrentMap",
+            "SaveCurrentFrame",
             "physical_to_external_id",
             "CheckHandleDX",
             "ReadHandleIndex",
