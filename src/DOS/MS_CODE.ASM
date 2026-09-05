@@ -590,10 +590,13 @@ INT2FDOS:
 INT2F	ENDP
 
 ; IO.SYS enters DOSINIT at the historical fixed offset. Keep the reclaimed
-; low/HMA split paragraph-aligned without shifting that loader ABI.
-	DB	4 DUP (090H)
+; low/HMA split paragraph-aligned without shifting that loader ABI. Two bytes
+; remain low; the other two follow the split so every subsequent offset stays
+; fixed while the conventional allocation ends on a paragraph boundary.
+	DB	2 DUP (090H)
 PUBLIC  DOS_LOW_GATE_END
 DOS_LOW_GATE_END LABEL BYTE
+	DB	2 DUP (090H)
 
 DispatchDOS:
 	PUSH	FOO			; push return address

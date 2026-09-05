@@ -42,7 +42,6 @@ Installed = TRUE
 	I_Need	USER_ID,WORD
 	i_need	JShare,DWORD
 	i_need	HIGH_SECTOR,WORD	 ;F.C. >32mb
-	i_need	OLD_FIRSTCLUS,WORD	  ;F.O. >32mb
 if debug
 	I_need	BugLev,WORD
 	I_need	BugTyp,WORD
@@ -178,11 +177,6 @@ nofcb:
 	MOV	ES:[DI].dir_attr,AL	;FT.					;AN000;
 setattr:
 	OR	BYTE PTR ES:[DI.dir_attr],attr_archive	;Set archive
-	MOV	AX,ES:[DI.dir_first]	;AN011;F.O. save old first clusetr
-	MOV	[OLD_FIRSTCLUS],AX	;AN011;F.O. save old first clusetr
-
-	MOV	AX,[SI.sf_firclus]
-	MOV	ES:[DI.dir_first],AX	;Set firclus pointer
 	MOV	AX,WORD PTR [SI.sf_size]
 	MOV	ES:[DI.dir_size_l],AX	;Set size
 	MOV	AX,WORD PTR [SI.sf_size+2]
@@ -215,16 +209,17 @@ yesdirty:
 	MOV	DL,AL			; drive number A=0, B=1,,,
 	OR	CX,CX			  ;AN005; first cluster 0; may be truncated
 	JNZ	do_update2		  ;AN005; no, do update
+	MOV	ES:[DI.dir_first],CX	  ;AN011; install the zero first cluster
 	MOV	AH,3			  ;AN005; do a delete cache entry
 	MOV	DI,WORD PTR [SI.sf_dirsec]   ;AN005; cx:di = dir sector
 	MOV	CX,WORD PTR [SI.sf_dirsec+2] ;AN005;
 	MOV	DH,[SI.sf_dirpos]	     ;AN005; dh= dir pos
 	JMP	SHORT do_update 	;AN011;F.O.
 do_update2:				;AN011;F.O.
-	CMP	CX,[OLD_FIRSTCLUS]	;AN011;F.O. same as old first clusetr?
+	CMP	CX,ES:[DI.dir_first]	;AN011;F.O. same as old first cluster?
 	JZ	do_update		;AN011;F.O. yes
 	MOV	AH,2			;AN011;F.O. delete the old entry
-	MOV	CX,[OLD_FIRSTCLUS]	;AN011;F.O.
+	XCHG	CX,ES:[DI.dir_first]	;AN011;F.O. install new, report old
 do_update:				  ;AN005;
 	Context DS
 	invoke	FastOpen_Update 	; invoke fastopen

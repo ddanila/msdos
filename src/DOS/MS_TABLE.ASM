@@ -704,7 +704,6 @@ SWAP_AREA_TABLE  label byte                                                     
         I_am    FIRST_BUFF_ADDR,WORD             ; first buffer address               ;AN000;
         I_am    SPECIAL_VERSION,WORD,<0>         ;AN006; used by INT 2F 47H
         I_am    FAKE_COUNT,<255>                 ;AN008; fake version count
-        I_am    OLD_FIRSTCLUS,WORD               ;AN011; save old first cluster for fastopen
 
 TABLE   ENDS
 
