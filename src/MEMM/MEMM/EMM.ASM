@@ -391,7 +391,6 @@ ErE_GoProt:
 	pop	ds
 	ret
 ErE_Activate:
-	mov	[Active_Status],1
 	call	GoVirtual		;     service request in virtual mode
 ErE_Pcall:
 	mov	[EMM_Flag],TRUE 	; set flag
@@ -435,7 +434,6 @@ _AutoUpdate	proc	near
 ;	jne	AU_exit 		;	    Y: then stay ON...
 	cmp	[_handle_count],1	;	    N:Q: any application handles ?
 	ja	AU_exit 		;		Y: stay ON (handle 0 is internal)
-	mov	[Active_Status],0	;		N: go to OFF state
 	push	ax
 	call	RRProc			; Force processor into real mode
 	pop	ax
@@ -451,8 +449,7 @@ AU_chkoff:
 ;	je	AU_exit 		;;    N: then stay OFF...
 
 AU_ON:					;  Y: turn ON EMM
-	mov	[Active_Status],1	; go to ON state,
-	call	GoVirtual		;  and go to virtual mode (ON)
+	call	GoVirtual		; go to virtual mode (ON)
 AU_exit:
 	ret
 ;
