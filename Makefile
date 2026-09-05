@@ -277,6 +277,11 @@ test-bios-service-crossings: bios
 	python3 tests/report_bios_service_crossings.py
 
 .PHONY: test-bios-high-rom-qemu
+.PHONY: test-bios-high-payload
+test-bios-high-payload: bios
+	python3 tests/test_bios_high_payload.py
+	python3 tests/build_bios_high_payload.py out/bios-high-payload
+
 test-bios-high-rom-qemu: deploy
 	bash tests/test_bios_high_rom_qemu.sh
 

@@ -1604,8 +1604,27 @@ with the low-segment operand probe and twelve result-helper scenarios, the
 twelve source/operand tests pass. This does not validate real device status
 completion under high relocation.
 
-Next, link the isolated body against a concrete import/fixup table and provide
-low-to-high entries for low helpers that recurse into it. Preserve code-table
+The isolated body now links against low-map absolute symbols and a 60-byte
+runtime import table. Reproduce with:
+
+```sh
+make test-bios-high-payload
+```
+
+`out/bios-high-payload/bios-high.bin` contains 5,180 bytes; its JSON manifest
+pins IO.SYS and low-map hashes, records exported entry offsets, and names all
+twenty runtime slots with their widths and intended low targets. All runtime
+slots are zero: this is an uninstalled development payload, not callable code.
+The builder infers 269 internal offset16 fixups from links at origins zero
+and one, then verifies exact rebased bytes against independent links at 16,
+`0123h`, and `4000h`. This checks the current payload's relocation model, not
+a general OMF format implementation. Low absolute offsets remain fixed; code
+and import-slot references move together. Four tests cover the real build,
+word carries, malformed differences, overlap, and segment/offset overflow.
+
+Next, bind the runtime imports and provide low-to-high entries for low helpers
+that recurse into the body, then execute it at a real allocated HMA offset.
+Preserve code-table
 offsets, selected/purged code policy, and ROM-return contracts when binding.
 An assembled 5 KiB payload is not yet an installed high BIOS: the old 3,578-byte
 body must actually be released and its low hole coalesced before counting gain.
