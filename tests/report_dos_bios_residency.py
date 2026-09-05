@@ -322,6 +322,47 @@ def main() -> int:
     print(f"| `Bin_to_bcd` | `{after_day:04X}h` | {bcd_size:,} | `{selected:04X}h` |")
     print(f"| **Selected resident BIOS** | — | — | **{selected:,} bytes** |")
 
+    selected_bios_ranges: list[tuple[str, int | str, int | str]] = [
+        ("Loader entry", 0, "BIO001S"),
+        ("Core BIOS data and device headers", "BIO001S", "BIO001E"),
+        ("Strategy and request dispatch", "BIO001E", "CON$READ"),
+        ("Console services", "CON$READ", "AUX$READ"),
+        ("Auxiliary-device services", "AUX$READ", "PRN$WRIT"),
+        ("Printer services", "PRN$WRIT", "HaveCMOSClock"),
+        ("Clock services", "HaveCMOSClock", "Fat_12_ID"),
+        ("Disk media constants", "Fat_12_ID", "MEDIA$CHK"),
+        ("Media-change and BPB services", "MEDIA$CHK", "READ_SECTOR"),
+        ("Sector and low-level disk I/O", "READ_SECTOR", "DISK"),
+        ("Disk transfer and error paths", "DISK", "GENERIC$IOCTL"),
+        ("Generic disk IOCTL and INT 2F services", "GENERIC$IOCTL", "DISK005S"),
+        ("BIOS model and saved-vector state", "DISK005S", "DISK005E"),
+        ("Disk initialization and reinitialization", "DISK005E", "CLK001S"),
+        ("Clock swap state", "CLK001S", "ENDFLOPPY"),
+        ("First hard-disk descriptor", "ENDFLOPPY", "ENDONEHARD"),
+    ]
+    print("\n### Selected resident BIOS ownership\n")
+    print("| Source range | Bytes | Owner |")
+    print("| ---: | ---: | --- |")
+    selected_bios_total = 0
+    for owner, start_ref, end_ref in selected_bios_ranges:
+        start = require(bios_symbols, start_ref) if isinstance(start_ref, str) else start_ref
+        end = require(bios_symbols, end_ref) if isinstance(end_ref, str) else end_ref
+        if end < start:
+            errors.append(f"BIOS resident range {start_ref}..{end_ref} is reversed")
+        size = end - start
+        selected_bios_total += size
+        print(f"| `{start:04X}h..{end:04X}h` | {size:,} | {owner} |")
+    print(f"| relocated `Daycnt_to_day` | {day_size:,} | CMOS day conversion |")
+    print(f"| relocated `Bin_to_bcd` | {bcd_size:,} | CMOS BCD conversion |")
+    selected_padding = selected - (selected_bios_total + day_size + bcd_size)
+    print(f"| final paragraph alignment | {selected_padding:,} | loader padding |")
+    selected_bios_total += day_size + bcd_size + selected_padding
+    print(f"| **Total** | **{selected_bios_total:,}** | selected resident BIOS |")
+    if require(bios_symbols, "ENDONEHARD") != selected_base:
+        errors.append("ENDONEHARD is no longer paragraph aligned")
+    if selected_bios_total != selected:
+        errors.append("BIOS ownership does not cover the complete selected image")
+
     if errors:
         print("\n## Census errors\n")
         for error in errors:
