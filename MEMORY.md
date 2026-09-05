@@ -757,10 +757,12 @@ path is:
    Continue with coherent cold resident state, using DR-DOS's small
    HMA-resident shell as the measured precedent while preserving every reload
    and asynchronous entry path;
-5. **In progress:** EMM386 now retains a 404-byte dual-mode `_TEXT` gateway;
+5. **Paused:** EMM386 now retains a 375-byte dual-mode `_TEXT` gateway and its
+   3,888-byte live allocation is already 240 bytes smaller than retail.
    `GoVirtual` crosses explicitly into its protected continuation and EMS 56h
-   returns through an explicit low trap gateway. Continue with the remaining
-   transition, fault, and DMA gateways and safe metadata compactions;
+   returns through an explicit low trap gateway. Further byte harvesting is no
+   longer on the critical path; reopen it only for a coherent architectural
+   relocation or a measured residual after DOS placement;
 6. **In progress:** the complete 783-byte DOS system-call dispatcher and the
    contiguous 652-byte absolute-disk, system-return, and INT 2Fh tranche are
    above `DOS_LOW_GATE_END`. DOS=LOW retains the full image; DOS=HIGH has
@@ -794,9 +796,9 @@ until an A/B image measures them.
 | Complete | Audit DR-DOS's HMA-mode advantage | Controlled DR-DOS 6.0 and OpenDOS 7.01 matrices reconcile owner spans, public memory APIs, HMA ownership, optional policies, and warm reset | research complete | No source code used; pinned artifacts, identical inputs, isolated probes, and compatibility modes remain separated |
 | Complete | Census fixed HMA ownership and COMMAND's top-level resident ranges | The checked maps identify 18,076 initially free bytes of DOS-owned HMA tail and exact ownership ranges for the DOS low prefix and selected BIOS image | attribution complete | Deeper COMMAND work is paused; E1 must prove relocation contracts |
 | Paused | Move more COMMAND cold state high or transient | The 1,281-byte normal catalog and 1,166-byte code range are high; 820 of the remaining 955 low service bytes belong to the installed interrupt handler and registered disk callback | under one kilobyte, then better-than-retail opportunities | Resume only as a coherent interrupt/data redesign, not for gateway-scale helpers |
-| 1 | Complete the small EMM386 low gateway backed by locked XMS | Local active EMM386 is 240 bytes below retail after the real IDTR move, VM-frame scratch compaction, low fatal-dialog compaction, and shared control dispatch | create further better-than-retail headroom | Remaining transition, DMA, and fault gateways; inactive `AUTO`; all EMS maps |
-| 2 | Compact EMM386 runtime-sized metadata and alignment | Physical-page IDs, DMA pages, and mappable-window indexes now scale with the selected layout; measured subranges can supplement the gateway redesign | tens to hundreds of bytes per item | Full `H=`/`A=`/`D=`/banking ranges and EMS 4.0 formats |
-| 3 | Classify and relocate eligible DOS low state | The dispatcher and 652-byte absolute/system/INT 2Fh tranche are high; the local system-to-COMMAND span now costs 6,976 bytes more than retail and leaves 5,744 bytes of measured DOS/BIOS remainder | low kilobytes | Classify the remaining tables and mutable state; some low addresses are ABI/BIOS fixed |
+| Paused | Complete the small EMM386 low gateway backed by locked XMS | Local active EMM386 is 240 bytes below retail after the real IDTR move, VM-frame scratch compaction, low fatal-dialog compaction, and shared control dispatch | further better-than-retail headroom | Reopen only for a coherent relocation or measured post-DOS residual; inactive `AUTO` and all EMS maps remain gates |
+| Paused | Compact EMM386 runtime-sized metadata and alignment | Physical-page IDs, DMA pages, and mappable-window indexes now scale with the selected layout | tens to hundreds of bytes per item | Reopen only after the bulk DOS placement result; full option and EMS 4.0 formats remain gates |
+| 1 | Relocate eligible DOS low state as one packed block | The dispatcher and 652-byte absolute/system/INT 2Fh tranche are high; the local system-to-COMMAND span now costs 6,976 bytes more than retail and leaves 5,744 bytes of measured DOS/BIOS remainder | low kilobytes | Start with tables and constants, then eligible mutable workspaces; some low addresses are ABI/BIOS fixed |
 | 3 | Remove MCB/alignment islands or change load order | Compare first-free and every allocation boundary | paragraphs to kilobytes | Identical startup files and stable ownership |
 | 3 | Place eligible permanent allocations high | Local UMB advantage over retail is only 1,216 bytes | at most 1,216 bytes without falling below retail UMB capacity | Must not disguise a conventional regression |
 | 4 | Relocate the EBDA into already-owned safe low storage | Exact 1,024-byte ceiling loss is measured | 1,024 bytes | Physical BIOS/DMA access; destination must not consume the gain |
@@ -872,10 +874,10 @@ capture pass.
 | B3 | HIMEM | Move every remaining parser, CPU/memory detection, destructive test, message, and installation temporary beyond the rounded resident break | Map proves no runtime reference crosses the break; normal and maximum option footprints are budgeted |
 | B4 | HIMEM | If compaction stalls, investigate storing immutable tables or cold state in DOS-owned HMA slack, or a relocation-safe XMS area | Ownership is explicit, third-party XMS coexistence works, and no DOS buffer/HMA capacity is lost |
 | Complete C1 | EMM386 | Maintain byte-range accounting for the current 375-byte low `_TEXT` prefix and 396-byte `_DATA`, including local labels, anonymous gaps, VDATA overlay, discarded loader stack, and paragraph padding | Every retained byte is real-only, dual-mapped, mutable runtime, compatibility state, discarded initialization state, or unresolved |
-| C2 | EMM386 | Compact descriptors, flags, counters, map owners, DMA state, GDT entries, option-sized arrays, VDATA stride, and mutually exclusive workspaces | Normal and maximum `H=`/`A=`/`B=`/`D=`/frame layouts and every EMS 4.0 map format pass |
-| C3 | EMM386 | Move further immutable tables, exception support, protected dispatch, and protected-only routines into the existing locked XMS image | Faults, DMA, mappings, inactive `AUTO`, `ON`/`OFF`, UMBs, and warm reboot pass |
-| C4 | EMM386 | Split ordinary EMS service dispatch from mapping-sensitive activation so services that do not require virtual mode can live in the relocated image | EMS 3.2/4.0, non-empty function 56h maps, alternate sets, and inactive queries pass |
-| C5 in progress | EMM386 | Replace `RRProc` and the return-to-real continuation with a small position-independent low gateway, then relocate the remaining transition module | Init-only `RR_Trap_Init` is high; active 84h/85h handlers remain low until a redesigned continuation passes repeated transitions, faults, modes, shifted loads, and warm reboot |
+| C2 paused | EMM386 | Compact descriptors, flags, counters, map owners, DMA state, GDT entries, option-sized arrays, VDATA stride, and mutually exclusive workspaces | Reopen only after DOS placement establishes a residual; normal and maximum option layouts remain gates |
+| C3 paused | EMM386 | Move further immutable tables, exception support, protected dispatch, and protected-only routines into the existing locked XMS image | Reopen only as a coherent architectural relocation; faults, DMA, mappings, modes, UMBs, and warm reboot remain gates |
+| C4 paused | EMM386 | Split ordinary EMS service dispatch from mapping-sensitive activation so services that do not require virtual mode can live in the relocated image | EMS 3.2/4.0, non-empty function 56h maps, alternate sets, and inactive queries remain gates |
+| C5 paused | EMM386 | Replace `RRProc` and the return-to-real continuation with a small position-independent low gateway, then relocate the remaining transition module | Init-only `RR_Trap_Init` is high; resume only if a post-DOS byte budget justifies redesigning the active 84h/85h continuation |
 | C6 | EMM386 | Revisit the deferred shared exception-message buffer only with a probe around both protected-to-real copies | The buffer is correct before and after return, and installation plus exception dialogs complete |
 | D1 complete | COMMAND | Refine the generated resident byte-range census from lifetime classes to symbol/module ownership | The checked report anchors every permanent-low range and identifies the asynchronous ranges that prevent another simple move |
 | D2 paused | COMMAND | Continue after the completed normal resident catalog relocation with rare formatting, help/error text, and callable services that can safely live high or in the reloadable transient | Resume only as a coherent handler/data redesign; DOS=LOW, `/MSG`, reload, `/F`, batch, pipes, `INT 2Eh`, Ctrl+C, real critical errors, termination, and 286 execution remain gates |
@@ -888,12 +890,13 @@ capture pass.
 | F1 | Architecture | If B through E leave a measured remainder, choose the smallest of the EMM386 gateway split, DOS-low ownership redesign, or COMMAND boundary redesign that covers it with margin | A written byte budget shows why smaller changes cannot reach the target |
 | F2 | Regression | Enforce VC largest block >=618,736, free UMB >=47,888, component budgets, identical inputs, and clean-build reproducibility in the local suite | Floors pass repeatedly and across the supported machine/option matrix; CI remains off until requested |
 
-The immediate execution order is C2-C5: continue the OpenDOS-style small
-EMM386 gateway from the now-relocated EMS services and shared helpers, taking
-measured metadata wins with it. E1-E4 then apply the DOS placement ladder and
-coalesce layout. E5 is a bounded 1,024-byte finishing step. HIMEM stays paused
-unless the measured residual justifies it; deeper COMMAND work and F1 remain
-fallbacks after those larger tranches establish the residual.
+The immediate execution order is now E1-E4: apply the DR-DOS-style bulk DOS
+placement ladder and coalesce layout while the 18,076-byte DOS-owned HMA tail
+can absorb the complete 5,744-byte measured DOS/BIOS remainder. C2-C5 are
+paused because EMM386 is already smaller than retail and further paragraph
+harvesting does not address the dominant owner. E5 is a bounded 1,024-byte
+finishing step. Revisit HIMEM and COMMAND only against the measured residual;
+F1 remains the fallback if the placement work cannot close it.
 
 The EMM386 census is reproducible from a clean linker map:
 
@@ -919,7 +922,7 @@ ends on a paragraph boundary before the 512-byte protected stack, bringing the
 computed and live retained-layout end to 3,888 bytes, 240 bytes below retail.
 Command-line counts
 allow the same layout equation to be checked for other supported configurations.
-C1 is complete; C2 now selects reductions from measured ranges.
+C1 is complete; C2-C5 remain measured fallback work after DOS placement.
 
 ### Decision gates
 
@@ -929,7 +932,7 @@ C1 is complete; C2 now selects reductions from measured ranges.
 | Attribution | All conventional ranges and every EMM386, HIMEM, and COMMAND resident symbol have an owner, lifetime, and size | EMM386 symbol ownership and HIMEM allocation-range accounting are complete; COMMAND plus deeper DOS and BIOS ownership remain |
 | Safe compaction exhausted | Every low-risk candidate has an A/B component delta and VC largest-block delta | Calculate the exact architectural/layout remainder |
 | Layout route chosen | EBDA destination and all low islands are proved safe, or their gains are rejected explicitly | Implement only gains that join the largest block |
-| Architecture justified | DR-DOS measurements identify a roughly 5 KiB resident shell and OpenDOS a small EMM386 gateway as portable precedents | Try COMMAND/HMA first, then the EMM386 protected/XMS gateway; size later DOS/layout work from the new residual |
+| Architecture justified | DR-DOS measurements identify bulk kernel, shell, buffer, and DOS-state placement; local EMM386 is already below retail | Build the packed DOS high-state block first, then size COMMAND, HIMEM, EBDA, or gateway work from the residual |
 | Target reached | VC reports at least 618,736 bytes and usable UMB capacity is at least 47,888 bytes | Run all compatibility gates and establish regression floors |
 
 At each gate, update the baseline rather than carrying projected savings
@@ -1237,9 +1240,9 @@ block.
 | Complete | Split the remaining COMMAND service census | The normal catalogs and 1,166-byte relocatable code range are high; the checked 955-byte low range is now divided into nine ownership spans | 820 bytes are asynchronous or registered handlers; independent helpers are gateway-scale |
 | Paused | Move more COMMAND cold state high or transient | COMMAND remains 880 bytes above retail and DR-DOS demonstrates a smaller resident shell | Resume as a coherent interrupt/data redesign after larger workstreams, preserving reload and asynchronous paths |
 | Complete | Close the EMM386 mode-transition regression | Narrowed EMS counters retained stale 16-bit C declarations and two FRS paths retained word reads; inactive modes also disabled physical A20 despite an enabled logical client state | C and assembly widths now agree, the return path preserves logical A20 state, and default, `AUTO`, `RAM`, and `NOEMS` boot with `DOS=HIGH` in the address-phase gate |
-| 2 | Complete the EMM386 low gateway | The active 3,888-byte allocation is 240 bytes below retail after loading the real IDTR before clearing PE, compacting VM-frame scratch around a packed atomic `IRET`, shortening the duplicated low fatal-dialog wording, and sharing explicit `ON`/`OFF` dispatch while retaining pre-transition state publication; the required registers, segments, flags, interrupt-state, error number, recovery choices, and `AUTO` semantics remain intact | Redesign the remaining transition, DMA, and fault gateways for further headroom; preserve inactive `AUTO` and every EMS map |
-| 2 | Compact EMM386 metadata while changing that boundary | The loader stack is discarded, duplicate PTE offsets and inverse segment index are gone, physical-window segments, public `Pn=` identifiers, DMA pages, mappable-window indexes, bounded counters, and parity-vector state are runtime-sized, narrowed, derived, shared, or protected-high; protected entry/services/helpers are high, the two-function control gateway is table-free, the production GDT omits six debugger and six unused legacy descriptors, and `NOHIMEM` hooks are absent. A tested bundle removed ten cached low-data bytes (`_regp` segment, free-page count, saved-map and sparse-page pointers, context size, and frame-page count), but enlarged protected code and left both the then-current live owner and VC unchanged | The current selected tail ends at raw `0D2Fh` and rounds to `0D30h`; require a coherent reduction to `0D20h` or below—15 raw bytes—before retaining another tranche. Prefer gateway work unless a bundle meets that measured boundary without a material speed penalty |
-| 5 in progress | Census and relocate eligible DOS low state | The dispatcher and contiguous 652-byte absolute/system/INT 2Fh tranche are HMA-resident under DOS=HIGH, reducing the DOS gateway to 5,392 bytes and the DOS/BIOS remainder to 5,744 bytes | Classify the remaining tables and mutable state, then apply HMA, relocation-safe XMS, and bounded UMB placement |
+| Paused | Complete the EMM386 low gateway | The active 3,888-byte allocation is 240 bytes below retail after loading the real IDTR before clearing PE, compacting VM-frame scratch around a packed atomic `IRET`, shortening the duplicated low fatal-dialog wording, and sharing explicit `ON`/`OFF` dispatch while retaining pre-transition state publication | Reopen only for a coherent relocation or post-DOS residual; preserve inactive `AUTO` and every EMS map |
+| Paused | Compact EMM386 metadata while changing that boundary | The loader stack is discarded, duplicate PTE offsets and inverse segment index are gone, physical-window segments, public `Pn=` identifiers, DMA pages, mappable-window indexes, bounded counters, and parity-vector state are runtime-sized, narrowed, derived, shared, or protected-high | The selected tail ends at `0D2Fh`; retain this boundary until a later byte budget justifies reopening it |
+| 1 in progress | Relocate eligible DOS low state as one packed block | The dispatcher and contiguous 652-byte absolute/system/INT 2Fh tranche are HMA-resident under DOS=HIGH, reducing the DOS gateway to 5,392 bytes and the DOS/BIOS remainder to 5,744 bytes | Move tables and constants as a group, then eligible mutable state through HMA, relocation-safe XMS, and bounded UMB tiers |
 | 6 in progress | Compact the selected BIOS resident image | Part of the same 5,744-byte remainder; the fixed hardware path is now 8,160 bytes after removing permanent K09 return storage and the resident month table, while its warm-boot, PS/2 result, and six-DPB gates remain intact | Continue map-guided compaction without changing BIOS-visible services |
 | 7 | Remove MCB, allocation-order, and paragraph fragmentation | 112 bytes inside the system MCB plus 32 bytes group-level overhead are bounded; further islands need a live map | Make every recovered paragraph grow VC's largest block rather than a separate hole |
 | 8 | Place eligible permanent allocations in existing UMBs | Local free UMB exceeds retail by only 1,216 bytes | Accept only deterministic placement that leaves at least 47,888 usable UMB bytes |
@@ -1248,14 +1251,73 @@ block.
 | 11 | Redesign the DOS-low or COMMAND boundary further | Architectural fallback | Choose the smallest design with a byte budget that covers the remaining measured gap and compatibility margin |
 
 The focused clean-room DR-DOS revalidation reproduces the prior owner and API
-results exactly and confirms the architectural order: extend the EMM386 low
-gateway, then apply the DOS placement ladder. The `M5` plus `DOS=HIGH`
+results exactly. Re-analysis against the current build reverses the earlier
+implementation order: apply the DOS placement ladder now and stop incremental
+EMM386 work. The `M5` plus `DOS=HIGH`
 transition regression is closed and remains a mandatory gate for later
 boundary changes. The initial COMMAND/HMA gain is retained, but deeper shell
 work is paused. Recover the bounded EBDA paragraph only near the end, and
 revisit HIMEM only for a measured residual. Recalculate the success equation
 after every retained step and keep both the conventional and UMB floors
 visible.
+
+#### Architectural re-analysis: stop chasing EMM386 paragraphs
+
+The earlier priority over-weighted OpenDOS's small memory-manager gateway.
+That work established the right architecture and brought local EMM386 to 3,888
+bytes, already 240 bytes below retail, but it no longer explains the remaining
+gap. Reconcile DR-DOS 6 against the current fixed image instead:
+
+| Owner-to-owner span | Current | DR-DOS 6 | DR-DOS advantage |
+| --- | ---: | ---: | ---: |
+| System start through COMMAND start | 25,968 | 10,720 | 15,248 |
+| COMMAND start through VC start | 3,984 | 1,264 | 2,720 |
+| VC start through free block | 12,720 | 12,720 | 0 |
+| Conventional ceiling loss | 1,024 | 1,024 | 0 |
+| **Largest-block difference** | **609,856** | **627,824** | **17,968** |
+
+This is an architectural placement result. The controlled DR-DOS transitions
+attribute it to four bulk moves: roughly 38 KiB of kernel and 3.5 KiB of BIOS
+code to HMA, about 5 KiB of COMMAND to HMA, 28 KiB of EMM386 to a UMB, and
+12.8 KiB of buffers plus other DOS state out of conventional memory. DR-DOS is
+not winning by making each retained routine a few bytes shorter. Our kernel,
+buffers, part of COMMAND, and almost all protected EMM386 code are already
+high; the major technique still missing locally is relocation of DOS state as
+a packed owned block.
+
+The old DR-DOS 6 placement cannot be copied literally. With an EMS frame it
+leaves only 15,568 free UMB bytes, below the 47,888-byte retail floor. The local
+fixed image has only a 1,216-byte UMB advantage to spend, but has 15,485 bytes
+of unassigned DOS-owned HMA tail after the completed COMMAND move. Therefore
+the portable local design is:
+
+1. build one relocatable DOS high-state block rather than compacting isolated
+   low symbols;
+2. pack immutable tables and HMA-safe mutable workspaces into that block,
+   fixing their bases once during initialization;
+3. keep only address-stable interrupt/device gateways and state needed while
+   A20 may be disabled in the 5,392-byte low prefix;
+4. use relocation-safe XMS storage only for state reached through an explicit
+   copy or protected gateway, and spend at most 1,216 UMB bytes unless another
+   change first increases the free-UMB margin; and
+5. fall back transactionally to the current low layout for `DOS=LOW`, HMA
+   failure, or an unsupported ownership contract.
+
+The first tranche should target the 2,365-byte `TABLE` contribution and the
+1,072-byte `CONSTANTS` contribution as a group, then add eligible portions of
+the 1,783-byte `DATA` contribution. That creates a multi-kilobyte result with
+one relocation boundary. The decisive gate is not the linked size of any one
+routine: the DOS low prefix and owner-to-COMMAND span must fall by whole
+paragraphs, the gain must join VC's largest block, and filesystem, device,
+redirector, EXEC, asynchronous interrupt, A20, DOS-low, and warm-reset tests
+must all pass. The 5,744-byte DOS/BIOS remainder is the target budget for this
+workstream; current HMA capacity is sufficient without taking UMB memory away
+from applications.
+
+After this tranche, measure the residual before choosing among COMMAND's
+880-byte retail excess, HIMEM's 1,488-byte excess, and the bounded 1 KiB EBDA
+step. Further EMM386 compaction is explicitly deferred unless it is a coherent
+gateway relocation or the post-placement residual proves it necessary.
 
 ### DR-DOS clean-room adoption register
 
@@ -1270,8 +1332,9 @@ the pinned archival DR-DOS 6 startup disk and VC 4.05 image reproduced every
 recorded aggregate exactly under QEMU 11.1.1. The capture tool now treats those
 figures as executable expectations whenever all artifact identities match, so
 a later revalidation fails instead of silently publishing a changed baseline.
-Continue the small EMM386 gateway, then move eligible DOS state through the
-measured placement ladder. Reopen DR-DOS investigation only for a named
+Move eligible DOS state through the measured placement ladder as the next
+architectural tranche; EMM386 is paused below retail size. Reopen DR-DOS
+investigation only for a named
 unresolved owner, lifetime, placement policy, or public API question.
 
 Do not repeat the broad survey. If implementation work exposes a named
@@ -1327,9 +1390,9 @@ fallbacks for unresolved owner, lifetime, or public API questions.
 
 | Priority | Externally evidenced technique | Local budget and owner | State and decisive gate |
 | --- | --- | --- | --- |
-| Paused | Keep the kernel and permanent shell payload in HMA; documented for 286-class HIDOS and measured on both DR-DOS generations | COMMAND is 880 bytes above retail; 15,485 bytes remain in the local DOS-owned HMA tail | First tranche complete: catalogs and the 1,166-byte relocatable code range recover 2,480 paragraph-rounded bytes. Resume only as a coherent interrupt/data redesign with reload, `INT 2Eh`, `INT 24h`, A20, DOS=LOW, `/MSG`, and real-286 gates |
-| 1 | Retain only a small conventional/UMB gateway for the 386 memory manager; OpenDOS reports a 1,200-byte conventional device range and an 800-byte UMB owner | Active EMM386 is 240 bytes below retail after the real IDTR move, VM-frame scratch compaction, low fatal-dialog compaction, and shared control dispatch; services, return/A20/NMI trap handling, protected `RetReal`, stack-selector conversion, OEM mapping/parity handling, parity-vector state, and the `GoVirtual` continuation are high | Continue toward the smaller owner by redesigning remaining transition, fault, and DMA entries; all EMS maps, modes, shifted loads, and warm reboot must pass |
-| 2 | Place mutable DOS structures high, then prefer HMA for buffers; DR-DOS 6 measures a 12,800-byte conventional move and documents `HIDOS`/`HIBUFFERS` | The dispatcher and absolute/system/INT 2Fh tranche are high and the local DOS/BIOS remainder is 5,744 bytes; only 1,216 bytes of UMB advantage may be spent before falling below retail | Classify each remaining owner, then use HMA, relocation-safe XMS, and finally deterministic UMB placement; filesystem, device, redirector, EXEC, A20-off, and rollback paths must pass |
+| 1 | Relocate DOS state as one packed high block; DR-DOS 6 measures a 12,800-byte conventional move and documents `HIDOS`/`HIBUFFERS` | The local DOS/BIOS remainder is 5,744 bytes and 15,485 bytes remain in the DOS-owned HMA tail; only 1,216 bytes of UMB advantage may be spent | Start with the 2,365-byte tables and 1,072-byte constants, then eligible mutable workspaces; filesystem, device, redirector, EXEC, A20-off, DOS-low, rollback, and warm-reset paths must pass |
+| Paused | Keep more permanent shell payload in HMA; documented for 286-class HIDOS and measured on both DR-DOS generations | COMMAND is only 880 bytes above retail, though 2,720 bytes above DR-DOS in the current owner span | First tranche complete: catalogs and the 1,166-byte relocatable code range recover 2,480 paragraph-rounded bytes. Resume only after DOS placement, as a coherent interrupt/data redesign with reload, `INT 2Eh`, `INT 24h`, A20, DOS=LOW, `/MSG`, and real-286 gates |
+| Paused | Retain only a small conventional/UMB gateway for the 386 memory manager; OpenDOS reports a 1,200-byte conventional device range and an 800-byte UMB owner | Active EMM386 is already 240 bytes below retail; services and most transition machinery are high | Reopen only for a coherent gateway relocation or a measured post-placement residual; preserve all EMS maps, modes, shifted loads, and warm reboot |
 | Config | Omit the EMS page frame when applications do not require it | Already represented by the fixed `NOEMS` comparison | Preserve as a configuration choice and test both framed and frameless EMS; it is not an implementation saving |
 | Excluded | Recover text-video and low-memory ranges only as explicit compatibility modes | DR-DOS can add 96 KiB of text-video space, but neither ordinary comparison uses it | Excluded from the parity score; any future opt-in mode must withdraw the range before incompatible graphics use |
 | Finish | Relocate EBDA storage | Exactly 1,024 bytes at the fixed ceiling; not used by either ordinary DR-DOS result | Finishing step only, into already-owned proved-safe storage with BIOS, DMA, interrupt, and reboot coverage |
@@ -1346,10 +1409,10 @@ proprietary instruction sequences remain out of scope.
 ### Completed baseline investigation: DR-DOS HMA-mode memory
 
 **Status and priority:** the clean-room baseline and focused mechanism
-checkpoint are complete. The first coherent COMMAND/HMA relocation is complete
-and deeper shell work is paused. Apply the validated lessons by building the
-small EMM386 low gateway, then introducing the HMA/XMS/UMB placement ladder for
-movable DOS state.
+checkpoint are complete. The first coherent COMMAND/HMA relocation and the
+small EMM386 gateway are complete enough to remove them from the critical path.
+Apply the central validated lesson now: introduce a packed HMA/XMS/UMB
+placement ladder for movable DOS state, with HMA as the primary tier.
 
 The research goal was to explain, byte by byte where possible, why a
 comparable DR-DOS system exposes a larger conventional block in HMA mode and to
@@ -1545,9 +1608,9 @@ not a second allocatable HMA. In the ordinary `HIDOS=ON`, `HIBUFFERS=15`
 configuration, the complete public-interface record is byte-for-byte identical
 before and after a controlled warm reset.
 
-DR-DOS 6 therefore leaves 9,088 bytes more than retail MS-DOS 6.22 and 32,000
-bytes more than this implementation. The fair ordinary comparison reconciles
-without counting recovered low or video memory:
+DR-DOS 6 therefore leaves 9,088 bytes more than retail MS-DOS 6.22 and 17,968
+bytes more than the current implementation. The fair ordinary comparison
+reconciles without counting recovered low or video memory:
 
 | Owner-to-owner contribution | DR-DOS 6.0 | Retail MS-DOS 6.22 | DR-DOS gain |
 | --- | ---: | ---: | ---: |
@@ -1579,8 +1642,8 @@ The transitions explain how it gets there:
   shrinks by 7,408 bytes; it is not a byte-for-byte migration because the arena
   is repacked around the remaining DOS state.
 - The final conventional owner spans are only 10,720 bytes for the system and
-  1,264 bytes for COMMAND. The current implementation uses 37,520 and 6,464,
-  respectively; these two differences exactly explain its 32,000-byte deficit
+  1,264 bytes for COMMAND. The current implementation uses 25,968 and 3,984,
+  respectively; these two differences exactly explain its 17,968-byte deficit
   to DR-DOS because both have the same `9FC0h` ceiling.
 
 #### Adoption priorities from the measured design
@@ -1588,23 +1651,20 @@ The transitions explain how it gets there:
 The measurements change emphasis but do not justify copying DR-DOS placement
 blindly:
 
-1. **Move COMMAND cold state high or transient.** DR-DOS 6 proves a shell can
-   retain 4,992 bytes in the HMA and operate with a 1,264-byte conventional
-   span. Our HMA DOS image is 39,440 bytes, so a similarly sized experiment fits
-   within the nominal 65,520-byte area before accounting for ownership and A20
-   constraints. This is the cleanest measured route toward COMMAND's 5,152-byte
-   deficit to DR-DOS.
-2. **Prefer the later small-gateway EMM386 architecture.** Spending DR-DOS 6's
-   28,672 UMB bytes would violate our requirement to preserve at least retail's
-   47,888 free UMB bytes. OpenDOS 7.01 demonstrates the same services with only
-   an 800-byte reported EMM386 UMB allocation. Continue the protected/XMS
-   relocation and low-gateway split rather than copying the older UMB layout.
-3. **Give mutable DOS state a high-placement ladder.** DR-DOS gains 12,800
+1. **Give DOS state a packed high-placement ladder.** DR-DOS gains 12,800
    conventional bytes by putting DOS state in a UMB, then moves buffers to HMA
    to recover most of that UMB. Locally, place HMA-safe state in proved DOS-owned
    HMA slack first, use relocation-safe XMS storage where callbacks permit it,
    and use deterministic UMB placement only within the measured 1,216-byte UMB
    advantage over retail. Fall back transactionally when a tier is unavailable.
+2. **Keep COMMAND as a measured secondary tranche.** DR-DOS 6 proves a shell
+   can retain 4,992 bytes in HMA and operate with a 1,264-byte conventional
+   span. The first local relocation is complete, leaving only 880 bytes above
+   retail; resume the harder asynchronous handler redesign after DOS placement.
+3. **Keep the small-gateway EMM386 architecture, but stop harvesting it.**
+   Spending DR-DOS 6's 28,672 UMB bytes would violate the retail free-UMB floor.
+   The local 3,888-byte EMM386 owner is already smaller than retail, so further
+   work needs an architectural relocation or a measured post-placement reason.
 4. **Keep low-memory, video-memory, and EBDA recovery separate.** Neither
    measured ordinary DR-DOS result uses them. They cannot explain the advantage
    and must remain optional or bounded finishing work.
@@ -1639,9 +1699,9 @@ The clean-room gate is met: both releases reproduce from hashed binary media;
 the ordinary-mode advantage reconciles through owner spans and documented
 policies; optional gains are separated; public XMS, UMB, EMS, HMA, A20, and
 warm-reset behavior is recorded; and each portable technique has a local owner
-and regression boundary. Further work is implementation-led: complete the
-EMM386 low gateway, then design the DOS state placement ladder against the
-existing HMA and UMB floors.
+and regression boundary. Further work is implementation-led: build the packed
+DOS high-state block against the existing HMA and UMB floors; EMM386 remains
+paused below retail size.
 
 #### Published leads already identified
 
