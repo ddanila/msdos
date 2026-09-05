@@ -9,9 +9,11 @@ cp "$ROOT/src/CMD/COMMAND/"*.OBJ "$work/"
 cp "$ROOT/src/CMD/COMMAND/COMMAND.LNK" "$work/"
 (
     cd "$ROOT/src/CMD/COMMAND"
-    "$ROOT/bin/jwasm-masm" \
-        "-Mx -t -DCOMMAND_CRITICAL_SPLIT -I. -I../../INC -I../../DOS -Fl=$work/RUCODE.LST" \
-        "RUCODE.ASM,$work/RUCODE.OBJ;"
+    for module in RUCODE INIT; do
+        "$ROOT/bin/jwasm-masm" \
+            "-Mx -t -DCOMMAND_CRITICAL_SPLIT -I. -I../../INC -I../../DOS -Fl=$work/$module.LST" \
+            "$module.ASM,$work/$module.OBJ;"
+    done
 )
 (
     cd "$work"

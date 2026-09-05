@@ -171,7 +171,7 @@ def main() -> int:
     if not (resident_state_end <= resident_critical_ptr
             and resident_critical_ptr + 4 <= resident_class_ptrs):
         errors.append("cached critical-catalog pointer is not retained in low message state")
-    prototype_allowance = 192 if args.critical_split else 0
+    prototype_allowance = 128 if args.critical_split else 0
     if rounded(resident_catalog_start) > 3632 + prototype_allowance:
         errors.append(f"DOS-high permanent COMMAND exceeds its {3632 + prototype_allowance:,}-byte budget")
     if rounded(hma_code_end) > 6080 + prototype_allowance:
@@ -250,6 +250,11 @@ def main() -> int:
         body_start = require(symbols, "critical_body_start")
         body_end = require(symbols, "critical_body_end")
         dispatch = require(symbols, "critical_dispatch")
+        constructor = require(symbols, "critical_constructor_start")
+        constructor_end = require(symbols, "critical_constructor_end")
+        if not (constructor == require(symbols, "CONPROC") + 3
+                and segments["INIT"].start <= constructor < constructor_end <= segments["INIT"].end):
+            errors.append("critical binding constructor is not at the discardable initialization entry")
         exits = [require(symbols, name) for name in (
             "critical_return_low", "critical_reload_low",
             "critical_terminate_low", "critical_dead_low",
@@ -281,7 +286,8 @@ def main() -> int:
                 errors.append(f"development critical {name} bridge has an invalid far binding")
         print(f"| Development critical entry and exits | `{disk_error_start:04X}h..{body_start:04X}h` | {body_start - disk_error_start:,} | low interfaces |")
         print(f"| Development complete critical body | `{body_start:04X}h..{body_end:04X}h` | {body_end - body_start:,} | still low; far services/exits, A20 return gates pending |")
-        print("\nDevelopment only: the 192-byte temporary support allowance is not")
+        print(f"| Critical binding constructor | `{constructor:04X}h..{constructor_end:04X}h` | {constructor_end - constructor:,} | discardable initialization |")
+        print("\nDevelopment only: the 128-byte temporary support allowance is not")
         print("a production budget increase or a claimed conventional-memory saving.\n")
     print(f"| **DOS-high permanent break** | `0000h..{resident_catalog_start:04X}h` | **{resident_catalog_start:,}** | **{rounded(resident_catalog_start):,} paragraph-rounded** |")
     print(f"| Low/failure fallback break | `0000h..{hma_code_end:04X}h` | {hma_code_end:,} | {rounded(hma_code_end):,} paragraph-rounded |")

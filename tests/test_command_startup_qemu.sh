@@ -147,6 +147,9 @@ fi
     printf 'ECHO COMMAND_CRITICAL_HMA_CONTINUED\r\n'
     printf 'COMMAND /F /C TYPE B:\\NOFILE.TXT\r\n'
     printf 'ECHO COMMAND_FAIL_ALL_CONTINUED\r\n'
+    if [[ -n ${COMMAND_CRITICAL_LOADER:-} ]]; then
+        printf 'CRITHIGH.COM /CHECK\r\n'
+    fi
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$FAIL_BOOT_IMG" - ::AUTOEXEC.BAT
 rm -f "$FAIL_SERIAL_LOG" "$FAIL_SERIAL_IN" "$FAIL_SERIAL_OUT"
@@ -273,6 +276,7 @@ fi
 if [[ "$CRITICAL_ABI" == 1 ]]; then
     if [[ -n ${COMMAND_CRITICAL_LOADER:-} ]]; then
         if grep -q '^COMMAND_CRITICAL_BODY_HIGH' "$FAIL_SERIAL_LOG" \
+            && grep -q '^COMMAND_CRITICAL_OLD_BODY_UNTOUCHED' "$FAIL_SERIAL_LOG" \
             && ! grep -q 'COMMAND_CRITICAL_BODY_LOAD_FAIL' "$FAIL_SERIAL_LOG"; then
             ok "development critical body installed in HMA with old low body poisoned"
         else

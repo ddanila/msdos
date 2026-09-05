@@ -290,9 +290,10 @@ The normal COMMAND binary is unchanged. The prototype currently measures:
 
 | Linked range | Bytes | Placement |
 | --- | ---: | --- |
-| Entry, bindings, service wrappers and four exits, `06F5h..0791h` | 156 | Low interface; includes temporary per-entry binding setup |
-| Complete critical body and bridges, `0791h..0A26h` | 661 | Executed in HMA by the test loader; low allocation retained |
-| Permanent image after paragraph rounding | 3,808 | 176 more than normal before reclamation |
+| Entry, service wrappers and four exits, `06F5h..075Dh` | 104 | Low interface; no writes into the retired body |
+| Complete critical body and bridges, `075Dh..09F2h` | 661 | Executed in HMA by the test loader; low allocation retained |
+| Binding constructor in INIT | 40 | Discarded after initialization |
+| Permanent image after paragraph rounding | 3,760 | 128 more than normal before reclamation |
 
 Eight copy-local near-call bridges perform far calls to low wrappers for
 printing, message lookup, DBCS/character conversion, pipe cleanup, INT 21h and
@@ -302,26 +303,34 @@ DS. The census checks all twelve encodings, targets and binding offsets plus
 the five-byte dispatch publication window.
 
 The fixture now runs Fail and Retry with the body low, then with the complete
-661-byte object in HMA. `command_critical_body_loader.asm` verifies the dispatch
-window, reserves DOS-owned HMA, copies and binds the body, poisons the old body
+661-byte object in HMA. `CONPROC` initializes all twelve bindings immediately
+after establishing its stack, before any DOS call or vector publication. The
+constructor preserves incoming AX and resides entirely in discardable INIT.
+`command_critical_body_loader.asm` verifies the dispatch window, reserves
+DOS-owned HMA, copies the initialized body and verifies its bindings against
+the low owner, then poisons the old body
 with INT 3 bytes, and atomically publishes a far entry. Both high cases pass
 with the old body unusable, including foreign-stack and JFN restoration.
 This proves high execution, **not reclamation**: the test loader leaves the
-conventional allocation intact. The current entry still writes bindings into
-the old low body, so that storage must not yet be returned to applications.
+conventional allocation intact. A final `/CHECK` verifies every old-body byte
+remains poisoned after errors and child-shell cleanup. This check failed with
+per-entry binding and passes with the constructor: neither execution nor
+runtime binding writes now depend on the retired body in these cases.
 
-The checked census permits a bounded 192-byte development support increase;
+The checked census permits a bounded 128-byte development support increase;
 the production 3,632-byte limit is unchanged and the normal binary remains
 byte-identical. Reload, initialization termination, Abort side effects and
 A20 failure are not qualified by these cases. In particular the low service
 wrappers do not yet recover A20 before returning to high code.
 
-Next move binding setup into initialization, before handler publication, and
-link the body after the permanent low data so successful HMA placement can
-release its complete fallback range. Preserve the low/failure, child and /MSG
-paths. Budget the final wrappers, A20 recovery and alignment together with the
-rest of COMMAND and the managers; do not count copied or poisoned bytes as
-conventional savings or promote the test-only loader as the installed design.
+Next link the body after the permanent low data and integrate activation with
+the existing initialization-time HMA copy, so successful placement can release
+its complete fallback range. Rebase the character/message entry offsets if the
+new body precedes them in HMACODE, and publish the critical far dispatch before
+lowering the permanent break. Preserve low/failure, child and /MSG paths.
+Budget final wrappers, A20 recovery and alignment together with the rest of
+COMMAND and the managers; do not count copied or poisoned bytes as conventional
+savings or promote the test-only loader as the installed design.
 
 The eventual reclamation commits have three distinct owners:
 

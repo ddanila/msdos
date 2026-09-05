@@ -4,6 +4,8 @@ bits 16
 org 100h
 
 start:
+    cmp byte [80h], 0
+    jne check_old_body
     mov ax, [16h]
     mov [shell_segment], ax
     mov es, ax
@@ -34,7 +36,8 @@ start:
     mov dx, [shell_segment]
 %assign slot 0
 %rep 12
-    mov [es:bx+SEGMENT_FIXUP_%+slot-BODY_START], dx
+    cmp [es:bx+SEGMENT_FIXUP_%+slot-BODY_START], dx
+    jne failure
 %assign slot slot+1
 %endrep
 
@@ -57,6 +60,22 @@ start:
     int 21h
     mov ax, 4c00h
     int 21h
+check_old_body:
+    ; The fixture invokes /CHECK after all errors and child-shell cleanup.
+    ; Old-body writes are just as unsafe for reclamation as old-body execution.
+    mov ax, [16h]
+    mov es, ax
+    mov di, BODY_START
+    mov cx, BODY_END-BODY_START
+    mov al, 0cch
+    cld
+    repe scasb
+    jne failure
+    mov dx, unchanged_message
+    mov ah, 09h
+    int 21h
+    mov ax, 4c00h
+    int 21h
 failure:
     mov dx, failure_message
     mov ah, 09h
@@ -67,4 +86,5 @@ failure:
 shell_segment dw 0
 high_body dw 0
 success_message db 'COMMAND_CRITICAL_BODY_HIGH', 13, 10, '$'
+unchanged_message db 'COMMAND_CRITICAL_OLD_BODY_UNTOUCHED', 13, 10, '$'
 failure_message db 'COMMAND_CRITICAL_BODY_LOAD_FAIL', 13, 10, '$'

@@ -86,6 +86,14 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	resident_catalog_start:byte
 	EXTRN	resident_class_ptrs:dword
 	EXTRN	resident_critical_ptr:dword
+	IFDEF COMMAND_CRITICAL_SPLIT
+	EXTRN critical_CRLF_segment:word,critical_RPRINT_segment:word
+	EXTRN critical_SYSGETMSG_segment:word,critical_TestKanjR_segment:word
+	EXTRN critical_IN_CHAR_XLAT_segment:word,critical_ResPipeOff_segment:word
+	EXTRN critical_int21_segment:word,critical_int2f_segment:word
+	EXTRN critical_return_segment:word,critical_reload_segment:word
+	EXTRN critical_terminate_segment:word,critical_dead_segment:word
+	ENDIF
 	EXTRN	hma_in_char_xlat_entry:dword
 	EXTRN	hma_test_kanj_entry:dword
 	EXTRN	resmsgend:word		;AN000;
@@ -228,6 +236,29 @@ ZERO	=	$
 
 CONPROC:
 	MOV	SP,OFFSET RESGROUP:RSTACK	; MUST be first instruction
+	IFDEF COMMAND_CRITICAL_SPLIT
+	; Bind while the image is still owned and before any DOS call or vector
+	; publication. Child, /MSG and failed-HMA interpreters use these same low
+	; bindings; a copied high body retains them without touching its old copy.
+	PUBLIC critical_constructor_start,critical_constructor_end
+critical_constructor_start:
+	push ax
+	mov ax,cs
+	mov word ptr [critical_CRLF_segment],ax
+	mov word ptr [critical_RPRINT_segment],ax
+	mov word ptr [critical_SYSGETMSG_segment],ax
+	mov word ptr [critical_TestKanjR_segment],ax
+	mov word ptr [critical_IN_CHAR_XLAT_segment],ax
+	mov word ptr [critical_ResPipeOff_segment],ax
+	mov word ptr [critical_int21_segment],ax
+	mov word ptr [critical_int2f_segment],ax
+	mov word ptr [critical_return_segment],ax
+	mov word ptr [critical_reload_segment],ax
+	mov word ptr [critical_terminate_segment],ax
+	mov word ptr [critical_dead_segment],ax
+	pop ax
+critical_constructor_end:
+	ENDIF
 
 	; Check for /? before sysloadmsg (which checks DOS version).
 	; At entry DS=CS=RESGROUP=PSP segment, so DS:[81H] is the command tail.

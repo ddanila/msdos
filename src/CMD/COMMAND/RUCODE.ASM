@@ -41,9 +41,6 @@ CRITICAL_INT MACRO vector,entryname
 ENDM
 
 IFDEF COMMAND_CRITICAL_SPLIT
-CRITICAL_BIND MACRO entryname
-	mov word ptr cs:[critical_&entryname&_segment],ax
-ENDM
 CRITICAL_WRAPPER MACRO entryname
 critical_&entryname&_low PROC FAR
 	invoke entryname
@@ -200,23 +197,8 @@ ASSUME	DS:RESGROUP
 	IFDEF COMMAND_CRITICAL_SPLIT
 	; Development whole-body boundary. DS names authoritative low state;
 	; the incoming interrupt frame and saved CX/SI/ES/DS stay on its stack.
-	; Bind while the complete prototype is still low. High publication must
-	; bind the copied object before activation, not write into reclaimed code.
-	push ax
-	mov ax,cs
-	CRITICAL_BIND CRLF
-	CRITICAL_BIND RPRINT
-	CRITICAL_BIND SYSGETMSG
-	CRITICAL_BIND TestKanjR
-	CRITICAL_BIND IN_CHAR_XLAT
-	CRITICAL_BIND ResPipeOff
-	CRITICAL_BIND int21
-	CRITICAL_BIND int2f
-	CRITICAL_BIND return
-	CRITICAL_BIND reload
-	CRITICAL_BIND terminate
-	CRITICAL_BIND dead
-	pop ax
+	; CONPROC binds the body before publishing this interpreter's vectors.
+	; Never write its old low copy here: that storage can be retired later.
 	PUBLIC critical_dispatch
 critical_dispatch:
 	JMP	critical_body_start
