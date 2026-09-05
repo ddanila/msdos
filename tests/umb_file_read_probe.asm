@@ -152,6 +152,9 @@ start:
 %ifdef EMS_IO
     call ems_verify
     call ems_rotate
+    mov dx,ems_write_ready
+    mov ah,09h
+    int 21h
 %endif
     call check_write
     call check_target
@@ -328,6 +331,8 @@ ems_frame_message db 'UMB_EMS_FRAME=$'
 ems_read_done db 'UMB_EMS_READ_DONE',13,10,'$'
 ems_write_done db 'UMB_EMS_WRITE_DONE',13,10,'$'
 ems_write_sent db 'UMB_EMS_WRITE_SENT',13,10,'$'
+ems_write_ready db 'UMB_EMS_WRITE_READY',13,10,'$'
+ems_write_open db 'UMB_EMS_WRITE_OPEN',13,10,'$'
 ems_failed db 'UMB_FILE_READ_EMS_FAIL',13,10,'$'
 %endif
 
@@ -338,7 +343,12 @@ check_write:
     int 21h
     jc fail
     mov [handle],ax
-    mov bx,ax
+%ifdef EMS_IO
+    mov dx,ems_write_open
+    mov ah,09h
+    int 21h
+%endif
+    mov bx,[handle]
     mov cx,[count]
     mov dx,[transfer_offset]
     mov ds,[target]

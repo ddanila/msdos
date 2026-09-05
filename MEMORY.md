@@ -1639,12 +1639,11 @@ restore now compares/applies only the four LIM frame slots and flushes the TLB,
 leaving unrelated windows untouched. The combined test and extended EMS/API
 suites pass, and the residency census remains at 3,888 bytes.
 
-**Open low-BIOS control:** the same interleaved test with forced high-BIOS
-reservation failure stalls in its first 8,192-byte, offset-zero case, before
-completing the probe. The read completes; the write half does not reach its
-successful AH=40h completion marker. It reproduces with the AH=48h fix and must
-be investigated independently; the high-BIOS pass does not qualify low fallback.
-Reproduce with:
+**Open DMA programming-sequence bug:** the same interleaved test with forced
+high-BIOS reservation failure stalls after the first 8,192-byte, offset-zero
+read. EMS verification/remapping completes, but AH=3Ch file creation does not
+return: the application has not yet issued the corresponding write. The
+`UMB_EMS_WRITE_READY`/`WRITE_OPEN` markers delimit this boundary. Reproduce with:
 
 ```sh
 python3 tests/test_bios_low_boot_qemu.py \
@@ -1652,9 +1651,35 @@ python3 tests/test_bios_low_boot_qemu.py \
   --umb-ems --mode emm-high --fail-reservation
 ```
 
-Per-case read/write completion markers distinguish transfer stages. Keep this
-failure and the remaining word-channel/naturally constrained-pool checks open
-before removing the raw-overlay workaround or promoting the relocated layout.
+A hardware breakpoint at `_FatalError` in a fresh QEMU reproduction catches
+`SwapDMAPages` rejecting insufficient DMA pages. Its caller stack contains
+linear address `D7460h`, length `2000h`, and byte-channel mode. The mixed address
+uses the old `0Dh` page byte with new `7460h` low address bits; the old 8 KiB
+count spans two EMS windows. Its DMA-buffer start index is 1, requiring entries
+1 and 2 beyond the default one-entry buffer. This is a transient
+register-programming state, not the application's actual transfer request.
+`DMABaseN`, count, and page handlers currently translate after individual writes,
+while mask-register ports are not tracked. The UMB backing selector cannot
+prevent an intermediate address from landing in the EMS frame.
+
+Next, model channel programming explicitly: track single/all-mask writes,
+mask clear and controller reset for both controllers; defer mapping changes
+while masked; translate and program the complete address/count before enabling
+a channel. Preserve flip-flop/readback, byte/word channels, auto-initialize and
+existing non-masked behavior. Add a direct register-sequence regression for the
+old-page/new-address/old-count collision, not just the filesystem reproducer.
+Check DMA buffer bounds before indexing `DMA_Pages` (the current swap path
+reads the selected entry before checking capacity). Do not increase `D=` or
+return an unsafe linear address merely to hide the transient request.
+
+The fatal path has a second residency defect: after switching to real mode it
+continues in the old low `_TEXT` image, now reused for file data. The paused
+guest executes at `0696:3DB2` with paging/PE off; the physical instruction bytes
+are the probe's incrementing-word pattern. Audit `ErrHndlr`/`_FatalError`
+continuations across `RetRealHigh` separately; fixing the DMA trigger does not
+qualify fatal-error handling. Keep these failures and the remaining word-channel/
+naturally constrained-pool checks open before removing the raw-overlay
+workaround or promoting the relocated layout.
 
 The process suite independently checks raw overlays of 0, 1, 511, 512, 513,
 9,109, 65,534, and 65,535 bytes in conventional storage. It checks every loaded
