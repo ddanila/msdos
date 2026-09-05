@@ -1,12 +1,86 @@
 ; Explicit ownership for segment values passed to data/buffer consumers.
 ; The installed low layout expands to exactly PUSH CS. A separately linked
 ; service body must provide its relocated BIOS_SERVICE_LOW_SEGMENT word.
-; This does not convert ordinary CS-relative memory operands or activate HMA.
+; These operations separate data ownership; none activates HMA relocation.
 BIOS_PUSH_DATA_SEG MACRO
         IFDEF BIOS_SERVICE_SEPARATE_DATA
         PUSH WORD PTR CS:[BIOS_SERVICE_LOW_SEGMENT]
         ELSE
         PUSH CS
+        ENDIF
+ENDM
+
+; Store the original SP in a fixed low word, not the wrapper's deeper SP.
+; Address must not depend on BP: BP is temporarily used to recover input SP.
+BIOS_LOW_SAVE_SP MACRO address
+        IFDEF BIOS_SERVICE_SEPARATE_DATA
+        PUSH AX
+        PUSH DS
+        PUSH BP
+        MOV BP,SP
+        BIOS_PUSH_DATA_SEG
+        POP DS
+        LEA AX,[BP+6]
+        MOV DS:address,AX
+        POP BP
+        POP DS
+        POP AX
+        ELSE
+        MOV CS:address,SP
+        ENDIF
+ENDM
+
+; Unwind this same conventional stack to a previously saved SP. The discarded
+; stack receives our scratch words; no word at/above the target SP is changed.
+; Not a general SS switch or a way to restore another stack below current SP.
+BIOS_LOW_RESTORE_SP MACRO address
+        IFDEF BIOS_SERVICE_SEPARATE_DATA
+        PUSH AX
+        PUSH DS
+        BIOS_PUSH_DATA_SEG
+        POP DS
+        MOV AX,DS:address
+        POP DS
+        PUSH BP
+        MOV BP,SP
+        XCHG AX,SS:[BP+2]
+        POP BP
+        POP SP
+        ELSE
+        MOV SP,CS:address
+        ENDIF
+ENDM
+
+; INC/DEC preserve carry and update the arithmetic flags. Do not use this
+; wrapper for PUSH/POP or other operations which change the stack shape.
+BIOS_LOW_UNARY MACRO operation, address
+        IFDIFI <operation>,<INC>
+        IFDIFI <operation>,<DEC>
+        .ERR ; only non-stack INC/DEC are supported here
+        ENDIF
+        ENDIF
+        IFDEF BIOS_SERVICE_SEPARATE_DATA
+        PUSH DS
+        BIOS_PUSH_DATA_SEG
+        POP DS
+        operation DS:address
+        POP DS
+        ELSE
+        operation CS:address
+        ENDIF
+ENDM
+
+; Track descriptors belong to low data, unlike the high IOCTL dispatch table.
+; Preserve caller DS and FLAGS/DF; LODSB supplies AL and advances SI normally.
+BIOS_LOW_LODSB MACRO
+        IFDEF BIOS_SERVICE_SEPARATE_DATA
+        PUSH DS
+        BIOS_PUSH_DATA_SEG
+        POP DS
+        LODSB
+        POP DS
+        ELSE
+        LODS BYTE PTR CS:[SI]
         ENDIF
 ENDM
 

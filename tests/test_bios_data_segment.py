@@ -33,7 +33,7 @@ class DataSegmentTests(unittest.TestCase):
                 capture_output=True, text=True, timeout=30,
             )
             self.assertEqual(executed.returncode, 0, executed.stdout + executed.stderr)
-            for invalid in ("BAD_BORROW", "BAD_STACK", "BAD_SEGMENT", "BAD_VALUE", "BAD_RESULT"):
+            for invalid in ("BAD_BORROW", "BAD_STACK", "BAD_SEGMENT", "BAD_VALUE", "BAD_RESULT", "BAD_UNARY"):
                 built = subprocess.run(command + [f"-D{invalid}=1", source], capture_output=True)
                 self.assertNotEqual(built.returncode, 0, f"accepted unsafe {invalid} contract")
 
@@ -62,6 +62,19 @@ class DataSegmentTests(unittest.TestCase):
                 if re.search(r"\bBIOS_PUSH_DATA_SEG\b", code):
                     total += 1
         self.assertEqual(total, 15, "review every added/removed data-segment consumer")
+
+    def test_remaining_cs_operands_have_explicit_code_or_chain_ownership(self):
+        expected = {
+            "MSDSKHIG.INC": ["JMP CS:[NEXT2F_13]"],
+            "MSIOCTL.INC": ["CMP AL, CS:[SI]", "CALL CS:[SI]"],
+        }
+        for name, allowed in expected.items():
+            actual = []
+            for line in (ROOT / "src/BIOS" / name).read_text().splitlines():
+                code = " ".join(line.split(";", 1)[0].upper().split())
+                if "CS:" in code and not code.startswith("ASSUME "):
+                    actual.append(code)
+            self.assertEqual(actual, allowed, "new raw CS operand requires ownership review")
 
 
 if __name__ == "__main__":

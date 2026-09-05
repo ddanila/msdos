@@ -6,6 +6,10 @@ org 100h
 BIOS_SERVICE_SEPARATE_DATA EQU 1
 include MSBSEG.INC
 start:
+        mov ax,0deedh
+        push ax
+        mov ax,0beefh
+        push ax
         mov ax,cs
         mov dx,OFFSET low_data
         mov cl,4
@@ -33,6 +37,9 @@ start:
         ENDIF
         IFDEF BAD_RESULT
         BIOS_LOW_READ MOV,ES,<WORD PTR [2]>,ES
+        ENDIF
+        IFDEF BAD_UNARY
+        BIOS_LOW_UNARY PUSH,<WORD PTR [2]>
         ENDIF
 
         stc
@@ -66,8 +73,73 @@ start:
         mov ax,ds
         cmp ax,1111h
         jne fail
+
+        mov ax,0cafeh
+        stc
+        BIOS_LOW_SAVE_SP <WORD PTR [16]>
+        jnc fail
+        cmp ax,0cafeh
+        jne fail
+        BIOS_LOW_READ MOV,AX,<WORD PTR [16]>,ES
+        cmp ax,cs:[initial_sp]
+        jne fail
+        sub sp,16
+        mov ax,0cafeh
+        stc
+        BIOS_LOW_RESTORE_SP <WORD PTR [16]>
+        jnc fail
+        cmp ax,0cafeh
+        jne fail
+        cmp sp,cs:[initial_sp]
+        jne fail
+        mov bx,sp
+        cmp word ptr ss:[bx],0beefh
+        jne fail
+        cmp word ptr ss:[bx+2],0deedh
+        jne fail
+        mov ax,ds
+        cmp ax,1111h
+        jne fail
         mov ax,es
         cmp ax,2222h
+        jne fail
+
+        stc
+        BIOS_LOW_UNARY INC,<WORD PTR [12]>
+        jnc fail
+        jnz fail
+        clc
+        BIOS_LOW_UNARY DEC,<WORD PTR [12]>
+        jc fail
+        jns fail
+        mov di,13
+        BIOS_LOW_READ MOV,AL,<[DI+1]>,DS
+        cmp al,5ah
+        jne fail
+        mov si,14
+        cld
+        stc
+        BIOS_LOW_LODSB
+        jnc fail
+        cmp al,5ah
+        jne fail
+        cmp si,15
+        jne fail
+        std
+        stc
+        BIOS_LOW_LODSB
+        jnc fail
+        cmp al,0a5h
+        jne fail
+        cmp si,14
+        jne fail
+        pushf
+        pop ax
+        test ax,400h
+        jz fail
+        cld
+        mov ax,ds
+        cmp ax,1111h
         jne fail
 
         stc
@@ -114,5 +186,8 @@ low_data:
         dw 5678h
         dw 2468h,3456h
         dw 0,0
+        dw 0ffffh
+        db 5ah,0a5h
+        dw 0
 _TEXT ENDS
 end start

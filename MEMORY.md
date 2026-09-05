@@ -1364,20 +1364,27 @@ A future high module must supply and relocate
 the owner word and its references. IOCTL's code jump table must remain high
 while its mutable track table stays low; do not apply a global CS substitution.
 
-The 161 named binary low-state accesses now use `BIOS_LOW_READ/MEM`. Their
+The 162 binary low-state accesses now use `BIOS_LOW_READ/MEM`. Their
 separate-data forms borrow an explicitly chosen DS or ES and restore it without
 changing the operation's flags. LDS/LES outputs and segment-register operands
 are handled by borrowing the other segment. Unsafe borrowed-result overlap,
 SS/CS borrowing, and SP operands are assembly errors. A native DOS probe with
 distinct code/data segments checks loads, stores, carry propagation, CMP/XCHG,
-LDS/LES, segment-valued stores, preserved segments/BP, and balanced SP; five
-invalid contracts are rejected. The complete separate-data MSDISK object also
-assembles after relaxing one forced-short jump. Its body is currently 4,799
+LDS/LES, segment-valued stores, preserved segments/BP, and balanced SP; six
+invalid contracts are rejected. Three unary INC/DEC operations and two indexed
+track-descriptor reads now have explicit low owners too, with carry, direction
+flag, forward/backward SI movement, and caller DS checked. Dedicated stack
+operations save the original SP and unwind the same conventional stack without
+overwriting live target words; these are not arbitrary stack-switch helpers.
+The complete separate-data MSDISK object also assembles, using a flag-preserving
+long LOOP trampoline where its enlarged track loop requires one. Its body is currently 4,897
 bytes versus the installed 3,580-byte body; the added code spends HMA capacity,
 not low-memory savings, once relocation exists. The default build still emits
-byte-identical IO.SYS. This is not yet a linked or activated high BIOS: stack
-save/restore, unary/indexed state access, control-flow gateways, owner/offset
-fixups, and the early reclaim transaction remain mandatory work.
+byte-identical IO.SYS. A source guard permits only the two IOCTL code-dispatch
+operands and the pending saved INT 2F chain jump as raw CS-relative operations.
+This is not yet a linked or activated high BIOS: control-flow gateways,
+implicit pointer contracts, owner/offset fixups, and the early reclaim
+transaction remain mandatory work.
 
 Local media-ID, multitrack, LOW/HIGH read-only-media, warm-reboot, fixed-disk
 format, floppy FORMAT /U, and the 286 HIMEM/386/486 memory-manager matrix
