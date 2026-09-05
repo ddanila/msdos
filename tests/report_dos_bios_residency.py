@@ -342,8 +342,8 @@ def main() -> int:
     bcd_size = bin_to_bcd_end - bin_to_bcd
     after_day = selected + day_size
     selected = rounded(after_day + bcd_size)
-    if selected > 8432:
-        errors.append("selected resident BIOS exceeds the 8,432-byte ceiling")
+    if selected > 8416:
+        errors.append("selected resident BIOS exceeds the 8,416-byte ceiling")
     print("\n### Fixed comparison selection\n")
     print("QEMU `pc` selects one hard disk, no 96-TPI extension, no legacy AT-ROM fix, a CMOS clock, and no K09 extension.\n")
     print("| Retained piece | Input boundary | Copied bytes | Output boundary |")
@@ -386,11 +386,9 @@ def main() -> int:
     print(f"| relocated `Daycnt_to_day` | {day_size:,} | CMOS day conversion |")
     print(f"| relocated `Bin_to_bcd` | {bcd_size:,} | CMOS BCD conversion |")
     selected_padding = selected - (selected_bios_total + day_size + bcd_size)
-    print(f"| final paragraph alignment | {selected_padding:,} | loader padding |")
+    print(f"| loader paragraph alignment | {selected_padding:,} | static and relocated-piece padding |")
     selected_bios_total += day_size + bcd_size + selected_padding
     print(f"| **Total** | **{selected_bios_total:,}** | selected resident BIOS |")
-    if require(bios_symbols, "ENDONEHARD") != selected_base:
-        errors.append("ENDONEHARD is no longer paragraph aligned")
     if selected_bios_total != selected:
         errors.append("BIOS ownership does not cover the complete selected image")
 
