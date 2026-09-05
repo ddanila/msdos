@@ -228,11 +228,7 @@ def main() -> int:
     table_start = table_segment.paragraph * 16 + table_segment.offset
     table_end = table_start + table_segment.size
     table_ranges: list[tuple[str, int | str, int | str]] = [
-        ("Version and calendar constants", table_start, "I21_MAP_E_TAB"),
-        ("INT 21 allowed-error map", "I21_MAP_E_TAB", "ERR_TABLE_21"),
-        ("INT 21 extended-error metadata", "ERR_TABLE_21", "ERR_TABLE_24"),
-        ("INT 24 critical-error metadata", "ERR_TABLE_24", "ErrMap24"),
-        ("Device-error translation map", "ErrMap24", "MAXCALL"),
+        ("Version and calendar constants", table_start, "MAXCALL"),
         ("INT 21 dispatch table", "MAXCALL", "FOO"),
         ("Internal install-service dispatch", "FOO", "InterChar"),
         ("Interim-console state and optional banner", "InterChar", "SysInitTable"),
@@ -264,6 +260,31 @@ def main() -> int:
     print(f"| **Total** | **{table_total:,}** | `TABLE` |")
     if table_total != table_segment.size:
         errors.append("DOS TABLE ownership does not cover the complete segment")
+
+    high_table = dos_segments["HIGH_TABLE"]
+    high_start = high_table.paragraph * 16 + high_table.offset
+    high_end = high_start + high_table.size
+    if not low_gate <= high_start < high_end <= sysbuf:
+        errors.append("private high tables are outside the relocated resident image")
+    high_ranges = [
+        ("INT 21 allowed-error map", "I21_MAP_E_TAB", "ERR_TABLE_21"),
+        ("INT 21 extended-error metadata", "ERR_TABLE_21", "ERR_TABLE_24"),
+        ("INT 24 critical-error metadata", "ERR_TABLE_24", "ErrMap24"),
+        ("Device-error translation map", "ErrMap24", "ErrMap24End"),
+    ]
+    print("\n### Relocated private error tables\n")
+    print("| Range | Bytes | Owner |")
+    print("| ---: | ---: | --- |")
+    cursor = high_start
+    for owner, start_name, end_name in high_ranges:
+        start, end = require(dos_symbols, start_name), require(dos_symbols, end_name)
+        if start != cursor or end < start:
+            errors.append(f"private table ownership is discontinuous at {start_name}")
+        print(f"| `{start:04X}h..{end:04X}h` | {end - start:,} | {owner} |")
+        cursor = end
+    if cursor != high_end:
+        errors.append("private table ownership does not cover HIGH_TABLE")
+    print(f"| **Total** | **{high_table.size:,}** | copied to HMA; retained for DOS=LOW |")
 
     code_ranges = [
         ("HMA driver request entry", "hma_driver_requests", "hma_low_dpbs"),

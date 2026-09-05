@@ -186,6 +186,10 @@ $(DOS_OBJ_PATHS) $(INC_NIBDOS) $(INC_CONST2) $(INC_MSDATA) \
 # not discover assembler INCLUDE directives, so list the included files here.
 $(INC_MSTABLE): $(DOS_DIR)/MS_TABLE.ASM $(INC_DIR)/COPYRIGH.INC
 
+# Every contributor must describe the same group order. A stale first object
+# can place HIGH_TABLE after discardable LAST even when its owner was rebuilt.
+$(INC_NIBDOS) $(INC_CONST2) $(INC_MSDATA) $(INC_MSTABLE) $(INC_MSDOSME) $(DOS_OBJ_PATHS): $(INC_DIR)/DOSSEG.ASM
+
 $(DOS_DIR)/MSDOS.EXE: $(INC_NIBDOS) $(INC_CONST2) $(INC_MSDATA) \
     $(INC_MSTABLE) $(INC_MSDOSME) $(DOS_OBJ_PATHS)
 	# Preserve JWasm's historical group order because resident utilities replicate

@@ -441,10 +441,10 @@ ASSUME	DS:NOTHING,ES:NOTHING
 	PUSH	DS
 	PUSH	AX
 	PUSH	BX
-	Context DS		; DS:SI -> Table
+	Context DS		; mutable state in DS; metadata at CS:SI
 	MOV	BX,[EXTERR]	; Get error in BL
 TABLK1:
-	LODSB
+	LODS BYTE PTR CS:[SI]
 	CMP	AL,0FFH
 	JZ	GOT_VALS	; End of table
 	CMP	AL,BL
@@ -453,7 +453,7 @@ TABLK1:
 	JMP	TABLK1
 
 GOT_VALS:
-	LODSW			; AL is CLASS, AH is ACTION
+	LODS WORD PTR CS:[SI]	; high metadata; mutable error state stays in DS
 	CMP	AH,0FFH
 	JZ	NO_SET_ACT
 	MOV	[EXTERR_ACTION],AH     ; Set ACTION
@@ -462,7 +462,7 @@ NO_SET_ACT:
 	JZ	NO_SET_CLS
 	MOV	[EXTERR_CLASS],AL      ; Set CLASS
 NO_SET_CLS:
-	LODSB			; Get LOCUS
+	LODS BYTE PTR CS:[SI]	; Get LOCUS from the code-owned table
 	CMP	AL,0FFH
 	JZ	NO_SET_LOC
 	MOV	[EXTERR_LOCUS],AL
@@ -496,7 +496,7 @@ ASSUME	DS:NOTHING,ES:NOTHING
 	MOV	BH,AL			; Real code to BH
 	MOV	BL,BYTE PTR [USER_IN_AX + 1]	; Sys call to BL
 TABLK2:
-	LODSW
+	LODS WORD PTR CS:[SI]
 	CMP	AL,0FFH 		; End of table?
 	JZ	NOT_IN_TABLE		; Yes
 	CMP	AL,BL			; Found call?
@@ -514,7 +514,7 @@ GOT_CALL:
 	MOV	CL,AH
 	XOR	CH,CH			; Count of valid err codes to CX
 CHECK_CODE:
-	LODSB
+	LODS BYTE PTR CS:[SI]
 	CMP	AL,BH			; Code OK?
 	JZ	NO_MAP			; Yes
 	LOOP	CHECK_CODE

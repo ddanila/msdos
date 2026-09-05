@@ -61,6 +61,10 @@ MSMINOR DB      MINOR_VERSION
 ;
 ; The table is terminated by a call value of 0FFh
 
+; Private error metadata follows resident code and shares its HMA lifetime.
+; Keep public state and driver return gateways in the low TABLE segment.
+TABLE ENDS
+HIGH_TABLE SEGMENT BYTE PUBLIC 'HIGH_TABLE'
 PUBLIC  I21_MAP_E_TAB
 I21_MAP_E_TAB   LABEL   BYTE
     DB  International,2,error_invalid_function,error_file_not_found
@@ -230,6 +234,8 @@ ErrMap24    Label   BYTE
 Public  ErrMap24End
 ErrMap24End LABEL   BYTE
 
+HIGH_TABLE ENDS
+TABLE SEGMENT BYTE PUBLIC 'TABLE'
 
         PUBLIC  DISPATCH,MAXCALL,MAXCOM
 

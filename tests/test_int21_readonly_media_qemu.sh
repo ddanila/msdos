@@ -23,12 +23,15 @@ for tool in nasm mcopy mformat qemu-system-i386 timeout; do
     fi
 done
 
+for dos_mode in LOW HIGH; do
 cp "$FLOPPY" "$BOOT_IMG"
 dd if=/dev/zero bs=512 count=2880 of="$TARGET_IMG" status=none
 mformat -i "$TARGET_IMG" -f 1440 ::
 nasm -f bin "$REPO_ROOT/tests/int21_readonly_media_probe.asm" -o "$PROBE_COM"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
+printf 'DEVICE=A:\\HIMEM.SYS /TESTMEM:OFF\r\nDOS=%s\r\n' "$dos_mode" \
+    | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::I21ROMED.COM
 {
     printf '@ECHO OFF\r\n'
@@ -48,10 +51,11 @@ timeout 35 qemu-system-i386 \
     >"$SERIAL_LOG" 2>&1 || true
 
 if grep -q 'INT21_READONLY_MEDIA_PASS' "$SERIAL_LOG"; then
-    echo "  PASS: INT 21h write-protected media access errors"
-    exit 0
+    echo "  PASS: DOS=$dos_mode INT 21h write-protected media access errors"
+    continue
 fi
 
 echo "  FAIL: INT 21h read-only-media contract probe did not complete"
 sed -n '1,180p' "$SERIAL_LOG"
 exit 1
+done

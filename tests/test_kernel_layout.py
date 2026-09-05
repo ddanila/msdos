@@ -51,6 +51,12 @@ def main() -> None:
 
     low_end = map_offset(kernel_map, "DOS_LOW_GATE_END")
     sysbuf = map_offset(kernel_map, "SYSBUF")
+    error_start = map_offset(kernel_map, "I21_MAP_E_TAB")
+    error_end = map_offset(kernel_map, "ErrMap24End")
+    assert low_end <= error_start < error_end <= sysbuf, (
+        "private error metadata must be reclaimed low and retained in the HMA copy"
+    )
+    assert error_end - error_start == 403, "private error metadata coverage changed"
     curadd = map_offset(kernel_map, "CURADD")
     assert low_end < curadd < sysbuf, "CURADD is not in the relocated DOS tail"
     address = struct.pack("<H", curadd)

@@ -21,9 +21,12 @@ for tool in nasm mcopy qemu-system-i386 timeout; do
     fi
 done
 
+for dos_mode in LOW HIGH; do
 cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/int21_path_error_probe.asm" -o "$PROBE_COM"
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
+printf 'DEVICE=A:\\HIMEM.SYS /TESTMEM:OFF\r\nDOS=%s\r\n' "$dos_mode" \
+    | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::I21PATH.COM
 {
     printf '@ECHO OFF\r\n'
@@ -40,9 +43,10 @@ timeout 35 qemu-system-i386 \
     >"$SERIAL_LOG" 2>&1 || true
 
 if grep -q 'INT21_PATH_ERRORS_PASS' "$SERIAL_LOG"; then
-    echo "  PASS: INT 21h local path, file, nonempty, current-directory, and no-match errors"
-    exit 0
+    echo "  PASS: DOS=$dos_mode INT 21h local path, file, nonempty, current-directory, and no-match errors"
+    continue
 fi
 echo "  FAIL: INT 21h path-error probe did not complete"
 sed -n '1,160p' "$SERIAL_LOG"
 exit 1
+done
