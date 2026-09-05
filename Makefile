@@ -641,6 +641,10 @@ test-prompt-yesno: deploy
 test-command-startup-qemu: deploy
 	bash tests/test_command_startup_qemu.sh
 
+.PHONY: test-command-critical-abi-qemu
+test-command-critical-abi-qemu: deploy
+	COMMAND_CRITICAL_ABI=1 bash tests/test_command_startup_qemu.sh
+
 test-command-step-qemu: deploy
 	bash tests/test_command_step_qemu.sh
 

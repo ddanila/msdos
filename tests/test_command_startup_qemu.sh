@@ -14,11 +14,21 @@ FAIL_SERIAL_IN="$OUT/command-fail-serial.in"
 FAIL_SERIAL_OUT="$OUT/command-fail-serial.out"
 EXIT_COM="$OUT/command-startup-qexit.com"
 ENV_PROBE="$OUT/command-environment-probe.com"
+CRITICAL_ABI_PROBE="$OUT/command-critical-abi.com"
 COPY_ASCII_OUT="$OUT/command-copy-destination-ascii.bin"
 COPY_BINARY_OUT="$OUT/command-copy-source-ascii.bin"
 
 PASS=0
 FAIL=0
+CRITICAL_ABI=${COMMAND_CRITICAL_ABI:-0}
+CRITICAL_MESSAGES=${COMMAND_CRITICAL_MESSAGES:-disk}
+CRITICAL_NO_HOOK=${COMMAND_CRITICAL_NO_HOOK:-0}
+if [[ "$CRITICAL_ABI" != 0 && "$CRITICAL_ABI" != 1 ]] \
+    || [[ "$CRITICAL_MESSAGES" != disk && "$CRITICAL_MESSAGES" != resident ]] \
+    || [[ "$CRITICAL_NO_HOOK" != 0 && "$CRITICAL_NO_HOOK" != 1 ]]; then
+    echo 'ERROR: invalid critical ABI diagnostic configuration'
+    exit 1
+fi
 ok() { echo "  PASS: $1"; PASS=$((PASS+1)); }
 fail() { echo "  FAIL: $1"; FAIL=$((FAIL+1)); }
 
@@ -28,12 +38,18 @@ if [[ ! -f "$FLOPPY" ]]; then
 fi
 
 echo "=== COMMAND.COM startup-switch tests (QEMU) ==="
+echo "Critical ABI=$CRITICAL_ABI messages=$CRITICAL_MESSAGES no-hook=$CRITICAL_NO_HOOK"
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
 cp "$FLOPPY" "$BOOT_IMG"
 dd if=/dev/zero bs=512 count=2880 of="$B_IMG" status=none
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 nasm -f bin "$REPO_ROOT/tests/command_environment_probe.asm" -o "$ENV_PROBE"
+critical_defines=(-f bin)
+if [[ "$CRITICAL_NO_HOOK" == 1 ]]; then
+    critical_defines+=(-DNO_CRITICAL_HOOK)
+fi
+nasm "${critical_defines[@]}" "$REPO_ROOT/tests/command_critical_abi_probe.asm" -o "$CRITICAL_ABI_PROBE"
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 mcopy -o -i "$BOOT_IMG" "$ENV_PROBE" ::ENVPROBE.COM
 
@@ -101,13 +117,21 @@ timeout 120 qemu-system-i386 \
 # coordinator selects Fail at the prompt and proves normal return.
 cp "$FLOPPY" "$FAIL_BOOT_IMG"
 mcopy -o -i "$FAIL_BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
+mcopy -o -i "$FAIL_BOOT_IMG" "$CRITICAL_ABI_PROBE" ::CRITABI.COM
 {
     printf 'DEVICE=A:\\HIMEM.SYS\r\n'
     printf 'DOS=HIGH\r\n'
+    if [[ "$CRITICAL_MESSAGES" == resident ]]; then
+        printf 'SHELL=A:\\COMMAND.COM /P /MSG\r\n'
+    fi
 } | mcopy -o -i "$FAIL_BOOT_IMG" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
+    if [[ "$CRITICAL_ABI" == 1 ]]; then
+        printf 'CRITABI.COM > CRITABI.TXT\r\n'
+        printf 'TYPE CRITABI.TXT\r\n'
+    fi
     printf 'TYPE B:\\NOFILE.TXT\r\n'
     printf 'ECHO COMMAND_CRITICAL_HMA_CONTINUED\r\n'
     printf 'COMMAND /F /C TYPE B:\\NOFILE.TXT\r\n'
@@ -126,9 +150,13 @@ timeout 30 qemu-system-i386 \
     -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
     2>/dev/null &
 FAIL_QEMU_PID=$!
+critical_responses=('Abort, Retry, Fail?' 'F\r')
+if [[ "$CRITICAL_ABI" == 1 ]]; then
+    critical_responses+=('Abort, Retry, Fail?' 'F\r' 'Abort, Retry, Fail?' 'F\r')
+fi
 python3 "$REPO_ROOT/tests/serial_expect.py" \
     "$FAIL_SERIAL_IN" "$FAIL_SERIAL_OUT" "$FAIL_SERIAL_LOG" \
-    'Abort, Retry, Fail?' 'F\r'
+    "${critical_responses[@]}"
 wait "$FAIL_QEMU_PID" || true
 exec 3>&-
 rm -f "$FAIL_SERIAL_IN" "$FAIL_SERIAL_OUT"
@@ -217,7 +245,7 @@ if grep -q '^COMMAND_CRITICAL_HMA_CONTINUED' "$FAIL_SERIAL_LOG" \
     && grep -q '^COMMAND_FAIL_ALL_CONTINUED' "$FAIL_SERIAL_LOG" \
     && grep -q 'General failure reading drive B' "$FAIL_SERIAL_LOG" \
     && grep -q 'Fail on INT 24' "$FAIL_SERIAL_LOG"; then
-    ok "DOS-high permanent COMMAND reads the HMA critical catalog"
+    ok "DOS-high permanent COMMAND survives critical errors (messages=$CRITICAL_MESSAGES)"
 else
     fail "DOS-high permanent COMMAND did not survive the critical disk error"
 fi
@@ -226,6 +254,15 @@ if grep -q '^COMMAND_PERMANENT_RETURNED_WRONG' "$SERIAL_LOG"; then
     fail "permanent COMMAND unexpectedly returned to its parent batch"
 else
     ok "COMMAND /P remains the active interpreter"
+fi
+
+if [[ "$CRITICAL_ABI" == 1 ]]; then
+    if grep -q '^COMMAND_CRITICAL_ABI_PASS' "$FAIL_SERIAL_LOG" \
+        && ! grep -q 'COMMAND_CRITICAL_ABI_FAIL' "$FAIL_SERIAL_LOG"; then
+        ok "critical Fail preserves foreign stack/registers and JFNs across repeated opens"
+    else
+        fail "critical-error return ABI or redirected JFN restoration"
+    fi
 fi
 
 if grep -q 'Required parameter missing' "$SERIAL_LOG"; then

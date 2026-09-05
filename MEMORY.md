@@ -223,6 +223,39 @@ Use a development-only complete-object prototype to measure its linked gates;
 keep the normal layout and failed-relocation fallback intact. Production
 promotion remains behind the joint budget and compatibility gates.
 
+The first runtime gate exposes an existing disk-backed-message failure, before
+any shell-body relocation. `test-command-critical-abi-qemu` runs a child COM
+program with stdout redirected, opens the unformatted B: twice, and chains the
+inherited INT 24h handler. It requires an observed Fail return with unchanged
+SS:SP, DS, ES, SI and CX, a stack outside the handler's code segment, and exact
+stdin/stdout JFN restoration after each open. It does not demand a callback on
+the second open: DOS can reject it without prompting after the first error.
+
+The ordinary DOS-high case stalls before the child prompt completes. Removing
+the observer hook also reproduced the stall; an unredirected diagnostic did
+too. One guest sample had A20 enabled and CS:IP at `FFFF:6F93h`, in the mapped
+DOS FAT-service range. This is localization evidence, not proof of a FAT bug.
+The `/MSG` control completes the observed return and JFN checks. It retains
+the message catalogs instead of exercising their disk-backed lookup, and is
+therefore **not** a substitute for the failing default configuration.
+
+Reproduce against a deployed image (each run replaces the same test fixtures):
+
+```sh
+make test-command-critical-abi-qemu
+COMMAND_CRITICAL_ABI=1 COMMAND_CRITICAL_MESSAGES=resident \
+  bash tests/test_command_startup_qemu.sh
+```
+
+The first command currently fails; the control passes. Optional
+`COMMAND_CRITICAL_NO_HOOK=1` removes the observer for diagnosis only and cannot
+satisfy the ABI gate. The unchanged `test-command-startup-qemu` remains the
+passing built-in-error baseline. Next isolate `MSGSERV.ASM:READ_DISK_PROC` and
+the nested DOS disk-call/stack contract; do not move that path high while its
+default low-body behavior is unresolved. The gate covers returning Fail,
+not Retry/Ignore/Abort, nested INT 24h, A20-off recovery, or the non-returning
+`GETCOMDSK2` reload path, which resets the shell stack through `LODCOM1`.
+
 The eventual reclamation commits have three distinct owners:
 
 | Object | Destination and publication | Conventional reclamation point |
