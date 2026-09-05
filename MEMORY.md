@@ -1442,6 +1442,30 @@ provider transaction; late/foreign providers must retain the valid low layout
 until an equivalent contract is implemented. This is the next prototype's
 scope, not an implemented activation path.
 
+Executable boundary prototype: `src/BIOS/HIGHROM.INC` supplies the low far-call
+INT 13h return gate for the planned split. It saves ROM result registers and
+flags, invokes the repository HIMEM E705h physical-A20 restoration contract,
+and returns to its caller. It is deliberately **not installed in IO.SYS yet**;
+provider validation, BIOS dispatch/data fixups, early allocation, and low-prefix
+reclamation must land together before activation.
+
+```sh
+make test-bios-high-rom-qemu
+```
+
+The local QEMU 486 probe compiles the shared gate with both JWasm and NASM.
+DOS=HIGH reserves real DOS-owned HMA storage, copies a caller there, and patches
+its far gate segment. A real boot-sector read runs through a low INT 13h hook
+that disables A20 before returning. A read-only high/low alias comparison
+confirms the physical disable; the continuation must execute high afterward.
+Two synthetic ROM results then check AX/BX/CX/DX/SI/DI/BP/DS/ES, balanced SP,
+both carry outcomes, and OF/IF/SF/ZF/AF/PF preservation. DOS=LOW proves allocator
+rejection and exercises the same call contract conventionally. Both pass.
+An otherwise identical high probe with restoration omitted reaches its startup
+marker but cannot pass, confirming sensitivity to the missing gate operation.
+This validates one executable boundary, not the complete BIOS relocation,
+foreign-provider behavior, a real 286, or any additional conventional saving.
+
 `DOS_HMA_RELOCATE` in `src/DOS/MS_CODE.ASM` already copies the entire DOS image
 from offset `0010h` through `SYSBUF` to the same offsets in segment `FFFFh`.
 The 39,456-byte HMA image therefore includes the tables and data below
