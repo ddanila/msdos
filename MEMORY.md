@@ -133,6 +133,66 @@ accessor-only commits neither satisfy this checkpoint nor improve the memory
 score. Keep correctness repairs separate from savings claims. The checkpoint
 is currently **open**; the existing candidate census is not a complete layout.
 
+#### Candidate layout A: manager objects plus the whole shell service body
+
+The current checked COMMAND map provides a concrete complement to manager
+relocation: `0100h..0A93h` contains 2,451 resident code bytes. Keep its 256-byte
+PSP, 125-byte stack and 800 bytes of mutable state low initially. Repack that
+low state before the movable body rather than preserving a 2,451-byte hole.
+Environment, batch allocations and arena overhead are separate and unchanged.
+This is a code/data-interface redesign, not a claim that the current body is
+position-independent.
+
+The following are proposed **design ceilings**, not measured new allocations:
+
+| Allocation | Current low bytes | Proposed low ceiling | Required net release |
+| --- | ---: | ---: | ---: |
+| Combined HIMEM/EMM386 | 6,480 | 3,248 | 3,232 |
+| COMMAND permanent image, including PSP | 3,632 | 2,048 | 1,584 |
+| **Combined** | **10,112** | **5,296** | **4,816** |
+
+Meeting both ceilings would put development's largest block at 619,264 bytes,
+528 above retail, without counting EBDA or another BIOS/table move. The manager
+ceiling allows 523 bytes above the first split's 2,725-byte retained inventory;
+the shell ceiling allows 867 above its 1,181-byte PSP/stack/state inventory.
+Those allowances must absorb gateways, bindings, alignment and any retained
+service code. If the contracts require more, revise the joint layout rather
+than silently spending the 528-byte margin twice.
+
+Proposed destinations are the existing DOS-owned HMA for HIMEM's 1,850-byte
+service/data candidate and COMMAND's 2,451-byte body, and locked extended memory
+behind a protected selector for EMM386's complete 1,904-byte selected table
+object. The 4,301-byte additional HMA payload fits the calculated 10,169-byte
+tail before relocation support costs; size the final linked high objects and
+XMS/page alignment separately. Existing high BIOS, kernel, buffers and shell
+catalogs remain where they are. No new UMB allocation is budgeted.
+
+Source-audited implementation constraints still preventing acceptance:
+
+- COMMAND's `COMMAND1.ASM` uses CS-relative LOADHIGH state and derives DS from
+  CS. `COMMAND2.ASM:SETVECT` publishes low INT 22h/23h/24h entries and the PSP
+  exit pointer. `RUCODE.ASM:DSKERR` writes CS-relative remote-message state and
+  returns through IRET. Preserve low entry/return gates and use an explicit
+  low-data segment throughout the high body, including transient callers.
+- Keep the registered disk-message callback low initially: its prior high
+  move failed a real disk-backed diagnostic. Charge its 174 bytes against
+  the shell's 867-byte allowance, not as additional savings. Audit nested
+  INT 24h, INT 2Eh, Ctrl+C, EXEC and reload stack/return frames before moving
+  other asynchronous bodies. Firmware/DOS callbacks can change A20.
+- `DOS_HMA_TAIL_ALLOC` is monotonic and cannot free reservations. The manager
+  loads before permanent COMMAND, whose existing relocation reserves its
+  own tail. Establish an explicit boot-stage reservation/publication contract
+  before placing HIMEM there; do not call a not-yet-initialized DOS service
+  from driver initialization or leak HMA across fallback attempts.
+- Manager OFF/AUTO, real-mode continuation and third-party-provider contracts
+  remain as specified below. Releasing low table storage must change the
+  installed allocation boundary, not merely its pointers.
+
+Next evidence needed: linked gate/body sizes against both ceilings, a complete
+call/return and boot-publication design, then paired runtime maps proving
+coalescing. The arithmetic makes this a viable budget to investigate; it does
+not pass the joint checkpoint or any runtime acceptance gate by itself.
+
 ### Development placement budget: remaining BIOS is not another disk body
 
 Use `report_dos_bios_residency.py --check --tail-body DOS.MAP BIOS.map` for
