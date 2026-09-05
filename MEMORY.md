@@ -1383,9 +1383,10 @@ UMB migration needs compensating reclamation or a different placement design.
 Budget HMA jointly for BIOS, DOS state, COMMAND, and the requested disk cache.
 The normal post-COMMAND slack is 15,437 bytes; the development BIOS payload
 consumes another 5,220 bytes. Those are fixed-15-buffer figures, not independent
-budgets for each subsystem. `Set_HMA_Buffers` currently accepts the entire cache
-or falls back to low memory: a new reservation can therefore displace more low
-memory than it releases. Define and test capacity/fallback policy before
+budgets for each subsystem. `Set_HMA_Buffers` now places whole buckets high
+while they fit and spills the remaining buckets low. Bucket granularity and
+COMMAND competition can still displace more low memory than BIOS relocation
+releases. Define and test the joint capacity policy before
 promoting the high BIOS or adding high data. Preserve requested resource counts,
 DOS=LOW, A20-off callers, third-party providers, and reset behavior; verify that
 all released paragraphs join the largest conventional block.
@@ -2050,9 +2051,9 @@ bytes. This is a correctness fix, not an additional memory saving.
 
 ##### HMA capacity and low-cache fallback
 
-The development high BIOS retains all 39 requested buffers in HMA, but 40
-buffers exceed its remaining capacity and take the whole-cache low fallback.
-Before correction, the 40-buffer image failed to reach the probe: SYSINIT had
+The development high BIOS retains all 39 requested buffers in HMA. Previously,
+40 buffers exceeded its remaining capacity and took the whole-cache low
+fallback. Before correction, that image failed to reach the probe: SYSINIT had
 not published an HMA tail on that path, and the allocator accepted requests
 with both floor and next equal to zero. COMMAND could consequently write its
 payload over live DOS HMA contents.
@@ -2068,14 +2069,35 @@ bytes before COMMAND and 15,437 afterward with the normal 15-buffer layout.
 hash/bucket rings at 1, 39, 40, and 99 buffers, exercises low/high providers,
 and checks file/device/returned-Ctrl-C paths. The HMA suite separately injects
 an unpublished allocator state, requires rejection, restores it, and verifies
-normal allocation and bounds. This repairs unsafe fallback, not its placement
-cost: before BIOS promotion, adopt a joint HMA budget or split-cache policy so
-bulk relocation cannot lose more conventional memory by displacing buffers
-or COMMAND than it releases. Do not reduce the requested buffer count.
+normal allocation and bounds.
+
+The cache now uses its existing far bucket heads to support mixed placement;
+the near next/previous links never cross segments. SYSINIT preflights the hash
+plus the largest bucket, retains the hash high, places each whole bucket high
+when it fits, and allocates only the rest low. The single low transfer area
+remains available for high buffers. Low arena markers include the spill buckets;
+the high allocator starts after the final high bucket, not the last low one.
+If even the initial bucket cannot fit, the original all-low path remains.
+EMS-buffer placement and DOS=LOW are unchanged.
+
+The capacity gate requires mixed placement at 40 and 99 buffers, not merely a
+successful boot or the configured count. Each case also writes 64 distinct
+511-byte records, flushes, seeks, and verifies all 32,704 bytes, exercising
+unaligned cached edges across sectors. The 40-buffer fixed VC image grows from
+592,480 to 602,624 conventional bytes: **10,144 bytes reclaimed**, with all 40
+buffers retained and 49,104 UMB bytes still free. The before/after captures are
+`out/split40-before-vc.md` and `out/split40-after-vc.md`; both compare against
+retail with the same 40-buffer CONFIG.SYS. Retail remains at 618,736 bytes.
+
+Mixed placement removes the all-or-nothing cliff but not the full capacity
+tradeoff: before BIOS promotion, budget BIOS, buffers, and COMMAND together so
+relocation cannot displace more conventional memory than it releases. Preserve
+the requested count and assess whole-bucket granularity; do not claim the
+40-buffer result meets the retail floor.
 
 The 14-case capacity matrix, 16-case rebase/reset/negative-control matrix,
 residency census, and HMA suite pass locally. Fresh fixed-15-buffer captures
-`out/cache-normal-vc.md` and `out/cache-development-vc.md` retain 610,256 and
+`out/split15-normal-vc.md` and `out/split15-development-vc.md` retain 610,256 and
 613,264 conventional bytes, respectively, with 49,104 free UMB bytes in both.
 
 The normal boot loader has not bound or activated these pointers. The ownership
@@ -3823,7 +3845,8 @@ that DOS 6.22 also places the normal buffer state in the HMA.
 
 A retained implementation reserves the HMA before final-table construction and
 packs the normal hash and buckets above the resident DOS image. Configured
-sets that do not fit retain the original conventional allocation path, so the
+sets that do not entirely fit spill complete buckets into conventional memory;
+if no initial bucket fits, they retain the original all-low path. The
 supported `BUFFERS=` range is unchanged.
 
 One maximum-sector transfer area is allocated through the normal SYSINIT layout.

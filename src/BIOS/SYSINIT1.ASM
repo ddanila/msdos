@@ -269,6 +269,7 @@ MaxNumBuf1		db     15	;AN026;Num of buffers in a bucket group 1.
 MaxNumBuf2		db     15	;AN026;Num of buffers in a possible bucket group 2.
 NthBuck 		db	0	;AN026; 1st bucket group = 1st bucket through Nth Bucket. The rest = second group
 HmaBuffersPrepared	db	0
+HmaBufferNext		dw	0
 HmaBufferBase		dw	0
 	IFDEF BIOS_SERVICE_BOOT
 	EXTRN HmaBiosEnd:WORD
@@ -2573,7 +2574,10 @@ Set_HMA_Buffers proc near
 	push	di
 	push	ds
 	push	es
-	mov	ax,cs:[Buffers]
+	; Buckets have far heads but near links within each ring. Keep each
+	; bucket in one segment; admit high placement if the largest fits.
+	xor	ax,ax
+	mov	al,cs:[MaxNumBuf1]
 	mul	cs:[SingleBufferSize]
 	or	dx,dx
 	jnz	HmaBuffersFail
@@ -2626,6 +2630,7 @@ Set_HMA_Buffers proc near
 	mul	cx
 	mov	di,si
 	add	di,ax
+	mov	cs:[HmaBufferNext],di
 	mov	ax,0ffffh
 	mov	ds,ax
 	mov	es,ax
@@ -2633,17 +2638,54 @@ Set_HMA_Buffers proc near
 	xor	dx,dx
 HmaBucketLoop:
 	inc	dl
-	mov	word ptr ds:[bx.EMS_PAGE_NUM],-1
-	mov	word ptr ds:[bx.BUFFER_BUCKET],di
-	mov	word ptr ds:[bx.BUFFER_BUCKET+2],0ffffh
-	mov	word ptr ds:[bx.DIRTY_COUNT],0
-	mov	cs:[HmaBucketStart],di
 	xor	cx,cx
 	mov	cl,cs:[MaxNumBuf2]
 	cmp	dl,cs:[NthBuck]
 	ja	short HmaBucketCountReady
 	mov	cl,cs:[MaxNumBuf1]
 HmaBucketCountReady:
+	push	dx
+	mov	ax,cx
+	mul	cs:[SingleBufferSize]
+	; Largest bucket was preflighted, so this product cannot overflow.
+	mov	di,cs:[HmaBufferNext]
+	add	ax,di
+	jc	short HmaBucketLow
+	cmp	ax,0fff0h
+	ja	short HmaBucketLow
+	mov	cs:[HmaBufferNext],ax
+	mov	ax,0ffffh
+	mov	es,ax
+	jmp	short HmaBucketPlaced
+HmaBucketLow:
+	; Allocate only this complete ring low. Preserve the high hash cursor
+	; and ring count across SYSINIT's arena rounding and marker update.
+	push	bx
+	push	cx
+	push	ds
+	push	cs
+	pop	ds
+	mov	di,[MemLo]
+	mov	es,[MemHi]
+	push	di
+	push	es
+	mov	ax,cx
+	mul	[SingleBufferSize]
+	add	[MemLo],ax
+	or	[SetDevMarkFlag],FOR_DEVMARK
+	invoke	Round
+	pop	es
+	pop	di
+	pop	ds
+	pop	cx
+	pop	bx
+HmaBucketPlaced:
+	pop	dx
+	mov	word ptr ds:[bx.EMS_PAGE_NUM],-1
+	mov	word ptr ds:[bx.BUFFER_BUCKET],di
+	mov	word ptr ds:[bx.BUFFER_BUCKET+2],es
+	mov	word ptr ds:[bx.DIRTY_COUNT],0
+	mov	cs:[HmaBucketStart],di
 	mov	si,di
 HmaBufferLoop:
 	mov	es:[di.BUF_PREV],si
@@ -2666,7 +2708,7 @@ HmaBufferLoop:
 	jb	HmaBucketLoop
 	; Publish the first byte after the completed cache to DOS. This private
 	; interface is the only allocator for the remaining DOS-owned HMA tail.
-	mov	bx,di
+	mov	bx,cs:[HmaBufferNext]
 	mov	ax,1235h
 	int	2fh
 	clc
