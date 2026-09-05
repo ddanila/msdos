@@ -376,7 +376,8 @@ def main() -> int:
 
     selected_bios_ranges: list[tuple[str, int | str, int | str]] = [
         ("Loader entry", 0, "BIO001S"),
-        ("Core BIOS data and device headers", "BIO001S", "BIO001E"),
+        ("Core BIOS data and device headers", "BIO001S", "BIOS_IOCTL_LOW_START"),
+        ("Low IOCTL state and format descriptors", "BIOS_IOCTL_LOW_START", "BIO001E"),
         ("Strategy and request dispatch", "BIO001E", "CON$READ"),
         ("Console services", "CON$READ", "AUX$READ"),
         ("Auxiliary-device services", "AUX$READ", "PRN$WRIT"),
@@ -422,6 +423,18 @@ def main() -> int:
         errors.append("BIOS service candidate is outside the selected low image")
     if service_start != require(bios_symbols, "READ_SECTOR") or service_end > require(bios_symbols, "DISK005S"):
         errors.append("BIOS service symbols do not bound the selected disk body")
+    ioctl_low_start = require(bios_symbols, "BIOS_IOCTL_LOW_START")
+    ioctl_low_end = require(bios_symbols, "BIOS_IOCTL_LOW_END")
+    if not (ioctl_low_end == require(bios_symbols, "BIO001E") <= service_start):
+        errors.append("IOCTL mutable state is not wholly in the retained low prefix")
+    if ioctl_low_end - ioctl_low_start != 261:
+        errors.append("IOCTL low-state inventory changed; review format capacity")
+    if require(bios_symbols, "MEDIATYPE") - require(bios_symbols, "TRACKTABLE") != 63 * 4:
+        errors.append("low format descriptor array does not cover 63 sectors")
+    io_read = require(bios_symbols, "IOREADJUMPTABLE")
+    io_write = require(bios_symbols, "IOWRITEJUMPTABLE")
+    if not (service_start <= io_read < io_write < service_end) or io_write - io_read != 17:
+        errors.append("IOCTL code dispatch tables no longer belong to the service body")
     print("\n### Bulk-placement design budget (not achieved savings)\n")
     print("| Candidate | Current bytes | Unproved prerequisite |")
     print("| --- | ---: | --- |")

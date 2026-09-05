@@ -1338,30 +1338,40 @@ Conversely, its 12,800-byte gain includes buffers already high locally and
 cannot be counted again. The 5,344-byte retail DOS/BIOS remainder is an
 accounting difference, not the full candidate inventory or a movable block.
 
-The current BIOS map provides a concrete first audit range: `0D84h..1C86h`
-contains 733 bytes of sector/low-level I/O, 1,356 bytes of transfer/error paths,
-and 1,753 bytes of disk IOCTL/INT 2F services: 3,842 contiguous bytes. Audit
-entry points, CS-relative data, ROM calls, and request/buffer access across this
-range before deciding its high-body boundary. Contiguity does not prove that
-all 3,842 bytes are relocatable or that removing an interior range releases
-the same conventional allocation; the final BIOS layout must actually shrink.
-The body is now isolated in `src/BIOS/MSDSKHIG.INC`, included by MSDISK in its
-original segment. Explicit `BIOS_SERVICE_START/END` symbols bound
-`0D84h..1C85h`: 3,841 copyable bytes plus one following module-alignment byte.
-Both reports use these symbols for the relocation candidate. Extraction and
-boundary labels preserve MSBIO.BIN and IO.SYS byte-for-byte; the object build
-depends explicitly on this include and its nested MSIOCTL include. No high
-placement or low-memory release is activated by this source split.
+The candidate is isolated in `src/BIOS/MSDSKHIG.INC`, included by MSDISK in its
+original segment. `BIOS_SERVICE_START/END` now bound `0E88h..1C84h`: 3,580 bytes
+of sector I/O, transfer/error handling, and IOCTL/INT 2F services. Both reports
+use these symbols. Audit entry points, CS-relative operands, and request/buffer
+access before activation; contiguity alone does not prove relocatability or
+release the low allocation.
+
+The initial 3,841-byte body included 261 bytes of mutable IOCTL state. These
+now belong to `MSIOLDAT.INC` in the retained low prefix: the 252-byte format
+descriptor array, sector count, three flags, and saved DPT pointer. Shared
+limits retain all 63 sector descriptors. The census rejects state inside the
+high candidate and checks that the IOCTL code-dispatch tables remain inside
+it. Build dependencies cover both new includes. Total conventional BIOS
+allocation remains 8,160 bytes; this is ownership separation, not a saving.
+The paired fixed-image capture remains 610,256 conventional bytes and 49,104
+free UMB bytes, leaving the same 8,480-byte retail gap.
 The fifteen data-segment materializations in this body and MSIOCTL now use
 `BIOS_PUSH_DATA_SEG` from MSBSEG.INC: disk/track transfer buffers, BDS walks,
 error-table scanning, and boot-record copies all name low-data ownership.
 The installed form emits the original PUSH CS; the separately compiled form
 pushes `CS:[BIOS_SERVICE_LOW_SEGMENT]` without changing flags or scratch
-registers. Native tests verify both 8086 encodings and all fifteen consumers;
-IO.SYS remains byte-identical. A future high module must supply and relocate
+registers. Native tests verify both 8086 encodings and all fifteen consumers.
+A future high module must supply and relocate
 the owner word and its references. Ordinary CS-relative operands are not yet
 converted: in particular, IOCTL's code jump table must remain high while its
 mutable track table stays low. Do not apply a global CS-to-data substitution.
+
+Local media-ID, multitrack, LOW/HIGH read-only-media, warm-reboot, fixed-disk
+format, floppy FORMAT /U, and the 286 HIMEM/386/486 memory-manager matrix
+checks pass after low-state separation. The
+combined `/U` then `/F:720` test rejects the latter with `Parameters not
+supported`; substituting the pre-change IO.SYS reproduces the same two failed
+assertions. This baseline format/profile issue remains unresolved and is not
+claimed as a passing gate.
 
 For each candidate record the exact range, readers/writers, external pointer
 contract, A20/interrupt requirements, proposed destination, fallback, retained

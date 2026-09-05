@@ -36,6 +36,7 @@
 
 ; GENERIC IOCTL DISPATCH TABLES
 ;
+PUBLIC IOREADJUMPTABLE, IOWRITEJUMPTABLE
 IOREADJUMPTABLE DB	7			;AN012;maximum number (0 based)
 		DW	OFFSET GETDEVICEPARAMETERS		;60h
 		DW	OFFSET READTRACK			;61h
@@ -65,55 +66,9 @@ IOWRITEJUMPTABLE DB	7					;AN012;
 ;	2	      512
 ;	3	     1024
 ;
-MAX_SECTORS_CURR_SUP	EQU	63	; CURRENT MAXIMUM SEC/TRK THAT
-					; WE SUPPORT (Was 40 in DOS 3.2)
-SECTORSPERTRACK DW	36
-TRACKTABLE	DB	0,0,1,2
-		DB	0,0,2,2
-		DB	0,0,3,2
-		DB	0,0,4,2
-		DB	0,0,5,2
-		DB	0,0,6,2
-		DB	0,0,7,2
-		DB	0,0,8,2
-		DB	0,0,9,2
-		DB	0,0,10,2
-		DB	0,0,11,2
-		DB	0,0,12,2
-		DB	0,0,13,2
-		DB	0,0,14,2
-		DB	0,0,15,2
-		db	0,0,16,2
-		db	0,0,17,2
-		db	0,0,18,2
-		db	0,0,19,2
-		db	0,0,20,2
-		db	0,0,21,2
-		db	0,0,22,2
-		db	0,0,23,2
-		db	0,0,24,2
-		db	0,0,25,2
-		db	0,0,26,2
-		db	0,0,27,2
-		db	0,0,28,2
-		db	0,0,29,2
-		db	0,0,30,2
-		db	0,0,31,2
-		db	0,0,32,2
-		db	0,0,33,2
-		db	0,0,34,2
-		db	0,0,35,2
-		db	0,0,36,2
-		DB	4*MAX_SECTORS_CURR_SUP - ($ - TRACKTABLE) DUP (0)
-
-; THIS IS A REAL UGLY PLACE TO PUT THIS
-; IT SHOULD REALLY GO IN THE BDS
-MEDIATYPE	DB	0
-
-MEDIA_SET_FOR_FORMAT	DB	0	; 1 IF WE HAVE DONE AN INT 13 SET MEDIA
-					; TYPE FOR FORMAT CALL
-Had_Format_Error	db	0	; 1 if the previous format operation
-					; failed. - J.K. 7/8/86
+	INCLUDE MSIOLIM.INC
+	EXTRN SECTORSPERTRACK:WORD, TRACKTABLE:BYTE, MEDIATYPE:BYTE
+	EXTRN MEDIA_SET_FOR_FORMAT:BYTE, Had_Format_Error:BYTE, TEMPDPT:DWORD
 Dsk_time_out_Err	equ	80h	; Time out error (No media present).
 Dsk_change_line_Err	equ	6h	; Change line error
 Dsk_illegal_combination equ	0Ch	; Return code of ah=18h function.
@@ -122,7 +77,7 @@ Dsk_illegal_combination equ	0Ch	; Return code of ah=18h function.
 ; THE ONE PASSED BY "NEW ROMS" BEFORE WE PERFORM A FORMAT OPERATION. THE OLD
 ; DPT IS RESTORED IN RESTOREOLDDPT. THE FIRST ENTRY (DISK_SPECIFY_1) IS -1 IF
 ; THIS TABLE DOES NOT CONTAIN THE PREVIOUSLY SAVED DPT.
-TEMPDPT 	DD	-1
+; Storage is owned by the retained-low MSIOLDAT.INC block.
 
 ;
 ; GENERIC$IOCTL:

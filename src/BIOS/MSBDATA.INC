@@ -714,5 +714,6 @@ FTESTBITS   DW	    fTestDISK
 ;ftestbits dw ftestclock
 	ENDIF
 
+	INCLUDE MSIOLDAT.INC
 	PATHEND 001,BIO
 
