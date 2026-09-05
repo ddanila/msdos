@@ -87,3 +87,46 @@ ignored `build/win95/`; none of the proprietary installation files are committed
 The same deployment and focused regression commands also passed after
 integrating upstream `e1d9bdf`, before publishing this report. That regression
 rerun did not include the proprietary Windows installer/HIMEM/ScanDisk cases.
+
+## Follow-up reproduction, 2026-09-05
+
+`tests/win95_setup_probe.py` is an opt-in external-media harness. It creates
+fresh 504 MiB FAT16 disks under ignored `out/`, stages the user's ISO, boots
+the generated DOS floppy, waits for the actual Setup prompt using screenshot
+OCR, and compares every staged source file byte-for-byte after the bounded
+run. It never reuses or modifies an existing Windows VM. Dependencies are
+QEMU, mtools, Tesseract, and Python `pycdlib` (for example via `uv run --with
+pycdlib python ...`). These observations concern the initial Setup stage,
+not a complete unattended installation.
+
+Example, from the repository root:
+
+```sh
+uv run --with pycdlib python tests/win95_setup_probe.py \
+  --iso /path/to/WINDOWS95.ISO --output out/win95-normal-new \
+  --mode normal --seconds 25
+```
+
+- `out/win95-normal-current-01` was inconclusive: a fixed-delay Enter was sent
+  before Setup's prompt. It must not be counted as a successful ScanDisk run.
+  The harness now waits for the actual prompt rather than relying on boot time.
+- `out/win95-normal-current-02`, using the corrected build on `b9f980e`, ran
+  **normal Setup without `/IS`**, reached the graphical welcome screen, and
+  preserved all 37 staged source files byte-for-byte (39 directory entries
+  including `.` and `..`). The earlier damage did not reproduce at this stage.
+- `out/win95-smartdrv-current-01` did not reach the initial Setup prompt within
+  the 120-second observation window after loading the fork's `SMARTDRV.EXE`.
+  A second instrumented run, `out/win95-smartdrv-current-02`, shows
+  `PROBE_CACHE_RETURNED`, `PROBE_DRIVE_SELECTED`, and `PROBE_SETUP_START`,
+  but no Setup prompt during observation. This localizes the stall to launching
+  or running Setup after cache installation, not the cache install command
+  itself. The basic `test_smartdrv_runtime_qemu.sh` install/status fixture uses
+  a blank 16 MiB disk and does not cover this staged-source workload.
+- The harness now retains failure text, CPU registers when available, and
+  offline source comparisons even when Setup does not reach its prompt.
+  Failure exits nonzero. A successful harness exit is only a completed
+  observation: inspect the screen/report before calling an installer stage a pass.
+- Root-cause isolation, a cache-enabled installation fix, and comparison with
+  the pre-handle-fix boot image remain outstanding. SMARTDrive (disk cache) and
+  ScanDisk (disk checker) are separate components; these observations do not
+  establish that the earlier source-directory damage had the same cause.
