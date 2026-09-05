@@ -109,7 +109,6 @@ real_gdt	label	qword
 real_idt	dw	0FFFFh		; limit
 		dw	0000		; base
 		dw	0000
-		dw	0000		; just in case
 
 	ENDIF
 
@@ -141,16 +140,14 @@ endif
 ;
 	IFNDEF	RETREAL_LOW_ONLY
 RetRealHigh proc near
-	PUSH_EAX			; save two scratch registers
-	push	bx
+	pushad				; preserve the complete 386 caller frame
 	cli				; disable ints
 
 	smsw	ax			;check to see if we are in real mode
 	test	ax,1
 	jnz	rl386_a 		;jump if in protected mode
 	sti
-	pop	bx
-	POP_EAX
+	popad
 	ret				;otherwise return
 
 rl386_a:
@@ -213,10 +210,9 @@ RetRealHigh endp
 
 	IFNDEF	RETREAL_HIGH_ONLY
 RetRealResume:
-	OP32				; load up full IDT address
+	; The real IVT base is zero, so the 386's 24-bit real-mode IDTR form is
+	; sufficient and avoids a redundant operand-size prefix.
 	lidt	fword ptr cs:[real_idt]
-
-	sti
 
 	; RetRealHigh already cleared CR0.PG, which invalidates the 386/486 TLB.
 	; GoVirtual also reloads CR3 before paging is enabled again.
@@ -233,8 +229,7 @@ RetRealResume:
 	call	DisableA20
 RetRealA20Done:
 
-	pop	bx
-	POP_EAX
+	popad
 	ret				; *** RETURN ***
 	ENDIF
 

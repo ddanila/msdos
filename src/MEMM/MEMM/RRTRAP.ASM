@@ -257,15 +257,7 @@ RR_GoReal:
 ;   now start resetting registers from the stack
 ;
 ;
-	add	sp,8			; skip IP,DS,DX, and IP
-	pop	dx
-	pop	bx			; last pushed by OUT emulator
-;
-;   now back to stack presented by VmFault's jmp to instr handler
-;
-;	   on to JumpReal code and continue in Real mode
-;
-	jmp	FAR PTR JumpReal
+	jmp	FAR PTR JumpRealFromTrap
 	ENDIF
 
 ;******************************************************************************
@@ -349,6 +341,13 @@ RR_SS		dw	0		; SS for return
 RR_SP		dw	0		; SP for return
 
 RR_Flags	dw	0		; low word of flags for return
+
+; Complete the port-trap unwind in otherwise unused R_CODE alignment space.
+; This entry is reached only after RetRealHigh has restored real mode.
+JumpRealFromTrap label far
+	add	sp,8			; skip IP,DS,DX, and IP
+	pop	dx
+	pop	bx			; last pushed by OUT emulator
 
 ;******************************************************************************
 ;

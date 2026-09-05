@@ -346,11 +346,10 @@ a20common proc near
 ; A20 switch settle. If not, it won't work !
 ; PC (10/03/88)
 ;
-	push	cx
-	mov	cx, 0100h
+	mov	ah, 01h			; successful empty_8042 returned AL=0
 ASTloop:
-	loop	ASTloop
-	pop	cx
+	dec	ax
+	jnz	ASTloop
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 com1:

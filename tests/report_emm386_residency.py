@@ -271,8 +271,8 @@ def main() -> int:
     low_text_size = split - text.offset
     if low_text_size < 0 or low_text_size > text.size:
         raise ValueError("IOTrap_Tab falls outside the linked _TEXT segment")
-    if args.check and low_text_size > 428:
-        raise ValueError("EMM386 retained _TEXT gateway exceeds 428 bytes")
+    if args.check and low_text_size > 416:
+        raise ValueError("EMM386 retained _TEXT gateway exceeds 416 bytes")
     if args.check:
         for name in (
             "EMM_pEntry",
