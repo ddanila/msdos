@@ -15,6 +15,10 @@ SYMBOL_RE = re.compile(
 NUMBER_RE = re.compile(
     r"^(\w+)\s+(?:\.\s*)+Number\s+([0-9A-F]+)h\s*$", re.IGNORECASE
 )
+PROCEDURE_RE = re.compile(
+    r"^(\w+)\s+(?:\.\s*)+P\s+(?:Near|Far)\s+([0-9A-F]+)\s+_TEXT\b",
+    re.IGNORECASE,
+)
 
 
 def parse_symbols(path: Path) -> tuple[dict[str, tuple[int, int]], dict[str, int]]:
@@ -30,6 +34,32 @@ def parse_symbols(path: Path) -> tuple[dict[str, tuple[int, int]], dict[str, int
             name, value = match.groups()
             numbers[name] = int(value, 16)
     return symbols, numbers
+
+
+def fixed_ownership(path: Path, end: int) -> list[tuple[str, int, int]]:
+    """Partition linked code/state by service, without asserting relocatability."""
+    procedures = {}
+    for line in path.read_text(encoding="latin-1").splitlines():
+        match = PROCEDURE_RE.match(line)
+        if match:
+            procedures[match[1]] = int(match[2], 16)
+    boundaries = [
+        ("Device/vector entries, private peer and low state", 0),
+        ("XMS dispatcher, common returns and version/extended entry points", procedures["xms_control"]),
+        ("HMA ownership and A20 control", procedures["xms_hma_request"]),
+        ("EMB allocation/lock/reallocation services", procedures["xms_query_free"]),
+        ("XMS move validation and dispatch", procedures["xms_move"]),
+        ("UMB allocator and coalescing", procedures["xms_umb_request"]),
+        ("Move address resolution and BIOS-copy backend", procedures["resolve_move_address"]),
+        ("Handle and free-space helpers", procedures["validate_handle"]),
+        ("end", end),
+    ]
+    result = []
+    for (owner, start), (_, stop) in zip(boundaries, boundaries[1:]):
+        if not 0 <= start < stop <= end:
+            raise ValueError(f"unordered HIMEM ownership range: {owner}")
+        result.append((owner, start, stop))
+    return result
 
 
 def rounded(value: int) -> int:
@@ -82,6 +112,16 @@ def main() -> int:
     print(f"| Unselected handle capacity | `{selected_end:04X}h..{resident_end:04X}h` | {resident_end - selected_end:,} | discarded |")
     print(f"| Initialization tail | `{resident_end:04X}h..{args.binary.stat().st_size:04X}h` | {args.binary.stat().st_size - resident_end:,} | discarded |")
     print(f"| **Installed allocation** | — | **{rounded(selected_end):,}** | paragraph-rounded |")
+
+    print("\n## Service ownership (not a relocation budget)\n")
+    print("| Owner | Range | Bytes |")
+    print("| --- | --- | ---: |")
+    for owner, start, stop in fixed_ownership(args.listing, umb_count):
+        print(f"| {owner} | `{start:04X}h..{stop:04X}h` | {stop - start:,} |")
+    print("\nAll these services currently use one real-mode CS/DS image. Moving")
+    print("a service requires explicit entry, state and return ownership; A20")
+    print("recovery cannot depend on code which requires A20 already enabled.")
+    print("The BIOS-copy backend and caller stack are separate transition gates.")
 
     if errors:
         print("\n## Census errors\n")

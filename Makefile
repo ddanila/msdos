@@ -367,6 +367,7 @@ test-command-residency: cmd_command
 		src/CMD/COMMAND/COMMAND.MAP src/CMD/COMMAND/COMMAND.COM
 
 test-himem-residency: $(BIN)/jwasm-bin
+	python3 tests/test_himem_ownership.py
 	mkdir -p $(OUT)
 	$(BIN)/jwasm-bin -q -bin -Sa -Fl=$(OUT)/himem-residency.lst \
 		-Fo$(OUT)/himem-residency.sys $(SRC)/DEV/HIMEM/HIMEM.ASM

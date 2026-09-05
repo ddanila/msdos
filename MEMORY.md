@@ -129,6 +129,62 @@ the 16-byte UMB margin rules out simply copying DR-DOS's upper-data policy.
 The next design checkpoint remains open until exact net released intervals
 cover the gap; the census supplies bounds, not that proof.
 
+### Combined manager split: source-audited prototype boundary
+
+The fixed profile installs 2,592 HIMEM plus 3,888 EMM386 bytes. The checked
+HIMEM listing now partitions every fixed byte by service; reproduce with
+`make test-himem-residency`. EMM386's existing census supplies the other half:
+
+| Current low group | Bytes | Proposed treatment |
+| --- | ---: | --- |
+| HIMEM device/vector/private-peer entries and initial state | 406 | Retain low in the first split; XMS callers can cache the entry pointer |
+| HIMEM HMA ownership and A20 control | 335 | Retain low; high service entry must not recursively require itself to enable A20 |
+| Other HIMEM service bodies | 1,560 | Candidate high service object; explicit state and BIOS-return contracts required |
+| HIMEM UMB records and selected XMS handle records | 290 | Candidate authoritative service data, not a second unsynchronized copy |
+| HIMEM rounding | 1 | Recompute after layout |
+| EMM386 static low image | 1,471 | Retain initially; contains descriptors, transition state and low gateways |
+| EMM386 selected dynamic tables | 1,904 | Candidate high-data object behind a separate protected data selector |
+| EMM386 stack alignment and transition stack | 513 | Retain until the real-mode continuation has its own safe stack |
+| **Total** | **6,480** | No new saving yet |
+
+This first split has only **3,754 linked candidate bytes** before new gateways,
+selectors, alignment and retained state. It therefore cannot by itself promise
+the 4,288-byte target: at least 534 additional net bytes plus those costs must
+come from another owner or a deeper low-interface redesign. Keep COMMAND's
+resident-interface split in the joint budget; do not assume manager integration
+alone closes the gap.
+
+Source constraints that determine the prototype:
+
+- `INITTAB.ASM:CompactVData` already packs all option-sized tables contiguously
+  and updates their roots. Relocate that whole object, preserving H=/A=/D=/Pn=
+  capacities, rather than compacting individual records further.
+- `EMMFUNCT.C` and `EMM40.C` declare near pointers into DGROUP;
+  `valid_handle` also returns a near pointer. Assembly roots are words in
+  `EMMDATA.ASM` and DMA/alternate-map consumers use the same low data segment.
+  A high allocation cannot be substituted without changing this access ABI.
+  Introduce explicit high-data accessors/selector ownership for all consumers,
+  including initialization, saved maps, handle names, DMA and alternate sets.
+- `RETREAL.ASM:RetRealHigh` calls `UTIL.ASM:SelToSeg`, which converts the
+  protected stack descriptor base into a 16-bit real segment. The retained
+  continuation then pops the frame from that stack after clearing PE/PG.
+  Moving the existing stack above 1 MiB would truncate its address; retain it
+  initially. A later split must transfer the entire live continuation frame to
+  a bounded low stack before disabling protection, including fatal exits.
+- `HIMEM.ASM:xms_control` sets DS from CS, while move and allocator helpers use
+  shared mutable state. Separate code from its authoritative data owner before
+  redirecting services. Cached XMS entries, private E703h rebasing and E705h A20
+  recovery remain stable low interfaces. The INT 15h copy backend also needs a
+  low return path if firmware changes A20.
+
+Prototype order: establish the EMM high-data access ABI first, then allocate and
+publish the complete dynamic block transactionally in locked XMS. Keep the old
+layout on failed allocation or validation. Prove EMS lifecycle, DMA, OFF/AUTO
+transitions, reset and third-party-provider behavior before releasing low
+storage. In parallel in the design budget, split HIMEM's service/data ownership
+and identify the required shell contribution; standalone 286 HIMEM remains
+unchanged. High copies without reclaimed and coalesced low spans earn no credit.
+
 ## Public behavior
 
 The system reports DOS 6.22 consistently through `INT 21h/AH=30h`,
