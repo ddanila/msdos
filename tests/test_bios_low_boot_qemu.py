@@ -192,6 +192,16 @@ def main():
         if (passed == negative or (passed and b"BIOS_LOW_BOOT_FAIL" in result)
                 or (name.startswith("live-") and b"BIOS_LIVE_READY" not in result)):
             raise RuntimeError(f"FAIL {name}: {log}\n{result.decode(errors='replace')}")
+        if args.rebase and not negative:
+            placement = None
+            if not high:
+                placement = "LOW"
+            elif args.buffers in (1, 15, 39):
+                placement = "HIGH"
+            elif args.buffers == 99 or (args.buffers == 40 and not args.fail_reservation):
+                placement = "MIXED"
+            if placement and f"BIOS_BUFFERS_COUNT_OK {placement}".encode() not in result:
+                raise RuntimeError(f"wrong buffer placement, expected {placement}: {log}")
         print(f"PASS {name}: {log}", flush=True)
         if args.scan:
             scan_path = scratch / (name + ".scan")

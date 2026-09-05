@@ -156,6 +156,9 @@ start:
     jc fail
     cmp ax,4
     jne fail
+%ifdef EXPECT_BUFFERS
+    call stress_buffer_io
+%endif
     mov ah,3eh
     int 21h
     jc fail

@@ -80,3 +80,77 @@ buffers_high db 'BIOS_BUFFERS_COUNT_OK HIGH',13,10,'$'
 buffers_low db 'BIOS_BUFFERS_COUNT_OK LOW',13,10,'$'
 buffers_mixed db 'BIOS_BUFFERS_COUNT_OK MIXED',13,10,'$'
 buffers_bad db 'BIOS_BUFFERS_COUNT_FAIL',13,10,'$'
+
+; Unaligned records force cache-mediated edges across many disk sectors.
+; BX is an open read/write handle. Flush before rereading distinct patterns.
+stress_buffer_io:
+    push ax
+    push cx
+    push dx
+    push si
+    push di
+    push bp
+    push es
+    xor cx,cx
+    xor dx,dx
+    mov ax,4200h
+    int 21h
+    jc fail
+    push cs
+    pop es
+    xor bp,bp
+.write:
+    mov ax,bp
+    xor ax,0a55ah
+    mov di,cache_record
+    mov cx,255
+    cld
+    rep stosw
+    stosb
+    mov dx,cache_record
+    mov cx,511
+    mov ah,40h
+    int 21h
+    jc fail
+    cmp ax,511
+    jne fail
+    inc bp
+    cmp bp,64
+    jb .write
+    mov ah,0dh
+    int 21h
+    xor cx,cx
+    xor dx,dx
+    mov ax,4200h
+    int 21h
+    jc fail
+    xor bp,bp
+.read:
+    mov dx,cache_record
+    mov cx,511
+    mov ah,3fh
+    int 21h
+    jc fail
+    cmp ax,511
+    jne fail
+    mov ax,bp
+    xor ax,0a55ah
+    mov di,cache_record
+    mov cx,255
+    cld
+    repe scasw
+    jne fail
+    scasb
+    jne fail
+    inc bp
+    cmp bp,64
+    jb .read
+    pop es
+    pop bp
+    pop di
+    pop si
+    pop dx
+    pop cx
+    pop ax
+    ret
+cache_record times 511 db 0
