@@ -20,6 +20,19 @@ assumes DS, DATA
 cProc InstallEmbedded, <PUBLIC>, <si,di,es>
 
 cBegin
+	; Initialization expands the driver's conventional track buffer beyond
+	; the linked image. Reserve its entire 64 KiB segment before it writes
+	; cache metadata there; the C runtime has already shrunk our DOS block.
+	mov	ah,51h
+	int	21h
+	mov	es,bx
+	mov	bx,SEG INT13DEV
+	mov	ax,es
+	sub	bx,ax
+	add	bx,1000h
+	mov	ah,4ah
+	int	21h
+	jc	install_failed
 	push	cs
 	pop	es
 	mov	word ptr cs:InitPacket+20,cs
@@ -76,6 +89,24 @@ cBegin
 	shr	dx,cl
 	add	dx,ax
 	inc	dx
+	; The INIT break address includes the dynamically sized track buffer
+	; and cache metadata. Keeping only the C stack frees live driver storage.
+	mov	ax,word ptr cs:InitPacket+14
+	mov	cx,ax
+	and	cx,15
+	shr	ax,1
+	shr	ax,1
+	shr	ax,1
+	shr	ax,1
+	jcxz	resident_break_aligned
+	inc	ax
+resident_break_aligned:
+	add	ax,word ptr cs:InitPacket+16
+	sub	ax,bx
+	cmp	dx,ax
+	jae	resident_size_ready
+	mov	dx,ax
+resident_size_ready:
 	mov	ax,ExitCode
 	mov	ah,31h
 	int	21h

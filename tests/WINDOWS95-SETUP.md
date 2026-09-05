@@ -126,7 +126,57 @@ uv run --with pycdlib python tests/win95_setup_probe.py \
   offline source comparisons even when Setup does not reach its prompt.
   Failure exits nonzero. A successful harness exit is only a completed
   observation: inspect the screen/report before calling an installer stage a pass.
-- Root-cause isolation, a cache-enabled installation fix, and comparison with
-  the pre-handle-fix boot image remain outstanding. SMARTDrive (disk cache) and
-  ScanDisk (disk checker) are separate components; these observations do not
-  establish that the earlier source-directory damage had the same cause.
+- SMARTDrive (disk cache) and ScanDisk (disk checker) are separate components;
+  these observations do not establish that the earlier source-directory damage
+  had the same cause. The following investigation isolates the cache-enabled
+  launch failure, not the historical pre-handle-fix disk image.
+
+### SMARTDRV read overruns and runtime resident storage
+
+Fresh cache-enabled runs reproduced three defects:
+
+1. The partial-read cache-hit range check overwrote AX, the caller's word
+   count, and added a word at the byte-sized `valid_start` field, incorporating
+   the adjacent `valid_count`. The subsequent copy could greatly exceed the
+   requested sector count. Preserve AX on both hit and refill paths and add
+   the two byte fields with explicit zero extension.
+2. On a cache miss, recording `READ_WINDOW_COUNT` in AL also changed the
+   restored caller word count immediately before `read_buffer`. Preserve AX
+   while recording the cached window. Fixing only the hit path was insufficient.
+3. Runtime self-installation kept only the executable and C stack, although
+   driver initialization expands its conventional track buffer and metadata
+   beyond the linked image. The following program could reuse live cache
+   storage. Reserve the driver's full segment before initialization and retain
+   at least the returned INIT break address when terminating resident.
+
+Evidence and regression coverage:
+
+- `win95-smartdrv-trace-01` and `-02` reproduced the original stall, including
+  after rebuilding the merged BIOS changes. A low-memory snapshot showed FAT
+  data replacing the DOS interrupt-stack area. With only the hit-path fix,
+  `win95-smartdrv-fixed-01` still stalled with corrupted DOS buffer links.
+  With both transfer fixes but the old loader, `win95-smartdrv-fixed-02`
+  reported `Program too big to fit in memory`, followed by a memory-allocation
+  error; the resident block did not include the expanded cache storage.
+- `smartdrv_read_probe.asm` now checks 8192 guard bytes after both the initial
+  one-sector miss and a repeated hit. The hit guard failed before the first
+  fix; the miss guard still failed with only that fix. Both pass together.
+  The DOS 6 suite exercises this at short and long read-ahead settings.
+- `SMARTDRV_INSTALL_MODE=runtime bash tests/test_smartdrv_dos6_qemu.sh` runs
+  the full disk/CD, eviction, transfer-sizing, and delayed-write workload with
+  self-installation instead of CONFIG.SYS loading. It fails with the binary
+  containing both read fixes but the old loader (supplied through
+  `SMARTDRV_BINARY`), and passes with the corrected loader. The original
+  device-installation mode also passes with the read fixes.
+- `make -j4 deploy`, the basic runtime self-installation gate, the explicit
+  and command-prompt flush gate, and the INT 19h reboot-flush gate passed.
+- `out/win95-smartdrv-fixed-03` loaded the corrected runtime SMARTDRV, ran
+  normal Setup **without `/IS`**, and reached the graphical welcome screen.
+  All 37 staged ISO files remained byte-for-byte unchanged. The no-cache
+  control `out/win95-normal-merged-01` also reached that screen.
+
+The launch failure is fixed at this checkpoint. Completing the wizard and
+verifying an installed Windows desktop from this cache-enabled path remain
+outstanding; reaching the welcome screen is not a complete installation.
+HIMEM/DOS=HIGH remains a separate observation. All screenshots, memory dumps,
+Microsoft binaries, and disk images remain ignored local evidence under `out/`.

@@ -15,6 +15,11 @@ READ_COM="$OUT/smartdrv-dos6-read.com"
 EVICT_COM="$OUT/smartdrv-dos6-evict.com"
 CACHE_COM="$OUT/smartdrv-dos6-mscdctl.com"
 MSCD_DRIVER="$OUT/smartdrv-dos6-mscddrv.sys"
+INSTALL_MODE="${SMARTDRV_INSTALL_MODE:-device}"
+CACHE_BINARY="${SMARTDRV_BINARY:-$REPO_ROOT/src/DEV/SMARTDRV/SMARTDRV.EXE}"
+[[ "$INSTALL_MODE" == device || "$INSTALL_MODE" == runtime ]] || {
+    echo 'ERROR: SMARTDRV_INSTALL_MODE must be device or runtime'; exit 1;
+}
 
 [[ -f "$FLOPPY" ]] || { echo "ERROR: run 'make deploy' first"; exit 1; }
 for tool in mcopy mformat nasm python3 qemu-system-i386 timeout; do
@@ -50,14 +55,19 @@ mcopy -o -i "$BOOT_IMG" "$EVICT_COM" ::SDEVICT.COM
 mcopy -o -i "$BOOT_IMG" "$CACHE_COM" ::MSCDCTL.COM
 mcopy -o -i "$BOOT_IMG" "$MSCD_DRIVER" ::MSCDDRV.SYS
 mcopy -o -i "$BOOT_IMG" "$REPO_ROOT/src/CMD/MSCDEX/MSCDEX.EXE" ::MSCDEX.EXE
-mcopy -o -i "$BOOT_IMG" "$REPO_ROOT/src/DEV/SMARTDRV/SMARTDRV.EXE" ::SMARTDRV.EXE
+mcopy -o -i "$BOOT_IMG" "$CACHE_BINARY" ::SMARTDRV.EXE
 {
     printf 'LASTDRIVE=Z\r\n'
-    printf 'DEVICE=SMARTDRV.EXE 256\r\n'
+    if [[ "$INSTALL_MODE" == device ]]; then
+        printf 'DEVICE=SMARTDRV.EXE 256\r\n'
+    fi
     printf 'DEVICE=MSCDDRV.SYS /D:MSCD001\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\nCTTY AUX\r\n'
+    if [[ "$INSTALL_MODE" == runtime ]]; then
+        printf 'SMARTDRV /Q\r\nIF ERRORLEVEL 1 ECHO SMARTDRV_RUNTIME_INSTALL_FAILED\r\n'
+    fi
     printf 'MSCDEX /D:MSCD001 /L:E\r\nIF ERRORLEVEL 1 ECHO SMARTDRV_MSCDEX_INSTALL_FAILED\r\n'
     printf 'MSCDCTL.COM 1\r\nIF ERRORLEVEL 1 ECHO SMARTDRV_MSCDEX_DEFAULT_FAILED\r\n'
     printf 'SMARTDRV /U /Q\r\nMSCDCTL.COM 0\r\nIF ERRORLEVEL 1 ECHO SMARTDRV_MSCDEX_DISABLE_FAILED\r\n'

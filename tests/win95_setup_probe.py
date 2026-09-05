@@ -28,9 +28,12 @@ def main():
     parser.add_argument('--floppy', type=Path, default=ROOT/'out/floppy.img')
     parser.add_argument('--mode', choices=('normal', 'skip-scandisk', 'fork-smartdrv'), default='normal')
     parser.add_argument('--seconds', type=int, default=30)
+    parser.add_argument('--prompt-timeout', type=int, default=120)
     args = parser.parse_args()
     if not 1 <= args.seconds <= 300:
         parser.error('--seconds must be between 1 and 300')
+    if not 1 <= args.prompt_timeout <= 300:
+        parser.error('--prompt-timeout must be between 1 and 300')
     import pycdlib
     out = args.output.resolve()
     # Keep proprietary artifacts within the repository's ignored output tree.
@@ -119,7 +122,7 @@ def main():
             qmp('qmp_capabilities')
             # Boot latency varies with host load. Do not send a blind early
             # Enter that the BIOS consumes before Setup starts.
-            deadline = time.monotonic()+120
+            deadline = time.monotonic()+args.prompt_timeout
             while True:
                 qmp('screendump',filename=str(out/'before-enter.ppm'))
                 text = run('tesseract',str(out/'before-enter.ppm'),'stdout',
@@ -140,8 +143,11 @@ def main():
         except Exception as error:
             report['error'] = str(error)
             try:
+                qmp('stop')
                 report['registers'] = qmp('human-monitor-command',
                     **{'command-line':'info registers'})
+                qmp('human-monitor-command', **{'command-line':
+                    'pmemsave 0 0x100000 "'+str(out/'low-memory.bin')+'"'})
             except Exception:
                 pass
         finally:

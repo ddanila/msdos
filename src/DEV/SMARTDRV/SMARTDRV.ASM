@@ -2168,6 +2168,8 @@ process_read_partial	proc	near
 	jc	read_disk		; if not we have to read from disk
 	; A clean partial-read entry may contain only a read-ahead window.
 	; Confirm that the caller's complete sector range is present.
+	; AX remains the caller's word count on both hit and refill paths.
+	push	ax
 	push	cx
 	mov	di,ax
 	mov	cl,8
@@ -2178,14 +2180,17 @@ process_read_partial	proc	near
 	cmp	bx,ax
 	jb	read_window_miss
 	mov	al,[si.valid_count]
-	add	ax,word ptr [si.valid_start]
+	add	al,[si.valid_start]
+	adc	ah,0
 	add	di,bx
 	cmp	di,ax
 	jbe	read_window_hit
 read_window_miss:
+	pop	ax
 	mov	di,si			; Reuse and refill this clean entry.
 	jmp	read_disk
 read_window_hit:
+	pop	ax
 ;
 	cmp	cx,[track_buffer_cyln]	; is it in the track buffer
 	jnz	not_in_mem		; no
@@ -2358,8 +2363,10 @@ rd$2:
 	mov	word ptr [si.track_cyln],cx
 	mov	word ptr [si.track_drive],dx
 	mov	[si.valid_start],bl
+	push	ax			; Keep the user's word count for read_buffer.
 	mov	al,[READ_WINDOW_COUNT]
 	mov	[si.valid_count],al
+	pop	ax
 	and	[si.track_flags], not track_free
 	; A partial window must not advertise the conventional buffer as a
 	; complete track to write-back or later cache-hit paths.
