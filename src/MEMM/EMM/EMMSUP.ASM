@@ -107,6 +107,7 @@ extrn	_total_pages:word
 extrn	_emm_page:word
 extrn	_emm_free:word
 extrn _DMA_Pages:word, _mappable_pages:word
+extrn _physical_page_exceptions:word, _physical_page_exception_count:byte
 
 ;
 ; ptr to table of page table entries for the EMM pages
@@ -506,7 +507,76 @@ _SwapPft endp
 ; Remaining C DMA consumers use indexes, never pointers into movable VDATA.
 ; Validation remains the caller's responsibility; these do not repair DMA
 ; capacity or fatal-exit policy. Preserve DS/ES and C's index registers.
-        public _ReadDMAEntry, _WriteDMAEntry, _ReadWindowEntry
+        public _ReadDMAEntry, _WriteDMAEntry, _ReadWindowEntry, ReadWindowIndex
+; BX = dense index -> BX = 16 KiB physical-page index; other registers and
+; flags preserved. The caller owns bounds validation.
+ReadWindowIndex proc near
+        push si
+        mov si,[_mappable_pages]
+        movzx bx,byte ptr [bx+si]
+        pop si
+        ret
+ReadWindowIndex endp
+
+; AX internal physical page -> AL public Pn= identifier. Retain the complete
+; explicit/implicit ranking operation with its sparse table owner.
+        public physical_to_external_id
+physical_to_external_id proc near
+        push bx
+        push cx
+        push dx
+        push si
+        mov dl,al
+        mov si,[_physical_page_exceptions]
+        xor cx,cx
+        mov cl,[_physical_page_exception_count]
+physical_external_explicit_loop:
+        jcxz short physical_external_implicit
+        cmp dl,[si]
+        je short physical_external_explicit
+        add si,2
+        loop physical_external_explicit_loop
+physical_external_implicit:
+        mov bl,dl
+        mov si,[_physical_page_exceptions]
+        xor cx,cx
+        mov cl,[_physical_page_exception_count]
+physical_external_internal_rank:
+        jcxz short physical_external_first_candidate
+        cmp [si],dl
+        jae short physical_external_internal_next
+        dec bl
+physical_external_internal_next:
+        add si,2
+        loop physical_external_internal_rank
+physical_external_first_candidate:
+        xor al,al
+physical_external_candidate:
+        mov si,[_physical_page_exceptions]
+        xor cx,cx
+        mov cl,[_physical_page_exception_count]
+physical_external_reserved_loop:
+        jcxz short physical_external_candidate_free
+        cmp al,[si+1]
+        je short physical_external_candidate_used
+        add si,2
+        loop physical_external_reserved_loop
+physical_external_candidate_free:
+        or bl,bl
+        jz short physical_external_done
+        dec bl
+physical_external_candidate_used:
+        inc al
+        jmp short physical_external_candidate
+physical_external_explicit:
+        mov al,[si+1]
+physical_external_done:
+        pop si
+        pop dx
+        pop cx
+        pop bx
+        ret
+physical_to_external_id endp
 _ReadDMAEntry proc near
         push bp
         mov bp,sp

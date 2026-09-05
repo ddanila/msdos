@@ -320,6 +320,8 @@ def main() -> int:
             "_ReadDMAEntry",
             "_WriteDMAEntry",
             "_ReadWindowEntry",
+            "ReadWindowIndex",
+            "physical_to_external_id",
             "CheckHandleDX",
             "ReadHandleIndex",
             "ReadHandleCount",

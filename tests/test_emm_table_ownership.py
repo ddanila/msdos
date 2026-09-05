@@ -5,7 +5,7 @@ import re
 import unittest
 
 ROOT = Path(__file__).resolve().parents[1] / "src/MEMM"
-ROOT_NAMES = re.compile(r"\b_?(?:handle_table|save_map|Handle_Name_Table)\b", re.I)
+ROOT_NAMES = re.compile(r"\b_?(?:handle_table|save_map|Handle_Name_Table|mappable_pages|physical_page_exceptions)\b", re.I)
 PAGE_ROOTS = re.compile(r"\b_?(?:emm_page|emm_free|pft386)\b", re.I)
 C_DMA_ROOTS = re.compile(r"\b_?(?:DMA_Pages|mappable_pages)\b", re.I)
 OWNERS = {"EMM/EMMSUP.ASM", "EMM/EMMDATA.ASM",
@@ -58,6 +58,7 @@ class OwnershipTest(unittest.TestCase):
     def test_detects_direct_access_but_not_comments_or_counts(self):
         self.assertTrue(direct_roots("mov bx,[_handle_table]", ".ASM"))
         self.assertTrue(direct_roots("save_map[h].window[0] = 0;", ".C"))
+        self.assertTrue(direct_roots("mov bx,[_mappable_pages]", ".ASM"))
         self.assertFalse(direct_roots("; _handle_table\nmov al,[_handle_table_size]", ".ASM"))
         self.assertFalse(direct_roots("/* save_map */ HandleCount(h);", ".C"))
         self.assertTrue(direct_roots("return pft386[i];", ".C", PAGE_ROOTS))
