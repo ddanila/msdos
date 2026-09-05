@@ -35,6 +35,17 @@ start:
     add [es:di],bx
     loop .fixup
 %endif
+%if COPY_MODE = 1
+    ; Apply the full pre-386 span only after rebasing.
+    mov di,bx
+    add di,CPU_PATCH_OFFSET
+    mov cx,CPU_PATCH_SIZE
+    mov al,90h
+    rep stosb
+%elif COPY_MODE = 2
+    ; Negative control: remove operand-size prefix but leave CX halving.
+    mov byte [es:bx+CPU_PATCH_OFFSET+2],90h
+%endif
     ; Private low data: real service instructions cannot overwrite live BIOS
     ; state. The BDS likewise belongs to this probe, with a fixed-media flag
     ; selecting the bounded retry path rather than editing the ROM DPT.
@@ -122,6 +133,24 @@ start:
     jne fail
     cmp byte [es:LOW_TIM_DRV],0ffh
 %endif
+    jne fail
+    push cs
+    pop es
+    mov si,copy_source
+    mov di,copy_destination
+    mov cx,512
+    cld
+    repe cmpsb
+    jne fail
+    cmp word [copy_before],0aa55h
+    jne fail
+    cmp word [copy_after],055aah
+    jne fail
+    cmp word [copy_si],copy_source+512
+    jne fail
+    cmp word [copy_di],copy_destination+512
+    jne fail
+    cmp word [copy_cx],7654h
     jne fail
     call unhook
     mov dx,pass_message
@@ -213,8 +242,41 @@ payload:
     incbin "bios-high.bin"
 high_entry:
     call payload+ENTRY_READ_SECTOR
+    pushf
+    push ax
+    push cx
+    push si
+    push di
+    push ds
+    push es
+    push ss
+    pop ds
+    push ss
+    pop es
+    mov si,copy_source
+    mov di,copy_destination
+    mov cx,7654h
+    std
+    call payload+ENTRY_MOVE
+    mov [ss:copy_si],si
+    mov [ss:copy_di],di
+    mov [ss:copy_cx],cx
+    pop es
+    pop ds
+    pop di
+    pop si
+    pop cx
+    pop ax
+    popf
     retf
 payload_end:
+copy_si dw 0
+copy_di dw 0
+copy_cx dw 0
+copy_source times 256 dw 0a55ah
+copy_before dw 0aa55h
+copy_destination times 512 db 0
+copy_after dw 055aah
 bds times 128 db 0
 align 16
 low_data times 4096 db 0

@@ -1658,6 +1658,16 @@ A20 before high execution resumes. Omitting all payload offset fixups reaches
 the allocated/bound READY marker but cannot pass. This validates actual payload
 execution and retry paths, not installation or conventional-memory reclamation.
 
+The same runtime gate now calls the payload's real MOVE routine after the
+read. Normal dword copy and the fully patched pre-386 word-copy path each move
+exactly 512 bytes, preserve CX, advance SI/DI by 512, and preserve destination
+guard words. Entry DF is deliberately set; MOVE must clear it. Removing only
+the operand-size prefix leaves the count-halving instruction active and copies
+too little; that negative control must reach an explicit FAIL result. Both
+copy paths execute on QEMU 486 here: this is not real-286 acceptance. The six
+runtime cases include the three read outcomes, word copy, partial-copy-patch
+rejection, and missing-fixup rejection. The normal IO.SYS remains byte-identical.
+
 Next, extend execution beyond READ_SECTOR and bind production imports, including
 low-to-high entries for low helpers that recurse into the body. Preserve code-table
 offsets, selected/purged code policy, and ROM-return contracts when binding.
