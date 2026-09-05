@@ -17,15 +17,19 @@ def main():
     parser.add_argument("--early", action="store_true", help="activate during SYSINIT, before buffers and COMMAND")
     parser.add_argument("--tail-body", action="store_true", help="test last-linked fallback service layout")
     parser.add_argument("--scan", action="store_true", help="record activation-time pointer candidates on debug port")
+    parser.add_argument("--rebase", action="store_true", help="move and poison the old low DOS prefix")
+    parser.add_argument("--compact", action="store_true", help="move the HIMEM boot allocation after rebasing")
     parser.add_argument("--fail-reservation", action="store_true", help="force the early capacity check to reject")
     parser.add_argument("--mode", action="append", help="run only this mode; repeat as needed")
     args = parser.parse_args()
     if args.fail_reservation and not args.early:
         parser.error("--fail-reservation requires --early")
-    if args.scan and not (args.early and args.tail_body):
-        parser.error("--scan requires --early --tail-body")
+    if (args.scan or args.rebase) and not (args.early and args.tail_body):
+        parser.error("--scan/--rebase requires --early --tail-body")
+    if args.compact and not args.rebase:
+        parser.error("--compact requires --rebase")
     scratch = Path(tempfile.mkdtemp(prefix="bios-low-boot-", dir=ROOT / "out"))
-    manifest = build(scratch, early=args.early, tail_body=args.tail_body, scan=args.scan,
+    manifest = build(scratch, early=args.early, tail_body=args.tail_body, scan=args.scan, rebase=args.rebase, compact=args.compact,
                      reservation_limit=0x10 if args.fail_reservation else 0xfff0)
     high_manifest = build_high(scratch / "high", scratch)
     write_fixture(scratch, manifest, high_manifest)
@@ -54,6 +58,11 @@ def main():
         "emm-high": (True, "DEVICE=HIMEM.SYS /TESTMEM:OFF\r\n"
                      "DEVICE=EMM386.EXE RAM\r\nDOS=HIGH,UMB\r\n"),
     }
+    if args.rebase:
+        # Exercise CONFIG parsing after the pointer move, including its cached
+        # DOS NLS/DBCS table addresses. Default values would hide lost directives.
+        variants = {name: (high, config + "LASTDRIVE=Z\r\nFILES=20\r\nFCBS=4,0\r\nBUFFERS=15\r\n")
+                    for name, (high, config) in variants.items()}
     if not args.early:
         variants["live-himem"] = variants["himem-high"]
         variants["live-emm"] = variants["emm-high"]
@@ -67,6 +76,11 @@ def main():
     for name, (high, config) in variants.items():
         probe = scratch / f"{name}.com"
         options = ["-DACTIVATE_HIGH"] if name.startswith("live-") else []
+        if args.rebase:
+            options.append(f"-DEXPECT_REBASE={int(high and not args.fail_reservation)}")
+            options.append("-DEXPECT_CDS=26")
+        if args.compact:
+            options.append("-DEXPECT_COMPACT")
         negative = name == "live-stale-entry"
         if negative:
             options.append("-DOMIT_LIVE_PUBLICATION")

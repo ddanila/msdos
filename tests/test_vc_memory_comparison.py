@@ -19,6 +19,18 @@ SPEC.loader.exec_module(comparison)
 
 
 class ComparisonReportTest(unittest.TestCase):
+    def test_rejected_config_cannot_earn_memory_credit(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            serial, screen = root / "serial", root / "screen"
+            for destination in (serial, screen):
+                for error in ("Error in CONFIG.SYS line 6", "Bad command or parameters - Z"):
+                    serial.write_text("")
+                    screen.write_text("")
+                    destination.write_text(error + "\n")
+                    with self.assertRaisesRegex(ValueError, "boot rejected configuration"):
+                        comparison.parse_capture(serial, screen)
+
     def test_vc_block_count_is_separate_from_mem_snapshot(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

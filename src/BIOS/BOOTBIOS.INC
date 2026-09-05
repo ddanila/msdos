@@ -84,6 +84,9 @@ BiosBootFixup:
         mov ax,0f4fah
         rep stosw
         ENDIF
+        IFDEF BIOS_BOOT_REBASE
+        call BiosRebase
+        ENDIF
         IFDEF BIOS_BOOT_SCAN
         call BiosScan
         ENDIF
@@ -101,6 +104,9 @@ BiosBootDone:
         popf
         ret
 BiosBootActivate ENDP
+        IFDEF BIOS_BOOT_REBASE
+        INCLUDE BOOTREBASE.INC
+        ENDIF
         IFDEF BIOS_BOOT_SCAN
         INCLUDE BOOTSCAN.INC
         ENDIF

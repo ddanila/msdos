@@ -617,6 +617,9 @@ GETDX	ENDP
 ; Selected permanent BIOS end in paragraphs relative to CODE, before reserving
 ; the optional last-linked fallback service body. Not yet a reclaimed boundary.
 BIOS_PERMANENT_END DW 0
+	PUBLIC BIOS_REBASED_FROM, BIOS_REBASED_TO
+BIOS_REBASED_FROM DW 0
+BIOS_REBASED_TO DW 0
 	ENDIF
 	IFDEF BIOS_SERVICE_BINDINGS
 	INCLUDE LOWBIND.INC

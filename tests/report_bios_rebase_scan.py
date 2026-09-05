@@ -65,7 +65,8 @@ def report(scan, dos_map, bios_map, output):
     if low_offset != 0 or len(low_data) != dos_symbols["DOS_LOW_GATE_END"]:
         raise ValueError("recorded low prefix does not match DOS map")
     lines = ["# BIOS activation: DOS low-owner census", "",
-             "Read-only snapshot before rebasing. Matches are numeric candidates, not",
+             "Read-only activation snapshot (before or after the optional rebase).",
+             "Matches are numeric candidates, not",
              "proved pointers or permission to rewrite words. Symbol names identify the",
              "nearest preceding export; inspect its declared structure and consumers.", "",
              f"Low DOS segment: `{low_segment:04X}h`.", "",

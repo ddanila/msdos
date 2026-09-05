@@ -12,9 +12,11 @@ from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False):
-    if scan and not (early and tail_body):
-        raise ValueError("pointer census requires the early tail-body layout")
+def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False):
+    if compact and not rebase:
+        raise ValueError("arena compaction requires low-prefix rebasing")
+    if (scan or rebase) and not (early and tail_body):
+        raise ValueError("pointer census/rebase requires the early tail-body layout")
     if not 0 <= reservation_limit <= 0xfff0:
         raise ValueError("invalid development reservation ceiling")
     output = output.resolve()
@@ -24,6 +26,37 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         from build_bios_high_payload import build as build_high
         from build_bios_activation_fixture import write_fixture
         seed = build(output, tail_body=tail_body)
+        if rebase:
+            _, dos_symbols = parse_map(ROOT / "src/DOS/MSDOS.MAP")
+            dos_symbols = {name.upper(): value for name, value in dos_symbols.items()}
+            names = {"LOW_OWNER": "HMA_LOW_SEGMENT", "LOW_END": "DOS_LOW_GATE_END",
+                     "INDOS": "INDOS", "DRIVER_ENTRY": "HMA_DRIVER_TRAMPOLINE_ENTRY",
+                     "LOW_DPBS": "HMA_LOW_DPBS", "CDSCOUNT": "CDSCOUNT", "CDSADDR": "CDSADDR",
+                     "ARENA_HEAD": "ARENA_HEAD"}
+            definitions = {name: dos_symbols[symbol] for name, symbol in names.items()}
+            definitions.update({"PERMANENT_END": seed["symbols"]["BIOS_PERMANENT_END"],
+                                "FROM": seed["symbols"]["BIOS_REBASED_FROM"],
+                                "TO": seed["symbols"]["BIOS_REBASED_TO"],
+                                "PTRSAV": seed["symbols"]["PTRSAV"],
+                                "LOW_PARAS": (definitions["LOW_END"] + 15) // 16})
+            # Declared far pointers only; do not derive fixups from scan matches.
+            fields = [(name, 2) for name in (
+                "DPBHEAD", "sft_addr", "BCLOCK", "BCON", "BUFFHEAD", "CDSADDR",
+                "sftFCB", "NULDEV", "IFS_DOS_CALL", "IFS_HEADER", "BUF_HASH_PTR",
+                "SC_CACHE_PTR", "LastBuffer", "SysInitTable", "CurHashEntry",
+                "SWAP_IN_DOS", "SWAP_ALWAYS_AREA", "IFSFUNC_SWAP_IN_DOS",
+                "EXTERRPT", "DMAADD", "CALLVIDRW", "CALLXAD", "CALLDEVAD", "IOXAD",
+                "EXITHOLD", "THISDPB", "DEVPT", "THISSFT", "THISCDS", "THISFCB",
+                "PJFN", "CURBUF", "CONSft")]
+            fields += [("DSKCHRET", 3), ("SysInitTable", 6)]
+            offsets = [dos_symbols[name.upper()] + delta for name, delta in fields]
+            if any(offset + 2 > definitions["LOW_END"] for offset in offsets):
+                raise ValueError("declared low-pointer field outside low prefix")
+            definitions["FIELD_COUNT"] = len(offsets)
+            (output / "BIOSREBASE_DEFS.INC").write_text("".join(
+                f"RB_{name} EQU {value}\n" for name, value in definitions.items()))
+            (output / "BIOSREBASE_FIELDS.INC").write_text("".join(
+                f"dw {offset} ; {name}+{delta}\n" for offset, (name, delta) in zip(offsets, fields)))
         if scan:
             _, dos_symbols = parse_map(ROOT / "src/DOS/MSDOS.MAP")
             scan_symbols = {"LOW_SEGMENT": dos_symbols["hma_low_segment"],
@@ -75,6 +108,10 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         options += " -DBIOS_SERVICE_TAIL_BODY=1"
     if scan:
         options += " -DBIOS_BOOT_SCAN=1"
+    if rebase:
+        options += " -DBIOS_BOOT_REBASE=1"
+    if compact:
+        options += " -DBIOS_BOOT_COMPACT=1"
     for name in changed:
         object_options = options
         if tail_body and name == "MSDISK":
@@ -121,7 +158,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
                 "sha256": hashlib.sha256(image).hexdigest(), "symbols": symbols,
                 "high_slot_words": sorted(slot_words), "early_boot_installer": early,
                 "reservation_limit": reservation_limit, "tail_body": tail_body,
-                "pointer_census": scan}
+                "pointer_census": scan, "low_prefix_rebase": rebase, "arena_compaction": compact}
     if early:
         # Init-segment growth must not invalidate any embedded low operands.
         for name, value in seed["symbols"].items():
@@ -142,5 +179,9 @@ if __name__ == "__main__":
     parser.add_argument("output", type=Path)
     parser.add_argument("--early", action="store_true", help="embed the early installer and poison old code after activation")
     parser.add_argument("--tail-body", action="store_true", help="link the fallback body after retained BIOS code")
+    parser.add_argument("--scan", action="store_true", help="capture activation-time ownership on QEMU debug port")
+    parser.add_argument("--rebase", action="store_true", help="move and poison the old low DOS prefix")
+    parser.add_argument("--compact", action="store_true", help="coalesce the first-HIMEM boot allocation after rebasing")
     args = parser.parse_args()
-    build(args.output, early=args.early, tail_body=args.tail_body)
+    build(args.output, early=args.early, tail_body=args.tail_body,
+          scan=args.scan, rebase=args.rebase, compact=args.compact)

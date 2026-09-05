@@ -153,6 +153,8 @@ CEILING_ROW = re.compile(
 def parse_capture(serial_log: Path, screen_log: Path) -> dict[str, object]:
     serial = serial_log.read_text(encoding="latin-1", errors="replace").replace("\r", "")
     screen = screen_log.read_text(encoding="utf-8", errors="replace")
+    if re.search(r"(?im)^\s*(?:Error in CONFIG\.SYS|Bad command or parameters)", screen + "\n" + serial):
+        raise ValueError("boot rejected configuration; memory savings are not comparable")
     if "PARITY_MEM_END" not in serial:
         raise ValueError(f"MEM /D did not complete in {serial_log}")
     ceiling_match = CEILING_ROW.search(serial)

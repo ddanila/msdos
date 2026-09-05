@@ -1863,7 +1863,7 @@ low prefix and affected boot allocations into the released interval, updating
 every public/private low pointer before coalescing the arena. Count only the
 net application-block gain after retained gateway and alignment costs.
 
-Before implementing that rebase, use `make test-bios-rebase-scan-qemu` to
+Use `make test-bios-rebase-scan-qemu` to
 capture the actual activation boundary without invoking DOS during collection.
 The development-only `BOOTSCAN.INC` writes raw HMA/low DOS, permanent BIOS,
 occupied boot allocation, SYSINIT, and initial CDS regions to QEMU's debug
@@ -1888,11 +1888,58 @@ early ownership does not prove post-EMM relocation. The captured initial CDS
 table is outside all three resident DOS/BIOS regions, confirming that a kernel
 image-only fixup cannot cover external references. The existing 19-entry HMA
 fixup table moves code/high-data targets, not this complete low-owner graph.
-The next implementation must use declared fields and chain walkers, then move
+Rebasing must use declared fields and chain walkers, then move
 the occupied HIMEM boot prefix, refresh its IVT/XMS references, and coalesce the
 arena. A poisoned/reused old prefix, Ctrl-C, public DPB/CDS/device traversal,
 file I/O, and warm reset are required acceptance gates. No saving is credited
 by the recorder itself.
+
+##### Development low-prefix rebase and arena compaction
+
+`BOOTREBASE.INC` now moves the paragraph-rounded DOS prefix immediately after
+the selected permanent BIOS. It requires disjoint ranges, SYSINIT's stack, no
+active DOS call, and one-time publication. Generated operands identify 35
+declared far-pointer fields; only fields naming the old segment with a target
+inside the retained prefix change. The high owner/trampoline, two low DPB
+records, external CDS links, and BIOS request pointer receive explicit updates.
+The old prefix is poisoned. `--rebase` alone keeps the old arena reserved;
+`--compact` additionally moves the first HIMEM boot allocation down, adjusts
+its device mark and SYSINIT bookkeeping, publishes the enlarged arena in both
+DOS owners, and refreshes HIMEM's INT 15h/2Fh and cached XMS entry segments.
+
+The CONFIG parser must invalidate its cached DBCS/case-table addresses after
+the move. Leaving the old DBCS pointer produced CONFIG errors and silently
+retained five CDS entries instead of `LASTDRIVE=Z`. The apparent 615,104-byte
+VC result was invalid. The corrected development image leaves **613,264 bytes**
+versus retail's 618,736: **3,008 bytes gained**, **5,472 bytes remaining**, with
+free UMB unchanged at **49,104 bytes**. The fixed BIOS boundary falls from
+8,160 to 5,152 bytes; the DOS prefix remains 4,992 bytes. HIMEM, EMM386, COMMAND,
+configured DOS state, and the conventional ceiling retain their prior budgets.
+The normal image remains at 610,256 until the acceptance work below is complete.
+
+Reproduce the development build and local proof:
+
+```sh
+make test-bios-rebase-qemu
+python3 tests/build_bios_low_image.py out/bios-compacted --early --tail-body --rebase --compact
+```
+
+The gate checks low/rejected boots, poisoned-prefix rebasing without reclaim,
+compacted low-owner/arena boundaries, 26 CDS entries after CONFIG, file I/O,
+and raw disk I/O. Compacted boots cannot require poison to remain after COMMAND
+starts: those ranges are now legitimately reused. The comparison parser also
+rejects visible CONFIG failures before awarding memory credit. The corrected
+paired evidence is `out/bios-compacted-final-vc.md`; generated images remain
+untracked and CI remains disabled.
+
+This is not normal-build or complete compatibility acceptance. Still required:
+live SFT/device/public-pointer traversal, Ctrl-C/request callbacks, warm reset,
+larger sector/buffer settings and optional media paths, 286 execution, and
+foreign/late-provider fallback. The current rebase explicitly excludes
+overlapping low-prefix moves and later resident allocations. Complete those
+contracts before promotion; do not extrapolate the first-HIMEM proof to a
+general runtime compactor. Then recalculate the residual and return to packed
+DOS-state placement, not isolated HIMEM/EMM386 instruction savings.
 
 The normal boot loader has not bound or activated these pointers. The ownership
 audit moved `Prev_DX` into the authoritative low owner; the map checks its

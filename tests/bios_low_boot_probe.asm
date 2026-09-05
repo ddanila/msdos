@@ -1,6 +1,9 @@
 bits 16
 org 100h
 %include "low-defs.inc"
+%ifdef EXPECT_REBASE
+%include "BIOSREBASE_DEFS.INC"
+%endif
 %ifndef EXPECT_ACTIVE
 %define EXPECT_ACTIVE 0
 %endif
@@ -12,8 +15,60 @@ org 100h
 %define CHECK_RAW_DISK
 %endif
 start:
+%ifdef EXPECT_CDS
+    mov ah,19h
+    int 21h
+    mov dl,al
+    push dx
+    mov dl,25
+    mov ah,0eh
+    int 21h
+    cmp al,EXPECT_CDS
+    pop dx
+    jne fail
+    mov ah,0eh
+    int 21h
+%endif
     mov ax,70h
     mov es,ax
+%ifdef EXPECT_REBASE
+%if EXPECT_REBASE
+    mov ax,[es:RB_FROM]
+    or ax,ax
+    jz fail
+    mov bx,[es:RB_PERMANENT_END]
+    add bx,70h
+    cmp bx,[es:RB_TO]
+    jne fail
+%ifndef EXPECT_COMPACT
+    push es
+    mov es,ax
+    xor di,di
+    mov cx,RB_LOW_PARAS*8
+    mov ax,0a5a5h
+    cld
+    repe scasw
+    pop es
+    jne fail
+%endif
+    push es
+    mov ax,0ffffh
+    mov es,ax
+    cmp bx,[es:RB_LOW_OWNER]
+%ifdef EXPECT_COMPACT
+    jne fail
+    add bx,RB_LOW_PARAS
+    cmp bx,[es:RB_ARENA_HEAD]
+%endif
+    pop es
+    jne fail
+%else
+    cmp word [es:RB_FROM],0
+    jne fail
+    cmp word [es:RB_TO],0
+    jne fail
+%endif
+%endif
 %ifdef PERMANENT_END_OFFSET
     ; Boot selected a permanent prefix below the separately reserved fallback.
     ; Keeping the fallback reserved is intentional until DOS can be rebased.
@@ -26,12 +81,14 @@ start:
     cmp byte [es:ACTIVE_OFFSET],EXPECT_ACTIVE
     jne fail
 %if EXPECT_ACTIVE
+%ifndef EXPECT_COMPACT
     mov di,SERVICE_START
     mov cx,SERVICE_SIZE/2
     mov ax,0f4fah
     cld
     repe scasw
     jne fail
+%endif
 %endif
     mov si,slots
     mov cx,SLOT_WORD_COUNT

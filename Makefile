@@ -287,6 +287,13 @@ test-bios-high-payload: bios
 test-bios-low-boot-qemu: deploy
 	python3 tests/test_bios_low_boot_qemu.py
 
+.PHONY: test-bios-rebase-qemu
+test-bios-rebase-qemu: deploy
+	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --scan
+	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --scan
+	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --scan --fail-reservation
+	python3 tests/test_vc_memory_comparison.py
+
 .PHONY: test-bios-rebase-scan-qemu
 test-bios-rebase-scan-qemu: deploy
 	python3 tests/test_bios_rebase_scan.py
