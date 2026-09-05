@@ -22,21 +22,24 @@ conventional bytes but only 16,032 free UMB bytes. Resource and device-topology
 differences remain; that result does not prove our two floors achievable by
 copying its UMB policy.
 
-Execution order:
+Execution order (supersedes older implementation queues below):
 
-1. Finish acceptance of the bulk BIOS/table relocation, including SHARE and
+1. Complete the joint resident-layout checkpoint below before extending any
+   individual relocation prototype. Preserve pending access-boundary work as
+   preparation, not as a memory-saving result.
+2. Finish acceptance of the bulk BIOS/table relocation, including SHARE and
    redirector consumers. Distinguish pre-existing low-mode failures from
    relocation regressions; neither is a passing acceptance result.
-2. Budget the remaining BIOS services and DOS state together. Assign each
+3. Budget the remaining BIOS services and DOS state together. Assign each
    allocation one authoritative owner, low/HMA/UMB destination, access contract,
    fallback, and net reclaimable conventional span. Development retains 5,152
    BIOS bytes and a 4,992-byte kernel prefix; these inventories are not promised
    savings. Public A20-off pointers cannot automatically become HMA pointers.
-3. Share HMA capacity between BIOS, state, buffers, and COMMAND. At fifteen
+4. Share HMA capacity between BIOS, state, buffers, and COMMAND. At fifteen
    buffers, the calculated normal post-COMMAND tail is 15,389 bytes and the development
    BIOS reservation costs 5,220 more. Development has only 16 bytes of free-UMB
    margin; further UMB placement requires compensating reclamation.
-4. Revisit COMMAND as a complete resident-handler/state and reload-interface
+5. Revisit COMMAND as a complete resident-handler/state and reload-interface
    redesign after the system placement budget. Keep isolated HIMEM/EMM386
    harvesting paused; EMM386 is already 240 bytes below retail. EBDA recovery
    remains a bounded 1 KiB finishing step.
@@ -89,6 +92,46 @@ The DR-DOS comparison also needs the combined HIMEM/EMM386 ownership, not
 EMM386 alone. OpenDOS's integrated provider is a measured placement lead, not proof
 that merging our providers removes their summed allocations. Keep third-party
 XMS support and the 286 path when evaluating a shared-provider design.
+
+### Required checkpoint: one complete resident layout
+
+DR-DOS's portable lesson is a small conventional interface backed by complete
+high-resident objects. Its ordinary measured advantage does not require video
+memory recovery or EBDA relocation. HMA is shared among kernel, BIOS, shell
+and buffers; UMB holds eligible real-mode data. Later OpenDOS demonstrates a
+much smaller manager UMB allocation than DR-DOS 6, but its runtime device rows
+do not locate the complete manager. Do not infer its hidden implementation.
+
+Before choosing the next code change, produce one proposed layout covering all
+of the following owners, not a sequence of independently attractive savings:
+
+| Owner | Starting evidence | Required design decision |
+| --- | --- | --- |
+| DOS BIOS | Development retains 5,152 low bytes; disk body already moved | Partition stable device/interrupt/DMA state from high service bodies; identify exact released intervals |
+| DOS kernel and dynamic state | 4,992-byte low prefix; FILES/FCB relocation already counted | Identify authoritative public-pointer owners versus private HMA-safe state; include CDS and interrupt stacks explicitly |
+| Combined memory managers | 6,480 low bytes; first split has 3,754 gross candidate bytes | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback |
+| COMMAND | 3,984-byte owner span versus OpenDOS's 1,312 | Separate environment/PSP and asynchronous entry state from movable resident handlers; preserve reload contracts |
+| Shared high storage | About 10,169 development HMA bytes; 16-byte UMB margin | Reserve destinations once across all owners; account for locked XMS, alignment and displaced buffers |
+
+For each proposed object, record its current range, destination, live callers,
+address and A20 contract, low gateway cost, initialization/rollback behavior,
+and final low allocation boundary. Sum **net coalesced conventional gain**,
+not copied payload sizes. Include UMB and XMS costs in the same budget. Public
+tables cannot be moved merely because high space exists; retained low mirrors
+do not count as reclamation.
+
+The checkpoint passes only when the combined net budget covers at least 4,288
+bytes while retaining the 47,888-byte free-UMB floor and configured resources.
+That is the retail acceptance threshold, not a ceiling on the design: identify
+further whole-object opportunities toward the OpenDOS result without promising
+its 13,632-byte lead over development as locally reclaimable storage. Resolve
+boot-medium/device-topology differences before adopting its totals as a target.
+
+Then implement and validate complete object moves. Indexed accessors are a
+necessary dependency where near-pointer ownership prevents relocation, but
+accessor-only commits neither satisfy this checkpoint nor improve the memory
+score. Keep correctness repairs separate from savings claims. The checkpoint
+is currently **open**; the existing candidate census is not a complete layout.
 
 ### Development placement budget: remaining BIOS is not another disk body
 
@@ -177,7 +220,8 @@ Source constraints that determine the prototype:
   recovery remain stable low interfaces. The INT 15h copy backend also needs a
   low return path if firmware changes A20.
 
-Prototype order: establish the EMM high-data access ABI first, then allocate and
+After the joint layout checkpoint passes, the manager prototype order is:
+establish the EMM high-data access ABI, then allocate and
 publish the complete dynamic block transactionally in locked XMS. Keep the old
 layout on failed allocation or validation. Prove EMS lifecycle, DMA, OFF/AUTO
 transitions, reset and third-party-provider behavior before releasing low
