@@ -642,6 +642,7 @@ test-command-startup-qemu: deploy
 	bash tests/test_command_startup_qemu.sh
 
 .PHONY: test-command-critical-abi-qemu
+test: test-command-critical-abi-qemu
 test-command-critical-abi-qemu: deploy
 	COMMAND_CRITICAL_ABI=1 bash tests/test_command_startup_qemu.sh
 

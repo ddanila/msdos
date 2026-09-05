@@ -136,6 +136,7 @@ def main() -> int:
     resident_state_end = require(symbols, "resmsgend")
     resident_catalog_start = require(symbols, "resident_catalog_start")
     resident_class_ptrs = require(symbols, "resident_class_ptrs")
+    resident_critical_ptr = require(symbols, "resident_critical_ptr")
     critical_messages = require(symbols, "critical_msg_start")
     critical_lookup = require(symbols, "$M_CLS_6")
     resident_code_end = require(symbols, "RES_CODE_END")
@@ -165,6 +166,9 @@ def main() -> int:
         errors.append("default resident DATARES ownership boundaries are not ordered")
     if not (resident_catalog_start <= critical_lookup < critical_messages):
         errors.append("critical-message lookup routine is not retained before its relocatable catalog")
+    if not (resident_state_end <= resident_critical_ptr
+            and resident_critical_ptr + 4 <= resident_class_ptrs):
+        errors.append("cached critical-catalog pointer is not retained in low message state")
     if rounded(resident_catalog_start) > 3632:
         errors.append("DOS-high permanent COMMAND exceeds its 3,632-byte budget")
     if rounded(hma_code_end) > 6080:

@@ -31,11 +31,13 @@ dataresend_hex=$(awk 'toupper($2) == "DATARESEND" { split($1, address, ":"); pri
     "$ROOT/src/CMD/COMMAND/COMMAND.MAP")
 class_ptrs_hex=$(awk 'toupper($2) == "RESIDENT_CLASS_PTRS" { split($1, address, ":"); print address[2]; exit }' \
     "$ROOT/src/CMD/COMMAND/COMMAND.MAP")
+critical_ptr_hex=$(awk 'toupper($2) == "RESIDENT_CRITICAL_PTR" { split($1, address, ":"); sub(/\*$/, "", address[2]); print address[2]; exit }' \
+    "$ROOT/src/CMD/COMMAND/COMMAND.MAP")
 hma_code_start_hex=$(awk 'toupper($2) == "HMA_CODE_START" { split($1, address, ":"); print address[2]; exit }' \
     "$ROOT/src/CMD/COMMAND/COMMAND.MAP")
 hma_code_end_hex=$(awk 'toupper($2) == "HMA_CODE_END" { split($1, address, ":"); print address[2]; exit }' \
     "$ROOT/src/CMD/COMMAND/COMMAND.MAP")
-[[ "$catalog_start_hex" =~ ^[0-9A-Fa-f]{4}$ && "$dataresend_hex" =~ ^[0-9A-Fa-f]{4}$ \
+[[ "$critical_ptr_hex" =~ ^[0-9A-Fa-f]{4}$ && "$catalog_start_hex" =~ ^[0-9A-Fa-f]{4}$ && "$dataresend_hex" =~ ^[0-9A-Fa-f]{4}$ \
     && "$class_ptrs_hex" =~ ^[0-9A-Fa-f]{4}$ && "$hma_code_start_hex" =~ ^[0-9A-Fa-f]{4}$ \
     && "$hma_code_end_hex" =~ ^[0-9A-Fa-f]{4}$ ]] || {
     echo 'ERROR: could not read COMMAND HMA payload ranges' >&2
@@ -45,6 +47,7 @@ command_hma_bytes=$((16#$dataresend_hex - 16#$catalog_start_hex \
     + 16#$hma_code_end_hex - 16#$hma_code_start_hex))
 hma_tail_after_command=$((hma_tail + command_hma_bytes))
 nasm -DEXPECTED_CLASS_PTRS="0x$class_ptrs_hex" \
+    -DEXPECTED_CRITICAL_PTR="0x$critical_ptr_hex" \
     -DEXPECTED_CATALOG_BASE="$hma_tail" -DEXPECTED_CATALOG_END="$hma_tail_after_command" \
     -DEXPECTED_HMA_CLASSES=2 \
     -f bin "$ROOT/tests/command_critical_hma_probe.asm" -o "$work/CMDCAT.COM"

@@ -85,6 +85,7 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	RES_TPA:WORD
 	EXTRN	resident_catalog_start:byte
 	EXTRN	resident_class_ptrs:dword
+	EXTRN	resident_critical_ptr:dword
 	EXTRN	hma_in_char_xlat_entry:dword
 	EXTRN	hma_test_kanj_entry:dword
 	EXTRN	resmsgend:word		;AN000;
@@ -1771,6 +1772,14 @@ next_resident_class:
 
 	add	di,offset resgroup:critical_msg_start
 	sub	di,offset resgroup:resident_catalog_start
+	; SYSLOADMSG cached this address before relocation. Updating only DOS's
+	; public pointer leaves resident critical lookup using the released low
+	; catalog after EXEC, potentially falling into disk I/O inside INT 24h.
+	pushf
+	cli
+	mov	word ptr [resident_critical_ptr],di
+	mov	word ptr [resident_critical_ptr+2],es
+	popf
 	mov	ax,(multdos shl 8 or message_2f)
 	mov	dl,set_critical_msg
 	int	2fh				; publish the relocated far pointer

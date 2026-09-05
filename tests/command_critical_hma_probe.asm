@@ -44,6 +44,18 @@ start:
     mov ax, es
     cmp ax, 0ffffh
     jne failure
+%ifdef EXPECTED_CRITICAL_PTR
+    ; DOS's published pointer and COMMAND's cached lookup must agree. EXEC
+    ; may overwrite the old low catalog even when the public pointer is high.
+    push es
+    mov bx, [16h]
+    mov es, bx
+    cmp word [es:EXPECTED_CRITICAL_PTR+2], ax
+    jne failure
+    cmp word [es:EXPECTED_CRITICAL_PTR], di
+    jne failure
+    pop es
+%endif
     cmp byte [es:di], 0ffh
     jne failure
     cmp byte [es:di + 1], 6

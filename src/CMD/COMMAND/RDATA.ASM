@@ -156,6 +156,7 @@ DATARES SEGMENT PUBLIC BYTE
 	PUBLIC	RemMsg
 	PUBLIC	resident_catalog_start
 	PUBLIC	resident_class_ptrs
+	PUBLIC	resident_critical_ptr
 	PUBLIC	hma_in_char_xlat_entry
 	PUBLIC	hma_test_kanj_entry
 	PUBLIC	resmsgend		;AN000;
@@ -607,6 +608,7 @@ MSG_UTILNAME <COMMAND>				;AN000; define utility name
 MSG_SERVICES <COMR,MSGDATA>
 
 resident_class_ptrs EQU $M_RT2.$M_CLASS_ADDRS
+resident_critical_ptr EQU $M_RT2.$M_CRIT_COMMAND
 
 resident_catalog_start LABEL BYTE
 
