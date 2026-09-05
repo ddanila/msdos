@@ -270,6 +270,11 @@ test-dos-bios-residency: dos bios
 	python3 tests/report_dos_bios_residency.py --check \
 		src/DOS/MSDOS.MAP src/BIOS/msBIO.map
 
+.PHONY: test-bios-service-crossings
+test-bios-service-crossings: bios
+	python3 tests/test_bios_service_crossings.py
+	python3 tests/report_bios_service_crossings.py
+
 test-command-residency: cmd_command
 	python3 tests/report_command_residency.py --check \
 		src/CMD/COMMAND/COMMAND.MAP src/CMD/COMMAND/COMMAND.COM

@@ -1407,6 +1407,41 @@ fixups, choose the initialization transaction, then prototype the whole body
 with low-mode fallback. No positive net saving is claimed until gateways,
 padding, ownership, and the released low boundary are measured together.
 
+Reproduce the emitted-code crossing inventory with:
+
+```sh
+make test-bios-service-crossings
+```
+
+The tool assembles our MSDISK module into a temporary listing, verifies that
+its object matches the built module, and applies the linked READ_SECTOR bias.
+It includes MSIOCTL's emitted instructions and excludes inactive source rows.
+The current body has 16 direct outward branch sites to 12 operation/target
+pairs, 11 indirect call/jump sites, and 10 interrupt/IRET sites. These include
+low completion/error exits, GETBP, media-ID handling, disk swap, the mutable
+ORIG13 chain, and INT 2F chaining. The report deliberately does not claim
+coverage of incoming pointers or data fixups. Parser tests cover address bias,
+included-source markers, inactive rows, internal branches, and unresolved
+targets.
+
+Some linked outward targets lie beyond the selected BIOS boundary because
+`MSINIT.ASM:PURGE_96TPI` NOPs conditional call sites and patches command-table
+entries before discarding that extension. Preserve this transformation before
+copying/rebasing the body, and validate both extension-present and purged
+images. A linked-call census must not be mistaken for the active runtime graph.
+
+Boot transaction decision: prototype activation at the existing
+`SYSCONF.ASM:CompactFirstHimem` boundary, after a working XMS provider and before
+later resident allocations. It already moves DOS high and rebases HIMEM's
+boot arena. However, DOS's low prefix is above BIOS, so shrinking BIOS also
+requires moving/rebasing that prefix or changing the initial loading layout;
+expanding the boot MCB alone cannot reclaim an interior BIOS hole. Reserve the
+high body before publishing the buffer/tail layout, with one capacity check
+and a low-mode fallback. Keep this optimization conditional on a proved early
+provider transaction; late/foreign providers must retain the valid low layout
+until an equivalent contract is implemented. This is the next prototype's
+scope, not an implemented activation path.
+
 `DOS_HMA_RELOCATE` in `src/DOS/MS_CODE.ASM` already copies the entire DOS image
 from offset `0010h` through `SYSBUF` to the same offsets in segment `FFFFh`.
 The 39,456-byte HMA image therefore includes the tables and data below
