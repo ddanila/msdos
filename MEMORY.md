@@ -333,13 +333,18 @@ Preserve BIOS status across recovery, and never return high after failed A20
 restoration. The revised 345-byte manager support allowance is still unproven.
 
 `tests/hma_low_return_probe.asm` provides a runtime witness for the return
-mechanism in `test_hma_qemu.sh`: a copied HMA leaf calls a low simulated firmware
+mechanism in `test_hma_qemu.sh`: copied nested HMA code calls a low simulated firmware
 service, verifies that two previously distinct physical locations alias after
 A20 is disabled, then uses low E705h recovery before returning high. It checks
-the firmware's EAX, EDX and carry result survive. This is a 386+ QEMU test of
-the mechanism, not installed HIMEM relocation: production dispatch, nested
-failure unwinding, real BIOS clobbers and the complete low budget remain open.
-The probe's failure path aborts below 1 MiB instead of returning to HMA.
+the firmware's EAX, EDX and carry result survive. A second call suppresses
+recovery after disabling A20: the low gate resets SP to its dispatch frame,
+discards nested high return addresses and workspace, and returns AX=0/BL=82h
+to the low caller without resuming high code. The probe checks CX/SI/DI/BP,
+stack balance and restoration of the previous frame anchor, then completes a
+fresh successful call. This is a 386+ QEMU mechanism test, not installed HIMEM
+relocation or actual hardware recovery failure. Production dispatch, interrupt
+reentrancy, SS changes, real BIOS clobbers and the complete low budget remain
+open; the witness uses a single unchanged stack segment.
 
 After the joint layout checkpoint passes, the manager prototype order is:
 establish the EMM high-data access ABI, then allocate and
