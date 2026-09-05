@@ -303,12 +303,11 @@ Source constraints that determine the prototype:
 - `INITTAB.ASM:CompactVData` already packs all option-sized tables contiguously
   and updates their roots. Relocate that whole object, preserving H=/A=/D=/Pn=
   capacities, rather than compacting individual records further.
-- `EMMFUNCT.C` and `EMM40.C` declare near pointers into DGROUP;
-  `valid_handle` also returns a near pointer. Assembly roots are words in
-  `EMMDATA.ASM` and DMA/alternate-map consumers use the same low data segment.
-  A high allocation cannot be substituted without changing this access ABI.
-  Introduce explicit high-data accessors/selector ownership for all consumers,
-  including initialization, saved maps, handle names, DMA and alternate sets.
+- Assembly roots are words in `EMMDATA.ASM`; remaining DMA/window and
+  alternate-map consumers still use the low data segment. Converted services
+  also resolve DGROUP internally. A high allocation cannot be substituted
+  until all consumers and initialization share explicit selector ownership;
+  removing escaped near pointers is necessary but insufficient.
 - `RETREAL.ASM:RetRealHigh` calls `UTIL.ASM:SelToSeg`, which converts the
   protected stack descriptor base into a 16-bit real segment. The retained
   continuation then pops the frame from that stack after clearing PE/PG.
@@ -353,10 +352,8 @@ pointer. Save passes the current four-slot context to its owner. Restore takes
 an eight-byte snapshot on the existing low stack, applies only those four LIM
 slots, and releases the saved slot only after successful restoration. Empty
 and corrupt-map exits unwind the same ten-byte snapshot/handle frame.
-The current owner is still DGROUP; these 1,024 bytes are prepared interfaces,
-not high allocations or savings. Handle records, page/free/PFT arrays, DMA and
-alternate-register state still need their access boundaries before the full
-block can move.
+The current owner is still DGROUP; these are prepared interfaces, not high
+allocations or savings.
 
 Handle-record C consumers now use bounded index/count getters and setters;
 `HandleValid` returns a boolean rather than a near record pointer. Allocation,
@@ -366,11 +363,17 @@ takes the handle index, snapshots its fields as values, and rebases other
 records through the owner services. Assembly validation now preserves DX as
 the handle index and returns validity through CF. Logical mapping and
 move/exchange validation fetch fields by index; `Handle2HandlePtr` and the
-legacy `_valid_handle` pointer result are removed. Runtime access to all three
-named roots is confined to EMMSUP; the initialization/layout code retains its
-explicit roots. A source guard rejects named-root access elsewhere. The field
-services still resolve DGROUP, with no high copy or low reclamation; page,
-free/PFT, DMA and alternate-map consumers remain to be separated.
+legacy `_valid_handle` pointer result are removed.
+
+Page/free-array transfers now use indexed services, including overlap-safe
+growth/shrink copies and zero-count handling. Mapping reads page and PFT
+entries through their owner; built `MAPDMA.C` uses indexed PFT reads and a
+full-dword exchange returning the old first entry in DX:AX. No table pointer
+escapes those services. A source guard confines these six named roots to
+EMMSUP and their initialization/layout consumers. Historical `MAPDMA.ASM` is
+excluded only with a check that the build selects `MAPDMA.C`.
+Services still resolve DGROUP: DMA-page, mappable-window and alternate-map
+state remain to be separated before the complete block can move.
 
 The expanded EMS lifecycle probe checks two independent saved contexts and
 their restored page contents, repeated-save/no-save errors, rejection of
@@ -387,6 +390,10 @@ after both index-rebasing directions. That probe and the interleaved warm-reset
 case pass after the C and assembly conversions. High-byte handle aliases are
 rejected by mapping, saved-map, attribute and C query paths without changing
 the live page's contents. The ownership guard and protected-service census pass.
+The page/PFT conversion also passes all 19 development UMB I/O cases, including
+reversed backing, interleaved EMS transfers, reservation fallback and warm
+reset. These tests do not close the separate DMA capacity/fatal-exit gaps or
+qualify a high table owner; the installed low allocation remains 3,888 bytes.
 
 ## Public behavior
 

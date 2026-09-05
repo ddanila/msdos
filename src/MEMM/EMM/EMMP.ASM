@@ -52,6 +52,8 @@ _TEXT	segment
         extrn ReadSavedMap:near, WriteSavedMap:near
         extrn PeekSavedMap:near, ClearSavedMap:near
         extrn CheckHandleDX:near, ReadHandleIndex:near, ReadHandleCount:near
+        extrn ReadPageEntry:near
+        extrn ReadPftEntry:near
 	IFNDEF	EMMP_QUERY_ONLY
 	public	_MapHandlePage
 	public	_RestorePageMap
@@ -149,7 +151,6 @@ extrn	_total_pages:word			; total # of EMM pages in system
 extrn	_free_count:word			; unallocated EMM pages
 extrn	_handle_count:byte			; active EMM handles
 
-extrn	_pft386:word
 
 extrn	_mappable_pages:word			; pointer to 16 KiB indexes
 extrn	_mappable_page_count:byte		; how many in the table
@@ -165,7 +166,6 @@ extrn	_cntxt_bytes:byte			; number of bytes in a context
 ;
 ; ptr to table of emm page # for each handle's logical pages.
 ;
-extrn	_emm_page:word
 
 ;
 ;  handle data structure
@@ -534,13 +534,12 @@ mEp_valid_slot:
 	; 386 page and move it into eax
 	;
 	mov	cx,bx		; emm page# in cx to save in FRS later
-	shl	bx,2		; bx <-- pft index * 4
 
 	;
 	; continue calulation of pte
 	;
-	add	bx,[_pft386]	; BX  = points into _pft386
-	mov	eax,[bx]	; EAX = physical address of EMM page #
+	mov	ax,bx
+	call	ReadPftEntry	; EAX = physical address of EMM page #
 	and	ax,0F000H	; clear the low 12 bits
 	or	ax,P_AVAIL	; page ctl bits <-- user,present,write
 
@@ -729,9 +728,11 @@ map_page	proc	near
 	call	ReadHandleIndex
 	add	bx,ax			; index into _emm_page
 	pop	ax
-	shl	bx,1				; bx <-- index * 2
-	add	bx,[_emm_page]
-	mov	bx,[bx]				; bx <-- emm page#
+	push	ax
+	mov	ax,bx
+	call	ReadPageEntry
+	mov	bx,ax			; bx <-- emm page#
+	pop	ax
 	call	map_EMM_page
 	jc	short mp_inv_emm_page		; emm page range error
 	ret
@@ -1233,10 +1234,11 @@ sw_loop:
 	je	sw_unmap_page		;  Y: unmap it
 	cmp	bx, [_total_pages]	; emm page out of range ?
 	ja	sw_corrupt		;  Y: error
-	mov	di, bx
-	shl	di, 2			; SI <-- _pft386 offset of emm page
-	add	di, [_pft386]
-	cmp	dword ptr [di], 0	; pte not mapped ?
+	push	eax
+	mov	ax,bx
+	call	ReadPftEntry
+	or	eax,eax			; pte not mapped ?
+	pop	eax
 	je	sw_corrupt		;  Y: error
 	push	eax
 	call	map_EMM_page		; map a page

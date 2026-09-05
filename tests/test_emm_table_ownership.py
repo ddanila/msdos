@@ -6,19 +6,38 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1] / "src/MEMM"
 ROOT_NAMES = re.compile(r"\b_?(?:handle_table|save_map|Handle_Name_Table)\b", re.I)
+PAGE_ROOTS = re.compile(r"\b_?(?:emm_page|emm_free|pft386)\b", re.I)
 OWNERS = {"EMM/EMMSUP.ASM", "EMM/EMMDATA.ASM",
           "MEMM/EMMINIT.ASM", "MEMM/INITTAB.ASM"}
+PAGE_OWNERS = OWNERS | {"MEMM/INITEPG.ASM", "MEMM/INIT.ASM"}
 
 
-def direct_roots(source, suffix):
+def direct_roots(source, suffix, roots=ROOT_NAMES):
     if suffix == ".C":
         source = re.sub(r"/\*.*?\*/", "", source, flags=re.S)
+        source = re.sub(r'"(?:\\.|[^"\\])*"', "", source)
     else:
         source = re.sub(r";[^\n]*", "", source)
-    return ROOT_NAMES.findall(source)
+    return roots.findall(source)
 
 
 class OwnershipTest(unittest.TestCase):
+    def test_page_roots_stay_with_owner_or_initialization(self):
+        violations = []
+        for path in ROOT.rglob("*"):
+            if path.suffix not in {".ASM", ".C"}:
+                continue
+            relative = path.relative_to(ROOT).as_posix()
+            # Historical implementation is not linked; verify the active rule below.
+            if relative in PAGE_OWNERS or relative == "MEMM/MAPDMA.ASM":
+                continue
+            if direct_roots(path.read_text(encoding="latin-1"), path.suffix, PAGE_ROOTS):
+                violations.append(relative)
+        self.assertEqual(violations, [])
+        rules = (ROOT.parents[1] / "mk/memm.mk").read_text()
+        self.assertIn("$(MEMM_DIR)/MAPDMA.OBJ: $(MEMM_DIR)/MAPDMA.C", rules)
+        self.assertNotIn("MAPDMA.ASM", rules.upper())
+
     def test_only_owner_and_initializers_use_roots(self):
         violations = []
         for path in ROOT.rglob("*"):
@@ -34,6 +53,9 @@ class OwnershipTest(unittest.TestCase):
         self.assertTrue(direct_roots("save_map[h].window[0] = 0;", ".C"))
         self.assertFalse(direct_roots("; _handle_table\nmov al,[_handle_table_size]", ".ASM"))
         self.assertFalse(direct_roots("/* save_map */ HandleCount(h);", ".C"))
+        self.assertTrue(direct_roots("return pft386[i];", ".C", PAGE_ROOTS))
+        self.assertTrue(direct_roots("mov ax,[_emm_free]", ".ASM", PAGE_ROOTS))
+        self.assertFalse(direct_roots('FatalError("PFT386 entry");', ".C", PAGE_ROOTS))
 
 
 if __name__ == "__main__":

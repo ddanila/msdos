@@ -50,7 +50,6 @@ extern unsigned char	handle_count;		/* active handle count */
  *	so that maphandlepage doesn't have to scan a list
  *	for the specified entry.
  */
-extern unsigned	short *emm_page;	/* _emm_page array */
 extern int	free_count;		/* current free count */
 extern int	total_pages;		/* number being managed */
 extern unsigned	emmpt_start;		/* next free entry in table */
@@ -82,7 +81,6 @@ extern long	OSKey;				/* Key for OS/E function */
  ******************************************************************************/ 
 extern	unsigned far	*source_addr(); 		/* get DS:SI far ptr */
 extern	unsigned far	*dest_addr();			/* get ES:DI far ptr */
-extern	unsigned	wcopyb();
 extern	unsigned	copyout();
 
 
@@ -142,11 +140,11 @@ ReallocatePages()
 		if ( next != emmpt_start ) {
 				/*
 				 * Must shuffle emm_page array to make room
-				 * for the extra pages.  wcopyb correctly
+				 * for the extra pages. MovePageEntries correctly
 				 * handles this case where the destination
 				 * overlaps the source.
 				 */
-			wcopyb(emm_page+next, emm_page+next+n_pages,
+			MovePageEntries(next, next+n_pages,
 			       emmpt_start - next);
 			/* Now tell other handles where their pages went */
 			for (h = 0; h < handle_table_size; h++) {

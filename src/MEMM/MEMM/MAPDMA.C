@@ -38,9 +38,10 @@
 #define INDEX(a)        ((((long)a)>>12) & 0x3FF)
 #define OFFSET(a)       (((long)a) & 0xFFF)
 #define LIN2PHY(l)      ((PT(INDEX(l)) & ~0xFFFL)+(long)OFFSET(l))
-#define PFT(a)          (*(long *)(pft386+a))
+#define PFT(a)          ReadPft(a)
 extern unsigned char *mappable_pages; /* physical address >> 14 */
-extern long *pft386;
+extern long ReadPft();
+extern long SwapPft();
 extern unsigned *DMA_Pages;
 extern unsigned char DMA_PAGE_COUNT;   /* size of DMA_Pages[] */
 extern unsigned char physical_page_count;
@@ -298,9 +299,7 @@ int i, j;
       
 /* exchange pft386 entries at UserPFTIndex and DMA_Pages[k] */
 
-   DMAPhyAdr = PFT(DMA_Pages[k]);
-   PFT(DMA_Pages[k]) = PFT(UserPFTIndex);
-   PFT(UserPFTIndex) = DMAPhyAdr;
+   DMAPhyAdr = SwapPft(DMA_Pages[k], UserPFTIndex);
 
 /* Fix Page table entries .
  * The contents of the user page and DMA buffer page are exchanged always.

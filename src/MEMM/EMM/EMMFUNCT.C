@@ -158,7 +158,6 @@ extern unsigned char	handle_count;		/* active handle count */
  *	This is so that maphandlepage doesn't have to scan
  *	a list for the specified entry.
  */
-extern unsigned	short	*emm_page;		/* ptr to _emm_page array */
 extern unsigned	short	free_count;		/* current free count */
 extern unsigned	short	total_pages;		/* number being managed */
 extern unsigned	short	emmpt_start;		/* next free entry in table */
@@ -168,7 +167,6 @@ extern unsigned	short	emmpt_start;		/* next free entry in table */
  *	this array is a stack of available page table entries. 
  *	each entry is an index into pft386[].
  */
-extern	unsigned short	*emm_free;		/* ptr to _emm_free array */
 extern	unsigned short	free_top;
 
 /*
@@ -177,7 +175,6 @@ extern	unsigned short	free_top;
  *	for 386 pages. A page is refered to by an index into
  *	this array
  */
-extern union pft386 *pft386;		/* ptr to page frame table array */
 
 
 /*
@@ -192,7 +189,6 @@ extern union pft386 *pft386;		/* ptr to page frame table array */
 extern  unsigned far		*source_addr();		/* get DS:SI far ptr */
 extern  unsigned far		*dest_addr();		/* get ES:DI far ptr */
 /*extern	unsigned		AutoUpdate();		/* update auto mode */
-extern	unsigned		wcopy();
 extern	unsigned		copyout();
 extern	void			reallocate();
 
@@ -233,7 +229,7 @@ register unsigned pto;
 	 * corresponding page frame table entry (with a 
 	 * handle back pointer)
 	 */
-	wcopy(emm_free+free_top, emm_page+pg, num);
+	CopyFreeToPages(free_top, pg, num);
 	free_top += num;
 	return(f_page);
 }
@@ -264,9 +260,7 @@ unsigned handle;
 	 */
 	free_top -= count;	/* free_top points to new top */
 	free_count += count;	/* bookkeeping */
-	wcopy(emm_page+index, /* addr of first of list */
-		emm_free+free_top,	 /* addr of free space */
-		count);	 /* # of pages to be freed */
+	CopyPagesToFree(index, free_top, count);
 
 	/*
 	 * now, the hard part. squeeze the newly created hole
@@ -288,9 +282,7 @@ unsigned handle;
 	}
 
 	new_start = emmpt_start - count;
-	wcopy(emm_page+next,	/* 1st of rest of list */
-		emm_page+index,/* addr of freed area */
-		emmpt_start-next);	/* size of block of pages  */
+	MovePageEntries(next, index, emmpt_start-next);
 
 	/*
 	 * loop through the handle table entries, fixing up

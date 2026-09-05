@@ -136,6 +136,12 @@ extern unsigned HandleIndex();
 extern unsigned HandleCount();
 extern unsigned SetHandleIndex();
 extern unsigned SetHandleCount();
+/* Page-array services take source index, destination index, and word count.
+ * MovePageEntries handles overlap in either direction, including zero count.
+ */
+extern unsigned CopyFreeToPages();
+extern unsigned CopyPagesToFree();
+extern unsigned MovePageEntries();
 
 /*
  * Handle_Dir_Entry

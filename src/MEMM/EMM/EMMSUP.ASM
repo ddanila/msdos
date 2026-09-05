@@ -60,8 +60,6 @@ page	58,132
 	public _dest_addr
 	public _copyout
 	public _copyin
-	public _wcopy
-	public _wcopyb
 	public SetDescInfoResident
 	public SegOffTo24Resident
 ;
@@ -107,6 +105,7 @@ extrn	_total_pages:word
 ; ptr to table of emm page # for each handle's logical pages.
 ;
 extrn	_emm_page:word
+extrn	_emm_free:word
 
 ;
 ; ptr to table of page table entries for the EMM pages
@@ -381,98 +380,127 @@ _copyin	proc	near
 	ret
 _copyin	endp
 	page
-;***********************************************
-;
-; _wcopy
-;
-; This routine takes a two near pointers
-; and a word count and copies from the 
-; first address to the second address.
-;
-; Parameters:
-;	srcptr --- offset of source data in current D Seg
-;	destptr -- offset of destination address in DS
-;	count ---- word count for copy
-;
-; uses:
-;	si, di, cx, ax
-;	(si, di are restored)
-;
-; 05/09/88  ISP   No update needed for MEMM
-;***********************************************
-srcptr	=	4
-destptr	=	6
-count	=	8
-_wcopy	proc	near
-	push	bp		; entry prolog
-	mov	bp,sp
-	push	di		; reg var
-	push	si		; reg var
+; Indexed page-array transfers. C arguments are source index, destination
+; index and word count. Owners are resolved here; no near pointers escape.
+        public _CopyFreeToPages, _CopyPagesToFree, _MovePageEntries
+        public ReadPageEntry
+_CopyFreeToPages proc near
+        xor ax,ax
+        jmp short PageArrayCopy
+_CopyFreeToPages endp
+_CopyPagesToFree proc near
+        mov ax,1
+        jmp short PageArrayCopy
+_CopyPagesToFree endp
+_MovePageEntries proc near
+        mov ax,2
+PageArrayCopy:
+        push bp
+        mov bp,sp
+        push bx
+        push si
+        push di
+        push es
+        mov bx,ax
+        mov si,[bp+4]
+        mov di,[bp+6]
+        shl si,1
+        shl di,1
+        or bx,bx
+        jnz short PageSourceAllocated
+        add si,[_emm_free]
+        jmp short PageDestination
+PageSourceAllocated:
+        add si,[_emm_page]
+PageDestination:
+        cmp bx,1
+        jne short PageDestinationAllocated
+        add di,[_emm_free]
+        jmp short PageCopyReady
+PageDestinationAllocated:
+        add di,[_emm_page]
+PageCopyReady:
+        push ds
+        pop es
+        mov cx,[bp+8]
+        cld
+        jcxz short PageCopyDone
+        cmp di,si
+        jbe short PageCopyForward
+        mov ax,cx
+        dec ax
+        shl ax,1
+        add si,ax
+        add di,ax
+        std
+PageCopyForward:
+        rep movsw
+PageCopyDone:
+        cld
+        xor ax,ax
+        pop es
+        pop di
+        pop si
+        pop bx
+        pop bp
+        ret
+_MovePageEntries endp
 
-	cld			; clear dir flag (forward move)
-	mov	ax,ds		;
-	mov	es,ax		; mov es,ds 
-	mov	di,[bp+destptr]	; es:di <-- destination address
-	mov	si,[bp+srcptr]	; ds:si <-- source address
-	mov	cx,[bp+count]	; cx <-- word count
-	rep movsw		; do it
+; AX = bounded page-list index; AX returns the physical-page table index.
+ReadPageEntry proc near
+        push si
+        mov si,ax
+        shl si,1
+        add si,[_emm_page]
+        mov ax,[si]
+        pop si
+        ret
+ReadPageEntry endp
 
-	pop	si		; restore reg var
-	pop	di		; restore reg var
-	pop	bp		
-	ret
-_wcopy	endp
-	page
-;***********************************************
-;
-; _wcopyb
-;
-; This routine takes a two near pointers
-; and a word count and copies from the 
-; first address to the second address.
-; The copy is done backwards to allow certain overlap of source and destination.
-;
-; Parameters:
-;	srcptr --- offset of source data in current D Seg
-;	destptr -- offset of destination address in DS
-;	count ---- word count for copy
-;
-; uses:
-;	si, di, cx, ax, es
-;	(si, di are restored)
-;
-; 05/20/88  ISP   Shifted in from win386 and updated for 16 bit ptrs
-;***********************************************
-srcptr	=	4
-destptr	=	6
-count	=	8
-_wcopyb	proc	near
-	push	bp		; entry prolog
-	mov	bp,sp
-	push	di		; reg var
-	push	si		; reg var
-
-	mov	ax,ds		;
-	mov	es,ax		; mov es,ds 
-	mov	di, word ptr [bp+destptr]      ; destination address
-	mov	si, word ptr [bp+srcptr]       ; source address
-	mov	cx, word ptr [bp+count]        ; word count
-	dec	cx
-	shl	cx, 1				; offset of 'last' word to move
-	add	si, cx
-	add	di, cx
-	mov	cx, word ptr [bp+count]        ; recover word count
-
-	std			; set dir flag (backward move)
-	rep movsw		; do it
-	cld			; 'C' tends to expect this.
-
-	pop	si		; restore reg var
-	pop	di		; restore reg var
-	pop	bp		
-	ret
-_wcopyb	endp
-	page
+; Physical-page metadata owner. Register reader: AX index -> EAX entry.
+; C reader and exchange return the original first entry in DX:AX.
+        public ReadPftEntry, _ReadPft, _SwapPft
+ReadPftEntry proc near
+        push si
+        mov si,ax
+        shl si,2
+        add si,[_pft386]
+        mov eax,[si]
+        pop si
+        ret
+ReadPftEntry endp
+_ReadPft proc near
+        push bp
+        mov bp,sp
+        mov ax,[bp+4]
+        call ReadPftEntry
+        mov edx,eax
+        shr edx,16
+        pop bp
+        ret
+_ReadPft endp
+_SwapPft proc near
+        push bp
+        mov bp,sp
+        push si
+        push di
+        mov si,[bp+4]
+        mov di,[bp+6]
+        shl si,2
+        shl di,2
+        add si,[_pft386]
+        add di,[_pft386]
+        mov eax,[si]
+        mov edx,[di]
+        mov [si],edx
+        mov [di],eax
+        mov edx,eax
+        shr edx,16
+        pop di
+        pop si
+        pop bp
+        ret
+_SwapPft endp
 ; Register validation preserves the index and all general registers.
 ; No handle-record pointer escapes; CF reports an invalid/inactive index.
         public CheckHandleDX, ReadHandleIndex, ReadHandleCount
