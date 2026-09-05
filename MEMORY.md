@@ -1200,14 +1200,18 @@ block.
 | 10 | Revisit HIMEM only if the measured residual requires it | 1,488-byte excess over retail; incremental work paused | Resume only with a paragraph-scale, map-supported opportunity and preserve every existing gate |
 | 11 | Redesign the DOS-low or COMMAND boundary further | Architectural fallback | Choose the smallest design with a byte budget that covers the remaining measured gap and compatibility margin |
 
-The completed DR-DOS checkpoint sets the architectural order: extend the
-EMM386 low gateway, then apply the DOS placement ladder. The `M5` plus
-`DOS=HIGH` transition regression is closed and remains a mandatory gate for
-later boundary changes. The initial COMMAND/HMA gain is retained, but deeper
-shell work is paused. Recover the bounded EBDA paragraph only near the end, and
-revisit HIMEM only for a measured residual. Recalculate the success equation
-after every retained step and keep both the conventional and UMB floors
-visible.
+The completed broad DR-DOS checkpoint suggests the architectural order, but a
+focused clean-room revalidation is the next planning gate before more layout
+work: confirm the documented high-memory policies against a live comparable
+DR-DOS system, reconcile its larger block to owners, and turn only externally
+supported techniques into local byte budgets. Then extend the EMM386 low
+gateway and apply the DOS placement ladder in the resulting order. The `M5`
+plus `DOS=HIGH` transition regression is closed and remains a mandatory gate
+for later boundary changes. The initial COMMAND/HMA gain is retained, but
+deeper shell work is paused. Recover the bounded EBDA paragraph only near the
+end, and revisit HIMEM only for a measured residual. Recalculate the success
+equation after every retained step and keep both the conventional and UMB
+floors visible.
 
 ### DR-DOS clean-room adoption register
 
@@ -1217,14 +1221,14 @@ code is permitted. Runtime inspection is limited to public interfaces,
 allocation maps, addresses, and lifetimes and must not be used to reconstruct
 proprietary instruction sequences.
 
-**Restart priority:** the focused clean-room checkpoint and the supported
-`EMM386 M5` plus `DOS=HIGH` transition fix are complete. Continue the small
-EMM386 gateway, then move eligible DOS state through the measured placement
-ladder. Reopen DR-DOS investigation only for a specific unresolved owner,
-lifetime, placement policy, or public API question. Such a checkpoint starts
-with published vendor documentation, then reproduces the pinned comparison and
-varies one documented control; it must not become a general product survey or
-use DR-DOS source code.
+**Next priority:** revalidate the highest-value DR-DOS findings before further
+memory-layout implementation. Start from published vendor documentation,
+reproduce the pinned live comparison, and vary one documented control at a
+time. The deliverable is an owner-reconciled adoption table that ranks local
+changes by expected largest-block gain and compatibility risk. This is a
+focused follow-up to the completed broad survey, not a new product survey, and
+must not use DR-DOS source code. After that gate, continue the small EMM386
+gateway and move eligible DOS state through the measured placement ladder.
 
 Use this sequence:
 
@@ -1240,6 +1244,23 @@ Use this sequence:
    do not infer implementation details from the binary; and
 6. translate only portable results into local owners, byte budgets, compatibility
    risks, and regression gates, then resume implementation in ranked order.
+
+For this follow-up, answer these questions in order:
+
+1. which documented DR-DOS configuration produces the best ordinary,
+   compatibility-safe largest block on the fixed comparison machine;
+2. how much of its advantage belongs to COMMAND/kernel HMA placement, resident
+   memory-manager gateways, buffers, UMB policy, allocation order, and the
+   conventional-memory ceiling;
+3. which gains remain when low-memory, text-video, relocated-EBDA, and other
+   optional compatibility tradeoffs are excluded; and
+4. which remaining techniques map to a named local owner and a public contract
+   that can be tested without knowledge of proprietary implementation details.
+
+Reuse the existing capture tooling and pinned media. Add a new probe only when
+an owner, lifetime, placement policy, or public API result remains unresolved;
+record commands, hashes, deltas, and conclusions, but keep generated images and
+captures untracked.
 
 The checkpoint is complete when the ordinary-mode advantage is accounted for
 well enough to choose our next design, optional compatibility tradeoffs are
