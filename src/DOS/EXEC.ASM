@@ -681,6 +681,8 @@ exec_read_block:
 	XOR	AX,AX			; seek relative to beginning
 	invoke	$LSEEK			; back to beginning of file
 	POP	CX			; number to read
+	TEST	BYTE PTR exec_func,exec_func_overlay
+	JNZ	exec_read_raw_overlay
 	MOV	DS,exec_dma
 	XOR	DX,DX
 	PUSH	CX
@@ -705,6 +707,36 @@ OkRead:
 	MOV	exec_init_SS,AX
 	MOV	DS,AX
 	MOV	WORD PTR [SI],0 	; 0 for return
+	JMP	exec_set_PDB
+
+; Raw device overlays need the same bounded transfers as MZ overlays above.
+; A multi-sector direct read into mapped UMA can bypass the safe sector path.
+; Preserve the legacy 65535-byte limit and exact-limit rejection.
+exec_read_raw_overlay:
+	MOV	SI,CX			; remaining bytes in the original request
+	XOR	DI,DI			; destination offset / bytes read so far
+exec_raw_overlay_next:
+	MOV	CX,SI
+	CMP	CX,512
+	JBE	SHORT exec_raw_overlay_read
+	MOV	CX,512
+exec_raw_overlay_read:
+	MOV	DS,exec_dma
+	MOV	DX,DI
+	PUSH	CX
+	PUSH	SI
+	PUSH	DI
+	CALL	ExecRead
+	POP	DI
+	POP	SI
+	POP	CX
+	JC	exec_bad_file
+	CMP	AX,CX
+	JB	exec_set_PDB		; EOF, including an empty overlay
+	SUB	SI,AX
+	JZ	exec_no_memj		; retain exact-limit failure behavior
+	ADD	DI,AX
+	JMP	exec_raw_overlay_next
 
 exec_set_PDB:
 	MOV	BX,exec_fh		; we are finished with the file.

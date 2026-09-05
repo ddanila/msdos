@@ -269,8 +269,10 @@ def main():
             placement = None
             if not high:
                 placement = "LOW"
-            elif args.buffers in (1, 15, 39):
+            elif args.buffers in (1, 15, 38):
                 placement = "HIGH"
+            elif args.buffers == 39:
+                placement = "HIGH" if args.fail_reservation else "MIXED"
             elif args.buffers == 99 or (args.buffers == 40 and not args.fail_reservation):
                 placement = "MIXED"
             if placement and f"BIOS_BUFFERS_COUNT_OK {placement}".encode() not in result:

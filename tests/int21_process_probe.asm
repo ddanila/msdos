@@ -20,6 +20,8 @@ start:
     push ds
     pop es
 
+    mov sp,program_end
+
     mov bx, (program_end - $$ + 100h + 15) / 16
     mov ah, 4ah
     int 21h
@@ -27,6 +29,7 @@ start:
     mov dx, fail_4b
     jmp fail
 memory_ready:
+    call check_raw_overlays
 
     mov ax, ds
     mov [exec_command_segment], ax
@@ -274,4 +277,6 @@ memory_segment dw 0
 environment_segment dw 0
 open_handles times 20 dw 0
 open_handles_end:
+%include "raw_overlay_probe.inc"
+    times 512 db 0
 program_end:

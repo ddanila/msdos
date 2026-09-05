@@ -25,7 +25,7 @@ for tool in nasm mcopy qemu-system-i386 timeout; do
 done
 
 cp "$FLOPPY" "$BOOT_IMG"
-nasm -f bin "$REPO_ROOT/tests/int21_process_probe.asm" -o "$PROBE_COM"
+nasm -f bin -I"$REPO_ROOT/tests/" "$REPO_ROOT/tests/int21_process_probe.asm" -o "$PROBE_COM"
 nasm -f bin "$REPO_ROOT/tests/int21_child_probe.asm" -o "$CHILD_COM"
 nasm -f bin "$REPO_ROOT/tests/int20_child_probe.asm" -o "$INT20_CHILD_COM"
 

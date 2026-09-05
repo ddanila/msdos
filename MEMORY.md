@@ -33,7 +33,7 @@ Execution order:
    BIOS bytes and a 4,992-byte kernel prefix; these inventories are not promised
    savings. Public A20-off pointers cannot automatically become HMA pointers.
 3. Share HMA capacity between BIOS, state, buffers, and COMMAND. At fifteen
-   buffers, the normal post-COMMAND tail is 15,437 bytes and the development
+   buffers, the calculated normal post-COMMAND tail is 15,389 bytes and the development
    BIOS reservation costs 5,220 more. Development has only 16 bytes of free-UMB
    margin; further UMB placement requires compensating reclamation.
 4. Revisit COMMAND as a complete resident-handler/state and reload-interface
@@ -1504,26 +1504,51 @@ IOCTL state, and cursor positioning through an explicitly opened CON handle
 (serial CTTY must not bypass ANSI). The existing DOS-table and filesystem
 checks follow it.
 
-Current result: DEVICEHIGH's low fallback passes in bare-low, himem-low, and
-himem-high. With EMM386, DEVICE ANSI passes but DEVICEHIGH ANSI stalls before
-AUTOEXEC/serial output. The latter also reproduces with the normal IO.SYS
-substituted into the same image and with forced table-allocation failure.
-QMP screen inspection reaches the EMM386 installation banner but no test
-markers. This is a pre-existing high-driver startup blocker, not evidence
-against the table transaction, and the high-resident gate remains open.
+The initial DEVICEHIGH/EMM386 case stalled before AUTOEXEC, including with
+normal IO.SYS and forced table-allocation fallback. Loader-boundary tracing
+found an all-zero ANSI header at the intended upper entry address; even its
+strategy routine could not be called. Raw overlays used one large DOS read,
+whereas MZ overlays already used sector-sized transfers for mapped UMA safety.
+`EXEC.ASM` now also reads raw overlays in at-most-512-byte chunks, stopping at
+EOF and retaining the original exact-65535-byte rejection. Ordinary COM
+execution keeps its existing path. Temporary loader tracing is removed.
 
 ```sh
-# Passing low-placement control, then unresolved high-placement case.
+# Low-placement control and complete real-resident matrix.
 python3 tests/test_bios_low_boot_qemu.py \
   --early --tail-body --rebase --compact --ansi-low --mode emm-high
-python3 tests/test_bios_low_boot_qemu.py \
-  --early --tail-body --rebase --compact --ansi-high --mode emm-high
+make test-bios-ansi-tables-qemu
 ```
 
-Trace DEVICEHIGH's load/initialization handoff and ANSI's saved underlying CON
-callbacks before changing residency policy. Then rerun alongside SHARE and
-across warm reset. This diagnostic does not yet establish upper-memory
-exhaustion handling or compatibility with arbitrary high residents.
+The ten matrix cases pass: four memory modes, the same four with SHARE and
+its retained boot cache, forced table-allocation fallback with high ANSI,
+and high ANSI across warm reset. This establishes real-resident coexistence,
+not natural upper-memory exhaustion handling or arbitrary-driver compatibility.
+The broader multi-sector read-to-UMB path still needs a direct data-integrity
+probe and root-cause analysis; bounded overlay reads do not qualify that path.
+The process suite independently checks raw overlays of 0, 1, 511, 512, 513,
+9,109, 65,534, and 65,535 bytes in conventional storage. It checks every loaded
+byte and the entire untouched destination tail, including bad-format rejection
+for an empty file and the existing insufficient-memory error at exactly 65,535
+bytes. ANSI supplies the real UMB-overlay case; these are not exhaustive
+overlay-format or arbitrary transfer tests.
+The same boundary probe passes against the pre-fix kernel. Local verification
+also passes the fourteen DEVICEHIGH region/minimum/fallback cases, normal HMA
+and process suites, and sixteen buffer-capacity cases including 38 and 39.
+
+The current linker puts SYSBUF at 9A80h: the HMA image is 39,536 bytes, 48
+above the older 39,488-byte capture (including the preceding SHARE fix).
+With unchanged fifteen-buffer and COMMAND allocations, calculated normal
+post-COMMAND slack is 15,389 bytes before the 5,220-byte development BIOS
+reservation. Older 15,437-byte budget figures below describe that earlier
+capture; do not spend the additional 48 bytes. This compatibility fix claims
+no new conventional-memory gain.
+The development all-high cache boundary consequently drops from 39 buffers to
+38: 39 now uses mixed buckets. The requested count and I/O remain intact, but
+this is a conventional-memory cost in that non-default profile, not a free
+compatibility improvement. The capacity suite checks both sides of the new
+boundary. Joint BIOS/cache/COMMAND placement remains a promotion requirement;
+do not generalize the fifteen-buffer memory result to larger caches.
 Larger tables or preloaded high residents need an explicit placement budget
 and fallback; the 16-byte
 fixed-profile margin is not general spare capacity. Stable UMB addresses avoid
