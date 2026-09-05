@@ -1260,7 +1260,9 @@ Continue the small EMM386 gateway, then move eligible DOS state through the
 measured placement ladder. Reopen DR-DOS investigation only for a named
 unresolved owner, lifetime, placement policy, or public API question.
 
-Use this sequence:
+Do not repeat the broad survey. If implementation work exposes a named
+unresolved owner, lifetime, placement-policy, or public-API question, reopen
+the clean-room investigation in this order:
 
 1. inventory the relevant vendor documentation for kernel, shell, buffer,
    driver, UMB, HMA, XMS, EMS, and page-frame placement;
@@ -1275,7 +1277,7 @@ Use this sequence:
 6. translate only portable results into local owners, byte budgets, compatibility
    risks, and regression gates, then resume implementation in ranked order.
 
-For this follow-up, answer these questions in order:
+A targeted reopening must answer these questions in order:
 
 1. which documented DR-DOS configuration produces the best ordinary,
    compatibility-safe largest block on the fixed comparison machine;
@@ -1287,10 +1289,13 @@ For this follow-up, answer these questions in order:
 4. which remaining techniques map to a named local owner and a public contract
    that can be tested without knowledge of proprietary implementation details.
 
-Reuse the existing capture tooling and pinned media. Add a new probe only when
-an owner, lifetime, placement policy, or public API result remains unresolved;
-record commands, hashes, deltas, and conclusions, but keep generated images and
-captures untracked.
+Start with the checked-in measurements, vendor manuals, existing capture
+tooling, and pinned media. Run the smallest configuration delta that can answer
+the named question. Add a probe only when the existing public-interface record
+cannot resolve it; record commands, hashes, deltas, and conclusions, but keep
+generated images and captures untracked. DR-DOS source, disassembly intended to
+reconstruct its implementation, and copied instruction sequences remain out of
+scope.
 
 The revalidated ordinary compatibility-safe maximum is 627,824 bytes. Its
 10,720-byte pre-COMMAND span, 1,264-byte COMMAND span, 84,688 free UMB bytes,
