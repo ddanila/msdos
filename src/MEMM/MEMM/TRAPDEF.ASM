@@ -97,6 +97,7 @@ extrn	DMAClrFF1:near		;  clear flip-flop cmd for channels 0-3
 extrn	DMAClrFF2:near		;  clear flip-flop cmd for channels 5-7
 extrn	DMAMode1:near		;  Mode register for channels 0-3
 extrn	DMAMode2:near		;  Mode register for channels 4-7
+extrn	DMAMaskControl:near
 
 _TEXT	ends
 
@@ -128,12 +129,12 @@ IOTrap_Tab	label	word
 	dw	offset _TEXT:DMACnt3   ;  7 DMA count register for Channel 3
 	dw	offset _TEXT:IOT_BadT  ;  8
 	dw	offset _TEXT:IOT_BadT  ;  9
-	dw	offset _TEXT:IOT_BadT  ;  a
+	dw	offset _TEXT:DMAMaskControl ; a single-channel mask
 	dw	offset _TEXT:DMAMode1  ;  b DMA Mode Register for for Ch 0-3
 	dw	offset _TEXT:DMAClrFF1   ;  c clear flip-flop cmd for channels 0-3
-	dw	offset _TEXT:IOT_BadT  ;  d
-	dw	offset _TEXT:IOT_BadT  ;  e
-	dw	offset _TEXT:IOT_BadT  ;  f
+	dw	offset _TEXT:DMAMaskControl ; d master clear
+	dw	offset _TEXT:DMAMaskControl ; e clear all masks
+	dw	offset _TEXT:DMAMaskControl ; f write all masks
 	dw	offset _TEXT:IOT_BadT  ; 10
 	dw	offset _TEXT:IOT_BadT  ; 11
 	dw	offset _TEXT:IOT_BadT  ; 12
@@ -330,17 +331,17 @@ IOTrap_Tab	label	word
 	dw	offset _TEXT:IOT_BadT  ; d1
 	dw	offset _TEXT:IOT_BadT  ; d2
 	dw	offset _TEXT:IOT_BadT  ; d3
-	dw	offset _TEXT:IOT_BadT  ; d4
+	dw	offset _TEXT:DMAMaskControl ; d4 single-channel mask
 	dw	offset _TEXT:IOT_BadT  ; d5
 	dw	offset _TEXT:DMAMode2  ; d6 DMA Mode Register for channels 4-7
 	dw	offset _TEXT:IOT_BadT  ; d7
 	dw	offset _TEXT:DMAClrFF2   ; d8 clear flip-flop cmd for channels 5-7
 	dw	offset _TEXT:IOT_BadT  ; d9
-	dw	offset _TEXT:IOT_BadT  ; da
+	dw	offset _TEXT:DMAMaskControl ; da master clear
 	dw	offset _TEXT:IOT_BadT  ; db
-	dw	offset _TEXT:IOT_BadT  ; dc
+	dw	offset _TEXT:DMAMaskControl ; dc clear all masks
 	dw	offset _TEXT:IOT_BadT  ; dd
-	dw	offset _TEXT:IOT_BadT  ; de
+	dw	offset _TEXT:DMAMaskControl ; de write all masks
 	dw	offset _TEXT:IOT_BadT  ; df
 	dw	offset _TEXT:IOT_BadT  ; e0
 	dw	offset _TEXT:IOT_BadT  ; e1

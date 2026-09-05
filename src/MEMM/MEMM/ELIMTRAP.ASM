@@ -123,6 +123,7 @@
 	public	DMAClrFF2
 	public	DMAMode1
 	public	DMAMode2
+	public	DMAMaskControl
 
 
 	page
@@ -327,6 +328,8 @@ DMAP_Count label word
 DMAP_Mode label word
 	dw	DMA1_MODE
 	dw	DMA2_MODE
+	dw	DMA1_MASK, DMA2_MASK, DMA1_RESET, DMA2_RESET
+	dw	DMA1_CLEAR_MASK, DMA2_CLEAR_MASK, DMA1_ALL_MASK, DMA2_ALL_MASK
 
 LIMDMAP_CNT	   =	   ($ - DMAP_Page) / 2
 
@@ -817,7 +820,7 @@ DMAClrFF1    proc    near
         or      bh,bh                           ;Q: Input ?
         jz      short DMA_CLF_RdEm              ;  Y: Let it go
         out     dx, al                          ;  N: do it
-        mov     [DMARegSav.DMAFF1], 0
+        and     byte ptr [DMARegSav.DMAFF1], 0feh
         jmp     short DMACFFexit
 DMA_CLF_RdEm:
         in      al,dx                           ; do the read
@@ -848,7 +851,7 @@ DMAClrFF2    proc    near
         or      bh,bh                           ;Q: Input ?
         jz      DMA_CLF_RdEm                    ;  Y: Let it go
         out     dx, al                          ;  N: do it
-        mov     [DMARegSav.DMAFF2], 0
+        and     byte ptr [DMARegSav.DMAFF2], 0feh
         jmp     DMACFFexit
 
 DMAClrFF2    endp
@@ -943,6 +946,101 @@ DMAMode2    proc    near
 
 DMAMode2    endp
 
+; Apply completed requests while hardware is still masked, before forwarding
+; an enable. Preserve other running channels and both controllers' flip-flops.
+DMAMaskControl proc near
+	pushad
+	push	es
+	xchg	bx,dx
+	shr	dx,1
+	xchg	bh,bl
+	or	bh,bh
+	jz	DMC_read
+	mov	[SaveAL],al
+	mov	di,offset DMARegSav + DMAFF1
+	xor	si,si
+	mov	bx,dx
+	cmp	dx,80h
+	jb	short DMC_controller
+	inc	di
+	mov	si,4*16
+	sub	bx,0c0h
+	shr	bx,1
+DMC_controller:
+	cmp	bl,0dh
+	je	DMC_reset
+	cmp	bl,0ah
+	je	short DMC_single
+	xor	ah,ah
+	cmp	bl,0eh
+	je	short DMC_all
+	mov	ah,al
+	and	ah,0fh
+DMC_all:
+	mov	cl,[di]
+	shr	cl,4
+	mov	bl,ah
+	not	bl
+	and	cl,bl			; only masked -> enabled channels
+	jmp	short DMC_apply
+DMC_single:
+	mov	cl,al
+	and	cl,3
+	mov	bl,1
+	shl	bl,cl
+	mov	ah,[di]
+	shr	ah,4
+	xor	cl,cl
+	test	al,4
+	jz	short DMC_enable
+	or	ah,bl
+	jmp	short DMC_apply
+DMC_enable:
+	mov	cl,bl			; explicit single-channel enable
+	not	bl
+	and	ah,bl
+DMC_apply:
+	shl	ah,4
+	and	byte ptr [di],0fh	; preserve the byte flip-flop
+	or	[di],ah
+	movzx	bp,cl
+	push	dx
+DMC_channel:
+	test	bp,1
+	jz	short DMC_next
+	call	DMA_DMAFixup
+	jc	short DMC_next
+	movzx	bx,[DMARegSav.DMAFF1]
+	cmp	si,4*16
+	jb	short DMC_address
+	movzx	bx,[DMARegSav.DMAFF2]
+DMC_address:
+	call	DMA_WrtAdrReg
+	call	DMALoadCount
+DMC_next:
+	shr	bp,1
+	add	si,16
+	test	si,3fh
+	jnz	short DMC_channel
+	pop	dx
+	jmp	short DMC_output
+DMC_reset:
+	mov	byte ptr [di],0f0h	; mask all channels and clear flip-flop
+DMC_output:
+	mov	al,[SaveAL]
+	out	dx,al
+	jmp	short DMC_exit
+DMC_read:
+	in	al,dx
+	mov	[SaveAL],al
+DMC_exit:
+	pop	es
+	popad
+	mov	al,[SaveAL]
+	clc
+	ret
+DMAMaskControl endp
+
 ;	INCLUDE VDMAD2.ASM
 
         page
@@ -1000,6 +1098,7 @@ DMA_SetPhyAdr proc    near
         jb      short DMA_SPA1
         mov     bl, [DMARegSav.DMAFF2]		;   yes, other flip-flop
 DMA_SPA1:
+	and	bl,1
 	test	[DMARegSav.DMAMode][si], DMA_M_16BIT	; word transfer?
 	jz	short SaveIt			;   no, no translation
         DMA_BADDR_TO_WADDR
@@ -1050,6 +1149,7 @@ DMALoadCount  proc    near
         mov     bl, byte ptr [DMARegSav.DMAFF2]
 
 DMA_SC1:
+	and	bl,1
         mov     dl, byte ptr DMARegSav.DMACntPort[si]
 	xor	dh, dh
         mov     al, byte ptr DMARegSav.DMACount[bx][si]
@@ -1087,6 +1187,26 @@ DMALoadCount  endp
 ;
 ;------------------------------------------------------------------------------
 DMA_DMAFixup  proc    near
+; Masked address/count/page writes are incomplete programming transactions.
+; Do not swap EMS pages using a mixture of new and previous register bytes.
+	push	ax
+	push	cx
+	mov	cx,si
+	shr	cx,4
+	and	cl,3
+	add	cl,4
+	mov	al,1
+	shl	al,cl
+	cmp	si,4*16
+	jae	short DMA_mask_second
+	test	[DMARegSav.DMAFF1],al
+	jmp	short DMA_mask_checked
+DMA_mask_second:
+	test	[DMARegSav.DMAFF2],al
+DMA_mask_checked:
+	pop	cx
+	pop	ax
+	jnz	DMA_nofixup
                                                 ;Q: LinAddr = 0?
 
         mov     eax, dword ptr DMARegSav.DMALinAdr[si]

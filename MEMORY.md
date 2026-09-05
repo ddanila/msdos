@@ -62,6 +62,33 @@ the framed layout or prove that merging our XMS/EMS providers saves memory.
 Record both conventional and upper ownership before proposing such a redesign;
 this experiment does not block the already justified BIOS/DOS placement work.
 
+The development-to-retail residual reconciles as follows; these are accounting
+differences, not independently reclaimable allocations:
+
+| Contribution | Conventional deficit, bytes |
+| --- | ---: |
+| DOS/BIOS and remaining system layout, excluding the two memory managers | 1,136 |
+| HIMEM | 1,488 |
+| EMM386 | -240 |
+| COMMAND owner span | 880 |
+| Conventional ceiling / EBDA | 1,024 |
+| **Total** | **4,288** |
+
+Do not turn this into five byte-harvesting quotas. A bulk placement change can
+outperform a retail component and cover another owner's excess. The next
+design must identify actual released intervals, their replacement gateways,
+and where each live allocation goes. The current development HMA capacity is
+approximately 10,169 bytes after COMMAND and the BIOS reservation, whereas
+free UMB has only 16 bytes of margin. Capacity is not a predicted saving:
+moving a public table into HMA may be invalid, and a retained low duplicate
+saves nothing. An additional 4,288 net bytes would meet retail; exceeding it
+requires a further measured placement budget.
+
+The DR-DOS comparison also needs the combined HIMEM/EMM386 ownership, not
+EMM386 alone. OpenDOS's integrated provider is an experimental lead, not proof
+that merging our providers removes their summed allocations. Keep third-party
+XMS support and the 286 path when evaluating a shared-provider design.
+
 ## Public behavior
 
 The system reports DOS 6.22 consistently through `INT 21h/AH=30h`,
@@ -1639,8 +1666,9 @@ restore now compares/applies only the four LIM frame slots and flushes the TLB,
 leaving unrelated windows untouched. The combined test and extended EMS/API
 suites pass, and the residency census remains at 3,888 bytes.
 
-**Open DMA programming-sequence bug:** the same interleaved test with forced
-high-BIOS reservation failure stalls after the first 8,192-byte, offset-zero
+**DMA programming-sequence trigger fixed; broader DMA acceptance remains open:**
+the same interleaved test with forced high-BIOS reservation failure previously
+stalled after the first 8,192-byte, offset-zero
 read. EMS verification/remapping completes, but AH=3Ch file creation does not
 return: the application has not yet issued the corresponding write. The
 `UMB_EMS_WRITE_READY`/`WRITE_OPEN` markers delimit this boundary. Reproduce with:
@@ -1658,16 +1686,36 @@ uses the old `0Dh` page byte with new `7460h` low address bits; the old 8 KiB
 count spans two EMS windows. Its DMA-buffer start index is 1, requiring entries
 1 and 2 beyond the default one-entry buffer. This is a transient
 register-programming state, not the application's actual transfer request.
-`DMABaseN`, count, and page handlers currently translate after individual writes,
-while mask-register ports are not tracked. The UMB backing selector cannot
+`DMABaseN`, count, and page handlers previously translated after individual writes,
+without tracking mask-register ports. The UMB backing selector cannot
 prevent an intermediate address from landing in the EMS frame.
 
-Next, model channel programming explicitly: track single/all-mask writes,
-mask clear and controller reset for both controllers; defer mapping changes
-while masked; translate and program the complete address/count before enabling
-a channel. Preserve flip-flop/readback, byte/word channels, auto-initialize and
-existing non-masked behavior. Add a direct register-sequence regression for the
-old-page/new-address/old-count collision, not just the filesystem reproducer.
+The handlers now track explicit single/all-mask writes, mask clear, and master
+reset on both controllers. While masked, register writes update the snapshot
+without remapping EMS; enabling a channel translates and programs the completed
+address/count before the hardware enable. Mask bits share the existing
+controller flip-flop bytes, with all byte-index consumers masking off those
+bits. No additional low resident storage is required; the checked EMM386
+allocation remains 3,888 bytes.
+
+`tests/dma_mask_sequence.inc` exercises the old-page/new-address/old-count
+collision, readback, mask commands, and master reset on idle byte and word
+channels in the isolated QEMU fixture. It passes with the fix and rejects the
+pre-fix binary before the I/O loop. It does not perform device-requested
+word-channel DMA. All nineteen `test-bios-umb-io-qemu` cases pass, including
+low-BIOS fallback and reversed last-fit UMB backing across warm reset, as do
+HIMEM, extended EMS, EMM386 API, and address-phase suites.
+Fresh fixed-image VC captures with this EMM386 retain 610,256 conventional /
+49,104 free UMB bytes normally and 614,448 / 47,904 with development BIOS/table
+placement. The fix removes a correctness blocker without changing either
+memory floor; it does not qualify promotion by itself.
+
+Only observed mask commands are tracked. Initial hardware masks are not
+inferred from chipset-specific readback; automatic terminal-count masking and
+global controller-disable programming remain unqualified. Actual word-channel
+payloads, auto-initialize transfers, and constrained EMS pools still need
+acceptance coverage. The reset/mask distinction follows the
+[Intel 8237A datasheet](https://www.pcjs.org/documents/datasheets/intel/INTEL_8237A_DMA.pdf).
 Check DMA buffer bounds before indexing `DMA_Pages` (the current swap path
 reads the selected entry before checking capacity). Do not increase `D=` or
 return an unsafe linear address merely to hide the transient request.

@@ -90,6 +90,8 @@ start:
     jc fail
 %ifdef EMS_IO
     call ems_start
+    call dma_mask_sequence
+    call ems_verify
 %endif
     mov word [test_index],0
     mov word [offset_index],0
@@ -224,6 +226,7 @@ check_target:
     ret
 
 %ifdef EMS_IO
+%include "dma_mask_sequence.inc"
 ; Keep all four EMS pages live during I/O. Rotate every frame slot before each
 ; read/write and verify the complete 64 KiB payload after each transfer pair.
 ; These are interleaved synchronous operations, not calls from a DMA interrupt.

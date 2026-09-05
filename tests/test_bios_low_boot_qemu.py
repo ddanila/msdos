@@ -242,7 +242,7 @@ def main():
                            env=env, check=True)
         if args.rebase:
             if args.umb_read:
-                run(["nasm", "-f", "bin", f"-DEXPECT_HIGH={int(name == 'emm-high')}",
+                run(["nasm", "-f", "bin", f"-I{ROOT / 'tests'}/", f"-DEXPECT_HIGH={int(name == 'emm-high')}",
                      f"-DTARGET_KIB={args.umb_span}", *(["-DUMB_LAST"] if args.umb_last else []),
                      *(["-DEMS_IO"] if args.umb_ems and name == "emm-high" else []),
                      ROOT / "tests/umb_file_read_probe.asm", "-o", scratch / "UMBREAD.COM"], ROOT)
@@ -286,6 +286,8 @@ def main():
         io_passes = 2 if args.warm_reset else 1
         if args.umb_ems and name == "emm-high" and result.count(b"UMB_EMS_IO_PASS") != io_passes:
             raise RuntimeError(f"EMS/UMB I/O isolation failed: {log}\n{result.decode(errors='replace')}")
+        if args.umb_ems and name == "emm-high" and result.count(b"DMA_PROGRAM_PHASE_PASS") != io_passes:
+            raise RuntimeError(f"DMA mask/register sequence failed: {log}\n{result.decode(errors='replace')}")
         if args.umb_read and (result.count(b"UMB_FILE_READ_PASS") != io_passes
                               or re.search(rb"UMB_FILE_READ_[^\r\n]*FAIL", result)):
             raise RuntimeError(f"direct memory I/O failed: {log}\n{result.decode(errors='replace')}")

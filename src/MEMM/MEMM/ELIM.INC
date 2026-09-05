@@ -73,6 +73,15 @@ DMA2_CLR_FF	equ	00D8h		; clear flip-flop cmd for channels 5-7
 DMA1_MODE	equ	000Bh		; Mode register for channels 0-3
 DMA2_MODE	equ	00D6h		; Mode register for channels 4-7
 
+DMA1_MASK       equ     000Ah
+DMA2_MASK       equ     00D4h
+DMA1_RESET      equ     000Dh
+DMA2_RESET      equ     00DAh
+DMA1_CLEAR_MASK equ     000Eh
+DMA2_CLEAR_MASK equ     00DCh
+DMA1_ALL_MASK   equ     000Fh
+DMA2_ALL_MASK   equ     00DEh
+
 DMA_M_CHANNEL	equ	03h		; Mask for channel
 DMA_M_OPERATION equ	0Ch		; Mask for operation
 DMA_M_16BIT	equ	040h		; 16bit transfers (PS/2 ext mode)
@@ -115,8 +124,10 @@ Chnl4	db	(size DMARegRec - 4) dup (00), DMA_P4, DMA_B4, DMA_C4, DMA_M_16BIT
 Chnl5	db	(size DMARegRec - 4) dup (00), DMA_P5, DMA_B5, DMA_C5, DMA_M_16BIT
 Chnl6	db	(size DMARegRec - 4) dup (00), DMA_P6, DMA_B6, DMA_C6, DMA_M_16BIT
 Chnl7	db	(size DMARegRec - 4) dup (00), DMA_P7, DMA_B7, DMA_C7, DMA_M_16BIT
-DMAFF1	db	00		; Controller 1 FlipFlop State
-DMAFF2	db	00		; Controller 2 FlipFlop State
+; Controller state: bit 0 is the byte flip-flop, bits 4..7 are explicit masks.
+; No initial hardware mask is inferred from chipset-dependent port readback.
+DMAFF1	db	00
+DMAFF2	db	00
 DMARegBuf	ends
 
 DMAREG_CTRL2_INDEX	equ	4 * 2	; 2 * 1st channel # on 2nd cntlr
