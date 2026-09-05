@@ -59,6 +59,9 @@ check_public_graph:
 %endif
     pop es
 %endif
+%if EXPECT_TABLES_UPPER
+    call check_upper_table_access
+%endif
 %ifdef STALE_CDS_CONTROL
     ; Deliberately restore an external pointer to the retired owner. A simple
     ; successful DOS call must not let this broken graph earn a PASS result.
@@ -195,6 +198,11 @@ check_public_graph:
     pop si
     pop cx
     jne .sft_skip
+%if EXPECT_TABLES_UPPER
+    mov ax,es
+    cmp ax,0a000h
+    jb fail
+%endif
     xor di,di
     mov dl,[cs:public_current_drive]
     xor dh,dh
@@ -257,6 +265,9 @@ public_dpbs times 6 dd 0
 public_found db 0
 public_current_drive db 0
 public_table_owner dw 0
+%if EXPECT_TABLES_UPPER
+%include "bios_upper_access.inc"
+%endif
 public_name db 'LOWTEST TMP'
 %ifdef STALE_CDS_CONTROL
 public_control_ready db 'BIOS_PUBLIC_CONTROL_READY',13,10,'$'

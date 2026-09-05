@@ -69,9 +69,13 @@ def main():
     parser.add_argument("--buffers", type=int, default=15, help="verify actual configured buffer count (requires --rebase)")
     parser.add_argument("--files", type=int, default=20, help="FILES count for table-placement tests (8..255)")
     parser.add_argument("--fail-table-allocation", action="store_true", help="force the development UMB allocation to fail")
+    parser.add_argument("--upper-access-control", action="store_true", help="require rejection of a corrupted table snapshot after EMS cleanup")
     args = parser.parse_args()
     if args.fail_table_allocation and not args.rebase:
         parser.error("--fail-table-allocation requires --rebase")
+    if args.upper_access_control and (not args.rebase or args.files > 20 or args.fail_table_allocation
+                                      or args.stale_cds_control or args.warm_reset):
+        parser.error("--upper-access-control requires eligible upper tables without another control or reset")
     if not 1 <= args.buffers <= 99 or (args.buffers != 15 and not args.rebase):
         parser.error("--buffers must be 1..99 and custom counts require --rebase")
     if not 8 <= args.files <= 255 or (args.files != 20 and not args.rebase):
@@ -163,7 +167,10 @@ def main():
             options.append("-DEXPECT_COMPACT")
         if args.warm_reset:
             options.append("-DWARM_RESET")
-        negative = name == "live-stale-entry" or (args.stale_cds_control and high)
+        upper_control = args.upper_access_control and name == "emm-high"
+        negative = name == "live-stale-entry" or (args.stale_cds_control and high) or upper_control
+        if upper_control:
+            options.append("-DUPPER_ACCESS_CONTROL")
         if name == "live-stale-entry":
             options.append("-DOMIT_LIVE_PUBLICATION")
         if args.stale_cds_control and high:
@@ -211,6 +218,10 @@ def main():
         if args.stale_cds_control and high:
             if b"BIOS_PUBLIC_CONTROL_READY" not in result or b"BIOS_LOW_BOOT_FAIL" not in result:
                 raise RuntimeError(f"stale CDS control did not reach explicit rejection: {log}")
+        if upper_control:
+            for marker in (b"BIOS_UPPER_CONTROL_READY", b"BIOS_UPPER_CONTROL_CLEAN", b"BIOS_LOW_BOOT_FAIL"):
+                if marker not in result:
+                    raise RuntimeError(f"upper-table control missed {marker!r}: {log}")
         if (passed == negative or (passed and b"BIOS_LOW_BOOT_FAIL" in result)
                 or (name.startswith("live-") and b"BIOS_LIVE_READY" not in result)):
             raise RuntimeError(f"FAIL {name}: {log}\n{result.decode(errors='replace')}")
@@ -218,6 +229,9 @@ def main():
                             or re.search(rb"INT21_[^\r\n]*FAIL", result)):
             raise RuntimeError(f"FCB/system regression with relocated tables: {log}")
         if args.rebase and not negative:
+            if name == "emm-high" and sft_paras + fcb_paras <= 74 and not args.fail_table_allocation:
+                if b"BIOS_UPPER_ACCESS_PASS" not in result:
+                    raise RuntimeError(f"upper-table accessibility was not checked: {log}")
             placement = None
             if not high:
                 placement = "LOW"

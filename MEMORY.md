@@ -1402,7 +1402,7 @@ ownership, so implicit mutable-state references could select the high copy via
 CS. They now declare the DOS-stack SS owner, consistent with FCB dispatch and
 the existing explicit SS accesses. The FCB suite passes with low and upper
 tables; the normal HMA suite now runs it independently of BIOS relocation.
-This kernel correctness fix also applies to normal builds. All 42 combined
+This kernel correctness fix also applies to normal builds. All 43 combined
 table-placement, rebase/reset, and buffer-capacity cases pass locally, together
 with the normal HMA, FCB, system-contract, and residency gates.
 
@@ -1412,8 +1412,19 @@ Fresh fixed captures `out/tables-upper-vc.md` and `out/tables-normal-vc.md` show
 now **4,288 bytes**. The 3,008-byte BIOS gain and 1,184-byte table gain are
 additive in this measured configuration; HMA image size remains 39,488 bytes.
 
-Before promotion, test SHARE/redirector consumers, direct A20-off public-table
-access, EMS remapping with upper tables, and real high-resident competition.
+The upper-table access gate occupies the remaining embedded SFT slots and
+requires LOWTEST's active entry to reside in the UMB. It snapshots the entire
+marked allocation, proves A20 is disabled through a distinct HMA/low alias,
+and compares every table byte without entering DOS while the gate is off.
+It then maps two allocated EMS pages into the first frame window, writes and
+reads distinct page patterns, and compares the tables after each mapping.
+Cleanup restores the saved EMS map, releases the handle, and verifies the
+original free-page count. A deliberately corrupted expected snapshot must fail
+only after reporting successful cleanup. These are fixed-profile accessibility
+checks, not proof of arbitrary redirector or memory-manager compatibility.
+
+Before promotion, test SHARE/redirector consumers, additional EMS mapping
+profiles, and real high-resident competition.
 Larger tables or preloaded high residents need an explicit placement budget
 and fallback; the 16-byte
 fixed-profile margin is not general spare capacity. Stable UMB addresses avoid

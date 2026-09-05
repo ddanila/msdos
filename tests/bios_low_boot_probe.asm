@@ -8,6 +8,9 @@ org 100h
 %ifndef EXPECT_ACTIVE
 %define EXPECT_ACTIVE 0
 %endif
+%ifndef EXPECT_TABLES_UPPER
+%define EXPECT_TABLES_UPPER 0
+%endif
 %ifdef ACTIVATE_HIGH
 %include "activation-defs.inc"
 %define CHECK_RAW_DISK
@@ -128,6 +131,19 @@ start:
 %ifdef EXPECT_REBASE
     call check_ctrlc_path
 %endif
+%if EXPECT_TABLES_UPPER
+    ; Occupy the remaining embedded SFT entries so LOWTEST uses the UMB table.
+    mov dx,table_nul
+    mov ax,3d00h
+    int 21h
+    jc fail
+    mov [table_handles],ax
+    mov dx,table_nul
+    mov ax,3d00h
+    int 21h
+    jc fail
+    mov [table_handles+2],ax
+%endif
     mov dx,filename
     xor cx,cx
     mov ah,3ch
@@ -168,6 +184,16 @@ start:
     mov ax,[pattern+2]
     cmp [buffer+2],ax
     jne fail
+%if EXPECT_TABLES_UPPER
+    mov bx,[table_handles]
+    mov ah,3eh
+    int 21h
+    jc fail
+    mov bx,[table_handles+2]
+    mov ah,3eh
+    int 21h
+    jc fail
+%endif
     mov dx,filename
     mov ah,41h
     int 21h
@@ -244,6 +270,10 @@ finish:
     mov ax,4c00h
     int 21h
 filename db 'LOWTEST.TMP',0
+%if EXPECT_TABLES_UPPER
+table_nul db 'NUL',0
+table_handles times 2 dw 0
+%endif
 pattern db 'BIOS'
 buffer times 4 db 0
 passed db 'BIOS_LOW_BOOT_PASS',13,10,'$'
