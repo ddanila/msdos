@@ -84,6 +84,14 @@ entry INULDEV
 	RET				; MUST NOT BE A RETURN!
 EndProc SNULDEV
 
+; Everything through the null-device entry and legacy-driver workspaces must
+; remain conventionally addressable.  The absolute-disk, system-return, and
+; INT 2F paths below have HMA-safe entries or are reached only from relocated
+; DOS code, so DOS=HIGH may release their low copy.  DOS=LOW retains the whole
+; linked image as before.
+PUBLIC  DOS_LOW_GATE_END
+DOS_LOW_GATE_END LABEL BYTE
+
 BREAK <AbsDRD, AbsDWRT -- INT int_disk_read, int_disk_write handlers>
 
 
@@ -590,13 +598,11 @@ INT2FDOS:
 					; of the list
 INT2F	ENDP
 
-; IO.SYS enters DOSINIT at the historical fixed offset. Keep the reclaimed
-; low/HMA split paragraph-aligned without shifting that loader ABI. Two bytes
-; remain low; the other two follow the split so every subsequent offset stays
-; fixed while the conventional allocation ends on a paragraph boundary.
+; IO.SYS enters DOSINIT at the historical fixed offset.  Retain the historical
+; four padding bytes even though the low/HMA split now precedes AbsSetup.
 	DB	2 DUP (090H)
-PUBLIC  DOS_LOW_GATE_END
-DOS_LOW_GATE_END LABEL BYTE
+PUBLIC  DOS_RELOCATED_GATE_END
+DOS_RELOCATED_GATE_END LABEL BYTE
 	DB	2 DUP (090H)
 
 DispatchDOS:

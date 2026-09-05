@@ -268,10 +268,7 @@ def main() -> int:
     code_ranges = [
         ("HMA driver request entry", "hma_driver_requests", "hma_low_dpbs"),
         ("Low DPB pointer workspace", "hma_low_dpbs", "hma_driver_xms"),
-        ("HMA driver/XMS tail", "hma_driver_xms", "AbsSetup"),
-        ("Absolute-disk gateway", "AbsSetup", "SYS_RETURN"),
-        ("System/FCB return and error gateway", "SYS_RETURN", "INT2F"),
-        ("INT 2F gateway", "INT2F", "DOS_LOW_GATE_END"),
+        ("HMA driver/XMS and null-device tail", "hma_driver_xms", "DOS_LOW_GATE_END"),
     ]
     print("\n### Retained CODE ownership\n")
     print("| Range | Bytes | Owner |")
@@ -290,6 +287,30 @@ def main() -> int:
     retained_code = low_gate - (code_segment.paragraph * 16 + code_segment.offset)
     if code_total != retained_code:
         errors.append("DOS CODE ownership does not cover the complete retained prefix")
+
+    relocated_gate_end = require(dos_symbols, "DOS_RELOCATED_GATE_END")
+    relocated_ranges = [
+        ("Absolute-disk gateway", "AbsSetup", "SYS_RETURN"),
+        ("System/FCB return and error gateway", "SYS_RETURN", "INT2F"),
+        ("INT 2F gateway", "INT2F", "DOS_RELOCATED_GATE_END"),
+    ]
+    print("\n### Relocated DOS gateways\n")
+    print("| Range | Bytes | Owner |")
+    print("| ---: | ---: | --- |")
+    relocated_total = 0
+    for owner, start_name, end_name in relocated_ranges:
+        start = require(dos_symbols, start_name)
+        end = require(dos_symbols, end_name)
+        if end < start:
+            errors.append(f"relocated DOS gateway {start_name}..{end_name} is reversed")
+        size = end - start
+        relocated_total += size
+        print(f"| `{start:04X}h..{end:04X}h` | {size:,} | {owner} |")
+    print(f"| **Total** | **{relocated_total:,}** | copied to HMA; retained for DOS=LOW |")
+    if require(dos_symbols, "AbsSetup") != low_gate:
+        errors.append("relocated DOS gateway does not begin at the low boundary")
+    if relocated_gate_end <= low_gate:
+        errors.append("relocated DOS gateway does not follow the low boundary")
 
     dispatcher_start = require(dos_symbols, "BUF_EMS_MAP_USER")
     dispatcher_end = require(dos_symbols, "MAP_CASE")
