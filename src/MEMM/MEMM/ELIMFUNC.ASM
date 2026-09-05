@@ -194,34 +194,31 @@ E_GetStatus	endp
 ;
 ;******************************************************************************
 E_ONOFF proc	far
-;
-	cmp	al,0			;Q: turn it on ?
-	jne	EOO_OFF 		;  N: check for OFF/AUTO
-	mov	[Auto_Mode],0		;  Y: explicit ON leaves auto mode
-	cmp	[Active_Status],0	;  Y: Q: is it already active ?
-	jne	EOO_OK			;	Y: then just leave
-	mov	[Active_Status],1	;	N: then go to virtual mode
-	call	GoVirtual
-	jmp	short EOO_OK
-EOO_OFF:
-	cmp	al,1			;Q: turn it off ?
-	jne	EOO_AUTO		;  N: check for AUTO mode
+	cmp	al,2			;Q: go to auto mode ?
+	je	EOO_AUTO		;  Y: handle AUTO separately
+	ja	EOO_inv			;  N: invalid function
 
-	mov	[Auto_Mode],0		;  Y: explicit OFF leaves auto mode
-	cmp	[Active_Status],0	;  Y: Q: is it already OFF ?
-	je	EOO_OK			;     Y: then just leave
-	mov	[Active_Status],0	;     N: then go to real mode
-	call	RRProc			; put processor in real mode
+	mov	[Auto_Mode],0		; explicit command leaves auto mode
+	cmp	[Active_Status],0	;Q: currently active ?
+	je	EOO_OFF			;  N: handle the OFF state
+	or	al,al			;  Y: Q: ON already requested ?
+	jz	EOO_OK			;       Y: no transition needed
+	inc	[Active_Status]		;       N: publish OFF (FFh -> 00h)
+	call	RRProc
 	jmp	short EOO_OK
 
 EOO_AUTO:
-	cmp	al,2			;Q: go to auto mode ?
-	jne	EOO_inv			;  N: invalid function
 	cmp	[Auto_Mode],0		;  Y: Q: is it already in auto mode
 	jne	EOO_OK			;     Y: then just leave
 	mov	[Auto_Mode],1		;     N: then go to auto mode
 	call	_AutoUpdate
 	jmp	short EOO_OK
+
+EOO_OFF:
+	or	al,al			;Q: OFF already requested ?
+	jnz	EOO_OK			;  Y: no transition needed
+	dec	[Active_Status]		;  N: publish ON (00h -> FFh)
+	call	GoVirtual
 ;
 ;   leave with no errors
 ;
@@ -236,7 +233,7 @@ EOO_exit:
 EOO_inv:
 	mov	ah,1
 	stc
-	jmp	short EOO_exit
+	ret
 ;
 E_ONOFF endp
 

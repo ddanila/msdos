@@ -493,9 +493,9 @@ def main() -> int:
             args.dma_pages,
         )
         == (64, 7, 64, 6, 1)
-        and runtime_ranges[-1].end > 3904
+        and runtime_ranges[-1].end > 3888
     ):
-        raise ValueError("default EMM386 retained-layout end exceeds 3,904 bytes")
+        raise ValueError("default EMM386 retained-layout end exceeds 3,888 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     dma_page_label = "DMA page" if args.dma_pages == 1 else "DMA pages"
     print(
