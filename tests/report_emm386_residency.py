@@ -271,8 +271,8 @@ def main() -> int:
     low_text_size = split - text.offset
     if low_text_size < 0 or low_text_size > text.size:
         raise ValueError("IOTrap_Tab falls outside the linked _TEXT segment")
-    if args.check and low_text_size > 416:
-        raise ValueError("EMM386 retained _TEXT gateway exceeds 416 bytes")
+    if args.check and low_text_size > 404:
+        raise ValueError("EMM386 retained _TEXT gateway exceeds 404 bytes")
     if args.check:
         for name in (
             "EMM_pEntry",
@@ -491,9 +491,9 @@ def main() -> int:
             args.dma_pages,
         )
         == (64, 7, 64, 6, 1)
-        and runtime_ranges[-1].end > 4032
+        and runtime_ranges[-1].end > 4016
     ):
-        raise ValueError("default EMM386 installed allocation exceeds 4,032 bytes")
+        raise ValueError("default EMM386 retained-layout end exceeds 4,016 bytes")
     print_ranges("Selected installed tail", runtime_ranges)
     dma_page_label = "DMA page" if args.dma_pages == 1 else "DMA pages"
     print(
@@ -501,7 +501,7 @@ def main() -> int:
         f"{args.ems_pages} EMS pages, {args.physical_pages} mappable windows, and "
         f"{args.page_assignments} sparse `Pn=` assignments, with "
         f"{args.dma_pages} {dma_page_label}. "
-        f"The computed paragraph-rounded installed allocation is "
+        f"The computed paragraph-rounded retained-layout end is "
         f"**{runtime_ranges[-1].end:,} bytes**."
     )
 

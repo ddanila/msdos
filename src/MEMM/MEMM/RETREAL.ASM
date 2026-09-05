@@ -103,7 +103,7 @@ TRUE	equ	not FALSE
 
 _TEXT	segment
 	assume	cs:_TEXT, ds:DGROUP
-	IFNDEF	RETREAL_HIGH_ONLY
+	IFNDEF	RETREAL_LOW_ONLY
 
 real_gdt	label	qword
 real_idt	dw	0FFFFh		; limit
@@ -196,6 +196,9 @@ rl386_a:
 	MOV_EAX_CR0			;  get CR0
 
 	mov	[Active_Status],0	; publish the transition while DGROUP is selected
+	; Interrupts and NMI are disabled, so install the real IVT descriptor
+	; immediately before clearing PE and keep the descriptor out of the low copy.
+	lidt	fword ptr cs:[real_idt]
 	and	eax,07FFFFFFEh		; force real mode and shut down paging
 
 	MOV_CR0_EAX			; set CR0
@@ -210,10 +213,6 @@ RetRealHigh endp
 
 	IFNDEF	RETREAL_HIGH_ONLY
 RetRealResume:
-	; The real IVT base is zero, so the 386's 24-bit real-mode IDTR form is
-	; sufficient and avoids a redundant operand-size prefix.
-	lidt	fword ptr cs:[real_idt]
-
 	; RetRealHigh already cleared CR0.PG, which invalidates the 386/486 TLB.
 	; GoVirtual also reloads CR3 before paging is enabled again.
 

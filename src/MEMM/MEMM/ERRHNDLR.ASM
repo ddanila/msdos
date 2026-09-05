@@ -146,6 +146,8 @@ ErrHndlr	proc	near
 	mov	ax, word ptr [bp.VTFOE+VMTF_CS]		; CS
 	mov	[GPsavCS], ax
 	pop	ds
+	mov	al,DIS_NMI		; mask NMI while AX is still saved
+	out	NMI,al			; RetRealHigh requires both IRQs and NMI disabled
 	pop	eax
 
 	call	RetRealHigh		; return to real mode
@@ -165,8 +167,6 @@ ErrHndlr	proc	near
 	mov	al,DIS_MSTSLV		; value to disable master/slave int
 	out	MASTER,al		; disable master
 	out	SLAVE,al		; disable slave
-	mov	al,DIS_NMI		; value to disable NMI
-	out	NMI,al
 kbdbusy:
 	call	egetc			; q: is there stuff in keyboard buffer?
 	jnz	kbdbusy			; y: get it and pitch it
