@@ -125,7 +125,24 @@ def test_wrappers_reject_unknown_options() -> None:
     assert "unsupported Microsoft C option" in result.stderr
 
 
+def test_command_message_dependency_case() -> None:
+    """GNU make prerequisites must name the on-disk source exactly on Linux."""
+    import re
+
+    makefile = (ROOT / "mk/cmd.mk").read_text()
+    dependency = re.search(
+        r"^\$\(COMMAND_MSG_OBJ_PATHS\): \$\(COMMAND_DIR\)/([^\s]+)",
+        makefile, re.MULTILINE,
+    )
+    assert dependency is not None
+    filename = dependency.group(1)
+    names = {path.name for path in (ROOT / "src/CMD/COMMAND").iterdir()}
+    assert filename in names, f"COMMAND message prerequisite has wrong case: {filename}"
+    assert filename == "COMSW.ASM"
+
+
 def main() -> None:
+    test_command_message_dependency_case()
     test_jwasm_consumes_dos_sources_directly()
     test_exe2bin_accepts_compact_mz_headers()
     test_exefix_contract()

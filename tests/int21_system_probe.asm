@@ -441,6 +441,44 @@ truename_failed:
     jmp fail
 truename_ok:
 
+    ; Failed opens must release their reserved JFN/SFT. Windows 95 EXTRACT
+    ; repeatedly probes absent temporary names before creating them.
+    ; Keep two files open, as EXTRACT does with its cabinet readers, so the
+    ; failing open uses an SFT in the dynamically allocated FILES= table.
+    mov dx, nul_name
+    mov ax, 3d00h
+    int 21h
+    fail_if_carry 67
+    push ax
+    mov dx, nul_name
+    mov ax, 3d00h
+    int 21h
+    fail_if_carry 67
+    push ax
+    mov cx, 64
+missing_open_loop:
+    push cx
+    mov dx, new_file_name
+    mov ax, 3d02h
+    int 21h
+    pop cx
+    jnc missing_open_failed
+    cmp ax, 2
+    jne missing_open_failed
+    loop missing_open_loop
+    jmp missing_open_ok
+missing_open_failed:
+    mov dx, fail_missing_open
+    jmp fail
+missing_open_ok:
+    pop bx
+    mov ah, 3eh
+    int 21h
+    fail_if_carry 67
+    pop bx
+    mov ah, 3eh
+    int 21h
+    fail_if_carry 67
     mov bx, 24
     mov ah, 67h
     int 21h
@@ -511,6 +549,7 @@ fail_5b             db 'INT21_5B_FAIL', 13, 10, '$'
 fail_60             db 'INT21_60_FAIL', 13, 10, '$'
 fail_62             db 'INT21_62_FAIL', 13, 10, '$'
 fail_67             db 'INT21_67_FAIL', 13, 10, '$'
+fail_missing_open   db 'INT21_MISSING_OPEN_LEAK', 13, 10, '$'
 fail_6a             db 'INT21_6A_FAIL', 13, 10, '$'
 fail_setup          db 'INT21_SYSTEM_SETUP_FAIL', 13, 10, '$'
 temporary_template  db 'A:', 0

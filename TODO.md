@@ -10,6 +10,10 @@ The complete product comparison and unsupported option surfaces are in
 
 MSBACKUP, MSAV, VSAFE, DOSSHELL, and Task Swapper are deliberate non-goals.
 
+Track the unresolved Windows 95 installer observations and isolated retest
+plan in [tests/WINDOWS95-SETUP.md](tests/WINDOWS95-SETUP.md): HIMEM/DOS=HIGH
+loader behavior and the pre-fix ScanDisk/source-directory damage observation.
+
 For every change, keep source-derived manifests complete and add focused
 success, failure, and state-transition contracts. Automatic CI remains paused;
 use local tests and the emulator roles in [EMULATION.md](EMULATION.md).

@@ -247,7 +247,9 @@ OpenClean:
 	RestoreReg  <bx>		; clean off stack
 OpenE:
 	MOV	[SI.SF_Ref_Count],0	; release SFT
-	LDS	SI,pJFN
+	; DS addresses the SFT, which may live outside DOSGROUP when FILES=
+	; allocates additional entries. The saved JFN pointer remains in SS.
+	LDS	SI,SS:[pJFN]
 	MOV	BYTE PTR [SI],0FFh	; free the SFN...
 	JMP	SHORT OpenCritLeave
 

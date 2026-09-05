@@ -27,6 +27,7 @@ nasm -f bin "$REPO_ROOT/tests/int21_system_probe.asm" -o "$PROBE_COM"
 
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 mcopy -o -i "$BOOT_IMG" "$PROBE_COM" ::I21SYS.COM
+printf 'FILES=60\r\nBUFFERS=30\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
