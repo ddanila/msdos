@@ -270,6 +270,9 @@ MaxNumBuf2		db     15	;AN026;Num of buffers in a possible bucket group 2.
 NthBuck 		db	0	;AN026; 1st bucket group = 1st bucket through Nth Bucket. The rest = second group
 HmaBuffersPrepared	db	0
 HmaBufferBase		dw	0
+	IFDEF BIOS_SERVICE_BOOT
+	EXTRN HmaBiosEnd:WORD
+	ENDIF
 HmaBucketStart		dw	0
 
 IF	BUFFERFLAG
@@ -1249,6 +1252,14 @@ MulTrk_Flag_Done:			    ;AN002;
 	int	2fh
 	or	ax,ax
 	jz	short EndFileHmaPrepared
+	IFDEF BIOS_SERVICE_BOOT
+	; The early BIOS reservation precedes the cache. Never construct buffers
+	; over the now-live payload, or publish that range to COMMAND's allocator.
+	cmp	cs:[HmaBiosEnd],0
+	je	short HmaBiosReservationReady
+	mov	bx,cs:[HmaBiosEnd]
+HmaBiosReservationReady:
+	ENDIF
 	mov	cs:[HmaBufferBase],bx
 	mov	cs:[HmaBuffersPrepared],1
 EndFileHmaPrepared:

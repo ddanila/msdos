@@ -1,21 +1,40 @@
 bits 16
 org 100h
 %include "low-defs.inc"
+%ifndef EXPECT_ACTIVE
+%define EXPECT_ACTIVE 0
+%endif
 %ifdef ACTIVATE_HIGH
 %include "activation-defs.inc"
+%define CHECK_RAW_DISK
+%endif
+%if EXPECT_ACTIVE
+%define CHECK_RAW_DISK
 %endif
 start:
     mov ax,70h
     mov es,ax
-    cmp byte [es:ACTIVE_OFFSET],0
+    cmp byte [es:ACTIVE_OFFSET],EXPECT_ACTIVE
     jne fail
+%if EXPECT_ACTIVE
+    mov di,SERVICE_START
+    mov cx,SERVICE_SIZE/2
+    mov ax,0f4fah
+    cld
+    repe scasw
+    jne fail
+%endif
     mov si,slots
     mov cx,SLOT_WORD_COUNT
 .slot:
     lodsw
     mov bx,ax
     cmp word [es:bx],0
+%if EXPECT_ACTIVE
+    je fail
+%else
     jne fail
+%endif
     loop .slot
     mov ax,1236h
     mov cx,16
@@ -74,7 +93,7 @@ start:
     mov ah,41h
     int 21h
     jc fail
-%ifdef ACTIVATE_HIGH
+%ifdef CHECK_RAW_DISK
     ; Force BIOS-backed writes, then a raw read through the live INT 13h entry.
     mov ah,0dh
     int 21h
@@ -119,6 +138,8 @@ slots:
 %include "low-slots.inc"
 %ifdef ACTIVATE_HIGH
 %include "bios_live_activate.inc"
+%endif
+%ifdef CHECK_RAW_DISK
 sector_before dw 1234h
 sector times 512 db 0
 sector_after dw 5678h

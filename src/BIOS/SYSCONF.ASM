@@ -2145,6 +2145,9 @@ CFH_save:
 	; is unchanged, but the segment must follow the compacted driver.
 	mov	ax,1234h
 	int	2fh
+	IFDEF BIOS_SERVICE_BOOT
+	call	BiosBootActivate
+	ENDIF
 CFH_restore:
 	pop	es
 	pop	ds
@@ -2157,6 +2160,9 @@ CFH_restore:
 	pop	ax
 	ret
 CompactFirstHimem ENDP
+	IFDEF BIOS_SERVICE_BOOT
+	INCLUDE BOOTBIOS.INC
+	ENDIF
 
 ; Move the built-in DPBs out of SYSBUF before DOS reclaims its old tail. DOS
 ; reserves BP:DI for the first two records; DX:CompactDpbStorage holds up to

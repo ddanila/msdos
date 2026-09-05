@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Boot the combined inactive BIOS in low/high and standalone/EMM configurations."""
 import os
+import argparse
 import shutil
 import subprocess
 import tempfile
@@ -12,8 +13,16 @@ from build_bios_activation_fixture import write_fixture
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--early", action="store_true", help="activate during SYSINIT, before buffers and COMMAND")
+    parser.add_argument("--fail-reservation", action="store_true", help="force the early capacity check to reject")
+    parser.add_argument("--mode", action="append", help="run only this mode; repeat as needed")
+    args = parser.parse_args()
+    if args.fail_reservation and not args.early:
+        parser.error("--fail-reservation requires --early")
     scratch = Path(tempfile.mkdtemp(prefix="bios-low-boot-", dir=ROOT / "out"))
-    manifest = build(scratch)
+    manifest = build(scratch, early=args.early,
+                     reservation_limit=0x10 if args.fail_reservation else 0xfff0)
     high_manifest = build_high(scratch / "high", scratch)
     write_fixture(scratch, manifest, high_manifest)
     if high_manifest["low_image_sha256"] != manifest["sha256"]:
@@ -26,6 +35,8 @@ def main():
                 raise RuntimeError(f"missing production low binding: {slot['target']}")
     (scratch / "low-defs.inc").write_text(
         f"ACTIVE_OFFSET equ {manifest['symbols']['BIOS_SERVICE_ACTIVE']}\n"
+        f"SERVICE_START equ {manifest['symbols']['BIOS_SERVICE_START']}\n"
+        f"SERVICE_SIZE equ {manifest['symbols']['BIOS_SERVICE_END'] - manifest['symbols']['BIOS_SERVICE_START']}\n"
         f"SLOT_WORD_COUNT equ {len(manifest['high_slot_words'])}\n")
     (scratch / "low-slots.inc").write_text(
         "dw " + ",".join(map(str, manifest["high_slot_words"])) + "\n")
@@ -36,9 +47,15 @@ def main():
         "emm-high": (True, "DEVICE=HIMEM.SYS /TESTMEM:OFF\r\n"
                      "DEVICE=EMM386.EXE RAM\r\nDOS=HIGH,UMB\r\n"),
     }
-    variants["live-himem"] = variants["himem-high"]
-    variants["live-emm"] = variants["emm-high"]
-    variants["live-stale-entry"] = variants["himem-high"]
+    if not args.early:
+        variants["live-himem"] = variants["himem-high"]
+        variants["live-emm"] = variants["emm-high"]
+        variants["live-stale-entry"] = variants["himem-high"]
+    if args.mode:
+        unknown = set(args.mode) - variants.keys()
+        if unknown:
+            parser.error("unknown mode(s): " + ", ".join(sorted(unknown)))
+        variants = {name: config for name, config in variants.items() if name in args.mode}
     env = {**os.environ, "MTOOLS_SKIP_CHECK": "1"}
     for name, (high, config) in variants.items():
         probe = scratch / f"{name}.com"
@@ -47,7 +64,8 @@ def main():
         if negative:
             options.append("-DOMIT_LIVE_PUBLICATION")
         run(["nasm", "-f", "bin", f"-I{scratch}/", f"-I{ROOT / 'tests'}/",
-             f"-DEXPECT_HIGH={int(high)}", *options,
+             f"-DEXPECT_HIGH={int(high)}",
+             f"-DEXPECT_ACTIVE={int(args.early and high and not args.fail_reservation)}", *options,
              ROOT / "tests/bios_low_boot_probe.asm", "-o", probe], ROOT)
         image = scratch / f"{name}.img"
         shutil.copyfile(ROOT / "out/floppy.img", image)

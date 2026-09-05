@@ -1764,10 +1764,9 @@ this does not install the boot-time BIOS relocation or cover all BLOCK13 paths.
 Repeat just these runtime cases with `python3 tests/test_bios_payload_qemu.py
 --mode interrupt-read --mode interrupt-error`; the default still runs every case.
 
-Next, move the validated late-publication path into the early SYSINIT
-transaction, reserve HMA before buffer construction, and reclaim/coalesce the
-old low range. Preserve code-table offsets, selected/purged code policy, and
-ROM-return contracts when binding.
+Next, reclaim/coalesce the old low range after early activation, including
+relocation of the DOS low prefix above BIOS. Preserve code-table offsets,
+selected/purged code policy, and ROM-return contracts through that transaction.
 
 The combined low-side development image now links MSBIO1, MSDISK, and MSBIO2
 with bindings, guarded calls, device/interrupt entries, and result helpers all
@@ -1810,10 +1809,38 @@ inactive, two live, one negative), not complete media, EXEC, reboot, or hardware
 acceptance. The probe is development-only, uses late HMA allocation, and leaves
 the old allocation in place. It must not be used as a production loader.
 
+The early development installer is now in `BOOTBIOS.INC`, called at the end of
+`CompactFirstHimem` after DOS relocation and HIMEM entry refresh. It performs
+preflight before writing high memory, copies/rebases the embedded 5,220-byte
+payload immediately after DOS's HMA image, binds the call cycle, and publishes
+the entries and ACTIVE with interrupts disabled. `HmaBiosEnd` records the
+SYSINIT-owned reservation; subsequent cache construction starts there instead
+of SYSBUF, so the published tail cannot overlap the BIOS. DOS=LOW, an unavailable
+early-provider contract, or failed capacity/preflight checks retain low entries.
+This remains a development flag, not normal-build activation.
+
+`make test-bios-early-boot-qemu` checks four configurations with normal capacity
+and repeats them with a deliberately failing reservation ceiling. Normal high
+boots activate before further CONFIG processing, buffer construction, and
+COMMAND startup; low boots and forced-rejection high boots retain zero high
+targets and a clear ACTIVE byte. The successful high probe verifies the entire
+old service body still contains CLI/HLT pairs, then tests HMA tail allocation,
+file I/O, forced flush, and raw disk reads. All eight QEMU 486 cases pass. The
+builder links a seed low/high pair, embeds generated operands in the discardable
+init segment, relinks, and rejects any changed low binding or high payload.
+
+Embedding exposed a loader limit: MSINIT staged MSDOS.SYS after a fixed 20 KiB
+SYSINIT allowance, overwriting the larger init tail even in DOS=LOW. The early
+build now derives both DOS staging calculations from the linked SYSINIT segment
+and rounded SYSSIZE. The normal build retains its existing bytes. Tests must
+continue covering inactive boot when changing embedded payload size.
+
 The old body must actually be released and its low hole coalesced before
-counting gain. Late live execution is established for these paths; early
-reservation, low-prefix rebasing, transactional failure tests, and the complete
-memory/filesystem/device/hardware regression gates remain.
+counting gain. Early high execution and capacity-rejection fallback are now
+established for these paths; low-prefix rebasing, other transactional failure
+cases, and the complete memory/filesystem/device/hardware regression gates
+remain. Large-buffer pressure and foreign/late-provider policies still need
+acceptance before this development installer can become the normal path.
 
 The normal boot loader has not bound or activated these pointers. The ownership
 audit moved `Prev_DX` into the authoritative low owner; the map checks its

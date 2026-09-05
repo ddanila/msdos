@@ -287,6 +287,11 @@ test-bios-high-payload: bios
 test-bios-low-boot-qemu: deploy
 	python3 tests/test_bios_low_boot_qemu.py
 
+.PHONY: test-bios-early-boot-qemu
+test-bios-early-boot-qemu: deploy
+	python3 tests/test_bios_low_boot_qemu.py --early
+	python3 tests/test_bios_low_boot_qemu.py --early --fail-reservation
+
 test-bios-payload-qemu: deploy
 	python3 tests/test_bios_payload_qemu.py
 

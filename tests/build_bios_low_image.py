@@ -5,19 +5,58 @@ import argparse
 import hashlib
 import json
 import runpy
+import re
 import subprocess
 
 from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output):
+def build(output, *, early=False, reservation_limit=0xfff0):
+    if not 0 <= reservation_limit <= 0xfff0:
+        raise ValueError("invalid development reservation ceiling")
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=True)
+    embedded = None
+    if early:
+        from build_bios_high_payload import build as build_high
+        from build_bios_activation_fixture import write_fixture
+        seed = build(output)
+        high = build_high(output / "high", output)
+        write_fixture(output, seed, high)
+        for source, target in (("defs", "DEFS"), ("preflight", "PREFLIGHT"),
+                               ("bind-high", "BIND_HIGH"), ("bind-low", "BIND_LOW"),
+                               ("data", "DATA")):
+            text = (output / f"activation-{source}.inc").read_text()
+            text = re.sub(r"\[(es|cs):([^\]]+)\]", r"\1:[\2]", text)
+            text = re.sub(r"\b(byte|word) (?=(?:es:|cs:)?\[)", r"\1 ptr ", text)
+            text = re.sub(r"mov si,(activation_original_\d+)", r"mov si,OFFSET \1", text)
+            text = re.sub(r"\bfail\b", "BiosBootFail", text)
+            if source == "data":
+                lines = []
+                for line in text.splitlines():
+                    if line.startswith("dw "):
+                        values = line[3:].split(",")
+                        lines.extend("dw " + ",".join(values[index:index + 16])
+                                     for index in range(0, len(values), 16))
+                    else:
+                        lines.append(line)
+                text = "\n".join(lines) + "\n"
+            if source == "defs":
+                text += f"ACTIVE_OFFSET equ {seed['symbols']['BIOS_SERVICE_ACTIVE']}\n"
+                text += f"BOOT_PAYLOAD_BYTES equ {high['bytes']}\n"
+                text += f"BOOT_RESERVATION_LIMIT equ {reservation_limit}\n"
+            (output / f"BIOSBOOT_{target}.INC").write_text(text)
+        embedded = (output / "high/bios-high.bin").read_bytes()
+        (output / "BIOSBOOT_PAYLOAD.INC").write_text("\n".join(
+            "db " + ",".join(map(str, embedded[index:index + 16]))
+            for index in range(0, len(embedded), 16)) + "\n")
     bios = ROOT / "src/BIOS"
-    changed = ("MSBIO1", "MSDISK", "MSBIO2")
+    changed = ("MSBIO1", "MSDISK", "MSBIO2") + (("MSINIT", "SYSINIT1", "SYSCONF") if early else ())
     options = "-I. -I../INC " + " ".join(f"-DBIOS_SERVICE_{name}=1" for name in
         ("BINDINGS", "LOW_CALLS", "DEVICE_ENTRIES", "INTERRUPT_ENTRIES", "RESULT_HELPERS"))
+    if early:
+        options += f" -I{output} -DBIOS_SERVICE_BOOT=1 -DBIOS_BOOT_POISON=1"
     for name in changed:
         run([ROOT / "bin/jwasm-masm", options,
              f"{name}.ASM,{output / (name + '.OBJ')};"], bios)
@@ -49,13 +88,26 @@ def build(output):
         raise ValueError("inactive high import slots must be zero")
     manifest = {"activated": False, "reclaimed_bytes": 0,
                 "sha256": hashlib.sha256(image).hexdigest(), "symbols": symbols,
-                "high_slot_words": sorted(slot_words)}
+                "high_slot_words": sorted(slot_words), "early_boot_installer": early,
+                "reservation_limit": reservation_limit}
+    if early:
+        # Init-segment growth must not invalidate any embedded low operands.
+        for name, value in seed["symbols"].items():
+            if name in high["low_bindings"] or name.startswith("BIOS_") or name == "DSKTBL":
+                if symbols[name] != value:
+                    raise ValueError(f"early link moved embedded low binding: {name}")
+        final_high = build_high(output / "high", output)
+        if (output / "high/bios-high.bin").read_bytes() != embedded:
+            raise ValueError("early link changed the embedded high payload")
+        manifest["embedded_payload_bytes"] = final_high["bytes"]
     (output / "low.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
-    print(f"Linked inactive development BIOS: {output / 'IO.SYS'}", flush=True)
+    print(f"Linked {'early-installer' if early else 'inactive'} development BIOS: {output / 'IO.SYS'}", flush=True)
     return manifest
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output", type=Path)
-    build(parser.parse_args().output)
+    parser.add_argument("--early", action="store_true", help="embed the early installer and poison old code after activation")
+    args = parser.parse_args()
+    build(args.output, early=args.early)

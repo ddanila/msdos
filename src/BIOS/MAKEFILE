@@ -155,6 +155,8 @@ msbio2.obj: msbio2.asm \
 	msbio.cl2 \
 	ms96tpi.inc msvolid.inc
 
+sysconf.obj: bootbios.inc
+
 mshard.obj:  mshard.asm $(inc)\postequ.inc $(inc)\dseg.inc
 
 $(dest).sys: msbio.cl1 msbio1.obj mscon.obj  msaux.obj \
