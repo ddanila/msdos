@@ -197,30 +197,22 @@ E_ONOFF proc	far
 ;
 	cmp	al,0			;Q: turn it on ?
 	jne	EOO_OFF 		;  N: check for OFF/AUTO
+	mov	[Auto_Mode],0		;  Y: explicit ON leaves auto mode
 	cmp	[Active_Status],0	;  Y: Q: is it already active ?
-	jne	EOO_AUTO_OFF		;	Y: then just leave
+	jne	EOO_OK			;	Y: then just leave
 	mov	[Active_Status],1	;	N: then go to virtual mode
-	mov	[Auto_Mode],0		;	and clear auto mode
 	call	GoVirtual
 	jmp	short EOO_OK
 EOO_OFF:
 	cmp	al,1			;Q: turn it off ?
 	jne	EOO_AUTO		;  N: check for AUTO mode
 
+	mov	[Auto_Mode],0		;  Y: explicit OFF leaves auto mode
 	cmp	[Active_Status],0	;  Y: Q: is it already OFF ?
-	je	EOO_AUTO_OFF		;     Y: then just leave
+	je	EOO_OK			;     Y: then just leave
 	mov	[Active_Status],0	;     N: then go to real mode
-	mov	[Auto_Mode],0		;     and clear auto mode
 	call	RRProc			; put processor in real mode
 	jmp	short EOO_OK
-
-
-EOO_AUTO_OFF:
-	cmp	[Auto_Mode],0		; q: auto mode already off?
-	jz	EOO_OK			; y: forget it
-	mov	[Auto_Mode],0		; n: clear it
-	jmp	short EOO_OK		; and update status
-
 
 EOO_AUTO:
 	cmp	al,2			;Q: go to auto mode ?
