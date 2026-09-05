@@ -12,7 +12,7 @@ from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output, *, early=False, reservation_limit=0xfff0):
+def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False):
     if not 0 <= reservation_limit <= 0xfff0:
         raise ValueError("invalid development reservation ceiling")
     output = output.resolve()
@@ -21,7 +21,7 @@ def build(output, *, early=False, reservation_limit=0xfff0):
     if early:
         from build_bios_high_payload import build as build_high
         from build_bios_activation_fixture import write_fixture
-        seed = build(output)
+        seed = build(output, tail_body=tail_body)
         high = build_high(output / "high", output)
         write_fixture(output, seed, high)
         for source, target in (("defs", "DEFS"), ("preflight", "PREFLIGHT"),
@@ -53,16 +53,28 @@ def build(output, *, early=False, reservation_limit=0xfff0):
             for index in range(0, len(embedded), 16)) + "\n")
     bios = ROOT / "src/BIOS"
     changed = ("MSBIO1", "MSDISK", "MSBIO2") + (("MSINIT", "SYSINIT1", "SYSCONF") if early else ())
+    if tail_body and not early:
+        changed += ("MSINIT",)
     options = "-I. -I../INC " + " ".join(f"-DBIOS_SERVICE_{name}=1" for name in
         ("BINDINGS", "LOW_CALLS", "DEVICE_ENTRIES", "INTERRUPT_ENTRIES", "RESULT_HELPERS"))
     if early:
         options += f" -I{output} -DBIOS_SERVICE_BOOT=1 -DBIOS_BOOT_POISON=1"
+    if tail_body:
+        options += " -DBIOS_SERVICE_TAIL_BODY=1"
     for name in changed:
-        run([ROOT / "bin/jwasm-masm", options,
+        object_options = options
+        if tail_body and name == "MSDISK":
+            object_options += " -DBIOS_SERVICE_PREFIX_ONLY=1"
+        run([ROOT / "bin/jwasm-masm", object_options,
              f"{name}.ASM,{output / (name + '.OBJ')};"], bios)
     names = ("MSBIO1", "MSCON", "MSAUX", "MSLPT", "MSCLOCK", "MSDISK", "MSBIO2",
              "MSHARD", "MSINIT", "SYSINIT1", "SYSCONF", "SYSINIT2", "SYSIMES")
     objects = [(output if name in changed else bios) / (name + ".OBJ") for name in names]
+    if tail_body:
+        body = output / "BIOBODY.OBJ"
+        run([ROOT / "bin/jwasm-masm", options + " -DBIOS_SERVICE_BODY_ONLY=1",
+             f"MSDISK.ASM,{body};"], bios)
+        objects.append(body)
     executable, linked_map = output / "MSBIO.EXE", output / "msBIO.map"
     linker = runpy.run_path(str(ROOT / "bin/wlink"))["wlink_bin"]()
     run([linker, "format", "dos", "option", "quiet", "option", "nocaseexact",
@@ -74,6 +86,11 @@ def build(output, *, early=False, reservation_limit=0xfff0):
     (output / "IO.SYS").write_bytes(image)
     _, symbols = parse_map(linked_map)
     symbols = {name.upper(): value for name, value in symbols.items()}
+    if tail_body:
+        if symbols["BIOS_SERVICE_START"] < symbols["END$"]:
+            raise ValueError("fallback service body is not after BIOS initialization code")
+        if symbols["BIOS_PERMANENT_END"] >= symbols["BIOS_SERVICE_START"]:
+            raise ValueError("permanent boundary storage overlaps fallback service body")
     active = symbols["BIOS_SERVICE_ACTIVE"]
     if binary.read_bytes()[active] != 0:
         raise ValueError("development BIOS starts active with unbound targets")
@@ -89,7 +106,7 @@ def build(output, *, early=False, reservation_limit=0xfff0):
     manifest = {"activated": False, "reclaimed_bytes": 0,
                 "sha256": hashlib.sha256(image).hexdigest(), "symbols": symbols,
                 "high_slot_words": sorted(slot_words), "early_boot_installer": early,
-                "reservation_limit": reservation_limit}
+                "reservation_limit": reservation_limit, "tail_body": tail_body}
     if early:
         # Init-segment growth must not invalidate any embedded low operands.
         for name, value in seed["symbols"].items():
@@ -109,5 +126,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("output", type=Path)
     parser.add_argument("--early", action="store_true", help="embed the early installer and poison old code after activation")
+    parser.add_argument("--tail-body", action="store_true", help="link the fallback body after retained BIOS code")
     args = parser.parse_args()
-    build(args.output, early=args.early)
+    build(args.output, early=args.early, tail_body=args.tail_body)

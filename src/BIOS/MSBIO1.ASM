@@ -612,6 +612,12 @@ GETDX	PROC	NEAR
 GETDX	ENDP
 	PAGE
 ;************************************************** ARR 2.15
+	IFDEF BIOS_SERVICE_TAIL_BODY
+	PUBLIC BIOS_PERMANENT_END
+; Selected permanent BIOS end in paragraphs relative to CODE, before reserving
+; the optional last-linked fallback service body. Not yet a reclaimed boundary.
+BIOS_PERMANENT_END DW 0
+	ENDIF
 	IFDEF BIOS_SERVICE_BINDINGS
 	INCLUDE LOWBIND.INC
 	ENDIF

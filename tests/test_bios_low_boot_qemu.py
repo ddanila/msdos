@@ -15,13 +15,14 @@ from build_bios_activation_fixture import write_fixture
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--early", action="store_true", help="activate during SYSINIT, before buffers and COMMAND")
+    parser.add_argument("--tail-body", action="store_true", help="test last-linked fallback service layout")
     parser.add_argument("--fail-reservation", action="store_true", help="force the early capacity check to reject")
     parser.add_argument("--mode", action="append", help="run only this mode; repeat as needed")
     args = parser.parse_args()
     if args.fail_reservation and not args.early:
         parser.error("--fail-reservation requires --early")
     scratch = Path(tempfile.mkdtemp(prefix="bios-low-boot-", dir=ROOT / "out"))
-    manifest = build(scratch, early=args.early,
+    manifest = build(scratch, early=args.early, tail_body=args.tail_body,
                      reservation_limit=0x10 if args.fail_reservation else 0xfff0)
     high_manifest = build_high(scratch / "high", scratch)
     write_fixture(scratch, manifest, high_manifest)
@@ -38,6 +39,9 @@ def main():
         f"SERVICE_START equ {manifest['symbols']['BIOS_SERVICE_START']}\n"
         f"SERVICE_SIZE equ {manifest['symbols']['BIOS_SERVICE_END'] - manifest['symbols']['BIOS_SERVICE_START']}\n"
         f"SLOT_WORD_COUNT equ {len(manifest['high_slot_words'])}\n")
+    if args.tail_body:
+        with (scratch / "low-defs.inc").open("a") as stream:
+            stream.write(f"PERMANENT_END_OFFSET equ {manifest['symbols']['BIOS_PERMANENT_END']}\n")
     (scratch / "low-slots.inc").write_text(
         "dw " + ",".join(map(str, manifest["high_slot_words"])) + "\n")
     variants = {

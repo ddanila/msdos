@@ -1842,6 +1842,27 @@ cases, and the complete memory/filesystem/device/hardware regression gates
 remain. Large-buffer pressure and foreign/late-provider policies still need
 acceptance before this development installer can become the normal path.
 
+The optional `--tail-body` development layout makes that compaction boundary
+explicit. MSDISK builds as a retained prefix plus a same-segment fallback body
+linked after all other BIOS CODE contributions. Selected permanent BIOS state
+and services consequently precede the fallback; reclaiming it need not rebase
+those BIOS addresses. MSINIT records the paragraph-relative selected boundary
+in `BIOS_PERMANENT_END`, but still reserves through `BIOS_SERVICE_END` before
+placing DOS. Both inactive and early builds stage DOS beyond the actual linked
+SYSINIT segment, since the old `END$ + SYSIZE` estimate excludes this body.
+
+`make test-bios-tail-boot-qemu` covers inactive and late activation, early
+activation, forced reservation rejection, and a stale-entry negative control.
+The boot probe checks the selected permanent boundary is below the fallback;
+active paths also poison the old body and exercise file and raw disk I/O.
+Seed/final linking must preserve the embedded bindings and high payload.
+This remains a layout prerequisite: it temporarily retains intervening init
+space as well as the fallback, so development low-memory usage grows. The
+normal IO.SYS and its 610,256-byte VC result are unchanged. Next, rebase the DOS
+low prefix and affected boot allocations into the released interval, updating
+every public/private low pointer before coalescing the arena. Count only the
+net application-block gain after retained gateway and alignment costs.
+
 The normal boot loader has not bound or activated these pointers. The ownership
 audit moved `Prev_DX` into the authoritative low owner; the map checks its
 range and a source guard rejects additional named storage in the service body

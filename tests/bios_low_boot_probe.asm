@@ -14,6 +14,15 @@ org 100h
 start:
     mov ax,70h
     mov es,ax
+%ifdef PERMANENT_END_OFFSET
+    ; Boot selected a permanent prefix below the separately reserved fallback.
+    ; Keeping the fallback reserved is intentional until DOS can be rebased.
+    mov ax,[es:PERMANENT_END_OFFSET]
+    or ax,ax
+    jz fail
+    cmp ax,SERVICE_START/16
+    ja fail
+%endif
     cmp byte [es:ACTIVE_OFFSET],EXPECT_ACTIVE
     jne fail
 %if EXPECT_ACTIVE
