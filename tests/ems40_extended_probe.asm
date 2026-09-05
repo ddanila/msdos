@@ -110,7 +110,22 @@ start:
     test ah, ah
     jnz fail_full_map
 
-    ; 4F: size, get and set a one-page partial map.
+    ; 4F: restore actual data after switching the saved window to another page.
+    mov ah,41h
+    int 67h
+    test ah,ah
+    jnz fail_partial_map
+    mov [partial_request+2],bx
+    mov dx,[handle]
+    xor bx,bx
+    mov ax,4400h
+    int 67h
+    test ah,ah
+    jnz fail_partial_map
+    mov es,[partial_request+2]
+    mov word [es:0],0a55ah
+    push cs
+    pop es
     mov bx, 1
     mov ax, 4f02h
     int 67h
@@ -118,18 +133,34 @@ start:
     jnz fail_partial_map
     cmp al, 6
     jne fail_partial_map
-    mov ax, [physical_pages]
-    mov [partial_request+2], ax
     mov si, partial_request
     mov di, partial_saved
     mov ax, 4f00h
     int 67h
     test ah, ah
     jnz fail_partial_map
+    cmp word [partial_saved],1
+    jne fail_partial_map
+    mov dx,[handle]
+    mov bx,1
+    mov ax,4400h
+    int 67h
+    test ah,ah
+    jnz fail_partial_map
+    mov es,[partial_request+2]
+    mov word [es:0],05aa5h
     mov si, partial_saved
     mov ax, 4f01h
     int 67h
     test ah, ah
+    jnz fail_partial_map
+    cmp word [es:0],0a55ah
+    jne fail_partial_map
+    mov dx,[handle]
+    mov bx,0ffffh
+    mov ax,4400h
+    int 67h
+    test ah,ah
     jnz fail_partial_map
 
     ; 50: map an array expressed by physical-page number and verify data.

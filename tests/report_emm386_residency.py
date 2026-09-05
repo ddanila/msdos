@@ -321,6 +321,8 @@ def main() -> int:
             "_WriteDMAEntry",
             "_ReadWindowEntry",
             "ReadWindowIndex",
+            "ReadCurrentMapEntry",
+            "WriteCurrentMapEntry",
             "physical_to_external_id",
             "CheckHandleDX",
             "ReadHandleIndex",

@@ -142,22 +142,6 @@
 	include vm386.inc
 	include emmdef.inc
 
-;******************************************************************************
-;
-; Get_FRS_window - get pointer to Fast Register Set window
-;
-;	ENTRY:	Reg - points to an FRS_struc
-;
-;	EXIT:	Reg - points to FRS_window entry in the structure
-;
-;	USES:	Reg
-;
-;******************************************************************************
-Get_FRS_window	MACRO	Reg
-
-	mov	Reg, word ptr [CurRegSet]	; just offset (assume dgroup)
-	add	Reg, FRS_window			; points to FRS window entries
-	ENDM
 
 ;****************************************************************************
 ;
@@ -260,7 +244,6 @@ DMA_BADDR_TO_WADDR	MACRO
 
 _DATA	segment
 extrn	int_mask:byte
-extrn	CurRegSet:word
 extrn	Page_Dir:word		
 SaveAL  equ     int_mask	; transition mask storage is idle in DMA traps
 _DATA	ends
@@ -268,6 +251,7 @@ _DATA	ends
 _TEXT	segment
 
 extrn	PortTrap:near		; set port bit in I/O bit Map
+extrn ReadCurrentMapEntry:near
 extrn	MapLinear:near
 extrn   ErrHndlr:near
 ;
@@ -1499,15 +1483,8 @@ _GetCRSEntry	proc near
 
 	push	bp
 	mov	bp, sp
-	push	di
-	
-	mov	bx, WORD PTR Arg1
-	shl	bx, 1		                ; each FRS entry is a word
-	Get_FRS_Window	DI	                ; di = address of Current FRS
-	add	di, bx
-	mov	ax, word ptr [di]               ; load FRS entry
-
-	pop	di
+	mov	ax, WORD PTR Arg1
+	call	ReadCurrentMapEntry
 	pop	bp
 	ret
 _GetCRSEntry	endp

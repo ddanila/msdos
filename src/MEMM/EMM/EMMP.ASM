@@ -55,6 +55,7 @@ _TEXT	segment
         extrn ReadPageEntry:near
         extrn ReadPftEntry:near
         extrn ReadWindowIndex:near
+        extrn ReadCurrentMapEntry:near, WriteCurrentMapEntry:near
         extrn physical_to_external_id:near
 	IFNDEF	EMMP_QUERY_ONLY
 	public	_MapHandlePage
@@ -548,10 +549,7 @@ mEp_valid_slot:
 	; current FRS's physical page entry
 	;
 
-	Get_FRS_Window	DI	; di <-- address of current FRS
-	add	di,bx		; di <-- address of physical page
-	add	di,bx		;        entry in FRS
-	mov	[di],cx		; save mapping (emm page#) into FRS
+	call	WriteCurrentMapEntry	; BX window, CX physical EMS page
 	;
 	; Derive the physical segment from the compact dense table. Frame pages
 	; are numbered 0..P-1; later pages start at internal number 4.
@@ -628,10 +626,9 @@ unmap_page	proc	near
 	push	di
 	push	bx
 	push	cx
-	Get_FRS_Window	DI		; di <-- address of current FRS
-	add	di, ax			; di <-- address of physical page
-	add	di, ax			;        entry in FRS
-	mov	[di], NULL_PAGE		; unmap the entry
+	mov	bx,ax
+	mov	cx,NULL_PAGE
+	call	WriteCurrentMapEntry
 
 	;
 	; Convert the physical page to its dense segment-table index.  Missing
@@ -1403,10 +1400,7 @@ gsppm_get_loop:
 	cmp	ax, dx
 	ja	gsppm_inv_seg
 	stosw					; Save physical page
-	Get_FRS_window	BX			; Get pointer to current window
-	add	bx, ax				; get ptr to emm page# in FRS
-	add	bx, ax
-	mov	ax, [bx]
+	call	ReadCurrentMapEntry
 	stosw					; and current mapping
 	loop	gsppm_get_loop
 
@@ -1425,7 +1419,6 @@ gsppm_not0:
 	add	si, 2
 	jecxz	gsppm_ok			; Zero count, do nothing
 
-	Get_FRS_window	DX			; Get pointer to current window
 	movzx	bx,[_mappable_page_count]
 	cmp	cx,bx
 	ja	short gsppm_corrupt		; can't be more than phys pages
@@ -1437,10 +1430,11 @@ gsppm_set_loop:
 	jae	gsppm_sl_bad
 
 	movzx	esi, word ptr fs:[si+2]		; Get mapping (emm page#)
-	mov	di,dx
-	add	di,ax
-	add	di,ax				; di <-- current FRS phy page
-	mov	[di], si			; Save new mapping
+	push	cx
+	mov	bx,ax
+	mov	cx,si
+	call	WriteCurrentMapEntry
+	pop	cx
 
 	cmp	si, 0FFFFh			; Unmapped?
 	je	short gsppm_unmap		;   yes, go unmap it

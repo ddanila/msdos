@@ -392,9 +392,15 @@ still resolve DGROUP. Assembly dense-window reads now use `ReadWindowIndex`,
 preserving other registers and flags; the complete sparse `Pn=` translation
 routine resides with its table owner in EMMSUP. Frame tests cover M1-M14,
 FRAME=/P, banking boundaries and explicit sparse assignments.
-Current/alternate register-set consumers remain to be separated before the
-complete block can move: EMMP carries FRS pointers across mapping calls and ELIMTRAP's
-`GetCRSEntry` still resolves that low owner. No high copy or reclamation exists.
+Single current-map reads/writes now use indexed owner services in mapping,
+unmapping and partial-map operations; ELIMTRAP's DMA `GetCRSEntry` delegates
+to the same reader. A source guard rejects current-map root access outside
+EMMSUP, EMMP's remaining bulk operations and initialization/layout code.
+The partial-map regression switches to a differently populated page between
+save and restore, then verifies the original contents, not just return status.
+Full-map snapshots and alternate-set switching in EMMP still carry FRS
+pointers across calls. These must be separated before the complete block can
+move. No high copy or reclamation exists.
 
 The expanded EMS lifecycle probe checks two independent saved contexts and
 their restored page contents, repeated-save/no-save errors, rejection of

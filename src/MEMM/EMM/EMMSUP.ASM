@@ -108,6 +108,7 @@ extrn	_emm_page:word
 extrn	_emm_free:word
 extrn _DMA_Pages:word, _mappable_pages:word
 extrn _physical_page_exceptions:word, _physical_page_exception_count:byte
+extrn CurRegSet:word
 
 ;
 ; ptr to table of page table entries for the EMM pages
@@ -517,6 +518,29 @@ ReadWindowIndex proc near
         pop si
         ret
 ReadWindowIndex endp
+
+; Current register-map entries. Bounds remain the caller's responsibility.
+; Read: AX physical window -> AX mapping. Write: BX window, CX mapping.
+; No current-register-set pointer leaves this owner.
+        public ReadCurrentMapEntry, WriteCurrentMapEntry
+ReadCurrentMapEntry proc near
+        push di
+        mov di,ax
+        shl di,1
+        add di,word ptr [CurRegSet]
+        mov ax,[di.FRS_window]
+        pop di
+        ret
+ReadCurrentMapEntry endp
+WriteCurrentMapEntry proc near
+        push di
+        mov di,bx
+        shl di,1
+        add di,word ptr [CurRegSet]
+        mov [di.FRS_window],cx
+        pop di
+        ret
+WriteCurrentMapEntry endp
 
 ; AX internal physical page -> AL public Pn= identifier. Retain the complete
 ; explicit/implicit ranking operation with its sparse table owner.
