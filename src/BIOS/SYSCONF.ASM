@@ -2054,17 +2054,18 @@ CFH_save:
 	cmp	bx,04d55h
 	jne	CFH_restore
 	mov	bp,word ptr cs:[DOSINFO+2]	; current low DOS segment
-	; Reserve the HMA and obtain DOS's dedicated conventional DPB target.
-	; The resident BIOS provides room for all six BIOS drive slots.
+	; Reserve the HMA and obtain DOS's two-record conventional DPB target.
+	; The resident BIOS provides overflow room for the other four drive slots.
 	les	bx,cs:[DOSINFO]
 	mov	ax,1232h
 	int	2fh
 	or	ax,ax
 	jz	CFH_restore
 	les	bx,cs:[DOSINFO]
+	cmp	byte ptr es:[bx.SYSI_NUMIO],0
+	je	CFH_restore
 	cmp	byte ptr es:[bx.SYSI_NUMIO],6
 	ja	CFH_restore
-	mov	di,offset CODE:CompactDpbStorage
 	mov	dx,word ptr cs:[DEVICE_LIST+2]
 	call	CompactInitialDpbs
 	mov	ax,1230h
@@ -2157,8 +2158,10 @@ CFH_restore:
 	ret
 CompactFirstHimem ENDP
 
-; Move the two built-in DPBs out of SYSBUF before DOS reclaims its old tail.
-; BP is the low DOS source segment; DX:DI is resident BIOS storage.
+; Move the built-in DPBs out of SYSBUF before DOS reclaims its old tail. DOS
+; reserves BP:DI for the first two records; DX:CompactDpbStorage holds up to
+; four overflow records. The public DPB chain and CDS pointers may therefore
+; span the two resident segments without consuming six BIOS-side records.
 CompactInitialDpbs PROC NEAR
 	push	bp
 	mov	bx,di
@@ -2166,49 +2169,93 @@ CompactInitialDpbs PROC NEAR
 	mov	si,word ptr es:[di.SYSI_DPB]
 	xor	ax,ax
 	mov	al,byte ptr es:[di.SYSI_NUMIO]
+	push	ax
+	cmp	al,2
+	jbe	short CompactDpbLowCount
+	mov	al,2
+CompactDpbLowCount:
 	mov	cl,DPBSIZ
 	mul	cl
 	mov	cx,ax
 	push	es
 	pop	ds
-	mov	es,dx
+	mov	es,bp
 	mov	di,bx
 	cld
 	rep	movsb
-
-	mov	di,bx
-	xor	cx,cx
-	les	si,cs:[DOSINFO]
-	mov	cl,byte ptr es:[si.SYSI_NUMIO]
-	push	es
-	pop	ds
+	pop	ax
+	sub	al,2
+	jbe	short CompactDpbCopied
+	mov	cl,DPBSIZ
+	mul	cl
+	mov	cx,ax
 	mov	es,dx
-CompactDpbLinkLoop:
-	dec	cx
-	jz	short CompactDpbLastLink
-	mov	ax,di
-	add	ax,DPBSIZ
-	mov	word ptr es:[di.DPB_NEXT_DPB],ax
+	mov	di,offset CODE:CompactDpbStorage
+	rep	movsb
+CompactDpbCopied:
+
+	; Publish the low head before building the cross-segment links.
+	les	si,cs:[DOSINFO]
+	mov	word ptr es:[si.SYSI_DPB],bx
+	mov	word ptr es:[si.SYSI_DPB+2],bp
+	mov	al,byte ptr es:[si.SYSI_NUMIO]
+
+	; Link the two DOS-side records, crossing to the BIOS overflow when needed.
+	mov	es,bp
+	mov	di,bx
+	cmp	al,1
+	je	short CompactDpbLowLast
+	mov	cx,bx
+	add	cx,DPBSIZ
+	mov	word ptr es:[di.DPB_NEXT_DPB],cx
+	mov	word ptr es:[di.DPB_NEXT_DPB+2],bp
+	mov	di,cx
+	cmp	al,2
+	je	short CompactDpbLowLast
+	mov	word ptr es:[di.DPB_NEXT_DPB],offset CODE:CompactDpbStorage
 	mov	word ptr es:[di.DPB_NEXT_DPB+2],dx
-	add	di,DPBSIZ
-	jmp	short CompactDpbLinkLoop
+
+	; Link the BIOS-side overflow records and terminate the final one.
+	sub	al,2
+	mov	es,dx
+	mov	di,offset CODE:CompactDpbStorage
+CompactDpbOverflowLink:
+	dec	al
+	jz	short CompactDpbLastLink
+	mov	cx,di
+	add	cx,DPBSIZ
+	mov	word ptr es:[di.DPB_NEXT_DPB],cx
+	mov	word ptr es:[di.DPB_NEXT_DPB+2],dx
+	mov	di,cx
+	jmp	short CompactDpbOverflowLink
+CompactDpbLowLast:
 CompactDpbLastLink:
 	mov	word ptr es:[di.DPB_NEXT_DPB],-1
 	mov	word ptr es:[di.DPB_NEXT_DPB+2],-1
 
+	; Repoint each CDS entry to the corresponding low or overflow record.
 	les	si,cs:[DOSINFO]
-	mov	word ptr es:[si.SYSI_DPB],bx
-	mov	word ptr es:[si.SYSI_DPB+2],dx
 	mov	cl,byte ptr es:[si.SYSI_NUMIO]
 	xor	ch,ch
 	les	di,dword ptr es:[si.SYSI_CDS]
 	mov	si,bx
+	mov	ax,bp
+	mov	bh,2
 CompactDpbCdsLoop:
 	mov	word ptr es:[di.curdir_devptr],si
-	mov	word ptr es:[di.curdir_devptr+2],dx
-	add	si,DPBSIZ
+	mov	word ptr es:[di.curdir_devptr+2],ax
 	add	di,curdirLen
-	loop	CompactDpbCdsLoop
+	dec	cl
+	jz	short CompactDpbCdsDone
+	dec	bh
+	jz	short CompactDpbCdsOverflow
+	add	si,DPBSIZ
+	jmp	short CompactDpbCdsLoop
+CompactDpbCdsOverflow:
+	mov	si,offset CODE:CompactDpbStorage
+	mov	ax,dx
+	jmp	short CompactDpbCdsLoop
+CompactDpbCdsDone:
 	pop	bp
 	ret
 CompactInitialDpbs ENDP

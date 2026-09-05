@@ -62,6 +62,68 @@ start:
     cmp byte [es:bx+46], 'L'
     jne fail_lol_name
 
+%ifdef DPB_SPLIT_ONLY
+    ; The two floppy letters occupy DOS's reserved low DPBs. The test's two
+    ; partitioned hard disks exercise the cross-segment link and two records in
+    ; the BIOS overflow store without depending on private absolute addresses.
+    les di, [es:bx]
+    xor si, si
+.split_dpb_loop:
+    mov byte [cs:split_step], 1
+    mov ax, si
+    cmp byte [es:di], al
+    jne fail_dpb_split
+    mov ax, es
+    cmp si, 0
+    jne .split_second
+    mov [cs:low_dpb_seg], ax
+    mov [cs:low_dpb_off], di
+    jmp .split_next
+.split_second:
+    cmp si, 1
+    jne .split_overflow
+    mov byte [cs:split_step], 2
+    cmp ax, [cs:low_dpb_seg]
+    jne fail_dpb_split
+    mov ax, [cs:low_dpb_off]
+    add ax, 33
+    cmp di, ax
+    jne fail_dpb_split
+    jmp .split_next
+.split_overflow:
+    cmp si, 2
+    jne .split_fourth
+    mov byte [cs:split_step], 3
+    mov [cs:overflow_dpb_seg], ax
+    mov [cs:overflow_dpb_off], di
+    cmp ax, [cs:low_dpb_seg]
+    jne .split_next
+    mov ax, [cs:low_dpb_off]
+    add ax, 66
+    cmp di, ax
+    je fail_dpb_split
+    jmp .split_next
+.split_fourth:
+    mov byte [cs:split_step], 4
+    cmp ax, [cs:overflow_dpb_seg]
+    jne fail_dpb_split
+    mov ax, [cs:overflow_dpb_off]
+    add ax, 33
+    cmp di, ax
+    jne fail_dpb_split
+.split_next:
+    inc si
+    cmp si, 4
+    je .split_dpb_done
+    mov byte [cs:split_step], 5
+    cmp word [es:di+25], 0ffffh
+    je fail_dpb_split
+    les di, [es:di+25]
+    jmp .split_dpb_loop
+.split_dpb_done:
+    jmp pass
+%endif
+
     ; Current-drive DPB returned by AH=32h and the same pointer in the LoL.
     mov dl, 0
     mov ah, 32h
@@ -284,6 +346,26 @@ fail_dpb_fat:   mov dx, fail_dpb_fat_msg
                 jmp fail
 fail_dpb_driver: mov dx, fail_dpb_driver_msg
                 jmp fail
+fail_dpb_split: push cs
+                pop ds
+                mov dx, fail_dpb_split_msg
+                mov ah, 09h
+                int 21h
+                mov dl, [split_step]
+                add dl, '0'
+                mov ah, 02h
+                int 21h
+                mov dl, ' '
+                int 21h
+                mov ax, [low_dpb_seg]
+                call print_hex
+                mov dl, ' '
+                mov ah, 02h
+                int 21h
+                mov ax, es
+                call print_hex
+                mov dx, newline
+                jmp fail
 fail_dpb_lol:   mov dx, fail_dpb_lol_msg
                 push es
                 push di
@@ -354,6 +436,11 @@ lol_off dw 0
 lol_seg dw 0
 dpb_off dw 0
 dpb_seg dw 0
+low_dpb_seg dw 0
+low_dpb_off dw 0
+overflow_dpb_seg dw 0
+overflow_dpb_off dw 0
+split_step db 0
 handle dw 0ffffh
 sft_index dw 0
 probe_name db 'SFTPROBE.DAT',0
@@ -373,6 +460,7 @@ fail_dpb_drive_msg db 'DPB_DRIVE_FAIL',13,10,'$'
 fail_dpb_sector_msg db 'DPB_SECTOR_FAIL',13,10,'$'
 fail_dpb_fat_msg db 'DPB_FAT_FAIL',13,10,'$'
 fail_dpb_driver_msg db 'DPB_DRIVER_FAIL',13,10,'$'
+fail_dpb_split_msg db 'DPB_SPLIT_LAYOUT_FAIL',13,10,'$'
 fail_dpb_lol_msg db 'DPB_LOL_LINK_FAIL',13,10,'$'
 fail_cds_msg db 'CDS_LAYOUT_FAIL',13,10,'$'
 fail_sft_msg db 'SFT_LAYOUT_FAIL',13,10,'$'

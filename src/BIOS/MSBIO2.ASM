@@ -102,11 +102,10 @@ MINI_DISK_BPB_PTRS DB 40 dup (?)   ;J.K. 4/7/86 - memory reserved for Mini disk.
 	PUBLIC	INT_2F_NEXT
 INT_2F_NEXT DD	   ?
 
-; SYSINIT may compact all six BIOS-provided drive DPBs after DOS moves high.
-; Keep their final copies in the resident BIOS segment, outside DOS's fixed
-; loader layout and the disposable SYSINIT image.
+; DOS already reserves low storage for the first two BIOS drive DPBs. Keep only
+; the four possible overflow records here, outside the disposable SYSINIT image.
 PUBLIC  CompactDpbStorage
-CompactDpbStorage DB 6 * 33 DUP (0)
+CompactDpbStorage DB 4 * 33 DUP (0)
 
 	PATHEND 005,DISK
 ; = = = = = = = = = = = = = = = = = = = =
