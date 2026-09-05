@@ -1670,10 +1670,10 @@ exactly 512 bytes, preserve CX, advance SI/DI by 512, and preserve destination
 guard words. Entry DF is deliberately set; MOVE must clear it. Removing only
 the operand-size prefix leaves the count-halving instruction active and copies
 too little; that negative control must reach an explicit FAIL result. Both
-copy paths execute on QEMU 486 here: this is not real-286 acceptance. The twelve
+copy paths execute on QEMU 486 here: this is not real-286 acceptance. The fourteen
 runtime cases include the three read outcomes, word copy, partial-copy-patch
 rejection, missing-fixup rejection, missing-entry-A20 rejection, non-local
-error unwind, and the four device-entry cases below. The normal
+error unwind, the four device-entry cases, and the two interrupt cases below. The normal
 IO.SYS remains byte-identical.
 
 `HIGHNEAR.INC` supplies the 40-byte high-side ordinary-near-call adapter. A low
@@ -1723,6 +1723,29 @@ remaining sector count. Omitting entry A20 restoration cannot pass. These use
 private BDS/request storage and a matching low completion fixture, not the
 installed DSK$IN dispatcher or all seven service implementations. Production
 device/interrupt publication and the complete installed low/high cycle remain.
+
+`LOWINT.INC` supplies the retained-low interrupt entries under
+`BIOS_SERVICE_INTERRUPT_ENTRIES`: 41 bytes for the INT 2Fh/AH=13h vector exchange
+and low successor chain, plus 12 bytes for the INT 13h tail stub and high target
+slot. The multiplex filter must never call the A20 restorer: E705h itself must
+chain through it to HIMEM without recursive high entry. Both exchanged vectors
+remain authoritative low state; the disk stub preserves the original interrupt
+frame while restoring A20 and tail-jumping to high BLOCK13. Compilation changes
+neither installed IVT vector. Device and interrupt entries together cost 137
+low bytes before shared return/restoration gates and other binding storage.
+
+The runtime probe temporarily publishes these low entries in its own segment.
+With A20 physically off, INT 2Fh/AH=13h exchanges distinct runtime/warm-boot
+pointers, preserves other registers and the original carry/direction flags,
+then permits E705h restoration through its low successor. Actual INT 13h calls
+reach the linked high BLOCK13 for a successful boot-sector read and an injected
+AH=20h error. The saved-vector target disables A20 again; the low return gate
+restores it before high execution resumes. Results, guard words, SP/BP/ES,
+physical A20-off counts, and restoration-chain traversal are checked. Private
+BIOS state is used and the original IVT vectors are restored on normal exit;
+this does not install the boot-time BIOS relocation or cover all BLOCK13 paths.
+Repeat just these runtime cases with `python3 tests/test_bios_payload_qemu.py
+--mode interrupt-read --mode interrupt-error`; the default still runs every case.
 
 Next, integrate the production device dispatcher and low interrupt entries,
 bind the complete low/high call cycle, and implement the early reclaim

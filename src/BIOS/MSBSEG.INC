@@ -19,6 +19,16 @@ BIOS_PUSH_DATA_SEG MACRO
         ENDIF
 ENDM
 
+BIOS_MULTIPLEX_CHAIN MACRO
+        JMP WORD PTR CS:[NEXT2F_13]
+ENDM
+BIOS_SWAP_VECTOR MACRO reg,slot
+        XCHG reg,WORD PTR CS:[slot]
+ENDM
+BIOS_INTERRUPT_JUMP MACRO
+        JMP DWORD PTR CS:[BIOS_HIGH_BLOCK13_ENTRY]
+ENDM
+
 ; High service code must resume through a retained-low A20-restoring gate.
 ; The loader must publish these far pointers only after validating its provider.
 BIOS_ROM_INT13 MACRO

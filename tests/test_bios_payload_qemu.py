@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Execute linked BIOS services in allocated HMA with private low fixtures."""
 from pathlib import Path
+import argparse
 import os
 import shutil
 import struct
@@ -11,6 +12,9 @@ from build_bios_high_payload import ROOT, build, run
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--mode", action="append", help="run only this mode; repeat to select several")
+    args = parser.parse_args()
     scratch = Path(tempfile.mkdtemp(prefix="bios-payload-runtime-", dir=ROOT / "out"))
     manifest = build(scratch)
     layout = scratch / "layout.bin"
@@ -26,6 +30,7 @@ def main():
                     f"ENTRY_HARDERR2 equ {manifest['exports']['HARDERR2']}",
                     f"ENTRY_REMOVABLE equ {manifest['exports']['DSK$REM']}",
                     f"ENTRY_IOCTL equ {manifest['exports']['GENERIC$IOCTL']}",
+                    f"ENTRY_BLOCK13 equ {manifest['exports']['BLOCK13']}",
                     f"ENTRY_MOVE equ {manifest['exports']['MOVE']}",
                     f"CPU_PATCH_OFFSET equ {manifest['boot_patches']['DOUBLEWORDMOV']['offset']}",
                     f"CPU_PATCH_SIZE equ {manifest['boot_patches']['DOUBLEWORDMOV']['size']}",
@@ -42,8 +47,14 @@ def main():
              ("nonlocal-unwind", 0, 1, 0, 1),
              ("device-removable", 0, 0, 0, 0), ("device-fixed", 0, 0, 0, 0),
              ("device-ioctl-error", 0, 0, 0, 0), ("device-missing-a20", 0, 0, 0, 0),
+             ("interrupt-read", 0, 1, 0, 0), ("interrupt-error", 1, 1, 0, 1),
              ("partial-copy-patch", 0, 1, 0, 0), ("missing-fixups", 0, 1, 0, 0),
              ("missing-entry-a20", 0, 1, 0, 0))
+    if args.mode:
+        unknown = set(args.mode) - {row[0] for row in modes}
+        if unknown:
+            parser.error("unknown mode(s): " + ", ".join(sorted(unknown)))
+        modes = tuple(row for row in modes if row[0] in args.mode)
     env = {**os.environ, "MTOOLS_SKIP_CHECK": "1"}
     for name, failures, reads, resets, error in modes:
         probe = scratch / f"{name}.com"
@@ -55,6 +66,8 @@ def main():
             options.append("-DOMIT_ENTRY_A20")
         if name == "nonlocal-unwind":
             options.append("-DTEST_UNWIND")
+        if name.startswith("interrupt-"):
+            options.append("-DTEST_INTERRUPT")
         if name.startswith("device-"):
             device = 3 if name == "device-ioctl-error" else 2 if name == "device-fixed" else 1
             options.append(f"-DTEST_DEVICE={device}")

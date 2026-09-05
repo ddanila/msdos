@@ -105,6 +105,9 @@ start:
     mov ax,2513h
     int 21h
     mov byte [hooked],1
+%ifdef TEST_INTERRUPT
+    call prepare_interrupt
+%endif
     push cs
     pop es
     mov di,bds
@@ -114,12 +117,20 @@ start:
     xor dx,dx
     mov bp,7777h
     mov [saved_sp],sp
+%ifdef TEST_INTERRUPT
+    mov ax,0201h
+    mov bx,copy_destination
+%endif
     call disable_entry_a20
+%ifdef TEST_INTERRUPT
+    int 13h
+%else
 %ifndef OMIT_ENTRY_A20
     call BIOS_HMA_ROM_RESTORE
 %endif
     push word [service_target]
     call far [entry]
+%endif
     mov [result_ax],ax
     mov [result_cx],cx
     pushf
@@ -129,6 +140,8 @@ start:
     cmp bp,7777h
     jne fail
 %ifdef TEST_UNWIND
+    cmp word [entry_disabled],2
+%elifdef TEST_INTERRUPT
     cmp word [entry_disabled],2
 %else
     cmp word [entry_disabled],1
@@ -148,6 +161,22 @@ start:
     and ax,1
     cmp ax,EXPECTED_ERROR
     jne fail
+%ifdef TEST_INTERRUPT
+    cmp word [multiplex_restores],3 ; vector test, entry, and ROM return
+    jb fail
+%if EXPECTED_ERROR = 0
+    cmp word [copy_destination+510],0aa55h
+    jne fail
+%else
+    cmp byte [result_ax+1],20h
+    jne fail
+%endif
+    cmp word [copy_before],0aa55h
+    jne fail
+    cmp word [copy_after],055aah
+    jne fail
+    jmp report_pass
+%endif
     mov ax,[low_segment]
     mov es,ax
 %if EXPECTED_ERROR = 0
@@ -205,6 +234,17 @@ exit_emulator:
     mov ax,4c00h
     int 21h
 unhook:
+%ifdef TEST_INTERRUPT
+    cmp byte [multiplex_hooked],0
+    je .disk
+    lds dx,[old2f]
+    mov ax,252fh
+    int 21h
+    push cs
+    pop ds
+    mov byte [multiplex_hooked],0
+.disk:
+%endif
     cmp byte [hooked],0
     je .done
     lds dx,[old13]
@@ -280,6 +320,116 @@ hook13:
     popf
     retf 2
 %include "HIGHROM.INC"
+%ifdef TEST_INTERRUPT
+%macro BIOS_MULTIPLEX_CHAIN 0
+    jmp word [cs:NEXT2F_13]
+%endmacro
+%macro BIOS_SWAP_VECTOR 2
+    xchg %1,[cs:%2]
+%endmacro
+%macro BIOS_INTERRUPT_JUMP 0
+    jmp far [cs:BIOS_HIGH_BLOCK13_ENTRY]
+%endmacro
+ORIG13 equ low_data+LOW_ORIG13
+OLD13 equ low_data+LOW_OLD13
+NEXT2F_13 equ low_data+LOW_NEXT2F_13
+%include "LOWINT.INC"
+prepare_interrupt:
+    mov ax,352fh
+    int 21h
+    mov [old2f],bx
+    mov [old2f+2],es
+    mov word [NEXT2F_13],multiplex_chain
+    mov dx,BIOS_LOW_INT2F13
+    mov ax,252fh
+    int 21h
+    mov byte [multiplex_hooked],1
+    ; The public exchange must work with physical A20 off and retain the
+    ; original interrupt flags. Its two returned far pointers are distinct.
+    mov word [ORIG13],1234h
+    mov word [ORIG13+2],4321h
+    mov word [OLD13],5678h
+    mov word [OLD13+2],8765h
+    mov ax,cs
+    mov es,ax
+    mov dx,hook13
+    mov bx,hook13
+    mov cx,3333h
+    mov si,5555h
+    mov di,6666h
+    mov bp,7777h
+    mov ax,1300h
+    call disable_entry_a20
+    stc
+    std
+    int 2fh
+    pushf
+    pop word [cs:result_flags]
+    cld
+    cmp ax,1300h
+    jne fail
+    cmp dx,1234h
+    jne fail
+    cmp bx,5678h
+    jne fail
+    cmp cx,3333h
+    jne fail
+    cmp si,5555h
+    jne fail
+    cmp di,6666h
+    jne fail
+    cmp bp,7777h
+    jne fail
+    mov ax,ds
+    cmp ax,4321h
+    jne fail
+    mov ax,es
+    cmp ax,8765h
+    jne fail
+    push cs
+    pop ds
+    mov ax,[result_flags]
+    and ax,0401h
+    cmp ax,0401h
+    jne fail
+    cmp word [ORIG13],hook13
+    jne fail
+    cmp word [OLD13],hook13
+    jne fail
+    mov ax,cs
+    cmp [ORIG13+2],ax
+    jne fail
+    cmp [OLD13+2],ax
+    jne fail
+    ; This invokes E705h through the newly installed low filter. Restoring
+    ; A20 in the filter itself would recurse and prevent this probe passing.
+    call BIOS_HMA_ROM_RESTORE
+    mov ax,0ffffh
+    mov es,ax
+    mov bx,[origin]
+    mov word [es:bx+SLOT_BIOS_SERVICE_ORIG13_OFFSET],LOW_ORIG13
+    mov word [es:bx+SLOT_BIOS_SERVICE_SAVED_VECTOR_GATE],BIOS_HMA_SAVED_VECTOR
+    mov [es:bx+SLOT_BIOS_SERVICE_SAVED_VECTOR_GATE+2],cs
+    add bx,ENTRY_BLOCK13
+    mov [BIOS_HIGH_BLOCK13_ENTRY],bx
+    mov [BIOS_HIGH_BLOCK13_ENTRY+2],es
+    ; Publish only after the body and every exercised import are bound.
+    mov dx,BIOS_LOW_BLOCK13
+    mov ax,2513h
+    int 21h
+    ret
+multiplex_chain:
+    pushf
+    cmp ax,0e705h
+    jne .next
+    inc word [cs:multiplex_restores]
+.next:
+    popf
+    jmp far [cs:old2f]
+old2f dd 0
+multiplex_restores dw 0
+multiplex_hooked db 0
+%endif
 %ifdef TEST_DEVICE
 ; Use the same seven production entry declarations and instruction sequence.
 %macro BIOS_DEVICE_ENTRY 4

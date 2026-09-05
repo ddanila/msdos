@@ -13,6 +13,24 @@ ROOT = Path(__file__).resolve().parent.parent
 
 
 class DataSegmentTests(unittest.TestCase):
+    def test_interrupt_entries_assemble_with_device_entries(self):
+        with tempfile.TemporaryDirectory(prefix="msdos-bios-interrupt-") as scratch:
+            listing = Path(scratch) / "interrupt.lst"
+            built = subprocess.run([str(ROOT / "bin/jwasm-masm"),
+                                    "-I. -I../INC -DBIOS_SERVICE_DEVICE_ENTRIES=1 "
+                                    f"-DBIOS_SERVICE_INTERRUPT_ENTRIES=1 -Fl{listing}",
+                                    f"MSBIO1.ASM,{Path(scratch) / 'interrupt.obj'};"],
+                                   cwd=ROOT / "src/BIOS", capture_output=True, text=True)
+            self.assertEqual(built.returncode, 0, built.stdout + built.stderr)
+            labels, rows = listing_rows(listing.read_text(encoding="latin-1"))
+            first, last = labels["BIOS_LOW_INT2F13"], labels["BIOS_LOW_BLOCK13"]
+            self.assertEqual(last - first, 41)
+            for address, _, code in rows:
+                if first <= address < last:
+                    self.assertFalse(re.match(r"CALL\b", code, re.I),
+                                     "multiplex filter must not recurse into A20 restoration")
+            self.assertEqual(labels["BIOS_INTERRUPT_ENTRIES_END"] - last, 12)
+
     def test_device_tail_entries_and_unpublished_table(self):
         with tempfile.TemporaryDirectory(prefix="msdos-bios-device-") as scratch:
             scratch = Path(scratch)
