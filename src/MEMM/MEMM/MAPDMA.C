@@ -120,7 +120,7 @@ int i, j, k, bSwap,
  * If invalid parameters, i.e. Xfer area crosses 64K or 128K boundary,or count 
  * is invalid or the DMA Xfer area has unmapped pages - just return.
  */
-   if ((!bXfer && (FromAdr + Len) > ((FromAdr & ALIGN64K) + HEX64K)) ||
+   if (Len <= 0 || (!bXfer && (FromAdr + Len) > ((FromAdr & ALIGN64K) + HEX64K)) ||
        (bXfer && (FromAdr + Len) > ((FromAdr & ALIGN128K) + HEX128K)) ||
        (!bXfer && Len > HEX64K) || (bXfer && Len > HEX128K))
       return FromAdr;   /* assume DMA registers not programmed yet */
@@ -142,35 +142,19 @@ int i, j, k, bSwap,
    ToAdr16K = ToAdr & ALIGN16K;
    n16KPages = ((ToAdr16K - FromAdr16K)>>14) + 1; /* (ToAdr16K-FromAdr16K)/HEX16K + 1 */
 
-/* If any unmapped page in the transfer area - assume DMA registers not 
- * fully programmed yet
- */
-   for (i = 0, Adr = FromAdr16K; Adr <= ToAdr16K; Adr += HEX16K, i++)   {
-      MPIndex = MappableIndex(Adr);
-      if (MPIndex == -1)   /* Adr not mappable */
-         return FromAdr;
-      else  {
-         PhyPages[i] = GetCRSEntry(MAPPABLE_PHYSICAL_PAGE(MPIndex));
-         if (PhyPages[i] == -1)  /* Adr not mapped currently */
-            return FromAdr;
-      }
-   }
-      
-   for (j = 0; j < i; j++) {
-      Page = PhyPages[j];
-      for (k = j+1; k < i; k++)  {
-         if (PhyPages[k] == Page) 
-            FatalError("SwapDMAPages : Two Emm pages mapped to same logical page in the xfer area");
-      }
-   }
-
-/* No unmapped page in the transfer area. Assume the Address and count registers
- * have meaningful values in them.
+/* Translation does not require EMS-window ownership. Permanent UMBs have
+ * valid PTEs but deliberately are absent from the EMS window list. First use
+ * an already-contiguous, DMA-boundary-safe physical mapping without changing
+ * any PTE or owner. EMS membership is required only for the swapping path.
  */
    Index = INDEX(FromAdr);
+   if (!(PT(Index) & 1L))
+      return FromAdr;
    PgFrame = PT(Index) >> 12;
    Offset = OFFSET(FromAdr);
    PhyAdr = (((long)PgFrame) << 12) + Offset;
+   if (PhyAdr < 0 || PhyAdr + Len > 0x1000000L)
+      return FromAdr; /* outside the ISA DMA address space */
 
    if (Offset + Len <= HEX4K)  /* within a page */
       return PhyAdr;
@@ -184,6 +168,8 @@ int i, j, k, bSwap,
 /* see if these n4KPages are physically contiguous */
    bSwap = 0;
    for (i = 1; i < n4KPages; i++)   {
+      if (!(PT(Index + i) & 1L))
+         return FromAdr;
       if ((PT(Index + i)>>12) != (PgFrame + i)) {
          bSwap = 1;
          break;
@@ -213,6 +199,26 @@ int i, j, k, bSwap,
 
    if (!bSwap) 
       return PhyAdr;
+
+/* Only EMS windows may participate in the existing page-swap algorithm.
+ * Non-contiguous/boundary-crossing UMB transfers still need a separate policy;
+ * never feed their permanent backing pages to the EMS ownership machinery.
+ */
+   for (i = 0, Adr = FromAdr16K; Adr <= ToAdr16K; Adr += HEX16K, i++) {
+      MPIndex = MappableIndex(Adr);
+      if (MPIndex == -1)
+         return FromAdr;
+      PhyPages[i] = GetCRSEntry(MAPPABLE_PHYSICAL_PAGE(MPIndex));
+      if (PhyPages[i] == -1)
+         return FromAdr;
+   }
+   for (j = 0; j < i; j++) {
+      Page = PhyPages[j];
+      for (k = j+1; k < i; k++) {
+         if (PhyPages[k] == Page)
+            FatalError("SwapDMAPages : Two Emm pages mapped to same logical page in the xfer area");
+      }
+   }
 
 /* The DMA transfer area is not contiguous. The DMA buffer is part of the Emm
  * pool. Hence we can only swap pages which are 16K in size. n16KPages is the
@@ -390,7 +396,6 @@ int i;
 long GetPteFromIndex(index)
 unsigned index;
 {
-unsigned i;
 long PhyAdr;
 
    PhyAdr = ((long) index) << 12;
@@ -398,12 +403,11 @@ long PhyAdr;
    if (PhyAdr < HEX256K || PhyAdr >= HEX1MB)
       return (PhyAdr);
    
-   i = MappableIndex(PhyAdr);
-
-   if (i != -1)
-      return GetPte(index);
-   else  
-      return PhyAdr; 
+   /* Reading a translation is not permission to swap its backing page.
+    * UMB PTEs are real even though there is no corresponding EMS window.
+    * SetPteFromIndex deliberately retains its EMS-membership restriction.
+    */
+   return GetPte(index);
 }
 
 /* sanity check on the index and then call SetPte */

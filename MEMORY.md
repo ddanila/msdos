@@ -45,6 +45,23 @@ Use the controlled transitions and raw ownership maps in the DR-DOS sections
 below. No DR-DOS source or disassembly is permitted. Older incremental results
 are historical evidence, not the execution queue.
 
+The next design checkpoint is a single post-boot resident layout and net budget
+covering BIOS, DOS state, COMMAND, and the memory-manager interfaces. It must
+account for at least the remaining 4,288-byte development-to-retail conventional
+gap while preserving the UMB floor and requested resources; candidate inventory
+alone does not meet that budget. Count gateway, alignment, cache displacement,
+and retained-copy costs, and prove that released low ranges join the largest
+block. The pending UMB/DMA work is a correctness prerequisite, not a new
+memory-saving tranche. Do not replace this checkpoint with further isolated
+routine compaction.
+
+A targeted clean-room follow-up may compare OpenDOS 7.01 with an EMS frame
+enabled and the fixed resource settings. Its existing no-frame capture shows
+a much smaller UMB manager allocation than DR-DOS 6, but does not establish
+the framed layout or prove that merging our XMS/EMS providers saves memory.
+Record both conventional and upper ownership before proposing such a redesign;
+this experiment does not block the already justified BIOS/DOS placement work.
+
 ## Public behavior
 
 The system reports DOS 6.22 consistently through `INT 21h/AH=30h`,
@@ -1306,7 +1323,7 @@ block.
 | Paused | Complete the EMM386 low gateway | The active 3,888-byte allocation is 240 bytes below retail after loading the real IDTR before clearing PE, compacting VM-frame scratch around a packed atomic `IRET`, shortening the duplicated low fatal-dialog wording, and sharing explicit `ON`/`OFF` dispatch while retaining pre-transition state publication | Reopen only for a coherent relocation or post-DOS residual; preserve inactive `AUTO` and every EMS map |
 | Paused | Compact EMM386 metadata while changing that boundary | The loader stack is discarded, duplicate PTE offsets and inverse segment index are gone, physical-window segments, public `Pn=` identifiers, DMA pages, mappable-window indexes, bounded counters, and parity-vector state are runtime-sized, narrowed, derived, shared, or protected-high | The selected tail ends at `0D2Fh`; retain this boundary until a later byte budget justifies reopening it |
 | 1 in progress | Relocate eligible DOS low state as one packed block | The dispatcher and contiguous 652-byte absolute/system/INT 2Fh tranche are HMA-resident under DOS=HIGH, reducing the DOS gateway to 4,992 bytes and the DOS/BIOS remainder to 5,344 bytes | Move tables and constants as a group, then eligible mutable state through HMA, relocation-safe XMS, and bounded UMB tiers |
-| 6 in progress | Compact the selected BIOS resident image | Part of the same 5,344-byte remainder; the fixed hardware path is now 8,160 bytes after removing permanent K09 return storage and the resident month table, while its warm-boot, PS/2 result, and six-DPB gates remain intact | Continue map-guided compaction without changing BIOS-visible services |
+| 2 in progress | Relocate complete BIOS services and reclaim their old low allocation | Normal BIOS is 8,160 bytes; development retains 5,152 after reclaiming 3,008 | Finish relocation acceptance, then budget remaining services jointly with DOS state; do not resume isolated routine compaction |
 | 7 | Remove MCB, allocation-order, and paragraph fragmentation | 112 bytes inside the system MCB plus 32 bytes group-level overhead are bounded; further islands need a live map | Make every recovered paragraph grow VC's largest block rather than a separate hole |
 | 8 | Place eligible permanent allocations in existing UMBs | Local free UMB exceeds retail by only 1,216 bytes | Accept only deterministic placement that leaves at least 47,888 usable UMB bytes |
 | 9 | Recover the EBDA ceiling paragraph | Exactly 1,024 bytes | Use already-owned proved-safe storage, update the BDA atomically, then test BIOS, DMA, interrupts, and reboot |
@@ -1524,34 +1541,45 @@ The ten matrix cases pass: four memory modes, the same four with SHARE and
 its retained boot cache, forced table-allocation fallback with high ANSI,
 and high ANSI across warm reset. This establishes real-resident coexistence,
 not natural upper-memory exhaustion handling or arbitrary-driver compatibility.
-The direct `--umb-read` probe confirms an ordinary file-I/O corruption:
-512-byte reads into an allocated UMB pass, but a 513-byte read returns the
-requested count while differing from the source at byte zero. The same
-512/513/4096/8192-byte cases pass in all three conventional-target modes.
-The probe writes a varying-word file, flushes/closes it, seeds the destination,
-compares every requested byte, and checks its immediate guards. The upper run
-stops at the first mismatch; it does not yet qualify the larger upper reads.
+The direct `--umb-read` probe originally confirmed ordinary file-I/O corruption:
+a 512-byte UMB read passed, but 513 bytes returned the requested count with a
+mismatch at byte zero. Conventional targets passed 512/513/4096/8192 bytes.
+Two EMS-only assumptions caused the UMB failure: `SwapDMAPages` rejected
+non-EMS windows before translating them, and `GetPteFromIndex` synthesized
+identity mappings for those windows instead of reading their real PTEs.
+
+`MAPDMA.C` now reads the real UMA PTEs and permits already-contiguous physical
+transfers before checking EMS ownership. It checks present mappings, the ISA
+16 MiB address ceiling, and physical 64/128 KiB boundaries. Only the existing
+EMS swapping path may modify EMS mappings; permanent UMB backing pages are
+not passed to that ownership machinery. This is a partial translation fix,
+not a complete arbitrary-UMB DMA policy.
+
+The expanded probe tests reads and writes of 512/513/4096/8192 bytes at offsets
+0, 31, and 4095 in a 12 KiB allocation. It flushes/closes files, compares every
+requested byte, checks read guards, and reads written data back into low memory.
+All four memory modes pass, as does upper last-fit; observed upper targets are
+`DC4Ch` and `E500h`. Extended EMS lifecycle and EMM386 API/mode suites also pass.
+The seven-case focused target also passes high ANSI/SHARE coexistence and warm
+reset, requiring the I/O success marker on both boots. No passing case alone
+establishes physical-boundary coverage.
+`make test-himem-qemu` also passes XMS, concurrent UMB/EMS isolation, provider
+activation/rollback, and warm reboot. Its patterned-UMB remapping check does
+not perform DMA during remapping, so that combined case remains open below.
 
 ```sh
-python3 tests/test_bios_low_boot_qemu.py \
-  --early --tail-body --rebase --compact --umb-read
+make test-bios-umb-io-qemu
 ```
 
-The leading source-level cause is `MAPDMA.C:SwapDMAPages`: its EMS-window
-membership preflight returns the unmodified linear address when
-`MappableIndex` finds no window. UMB mappings intentionally are not EMS
-windows. Thus CPU-accessible UMB storage is not automatically a valid physical
-ISA DMA destination. The 513-byte request enters the direct-sector path that
-the 512-byte cached copy avoids. This is a strong diagnosis, not yet a verified
-manager fix; bounded overlay reads do not qualify ordinary file I/O.
-
-Next, verify the actual PTE-to-DMA-address transition and add a UMB-aware
-translation path. Check physical contiguity, the ISA address ceiling, and
-64/128 KiB physical boundaries before programming DMA. Non-contiguous ranges
-need a safe transfer policy, not EMS-page swapping of permanent UMB owners or
-silent fallback to their linear addresses. Test reads and writes, aligned and
-unaligned buffers, more than one upper extent, EMS remapping, and the unchanged
-resident tables before closing this promotion gate.
+The promotion gate remains open: non-contiguous or physical-boundary-crossing
+UMB transfers still fall back to the linear address, which is unsafe for a
+non-identity mapping. Rejecting an out-of-ISA-range PTE from the fast path also
+does not signal failure to the DMA caller. Provide a safe transfer policy, not
+EMS-page swapping of permanent UMB owners. Add deliberately boundary-crossing,
+non-contiguous, and out-of-ISA-range backing cases, DMA concurrent with EMS
+remapping, and resident-table integrity checks. The current small-transfer
+cases do not cover all these conditions.
+Keep the bounded overlay workaround until the complete policy is verified.
 The process suite independently checks raw overlays of 0, 1, 511, 512, 513,
 9,109, 65,534, and 65,535 bytes in conventional storage. It checks every loaded
 byte and the entire untouched destination tail, including bad-format rejection

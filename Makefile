@@ -309,6 +309,13 @@ test-bios-share-tables-qemu: deploy
 	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --share
 	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --share --fcb-keep 1
 
+.PHONY: test-bios-umb-io-qemu
+test-bios-umb-io-qemu: deploy
+	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --umb-read
+	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --umb-read --umb-last --mode emm-high
+	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --umb-read --ansi-high --share --fcb-keep 1 --mode emm-high
+	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --umb-read --warm-reset --mode emm-high
+
 .PHONY: test-bios-ansi-tables-qemu
 test-bios-ansi-tables-qemu: deploy
 	python3 tests/test_bios_low_boot_qemu.py --tail-body --early --rebase --compact --ansi-high

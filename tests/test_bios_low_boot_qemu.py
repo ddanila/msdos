@@ -73,7 +73,8 @@ def main():
     parser.add_argument("--share", action="store_true", help="run SHARE/NLSFUNC compatibility contracts before the table probes")
     parser.add_argument("--ansi-high", action="store_true", help="exercise real DEVICEHIGH ANSI residency and low fallback")
     parser.add_argument("--ansi-low", action="store_true", help="control: load the same ANSI driver with DEVICE")
-    parser.add_argument("--umb-read", action="store_true", help="compare direct file reads into low/upper allocations")
+    parser.add_argument("--umb-read", action="store_true", help="compare file reads/writes through low/upper allocations")
+    parser.add_argument("--umb-last", action="store_true", help="use upper last-fit for the direct I/O probe")
     parser.add_argument("--fcb-keep", type=int, choices=(0, 1), default=0,
                         help="FCBS=4 keep count; 1 prevents SHARE replacing the boot cache")
     args = parser.parse_args()
@@ -82,6 +83,8 @@ def main():
     ansi_enabled = args.ansi_high or args.ansi_low
     if args.umb_read and not args.rebase:
         parser.error("--umb-read requires --rebase")
+    if args.umb_last and not args.umb_read:
+        parser.error("--umb-last requires --umb-read")
     if ansi_enabled and (not args.rebase or (args.ansi_high and args.ansi_low)):
         parser.error("choose one ANSI placement and use --rebase")
     if args.fcb_keep and not args.rebase:
@@ -210,7 +213,7 @@ def main():
                            env=env, check=True)
         if args.rebase:
             if args.umb_read:
-                run(["nasm", "-f", "bin", f"-DEXPECT_HIGH={int(name == 'emm-high')}",
+                run(["nasm", "-f", "bin", f"-DEXPECT_HIGH={int(name == 'emm-high')}", *(["-DUMB_LAST"] if args.umb_last else []),
                      ROOT / "tests/umb_file_read_probe.asm", "-o", scratch / "UMBREAD.COM"], ROOT)
                 subprocess.run(["mcopy", "-o", "-i", str(image), str(scratch / "UMBREAD.COM"), "::UMBREAD.COM"], env=env, check=True)
             if ansi_enabled:
@@ -249,8 +252,10 @@ def main():
                 pass
         result = log.read_bytes()
         passed = b"BIOS_LOW_BOOT_PASS" in result
-        if args.umb_read and (b"UMB_FILE_READ_PASS" not in result or re.search(rb"UMB_FILE_READ_[^\r\n]*FAIL", result)):
-            raise RuntimeError(f"direct memory read failed: {log}\n{result.decode(errors='replace')}")
+        io_passes = 2 if args.warm_reset else 1
+        if args.umb_read and (result.count(b"UMB_FILE_READ_PASS") != io_passes
+                              or re.search(rb"UMB_FILE_READ_[^\r\n]*FAIL", result)):
+            raise RuntimeError(f"direct memory I/O failed: {log}\n{result.decode(errors='replace')}")
         if ansi_enabled and (b"BIOS_ANSI_RESIDENT_PASS" not in result or b"BIOS_ANSI_RESIDENT_FAIL" in result):
             raise RuntimeError(f"ANSI resident placement/behavior failed: {log}\n{result.decode(errors='replace')}")
         if args.warm_reset and result.count(b"BIOS_WARM_RESET_READY") != 1:
