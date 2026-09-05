@@ -1328,6 +1328,46 @@ gateway relocation or the post-placement residual proves it necessary.
 
 ##### Next milestone: whole-system placement design
 
+The acceptance unit is a released resident allocation, not an instruction-size
+reduction. Keep isolated HIMEM/EMM386 compaction paused. Complete BIOS acceptance
+against the development image's 3,008-byte gain, then implement the DOS-state
+placement policy below. A test-only BIOS image is not the normal shipped layout.
+
+Before another relocation, give every candidate one authoritative owner,
+destination, lifetime, fallback, and conventional/UMB budget:
+
+- BIOS: retain low hardware-facing state and A20-safe entry/return interfaces;
+  reserve the high service body before publishing any pointers and reclaim the
+  discarded low body through boot-time compaction.
+- Dynamic DOS data: FILES, FCBS, and LASTDRIVE currently allocate through the
+  low `MEMHI:MEMLO` arena in `SYSINIT1.ASM`. Their combined 3,440 bytes are the
+  first grouped placement inventory. Trace public SFT/CDS/FCB and redirector
+  access before choosing HMA or a stable UMB; the inventory is not a savings
+  guarantee. Keep interrupt stacks and the disk transfer area low until their
+  asynchronous/hardware access contracts prove otherwise.
+- Kernel state: retain genuinely address-stable low interfaces, but give
+  eligible private state one authoritative high home. A duplicate high copy
+  alone saves nothing. Check fast calls and callbacks as well as normal dispatch.
+- COMMAND: retain the current high payload; address the remaining resident
+  shell as an interrupt/interface redesign after the larger system placements.
+
+HMA and UMB are not interchangeable. DR-DOS's measured `HIDOS` data placement
+uses UMBs, which remain accessible with A20 disabled. A local HMA-first policy
+must prove that each exposed pointer remains safe for its consumers. Public
+structures cannot simply be moved into inaccessible XMS storage. Our framed
+configuration has only 1,216 spare UMB bytes above the retail floor, so a bulk
+UMB migration needs compensating reclamation or a different placement design.
+
+Budget HMA jointly for BIOS, DOS state, COMMAND, and the requested disk cache.
+The normal post-COMMAND slack is 15,453 bytes; the development BIOS payload
+consumes another 5,220 bytes. Those are fixed-15-buffer figures, not independent
+budgets for each subsystem. `Set_HMA_Buffers` currently accepts the entire cache
+or falls back to low memory: a new reservation can therefore displace more low
+memory than it releases. Define and test capacity/fallback policy before
+promoting the high BIOS or adding high data. Preserve requested resource counts,
+DOS=LOW, A20-off callers, third-party providers, and reset behavior; verify that
+all released paragraphs join the largest conventional block.
+
 Pause further isolated table/instruction compaction after the 403-byte error
 table checkpoint. The next deliverable is one placement budget covering these
 three owners, before selecting the next implementation tranche:
@@ -2135,7 +2175,7 @@ fallbacks for unresolved owner, lifetime, or public API questions.
 | 1 | Relocate complete high-capable subsystems; DR-DOS demonstrates BIOS, shell, and dynamic DOS-state placement | Normal BIOS is 8,160 bytes; development compaction retains 5,152. Kernel prefix is 4,992; normal HMA slack after COMMAND is 15,453 bytes and UMB margin is 1,216 | Finish BIOS acceptance, then packed DOS-state placement; filesystem, device, redirector, EXEC, A20-off, DOS-low, rollback, and warm-reset paths remain gates |
 | Paused | Keep more permanent shell payload in HMA; documented for 286-class HIDOS and measured on both DR-DOS generations | COMMAND is only 880 bytes above retail, though 2,720 bytes above DR-DOS in the current owner span | First tranche complete: catalogs and the 1,166-byte relocatable code range recover 2,480 paragraph-rounded bytes. Resume only after DOS placement, as a coherent interrupt/data redesign with reload, `INT 2Eh`, `INT 24h`, A20, DOS=LOW, `/MSG`, and real-286 gates |
 | Paused | Retain only a small conventional/UMB gateway for the 386 memory manager; OpenDOS reports a 1,200-byte conventional device range and an 800-byte UMB owner | Active EMM386 is already 240 bytes below retail; services and most transition machinery are high | Reopen only for a coherent gateway relocation or a measured post-placement residual; preserve all EMS maps, modes, shifted loads, and warm reboot |
-| Config | Omit the EMS page frame when applications do not require it | Already represented by the fixed `NOEMS` comparison | Preserve as a configuration choice and test both framed and frameless EMS; it is not an implementation saving |
+| Config | Omit the EMS page frame when applications do not require it | Supported as `NOEMS`; the fixed retail/local VC images actually use `RAM M5` | Preserve as a configuration choice and test both framed and frameless EMS; it is not an implementation saving |
 | Excluded | Recover text-video and low-memory ranges only as explicit compatibility modes | DR-DOS can add 96 KiB of text-video space, but neither ordinary comparison uses it | Excluded from the parity score; any future opt-in mode must withdraw the range before incompatible graphics use |
 | Finish | Relocate EBDA storage | Exactly 1,024 bytes at the fixed ceiling; not used by either ordinary DR-DOS result | Finishing step only, into already-owned proved-safe storage with BIOS, DMA, interrupt, and reboot coverage |
 
@@ -2149,6 +2189,16 @@ not repeat broad DR-DOS surveys. DR-DOS source code and reconstruction of
 proprietary instruction sequences remain out of scope.
 
 ### Completed baseline investigation: DR-DOS HMA-mode memory
+
+**Comparison scope:** the archived DR-DOS matrices establish within-release
+placement effects, not identical-configuration parity with our retail/local
+images. They use `FILES=30`, `STACKS=9,256`, an explicit 512-byte shell
+environment, floppy boot, and mainly no EMS frame. The fixed retail/local disk
+images use `FILES=20`, default stacks, default shell settings, and `RAM M5`.
+The cross-system differences below are observed snapshot arithmetic, not a
+normalized implementation deficit. The local-versus-retail paired comparison
+remains independently matched. See the resource-control check below before
+using DR-DOS totals as a target.
 
 **Status and priority:** the clean-room baseline and focused mechanism
 checkpoint are complete. The first coherent COMMAND/HMA relocation and the
@@ -2351,8 +2401,8 @@ configuration, the complete public-interface record is byte-for-byte identical
 before and after a controlled warm reset.
 
 DR-DOS 6 therefore leaves 9,088 bytes more than retail MS-DOS 6.22 and 17,568
-bytes more than the current implementation. The fair ordinary comparison
-reconciles without counting recovered low or video memory:
+bytes more than the normal implementation snapshot. The ordinary-mode snapshots
+reconcile without counting recovered low or video memory:
 
 | Owner-to-owner contribution | DR-DOS 6.0 | Retail MS-DOS 6.22 | DR-DOS gain |
 | --- | ---: | ---: | ---: |
@@ -2387,6 +2437,35 @@ The transitions explain how it gets there:
   1,264 bytes for COMMAND. The current implementation uses 25,568 and 3,984,
   respectively; these two differences exactly explain its 17,568-byte deficit
   to DR-DOS because both have the same `9FC0h` ceiling.
+
+#### Resource-control check before cross-system targeting
+
+The capture tool accepts `--files`, `--stack-size` (nine stacks), and
+`--environment`; defaults preserve the historical matrix. Reports contain the
+complete effective CONFIG.SYS, and `--evidence-dir` retains both startup files.
+Media/VC hash checks remain mandatory; historical numeric expectations apply
+only with the original resource settings.
+
+Fresh framed DR-DOS 6 boots with the pinned media and QEMU 11.1.1 isolate these
+effects; all use `HIDOS=ON`, `HIBUFFERS=15`, and `/E:512`:
+
+| FILES | STACKS | VC largest block | Pre-COMMAND span | Free UMB |
+| ---: | --- | ---: | ---: | ---: |
+| 30 | 9,256 | 627,824 | 10,720 | 15,568 |
+| 20 | 9,256 | 628,352 | 10,192 | 16,032 |
+| 20 | 9,128 | 628,352 | 10,192 | 16,032 |
+
+Reducing FILES produces the entire 528-byte conventional and 464-byte UMB
+change. Changing the stack directive produces no further measured allocation
+delta; this does not prove identical internal stack provisioning. COMMAND stays
+1,264 bytes, unused HMA stays 10,880, and the ceiling stays 639 KiB.
+
+Reproduce with the baseline command above plus `--variant emm-frame`, then add
+`--files 20`, then `--stack-size 128`, using distinct report/evidence paths.
+This narrows the comparison mismatch but does not normalize shell environment,
+boot medium, device topology, or resource semantics. The framed DR-DOS result
+still misses our 47,888-byte UMB floor by 31,856 bytes; use it to study placement,
+not as proof that the same conventional result satisfies both local floors.
 
 #### Adoption priorities from the measured design
 

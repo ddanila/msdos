@@ -50,6 +50,41 @@ DRDOS_PUBLIC_MEMORY_END
 
 
 class CaptureParserTest(unittest.TestCase):
+    def test_startup_resource_settings_are_explicit(self) -> None:
+        settings = CAPTURE.common_settings(files=20, stack_size=128, environment=256)
+        with tempfile.TemporaryDirectory() as temporary:
+            config, _ = CAPTURE.write_startup(
+                Path(temporary), ["HIDOS=ON"], [], settings
+            )
+            self.assertEqual(config.read_bytes(), (
+                "HIDOS=ON\r\nFILES=20\r\nFCBS=4,0\r\nLASTDRIVE=Z\r\n"
+                "STACKS=9,128\r\nSHELL=COMMAND.COM /P /E:256\r\n"
+            ).encode("ascii"))
+
+    def test_resource_settings_reject_invalid_values(self) -> None:
+        for kwargs in ({"files": 0}, {"files": 256}, {"stack_size": 0},
+                       {"stack_size": 513}, {"environment": 0}, {"environment": 32769}):
+            with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
+                CAPTURE.common_settings(**kwargs)
+
+    def test_report_records_effective_configuration(self) -> None:
+        settings = CAPTURE.common_settings(files=20, stack_size=128)
+        with tempfile.TemporaryDirectory() as temporary:
+            media = Path(temporary) / "media"
+            media.write_bytes(b"test fixture")
+            report = CAPTURE.report({}, media, "vc", "test", {"high": ["HIDOS=ON"]},
+                                    None, "test emulator", "probe", settings)
+        self.assertIn("HIDOS=ON\nFILES=20\nFCBS=4,0\nLASTDRIVE=Z\nSTACKS=9,128", report)
+        self.assertNotIn("FILES=30", report)
+
+    def test_custom_settings_do_not_use_historical_numeric_expectations(self) -> None:
+        release = "Digital Research DR-DOS 6.0"
+        CAPTURE.validate_known_results(release, {"emm-frame": {}},
+                                       CAPTURE.common_settings(files=20))
+        with self.assertRaises(KeyError):
+            CAPTURE.validate_known_results(release, {"emm-frame": {}},
+                                           CAPTURE.common_settings())
+
     def test_public_probe_builds(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             probe, qexit, warmboot, digest = CAPTURE.build_public_probe(Path(temporary))

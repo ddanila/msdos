@@ -305,9 +305,23 @@ def prepare_drdos6(media: Path, vc_image: Path, work: Path) -> tuple[Path, str, 
     return base, add_common_tools(base, vc_image, work), disk_md5
 
 
-def write_startup(work: Path, lines: list[str], commands: list[str]) -> tuple[Path, Path]:
+def common_settings(files: int = 30, stack_size: int = 256, environment: int = 512) -> list[str]:
+    if not 20 <= files <= 255:
+        raise ValueError("FILES must be between 20 and 255")
+    if not 32 <= stack_size <= 512:
+        raise ValueError("stack size must be between 32 and 512")
+    if not 256 <= environment <= 32768:
+        raise ValueError("environment size must be between 256 and 32768")
+    return [f"FILES={files}", "FCBS=4,0", "LASTDRIVE=Z", f"STACKS=9,{stack_size}",
+            f"SHELL=COMMAND.COM /P /E:{environment}"]
+
+
+def write_startup(
+    work: Path, lines: list[str], commands: list[str], common: list[str] | None = None
+) -> tuple[Path, Path]:
     config = work / "CONFIG.SYS"
-    common = ["FILES=30", "FCBS=4,0", "LASTDRIVE=Z", "STACKS=9,256", "SHELL=COMMAND.COM /P /E:512"]
+    if common is None:
+        common = common_settings()
     config.write_bytes(("\r\n".join(lines + common) + "\r\n").encode("ascii"))
     autoexec = work / "AUTOEXEC.BAT"
     batch = ["@ECHO OFF", *commands, "MEM /A > MEMA.TXT", "CEILING.COM > CEIL.TXT", "VC.COM"]
@@ -659,8 +673,12 @@ def comparison_identities_match(
     )
 
 
-def validate_known_results(release: str, results: dict[str, dict[str, Any]]) -> None:
-    if release != "Digital Research DR-DOS 6.0":
+def validate_known_results(
+    release: str, results: dict[str, dict[str, Any]], common: list[str] | None = None
+) -> None:
+    if release != "Digital Research DR-DOS 6.0" or (
+        common is not None and common != common_settings()
+    ):
         return
     for name, result in results.items():
         expected = KNOWN_DRDOS6_RESULTS[name]
@@ -683,7 +701,10 @@ def report(
     disk_md5: str | None,
     emulator: str,
     probe_hash: str,
+    common: list[str] | None = None,
 ) -> str:
+    if common is None:
+        common = common_settings()
     disk_identity = [f"- Decoded disk MD5: `{disk_md5}`"] if disk_md5 else []
     lines = [
         "# DR-DOS memory investigation", "",
@@ -708,12 +729,12 @@ def report(
             f"{data['ebda']:04X}h |"
         )
     lines.extend([
-        "", "Common settings: `FILES=30`, `FCBS=4,0`, `LASTDRIVE=Z`, "
-        "`STACKS=9,256`, and a 512-byte shell environment.",
+        "", "Common settings: " + ", ".join(f"`{line}`" for line in common) + ".",
+        "Historical numeric expectations apply only to the default settings and pinned media.",
         "", "## Startup matrix", "",
     ])
     for name, config in variants.items():
-        lines.extend([f"### {name}", "", "```ini", *config, "```", ""])
+        lines.extend([f"### {name}", "", "```ini", *config, *common, "```", ""])
         commands = AUTOEXEC_COMMANDS.get(name)
         if commands:
             lines.extend(["Before measurement:", "", "```bat", *commands, "```", ""])
@@ -770,6 +791,9 @@ def main() -> None:
     )
     parser.add_argument("vc_image", type=Path, help="hard-disk image containing VC 4.05 in C:\\VC")
     parser.add_argument("report", type=Path)
+    parser.add_argument("--files", type=int, default=30)
+    parser.add_argument("--stack-size", type=int, default=256, help="bytes per stack; count remains nine")
+    parser.add_argument("--environment", type=int, default=512, help="COMMAND /E allocation in bytes")
     parser.add_argument(
         "--evidence-dir",
         type=Path,
@@ -786,6 +810,10 @@ def main() -> None:
         help="capture only the named variant; repeat for multiple focused cases",
     )
     args = parser.parse_args()
+    try:
+        common = common_settings(args.files, args.stack_size, args.environment)
+    except ValueError as error:
+        parser.error(str(error))
     require_tools()
     with tempfile.TemporaryDirectory(prefix="drdos-memory-") as temporary:
         work = Path(temporary)
@@ -819,13 +847,15 @@ def main() -> None:
         for name, lines in variants.items():
             image = work / f"{name}.ima"
             shutil.copyfile(base, image)
-            config, autoexec = write_startup(work, lines, AUTOEXEC_COMMANDS.get(name, []))
+            config, autoexec = write_startup(work, lines, AUTOEXEC_COMMANDS.get(name, []), common)
             install_file(image, config, "CONFIG.SYS")
             install_file(image, autoexec, "AUTOEXEC.BAT")
             configured_image = work / f"{name}-configured.ima"
             shutil.copyfile(image, configured_image)
             screen, mem, ceiling = capture(image, name, work)
             if args.evidence_dir:
+                shutil.copyfile(config, args.evidence_dir / f"{name}-config.sys")
+                shutil.copyfile(autoexec, args.evidence_dir / f"{name}-autoexec.bat")
                 shutil.copyfile(screen, args.evidence_dir / f"{name}-vc.txt")
                 (args.evidence_dir / f"{name}-mem.txt").write_text(mem, encoding="utf-8")
                 (args.evidence_dir / f"{name}-ceiling.txt").write_text(
@@ -857,12 +887,12 @@ def main() -> None:
                             value, encoding="ascii", errors="replace"
                         )
         if identities_match:
-            validate_known_results(release, results)
+            validate_known_results(release, results, common)
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(
             report(
                 results, args.media, vc_hash, release, variants, disk_md5,
-                qemu_identity(), probe_hash,
+                qemu_identity(), probe_hash, common,
             ),
             encoding="utf-8",
         )
