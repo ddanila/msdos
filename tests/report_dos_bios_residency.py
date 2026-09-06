@@ -71,6 +71,28 @@ def require(symbols: dict[str, int], name: str) -> int:
         raise ValueError(f"required linker symbol {name!r} is missing") from error
 
 
+def character_partition(symbols: dict[str, int]) -> list[tuple[str, int, int, str]]:
+    """Partition the character tranche; code inventory is not net relocation gain."""
+    specs = (
+        ("Console body", "CON$READ", "CBREAK", "service candidate"),
+        ("Break interrupt and IRET", "CBREAK", "AUX$READ", "retain low initially"),
+        ("Serial body", "AUX$READ", "PRN$WRIT", "service candidate"),
+        ("Printer body", "PRN$WRIT", "HaveCMOSClock", "service candidate"),
+        ("Clock state and near bindings", "HaveCMOSClock", "TIM$WRIT", "retain low initially"),
+        ("Clock body", "TIM$WRIT", "Set_ID_Flag", "service candidate"),
+        ("First disk state byte", "Set_ID_Flag", "Fat_12_ID", "outside character owner"),
+    )
+    rows = [(name, require(symbols, start), require(symbols, end), role)
+            for name, start, end, role in specs]
+    if any(start >= end for _, start, end, _ in rows):
+        raise ValueError("character ownership boundaries are not strictly ordered")
+    if require(symbols, "INTRET") + 1 != require(symbols, "AUX$READ"):
+        raise ValueError("break interrupt no longer ends at its one-byte IRET")
+    if require(symbols, "Fat_12_ID") - require(symbols, "Set_ID_Flag") != 1:
+        raise ValueError("first disk state byte no longer bounds the clock module")
+    return rows
+
+
 def hma_layout(sysbuf: int, buffer_bytes: int, bios_bytes: int = 0,
                command_bytes: int = 0) -> list[tuple[str, int, int]]:
     """Successful fixed-cache placement; not a prediction of low reclamation.
@@ -451,8 +473,8 @@ def main() -> int:
         ("Console services", "CON$READ", "AUX$READ"),
         ("Auxiliary-device services", "AUX$READ", "PRN$WRIT"),
         ("Printer services", "PRN$WRIT", "HaveCMOSClock"),
-        ("Clock services", "HaveCMOSClock", "Fat_12_ID"),
-        ("Disk media constants", "Fat_12_ID", "MEDIA$CHK"),
+        ("Clock services and state", "HaveCMOSClock", "Set_ID_Flag"),
+        ("Disk media state and constants", "Set_ID_Flag", "MEDIA$CHK"),
         ("Media-change and BPB services", "MEDIA$CHK", "READ_SECTOR"),
         ("Sector and low-level disk I/O", "READ_SECTOR", "DISK"),
         ("Disk transfer and error paths", "DISK", "GENERIC$IOCTL"),
@@ -491,6 +513,19 @@ def main() -> int:
     if selected_bios_total != selected:
         errors.append("BIOS ownership does not cover the complete selected image")
 
+    print("\n### Character-service placement partition\n")
+    print("| Owner | Range | Bytes | Initial placement decision |")
+    print("| --- | --- | ---: | --- |")
+    character_rows = character_partition(bios_symbols)
+    for name, start, end, role in character_rows:
+        print(f"| {name} | `{start:04X}h..{end:04X}h` | {end - start:,} | {role} |")
+    character_candidate = sum(end - start for _, start, end, role in character_rows
+                              if role == "service candidate")
+    print(f"\nService-body inventory: {character_candidate:,} bytes before gateways.")
+    print("Shared low dispatch/exit code, CMOS helpers, ROM/A20 return gates and")
+    print("device state are separate. These bodies are not position-independent;")
+    print("their existing near calls and CS-relative state need explicit bindings.")
+
     # Candidate inventory, deliberately separate from achieved residency.
     # A high copy earns no credit until the selected low image shrinks too.
     service_start = require(bios_symbols, "BIOS_SERVICE_START")
@@ -524,8 +559,7 @@ def main() -> int:
     print("| --- | ---: | --- |")
     if args.tail_body:
         print(f"| Fallback disk body (outside permanent low image) | {service_bytes:,} | already excluded from the selected low boundary; no additional saving |")
-        character_services = require(bios_symbols, "Fat_12_ID") - require(bios_symbols, "CON$READ")
-        print(f"| Console/serial/printer/clock service bodies | {character_services:,} | keep low device entries and ROM-return/A20 gates; subtract gateway costs |")
+        print(f"| Console/serial/printer/clock service bodies | {character_candidate:,} | excludes break handler, clock bindings and first disk byte; subtract gateway costs |")
     else:
         print(f"| BIOS_SERVICE_START..BIOS_SERVICE_END | {service_bytes:,} | split CS-relative low data, near control flow, and ROM-return gates |")
     print(f"| Entire DOS low prefix | {rounded(low_gate):,} | subtract mandatory public anchors, stacks, and entry gates |")

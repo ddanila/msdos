@@ -1250,8 +1250,9 @@ The development selected low BIOS is 5,152 bytes, fully partitioned as follows:
 | --- | ---: | --- |
 | Loader, core device/data state and format descriptors | 1,841 | Device headers, DMA-facing buffers and mutable request state need stable low owners |
 | Strategy, request dispatch and existing high gates | 649 | External device entries and A20-safe returns must remain accessible |
-| Console, serial, printer and clock service bodies | 837 | Candidate high code; ROM/driver returns need low A20 gates |
-| Disk media constants | 44 | Inventory only, not a separate optimization tranche |
+| Console, serial, printer and clock service bodies | 810 | Candidate high code; ROM/driver returns need low A20 gates |
+| Break interrupt and clock state/bindings | 26 | Retain low initially; not service-body savings |
+| Disk media state and constants | 45 | Includes the first disk byte formerly attributed to the clock range |
 | Media/BPB services and high-service bindings | 911 | Mixed code, helpers and bindings; not wholly movable |
 | BIOS model and saved-vector state | 264 | Interrupt and boot restoration ownership |
 | Disk initialization/reinitialization | 356 | Cannot discard based on its name; runtime reinitialization must survive |
@@ -1262,9 +1263,31 @@ The development selected low BIOS is 5,152 bytes, fully partitioned as follows:
 
 The 3,578-byte fallback disk body is already outside this total. Counting it
 again as a new opportunity would double-count the completed disk placement.
-Even the 837-byte character/clock body plus 126-byte CMOS helpers cannot close
-the remaining 2,624-byte retail gap. Their 963-byte gross inventory precedes gateway
+Even the 810-byte character/clock body plus 126-byte CMOS helpers cannot close
+the remaining 2,624-byte retail gap. Their 936-byte gross inventory precedes gateway
 and alignment costs; it is not a sufficient next architectural milestone.
+
+The checked character partition is identical in size in normal and development
+maps, but shifted in address. Development service ranges are console
+`09BAh..0A8Bh` (209), serial `0A92h..0B28h` (150), printer
+`0B28h..0BF0h` (200), and clock `0C03h..0CFEh` (251). The report excludes
+`CBREAK..INTRET` plus its IRET (7), clock state/near bindings (19), and
+`Set_ID_Flag` (1 disk byte). These boundaries are checked by
+`make test-dos-bios-residency`, including shifted and invalid-boundary controls.
+
+The initial high-service contract must cover these existing dependencies:
+
+| Service | Required cross-owner contract |
+| --- | --- |
+| Console | Near exits into MSBIO1, ROM INT 16h/15h, and INT 29h output; keep CS-relative `CBREAK`/`ALTAH` low and recover A20 before returning to high code |
+| Serial | Near calls to low `GETDX`, shared console `RDEXIT`, common completion/error exits and ROM INT 14h; moving console and serial independently creates extra crossings |
+| Printer | `PRN$TILBUSY` changes DS to the caller's buffer and uses CS-relative `PRINTDEV`, `WAIT_COUNT` and `PTRSAV`; a blanket CS-to-DS substitution is invalid |
+| Clock | Low `DAYCNT`, mutable `HaveCMOSClock`, near `BinToBCD`/`DaycntToDay`/`TimeToTicks` bindings, ROM INT 1Ah and the common completion exit; include relocated CMOS helpers in the same contract |
+
+Source owners are `src/BIOS/MSCON.ASM`, `MSAUX.ASM`, `MSLPT.ASM`,
+`MSCLOCK.ASM` and `MSBIO1.ASM`. None of these contracts is qualified by the
+size report. Do not start a separate character relocation merely because the
+936-byte inventory fits HMA; first finish the joint owner/destination design.
 
 The placement design must therefore include another substantial owner: eligible
 DOS state, COMMAND's complete resident interface/state split, or the combined
