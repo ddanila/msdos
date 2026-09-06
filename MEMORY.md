@@ -70,6 +70,22 @@ The older Candidate layout A below is historical design arithmetic, not the
 current implementation queue: its low-table baseline and independent HIMEM
 HMA reservation must not be carried into the complete-provider design.
 
+**Reassessment decision:** pause isolated byte/paragraph reductions. The next
+design deliverable is a single final-layout manifest for the paired 386 path,
+not another successful high copy. Keep the standalone/286 fallback separate;
+its support must not silently require a second live allocator in the paired
+layout. Integration is an ownership contract, not a requirement to merge the
+distributed driver files.
+
+The vendor evidence identifies three placement tiers: HMA for eligible
+kernel/BIOS/shell services and buffers, UMB for real-mode DOS data, and extended
+memory for protected services and backing. DR-DOS 6's 28 KiB manager UMB cost
+does not fit our framed UMB floor. Later OpenDOS's RAM-size controls instead
+show an unchanged low interface while its extended-memory cost grows. Neither
+result proves a private relocation algorithm or justifies a DPMS subsystem
+for this fixture; the general DPMS facility is a separate documented extension
+mechanism, not an established cause of these baseline measurements.
+
 The destination contract for that design is:
 
 | Owner | Proposed destination | Low storage that must be justified |
@@ -135,6 +151,24 @@ Only 936 BIOS bytes are currently identified as character/clock bodies plus
 conversion helpers, before gateway costs. Explaining the 10,112-byte vendor
 difference therefore requires the mixed BIOS service/state and combined-provider
 boundaries as well as the whole shell; those bodies alone cannot explain it.
+
+The final-layout manifest must extend that measured ledger with the following
+evidence, rather than replacing unknown sizes with vendor row sizes:
+
+| Deliverable | Required proof |
+| --- | --- |
+| Complete provider partition | Linked final low gates/state, authoritative high services/tables, all locked-XMS costs, and explicit temporary initialization storage; include HMA/A20/UMB services, not only handle allocation. |
+| Joint BIOS and COMMAND placement | Linked code **and private state**, their shared HMA intervals and low pointer/interrupt bindings. Count replaced high copies once; reject overlapping reservations. |
+| Retained DOS state | Classify public pointers versus private ownership. Keep the SDA contract; the vendor's low SDA disproves treating its bulk HIDOS gain as evidence that all state can move. |
+| Final conventional layout | Ordered intervals through COMMAND, retained allocation headers, exact release points and coalescing into the application block. |
+| One composed acceptance boot | Measured low/HMA/UMB/XMS costs, unchanged resource counts, cached-entry/API and failure/reset checks. Isolated prototype totals cannot be added together. |
+
+Implementation order follows those dependencies: settle the provider's complete
+ownership and BIOS/shell destination budget; implement whole-owner transfers
+and loader reclamation; then compose and qualify them. A bounded experiment
+may resolve a missing layout contract, but it must name that uncertainty and
+report its net resident cost. Crossing retail's 800-byte deficit alone does
+not close this architectural work.
 
 ### Reclamation contract: from placement evidence to a smaller resident system
 
@@ -1331,6 +1365,19 @@ cancellation before accepting a smaller final break. Failures after the copy
 but before successful retarget still require a recovery design; do not resume
 an allocator through an uncertain root. The unchanged public entry, staging,
 final low base and rollback must be qualified together before releasing memory.
+
+**Unqualified downward-copy worktree:** `--reclaim-bootstrap` and
+`PROVIDERDOWN.INC` attempt the adjacent-tail move and delayed device-mark
+publication. The first saved ON boot (`out/emm-init-phases-vki8m9_m/`) timed out
+with an empty phase trace. It proves neither provider activation nor release;
+do not include this variant in the selected composition or savings ledger.
+Before continuing it, isolate the pre-trace boot failure against the passing
+upward build. Then compare stationary and downward staged variants with the
+same probe: HIMEM/EMM retained marks, later allocation bases and largest free
+block must reconcile, including cancellation. Charge the permanent staging
+front against the non-staged control as well; gross tail removal is not net
+conventional gain. This experiment addresses the loader release contract,
+not the still-open complete-provider or whole-system layout checkpoint.
 
 ##### Whole-system placement rules
 
