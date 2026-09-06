@@ -2175,6 +2175,48 @@ default-capacity passing tests to claim those contracts complete.
 
 #### High table address and selector decision
 
+**Capacity qualification and next correctness gate:** the phase harness accepts
+`--handles 2..255` and `--altregs 0..254`, recording explicit H=/A= options in
+each retained configuration and result manifest. An alternate-set request also
+runs public INT 67h allocation, exact exhaustion (9Bh), release and reuse after
+switching the installed provider ON. Initial OFF/AUTO phase checks therefore
+remain distinct from the subsequent ON-mode API exercise.
+
+On the fixed 8 MiB profile, H=255/A=254 passes all four boot modes and the
+allocation/exhaustion/reuse probe with both low and high tables. The high owner
+contains 21,836 bytes for ON/OFF/AUTO and 19,793 for RAM, yet retains only 2,016
+low driver bytes. The matched low-table RAM control retains 21,776 bytes.
+This demonstrates option-sized high storage behind a constant low interface,
+not a new fixed-VC saving or qualification of all handle operations. Evidence:
+`out/emm-init-phases-2f8_z6wb/` (high), `out/emm-init-phases-tp27pa_y/` (low),
+and `out/emm-init-phases-cc7bgvrb/` (H=2/A=0 edge, all four modes).
+
+**Open failure:** `--switch-altregs` additionally selects each allocated set
+and restores set zero. Both low/high H=255/A=254 builds reach the probe's
+success record but do not finish the following QEXIT command; H=2/A=0 also
+fails after selecting set zero. Restoring the probe's ES does not resolve it.
+Raw failing ON boots are in `out/emm-init-phases-oig84nu7/`,
+`out/emm-init-phases-pxo2mkdt/` and `out/emm-init-phases-7dovsagk/` respectively.
+This is not proven to be a relocation regression. Investigate `_set_windows`
+and `unmap_page`: the latter marks conventional windows not-present when
+restoring unmapped entries. Capture the affected PTEs and subsequent execution
+before deciding the fix; the source path is a lead, not established causation.
+
+```sh
+python3 tests/capture_emm_init_phases.py out/setver-native-audit.BAEqDU/low.img \
+  --high-tables --handles 255 --altregs 254
+# Separate, currently failing switching/return gate:
+python3 tests/capture_emm_init_phases.py out/setver-native-audit.BAEqDU/low.img \
+  --high-tables --handles 2 --altregs 0 --switch-altregs
+```
+
+The actual H=/A= maximum on this profile does not reproduce the arithmetic
+offset overflow below. Zero-origin staging remains required for the general
+capacity design, but changing only EMM_Init's origin is insufficient: InitEPage,
+Commit_UMB's free-list/PFT consumers, InitTab's initial stack/driver break and
+RelocateTables' copy/poison source must share the separate staging owner.
+Preserve the complete low fallback and published runtime selector contracts.
+
 Use an **object-relative table owner starting at offset zero**, with one new
 persistent ring-0 data selector. Keep the low DGROUP scalar state and existing
 transition-stack selector separate. Do not bias a high descriptor base merely

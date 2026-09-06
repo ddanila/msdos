@@ -139,6 +139,12 @@ def main():
                         help="report the complete table owner and final driver break")
     parser.add_argument("--high-tables", action="store_true",
                         help="relocate the complete EMM table owner into locked extended memory")
+    parser.add_argument("--handles", type=int, choices=range(2, 256), metavar="2..255",
+                        help="request an explicit EMS handle capacity")
+    parser.add_argument("--altregs", type=int, choices=range(0, 255), metavar="0..254",
+                        help="request an explicit alternate-register-set capacity")
+    parser.add_argument("--switch-altregs", action="store_true",
+                        help="also select each set and restore set zero; requires --altregs")
     parser.add_argument("--loader", action="store_true",
                         help="return from INIT and resume through a private SYSINIT callback")
     parser.add_argument("--loader-rebase", action="store_true",
@@ -196,6 +202,10 @@ def main():
         args.activation_stack = True
     if args.activation_stack:
         args.split_prepare = True
+    if args.switch_altregs and args.altregs is None:
+        parser.error("--switch-altregs requires --altregs")
+    if args.altregs is not None and args.reject_prepared:
+        parser.error("alternate-register capacity probe requires an installed provider")
     capture.require_tools()
     image_hash = capture.sha256(args.image)
     work = Path(tempfile.mkdtemp(prefix="emm-init-phases-", dir=capture.ROOT / "out"))
@@ -259,6 +269,12 @@ def main():
     subprocess.run(["nasm", "-f", "bin", str(capture.QEMU_EXIT_SOURCE),
                     "-o", str(qexit)], check=True)
     owner_probe = work / "OWNER.COM"
+    capacity_probe = work / "CAPACITY.COM"
+    if args.altregs is not None:
+        subprocess.run(["nasm", "-f", "bin", f"-DALTREGS={args.altregs}",
+                        *(["-DSWITCH_SETS"] if args.switch_altregs else []),
+                        str(capture.ROOT / "tests/emm_altreg_capacity_probe.asm"),
+                        "-o", str(capacity_probe)], check=True)
     if args.loader:
         subprocess.run(["nasm", "-f", "bin", str(capture.ROOT / "tests/emm_provider_owner_probe.asm"),
                         "-o", str(owner_probe)], check=True)
@@ -267,6 +283,8 @@ def main():
     for mode in ("ON", "OFF", "AUTO", "RAM"):
         image = work / f"{mode}.img"
         shutil.copyfile(args.image, image)
+        if args.altregs is not None:
+            capture.install_file(image, capacity_probe, "CAPACITY.COM")
         if loader_image:
             capture.install_file(image, loader_image, "IO.SYS")
             capture.install_file(image, owner_probe, "OWNER.COM")
@@ -275,10 +293,13 @@ def main():
                              (qexit, "QEXIT.COM")):
             capture.install_file(image, source, name)
         config = work / f"{mode}-CONFIG.SYS"
+        capacities = "".join(f" {key}={value}" for key, value in
+                             (("H", args.handles), ("A", args.altregs)) if value is not None)
         config.write_bytes(("DEVICE=HIMEM.SYS /TESTMEM:OFF\r\n"
-                            f"DEVICE=EMM386.EXE {mode}\r\nDOS=LOW\r\n").encode())
+                            f"DEVICE=EMM386.EXE {mode}{capacities}\r\nDOS=LOW\r\n").encode())
         batch = work / "AUTOEXEC.BAT"
         batch.write_bytes(b"@ECHO OFF\r\n" + (b"OWNER.COM\r\n" if args.loader else b"")
+                          + (b"EMM386.EXE ON\r\nCAPACITY.COM\r\n" if args.altregs is not None else b"")
                           + b"QEXIT.COM\r\n")
         capture.install_file(image, config, "CONFIG.SYS")
         capture.install_file(image, batch, "AUTOEXEC.BAT")
@@ -294,6 +315,10 @@ def main():
         if process.returncode != 33:
             raise RuntimeError(f"guest did not finish {mode}: {process.returncode}")
         trace_data = trace.read_bytes()
+        if args.altregs is not None:
+            if not trace_data.endswith(b"AC" + struct.pack("<H", args.altregs)):
+                raise ValueError("alternate-register capacity/exhaustion/reuse probe failed")
+            trace_data = trace_data[:-4]
         if args.loader:
             expected = 0 if args.reject_prepared else 1
             if not trace_data.endswith(b"DO" + struct.pack("<H", expected)):
@@ -330,6 +355,8 @@ def main():
         loader=args.loader, loader_bad_version=args.loader_bad_version,
         loader_rebase=args.loader_rebase,
         high_tables=args.high_tables, table_layout=args.table_layout,
+        handles=args.handles, altregs=args.altregs,
+        switch_altregs=args.switch_altregs,
         installed_owner_counts=owner_counts,
         rebase_manifest=rebase_manifest((build / "EMM386.EXE").read_bytes())
             if args.loader_rebase else None,
