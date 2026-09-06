@@ -2,7 +2,9 @@
 """Reject incomplete or misencoded development owner bindings."""
 import unittest
 
-from report_command_residency import BINDING_SLOTS, check_resident_bindings
+from report_command_residency import (
+    BINDING_SLOTS, check_resident_bindings, check_critical_owner_bindings,
+)
 
 
 class BindingTest(unittest.TestCase):
@@ -37,6 +39,29 @@ class BindingTest(unittest.TestCase):
         image[0x205] ^= 1
         with self.assertRaises(ValueError):
             check_resident_bindings(symbols, image)
+
+
+class CriticalBindingTest(unittest.TestCase):
+    def fixture(self):
+        symbols = {"shell_binding_critical_es": 0x112,
+                   "shell_binding_critical_ds": 0x132, "CDEVAT": 0x456}
+        image = bytearray(128)
+        image[0x10:0x1C] = b"\x50\xb8\0\0\x8e\xc0\x58\x26\x88\x26\x56\x04"
+        image[0x30:0x37] = b"\x50\xb8\0\0\x8e\xd8\x58"
+        return symbols, image
+
+    def test_complete(self):
+        check_critical_owner_bindings(*self.fixture())
+
+    def test_wrong_data_owner_or_clobber(self):
+        for offset, replacement in ((0x15, 0xD8), (0x17, 0x2E),
+                                    (0x17, 0x3E), (0x16, 0x90),
+                                    (0x35, 0xC0), (0x1A, 0)):
+            with self.subTest(offset=offset, replacement=replacement):
+                symbols, image = self.fixture()
+                image[offset] = replacement
+                with self.assertRaises(ValueError):
+                    check_critical_owner_bindings(symbols, image)
 
 
 if __name__ == "__main__":

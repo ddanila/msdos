@@ -151,8 +151,10 @@ Two entry constraints govern the next prototype. `CONTC` tests `InitFlag`
 before establishing DS, then uses CS as the shell data segment; its nested
 path also inspects incoming AH and unwinds a distinct interrupt frame. A new
 entry must preserve those inputs and frame shapes while selecting the low
-owner. `DSKERR` similarly uses CS for its device-name destination and local
-data. Neither is fixed by the existing fifteen EXEC/reload owner bindings.
+owner. Normal `DSKERR` similarly uses CS for its device-name destination and
+local data; the development binding variant now selects an explicit low ES
+for the device attributes/name and low DS after saving handles. This does
+not yet relocate its entry or establish the complete asynchronous interface.
 Design those low asynchronous gates together with the high service body;
 qualify A20-off entry, nested Ctrl+C/critical errors and transient overwrite
 before reclaiming the original code. This audit does not establish that any
@@ -161,7 +163,7 @@ of the 800 state bytes can already be released.
 The existing 2,447-byte high shell allocation is already charged. Adding the
 normal 2,451-byte resident body would consume that much of the shared
 9,657-byte HMA tail, leaving 7,206 bytes for BIOS, moved state and all new
-support. The owner-binding prototype already grows the body by 56 bytes;
+support. The owner-binding prototype already grows the body by 66 bytes;
 neither number is the final relocated size. A code-only shell move plus the
 936-byte BIOS character/clock/helper inventory therefore cannot explain the
 10,064-byte vendor difference, even before costs. Continue the combined
@@ -1307,9 +1309,10 @@ prototype, not independent paragraph-saving quotas.
 
 ##### Development resident low-owner bindings
 
-`COMMAND_RESIDENT_BINDING` introduces fifteen constructor-initialized segment
+`COMMAND_RESIDENT_BINDING` introduces seventeen constructor-initialized segment
 operands for COMMAND2's fatal exit, INT 2Eh, reload, handle and environment
-paths and COMMAND1's EXEC/LOADHIGH preparation, restoration and messages.
+paths, COMMAND1's EXEC/LOADHIGH preparation, restoration and messages, and
+RUCODE's critical-entry ES/DS selections.
 `RESBIND.INC` encodes the owner in MOV immediates, so copied instructions
 retain that value without looking up data through their new CS. CONPROC binds
 all operands before the first DOS call or vector publication. INT 2Eh preserves
@@ -1320,21 +1323,30 @@ state updates, restores the transient filename DS before INT 21h, leaves the
 ES:BX parameter block intact, and preserves result flags across restoration.
 The normal build remains byte-identical.
 
-The development resident code grows from 2,451 to 2,507 bytes, and both its
-high-mode low allocation and low-mode fallback grow by 64 rounded bytes.
+The development resident code grows from 2,451 to 2,517 bytes, and both its
+high-mode low allocation and low-mode fallback grow by 80 rounded bytes.
 These are relocation-support costs, not savings. The report's explicit
-`--resident-binding` mode checks all fifteen operand encodings and their exact
+`--resident-binding` mode checks all seventeen operand encodings and their exact
 constructor writes; normal size limits are unchanged. The combined
 critical-body/binding variant is not yet qualified or accepted by the report.
+
+DSKERR preserves the incoming driver's DS while selecting the shell ES for
+both CDEVAT and the copied device name. It preserves AX across that selection,
+then selects the shell DS after SAVHAND. Compiled-entry checks reject a CS/DS
+attribute store, prematurely replacing driver DS, incorrect shell DS selection,
+or loss of AX preservation. This removes two code-segment identities from the
+development entry; the handler still executes in its original low segment.
+It is not a moved-code, A20-off or nested-interrupt relocation witness.
 
 `make test-command-resident-binding-qemu` builds into a private directory,
 checks default binary identity, verifies the linked binding census, then runs
 the INT 2Eh owner matrix, startup/critical ABI suite and complete LOADHIGH suite.
-With the repaired explicit floppy input, `out/command-resident-binding.iGjEai/`
+With the explicit floppy input, `out/command-resident-binding.3ejg9f/`
 passes all four INT 2Eh cases, all 16 startup checks and LOADHIGH's provider,
 region/minimum/shrink, failure recovery, fallback, errorlevel, Ctrl+C, TSR and
-DOS-high checks. Four host tests reject missing slots,
-bad immediates and incomplete constructor bindings. Input overrides follow the
+DOS-high checks. Six host tests cover missing slots,
+bad immediates, incomplete constructor bindings and critical-entry ownership
+mutations. Input overrides follow the
 INT 2Eh command above; no normal COMMAND object or boot image is replaced.
 
 This begins resident code/data separation; it does not establish that the

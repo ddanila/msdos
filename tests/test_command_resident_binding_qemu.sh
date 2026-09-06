@@ -13,7 +13,7 @@ for variant in normal binding; do
     if [[ "$variant" == binding ]]; then define=-DCOMMAND_RESIDENT_BINDING; fi
     (
         cd "$ROOT/src/CMD/COMMAND"
-        for module in COMMAND1 COMMAND2 INIT; do
+        for module in COMMAND1 COMMAND2 RUCODE INIT; do
             "$ROOT/bin/jwasm-masm" \
                 "-Mx -t $define -I. -I../../INC -I../../DOS -Fl=$build/$module.LST" \
                 "$module.ASM,$build/$module.OBJ;"

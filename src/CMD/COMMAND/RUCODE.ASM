@@ -15,6 +15,7 @@ DEBUG = 0				; NEED TO SET IT TO WHAT IT IS IN DOSSYM.INC
 	INCLUDE comsw.asm
 	INCLUDE comseg.asm
 	INCLUDE comequ.asm
+	INCLUDE RESBIND.INC
 	include resmsg.equ		;AN000;
 .list
 .cref
@@ -178,9 +179,16 @@ ASSUME	DS:NOTHING,ES:NOTHING,SS:NOTHING
 	PUSH	AX
 	MOV	DS,BP
 	MOV	AX,[SI.SDEVATT]
+	IFDEF COMMAND_RESIDENT_BINDING
+	; The interrupted driver's DS remains live until its name is copied.
+	; Select the shell destination independently of this code's CS.
+	SHELL_OWNER_SEG ES,critical_es
+	MOV	ES:[CDEVAT],AH
+	ELSE
 	MOV	[CDEVAT],AH
 	PUSH	CS
 	POP	ES
+	ENDIF
 	MOV	DI,OFFSET RESGROUP:DEVENAM
 	MOV	CX,8
 	ADD	SI,SDEVNAME			; Suck up device name (even on Block)
@@ -190,8 +198,7 @@ ASSUME	DS:NOTHING,ES:NOTHING,SS:NOTHING
 	POP	DI				; Stack just contains DS and ES
 						;     at this point
 	INVOKE	SAVHAND
-	PUSH	CS
-	POP	DS				; Set up local data segment
+	SHELL_OWNER_SEG DS,critical_ds	; Set up authoritative shell data
 ASSUME	DS:RESGROUP
 
 	IFDEF COMMAND_CRITICAL_SPLIT

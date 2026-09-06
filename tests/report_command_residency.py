@@ -89,7 +89,8 @@ def code_only_envelope(code_end: int, resident_break: int) -> tuple[int, int]:
 
 BINDING_SLOTS = ("fatal_ds", "fatal_psp", "ret2e_ds", "int2e_es", "int2e_bx",
                  "lodcom_ds", "lodcom_ax", "headfix_ds", "savhand_es", "endinit_ds",
-                 "exec_err_ds", "exec_msg_es", "exec_pre_ds", "exec_post_ds", "exec_wait_ds")
+                 "exec_err_ds", "exec_msg_es", "exec_pre_ds", "exec_post_ds", "exec_wait_ds",
+                 "critical_es", "critical_ds")
 
 
 def check_resident_bindings(symbols: dict[str, int], image: bytes) -> None:
@@ -108,6 +109,19 @@ def check_resident_bindings(symbols: dict[str, int], image: bytes) -> None:
     start = require(symbols, "CONPROC") - 0x100 + 3  # MOV SP,RSTACK first
     if image[start:start+len(constructor)] != constructor:
         raise ValueError("resident binding constructor does not initialize every operand")
+
+
+def check_critical_owner_bindings(symbols: dict[str, int], image: bytes) -> None:
+    """Check AX preservation, driver DS lifetime, and the first shell store."""
+    for name, segment_opcode in (("critical_es", 0xC0), ("critical_ds", 0xD8)):
+        operand = require(symbols, "shell_binding_" + name)
+        start = operand - 0x102
+        expected = b"\x50\xb8\0\0\x8e" + bytes((segment_opcode,)) + b"\x58"
+        if name == "critical_es":
+            # MOV ES:[CDEVAT],AH, not CS (relocated code) or DS (driver).
+            expected += b"\x26\x88\x26" + require(symbols, "CDEVAT").to_bytes(2, "little")
+        if image[start:start + len(expected)] != expected:
+            raise ValueError("critical entry lost its explicit low owner or AX preservation")
 
 
 def parse_number(value: str) -> int:
@@ -216,8 +230,9 @@ def main() -> int:
         errors.append("cached critical-catalog pointer is not retained in low message state")
     prototype_allowance = 128 if args.critical_split else 0
     if args.resident_binding:
-        prototype_allowance = 64
+        prototype_allowance = 80
         check_resident_bindings(symbols, args.binary.read_bytes())
+        check_critical_owner_bindings(symbols, args.binary.read_bytes())
     if rounded(resident_catalog_start) > 3632 + prototype_allowance:
         errors.append(f"DOS-high permanent COMMAND exceeds its {3632 + prototype_allowance:,}-byte budget")
     if rounded(hma_code_end) > 6080 + prototype_allowance:
