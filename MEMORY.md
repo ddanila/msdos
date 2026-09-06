@@ -705,6 +705,41 @@ Use a development-only complete-object prototype to measure its linked gates;
 keep the normal layout and failed-relocation fallback intact. Production
 promotion remains behind the joint budget and compatibility gates.
 
+The INT 2Eh entry adds a distinct ownership contract. `COMMAND2.ASM:INT_2E`
+copies 128 bytes from the caller's DS:SI into the shell PSP at offset 80h;
+setting DS to shell data before that copy would lose the caller's command.
+It saves the return CS:IP, discards flags and switches to the shell stack via
+`LODCOM1`. `RET_2E` restores the caller's current PSP, then jumps through
+`INT_2E_RET` without restoring caller SS:SP. Do not route this through a generic
+IRET gate or put SS in HMA simply because the service body moves there.
+Keep the input copy and return record bound to authoritative low owners;
+the reload body needs explicit low PSP/data/stack bindings and a far exit.
+
+`make test-command-int2e-owner-qemu` captures this current implementation
+boundary. Its COM client shrinks itself, allocates a separate 128-byte command
+tail, then invokes internal ECHO and an external child COMMAND through INT 2Eh.
+After each return it restores its own stack explicitly, verifies the caller
+PSP and the current parent-shell stack identity, and checks redirected output.
+It asserts actual DOS HMA residency through the signed repository query.
+This is a local baseline, not a retail INT 2Eh register-preservation claim;
+the exact stack-segment assertion must follow any qualified stack-owner
+redesign rather than preventing it.
+
+DOS-low/high pass and both wrong-caller-stack controls reject in
+`out/command-int2e-owner.oVZXIK/`. Input, COMMAND and HIMEM hashes, emulator
+identity, private images and logs are retained. Reproduce without replacing
+the default boot image:
+
+```sh
+FLOPPY_IMAGE=out/setver-native-audit.BAEqDU/low.img \
+  bash tests/test_command_int2e_owner_qemu.sh
+```
+
+This does not yet move the service body, prove A20-off/nested INT 2Eh handling,
+or validate the proposed low-shell ceiling. INT 22h reload, INT 23h's differing
+return frames and the INT 24h bindings remain part of the same whole-object
+prototype, not independent paragraph-saving quotas.
+
 The returning critical-error gate is now passing after correcting catalog
 ownership. `test-command-critical-abi-qemu` runs a child COM
 program with stdout redirected, opens the unformatted B: twice, and chains the
