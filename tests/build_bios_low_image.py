@@ -12,7 +12,12 @@ from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False):
+def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False):
+    cache_cases = {"first": 1, "last": 2, "past-end": 3, "foreign": 4}
+    if cds_cache_case is not None and (not high_cds or cds_cache_case not in cache_cases):
+        raise ValueError("CDS cache case requires high CDS and a known case")
+    if cds_cache_negative and (cds_cache_case not in ("first", "last") or fail_cds):
+        raise ValueError("negative CDS cache control requires a relocating first/last case")
     if high_cds and not rebase:
         raise ValueError("high CDS requires the development rebased layout")
     if fail_cds and not high_cds:
@@ -123,6 +128,10 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         options += " -DBIOS_HIGH_CDS=1"
     if fail_cds:
         options += " -DBIOS_CDS_FAIL_ALLOC=1"
+    if cds_cache_case:
+        options += f" -DBIOS_CDS_CACHE_CASE={cache_cases[cds_cache_case]}"
+    if cds_cache_negative:
+        options += " -DBIOS_CDS_SKIP_CACHE_REBASE=1"
     if fail_tables:
         options += " -DBIOS_TABLES_FAIL_ALLOC=1"
     if compact:
@@ -186,6 +195,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
             raise ValueError("early link changed the embedded high payload")
         manifest["embedded_payload_bytes"] = final_high["bytes"]
     manifest["upper_dos_tables"] = rebase
+    manifest["cds_cache_case"] = cds_cache_case
+    manifest["cds_cache_negative"] = cds_cache_negative
     manifest["force_table_allocation_failure"] = fail_tables
     (output / "low.json").write_text(json.dumps(manifest, indent=2, sort_keys=True) + "\n")
     print(f"Linked {'early-installer' if early else 'inactive'} development BIOS: {output / 'IO.SYS'}", flush=True)
@@ -202,7 +213,10 @@ if __name__ == "__main__":
     parser.add_argument("--compact", action="store_true", help="coalesce the first-HIMEM boot allocation after rebasing")
     parser.add_argument("--high-cds", action="store_true")
     parser.add_argument("--fail-cds-allocation", action="store_true")
+    parser.add_argument("--cds-cache-case", choices=("first", "last", "past-end", "foreign"))
+    parser.add_argument("--cds-cache-negative", action="store_true")
     args = parser.parse_args()
     build(args.output, early=args.early, tail_body=args.tail_body,
           scan=args.scan, rebase=args.rebase, compact=args.compact,
-          high_cds=args.high_cds, fail_cds=args.fail_cds_allocation)
+          high_cds=args.high_cds, fail_cds=args.fail_cds_allocation,
+          cds_cache_case=args.cds_cache_case, cds_cache_negative=args.cds_cache_negative)

@@ -1,6 +1,11 @@
 ; Development: move the complete newly initialized CDS allocation, not a
 ; later application's cached table. The low block includes its DEVMARK.
         INCLUDE CDSUPPER_DEFS.INC
+        IFDEF BIOS_CDS_SKIP_CACHE_REBASE
+        IFNDEF BIOS_CDS_CACHE_CASE
+        .ERR <CDS cache mutation requires the test fixture>
+        ENDIF
+        ENDIF
 CdsLowStart DW 0
 CdsParagraphs DW 0
 CdsBytes DW 0
@@ -90,6 +95,9 @@ CdsRestoreLink:
         jnc CdsRestored
         mov cs:[CdsRestoreFailed],1
 CdsRestored:
+        IFDEF BIOS_CDS_CACHE_CASE
+        call CdsCacheSeed
+        ENDIF
         cmp cs:[CdsUpper],0
         je CdsDone
         cmp cs:[CdsRestoreFailed],0
@@ -121,7 +129,9 @@ CdsPublish:
         mov bx,word ptr es:[CDS_THISCDS]
         cmp bx,cs:[CdsBytes]
         jae CdsPublicRoot
+        IFNDEF BIOS_CDS_SKIP_CACHE_REBASE
         mov word ptr es:[CDS_THISCDS+2],ax
+        ENDIF
 CdsPublicRoot:
         mov word ptr es:[di.SYSI_CDS+2],ax
         mov ax,cs:[CdsUpper]
@@ -132,6 +142,9 @@ CdsPublicRoot:
         mov cs:[MemHi],ax
         mov cs:[MemLo],0
 CdsDone:
+        IFDEF BIOS_CDS_CACHE_CASE
+        call CdsCacheCheck
+        ENDIF
         pop es
         pop ds
         pop bp
@@ -144,3 +157,6 @@ CdsDone:
         popf
         ret
 MoveBootCdsUpper ENDP
+        IFDEF BIOS_CDS_CACHE_CASE
+        INCLUDE CDSCACHE.INC
+        ENDIF

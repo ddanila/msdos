@@ -72,6 +72,8 @@ def main():
     parser.add_argument("--fail-table-allocation", action="store_true", help="force the development UMB allocation to fail")
     parser.add_argument("--high-cds", action="store_true", help="relocate the complete final CDS allocation to UMB")
     parser.add_argument("--fail-cds-allocation", action="store_true")
+    parser.add_argument("--cds-cache-case", choices=("first", "last", "past-end", "foreign"))
+    parser.add_argument("--cds-cache-negative", action="store_true")
     parser.add_argument("--lastdrive", default="Z", choices=list("ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
     parser.add_argument("--upper-access-control", action="store_true", help="require rejection of a corrupted table snapshot after EMS cleanup")
     parser.add_argument("--share", action="store_true", help="run SHARE/NLSFUNC compatibility contracts before the table probes")
@@ -94,6 +96,10 @@ def main():
         parser.error("--high-cds requires --rebase")
     if args.fail_cds_allocation and not args.high_cds:
         parser.error("--fail-cds-allocation requires --high-cds")
+    if args.cds_cache_case and (not args.high_cds or args.mode != ["emm-high"] or args.scan):
+        parser.error("--cds-cache-case requires --high-cds --mode emm-high without --scan")
+    if args.cds_cache_negative and (args.cds_cache_case not in ("first", "last") or args.fail_cds_allocation):
+        parser.error("--cds-cache-negative requires a relocating first/last cache case")
     if args.lastdrive != "Z" and not args.rebase:
         parser.error("--lastdrive requires --rebase")
     if args.emm386_image and not args.emm386_image.is_file():
@@ -147,7 +153,8 @@ def main():
         print(f"Diagnostic EMM386 (reversed backing): {args.emm386_image}", flush=True)
     manifest = build(scratch, early=args.early, tail_body=args.tail_body, scan=args.scan, rebase=args.rebase, compact=args.compact,
                      reservation_limit=0x10 if args.fail_reservation else 0xfff0, fail_tables=args.fail_table_allocation,
-                     high_cds=args.high_cds, fail_cds=args.fail_cds_allocation)
+                     high_cds=args.high_cds, fail_cds=args.fail_cds_allocation,
+                     cds_cache_case=args.cds_cache_case, cds_cache_negative=args.cds_cache_negative)
     high_manifest = build_high(scratch / "high", scratch)
     if args.rebase:
         layout = scratch / "public-layout.bin"
@@ -291,7 +298,7 @@ def main():
         log = scratch / f"{name}.log"
         with log.open("wb") as stream:
             debug_options = (["-debugcon", f"file:{scratch / (name + '.scan')}",
-                              "-global", "isa-debugcon.iobase=0xe9"] if args.scan else [])
+                              "-global", "isa-debugcon.iobase=0xe9"] if args.scan or args.cds_cache_case else [])
             try:
                 command = ["qemu-system-i386", "-machine", "pc", "-cpu", "486", "-m", "8",
                                 "-display", "none", "-monitor", "none", "-serial", "stdio",
@@ -308,6 +315,12 @@ def main():
         result = log.read_bytes()
         passed = b"BIOS_LOW_BOOT_PASS" in result
         io_passes = 2 if args.warm_reset else 1
+        if args.cds_cache_case:
+            trace = (scratch / (name + ".scan")).read_bytes()
+            expected = b"CDS_CACHE_FAIL" if args.cds_cache_negative else b"CDS_CACHE_PASS"
+            rejected = b"CDS_CACHE_PASS" if args.cds_cache_negative else b"CDS_CACHE_FAIL"
+            if trace.count(expected) != io_passes or rejected in trace:
+                raise RuntimeError(f"CDS cache publication check failed: {trace!r}")
         if args.umb_ems and name == "emm-high" and result.count(b"UMB_EMS_IO_PASS") != io_passes:
             raise RuntimeError(f"EMS/UMB I/O isolation failed: {log}\n{result.decode(errors='replace')}")
         if args.umb_ems and name == "emm-high" and result.count(b"DMA_PROGRAM_PHASE_PASS") != io_passes:

@@ -846,17 +846,38 @@ rejecting it. Serial traces are retained separately because the utility
 suite uses shared `asj-*` paths and must run sequentially.
 The quick matrix passes all eight cases in `out/high-cds-hvojqf8q/`, including
 50 utility checks for each positive placement and the expected negative
-control. This accepts these utility consumers, not arbitrary redirectors or
-deliberately seeded THISCDS cache rebasing.
+control. This accepts these utility consumers, not arbitrary redirectors;
+the separate seeded cache checks below cover the publication boundary.
 The default DOS-low suite against the existing `out/floppy.img` instead
 returns 44 passes and five ASSIGN failures (`Incorrect DOS version`). The
 committed pre-change script reproduces the same five failures on that image;
 both serial traces are retained with the matrix. This baseline failure is not
 a relocation regression, but remains unresolved rather than a passing gate.
 
+`--cds-cache-case first|last|past-end|foreign` adds a test-only SYSINIT fixture
+immediately before CDS publication, after allocation/policy calls. It seeds
+THISCDS and checks its offset and segment immediately after relocation or
+allocation fallback, before a pathname operation can overwrite the cache.
+Valid first/last pointers must follow the public SYSI_CDS owner; the one-past
+offset and foreign-segment pointer must remain unchanged. After the assertion,
+the fixture invalidates the injected cache using DOS's offset `FFFFh` null
+convention so invalid test pointers cannot leak into subsequent boot work.
+The fixture is discarded with SYSINIT and absent from normal builds.
+
+The high-CDS matrix includes all four cases, last-entry allocation fallback,
+and two negative controls that omit the actual cache-segment write. The
+negative controls must emit `CDS_CACHE_FAIL` while the subsequent boot probes
+still pass; a missing marker, timeout or unrelated failure is not acceptance.
+Last-entry success, fallback and missed-fixup rejection also run across warm
+reset. This tests the cache at publication, not every possible redirector-held
+pointer or an interrupted allocation transaction.
+The 15-case quick matrix passes in `out/high-cds-c9ogjjfw/`; the final
+first-entry fixture also passes in `out/bios-low-boot-l23p3eqq/`. Normal IO.SYS
+retains SHA-256 `c30988e41ce895a07693d34cd93b0aad6d39ff84a8f3924e9dd914746161c78d`.
+No conventional or upper-memory saving is claimed by these test-only hooks.
+
 Promotion remains open: qualify redirector consumers on the actual high-CDS
-image, deliberately exercise cached-pointer rebasing, test
-policy-restoration failure, and complete the fine-UMB and BIOS compatibility
+image, test policy-restoration failure, and complete the fine-UMB and BIOS compatibility
 gates. The observed framed OpenDOS block is still 11,328 bytes larger, subject
 to the comparison caveats above. Continue the whole-system architecture work;
 retail is the acceptance floor, not proof of a DR-DOS-equivalent resident layout.

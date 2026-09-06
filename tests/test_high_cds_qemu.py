@@ -31,6 +31,17 @@ def main():
                                  "--umb-read", "--umb-ems", "--warm-reset"]),
         ("low-fallbacks", ["--mode", "bare-low", "--mode", "himem-low", "--mode", "himem-high"]),
     ]
+    cases += [(f"cache-{case}", ["--mode", "emm-high", "--cds-cache-case", case]
+               + (["--warm-reset"] if case == "last" else []))
+              for case in ("first", "last", "past-end", "foreign")]
+    cases += [
+        ("cache-low-fallback", ["--mode", "emm-high", "--cds-cache-case", "last",
+                                "--fail-cds-allocation", "--warm-reset"]),
+        ("cache-reject-missed-first", ["--mode", "emm-high", "--cds-cache-case", "first",
+                                      "--cds-cache-negative"]),
+        ("cache-reject-missed-last", ["--mode", "emm-high", "--cds-cache-case", "last",
+                                     "--cds-cache-negative", "--warm-reset"]),
+    ]
     fixtures = {}
     for name, options in cases:
         log = work / f"{name}.log"
