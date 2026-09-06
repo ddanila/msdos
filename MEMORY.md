@@ -22,6 +22,12 @@ conventional bytes but only 16,032 free UMB bytes. Resource and device-topology
 differences remain; that result does not prove our two floors achievable by
 copying its UMB policy.
 
+The newer combined fine-UMB development fixture retains 614,448 conventional
+bytes and exposes 52,000 free UMB bytes. Its 4,112-byte margin over retail is
+now a measured destination budget for complete DOS-data placement, not a
+conventional-memory gain. It remains development-only; see the combined VC
+checkpoint below for evidence and scope.
+
 Execution order (supersedes older implementation queues below):
 
 1. Complete the joint resident-layout checkpoint below before extending any
@@ -39,8 +45,9 @@ Execution order (supersedes older implementation queues below):
    savings. Public A20-off pointers cannot automatically become HMA pointers.
 4. Share HMA capacity between BIOS, state, buffers, and COMMAND. At fifteen
    buffers, the calculated normal post-COMMAND tail is 15,389 bytes and the development
-   BIOS reservation costs 5,220 more. Development has only 16 bytes of free-UMB
-   margin; further UMB placement requires compensating reclamation.
+   BIOS reservation costs 5,220 more. Coarse development has only 16 bytes of
+   free-UMB margin; combined fine mapping raises this to 4,112. Charge new
+   allocations and their arena overhead against the selected variant's budget.
 5. Revisit COMMAND as a complete resident-handler/state and reload-interface
    redesign after the system placement budget. Keep isolated HIMEM/EMM386
    harvesting paused; EMM386 is already 240 bytes below retail. EBDA recovery
@@ -634,11 +641,58 @@ arena/coalescing observation open. It is not a fine-mapping loss or saving.
 This proves **4 KiB of additional usable UMB in the isolated fixture**, not a
 conventional-memory gain or a new fixed VC score. Still open: actual provider
 registration rejection/teardown, 24-run publication stress, maximum-option and
-broader hardware gates, exact untouched-neighbor PTE checks beyond the ROM hash,
-and composition with BIOS/table placement and the fixed VC image. The staged
+broader hardware gates, and exact untouched-neighbor PTE checks beyond the ROM
+hash. Composition with BIOS/table placement and the fixed VC image is recorded
+below. The staged
 pre-publication failure is not a test of HIMEM rejecting a real registration.
 Only after composition may this capacity fund complete CDS/stack placement;
 do not add it to conventional savings or spend the UMB margin twice.
+
+##### Combined BIOS/table and fixed VC checkpoint
+
+`make test-umb-subpage-composition` now builds fresh development BIOS/table
+placement and both EMM386 variants, installs current DOS/HIMEM/COMMAND binaries
+in private copies of the fixed disk image, verifies unchanged CONFIG.SYS and
+VC, and captures coarse, fine and retail layouts. Input hashes, raw captures
+and reports remain together under `out/umb-fine-composition.*`.
+
+| Fixed VC image | Largest conventional block | Free UMB |
+| --- | ---: | ---: |
+| BIOS/table development, coarse mapping | 614,448 | 47,904 |
+| Same, fine mapping | 614,448 | 52,000 |
+| Retail 6.22 | 618,736 | 47,888 |
+
+The additional capacity survives composition: **4,112 bytes of free-UMB margin
+above retail**, with no conventional regression. This supersedes the 16-byte
+margin only for the combined fine-mapping development variant; normal builds
+and the existing coarse development baseline are unchanged. The critical-body
+COMMAND reclamation variant is not included in these figures.
+
+The existing combined BIOS boot test also passes with fine EMM386, 12/32 KiB
+upper-buffer I/O, interleaved EMS/DMA phases, system/FCB probes and reset:
+
+```sh
+python3 tests/test_bios_low_boot_qemu.py --early --tail-body --rebase --compact \
+  --mode emm-high --umb-read --umb-ems --warm-reset --emm386-image FINE-EMM386.EXE
+```
+
+Repeat with `--umb-span 32` for the larger allocation.
+
+That boot fixture uses automatic frame placement; the separate VC checkpoint
+retains the fixed `RAM M5` configuration. Keep those scopes distinct.
+
+The next complete DOS-data object is the 2,288-byte LASTDRIVE=Z CDS array.
+`SYSINIT1:BUF1` already replaces temporary CDS ownership with a newly allocated
+array, publishes SYSI_CDS/NCDS and initializes it through FOOSET before stack
+allocation. Evaluate high placement at this existing ownership transition,
+not a late move after applications can cache the final pointer. Include its
+DEVMARK, upper arena header, authoritative SYSI_CDS and any cached THISCDS
+binding, DPB links, low allocation rewind, and allocation-failure fallback.
+The new margin can cover the array's payload, but only linked/runtime boundary
+checks may establish its full cost and coalesced conventional gain. Preserve
+all LASTDRIVE values and test redirector, SUBST/JOIN and DPB consumers before
+promotion. Do not keep the entire CDS array low merely because it cannot use
+HMA, or count its payload as a saving before its former low span is released.
 
 #### Retained BIOS partition
 
