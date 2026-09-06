@@ -26,7 +26,9 @@ Execution order (supersedes older implementation queues below):
 
 1. Complete the joint resident-layout checkpoint below before extending any
    individual relocation prototype. Preserve pending access-boundary work as
-   preparation, not as a memory-saving result.
+   preparation, not as a memory-saving result. Include the separate 4 KiB UMB
+   eligibility investigation below: the current 16 KiB discovery granularity
+   may be hiding a destination for complete public DOS-data allocations.
 2. Finish acceptance of the bulk BIOS/table relocation, including SHARE and
    redirector consumers. Distinguish pre-existing low-mode failures from
    relocation regressions; neither is a passing acceptance result.
@@ -134,6 +136,11 @@ score. Keep correctness repairs separate from savings claims. The checkpoint
 is currently **open**; the existing candidate census is not a complete layout.
 
 #### Candidate layout A: manager objects plus the whole shell service body
+
+This is a **retail-floor candidate**, not the complete DR-DOS-style layout.
+Its proposed 4,816-byte gain would still leave 8,816 bytes between development
+and the observed framed OpenDOS result. Do not stop the architecture audit at
+these two component ceilings or treat them as validated implementation sizes.
 
 The current checked COMMAND map provides a concrete complement to manager
 relocation: `0100h..0A93h` contains 2,451 resident code bytes. Keep its 256-byte
@@ -424,6 +431,72 @@ own table relocation must separately complete before its INIT break is final.
 Warm-reset reconstruction and retry-without-reservation-leak remain gates.
 
 ### Development placement budget: remaining BIOS is not another disk body
+
+#### Whole-system accounting and the missing placement tier
+
+The fixed development capture (`out/dma-mask-memory.vvVmy0/development.md`)
+puts COMMAND at 05A8h, after a 21,376-byte span starting at 0070h. Combining
+the linked BIOS/kernel inventories with the installed resource sizes gives:
+
+| Low owner | Bytes | Architectural treatment to evaluate |
+| --- | ---: | --- |
+| Selected BIOS | 5,152 | Stable device/DMA entries and state low; complete service bodies high |
+| Kernel prefix | 4,992 | Public-pointer interfaces low; explicitly owned private state high |
+| HIMEM and EMM386 | 6,480 | Small low interfaces; service bodies in HMA and protected tables in locked XMS |
+| LASTDRIVE/CDS | 2,288 | Public real-mode data: UMB candidate, not an automatic HMA candidate |
+| Interrupt stacks | 1,840 | Separate asynchronous entry/stack contract; do not move SS into HMA |
+| Sector transfer area | 512 | Retain low for firmware/legacy-device transfers |
+| Unassigned reconciliation remainder | 112 | Arena/alignment accounting to locate; no saving assumed |
+| **System-to-COMMAND span** | **21,376** | No overlapping component rows |
+
+FILES/FCBS are already upper in this development capture and must not be
+added again. COMMAND's separate owner span is 3,984 bytes; its permanent
+program allocation is 3,632. The 112-byte remainder is a subtraction from
+the measured span, not a newly discovered disposable allocation.
+
+This makes the architectural limitation explicit: keeping CDS and interrupt
+stacks low freezes 4,128 bytes before considering any BIOS, kernel or manager
+interfaces. It is a safe initial prototype boundary, **not proof that this
+storage must remain conventional in the final design**. UMB addresses preserve
+ordinary real-mode segment addressing without an A20 dependency; HMA does not.
+Moving either object still requires its complete public-pointer, interrupt,
+DMA/backing and fallback contract. Never reduce LASTDRIVE or stack capacity
+to make the comparison fit.
+
+There is a concrete untested UMB-discovery lead. The framed OpenDOS raw map
+starts upper RAM at CB00h, including an 800-byte manager allocation, and places
+the EMS frame at CC00h. Our fixed `EMM386 RAM M5` image starts its upper arena
+at CC00h and places the frame at D000h. In our sources,
+`ROM_SRCH.ASM` excludes overlapping 16 KiB windows, and
+`INIT.ASM:Prepare_UMB` accepts only complete safe 16 KiB windows from that same
+EMS-oriented map. Therefore a safe 4 KiB tail at CB00h..CC00h cannot become a
+UMB through the current path if its enclosing C800h..CC00h window contains ROM.
+This is a source-proven granularity constraint, not proof that the tail is safe
+on the fixed hardware or an inference about OpenDOS's internal algorithm.
+
+Investigate a **separate 4 KiB UMB eligibility map**, retaining 16 KiB EMS
+semantics, before declaring our present 16-byte UMB margin immutable:
+
+1. Capture physical ROM signatures/lengths, RAM/reservation boundaries and
+   effective exclusions on identical QEMU device topology for both systems.
+   The existing floppy-versus-IDE comparison is insufficient for eligibility.
+2. Record why each 4 KiB page is accepted or rejected; exclude any page touched
+   by ROM, video, hardware reservations, explicit X=, EMS frames or Pn= owners.
+   Do not force I= over a rejected window or recover video memory for the score.
+3. If a safe tail exists, design sub-page backing ownership, HIMEM registration,
+   allocation rollback and EMS/DMA coexistence together. Current Commit_UMB
+   reserves whole EMS backing pages; finer discovery alone is not a working
+   allocator. Include backing waste and maximum-option capacity in the budget.
+4. Measure net free-UMB growth before spending it on complete public DOS-data
+   allocations. A full 4 KiB recovery would be only 4,096 gross bytes, already
+   32 fewer than CDS plus the current stack block, before any new overhead.
+
+This is an architectural discovery/placement workstream, not another EMM386
+instruction reduction. It may supply the missing real-mode destination tier;
+until physical eligibility and end-to-end allocation are proved, credit zero
+conventional or UMB bytes. Keep the retail floor and OpenDOS comparison distinct.
+
+#### Retained BIOS partition
 
 Use `report_dos_bios_residency.py --check --tail-body DOS.MAP BIOS.map` for
 the development tail-body layout. Each tail-body boot test now retains this
@@ -1381,55 +1454,17 @@ Even after those recoveries, bulk placement or better-than-retail component
 footprints must supply another 5,088 bytes. Retain the current EMM386 advantage
 and avoid counting any saving twice.
 
-The first EMM386 symbol census is complete, and the explicit EMS 56h return
-gateway restores paragraph independence after the latest split. The critical
-path is:
+The current execution order is defined only in **Current architectural
+priority** and the **Required checkpoint: one complete resident layout** above.
+The completed kernel, buffer, BIOS and shell tranches are evidence for that
+checkpoint, not an instruction to repeat their old optimization sequence.
 
-1. **Complete:** the documentation-and-measurement investigation attributes
-   DR-DOS's larger ordinary HMA-mode block and separates portable techniques
-   from low-memory and video-memory compatibility extensions;
-2. keep every mutable symbol in DOS's relocated tail addressed through the HMA
-   copy, and retain `/NUMHANDLES=24..32` as a mandatory gate;
-3. **Complete:** the top-level COMMAND census and exact HMA
-   owner/lifetime/slack census established a checked 475-byte first payload and
-   18,028 bytes of initially free DOS-owned HMA tail storage; continue the
-   symbol-level
-   COMMAND and DOS/BIOS ownership work while keeping all attribution reports
-   current;
-4. **First tranche complete; deeper work paused:** COMMAND's complete 1,281-byte normal resident utility and
-   critical catalog range now uses the bounded DOS HMA-tail allocator, the
-   mutable far-pointer/formatter table remains low, the 81-byte redirection
-   state is reloadable transient data, and the message workspace has a
-   compiled-catalog capacity bound. The relocated code now includes the
-   character/DBCS services and generated GET, DISPLAY, character, and numeric
-   message engine. These changes recover 2,480 paragraph-rounded bytes while
-   leaving 15,437 bytes for later HMA payloads after the HMA allocator guard.
-   Resume coherent cold-state relocation only after the whole-system placement
-   design, preserving every reload and asynchronous entry path;
-5. **Paused:** EMM386 now retains a 375-byte dual-mode `_TEXT` gateway and its
-   3,888-byte live allocation is already 240 bytes smaller than retail.
-   `GoVirtual` crosses explicitly into its protected continuation and EMS 56h
-   returns through an explicit low trap gateway. Further byte harvesting is no
-   longer on the critical path; reopen it only for a coherent architectural
-   relocation or a measured residual after DOS placement;
-6. **In progress:** the complete 808-byte DOS system-call dispatcher and the
-   contiguous 652-byte absolute-disk, system-return, and INT 2Fh tranche are
-   above `DOS_LOW_GATE_END`. DOS=LOW retains the full image; DOS=HIGH has
-   recovered 1,424 paragraph-rounded bytes across the two moves. Continue by
-   classifying mutable DOS state and applying the placement ladder: HMA first,
-   relocation-safe XMS second, and bounded deterministic UMB placement last;
-   complete DOS/BIOS ownership while doing so;
-7. coalesce recovered ranges into the largest block and recover the EBDA
-   ceiling paragraph only after identifying already-owned
-   destination storage;
-8. revisit HIMEM only if a measured residual remains; and
-9. defend retail-or-better memory with a local fixed-image regression floor.
-
-This ordering is a dependency order, not a promise that the early inexpensive
-work is sufficient. If the censuses show that safe compaction plus the EBDA and
-layout work cannot close the then-current gap, proceed directly to the
-architectural EMM386 gateway split; do not spend time chasing isolated bytes
-that cannot reach the largest block.
+The next audit must include the full 21,376-byte development system span and
+the separate COMMAND owner. In particular, distinguish genuinely low-only
+interfaces from public real-mode data that could use UMBs, and investigate the
+16 KiB UMB-discovery constraint before freezing the available destination
+budget. Matching retail is the acceptance floor; layout A alone does not
+explain or reproduce the larger OpenDOS block.
 
 ### Complete improvement inventory
 
