@@ -23,6 +23,8 @@ def main():
                         help="negative control: select the poisoned code-owner data alias")
     parser.add_argument("--accept-invalid-owner", action="store_true",
                         help="negative control: replace state validation with unconditional success")
+    parser.add_argument("--corrupt-staged-owner", action="store_true",
+                        help="negative control: alter a staged handle lock count before publication")
     args = parser.parse_args()
     work = Path(tempfile.mkdtemp(prefix="xms-allocator-owner-", dir=ROOT / "out"))
     print(f"Evidence: {work}", flush=True)
@@ -33,6 +35,7 @@ def main():
     binary, listing = work / "service.bin", work / "service.lst"
     subprocess.run([str(ROOT / "bin/jwasm-bin"), "-q", "-bin", "-Sa",
                     *(["-DACCEPT_INVALID_OWNER"] if args.accept_invalid_owner else []),
+                    *(["-DCORRUPT_STAGED_OWNER"] if args.corrupt_staged_owner else []),
                     f"-I{work}", f"-I{source}", f"-Fo{binary}", f"-Fl={listing}",
                     str(ROOT / "tests/xms_allocator_owner.asm")], check=True)
     payload = binary.read_bytes()
@@ -50,13 +53,15 @@ def main():
         match = LABEL_RE.match(line) or PROCEDURE_RE.match(line)
         if match:
             addresses[match[1]] = int(match[2], 16)
-    inputs = [source / name for name in ("HIMEM.ASM", "XMSALLOC.INC", "XMSHANDLE.INC", "XMSSTATE.INC")]
+    inputs = [source / name for name in ("HIMEM.ASM", "XMSALLOC.INC", "XMSHANDLE.INC", "XMSSTATE.INC", "XMSSTAGE.INC")]
     inputs += [ROOT / "tests/xms_allocator_owner.asm", ROOT / "tests/xms_allocator_owner_boot.asm"]
     report = dict(passed=False, wrong_owner=args.wrong_owner,
                   accept_invalid_owner=args.accept_invalid_owner,
+                  corrupt_staged_owner=args.corrupt_staged_owner,
                   services_bytes=addresses["allocator_services_end"] - addresses["xms_query_free"],
                   helpers_bytes=addresses["allocator_helpers_end"] - addresses["validate_handle"],
                   validator_bytes=addresses["allocator_validator_end"] - addresses["xms_validate_owner"],
+                  stager_bytes=addresses["allocator_stager_end"] - addresses["xms_stage_allocator"],
                   inputs={str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
                           for path in inputs},
                   binary_sha256=hashlib.sha256(payload).hexdigest(),
@@ -96,6 +101,8 @@ def main():
             ram = ram_path.read_bytes()
             if ram[0x201000:0x201025] != bytes(37):
                 raise ValueError("allocator wrote to the poisoned code-relative state")
+            if ram[0x9000:0x9025] != bytes([0xa5]) * 37:
+                raise ValueError("allocator reused the retired low context")
             if struct.unpack_from("<HH", ram, 0x211000) != (4, 512):
                 raise ValueError("authoritative high allocator context changed")
             if any(struct.unpack_from("<H", ram, 0x211012 + index * 5)[0] for index in range(4)):

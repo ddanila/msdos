@@ -20,6 +20,8 @@ else
 include XMSSTATE.INC
 endif
 allocator_validator_end label near
+include XMSSTAGE.INC
+allocator_stager_end label near
 xms_success:
     mov ax,1
     clc
@@ -68,7 +70,105 @@ copy_failed:
     ret
 copy_move_blocks endp
 allocator_test:
-    ; Begin with a nonempty owner, including two existing locked handles.
+    ; Allocate and lock through the real shared service with a LOW data owner.
+    mov dx,32
+    call xms_allocate
+    cmp dx,1
+    jne failed
+    mov dx,32
+    call xms_allocate
+    cmp dx,2
+    jne failed
+    mov dx,1
+    call xms_lock
+    mov dx,1
+    call xms_lock
+    mov dx,2
+    call xms_lock
+    mov esi,110000h
+    xor ecx,ecx
+seed_payload:
+    mov eax,ecx
+    xor eax,13579bdfh
+    mov gs:[esi],eax
+    add esi,4
+    add ecx,4
+    cmp ecx,32768
+    jb seed_payload
+    ; Completed-copy scratch is not live state and must not be published.
+    mov dword ptr [move_length],11223344h
+    mov dword ptr [move_source],22334455h
+    mov dword ptr [move_dest],33445566h
+    ; A rejected stage must leave the zero-filled destination untouched.
+    mov cx,4
+    mov bx,1
+    call xms_stage_allocator
+    jnc failed
+    mov bx,4
+    mov byte ptr [handles+2*HANDLE_SIZE+HANDLE_LOCK],1
+    call xms_stage_allocator
+    jnc failed
+    mov byte ptr [handles+2*HANDLE_SIZE+HANDLE_LOCK],0
+    xor si,si
+stage_rejected_check:
+    cmp byte ptr es:[handle_limit+si],0
+    jne failed
+    inc si
+    cmp si,37
+    jb stage_rejected_check
+    ; Source is stable: interrupts have remained disabled since bootstrap.
+    mov cx,4
+    mov bx,4
+    call xms_stage_allocator
+    jc failed
+ifdef CORRUPT_STAGED_OWNER
+    inc byte ptr es:[handles+HANDLE_LOCK]
+endif
+    ; Inspect every copied field before selecting the staged owner.
+    xor si,si
+stage_copied_check:
+    cmp si,4
+    jb short stage_compare_byte
+    cmp si,16
+    jb short stage_compare_zero
+stage_compare_byte:
+    mov al,byte ptr [handle_limit+si]
+    cmp al,byte ptr es:[handle_limit+si]
+    jne failed
+    jmp short stage_compare_next
+stage_compare_zero:
+    cmp byte ptr es:[handle_limit+si],0
+    jne failed
+stage_compare_next:
+    inc si
+    cmp si,37
+    jb stage_copied_check
+    cmp dword ptr [move_length],11223344h
+    jne failed
+    cmp dword ptr [move_source],22334455h
+    jne failed
+    cmp dword ptr [move_dest],33445566h
+    jne failed
+    push ds
+    push es
+    pop ds
+    mov cx,4
+    call xms_validate_owner
+    pop ds
+    jc failed
+    ; Test publication is a DS switch, NOT DOS/EMM public-entry publication.
+    push ds
+    push es
+    pop ds
+    pop es
+    xor si,si
+stage_poison_source:
+    mov byte ptr es:[handle_limit+si],0a5h
+    inc si
+    cmp si,37
+    jb stage_poison_source
+    push ds
+    pop es
     mov cx,4
     call owner_valid
     mov dx,16
@@ -112,16 +212,8 @@ allocator_test:
     jne failed
     test bx,bx
     jnz failed
-    mov esi,110000h
-    xor ecx,ecx
-seed_payload:
-    mov eax,ecx
-    xor eax,13579bdfh
-    mov gs:[esi],eax
-    add esi,4
-    add ecx,4
-    cmp ecx,32768
-    jb seed_payload
+    cmp dword ptr gs:[110000h],13579bdfh
+    jne failed
     mov dx,1
     call xms_unlock
     cmp ax,1
@@ -325,9 +417,5 @@ move_length dd 0
 move_source dd 0
 move_dest dd 0
 fail_copy db 0
-handles db 2
-    dw 64,32
-    db 1
-    dw 96,32
-    db 2*HANDLE_SIZE dup (0)
+handles db 4*HANDLE_SIZE dup (0)
 end

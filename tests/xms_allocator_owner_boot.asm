@@ -45,10 +45,10 @@ protected:
     mov ecx,STAGE_BYTES
     cld
     rep movsb
-    mov esi,8000h
     mov edi,210000h
     mov ecx,STAGE_BYTES
-    rep movsb
+    xor eax,eax
+    rep stosb                     ; no pre-seeded high allocator
     ; Valid state exists only at the data owner. A code-relative data access
     ; or selecting the code owner's data alias must fail, not read a mirror.
     mov edi,201000h
@@ -57,11 +57,12 @@ protected:
     rep stosb
     mov ax,10h
     mov gs,ax
-    mov ax,20h
+    mov ax,38h                    ; bootstrap allocator stays below 1 MiB
 %ifdef WRONG_OWNER
     mov ax,30h
 %endif
     mov ds,ax
+    mov ax,20h
     mov es,ax
     mov ax,28h
     mov ss,ax
@@ -76,6 +77,7 @@ gdt:
     dq 000092210000ffffh ; data owner at 2 MiB + 64 KiB
     dq 000092220000ffffh ; independent stack
     dq 000092200000ffffh ; negative-control data alias of code owner
+    dq 000092008000ffffh ; bootstrap data owner at physical 8000h
 gdt_ptr:
     dw $-gdt-1
     dd gdt

@@ -468,19 +468,20 @@ CS at 00200000h, DS at 00210000h and SS at 00220000h. The managed test pool is
 separate from those owners. The bootstrap poisons the code owner's data copy;
 host register/RAM snapshots require the distinct high selectors and untouched
 poison, validate released handle records, and compare all 32 KiB of original
-and relocated payload against an independent pattern. The guest starts with
-two existing handles locked twice/once, checks their identities and counts,
+and relocated payload against an independent pattern. The guest allocates
+two handles against a low bootstrap context, locks them twice/once and fills
+the first block before staging the context high. It checks identities and counts,
 allocates around them, then covers failed relocation, retry, locked-free
 rejection and release.
 `--wrong-owner` selects the poisoned code data alias and fails.
 
-Evidence: `out/xms-allocator-owner-97999rsf/`; the wrong-owner control fails in
-`out/xms-allocator-owner-2pqxtmgh/`. This isolated layout links 312 service bytes
+Evidence: `out/xms-allocator-owner-q3mqitue/`; the wrong-owner control fails in
+`out/xms-allocator-owner-4mk1haiw/`. This isolated layout links 312 service bytes
 and 243 helper bytes, excluding embedding adapters, copy backend, state and
 stack. Its shorter branch layout is not a saving from normal HIMEM's existing
 319+243-byte inventory. The fixture supplies a flat protected copy hook and
-does not install the service into EMM, exercise an XMS public frame, or transfer
-existing handles. Those contracts must be connected to the separately tested
+does not install the service into EMM or exercise an XMS public frame.
+Those contracts must be connected to the separately tested
 protected-copy entry before reclaiming any low state or code. Existing public
 DOS-high relocation/failure and mapped-copy regressions pass in
 `out/xms-copy-windows-dhz3obrc/` and `out/xms-copy-windows-u1gszc5q/`.
@@ -493,14 +494,29 @@ rejects an invalid limit/capacity, locked free records, HMA/pool violations,
 locked zero-length handles, adjacency and an empty pool remain legal.
 The CPU witness checks unchanged owner bytes and general/data-segment registers
 on acceptance and rejection. Its unconditional-success negative control
-(`--accept-invalid-owner`) fails in `out/xms-allocator-owner-t4aux6yw/`.
+(`--accept-invalid-owner`) fails in `out/xms-allocator-owner-z7bizqeq/`.
 
-This closes validation of the shared record format, not an atomic handoff:
-the fixture starts with seeded high records, not a live low-provider transfer.
-The routine is not installed in normal HIMEM or EMM. Source freezing, transfer
-of HMA/A20/UMB ownership, public-entry publication, rollback and coalescing low
-release remain required parts of the coordinated installation. Do not count
-this service-readiness test as reclaimed conventional memory.
+**Allocator staging:** `XMSSTAGE.INC` validates the stable source and destination
+capacity before writing, copies the handle limit, pool bound and records, and
+clears the idle move workspace. The embedding layout must provide contiguous
+move dwords and physically disjoint, fully backed contexts. The routine does
+not infer physical disjointness from segment selectors. It links to 84 bytes
+in the fixture; no normal HIMEM/EMM installation uses it yet.
+
+The witness starts the destination empty, rejects insufficient capacity and a
+malformed source without changing it, checks copied records and cleared scratch,
+then validates the destination before selecting it. After that switch it
+poisons the old low context; host RAM checks require that poison to survive
+the subsequent allocation, resize and release operations. Corrupting a staged
+lock count (`--corrupt-staged-owner`) fails before the switch in
+`out/xms-allocator-owner-2mhaj_92/`.
+
+This is a real allocator-context relocation inside an interrupt-disabled CPU
+fixture, not an installed-provider handoff. Its publication is only a DS switch.
+Production source freezing, HMA/A20/UMB ownership transfer, public-entry
+publication, rollback and coalescing low release remain required parts of the
+coordinated installation. Do not count this service-readiness test as reclaimed
+conventional memory.
 
 **Allocator failure boundary:** `ALLOCMEM.ASM:XMSAlloc` now permits the
 historical INT 15h allocation path only when INT 2Fh/4300h reports no XMS
