@@ -59,6 +59,24 @@ Prefer locked extended memory for protected manager owners, HMA for eligible
 DOS/BIOS/shell services, and UMB for eligible real-mode data. Do not begin
 another isolated instruction-shrinking tranche to close the 752-byte retail gap.
 
+The composition harness now writes `joint-residency.md`, reconciling linked
+BIOS/DOS boundaries with captured manager sizes and COMMAND/VC boundaries,
+alongside the shared BIOS/cache/shell HMA budget. It fails on an unexplained
+low remainder or a violated UMB floor. Its low partition is specific to the
+fixed high-CDS fixture (512-byte transfer area and STACKS=9,128); different
+resources require a new audited partition, not an automatic residual bucket.
+It does not infer boot identity from equal sizes or prove relocation safety.
+The fresh five-image run in `out/umb-fine-composition-yo28vax7/` passes this
+gate and reproduces the current totals. Twelve owner-accounting tests include
+stale maps/managers, missing or duplicate owners, incorrect free extents and
+the pre-table control; the normal DOS/BIOS census and HMA-budget tests pass.
+
+This closes the arithmetic ledger, **not the proposed final-layout checkpoint**.
+Only 936 BIOS bytes are currently identified as character/clock bodies plus
+conversion helpers, before gateway costs. Explaining the 10,064-byte vendor
+difference therefore requires the mixed BIOS service/state and combined-provider
+boundaries as well as the whole shell; those bodies alone cannot explain it.
+
 ### Pre-table baseline and standing compatibility constraints
 
 Maximize the largest conventional block by relocating complete resident
@@ -634,7 +652,7 @@ of the following owners, not a sequence of independently attractive savings:
 | --- | --- | --- |
 | DOS BIOS | Development retains 5,152 low bytes; disk body already moved | Partition stable device/interrupt/DMA state from high service bodies; identify exact released intervals |
 | DOS kernel and dynamic state | 5,632-byte low prefix, including the repaired SETVER owner; FILES/FCB and CDS relocation already counted | Qualify upper CDS consumers and budget interrupt stacks and remaining public/private state |
-| Combined memory managers | 6,480 low bytes; first split has 3,576 gross candidate bytes | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback |
+| Combined memory managers | 4,608 low bytes after complete high tables; the earlier 6,480-byte census predates that move | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback; do not count the moved tables again |
 | COMMAND | 3,984-byte owner span versus OpenDOS's 1,312 | Separate environment/PSP and asynchronous entry state from movable resident handlers; preserve reload contracts |
 | Shared high storage | 9,657 calculated development HMA bytes; 1,792-byte UMB margin after CDS | Reserve destinations once across all owners; account for locked XMS, alignment and displaced buffers |
 
@@ -645,11 +663,11 @@ not copied payload sizes. Include UMB and XMS costs in the same budget. Public
 tables cannot be moved merely because high space exists; retained low mirrors
 do not count as reclamation.
 
-The checkpoint passes only when the combined net budget covers at least 2,624
+The checkpoint passes only when the remaining combined net budget covers at least 752
 bytes while retaining the 47,888-byte free-UMB floor and configured resources.
 That is the retail acceptance threshold, not a ceiling on the design: identify
 further whole-object opportunities toward the OpenDOS result without promising
-its 11,936-byte lead over combined development as locally reclaimable storage.
+its current 10,064-byte lead over combined development as locally reclaimable storage.
 The OpenDOS disk-boot control is now measured; resource semantics and reset
 qualification remain open before adopting its totals as a target.
 

@@ -7,6 +7,8 @@ import json
 import os
 from pathlib import Path
 import shutil
+import subprocess
+import sys
 import tempfile
 from build_bios_low_image import build as build_bios
 from capture_vc_memory_comparison import capture, image_file, parse_capture, partition_offset, report
@@ -80,6 +82,16 @@ def main():
         config_sha256=sha(config), vc_sha256=sha(vc),
         input_sha256={name: sha(path.read_bytes()) for name, path in inputs.items()},
         results=results), indent=2) + "\n")
+    if args.high_cds:
+        with (work / "joint-residency.md").open("w") as census:
+            subprocess.run([
+                sys.executable, ROOT / "tests/report_dos_bios_residency.py",
+                ROOT / "src/DOS/MSDOS.MAP", work / "bios-cds/msBIO.map",
+                "--check", "--tail-body", "--boot-manifest", work / "bios-cds/low.json",
+                "--command-map", ROOT / "src/CMD/COMMAND/COMMAND.MAP",
+                "--composition", work / "results.json", "--variant",
+                "fine-cds-high-tables" if args.high_tables else "fine-cds",
+            ], check=True, stdout=census)
     assert results["retail"]["largest"] == 618736, results["retail"]
     assert results["retail"]["upper_free"] == 47888, results["retail"]
     # The authoritative retained SETVER table costs 640 bytes versus the
