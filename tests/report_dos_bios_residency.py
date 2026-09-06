@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 from dataclasses import dataclass
 from pathlib import Path
 import re
@@ -69,6 +71,29 @@ def require(symbols: dict[str, int], name: str) -> int:
         raise ValueError(f"required linker symbol {name!r} is missing") from error
 
 
+def hma_layout(sysbuf: int, buffer_bytes: int, bios_bytes: int = 0,
+               command_bytes: int = 0) -> list[tuple[str, int, int]]:
+    """Successful fixed-cache placement; not a prediction of low reclamation.
+
+    BOOTBIOS reserves at SYSBUF, SYSINIT builds the cache next, and COMMAND
+    uses the byte-granular DOS_HMA_TAIL_ALLOC. No paragraph rounding applies.
+    """
+    if not 0x10 <= sysbuf <= 0xFFF0:
+        raise ValueError("SYSBUF is outside usable HMA")
+    rows = [("DOS high image", 0x10, sysbuf)]
+    cursor = sysbuf
+    for name, size in (("Development BIOS reservation", bios_bytes),
+                       ("Hash plus buffer slots", buffer_bytes),
+                       ("COMMAND catalogs and high code", command_bytes)):
+        if size < 0 or cursor + size > 0xFFF0:
+            raise ValueError(f"{name} does not fit below the HMA safety tail")
+        rows.append((name, cursor, cursor + size))
+        cursor += size
+    rows.extend((("Unassigned DOS-owned tail", cursor, 0xFFF0),
+                 ("Deliberately unused safety tail", 0xFFF0, 0x10000)))
+    return rows
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("dos_map", type=Path)
@@ -78,7 +103,14 @@ def main() -> int:
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--tail-body", action="store_true",
                         help="audit the development BIOS with its fallback disk body after initialization")
+    parser.add_argument("--boot-manifest", type=Path,
+                        help="low.json for the linked early BIOS reservation (assume successful activation)")
+    parser.add_argument("--command-map", type=Path,
+                        help="include this permanent shell's linked catalogs/high body in the HMA budget")
     args = parser.parse_args()
+    if (args.boot_manifest or args.command_map) and (args.buffers != 15 or args.sector_size != 512):
+        parser.error("composed placement currently requires fifteen 512-byte buffers; "
+                     "mixed-cache and larger-sector layouts need runtime accounting")
 
     dos_segments, dos_symbols = parse_map(args.dos_map)
     bios_segments, bios_symbols = parse_map(args.bios_map)
@@ -186,6 +218,28 @@ def main() -> int:
     hma_buffer_bytes = args.buffers * (args.sector_size + buffer_header) + hash_entry
     hma_buffer_end = hma_buffer_base + hma_buffer_bytes
     hma_slack = hma_limit - hma_buffer_end
+    bios_bytes = command_bytes = 0
+    if args.boot_manifest:
+        manifest = json.loads(args.boot_manifest.read_text())
+        if not manifest["early_boot_installer"]:
+            raise ValueError("boot manifest has no early HMA installer")
+        if args.boot_manifest.parent.resolve() != args.bios_map.parent.resolve():
+            raise ValueError("boot manifest and BIOS map must come from the same build directory")
+        image = args.boot_manifest.parent / "IO.SYS"
+        if hashlib.sha256(image.read_bytes()).hexdigest() != manifest["sha256"]:
+            raise ValueError("boot manifest does not match IO.SYS")
+        bios_bytes = manifest["embedded_payload_bytes"]
+        if sysbuf + bios_bytes > manifest["reservation_limit"]:
+            raise ValueError("boot reservation would fail at the configured ceiling")
+    if args.command_map:
+        _, command_symbols = parse_map(args.command_map)
+        catalog_bytes = (require(command_symbols, "DATARESEND")
+                         - require(command_symbols, "resident_catalog_start"))
+        code_bytes = (require(command_symbols, "hma_code_end")
+                      - require(command_symbols, "hma_code_start"))
+        if min(catalog_bytes, code_bytes) < 0:
+            raise ValueError("COMMAND high allocation has reversed boundaries")
+        command_bytes = catalog_bytes + code_bytes
     if args.buffers < 1:
         errors.append("buffer count must be positive")
     if args.sector_size < 128 or args.sector_size > 0xFFFF - buffer_header:
@@ -201,6 +255,17 @@ def main() -> int:
     print(f"| Hash plus buffer slots | `{hma_buffer_base:04X}h..{hma_buffer_end:04X}h` | {hma_buffer_bytes:,} | DOS cache; entire high-mode lifetime |")
     print(f"| Available DOS-owned high storage | `{hma_buffer_end:04X}h..{hma_limit:04X}h` | {max(0, hma_slack):,} | unassigned, but not available through XMS |")
     print(f"| HMA safety tail | `{hma_limit:04X}h..10000h` | {0x10000 - hma_limit:,} | deliberately unused |")
+    print("\nThe table above excludes BIOS boot reservations and COMMAND. "
+          "It is not the post-shell destination budget.")
+    if args.boot_manifest or args.command_map:
+        print("\n### Composed HMA placement\n")
+        print("Calculated successful activation and cache/shell relocation, not a runtime "
+              "ownership probe or a conventional-memory saving. "
+              "Only explicitly supplied BIOS and COMMAND inputs are included.\n")
+        print("| Owner | HMA offsets | Bytes |")
+        print("| --- | --- | ---: |")
+        for owner, start, end in hma_layout(sysbuf, hma_buffer_bytes, bios_bytes, command_bytes):
+            print(f"| {owner} | `{start:04X}h..{end:04X}h` | {end - start:,} |")
 
     data_ranges = [
         ("Core file/disk workspace", "MSDAT001S", "RENAMEDMA"),

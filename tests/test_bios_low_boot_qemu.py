@@ -168,9 +168,15 @@ def main():
                  "-o", scratch / "I21COMP.COM"], ROOT)
     write_fixture(scratch, manifest, high_manifest)
     if args.tail_body:
+        # The linked census models the fixed 15-buffer budget, not mixed-cache
+        # fallback in the separate capacity matrix.
+        composition = (["--command-map", ROOT / "src/CMD/COMMAND/COMMAND.MAP"]
+                       if args.buffers == 15 else [])
+        if composition and args.early and not args.fail_reservation:
+            composition += ["--boot-manifest", scratch / "low.json"]
         with (scratch / "residency.md").open("w") as census:
             subprocess.run([sys.executable, ROOT / "tests/report_dos_bios_residency.py",
-                            "--check", "--tail-body", ROOT / "src/DOS/MSDOS.MAP",
+                            "--check", "--tail-body", *composition, ROOT / "src/DOS/MSDOS.MAP",
                             scratch / "msBIO.map"], stdout=census, check=True)
     if high_manifest["low_image_sha256"] != manifest["sha256"]:
         raise RuntimeError("high payload was bound against a different low BIOS")

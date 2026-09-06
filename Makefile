@@ -289,6 +289,7 @@ test-high-cds-composition:
 	python3 tests/test_umb_subpage_composition.py --high-cds
 
 test-dos-bios-residency: dos bios
+	python3 tests/test_hma_layout_budget.py
 	python3 tests/report_dos_bios_residency.py --check \
 		src/DOS/MSDOS.MAP src/BIOS/msBIO.map
 

@@ -50,7 +50,7 @@ Execution order (supersedes older implementation queues below):
    BIOS bytes and a 4,992-byte kernel prefix; these inventories are not promised
    savings. Public A20-off pointers cannot automatically become HMA pointers.
 4. Share HMA capacity between BIOS, state, buffers, and COMMAND. At fifteen
-   buffers, the calculated normal post-COMMAND tail is 15,389 bytes and the development
+   buffers, the calculated normal post-COMMAND tail is 15,533 bytes and the development
    BIOS reservation costs 5,220 more. Coarse development has only 16 bytes of
    free-UMB margin; combined fine mapping raises this to 4,112, and CDS placement
    consumes 2,320 of those bytes, leaving 1,792. Charge new
@@ -99,7 +99,7 @@ Do not turn this into five byte-harvesting quotas. A bulk placement change can
 outperform a retail component and cover another owner's excess. The next
 design must identify actual released intervals, their replacement gateways,
 and where each live allocation goes. The current development HMA capacity is
-approximately 10,169 bytes after COMMAND and the BIOS reservation, whereas
+10,313 bytes after COMMAND and the BIOS reservation, whereas
 free UMB has 1,792 bytes of margin after CDS placement. Capacity is not a predicted saving:
 moving a public table into HMA may be invalid, and a retained low duplicate
 saves nothing. An additional 1,984 net bytes would meet retail; exceeding it
@@ -188,7 +188,7 @@ of the following owners, not a sequence of independently attractive savings:
 | DOS kernel and dynamic state | 4,992-byte low prefix; FILES/FCB and CDS relocation already counted | Identify authoritative public-pointer owners versus private HMA-safe state; qualify upper CDS consumers and include interrupt stacks explicitly |
 | Combined memory managers | 6,480 low bytes; first split has 3,576 gross candidate bytes | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback |
 | COMMAND | 3,984-byte owner span versus OpenDOS's 1,312 | Separate environment/PSP and asynchronous entry state from movable resident handlers; preserve reload contracts |
-| Shared high storage | About 10,169 development HMA bytes; 1,792-byte UMB margin after CDS | Reserve destinations once across all owners; account for locked XMS, alignment and displaced buffers |
+| Shared high storage | 10,313 calculated development HMA bytes; 1,792-byte UMB margin after CDS | Reserve destinations once across all owners; account for locked XMS, alignment and displaced buffers |
 
 For each proposed object, record its current range, destination, live callers,
 address and A20 contract, low gateway cost, initialization/rollback behavior,
@@ -209,6 +209,36 @@ necessary dependency where near-pointer ownership prevents relocation, but
 accessor-only commits neither satisfy this checkpoint nor improve the memory
 score. Keep correctness repairs separate from savings claims. The checkpoint
 is currently **open**; the existing candidate census is not a complete layout.
+
+#### Reproducible shared HMA capacity
+
+`tests/report_dos_bios_residency.py` now composes the successful early BIOS
+reservation, fixed cache and permanent COMMAND allocation from the build
+manifest and linker maps. The current sequence is `0010h..9A80h` DOS,
+`9A80h..AEE4h` BIOS, `AEE4h..CE18h` cache, and `CE18h..D7A7h` COMMAND.
+The unassigned tail is **10,313 bytes**, ending at the `FFF0h` safety boundary.
+The former 10,169-byte estimate was 144 bytes too small; this correction
+creates no new free conventional memory and is not a runtime HMA probe.
+
+```sh
+python3 tests/report_dos_bios_residency.py --check --tail-body \
+  --boot-manifest out/umb-fine-composition-btuoykt7/bios-cds/low.json \
+  --command-map src/CMD/COMMAND/COMMAND.MAP \
+  src/DOS/MSDOS.MAP out/umb-fine-composition-btuoykt7/bios-cds/msBIO.map
+```
+
+Use maps from the selected build, not another prototype. The manifest is
+checked against its IO.SYS; linked capacity still assumes successful boot
+activation and shell relocation. The model deliberately supports only the
+fifteen-buffer, 512-byte-sector profile; mixed-cache capacity needs runtime
+accounting. Tail-body boot fixtures include this composed census for the fixed
+profile. Seven local budget tests cover ordering, single charging, exact fit,
+overflow, invalid sizes and the current composed boundary.
+Local `test_hma_qemu.sh` passes its normal high/low, tail-address, A20-return
+and EXEC checks. The early/rebased/compacted high-CDS `emm-high` fixture also
+passes with the composed census (`out/bios-low-boot-_iwk9bjx/`). This validates
+report integration, not a new development HMA runtime-address probe or the
+still-open whole-resident-layout checkpoint.
 
 #### Candidate layout A: manager objects plus the whole shell service body
 
@@ -248,7 +278,7 @@ than silently spending the 528-byte margin twice.
 Proposed destinations are the existing DOS-owned HMA for HIMEM's 1,672-byte
 service/data candidate and COMMAND's 2,451-byte body, and locked extended memory
 behind a protected selector for EMM386's complete 1,904-byte selected table
-object. The 4,123-byte additional HMA payload fits the calculated 10,169-byte
+object. The 4,123-byte additional HMA payload fits the current calculated 10,313-byte
 tail before relocation support costs; size the final linked high objects and
 XMS/page alignment separately. Existing high BIOS, kernel, buffers and shell
 catalogs remain where they are. No new UMB allocation is budgeted.
@@ -836,15 +866,16 @@ The development selected low BIOS is 5,152 bytes, fully partitioned as follows:
 The 3,578-byte fallback disk body is already outside this total. Counting it
 again as a new opportunity would double-count the completed disk placement.
 Even the 837-byte character/clock body plus 126-byte CMOS helpers cannot close
-the remaining 4,288-byte gap. Their 963-byte gross inventory precedes gateway
+the remaining 1,984-byte retail gap. Their 963-byte gross inventory precedes gateway
 and alignment costs; it is not a sufficient next architectural milestone.
 
 The placement design must therefore include another substantial owner: eligible
 DOS state, COMMAND's complete resident interface/state split, or the combined
 XMS/EMS low interface. Do not defer those ownership decisions behind serial
-small BIOS moves. Keep the 2,288-byte CDS allocation and interrupt-stack block
-low until their public-pointer/A20 contracts have an acceptable destination;
-the 16-byte UMB margin rules out simply copying DR-DOS's upper-data policy.
+small BIOS moves. CDS is already upper in the combined development fixture;
+qualify its public-pointer consumers before promotion. Keep the interrupt-stack
+block low until its asynchronous contract has a jointly budgeted destination;
+the remaining 1,792-byte UMB margin cannot hold its 1,840 bytes plus overhead.
 The next design checkpoint remains open until exact net released intervals
 cover the gap; the census supplies bounds, not that proof.
 
@@ -868,12 +899,11 @@ HIMEM listing now partitions every fixed byte by service; reproduce with
 | EMM386 stack alignment and transition stack | 513 | Retain until the real-mode continuation has its own safe stack |
 | **Total** | **6,480** | No new saving yet |
 
-This first split has only **3,576 linked candidate bytes** before new gateways,
-selectors, alignment and retained state. It therefore cannot by itself promise
-the 4,288-byte target: at least 712 additional net bytes plus those costs must
-come from another owner or a deeper low-interface redesign. Keep COMMAND's
-resident-interface split in the joint budget; do not assume manager integration
-alone closes the gap.
+This first split has **3,576 linked candidate bytes** before new gateways,
+selectors, alignment and retained state. It is larger than the current retail
+deficit but not a net savings proof, and it cannot explain the 11,328-byte
+OpenDOS difference. Keep COMMAND and BIOS in the joint design; do not equate
+manager integration or meeting retail with completing the resident layout.
 
 Source constraints that determine the prototype:
 
@@ -2634,9 +2664,10 @@ and process suites, and sixteen buffer-capacity cases including 38 and 39.
 The current linker puts SYSBUF at 9A80h: the HMA image is 39,536 bytes, 48
 above the older 39,488-byte capture (including the preceding SHARE fix).
 With unchanged fifteen-buffer and COMMAND allocations, calculated normal
-post-COMMAND slack is 15,389 bytes before the 5,220-byte development BIOS
-reservation. Older 15,437-byte budget figures below describe that earlier
-capture; do not spend the additional 48 bytes. This compatibility fix claims
+post-COMMAND slack is 15,533 bytes before the 5,220-byte development BIOS
+reservation. The composed linked census corrects the former 15,389-byte
+estimate; the discrepancy is accounting, not reclaimed memory. Older
+15,437-byte budget figures below are superseded. This compatibility fix claims
 no new conventional-memory gain.
 The development all-high cache boundary consequently drops from 39 buffers to
 38: 39 now uses mixed buckets. The requested count and I/O remain intact, but
