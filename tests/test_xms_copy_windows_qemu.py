@@ -24,6 +24,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--image", type=Path, default=ROOT / "out/floppy.img")
     parser.add_argument("--mode", choices=("ON", "OFF", "AUTO"), default="ON")
+    parser.add_argument("--public-api", action="store_true",
+                        help="pair development HIMEM with the protected backend through XMS Move")
+    parser.add_argument("--bypass-public-backend", action="store_true",
+                        help="negative control: keep standalone HIMEM despite protected-copy fault injection")
     parser.add_argument("--leave-active", action="store_true",
                         help="negative control: fail to restore OFF/idle AUTO")
     parser.add_argument("--fail-after-map", action="store_true")
@@ -49,6 +53,12 @@ def main():
         parser.error("EMS-mapped tests require ON; inactive modes test physical service entry")
     if args.leave_active and args.mode == "ON":
         parser.error("--leave-active requires OFF or AUTO")
+    if args.public_api and args.bypass_mapping:
+        parser.error("public handle-zero semantics do not accept private address-class overrides")
+    if args.public_api and args.deny_later_page:
+        parser.error("late-page injection also hits public setup moves; use --fail-after-map for public faults")
+    if args.bypass_public_backend and not (args.public_api and args.fail_after_map):
+        parser.error("--bypass-public-backend requires --public-api --fail-after-map")
     if args.fail_after_map and args.bad_data:
         parser.error("the data control requires a completed copy")
     if args.fail_after_map and args.mapped or args.bypass_mapping and not args.mapped:
@@ -96,6 +106,12 @@ def main():
         subprocess.run([str(ROOT / "bin/wlink"), "/NOI /PACKDATA:1 @EMM386.LNK"],
                        cwd=work / "MEMM", check=True, stdout=log, stderr=subprocess.STDOUT)
     candidate = work / "MEMM/EMM386.EXE"
+    himem = ROOT / "src/DEV/HIMEM/HIMEM.SYS"
+    if args.public_api and not args.bypass_public_backend:
+        himem = work / "HIMEM.SYS"
+        subprocess.run([str(ROOT / "bin/jwasm-bin"), "-q", "-bin",
+                        "-DHIMEM_PROTECTED_COPY_TEST", f"-Fo{himem}",
+                        str(ROOT / "src/DEV/HIMEM/HIMEM.ASM")], check=True)
     _, symbols = parse_map(work / "MEMM/EMM386.MAP")
     symbols = {symbol.name: symbol for symbol in symbols}
     code_size = symbols["XmsCopyPhysicalEnd"].offset - symbols["XmsCopyPhysical"].offset
@@ -105,6 +121,7 @@ def main():
     probe = work / "probe.com"
     subprocess.run(["nasm", "-f", "bin", *(["-DEXPECT_MAP_FAILURE"] if args.fail_after_map else []),
                     f"-DEXPECT_MODE={dict(ON=0, OFF=1, AUTO=3)[args.mode]}",
+                    *(["-DPUBLIC_COPY"] if args.public_api else []),
                     *(["-DWRONG_DATA"] if args.bad_data else []),
                     *(["-DMAPPED_ENDPOINT"] if args.mapped else []),
                     *(["-DBYPASS_MAPPING"] if args.bypass_mapping else []),
@@ -122,7 +139,7 @@ def main():
         subprocess.run(["mcopy", "-o", "-i", str(image), str(source), "::" + target],
                        input=data, env=env, check=True)
     install(candidate, "EMM386.EXE")
-    install(ROOT / "src/DEV/HIMEM/HIMEM.SYS", "HIMEM.SYS")
+    install(himem, "HIMEM.SYS")
     install(probe, "PROBE.COM")
     install("-", "CONFIG.SYS", ("DEVICE=HIMEM.SYS /TESTMEM:OFF\r\n"
                                f"DEVICE=EMM386.EXE 1024 {args.mode} M5\r\n").encode("ascii"))
@@ -134,6 +151,7 @@ def main():
     assert re.search(r"MBTAR_GSEL\s+equ\s+RCODEA_GSEL\+20h", selectors)
     endpoint, debug = work / "qmp", work / "debug.bin"
     report = dict(passed=False, mode=args.mode, fail_after_map=args.fail_after_map, core_bytes=code_size,
+                  public_api=args.public_api, bypass_public_backend=args.bypass_public_backend,
                   leave_active=args.leave_active, inactive_entry_bytes=inactive_size,
                   real_return_adapter_bytes=return_size,
                   client_bytes=client_size, mapped=args.mapped, bypass_mapping=args.bypass_mapping,
@@ -144,7 +162,7 @@ def main():
                   normal_sha256=normal_hash, candidate_sha256=hashlib.sha256(candidate.read_bytes()).hexdigest(),
                   probe_sha256=hashlib.sha256(probe.read_bytes()).hexdigest(), bad_data=args.bad_data,
                   image_sha256=hashlib.sha256(args.image.read_bytes()).hexdigest(),
-                  himem_sha256=hashlib.sha256((ROOT / "src/DEV/HIMEM/HIMEM.SYS").read_bytes()).hexdigest(),
+                  himem_sha256=hashlib.sha256(himem.read_bytes()).hexdigest(),
                   emulator=subprocess.check_output(["qemu-system-i386", "--version"], text=True).splitlines()[0],
                   ram_mib=32, checkpoints=[])
     process = subprocess.Popen([
@@ -163,7 +181,10 @@ def main():
         with socket.socket(socket.AF_UNIX) as connection:
             connection.connect(str(endpoint))
             qmp = QMP(connection)
-            for expected in ((b"A", b"AM", b"AMN", b"AMNB") if args.mapped else (b"A", b"AB")):
+            checkpoints = [b"A", b"AM", b"AMN", b"AMNB"] if args.mapped else [b"A", b"AB"]
+            if args.public_api and not (args.fail_after_map or args.alias_overlap):
+                checkpoints.append(checkpoints[-1] + b"R")
+            for expected in checkpoints:
                 deadline = time.monotonic() + 30
                 while True:
                     trace = debug.read_bytes() if debug.exists() else b""
@@ -208,7 +229,7 @@ def main():
                     before = next(row for row in report["checkpoints"] if row["phase"] == "M")
                     if [hashlib.sha256(data).hexdigest() for data in ranges] != before["range_hashes"]:
                         raise ValueError("later-page rejection wrote earlier destination bytes")
-                if phase in ("N", "B") and not args.fail_after_map and ranges != expected_ranges:
+                if phase in ("N", "B", "R") and not args.fail_after_map and ranges != expected_ranges:
                     raise ValueError("actual high physical RAM does not contain both copied ranges")
                 hashes = [hashlib.sha256(data).hexdigest() for data in ranges]
                 cr3 = int(re.search(r"CR3=([0-9a-fA-F]+)", regs)[1], 16)
@@ -275,7 +296,11 @@ def main():
                 if row["descriptors"] != report["checkpoints"][0]["descriptors"]:
                     raise ValueError("copy descriptors were not restored")
                 first = report["checkpoints"][0]
-                if base != first["physical_block_base"] or (args.fail_after_map and hashes != first["range_hashes"]):
+                if phase == "R":
+                    previous = report["checkpoints"][-2]
+                    if base == first["physical_block_base"] or hashes != previous["range_hashes"]:
+                        raise ValueError("public reallocation did not move the block with both payloads intact")
+                elif base != first["physical_block_base"] or (args.fail_after_map and hashes != first["range_hashes"]):
                     raise ValueError("allocation identity changed or failed mapping wrote data")
                 qmp.call("cont")
                 qmp.call("send-key", {"keys": [{"type": "qcode", "data": "spc"}], "hold-time": 1})

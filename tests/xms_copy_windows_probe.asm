@@ -46,6 +46,7 @@ org 100h
     jb .fill
     mov al,'A'
     call checkpoint
+%ifndef PUBLIC_COPY
     ; Rejected requests must not poison a later valid transaction.
     mov eax,[physical]
     mov [packet_source],eax
@@ -60,6 +61,7 @@ org 100h
     test ah,ah
     jnz failed
     mov dword [packet_length],8192
+%endif
     xor eax,eax
     mov ax,cs
     shl eax,4
@@ -144,6 +146,15 @@ org 100h
 %endif
     mov al,'B'
     call checkpoint
+%ifdef PUBLIC_COPY
+%ifndef EXPECT_MAP_FAILURE
+%ifndef ALIAS_OVERLAP
+    call public_reallocate_test
+    mov al,'R'
+    call checkpoint
+%endif
+%endif
+%endif
     mov dx,[block]
     mov ah,0dh
     call far [xms]
@@ -203,7 +214,9 @@ mapped_test:
     mov al,'M'
     call checkpoint
     mov dword [packet_flags],4
+%ifndef PUBLIC_COPY
     call reject ; no implicit acceptance of unknown address classes
+%endif
     movzx eax,word [ems_frame]
     shl eax,4
     add eax,4093
@@ -337,9 +350,13 @@ copy:
     popad
     push cs
     pop es
+%ifdef PUBLIC_COPY
+    call public_copy
+%else
     mov si,packet
     mov ah,87h
     int 15h
+%endif
     call check_mode
     pushf
     pushad
@@ -350,6 +367,163 @@ copy:
     popad
     popf
     ret
+%ifdef PUBLIC_COPY
+public_reallocate_test:
+    mov dx,[block]
+    mov ah,0dh
+    call far [xms]
+    cmp ax,1
+    jne failed
+    mov dx,32
+    mov ah,9
+    call far [xms]
+    cmp ax,1
+    jne failed
+    mov [blocker],dx
+    mov ah,0ch
+    call far [xms]
+    cmp ax,1
+    jne failed
+    movzx eax,dx
+    shl eax,16
+    mov ax,bx
+    sub eax,[physical]
+    cmp eax,32768 ; prove the following interval blocks in-place growth
+    jne failed
+    mov ah,7
+    call far [xms]
+    mov [a20_before],ax
+    mov dx,[block]
+    mov bx,64
+    mov ah,0fh
+    call far [xms]
+    cmp ax,1
+    jne failed
+    call check_mode
+    mov ah,7
+    call far [xms]
+    cmp ax,[a20_before]
+    jne failed
+    mov dx,[block]
+    mov ah,0ch
+    call far [xms]
+    cmp ax,1
+    jne failed
+    movzx eax,dx
+    shl eax,16
+    mov ax,bx
+    cmp eax,[physical]
+    je failed ; the existing handle must now refer to a different physical block
+    mov [physical],eax
+    push eax
+    mov dx,[block]
+    mov ah,0eh
+    call far [xms]
+    cmp ax,1
+    jne failed
+    cmp dx,64
+    jne failed
+    cmp bh,1
+    jne failed
+    pop eax
+    add eax,4093
+    mov [packet_source],eax
+    xor eax,eax
+    mov ax,cs
+    shl eax,4
+    add eax,target
+    mov [packet_dest],eax
+    mov dword [packet_length],8192
+    call copy
+    jc failed
+    mov si,source
+    mov di,target
+    mov cx,8192
+    cld
+    repe cmpsb
+    jne failed
+%ifdef MAPPED_ENDPOINT
+    xor bx,bx
+.restore_pattern:
+    xor byte [source+bx],0ffh
+    inc bx
+    cmp bx,8192
+    jb .restore_pattern
+%endif
+    mov eax,[physical]
+    add eax,16391
+    mov [packet_source],eax
+    call copy
+    jc failed
+    mov si,source
+    mov di,target
+    mov cx,8192
+    cld
+    repe cmpsb
+    jne failed
+    mov dx,[blocker]
+    mov ah,0dh
+    call far [xms]
+    cmp ax,1
+    jne failed
+    mov dx,[blocker]
+    mov ah,0ah
+    call far [xms]
+    cmp ax,1
+    jne failed
+    ret
+public_copy:
+    mov eax,[packet_length]
+    mov [public_packet],eax
+    mov eax,[packet_source]
+    call public_endpoint
+    mov [public_packet+4],dx
+    mov [public_packet+6],eax
+    mov eax,[packet_dest]
+    call public_endpoint
+    mov [public_packet+10],dx
+    mov [public_packet+12],eax
+    mov si,public_packet
+    mov ah,0bh
+    call far [xms]
+    cmp ax,1
+    je .ok
+    test ax,ax
+    jnz failed
+    cmp bl,8eh ; existing HIMEM backend-failure translation
+    jne failed
+    mov ah,2 ; normalize only after checking actual public AX/BL
+    stc
+    ret
+.ok:
+    xor ah,ah
+    clc
+    ret
+public_endpoint:
+    cmp eax,110000h
+    jb .conventional
+    sub eax,[physical]
+    jc failed
+    cmp eax,32768
+    jae failed
+    mov dx,[block]
+    ret
+.conventional:
+    cmp eax,0ffff0h
+    jb .low
+    sub eax,0ffff0h
+    or eax,0ffff0000h
+    xor dx,dx
+    ret
+.low:
+    mov edx,eax
+    and edx,15
+    shr eax,4
+    shl eax,16
+    or eax,edx
+    xor dx,dx
+    ret
+%endif
 check_mode:
     pushf
     pushad
@@ -407,5 +581,9 @@ packet_length:
 packet_source dd 0
 packet_dest dd 0
 packet_flags dd 0
+%ifdef PUBLIC_COPY
+public_packet times 16 db 0
+blocker dw 0
+%endif
 source times 8192 db 0
 target times 8192 db 0

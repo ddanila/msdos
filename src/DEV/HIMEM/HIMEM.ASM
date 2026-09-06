@@ -66,9 +66,17 @@ a20_global      dw      0
 a20_target      db      0
 caller_ds       dw      0
 caller_si       dw      0
+ifdef HIMEM_PROTECTED_COPY_TEST
+; Paired development image only: EMM_XMS_COPY_TEST must be installed before
+; any move. This is not a negotiated public provider handoff or low release.
+protected_copy_packet db 'XCPY'
+endif
 move_length     dd      0
 move_source     dd      0
 move_dest       dd      0
+ifdef HIMEM_PROTECTED_COPY_TEST
+move_address_classes dd 0
+endif
 move_offset_error db    0
 highest_page   dw      0
 
@@ -833,6 +841,9 @@ realloc_resize:
         mov     word ptr [si+HANDLE_LENGTH], bx
         jmp     xms_success
 realloc_move:
+ifdef HIMEM_PROTECTED_COPY_TEST
+        mov     word ptr [move_address_classes],0 ; both owners are XMS backing
+endif
         push    si
         push    bx
         call    find_gap
@@ -877,6 +888,17 @@ xms_move proc near
         push    es
         mov     es, [caller_ds]
         mov     di, [caller_si]
+ifdef HIMEM_PROTECTED_COPY_TEST
+        mov     word ptr [move_address_classes],0
+        cmp     word ptr es:[di+4],0
+        jne     short protected_source_handle
+        or      word ptr [move_address_classes],1
+protected_source_handle:
+        cmp     word ptr es:[di+10],0
+        jne     short protected_dest_handle
+        or      word ptr [move_address_classes],2
+protected_dest_handle:
+endif
         mov     ax, word ptr es:[di]
         test    al, 1
         jnz     short move_bad_length
@@ -1136,6 +1158,18 @@ resolve_bad_handle:
 resolve_move_address endp
 
 copy_move_blocks proc near
+ifdef HIMEM_PROTECTED_COPY_TEST
+        push    si
+        push    es
+        push    cs
+        pop     es
+        mov     si,offset protected_copy_packet
+        mov     ah,087h
+        int     015h
+        pop     es
+        pop     si
+        ret
+else
 copy_move_next:
         mov     ax, word ptr [move_length]
         mov     dx, word ptr [move_length+2]
@@ -1185,6 +1219,7 @@ copy_move_done:
 copy_move_fail:
         stc
         ret
+endif
 copy_move_blocks endp
 
 ; DX:AX=linear base, DI=descriptor. The BIOS move service uses 16-bit limits.

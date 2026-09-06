@@ -2970,6 +2970,46 @@ allocator transfer, DOS's cached entry publication and low-image reclamation
 remain unimplemented. This experiment establishes a reusable mode path, not a
 second low implementation of the protected service.
 
+#### Public XMS Move/reallocation through the development backend
+
+`HIMEM_PROTECTED_COPY_TEST` replaces HIMEM's BIOS-copy loop with the private
+protected-copy packet. XMS Move classifies handle-zero endpoints as client
+addresses and allocated handles as physical backing; reallocating copy resets
+both classes to physical. Existing handle validation and the XMS entry remain
+in HIMEM. This paired-build experiment requires the matching development EMM
+to be installed before any moves: it is **not** a negotiated provider interface,
+standalone fallback, allocator handoff or reclamation of the low HIMEM image.
+Normal HIMEM and EMM386 stay byte-identical; the normal HIMEM census still
+passes at 2,608 installed bytes.
+
+`--public-api` builds both peers privately and runs transfers through XMS
+function 0Bh, checking actual AX success and BL=8Eh on backend failure before
+normalizing results for the shared probe. It also forces function 0Fh to move a
+32-KiB block to a new 64-KiB allocation by locking the immediately following
+block. The same handle must report its new size and physical base, and both
+8-KiB payloads must survive. The host's extra R checkpoint independently verifies
+the changed physical base and unchanged payloads, with the original execution
+mode and copy-window cleanup preserved. Owners are unlocked/freed afterward.
+
+Run `make test-xms-public-copy-qemu`, or use the Python helper with `--image`
+and `--public-api`. Passing evidence: Move plus forced relocation in OFF
+`out/xms-copy-windows-awdo61ld/`, active mapped transfers and relocation
+`out/xms-copy-windows-nxpepaun/`, AUTO relocation
+`out/xms-copy-windows-2oyi6i6k/`, public alias rejection
+`out/xms-copy-windows-yc6t6oep/`, and AUTO injected-copy failure
+`out/xms-copy-windows-a50eeg4i/`. Adding `--bypass-public-backend` to the public
+failure case retains standalone HIMEM and fails in
+`out/xms-copy-windows-pet16wv9/`, proving that the injected failure is observed
+only when the public call actually reaches the new backend.
+
+This matrix uses the DOS-low 32-MiB fixture. DOS-high composition,
+public error-code parity, failure during relocating reallocation, full register
+and far-descriptor contracts, forced A20/activation failures, and nested-call
+ownership remain qualification work. The packet still uses shared HIMEM move
+state; do not treat it as reentrant. These tests establish both real public copy
+consumers of the protected service, not the final coordinated provider or a
+conventional-memory gain.
+
 The census also now distinguishes handle zero's conventional physical pages
 from locked XMS backing: `_total_pages` includes both. It checks the ordered
 physical records and derives the relocation tail from extended pages only.
