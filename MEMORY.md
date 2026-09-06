@@ -468,12 +468,14 @@ CS at 00200000h, DS at 00210000h and SS at 00220000h. The managed test pool is
 separate from those owners. The bootstrap poisons the code owner's data copy;
 host register/RAM snapshots require the distinct high selectors and untouched
 poison, validate released handle records, and compare all 32 KiB of original
-and relocated payload against an independent pattern. The guest covers
-allocation, locking, failed relocation, retry, locked-free rejection and release.
+and relocated payload against an independent pattern. The guest starts with
+two existing handles locked twice/once, checks their identities and counts,
+allocates around them, then covers failed relocation, retry, locked-free
+rejection and release.
 `--wrong-owner` selects the poisoned code data alias and fails.
 
-Evidence: `out/xms-allocator-owner-xuvdujyt/`; the wrong-owner control fails in
-`out/xms-allocator-owner-bwzu2h52/`. This isolated layout links 312 service bytes
+Evidence: `out/xms-allocator-owner-97999rsf/`; the wrong-owner control fails in
+`out/xms-allocator-owner-2pqxtmgh/`. This isolated layout links 312 service bytes
 and 243 helper bytes, excluding embedding adapters, copy backend, state and
 stack. Its shorter branch layout is not a saving from normal HIMEM's existing
 319+243-byte inventory. The fixture supplies a flat protected copy hook and
@@ -482,6 +484,23 @@ existing handles. Those contracts must be connected to the separately tested
 protected-copy entry before reclaiming any low state or code. Existing public
 DOS-high relocation/failure and mapped-copy regressions pass in
 `out/xms-copy-windows-dhz3obrc/` and `out/xms-copy-windows-u1gszc5q/`.
+
+**Existing-owner validation:** `XMSSTATE.INC` supplies a read-only startup
+validator (140 linked bytes in this fixture), not another allocator. The caller
+supplies the backed record capacity and must stabilize the owner. Validation
+rejects an invalid limit/capacity, locked free records, HMA/pool violations,
+16-bit range wrap and overlapping nonempty allocations. Stale free lengths,
+locked zero-length handles, adjacency and an empty pool remain legal.
+The CPU witness checks unchanged owner bytes and general/data-segment registers
+on acceptance and rejection. Its unconditional-success negative control
+(`--accept-invalid-owner`) fails in `out/xms-allocator-owner-t4aux6yw/`.
+
+This closes validation of the shared record format, not an atomic handoff:
+the fixture starts with seeded high records, not a live low-provider transfer.
+The routine is not installed in normal HIMEM or EMM. Source freezing, transfer
+of HMA/A20/UMB ownership, public-entry publication, rollback and coalescing low
+release remain required parts of the coordinated installation. Do not count
+this service-readiness test as reclaimed conventional memory.
 
 **Allocator failure boundary:** `ALLOCMEM.ASM:XMSAlloc` now permits the
 historical INT 15h allocation path only when INT 2Fh/4300h reports no XMS
