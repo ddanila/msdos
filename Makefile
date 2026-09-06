@@ -366,6 +366,7 @@ test-high-cds-composition:
 
 test-dos-bios-residency: dos bios
 	python3 tests/test_dos_copy_size.py
+	python3 tests/test_dos_prefix_references.py
 	python3 tests/test_system_owners.py
 	python3 tests/test_hma_layout_budget.py
 	python3 tests/test_bios_character_partition.py

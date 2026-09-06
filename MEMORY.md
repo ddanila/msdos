@@ -449,6 +449,38 @@ low table. Classify these bindings before repacking either image; removing a
 high duplicate creates destination capacity, not conventional savings. Do not
 count 5,602 bytes as available or overwrite the prefix wholesale.
 
+**Copied-prefix dependency audit:** the source-level census now finds explicit
+CS operands naming 29 linked prefix symbols, plus 35 unresolved operands
+(including register-indexed accesses). Reproduce after building the current DOS:
+
+```sh
+make dos
+python3 tests/report_dos_prefix_references.py src/DOS/MSDOS.MAP
+```
+
+`--json` includes each instruction/site and map/source hashes. This scans local
+DOS `.ASM`/`.INC` files, including conditional source, not assembled execution:
+it neither proves reachability nor certifies an unreferenced range as unused.
+Includes outside that directory, macro expansion, computed pointers and
+CS-derived DS/ES accesses still require manual audit. Six parser tests run in
+`make test-dos-bios-residency`; all 53 tests and the linked census pass.
+
+The concrete ownership decisions extend beyond immutable tables:
+
+| Dependency | Source evidence | Required decision before removing the high prefix |
+| --- | --- | --- |
+| Main INT 21 dispatch | `DISP.ASM:DISPCALL` indexes `CS:Dispatch[BX]` | Keep one high dispatch owner or explicitly select a retained low table |
+| Public state and mirrored working state | CS operands reference CurrentPDB, INDOS, EXTERR, CALLXAD, EXITHOLD and callback stack fields | Classify each reader/writer and authoritative owner; do not delete the high copy based on its low allocation |
+| SETVER | `EXEC.ASM:Scan_Special_Entries` reads the root through CS but selects the low table through SS-derived ES; temporary/version state is CS-relative | Separate the public 640-byte low table from the root and private high execution state |
+| Country/case tables | `DOSMES.ASM:MAP_CASE` derives DS from CS before XLAT; `MSINIT.ASM` initializes exported far table pointers | Audit implicit segment selection and public pointers as well as explicit CS operands |
+
+This rules out treating the copied prefix as a single disposable HMA object.
+The layout choice is to keep it charged in full initially, or redesign these
+ownership contracts and pack the surviving high objects together. Any recovered
+HMA capacity can fund BIOS/COMMAND placement, but is **not** conventional-memory
+release. The shared available HMA budget remains 9,577 bytes until that redesign
+is linked and runtime-qualified; no extra capacity or new low saving is credited.
+
 The next checkpoint must therefore show both the final low allocation boundary
 and the packed high owner for BIOS, DOS state, managers and COMMAND. Candidate
 A remains a partial, unvalidated retail-floor proposal: its 4,816-byte forecast
