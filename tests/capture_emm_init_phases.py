@@ -12,13 +12,18 @@ import capture_drdos_memory as capture
 
 
 def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
-                lifecycle=False):
+                lifecycle=False, loader=False):
     order = ([1, 9, 10] if rejected else
              [1, 9, *range(2, 9)] if split else list(range(1, 9)))
     if activation_stack:
         order = order[:2] + [12] + order[2:] + [13]
     if lifecycle:
         order.append(15)
+    if loader:
+        if not data.endswith(b"LD"):
+            raise ValueError("missing SYSINIT callback completion")
+        data = data[:-2]
+        order.insert(2, 17)
     if len(data) != len(order) * 13:
         raise ValueError("incomplete or unexpected initialization trace")
     result = []
@@ -34,7 +39,11 @@ def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
 
 
 def check_phases(rows, mode, *, split=False, rejected=False, activation_stack=False,
-                 lifecycle=False):
+                 lifecycle=False, loader=False):
+    if loader:
+        if any(rows[2][key] != rows[1][key] for key in ("pe", "int15", "int67")):
+            raise ValueError("loader resume changed prepared machine state")
+        rows = rows[:2] + rows[3:]
     if lifecycle:
         if any(rows[-1][key] != rows[-2][key] for key in ("pe", "int15", "int67")):
             raise ValueError("rejected lifecycle calls changed terminal machine state")
@@ -64,10 +73,39 @@ def check_phases(rows, mode, *, split=False, rejected=False, activation_stack=Fa
             raise ValueError("final interrupt entry was not published")
 
 
+def build_loader(work, *, rejected=False, bad_version=False):
+    """Private normal-layout BIOS; only SYSCONF opts into the boot handshake."""
+    bios = work / "BIOS"
+    shutil.copytree(capture.ROOT / "src/BIOS", bios)
+    original = capture.sha256(capture.ROOT / "src/BIOS/IO.SYS")
+    options = "-DBIOS_DEFER_PROVIDER"
+    if rejected:
+        options += " -DBIOS_PROVIDER_CANCEL"
+    if bad_version:
+        options += " -DBIOS_PROVIDER_BAD_VERSION"
+    for defines in ("", options):
+        subprocess.run([str(capture.ROOT / "bin/jwasm-masm"),
+                        f"-I. -I../INC {defines}", "SYSCONF.ASM,SYSCONF.OBJ;"],
+                       cwd=bios, check=True, stdout=subprocess.DEVNULL)
+        subprocess.run([str(capture.ROOT / "bin/wlink"), "@MSBIO.LNK"],
+                       cwd=bios, check=True, stdout=subprocess.DEVNULL)
+        subprocess.run([str(capture.ROOT / "bin/exe2bin"), "MSBIO.EXE", "MSBIO.BIN"],
+                       cwd=bios, input=b"70\n", check=True, stdout=subprocess.DEVNULL)
+        (bios / "IO.SYS").write_bytes((bios / "MSLOAD.COM").read_bytes()
+                                     + (bios / "MSBIO.BIN").read_bytes())
+        if not defines and capture.sha256(bios / "IO.SYS") != original:
+            raise RuntimeError("normal BIOS reconstruction differs; rebuild bios first")
+    return bios / "IO.SYS", original
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image", type=Path)
     parser.add_argument("--split-prepare", action="store_true")
+    parser.add_argument("--loader", action="store_true",
+                        help="return from INIT and resume through a private SYSINIT callback")
+    parser.add_argument("--loader-bad-version", action="store_true",
+                        help="advertise an unsupported version; require synchronous fallback")
     parser.add_argument("--lifecycle", action="store_true",
                         help="exercise invalid calls before prepare, after prepare and after completion")
     parser.add_argument("--bad-lifecycle-control", action="store_true",
@@ -82,6 +120,15 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.loader_bad_version:
+        args.loader = True
+    if args.loader:
+        args.split_prepare = True
+        if any((args.lifecycle, args.bad_lifecycle_control, args.activation_stack,
+                args.bad_stack_control, args.poison_request, args.bad_pool_control)):
+            parser.error("--loader uses SYSINIT's stack; do not combine adapter-only witnesses")
+        if args.loader_bad_version and args.reject_prepared:
+            parser.error("version fallback control requires the normal activation path")
     if args.bad_lifecycle_control:
         args.lifecycle = True
     if args.lifecycle:
@@ -101,11 +148,15 @@ def main():
     work = Path(tempfile.mkdtemp(prefix="emm-init-phases-", dir=capture.ROOT / "out"))
     print(f"Evidence: {work}", flush=True)
     shutil.copytree(capture.ROOT / "src/MEMM", work / "MEMM")
+    if args.loader:
+        shutil.copytree(capture.ROOT / "src/INC", work / "INC")
     build = work / "MEMM/MEMM"
     original = capture.sha256(capture.ROOT / "src/MEMM/MEMM/EMM386.EXE")
     trace_defines = "-DEMM_INIT_PHASE_TRACE"
     if args.split_prepare:
         trace_defines += " -DEMM_SPLIT_PREPARE"
+    if args.loader:
+        trace_defines += " -DEMM_DEFER_PROVIDER"
     if args.lifecycle:
         trace_defines += " -DEMM_PROVIDER_LIFECYCLE"
     if args.bad_lifecycle_control:
@@ -130,12 +181,19 @@ def main():
         if not define and capture.sha256(build / "EMM386.EXE") != original:
             raise RuntimeError("default reconstruction differs from production; rebuild memm first")
     qexit = work / "QEXIT.COM"
+    loader_image = None
+    loader_hash = None
+    if args.loader:
+        loader_image, loader_hash = build_loader(
+            work, rejected=args.reject_prepared, bad_version=args.loader_bad_version)
     subprocess.run(["nasm", "-f", "bin", str(capture.QEMU_EXIT_SOURCE),
                     "-o", str(qexit)], check=True)
     records = {}
     for mode in ("ON", "OFF", "AUTO", "RAM"):
         image = work / f"{mode}.img"
         shutil.copyfile(args.image, image)
+        if loader_image:
+            capture.install_file(image, loader_image, "IO.SYS")
         for source, name in ((build / "EMM386.EXE", "EMM386.EXE"),
                              (capture.ROOT / "src/DEV/HIMEM/HIMEM.SYS", "HIMEM.SYS"),
                              (qexit, "QEXIT.COM")):
@@ -161,10 +219,12 @@ def main():
         records[mode] = parse_trace(trace.read_bytes(), split=args.split_prepare,
                                    rejected=args.reject_prepared,
                                    activation_stack=args.activation_stack,
-                                   lifecycle=args.lifecycle)
+                                   lifecycle=args.lifecycle,
+                                   loader=args.loader and not args.loader_bad_version)
         check_phases(records[mode], mode, split=args.split_prepare,
                      rejected=args.reject_prepared, activation_stack=args.activation_stack,
-                     lifecycle=args.lifecycle)
+                     lifecycle=args.lifecycle,
+                     loader=args.loader and not args.loader_bad_version)
         print(mode, json.dumps(records[mode]), flush=True)
     if capture.sha256(args.image) != image_hash:
         raise RuntimeError("input image changed")
@@ -175,6 +235,9 @@ def main():
         poison_request=args.poison_request,
         activation_stack=args.activation_stack,
         lifecycle=args.lifecycle,
+        loader=args.loader, loader_bad_version=args.loader_bad_version,
+        normal_bios_sha256=loader_hash,
+        loader_bios_sha256=capture.sha256(loader_image) if loader_image else None,
         emulator=capture.qemu_identity(), records=records), indent=2) + "\n")
 
 

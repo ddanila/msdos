@@ -434,8 +434,8 @@ fails with stage 14 in `out/emm-init-phases-29sbx1an/`. Seven host tests pass;
 the normal binary remains byte-identical. The test stack is discardable, not a
 new permanent stack or a validated minimum capacity.
 
-These remain internal near entries with prepared DGROUP state, not a published
-loader ABI. The adapter still resumes synchronously. The development split now
+The synchronous adapter uses internal near entries with prepared DGROUP state;
+the optional loader callback below wraps them. The development split now
 enforces a single-use boot lifecycle: cold → preparing → prepared, then either
 activating → active or cancelling → cancelled. Initialization errors enter a
 terminal failed state; the adapter owns preparation-error cleanup. Only a
@@ -459,13 +459,46 @@ API/runtime-command suite (`emm-api.log`). Eight host tests pass. The normal
 EMM386 binary remains byte-identical. These checks do not prove rollback from
 every partial activation failure or preservation of every cached client entry.
 
-A final-base move, bootstrap XMS ownership, callback versioning and the complete
-low/high budget remain unimplemented. The next architectural deliverable is a
+A final-base move, bootstrap XMS ownership, relocation-capability negotiation
+and the complete low/high budget remain unimplemented. The next architectural
+deliverable is a
 loader/provider transaction that releases the original low allocation into the
 application free block, with complete high owners and a measured retained low
 boundary. Lifecycle guards and independent return frames are prerequisites,
 not memory savings or completion of that deliverable. Keep BIOS and COMMAND
 in the joint budget; do not substitute additional byte-harvesting work.
+
+**Loader-owned activation:** `EMM_DEFER_PROVIDER` and `BIOS_DEFER_PROVIDER`
+now negotiate a development-only v1 callback through INIT's eight reserved
+bytes (`src/INC/BOOTPROV.INC`). The low DEVICE path offers the protocol to the
+first `EMMXXXX0` header; DEVICEHIGH and subsequent headers retain synchronous
+initialization. A matching provider returns prepared through both INIT and the
+driver interrupt wrapper. SYSINIT then calls activate or cancel on its own
+stack, before linking the driver or accepting its final break. The far wrapper
+requires the original packet and negotiated version, supplies DGROUP, clears
+BP, and delegates to the guarded near operations. SYSINIT bounds the callback
+against the loaded file span and clears the negotiation bytes before continuing.
+This does not advertise relocation or integrated XMS ownership. An invalid
+callback address is an installation error; recovery of its reserved backing is
+not yet established, so this remains a private development path.
+
+Reproduce with `make bios memm test-emm-init-phases`, then
+`python3 tests/capture_emm_init_phases.py IMAGE --loader`. The four activation
+modes pass in `out/emm-init-phases-vhqyqi24/`; `--reject-prepared` restores the
+XMS pool in `out/emm-init-phases-s4ktox8q/`; `--loader-bad-version` confirms
+synchronous fallback in `out/emm-init-phases-yx2q0fb_/`. Stage 17 records the
+prepared CPU/vector state at the far callback; the trailing `LD` witness comes
+from SYSINIT after it returns. Nine host tests check the phase contracts,
+including absent/duplicate loader completion and changed resume state. Private
+reconstruction checks preserve the normal BIOS and EMM binaries.
+The loader-driven activation image also passes `tests/test_emm386_qemu.sh`,
+including no-HIMEM allocation and the full API/runtime-command suite; its
+evidence directory retains `emm-api.log`.
+
+The loaded provider address still does not change. Before allowing a move,
+account for both EXE segment relocations and pointers/state derived during
+preparation, including the original request and external XMS owner. Do not
+reuse `CompactFirstHimem` or treat the callback as proof of low reclamation.
 
 ##### Whole-system placement rules
 

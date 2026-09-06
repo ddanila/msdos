@@ -433,6 +433,9 @@ PREPARE_ERROR TEXTEQU <ProviderPrepareFailed>
 else
 PREPARE_ERROR TEXTEQU <IE_exit>
 endif
+ifdef EMM_DEFER_PROVIDER
+        include ../../INC/BOOTPROV.INC
+endif
 
 ; Development witness: invalid calls must return ERROR/CF without modifying
 ; the lifecycle owner or the message flags used by cleanup/finalization.
@@ -496,6 +499,22 @@ ifdef EMM_SPLIT_PREPARE
         jc ProviderAdapterFinish
         INIT_PHASE 9
         PROVIDER_REJECT PrepareProvider, PROVIDER_PREPARED
+ifdef EMM_DEFER_PROVIDER
+        ; Return completely through the device interrupt wrapper to SYSINIT.
+        ; Do not retain any return address or saved-register slot from INIT.
+        les bx,cs:[prepare_request]
+        cmp byte ptr es:[bx],24
+        jb ProviderNoLoader
+        cmp word ptr es:[bx+BP_MAGIC_OFF],BP_MAGIC
+        jne ProviderNoLoader
+        cmp word ptr es:[bx+BP_VERSION_OFF],BP_VERSION
+        jne ProviderNoLoader
+        mov word ptr es:[bx+BP_CALLBACK_OFF],offset ProviderLoaderEntry
+        mov word ptr es:[bx+BP_CALLBACK_OFF+2],cs
+        xor ax,ax
+        jmp ProviderAdapterReturn
+ProviderNoLoader:
+endif
 ifdef EMM_POISON_INIT_REQUEST
         ; Test only: activation must not recover the request from saved DS/BX.
         ; Restore only when the adapter returns, even on failure.
@@ -572,6 +591,7 @@ ifdef EMM_POISON_INIT_REQUEST
         mov ss:[bp+10],ax
         pop ax
 endif
+ProviderAdapterReturn:
         pop es
         pop ds
         pop di
@@ -579,6 +599,60 @@ endif
         pop dx
         pop bx
         retf
+ifdef EMM_DEFER_PROVIDER
+; AX operation, ES:BX original INIT packet. Preserve all other registers.
+; Invalid calls must not finalize or free any owner. Only the original loader
+; packet and negotiated version are accepted while LAST remains live.
+ProviderLoaderEntry LABEL FAR
+        cmp bx,word ptr cs:[prepare_request]
+        jne ProviderLoaderInvalid
+        push ax
+        mov ax,es
+        cmp ax,word ptr cs:[prepare_request+2]
+        pop ax
+        jne ProviderLoaderInvalid
+        cmp word ptr es:[bx+BP_MAGIC_OFF],BP_MAGIC
+        jne ProviderLoaderInvalid
+        cmp word ptr es:[bx+BP_VERSION_OFF],BP_VERSION
+        jne ProviderLoaderInvalid
+        cmp ax,BP_ACTIVATE
+        je ProviderLoaderValid
+        cmp ax,BP_CANCEL
+        jne ProviderLoaderInvalid
+ProviderLoaderValid:
+        push bx
+        push cx
+        push dx
+        push si
+        push di
+        push bp
+        push ds
+        push es
+        mov dx,seg DGROUP
+        mov ds,dx
+        xor bp,bp
+        INIT_PHASE 17
+        cmp ax,BP_CANCEL
+        je ProviderLoaderCancel
+        call ActivateProvider
+        jmp short ProviderLoaderReturn
+ProviderLoaderCancel:
+        call CancelProvider
+ProviderLoaderReturn:
+        pop es
+        pop ds
+        pop bp
+        pop di
+        pop si
+        pop dx
+        pop cx
+        pop bx
+        retf
+ProviderLoaderInvalid:
+        mov ax,ERROR
+        stc
+        retf
+endif
 ; Internal, single-threaded boot contract. A rejected transition has no cleanup
 ; side effects. The state and near entries expire when LAST is discarded.
 ProviderInvalid:

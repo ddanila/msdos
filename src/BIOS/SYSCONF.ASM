@@ -92,6 +92,9 @@ DOSSIZE EQU	0A000H
 	include smifssym.inc	;AN000; Reduced version of IFSSYM.INC.
 	include DEVMARK.inc	;AN004;
 	include version.inc
+IFDEF BIOS_DEFER_PROVIDER
+        include BOOTPROV.INC
+ENDIF
 .list
 
 	IF	NOT IBMJAPVER
@@ -1708,6 +1711,13 @@ GO_AHEAD_LOAD:
 	MOV	CL,12
 	SHL	DX,CL			; Low nibble of DX to high nibble
 	OR	AX,DX			; AX is now # of para for file
+IFDEF BIOS_DEFER_PROVIDER
+        push dx
+        mov dx,cs:[MEMHI]
+        add dx,ax
+        mov cs:[ProviderLoadEnd],dx
+        pop dx
+ENDIF
 
 	MOV	CX,ES			; CX:0 is xaddr
 	ADD	CX,AX			; New device will take up to here
@@ -1821,10 +1831,16 @@ Got_Device_Com:
 Got_Device_Com_Cont:			;AN017;
 	pop	si			;AN017;
 	pop	ds			;AN017;
+IFDEF BIOS_DEFER_PROVIDER
+        call ProviderOffer
+ENDIF
 	MOV	BX,SDEVSTRAT
 	invoke	CALLDEV 		;   CallDev (SDevStrat);
 	MOV	BX,SDEVINT
 	invoke	CALLDEV 		;   CallDev (SDevInt);
+IFDEF BIOS_DEFER_PROVIDER
+        call ProviderResume
+ENDIF
 End_Init_Call:
 	RestoreReg  <SI,DS>
 	MOV	BYTE PTR [SI],0 	;   *p = 0;
@@ -2024,6 +2040,103 @@ Bad_BPB_Size_Sector:
 Skip2_ResetMEMHI:
 	call	DeviceHighAbort
 	JMP	COFF
+
+IFDEF BIOS_DEFER_PROVIDER
+ProviderLoadEnd dw 0
+; Only advertise to the selected character-device surface; an ordinary EMM
+; ignores the reserved bytes and completes synchronous INIT as before.
+ProviderOffer PROC NEAR
+        push ax
+        push bx
+        push ds
+        mov word ptr cs:[PACKET+BP_MAGIC_OFF],0
+        mov word ptr cs:[PACKET+BP_VERSION_OFF],0
+        mov word ptr cs:[PACKET+BP_CALLBACK_OFF],0
+        mov word ptr cs:[PACKET+BP_CALLBACK_OFF+2],0
+        cmp cs:[DeviceHighActive],0
+        jne ProviderOfferDone
+        cmp word ptr cs:[ENTRY_POINT],0
+        jne ProviderOfferDone
+        lds bx,cs:[ENTRY_POINT]
+        cmp word ptr [bx+10],4d45h
+        jne ProviderOfferDone
+        cmp word ptr [bx+12],584dh
+        jne ProviderOfferDone
+        cmp word ptr [bx+14],5858h
+        jne ProviderOfferDone
+        cmp word ptr [bx+16],3058h
+        jne ProviderOfferDone
+        mov word ptr cs:[PACKET+BP_MAGIC_OFF],BP_MAGIC
+IFDEF BIOS_PROVIDER_BAD_VERSION
+        mov word ptr cs:[PACKET+BP_VERSION_OFF],BP_VERSION+1
+ELSE
+        mov word ptr cs:[PACKET+BP_VERSION_OFF],BP_VERSION
+ENDIF
+ProviderOfferDone:
+        pop ds
+        pop bx
+        pop ax
+        ret
+ProviderOffer ENDP
+
+ProviderResume PROC NEAR
+        push ax
+        push bx
+        push cx
+        push dx
+        push es
+        test word ptr cs:[PACKET+3],8000h
+        jnz ProviderResumeDone
+        cmp word ptr cs:[PACKET+BP_MAGIC_OFF],BP_MAGIC
+        jne ProviderResumeDone
+        cmp word ptr cs:[PACKET+BP_VERSION_OFF],BP_VERSION
+        jne ProviderResumeDone
+        mov ax,word ptr cs:[PACKET+BP_CALLBACK_OFF+2]
+        or ax,ax
+        jz ProviderResumeDone
+        cmp ax,word ptr cs:[ENTRY_POINT+2]
+        jb ProviderResumeInvalid
+        mov dx,word ptr cs:[PACKET+BP_CALLBACK_OFF]
+        mov cl,4
+        shr dx,cl
+        add ax,dx
+        jc ProviderResumeInvalid
+        cmp ax,cs:[ProviderLoadEnd]
+        jae ProviderResumeInvalid
+        ; INIT and its driver interrupt wrapper have both returned. SYSINIT
+        ; owns this call frame and the original packet, not driver stack slots.
+        push cs
+        pop es
+        mov bx,offset PACKET
+IFDEF BIOS_PROVIDER_CANCEL
+        mov ax,BP_CANCEL
+ELSE
+        mov ax,BP_ACTIVATE
+ENDIF
+        call dword ptr cs:[PACKET+BP_CALLBACK_OFF]
+        or ax,0100h             ; standard INIT completion status
+        mov word ptr cs:[PACKET+3],ax
+        mov dx,0e9h
+        mov al,'L'
+        out dx,al
+        mov al,'D'
+        out dx,al
+        jmp short ProviderResumeDone
+ProviderResumeInvalid:
+        mov word ptr cs:[PACKET+3],8103h
+ProviderResumeDone:
+        mov word ptr cs:[PACKET+BP_MAGIC_OFF],0
+        mov word ptr cs:[PACKET+BP_VERSION_OFF],0
+        mov word ptr cs:[PACKET+BP_CALLBACK_OFF],0
+        mov word ptr cs:[PACKET+BP_CALLBACK_OFF+2],0
+        pop es
+        pop dx
+        pop cx
+        pop bx
+        pop ax
+        ret
+ProviderResume ENDP
+ENDIF
 
 ; DOS=HIGH is known from the CONFIG pre-scan. Once repository HIMEM has
 ; completed INIT, move DOS high, copy HIMEM into the released tail, and rebase

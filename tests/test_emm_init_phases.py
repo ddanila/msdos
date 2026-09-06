@@ -98,6 +98,25 @@ class InitPhaseTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "lifecycle"):
                         check_phases(rows, mode, **flags)
 
+    def test_loader_return_and_resume(self):
+        for mode in ("ON", "OFF", "AUTO", "RAM"):
+            for rejected in (False, True):
+                base = self.trace(mode)
+                def record(stage):
+                    return base[:2] + bytes([stage]) + base[3:13]
+                data = (base[:13] + record(9) + record(17)
+                        + (record(10) if rejected else base[13:]) + b"LD")
+                flags = dict(split=True, rejected=rejected, loader=True)
+                rows = parse_trace(data, **flags)
+                check_phases(rows, mode, **flags)
+                for invalid in (data[:-2], data + b"LD",
+                                data.replace(b"IP\x11", b"IP\x09")):
+                    with self.assertRaises(ValueError):
+                        parse_trace(invalid, **flags)
+                rows[2]["int15"] = "changed"
+                with self.assertRaisesRegex(ValueError, "loader resume"):
+                    check_phases(rows, mode, **flags)
+
 
 if __name__ == "__main__":
     unittest.main()
