@@ -395,6 +395,7 @@ test-command-residency: cmd_command
 test: test-emm-relocation-budget
 test-emm-relocation-budget: memm
 	python3 tests/test_emm_relocation_budget.py
+	python3 tests/test_emm_live_owners.py
 	python3 tests/report_emm386_residency.py --check src/MEMM/MEMM/EMM386.MAP
 	python3 tests/report_emm386_residency.py --check --page-assignments 20 \
 		src/MEMM/MEMM/EMM386.MAP

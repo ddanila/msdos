@@ -1311,6 +1311,56 @@ python3 tests/report_emm386_residency.py --check \
   src/MEMM/MEMM/EMM386.MAP
 ```
 
+#### Live locked-XMS owner verification
+
+`tests/capture_emm_live_owners.py` installs freshly built repository HIMEM and
+EMM386 into a disposable copy of our repaired DOS-low floppy. It snapshots the
+guest after a read-only entry-segment probe, then checks the live XMS handle,
+CR3, GDT descriptors and low table roots against their matching build maps.
+This tool is for our implementation only, never vendor binary reconstruction.
+
+Two QEMU 486/8 MiB captures pass with HIMEM `/NUMHANDLES=32` and `48`,
+respectively. Both explicitly request `EMM386.EXE 1024 RAM M5`:
+
+| Owner or allocation | First capture physical range/base |
+| --- | --- |
+| Once-locked XMS handle | `110000h..223000h` (1,126,400 bytes) |
+| Configured EMS backing | `110000h..210000h` (1 MiB) |
+| Relocation reservation | `210000h..223000h` (77,824 bytes) |
+| CR3 / page directory | `211000h` |
+| IDT / TSS | `217B40h` / `217F00h` |
+| Protected code base | `21A430h` |
+| Source-accounted unconsumed reservation | `21ED03h..223000h` (17,149 bytes) |
+| Low dynamic tables | `D3EFh..DCD5h` (2,278 bytes) |
+| Low transition stack | `DCE0h`, 512 bytes |
+
+The shifted boot moves low data/stack and the relocated IDT/TSS by 80 bytes,
+while the XMS allocation, CR3 and code base stay unchanged. IDT/TSS offsets
+must be calculated from the **runtime-aligned original page directory**, not
+the linked PAGESEG base. The current production selector numbers and HIMEM's
+lock/base/length record layout are checked explicitly.
+
+This floppy fixture exposes 28 mappable windows, versus the six-window profile
+used by the 1,904-byte sizing example. Its live H=64/A=7, 64-page, D=1 counts
+account for all 2,278 table bytes. It is not a new VC comparison or a replacement
+for the combined development fixture. Both table sizes fit the existing tail;
+maximum-capacity top-up and transactional publication are still required.
+Unused capacity is inferred from the audited allocator consumers and verified
+live bases, not from zero-filled memory. A 64 KiB descriptor limit does not
+mean 64 KiB of code was copied or allocated. The table owner is still low.
+
+Raw RAM, registers, configuration and hash-pinned results are in
+`out/emm-live-owners-r5gk5kdi/` and `out/emm-live-owners-u3oiz7gp/`.
+Five host tests cover decoding, production selector constants, wrong lock/base/
+limit/count/tail cases, and CR3 mismatch. They run with the relocation-budget
+target. Reproduce the live checks separately:
+
+```sh
+python3 tests/capture_emm_live_owners.py out/setver-native-audit.BAEqDU/low.img
+python3 tests/capture_emm_live_owners.py --himem-handles 48 \
+  out/setver-native-audit.BAEqDU/low.img
+```
+
 #### First split and retained interfaces
 
 The current dispatcher no longer has the historical protected-service bitmap
