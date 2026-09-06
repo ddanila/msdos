@@ -128,6 +128,27 @@ def linear(paragraph: int, offset: int) -> int:
     return paragraph * 16 + offset
 
 
+def relocation_budget(segments: list[Segment], symbols: list[Symbol]) -> dict[str, int]:
+    """Model MEMREQ and the two NOHIMEM get_buffer consumers, not live RAM."""
+    by_name = {segment.name: segment for segment in segments}
+    last_start = next(symbol for symbol in symbols if symbol.name == "LAST_start")
+    page_span = ((by_name["LAST"].paragraph - by_name["PAGESEG"].paragraph) * 16
+                 + last_start.offset)
+    text_paras = by_name["VDATA"].paragraph - by_name["_TEXT"].paragraph
+    # Match the assembler's word arithmetic, including its non-page-rounded
+    # KiB result and the extra paragraph copied by RelocateText.
+    if not 0 < page_span <= 0xffff - 4096 or not 0 < text_paras * 16 <= 0xffff - 19:
+        raise ValueError("relocation size exceeds the loader's word arithmetic")
+    reserved = (((page_span + 4095) >> 10) + (text_paras >> 6) + 1 + 16) * 1024
+    page_request = page_span + 4096
+    text_request = text_paras * 16 + 16 + 3
+    unused = reserved - page_request - text_request
+    if unused < 0:
+        raise ValueError("relocation consumers exceed MEMREQ reservation")
+    return {"reserved": reserved, "page_request": page_request,
+            "text_request": text_request, "unused": unused}
+
+
 def symbol_offset(symbols: list[Symbol], name: str, paragraph: int) -> int:
     matches = [
         symbol.offset
@@ -397,6 +418,18 @@ def main() -> int:
 
     print("# EMM386 residency census\n")
     print(f"Map: `{args.map}`\n")
+    budget = relocation_budget(segments, symbols)
+    print("## Locked-XMS relocation tail (source model)\n")
+    print("| Reservation or consumer | Bytes |")
+    print("| --- | ---: |")
+    for label, key in (("MEMREQ reservation, separate from EMS pool", "reserved"),
+                       ("InitTab PAGESEG-through-LAST_start plus alignment", "page_request"),
+                       ("RelocateText copy plus alignment", "text_request"),
+                       ("Unconsumed reservation after both requests", "unused")):
+        print(f"| {label} | {budget[key]:,} |")
+    print("\nAssumes the compiled NOHIMEM XMS path and both successful requests.")
+    print("Unused reservation is locked capacity, not a live VDATA copy or a saving.")
+    print("Validate selector ownership and runtime bounds before consuming it.\n")
     print("| Segment | Link address | Linked bytes | Lifetime |")
     print("| --- | ---: | ---: | --- |")
     unknown_segments: list[str] = []

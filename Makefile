@@ -391,6 +391,12 @@ test-command-residency: cmd_command
 	python3 tests/report_command_residency.py --check \
 		src/CMD/COMMAND/COMMAND.MAP src/CMD/COMMAND/COMMAND.COM
 
+.PHONY: test-emm-relocation-budget
+test: test-emm-relocation-budget
+test-emm-relocation-budget: memm
+	python3 tests/test_emm_relocation_budget.py
+	python3 tests/report_emm386_residency.py --check src/MEMM/MEMM/EMM386.MAP
+
 test-himem-residency: $(BIN)/jwasm-bin
 	python3 tests/test_himem_ownership.py
 	mkdir -p $(OUT)

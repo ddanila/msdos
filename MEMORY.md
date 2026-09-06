@@ -537,6 +537,8 @@ Charge high-side support separately against the remaining HMA capacity.
 The 1,904-byte EMM table requires a locked, selector-addressable owner; a new
 page allocation would require at least 4,096 bytes before other support.
 Existing XMS slack is not free capacity until its live ranges are verified.
+The linked relocation-tail model below now establishes substantial reserved
+capacity; runtime ownership and publication remain the gates for using it.
 
 This proposal deliberately leaves BIOS and DOS state unchanged, so it does
 not explain the full OpenDOS result. The next architectural design must also
@@ -1227,6 +1229,52 @@ The next design checkpoint remains open until exact net released intervals
 cover the gap; the census supplies bounds, not that proof.
 
 ### Combined manager split: source-audited prototype boundary
+
+#### Existing locked-XMS backing, before another allocation
+
+The compiled `NOHIMEM` path in `ALLOCMEM.ASM:XMSAlloc` requests one locked
+handle containing the configured EMS pool followed by `SHIPHI.ASM:MEMREQ`'s
+relocation reservation. `EXTPOOL.ASM:Get_Buffer` consumes that tail linearly.
+The two current direct consumers are `InitTab` (page tables, IDT/TSS and
+alignment) and `RelocateText` (the logical code copy and alignment). `SHIPHI`
+also contains a helper call, but has no current callers. This is our own source
+audit, unrelated to vendor internals.
+
+`make test-emm-relocation-budget` builds the current worktree and checks the
+linked reservation model, including word-overflow rejection. The audited build
+includes the still-uncommitted EMMSUP access-boundary preparation; its map
+SHA-256 is `600dde32803463fea74a4c18f0e82e69f1419fe03059686bf0bbd5feba080c56`.
+
+| Locked relocation-tail accounting | Bytes |
+| --- | ---: |
+| MEMREQ reservation, excluding configured EMS pool | 77,824 |
+| InitTab request, including worst-case page alignment | 42,032 |
+| RelocateText request, including alignment | 18,803 |
+| Unconsumed reservation after both successful requests | 16,989 |
+
+The 1,904-byte selected VDATA object fits this modeled remainder, leaving
+15,085 bytes before its own alignment/support. A separate XMS allocation is
+therefore not yet justified. Reserve through the existing allocator, preserve
+the configured EMS pool, and test the largest supported table profile too.
+Do not expose the leftover reservation as application XMS or count its reuse
+as a conventional saving.
+
+There is no existing authoritative high VDATA copy: `RelocateText` copies only
+through the VDATA segment base plus one paragraph, not its selected tables.
+`CompactVData` then copies the complete table object into the low code suffix
+and rebases its near roots. High code still resolves those roots through low
+DGROUP. Capacity alone cannot replace that ownership/access contract.
+
+Before publishing a high owner, record its exact allocation bounds and selector,
+copy and validate all tables, then switch every consumer transactionally.
+Only afterward may the low table range be released and the transition stack
+rebased. Preserve the old layout on failure. The allocator state itself is
+discardable initialization storage, so allocation must occur before that
+boundary; runtime code must retain the published owner, not call Get_Buffer.
+Four model tests and the complete linked residency check pass. This is linked
+capacity evidence, not a runtime high-data move or a passing layout checkpoint.
+
+#### First split and retained interfaces
 
 The fixed profile installs 2,592 HIMEM plus 3,888 EMM386 bytes. The checked
 HIMEM listing now partitions every fixed byte by service; reproduce with
