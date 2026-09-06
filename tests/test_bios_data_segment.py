@@ -55,8 +55,8 @@ class DataSegmentTests(unittest.TestCase):
                              labels["BIOS_DEVICE_ENTRIES_START"], 84)
             # Until an installer commits, compiling the feature must leave all
             # original command targets in place, including the purge patch area.
-            table = (ROOT / "src/BIOS/MSBDATA.INC").read_text().split("DSKTBL", 1)[1]
-            table = table.split("CONTBL", 1)[0]
+            table = re.search(r"^DSKTBL\b.*?^CONTBL\b",
+                              (ROOT / "src/BIOS/DEVTABLE.INC").read_text(), re.M | re.S)[0]
             targets = re.findall(r"^\s*DW\s+([\w$]+)", table, re.M | re.I)
             entries = re.findall(r"^BIOS_DEVICE_ENTRY (\d+),([^,]+),([^,]+),([^\s]+)$",
                                  (ROOT / "src/BIOS/HIGHDEV.INC").read_text(), re.M)

@@ -9,6 +9,14 @@
 ; *_FIXUP labels identify the three CS-relative metadata operands. A loader
 ; copying to another offset in the code segment rebases those words by the
 ; copy delta, not the low table/data offsets or completion pointer contents.
+; TABLES_HIGH additionally binds TABLE_SEGMENT and TABLE_DELTA. Input SI is
+; still a low-table identity; only table reads translate it. Publish this
+; binding after copying all tables and applying the selected boot patches.
+IFDEF BIOS_DISPATCH_TABLES_HIGH
+IFNDEF BIOS_DISPATCH_SEPARATE
+        .ERR <high tables require the separate decoder binding>
+ENDIF
+ENDIF
 IFDEF BIOS_DISPATCH_SEPARATE
         push word ptr cs:[BIOS_DISPATCH_LOW_SEGMENT]
 BIOS_DISPATCH_DATA_FIXUP1 equ $-2
@@ -46,6 +54,13 @@ ELSE
         mov cs:START_SEC_H,0
 ENDIF
 DSK_REQ_CONT:
+IFDEF BIOS_DISPATCH_TABLES_HIGH
+        push word ptr cs:[BIOS_DISPATCH_TABLE_SEGMENT]
+BIOS_DISPATCH_TABLE_SEG_FIXUP equ $-2
+        pop es
+        add si,cs:[BIOS_DISPATCH_TABLE_DELTA]
+BIOS_DISPATCH_TABLE_ADD_FIXUP equ $-2
+ENDIF
         xchg di,ax
         mov al,byte ptr ds:[bx].CMD
 IFDEF BIOS_DISPATCH_SEPARATE
@@ -64,6 +79,15 @@ ENDIF
         shl ax,1
         add si,ax
         xchg ax,di
+IFDEF BIOS_DISPATCH_TABLES_HIGH
+        ; Stack the low tail target while ES still selects the table owner.
+        ; Restore the legacy SI value before handing off to a service.
+        push word ptr cs:[BIOS_DISPATCH_LOW_SEGMENT]
+BIOS_DISPATCH_TARGET_SEG_FIXUP equ $-2
+        push word ptr es:[si+1]
+        sub si,cs:[BIOS_DISPATCH_TABLE_DELTA]
+BIOS_DISPATCH_TABLE_SUB_FIXUP equ $-2
+ENDIF
         les di,dword ptr ds:[bx].TRANS
 IFDEF BIOS_DISPATCH_SEPARATE
         push word ptr cs:[BIOS_DISPATCH_LOW_SEGMENT]
@@ -77,8 +101,10 @@ ENDIF
 IFDEF BIOS_DISPATCH_SEPARATE
         ; The table's current target may already be a low high-service gate.
         ; Read it at dispatch time so boot purge/publication policy is retained.
+IFNDEF BIOS_DISPATCH_TABLES_HIGH
         push ds
         push word ptr [si+1]
+ENDIF
         retf
 ELSE
         jmp word ptr [si+1]

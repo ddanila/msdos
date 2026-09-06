@@ -19,6 +19,10 @@ def main():
                         default=Path(os.environ.get("FLOPPY_IMAGE", ROOT / "out/floppy.img")))
     parser.add_argument("--omit-a20-restore", action="store_true",
                         help="negative control: bypass the low E705h restoration")
+    parser.add_argument("--high-tables", action="store_true",
+                        help="copy the complete command tables high and poison the low originals")
+    parser.add_argument("--stale-table", action="store_true",
+                        help="negative control: omit the post-publication table update")
     args = parser.parse_args()
     subprocess.run(["make", "dos", "bios", str(ROOT / "src/DEV/HIMEM/HIMEM.SYS")],
                    cwd=ROOT, check=True)
@@ -27,6 +31,10 @@ def main():
     flags = f"-I{ROOT / 'src/BIOS'} -DSEPARATE_TEST -DHMA_TEST"
     if args.omit_a20_restore:
         flags += " -DOMIT_A20_RESTORE"
+    if args.high_tables:
+        flags += " -DHIGH_TABLES_TEST"
+    if args.stale_table:
+        flags += " -DSTALE_TABLE"
     assembled = subprocess.run([str(ROOT / "bin/jwasm-masm"), flags,
                                 f"{ROOT / 'tests/bios_dispatch_masm.asm'},{work / 'probe.obj'};"],
                                capture_output=True)
@@ -70,11 +78,14 @@ def main():
               ROOT / "src/DEV/HIMEM/HIMEM.SYS", ROOT / "src/BIOS/DISPATCH.INC",
               ROOT / "src/BIOS/MSBSEG.INC", ROOT / "src/BIOS/HIGHROM.INC",
               ROOT / "src/BIOS/COMPLETE.INC",
+              ROOT / "src/BIOS/DEVTABLE.INC",
               ROOT / "tests/bios_dispatch_masm.asm", Path(__file__),
               work / "probe.exe", image, work / "CONFIG.SYS", work / "AUTOEXEC.BAT"]
     passed = code == 33 and trace == b"BP"
     report = dict(passed=passed, exit_code=code, timed_out=timed_out,
                   trace_hex=trace.hex(), omit_a20_restore=args.omit_a20_restore,
+                  high_tables=args.high_tables,
+                  stale_table=args.stale_table,
                   cpu="486", ram_mib=8,
                   emulator=subprocess.check_output(["qemu-system-i386", "--version"], text=True).splitlines()[0],
                   inputs={str(path): hashlib.sha256(path.read_bytes()).hexdigest() for path in inputs})

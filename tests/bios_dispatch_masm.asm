@@ -1,6 +1,11 @@
 ; Execute the production decoder/completion with distinct code, BIOS data,
 ; request packet and transfer owners. HMA_TEST also qualifies the A20 gate.
 .8086
+ODD macro
+        if ($-CODE) mod 2 eq 0
+        db 0
+        endif
+endm
 UNIT equ 1
 CMD equ 2
 STATUS equ 3
@@ -44,6 +49,8 @@ ifdef WRONG_ERROR_ENTRY
         mov word ptr es:[BIOS_DISPATCH_ERROR_ENTRY],offset accepted_target
 endif
 endif
+        ; Same kind of boot policy patch as PURGE_96TPI, before publication.
+        mov word ptr [TABLE_PATCH],offset EXIT
 ifdef HMA_TEST
         call install_hma_decoder
         mov al,'B'
@@ -69,9 +76,25 @@ endif
         cmp word ptr cs:[START_SEC_H],1234h
         jne failed
         ; Observe a table patched after decoder binding, not a stale copy.
+        mov word ptr cs:[table_offset],offset AUXTBL
+        call run_request
+        mov word ptr cs:[table_offset],offset TIMTBL
+        call run_request
+        mov word ptr cs:[table_offset],offset PRNTBL
+        mov byte ptr cs:[request_command],8
+        call run_request
+        mov word ptr cs:[table_offset],offset CONTBL
+        mov byte ptr cs:[request_command],4
         mov byte ptr cs:[failure_code],4
 ifndef STALE_TABLE
+ifdef HIGH_TABLES_TEST
+        mov ax,0ffffh
+        mov es,ax
+        mov bx,cs:[high_tables_offset]
+        mov word ptr es:[bx+CONTBL-DSKTBL+1+8],offset alternate
+else
         mov word ptr cs:[CONTBL+1+8],offset alternate
+endif
 endif
         call run_request
         mov byte ptr cs:[failure_code],4
@@ -93,6 +116,12 @@ endif
         mov word ptr cs:[expected_status],8107h
         mov word ptr cs:[expected_count],123
         call run_request
+        ; The pre-copy boot patch must survive high-table publication.
+        mov word ptr cs:[table_offset],offset DSKTBL
+        mov byte ptr cs:[request_command],13
+        mov word ptr cs:[expected_status],0103h
+        call run_request
+        mov word ptr cs:[table_offset],offset CONTBL
         ; Reject one past this table's maximum without touching a target.
         mov byte ptr cs:[failure_code],5
         mov word ptr cs:[expected_status],8103h
@@ -103,7 +132,7 @@ endif
         call run_request
         mov byte ptr cs:[request_command],0ffh
         call run_request
-        cmp byte ptr cs:[accepted],8
+        cmp byte ptr cs:[accepted],11
         jne failed
 ifdef HMA_TEST
         mov al,'P'
@@ -233,6 +262,13 @@ accepted_target:
         jne failed
         cmp di,offset buffer
         jne failed
+        mov ax,cs:[table_offset]
+        xor bx,bx
+        mov bl,cs:[request_command]
+        shl bx,1
+        add ax,bx
+        cmp si,ax
+        jne failed
         mov byte ptr cs:[failure_code],12
         mov ax,ds
         mov bx,cs
@@ -305,10 +341,34 @@ AUXNUM db 0
 PTRSAV label dword
         dw offset packet,0
 START_SEC_H dw 0
-DSKTBL db 24
-        dw 25 dup (offset accepted_target)
-CONTBL db 10
-        dw 11 dup (offset accepted_target)
+DSK$INIT equ accepted_target
+MEDIA$CHK equ accepted_target
+GET$BPB equ accepted_target
+DSK$READ equ accepted_target
+DSK$WRIT equ accepted_target
+DSK$WRITV equ accepted_target
+DSK$OPEN equ accepted_target
+DSK$CLOSE equ accepted_target
+DSK$REM equ accepted_target
+GENERIC$IOCTL equ accepted_target
+IOCTL$GETOWN equ accepted_target
+IOCTL$SETOWN equ accepted_target
+CON$READ equ accepted_target
+CON$RDND equ accepted_target
+CON$FLSH equ accepted_target
+CON$WRIT equ accepted_target
+AUX$READ equ accepted_target
+AUX$RDND equ accepted_target
+AUX$FLSH equ accepted_target
+AUX$WRIT equ accepted_target
+AUX$WRST equ accepted_target
+TIM$READ equ accepted_target
+TIM$WRIT equ accepted_target
+PRN$WRIT equ accepted_target
+PRN$STAT equ accepted_target
+PRN$TILBUSY equ accepted_target
+PRN$GENIOCTL equ accepted_target
+        include DEVTABLE.INC
 ifdef HMA_TEST
 ; Same retained-low tail-entry macro and E705h restore used by the BIOS.
 BIOS_DEVICE_ENTRY 0,dispatch_gate,decoder,high_decoder
@@ -320,9 +380,15 @@ else
 endif
 hma_sentinel dw 0
 low_alias_value dw 0
+ifdef HIGH_TABLES_TEST
+high_tables_offset dw 0
+endif
 install_hma_decoder proc near
         mov ax,1236h
         mov cx,offset high_end+2
+ifdef HIGH_TABLES_TEST
+        add cx,BIOS_DEVICE_TABLES_END-DSKTBL
+endif
         int 2fh
         or ax,ax
         jz failed
@@ -341,6 +407,17 @@ install_hma_decoder proc near
         add word ptr [BIOS_DISPATCH_DATA_FIXUP1],bx
         add word ptr [BIOS_DISPATCH_DATA_FIXUP2],bx
         add word ptr [BIOS_DISPATCH_ERROR_FIXUP],bx
+ifdef HIGH_TABLES_TEST
+        add word ptr [BIOS_DISPATCH_TABLE_SEG_FIXUP],bx
+        add word ptr [BIOS_DISPATCH_TABLE_ADD_FIXUP],bx
+        add word ptr [BIOS_DISPATCH_TARGET_SEG_FIXUP],bx
+        add word ptr [BIOS_DISPATCH_TABLE_SUB_FIXUP],bx
+        mov word ptr [BIOS_DISPATCH_TABLE_SEGMENT],0ffffh
+        mov ax,bx
+        add ax,offset high_end
+        sub ax,offset DSKTBL
+        mov [BIOS_DISPATCH_TABLE_DELTA],ax
+endif
         xor si,si
         mov cx,offset high_end
         cld
@@ -348,6 +425,29 @@ install_hma_decoder proc near
         push cs
         pop ds
         assume ds:CODE
+ifdef HIGH_TABLES_TEST
+        mov [high_tables_offset],di
+        mov si,offset DSKTBL
+        mov cx,BIOS_DEVICE_TABLES_END-DSKTBL
+        rep movsb
+        push di
+        sub di,BIOS_DEVICE_TABLES_END-DSKTBL
+        mov si,offset DSKTBL
+        mov cx,BIOS_DEVICE_TABLES_END-DSKTBL
+        repe cmpsb
+        jne failed
+        pop di
+        push es
+        push di
+        push ds
+        pop es
+        mov di,offset DSKTBL
+        mov cx,BIOS_DEVICE_TABLES_END-DSKTBL
+        mov al,0a5h
+        rep stosb
+        pop di
+        pop es
+endif
         mov [hma_sentinel],di
         push ds
         xor ax,ax
@@ -409,6 +509,11 @@ HIGHCODE segment para public 'HIGHCODE'
 assume cs:HIGHCODE
 BIOS_DISPATCH_LOW_SEGMENT dw 0
 BIOS_DISPATCH_ERROR_ENTRY dw offset CMDERR,0
+ifdef HIGH_TABLES_TEST
+BIOS_DISPATCH_TABLES_HIGH equ 1
+BIOS_DISPATCH_TABLE_SEGMENT dw 0
+BIOS_DISPATCH_TABLE_DELTA dw 0
+endif
 high_decoder:
 BIOS_DISPATCH_SEPARATE equ 1
         include DISPATCH.INC

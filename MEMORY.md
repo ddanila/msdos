@@ -2553,8 +2553,8 @@ IO.SYS remains byte-identical. The separate-code expansion takes an explicit
 low-data segment and far invalid-command completion entry. It reads the current
 low table (including boot patches), preserves disk/non-disk sector semantics,
 then tail-transfers to the selected low target without leaving a return frame.
-That target may be an existing high-service gate. Tables and completion bodies
-have not moved, and this expansion is not yet activated by SYSINIT.
+That target may be an existing high-service gate. The default binding keeps
+tables and completion bodies low; neither variant is activated by SYSINIT yet.
 The separate fixture emits 93 decoder bytes plus six binding bytes; this
 excludes tables, low entry/return support and the service bodies themselves.
 
@@ -2579,22 +2579,44 @@ remain part of the complete dispatcher budget; extraction changes no IO.SYS byte
 
 **HMA entry qualification:** `make test-bios-dispatch-hma-qemu` runs the same
 decoder in DOS-owned HMA on QEMU pc/486 with standalone HIMEM and DOS=HIGH.
-The fixture reserves 101 bytes (93 code, six bindings, two sentinel bytes),
+The low-table fixture reserves 101 bytes (93 code, six bindings, two sentinel bytes),
 rebases the three explicit CS-relative metadata operands, and poisons the
-entire low staging block with HLT bytes. Before each of eleven requests it
+entire low staging block with HLT bytes. Before each of fifteen requests it
 disables A20 through port 92h and verifies the high/low alias; the shared
 `BIOS_DEVICE_ENTRY` gate calls the real `BIOS_HMA_ROM_RESTORE` before tail entry.
 Both valid and invalid low completion paths verify restored A20 as well as
 the existing register/frame assertions. The low alias is read, never overwritten.
 
-The positive boot passes in `out/bios-dispatch-hma-kxe_cv9o/`. Omitting the
-restore reaches the post-install startup marker but never completes
-(`out/bios-dispatch-hma-v_vp0tiq/`); the harness terminates QEMU after 20 seconds.
+The low-table boot passes in `out/bios-dispatch-hma-8gsnhf1c/`.
 Use `--image` or `FLOPPY_IMAGE` to select the base floppy; the harness installs
 current normal DOS/BIOS/HIMEM into a private copy and retains input hashes,
 startup files and trace. Normal binaries remain unchanged. This is an HMA
 decoder/gateway witness, not SYSINIT publication, a relocated BIOS table set,
 286/third-party-provider qualification or reclaimed conventional memory.
+
+**Complete high table owner:** `DEVTABLE.INC` contains the actual disk, console,
+serial, clock and printer command tables shared with the normal BIOS build.
+`BIOS_DISPATCH_TABLES_HIGH` adds an explicit table segment and offset delta;
+incoming SI still identifies the original low table, so disk-sector handling
+and the SI value passed to the selected low service remain compatible. Table
+targets remain near offsets in the retained low service/gateway segment.
+
+The HMA test's `--high-tables` variant copies and byte-compares all 173 table
+bytes, then poisons the old table storage. Its linked budget is 114 decoder
+bytes + 10 binding bytes + 173 table bytes = **297 HMA bytes**, plus the two-byte
+test sentinel. The allocator charges the entire range once. All five tables
+are exercised; a pre-copy boot-policy patch and post-publication update are
+checked. Service bodies are fixture targets, while completion code is shared
+with the BIOS; this is not all-command driver-I/O qualification.
+
+The high-table boot passes in `out/bios-dispatch-hma-m43v0kme/`. Omitting the
+post-publication update fails with the guest failure marker
+(`out/bios-dispatch-hma-0otm_5st/`, `--stale-table`). Omitting A20 restoration
+reaches startup but does not complete (`out/bios-dispatch-hma-wfxarn1o/`);
+the harness terminates QEMU after 20 seconds. The Make target runs both positive
+variants. Normal IO.SYS is byte-identical. Poisoning proves independence from
+the old contents, not a smaller resident break: the fixed VDISK prefix still
+requires joint repacking, and actual SYSINIT table publication remains open.
 
 The 18-byte error pair also contains mutable `LSTERR`: high
 `MSDSKHIG.INC:MAPERROR` writes that sentinel before scanning through low ES.
