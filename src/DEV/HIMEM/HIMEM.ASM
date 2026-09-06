@@ -710,6 +710,13 @@ query_a20_hardware endp
 xms_query_free proc near
         call    largest_gap
         call    total_free
+        ; The gap scanner leaves a physical-pool offset in BX. It is not
+        ; an XMS status: clients also inspect BL when AX/DX are nonzero.
+        xor     bl, bl
+        or      dx, dx
+        jnz     short query_free_done
+        mov     bl, ERR_NO_MEMORY
+query_free_done:
         clc
         ret
 xms_query_free endp
@@ -1093,6 +1100,7 @@ resolve_handle:
         call    validate_handle
         pop     dx
         jc      short resolve_bad_handle
+        push    bp                     ; retain the start offset's high word
         mov     bx, ax
         add     bx, word ptr [move_length]
         adc     bp, word ptr [move_length+2]
@@ -1109,6 +1117,7 @@ resolve_handle:
         cmp     bx, di
         ja      short resolve_bad_offset
 resolve_offset_valid:
+        pop     bp                     ; bounds checking used the end offset
         mov     bx, ax
         mov     ax, word ptr [si+HANDLE_BASE]
         call    kb_to_physical
@@ -1118,6 +1127,7 @@ resolve_offset_valid:
         clc
         ret
 resolve_bad_offset:
+        pop     bp
         mov     [move_offset_error], 1
 resolve_bad_handle:
         pop     di

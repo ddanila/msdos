@@ -801,6 +801,7 @@ test-himem-qemu: deploy
 
 test-himem-xms3-qemu: deploy
 	bash tests/test_himem_xms3_qemu.sh
+	bash tests/test_himem_move_boundary_qemu.sh
 
 test-himem-286-dosbox: deploy
 	bash tests/test_himem_286_dosbox.sh

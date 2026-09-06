@@ -27,6 +27,8 @@ def main():
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--floppy', type=Path, default=ROOT/'out/floppy.img')
     parser.add_argument('--mode', choices=('normal', 'skip-scandisk', 'fork-smartdrv'), default='normal')
+    parser.add_argument('--memory', choices=('none', 'low', 'high'), default='none',
+                        help='Load HIMEM with DOS=LOW/HIGH, or omit it (default)')
     parser.add_argument('--seconds', type=int, default=30)
     parser.add_argument('--prompt-timeout', type=int, default=120)
     parser.add_argument('--interactive', action='store_true',
@@ -74,7 +76,10 @@ def main():
     shutil.copyfile(args.floppy,boot)
     def put(name, text):
         run('mcopy','-o','-i',str(boot),'-','::'+name,input=text.replace('\n','\r\n').encode('ascii'))
-    put('CONFIG.SYS','FILES=60\nBUFFERS=30\n')
+    config = 'FILES=60\nBUFFERS=30\n'
+    if args.memory != 'none':
+        config += 'DEVICE=A:\\HIMEM.SYS /TESTMEM:OFF\nDOS='+args.memory.upper()+'\n'
+    put('CONFIG.SYS',config)
     cache = 'A:\\SMARTDRV.EXE\n' if args.mode == 'fork-smartdrv' else ''
     switch = ' /IS' if args.mode == 'skip-scandisk' else ''
     put('AUTOEXEC.BAT','@ECHO OFF\nVER\n'+cache+
@@ -90,7 +95,7 @@ def main():
                '-rtc','base=1996-01-01,clock=vm']
     with args.iso.open('rb') as media:
         iso_hash = hashlib.file_digest(media,'sha256').hexdigest()
-    report = {'mode':args.mode,'command':command,
+    report = {'mode':args.mode,'memory_profile':args.memory,'command':command,
               'revision':run('git','rev-parse','HEAD',cwd=ROOT,capture_output=True,text=True).stdout.strip(),
               'boot_sha256':hashlib.sha256(boot.read_bytes()).hexdigest(),
               'base_floppy_path':str(args.floppy.resolve()),

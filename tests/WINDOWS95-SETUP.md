@@ -3,10 +3,9 @@
 Local investigation on 2026-09-05 using the user's Windows 95 OEM CD in
 QEMU 10.2.1 (Pentium TCG, 32 MiB RAM, 504 MiB FAT16 IDE disk, no network).
 The CD and VM disks are not redistribution/test fixtures.
-The observations below were made from base revision `e148ff1` plus the fixes
-described here, before subsequent upstream BIOS/HMA changes through `e1d9bdf`.
-The unresolved Windows-loader and ScanDisk cases have not been rerun on that
-newer upstream state.
+The initial observations below used base revision `e148ff1`. Subsequent sections
+record retests and fixes through the DOS=HIGH installation on 2026-09-06,
+using `2fe0b98` plus the two HIMEM fixes described below.
 
 ## Confirmed fixes
 
@@ -24,7 +23,7 @@ newer upstream state.
   It prints `INT21_MISSING_OPEN_LEAK` before the fix and
   `INT21_SYSTEM_PASS` afterwards.
 
-## Still under investigation
+## Initial observations and follow-up
 
 Windows Setup reaches its graphical wizard with the corrected kernel and
 `FILES=60`, `BUFFERS=30`, no HIMEM, and the CD-documented `SETUP /IS` option.
@@ -34,8 +33,9 @@ C12 Juku; those host-specific fixes and results are recorded in the sibling
 `8080-cosim/docs/windows-jukuhost-client-win95-acceptance.md`.
 Earlier normal-Setup attempts were followed by damage to the staged setup
 directory. Skipping ScanDisk avoided that symptom; the precise cause has
-not been established. Loading the current HIMEM produced an insufficient
-extended-memory error in the mini-Windows loader; this also remains open.
+not been established. Loading HIMEM initially produced an insufficient
+extended-memory error in the mini-Windows loader; the 2026-09-06 follow-up below
+isolates and fixes the HIMEM defects and verifies a full DOS=HIGH installation.
 
 ### HIMEM / mini-Windows loader
 
@@ -59,6 +59,87 @@ HIMEM with DOS=LOW, and HIMEM with DOS=HIGH under the same QEMU settings.
 Record XMS installation/version, free-memory query, allocation and lock results
 before invoking the CD's loader. Do not infer an XMS implementation defect solely
 from the loader's generic memory message.
+
+#### DOS=HIGH follow-up on 2fe0b98, 2026-09-06
+
+Fresh external-media `SETUP /IS` runs using rebuilt boot components reproduced
+the original extended-memory error with HIMEM + DOS=HIGH. HIMEM + DOS=LOW
+instead reported `KERNEL: Unable to initialize heap`; no HIMEM reached the
+graphical welcome/license screens. All 37 source files remained intact.
+The full developer-image build hit an unrelated SHARE link failure for
+`SetverResidentTable`, so these tests used a minimal floppy assembled from the
+current IO.SYS, MSDOS.SYS, COMMAND.COM, SYSMENU.OVL, and HIMEM.SYS binaries.
+
+A local XMS-call tracing TSR, leaving HIMEM unchanged, recorded function 08h
+returning positive free-memory sizes but allocator scratch data in BL. After
+the loader's allocations, one query returned AX=72ECh, DX=72ECh, BL=94h.
+`largest_gap` leaves the end of the last allocation in BX, and `xms_query_free`
+did not convert that scratch value into a public status. Function 88h already
+normalized BL, but its legacy 08h counterpart did not.
+
+The local fix sets BL=0 when memory remains and BL=A0h when exhausted, keeping
+AX/DX as the reported memory sizes. The latter error is specified by the
+[Microsoft XMS specification, function 08h](https://jnz.dk/swag/FAQ/0053.PAS.html).
+The small regression additions to `himem_xms3_probe.asm` check status before
+allocation, after a 64 KiB allocation (which made the old implementation leak
+80h), and after exhausting the pool. The initial status assertion was observed
+failing at phase `q` before the fix and passing afterwards.
+
+With only this fix, both HIGH and LOW get past their previous loader errors
+and enter the graphical environment, but fail with `WINSETUP caused Segment
+Load Failure in module WINSETUP.BIN at 0001:4EE5`. That intermediate result was
+not a successful installation. Local evidence is in `out/win95-high-xms-trace-03`
+and `out/win95-{high,low}-query-fixed-01`; no external media is committed.
+
+Do not infer HMA residency from AX=3306h in this fork: the current handler
+explicitly returns zero flags even with DOS=HIGH configured. The local probe's
+zero location flags therefore do not demonstrate fallback to DOS=LOW.
+
+The second defect was in `resolve_move_address`: checking `offset + length`
+changed BP from the start offset's high word to the end offset's high word.
+The physical-address calculation then reused that changed value. A transfer
+crossing a 64 KiB offset boundary could access memory 64 KiB beyond the intended
+start, despite returning success. Preserve the original high word across the
+bounds check, balancing its saved value on both valid and invalid paths.
+
+`tests/himem_move_boundary_probe.asm` is a standalone regression requiring no
+Windows files. It allocates 192 KiB and verifies crossing 32-byte writes and
+reads at offset FFF0h against independently seeded/read eight-byte subranges.
+It failed with the old address calculation and passes with the fix under both
+DOS=LOW and DOS=HIGH. Run `bash tests/test_himem_move_boundary_qemu.sh` with a
+boot floppy, optionally selected through `FLOPPY_IMAGE`. The existing
+`test-himem-xms3-qemu` make target also runs this test.
+
+With both fixes, fresh LOW and HIGH `/IS` runs reached graphical Setup and
+preserved all 37 source files. A separate **normal Setup without `/IS`**, in
+`out/win95-high-install-fixed-01`, completed a Typical installation with
+`FILES=60`, `BUFFERS=30`, `DEVICE=A:\HIMEM.SYS /TESTMEM:OFF`, and `DOS=HIGH`.
+ScanDisk, hardware detection, file copying, hard-disk reboot, and first-boot
+configuration completed. The final Windows desktop accepted input and shut
+down cleanly; the harness recorded QEMU exit code 0 and no source-file changes.
+Screens `desktop.png` and `shutdown.png`, plus `report.json` and the stopped
+installed disk, are retained in that ignored evidence directory.
+
+The tested HIMEM.SYS SHA-256 is
+`a477564a596029e91eb5021164a5ffc3762a712e8e31c302cb08c1bf290bc265`.
+XMS 3.0 tests (including legacy-query status and exhaustion), the LOW/HIGH move
+regression, the HIMEM ownership check, and the broader XMS/UMB/EMS/rollback/warm
+reboot suite passed. The broader suite requires EMM386 on its base floppy;
+the installer-only minimal image lacked it and was not a valid input for that
+combined suite. The corrected regression image includes the current EMM386.
+
+The tracked external-media harness now supports the memory configurations
+directly, without the local diagnostic adapter used during investigation:
+
+```sh
+uv run --with pycdlib python tests/win95_setup_probe.py \
+  --iso /path/to/WINDOWS95.ISO --floppy /path/to/current-boot.img \
+  --output out/win95-high-new --memory high --mode normal --interactive
+```
+
+Use `--memory low` for HIMEM with DOS=LOW, or `--memory none` for the no-HIMEM
+control. Full DOS=LOW installation, hardware validation, and extended endurance
+are not claimed by this DOS=HIGH acceptance run.
 
 ### ScanDisk / staged source directory damage
 
@@ -178,7 +259,7 @@ Evidence and regression coverage:
 The launch failure was fixed at this checkpoint. The complete installation
 verification below was performed subsequently; the welcome-screen result
 alone was not treated as a complete installation.
-HIMEM/DOS=HIGH remains a separate observation. All screenshots, memory dumps,
+HIMEM/DOS=HIGH was tested separately in the 2026-09-06 follow-up. All screenshots, memory dumps,
 Microsoft binaries, and disk images remain ignored local evidence under `out/`.
 
 ### Complete cache-enabled installation, 2026-09-05
