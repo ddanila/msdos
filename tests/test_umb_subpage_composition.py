@@ -96,7 +96,8 @@ def main():
     assert results["retail"]["upper_free"] == 47888, results["retail"]
     # Intact SETVER costs 640 bytes versus the old invalid owner. Recording
     # conventional handle-zero mappings also adds 192 bytes to low EMM tables.
-    assert results["coarse"]["largest"] == 613616, results["coarse"]
+    # The XMS status/boundary-move fixes add 16 rounded HIMEM bytes (2608).
+    assert results["coarse"]["largest"] == 613600, results["coarse"]
     assert results["coarse"]["upper_free"] == 47904, results["coarse"]
     assert results["fine"]["largest"] == results["coarse"]["largest"], results
     assert results["fine"]["upper_free"] - results["coarse"]["upper_free"] == 4096, results

@@ -8,16 +8,22 @@ delivery history belongs in Git; current evidence belongs in the test manifests.
 ### Current checkpoint: complete owners, not paragraph targets
 
 The latest composed development fixture (complete high EMM tables plus fine
-UMB mapping and high CDS) leaves **617,984 conventional bytes and 49,680 free
+UMB mapping and high CDS) leaves **617,968 conventional bytes and 49,680 free
 UMB bytes**. Retail leaves 618,736 and 47,888: the remaining conventional gap
-is **752 bytes**, with **1,792 bytes of UMB margin**. This is not production
+is **768 bytes**, with **1,792 bytes of UMB margin**. This is not production
 promotion. The 616,112-byte figures below identify the preceding high-CDS
 baseline, before the complete table move and conventional-map repair; their component ledgers must not be
 mixed with the new result.
 
+The merged Windows 95 XMS-status and boundary-move fixes increase HIMEM's
+checked allocation from 2,592 to 2,608 bytes. The fresh composition loses
+exactly those 16 conventional bytes in every local variant; the 617,984-byte
+captures below predate that correctness change. The shell entry prototype
+is separate: this composition still uses the byte-identical normal COMMAND.
+
 The conventional-map repair adds 192 bytes to low EMM tables: the corrected
-high-CDS/low-table control leaves 615,920 conventional bytes. The complete
-high-table fixture remains at 617,984, so its matched low-span release is now
+high-CDS/low-table control now leaves 615,904 conventional bytes. The complete
+high-table fixture leaves 617,968, so its matched low-span release remains
 2,064 bytes. This is a correctness cost moved high, not an additional gain in
 the selected high-table fixture.
 
@@ -34,11 +40,11 @@ existing disk-booted OpenDOS control, is:
 
 | Low accounting group | Development bytes | OpenDOS bytes | Difference |
 | --- | ---: | ---: | ---: |
-| Installed memory-manager ranges | 4,608 | 1,200 | 3,408 |
+| Installed memory-manager ranges | 4,624 | 1,200 | 3,424 |
 | BIOS/device region | 5,152 | 2,304 | 2,848 |
 | Remaining pre-COMMAND span | 8,080 | 6,944 | 1,136 |
 | Complete COMMAND owner span | 3,984 | 1,312 | 2,672 |
-| **Total below VC** | **21,824** | **11,760** | **10,064** |
+| **Total below VC** | **21,840** | **11,760** | **10,080** |
 
 These are accounting groups, not equivalent vendor objects or promised savings.
 OpenDOS's 628,048-byte block remains a placement reference: its free UMB is
@@ -98,7 +104,7 @@ resolve a specific remaining public contract or memory-cost ambiguity.
 
 Prefer locked extended memory for protected manager owners, HMA for eligible
 DOS/BIOS/shell services, and UMB for eligible real-mode data. Do not begin
-another isolated instruction-shrinking tranche to close the 752-byte retail gap.
+another isolated instruction-shrinking tranche to close the 768-byte retail gap.
 
 The composition harness now writes `joint-residency.md`, reconciling linked
 BIOS/DOS boundaries with captured manager sizes and COMMAND/VC boundaries,
@@ -107,14 +113,14 @@ low remainder or a violated UMB floor. Its low partition is specific to the
 fixed high-CDS fixture (512-byte transfer area and STACKS=9,128); different
 resources require a new audited partition, not an automatic residual bucket.
 It does not infer boot identity from equal sizes or prove relocation safety.
-The fresh five-image run in `out/umb-fine-composition-y4dceqi2/` passes this
+The fresh five-image run in `out/umb-fine-composition-v_ykyjjj/` passes this
 gate and reproduces the current totals. Twelve owner-accounting tests include
 stale maps/managers, missing or duplicate owners, incorrect free extents and
 the pre-table control; the normal DOS/BIOS census and HMA-budget tests pass.
 
 This closes the arithmetic ledger, **not the proposed final-layout checkpoint**.
 Only 936 BIOS bytes are currently identified as character/clock bodies plus
-conversion helpers, before gateway costs. Explaining the 10,064-byte vendor
+conversion helpers, before gateway costs. Explaining the 10,080-byte vendor
 difference therefore requires the mixed BIOS service/state and combined-provider
 boundaries as well as the whole shell; those bodies alone cannot explain it.
 
@@ -167,7 +173,7 @@ normal 2,451-byte resident body would consume that much of the shared
 support. The owner-binding prototype already grows the body by 80 bytes;
 neither number is the final relocated size. A code-only shell move plus the
 936-byte BIOS character/clock/helper inventory therefore cannot explain the
-10,064-byte vendor difference, even before costs. Continue the combined
+10,080-byte vendor difference, even before costs. Continue the combined
 provider and mixed BIOS service/state design rather than stopping at those
 easy-to-name bodies.
 
@@ -778,7 +784,7 @@ of the following owners, not a sequence of independently attractive savings:
 | --- | --- | --- |
 | DOS BIOS | Development retains 5,152 low bytes; disk body already moved | Partition stable device/interrupt/DMA state from high service bodies; identify exact released intervals |
 | DOS kernel and dynamic state | 5,632-byte low prefix, including the repaired SETVER owner; FILES/FCB and CDS relocation already counted | Qualify upper CDS consumers and budget interrupt stacks and remaining public/private state |
-| Combined memory managers | 4,608 low bytes after complete high tables; the earlier 6,480-byte census predates that move | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback; do not count the moved tables again |
+| Combined memory managers | 4,624 low bytes after complete high tables and the HIMEM correctness fixes; the earlier 6,480-byte census predates both | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback; do not count the moved tables again |
 | COMMAND | 3,984-byte owner span versus OpenDOS's 1,312 | Separate environment/PSP and asynchronous entry state from movable resident handlers; preserve reload contracts |
 | Shared high storage | 9,657 calculated development HMA bytes; 1,792-byte UMB margin after CDS | Reserve destinations once across all owners; account for locked XMS, alignment and displaced buffers |
 
@@ -789,11 +795,11 @@ not copied payload sizes. Include UMB and XMS costs in the same budget. Public
 tables cannot be moved merely because high space exists; retained low mirrors
 do not count as reclamation.
 
-The checkpoint passes only when the remaining combined net budget covers at least 752
+The checkpoint passes only when the remaining combined net budget covers at least 768
 bytes while retaining the 47,888-byte free-UMB floor and configured resources.
 That is the retail acceptance threshold, not a ceiling on the design: identify
 further whole-object opportunities toward the OpenDOS result without promising
-its current 10,064-byte lead over combined development as locally reclaimable storage.
+its current 10,080-byte lead over combined development as locally reclaimable storage.
 The OpenDOS disk-boot control is now measured; resource semantics and reset
 qualification remain open before adopting its totals as a target.
 
@@ -952,7 +958,7 @@ Required deliverables, in order:
    47,888-byte UMB floor, requested resources, A20-off clients, DOS-low/286
    fallback, redirects, nested execution and reset as acceptance gates.
 
-Retail is the floor, not a component-size quota. The current 10,064-byte
+Retail is the floor, not a component-size quota. The current 10,080-byte
 OpenDOS lead (11,936 in the pre-table ledger) is the difference to explain,
 not an approved savings budget. Optional video
 recovery and the bounded 1 KiB EBDA step cannot explain this below-VC gap.
@@ -1378,7 +1384,8 @@ and initialization handoffs still require relocation design and runtime tests.
 `make test-command-resident-binding-qemu` builds into a private directory,
 checks default binary identity, verifies the linked binding census, then runs
 the INT 2Eh owner matrix, startup/critical ABI suite and complete LOADHIGH suite.
-With the explicit floppy input, `out/command-resident-binding.JDKhw5/`
+With the explicit floppy input and rebuilt post-merge HIMEM,
+`out/command-resident-binding.QxajmO/`
 passes all four INT 2Eh cases, all 16 startup checks and LOADHIGH's provider,
 region/minimum/shrink, failure recovery, fallback, errorlevel, Ctrl+C, TSR and
 DOS-high checks. Thirteen host tests cover missing slots,
@@ -1407,7 +1414,7 @@ placement, constructor writes and TRANVARS offsets. With a generated gate
 include, the INT 2Eh probe additionally checks the live parent PSP pointers,
 INT 2Eh vector, low gate targets, transient handoff table and DOS's
 `INT 2Fh/122Eh, DL=8` callback before and after internal/external commands.
-The fixed DOS-low/high capture is `out/command-int2e-owner.BnyMuk/`.
+The post-merge DOS-low/high capture is `out/command-int2e-owner.nmvlu9/`.
 Child EXEC's dynamic termination return is distinct from the parent's stored
 LODCOM pointer; do not require the active INT 22h vector to equal LODCOM while
 a child is running.
@@ -2660,10 +2667,10 @@ caller frame and authoritative A20 counters, including failure returns, before
 claiming a linked low-provider size.
 
 `make test-himem-residency` now emits an exhaustive twelve-range conversion
-census for the 2,301 fixed bytes, separate from option-sized records. It splits
+census for the 2,311 fixed bytes, separate from option-sized records. It splits
 the old 335-byte HMA/A20 group into 68 bytes of HMA ownership and 267 bytes of
-A20 policy/backends. The 285-byte move-helper group contains 95 bytes of
-address resolution, 127 of BIOS copy/descriptor construction, 15 of physical
+A20 policy/backends. The 287-byte move-helper group contains 98 bytes of
+address resolution, 127 of BIOS copy/descriptor construction, 14 of physical
 conversion/alignment and 48 of firmware descriptors. These are current linked
 boundaries, not future high objects or low-size promises. Three host tests
 check ordering, complete coverage, missing boundaries and descriptor layout.
@@ -7234,7 +7241,7 @@ return, fault, inactive, and transition paths must all be identified first.
 
 ### 3. Reduce HIMEM's low allocation
 
-HIMEM occupies 2,592 bytes versus retail's 1,104. Its resident break is tracked
+HIMEM occupies 2,608 bytes versus retail's 1,104. Its resident break is tracked
 at each `/NUMHANDLES=` capacity and distinguishes fixed code/data from
 option-sized records. Incremental work is paused; if the measured residual later
 justifies resuming it, candidates include:
@@ -7502,7 +7509,8 @@ image, retain the component ceilings, and record any margin above retail.
 CI remains disabled by project decision. These gates run locally until CI is
 explicitly restored.
 
-Paired `MEM /D` captures account for the conventional system block as follows:
+Earlier paired `MEM /D` captures, before the conventional-map and HIMEM
+correctness fixes, account for the conventional system block as follows:
 
 | Component | This system | Retail 6.22 | Excess |
 | --- | ---: | ---: | ---: |
