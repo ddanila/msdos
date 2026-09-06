@@ -86,6 +86,51 @@ def rounded(value: int) -> int:
     return (value + 15) & ~15
 
 
+BOOTSTRAP_PROCEDURES = (
+    "bootstrap_copy_move", "set_move_descriptor", "xms_query_free", "xms_allocate",
+    "xms_free", "xms_lock", "xms_unlock", "xms_handle_info", "xms_reallocate",
+    "validate_handle", "find_gap", "largest_gap", "total_free", "gap_after_handle",
+)
+PERMANENT_PROCEDURES = (
+    "xms_control", "xms_owner_handle", "xms_remote_owned", "xms_move",
+    "xms_extended_handle_info", "xms_hma_request", "xms_hma_release",
+    "xms_global_enable", "xms_global_disable", "xms_local_enable", "xms_local_disable",
+    "xms_a20_query", "xms_umb_request", "xms_umb_release", "copy_move_blocks",
+    *(f"xms_gate_{name}" for name in ("query", "allocate", "free", "lock", "unlock", "info", "reallocate")),
+)
+
+
+def check_bootstrap_layout(numbers, procedures, handle_count):
+    """Linked boundary contract, not an assertion that the allocation is released."""
+    start = numbers["HIMEM_PERMANENT_BYTES"]
+    code = numbers["HIMEM_BOOTSTRAP_CODE_BYTES"]
+    handles = numbers["HIMEM_HANDLES_OFFSET"]
+    if (not 1 <= handle_count <= 128 or start <= 0 or start % 16 or code <= 0
+            or start + code != handles or handles + 5 * handle_count > 65536):
+        raise ValueError("invalid contiguous HIMEM bootstrap layout")
+    for name in BOOTSTRAP_PROCEDURES:
+        if not start <= procedures[name] < handles:
+            raise ValueError(f"bootstrap procedure outside tail: {name}")
+    for name in PERMANENT_PROCEDURES:
+        if not 0 <= procedures[name] < start:
+            raise ValueError(f"permanent entry in bootstrap tail: {name}")
+    end = rounded(handles + 5 * handle_count)
+    return dict(permanent_bytes=start, bootstrap_code_data_bytes=code,
+                handles=handle_count, handle_bytes=5 * handle_count,
+                linked_boot_end=end, retained_bootstrap_bytes=end-start,
+                released_bytes=0)
+
+
+def bootstrap_layout(path, handle_count):
+    _, numbers = parse_symbols(path)
+    procedures = {}
+    for line in path.read_text(encoding="latin-1").splitlines():
+        match = PROCEDURE_RE.match(line)
+        if match:
+            procedures[match[1]] = int(match[2], 16)
+    return check_bootstrap_layout(numbers, procedures, handle_count)
+
+
 def provider_ownership(path: Path, end: int) -> list[tuple[str, int, int, str]]:
     """Partition the original image by conversion boundary, not future size."""
     addresses = {}

@@ -5,9 +5,9 @@ public XmsAuthoritativeOwner, XmsOwnerActive
 XmsAuthoritativeOwner proc near
         pushad
         push ds
-        cmp si,65536-18-MAX_HANDLES*HANDLE_SIZE
+        cmp si,65536-20
         ja auth_owner_bad
-        cmp word ptr es:[si+4],2
+        cmp word ptr es:[si+4],3
         jne auth_owner_bad
         mov bx,si
         mov ax,VDMCA_GSEL
@@ -21,7 +21,7 @@ IFDEF EMM_AUTHORITATIVE_REIMPORT
         mov [XmsOwnerActive],0
 ENDIF
         cmp [XmsOwnerActive],0
-        jne short auth_owner_existing
+        jne auth_owner_existing
         mov cx,es:[bx+6]
         or cx,cx
         jz auth_owner_bad
@@ -30,7 +30,15 @@ ENDIF
         mov [handle_limit],cx
         mov ax,es:[bx+8]
         mov [extended_kb],ax
-        add si,18
+        ; Import directly from a checked offset in the same client segment.
+        ; Later requests neither read nor require this bootstrap storage.
+        movzx esi,word ptr es:[bx+18]
+        movzx ecx,cx
+        imul ecx,HANDLE_SIZE
+        add ecx,esi
+        cmp ecx,10000h
+        ja auth_owner_bad
+        mov cx,[handle_limit]
         mov di,offset handles
         imul cx,HANDLE_SIZE
 auth_owner_import:

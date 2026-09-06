@@ -21,6 +21,7 @@ UMB_ALLOCATED   equ     08000h
 HMA_OWNED       equ     080h
 
         include XMSERROR.INC
+        include BOOTCOPY.INC
 
 device_header:
         dw      0ffffh, 0ffffh
@@ -64,7 +65,7 @@ ifdef HIMEM_PROTECTED_OWNER_TEST
 owner_query_active db 0
 owner_packet db 'XOWN'
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
-        dw 2
+        dw 3
 else
         dw 1
 endif
@@ -75,8 +76,11 @@ owner_total dw 0
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
 owner_bx dw 0
 owner_operation dw 0
-endif
+owner_import_offset dw offset handles
+owner_record_scratch db HANDLE_SIZE dup (0)
+else
 owner_records db MAX_HANDLES*HANDLE_SIZE dup (0)
+endif
 endif
 
 strategy proc far
@@ -418,8 +422,13 @@ xms_table:
         dw      xms_version, xms_hma_request, xms_hma_release
         dw      xms_global_enable, xms_global_disable
         dw      xms_local_enable, xms_local_disable, xms_a20_query
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+        dw      xms_gate_query, xms_gate_allocate, xms_gate_free, xms_move
+        dw      xms_gate_lock, xms_gate_unlock, xms_gate_info, xms_gate_reallocate
+else
         dw      xms_query_free, xms_allocate, xms_free, xms_move
         dw      xms_lock, xms_unlock, xms_handle_info, xms_reallocate
+endif
         dw      xms_umb_request, xms_umb_release
 
 xms_success:
@@ -473,7 +482,7 @@ else
         .386
 xms_query_any_free proc near
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
-        call    xms_query_free
+        call    xms_gate_query
 else
 ifdef HIMEM_PROTECTED_OWNER_TEST
 ifndef HIMEM_OWNER_QUERY_2_ONLY
@@ -521,13 +530,17 @@ xms_allocate_any proc near
         mov     eax, edx
         shr     eax, 16
         jnz     xms_no_memory
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+        jmp     xms_gate_allocate
+else
         jmp     xms_allocate
+endif
 xms_allocate_any endp
 
 xms_extended_handle_info proc near
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
         push cx
-        call xms_handle_info
+        call xms_gate_info
         pop cx
         or ax,ax
         jz short xms3_remote_info_done
@@ -557,7 +570,11 @@ xms_reallocate_any proc near
         mov     eax, ebx
         shr     eax, 16
         jnz     xms_no_memory
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+        jmp     xms_gate_reallocate
+else
         jmp     xms_reallocate
+endif
 xms_reallocate_any endp
         .286
 endif
@@ -773,7 +790,11 @@ query_a20_restore:
         ret
 query_a20_hardware endp
 
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+        include XMSAUTH.INC
+else
         include XMSALLOC.INC
+endif
 
 xms_move proc near
         push    bx
@@ -1066,7 +1087,7 @@ resolve_move_address endp
 copy_move_blocks proc near
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
         cmp     [owner_query_active],0
-        je      copy_move_next
+        je      bootstrap_copy_move
 endif
 ifdef HIMEM_PROTECTED_COPY_TEST
         push    si
@@ -1107,74 +1128,13 @@ protected_copy_unavailable:
         stc
         ret
 else
-HIMEM_BOOTSTRAP_COPY equ 1
-endif
-ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
-HIMEM_BOOTSTRAP_COPY equ 1
-endif
-ifdef HIMEM_BOOTSTRAP_COPY
-copy_move_next:
-        mov     ax, word ptr [move_length]
-        mov     dx, word ptr [move_length+2]
-        or      ax, dx
-        jz      short copy_move_done
-        or      dx, dx
-        jnz     short copy_move_large
-        cmp     ax, 0fffeh
-        jbe     short copy_move_final
-copy_move_large:
-        mov     cx, 0fffeh
-        jmp     short copy_move_chunk
-copy_move_final:
-        mov     cx, ax
-copy_move_chunk:
-        mov     ax, word ptr [move_source]
-        mov     dx, word ptr [move_source+2]
-        mov     di, offset move_source_desc
-        call    set_move_descriptor
-        mov     ax, word ptr [move_dest]
-        mov     dx, word ptr [move_dest+2]
-        mov     di, offset move_dest_desc
-        call    set_move_descriptor
-        push    cx
-        shr     cx, 1
-        push    ds
-        push    si
-        push    cs
-        pop     es
-        mov     si, offset move_gdt
-        mov     ah, 087h
-        int     015h
-        pop     si
-        pop     ds
-        pop     cx
-        jc      short copy_move_fail
-        add     word ptr [move_source], cx
-        adc     word ptr [move_source+2], 0
-        add     word ptr [move_dest], cx
-        adc     word ptr [move_dest+2], 0
-        sub     word ptr [move_length], cx
-        sbb     word ptr [move_length+2], 0
-        jmp     short copy_move_next
-copy_move_done:
-        clc
-        ret
-copy_move_fail:
-        stc
-        ret
+        HIMEM_BIOS_COPY
 endif
 copy_move_blocks endp
 
-; DX:AX=linear base, DI=descriptor. The BIOS move service uses 16-bit limits.
-set_move_descriptor proc near
-        mov     word ptr [di], 0ffffh
-        mov     word ptr [di+2], ax
-        mov     byte ptr [di+4], dl
-        mov     byte ptr [di+5], 093h
-        mov     byte ptr [di+6], 0
-        mov     byte ptr [di+7], dh
-        ret
-set_move_descriptor endp
+ifndef HIMEM_AUTHORITATIVE_OWNER_TEST
+        HIMEM_BIOS_DESCRIPTOR
+endif
 
 ; Convert AX kilobytes above the XMS base to DX:AX physical bytes.
 kb_to_physical proc near
@@ -1187,26 +1147,34 @@ kb_to_physical proc near
         ret
 kb_to_physical endp
 
-        align   2
-move_gdt:
-        dq      0
-        dq      0
-move_source_desc:
-        dq      0
-move_dest_desc:
-        dq      0
-        dq      0
-        dq      0
-
+ifndef HIMEM_AUTHORITATIVE_OWNER_TEST
+        HIMEM_BIOS_GDT
         include XMSHANDLE.INC
+endif
 
 ; Keep variable-capacity XMS handles at the end of the resident image. The
 ; initialization break includes only /NUMHANDLES= records; the full table is
 ; still present in the load image for the documented maximum.
 umb_count       dw      0
 umb_blocks      db      MAX_UMB_BLOCKS * UMB_BLOCK_SIZE dup (0)
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+        db (16-(($-device_header) MOD 16)) MOD 16 dup (0)
+bootstrap_owner_start label byte
+bootstrap_copy_move proc near
+        HIMEM_BIOS_COPY
+bootstrap_copy_move endp
+        HIMEM_BIOS_DESCRIPTOR
+        HIMEM_BIOS_GDT
+        include XMSALLOC.INC
+        include XMSHANDLE.INC
+endif
 handles         db      MAX_HANDLES * HANDLE_SIZE dup (0)
 resident_end label byte
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+HIMEM_PERMANENT_BYTES equ bootstrap_owner_start-device_header
+HIMEM_BOOTSTRAP_CODE_BYTES equ handles-bootstrap_owner_start
+HIMEM_HANDLES_OFFSET equ handles-device_header
+endif
 
 ; Record the highest installed physical 64-KiB page for XMS 3 function 88h.
 ; This is installation-only code and deliberately follows resident_end.

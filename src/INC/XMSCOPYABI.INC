@@ -20,10 +20,12 @@ XCP_REQUIRED equ XCP_PHYSICAL OR XCP_CLIENT OR XCP_INACTIVE
 ; handoff authority. Failure sets CF/AH=2; success clears CF/AH=0.
 ;
 ; OWNER_ACTIVE is a separate, trusted paired experiment. XAUT packet words:
-; +4 version=2, +6 handle limit, +8 pool KiB, +10 output AX, +12 in/out DX,
-; +14 in/out BX, +16 operation (08h..0Fh), +18 initial import records.
-; First request imports validated records once; later requests ignore incoming
-; records and return only AX/BX/DX, never a low table view. Private operation
+; +4 version=3, +6 handle limit, +8 pool KiB, +10 output AX, +12 in/out DX,
+; +14 in/out BX, +16 operation (08h..0Fh), +18 word offset of bootstrap records
+; in the same client segment. The header is 20 bytes, with no inline records.
+; First request bounds-checks and imports the selected five-byte records once;
+; later requests ignore their offset/storage and return only AX/BX/DX, never
+; a low table view. Private operation
 ; 0Bh is handle lookup (DX=handle; AX=status, BX=base KiB, DX=length KiB), not
 ; public Move; it does not change locks. Low front-end mutations must be
 ; disabled before that first attempt and remain disabled on transport failure.

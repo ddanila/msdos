@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Test development physical copy windows; no public XMS dispatch is replaced."""
+"""Test development copy windows and optional paired authoritative XMS ownership."""
 import argparse
 import hashlib
 import json
@@ -16,6 +16,7 @@ import time
 from capture_emm_live_owners import copy_window_candidates
 from capture_uma_topology import QMP
 from report_emm386_residency import parse_map
+from report_himem_residency import bootstrap_layout
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -36,6 +37,8 @@ def main():
                         help="route public AH=08h to the installed high snapshot service")
     parser.add_argument("--authoritative-owner", action="store_true",
                         help="import handle state once and execute all mutations at the high owner")
+    parser.add_argument("--xms-handles", type=int, choices=(8, 32, 128), default=32,
+                        help="HIMEM handle capacity for the ownership fixture")
     parser.add_argument("--reimport-owner", action="store_true",
                         help="negative control: reimport poisoned client records after publication")
     parser.add_argument("--local-handle-lookup", action="store_true",
@@ -193,7 +196,8 @@ def main():
     himem = ROOT / "src/DEV/HIMEM/HIMEM.SYS"
     if args.public_api and not args.bypass_public_backend:
         himem = work / "HIMEM.SYS"
-        subprocess.run([str(ROOT / "bin/jwasm-bin"), "-q", "-bin",
+        subprocess.run([str(ROOT / "bin/jwasm-bin"), "-q", "-bin", "-Sa",
+                        f"-Fl={work / 'HIMEM.LST'}",
                         "-DHIMEM_PROTECTED_COPY_TEST", f"-I{ROOT / 'src/INC'}", f"-Fo{himem}",
                         *(["-DHIMEM_PROTECTED_OWNER_TEST"]
                           if args.owner_query and not args.bypass_owner_query else []),
@@ -240,7 +244,7 @@ def main():
     install(candidate, "EMM386.EXE")
     install(himem, "HIMEM.SYS")
     install(probe, "PROBE.COM")
-    install("-", "CONFIG.SYS", ("DEVICE=HIMEM.SYS /TESTMEM:OFF\r\n"
+    install("-", "CONFIG.SYS", (f"DEVICE=HIMEM.SYS /TESTMEM:OFF /NUMHANDLES={args.xms_handles}\r\n"
                                f"DEVICE=EMM386.EXE 1024 {args.mode} M5\r\n"
                                f"DOS={'HIGH' if args.dos_high else 'LOW'}\r\n").encode("ascii"))
     install("-", "AUTOEXEC.BAT", b"@ECHO OFF\r\nPROBE.COM\r\n")
@@ -254,6 +258,8 @@ def main():
                   owner_query=args.owner_query, authoritative_owner=args.authoritative_owner,
                   reimport_owner=args.reimport_owner,
                   local_handle_lookup=args.local_handle_lookup,
+                  himem_bootstrap=bootstrap_layout(work / "HIMEM.LST", args.xms_handles)
+                      if args.authoritative_owner else None,
                   bad_owner_result=args.bad_owner_result,
                   bypass_owner_query=args.bypass_owner_query,
                   bypass_owner_copy=args.bypass_owner_copy,
@@ -395,6 +401,8 @@ def main():
                         physical_pages.add(physical & ~4095)
                         snapshot.append(ram[physical])
                     calls, limit, pool = struct.unpack_from("<IHH", snapshot)
+                    if args.authoritative_owner and limit != args.xms_handles:
+                        raise ValueError("installed high owner changed the requested handle capacity")
                     if args.authoritative_owner and struct.unpack_from("<BH", snapshot, 668) != (1, 1):
                         raise ValueError("handle ownership was not published exactly once")
                     if calls < 5 or not 1 <= limit <= 128:

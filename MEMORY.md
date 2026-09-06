@@ -572,14 +572,22 @@ endpoint rejects calls after publication.
 Before attempting publication the low front end disables local mutations;
 transport failure thereafter returns an error without fallback. The existing
 BIOS copy backend remains available during bootstrap, before high ownership
-is attempted. `XAUT` packet version 2 no longer returns a low handle-table
-view. Move obtains only a transient base/length record through private lookup
+is attempted. `XAUT` packet version 3 imports directly from a bounds-checked
+offset to the original bootstrap table in HIMEM's segment; its 20-byte header
+has no inline records or duplicate 640-byte import buffer. Later requests
+ignore the original table and never return a low table view.
+Move obtains only a transient base/length record through private lookup
 operation 0Bh; XMS 3.x handle-info delegates to the high service. Move's existing
-offset checker remains low, with five bytes of transient record scratch in
-the import area. Transport failure cannot become an invalid-handle verdict.
-HMA, A20 and UMB ownership remain low. The old table and import staging are
-still allocated, but neither is a live full-table mirror after publication.
-The linked owner service occupies 1,220 high code bytes and 671 state bytes,
+offset checker remains low, with five bytes of permanent transient scratch.
+Transport failure cannot become an invalid-handle verdict.
+HMA, A20 and UMB ownership remain low. Permanent public gates precede one
+paragraph-aligned bootstrap tail containing the old allocator, handle helpers,
+BIOS copy backend/descriptors and selected handle records. The linked front
+is 2,176 bytes; the fixed bootstrap code/data is 768 bytes. With 32 handles,
+the boot allocation ends at offset 3,104, retaining a 928-byte bootstrap tail;
+128 handles retain 1,408 bytes. These are linked sizes of the paired variant,
+not normal HIMEM sizes or reclaimed memory. All of that tail remains allocated.
+The untraced linked owner service occupies 1,248 high code bytes and 671 state bytes,
 excluding existing copy/transition support and retained low bootstrap storage.
 Normal HIMEM and EMM386 binaries remain byte-identical.
 
@@ -592,27 +600,33 @@ python3 tests/test_xms_copy_windows_qemu.py --authoritative-owner --dos-high --r
 
 Every authoritative run allocates, locks and fills a block before EMM backing
 preparation and verifies its handle/address/lock/data through the cached entry
-after the high owner activates. Later packets deliberately contain poisoned
-input records, and the selected old low table is poisoned after publication.
+after the high owner activates. The entire selected bootstrap tail is poisoned
+after publication, including executable bodies, descriptors and records.
 Runtime page-table inspection requires exactly one high import and independently
 reconciles free-space results. DOS-high ON with rejected reallocation/retry
-passes in `out/xms-copy-windows-up4qtjxz/`, OFF in
-`out/xms-copy-windows-orp3ra_0/`, AUTO in `out/xms-copy-windows-scuilic5/`,
-mapped EMS endpoints in `out/xms-copy-windows-5o8uyfnw/`, and DOS-low in
-`out/xms-copy-windows-al5srxth/`. These also check XMS 3.x handle-info's size,
+passes in `out/xms-copy-windows-04xr3wc0/`, OFF with eight handles in
+`out/xms-copy-windows-6iirwf5m/`, AUTO in `out/xms-copy-windows-iec5vjp_/`,
+mapped EMS endpoints in `out/xms-copy-windows-x_kb2o19/`, and DOS-low in
+`out/xms-copy-windows-ghvfnmvj/`. These also check XMS 3.x handle-info's size,
 lock count, preserved CX, invalid-handle result and transport rejection.
-`--local-handle-lookup` restores the obsolete low-table lookup and fails the
-boot block's data check (`out/xms-copy-windows-wnjmcr9f/`).
+`--local-handle-lookup` enters the poisoned old helper and fails to complete
+the boot-owner witness (`out/xms-copy-windows-705_n1fz/`).
 `--reimport-owner` rejects poisoned reimport in
-`out/xms-copy-windows-5apwk4ye/`; snapshot-only and shared-allocator regressions
-pass separately.
+`out/xms-copy-windows-kzh12ki1/` at boot-owner step 5; snapshot-only and
+shared-allocator regressions pass separately. Three host tests check linked
+bootstrap/permanent procedure placement, capacity bounds and paragraph rounding:
+`python3 tests/test_himem_bootstrap_layout.py`. The report explicitly records
+zero released bytes; it does not prove that every caller is safe after release.
+The 128-handle run passes in `out/xms-copy-windows-g7o2yp4u/`, checking the
+configured high-owner capacity, linked 3,584-byte boot end and 1,408-byte tail;
+this is not exhaustive allocation to capacity or a maximum-EMS-resource test.
 
 This closes live **handle allocator** ownership for the paired experiment,
 not the complete boot transaction. Publication currently occurs on the first
 installed service request; cancellation/handback after that point, maximum
 resources, warm reset, final low-base placement and release remain unqualified.
 Next integrate the complete low/high owner with the loader's
-prepare/activate/release contract and reclaim its obsolete boot table/staging
+prepare/activate/release contract and reclaim its obsolete bootstrap tail
 as part of the final compact low allocation, preserving one transient lookup
 record. There is no measured conventional-memory gain from this dependency
 removal. Do not promote the experiment or count its retained storage twice as
@@ -1177,6 +1191,14 @@ hook. Establish a reclaimable bootstrap service/state lifetime and a final
 low base before activation, retaining working cancellation support until
 commit. The combined witness validates existing mechanisms together; it does
 not implement that final-base/rollback/release transaction.
+
+The contiguous-bootstrap-tail variant also passes the combined DOS-high
+activation witness in `out/emm-init-phases-i6_rg8bk/` and cancellation in
+`out/emm-init-phases-ls3h1rkp/`, each across ON/OFF/AUTO/RAM. Activation records
+the actual high commit and survives tail poisoning; cancellation records no
+high commit and keeps the bootstrap client usable. This qualifies the split
+against the existing upward move only, not overlapping downward compaction or
+rollback after ownership publication. Normal binaries remain byte-identical.
 
 ##### Whole-system placement rules
 
