@@ -659,8 +659,17 @@ rejected_reallocation:
 reject_copy_hook:
     cmp ah,87h
     jne .chain
+%ifdef AUTHORITATIVE_OWNER
+    ; The high allocator calls its copy backend directly; the public crossing
+    ; is now the reallocation request, not a second physical-copy packet.
+    cmp dword [es:si],54554158h
+    jne .chain
+    cmp word [es:si+16],0fh
+    jne .chain
+%else
     cmp dword [es:si],59504358h
     jne .chain
+%endif
     inc byte [cs:rejected_copies]
     ; Observe the request, but let the real protected backend inject failure
     ; after installing its scratch windows. This hook does not reject it.
@@ -814,7 +823,11 @@ owner_query_failure:
 owner_reject_i15:
     cmp ah,87h
     jne .chain
+%ifdef AUTHORITATIVE_OWNER
+    cmp dword [es:si],54554158h
+%else
     cmp dword [es:si],4e574f58h
+%endif
     jne .chain
     push bp
     mov bp,sp

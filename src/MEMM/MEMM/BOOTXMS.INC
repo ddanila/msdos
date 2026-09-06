@@ -11,6 +11,7 @@ boot_owner_move dd 1024
         dd 0
 boot_owner_pattern db 1024 dup (0)
 boot_owner_result db 1024 dup (0)
+boot_owner_step db 0
 
 BootOwnerPrepare proc near
         pushf
@@ -20,6 +21,7 @@ BootOwnerPrepare proc near
         push cs
         pop ds
         assume ds:LAST
+        mov [boot_owner_step],1
         mov ax,4300h
         int 2fh
         cmp al,80h
@@ -34,6 +36,7 @@ BootOwnerPrepare proc near
         cmp ax,1
         jne BootOwnerFail
         mov [boot_owner_handle],dx
+        mov [boot_owner_step],2
         mov ah,0ch
         call dword ptr [boot_owner_entry]
         cmp ax,1
@@ -57,6 +60,7 @@ BootOwnerFill:
         mov word ptr [boot_owner_move+10],ax
         mov dword ptr [boot_owner_move+12],0
         mov si,offset boot_owner_move
+        mov [boot_owner_step],3
         mov ah,0bh
         call dword ptr [boot_owner_entry]
         cmp ax,1
@@ -77,6 +81,7 @@ BootOwnerVerify proc near
         pop ds
         assume ds:LAST
         ; Check the cached pre-prepare entry, not just fresh discovery.
+        mov [boot_owner_step],4
         mov dx,[boot_owner_handle]
         mov ah,0eh
         call dword ptr [boot_owner_entry]
@@ -86,6 +91,7 @@ BootOwnerVerify proc near
         jne BootOwnerFail
         cmp dx,1
         jne BootOwnerFail
+        mov [boot_owner_step],5
         mov dx,[boot_owner_handle]
         mov ah,0ch
         call dword ptr [boot_owner_entry]
@@ -107,6 +113,7 @@ BootOwnerVerify proc near
         mov word ptr [boot_owner_move+12],offset boot_owner_result
         mov word ptr [boot_owner_move+14],cs
         mov si,offset boot_owner_move
+        mov [boot_owner_step],6
         mov ah,0bh
         call dword ptr [boot_owner_entry]
         cmp ax,1
@@ -119,14 +126,17 @@ endif
         mov si,offset boot_owner_pattern
         mov di,offset boot_owner_result
         mov cx,512
+        mov [boot_owner_step],7
         cld
         repe cmpsw
         jne BootOwnerFail
+        mov [boot_owner_step],8
         mov dx,[boot_owner_handle]
         mov ah,0dh
         call dword ptr [boot_owner_entry]
         cmp ax,1
         jne BootOwnerFail
+        mov [boot_owner_step],9
         mov dx,[boot_owner_handle]
         mov ah,0ah
         call dword ptr [boot_owner_entry]
@@ -158,6 +168,8 @@ BootOwnerFail:
         mov al,'X'
         out 0e9h,al
         mov al,'F'
+        out 0e9h,al
+        mov al,cs:[boot_owner_step]
         out 0e9h,al
         mov dx,0f4h
         mov ax,11h

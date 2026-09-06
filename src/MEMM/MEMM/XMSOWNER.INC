@@ -12,6 +12,10 @@ public XmsOwnerStorageEnd, XmsOwnerCopyCalls, XmsOwnerCopyPacket
 XmsQueryOwner proc near
         pushad
         push    ds
+IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+        cmp cs:[XmsOwnerActive],0
+        jne owner_service_bad
+ENDIF
         cmp     si, 65536-14-MAX_HANDLES*HANDLE_SIZE
         ja      owner_service_bad
         cmp     word ptr es:[si+4],1
@@ -60,6 +64,9 @@ owner_service_bad:
         stc
         ret
 XmsQueryOwner endp
+IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+        include XMSAUTH.INC
+ENDIF
         include XMSALLOC.INC
         include XMSHANDLE.INC
         include XMSSTATE.INC
@@ -137,5 +144,9 @@ move_length dd 0
 move_source dd 0
 move_dest dd 0
 XmsOwnerCopyCalls dd 0
+IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+XmsOwnerActive db 0
+XmsOwnerImports dw 0
+ENDIF
 XmsOwnerStorageEnd label near
         assume ds:DGROUP

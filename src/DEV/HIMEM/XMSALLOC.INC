@@ -8,9 +8,28 @@
 ; and returns CF. The development typed-copy variant additionally owns
 ; move_address_classes; none of these fields are implicit code-segment state.
 
+; The experimental front end delegates every handle mutation. CF from its
+; transport means bootstrap fallback only; handled XMS errors return CF clear.
+XMS_OWNER_ROUTE macro operation
+        local owner_local
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+        push ax
+        mov ax,operation
+        call xms_remote_owned
+        jc short owner_local
+        add sp,2
+        ret
+owner_local:
+        pop ax
+endif
+endm
+
 xms_query_free proc near
+        XMS_OWNER_ROUTE 08h
+ifndef HIMEM_AUTHORITATIVE_OWNER_TEST
 ifdef HIMEM_PROTECTED_OWNER_TEST
         jmp     xms_remote_query
+endif
 endif
 xms_query_free_local label near
         call    largest_gap
@@ -86,8 +105,12 @@ owner_query_done:
         ret
 xms_remote_query endp
 endif
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+        include XMSAUTH.INC
+endif
 
 xms_allocate proc near
+        XMS_OWNER_ROUTE 09h
         mov     bx, dx
         mov     si, offset handles
         mov     cx, [handle_limit]
@@ -120,6 +143,7 @@ allocate_no_handle:
 xms_allocate endp
 
 xms_free proc near
+        XMS_OWNER_ROUTE 0ah
         call    validate_handle
         jc      xms_bad_handle
         cmp     byte ptr [si+HANDLE_LOCK], 0
@@ -132,6 +156,7 @@ free_locked:
 xms_free endp
 
 xms_lock proc near
+        XMS_OWNER_ROUTE 0ch
         call    validate_handle
         jc      xms_bad_handle
         cmp     byte ptr [si+HANDLE_LOCK], 0ffh
@@ -151,6 +176,7 @@ lock_overflow:
 xms_lock endp
 
 xms_unlock proc near
+        XMS_OWNER_ROUTE 0dh
         call    validate_handle
         jc      xms_bad_handle
         cmp     byte ptr [si+HANDLE_LOCK], 0
@@ -163,6 +189,7 @@ unlock_underflow:
 xms_unlock endp
 
 xms_handle_info proc near
+        XMS_OWNER_ROUTE 0eh
         call    validate_handle
         jc      xms_bad_handle
         push    si
@@ -183,6 +210,7 @@ handle_info_count_used:
 xms_handle_info endp
 
 xms_reallocate proc near
+        XMS_OWNER_ROUTE 0fh
         call    validate_handle
         jc      xms_bad_handle
         cmp     byte ptr [si+HANDLE_LOCK], 0

@@ -68,6 +68,10 @@ owner_limit dw 0
 owner_pool dw 0
 owner_largest dw 0
 owner_total dw 0
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+owner_bx dw 0
+owner_operation dw 0
+endif
 owner_records db MAX_HANDLES*HANDLE_SIZE dup (0)
 endif
 
@@ -464,6 +468,9 @@ xms_reallocate_any endp
 else
         .386
 xms_query_any_free proc near
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+        call    xms_query_free
+else
 ifdef HIMEM_PROTECTED_OWNER_TEST
 ifndef HIMEM_OWNER_QUERY_2_ONLY
         call    xms_remote_query
@@ -474,6 +481,7 @@ endif
 else
         call    largest_gap
         call    total_free
+endif
 endif
         movzx   edx, dx
         movzx   eax, ax
@@ -513,6 +521,10 @@ xms_allocate_any proc near
 xms_allocate_any endp
 
 xms_extended_handle_info proc near
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+        call    xms_owner_refresh
+        jc      xms_failure
+endif
         push    cx
         call    validate_handle
         jc      short xms3_info_bad_handle
@@ -751,6 +763,10 @@ query_a20_hardware endp
         include XMSALLOC.INC
 
 xms_move proc near
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+        call    xms_owner_refresh
+        jc      xms_failure
+endif
         push    bx
         push    dx
         push    bp
@@ -1027,6 +1043,10 @@ resolve_bad_handle:
 resolve_move_address endp
 
 copy_move_blocks proc near
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+        cmp     [owner_query_active],0
+        je      copy_move_next
+endif
 ifdef HIMEM_PROTECTED_COPY_TEST
         push    si
         push    es
@@ -1066,6 +1086,12 @@ protected_copy_unavailable:
         stc
         ret
 else
+HIMEM_BOOTSTRAP_COPY equ 1
+endif
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+HIMEM_BOOTSTRAP_COPY equ 1
+endif
+ifdef HIMEM_BOOTSTRAP_COPY
 copy_move_next:
         mov     ax, word ptr [move_length]
         mov     dx, word ptr [move_length+2]

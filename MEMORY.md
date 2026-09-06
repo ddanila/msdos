@@ -493,6 +493,53 @@ instruction-harvesting tranche or a completed high-resident manager.
 
 ##### Combined-provider decision: include boot-time reclamation
 
+**Authoritative high handle owner (paired development):**
+`HIMEM_AUTHORITATIVE_OWNER_TEST` / `EMM_AUTHORITATIVE_OWNER_TEST` replace
+per-query snapshot import with one validated `XAUT` ownership publication.
+Queries, allocation, free, lock, unlock, handle-info and reallocation then use
+the installed extended-memory table and shared allocator services. EMM's
+existing locked backing handle is imported with the other live records; no
+second allocator is initialized over that RAM. The old `XOWN` snapshot
+endpoint rejects calls after publication.
+
+Before attempting publication the low front end disables local mutations;
+transport failure thereafter returns an error without fallback. The existing
+BIOS copy backend remains available during bootstrap, before high ownership
+is attempted. Move and XMS 3.x handle-info still consume a freshly returned
+**read-only low view**; HMA, A20 and UMB ownership remain low. These are explicit
+temporary costs, not the final combined-provider interface or low reclamation.
+The linked owner service occupies 1,229 high code bytes and 671 state bytes,
+excluding existing copy/transition support and the retained low adapters/views.
+Normal HIMEM and EMM386 binaries remain byte-identical.
+
+```sh
+python3 tests/test_xms_copy_windows_qemu.py --authoritative-owner --dos-high
+python3 tests/test_xms_copy_windows_qemu.py --authoritative-owner --dos-high --mode OFF
+python3 tests/test_xms_copy_windows_qemu.py --authoritative-owner --dos-high --mode AUTO
+python3 tests/test_xms_copy_windows_qemu.py --authoritative-owner --dos-high --reject-reallocation
+```
+
+Every authoritative run allocates, locks and fills a block before EMM backing
+preparation and verifies its handle/address/lock/data through the cached entry
+after the high owner activates. Later packets deliberately contain poisoned
+input records; runtime page-table inspection requires exactly one high import
+and independently reconciles free-space results. DOS-high ON with rejected
+reallocation/retry passes in `out/xms-copy-windows-sfr2sjff/`, OFF in
+`out/xms-copy-windows-y32siq7s/`, AUTO in `out/xms-copy-windows-jsdblxcp/`,
+mapped EMS endpoints in `out/xms-copy-windows-qkj_0p9r/`, and DOS-low in
+`out/xms-copy-windows-h07vd32c/`. `--reimport-owner` deliberately reloads the
+poisoned records and fails (`out/xms-copy-windows-ztctvsvv/`). Snapshot-only
+and shared-allocator regressions pass separately.
+
+This closes live **handle allocator** ownership for the paired experiment,
+not the complete boot transaction. Publication currently occurs on the first
+installed service request; cancellation/handback after that point, maximum
+resources, warm reset, final low-base placement and release remain unqualified.
+Next remove the move validator's low table dependency, then integrate the
+complete low/high owner with the loader's prepare/activate/release contract.
+Do not promote this retained-copy experiment or count its storage twice as
+available memory. The older read-only variant below remains a separate control.
+
 **Installed high free-space service (development only):** public XMS AH=08h
 and the XMS 3.x AH=88h query share a paired opt-in path through EMM386's
 installed protected entry.

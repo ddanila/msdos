@@ -196,6 +196,16 @@ _TEXT	segment
 Move_Block	proc	near
 IFDEF EMM_XMS_COPY_TEST
 IFDEF EMM_XMS_OWNER_TEST
+IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+        cmp dword ptr es:[si],54554158h ; XAUT
+        jne short MB_Not_Authority
+        call XmsAuthoritativeOwner
+        mov ah,0
+        jnc MB_Client_Status
+        mov ah,2
+        jmp MB_Client_Status
+MB_Not_Authority:
+ENDIF
         cmp dword ptr es:[si],4e574f58h ; 'XOWN'
         jne short MB_Not_Owner
         call XmsQueryOwner
@@ -530,6 +540,9 @@ XmsI15QueryStart label near
     mov dx,XCP_REQUIRED
 IFDEF EMM_XMS_OWNER_TEST
     or dx,XCP_OWNER_QUERY
+IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+    or dx,XCP_OWNER_ACTIVE
+ENDIF
 ENDIF
 IFDEF EMM_XMS_COPY_BAD_VERSION
     inc cx
@@ -568,6 +581,10 @@ XmsI15InactiveStart label near
     cmp [Active_Status],0
     jne short XmsI15Active
 IFDEF EMM_XMS_OWNER_TEST
+IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+    cmp dword ptr es:[si],54554158h
+    je short XmsI15Private
+ENDIF
     cmp dword ptr es:[si],4e574f58h
     je short XmsI15Private
 ENDIF

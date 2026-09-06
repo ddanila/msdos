@@ -34,6 +34,10 @@ def main():
                         help="pair development HIMEM with the protected backend through XMS Move")
     parser.add_argument("--owner-query", action="store_true",
                         help="route public AH=08h to the installed high snapshot service")
+    parser.add_argument("--authoritative-owner", action="store_true",
+                        help="import handle state once and execute all mutations at the high owner")
+    parser.add_argument("--reimport-owner", action="store_true",
+                        help="negative control: reimport poisoned client records after publication")
     parser.add_argument("--bad-owner-result", action="store_true",
                         help="negative control: corrupt the high service's largest-free result")
     parser.add_argument("--bypass-owner-query", action="store_true",
@@ -73,6 +77,14 @@ def main():
     parser.add_argument("--bypass-aliases", action="store_true",
                         help="negative control: omit whole-range alias checking")
     args = parser.parse_args()
+    if args.reimport_owner and not args.authoritative_owner:
+        parser.error("reimport control requires --authoritative-owner")
+    if args.authoritative_owner:
+        args.owner_query = True
+        args.public_api = True
+        if any((args.bypass_owner_query, args.bypass_extended_query,
+                args.bad_owner_result, args.early_realloc_state)):
+            parser.error("authoritative ownership cannot use snapshot bypass controls")
     expect_copy_failure = args.fail_after_map or args.backend_capability != "valid"
     if args.reject_reallocation and (not args.public_api or expect_copy_failure or args.alias_overlap):
         parser.error("reallocation rejection requires successful public transfers without alias-only tests")
@@ -134,6 +146,10 @@ def main():
     flags = "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -I. -I..\\EMM -I..\\..\\INC -DEMM_XMS_COPY_TEST"
     if args.owner_query:
         flags += " -DEMM_XMS_OWNER_TEST -I..\\..\\DEV\\HIMEM"
+    if args.authoritative_owner:
+        flags += " -DEMM_AUTHORITATIVE_OWNER_TEST"
+    if args.reimport_owner:
+        flags += " -DEMM_AUTHORITATIVE_REIMPORT"
     if args.bad_owner_result:
         flags += " -DEMM_XMS_OWNER_BAD_RESULT"
     if args.bypass_owner_copy:
@@ -157,6 +173,12 @@ def main():
     if args.deny_destination:
         flags += " -DEMM_XMS_COPY_DENY_DESTINATION"
     with (work / "build.log").open("w") as log:
+        if args.authoritative_owner:
+            subprocess.run([str(ROOT / "bin/jwasm-masm"),
+                            "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -I. -I..\\EMM -DEMM_BOOTSTRAP_OWNER_TEST",
+                            f"INIT.ASM,{work / 'MEMM/INIT.OBJ'};"],
+                           cwd=ROOT / "src/MEMM/MEMM", check=True,
+                           stdout=log, stderr=subprocess.STDOUT)
         subprocess.run([str(ROOT / "bin/jwasm-masm"), flags,
                         f"MOVEB.ASM,{work / 'MEMM/MOVEB.OBJ'};"],
                        cwd=ROOT / "src/MEMM/MEMM", check=True, stdout=log, stderr=subprocess.STDOUT)
@@ -174,6 +196,8 @@ def main():
                         *(["-DHIMEM_PROTECTED_OWNER_TEST"]
                           if args.owner_query and not args.bypass_owner_query else []),
                         *(["-DHIMEM_OWNER_QUERY_2_ONLY"] if args.bypass_extended_query else []),
+                        *(["-DHIMEM_AUTHORITATIVE_OWNER_TEST", "-DHIMEM_AUTHORITATIVE_POISON_TEST"]
+                          if args.authoritative_owner else []),
                         *(["-DHIMEM_SKIP_COPY_CAPABILITY_TEST"] if args.bypass_capability else []),
                         *(["-DHIMEM_EARLY_REALLOC_TEST"] if args.early_realloc_state else []),
                         str(ROOT / "src/DEV/HIMEM/HIMEM.ASM")], check=True)
@@ -192,6 +216,7 @@ def main():
                     *(["-DBAD_HMA_DATA"] if args.bad_hma_data else []),
                     *(["-DPUBLIC_COPY"] if args.public_api else []),
                     *(["-DOWNER_QUERY"] if args.owner_query else []),
+                    *(["-DAUTHORITATIVE_OWNER"] if args.authoritative_owner else []),
                     *(["-DREJECT_REALLOCATION"] if args.reject_reallocation else []),
                     *(["-DWRONG_DATA"] if args.bad_data else []),
                     *(["-DMAPPED_ENDPOINT"] if args.mapped else []),
@@ -223,7 +248,9 @@ def main():
     assert re.search(r"MBTAR_GSEL\s+equ\s+RCODEA_GSEL\+20h", selectors)
     endpoint, debug = work / "qmp", work / "debug.bin"
     report = dict(passed=False, mode=args.mode, fail_after_map=args.fail_after_map, core_bytes=code_size,
-                  owner_query=args.owner_query, bad_owner_result=args.bad_owner_result,
+                  owner_query=args.owner_query, authoritative_owner=args.authoritative_owner,
+                  reimport_owner=args.reimport_owner,
+                  bad_owner_result=args.bad_owner_result,
                   bypass_owner_query=args.bypass_owner_query,
                   bypass_owner_copy=args.bypass_owner_copy,
                   bypass_extended_query=args.bypass_extended_query,
@@ -279,6 +306,17 @@ def main():
                 deadline = time.monotonic() + 30
                 while True:
                     trace = debug.read_bytes() if debug.exists() else b""
+                    if args.authoritative_owner:
+                        if len(trace) < 10:
+                            if process.poll() is not None or time.monotonic() > deadline:
+                                raise ValueError(f"bootstrap owner witness failed: {trace!r}")
+                            time.sleep(.05)
+                            continue
+                        tag, handle, physical, size = struct.unpack("<2sHIH", trace[:10])
+                        if tag != b"XO" or not handle or physical < 0x100000 or size != 1:
+                            raise ValueError(f"invalid bootstrap owner witness: {trace[:10]!r}")
+                        report["bootstrap_owner"] = dict(handle=handle, physical=physical, size_kib=size)
+                        trace = trace[10:]
                     if trace == expected:
                         break
                     if not expected.startswith(trace) or process.poll() is not None:
@@ -353,6 +391,8 @@ def main():
                         physical_pages.add(physical & ~4095)
                         snapshot.append(ram[physical])
                     calls, limit, pool = struct.unpack_from("<IHH", snapshot)
+                    if args.authoritative_owner and struct.unpack_from("<BH", snapshot, 668) != (1, 1):
+                        raise ValueError("handle ownership was not published exactly once")
                     if calls < 5 or not 1 <= limit <= 128:
                         raise ValueError("public query did not execute the installed high service")
                     records = [struct.unpack_from("<BHH", snapshot, 8 + i * 5) for i in range(limit)]
