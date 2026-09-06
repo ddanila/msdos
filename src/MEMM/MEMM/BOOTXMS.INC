@@ -142,6 +142,22 @@ endif
         call dword ptr [boot_owner_entry]
         cmp ax,1
         jne BootOwnerFail
+ifdef EMM_BOOTSTRAP_EXPECT_HMA
+        ; DOS-high must retain the same complete cached XMS entry across the
+        ; loader callback. A config string alone is not residency evidence.
+        mov [boot_owner_step],10
+        mov ax,1234h
+        mov cx,584dh
+        mov si,1
+        xor di,di
+        int 2fh
+        cmp ax,1
+        jne BootOwnerFail
+        cmp bx,word ptr [boot_owner_entry]
+        jne BootOwnerFail
+        cmp dx,word ptr [boot_owner_entry+2]
+        jne BootOwnerFail
+endif
         ; Fixed 10-byte record: tag, preserved handle, physical base, size KiB.
         mov al,'X'
         out 0e9h,al

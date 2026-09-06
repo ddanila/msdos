@@ -24,7 +24,9 @@ def strip_capacity_records(data, *, handles=None, altregs=None):
 
 def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
                 lifecycle=False, loader=False, rebase=False, table_layout=False,
-                bootstrap_owner=False):
+                bootstrap_owner=False, authoritative_owner=False):
+    if authoritative_owner and not bootstrap_owner:
+        raise ValueError("authoritative publication requires the live owner witness")
     owner = None
     if bootstrap_owner:
         suffix = b"LD" if loader else b""
@@ -36,6 +38,16 @@ def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
             raise ValueError("invalid bootstrap XMS owner witness")
         owner = dict(handle=handle, physical=physical, size_kib=size)
         data = data[:end-10] + suffix
+        if authoritative_owner and not rejected:
+            end = len(data) - len(suffix)
+            if end < 6:
+                raise ValueError("missing installed high allocator publication")
+            tag, base = struct.unpack("<2sI", data[end-6:end])
+            if tag != b"XA" or base < 0x100000:
+                raise ValueError("missing installed high allocator publication")
+            owner["high_code_base"] = base
+            data = data[:end-6] + suffix
+        owner["high_committed"] = bool(authoritative_owner and not rejected)
     moved = None
     if rebase:
         if len(data) < 34:
@@ -161,6 +173,10 @@ def main():
     parser.add_argument("--split-prepare", action="store_true")
     parser.add_argument("--bootstrap-owner", action="store_true",
                         help="preserve a locked, filled XMS block across the loader transaction")
+    parser.add_argument("--authoritative-owner", action="store_true",
+                        help="activate the paired high allocator through the loader callback")
+    parser.add_argument("--dos-high", action="store_true",
+                        help="test authoritative handoff with current DOS high and its cached entry")
     parser.add_argument("--bad-bootstrap-owner", action="store_true",
                         help="corrupt the last readback byte; this run must fail")
     parser.add_argument("--table-layout", action="store_true",
@@ -195,6 +211,10 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.dos_high and not args.authoritative_owner:
+        parser.error("--dos-high requires --authoritative-owner")
+    if args.authoritative_owner:
+        args.bootstrap_owner = True
     if args.bad_bootstrap_owner:
         args.bootstrap_owner = True
     if args.bootstrap_owner:
@@ -239,17 +259,27 @@ def main():
     if (args.altregs is not None or args.handles is not None) and args.reject_prepared:
         parser.error("capacity probes require an installed provider")
     capture.require_tools()
+    if args.authoritative_owner:
+        subprocess.run(["make", "dos", "cmd_command"], cwd=capture.ROOT, check=True,
+                       stdout=subprocess.DEVNULL)
     image_hash = capture.sha256(args.image)
     work = Path(tempfile.mkdtemp(prefix="emm-init-phases-", dir=capture.ROOT / "out"))
     print(f"Evidence: {work}", flush=True)
     shutil.copytree(capture.ROOT / "src/MEMM", work / "MEMM")
     if args.loader:
         shutil.copytree(capture.ROOT / "src/INC", work / "INC")
+    if args.authoritative_owner:
+        shutil.copytree(capture.ROOT / "src/DEV/HIMEM", work / "DEV/HIMEM")
     build = work / "MEMM/MEMM"
     original = capture.sha256(capture.ROOT / "src/MEMM/MEMM/EMM386.EXE")
     trace_defines = "-DEMM_INIT_PHASE_TRACE"
     if args.bootstrap_owner:
         trace_defines += " -DEMM_BOOTSTRAP_OWNER_TEST"
+    if args.authoritative_owner:
+        trace_defines += (" -DEMM_XMS_COPY_TEST -DEMM_XMS_OWNER_TEST"
+                          " -DEMM_AUTHORITATIVE_OWNER_TEST -DEMM_XMS_OWNER_TRACE")
+    if args.dos_high:
+        trace_defines += " -DEMM_BOOTSTRAP_EXPECT_HMA"
     if args.bad_bootstrap_owner:
         trace_defines += " -DEMM_BOOTSTRAP_OWNER_BAD"
     if args.table_layout:
@@ -277,6 +307,15 @@ def main():
     if args.bad_pool_control:
         trace_defines += " -DEMM_PREPARE_BAD_POOL"
     for define in ("", trace_defines):
+        if args.authoritative_owner:
+            for name in ("MOVEB", "RRTRAP"):
+                options = (f"-Mx -t -DI386 -DNoBugMode -DNOHIMEM {define}"
+                           " -I. -I..\\EMM -I..\\..\\INC -I..\\..\\DEV\\HIMEM")
+                if name == "RRTRAP":
+                    options += " -DRRTRAP_LOW_ONLY"
+                subprocess.run([str(capture.ROOT / "bin/jwasm-masm"), options,
+                                f"{name}.ASM,{name}.OBJ;"], cwd=build, check=True,
+                               stdout=subprocess.DEVNULL)
         if args.table_layout:
             for name in ("EMMINIT", "INITTAB", "SHIPHI", "TABDEF"):
                 subprocess.run([str(capture.ROOT / "bin/jwasm-masm"),
@@ -296,6 +335,14 @@ def main():
         if not define and capture.sha256(build / "EMM386.EXE") != original:
             raise RuntimeError("default reconstruction differs from production; rebuild memm first")
     qexit = work / "QEXIT.COM"
+    himem = capture.ROOT / "src/DEV/HIMEM/HIMEM.SYS"
+    if args.authoritative_owner:
+        himem = work / "HIMEM.SYS"
+        subprocess.run([str(capture.ROOT / "bin/jwasm-bin"), "-q", "-bin",
+                        "-DHIMEM_PROTECTED_COPY_TEST", "-DHIMEM_PROTECTED_OWNER_TEST",
+                        "-DHIMEM_AUTHORITATIVE_OWNER_TEST", "-DHIMEM_AUTHORITATIVE_POISON_TEST",
+                        f"-I{work / 'INC'}", f"-Fo{himem}",
+                        str(work / "DEV/HIMEM/HIMEM.ASM")], check=True)
     loader_image = None
     loader_hash = None
     if args.loader:
@@ -324,6 +371,9 @@ def main():
     for mode in ("ON", "OFF", "AUTO", "RAM"):
         image = work / f"{mode}.img"
         shutil.copyfile(args.image, image)
+        if args.authoritative_owner:
+            capture.install_file(image, capture.ROOT / "src/DOS/MSDOS.SYS", "MSDOS.SYS")
+            capture.install_file(image, capture.ROOT / "src/CMD/COMMAND/COMMAND.COM", "COMMAND.COM")
         if args.handles is not None:
             capture.install_file(image, handle_probe, "HANDLES.COM")
         if args.altregs is not None:
@@ -332,14 +382,15 @@ def main():
             capture.install_file(image, loader_image, "IO.SYS")
             capture.install_file(image, owner_probe, "OWNER.COM")
         for source, name in ((build / "EMM386.EXE", "EMM386.EXE"),
-                             (capture.ROOT / "src/DEV/HIMEM/HIMEM.SYS", "HIMEM.SYS"),
+                             (himem, "HIMEM.SYS"),
                              (qexit, "QEXIT.COM")):
             capture.install_file(image, source, name)
         config = work / f"{mode}-CONFIG.SYS"
         capacities = "".join(f" {key}={value}" for key, value in
                              (("H", args.handles), ("A", args.altregs)) if value is not None)
         config.write_bytes(("DEVICE=HIMEM.SYS /TESTMEM:OFF\r\n"
-                            f"DEVICE=EMM386.EXE {mode}{capacities}\r\nDOS=LOW\r\n").encode())
+                            f"DEVICE=EMM386.EXE {mode}{capacities}\r\n"
+                            f"DOS={'HIGH' if args.dos_high else 'LOW'}\r\n").encode())
         batch = work / "AUTOEXEC.BAT"
         batch.write_bytes(b"@ECHO OFF\r\n" + (b"OWNER.COM\r\n" if args.loader else b"")
                           + (b"EMM386.EXE ON\r\nHANDLES.COM\r\n" if args.handles is not None else b"")
@@ -372,7 +423,8 @@ def main():
                                    lifecycle=args.lifecycle,
                                    loader=args.loader and not args.loader_bad_version,
                                    rebase=args.loader_rebase, table_layout=args.table_layout,
-                                   bootstrap_owner=args.bootstrap_owner)
+                                   bootstrap_owner=args.bootstrap_owner,
+                                   authoritative_owner=args.authoritative_owner)
         if args.table_layout:
             layout = next(row["tables"] for row in records[mode] if "tables" in row)
             if layout["high"] != int(args.high_tables):
@@ -397,6 +449,12 @@ def main():
         loader=args.loader, loader_bad_version=args.loader_bad_version,
         loader_rebase=args.loader_rebase,
         bootstrap_owner=args.bootstrap_owner,
+        authoritative_owner=args.authoritative_owner, himem_sha256=capture.sha256(himem),
+        dos_high=args.dos_high,
+        dos_sha256=capture.sha256(capture.ROOT / "src/DOS/MSDOS.SYS")
+            if args.authoritative_owner else None,
+        command_sha256=capture.sha256(capture.ROOT / "src/CMD/COMMAND/COMMAND.COM")
+            if args.authoritative_owner else None,
         high_tables=args.high_tables, table_layout=args.table_layout,
         handles=args.handles, altregs=args.altregs,
         switch_altregs=args.switch_altregs,

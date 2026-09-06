@@ -44,6 +44,26 @@ auth_owner_import:
         jc auth_owner_bad
         mov [XmsOwnerActive],1
         inc [XmsOwnerImports]
+IFDEF EMM_XMS_OWNER_TRACE
+        ; Loader integration witness: emitted only at the actual high commit,
+        ; never by capability discovery or the low front-end's attempted call.
+        mov al,'X'
+        out 0e9h,al
+        mov al,'A'
+        out 0e9h,al
+        push ds
+        mov ax,GDTD_GSEL
+        mov ds,ax
+        mov ax,word ptr ds:[VDMC_GSEL+2]
+        out 0e9h,al
+        mov al,ah
+        out 0e9h,al
+        mov al,byte ptr ds:[VDMC_GSEL+4]
+        out 0e9h,al
+        mov al,byte ptr ds:[VDMC_GSEL+7]
+        out 0e9h,al
+        pop ds
+ENDIF
 auth_owner_existing:
         mov ax,es:[bx+6]
         cmp ax,[handle_limit]

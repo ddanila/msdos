@@ -10,8 +10,21 @@ class InitPhaseTests(unittest.TestCase):
         record = struct.pack("<2sHIH", b"XO", 3, 0x110000, 1)
         rows = parse_trace(self.trace() + record, bootstrap_owner=True)
         self.assertEqual(rows[-1]["bootstrap_owner"],
-                         dict(handle=3, physical=0x110000, size_kib=1))
+                         dict(handle=3, physical=0x110000, size_kib=1, high_committed=False))
         check_phases(rows, "ON")
+
+    def test_authoritative_owner_publication(self):
+        owner = struct.pack("<2sHIH", b"XO", 3, 0x110000, 1)
+        marker = struct.pack("<2sI", b"XA", 0x220000)
+        rows = parse_trace(self.trace() + marker + owner,
+                           bootstrap_owner=True, authoritative_owner=True)
+        self.assertTrue(rows[-1]["bootstrap_owner"]["high_committed"])
+        self.assertEqual(rows[-1]["bootstrap_owner"]["high_code_base"], 0x220000)
+        check_phases(rows, "ON")
+        for marker in (b"", b"XX", marker + marker, struct.pack("<2sI", b"XA", 0x90000)):
+            with self.assertRaises(ValueError):
+                parse_trace(self.trace() + marker + owner,
+                            bootstrap_owner=True, authoritative_owner=True)
 
     def test_bad_bootstrap_owner_record(self):
         for record in (b"", b"XF", struct.pack("<2sHIH", b"XO", 0, 0x110000, 1),
@@ -19,6 +32,17 @@ class InitPhaseTests(unittest.TestCase):
                        struct.pack("<2sHIH", b"XO", 1, 0x110000, 0)):
             with self.assertRaises(ValueError):
                 parse_trace(self.trace() + record, bootstrap_owner=True)
+
+    def test_cancelled_authoritative_owner_is_not_published(self):
+        first = self.trace()[:13]
+        phases = b"".join(first[:2] + bytes([stage]) + first[3:] for stage in (1, 9, 10))
+        owner = struct.pack("<2sHIH", b"XO", 3, 0x110000, 1)
+        options = dict(split=True, rejected=True, bootstrap_owner=True, authoritative_owner=True)
+        rows = parse_trace(phases + owner, **options)
+        self.assertFalse(rows[-1]["bootstrap_owner"]["high_committed"])
+        check_phases(rows, "ON", split=True, rejected=True)
+        with self.assertRaises(ValueError):
+            parse_trace(phases + struct.pack("<2sI", b"XA", 0x220000) + owner, **options)
 
     def test_capacity_records(self):
         for handles, altregs in ((None, None), (255, None), (None, 0), (255, 254), (2, 0)):

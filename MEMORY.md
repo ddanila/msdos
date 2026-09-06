@@ -1079,6 +1079,38 @@ HIMEM still services the cached entry. The next implementation must transfer
 one authoritative allocator and release the old low allocation; a snapshot,
 working high copy or successful upward move cannot satisfy that checkpoint.
 
+**Combined loader/high-owner witness:** `--authoritative-owner` now pairs the
+high allocator with deferred INIT and the pinned prepared-image move, instead
+of testing those mechanisms separately. A publication record comes from the
+installed service and reports its live code-descriptor base above 1 MiB.
+The existing live block must survive through its cached entry with both the
+old low table and later import records poisoned. Cancellation must restore
+the pool and preserve the block without publishing the high owner.
+
+```sh
+python3 tests/capture_emm_init_phases.py out/floppy.img --authoritative-owner --loader-rebase --dos-high
+python3 tests/capture_emm_init_phases.py out/floppy.img --authoritative-owner --loader-rebase --dos-high --reject-prepared
+```
+
+All four modes pass DOS-high activation in `out/emm-init-phases-m_mxv80e/`
+and cancellation in `out/emm-init-phases-0kcbhx0_/`. These install current
+DOS/COMMAND and require the signed DOS-high cache query to return the same
+complete XMS entry. DOS-low counterparts pass in
+`out/emm-init-phases-1z5ifsxs/` and `out/emm-init-phases-wi3i4ofa/`.
+`--bad-bootstrap-owner` fails with guest exit 35 in
+`out/emm-init-phases-kuyttnqd/`; eighteen phase-parser and three relocation
+tests pass. This remains an upward-move witness, with no low-space release.
+
+The next reclamation step must respect the measured activation boundary:
+`PrepareProvider` currently returns after `AllocMem`; `ActivateProvider` still
+builds descriptors, commits UMB mappings and copies high services through
+`InitTab`/`RelocateText`. Do not discard the bootstrap allocator at prepare
+return or move the already-active EMM image with the HIMEM-only relocation
+hook. Establish a reclaimable bootstrap service/state lifetime and a final
+low base before activation, retaining working cancellation support until
+commit. The combined witness validates existing mechanisms together; it does
+not implement that final-base/rollback/release transaction.
+
 ##### Whole-system placement rules
 
 DR-DOS's portable lesson is a small conventional interface backed by complete
