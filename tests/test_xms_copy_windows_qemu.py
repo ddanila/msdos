@@ -38,6 +38,8 @@ def main():
                         help="negative control: corrupt the high service's largest-free result")
     parser.add_argument("--bypass-owner-query", action="store_true",
                         help="negative control: keep AH=08h local despite installed high support")
+    parser.add_argument("--bypass-extended-query", action="store_true",
+                        help="negative control: leave only AH=88h on the local scanner")
     parser.add_argument("--reject-reallocation", action="store_true",
                         help="reject one reallocating copy, require intact ownership, then retry")
     parser.add_argument("--early-realloc-state", action="store_true",
@@ -113,6 +115,8 @@ def main():
         parser.error("bad owner result requires --owner-query")
     if args.bypass_owner_query and not args.owner_query:
         parser.error("owner bypass requires --owner-query")
+    if args.bypass_extended_query and not args.owner_query:
+        parser.error("extended query bypass requires --owner-query")
     subprocess.run(["make", "memm"], cwd=ROOT, check=True)
     normal = ROOT / "src/MEMM/MEMM/EMM386.EXE"
     normal_hash = hashlib.sha256(normal.read_bytes()).hexdigest()
@@ -163,6 +167,7 @@ def main():
                         "-DHIMEM_PROTECTED_COPY_TEST", f"-I{ROOT / 'src/INC'}", f"-Fo{himem}",
                         *(["-DHIMEM_PROTECTED_OWNER_TEST"]
                           if args.owner_query and not args.bypass_owner_query else []),
+                        *(["-DHIMEM_OWNER_QUERY_2_ONLY"] if args.bypass_extended_query else []),
                         *(["-DHIMEM_SKIP_COPY_CAPABILITY_TEST"] if args.bypass_capability else []),
                         *(["-DHIMEM_EARLY_REALLOC_TEST"] if args.early_realloc_state else []),
                         str(ROOT / "src/DEV/HIMEM/HIMEM.ASM")], check=True)
@@ -180,6 +185,7 @@ def main():
                     *(["-DHMA_ENDPOINT"] if hma_endpoint else []),
                     *(["-DBAD_HMA_DATA"] if args.bad_hma_data else []),
                     *(["-DPUBLIC_COPY"] if args.public_api else []),
+                    *(["-DOWNER_QUERY"] if args.owner_query else []),
                     *(["-DREJECT_REALLOCATION"] if args.reject_reallocation else []),
                     *(["-DWRONG_DATA"] if args.bad_data else []),
                     *(["-DMAPPED_ENDPOINT"] if args.mapped else []),
@@ -213,6 +219,7 @@ def main():
     report = dict(passed=False, mode=args.mode, fail_after_map=args.fail_after_map, core_bytes=code_size,
                   owner_query=args.owner_query, bad_owner_result=args.bad_owner_result,
                   bypass_owner_query=args.bypass_owner_query,
+                  bypass_extended_query=args.bypass_extended_query,
                   owner_code_bytes=(symbols["XmsQueryOwnerEnd"].offset - symbols["XmsQueryOwner"].offset
                                     if args.owner_query else None),
                   owner_state_bytes=(symbols["XmsOwnerSnapshotEnd"].offset - symbols["XmsOwnerSnapshot"].offset
@@ -339,7 +346,7 @@ def main():
                         physical_pages.add(physical & ~4095)
                         snapshot.append(ram[physical])
                     calls, limit, pool = struct.unpack_from("<IHH", snapshot)
-                    if not calls or not 1 <= limit <= 128:
+                    if calls < 5 or not 1 <= limit <= 128:
                         raise ValueError("public query did not execute the installed high service")
                     records = [struct.unpack_from("<BHH", snapshot, 8 + i * 5) for i in range(limit)]
                     intervals = sorted((base, base + length) for _, base, length in records if base and length)

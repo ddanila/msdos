@@ -26,6 +26,8 @@ org 100h
     call far [xms]
     mov [zero_largest],ax
     mov [zero_total],dx
+    call check_extended_query
+    mov [query_highest],ecx
     mov ah,09h
     xor dx,dx
     call far [xms]
@@ -38,11 +40,17 @@ org 100h
     jne failed
     cmp dx,[zero_total]
     jne failed
+    call check_extended_query
+    cmp ecx,[query_highest]
+    jne failed
     mov dx,[zero_handle]
     mov ah,0ah
     call far [xms]
     cmp ax,1
     jne failed
+%ifdef OWNER_QUERY
+    call owner_query_failure
+%endif
     mov dx,16384
     mov ah,09h
     call far [xms]
@@ -743,6 +751,81 @@ reject:
     cmp ah,2
     jne failed
     ret
+; Dirty upper halves expose an adapter that only returns the 16-bit values.
+check_extended_query:
+    mov eax,0a5a58800h
+    mov edx,05a5affffh
+    mov ecx,0deadbeefh
+    call far [xms]
+    jc failed
+    test bl,bl
+    jnz failed
+    movzx ebx,word [zero_largest]
+    cmp eax,ebx
+    jne failed
+    movzx ebx,word [zero_total]
+    cmp edx,ebx
+    jne failed
+    cmp ecx,0deadbeefh
+    je failed
+    test ecx,0ffff0000h
+    jnz failed
+    ret
+%ifdef OWNER_QUERY
+; Controlled transport rejection after successful high-service activation.
+; Chain discovery and every unrelated request, reject only the XOWN packet.
+owner_query_failure:
+    mov ax,3515h
+    int 21h
+    mov [owner_old_i15],bx
+    mov [owner_old_i15+2],es
+    mov dx,owner_reject_i15
+    mov ax,2515h
+    int 21h
+    mov ah,08h
+    call far [xms]
+    jc failed
+    test ax,ax
+    jnz failed
+    test dx,dx
+    jnz failed
+    cmp bl,8eh
+    jne failed
+    mov eax,0a5a58800h
+    mov edx,0a5a5ffffh
+    call far [xms]
+    jc failed
+    test eax,eax
+    jnz failed
+    test edx,edx
+    jnz failed
+    cmp bl,8eh
+    jne failed
+    cmp ecx,[query_highest]
+    jne failed
+    push ds
+    lds dx,[owner_old_i15]
+    mov ax,2515h
+    int 21h
+    pop ds
+    ; Rejection must not withdraw or poison the next high query.
+    call check_extended_query
+    ret
+owner_reject_i15:
+    cmp ah,87h
+    jne .chain
+    cmp dword [es:si],4e574f58h
+    jne .chain
+    push bp
+    mov bp,sp
+    or word [ss:bp+6],1
+    pop bp
+    mov ah,2
+    iret
+.chain:
+    jmp far [cs:owner_old_i15]
+owner_old_i15 dd 0
+%endif
 checkpoint:
     out 0e9h,al
     xor ah,ah
@@ -761,6 +844,7 @@ xms dd 0
 zero_largest dw 0
 zero_total dw 0
 zero_handle dw 0
+query_highest dd 0
 control dd 0
 a20_before dw 0
 reserve dw 0

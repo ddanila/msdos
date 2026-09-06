@@ -457,8 +457,17 @@ xms_reallocate_any endp
 else
         .386
 xms_query_any_free proc near
+ifdef HIMEM_PROTECTED_OWNER_TEST
+ifndef HIMEM_OWNER_QUERY_2_ONLY
+        call    xms_remote_query
+else
         call    largest_gap
         call    total_free
+endif
+else
+        call    largest_gap
+        call    total_free
+endif
         movzx   edx, dx
         movzx   eax, ax
         movzx   ecx, word ptr [highest_page]
@@ -469,9 +478,17 @@ xms_query_any_free proc near
         add     ecx, 16
         dec     ecx
 xms3_highest_ready:
+ifdef HIMEM_PROTECTED_OWNER_TEST
+ifndef HIMEM_OWNER_QUERY_2_ONLY
+        ; Preserve transport failure rather than relabelling it as exhaustion.
+        cmp     bl, ERR_GENERAL
+        je      short xms3_query_done
+endif
+endif
         or      edx, edx
         jz      short xms3_no_memory
         xor     bl, bl
+xms3_query_done:
         clc
         ret
 xms3_no_memory:

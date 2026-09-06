@@ -27,7 +27,7 @@ query_free_done:
 xms_query_free endp
 
 ifdef HIMEM_PROTECTED_OWNER_TEST
-; Development public AH=08h adapter. Snapshot under CLI; never publish a new
+; Development public AH=08h/88h backend. Snapshot under CLI; never publish a new
 ; allocator. Retain the old public entry and map transport failure to 8Eh.
 xms_remote_query proc near
         pushf
