@@ -7,7 +7,7 @@ XmsAuthoritativeOwner proc near
         push ds
         cmp si,65536-18-MAX_HANDLES*HANDLE_SIZE
         ja auth_owner_bad
-        cmp word ptr es:[si+4],1
+        cmp word ptr es:[si+4],2
         jne auth_owner_bad
         mov bx,si
         mov ax,VDMCA_GSEL
@@ -17,8 +17,6 @@ XmsAuthoritativeOwner proc near
         jb auth_owner_bad
         cmp ax,15
         ja auth_owner_bad
-        cmp ax,11
-        je auth_owner_bad
 IFDEF EMM_AUTHORITATIVE_REIMPORT
         mov [XmsOwnerActive],0
 ENDIF
@@ -77,12 +75,6 @@ auth_owner_existing:
         mov [XmsOwnerResults],ax
         mov [XmsOwnerResults+2],dx
         inc dword ptr [XmsOwnerSnapshot]
-        add di,18
-        mov si,offset handles
-        mov cx,[handle_limit]
-        imul cx,HANDLE_SIZE
-        cld
-        rep movsb
         pop ds
         popad
         clc
@@ -93,5 +85,14 @@ auth_owner_bad:
         stc
         ret
 XmsAuthoritativeOwner endp
-auth_owner_dispatch dw xms_query_free,xms_allocate,xms_free,0
+; Private operation 0Bh is record lookup, not public XMS Move. It neither
+; locks nor mutates the handle and returns AX=status, BX=base KiB, DX=size KiB.
+auth_owner_record proc near
+        call validate_handle
+        jc xms_bad_handle
+        mov bx,word ptr [si+HANDLE_BASE]
+        mov dx,word ptr [si+HANDLE_LENGTH]
+        jmp xms_success
+auth_owner_record endp
+auth_owner_dispatch dw xms_query_free,xms_allocate,xms_free,auth_owner_record
         dw xms_lock,xms_unlock,xms_handle_info,xms_reallocate

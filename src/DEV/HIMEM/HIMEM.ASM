@@ -63,7 +63,11 @@ ifdef HIMEM_PROTECTED_OWNER_TEST
 ; Temporary transport snapshot, not a second allocator or reclaimed low owner.
 owner_query_active db 0
 owner_packet db 'XOWN'
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+        dw 2
+else
         dw 1
+endif
 owner_limit dw 0
 owner_pool dw 0
 owner_largest dw 0
@@ -522,9 +526,17 @@ xms_allocate_any endp
 
 xms_extended_handle_info proc near
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
-        call    xms_owner_refresh
-        jc      xms_failure
-endif
+        push cx
+        call xms_handle_info
+        pop cx
+        or ax,ax
+        jz short xms3_remote_info_done
+        movzx edx,dx
+        xor bl,bl
+xms3_remote_info_done:
+        clc
+        ret
+else
         push    cx
         call    validate_handle
         jc      short xms3_info_bad_handle
@@ -538,6 +550,7 @@ endif
 xms3_info_bad_handle:
         pop     cx
         jmp     xms_bad_handle
+endif
 xms_extended_handle_info endp
 
 xms_reallocate_any proc near
@@ -763,10 +776,6 @@ query_a20_hardware endp
         include XMSALLOC.INC
 
 xms_move proc near
-ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
-        call    xms_owner_refresh
-        jc      xms_failure
-endif
         push    bx
         push    dx
         push    bp
@@ -827,6 +836,10 @@ move_bad_source:
 move_bad_dest:
         mov     bl, ERR_BAD_DEST
 move_bad_address:
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+        cmp     [move_offset_error],2
+        je      short move_general_failure
+endif
         cmp     [move_offset_error], 0
         je      short move_failure
         mov     bl, ERR_BAD_LENGTH
@@ -1004,7 +1017,15 @@ resolve_move_address proc near
         ret
 resolve_handle:
         push    dx
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+ifndef HIMEM_AUTHORITATIVE_LOCAL_LOOKUP
+        call    xms_owner_handle
+else
         call    validate_handle
+endif
+else
+        call    validate_handle
+endif
         pop     dx
         jc      short resolve_bad_handle
         push    bp                     ; retain the start offset's high word

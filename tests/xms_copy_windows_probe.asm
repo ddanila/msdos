@@ -74,6 +74,9 @@ org 100h
     shl eax,16
     mov ax,bx
     mov [physical],eax
+%ifdef AUTHORITATIVE_OWNER
+    call check_extended_owner_info
+%endif
     xor bx,bx
 .fill:
     mov al,bl
@@ -781,6 +784,32 @@ check_extended_query:
     jnz failed
     ret
 %ifdef OWNER_QUERY
+%ifdef AUTHORITATIVE_OWNER
+check_extended_owner_info:
+    mov edx,0a5a50000h
+    mov dx,[block]
+    mov ecx,0deadbeefh
+    mov ah,8eh
+    call far [xms]
+    cmp ax,1
+    jne failed
+    cmp edx,32
+    jne failed
+    cmp bh,1
+    jne failed
+    test bl,bl
+    jnz failed
+    cmp ecx,0deadbeefh
+    jne failed
+    mov dx,0ffffh
+    mov ah,8eh
+    call far [xms]
+    test ax,ax
+    jnz failed
+    cmp bl,0a2h
+    jne failed
+    ret
+%endif
 ; Controlled transport rejection after successful high-service activation.
 ; Chain discovery and every unrelated request, reject only the XOWN packet.
 owner_query_failure:
@@ -812,6 +841,25 @@ owner_query_failure:
     jne failed
     cmp ecx,[query_highest]
     jne failed
+%ifdef AUTHORITATIVE_OWNER
+    ; A rejected record lookup is a transport error, not a stale-table
+    ; invalid-handle verdict. No endpoint may be copied on this failure.
+    mov word [owner_failed_move+14],ds
+    mov si,owner_failed_move
+    mov ah,0bh
+    call far [xms]
+    test ax,ax
+    jnz failed
+    cmp bl,8eh
+    jne failed
+    mov dx,0ffffh
+    mov ah,8eh
+    call far [xms]
+    test ax,ax
+    jnz failed
+    cmp bl,8eh
+    jne failed
+%endif
     push ds
     lds dx,[owner_old_i15]
     mov ax,2515h
@@ -838,6 +886,13 @@ owner_reject_i15:
 .chain:
     jmp far [cs:owner_old_i15]
 owner_old_i15 dd 0
+%ifdef AUTHORITATIVE_OWNER
+owner_failed_move dd 2
+    dw 0ffffh
+    dd 0
+    dw 0
+    dw owner_failed_move,0
+%endif
 %endif
 checkpoint:
     out 0e9h,al

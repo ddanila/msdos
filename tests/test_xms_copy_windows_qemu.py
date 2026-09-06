@@ -38,6 +38,8 @@ def main():
                         help="import handle state once and execute all mutations at the high owner")
     parser.add_argument("--reimport-owner", action="store_true",
                         help="negative control: reimport poisoned client records after publication")
+    parser.add_argument("--local-handle-lookup", action="store_true",
+                        help="negative control: resolve moves through the poisoned old low handle table")
     parser.add_argument("--bad-owner-result", action="store_true",
                         help="negative control: corrupt the high service's largest-free result")
     parser.add_argument("--bypass-owner-query", action="store_true",
@@ -77,8 +79,8 @@ def main():
     parser.add_argument("--bypass-aliases", action="store_true",
                         help="negative control: omit whole-range alias checking")
     args = parser.parse_args()
-    if args.reimport_owner and not args.authoritative_owner:
-        parser.error("reimport control requires --authoritative-owner")
+    if (args.reimport_owner or args.local_handle_lookup) and not args.authoritative_owner:
+        parser.error("owner controls require --authoritative-owner")
     if args.authoritative_owner:
         args.owner_query = True
         args.public_api = True
@@ -198,6 +200,7 @@ def main():
                         *(["-DHIMEM_OWNER_QUERY_2_ONLY"] if args.bypass_extended_query else []),
                         *(["-DHIMEM_AUTHORITATIVE_OWNER_TEST", "-DHIMEM_AUTHORITATIVE_POISON_TEST"]
                           if args.authoritative_owner else []),
+                        *(["-DHIMEM_AUTHORITATIVE_LOCAL_LOOKUP"] if args.local_handle_lookup else []),
                         *(["-DHIMEM_SKIP_COPY_CAPABILITY_TEST"] if args.bypass_capability else []),
                         *(["-DHIMEM_EARLY_REALLOC_TEST"] if args.early_realloc_state else []),
                         str(ROOT / "src/DEV/HIMEM/HIMEM.ASM")], check=True)
@@ -250,6 +253,7 @@ def main():
     report = dict(passed=False, mode=args.mode, fail_after_map=args.fail_after_map, core_bytes=code_size,
                   owner_query=args.owner_query, authoritative_owner=args.authoritative_owner,
                   reimport_owner=args.reimport_owner,
+                  local_handle_lookup=args.local_handle_lookup,
                   bad_owner_result=args.bad_owner_result,
                   bypass_owner_query=args.bypass_owner_query,
                   bypass_owner_copy=args.bypass_owner_copy,

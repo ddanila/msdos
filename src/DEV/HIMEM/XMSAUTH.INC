@@ -1,6 +1,7 @@
 ; Paired development front end. Import once, then all handle mutations execute
-; at the installed high owner. Low handles are a refreshed read-only view for
-; the existing move/extended-info validators, not a second allocator.
+; at the installed high owner. Move fetches one transient record, never a
+; refreshed low handle table. Bootstrap table and import staging are retained
+; only until the loader can reclaim their complete allocation.
 xms_remote_owned proc near
         pushf
         cli
@@ -40,7 +41,7 @@ xms_remote_owned proc near
 auth_poison_view:
 ifdef HIMEM_AUTHORITATIVE_POISON_TEST
         ; Prove the high table is authoritative: later requests carry invalid
-        ; input records. The returned low view must come from the high owner.
+        ; input records. No later call is allowed to import them.
         mov di,offset owner_records
         mov cx,MAX_HANDLES*HANDLE_SIZE
         mov al,0a5h
@@ -54,12 +55,16 @@ auth_send:
         mov ah,87h
         int 15h
         jc short auth_failed
+ifdef HIMEM_AUTHORITATIVE_POISON_TEST
+        ; Destroy the old allocator table after the first successful import.
+        ; Limit the write to the selected resident /NUMHANDLES allocation.
+        mov di,offset handles
         mov cx,[handle_limit]
         imul cx,HANDLE_SIZE
-        mov si,offset owner_records
-        mov di,offset handles
+        mov al,0a5h
         cld
-        rep movsb
+        rep stosb
+endif
         mov ax,[owner_largest]
         mov bx,[owner_bx]
         mov dx,[owner_total]
@@ -84,28 +89,53 @@ auth_failed:
         jmp short auth_return
 xms_remote_owned endp
 
-; Refresh read-only consumers without changing their original request regs.
-; A transport failure rejects the operation rather than using stale handles.
-xms_owner_refresh proc near
+; Move's existing bounds checker consumes SI -> one five-byte record. Fetch
+; its base/length from the high owner without changing lock counts. The import
+; staging area supplies transient scratch, not a live mirror of all handles.
+; Preserve the caller's offset AX/BP and packet DI; CF means invalid/unavailable.
+xms_owner_handle proc near
         push ax
         push bx
         push cx
         push dx
-        push si
         push di
-        call xms_query_free
-        cmp bl,ERR_GENERAL
+        push bp
+        mov ax,0bh
+        call xms_remote_owned
+        jc short auth_handle_bootstrap
+        or ax,ax
+        jz short auth_handle_failed
+        mov word ptr [owner_records+HANDLE_BASE],bx
+        mov word ptr [owner_records+HANDLE_LENGTH],dx
+        mov byte ptr [owner_records+HANDLE_LOCK],0 ; resolver never reads locks
+        mov si,offset owner_records
+        pop bp
         pop di
-        pop si
         pop dx
         pop cx
         pop bx
         pop ax
-        je short auth_refresh_failed
         clc
         ret
-auth_refresh_failed:
-        mov bl,ERR_GENERAL
+auth_handle_failed:
+        cmp bl,ERR_GENERAL
+        jne short auth_handle_restore
+        mov [move_offset_error],2
+auth_handle_restore:
+        pop bp
+        pop di
+        pop dx
+        pop cx
+        pop bx
+        pop ax
         stc
         ret
-xms_owner_refresh endp
+auth_handle_bootstrap:
+        pop bp
+        pop di
+        pop dx
+        pop cx
+        pop bx
+        pop ax
+        jmp validate_handle
+xms_owner_handle endp
