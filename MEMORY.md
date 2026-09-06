@@ -36,6 +36,13 @@ layout. The COMMAND critical-body reclamation variant remains separate.
 
 Execution order (supersedes older implementation queues below):
 
+**Blocking ownership defect:** SETVER's 640-byte table is not intact in the
+normal low fixture, and its high-mode public pointer aliases the development
+BIOS HMA payload. Repair and qualify this owner before further reclamation or
+promotion; the passing high ASSIGN run omitted its compatibility mapping.
+See the SETVER ownership investigation below. Existing memory totals are
+measurements, not proof that all requested features survived placement.
+
 1. Complete the joint resident-layout checkpoint below before extending any
    individual relocation prototype. Preserve pending access-boundary work as
    preparation, not as a memory-saving result. Include measured fine-UMB and
@@ -185,7 +192,7 @@ of the following owners, not a sequence of independently attractive savings:
 | Owner | Starting evidence | Required design decision |
 | --- | --- | --- |
 | DOS BIOS | Development retains 5,152 low bytes; disk body already moved | Partition stable device/interrupt/DMA state from high service bodies; identify exact released intervals |
-| DOS kernel and dynamic state | 4,992-byte low prefix; FILES/FCB and CDS relocation already counted | Identify authoritative public-pointer owners versus private HMA-safe state; qualify upper CDS consumers and include interrupt stacks explicitly |
+| DOS kernel and dynamic state | 4,992-byte low prefix; FILES/FCB and CDS relocation already counted | Repair the 640-byte SETVER table owner; qualify upper CDS consumers and budget interrupt stacks and remaining public/private state |
 | Combined memory managers | 6,480 low bytes; first split has 3,576 gross candidate bytes | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback |
 | COMMAND | 3,984-byte owner span versus OpenDOS's 1,312 | Separate environment/PSP and asynchronous entry state from movable resident handlers; preserve reload contracts |
 | Shared high storage | 10,313 calculated development HMA bytes; 1,792-byte UMB margin after CDS | Reserve destinations once across all owners; account for locked XMS, alignment and displaced buffers |
@@ -239,6 +246,58 @@ and EXEC checks. The early/rebased/compacted high-CDS `emm-high` fixture also
 passes with the composed census (`out/bios-low-boot-_iwk9bjx/`). This validates
 report integration, not a new development HMA runtime-address probe or the
 still-open whole-resident-layout checkpoint.
+
+#### Blocking SETVER ownership investigation
+
+The DOS-low ASSIGN failure is not stale media: IO.SYS, MSDOS.SYS, COMMAND.COM
+and ASSIGN.COM on `out/floppy.img` match their local build hashes. The retail
+compatibility table includes `ASSIGN.COM 5.00`; ASSIGN's rebuilt message loader
+instead compares AH=30h's reported version against 6.22. A byte-identical
+version probe returns 6.22 as REFVER.COM and 5.00 as ASSIGN.COM in DOS-low.
+Deleting the compatibility entry would hide the conflict, not fix parity.
+
+There is a more serious placement defect. `capture_setver_placement.py` makes
+a private image copy, runs identical read-only probes under those two names,
+and compares the public table's complete 640 bytes against compiled defaults.
+It performs no SETVER edits. Current observations:
+
+| Fixture | AX=1231h table | First differing table byte | REFVER / ASSIGN version |
+| --- | --- | --- | --- |
+| Normal DOS-low | `0268:9AC2`, capacity `0280h` | `00FDh` | 6.22 / 5.00 |
+| Development high-CDS | `FFFF:9AC2`, capacity `0280h` | `0000h` | 6.22 / 6.22 |
+
+The high address lies inside the live BIOS reservation `FFFF:9A80..AEE4`.
+The existing editing suite on that high fixture stops at its first edit with
+`General failure writing drive A`; its normal low run reports a full table
+and prints corrupt tail entries. These editing runs are separate evidence
+from the read-only comparison. Neither configuration qualifies SETVER.
+
+The source exposes the ownership mismatch: `MSINIT.ASM` places and initializes
+the table beyond SYSBUF; `DOS_HMA_RELOCATE` copies only offsets below SYSBUF;
+`DOSGetVersionTable` returns CS plus the old near offset; and EXEC's scanner
+also assumes the table belongs to CS. This explains the high alias. The exact
+writer/lifetime boundary corrupting the low tail remains to be isolated.
+
+Next: identify the complete table's live allocation and first overwriter;
+give all 640 bytes one retained low/UMB owner, or another explicitly safe
+public-pointer contract; update EXEC, SETVER and its startup driver together.
+Account for its destination and reclamation in the joint budget rather than
+pretending these bytes were already preserved. Then resolve native ASSIGN's
+version check without removing the retail mapping, and rerun default-table,
+edit, persistence, nested EXEC, high/low and reset cases. The earlier high-CDS
+utility results cover those paths but not equivalent SETVER behavior.
+
+```sh
+python3 tests/capture_setver_placement.py --check out/floppy.img
+python3 tests/capture_setver_placement.py --check --preserve-config \
+  out/bios-low-boot-_iwk9bjx/emm-high.img
+```
+
+Both checks currently reject the layout. Reports, input hashes, startup config
+and serial traces are retained in `out/setver-placement-4toy98_w/` and
+`out/setver-placement-p8fjjsrk/`; the editing failures are in
+`out/high-cds-c9ogjjfw/setver-{low,high}-failure.log`. The recorder exits zero
+without `--check` when evidence capture completes; this is not a passing gate.
 
 #### Candidate layout A: manager objects plus the whole shell service body
 
@@ -852,7 +911,9 @@ The default DOS-low suite against the existing `out/floppy.img` instead
 returns 44 passes and five ASSIGN failures (`Incorrect DOS version`). The
 committed pre-change script reproduces the same five failures on that image;
 both serial traces are retained with the matrix. This baseline failure is not
-a relocation regression, but remains unresolved rather than a passing gate.
+a newly introduced CDS regression. The SETVER investigation above now explains
+the version mismatch and identifies why the high run was not equivalent;
+both findings remain blocking correctness work.
 
 `--cds-cache-case first|last|past-end|foreign` adds a test-only SYSINIT fixture
 immediately before CDS publication, after allocation/policy calls. It seeds
