@@ -1682,14 +1682,45 @@ guest 35). The non-deferred handoff regression (`574oq4n2`) remains byte-identic
 for HIMEM, EMM and the guest probe. The defer latch and corruption path are
 test-only; these checks do not add a public handoff API or free mapping backing.
 
-This front is **not the final low layout**: it adds 480 rounded HIMEM bytes
+The v1 front is **not the final low layout**: it adds 480 rounded HIMEM bytes
 (3,344 versus 2,864); EMM remains 2,128. The paired census charges its 457-byte
 transport/state/version region separately, plus 18 peer-entry bytes and five
 additional alignment bytes. Original low UMB services/storage remain charged
 for bootstrap/fallback, and normal binaries remain byte-identical. Next, qualify
-service-reply ambiguity, reset/backing rollback and
+reset/backing rollback and
 the complete provider's packed boot/permanent partition; do not promote these
 tests as reclaimed memory or full asynchronous/foreign-provider compatibility.
+
+**Sequenced UMB service results (opt-in v2):** `--umb-service-receipts` adds a
+24-byte packet and an 11-byte authoritative high result journal. Services
+accept only the next nonzero 32-bit sequence; duplicate, stale, skipped and
+subsequent v1 mutations are refused. A read-only receipt recovers saved AX/DX/BX
+without replaying allocation/release/register/unregister. A receipt proving
+non-execution permits a later new request. An unknowable result instead freezes
+the front, preserves its pending packet and refuses subsequent mutations; this
+is safety, not recovery of availability. Sequence wrap skips zero. The private
+contract is specified in `XMSCOPYABI.INC`; it assumes serialized callers and
+unchanged provider/backing lifetime, not a reset-persistent transaction log.
+
+With `--reclaim-bootstrap --high-tables --dos-high`, all four modes pass
+`--umb-service-reply before` (`out/emm-init-phases-073w5u3m/`), `after`
+(`0ixs6i8r`) and `unknown` (`aee0771w`, same directory prefix). The unknown
+probe verifies three later refusals, unchanged pending packet/confirmed
+sequence and retired-low poison. Plain v2 completion (`d12lsm2q`) and the
+unchanged v1 lifecycle (`61565oyk`) also pass all four modes. Omitting the freeze with
+`--bad-umb-result-freeze` fails with guest 35 (`dpqizwgq`). DOS low with
+`--umb-sequence-wrap --umb-live-import --umb-service-reply after --xms-handles 128`
+passes all four modes (`p146_21s`), including real RAM backing preservation.
+Wrap is seeded near rollover, not billions of executed requests. Normal
+completion probes also reject duplicate/stale/skipped submissions and compare
+the saved result with the last public return. Local phase/parser, bootstrap
+layout and original ownership suites pass 33, 9 and 3 tests respectively.
+
+The diagnostic v2 front retains 3,504 HIMEM bytes (160 above v1), or 3,520
+with the live-import fixture; EMM retains 2,128. Normal HIMEM/EMM binaries
+remain byte-identical. These costs include test diagnostics and are not a
+production gateway budget. No additional low allocation is released: complete
+provider packing and reset/backing qualification remain the next dependencies.
 
 ##### Whole-system placement rules
 

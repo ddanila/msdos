@@ -11,7 +11,7 @@ import re
 
 
 SYMBOL_RE = re.compile(
-    r"^(\w+)\s+(?:\.\s*)+(?:Byte(?:\[(\d+)\])?|Word)\s+([0-9A-F]+)h\s+_TEXT\s*$",
+    r"^(\w+)\s+(?:\.\s*)+(?:Byte(?:\[(\d+)\])?|D?Word)\s+([0-9A-F]+)h\s+_TEXT\s*$",
     re.IGNORECASE,
 )
 NUMBER_RE = re.compile(

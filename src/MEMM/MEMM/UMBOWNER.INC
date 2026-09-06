@@ -12,7 +12,16 @@ XmsUmbOwner proc near
         cmp si,65536-20
         ja umb_owner_bad
         cmp word ptr es:[si+4],1
+IFDEF EMM_UMB_RESULTS_TEST
+        je umb_owner_header_ready
+        cmp word ptr es:[si+4],2
         jne umb_owner_bad
+        cmp si,65536-24
+        ja umb_owner_bad
+umb_owner_header_ready:
+ELSE
+        jne umb_owner_bad
+ENDIF
         cmp word ptr es:[si+8],0
         jne umb_owner_bad
         mov bp,si
@@ -25,6 +34,10 @@ XmsUmbOwner proc near
         je umb_owner_import
         cmp [XmsUmbActive],1
         jne umb_owner_bad
+IFDEF EMM_UMB_RESULTS_TEST
+        cmp ax,2
+        je umb_owner_service_receipt
+ENDIF
         mov dx,es:[bp+12]
         mov bx,es:[bp+14]
         cmp ax,12h
@@ -35,11 +48,19 @@ XmsUmbOwner proc near
         je umb_owner_allocate
         cmp ax,11h
         jne umb_owner_bad
+IFDEF EMM_UMB_RESULTS_TEST
+        call umb_result_begin
+        jc umb_owner_bad
+ENDIF
         push bp
         call xms_umb_release
         pop bp
         jmp umb_owner_result
 umb_owner_allocate:
+IFDEF EMM_UMB_RESULTS_TEST
+        call umb_result_begin
+        jc umb_owner_bad
+ENDIF
         push bp
         call xms_umb_request
         pop bp
@@ -100,6 +121,10 @@ umb_owner_register:
         lea si,[si-2]         ; restore packet start without changing CF
         pop ds
         jc umb_owner_bad
+IFDEF EMM_UMB_RESULTS_TEST
+        call umb_result_begin
+        jc umb_owner_bad
+ENDIF
         push bp
         push dx
         call umb_high_register
@@ -107,8 +132,18 @@ umb_owner_register:
         pop bp
         jmp short umb_owner_result
 umb_owner_unregister:
+IFDEF EMM_UMB_RESULTS_TEST
+        call umb_result_begin
+        jc umb_owner_bad
+ENDIF
         call umb_high_unregister
         jmp short umb_owner_result
+IFDEF EMM_UMB_RESULTS_TEST
+umb_owner_service_receipt:
+        call umb_result_query
+        jc umb_owner_bad
+        jmp short umb_owner_write
+ENDIF
 umb_owner_receipt:
         xor ax,ax
         mov al,[XmsUmbActive]
@@ -118,6 +153,13 @@ umb_owner_receipt:
         jz umb_owner_result
         mov dx,[umb_count]
 umb_owner_result:
+IFDEF EMM_UMB_RESULTS_TEST
+        cmp word ptr es:[bp+6],10h
+        jb umb_owner_write
+        call umb_result_save
+        jc umb_owner_bad
+umb_owner_write:
+ENDIF
         mov es:[bp+10],ax
         mov es:[bp+12],dx
         mov es:[bp+14],bx
@@ -131,6 +173,9 @@ umb_owner_bad:
         stc
         ret
 XmsUmbOwner endp
+IFDEF EMM_UMB_RESULTS_TEST
+        include UMBRESULT.INC
+ENDIF
 umb_high_register proc near
         HIMEM_UMB_REGISTER
 private_done:

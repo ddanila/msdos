@@ -87,6 +87,23 @@ def parse_live_umb_import(data, *, mode):
                 backing_accessed=mode == "RAM", payload_verified=mode == "RAM")
 
 
+def parse_umb_service_receipt(data, *, failure):
+    if len(data) != 10:
+        raise ValueError("missing sequenced UMB service witness")
+    if failure == "unknown":
+        tag, state, sequence, refused = struct.unpack("<2sHIH", data)
+        if tag != b"UX" or state != 3 or not sequence or refused != 3:
+            raise ValueError("invalid pending UMB service witness")
+        return dict(sequence=sequence, pending=True, later_operations_refused=refused,
+                    replayed=False, pending_packet_preserved=True)
+    tag, sequence, recovered, not_executed = struct.unpack("<2sI2H", data)
+    if (tag != b"UR" or not sequence or failure not in (None, "before", "after")
+            or recovered != int(failure == "after") or not_executed != int(failure == "before")):
+        raise ValueError("invalid sequenced UMB service witness")
+    return dict(sequence=sequence, recovered=recovered, not_executed=not_executed,
+                replayed=False, pending=False)
+
+
 def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
                 lifecycle=False, loader=False, rebase=False, table_layout=False,
                 bootstrap_owner=False, authoritative_owner=False, rebase_rejected=False,
@@ -280,6 +297,14 @@ def main():
                         help="exercise the installed high XUMB publication and services")
     parser.add_argument("--umb-handoff", action="store_true",
                         help="route public and peer UMB calls through one high owner")
+    parser.add_argument("--umb-service-receipts", action="store_true",
+                        help="sequence UMB services and recover results without replay")
+    parser.add_argument("--umb-sequence-wrap", action="store_true",
+                        help="seed both confirmed sequence counters near 32-bit wrap")
+    parser.add_argument("--umb-service-reply", choices=("before", "after", "unknown"),
+                        help="drop one allocation reply before execution or after completion")
+    parser.add_argument("--bad-umb-result-freeze", action="store_true",
+                        help="negative control: fail to freeze an unknowable service result")
     parser.add_argument("--umb-live-import", action="store_true",
                         help="preserve public UMB allocations made before ownership handoff")
     parser.add_argument("--bad-umb-import-bits", action="store_true",
@@ -334,6 +359,12 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.bad_umb_result_freeze:
+        args.umb_service_reply = "unknown"
+    if args.umb_service_reply or args.umb_sequence_wrap:
+        args.umb_service_receipts = True
+    if args.umb_service_receipts:
+        args.umb_handoff = True
     if args.bad_umb_import_bits:
         args.umb_live_import = True
     if args.umb_live_import:
@@ -346,6 +377,8 @@ def main():
         if args.umb_owner or args.bad_umb_route:
             parser.error("public handoff and independent private owner probes are separate")
         args.umb_coalesce = True
+    if args.umb_service_reply == "unknown" and args.umb_live_import:
+        parser.error("pending-service probe uses the free-owner baseline")
     if args.bad_umb_route:
         args.umb_owner = True
     if args.umb_owner:
@@ -421,7 +454,7 @@ def main():
             or ((args.umb_owner or args.umb_handoff) and args.loader_bad_version)):
         parser.error("private UMB owner requires an installed authoritative provider")
     if args.reject_prepared and (args.umb_lost_import_reply or args.umb_refused_import
-                                or args.bad_umb_low_owner or args.umb_live_import):
+                                or args.bad_umb_low_owner or args.umb_live_import or args.umb_service_receipts):
         parser.error("UMB handoff fault controls require an installed provider")
     capture.require_tools()
     if args.authoritative_owner:
@@ -450,6 +483,14 @@ def main():
         trace_defines += " -DEMM_UMB_OWNER_REFUSE_FIRST_IMPORT"
     if args.bad_umb_import_bits:
         trace_defines += " -DEMM_UMB_OWNER_CLEAR_ALLOCATED_TEST"
+    if args.umb_service_receipts:
+        trace_defines += " -DEMM_UMB_RESULTS_TEST"
+    if args.umb_sequence_wrap:
+        trace_defines += " -DEMM_UMB_SEQUENCE_WRAP_TEST"
+    if args.umb_service_reply:
+        trace_defines += {"before": " -DEMM_UMB_RESULT_DROP_BEFORE",
+                          "after": " -DEMM_UMB_RESULT_DROP_AFTER",
+                          "unknown": " -DEMM_UMB_RESULT_UNKNOWN"}[args.umb_service_reply]
     if args.authoritative_owner:
         trace_defines += (" -DEMM_XMS_COPY_TEST -DEMM_XMS_OWNER_TEST"
                           " -DEMM_AUTHORITATIVE_OWNER_TEST -DEMM_XMS_OWNER_TRACE")
@@ -525,6 +566,9 @@ def main():
                         f"-Fl={work / 'HIMEM.LST'}",
                         *(["-DHIMEM_UMB_LEGACY_BOUND_TEST"] if args.bad_umb_bound else []),
                         *(["-DHIMEM_UMB_HANDOFF_TEST"] if args.umb_handoff else []),
+                        *(["-DHIMEM_UMB_RESULTS_TEST"] if args.umb_service_receipts else []),
+                        *(["-DHIMEM_UMB_SEQUENCE_WRAP_TEST"] if args.umb_sequence_wrap else []),
+                        *(["-DHIMEM_UMB_RESULTS_NO_FREEZE_TEST"] if args.bad_umb_result_freeze else []),
                         *(["-DHIMEM_UMB_DEFER_TEST"] if args.umb_live_import else []),
                         *(["-DHIMEM_UMB_HANDOFF_LOCAL_TEST"] if args.bad_umb_low_owner else []),
                         *(["-DHIMEM_BOOTSTRAP_STAGE_TEST"] if args.stage_bootstrap else []),
@@ -571,6 +615,15 @@ def main():
                 if args.umb_live_import:
                     umb_defines += ["-DUMB_LIVE_IMPORT",
                                     f"-DUMB_DEFER_OFFSET={symbols['umb_remote_defer'][0]}"]
+                if args.umb_service_receipts:
+                    umb_defines += ["-DUMB_SERVICE_RECEIPTS",
+                                    f"-DUMB_SEQUENCE_OFFSET={symbols['umb_remote_sequence'][0]}",
+                                    f"-DUMB_RECOVERED_OFFSET={symbols['umb_remote_recovered'][0]}",
+                                    f"-DUMB_NOT_EXECUTED_OFFSET={symbols['umb_remote_not_executed'][0]}"]
+                    if args.umb_service_reply:
+                        umb_defines += [{"before": "-DUMB_REPLY_BEFORE", "after": "-DUMB_REPLY_AFTER",
+                                         "unknown": "-DUMB_REPLY_UNKNOWN"}[args.umb_service_reply],
+                                        f"-DUMB_PACKET_OFFSET={symbols['umb_remote_packet'][0]}"]
         subprocess.run(["nasm", "-f", "bin", f"-DEMM_MARK_DELTA={mark_delta}",
                         *(["-DUMB_OWNER_TEST"] if args.umb_owner else []),
                         *umb_defines, f"-I{capture.ROOT}/",
@@ -630,16 +683,20 @@ def main():
             trace_data = trace_data[:-4]
             post_boot[mode] = parse_post_boot(trace_data[-10:], expected)
             trace_data = trace_data[:-10]
+            if args.umb_service_receipts:
+                post_boot[mode]["umb_service_receipt"] = parse_umb_service_receipt(
+                    trace_data[-10:], failure=args.umb_service_reply)
+                trace_data = trace_data[:-10]
             if args.umb_live_import:
                 post_boot[mode]["live_umb_import"] = parse_live_umb_import(trace_data[-8:], mode=mode)
                 trace_data = trace_data[:-8]
-            if args.umb_handoff and not args.reject_prepared:
+            if args.umb_handoff and not args.reject_prepared and args.umb_service_reply != "unknown":
                 post_boot[mode]["umb_handoff"] = parse_umb_handoff(trace_data[-8:], mode=mode)
                 trace_data = trace_data[:-8]
             if args.umb_owner:
                 post_boot[mode]["private_umb_owner"] = parse_private_umb_receipt(trace_data[-8:])
                 trace_data = trace_data[:-8]
-            if args.umb_coalesce:
+            if args.umb_coalesce and args.umb_service_reply != "unknown":
                 post_boot[mode]["umb_synthetic_registration"] = parse_umb_receipt(
                     trace_data[-3:], mode=mode, rejected=args.reject_prepared)
                 trace_data = trace_data[:-3]
@@ -700,6 +757,10 @@ def main():
         umb_coalesce=args.umb_coalesce,
         umb_owner=args.umb_owner,
         umb_handoff=args.umb_handoff,
+        umb_service_receipts=args.umb_service_receipts,
+        umb_sequence_wrap=args.umb_sequence_wrap,
+        umb_service_reply=args.umb_service_reply,
+        bad_umb_result_freeze=args.bad_umb_result_freeze,
         umb_live_import=args.umb_live_import,
         bad_umb_import_bits=args.bad_umb_import_bits,
         umb_lost_import_reply=args.umb_lost_import_reply,

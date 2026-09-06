@@ -3,10 +3,23 @@ from unittest.mock import Mock, patch
 
 from report_himem_residency import (
     BOOTSTRAP_PROCEDURES, PERMANENT_PROCEDURES, check_bootstrap_layout, paired_front_ownership,
+    parse_symbols,
 )
 
 
 class BootstrapLayoutTests(unittest.TestCase):
+    def test_dword_sequence_symbol_is_discoverable(self):
+        path = Mock()
+        path.read_text.return_value = "\n".join((
+            "umb_remote_sequence . . DWord 00001234h _TEXT",
+            "umb_remote_recovered . . Word 00001238h _TEXT",
+            "umb_remote_packet . . Byte[24] 0000123Ah _TEXT",
+        ))
+        symbols, _ = parse_symbols(path)
+        self.assertEqual(symbols["umb_remote_sequence"][0], 0x1234)
+        self.assertEqual(symbols["umb_remote_recovered"][0], 0x1238)
+        self.assertEqual(symbols["umb_remote_packet"], (0x123a, 24))
+
     def setUp(self):
         self.numbers = dict(HIMEM_PERMANENT_BYTES=2048, HIMEM_BOOTSTRAP_CODE_BYTES=1024,
                             HIMEM_HANDLES_OFFSET=3072)

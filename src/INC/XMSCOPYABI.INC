@@ -14,6 +14,7 @@ XCP_OWNER_QUERY equ 8 ; optional read-only allocator snapshot query
 XCP_OWNER_ACTIVE equ 16 ; paired experimental authoritative handle owner
 XCP_OWNER_RECEIPT equ 32 ; read-only XAUT operation 00h supported
 XCP_UMB_OWNER equ 64 ; opt-in independent XUMB publication/service boundary
+XCP_UMB_RESULTS equ 128 ; XUMB v2 sequenced service result receipts
 XCP_REQUIRED equ XCP_PHYSICAL OR XCP_CLIENT OR XCP_INACTIVE
 ; Paired HIMEM-only layout discovery through INT 2Fh. Request AX=query,
 ; CX=signature, SI=version, DI=0. Success AX=reply, DX=resident segment,
@@ -85,3 +86,20 @@ XCP_STAGE_FREEZE equ 0e70ah
 ; Receipt and later services ignore retired import storage. Duplicate import
 ; is rejected. Transport CF is independent of AX/BX service status. No handback,
 ; mutation replay, physical-backing ownership or low-memory release is granted.
+;
+; XCP_UMB_RESULTS adds optional XUMB v2 (24 bytes): v1 fields plus +20 dword
+; service sequence. Input +8 remains zero; service/result output +8 is 1 for
+; complete, 0 for proved non-execution. Ops 00/01 retain owner receipt/import
+; semantics. Op 02 is a read-only result receipt; ops 10..13 accept only the
+; next sequence (start at 1, skip zero on 32-bit wrap). Publish sequence with
+; completion invalid before mutation, save AX/DX/BX, then mark complete.
+; Duplicate/stale/skipped services are refused, never replayed. V1 mutations
+; are refused after sequenced service begins; v1 owner receipts remain valid.
+; Op 02 returns the matching completed result, or proves that the exactly-next
+; request never began when no prior service is pending. All other queries fail;
+; failure is unknown, not non-execution. A pending service blocks later services.
+; The low front confirms the sequence before returning a recovered result;
+; unknown receipts freeze later public/peer operations without overwriting the
+; pending packet. This is a serialized one-result journal, not an unbounded
+; deduplication history, reset-persistent log, handback or recovery from lost
+; backing. Provider lifetime and channel integrity are trusted preconditions.

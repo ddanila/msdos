@@ -7,9 +7,61 @@ from pathlib import Path
 
 from capture_emm_init_phases import check_phases, parse_trace, strip_capacity_records, parse_bootstrap_layout, parse_post_boot, parse_umb_receipt
 from capture_emm_init_phases import parse_private_umb_receipt, parse_umb_handoff, parse_live_umb_import
+from capture_emm_init_phases import parse_umb_service_receipt
 
 
 class InitPhaseTests(unittest.TestCase):
+    def test_sequenced_umb_results(self):
+        for failure in (None, "before", "after"):
+            for sequence in (1, 0xffff, 0x10000, 0xffffffff):
+                data = struct.pack("<2sI2H", b"UR", sequence,
+                                   failure == "after", failure == "before")
+                self.assertEqual(parse_umb_service_receipt(data, failure=failure),
+                                 dict(sequence=sequence, recovered=int(failure == "after"),
+                                      not_executed=int(failure == "before"),
+                                      replayed=False, pending=False))
+
+    def test_sequenced_umb_false_receipts_rejected(self):
+        valid = struct.pack("<2sI2H", b"UR", 7, 0, 0)
+        for failure in (None, "before", "after"):
+            for data in (valid[:-1], valid + b"x",
+                         struct.pack("<2sI2H", b"UH", 7, 0, 0),
+                         struct.pack("<2sI2H", b"UR", 0, failure == "after", failure == "before"),
+                         struct.pack("<2sI2H", b"UR", 7, 2, 0),
+                         struct.pack("<2sI2H", b"UR", 7, 0, 2),
+                         struct.pack("<2sI2H", b"UR", 7, failure != "after", failure == "before"),
+                         struct.pack("<2sI2H", b"UR", 7, failure == "after", failure != "before")):
+                with self.subTest(failure=failure, data=data), self.assertRaises(ValueError):
+                    parse_umb_service_receipt(data, failure=failure)
+        with self.assertRaises(ValueError):
+            parse_umb_service_receipt(valid, failure="invalid")
+
+    def test_pending_umb_is_not_a_completed_service(self):
+        data = struct.pack("<2sHIH", b"UX", 3, 0x10000, 3)
+        self.assertEqual(parse_umb_service_receipt(data, failure="unknown"),
+                         dict(sequence=0x10000, pending=True, later_operations_refused=3,
+                              replayed=False, pending_packet_preserved=True))
+        for bad in (data[:-1], data + b"x",
+                    struct.pack("<2sHIH", b"UR", 3, 1, 3),
+                    struct.pack("<2sHIH", b"UX", 2, 1, 3),
+                    struct.pack("<2sHIH", b"UX", 3, 0, 3),
+                    struct.pack("<2sHIH", b"UX", 3, 1, 2)):
+            with self.subTest(data=bad), self.assertRaises(ValueError):
+                parse_umb_service_receipt(bad, failure="unknown")
+
+    def test_umb_result_controls_require_matching_lifecycle(self):
+        script = Path(__file__).with_name("capture_emm_init_phases.py")
+        cases = ((["--umb-service-receipts", "--reject-prepared"], "installed provider"),
+                 (["--umb-sequence-wrap", "--umb-owner"], "probes are separate"),
+                 (["--umb-service-reply", "unknown", "--umb-live-import"], "free-owner baseline"),
+                 (["--bad-umb-result-freeze", "--umb-live-import"], "free-owner baseline"))
+        for options, message in cases:
+            result = subprocess.run([sys.executable, str(script), "missing.img", *options],
+                                    capture_output=True, text=True)
+            with self.subTest(options=options):
+                self.assertEqual(result.returncode, 2)
+                self.assertIn(message, result.stderr)
+
     def test_live_umb_import_receipt(self):
         for mode in ("ON", "OFF", "AUTO", "RAM"):
             result = parse_live_umb_import(b"UL" + struct.pack("<3H", 0xa000, 0xa001, 2), mode=mode)

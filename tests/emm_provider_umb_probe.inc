@@ -21,6 +21,11 @@
     pop ax
     popf
 %endif
+%ifdef UMB_SERVICE_RECEIPTS
+    mov [ur_last_ax],ax
+    mov [ur_last_dx],dx
+    mov [ur_last_bx],bx
+%endif
 %endmacro
 %macro UMB_IMPORT_FAILURE_CHECK 0
 %ifdef UMB_LOST_IMPORT_REPLY
@@ -162,6 +167,12 @@ check_umb_owner:
     cld
     rep stosb
 %endif
+%ifdef UMB_SERVICE_RECEIPTS
+    call umb_result_fault_probe
+%ifdef UMB_REPLY_UNKNOWN
+    ret                       ; pending owner is intentionally not cleaned up
+%endif
+%endif
 %ifndef UMB_LIVE_IMPORT
     UMB_ALLOCATE_PAIR
 %endif
@@ -239,6 +250,9 @@ check_umb_owner:
     call word_out
     mov ax,2
     call word_out
+%endif
+%ifdef UMB_SERVICE_RECEIPTS
+    call umb_result_receipt_probe
 %endif
     ret
 %ifdef UMB_LIVE_IMPORT
@@ -339,3 +353,6 @@ umb_before dw 0
 umb_synthetic db 0
 umb_registration dw 1,2,0a000h,10h,0b000h,20h
 umb_guard times 48 db 0
+%ifdef UMB_SERVICE_RECEIPTS
+    %include "tests/emm_umb_result_probe.inc"
+%endif
