@@ -22,7 +22,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--image", type=Path, default=ROOT / "out/floppy.img")
+    parser.add_argument("--image", type=Path,
+                        default=Path(os.environ.get("FLOPPY_IMAGE", ROOT / "out/floppy.img")))
     parser.add_argument("--mode", choices=("ON", "OFF", "AUTO"), default="ON")
     parser.add_argument("--dos-high", action="store_true", help="boot DOS in the HMA")
     parser.add_argument("--wrong-residency", action="store_true",
@@ -31,6 +32,12 @@ def main():
                         help="negative control: corrupt the allocated HMA payload after guest verification")
     parser.add_argument("--public-api", action="store_true",
                         help="pair development HIMEM with the protected backend through XMS Move")
+    parser.add_argument("--owner-query", action="store_true",
+                        help="route public AH=08h to the installed high snapshot service")
+    parser.add_argument("--bad-owner-result", action="store_true",
+                        help="negative control: corrupt the high service's largest-free result")
+    parser.add_argument("--bypass-owner-query", action="store_true",
+                        help="negative control: keep AH=08h local despite installed high support")
     parser.add_argument("--reject-reallocation", action="store_true",
                         help="reject one reallocating copy, require intact ownership, then retry")
     parser.add_argument("--early-realloc-state", action="store_true",
@@ -99,6 +106,13 @@ def main():
         parser.error("alias overlap requires --mapped without other fault controls")
     if (args.alias_mode != "overlap" or args.bypass_aliases) and not args.alias_overlap:
         parser.error("alias mode/bypass requires --alias-overlap")
+    if args.owner_query and (not args.public_api or args.backend_capability != "valid"
+                            or args.bypass_public_backend):
+        parser.error("owner query requires the valid paired public backend")
+    if args.bad_owner_result and not args.owner_query:
+        parser.error("bad owner result requires --owner-query")
+    if args.bypass_owner_query and not args.owner_query:
+        parser.error("owner bypass requires --owner-query")
     subprocess.run(["make", "memm"], cwd=ROOT, check=True)
     normal = ROOT / "src/MEMM/MEMM/EMM386.EXE"
     normal_hash = hashlib.sha256(normal.read_bytes()).hexdigest()
@@ -110,6 +124,10 @@ def main():
             if path.suffix.upper() in (".OBJ", ".LIB", ".LNK"):
                 shutil.copyfile(path, work / name / path.name)
     flags = "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -I. -I..\\EMM -I..\\..\\INC -DEMM_XMS_COPY_TEST"
+    if args.owner_query:
+        flags += " -DEMM_XMS_OWNER_TEST -I..\\..\\DEV\\HIMEM"
+    if args.bad_owner_result:
+        flags += " -DEMM_XMS_OWNER_BAD_RESULT"
     if args.backend_capability == "version":
         flags += " -DEMM_XMS_COPY_BAD_VERSION"
     if args.backend_capability == "features":
@@ -143,6 +161,8 @@ def main():
         himem = work / "HIMEM.SYS"
         subprocess.run([str(ROOT / "bin/jwasm-bin"), "-q", "-bin",
                         "-DHIMEM_PROTECTED_COPY_TEST", f"-I{ROOT / 'src/INC'}", f"-Fo{himem}",
+                        *(["-DHIMEM_PROTECTED_OWNER_TEST"]
+                          if args.owner_query and not args.bypass_owner_query else []),
                         *(["-DHIMEM_SKIP_COPY_CAPABILITY_TEST"] if args.bypass_capability else []),
                         *(["-DHIMEM_EARLY_REALLOC_TEST"] if args.early_realloc_state else []),
                         str(ROOT / "src/DEV/HIMEM/HIMEM.ASM")], check=True)
@@ -191,6 +211,12 @@ def main():
     assert re.search(r"MBTAR_GSEL\s+equ\s+RCODEA_GSEL\+20h", selectors)
     endpoint, debug = work / "qmp", work / "debug.bin"
     report = dict(passed=False, mode=args.mode, fail_after_map=args.fail_after_map, core_bytes=code_size,
+                  owner_query=args.owner_query, bad_owner_result=args.bad_owner_result,
+                  bypass_owner_query=args.bypass_owner_query,
+                  owner_code_bytes=(symbols["XmsQueryOwnerEnd"].offset - symbols["XmsQueryOwner"].offset
+                                    if args.owner_query else None),
+                  owner_state_bytes=(symbols["XmsOwnerSnapshotEnd"].offset - symbols["XmsOwnerSnapshot"].offset
+                                     if args.owner_query else None),
                   backend_capability=args.backend_capability, bypass_capability=args.bypass_capability,
                   expect_copy_failure=expect_copy_failure,
                   dos_high=args.dos_high, wrong_residency=args.wrong_residency,
@@ -293,6 +319,44 @@ def main():
                 gdt = int(re.search(r"GDT=\s*([0-9a-fA-F]+)", regs)[1], 16)
                 if gdt >= 0xA0000:
                     raise ValueError("expected the installed low GDT")
+                if args.owner_query:
+                    # Resolve the installed _TEXT data alias through its actual
+                    # paging, not by searching RAM for a duplicate staging image.
+                    descriptor = ram[gdt+0x88:gdt+0x90]
+                    code_base = (struct.unpack_from("<H", descriptor, 2)[0]
+                                 | descriptor[4] << 16 | descriptor[7] << 24)
+                    linear = code_base + symbols["XmsOwnerSnapshot"].offset
+                    snapshot = bytearray()
+                    physical_pages = set()
+                    for address in range(linear, linear + 652):
+                        pde = struct.unpack_from("<I", ram, (cr3 & ~4095) + (address >> 22) * 4)[0]
+                        if not pde & 1 or pde & 128:
+                            raise ValueError("high owner lacks an ordinary present page table")
+                        pte = struct.unpack_from("<I", ram, (pde & ~4095) + ((address >> 12) & 1023) * 4)[0]
+                        physical = (pte & ~4095) + (address & 4095)
+                        if not pte & 1 or not 0x100000 <= physical < len(ram):
+                            raise ValueError("snapshot service did not use backed extended memory")
+                        physical_pages.add(physical & ~4095)
+                        snapshot.append(ram[physical])
+                    calls, limit, pool = struct.unpack_from("<IHH", snapshot)
+                    if not calls or not 1 <= limit <= 128:
+                        raise ValueError("public query did not execute the installed high service")
+                    records = [struct.unpack_from("<BHH", snapshot, 8 + i * 5) for i in range(limit)]
+                    intervals = sorted((base, base + length) for _, base, length in records if base and length)
+                    cursor, largest, used = 64, 0, 0
+                    for start, end in intervals:
+                        if start < cursor or end > pool:
+                            raise ValueError("high snapshot accepted invalid allocator intervals")
+                        largest = max(largest, start - cursor)
+                        used += end - start
+                        cursor = end
+                    largest = max(largest, pool - cursor, 0)
+                    total = max(pool - 64, 0) - used
+                    if struct.unpack_from("<HH", snapshot, 648) != (largest, total):
+                        raise ValueError("installed high query disagrees with independent interval accounting")
+                    report.setdefault("owner_queries", []).append(dict(
+                        phase=phase, calls=calls, limit=limit, pool_kb=pool,
+                        largest_kb=largest, total_kb=total, physical_pages=sorted(physical_pages)))
                 windows = copy_window_candidates(ram, cr3)
                 client_frames = []
                 client_hashes = []

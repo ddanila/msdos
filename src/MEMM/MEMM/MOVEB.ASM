@@ -195,6 +195,16 @@ _TEXT	segment
 ;*************************************************************************
 Move_Block	proc	near
 IFDEF EMM_XMS_COPY_TEST
+IFDEF EMM_XMS_OWNER_TEST
+        cmp dword ptr es:[si],4e574f58h ; 'XOWN'
+        jne short MB_Not_Owner
+        call XmsQueryOwner
+        mov ah,0
+        jnc MB_Client_Status
+        mov ah,2
+        jmp MB_Client_Status
+MB_Not_Owner:
+ENDIF
 	cmp	dword ptr es:[si],59504358h ; private test packet: 'XCPY'
 	jne	MB_Standard_Copy
 	pushad
@@ -423,6 +433,9 @@ MB_Exit endp
 
 IFDEF EMM_XMS_COPY_TEST
 	include XMSCOPY.INC
+IFDEF EMM_XMS_OWNER_TEST
+        include XMSOWNER.INC
+ENDIF
 ENDIF
 
 _TEXT	ends
@@ -503,6 +516,9 @@ XmsI15QueryStart label near
     mov bx,XCP_SIGNATURE
     mov cx,XCP_VERSION
     mov dx,XCP_REQUIRED
+IFDEF EMM_XMS_OWNER_TEST
+    or dx,XCP_OWNER_QUERY
+ENDIF
 IFDEF EMM_XMS_COPY_BAD_VERSION
     inc cx
 ENDIF
@@ -539,8 +555,13 @@ public XmsI15InactiveStart, XmsI15InactiveEnd
 XmsI15InactiveStart label near
     cmp [Active_Status],0
     jne short XmsI15Active
+IFDEF EMM_XMS_OWNER_TEST
+    cmp dword ptr es:[si],4e574f58h
+    je short XmsI15Private
+ENDIF
     cmp dword ptr es:[si],59504358h
     jne short XmsI15Active
+XmsI15Private:
     ; The private XCPY service is independent of the user's EMS ON/OFF policy.
     ; Enter the installed monitor temporarily; do not change Auto_Mode or
     ; route this request to the firmware copy service while OFF/idle AUTO.

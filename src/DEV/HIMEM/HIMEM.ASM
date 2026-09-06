@@ -10,19 +10,14 @@ ifdef HIMEM_PROTECTED_COPY_TEST
         include XMSCOPYABI.INC
 endif
 
-MAX_HANDLES     equ     128
 ; lock count, nonzero base KiB, size KiB. Base zero marks a free record; every
 ; EMB begins above the separately reserved 64-KiB HMA, including zero-size EMBs.
-HANDLE_LOCK     equ     0
-HANDLE_BASE     equ     1
-HANDLE_LENGTH   equ     3
-HANDLE_SIZE     equ     5
+        include XMSRECORD.INC
 MAX_UMB_BLOCKS  equ     32
 ; segment and paragraph size; bit 15 of size marks an allocated block. A UMB
 ; is wholly below F000h, so its size is always less than 5000h paragraphs.
 UMB_BLOCK_SIZE  equ     4
 UMB_ALLOCATED   equ     08000h
-HMA_KB          equ     64
 HMA_OWNED       equ     080h
 
 ERR_NOT_IMPLEMENTED equ 080h
@@ -82,6 +77,17 @@ move_address_classes dd 0
 endif
 move_offset_error db    0
 highest_page   dw      0
+ifdef HIMEM_PROTECTED_OWNER_TEST
+; Temporary transport snapshot, not a second allocator or reclaimed low owner.
+owner_query_active db 0
+owner_packet db 'XOWN'
+        dw 1
+owner_limit dw 0
+owner_pool dw 0
+owner_largest dw 0
+owner_total dw 0
+owner_records db MAX_HANDLES*HANDLE_SIZE dup (0)
+endif
 
 strategy proc far
         mov     word ptr cs:[request_ptr], bx

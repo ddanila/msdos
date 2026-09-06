@@ -10,4 +10,10 @@ XCP_VERSION equ 1
 XCP_PHYSICAL equ 1
 XCP_CLIENT equ 2
 XCP_INACTIVE equ 4
+XCP_OWNER_QUERY equ 8 ; optional read-only allocator snapshot query
 XCP_REQUIRED equ XCP_PHYSICAL OR XCP_CLIENT OR XCP_INACTIVE
+; OWNER_QUERY uses AH=87h, ES:SI -> 'XOWN', then word version=1, handle
+; limit, pool KiB, output largest/total KiB, then up to 128 five-byte records.
+; The trusted development peer backs the full 654-byte packet below its
+; segment limit and snapshots stable state. This grants no allocation or
+; handoff authority. Failure sets CF/AH=2; success clears CF/AH=0.

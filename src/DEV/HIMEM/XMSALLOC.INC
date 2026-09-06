@@ -9,6 +9,10 @@
 ; move_address_classes; none of these fields are implicit code-segment state.
 
 xms_query_free proc near
+ifdef HIMEM_PROTECTED_OWNER_TEST
+        jmp     xms_remote_query
+endif
+xms_query_free_local label near
         call    largest_gap
         call    total_free
         ; The gap scanner leaves a physical-pool offset in BX. It is not
@@ -21,6 +25,67 @@ query_free_done:
         clc
         ret
 xms_query_free endp
+
+ifdef HIMEM_PROTECTED_OWNER_TEST
+; Development public AH=08h adapter. Snapshot under CLI; never publish a new
+; allocator. Retain the old public entry and map transport failure to 8Eh.
+xms_remote_query proc near
+        pushf
+        cli
+        push    es
+        mov     ax, XCP_QUERY
+        int     15h
+        cmp     ax, XCP_REPLY
+        jne     short owner_query_unavailable
+        cmp     bx, XCP_SIGNATURE
+        jne     short owner_query_unavailable
+        cmp     cx, XCP_VERSION
+        jne     short owner_query_unavailable
+        and     dx, XCP_REQUIRED OR XCP_OWNER_QUERY
+        cmp     dx, XCP_REQUIRED OR XCP_OWNER_QUERY
+        jne     short owner_query_unavailable
+        mov     byte ptr [owner_query_active],1
+        push    ds
+        pop     es
+        mov     cx, [handle_limit]
+        mov     [owner_limit], cx
+        mov     ax, [extended_kb]
+        mov     [owner_pool], ax
+        imul    cx, HANDLE_SIZE
+        mov     si, offset handles
+        mov     di, offset owner_records
+        cld
+        rep     movsb
+        mov     si, offset owner_packet
+        mov     ah, 87h
+        int     15h
+        jc      short owner_query_failed
+        mov     ax, [owner_largest]
+        mov     dx, [owner_total]
+        xor     bl, bl
+        or      dx, dx
+        jnz     short owner_query_done
+        mov     bl, ERR_NO_MEMORY
+        jmp     short owner_query_done
+owner_query_unavailable:
+        ; EMM's own INIT queries this same allocator before its entry exists.
+        ; Bootstrap locally, but never silently fall back after activation.
+        cmp     byte ptr [owner_query_active],0
+        jne     short owner_query_failed
+        pop     es
+        popf
+        jmp     xms_query_free_local
+owner_query_failed:
+        xor     ax, ax
+        xor     dx, dx
+        mov     bl, ERR_GENERAL
+owner_query_done:
+        pop     es
+        popf
+        clc
+        ret
+xms_remote_query endp
+endif
 
 xms_allocate proc near
         mov     bx, dx

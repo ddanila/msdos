@@ -457,6 +457,42 @@ instruction-harvesting tranche or a completed high-resident manager.
 
 ##### Combined-provider decision: include boot-time reclamation
 
+**Installed high free-space service (development only):** public XMS AH=08h
+now has a paired opt-in path through EMM386's installed protected entry.
+`HIMEM_PROTECTED_OWNER_TEST` snapshots stable handle records under CLI;
+`EMM_XMS_OWNER_TEST` validates them and runs the same `XMSHANDLE.INC` scanners
+against private extended-memory storage using the existing writable code alias.
+The shared `XMSRECORD.INC` defines the record layout for both builds. Normal
+HIMEM and EMM binaries remain byte-identical to the preceding checkpoint.
+
+The optional capability bit and versioned `XOWN` packet are repository-private.
+EMM's own INIT queries XMS before its protected entry exists, so HIMEM answers
+locally during bootstrap. Once the high query path activates, discovery or
+transport failure returns AX=DX=0, BL=8Eh without silently falling back.
+OFF and idle AUTO enter/leave the monitor without changing the selected mode.
+This is read-only service integration: HIMEM still owns all allocations;
+XMS 3.x queries, mutation services and the full ownership transaction remain
+local/unimplemented respectively. The snapshot must never allocate memory.
+
+The linked high query/scanner/validator code is 517 bytes plus 652 snapshot/result
+bytes, excluding existing transition/copy support and new low adapters. The
+paired HIMEM also retains its transport snapshot and all original services.
+These are explicitly temporary duplicate storage costs, **not low-memory
+reclamation** or the final provider budget. Snapshotting every query is a
+development bridge to an authoritative high owner, not the target architecture.
+
+Reproduce with `FLOPPY_IMAGE=out/setver-native-audit.BAEqDU/low.img make
+test-xms-owner-query-qemu` (or supply another current boot image). Evidence:
+`out/xms-copy-windows-svzip2je/` (DOS-high OFF, failed/retried relocation),
+`out/xms-copy-windows-c62srf7t/` (AUTO), and
+`out/xms-copy-windows-gpwtllk0/` (mapped ON). Host checks resolve the installed
+code alias through the actual GDT/page tables, require extended-memory backing
+and executed-query counts, and independently recompute largest/total free space
+from its records. `--bad-owner-result` fails that accounting check in
+`out/xms-copy-windows-d04p11y_/`; `--bypass-owner-query` fails the execution check
+in `out/xms-copy-windows-73myza_g/`. Existing HMA payload, mapping, descriptor,
+mode and allocator rollback checks still pass in the positive runs.
+
 **Shared allocator service boundary:** `src/DEV/HIMEM/XMSALLOC.INC` now contains
 the allocation/lock/info/reallocation services; `XMSHANDLE.INC` contains their
 handle validation and free-space scans. HIMEM includes them at their original
