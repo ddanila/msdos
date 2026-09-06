@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Inventory emitted MSDISK control-flow crossings; not a relocation proof.
+"""Inventory emitted disk or character-group crossings; not a relocation proof.
 
 Uses our assembler listing and linker map, never foreign binaries or sources.
 Indirect targets, external entry points, and data ownership still need review.
@@ -47,12 +47,20 @@ def listing_rows(listing: str) -> tuple[dict[str, int], list[tuple[int, str, str
 
 
 def inventory(listing: str, symbols: dict[str, int]):
-    labels, rows = listing_rows(listing)
     symbols = {name.upper(): value for name, value in symbols.items()}
     start, end = symbols["BIOS_SERVICE_START"], symbols["BIOS_SERVICE_END"]
     if not start == symbols["READ_SECTOR"] < end <= symbols["DISK005S"]:
         raise ValueError("BIOS service boundaries do not match the selected module range")
-    base = start - labels["READ_SECTOR"]
+    return inventory_window(listing, symbols, start, end, "READ_SECTOR")
+
+
+def inventory_window(listing, symbols, start, end, anchor, owners=()):
+    """Distinguish cross-module calls within one proposed high service owner."""
+    labels, rows = listing_rows(listing)
+    symbols = {name.upper(): value for name, value in symbols.items()}
+    if not start < end or symbols[anchor.upper()] != start:
+        raise ValueError("invalid module window/anchor")
+    base = start - labels[anchor.upper()]
     targets = dict(symbols)
     targets.update({name: base + value for name, value in labels.items()})
     result: dict[tuple[str, str], list[int]] = defaultdict(list)
@@ -76,7 +84,8 @@ def inventory(listing: str, symbols: dict[str, int]):
         if re.fullmatch(NAME, operand) and operand.upper() in targets:
             target = targets[operand.upper()]
             if not start <= target < end:
-                result[("direct outside body", f"{operation} {operand} ({target:04X}h)")].append(address)
+                kind = "direct within group" if any(first <= target < last for first, last in owners) else "direct outside body"
+                result[(kind, f"{operation} {operand} ({target:04X}h)")].append(address)
         else:
             result[("direct: unresolved", source)].append(address)
     if not instruction_count:
@@ -84,11 +93,53 @@ def inventory(listing: str, symbols: dict[str, int]):
     return start, end, instruction_count, result
 
 
+def character_inventory(symbols):
+    """Build all four exact normal objects; retain state/interrupt gaps outside."""
+    symbols = {name.upper(): value for name, value in symbols.items()}
+    specs = (("MSCON", "CON$READ", "CBREAK"),
+             ("MSAUX", "AUX$READ", "PRN$WRIT"),
+             ("MSLPT", "PRN$WRIT", "HAVECMOSCLOCK"),
+             ("MSCLOCK", "TIM$WRIT", "SET_ID_FLAG"))
+    owners = [(symbols[first], symbols[last]) for _, first, last in specs]
+    if any(first >= last for first, last in owners) or any(a[1] > b[0] for a, b in zip(owners, owners[1:])):
+        raise ValueError("invalid character-group layout")
+    print("# Complete character/clock service crossing inventory\n")
+    print(f"Four service bodies: {sum(last-first for first, last in owners)} linked bytes. "
+          "CMOS conversion helpers, low state, gateways and alignment are excluded.\n")
+    with tempfile.TemporaryDirectory(prefix="msdos-character-crossings-") as scratch:
+        for (module, anchor, _), (start, end) in zip(specs, owners):
+            path = Path(scratch)
+            listing = path / f"{module}.lst"
+            obj = path / f"{module}.OBJ"
+            subprocess.run([str(ROOT / "bin/jwasm-masm"), f"-I. -I../INC -Fl{listing}",
+                            f"{module}.ASM,{obj};"], cwd=ROOT / "src/BIOS",
+                           capture_output=True, text=True, check=True)
+            if obj.read_bytes() != (ROOT / f"src/BIOS/{module}.OBJ").read_bytes():
+                raise ValueError(f"{module} differs from linked object; rebuild BIOS first")
+            _, _, count, result = inventory_window(listing.read_text(encoding="latin-1"),
+                                                   symbols, start, end, anchor, owners)
+            print(f"## {module}: {end-start} bytes, {count} emitted rows\n")
+            print("| Class | Operation/target | Linked sites |\n| --- | --- | --- |")
+            for (kind, target), sites in sorted(result.items()):
+                print(f"| {kind} | `{target}` | " + ", ".join(f"`{site:04X}h`" for site in sites) + " |")
+            print()
+    print("This is outbound control-flow evidence, not a relocation proof. "
+          "Within-group near calls need no low transition if the group shares one segment. "
+          "Indirect calls, incoming entries, mutable data and firmware/A20 returns still require binding. "
+          "Omitted low state and interrupt entries remain charged; no saving is certified.")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--listing", type=Path, help="existing JWasm MSDISK listing")
+    parser.add_argument("--characters", action="store_true", help="audit the complete console/serial/printer/clock group")
     args = parser.parse_args()
     _, symbols = parse_map(ROOT / "src/BIOS/msBIO.map")
+    if args.characters:
+        if args.listing:
+            parser.error("--characters builds its own four matched listings")
+        character_inventory(symbols)
+        return
     if args.listing:
         listing = args.listing.read_text(encoding="latin-1")
     else:

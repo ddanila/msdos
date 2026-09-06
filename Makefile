@@ -386,6 +386,7 @@ test-bios-service-crossings: bios
 	python3 tests/test_bios_service_crossings.py
 	python3 tests/test_bios_data_segment.py
 	python3 tests/report_bios_service_crossings.py
+	python3 tests/report_bios_service_crossings.py --characters
 
 .PHONY: test-bios-high-rom-qemu
 .PHONY: test-bios-high-payload

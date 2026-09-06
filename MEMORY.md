@@ -2545,6 +2545,45 @@ Source owners are `src/BIOS/MSCON.ASM`, `MSAUX.ASM`, `MSLPT.ASM`,
 size report. Do not start a separate character relocation merely because the
 936-byte inventory fits HMA; first finish the joint owner/destination design.
 
+**Complete character-group crossing audit:**
+`make test-bios-service-crossings` now assembles all four normal modules and
+requires each object to match the linked build before reading its emitted
+listing. `report_bios_service_crossings.py --characters` excludes the low
+CBREAK/IRET and clock-state gaps rather than treating their encompassing range
+as movable. The 810 service bytes contain 343 emitted rows. Four parser tests
+cover module bias, inactive source exclusion, shared-group targets, unresolved
+indirect calls and invalid ranges. This does not audit every data reference or
+incoming pointer, nor certify execution from HMA.
+
+The emitted dependencies select the following group contract:
+
+- Keep console and serial in the same high code owner: AUX's `JMP RDEXIT`
+  then remains a direct intra-owner transfer. No separate low bridge is needed
+  for that edge. Printer and clock can share the owner and completion bindings.
+- Reuse the five low completion exits (EXIT, BUS$EXIT, ERR$CNT, ERR$EXIT,
+  CMDERR) with tail transfers that preserve the decoder's nine-register frame.
+  GETDX has three ordinary near-call sites; do not confuse those returning
+  calls with completion jumps that unwind the request.
+- Cover all thirteen interrupt sites: INT 14h, 15h, 16h, 17h, 1Ah and
+  CHROUT/29h. The existing disk/timer gates alone do not cover this group.
+  Keyboard status requires returned ZF; CMOS writes bracket calls with CLI/STI;
+  output may pass through an installed INT 29h hook. Require A20-safe returns
+  without changing the original register, flag or interrupt-frame semantics.
+- Resolve the four indirect clock-helper calls (three BinToBCD, one
+  DaycntToDay) against the boot-selected copied helpers, not their discarded
+  MSINIT addresses. The public TimeToTicks binding is an incoming edge and
+  remains a separate publication requirement.
+
+**Dispatch design decision:** extend the installed high command-table format
+to carry low/high target selection for the complete group, rather than adding
+a permanent low stub for each character-service entry. The current table still
+contains only low near targets; this change is not implemented. Preserve each
+service's original low SI identity, handler-entry flags and completion frame.
+Charge the expanded tables/decoder and common firmware-return support in HMA
+and low memory respectively before claiming a net release. Bind ALTAH, AUXBUF,
+printer retry state, clock state and externally visible entries explicitly;
+moving service code does not authorize moving their published state.
+
 The placement design must therefore include another substantial owner: eligible
 DOS state, COMMAND's complete resident interface/state split, or the combined
 XMS/EMS low interface. Do not defer those ownership decisions behind serial

@@ -3,7 +3,7 @@
 
 import unittest
 
-from report_bios_service_crossings import inventory, listing_rows
+from report_bios_service_crossings import inventory, inventory_window, listing_rows
 
 
 def row(address, encoding, source):
@@ -11,6 +11,22 @@ def row(address, encoding, source):
 
 
 class CrossingsTests(unittest.TestCase):
+    def test_shared_group_excludes_intervening_low_state(self):
+        listing = "\n".join([row(0, "", "BODY PROC NEAR"),
+                             row(0, "E80000r", "CALL PEER"),
+                             row(3, "E80000r", "CALL LOW_GAP"),
+                             row(6, "FF16", "CALL MUTABLE_SLOT")])
+        symbols = dict(BODY=0x100, PEER=0x200, LOW_GAP=0x180, MUTABLE_SLOT=0x210)
+        crossings = inventory_window(listing, symbols, 0x100, 0x110, "BODY",
+                                     [(0x100, 0x110), (0x200, 0x220)])[3]
+        self.assertIn(("direct within group", "CALL PEER (0200h)"), crossings)
+        self.assertIn(("direct outside body", "CALL LOW_GAP (0180h)"), crossings)
+        self.assertIn(("indirect: unresolved", "CALL MUTABLE_SLOT"), crossings)
+
+    def test_invalid_window_rejected(self):
+        with self.assertRaisesRegex(ValueError, "window"):
+            inventory_window("", {"BODY": 0x100}, 0x100, 0x100, "BODY")
+
     def test_classification_and_module_bias(self):
         listing = "\n".join([
             row(0x20, "", "READ_SECTOR PROC NEAR"),
