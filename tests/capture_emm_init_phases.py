@@ -39,7 +39,9 @@ def parse_bootstrap_layout(data):
 
 def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
                 lifecycle=False, loader=False, rebase=False, table_layout=False,
-                bootstrap_owner=False, authoritative_owner=False):
+                bootstrap_owner=False, authoritative_owner=False, rebase_rejected=False):
+    if rebase_rejected and not (rebase and rejected):
+        raise ValueError("rejected move requires rebasing and cancellation")
     if authoritative_owner and not bootstrap_owner:
         raise ValueError("authoritative publication requires the live owner witness")
     owner = None
@@ -68,7 +70,11 @@ def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
             data = data[:end-6] + suffix
         owner["high_committed"] = bool(authoritative_owner and not rejected)
     moved = None
-    if rebase:
+    if rebase_rejected:
+        if data[26:28] != b"RF":
+            raise ValueError("missing prepared-image move rejection")
+        data = data[:26] + data[28:]
+    elif rebase:
         if len(data) < 34:
             raise ValueError("missing prepared-image move")
         tag, old, new, paragraphs = struct.unpack_from("<2s3H", data, 26)
@@ -157,7 +163,8 @@ def check_phases(rows, mode, *, split=False, rejected=False, activation_stack=Fa
             raise ValueError("final interrupt entry was not published")
 
 
-def build_loader(work, *, rejected=False, bad_version=False, rebase=False, bad_rebase=False):
+def build_loader(work, *, rejected=False, bad_version=False, rebase=False, bad_rebase=False,
+                 stage_bootstrap=False):
     """Private normal-layout BIOS; only SYSCONF opts into the boot handshake."""
     bios = work / "BIOS"
     shutil.copytree(capture.ROOT / "src/BIOS", bios)
@@ -165,6 +172,8 @@ def build_loader(work, *, rejected=False, bad_version=False, rebase=False, bad_r
     options = "-DBIOS_DEFER_PROVIDER"
     if rebase:
         options += " -DPROVIDER_REBASE"
+        if stage_bootstrap:
+            options += " -DBIOS_STAGE_PROVIDER"
         (bios / "PROVIDERFIXUPS.INC").write_text(rebase_include(
             (work / "MEMM/MEMM/EMM386.EXE").read_bytes(), bad_control=bad_rebase))
     if rejected:
@@ -200,6 +209,8 @@ def main():
                         help="report a false aligned low boundary; linked reconciliation must fail")
     parser.add_argument("--stage-bootstrap", action="store_true",
                         help="stage the allocator in owned LAST scratch and poison its original tail")
+    parser.add_argument("--skip-stage-retarget", action="store_true",
+                        help="negative control: move the stage but leave its private root stale")
     parser.add_argument("--xms-handles", type=int, choices=(8, 32, 128), default=32,
                         help="HIMEM handle capacity, distinct from EMS --handles")
     parser.add_argument("--dos-high", action="store_true",
@@ -238,10 +249,13 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.skip_stage_retarget:
+        args.stage_bootstrap = True
+        args.loader_rebase = True
     if args.stage_bootstrap:
         args.authoritative_owner = True
-        if args.loader_rebase or args.loader_bad_rebase or args.loader_bad_version:
-            parser.error("staged LAST storage is not yet movable with the prepared provider")
+        if args.loader_bad_version:
+            parser.error("staging requires the negotiated loader callback")
     if args.bad_bootstrap_layout:
         args.authoritative_owner = True
     if args.bad_owner_receipt:
@@ -320,6 +334,8 @@ def main():
         trace_defines += " -DEMM_BOOTSTRAP_EXPECT_HMA"
     if args.stage_bootstrap:
         trace_defines += " -DEMM_BOOTSTRAP_STAGE_TEST"
+    if args.skip_stage_retarget:
+        trace_defines += " -DEMM_BOOTSTRAP_SKIP_RETARGET"
     if args.bad_owner_receipt:
         trace_defines += (" -DEMM_XMS_OWNER_BAD_RECEIPT" if args.bad_owner_receipt == "before"
                           else " -DEMM_XMS_OWNER_BAD_RECEIPT_ACTIVE")
@@ -394,7 +410,8 @@ def main():
     if args.loader:
         loader_image, loader_hash = build_loader(
             work, rejected=args.reject_prepared, bad_version=args.loader_bad_version,
-            rebase=args.loader_rebase, bad_rebase=args.loader_bad_rebase)
+            rebase=args.loader_rebase, bad_rebase=args.loader_bad_rebase,
+            stage_bootstrap=args.stage_bootstrap)
     subprocess.run(["nasm", "-f", "bin", str(capture.QEMU_EXIT_SOURCE),
                     "-o", str(qexit)], check=True)
     owner_probe = work / "OWNER.COM"
@@ -470,7 +487,8 @@ def main():
                                    loader=args.loader and not args.loader_bad_version,
                                    rebase=args.loader_rebase, table_layout=args.table_layout,
                                    bootstrap_owner=args.bootstrap_owner,
-                                   authoritative_owner=args.authoritative_owner)
+                                   authoritative_owner=args.authoritative_owner,
+                                   rebase_rejected=args.loader_bad_rebase)
         if args.authoritative_owner:
             live = records[mode][-1]["bootstrap_owner"]["layout"]
             linked = bootstrap_layout(work / "HIMEM.LST", live["handles"])
@@ -501,11 +519,13 @@ def main():
         lifecycle=args.lifecycle,
         loader=args.loader, loader_bad_version=args.loader_bad_version,
         loader_rebase=args.loader_rebase,
+        loader_move_rejected=args.loader_bad_rebase,
         bootstrap_owner=args.bootstrap_owner,
         authoritative_owner=args.authoritative_owner, himem_sha256=capture.sha256(himem),
         bad_owner_receipt=args.bad_owner_receipt,
         bad_bootstrap_layout=args.bad_bootstrap_layout,
         stage_bootstrap=args.stage_bootstrap,
+        skip_stage_retarget=args.skip_stage_retarget,
         xms_handles=args.xms_handles,
         dos_high=args.dos_high,
         dos_sha256=capture.sha256(capture.ROOT / "src/DOS/MSDOS.SYS")

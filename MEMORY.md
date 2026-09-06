@@ -1285,13 +1285,13 @@ publication are refused. The cancellation witness poisons the temporary copy
 before checking its original cached XMS entry and preserved boot block.
 
 ```sh
-python3 tests/capture_emm_init_phases.py out/floppy.img --stage-bootstrap --dos-high --xms-handles 128
-python3 tests/capture_emm_init_phases.py out/floppy.img --stage-bootstrap --dos-high --xms-handles 8 --reject-prepared
+python3 tests/capture_emm_init_phases.py out/floppy.img --stage-bootstrap --loader-rebase --dos-high --xms-handles 128
+python3 tests/capture_emm_init_phases.py out/floppy.img --stage-bootstrap --loader-rebase --dos-high --xms-handles 8 --reject-prepared
 ```
 
-The staged 128-handle DOS-high activation passes ON/OFF/AUTO/RAM in
-`out/emm-init-phases-g8bmncov/`; the staged front is 2,656 bytes (416 above the
-unstaged paired variant), with a 1,408-byte tail and a 4,064-byte boot extent.
+The staged 128-handle DOS-high activation with rebasing passes ON/OFF/AUTO/RAM
+in `out/emm-init-phases-o1uqzk_w/`; the staged front is 2,864 bytes (624 above
+the unstaged paired variant), with a 1,408-byte tail and a 4,272-byte boot extent.
 These are temporary development costs, not normal HIMEM sizes or net savings.
 The 8 KiB staging reservation is discarded with LAST, but the original low tail
 is still allocated. No conventional-memory gain or production promotion is
@@ -1302,15 +1302,35 @@ Eight-handle cancellation with the retired staging copy poisoned passes in
 `out/emm-init-phases-1essg98x/`. The unstaged upward-move regression passes in
 `out/emm-init-phases-rkyhledj/`, and normal HIMEM/EMM386 hashes are unchanged.
 
-This establishes a usable bootstrap owner outside the original tail, **not**
-the final placement transaction. `--stage-bootstrap` currently rejects provider
-rebasing: the buffer moves with LAST, but its private root would still name the
-old segment. The next loader change must keep staging stationary or retarget it
-after a validated overlapping move, before any XMS call. It must also relocate
-the device mark, reconcile HIMEM's retained extent, and restore the old layout
-on cancellation before accepting a smaller final break. The unchanged public
-entry, staged allocator, final low-base move and rollback must be qualified as
-one transaction before releasing the tail.
+**Moving the staged owner:** after all pinned-image fixup checks, SYSINIT uses
+private `E70Ah` to freeze allocator dispatch before copying the prepared image.
+While frozen, handle-service calls return XMS error 8Eh without reading the
+staged copy or attempting high publication; HMA/A20/UMB ownership remains in
+the original front. The resumed provider callback computes its moved LAST
+buffer address and calls private `E709h` with the expected old staging segment.
+The front requires a freeze, rejects stale/replayed expected roots and checks
+the new conventional bounds and peer metadata before switching the pointer
+and clearing the freeze. It does not read the overwritten old stage.
+
+The caller still owns proof of the full image copy: metadata checks are not a
+general relocation guarantee or destination-ownership check. The boot witness
+requires frozen AH=08h and Move with an unusable descriptor to return 8Eh,
+then checks the same cached-entry block after retarget and activation/cancellation.
+Eight-handle moved cancellation passes all four modes in
+`out/emm-init-phases-tk81ke2t/`. `--skip-stage-retarget` deliberately leaves
+dispatch frozen and fails in `out/emm-init-phases-u8sirlfh/`. A failed pinned
+fixup precheck (`--loader-bad-rebase`) cancels without a move or freeze in
+`out/emm-init-phases-d7u65daq/`; the parser now distinguishes that `RF` rejection
+from a successful `RB` move. Twenty phase tests cover these trace contracts.
+
+This establishes the staged owner's lifetime across the existing **upward**
+move, not the final placement transaction or asynchronous-client qualification.
+The next loader change must copy downward into the detached tail, relocate the
+device mark, reconcile HIMEM's retained extent and restore the old layout on
+cancellation before accepting a smaller final break. Failures after the copy
+but before successful retarget still require a recovery design; do not resume
+an allocator through an uncertain root. The unchanged public entry, staging,
+final low base and rollback must be qualified together before releasing memory.
 
 ##### Whole-system placement rules
 

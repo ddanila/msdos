@@ -60,10 +60,25 @@ private_bootstrap_stage proc far
         add ax,offset handles+15
         and ax,0fff0h
         mov cx,ax
+        cmp bp,XCP_STAGE_FREEZE
+        je stage_freeze
         cmp bp,XCP_STAGE_RESTORE
         je stage_restore
+        cmp bp,XCP_STAGE_RETARGET
+        jne stage_bind_check
+        cmp [bootstrap_frozen],1
+        jne stage_bad
+        or bx,bx
+        jz stage_bad
+        cmp bx,[bootstrap_stage_entry+2]
+        jne stage_bad
+        cmp bx,dx
+        je stage_bad
+        jmp short stage_bounds
+stage_bind_check:
         cmp word ptr [bootstrap_stage_entry+2],0
         jne stage_bad
+stage_bounds:
         mov bx,cs
         shr ax,4
         add bx,ax
@@ -78,10 +93,38 @@ private_bootstrap_stage proc far
         xor si,si
         xor di,di
         cld
+        cmp bp,XCP_STAGE_RETARGET
+        jne stage_compare
+        ; The loader owns proof of the whole copied image; only peer metadata
+        ; can be checked here without reading the overwritten old stage.
+        cmp byte ptr es:[owner_query_active],0
+        jne stage_bad
+        cmp word ptr es:[bootstrap_stage_entry+2],0
+        jne stage_bad
+        cmp byte ptr es:[bootstrap_detached],0
+        jne stage_bad
+        cmp byte ptr es:[bootstrap_frozen],0
+        jne stage_bad
+        mov ax,[handle_limit]
+        cmp es:[handle_limit],ax
+        jne stage_bad
+        mov ax,[extended_kb]
+        cmp es:[extended_kb],ax
+        jne stage_bad
+        mov cx,18             ; same device header and entry offsets
+stage_compare:
         repe cmpsb             ; reject stale/non-identical copies before writes
         jne stage_bad
         mov [bootstrap_stage_entry+2],dx
         mov [bootstrap_detached],1
+        mov [bootstrap_frozen],0
+        jmp short stage_good
+stage_freeze:
+        cmp word ptr [bootstrap_stage_entry+2],0
+        je stage_bad
+        cmp [bootstrap_frozen],0
+        jne stage_bad
+        mov [bootstrap_frozen],1
         jmp short stage_good
 stage_restore:
         cmp dx,word ptr [bootstrap_stage_entry+2]
@@ -101,6 +144,7 @@ stage_restore:
         rep movsb
         mov word ptr es:[bootstrap_stage_entry+2],0
         mov byte ptr es:[bootstrap_detached],0
+        mov byte ptr es:[bootstrap_frozen],0
 stage_good:
         mov ax,XCP_LAYOUT_REPLY
         jmp short stage_done
@@ -135,6 +179,10 @@ xms_remote_owned proc near
         pushf
         cli
         push es
+ifdef HIMEM_BOOTSTRAP_STAGE_TEST
+        cmp [bootstrap_frozen],0
+        jne auth_failed
+endif
         mov [owner_operation],ax
         mov [owner_bx],bx
         mov [owner_total],dx

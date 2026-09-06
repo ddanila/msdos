@@ -638,6 +638,9 @@ ProviderLoaderValid:
         mov ds,dx
         xor bp,bp
         INIT_PHASE 17
+ifdef EMM_BOOTSTRAP_STAGE_TEST
+        call BootStageRelocated
+endif
         cmp ax,BP_CANCEL
         je ProviderLoaderCancel
         call ActivateProvider

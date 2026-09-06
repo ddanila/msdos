@@ -81,6 +81,7 @@ owner_record_scratch db HANDLE_SIZE dup (0)
 ifdef HIMEM_BOOTSTRAP_STAGE_TEST
 bootstrap_stage_entry dw offset xms_control,0
 bootstrap_detached db 0
+bootstrap_frozen db 0
 endif
 else
 owner_records db MAX_HANDLES*HANDLE_SIZE dup (0)
@@ -159,6 +160,10 @@ ifdef HIMEM_BOOTSTRAP_STAGE_TEST
         cmp     ax, XCP_STAGE_BIND
         je      private_bootstrap_stage
         cmp     ax, XCP_STAGE_RESTORE
+        je      private_bootstrap_stage
+        cmp     ax, XCP_STAGE_RETARGET
+        je      private_bootstrap_stage
+        cmp     ax, XCP_STAGE_FREEZE
         je      private_bootstrap_stage
 endif
 endif

@@ -31,6 +31,18 @@ XCP_LAYOUT_VERSION equ 1
 ; high publication or explicit restore. No vectors/public entry are relocated.
 XCP_STAGE_BIND equ 0e707h
 XCP_STAGE_RESTORE equ 0e708h
+; E709h retargets a staged owner after a trusted loader's validated copy.
+; BX=expected old stage segment, DX=new segment; other request fields as above.
+; Requires an unpublished owner and checks new conventional bounds and peer
+; metadata. It does not copy/compare the old storage (which may be overwritten)
+; or prove that the caller owns the destination. Requires the E70Ah freeze;
+; failure leaves the root intact and allocator dispatch frozen.
+XCP_STAGE_RETARGET equ 0e709h
+; E70Ah freezes allocator dispatch before the loader copies a bound stage.
+; Same signature/version/reserved fields; AX=reply/0. While frozen, allocator
+; calls return 8Eh without accessing the stage or attempting high publication.
+; Successful E709h retarget or pre-publication E708h restore clears the freeze.
+XCP_STAGE_FREEZE equ 0e70ah
 ; OWNER_QUERY uses AH=87h, ES:SI -> 'XOWN', then word version=1, handle
 ; limit, pool KiB, output largest/total KiB, then up to 128 five-byte records.
 ; The trusted development peer backs the full 654-byte packet below its

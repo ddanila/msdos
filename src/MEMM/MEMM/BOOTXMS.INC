@@ -295,6 +295,75 @@ BootOwnerVerify endp
 
 IFDEF EMM_AUTHORITATIVE_OWNER_TEST
 IFDEF EMM_BOOTSTRAP_STAGE_TEST
+BootStageRelocated proc near
+        pushf
+        pusha
+        push ds
+        push cs
+        pop ds
+        mov [boot_owner_step],17
+        mov ax,offset boot_stage_image
+        test ax,15
+        jnz BootOwnerFail
+        shr ax,4
+        mov dx,cs
+        add dx,ax
+        jc BootOwnerFail
+        mov bx,[boot_stage_segment]
+        cmp bx,dx
+        je BootStageRelocatedDone
+        push bx
+        push dx
+        mov ah,08h
+        call dword ptr [boot_owner_entry]
+        or ax,ax
+        jnz BootOwnerFail
+        or dx,dx
+        jnz BootOwnerFail
+        cmp bl,8eh
+        jne BootOwnerFail
+        ; Frozen Move must fail before dereferencing an unusable descriptor.
+        push ds
+        xor ax,ax
+        mov ds,ax
+        mov si,0ffffh
+        mov ah,0bh
+        call dword ptr cs:[boot_owner_entry]
+        pop ds
+        or ax,ax
+        jnz BootOwnerFail
+        cmp bl,8eh
+        jne BootOwnerFail
+        pop dx
+        pop bx
+IFNDEF EMM_BOOTSTRAP_SKIP_RETARGET
+        ; A stale expected root must fail without blocking the correct retry.
+        inc bx
+        mov ax,XCP_STAGE_RETARGET
+        mov cx,XCP_LAYOUT_SIGNATURE
+        mov si,XCP_LAYOUT_VERSION
+        xor di,di
+        int 2fh
+        or ax,ax
+        jnz BootOwnerFail
+        dec bx
+        mov ax,XCP_STAGE_RETARGET
+        int 2fh
+        cmp ax,XCP_LAYOUT_REPLY
+        jne BootOwnerFail
+        mov ax,XCP_STAGE_RETARGET
+        int 2fh
+        or ax,ax
+        jnz BootOwnerFail      ; expected-old token may not be replayed
+        mov [boot_stage_segment],dx
+ENDIF
+BootStageRelocatedDone:
+        pop ds
+        popa
+        popf
+        ret
+BootStageRelocated endp
+
 BootStagePrepare proc near
         pushf
         pusha

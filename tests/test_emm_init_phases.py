@@ -233,6 +233,21 @@ class InitPhaseTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 parse_trace(data[:26] + header + data[26:], **flags)
 
+    def test_rejected_move_cancels_without_move_record(self):
+        first = self.trace()[:13]
+        phases = b"".join(first[:2] + bytes([stage]) + first[3:] for stage in (1, 9, 17, 10))
+        options = dict(split=True, loader=True, rebase=True, rejected=True)
+        data = phases[:26] + b"RF" + phases[26:] + b"LD"
+        rows = parse_trace(data, **options, rebase_rejected=True)
+        self.assertTrue(all("move" not in row for row in rows))
+        check_phases(rows, "ON", **options)
+        for marker in (b"", b"RFRF", struct.pack("<2s3H", b"RB", 0x400, 0x420, 100)):
+            with self.assertRaises(ValueError):
+                parse_trace(phases[:26] + marker + phases[26:] + b"LD",
+                            **options, rebase_rejected=True)
+        with self.assertRaises(ValueError):
+            parse_trace(data, rebase_rejected=True)
+
 
 if __name__ == "__main__":
     unittest.main()

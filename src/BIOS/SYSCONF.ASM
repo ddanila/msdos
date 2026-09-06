@@ -94,6 +94,9 @@ DOSSIZE EQU	0A000H
 	include version.inc
 IFDEF BIOS_DEFER_PROVIDER
         include BOOTPROV.INC
+IFDEF BIOS_STAGE_PROVIDER
+        include XMSCOPYABI.INC
+ENDIF
 ENDIF
 .list
 
@@ -2199,6 +2202,17 @@ ProviderMoveCheck:
         jc ProviderMoveBad
         add si,6
         loop ProviderMoveCheck
+IFDEF BIOS_STAGE_PROVIDER
+        ; Reject allocator calls throughout the copy-to-retarget interval.
+        ; All pinned-image checks above precede this state change.
+        mov ax,XCP_STAGE_FREEZE
+        mov cx,XCP_LAYOUT_SIGNATURE
+        mov si,XCP_LAYOUT_VERSION
+        xor di,di
+        int 2fh
+        cmp ax,XCP_LAYOUT_REPLY
+        jne ProviderMoveBad
+ENDIF
         ; Copy paragraphs backward to support the overlapping upward move.
         mov bx,PROVIDER_IMAGE_PARAS
         cld
