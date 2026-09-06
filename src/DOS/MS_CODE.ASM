@@ -817,9 +817,54 @@ DOS_HMA_RELOCATE endp
 
 ; Internal SYSINIT callback (INT 2Fh/AX=1234h). HIMEM's resident copy moves
 ; after DOS has cached the XMS entry, while the entry offset remains stable.
+; Signed extension: CX=584Dh, SI=1 selects the full-entry protocol.
+; DI=0 reads DX:BX; DI=1 replaces it with DX:BX. AX=1 succeeds, AX=0
+; rejects version/op/not-ready/non-real-mode addresses without changing it.
+; The trusted loader must prove target ownership/readiness and serialize this
+; before client publication. This only updates DOS's cache, not public vectors,
+; existing external callers, provider state or an active driver's saved entry.
 PUBLIC  DOS_HMA_REBASE_XMS
 DOS_HMA_REBASE_XMS proc near
+        cmp     cx,0584dh
+        je      short hma_xms_full_entry
         mov     word ptr cs:[hma_xms_entry+2], dx
+        ret
+hma_xms_full_entry:
+        cmp     si,1
+        jne     short hma_xms_entry_bad
+        cmp     cs:[hma_owned],0
+        je      short hma_xms_entry_bad
+        or      di,di
+        jz      short hma_xms_entry_read
+        cmp     di,1
+        jne     short hma_xms_entry_bad
+        or      dx,dx
+        jz      short hma_xms_entry_bad
+        ; The cached entry must be callable without depending on HMA/A20.
+        ; Reject a segment:offset sum reaching the HMA or wrapping 20 bits.
+        mov     ax,bx
+        push    cx
+        mov     cl,4
+        shr     ax,cl
+        pop     cx
+        add     ax,dx
+        jc      short hma_xms_entry_bad
+        cmp     ax,0ffffh
+        jae     short hma_xms_entry_bad
+        pushf
+        cli
+        mov     word ptr cs:[hma_xms_entry],bx
+        mov     word ptr cs:[hma_xms_entry+2],dx
+        popf
+        mov     ax,1
+        ret
+hma_xms_entry_read:
+        mov     bx,word ptr cs:[hma_xms_entry]
+        mov     dx,word ptr cs:[hma_xms_entry+2]
+        mov     ax,1
+        ret
+hma_xms_entry_bad:
+        xor     ax,ax
         ret
 DOS_HMA_REBASE_XMS endp
 

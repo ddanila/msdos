@@ -55,6 +55,11 @@ class HmaBudgetTests(unittest.TestCase):
         self.assertEqual(rows[-2][1:], (0xDA37, 0xFFF0))
         self.assertEqual(rows[-2][2] - rows[-2][1], 9657)
 
+    def test_full_xms_entry_callback_budget(self):
+        rows = hma_layout(0x9D60, 15 * (512 + 20) + 8, 5220, 2447)
+        self.assertEqual(rows[-2][1:], (0xDA87, 0xFFF0))
+        self.assertEqual(rows[-2][2] - rows[-2][1], 9577)
+
     def test_overflow_in_each_stage(self):
         for buffers, bios, command in ((0, 241, 0), (241, 0, 0), (0, 0, 241)):
             with self.subTest(buffers=buffers, bios=bios, command=command):

@@ -312,6 +312,10 @@ test-xms-public-copy-qemu:
 
 .PHONY: test-xms-reallocation-qemu
 .PHONY: test-xms-allocator-owner-qemu
+.PHONY: test-xms-entry-handoff-qemu
+test-xms-entry-handoff-qemu:
+	python3 tests/test_xms_entry_handoff_qemu.py
+
 .PHONY: test-xms-owner-query-qemu
 test-xms-owner-query-qemu:
 	python3 tests/test_xms_copy_windows_qemu.py --public-api --owner-query --dos-high --mode OFF --reject-reallocation

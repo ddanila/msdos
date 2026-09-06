@@ -35,6 +35,10 @@ predate this correction. The capture completed and its linked/runtime census
 passed; its old coarse-size assertion failed as expected. The updated
 `check_results` validates the saved complete capture without repeating boots.
 
+The full cached-XMS-entry callback adds 80 HMA kernel bytes, with no low-boundary
+change. The current full capture, `out/umb-fine-composition-7ls6fq8a/`, passes
+all five-image assertions and retains the conventional/UMB totals above.
+
 The DR-DOS reassessment changes the implementation criterion: justify every
 remaining low owner and design its complete high service, rather than treating
 the retail deficit as a quota for instruction reductions. Controlled DR-DOS 6
@@ -80,8 +84,8 @@ standalone/third-party XMS paths retain their own supported placement and
 fallback; protected-manager placement is not a universal HMA replacement.
 
 Budget the selected fixture's existing HMA allocations once:
-40,192 DOS + 5,220 BIOS + 7,988 buffers + 2,447 COMMAND = 55,847 bytes.
-The remaining `DA37h..FFF0h` interval is 9,657 bytes, excluding the 16-byte
+40,272 DOS + 5,220 BIOS + 7,988 buffers + 2,447 COMMAND = 55,927 bytes.
+The remaining `DA87h..FFF0h` interval is 9,577 bytes, excluding the 16-byte
 safety tail. New BIOS and COMMAND bodies, gateways, stacks and alignment must
 fit together there or explicitly replace an existing owner. The 1,792-byte
 UMB margin cannot hold the 1,840-byte interrupt-stack allocation even before
@@ -121,7 +125,7 @@ low remainder or a violated UMB floor. Its low partition is specific to the
 fixed high-CDS fixture (512-byte transfer area and STACKS=9,128); different
 resources require a new audited partition, not an automatic residual bucket.
 It does not infer boot identity from equal sizes or prove relocation safety.
-The fresh five-image run in `out/umb-fine-composition-p17up4rw/` passes this
+The fresh five-image run in `out/umb-fine-composition-7ls6fq8a/` passes this
 gate and reproduces the current totals. Twelve owner-accounting tests include
 stale maps/managers, missing or duplicate owners, incorrect free extents and
 the pre-table control; the normal DOS/BIOS census and HMA-budget tests pass.
@@ -177,7 +181,7 @@ of the 800 state bytes can already be released.
 
 The existing 2,447-byte high shell allocation is already charged. Adding the
 normal 2,451-byte resident body would consume that much of the shared
-9,657-byte HMA tail, leaving 7,206 bytes for BIOS, moved state and all new
+9,577-byte HMA tail, leaving 7,126 bytes for BIOS, moved state and all new
 support. Owner bindings and outgoing transfers already grow the body by 86 bytes;
 neither number is the final relocated size. A code-only shell move plus the
 936-byte BIOS character/clock/helper inventory therefore cannot explain the
@@ -302,7 +306,7 @@ Do not turn this into five byte-harvesting quotas. A bulk placement change can
 outperform a retail component and cover another owner's excess. The next
 design must identify actual released intervals, their replacement gateways,
 and where each live allocation goes. The current development HMA capacity is
-9,657 bytes after COMMAND and the BIOS reservation, whereas
+9,577 bytes after COMMAND and the BIOS reservation, whereas
 free UMB has 1,792 bytes of margin after CDS placement. Capacity is not a predicted saving:
 moving a public table into HMA may be invalid, and a retained low duplicate
 saves nothing. An additional 2,624 net bytes would meet retail; exceeding it
@@ -436,7 +440,7 @@ allocation or an independent second extended-memory allocator.
 The kernel's high image also needs an ownership decision. The current
 `MS_CODE.ASM:DOS_HMA_RELOCATE` copies `0010h..SYSBUF` at unchanged offsets,
 including the retained prefix. `MSDOS.MAP` places `DOS_LOW_GATE_END` at
-`15F2h` and `SYSBUF` at `9D10h`: the copied prefix is 5,602 HMA bytes, distinct
+`15F2h` and `SYSBUF` at `9D60h`: the copied prefix is 5,602 HMA bytes, distinct
 from its 5,632-byte rounded conventional allocation. **That entire high range
 is not proven unused.** For example, `INT2F_etcetera` reads
 `CS:[Special_Entries]` at linked offset `006Bh`, and relocation patches both
@@ -651,12 +655,31 @@ The boot audit establishes why the current hook cannot simply accept another
 device name. `SYSCONF.ASM:CompactFirstHimem` checks the literal `HIMEM$` header,
 then copies the used boot allocation, directly rewrites the INT 15h/2Fh segment
 words and refreshes DOS's cached XMS segment through 1234h. Development
-`BiosBootActivate` runs afterward. `DOS_HMA_REBASE_XMS` changes only the segment,
-not the entry offset. Conversely, EMM `INIT.ASM` has already built descriptors,
+`BiosBootActivate` runs afterward. The legacy `DOS_HMA_REBASE_XMS` form changes
+only the segment. Its signed extension below can refresh the full entry, but
+does not make the HIMEM-only relocation algorithm general. EMM `INIT.ASM` has already built descriptors,
 committed UMB mappings, relocated protected code and entered its execution mode
 before returning its final driver break. Moving that active image with the
 HIMEM-only copy/vector procedure leaves other published addresses unhandled.
 Do not broaden the header check as an integration implementation.
+
+**Full DOS cache callback:** INT 2Fh/AX=1234h retains its legacy segment-only
+form. CX=584Dh selects a versioned extension: SI=1, DI=0 reads DX:BX; DI=1
+replaces the cached entry with DX:BX. AX=1 succeeds; AX=0 rejects an unsupported
+version/operation, unavailable HMA owner, zero segment, or an address reaching
+HMA/wrapping 20 bits. Both words are written with interrupts masked. The
+trusted loader must still establish target ownership/readiness and serialize
+publication; address validation is not an ownership check.
+
+`FLOPPY_IMAGE=<current boot image> make test-xms-entry-handoff-qemu` verifies
+changed segment and offset, a real call through the returned pointer, invalid
+request rollback, legacy segment-only behavior, full restoration and DOS-low
+rejection. It passes in `out/xms-entry-handoff-66qqwdvi/`; an old kernel fails
+in `out/xms-entry-handoff-w49enjl1/`. The existing HMA suite also passes with
+the updated kernel, including A20 recovery and EXEC. This callback updates
+only DOS's cached pointer. The driver-return path still uses E705h for A20
+recovery; public vectors, escaped client entries, active call frames and provider
+ownership must be handled separately by the coordinated installation.
 
 Use a two-phase, repository-private loader contract, before subsequent drivers
 or applications can cache the final public entries:
@@ -934,7 +957,7 @@ of the following owners, not a sequence of independently attractive savings:
 | DOS kernel and dynamic state | 5,632-byte low prefix, including the repaired SETVER owner; FILES/FCB and CDS relocation already counted | Qualify upper CDS consumers and budget interrupt stacks and remaining public/private state |
 | Combined memory managers | 4,624 low bytes after complete high tables and the HIMEM correctness fixes; the earlier 6,480-byte census predates both | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback; do not count the moved tables again |
 | COMMAND | 3,984-byte owner span versus OpenDOS's 1,312 | Separate environment/PSP and asynchronous entry state from movable resident handlers; preserve reload contracts |
-| Shared high storage | 9,657 calculated development HMA bytes; 1,792-byte UMB margin after CDS | Reserve destinations once across all owners; account for locked XMS, alignment and displaced buffers |
+| Shared high storage | 9,577 calculated development HMA bytes; 1,792-byte UMB margin after CDS | Reserve destinations once across all owners; account for locked XMS, alignment and displaced buffers |
 
 For each proposed object, record its current range, destination, live callers,
 address and A20 contract, low gateway cost, initialization/rollback behavior,
@@ -1097,7 +1120,7 @@ Required deliverables, in order:
    stable real-mode storage for escaped public pointers; HMA for eligible
    services/private state; locked extended storage for protected-mode objects.
    Specify fallback and reentrancy before changing accesses.
-4. Produce one packed destination layout, charging the existing 9,657-byte
+4. Produce one packed destination layout, charging the existing 9,577-byte
    HMA tail and 1,792-byte UMB margin only once. Repacking the current high copy
    of low state may free HMA capacity, but cannot itself free conventional
    memory. Subtract all gates, stacks, mirrors and arena overhead; identify
@@ -1115,9 +1138,9 @@ recovery and the bounded 1 KiB EBDA step cannot explain this below-VC gap.
 
 `tests/report_dos_bios_residency.py` now composes the successful early BIOS
 reservation, fixed cache and permanent COMMAND allocation from the build
-manifest and linker maps. The repaired sequence is `0010h..9D10h` DOS,
-`9D10h..B174h` BIOS, `B174h..D0A8h` cache, and `D0A8h..DA37h` COMMAND.
-The unassigned tail is **9,657 bytes**, ending at the `FFF0h` safety boundary.
+manifest and linker maps. The current sequence is `0010h..9D60h` DOS,
+`9D60h..B1C4h` BIOS, `B1C4h..D0F8h` cache, and `D0F8h..DA87h` COMMAND.
+The unassigned tail is **9,577 bytes**, ending at the `FFF0h` safety boundary.
 The previous 10,313-byte tail predates the SETVER repair; the linked high image
 grew by 656 bytes including alignment. This is capacity, not a runtime HMA probe.
 
@@ -1339,7 +1362,7 @@ Proposed destinations are the existing DOS-owned HMA for HIMEM's 1,672-byte
 service/data candidate and COMMAND's 2,451-byte body, and locked extended memory
 behind a protected selector for EMM386's complete 1,904-byte selected table
 object. The 4,123-byte additional HMA payload leaves 5,534 bytes of the current
-calculated 9,657-byte tail before relocation support costs; size the final
+calculated 9,577-byte tail before relocation support costs; size the final
 linked high objects and XMS/page alignment separately. Existing high BIOS, kernel, buffers and shell
 catalogs remain where they are. No new UMB allocation is budgeted.
 
@@ -1574,8 +1597,8 @@ startup jump, entry block, PSP, stack and all mutable state low leaves an
 optimistic **1,232-byte** packed image before A20/return support, not 1,184.
 The entries are part of the low cost, not reclaimable service payload.
 The original state is still after the code, so no low hole is released yet.
-The 2,534-byte body plus eight new HMACODE wrapper bytes would leave 7,115 of
-the shared 9,657 HMA bytes before new BIOS/shell support. This is capacity
+The 2,534-byte body plus eight new HMACODE wrapper bytes would leave 7,035 of
+the shared 9,577 HMA bytes before new BIOS/shell support. This is capacity
 arithmetic, not a final linked high
 layout or measured conventional gain.
 
@@ -1956,7 +1979,8 @@ Add `--invalid-buffer-plan` for the invalid-prescan control. Bypass, interactive
 menus, `/X` and larger-sector overflow rejection still need dedicated runtime
 qualification before the snapshot drives a resident relocation.
 
-The checked fixed-profile candidate has this **proposed** HMA placement:
+The historical pre-full-entry-callback candidate has this **proposed** HMA
+placement; its capacities predate the additional 80 kernel bytes:
 
 | Object | HMA offsets | Bytes |
 | --- | --- | ---: |
@@ -4381,7 +4405,7 @@ capture pass.
 
 This candidate register is not an execution queue. Follow the current joint
 resident-layout checkpoint above, including the combined manager and shell
-interfaces alongside E1-E4. The repaired composed fixture has 9,657 calculated
+interfaces alongside E1-E4. The current composed fixture has 9,577 calculated
 HMA bytes and 1,792 bytes of free-UMB margin; neither is a saving. Isolated
 compaction remains paused. E5 is a bounded 1,024-byte finishing step.
 
@@ -6035,7 +6059,7 @@ fallbacks for unresolved owner, lifetime, or public API questions.
 
 | Scope | Externally evidenced technique | Local budget and owner | State and decisive gate |
 | --- | --- | --- | --- |
-| Joint layout | Relocate complete BIOS services and eligible DOS state | Development retains 5,152 BIOS bytes and a repaired 5,632-byte DOS prefix; current shared capacity is 9,657 HMA bytes and 1,792 bytes of UMB margin | Size low interfaces and released intervals together; filesystem, device, redirector, EXEC, A20-off, DOS-low, rollback and reset gates remain |
+| Joint layout | Relocate complete BIOS services and eligible DOS state | Development retains 5,152 BIOS bytes and a repaired 5,632-byte DOS prefix; current shared capacity is 9,577 HMA bytes and 1,792 bytes of UMB margin | Size low interfaces and released intervals together; filesystem, device, redirector, EXEC, A20-off, DOS-low, rollback and reset gates remain |
 | Joint layout | Keep the complete resident shell service high | COMMAND owner span is 3,984 bytes versus IDE-attached OpenDOS's 1,312; existing high catalogs/code are already counted | Design PSP/data/stack bindings, reload and asynchronous return contracts; do not add the separate critical-body experiment to whole-shell projections |
 | Joint layout | Small combined XMS/EMS low interface backed by high owners | Local managers occupy 6,480 low bytes; OpenDOS's provider switch releases 4,240 system bytes while reducing free XMS by 280 KiB at 8 MiB RAM | Preserve capacities, all EMS maps/modes, standalone and third-party XMS, shifted loads and reset; vendor device rows do not locate all high costs |
 | Config | Omit the EMS page frame when applications do not require it | Supported as `NOEMS`; the fixed retail/local VC images actually use `RAM M5` | Preserve as a configuration choice and test both framed and frameless EMS; it is not an implementation saving |
