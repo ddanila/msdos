@@ -303,7 +303,9 @@ def main():
                 subprocess.run(["mcopy", "-o", "-i", str(image), str(scratch / "ANSICHK.COM"), "::ANSICHK.COM"], env=env, check=True)
             run(["nasm", "-f", "bin", "-DNO_DEBUG_EXIT", *(["-DEXPECT_UMB"] if name == "emm-high" else []),
                  ROOT / "tests/int21_system_probe.asm", "-o", scratch / "I21SYS.COM"], ROOT)
-            for test_name in ("I21FCB.COM", "I21SYS.COM") + (("I21COMP.COM",) if args.share else ()):
+            run(["nasm", "-f", "bin", "-DLOCAL_SDA_LIVE",
+                 ROOT / "tests/dos_sda_address_probe.asm", "-o", scratch / "SDA.COM"], ROOT)
+            for test_name in ("I21FCB.COM", "I21SYS.COM", "SDA.COM") + (("I21COMP.COM",) if args.share else ()):
                 subprocess.run(["mcopy", "-o", "-i", str(image), str(scratch / test_name), f"::{test_name}"],
                                env=env, check=True)
         for destination, text in (("CONFIG.SYS", config), ("AUTOEXEC.BAT",
@@ -311,7 +313,7 @@ def main():
                                   + ("ANSICHK.COM\r\n" if ansi_enabled else "")
                                   + ("UMBREAD.COM\r\n" if args.umb_read else "")
                                   + ("SHARE.EXE /F:4096 /L:40\r\nI21FCB.COM\r\nNLSFUNC.EXE\r\nI21COMP.COM\r\n" if args.share else "")
-                                  + ("I21SYS.COM\r\nI21FCB.COM\r\n" if args.rebase else "") + "LOWBOOT.COM\r\n")):
+                                  + ("I21SYS.COM\r\nI21FCB.COM\r\nSDA.COM\r\n" if args.rebase else "") + "LOWBOOT.COM\r\n")):
             subprocess.run(["mcopy", "-o", "-i", str(image), "-", f"::{destination}"],
                            input=text.encode(), env=env, check=True)
         log = scratch / f"{name}.log"
@@ -334,6 +336,10 @@ def main():
         result = log.read_bytes()
         passed = b"BIOS_LOW_BOOT_PASS" in result
         io_passes = 2 if args.warm_reset else 1
+        if args.rebase and (result.count(b"SDA_LIVE_PASS") != io_passes
+                            or result.count(b"SDA_TABLE_PASS") != io_passes
+                            or b"SDA_LIVE_FAIL" in result or b"SDA_TABLE_FAIL" in result):
+            raise RuntimeError(f"live SDA/descriptor ownership failed: {log}")
         if args.cds_cache_case:
             trace = (scratch / (name + ".scan")).read_bytes()
             expected = b"CDS_CACHE_FAIL" if args.cds_cache_negative else b"CDS_CACHE_PASS"

@@ -1018,9 +1018,14 @@ hma_segment_fixups:
         dw      offset DOSGROUP:SYSINITVAR+SYSI_FCB+2
         dw      offset DOSGROUP:SYSINITVAR+SYSI_IFS_DOSCALL@+2
         dw      offset DOSGROUP:IFS_DOS_CALL+2
-        dw      offset DOSGROUP:SWAP_ALWAYS_AREA+2
-        dw      offset DOSGROUP:SWAP_IN_DOS+2
+        ; SWAP_ALWAYS_AREA and SWAP_IN_DOS describe the live retained-low SDA.
+        ; DOS's SS/data context stays low: exporting the copied HMA bytes
+        ; exposes stale PSP/DTA and stack state. SYSINIT's low-owner rebase
+        ; separately updates these pointers when that authoritative owner moves.
 hma_segment_fixup_count equ ($-hma_segment_fixups)/2
+        ; Preserve the linked high-image layout while retiring the two SDA
+        ; fixups. Repacking HMA is a separate whole-owner layout decision.
+        dw      0, 0
 
 ENDIF
 ;Input: same as ABSDRD and ABSDWRT

@@ -460,17 +460,37 @@ does not explain the large whole-system difference, nor prove equivalent
 save/restore semantics. Do not prioritize relocating our SDA based on HIDOS's
 bulk gain.
 
-The same probe on the repaired local input reports 2,042 bytes and 26
+The pre-fix probe on the SETVER-repaired local input reports 2,042 bytes and 26
 always-swapped bytes. DOS-low returns `026E:0330` and exposes the current COM
 PSP/default DTA correctly. DOS-high instead returns `FFFF:0330` and **fails
 that live-state check**; 5D0Bh still returns its descriptor table at
 `026E:0D35`. This contradicts treating our existing high-mode public SDA as
 qualified. `MS_CODE.ASM:hma_segment_fixups` rebases both `SWAP_ALWAYS_AREA`
 and `SWAP_IN_DOS` to HMA, while `DISP.ASM:REDISP` selects the retained-low
-SS/DS for DOS state. Next correct the public owner and test both APIs against
-live low/high state, including boot compaction and A20-off callers, before
-using SDA compatibility as a relocation acceptance result. No saving is
-claimed by repairing this pointer contract.
+SS/DS for DOS state. The current fix excludes both descriptors from the HMA
+fixup list; their existing SYSINIT low-owner fixups still follow boot compaction.
+The retired entries remain padding to preserve the linked HMA image layout.
+No allocation or memory saving is claimed by this correction.
+
+`test_dos_sda_qemu.py` now checks both APIs, the current PSP/default DTA,
+a cached pointer after changing DTA, and consistency of the two swap descriptors
+and lengths. Current low/high boots pass at `0268:0330`; the old kernel still
+fails the high case with `FFFF:0330`. A fresh compacted high-CDS boot passes at
+`01AB:0330`, and `test_bios_low_boot_qemu.py` now requires both live SDA markers
+in every rebasing case, including both sides of its warm-reset run. Evidence:
+`out/dos-sda-xufbus2y/` (fixed low/high), `out/dos-sda-gk0hcyli/` (old-kernel
+negative), `out/dos-sda-cfpnl1st/` (compacted pointer), and
+`out/bios-low-boot-98_5oddk/` (compacted high-CDS cold/reset). Reproduce locally:
+
+```sh
+python3 tests/test_dos_sda_qemu.py --image out/setver-native-audit.BAEqDU/low.img
+python3 tests/test_bios_low_boot_qemu.py --early --tail-body --rebase \
+  --compact --high-cds --mode emm-high --warm-reset
+```
+
+The live-owner defect is fixed, but complete SDA save/restore and explicit
+A20-off access remain unqualified. Do not promote a future SDA relocation on
+these field checks alone. The joint residency checkpoint remains open.
 
 Reproduce the register comparison and local failure with:
 
