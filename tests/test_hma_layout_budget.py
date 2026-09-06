@@ -3,10 +3,58 @@
 
 import unittest
 
-from report_dos_bios_residency import hma_layout
+from report_dos_bios_residency import hma_layout, whole_owner_inventory
 
 
 class HmaBudgetTests(unittest.TestCase):
+    def whole_inventory(self, **overrides):
+        args = dict(bios_low=5152, command_data_start=0xB10,
+                    command_symbols=dict(RES_CODE_END=0xA93, resmsgend=0xD42,
+                                         resident_catalog_start=0xE30),
+                    hma_tail=9577)
+        args.update(overrides)
+        return list(whole_owner_inventory(**args).values())
+
+    def test_whole_bios_shell_inventory(self):
+        self.assertEqual(self.whole_inventory(), [5152, 2451, 800, 1174])
+
+    def test_whole_inventory_excludes_shell_stack_and_psp(self):
+        # Growing only the excluded stack shifts the data and break together.
+        symbols = dict(RES_CODE_END=0xA93, resmsgend=0xD52,
+                       resident_catalog_start=0xE40)
+        self.assertEqual(self.whole_inventory(command_data_start=0xB20,
+                                              command_symbols=symbols),
+                         self.whole_inventory())
+
+    def test_whole_inventory_retains_formatter_state(self):
+        # Moving the boundary between mutable shell and formatter state must
+        # not make either disappear from the combined inventory.
+        symbols = dict(RES_CODE_END=0xA93, resmsgend=0xD32,
+                       resident_catalog_start=0xE30)
+        self.assertEqual(self.whole_inventory(command_symbols=symbols),
+                         self.whole_inventory())
+
+    def test_whole_inventory_reports_shortage_not_zero_or_savings(self):
+        self.assertEqual(self.whole_inventory(hma_tail=8402)[-1], -1)
+        self.assertEqual(self.whole_inventory(hma_tail=8403)[-1], 0)
+        self.assertEqual(self.whole_inventory(bios_low=5168)[-1], 1158)
+
+    def test_whole_inventory_rejects_missing_or_reversed_owners(self):
+        base = dict(RES_CODE_END=0xA93, resmsgend=0xD42,
+                    resident_catalog_start=0xE30)
+        for name in base:
+            symbols = base.copy()
+            del symbols[name]
+            with self.subTest(missing=name), self.assertRaises(ValueError):
+                self.whole_inventory(command_symbols=symbols)
+        for kwargs in (dict(command_data_start=0xA92),
+                       dict(command_data_start=0xD43), dict(bios_low=0),
+                       dict(hma_tail=-1), dict(hma_tail=0xFFE1),
+                       dict(command_symbols=dict(base, RES_CODE_END=0xFF)),
+                       dict(command_symbols=dict(base, resident_catalog_start=0xD41))):
+            with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
+                self.whole_inventory(**kwargs)
+
     def test_joint_candidate_reserves_cache_and_both_service_owners(self):
         rows = hma_layout(0x9D10, 7988, 5220, 2447,
                           manager_bytes=1672, shell_service_bytes=2451)

@@ -193,6 +193,32 @@ def hma_layout(sysbuf: int, buffer_bytes: int, bios_bytes: int = 0,
     return rows
 
 
+def whole_owner_inventory(bios_low: int, command_data_start: int,
+                          command_symbols: dict[str, int], hma_tail: int) -> dict[str, int]:
+    """Gross BIOS/shell source inventory, not a relocatable-body size bound.
+
+    Deliberately include BIOS anchors and all shell state: this asks whether
+    existing source bytes alone exhaust the shared destination. Exclude shell
+    PSP/stack and already-high catalogs/code. Binding expansion, alignment,
+    gateways and additional private DOS state are NOT priced by this check.
+    A positive remainder is not acceptance or conventional-memory credit.
+    """
+    code_end = require(command_symbols, "RES_CODE_END")
+    state_end = require(command_symbols, "resmsgend")
+    low_end = require(command_symbols, "resident_catalog_start")
+    if not 0x100 <= code_end <= command_data_start <= state_end <= low_end:
+        raise ValueError("whole-shell inventory has reversed ownership boundaries")
+    if bios_low <= 0 or not 0 <= hma_tail <= 0xFFE0:
+        raise ValueError("invalid BIOS allocation or shared HMA tail")
+    inventory = {
+        "Entire selected low BIOS (including anchors and padding)": bios_low,
+        "Entire remaining COMMAND code": code_end - 0x100,
+        "Entire remaining COMMAND state (including message runtime)": low_end - command_data_start,
+    }
+    inventory["Unpriced expansion headroom (may be negative)"] = hma_tail - sum(inventory.values())
+    return inventory
+
+
 def composed_ledger(snapshot: dict, bios_bytes: int, dos_bytes: int) -> dict[str, int]:
     """Reconcile the fixed high-CDS fixture; never sum nested MEM/VC sizes.
 
@@ -372,7 +398,7 @@ def main() -> int:
         if sysbuf + bios_bytes > manifest["reservation_limit"]:
             raise ValueError("boot reservation would fail at the configured ceiling")
     if args.command_map:
-        _, command_symbols = parse_map(args.command_map)
+        command_segments, command_symbols = parse_map(args.command_map)
         catalog_bytes = (require(command_symbols, "DATARESEND")
                          - require(command_symbols, "resident_catalog_start"))
         code_bytes = (require(command_symbols, "hma_code_end")
@@ -710,6 +736,29 @@ def main() -> int:
     print("subtract from VC's gap. The HMA tail is capacity, not conventional")
     print("memory; copied low allocations must be released and coalesced. Dynamic")
     print("SYSINIT allocations require the runtime census, not this linker map.")
+
+    if args.boot_manifest and args.command_map:
+        data_segment = command_segments["DATARES"]
+        data_start = data_segment.paragraph * 16 + data_segment.offset
+        tail = hma_layout(sysbuf, hma_buffer_bytes, bios_bytes, command_bytes)[-2]
+        inventory = whole_owner_inventory(selected, data_start, command_symbols,
+                                          tail[2] - tail[1])
+        print("\n### Whole BIOS/shell source capacity checkpoint\n")
+        print(f"Shared HMA tail after existing owners: {tail[2] - tail[1]:,} bytes.\n")
+        print("| Source inventory | Bytes |")
+        print("| --- | ---: |")
+        for owner, size in inventory.items():
+            print(f"| {owner} | {size:,} |")
+        print("\nThis charges the entire low BIOS, including objects that must stay low,")
+        print("and all shell code/state except its PSP and stack. Existing high owners")
+        print("remain fully charged; no duplicate HMA prefix is treated as disposable.")
+        print("The remainder is NOT a gateway allowance or a linked relocation budget:")
+        print("bindings, new low/high support, alignment and additional DOS-state moves")
+        print("remain unpriced. Negative headroom requires reducing the proposed high")
+        print("inventory or changing placement; positive headroom proves only source-byte")
+        print("capacity. Neither result establishes movable bytes or low reclamation.")
+        print("Final-layout acceptance remains open until complete provider costs,")
+        print("BIOS/shell bindings and packed low release boundaries are linked and tested.")
 
     if args.composition:
         captures = json.loads(args.composition.read_text())["results"]

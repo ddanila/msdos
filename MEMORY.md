@@ -108,6 +108,26 @@ UMB margin cannot hold the 1,840-byte interrupt-stack allocation even before
 new arena overhead. Moving objects to extended memory must also report the
 application XMS cost, including page rounding and backing reservations.
 
+**Whole-owner capacity check:** the complete selected low BIOS allocation
+(5,152 bytes), all remaining COMMAND code (2,451), and all its low mutable
+state including message runtime (800) total **8,403 bytes**. Against the
+9,577-byte shared tail, that leaves **1,174 bytes before unpriced expansion**.
+The composed residency census now derives this inventory from the supplied
+linker maps; `make test-dos-bios-residency` includes its boundary tests.
+Re-run the composition's census command with both `--boot-manifest` and
+`--command-map` to include this checkpoint without repeating emulator boots.
+
+This deliberately overcounts potential BIOS payload by including public
+anchors, firmware storage and padding. It excludes COMMAND's PSP/stack and
+does not count already-high catalogs/code twice. It is neither a relocatable
+size bound nor a 1,174-byte allowance for unknown support: far bindings,
+new gates, alignment and additional private DOS state still need linked sizes.
+No conventional savings are credited. The useful design conclusion is that
+the existing source inventory does not by itself exhaust HMA; start with the
+complete BIOS request-service and resident-shell layouts rather than assuming
+that HMA capacity requires serial small moves. Keep protected-manager services
+in the extended-memory budget instead of consuming this shared destination.
+
 Required next design evidence, before another relocation tranche:
 
 1. Design the coordinated XMS/EMS provider's complete high services and low
