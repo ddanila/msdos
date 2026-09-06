@@ -149,6 +149,43 @@ def hma_layout(sysbuf: int, buffer_bytes: int, bios_bytes: int = 0,
     return rows
 
 
+def composed_ledger(snapshot: dict, bios_bytes: int, dos_bytes: int) -> dict[str, int]:
+    """Reconcile the fixed high-CDS fixture; never sum nested MEM/VC sizes.
+
+    This fixture has one 512-byte sector transfer area, STACKS=9,128 (1,840
+    resident bytes) and 96 bytes of low allocation boundaries. Other layouts
+    must supply a new audited partition instead of absorbing a residual.
+    """
+    def boundary(name):
+        matches = [row["segment"] * 16 for row in snapshot["vc_rows"]
+                   if row["name"] == name]
+        if len(matches) != 1:
+            raise ValueError(f"expected one {name} owner boundary")
+        return matches[0]
+
+    system, command, vc = (boundary(name) for name in ("DOS 6.22", "COMMAND", "VC.COM"))
+    free, ceiling = snapshot["first_free"] * 16, snapshot["ceiling"] * 16
+    if not system < command < vc < free < ceiling:
+        raise ValueError("conventional owner boundaries are not ordered")
+    # VC shows payload segments. The final system/upper-arena MCB occupies
+    # the paragraph immediately below its reported ceiling payload segment.
+    if ceiling - free - 16 != snapshot["largest"]:
+        raise ValueError("largest block does not match its reported boundaries")
+    managers = snapshot["components"]
+    owners = {"BIOS": bios_bytes, "DOS prefix": dos_bytes,
+              "HIMEM": managers["HIMEM"], "EMM386": managers["EMM386"],
+              "Sector transfer": 512, "Interrupt stacks": 1840,
+              "Allocation boundaries": 96}
+    if any(type(size) is not int or size <= 0 for size in owners.values()):
+        raise ValueError("invalid low owner size")
+    if sum(owners.values()) != command - system:
+        raise ValueError(f"low owner ledger leaves {command - system - sum(owners.values())} "
+                         "unaccounted bytes; review maps, variant and resource configuration")
+    owners["COMMAND owner span"] = vc - command
+    owners["VC to free"] = free - vc
+    return owners
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("dos_map", type=Path)
@@ -162,6 +199,10 @@ def main() -> int:
                         help="low.json for the linked early BIOS reservation (assume successful activation)")
     parser.add_argument("--command-map", type=Path,
                         help="include this permanent shell's linked catalogs/high body in the HMA budget")
+    parser.add_argument("--composition", type=Path,
+                        help="reconcile a fixed high-CDS composition results.json with these maps")
+    parser.add_argument("--variant", default="fine-cds-high-tables",
+                        help="selected composition variant (default: fine-cds-high-tables)")
     args = parser.parse_args()
     if (args.boot_manifest or args.command_map) and (args.buffers != 15 or args.sector_size != 512):
         parser.error("composed placement currently requires fifteen 512-byte buffers; "
@@ -613,6 +654,24 @@ def main() -> int:
     print("subtract from VC's gap. The HMA tail is capacity, not conventional")
     print("memory; copied low allocations must be released and coalesced. Dynamic")
     print("SYSINIT allocations require the runtime census, not this linker map.")
+
+    if args.composition:
+        captures = json.loads(args.composition.read_text())["results"]
+        snapshot, retail = captures[args.variant], captures["retail"]
+        ledger = composed_ledger(snapshot, selected, rounded(low_gate))
+        print("\n### Reconciled composed low layout\n")
+        print(f"Capture: `{args.composition}`; variant: `{args.variant}`.\n")
+        print("| Owner | Conventional bytes |")
+        print("| --- | ---: |")
+        for owner, size in ledger.items():
+            print(f"| {owner} | {size:,} |")
+        gap = retail["largest"] - snapshot["largest"]
+        margin = snapshot["upper_free"] - retail["upper_free"]
+        print(f"\nRetail conventional deficit: {gap:,} bytes; free-UMB margin: {margin:,} bytes.")
+        print("These are measured boundaries, not movable inventories. Proposed high")
+        print("copies earn no conventional credit here until the runtime boundaries move.")
+        if margin < 0:
+            errors.append("composed layout violates the retail free-UMB floor")
 
     if errors:
         print("\n## Census errors\n")

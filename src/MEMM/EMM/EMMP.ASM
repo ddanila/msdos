@@ -2960,12 +2960,10 @@ validate_for_Move_Or_Exchange    ENDP
 ;	 AL = SUBFUNCTION CODE
 ;		AL = 0  => Get Alternate Map Register Set
 ;		AL = 1  => Set Alternate Map Register Set
-;		AL = 2  => Get and Set Alternate Map Register Set
-;		AL = 3  => Get Alternate Map Save Array size
-;		AL = 4  => Allocate Alternate Map Register Set
-;		AL = 5  => Deallocate Alternate Map Register Set
-;		AL = 6  => Enable DMA on Alternate Map Register Set
-;		AL = 7  => Disable DMA on Alternate Map Register Set
+;		AL = 2  => Get Alternate Map Save Array size
+;		AL = 3  => Allocate Alternate Map Register Set
+;		AL = 4  => Deallocate Alternate Map Register Set
+;		AL = 5..8 => DMA register-set operations (unsupported here)
 ; 	See sub-functions for individual ENTRY registers
 ;	 SS:[EBP] -> regp stack frame
 ;	 DS = DGROUP

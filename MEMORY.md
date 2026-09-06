@@ -5,6 +5,181 @@ delivery history belongs in Git; current evidence belongs in the test manifests.
 
 ## Current architectural priority
 
+### Current checkpoint: complete owners, not paragraph targets
+
+The latest composed development fixture (complete high EMM tables plus fine
+UMB mapping and high CDS) leaves **617,984 conventional bytes and 49,680 free
+UMB bytes**. Retail leaves 618,736 and 47,888: the remaining conventional gap
+is **752 bytes**, with **1,792 bytes of UMB margin**. This is not production
+promotion. The 616,112-byte figures below identify the preceding high-CDS
+baseline, before the complete table move and conventional-map repair; their component ledgers must not be
+mixed with the new result.
+
+The conventional-map repair adds 192 bytes to low EMM tables: the corrected
+high-CDS/low-table control leaves 615,920 conventional bytes. The complete
+high-table fixture remains at 617,984, so its matched low-span release is now
+2,064 bytes. This is a correctness cost moved high, not an additional gain in
+the selected high-table fixture.
+
+The DR-DOS reassessment changes the implementation criterion: justify every
+remaining low owner and design its complete high service, rather than treating
+the retail deficit as a quota for instruction reductions. Controlled DR-DOS 6
+transitions recovered 40,480 conventional bytes from kernel/BIOS/shell placement
+and 12,800 from DOS-data placement. Those gains are not available again here:
+our kernel, buffers and selected BIOS/data owners are already high. The
+source-free vendor controls and their limitations are recorded below.
+
+The current boundary ledger, derived from the composed allocation map and the
+existing disk-booted OpenDOS control, is:
+
+| Low accounting group | Development bytes | OpenDOS bytes | Difference |
+| --- | ---: | ---: | ---: |
+| Installed memory-manager ranges | 4,608 | 1,200 | 3,408 |
+| BIOS/device region | 5,152 | 2,304 | 2,848 |
+| Remaining pre-COMMAND span | 8,080 | 6,944 | 1,136 |
+| Complete COMMAND owner span | 3,984 | 1,312 | 2,672 |
+| **Total below VC** | **21,824** | **11,760** | **10,064** |
+
+These are accounting groups, not equivalent vendor objects or promised savings.
+OpenDOS's 628,048-byte block remains a placement reference: its free UMB is
+304 bytes below retail and its framed warm-reset gate failed. The controlled
+provider switch's 4,240-byte low-system reduction and 280 KiB XMS cost are
+stronger causal evidence than interpreting its 1,200-byte device row as the
+whole manager.
+
+Next implementation selection requires one final resident-layout budget.
+The older Candidate layout A below is historical design arithmetic, not the
+current implementation queue: its low-table baseline and independent HIMEM
+HMA reservation must not be carried into the complete-provider design.
+
+The destination contract for that design is:
+
+| Owner | Proposed destination | Low storage that must be justified |
+| --- | --- | --- |
+| Coordinated XMS/EMS services and private tables | Locked extended memory on the 386 path | Public entry points, real-mode/A20 transitions, OFF/AUTO continuation and indispensable state |
+| Remaining BIOS services | Shared DOS-owned HMA where call/return contracts permit | Device headers, escaped request/data pointers, firmware/DMA and interrupt-facing state |
+| Complete resident COMMAND services | Same shared HMA budget | PSP/environment, interrupt entry/return paths, explicit data/stack and reload bindings |
+| Private DOS data | Packed UMB owner only where the UMB floor permits | Public SDA and other escaped real-mode pointers remain valid; no unaccounted low mirror |
+
+This is a destination proposal, not a proved allocation map. The 286 and
+standalone/third-party XMS paths retain their own supported placement and
+fallback; protected-manager placement is not a universal HMA replacement.
+
+Budget the selected fixture's existing HMA allocations once:
+40,192 DOS + 5,220 BIOS + 7,988 buffers + 2,447 COMMAND = 55,847 bytes.
+The remaining `DA37h..FFF0h` interval is 9,657 bytes, excluding the 16-byte
+safety tail. New BIOS and COMMAND bodies, gateways, stacks and alignment must
+fit together there or explicitly replace an existing owner. The 1,792-byte
+UMB margin cannot hold the 1,840-byte interrupt-stack allocation even before
+new arena overhead. Moving objects to extended memory must also report the
+application XMS cost, including page rounding and backing reservations.
+
+Required next design evidence, before another relocation tranche:
+
+1. Design the coordinated XMS/EMS provider's complete high services and low
+   entry/state/transition interface; retain standalone, third-party and 286
+   paths. The high-table prototype below is one owner, not that provider.
+2. Classify the remaining BIOS services and public DOS state by actual access
+   contracts. Keep public A20-off pointers valid; do not copy a live owner high
+   while retaining an unaccounted low mirror.
+3. Budget the whole resident COMMAND body, asynchronous interface and reload
+   state alongside BIOS, rather than reserving HMA independently for each.
+4. Show final low intervals and coalescing release, HMA packing, locked-XMS
+   costs and the UMB floor with unchanged requested resources. EBDA recovery
+   remains a finishing step, not the explanation for the vendor advantage.
+
+Accept the design checkpoint only with linked sizes for every proposed high
+body and low gate, an explicit owner for every remaining low interval, and
+boot publication/rollback plus asynchronous call/return contracts. Unresolved
+sizes remain unknown rather than becoming allowances chosen to beat retail.
+Then implement and test complete owners against the same pinned composition.
+Do not replay the broad vendor matrix: use source-free vendor probes only to
+resolve a specific remaining public contract or memory-cost ambiguity.
+
+Prefer locked extended memory for protected manager owners, HMA for eligible
+DOS/BIOS/shell services, and UMB for eligible real-mode data. Do not begin
+another isolated instruction-shrinking tranche to close the 752-byte retail gap.
+
+The composition harness now writes `joint-residency.md`, reconciling linked
+BIOS/DOS boundaries with captured manager sizes and COMMAND/VC boundaries,
+alongside the shared BIOS/cache/shell HMA budget. It fails on an unexplained
+low remainder or a violated UMB floor. Its low partition is specific to the
+fixed high-CDS fixture (512-byte transfer area and STACKS=9,128); different
+resources require a new audited partition, not an automatic residual bucket.
+It does not infer boot identity from equal sizes or prove relocation safety.
+The fresh five-image run in `out/umb-fine-composition-y4dceqi2/` passes this
+gate and reproduces the current totals. Twelve owner-accounting tests include
+stale maps/managers, missing or duplicate owners, incorrect free extents and
+the pre-table control; the normal DOS/BIOS census and HMA-budget tests pass.
+
+This closes the arithmetic ledger, **not the proposed final-layout checkpoint**.
+Only 936 BIOS bytes are currently identified as character/clock bodies plus
+conversion helpers, before gateway costs. Explaining the 10,064-byte vendor
+difference therefore requires the mixed BIOS service/state and combined-provider
+boundaries as well as the whole shell; those bodies alone cannot explain it.
+
+### Whole-shell design bound: code relocation alone is insufficient
+
+The checked normal COMMAND map retains 2,451 code bytes, a 256-byte PSP,
+125-byte stack and 800 bytes of mutable state in its 3,632-byte low image.
+Even moving **all** that code with zero new low support leaves a packed,
+paragraph-rounded image of 1,184 bytes: at most 2,448 conventional bytes
+released. The selected fixture's other shell allocations total 352 bytes,
+so its 3,984-byte owner span cannot fall below **1,536 bytes** under this
+code-only policy. That is still 224 bytes above OpenDOS's 1,312-byte span,
+before gateways, bindings or additional stacks. This comparison does not
+establish equivalent environment/resource semantics or a mandatory local target.
+
+Consequently the whole-shell design must classify its 800 mutable bytes as
+well as code: formatter/critical-error state, shell control, pipe hand-off,
+and EXEC/reload state. Keep the PSP and externally referenced asynchronous
+state low unless a compatible access contract is demonstrated. Do not choose
+an arbitrary low-shell ceiling and assume its support code will fit.
+
+The source audit gives the following initial placement contracts. These five
+linked ranges partition the 800 bytes; they are not five independent moves.
+
+| Range / bytes | Actual consumers | Whole-shell design constraint |
+| --- | --- | --- |
+| `0B10h..0BC3h` / 179 | `RDATA.ASM` substitution records also contain interrupt return, parent and saved-process state; `RUCODE.ASM:DSKERR` initializes device/error data | Split formatter-private data from asynchronous anchors; do not classify the entire range as message scratch |
+| `0BC3h..0C76h` / 179 | `COMMAND1.ASM:CONTC`, EXEC/LOADHIGH and transient code share control flags; includes COMSPEC and saved message pointers | Keep the low control interface initially; moving private fields requires rebinding resident **and transient** consumers |
+| `0C76h..0D1Ah` / 164 | `TMISC1.ASM:PRESCANEND` copies the pipeline into resident storage; `TPIPE.ASM:PIPEPROC` passes its names to DOS as DS:DX | Pipeline storage must survive child EXEC. Retain DOS-facing names low initially; a high pipeline parser needs explicit data selection and low transfer storage, not a low mirror of the whole group |
+| `0D1Ah..0D42h` / 40 | `TMISC1.ASM:EXECUTE` passes ES:BX pointing at EXEC_BLOCK, switches SS to the resident segment, and uses the resident PSP; `COMMAND2.ASM:HAVCOM` copies TRANVARS into the transient | Retain the EXEC/PSP interface low. Rebuild the copied far entry bindings when services move; changing only the resident DS is insufficient |
+| `0D42h..0E30h` / 238 | `RDATA.ASM` contains RESMSGEND, two high-service entry pointers, then generated COMR message data used by `RUCODE.ASM` | Separate the 10 bytes of break/entry bindings from the 228-byte generated runtime before considering high formatter state; catalogs are already high |
+
+Two entry constraints govern the whole-shell prototype. Normal `CONTC` tests
+`InitFlag` through CS before establishing DS; its nested path also inspects
+incoming AH and unwinds a distinct interrupt frame. The development binding
+entry now selects low DS for those tests and restores caller DS before every
+early return or initialization handoff, then binds shell DS for normal body
+entry. Normal `DSKERR` similarly uses CS for its device-name destination and
+local data; the development binding variant now selects an explicit low ES
+for the device attributes/name and low DS after saving handles. This does
+not yet relocate its entry or establish the complete asynchronous interface.
+Design those low asynchronous gates together with the high service body;
+qualify A20-off entry, nested Ctrl+C/critical errors and transient overwrite
+before reclaiming the original code. This audit does not establish that any
+of the 800 state bytes can already be released.
+
+The existing 2,447-byte high shell allocation is already charged. Adding the
+normal 2,451-byte resident body would consume that much of the shared
+9,657-byte HMA tail, leaving 7,206 bytes for BIOS, moved state and all new
+support. The owner-binding prototype already grows the body by 80 bytes;
+neither number is the final relocated size. A code-only shell move plus the
+936-byte BIOS character/clock/helper inventory therefore cannot explain the
+10,064-byte vendor difference, even before costs. Continue the combined
+provider and mixed BIOS service/state design rather than stopping at those
+easy-to-name bodies.
+
+`make test-command-residency` checks the linked census and five arithmetic
+tests for the whole-code bound, including paragraph rounding and preservation
+of the PSP. The bound is generated from linker symbols; it proves neither
+relocatability nor a runtime saving. The next shell implementation checkpoint
+is one linked low-state/gateway and high-service layout, including the
+INT 22h/23h/24h/2Eh, transient-reload and A20 return contracts.
+
+### Pre-table baseline and standing compatibility constraints
+
 Maximize the largest conventional block by relocating complete resident
 allocations, not by continuing isolated instruction or paragraph reductions.
 The DR-DOS runtime maps show kernel, BIOS services, shell, and buffers in HMA,
@@ -268,6 +443,31 @@ instruction-harvesting tranche or a completed high-resident manager.
 
 ##### Combined-provider decision: include boot-time reclamation
 
+**Allocator failure boundary:** `ALLOCMEM.ASM:XMSAlloc` now permits the
+historical INT 15h allocation path only when INT 2Fh/4300h reports no XMS
+provider. Once a provider is present, insufficient capacity, allocation/lock
+failure or an unsupported physical address marks installation as failed.
+Successful partial reservations are unlocked/freed as applicable; no second
+allocator is attempted over the provider's memory. Previously allocation and
+lock failures could reach the no-provider fallback. This is a normal-build
+ownership correction, not integrated XMS or a conventional-memory saving.
+
+`make test-emm-xms-owner-qemu` extracts and executes the actual `AllocMem` and
+`XMSAlloc` procedures against a controlled provider. Seven cases check absent,
+successful, allocation-failing, lock-failing, out-of-range, insufficient-capacity
+and overflowing requests, including exact allocation/cleanup/fallback calls.
+This isolated witness does not prove failed-INIT device-chain/arena cleanup or
+recovery when the provider itself refuses unlock/free. Those remain gates.
+The successful witness is `out/emm-xms-owner-hu2l0hde/`; `--bad-fallback`
+deliberately restores failure-to-fallback behavior and must fail the assertions.
+It fails for the intended fallback calls in `out/emm-xms-owner-v0sifo48/`.
+Fresh high-table ON/OFF/AUTO/RAM boots pass in `out/emm-init-phases-jlhkqc0q/`,
+retaining the same 2,016-byte EMM low spans. That ON image also passes the full
+EMM API/runtime-command suite with its no-HIMEM configuration, preserving the
+legitimate absent-provider path. At that checkpoint, normal EMM386 SHA-256 was
+`f2bae80311506fd54394e8f567a7a324d988575e3c80a736ac126e0269cafa96`;
+earlier byte-identity claims refer to their recorded pre-correction snapshots.
+
 The next manager design must compare a coordinated 386 provider with the
 standalone-HIMEM HMA split, not assume the latter is the final architecture.
 The source audit adds a constraint beyond high-service dispatch: **who releases
@@ -323,7 +523,7 @@ contract cannot meet the complete budget; it is not another parallel prototype.
 
 For the joint destination budget, prefer locked extended memory for combined
 manager services and option-sized tables, preserving HMA for DOS/BIOS/shell
-services and buffers. The present 1,672-byte HIMEM service/data inventory plus
+services and buffers. The historical 1,672-byte HIMEM service/data inventory plus
 1,904-byte EMM table inventory totals 3,576 bytes, below the selected relocation
 tail's 17,149 unconsumed bytes. That is capacity evidence only: the HIMEM code
 is not yet a protected service object, option maxima require more pages, and
@@ -382,8 +582,8 @@ memory-saving result; update their expected sequence when that design lands.
 `PrepareProvider` boundary after validation, UMA discovery and backing allocation,
 before `EMM_Init`, descriptor construction or UMB publication. It returns carry
 on preparation failure; the existing installation error path owns cleanup.
-The adapter currently calls it and immediately continues activation on the
-original INIT frame. Explicit near returns are required inside the enclosing
+The adapter calls it and immediately invokes a separate activation entry.
+Explicit near returns are required inside the enclosing
 far procedure. Normal EMM386 remains byte-identical.
 
 `capture_emm_init_phases.py --split-prepare` requires a new stage 9 between
@@ -400,9 +600,9 @@ observed total and correctly fails with stage 11 in
 prepared return, cleanup and rejection of changed boundaries.
 
 This is preparation for the selected coordinated-provider design, not another
-resident-code relocation or a completed provider transaction. Next make the
-activation control flow resumable so the loader can invoke it after establishing
-the final low base; do not retain a pointer to the expired INIT stack.
+resident-code relocation or a completed provider transaction. Next define the
+checked lifecycle through which the loader can resume after establishing the
+final low base; do not retain a pointer to the expired INIT stack.
 Bootstrap XMS integration, live-handle transfer, descriptor rebinding,
 post-publication failure handling and the joint linked-size budget remain open.
 The cleanup witness proves pool-size restoration for this early cancellation,
@@ -416,10 +616,124 @@ restores them only for the adapter's return to its caller. All four modes pass
 in `out/emm-init-phases-lf59nmla/`, including the EMM API/runtime-command suite
 (`emm-api.log`). Combining it with `--reject-prepared` passes all four cleanup
 cases in `out/emm-init-phases-0hl60suu/`. The normal binary remains unchanged.
-This removes request-address dependence on the old frame, not the adapter's
-control-flow dependence. `prepare_request` borrows the loader's packet; a real
+This removes request-address dependence on the old frame. `prepare_request`
+borrows the loader's packet; a real
 handoff must keep it valid through commit or provide an explicit replacement,
 and retain initialization storage until activation/cancellation finishes.
+
+`ActivateProvider` and `FinishProvider` now return independently to their
+immediate caller; the legacy saved-register epilogue belongs only to the INIT
+adapter. `--activation-stack --poison-request` runs the service on a separate
+2 KiB guarded initialization stack, clears BP and erases the old request slots.
+Stage 12 marks entry; stage 13 requires both stack balance and the lower guard
+to survive. All four modes pass in `out/emm-init-phases-10o7gc0u/`, as does the
+EMM API/runtime-command suite (`emm-api.log`). Adding `--reject-prepared`
+passes four cancellations and XMS-pool restoration checks in
+`out/emm-init-phases-6bv95yx_/`. `--bad-stack-control --poison-request` correctly
+fails with stage 14 in `out/emm-init-phases-29sbx1an/`. Seven host tests pass;
+the normal binary remains byte-identical. The test stack is discardable, not a
+new permanent stack or a validated minimum capacity.
+
+The synchronous adapter uses internal near entries with prepared DGROUP state;
+the optional loader callback below wraps them. The development split now
+enforces a single-use boot lifecycle: cold → preparing → prepared, then either
+activating → active or cancelling → cancelled. Initialization errors enter a
+terminal failed state; the adapter owns preparation-error cleanup. Only a
+prepared owner may activate or cancel. Invalid transitions return ERROR/CF
+before touching allocation, publication or message state. `CancelProvider` is
+the explicit cancellation entry; `FinishProvider` is private shared reporting
+and finalization, not an exported operation. This is a single-threaded boot
+contract whose entries and state expire with the discardable LAST segment,
+not a concurrent or post-install service API.
+
+The `--lifecycle` capture exercises activation/cancellation before preparation,
+duplicate preparation, and all three entries after activation or cancellation.
+It checks ERROR/CF, unchanged lifecycle/message state and terminal CPU/vector
+state. Combined with `--activation-stack --poison-request`, all four modes pass
+in `out/emm-init-phases-7oagwte2/`; adding `--reject-prepared` passes with the XMS
+pool restored in `out/emm-init-phases-1s229ans/`. A deliberately invalid witness
+(`--bad-lifecycle-control`) emits stage 16 instead of success stage 15 and is
+rejected in `out/emm-init-phases-b9z3urwn/`. The activation image also passes
+`tests/test_emm386_qemu.sh`, including the no-HIMEM fallback allocator and full
+API/runtime-command suite (`emm-api.log`). Eight host tests pass. The normal
+EMM386 binary remains byte-identical. These checks do not prove rollback from
+every partial activation failure or preservation of every cached client entry.
+
+A final low-base placement, bootstrap XMS ownership, general relocation-capability
+negotiation and the complete low/high budget remain unimplemented. The next architectural
+deliverable is a
+loader/provider transaction that releases the original low allocation into the
+application free block, with complete high owners and a measured retained low
+boundary. Lifecycle guards and independent return frames are prerequisites,
+not memory savings or completion of that deliverable. Keep BIOS and COMMAND
+in the joint budget; do not substitute additional byte-harvesting work.
+
+**Loader-owned activation:** `EMM_DEFER_PROVIDER` and `BIOS_DEFER_PROVIDER`
+now negotiate a development-only v1 callback through INIT's eight reserved
+bytes (`src/INC/BOOTPROV.INC`). The low DEVICE path offers the protocol to the
+first `EMMXXXX0` header; DEVICEHIGH and subsequent headers retain synchronous
+initialization. A matching provider returns prepared through both INIT and the
+driver interrupt wrapper. SYSINIT then calls activate or cancel on its own
+stack, before linking the driver or accepting its final break. The far wrapper
+requires the original packet and negotiated version, supplies DGROUP, clears
+BP, and delegates to the guarded near operations. SYSINIT bounds the callback
+against the loaded file span and clears the negotiation bytes before continuing.
+This does not advertise relocation or integrated XMS ownership. An invalid
+callback address is an installation error; recovery of its reserved backing is
+not yet established, so this remains a private development path.
+
+Reproduce with `make bios memm test-emm-init-phases`, then
+`python3 tests/capture_emm_init_phases.py IMAGE --loader`. The four activation
+modes pass in `out/emm-init-phases-vhqyqi24/`; `--reject-prepared` restores the
+XMS pool in `out/emm-init-phases-s4ktox8q/`; `--loader-bad-version` confirms
+synchronous fallback in `out/emm-init-phases-yx2q0fb_/`. Stage 17 records the
+prepared CPU/vector state at the far callback; the trailing `LD` witness comes
+from SYSINIT after it returns. Nine host tests check the phase contracts,
+including absent/duplicate loader completion and changed resume state. Private
+reconstruction checks preserve the normal BIOS and EMM binaries.
+The loader-driven activation image also passes `tests/test_emm386_qemu.sh`,
+including no-HIMEM allocation and the full API/runtime-command suite; its
+evidence directory retains `emm-api.log`.
+
+V1 keeps the loaded provider address unchanged. The separate pinned v2 witness
+below tests an actual move, not general relocation-capability negotiation or
+low reclamation. Do not reuse `CompactFirstHimem` for this image.
+
+**Prepared-image relocation witness:** `--loader-rebase` moves the complete
+prepared EMM image upward by 32 paragraphs (512 bytes), before activation.
+`tests/emm_loader_rebase.py` validates the exact private EXE and generates its
+77 segment-fixup records for SYSINIT. The loader checks destination capacity
+and every expected loaded segment word before writing, copies overlapping
+paragraphs backward, applies the segment delta, updates its header/callback
+pointers and poisons the old-exclusive prefix. The request pointer, XMS entry
+and locked physical backing addresses are external owners and remain unchanged.
+This is a fixed-build v2 contract, not a way to move arbitrary drivers.
+
+All ON/OFF/AUTO/RAM cases pass in `out/emm-init-phases-9qf937lh/`, moving the
+7,335-paragraph image from `0CE3h` to `0D03h`; both final interrupt entries follow
+the new base. The same BIOS/EMM binaries pass the full EMM API/runtime-command
+suite, including the no-HIMEM allocator (`emm-api.log`). Cancellation after
+moving passes four modes with XMS restored in `out/emm-init-phases-t7r0ht7g/`.
+The deliberately wrong fixup precondition (`--loader-bad-rebase`) fails the
+move witness in `out/emm-init-phases-y0xnuc37/`: the raw trace confirms no move,
+successful cancellation and restored pool/vectors. Thirteen host tests cover
+phase contracts, MZ extents, fixup bounds/overlap and moved public entries.
+
+The deferred loader now normalizes an error return to the zero-offset/current
+MEMHI break that `SYSINIT2.ASM:SET_BREAK` uses to reject INIT. Error status alone
+does not prevent linking a cancelled header. A post-boot device-chain probe
+requires exactly one EMM owner after activation and none after cancellation;
+it also rejects cyclic chains. This passes for moved and unmoved cancellation.
+The unmoved v1 regression is in `out/emm-init-phases-dn_3ffei/`; version-mismatch
+fallback still passes in `out/emm-init-phases-8koxc055/`.
+
+The upward move intentionally spends 512 low bytes: **no conventional-memory
+saving is claimed**. It establishes a movable preparation boundary for the
+selected layouts. The next integration must supply a real lower destination,
+release the old allocation contiguously, and preserve pre-existing XMS clients
+while transferring one allocator's ownership. Maximum-resource, shifted-load,
+warm-reset and combined BIOS/HMA/COMMAND qualification remain open; this witness
+does not implement the high service/table owners or satisfy the joint budget.
 
 ##### Whole-system placement rules
 
@@ -464,7 +778,7 @@ of the following owners, not a sequence of independently attractive savings:
 | --- | --- | --- |
 | DOS BIOS | Development retains 5,152 low bytes; disk body already moved | Partition stable device/interrupt/DMA state from high service bodies; identify exact released intervals |
 | DOS kernel and dynamic state | 5,632-byte low prefix, including the repaired SETVER owner; FILES/FCB and CDS relocation already counted | Qualify upper CDS consumers and budget interrupt stacks and remaining public/private state |
-| Combined memory managers | 6,480 low bytes; first split has 3,576 gross candidate bytes | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback |
+| Combined memory managers | 4,608 low bytes after complete high tables; the earlier 6,480-byte census predates that move | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback; do not count the moved tables again |
 | COMMAND | 3,984-byte owner span versus OpenDOS's 1,312 | Separate environment/PSP and asynchronous entry state from movable resident handlers; preserve reload contracts |
 | Shared high storage | 9,657 calculated development HMA bytes; 1,792-byte UMB margin after CDS | Reserve destinations once across all owners; account for locked XMS, alignment and displaced buffers |
 
@@ -475,11 +789,11 @@ not copied payload sizes. Include UMB and XMS costs in the same budget. Public
 tables cannot be moved merely because high space exists; retained low mirrors
 do not count as reclamation.
 
-The checkpoint passes only when the combined net budget covers at least 2,624
+The checkpoint passes only when the remaining combined net budget covers at least 752
 bytes while retaining the 47,888-byte free-UMB floor and configured resources.
 That is the retail acceptance threshold, not a ceiling on the design: identify
 further whole-object opportunities toward the OpenDOS result without promising
-its 11,936-byte lead over combined development as locally reclaimable storage.
+its current 10,064-byte lead over combined development as locally reclaimable storage.
 The OpenDOS disk-boot control is now measured; resource semantics and reset
 qualification remain open before adopting its totals as a target.
 
@@ -638,8 +952,9 @@ Required deliverables, in order:
    47,888-byte UMB floor, requested resources, A20-off clients, DOS-low/286
    fallback, redirects, nested execution and reset as acceptance gates.
 
-Retail is the floor, not a component-size quota. The 11,936-byte OpenDOS lead
-is the difference to explain, not an approved savings budget. Optional video
+Retail is the floor, not a component-size quota. The current 10,064-byte
+OpenDOS lead (11,936 in the pre-table ledger) is the difference to explain,
+not an approved savings budget. Optional video
 recovery and the bounded 1 KiB EBDA step cannot explain this below-VC gap.
 
 #### Reproducible shared HMA capacity
@@ -828,7 +1143,11 @@ without `--check` when evidence capture completes; this is not a passing gate.
 
 #### Candidate layout A: manager objects plus the whole shell service body
 
-This budget uses the repaired combined fine-UMB/CDS fixture: 616,112
+Historical partial proposal, superseded for implementation selection by the
+current complete-provider/BIOS/shell destination contract above. Preserve its
+source-audited access constraints, not its savings forecast or component quotas.
+
+This budget uses the pre-table repaired fine-UMB/CDS fixture: 616,112
 conventional bytes and 49,680 free UMB bytes. Its component ceilings remain
 unvalidated; it is a proposal, not a measured allocation or permission to skip
 the complete resident-layout checkpoint.
@@ -991,9 +1310,11 @@ prototype, not independent paragraph-saving quotas.
 
 ##### Development resident low-owner bindings
 
-`COMMAND_RESIDENT_BINDING` introduces fifteen constructor-initialized segment
+`COMMAND_RESIDENT_BINDING` introduces twenty constructor-initialized segment
 operands for COMMAND2's fatal exit, INT 2Eh, reload, handle and environment
-paths and COMMAND1's EXEC/LOADHIGH preparation, restoration and messages.
+paths, COMMAND1's EXEC/LOADHIGH preparation, restoration and messages, and
+RUCODE's critical-entry ES/DS selections, CONTC's decision/body DS owners and
+the caller-independent ResPipeOff data owner.
 `RESBIND.INC` encodes the owner in MOV immediates, so copied instructions
 retain that value without looking up data through their new CS. CONPROC binds
 all operands before the first DOS call or vector publication. INT 2Eh preserves
@@ -1004,26 +1325,69 @@ state updates, restores the transient filename DS before INT 21h, leaves the
 ES:BX parameter block intact, and preserves result flags across restoration.
 The normal build remains byte-identical.
 
-The development resident code grows from 2,451 to 2,507 bytes, and both its
-high-mode low allocation and low-mode fallback grow by 64 rounded bytes.
+The development resident code grows from 2,451 to 2,531 bytes, and both its
+high-mode low allocation and low-mode fallback grow by 80 rounded bytes.
 These are relocation-support costs, not savings. The report's explicit
-`--resident-binding` mode checks all fifteen operand encodings and their exact
+`--resident-binding` mode checks all twenty operand encodings and their exact
 constructor writes; normal size limits are unchanged. The combined
 critical-body/binding variant is not yet qualified or accepted by the report.
+
+DSKERR preserves the incoming driver's DS while selecting the shell ES for
+both CDEVAT and the copied device name. It preserves AX across that selection,
+then selects the shell DS after SAVHAND. Compiled-entry checks reject a CS/DS
+attribute store, prematurely replacing driver DS, incorrect shell DS selection,
+or loss of AX preservation. This removes two code-segment identities from the
+development entry; the handler still executes in its original low segment.
+It is not a moved-code, A20-off or nested-interrupt relocation witness.
+
+CONTC saves incoming DS before selecting the bound low owner for InitFlag.
+The owner macro preserves AX, including AH used by the nested-call decision.
+All IRET, initialization-handoff and nested `ADD SP,6` / `RETF 2` paths remove
+that saved DS first. Normal body entry binds shell DS explicitly. The normal
+build is byte-identical; the initialization branch and subsequent service
+calls are not yet converted to a relocated-code interface.
+
+`tests/test_command_contc_entry_qemu.py` extracts and executes the actual entry
+with separate code, low-owner and caller-data segments. Seven cases exercise
+ignored initialization, special initialization handoff, nested AH=0/1/12/13,
+and normal body entry. They check SS:SP, GPRs, DS/ES, return flags and state
+ownership; downstream initialization/body services are stubs. The passing
+capture is `out/command-contc-entry-asuro46q/`; a wrong-owner binding rejects
+with `C!` in `out/command-contc-entry-hq8rxvnj/`. Input/source/probe hashes and
+emulator identity are recorded by the harness. This is an entry ABI witness,
+not actual nested DOS execution, A20-off safety or whole-body relocation.
+
+The same harness now executes ResPipeOff with a foreign caller DS: both an
+inactive and active pipe preserve AX/DS and stack balance, clear only the
+authoritative pipe flag, and pop echo state only for an active pipe. The
+wrong-pipe-owner control rejects with `CCCCCCC!` in
+`out/command-contc-entry-yb7l_kgr/`. RUCODE also uses restored low DS for RemMsg,
+preserves that owner across SYSGETMSG's returned string DS, and resolves its
+high case-conversion/DBCS entry pointers through low DS. Those service bodies
+already require low DS for their other data accesses.
+
+`--binding-listings` checks the assembled COMMAND1/COMMAND2/RUCODE listings
+for CS overrides, including implicit selections from ASSUME and prefixed
+instructions. The current listings pass; the preceding build rejects at
+ResPipeOff's implicit CS access. This is a selected-module regression guard,
+not a disassembler or proof of position-independent code. Near calls to
+separately placed bodies, absolute/far entry publications, A20 transitions
+and initialization handoffs still require relocation design and runtime tests.
 
 `make test-command-resident-binding-qemu` builds into a private directory,
 checks default binary identity, verifies the linked binding census, then runs
 the INT 2Eh owner matrix, startup/critical ABI suite and complete LOADHIGH suite.
-With the repaired explicit floppy input, `out/command-resident-binding.iGjEai/`
+With the explicit floppy input, `out/command-resident-binding.aMH3w0/`
 passes all four INT 2Eh cases, all 16 startup checks and LOADHIGH's provider,
 region/minimum/shrink, failure recovery, fallback, errorlevel, Ctrl+C, TSR and
-DOS-high checks. Four host tests reject missing slots,
-bad immediates and incomplete constructor bindings. Input overrides follow the
+DOS-high checks. Ten host tests cover missing slots,
+bad immediates, incomplete constructor bindings and critical-entry ownership
+mutations and the listing guard. Input overrides follow the
 INT 2Eh command above; no normal COMMAND object or boot image is replaced.
 
 This begins resident code/data separation; it does not establish that the
-whole service body is relocatable. COMMAND1's Ctrl+C entry, RUCODE's
-remaining CS-relative consumers, low interrupt/return gates and transient
+whole service body is relocatable. Ctrl+C's downstream service bindings,
+cross-placement near calls, low interrupt/return gates and transient
 far-entry publication still need coordinated conversion. Charge the new
 bindings against the final linked body and low-interface budgets before
 claiming candidate A's ceiling or any released conventional interval.
@@ -1913,7 +2277,155 @@ as well as service code; conventional, UMB and HMA costs remain separate.
 
 ### Combined manager split: source-audited prototype boundary
 
+#### Development complete-table relocation checkpoint
+
+`EMM_HIGH_TABLES` implements the object-relative owner described below. It
+copies the complete dynamic table into the existing locked extended-memory
+reservation, publishes `EMMT_GSEL`, rebases all table roots and switches indexed
+and string accesses to that owner. Scalar state stays low. The old table is
+overwritten with A5h before activation; low compaction releases its span instead
+of retaining a mirror. Allocation/copy failure retains the low selector path.
+Normal builds do not enable this feature.
+
+Matched phase traces measure retained EMM spans of 2,016 bytes in ON, OFF, AUTO
+and RAM, versus 3,952 in the first three low-table controls and 3,888 in RAM.
+In the composed DOS-high RAM fixture this yields **1,872 additional conventional
+bytes with unchanged UMB capacity**. Evidence:
+
+- `out/emm-init-phases-miodpnvw/`: high-table four-mode traces; poisoned originals.
+- `out/emm-init-phases-z4dx3mxu/`: matched low-table controls.
+- `out/umb-fine-composition-vvf106mp/results.json`: composed and retail captures.
+- `out/bios-low-boot-p_czd_kc/emm-high.log`: combined high-CDS, warm-reset and
+  low/upper file-I/O probe using the composed high-table executable.
+
+The full EMM API/runtime-command suite also passes with the high-table ON
+image (`FLOPPY_IMAGE=out/emm-init-phases-miodpnvw/ON.img bash
+tests/test_emm386_qemu.sh`). That suite replaces CONFIG.SYS and exercises its
+no-HIMEM configuration; it is distinct from the composed HIMEM/DOS-high run.
+All 12 phase-parser and three relocation-manifest host tests pass. A normal
+`make memm` retains EMM386 SHA-256
+`40e71928669620ddc87a34053ccfdde37539ffbd6d9fc4e6c1de640f355b3eaf`.
+
+Reproduce the composition and reset qualification with:
+
+```sh
+python3 tests/test_umb_subpage_composition.py --high-tables
+python3 tests/test_bios_low_boot_qemu.py \
+  --early --tail-body --rebase --compact --high-cds --mode emm-high \
+  --warm-reset --umb-read \
+  --emm386-image out/umb-fine-composition-vvf106mp/emm-high-tables/MEMM/EMM386.EXE
+```
+
+Promotion gates remain open. A wide conservative bound now rejects table
+staging that cannot fit the legacy offset window before writing tables, and
+reserves excess tail capacity in the same XMS handle. This is **not** the
+required all-capacity zero-origin staging implementation. Explicit allocation/
+copy-failure fallback, failed-INIT arena accounting, resource maxima, additional
+hardware and combined-provider handoff still require qualification. Do not use
+default-capacity passing tests to claim those contracts complete.
+
 #### High table address and selector decision
+
+**Capacity qualification and next correctness gate:** the phase harness accepts
+`--handles 2..255` and `--altregs 0..254`, recording explicit H=/A= options in
+each retained configuration and result manifest. An alternate-set request also
+runs public INT 67h allocation, exact exhaustion (9Bh), release and reuse after
+switching the installed provider ON. Initial OFF/AUTO phase checks therefore
+remain distinct from the subsequent ON-mode API exercise.
+
+On the fixed 8 MiB profile, H=255/A=254 passes all four boot modes and the
+allocation/exhaustion/reuse probe with both low and high tables. The high owner
+contains 21,836 bytes for ON/OFF/AUTO and 19,793 for RAM, yet retains only 2,016
+low driver bytes. The matched low-table RAM control retains 21,776 bytes.
+This demonstrates option-sized high storage behind a constant low interface,
+not a new fixed-VC saving or qualification of all handle operations. Evidence:
+`out/emm-init-phases-2f8_z6wb/` (high), `out/emm-init-phases-tp27pa_y/` (low),
+and `out/emm-init-phases-cc7bgvrb/` (H=2/A=0 edge, all four modes).
+
+**Conventional-map repair:** `--switch-altregs` additionally selects each
+allocated set and restores set zero. The original low/high builds reached the
+probe's success record but failed to execute QEXIT afterward, including A=0.
+An emulator inspection of the failing A=0 image recorded CR2=`00093EE0h` and
+CR3=`00151000h`; PDE zero points at `00152000h`. PTEs for `90000h..9FFFFh`
+contained repeating `00000000h,00001000h,00002000h,00003000h`: all not-present.
+
+`AllocMem` returned immediately after successful XMS allocation, skipping
+`SysAlloc`. Consequently `sys_size` remained zero, and EMM_Init left ordinary
+conventional windows as NULL_PAGE instead of recording their native mappings
+in reserved handle zero. Selecting that context made the still-DOS-owned
+conventional pages inaccessible. The correction calls SysAlloc on successful
+XMS backing, but not on provider failure. It counts/reserves native conventional
+mappings; it does not allocate a second extended-memory pool.
+
+Explicit unmapping is unchanged. The [LIM EMS 4.0 specification, functions 5
+and 17](https://www.phatcode.net/res/218/files/limems40.txt) defines FFFFh
+unmapping as making a window inaccessible. An experimental identity-map change
+made the probe return but was rejected because it changed that contract.
+The initial context must be correct instead. The probe now also requires
+nonempty handle-zero mappings in this fixed B=4000 profile before switching.
+
+All four modes pass switching/exhaustion/reuse after the repair for high
+H=255/A=254 (`out/emm-init-phases-75iof83y/`) and the low-table control
+(`out/emm-init-phases-hbl3_rmq/`); the latter predates only the conservative
+high-table reservation-bound adjustment. The repaired high table grows by 192
+bytes (22,028 in ON/OFF/AUTO, 19,985 in RAM) while retaining 2,016 low bytes.
+The early bound includes conventional mapping records before SysAlloc runs,
+subtracting the already-counted records when evaluated afterward.
+The strengthened handle-zero/A=0 probe passes all modes in
+`out/emm-init-phases-v_i1d12o/`. The seven-case allocator witness now also
+requires SysAlloc exactly once on either successful backing path and never
+after provider failure (`out/emm-xms-owner-6ji377br/`).
+
+The corrected composition passes in `out/umb-fine-composition-8twlf0p_/`:
+613,616 coarse/fine, 615,920 high-CDS/low-table and 617,984 high-table
+conventional bytes; the selected fixture still has 49,680 free UMB bytes.
+Its combined high-CDS warm-reset and low/upper file-I/O probe passes in
+`out/bios-low-boot-o41zbhhq/`. The full EMM API/runtime-command suite passes
+both without HIMEM and with `EMM386_WITH_HIMEM=1`; use the latter to qualify
+the corrected XMS-backed path explicitly:
+
+```sh
+FLOPPY_IMAGE=out/emm-init-phases-v_i1d12o/ON.img EMM386_WITH_HIMEM=1 \
+  bash tests/test_emm386_qemu.sh
+```
+
+Normal EMM386 SHA-256 after this repair is
+`c535dbcf14ab1f8f4b3f0eea6b673fea39c88a426cfc0ec777d77426a0e4a567`.
+Full handle-capacity operations, general staging and other promotion gates
+remain open. Original failing images remain in `out/emm-init-phases-oig84nu7/`,
+`out/emm-init-phases-pxo2mkdt/` and `out/emm-init-phases-7dovsagk/`.
+
+**Full handle-slot gate:** explicit `--handles` now runs a public-API probe,
+not just a boot option. It allocates H-1 distinct, nonzero, in-range handles
+using zero-page AX=5A00h requests, checks each page count and the total handle
+count, requires 85h on exhaustion, releases every handle and verifies reuse
+and return to the sole reserved handle zero. Zero-page requests isolate handle
+capacity from available EMS pages. The handle probe runs before the alternate
+set probe; both must finish and return to DOS, and their separate HC/AC records
+must match the requested capacities. Fourteen host tests include absent,
+misordered, duplicate and failed capacity records.
+
+H=255/A=254 with switching passes ON/OFF/AUTO/RAM in
+`out/emm-init-phases-os6048co/` (high tables) and
+`out/emm-init-phases-3vbhye5k/` (low control). H=2/A=0 passes all four modes
+in `out/emm-init-phases-jehj60ed/`. This closes handle-slot exhaustion/reuse,
+not maximum-capacity page-backed data, names, save/restore or general staging.
+No new resident-memory saving is claimed.
+
+```sh
+python3 tests/capture_emm_init_phases.py out/setver-native-audit.BAEqDU/low.img \
+  --high-tables --handles 255 --altregs 254
+# Switching/return gate, including reserved handle-zero mappings:
+python3 tests/capture_emm_init_phases.py out/setver-native-audit.BAEqDU/low.img \
+  --high-tables --handles 2 --altregs 0 --switch-altregs
+```
+
+The actual H=/A= maximum on this profile does not reproduce the arithmetic
+offset overflow below. Zero-origin staging remains required for the general
+capacity design, but changing only EMM_Init's origin is insufficient: InitEPage,
+Commit_UMB's free-list/PFT consumers, InitTab's initial stack/driver break and
+RelocateTables' copy/poison source must share the separate staging owner.
+Preserve the complete low fallback and published runtime selector contracts.
 
 Use an **object-relative table owner starting at offset zero**, with one new
 persistent ring-0 data selector. Keep the low DGROUP scalar state and existing
@@ -2098,11 +2610,204 @@ while serving calls in ON, OFF and idle AUTO, without changing the externally
 reported EMM mode. Do not solve this by retaining a second complete low XMS
 allocator or by disabling supported mode changes.
 
+The source audit also rules out treating the existing HIMEM service body as
+a ready-made protected object. `xms_control` saves the caller's real-mode
+DS:SI; `xms_move` loads that segment directly into ES, and `copy_move_blocks`
+passes CS:move_gdt to BIOS INT 15h/87h. A protected backend needs explicit
+real-address translation for the 16-byte public descriptor and handle-zero
+source/destination pointers, distinct from its own code/data selectors.
+Select a protected copy backend for the coordinated 386 path; retain the
+existing BIOS backend for standalone/286 operation. This is an unimplemented
+design decision, not a reason to weaken Move validation or return semantics.
+Likewise, the existing A20 backend can invoke BIOS INT 15h/24xx and physically
+disable A20: perform final disable/firmware work through a low transition path,
+never while depending on an extended-memory continuation. Budget the saved
+caller frame and authoritative A20 counters, including failure returns, before
+claiming a linked low-provider size.
+
+`make test-himem-residency` now emits an exhaustive twelve-range conversion
+census for the 2,301 fixed bytes, separate from option-sized records. It splits
+the old 335-byte HMA/A20 group into 68 bytes of HMA ownership and 267 bytes of
+A20 policy/backends. The 285-byte move-helper group contains 95 bytes of
+address resolution, 127 of BIOS copy/descriptor construction, 15 of physical
+conversion/alignment and 48 of firmware descriptors. These are current linked
+boundaries, not future high objects or low-size promises. Three host tests
+check ordering, complete coverage, missing boundaries and descriptor layout.
+
+Importantly, `xms_reallocate:realloc_move` also calls `copy_move_blocks` after
+preparing shared move state and publishes the new handle base/length only
+after successful copying. The new protected copy binding must serve both
+Move and reallocation, preserve this failure ordering and preserve the
+caller's live handle-table pointer. Replacing only the public Move entry
+leaves a BIOS-dependent allocator. The final budget must replace the old
+127-byte backend and its 48-byte descriptors with measured protected code,
+not count their removal as savings without charging the replacement.
+
+**Protected copy reuse:** `MOVEB.ASM` now separates `Move_Block`, the virtual
+INT 15h frame adapter, from `Move_Block_Core`, an internal protected near call.
+The core returns AH status and CF without accessing BP's client flags; the
+adapter alone updates the virtual frame. This is an implemented interface
+split, not a new XMS provider or a physical-copy acceptance result. The core
+still requires EMM's installed selectors/mappings, shared scratch descriptors,
+parity ownership and A20 policy. `MapLinear` is not a general physical mapper;
+the existing EMS Move/Exchange path also changes EMS windows and cannot simply
+replace XMS address translation. OFF/AUTO entry and restoration remain separate.
+
+The early-rejection NMI cleanup defect is repaired: each call starts without
+parity ownership, acquires it after `Set_Par_Vect`, and `MB_Exit` restores only
+an acquired handler. The previous binary changed the protected NMI descriptor
+from `d40f3800008e0000` to eight zero bytes on the first oversized-count
+rejection. The installed fixed binary preserves its original descriptor through
+oversized count, short source and short destination rejection, a successful
+16-byte copy, and a final rejection. The guest checks AH/CF and copied data;
+QEMU snapshots independently walk the active page tables to read the live IDT.
+Post-install selector rejection is now qualified too. `MB_Exit` restores any
+virtual A20 change on both successful and failed completion, rather than only
+after successful copying. With virtual A20 initially disabled, the previous
+binary leaves all sixteen HMA-alias pages mapped to physical 1 MiB after an
+unreadable-source rejection. The fixed run retains their original mappings to
+physical 0..64 KiB through both unreadable-source and read-only-destination
+rejection. This is page-table A20 virtualization, not physical gate recovery.
+Real NMI delivery, interrupted acquisition and hardware/exception recovery
+remain unqualified; normal failure cleanup is not proof of those paths.
+
+`test_move_block_abi_qemu.py` executes the actual adapter/epilogue with simulated
+copy completion for statuses 0..3 with and without parity ownership, checking
+direct-call status, untouched client flags, stack balance, saved registers and
+exact parity-restore/A20-toggle counts. It mocks copying and cleanup;
+it is not a protected-mode/NMI test. The injected client-frame write is rejected.
+Reproduce the focused gate with `make test-move-block-abi-qemu` or an explicit
+`--image` passed to the Python helper. No conventional saving is claimed.
+
+Run `make test-move-block-cleanup-qemu` for the installed cleanup witness with
+ordinary initial state and forced virtual A20 off. Its eight checkpoints record
+the NMI descriptor and all sixteen physical A20 page targets, plus input hashes,
+emulator identity and final pass/fail status.
+`test_move_block_cleanup_qemu.py --image ... --emm386 ...` also accepts a pinned
+old binary as a negative control. Fixed runs pass in
+`out/move-block-cleanup-d054a_hq/` (ordinary state)
+and `out/move-block-cleanup-l5313vhj/` (`--a20-off`); the preceding binary fails
+at the source-selector checkpoint G in `out/move-block-cleanup-54t91_2j/`.
+The older NMI corruption is reproduced at B in `out/move-block-cleanup-8w33s_am/`.
+The full EMM API/runtime grammar suite with HIMEM passes. The current five-image
+composition retains 617,984 conventional and 49,680 free UMB bytes after cleanup
+changes: no measured low-memory cost in this profile.
+No new protected entry/exit mode or combined XMS provider is enabled by this fix.
+
+**Proposed physical-copy mapping owner:** do not extend the existing identity
+mapping by assumption. `TABDEF.ASM` reserves five page tables; `VDMINIT:InitPages`
+identity-maps only through 16 MiB, treats the HMA alias separately, and leaves
+the fifth table empty apart from `OEM_Init_Diag_Page`'s first sixteen entries.
+`MapLinear` only adds the OEM diagnostic-address case; it is not a mapper for
+arbitrary XMS allocations above 16 MiB.
+
+Select fifth-table entries 16 and 17 as candidate private source/destination
+windows: linear `01010000h` and `01011000h`, PTE offsets `4040h` and `4044h`
+from `PAGET_GSEL`. The live-owner harness now verifies that both entries are
+exactly zero in the existing, contiguous, writable fifth page table. This
+would require no additional page-table allocation; it does not reserve the
+windows or prove that runtime clients can safely share their ownership.
+Current ON/OFF/AUTO/RAM captures all retain zero in both entries: respectively
+`out/emm-live-owners-z7wf5jc2/`, `out/emm-live-owners-ln1jhsxm/`,
+`out/emm-live-owners-iawwq6sd/` and `out/emm-live-owners-ly1yno6j/`.
+Each manifest includes requested and observed mode, physical owner bounds,
+candidate PTE addresses, executable/map hashes and raw RAM/register captures.
+
+The implementation contract for these windows is:
+
+- Enter with the provider's CR3 and exclusive scratch-window ownership. Preserve
+  the original PTEs and any reused MBSRC/MBTAR descriptors; reject a conflicting
+  owner rather than borrowing an application EMS frame or exposing a second
+  allocator. Temporary PTEs must be supervisor-only.
+- Distinguish nonzero-handle physical addresses from handle-zero real-mode
+  pointers. Resolve the latter through the client's mappings after establishing
+  the service's A20 policy; segment arithmetic alone loses EMS/UMB remapping.
+  Resolve both addresses before changing either scratch PTE.
+- Copy at most the remaining length and the bytes to each source/destination
+  4-KiB boundary. Reload CR3 after mapping and after restoration (386-compatible);
+  unwind both windows/descriptors on every exit. Preserve the caller's EMM mode,
+  A20 policy and application mappings.
+- Use the same backend for Move and reallocating copies. Charge code, saved
+  descriptors, frame and serialization state against the complete provider
+  budget. Test page crossings, mapped conventional endpoints, allocations above
+  16 MiB, OFF/AUTO, failure and nested-entry policy before releasing low owners.
+
+`XMSCOPY.INC:XmsCopyPhysical` now implements a development-only physical
+backend behind `EMM_XMS_COPY_TEST`. Its 392 linked bytes use those two existing
+PTEs and save/restore the MBSRC/MBTAR descriptors. It rejects occupied PTEs,
+non-identical overlap and address overflow, clips each transfer at both 4-KiB
+boundaries, and restores the mappings/TLB before returning. Its own maximum
+stack use is 68 bytes including the near return address; caller/trap frames
+and asynchronous handling are additional. No new resident data or page table
+is allocated. The private `XCPY` INT 15h packet is a test adapter, not a public
+XMS API or the final provider entry.
+
+The 32-MiB QEMU witness obtains and locks a 32-KiB XMS block above 16 MiB after
+reserving a preceding 16-MiB block. It verifies 8-KiB conventional-to-high,
+high-to-high and high-to-conventional transfers at differently aligned page
+offsets, then releases both owners. Overlap/overflow rejection and zero-length
+success precede the valid transaction. A separate build injects failure after
+mapping but before the first byte is copied. Host snapshots independently check
+that both PTEs return to zero and both scratch descriptors retain their original
+contents. They also verify both high physical ranges against the expected byte
+pattern, rather than relying on a round trip that could hide symmetric address
+truncation; the injected failure leaves those ranges unchanged. A corrupted
+returned byte makes the witness fail.
+
+Run `make test-xms-copy-windows-qemu`, or pass `--image` to its Python helper.
+Normal and injected-failure evidence is in `out/xms-copy-windows-4_jfeae3/` and
+`out/xms-copy-windows-8zfq86vc/`. `--bad-data` provides a failing returned-data
+control. The normal EMM386 binary remains unchanged.
+This proves a physical-copy primitive in active mode, not public XMS integration,
+OFF/AUTO transitions, runtime busy-owner rejection,
+or real exception/NMI unwinding. Those gates and the complete provider's
+linked low/high layout remain open; no conventional saving is claimed.
+
+`XmsCopyClient` adds a 322-byte typed-address layer: flag bits select physical
+or client-linear source/destination independently. For decoded conventional/HMA
+addresses it resolves each 4-KiB page through the installed first page table,
+checks present/user access (and write permission for a destination), and passes
+physical chunks to the same backend. Unknown flags and client ranges outside
+`00000000h..0010FFFFh` are rejected. No client PTE is modified. Its maximum own
+nested stack use is 118 bytes including the physical backend and near return,
+excluding the test adapter and outer trap/provider frames.
+
+The `--mapped` witness maps two separately allocated EMS pages into the frame,
+fills a changed pattern, and exercises mapped-to-physical, physical-to-mapped,
+and mapped-to-mapped copying across 4-KiB boundaries. Host snapshots verify that
+the endpoints really are remapped, that their eight PTE physical targets stay
+unchanged, and that the high XMS destination contains the changed pattern.
+The passing capture is `out/xms-copy-windows-hceophi6/`; deliberately treating
+the mapped source as physical (`--mapped --bypass-mapping`) fails in
+`out/xms-copy-windows-tzfglry6/`. The mapped case is part of
+`make test-xms-copy-windows-qemu`.
+
+This layer is not the complete handle-zero API: the caller must establish A20
+policy and validate the far pointer, ownership and whole-range non-overlap,
+including aliases. Permission checking is per chunk; a later rejected page
+can follow completed chunks. Full-range validation, precise public error
+semantics and stable mappings across asynchronous entry remain required before
+binding it to XMS Move/reallocation. Normal EMM386 remains unchanged.
+
+The census also now distinguishes handle zero's conventional physical pages
+from locked XMS backing: `_total_pages` includes both. It checks the ordered
+physical records and derives the relocation tail from extended pages only.
+The current fixed probe has 24 conventional pages plus 64 extended pages, not
+88 pages charged to XMS. Ten host tests cover table ownership, physical backing
+and candidate-window rejection. This updates measurement tooling, not allocation
+behavior or the selected VC comparison.
+
 `tests/xms_emm_mode_probe.asm` now locks a 1 KiB XMS allocation before changing
 EMM modes ON -> OFF -> AUTO -> ON. In each mode it takes and releases an
 additional lock, checks the same physical base, reads back a 16-byte payload
 through XMS Move, and verifies EMM mode again after the XMS calls. It releases
-the original lock and allocation at the end. The signed DOS HMA-state query
+the original lock and allocation at the end. Each Move now receives its
+descriptor through a segment different from CS and a nonzero offset, and
+checks preservation of DS:SI. A negative control corrupts only that external
+descriptor's length while leaving the original valid; the call must fail.
+This distinguishes actual far-descriptor consumption from an accidental
+code-relative lookup, but does not prove protected-mode translation.
+The signed DOS HMA-state query
 asserts actual DOS-low/high residency; a repository EMM signature check guards
 the private mode-control entry. This establishes the existing separate-provider
 contract, not a protected XMS implementation, A20-off entry qualification,
@@ -2118,10 +2823,11 @@ FLOPPY_IMAGE=out/setver-native-audit.BAEqDU/low.img \
 The harness injects the local HIMEM/EMM386 binaries, saves their hashes and
 emulator identity, and retains each disposable image and serial log under
 `out/xms-emm-mode.*`, using QEMU `pc`, 486 and 8 MiB RAM. Both residency cases
-must pass; separate wrong-address and wrong-payload builds must exit through
-failure without a pass marker.
-The six-case baseline passes in `out/xms-emm-mode.Knsnp7/` (two successful
-guests and four expected rejections).
+must pass; separate wrong-address, wrong-payload and wrong-descriptor builds
+must exit through failure without a pass marker. The eight-case far-descriptor
+baseline passes in `out/xms-emm-mode.ZFxOG0/` (two successful guests and six
+expected rejections). The descriptor control checks failure, not the exact
+XMS error code; full error semantics remain part of broader API qualification.
 Future provider activation must additionally preserve pre-existing client
 handles, HMA ownership, UMB registrations, cached entries and rollback, and
 qualify all XMS functions and aliases rather than relying on this small probe.

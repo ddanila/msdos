@@ -39,8 +39,12 @@ mcopy -o -i "$BOOT_IMG" "$AUTO_PROBE_COM" ::AUTOPRB.COM
 mcopy -o -i "$BOOT_IMG" "$OFF_PROBE_COM" ::OFFPROBE.COM
 mcopy -o -i "$BOOT_IMG" "$DRIVER_PROBE_COM" ::DRVPROBE.COM
 mcopy -o -i "$BOOT_IMG" "$OWNER_MODE_COM" ::OWNMODE.COM
-printf 'DEVICE=A:\\EMM386.EXE M5\r\n' \
-    | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
+{
+    if [[ ${EMM386_WITH_HIMEM:-0} == 1 ]]; then
+        printf 'DEVICE=A:\\HIMEM.SYS /TESTMEM:OFF\r\n'
+    fi
+    printf 'DEVICE=A:\\EMM386.EXE M5\r\n'
+} | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'

@@ -174,6 +174,12 @@ _TEXT	ends
 LAST	segment
 	extrn	RelocateText:near
 	extrn	CompactVData:near
+IFDEF EMM_HIGH_TABLES
+        extrn RelocateTables:near
+ENDIF
+IFDEF EMM_TABLE_LAYOUT_TRACE
+        extrn ReportTableLayout:near
+ENDIF
 
 	extrn	VerifyMachine:near
 	extrn	InitMess:byte
@@ -296,7 +302,36 @@ umb_mode	db	0	; RAM or NOEMS requested paging-backed UMBs
 noems_mode	db	0	; NOEMS suppresses the EMS page frame
 initial_mode	db	0h	; 0 => ON, 1 => OFF, 2 => AUTO
 ifdef EMM_SPLIT_PREPARE
+PROVIDER_COLD equ 0
+PROVIDER_PREPARING equ 1
+PROVIDER_PREPARED equ 2
+PROVIDER_ACTIVATING equ 3
+PROVIDER_ACTIVE equ 4
+PROVIDER_CANCELLING equ 5
+PROVIDER_CANCELLED equ 6
+PROVIDER_FAILED equ 7
+provider_state db PROVIDER_COLD
 prepare_request dd 0             ; borrowed SYSINIT packet, not an INIT stack slot
+resume_target dw 0
+endif
+ifdef EMM_PROVIDER_LIFECYCLE
+ifdef EMM_PROVIDER_BAD_LIFECYCLE
+provider_test_bad db 1
+else
+provider_test_bad db 0
+endif
+endif
+ifdef EMM_ACTIVATION_STACK
+resume_ss dw 0
+resume_sp dw 0
+resume_flags dw 0
+ifdef EMM_ACTIVATION_BAD_STACK
+resume_guard dw 0               ; negative control for the stack witness
+else
+resume_guard dw 0cafeh
+endif
+resume_stack db 2048 dup (0)
+resume_stack_top LABEL BYTE
 endif
 ifdef EMM_REJECT_PREPARED
 prepare_xms_entry dd 0
@@ -404,6 +439,33 @@ PREPARE_ERROR TEXTEQU <ProviderPrepareFailed>
 else
 PREPARE_ERROR TEXTEQU <IE_exit>
 endif
+ifdef EMM_DEFER_PROVIDER
+        include ../../INC/BOOTPROV.INC
+endif
+
+; Development witness: invalid calls must return ERROR/CF without modifying
+; the lifecycle owner or the message flags used by cleanup/finalization.
+PROVIDER_REJECT MACRO entry, expected
+        LOCAL reject_bad, reject_done
+ifdef EMM_PROVIDER_LIFECYCLE
+        pushf
+        pusha
+        mov bx,[msg_flag]
+        call entry
+        jnc reject_bad
+        cmp ax,ERROR
+        jne reject_bad
+        cmp cs:[provider_state],expected
+        jne reject_bad
+        cmp bx,[msg_flag]
+        je reject_done
+reject_bad:
+        mov cs:[provider_test_bad],1
+reject_done:
+        popa
+        popf
+endif
+ENDM
 
 Init_MEMM386	proc	far
 	push	bx		; BP+10
@@ -435,24 +497,186 @@ endif
 	mov	byte ptr es:[bx.NUM_UNITS],0	; 0 - don't install
 ifdef EMM_SPLIT_PREPARE
         ; Preparation returns before descriptors, UMB publication or PE entry.
-        ; The current adapter resumes immediately on the original INIT frame;
-        ; it is not yet an asynchronous SYSINIT/provider handoff.
+        ; This adapter resumes immediately, but the service entry returns
+        ; independently of this caller's saved-register frame.
+        PROVIDER_REJECT ActivateProvider, PROVIDER_COLD
+        PROVIDER_REJECT CancelProvider, PROVIDER_COLD
         call PrepareProvider
-        jc IE_exit
+        jc ProviderAdapterFinish
         INIT_PHASE 9
+        PROVIDER_REJECT PrepareProvider, PROVIDER_PREPARED
+ifdef EMM_DEFER_PROVIDER
+        ; Return completely through the device interrupt wrapper to SYSINIT.
+        ; Do not retain any return address or saved-register slot from INIT.
+        les bx,cs:[prepare_request]
+        cmp byte ptr es:[bx],24
+        jb ProviderNoLoader
+        cmp word ptr es:[bx+BP_MAGIC_OFF],BP_MAGIC
+        jne ProviderNoLoader
+        cmp word ptr es:[bx+BP_VERSION_OFF],BP_VERSION
+        jne ProviderNoLoader
+        mov word ptr es:[bx+BP_CALLBACK_OFF],offset ProviderLoaderEntry
+        mov word ptr es:[bx+BP_CALLBACK_OFF+2],cs
+        xor ax,ax
+        jmp ProviderAdapterReturn
+ProviderNoLoader:
+endif
 ifdef EMM_POISON_INIT_REQUEST
         ; Test only: activation must not recover the request from saved DS/BX.
-        ; Restore the adapter's saved registers at IE_leave, even on failure.
+        ; Restore only when the adapter returns, even on failure.
         mov word ptr ss:[bp+2],0
         mov word ptr ss:[bp+10],0
 endif
 ifdef EMM_REJECT_PREPARED
-        or [msg_flag],MEM_ERR_MSG
-        jmp IE_exit
+        mov cs:[resume_target],offset CancelProvider
+else
+        mov cs:[resume_target],offset ActivateProvider
 endif
-        jmp IE_InitEMM
+        jmp short ProviderAdapterResume
+ProviderAdapterFinish:
+        mov cs:[resume_target],offset FinishProvider
+ProviderAdapterResume:
+ifdef EMM_ACTIVATION_STACK
+        push bp
+        push dx
+        pushf
+        pop cs:[resume_flags]
+        mov cs:[resume_ss],ss
+        mov cs:[resume_sp],sp
+        cli
+        mov dx,cs
+        mov ss,dx
+        mov sp,offset resume_stack_top
+        xor bp,bp
+        push cs:[resume_flags]
+        popf
+        INIT_PHASE 12
+endif
+        call word ptr cs:[resume_target]
+ifdef EMM_ACTIVATION_STACK
+        cmp sp,offset resume_stack_top
+        jne ProviderStackBad
+        cmp cs:[resume_guard],0cafeh
+        jne ProviderStackBad
+        INIT_PHASE 13
+        jmp short ProviderRestoreStack
+ProviderStackBad:
+        INIT_PHASE 14
+ProviderRestoreStack:
+        cli
+        mov dx,cs:[resume_ss]
+        mov ss,dx
+        mov sp,cs:[resume_sp]
+        push cs:[resume_flags]
+        popf
+        pop dx
+        pop bp
+endif
+ifdef EMM_PROVIDER_LIFECYCLE
+ifdef EMM_REJECT_PREPARED
+PROVIDER_TERMINAL equ PROVIDER_CANCELLED
+else
+PROVIDER_TERMINAL equ PROVIDER_ACTIVE
+endif
+        PROVIDER_REJECT PrepareProvider, PROVIDER_TERMINAL
+        PROVIDER_REJECT ActivateProvider, PROVIDER_TERMINAL
+        PROVIDER_REJECT CancelProvider, PROVIDER_TERMINAL
+        cmp cs:[provider_test_bad],0
+        jne ProviderLifecycleBad
+        INIT_PHASE 15
+        jmp short ProviderLifecycleDone
+ProviderLifecycleBad:
+        INIT_PHASE 16
+ProviderLifecycleDone:
+endif
+ifdef EMM_POISON_INIT_REQUEST
+        push ax
+        mov ax,word ptr cs:[prepare_request+2]
+        mov ss:[bp+2],ax
+        mov ax,word ptr cs:[prepare_request]
+        mov ss:[bp+10],ax
+        pop ax
+endif
+ProviderAdapterReturn:
+        pop es
+        pop ds
+        pop di
+        pop bp
+        pop dx
+        pop bx
+        retf
+ifdef EMM_DEFER_PROVIDER
+; AX operation, ES:BX original INIT packet. Preserve all other registers.
+; Invalid calls must not finalize or free any owner. Only the original loader
+; packet and negotiated version are accepted while LAST remains live.
+ProviderLoaderEntry LABEL FAR
+        cmp bx,word ptr cs:[prepare_request]
+        jne ProviderLoaderInvalid
+        push ax
+        mov ax,es
+        cmp ax,word ptr cs:[prepare_request+2]
+        pop ax
+        jne ProviderLoaderInvalid
+        cmp word ptr es:[bx+BP_MAGIC_OFF],BP_MAGIC
+        jne ProviderLoaderInvalid
+        cmp word ptr es:[bx+BP_VERSION_OFF],BP_VERSION
+        jne ProviderLoaderInvalid
+        cmp ax,BP_ACTIVATE
+        je ProviderLoaderValid
+        cmp ax,BP_CANCEL
+        jne ProviderLoaderInvalid
+ProviderLoaderValid:
+        push bx
+        push cx
+        push dx
+        push si
+        push di
+        push bp
+        push ds
+        push es
+        mov dx,seg DGROUP
+        mov ds,dx
+        xor bp,bp
+        INIT_PHASE 17
+        cmp ax,BP_CANCEL
+        je ProviderLoaderCancel
+        call ActivateProvider
+        jmp short ProviderLoaderReturn
+ProviderLoaderCancel:
+        call CancelProvider
+ProviderLoaderReturn:
+        pop es
+        pop ds
+        pop bp
+        pop di
+        pop si
+        pop dx
+        pop cx
+        pop bx
+        retf
+ProviderLoaderInvalid:
+        mov ax,ERROR
+        stc
+        retf
+endif
+; Internal, single-threaded boot contract. A rejected transition has no cleanup
+; side effects. The state and near entries expire when LAST is discarded.
+ProviderInvalid:
+        mov ax,ERROR
+        stc
+        retn
+        PUBLIC CancelProvider
+CancelProvider LABEL NEAR
+        cmp cs:[provider_state],PROVIDER_PREPARED
+        jne ProviderInvalid
+        mov cs:[provider_state],PROVIDER_CANCELLING
+        or [msg_flag],MEM_ERR_MSG
+        jmp FinishProvider
         PUBLIC PrepareProvider
 PrepareProvider LABEL NEAR
+        cmp cs:[provider_state],PROVIDER_COLD
+        jne ProviderInvalid
+        mov cs:[provider_state],PROVIDER_PREPARING
 endif
 ;
 ;	verify that MEMM is not already installed
@@ -564,9 +788,12 @@ endif
 	test	[msg_flag],KILLER_MSG	;Q: any killer messages?
 ifdef EMM_SPLIT_PREPARE
         jnz ProviderPrepareFailed
+        mov cs:[provider_state],PROVIDER_PREPARED
         clc
         retn
 ProviderPrepareFailed:
+        mov cs:[provider_state],PROVIDER_FAILED
+        mov ax,ERROR
         stc
         retn
 else
@@ -577,6 +804,13 @@ endif
 ;  init EMM data
 ;
 IE_InitEMM:
+ifdef EMM_SPLIT_PREPARE
+        PUBLIC ActivateProvider
+ActivateProvider LABEL NEAR
+        cmp cs:[provider_state],PROVIDER_PREPARED
+        jne ProviderInvalid
+        mov cs:[provider_state],PROVIDER_ACTIVATING
+endif
 
 	call	EMM_Init
 	test	[msg_flag],KILLER_MSG	;Q: any killer messages?
@@ -700,6 +934,9 @@ endif
 	endif
 
 	call	RelocateText
+IFDEF EMM_HIGH_TABLES
+        call RelocateTables
+ENDIF
 	INIT_PHASE 5
 	call	FarGoVirtual		;  N: go into virtual mode
 	; Finish resident ownership while activation is established and no
@@ -707,6 +944,9 @@ endif
 	; compaction merely because their final execution mode is inactive.
 	call	CompactVData
 	INIT_PHASE 6
+IFDEF EMM_TABLE_LAYOUT_TRACE
+        call ReportTableLayout
+ENDIF
 	mov	al,[initial_mode]
 	or	al,al
 	jz	short IE_initial_mode_done
@@ -732,6 +972,10 @@ endif
 ;  exit - display status messages and set exit status
 ;
 IE_exit:
+ifdef EMM_SPLIT_PREPARE
+; Adapter-only failure reporting and activation finalization, not a public API.
+FinishProvider LABEL NEAR
+endif
 ;
 ;  display signon message first
 ;
@@ -844,18 +1088,16 @@ skip_dig_adj:
 ;
 ; all done with no errors
 ;
+ifdef EMM_SPLIT_PREPARE
+        mov cs:[provider_state],PROVIDER_ACTIVE
+endif
 	INIT_PHASE 8
 	xor	ax,ax			; NO errors
 ;
 IE_leave:
-ifdef EMM_POISON_INIT_REQUEST
-        push ax
-        mov ax,word ptr cs:[prepare_request+2]
-        mov ss:[bp+2],ax
-        mov ax,word ptr cs:[prepare_request]
-        mov ss:[bp+10],ax
-        pop ax
-endif
+ifdef EMM_SPLIT_PREPARE
+        retn
+else
 	pop	es
 	pop	ds
 	pop	di
@@ -863,6 +1105,7 @@ endif
 	pop	dx
 	pop	bx
 	ret
+endif
 ;
 IE_not_installed:
 	call	Rollback_UMB		; undo provider state before releasing XMS
@@ -887,6 +1130,16 @@ endif
 IE_prepare_leaked:
         INIT_PHASE 11
 IE_prepare_rejected:
+endif
+ifdef EMM_SPLIT_PREPARE
+        cmp cs:[provider_state],PROVIDER_CANCELLING
+        jne ProviderFailedCleanup
+        mov cs:[provider_state],PROVIDER_CANCELLED
+        jmp short ProviderCleanupDone
+ProviderFailedCleanup:
+        mov cs:[provider_state],PROVIDER_FAILED
+ProviderCleanupDone:
+        stc
 endif
 	mov	ax,ERROR		; error return
 	jmp	IE_leave

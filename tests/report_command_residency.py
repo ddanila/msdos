@@ -75,9 +75,22 @@ def rounded(value: int) -> int:
     return (value + 15) & ~15
 
 
+def code_only_envelope(code_end: int, resident_break: int) -> tuple[int, int]:
+    """Optimistic packed low floor and release, before any new support.
+
+    Preserve PSP and every non-code byte; relocate the complete 0100h body.
+    This is a design bound, not evidence that the body is relocatable.
+    """
+    if not 0x100 <= code_end <= resident_break:
+        raise ValueError("resident code must follow the PSP and precede the break")
+    low_floor = rounded(resident_break - (code_end - 0x100))
+    return low_floor, rounded(resident_break) - low_floor
+
+
 BINDING_SLOTS = ("fatal_ds", "fatal_psp", "ret2e_ds", "int2e_es", "int2e_bx",
                  "lodcom_ds", "lodcom_ax", "headfix_ds", "savhand_es", "endinit_ds",
-                 "exec_err_ds", "exec_msg_es", "exec_pre_ds", "exec_post_ds", "exec_wait_ds")
+                 "exec_err_ds", "exec_msg_es", "exec_pre_ds", "exec_post_ds", "exec_wait_ds",
+                 "critical_es", "critical_ds", "contc_entry_ds", "contc_body_ds", "pipeoff_ds")
 
 
 def check_resident_bindings(symbols: dict[str, int], image: bytes) -> None:
@@ -96,6 +109,41 @@ def check_resident_bindings(symbols: dict[str, int], image: bytes) -> None:
     start = require(symbols, "CONPROC") - 0x100 + 3  # MOV SP,RSTACK first
     if image[start:start+len(constructor)] != constructor:
         raise ValueError("resident binding constructor does not initialize every operand")
+
+
+def check_critical_owner_bindings(symbols: dict[str, int], image: bytes) -> None:
+    """Check AX preservation, driver DS lifetime, and the first shell store."""
+    for name, segment_opcode in (("critical_es", 0xC0), ("critical_ds", 0xD8)):
+        operand = require(symbols, "shell_binding_" + name)
+        start = operand - 0x102
+        expected = b"\x50\xb8\0\0\x8e" + bytes((segment_opcode,)) + b"\x58"
+        if name == "critical_es":
+            # MOV ES:[CDEVAT],AH, not CS (relocated code) or DS (driver).
+            expected += b"\x26\x88\x26" + require(symbols, "CDEVAT").to_bytes(2, "little")
+        if image[start:start + len(expected)] != expected:
+            raise ValueError("critical entry lost its explicit low owner or AX preservation")
+
+
+def check_code_owner_listing(listing: str) -> None:
+    """Reject assembled CS overrides, including implicit ASSUME selections.
+
+    This is a guard for the selected service modules, not an x86 decoder or
+    proof that near calls, far publications and state bindings are relocatable.
+    """
+    prefixes = {0x26, 0x2E, 0x36, 0x3E, 0x64, 0x65, 0x66, 0x67, 0xF0, 0xF2, 0xF3}
+    found = False
+    for line in listing.splitlines():
+        match = re.match(r"^\s*[0-9A-F]{4,8}\s+([0-9A-F]{2}(?:[0-9A-F]{2})*)(?=\s|$)", line, re.I)
+        if not match:
+            continue
+        found = True
+        for byte in bytes.fromhex(match[1]):
+            if byte not in prefixes:
+                break
+            if byte == 0x2E:
+                raise ValueError(f"service listing still addresses state through CS: {line.strip()}")
+    if not found:
+        raise ValueError("no assembled bytes found in service listing")
 
 
 def parse_number(value: str) -> int:
@@ -142,11 +190,20 @@ def main() -> int:
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--resident-binding", action="store_true",
                         help="check the development resident owner operands and constructor")
+    parser.add_argument("--binding-listings", nargs=3, type=Path,
+                        help="check COMMAND1, COMMAND2 and RUCODE development listings for CS overrides")
     parser.add_argument("--critical-split", action="store_true",
                         help="check the development low-entry/body/exit layout (body still low)")
     parser.add_argument("--critical-reclaim", action="store_true",
                         help="check development startup relocation of the body from HMACODE")
     args = parser.parse_args()
+    if args.binding_listings:
+        if not args.resident_binding:
+            parser.error("--binding-listings requires --resident-binding")
+        if [path.stem.upper() for path in args.binding_listings] != ["COMMAND1", "COMMAND2", "RUCODE"]:
+            parser.error("supply COMMAND1, COMMAND2 and RUCODE listings in that order")
+        for path in args.binding_listings:
+            check_code_owner_listing(path.read_text(encoding="latin-1"))
     if args.critical_reclaim:
         args.critical_split = True
     if args.resident_binding and args.critical_split:
@@ -204,8 +261,9 @@ def main() -> int:
         errors.append("cached critical-catalog pointer is not retained in low message state")
     prototype_allowance = 128 if args.critical_split else 0
     if args.resident_binding:
-        prototype_allowance = 64
+        prototype_allowance = 80
         check_resident_bindings(symbols, args.binary.read_bytes())
+        check_critical_owner_bindings(symbols, args.binary.read_bytes())
     if rounded(resident_catalog_start) > 3632 + prototype_allowance:
         errors.append(f"DOS-high permanent COMMAND exceeds its {3632 + prototype_allowance:,}-byte budget")
     if rounded(hma_code_end) > 6080 + prototype_allowance:
@@ -332,6 +390,17 @@ def main() -> int:
         print("a production budget increase or a claimed conventional-memory saving.\n")
     print(f"| **DOS-high permanent break** | `0000h..{resident_catalog_start:04X}h` | **{resident_catalog_start:,}** | **{rounded(resident_catalog_start):,} paragraph-rounded** |")
     print(f"| Low/failure fallback break | `0000h..{hma_code_end:04X}h` | {hma_code_end:,} | {rounded(hma_code_end):,} paragraph-rounded |")
+
+    low_floor, maximum_release = code_only_envelope(resident_code_end, resident_catalog_start)
+    print("\n## Whole-code relocation bound\n")
+    print(f"Moving all {resident_code_end - 0x100:,} remaining resident code bytes, "
+          f"while retaining the PSP, stack and all mutable state, leaves at least "
+          f"{low_floor:,} paragraph-rounded low bytes. The optimistic release is "
+          f"at most {maximum_release:,} bytes before new gateways, bindings or stacks.")
+    print("This assumes packed low storage with no retained code hole. Separate "
+          "environment/batch allocations are unchanged; existing high catalogs "
+          "and code earn no additional credit. This is not a linked relocated "
+          "implementation or a measured saving.")
 
     print("\n## Permanent low ownership\n")
     print("| Range | Offset | Bytes | Required lifetime |")

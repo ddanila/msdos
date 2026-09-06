@@ -15,12 +15,27 @@ DEBUG = 0				; NEED TO SET IT TO WHAT IT IS IN DOSSYM.INC
 	INCLUDE comsw.asm
 	INCLUDE comseg.asm
 	INCLUDE comequ.asm
+	INCLUDE RESBIND.INC
 	include resmsg.equ		;AN000;
 .list
 .cref
 
 
 Tokenized   =	FALSE
+
+; Both development layouts separate service code from authoritative low data.
+IFDEF COMMAND_CRITICAL_SPLIT
+COMMAND_CRITICAL_DATA_OWNER EQU 1
+ELSE
+ IFDEF COMMAND_RESIDENT_BINDING
+COMMAND_CRITICAL_DATA_OWNER EQU 1
+ ENDIF
+ENDIF
+IFDEF COMMAND_RESIDENT_BINDING
+SHELL_TEXT_STATE TEXTEQU <DS>
+ELSE
+SHELL_TEXT_STATE TEXTEQU <CS>
+ENDIF
 
 ; The development body's near calls terminate at copy-local bridges. Each
 ; bridge uses an explicit far immediate to a low wrapper, independent of DS.
@@ -178,9 +193,16 @@ ASSUME	DS:NOTHING,ES:NOTHING,SS:NOTHING
 	PUSH	AX
 	MOV	DS,BP
 	MOV	AX,[SI.SDEVATT]
+	IFDEF COMMAND_RESIDENT_BINDING
+	; The interrupted driver's DS remains live until its name is copied.
+	; Select the shell destination independently of this code's CS.
+	SHELL_OWNER_SEG ES,critical_es
+	MOV	ES:[CDEVAT],AH
+	ELSE
 	MOV	[CDEVAT],AH
 	PUSH	CS
 	POP	ES
+	ENDIF
 	MOV	DI,OFFSET RESGROUP:DEVENAM
 	MOV	CX,8
 	ADD	SI,SDEVNAME			; Suck up device name (even on Block)
@@ -190,8 +212,7 @@ ASSUME	DS:NOTHING,ES:NOTHING,SS:NOTHING
 	POP	DI				; Stack just contains DS and ES
 						;     at this point
 	INVOKE	SAVHAND
-	PUSH	CS
-	POP	DS				; Set up local data segment
+	SHELL_OWNER_SEG DS,critical_ds	; Set up authoritative shell data
 ASSUME	DS:RESGROUP
 
 	IFDEF COMMAND_CRITICAL_SPLIT
@@ -290,7 +311,7 @@ SAVMES:
 	POP	SI
 	POP	BP
 	POP	DS
-	IFDEF COMMAND_CRITICAL_SPLIT
+	IFDEF COMMAND_CRITICAL_DATA_OWNER
 	; DS was restored above; the body need not share its data segment.
 	mov	word ptr [RemMsg],di
 	mov	word ptr [RemMsg+2],es
@@ -407,12 +428,12 @@ ContOld:
 	IF	NOT Tokenized
 	MOV	AX,SI				;AN000; get reading/writing for message
 	MOV	DH,UTIL_MSG_CLASS		;AN000; this is a utility message
-	IFDEF COMMAND_CRITICAL_SPLIT
+	IFDEF COMMAND_CRITICAL_DATA_OWNER
 	PUSH	DS				; preserve the low owner across string lookup
 	ENDIF
 	CRITICAL_CALL	SYSGETMSG			;AN000; get the message
 	MOV	BX,DS				; preserve the far HMA string segment
-	IFNDEF COMMAND_CRITICAL_SPLIT
+	IFNDEF COMMAND_CRITICAL_DATA_OWNER
 	PUSH	CS
 	ENDIF
 	POP	DS				; restore resident COMMAND data access
@@ -755,12 +776,12 @@ endif
 assume	ds:resgroup
 
 in_char_xlat	proc	near
-	cmp	word ptr cs:[hma_in_char_xlat_entry+2],0
+	cmp	word ptr SHELL_TEXT_STATE:[hma_in_char_xlat_entry+2],0
 	jne	short in_char_xlat_high
 	call	hma_in_char_xlat_body
 	ret
 in_char_xlat_high:
-	call	dword ptr cs:[hma_in_char_xlat_entry]
+	call	dword ptr SHELL_TEXT_STATE:[hma_in_char_xlat_entry]
 	ret
 
 in_char_xlat	endp
@@ -818,12 +839,12 @@ ASSUME CS:RESGROUP,DS:RESGROUP
 
 ITESTKANJ:					;AN000;
 TestKanjR:					;AN000;  3/3/KK
-	cmp	word ptr cs:[hma_test_kanj_entry+2],0
+	cmp	word ptr SHELL_TEXT_STATE:[hma_test_kanj_entry+2],0
 	jne	short test_kanj_high
 	call	hma_test_kanj_body
 	ret
 test_kanj_high:
-	call	dword ptr cs:[hma_test_kanj_entry]
+	call	dword ptr SHELL_TEXT_STATE:[hma_test_kanj_entry]
 	ret
 
 CODERES ENDS

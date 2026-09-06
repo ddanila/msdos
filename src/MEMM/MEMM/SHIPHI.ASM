@@ -93,6 +93,9 @@ _DATA	ENDS
 
 LAST   SEGMENT
 ASSUME	CS:LAST,DS:DGROUP,ES:DGROUP
+IFDEF EMM_HIGH_TABLES
+        extrn TableStagingBound:near
+ENDIF
 
 ;  GDT for ROM Move Block calls
 ;
@@ -305,7 +308,11 @@ set_dest_selector	endp		; End of procedure
 ;*****************************************************************************;
 MEMREQ	    proc    near
 ;
+IFDEF EMM_HIGH_TABLES
+        push eax
+ELSE
 	push	ax
+ENDIF
 ;
 	mov	ax,seg LAST		    ; this is the last segment and
 					    ; one which is discarded.
@@ -322,9 +329,30 @@ MEMREQ	    proc    near
 	inc	cx
 	add	ax,cx			    ; complete protected-mode TEXT copy
 	add	ax,16			    ; throw in 4 more pages for safety
+IFDEF EMM_HIGH_TABLES
+        push ax
+        call TableStagingBound
+        ; Reuse the existing 16 KiB safety allowance for ordinary capacities.
+        ; Larger options reserve the excess, not a second XMS allocation.
+        sub eax,16384
+        ja MEMREQ_table_extra
+        xor eax,eax
+        jmp short MEMREQ_table_ready
+MEMREQ_table_extra:
+        add eax,1023
+        shr eax,10
+MEMREQ_table_ready:
+        mov cx,ax
+        pop ax
+        add ax,cx
+ENDIF
 	mov	cx,ax			    ; and return the size needed
 ;
+IFDEF EMM_HIGH_TABLES
+        pop eax
+ELSE
 	pop	ax
+ENDIF
 	ret
 MEMREQ	    endp
 

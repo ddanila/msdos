@@ -92,6 +92,9 @@ DOSSIZE EQU	0A000H
 	include smifssym.inc	;AN000; Reduced version of IFSSYM.INC.
 	include DEVMARK.inc	;AN004;
 	include version.inc
+IFDEF BIOS_DEFER_PROVIDER
+        include BOOTPROV.INC
+ENDIF
 .list
 
 	IF	NOT IBMJAPVER
@@ -1708,6 +1711,13 @@ GO_AHEAD_LOAD:
 	MOV	CL,12
 	SHL	DX,CL			; Low nibble of DX to high nibble
 	OR	AX,DX			; AX is now # of para for file
+IFDEF BIOS_DEFER_PROVIDER
+        push dx
+        mov dx,cs:[MEMHI]
+        add dx,ax
+        mov cs:[ProviderLoadEnd],dx
+        pop dx
+ENDIF
 
 	MOV	CX,ES			; CX:0 is xaddr
 	ADD	CX,AX			; New device will take up to here
@@ -1821,10 +1831,16 @@ Got_Device_Com:
 Got_Device_Com_Cont:			;AN017;
 	pop	si			;AN017;
 	pop	ds			;AN017;
+IFDEF BIOS_DEFER_PROVIDER
+        call ProviderOffer
+ENDIF
 	MOV	BX,SDEVSTRAT
 	invoke	CALLDEV 		;   CallDev (SDevStrat);
 	MOV	BX,SDEVINT
 	invoke	CALLDEV 		;   CallDev (SDevInt);
+IFDEF BIOS_DEFER_PROVIDER
+        call ProviderResume
+ENDIF
 End_Init_Call:
 	RestoreReg  <SI,DS>
 	MOV	BYTE PTR [SI],0 	;   *p = 0;
@@ -2024,6 +2040,240 @@ Bad_BPB_Size_Sector:
 Skip2_ResetMEMHI:
 	call	DeviceHighAbort
 	JMP	COFF
+
+IFDEF BIOS_DEFER_PROVIDER
+ProviderLoadEnd dw 0
+IFDEF PROVIDER_REBASE
+        include PROVIDERFIXUPS.INC
+ProviderMoveFailed db 0
+ENDIF
+; Only advertise to the selected character-device surface; an ordinary EMM
+; ignores the reserved bytes and completes synchronous INIT as before.
+ProviderOffer PROC NEAR
+        push ax
+        push bx
+        push ds
+        mov word ptr cs:[PACKET+BP_MAGIC_OFF],0
+        mov word ptr cs:[PACKET+BP_VERSION_OFF],0
+        mov word ptr cs:[PACKET+BP_CALLBACK_OFF],0
+        mov word ptr cs:[PACKET+BP_CALLBACK_OFF+2],0
+        cmp cs:[DeviceHighActive],0
+        jne ProviderOfferDone
+        cmp word ptr cs:[ENTRY_POINT],0
+        jne ProviderOfferDone
+        lds bx,cs:[ENTRY_POINT]
+        cmp word ptr [bx+10],4d45h
+        jne ProviderOfferDone
+        cmp word ptr [bx+12],584dh
+        jne ProviderOfferDone
+        cmp word ptr [bx+14],5858h
+        jne ProviderOfferDone
+        cmp word ptr [bx+16],3058h
+        jne ProviderOfferDone
+        mov word ptr cs:[PACKET+BP_MAGIC_OFF],BP_MAGIC
+IFDEF BIOS_PROVIDER_BAD_VERSION
+        mov word ptr cs:[PACKET+BP_VERSION_OFF],BP_VERSION+1
+ELSE
+        mov word ptr cs:[PACKET+BP_VERSION_OFF],BP_VERSION
+ENDIF
+ProviderOfferDone:
+        pop ds
+        pop bx
+        pop ax
+        ret
+ProviderOffer ENDP
+
+ProviderResume PROC NEAR
+        push ax
+        push bx
+        push cx
+        push dx
+        push es
+        test word ptr cs:[PACKET+3],8000h
+        jnz ProviderResumeDone
+        cmp word ptr cs:[PACKET+BP_MAGIC_OFF],BP_MAGIC
+        jne ProviderResumeDone
+        cmp word ptr cs:[PACKET+BP_VERSION_OFF],BP_VERSION
+        jne ProviderResumeDone
+        mov ax,word ptr cs:[PACKET+BP_CALLBACK_OFF+2]
+        or ax,ax
+        jz ProviderResumeDone
+        cmp ax,word ptr cs:[ENTRY_POINT+2]
+        jb ProviderResumeInvalid
+        mov dx,word ptr cs:[PACKET+BP_CALLBACK_OFF]
+        mov cl,4
+        shr dx,cl
+        add ax,dx
+        jc ProviderResumeInvalid
+        cmp ax,cs:[ProviderLoadEnd]
+        jae ProviderResumeInvalid
+IFDEF PROVIDER_REBASE
+        call ProviderMove
+        mov cs:[ProviderMoveFailed],0
+        jnc ProviderMoveReady
+        mov cs:[ProviderMoveFailed],1
+ProviderMoveReady:
+ENDIF
+        ; INIT and its driver interrupt wrapper have both returned. SYSINIT
+        ; owns this call frame and the original packet, not driver stack slots.
+        push cs
+        pop es
+        mov bx,offset PACKET
+IFDEF BIOS_PROVIDER_CANCEL
+        mov ax,BP_CANCEL
+ELSE
+        mov ax,BP_ACTIVATE
+ENDIF
+IFDEF PROVIDER_REBASE
+        cmp cs:[ProviderMoveFailed],0
+        je ProviderMoveOperationReady
+        mov ax,BP_CANCEL
+ProviderMoveOperationReady:
+ENDIF
+        call dword ptr cs:[PACKET+BP_CALLBACK_OFF]
+        or ax,0100h             ; standard INIT completion status
+        mov word ptr cs:[PACKET+3],ax
+        test ax,8000h
+        jz ProviderResumeSuccess
+        ; SET_BREAK uses the break, not STATUS, to recognize aborted INIT.
+        ; Do not link a cancelled provider whose initialization storage dies.
+        mov word ptr cs:[BREAK_ADDR],0
+        mov dx,cs:[MEMHI]
+        mov word ptr cs:[BREAK_ADDR+2],dx
+ProviderResumeSuccess:
+        mov dx,0e9h
+        mov al,'L'
+        out dx,al
+        mov al,'D'
+        out dx,al
+        jmp short ProviderResumeDone
+ProviderResumeInvalid:
+        mov word ptr cs:[PACKET+3],8103h
+ProviderResumeDone:
+        mov word ptr cs:[PACKET+BP_MAGIC_OFF],0
+        mov word ptr cs:[PACKET+BP_VERSION_OFF],0
+        mov word ptr cs:[PACKET+BP_CALLBACK_OFF],0
+        mov word ptr cs:[PACKET+BP_CALLBACK_OFF+2],0
+        pop es
+        pop dx
+        pop cx
+        pop bx
+        pop ax
+        ret
+ProviderResume ENDP
+IFDEF PROVIDER_REBASE
+; Fixed-image development witness. All checks precede writes. External request
+; and XMS pointers / locked physical addresses stay unchanged. Only MZ segment
+; words and SYSINIT's image/callback pointers receive the segment delta.
+ProviderMove PROC NEAR
+        push bx
+        push cx
+        push dx
+        push si
+        push di
+        push bp
+        push ds
+        push es
+        mov bp,word ptr cs:[ENTRY_POINT+2]
+        mov ax,bp
+        add ax,PROVIDER_IMAGE_PARAS
+        jc ProviderMoveBad
+        cmp ax,cs:[ProviderLoadEnd]
+        ja ProviderMoveBad
+        add ax,PROVIDER_MOVE_PARAS
+        jc ProviderMoveBad
+        cmp ax,cs:[ALLOCLIM]
+        jae ProviderMoveBad
+        mov si,offset ProviderFixups
+        mov cx,PROVIDER_FIXUP_COUNT
+ProviderMoveCheck:
+        mov di,cs:[si]
+        mov ax,cs:[si+2]
+        add ax,bp
+        mov es,ax
+        mov ax,cs:[si+4]
+        add ax,bp
+        cmp es:[di],ax
+        jne ProviderMoveBad
+        add ax,PROVIDER_MOVE_PARAS
+        jc ProviderMoveBad
+        add si,6
+        loop ProviderMoveCheck
+        ; Copy paragraphs backward to support the overlapping upward move.
+        mov bx,PROVIDER_IMAGE_PARAS
+        cld
+ProviderMoveCopy:
+        dec bx
+        mov ax,bp
+        add ax,bx
+        mov ds,ax
+        add ax,PROVIDER_MOVE_PARAS
+        mov es,ax
+        xor si,si
+        xor di,di
+        mov cx,8
+        rep movsw
+        or bx,bx
+        jnz ProviderMoveCopy
+        mov si,offset ProviderFixups
+        mov cx,PROVIDER_FIXUP_COUNT
+ProviderMoveFix:
+        mov di,cs:[si]
+        mov ax,cs:[si+2]
+        add ax,bp
+        add ax,PROVIDER_MOVE_PARAS
+        mov es,ax
+        add word ptr es:[di],PROVIDER_MOVE_PARAS
+        add si,6
+        loop ProviderMoveFix
+        add word ptr cs:[ENTRY_POINT+2],PROVIDER_MOVE_PARAS
+        add word ptr cs:[PACKET+BP_CALLBACK_OFF+2],PROVIDER_MOVE_PARAS
+        add cs:[ProviderLoadEnd],PROVIDER_MOVE_PARAS
+        ; Poison only the old-exclusive prefix, never overlapping destination.
+        mov es,bp
+        xor di,di
+        mov ax,0f4fah
+        mov cx,PROVIDER_MOVE_PARAS*8
+        rep stosw
+        mov dx,0e9h
+        mov al,'R'
+        out dx,al
+        mov al,'B'
+        out dx,al
+        mov ax,bp
+        out dx,al
+        mov al,ah
+        out dx,al
+        mov ax,word ptr cs:[ENTRY_POINT+2]
+        out dx,al
+        mov al,ah
+        out dx,al
+        mov ax,PROVIDER_IMAGE_PARAS
+        out dx,al
+        mov al,ah
+        out dx,al
+        clc
+        jmp short ProviderMoveDone
+ProviderMoveBad:
+        mov dx,0e9h
+        mov al,'R'
+        out dx,al
+        mov al,'F'
+        out dx,al
+        stc
+ProviderMoveDone:
+        pop es
+        pop ds
+        pop bp
+        pop di
+        pop si
+        pop dx
+        pop cx
+        pop bx
+        ret
+ProviderMove ENDP
+ENDIF
+ENDIF
 
 ; DOS=HIGH is known from the CONFIG pre-scan. Once repository HIMEM has
 ; completed INIT, move DOS high, copy HIMEM into the released tail, and rebase

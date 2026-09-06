@@ -38,6 +38,7 @@ page	58,132
 ;	P U B L I C S
 ;****************************************
 	public	Move_Block
+	public	Move_Block_Core
 	public	MB_Exit
 	public	MB_Stat
 	public	i15_Entry
@@ -131,6 +132,7 @@ _DATA	segment
 
 MB_Stat 	db	0		; move block status
 Toggle_st	db	0
+MB_ParityOwned db 0		; this call installed the temporary NMI vector
 
 _DATA	ends
 
@@ -182,6 +184,47 @@ _TEXT	segment
 ;
 ;*************************************************************************
 Move_Block	proc	near
+IFDEF EMM_XMS_COPY_TEST
+	cmp	dword ptr es:[si],59504358h ; private test packet: 'XCPY'
+	jne	MB_Standard_Copy
+	pushad
+	mov	bx,si
+	mov	ecx,es:[bx+4]
+	mov	esi,es:[bx+8]
+	mov	edi,es:[bx+12]
+	mov	eax,es:[bx+16] ; bit 0/1: source/destination is client-linear
+	call	XmsCopyClient
+	popad
+	mov	ah,0
+	jnc	MB_Client_Status
+	mov	ah,2
+	jmp	MB_Client_Status
+MB_Standard_Copy:
+ENDIF
+;
+; Keep the virtual INT 15h frame adapter separate from the internal copy
+; service. Protected clients do not necessarily have a VMTF at BP.
+;
+	call	Move_Block_Core
+MB_Client_Status:
+	or	[bp.VTFOE+VMTF_EFLAGS],FLAGS_ZF
+	and	[bp.VTFOE+VMTF_EFLAGS],NOT FLAGS_CY
+	or	ah,ah
+	jz	MB_Client_Return
+	and	[bp.VTFOE+VMTF_EFLAGS],NOT FLAGS_ZF
+	or	[bp.VTFOE+VMTF_EFLAGS],FLAGS_CY
+MB_Client_Return:
+	ret
+Move_Block	endp
+
+; Internal protected entry: same CX and ES:SI descriptor inputs, but no
+; virtual interrupt frame is required. AH=0/CF=0 on success; AH=status/CF=1
+; on failure. Other registers have the legacy Move_Block preservation.
+; Requires the installed EMM GDT/IDT, mappings and A20 policy. Shared scratch
+; descriptors, MB_Stat and parity ownership make this non-reentrant. This is
+; not an arbitrary-physical-memory or real/OFF-mode entry. Future XMS callers
+; must establish those mappings and transition ownership before invoking it.
+Move_Block_Core proc near
 ;
 	push	ds
 	push	es
@@ -195,6 +238,8 @@ Move_Block	proc	near
 	mov	ax,VDMD_GSEL		; get data selector
 	mov	ds,ax			; DS = DGROUP
 	mov	[MB_Stat],0		; init status of move block to OK.
+	mov	[MB_ParityOwned],0
+	mov	[Toggle_st],0
 ;
 ; check word count field
 ;
@@ -257,7 +302,8 @@ endif
 ;
 ; install NMI/parity exception handler
 ;
-	call	Set_Par_Vect	       ; restore the parity interrupt handler
+	call	Set_Par_Vect	       ; install the parity interrupt handler
+	mov	[MB_ParityOwned],1
 
 ;
 ; copy the data
@@ -319,26 +365,29 @@ MB_moved:
 	mov	ax,VDMD_GSEL		; get data selector
 	mov	ds,ax			; DS = DGROUP
 
-; restore a20 state to what it was before this routine
-;
-	test	[toggle_st],0ffh	; do we need to toggle the a20 back?
-	jz	a20_restored		; N: skip toggling
-	call	togl_a20		; Y: else toggle the A20 line
-a20_restored:
-	mov	[toggle_st],0		; clear this flag
-
 	jmp	MB_Exit
-Move_Block	endp
+Move_Block_Core endp
 
 ;*************************************************************************
 ; This is special JUMP entry point for parity handler
 ;
 MB_Exit proc	near
 ;
-;  reset NMI handler
+; Restore virtual A20 on every completion, including selector rejection and
+; the parity-handler exit. The protected continuation remains above the HMA
+; alias window; togl_a20 changes its page mappings, not the physical gate.
 ;
+	cmp	[Toggle_st],0
+	je	MB_A20_Restored
+	call	togl_a20
+	mov	[Toggle_st],0
+MB_A20_Restored:
+; Reset only the NMI handler acquired by this call.
 
-	call	Rest_Par_Vect		; restore the parity interrupt handler
+	cmp	[MB_ParityOwned],0
+	je	MB_leave		; early validation never acquired this vector
+	call	Rest_Par_Vect		; restore only this call's saved handler
+	mov	[MB_ParityOwned],0
 
 ;
 ;
@@ -349,16 +398,11 @@ MB_leave:
 	POP_EAX
 	mov	ah,[MB_Stat]
 ;
-; set client's flags to no error
+; Return ordinary status. Only the public INT 15h adapter writes VMTF flags.
 ;
-	or	[bp.VTFOE+VMTF_EFLAGS],FLAGS_ZF 	; ZF
-	and	[bp.VTFOE+VMTF_EFLAGS],NOT FLAGS_CY	; NC
-
-	or	ah,ah		;Q: error occured ?
-	jz	MB_ret		;  N: continue
-				;  Y: set error in client's flags
-	and	[bp.VTFOE+VMTF_EFLAGS],NOT FLAGS_ZF	; NZ
-	or	[bp.VTFOE+VMTF_EFLAGS],FLAGS_CY 	; CY
+	or	ah,ah
+	jz	MB_ret
+	stc
 ;
 MB_ret:
 	pop	es
@@ -366,6 +410,10 @@ MB_ret:
 	ret
 ;
 MB_Exit endp
+
+IFDEF EMM_XMS_COPY_TEST
+	include XMSCOPY.INC
+ENDIF
 
 _TEXT	ends
 

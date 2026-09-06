@@ -325,8 +325,10 @@ NAME	COMMAND
 	INCLUDE RESBIND.INC
 IFDEF COMMAND_RESIDENT_BINDING
 SHELL_EXEC_STATE TEXTEQU <DS>
+SHELL_CTRL_STATE TEXTEQU <DS>
 ELSE
 SHELL_EXEC_STATE TEXTEQU <CS>
+SHELL_CTRL_STATE TEXTEQU <CS>
 ENDIF
 .LIST
 .CREF
@@ -645,15 +647,25 @@ NOEXEC:
 ;
 CONTC	PROC	FAR
 	ASSUME	CS:ResGroup,DS:NOTHING,ES:NOTHING,SS:NOTHING
-	test	InitFlag,initINIT		; in initialization?
+	IFDEF COMMAND_RESIDENT_BINDING
+	push ds
+	SHELL_OWNER_SEG DS,contc_entry_ds
+	ENDIF
+	test	SHELL_CTRL_STATE:[InitFlag],initINIT ; in initialization?
 	jz	NotAtInit			; no
-	test	InitFlag,initSpecial		; doing special stuff?
+	test	SHELL_CTRL_STATE:[InitFlag],initSpecial ; doing special stuff?
 	jz	CmdIRet 			; no, ignore ^C
+	IFDEF COMMAND_RESIDENT_BINDING
+	pop ds
+	ENDIF
 	jmp	resgroup:init_contc_specialcase ; Yes, go handle it
 CmdIret:
+	IFDEF COMMAND_RESIDENT_BINDING
+	pop ds
+	ENDIF
 	iret					; yes, ignore the ^C
 NotAtInit:
-	test	InitFlag,initCtrlC		; are we already in a ^C?
+	test	SHELL_CTRL_STATE:[InitFlag],initCtrlC ; are we already in a ^C?
 	jz	NotInit 			; nope too.
 ;
 ; We are interrupting ourselves in this ^C handler.  We need to set carry
@@ -664,6 +676,9 @@ NotAtInit:
 	jb	CmdIRet
 	cmp	ah,12
 	ja	CmdIRet
+	IFDEF COMMAND_RESIDENT_BINDING
+	pop ds
+	ENDIF
 	add	sp,6				; remove int frame
 	stc
 	ret	2				; remove those flags...
@@ -684,10 +699,12 @@ NotAtInit:
 ; and let the DOS abort.
 ;
 NotInit:
-	or	InitFlag,initCtrlC		; nested ^c is on
+	or	SHELL_CTRL_STATE:[InitFlag],initCtrlC ; nested ^c is on
+	IFDEF COMMAND_RESIDENT_BINDING
+	pop ds
+	ENDIF
 	STI
-	PUSH	CS				; El Yucko!  Change the user's DS!!
-	POP	DS
+	SHELL_OWNER_SEG DS,contc_body_ds
 ASSUME	DS:RESGROUP
 	MOV	DISP_CLASS,UTIL_MSG_CLASS	;AN055; reset display class
 	MOV	NUMBER_SUBST,NO_SUBST		;AN055; reset number of substitutions
@@ -790,12 +807,19 @@ public	ResPipeOff
 	assume	ds:nothing,es:nothing
 ResPipeOff:
 	SaveReg <AX>
+	IFDEF COMMAND_RESIDENT_BINDING
+	push ds
+	SHELL_OWNER_SEG DS,pipeoff_ds
+	ENDIF
 	xor	ax,ax
-	xchg	PipeFlag,al
+	xchg	SHELL_CTRL_STATE:[PipeFlag],al
 	or	al,al
 	jz	NoPipePop
-	shr	EchoFlag,1
+	shr	SHELL_CTRL_STATE:[EchoFlag],1
 NoPipePop:
+	IFDEF COMMAND_RESIDENT_BINDING
+	pop ds
+	ENDIF
 	RestoreReg  <AX>
 	return
 CODERES ENDS

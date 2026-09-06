@@ -122,10 +122,39 @@ start:
     jmp exit_guest
 
 move_block:
+    ; The public descriptor is a real-mode far pointer, not a code-relative
+    ; offset or a protected selector. Keep its segment distinct from CS and
+    ; its offset nonzero so a future high backend must translate both parts.
+    push cs
+    pop ds
+    mov ax, cs
+    add ax, DESCRIPTOR_ADDRESS >> 4
+    mov es, ax
+    mov di, DESCRIPTOR_ADDRESS & 15
     mov si, move_request
+    mov cx, 8
+    cld
+    rep movsw
+%ifdef WRONG_DESCRIPTOR
+    ; Only the external copy is invalid; using the original would falsely pass.
+    or byte [es:DESCRIPTOR_ADDRESS & 15], 1
+%endif
+    mov si, DESCRIPTOR_ADDRESS & 15
+    push es
+    pop ds
     mov ah, 0bh
-    call far [xms]
+    call far [cs:xms]
+    push ds
+    pop dx
+    push cs
+    pop ds
     cmp ax, 1
+    jne failed
+    mov ax, cs
+    add ax, DESCRIPTOR_ADDRESS >> 4
+    cmp dx, ax
+    jne failed
+    cmp si, DESCRIPTOR_ADDRESS & 15
     jne failed
     ret
 
@@ -169,3 +198,7 @@ signature db 'MICROSOFT EXPANDED MEMORY MANAGER 386'
 signature_end:
 passed db 'XMS_EMM_MODE_PASS',13,10,'$'
 failure db 'XMS_EMM_MODE_FAIL',13,10,'$'
+align 16
+    times 7 db 0
+descriptor_storage times 16 db 0
+DESCRIPTOR_ADDRESS equ descriptor_storage - $$ + 100h

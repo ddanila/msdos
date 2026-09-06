@@ -269,8 +269,28 @@ test-drdos-capture:
 	python3 tests/test_uma_topology.py
 
 .PHONY: test-emm-init-phases
+.PHONY: test-move-block-abi-qemu
+test-move-block-abi-qemu:
+	python3 tests/test_move_block_abi_qemu.py
+
+.PHONY: test-move-block-cleanup-qemu
+test-move-block-cleanup-qemu: memm
+	python3 tests/test_move_block_cleanup_qemu.py
+	python3 tests/test_move_block_cleanup_qemu.py --a20-off
+
+.PHONY: test-xms-copy-windows-qemu
+test-xms-copy-windows-qemu:
+	python3 tests/test_xms_copy_windows_qemu.py
+	python3 tests/test_xms_copy_windows_qemu.py --fail-after-map
+	python3 tests/test_xms_copy_windows_qemu.py --mapped
+
+.PHONY: test-emm-xms-owner-qemu
+test-emm-xms-owner-qemu:
+	python3 tests/test_emm_xms_owner_qemu.py
+
 test-emm-init-phases:
 	python3 tests/test_emm_init_phases.py
+	python3 tests/test_emm_loader_rebase.py
 
 .PHONY: test-dos-sda-qemu
 test-dos-sda-qemu: dos
@@ -399,6 +419,7 @@ test-bios-high-rom-qemu: deploy
 	bash tests/test_bios_high_rom_qemu.sh
 
 test-command-residency: cmd_command
+	python3 tests/test_command_layout_envelope.py
 	python3 tests/report_command_residency.py --check \
 		src/CMD/COMMAND/COMMAND.MAP src/CMD/COMMAND/COMMAND.COM
 
@@ -710,6 +731,7 @@ test-command-int2e-owner-qemu: deploy
 .PHONY: test-command-resident-binding-qemu
 test-command-resident-binding-qemu: deploy
 	python3 tests/test_command_resident_bindings.py
+	python3 tests/test_command_contc_entry_qemu.py
 	bash tests/test_command_resident_binding_qemu.sh
 
 test-command-step-qemu: deploy

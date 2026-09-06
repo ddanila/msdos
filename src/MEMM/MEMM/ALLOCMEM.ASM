@@ -201,7 +201,14 @@ AllocMem	proc	near
 	push	es
 
 	call	XMSAlloc
-	jnc	AM_exit			; XMS is the single extended-memory owner
+	jc	AM_getmem
+	test	[msg_flag],MEM_ERR_MSG
+	jnz	AM_exit
+	; XMS owns extended backing, but the initial map must also describe the
+	; conventional windows already occupied by DOS. SysAlloc counts them for
+	; EMM_Init's reserved handle zero; it does not allocate another XMS pool.
+	call	SysAlloc
+	jmp	AM_exit
 
 ;
 ; 1. Check available hi/extended memory
@@ -242,7 +249,9 @@ AM_exit:
 AllocMem	endp				; End of procedure
 
 ; Allocate and permanently lock the EMM backing pool through an installed XMS
-; manager. The historical INT 15h allocator remains the carry-set fallback.
+; manager. Carry permits the historical INT 15h allocator only when no XMS
+; provider exists. A present provider's failure is terminal: do not establish
+; a second allocator over memory it already owns.
 XMSAlloc proc near
 	push	ax
 	push	bx
@@ -253,7 +262,8 @@ XMSAlloc proc near
 	int	2fh
 	cmp	al,80h
 	je	short XA_have_xms
-	jmp	XA_fail
+	stc
+	jmp	XA_done
 XA_have_xms:
 	mov	ax,4310h
 	int	2fh
@@ -284,7 +294,7 @@ XA_allocate:
 	mov	ah,09h
 	call	dword ptr [xms_entry]
 	or	ax,ax
-	jz	short XA_fail
+	jz	short XA_reserve_fail
 	mov	[xms_handle],dx
 	mov	ah,0ch
 	call	dword ptr [xms_entry]
@@ -322,9 +332,6 @@ XA_release:
 	mov	ah,0ah
 	call	dword ptr [xms_entry]
 	mov	[xms_handle],0
-XA_fail:
-	stc
-	jmp	short XA_done
 XA_reserve_fail:
 	or	[msg_flag],MEM_ERR_MSG
 	clc

@@ -79,12 +79,71 @@ TRUE		equ	not FALSE
 CR		equ	0dh
 LF		equ	0ah
 
+; Table offsets never escape this owner. Preserve the caller's DS/ES/FS/GS,
+; flags and registers while selecting the authoritative protected data owner.
+TABLE_LOAD MACRO op, dest, source, width
+IFDEF EMM_HIGH_TABLES
+        push gs
+        push word ptr [TableSelector]
+        pop gs
+        IFB <width>
+        op dest,gs:source
+        ELSE
+        op dest,width ptr gs:source
+        ENDIF
+        pop gs
+ELSE
+        IFB <width>
+        op dest,source
+        ELSE
+        op dest,width ptr source
+        ENDIF
+ENDIF
+ENDM
+TABLE_STORE MACRO op, dest, source, width
+IFDEF EMM_HIGH_TABLES
+        push gs
+        push word ptr [TableSelector]
+        pop gs
+        IFB <width>
+        op gs:dest,source
+        ELSE
+        op width ptr gs:dest,source
+        ENDIF
+        pop gs
+ELSE
+        IFB <width>
+        op dest,source
+        ELSE
+        op width ptr dest,source
+        ENDIF
+ENDIF
+ENDM
+
 	page
+TABLE_SET_ES MACRO
+IFDEF EMM_HIGH_TABLES
+        push word ptr [TableSelector]
+ELSE
+        push ds
+ENDIF
+        pop es
+ENDM
+TABLE_SET_DS MACRO
+IFDEF EMM_HIGH_TABLES
+        push word ptr [TableSelector]
+        pop ds
+ENDIF
+ENDM
 ;******************************************************************************
 ;	E X T E R N A L   R E F E R E N C E S
 ;******************************************************************************
 
 _DATA	SEGMENT
+IFDEF EMM_HIGH_TABLES
+        public TableSelector
+TableSelector dw VDMD_GSEL            ; explicit low fallback until publication
+ENDIF
 ;
 ;  pointer to entry stack frame
 ;	stored as offset, SS
@@ -425,6 +484,10 @@ PageDestination:
 PageDestinationAllocated:
         add di,[_emm_page]
 PageCopyReady:
+IFDEF EMM_HIGH_TABLES
+        push ds
+        TABLE_SET_DS
+ENDIF
         push ds
         pop es
         mov cx,[bp+8]
@@ -443,6 +506,9 @@ PageCopyForward:
 PageCopyDone:
         cld
         xor ax,ax
+IFDEF EMM_HIGH_TABLES
+        pop ds
+ENDIF
         pop es
         pop di
         pop si
@@ -457,7 +523,7 @@ ReadPageEntry proc near
         mov si,ax
         shl si,1
         add si,[_emm_page]
-        mov ax,[si]
+        TABLE_LOAD mov, ax, [si]
         pop si
         ret
 ReadPageEntry endp
@@ -470,7 +536,7 @@ ReadPftEntry proc near
         mov si,ax
         shl si,2
         add si,[_pft386]
-        mov eax,[si]
+        TABLE_LOAD mov, eax, [si]
         pop si
         ret
 ReadPftEntry endp
@@ -495,10 +561,10 @@ _SwapPft proc near
         shl di,2
         add si,[_pft386]
         add di,[_pft386]
-        mov eax,[si]
-        mov edx,[di]
-        mov [si],edx
-        mov [di],eax
+        TABLE_LOAD mov, eax, [si]
+        TABLE_LOAD mov, edx, [di]
+        TABLE_STORE mov, [si], edx
+        TABLE_STORE mov, [di], eax
         mov edx,eax
         shr edx,16
         pop di
@@ -516,7 +582,7 @@ _SwapPft endp
 ReadWindowIndex proc near
         push si
         mov si,[_mappable_pages]
-        movzx bx,byte ptr [bx+si]
+        TABLE_LOAD movzx, bx, [bx+si], byte
         pop si
         ret
 ReadWindowIndex endp
@@ -530,7 +596,7 @@ ReadCurrentMapEntry proc near
         mov di,ax
         shl di,1
         add di,word ptr [CurRegSet]
-        mov ax,[di.FRS_window]
+        TABLE_LOAD mov, ax, [di.FRS_window]
         pop di
         ret
 ReadCurrentMapEntry endp
@@ -539,7 +605,7 @@ WriteCurrentMapEntry proc near
         mov di,bx
         shl di,1
         add di,word ptr [CurRegSet]
-        mov [di.FRS_window],cx
+        TABLE_STORE mov, [di.FRS_window], cx
         pop di
         ret
 WriteCurrentMapEntry endp
@@ -552,8 +618,15 @@ ReadCurrentMap proc near
         push cx
         mov si,word ptr [CurRegSet]
         add si,FRS_window
+IFDEF EMM_HIGH_TABLES
+        push ds
+        TABLE_SET_DS
+ENDIF
         cld
         rep movsw
+IFDEF EMM_HIGH_TABLES
+        pop ds
+ENDIF
         pop cx
         pop si
         ret
@@ -568,8 +641,7 @@ WriteCurrentMapFromFS proc near
         push di
         mov di,word ptr [CurRegSet]
         add di,FRS_window
-        push ds
-        pop es
+        TABLE_SET_ES
         push fs
         pop ds
         cld
@@ -586,7 +658,7 @@ WriteCurrentMapFromFS endp
 ReadScratchMapPair proc near
         push bx
         mov bx,word ptr [CurRegSet]
-        mov esi,dword ptr [bx.FRS_window]
+        TABLE_LOAD mov, esi, [bx.FRS_window], dword
         rol esi,16
         pop bx
         ret
@@ -595,7 +667,7 @@ WriteScratchMapPair proc near
         push bx
         mov bx,word ptr [CurRegSet]
         ror esi,16
-        mov dword ptr [bx.FRS_window],esi
+        TABLE_STORE mov, [bx.FRS_window], esi, dword
         pop bx
         ret
 WriteScratchMapPair endp
@@ -610,7 +682,7 @@ FindRegisterSet proc near
         dec ax
         imul si,ax
         add si,[FRS_array]
-        cmp byte ptr [si.FRS_alloc],0
+        TABLE_STORE cmp, [si.FRS_alloc], 0, byte
         je short RegisterSetMissing
         clc
         ret
@@ -651,7 +723,7 @@ AllocateRegisterSet proc near
         mov di,[FRS_array]
         xor bl,bl
 AllocateRegisterSearch:
-        cmp byte ptr [di.FRS_alloc],0
+        TABLE_STORE cmp, [di.FRS_alloc], 0, byte
         je short AllocateRegisterFound
         movzx ax,[_cntxt_bytes]
         dec ax
@@ -662,11 +734,10 @@ AllocateRegisterSearch:
         mov ah,EMM_SW_MALFUNCTION
         jmp short AllocateRegisterDone
 AllocateRegisterFound:
-        mov byte ptr [di.FRS_alloc],1
+        TABLE_STORE mov, [di.FRS_alloc], 1, byte
         dec [FRS_free]
         add di,FRS_window
-        push ds
-        pop es
+        TABLE_SET_ES
         movzx cx,[_cntxt_pages]
         call ReadCurrentMap
         xor ax,ax
@@ -691,7 +762,7 @@ ReleaseRegisterSet proc near
         je short ReleaseRegisterInvalid
         call FindRegisterSet
         jc short ReleaseRegisterInvalid
-        mov byte ptr [si.FRS_alloc],0
+        TABLE_STORE mov, [si.FRS_alloc], 0, byte
         inc [FRS_free]
         xor ax,ax
         jmp short ReleaseRegisterDone
@@ -707,8 +778,7 @@ ReleaseRegisterSet endp
 SaveCurrentFrame proc near
         push es
         push di
-        push ds
-        pop es
+        TABLE_SET_ES
         mov di,word ptr [CurRegSet]
         add di,FRS_window
         call WriteSavedMap
@@ -731,7 +801,7 @@ physical_to_external_id proc near
         mov cl,[_physical_page_exception_count]
 physical_external_explicit_loop:
         jcxz short physical_external_implicit
-        cmp dl,[si]
+        TABLE_LOAD cmp, dl, [si]
         je short physical_external_explicit
         add si,2
         loop physical_external_explicit_loop
@@ -742,7 +812,7 @@ physical_external_implicit:
         mov cl,[_physical_page_exception_count]
 physical_external_internal_rank:
         jcxz short physical_external_first_candidate
-        cmp [si],dl
+        TABLE_STORE cmp, [si], dl
         jae short physical_external_internal_next
         dec bl
 physical_external_internal_next:
@@ -756,7 +826,7 @@ physical_external_candidate:
         mov cl,[_physical_page_exception_count]
 physical_external_reserved_loop:
         jcxz short physical_external_candidate_free
-        cmp al,[si+1]
+        TABLE_LOAD cmp, al, [si+1]
         je short physical_external_candidate_used
         add si,2
         loop physical_external_reserved_loop
@@ -768,7 +838,7 @@ physical_external_candidate_used:
         inc al
         jmp short physical_external_candidate
 physical_external_explicit:
-        mov al,[si+1]
+        TABLE_LOAD mov, al, [si+1]
 physical_external_done:
         pop si
         pop dx
@@ -783,7 +853,7 @@ _ReadDMAEntry proc near
         mov si,[bp+4]
         shl si,1
         add si,[_DMA_Pages]
-        mov ax,[si]
+        TABLE_LOAD mov, ax, [si]
         pop si
         pop bp
         ret
@@ -796,7 +866,7 @@ _WriteDMAEntry proc near
         shl si,1
         add si,[_DMA_Pages]
         mov ax,[bp+6]
-        mov [si],ax
+        TABLE_STORE mov, [si], ax
         pop si
         pop bp
         ret
@@ -808,7 +878,7 @@ _ReadWindowEntry proc near
         mov si,[bp+4]
         add si,[_mappable_pages]
         xor ax,ax
-        mov al,[si]
+        TABLE_LOAD mov, al, [si]
         pop si
         pop bp
         ret
@@ -825,7 +895,7 @@ CheckHandleDX proc near
         mov si,dx
         shl si,2
         add si,[_handle_table]
-        cmp word ptr [si.ht_index],NULL_PAGE
+        TABLE_STORE cmp, [si.ht_index], NULL_PAGE, word
         je short HandleDXInvalid
         pop si
         clc
@@ -842,7 +912,7 @@ ReadHandleIndex proc near
         mov si,ax
         shl si,2
         add si,[_handle_table]
-        mov ax,[si.ht_index]
+        TABLE_LOAD mov, ax, [si.ht_index]
         pop si
         ret
 ReadHandleIndex endp
@@ -851,7 +921,7 @@ ReadHandleCount proc near
         mov si,ax
         shl si,2
         add si,[_handle_table]
-        mov ax,[si.ht_count]
+        TABLE_LOAD mov, ax, [si.ht_count]
         pop si
         ret
 ReadHandleCount endp
@@ -906,11 +976,11 @@ HandleField:
 HandleFieldSelected:
         test cx,4
         jnz short HandleFieldWrite
-        mov ax,[si]
+        TABLE_LOAD mov, ax, [si]
         jmp short HandleFieldDone
 HandleFieldWrite:
         mov ax,[bp+6]
-        mov [si],ax
+        TABLE_STORE mov, [si], ax
 HandleFieldDone:
         pop si
         pop bp
@@ -967,8 +1037,7 @@ HandleNameAccess:
         mov si,[bp+4]
         shl si,3
         add si,[_Handle_Name_Table]
-        push ds
-        pop es
+        TABLE_SET_ES
         cld
         mov cx,8
         cmp bx,3
@@ -978,6 +1047,7 @@ HandleNameAccess:
         or bx,bx
         jnz short HandleNameWrite
         les di,[bp+6]
+        TABLE_SET_DS
         rep movsb
         jmp short HandleNameDone
 HandleNameWrite:
@@ -991,7 +1061,12 @@ HandleNameClear:
         rep stosb
         jmp short HandleNameDone
 HandleNameCompare:
+IFDEF EMM_HIGH_TABLES
+        mov di,si
+        mov si,[bp+6]
+ELSE
         mov di,[bp+6]
+ENDIF
         xor ax,ax
         repe cmpsb
         jne short HandleNameExit
@@ -1019,7 +1094,7 @@ PeekSavedMap proc near
         mov si,ax
         shl si,3
         add si,[_save_map]
-        mov bx,[si]
+        TABLE_LOAD mov, bx, [si]
         pop si
         ret
 PeekSavedMap endp
@@ -1043,7 +1118,7 @@ ClearSavedMap proc near
         mov si,ax
         shl si,3
         add si,[_save_map]
-        mov word ptr [si],NULL_SAVE_MAP
+        TABLE_STORE mov, [si], NULL_SAVE_MAP, word
         pop si
         ret
 ClearSavedMap endp
@@ -1055,8 +1130,15 @@ ReadSavedMap proc near
         shl si,3
         add si,[_save_map]
         mov cx,4
+IFDEF EMM_HIGH_TABLES
+        push ds
+        TABLE_SET_DS
+ENDIF
         cld
         rep movsw
+IFDEF EMM_HIGH_TABLES
+        pop ds
+ENDIF
         pop cx
         pop di
         pop si
@@ -1073,8 +1155,7 @@ WriteSavedMap proc near
         shl di,3
         add di,[_save_map]
         push es
-        push ds
-        pop es
+        TABLE_SET_ES
         pop ds
         mov cx,4
         cld
