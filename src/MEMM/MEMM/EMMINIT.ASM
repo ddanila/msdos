@@ -340,6 +340,20 @@ TableStagingBound PROC NEAR
         imul edx,129
         add eax,edx
         add eax,64
+        ; MEMREQ runs before SysAlloc adds conventional handle-zero pages to
+        ; pool_size. Budget up to the rounded BIOS conventional extent, then
+        ; subtract pages already included when called after SysAlloc.
+        push eax
+        int 12h
+        movzx edx,ax
+        add edx,15
+        and edx,0fffffff0h
+        shr edx,1
+        pop eax
+        add eax,edx
+        movzx edx,[sys_size]
+        shr edx,1
+        sub eax,edx
         pop edx
         ret
 TableStagingBound ENDP

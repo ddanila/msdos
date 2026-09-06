@@ -64,16 +64,16 @@ def main():
     (work / "qemu.log").write_bytes(result.stdout)
     if result.returncode != 33:
         raise ValueError(f"probe did not finish: QEMU exit {result.returncode}")
-    records = list(struct.iter_unpack("<2s9H", debug.read_bytes()))
-    # id, message, retained handle, allocation/lock/unlock/free/pool/fallback counts
+    records = list(struct.iter_unpack("<2s10H", debug.read_bytes()))
+    # id, message, handle, allocation/lock/unlock/free/pool/fallback/system counts
     expected = [
-        (0, 0, 0, 0, 0, 0, 0, 0, 1),
-        (1, 0, 0x1234, 1, 1, 0, 0, 1, 0),
-        (2, 4, 0, 1, 0, 0, 0, 0, 0),
-        (3, 4, 0, 1, 1, 0, 1, 0, 0),
-        (4, 4, 0, 1, 1, 1, 1, 0, 0),
-        (5, 4, 0, 0, 0, 0, 0, 0, 0),
-        (6, 4, 0, 0, 0, 0, 0, 0, 0),
+        (0, 0, 0, 0, 0, 0, 0, 0, 1, 1),
+        (1, 0, 0x1234, 1, 1, 0, 0, 1, 0, 1),
+        (2, 4, 0, 1, 0, 0, 0, 0, 0, 0),
+        (3, 4, 0, 1, 1, 0, 1, 0, 0, 0),
+        (4, 4, 0, 1, 1, 1, 1, 0, 0, 0),
+        (5, 4, 0, 0, 0, 0, 0, 0, 0, 0),
+        (6, 4, 0, 0, 0, 0, 0, 0, 0, 0),
     ]
     actual = [row[1:] for row in records if row[0] == b"XA"]
     if len(records) != 7 or actual != expected:

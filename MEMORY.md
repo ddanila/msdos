@@ -12,8 +12,14 @@ UMB mapping and high CDS) leaves **617,984 conventional bytes and 49,680 free
 UMB bytes**. Retail leaves 618,736 and 47,888: the remaining conventional gap
 is **752 bytes**, with **1,792 bytes of UMB margin**. This is not production
 promotion. The 616,112-byte figures below identify the preceding high-CDS
-baseline, before the complete table move; their component ledgers must not be
+baseline, before the complete table move and conventional-map repair; their component ledgers must not be
 mixed with the new result.
+
+The conventional-map repair adds 192 bytes to low EMM tables: the corrected
+high-CDS/low-table control leaves 615,920 conventional bytes. The complete
+high-table fixture remains at 617,984, so its matched low-span release is now
+2,064 bytes. This is a correctness cost moved high, not an additional gain in
+the selected high-table fixture.
 
 The DR-DOS reassessment changes the implementation criterion: justify every
 remaining low owner and design its complete high service, rather than treating
@@ -363,7 +369,7 @@ It fails for the intended fallback calls in `out/emm-xms-owner-v0sifo48/`.
 Fresh high-table ON/OFF/AUTO/RAM boots pass in `out/emm-init-phases-jlhkqc0q/`,
 retaining the same 2,016-byte EMM low spans. That ON image also passes the full
 EMM API/runtime-command suite with its no-HIMEM configuration, preserving the
-legitimate absent-provider path. The new normal EMM386 SHA-256 is
+legitimate absent-provider path. At that checkpoint, normal EMM386 SHA-256 was
 `f2bae80311506fd54394e8f567a7a324d988575e3c80a736ac126e0269cafa96`;
 earlier byte-identity claims refer to their recorded pre-correction snapshots.
 
@@ -2191,21 +2197,63 @@ not a new fixed-VC saving or qualification of all handle operations. Evidence:
 `out/emm-init-phases-2f8_z6wb/` (high), `out/emm-init-phases-tp27pa_y/` (low),
 and `out/emm-init-phases-cc7bgvrb/` (H=2/A=0 edge, all four modes).
 
-**Open failure:** `--switch-altregs` additionally selects each allocated set
-and restores set zero. Both low/high H=255/A=254 builds reach the probe's
-success record but do not finish the following QEXIT command; H=2/A=0 also
-fails after selecting set zero. Restoring the probe's ES does not resolve it.
-Raw failing ON boots are in `out/emm-init-phases-oig84nu7/`,
-`out/emm-init-phases-pxo2mkdt/` and `out/emm-init-phases-7dovsagk/` respectively.
-This is not proven to be a relocation regression. Investigate `_set_windows`
-and `unmap_page`: the latter marks conventional windows not-present when
-restoring unmapped entries. Capture the affected PTEs and subsequent execution
-before deciding the fix; the source path is a lead, not established causation.
+**Conventional-map repair:** `--switch-altregs` additionally selects each
+allocated set and restores set zero. The original low/high builds reached the
+probe's success record but failed to execute QEXIT afterward, including A=0.
+An emulator inspection of the failing A=0 image recorded CR2=`00093EE0h` and
+CR3=`00151000h`; PDE zero points at `00152000h`. PTEs for `90000h..9FFFFh`
+contained repeating `00000000h,00001000h,00002000h,00003000h`: all not-present.
+
+`AllocMem` returned immediately after successful XMS allocation, skipping
+`SysAlloc`. Consequently `sys_size` remained zero, and EMM_Init left ordinary
+conventional windows as NULL_PAGE instead of recording their native mappings
+in reserved handle zero. Selecting that context made the still-DOS-owned
+conventional pages inaccessible. The correction calls SysAlloc on successful
+XMS backing, but not on provider failure. It counts/reserves native conventional
+mappings; it does not allocate a second extended-memory pool.
+
+Explicit unmapping is unchanged. The [LIM EMS 4.0 specification, functions 5
+and 17](https://www.phatcode.net/res/218/files/limems40.txt) defines FFFFh
+unmapping as making a window inaccessible. An experimental identity-map change
+made the probe return but was rejected because it changed that contract.
+The initial context must be correct instead. The probe now also requires
+nonempty handle-zero mappings in this fixed B=4000 profile before switching.
+
+All four modes pass switching/exhaustion/reuse after the repair for high
+H=255/A=254 (`out/emm-init-phases-75iof83y/`) and the low-table control
+(`out/emm-init-phases-hbl3_rmq/`); the latter predates only the conservative
+high-table reservation-bound adjustment. The repaired high table grows by 192
+bytes (22,028 in ON/OFF/AUTO, 19,985 in RAM) while retaining 2,016 low bytes.
+The early bound includes conventional mapping records before SysAlloc runs,
+subtracting the already-counted records when evaluated afterward.
+The strengthened handle-zero/A=0 probe passes all modes in
+`out/emm-init-phases-v_i1d12o/`. The seven-case allocator witness now also
+requires SysAlloc exactly once on either successful backing path and never
+after provider failure (`out/emm-xms-owner-6ji377br/`).
+
+The corrected composition passes in `out/umb-fine-composition-8twlf0p_/`:
+613,616 coarse/fine, 615,920 high-CDS/low-table and 617,984 high-table
+conventional bytes; the selected fixture still has 49,680 free UMB bytes.
+Its combined high-CDS warm-reset and low/upper file-I/O probe passes in
+`out/bios-low-boot-o41zbhhq/`. The full EMM API/runtime-command suite passes
+both without HIMEM and with `EMM386_WITH_HIMEM=1`; use the latter to qualify
+the corrected XMS-backed path explicitly:
+
+```sh
+FLOPPY_IMAGE=out/emm-init-phases-v_i1d12o/ON.img EMM386_WITH_HIMEM=1 \
+  bash tests/test_emm386_qemu.sh
+```
+
+Normal EMM386 SHA-256 after this repair is
+`c535dbcf14ab1f8f4b3f0eea6b673fea39c88a426cfc0ec777d77426a0e4a567`.
+Full handle-capacity operations, general staging and other promotion gates
+remain open. Original failing images remain in `out/emm-init-phases-oig84nu7/`,
+`out/emm-init-phases-pxo2mkdt/` and `out/emm-init-phases-7dovsagk/`.
 
 ```sh
 python3 tests/capture_emm_init_phases.py out/setver-native-audit.BAEqDU/low.img \
   --high-tables --handles 255 --altregs 254
-# Separate, currently failing switching/return gate:
+# Switching/return gate, including reserved handle-zero mappings:
 python3 tests/capture_emm_init_phases.py out/setver-native-audit.BAEqDU/low.img \
   --high-tables --handles 2 --altregs 0 --switch-altregs
 ```

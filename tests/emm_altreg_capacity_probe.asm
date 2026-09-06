@@ -1,6 +1,17 @@
 ; Exercise every requested alternate register set through the public EMS API.
 bits 16
 org 100h
+%ifdef SWITCH_SETS
+    ; This fixed B=4000 profile has bankable conventional RAM. Its initial
+    ; identity mappings must be reserved in handle zero, not NULL_PAGE slots.
+    xor dx,dx
+    mov ah,4ch
+    int 67h
+    test ah,ah
+    jnz failed
+    test bx,bx
+    jz failed
+%endif
     xor si,si
 allocate:
     cmp si,ALTREGS

@@ -131,6 +131,7 @@ ExtAlloc proc near
         ret
 ExtAlloc endp
 SysAlloc proc near
+        inc [system_calls]
         ret
 SysAlloc endp
 
@@ -156,5 +157,6 @@ unlock_calls dw 0
 free_calls dw 0
 pool_calls dw 0
 fallback_calls dw 0
+system_calls dw 0
 record_end label byte
 end start

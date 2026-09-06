@@ -201,7 +201,14 @@ AllocMem	proc	near
 	push	es
 
 	call	XMSAlloc
-	jnc	AM_exit			; XMS is the single extended-memory owner
+	jc	AM_getmem
+	test	[msg_flag],MEM_ERR_MSG
+	jnz	AM_exit
+	; XMS owns extended backing, but the initial map must also describe the
+	; conventional windows already occupied by DOS. SysAlloc counts them for
+	; EMM_Init's reserved handle zero; it does not allocate another XMS pool.
+	call	SysAlloc
+	jmp	AM_exit
 
 ;
 ; 1. Check available hi/extended memory
