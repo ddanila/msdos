@@ -33,6 +33,15 @@ class HmaBudgetTests(unittest.TestCase):
         self.assertEqual(rows[-2][1:], (0xEEAA, 0xFFF0))
         self.assertEqual(rows[-2][2] - rows[-2][1], 4422)
 
+    def test_pipeline_state_shared_budget_and_low_inventory(self):
+        rows = hma_layout(0x9D60, 7988, 7744, 5207)
+        self.assertEqual(rows[-2][1:], (0xEF2B, 0xFFF0))
+        symbols = dict(RES_CODE_END=0x1484, resmsgend=0x3DD,
+                       resident_catalog_start=0x4C3, shell_high_active=0x16B)
+        self.assertEqual(self.whole_inventory(bios_low=3232, command_data_start=0x220,
+                                              command_symbols=symbols, hma_tail=4293),
+                         [3232, 288, 675, 98])
+
     def test_whole_inventory_excludes_shell_stack_and_psp(self):
         # Growing only the excluded stack shifts the data and break together.
         symbols = dict(RES_CODE_END=0xA93, resmsgend=0xD52,

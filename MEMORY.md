@@ -15,14 +15,14 @@ COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
 The current **BIOS + whole-shell service retirement candidate** measures
-**622,160 conventional / 49,680 free UMB bytes**: **2,288 conventional bytes
+**622,272 conventional / 49,680 free UMB bytes**: **2,400 conventional bytes
 recovered** versus the identical BIOS/provider composition with normal COMMAND,
-**4,224 above the selected development control**, and **3,424 above retail**.
+**4,336 above the selected development control**, and **3,536 above retail**.
 Application XMS remains **6,798,336 bytes** (5,120 below the development control);
 the shell move adds no UMB or XMS cost. This is an opt-in experimental layout,
 not production promotion.
 
-COMMAND's permanent low allocation falls from **3,632 to 1,344 bytes**.
+COMMAND's permanent low allocation falls from **3,632 to 1,232 bytes**.
 The complete 2,623-byte linked service body follows the low data/catalog segment,
 is copied once, then its old range is released together with the catalog and
 previous message-code fallback. The checked build poisons the old service before
@@ -32,33 +32,54 @@ Disk-message lookup uses the retained data segment, not relocated CS. Low
 interrupt-return wrappers restore A20 before returning to the high service;
 unsupported-provider, DOS-low, child and /MSG layouts retain their low fallback.
 
-The current shared HMA budget is **40,272 DOS + 7,744 BIOS + 7,988 buffers +
-5,078 COMMAND = 61,082 bytes**, leaving **4,422 bytes** at `EEAAh..FFF0h`.
-The shell charge includes its previous 2,447-byte owner, eight binding-fallback
-bytes and the 2,623-byte service; do not add
-that owner again or reuse the preceding 7,053-byte remainder.
+The complete 129-byte pipeline command-text buffer now joins the high owner.
+Its two transient consumers use one far binding; DOS-facing filenames, PSP and
+EXEC parameters remain low. There is no retained low text mirror. This recovers
+another **112 conventional bytes** beyond service retirement's 1,344-byte low
+allocation, after charging the new four-byte binding and paragraph rounding.
+The remaining low state is **675 bytes**, not the original 800.
 
-Evidence: `out/command-high-retirement-79nhzn8t/`. The paired fresh captures
+The current shared HMA budget is **40,272 DOS + 7,744 BIOS + 7,988 buffers +
+5,207 COMMAND = 61,211 bytes**, leaving **4,293 bytes** at `EF2Bh..FFF0h`.
+The shell charge includes its previous 2,447-byte owner, eight binding-fallback
+bytes, the 2,623-byte service and 129-byte pipeline text; do not add
+those owners again or reuse the preceding 7,053/4,422-byte remainders.
+
+Evidence: `out/command-high-retirement-skt2h38k/`. The paired fresh captures
 change only COMMAND; CONFIG.SYS, AUTOEXEC.BAT, BIOS, DOS, managers and VC are
 checked unchanged. Local tests cover poisoned high startup/critical errors,
 DOS-low fallback, child and /MSG startup, INT 2Eh internal/external execution,
 and LOADHIGH regions/minima/shrinking/fallback/restoration with DOS=HIGH.
-Guest checks verify all 13 gate destinations and the exact low MCB boundary
+Guest checks verify all 13 gate destinations, the pipeline far binding and the exact low MCB boundary
 before and after execution; wrong-stack negative controls must fail. Linked
 checks reject relative branches escaping the copied service. Default COMMAND
-remains byte-identical; the prior binding regression and 37 binding/HMA-budget
-unit tests also pass. Reproduce with:
+remains byte-identical; the prior binding regression and 38 binding/HMA-budget
+unit tests also pass. Pipeline tests overwrite all extra conventional allocation
+in seven external filter executions, check exact output through up to three
+filters and a child shell, and exercise both DOS-high and DOS-low layouts.
+This qualifies surviving pipeline text, not every pipeline/redirection combination.
+Reproduce with:
 
 ```sh
 python3 tests/test_command_high_resident_qemu.py out/umb-fine-composition-l1byzj6z/input-paired.img
 ```
 
-**Still open:** the complete **800-byte low state partition**, asynchronous/A20
+**Still open:** the remaining **675-byte low state partition**, asynchronous/A20
 fault and reset qualification, remaining BIOS mixed state/services and the other
 low owners below. This service retirement does not complete shell code/state
 placement. Next, classify and move eligible state against the remaining shared
-4,422 bytes, preserve the low PSP/stack and published pointer contracts, then
+4,293 bytes, preserve the low PSP/stack and published pointer contracts, then
 measure the next composed gain; do not replace this with more copy-only milestones.
+
+**Pipeline ownership bug to fix next:** final redirection can disappear after
+an external leg overwrites the transient. Reproducer with the checked stress
+filter: `ECHO PIPE_FIRST|PIPEIO|PIPEIO > PIPE1.OUT`; the output can reach the
+console instead of the file. The preceding service-only build also fails
+(`out/command-high-retirement-79nhzn8t/pipeline-HIGH.img`). Preserve the necessary
+redirection state across reload without a conventional mirror; audit PRESCAN's
+canonicalization and the transient RE_OUTSTR/RE_OUT_APP ownership. Add exact
+file-content and temporary-file cleanup checks before claiming complete pipeline
+semantics. Moving command text alone does not fix this pre-existing defect.
 
 The preceding **packed BIOS retirement candidate**, with normal COMMAND, is measured at
 **619,872 conventional / 49,680 free UMB bytes** in
@@ -135,7 +156,7 @@ qualification remains open.
 
 The whole-shell service retirement above supersedes this checkpoint's COMMAND
 code-placement task. Complete state placement, BIOS qualification and mixed low
-owners remain in scope; its current shared budget is the 4,422-byte remainder.
+owners remain in scope; its current shared budget is the 4,293-byte remainder.
 
 Reproduce the composed measurement with:
 
@@ -463,6 +484,11 @@ low owners remains required after reaching it. The 628,048-byte OpenDOS control
 is a research reference, not a substitute for our compatibility gates.
 
 ### Whole-shell design bound: code relocation alone is insufficient
+
+This is the normal-layout baseline audit. Its offsets, 800-byte state inventory
+and earlier HMA arithmetic are not the current retired layout; use the checkpoint
+above for achieved release and remaining capacity. Pipeline text is now high,
+while the other access contracts below still constrain further state placement.
 
 The checked normal COMMAND map retains 2,451 code bytes, a 256-byte PSP,
 125-byte stack and 800 bytes of mutable state in its 3,632-byte low image.

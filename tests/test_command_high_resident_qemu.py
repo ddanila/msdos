@@ -29,6 +29,38 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def check_pipelines(work, floppy, env):
+    probe = work / "PIPEIO.COM"
+    run(["nasm", "-f", "bin", ROOT / "tests/command_pipe_filter.asm", "-o", probe])
+    for mode in ("HIGH", "LOW"):
+        disk = work / f"pipeline-{mode}.img"
+        shutil.copyfile(floppy, disk)
+        for path, destination in ((probe, "::PIPEIO.COM"),
+                                  (ROOT / "out/command-startup-qexit.com", "::QEXIT.COM")):
+            run(["mcopy", "-o", "-i", disk, path, destination], env=env)
+        config = f"DEVICE=A:\\HIMEM.SYS\r\nDOS={mode}\r\nBUFFERS=15\r\n"
+        batch = ("@ECHO OFF\r\nCTTY AUX\r\n"
+                 "ECHO PIPE_FIRST|PIPEIO|PIPEIO\r\n"
+                 "ECHO PIPE_SECOND|PIPEIO\r\n"
+                 "ECHO PIPE_THIRD|PIPEIO|PIPEIO|PIPEIO\r\n"
+                 "COMMAND /C ECHO PIPE_CHILD|PIPEIO\r\n"
+                 "ECHO PIPE_RELOAD_CONTINUED\r\nQEXIT.COM\r\n")
+        for name, contents in (("CONFIG.SYS", config), ("AUTOEXEC.BAT", batch)):
+            run(["mcopy", "-o", "-i", disk, "-", "::"+name],
+                input=contents.encode("ascii"), env=env)
+        with (work / f"pipeline-{mode}.log").open("w") as log:
+            result = subprocess.run(["timeout", "40", "qemu-system-i386", "-display", "none",
+                "-monitor", "none", "-cpu", "486", "-m", "8", "-boot", "a",
+                "-drive", f"if=floppy,index=0,format=raw,file={disk}", "-serial", "stdio",
+                "-no-reboot", "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"],
+                stdout=log, stderr=log)
+        assert result.returncode == 33, f"pipeline {mode}: emulator {result.returncode}"
+        serial = (work / f"pipeline-{mode}.log").read_text()
+        assert serial.count("PIPE_FILTER_OVERWRITE") == 7, serial
+        for marker in ("PIPE_FIRST", "PIPE_SECOND", "PIPE_THIRD", "PIPE_CHILD", "PIPE_RELOAD_CONTINUED"):
+            assert marker in serial.splitlines(), (mode, marker, serial)
+
+
 def build(work, high):
     work.mkdir()
     for path in SOURCE.glob("*.OBJ"):
@@ -37,7 +69,7 @@ def build(work, high):
     defines = ("-DCOMMAND_RESIDENT_BINDING -DCOMMAND_HIGH_RESIDENT "
                "-DCOMMAND_HIGH_RESIDENT_POISON") if high else ""
     with (work / "build.log").open("w") as log:
-        for module in ("COMMAND1", "COMMAND2", "RUCODE", "RDATA", "INIT", "TCMD2B"):
+        for module in ("COMMAND1", "COMMAND2", "RUCODE", "RDATA", "INIT", "TCMD2B", "TMISC1", "TPIPE"):
             run([ROOT / "bin/jwasm-masm",
                  f"-Mx -t {defines} -I. -I../../INC -I../../DOS -Fl={work / module}.LST",
                  f"{module}.ASM,{work / module}.OBJ;"], cwd=SOURCE, stdout=log, stderr=log)
@@ -81,6 +113,12 @@ def main():
     for segment, target in targets:
         constants.extend((f"cmp word [es:{segment}],dx", "jne fail", "mov cx,ax",
                           f"add cx,{target}", f"cmp word [es:{segment-2}],cx", "jne fail"))
+    pipe_delta = start - (segments["DATARES"].end-symbols["resident_catalog_start"]
+                          +segments["HMACODE"].size)
+    constants.extend((f"cmp word [es:{symbols['PIPESEG']}],dx", "jne fail",
+                      "%if EXPECT_HMA", "mov cx,ax", f"add cx,{pipe_delta}",
+                      "%else", f"mov cx,{symbols['PIPESTR']}", "%endif",
+                      f"cmp word [es:{symbols['PIPEBASE']}],cx", "jne fail"))
     constants.append("%endmacro")
     gate_include = work / "high-gates.inc"
     gate_include.write_text("\n".join(constants)+"\n")
@@ -104,6 +142,7 @@ def main():
             env=dict(env, FLOPPY_IMAGE=str(floppy)), stdout=log, stderr=log)
     for name in ("provider", "regions", "fallback", "high"):
         shutil.copyfile(ROOT / f"out/loadhigh-{name}.log", work / f"loadhigh-{name}.log")
+    check_pipelines(work, floppy, env)
     probe = work / "CEILING.COM"
     run(["nasm", "-f", "bin", ROOT / "tests/memory_ceiling_probe.asm", "-o", probe])
     results = {}

@@ -13,6 +13,30 @@ TITLE	PART8 COMMAND Transient routines.
 .list
 .cref
 
+; Keep DS on the low control/PSP owner and ES on the transient destination.
+; Only pipeline text reads select its far owner; filenames passed to DOS do not.
+PIPE_READ MACRO
+ IFDEF COMMAND_HIGH_RESIDENT
+    push es
+    mov es,[PIPESEG]
+    mov al,es:[si]
+    pop es
+    inc si
+ ELSE
+    lodsb
+ ENDIF
+ENDM
+PIPE_COMPARE MACRO value
+ IFDEF COMMAND_HIGH_RESIDENT
+    push es
+    mov es,[PIPESEG]
+    cmp byte ptr es:[si],value
+    pop es
+ ELSE
+    cmp byte ptr [si],value
+ ENDIF
+ENDM
+
 
 DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	ECHOFLAG:BYTE
@@ -26,6 +50,9 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	PIPEFILES:BYTE
 	EXTRN	PIPEFLAG:BYTE
 	EXTRN	PIPEPTR:WORD
+	IFDEF COMMAND_HIGH_RESIDENT
+	EXTRN PIPESEG:WORD
+	ENDIF
 	EXTRN	RESTDIR:BYTE
 	EXTRN	SINGLECOM:WORD
 DATARES ENDS
@@ -211,7 +238,7 @@ PIPEPROC:
 ASSUME	DS:RESGROUP
 	AND	[ECHOFLAG],0FEh 		; force current echo to be off
 	MOV	SI,[PIPEPTR]
-	LODSB
+	PIPE_READ
 	CMP	AL,AltPipeChr			; Alternate pipe char?
 	JZ	IsPipe1 			; Yes
 	CMP	AL,vbar
@@ -233,24 +260,29 @@ no_pipeerr:
 FIRSTPIPE:
 	MOV	DI,OFFSET TRANGROUP:COMBUF + 2
 	XOR	CX,CX
-	CMP	BYTE PTR [SI],0DH		; '|<CR>'
+	PIPE_COMPARE 0DH		; '|<CR>'
 	JNZ	PIPEOK1
 PIPEERRSYNJ:
 	JMP	PIPEERRSYN
 PIPEOK1:
 	mov	al,vbar
-	CMP	BYTE PTR [SI],al		; '||'
+	PIPE_COMPARE al		; '||'
 	JZ	PIPEERRSYNJ
-	CMP	BYTE PTR [SI],AltPipeChr	; '##' or '|#'?
+	PIPE_COMPARE AltPipeChr	; '##' or '|#'?
 	JZ	PipeErrSynJ			; Yes, Error
 PIPECOMLP:
-	LODSB
+	PIPE_READ
 	STOSB
 
 ;;;;	IF	KANJI		3/3/KK
 	CALL	TESTKANJ
 	JZ	NOTKANJ5
+	IFDEF COMMAND_HIGH_RESIDENT
+	PIPE_READ
+	STOSB
+	ELSE
 	MOVSB
+	ENDIF
 ;
 ;  Added following 2 commands to the fix pipe bug.
 ;

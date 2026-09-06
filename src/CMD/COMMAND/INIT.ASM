@@ -50,6 +50,7 @@ CODERES ENDS
 IFDEF COMMAND_HIGH_RESIDENT
 EXTRN shell_high_active:BYTE
 EXTRN shell_service_start:BYTE,RES_CODE_END:BYTE
+EXTRN PIPEBASE:WORD,PIPESEG:WORD,PIPESTR:BYTE
 ENDIF
 
 DATARES 	SEGMENT PUBLIC BYTE	;AC000;
@@ -260,6 +261,9 @@ ZERO	=	$
 
 CONPROC:
 	MOV	SP,OFFSET RESGROUP:RSTACK	; MUST be first instruction
+	IFDEF COMMAND_HIGH_RESIDENT
+	mov [PIPESEG],cs
+	ENDIF
 	IFDEF COMMAND_RESIDENT_BINDING
 	; Bind every constructor-owned operand before any vector or DOS call.
 SHELL_BIND_INIT MACRO slot
@@ -1924,6 +1928,18 @@ ENDM
 	mov	byte ptr cs:[critical_dispatch],0eah
 	ENDIF
 	popf
+
+	IFDEF COMMAND_HIGH_RESIDENT
+	; The pipeline parser uses this far buffer only after initialization.
+	pushf
+	cli
+	mov ax,di
+	add ax,offset resgroup:PIPESTR
+	sub ax,offset resgroup:resident_catalog_start
+	mov [PIPEBASE],ax
+	mov [PIPESEG],es
+	popf
+	ENDIF
 
 	; SYSLOADMSG initialized five far slots to their low class structures.
 	; Rebase only classes in the retained catalog range.  Preserve the other

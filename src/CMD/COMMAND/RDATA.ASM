@@ -559,7 +559,13 @@ Pipe2T		db	0
 		db	"_______.___",0
 
 PIPEPTR 	DW	?
+	IFDEF COMMAND_HIGH_RESIDENT
+	PUBLIC PIPEBASE,PIPESEG
+PIPEBASE DW OFFSET RESGROUP:PIPESTR
+PIPESEG DW 0
+	ELSE
 PIPESTR 	DB	129 DUP(?)
+	ENDIF
 INPIPEPTR	DW	OFFSET ResGroup:PIPE1
 OUTPIPEPTR	DW	OFFSET ResGroup:PIPE2
 
@@ -615,6 +621,11 @@ resident_class_ptrs EQU $M_RT2.$M_CLASS_ADDRS
 resident_critical_ptr EQU $M_RT2.$M_CRIT_COMMAND
 
 resident_catalog_start LABEL BYTE
+	IFDEF COMMAND_HIGH_RESIDENT
+; Private pipeline text travels with the high allocation. DOS-facing names
+; and control fields stay low; there is no retained low text mirror.
+PIPESTR DB 129 DUP(?)
+	ENDIF
 
 ; CL3 and CL4 define $M_CLS_1/$M_CLS_2, which the resident message
 ; dispatcher references. Omitting them leaves COMMAND.COM partially linked.
