@@ -286,33 +286,60 @@ Current repository contracts (not inferred DR-DOS internals):
 | OFF/AUTO | `RETREAL.ASM:RetRealHigh` converts SS to a real segment before clearing PE/PG | Supply an XMS-specific protected entry/return path that still works in OFF and idle AUTO; retain a low continuation stack |
 | Low-space release | `src/BIOS/BOOTCOMPACT.INC:BiosCompactBoot` moves the first-HIMEM boot allocation and republishes arena/vector addresses under a restricted early-boot contract | Design a loader-coordinated release before arbitrary later drivers cache pointers; this helper is not a general post-install compactor |
 
-Two installation designs remain to be sized:
+**Preferred 386 design: one coordinated provider, finalized before publication.**
+Keep the separate HIMEM/EMM installation as the compatibility fallback, not the
+target low-memory layout. A late replacement must preserve escaped entries and
+compact intervening allocations; direct installation avoids creating those
+extra permanent owners. This is a design selection, not an implemented provider
+or permission to bypass the joint linked-size budget.
 
-- **Single coordinated provider from initialization:** bootstrap XMS/A20 and
-  the protected backing owner within one installation, then return a compact
-  resident break. This avoids a later HIMEM hole, but must explicitly replace
-  the current requirement to obtain EMM's backing through an already-installed
-  XMS manager. DOS HMA activation and BIOS first-HIMEM assumptions also need a
-  supported boot contract. It cannot simply be substituted into today's image.
-- **Repository HIMEM-to-EMM handoff:** retain the cached low XMS entry, prepare
-  high services/state through the existing allocator, then commit ownership and
-  compact the known boot allocations through SYSINIT. This preserves the
-  existing bootstrap, but needs a versioned private handoff, a pre-publication
-  compaction window and explicit handling of intervening drivers. Unsupported
-  orderings keep the complete standalone layout; no saving is claimed there.
+The boot audit establishes why the current hook cannot simply accept another
+device name. `SYSCONF.ASM:CompactFirstHimem` checks the literal `HIMEM$` header,
+then copies the used boot allocation, directly rewrites the INT 15h/2Fh segment
+words and refreshes DOS's cached XMS segment through 1234h. Development
+`BiosBootActivate` runs afterward. `DOS_HMA_REBASE_XMS` changes only the segment,
+not the entry offset. Conversely, EMM `INIT.ASM` has already built descriptors,
+committed UMB mappings, relocated protected code and entered its execution mode
+before returning its final driver break. Moving that active image with the
+HIMEM-only copy/vector procedure leaves other published addresses unhandled.
+Do not broaden the header check as an integration implementation.
 
-Prefer a shared service/ownership design usable by either installation route;
-choose the first prototype only after including the loader changes and final
-low boundaries in its budget. Third-party XMS remains an external provider:
-do not transfer or reclaim its private state. The 286 path keeps independent
-HMA/A20 support and must not enter the 386 protected service path.
+Use a two-phase, repository-private loader contract, before subsequent drivers
+or applications can cache the final public entries:
 
-The handoff acceptance witness must use a boot-time test driver or loader probe
-to allocate, lock and fill an XMS block **before activation**, cache the old XMS
-entry, then verify that same handle, address,
-contents and entry afterward, including OFF/AUTO and forced installation
-failure. Existing `test_xms_emm_mode_qemu.sh` checks stable ownership across
-mode changes, not across a provider replacement. Separately verify the final
+| Phase | Owner and publication rule | Failure behavior |
+| --- | --- | --- |
+| Prepare | Provider bootstraps one XMS allocator/A20 owner, reserves backing and prepares complete service/table objects; temporary XMS entry may serve DOS's HMA claim | No second allocator; retain bootstrap state and unwind only successfully reserved storage |
+| Establish final low base | SYSINIT reserves the complete retained interface, moves DOS/BIOS boot allocations and calls the provider's explicit relocation callback on the SYSINIT stack | Validate capability version, owner range, returned break and supported first-device ordering before moving; do not reuse the two-vector HIMEM assumption |
+| Activate | Provider binds descriptors, transition stack, public XMS/EMS entries and UMB ownership to that final base; refresh DOS's full cached XMS pointer if its offset changes | Keep bootstrap state until commit; restore entry/vector/mapping ownership on rejection, without freeing executing storage |
+| Release | SYSINIT commits the compact driver break and discards bootstrap/service staging; later device loading may now proceed | No unaccounted hole, retained high-service low mirror or second allocation of the same backing |
+
+The final low interface must never move after publication to ordinary clients.
+An already-installed third-party XMS provider or unsupported load ordering uses
+the existing separate-provider path; do not transfer or reclaim foreign state.
+The 286 path keeps independent HMA/A20 support and never enters the 386 service
+path. A late repository-HIMEM handoff remains an alternative only if this early
+contract cannot meet the complete budget; it is not another parallel prototype.
+
+For the joint destination budget, prefer locked extended memory for combined
+manager services and option-sized tables, preserving HMA for DOS/BIOS/shell
+services and buffers. The present 1,672-byte HIMEM service/data inventory plus
+1,904-byte EMM table inventory totals 3,576 bytes, below the selected relocation
+tail's 17,149 unconsumed bytes. That is capacity evidence only: the HIMEM code
+is not yet a protected service object, option maxima require more pages, and
+gateway/selector/stack costs still need linked sizes. Do not reserve both this
+destination and candidate A's 1,672-byte HMA placement for the same owner.
+Keep the public SDA low: the OpenDOS control below shows its SDA staying low
+too. Any future UMB spending must preserve the existing 47,888-byte free floor.
+
+The early-route acceptance witness must use a loader probe to allocate, lock
+and fill an XMS block **before activation**, then verify the same handle,
+physical address and contents through the final entry. Verify that DOS's known
+bootstrap cache follows the final entry, and that ordinary clients caching it
+after publication remain valid through OFF/AUTO. A late-handoff alternative
+must additionally preserve entries cached before the handoff. Exercise failed
+installation at each phase. Existing `test_xms_emm_mode_qemu.sh` checks stable
+ownership across modes, not either installation transaction. Verify the final
 SYSINIT break and VC free block: working high services with an unreclaimed low
 hole are not success. No coordinated-provider implementation or net saving is
 claimed yet; these decisions remain part of the open whole-system checkpoint.
