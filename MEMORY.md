@@ -266,6 +266,59 @@ instruction-harvesting tranche or a completed high-resident manager.
 
 #### Layout contract
 
+##### Combined-provider decision: include boot-time reclamation
+
+The next manager design must compare a coordinated 386 provider with the
+standalone-HIMEM HMA split, not assume the latter is the final architecture.
+The source audit adds a constraint beyond high-service dispatch: **who releases
+the old HIMEM allocation, and when?** Moving its services after EMM386 installs
+does not by itself make the resulting hole contiguous with application memory.
+
+Current repository contracts (not inferred DR-DOS internals):
+
+| Boundary | Source evidence | Required coordinated-provider behavior |
+| --- | --- | --- |
+| Extended-memory ownership | `src/MEMM/MEMM/ALLOCMEM.ASM:XMSAlloc` obtains and locks one HIMEM handle for the EMS pool plus relocation tail | Keep that handle, its physical base and lock count valid across handoff; never introduce a second allocator for the same RAM |
+| Client identity | `src/DEV/HIMEM/HIMEM.ASM:multiplex_entry` publishes `xms_control`; clients may retain that far pointer | Preserve a low forwarding entry at the published address, not just the INT 2Fh discovery vector |
+| Live XMS state | HIMEM owns handles, HMA ownership, local/global A20 counts, pool bounds and UMB records | Transfer authoritative state once; preserve existing handles and allocations, not merely initialize an empty high manager |
+| UMB publication | `INIT.ASM:Commit_UMB` publishes through E701h after mapping backing pages; E702h withdraws registration | Retain coherent request/release and rollback behavior across the provider handoff |
+| Failed installation | `ALLOCMEM.ASM:DeallocMem` unlocks/frees through the saved XMS entry and handle | Keep the old provider usable until rollback is no longer required; do not free storage executing the rollback path |
+| OFF/AUTO | `RETREAL.ASM:RetRealHigh` converts SS to a real segment before clearing PE/PG | Supply an XMS-specific protected entry/return path that still works in OFF and idle AUTO; retain a low continuation stack |
+| Low-space release | `src/BIOS/BOOTCOMPACT.INC:BiosCompactBoot` moves the first-HIMEM boot allocation and republishes arena/vector addresses under a restricted early-boot contract | Design a loader-coordinated release before arbitrary later drivers cache pointers; this helper is not a general post-install compactor |
+
+Two installation designs remain to be sized:
+
+- **Single coordinated provider from initialization:** bootstrap XMS/A20 and
+  the protected backing owner within one installation, then return a compact
+  resident break. This avoids a later HIMEM hole, but must explicitly replace
+  the current requirement to obtain EMM's backing through an already-installed
+  XMS manager. DOS HMA activation and BIOS first-HIMEM assumptions also need a
+  supported boot contract. It cannot simply be substituted into today's image.
+- **Repository HIMEM-to-EMM handoff:** retain the cached low XMS entry, prepare
+  high services/state through the existing allocator, then commit ownership and
+  compact the known boot allocations through SYSINIT. This preserves the
+  existing bootstrap, but needs a versioned private handoff, a pre-publication
+  compaction window and explicit handling of intervening drivers. Unsupported
+  orderings keep the complete standalone layout; no saving is claimed there.
+
+Prefer a shared service/ownership design usable by either installation route;
+choose the first prototype only after including the loader changes and final
+low boundaries in its budget. Third-party XMS remains an external provider:
+do not transfer or reclaim its private state. The 286 path keeps independent
+HMA/A20 support and must not enter the 386 protected service path.
+
+The handoff acceptance witness must use a boot-time test driver or loader probe
+to allocate, lock and fill an XMS block **before activation**, cache the old XMS
+entry, then verify that same handle, address,
+contents and entry afterward, including OFF/AUTO and forced installation
+failure. Existing `test_xms_emm_mode_qemu.sh` checks stable ownership across
+mode changes, not across a provider replacement. Separately verify the final
+SYSINIT break and VC free block: working high services with an unreclaimed low
+hole are not success. No coordinated-provider implementation or net saving is
+claimed yet; these decisions remain part of the open whole-system checkpoint.
+
+##### Whole-system placement rules
+
 DR-DOS's portable lesson is a small conventional interface backed by complete
 high-resident objects. Its ordinary measured advantage does not require video
 memory recovery or EBDA relocation. HMA is shared among kernel, BIOS, shell
