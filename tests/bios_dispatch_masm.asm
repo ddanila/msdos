@@ -160,6 +160,14 @@ else
 endif
 
 run_request proc near
+        ; Original dispatcher leaves arithmetic flags from low SI+command*2.
+        mov ax,cs:[table_offset]
+        xor bx,bx
+        mov bl,cs:[request_command]
+        shl bx,1
+        add ax,bx
+        pushf
+        pop word ptr cs:[expected_service_flags]
         mov ax,seg PACKETDATA
         mov es,ax
         mov al,cs:[request_command]
@@ -251,8 +259,12 @@ endif
 device_entry endp
 
 alternate:
+        pushf
         inc byte ptr cs:[alternate_seen]
+        popf
 accepted_target:
+        pushf
+        pop word ptr cs:[service_flags]
         mov byte ptr cs:[failure_code],11
         cmp ax,0ab03h
         jne failed
@@ -269,6 +281,10 @@ accepted_target:
         add ax,bx
         cmp si,ax
         jne failed
+        mov ax,cs:[service_flags]
+        xor ax,cs:[expected_service_flags]
+        test ax,08d5h
+        jnz failed
         mov byte ptr cs:[failure_code],12
         mov ax,ds
         mov bx,cs
@@ -337,6 +353,8 @@ expected_status dw 0100h
 expected_count dw 123
 alternate_seen db 0
 failure_code db 1
+service_flags dw 0
+expected_service_flags dw 0
 AUXNUM db 0
 PTRSAV label dword
         dw offset packet,0
@@ -411,6 +429,7 @@ ifdef HIGH_TABLES_TEST
         add word ptr [BIOS_DISPATCH_TABLE_SEG_FIXUP],bx
         add word ptr [BIOS_DISPATCH_TABLE_ADD_FIXUP],bx
         add word ptr [BIOS_DISPATCH_TARGET_SEG_FIXUP],bx
+        add word ptr [BIOS_DISPATCH_TARGET_ADD_FIXUP],bx
         add word ptr [BIOS_DISPATCH_TABLE_SUB_FIXUP],bx
         mov word ptr [BIOS_DISPATCH_TABLE_SEGMENT],0ffffh
         mov ax,bx

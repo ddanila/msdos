@@ -3,8 +3,8 @@
 ; The normal expansion retains the original instruction stream.
 ; BIOS_DISPATCH_SEPARATE binds a distinct code owner through the CS-relative
 ; BIOS_DISPATCH_LOW_SEGMENT word and BIOS_DISPATCH_ERROR_ENTRY far pointer.
-; Tables, patches and completion entries stay
-; low for this binding stage. Caller must establish A20 and a conventional
+; The default table binding and all completion entries stay low.
+; Caller must establish A20 and a conventional
 ; stack before tail-entering; this include neither publishes nor activates it.
 ; *_FIXUP labels identify the three CS-relative metadata operands. A loader
 ; copying to another offset in the code segment rebases those words by the
@@ -55,6 +55,7 @@ ELSE
 ENDIF
 DSK_REQ_CONT:
 IFDEF BIOS_DISPATCH_TABLES_HIGH
+        push si
         push word ptr cs:[BIOS_DISPATCH_TABLE_SEGMENT]
 BIOS_DISPATCH_TABLE_SEG_FIXUP equ $-2
         pop es
@@ -68,9 +69,15 @@ IFDEF BIOS_DISPATCH_SEPARATE
         jbe short DISPATCH_VALID_COMMAND
         ; No extra return address survives: CMDERR consumes the original
         ; device frame, including the caller's saved ES and DS.
+IFDEF BIOS_DISPATCH_TABLES_HIGH
+        pop si
+ENDIF
         jmp dword ptr cs:[BIOS_DISPATCH_ERROR_ENTRY]
 BIOS_DISPATCH_ERROR_FIXUP equ $-2
 DISPATCH_VALID_COMMAND:
+IFDEF BIOS_DISPATCH_TABLES_HIGH
+        pop si
+ENDIF
 ELSE
         cmp al,cs:[si]
         ja CMDERR
@@ -80,13 +87,18 @@ ENDIF
         add si,ax
         xchg ax,di
 IFDEF BIOS_DISPATCH_TABLES_HIGH
-        ; Stack the low tail target while ES still selects the table owner.
-        ; Restore the legacy SI value before handing off to a service.
-        push word ptr cs:[BIOS_DISPATCH_LOW_SEGMENT]
-BIOS_DISPATCH_TARGET_SEG_FIXUP equ $-2
-        push word ptr es:[si+1]
+        ; Keep the original low-index ADD flags, not the translation's flags.
+        ; DI is scratch until LES loads the transfer pointer below.
+        pushf
+        add si,cs:[BIOS_DISPATCH_TABLE_DELTA]
+BIOS_DISPATCH_TARGET_ADD_FIXUP equ $-2
+        mov di,es:[si+1]
         sub si,cs:[BIOS_DISPATCH_TABLE_DELTA]
 BIOS_DISPATCH_TABLE_SUB_FIXUP equ $-2
+        popf
+        push word ptr cs:[BIOS_DISPATCH_LOW_SEGMENT]
+BIOS_DISPATCH_TARGET_SEG_FIXUP equ $-2
+        push di
 ENDIF
         les di,dword ptr ds:[bx].TRANS
 IFDEF BIOS_DISPATCH_SEPARATE

@@ -2587,7 +2587,7 @@ disables A20 through port 92h and verifies the high/low alias; the shared
 Both valid and invalid low completion paths verify restored A20 as well as
 the existing register/frame assertions. The low alias is read, never overwritten.
 
-The low-table boot passes in `out/bios-dispatch-hma-8gsnhf1c/`.
+The low-table boot passes in `out/bios-dispatch-hma-falt6owc/`.
 Use `--image` or `FLOPPY_IMAGE` to select the base floppy; the harness installs
 current normal DOS/BIOS/HIMEM into a private copy and retains input hashes,
 startup files and trace. Normal binaries remain unchanged. This is an HMA
@@ -2602,21 +2602,33 @@ and the SI value passed to the selected low service remain compatible. Table
 targets remain near offsets in the retained low service/gateway segment.
 
 The HMA test's `--high-tables` variant copies and byte-compares all 173 table
-bytes, then poisons the old table storage. Its linked budget is 114 decoder
-bytes + 10 binding bytes + 173 table bytes = **297 HMA bytes**, plus the two-byte
+bytes, then poisons the old table storage. Its linked budget is 125 decoder
+bytes + 10 binding bytes + 173 table bytes = **308 HMA bytes**, plus the two-byte
 test sentinel. The allocator charges the entire range once. All five tables
 are exercised; a pre-copy boot-policy patch and post-publication update are
 checked. Service bodies are fixture targets, while completion code is shared
 with the BIOS; this is not all-command driver-I/O qualification.
 
-The high-table boot passes in `out/bios-dispatch-hma-m43v0kme/`. Omitting the
+The high-table boot passes in `out/bios-dispatch-hma-eeqa9bit/`. Omitting the
 post-publication update fails with the guest failure marker
-(`out/bios-dispatch-hma-0otm_5st/`, `--stale-table`). Omitting A20 restoration
+(`out/bios-dispatch-hma-08ulz6l6/`, `--stale-table`). Omitting A20 restoration
 reaches startup but does not complete (`out/bios-dispatch-hma-wfxarn1o/`);
 the harness terminates QEMU after 20 seconds. The Make target runs both positive
 variants. Normal IO.SYS is byte-identical. Poisoning proves independence from
 the old contents, not a smaller resident break: the fixed VDISK prefix still
 requires joint repacking, and actual SYSINIT table publication remains open.
+
+**Handler-entry flags:** table translation must not replace the arithmetic
+flags left by the original `ADD SI,command*2`. The high decoder restores low
+SI before that calculation and preserves its flags around the high-table
+lookup; invalid-command entry also restores low SI without changing the
+comparison flags. The fixture captures handler-entry CF/PF/AF/ZF/SF/OF and
+compares them with an independent low-index calculation; DF remains checked
+separately. The prior decoder fails this check in
+`out/bios-dispatch-hma-w36f6sk0/`; the corrected positive above passes.
+The fix adds 11 high code bytes, already charged in the 308-byte budget.
+This preserves existing internal behavior without claiming that DOS's public
+device-request interface specifies every incoming arithmetic flag.
 
 The 18-byte error pair also contains mutable `LSTERR`: high
 `MSDSKHIG.INC:MAPERROR` writes that sentinel before scanning through low ES.
