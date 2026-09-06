@@ -5,6 +5,12 @@ set -uo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$REPO_ROOT/out"
 FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
+# Optional development qualification; default keeps the existing DOS-low suite.
+CDS_MODE="${ASJ_CDS_MODE:-}"
+case "$CDS_MODE" in
+    ''|upper|low) ;;
+    *) echo "ERROR: ASJ_CDS_MODE must be upper or low (or unset)"; exit 1 ;;
+esac
 
 BOOT_IMG="$OUT/asj-boot.img"
 B_IMG="$OUT/asj-b.img"
@@ -33,7 +39,21 @@ cp "$FLOPPY" "$BOOT_IMG"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 
-printf 'LASTDRIVE=Z\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
+if [[ -n "$CDS_MODE" ]]; then
+    expect_high=0
+    [[ "$CDS_MODE" == upper ]] && expect_high=1
+    "$REPO_ROOT/bin/jwasm-bin" -q -bin -DEXPECT_HIGH="$expect_high" \
+        -I"$REPO_ROOT/src/INC" -Fo"$OUT/asj-cds.com" \
+        "$REPO_ROOT/tests/cds_location_probe.asm" || exit 1
+    mcopy -o -i "$BOOT_IMG" "$OUT/asj-cds.com" ::CDSCHECK.COM || exit 1
+    {
+        printf 'DEVICE=HIMEM.SYS /TESTMEM:OFF\r\n'
+        printf 'DEVICE=EMM386.EXE RAM M5\r\n'
+        printf 'DOS=HIGH,UMB\r\nLASTDRIVE=Z\r\nFILES=20\r\nFCBS=4,0\r\nBUFFERS=15\r\n'
+    } | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS || exit 1
+else
+    printf 'LASTDRIVE=Z\r\n' | mcopy -o -i "$BOOT_IMG" - ::CONFIG.SYS
+fi
 
 dd if=/dev/zero bs=512 count=2880 of="$B_IMG" status=none
 mformat -i "$B_IMG" -f 1440 ::
@@ -42,6 +62,7 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
+    [[ -n "$CDS_MODE" ]] && printf 'CDSCHECK\r\n'
 
     printf 'ECHO ---ASSIGN---\r\n'
     printf 'ASSIGN B=A\r\n'
@@ -77,6 +98,7 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
     printf 'SUBST E: /D\r\n'
     printf 'SUBST D: A:\SUBSTDIR\r\n'
     printf 'ECHO SUBST_CREATE_DONE\r\n'
+    [[ -n "$CDS_MODE" ]] && printf 'CDSCHECK\r\n'
     printf 'ECHO SUBST_STATE_PAYLOAD>D:\STATE.TXT\r\n'
 
     printf 'SUBST D: A:\SUBSTDIR\r\n'
@@ -125,6 +147,7 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
     printf 'IF ERRORLEVEL 1 ECHO JOIN_CURRENT_DRIVE_REJECTED\r\n'
     printf 'JOIN B: A:\JOINDIR\r\n'
     printf 'ECHO JOIN_CREATE_DONE\r\n'
+    [[ -n "$CDS_MODE" ]] && printf 'CDSCHECK\r\n'
 
     printf 'JOIN B: A:\JOINDIR\r\n'
     printf 'IF ERRORLEVEL 1 ECHO JOIN_DUP_CREATE_REJECTED\r\n'
@@ -160,6 +183,7 @@ printf 'JOIN_B_FILE_CONTENT\r\n' | mcopy -o -i "$B_IMG" - ::BJOIN.TXT
     printf 'IF ERRORLEVEL 1 ECHO JOIN_INACTIVE_DELETE_REJECTED\r\n'
 
     printf 'ECHO ===DONE===\r\n'
+    [[ -n "$CDS_MODE" ]] && printf 'CDSCHECK\r\n'
     printf 'QEXIT.COM\r\n'
 } | mcopy -o -i "$BOOT_IMG" - ::AUTOEXEC.BAT
 
@@ -182,6 +206,15 @@ fi
 
 echo ""
 echo "--- ASSIGN tests ---"
+
+if [[ -n "$CDS_MODE" ]]; then
+    if [[ $(grep -c '^CDS_LOCATION_PASS' "$SERIAL_LOG") -eq 4 ]] \
+        && ! grep -q '^CDS_LOCATION_FAIL' "$SERIAL_LOG"; then
+        ok "CDS remains $CDS_MODE before, during and after SUBST/JOIN"
+    else
+        fail "CDS $CDS_MODE location/ownership checks"
+    fi
+fi
 
 if grep -q '^ASSIGN_DONE' "$SERIAL_LOG"; then
     ok "ASSIGN B=A (installed silently, batch continued)"

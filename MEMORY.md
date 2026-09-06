@@ -828,12 +828,34 @@ target checks every LASTDRIVE letter A..Z (respecting the physical-drive
 minimum), public CDS count/location and exact system-owned allocation size,
 system/FCB and public DPB/device-graph probes, 12/32 KiB upper I/O with EMS/DMA
 and reset, allocation failure across reset, and bare-low/HIMEM-low/HIMEM-high
-fallbacks. `--quick` on its Python runner skips A..Y, not compatibility gates.
+fallbacks. It also runs ASSIGN/SUBST/JOIN on fresh upper-CDS and forced-low
+fallback images. `--quick` on its Python runner skips A..Y, not compatibility gates.
 The VC target retains both no-CDS controls and retail with unchanged startup
 configuration and VC binary.
 
-Promotion remains open: qualify SUBST/JOIN and redirector consumers on the
-actual high-CDS image, deliberately exercise cached-pointer rebasing, test
+The utility suite's opt-in `ASJ_CDS_MODE=upper|low` configuration loads HIMEM,
+EMM386 and DOS high instead of silently overwriting CONFIG.SYS with DOS-low
+defaults. Its source-layout-derived probe checks a configured count of 26,
+a zero-offset array pointer, and upper segment/system MCB size
+and ownership when requested. Four probes bracket startup, active SUBST,
+active JOIN and final removal. The existing path/data and rejected-option
+checks still run; merely reaching the end of AUTOEXEC is insufficient.
+The matrix also deliberately requests upper placement on the forced-low
+fixture and requires only the location check to fail, with all four probes
+rejecting it. Serial traces are retained separately because the utility
+suite uses shared `asj-*` paths and must run sequentially.
+The quick matrix passes all eight cases in `out/high-cds-hvojqf8q/`, including
+50 utility checks for each positive placement and the expected negative
+control. This accepts these utility consumers, not arbitrary redirectors or
+deliberately seeded THISCDS cache rebasing.
+The default DOS-low suite against the existing `out/floppy.img` instead
+returns 44 passes and five ASSIGN failures (`Incorrect DOS version`). The
+committed pre-change script reproduces the same five failures on that image;
+both serial traces are retained with the matrix. This baseline failure is not
+a relocation regression, but remains unresolved rather than a passing gate.
+
+Promotion remains open: qualify redirector consumers on the actual high-CDS
+image, deliberately exercise cached-pointer rebasing, test
 policy-restoration failure, and complete the fine-UMB and BIOS compatibility
 gates. The observed framed OpenDOS block is still 11,328 bytes larger, subject
 to the comparison caveats above. Continue the whole-system architecture work;
