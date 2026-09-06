@@ -396,6 +396,11 @@ test: test-emm-relocation-budget
 test-emm-relocation-budget: memm
 	python3 tests/test_emm_relocation_budget.py
 	python3 tests/report_emm386_residency.py --check src/MEMM/MEMM/EMM386.MAP
+	python3 tests/report_emm386_residency.py --check --page-assignments 20 \
+		src/MEMM/MEMM/EMM386.MAP
+	python3 tests/report_emm386_residency.py --check --handles 255 \
+		--alternate-registers 254 --ems-pages 2048 --physical-pages 52 \
+		--page-assignments 20 --dma-pages 16 src/MEMM/MEMM/EMM386.MAP
 
 test-himem-residency: $(BIN)/jwasm-bin
 	python3 tests/test_himem_ownership.py

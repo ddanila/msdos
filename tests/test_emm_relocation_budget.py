@@ -3,10 +3,35 @@
 
 import unittest
 
-from report_emm386_residency import Segment, Symbol, relocation_budget
+from report_emm386_residency import (
+    Segment, Symbol, dynamic_table_sizes, high_data_capacity, relocation_budget,
+)
 
 
 class RelocationBudgetTest(unittest.TestCase):
+    def test_default_and_maximum_table_objects(self):
+        default = sum(size for size, _ in dynamic_table_sizes(64, 7, 64, 6, 0, 1))
+        maximum = sum(size for size, _ in dynamic_table_sizes(255, 254, 2048, 52, 20, 16))
+        self.assertEqual(default, 1904)
+        self.assertEqual(maximum, 48383)
+        self.assertEqual(high_data_capacity(default, 16989),
+                         {"request": 1907, "shortfall": 0, "extra_pages": 0})
+        self.assertEqual(high_data_capacity(maximum, 16989),
+                         {"request": 48386, "shortfall": 31397, "extra_pages": 8})
+
+    def test_capacity_rounding_and_rejection(self):
+        self.assertEqual(high_data_capacity(4093, 4096)["extra_pages"], 0)
+        self.assertEqual(high_data_capacity(4094, 4096)["extra_pages"], 1)
+        self.assertEqual(high_data_capacity(4093, 0)["extra_pages"], 1)
+        self.assertEqual(high_data_capacity(4094, 0)["extra_pages"], 2)
+        for payload, unused in ((0, 0), (65533, 0), (1, -1)):
+            with self.assertRaises(ValueError):
+                high_data_capacity(payload, unused)
+
+    def test_context_padding_is_charged_for_every_register_set(self):
+        sizes = dict((name, size) for size, name in dynamic_table_sizes(2, 3, 0, 5, 0, 1))
+        self.assertEqual(sizes["normal plus alternate register sets"], 4 * 13)
+
     def budget(self, page_span=0x9430, text_paras=0x48b):
         segments = [Segment("PAGESEG", 0x1000, 0, 0),
                     Segment("LAST", 0x1000 + page_span // 16, 0, 0),

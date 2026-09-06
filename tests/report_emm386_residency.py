@@ -149,6 +149,35 @@ def relocation_budget(segments: list[Segment], symbols: list[Symbol]) -> dict[st
             "text_request": text_request, "unused": unused}
 
 
+def dynamic_table_sizes(handles: int, alternate_registers: int, ems_pages: int,
+                        physical_pages: int, page_assignments: int,
+                        dma_pages: int) -> list[tuple[int, str]]:
+    context_pages = (physical_pages + 1) & ~1
+    return [
+        (handles * 8, "saved LIM 3.2 maps"),
+        (handles * 4, "handle page-index/count records"),
+        (handles * 8, "eight-byte handle names"),
+        (ems_pages * 2, "allocated-page index array"),
+        (ems_pages * 2, "free-page index array"),
+        (ems_pages * 4, "physical page-table entries"),
+        (physical_pages, "runtime-sized mappable-window indexes"),
+        (page_assignments * 2, "sparse Pn= exception pairs"),
+        (dma_pages * 2, "runtime-sized DMA page list"),
+        ((alternate_registers + 1) * (1 + context_pages * 2),
+         "normal plus alternate register sets"),
+    ]
+
+
+def high_data_capacity(payload: int, unused: int) -> dict[str, int]:
+    """Budget one proposed dword-aligned authoritative object, without gates."""
+    if not 0 < payload <= 0xffff - 3 or unused < 0:
+        raise ValueError("invalid high-data payload or remaining reservation")
+    request = payload + 3
+    shortfall = max(0, request - unused)
+    return {"request": request, "shortfall": shortfall,
+            "extra_pages": (shortfall + 4095) // 4096}
+
+
 def symbol_offset(symbols: list[Symbol], name: str, paragraph: int) -> int:
     matches = [
         symbol.offset
@@ -510,40 +539,30 @@ def main() -> int:
     ]
     print_ranges("Retained `_DATA` ownership", data_ranges)
 
-    context_pages = (args.physical_pages + 1) & ~1
     runtime_ranges: list[Range] = []
     cursor = static_end
-    for size, owner in (
-        (args.handles * 8, "saved LIM 3.2 maps"),
-        (args.handles * 4, "handle page-index/count records"),
-        (args.handles * 8, "eight-byte handle names"),
-        (args.ems_pages * 2, "allocated-page index array"),
-        (args.ems_pages * 2, "free-page index array"),
-        (args.ems_pages * 4, "physical page-table entries"),
-        (args.physical_pages, "runtime-sized mappable-window indexes"),
-        (args.page_assignments * 2, "sparse Pn= exception pairs"),
-        (args.dma_pages * 2, "runtime-sized DMA page list"),
-        (
-            (args.alternate_registers + 1) * (1 + context_pages * 2),
-            "normal plus alternate register sets",
-        ),
+    for size, owner in dynamic_table_sizes(
+        args.handles, args.alternate_registers, args.ems_pages,
+        args.physical_pages, args.page_assignments, args.dma_pages,
     ):
         runtime_ranges.append(Range(cursor, cursor + size, owner))
         cursor += size
     if cursor - static_end > by_name["VDATA"].size:
         raise ValueError("selected runtime data exceeds linked VDATA capacity")
-    maximum_dynamic = (
-        255 * 8
-        + 255 * 4
-        + 255 * 8
-        + 2048 * 8
-        + 52
-        + 20 * 2
-        + 16 * 2
-        + 255 * (1 + 52 * 2)
-    )
+    maximum_dynamic = sum(size for size, _ in dynamic_table_sizes(255, 254, 2048, 52, 20, 16))
     if args.check and maximum_dynamic > by_name["VDATA"].size:
         raise ValueError("linked VDATA cannot hold the documented option maxima")
+    print("\n## Proposed high-data capacity, not installed relocation\n")
+    print("| Profile | Payload bytes | With alignment | Shortfall | Extra 4 KiB pages |")
+    print("| --- | ---: | ---: | ---: | ---: |")
+    for profile, payload in (("Selected", cursor - static_end),
+                             ("Combined arithmetic maxima", maximum_dynamic)):
+        capacity = high_data_capacity(payload, budget["unused"])
+        print(f"| {profile} | {payload:,} | {capacity['request']:,} | "
+              f"{capacity['shortfall']:,} | {capacity['extra_pages']} |")
+    print("\nExtra pages are a proposed reservation top-up, not stolen EMS backing.")
+    print("The combined maximum is a sizing bound, not a proven bootable hardware profile.")
+    print("Low gates/selectors, failure fallback and runtime publication remain unqualified.\n")
     aligned_stack = (cursor + 15) & ~15
     if aligned_stack > cursor:
         runtime_ranges.append(Range(cursor, aligned_stack, "installed stack alignment"))
@@ -555,9 +574,10 @@ def main() -> int:
             args.alternate_registers,
             args.ems_pages,
             args.physical_pages,
+            args.page_assignments,
             args.dma_pages,
         )
-        == (64, 7, 64, 6, 1)
+        == (64, 7, 64, 6, 0, 1)
         and runtime_ranges[-1].end > 3888
     ):
         raise ValueError("default EMM386 retained-layout end exceeds 3,888 bytes")

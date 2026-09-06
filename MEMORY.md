@@ -1271,8 +1271,44 @@ Only afterward may the low table range be released and the transition stack
 rebased. Preserve the old layout on failure. The allocator state itself is
 discardable initialization storage, so allocation must occur before that
 boundary; runtime code must retain the published owner, not call Get_Buffer.
-Four model tests and the complete linked residency check pass. This is linked
+Seven model tests and the complete linked residency check pass. This is linked
 capacity evidence, not a runtime high-data move or a passing layout checkpoint.
+
+The capacity model now includes the complete option range, not just the default:
+
+| Table profile | Payload | Dword-aligned reservation | Existing-tail shortfall | Proposed additional 4 KiB pages |
+| --- | ---: | ---: | ---: | ---: |
+| Selected H=64/A=7, 64 EMS pages, six windows, D=1 | 1,904 | 1,907 | 0 | 0 |
+| Combined arithmetic maxima | 48,383 | 48,386 | 31,397 | 8 |
+
+The maximum combines H=255, A=254, 2,048 EMS pages, 52 windows, 20 sparse
+assignments and D=16. It is a sizing bound, not a claim that the current
+24-bit-addressed backing path can boot every such combination. The 49,152-byte
+linked VDATA reserve holds the maximum low object. Do not cap high placement at
+the default profile or reduce any configured resource to make it fit.
+
+`INIT.ASM` calls `AllocMem` before `EMM_Init`, then `VDM_Init`, `InitTab`,
+`RelocateText`, virtual activation and finally `CompactVData`. Thus the complete
+selected table extent does not exist when the XMS handle is first allocated.
+The proposed implementation must preflight a conservative bound from parsed
+options before allocation, then verify the final `_save_map.._emm_brk` extent
+against it before publishing the high owner. Recompute the reservation top-up
+from the actual linked consumers; eight pages is the present maximum-profile
+calculation, not a hardcoded universal allowance. Preserve the requested EMS
+pool and L= reserve, and retain low placement if the extra reservation cannot
+be obtained. Account for any new selectors/gates separately from table payload.
+
+The reporter shares one table-size formula between its installed low ledger
+and proposed high budget, including per-context padding. Its default 3,888-byte
+ceiling now applies only with zero sparse assignments; custom Pn= capacity is
+not incorrectly judged against the default fixture. Reproduce the sizing bound:
+
+```sh
+python3 tests/report_emm386_residency.py --check \
+  --handles 255 --alternate-registers 254 --ems-pages 2048 \
+  --physical-pages 52 --page-assignments 20 --dma-pages 16 \
+  src/MEMM/MEMM/EMM386.MAP
+```
 
 #### First split and retained interfaces
 
