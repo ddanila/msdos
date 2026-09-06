@@ -53,10 +53,18 @@ retains working fallback tables/bodies in all four boot modes in
 entries against linked destinations. The linker test checks all 12 device-chain links,
 the fixed VDISK offset and complete retained-core accounting. The source-free
 vendor memory comparison is not proof that private fixed offsets are equivalent.
-Normal IO.SYS remains byte-identical (`0bcd17ac...1a0ccf785`). The unusual
-FAT/density fallback, mutable media IDs, older ROM policies and nested media
-error paths still need targeted runtime qualification; the warm-reset/file-I/O
-probe and linker patch checks do not exhaust those branches.
+Normal IO.SYS remains byte-identical (`0bcd17ac...1a0ccf785`). The FAT/density
+fallback now passes with a private external BDS: synthetic read-only INT 13h
+responses force invalid-boot/F9-FAT handling, producing the exact 1.2 MB BPB
+without damaging the caller frame or BDS guards. Low fallback, poisoned high
+and compacted high pass; high firmware returns prove A20-off through aliasing.
+Removing HIDENSITY's stack unwind prevents completion. The probe explicitly
+selects and restores the compiled density call because this fixture's detected
+ROM policy normally purges it; this does not qualify native ROM detection.
+Evidence: `out/bios-media-density-06_3wiex/`. Reproduce with
+`python3 tests/test_bios_media_density_qemu.py out/bios-clock-callback-7kgb1mcs`.
+Mutable media IDs, older ROM policy selection and nested media-error paths
+remain open; boot/file-I/O and linker checks do not exhaust those branches.
 The direct TimeToTicks near callback now passes four exact time conversions in
 low fallback, poisoned high and compacted high layouts. The high cases prove
 A20 is off through physical aliasing before entry and restored afterward;
