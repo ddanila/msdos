@@ -1751,34 +1751,44 @@ production gateway budget. No additional low allocation is released: complete
 provider packing and reset/backing qualification remain the next dependencies.
 
 **Common protected service core:** `--common-xms-entry` links `XMSCORE.INC`
-and routes the existing handle, resolved-copy and UMB adapters through
+and routes handle, public Move, resolved-copy and UMB adapters through
 `XmsServiceCore`. It takes a service selector in BP with explicit high DS,
 installed mappings and serialized caller-owned stack; it never imports an
 owner. Handle/UMB services require their corresponding committed state.
 Private handle lookup is separate from Move. Copy can run before handle
-publication without gaining allocator authority. Boot import, UMB sequencing
+publication without gaining allocator authority; public Move requires the
+committed handle owner. Boot import, UMB sequencing
 and caller-result handling stay in the existing adapters for comparison.
 
-The DOS-high/downward/high-table fixture passes ON/OFF/AUTO/RAM in
-`out/emm-init-phases-1qn8vvlp/`. Rejecting the common core's handle, copy or
-UMB family independently (`--bad-common-xms-entry handle|copy|umb`) makes the
-guest fail with exit 35 in `oncthkht`, `_p1nxzye` and `nxemsw8r` respectively
-(same directory prefix). These controls show that the existing tests depend
-on each family reaching the core, not exhaustive coverage of all call contexts.
-The core itself links 141 high bytes; changed adapters are additional costs.
-HIMEM/EMM low spans remain 3,504/2,128 bytes, and normal binaries are unchanged.
-DOS low with 128 XMS handles, live UMB import and lost-result recovery also
-passes all four modes (`4f0qr9xh`); its live-import diagnostic HIMEM is 3,520
-bytes. Phase/parser and paired-layout suites pass 33 and 11 local tests.
+`XMSMOVE.INC` now decodes the public descriptor and validates endpoints against
+the high handle table. `XMSMOVEFRONT.INC` only takes a bounded 16-byte snapshot
+from the caller's real DS:SI and binds the result. It reuses the existing
+20-byte copy packet as `XMSM`, restoring its `XCPY` tag afterward; no additional
+packet or low handle mirror is allocated. The backend retains client-linear
+versus physical classes, whole-range permission and overlap checks. Snapshot
+offsets above FFF0h are refused with A7h; no wrapped descriptor is read.
 
-This is the protected half of the common-entry candidate, **not the registered
-public entry or final layout**. Public Move descriptors are still decoded low;
-the core consumes resolved addresses and memory-class flags. The separate
-transport packets, boot machinery and original low services remain allocated.
-Next bind the complete caller context and public Move validation to this core,
-then replace the steady-state transports through a lifetime-checked registration.
-Only that full partition can supply a new packed low boundary; this refactor
-claims no conventional release or complete provider qualification.
+The DOS-high/downward/high-table fixture passes ON/OFF/AUTO/RAM in
+`out/emm-init-phases-9xmttyg_/`. Its public probe replaces the old low resolver
+with `STC; RET`, then verifies conventional/XMS round-trip payload, invalid
+source/destination handles, oversized/overflowed ranges, odd and zero lengths,
+identity/partial-overlap results, unchanged caller descriptor and success BX/DX.
+Forcing the old path with `--bad-common-move-low` fails with guest 35
+(`8fha1sv8`, same prefix). DOS low/128 handles with live UMB import and
+lost-result recovery also passes all four modes (`9zjupx8l`). Earlier
+core-family refusal controls are `oncthkht` (handle), `_p1nxzye` (copy) and
+`nxemsw8r` (UMB); these establish test sensitivity, not exhaustive contexts.
+
+Current linked costs are 160 high core bytes plus 226 high Move-validation
+bytes, excluding adapters/backend. The separately charged low descriptor
+adapter is 157 bytes; retained HIMEM/EMM spans are 3,664/2,144. Normal binaries
+remain byte-identical. Phase/parser and paired-layout suites pass 33 and 12
+local tests. The original low bodies still serve bootstrap/fallback: this is
+**not a registered public entry, packed layout or conventional release**.
+Next replace the steady-state transports through a lifetime-checked common
+caller-context registration, then retire boot-only bodies and repack. Full
+mapped-client, asynchronous/fault, reset and composed-VC qualification remain
+required; descriptor snapshots do not make hardware copy failures atomic.
 
 ##### Whole-system placement rules
 

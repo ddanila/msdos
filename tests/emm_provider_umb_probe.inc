@@ -254,6 +254,9 @@ check_umb_owner:
 %ifdef UMB_SERVICE_RECEIPTS
     call umb_result_receipt_probe
 %endif
+%ifdef COMMON_PUBLIC_MOVE
+    call check_common_public_move
+%endif
     ret
 %ifdef UMB_LIVE_IMPORT
 umb_check_low_allocated:
@@ -355,4 +358,7 @@ umb_registration dw 1,2,0a000h,10h,0b000h,20h
 umb_guard times 48 db 0
 %ifdef UMB_SERVICE_RECEIPTS
     %include "tests/emm_umb_result_probe.inc"
+%endif
+%ifdef COMMON_PUBLIC_MOVE
+    %include "tests/emm_common_move_probe.inc"
 %endif

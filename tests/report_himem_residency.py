@@ -185,6 +185,10 @@ def paired_front_ownership(path, handle_count):
         name, start, _ = boundaries[index + 1]
         boundaries[index + 1] = (name, start,
                                 "bootstrap owner before commit; transient peer input afterward, not a live mirror")
+    if "xms_public_move_front" in addresses:
+        index = next(i for i, row in enumerate(boundaries) if row[0] == "UMB records")
+        boundaries.insert(index, ("Public Move descriptor adapter", addresses["xms_public_move_front"],
+                                  "bounded caller snapshot and result binding; validation uses the high owner"))
     rows = []
     for (owner, start, contract), (_, end, _) in zip(boundaries, boundaries[1:]):
         if not 0 <= start <= end <= layout["permanent_bytes"]:

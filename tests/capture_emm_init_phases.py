@@ -10,7 +10,7 @@ import tempfile
 
 import capture_drdos_memory as capture
 from emm_loader_rebase import include as rebase_include, manifest as rebase_manifest
-from report_himem_residency import bootstrap_layout, parse_symbols
+from report_himem_residency import bootstrap_layout, parse_symbols, PROCEDURE_RE
 
 
 def strip_capacity_records(data, *, handles=None, altregs=None):
@@ -303,6 +303,8 @@ def main():
                         help="route high handle, resolved-copy and UMB adapters through one core")
     parser.add_argument("--bad-common-xms-entry", choices=("handle", "copy", "umb"),
                         help="negative control: reject one service family in the common core")
+    parser.add_argument("--bad-common-move-low", action="store_true",
+                        help="negative control: use the retired low Move resolver")
     parser.add_argument("--umb-sequence-wrap", action="store_true",
                         help="seed both confirmed sequence counters near 32-bit wrap")
     parser.add_argument("--umb-service-reply", choices=("before", "after", "unknown"),
@@ -363,7 +365,7 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
-    if args.bad_common_xms_entry:
+    if args.bad_common_xms_entry or args.bad_common_move_low:
         args.common_xms_entry = True
     if args.common_xms_entry:
         args.umb_service_receipts = True
@@ -579,6 +581,8 @@ def main():
                         *(["-DHIMEM_UMB_LEGACY_BOUND_TEST"] if args.bad_umb_bound else []),
                         *(["-DHIMEM_UMB_HANDOFF_TEST"] if args.umb_handoff else []),
                         *(["-DHIMEM_UMB_RESULTS_TEST"] if args.umb_service_receipts else []),
+                        *(["-DHIMEM_COMMON_XMS_TEST"] if args.common_xms_entry else []),
+                        *(["-DHIMEM_COMMON_LOW_MOVE_TEST"] if args.bad_common_move_low else []),
                         *(["-DHIMEM_UMB_SEQUENCE_WRAP_TEST"] if args.umb_sequence_wrap else []),
                         *(["-DHIMEM_UMB_RESULTS_NO_FREEZE_TEST"] if args.bad_umb_result_freeze else []),
                         *(["-DHIMEM_UMB_DEFER_TEST"] if args.umb_live_import else []),
@@ -617,6 +621,14 @@ def main():
             symbols, _ = parse_symbols(work / "HIMEM.LST")
             start, size = symbols["umb_blocks"]
             umb_defines = [f"-DUMB_GUARD_OFFSET={start + size}"]
+            if args.common_xms_entry:
+                procedures = {}
+                for line in (work / "HIMEM.LST").read_text(encoding="latin-1").splitlines():
+                    match = PROCEDURE_RE.match(line)
+                    if match:
+                        procedures[match[1]] = int(match[2], 16)
+                umb_defines += ["-DCOMMON_PUBLIC_MOVE",
+                                f"-DMOVE_RESOLVER_OFFSET={procedures['resolve_move_address']}"]
             if args.umb_handoff:
                 umb_defines += ["-DUMB_LOW_FALLBACK_TEST" if args.reject_prepared else "-DUMB_HANDOFF_TEST",
                                 f"-DUMB_STATE_OFFSET={symbols['umb_remote_state'][0]}"]
@@ -695,6 +707,12 @@ def main():
             trace_data = trace_data[:-4]
             post_boot[mode] = parse_post_boot(trace_data[-10:], expected)
             trace_data = trace_data[:-10]
+            if args.common_xms_entry and args.umb_service_reply != "unknown":
+                if not trace_data.endswith(b"PM"):
+                    raise ValueError("common public Move/retired-resolver probe failed")
+                trace_data = trace_data[:-2]
+                post_boot[mode]["common_public_move"] = dict(low_resolver_unused=True,
+                                                           descriptor_validation=True)
             if args.umb_service_receipts:
                 post_boot[mode]["umb_service_receipt"] = parse_umb_service_receipt(
                     trace_data[-10:], failure=args.umb_service_reply)
@@ -772,6 +790,7 @@ def main():
         umb_service_receipts=args.umb_service_receipts,
         common_xms_entry=args.common_xms_entry,
         bad_common_xms_entry=args.bad_common_xms_entry,
+        bad_common_move_low=args.bad_common_move_low,
         umb_sequence_wrap=args.umb_sequence_wrap,
         umb_service_reply=args.umb_service_reply,
         bad_umb_result_freeze=args.bad_umb_result_freeze,

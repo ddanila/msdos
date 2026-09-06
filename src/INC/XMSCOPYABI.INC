@@ -15,7 +15,18 @@ XCP_OWNER_ACTIVE equ 16 ; paired experimental authoritative handle owner
 XCP_OWNER_RECEIPT equ 32 ; read-only XAUT operation 00h supported
 XCP_UMB_OWNER equ 64 ; opt-in independent XUMB publication/service boundary
 XCP_UMB_RESULTS equ 128 ; XUMB v2 sequenced service result receipts
+XCP_PUBLIC_MOVE equ 256 ; XMSM + 16-byte public descriptor snapshot, high validation
 XCP_REQUIRED equ XCP_PHYSICAL OR XCP_CLIENT OR XCP_INACTIVE
+; PUBLIC_MOVE is a transitional common-core adapter, not registration. XMSM
+; occupies the existing 20-byte copy packet: tag plus an unchanged 16-byte
+; public Move descriptor snapshot. Caller bounds and copies the descriptor
+; from its real DS:SI while serialized; it does not resolve handles. The high
+; adapter checks the packet extent, requires the authoritative handle owner,
+; and returns AX/BX in the tag's two words (CF only describes transport).
+; Low caller restores XCPY after consuming the result. No new scratch packet
+; or low handle mirror is introduced. Public Move error/overlap validation
+; executes high; result recovery does not undo partially completed hardware
+; copies. A complete registered caller-context ABI remains separate work.
 ; Paired HIMEM-only layout discovery through INT 2Fh. Request AX=query,
 ; CX=signature, SI=version, DI=0. Success AX=reply, DX=resident segment,
 ; BX=paragraph-aligned permanent end, SI=bootstrap handle-table offset,

@@ -770,6 +770,14 @@ else
 endif
 
 xms_move proc near
+ifdef HIMEM_COMMON_XMS_TEST
+ifndef HIMEM_COMMON_LOW_MOVE_TEST
+        call xms_public_move_front
+        jc @F
+        ret
+@@:
+endif
+endif
 ifdef HIMEM_BOOTSTRAP_STAGE_TEST
         cmp word ptr [bootstrap_stage_entry+2],0
         je staged_move_ready
@@ -1010,6 +1018,9 @@ endif
 ; still present in the load image for the documented maximum.
 ifdef HIMEM_UMB_HANDOFF_TEST
         include XMSUMBFRONT.INC
+ifdef HIMEM_COMMON_XMS_TEST
+        include XMSMOVEFRONT.INC
+endif
 ; After commitment the retired table is temporary peer-registration input,
 ; never an authoritative low mirror. The preceding word supplies its version.
 umb_peer_version dw 1

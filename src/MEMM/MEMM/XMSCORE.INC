@@ -4,8 +4,8 @@
 ; stack. BP selects the service; service-specific registers are unchanged.
 ; 08..0A,0C..11 are XMS service numbers; 12/13 are UMB register/unregister;
 ; 14 is private handle lookup. 0B consumes ALREADY RESOLVED Move endpoints:
-; ESI/EDI addresses, ECX length, EAX client-linear class flags. Public pointer
-; decoding remains an adapter responsibility until the complete entry lands.
+; ESI/EDI addresses, ECX length, EAX client-linear class flags. 15 validates a
+; public 16-byte Move descriptor snapshot at ES:SI against the high owner.
 ; UMB registration additionally consumes validated ES:SI input. Never import
 ; or fall back here. Return AX/BX/DX service status; copy also retains CF.
 public XmsServiceCore, XmsServiceCoreEnd
@@ -35,6 +35,15 @@ ENDIF
         je xms_reallocate
         jmp short core_unavailable
 core_umb_or_lookup:
+        cmp bp,15h
+        jne core_lookup
+IFDEF EMM_COMMON_XMS_REJECT_COPY
+        jmp core_unavailable
+ENDIF
+        cmp [XmsOwnerActive],1
+        jne core_unavailable
+        jmp XmsPublicMove
+core_lookup:
         cmp bp,14h
         jne core_umb
         cmp [XmsOwnerActive],1
@@ -77,3 +86,4 @@ core_copy_result:
         ret
 XmsServiceCore endp
 XmsServiceCoreEnd label near
+        include XMSMOVE.INC
