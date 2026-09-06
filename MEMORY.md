@@ -190,6 +190,37 @@ may resolve a missing layout contract, but it must name that uncertainty and
 report its net resident cost. Crossing retail's 800-byte deficit alone does
 not close this architectural work.
 
+#### Implementation selection after the vendor reassessment
+
+The next milestone is a **linked complete-layout candidate**, not another
+independently relocated service. Use the measured composed image above as the
+control; do not substitute the larger diagnostic provider front for that
+baseline. The current code identifies these unfinished layout decisions:
+
+| Boundary | Present implementation | Required candidate change |
+| --- | --- | --- |
+| Paired provider | `HIMEM.ASM` places `XMSUMB.INC`, `XMSUMBFRONT.INC` and the UMB records before `bootstrap_owner_start`; high routing does not discard the old allocator/table | Separate boot-only services and staging from retained interfaces; assign each live state item one final owner and link both final low and high images |
+| Loader release | `PROVIDERDOWN.INC:ProviderPlanDown` accepts only an adjacent HIMEM bootstrap tail, with the existing device-mark chain | Derive the releasable extent from the complete provider partition; prove last use, overlap safety and final device-mark/entry bindings before extending reclamation |
+| BIOS and shell | Separate high-service experiments coexist with normal low resident allocations | Link complete eligible BIOS and COMMAND code/private state against one HMA reservation, including gates, alignment and replaced copies |
+| DOS private state | The low prefix mixes public addresses with private tables and workspace | Classify remaining private owners within that same destination budget; preserve public SDA and firmware/DMA contracts |
+
+In particular, UMB import/reply recovery is correctness infrastructure, not a
+reason to keep extending the diagnostic low front indefinitely. Its temporary
+transport, bootstrap fallback and test instrumentation must be classified
+before their sizes enter a proposed production layout. HMA/A20 low recovery
+cannot depend on an already accessible high service. The separate standalone
+and 286 builds may retain local implementations without requiring those same
+bodies to remain permanently allocated in the paired build.
+
+Build the candidate in this order: complete service/state partitions and
+linked destination images; stable low bindings and boot-only staging;
+loader publication and packed release; composed acceptance. Every experimental
+change must resolve a named dependency in that sequence. Keep unknown linked
+sizes explicit; the 8,403-byte inventory is not proof of a fitting relocation.
+Measure final conventional release, free UMB and application XMS together.
+Do not add isolated prototype savings, count poisoned storage as free, or
+start another byte-reduction tranche while this layout remains unqualified.
+
 ### Reclamation contract: from placement evidence to a smaller resident system
 
 The DR-DOS evidence establishes whole-component placement, not its private
