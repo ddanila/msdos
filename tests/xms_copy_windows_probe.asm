@@ -21,6 +21,28 @@ org 100h
     int 2fh
     mov [xms],bx
     mov [xms+2],es
+    ; Legal zero-size handles must not consume or split a free interval.
+    mov ah,08h
+    call far [xms]
+    mov [zero_largest],ax
+    mov [zero_total],dx
+    mov ah,09h
+    xor dx,dx
+    call far [xms]
+    cmp ax,1
+    jne failed
+    mov [zero_handle],dx
+    mov ah,08h
+    call far [xms]
+    cmp ax,[zero_largest]
+    jne failed
+    cmp dx,[zero_total]
+    jne failed
+    mov dx,[zero_handle]
+    mov ah,0ah
+    call far [xms]
+    cmp ax,1
+    jne failed
     mov dx,16384
     mov ah,09h
     call far [xms]
@@ -736,6 +758,9 @@ finish:
     cli
     hlt
 xms dd 0
+zero_largest dw 0
+zero_total dw 0
+zero_handle dw 0
 control dd 0
 a20_before dw 0
 reserve dw 0

@@ -37,6 +37,8 @@ find_gap_retry:
 find_gap_scan:
         cmp     word ptr [si+HANDLE_BASE], 0
         je      short find_gap_next
+        cmp     word ptr [si+HANDLE_LENGTH], 0
+        je      short find_gap_next       ; live identity, no occupied interval
         mov     bp, word ptr [si+HANDLE_BASE]
         cmp     di, bp
         jbe     short find_gap_next
@@ -69,6 +71,8 @@ gap_after_loop:
         je      short gap_after_next
         cmp     word ptr [di+HANDLE_BASE], 0
         je      short gap_after_next
+        cmp     word ptr [di+HANDLE_LENGTH], 0
+        je      short gap_after_next
         mov     bp, word ptr [di+HANDLE_BASE]
         cmp     bp, word ptr [si+HANDLE_BASE]
         jbe     short gap_after_next
@@ -90,6 +94,8 @@ gap_after_handle endp
 largest_gap proc near
         xor     ax, ax                  ; largest
         mov     bx, HMA_KB              ; candidate base after the HMA
+        cmp     [extended_kb], bx
+        jbe     short largest_done       ; avoid underflow below the HMA bound
 largest_retry:
         mov     dx, [extended_kb]       ; next used base, or pool end
         mov     di, 0ffffh              ; next handle offset
@@ -98,6 +104,8 @@ largest_retry:
 largest_scan:
         cmp     word ptr [si+HANDLE_BASE], 0
         je      short largest_next
+        cmp     word ptr [si+HANDLE_LENGTH], 0
+        je      short largest_next       ; otherwise retry cannot advance
         mov     bp, word ptr [si+HANDLE_BASE]
         cmp     bp, bx
         jb      short largest_next

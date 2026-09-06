@@ -8,9 +8,9 @@ delivery history belongs in Git; current evidence belongs in the test manifests.
 ### Current checkpoint: complete owners, not paragraph targets
 
 The latest composed development fixture (complete high EMM tables plus fine
-UMB mapping and high CDS) leaves **617,968 conventional bytes and 49,680 free
+UMB mapping and high CDS) leaves **617,936 conventional bytes and 49,680 free
 UMB bytes**. Retail leaves 618,736 and 47,888: the remaining conventional gap
-is **768 bytes**, with **1,792 bytes of UMB margin**. This is not production
+is **800 bytes**, with **1,792 bytes of UMB margin**. This is not production
 promotion. The 616,112-byte figures below identify the preceding high-CDS
 baseline, before the complete table move and conventional-map repair; their component ledgers must not be
 mixed with the new result.
@@ -22,10 +22,18 @@ captures below predate that correctness change. The shell entry prototype
 is separate: this composition still uses the byte-identical normal COMMAND.
 
 The conventional-map repair adds 192 bytes to low EMM tables: the corrected
-high-CDS/low-table control now leaves 615,904 conventional bytes. The complete
-high-table fixture leaves 617,968, so its matched low-span release remains
+high-CDS/low-table control now leaves 615,872 conventional bytes. The complete
+high-table fixture leaves 617,936, so its matched low-span release remains
 2,064 bytes. This is a correctness cost moved high, not an additional gain in
 the selected high-table fixture.
+
+The shared allocator's zero-length-handle/range fix adds 24 linked bytes and
+32 rounded HIMEM bytes (2,640 total). The new five-image capture is
+`out/umb-fine-composition-p17up4rw/`; all local variants lose those same 32
+conventional bytes, with unchanged UMB totals. Earlier 617,968-byte results
+predate this correction. The capture completed and its linked/runtime census
+passed; its old coarse-size assertion failed as expected. The updated
+`check_results` validates the saved complete capture without repeating boots.
 
 The DR-DOS reassessment changes the implementation criterion: justify every
 remaining low owner and design its complete high service, rather than treating
@@ -40,11 +48,11 @@ existing disk-booted OpenDOS control, is:
 
 | Low accounting group | Development bytes | OpenDOS bytes | Difference |
 | --- | ---: | ---: | ---: |
-| Installed memory-manager ranges | 4,624 | 1,200 | 3,424 |
+| Installed memory-manager ranges | 4,656 | 1,200 | 3,456 |
 | BIOS/device region | 5,152 | 2,304 | 2,848 |
 | Remaining pre-COMMAND span | 8,080 | 6,944 | 1,136 |
 | Complete COMMAND owner span | 3,984 | 1,312 | 2,672 |
-| **Total below VC** | **21,840** | **11,760** | **10,080** |
+| **Total below VC** | **21,872** | **11,760** | **10,112** |
 
 These are accounting groups, not equivalent vendor objects or promised savings.
 OpenDOS's 628,048-byte block remains a placement reference: its free UMB is
@@ -104,7 +112,7 @@ resolve a specific remaining public contract or memory-cost ambiguity.
 
 Prefer locked extended memory for protected manager owners, HMA for eligible
 DOS/BIOS/shell services, and UMB for eligible real-mode data. Do not begin
-another isolated instruction-shrinking tranche to close the 768-byte retail gap.
+another isolated instruction-shrinking tranche to close the 800-byte retail gap.
 
 The composition harness now writes `joint-residency.md`, reconciling linked
 BIOS/DOS boundaries with captured manager sizes and COMMAND/VC boundaries,
@@ -113,14 +121,14 @@ low remainder or a violated UMB floor. Its low partition is specific to the
 fixed high-CDS fixture (512-byte transfer area and STACKS=9,128); different
 resources require a new audited partition, not an automatic residual bucket.
 It does not infer boot identity from equal sizes or prove relocation safety.
-The fresh five-image run in `out/umb-fine-composition-v_ykyjjj/` passes this
+The fresh five-image run in `out/umb-fine-composition-p17up4rw/` passes this
 gate and reproduces the current totals. Twelve owner-accounting tests include
 stale maps/managers, missing or duplicate owners, incorrect free extents and
 the pre-table control; the normal DOS/BIOS census and HMA-budget tests pass.
 
 This closes the arithmetic ledger, **not the proposed final-layout checkpoint**.
 Only 936 BIOS bytes are currently identified as character/clock bodies plus
-conversion helpers, before gateway costs. Explaining the 10,080-byte vendor
+conversion helpers, before gateway costs. Explaining the 10,112-byte vendor
 difference therefore requires the mixed BIOS service/state and combined-provider
 boundaries as well as the whole shell; those bodies alone cannot explain it.
 
@@ -173,7 +181,7 @@ normal 2,451-byte resident body would consume that much of the shared
 support. Owner bindings and outgoing transfers already grow the body by 86 bytes;
 neither number is the final relocated size. A code-only shell move plus the
 936-byte BIOS character/clock/helper inventory therefore cannot explain the
-10,080-byte vendor difference, even before costs. Continue the combined
+10,112-byte vendor difference, even before costs. Continue the combined
 provider and mixed BIOS service/state design rather than stopping at those
 easy-to-name bodies.
 
@@ -452,9 +460,29 @@ instruction-harvesting tranche or a completed high-resident manager.
 **Shared allocator service boundary:** `src/DEV/HIMEM/XMSALLOC.INC` now contains
 the allocation/lock/info/reallocation services; `XMSHANDLE.INC` contains their
 handle validation and free-space scans. HIMEM includes them at their original
-linked positions. Both normal HIMEM and the paired protected-copy HIMEM remain
-byte-identical, and the build tracks both includes. This is code sharing for
+linked positions. Extraction left normal and paired protected-copy HIMEM
+byte-identical at that checkpoint; the range correction below subsequently
+adds 24 linked bytes. The build tracks both includes. This is code sharing for
 the future high owner, not a second allocator or a conventional-memory saving.
+
+**Zero-length allocation correctness:** a live zero-size handle must not
+occupy or split a physical interval. The old `largest_gap` repeatedly selected
+such a record without advancing; `find_gap` and `gap_after_handle` also treated
+it as an obstacle. All three now skip zero-length intervals while preserving
+the handle identity. `largest_gap` also returns zero for a pool at/below the
+reserved HMA bound instead of underflowing its subtraction.
+
+The new high-owner regression timed out before the fix in
+`out/xms-allocator-owner-pdpbmk37/` and passes in
+`out/xms-allocator-owner-2hnprd00/`. It checks unchanged free capacity, first-fit
+placement and in-place growth across a zero-length handle, plus empty/small
+pools. The public-XMS probe now queries free space with a live zero-size handle:
+DOS-high OFF with failed/retried relocation passes in
+`out/xms-copy-windows-no30ygnt/`, DOS-high mapped ON in
+`out/xms-copy-windows-vm_o6676/`, and normal HIMEM with AUTO in
+`out/xms-copy-windows-i_drhhcg/`. DOS-low/high boundary-move tests also pass.
+The fix applies to normal HIMEM and future high services; it is a correctness
+cost, not permission to resume byte harvesting or a completed provider entry.
 
 The service's data contract is an explicit DS owner containing the handle
 records, handle limit, pool bound and move workspace. Near return adapters and
@@ -868,7 +896,7 @@ The checkpoint passes only when the remaining combined net budget covers at leas
 bytes while retaining the 47,888-byte free-UMB floor and configured resources.
 That is the retail acceptance threshold, not a ceiling on the design: identify
 further whole-object opportunities toward the OpenDOS result without promising
-its current 10,080-byte lead over combined development as locally reclaimable storage.
+its current 10,112-byte lead over combined development as locally reclaimable storage.
 The OpenDOS disk-boot control is now measured; resource semantics and reset
 qualification remain open before adopting its totals as a target.
 
@@ -1027,7 +1055,7 @@ Required deliverables, in order:
    47,888-byte UMB floor, requested resources, A20-off clients, DOS-low/286
    fallback, redirects, nested execution and reset as acceptance gates.
 
-Retail is the floor, not a component-size quota. The current 10,080-byte
+Retail is the floor, not a component-size quota. The current 10,112-byte
 OpenDOS lead (11,936 in the pre-table ledger) is the difference to explain,
 not an approved savings budget. Optional video
 recovery and the bounded 1 KiB EBDA step cannot explain this below-VC gap.

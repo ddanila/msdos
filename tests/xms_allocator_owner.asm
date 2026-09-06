@@ -360,6 +360,42 @@ owner_compare:
     jb owner_compare
     ret
 owner_cases:
+    ; A live zero-length handle owns an identity, not a physical interval.
+    mov word ptr [handles+HANDLE_BASE],64
+    mov word ptr [handles+HANDLE_LENGTH],0
+    call xms_query_free
+    cmp ax,448
+    jne failed
+    cmp dx,448
+    jne failed
+    mov word ptr [handles+HANDLE_BASE],80
+    call xms_query_free
+    cmp ax,448
+    jne failed
+    mov dx,32
+    call xms_allocate
+    cmp ax,1
+    jne failed
+    cmp dx,2
+    jne failed
+    cmp word ptr [handles+HANDLE_SIZE+HANDLE_BASE],64
+    jne failed
+    mov word ptr [handles+HANDLE_BASE],100
+    mov byte ptr [fail_copy],1
+    mov dx,2
+    mov bx,64
+    call xms_reallocate
+    cmp ax,1
+    jne failed
+    cmp word ptr [handles+HANDLE_SIZE+HANDLE_BASE],64
+    jne failed
+    mov byte ptr [fail_copy],0
+    mov dx,2
+    call xms_free
+    cmp ax,1
+    jne failed
+    mov word ptr [handles+HANDLE_BASE],0
+    mov word ptr [handles+HANDLE_LENGTH],64
     mov cx,4
     call owner_valid                 ; freed records retain their lengths
     xor cx,cx
@@ -407,6 +443,19 @@ owner_cases:
     mov byte ptr [handles+HANDLE_LOCK],0
     mov word ptr [extended_kb],0
     call owner_valid                 ; no ordinary XMS, all records free
+    call xms_query_free
+    test ax,ax
+    jnz failed
+    test dx,dx
+    jnz failed
+    cmp bl,ERR_NO_MEMORY
+    jne failed
+    mov word ptr [extended_kb],32
+    call xms_query_free
+    test ax,ax
+    jnz failed
+    test dx,dx
+    jnz failed
     mov word ptr [extended_kb],512
     ret
 

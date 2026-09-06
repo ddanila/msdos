@@ -92,20 +92,26 @@ def main():
                 "--composition", work / "results.json", "--variant",
                 "fine-cds-high-tables" if args.high_tables else "fine-cds",
             ], check=True, stdout=census)
+    check_results(results, high_cds=args.high_cds, high_tables=args.high_tables)
+
+
+def check_results(results, *, high_cds=False, high_tables=False):
+    """Validate a completed capture without repeating its emulator runs."""
     assert results["retail"]["largest"] == 618736, results["retail"]
     assert results["retail"]["upper_free"] == 47888, results["retail"]
     # Intact SETVER costs 640 bytes versus the old invalid owner. Recording
     # conventional handle-zero mappings also adds 192 bytes to low EMM tables.
-    # The XMS status/boundary-move fixes add 16 rounded HIMEM bytes (2608).
-    assert results["coarse"]["largest"] == 613600, results["coarse"]
+    # XMS zero-length/range correctness adds 32 rounded HIMEM bytes (2640)
+    # versus the preceding 2608-byte status/boundary-move checkpoint.
+    assert results["coarse"]["largest"] == 613568, results["coarse"]
     assert results["coarse"]["upper_free"] == 47904, results["coarse"]
     assert results["fine"]["largest"] == results["coarse"]["largest"], results
     assert results["fine"]["upper_free"] - results["coarse"]["upper_free"] == 4096, results
-    if args.high_cds:
+    if high_cds:
         assert results["fine-cds"]["largest"] - results["fine"]["largest"] == 2304, results
         assert results["fine"]["upper_free"] - results["fine-cds"]["upper_free"] == 2320, results
         assert results["fine-cds"]["upper_free"] >= results["retail"]["upper_free"], results
-    if args.high_tables:
+    if high_tables:
         candidate, previous = results["fine-cds-high-tables"], results["fine-cds"]
         assert candidate["largest"] > previous["largest"], results
         assert candidate["upper_free"] == previous["upper_free"], results
