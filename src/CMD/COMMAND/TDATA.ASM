@@ -749,7 +749,7 @@ TRANDATA	SEGMENT PUBLIC BYTE
 	PUBLIC	RE_OUTSTR
 
 RE_OUT_APP	DB	0			; output redirection appends
-RE_OUTSTR	DB	64+3+13 DUP (0)		; path restored after EXEC
+RE_OUTSTR	DB	PIPE_OUTPUT_PATH_BYTES DUP (0)	; path restored after EXEC
 
 TRANDATAEND	LABEL	BYTE
 

@@ -42,6 +42,12 @@ class HmaBudgetTests(unittest.TestCase):
                                               command_symbols=symbols, hma_tail=4293),
                          [3232, 288, 675, 98])
 
+    def test_pipeline_redirection_costs_only_high_storage(self):
+        before = hma_layout(0x9D60, 7988, 7744, 5207)
+        after = hma_layout(0x9D60, 7988, 7744, 5288)
+        self.assertEqual(after[-2][1:], (0xEF7C, 0xFFF0))
+        self.assertEqual(after[-2][1] - before[-2][1], 81)
+
     def test_whole_inventory_excludes_shell_stack_and_psp(self):
         # Growing only the excluded stack shifts the data and break together.
         symbols = dict(RES_CODE_END=0xA93, resmsgend=0xD52,

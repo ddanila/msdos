@@ -32,7 +32,8 @@ Disk-message lookup uses the retained data segment, not relocated CS. Low
 interrupt-return wrappers restore A20 before returning to the high service;
 unsupported-provider, DOS-low, child and /MSG layouts retain their low fallback.
 
-The complete 129-byte pipeline command-text buffer now joins the high owner.
+The complete pipeline owner holds 129 bytes of command text plus 81 bytes of
+deferred output path/append state in high memory.
 Its two transient consumers use one far binding; DOS-facing filenames, PSP and
 EXEC parameters remain low. There is no retained low text mirror. This recovers
 another **112 conventional bytes** beyond service retirement's 1,344-byte low
@@ -40,27 +41,30 @@ allocation, after charging the new four-byte binding and paragraph rounding.
 The remaining low state is **675 bytes**, not the original 800.
 
 The current shared HMA budget is **40,272 DOS + 7,744 BIOS + 7,988 buffers +
-5,207 COMMAND = 61,211 bytes**, leaving **4,293 bytes** at `EF2Bh..FFF0h`.
+5,288 COMMAND = 61,292 bytes**, leaving **4,212 bytes** at `EF7Ch..FFF0h`.
 The shell charge includes its previous 2,447-byte owner, eight binding-fallback
-bytes, the 2,623-byte service and 129-byte pipeline text; do not add
-those owners again or reuse the preceding 7,053/4,422-byte remainders.
+bytes, the 2,623-byte service and 210-byte pipeline owner; do not add
+those owners again or reuse the preceding 7,053/4,422/4,293-byte remainders.
 
-Evidence: `out/command-high-retirement-skt2h38k/`. The paired fresh captures
+Evidence: `out/command-high-retirement-p9uv376r/`. The paired fresh captures
 change only COMMAND; CONFIG.SYS, AUTOEXEC.BAT, BIOS, DOS, managers and VC are
 checked unchanged. Local tests cover poisoned high startup/critical errors,
 DOS-low fallback, child and /MSG startup, INT 2Eh internal/external execution,
 and LOADHIGH regions/minima/shrinking/fallback/restoration with DOS=HIGH.
 Guest checks verify all 13 gate destinations, the pipeline far binding and the exact low MCB boundary
 before and after execution; wrong-stack negative controls must fail. Linked
-checks reject relative branches escaping the copied service. Default COMMAND
-remains byte-identical; the prior binding regression and 38 binding/HMA-budget
-unit tests also pass. Pipeline tests overwrite all extra conventional allocation
-in seven external filter executions, check exact output through up to three
-filters and a child shell, and exercise both DOS-high and DOS-low layouts.
-This qualifies surviving pipeline text, not every pipeline/redirection combination.
+checks reject relative branches escaping the copied service. Native and isolated
+normal builds match; normal COMMAND also receives the shared TCOMMAND entry
+correction described below, without changing its resident allocation. The binding
+regression and 39 binding/HMA-budget unit tests pass. Pipeline tests overwrite all
+extra conventional allocation in fourteen external filter executions per mode,
+check exact overwrite/append and input-redirection file contents, up to three
+filters and a child shell, and verify temporary-file cleanup in DOS-high and
+DOS-low layouts. A same-size wrong-owner TCOMMAND mutation must fail.
 Reproduce with:
 
 ```sh
+make cmd_command
 python3 tests/test_command_high_resident_qemu.py out/umb-fine-composition-l1byzj6z/input-paired.img
 ```
 
@@ -68,18 +72,18 @@ python3 tests/test_command_high_resident_qemu.py out/umb-fine-composition-l1byzj
 fault and reset qualification, remaining BIOS mixed state/services and the other
 low owners below. This service retirement does not complete shell code/state
 placement. Next, classify and move eligible state against the remaining shared
-4,293 bytes, preserve the low PSP/stack and published pointer contracts, then
+4,212 bytes, preserve the low PSP/stack and published pointer contracts, then
 measure the next composed gain; do not replace this with more copy-only milestones.
 
-**Pipeline ownership bug to fix next:** final redirection can disappear after
-an external leg overwrites the transient. Reproducer with the checked stress
-filter: `ECHO PIPE_FIRST|PIPEIO|PIPEIO > PIPE1.OUT`; the output can reach the
-console instead of the file. The preceding service-only build also fails
-(`out/command-high-retirement-79nhzn8t/pipeline-HIGH.img`). Preserve the necessary
-redirection state across reload without a conventional mirror; audit PRESCAN's
-canonicalization and the transient RE_OUTSTR/RE_OUT_APP ownership. Add exact
-file-content and temporary-file cleanup checks before claiming complete pipeline
-semantics. Moving command text alone does not fix this pre-existing defect.
+**Pipeline reload contract:** PRESCAN must save the final output path and append
+flag before any external leg; LASTPIPE restores them to transient scratch only
+when opening final output. Keeping only canonicalized command text loses that
+state during reload. This preservation belongs to the opt-in high layout.
+TCOMMAND must fetch RESSEG through **CS**, not the incoming DS: pipeline cleanup
+can enter with resident DS selected. The old entry could run HEADFIX against
+overwritten memory and close live handles; the checked mutation reproduces this.
+The CS-owner correction applies to normal builds too. General parser edge cases,
+DBCS pipelines and nested interruption/error paths still need qualification.
 
 The preceding **packed BIOS retirement candidate**, with normal COMMAND, is measured at
 **619,872 conventional / 49,680 free UMB bytes** in
@@ -156,9 +160,12 @@ qualification remains open.
 
 The whole-shell service retirement above supersedes this checkpoint's COMMAND
 code-placement task. Complete state placement, BIOS qualification and mixed low
-owners remain in scope; its current shared budget is the 4,293-byte remainder.
+owners remain in scope; its current shared budget is the 4,212-byte remainder.
 
-Reproduce the composed measurement with:
+Historical BIOS-only reproduction (requires that checkpoint's pinned normal
+COMMAND binary). The current native COMMAND includes the TCOMMAND correction;
+do not bypass the provider fixture's input-hash checks. Use the whole-shell
+comparison above for the current composition:
 
 ```sh
 python3 tests/test_umb_subpage_composition.py --paired-provider out/emm-init-phases-q3jatbct --retire-bios-characters --pack-bios-headers --retire-bios-media

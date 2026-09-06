@@ -3,6 +3,7 @@
 
 The input is a completed BIOS/provider image, not a newly rebuilt baseline.
 Only COMMAND changes between the two fresh captures. This is not promotion.
+Run make cmd_command first: the isolated normal build must match the native one.
 """
 import argparse
 import hashlib
@@ -29,10 +30,10 @@ def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def check_pipelines(work, floppy, env):
+def check_pipelines(work, floppy, env, modes=("HIGH", "LOW")):
     probe = work / "PIPEIO.COM"
     run(["nasm", "-f", "bin", ROOT / "tests/command_pipe_filter.asm", "-o", probe])
-    for mode in ("HIGH", "LOW"):
+    for mode in modes:
         disk = work / f"pipeline-{mode}.img"
         shutil.copyfile(floppy, disk)
         for path, destination in ((probe, "::PIPEIO.COM"),
@@ -44,10 +45,15 @@ def check_pipelines(work, floppy, env):
                  "ECHO PIPE_SECOND|PIPEIO\r\n"
                  "ECHO PIPE_THIRD|PIPEIO|PIPEIO|PIPEIO\r\n"
                  "COMMAND /C ECHO PIPE_CHILD|PIPEIO\r\n"
+                 "ECHO PIPE_REDIRECT|PIPEIO|PIPEIO > PIPE1.OUT\r\n"
+                 "ECHO PIPE_APPEND|PIPEIO|PIPEIO >> PIPE1.OUT\r\n"
+                 "PIPEIO < PIPE1.OUT | PIPEIO > PIPE2.OUT\r\n"
+                 "COMMAND /C ECHO PIPE_CHILD_RED|PIPEIO > PIPE3.OUT\r\n"
                  "ECHO PIPE_RELOAD_CONTINUED\r\nQEXIT.COM\r\n")
         for name, contents in (("CONFIG.SYS", config), ("AUTOEXEC.BAT", batch)):
             run(["mcopy", "-o", "-i", disk, "-", "::"+name],
                 input=contents.encode("ascii"), env=env)
+        before = set(run(["mdir", "-b", "-i", disk, "::"], env=env, capture_output=True).stdout.splitlines())
         with (work / f"pipeline-{mode}.log").open("w") as log:
             result = subprocess.run(["timeout", "40", "qemu-system-i386", "-display", "none",
                 "-monitor", "none", "-cpu", "486", "-m", "8", "-boot", "a",
@@ -56,9 +62,40 @@ def check_pipelines(work, floppy, env):
                 stdout=log, stderr=log)
         assert result.returncode == 33, f"pipeline {mode}: emulator {result.returncode}"
         serial = (work / f"pipeline-{mode}.log").read_text()
-        assert serial.count("PIPE_FILTER_OVERWRITE") == 7, serial
+        assert serial.count("PIPE_FILTER_OVERWRITE") == 14, serial
         for marker in ("PIPE_FIRST", "PIPE_SECOND", "PIPE_THIRD", "PIPE_CHILD", "PIPE_RELOAD_CONTINUED"):
             assert marker in serial.splitlines(), (mode, marker, serial)
+        expected_outputs = (b"PIPE_REDIRECT\r\nPIPE_APPEND\r\n",
+                            b"PIPE_REDIRECT\r\nPIPE_APPEND\r\n", b"PIPE_CHILD_RED\r\n")
+        for index, expected in enumerate(expected_outputs, 1):
+            output = run(["mtype", "-i", disk, f"::PIPE{index}.OUT"], env=env, capture_output=True).stdout
+            assert output == expected, (mode, index, output)
+        after = set(run(["mdir", "-b", "-i", disk, "::"], env=env, capture_output=True).stdout.splitlines())
+        assert before <= after, before-after
+        assert after-before == {b"::/PIPE1.OUT", b"::/PIPE2.OUT", b"::/PIPE3.OUT"}, after-before
+
+
+def check_entry_mutation(work, high, floppy, env, symbols):
+    # Force a wrong owner without moving any entry/branch. Merely dropping the
+    # CS prefix can accidentally work when incoming DS happens to be transient.
+    negative = work / "negative-owner"
+    negative.mkdir()
+    mutated = bytearray(high.read_bytes())
+    entry = symbols["TCOMMAND"]-0x100
+    assert mutated[entry:entry+3] == b"\x2e\x8e\x1e"
+    mutated[entry:entry+5] = b"\x31\xc0\x8e\xd8\x90"  # XOR AX,AX; MOV DS,AX; NOP
+    broken_command = negative / "COMMAND.COM"
+    broken_command.write_bytes(mutated)
+    broken_floppy = negative / "boot.img"
+    shutil.copyfile(floppy, broken_floppy)
+    run(["mcopy", "-o", "-i", broken_floppy, broken_command, "::COMMAND.COM"], env=env)
+    try:
+        check_pipelines(negative, broken_floppy, env, modes=("HIGH",))
+    except AssertionError as error:
+        assert (str(error) == "pipeline HIGH: emulator 124"
+                or "PIPE_FILTER_OVERWRITE" in str(error)), str(error)
+    else:
+        raise AssertionError("wrong-DS TCOMMAND mutation was not detected")
 
 
 def build(work, high):
@@ -69,7 +106,7 @@ def build(work, high):
     defines = ("-DCOMMAND_RESIDENT_BINDING -DCOMMAND_HIGH_RESIDENT "
                "-DCOMMAND_HIGH_RESIDENT_POISON") if high else ""
     with (work / "build.log").open("w") as log:
-        for module in ("COMMAND1", "COMMAND2", "RUCODE", "RDATA", "INIT", "TCMD2B", "TMISC1", "TPIPE"):
+        for module in ("COMMAND1", "COMMAND2", "RUCODE", "RDATA", "INIT", "TCMD2B", "TMISC1", "TPIPE", "TDATA", "TCODE"):
             run([ROOT / "bin/jwasm-masm",
                  f"-Mx -t {defines} -I. -I../../INC -I../../DOS -Fl={work / module}.LST",
                  f"{module}.ASM,{work / module}.OBJ;"], cwd=SOURCE, stdout=log, stderr=log)
@@ -89,6 +126,10 @@ def main():
     normal = build(work / "normal", False)
     high = build(work / "high", True)
     assert normal.read_bytes() == (SOURCE / "COMMAND.COM").read_bytes(), "default binary changed"
+    for name, command in (("normal", normal), ("high", high)):
+        _, entry_symbols = parse_map(work / name / "COMMAND.MAP")
+        entry = entry_symbols["TCOMMAND"] - 0x100
+        assert command.read_bytes()[entry:entry+3] == b"\x2e\x8e\x1e", "TCOMMAND must select resident DS through CS"
     segments, symbols = parse_map(work / "high/COMMAND.MAP")
     start, end = symbols["shell_service_start"], symbols["RES_CODE_END"]
     assert segments["DATARES"].end == start
@@ -143,6 +184,7 @@ def main():
     for name in ("provider", "regions", "fallback", "high"):
         shutil.copyfile(ROOT / f"out/loadhigh-{name}.log", work / f"loadhigh-{name}.log")
     check_pipelines(work, floppy, env)
+    check_entry_mutation(work, high, floppy, env, symbols)
     probe = work / "CEILING.COM"
     run(["nasm", "-f", "bin", ROOT / "tests/memory_ceiling_probe.asm", "-o", probe])
     results = {}

@@ -145,7 +145,7 @@ SETDRV:
 ;
 
 TCOMMAND:
-	MOV	DS,[RESSEG]
+	MOV	DS,CS:[RESSEG]		; callers may still have resident DS selected
 ASSUME	DS:RESGROUP
 	MOV	[LOADHIGH_PENDING],0
 	MOV	AX,-1

@@ -564,7 +564,7 @@ PIPEPTR 	DW	?
 PIPEBASE DW OFFSET RESGROUP:PIPESTR
 PIPESEG DW 0
 	ELSE
-PIPESTR 	DB	129 DUP(?)
+PIPESTR 	DB	PIPE_TEXT_BYTES DUP(?)
 	ENDIF
 INPIPEPTR	DW	OFFSET ResGroup:PIPE1
 OUTPIPEPTR	DW	OFFSET ResGroup:PIPE2
@@ -624,7 +624,10 @@ resident_catalog_start LABEL BYTE
 	IFDEF COMMAND_HIGH_RESIDENT
 ; Private pipeline text travels with the high allocation. DOS-facing names
 ; and control fields stay low; there is no retained low text mirror.
-PIPESTR DB 129 DUP(?)
+PIPESTR DB PIPE_TEXT_BYTES DUP(?)
+; Append mode and the DOS-facing output path must survive every pipeline EXEC.
+; They are restored to transient scratch only when the final leg opens output.
+        DB PIPE_REDIRECT_BYTES DUP(?)
 	ENDIF
 
 ; CL3 and CL4 define $M_CLS_1/$M_CLS_2, which the resident message
