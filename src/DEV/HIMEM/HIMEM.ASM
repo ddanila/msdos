@@ -889,6 +889,7 @@ ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
 bootstrap_owner_start label byte
 ifdef HIMEM_COMMON_XMS_TEST
         include XMSIMPORTBODY.INC
+        include XMSUMBIMPORT.INC
         include XMSMOVEBODY.INC
         include XMSMOVEHELP.INC
         include XMSUMBBODY.INC

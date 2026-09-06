@@ -114,6 +114,10 @@ def check_bootstrap_layout(numbers, procedures, handle_count):
     moved_move = "bootstrap_move" in procedures
     move_tail = ("bootstrap_move", "resolve_move_address", "copy_move_blocks", "kb_to_physical") if moved_move else ()
     import_tail = ("bootstrap_remote_owned",) if "bootstrap_remote_owned" in procedures else ()
+    if "bootstrap_umb_import" in procedures:
+        import_tail += ("bootstrap_umb_import", "umb_remote_send")
+        if not 0 <= procedures["umb_remote"] < start:
+            raise ValueError("UMB import lifetime guard is not permanent")
     umb_tail = ("bootstrap_umb_service", "xms_umb_request", "xms_umb_release") if "bootstrap_umb_service" in procedures else ()
     for name in (*BOOTSTRAP_PROCEDURES, *move_tail, *import_tail, *umb_tail):
         if not start <= procedures[name] < handles:
@@ -228,6 +232,11 @@ def paired_front_ownership(path, handle_count):
     if "bootstrap_remote_owned" in addresses:
         boundaries = [("High allocator gate", start, "permanent freeze/publication guard; import body is bootstrap-only")
                       if name == "High allocator transport" else (name, start, contract)
+                      for name, start, contract in boundaries]
+    if "bootstrap_umb_import" in addresses:
+        boundaries = [("UMB import gate and publication state", start,
+                       "import body is bootstrap-only; keep outcome state and permanent rejection")
+                      if name == "UMB handoff transport and publication state" else (name, start, contract)
                       for name, start, contract in boundaries]
     if "bootstrap_move" in addresses:
         already_retired |= {"Public Move validation", "Move address translation",

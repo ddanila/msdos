@@ -89,6 +89,15 @@ class BootstrapLayoutTests(unittest.TestCase):
                 with self.subTest(name=name, offset=offset), self.assertRaises(ValueError):
                     check_bootstrap_layout(self.numbers, dict(procedures, **{name: offset}), 32)
 
+    def test_umb_import_body_and_transport_retire_but_guard_remains(self):
+        procedures = dict(self.procedures, bootstrap_umb_import=2304,
+                          umb_remote_send=2400, umb_remote=512)
+        check_bootstrap_layout(self.numbers, procedures, 32)
+        for name, offset in (("bootstrap_umb_import", 512),
+                             ("umb_remote_send", 512), ("umb_remote", 2304)):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                check_bootstrap_layout(self.numbers, dict(procedures, **{name: offset}), 32)
+
 
 class PairedFrontTests(unittest.TestCase):
     def test_transplant_scenario_retains_transport_and_unknown_gate_costs(self):

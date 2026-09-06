@@ -14,11 +14,11 @@ Report UMB and application XMS costs alongside the gain. Complete BIOS and
 COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
-The current UMB-bootstrap retirement candidate is measured at
-**617,136 conventional / 49,680 free UMB bytes** in
-`out/umb-fine-composition-_1kck3uo/`. It recovers 304 conventional bytes from
-the previous paired candidate, but remains 800 below the selected control and
-1,600 below retail; its additional application-XMS cost remains 5,120 bytes.
+The current UMB-bootstrap/import retirement candidate is measured at
+**617,456 conventional / 49,680 free UMB bytes** in
+`out/umb-fine-composition-is9hxh4k/`. Retiring the import transport recovers
+another 320 conventional bytes, but remains 480 below the selected control and
+1,280 below retail; its additional application-XMS cost remains 5,120 bytes.
 This does **not** meet the delivery gate. Finish provider retirement and packing,
 then demonstrate the joint BIOS/COMMAND placement in that same composed image.
 
@@ -1913,23 +1913,23 @@ unstaged run also tests return-before-poison in the original image. Forcing the
 retired handle route fails with guest 35. Seventeen layout and 35 parser tests
 pass, and the older non-common cancellation fixture still passes.
 
-**Composed provider measurement:** `out/umb-fine-composition-_1kck3uo/`
+**Composed provider measurement:** `out/umb-fine-composition-is9hxh4k/`
 boots the paired provider with the development BIOS, complete high EMM tables,
 fine UMB mapping, high CDS and unchanged COMMAND/configuration/VC 4.05.
 All six captures complete, including freshly reproduced control and retail.
 
 | Fixed-config measurement | Selected control | Paired candidate | Retail 6.22 |
 | --- | ---: | ---: | ---: |
-| VC largest conventional block | 617,936 | 617,136 | 618,736 |
+| VC largest conventional block | 617,936 | 617,456 | 618,736 |
 | VC free UMB | 49,680 | 49,680 | 47,888 |
-| Low HIMEM + EMM allocation | 4,656 | 5,456 | 5,232 |
+| Low HIMEM + EMM allocation | 4,656 | 5,136 | 5,232 |
 | Free XMS reported by MEM | 6,803,456 | 6,798,336 | Not compared here |
 
-The candidate loses **800 conventional bytes**, exactly its additional low
+The candidate loses **480 conventional bytes**, exactly its additional low
 manager allocation, and **5,120 application XMS bytes** versus the control.
-It is **1,600 conventional bytes below retail**. Compared with the preceding
-paired capture (`out/umb-fine-composition-aexbt86k/`), UMB-bootstrap retirement
-recovers **304 actual VC conventional bytes**, with unchanged free UMB and XMS.
+It is **1,280 conventional bytes below retail**. Compared with the preceding
+paired capture (`out/umb-fine-composition-_1kck3uo/`), UMB-import retirement
+recovers **320 actual VC conventional bytes**, with unchanged free UMB and XMS.
 This is still an integrated negative
 result, not promotion or a new preferred image. Retiring and packing the
 remaining provider storage must beat that measured cost; BIOS/COMMAND gains
@@ -1943,7 +1943,7 @@ python3 tests/capture_emm_init_phases.py floppy.img --common-xms-entry --dos-hig
 python3 tests/test_umb_subpage_composition.py --paired-provider out/emm-init-phases-<reported-id>
 ```
 
-The measured input fixture is `out/emm-init-phases-ii4z6xm7/`. Composition checks
+The measured input fixture is `out/emm-init-phases-77b__pc2/`. Composition checks
 its binary hashes, normal capacity, four-mode completion and absence of fault
 controls; it pins the BIOS loader fixups to that exact provider. Normal build
 outputs and CI settings remain unchanged. Full reset/failure qualification and
@@ -1951,12 +1951,13 @@ the joint BIOS/COMMAND placement are still open.
 
 #### Remaining provider work: UMB owner and bootstrap transaction together
 
-The candidate now places the local UMB allocator, peer-operation bodies
+The preceding partition placed the local UMB allocator, peer-operation bodies
 and canonical records in the bootstrap tail. The loader confirms both handle
 and UMB ownership before clearing the stage pointer and releasing that storage.
 The four-mode physical-reclamation fixture, `out/emm-init-phases-ii4z6xm7/`,
 retains 3,264 HIMEM + 2,192 EMM = **5,456 low bytes**, with a 2,016-byte bootstrap
-tail at 32 handles. The composed capture above confirms the 304-byte release.
+tail at 32 handles. Its composed capture (`out/umb-fine-composition-_1kck3uo/`)
+confirmed the 304-byte release.
 Refused import (`y0cddom2`), DOS-low/128-handle live allocations with lost import
 reply (`y3kqnn2b`), and unstaged unknown service outcome (`s7ho44wa`, same phase
 artifact prefix) pass all four modes. The live-import bitmap negative fails
@@ -1965,9 +1966,22 @@ Eighteen layout, 35 phase-parser and four composition-input tests pass; normal
 standalone binaries remain byte-identical. Full failure/reset qualification is
 still open; this is not production promotion.
 
-The remaining front still includes 421 bytes of bootstrap query/staging/
-forwarding, 486 bytes of UMB handoff transport/state and 137 bytes of owner
-completion. These are inventories, not promised savings: permanent guards,
+The current partition also retires the UMB import body and transport. The
+permanent guard rejects committed/unknown-service owners and frozen staging
+before reading disposable code. Import receipt recovery still operates from
+the canonical staged image; its return frame is back low before stage release.
+The current four-mode fixture (`77b__pc2`) retains **2,944 HIMEM + 2,192 EMM**
+bytes and a 2,416-byte disposable tail. Live DOS-low/128-handle lost-reply
+recovery (`1e8_u1ud`), unstaged unknown service result (`gam66xwi`), refused
+import (`c68zrnjj`) and non-common cancellation (`mv1ng6j0`, same phase artifact
+prefix) pass all four modes. Rejecting high UMB dispatch fails with guest 35.
+Nineteen layout tests pass; standalone binaries remain byte-identical.
+
+The remaining front includes 421 bytes of bootstrap query/staging/forwarding,
+161 bytes of UMB import guard/state, 137 bytes of owner completion and 210 bytes
+of handle wrappers. Retire the complete boot transaction and consolidate its
+bootstrap dispatch, rather than retaining a low wrapper per retired service.
+These are inventories, not promised savings: permanent guards,
 publication state and return paths must be separated and charged. Retire the
 remaining boot-only bodies and pack the retained pair before claiming success.
 
