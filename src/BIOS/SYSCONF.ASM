@@ -2045,6 +2045,7 @@ Skip2_ResetMEMHI:
 IFDEF BIOS_DEFER_PROVIDER
 ProviderLoadEnd dw 0
 IFDEF BIOS_ADMIN_PROVIDER
+ProviderAdminActive db 0
         align 16
 ProviderAdminImage db 8192 dup (0)
 ProviderAdminPrepare PROC NEAR
@@ -2140,6 +2141,47 @@ ProviderAdminRetiredStop:
         hlt
         jmp short ProviderAdminRetiredStop
 ProviderAdminRetired ENDP
+; Every returned INIT path passes here, including error/no-callback returns.
+; An unsafe abort stops before SYSINIT can release a still-bound code image.
+ProviderAdminCleanup PROC NEAR
+        cmp cs:[ProviderAdminActive],0
+        je ProviderAdminCleanupDone
+        push ax
+        push si
+        push di
+        mov ax,XCP_ADMIN_ABORT
+        mov cx,XCP_LAYOUT_SIGNATURE
+        mov si,XCP_LAYOUT_VERSION
+        xor di,di
+        int 2fh
+        cmp ax,XCP_LAYOUT_REPLY
+        jne ProviderAdminCleanupBad
+        call ProviderAdminRetired
+        ; An already revoked abort is idempotent after storage overwrite.
+        mov ax,XCP_ADMIN_ABORT
+        int 2fh
+        cmp ax,XCP_LAYOUT_REPLY
+        jne ProviderAdminCleanupBad
+        cmp word ptr cs:[PACKET+BP_CALLBACK_OFF+2],0
+        jne ProviderAdminCleanupMarked
+        mov al,'A'
+        out 0e9h,al
+        mov al,'R'
+        out 0e9h,al
+ProviderAdminCleanupMarked:
+        mov cs:[ProviderAdminActive],0
+        pop di
+        pop si
+        pop ax
+ProviderAdminCleanupDone:
+        ret
+ProviderAdminCleanupBad:
+        mov al,'A'
+        out 0e9h,al
+        mov al,'F'
+        out 0e9h,al
+        jmp ProviderAdminRetiredBad
+ProviderAdminCleanup ENDP
 ENDIF
 IFDEF PROVIDER_REBASE
         include PROVIDERFIXUPS.INC
@@ -2174,6 +2216,7 @@ ProviderOffer PROC NEAR
 IFDEF BIOS_ADMIN_PROVIDER
         call ProviderAdminPrepare
         jne ProviderOfferDone
+        mov cs:[ProviderAdminActive],1
 ENDIF
         mov word ptr cs:[PACKET+BP_MAGIC_OFF],BP_MAGIC
 IFDEF BIOS_PROVIDER_BAD_VERSION
@@ -2254,9 +2297,6 @@ ENDIF
         mov dx,cs:[MEMHI]
         mov word ptr cs:[BREAK_ADDR+2],dx
 ProviderResumeSuccess:
-IFDEF BIOS_ADMIN_PROVIDER
-        call ProviderAdminRetired
-ENDIF
         mov dx,0e9h
         mov al,'L'
         out dx,al
@@ -2266,6 +2306,9 @@ ENDIF
 ProviderResumeInvalid:
         mov word ptr cs:[PACKET+3],8103h
 ProviderResumeDone:
+IFDEF BIOS_ADMIN_PROVIDER
+        call ProviderAdminCleanup
+ENDIF
         mov word ptr cs:[PACKET+BP_MAGIC_OFF],0
         mov word ptr cs:[PACKET+BP_VERSION_OFF],0
         mov word ptr cs:[PACKET+BP_CALLBACK_OFF],0

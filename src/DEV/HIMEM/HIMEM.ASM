@@ -159,6 +159,8 @@ multiplex_handler proc far
 ifdef HIMEM_COMMON_XMS_TEST
         cmp     ax,XCP_ADMIN_PREPARE
         je      private_bootstrap_admin
+        cmp     ax,XCP_ADMIN_ABORT
+        je      private_bootstrap_admin
         cmp     ax,XCP_BOOTSTRAP_FINISH
         je      private_bootstrap_admin
         cmp     ax,XCP_STAGE_BIND

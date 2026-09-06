@@ -30,7 +30,12 @@ private_bootstrap_admin proc far
         or di,di
         jne admin_gate_bad
         cmp [admin_state],2
-        je admin_gate_bad
+        jne admin_gate_live
+        cmp ax,XCP_ADMIN_ABORT
+        jne admin_gate_bad
+        mov ax,XCP_LAYOUT_REPLY
+        jmp admin_gate_done
+admin_gate_live:
         mov bp,ax
         cmp [admin_state],0
         jne admin_gate_bound
@@ -56,6 +61,8 @@ admin_gate_bound:
         cmp ax,XCP_LAYOUT_REPLY
         jne admin_gate_done
         cmp bp,XCP_BOOTSTRAP_FINISH
+        je admin_gate_revoke
+        cmp bp,XCP_ADMIN_ABORT
         je admin_gate_revoke
         cmp bp,XCP_STAGE_RESTORE
         jne admin_gate_done

@@ -3,6 +3,8 @@
 bootstrap_admin proc far
         cmp ax,XCP_ADMIN_PREPARE
         je admin_prepare
+        cmp ax,XCP_ADMIN_ABORT
+        je admin_abort
         cmp ax,XCP_BOOTSTRAP_FINISH
         jne admin_stage_call
         call bootstrap_admin_finish
@@ -13,6 +15,23 @@ ifdef HIMEM_BOOTSTRAP_STAGE_TEST
 else
         xor ax,ax
 endif
+        retf
+admin_abort:
+        cmp [owner_query_active],0
+        jne admin_prepare_bad
+        cmp [common_busy],0
+        jne admin_prepare_bad
+        cmp [umb_remote_busy],0
+        jne admin_prepare_bad
+        cmp [umb_remote_state],0
+        jne admin_prepare_bad
+ifdef HIMEM_BOOTSTRAP_STAGE_TEST
+        cmp word ptr [bootstrap_stage_entry+2],0
+        jne admin_prepare_bad
+        cmp [bootstrap_frozen],0
+        jne admin_prepare_bad
+endif
+        mov ax,XCP_LAYOUT_REPLY
         retf
 admin_prepare:
         mov ax,[handle_limit]

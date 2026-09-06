@@ -98,9 +98,13 @@ XCP_BOOTSTRAP_FINISH equ 0e70bh
 ; The trusted loader proves ownership/disjointness from its own moving image;
 ; HIMEM checks capacity, conventional bounds and separation from its boot image.
 ; This snapshot is executable administration, not an authoritative allocator.
-; Installation is once per boot. Early abort before restore/completion still
-; requires lifecycle qualification; never release storage behind a bound gate.
+; Installation is once per boot; never release storage behind a bound gate.
 XCP_ADMIN_PREPARE equ 0e70ch
+; Revoke an unused administrative image on an early loader exit. Requires no
+; published owner, staged allocator or in-flight common/UMB operation. Returns
+; layout reply on safe revocation (including already revoked), zero otherwise.
+; Refusal requires retaining the storage or stopping boot, never freeing it.
+XCP_ADMIN_ABORT equ 0e70dh
 ; OWNER_QUERY uses AH=87h, ES:SI -> 'XOWN', then word version=1, handle
 ; limit, pool KiB, output largest/total KiB, then up to 128 five-byte records.
 ; The trusted development peer backs the full 654-byte packet below its

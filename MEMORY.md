@@ -15,12 +15,12 @@ COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
 The current bootstrap-retirement candidate is measured at
-**617,984 conventional / 49,680 free UMB bytes** in
-`out/umb-fine-composition-2vhu5egu/`. Retiring the complete low administrative
-bodies recovers 368 conventional bytes and puts the pair **48 above the selected
+**617,952 conventional / 49,680 free UMB bytes** in
+`out/umb-fine-composition-y8p7spf2/`. Retiring the complete low administrative
+bodies, including early-exit cleanup, recovers 336 conventional bytes and puts the pair **16 above the selected
 control**, with unchanged UMB and additional application-XMS cost of 5,120 bytes.
 This meets the local provider delivery gate, not the full memory goal: the
-candidate remains **752 conventional bytes below retail**. Early-abort/reset
+candidate remains **784 conventional bytes below retail**. Broader failure/reset
 qualification and joint BIOS/COMMAND placement remain open; no production
 promotion is implied.
 
@@ -1915,26 +1915,27 @@ unstaged run also tests return-before-poison in the original image. Forcing the
 retired handle route fails with guest 35. Seventeen layout and 35 parser tests
 pass, and the older non-common cancellation fixture still passes.
 
-**Composed provider measurement:** `out/umb-fine-composition-2vhu5egu/`
+**Composed provider measurement:** `out/umb-fine-composition-y8p7spf2/`
 boots the paired provider with the development BIOS, complete high EMM tables,
 fine UMB mapping, high CDS and unchanged COMMAND/configuration/VC 4.05.
 All six captures complete, including freshly reproduced control and retail.
 
 | Fixed-config measurement | Selected control | Paired candidate | Retail 6.22 |
 | --- | ---: | ---: | ---: |
-| VC largest conventional block | 617,936 | 617,984 | 618,736 |
+| VC largest conventional block | 617,936 | 617,952 | 618,736 |
 | VC free UMB | 49,680 | 49,680 | 47,888 |
-| Low HIMEM + EMM allocation | 4,656 | 4,608 | 5,232 |
+| Low HIMEM + EMM allocation | 4,656 | 4,640 | 5,232 |
 | Free XMS reported by MEM | 6,803,456 | 6,798,336 | Not compared here |
 
-The candidate gains **48 conventional bytes**, exactly its smaller low manager
+The candidate gains **16 conventional bytes**, exactly its smaller low manager
 allocation, and loses **5,120 application XMS bytes** versus the control.
-It is **752 conventional bytes below retail**. Compared with the preceding
+It is **784 conventional bytes below retail**. Compared with the pre-retirement
 paired capture (`out/umb-fine-composition-lpwhhpy0/`), administrative retirement
-recovers **368 actual VC conventional bytes**, with unchanged free UMB and XMS.
+and cleanup recover **336 actual VC conventional bytes**, with unchanged free UMB and XMS.
+Early-exit cleanup costs 32 low bytes versus the preceding 617,984-byte capture.
 This is a positive local integration result, not production promotion.
 BIOS/COMMAND gains must be demonstrated in the same image, not added from
-separate experiments. Early-abort and reset qualification remain required.
+separate experiments. Broader failure and reset qualification remain required.
 The XMS figures are the preceding MEM snapshot, not VC allocation rows.
 
 Reproduce using a current completed provider fixture:
@@ -1944,7 +1945,7 @@ python3 tests/capture_emm_init_phases.py floppy.img --common-xms-entry --dos-hig
 python3 tests/test_umb_subpage_composition.py --paired-provider out/emm-init-phases-<reported-id>
 ```
 
-The measured input fixture is `out/emm-init-phases-d8hxtlum/`. Composition checks
+The measured input fixture is `out/emm-init-phases-q3jatbct/`. Composition checks
 its binary hashes, normal capacity, four-mode completion and absence of fault
 controls; it pins the BIOS loader fixups to that exact provider. Normal build
 outputs and CI settings remain unchanged. Full reset/failure qualification and
@@ -1965,14 +1966,14 @@ policy. Public XMS calls explicitly enter the real low front. This separates
 administration from EMM's moving LAST image and permits removal of the complete
 low staging/completion bodies.
 
-The retained HIMEM front is **2,416 bytes**, including a 141-byte administrative
-gate/state group; EMM is 2,192 bytes. The 32-handle disposable tail is 3,024 bytes.
+The retained HIMEM front is **2,448 bytes**, including a 157-byte administrative
+gate/state group; EMM is 2,192 bytes. The 32-handle disposable tail is 3,072 bytes.
 After successful completion or restore, the low gate revokes the administrative
 entry before SYSINIT overwrites that image. This installation is once per boot,
 not a qualified reinitialization or unload interface.
 
-The composed SYSINIT segment is **0x9744 bytes (38,724)**, below 64 KiB. Relative
-to the preceding composed map (0x76A0), this adds **8,356 bytes of INIT code/data**,
+The composed SYSINIT segment is **0x9798 bytes (38,808)**, below 64 KiB. Relative
+to the pre-administration composed map (0x76A0), this adds **8,440 bytes of INIT code/data**,
 including the 8 KiB scratch image. It is temporary conventional boot storage,
 not free XMS or a final low allocation. These linked extents are not a complete
 minimum-RAM/peak-stack qualification.
@@ -1981,11 +1982,11 @@ Current local evidence (phase paths share `out/emm-init-phases-`):
 
 | Control | Evidence |
 | --- | --- |
-| Physical reclaim, ON/OFF/AUTO/RAM, fine UMB/high tables/DOS HIGH | `d8hxtlum` |
-| DOS-low, 128 handles, live UMB allocations and lost import reply | `t0f74olj` |
-| Unstaged unknown result; pending frame preserved, later calls refused | `v7pj5b1k` |
-| Refused import and read-only recovery | `_qh_nzf2` |
-| Common staged cancellation, restored local owner | `xue463s1` |
+| Physical reclaim, ON/OFF/AUTO/RAM, fine UMB/high tables/DOS HIGH | `q3jatbct` |
+| DOS-low, 128 handles, live UMB allocations and lost import reply | `ofr4qs_7` |
+| Unstaged unknown result; pending frame preserved, later calls refused | `xowe9knz` |
+| Refused import and read-only recovery | `4n6d1m3i` |
+| Common staged cancellation, restored local owner | `o15uc9uh` |
 | Non-common cancellation regression | `bhaknuo8` |
 | Forced high-handle rejection | Guest exit 35 |
 
@@ -1998,12 +1999,29 @@ rather than passing them down the interrupt chain. Twenty-one layout, 35
 phase-parser and four composition-input tests pass; normal standalone binaries
 remain byte-identical.
 
+Every returned provider INIT path now passes through administrative cleanup,
+including errors and missing callbacks. An unused, quiescent image is revoked;
+already-revoked cleanup is idempotent even after the image is overwritten.
+If a stage, published owner or operation is still active, cleanup refuses and
+stops boot before SYSINIT frees its storage. It does not invent a rollback.
+
+`out/emm-admin-early-exit-tygjvsiu/` tests error and no-callback returns before
+preparation, plus a bound-stage abort, in all four mode configurations. The
+eight safe exits retain the complete local HIMEM allocation and pass public
+UMB tests; the four unsafe exits stop specifically at cleanup. Explicit
+success/refusal markers prevent a later guest failure from masquerading as
+safe cleanup. Reproduce from a completed common staged-cancellation fixture:
+
+```sh
+python3 tests/test_emm_admin_early_exit.py out/emm-init-phases-o15uc9uh
+```
+
 Remaining requirements:
 
-1. Qualify aborts after administrative installation but before bind or successful
-   restore/completion. The current automatic revocation covers those successful
-   endings only; SYSINIT must not release storage behind a still-bound entry.
-   Add explicit cleanup or fail-closed handling for every earlier loader exit.
+1. Qualify recovery from partially prepared/aborted activation. A returned INIT
+   cannot leave SYSINIT freeing a bound administrative image, but unsupported
+   partial states currently stop boot rather than restore a complete usable
+   low configuration. Complete rollback remains separate from this safety gate.
 2. Cover bad administrative version/extent, relocation failure and recovery,
    aborted activation, repeated/cached private calls, and reset/backing lifetime.
    The passing normal/cancellation fixtures do not establish all these cases.
@@ -2016,7 +2034,7 @@ Remaining requirements:
 A discarded bind/restore-only split retained most transaction checks low and
 saved just 48 bytes in its phase fixture (`r6sr4j6u`). Do not revive that split:
 stable ownership of the complete administrative image is what enabled the
-measured 368-byte release above.
+measured whole-body release above.
 
 ##### Whole-system placement rules
 
