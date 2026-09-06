@@ -2821,9 +2821,10 @@ Run `make test-xms-copy-windows-qemu`, or pass `--image` to its Python helper.
 Normal and injected-failure evidence is in `out/xms-copy-windows-4_jfeae3/` and
 `out/xms-copy-windows-8zfq86vc/`. `--bad-data` provides a failing returned-data
 control. The normal EMM386 binary remains unchanged.
-This proves a physical-copy primitive in active mode, not public XMS integration,
-OFF/AUTO transitions, runtime busy-owner rejection,
-or real exception/NMI unwinding. Those gates and the complete provider's
+That original witness proves a physical-copy primitive in active mode, not public
+XMS integration or inactive entry; the private OFF/AUTO experiment below extends
+its mode coverage. Runtime busy-owner rejection, real exception/NMI unwinding
+and the complete provider's
 linked low/high layout remain open; no conventional saving is claimed.
 
 `XmsCopyClient` adds a 770-byte typed-address layer: flag bits select physical
@@ -2923,9 +2924,51 @@ so this fixed-space implementation can visit 73,984 page pairs with interrupts
 disabled. That bound is not an accepted latency result; optimize or replace the
 walk if it violates the provider's interrupt budget, charging any extent index
 to protected storage. Public error translation, physical allocation ownership,
-real fault/NMI unwind and OFF/AUTO entry remain separate gates. The current
+real fault/NMI unwind and public OFF/AUTO entry remain separate gates. The current
 770-byte typed layer and 392-byte physical core are a development inventory,
 not the complete provider or a conventional-memory saving.
+
+#### Private protected-copy entry from OFF and idle AUTO
+
+With `EMM_XMS_COPY_TEST`, the retained INT 15h adapter recognizes only the
+private `XCPY` packet while inactive, calls `FarGoVirtual`, runs the existing
+protected backend, and calls a far adapter around `RRProc` before returning.
+It does not change `Auto_Mode` or route the packet to firmware while OFF.
+Ordinary BIOS requests retain their existing path. The new low pieces measure
+41 bytes for inactive dispatch and 4 for the real-return adapter, in addition
+to existing monitor transitions and the private packet adapter. These are
+prototype costs, not a complete public entry budget or a low-memory saving.
+
+The 32-MiB witness passes successful and injected-failure copies from OFF and
+idle AUTO, preserving the locked XMS owners and verifying actual physical data
+above 16 MiB. Every private request checks the repository mode status and
+HIMEM's queried A20 state before/after; host checkpoints independently require
+CR0.PE clear for OFF/AUTO and set for ON. Scratch mappings and descriptors must
+be restored. This checks the fixture's A20 state, not every forced physical
+A20-off or enable-failure case. Normal EMM386 remains byte-identical.
+
+```sh
+python3 tests/test_xms_copy_windows_qemu.py --image out/setver-native-audit.BAEqDU/low.img --mode OFF
+python3 tests/test_xms_copy_windows_qemu.py --image out/setver-native-audit.BAEqDU/low.img --mode AUTO --fail-after-map
+```
+
+These variants are in the normal test target. Evidence: OFF success
+`out/xms-copy-windows-movez_im/`, AUTO success `out/xms-copy-windows-op49d9dh/`,
+OFF failure cleanup `out/xms-copy-windows-0lw8lp55/`, AUTO failure cleanup
+`out/xms-copy-windows-jiej1uz2/`, and active alias rejection
+`out/xms-copy-windows-pr54pxd_/`. `--mode OFF --leave-active` deliberately omits
+the real return and fails the mode assertion (`m!`) in
+`out/xms-copy-windows-tp91kegz/`.
+
+Do not publish this test entry as XMS. It still uses the installed monitor's
+normal activation, including DMA initialization, and its existing A20-enable
+path without a new failure-unwind contract. The final provider needs explicit
+busy/nested-call ownership, interrupt/NMI and A20-failure recovery, a complete
+transition-stack budget and stable public far entries. Inactive tests currently
+use physical endpoints; active tests cover translated EMS endpoints. Bootstrap
+allocator transfer, DOS's cached entry publication and low-image reclamation
+remain unimplemented. This experiment establishes a reusable mode path, not a
+second low implementation of the protected service.
 
 The census also now distinguishes handle zero's conventional physical pages
 from locked XMS backing: `_total_pages` includes both. It checks the ordered

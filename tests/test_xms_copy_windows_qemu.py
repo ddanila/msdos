@@ -23,6 +23,9 @@ ROOT = Path(__file__).resolve().parents[1]
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--image", type=Path, default=ROOT / "out/floppy.img")
+    parser.add_argument("--mode", choices=("ON", "OFF", "AUTO"), default="ON")
+    parser.add_argument("--leave-active", action="store_true",
+                        help="negative control: fail to restore OFF/idle AUTO")
     parser.add_argument("--fail-after-map", action="store_true")
     parser.add_argument("--mapped", action="store_true", help="exercise all mapped endpoint combinations")
     parser.add_argument("--bypass-mapping", action="store_true",
@@ -42,6 +45,10 @@ def main():
     parser.add_argument("--bypass-aliases", action="store_true",
                         help="negative control: omit whole-range alias checking")
     args = parser.parse_args()
+    if args.mode != "ON" and args.mapped:
+        parser.error("EMS-mapped tests require ON; inactive modes test physical service entry")
+    if args.leave_active and args.mode == "ON":
+        parser.error("--leave-active requires OFF or AUTO")
     if args.fail_after_map and args.bad_data:
         parser.error("the data control requires a completed copy")
     if args.fail_after_map and args.mapped or args.bypass_mapping and not args.mapped:
@@ -69,6 +76,8 @@ def main():
     flags = "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -I. -I..\\EMM -DEMM_XMS_COPY_TEST"
     if args.fail_after_map:
         flags += " -DEMM_XMS_COPY_FAIL_AFTER_MAP"
+    if args.leave_active:
+        flags += " -DEMM_XMS_COPY_LEAVE_ACTIVE"
     if args.deny_later_page:
         flags += " -DEMM_XMS_COPY_DENY_ALIGNED_PAGE"
     if args.bypass_preflight:
@@ -81,6 +90,9 @@ def main():
         subprocess.run([str(ROOT / "bin/jwasm-masm"), flags,
                         f"MOVEB.ASM,{work / 'MEMM/MOVEB.OBJ'};"],
                        cwd=ROOT / "src/MEMM/MEMM", check=True, stdout=log, stderr=subprocess.STDOUT)
+        subprocess.run([str(ROOT / "bin/jwasm-masm"), flags + " -DRRTRAP_LOW_ONLY",
+                        f"RRTRAP.ASM,{work / 'MEMM/RRTRAP.OBJ'};"],
+                       cwd=ROOT / "src/MEMM/MEMM", check=True, stdout=log, stderr=subprocess.STDOUT)
         subprocess.run([str(ROOT / "bin/wlink"), "/NOI /PACKDATA:1 @EMM386.LNK"],
                        cwd=work / "MEMM", check=True, stdout=log, stderr=subprocess.STDOUT)
     candidate = work / "MEMM/EMM386.EXE"
@@ -88,8 +100,11 @@ def main():
     symbols = {symbol.name: symbol for symbol in symbols}
     code_size = symbols["XmsCopyPhysicalEnd"].offset - symbols["XmsCopyPhysical"].offset
     client_size = symbols["XmsCopyClientEnd"].offset - symbols["XmsCopyClient"].offset
+    inactive_size = symbols["XmsI15InactiveEnd"].offset - symbols["XmsI15InactiveStart"].offset
+    return_size = symbols["FarXmsReturnRealEnd"].offset - symbols["FarXmsReturnReal"].offset
     probe = work / "probe.com"
     subprocess.run(["nasm", "-f", "bin", *(["-DEXPECT_MAP_FAILURE"] if args.fail_after_map else []),
+                    f"-DEXPECT_MODE={dict(ON=0, OFF=1, AUTO=3)[args.mode]}",
                     *(["-DWRONG_DATA"] if args.bad_data else []),
                     *(["-DMAPPED_ENDPOINT"] if args.mapped else []),
                     *(["-DBYPASS_MAPPING"] if args.bypass_mapping else []),
@@ -109,7 +124,8 @@ def main():
     install(candidate, "EMM386.EXE")
     install(ROOT / "src/DEV/HIMEM/HIMEM.SYS", "HIMEM.SYS")
     install(probe, "PROBE.COM")
-    install("-", "CONFIG.SYS", b"DEVICE=HIMEM.SYS /TESTMEM:OFF\r\nDEVICE=EMM386.EXE 1024 ON M5\r\n")
+    install("-", "CONFIG.SYS", ("DEVICE=HIMEM.SYS /TESTMEM:OFF\r\n"
+                               f"DEVICE=EMM386.EXE 1024 {args.mode} M5\r\n").encode("ascii"))
     install("-", "AUTOEXEC.BAT", b"@ECHO OFF\r\nPROBE.COM\r\n")
     # The private build uses the production NoBugMode selector layout.
     selectors = (ROOT / "src/MEMM/MEMM/VDMSEL.INC").read_text()
@@ -117,7 +133,9 @@ def main():
     assert re.search(r"MBSRC_GSEL\s+equ\s+RCODEA_GSEL\+18h", selectors)
     assert re.search(r"MBTAR_GSEL\s+equ\s+RCODEA_GSEL\+20h", selectors)
     endpoint, debug = work / "qmp", work / "debug.bin"
-    report = dict(passed=False, fail_after_map=args.fail_after_map, core_bytes=code_size,
+    report = dict(passed=False, mode=args.mode, fail_after_map=args.fail_after_map, core_bytes=code_size,
+                  leave_active=args.leave_active, inactive_entry_bytes=inactive_size,
+                  real_return_adapter_bytes=return_size,
                   client_bytes=client_size, mapped=args.mapped, bypass_mapping=args.bypass_mapping,
                   deny_later_page=args.deny_later_page, bypass_preflight=args.bypass_preflight,
                   deny_destination=args.deny_destination,
@@ -160,6 +178,9 @@ def main():
                 qmp.call("stop")
                 regs = qmp.call("human-monitor-command", {"command-line": "info registers"})
                 (work / f"{phase}-registers.txt").write_text(regs)
+                cr0 = int(re.search(r"CR0=([0-9a-fA-F]+)", regs)[1], 16)
+                if bool(cr0 & 1) != (args.mode == "ON"):
+                    raise ValueError(f"copy failed to retain requested {args.mode} execution mode")
                 dump = work / f"{phase}-ram.bin"
                 qmp.call("human-monitor-command", {"command-line": f'pmemsave 0 33554432 "{dump}"'})
                 ram = dump.read_bytes()
@@ -247,7 +268,7 @@ def main():
                     if (args.deny_later_page and phase == "N"
                             and client_hashes != report["checkpoints"][-1]["client_hashes"]):
                         raise ValueError("later-page rejection wrote mapped destination bytes")
-                row = dict(phase=phase, windows=windows, descriptors=ram[gdt+0x70:gdt+0x80].hex(),
+                row = dict(phase=phase, cr0=cr0, windows=windows, descriptors=ram[gdt+0x70:gdt+0x80].hex(),
                            physical_block_base=base, range_hashes=hashes, client_frames=client_frames,
                            client_hashes=client_hashes)
                 report["checkpoints"].append(row)

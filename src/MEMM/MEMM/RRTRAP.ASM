@@ -286,6 +286,16 @@ RRProc		proc near
 	pop	ax
 	ret
 RRProc		endp
+IFDEF EMM_XMS_COPY_TEST
+; Private development adapter: return to the caller's real-mode stack without
+; changing AUTO policy. Not a public XMS/provider entry.
+public FarXmsReturnReal, FarXmsReturnRealEnd
+FarXmsReturnReal proc far
+    call RRProc
+    ret
+FarXmsReturnReal endp
+FarXmsReturnRealEnd label near
+ENDIF
 	ENDIF
 
 ;******************************************************************************

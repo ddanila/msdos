@@ -289,6 +289,10 @@ test-xms-copy-windows-qemu:
 	python3 tests/test_xms_copy_windows_qemu.py --mapped --alias-overlap --alias-mode reverse
 	python3 tests/test_xms_copy_windows_qemu.py --mapped --alias-overlap --alias-mode identity
 	python3 tests/test_xms_copy_windows_qemu.py --mapped --alias-overlap --alias-mode disjoint
+	python3 tests/test_xms_copy_windows_qemu.py --mode OFF
+	python3 tests/test_xms_copy_windows_qemu.py --mode AUTO
+	python3 tests/test_xms_copy_windows_qemu.py --mode OFF --fail-after-map
+	python3 tests/test_xms_copy_windows_qemu.py --mode AUTO --fail-after-map
 
 .PHONY: test-emm-xms-owner-qemu
 test-emm-xms-owner-qemu:

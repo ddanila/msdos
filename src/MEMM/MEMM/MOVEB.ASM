@@ -114,6 +114,10 @@ _TEXT	segment
 	extrn	Rest_Par_Vect:near
 	extrn	togl_A20:near
 	extrn	get_a20_state:near
+IFDEF EMM_XMS_COPY_TEST
+    extrn FarGoVirtual:far
+    extrn FarXmsReturnReal:far
+ENDIF
 
 _TEXT	ends
 
@@ -504,6 +508,30 @@ chk_blk_move:
 	push	ds
 	push	seg DGROUP		;
 	pop	ds			;  DS -> DOSGROUP
+IFDEF EMM_XMS_COPY_TEST
+public XmsI15InactiveStart, XmsI15InactiveEnd
+XmsI15InactiveStart label near
+    cmp [Active_Status],0
+    jne short XmsI15Active
+    cmp dword ptr es:[si],59504358h
+    jne short XmsI15Active
+    ; The private XCPY service is independent of the user's EMS ON/OFF policy.
+    ; Enter the installed monitor temporarily; do not change Auto_Mode or
+    ; route this request to the firmware copy service while OFF/idle AUTO.
+    call FarGoVirtual
+    pop ds
+    mov cs:[MB_Flag],TRUE
+    popf
+    int 15h
+    pushf
+IFNDEF EMM_XMS_COPY_LEAVE_ACTIVE
+    call FarXmsReturnReal
+ENDIF
+    popf
+    jmp short XmsI15Result
+XmsI15Active:
+XmsI15InactiveEnd label near
+ENDIF
 	cmp	[Active_Status],0	;  Y: Q: in Virtual mode ?
 	pop	ds			; reset DS
 	je	i15_jmpf		;	N: jmp to old code
@@ -512,6 +540,9 @@ chk_blk_move:
 	popf				; retrieve entry flags (IF cleared!!!)
 	int	15h			;  give it to MEMM
 					; MEMM will reset MB_Flag
+IFDEF EMM_XMS_COPY_TEST
+XmsI15Result:
+ENDIF
 	cli				; just in case
 	push	bp			; save bp
 	mov	bp,sp

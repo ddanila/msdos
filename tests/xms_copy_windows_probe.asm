@@ -2,6 +2,12 @@ bits 16
 org 100h
     push cs
     pop ds
+    mov ax,3567h
+    int 21h
+    mov ax,[es:18]
+    mov [control],ax
+    mov [control+2],es
+    call check_mode
     mov ax,4310h
     int 2fh
     mov [xms],bx
@@ -324,12 +330,44 @@ mapped_read:
     ret
 %endif
 copy:
+    pushad
+    mov ah,7
+    call far [cs:xms]
+    mov [cs:a20_before],ax
+    popad
     push cs
     pop es
     mov si,packet
     mov ah,87h
     int 15h
+    call check_mode
+    pushf
+    pushad
+    mov ah,7
+    call far [cs:xms]
+    cmp ax,[cs:a20_before]
+    jne failed
+    popad
+    popf
     ret
+check_mode:
+    pushf
+    pushad
+    push ds
+    push es
+    xor ah,ah
+    call far [cs:control]
+    cmp ah,EXPECT_MODE
+    jne mode_failed
+    pop es
+    pop ds
+    popad
+    popf
+    ret
+mode_failed:
+    mov al,'m'
+    out 0e9h,al
+    jmp failed
 reject:
     call copy
     jnc failed
@@ -351,6 +389,8 @@ finish:
     cli
     hlt
 xms dd 0
+control dd 0
+a20_before dw 0
 reserve dw 0
 block dw 0
 witness_signature db 'XWPROBE!'
