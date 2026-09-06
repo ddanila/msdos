@@ -1750,6 +1750,36 @@ remain byte-identical. These costs include test diagnostics and are not a
 production gateway budget. No additional low allocation is released: complete
 provider packing and reset/backing qualification remain the next dependencies.
 
+**Common protected service core:** `--common-xms-entry` links `XMSCORE.INC`
+and routes the existing handle, resolved-copy and UMB adapters through
+`XmsServiceCore`. It takes a service selector in BP with explicit high DS,
+installed mappings and serialized caller-owned stack; it never imports an
+owner. Handle/UMB services require their corresponding committed state.
+Private handle lookup is separate from Move. Copy can run before handle
+publication without gaining allocator authority. Boot import, UMB sequencing
+and caller-result handling stay in the existing adapters for comparison.
+
+The DOS-high/downward/high-table fixture passes ON/OFF/AUTO/RAM in
+`out/emm-init-phases-1qn8vvlp/`. Rejecting the common core's handle, copy or
+UMB family independently (`--bad-common-xms-entry handle|copy|umb`) makes the
+guest fail with exit 35 in `oncthkht`, `_p1nxzye` and `nxemsw8r` respectively
+(same directory prefix). These controls show that the existing tests depend
+on each family reaching the core, not exhaustive coverage of all call contexts.
+The core itself links 141 high bytes; changed adapters are additional costs.
+HIMEM/EMM low spans remain 3,504/2,128 bytes, and normal binaries are unchanged.
+DOS low with 128 XMS handles, live UMB import and lost-result recovery also
+passes all four modes (`4f0qr9xh`); its live-import diagnostic HIMEM is 3,520
+bytes. Phase/parser and paired-layout suites pass 33 and 11 local tests.
+
+This is the protected half of the common-entry candidate, **not the registered
+public entry or final layout**. Public Move descriptors are still decoded low;
+the core consumes resolved addresses and memory-class flags. The separate
+transport packets, boot machinery and original low services remain allocated.
+Next bind the complete caller context and public Move validation to this core,
+then replace the steady-state transports through a lifetime-checked registration.
+Only that full partition can supply a new packed low boundary; this refactor
+claims no conventional release or complete provider qualification.
+
 ##### Whole-system placement rules
 
 DR-DOS's portable lesson is a small conventional interface backed by complete

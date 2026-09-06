@@ -299,6 +299,10 @@ def main():
                         help="route public and peer UMB calls through one high owner")
     parser.add_argument("--umb-service-receipts", action="store_true",
                         help="sequence UMB services and recover results without replay")
+    parser.add_argument("--common-xms-entry", action="store_true",
+                        help="route high handle, resolved-copy and UMB adapters through one core")
+    parser.add_argument("--bad-common-xms-entry", choices=("handle", "copy", "umb"),
+                        help="negative control: reject one service family in the common core")
     parser.add_argument("--umb-sequence-wrap", action="store_true",
                         help="seed both confirmed sequence counters near 32-bit wrap")
     parser.add_argument("--umb-service-reply", choices=("before", "after", "unknown"),
@@ -359,6 +363,10 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.bad_common_xms_entry:
+        args.common_xms_entry = True
+    if args.common_xms_entry:
+        args.umb_service_receipts = True
     if args.bad_umb_result_freeze:
         args.umb_service_reply = "unknown"
     if args.umb_service_reply or args.umb_sequence_wrap:
@@ -471,6 +479,10 @@ def main():
     build = work / "MEMM/MEMM"
     original = capture.sha256(capture.ROOT / "src/MEMM/MEMM/EMM386.EXE")
     trace_defines = "-DEMM_INIT_PHASE_TRACE"
+    if args.common_xms_entry:
+        trace_defines += " -DEMM_COMMON_XMS_TEST"
+    if args.bad_common_xms_entry:
+        trace_defines += " -DEMM_COMMON_XMS_REJECT_" + args.bad_common_xms_entry.upper()
     if args.bootstrap_owner:
         trace_defines += " -DEMM_BOOTSTRAP_OWNER_TEST"
     if args.umb_owner or args.umb_handoff:
@@ -758,6 +770,8 @@ def main():
         umb_owner=args.umb_owner,
         umb_handoff=args.umb_handoff,
         umb_service_receipts=args.umb_service_receipts,
+        common_xms_entry=args.common_xms_entry,
+        bad_common_xms_entry=args.bad_common_xms_entry,
         umb_sequence_wrap=args.umb_sequence_wrap,
         umb_service_reply=args.umb_service_reply,
         bad_umb_result_freeze=args.bad_umb_result_freeze,

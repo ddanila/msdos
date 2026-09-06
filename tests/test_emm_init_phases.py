@@ -52,6 +52,8 @@ class InitPhaseTests(unittest.TestCase):
     def test_umb_result_controls_require_matching_lifecycle(self):
         script = Path(__file__).with_name("capture_emm_init_phases.py")
         cases = ((["--umb-service-receipts", "--reject-prepared"], "installed provider"),
+                 (["--common-xms-entry", "--reject-prepared"], "installed provider"),
+                 (["--bad-common-xms-entry", "copy", "--umb-owner"], "probes are separate"),
                  (["--umb-sequence-wrap", "--umb-owner"], "probes are separate"),
                  (["--umb-service-reply", "unknown", "--umb-live-import"], "free-owner baseline"),
                  (["--bad-umb-result-freeze", "--umb-live-import"], "free-owner baseline"))

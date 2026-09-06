@@ -53,7 +53,12 @@ IFDEF EMM_UMB_RESULTS_TEST
         jc umb_owner_bad
 ENDIF
         push bp
+IFDEF EMM_COMMON_XMS_TEST
+        mov bp,11h
+        call XmsServiceCore
+ELSE
         call xms_umb_release
+ENDIF
         pop bp
         jmp umb_owner_result
 umb_owner_allocate:
@@ -62,7 +67,12 @@ IFDEF EMM_UMB_RESULTS_TEST
         jc umb_owner_bad
 ENDIF
         push bp
+IFDEF EMM_COMMON_XMS_TEST
+        mov bp,10h
+        call XmsServiceCore
+ELSE
         call xms_umb_request
+ENDIF
         pop bp
         jmp umb_owner_result
 umb_owner_import:
@@ -127,7 +137,12 @@ IFDEF EMM_UMB_RESULTS_TEST
 ENDIF
         push bp
         push dx
+IFDEF EMM_COMMON_XMS_TEST
+        mov bp,12h
+        call XmsServiceCore
+ELSE
         call umb_high_register
+ENDIF
         pop dx
         pop bp
         jmp short umb_owner_result
@@ -136,7 +151,14 @@ IFDEF EMM_UMB_RESULTS_TEST
         call umb_result_begin
         jc umb_owner_bad
 ENDIF
+IFDEF EMM_COMMON_XMS_TEST
+        push bp
+        mov bp,13h
+        call XmsServiceCore
+        pop bp
+ELSE
         call umb_high_unregister
+ENDIF
         jmp short umb_owner_result
 IFDEF EMM_UMB_RESULTS_TEST
 umb_owner_service_receipt:

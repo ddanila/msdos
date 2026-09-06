@@ -92,7 +92,20 @@ auth_owner_existing:
         push dword ptr [move_length]
         push dword ptr [move_source]
         push dword ptr [move_dest]
+IFDEF EMM_COMMON_XMS_TEST
+        push bp
+        mov bp,si
+        shr bp,1
+        add bp,8
+        cmp bp,0bh
+        jne auth_core_ready
+        mov bp,14h             ; private lookup is not public Move
+auth_core_ready:
+        call XmsServiceCore
+        pop bp
+ELSE
         call word ptr cs:[auth_owner_dispatch+si]
+ENDIF
         pop dword ptr [move_dest]
         pop dword ptr [move_source]
         pop dword ptr [move_length]

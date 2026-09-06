@@ -238,6 +238,16 @@ ENDIF
 	mov	esi,es:[bx+8]
 	mov	edi,es:[bx+12]
 	mov	eax,es:[bx+16] ; bit 0/1: source/destination is client-linear
+IFDEF EMM_COMMON_XMS_TEST
+        push ds
+        push bp
+        mov bp,VDMCA_GSEL
+        mov ds,bp
+        mov bp,0bh
+        call XmsServiceCore
+        pop bp
+        pop ds
+ELSE
 IFDEF EMM_XMS_OWNER_TEST
 IFNDEF EMM_XMS_OWNER_BYPASS_COPY
         test eax,eax
@@ -250,6 +260,7 @@ ENDIF
 	call	XmsCopyClient
 IFDEF EMM_XMS_OWNER_TEST
 MB_Owner_Copy_Done:
+ENDIF
 ENDIF
 	popad
 	mov	ah,0
