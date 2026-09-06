@@ -13,6 +13,7 @@ XCP_INACTIVE equ 4
 XCP_OWNER_QUERY equ 8 ; optional read-only allocator snapshot query
 XCP_OWNER_ACTIVE equ 16 ; paired experimental authoritative handle owner
 XCP_OWNER_RECEIPT equ 32 ; read-only XAUT operation 00h supported
+XCP_UMB_OWNER equ 64 ; opt-in independent XUMB publication/service boundary
 XCP_REQUIRED equ XCP_PHYSICAL OR XCP_CLIENT OR XCP_INACTIVE
 ; Paired HIMEM-only layout discovery through INT 2Fh. Request AX=query,
 ; CX=signature, SI=version, DI=0. Success AX=reply, DX=resident segment,
@@ -70,3 +71,17 @@ XCP_STAGE_FREEZE equ 0e70ah
 ; not uncommitted. This is a trusted paired-owner receipt, not authorization
 ; to free storage, replay a mutation, restore a stale owner, or adopt a foreign
 ; provider. OWNER_ACTIVE advertises capability, not actual commitment.
+;
+; XUMB v1 (EMM_UMB_OWNER_TEST only) is a trusted serialized test transport,
+; not a public XMS ABI or a HIMEM ownership switch. ES:SI header words:
+; +4 version=1, +6 operation, +8 reserved=0, +10 output AX,
+; +12 in/out DX, +14 in/out BX, +16 source offset, +18 source capacity.
+; All source bytes share the packet's client segment. Operations:
+; 00 receipt (AX=active, BX=imports, DX=record count; no source read),
+; 01 import count/records once, preserving allocated bits; never runs a service,
+; 10 allocate, 11 release, 12 register version/count/free-range packet,
+; 13 unregister. Services require an imported owner; register requires it empty.
+; Import/register validate complete offset extents before accessing records.
+; Receipt and later services ignore retired import storage. Duplicate import
+; is rejected. Transport CF is independent of AX/BX service status. No handback,
+; mutation replay, physical-backing ownership or low-memory release is granted.

@@ -1,11 +1,36 @@
 #!/usr/bin/env python3
 import struct
+import subprocess
+import sys
 import unittest
+from pathlib import Path
 
 from capture_emm_init_phases import check_phases, parse_trace, strip_capacity_records, parse_bootstrap_layout, parse_post_boot, parse_umb_receipt
+from capture_emm_init_phases import parse_private_umb_receipt
 
 
 class InitPhaseTests(unittest.TestCase):
+    def test_private_umb_requires_installed_provider(self):
+        script = Path(__file__).with_name("capture_emm_init_phases.py")
+        for option in ("--reject-prepared", "--loader-bad-rebase", "--loader-bad-version"):
+            result = subprocess.run([sys.executable, str(script), "missing.img",
+                                     "--umb-owner", option], capture_output=True, text=True)
+            with self.subTest(option=option):
+                self.assertEqual(result.returncode, 2)
+                self.assertIn("private UMB owner requires an installed authoritative provider",
+                              result.stderr)
+
+    def test_private_umb_receipt_is_not_public_handoff(self):
+        receipt = b"UP" + struct.pack("<3H", 1, 1, 0)
+        self.assertEqual(parse_private_umb_receipt(receipt),
+                         dict(active=True, imports=1, records=0, public_handoff=False))
+        for bad in (receipt[:-1], receipt + b"\0", b"UC" + receipt[2:],
+                    b"UP" + struct.pack("<3H", 0, 1, 0),
+                    b"UP" + struct.pack("<3H", 1, 2, 0),
+                    b"UP" + struct.pack("<3H", 1, 1, 1)):
+            with self.subTest(bad=bad), self.assertRaises(ValueError):
+                parse_private_umb_receipt(bad)
+
     def test_umb_receipt_and_registration_owner(self):
         for mode in ("ON", "OFF", "AUTO", "RAM"):
             for rejected in (False, True):

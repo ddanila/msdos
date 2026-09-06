@@ -1571,9 +1571,37 @@ The installed protocol must keep these states distinct:
 
 Separate publication from the first mutating request so receipt/retry cannot
 allocate or release twice. The handle-only `XAUT` receipt proves nothing about
-UMB commitment. Binding this state machine to the installed transport, mapping
+UMB commitment. Binding this state machine to public/peer dispatch, mapping
 rollback/reset and final low gateways remains required; the staging helper
 does not authorize freeing either owner.
+
+**Installed private UMB endpoint:** opt-in `EMM_UMB_OWNER_TEST` now provides
+`XUMB` v1 through INT 15h/AH=87h. Discovery bit 64 advertises capability,
+not commitment. A non-mutating receipt reports active/import-count/record-count;
+explicit import validates and stages existing allocation bits once, separately
+from allocation, release, registration and unregister. Duplicate import is
+refused, and later receipts/services do not read retired import storage.
+The full packet/status contract is in `src/INC/XMSCOPYABI.INC`.
+
+The installed metadata-only probe uses synthetic ranges without accessing their
+addresses or changing public HIMEM ownership. It checks invalid headers and
+imports, poisoned retired input, busy/empty unregister, allocation/release and
+registration lifecycle, and unchanged entry/exit PE mode. The separate public
+UMB coalescing probe still runs, using actual registration in RAM mode.
+Both probes pass ON/OFF/AUTO/RAM with DOS high and downward bootstrap/high-table
+placement (`out/emm-init-phases-b1v5xdt5/`), and with DOS low/128 XMS handles
+(`out/emm-init-phases-pyi3n045/`). These are not composed VC measurements.
+
+OFF/idle AUTO must recognize `XUMB` before chaining to firmware: omission sends
+the private packet to the ROM descriptor-copy service and faults. The
+`--bad-umb-route` negative reproduces OFF failure in
+`out/emm-init-phases-bryodmgy/`; the fixed route temporarily enters the provider
+and restores the original mode. The linked private endpoint/helpers/state cost
+927 high bytes; the added routing raises this fixture's rounded EMM low span
+from 2,112 to 2,128 bytes, with HIMEM unchanged at 2,864. Normal HIMEM/EMM
+binaries remain byte-identical. No low UMB owner is released: actual public/peer
+handoff, backing authority, ambiguous-commit recovery and reset qualification
+remain the next protocol work, within the complete-provider layout checkpoint.
 
 ##### Whole-system placement rules
 

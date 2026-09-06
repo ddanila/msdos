@@ -197,6 +197,21 @@ Move_Block	proc	near
 IFDEF EMM_XMS_COPY_TEST
 IFDEF EMM_XMS_OWNER_TEST
 IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+IFDEF EMM_UMB_OWNER_TEST
+        cmp si,65536-4
+        jbe MB_Umb_Tag_Readable
+        mov ah,2
+        jmp MB_Client_Status
+MB_Umb_Tag_Readable:
+        cmp dword ptr es:[si],424d5558h ; XUMB
+        jne short MB_Not_Umb_Owner
+        call XmsUmbOwner
+        mov ah,0
+        jnc MB_Client_Status
+        mov ah,2
+        jmp MB_Client_Status
+MB_Not_Umb_Owner:
+ENDIF
         cmp dword ptr es:[si],54554158h ; XAUT
         jne short MB_Not_Authority
         call XmsAuthoritativeOwner
@@ -542,6 +557,9 @@ IFDEF EMM_XMS_OWNER_TEST
     or dx,XCP_OWNER_QUERY
 IFDEF EMM_AUTHORITATIVE_OWNER_TEST
     or dx,XCP_OWNER_ACTIVE OR XCP_OWNER_RECEIPT
+IFDEF EMM_UMB_OWNER_TEST
+    or dx,XCP_UMB_OWNER
+ENDIF
 ENDIF
 ENDIF
 IFDEF EMM_XMS_COPY_BAD_VERSION
@@ -582,6 +600,12 @@ XmsI15InactiveStart label near
     jne short XmsI15Active
 IFDEF EMM_XMS_OWNER_TEST
 IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+IFDEF EMM_UMB_OWNER_TEST
+IFNDEF EMM_UMB_OWNER_BAD_ROUTE
+    cmp dword ptr es:[si],424d5558h ; XUMB is not a firmware descriptor table
+    je short XmsI15Private
+ENDIF
+ENDIF
     cmp dword ptr es:[si],54554158h
     je short XmsI15Private
 ENDIF

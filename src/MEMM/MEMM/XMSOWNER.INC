@@ -66,6 +66,9 @@ owner_service_bad:
 XmsQueryOwner endp
 IFDEF EMM_AUTHORITATIVE_OWNER_TEST
         include XMSAUTH.INC
+IFDEF EMM_UMB_OWNER_TEST
+        include UMBOWNER.INC
+ENDIF
 ENDIF
         include XMSALLOC.INC
         include XMSHANDLE.INC

@@ -58,6 +58,12 @@ def parse_umb_receipt(data, *, mode, rejected):
     return synthetic
 
 
+def parse_private_umb_receipt(data):
+    if data != b"UP" + struct.pack("<3H", 1, 1, 0):
+        raise ValueError("installed private UMB lifecycle witness failed")
+    return dict(active=True, imports=1, records=0, public_handoff=False)
+
+
 def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
                 lifecycle=False, loader=False, rebase=False, table_layout=False,
                 bootstrap_owner=False, authoritative_owner=False, rebase_rejected=False,
@@ -247,6 +253,10 @@ def main():
                         help="move the prepared provider down into the adjacent bootstrap tail")
     parser.add_argument("--umb-coalesce", action="store_true",
                         help="check public UMB/peer lifetime and guard the next resident owner")
+    parser.add_argument("--umb-owner", action="store_true",
+                        help="exercise the installed high XUMB publication and services")
+    parser.add_argument("--bad-umb-route", action="store_true",
+                        help="negative control: omit inactive-mode XUMB routing; must fail")
     parser.add_argument("--bad-umb-bound", action="store_true",
                         help="negative control: let UMB coalescing cross into the next owner")
     parser.add_argument("--skip-stage-retarget", action="store_true",
@@ -289,6 +299,10 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.bad_umb_route:
+        args.umb_owner = True
+    if args.umb_owner:
+        args.authoritative_owner = True
     if args.bad_umb_bound:
         args.umb_coalesce = True
     if args.umb_coalesce:
@@ -356,6 +370,8 @@ def main():
         parser.error("--switch-altregs requires --altregs")
     if (args.altregs is not None or args.handles is not None) and args.reject_prepared:
         parser.error("capacity probes require an installed provider")
+    if args.umb_owner and (args.reject_prepared or args.loader_bad_version):
+        parser.error("private UMB owner requires an installed authoritative provider")
     capture.require_tools()
     if args.authoritative_owner:
         subprocess.run(["make", "dos", "cmd_command"], cwd=capture.ROOT, check=True,
@@ -373,6 +389,10 @@ def main():
     trace_defines = "-DEMM_INIT_PHASE_TRACE"
     if args.bootstrap_owner:
         trace_defines += " -DEMM_BOOTSTRAP_OWNER_TEST"
+    if args.umb_owner:
+        trace_defines += " -DEMM_UMB_OWNER_TEST"
+    if args.bad_umb_route:
+        trace_defines += " -DEMM_UMB_OWNER_BAD_ROUTE"
     if args.authoritative_owner:
         trace_defines += (" -DEMM_XMS_COPY_TEST -DEMM_XMS_OWNER_TEST"
                           " -DEMM_AUTHORITATIVE_OWNER_TEST -DEMM_XMS_OWNER_TRACE")
@@ -482,6 +502,7 @@ def main():
             start, size = symbols["umb_blocks"]
             umb_defines = [f"-DUMB_GUARD_OFFSET={start + size}"]
         subprocess.run(["nasm", "-f", "bin", f"-DEMM_MARK_DELTA={mark_delta}",
+                        *(["-DUMB_OWNER_TEST"] if args.umb_owner else []),
                         *umb_defines, f"-I{capture.ROOT}/",
                         str(capture.ROOT / "tests/emm_provider_owner_probe.asm"),
                         "-o", str(owner_probe)], check=True)
@@ -539,6 +560,9 @@ def main():
             trace_data = trace_data[:-4]
             post_boot[mode] = parse_post_boot(trace_data[-10:], expected)
             trace_data = trace_data[:-10]
+            if args.umb_owner:
+                post_boot[mode]["private_umb_owner"] = parse_private_umb_receipt(trace_data[-8:])
+                trace_data = trace_data[:-8]
             if args.umb_coalesce:
                 post_boot[mode]["umb_synthetic_registration"] = parse_umb_receipt(
                     trace_data[-3:], mode=mode, rejected=args.reject_prepared)
@@ -598,6 +622,8 @@ def main():
         stage_bootstrap=args.stage_bootstrap,
         reclaim_bootstrap=args.reclaim_bootstrap,
         umb_coalesce=args.umb_coalesce,
+        umb_owner=args.umb_owner,
+        bad_umb_route=args.bad_umb_route,
         bad_umb_bound=args.bad_umb_bound,
         skip_stage_retarget=args.skip_stage_retarget,
         xms_handles=args.xms_handles,

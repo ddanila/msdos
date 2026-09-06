@@ -54,6 +54,9 @@ org 100h
 %ifdef UMB_GUARD_OFFSET
     call check_umb_owner
 %endif
+%ifdef UMB_OWNER_TEST
+    call check_high_umb_owner
+%endif
     push cs
     pop es
     mov bx,(probe_end-$$+100h+15)/16
@@ -126,6 +129,9 @@ owner_count dw 0
 largest_paras dw 0
 himem_paras dw 0
 emm_paras dw 0
+%ifdef UMB_OWNER_TEST
+    %include "tests/emm_umb_owner_probe.inc"
+%endif
 %ifdef UMB_GUARD_OFFSET
     %include "tests/emm_provider_umb_probe.inc"
 %endif
