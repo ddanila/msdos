@@ -2538,6 +2538,31 @@ leaves a BIOS-dependent allocator. The final budget must replace the old
 127-byte backend and its 48-byte descriptors with measured protected code,
 not count their removal as savings without charging the replacement.
 
+**Protected copy reuse:** `MOVEB.ASM` now separates `Move_Block`, the virtual
+INT 15h frame adapter, from `Move_Block_Core`, an internal protected near call.
+The core returns AH status and CF without accessing BP's client flags; the
+adapter alone updates the virtual frame. This is an implemented interface
+split, not a new XMS provider or a physical-copy acceptance result. The core
+still requires EMM's installed selectors/mappings, shared scratch descriptors,
+parity ownership and A20 policy. `MapLinear` is not a general physical mapper;
+the existing EMS Move/Exchange path also changes EMS windows and cannot simply
+replace XMS address translation. OFF/AUTO entry and restoration remain separate.
+
+Before new callers use this core, repair and qualify its cleanup lifecycle:
+an early invalid count/descriptor branches to `MB_Exit`, which currently calls
+`Rest_Par_Vect` even before `Set_Par_Vect` installed a handler. Track ownership
+and unwind only acquired state; also qualify A20 and post-install failure exits.
+Do not infer error safety from successful copies or the ABI-only probe.
+
+`test_move_block_abi_qemu.py` executes the actual adapter/epilogue with simulated
+copy completion for statuses 0..3, checking direct-call status, untouched client
+flags, stack balance and saved registers. It mocks copying and parity cleanup;
+it is not a protected-mode/NMI test. The injected client-frame write is rejected.
+The installed manager passes the full EMM API/runtime grammar suite with HIMEM
+and all eight DOS-low/high XMS mode cases in `out/xms-emm-mode.R8dGLL/`.
+Reproduce the focused gate with `make test-move-block-abi-qemu` or an explicit
+`--image` passed to the Python helper. No conventional saving is claimed.
+
 `tests/xms_emm_mode_probe.asm` now locks a 1 KiB XMS allocation before changing
 EMM modes ON -> OFF -> AUTO -> ON. In each mode it takes and releases an
 additional lock, checks the same physical base, reads back a 16-byte payload

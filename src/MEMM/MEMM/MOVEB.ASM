@@ -38,6 +38,7 @@ page	58,132
 ;	P U B L I C S
 ;****************************************
 	public	Move_Block
+	public	Move_Block_Core
 	public	MB_Exit
 	public	MB_Stat
 	public	i15_Entry
@@ -182,6 +183,29 @@ _TEXT	segment
 ;
 ;*************************************************************************
 Move_Block	proc	near
+;
+; Keep the virtual INT 15h frame adapter separate from the internal copy
+; service. Protected clients do not necessarily have a VMTF at BP.
+;
+	call	Move_Block_Core
+	or	[bp.VTFOE+VMTF_EFLAGS],FLAGS_ZF
+	and	[bp.VTFOE+VMTF_EFLAGS],NOT FLAGS_CY
+	or	ah,ah
+	jz	MB_Client_Return
+	and	[bp.VTFOE+VMTF_EFLAGS],NOT FLAGS_ZF
+	or	[bp.VTFOE+VMTF_EFLAGS],FLAGS_CY
+MB_Client_Return:
+	ret
+Move_Block	endp
+
+; Internal protected entry: same CX and ES:SI descriptor inputs, but no
+; virtual interrupt frame is required. AH=0/CF=0 on success; AH=status/CF=1
+; on failure. Other registers have the legacy Move_Block preservation.
+; Requires the installed EMM GDT/IDT, mappings and A20 policy. Shared scratch
+; descriptors, MB_Stat and parity ownership make this non-reentrant. This is
+; not an arbitrary-physical-memory or real/OFF-mode entry. Future XMS callers
+; must establish those mappings and transition ownership before invoking it.
+Move_Block_Core proc near
 ;
 	push	ds
 	push	es
@@ -328,7 +352,7 @@ a20_restored:
 	mov	[toggle_st],0		; clear this flag
 
 	jmp	MB_Exit
-Move_Block	endp
+Move_Block_Core endp
 
 ;*************************************************************************
 ; This is special JUMP entry point for parity handler
@@ -349,16 +373,11 @@ MB_leave:
 	POP_EAX
 	mov	ah,[MB_Stat]
 ;
-; set client's flags to no error
+; Return ordinary status. Only the public INT 15h adapter writes VMTF flags.
 ;
-	or	[bp.VTFOE+VMTF_EFLAGS],FLAGS_ZF 	; ZF
-	and	[bp.VTFOE+VMTF_EFLAGS],NOT FLAGS_CY	; NC
-
-	or	ah,ah		;Q: error occured ?
-	jz	MB_ret		;  N: continue
-				;  Y: set error in client's flags
-	and	[bp.VTFOE+VMTF_EFLAGS],NOT FLAGS_ZF	; NZ
-	or	[bp.VTFOE+VMTF_EFLAGS],FLAGS_CY 	; CY
+	or	ah,ah
+	jz	MB_ret
+	stc
 ;
 MB_ret:
 	pop	es
