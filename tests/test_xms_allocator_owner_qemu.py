@@ -23,6 +23,10 @@ def main():
                         help="test the complete UMB service and peer bodies with live allocations")
     parser.add_argument("--bad-umb-bound", action="store_true",
                         help="negative control: shift beyond the UMB table into the next owner")
+    parser.add_argument("--accept-invalid-umb-owner", action="store_true",
+                        help="negative control: bypass UMB owner validation")
+    parser.add_argument("--corrupt-umb-stage", action="store_true",
+                        help="negative control: lose a live allocation bit after staging")
     parser.add_argument("--wrong-owner", action="store_true",
                         help="negative control: select the poisoned code-owner data alias")
     parser.add_argument("--accept-invalid-owner", action="store_true",
@@ -30,7 +34,7 @@ def main():
     parser.add_argument("--corrupt-staged-owner", action="store_true",
                         help="negative control: alter a staged handle lock count before publication")
     args = parser.parse_args()
-    if args.bad_umb_bound:
+    if args.bad_umb_bound or args.accept_invalid_umb_owner or args.corrupt_umb_stage:
         args.umb_owner = True
     if args.umb_owner and (args.accept_invalid_owner or args.corrupt_staged_owner):
         parser.error("handle-owner mutation controls do not apply to UMB state")
@@ -47,6 +51,8 @@ def main():
                     *(["-DACCEPT_INVALID_OWNER"] if args.accept_invalid_owner else []),
                     *(["-DCORRUPT_STAGED_OWNER"] if args.corrupt_staged_owner else []),
                     *(["-DHIMEM_UMB_LEGACY_BOUND_TEST"] if args.bad_umb_bound else []),
+                    *(["-DHIMEM_UMB_ACCEPT_INVALID_TEST"] if args.accept_invalid_umb_owner else []),
+                    *(["-DCORRUPT_UMB_STAGE"] if args.corrupt_umb_stage else []),
                     f"-I{work}", f"-I{source}", f"-Fo{binary}", f"-Fl={listing}",
                     str(ROOT / ("tests/xms_umb_owner.asm" if args.umb_owner
                                 else "tests/xms_allocator_owner.asm"))], check=True)
@@ -65,7 +71,7 @@ def main():
         match = LABEL_RE.match(line) or PROCEDURE_RE.match(line)
         if match:
             addresses[match[1]] = int(match[2], 16)
-    services = (("XMSUMB.INC", "XMSUMBPEER.INC") if args.umb_owner else
+    services = (("XMSUMB.INC", "XMSUMBPEER.INC", "XMSUMBSTATE.INC") if args.umb_owner else
                 ("XMSALLOC.INC", "XMSHANDLE.INC", "XMSSTATE.INC", "XMSSTAGE.INC"))
     inputs = [source / name for name in ("HIMEM.ASM", "XMSRECORD.INC", "XMSERROR.INC", *services)]
     inputs += [ROOT / ("tests/xms_umb_owner.asm" if args.umb_owner else "tests/xms_allocator_owner.asm"),
@@ -75,6 +81,8 @@ def main():
                   corrupt_staged_owner=args.corrupt_staged_owner,
                   umb_owner=args.umb_owner,
                   bad_umb_bound=args.bad_umb_bound,
+                  accept_invalid_umb_owner=args.accept_invalid_umb_owner,
+                  corrupt_umb_stage=args.corrupt_umb_stage,
                   inputs={str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
                           for path in inputs},
                   binary_sha256=hashlib.sha256(payload).hexdigest(),
@@ -82,6 +90,8 @@ def main():
     if args.umb_owner:
         report.update(services_bytes=addresses["umb_services_end"] - addresses["xms_umb_request"],
                       peer_bytes=addresses["umb_peer_end"] - addresses["umb_register"],
+                      validator_bytes=addresses["xms_stage_umb"] - addresses["xms_validate_umb"],
+                      stager_bytes=addresses["umb_state_end"] - addresses["xms_stage_umb"],
                       owner_bytes=130, installed_handoff=False)
     else:
         report.update(services_bytes=addresses["allocator_services_end"] - addresses["xms_query_free"],

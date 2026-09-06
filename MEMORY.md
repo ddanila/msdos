@@ -1495,8 +1495,8 @@ new low-memory saving.
 `test_xms_allocator_owner_qemu.py --umb-owner` executes those same bodies at
 CS base 2 MiB, with authoritative DS at 2 MiB + 64 KiB and SS at 2 MiB +
 128 KiB. It rejects an overlapping registration, allocates two blocks in the
-initial low owner, transfers all 130 table bytes, and poisons the retired low
-state. Busy unregister, release/coalescing and duplicate-release rejection
+initial low owner, stages the count and selected records into a 130-byte table
+reservation, and poisons the retired low state. Busy unregister, release/coalescing and duplicate-release rejection
 then run against the high owner. The host checks actual segment bases, both
 free ranges, poisoned old state, the unused code-relative data alias and a
 patterned guard beyond the high table; final unregister runs after inspection.
@@ -1518,6 +1518,42 @@ ownership during unregister/reset. This fixture changes DS under controlled
 interrupt-disabled test conditions; it does **not** establish those contracts
 or release the low UMB table. Budget the resulting low gateways with the whole
 provider before selecting final placement.
+
+**Checked UMB staging:** `XMSUMBSTATE.INC` adds an 83-byte read-only validator
+and 51-byte staging helper. DS:SI and ES:DI name independent source/destination
+offsets; capacities are caller-proved backing limits, not discovered memory.
+Validation checks 0..32 records, nonzero lengths with allocation flags masked,
+sorted nonoverlapping A000h..F000h ranges and complete 64-KiB offset extents.
+Adjacent records are legal. Staging validates before any write, copies only
+count/selected records, preserves registers and DF, and does not publish an
+owner or permit concurrent mutation. Physical disjointness and valid selectors
+remain the caller's responsibility.
+
+The high-owner witness now uses this helper. It tests empty/maximal owners,
+allocated zero-length records, overlap, upper-bound overflow, source and
+destination capacity failures, offset wrap rejection and legal exclusive ends
+at 10000h. A full 32-record copy uses a different destination offset. Refused
+live-owner transfers leave the destination unchanged; a valid transfer preserves
+both allocated bits before the old owner is poisoned. Evidence:
+`out/xms-allocator-owner-tcdtpfwg/`. Bypassing validation (`r7x15mia`) or clearing
+a copied allocation bit (`dywic8im`, same prefix) fails before publication.
+Wrong-owner (`9li2l_fd`) and guard-overrun (`hkpw018w`) controls still fail. These are execution tests
+of staging, not an installed UMB import receipt or additional reclaimed memory.
+
+The installed protocol must keep these states distinct:
+
+| State | Allowed authority and failure action |
+| --- | --- |
+| Low owner | Public allocation and peer registration/unregistration use the same low table. |
+| Frozen/prepared | Validate/stage current records while mutation is excluded; cancellation before commit leaves the original current table authoritative. |
+| High owner | Publish once, then route **both** public and peer services to the same high table. Later calls must not reimport a low view. |
+| Unknown commit outcome | Keep low mutations disabled and retain storage; resolve with a non-mutating receipt before choosing continuation or rollback. |
+
+Separate publication from the first mutating request so receipt/retry cannot
+allocate or release twice. The handle-only `XAUT` receipt proves nothing about
+UMB commitment. Binding this state machine to the installed transport, mapping
+rollback/reset and final low gateways remains required; the staging helper
+does not authorize freeing either owner.
 
 ##### Whole-system placement rules
 
