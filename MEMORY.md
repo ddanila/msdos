@@ -1497,6 +1497,16 @@ API/command suite, including AUTO/OFF owner-state checks, and the RAM-address/
 DOS-high mode matrix also pass. The linked installed boundary stays 3,888 bytes;
 only the modeled high-copy consumption changes, not a measured VC free block.
 
+The A=2 gate also verifies actual mapping ownership: two allocated sets clone
+set zero's live page, remapping set two leaves set one and set zero unchanged,
+switching back restores set two's distinct page, and releasing/reusing the
+records clones the current map rather than retaining stale mappings. Every
+word of each 16 KiB page is checked. It unmaps and frees the application handle
+after releasing the alternate sets. The complete load-option/capacity suite
+passes with this stronger probe; the raw content-check result is retained in
+`out/emm-register-owner.ljtL8D/altreg-page-contents.log`. This is the low-owner
+baseline to preserve when the table object moves high, not relocation evidence.
+
 Count boundary: EMMINIT rounds `_cntxt_pages` up to an
 even word count; `_cntxt_bytes` adds a two-byte public header. Internal FRS
 records have a one-byte allocation flag followed by only the mapping words.
