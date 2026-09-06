@@ -136,7 +136,7 @@ where buffers are already high. Do not count those gains again locally: our
 kernel and buffers are high, and the combined development fixture already
 relocates BIOS services, FILES/FCBs and CDS.
 
-| Matched accounting boundary | Combined development | Framed OpenDOS 7.01, IDE attached | Difference |
+| Matched accounting boundary | Combined development | Framed OpenDOS 7.01, IDE boot | Difference |
 | --- | ---: | ---: | ---: |
 | System start to COMMAND start | 19,712 | 10,448 | 9,264 |
 | COMMAND start to VC start | 3,984 | 1,312 | 2,672 |
@@ -146,18 +146,19 @@ relocates BIOS services, FILES/FCBs and CDS.
 Both captures retain the 639 KiB ceiling and the same VC footprint between
 owner boundaries. Thus the 11,936-byte conventional difference is below VC,
 not video recovery or EBDA relocation. Matching accounting boundaries does
-not imply equivalent boot-medium or resource semantics. Attaching the fixed
+not imply equivalent resource semantics. Attaching the fixed
 IDE disk to OpenDOS costs just 32 conventional bytes; its device map expands
-from A:–B: to A:–C:. This removes the missing-disk variable, not the remaining
-floppy- versus hard-disk-boot difference. OpenDOS also
+from A:–B: to A:–C:. Booting OpenDOS from a vendor-SYS-installed copy of that
+disk now reproduces the attached-disk totals exactly. The boot-medium control
+therefore does not explain the remaining difference. OpenDOS still
 misses the retail UMB floor by 304 bytes and its framed reset gate failed.
 Normalize those conditions before treating its largest block as an acceptance
 target. The retail floor remains mandatory, not the architectural endpoint.
 
-Evidence: `out/umb-fine-composition-ofbr6_go/results.json` and
-`out/opendos-hard-disk-placement-evidence/emm-frame-{mem,vc}.txt`; reproduction
+Evidence: `out/umb-fine-composition-ozww81et/results.json` and
+`out/opendos-disk-boot-evidence/{result.json,mem.txt,vc.txt}`; reproduction
 commands and pinned inputs are in the development CDS and OpenDOS sections.
-The OpenDOS disk-attachment comparison is a fresh controlled capture; the
+The OpenDOS disk-boot comparison is a fresh controlled capture; the
 local numbers reuse the repaired combined fixture.
 The vendor [optimization guide](https://bitsavers.computerhistory.org/pdf/novell/dr_dos/DR_DOS_6.0_Optimization_and_Configuration_Tips_199109.pdf)
 documents DOS-state relocation, and [Novell's configuration guidance](https://support.novell.com/techcenter/articles/ana19930406.html)
@@ -319,8 +320,9 @@ The checkpoint passes only when the combined net budget covers at least 2,624
 bytes while retaining the 47,888-byte free-UMB floor and configured resources.
 That is the retail acceptance threshold, not a ceiling on the design: identify
 further whole-object opportunities toward the OpenDOS result without promising
-its 11,936-byte lead over combined development as locally reclaimable storage. Resolve
-boot-medium/device-topology differences before adopting its totals as a target.
+its 11,936-byte lead over combined development as locally reclaimable storage.
+The OpenDOS disk-boot control is now measured; resource semantics and reset
+qualification remain open before adopting its totals as a target.
 
 Then implement and validate complete object moves. Indexed accessors are a
 necessary dependency where near-pointer ownership prevents relocation, but
@@ -349,7 +351,7 @@ sum of nested MEM rows:
 | Sector transfer area | 512 | Keep firmware/DMA-safe storage; HMA cache residency does not eliminate this allocation |
 | Interrupt-stack subsystem | 1,840 | Evaluate a complete real-mode-addressable owner, including handlers and pool, against the shared UMB budget |
 | Suballocation and MCB boundaries | 96 | Four 16-byte DEVMARKs plus system and leading COMMAND MCBs; no unexplained remainder |
-| **System before COMMAND** | **19,712** | Compare with IDE-attached OpenDOS's 10,448 only after remaining boot/resource normalization |
+| **System before COMMAND** | **19,712** | Disk-booted OpenDOS retains 10,448; resource semantics and reset qualification remain open |
 | COMMAND to VC | 3,984 | Design the complete resident handler, state and reload interface; OpenDOS's corresponding span is 1,312 |
 
 The kernel's linked prefix contains 1,072 CONSTANTS, 1,783 DATA, 2,602 TABLE,
@@ -4937,6 +4939,50 @@ python3 tests/capture_drdos_memory.py DODL701.EXE \
   --hard-disk out/msdos622-original-vc405.img \
   --evidence-dir out/opendos-hard-disk-placement-evidence
 ```
+
+#### OpenDOS disk-boot control: the same low boundary
+
+`tests/capture_opendos_disk_boot.py` runs vendor `SYS C:` from the pinned
+OpenDOS distribution against a temporary copy of the retail comparison HDD.
+It verifies that installed IBMBIO.COM, IBMDOS.COM and COMMAND.COM exactly match
+the vendor floppy, installs the same VC/probes and framed configuration, then
+boots IDE with no floppy image attached. The input HDD is hash-checked unchanged;
+temporary vendor binaries/images are discarded and only text evidence remains.
+No vendor source or disassembly is used.
+
+CONFIG.SYS and AUTOEXEC.BAT are byte-identical to the earlier floppy-boot plus
+IDE-disk control: FILES=20, FCBS=4,0, LASTDRIVE=Z, STACKS=9,128, `/E:512`,
+DOS=HIGH, HIDOS=ON, HIBUFFERS=15 and EMM386 `/FRAME=AUTO`. QEMU remains `pc`,
+486, 8 MiB. The successful IDE boot produces exactly the same accounting:
+
+| Measurement | Floppy boot, IDE attached | IDE boot |
+| --- | ---: | ---: |
+| VC largest conventional block | 628,048 | 628,048 |
+| System-to-COMMAND span | 10,448 | 10,448 |
+| COMMAND owner span | 1,312 | 1,312 |
+| Free UMB | 47,584 | 47,584 |
+| MEM-reported free HMA | 10,628 | 10,628 |
+| Conventional ceiling | 639 KiB | 639 KiB |
+
+Thus changing the boot medium does not explain the 11,936-byte gap to our
+combined development fixture. This closes that particular cold-placement
+uncertainty, not resource-semantic equivalence or the prior reset failure.
+The disk-boot harness does not yet repeat public-interface or reset probes;
+do not promote the existing reset result to a passing disk-boot gate. The
+HMA free-range reporting discrepancy versus floppy-only remains unexplained.
+
+Reproduce with an unused output directory:
+
+```sh
+python3 tests/capture_opendos_disk_boot.py DODL701.EXE \
+  out/msdos622-original-vc405.img out/opendos-disk-boot-evidence
+```
+
+The directory contains vendor SYS output, startup files, raw MEM/VC/ceiling
+text and `result.json` with input, vendor-system-file and VC hashes and emulator
+identity. The shared capture helper explicitly selects IDE boot and partitioned
+mtools access; 24 media-independent tests pass, including IDE selection and
+rejection of a conflicting second IDE image.
 
 #### Primary result: DR-DOS 6.0
 

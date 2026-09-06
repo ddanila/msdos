@@ -351,14 +351,18 @@ def hardware_args(memory_mib: int = 8) -> list[str]:
 
 
 def capture(image: Path, label: str, work: Path,
-            hard_disk: Path | None = None, memory_mib: int = 8) -> tuple[Path, str, str]:
+            hard_disk: Path | None = None, memory_mib: int = 8, *,
+            boot_disk: bool = False) -> tuple[Path, str, str]:
+    if boot_disk and hard_disk is not None:
+        raise ValueError("disk boot already occupies the IDE slot")
+    image_spec = f"{image}@@{partition_offset(image)}" if boot_disk else str(image)
     qmp = work / f"{label}.qmp"
     screen = work / f"{label}-screen.log"
     command = [
         "qemu-system-i386", "-display", "none", "-monitor", "none",
         *hardware_args(memory_mib),
-        "-drive", f"if=floppy,index=0,format=raw,file={image},cache=writethrough",
-        "-boot", "a", "-qmp", f"unix:{qmp},server=on,wait=off", "-no-reboot",
+        "-drive", f"if={'ide' if boot_disk else 'floppy'},index=0,format=raw,file={image},cache=writethrough",
+        "-boot", "c" if boot_disk else "a", "-qmp", f"unix:{qmp},server=on,wait=off", "-no-reboot",
         *hard_disk_args(hard_disk),
     ]
     process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
@@ -382,10 +386,10 @@ def capture(image: Path, label: str, work: Path,
             process.kill()
             process.wait()
     mem = subprocess.check_output(
-        ["mtype", "-i", str(image), "::MEMA.TXT"], env=mtools_env()
+        ["mtype", "-i", image_spec, "::MEMA.TXT"], env=mtools_env()
     ).decode("cp437")
     ceiling = subprocess.check_output(
-        ["mtype", "-i", str(image), "::CEIL.TXT"], env=mtools_env()
+        ["mtype", "-i", image_spec, "::CEIL.TXT"], env=mtools_env()
     ).decode("ascii", errors="replace")
     return screen, mem, ceiling
 

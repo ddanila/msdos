@@ -51,6 +51,22 @@ DRDOS_PUBLIC_MEMORY_END
 
 
 class CaptureParserTest(unittest.TestCase):
+    def test_disk_boot_selects_ide_and_rejects_second_disk(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            image = root / "disk.img"
+            with patch.object(CAPTURE, "partition_offset", return_value=32256), \
+                 patch.object(CAPTURE.subprocess, "Popen",
+                              side_effect=RuntimeError("launch intercepted")) as launch:
+                with self.assertRaisesRegex(RuntimeError, "launch intercepted"):
+                    CAPTURE.capture(image, "disk", root, boot_disk=True)
+                command = launch.call_args.args[0]
+                self.assertEqual(command[command.index("-boot") + 1], "c")
+                self.assertTrue(any("if=ide,index=0" in value for value in command))
+                self.assertFalse(any("if=floppy" in value for value in command))
+                with self.assertRaises(ValueError):
+                    CAPTURE.capture(image, "disk", root, image, boot_disk=True)
+
     def test_memory_setting_is_bounded_and_default_unchanged(self) -> None:
         self.assertEqual(CAPTURE.hardware_args(),
                          ["-machine", "pc", "-cpu", "486", "-m", "8"])
