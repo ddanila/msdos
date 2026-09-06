@@ -136,6 +136,28 @@ and EXEC/reload state. Keep the PSP and externally referenced asynchronous
 state low unless a compatible access contract is demonstrated. Do not choose
 an arbitrary low-shell ceiling and assume its support code will fit.
 
+The source audit gives the following initial placement contracts. These five
+linked ranges partition the 800 bytes; they are not five independent moves.
+
+| Range / bytes | Actual consumers | Whole-shell design constraint |
+| --- | --- | --- |
+| `0B10h..0BC3h` / 179 | `RDATA.ASM` substitution records also contain interrupt return, parent and saved-process state; `RUCODE.ASM:DSKERR` initializes device/error data | Split formatter-private data from asynchronous anchors; do not classify the entire range as message scratch |
+| `0BC3h..0C76h` / 179 | `COMMAND1.ASM:CONTC`, EXEC/LOADHIGH and transient code share control flags; includes COMSPEC and saved message pointers | Keep the low control interface initially; moving private fields requires rebinding resident **and transient** consumers |
+| `0C76h..0D1Ah` / 164 | `TMISC1.ASM:PRESCANEND` copies the pipeline into resident storage; `TPIPE.ASM:PIPEPROC` passes its names to DOS as DS:DX | Pipeline storage must survive child EXEC. Retain DOS-facing names low initially; a high pipeline parser needs explicit data selection and low transfer storage, not a low mirror of the whole group |
+| `0D1Ah..0D42h` / 40 | `TMISC1.ASM:EXECUTE` passes ES:BX pointing at EXEC_BLOCK, switches SS to the resident segment, and uses the resident PSP; `COMMAND2.ASM:HAVCOM` copies TRANVARS into the transient | Retain the EXEC/PSP interface low. Rebuild the copied far entry bindings when services move; changing only the resident DS is insufficient |
+| `0D42h..0E30h` / 238 | `RDATA.ASM` contains RESMSGEND, two high-service entry pointers, then generated COMR message data used by `RUCODE.ASM` | Separate the 10 bytes of break/entry bindings from the 228-byte generated runtime before considering high formatter state; catalogs are already high |
+
+Two entry constraints govern the next prototype. `CONTC` tests `InitFlag`
+before establishing DS, then uses CS as the shell data segment; its nested
+path also inspects incoming AH and unwinds a distinct interrupt frame. A new
+entry must preserve those inputs and frame shapes while selecting the low
+owner. `DSKERR` similarly uses CS for its device-name destination and local
+data. Neither is fixed by the existing fifteen EXEC/reload owner bindings.
+Design those low asynchronous gates together with the high service body;
+qualify A20-off entry, nested Ctrl+C/critical errors and transient overwrite
+before reclaiming the original code. This audit does not establish that any
+of the 800 state bytes can already be released.
+
 The existing 2,447-byte high shell allocation is already charged. Adding the
 normal 2,451-byte resident body would consume that much of the shared
 9,657-byte HMA tail, leaving 7,206 bytes for BIOS, moved state and all new
