@@ -10,6 +10,7 @@ start:
     pop es
     mov byte ptr [MB_Stat],0
 next_case:
+    mov byte ptr [restore_calls],0
     mov [saved_sp],sp
     mov word ptr [client_flags],0201h
     mov bp,offset client_flags
@@ -49,6 +50,11 @@ check_preserved:
     jne failed
     cmp bp,offset client_flags
     jne failed
+    cmp byte ptr [MB_ParityOwned],0
+    jne failed
+    mov al,[owned_case]
+    cmp al,[restore_calls]
+    jne failed
     call Move_Block
     cmp sp,[saved_sp]
     jne failed
@@ -61,8 +67,18 @@ expect_client_failure:
     cmp word ptr [client_flags],0201h
     jne failed
 case_done:
+    cmp byte ptr [MB_ParityOwned],0
+    jne failed
+    mov al,[owned_case]
+    shl al,1
+    cmp al,[restore_calls]
+    jne failed
     inc byte ptr [MB_Stat]
     cmp byte ptr [MB_Stat],4
+    jb next_case
+    inc byte ptr [owned_case]
+    mov byte ptr [MB_Stat],0
+    cmp byte ptr [owned_case],2
     jb next_case
     mov al,'B'
     out 0e9h,al
@@ -88,9 +104,12 @@ Move_Block_Core proc near
     push cx
     push si
     push di
+    mov al,[owned_case]
+    mov [MB_ParityOwned],al
     jmp MB_Exit
 Move_Block_Core endp
 Rest_Par_Vect proc near
+    inc byte ptr [restore_calls]
     ret
 Rest_Par_Vect endp
 POP_EAX macro
@@ -105,6 +124,9 @@ VMTF_EFLAGS dw ?
 VM_TRAP_FRAME ends
 include COPY_ABI.INC
 MB_Stat db 0
+MB_ParityOwned db 0
+owned_case db 0
+restore_calls db 0
 saved_sp dw 0
 client_flags dw 0
 end start

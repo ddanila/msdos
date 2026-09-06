@@ -132,6 +132,7 @@ _DATA	segment
 
 MB_Stat 	db	0		; move block status
 Toggle_st	db	0
+MB_ParityOwned db 0		; this call installed the temporary NMI vector
 
 _DATA	ends
 
@@ -219,6 +220,7 @@ Move_Block_Core proc near
 	mov	ax,VDMD_GSEL		; get data selector
 	mov	ds,ax			; DS = DGROUP
 	mov	[MB_Stat],0		; init status of move block to OK.
+	mov	[MB_ParityOwned],0
 ;
 ; check word count field
 ;
@@ -281,7 +283,8 @@ endif
 ;
 ; install NMI/parity exception handler
 ;
-	call	Set_Par_Vect	       ; restore the parity interrupt handler
+	call	Set_Par_Vect	       ; install the parity interrupt handler
+	mov	[MB_ParityOwned],1
 
 ;
 ; copy the data
@@ -362,7 +365,10 @@ MB_Exit proc	near
 ;  reset NMI handler
 ;
 
-	call	Rest_Par_Vect		; restore the parity interrupt handler
+	cmp	[MB_ParityOwned],0
+	je	MB_leave		; early validation never acquired this vector
+	call	Rest_Par_Vect		; restore only this call's saved handler
+	mov	[MB_ParityOwned],0
 
 ;
 ;

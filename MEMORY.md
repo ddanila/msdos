@@ -107,7 +107,7 @@ low remainder or a violated UMB floor. Its low partition is specific to the
 fixed high-CDS fixture (512-byte transfer area and STACKS=9,128); different
 resources require a new audited partition, not an automatic residual bucket.
 It does not infer boot identity from equal sizes or prove relocation safety.
-The fresh five-image run in `out/umb-fine-composition-8twlf0p_/` passes this
+The fresh five-image run in `out/umb-fine-composition-u6u__tfi/` passes this
 gate and reproduces the current totals. Twelve owner-accounting tests include
 stale maps/managers, missing or duplicate owners, incorrect free extents and
 the pre-table control; the normal DOS/BIOS census and HMA-budget tests pass.
@@ -2548,20 +2548,37 @@ parity ownership and A20 policy. `MapLinear` is not a general physical mapper;
 the existing EMS Move/Exchange path also changes EMS windows and cannot simply
 replace XMS address translation. OFF/AUTO entry and restoration remain separate.
 
-Before new callers use this core, repair and qualify its cleanup lifecycle:
-an early invalid count/descriptor branches to `MB_Exit`, which currently calls
-`Rest_Par_Vect` even before `Set_Par_Vect` installed a handler. Track ownership
-and unwind only acquired state; also qualify A20 and post-install failure exits.
-Do not infer error safety from successful copies or the ABI-only probe.
+The early-rejection NMI cleanup defect is repaired: each call starts without
+parity ownership, acquires it after `Set_Par_Vect`, and `MB_Exit` restores only
+an acquired handler. The previous binary changed the protected NMI descriptor
+from `d40f3800008e0000` to eight zero bytes on the first oversized-count
+rejection. The installed fixed binary preserves its original descriptor through
+oversized count, short source and short destination rejection, a successful
+16-byte copy, and a final rejection. The guest checks AH/CF and copied data;
+QEMU snapshots independently walk the active page tables to read the live IDT.
+This does not inject an NMI or qualify the remaining A20/post-install exception
+cleanup paths; those remain gates before new protected callers use the core.
 
 `test_move_block_abi_qemu.py` executes the actual adapter/epilogue with simulated
-copy completion for statuses 0..3, checking direct-call status, untouched client
-flags, stack balance and saved registers. It mocks copying and parity cleanup;
+copy completion for statuses 0..3 with and without parity ownership, checking
+direct-call status, untouched client flags, stack balance, saved registers and
+exact restore-call counts. It mocks copying and parity cleanup;
 it is not a protected-mode/NMI test. The injected client-frame write is rejected.
 The installed manager passes the full EMM API/runtime grammar suite with HIMEM
 and all eight DOS-low/high XMS mode cases in `out/xms-emm-mode.R8dGLL/`.
 Reproduce the focused gate with `make test-move-block-abi-qemu` or an explicit
 `--image` passed to the Python helper. No conventional saving is claimed.
+
+Run `make test-move-block-cleanup-qemu` for the installed cleanup witness.
+`test_move_block_cleanup_qemu.py --image ... --emm386 ...` also accepts a pinned
+old binary as a negative control. The fixed run is retained in
+`out/move-block-cleanup-cb15ee9_/`; the old binary fails at checkpoint B in
+`out/move-block-cleanup-8w33s_am/`. Manifests record pass/fail, input hashes,
+emulator identity and all captured NMI descriptors. The full EMM suite with
+HIMEM and the refreshed eight-case XMS mode suite pass; the latter is retained
+in `out/xms-emm-mode.90cw2q/`. The five-image composition refresh above retains
+617,984 conventional and 49,680 free UMB bytes with both copy-core changes;
+this correctness fix has no measured low-memory cost in the selected profile.
 
 `tests/xms_emm_mode_probe.asm` now locks a 1 KiB XMS allocation before changing
 EMM modes ON -> OFF -> AUTO -> ON. In each mode it takes and releases an

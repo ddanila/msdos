@@ -273,6 +273,10 @@ test-drdos-capture:
 test-move-block-abi-qemu:
 	python3 tests/test_move_block_abi_qemu.py
 
+.PHONY: test-move-block-cleanup-qemu
+test-move-block-cleanup-qemu: memm
+	python3 tests/test_move_block_cleanup_qemu.py
+
 .PHONY: test-emm-xms-owner-qemu
 test-emm-xms-owner-qemu:
 	python3 tests/test_emm_xms_owner_qemu.py

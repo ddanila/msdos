@@ -57,7 +57,7 @@ def main():
     (work / "qemu.log").write_bytes(result.stdout)
     if result.returncode != 33 or debug.read_bytes() != b"BC":
         raise ValueError(f"copy ABI failed: exit={result.returncode}, trace={debug.read_bytes()!r}")
-    print("PASS: direct status and virtual-frame adapter, statuses 0..3")
+    print("PASS: statuses 0..3, virtual-frame adapter and acquired/unacquired parity cleanup")
 
 
 if __name__ == "__main__":
