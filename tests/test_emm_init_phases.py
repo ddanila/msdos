@@ -37,6 +37,26 @@ class InitPhaseTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "interrupt"):
                     check_phases(rows, "ON")
 
+    def test_prepared_return_and_rejection(self):
+        base = self.trace()
+        prepared = struct.pack("<2sB5H", b"IP", 9, 0, 0x100, 0x300, 0x400, 0x600)
+        cleanup = struct.pack("<2sB5H", b"IP", 10, 0, 0x100, 0x300, 0x400, 0x600)
+        check_phases(parse_trace(base[:13] + prepared + base[13:], split=True),
+                     "ON", split=True)
+        check_phases(parse_trace(base[:13] + prepared + cleanup, rejected=True),
+                     "ON", rejected=True)
+        with self.assertRaises(ValueError):
+            parse_trace(base[:13] + prepared + cleanup.replace(b"IP\x0a", b"IP\x0b"),
+                        rejected=True)
+
+    def test_prepared_or_rejected_mutation(self):
+        rows = parse_trace(self.trace())
+        for index in (1, 2):
+            sample = [dict(rows[0]) for _ in range(3)]
+            sample[index]["int67"] = "changed"
+            with self.assertRaises(ValueError):
+                check_phases(sample, "ON", rejected=True)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -295,6 +295,12 @@ page_id_temp	db	0
 umb_mode	db	0	; RAM or NOEMS requested paging-backed UMBs
 noems_mode	db	0	; NOEMS suppresses the EMS page frame
 initial_mode	db	0h	; 0 => ON, 1 => OFF, 2 => AUTO
+ifdef EMM_REJECT_PREPARED
+prepare_xms_entry dd 0
+prepare_xms_largest dw 0
+prepare_xms_total dw 0
+prepare_xms_valid db 0
+endif
 mode_seen	db	0h
 weitek_mode	db	0h	; parsed DOS 5 W= setting; hardware remains optional
 driver_end	dw	0	; end of driver -> driver brk address
@@ -390,6 +396,12 @@ ifdef EMM_INIT_PHASE_TRACE
 endif
 ENDM
 
+ifdef EMM_SPLIT_PREPARE
+PREPARE_ERROR TEXTEQU <ProviderPrepareFailed>
+else
+PREPARE_ERROR TEXTEQU <IE_exit>
+endif
+
 Init_MEMM386	proc	far
 	push	bx		; BP+10
 	push	dx		; BP+8
@@ -414,6 +426,21 @@ Init_MEMM386	proc	far
 	inc	ax			; reserve dos link pointer
 	mov	ES:[bx.BRK_SEG],ax	; break addr = cs - don't install
 	mov	byte ptr es:[bx.NUM_UNITS],0	; 0 - don't install
+ifdef EMM_SPLIT_PREPARE
+        ; Preparation returns before descriptors, UMB publication or PE entry.
+        ; The current adapter resumes immediately on the original INIT frame;
+        ; it is not yet an asynchronous SYSINIT/provider handoff.
+        call PrepareProvider
+        jc IE_exit
+        INIT_PHASE 9
+ifdef EMM_REJECT_PREPARED
+        or [msg_flag],MEM_ERR_MSG
+        jmp IE_exit
+endif
+        jmp IE_InitEMM
+        PUBLIC PrepareProvider
+PrepareProvider LABEL NEAR
+endif
 ;
 ;	verify that MEMM is not already installed
 ;
@@ -421,7 +448,7 @@ Init_MEMM386	proc	far
 	or	ax,ax			; q: already installed?
 	jz	chk_pt			; n: go check processor type
 	or	[msg_flag],INS_ERR_MSG	; y: error
-	jmp	IE_exit 		; quit
+	jmp	PREPARE_ERROR 		; quit
 ;
 ;  verify processor type
 ;
@@ -438,7 +465,7 @@ chk_mt:
 	jnc	chk_dos 		; y: ok so far. go check dos version
 inc_prc:
 	or	[msg_flag],INC_PRC_MSG	; n: incorrect processor type
-	jmp	IE_exit 		; quit
+	jmp	PREPARE_ERROR 		; quit
 ;
 ;  get DOS version - accept >= 3.1
 ;
@@ -456,7 +483,7 @@ chk_dos:
 	jae	IE_parse		;  Y: OK - continue install
 IE_dos_err:
 	or	[msg_flag],INC_DOS_MSG	;  N: set error and exit
-	jmp	IE_exit
+	jmp	PREPARE_ERROR
 ;
 ;  parse command line for
 ;	(1) requested size for expanded memory
@@ -470,7 +497,7 @@ IE_parse:
 	call	parser			; parse the parameters
 	test	[msg_flag],KILLER_MSG	;Q: any killer messages?
 	jz	IE_mach_state		;  N: go to establish machine state
-	jmp	IE_exit 		;  Y: exit with error
+	jmp	PREPARE_ERROR 		;  Y: exit with error
 
 IE_mach_state:
 ;
@@ -482,7 +509,7 @@ IE_mach_state:
 					; now and maintain it.
 	test	[msg_flag],KILLER_MSG	;Q: any killer messages?
 	jz	IE_find_phys		;  N:go to find physical pages
-	jmp	IE_exit 		;  Y: exit with error
+	jmp	PREPARE_ERROR 		;  Y: exit with error
 ;
 IE_find_phys:
 	call	find_phys_pages 	; find mappable physical pages
@@ -499,16 +526,40 @@ IE_prepare_umb:
 IE_skip_prepare_umb:
 	jmp	IE_alloc		; Go allocate logical pages
 IE_find_error:
-	jmp	IE_exit 		; exit with error
+	jmp	PREPARE_ERROR 		; exit with error
 ;
 ;  find and allocate logical emm pages
 ;
 IE_alloc:
+ifdef EMM_REJECT_PREPARED
+        pusha
+        push es
+        mov ax,4310h
+        int 2fh
+        mov word ptr cs:[prepare_xms_entry],bx
+        mov word ptr cs:[prepare_xms_entry+2],es
+        mov ah,08h
+        call dword ptr cs:[prepare_xms_entry]
+        mov cs:[prepare_xms_largest],ax
+        mov cs:[prepare_xms_total],dx
+        mov cs:[prepare_xms_valid],1
+        pop es
+        popa
+endif
 	INIT_PHASE 1
 	call	AllocMem
 	test	[msg_flag],KILLER_MSG	;Q: any killer messages?
+ifdef EMM_SPLIT_PREPARE
+        jnz ProviderPrepareFailed
+        clc
+        retn
+ProviderPrepareFailed:
+        stc
+        retn
+else
 	jz	IE_InitEMM		;  N: init EMM
 	jmp	IE_exit 		;  Y: exit
+endif
 ;
 ;  init EMM data
 ;
@@ -787,6 +838,27 @@ IE_leave:
 IE_not_installed:
 	call	Rollback_UMB		; undo provider state before releasing XMS
 	call	DeallocMem		; put back any memory we took
+ifdef EMM_REJECT_PREPARED
+        ; The rejection witness must recover the original XMS pool, not just
+        ; return with unchanged interrupt vectors. No DOS-high owner is used
+        ; by this test fixture while comparing the before/after pool sizes.
+        cmp cs:[prepare_xms_valid],0
+        je IE_prepare_rejected
+        mov ah,08h
+        call dword ptr cs:[prepare_xms_entry]
+ifdef EMM_PREPARE_BAD_POOL
+        inc dx                  ; negative control: corrupt the observed total
+endif
+        cmp ax,cs:[prepare_xms_largest]
+        jne IE_prepare_leaked
+        cmp dx,cs:[prepare_xms_total]
+        jne IE_prepare_leaked
+        INIT_PHASE 10
+        jmp short IE_prepare_rejected
+IE_prepare_leaked:
+        INIT_PHASE 11
+IE_prepare_rejected:
+endif
 	mov	ax,ERROR		; error return
 	jmp	IE_leave
 ;

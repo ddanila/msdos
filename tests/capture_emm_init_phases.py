@@ -11,14 +11,16 @@ import tempfile
 import capture_drdos_memory as capture
 
 
-def parse_trace(data):
-    if len(data) != 8 * 13:
+def parse_trace(data, *, split=False, rejected=False):
+    order = ([1, 9, 10] if rejected else
+             [1, 9, *range(2, 9)] if split else list(range(1, 9)))
+    if len(data) != len(order) * 13:
         raise ValueError("incomplete or unexpected initialization trace")
     result = []
-    for index in range(8):
+    for index, expected in enumerate(order):
         tag, stage, msw, ip15, cs15, ip67, cs67 = struct.unpack_from(
             "<2sB5H", data, index * 13)
-        if tag != b"IP" or stage != index + 1:
+        if tag != b"IP" or stage != expected:
             raise ValueError("invalid initialization phase order")
         result.append(dict(stage=stage, pe=msw & 1, msw=msw,
                            int15=f"{cs15:04X}:{ip15:04X}",
@@ -26,7 +28,17 @@ def parse_trace(data):
     return result
 
 
-def check_phases(rows, mode):
+def check_phases(rows, mode, *, split=False, rejected=False):
+    if split or rejected:
+        if rows[1]["pe"] or any(rows[1][key] != rows[0][key]
+                                for key in ("int15", "int67")):
+            raise ValueError("preparation changed CPU or public vectors")
+        if rejected:
+            if rows[2]["pe"] or any(rows[2][key] != rows[0][key]
+                                    for key in ("int15", "int67")):
+                raise ValueError("rejected preparation did not restore state")
+            return
+        rows = rows[:1] + rows[2:]
     final_pe = 1 if mode in ("ON", "RAM") else 0
     if [row["pe"] for row in rows] != [0] * 5 + [1, final_pe, final_pe]:
         raise ValueError("unexpected CPU activation boundary")
@@ -40,7 +52,15 @@ def check_phases(rows, mode):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image", type=Path)
+    parser.add_argument("--split-prepare", action="store_true")
+    parser.add_argument("--reject-prepared", action="store_true")
+    parser.add_argument("--bad-pool-control", action="store_true",
+                        help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.bad_pool_control:
+        args.reject_prepared = True
+    if args.reject_prepared:
+        args.split_prepare = True
     capture.require_tools()
     image_hash = capture.sha256(args.image)
     work = Path(tempfile.mkdtemp(prefix="emm-init-phases-", dir=capture.ROOT / "out"))
@@ -48,7 +68,14 @@ def main():
     shutil.copytree(capture.ROOT / "src/MEMM", work / "MEMM")
     build = work / "MEMM/MEMM"
     original = capture.sha256(capture.ROOT / "src/MEMM/MEMM/EMM386.EXE")
-    for define in ("", "-DEMM_INIT_PHASE_TRACE"):
+    trace_defines = "-DEMM_INIT_PHASE_TRACE"
+    if args.split_prepare:
+        trace_defines += " -DEMM_SPLIT_PREPARE"
+    if args.reject_prepared:
+        trace_defines += " -DEMM_REJECT_PREPARED"
+    if args.bad_pool_control:
+        trace_defines += " -DEMM_PREPARE_BAD_POOL"
+    for define in ("", trace_defines):
         subprocess.run([str(capture.ROOT / "bin/jwasm-masm"),
                         f"-Mx -t -DI386 -DNoBugMode -DNOHIMEM {define} -I. -I..\\EMM",
                         "INIT.ASM,INIT.OBJ;"], cwd=build, check=True,
@@ -86,14 +113,17 @@ def main():
                 stdout=log, stderr=subprocess.STDOUT, timeout=35)
         if process.returncode != 33:
             raise RuntimeError(f"guest did not finish {mode}: {process.returncode}")
-        records[mode] = parse_trace(trace.read_bytes())
-        check_phases(records[mode], mode)
+        records[mode] = parse_trace(trace.read_bytes(), split=args.split_prepare,
+                                   rejected=args.reject_prepared)
+        check_phases(records[mode], mode, split=args.split_prepare,
+                     rejected=args.reject_prepared)
         print(mode, json.dumps(records[mode]), flush=True)
     if capture.sha256(args.image) != image_hash:
         raise RuntimeError("input image changed")
     (work / "result.json").write_text(json.dumps(dict(
         input_sha256=image_hash, normal_emm_sha256=original,
         trace_emm_sha256=capture.sha256(build / "EMM386.EXE"),
+        split_prepare=args.split_prepare, rejected=args.reject_prepared,
         emulator=capture.qemu_identity(), records=records), indent=2) + "\n")
 
 

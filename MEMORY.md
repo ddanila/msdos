@@ -378,6 +378,36 @@ records, premature CPU activation and early/missing vector publication. These
 are current-sequence regression checks, not a completed two-phase provider or
 memory-saving result; update their expected sequence when that design lands.
 
+**Development preparation entry:** `EMM_SPLIT_PREPARE` extracts a callable
+`PrepareProvider` boundary after validation, UMA discovery and backing allocation,
+before `EMM_Init`, descriptor construction or UMB publication. It returns carry
+on preparation failure; the existing installation error path owns cleanup.
+The adapter currently calls it and immediately continues activation on the
+original INIT frame. Explicit near returns are required inside the enclosing
+far procedure. Normal EMM386 remains byte-identical.
+
+`capture_emm_init_phases.py --split-prepare` requires a new stage 9 between
+stages 1 and 2, with PE clear and original vectors. All four modes pass in
+`out/emm-init-phases-4pj3dang/`; that build also passes the existing EMM
+driver/API, owner-mode and runtime-command suite through its no-HIMEM `M5`
+configuration (`emm-api.log` in that directory).
+`--reject-prepared` instead cancels immediately after the return, before
+activation. All four modes pass in `out/emm-init-phases-9rlr8zx4/`: stage 10
+requires the XMS free total and largest block to match the pre-allocation
+snapshot, and PE/vectors remain unchanged. `--bad-pool-control` corrupts the
+observed total and correctly fails with stage 11 in
+`out/emm-init-phases-c0pkect9/`. Six host tests cover the original sequence,
+prepared return, cleanup and rejection of changed boundaries.
+
+This is preparation for the selected coordinated-provider design, not another
+resident-code relocation or a completed provider transaction. Next make the
+activation request/frame state explicit so the loader can resume it after
+establishing the final low base; do not retain a pointer to the expired INIT
+stack. Bootstrap XMS integration, live-handle transfer, descriptor rebinding,
+post-publication failure handling and the joint linked-size budget remain open.
+The cleanup witness proves pool-size restoration for this early cancellation,
+not arbitrary failures or preservation of independently held client handles.
+
 ##### Whole-system placement rules
 
 DR-DOS's portable lesson is a small conventional interface backed by complete
