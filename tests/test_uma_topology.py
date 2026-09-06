@@ -2,7 +2,7 @@
 """ROM evidence cannot by itself qualify a page as available UMB."""
 
 import unittest
-from capture_uma_topology import BASE, END, page_inventory, rom_inventory
+from capture_uma_topology import BASE, END, page_inventory, rom_inventory, rom_rounding_candidates
 
 
 class ROMInventoryTest(unittest.TestCase):
@@ -16,6 +16,7 @@ class ROMInventoryTest(unittest.TestCase):
         pages = page_inventory(data, [])
         self.assertEqual(len(pages), 48)
         self.assertTrue(all(p["eligibility"] == "unproven" for p in pages))
+        self.assertEqual(rom_rounding_candidates(pages, []), [])
 
     def test_rom_boundary_does_not_exclude_following_4k_page(self):
         data = bytearray(END - BASE)
@@ -27,6 +28,7 @@ class ROMInventoryTest(unittest.TestCase):
         pages = {p["start"]: p for p in page_inventory(data, roms)}
         self.assertEqual(pages[0xCA000]["eligibility"], "ROM-header overlap")
         self.assertEqual(pages[0xCB000]["eligibility"], "unproven")
+        self.assertEqual(rom_rounding_candidates(list(pages.values()), roms), [0xCB000])
 
     def test_bad_checksum_or_length_does_not_make_header_safe(self):
         for length in (0, 1, 255):

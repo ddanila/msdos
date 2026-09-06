@@ -531,6 +531,50 @@ Reports include input hashes and effective QEMU arguments. Physical endpoints
 above are byte addresses, unlike the segment addresses used in the VC maps.
 No DR-DOS memory dump or disassembly is needed for this host-topology check.
 
+##### Source-audited sub-page allocation contract
+
+Use one four-bit eligibility mask per existing 16 KiB UMA window, with separate
+commit state. Keep the EMS window map and backing allocator at 16 KiB. The
+first design reserves a **whole backing page even for one eligible slice**;
+unused slices never return to the EMS free list while that UMB is live. For
+CB000h this costs 16 KiB of backing for 4 KiB of gross upper address space.
+Do not claim that those 12 KiB of unused backing are free XMS/EMS capacity.
+
+The complete change boundary is:
+
+| Source owner | Required change and invariant |
+| --- | --- |
+| `ROM_SRCH:upd_seg` / `PPAGE:exclude_segments` | Record intersecting 4 KiB slices before rounding to EMS windows. Preserve detected RAM and hardware exclusions, not just valid ROM signatures. A side map cannot reconstruct these reasons after the coarse scan. |
+| `INIT:record_umb_range`, `Apply_User_UMA_Ranges` | Preserve current I=/X= option behavior separately. X= must veto the new slices regardless of argument order; automatic finer discovery must never act as implicit I=. |
+| `PPAGE:Apply_Requested_Pages`, `INIT:Prepare_UMB` | Exclude the selected frame and explicit Pn= owners. A parent containing any UMB slice must never remain available as an ordinary EMS window. Resolve ownership before EMM_Init builds window tables. |
+| `INIT:Choose_UMB_DMA_Group` | Treat each nonempty mask as one backing-page request. Preserve the existing below-16-MiB, same-offset-modulo-128-KiB selection across neighboring windows. No private 4 KiB free list in the first implementation. |
+| `INIT:Map_UMB_Page` | Write only selected PTEs; retain each slice's offset within its backing page. Keep adjacent ROM/identity PTEs untouched, including a mixed C800h window. |
+| `INIT:Commit_UMB` | Coalesce only consecutive mapped 4 KiB slices, publishing paragraph-sized extents after all mapping succeeds. Preflight extent capacity before writing the publication buffer. |
+| `INIT:Restore_UMB_Page`, `Rollback_UMB` | Restore only committed slices to their pre-install mappings; return each reserved backing page exactly once. On live-provider teardown, successful HIMEM unregister must precede unmapping, as today. |
+| `INITTAB:InitTab` | Copy the completed page tables before discarding initialization masks and publication workspace; no retained consumer may depend on that workspace. |
+
+Capacity audit: C000h..EFFFh contains 48 possible 4 KiB slices and at most
+24 disjoint runs. Current `umb_registration` has only 20 extent slots, whereas
+HIMEM's `private_register` accepts up to 32 paragraph-addressed extents without
+a 16 KiB alignment requirement. Increase the **discardable** publication
+workspace to the proved maximum and keep HIMEM's allocation/splitting limit
+unchanged. Never coalesce across an excluded page to make a plan fit.
+
+`MAPDMA.C` already translates permanent UMBs from their 4 KiB PTEs, requiring
+contiguous physical pages and the correct ISA boundary before using a direct
+transfer. Its fallback swapping path requires EMS-window ownership. Fine UMBs
+must stay out of that path; same-offset backing is a correctness requirement,
+not merely an allocation preference.
+
+The development gate must check the actual installed fine masks and unchanged
+neighbor PTEs, explicit exclusions/frame/Pn= conflicts, 24-run publication,
+registration rejection and failures after partial mapping, EMS free-page
+accounting, reversed backing, DMA/UMB I/O and warm reset. If finer planning
+fails, retry the original coarse plan transactionally so the new feature does
+not turn an otherwise working UMB installation into no UMBs. Only after those
+gates measure the paired VC/UMB result and spend new capacity on DOS state.
+This contract is not yet implemented; normal discovery remains unchanged.
+
 #### Retained BIOS partition
 
 Use `report_dos_bios_residency.py --check --tail-body DOS.MAP BIOS.map` for

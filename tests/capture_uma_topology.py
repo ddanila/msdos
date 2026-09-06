@@ -43,6 +43,14 @@ def page_inventory(data, roms):
     return pages
 
 
+def rom_rounding_candidates(pages, roms):
+    """Header-free slices lost by 16 KiB rounding, not approved UMB pages."""
+    return [p["start"] for p in pages if not p["rom_headers"] and any(
+        r["start"] < (p["start"] & ~0x3fff) + 0x4000
+        and max(r["end"], r["start"] + 3) > (p["start"] & ~0x3fff)
+        for r in roms)]
+
+
 class QMP:
     def __init__(self, connection):
         self.connection = connection
@@ -109,11 +117,13 @@ def main():
                 qmp.call("pmemsave", {"val": BASE, "size": END - BASE, "filename": str(dump)})
                 data = dump.read_bytes()
                 roms = rom_inventory(data)
+                pages = page_inventory(data, roms)
                 result = dict(image=str(args.image.resolve()), interface=args.interface,
                               boot_seconds=args.boot_seconds,
                               image_sha256=hashlib.sha256(args.image.read_bytes()).hexdigest(),
                               qemu=subprocess.check_output(["qemu-system-i386", "--version"], text=True).splitlines()[0],
-                              command=command, roms=roms, pages=page_inventory(data, roms),
+                              command=command, roms=roms, pages=pages,
+                              rom_rounding_candidates=rom_rounding_candidates(pages, roms),
                               memory_tree=topology, pci=pci,
                               warning="Timed snapshot, not a boot-success or UMB-safety test. Empty bytes do not establish availability.")
                 print(json.dumps(result, indent=2))
