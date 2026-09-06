@@ -1,5 +1,12 @@
 bits 16
 org 100h
+%ifdef TEST_CHAR_INT
+%define TEST_IRQ TEST_CHAR_INT
+%elifdef TEST_TIMER
+%define TEST_IRQ 1ah
+%else
+%define TEST_IRQ 13h
+%endif
 
 start:
     push cs
@@ -46,20 +53,12 @@ start:
     mov ah,9
     int 21h
     mov [initial_sp],sp
-%ifdef TEST_TIMER
-    mov ax,351ah
-%else
-    mov ax,3513h
-%endif
+    mov ax,3500h+TEST_IRQ
     int 21h
     mov [old13],bx
     mov [old13+2],es
     mov dx,hook13
-%ifdef TEST_TIMER
-    mov ax,251ah
-%else
-    mov ax,2513h
-%endif
+    mov ax,2500h+TEST_IRQ
     int 21h
     mov byte [hooked],1
     mov [hook_vector+2],cs
@@ -67,7 +66,10 @@ start:
     ; Real disk/clock call through the gate and an A20-disabling ROM wrapper.
     push cs
     pop es
-%ifdef TEST_TIMER
+%ifdef TEST_CHAR_INT
+    mov byte [synthetic],1
+    mov ax,0a111h
+%elifdef TEST_TIMER
     xor ax,ax
 %else
     mov ax,0201h
@@ -76,6 +78,7 @@ start:
     mov cx,1
     xor dx,dx
     mov bp,0b00bh
+    sti
     stc
 %ifdef USE_TAIL
     push word [cs:supplied_flags]
@@ -84,7 +87,12 @@ start:
 %ifdef USE_TAIL
     call BIOS_HMA_ROM_RESTORE
 %endif
-%ifdef TEST_TIMER
+%ifdef TEST_CHAR_INT
+    ; Deterministic hook instead of waiting for attached serial/printer/input.
+    ; The following two calls check all result registers and both CF outcomes.
+    push cs
+    pop ds
+%elifdef TEST_TIMER
     pushf
     pop word [first_flags]
     cmp ax,[rom_ax]
@@ -162,6 +170,10 @@ again:
     inc byte [carry_result]
     jmp again
 checked:
+%ifdef TEST_CHAR_INT
+    cmp word [char_frame_seen],3
+    jne fail
+%endif
 %ifdef USE_NEAR
     cmp word [alternate_seen],2
     jne fail
@@ -204,11 +216,7 @@ unhook:
     cmp byte [hooked],0
     je .done
     lds dx,[old13]
-%ifdef TEST_TIMER
-    mov ax,251ah
-%else
-    mov ax,2513h
-%endif
+    mov ax,2500h+TEST_IRQ
     int 21h
     push cs
     pop ds
@@ -223,6 +231,19 @@ hook13_alternate:
     jmp hook13
 
 hook13:
+%ifdef TEST_CHAR_INT
+    pushf
+    push bp
+    mov bp,sp
+    test word [ss:bp+2],0300h ; INT must clear live IF and TF
+    jnz .bad_char_frame
+    test word [ss:bp+8],0200h ; caller's IF remains in the interrupt frame
+    jz .bad_char_frame
+    inc word [cs:char_frame_seen]
+.bad_char_frame:
+    pop bp
+    popf
+%endif
 %ifdef USE_SUPPLIED_FLAGS
     ; Entry frame FLAGS must differ from live CF; both are caller inputs.
     pushf
@@ -327,11 +348,15 @@ hook13:
 
 %ifdef OMIT_A20_RESTORE
 ; Negative control: identical high caller, but no low A20 restoration.
+BIOS_HMA_ROM_RESTORE:
+    ret
+%include "HIGHCHARROM.INC"
 BIOS_HMA_INT13:
     int 13h
     retf
 %else
 %include "HIGHROM.INC"
+%include "HIGHCHARROM.INC"
 %endif
 
 high_start:
@@ -368,7 +393,21 @@ high_start:
 %ifdef USE_SAVED_VECTOR
     dw BIOS_HMA_VECTOR
 %else
-%ifdef TEST_TIMER
+%ifdef TEST_CHAR_INT
+%if TEST_CHAR_INT = 14h
+    dw BIOS_HMA_INT14
+%elif TEST_CHAR_INT = 15h
+    dw BIOS_HMA_INT15
+%elif TEST_CHAR_INT = 16h
+    dw BIOS_HMA_INT16
+%elif TEST_CHAR_INT = 17h
+    dw BIOS_HMA_INT17
+%elif TEST_CHAR_INT = 29h
+    dw BIOS_HMA_INT29
+%else
+%error unsupported character interrupt
+%endif
+%elifdef TEST_TIMER
     dw BIOS_HMA_INT1A
 %else
     dw BIOS_HMA_INT13
@@ -386,6 +425,7 @@ high_gate_segment:
 high_end:
 
 entry dw 0,0
+char_frame_seen dw 0
 old13 dd 0
 hook_vector dw hook13,0
 vector_slot_offset dw hook_vector

@@ -1,5 +1,5 @@
-; Prototype low ROM-return gate for the BIOS high-service split.
-; Not installed in the resident BIOS yet. Include in a retained LOW segment.
+; Shared low ROM-return gates for the development BIOS high-service split.
+; Include in a retained LOW segment; normal IO.SYS does not enable this split.
 ; Entry: ordinary INT 13h registers; FAR CALL from low or high service code.
 ; Exit: preserve the ROM's registers and flags; SS must remain conventional.
 ; Activation requires the repository HIMEM E705h hardware-restore contract.

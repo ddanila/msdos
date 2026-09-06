@@ -2713,7 +2713,8 @@ capacity failure leaves the original low decoder/tables usable.
 
 The current far-target payload grows from 5,220 to **5,698 bytes**: 122 decoder,
 10 bindings and 346 table bytes. Six additional offset fixups are checked against
-independent link origins. The selected low BIOS grows from 5,152 to **5,168 bytes** after
+independent link origins. With shared character-return support below, the selected
+low BIOS grows from 5,152 to **5,200 bytes** after
 rounding. The old 76-byte decoder and 173-byte tables are poisoned, **not
 reclaimed**; this is installed execution evidence, not a conventional saving.
 The calculated shared HMA tail with normal COMMAND becomes 9,099 bytes in this
@@ -2747,6 +2748,29 @@ validates all five original command bounds before publication and initially
 binds targets to the low BIOS segment. Future complete high owners can replace
 individual far entries without new per-service low stubs. The 170-byte HMA
 increase over near tables is charged once; low residency is unchanged.
+
+**Shared character firmware returns:** `HIGHCHARROM.INC` adds INT 14h, 15h,
+16h, 17h and 29h low gates to the dispatch-enabled development build. These
+five gates share the existing E705h restoration routine and cost 30 code bytes,
+32 retained bytes after rounding (5,168 to 5,200). The existing INT 1Ah gate
+covers clock calls. Normal IO.SYS and the selected non-dispatch comparison
+remain unchanged; this is support for the complete group, not five relocated
+service bodies or a new saving. HMA reservation remains 5,698 bytes.
+
+`tests/test_bios_high_rom_qemu.sh` now checks each added gate in DOS-low and
+DOS-high modes using deterministic interrupt hooks, not attached keyboard,
+serial or printer hardware. It verifies live IF/TF clearing and saved caller
+IF on actual INT entry, all returned general/segment registers, both CF results,
+the result flag mask (including ZF/IF), stack depth and continued HMA execution
+after the hook disables A20. These gates must use actual INT semantics; a far
+call to an IVT target is not an interchangeable implementation.
+Disk and keyboard missing-restoration controls must reach the begin marker but
+never the pass marker. All 28 positive cases and both negative controls pass in
+`out/bios-high-rom.2UQg6h/`; the 53-test residency suite also passes.
+This does not qualify real device timing, arbitrary
+third-party hooks, reentrancy or relocated character-data ownership.
+The installed rebased/high-CDS EMM warm-reset check passes with the larger low
+interface in `out/bios-low-boot-dt7w0i13/`; final low repacking remains open.
 
 The shared decoder saves the original low-index ADD flags and SI, translates
 only the lookup address, obtains the far target with LES, then restores SI and
