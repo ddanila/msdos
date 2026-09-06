@@ -375,7 +375,7 @@ HAS1:
 	MOV	BYTE PTR DS:[DI].SECLIM,BL
 	MOV	BYTE PTR DS:[DI].HDLIM,DL
 ;SB34DISK001*******************************************************************
-;SB	the HIDSEC_H field and DRVLIM_L field and the 
+;SB	the HIDSEC_H field and DRVLIM_L field and the
 ;SB	DRVLIM_H fields need to be set to 0 since this code here is for floppies
 ;SB		3 LOCS
 
