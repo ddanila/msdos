@@ -271,6 +271,7 @@ test-drdos-capture:
 .PHONY: test-emm-init-phases
 test-emm-init-phases:
 	python3 tests/test_emm_init_phases.py
+	python3 tests/test_emm_loader_rebase.py
 
 .PHONY: test-dos-sda-qemu
 test-dos-sda-qemu: dos

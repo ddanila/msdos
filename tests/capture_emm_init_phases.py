@@ -9,10 +9,20 @@ import subprocess
 import tempfile
 
 import capture_drdos_memory as capture
+from emm_loader_rebase import include as rebase_include, manifest as rebase_manifest
 
 
 def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
-                lifecycle=False, loader=False):
+                lifecycle=False, loader=False, rebase=False):
+    moved = None
+    if rebase:
+        if len(data) < 34:
+            raise ValueError("missing prepared-image move")
+        tag, old, new, paragraphs = struct.unpack_from("<2s3H", data, 26)
+        if tag != b"RB" or new != old + 32 or paragraphs <= 32:
+            raise ValueError("invalid prepared-image move")
+        moved = dict(old=old, new=new, paragraphs=paragraphs)
+        data = data[:26] + data[34:]
     order = ([1, 9, 10] if rejected else
              [1, 9, *range(2, 9)] if split else list(range(1, 9)))
     if activation_stack:
@@ -35,11 +45,17 @@ def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
         result.append(dict(stage=stage, pe=msw & 1, msw=msw,
                            int15=f"{cs15:04X}:{ip15:04X}",
                            int67=f"{cs67:04X}:{ip67:04X}"))
+    if moved:
+        result[2]["move"] = moved
     return result
 
 
 def check_phases(rows, mode, *, split=False, rejected=False, activation_stack=False,
-                 lifecycle=False, loader=False):
+                 lifecycle=False, loader=False, rebase=False):
+    if rebase and not rejected:
+        for vector in ("int15", "int67"):
+            if int(rows[-1][vector].split(":")[0], 16) != rows[2]["move"]["new"]:
+                raise ValueError("activated entry does not follow the moved image")
     if loader:
         if any(rows[2][key] != rows[1][key] for key in ("pe", "int15", "int67")):
             raise ValueError("loader resume changed prepared machine state")
@@ -73,12 +89,16 @@ def check_phases(rows, mode, *, split=False, rejected=False, activation_stack=Fa
             raise ValueError("final interrupt entry was not published")
 
 
-def build_loader(work, *, rejected=False, bad_version=False):
+def build_loader(work, *, rejected=False, bad_version=False, rebase=False, bad_rebase=False):
     """Private normal-layout BIOS; only SYSCONF opts into the boot handshake."""
     bios = work / "BIOS"
     shutil.copytree(capture.ROOT / "src/BIOS", bios)
     original = capture.sha256(capture.ROOT / "src/BIOS/IO.SYS")
     options = "-DBIOS_DEFER_PROVIDER"
+    if rebase:
+        options += " -DPROVIDER_REBASE"
+        (bios / "PROVIDERFIXUPS.INC").write_text(rebase_include(
+            (work / "MEMM/MEMM/EMM386.EXE").read_bytes(), bad_control=bad_rebase))
     if rejected:
         options += " -DBIOS_PROVIDER_CANCEL"
     if bad_version:
@@ -104,6 +124,10 @@ def main():
     parser.add_argument("--split-prepare", action="store_true")
     parser.add_argument("--loader", action="store_true",
                         help="return from INIT and resume through a private SYSINIT callback")
+    parser.add_argument("--loader-rebase", action="store_true",
+                        help="move the prepared image upward 512 bytes and poison its old entry area")
+    parser.add_argument("--loader-bad-rebase", action="store_true",
+                        help="corrupt a pinned fixup precondition; require rejection, not movement")
     parser.add_argument("--loader-bad-version", action="store_true",
                         help="advertise an unsupported version; require synchronous fallback")
     parser.add_argument("--lifecycle", action="store_true",
@@ -120,6 +144,13 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.loader_bad_rebase:
+        args.loader_rebase = True
+        args.reject_prepared = True
+    if args.loader_rebase:
+        args.loader = True
+        if args.loader_bad_version:
+            parser.error("rebase and version-fallback controls are separate")
     if args.loader_bad_version:
         args.loader = True
     if args.loader:
@@ -157,6 +188,8 @@ def main():
         trace_defines += " -DEMM_SPLIT_PREPARE"
     if args.loader:
         trace_defines += " -DEMM_DEFER_PROVIDER"
+    if args.loader_rebase:
+        trace_defines += " -DPROVIDER_REBASE"
     if args.lifecycle:
         trace_defines += " -DEMM_PROVIDER_LIFECYCLE"
     if args.bad_lifecycle_control:
@@ -185,15 +218,22 @@ def main():
     loader_hash = None
     if args.loader:
         loader_image, loader_hash = build_loader(
-            work, rejected=args.reject_prepared, bad_version=args.loader_bad_version)
+            work, rejected=args.reject_prepared, bad_version=args.loader_bad_version,
+            rebase=args.loader_rebase, bad_rebase=args.loader_bad_rebase)
     subprocess.run(["nasm", "-f", "bin", str(capture.QEMU_EXIT_SOURCE),
                     "-o", str(qexit)], check=True)
+    owner_probe = work / "OWNER.COM"
+    if args.loader:
+        subprocess.run(["nasm", "-f", "bin", str(capture.ROOT / "tests/emm_provider_owner_probe.asm"),
+                        "-o", str(owner_probe)], check=True)
     records = {}
+    owner_counts = {}
     for mode in ("ON", "OFF", "AUTO", "RAM"):
         image = work / f"{mode}.img"
         shutil.copyfile(args.image, image)
         if loader_image:
             capture.install_file(image, loader_image, "IO.SYS")
+            capture.install_file(image, owner_probe, "OWNER.COM")
         for source, name in ((build / "EMM386.EXE", "EMM386.EXE"),
                              (capture.ROOT / "src/DEV/HIMEM/HIMEM.SYS", "HIMEM.SYS"),
                              (qexit, "QEXIT.COM")):
@@ -202,7 +242,8 @@ def main():
         config.write_bytes(("DEVICE=HIMEM.SYS /TESTMEM:OFF\r\n"
                             f"DEVICE=EMM386.EXE {mode}\r\nDOS=LOW\r\n").encode())
         batch = work / "AUTOEXEC.BAT"
-        batch.write_bytes(b"@ECHO OFF\r\nQEXIT.COM\r\n")
+        batch.write_bytes(b"@ECHO OFF\r\n" + (b"OWNER.COM\r\n" if args.loader else b"")
+                          + b"QEXIT.COM\r\n")
         capture.install_file(image, config, "CONFIG.SYS")
         capture.install_file(image, batch, "AUTOEXEC.BAT")
         trace = work / f"{mode}.bin"
@@ -216,15 +257,24 @@ def main():
                 stdout=log, stderr=subprocess.STDOUT, timeout=35)
         if process.returncode != 33:
             raise RuntimeError(f"guest did not finish {mode}: {process.returncode}")
-        records[mode] = parse_trace(trace.read_bytes(), split=args.split_prepare,
+        trace_data = trace.read_bytes()
+        if args.loader:
+            expected = 0 if args.reject_prepared else 1
+            if not trace_data.endswith(b"DO" + struct.pack("<H", expected)):
+                raise ValueError("unexpected installed EMM device owner count")
+            owner_counts[mode] = expected
+            trace_data = trace_data[:-4]
+        records[mode] = parse_trace(trace_data, split=args.split_prepare,
                                    rejected=args.reject_prepared,
                                    activation_stack=args.activation_stack,
                                    lifecycle=args.lifecycle,
-                                   loader=args.loader and not args.loader_bad_version)
+                                   loader=args.loader and not args.loader_bad_version,
+                                   rebase=args.loader_rebase)
         check_phases(records[mode], mode, split=args.split_prepare,
                      rejected=args.reject_prepared, activation_stack=args.activation_stack,
                      lifecycle=args.lifecycle,
-                     loader=args.loader and not args.loader_bad_version)
+                     loader=args.loader and not args.loader_bad_version,
+                     rebase=args.loader_rebase)
         print(mode, json.dumps(records[mode]), flush=True)
     if capture.sha256(args.image) != image_hash:
         raise RuntimeError("input image changed")
@@ -236,6 +286,10 @@ def main():
         activation_stack=args.activation_stack,
         lifecycle=args.lifecycle,
         loader=args.loader, loader_bad_version=args.loader_bad_version,
+        loader_rebase=args.loader_rebase,
+        installed_owner_counts=owner_counts,
+        rebase_manifest=rebase_manifest((build / "EMM386.EXE").read_bytes())
+            if args.loader_rebase else None,
         normal_bios_sha256=loader_hash,
         loader_bios_sha256=capture.sha256(loader_image) if loader_image else None,
         emulator=capture.qemu_identity(), records=records), indent=2) + "\n")

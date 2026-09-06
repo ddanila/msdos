@@ -117,6 +117,26 @@ class InitPhaseTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "loader resume"):
                     check_phases(rows, mode, **flags)
 
+    def test_moved_loader_entries(self):
+        base = self.trace()
+        def record(stage):
+            return base[:2] + bytes([stage]) + base[3:13]
+        data = bytearray(base[:13] + record(9) + record(17) + base[13:] + b"LD")
+        old, new = 0xce3, 0xd03
+        for offset in (7, 11):
+            struct.pack_into("<H", data, len(data) - 15 + offset, new)
+        moved = data[:26] + struct.pack("<2s3H", b"RB", old, new, 7335) + data[26:]
+        flags = dict(split=True, loader=True, rebase=True)
+        rows = parse_trace(moved, **flags)
+        check_phases(rows, "ON", **flags)
+        rows[-1]["int67"] = f"{old:04X}:009B"
+        with self.assertRaisesRegex(ValueError, "moved image"):
+            check_phases(rows, "ON", **flags)
+        for header in (b"RF", struct.pack("<2s3H", b"RB", old, old, 7335),
+                       struct.pack("<2s3H", b"RB", old, new, 0)):
+            with self.assertRaises(ValueError):
+                parse_trace(data[:26] + header + data[26:], **flags)
+
 
 if __name__ == "__main__":
     unittest.main()

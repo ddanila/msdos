@@ -2043,6 +2043,10 @@ Skip2_ResetMEMHI:
 
 IFDEF BIOS_DEFER_PROVIDER
 ProviderLoadEnd dw 0
+IFDEF PROVIDER_REBASE
+        include PROVIDERFIXUPS.INC
+ProviderMoveFailed db 0
+ENDIF
 ; Only advertise to the selected character-device surface; an ordinary EMM
 ; ignores the reserved bytes and completes synchronous INIT as before.
 ProviderOffer PROC NEAR
@@ -2103,6 +2107,13 @@ ProviderResume PROC NEAR
         jc ProviderResumeInvalid
         cmp ax,cs:[ProviderLoadEnd]
         jae ProviderResumeInvalid
+IFDEF PROVIDER_REBASE
+        call ProviderMove
+        mov cs:[ProviderMoveFailed],0
+        jnc ProviderMoveReady
+        mov cs:[ProviderMoveFailed],1
+ProviderMoveReady:
+ENDIF
         ; INIT and its driver interrupt wrapper have both returned. SYSINIT
         ; owns this call frame and the original packet, not driver stack slots.
         push cs
@@ -2113,9 +2124,23 @@ IFDEF BIOS_PROVIDER_CANCEL
 ELSE
         mov ax,BP_ACTIVATE
 ENDIF
+IFDEF PROVIDER_REBASE
+        cmp cs:[ProviderMoveFailed],0
+        je ProviderMoveOperationReady
+        mov ax,BP_CANCEL
+ProviderMoveOperationReady:
+ENDIF
         call dword ptr cs:[PACKET+BP_CALLBACK_OFF]
         or ax,0100h             ; standard INIT completion status
         mov word ptr cs:[PACKET+3],ax
+        test ax,8000h
+        jz ProviderResumeSuccess
+        ; SET_BREAK uses the break, not STATUS, to recognize aborted INIT.
+        ; Do not link a cancelled provider whose initialization storage dies.
+        mov word ptr cs:[BREAK_ADDR],0
+        mov dx,cs:[MEMHI]
+        mov word ptr cs:[BREAK_ADDR+2],dx
+ProviderResumeSuccess:
         mov dx,0e9h
         mov al,'L'
         out dx,al
@@ -2136,6 +2161,118 @@ ProviderResumeDone:
         pop ax
         ret
 ProviderResume ENDP
+IFDEF PROVIDER_REBASE
+; Fixed-image development witness. All checks precede writes. External request
+; and XMS pointers / locked physical addresses stay unchanged. Only MZ segment
+; words and SYSINIT's image/callback pointers receive the segment delta.
+ProviderMove PROC NEAR
+        push bx
+        push cx
+        push dx
+        push si
+        push di
+        push bp
+        push ds
+        push es
+        mov bp,word ptr cs:[ENTRY_POINT+2]
+        mov ax,bp
+        add ax,PROVIDER_IMAGE_PARAS
+        jc ProviderMoveBad
+        cmp ax,cs:[ProviderLoadEnd]
+        ja ProviderMoveBad
+        add ax,PROVIDER_MOVE_PARAS
+        jc ProviderMoveBad
+        cmp ax,cs:[ALLOCLIM]
+        jae ProviderMoveBad
+        mov si,offset ProviderFixups
+        mov cx,PROVIDER_FIXUP_COUNT
+ProviderMoveCheck:
+        mov di,cs:[si]
+        mov ax,cs:[si+2]
+        add ax,bp
+        mov es,ax
+        mov ax,cs:[si+4]
+        add ax,bp
+        cmp es:[di],ax
+        jne ProviderMoveBad
+        add ax,PROVIDER_MOVE_PARAS
+        jc ProviderMoveBad
+        add si,6
+        loop ProviderMoveCheck
+        ; Copy paragraphs backward to support the overlapping upward move.
+        mov bx,PROVIDER_IMAGE_PARAS
+        cld
+ProviderMoveCopy:
+        dec bx
+        mov ax,bp
+        add ax,bx
+        mov ds,ax
+        add ax,PROVIDER_MOVE_PARAS
+        mov es,ax
+        xor si,si
+        xor di,di
+        mov cx,8
+        rep movsw
+        or bx,bx
+        jnz ProviderMoveCopy
+        mov si,offset ProviderFixups
+        mov cx,PROVIDER_FIXUP_COUNT
+ProviderMoveFix:
+        mov di,cs:[si]
+        mov ax,cs:[si+2]
+        add ax,bp
+        add ax,PROVIDER_MOVE_PARAS
+        mov es,ax
+        add word ptr es:[di],PROVIDER_MOVE_PARAS
+        add si,6
+        loop ProviderMoveFix
+        add word ptr cs:[ENTRY_POINT+2],PROVIDER_MOVE_PARAS
+        add word ptr cs:[PACKET+BP_CALLBACK_OFF+2],PROVIDER_MOVE_PARAS
+        add cs:[ProviderLoadEnd],PROVIDER_MOVE_PARAS
+        ; Poison only the old-exclusive prefix, never overlapping destination.
+        mov es,bp
+        xor di,di
+        mov ax,0f4fah
+        mov cx,PROVIDER_MOVE_PARAS*8
+        rep stosw
+        mov dx,0e9h
+        mov al,'R'
+        out dx,al
+        mov al,'B'
+        out dx,al
+        mov ax,bp
+        out dx,al
+        mov al,ah
+        out dx,al
+        mov ax,word ptr cs:[ENTRY_POINT+2]
+        out dx,al
+        mov al,ah
+        out dx,al
+        mov ax,PROVIDER_IMAGE_PARAS
+        out dx,al
+        mov al,ah
+        out dx,al
+        clc
+        jmp short ProviderMoveDone
+ProviderMoveBad:
+        mov dx,0e9h
+        mov al,'R'
+        out dx,al
+        mov al,'F'
+        out dx,al
+        stc
+ProviderMoveDone:
+        pop es
+        pop ds
+        pop bp
+        pop di
+        pop si
+        pop dx
+        pop cx
+        pop bx
+        ret
+ProviderMove ENDP
+ENDIF
 ENDIF
 
 ; DOS=HIGH is known from the CONFIG pre-scan. Once repository HIMEM has

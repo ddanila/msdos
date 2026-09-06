@@ -459,8 +459,8 @@ API/runtime-command suite (`emm-api.log`). Eight host tests pass. The normal
 EMM386 binary remains byte-identical. These checks do not prove rollback from
 every partial activation failure or preservation of every cached client entry.
 
-A final-base move, bootstrap XMS ownership, relocation-capability negotiation
-and the complete low/high budget remain unimplemented. The next architectural
+A final low-base placement, bootstrap XMS ownership, general relocation-capability
+negotiation and the complete low/high budget remain unimplemented. The next architectural
 deliverable is a
 loader/provider transaction that releases the original low allocation into the
 application free block, with complete high owners and a measured retained low
@@ -495,10 +495,45 @@ The loader-driven activation image also passes `tests/test_emm386_qemu.sh`,
 including no-HIMEM allocation and the full API/runtime-command suite; its
 evidence directory retains `emm-api.log`.
 
-The loaded provider address still does not change. Before allowing a move,
-account for both EXE segment relocations and pointers/state derived during
-preparation, including the original request and external XMS owner. Do not
-reuse `CompactFirstHimem` or treat the callback as proof of low reclamation.
+V1 keeps the loaded provider address unchanged. The separate pinned v2 witness
+below tests an actual move, not general relocation-capability negotiation or
+low reclamation. Do not reuse `CompactFirstHimem` for this image.
+
+**Prepared-image relocation witness:** `--loader-rebase` moves the complete
+prepared EMM image upward by 32 paragraphs (512 bytes), before activation.
+`tests/emm_loader_rebase.py` validates the exact private EXE and generates its
+77 segment-fixup records for SYSINIT. The loader checks destination capacity
+and every expected loaded segment word before writing, copies overlapping
+paragraphs backward, applies the segment delta, updates its header/callback
+pointers and poisons the old-exclusive prefix. The request pointer, XMS entry
+and locked physical backing addresses are external owners and remain unchanged.
+This is a fixed-build v2 contract, not a way to move arbitrary drivers.
+
+All ON/OFF/AUTO/RAM cases pass in `out/emm-init-phases-9qf937lh/`, moving the
+7,335-paragraph image from `0CE3h` to `0D03h`; both final interrupt entries follow
+the new base. The same BIOS/EMM binaries pass the full EMM API/runtime-command
+suite, including the no-HIMEM allocator (`emm-api.log`). Cancellation after
+moving passes four modes with XMS restored in `out/emm-init-phases-t7r0ht7g/`.
+The deliberately wrong fixup precondition (`--loader-bad-rebase`) fails the
+move witness in `out/emm-init-phases-y0xnuc37/`: the raw trace confirms no move,
+successful cancellation and restored pool/vectors. Thirteen host tests cover
+phase contracts, MZ extents, fixup bounds/overlap and moved public entries.
+
+The deferred loader now normalizes an error return to the zero-offset/current
+MEMHI break that `SYSINIT2.ASM:SET_BREAK` uses to reject INIT. Error status alone
+does not prevent linking a cancelled header. A post-boot device-chain probe
+requires exactly one EMM owner after activation and none after cancellation;
+it also rejects cyclic chains. This passes for moved and unmoved cancellation.
+The unmoved v1 regression is in `out/emm-init-phases-dn_3ffei/`; version-mismatch
+fallback still passes in `out/emm-init-phases-8koxc055/`.
+
+The upward move intentionally spends 512 low bytes: **no conventional-memory
+saving is claimed**. It establishes a movable preparation boundary for the
+selected layouts. The next integration must supply a real lower destination,
+release the old allocation contiguously, and preserve pre-existing XMS clients
+while transferring one allocator's ownership. Maximum-resource, shifted-load,
+warm-reset and combined BIOS/HMA/COMMAND qualification remain open; this witness
+does not implement the high service/table owners or satisfy the joint budget.
 
 ##### Whole-system placement rules
 
