@@ -118,6 +118,41 @@ conversion helpers, before gateway costs. Explaining the 10,064-byte vendor
 difference therefore requires the mixed BIOS service/state and combined-provider
 boundaries as well as the whole shell; those bodies alone cannot explain it.
 
+### Whole-shell design bound: code relocation alone is insufficient
+
+The checked normal COMMAND map retains 2,451 code bytes, a 256-byte PSP,
+125-byte stack and 800 bytes of mutable state in its 3,632-byte low image.
+Even moving **all** that code with zero new low support leaves a packed,
+paragraph-rounded image of 1,184 bytes: at most 2,448 conventional bytes
+released. The selected fixture's other shell allocations total 352 bytes,
+so its 3,984-byte owner span cannot fall below **1,536 bytes** under this
+code-only policy. That is still 224 bytes above OpenDOS's 1,312-byte span,
+before gateways, bindings or additional stacks. This comparison does not
+establish equivalent environment/resource semantics or a mandatory local target.
+
+Consequently the whole-shell design must classify its 800 mutable bytes as
+well as code: formatter/critical-error state, shell control, pipe hand-off,
+and EXEC/reload state. Keep the PSP and externally referenced asynchronous
+state low unless a compatible access contract is demonstrated. Do not choose
+an arbitrary low-shell ceiling and assume its support code will fit.
+
+The existing 2,447-byte high shell allocation is already charged. Adding the
+normal 2,451-byte resident body would consume that much of the shared
+9,657-byte HMA tail, leaving 7,206 bytes for BIOS, moved state and all new
+support. The owner-binding prototype already grows the body by 56 bytes;
+neither number is the final relocated size. A code-only shell move plus the
+936-byte BIOS character/clock/helper inventory therefore cannot explain the
+10,064-byte vendor difference, even before costs. Continue the combined
+provider and mixed BIOS service/state design rather than stopping at those
+easy-to-name bodies.
+
+`make test-command-residency` checks the linked census and five arithmetic
+tests for the whole-code bound, including paragraph rounding and preservation
+of the PSP. The bound is generated from linker symbols; it proves neither
+relocatability nor a runtime saving. The next shell implementation checkpoint
+is one linked low-state/gateway and high-service layout, including the
+INT 22h/23h/24h/2Eh, transient-reload and A20 return contracts.
+
 ### Pre-table baseline and standing compatibility constraints
 
 Maximize the largest conventional block by relocating complete resident

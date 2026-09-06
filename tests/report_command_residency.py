@@ -75,6 +75,18 @@ def rounded(value: int) -> int:
     return (value + 15) & ~15
 
 
+def code_only_envelope(code_end: int, resident_break: int) -> tuple[int, int]:
+    """Optimistic packed low floor and release, before any new support.
+
+    Preserve PSP and every non-code byte; relocate the complete 0100h body.
+    This is a design bound, not evidence that the body is relocatable.
+    """
+    if not 0x100 <= code_end <= resident_break:
+        raise ValueError("resident code must follow the PSP and precede the break")
+    low_floor = rounded(resident_break - (code_end - 0x100))
+    return low_floor, rounded(resident_break) - low_floor
+
+
 BINDING_SLOTS = ("fatal_ds", "fatal_psp", "ret2e_ds", "int2e_es", "int2e_bx",
                  "lodcom_ds", "lodcom_ax", "headfix_ds", "savhand_es", "endinit_ds",
                  "exec_err_ds", "exec_msg_es", "exec_pre_ds", "exec_post_ds", "exec_wait_ds")
@@ -332,6 +344,17 @@ def main() -> int:
         print("a production budget increase or a claimed conventional-memory saving.\n")
     print(f"| **DOS-high permanent break** | `0000h..{resident_catalog_start:04X}h` | **{resident_catalog_start:,}** | **{rounded(resident_catalog_start):,} paragraph-rounded** |")
     print(f"| Low/failure fallback break | `0000h..{hma_code_end:04X}h` | {hma_code_end:,} | {rounded(hma_code_end):,} paragraph-rounded |")
+
+    low_floor, maximum_release = code_only_envelope(resident_code_end, resident_catalog_start)
+    print("\n## Whole-code relocation bound\n")
+    print(f"Moving all {resident_code_end - 0x100:,} remaining resident code bytes, "
+          f"while retaining the PSP, stack and all mutable state, leaves at least "
+          f"{low_floor:,} paragraph-rounded low bytes. The optimistic release is "
+          f"at most {maximum_release:,} bytes before new gateways, bindings or stacks.")
+    print("This assumes packed low storage with no retained code hole. Separate "
+          "environment/batch allocations are unchanged; existing high catalogs "
+          "and code earn no additional credit. This is not a linked relocated "
+          "implementation or a measured saving.")
 
     print("\n## Permanent low ownership\n")
     print("| Range | Offset | Bytes | Required lifetime |")

@@ -419,6 +419,7 @@ test-bios-high-rom-qemu: deploy
 	bash tests/test_bios_high_rom_qemu.sh
 
 test-command-residency: cmd_command
+	python3 tests/test_command_layout_envelope.py
 	python3 tests/report_command_residency.py --check \
 		src/CMD/COMMAND/COMMAND.MAP src/CMD/COMMAND/COMMAND.COM
 
