@@ -480,7 +480,7 @@ def main() -> int:
         ("Disk transfer and error paths", "DISK", "GENERIC$IOCTL"),
         ("Generic disk IOCTL and INT 2F services", "GENERIC$IOCTL", "DISK005S"),
         ("BIOS model and saved-vector state", "DISK005S", "DISK005E"),
-        ("Disk initialization and reinitialization", "DISK005E", "CLK001S"),
+        ("Reboot, block-driver multiplex and disk lifecycle services", "DISK005E", "CLK001S"),
         ("Clock swap state", "CLK001S", "ENDFLOPPY"),
         ("First hard-disk descriptor", "ENDFLOPPY", "ENDONEHARD"),
     ]

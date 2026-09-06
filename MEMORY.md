@@ -1255,7 +1255,7 @@ The development selected low BIOS is 5,152 bytes, fully partitioned as follows:
 | Disk media state and constants | 45 | Includes the first disk byte formerly attributed to the clock range |
 | Media/BPB services and high-service bindings | 911 | Mixed code, helpers and bindings; not wholly movable |
 | BIOS model and saved-vector state | 264 | Interrupt and boot restoration ownership |
-| Disk initialization/reinitialization | 356 | Cannot discard based on its name; runtime reinitialization must survive |
+| Reboot, block-driver multiplex and disk lifecycle services | 356 | Live INT 19h, INT 2Fh, BDS installation and swap paths; not disposable initialization |
 | Clock swap state and first hard-disk descriptor | 108 | Live state, not disposable boot storage |
 | Copied CMOS conversion helpers | 126 | Candidate code; include clock call/return contracts |
 | Alignment | 16 | Count only after the entire layout is repacked |
@@ -1298,6 +1298,46 @@ block low until its asynchronous contract has a jointly budgeted destination;
 the remaining 1,792-byte UMB margin cannot hold its 1,840 bytes plus overhead.
 The next design checkpoint remains open until exact net released intervals
 cover the gap; the census supplies bounds, not that proof.
+
+#### Remaining BIOS: public state and lifecycle boundaries
+
+Keep the following owners real-mode-addressable in the first joint layout;
+moving them requires a separate proven interface, not merely a high copy.
+
+- `MSBDATA.INC` fixes `VDISK_AREA` at offset `0100h` with 108 reserved bytes.
+  This is a compatibility reservation; lack of local readers alone does not
+  establish that external drivers cannot use it.
+- Device headers publish strategy/interrupt offsets. `START_BDS` publishes a
+  linked drive-state list; `MSBIO2.ASM:INSTALL_BDS` walks and modifies both our
+  records and a caller's DS:DI record. `DSKDRVS` contains near BPB pointers.
+  Moving our records to HMA would not preserve ordinary external far-pointer
+  dereferences with A20 off. Four declared floppy records are not proof of
+  four removable unused allocations; preserve the configured device surface.
+- `DISKSECTOR` is a 512-byte firmware-facing boot-sector/DMA-check buffer.
+  Its fields alias the sector contents. It is distinct from the separately
+  allocated 512-byte DOS transfer area; sharing requires a lifetime/reentrancy
+  proof and does not follow from matching sizes.
+- Saved reboot vectors and `CompactDpbStorage` share the 264-byte model/vector
+  region. The latter holds four overflow DPBs; moving or discarding the entire
+  region would change both reboot and public drive-state ownership.
+
+The development `11C2h..1326h` lifecycle region is 356 bytes:
+INT 19h restoration (63), disk initialization entry (12), INT 2Fh dispatch (76),
+BDS installation (68), reinitialization (33), and disk swap/message paths (104).
+These are linked ranges, not six independently movable objects. INT 19h restores
+ROM and hardware vectors before reboot; INT 2Fh chains through low state and
+supports external block-driver operations. Keep those entry paths and their
+state low initially. Any high bodies need explicit return and nested-call
+contracts, just like the character services.
+
+Even optimistically removing all 936 character/CMOS bytes, all 911 media/BPB
+bytes and all 356 lifecycle bytes would leave **2,949 BIOS bytes**, before new
+gates. That still exceeds OpenDOS's reported 2,304-byte BIOS region by 645.
+This is an arithmetic limit of a **code-only, data-retained approach**, not a
+minimum possible BIOS size or a prediction of achievable release. It rules out
+explaining the entire vendor BIOS difference with these service moves alone.
+The joint design must consider public-data placement and shared low interfaces
+as well as service code; conventional, UMB and HMA costs remain separate.
 
 ### Combined manager split: source-audited prototype boundary
 
