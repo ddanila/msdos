@@ -242,11 +242,11 @@ and diagnostic costs are distinct. It rules out this sequence as a sufficient
 manager redesign. `--paired --json` records the selected groups and leaves
 replacement/final costs unknown; eleven layout tests cover the accounting.
 
-The next provider interface to design and link is therefore **one registered
-steady-state service entry**, shared by XMS handles, public Move and UMB
-services, with boot import/publication kept separate. Current low handle
-transport/adapters (514 bytes) and UMB transport/state (622) are separate
-experimental mechanisms, not mandatory public ABI. Preserve the cached XMS
+The selected replacement is **one registered steady-state service entry**,
+shared by XMS handles, public Move and UMB services, with boot import/publication
+kept separate. The earlier low handle transport/adapters (514 bytes) and UMB
+transport/state (622) were separate experimental mechanisms, not mandatory
+public ABI; the current retirement status is recorded below. Preserve the cached XMS
 entry and public register/real-pointer contracts through low adapters; perform
 service validation against the authoritative high state. Keep HMA reservation
 and A20 recovery callable low. Do not merely cache a provider pointer and
@@ -1838,14 +1838,34 @@ handle and Move services, with the pending snapshot unchanged. These are
 dependency checks, **not conventional-memory savings**. Old bodies and storage
 still occupy the diagnostic image. The combined high-table/bootstrap-release
 fixture (`out/emm-init-phases-zlfhtwxi/`) passes all four modes but retains
-4,448 HIMEM + 2,192 EMM low bytes: 6,640 total, versus the composed control's
-4,656-byte pair. Its OWNER test totals are not composed VC measurements.
+4,448 HIMEM + 2,192 EMM low bytes before adapter retirement: 6,640 total,
+versus the composed control's 4,656-byte pair. Its OWNER test totals are not
+composed VC measurements.
 The old-handle-packet negative control fails with guest 35; 35 parser tests
 pass locally. Before moving old bodies into a disposable tail,
 the loader must complete both imports and bind the permanent entry before
 release: current UMB import can still occur on a later public/peer call.
 Then pack/reclaim the final allocation and measure the composed image against
 the control above. BIOS/COMMAND placement and reset qualification remain open.
+
+**Retired adapters:** the common build no longer links the transitional low
+`XMSM` Move adapter or the old UMB steady-state transport/recovery body. The
+`8Bh` Move alias now reaches the same native frame as `0Bh`; the poisoned-storage
+probe exercises both with identical results and preserved descriptors. UMB
+import waits for a bound entry and committed handle owner, so it cannot publish
+an owner that requires the removed adapter. Earlier non-common fixtures retain
+their UMB transport; standalone binaries remain byte-identical.
+
+The four-mode high-table/bootstrap-release run (`out/emm-init-phases-4bvcano0/`)
+retains **4,080 HIMEM + 2,192 EMM = 6,272 low bytes**, 368 fewer than the preceding
+diagnostic pair. OWNER's largest block grows 320 bytes; the added alias probe
+increases its own rounded allocation by 48 bytes. This is real diagnostic
+release, not a gain over the selected composed image. Before-execution refusal
+(`b9xmmdt7`), unknown-result freeze (`97cii2b7`) and DOS-low/128-handle live-import
+lost-reply recovery (`zx083x81`, same artifact prefix) pass all four modes.
+The census charges the common frame separately from binding; 35 parser and
+14 layout tests pass. Remaining bootstrap bodies/storage and complete-provider
+packing, followed by composed VC acceptance, are still required.
 
 ##### Whole-system placement rules
 

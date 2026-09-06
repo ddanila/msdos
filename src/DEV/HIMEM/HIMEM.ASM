@@ -390,6 +390,15 @@ xms_extended_unknown:
         ja      short xms_extended_reject
         mov     al, ah
         xor     ah, ah
+ifdef HIMEM_COMMON_XMS_TEST
+        cmp     ax,8
+        jb      common_alias_bootstrap
+        call    xms_common_ready
+        jc      common_alias_bootstrap
+        call    xms_common_invoke
+        jmp     short xms_extended_return
+common_alias_bootstrap:
+endif
         mov     si, ax
         shl     si, 1
         call    word ptr cs:[xms_table+si]
@@ -806,14 +815,6 @@ else
 endif
 
 xms_move proc near
-ifdef HIMEM_COMMON_XMS_TEST
-ifndef HIMEM_COMMON_LOW_MOVE_TEST
-        call xms_public_move_front
-        jc @F
-        ret
-@@:
-endif
-endif
 ifdef HIMEM_BOOTSTRAP_STAGE_TEST
         cmp word ptr [bootstrap_stage_entry+2],0
         je staged_move_ready
@@ -1063,7 +1064,6 @@ endif
 ifdef HIMEM_UMB_HANDOFF_TEST
         include XMSUMBFRONT.INC
 ifdef HIMEM_COMMON_XMS_TEST
-        include XMSMOVEFRONT.INC
         include XMSBIND.INC
         include XMSFRAME.INC
 endif

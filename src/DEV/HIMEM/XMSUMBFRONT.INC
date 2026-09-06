@@ -85,6 +85,12 @@ endif
         mov ax,XCP_QUERY
 ifdef HIMEM_COMMON_XMS_TEST
         call xms_common_query
+        ; Do not publish a UMB owner that still needs the retired service
+        ; adapter. Before both prerequisites exist, keep the bootstrap owner.
+        cmp word ptr [xms_bound_entry+2],0
+        je umb_remote_unavailable
+        cmp [owner_query_active],0
+        je umb_remote_unavailable
 else
         int 15h
 endif
@@ -149,7 +155,7 @@ umb_remote_ready:
         pop es
 ifdef HIMEM_COMMON_XMS_TEST
         call xms_common_ready
-        jc common_umb_bootstrap
+        jc umb_remote_failed
         mov ax,[umb_remote_op]
         mov dx,[umb_remote_dx]
         mov bx,[umb_remote_bx]
@@ -157,8 +163,7 @@ ifdef HIMEM_COMMON_XMS_TEST
         ; preserve its original ES:SI and never stage it in the old table.
         call xms_common_peer
         jmp umb_remote_handled
-common_umb_bootstrap:
-endif
+else
         cmp [umb_remote_op],12h
         jne umb_remote_service
         ; ES:SI is the trusted peer's version/count/ranges. Bound the complete
@@ -250,6 +255,7 @@ umb_peer_bad:
         xor ax,ax
         mov bl,1
         jmp short umb_remote_handled
+endif ; legacy steady-state adapter is absent from the common build
 umb_remote_prepare_failed:
         pop si
         pop es

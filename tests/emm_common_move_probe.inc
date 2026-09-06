@@ -91,6 +91,8 @@ check_common_public_move:
     out dx,al
     ret
 pm_move:
+    mov byte [pm_function],0bh
+.run:
     mov si,pm_descriptor
     mov di,pm_saved_descriptor
     mov cx,16
@@ -103,7 +105,7 @@ pm_move:
     mov si,pm_descriptor
     mov bx,1234h
     mov dx,5678h
-    mov ah,0bh
+    mov ah,[pm_function]
     UMB_CALL
     push ax
     mov si,pm_descriptor
@@ -124,6 +126,17 @@ pm_move:
     cmp bx,1234h
     jne umb_failed
 .done:
+    cmp byte [pm_function],8bh
+    je .alias_result
+    mov [pm_result_ax],ax
+    mov [pm_result_bx],bx
+    mov byte [pm_function],8bh
+    jmp .run
+.alias_result:
+    cmp ax,[pm_result_ax]
+    jne umb_failed
+    cmp bx,[pm_result_bx]
+    jne umb_failed
     ret
 pm_error:
     test ax,ax
@@ -132,6 +145,9 @@ pm_error:
     jne umb_failed
     ret
 pm_handle dw 0
+pm_function db 0
+pm_result_ax dw 0
+pm_result_bx dw 0
 pm_saved_resolver dw 0
 pm_saved_descriptor times 16 db 0
 pm_descriptor dd 16

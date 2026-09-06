@@ -193,6 +193,12 @@ def paired_front_ownership(path, handle_count):
         index = next(i for i, row in enumerate(boundaries) if row[0] == "UMB records")
         boundaries.insert(index, ("Common provider binding", addresses["xms_bound_entry"],
                                   "one resident guarded entry per boot; no fallback after binding"))
+    if "common_busy" in addresses:
+        index = next(i for i, row in enumerate(boundaries) if row[0] == "UMB records")
+        boundaries.insert(index, ("Common caller frame", addresses["common_busy"],
+                                  "shared input snapshot, serialization and sequenced results"))
+        name, start, _ = boundaries[index + 1]
+        boundaries[index + 1] = (name, start, "bootstrap-only owner; common peer input uses the shared frame")
     rows = []
     for (owner, start, contract), (_, end, _) in zip(boundaries, boundaries[1:]):
         if not 0 <= start <= end <= layout["permanent_bytes"]:
