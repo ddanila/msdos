@@ -14,10 +14,18 @@ boot_owner_result db 1024 dup (0)
 boot_owner_step db 0
 IFDEF EMM_AUTHORITATIVE_OWNER_TEST
         include ..\..\INC\XMSCOPYABI.INC
+IFNDEF EMM_BOOTSTRAP_XMS_HANDLES
+EMM_BOOTSTRAP_XMS_HANDLES equ 32
+ENDIF
 ; Deliberately unusable import metadata: status must not dereference/import it.
 boot_owner_receipt db 'XAUT'
         dw 3,0ffffh,0ffffh,0,0,0,0,0ffffh
 boot_owner_layout dw 6 dup (0) ; segment, permanent end, records, count, boot end, entry
+ENDIF
+IFDEF EMM_BOOTSTRAP_STAGE_TEST
+boot_stage_segment dw 0
+        align 16
+boot_stage_image db 8192 dup (0) ; explicitly owned LAST scratch, discarded on return
 ENDIF
 
 BootOwnerPrepare proc near
@@ -83,6 +91,9 @@ BootOwnerFill:
         call dword ptr [boot_owner_entry]
         cmp ax,1
         jne BootOwnerFail
+IFDEF EMM_BOOTSTRAP_STAGE_TEST
+        call BootStagePrepare
+ENDIF
         pop es
         pop ds
         popa
@@ -99,6 +110,31 @@ BootOwnerVerify proc near
         pop ds
         assume ds:LAST
         ; Check the cached pre-prepare entry, not just fresh discovery.
+IFDEF EMM_BOOTSTRAP_STAGE_TEST
+IFDEF EMM_REJECT_PREPARED
+        mov [boot_owner_step],16
+        mov dx,[boot_stage_segment]
+        mov ax,XCP_STAGE_RESTORE
+        mov cx,XCP_LAYOUT_SIGNATURE
+        mov si,XCP_LAYOUT_VERSION
+        xor di,di
+        int 2fh
+        cmp ax,XCP_LAYOUT_REPLY
+        jne BootOwnerFail
+        mov ax,XCP_STAGE_RESTORE
+        int 2fh
+        or ax,ax
+        jnz BootOwnerFail
+        push es
+        mov es,[boot_stage_segment]
+        xor di,di
+        mov cx,8192
+        mov al,0f4h
+        cld
+        rep stosb
+        pop es
+ENDIF
+ENDIF
 IFDEF EMM_AUTHORITATIVE_OWNER_TEST
 IFNDEF EMM_REJECT_PREPARED
         mov [boot_owner_step],11
@@ -123,6 +159,25 @@ IFNDEF EMM_REJECT_PREPARED
         mov ax,1
         call BootOwnerReceipt
         call BootOwnerReceipt
+IFDEF EMM_BOOTSTRAP_STAGE_TEST
+        ; A committed high owner must no longer read the temporary copy.
+        mov dx,[boot_stage_segment]
+        mov ax,XCP_STAGE_RESTORE
+        mov cx,XCP_LAYOUT_SIGNATURE
+        mov si,XCP_LAYOUT_VERSION
+        xor di,di
+        int 2fh
+        or ax,ax
+        jnz BootOwnerFail      ; restoring after publication must be refused
+        push es
+        mov es,[boot_stage_segment]
+        xor di,di
+        mov cx,8192
+        mov al,0f4h
+        cld
+        rep stosb
+        pop es
+ENDIF
 ENDIF
 ENDIF
         mov [boot_owner_step],5
@@ -239,6 +294,64 @@ BootOwnerEmit:
 BootOwnerVerify endp
 
 IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+IFDEF EMM_BOOTSTRAP_STAGE_TEST
+BootStagePrepare proc near
+        pushf
+        pusha
+        push ds
+        push es
+        mov cs:[boot_owner_step],15
+        mov cx,cs:[boot_owner_layout+8]
+        cmp cx,8192
+        ja BootOwnerFail
+        mov dx,cs
+        mov ax,offset boot_stage_image
+        test ax,15
+        jnz BootOwnerFail
+        shr ax,4
+        add dx,ax
+        jc BootOwnerFail
+        mov cs:[boot_stage_segment],dx
+        mov es,dx
+        mov ds,cs:[boot_owner_layout]
+        xor si,si
+        xor di,di
+        cld
+        rep movsb
+        ; A stale copy must not be published, and rejection must permit retry.
+        xor byte ptr es:[0],1
+        mov ax,XCP_STAGE_BIND
+        mov cx,XCP_LAYOUT_SIGNATURE
+        mov si,XCP_LAYOUT_VERSION
+        xor di,di
+        int 2fh
+        or ax,ax
+        jnz BootOwnerFail
+        xor byte ptr es:[0],1
+        mov ax,XCP_STAGE_BIND
+        int 2fh
+        cmp ax,XCP_LAYOUT_REPLY
+        jne BootOwnerFail
+        mov ax,XCP_STAGE_BIND
+        int 2fh
+        or ax,ax
+        jnz BootOwnerFail      ; no duplicate owner publication
+        ; Make stale bootstrap use fail before EMM backing is even allocated.
+        mov es,cs:[boot_owner_layout]
+        mov di,cs:[boot_owner_layout+2]
+        mov cx,cs:[boot_owner_layout+8]
+        sub cx,di
+        mov al,0f4h
+        cld
+        rep stosb
+        pop es
+        pop ds
+        popa
+        popf
+        ret
+BootStagePrepare endp
+ENDIF
+
 BootOwnerLayout proc near
         ; Reject mismatched protocol versions without touching ownership.
         mov ax,XCP_LAYOUT_QUERY
@@ -263,7 +376,7 @@ BootOwnerLayout proc near
         jz BootOwnerFail
         cmp bx,si
         jae BootOwnerFail
-        cmp di,32
+        cmp di,EMM_BOOTSTRAP_XMS_HANDLES
         jne BootOwnerFail
         mov ax,di
         imul ax,5              ; shared XMS record width
@@ -309,7 +422,10 @@ BootOwnerReceipt proc near
         cmp word ptr [boot_owner_receipt+14],bp
         jne BootOwnerFail
         mov ax,bp
-        shl ax,5               ; fixture uses the default 32-handle owner
+        or ax,ax
+        jz BootReceiptCapacity
+        mov ax,EMM_BOOTSTRAP_XMS_HANDLES
+BootReceiptCapacity:
         cmp word ptr [boot_owner_receipt+12],ax
         jne BootOwnerFail
         cmp word ptr [boot_owner_receipt+6],0ffffh

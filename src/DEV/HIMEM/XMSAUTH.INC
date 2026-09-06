@@ -30,6 +30,107 @@ bootstrap_layout_bad:
         iret
 private_bootstrap_layout endp
 
+ifdef HIMEM_BOOTSTRAP_STAGE_TEST
+; Serialized boot-only owner switch. HMA/A20/UMB remain in the original front;
+; only allocator services and their private move scratch use the complete copy.
+private_bootstrap_stage proc far
+        pushf
+        cli
+        push bx
+        push cx
+        push dx
+        push si
+        push di
+        push bp
+        push ds
+        push es
+        push cs
+        pop ds
+        cmp cx,XCP_LAYOUT_SIGNATURE
+        jne stage_bad
+        cmp si,XCP_LAYOUT_VERSION
+        jne stage_bad
+        or di,di
+        jne stage_bad
+        cmp [owner_query_active],0
+        jne stage_bad
+        mov bp,ax
+        mov ax,[handle_limit]
+        imul ax,HANDLE_SIZE
+        add ax,offset handles+15
+        and ax,0fff0h
+        mov cx,ax
+        cmp bp,XCP_STAGE_RESTORE
+        je stage_restore
+        cmp word ptr [bootstrap_stage_entry+2],0
+        jne stage_bad
+        mov bx,cs
+        shr ax,4
+        add bx,ax
+        jc stage_bad
+        cmp dx,bx
+        jb stage_bad
+        add ax,dx
+        jc stage_bad
+        cmp ax,0a000h
+        ja stage_bad
+        mov es,dx
+        xor si,si
+        xor di,di
+        cld
+        repe cmpsb             ; reject stale/non-identical copies before writes
+        jne stage_bad
+        mov [bootstrap_stage_entry+2],dx
+        mov [bootstrap_detached],1
+        jmp short stage_good
+stage_restore:
+        cmp dx,word ptr [bootstrap_stage_entry+2]
+        jne stage_bad
+        or dx,dx
+        jz stage_bad
+        mov es,dx
+        cmp byte ptr es:[owner_query_active],0
+        jne stage_bad          ; never restore a snapshot after high publication
+        push ds
+        pop es
+        mov ds,dx
+        mov si,offset bootstrap_owner_start
+        mov di,si
+        sub cx,si
+        cld
+        rep movsb
+        mov word ptr es:[bootstrap_stage_entry+2],0
+        mov byte ptr es:[bootstrap_detached],0
+stage_good:
+        mov ax,XCP_LAYOUT_REPLY
+        jmp short stage_done
+stage_bad:
+        xor ax,ax
+stage_done:
+        pop es
+        pop ds
+        pop bp
+        pop di
+        pop si
+        pop dx
+        pop cx
+        pop bx
+        popf
+        iret
+private_bootstrap_stage endp
+
+xms_stage_forward proc near
+        push ds
+        push si
+        mov si,[caller_si]
+        mov ds,[caller_ds]
+        call dword ptr cs:[bootstrap_stage_entry]
+        pop si
+        pop ds
+        ret
+xms_stage_forward endp
+endif
+
 xms_remote_owned proc near
         pushf
         cli
@@ -62,11 +163,39 @@ xms_remote_owned proc near
 auth_send:
         mov word ptr [owner_packet],4158h ; XAUT
         mov word ptr [owner_packet+2],5455h
+ifdef HIMEM_BOOTSTRAP_STAGE_TEST
+        cmp word ptr [bootstrap_stage_entry+2],0
+        je auth_packet_ready
+        ; The transport header and live records must share the staged segment.
+        ; Keep using it after ambiguous failures until a successful response.
+        mov es,word ptr [bootstrap_stage_entry+2]
+        mov si,offset owner_packet
+        mov di,si
+        mov cx,20
+        cld
+        rep movsb
+auth_packet_ready:
+endif
         mov si,offset owner_packet
         mov ah,87h
         int 15h
         jc short auth_failed
+ifdef HIMEM_BOOTSTRAP_STAGE_TEST
+        mov ax,es:[owner_largest]
+        mov bx,es:[owner_bx]
+        mov dx,es:[owner_total]
+        mov [owner_largest],ax
+        mov [owner_bx],bx
+        mov [owner_total],dx
+        mov word ptr [bootstrap_stage_entry+2],0
+        push ds
+        pop es
+endif
 ifdef HIMEM_AUTHORITATIVE_POISON_TEST
+ifdef HIMEM_BOOTSTRAP_STAGE_TEST
+        cmp [bootstrap_detached],0
+        jne auth_poison_done    ; caller may already have overwritten that tail
+endif
         ; Destroy the entire local allocator tail, including all code and
         ; selected records. No active frame may remain there at publication.
         mov di,offset bootstrap_owner_start
@@ -76,6 +205,7 @@ ifdef HIMEM_AUTHORITATIVE_POISON_TEST
         mov al,0f4h
         cld
         rep stosb
+auth_poison_done:
 endif
         mov ax,[owner_largest]
         mov bx,[owner_bx]
@@ -165,6 +295,14 @@ entry_name proc near
         ret
 local_owner:
         pop ax
+ifdef HIMEM_BOOTSTRAP_STAGE_TEST
+        cmp word ptr [bootstrap_stage_entry+2],0
+        je @F
+        mov ah,operation
+        call xms_stage_forward
+        ret
+@@:
+endif
         jmp bootstrap_target
 entry_name endp
 endm

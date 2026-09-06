@@ -1258,6 +1258,60 @@ Do not use either mechanism to overwrite the tail before activation. A staging
 design must preserve one live allocator, stable client entries, source records
 for import and usable cancellation before changing the provider's final base.
 
+**Staged bootstrap allocator (opt-in development):** `--stage-bootstrap` pairs
+`HIMEM_BOOTSTRAP_STAGE_TEST` with an explicitly owned 8 KiB buffer in EMM's
+discardable LAST segment. After creating the boot witness's live handle, it
+copies the complete selected HIMEM resident image there. Private `E707h`
+publication checks protocol fields, conventional/nonoverlapping bounds and
+byte identity before switching allocator calls; stale-copy and duplicate-bind
+requests are rejected. The original public entry and interrupt vectors do not
+move. Only allocator services and their private copy workspace use the staged
+image; HMA/A20/UMB state remains authoritative in the original front.
+
+The fixture then poisons the original bootstrap tail **before `AllocMem`**.
+Queries, allocation, locking and initialization copies continue through the
+staged owner. First high publication sends its packet from the staged segment
+so `XAUT` imports the current records, including EMM's backing handle. On a
+successful response the front drops the staging pointer; on transport failure
+it retains the source but permits no local mutation after attempted publication.
+The original detached tail is no longer written by the post-publication poison
+hook. Subsequent handle/address/lock/data checks pass with the entire temporary
+copy poisoned too.
+
+Pre-publication cancellation uses private `E708h` to copy back the **current**
+bootstrap tail and clear the staging pointer. It does not restore stale HMA,
+A20 or UMB state from the complete copy. Duplicate restore and restore after
+publication are refused. The cancellation witness poisons the temporary copy
+before checking its original cached XMS entry and preserved boot block.
+
+```sh
+python3 tests/capture_emm_init_phases.py out/floppy.img --stage-bootstrap --dos-high --xms-handles 128
+python3 tests/capture_emm_init_phases.py out/floppy.img --stage-bootstrap --dos-high --xms-handles 8 --reject-prepared
+```
+
+The staged 128-handle DOS-high activation passes ON/OFF/AUTO/RAM in
+`out/emm-init-phases-g8bmncov/`; the staged front is 2,656 bytes (416 above the
+unstaged paired variant), with a 1,408-byte tail and a 4,064-byte boot extent.
+These are temporary development costs, not normal HIMEM sizes or net savings.
+The 8 KiB staging reservation is discarded with LAST, but the original low tail
+is still allocated. No conventional-memory gain or production promotion is
+claimed. Staging control entries must remain before that tail; four linked
+layout tests enforce the permanent/staging boundaries.
+Eight-handle cancellation with the retired staging copy poisoned passes in
+`out/emm-init-phases-fgqhj2wu/`; DOS-low with 128 handles passes in
+`out/emm-init-phases-1essg98x/`. The unstaged upward-move regression passes in
+`out/emm-init-phases-rkyhledj/`, and normal HIMEM/EMM386 hashes are unchanged.
+
+This establishes a usable bootstrap owner outside the original tail, **not**
+the final placement transaction. `--stage-bootstrap` currently rejects provider
+rebasing: the buffer moves with LAST, but its private root would still name the
+old segment. The next loader change must keep staging stationary or retarget it
+after a validated overlapping move, before any XMS call. It must also relocate
+the device mark, reconcile HIMEM's retained extent, and restore the old layout
+on cancellation before accepting a smaller final break. The unchanged public
+entry, staged allocator, final low-base move and rollback must be qualified as
+one transaction before releasing the tail.
+
 ##### Whole-system placement rules
 
 DR-DOS's portable lesson is a small conventional interface backed by complete

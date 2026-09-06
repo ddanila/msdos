@@ -24,6 +24,13 @@ XCP_LAYOUT_QUERY equ 0e706h
 XCP_LAYOUT_REPLY equ 0e7ffh
 XCP_LAYOUT_SIGNATURE equ 584dh
 XCP_LAYOUT_VERSION equ 1
+; Opt-in boot staging: E707h binds an identical complete resident copy at DX:0
+; above the original boot extent; E708h restores its current bootstrap tail.
+; Both require CX=layout signature, SI=version, DI=0 and return AX=layout reply
+; or zero on rejection. Caller owns the copy's allocation until successful
+; high publication or explicit restore. No vectors/public entry are relocated.
+XCP_STAGE_BIND equ 0e707h
+XCP_STAGE_RESTORE equ 0e708h
 ; OWNER_QUERY uses AH=87h, ES:SI -> 'XOWN', then word version=1, handle
 ; limit, pool KiB, output largest/total KiB, then up to 128 five-byte records.
 ; The trusted development peer backs the full 654-byte packet below its

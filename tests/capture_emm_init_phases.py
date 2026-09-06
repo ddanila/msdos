@@ -198,6 +198,10 @@ def main():
                         help="lie about commit state before or after handoff; must fail")
     parser.add_argument("--bad-bootstrap-layout", action="store_true",
                         help="report a false aligned low boundary; linked reconciliation must fail")
+    parser.add_argument("--stage-bootstrap", action="store_true",
+                        help="stage the allocator in owned LAST scratch and poison its original tail")
+    parser.add_argument("--xms-handles", type=int, choices=(8, 32, 128), default=32,
+                        help="HIMEM handle capacity, distinct from EMS --handles")
     parser.add_argument("--dos-high", action="store_true",
                         help="test authoritative handoff with current DOS high and its cached entry")
     parser.add_argument("--bad-bootstrap-owner", action="store_true",
@@ -234,6 +238,10 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.stage_bootstrap:
+        args.authoritative_owner = True
+        if args.loader_rebase or args.loader_bad_rebase or args.loader_bad_version:
+            parser.error("staged LAST storage is not yet movable with the prepared provider")
     if args.bad_bootstrap_layout:
         args.authoritative_owner = True
     if args.bad_owner_receipt:
@@ -307,8 +315,11 @@ def main():
     if args.authoritative_owner:
         trace_defines += (" -DEMM_XMS_COPY_TEST -DEMM_XMS_OWNER_TEST"
                           " -DEMM_AUTHORITATIVE_OWNER_TEST -DEMM_XMS_OWNER_TRACE")
+        trace_defines += f" -DEMM_BOOTSTRAP_XMS_HANDLES={args.xms_handles}"
     if args.dos_high:
         trace_defines += " -DEMM_BOOTSTRAP_EXPECT_HMA"
+    if args.stage_bootstrap:
+        trace_defines += " -DEMM_BOOTSTRAP_STAGE_TEST"
     if args.bad_owner_receipt:
         trace_defines += (" -DEMM_XMS_OWNER_BAD_RECEIPT" if args.bad_owner_receipt == "before"
                           else " -DEMM_XMS_OWNER_BAD_RECEIPT_ACTIVE")
@@ -372,6 +383,7 @@ def main():
         himem = work / "HIMEM.SYS"
         subprocess.run([str(capture.ROOT / "bin/jwasm-bin"), "-q", "-bin", "-Sa",
                         f"-Fl={work / 'HIMEM.LST'}",
+                        *(["-DHIMEM_BOOTSTRAP_STAGE_TEST"] if args.stage_bootstrap else []),
                         *(["-DHIMEM_BOOTSTRAP_BAD_LAYOUT"] if args.bad_bootstrap_layout else []),
                         "-DHIMEM_PROTECTED_COPY_TEST", "-DHIMEM_PROTECTED_OWNER_TEST",
                         "-DHIMEM_AUTHORITATIVE_OWNER_TEST", "-DHIMEM_AUTHORITATIVE_POISON_TEST",
@@ -422,7 +434,7 @@ def main():
         config = work / f"{mode}-CONFIG.SYS"
         capacities = "".join(f" {key}={value}" for key, value in
                              (("H", args.handles), ("A", args.altregs)) if value is not None)
-        config.write_bytes(("DEVICE=HIMEM.SYS /TESTMEM:OFF\r\n"
+        config.write_bytes((f"DEVICE=HIMEM.SYS /TESTMEM:OFF /NUMHANDLES={args.xms_handles}\r\n"
                             f"DEVICE=EMM386.EXE {mode}{capacities}\r\n"
                             f"DOS={'HIGH' if args.dos_high else 'LOW'}\r\n").encode())
         batch = work / "AUTOEXEC.BAT"
@@ -493,6 +505,8 @@ def main():
         authoritative_owner=args.authoritative_owner, himem_sha256=capture.sha256(himem),
         bad_owner_receipt=args.bad_owner_receipt,
         bad_bootstrap_layout=args.bad_bootstrap_layout,
+        stage_bootstrap=args.stage_bootstrap,
+        xms_handles=args.xms_handles,
         dos_high=args.dos_high,
         dos_sha256=capture.sha256(capture.ROOT / "src/DOS/MSDOS.SYS")
             if args.authoritative_owner else None,

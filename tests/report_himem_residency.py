@@ -115,6 +115,11 @@ def check_bootstrap_layout(numbers, procedures, handle_count):
     for name in PERMANENT_PROCEDURES:
         if not 0 <= procedures[name] < start:
             raise ValueError(f"permanent entry in bootstrap tail: {name}")
+    staging = ("private_bootstrap_stage", "xms_stage_forward")
+    if any(name in procedures for name in staging):
+        for name in staging:
+            if not 0 <= procedures[name] < start:
+                raise ValueError(f"staging entry in bootstrap tail: {name}")
     end = rounded(handles + 5 * handle_count)
     return dict(permanent_bytes=start, bootstrap_code_data_bytes=code,
                 handles=handle_count, handle_bytes=5 * handle_count,

@@ -78,6 +78,10 @@ owner_bx dw 0
 owner_operation dw 0
 owner_import_offset dw offset handles
 owner_record_scratch db HANDLE_SIZE dup (0)
+ifdef HIMEM_BOOTSTRAP_STAGE_TEST
+bootstrap_stage_entry dw offset xms_control,0
+bootstrap_detached db 0
+endif
 else
 owner_records db MAX_HANDLES*HANDLE_SIZE dup (0)
 endif
@@ -151,6 +155,12 @@ multiplex_handler proc far
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
         cmp     ax, XCP_LAYOUT_QUERY
         je      private_bootstrap_layout
+ifdef HIMEM_BOOTSTRAP_STAGE_TEST
+        cmp     ax, XCP_STAGE_BIND
+        je      private_bootstrap_stage
+        cmp     ax, XCP_STAGE_RESTORE
+        je      private_bootstrap_stage
+endif
 endif
         jmp     dword ptr cs:[old_int2f]
 multiplex_installed:
@@ -801,6 +811,27 @@ else
 endif
 
 xms_move proc near
+ifdef HIMEM_BOOTSTRAP_STAGE_TEST
+        cmp word ptr [bootstrap_stage_entry+2],0
+        je staged_move_ready
+        push bx
+        push dx
+        mov ax,8
+        call xms_remote_owned
+        pop dx
+        pop bx
+        jc staged_move_forward
+        cmp word ptr [bootstrap_stage_entry+2],0
+        je staged_move_ready
+        xor ax,ax
+        mov bl,ERR_GENERAL
+        ret
+staged_move_forward:
+        mov ah,0bh
+        call xms_stage_forward
+        ret
+staged_move_ready:
+endif
         push    bx
         push    dx
         push    bp

@@ -35,6 +35,16 @@ class BootstrapLayoutTests(unittest.TestCase):
         with self.assertRaises(KeyError):
             check_bootstrap_layout(self.numbers, {}, 32)
 
+    def test_staging_interface_remains_permanent(self):
+        procedures = dict(self.procedures, private_bootstrap_stage=512, xms_stage_forward=768)
+        check_bootstrap_layout(self.numbers, procedures, 32)
+        for name in ("private_bootstrap_stage", "xms_stage_forward"):
+            with self.assertRaises(ValueError):
+                check_bootstrap_layout(self.numbers, dict(procedures, **{name: 2048}), 32)
+        del procedures["xms_stage_forward"]
+        with self.assertRaises(KeyError):
+            check_bootstrap_layout(self.numbers, procedures, 32)
+
 
 if __name__ == "__main__":
     unittest.main()
