@@ -382,8 +382,8 @@ memory-saving result; update their expected sequence when that design lands.
 `PrepareProvider` boundary after validation, UMA discovery and backing allocation,
 before `EMM_Init`, descriptor construction or UMB publication. It returns carry
 on preparation failure; the existing installation error path owns cleanup.
-The adapter currently calls it and immediately continues activation on the
-original INIT frame. Explicit near returns are required inside the enclosing
+The adapter calls it and immediately invokes a separate activation entry.
+Explicit near returns are required inside the enclosing
 far procedure. Normal EMM386 remains byte-identical.
 
 `capture_emm_init_phases.py --split-prepare` requires a new stage 9 between
@@ -400,9 +400,9 @@ observed total and correctly fails with stage 11 in
 prepared return, cleanup and rejection of changed boundaries.
 
 This is preparation for the selected coordinated-provider design, not another
-resident-code relocation or a completed provider transaction. Next make the
-activation control flow resumable so the loader can invoke it after establishing
-the final low base; do not retain a pointer to the expired INIT stack.
+resident-code relocation or a completed provider transaction. Next define the
+checked lifecycle through which the loader can resume after establishing the
+final low base; do not retain a pointer to the expired INIT stack.
 Bootstrap XMS integration, live-handle transfer, descriptor rebinding,
 post-publication failure handling and the joint linked-size budget remain open.
 The cleanup witness proves pool-size restoration for this early cancellation,
@@ -416,10 +416,32 @@ restores them only for the adapter's return to its caller. All four modes pass
 in `out/emm-init-phases-lf59nmla/`, including the EMM API/runtime-command suite
 (`emm-api.log`). Combining it with `--reject-prepared` passes all four cleanup
 cases in `out/emm-init-phases-0hl60suu/`. The normal binary remains unchanged.
-This removes request-address dependence on the old frame, not the adapter's
-control-flow dependence. `prepare_request` borrows the loader's packet; a real
+This removes request-address dependence on the old frame. `prepare_request`
+borrows the loader's packet; a real
 handoff must keep it valid through commit or provide an explicit replacement,
 and retain initialization storage until activation/cancellation finishes.
+
+`ActivateProvider` and `FinishProvider` now return independently to their
+immediate caller; the legacy saved-register epilogue belongs only to the INIT
+adapter. `--activation-stack --poison-request` runs the service on a separate
+2 KiB guarded initialization stack, clears BP and erases the old request slots.
+Stage 12 marks entry; stage 13 requires both stack balance and the lower guard
+to survive. All four modes pass in `out/emm-init-phases-10o7gc0u/`, as does the
+EMM API/runtime-command suite (`emm-api.log`). Adding `--reject-prepared`
+passes four cancellations and XMS-pool restoration checks in
+`out/emm-init-phases-6bv95yx_/`. `--bad-stack-control --poison-request` correctly
+fails with stage 14 in `out/emm-init-phases-29sbx1an/`. Seven host tests pass;
+the normal binary remains byte-identical. The test stack is discardable, not a
+new permanent stack or a validated minimum capacity.
+
+These remain internal near entries with prepared DGROUP state, not a published
+loader ABI. The adapter still resumes synchronously. Before exposing them,
+add single-use lifecycle checks and explicit activate/cancel operations:
+`FinishProvider` is shared reporting/finalization code, **not** a safe public
+cancellation API when invoked arbitrarily. Reject duplicate activation and
+cancellation after publication without freeing live backing. A final-base move,
+bootstrap XMS ownership, callback versioning and the complete low/high budget
+remain unimplemented; independent return frames alone prove no memory saving.
 
 ##### Whole-system placement rules
 

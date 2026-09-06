@@ -11,9 +11,11 @@ import tempfile
 import capture_drdos_memory as capture
 
 
-def parse_trace(data, *, split=False, rejected=False):
+def parse_trace(data, *, split=False, rejected=False, activation_stack=False):
     order = ([1, 9, 10] if rejected else
              [1, 9, *range(2, 9)] if split else list(range(1, 9)))
+    if activation_stack:
+        order = order[:2] + [12] + order[2:] + [13]
     if len(data) != len(order) * 13:
         raise ValueError("incomplete or unexpected initialization trace")
     result = []
@@ -28,7 +30,12 @@ def parse_trace(data, *, split=False, rejected=False):
     return result
 
 
-def check_phases(rows, mode, *, split=False, rejected=False):
+def check_phases(rows, mode, *, split=False, rejected=False, activation_stack=False):
+    if activation_stack:
+        for first, second in ((rows[1], rows[2]), (rows[-2], rows[-1])):
+            if any(first[key] != second[key] for key in ("pe", "int15", "int67")):
+                raise ValueError("activation stack boundary changed machine state")
+        rows = rows[:2] + rows[3:-1]
     if split or rejected:
         if rows[1]["pe"] or any(rows[1][key] != rows[0][key]
                                 for key in ("int15", "int67")):
@@ -53,6 +60,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image", type=Path)
     parser.add_argument("--split-prepare", action="store_true")
+    parser.add_argument("--activation-stack", action="store_true",
+                        help="resume on a separate guarded stack with BP cleared")
+    parser.add_argument("--bad-stack-control", action="store_true",
+                        help="invalidate the stack guard; this run must fail")
     parser.add_argument("--poison-request", action="store_true",
                         help="erase saved INIT request registers during activation")
     parser.add_argument("--reject-prepared", action="store_true")
@@ -64,6 +75,10 @@ def main():
     if args.reject_prepared:
         args.split_prepare = True
     if args.poison_request:
+        args.split_prepare = True
+    if args.bad_stack_control:
+        args.activation_stack = True
+    if args.activation_stack:
         args.split_prepare = True
     capture.require_tools()
     image_hash = capture.sha256(args.image)
@@ -77,6 +92,10 @@ def main():
         trace_defines += " -DEMM_SPLIT_PREPARE"
     if args.poison_request:
         trace_defines += " -DEMM_POISON_INIT_REQUEST"
+    if args.activation_stack:
+        trace_defines += " -DEMM_ACTIVATION_STACK"
+    if args.bad_stack_control:
+        trace_defines += " -DEMM_ACTIVATION_BAD_STACK"
     if args.reject_prepared:
         trace_defines += " -DEMM_REJECT_PREPARED"
     if args.bad_pool_control:
@@ -120,9 +139,10 @@ def main():
         if process.returncode != 33:
             raise RuntimeError(f"guest did not finish {mode}: {process.returncode}")
         records[mode] = parse_trace(trace.read_bytes(), split=args.split_prepare,
-                                   rejected=args.reject_prepared)
+                                   rejected=args.reject_prepared,
+                                   activation_stack=args.activation_stack)
         check_phases(records[mode], mode, split=args.split_prepare,
-                     rejected=args.reject_prepared)
+                     rejected=args.reject_prepared, activation_stack=args.activation_stack)
         print(mode, json.dumps(records[mode]), flush=True)
     if capture.sha256(args.image) != image_hash:
         raise RuntimeError("input image changed")
@@ -131,6 +151,7 @@ def main():
         trace_emm_sha256=capture.sha256(build / "EMM386.EXE"),
         split_prepare=args.split_prepare, rejected=args.reject_prepared,
         poison_request=args.poison_request,
+        activation_stack=args.activation_stack,
         emulator=capture.qemu_identity(), records=records), indent=2) + "\n")
 
 

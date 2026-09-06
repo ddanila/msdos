@@ -297,6 +297,19 @@ noems_mode	db	0	; NOEMS suppresses the EMS page frame
 initial_mode	db	0h	; 0 => ON, 1 => OFF, 2 => AUTO
 ifdef EMM_SPLIT_PREPARE
 prepare_request dd 0             ; borrowed SYSINIT packet, not an INIT stack slot
+resume_target dw 0
+endif
+ifdef EMM_ACTIVATION_STACK
+resume_ss dw 0
+resume_sp dw 0
+resume_flags dw 0
+ifdef EMM_ACTIVATION_BAD_STACK
+resume_guard dw 0               ; negative control for the stack witness
+else
+resume_guard dw 0cafeh
+endif
+resume_stack db 2048 dup (0)
+resume_stack_top LABEL BYTE
 endif
 ifdef EMM_REJECT_PREPARED
 prepare_xms_entry dd 0
@@ -435,22 +448,77 @@ endif
 	mov	byte ptr es:[bx.NUM_UNITS],0	; 0 - don't install
 ifdef EMM_SPLIT_PREPARE
         ; Preparation returns before descriptors, UMB publication or PE entry.
-        ; The current adapter resumes immediately on the original INIT frame;
-        ; it is not yet an asynchronous SYSINIT/provider handoff.
+        ; This adapter resumes immediately, but the service entry returns
+        ; independently of this caller's saved-register frame.
         call PrepareProvider
-        jc IE_exit
+        jc ProviderAdapterFinish
         INIT_PHASE 9
 ifdef EMM_POISON_INIT_REQUEST
         ; Test only: activation must not recover the request from saved DS/BX.
-        ; Restore the adapter's saved registers at IE_leave, even on failure.
+        ; Restore only when the adapter returns, even on failure.
         mov word ptr ss:[bp+2],0
         mov word ptr ss:[bp+10],0
 endif
 ifdef EMM_REJECT_PREPARED
         or [msg_flag],MEM_ERR_MSG
-        jmp IE_exit
+        jmp ProviderAdapterFinish
 endif
-        jmp IE_InitEMM
+        mov cs:[resume_target],offset ActivateProvider
+        jmp short ProviderAdapterResume
+ProviderAdapterFinish:
+        mov cs:[resume_target],offset FinishProvider
+ProviderAdapterResume:
+ifdef EMM_ACTIVATION_STACK
+        push bp
+        push dx
+        pushf
+        pop cs:[resume_flags]
+        mov cs:[resume_ss],ss
+        mov cs:[resume_sp],sp
+        cli
+        mov dx,cs
+        mov ss,dx
+        mov sp,offset resume_stack_top
+        xor bp,bp
+        push cs:[resume_flags]
+        popf
+        INIT_PHASE 12
+endif
+        call word ptr cs:[resume_target]
+ifdef EMM_ACTIVATION_STACK
+        cmp sp,offset resume_stack_top
+        jne ProviderStackBad
+        cmp cs:[resume_guard],0cafeh
+        jne ProviderStackBad
+        INIT_PHASE 13
+        jmp short ProviderRestoreStack
+ProviderStackBad:
+        INIT_PHASE 14
+ProviderRestoreStack:
+        cli
+        mov dx,cs:[resume_ss]
+        mov ss,dx
+        mov sp,cs:[resume_sp]
+        push cs:[resume_flags]
+        popf
+        pop dx
+        pop bp
+endif
+ifdef EMM_POISON_INIT_REQUEST
+        push ax
+        mov ax,word ptr cs:[prepare_request+2]
+        mov ss:[bp+2],ax
+        mov ax,word ptr cs:[prepare_request]
+        mov ss:[bp+10],ax
+        pop ax
+endif
+        pop es
+        pop ds
+        pop di
+        pop bp
+        pop dx
+        pop bx
+        retf
         PUBLIC PrepareProvider
 PrepareProvider LABEL NEAR
 endif
@@ -577,6 +645,10 @@ endif
 ;  init EMM data
 ;
 IE_InitEMM:
+ifdef EMM_SPLIT_PREPARE
+        PUBLIC ActivateProvider
+ActivateProvider LABEL NEAR
+endif
 
 	call	EMM_Init
 	test	[msg_flag],KILLER_MSG	;Q: any killer messages?
@@ -732,6 +804,10 @@ endif
 ;  exit - display status messages and set exit status
 ;
 IE_exit:
+ifdef EMM_SPLIT_PREPARE
+        PUBLIC FinishProvider
+FinishProvider LABEL NEAR
+endif
 ;
 ;  display signon message first
 ;
@@ -848,14 +924,9 @@ skip_dig_adj:
 	xor	ax,ax			; NO errors
 ;
 IE_leave:
-ifdef EMM_POISON_INIT_REQUEST
-        push ax
-        mov ax,word ptr cs:[prepare_request+2]
-        mov ss:[bp+2],ax
-        mov ax,word ptr cs:[prepare_request]
-        mov ss:[bp+10],ax
-        pop ax
-endif
+ifdef EMM_SPLIT_PREPARE
+        retn
+else
 	pop	es
 	pop	ds
 	pop	di
@@ -863,6 +934,7 @@ endif
 	pop	dx
 	pop	bx
 	ret
+endif
 ;
 IE_not_installed:
 	call	Rollback_UMB		; undo provider state before releasing XMS

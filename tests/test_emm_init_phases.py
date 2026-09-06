@@ -57,6 +57,21 @@ class InitPhaseTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 check_phases(sample, "ON", rejected=True)
 
+    def test_separate_activation_stack(self):
+        def record(stage, pe=0, published=False):
+            return struct.pack("<2sB5H", b"IP", stage, pe,
+                               0x200 if published else 0x100, 0x300,
+                               0x500 if published else 0x400, 0x600)
+        data = (self.trace()[:13] + record(9) + record(12)
+                + self.trace()[13:] + record(13, 1, True))
+        rows = parse_trace(data, split=True, activation_stack=True)
+        check_phases(rows, "ON", split=True, activation_stack=True)
+        with self.assertRaises(ValueError):
+            parse_trace(data[:-13] + record(14), split=True, activation_stack=True)
+        rows[-1]["int67"] = "changed"
+        with self.assertRaisesRegex(ValueError, "stack boundary"):
+            check_phases(rows, "ON", split=True, activation_stack=True)
+
 
 if __name__ == "__main__":
     unittest.main()
