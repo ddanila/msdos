@@ -33,6 +33,7 @@ private_bootstrap_layout endp
 ifdef HIMEM_BOOTSTRAP_STAGE_TEST
 ; Serialized boot-only owner switch. HMA/A20/UMB remain in the original front;
 ; only allocator services and their private move scratch use the complete copy.
+ifndef HIMEM_COMMON_XMS_TEST
 private_bootstrap_stage proc far
         pushf
         cli
@@ -162,6 +163,7 @@ stage_done:
         popf
         iret
 private_bootstrap_stage endp
+endif
 
 xms_stage_forward proc near
         push ds

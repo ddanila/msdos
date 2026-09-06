@@ -85,11 +85,22 @@ XCP_STAGE_RETARGET equ 0e709h
 ; Same signature/version/reserved fields; AX=reply/0. While frozen, allocator
 ; calls return 8Eh without accessing the stage or attempting high publication.
 ; Successful E709h retarget or pre-publication E708h restore clears the freeze.
+; The common provider rejects restore while frozen: the old stage may already
+; be overwritten. Retarget to the verified copy before cancellation.
 XCP_STAGE_FREEZE equ 0e70ah
 ; Finish both common owners before the loader releases LAST. Same signature,
 ; version and DI=0 as layout discovery; AX=layout reply only after both owners
 ; are confirmed. Failed/unknown publication retains the stage and returns 0.
 XCP_BOOTSTRAP_FINISH equ 0e70bh
+; Install SYSINIT-owned administrative code before stage binding. DX:0 is a
+; non-moving scratch range, BX its byte capacity; other layout fields unchanged.
+; The gate revokes after successful completion or restore, before scratch release.
+; The trusted loader proves ownership/disjointness from its own moving image;
+; HIMEM checks capacity, conventional bounds and separation from its boot image.
+; This snapshot is executable administration, not an authoritative allocator.
+; Installation is once per boot. Early abort before restore/completion still
+; requires lifecycle qualification; never release storage behind a bound gate.
+XCP_ADMIN_PREPARE equ 0e70ch
 ; OWNER_QUERY uses AH=87h, ES:SI -> 'XOWN', then word version=1, handle
 ; limit, pool KiB, output largest/total KiB, then up to 128 five-byte records.
 ; The trusted development peer backs the full 654-byte packet below its

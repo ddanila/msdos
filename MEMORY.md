@@ -15,13 +15,14 @@ COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
 The current bootstrap-retirement candidate is measured at
-**617,616 conventional / 49,680 free UMB bytes** in
-`out/umb-fine-composition-lpwhhpy0/`. Replacing the seven permanent handle
-wrappers with shared dispatch recovers another 160 conventional bytes, but
-remains 320 below the selected control and 1,120 below retail; its additional
-application-XMS cost remains 5,120 bytes.
-This does **not** meet the delivery gate. Finish provider retirement and packing,
-then demonstrate the joint BIOS/COMMAND placement in that same composed image.
+**617,984 conventional / 49,680 free UMB bytes** in
+`out/umb-fine-composition-2vhu5egu/`. Retiring the complete low administrative
+bodies recovers 368 conventional bytes and puts the pair **48 above the selected
+control**, with unchanged UMB and additional application-XMS cost of 5,120 bytes.
+This meets the local provider delivery gate, not the full memory goal: the
+candidate remains **752 conventional bytes below retail**. Early-abort/reset
+qualification and joint BIOS/COMMAND placement remain open; no production
+promotion is implied.
 
 The selected composed development control (complete high EMM tables plus fine
 UMB mapping and high CDS) leaves **617,936 conventional bytes and 49,680 free
@@ -1914,27 +1915,26 @@ unstaged run also tests return-before-poison in the original image. Forcing the
 retired handle route fails with guest 35. Seventeen layout and 35 parser tests
 pass, and the older non-common cancellation fixture still passes.
 
-**Composed provider measurement:** `out/umb-fine-composition-lpwhhpy0/`
+**Composed provider measurement:** `out/umb-fine-composition-2vhu5egu/`
 boots the paired provider with the development BIOS, complete high EMM tables,
 fine UMB mapping, high CDS and unchanged COMMAND/configuration/VC 4.05.
 All six captures complete, including freshly reproduced control and retail.
 
 | Fixed-config measurement | Selected control | Paired candidate | Retail 6.22 |
 | --- | ---: | ---: | ---: |
-| VC largest conventional block | 617,936 | 617,616 | 618,736 |
+| VC largest conventional block | 617,936 | 617,984 | 618,736 |
 | VC free UMB | 49,680 | 49,680 | 47,888 |
-| Low HIMEM + EMM allocation | 4,656 | 4,976 | 5,232 |
+| Low HIMEM + EMM allocation | 4,656 | 4,608 | 5,232 |
 | Free XMS reported by MEM | 6,803,456 | 6,798,336 | Not compared here |
 
-The candidate loses **320 conventional bytes**, exactly its additional low
-manager allocation, and **5,120 application XMS bytes** versus the control.
-It is **1,120 conventional bytes below retail**. Compared with the preceding
-paired capture (`out/umb-fine-composition-is9hxh4k/`), shared bootstrap dispatch
-recovers **160 actual VC conventional bytes**, with unchanged free UMB and XMS.
-This is still an integrated negative
-result, not promotion or a new preferred image. Retiring and packing the
-remaining provider storage must beat that measured cost; BIOS/COMMAND gains
-must be demonstrated in the same image, not added from separate experiments.
+The candidate gains **48 conventional bytes**, exactly its smaller low manager
+allocation, and loses **5,120 application XMS bytes** versus the control.
+It is **752 conventional bytes below retail**. Compared with the preceding
+paired capture (`out/umb-fine-composition-lpwhhpy0/`), administrative retirement
+recovers **368 actual VC conventional bytes**, with unchanged free UMB and XMS.
+This is a positive local integration result, not production promotion.
+BIOS/COMMAND gains must be demonstrated in the same image, not added from
+separate experiments. Early-abort and reset qualification remain required.
 The XMS figures are the preceding MEM snapshot, not VC allocation rows.
 
 Reproduce using a current completed provider fixture:
@@ -1944,133 +1944,79 @@ python3 tests/capture_emm_init_phases.py floppy.img --common-xms-entry --dos-hig
 python3 tests/test_umb_subpage_composition.py --paired-provider out/emm-init-phases-<reported-id>
 ```
 
-The measured input fixture is `out/emm-init-phases-uhfuuem4/`. Composition checks
+The measured input fixture is `out/emm-init-phases-d8hxtlum/`. Composition checks
 its binary hashes, normal capacity, four-mode completion and absence of fault
 controls; it pins the BIOS loader fixups to that exact provider. Normal build
 outputs and CI settings remain unchanged. Full reset/failure qualification and
 the joint BIOS/COMMAND placement are still open.
 
-#### Remaining provider work: UMB owner and bootstrap transaction together
+#### Paired provider: ownership and qualification
 
-The preceding partition placed the local UMB allocator, peer-operation bodies
-and canonical records in the bootstrap tail. The loader confirms both handle
-and UMB ownership before clearing the stage pointer and releasing that storage.
-The four-mode physical-reclamation fixture, `out/emm-init-phases-ii4z6xm7/`,
-retains 3,264 HIMEM + 2,192 EMM = **5,456 low bytes**, with a 2,016-byte bootstrap
-tail at 32 handles. Its composed capture (`out/umb-fine-composition-_1kck3uo/`)
-confirmed the 304-byte release.
-Refused import (`y0cddom2`), DOS-low/128-handle live allocations with lost import
-reply (`y3kqnn2b`), and unstaged unknown service outcome (`s7ho44wa`, same phase
-artifact prefix) pass all four modes. The live-import bitmap negative fails
-with guest 35; non-common staged cancellation (`s9tsbex5`) passes all four.
-Eighteen layout, 35 phase-parser and four composition-input tests pass; normal
-standalone binaries remain byte-identical. Full failure/reset qualification is
-still open; this is not production promotion.
+The local handle/Move/UMB bodies, import transports and canonical records
+belong to one disposable bootstrap tail. Seven permanent handle wrappers have
+been replaced by shared dispatch. Publication confirms both high owners
+before releasing their common stage; uncertain outcomes never authorize replay
+or local fallback.
 
-The UMB partition also retires the import body and transport. The
-permanent guard rejects committed/unknown-service owners and frozen staging
-before reading disposable code. Import receipt recovery still operates from
-the canonical staged image; its return frame is back low before stage release.
-Its four-mode fixture (`77b__pc2`) retains **2,944 HIMEM + 2,192 EMM**
-bytes and a 2,416-byte disposable tail. Live DOS-low/128-handle lost-reply
-recovery (`1e8_u1ud`), unstaged unknown service result (`gam66xwi`), refused
-import (`c68zrnjj`) and non-common cancellation (`mv1ng6j0`, same phase artifact
-prefix) pass all four modes. Rejecting high UMB dispatch fails with guest 35.
-Nineteen layout tests pass; standalone binaries remain byte-identical.
+SYSINIT supplies an 8 KiB, non-moving administrative image before stage bind.
+It holds code, not a second authoritative allocator. Bind/freeze/retarget/
+restore and owner completion execute there with DS selecting canonical low
+policy. Public XMS calls explicitly enter the real low front. This separates
+administration from EMM's moving LAST image and permits removal of the complete
+low staging/completion bodies.
 
-The current partition replaces all seven permanent handle wrappers with one
-36-byte dispatch gate; the local target table belongs to the disposable tail.
-Extended entry points explicitly select their operation. The four-mode fixture
-(`uhfuuem4`) retains **2,784 HIMEM + 2,192 EMM bytes** and a 2,432-byte tail.
-DOS-low/128-handle live lost-reply recovery (`f_85lb73`), unstaged unknown result
-(`ptpl41eg`) and non-common cancellation (`1z1shu2t`, same phase artifact prefix)
-pass all four modes. High-handle rejection fails with guest 35. Twenty layout
-tests pass, including word-array discovery and permanent shared-gate checks;
-standalone binaries remain byte-identical.
+The retained HIMEM front is **2,416 bytes**, including a 141-byte administrative
+gate/state group; EMM is 2,192 bytes. The 32-handle disposable tail is 3,024 bytes.
+After successful completion or restore, the low gate revokes the administrative
+entry before SYSINIT overwrites that image. This installation is once per boot,
+not a qualified reinitialization or unload interface.
 
-The remaining front includes 421 bytes of bootstrap query/staging/forwarding,
-161 bytes of UMB import guard/state and 137 bytes of owner completion. Retire
-the complete boot transaction next. Freeze/retarget must remain callable when
-the old stage has been overwritten; completion must return low before release.
+The composed SYSINIT segment is **0x9744 bytes (38,724)**, below 64 KiB. Relative
+to the preceding composed map (0x76A0), this adds **8,356 bytes of INIT code/data**,
+including the 8 KiB scratch image. It is temporary conventional boot storage,
+not free XMS or a final low allocation. These linked extents are not a complete
+minimum-RAM/peak-stack qualification.
 
-**Next partition: loader-owned, non-moving bootstrap administration.** Do not
-split bind/restore into another staged body while keeping retarget low. The
-four-mode trial `out/emm-init-phases-r6sr4j6u/` retained 2,736 HIMEM bytes:
-only 48 fewer, because the replacement gate and duplicated checks consumed
-most of the retirement. That source change was discarded; it was not composed
-or promoted. The selected candidate and its measurements above are unchanged.
+Current local evidence (phase paths share `out/emm-init-phases-`):
 
-Use SYSINIT-owned temporary storage for the complete administrative code image,
-separate from EMM's moving LAST image and its canonical allocator stage.
-`SYSCONF.ASM:ProviderOffer/ProviderResume` already execute in `SYSINITSEG` outside
-the moved provider; `ProviderMove` freezes the allocator before overwriting it.
-The new storage would hold code, not a second authoritative handle/UMB owner.
+| Control | Evidence |
+| --- | --- |
+| Physical reclaim, ON/OFF/AUTO/RAM, fine UMB/high tables/DOS HIGH | `d8hxtlum` |
+| DOS-low, 128 handles, live UMB allocations and lost import reply | `t0f74olj` |
+| Unstaged unknown result; pending frame preserved, later calls refused | `v7pj5b1k` |
+| Refused import and read-only recovery | `_qh_nzf2` |
+| Common staged cancellation, restored local owner | `xue463s1` |
+| Non-common cancellation regression | `bhaknuo8` |
+| Forced high-handle rejection | Guest exit 35 |
 
-1. Before the first stage bind, negotiate and validate a bounded SYSINIT scratch
-   range. Copy the administrative image while the original is still intact;
-   reject overlaps, insufficient capacity and duplicate installation. Price
-   peak conventional INIT use as well as final residue. Do not assume an 8 KiB
-   buffer fits SYSINIT's linked segment without checking its map.
-2. Execute bind/freeze/retarget/restore and owner completion from that stable
-   image, with DS selecting canonical low policy and the selected allocator
-   stage owning records. Audit every CS-relative reference and near/public
-   call; a copied XMS public entry must not make its snapshot authoritative.
-3. Retain one small low administrative gate. After confirmed completion and
-   return from the temporary image, revoke it before SYSINIT storage is freed.
-   Later private calls must reject without dereferencing the old address.
-   A frozen restore must reject before reading an overwritten allocator stage.
-4. Remove the whole low staging/completion bodies and pack the final pair.
-   The current inventories charge 353 staging bytes and 137 completion bytes;
-   replacement gates, state and negotiation are not free. Calculate their
-   actual linked cost before accepting this partition.
-5. Qualify both the phase loader and composed BIOS: cancellation before and
-   after preparation, stale bind/root, freeze/retarget, live imports, lost
-   replies, and calls after administrative revocation/storage overwrite.
-   Then require a composed gain over the selected control. A safe small-step
-   partition that still misses this gate is not the intended achievement.
+The common loader checks insufficient/overlapping administrative destinations,
+duplicate installation, stale stage/root, and frozen restore before retarget.
+After completion or cancellation it overwrites all 8 KiB with HLT bytes and
+requires all six private stage/finish/prepare calls to reject. The unstaged
+build now routes unsupported stage operations to that permanent rejection,
+rather than passing them down the interrupt chain. Twenty-one layout, 35
+phase-parser and four composition-input tests pass; normal standalone binaries
+remain byte-identical.
 
-These are inventories, not promised savings: permanent guards,
-publication state and return paths must be separated and charged. Retire the
-remaining boot-only bodies and pack the retained pair before claiming success.
+Remaining requirements:
 
-Do not stop at moving the UMB allocator body. The preceding linked front contained
-214 bytes of private UMB registration/wrappers, 277 of allocation/coalescing,
-416 of import transport/state and 130 of records: **1,037 bytes altogether**.
-Even deleting all four groups without charging replacement interfaces leaves
-2,531 HIMEM + 2,192 EMM = 4,723 bytes before paragraph rounding, still **67
-above** the selected 4,656-byte manager pair. This optimistic conditional subtraction is not an
-achievable layout or a bound on other designs. It establishes that UMB-only
-retirement cannot, by itself, close the measured 1,104-byte regression.
+1. Qualify aborts after administrative installation but before bind or successful
+   restore/completion. The current automatic revocation covers those successful
+   endings only; SYSINIT must not release storage behind a still-bound entry.
+   Add explicit cleanup or fail-closed handling for every earlier loader exit.
+2. Cover bad administrative version/extent, relocation failure and recovery,
+   aborted activation, repeated/cached private calls, and reset/backing lifetime.
+   The passing normal/cancellation fixtures do not establish all these cases.
+3. Keep the complete-provider low/high cost ledger and composed comparison.
+   Do not replace this checkpoint with more isolated byte targets.
+4. Complete BIOS and COMMAND placement under one HMA budget and measure their
+   combined gain in this same configuration; retail remains the conventional
+   target and 47,888 bytes the minimum free-UMB floor.
 
-Include the remaining bootstrap transaction in the same candidate: its
-layout query, staging transaction and forwarding groups total another 421
-bytes, but freeze/rejection interfaces must survive. Price the replacement
-interfaces and final paragraph boundaries before implementing that partition.
-Do not count the existing shared frame or result journal as discardable.
-
-The required lifetime change is concrete:
-
-1. Keep one canonical bootstrap UMB owner through preparation, rebasing,
-   registration and rollback. Once the original tail is overwritten, every
-   local allocator and peer call must use the staged records and code; an
-   original/staged mirror is not a second authoritative owner.
-2. Confirm both handle and UMB imports before releasing their shared stage.
-   The candidate does this through the loader's bootstrap-finish call;
-   handle import alone no longer clears the stage pointer. Preserve this joint
-   release boundary when retiring the remaining initialization bodies.
-3. Move the live-UMB qualification into activation: allocate and fill real UMBs
-   after backing registration but before import, then check their identity,
-   contents and busy-unregister behavior after import. Retaining a pointer into
-   LAST after the loader returns is not an acceptable way to preserve the
-   existing post-boot deferred-import fixture.
-4. Publish the compact permanent front and release the complete boot partition
-   only after both imports are confirmed and all bootstrap frames have returned.
-   Unknown publication must keep the needed storage owned and prohibit replay;
-   pre-publication cancellation must restore the latest canonical records.
-5. Run the same composed VC comparison. Require improvement over 617,936
-   conventional bytes without falling below 47,888 free UMB bytes; report XMS
-   costs. Retail's 618,736 conventional target and joint BIOS/COMMAND placement
-   remain the larger goals, not requirements silently replaced by this checkpoint.
+A discarded bind/restore-only split retained most transaction checks low and
+saved just 48 bytes in its phase fixture (`r6sr4j6u`). Do not revive that split:
+stable ownership of the complete administrative image is what enabled the
+measured 368-byte release above.
 
 ##### Whole-system placement rules
 

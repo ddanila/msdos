@@ -157,13 +157,21 @@ multiplex_handler proc far
         cmp     ax, 0e705h
         je      private_force_a20
 ifdef HIMEM_COMMON_XMS_TEST
+        cmp     ax,XCP_ADMIN_PREPARE
+        je      private_bootstrap_admin
         cmp     ax,XCP_BOOTSTRAP_FINISH
-        je      private_bootstrap_finish
+        je      private_bootstrap_admin
+        cmp     ax,XCP_STAGE_BIND
+        jb      common_admin_not_stage
+        cmp     ax,XCP_STAGE_FREEZE
+        jbe     private_bootstrap_admin
+common_admin_not_stage:
 endif
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
         cmp     ax, XCP_LAYOUT_QUERY
         je      private_bootstrap_layout
 ifdef HIMEM_BOOTSTRAP_STAGE_TEST
+ifndef HIMEM_COMMON_XMS_TEST
         cmp     ax, XCP_STAGE_BIND
         je      private_bootstrap_stage
         cmp     ax, XCP_STAGE_RESTORE
@@ -172,6 +180,7 @@ ifdef HIMEM_BOOTSTRAP_STAGE_TEST
         je      private_bootstrap_stage
         cmp     ax, XCP_STAGE_FREEZE
         je      private_bootstrap_stage
+endif
 endif
 endif
         jmp     dword ptr cs:[old_int2f]
@@ -894,7 +903,7 @@ ifdef HIMEM_UMB_HANDOFF_TEST
 ifdef HIMEM_COMMON_XMS_TEST
         include XMSBIND.INC
         include XMSFRAME.INC
-        include XMSBOOTFINISH.INC
+        include XMSADMINGATE.INC
         include XMSUMBGATE.INC
 endif
 ; After commitment the retired table is temporary peer-registration input,
@@ -915,6 +924,7 @@ bootstrap_owner_start label byte
 ifdef HIMEM_COMMON_XMS_TEST
 bootstrap_handle_table dw xms_query_free,xms_allocate,xms_free,bootstrap_move
         dw xms_lock,xms_unlock,xms_handle_info,xms_reallocate
+        include XMSADMINBODY.INC
         include XMSIMPORTBODY.INC
         include XMSUMBIMPORT.INC
         include XMSMOVEBODY.INC

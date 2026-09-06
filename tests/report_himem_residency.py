@@ -118,6 +118,14 @@ def check_bootstrap_layout(numbers, procedures, handle_count):
         import_tail += ("bootstrap_umb_import", "umb_remote_send")
         if not 0 <= procedures["umb_remote"] < start:
             raise ValueError("UMB import lifetime guard is not permanent")
+    if "bootstrap_admin" in procedures:
+        if any(name in procedures for name in ("private_bootstrap_stage", "private_bootstrap_finish")):
+            raise ValueError("superseded low administrative body still exists")
+        import_tail += ("bootstrap_admin", "bootstrap_admin_finish", "admin_xms_call")
+        if "bootstrap_admin_stage" in procedures:
+            import_tail += ("bootstrap_admin_stage",)
+        if not 0 <= procedures["private_bootstrap_admin"] < start:
+            raise ValueError("administrative gate is not permanent")
     umb_tail = ("bootstrap_umb_service", "xms_umb_request", "xms_umb_release") if "bootstrap_umb_service" in procedures else ()
     for name in (*BOOTSTRAP_PROCEDURES, *move_tail, *import_tail, *umb_tail):
         if not start <= procedures[name] < handles:
@@ -134,6 +142,8 @@ def check_bootstrap_layout(numbers, procedures, handle_count):
         if not 0 <= procedures[name] < start:
             raise ValueError(f"permanent entry in bootstrap tail: {name}")
     staging = ("private_bootstrap_stage", "xms_stage_forward")
+    if "bootstrap_admin" in procedures:
+        staging = ("xms_stage_forward",)
     if "xms_bootstrap_dispatch" in procedures and not 0 <= procedures["xms_bootstrap_dispatch"] < start:
         raise ValueError("bootstrap dispatch guard is not permanent")
     if any(name in procedures for name in staging):
@@ -189,10 +199,9 @@ def paired_front_ownership(path, handle_count):
         ("Bootstrap layout query", addresses["private_bootstrap_layout"], "boot negotiation; retain a defined response after retirement"),
     ]
     if "private_bootstrap_stage" in addresses:
-        boundaries += [
-            ("Bootstrap staging transaction", addresses["private_bootstrap_stage"], "boot-only implementation behind stable rejection after commit"),
-            ("Bootstrap forwarding", addresses["xms_stage_forward"], "retire only after all live calls and cancellation end"),
-        ]
+        boundaries += [("Bootstrap staging transaction", addresses["private_bootstrap_stage"], "boot-only implementation behind stable rejection after commit")]
+    if "xms_stage_forward" in addresses:
+        boundaries += [("Bootstrap forwarding", addresses["xms_stage_forward"], "retire only after all live calls and cancellation end")]
     boundaries += [
         ("High allocator transport", addresses["xms_remote_owned"], "separate one-time import from permanent high dispatch"),
         ("Handle translation and gates", addresses.get("xms_bootstrap_dispatch", addresses.get("xms_owner_handle", addresses.get("xms_gate_query"))), "high authority with no low handle mirror"),
@@ -227,7 +236,8 @@ def paired_front_ownership(path, handle_count):
                                   "shared input snapshot, serialization and sequenced results"))
         name, start, _ = boundaries[index + 1]
         boundaries[index + 1] = (name, start, "bootstrap-only owner; common peer input uses the shared frame")
-    for symbol, name in (("umb_boot_import_tries", "Bootstrap owner completion"),
+    for symbol, name in ((("admin_state" if "admin_state" in addresses else "umb_boot_import_tries"),
+                         ("Bootstrap administrative gate" if "admin_state" in addresses else "Bootstrap owner completion")),
                          ("umb_local_call", "Bootstrap UMB gate")):
         if symbol in addresses:
             index = next(i for i, row in enumerate(boundaries) if row[0] == "UMB records")

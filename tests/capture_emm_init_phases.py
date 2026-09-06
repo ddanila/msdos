@@ -245,12 +245,14 @@ def check_phases(rows, mode, *, split=False, rejected=False, activation_stack=Fa
 
 
 def build_loader(work, *, rejected=False, bad_version=False, rebase=False, bad_rebase=False,
-                 stage_bootstrap=False, reclaim_bootstrap=False):
+                 stage_bootstrap=False, reclaim_bootstrap=False, common_xms_entry=False):
     """Private BIOS with linked-end DOS staging for the larger SYSINIT witness."""
     bios = work / "BIOS"
     shutil.copytree(capture.ROOT / "src/BIOS", bios)
     original = capture.sha256(capture.ROOT / "src/BIOS/IO.SYS")
     options = "-DBIOS_DEFER_PROVIDER"
+    if common_xms_entry:
+        options += " -DBIOS_ADMIN_PROVIDER"
     if rebase:
         options += " -DPROVIDER_REBASE"
         if stage_bootstrap:
@@ -480,7 +482,11 @@ def main():
             or ((args.umb_owner or args.umb_handoff) and args.loader_bad_version)):
         parser.error("private UMB owner requires an installed authoritative provider")
     if args.reject_prepared and (args.umb_lost_import_reply or args.umb_refused_import
-                                or args.bad_umb_low_owner or args.umb_live_import or args.umb_service_receipts):
+                                or args.bad_umb_low_owner or args.umb_live_import or args.umb_service_reply
+                                or args.bad_common_xms_entry or args.bad_common_binding
+                                or args.bad_common_move_low or args.bad_common_frame
+                                or args.bad_umb_result_freeze
+                                or (args.umb_service_receipts and not args.common_xms_entry)):
         parser.error("UMB handoff fault controls require an installed provider")
     capture.require_tools()
     if args.authoritative_owner:
@@ -626,7 +632,8 @@ def main():
         loader_image, loader_hash = build_loader(
             work, rejected=args.reject_prepared, bad_version=args.loader_bad_version,
             rebase=args.loader_rebase, bad_rebase=args.loader_bad_rebase,
-            stage_bootstrap=args.stage_bootstrap, reclaim_bootstrap=args.reclaim_bootstrap)
+            stage_bootstrap=args.stage_bootstrap, reclaim_bootstrap=args.reclaim_bootstrap,
+            common_xms_entry=args.common_xms_entry)
     subprocess.run(["nasm", "-f", "bin", str(capture.QEMU_EXIT_SOURCE),
                     "-o", str(qexit)], check=True)
     owner_probe = work / "OWNER.COM"
@@ -654,8 +661,9 @@ def main():
                     match = PROCEDURE_RE.match(line)
                     if match:
                         procedures[match[1]] = int(match[2], 16)
-                umb_defines += ["-DCOMMON_PUBLIC_MOVE",
-                                f"-DMOVE_RESOLVER_OFFSET={procedures['resolve_move_address']}"]
+                if not args.reject_prepared:
+                    umb_defines += ["-DCOMMON_PUBLIC_MOVE"]
+                umb_defines += [f"-DMOVE_RESOLVER_OFFSET={procedures['resolve_move_address']}"]
                 if "bootstrap_umb_service" in procedures:
                     umb_defines += ["-DUMB_BOOTSTRAP_RETIRED"]
                 umb_defines += [f"-DUMB_BOOT_TRIES_OFFSET={symbols['umb_boot_import_tries'][0]}",
@@ -695,7 +703,7 @@ def main():
                 if args.umb_live_import:
                     umb_defines += ["-DUMB_LIVE_IMPORT",
                                     f"-DUMB_DEFER_OFFSET={symbols['umb_remote_defer'][0]}"]
-                if args.umb_service_receipts:
+                if args.umb_service_receipts and not args.reject_prepared:
                     umb_defines += ["-DUMB_SERVICE_RECEIPTS",
                                     f"-DUMB_SEQUENCE_OFFSET={symbols['umb_remote_sequence'][0]}",
                                     f"-DUMB_RECOVERED_OFFSET={symbols['umb_remote_recovered'][0]}",
@@ -769,7 +777,7 @@ def main():
             trace_data = trace_data[:-4]
             post_boot[mode] = parse_post_boot(trace_data[-10:], expected)
             trace_data = trace_data[:-10]
-            if args.common_xms_entry and args.umb_service_reply != "unknown":
+            if args.common_xms_entry and not args.reject_prepared and args.umb_service_reply != "unknown":
                 if not trace_data.endswith(b"CF"):
                     raise ValueError("common frame/legacy packet independence probe failed")
                 trace_data = trace_data[:-2]
@@ -781,7 +789,7 @@ def main():
                 trace_data = trace_data[:-2]
                 post_boot[mode]["common_public_move"] = dict(low_resolver_unused=True,
                                                            descriptor_validation=True)
-            if args.umb_service_receipts:
+            if args.umb_service_receipts and not args.reject_prepared:
                 post_boot[mode]["umb_service_receipt"] = parse_umb_service_receipt(
                     trace_data[-10:], failure=args.umb_service_reply, common_frame=args.common_xms_entry)
                 trace_data = trace_data[:-10]

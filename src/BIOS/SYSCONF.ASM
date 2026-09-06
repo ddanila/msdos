@@ -94,9 +94,7 @@ DOSSIZE EQU	0A000H
 	include version.inc
 IFDEF BIOS_DEFER_PROVIDER
         include BOOTPROV.INC
-IFDEF BIOS_STAGE_PROVIDER
         include XMSCOPYABI.INC
-ENDIF
 ENDIF
 .list
 
@@ -2046,6 +2044,103 @@ Skip2_ResetMEMHI:
 
 IFDEF BIOS_DEFER_PROVIDER
 ProviderLoadEnd dw 0
+IFDEF BIOS_ADMIN_PROVIDER
+        align 16
+ProviderAdminImage db 8192 dup (0)
+ProviderAdminPrepare PROC NEAR
+        push bx
+        push cx
+        push dx
+        push si
+        push di
+        mov dx,offset ProviderAdminImage
+        mov cl,4
+        shr dx,cl
+        mov bx,cs
+        add dx,bx
+        mov bx,1
+        mov cx,XCP_LAYOUT_SIGNATURE
+        mov si,XCP_LAYOUT_VERSION
+        xor di,di
+        mov ax,XCP_ADMIN_PREPARE
+        int 2fh
+        or ax,ax
+        jnz ProviderAdminPrepareBad
+        mov bx,8192
+        push dx
+        xor dx,dx
+        mov ax,XCP_ADMIN_PREPARE
+        int 2fh
+        pop dx
+        or ax,ax
+        jnz ProviderAdminPrepareBad
+        mov ax,XCP_ADMIN_PREPARE
+        int 2fh
+        cmp ax,XCP_LAYOUT_REPLY
+        jne ProviderAdminPrepareBad
+        mov ax,XCP_ADMIN_PREPARE
+        int 2fh
+        or ax,ax
+        jnz ProviderAdminPrepareBad
+        mov ax,XCP_LAYOUT_REPLY
+        jmp short ProviderAdminPrepareDone
+ProviderAdminPrepareBad:
+        xor ax,ax
+ProviderAdminPrepareDone:
+        cmp ax,XCP_LAYOUT_REPLY
+        pop di
+        pop si
+        pop dx
+        pop cx
+        pop bx
+        ret
+ProviderAdminPrepare ENDP
+; Publication/rollback returned to SYSINIT. Prove that no private gate can
+; enter this storage after it is overwritten, before SYSINIT itself is freed.
+ProviderAdminRetired PROC NEAR
+        push ax
+        push bx
+        push cx
+        push dx
+        push si
+        push di
+        push es
+        push cs
+        pop es
+        mov di,offset ProviderAdminImage
+        mov cx,8192
+        mov al,0f4h
+        cld
+        rep stosb
+        mov bx,XCP_STAGE_BIND
+ProviderAdminRetiredNext:
+        mov ax,bx
+        mov cx,XCP_LAYOUT_SIGNATURE
+        mov si,XCP_LAYOUT_VERSION
+        xor di,di
+        int 2fh
+        or ax,ax
+        jnz ProviderAdminRetiredBad
+        inc bx
+        cmp bx,XCP_ADMIN_PREPARE
+        jbe ProviderAdminRetiredNext
+        pop es
+        pop di
+        pop si
+        pop dx
+        pop cx
+        pop bx
+        pop ax
+        ret
+ProviderAdminRetiredBad:
+        mov al,17
+        out 0f4h,al
+        cli
+ProviderAdminRetiredStop:
+        hlt
+        jmp short ProviderAdminRetiredStop
+ProviderAdminRetired ENDP
+ENDIF
 IFDEF PROVIDER_REBASE
         include PROVIDERFIXUPS.INC
 IFDEF BIOS_PROVIDER_DOWN
@@ -2076,6 +2171,10 @@ ProviderOffer PROC NEAR
         jne ProviderOfferDone
         cmp word ptr [bx+16],3058h
         jne ProviderOfferDone
+IFDEF BIOS_ADMIN_PROVIDER
+        call ProviderAdminPrepare
+        jne ProviderOfferDone
+ENDIF
         mov word ptr cs:[PACKET+BP_MAGIC_OFF],BP_MAGIC
 IFDEF BIOS_PROVIDER_BAD_VERSION
         mov word ptr cs:[PACKET+BP_VERSION_OFF],BP_VERSION+1
@@ -2155,6 +2254,9 @@ ENDIF
         mov dx,cs:[MEMHI]
         mov word ptr cs:[BREAK_ADDR+2],dx
 ProviderResumeSuccess:
+IFDEF BIOS_ADMIN_PROVIDER
+        call ProviderAdminRetired
+ENDIF
         mov dx,0e9h
         mov al,'L'
         out dx,al

@@ -110,6 +110,20 @@ class BootstrapLayoutTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             check_bootstrap_layout(self.numbers, dict(procedures, xms_gate_query=768), 32)
 
+    def test_complete_administration_is_disposable_with_one_permanent_gate(self):
+        procedures = dict(self.procedures, bootstrap_admin=2304, bootstrap_admin_finish=2368,
+                          bootstrap_admin_stage=2432, admin_xms_call=2496,
+                          private_bootstrap_admin=512, xms_stage_forward=768)
+        check_bootstrap_layout(self.numbers, procedures, 32)
+        for name in ("bootstrap_admin", "bootstrap_admin_finish", "bootstrap_admin_stage", "admin_xms_call"):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                check_bootstrap_layout(self.numbers, dict(procedures, **{name: 512}), 32)
+        for name in ("private_bootstrap_stage", "private_bootstrap_finish"):
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                check_bootstrap_layout(self.numbers, dict(procedures, **{name: 1024}), 32)
+        with self.assertRaises(ValueError):
+            check_bootstrap_layout(self.numbers, dict(procedures, private_bootstrap_admin=2304), 32)
+
 
 class PairedFrontTests(unittest.TestCase):
     def test_transplant_scenario_retains_transport_and_unknown_gate_costs(self):

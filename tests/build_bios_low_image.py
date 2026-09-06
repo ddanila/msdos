@@ -130,7 +130,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         options += f" -I{output} -DBIOS_SERVICE_BOOT=1 -DBIOS_BOOT_POISON=1"
     if paired_provider is not None:
         options += (" -DBIOS_DYNAMIC_STAGING -DBIOS_DEFER_PROVIDER -DPROVIDER_REBASE"
-                    " -DBIOS_STAGE_PROVIDER -DBIOS_PROVIDER_DOWN")
+                    " -DBIOS_STAGE_PROVIDER -DBIOS_PROVIDER_DOWN -DBIOS_ADMIN_PROVIDER")
     if tail_body:
         options += " -DBIOS_SERVICE_TAIL_BODY=1"
     if dispatch:

@@ -1,14 +1,5 @@
-; Loader-only completion before LAST is released. The stage belongs to both
-; owners, not merely to the first handle reply.
-umb_boot_import_tries db 0
-ifdef HIMEM_UMB_DEFER_TEST
-umb_boot_first dw 0
-umb_boot_second dw 0
-umb_boot_before dw 0
-umb_boot_synthetic db 0
-umb_boot_registration dw 1,2,0a000h,10h,0b000h,20h
-endif
-private_bootstrap_finish proc far
+; Executes from SYSINIT's immutable administrative image, DS=canonical front.
+bootstrap_admin_finish proc near
         cmp cx,XCP_LAYOUT_SIGNATURE
         jne boot_finish_bad
         cmp si,XCP_LAYOUT_VERSION
@@ -23,8 +14,6 @@ private_bootstrap_finish proc far
         push bp
         push ds
         push es
-        push cs
-        pop ds
         cli
         cmp [owner_query_active],2
         jne boot_finish_failed
@@ -57,15 +46,13 @@ boot_umb_ranges:
         mov [umb_boot_before],dx
         mov dx,1
         mov ah,10h
-        push cs
-        call near ptr xms_control
+        call admin_xms_call
         cmp ax,1
         jne boot_finish_failed
         mov [umb_boot_first],bx
         mov dx,1
         mov ah,10h
-        push cs
-        call near ptr xms_control
+        call admin_xms_call
         cmp ax,1
         jne boot_finish_failed
         mov [umb_boot_second],bx
@@ -98,8 +85,7 @@ boot_finish_query:
         inc [umb_boot_import_tries]
         mov dx,0ffffh
         mov ah,10h
-        push cs
-        call near ptr xms_control
+        call admin_xms_call
         pop cx
         cmp [umb_remote_state],2
         je boot_finish_committed
@@ -138,16 +124,15 @@ boot_finish_return:
         pop dx
         pop cx
         pop bx
-        iret
+        ret
 boot_finish_bad:
         xor ax,ax
-        iret
-private_bootstrap_finish endp
+        ret
+bootstrap_admin_finish endp
 ifdef HIMEM_UMB_DEFER_TEST
 boot_umb_largest proc near
         mov ah,10h
-        push cs
-        call near ptr xms_control
+        call admin_xms_call
         ret
 boot_umb_largest endp
 endif

@@ -322,6 +322,19 @@ BootStageRelocated proc near
         mov bx,[boot_stage_segment]
         cmp bx,dx
         je BootStageRelocatedDone
+IFDEF EMM_COMMON_XMS_TEST
+        ; Cancellation cannot restore from the overwritten, frozen stage.
+        push dx
+        mov dx,bx
+        mov ax,XCP_STAGE_RESTORE
+        mov cx,XCP_LAYOUT_SIGNATURE
+        mov si,XCP_LAYOUT_VERSION
+        xor di,di
+        int 2fh
+        pop dx
+        or ax,ax
+        jnz BootOwnerFail
+ENDIF
         push bx
         push dx
         mov ah,08h
