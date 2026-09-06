@@ -2,10 +2,27 @@
 import struct
 import unittest
 
-from capture_emm_init_phases import check_phases, parse_trace, strip_capacity_records
+from capture_emm_init_phases import check_phases, parse_trace, strip_capacity_records, parse_bootstrap_layout
 
 
 class InitPhaseTests(unittest.TestCase):
+    def layout(self):
+        return struct.pack("<2s6H", b"XL", 0x400, 2240, 3008, 32, 3168, 448)
+
+    def test_bootstrap_layout_receipt(self):
+        result = parse_bootstrap_layout(self.layout())
+        self.assertEqual(result["retained_bootstrap_bytes"], 928)
+        self.assertEqual(result["released_bytes"], 0)
+        for offset, value in ((2, 0), (2, 0x9fff), (4, 2241), (6, 2200),
+                              (8, 0), (8, 129), (10, 3169), (12, 2240)):
+            data = bytearray(self.layout())
+            struct.pack_into("<H", data, offset, value)
+            with self.assertRaises(ValueError):
+                parse_bootstrap_layout(data)
+        for data in (b"", self.layout()[:-1], self.layout() + b"x"):
+            with self.assertRaises(ValueError):
+                parse_bootstrap_layout(data)
+
     def test_bootstrap_owner_record(self):
         record = struct.pack("<2sHIH", b"XO", 3, 0x110000, 1)
         rows = parse_trace(self.trace() + record, bootstrap_owner=True)
@@ -16,14 +33,14 @@ class InitPhaseTests(unittest.TestCase):
     def test_authoritative_owner_publication(self):
         owner = struct.pack("<2sHIH", b"XO", 3, 0x110000, 1)
         marker = struct.pack("<2sI", b"XA", 0x220000)
-        rows = parse_trace(self.trace() + marker + owner,
+        rows = parse_trace(self.trace() + marker + self.layout() + owner,
                            bootstrap_owner=True, authoritative_owner=True)
         self.assertTrue(rows[-1]["bootstrap_owner"]["high_committed"])
         self.assertEqual(rows[-1]["bootstrap_owner"]["high_code_base"], 0x220000)
         check_phases(rows, "ON")
         for marker in (b"", b"XX", marker + marker, struct.pack("<2sI", b"XA", 0x90000)):
             with self.assertRaises(ValueError):
-                parse_trace(self.trace() + marker + owner,
+                parse_trace(self.trace() + marker + self.layout() + owner,
                             bootstrap_owner=True, authoritative_owner=True)
 
     def test_bad_bootstrap_owner_record(self):
@@ -38,11 +55,11 @@ class InitPhaseTests(unittest.TestCase):
         phases = b"".join(first[:2] + bytes([stage]) + first[3:] for stage in (1, 9, 10))
         owner = struct.pack("<2sHIH", b"XO", 3, 0x110000, 1)
         options = dict(split=True, rejected=True, bootstrap_owner=True, authoritative_owner=True)
-        rows = parse_trace(phases + owner, **options)
+        rows = parse_trace(phases + self.layout() + owner, **options)
         self.assertFalse(rows[-1]["bootstrap_owner"]["high_committed"])
         check_phases(rows, "ON", split=True, rejected=True)
         with self.assertRaises(ValueError):
-            parse_trace(phases + struct.pack("<2sI", b"XA", 0x220000) + owner, **options)
+            parse_trace(phases + struct.pack("<2sI", b"XA", 0x220000) + self.layout() + owner, **options)
 
     def test_capacity_records(self):
         for handles, altregs in ((None, None), (255, None), (None, 0), (255, 254), (2, 0)):

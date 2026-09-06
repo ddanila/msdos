@@ -148,6 +148,10 @@ multiplex_handler proc far
         je      private_relocate
         cmp     ax, 0e705h
         je      private_force_a20
+ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+        cmp     ax, XCP_LAYOUT_QUERY
+        je      private_bootstrap_layout
+endif
         jmp     dword ptr cs:[old_int2f]
 multiplex_installed:
         mov     al, 080h

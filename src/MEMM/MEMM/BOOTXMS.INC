@@ -17,6 +17,7 @@ IFDEF EMM_AUTHORITATIVE_OWNER_TEST
 ; Deliberately unusable import metadata: status must not dereference/import it.
 boot_owner_receipt db 'XAUT'
         dw 3,0ffffh,0ffffh,0,0,0,0,0ffffh
+boot_owner_layout dw 6 dup (0) ; segment, permanent end, records, count, boot end, entry
 ENDIF
 
 BootOwnerPrepare proc near
@@ -36,6 +37,17 @@ BootOwnerPrepare proc near
         int 2fh
         mov word ptr [boot_owner_entry],bx
         mov word ptr [boot_owner_entry+2],es
+IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+        mov [boot_owner_step],13
+        call BootOwnerLayout
+        mov [boot_owner_layout],dx
+        mov [boot_owner_layout+2],bx
+        mov [boot_owner_layout+4],si
+        mov [boot_owner_layout+6],di
+        mov [boot_owner_layout+8],cx
+        mov ax,word ptr [boot_owner_entry]
+        mov [boot_owner_layout+10],ax
+ENDIF
         mov ah,09h
         mov dx,1
         call dword ptr [boot_owner_entry]
@@ -180,6 +192,30 @@ ifdef EMM_BOOTSTRAP_EXPECT_HMA
         cmp dx,word ptr [boot_owner_entry+2]
         jne BootOwnerFail
 endif
+IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+        mov [boot_owner_step],14
+        call BootOwnerLayout
+        cmp dx,[boot_owner_layout]
+        jne BootOwnerFail
+        cmp bx,[boot_owner_layout+2]
+        jne BootOwnerFail
+        cmp si,[boot_owner_layout+4]
+        jne BootOwnerFail
+        cmp di,[boot_owner_layout+6]
+        jne BootOwnerFail
+        cmp cx,[boot_owner_layout+8]
+        jne BootOwnerFail
+        mov al,'X'
+        out 0e9h,al
+        mov al,'L'
+        out 0e9h,al
+        mov si,offset boot_owner_layout
+        mov cx,12
+BootOwnerEmitLayout:
+        lodsb
+        out 0e9h,al
+        loop BootOwnerEmitLayout
+ENDIF
         ; Fixed 10-byte record: tag, preserved handle, physical base, size KiB.
         mov al,'X'
         out 0e9h,al
@@ -203,6 +239,46 @@ BootOwnerEmit:
 BootOwnerVerify endp
 
 IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+BootOwnerLayout proc near
+        ; Reject mismatched protocol versions without touching ownership.
+        mov ax,XCP_LAYOUT_QUERY
+        mov cx,XCP_LAYOUT_SIGNATURE
+        mov si,XCP_LAYOUT_VERSION+1
+        xor di,di
+        int 2fh
+        or ax,ax
+        jnz BootOwnerFail
+        mov ax,XCP_LAYOUT_QUERY
+        mov cx,XCP_LAYOUT_SIGNATURE
+        mov si,XCP_LAYOUT_VERSION
+        xor di,di
+        int 2fh
+        cmp ax,XCP_LAYOUT_REPLY
+        jne BootOwnerFail
+        cmp dx,word ptr [boot_owner_entry+2]
+        jne BootOwnerFail
+        test bx,15
+        jnz BootOwnerFail
+        or bx,bx
+        jz BootOwnerFail
+        cmp bx,si
+        jae BootOwnerFail
+        cmp di,32
+        jne BootOwnerFail
+        mov ax,di
+        imul ax,5              ; shared XMS record width
+        add ax,si
+        jc BootOwnerFail
+        add ax,15
+        jc BootOwnerFail
+        and ax,0fff0h
+        cmp ax,cx
+        jne BootOwnerFail
+        cmp word ptr [boot_owner_entry],bx
+        jae BootOwnerFail
+        ret
+BootOwnerLayout endp
+
 ; AX expected committed state. Read twice around the first cached-entry call:
 ; receipt alone must not import, and repeated receipt must not reimport.
 BootOwnerReceipt proc near

@@ -10,6 +10,7 @@ import tempfile
 
 import capture_drdos_memory as capture
 from emm_loader_rebase import include as rebase_include, manifest as rebase_manifest
+from report_himem_residency import bootstrap_layout
 
 
 def strip_capacity_records(data, *, handles=None, altregs=None):
@@ -20,6 +21,20 @@ def strip_capacity_records(data, *, handles=None, altregs=None):
                 raise ValueError(f"{tag.decode()} capacity/exhaustion/reuse probe failed")
             data = data[:-4]
     return data
+
+
+def parse_bootstrap_layout(data):
+    if len(data) != 14:
+        raise ValueError("missing bootstrap layout receipt")
+    tag, segment, permanent, records, count, end, entry = struct.unpack("<2s6H", data)
+    if (tag != b"XL" or not segment or not 0 < permanent < records < end
+            or permanent % 16 or not 1 <= count <= 128
+            or end != ((records + count * 5 + 15) & ~15)
+            or segment + end // 16 > 0xa000 or entry >= permanent):
+        raise ValueError("invalid bootstrap layout receipt")
+    return dict(segment=segment, permanent_bytes=permanent, records_offset=records,
+                handles=count, boot_end=end, entry_offset=entry,
+                retained_bootstrap_bytes=end-permanent, released_bytes=0)
 
 
 def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
@@ -38,6 +53,10 @@ def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
             raise ValueError("invalid bootstrap XMS owner witness")
         owner = dict(handle=handle, physical=physical, size_kib=size)
         data = data[:end-10] + suffix
+        if authoritative_owner:
+            end = len(data) - len(suffix)
+            owner["layout"] = parse_bootstrap_layout(data[end-14:end])
+            data = data[:end-14] + suffix
         if authoritative_owner and not rejected:
             end = len(data) - len(suffix)
             if end < 6:
@@ -177,6 +196,8 @@ def main():
                         help="activate the paired high allocator through the loader callback")
     parser.add_argument("--bad-owner-receipt", choices=("before", "after"),
                         help="lie about commit state before or after handoff; must fail")
+    parser.add_argument("--bad-bootstrap-layout", action="store_true",
+                        help="report a false aligned low boundary; linked reconciliation must fail")
     parser.add_argument("--dos-high", action="store_true",
                         help="test authoritative handoff with current DOS high and its cached entry")
     parser.add_argument("--bad-bootstrap-owner", action="store_true",
@@ -213,6 +234,8 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.bad_bootstrap_layout:
+        args.authoritative_owner = True
     if args.bad_owner_receipt:
         args.authoritative_owner = True
         if args.reject_prepared or args.loader_bad_rebase or args.loader_bad_version:
@@ -347,7 +370,9 @@ def main():
     himem = capture.ROOT / "src/DEV/HIMEM/HIMEM.SYS"
     if args.authoritative_owner:
         himem = work / "HIMEM.SYS"
-        subprocess.run([str(capture.ROOT / "bin/jwasm-bin"), "-q", "-bin",
+        subprocess.run([str(capture.ROOT / "bin/jwasm-bin"), "-q", "-bin", "-Sa",
+                        f"-Fl={work / 'HIMEM.LST'}",
+                        *(["-DHIMEM_BOOTSTRAP_BAD_LAYOUT"] if args.bad_bootstrap_layout else []),
                         "-DHIMEM_PROTECTED_COPY_TEST", "-DHIMEM_PROTECTED_OWNER_TEST",
                         "-DHIMEM_AUTHORITATIVE_OWNER_TEST", "-DHIMEM_AUTHORITATIVE_POISON_TEST",
                         f"-I{work / 'INC'}", f"-Fo{himem}",
@@ -434,6 +459,13 @@ def main():
                                    rebase=args.loader_rebase, table_layout=args.table_layout,
                                    bootstrap_owner=args.bootstrap_owner,
                                    authoritative_owner=args.authoritative_owner)
+        if args.authoritative_owner:
+            live = records[mode][-1]["bootstrap_owner"]["layout"]
+            linked = bootstrap_layout(work / "HIMEM.LST", live["handles"])
+            if (live["permanent_bytes"] != linked["permanent_bytes"]
+                    or live["records_offset"] != linked["permanent_bytes"] + linked["bootstrap_code_data_bytes"]
+                    or live["boot_end"] != linked["linked_boot_end"]):
+                raise ValueError("runtime bootstrap layout differs from linked owner")
         if args.table_layout:
             layout = next(row["tables"] for row in records[mode] if "tables" in row)
             if layout["high"] != int(args.high_tables):
@@ -460,6 +492,7 @@ def main():
         bootstrap_owner=args.bootstrap_owner,
         authoritative_owner=args.authoritative_owner, himem_sha256=capture.sha256(himem),
         bad_owner_receipt=args.bad_owner_receipt,
+        bad_bootstrap_layout=args.bad_bootstrap_layout,
         dos_high=args.dos_high,
         dos_sha256=capture.sha256(capture.ROOT / "src/DOS/MSDOS.SYS")
             if args.authoritative_owner else None,

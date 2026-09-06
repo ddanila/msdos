@@ -92,6 +92,7 @@ BOOTSTRAP_PROCEDURES = (
     "validate_handle", "find_gap", "largest_gap", "total_free", "gap_after_handle",
 )
 PERMANENT_PROCEDURES = (
+    "private_bootstrap_layout",
     "xms_control", "xms_owner_handle", "xms_remote_owned", "xms_move",
     "xms_extended_handle_info", "xms_hma_request", "xms_hma_release",
     "xms_global_enable", "xms_global_disable", "xms_local_enable", "xms_local_disable",

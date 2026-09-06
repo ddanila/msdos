@@ -583,8 +583,9 @@ Transport failure cannot become an invalid-handle verdict.
 HMA, A20 and UMB ownership remain low. Permanent public gates precede one
 paragraph-aligned bootstrap tail containing the old allocator, handle helpers,
 BIOS copy backend/descriptors and selected handle records. The linked front
-is 2,176 bytes; the fixed bootstrap code/data is 768 bytes. With 32 handles,
-the boot allocation ends at offset 3,104, retaining a 928-byte bootstrap tail;
+is 2,240 bytes including the layout query below; the fixed bootstrap code/data
+is 768 bytes. With 32 handles, the boot allocation ends at offset 3,168,
+retaining a 928-byte bootstrap tail;
 128 handles retain 1,408 bytes. These are linked sizes of the paired variant,
 not normal HIMEM sizes or reclaimed memory. All of that tail remains allocated.
 The untraced linked owner service, including the read-only commit receipt below,
@@ -618,8 +619,8 @@ shared-allocator regressions pass separately. Three host tests check linked
 bootstrap/permanent procedure placement, capacity bounds and paragraph rounding:
 `python3 tests/test_himem_bootstrap_layout.py`. The report explicitly records
 zero released bytes; it does not prove that every caller is safe after release.
-The 128-handle run passes in `out/xms-copy-windows-g7o2yp4u/`, checking the
-configured high-owner capacity, linked 3,584-byte boot end and 1,408-byte tail;
+The 128-handle run passes in `out/xms-copy-windows-ss7wq6vt/`, checking the
+configured high-owner capacity, linked 3,648-byte boot end and 1,408-byte tail;
 this is not exhaustive allocation to capacity or a maximum-EMS-resource test.
 
 This closes live **handle allocator** ownership for the paired experiment,
@@ -1225,6 +1226,37 @@ steps 11 and 12 respectively (`out/emm-init-phases-xbujh4zg/` and
 regression passes in `out/xms-copy-windows-_ssosyun/`. The loader does not yet
 use this receipt to release storage; the final-base and rollback contract above
 remains open, with no new conventional-memory gain.
+
+**Runtime bootstrap layout:** paired HIMEM implements signed/versioned INT 2Fh
+`E706h` discovery as defined in `XMSCOPYABI.INC`. It reports the current segment,
+permanent end, original record offset/count and rounded boot end without moving,
+freezing or releasing anything. The loader witness checks that the segment
+matches its cached XMS entry, the entry precedes the permanent boundary, and the
+record extent exactly explains the boot end. It rejects an unsupported query
+version, compares before/after layouts and records `XL` alongside the ownership
+receipt. Host reconciliation independently checks the bounds against the paired
+HIMEM listing; it must not infer authority from a plausible address tuple.
+
+DOS-high activation and pre-activation cancellation with the prepared-image move
+pass ON/OFF/AUTO/RAM in `out/emm-init-phases-5j6vikt1/` and
+`out/emm-init-phases-x2n3cej3/`. Nineteen phase-parser tests include malformed,
+out-of-conventional-range and inconsistent layout records; the three linked
+bootstrap tests also require the layout query itself to remain before the tail.
+`--bad-bootstrap-layout` reports a false but aligned boundary; the linked
+reconciliation rejects it in `out/emm-init-phases-xt5bysck/` after a successful
+guest boot, demonstrating that structural validity alone is insufficient.
+This adds 64 rounded bytes to the development permanent front; normal HIMEM
+and EMM386 hashes are unchanged. The returned boot end still describes retained
+storage, and every report records zero released bytes.
+
+Staging remains a distinct implementation requirement: HIMEM's existing
+`private_relocate` changes only the INT 15h/2Fh vector heads to a complete copy.
+It neither preserves arbitrary escaped XMS entries nor transfers only allocator
+state. `CompactFirstHimem` separately republishes DOS's cached entry while moving
+the early boot arena; that special case is not a late bootstrap-staging API.
+Do not use either mechanism to overwrite the tail before activation. A staging
+design must preserve one live allocator, stable client entries, source records
+for import and usable cancellation before changing the provider's final base.
 
 ##### Whole-system placement rules
 

@@ -14,6 +14,16 @@ XCP_OWNER_QUERY equ 8 ; optional read-only allocator snapshot query
 XCP_OWNER_ACTIVE equ 16 ; paired experimental authoritative handle owner
 XCP_OWNER_RECEIPT equ 32 ; read-only XAUT operation 00h supported
 XCP_REQUIRED equ XCP_PHYSICAL OR XCP_CLIENT OR XCP_INACTIVE
+; Paired HIMEM-only layout discovery through INT 2Fh. Request AX=query,
+; CX=signature, SI=version, DI=0. Success AX=reply, DX=resident segment,
+; BX=paragraph-aligned permanent end, SI=bootstrap handle-table offset,
+; DI=selected handle count, CX=paragraph-rounded boot end. BP is preserved.
+; Wrong signature/version/reserved field returns AX=0. No storage is moved,
+; frozen, released or granted to the caller. Commitment is a separate receipt.
+XCP_LAYOUT_QUERY equ 0e706h
+XCP_LAYOUT_REPLY equ 0e7ffh
+XCP_LAYOUT_SIGNATURE equ 584dh
+XCP_LAYOUT_VERSION equ 1
 ; OWNER_QUERY uses AH=87h, ES:SI -> 'XOWN', then word version=1, handle
 ; limit, pool KiB, output largest/total KiB, then up to 128 five-byte records.
 ; The trusted development peer backs the full 654-byte packet below its

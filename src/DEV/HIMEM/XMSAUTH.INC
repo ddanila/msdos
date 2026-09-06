@@ -3,6 +3,33 @@
 ; refreshed low handle table. The packet names the original bootstrap table;
 ; no duplicate import buffer is retained. Local allocator bodies and records
 ; occupy one tail for the loader to reclaim after handoff.
+private_bootstrap_layout proc far
+        cmp cx,XCP_LAYOUT_SIGNATURE
+        jne short bootstrap_layout_bad
+        cmp si,XCP_LAYOUT_VERSION
+        jne short bootstrap_layout_bad
+        or di,di
+        jne short bootstrap_layout_bad
+        mov bx,offset bootstrap_owner_start
+ifdef HIMEM_BOOTSTRAP_BAD_LAYOUT
+        add bx,16             ; negative control: plausible but false boundary
+endif
+        mov si,offset handles
+        mov di,cs:[handle_limit]
+        mov ax,di
+        imul ax,HANDLE_SIZE
+        add ax,si
+        add ax,15
+        and ax,0fff0h
+        mov cx,ax
+        mov dx,cs
+        mov ax,XCP_LAYOUT_REPLY
+        iret
+bootstrap_layout_bad:
+        xor ax,ax
+        iret
+private_bootstrap_layout endp
+
 xms_remote_owned proc near
         pushf
         cli
