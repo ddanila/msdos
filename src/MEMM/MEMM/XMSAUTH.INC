@@ -77,6 +77,18 @@ IFDEF EMM_XMS_OWNER_TRACE
         pop ds
 ENDIF
 auth_owner_existing:
+IFDEF EMM_COMMON_XMS_TEST
+        cmp [XmsCommonActive],0
+        je auth_legacy_allowed
+        mov ax,es:[bx+16]
+        cmp ax,8
+        je auth_legacy_allowed
+        cmp ax,0bh
+        je auth_legacy_allowed
+        cmp ax,0eh
+        jne auth_owner_bad      ; no unsequenced mutation after common dispatch
+auth_legacy_allowed:
+ENDIF
         mov ax,es:[bx+6]
         cmp ax,[handle_limit]
         jne auth_owner_bad

@@ -7,6 +7,13 @@ delivery history belongs in Git; current evidence belongs in the test manifests.
 
 ### Current checkpoint: complete owners, not paragraph targets
 
+**Delivery gate:** the next memory achievement must retire superseded paths,
+pack retained allocations and demonstrate a real conventional-memory gain in
+the composed image. More routing/transport milestones do not meet this gate.
+Report UMB and application XMS costs alongside the gain. Complete BIOS and
+COMMAND placement still requires one shared HMA budget; it is not deferred
+by manager-interface progress.
+
 The latest composed development fixture (complete high EMM tables plus fine
 UMB mapping and high CDS) leaves **617,936 conventional bytes and 49,680 free
 UMB bytes**. Retail leaves 618,736 and 47,888: the remaining conventional gap
@@ -1817,10 +1824,28 @@ pair retains 3,776 HIMEM and 2,192 EMM bytes (3,792 HIMEM with live-import
 instrumentation). Normal binaries remain unchanged. Local phase/parser and
 paired-layout suites pass 34 and 13 tests.
 
-This binds the existing packet transports to one guarded entry; it does not
-yet replace their per-service adaptation with a common caller context. That
-replacement, explicit boot-only retirement and packed release remain required.
-No new low-memory saving is claimed.
+The common candidate now routes steady-state handle, Move and UMB calls through
+one `XAPI` frame, separate from bootstrap imports. Its 132-byte input union
+holds either a Move descriptor or peer registration; registration no longer
+borrows the old UMB table. All mutating families share the result journal;
+an unknown result preserves the full 156-byte frame and freezes later calls.
+The packet ABI is in `src/INC/XMSCOPYABI.INC`.
+
+The four-mode independence probe (`out/emm-init-phases-58uqp4km/`) passes with
+64 old packet bytes and the 130-byte old UMB table poisoned. The pending-result
+probe (`out/emm-init-phases-8dyju5nx/`) checks six refused calls spanning UMB,
+handle and Move services, with the pending snapshot unchanged. These are
+dependency checks, **not conventional-memory savings**. Old bodies and storage
+still occupy the diagnostic image. The combined high-table/bootstrap-release
+fixture (`out/emm-init-phases-zlfhtwxi/`) passes all four modes but retains
+4,448 HIMEM + 2,192 EMM low bytes: 6,640 total, versus the composed control's
+4,656-byte pair. Its OWNER test totals are not composed VC measurements.
+The old-handle-packet negative control fails with guest 35; 35 parser tests
+pass locally. Before moving old bodies into a disposable tail,
+the loader must complete both imports and bind the permanent entry before
+release: current UMB import can still occur on a later public/peer call.
+Then pack/reclaim the final allocation and measure the composed image against
+the control above. BIOS/COMMAND placement and reset qualification remain open.
 
 ##### Whole-system placement rules
 

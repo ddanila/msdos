@@ -147,6 +147,18 @@ umb_remote_confirm_high:
 umb_remote_ready:
         pop si
         pop es
+ifdef HIMEM_COMMON_XMS_TEST
+        call xms_common_ready
+        jc common_umb_bootstrap
+        mov ax,[umb_remote_op]
+        mov dx,[umb_remote_dx]
+        mov bx,[umb_remote_bx]
+        ; Includes the first peer call that commits bootstrap ownership:
+        ; preserve its original ES:SI and never stage it in the old table.
+        call xms_common_peer
+        jmp umb_remote_handled
+common_umb_bootstrap:
+endif
         cmp [umb_remote_op],12h
         jne umb_remote_service
         ; ES:SI is the trusted peer's version/count/ranges. Bound the complete

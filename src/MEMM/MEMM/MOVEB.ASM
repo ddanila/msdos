@@ -197,6 +197,16 @@ Move_Block	proc	near
 IFDEF EMM_XMS_COPY_TEST
 IFDEF EMM_COMMON_XMS_TEST
         cmp si,65536-4
+        ja MB_Not_Common_Frame
+        cmp dword ptr es:[si],49504158h ; XAPI
+        jne MB_Not_Common_Frame
+        call XmsCommonRequest
+        mov ah,0
+        jnc MB_Client_Status
+        mov ah,2
+        jmp MB_Client_Status
+MB_Not_Common_Frame:
+        cmp si,65536-4
         ja MB_Public_Move_Not_Packet
         cmp dword ptr es:[si],4d534d58h ; XMSM
         jne MB_Public_Move_Not_Packet
@@ -617,7 +627,7 @@ IFDEF EMM_UMB_RESULTS_TEST
     or dx,XCP_UMB_RESULTS
 ENDIF
 IFDEF EMM_COMMON_XMS_TEST
-    or dx,XCP_PUBLIC_MOVE
+    or dx,XCP_PUBLIC_MOVE OR XCP_COMMON_FRAME
 ENDIF
 ENDIF
 ENDIF
@@ -673,6 +683,8 @@ ENDIF
     je short XmsI15Private
 ENDIF
 IFDEF EMM_COMMON_XMS_TEST
+    cmp dword ptr es:[si],49504158h
+    je short XmsI15Private
     cmp dword ptr es:[si],4d534d58h
     je short XmsI15Private
 ENDIF

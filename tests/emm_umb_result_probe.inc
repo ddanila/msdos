@@ -1,5 +1,8 @@
 ; Exercise one sequenced allocation, then query the final result without
 ; submitting the operation again. UMB_CALL records each public return value.
+%ifndef UMB_PENDING_BYTES
+%define UMB_PENDING_BYTES 24
+%endif
 umb_result_fault_probe:
     call umb_largest
     mov [ur_before],dx
@@ -141,7 +144,7 @@ umb_pending_probe:
     jne umb_failed
     mov si,UMB_PACKET_OFFSET
     mov di,ur_pending_packet
-    mov cx,24
+    mov cx,UMB_PENDING_BYTES
 .save:
     mov al,[es:si]
     mov [di],al
@@ -161,12 +164,25 @@ umb_pending_probe:
     mov ax,0e702h
     int 2fh
     call ur_assert_failure
+%ifdef COMMON_PUBLIC_MOVE
+    mov dx,1
+    mov ah,9
+    UMB_CALL
+    call ur_assert_failure
+    mov ah,8
+    UMB_CALL
+    call ur_assert_failure
+    mov si,pm_descriptor
+    mov ah,0bh
+    UMB_CALL
+    call ur_assert_failure
+%endif
     mov es,[himem_segment]
     cmp byte [es:UMB_STATE_OFFSET],3
     jne umb_failed
     mov si,UMB_PACKET_OFFSET
     mov di,ur_pending_packet
-    mov cx,24
+    mov cx,UMB_PENDING_BYTES
 .check:
     mov al,[es:si]
     cmp al,[di]
@@ -184,6 +200,9 @@ umb_pending_probe:
     mov eax,[ur_sequence]
     cmp eax,[es:UMB_SEQUENCE_OFFSET]
     jne umb_failed
+%ifdef COMMON_PUBLIC_MOVE
+    call common_packets_restore
+%endif
     mov dx,0e9h
     mov al,'U'
     out dx,al
@@ -195,7 +214,11 @@ umb_pending_probe:
     call word_out
     mov ax,[ur_sequence+2]
     call word_out
+%ifdef COMMON_PUBLIC_MOVE
+    mov ax,6                  ; UMB, handle and Move families all remain frozen
+%else
     mov ax,3                  ; three subsequent operations were refused
+%endif
     call word_out
     ret
 ur_assert_failure:
@@ -204,5 +227,5 @@ ur_assert_failure:
     cmp bl,8eh
     jne umb_failed
     ret
-ur_pending_packet times 24 db 0
+ur_pending_packet times UMB_PENDING_BYTES db 0
 %endif

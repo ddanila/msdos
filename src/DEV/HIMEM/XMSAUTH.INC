@@ -176,6 +176,21 @@ xms_stage_forward endp
 endif
 
 xms_remote_owned proc near
+ifdef HIMEM_COMMON_XMS_TEST
+ifdef HIMEM_COMMON_OLD_HANDLE_TEST
+        cmp ax,9
+        je common_handle_bootstrap
+endif
+        call xms_common_ready
+        jc common_handle_bootstrap
+        cmp ax,0bh
+        jne common_handle_ready
+        mov ax,14h
+common_handle_ready:
+        call xms_common_invoke
+        ret
+common_handle_bootstrap:
+endif
         pushf
         cli
         push es

@@ -63,6 +63,16 @@ class InitPhaseTests(unittest.TestCase):
             with self.subTest(data=bad), self.assertRaises(ValueError):
                 parse_umb_service_receipt(bad, failure="unknown")
 
+    def test_common_pending_requires_all_service_families(self):
+        data = struct.pack("<2sHIH", b"UX", 3, 1, 6)
+        result = parse_umb_service_receipt(data, failure="unknown", common_frame=True)
+        self.assertEqual(result["later_operations_refused"], 6)
+        with self.assertRaises(ValueError):
+            parse_umb_service_receipt(data, failure="unknown")
+        with self.assertRaises(ValueError):
+            parse_umb_service_receipt(struct.pack("<2sHIH", b"UX", 3, 1, 3),
+                                      failure="unknown", common_frame=True)
+
     def test_umb_result_controls_require_matching_lifecycle(self):
         script = Path(__file__).with_name("capture_emm_init_phases.py")
         cases = ((["--umb-service-receipts", "--reject-prepared"], "installed provider"),

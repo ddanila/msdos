@@ -87,3 +87,4 @@ core_copy_result:
 XmsServiceCore endp
 XmsServiceCoreEnd label near
         include XMSMOVE.INC
+        include XMSFRAME.INC

@@ -157,6 +157,16 @@ check_umb_owner:
     pop es
 .live_payload_checked:
 %endif
+%ifdef COMMON_PUBLIC_MOVE
+    call common_packets_begin
+    mov ax,0e701h
+    mov si,umb_registration
+    int 2fh
+    test ax,ax                  ; already registered: same authoritative owner
+    jnz umb_failed
+    cmp bl,1
+    jne umb_failed
+%endif
 %ifdef UMB_HANDOFF_TEST
     ; Retired low count/records must no longer drive either public or peer
     ; operations. Never touch the UMB backing addresses themselves.
@@ -222,6 +232,20 @@ check_umb_owner:
     call umb_largest
     or dx,dx
     jnz umb_failed
+%ifdef COMMON_PUBLIC_MOVE
+    mov ax,0e701h
+    mov si,umb_registration
+    int 2fh
+    cmp ax,1
+    jne umb_failed
+    mov ax,0e702h
+    int 2fh
+    cmp ax,1
+    jne umb_failed
+    call umb_largest
+    or dx,dx
+    jnz umb_failed
+%endif
 .done:
 %ifdef UMB_LOW_FALLBACK_TEST
     mov es,[himem_segment]
@@ -257,6 +281,7 @@ check_umb_owner:
 %ifdef COMMON_PUBLIC_MOVE
     call check_common_public_move
     call check_common_binding
+    call common_packets_finish
 %endif
     ret
 %ifdef UMB_LIVE_IMPORT
@@ -363,4 +388,5 @@ umb_guard times 48 db 0
 %ifdef COMMON_PUBLIC_MOVE
     %include "tests/emm_common_move_probe.inc"
     %include "tests/emm_common_binding_probe.inc"
+    %include "tests/emm_common_frame_probe.inc"
 %endif

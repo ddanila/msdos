@@ -240,6 +240,13 @@ private_register:
         pop     ds
 ifdef HIMEM_UMB_HANDOFF_TEST
         mov     ax,12h
+ifdef HIMEM_COMMON_XMS_TEST
+        call    xms_common_ready
+        jc      common_register_bootstrap
+        call    xms_common_peer
+        jmp     private_done
+common_register_bootstrap:
+endif
         call    umb_remote
         jnc     private_done
 endif
@@ -263,6 +270,14 @@ private_unregister:
 ifdef HIMEM_UMB_HANDOFF_TEST
         push    dx
         mov     ax,13h
+ifdef HIMEM_COMMON_XMS_TEST
+        call    xms_common_ready
+        jc      common_unregister_bootstrap
+        call    xms_common_peer
+        pop     dx
+        jmp     private_unregister_done
+common_unregister_bootstrap:
+endif
         call    umb_remote
         pop     dx
         jnc     private_unregister_done
@@ -308,6 +323,27 @@ endif
         push    es
         push    cs
         pop     ds
+ifdef HIMEM_COMMON_XMS_TEST
+        cmp ah,8
+        jb common_public_legacy
+        cmp ah,11h
+        ja common_public_legacy
+ifdef HIMEM_COMMON_LOW_MOVE_TEST
+        cmp ah,0bh
+        je common_public_legacy
+endif
+ifdef HIMEM_COMMON_OLD_HANDLE_TEST
+        cmp ah,9
+        je common_public_legacy
+endif
+        call xms_common_ready
+        jc common_public_legacy
+        mov al,ah
+        xor ah,ah
+        call xms_common_invoke
+        jmp xms_return
+common_public_legacy:
+endif
         cmp     ah, 011h
         ja      short xms_unknown
         mov     al, ah
@@ -1029,6 +1065,7 @@ ifdef HIMEM_UMB_HANDOFF_TEST
 ifdef HIMEM_COMMON_XMS_TEST
         include XMSMOVEFRONT.INC
         include XMSBIND.INC
+        include XMSFRAME.INC
 endif
 ; After commitment the retired table is temporary peer-registration input,
 ; never an authoritative low mirror. The preceding word supplies its version.

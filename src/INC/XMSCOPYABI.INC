@@ -17,6 +17,7 @@ XCP_OWNER_RECEIPT equ 32 ; read-only XAUT operation 00h supported
 XCP_UMB_OWNER equ 64 ; opt-in independent XUMB publication/service boundary
 XCP_UMB_RESULTS equ 128 ; XUMB v2 sequenced service result receipts
 XCP_PUBLIC_MOVE equ 256 ; XMSM + 16-byte public descriptor snapshot, high validation
+XCP_COMMON_FRAME equ 512 ; XAPI v2 steady-state context, independent of boot imports
 XCP_REQUIRED equ XCP_PHYSICAL OR XCP_CLIENT OR XCP_INACTIVE
 ; BIND_QUERY succeeds only after final relocation/compaction and vector
 ; installation. ES:DI accepts PUSHF/CALL FAR with the usual INT 15h packet
@@ -34,7 +35,21 @@ XCP_REQUIRED equ XCP_PHYSICAL OR XCP_CLIENT OR XCP_INACTIVE
 ; Low caller restores XCPY after consuming the result. No new scratch packet
 ; or low handle mirror is introduced. Public Move error/overlap validation
 ; executes high; result recovery does not undo partially completed hardware
-; copies. A complete registered caller-context ABI remains separate work.
+; copies. COMMON_FRAME replaces these steady-state packets with XAPI v2:
+; +4 version=2, +6 operation, +8 completion (input 0), +10 result AX,
+; +12 DX, +14 BX, +16 input offset, +18 capacity, +20 dword sequence.
+; Both handle and UMB owners must already be committed. Operations 08h..11h
+; are public XMS, 12h/13h register/unregister UMBs, 14h private handle lookup.
+; 08h/0Eh/14h require sequence zero; other services share the XUMB v2 journal.
+; Operation 02h queries that journal without requiring a new mutation.
+; Source bytes share the frame's client segment. Move requires 16 bytes;
+; registration takes version/count plus up to 32 four-byte records. The low
+; front uses one 156-byte frame (24-byte header + 132-byte input union), never
+; the retired import table as peer scratch. Unknown mutation outcomes freeze
+; all common public/peer calls before overwriting any pending frame bytes.
+; Once common dispatch starts, legacy XAUT mutations are rejected. Bootstrap
+; imports remain separate; frame independence is not permission to reclaim
+; their bodies before final loader publication and last-use proof.
 ; Paired HIMEM-only layout discovery through INT 2Fh. Request AX=query,
 ; CX=signature, SI=version, DI=0. Success AX=reply, DX=resident segment,
 ; BX=paragraph-aligned permanent end, SI=bootstrap handle-table offset,

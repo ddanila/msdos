@@ -97,12 +97,12 @@ def parse_common_binding(data):
                 revoked_call_refused=True, backing_released=False)
 
 
-def parse_umb_service_receipt(data, *, failure):
+def parse_umb_service_receipt(data, *, failure, common_frame=False):
     if len(data) != 10:
         raise ValueError("missing sequenced UMB service witness")
     if failure == "unknown":
         tag, state, sequence, refused = struct.unpack("<2sHIH", data)
-        if tag != b"UX" or state != 3 or not sequence or refused != 3:
+        if tag != b"UX" or state != 3 or not sequence or refused != (6 if common_frame else 3):
             raise ValueError("invalid pending UMB service witness")
         return dict(sequence=sequence, pending=True, later_operations_refused=refused,
                     replayed=False, pending_packet_preserved=True)
@@ -317,6 +317,8 @@ def main():
                         help="negative control: use the retired low Move resolver")
     parser.add_argument("--bad-common-binding", choices=("rediscover", "guard"),
                         help="negative control: rediscover a bound provider or ignore revocation")
+    parser.add_argument("--bad-common-frame", action="store_true",
+                        help="negative control: allocate through the retired handle packet")
     parser.add_argument("--umb-sequence-wrap", action="store_true",
                         help="seed both confirmed sequence counters near 32-bit wrap")
     parser.add_argument("--umb-service-reply", choices=("before", "after", "unknown"),
@@ -377,7 +379,7 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
-    if args.bad_common_xms_entry or args.bad_common_move_low or args.bad_common_binding:
+    if args.bad_common_xms_entry or args.bad_common_move_low or args.bad_common_binding or args.bad_common_frame:
         args.common_xms_entry = True
     if args.common_xms_entry:
         args.umb_service_receipts = True
@@ -596,6 +598,7 @@ def main():
                         *(["-DHIMEM_UMB_HANDOFF_TEST"] if args.umb_handoff else []),
                         *(["-DHIMEM_UMB_RESULTS_TEST"] if args.umb_service_receipts else []),
                         *(["-DHIMEM_COMMON_XMS_TEST"] if args.common_xms_entry else []),
+                        *(["-DHIMEM_COMMON_OLD_HANDLE_TEST"] if args.bad_common_frame else []),
                         *(["-DHIMEM_BIND_ALWAYS_DISCOVER_TEST"] if args.bad_common_binding == "rediscover" else []),
                         *(["-DHIMEM_COMMON_LOW_MOVE_TEST"] if args.bad_common_move_low else []),
                         *(["-DHIMEM_UMB_SEQUENCE_WRAP_TEST"] if args.umb_sequence_wrap else []),
@@ -652,7 +655,10 @@ def main():
                 if len(ready) != 1:
                     raise ValueError("missing/duplicate common binding guard in linked map")
                 umb_defines += [f"-DCOMMON_BINDING_OFFSET={symbols['xms_bound_entry'][0]}",
-                                f"-DCOMMON_GUARD_OFFSET={ready[0]}"]
+                                f"-DCOMMON_GUARD_OFFSET={ready[0]}",
+                                f"-DCOMMON_OWNER_PACKET_OFFSET={symbols['owner_packet'][0]}",
+                                f"-DCOMMON_UMB_PACKET_OFFSET={symbols['umb_remote_packet'][0]}",
+                                f"-DCOMMON_COPY_PACKET_OFFSET={symbols['protected_copy_packet'][0]}"]
             if args.umb_handoff:
                 umb_defines += ["-DUMB_LOW_FALLBACK_TEST" if args.reject_prepared else "-DUMB_HANDOFF_TEST",
                                 f"-DUMB_STATE_OFFSET={symbols['umb_remote_state'][0]}"]
@@ -671,7 +677,8 @@ def main():
                     if args.umb_service_reply:
                         umb_defines += [{"before": "-DUMB_REPLY_BEFORE", "after": "-DUMB_REPLY_AFTER",
                                          "unknown": "-DUMB_REPLY_UNKNOWN"}[args.umb_service_reply],
-                                        f"-DUMB_PACKET_OFFSET={symbols['umb_remote_packet'][0]}"]
+                                        f"-DUMB_PACKET_OFFSET={symbols['common_packet' if args.common_xms_entry else 'umb_remote_packet'][0]}",
+                                        f"-DUMB_PENDING_BYTES={156 if args.common_xms_entry else 24}"]
         subprocess.run(["nasm", "-f", "bin", f"-DEMM_MARK_DELTA={mark_delta}",
                         *(["-DUMB_OWNER_TEST"] if args.umb_owner else []),
                         *umb_defines, f"-I{capture.ROOT}/",
@@ -732,6 +739,10 @@ def main():
             post_boot[mode] = parse_post_boot(trace_data[-10:], expected)
             trace_data = trace_data[:-10]
             if args.common_xms_entry and args.umb_service_reply != "unknown":
+                if not trace_data.endswith(b"CF"):
+                    raise ValueError("common frame/legacy packet independence probe failed")
+                trace_data = trace_data[:-2]
+                post_boot[mode]["common_frame"] = dict(legacy_packet_bytes_unused=64)
                 post_boot[mode]["common_binding"] = parse_common_binding(trace_data[-8:])
                 trace_data = trace_data[:-8]
                 if not trace_data.endswith(b"PM"):
@@ -741,7 +752,7 @@ def main():
                                                            descriptor_validation=True)
             if args.umb_service_receipts:
                 post_boot[mode]["umb_service_receipt"] = parse_umb_service_receipt(
-                    trace_data[-10:], failure=args.umb_service_reply)
+                    trace_data[-10:], failure=args.umb_service_reply, common_frame=args.common_xms_entry)
                 trace_data = trace_data[:-10]
             if args.umb_live_import:
                 post_boot[mode]["live_umb_import"] = parse_live_umb_import(trace_data[-8:], mode=mode)
@@ -818,6 +829,7 @@ def main():
         bad_common_xms_entry=args.bad_common_xms_entry,
         bad_common_move_low=args.bad_common_move_low,
         bad_common_binding=args.bad_common_binding,
+        bad_common_frame=args.bad_common_frame,
         umb_sequence_wrap=args.umb_sequence_wrap,
         umb_service_reply=args.umb_service_reply,
         bad_umb_result_freeze=args.bad_umb_result_freeze,
