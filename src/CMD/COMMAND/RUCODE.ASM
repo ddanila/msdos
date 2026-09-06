@@ -237,6 +237,13 @@ critical_int2f_low PROC FAR
 	int 2fh
 	retf
 critical_int2f_low ENDP
+	IFDEF COMMAND_CRITICAL_RECLAIM
+CODERES ENDS
+HMACODE SEGMENT PUBLIC BYTE
+ASSUME CS:RESGROUP,DS:RESGROUP
+	PUBLIC hma_code_start
+hma_code_start LABEL BYTE
+	ENDIF
 critical_body_start:
 	ENDIF
 
@@ -638,6 +645,11 @@ FATERR:
 	CRITICAL_EXIT_BRIDGE terminate
 	CRITICAL_EXIT_BRIDGE dead
 critical_body_end LABEL BYTE
+	IFDEF COMMAND_CRITICAL_RECLAIM
+HMACODE ENDS
+CODERES SEGMENT PUBLIC BYTE
+ASSUME CS:RESGROUP,DS:RESGROUP
+	ENDIF
 	ENDIF
 
 ;*********************************************
@@ -761,7 +773,12 @@ HMACODE SEGMENT PUBLIC BYTE
 ASSUME CS:RESGROUP,DS:RESGROUP
 
 PUBLIC hma_code_start,hma_code_end,hma_in_char_xlat_body
+	IFNDEF COMMAND_CRITICAL_RECLAIM
 hma_code_start LABEL BYTE
+	ENDIF
+	IFDEF COMMAND_CRITICAL_RECLAIM
+PUBLIC hma_in_char_xlat_high
+	ENDIF
 hma_in_char_xlat_high proc far
 	call	hma_in_char_xlat_body
 	retf

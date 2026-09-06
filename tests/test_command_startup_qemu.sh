@@ -24,10 +24,17 @@ CRITICAL_ABI=${COMMAND_CRITICAL_ABI:-0}
 CRITICAL_MESSAGES=${COMMAND_CRITICAL_MESSAGES:-disk}
 CRITICAL_NO_HOOK=${COMMAND_CRITICAL_NO_HOOK:-0}
 CRITICAL_ACTION=${COMMAND_CRITICAL_ACTION:-fail}
+CRITICAL_DOS_MODE=${COMMAND_CRITICAL_DOS_MODE:-HIGH}
+CRITICAL_BUFFERS=${COMMAND_CRITICAL_BUFFERS:-}
+if [[ -n "$CRITICAL_BUFFERS" && ! "$CRITICAL_BUFFERS" =~ ^[1-9][0-9]?$ ]]; then
+    echo 'ERROR: critical fixture buffer count must be 1..99'
+    exit 1
+fi
 if [[ "$CRITICAL_ABI" != 0 && "$CRITICAL_ABI" != 1 ]] \
     || [[ "$CRITICAL_MESSAGES" != disk && "$CRITICAL_MESSAGES" != resident ]] \
     || [[ "$CRITICAL_NO_HOOK" != 0 && "$CRITICAL_NO_HOOK" != 1 ]] \
-    || [[ "$CRITICAL_ACTION" != fail && "$CRITICAL_ACTION" != retry ]]; then
+    || [[ "$CRITICAL_ACTION" != fail && "$CRITICAL_ACTION" != retry ]] \
+    || [[ "$CRITICAL_DOS_MODE" != HIGH && "$CRITICAL_DOS_MODE" != LOW ]]; then
     echo 'ERROR: invalid critical ABI diagnostic configuration'
     exit 1
 fi
@@ -126,9 +133,15 @@ mcopy -o -i "$FAIL_BOOT_IMG" "$CRITICAL_ABI_PROBE" ::CRITABI.COM
 if [[ -n ${COMMAND_CRITICAL_LOADER:-} ]]; then
     mcopy -o -i "$FAIL_BOOT_IMG" "$COMMAND_CRITICAL_LOADER" ::CRITHIGH.COM
 fi
+if [[ -n ${COMMAND_CRITICAL_RECLAIM_PROBE:-} ]]; then
+    mcopy -o -i "$FAIL_BOOT_IMG" "$COMMAND_CRITICAL_RECLAIM_PROBE" ::CRITMEM.COM
+fi
 {
     printf 'DEVICE=A:\\HIMEM.SYS\r\n'
-    printf 'DOS=HIGH\r\n'
+    printf 'DOS=%s\r\n' "$CRITICAL_DOS_MODE"
+    if [[ -n "$CRITICAL_BUFFERS" ]]; then
+        printf 'BUFFERS=%s\r\n' "$CRITICAL_BUFFERS"
+    fi
     if [[ "$CRITICAL_MESSAGES" == resident ]]; then
         printf 'SHELL=A:\\COMMAND.COM /P /MSG\r\n'
     fi
@@ -136,6 +149,9 @@ fi
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
+    if [[ -n ${COMMAND_CRITICAL_RECLAIM_PROBE:-} ]]; then
+        printf 'CRITMEM.COM\r\n'
+    fi
     if [[ -n ${COMMAND_CRITICAL_LOADER:-} ]]; then
         printf 'CRITHIGH.COM\r\n'
     fi
@@ -147,6 +163,9 @@ fi
     printf 'ECHO COMMAND_CRITICAL_HMA_CONTINUED\r\n'
     printf 'COMMAND /F /C TYPE B:\\NOFILE.TXT\r\n'
     printf 'ECHO COMMAND_FAIL_ALL_CONTINUED\r\n'
+    if [[ -n ${COMMAND_CRITICAL_RECLAIM_PROBE:-} ]]; then
+        printf 'CRITMEM.COM\r\n'
+    fi
     if [[ -n ${COMMAND_CRITICAL_LOADER:-} ]]; then
         printf 'CRITHIGH.COM /CHECK\r\n'
     fi
@@ -262,7 +281,7 @@ if grep -q '^COMMAND_CRITICAL_HMA_CONTINUED' "$FAIL_SERIAL_LOG" \
     && grep -q '^COMMAND_FAIL_ALL_CONTINUED' "$FAIL_SERIAL_LOG" \
     && grep -q 'General failure reading drive B' "$FAIL_SERIAL_LOG" \
     && grep -q 'Fail on INT 24' "$FAIL_SERIAL_LOG"; then
-    ok "DOS-high permanent COMMAND survives critical errors (messages=$CRITICAL_MESSAGES)"
+    ok "DOS=$CRITICAL_DOS_MODE permanent COMMAND survives critical errors (messages=$CRITICAL_MESSAGES)"
 else
     fail "DOS-high permanent COMMAND did not survive the critical disk error"
 fi
@@ -281,6 +300,14 @@ if [[ "$CRITICAL_ABI" == 1 ]]; then
             ok "development critical body installed in HMA with old low body poisoned"
         else
             fail "development critical body HMA installation"
+        fi
+    fi
+    if [[ -n ${COMMAND_CRITICAL_RECLAIM_PROBE:-} ]]; then
+        if [[ $(grep -c '^COMMAND_CRITICAL_LAYOUT_PASS' "$FAIL_SERIAL_LOG") == 2 ]] \
+            && ! grep -q 'COMMAND_CRITICAL_LAYOUT_FAIL' "$FAIL_SERIAL_LOG"; then
+            ok "critical parent layout holds before and after disk errors"
+        else
+            fail "critical parent allocation or HMA dispatch"
         fi
     fi
     if grep -q '^COMMAND_CRITICAL_ABI_PASS' "$FAIL_SERIAL_LOG" \

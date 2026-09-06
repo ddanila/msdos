@@ -93,6 +93,9 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN critical_int21_segment:word,critical_int2f_segment:word
 	EXTRN critical_return_segment:word,critical_reload_segment:word
 	EXTRN critical_terminate_segment:word,critical_dead_segment:word
+	IFDEF COMMAND_CRITICAL_RECLAIM
+	EXTRN critical_dispatch:byte
+	ENDIF
 	ENDIF
 	EXTRN	hma_in_char_xlat_entry:dword
 	EXTRN	hma_test_kanj_entry:dword
@@ -109,6 +112,9 @@ DATARES ENDS
 HMACODE SEGMENT PUBLIC BYTE
 	EXTRN	hma_code_start:byte
 	EXTRN	hma_code_end:byte
+	IFDEF COMMAND_CRITICAL_RECLAIM
+	EXTRN critical_body_start:byte,hma_in_char_xlat_high:byte
+	ENDIF
 	EXTRN	hma_test_kanj_high:byte
 	EXTRN	HMA_SYSGETMSG:byte
 	EXTRN	HMA_SYSDISPMSG:byte
@@ -1731,7 +1737,14 @@ relocate_resident_catalogs proc near
 	; The next byte is the HMA entry for the independently linked code body.
 	; Its internal relative branches survive the copy; its data references
 	; continue to use COMMAND's resident DS.
+	IFDEF COMMAND_CRITICAL_RECLAIM
+	mov	ax,di
+	add	ax,offset resgroup:hma_in_char_xlat_high
+	sub	ax,offset resgroup:hma_code_start
+	mov	word ptr [hma_in_char_xlat_entry],ax
+	ELSE
 	mov	word ptr [hma_in_char_xlat_entry],di
+	ENDIF
 	mov	word ptr [hma_in_char_xlat_entry+2],es
 	mov	ax,di
 	add	ax,offset resgroup:hma_test_kanj_high
@@ -1780,6 +1793,19 @@ relocate_resident_catalogs proc near
 	mov	word ptr cs:[hma_sysdispmsg_gateway+3],es
 	mov	byte ptr cs:[hma_sysdispmsg_gateway+5],0c3h
 	mov	byte ptr cs:[hma_sysdispmsg_gateway],09ah
+	IFDEF COMMAND_CRITICAL_RECLAIM
+	; The complete body was bound before vector publication and copied with
+	; HMACODE. Activate it before the common permanent break releases its
+	; fallback copy; no later interrupt may write or execute that old range.
+	mov	ax,di
+	add	ax,offset resgroup:dataresend
+	sub	ax,offset resgroup:resident_catalog_start
+	add	ax,offset resgroup:critical_body_start
+	sub	ax,offset resgroup:hma_code_start
+	mov	word ptr cs:[critical_dispatch+1],ax
+	mov	word ptr cs:[critical_dispatch+3],es
+	mov	byte ptr cs:[critical_dispatch],0eah
+	ENDIF
 	popf
 
 	; SYSLOADMSG initialized five far slots to their low class structures.

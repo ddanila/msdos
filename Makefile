@@ -651,6 +651,10 @@ test-command-critical-abi-qemu: deploy
 test-command-critical-split-qemu: deploy
 	bash tests/test_command_critical_split_qemu.sh
 
+.PHONY: test-command-critical-reclaim-qemu
+test-command-critical-reclaim-qemu: deploy
+	COMMAND_CRITICAL_RECLAIM=1 bash tests/test_command_critical_split_qemu.sh
+
 test-command-step-qemu: deploy
 	bash tests/test_command_step_qemu.sh
 

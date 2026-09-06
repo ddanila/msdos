@@ -119,7 +119,11 @@ def main() -> int:
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--critical-split", action="store_true",
                         help="check the development low-entry/body/exit layout (body still low)")
+    parser.add_argument("--critical-reclaim", action="store_true",
+                        help="check development startup relocation of the body from HMACODE")
     args = parser.parse_args()
+    if args.critical_reclaim:
+        args.critical_split = True
 
     segments, symbols = parse_map(args.map)
     required_segments = (
@@ -259,9 +263,15 @@ def main() -> int:
             "critical_return_low", "critical_reload_low",
             "critical_terminate_low", "critical_dead_low",
         )]
+        low_interface_end = crlf_start if args.critical_reclaim else body_start
         if not (disk_error_start < exits[0] < exits[1] < exits[2]
-                < exits[3] < body_start < body_end == crlf_start):
+                < exits[3] < low_interface_end):
             errors.append("development critical entry, exits and body are not separated")
+        if args.critical_reclaim:
+            if not (body_start == hma_code_start < body_end <= hma_code_end):
+                errors.append("reclaimable critical body is not inside the HMA code allocation")
+        elif body_end != crlf_start:
+            errors.append("unreclaimed critical body does not end at CRLF")
         expected_dispatch = (b"\xe9" + ((body_start - dispatch - 3) & 0xFFFF).to_bytes(2, "little")
                              + b"\x90\x90")
         if not (dispatch + 5 == exits[0]
@@ -281,11 +291,12 @@ def main() -> int:
                 expected += b"\xc3"
             if not (body_start <= bridge < bridge + size <= body_end
                     and binding == bridge + 3
-                    and disk_error_start <= target < body_start
+                    and disk_error_start <= target < low_interface_end
                     and image[bridge - 0x100:bridge - 0x100 + size] == expected):
                 errors.append(f"development critical {name} bridge has an invalid far binding")
-        print(f"| Development critical entry and exits | `{disk_error_start:04X}h..{body_start:04X}h` | {body_start - disk_error_start:,} | low interfaces |")
-        print(f"| Development complete critical body | `{body_start:04X}h..{body_end:04X}h` | {body_end - body_start:,} | still low; far services/exits, A20 return gates pending |")
+        print(f"| Development critical entry and exits | `{disk_error_start:04X}h..{low_interface_end:04X}h` | {low_interface_end - disk_error_start:,} | low interfaces |")
+        placement = "startup HMA relocation; low fallback" if args.critical_reclaim else "still low; test-loader relocation only"
+        print(f"| Development complete critical body | `{body_start:04X}h..{body_end:04X}h` | {body_end - body_start:,} | {placement}; A20 return gates pending |")
         print(f"| Critical binding constructor | `{constructor:04X}h..{constructor_end:04X}h` | {constructor_end - constructor:,} | discardable initialization |")
         print("\nDevelopment only: the 128-byte temporary support allowance is not")
         print("a production budget increase or a claimed conventional-memory saving.\n")

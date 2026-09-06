@@ -282,6 +282,8 @@ Abort also updates batch, pipe and FOR state before the ordinary IRET exit.
 Keep those authoritative low-state effects in the design; verifying AL alone
 would miss them.
 
+##### Cross-segment execution fixture
+
 `make test-command-critical-split-qemu` builds the development-only
 `COMMAND_CRITICAL_SPLIT` variant in a separate artifact directory. It separates
 all four exits from the complete handler body and uses the saved low DS, not
@@ -323,14 +325,45 @@ byte-identical. Reload, initialization termination, Abort side effects and
 A20 failure are not qualified by these cases. In particular the low service
 wrappers do not yet recover A20 before returning to high code.
 
-Next link the body after the permanent low data and integrate activation with
-the existing initialization-time HMA copy, so successful placement can release
-its complete fallback range. Rebase the character/message entry offsets if the
-new body precedes them in HMACODE, and publish the critical far dispatch before
-lowering the permanent break. Preserve low/failure, child and /MSG paths.
-Budget final wrappers, A20 recovery and alignment together with the rest of
-COMMAND and the managers; do not count copied or poisoned bytes as conventional
-savings or promote the test-only loader as the installed design.
+##### Startup reclamation fixture
+
+`make test-command-critical-reclaim-qemu` adds `COMMAND_CRITICAL_RECLAIM` to
+the split variant. The complete 661-byte body is linked at the start of
+HMACODE, after permanent low data and catalogs. Initialization copies it in the
+same allocation as the existing HMA code, rebases character/message entry
+offsets, and publishes the critical far dispatch before lowering the permanent
+break. No test loader is needed. Child, /MSG and failed-allocation paths retain
+the complete low fallback with its constructor-initialized bindings.
+
+Matched QEMU probes, with identical 2 KiB child allocations and resource
+settings, measure this result both before and after disk errors/child cleanup:
+
+| Measurement | Normal COMMAND | Startup variant | Difference |
+| --- | ---: | ---: | ---: |
+| Permanent parent image | 3,632 | 3,104 | 528 released |
+| Largest free block while the probe runs | 627,504 | 628,032 | 528 gained |
+
+These are **not VC figures**. The probe checks the parent MCB, the live HMA
+dispatch and that the old body lies beyond the parent's allocation boundary.
+Both Fail and Retry cases match the released paragraphs to the largest-block
+gain, before and after the error sequence. The additional HMA payload is 661
+bytes; this is whole-object relocation, not an equal reduction in total code.
+
+The fixture also checks the retained body and low dispatch under /MSG and
+DOS=LOW. A DOS=HIGH/BUFFERS=46 case forces payload-allocation failure: a small
+tail allocation succeeds but the full payload does not fit, and the low
+fallback still passes the critical-error and parent-layout checks. Secondary
+interpreter and /F cleanup paths run in the startup suite as well.
+
+This remains development-only. The normal binary and fixed VC baseline are
+unchanged; composition with the BIOS/table development profile is not yet
+measured. A20-safe high returns, nested critical errors, Abort side effects,
+reload/termination exits, warm reset and 286 high-body qualification remain
+promotion gates. At 3,104 bytes, another 1,056 net bytes plus any new retained
+support would be needed to reach the proposed 2,048-byte shell ceiling. This
+tranche is part of the previously inventoried whole shell body, not an extra
+528 bytes to add to that candidate's predicted saving. Keep the combined
+manager/shell budget open until final gates and intervals are proved.
 
 The eventual reclamation commits have three distinct owners:
 
