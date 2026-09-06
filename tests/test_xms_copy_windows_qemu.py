@@ -40,6 +40,8 @@ def main():
                         help="negative control: keep AH=08h local despite installed high support")
     parser.add_argument("--bypass-extended-query", action="store_true",
                         help="negative control: leave only AH=88h on the local scanner")
+    parser.add_argument("--bypass-owner-copy", action="store_true",
+                        help="negative control: skip the high allocator's copy binding")
     parser.add_argument("--reject-reallocation", action="store_true",
                         help="reject one reallocating copy, require intact ownership, then retry")
     parser.add_argument("--early-realloc-state", action="store_true",
@@ -117,6 +119,8 @@ def main():
         parser.error("owner bypass requires --owner-query")
     if args.bypass_extended_query and not args.owner_query:
         parser.error("extended query bypass requires --owner-query")
+    if args.bypass_owner_copy and not args.owner_query:
+        parser.error("owner copy bypass requires --owner-query")
     subprocess.run(["make", "memm"], cwd=ROOT, check=True)
     normal = ROOT / "src/MEMM/MEMM/EMM386.EXE"
     normal_hash = hashlib.sha256(normal.read_bytes()).hexdigest()
@@ -132,6 +136,8 @@ def main():
         flags += " -DEMM_XMS_OWNER_TEST -I..\\..\\DEV\\HIMEM"
     if args.bad_owner_result:
         flags += " -DEMM_XMS_OWNER_BAD_RESULT"
+    if args.bypass_owner_copy:
+        flags += " -DEMM_XMS_OWNER_BYPASS_COPY"
     if args.backend_capability == "version":
         flags += " -DEMM_XMS_COPY_BAD_VERSION"
     if args.backend_capability == "features":
@@ -219,10 +225,11 @@ def main():
     report = dict(passed=False, mode=args.mode, fail_after_map=args.fail_after_map, core_bytes=code_size,
                   owner_query=args.owner_query, bad_owner_result=args.bad_owner_result,
                   bypass_owner_query=args.bypass_owner_query,
+                  bypass_owner_copy=args.bypass_owner_copy,
                   bypass_extended_query=args.bypass_extended_query,
                   owner_code_bytes=(symbols["XmsQueryOwnerEnd"].offset - symbols["XmsQueryOwner"].offset
                                     if args.owner_query else None),
-                  owner_state_bytes=(symbols["XmsOwnerSnapshotEnd"].offset - symbols["XmsOwnerSnapshot"].offset
+                  owner_state_bytes=(symbols["XmsOwnerStorageEnd"].offset - symbols["XmsOwnerSnapshot"].offset
                                      if args.owner_query else None),
                   backend_capability=args.backend_capability, bypass_capability=args.bypass_capability,
                   expect_copy_failure=expect_copy_failure,
@@ -335,7 +342,7 @@ def main():
                     linear = code_base + symbols["XmsOwnerSnapshot"].offset
                     snapshot = bytearray()
                     physical_pages = set()
-                    for address in range(linear, linear + 652):
+                    for address in range(linear, linear + report["owner_state_bytes"]):
                         pde = struct.unpack_from("<I", ram, (cr3 & ~4095) + (address >> 22) * 4)[0]
                         if not pde & 1 or pde & 128:
                             raise ValueError("high owner lacks an ordinary present page table")
@@ -361,8 +368,15 @@ def main():
                     total = max(pool - 64, 0) - used
                     if struct.unpack_from("<HH", snapshot, 648) != (largest, total):
                         raise ValueError("installed high query disagrees with independent interval accounting")
+                    if snapshot[652:664] != bytes(12):
+                        raise ValueError("high copy binding did not restore allocator scratch")
+                    copy_calls = struct.unpack_from("<I", snapshot, 664)[0]
+                    if phase in ("F", "R"):
+                        previous_copies = report["owner_queries"][-1]["copy_calls"]
+                        if copy_calls != previous_copies + 1:
+                            raise ValueError("relocation did not execute the high allocator copy binding exactly once")
                     report.setdefault("owner_queries", []).append(dict(
-                        phase=phase, calls=calls, limit=limit, pool_kb=pool,
+                        phase=phase, calls=calls, copy_calls=copy_calls, limit=limit, pool_kb=pool,
                         largest_kb=largest, total_kb=total, physical_pages=sorted(physical_pages)))
                 windows = copy_window_candidates(ram, cr3)
                 client_frames = []

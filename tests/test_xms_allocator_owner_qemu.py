@@ -31,6 +31,7 @@ def main():
     source = ROOT / "src/DEV/HIMEM"
     prefix = (source / "HIMEM.ASM").read_text().split("device_header:", 1)[0]
     prefix += (source / "XMSRECORD.INC").read_text()
+    prefix += (source / "XMSERROR.INC").read_text()
     equates = re.findall(r"^\w+\s+equ\s+.+$", prefix, re.MULTILINE | re.IGNORECASE)
     (work / "allocator_equates.inc").write_text("\n".join(equates) + "\n")
     binary, listing = work / "service.bin", work / "service.lst"
@@ -54,7 +55,7 @@ def main():
         match = LABEL_RE.match(line) or PROCEDURE_RE.match(line)
         if match:
             addresses[match[1]] = int(match[2], 16)
-    inputs = [source / name for name in ("HIMEM.ASM", "XMSALLOC.INC", "XMSHANDLE.INC", "XMSSTATE.INC", "XMSSTAGE.INC", "XMSRECORD.INC")]
+    inputs = [source / name for name in ("HIMEM.ASM", "XMSALLOC.INC", "XMSHANDLE.INC", "XMSSTATE.INC", "XMSSTAGE.INC", "XMSRECORD.INC", "XMSERROR.INC")]
     inputs += [ROOT / "tests/xms_allocator_owner.asm", ROOT / "tests/xms_allocator_owner_boot.asm"]
     report = dict(passed=False, wrong_owner=args.wrong_owner,
                   accept_invalid_owner=args.accept_invalid_owner,

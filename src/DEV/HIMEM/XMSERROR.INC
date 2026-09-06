@@ -1,0 +1,23 @@
+; Shared public XMS error values; no emitted storage or provider policy.
+ERR_NOT_IMPLEMENTED equ 080h
+ERR_A20         equ     082h
+ERR_GENERAL     equ     08eh
+ERR_HMA_MISSING equ     090h
+ERR_HMA_USED    equ     091h
+ERR_HMA_SMALL   equ     092h
+ERR_HMA_FREE    equ     093h
+ERR_NO_MEMORY   equ     0a0h
+ERR_NO_HANDLES  equ     0a1h
+ERR_BAD_HANDLE  equ     0a2h
+ERR_BAD_SOURCE  equ     0a3h
+ERR_BAD_SRC_OFF equ     0a4h
+ERR_BAD_DEST    equ     0a5h
+ERR_BAD_DST_OFF equ     0a6h
+ERR_BAD_LENGTH  equ     0a7h
+ERR_OVERLAP     equ     0a8h
+ERR_NOT_LOCKED  equ     0aah
+ERR_LOCKED      equ     0abh
+ERR_LOCK_OVER   equ     0ach
+ERR_UMB_SMALL   equ     0b0h
+ERR_NO_UMBS     equ     0b1h
+ERR_BAD_UMB     equ     0b2h

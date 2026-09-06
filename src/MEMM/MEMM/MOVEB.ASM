@@ -213,7 +213,19 @@ ENDIF
 	mov	esi,es:[bx+8]
 	mov	edi,es:[bx+12]
 	mov	eax,es:[bx+16] ; bit 0/1: source/destination is client-linear
+IFDEF EMM_XMS_OWNER_TEST
+IFNDEF EMM_XMS_OWNER_BYPASS_COPY
+        test eax,eax
+        jnz short MB_Typed_Owner_Copy
+        call XmsOwnerCopyPacket
+        jmp short MB_Owner_Copy_Done
+MB_Typed_Owner_Copy:
+ENDIF
+ENDIF
 	call	XmsCopyClient
+IFDEF EMM_XMS_OWNER_TEST
+MB_Owner_Copy_Done:
+ENDIF
 	popad
 	mov	ah,0
 	jnc	MB_Client_Status

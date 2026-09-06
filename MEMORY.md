@@ -482,12 +482,37 @@ This is read-only service integration: HIMEM still owns all allocations and
 mutation services remain local. The full ownership transaction is not
 implemented. The snapshot must never allocate memory.
 
-The linked high query/scanner/validator code is 517 bytes plus 652 snapshot/result
-bytes, excluding existing transition/copy support and new low adapters. The
+The linked high allocation/query/scanner/validator service and its return/copy
+bindings occupy 948 code bytes plus 668 state bytes (652 snapshot/results,
+12 copy-workspace bytes and a four-byte execution counter). These exclude
+existing transition/copy support and new low packet adapters. The
 paired HIMEM also retains its transport snapshot and all original services.
 These are explicitly temporary duplicate storage costs, **not low-memory
 reclamation** or the final provider budget. Snapshotting every query is a
 development bridge to an authoritative high owner, not the target architecture.
+
+**Complete allocator binding:** `XMSOWNER.INC` now includes the same
+`XMSALLOC.INC` allocate/free/lock/unlock/info/reallocate services as HIMEM,
+with shared error constants and high-DS scratch bound to `XmsCopyPhysical`.
+These mutable services are linked but unpublished: calling them on the query
+snapshot would allocate the same memory twice. Public mutations still execute
+in HIMEM. An authoritative ownership commit, A20/HMA/UMB ownership, complete
+entry dispatch and boot-time low reclamation remain required.
+
+The development physical-only `XCPY` adapter exercises that high copy binding
+without changing snapshot handles, saving/restoring all twelve scratch bytes.
+Client-linear transfers retain the typed permission/alias checks. The host
+resolves the installed high storage through live GDT/page tables and requires
+exactly one additional binding call at each failed/successful reallocating-copy
+checkpoint; it also checks restored scratch, mappings and payloads. This proves
+the installed backend binding, not execution of high allocation mutations.
+DOS-high OFF failure/retry, AUTO and mapped ON pass in
+`out/xms-copy-windows-i9i7os4j/`, `out/xms-copy-windows-tn7ci1qd/` and
+`out/xms-copy-windows-_7b4fxnu/`. The `--bypass-owner-copy` negative fails in
+`out/xms-copy-windows-tdpew9hu/`. The separate-high-CS/DS/SS shared allocator
+witness also passes (`out/xms-allocator-owner-r4dw7y9_/`); it is not an installed
+ownership handoff. Normal HIMEM and EMM binaries are unchanged; no new
+conventional saving is claimed.
 
 Reproduce with `FLOPPY_IMAGE=out/setver-native-audit.BAEqDU/low.img make
 test-xms-owner-query-qemu` (or supply another current boot image). Evidence:
