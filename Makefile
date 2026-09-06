@@ -1073,6 +1073,10 @@ run-boot: deploy
 test-emm386-qemu: deploy
 	bash tests/test_emm386_qemu.sh
 
+.PHONY: test-xms-emm-mode-qemu
+test-xms-emm-mode-qemu: deploy
+	bash tests/test_xms_emm_mode_qemu.sh
+
 test-emm386-address-phases-qemu: deploy
 	bash tests/test_emm386_address_phases_qemu.sh
 

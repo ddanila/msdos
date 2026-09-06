@@ -1761,6 +1761,44 @@ python3 tests/capture_emm_live_owners.py --himem-handles 48 \
   out/setver-native-audit.BAEqDU/low.img
 ```
 
+#### XMS continuity across EMM modes: provider-integration gate
+
+Our coordinated-provider design cannot reuse the EMS dispatcher unchanged.
+`EMM.ASM` rejects supported EMS slots while explicitly OFF, whereas HIMEM's
+cached far XMS entry remains callable independently. A high XMS backend needs
+its own entry/return contract: preserve an outstanding allocation and its lock
+while serving calls in ON, OFF and idle AUTO, without changing the externally
+reported EMM mode. Do not solve this by retaining a second complete low XMS
+allocator or by disabling supported mode changes.
+
+`tests/xms_emm_mode_probe.asm` now locks a 1 KiB XMS allocation before changing
+EMM modes ON -> OFF -> AUTO -> ON. In each mode it takes and releases an
+additional lock, checks the same physical base, reads back a 16-byte payload
+through XMS Move, and verifies EMM mode again after the XMS calls. It releases
+the original lock and allocation at the end. The signed DOS HMA-state query
+asserts actual DOS-low/high residency; a repository EMM signature check guards
+the private mode-control entry. This establishes the existing separate-provider
+contract, not a protected XMS implementation, A20-off entry qualification,
+reentrancy proof or memory-saving result.
+
+Run `make test-xms-emm-mode-qemu`, or use an explicit private input:
+
+```sh
+FLOPPY_IMAGE=out/setver-native-audit.BAEqDU/low.img \
+  bash tests/test_xms_emm_mode_qemu.sh
+```
+
+The harness injects the local HIMEM/EMM386 binaries, saves their hashes and
+emulator identity, and retains each disposable image and serial log under
+`out/xms-emm-mode.*`, using QEMU `pc`, 486 and 8 MiB RAM. Both residency cases
+must pass; separate wrong-address and wrong-payload builds must exit through
+failure without a pass marker.
+The six-case baseline passes in `out/xms-emm-mode.Knsnp7/` (two successful
+guests and four expected rejections).
+Future provider activation must additionally preserve pre-existing client
+handles, HMA ownership, UMB registrations, cached entries and rollback, and
+qualify all XMS functions and aliases rather than relying on this small probe.
+
 #### First split and retained interfaces
 
 The current dispatcher no longer has the historical protected-service bitmap
