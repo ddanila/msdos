@@ -136,6 +136,73 @@ conversion helpers, before gateway costs. Explaining the 10,112-byte vendor
 difference therefore requires the mixed BIOS service/state and combined-provider
 boundaries as well as the whole shell; those bodies alone cannot explain it.
 
+### Reclamation contract: from placement evidence to a smaller resident system
+
+The DR-DOS evidence establishes whole-component placement, not its private
+implementation. The next milestone is a loader-owned compact low layout backed
+by complete high services. A copied or poisoned low payload is not released
+memory. The following is the target contract, not a qualified final address map.
+
+| Current low owner | Target ownership and release condition |
+| --- | --- |
+| HIMEM + EMM386, 4,656 bytes | One authoritative extended-memory allocator and protected service owner on the paired 386 path; retain stable real-mode entries, A20/mode transitions and necessary state. Release obsolete bootstrap services, records and padding through the loader, not a second allocator. |
+| BIOS, 5,152 bytes | Shared-HMA services with explicitly bound low headers, request/interrupt and firmware-facing state. Repack the mixed service/data region; moving the 936-byte character/helper inventory alone does not settle this owner. |
+| DOS prefix, 5,632 bytes | Keep public address contracts, including the 2,042-byte SDA and authoritative SETVER table; classify private tables/state separately. Do not count nested SDA stacks again or assume the high prefix is disposable. |
+| Transfer area, 512 bytes; interrupt stacks, 1,840 bytes | Retain until DMA/interrupt consumers support another destination. The current 1,792-byte free-UMB margin cannot accommodate the complete stack owner even without allocation overhead. |
+| COMMAND span, 3,984 bytes | Move the complete eligible resident service/state owner into the shared HMA; retain PSP/environment and required asynchronous entry/state bindings. Code-only relocation has a 1,536-byte zero-gateway lower bound, not an achieved size. |
+| Allocation boundaries, 96 bytes | Recompute from the final packed map; these bytes are charged overhead, not an independently movable object. |
+
+The current measured owners sum to 21,872 bytes below VC. Final low gateway
+sizes for the combined provider, BIOS and shell remain **unqualified**; do not
+replace them with OpenDOS's reported row sizes. Reserve their HMA services
+together within the existing 9,577-byte tail, or explicitly replace/repack a
+charged high owner. Report additional locked-XMS reservations separately.
+
+#### Loader transaction and irreversible handoff
+
+Source anchors are `HIMEM.ASM:initialize`, `INIT.ASM:PrepareProvider` /
+`ActivateProvider`, `SYSCONF.ASM`'s deferred-provider callback, and the paired
+`XMSAUTH.INC` front end. They impose this implementation sequence:
+
+1. **Describe and reserve.** Record loaded/retained intervals, escaped entries,
+   live bootstrap handles, backing reservations and proposed final bases.
+   Reject unsupported layouts before altering any owner. Existing private
+   `BOOTPROV` v2 is a pinned relocation witness, not general negotiation.
+2. **Keep bootstrap callable.** Preparation currently ends after `AllocMem`;
+   activation still runs `VDM_Init`, `Commit_UMB` and `InitTab`. Keep allocator,
+   copy backend, records and their return frames intact through their last use.
+   HIMEM has already returned its INIT break: changing that old packet is not
+   a release protocol for the loader's later allocations.
+3. **Arrange the final placement safely.** Compute overlap and fixups before
+   moving a prepared provider downward. If its destination overlaps still-live
+   bootstrap storage, retain that storage in explicitly owned staging with
+   valid call bindings, or change preparation to eliminate those dependencies
+   first. Account for staging and cancellation; the upward-move test proves
+   neither case. Do not rebase an active EMM image with the HIMEM-only hook.
+4. **Publish one authority.** Import every live handle exactly once and preserve
+   cached public entries, addresses, locks and data. The present front end
+   disables local mutations before attempting publication. An ambiguous failure
+   therefore cannot safely restore an old allocator: require an authoritative
+   commit-status/handback protocol before permitting rollback across this point.
+5. **Release and coalesce.** Only after confirmed activation and verified entry
+   bindings may the loader discard obsolete storage and accept the final low
+   boundary. Verify that later residents and VC move down accordingly, with no
+   stale device/vector/request roots or hidden low mirror.
+
+Before publication, cancellation must restore the original usable provider and
+reserved pools. After publication, either the high owner remains authoritative
+or an explicit tested handback transfers current state; never resurrect a
+stale bootstrap snapshot. Test overlapping moves, rejection before/after each
+publication boundary, cached-entry clients, ON/OFF/AUTO, maximum resources and
+warm reset. Keep standalone HIMEM, third-party XMS and the 286 layout supported.
+
+Acceptance is a new pinned composed boot with a reconciled final ownership map,
+larger **contiguous** conventional block, unchanged requested resources and at
+least 47,888 free UMB bytes, plus the API/failure/reset gates above. Retail's
+618,736 conventional bytes are the minimum; explaining and reducing the other
+low owners remains required after reaching it. The 628,048-byte OpenDOS control
+is a research reference, not a substitute for our compatibility gates.
+
 ### Whole-shell design bound: code relocation alone is insufficient
 
 The checked normal COMMAND map retains 2,451 code bytes, a 256-byte PSP,
@@ -1154,7 +1221,7 @@ of the following owners, not a sequence of independently attractive savings:
 | --- | --- | --- |
 | DOS BIOS | Development retains 5,152 low bytes; disk body already moved | Partition stable device/interrupt/DMA state from high service bodies; identify exact released intervals |
 | DOS kernel and dynamic state | 5,632-byte low prefix, including the repaired SETVER owner; FILES/FCB and CDS relocation already counted | Qualify upper CDS consumers and budget interrupt stacks and remaining public/private state |
-| Combined memory managers | 4,624 low bytes after complete high tables and the HIMEM correctness fixes; the earlier 6,480-byte census predates both | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback; do not count the moved tables again |
+| Combined memory managers | 4,656 low bytes after complete high tables and the HIMEM correctness fixes; the earlier 6,480-byte census predates both | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback; do not count the moved tables again |
 | COMMAND | 3,984-byte owner span versus OpenDOS's 1,312 | Separate environment/PSP and asynchronous entry state from movable resident handlers; preserve reload contracts |
 | Shared high storage | 9,577 calculated development HMA bytes; 1,792-byte UMB margin after CDS | Reserve destinations once across all owners; account for locked XMS, alignment and displaced buffers |
 
