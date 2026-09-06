@@ -1485,6 +1485,40 @@ This repairs containment, not high UMB ownership or an additional memory gain.
 Future UMB migration must preserve the same complete public/peer lifecycle,
 with array bounds independent of neighboring services and bootstrap storage.
 
+**Shared UMB service boundary:** `XMSUMB.INC` now contains allocation, release
+and coalescing; `XMSUMBPEER.INC` contains the registration/unregistration bodies.
+Both use an explicit DS-owned table; registration reads an ES:SI packet.
+HIMEM retains its public register-saving and interrupt-return wrappers. This
+extraction produces byte-identical normal HIMEM and the paired image, not a
+new low-memory saving.
+
+`test_xms_allocator_owner_qemu.py --umb-owner` executes those same bodies at
+CS base 2 MiB, with authoritative DS at 2 MiB + 64 KiB and SS at 2 MiB +
+128 KiB. It rejects an overlapping registration, allocates two blocks in the
+initial low owner, transfers all 130 table bytes, and poisons the retired low
+state. Busy unregister, release/coalescing and duplicate-release rejection
+then run against the high owner. The host checks actual segment bases, both
+free ranges, poisoned old state, the unused code-relative data alias and a
+patterned guard beyond the high table; final unregister runs after inspection.
+
+The witness links 277 service bytes plus 149 peer/return-adapter bytes and
+130 state bytes. These exclude an installed low gateway, mode transitions,
+checked import/publication and backing allocation; they are not the cost or
+savings of a complete provider. Evidence: `out/xms-allocator-owner-koae4x5l/`.
+`--wrong-owner` fails the code-relative-state check (`5uib7q92`), and
+`--bad-umb-bound` fails the high guard (`ku0kuxkp`, same directory prefix).
+The shared handle-allocator regression passes in `z9vv7x7p`. The installed
+downward/high-table UMB lifecycle regression still passes all four modes in
+`out/emm-init-phases-xl94_lvs/`.
+
+Next is the installed ownership protocol: validate and import existing UMB
+allocations once, route public and peer operations to that same high table,
+define pre/post-publication failure behavior, and preserve hardware mapping
+ownership during unregister/reset. This fixture changes DS under controlled
+interrupt-disabled test conditions; it does **not** establish those contracts
+or release the low UMB table. Budget the resulting low gateways with the whole
+provider before selecting final placement.
+
 ##### Whole-system placement rules
 
 DR-DOS's portable lesson is a small conventional interface backed by complete

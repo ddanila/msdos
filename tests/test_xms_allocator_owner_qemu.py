@@ -19,6 +19,10 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--umb-owner", action="store_true",
+                        help="test the complete UMB service and peer bodies with live allocations")
+    parser.add_argument("--bad-umb-bound", action="store_true",
+                        help="negative control: shift beyond the UMB table into the next owner")
     parser.add_argument("--wrong-owner", action="store_true",
                         help="negative control: select the poisoned code-owner data alias")
     parser.add_argument("--accept-invalid-owner", action="store_true",
@@ -26,6 +30,10 @@ def main():
     parser.add_argument("--corrupt-staged-owner", action="store_true",
                         help="negative control: alter a staged handle lock count before publication")
     args = parser.parse_args()
+    if args.bad_umb_bound:
+        args.umb_owner = True
+    if args.umb_owner and (args.accept_invalid_owner or args.corrupt_staged_owner):
+        parser.error("handle-owner mutation controls do not apply to UMB state")
     work = Path(tempfile.mkdtemp(prefix="xms-allocator-owner-", dir=ROOT / "out"))
     print(f"Evidence: {work}", flush=True)
     source = ROOT / "src/DEV/HIMEM"
@@ -38,8 +46,10 @@ def main():
     subprocess.run([str(ROOT / "bin/jwasm-bin"), "-q", "-bin", "-Sa",
                     *(["-DACCEPT_INVALID_OWNER"] if args.accept_invalid_owner else []),
                     *(["-DCORRUPT_STAGED_OWNER"] if args.corrupt_staged_owner else []),
+                    *(["-DHIMEM_UMB_LEGACY_BOUND_TEST"] if args.bad_umb_bound else []),
                     f"-I{work}", f"-I{source}", f"-Fo{binary}", f"-Fl={listing}",
-                    str(ROOT / "tests/xms_allocator_owner.asm")], check=True)
+                    str(ROOT / ("tests/xms_umb_owner.asm" if args.umb_owner
+                                else "tests/xms_allocator_owner.asm"))], check=True)
     payload = binary.read_bytes()
     sectors = (len(payload) + 511) // 512
     if not 0x1000 < len(payload) <= 17 * 512:
@@ -55,19 +65,29 @@ def main():
         match = LABEL_RE.match(line) or PROCEDURE_RE.match(line)
         if match:
             addresses[match[1]] = int(match[2], 16)
-    inputs = [source / name for name in ("HIMEM.ASM", "XMSALLOC.INC", "XMSHANDLE.INC", "XMSSTATE.INC", "XMSSTAGE.INC", "XMSRECORD.INC", "XMSERROR.INC")]
-    inputs += [ROOT / "tests/xms_allocator_owner.asm", ROOT / "tests/xms_allocator_owner_boot.asm"]
+    services = (("XMSUMB.INC", "XMSUMBPEER.INC") if args.umb_owner else
+                ("XMSALLOC.INC", "XMSHANDLE.INC", "XMSSTATE.INC", "XMSSTAGE.INC"))
+    inputs = [source / name for name in ("HIMEM.ASM", "XMSRECORD.INC", "XMSERROR.INC", *services)]
+    inputs += [ROOT / ("tests/xms_umb_owner.asm" if args.umb_owner else "tests/xms_allocator_owner.asm"),
+               ROOT / "tests/xms_allocator_owner_boot.asm"]
     report = dict(passed=False, wrong_owner=args.wrong_owner,
                   accept_invalid_owner=args.accept_invalid_owner,
                   corrupt_staged_owner=args.corrupt_staged_owner,
-                  services_bytes=addresses["allocator_services_end"] - addresses["xms_query_free"],
-                  helpers_bytes=addresses["allocator_helpers_end"] - addresses["validate_handle"],
-                  validator_bytes=addresses["allocator_validator_end"] - addresses["xms_validate_owner"],
-                  stager_bytes=addresses["allocator_stager_end"] - addresses["xms_stage_allocator"],
+                  umb_owner=args.umb_owner,
+                  bad_umb_bound=args.bad_umb_bound,
                   inputs={str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
                           for path in inputs},
                   binary_sha256=hashlib.sha256(payload).hexdigest(),
                   emulator=subprocess.check_output(["qemu-system-i386", "--version"], text=True).splitlines()[0])
+    if args.umb_owner:
+        report.update(services_bytes=addresses["umb_services_end"] - addresses["xms_umb_request"],
+                      peer_bytes=addresses["umb_peer_end"] - addresses["umb_register"],
+                      owner_bytes=130, installed_handoff=False)
+    else:
+        report.update(services_bytes=addresses["allocator_services_end"] - addresses["xms_query_free"],
+                      helpers_bytes=addresses["allocator_helpers_end"] - addresses["validate_handle"],
+                      validator_bytes=addresses["allocator_validator_end"] - addresses["xms_validate_owner"],
+                      stager_bytes=addresses["allocator_stager_end"] - addresses["xms_stage_allocator"])
     endpoint, debug = work / "qmp", work / "debug.bin"
     process = subprocess.Popen(["qemu-system-i386", "-machine", "pc", "-cpu", "486", "-m", "8",
                                 "-display", "none", "-monitor", "none", "-serial", "none", "-no-reboot",
@@ -101,16 +121,22 @@ def main():
             ram_path = work / "ram.bin"
             qmp.call("human-monitor-command", {"command-line": f'pmemsave 0 8388608 "{ram_path}"'})
             ram = ram_path.read_bytes()
-            if ram[0x201000:0x201025] != bytes(37):
+            owner_size = 162 if args.umb_owner else 37
+            if ram[0x201000:0x201000 + owner_size] != bytes(owner_size):
                 raise ValueError("allocator wrote to the poisoned code-relative state")
-            if ram[0x9000:0x9025] != bytes([0xa5]) * 37:
+            if ram[0x9000:0x9000 + owner_size] != bytes([0xa5]) * owner_size:
                 raise ValueError("allocator reused the retired low context")
-            if struct.unpack_from("<HH", ram, 0x211000) != (4, 512):
+            if args.umb_owner:
+                if struct.unpack_from("<5H", ram, 0x211000) != (2, 0xa000, 0x20, 0xb000, 0x10):
+                    raise ValueError("high UMB state lost its ranges or coalescing result")
+                if ram[0x211082:0x2110a2] != bytes(range(0x5a, 0x7a)):
+                    raise ValueError("UMB service overwrote the following data owner")
+            elif struct.unpack_from("<HH", ram, 0x211000) != (4, 512):
                 raise ValueError("authoritative high allocator context changed")
-            if any(struct.unpack_from("<H", ram, 0x211012 + index * 5)[0] for index in range(4)):
+            if not args.umb_owner and any(struct.unpack_from("<H", ram, 0x211012 + index * 5)[0] for index in range(4)):
                 raise ValueError("test handles were not released in the high owner")
             expected = b"".join(struct.pack("<I", offset ^ 0x13579bdf) for offset in range(0, 32768, 4))
-            if ram[0x110000:0x118000] != expected or ram[0x120000:0x128000] != expected:
+            if not args.umb_owner and (ram[0x110000:0x118000] != expected or ram[0x120000:0x128000] != expected):
                 raise ValueError("relocating copy did not preserve actual physical data")
             qmp.call("cont")
             qmp.call("send-key", {"keys": [{"type": "qcode", "data": "spc"}], "hold-time": 1})
@@ -127,7 +153,8 @@ def main():
                 process.wait()
         (work / "qemu.log").write_bytes(process.stderr.read())
         (work / "result.json").write_text(json.dumps(report, indent=2) + "\n")
-    print("PASS: shared allocator used separate high code/data/stack owners")
+    print("PASS: shared " + ("UMB service/peer" if args.umb_owner else "allocator")
+          + " used separate high code/data/stack owners")
 
 
 if __name__ == "__main__":
