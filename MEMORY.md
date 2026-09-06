@@ -416,6 +416,40 @@ compacting the CODE segment cannot materially remove the retained prefix.
 `DOSMAC.INC:context` derives the DOS data segment from SS; direct CS accesses,
 public pointers and low/high mirrored state must be audited separately.
 
+**Public SDA/stack ownership:** `MSINIT.ASM` initializes one contiguous,
+word-rounded `SWAP_START..SWAP_END` extent. `SRVCALL.ASM:GET_DOS_DATA`
+exports its address and length through INT 21h/5D06h; 5D0Bh exports the swap
+descriptor table. In the current map the extent is `0330h..0B2Ah`, **2,042
+bytes**, divided into 26 always-swapped and 2,016 in-DOS bytes. This crosses
+CONSTANTS and DATA: apparent private file/disk workspace cannot be classified
+as unexposed merely from its label.
+
+`MS_DATA.ASM` allocates three consecutive 384-byte internal stacks ending at
+`AuxStack`, `DskStack` and `IOStack`. Their combined `069Eh..0B1Eh` storage is
+**1,152 bytes inside the SDA**, with `RENAMEDMA` aliasing the first stack.
+The earlier census labels treated stack-top labels as starts; the report now
+names the actual backing ranges. Do not add rename workspace or these stacks
+again, or confuse them with the separate 1,840-byte CONFIG.SYS interrupt-stack
+subsystem in the low ledger.
+
+For the joint layout, retain this public owner in ordinary real-mode-addressable
+storage until its exported-pointer, stack adjacency and SS-derived DOS context
+contracts are qualified together. HMA placement is not justified by the word
+"swappable". A separate UMB allocation for the unchanged 2,042-byte payload
+would cost at least 2,064 bytes including paragraph rounding and one MCB,
+already 272 beyond our 1,792-byte UMB margin, before any gates or descriptors.
+It is therefore not a standalone route to the current floor. A future packed
+upper owner must find compensating UMB capacity or a compatible state-layout
+redesign; retaining a low mirror does not release the prefix.
+
+`make test-dos-bios-residency` now checks this map-derived contract and passes
+30 host tests. Five SDA tests cover shifted layouts, word rounding, missing or
+invalid stack boundaries and the swap-length flag bit. This is a linked
+ownership constraint, not runtime relocation validation. Existing
+`internal_structures_probe.asm` checks selected live SDA fields, not complete
+save/restore behavior or cached pointers after a move; those remain required
+before changing this owner.
+
 Required deliverables, in order:
 
 1. Pin one corrected local image and both vendor images with the same boot

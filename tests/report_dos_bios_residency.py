@@ -93,6 +93,31 @@ def character_partition(symbols: dict[str, int]) -> list[tuple[str, int, int, st
     return rows
 
 
+def swap_contract(symbols: dict[str, int]) -> dict[str, int]:
+    """Linked public SDA extent, following MSINIT's word-rounded lengths.
+
+    Stack labels are tops: RENAMEDMA aliases the first stack's storage.
+    This is an address contract, not evidence that any range is movable.
+    """
+    names = ("SWAP_START", "Swap_Always", "RENAMEDMA", "AuxStack",
+             "DskStack", "IOStack", "SWAP_END", "MSDAT001E")
+    start, always, rename, aux, disk, io, end, data_end = (
+        require(symbols, name) for name in names)
+    if not start < always < rename < aux < disk < io <= end < data_end:
+        raise ValueError("DOS swap/stack boundaries are not strictly ordered")
+    if not aux - rename == disk - aux == io - disk:
+        raise ValueError("DOS internal stacks no longer have equal contiguous storage")
+    total = (end - start + 1) & ~1
+    indos = (end - always + 1) & ~1
+    if start + total > data_end or always + indos > data_end:
+        raise ValueError("word-rounded swap extent exceeds retained DATA")
+    if always - start >= 0x8000:
+        raise ValueError("swap-always length collides with its flag bit")
+    return {"start": start, "end": start + total, "total": total,
+            "always": always - start, "indos": indos,
+            "stack_start": rename, "stack_end": io, "stacks": io - rename}
+
+
 def hma_layout(sysbuf: int, buffer_bytes: int, bios_bytes: int = 0,
                command_bytes: int = 0, *, manager_bytes: int = 0,
                shell_service_bytes: int = 0) -> list[tuple[str, int, int]]:
@@ -299,9 +324,9 @@ def main() -> int:
 
     data_ranges = [
         ("Core file/disk workspace", "MSDAT001S", "RENAMEDMA"),
-        ("Rename/search workspace", "RENAMEDMA", "AuxStack"),
-        ("Auxiliary interrupt stack", "AuxStack", "DskStack"),
-        ("Disk interrupt stack", "DskStack", "IOStack"),
+        ("Auxiliary stack storage / rename workspace alias", "RENAMEDMA", "AuxStack"),
+        ("Disk stack storage", "AuxStack", "DskStack"),
+        ("I/O stack storage", "DskStack", "IOStack"),
         ("Resident I/O and fast-seek state", "IOStack", "SWAP_END"),
         ("Required swap-rounding byte", "SWAP_END", "MSDAT001E"),
     ]
@@ -320,6 +345,18 @@ def main() -> int:
     print(f"| **Total** | **{data_total:,}** | `DATA` |")
     if data_total != dos_segments["DATA"].size:
         errors.append("DOS DATA ownership does not cover the complete segment")
+
+    swap = swap_contract(dos_symbols)
+    print("\n### Public swappable-data address contract\n")
+    print(f"INT 21h/5D06h exposes `{swap['start']:04X}h..{swap['end']:04X}h`: "
+          f"{swap['total']:,} bytes, including {swap['always']:,} always-swapped bytes. "
+          f"The 5D0Bh table separately describes {swap['indos']:,} in-DOS bytes.")
+    print(f"The nested `{swap['stack_start']:04X}h..{swap['stack_end']:04X}h` "
+          f"range is {swap['stacks']:,} bytes of internal stack storage; "
+          "RENAMEDMA aliases its first stack. Do not add these sizes to DATA, "
+          "count rename storage twice, or confuse these stacks with CONFIG.SYS STACKS. "
+          "Moving this owner needs public-pointer and SS/data-context qualification; "
+          "the census proves no low-memory saving.")
 
     table_segment = dos_segments["TABLE"]
     table_start = table_segment.paragraph * 16 + table_segment.offset
