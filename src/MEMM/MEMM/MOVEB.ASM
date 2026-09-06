@@ -140,6 +140,9 @@ _DATA	segment
 MB_Stat 	db	0		; move block status
 Toggle_st	db	0
 MB_ParityOwned db 0		; this call installed the temporary NMI vector
+IFDEF EMM_XMS_COPY_FAIL_REALLOC_ONCE
+XmsReallocFaultUsed db 0 ; test-only one-shot fault owner
+ENDIF
 
 _DATA	ends
 

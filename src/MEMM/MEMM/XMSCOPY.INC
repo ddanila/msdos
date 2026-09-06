@@ -67,6 +67,23 @@ XW_Next:
 IFDEF EMM_XMS_COPY_FAIL_AFTER_MAP
     jmp XW_Failed_Map
 ENDIF
+IFDEF EMM_XMS_COPY_FAIL_REALLOC_ONCE
+    ; The fixture's relocating copy is exactly 32 KiB. Fail it once after
+    ; installing both windows, then allow retry through the identical backend.
+    cmp ebp,32768
+    jne short XW_ReallocFaultDone
+    push ds
+    mov ax,VDMD_GSEL
+    mov ds,ax
+    cmp byte ptr [XmsReallocFaultUsed],0
+    jne short XW_ReallocFaultUsed
+    inc byte ptr [XmsReallocFaultUsed]
+    pop ds
+    jmp XW_Failed_Map
+XW_ReallocFaultUsed:
+    pop ds
+XW_ReallocFaultDone:
+ENDIF
     mov ebx,esi
     and ebx,4095
     neg ebx

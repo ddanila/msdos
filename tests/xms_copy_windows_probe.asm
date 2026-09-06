@@ -451,6 +451,9 @@ public_reallocate_test:
     sub eax,[physical]
     cmp eax,32768 ; prove the following interval blocks in-place growth
     jne failed
+%ifdef REJECT_REALLOCATION
+    call rejected_reallocation
+%endif
     mov ah,7
     call far [xms]
     mov [a20_before],ax
@@ -533,6 +536,111 @@ public_reallocate_test:
     cmp ax,1
     jne failed
     ret
+%ifdef REJECT_REALLOCATION
+rejected_reallocation:
+    mov dx,[block]
+    mov ah,0eh
+    call far [xms]
+    cmp ax,1
+    jne failed
+    mov [free_handles],bl
+    mov ah,7
+    call far [xms]
+    mov [realloc_a20_before],ax
+    mov ah,8
+    call far [xms]
+    test bl,bl
+    jnz failed
+    mov [free_largest],ax
+    mov [free_total],dx
+    mov ax,3515h
+    int 21h
+    mov [old_copy_vector],bx
+    mov [old_copy_vector+2],es
+    mov dx,reject_copy_hook
+    mov ax,2515h
+    int 21h
+    mov dx,[block]
+    mov bx,64
+    mov ah,0fh
+    call far [xms]
+    test ax,ax
+    jnz failed
+    cmp bl,0a0h ; current reallocating-copy failure contract
+    jne failed
+    cmp byte [rejected_copies],1
+    jne failed
+    push ds
+    lds dx,[old_copy_vector]
+    mov ax,2515h
+    int 21h
+    pop ds
+    call check_mode
+    mov ah,7
+    call far [xms]
+    cmp ax,[realloc_a20_before]
+    jne realloc_state_failed
+    mov dx,[block]
+    mov ah,0eh
+    call far [xms]
+    cmp ax,1
+    jne failed
+    cmp dx,32
+    jne realloc_state_failed
+    test bh,bh
+    jnz realloc_state_failed
+    mov dx,[block]
+    mov ah,0ch
+    call far [xms]
+    cmp ax,1
+    jne failed
+    movzx eax,dx
+    shl eax,16
+    mov ax,bx
+    cmp eax,[physical]
+    jne realloc_state_failed
+    mov dx,[block]
+    mov ah,0dh
+    call far [xms]
+    cmp ax,1
+    jne failed
+    mov dx,[blocker]
+    mov ah,0eh
+    call far [xms]
+    cmp ax,1
+    jne failed
+    cmp dx,32
+    jne realloc_state_failed
+    cmp bh,1
+    jne realloc_state_failed
+    cmp bl,[free_handles]
+    jne realloc_state_failed
+    mov ah,8
+    call far [xms]
+    test bl,bl
+    jnz failed
+    cmp ax,[free_largest]
+    jne realloc_state_failed
+    cmp dx,[free_total]
+    jne realloc_state_failed
+    mov al,'F'
+    call checkpoint
+    ret
+reject_copy_hook:
+    cmp ah,87h
+    jne .chain
+    cmp dword [es:si],59504358h
+    jne .chain
+    inc byte [cs:rejected_copies]
+    ; Observe the request, but let the real protected backend inject failure
+    ; after installing its scratch windows. This hook does not reject it.
+.chain:
+    jmp far [cs:old_copy_vector]
+realloc_state_failed:
+    mov al,'r'
+    out 0e9h,al
+    jmp failed
+%endif
 public_copy:
     mov eax,[packet_length]
     mov [public_packet],eax
@@ -652,6 +760,14 @@ packet_flags dd 0
 %ifdef PUBLIC_COPY
 public_packet times 16 db 0
 blocker dw 0
+%ifdef REJECT_REALLOCATION
+old_copy_vector dd 0
+free_largest dw 0
+free_total dw 0
+rejected_copies db 0
+free_handles db 0
+realloc_a20_before dw 0
+%endif
 %endif
 source times 8192 db 0
 target times 8192 db 0

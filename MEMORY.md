@@ -3005,7 +3005,7 @@ only when the public call actually reaches the new backend.
 
 The matrix now covers DOS LOW/HIGH in the 32-MiB fixture as described below.
 Composition with the selected memory-saving BIOS/table build, public error-code
-parity, failure during relocating reallocation, full register
+parity, real exception/NMI failure during relocation, full register
 and far-descriptor contracts, forced A20/activation failures, and nested-call
 ownership remain qualification work. The packet still uses shared HIMEM move
 state; do not treat it as reentrant. These tests establish both real public copy
@@ -3060,6 +3060,33 @@ after the guest comparison; the independent host check rejects it in
 `out/xms-copy-windows-smnijtud/`. The explicit DOS-low control still passes in
 `out/xms-copy-windows-su5k5jmk/`. This extends residency/address coverage, not
 forced physical A20-failure, nested-call, or production handoff qualification.
+
+**Failed reallocating copy and retry:** `--reject-reallocation` adds a one-shot
+fault to the protected backend's first 32-KiB transfer, after both scratch PTEs
+are installed and before any payload byte is written. A temporary INT 15h hook
+counts the private request but chains it unchanged; the failure occurs in the
+real backend and exits through its normal mapping/descriptor cleanup.
+
+Public 0Fh must return AX=0, BL=A0h while retaining the old 32-KiB handle,
+physical base and unlocked state. The following blocking handle must remain
+32 KiB and locked; free-handle count, largest/total free XMS, execution mode
+and queried A20 state must remain unchanged. Host checkpoint F independently
+checks both seeded payloads at the original physical base, HMA data where used,
+scratch PTEs and descriptors. After the observer is removed, the same resize
+is retried without changing the allocator: it must succeed at a new base with
+both payloads intact at checkpoint R. All test handles are then released.
+
+Run `make test-xms-reallocation-qemu`, or add `--reject-reallocation` to a
+successful public case. Passing evidence: DOS-high OFF
+`out/xms-copy-windows-7me9cqjl/`, idle AUTO `out/xms-copy-windows-bxuuwgtl/`,
+active mapped `out/xms-copy-windows-owmb5gj1/`, and DOS-low OFF
+`out/xms-copy-windows-r_7a7lo5/`. `--early-realloc-state` deliberately publishes
+the new size before testing copy failure; the handle-state assertion rejects
+it with `r!` in `out/xms-copy-windows-qu85tgsr/`. The injected backend adds
+31 code bytes and one test-only state byte; the non-fault backend and normal
+HIMEM/EMM binaries remain unchanged. This proves the controlled pre-write
+failure/retry contract, not atomic recovery from partial writes or hardware
+exceptions, nor transfer of allocator ownership to the future provider.
 
 The census also now distinguishes handle zero's conventional physical pages
 from locked XMS backing: `_total_pages` includes both. It checks the ordered

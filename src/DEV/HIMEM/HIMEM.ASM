@@ -875,6 +875,10 @@ endif
         call    copy_move_blocks
         pop     ax
         pop     bx
+ifdef HIMEM_EARLY_REALLOC_TEST
+        ; Negative control: publish the new size before observing copy failure.
+        mov     word ptr [si+HANDLE_LENGTH],bx
+endif
         jc      xms_no_memory
         mov     word ptr [si+HANDLE_BASE], ax
         mov     word ptr [si+HANDLE_LENGTH], bx

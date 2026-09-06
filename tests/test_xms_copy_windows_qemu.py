@@ -31,6 +31,10 @@ def main():
                         help="negative control: corrupt the allocated HMA payload after guest verification")
     parser.add_argument("--public-api", action="store_true",
                         help="pair development HIMEM with the protected backend through XMS Move")
+    parser.add_argument("--reject-reallocation", action="store_true",
+                        help="reject one reallocating copy, require intact ownership, then retry")
+    parser.add_argument("--early-realloc-state", action="store_true",
+                        help="negative control: publish resized handle state before copy succeeds")
     parser.add_argument("--backend-capability", choices=("valid", "absent", "version", "features"),
                         default="valid", help="exercise public backend discovery rejection")
     parser.add_argument("--bypass-capability", action="store_true",
@@ -59,6 +63,10 @@ def main():
                         help="negative control: omit whole-range alias checking")
     args = parser.parse_args()
     expect_copy_failure = args.fail_after_map or args.backend_capability != "valid"
+    if args.reject_reallocation and (not args.public_api or expect_copy_failure or args.alias_overlap):
+        parser.error("reallocation rejection requires successful public transfers without alias-only tests")
+    if args.early_realloc_state and not args.reject_reallocation:
+        parser.error("early state publication requires --reject-reallocation")
     hma_endpoint = args.dos_high and args.public_api and not (expect_copy_failure or args.alias_overlap)
     if args.backend_capability != "valid" and (not args.public_api or args.mapped or args.fail_after_map
                                                or args.bypass_public_backend or args.bad_data):
@@ -108,6 +116,8 @@ def main():
         flags += " -DEMM_XMS_COPY_MISSING_FEATURE"
     if args.fail_after_map:
         flags += " -DEMM_XMS_COPY_FAIL_AFTER_MAP"
+    if args.reject_reallocation:
+        flags += " -DEMM_XMS_COPY_FAIL_REALLOC_ONCE"
     if args.leave_active:
         flags += " -DEMM_XMS_COPY_LEAVE_ACTIVE"
     if args.deny_later_page:
@@ -134,6 +144,7 @@ def main():
         subprocess.run([str(ROOT / "bin/jwasm-bin"), "-q", "-bin",
                         "-DHIMEM_PROTECTED_COPY_TEST", f"-I{ROOT / 'src/INC'}", f"-Fo{himem}",
                         *(["-DHIMEM_SKIP_COPY_CAPABILITY_TEST"] if args.bypass_capability else []),
+                        *(["-DHIMEM_EARLY_REALLOC_TEST"] if args.early_realloc_state else []),
                         str(ROOT / "src/DEV/HIMEM/HIMEM.ASM")], check=True)
     _, symbols = parse_map(work / "MEMM/EMM386.MAP")
     symbols = {symbol.name: symbol for symbol in symbols}
@@ -149,6 +160,7 @@ def main():
                     *(["-DHMA_ENDPOINT"] if hma_endpoint else []),
                     *(["-DBAD_HMA_DATA"] if args.bad_hma_data else []),
                     *(["-DPUBLIC_COPY"] if args.public_api else []),
+                    *(["-DREJECT_REALLOCATION"] if args.reject_reallocation else []),
                     *(["-DWRONG_DATA"] if args.bad_data else []),
                     *(["-DMAPPED_ENDPOINT"] if args.mapped else []),
                     *(["-DBYPASS_MAPPING"] if args.bypass_mapping else []),
@@ -184,6 +196,7 @@ def main():
                   dos_high=args.dos_high, wrong_residency=args.wrong_residency,
                   hma_endpoint=hma_endpoint, bad_hma_data=args.bad_hma_data,
                   public_api=args.public_api, bypass_public_backend=args.bypass_public_backend,
+                  reject_reallocation=args.reject_reallocation, early_realloc_state=args.early_realloc_state,
                   leave_active=args.leave_active, inactive_entry_bytes=inactive_size,
                   real_return_adapter_bytes=return_size, capability_query_bytes=query_size,
                   client_bytes=client_size, mapped=args.mapped, bypass_mapping=args.bypass_mapping,
@@ -219,6 +232,8 @@ def main():
             qmp = QMP(connection)
             checkpoints = [b"A", b"AM", b"AMN", b"AMNB"] if args.mapped else [b"A", b"AB"]
             if args.public_api and not (expect_copy_failure or args.alias_overlap):
+                if args.reject_reallocation:
+                    checkpoints.append(checkpoints[-1] + b"F")
                 checkpoints.append(checkpoints[-1] + b"R")
             for expected in checkpoints:
                 deadline = time.monotonic() + 30
@@ -271,7 +286,7 @@ def main():
                     before = next(row for row in report["checkpoints"] if row["phase"] == "M")
                     if [hashlib.sha256(data).hexdigest() for data in ranges] != before["range_hashes"]:
                         raise ValueError("later-page rejection wrote earlier destination bytes")
-                if phase in ("N", "B", "R") and not expect_copy_failure and ranges != expected_ranges:
+                if phase in ("N", "B", "F", "R") and not expect_copy_failure and ranges != expected_ranges:
                     raise ValueError("actual high physical RAM does not contain both copied ranges")
                 hashes = [hashlib.sha256(data).hexdigest() for data in ranges]
                 cr3 = int(re.search(r"CR3=([0-9a-fA-F]+)", regs)[1], 16)
