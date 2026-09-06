@@ -184,11 +184,28 @@ _TEXT	segment
 ;
 ;*************************************************************************
 Move_Block	proc	near
+IFDEF EMM_XMS_COPY_TEST
+	cmp	dword ptr es:[si],59504358h ; private test packet: 'XCPY'
+	jne	MB_Standard_Copy
+	pushad
+	mov	bx,si
+	mov	ecx,es:[bx+4]
+	mov	esi,es:[bx+8]
+	mov	edi,es:[bx+12]
+	call	XmsCopyPhysical
+	popad
+	mov	ah,0
+	jnc	MB_Client_Status
+	mov	ah,2
+	jmp	MB_Client_Status
+MB_Standard_Copy:
+ENDIF
 ;
 ; Keep the virtual INT 15h frame adapter separate from the internal copy
 ; service. Protected clients do not necessarily have a VMTF at BP.
 ;
 	call	Move_Block_Core
+MB_Client_Status:
 	or	[bp.VTFOE+VMTF_EFLAGS],FLAGS_ZF
 	and	[bp.VTFOE+VMTF_EFLAGS],NOT FLAGS_CY
 	or	ah,ah
@@ -392,6 +409,10 @@ MB_ret:
 	ret
 ;
 MB_Exit endp
+
+IFDEF EMM_XMS_COPY_TEST
+	include XMSCOPY.INC
+ENDIF
 
 _TEXT	ends
 

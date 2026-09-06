@@ -2627,6 +2627,37 @@ The implementation contract for these windows is:
   budget. Test page crossings, mapped conventional endpoints, allocations above
   16 MiB, OFF/AUTO, failure and nested-entry policy before releasing low owners.
 
+`XMSCOPY.INC:XmsCopyPhysical` now implements a development-only physical
+backend behind `EMM_XMS_COPY_TEST`. Its 392 linked bytes use those two existing
+PTEs and save/restore the MBSRC/MBTAR descriptors. It rejects occupied PTEs,
+non-identical overlap and address overflow, clips each transfer at both 4-KiB
+boundaries, and restores the mappings/TLB before returning. Its own maximum
+stack use is 68 bytes including the near return address; caller/trap frames
+and asynchronous handling are additional. No new resident data or page table
+is allocated. The private `XCPY` INT 15h packet is a test adapter, not a public
+XMS API or the final provider entry.
+
+The 32-MiB QEMU witness obtains and locks a 32-KiB XMS block above 16 MiB after
+reserving a preceding 16-MiB block. It verifies 8-KiB conventional-to-high,
+high-to-high and high-to-conventional transfers at differently aligned page
+offsets, then releases both owners. Overlap/overflow rejection and zero-length
+success precede the valid transaction. A separate build injects failure after
+mapping but before the first byte is copied. Host snapshots independently check
+that both PTEs return to zero and both scratch descriptors retain their original
+contents. They also verify both high physical ranges against the expected byte
+pattern, rather than relying on a round trip that could hide symmetric address
+truncation; the injected failure leaves those ranges unchanged. A corrupted
+returned byte makes the witness fail.
+
+Run `make test-xms-copy-windows-qemu`, or pass `--image` to its Python helper.
+Normal and injected-failure evidence is in `out/xms-copy-windows-gqpav5zq/` and
+`out/xms-copy-windows-__4zc2ew/`; `--bad-data` fails in
+`out/xms-copy-windows-8j6rm1as/`. The normal EMM386 binary remains unchanged.
+This proves a physical-copy primitive in active mode, not public XMS integration,
+handle-zero translation, OFF/AUTO transitions, runtime busy-owner rejection,
+or real exception/NMI unwinding. Those gates and the complete provider's
+linked low/high layout remain open; no conventional saving is claimed.
+
 The census also now distinguishes handle zero's conventional physical pages
 from locked XMS backing: `_total_pages` includes both. It checks the ordered
 physical records and derives the relocation tail from extended pages only.

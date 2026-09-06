@@ -278,6 +278,11 @@ test-move-block-cleanup-qemu: memm
 	python3 tests/test_move_block_cleanup_qemu.py
 	python3 tests/test_move_block_cleanup_qemu.py --a20-off
 
+.PHONY: test-xms-copy-windows-qemu
+test-xms-copy-windows-qemu:
+	python3 tests/test_xms_copy_windows_qemu.py
+	python3 tests/test_xms_copy_windows_qemu.py --fail-after-map
+
 .PHONY: test-emm-xms-owner-qemu
 test-emm-xms-owner-qemu:
 	python3 tests/test_emm_xms_owner_qemu.py
