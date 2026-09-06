@@ -8,9 +8,23 @@ from pathlib import Path
 from capture_emm_init_phases import check_phases, parse_trace, strip_capacity_records, parse_bootstrap_layout, parse_post_boot, parse_umb_receipt
 from capture_emm_init_phases import parse_private_umb_receipt, parse_umb_handoff, parse_live_umb_import
 from capture_emm_init_phases import parse_umb_service_receipt
+from capture_emm_init_phases import parse_common_binding
 
 
 class InitPhaseTests(unittest.TestCase):
+    def test_common_binding_receipt(self):
+        data = struct.pack("<2s3H", b"CB", 0x200, 0x500, 1)
+        self.assertEqual(parse_common_binding(data),
+                         dict(entry="0500:0200", discovery_disabled=True,
+                              revoked_call_refused=True, backing_released=False))
+        for bad in (data[:-1], data + b"x", b"PM" + data[2:],
+                    struct.pack("<2s3H", b"CB", 0, 0x500, 1),
+                    struct.pack("<2s3H", b"CB", 0x200, 0, 1),
+                    struct.pack("<2s3H", b"CB", 0x200, 0xa000, 1),
+                    struct.pack("<2s3H", b"CB", 0x200, 0x500, 0)):
+            with self.subTest(data=bad), self.assertRaises(ValueError):
+                parse_common_binding(bad)
+
     def test_sequenced_umb_results(self):
         for failure in (None, "before", "after"):
             for sequence in (1, 0xffff, 0x10000, 0xffffffff):
@@ -53,6 +67,7 @@ class InitPhaseTests(unittest.TestCase):
         script = Path(__file__).with_name("capture_emm_init_phases.py")
         cases = ((["--umb-service-receipts", "--reject-prepared"], "installed provider"),
                  (["--common-xms-entry", "--reject-prepared"], "installed provider"),
+                 (["--bad-common-binding", "guard", "--reject-prepared"], "installed provider"),
                  (["--bad-common-move-low", "--reject-prepared"], "installed provider"),
                  (["--bad-common-xms-entry", "copy", "--umb-owner"], "probes are separate"),
                  (["--umb-sequence-wrap", "--umb-owner"], "probes are separate"),

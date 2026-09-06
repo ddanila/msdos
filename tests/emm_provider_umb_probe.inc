@@ -256,6 +256,7 @@ check_umb_owner:
 %endif
 %ifdef COMMON_PUBLIC_MOVE
     call check_common_public_move
+    call check_common_binding
 %endif
     ret
 %ifdef UMB_LIVE_IMPORT
@@ -361,4 +362,5 @@ umb_guard times 48 db 0
 %endif
 %ifdef COMMON_PUBLIC_MOVE
     %include "tests/emm_common_move_probe.inc"
+    %include "tests/emm_common_binding_probe.inc"
 %endif

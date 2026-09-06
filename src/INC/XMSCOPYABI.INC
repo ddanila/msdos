@@ -4,6 +4,7 @@
 ; Test peers require an exact version and every required feature; CF is not
 ; the discovery result. No private copy packet may be sent on rejection.
 XCP_QUERY equ 0e7c0h
+XCP_BIND_QUERY equ 0e7d0h ; same reply/capabilities, plus ES:DI guarded stable entry
 XCP_REPLY equ 0e7cfh
 XCP_SIGNATURE equ 05843h
 XCP_VERSION equ 1
@@ -17,6 +18,13 @@ XCP_UMB_OWNER equ 64 ; opt-in independent XUMB publication/service boundary
 XCP_UMB_RESULTS equ 128 ; XUMB v2 sequenced service result receipts
 XCP_PUBLIC_MOVE equ 256 ; XMSM + 16-byte public descriptor snapshot, high validation
 XCP_REQUIRED equ XCP_PHYSICAL OR XCP_CLIENT OR XCP_INACTIVE
+; BIND_QUERY succeeds only after final relocation/compaction and vector
+; installation. ES:DI accepts PUSHF/CALL FAR with the usual INT 15h packet
+; registers. The resident guard must remain allocated for the binding's
+; lifetime; revoke it BEFORE releasing high backing. No active-image rebase,
+; replacement-owner adoption or binding across an OS reset is permitted.
+; Binding publishes transport, not allocator ownership. Import receipts still
+; govern each owner. A rejected bound call cannot fall through to firmware.
 ; PUBLIC_MOVE is a transitional common-core adapter, not registration. XMSM
 ; occupies the existing 20-byte copy packet: tag plus an unchanged 16-byte
 ; public Move descriptor snapshot. Caller bounds and copies the descriptor

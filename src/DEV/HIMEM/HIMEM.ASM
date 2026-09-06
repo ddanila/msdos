@@ -958,7 +958,11 @@ ifdef HIMEM_PROTECTED_COPY_TEST
         push    dx
 ifndef HIMEM_SKIP_COPY_CAPABILITY_TEST
         mov     ax,XCP_QUERY
+ifdef HIMEM_COMMON_XMS_TEST
+        call    xms_common_query
+else
         int     015h
+endif
         cmp     ax,XCP_REPLY
         jne     short protected_copy_unavailable
         cmp     bx,XCP_SIGNATURE
@@ -973,7 +977,11 @@ endif
         pop     es
         mov     si,offset protected_copy_packet
         mov     ah,087h
+ifdef HIMEM_COMMON_XMS_TEST
+        call    xms_common_send
+else
         int     015h
+endif
         pop     dx
         pop     cx
         pop     bx
@@ -1020,6 +1028,7 @@ ifdef HIMEM_UMB_HANDOFF_TEST
         include XMSUMBFRONT.INC
 ifdef HIMEM_COMMON_XMS_TEST
         include XMSMOVEFRONT.INC
+        include XMSBIND.INC
 endif
 ; After commitment the retired table is temporary peer-registration input,
 ; never an authoritative low mirror. The preceding word supplies its version.

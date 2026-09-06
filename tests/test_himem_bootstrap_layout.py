@@ -83,7 +83,7 @@ class PairedFrontTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             transplant_counterfactual([r for r in rows if r["owner"] != "UMB records"])
 
-    def report(self, *, staged=True, handoff=False, common=False, bad=None, alignment=10):
+    def report(self, *, staged=True, handoff=False, common=False, bound=False, bad=None, alignment=10):
         names = ["strategy", "multiplex_handler", "private_register", "int15_handler",
                  "xms_control", "xms_hma_request", "xms_global_enable", "private_bootstrap_layout"]
         if staged:
@@ -94,6 +94,8 @@ class PairedFrontTests(unittest.TestCase):
             names += ["umb_remote_state"]
         if common:
             names += ["xms_public_move_front"]
+        if bound:
+            names += ["xms_bound_entry"]
         addresses = {name: (i + 1) * 16 for i, name in enumerate(names)}
         if bad:
             addresses[bad] = 1
@@ -138,6 +140,13 @@ class PairedFrontTests(unittest.TestCase):
         self.assertEqual(rows["UMB handoff transport and publication state"]["bytes"], 16)
         self.assertEqual(rows["Public Move descriptor adapter"]["bytes"], 16)
         self.assertNotIn("Public Move descriptor adapter", report["transplant_counterfactual"]["removed_groups"])
+
+    def test_binding_is_charged_separately(self):
+        report = self.report(handoff=True, common=True, bound=True)
+        rows = {row["owner"]: row for row in report["front"]}
+        self.assertEqual(rows["Public Move descriptor adapter"]["bytes"], 16)
+        self.assertEqual(rows["Common provider binding"]["bytes"], 16)
+        self.assertNotIn("Common provider binding", report["transplant_counterfactual"]["removed_groups"])
 
     def test_zero_alignment_and_overrun(self):
         self.assertEqual(self.report(alignment=0)["front"][-1]["bytes"], 0)

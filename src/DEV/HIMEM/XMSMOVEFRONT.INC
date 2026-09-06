@@ -12,7 +12,7 @@ xms_public_move_front proc near
         call xms_remote_owned
         jc move_front_bootstrap
         mov ax,XCP_QUERY
-        int 15h
+        call xms_common_query
         cmp ax,XCP_REPLY
         jne move_front_failed
         cmp bx,XCP_SIGNATURE
@@ -39,7 +39,7 @@ move_front_snapshot:
         pop es
         mov si,offset protected_copy_packet
         mov ah,87h
-        int 15h
+        call xms_common_send
         jc move_front_failed
         mov ax,word ptr [protected_copy_packet]
         mov bx,word ptr [protected_copy_packet+2]

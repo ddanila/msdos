@@ -585,8 +585,24 @@ i15_Entry	proc	near
 IFDEF EMM_XMS_COPY_TEST
 public XmsI15QueryStart, XmsI15QueryEnd
 XmsI15QueryStart label near
+IFDEF EMM_COMMON_XMS_TEST
+    cmp ax,XCP_BIND_QUERY
+    jne short XmsI15NotBind
+    cmp cs:[XmsBindingReady],1
+    jne short XmsI15BindRefused
+    push cs
+    pop es
+    mov di,offset XmsBoundEntry
+    jmp short XmsI15Reply
+XmsI15BindRefused:
+    xor ax,ax
+    popf
+    iret
+XmsI15NotBind:
+ENDIF
     cmp ax,XCP_QUERY
     jne short XmsI15NotQuery
+XmsI15Reply:
     mov ax,XCP_REPLY
     mov bx,XCP_SIGNATURE
     mov cx,XCP_VERSION
@@ -711,6 +727,24 @@ i15_jmpf:
 	jmp	CS:[i15_Old]
 ;
 i15_Entry	endp
+IFDEF EMM_COMMON_XMS_TEST
+public XmsBoundEntry, XmsBindingReady
+XmsBindingReady db 0
+XmsBoundEntry proc far
+    cli
+IFNDEF EMM_COMMON_BOUND_UNGUARDED
+    cmp cs:[XmsBindingReady],1
+    je i15_Entry
+    push bp
+    mov bp,sp
+    or word ptr ss:[bp+6],1     ; transport CF in caller's interrupt-style frame
+    pop bp
+    iret                       ; never chain a revoked private request
+ELSE
+    jmp i15_Entry
+ENDIF
+XmsBoundEntry endp
+ENDIF
 
 R_CODE	ends
 

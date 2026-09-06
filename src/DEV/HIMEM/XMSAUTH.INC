@@ -187,7 +187,11 @@ endif
         mov [owner_bx],bx
         mov [owner_total],dx
         mov ax,XCP_QUERY
+ifdef HIMEM_COMMON_XMS_TEST
+        call xms_common_query
+else
         int 15h
+endif
         cmp ax,XCP_REPLY
         jne auth_unavailable
         cmp bx,XCP_SIGNATURE
@@ -226,7 +230,11 @@ auth_packet_ready:
 endif
         mov si,offset owner_packet
         mov ah,87h
+ifdef HIMEM_COMMON_XMS_TEST
+        call xms_common_send
+else
         int 15h
+endif
         jc short auth_failed
 ifdef HIMEM_BOOTSTRAP_STAGE_TEST
         mov ax,es:[owner_largest]

@@ -1779,7 +1779,7 @@ lost-result recovery also passes all four modes (`9zjupx8l`). Earlier
 core-family refusal controls are `oncthkht` (handle), `_p1nxzye` (copy) and
 `nxemsw8r` (UMB); these establish test sensitivity, not exhaustive contexts.
 
-Current linked costs are 160 high core bytes plus 226 high Move-validation
+Before transport binding, linked costs are 160 high core bytes plus 226 high Move-validation
 bytes, excluding adapters/backend. The separately charged low descriptor
 adapter is 157 bytes; retained HIMEM/EMM spans are 3,664/2,144. Normal binaries
 remain byte-identical. Phase/parser and paired-layout suites pass 33 and 12
@@ -1789,6 +1789,38 @@ Next replace the steady-state transports through a lifetime-checked common
 caller-context registration, then retire boot-only bodies and repack. Full
 mapped-client, asynchronous/fault, reset and composed-VC qualification remain
 required; descriptor snapshots do not make hardware copy failures atomic.
+
+**Shared guarded transport binding:** the common candidate now uses
+`XMSBIND.INC` for all four adapter discovery/send sites. EMM publishes
+`XmsBindingReady` only after final relocation/compaction and installation of
+both interrupt vectors. `XCP_BIND_QUERY` then supplies one interrupt-style
+far entry. The low front records its capabilities and entry once; subsequent
+calls neither rediscover a provider nor adopt a different one on failure.
+Each bound call checks the resident EMM guard with interrupts disabled before
+entering the existing ON/OFF/AUTO transition machinery. Revoked calls return
+transport failure without reaching high services or chaining to firmware.
+
+The guard and low front must remain allocated for the entire binding lifetime;
+the contract forbids active-image rebasing and reuse across OS reset. Binding
+does not import either allocator or grant permission to free backing. Actual
+revocation/draining/backing release and reset remain unqualified; the current
+test only withdraws and restores the guard on the same live provider.
+
+The four-mode DOS-high fixture (`out/emm-init-phases-igbir693/`) verifies a
+nonzero bound entry, blocks discovery queries while handle/Move/UMB calls
+continue, checks rejection with the guard withdrawn, and resumes through the
+same entry after restoring it. `--bad-common-binding rediscover` and `guard`
+both fail with guest 35 (`_l49doar`, `vdjgqz5g`, same prefix). DOS low/128
+handles with live UMB import and lost-result recovery also passes (`ey7wb3jj`).
+The binding is charged separately: 111 low HIMEM bytes; the complete diagnostic
+pair retains 3,776 HIMEM and 2,192 EMM bytes (3,792 HIMEM with live-import
+instrumentation). Normal binaries remain unchanged. Local phase/parser and
+paired-layout suites pass 34 and 13 tests.
+
+This binds the existing packet transports to one guarded entry; it does not
+yet replace their per-service adaptation with a common caller context. That
+replacement, explicit boot-only retirement and packed release remain required.
+No new low-memory saving is claimed.
 
 ##### Whole-system placement rules
 

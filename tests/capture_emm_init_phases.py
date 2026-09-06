@@ -87,6 +87,16 @@ def parse_live_umb_import(data, *, mode):
                 backing_accessed=mode == "RAM", payload_verified=mode == "RAM")
 
 
+def parse_common_binding(data):
+    if len(data) != 8:
+        raise ValueError("missing common binding witness")
+    tag, offset, segment, refused = struct.unpack("<2s3H", data)
+    if tag != b"CB" or not offset or not 0 < segment < 0xa000 or refused != 1:
+        raise ValueError("invalid common binding witness")
+    return dict(entry=f"{segment:04X}:{offset:04X}", discovery_disabled=True,
+                revoked_call_refused=True, backing_released=False)
+
+
 def parse_umb_service_receipt(data, *, failure):
     if len(data) != 10:
         raise ValueError("missing sequenced UMB service witness")
@@ -305,6 +315,8 @@ def main():
                         help="negative control: reject one service family in the common core")
     parser.add_argument("--bad-common-move-low", action="store_true",
                         help="negative control: use the retired low Move resolver")
+    parser.add_argument("--bad-common-binding", choices=("rediscover", "guard"),
+                        help="negative control: rediscover a bound provider or ignore revocation")
     parser.add_argument("--umb-sequence-wrap", action="store_true",
                         help="seed both confirmed sequence counters near 32-bit wrap")
     parser.add_argument("--umb-service-reply", choices=("before", "after", "unknown"),
@@ -365,7 +377,7 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
-    if args.bad_common_xms_entry or args.bad_common_move_low:
+    if args.bad_common_xms_entry or args.bad_common_move_low or args.bad_common_binding:
         args.common_xms_entry = True
     if args.common_xms_entry:
         args.umb_service_receipts = True
@@ -483,6 +495,8 @@ def main():
     trace_defines = "-DEMM_INIT_PHASE_TRACE"
     if args.common_xms_entry:
         trace_defines += " -DEMM_COMMON_XMS_TEST"
+    if args.bad_common_binding == "guard":
+        trace_defines += " -DEMM_COMMON_BOUND_UNGUARDED"
     if args.bad_common_xms_entry:
         trace_defines += " -DEMM_COMMON_XMS_REJECT_" + args.bad_common_xms_entry.upper()
     if args.bootstrap_owner:
@@ -582,6 +596,7 @@ def main():
                         *(["-DHIMEM_UMB_HANDOFF_TEST"] if args.umb_handoff else []),
                         *(["-DHIMEM_UMB_RESULTS_TEST"] if args.umb_service_receipts else []),
                         *(["-DHIMEM_COMMON_XMS_TEST"] if args.common_xms_entry else []),
+                        *(["-DHIMEM_BIND_ALWAYS_DISCOVER_TEST"] if args.bad_common_binding == "rediscover" else []),
                         *(["-DHIMEM_COMMON_LOW_MOVE_TEST"] if args.bad_common_move_low else []),
                         *(["-DHIMEM_UMB_SEQUENCE_WRAP_TEST"] if args.umb_sequence_wrap else []),
                         *(["-DHIMEM_UMB_RESULTS_NO_FREEZE_TEST"] if args.bad_umb_result_freeze else []),
@@ -629,6 +644,15 @@ def main():
                         procedures[match[1]] = int(match[2], 16)
                 umb_defines += ["-DCOMMON_PUBLIC_MOVE",
                                 f"-DMOVE_RESOLVER_OFFSET={procedures['resolve_move_address']}"]
+                ready = []
+                for line in (build / "EMM386.MAP").read_text().splitlines():
+                    fields = line.split()
+                    if len(fields) == 2 and fields[1] == "XmsBindingReady":
+                        ready.append(int(fields[0].rstrip("*+").split(":")[1], 16))
+                if len(ready) != 1:
+                    raise ValueError("missing/duplicate common binding guard in linked map")
+                umb_defines += [f"-DCOMMON_BINDING_OFFSET={symbols['xms_bound_entry'][0]}",
+                                f"-DCOMMON_GUARD_OFFSET={ready[0]}"]
             if args.umb_handoff:
                 umb_defines += ["-DUMB_LOW_FALLBACK_TEST" if args.reject_prepared else "-DUMB_HANDOFF_TEST",
                                 f"-DUMB_STATE_OFFSET={symbols['umb_remote_state'][0]}"]
@@ -708,6 +732,8 @@ def main():
             post_boot[mode] = parse_post_boot(trace_data[-10:], expected)
             trace_data = trace_data[:-10]
             if args.common_xms_entry and args.umb_service_reply != "unknown":
+                post_boot[mode]["common_binding"] = parse_common_binding(trace_data[-8:])
+                trace_data = trace_data[:-8]
                 if not trace_data.endswith(b"PM"):
                     raise ValueError("common public Move/retired-resolver probe failed")
                 trace_data = trace_data[:-2]
@@ -791,6 +817,7 @@ def main():
         common_xms_entry=args.common_xms_entry,
         bad_common_xms_entry=args.bad_common_xms_entry,
         bad_common_move_low=args.bad_common_move_low,
+        bad_common_binding=args.bad_common_binding,
         umb_sequence_wrap=args.umb_sequence_wrap,
         umb_service_reply=args.umb_service_reply,
         bad_umb_result_freeze=args.bad_umb_result_freeze,

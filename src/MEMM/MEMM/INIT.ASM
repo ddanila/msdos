@@ -157,6 +157,9 @@ ABS0	ends
 ;
 R_CODE	segment
 extrn	i15_Entry:near		; int15h patch code
+IFDEF EMM_COMMON_XMS_TEST
+extrn XmsBindingReady:byte
+ENDIF
 extrn	EMM_rEntry:near 	; int67h patch code
 extrn	i15_Old:word		; old int15 vector
 extrn	ELIM_Entry:far		; installed ON/OFF/AUTO control
@@ -1094,6 +1097,16 @@ skip_dig_adj:
 ;
 ; all done with no errors
 ;
+IFDEF EMM_COMMON_XMS_TEST
+        push es
+        push di
+        mov ax,seg R_CODE
+        mov es,ax
+        mov di,offset R_CODE:XmsBindingReady
+        mov byte ptr es:[di],1
+        pop di
+        pop es
+ENDIF
 ifdef EMM_SPLIT_PREPARE
         mov cs:[provider_state],PROVIDER_ACTIVE
 endif

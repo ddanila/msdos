@@ -83,7 +83,11 @@ ifdef HIMEM_UMB_DEFER_TEST
         jne umb_remote_unavailable
 endif
         mov ax,XCP_QUERY
+ifdef HIMEM_COMMON_XMS_TEST
+        call xms_common_query
+else
         int 15h
+endif
         cmp ax,XCP_REPLY
         jne umb_remote_unavailable
         cmp bx,XCP_SIGNATURE
@@ -278,7 +282,11 @@ ifdef HIMEM_UMB_RESULTS_TEST
 endif
         mov si,offset umb_remote_packet
         mov ah,87h
+ifdef HIMEM_COMMON_XMS_TEST
+        call xms_common_send
+else
         int 15h
+endif
         ret
 umb_remote_send endp
 ifdef HIMEM_UMB_RESULTS_TEST
