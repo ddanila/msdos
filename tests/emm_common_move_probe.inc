@@ -1,9 +1,11 @@
 ; Public Move must not use the old low endpoint/handle resolver.
 check_common_public_move:
+%ifndef MOVE_RESOLVER_RETIRED
     mov es,[himem_segment]
     mov ax,[es:MOVE_RESOLVER_OFFSET]
     mov [pm_saved_resolver],ax
     mov word [es:MOVE_RESOLVER_OFFSET],0c3f9h ; STC; RET
+%endif
     mov dx,1
     mov ah,9
     UMB_CALL
@@ -79,11 +81,13 @@ check_common_public_move:
     UMB_CALL
     cmp ax,1
     jne umb_failed
+%ifndef MOVE_RESOLVER_RETIRED
     mov es,[himem_segment]
     cmp word [es:MOVE_RESOLVER_OFFSET],0c3f9h
     jne umb_failed
     mov ax,[pm_saved_resolver]
     mov [es:MOVE_RESOLVER_OFFSET],ax
+%endif
     mov dx,0e9h
     mov al,'P'
     out dx,al

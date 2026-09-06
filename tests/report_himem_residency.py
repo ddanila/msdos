@@ -111,10 +111,14 @@ def check_bootstrap_layout(numbers, procedures, handle_count):
     if (not 1 <= handle_count <= 128 or start <= 0 or start % 16 or code <= 0
             or start + code != handles or handles + 5 * handle_count > 65536):
         raise ValueError("invalid contiguous HIMEM bootstrap layout")
-    for name in BOOTSTRAP_PROCEDURES:
+    moved_move = "bootstrap_move" in procedures
+    move_tail = ("bootstrap_move", "resolve_move_address", "copy_move_blocks", "kb_to_physical") if moved_move else ()
+    for name in (*BOOTSTRAP_PROCEDURES, *move_tail):
         if not start <= procedures[name] < handles:
             raise ValueError(f"bootstrap procedure outside tail: {name}")
     for name in PERMANENT_PROCEDURES:
+        if moved_move and name in ("xms_owner_handle", "copy_move_blocks"):
+            continue
         if not 0 <= procedures[name] < start:
             raise ValueError(f"permanent entry in bootstrap tail: {name}")
     staging = ("private_bootstrap_stage", "xms_stage_forward")
@@ -167,7 +171,7 @@ def paired_front_ownership(path, handle_count):
         ]
     boundaries += [
         ("High allocator transport", addresses["xms_remote_owned"], "separate one-time import from permanent high dispatch"),
-        ("Handle translation and gates", addresses["xms_owner_handle"], "high authority with no low handle mirror"),
+        ("Handle translation and gates", addresses.get("xms_owner_handle", addresses.get("xms_gate_query")), "high authority with no low handle mirror"),
         ("Public Move validation", addresses["xms_move"], "bind real caller pointers and reject before writes"),
         ("UMB allocation and coalescing", addresses["xms_umb_request"], "move with registered table and peer operations, not independently"),
         ("Move address translation", addresses["resolve_move_address"], "share high handle lookup and physical address validation"),
@@ -199,6 +203,14 @@ def paired_front_ownership(path, handle_count):
                                   "shared input snapshot, serialization and sequenced results"))
         name, start, _ = boundaries[index + 1]
         boundaries[index + 1] = (name, start, "bootstrap-only owner; common peer input uses the shared frame")
+    already_retired = set()
+    if "bootstrap_move" in addresses:
+        already_retired = {"Public Move validation", "Move address translation",
+                           "Protected copy entry", "Physical address helper"}
+        boundaries = [("Public Move gate", start, "bootstrap/high lifetime selection; never enter retired storage")
+                      if name == "Public Move validation" else (name, start, contract)
+                      for name, start, contract in boundaries
+                      if name not in already_retired - {"Public Move validation"}]
     rows = []
     for (owner, start, contract), (_, end, _) in zip(boundaries, boundaries[1:]):
         if not 0 <= start <= end <= layout["permanent_bytes"]:
@@ -206,12 +218,12 @@ def paired_front_ownership(path, handle_count):
         rows.append(dict(owner=owner, start=start, end=end, bytes=end-start, contract=contract))
     if sum(row["bytes"] for row in rows) != layout["permanent_bytes"]:
         raise ValueError("paired front has unaccounted bytes")
-    return dict(layout=layout, front=rows, transplant_counterfactual=transplant_counterfactual(rows),
+    return dict(layout=layout, front=rows, transplant_counterfactual=transplant_counterfactual(rows, already_retired=already_retired),
                 projected_low_bytes=None,
                 projected_release_bytes=None)
 
 
-def transplant_counterfactual(rows):
+def transplant_counterfactual(rows, *, already_retired=frozenset()):
     """Price one hypothetical deletion, not relocatability or a final layout.
 
     Delete complete boot/UMB/Move groups while retaining the present transports
@@ -227,11 +239,13 @@ def transplant_counterfactual(rows):
     }
     optional = {"Bootstrap staging transaction", "Bootstrap forwarding"}
     by_name = {row["owner"]: row for row in rows}
-    if len(by_name) != len(rows) or (removed_names - optional) - by_name.keys():
+    if (not set(already_retired) <= removed_names or set(already_retired) & by_name.keys()
+            or len(by_name) != len(rows) or (removed_names - optional - set(already_retired)) - by_name.keys()):
         raise ValueError("incomplete or duplicate transplant accounting groups")
     removed = [row for row in rows if row["owner"] in removed_names]
     retained = [row for row in rows if row["owner"] not in removed_names]
     return dict(removed_groups=[row["owner"] for row in removed],
+                already_retired_groups=sorted(already_retired),
                 removed_linked_bytes=sum(row["bytes"] for row in removed),
                 retained_linked_bytes=sum(row["bytes"] for row in retained),
                 replacement_gate_bytes=None, final_low_bytes=None,

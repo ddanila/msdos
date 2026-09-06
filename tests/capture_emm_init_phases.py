@@ -656,6 +656,13 @@ def main():
                         procedures[match[1]] = int(match[2], 16)
                 umb_defines += ["-DCOMMON_PUBLIC_MOVE",
                                 f"-DMOVE_RESOLVER_OFFSET={procedures['resolve_move_address']}"]
+                if "bootstrap_move" in procedures:
+                    # The loader now overwrites that tail with EMM, or import
+                    # poisons it. Never corrupt the replacement resident owner.
+                    layout = bootstrap_layout(work / "HIMEM.LST", args.xms_handles)
+                    if procedures["resolve_move_address"] < layout["permanent_bytes"]:
+                        raise ValueError("bootstrap Move resolver remains resident")
+                    umb_defines += ["-DMOVE_RESOLVER_RETIRED"]
                 ready = []
                 for line in (build / "EMM386.MAP").read_text().splitlines():
                     fields = line.split()

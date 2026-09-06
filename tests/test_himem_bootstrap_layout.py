@@ -59,6 +59,18 @@ class BootstrapLayoutTests(unittest.TestCase):
         with self.assertRaises(KeyError):
             check_bootstrap_layout(self.numbers, procedures, 32)
 
+    def test_complete_move_body_is_bootstrap_but_gate_is_permanent(self):
+        procedures = dict(self.procedures)
+        del procedures["xms_owner_handle"]
+        moved = ("bootstrap_move", "resolve_move_address", "copy_move_blocks", "kb_to_physical")
+        procedures.update({name: 2304 + i * 16 for i, name in enumerate(moved)})
+        check_bootstrap_layout(self.numbers, procedures, 32)
+        for name in moved:
+            with self.subTest(name=name), self.assertRaises(ValueError):
+                check_bootstrap_layout(self.numbers, dict(procedures, **{name: 512}), 32)
+        with self.assertRaises(ValueError):
+            check_bootstrap_layout(self.numbers, dict(procedures, xms_move=2304), 32)
+
 
 class PairedFrontTests(unittest.TestCase):
     def test_transplant_scenario_retains_transport_and_unknown_gate_costs(self):
@@ -82,6 +94,17 @@ class PairedFrontTests(unittest.TestCase):
             transplant_counterfactual(rows + [rows[0]])
         with self.assertRaises(ValueError):
             transplant_counterfactual([r for r in rows if r["owner"] != "UMB records"])
+
+    def test_retired_move_is_not_counted_as_a_future_release(self):
+        rows = self.report()["front"]
+        retired = {"Public Move validation", "Move address translation",
+                   "Protected copy entry", "Physical address helper"}
+        retained = [row for row in rows if row["owner"] not in retired]
+        scenario = transplant_counterfactual(retained, already_retired=retired)
+        self.assertEqual(scenario["already_retired_groups"], sorted(retired))
+        self.assertFalse(retired & set(scenario["removed_groups"]))
+        with self.assertRaises(ValueError):
+            transplant_counterfactual(rows, already_retired=retired)
 
     def report(self, *, staged=True, handoff=False, common=False, bound=False, frame=False, bad=None, alignment=10):
         names = ["strategy", "multiplex_handler", "private_register", "int15_handler",

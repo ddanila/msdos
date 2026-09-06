@@ -336,7 +336,13 @@ ifdef HIMEM_COMMON_OLD_HANDLE_TEST
         cmp ah,9
         je common_public_legacy
 endif
+        cmp ah,10h
+        jae common_public_umb
+        call xms_common_handles_ready
+        jmp short common_public_ready
+common_public_umb:
         call xms_common_ready
+common_public_ready:
         jc common_public_legacy
         mov al,ah
         xor ah,ah
@@ -393,7 +399,13 @@ xms_extended_unknown:
 ifdef HIMEM_COMMON_XMS_TEST
         cmp     ax,8
         jb      common_alias_bootstrap
+        cmp     ax,10h
+        jae     common_alias_umb
+        call    xms_common_handles_ready
+        jmp     short common_alias_ready
+common_alias_umb:
         call    xms_common_ready
+common_alias_ready:
         jc      common_alias_bootstrap
         call    xms_common_invoke
         jmp     short xms_extended_return
@@ -814,244 +826,17 @@ else
         include XMSALLOC.INC
 endif
 
-xms_move proc near
-ifdef HIMEM_BOOTSTRAP_STAGE_TEST
-        cmp word ptr [bootstrap_stage_entry+2],0
-        je staged_move_ready
-        push bx
-        push dx
-        mov ax,8
-        call xms_remote_owned
-        pop dx
-        pop bx
-        jc staged_move_forward
-        cmp word ptr [bootstrap_stage_entry+2],0
-        je staged_move_ready
-        xor ax,ax
-        mov bl,ERR_GENERAL
-        ret
-staged_move_forward:
-        mov ah,0bh
-        call xms_stage_forward
-        ret
-staged_move_ready:
+ifdef HIMEM_COMMON_XMS_TEST
+        include XMSMOVEGATE.INC
+else
+        include XMSMOVEBODY.INC
 endif
-        push    bx
-        push    dx
-        push    bp
-        push    es
-        mov     es, [caller_ds]
-        mov     di, [caller_si]
-ifdef HIMEM_PROTECTED_COPY_TEST
-        mov     word ptr [move_address_classes],0
-        cmp     word ptr es:[di+4],0
-        jne     short protected_source_handle
-        or      word ptr [move_address_classes],1
-protected_source_handle:
-        cmp     word ptr es:[di+10],0
-        jne     short protected_dest_handle
-        or      word ptr [move_address_classes],2
-protected_dest_handle:
-endif
-        mov     ax, word ptr es:[di]
-        test    al, 1
-        jnz     short move_bad_length
-        mov     word ptr [move_length], ax
-        mov     ax, word ptr es:[di+2]
-        mov     word ptr [move_length+2], ax
-        or      ax, word ptr [move_length]
-        jz      short move_success
-
-        mov     dx, word ptr es:[di+4]
-        mov     ax, word ptr es:[di+6]
-        mov     bp, word ptr es:[di+8]
-        call    resolve_move_address
-        jc      short move_bad_source
-        mov     word ptr [move_source], ax
-        mov     word ptr [move_source+2], dx
-
-        mov     dx, word ptr es:[di+10]
-        mov     ax, word ptr es:[di+12]
-        mov     bp, word ptr es:[di+14]
-        call    resolve_move_address
-        jc      short move_bad_dest
-        mov     word ptr [move_dest], ax
-        mov     word ptr [move_dest+2], dx
-
-move_copy:
-        call    copy_move_blocks
-        jc      short move_general_failure
-move_success:
-        pop     es
-        pop     bp
-        pop     dx
-        pop     bx
-        jmp     xms_success
-move_bad_length:
-        mov     bl, ERR_BAD_LENGTH
-        jmp     short move_failure
-move_bad_source:
-        mov     bl, ERR_BAD_SOURCE
-        jmp     short move_bad_address
-move_bad_dest:
-        mov     bl, ERR_BAD_DEST
-move_bad_address:
-ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
-        cmp     [move_offset_error],2
-        je      short move_general_failure
-endif
-        cmp     [move_offset_error], 0
-        je      short move_failure
-        mov     bl, ERR_BAD_LENGTH
-        jmp     short move_failure
-move_general_failure:
-        mov     bl, ERR_GENERAL
-move_failure:
-        pop     es
-        pop     bp
-        add     sp, 4
-        jmp     xms_failure
-xms_move endp
 
         include XMSUMB.INC
 
-; Resolve an XMS move endpoint. DX is a handle (zero means a packed
-; segment:offset conventional address), BP:AX is its offset, and move_length
-; is the transfer length. Returns DX:AX=physical address.
-resolve_move_address proc near
-        push    di
-        mov     [move_offset_error], 0
-        or      dx, dx
-        jnz     short resolve_handle
-        mov     dx, bp
-        mov     bx, dx
-        mov     cl, 12
-        shr     dx, cl
-        mov     cl, 4
-        shl     bx, cl
-        add     ax, bx
-        adc     dx, 0
-        pop     di
-        clc
-        ret
-resolve_handle:
-        push    dx
-ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
-ifndef HIMEM_AUTHORITATIVE_LOCAL_LOOKUP
-        call    xms_owner_handle
-else
-        call    validate_handle
+ifndef HIMEM_COMMON_XMS_TEST
+        include XMSMOVEHELP.INC
 endif
-else
-        call    validate_handle
-endif
-        pop     dx
-        jc      short resolve_bad_handle
-        push    bp                     ; retain the start offset's high word
-        mov     bx, ax
-        add     bx, word ptr [move_length]
-        adc     bp, word ptr [move_length+2]
-        jc      short resolve_bad_offset
-        mov     dx, word ptr [si+HANDLE_LENGTH]
-        mov     di, dx
-        mov     cl, 6
-        shr     dx, cl
-        mov     cl, 10
-        shl     di, cl
-        cmp     bp, dx
-        ja      short resolve_bad_offset
-        jb      short resolve_offset_valid
-        cmp     bx, di
-        ja      short resolve_bad_offset
-resolve_offset_valid:
-        pop     bp                     ; bounds checking used the end offset
-        mov     bx, ax
-        mov     ax, word ptr [si+HANDLE_BASE]
-        call    kb_to_physical
-        add     ax, bx
-        adc     dx, bp
-        pop     di
-        clc
-        ret
-resolve_bad_offset:
-        pop     bp
-        mov     [move_offset_error], 1
-resolve_bad_handle:
-        pop     di
-        stc
-        ret
-resolve_move_address endp
-
-copy_move_blocks proc near
-ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
-        cmp     [owner_query_active],0
-        je      bootstrap_copy_move
-endif
-ifdef HIMEM_PROTECTED_COPY_TEST
-        push    si
-        push    es
-        push    bx
-        push    cx
-        push    dx
-ifndef HIMEM_SKIP_COPY_CAPABILITY_TEST
-        mov     ax,XCP_QUERY
-ifdef HIMEM_COMMON_XMS_TEST
-        call    xms_common_query
-else
-        int     015h
-endif
-        cmp     ax,XCP_REPLY
-        jne     short protected_copy_unavailable
-        cmp     bx,XCP_SIGNATURE
-        jne     short protected_copy_unavailable
-        cmp     cx,XCP_VERSION
-        jne     short protected_copy_unavailable
-        and     dx,XCP_REQUIRED
-        cmp     dx,XCP_REQUIRED
-        jne     short protected_copy_unavailable
-endif
-        push    cs
-        pop     es
-        mov     si,offset protected_copy_packet
-        mov     ah,087h
-ifdef HIMEM_COMMON_XMS_TEST
-        call    xms_common_send
-else
-        int     015h
-endif
-        pop     dx
-        pop     cx
-        pop     bx
-        pop     es
-        pop     si
-        ret
-protected_copy_unavailable:
-        pop     dx
-        pop     cx
-        pop     bx
-        pop     es
-        pop     si
-        stc
-        ret
-else
-        HIMEM_BIOS_COPY
-endif
-copy_move_blocks endp
-
-ifndef HIMEM_AUTHORITATIVE_OWNER_TEST
-        HIMEM_BIOS_DESCRIPTOR
-endif
-
-; Convert AX kilobytes above the XMS base to DX:AX physical bytes.
-kb_to_physical proc near
-        mov     dx, ax
-        mov     cl, 6
-        shr     dx, cl
-        add     dx, 0010h
-        mov     cl, 10
-        shl     ax, cl
-        ret
-kb_to_physical endp
 
 ifndef HIMEM_AUTHORITATIVE_OWNER_TEST
         HIMEM_BIOS_GDT
@@ -1077,6 +862,10 @@ umb_blocks_end label byte
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
         db (16-(($-device_header) MOD 16)) MOD 16 dup (0)
 bootstrap_owner_start label byte
+ifdef HIMEM_COMMON_XMS_TEST
+        include XMSMOVEBODY.INC
+        include XMSMOVEHELP.INC
+endif
 bootstrap_copy_move proc near
         HIMEM_BIOS_COPY
 bootstrap_copy_move endp

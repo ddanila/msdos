@@ -38,7 +38,9 @@ XCP_REQUIRED equ XCP_PHYSICAL OR XCP_CLIENT OR XCP_INACTIVE
 ; copies. COMMON_FRAME replaces these steady-state packets with XAPI v2:
 ; +4 version=2, +6 operation, +8 completion (input 0), +10 result AX,
 ; +12 DX, +14 BX, +16 input offset, +18 capacity, +20 dword sequence.
-; Both handle and UMB owners must already be committed. Operations 08h..11h
+; Handle ownership must already be committed; only UMB operations additionally
+; require the UMB owner. Move/handle calls remain available during deferred
+; UMB import. Operations 08h..11h
 ; are public XMS, 12h/13h register/unregister UMBs, 14h private handle lookup.
 ; 08h/0Eh/14h require sequence zero; other services share the XUMB v2 journal.
 ; Operation 02h queries that journal without requiring a new mutation.

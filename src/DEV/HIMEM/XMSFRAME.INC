@@ -9,6 +9,9 @@ common_packet db 'XAPI'
 ; Never borrow the retired bootstrap UMB table after ownership commits.
         db (4+MAX_UMB_BLOCKS*UMB_BLOCK_SIZE) dup (0)
 xms_common_ready proc near
+        cmp [umb_remote_state],2
+        jb common_not_ready
+xms_common_handles_ready label near
 ifdef HIMEM_BIND_ALWAYS_DISCOVER_TEST
         push ax
         push bx
@@ -26,8 +29,6 @@ endif
         je common_not_ready
         cmp [owner_query_active],0
         je common_not_ready
-        cmp [umb_remote_state],2
-        jb common_not_ready
         clc
         ret
 common_not_ready:

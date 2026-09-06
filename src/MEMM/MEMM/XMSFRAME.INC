@@ -24,8 +24,13 @@ XmsCommonRequest proc near
         ja frame_bad
         cmp [XmsOwnerActive],1
         jne frame_bad
+        cmp ax,10h
+        jb frame_handle_owner_ready
+        cmp ax,13h
+        ja frame_handle_owner_ready
         cmp [XmsUmbActive],1
         jne frame_bad
+frame_handle_owner_ready:
         cmp ax,0bh
         jne frame_check_peer
         cmp word ptr es:[bp+18],16

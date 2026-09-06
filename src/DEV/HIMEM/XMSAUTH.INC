@@ -181,7 +181,7 @@ ifdef HIMEM_COMMON_OLD_HANDLE_TEST
         cmp ax,9
         je common_handle_bootstrap
 endif
-        call xms_common_ready
+        call xms_common_handles_ready
         jc common_handle_bootstrap
         cmp ax,0bh
         jne common_handle_ready
@@ -306,6 +306,7 @@ xms_remote_owned endp
 ; its base/length from the high owner without changing lock counts. The import
 ; resident front end supplies transient scratch, not a live table mirror.
 ; Preserve the caller's offset AX/BP and packet DI; CF means invalid/unavailable.
+ifndef HIMEM_COMMON_XMS_TEST
 xms_owner_handle proc near
         push ax
         push bx
@@ -352,6 +353,7 @@ auth_handle_bootstrap:
         pop ax
         jmp validate_handle
 xms_owner_handle endp
+endif
 
 ; Public entries stay in the permanent prefix. Bootstrap bodies are reached
 ; only before high ownership is attempted and can then be discarded together.
