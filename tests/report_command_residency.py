@@ -90,7 +90,7 @@ def code_only_envelope(code_end: int, resident_break: int) -> tuple[int, int]:
 BINDING_SLOTS = ("fatal_ds", "fatal_psp", "ret2e_ds", "int2e_es", "int2e_bx",
                  "lodcom_ds", "lodcom_ax", "headfix_ds", "savhand_es", "endinit_ds",
                  "exec_err_ds", "exec_msg_es", "exec_pre_ds", "exec_post_ds", "exec_wait_ds",
-                 "critical_es", "critical_ds")
+                 "critical_es", "critical_ds", "contc_entry_ds", "contc_body_ds")
 
 
 def check_resident_bindings(symbols: dict[str, int], image: bytes) -> None:

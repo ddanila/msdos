@@ -42,4 +42,6 @@ SHELL_BINDING_SLOTS MACRO action
     action exec_wait_ds
     action critical_es
     action critical_ds
+    action contc_entry_ds
+    action contc_body_ds
 ENDM

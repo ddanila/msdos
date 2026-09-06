@@ -731,6 +731,7 @@ test-command-int2e-owner-qemu: deploy
 .PHONY: test-command-resident-binding-qemu
 test-command-resident-binding-qemu: deploy
 	python3 tests/test_command_resident_bindings.py
+	python3 tests/test_command_contc_entry_qemu.py
 	bash tests/test_command_resident_binding_qemu.sh
 
 test-command-step-qemu: deploy
