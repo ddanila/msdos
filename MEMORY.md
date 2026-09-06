@@ -14,7 +14,38 @@ Report UMB and application XMS costs alongside the gain. Complete BIOS and
 COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
-The current bootstrap-retirement candidate is measured at
+The current **character-body retirement candidate** is measured at
+**618,688 conventional / 49,680 free UMB bytes** in
+`out/umb-fine-composition-q8kg7dgz/`: **736 bytes recovered** versus the
+bootstrap-retirement candidate below, **752 above the composed control**, and
+**48 below retail**. The low BIOS allocation falls from 5,152 to 4,416 bytes.
+The old console/serial/printer/clock bodies are placed in the disposable tail,
+poisoned after high publication, and released by the existing low compaction.
+This is an opt-in experimental layout, not production promotion.
+
+The shared HMA charge is now 40,272 DOS + 6,658 BIOS + 7,988 buffers +
+2,447 COMMAND = **57,365 bytes**, leaving **8,139 bytes** at
+`E025h..FFF0h`. This replaces the 5,220-byte BIOS reservation in older ledgers;
+do not count both reservations or reuse their 9,577-byte tail. Application XMS
+remains 6,798,336 bytes, **5,120 below the control**; UMB remains unchanged.
+
+Retirement layout/link tests and composed VC boot pass. Warm-reset boot passes
+in `out/bios-low-boot-n4r3xw4z/`; forced high-reservation failure retains working
+fallback bodies in all four boot modes in `out/bios-low-boot-kq0v04jb/`.
+These checks do not exhaust device-request semantics or directly qualify the
+retained TimeToTicks near callback with A20 disabled. Finish those checks before
+promotion. Then settle remaining BIOS mixed state/services and complete COMMAND
+placement against the same shared budget; reaching retail is not permission
+to stop at an arbitrary paragraph target. Broader provider failure/reset
+qualification remains open.
+
+Reproduce the composed measurement with:
+
+```sh
+python3 tests/test_umb_subpage_composition.py --paired-provider out/emm-init-phases-q3jatbct --retire-bios-characters
+```
+
+The preceding bootstrap-retirement candidate is measured at
 **617,952 conventional / 49,680 free UMB bytes** in
 `out/umb-fine-composition-y8p7spf2/`. Retiring the complete low administrative
 bodies, including early-exit cleanup, recovers 336 conventional bytes and puts the pair **16 above the selected
@@ -3837,7 +3868,10 @@ The group adds **960 HMA bytes** (876 service code, 56 shared bindings/code,
 leaving a calculated **8,139-byte** shared tail with normal COMMAND and fifteen
 buffers. Low BIOS remains **5,200 bytes**: low bodies, FLUSH's incoming near
 call from MSBIO2, the TimeToTicks callback and clock conversion helpers are
-still retained. This is real high service execution/publication, **not low
+still retained without `--retire-characters`. The newer opt-in retirement
+layout described at the top releases the request bodies while retaining the
+break interrupt, clock state and a bound TimeToTicks near gate. This original
+copy-only mode is real high service execution/publication, **not low
 reclamation or production promotion**. Keep these incoming contracts in the
 complete layout; do not poison the whole old group merely because dispatch
 entries now point high. The selected comparison remains 617,936 conventional

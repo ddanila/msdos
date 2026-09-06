@@ -73,6 +73,16 @@ def require(symbols: dict[str, int], name: str) -> int:
 
 def character_partition(symbols: dict[str, int]) -> list[tuple[str, int, int, str]]:
     """Partition the character tranche; code inventory is not net relocation gain."""
+    if "BIOS_CLOCK_BODY_TICKS" in symbols:
+        boundaries = ("CON$READ", "AUX$READ", "PRN$WRIT", "TIM$WRIT", "BIOS_SERVICE_START")
+        points = [require(symbols, name) for name in boundaries]
+        if not (require(symbols, "END$") <= points[0]
+                and all(a < b for a, b in zip(points, points[1:]))
+                and require(symbols, "CBREAK") < require(symbols, "HaveCMOSClock")
+                < require(symbols, "TIME_TO_TICKS") < require(symbols, "END$")):
+            raise ValueError("retired character bodies or retained clock/break anchors overlap")
+        return [(name, start, end, "disposable fallback; excluded from permanent low image")
+                for name, start, end in zip(("Console body", "Serial body", "Printer body", "Clock body"), points, points[1:])]
     specs = (
         ("Console body", "CON$READ", "CBREAK", "service candidate"),
         ("Break interrupt and IRET", "CBREAK", "AUX$READ", "retain low initially"),
@@ -647,6 +657,13 @@ def main() -> int:
                      if row[0] == "Media-change and BPB services")
         selected_bios_ranges[first:first + 4] = [
             ("Media/BPB services and high-service bindings", "MEDIA$CHK", "DISK005S")
+        ]
+    if "BIOS_CLOCK_BODY_TICKS" in bios_symbols:
+        first = next(i for i, row in enumerate(selected_bios_ranges)
+                     if row[0] == "Strategy and request dispatch")
+        selected_bios_ranges[first:first + 5] = [
+            ("Strategy and request dispatch", "BIO001E", "CBREAK"),
+            ("Break interrupt and clock state/near gate", "CBREAK", "Set_ID_Flag"),
         ]
     print("\n### Selected resident BIOS ownership\n")
     print("| Source range | Bytes | Owner |")

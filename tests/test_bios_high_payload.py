@@ -8,6 +8,32 @@ from build_bios_high_payload import build, offset_fixups, rebase, boot_policy, p
 
 
 class PayloadTests(unittest.TestCase):
+    def test_character_retirement_keeps_low_state_and_clock_hook(self):
+        from build_bios_low_image import build as build_low
+        from build_bios_activation_fixture import write_fixture
+        from report_dos_bios_residency import character_partition, parse_map
+        with tempfile.TemporaryDirectory(prefix="msdos-char-retirement-test-") as scratch:
+            directory = Path(scratch)
+            low = build_low(directory, tail_body=True, dispatch=True, characters=True,
+                            retire_characters=True)
+            high = build(directory / "high", directory, dispatch=True, characters=True)
+            write_fixture(directory, low, high)
+            symbols = low["symbols"]
+            _, linked_symbols = parse_map(directory / "msBIO.map")
+            rows = character_partition(linked_symbols)
+            self.assertEqual(len(rows), 4)
+            self.assertTrue(all(start >= symbols["END$"] for _, start, _, _ in rows))
+            for name in ("CBREAK", "TIME_TO_TICKS", "HAVECMOSCLOCK", "BINTOBCD", "DAYCNTTODAY"):
+                self.assertLess(symbols[name], symbols["END$"])
+            for name in ("CON$READ", "AUX$READ", "PRN$WRIT", "TIM$WRIT", "BIOS_CLOCK_BODY_TICKS"):
+                self.assertGreaterEqual(symbols[name], symbols["END$"])
+                self.assertLess(symbols[name], symbols["BIOS_SERVICE_START"])
+            self.assertIn(f"OLD_SERVICE_START equ {symbols['CON$READ']}",
+                          (directory / "activation-defs.inc").read_text())
+            binding = (directory / "activation-bind-low.inc").read_text()
+            self.assertIn(f"add ax,{high['exports']['TIME_TO_TICKS']}", binding)
+            self.assertIn(f"mov [es:{symbols['BIOS_HIGH_TIME_TO_TICKS']}],ax", binding)
+
     def test_complete_character_owner_links_without_low_completion_aliases(self):
         from build_bios_low_image import build as build_low
         from build_bios_activation_fixture import CHARACTER_TARGETS

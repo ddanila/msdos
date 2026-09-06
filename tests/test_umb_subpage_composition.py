@@ -61,8 +61,12 @@ def main():
                         help="also compose the complete EMM table move with fine UMBs and high CDS")
     parser.add_argument("--paired-provider", type=Path,
                         help="completed fine-UMB/common-provider phase fixture to compose and measure")
+    parser.add_argument("--retire-bios-characters", action="store_true",
+                        help="retire the complete low character/clock bodies in the paired image")
     args = parser.parse_args()
     paired = paired_inputs(args.paired_provider) if args.paired_provider else None
+    if args.retire_bios_characters and not paired:
+        parser.error("--retire-bios-characters requires --paired-provider")
     if paired:
         args.high_tables = True
     if args.high_tables:
@@ -87,7 +91,9 @@ def main():
             work / "emm-high-tables", True, "-DUMB_SUBPAGE_MAPPING", high_tables=True)
     if paired:
         build_bios(work / "bios-paired", early=True, tail_body=True, rebase=True,
-                   compact=True, high_cds=True, paired_provider=paired[0])
+                   compact=True, high_cds=True, paired_provider=paired[0],
+                   dispatch=args.retire_bios_characters, characters=args.retire_bios_characters,
+                   retire_characters=args.retire_bios_characters)
         binaries["paired"] = paired[0]
     assert binaries["coarse"].read_bytes() == (ROOT / "src/MEMM/MEMM/EMM386.EXE").read_bytes()
     env = dict(os.environ, MTOOLS_SKIP_CHECK="1", MTOOLS_NO_VFAT="1")
@@ -148,6 +154,15 @@ def main():
                 "--command-map", ROOT / "src/CMD/COMMAND/COMMAND.MAP",
                 "--composition", work / "results.json", "--variant",
                 "fine-cds-high-tables" if args.high_tables else "fine-cds",
+            ], check=True, stdout=census)
+    if paired:
+        with (work / "paired-residency.md").open("w") as census:
+            subprocess.run([
+                sys.executable, ROOT / "tests/report_dos_bios_residency.py",
+                ROOT / "src/DOS/MSDOS.MAP", work / "bios-paired/msBIO.map",
+                "--check", "--tail-body", "--boot-manifest", work / "bios-paired/low.json",
+                "--command-map", ROOT / "src/CMD/COMMAND/COMMAND.MAP",
+                "--composition", work / "results.json", "--variant", "paired",
             ], check=True, stdout=census)
     check_results(results, high_cds=args.high_cds, high_tables=args.high_tables)
 

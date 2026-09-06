@@ -12,12 +12,13 @@ def write_fixture(output, low, high):
     symbols, exports = low["symbols"], high["exports"]
     entries = re.findall(r"^BIOS_DEVICE_ENTRY (\d+),([^,]+),([^,]+),([^\s]+)$",
                          (ROOT / "src/BIOS/HIGHDEV.INC").read_text(), re.M)
-    size = symbols["BIOS_SERVICE_END"] - symbols["BIOS_SERVICE_START"]
+    retired_start = symbols["CON$READ"] if low.get("retired_character_bodies") else symbols["BIOS_SERVICE_START"]
+    size = symbols["BIOS_SERVICE_END"] - retired_start
     if size % 2 or high["low_image_sha256"] != low["sha256"]:
         raise ValueError("invalid service range or mismatched low/high images")
     definitions = {"ORIGINAL_BLOCK13": symbols["BLOCK13"],
                    "NEW_BLOCK13": symbols["BIOS_LOW_BLOCK13"],
-                   "OLD_SERVICE_START": symbols["BIOS_SERVICE_START"],
+                   "OLD_SERVICE_START": retired_start,
                    "OLD_SERVICE_SIZE": size,
                    "ACTIVATION_FIXUP_COUNT": len(high["offset_fixups"])}
     preflight, bind_high, bind_low = [], [], []
@@ -58,6 +59,8 @@ def write_fixture(output, low, high):
                    "BIOS_HIGH_BLOCK13_ENTRY": ("BLOCK13", 4)}
     low_targets.update({"BIOS_HIGH_" + name: (name, 2)
                         for name in ("SETDRIVE", "MAPERROR", "READ_SECTOR", "CHECKSINGLE")})
+    if low.get("retired_character_bodies"):
+        low_targets["BIOS_HIGH_TIME_TO_TICKS"] = ("TIME_TO_TICKS", 2)
     low_targets.update({slot: (target, 4) for _, _, slot, target in entries})
     if high.get("dispatch"):
         low_targets["BIOS_HIGH_DISPATCH_ENTRY"] = ("BIOS_DISPATCH_START", 4)
