@@ -2589,6 +2589,52 @@ composition retains 617,984 conventional and 49,680 free UMB bytes after cleanup
 changes: no measured low-memory cost in this profile.
 No new protected entry/exit mode or combined XMS provider is enabled by this fix.
 
+**Proposed physical-copy mapping owner:** do not extend the existing identity
+mapping by assumption. `TABDEF.ASM` reserves five page tables; `VDMINIT:InitPages`
+identity-maps only through 16 MiB, treats the HMA alias separately, and leaves
+the fifth table empty apart from `OEM_Init_Diag_Page`'s first sixteen entries.
+`MapLinear` only adds the OEM diagnostic-address case; it is not a mapper for
+arbitrary XMS allocations above 16 MiB.
+
+Select fifth-table entries 16 and 17 as candidate private source/destination
+windows: linear `01010000h` and `01011000h`, PTE offsets `4040h` and `4044h`
+from `PAGET_GSEL`. The live-owner harness now verifies that both entries are
+exactly zero in the existing, contiguous, writable fifth page table. This
+would require no additional page-table allocation; it does not reserve the
+windows or prove that runtime clients can safely share their ownership.
+Current ON/OFF/AUTO/RAM captures all retain zero in both entries: respectively
+`out/emm-live-owners-z7wf5jc2/`, `out/emm-live-owners-ln1jhsxm/`,
+`out/emm-live-owners-iawwq6sd/` and `out/emm-live-owners-ly1yno6j/`.
+Each manifest includes requested and observed mode, physical owner bounds,
+candidate PTE addresses, executable/map hashes and raw RAM/register captures.
+
+The implementation contract for these windows is:
+
+- Enter with the provider's CR3 and exclusive scratch-window ownership. Preserve
+  the original PTEs and any reused MBSRC/MBTAR descriptors; reject a conflicting
+  owner rather than borrowing an application EMS frame or exposing a second
+  allocator. Temporary PTEs must be supervisor-only.
+- Distinguish nonzero-handle physical addresses from handle-zero real-mode
+  pointers. Resolve the latter through the client's mappings after establishing
+  the service's A20 policy; segment arithmetic alone loses EMS/UMB remapping.
+  Resolve both addresses before changing either scratch PTE.
+- Copy at most the remaining length and the bytes to each source/destination
+  4-KiB boundary. Reload CR3 after mapping and after restoration (386-compatible);
+  unwind both windows/descriptors on every exit. Preserve the caller's EMM mode,
+  A20 policy and application mappings.
+- Use the same backend for Move and reallocating copies. Charge code, saved
+  descriptors, frame and serialization state against the complete provider
+  budget. Test page crossings, mapped conventional endpoints, allocations above
+  16 MiB, OFF/AUTO, failure and nested-entry policy before releasing low owners.
+
+The census also now distinguishes handle zero's conventional physical pages
+from locked XMS backing: `_total_pages` includes both. It checks the ordered
+physical records and derives the relocation tail from extended pages only.
+The current fixed probe has 24 conventional pages plus 64 extended pages, not
+88 pages charged to XMS. Ten host tests cover table ownership, physical backing
+and candidate-window rejection. This updates measurement tooling, not allocation
+behavior or the selected VC comparison.
+
 `tests/xms_emm_mode_probe.asm` now locks a 1 KiB XMS allocation before changing
 EMM modes ON -> OFF -> AUTO -> ON. In each mode it takes and releases an
 additional lock, checks the same physical base, reads back a 16-byte payload

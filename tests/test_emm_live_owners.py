@@ -4,11 +4,32 @@ import struct
 import unittest
 from pathlib import Path
 
-from capture_emm_live_owners import descriptor, startup_config, verify_mode, verify_owners
+from capture_emm_live_owners import (copy_window_candidates, descriptor,
+                                     startup_config, verify_mode, verify_owners)
 from report_emm386_residency import Segment, Symbol, relocation_budget
 
 
 class LiveOwnerTest(unittest.TestCase):
+    def test_copy_windows_use_only_empty_non_oem_slots(self):
+        ram = bytearray(0x7000)
+        struct.pack_into("<I", ram, 0x1010, 0x6007)
+        # The OEM area is not ours to borrow, regardless of whether it is used.
+        struct.pack_into("<I", ram, 0x6000, 0x80c00007)
+        result = copy_window_candidates(ram, 0x1000)
+        self.assertEqual([row["linear"] for row in result["slots"]],
+                         [0x1010000, 0x1011000])
+        self.assertEqual(result["additional_page_table_bytes"], 0)
+        for offset, value in ((0x6040, 1), (0x6044, 0x12345000),
+                              (0x1010, 0), (0x1010, 0x6087),
+                              (0x1010, 0x5007), (0x1010, 0x6005)):
+            changed = bytearray(ram)
+            struct.pack_into("<I", changed, offset, value)
+            with self.subTest(offset=offset, value=value), self.assertRaises(ValueError):
+                copy_window_candidates(changed, 0x1000)
+        for snapshot, cr3 in ((ram, 0), (ram, len(ram)), (ram[:0x6000], 0x1000)):
+            with self.assertRaises(ValueError):
+                copy_window_candidates(snapshot, cr3)
+
     def test_compaction_precedes_requested_initial_mode(self):
         root = Path(__file__).resolve().parents[1]
         source = (root / "src/MEMM/MEMM/INIT.ASM").read_text(encoding="latin-1")
@@ -67,7 +88,8 @@ class LiveOwnerTest(unittest.TestCase):
         symbols = [Symbol(paragraph, offset, name, "fixture") for name, paragraph, offset in (
             ("LAST_start", 0x1a14, 0), ("Page_Area", 0x10d1, 0),
             ("_total_pages", 0x20, 0x96), ("_save_map", 0x20, 0x98),
-            ("_emm_brk", 0x20, 0x9a))]
+            ("_emm_brk", 0x20, 0x9a), ("_handle_table", 0x20, 0x9c),
+            ("_pft386", 0x20, 0x9e))]
         symbols.extend(Symbol(0x20, offset, name, "fixture") for name, offset in (
             ("_handle_table_size", 0xe0), ("_altreg_count", 0xe1),
             ("_physical_page_count", 0xe2), ("_physical_page_exception_count", 0xe3),
@@ -76,6 +98,8 @@ class LiveOwnerTest(unittest.TestCase):
         budget = relocation_budget(segments, symbols)
         struct.pack_into("<BHH", ram, 0x1000, 1, 64, 1024 + budget["reserved"] // 1024)
         struct.pack_into("<HHH", ram, 0x2296, 64, 0x400, 0x400 + 1904)
+        struct.pack_into("<HH", ram, 0x229c, 0x400, 0x600)
+        struct.pack_into("<64I", ram, 0x2800, *(0x110000 + n * 16384 for n in range(64)))
         ram[0x22e0:0x22e5] = bytes((64, 7, 6, 0, 1))
         tail = 0x210000
         page = (tail + 4096) & ~4095
@@ -95,6 +119,23 @@ class LiveOwnerTest(unittest.TestCase):
         result = verify_owners(ram, *args)
         self.assertEqual(result["low_tables"]["size"], 1904)
         self.assertEqual(result["unused_end"] - result["unused_start"], result["budget"]["unused"])
+
+    def test_conventional_pages_are_not_xms_tail_storage(self):
+        ram, args = self.fixture()
+        struct.pack_into("<H", ram, 0x2296, 65)
+        struct.pack_into("<H", ram, 0x2602, 1)
+        struct.pack_into("<65I", ram, 0x2800, 0x40000,
+                         *(0x110000 + n * 16384 for n in range(64)))
+        struct.pack_into("<H", ram, 0x229a, 0x400 + 1912)
+        # Keep the synthetic transition stack above the enlarged table object.
+        struct.pack_into("<H", ram, 0x304a, 0x2d80)
+        result = verify_owners(ram, *args)
+        self.assertEqual(result["conventional_ems_pages"], 1)
+        self.assertEqual(result["ems_pool_bytes"], 1048576)
+        self.assertEqual(result["relocation_start"], 0x210000)
+        struct.pack_into("<I", ram, 0x2800, 0x100000)
+        with self.assertRaises(ValueError):
+            verify_owners(ram, *args)
 
     def test_rejects_wrong_lock_copy_and_low_table_boundaries(self):
         for offset, value in ((0x1000, 0), (0x303a, 0), (0x3042, 1),

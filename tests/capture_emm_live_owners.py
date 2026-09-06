@@ -56,6 +56,29 @@ def descriptor(data):
     return dict(base=base, size=limit + 1, access=data[5])
 
 
+def copy_window_candidates(ram, cr3):
+    """Verify unused slots in our existing fifth table, not authorize their use."""
+    directory = cr3 & ~4095
+    if directory <= 0 or directory + 4096 > len(ram):
+        raise ValueError("copy-window directory is outside the snapshot")
+    pde = struct.unpack_from("<I", ram, directory + 4 * 4)[0]
+    table = pde & ~4095
+    if pde & 3 != 3 or pde & 128 or table != directory + 5 * 4096:
+        raise ValueError("copy windows require the existing contiguous fifth page table")
+    if table + 4096 > len(ram):
+        raise ValueError("copy-window page table is outside the snapshot")
+    slots = []
+    for index in (16, 17):
+        address = table + index * 4
+        entry = struct.unpack_from("<I", ram, address)[0]
+        if entry != 0:
+            raise ValueError("candidate copy-window slot is already owned or mapped")
+        slots.append(dict(linear=0x1000000 + index * 4096,
+                          pte_physical=address, pte=entry))
+    return dict(table_physical=table, slots=slots, additional_page_table_bytes=0,
+                status="unused at capture; not reserved or runtime-qualified")
+
+
 def verify_owners(ram, gdt_base, cr3, emm_segment, xms_segment, segments, symbols, handles,
                   handle_count=32):
     if not (0 < gdt_base < 0xA0000 and 0 < emm_segment < 0xA000
@@ -77,7 +100,25 @@ def verify_owners(ram, gdt_base, cr3, emm_segment, xms_segment, segments, symbol
     total = syms["_total_pages"]
     total_pages = struct.unpack_from("<H", ram,
         (emm_segment + total.paragraph) * 16 + total.offset)[0]
-    tail = block["base"] + total_pages * 16384
+    expected_data = (emm_segment + by_name["_DATA"].paragraph) * 16
+    def low_word(name):
+        symbol = syms[name]
+        return struct.unpack_from("<H", ram,
+            (emm_segment + symbol.paragraph) * 16 + symbol.offset)[0]
+    handle_table = expected_data + low_word("_handle_table")
+    system_pages = struct.unpack_from("<H", ram, handle_table + 2)[0]
+    if not 0 <= system_pages < total_pages:
+        raise ValueError("handle-zero conventional count exceeds the EMS pool")
+    pft = expected_data + low_word("_pft386")
+    physical_pages = list(struct.unpack_from(f"<{total_pages}I", ram, pft))
+    conventional = physical_pages[:system_pages]
+    if (conventional != sorted(set(conventional))
+            or any(page & 16383 or page >= 0xA0000 for page in conventional)):
+        raise ValueError("handle-zero pages are not distinct conventional windows")
+    extended_pages = total_pages - system_pages
+    if physical_pages[system_pages:] != [block["base"] + n * 16384 for n in range(extended_pages)]:
+        raise ValueError("EMS physical records disagree with the locked XMS backing")
+    tail = block["base"] + extended_pages * 16384
     end = block["base"] + block["size"]
     if end - tail != budget["reserved"] or end > len(ram):
         raise ValueError("live XMS tail disagrees with MEMREQ reservation")
@@ -98,17 +139,15 @@ def verify_owners(ram, gdt_base, cr3, emm_segment, xms_segment, segments, symbol
             raise ValueError(f"live {name} base disagrees with relocated page image")
         if desc[name]["size"] != by_name[segment].size or expected + desc[name]["size"] > code_base:
             raise ValueError(f"live {name} extent escapes its allocation")
-    expected_data = (emm_segment + by_name["_DATA"].paragraph) * 16
     if desc["data"]["base"] != expected_data or desc["stack"]["base"] >= 0xA0000:
         raise ValueError("data/transition stack no longer match the retained-low design")
-    def low_word(name):
-        symbol = syms[name]
-        return struct.unpack_from("<H", ram,
-            (emm_segment + symbol.paragraph) * 16 + symbol.offset)[0]
     data_start = expected_data + low_word("_save_map")
     data_end = expected_data + low_word("_emm_brk")
     if not expected_data <= data_start < data_end <= desc["stack"]["base"]:
         raise ValueError("dynamic table object is not wholly below the low stack")
+    if not (data_start <= handle_table < handle_table + 4 <= data_end
+            and data_start <= pft < pft + total_pages * 4 <= data_end):
+        raise ValueError("handle/PFT roots escape the low table owner")
     counts = {}
     for key, name in (("handles", "_handle_table_size"), ("alternate_registers", "_altreg_count"),
                       ("physical_pages", "_physical_page_count"),
@@ -119,7 +158,8 @@ def verify_owners(ram, gdt_base, cr3, emm_segment, xms_segment, segments, symbol
     counts["ems_pages"] = total_pages
     if sum(size for size, _ in dynamic_table_sizes(**counts)) != data_end - data_start:
         raise ValueError("live counts do not account for the complete table extent")
-    return dict(xms=block, ems_pool_bytes=total_pages * 16384, relocation_start=tail,
+    return dict(xms=block, ems_pool_bytes=extended_pages * 16384,
+                conventional_ems_pages=system_pages, relocation_start=tail,
                 relocation_end=end, cr3=cr3, descriptors=desc, budget=budget,
                 low_tables=dict(start=data_start, end=data_end, size=data_end-data_start),
                 table_to_stack_gap=desc["stack"]["base"] - data_end,
@@ -204,6 +244,7 @@ def main():
         int(re.search(r"XMS_SEG=([0-9A-F]{4})", trace)[1], 16),
         segments, symbols, himem_symbols["handles"][0], args.himem_handles)
     result["mode_flags"] = verify_mode(ram, emm_segment, symbols, args.mode)
+    result["copy_window_candidates"] = copy_window_candidates(ram, result["cr3"])
     if args.require_compact and result["table_to_stack_gap"] >= 16:
         raise ValueError("table-to-stack gap exceeds compact paragraph alignment")
     if result["ems_pool_bytes"] != 1048576:
