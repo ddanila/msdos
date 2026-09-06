@@ -76,7 +76,8 @@ def rounded(value: int) -> int:
 
 
 BINDING_SLOTS = ("fatal_ds", "fatal_psp", "ret2e_ds", "int2e_es", "int2e_bx",
-                 "lodcom_ds", "lodcom_ax", "headfix_ds", "savhand_es", "endinit_ds")
+                 "lodcom_ds", "lodcom_ax", "headfix_ds", "savhand_es", "endinit_ds",
+                 "exec_err_ds", "exec_msg_es", "exec_pre_ds", "exec_post_ds", "exec_wait_ds")
 
 
 def check_resident_bindings(symbols: dict[str, int], image: bytes) -> None:
@@ -140,7 +141,7 @@ def main() -> int:
     )
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--resident-binding", action="store_true",
-                        help="check the development COMMAND2 owner operands and constructor")
+                        help="check the development resident owner operands and constructor")
     parser.add_argument("--critical-split", action="store_true",
                         help="check the development low-entry/body/exit layout (body still low)")
     parser.add_argument("--critical-reclaim", action="store_true",
@@ -203,7 +204,7 @@ def main() -> int:
         errors.append("cached critical-catalog pointer is not retained in low message state")
     prototype_allowance = 128 if args.critical_split else 0
     if args.resident_binding:
-        prototype_allowance = 48
+        prototype_allowance = 64
         check_resident_bindings(symbols, args.binary.read_bytes())
     if rounded(resident_catalog_start) > 3632 + prototype_allowance:
         errors.append(f"DOS-high permanent COMMAND exceeds its {3632 + prototype_allowance:,}-byte budget")

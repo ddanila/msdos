@@ -4,7 +4,7 @@ export LC_ALL=C
 
 ROOT=$(cd "$(dirname "$0")/.." && pwd)
 OUT="$ROOT/out"
-FLOPPY="$OUT/floppy.img"
+FLOPPY="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 HIMEM="$OUT/loadhigh-himem.sys"
 COM_CHILD="$OUT/loadhigh-child.com"
 EXE_CHILD="$OUT/loadhigh-child.exe"

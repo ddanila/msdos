@@ -740,34 +740,40 @@ or validate the proposed low-shell ceiling. INT 22h reload, INT 23h's differing
 return frames and the INT 24h bindings remain part of the same whole-object
 prototype, not independent paragraph-saving quotas.
 
-##### Development COMMAND2 low-owner bindings
+##### Development resident low-owner bindings
 
-`COMMAND_RESIDENT_BINDING` introduces ten constructor-initialized segment
+`COMMAND_RESIDENT_BINDING` introduces fifteen constructor-initialized segment
 operands for COMMAND2's fatal exit, INT 2Eh, reload, handle and environment
-paths. `RESBIND.INC` encodes the owner in MOV immediates, so copied instructions
+paths and COMMAND1's EXEC/LOADHIGH preparation, restoration and messages.
+`RESBIND.INC` encodes the owner in MOV immediates, so copied instructions
 retain that value without looking up data through their new CS. CONPROC binds
 all operands before the first DOS call or vector publication. INT 2Eh preserves
 caller DS:SI through the tail copy before selecting shell data; LODCOM1 uses
 the bound low segment for SS/DS. SAVHAND uses a separate low ES owner while DS
-addresses the client's JFN table. The normal build remains byte-identical.
+addresses the client's JFN table. EXEC selects low DS only around LOADHIGH
+state updates, restores the transient filename DS before INT 21h, leaves the
+ES:BX parameter block intact, and preserves result flags across restoration.
+The normal build remains byte-identical.
 
-The development resident code grows from 2,451 to 2,493 bytes, and both its
-high-mode low allocation and low-mode fallback grow by 48 rounded bytes.
+The development resident code grows from 2,451 to 2,507 bytes, and both its
+high-mode low allocation and low-mode fallback grow by 64 rounded bytes.
 These are relocation-support costs, not savings. The report's explicit
-`--resident-binding` mode checks all ten operand encodings and their exact
+`--resident-binding` mode checks all fifteen operand encodings and their exact
 constructor writes; normal size limits are unchanged. The combined
 critical-body/binding variant is not yet qualified or accepted by the report.
 
 `make test-command-resident-binding-qemu` builds into a private directory,
 checks default binary identity, verifies the linked binding census, then runs
-the INT 2Eh owner matrix and startup/critical ABI suite. With the repaired
-explicit floppy input, `out/command-resident-binding.4z8P9f/` passes all four
-INT 2Eh cases and all 16 startup checks. Four host tests reject missing slots,
+the INT 2Eh owner matrix, startup/critical ABI suite and complete LOADHIGH suite.
+With the repaired explicit floppy input, `out/command-resident-binding.iGjEai/`
+passes all four INT 2Eh cases, all 16 startup checks and LOADHIGH's provider,
+region/minimum/shrink, failure recovery, fallback, errorlevel, Ctrl+C, TSR and
+DOS-high checks. Four host tests reject missing slots,
 bad immediates and incomplete constructor bindings. Input overrides follow the
 INT 2Eh command above; no normal COMMAND object or boot image is replaced.
 
-This begins code/data separation in COMMAND2; it does not establish that the
-whole service body is relocatable. COMMAND1's LOADHIGH/EXEC state, RUCODE's
+This begins resident code/data separation; it does not establish that the
+whole service body is relocatable. COMMAND1's Ctrl+C entry, RUCODE's
 remaining CS-relative consumers, low interrupt/return gates and transient
 far-entry publication still need coordinated conversion. Charge the new
 bindings against the final linked body and low-interface budgets before

@@ -35,4 +35,9 @@ SHELL_BINDING_SLOTS MACRO action
     action headfix_ds
     action savhand_es
     action endinit_ds
+    action exec_err_ds
+    action exec_msg_es
+    action exec_pre_ds
+    action exec_post_ds
+    action exec_wait_ds
 ENDM

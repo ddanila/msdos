@@ -322,6 +322,12 @@ NAME	COMMAND
 	INCLUDE comsw.asm
 	INCLUDE comequ.asm
 	INCLUDE resmsg.equ		;AN000;
+	INCLUDE RESBIND.INC
+IFDEF COMMAND_RESIDENT_BINDING
+SHELL_EXEC_STATE TEXTEQU <DS>
+ELSE
+SHELL_EXEC_STATE TEXTEQU <CS>
+ENDIF
 .LIST
 .CREF
 
@@ -433,8 +439,7 @@ PROGSTART:
 EXEC_ERR:
 	push	ds				;AC000; get transient segment
 	pop	es				;AC000;     into ES
-	push	cs				;AC000; get resident segment
-	pop	ds				;AC000;     into DS
+	SHELL_OWNER_SEG DS,exec_err_ds
 ASSUME	DS:RESGROUP				;AN000;
 	MOV	BX,RBADNAM			;AC000; Get message number for Bad command
 	CMP	AX,error_file_not_found
@@ -457,8 +462,7 @@ DEFAULT_MESSAGE:
 	MOV	NUMBER_SUBST,AL 		;AN000;
 	MOV	SI,OFFSET RESGROUP:EXECEMES_BLOCK ;AN000; get address of subst block
 GOTEXECEMES:
-	PUSH	CS
-	POP	ES				;AC000; get resident segment into ES
+	SHELL_OWNER_SEG ES,exec_msg_es
 ASSUME	ES:RESGROUP				;AN000;
 	MOV	DX,BX				;AN000; get message number in DX
 	INVOKE	RPRINT
@@ -469,14 +473,20 @@ ASSUME	ES:RESGROUP				;AN000;
 ; to recover cleanly upon success.
 ;
 EXT_EXEC:
-	cmp	byte ptr cs:[LOADHIGH_PENDING],0
+	IFDEF COMMAND_RESIDENT_BINDING
+	; Preserve the transient filename owner; select low state only while
+	; preparing/restoring LOADHIGH. ES:BX remains the EXEC parameter block.
+	push ds
+	SHELL_OWNER_SEG DS,exec_pre_ds
+	ENDIF
+	cmp	byte ptr SHELL_EXEC_STATE:[LOADHIGH_PENDING],0
 	je	EXT_EXEC_CALL
-	cmp	byte ptr cs:[LOADHIGH_PENDING],3
+	cmp	byte ptr SHELL_EXEC_STATE:[LOADHIGH_PENDING],3
 	jne	short EXT_EXEC_HIGH
-	mov	byte ptr cs:[LOADHIGH_PENDING],0
+	mov	byte ptr SHELL_EXEC_STATE:[LOADHIGH_PENDING],0
 	jmp	EXT_EXEC_CALL
 EXT_EXEC_HIGH:
-	mov	byte ptr cs:[LOADHIGH_PENDING],2
+	mov	byte ptr SHELL_EXEC_STATE:[LOADHIGH_PENDING],2
 	push	ax
 	push	bx
 	push	cx
@@ -486,27 +496,27 @@ EXT_EXEC_HIGH:
 	push	bp
 	mov	ax,5800h
 	int	int_command
-	mov	cs:[LOADHIGH_SAVED_STRATEGY],ax
+	mov	SHELL_EXEC_STATE:[LOADHIGH_SAVED_STRATEGY],ax
 	mov	ax,5802h
 	int	int_command
-	mov	cs:[LOADHIGH_SAVED_LINK],al
+	mov	SHELL_EXEC_STATE:[LOADHIGH_SAVED_LINK],al
 	mov	cx,4d55h
 	mov	si,2142h
 	mov	di,0a55ah
 	mov	ax,5808h
 	int	int_command
-	mov	cs:[LOADHIGH_SAVED_FILTER],ax
-	mov	bx,cs:[LOADHIGH_REGION_MASK]
+	mov	SHELL_EXEC_STATE:[LOADHIGH_SAVED_FILTER],ax
+	mov	bx,SHELL_EXEC_STATE:[LOADHIGH_REGION_MASK]
 	mov	ax,5807h
 	int	int_command
-	cmp	byte ptr cs:[LOADHIGH_SHRINK],0
+	cmp	byte ptr SHELL_EXEC_STATE:[LOADHIGH_SHRINK],0
 	je	short EXT_EXEC_PROFILE_READY
-	mov	bp,cs:[LOADHIGH_REGION_MASK]
+	mov	bp,SHELL_EXEC_STATE:[LOADHIGH_REGION_MASK]
 	xor	di,di
 EXT_EXEC_LIMIT_LOOP:
 	test	bp,1
 	jz	short EXT_EXEC_LIMIT_NEXT
-	mov	dx,cs:[LOADHIGH_MINIMUMS+di]
+	mov	dx,SHELL_EXEC_STATE:[LOADHIGH_MINIMUMS+di]
 	or	dx,dx
 	jz	short EXT_EXEC_LIMIT_NEXT
 	mov	bx,di
@@ -539,13 +549,20 @@ EXT_EXEC_PROFILE_READY:
 	pop	bx
 	pop	ax
 EXT_EXEC_CALL:
+	IFDEF COMMAND_RESIDENT_BINDING
+	pop ds
+	ENDIF
 	push	dx				;AN000; save the command name offset
 	INT	int_command			; Do the EXEC
 	pop	dx				;AN000; restore the command name offset
 	pushf
-	cmp	byte ptr cs:[LOADHIGH_PENDING],2
+	IFDEF COMMAND_RESIDENT_BINDING
+	push ds
+	SHELL_OWNER_SEG DS,exec_post_ds
+	ENDIF
+	cmp	byte ptr SHELL_EXEC_STATE:[LOADHIGH_PENDING],2
 	jne	EXT_EXEC_RESTORED
-	mov	byte ptr cs:[LOADHIGH_PENDING],0
+	mov	byte ptr SHELL_EXEC_STATE:[LOADHIGH_PENDING],0
 	push	ax
 	push	bx
 	push	cx
@@ -553,14 +570,14 @@ EXT_EXEC_CALL:
 	push	si
 	push	di
 	push	bp
-	cmp	byte ptr cs:[LOADHIGH_SHRINK],0
+	cmp	byte ptr SHELL_EXEC_STATE:[LOADHIGH_SHRINK],0
 	je	short EXT_EXEC_LIMITS_RESTORED
-	mov	bp,cs:[LOADHIGH_REGION_MASK]
+	mov	bp,SHELL_EXEC_STATE:[LOADHIGH_REGION_MASK]
 	xor	di,di
 EXT_EXEC_RESTORE_LIMIT_LOOP:
 	test	bp,1
 	jz	short EXT_EXEC_RESTORE_LIMIT_NEXT
-	cmp	word ptr cs:[LOADHIGH_MINIMUMS+di],0
+	cmp	word ptr SHELL_EXEC_STATE:[LOADHIGH_MINIMUMS+di],0
 	je	short EXT_EXEC_RESTORE_LIMIT_NEXT
 	mov	bx,di
 	shr	bx,1
@@ -579,17 +596,17 @@ EXT_EXEC_RESTORE_LIMIT_NEXT:
 	cmp	di,32
 	jb	short EXT_EXEC_RESTORE_LIMIT_LOOP
 EXT_EXEC_LIMITS_RESTORED:
-	mov	bx,cs:[LOADHIGH_SAVED_FILTER]
+	mov	bx,SHELL_EXEC_STATE:[LOADHIGH_SAVED_FILTER]
 	mov	cx,4d55h
 	mov	si,2142h
 	mov	di,0a55ah
 	mov	ax,5807h
 	int	int_command
-	mov	bx,cs:[LOADHIGH_SAVED_STRATEGY]
+	mov	bx,SHELL_EXEC_STATE:[LOADHIGH_SAVED_STRATEGY]
 	mov	ax,5801h
 	int	int_command
 	xor	bx,bx
-	mov	bl,cs:[LOADHIGH_SAVED_LINK]
+	mov	bl,SHELL_EXEC_STATE:[LOADHIGH_SAVED_LINK]
 	mov	ax,5803h
 	int	int_command
 	pop	bp
@@ -600,14 +617,16 @@ EXT_EXEC_LIMITS_RESTORED:
 	pop	bx
 	pop	ax
 EXT_EXEC_RESTORED:
+	IFDEF COMMAND_RESIDENT_BINDING
+	pop ds
+	ENDIF
 	popf
 	JC	EXEC_ERR			; EXEC failed
 ;
 ; The exec has completed.  Retrieve the exit code.
 ;
 EXEC_WAIT:
-	push	cs				;AC000; get resident segment
-	pop	ds				;AC000;     into DS
+	SHELL_OWNER_SEG DS,exec_wait_ds
 	MOV	AH,WAITPROCESS			;AC000; Get errorlevel
 	INT	int_command			; Get the return code
 	MOV	[RETCODE],AX
