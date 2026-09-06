@@ -800,8 +800,9 @@ CompactVData proc near
 	; The ring-0 stack was originally placed immediately after the dynamic
 	; VDATA break.  Compaction moves that break, so retaining the old stack
 	; descriptor would leave it in storage that DOS is about to reclaim.
-	; No protected frame is active here: FarGoVirtual has returned to real
-	; mode.  Rebase the descriptor on the new paragraph boundary and retain
+	; FarGoVirtual has returned to its initialization caller, but PE is still
+	; set; this is not a return to real mode. No ring-0 frame is being moved.
+	; Rebase the descriptor on the new paragraph boundary and retain
 	; the complete stack in the installed driver allocation.
 	mov	ax,[_emm_brk]
 	add	ax,15

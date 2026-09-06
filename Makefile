@@ -268,6 +268,10 @@ test-drdos-capture:
 	python3 tests/test_opendos_sda.py
 	python3 tests/test_uma_topology.py
 
+.PHONY: test-emm-init-phases
+test-emm-init-phases:
+	python3 tests/test_emm_init_phases.py
+
 .PHONY: test-dos-sda-qemu
 test-dos-sda-qemu: dos
 	python3 tests/test_dos_sda_qemu.py

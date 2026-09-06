@@ -350,6 +350,46 @@ endif
 ;	USED: none
 ;
 ;******************************************************************************
+; Development-only phase witness. Binary E9 records: 'IP', stage byte,
+; SMSW word and INT 15h / INT 67h far pointers, all little endian.
+; This observes live state; it neither defers initialization nor changes owners.
+INIT_PHASE MACRO stage
+ifdef EMM_INIT_PHASE_TRACE
+        pushf
+        pusha
+        push ds
+        cld
+        mov dx,0e9h
+        mov al,'I'
+        out dx,al
+        mov al,'P'
+        out dx,al
+        mov al,stage
+        out dx,al
+        smsw ax
+        out dx,al
+        mov al,ah
+        out dx,al
+        xor ax,ax
+        mov ds,ax
+        mov si,15h*4
+        mov cx,4
+        rep_phase_15_&stage:
+        lodsb
+        out dx,al
+        loop rep_phase_15_&stage
+        mov si,67h*4
+        mov cx,4
+        rep_phase_67_&stage:
+        lodsb
+        out dx,al
+        loop rep_phase_67_&stage
+        pop ds
+        popa
+        popf
+endif
+ENDM
+
 Init_MEMM386	proc	far
 	push	bx		; BP+10
 	push	dx		; BP+8
@@ -464,6 +504,7 @@ IE_find_error:
 ;  find and allocate logical emm pages
 ;
 IE_alloc:
+	INIT_PHASE 1
 	call	AllocMem
 	test	[msg_flag],KILLER_MSG	;Q: any killer messages?
 	jz	IE_InitEMM		;  N: init EMM
@@ -491,6 +532,7 @@ IE_InitVDM:
 ;  mappings and discard PAGESEG/LAST safely.
 ;
 IE_CommitUMB:
+	INIT_PHASE 2
 	cmp	[umb_mode],0
 	je	short IE_InitTAB
 	call	Commit_UMB		; map backing and publish atomically
@@ -498,7 +540,9 @@ IE_CommitUMB:
 ;  set up segment pointers to Tables & OEM table init
 ;
 IE_InitTAB:
+	INIT_PHASE 3
 	call	InitTab
+	INIT_PHASE 4
 	jnc	IE_InitT_Good		;Q: any memory allocation error?
 	or	[msg_flag],MEM_ERR_MSG	;  Y: Some serious memory error
 IE_InitT_Good:
@@ -588,17 +632,20 @@ IE_setbrk:
 	endif
 
 	call	RelocateText
+	INIT_PHASE 5
 	call	FarGoVirtual		;  N: go into virtual mode
 	; Finish resident ownership while activation is established and no
 	; protected frame is live. OFF/idle AUTO must not skip table/stack
 	; compaction merely because their final execution mode is inactive.
 	call	CompactVData
+	INIT_PHASE 6
 	mov	al,[initial_mode]
 	or	al,al
 	jz	short IE_initial_mode_done
 	mov	ah,1
 	call	ELIM_Entry
 IE_initial_mode_done:
+	INIT_PHASE 7
 	; CompactVData may lower the resident break after the request header was
 	; first populated. Publish the final value returned to SYSINIT.
 	mov	bx,[bp+2]
@@ -725,6 +772,7 @@ skip_dig_adj:
 ;
 ; all done with no errors
 ;
+	INIT_PHASE 8
 	xor	ax,ax			; NO errors
 ;
 IE_leave:

@@ -344,6 +344,40 @@ SYSINIT break and VC free block: working high services with an unreclaimed low
 hole are not success. No coordinated-provider implementation or net saving is
 claimed yet; these decisions remain part of the open whole-system checkpoint.
 
+**Measured initialization boundary:** `EMM_INIT_PHASE_TRACE` is an opt-in,
+discardable initialization witness, absent from the normal binary. It emits
+eight records containing SMSW and the live INT 15h/67h pointers. The private
+build reproduces the normal EMM386 binary exactly before enabling the trace.
+All four ON/OFF/AUTO/RAM boots complete with the following observations:
+
+| Stage | Boundary | PE bit | INT 15h/67h |
+| --- | --- | --- | --- |
+| 1 | Before backing allocation | 0 | Original entries |
+| 2 | After VDM descriptor/page construction, before UMB commit | 0 | Original entries |
+| 3 | After optional UMB commit, before InitTab | 0 | Original entries |
+| 4–5 | After InitTab and then protected-code relocation | 0 | Original entries |
+| 6 | After FarGoVirtual and table/stack compaction | 1 in every mode | Original entries |
+| 7 | After requested initial mode is applied | 1 for ON/RAM; 0 for OFF/AUTO | Original entries |
+| 8 | After final interrupt publication | Same as stage 7 | New EMM entries |
+
+Thus unchanged public vectors do not establish inactive CPU/mapping ownership,
+and OFF/AUTO are not installation paths that skip activation. The proposed
+prepare phase must stop before binding descriptors to a movable base and before
+UMB publication, not merely before the final vector writes. `VDM_Init` derives
+descriptors from current segment addresses, and `Commit_UMB` exposes backing
+through the XMS peer. Their preparation and publication need explicit separation
+in the coordinated-provider implementation. PE=0 alone does not establish
+absence of published state. The trace does not inspect descriptor contents,
+measure UMB capacity or prove rollback/reentrancy safety.
+
+Reproduce with `make memm test-emm-init-phases`, then
+`python3 tests/capture_emm_init_phases.py out/setver-native-audit.BAEqDU/low.img`.
+`out/emm-init-phases-hjg1bz3c/` retains the four binary traces, configurations,
+input/build hashes and parsed results. Four host tests reject missing/reordered
+records, premature CPU activation and early/missing vector publication. These
+are current-sequence regression checks, not a completed two-phase provider or
+memory-saving result; update their expected sequence when that design lands.
+
 ##### Whole-system placement rules
 
 DR-DOS's portable lesson is a small conventional interface backed by complete
