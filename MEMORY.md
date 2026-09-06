@@ -450,6 +450,44 @@ ownership constraint, not runtime relocation validation. Existing
 save/restore behavior or cached pointers after a move; those remain required
 before changing this owner.
 
+**Controlled OpenDOS SDA comparison:** the source-free public-register probe
+now queries 5D06h and 5D0Bh with framed EMM386, fifteen HMA buffers and
+`HIDOS=OFF` versus `ON`. OpenDOS 7.01 returns `0100:0320`, CX=1,932 and DX=26
+through 5D06h in both boots: its exposed SDA remains low when other DOS data
+moves upper. It rejects 5D0Bh with CF=1/AX=1; other returned registers on that
+failure are not pointers. Its 110-byte smaller reported SDA length therefore
+does not explain the large whole-system difference, nor prove equivalent
+save/restore semantics. Do not prioritize relocating our SDA based on HIDOS's
+bulk gain.
+
+The same probe on the repaired local input reports 2,042 bytes and 26
+always-swapped bytes. DOS-low returns `026E:0330` and exposes the current COM
+PSP/default DTA correctly. DOS-high instead returns `FFFF:0330` and **fails
+that live-state check**; 5D0Bh still returns its descriptor table at
+`026E:0D35`. This contradicts treating our existing high-mode public SDA as
+qualified. `MS_CODE.ASM:hma_segment_fixups` rebases both `SWAP_ALWAYS_AREA`
+and `SWAP_IN_DOS` to HMA, while `DISP.ASM:REDISP` selects the retained-low
+SS/DS for DOS state. Next correct the public owner and test both APIs against
+live low/high state, including boot compaction and A20-off callers, before
+using SDA compatibility as a relocation acceptance result. No saving is
+claimed by repairing this pointer contract.
+
+Reproduce the register comparison and local failure with:
+
+```sh
+python3 tests/capture_opendos_sda.py /path/to/DODL701.EXE \
+  out/msdos622-original-vc405.img out/NEW-sda-evidence \
+  --local-image out/setver-native-audit.BAEqDU/low.img
+```
+
+`out/opendos-sda-live-evidence/` retains configurations, raw API registers,
+local live-field outcomes and input/probe hashes. Vendor runs only collect
+registers; the PSP/DTA field checks are compiled exclusively for the local
+probe. These are floppy boots with a snapshot IDE disk, not new VC comparisons
+or a complete SDA save/restore test. Four parser tests preserve the distinction
+between a successful address and an unsupported call. Vendor files are used
+only in temporary images and are not retained by the helper.
+
 Required deliverables, in order:
 
 1. Pin one corrected local image and both vendor images with the same boot

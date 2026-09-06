@@ -265,6 +265,7 @@ test-vc-memory-report:
 
 test-drdos-capture:
 	python3 tests/test_capture_drdos_memory.py
+	python3 tests/test_opendos_sda.py
 	python3 tests/test_uma_topology.py
 
 # Uses existing built objects; rebuild/deploy explicitly before this isolated fixture.
