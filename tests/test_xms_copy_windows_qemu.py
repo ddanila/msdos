@@ -31,6 +31,10 @@ def main():
                         help="negative control: corrupt the allocated HMA payload after guest verification")
     parser.add_argument("--public-api", action="store_true",
                         help="pair development HIMEM with the protected backend through XMS Move")
+    parser.add_argument("--backend-capability", choices=("valid", "absent", "version", "features"),
+                        default="valid", help="exercise public backend discovery rejection")
+    parser.add_argument("--bypass-capability", action="store_true",
+                        help="negative control: ignore a mismatched backend advertisement")
     parser.add_argument("--bypass-public-backend", action="store_true",
                         help="negative control: keep standalone HIMEM despite protected-copy fault injection")
     parser.add_argument("--leave-active", action="store_true",
@@ -54,7 +58,13 @@ def main():
     parser.add_argument("--bypass-aliases", action="store_true",
                         help="negative control: omit whole-range alias checking")
     args = parser.parse_args()
-    hma_endpoint = args.dos_high and args.public_api and not (args.fail_after_map or args.alias_overlap)
+    expect_copy_failure = args.fail_after_map or args.backend_capability != "valid"
+    hma_endpoint = args.dos_high and args.public_api and not (expect_copy_failure or args.alias_overlap)
+    if args.backend_capability != "valid" and (not args.public_api or args.mapped or args.fail_after_map
+                                               or args.bypass_public_backend or args.bad_data):
+        parser.error("capability rejection requires public, unmapped copies without other fault controls")
+    if args.bypass_capability and args.backend_capability not in ("version", "features"):
+        parser.error("capability bypass requires a version/features mismatch")
     if args.bad_hma_data and not hma_endpoint:
         parser.error("--bad-hma-data requires a successful public DOS-high endpoint case")
     if args.mode != "ON" and args.mapped:
@@ -91,7 +101,11 @@ def main():
         for path in (ROOT / "src/MEMM" / name).iterdir():
             if path.suffix.upper() in (".OBJ", ".LIB", ".LNK"):
                 shutil.copyfile(path, work / name / path.name)
-    flags = "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -I. -I..\\EMM -DEMM_XMS_COPY_TEST"
+    flags = "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -I. -I..\\EMM -I..\\..\\INC -DEMM_XMS_COPY_TEST"
+    if args.backend_capability == "version":
+        flags += " -DEMM_XMS_COPY_BAD_VERSION"
+    if args.backend_capability == "features":
+        flags += " -DEMM_XMS_COPY_MISSING_FEATURE"
     if args.fail_after_map:
         flags += " -DEMM_XMS_COPY_FAIL_AFTER_MAP"
     if args.leave_active:
@@ -113,12 +127,13 @@ def main():
                        cwd=ROOT / "src/MEMM/MEMM", check=True, stdout=log, stderr=subprocess.STDOUT)
         subprocess.run([str(ROOT / "bin/wlink"), "/NOI /PACKDATA:1 @EMM386.LNK"],
                        cwd=work / "MEMM", check=True, stdout=log, stderr=subprocess.STDOUT)
-    candidate = work / "MEMM/EMM386.EXE"
+    candidate = normal if args.backend_capability == "absent" else work / "MEMM/EMM386.EXE"
     himem = ROOT / "src/DEV/HIMEM/HIMEM.SYS"
     if args.public_api and not args.bypass_public_backend:
         himem = work / "HIMEM.SYS"
         subprocess.run([str(ROOT / "bin/jwasm-bin"), "-q", "-bin",
-                        "-DHIMEM_PROTECTED_COPY_TEST", f"-Fo{himem}",
+                        "-DHIMEM_PROTECTED_COPY_TEST", f"-I{ROOT / 'src/INC'}", f"-Fo{himem}",
+                        *(["-DHIMEM_SKIP_COPY_CAPABILITY_TEST"] if args.bypass_capability else []),
                         str(ROOT / "src/DEV/HIMEM/HIMEM.ASM")], check=True)
     _, symbols = parse_map(work / "MEMM/EMM386.MAP")
     symbols = {symbol.name: symbol for symbol in symbols}
@@ -126,8 +141,9 @@ def main():
     client_size = symbols["XmsCopyClientEnd"].offset - symbols["XmsCopyClient"].offset
     inactive_size = symbols["XmsI15InactiveEnd"].offset - symbols["XmsI15InactiveStart"].offset
     return_size = symbols["FarXmsReturnRealEnd"].offset - symbols["FarXmsReturnReal"].offset
+    query_size = symbols["XmsI15QueryEnd"].offset - symbols["XmsI15QueryStart"].offset
     probe = work / "probe.com"
-    subprocess.run(["nasm", "-f", "bin", *(["-DEXPECT_MAP_FAILURE"] if args.fail_after_map else []),
+    subprocess.run(["nasm", "-f", "bin", *(["-DEXPECT_MAP_FAILURE"] if expect_copy_failure else []),
                     f"-DEXPECT_MODE={dict(ON=0, OFF=1, AUTO=3)[args.mode]}",
                     f"-DEXPECT_HMA={int(args.dos_high != args.wrong_residency)}",
                     *(["-DHMA_ENDPOINT"] if hma_endpoint else []),
@@ -163,11 +179,13 @@ def main():
     assert re.search(r"MBTAR_GSEL\s+equ\s+RCODEA_GSEL\+20h", selectors)
     endpoint, debug = work / "qmp", work / "debug.bin"
     report = dict(passed=False, mode=args.mode, fail_after_map=args.fail_after_map, core_bytes=code_size,
+                  backend_capability=args.backend_capability, bypass_capability=args.bypass_capability,
+                  expect_copy_failure=expect_copy_failure,
                   dos_high=args.dos_high, wrong_residency=args.wrong_residency,
                   hma_endpoint=hma_endpoint, bad_hma_data=args.bad_hma_data,
                   public_api=args.public_api, bypass_public_backend=args.bypass_public_backend,
                   leave_active=args.leave_active, inactive_entry_bytes=inactive_size,
-                  real_return_adapter_bytes=return_size,
+                  real_return_adapter_bytes=return_size, capability_query_bytes=query_size,
                   client_bytes=client_size, mapped=args.mapped, bypass_mapping=args.bypass_mapping,
                   deny_later_page=args.deny_later_page, bypass_preflight=args.bypass_preflight,
                   deny_destination=args.deny_destination,
@@ -179,6 +197,10 @@ def main():
                   himem_sha256=hashlib.sha256(himem.read_bytes()).hexdigest(),
                   emulator=subprocess.check_output(["qemu-system-i386", "--version"], text=True).splitlines()[0],
                   ram_mib=32, checkpoints=[])
+    if args.backend_capability == "absent":
+        for field in ("core_bytes", "client_bytes", "inactive_entry_bytes", "real_return_adapter_bytes",
+                      "capability_query_bytes"):
+            report[field] = None # normal installed EMM has none of these private objects
     process = subprocess.Popen([
         "qemu-system-i386", "-machine", "pc", "-cpu", "486", "-m", "32",
         "-display", "none", "-monitor", "none", "-serial", "none",
@@ -196,7 +218,7 @@ def main():
             connection.connect(str(endpoint))
             qmp = QMP(connection)
             checkpoints = [b"A", b"AM", b"AMN", b"AMNB"] if args.mapped else [b"A", b"AB"]
-            if args.public_api and not (args.fail_after_map or args.alias_overlap):
+            if args.public_api and not (expect_copy_failure or args.alias_overlap):
                 checkpoints.append(checkpoints[-1] + b"R")
             for expected in checkpoints:
                 deadline = time.monotonic() + 30
@@ -249,7 +271,7 @@ def main():
                     before = next(row for row in report["checkpoints"] if row["phase"] == "M")
                     if [hashlib.sha256(data).hexdigest() for data in ranges] != before["range_hashes"]:
                         raise ValueError("later-page rejection wrote earlier destination bytes")
-                if phase in ("N", "B", "R") and not args.fail_after_map and ranges != expected_ranges:
+                if phase in ("N", "B", "R") and not expect_copy_failure and ranges != expected_ranges:
                     raise ValueError("actual high physical RAM does not contain both copied ranges")
                 hashes = [hashlib.sha256(data).hexdigest() for data in ranges]
                 cr3 = int(re.search(r"CR3=([0-9a-fA-F]+)", regs)[1], 16)
@@ -321,7 +343,7 @@ def main():
                     previous = report["checkpoints"][-2]
                     if base == first["physical_block_base"] or hashes != previous["range_hashes"]:
                         raise ValueError("public reallocation did not move the block with both payloads intact")
-                elif base != first["physical_block_base"] or (args.fail_after_map and hashes != first["range_hashes"]):
+                elif base != first["physical_block_base"] or (expect_copy_failure and hashes != first["range_hashes"]):
                     raise ValueError("allocation identity changed or failed mapping wrote data")
                 qmp.call("cont")
                 qmp.call("send-key", {"keys": [{"type": "qcode", "data": "spc"}], "hold-time": 1})
@@ -339,7 +361,10 @@ def main():
                 process.wait()
         (work / "qemu.log").write_bytes(process.stderr.read())
         (work / "result.json").write_text(json.dumps(report, indent=2) + "\n")
-    print(f"PASS: copy windows restored; physical core {code_size}, typed-address layer {client_size} bytes")
+    if args.backend_capability != "valid":
+        print(f"PASS: incompatible backend ({args.backend_capability}) rejected; memory unchanged")
+    else:
+        print(f"PASS: copy windows restored; physical core {code_size}, typed-address layer {client_size} bytes")
 
 
 if __name__ == "__main__":

@@ -55,6 +55,9 @@ page	58,132
 	include instr386.inc
 	include oemdep.inc
 	include vm386.inc
+IFDEF EMM_XMS_COPY_TEST
+    include XMSCOPYABI.INC
+ENDIF
 
 TRUE	equ	0FFh
 FALSE	equ	00h
@@ -488,6 +491,26 @@ i15_Entry	proc	near
 ;
 	cli				;  in case of pushf/call far
 	pushf				; save entry flags
+IFDEF EMM_XMS_COPY_TEST
+public XmsI15QueryStart, XmsI15QueryEnd
+XmsI15QueryStart label near
+    cmp ax,XCP_QUERY
+    jne short XmsI15NotQuery
+    mov ax,XCP_REPLY
+    mov bx,XCP_SIGNATURE
+    mov cx,XCP_VERSION
+    mov dx,XCP_REQUIRED
+IFDEF EMM_XMS_COPY_BAD_VERSION
+    inc cx
+ENDIF
+IFDEF EMM_XMS_COPY_MISSING_FEATURE
+    and dx,NOT XCP_INACTIVE
+ENDIF
+    popf
+    iret
+XmsI15NotQuery:
+XmsI15QueryEnd label near
+ENDIF
 ;
 ;  Check to see if it is the extended memory size request
 ;

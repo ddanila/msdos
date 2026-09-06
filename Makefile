@@ -306,6 +306,9 @@ test-xms-public-copy-qemu:
 	python3 tests/test_xms_copy_windows_qemu.py --public-api --mode AUTO --dos-high
 	python3 tests/test_xms_copy_windows_qemu.py --public-api --mapped --dos-high
 	python3 tests/test_xms_copy_windows_qemu.py --public-api --mode AUTO --dos-high --fail-after-map
+	python3 tests/test_xms_copy_windows_qemu.py --public-api --mode OFF --backend-capability absent
+	python3 tests/test_xms_copy_windows_qemu.py --public-api --mode AUTO --backend-capability version
+	python3 tests/test_xms_copy_windows_qemu.py --public-api --mode OFF --backend-capability features
 
 test-emm-xms-owner-qemu:
 	python3 tests/test_emm_xms_owner_qemu.py

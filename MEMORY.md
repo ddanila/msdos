@@ -2976,9 +2976,10 @@ second low implementation of the protected service.
 protected-copy packet. XMS Move classifies handle-zero endpoints as client
 addresses and allocated handles as physical backing; reallocating copy resets
 both classes to physical. Existing handle validation and the XMS entry remain
-in HIMEM. This paired-build experiment requires the matching development EMM
-to be installed before any moves: it is **not** a negotiated provider interface,
-standalone fallback, allocator handoff or reclamation of the low HIMEM image.
+in HIMEM. This paired-build experiment checks the matching development EMM's
+copy capability before each backend call, rejecting an absent/incompatible peer.
+It is **not** a public provider interface, standalone fallback, allocator
+handoff or reclamation of the low HIMEM image.
 Normal HIMEM and EMM386 stay byte-identical; the normal HIMEM census still
 passes at 2,608 installed bytes.
 
@@ -3010,6 +3011,30 @@ ownership remain qualification work. The packet still uses shared HIMEM move
 state; do not treat it as reentrant. These tests establish both real public copy
 consumers of the protected service, not the final coordinated provider or a
 conventional-memory gain.
+
+**Copy capability boundary:** `src/INC/XMSCOPYABI.INC` defines the private
+INT 15h query (AX=E7C0h), reply (AX=E7CFh, BX=5843h), exact version (CX=1),
+and required physical/client/inactive-service feature bits (DX bits 0..2).
+Discovery stays low and neither enters the monitor nor dereferences ES:SI.
+HIMEM checks the reply registers, not CF, before sending `XCPY`. Rejection
+returns through its existing backend-failure path (Move AX=0, BL=8Eh), with
+no firmware-copy fallback and no private packet sent. Normal standalone HIMEM
+does not use this protocol. Discovery is not allocator ownership transfer or
+an asynchronous publication/rollback contract.
+
+The query adds 19 low bytes in the development EMM build, separate from its
+41-byte inactive dispatch and 4-byte real-return adapter. Both peers consume
+the same ABI include. The public test target checks normal EMM with no private
+entry (`--backend-capability absent`), an incompatible version, and a missing
+inactive-service feature. All three reject without changing the XMS backing or
+execution mode: `out/xms-copy-windows-i3h6jnto/`,
+`out/xms-copy-windows-tvl27vq1/`, and `out/xms-copy-windows-2dke9ocs/`.
+`--backend-capability version --bypass-capability` deliberately ignores the
+advertisement and fails in `out/xms-copy-windows-a7jvr835/` because the public
+copy incorrectly succeeds. Valid discovery still passes DOS-high OFF transfers
+in `out/xms-copy-windows-j_0lyvh5/` and active mapped/HMA transfers plus
+reallocation in `out/xms-copy-windows-ygcbw_zv/`. Normal HIMEM's census and
+byte comparison, and normal EMM386's hash, remain unchanged.
 
 **DOS-high and HMA endpoint coverage:** `--dos-high` installs explicit
 `DOS=HIGH`; the default now installs explicit `DOS=LOW`. Before testing, the

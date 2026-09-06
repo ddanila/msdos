@@ -6,6 +6,9 @@
         .286
         .code
         org     0
+ifdef HIMEM_PROTECTED_COPY_TEST
+        include XMSCOPYABI.INC
+endif
 
 MAX_HANDLES     equ     128
 ; lock count, nonzero base KiB, size KiB. Base zero marks a free record; every
@@ -67,8 +70,8 @@ a20_target      db      0
 caller_ds       dw      0
 caller_si       dw      0
 ifdef HIMEM_PROTECTED_COPY_TEST
-; Paired development image only: EMM_XMS_COPY_TEST must be installed before
-; any move. This is not a negotiated public provider handoff or low release.
+; Paired development image only. Each move checks the matching backend's
+; capability before using this packet; no provider handoff or low release.
 protected_copy_packet db 'XCPY'
 endif
 move_length     dd      0
@@ -1161,13 +1164,40 @@ copy_move_blocks proc near
 ifdef HIMEM_PROTECTED_COPY_TEST
         push    si
         push    es
+        push    bx
+        push    cx
+        push    dx
+ifndef HIMEM_SKIP_COPY_CAPABILITY_TEST
+        mov     ax,XCP_QUERY
+        int     015h
+        cmp     ax,XCP_REPLY
+        jne     short protected_copy_unavailable
+        cmp     bx,XCP_SIGNATURE
+        jne     short protected_copy_unavailable
+        cmp     cx,XCP_VERSION
+        jne     short protected_copy_unavailable
+        and     dx,XCP_REQUIRED
+        cmp     dx,XCP_REQUIRED
+        jne     short protected_copy_unavailable
+endif
         push    cs
         pop     es
         mov     si,offset protected_copy_packet
         mov     ah,087h
         int     015h
+        pop     dx
+        pop     cx
+        pop     bx
         pop     es
         pop     si
+        ret
+protected_copy_unavailable:
+        pop     dx
+        pop     cx
+        pop     bx
+        pop     es
+        pop     si
+        stc
         ret
 else
 copy_move_next:
