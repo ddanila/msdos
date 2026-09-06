@@ -1941,6 +1941,47 @@ controls; it pins the BIOS loader fixups to that exact provider. Normal build
 outputs and CI settings remain unchanged. Full reset/failure qualification and
 the joint BIOS/COMMAND placement are still open.
 
+#### Next provider candidate: UMB owner and bootstrap transaction together
+
+Do not stop at moving the UMB allocator body. The current linked front contains
+214 bytes of private UMB registration/wrappers, 277 of allocation/coalescing,
+416 of import transport/state and 130 of records: **1,037 bytes altogether**.
+Even deleting all four groups without charging replacement interfaces leaves
+2,531 HIMEM + 2,192 EMM = 4,723 bytes before paragraph rounding, still **67
+above** the selected 4,656-byte manager pair. This optimistic conditional subtraction is not an
+achievable layout or a bound on other designs. It establishes that UMB-only
+retirement cannot, by itself, close the measured 1,104-byte regression.
+
+Include the remaining bootstrap transaction in the same candidate: its current
+layout query, staging transaction and forwarding groups total another 421
+bytes, but freeze/rejection interfaces must survive. Price the replacement
+interfaces and final paragraph boundaries before implementing that partition.
+Do not count the existing shared frame or result journal as discardable.
+
+The required lifetime change is concrete:
+
+1. Keep one canonical bootstrap UMB owner through preparation, rebasing,
+   registration and rollback. Once the original tail is overwritten, every
+   local allocator and peer call must use the staged records and code; an
+   original/staged mirror is not a second authoritative owner.
+2. Confirm both handle and UMB imports before releasing their shared stage.
+   `XMSIMPORTBODY.INC` currently clears the stage pointer after the handle reply,
+   and `BOOTXMS.INC:BootOwnerVerify` poisons the stage at that point. Neither is
+   a valid whole-provider release boundary while UMB ownership can remain low.
+3. Move the live-UMB qualification into activation: allocate and fill real UMBs
+   after backing registration but before import, then check their identity,
+   contents and busy-unregister behavior after import. Retaining a pointer into
+   LAST after the loader returns is not an acceptable way to preserve the
+   existing post-boot deferred-import fixture.
+4. Publish the compact permanent front and release the complete boot partition
+   only after both imports are confirmed and all bootstrap frames have returned.
+   Unknown publication must keep the needed storage owned and prohibit replay;
+   pre-publication cancellation must restore the latest canonical records.
+5. Run the same composed VC comparison. Require improvement over 617,936
+   conventional bytes without falling below 47,888 free UMB bytes; report XMS
+   costs. Retail's 618,736 conventional target and joint BIOS/COMMAND placement
+   remain the larger goals, not requirements silently replaced by this checkpoint.
+
 ##### Whole-system placement rules
 
 DR-DOS's portable lesson is a small conventional interface backed by complete
