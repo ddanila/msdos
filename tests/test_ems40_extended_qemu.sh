@@ -5,7 +5,7 @@ export LC_ALL=C
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="$ROOT/out"
-BASE="$OUT/floppy.img"
+BASE="${FLOPPY_IMAGE:-$OUT/floppy.img}"
 IMAGE="$OUT/floppy-ems40-extended.img"
 PROBE="$OUT/ems40-extended.com"
 LOG="$OUT/ems40-extended.log"

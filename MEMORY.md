@@ -1241,19 +1241,20 @@ also contains a helper call, but has no current callers. This is our own source
 audit, unrelated to vendor internals.
 
 `make test-emm-relocation-budget` builds the current worktree and checks the
-linked reservation model, including word-overflow rejection. The audited build
-includes the still-uncommitted EMMSUP access-boundary preparation; its map
-SHA-256 is `600dde32803463fea74a4c18f0e82e69f1419fe03059686bf0bbd5feba080c56`.
+linked reservation model, including word-overflow rejection. After completing
+the alternate-register owner boundary, the audited map SHA-256 is
+`f9220a868f986835bb111219fe8e99f0a4f5eac651049a8a988c256cbc6e5bd6`
+(`out/emm-register-owner.ljtL8D/EMM386.MAP`).
 
 | Locked relocation-tail accounting | Bytes |
 | --- | ---: |
 | MEMREQ reservation, excluding configured EMS pool | 77,824 |
 | InitTab request, including worst-case page alignment | 42,032 |
-| RelocateText request, including alignment | 18,803 |
-| Unconsumed reservation after both successful requests | 16,989 |
+| RelocateText request, including alignment | 18,643 |
+| Unconsumed reservation after both successful requests | 17,149 |
 
 The 1,904-byte selected VDATA object fits this modeled remainder, leaving
-15,085 bytes before its own alignment/support. A separate XMS allocation is
+15,245 bytes before its own alignment/support. A separate XMS allocation is
 therefore not yet justified. Reserve through the existing allocator, preserve
 the configured EMS pool, and test the largest supported table profile too.
 Do not expose the leftover reservation as application XMS or count its reuse
@@ -1279,7 +1280,7 @@ The capacity model now includes the complete option range, not just the default:
 | Table profile | Payload | Dword-aligned reservation | Existing-tail shortfall | Proposed additional 4 KiB pages |
 | --- | ---: | ---: | ---: | ---: |
 | Selected H=64/A=7, 64 EMS pages, six windows, D=1 | 1,904 | 1,907 | 0 | 0 |
-| Combined arithmetic maxima | 48,383 | 48,386 | 31,397 | 8 |
+| Combined arithmetic maxima | 48,383 | 48,386 | 31,237 | 8 |
 
 The maximum combines H=255, A=254, 2,048 EMS pages, 52 windows, 20 sparse
 assignments and D=16. It is a sizing bound, not a claim that the current
@@ -1324,9 +1325,9 @@ count, not an exposed pointer to the proposed high table object.
 This materially simplifies the high-data contract: ordinary EMS queries do
 not require a second low table copy merely because their caller entered in
 real mode. DMA traps likewise reach the table owner from protected mode.
-Initialization still builds the low object first, and EMMP's alternate-set
-code still directly resolves FRS_array/CurRegSet. Those ownership conversions,
-selector setup, transition ordering and failure handling remain necessary.
+Initialization still builds the low object first. EMMP's alternate-set paths
+now use owner services too; selector setup, complete high/low access separation,
+transition ordering and failure handling remain necessary.
 
 `tests/emm386_owner_mode_probe.asm` checks the repository driver's signature
 before using its private mode-control entry. In a disposable QEMU fixture it
@@ -1465,7 +1466,7 @@ FRAME=/P, banking boundaries and explicit sparse assignments.
 Single current-map reads/writes now use indexed owner services in mapping,
 unmapping and partial-map operations; ELIMTRAP's DMA `GetCRSEntry` delegates
 to the same reader. A source guard rejects current-map root access outside
-EMMSUP, EMMP's remaining bulk operations and initialization/layout code.
+EMMSUP and initialization/layout code.
 The partial-map regression switches to a differently populated page between
 save and restore, then verifies the original contents, not just return status.
 Ordinary full-map export now snapshots through `ReadCurrentMap`; full-map and
@@ -1477,9 +1478,24 @@ preserving the original four-byte stack order. Register-set zero buffer
 export/import also uses the bulk owner services. Tests compare the complete
 map before/after move/exchange and restore page contents through a non-null
 register-zero buffer, including the exported buffer address.
-Alternate-set allocation, selection and deallocation still resolve FRS record
-pointers in EMMP. These must move behind the owner before the complete block
-can move. No high copy or reclamation exists.
+Alternate-set allocation, selection and deallocation now use
+`AllocateRegisterSet`, `SelectRegisterSet` and `ReleaseRegisterSet` in EMMSUP.
+EMMP no longer resolves FRS_array or CurRegSet pointers; the ownership guard
+also catches their underscore aliases. Low scalar mode/count state remains
+separate. Selection explicitly clears carry after publishing a different set,
+including a lower-numbered one. Allocation copies the complete rounded mapping
+through the existing bulk owner and decrements free count only after locating
+a free record. No high copy or conventional reclamation exists.
+
+The strengthened A=2 probe covers descending/repeated selection, current-set
+reporting, active-set rejection and double release. A=254 still exhausts and
+reuses boundary sets 1/127/254. The load-option/capacity and extended EMS
+lifecycle suites pass with the rebuilt manager in a private repaired-low
+image (`out/emm-register-owner.ljtL8D/base.img`). This completes the pending
+register-set access boundary, not the joint layout checkpoint. The full driver
+API/command suite, including AUTO/OFF owner-state checks, and the RAM-address/
+DOS-high mode matrix also pass. The linked installed boundary stays 3,888 bytes;
+only the modeled high-copy consumption changes, not a measured VC free block.
 
 Count boundary: EMMINIT rounds `_cntxt_pages` up to an
 even word count; `_cntxt_bytes` adds a two-byte public header. Internal FRS

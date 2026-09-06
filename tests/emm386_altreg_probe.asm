@@ -26,6 +26,40 @@ org 100h
     test ah, ah
     jz fail
 
+    ; Descending and repeated selections must not inherit comparison carry.
+    mov bl, [set2]
+    mov ax, 5b01h
+    int 67h
+    test ah, ah
+    jnz fail
+    mov bl, [set1]
+    mov ax, 5b01h
+    int 67h
+    test ah, ah
+    jnz fail
+    mov ax, 5b01h
+    int 67h
+    test ah, ah
+    jnz fail
+    mov ax, 5b00h
+    int 67h
+    test ah, ah
+    jnz fail
+    cmp bl, [set1]
+    jne fail
+    mov ax, 5b04h
+    int 67h
+    cmp ah, 9dh
+    jne fail
+    ; Return to internal set zero, with no external restore buffer.
+    xor bx, bx
+    mov es, bx
+    xor di, di
+    mov ax, 5b01h
+    int 67h
+    test ah, ah
+    jnz fail
+
     mov bl, [set1]
     mov ax, 5b04h
     int 67h
@@ -36,6 +70,11 @@ org 100h
     int 67h
     test ah, ah
     jnz fail
+    mov bl, [set2]
+    mov ax, 5b04h
+    int 67h
+    cmp ah, 9dh
+    jne fail
     mov dx, pass_message
     jmp short print
 fail:

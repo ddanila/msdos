@@ -58,6 +58,7 @@ _TEXT	segment
         extrn ReadCurrentMapEntry:near, WriteCurrentMapEntry:near
         extrn ReadCurrentMap:near, SaveCurrentFrame:near
         extrn WriteCurrentMapFromFS:near
+        extrn SelectRegisterSet:near, AllocateRegisterSet:near, ReleaseRegisterSet:near
         extrn ReadScratchMapPair:near, WriteScratchMapPair:near
         extrn physical_to_external_id:near
 	IFNDEF	EMMP_QUERY_ONLY
@@ -181,10 +182,7 @@ extrn	EMM_savES:word
 extrn	EMM_savDI:word
 
 extrn	CurRegSetn:byte
-extrn	FRS_free:byte
 extrn	_altreg_count:byte
-extrn	CurRegSet:dword
-extrn	FRS_array:word
 
 extrn	_regp:word
 _DATA	ENDS
@@ -479,23 +477,6 @@ Set_Page_Gran	MACRO	handle
 	push	GDTD_GSEL
 	pop	es				; ES:0 <-- GDT
 	or	byte ptr es:[bx+6], R_GRAN	; set gran bit
-	ENDM
-
-;***********************************************
-;
-; Get_FRS_window - get pointer to Fast Register Set window
-;
-;	ENTRY:	Reg - points to an FRS_struc
-;
-;	EXIT:	Reg - points to FRS_window entry in the structure
-;
-;	USES:	Reg
-;
-;***********************************************
-Get_FRS_window	MACRO	Reg
-
-	mov	Reg, word ptr [CurRegSet]	; just offset (assume dgroup)
-	add	Reg, FRS_window			; points to FRS window entries
 	ENDM
 
 	page
@@ -847,12 +828,6 @@ _MapHandlePage	endp
 	ENDIF
 	IFNDEF	EMMP_PROT_ONLY
 	IFNDEF	EMMP_SAVE_EXCLUDE
-	IFDEF	EMMP_QUERY_ONLY
-Get_FRS_window	MACRO	Reg
-	mov	Reg, word ptr [CurRegSet]
-	add	Reg, FRS_window
-	ENDM
-	ENDIF
 
 	page
 ;***********************************************
@@ -3114,25 +3089,10 @@ AMRS_get1:
 ;-----------------------------------------------
 Dword_Align	_TEXT
 AMRS_set:
-	cmp	bl, byte ptr [_altreg_count]	; Validate new Reg Set
-	ja	AMRS_inv_FRS
-	movzx	eax, bl
-	movzx	edx, byte ptr [_cntxt_bytes]
-	dec	edx				; internal flag is one byte, not a word
-	imul	eax, edx
-	xchg	ax, bx
-	add	bx, [FRS_array]			; Get pointer to the new Reg Set
-	cmp	byte ptr [bx.FRS_alloc], 0	; Make sure it is allocated
-	xchg	ax, bx
-	je	AMRS_undef_FRS			;   unallocated, go complain
-
-	cmp	bl, 0				; New reg set 0?
-	je	short AMRS_set0			;   yes, always set context
-	cmp	bl, [CurRegSetn]		; Setting the same reg set?
-	je	AMRS_exit			;   yes, just return
-AMRS_set0:					; Now set up new reg set
-	mov	word ptr [CurRegSet], ax	; Set Current reg. set Offset
-	mov	[CurRegSetn], bl
+	call	SelectRegisterSet
+	jc	AMRS_undef_FRS
+	or	ax,ax
+	jz	AMRS_exit			; nonzero set already current
 
 	or	bl, bl				; Real register set?
 	jne	_set_windows			;   yes, go deal with it
@@ -3202,38 +3162,11 @@ AMRS_size:
 ;
 ;-----------------------------------------------
 AMRS_allocate:
-	cmp	[FRS_free], 0			; See if any are free
-	je	short AMRS_noRS			;   no, none available
-						; Search for first free set
-	dec	[FRS_free]			; We are going to take one
-	mov	di, [FRS_array]			; Start of FRS structures
-	xor	bl, bl				; FRS number
-AMRS_search:
-	cmp	byte ptr [di.FRS_alloc], 0	; This one free?
-	je	short AMRS_foundRS		;   yes, bl has the number
-	xor	ax,ax
-	mov	al,[_cntxt_bytes]
-	dec	ax				; internal flag is one byte, not a word
-	add	di,ax				; on to the next one
-	inc	bl
-	cmp	bl, byte ptr [_altreg_count]	; Safety... should never fail
-	jbe	short AMRS_search
-
-	mov	byte ptr [bp.rAX+1], EMM_SW_MALFUNCTION	; Honesty...
-	ret
-
-AMRS_foundRS:
-	mov	byte ptr [di.FRS_alloc], 1	; Allocate it
-	Get_FRS_Window	SI
-	lea	di, [di.FRS_Window]
-	movzx	ecx, [_cntxt_pages]
-	shr	ecx, 1
-	rep movsd				; Initialise to current mapping
+	call	AllocateRegisterSet
+	mov	byte ptr [bp.rAX+1],ah
+	or	ah,ah
+	jnz	AMRS_exit
 	mov	byte ptr [bp.rBX], bl		; Return the number
-	ret
-
-AMRS_noRS:					; None free; return error
-	mov	byte ptr [bp.rAX+1], NO_MORE_FRSETS
 	ret
 
 	page
@@ -3253,25 +3186,8 @@ AMRS_noRS:					; None free; return error
 ;
 ;-----------------------------------------------
 AMRS_deallocate:
-	or	bl, bl
-	jz	AMRS_exit			; Deallocating 0 is ignored
-	cmp	bl, [CurRegSetn]		; Can't deallocate current set
-	je	short AMRS_undef_FRS
-	cmp	bl, byte ptr [_altreg_count]
-	ja	short AMRS_undef_FRS		; Invalid Register set
-	movzx	eax, bl
-	movzx	edx, byte ptr [_cntxt_bytes]
-	dec	edx				; internal flag is one byte, not a word
-	imul	eax, edx			; Offset into array
-	xchg	ax, bx
-	add	bx,[FRS_array]
-	cmp	byte ptr [bx.FRS_alloc], 0	; Paranoid...
-	xchg	ax, bx
-	je	short AMRS_undef_FRS		;   Not allocated, complain
-	xchg	ax, bx
-	mov	byte ptr [bx.FRS_alloc], 0	; Mark it free
-	xchg	ax, bx
-	inc	[FRS_free]			; one more set free
+	call	ReleaseRegisterSet
+	mov	byte ptr [bp.rAX+1],ah
 	ret
 
 AMRS_Inv_FRS:

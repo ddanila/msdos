@@ -109,6 +109,8 @@ extrn	_emm_free:word
 extrn _DMA_Pages:word, _mappable_pages:word
 extrn _physical_page_exceptions:word, _physical_page_exception_count:byte
 extrn CurRegSet:word
+extrn FRS_array:word, CurRegSetn:byte, FRS_free:byte
+extrn _cntxt_bytes:byte, _cntxt_pages:byte, _altreg_count:byte
 
 ;
 ; ptr to table of page table entries for the EMM pages
@@ -597,6 +599,108 @@ WriteScratchMapPair proc near
         pop bx
         ret
 WriteScratchMapPair endp
+
+; Register-set records never leave this owner. BL selects a record; the
+; private lookup returns SI only to the following owner-local services.
+FindRegisterSet proc near
+        cmp bl,[_altreg_count]
+        ja short RegisterSetMissing
+        movzx si,bl
+        movzx ax,[_cntxt_bytes]
+        dec ax
+        imul si,ax
+        add si,[FRS_array]
+        cmp byte ptr [si.FRS_alloc],0
+        je short RegisterSetMissing
+        clc
+        ret
+RegisterSetMissing:
+        stc
+        ret
+FindRegisterSet endp
+
+; CF invalid; otherwise AX=1 selected, AX=0 already current nonzero set.
+        public SelectRegisterSet, AllocateRegisterSet, ReleaseRegisterSet
+SelectRegisterSet proc near
+        push si
+        call FindRegisterSet
+        jc short SelectRegisterDone
+        xor ax,ax
+        or bl,bl
+        jz short SelectRegisterPublish
+        cmp bl,[CurRegSetn]
+        je short SelectRegisterDone
+SelectRegisterPublish:
+        mov word ptr [CurRegSet],si
+        mov [CurRegSetn],bl
+        inc ax
+        clc
+SelectRegisterDone:
+        pop si
+        ret
+SelectRegisterSet endp
+
+; AH status, BL allocated set. Clone the current map before returning.
+AllocateRegisterSet proc near
+        push si
+        push di
+        push cx
+        push es
+        cmp [FRS_free],0
+        je short AllocateRegisterFull
+        mov di,[FRS_array]
+        xor bl,bl
+AllocateRegisterSearch:
+        cmp byte ptr [di.FRS_alloc],0
+        je short AllocateRegisterFound
+        movzx ax,[_cntxt_bytes]
+        dec ax
+        add di,ax
+        inc bl
+        cmp bl,[_altreg_count]
+        jbe short AllocateRegisterSearch
+        mov ah,EMM_SW_MALFUNCTION
+        jmp short AllocateRegisterDone
+AllocateRegisterFound:
+        mov byte ptr [di.FRS_alloc],1
+        dec [FRS_free]
+        add di,FRS_window
+        push ds
+        pop es
+        movzx cx,[_cntxt_pages]
+        call ReadCurrentMap
+        xor ax,ax
+        jmp short AllocateRegisterDone
+AllocateRegisterFull:
+        mov ah,NO_MORE_FRSETS
+AllocateRegisterDone:
+        pop es
+        pop cx
+        pop di
+        pop si
+        ret
+AllocateRegisterSet endp
+
+; AH status; set zero is ignored, active/invalid/already-free sets rejected.
+ReleaseRegisterSet proc near
+        push si
+        xor ax,ax
+        or bl,bl
+        jz short ReleaseRegisterDone
+        cmp bl,[CurRegSetn]
+        je short ReleaseRegisterInvalid
+        call FindRegisterSet
+        jc short ReleaseRegisterInvalid
+        mov byte ptr [si.FRS_alloc],0
+        inc [FRS_free]
+        xor ax,ax
+        jmp short ReleaseRegisterDone
+ReleaseRegisterInvalid:
+        mov ah,FRSET_UNDEFINED
+ReleaseRegisterDone:
+        pop si
+        ret
+ReleaseRegisterSet endp
 
 ; AX validated handle: save the four LIM frame entries inside the table owner.
 ; The intermediate current-map pointer is private to EMMSUP.

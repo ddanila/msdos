@@ -8,7 +8,7 @@ ROOT = Path(__file__).resolve().parents[1] / "src/MEMM"
 ROOT_NAMES = re.compile(r"\b_?(?:handle_table|save_map|Handle_Name_Table|mappable_pages|physical_page_exceptions)\b", re.I)
 PAGE_ROOTS = re.compile(r"\b_?(?:emm_page|emm_free|pft386)\b", re.I)
 C_DMA_ROOTS = re.compile(r"\b_?(?:DMA_Pages|mappable_pages)\b", re.I)
-CURRENT_MAP_ROOT = re.compile(r"\bCurRegSet\b", re.I)
+CURRENT_MAP_ROOT = re.compile(r"\b_?(?:CurRegSet|FRS_array)\b", re.I)
 OWNERS = {"EMM/EMMSUP.ASM", "EMM/EMMDATA.ASM",
           "MEMM/EMMINIT.ASM", "MEMM/INITTAB.ASM"}
 PAGE_OWNERS = OWNERS | {"MEMM/INITEPG.ASM", "MEMM/INIT.ASM"}
@@ -25,9 +25,9 @@ def direct_roots(source, suffix, roots=ROOT_NAMES):
 
 class OwnershipTest(unittest.TestCase):
     def test_current_map_root_stays_with_owners(self):
-        # EMMP still owns bulk snapshots/alternate-set switching; ELIMTRAP's
-        # DMA query now delegates to the indexed owner and may not dereference it.
-        allowed = OWNERS | {"EMM/EMMP.ASM"}
+        # Bulk snapshots, alternate-set switching and DMA queries all use
+        # indexed services; no runtime caller may retain a table pointer.
+        allowed = OWNERS
         violations = []
         for path in ROOT.rglob("*"):
             if path.suffix not in {".ASM", ".C"}:
@@ -79,6 +79,9 @@ class OwnershipTest(unittest.TestCase):
         self.assertTrue(direct_roots("return pft386[i];", ".C", PAGE_ROOTS))
         self.assertTrue(direct_roots("mov ax,[_emm_free]", ".ASM", PAGE_ROOTS))
         self.assertFalse(direct_roots('FatalError("PFT386 entry");', ".C", PAGE_ROOTS))
+        self.assertTrue(direct_roots("mov si,[FRS_array]", ".ASM", CURRENT_MAP_ROOT))
+        self.assertTrue(direct_roots("return _CurRegSet;", ".C", CURRENT_MAP_ROOT))
+        self.assertFalse(direct_roots("mov al,[CurRegSetn]", ".ASM", CURRENT_MAP_ROOT))
 
 
 if __name__ == "__main__":
