@@ -11,8 +11,13 @@ REBOOT_LOG="$OUT/setver-reboot.log"
 CLEAR_LOG="$OUT/setver-clear.log"
 PROBE="$OUT/SETPROBE.COM"
 EXIT_COM="$OUT/qemu-exit.com"
+MODE="${SETVER_MODE:-}"
+case "$MODE" in
+    ''|high) ;;
+    *) echo 'ERROR: SETVER_MODE must be high or unset' >&2; exit 1 ;;
+esac
 
-for tool in nasm mcopy qemu-system-i386 timeout; do
+for tool in nasm mcopy mtype qemu-system-i386 timeout; do
     command -v "$tool" >/dev/null 2>&1 || {
         echo "ERROR: required tool not found: $tool" >&2
         exit 1
@@ -24,7 +29,11 @@ done
     exit 1
 }
 
-nasm -f bin "$ROOT/tests/setver_probe.asm" -o "$PROBE"
+if [[ "$MODE" == high ]]; then
+    nasm -f bin -DEXPECT_HIGH=1 "$ROOT/tests/setver_probe.asm" -o "$PROBE"
+else
+    nasm -f bin "$ROOT/tests/setver_probe.asm" -o "$PROBE"
+fi
 nasm -f bin "$ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 cp "$BASE" "$IMAGE"
 mcopy -o -i "$IMAGE" "$PROBE" ::SETPROBE.COM
@@ -146,7 +155,15 @@ grep -Fq 'Entry deleted.' "$LOG"
 }
 grep -Fq 'Invalid version. Use major.minor.' "$LOG"
 
-printf 'DEVICE=SETVER.EXE\r\n' | mcopy -o -i "$IMAGE" - ::CONFIG.SYS
+{
+    # Preserve the tested high configuration across both persistence boots.
+    # Default mode retains the historical DOS-low reboot test.
+    if [[ "$MODE" == high ]]; then
+        mtype -i "$BASE" ::CONFIG.SYS
+        printf '\r\n'
+    fi
+    printf 'DEVICE=SETVER.EXE\r\n'
+} | mcopy -o -i "$IMAGE" - ::CONFIG.SYS
 {
     printf '@ECHO OFF\r\n'
     printf 'CTTY AUX\r\n'
@@ -178,4 +195,22 @@ grep -Fq 'SETVER_PROBE_VERSION=6.22' "$CLEAR_LOG" || {
     exit 1
 }
 
+if [[ "$MODE" == high ]]; then
+    for phase in "$LOG" "$REBOOT_LOG" "$CLEAR_LOG"; do
+        ! grep -Fq 'SETVER_OWNERSHIP_FAIL' "$phase" || {
+            echo "FAIL: high kernel / low SETVER owner check: $phase" >&2
+            exit 1
+        }
+    done
+    [[ $(grep -c '^SETVER_HIGH_LOW_OWNER=' "$LOG") -eq 12 ]]
+    [[ $(grep -c '^SETVER_HIGH_LOW_OWNER=' "$REBOOT_LOG") -eq 1 ]]
+    [[ $(grep -c '^SETVER_HIGH_LOW_OWNER=' "$CLEAR_LOG") -eq 1 ]]
+    owners=$(grep -h '^SETVER_HIGH_LOW_OWNER=' "$LOG" "$REBOOT_LOG" "$CLEAR_LOG" | sort -u)
+    [[ $(printf '%s\n' "$owners" | wc -l) -eq 1 ]] || {
+        echo 'FAIL: SETVER public table owner changed across boots' >&2
+        exit 1
+    }
+    echo '  PASS: DOS-high and one stable low SETVER owner on all three cold boots'
+    python3 "$ROOT/tests/test_setver_warm_qemu.py" "$IMAGE"
+fi
 echo '  PASS: SETVER retail defaults, editing, persistence, CONFIG.SYS loading, and per-program versions'

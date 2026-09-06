@@ -41,8 +41,9 @@ Execution order (supersedes older implementation queues below):
 normal low/high and rebased high-CDS probes. Its repair costs 640 conventional
 bytes in the composed fixture; previous totals did not preserve equivalent
 SETVER behavior. Native ASSIGN/JOIN now use the true-version API, and the
-refreshed quick high-CDS matrix passes with their mappings intact. Full
-high-mode SETVER persistence and broader consumer qualification remain open.
+refreshed quick high-CDS matrix passes with their mappings intact. High-mode
+SETVER persistence now passes cold and in-process QMP-reset gates; broader
+consumer and hardware qualification remain open.
 See the SETVER ownership section below.
 
 1. Complete the joint resident-layout checkpoint below before extending any
@@ -368,8 +369,8 @@ two probe names:
 
 Local copy-bound (four cases), kernel-layout and HMA-budget (eight cases)
 checks pass. The SETVER editing suite passes with both repaired normal input
-images; its later reboot phase replaces CONFIG.SYS with a DOS-low startup,
-so this is not an all-high reset/persistence qualification. The composed
+images. Its default reboot phase replaces CONFIG.SYS with a DOS-low startup;
+the explicit high-mode path below closes that separate qualification gap. The composed
 fine-UMB/CDS matrix passes with 616,112 conventional and 49,680 UMB bytes
 (`out/umb-fine-composition-ozww81et/results.json`). The low table costs 640
 bytes versus the invalid old fixture; it is a correctness cost, not a saving.
@@ -389,20 +390,55 @@ passes all fifteen cases (`out/high-cds-xes8a10m/`), including 50 utility checks
 in upper mode, 50 in allocation fallback, and deliberate rejection of the low
 fallback as upper. Its I/O/reset and cache-negative cases pass as well. This
 replaces the earlier utility passes that lacked intact high-mode mappings;
-it does not qualify high-mode SETVER editing persistence or the full A..Y
-LASTDRIVE sweep on this revision.
+it does not cover the full A..Y LASTDRIVE sweep on this revision. SETVER
+editing persistence has its own gate below.
 
 The utility harness accepts `ASJ_ASSIGN_IMAGE` and `ASJ_JOIN_IMAGE` to install
 fresh binaries only in its private boot image. The high-CDS matrix selects
 those local builds explicitly, and its make target builds both utilities.
 Native BACKUP, GRAFTABL and other rebuilt names covered by the retail table
 still need a version-check audit; no blanket compatibility claim follows
-from the ASSIGN/JOIN repair. Further nested-execution, high-mode persistence,
-SHARE and redirector consumer checks remain gates before promotion. This
+from the ASSIGN/JOIN repair. Further nested-execution, SHARE and redirector
+consumer checks remain gates before promotion. This
 repair changes no fixed-boot memory saving or destination budget.
 The fresh Z fixture also passes the complete read-only SETVER comparison and
 still reports 5.00 under the ASSIGN probe name
 (`out/setver-placement-_dzbza_z/`).
+
+`SETVER_MODE=high` preserves the input CONFIG.SYS across the editing,
+persisted-load and persisted-delete boots, appending the SETVER startup
+loader rather than silently switching to DOS-low. Every version probe checks
+that INT 21h still points at the HMA and AX=1231h exposes a bounded 640-byte
+conventional table. All fourteen observations must report the same owner.
+This vector check is specific to the fixture without INT 21h-hooking TSRs.
+
+The high suite also runs `test_setver_warm_qemu.py`: one emulator session,
+two host-issued QMP `system_reset` operations after DOS buffer flushes. It
+edits the mapping to 4.20, verifies persisted loading after the first reset,
+deletes the mapping, and verifies 6.22 after the second. Both normal high
+(`0268:0E4E`, `out/setver-warm-sv80ulty/`) and rebased high-CDS
+(`01AB:0E4E`, `out/setver-warm-xa4v4rdh/`) pass. The cold-phase logs are in
+`out/setver-high-gate.8N7EU3/`. These are QEMU reset-protocol checks, not a
+claim about physical keyboard-controller reset or all supported hardware.
+
+The `--omit-loader` negative control retains DOS-high but removes the SETVER
+startup loader only from its private image. It correctly fails persisted
+loading: the mapping returns to 6.22 instead of 4.20
+(`out/setver-warm-808yybqk/`). Thus the positive result depends on loading the
+saved table, not just on stale runtime state surviving the reset.
+Requesting the high gate on the DOS-low fixture also correctly fails with
+`SETVER_OWNERSHIP_FAIL`; the default low-mode suite still passes.
+
+```sh
+FLOPPY_IMAGE=out/setver-owner.IdRfwB/high.img SETVER_MODE=high \
+  bash tests/test_setver_qemu.sh
+FLOPPY_IMAGE=out/bios-low-boot-0jrgvxd5/emm-high.img SETVER_MODE=high \
+  bash tests/test_setver_qemu.sh
+```
+
+The shell suite owns fixed `out/setver*` paths; run variants sequentially and
+save logs before the next invocation. The warm-reset helper always uses a
+new private directory and leaves its input image unchanged.
 
 ```sh
 python3 tests/capture_setver_placement.py --check out/setver-owner.IdRfwB/low.img
