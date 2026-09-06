@@ -2826,7 +2826,7 @@ OFF/AUTO transitions, runtime busy-owner rejection,
 or real exception/NMI unwinding. Those gates and the complete provider's
 linked low/high layout remain open; no conventional saving is claimed.
 
-`XmsCopyClient` adds a 322-byte typed-address layer: flag bits select physical
+`XmsCopyClient` adds a 418-byte typed-address layer: flag bits select physical
 or client-linear source/destination independently. For decoded conventional/HMA
 addresses it resolves each 4-KiB page through the installed first page table,
 checks present/user access (and write permission for a destination), and passes
@@ -2847,10 +2847,35 @@ the mapped source as physical (`--mapped --bypass-mapping`) fails in
 
 This layer is not the complete handle-zero API: the caller must establish A20
 policy and validate the far pointer, ownership and whole-range non-overlap,
-including aliases. Permission checking is per chunk; a later rejected page
-can follow completed chunks. Full-range validation, precise public error
-semantics and stable mappings across asynchronous entry remain required before
-binding it to XMS Move/reallocation. Normal EMM386 remains unchanged.
+including aliases. Both complete client ranges now receive a page-permission
+preflight before the first copy; the per-chunk checks remain. The walk uses
+the same resolver and preserves its inputs, with ordinary interrupts disabled
+through preflight and copying. Whole-range alias/ownership validation, precise
+public error semantics and stable mappings across NMI/fault entry remain
+required before binding it to XMS Move/reallocation. This is not atomic recovery
+from a hardware fault. Normal EMM386 remains unchanged.
+
+The late-page rejection witnesses start off-page and deny user permission on
+the next page through a test-only resolver override; they do not alter client
+PTEs. Separate source and destination cases require failure without changes to
+either high XMS destination range or any of the eight mapped EMS backing pages.
+Host snapshots also retain the descriptor, scratch-window and mapping checks.
+`--bypass-preflight` restores the old per-chunk behavior: both controls fail
+because earlier destination bytes were written, not merely because CF differs.
+Run the normal target above, or use the pinned input explicitly:
+
+```sh
+python3 tests/test_xms_copy_windows_qemu.py --image out/setver-native-audit.BAEqDU/low.img --mapped --deny-later-page
+python3 tests/test_xms_copy_windows_qemu.py --image out/setver-native-audit.BAEqDU/low.img --mapped --deny-later-page --deny-destination
+```
+
+Evidence: source rejection `out/xms-copy-windows-jon46xx6/`, destination
+rejection `out/xms-copy-windows-tgm20cx9/`, successful mapped transfers
+`out/xms-copy-windows-fparrgmb/`, and mapping-failure cleanup
+`out/xms-copy-windows-iwfix_2j/`. The deliberately bypassed source/destination
+controls fail in `out/xms-copy-windows-phq5dszl/` and
+`out/xms-copy-windows-wnlg8izy/`. The 96-byte growth belongs in the future
+protected-provider budget, not the current conventional-memory ledger.
 
 The census also now distinguishes handle zero's conventional physical pages
 from locked XMS backing: `_total_pages` includes both. It checks the ordered

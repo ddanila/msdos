@@ -141,8 +141,8 @@ XmsCopyPhysicalEnd label near
 ; other endpoints are physical. Caller establishes A20 policy and validates
 ; whole-range ownership/non-overlap, including aliases. Client addresses are
 ; limited to the conventional/HMA window; each page needs user read/write
-; permission. A later rejected page can follow earlier completed chunks: this
-; is not an atomic public XMS Move implementation or a full-range preflight.
+; permission, checked across both complete ranges before any copy. This does
+; not preflight physical aliases/ownership or make hardware faults atomic.
 public XmsCopyClient
 XmsCopyClient proc near
     pushf
@@ -178,6 +178,21 @@ XM_Source_Range:
 XM_Dest_Range:
     mov ax,PAGET_GSEL
     mov fs,ax
+ifndef EMM_XMS_COPY_SKIP_PREFLIGHT
+    test ebp,1
+    jz short XM_Check_Dest
+    mov eax,esi
+    mov edx,5
+    call XmsCheckClientRange
+    jc XM_Reject
+XM_Check_Dest:
+    test ebp,2
+    jz short XM_Next
+    mov eax,edi
+    mov edx,7
+    call XmsCheckClientRange
+    jc XM_Reject
+endif
 XM_Next:
     mov ebx,esi
     and ebx,4095
@@ -242,6 +257,31 @@ XM_Reject:
     ret
 XmsCopyClient endp
 
+; EAX client-linear start, ECX nonzero length, EDX required permissions.
+; Caller checked the exclusive end and holds interrupts disabled. Preserve
+; all inputs; walk each touched page using the same resolver as the copy.
+XmsCheckClientRange proc near
+    pushad
+    mov esi,eax
+    mov edi,eax
+    add edi,ecx
+XM_Check_Page:
+    mov eax,esi
+    call XmsResolveClientPage
+    jc short XM_Check_Failed
+    and esi,0fffff000h
+    add esi,4096
+    cmp esi,edi
+    jb short XM_Check_Page
+    popad
+    clc
+    ret
+XM_Check_Failed:
+    popad
+    stc
+    ret
+XmsCheckClientRange endp
+
 ; FS is the installed first-page-table alias. The caller has bounded EAX to
 ; 00000000h..0010ffffh and retains the provider's present/user PDE zero.
 ; EDX is required PTE permission bits; return EAX physical, or CF on rejection.
@@ -252,6 +292,18 @@ XmsResolveClientPage proc near
     shr ebx,12
     shl bx,2
     mov ebx,fs:[bx]
+ifdef EMM_XMS_COPY_DENY_ALIGNED_PAGE
+    ; Test-only: the mapped probe starts at offset 4093. Deny its next
+    ; page through the ordinary permission check, without changing a PTE.
+ifdef EMM_XMS_COPY_DENY_DESTINATION
+    cmp edx,7
+    jne short XM_Test_Page_Allowed
+endif
+    test eax,4095
+    jnz short XM_Test_Page_Allowed
+    and ebx,0fffffffbh
+XM_Test_Page_Allowed:
+endif
     mov ecx,ebx
     and ecx,edx
     cmp ecx,edx

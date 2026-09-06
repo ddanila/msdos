@@ -178,6 +178,19 @@ mapped_test:
 %ifdef BYPASS_MAPPING
     mov dword [packet_flags],0
 %endif
+%ifdef EXPECT_PAGE_FAILURE
+%ifdef EXPECT_DEST_PAGE_FAILURE
+    mov eax,[packet_dest]
+    mov [packet_source],eax
+    movzx eax,word [ems_frame]
+    shl eax,4
+    add eax,4007h
+    mov [packet_dest],eax
+    mov dword [packet_flags],2
+%endif
+    call reject
+    jmp mapped_done
+%endif
     call copy
     jc failed
     test ah,ah
@@ -212,6 +225,7 @@ mapped_test:
     test ah,ah
     jnz failed
     call mapped_read
+mapped_done:
     mov al,'N'
     call checkpoint
     mov dx,[ems_handle]

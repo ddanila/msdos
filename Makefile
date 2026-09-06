@@ -283,6 +283,8 @@ test-xms-copy-windows-qemu:
 	python3 tests/test_xms_copy_windows_qemu.py
 	python3 tests/test_xms_copy_windows_qemu.py --fail-after-map
 	python3 tests/test_xms_copy_windows_qemu.py --mapped
+	python3 tests/test_xms_copy_windows_qemu.py --mapped --deny-later-page
+	python3 tests/test_xms_copy_windows_qemu.py --mapped --deny-later-page --deny-destination
 
 .PHONY: test-emm-xms-owner-qemu
 test-emm-xms-owner-qemu:

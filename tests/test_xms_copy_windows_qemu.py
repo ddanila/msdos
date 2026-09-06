@@ -29,11 +29,23 @@ def main():
                         help="negative control: misclassify the mapped source as physical")
     parser.add_argument("--bad-data", action="store_true",
                         help="negative control: corrupt one returned byte; the run must fail")
+    parser.add_argument("--deny-later-page", action="store_true",
+                        help="deny the mapped source's second page; require zero writes")
+    parser.add_argument("--bypass-preflight", action="store_true",
+                        help="negative control with --deny-later-page: allow partial writes")
+    parser.add_argument("--deny-destination", action="store_true",
+                        help="with --deny-later-page, reject the destination instead")
     args = parser.parse_args()
     if args.fail_after_map and args.bad_data:
         parser.error("the data control requires a completed copy")
     if args.fail_after_map and args.mapped or args.bypass_mapping and not args.mapped:
         parser.error("mapped tests require successful copying; bypass requires --mapped")
+    if args.deny_later_page and (not args.mapped or args.bypass_mapping or args.bad_data):
+        parser.error("page rejection requires --mapped without data/mapping corruption")
+    if args.bypass_preflight and not args.deny_later_page:
+        parser.error("--bypass-preflight requires --deny-later-page")
+    if args.deny_destination and not args.deny_later_page:
+        parser.error("--deny-destination requires --deny-later-page")
     subprocess.run(["make", "memm"], cwd=ROOT, check=True)
     normal = ROOT / "src/MEMM/MEMM/EMM386.EXE"
     normal_hash = hashlib.sha256(normal.read_bytes()).hexdigest()
@@ -47,6 +59,12 @@ def main():
     flags = "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -I. -I..\\EMM -DEMM_XMS_COPY_TEST"
     if args.fail_after_map:
         flags += " -DEMM_XMS_COPY_FAIL_AFTER_MAP"
+    if args.deny_later_page:
+        flags += " -DEMM_XMS_COPY_DENY_ALIGNED_PAGE"
+    if args.bypass_preflight:
+        flags += " -DEMM_XMS_COPY_SKIP_PREFLIGHT"
+    if args.deny_destination:
+        flags += " -DEMM_XMS_COPY_DENY_DESTINATION"
     with (work / "build.log").open("w") as log:
         subprocess.run([str(ROOT / "bin/jwasm-masm"), flags,
                         f"MOVEB.ASM,{work / 'MEMM/MOVEB.OBJ'};"],
@@ -63,6 +81,8 @@ def main():
                     *(["-DWRONG_DATA"] if args.bad_data else []),
                     *(["-DMAPPED_ENDPOINT"] if args.mapped else []),
                     *(["-DBYPASS_MAPPING"] if args.bypass_mapping else []),
+                    *(["-DEXPECT_PAGE_FAILURE"] if args.deny_later_page else []),
+                    *(["-DEXPECT_DEST_PAGE_FAILURE"] if args.deny_destination else []),
                     str(ROOT / "tests/xms_copy_windows_probe.asm"), "-o", str(probe)], check=True)
     image = work / "boot.img"
     shutil.copyfile(args.image, image)
@@ -83,6 +103,8 @@ def main():
     endpoint, debug = work / "qmp", work / "debug.bin"
     report = dict(passed=False, fail_after_map=args.fail_after_map, core_bytes=code_size,
                   client_bytes=client_size, mapped=args.mapped, bypass_mapping=args.bypass_mapping,
+                  deny_later_page=args.deny_later_page, bypass_preflight=args.bypass_preflight,
+                  deny_destination=args.deny_destination,
                   normal_sha256=normal_hash, candidate_sha256=hashlib.sha256(candidate.read_bytes()).hexdigest(),
                   probe_sha256=hashlib.sha256(probe.read_bytes()).hexdigest(), bad_data=args.bad_data,
                   image_sha256=hashlib.sha256(args.image.read_bytes()).hexdigest(),
@@ -141,8 +163,12 @@ def main():
                 ranges = [ram[base+start:base+start+8192] for start in (4093, 16391)]
                 expected_data = bytes((n & 255) ^ (n >> 8) ^ 0x5a for n in range(8192))
                 expected_ranges = [expected_data, expected_data]
-                if args.mapped:
+                if args.mapped and not args.deny_later_page:
                     expected_ranges[0] = bytes(value ^ 255 for value in expected_data)
+                if args.deny_later_page and phase in ("N", "B"):
+                    before = next(row for row in report["checkpoints"] if row["phase"] == "M")
+                    if [hashlib.sha256(data).hexdigest() for data in ranges] != before["range_hashes"]:
+                        raise ValueError("later-page rejection wrote earlier destination bytes")
                 if phase in ("N", "B") and not args.fail_after_map and ranges != expected_ranges:
                     raise ValueError("actual high physical RAM does not contain both copied ranges")
                 hashes = [hashlib.sha256(data).hexdigest() for data in ranges]
@@ -152,6 +178,7 @@ def main():
                     raise ValueError("expected the installed low GDT")
                 windows = copy_window_candidates(ram, cr3)
                 client_frames = []
+                client_hashes = []
                 if phase in ("M", "N"):
                     if not 0x4000 <= frame <= 0xe800:
                         raise ValueError("invalid EMS frame witness")
@@ -163,12 +190,17 @@ def main():
                         if pte & 7 != 7:
                             raise ValueError("mapped EMS endpoint is not present/user/writable")
                         client_frames.append(pte & ~4095)
+                        client_hashes.append(hashlib.sha256(ram[(pte & ~4095):(pte & ~4095)+4096]).hexdigest())
                     if client_frames == list(range(frame << 4, (frame << 4) + 32768, 4096)):
                         raise ValueError("the witness did not actually remap its endpoints")
                     if phase == "N" and client_frames != report["checkpoints"][-1]["client_frames"]:
                         raise ValueError("copying changed the application's EMS mappings")
+                    if (args.deny_later_page and phase == "N"
+                            and client_hashes != report["checkpoints"][-1]["client_hashes"]):
+                        raise ValueError("later-page rejection wrote mapped destination bytes")
                 row = dict(phase=phase, windows=windows, descriptors=ram[gdt+0x70:gdt+0x80].hex(),
-                           physical_block_base=base, range_hashes=hashes, client_frames=client_frames)
+                           physical_block_base=base, range_hashes=hashes, client_frames=client_frames,
+                           client_hashes=client_hashes)
                 report["checkpoints"].append(row)
                 if row["descriptors"] != report["checkpoints"][0]["descriptors"]:
                     raise ValueError("copy descriptors were not restored")
