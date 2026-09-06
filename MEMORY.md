@@ -2877,6 +2877,40 @@ controls fail in `out/xms-copy-windows-phq5dszl/` and
 `out/xms-copy-windows-wnlg8izy/`. The 96-byte growth belongs in the future
 protected-provider budget, not the current conventional-memory ledger.
 
+**Open integration gate: overlap between translated ranges.** The opt-in
+`--mapped --alias-overlap` witness maps logical EMS page zero into two frame
+windows. The 8,192-byte source starts at offset 4,093 in the first window;
+the destination starts at offset 7 in the second. Their client-linear ranges
+are disjoint, but their physical ranges overlap by 4,106 bytes. The current
+typed backend returns success (CF clear, AH=0) and changes three physical pages,
+visible through six aliased window pages. Permission preflight passes because
+all mappings are valid; individual physical chunks do not detect this
+cross-chunk dependence. This violates the desired integration contract, not
+the primitive's existing requirement that its caller already exclude aliases.
+
+```sh
+python3 tests/test_xms_copy_windows_qemu.py --image out/setver-native-audit.BAEqDU/low.img --mapped --alias-overlap
+```
+
+This command **currently fails** and is intentionally outside the passing
+default target until whole-range alias validation is implemented. Its manifest
+records the returned status, both linear addresses, identical physical backing
+and changed window-page indexes; raw M/N snapshots retain the actual bytes.
+Evidence: `out/xms-copy-windows-qvr2pzbs/`. The ordinary mapped regression still
+passes in `out/xms-copy-windows-7bnhsmla/`. No normal binary or memory total changes.
+
+Before public Move/reallocation binding, translate complete source and
+destination ranges into physical extents and check intersections across **all**
+extents before writing. Preserve exact self-copy behavior; checking only paired
+pages or rejecting every shared page would mishandle identity and disjoint
+subranges. Mixed physical/client addresses and repeated EMS mappings need the
+same treatment. Budget scratch storage in the protected owner, preserve mappings
+for the whole transaction, and bound interrupt-disabled work; a quadratic page
+walk is not automatically an acceptable final implementation. Acceptance must
+include this witness, exact alias identity, disjoint same-page ranges, both
+overlap directions and unchanged destinations on rejection. Public error
+translation and ownership of physical ranges remain separate gates.
+
 The census also now distinguishes handle zero's conventional physical pages
 from locked XMS backing: `_total_pages` includes both. It checks the ordered
 physical records and derives the relocation tail from extended pages only.

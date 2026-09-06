@@ -147,6 +147,9 @@ mapped_test:
     jnz failed
     mov dx,[ems_handle]
     mov bx,1
+%ifdef ALIAS_OVERLAP
+    xor bx,bx ; a second client window onto the same logical EMS page
+%endif
     mov ax,4401h
     int 67h
     test ah,ah
@@ -175,6 +178,21 @@ mapped_test:
     add eax,4093
     mov [packet_dest],eax
     mov dword [packet_flags],1
+%ifdef ALIAS_OVERLAP
+    movzx eax,word [ems_frame]
+    shl eax,4
+    add eax,4007h
+    mov [packet_dest],eax
+    mov dword [packet_flags],3
+    ; Source bytes 4093..12284 and destination bytes 7..8198 occupy
+    ; overlapping physical storage, despite disjoint client-linear ranges.
+    ; Snapshot before checking status so partial writes cannot hide behind CF.
+    call copy
+    pushf
+    pop word [alias_status]
+    mov [alias_error],ah
+    jmp mapped_done
+%endif
 %ifdef BYPASS_MAPPING
     mov dword [packet_flags],0
 %endif
@@ -228,6 +246,12 @@ mapped_test:
 mapped_done:
     mov al,'N'
     call checkpoint
+%ifdef ALIAS_OVERLAP
+    test word [alias_status],1
+    jz failed
+    cmp byte [alias_error],2
+    jne failed
+%endif
     mov dx,[ems_handle]
     mov ah,45h
     int 67h
@@ -289,6 +313,10 @@ witness_signature db 'XWPROBE!'
 physical dd 0
 ems_frame dw 0
 ems_handle dw 0
+%ifdef ALIAS_OVERLAP
+alias_status dw 0
+alias_error db 0
+%endif
 packet db 'XCPY'
 packet_length:
     dd 8192

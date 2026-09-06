@@ -35,6 +35,8 @@ def main():
                         help="negative control with --deny-later-page: allow partial writes")
     parser.add_argument("--deny-destination", action="store_true",
                         help="with --deny-later-page, reject the destination instead")
+    parser.add_argument("--alias-overlap", action="store_true",
+                        help="require rejection without writes for overlapping EMS aliases")
     args = parser.parse_args()
     if args.fail_after_map and args.bad_data:
         parser.error("the data control requires a completed copy")
@@ -46,6 +48,8 @@ def main():
         parser.error("--bypass-preflight requires --deny-later-page")
     if args.deny_destination and not args.deny_later_page:
         parser.error("--deny-destination requires --deny-later-page")
+    if args.alias_overlap and (not args.mapped or args.deny_later_page or args.bypass_mapping or args.bad_data):
+        parser.error("alias overlap requires --mapped without other fault controls")
     subprocess.run(["make", "memm"], cwd=ROOT, check=True)
     normal = ROOT / "src/MEMM/MEMM/EMM386.EXE"
     normal_hash = hashlib.sha256(normal.read_bytes()).hexdigest()
@@ -83,6 +87,7 @@ def main():
                     *(["-DBYPASS_MAPPING"] if args.bypass_mapping else []),
                     *(["-DEXPECT_PAGE_FAILURE"] if args.deny_later_page else []),
                     *(["-DEXPECT_DEST_PAGE_FAILURE"] if args.deny_destination else []),
+                    *(["-DALIAS_OVERLAP"] if args.alias_overlap else []),
                     str(ROOT / "tests/xms_copy_windows_probe.asm"), "-o", str(probe)], check=True)
     image = work / "boot.img"
     shutil.copyfile(args.image, image)
@@ -105,6 +110,7 @@ def main():
                   client_bytes=client_size, mapped=args.mapped, bypass_mapping=args.bypass_mapping,
                   deny_later_page=args.deny_later_page, bypass_preflight=args.bypass_preflight,
                   deny_destination=args.deny_destination,
+                  alias_overlap=args.alias_overlap,
                   normal_sha256=normal_hash, candidate_sha256=hashlib.sha256(candidate.read_bytes()).hexdigest(),
                   probe_sha256=hashlib.sha256(probe.read_bytes()).hexdigest(), bad_data=args.bad_data,
                   image_sha256=hashlib.sha256(args.image.read_bytes()).hexdigest(),
@@ -155,17 +161,17 @@ def main():
                         break
                     base = struct.unpack_from("<I", ram, offset + 8)[0]
                     if 0x1000000 <= base <= len(ram) - 32768:
-                        matches.append((base, struct.unpack_from("<H", ram, offset + 12)[0]))
+                        matches.append((base, struct.unpack_from("<H", ram, offset + 12)[0], offset))
                     offset += 1
                 if len(matches) != 1:
                     raise ValueError(f"expected one live high-allocation witness: {matches}")
-                base, frame = matches[0]
+                base, frame, witness_offset = matches[0]
                 ranges = [ram[base+start:base+start+8192] for start in (4093, 16391)]
                 expected_data = bytes((n & 255) ^ (n >> 8) ^ 0x5a for n in range(8192))
                 expected_ranges = [expected_data, expected_data]
-                if args.mapped and not args.deny_later_page:
+                if args.mapped and not (args.deny_later_page or args.alias_overlap):
                     expected_ranges[0] = bytes(value ^ 255 for value in expected_data)
-                if args.deny_later_page and phase in ("N", "B"):
+                if (args.deny_later_page or args.alias_overlap) and phase in ("N", "B"):
                     before = next(row for row in report["checkpoints"] if row["phase"] == "M")
                     if [hashlib.sha256(data).hexdigest() for data in ranges] != before["range_hashes"]:
                         raise ValueError("later-page rejection wrote earlier destination bytes")
@@ -195,6 +201,22 @@ def main():
                         raise ValueError("the witness did not actually remap its endpoints")
                     if phase == "N" and client_frames != report["checkpoints"][-1]["client_frames"]:
                         raise ValueError("copying changed the application's EMS mappings")
+                    if args.alias_overlap and client_frames[:4] != client_frames[4:]:
+                        raise ValueError("overlap witness lacks identical EMS physical backing")
+                    if args.alias_overlap and phase == "N":
+                        report["alias_overlap_observation"] = dict(
+                            carry=bool(struct.unpack_from("<H", ram, witness_offset + 16)[0] & 1),
+                            error=ram[witness_offset + 18],
+                            source_linear=(frame << 4) + 4093,
+                            destination_linear=(frame << 4) + 0x4007,
+                            length=8192,
+                            physical_pages=client_frames,
+                            changed_window_pages=[index for index, (before, after) in enumerate(
+                                zip(report["checkpoints"][-1]["client_hashes"], client_hashes))
+                                if before != after])
+                    if (args.alias_overlap and phase == "N"
+                            and client_hashes != report["checkpoints"][-1]["client_hashes"]):
+                        raise ValueError("overlapping EMS aliases modified backing before rejection")
                     if (args.deny_later_page and phase == "N"
                             and client_hashes != report["checkpoints"][-1]["client_hashes"]):
                         raise ValueError("later-page rejection wrote mapped destination bytes")
