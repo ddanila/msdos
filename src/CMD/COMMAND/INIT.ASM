@@ -12,6 +12,7 @@ TITLE	COMMAND Initialization
 	INCLUDE comseg.asm
 	INCLUDE comequ.asm
 	include resmsg.equ		;AN000;
+	INCLUDE RESBIND.INC
 .list
 .cref
 
@@ -24,6 +25,12 @@ ENVSML			EQU	160
 KOREA_COUNTRY_CODE	EQU	82
 
 CODERES 	SEGMENT PUBLIC BYTE	;AC000;
+	IFDEF COMMAND_RESIDENT_BINDING
+SHELL_BIND_EXTERN MACRO slot
+	EXTRN shell_binding_&slot:WORD
+ENDM
+	SHELL_BINDING_SLOTS SHELL_BIND_EXTERN
+	ENDIF
 	EXTRN	CONTC:NEAR
 	EXTRN	DskErr:NEAR
 	EXTRN	endinit:near
@@ -242,6 +249,13 @@ ZERO	=	$
 
 CONPROC:
 	MOV	SP,OFFSET RESGROUP:RSTACK	; MUST be first instruction
+	IFDEF COMMAND_RESIDENT_BINDING
+	; Bind every constructor-owned operand before any vector or DOS call.
+SHELL_BIND_INIT MACRO slot
+	mov word ptr [shell_binding_&slot],cs
+ENDM
+	SHELL_BINDING_SLOTS SHELL_BIND_INIT
+	ENDIF
 	IFDEF COMMAND_CRITICAL_SPLIT
 	; Bind while the image is still owned and before any DOS call or vector
 	; publication. Child, /MSG and failed-HMA interpreters use these same low

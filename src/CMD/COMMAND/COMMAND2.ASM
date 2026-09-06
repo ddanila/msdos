@@ -9,6 +9,7 @@ NAME	COMMAND2
 	INCLUDE comsw.asm
 	INCLUDE comequ.asm
 	INCLUDE resmsg.equ		;AN000;
+	INCLUDE RESBIND.INC
 .LIST
 .CREF
 
@@ -132,8 +133,7 @@ ASSUME	CS:RESGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
 BADMEMERR:				; Allocation error loading transient
 	MOV	DX,BMEMMES		;AC000; get message number
 FATALC:
-	PUSH	CS
-	POP	DS
+	SHELL_OWNER_SEG DS,fatal_ds
 	ASSUME	DS:ResGroup
 	invoke	RPRINT
 ;
@@ -164,18 +164,29 @@ FATALRET2:
 	CMP	[PERMCOM],0		; If we get here and PERMCOM,
 	JNZ	RET_2E			; must be INT_2E
 	invoke	reset_msg_pointers	;AN000; reset critical & parse error messages
+	IFDEF COMMAND_RESIDENT_BINDING
+	push es
+	SHELL_OWNER_SEG ES,fatal_psp
+	MOV	AX,[PARENT]
+	MOV	WORD PTR ES:[PDB_Parent_PID],AX
+	MOV	AX,WORD PTR OldTerm
+	MOV	WORD PTR ES:[PDB_Exit],AX
+	MOV	AX,WORD PTR OldTerm+2
+	MOV	WORD PTR ES:[PDB_Exit+2],AX
+	pop es
+	ELSE
 	MOV	AX,[PARENT]
 	MOV	WORD PTR CS:[PDB_Parent_PID],AX
 	MOV	AX,WORD PTR OldTerm
 	MOV	WORD PTR CS:[PDB_Exit],AX
 	MOV	AX,WORD PTR OldTerm+2
 	MOV	WORD PTR CS:[PDB_Exit+2],AX
+	ENDIF
 	MOV	AX,(EXIT SHL 8) 	; Return to lower level
 	INT	int_command
 
 RET_2E:
-	PUSH	CS
-	POP	DS
+	SHELL_OWNER_SEG DS,ret2e_ds
 ASSUME	DS:RESGROUP,ES:NOTHING,SS:NOTHING
 	MOV	[SINGLECOM],0		; Turn off singlecom
 	MOV	ES,[RES_TPA]
@@ -194,24 +205,41 @@ GOTECODE:
 
 INT_2E: 				; Magic command executer
 ASSUME	DS:NOTHING,ES:NOTHING,SS:NOTHING
+	IFDEF COMMAND_RESIDENT_BINDING
+	; Preserve caller DS:SI until its complete command tail has been copied.
+	SHELL_OWNER_SEG ES,int2e_es
+	POP	WORD PTR ES:[INT_2E_RET]
+	POP	WORD PTR ES:[INT_2E_RET+2]
+	POP	AX
+	ELSE
 	POP	WORD PTR [INT_2E_RET]
 	POP	WORD PTR [INT_2E_RET+2] ;Get return address
 	POP	AX			;Chuck flags
 	PUSH	CS
 	POP	ES
+	ENDIF
 	MOV	DI,80H
 	MOV	CX,64
 	REP	MOVSW
+	IFDEF COMMAND_RESIDENT_BINDING
+	push es
+	pop ds
+ASSUME DS:RESGROUP
+	ENDIF
 	MOV	AH,GET_CURRENT_PDB
 	INT	int_command		; Get user's header
 	MOV	[SAVE_PDB],BX
 	MOV	AH,SET_CURRENT_PDB
-	MOV	BX,CS
+	SHELL_OWNER_REG BX,0bbh,int2e_bx
 	INT	int_command		; Current process is me
 	MOV	[SINGLECOM],81H
 	MOV	[EXTCOM],1		; Make sure this case forced
 
 LODCOM: 				; Termination handler
+	IFDEF COMMAND_RESIDENT_BINDING
+	SHELL_OWNER_SEG DS,lodcom_ds
+ASSUME DS:RESGROUP
+	ENDIF
 	CMP	[EXTCOM],0
 	jz	lodcom1 		; if internal, memory already allocated
 	mov	bx,0ffffh
@@ -261,7 +289,7 @@ LTPASET:
 	SUB	BX,AX
 	MOV	[TRNSEG],BX		; Transient starts here
 LODCOM1:
-	MOV	AX,CS
+	SHELL_OWNER_REG AX,0b8h,lodcom_ax
 	MOV	SS,AX
 ASSUME	SS:RESGROUP
 	MOV	SP,OFFSET RESGROUP:RSTACK
@@ -377,8 +405,7 @@ CLOSELOOP:
 	INC	BX
 	LOOP	CLOSELOOP
 	push	ds			;AN020; save data segment
-	push	cs			;AN020; Get local segment into DS
-	pop	ds			;AN020;
+	SHELL_OWNER_SEG DS,headfix_ds
 	cmp	append_flag,-1		;AN020; Do we need to reset APPEND?
 	jnz	append_fix_end		;AN030; no - just exit
 	mov	ax,AppendSetState	;AN020; Set the state of Append
@@ -403,15 +430,27 @@ ASSUME	DS:NOTHING,ES:NOTHING,SS:NOTHING
 	PUSH	DS
 	PUSH	BX			; Set stdin to sterr, stdout to stderr
 	PUSH	AX
+	IFDEF COMMAND_RESIDENT_BINDING
+	push es
+	SHELL_OWNER_SEG ES,savhand_es
+	ENDIF
 	MOV	AH,GET_CURRENT_PDB
 	INT	int_command		; Get user's header
 	MOV	DS,BX
 	LDS	BX,DS:[PDB_JFN_POINTER] ; get pointer to JFN table...
 	MOV	AX,WORD PTR DS:[BX]
+	IFDEF COMMAND_RESIDENT_BINDING
+	MOV	ES:[HANDLE01],AX
+	MOV	AL,ES:[PDB_JFN_Table+2]
+	ELSE
 	MOV	[HANDLE01],AX		; Save user's stdin, stdout
 	MOV	AL,CS:[PDB_JFN_Table+2] ; get COMMAND stderr
+	ENDIF
 	MOV	AH,AL
 	MOV	WORD PTR DS:[BX],AX	; Dup stderr
+	IFDEF COMMAND_RESIDENT_BINDING
+	pop es
+	ENDIF
 	POP	AX
 	POP	BX
 	POP	DS
@@ -573,8 +612,7 @@ SETVECT:				; Set useful vectors
 ENDINIT:
 	push	ds			;g save segments
 	push	es			;g
-	push	cs			;g get resident segment to DS
-	pop	ds			;g
+	SHELL_OWNER_SEG DS,endinit_ds
 	ASSUME	DS:RESGROUP
 	mov	cx,usedenv		;g get number of bytes to move
 	mov	es,envirseg		;g get target environment segment

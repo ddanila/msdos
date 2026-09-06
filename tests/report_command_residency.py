@@ -75,6 +75,28 @@ def rounded(value: int) -> int:
     return (value + 15) & ~15
 
 
+BINDING_SLOTS = ("fatal_ds", "fatal_psp", "ret2e_ds", "int2e_es", "int2e_bx",
+                 "lodcom_ds", "lodcom_ax", "headfix_ds", "savhand_es", "endinit_ds")
+
+
+def check_resident_bindings(symbols: dict[str, int], image: bytes) -> None:
+    expected = {"shell_binding_" + name for name in BINDING_SLOTS}
+    if {name for name in symbols if name.startswith("shell_binding_")} != expected:
+        raise ValueError("resident binding slots differ from the constructor contract")
+    constructor = bytearray()
+    for name in BINDING_SLOTS:
+        offset = symbols["shell_binding_" + name]
+        if not 0x101 <= offset < require(symbols, "RES_CODE_END") - 1:
+            raise ValueError("resident binding is outside the service body")
+        opcode = 0xBB if name == "int2e_bx" else 0xB8
+        if image[offset-0x101:offset-0xFE] != bytes((opcode, 0, 0)):
+            raise ValueError("resident binding is not a zero-initialized immediate operand")
+        constructor.extend(b"\x8c\x0e" + offset.to_bytes(2, "little"))
+    start = require(symbols, "CONPROC") - 0x100 + 3  # MOV SP,RSTACK first
+    if image[start:start+len(constructor)] != constructor:
+        raise ValueError("resident binding constructor does not initialize every operand")
+
+
 def parse_number(value: str) -> int:
     return int(value[:-1], 16) if value.upper().endswith("H") else int(value)
 
@@ -117,6 +139,8 @@ def main() -> int:
         help="COMMAND build switches containing its message-workspace bound",
     )
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--resident-binding", action="store_true",
+                        help="check the development COMMAND2 owner operands and constructor")
     parser.add_argument("--critical-split", action="store_true",
                         help="check the development low-entry/body/exit layout (body still low)")
     parser.add_argument("--critical-reclaim", action="store_true",
@@ -124,6 +148,8 @@ def main() -> int:
     args = parser.parse_args()
     if args.critical_reclaim:
         args.critical_split = True
+    if args.resident_binding and args.critical_split:
+        parser.error("combined binding/critical prototype is not yet qualified")
 
     segments, symbols = parse_map(args.map)
     required_segments = (
@@ -176,6 +202,9 @@ def main() -> int:
             and resident_critical_ptr + 4 <= resident_class_ptrs):
         errors.append("cached critical-catalog pointer is not retained in low message state")
     prototype_allowance = 128 if args.critical_split else 0
+    if args.resident_binding:
+        prototype_allowance = 48
+        check_resident_bindings(symbols, args.binary.read_bytes())
     if rounded(resident_catalog_start) > 3632 + prototype_allowance:
         errors.append(f"DOS-high permanent COMMAND exceeds its {3632 + prototype_allowance:,}-byte budget")
     if rounded(hma_code_end) > 6080 + prototype_allowance:

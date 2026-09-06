@@ -697,6 +697,11 @@ test-command-critical-reclaim-qemu: deploy
 test-command-int2e-owner-qemu: deploy
 	bash tests/test_command_int2e_owner_qemu.sh
 
+.PHONY: test-command-resident-binding-qemu
+test-command-resident-binding-qemu: deploy
+	python3 tests/test_command_resident_bindings.py
+	bash tests/test_command_resident_binding_qemu.sh
+
 test-command-step-qemu: deploy
 	bash tests/test_command_step_qemu.sh
 

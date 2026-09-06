@@ -2,6 +2,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 INPUT="${FLOPPY_IMAGE:-$ROOT/out/floppy.img}"
+COMMAND_IMAGE="${COMMAND_IMAGE:-$ROOT/src/CMD/COMMAND/COMMAND.COM}"
 test -f "$INPUT"
 for tool in nasm mcopy mdel mtype timeout qemu-system-i386 rg shasum; do
     command -v "$tool" >/dev/null
@@ -10,7 +11,7 @@ RUN=$(mktemp -d "$ROOT/out/command-int2e-owner.XXXXXX")
 echo "Evidence: $RUN"
 export MTOOLS_SKIP_CHECK=1 MTOOLS_NO_VFAT=1
 qemu-system-i386 --version > "$RUN/emulator.txt"
-shasum -a 256 "$INPUT" "$ROOT/src/CMD/COMMAND/COMMAND.COM" \
+shasum -a 256 "$INPUT" "$COMMAND_IMAGE" \
     "$ROOT/src/DEV/HIMEM/HIMEM.SYS" > "$RUN/inputs.sha256"
 for variant in good wrong-stack; do
 for mode in LOW HIGH; do
@@ -21,7 +22,7 @@ for mode in LOW HIGH; do
     nasm "${args[@]}" "$ROOT/tests/command_int2e_owner_probe.asm" -o "$prefix.com"
     disk="$prefix.img"
     cp "$INPUT" "$disk"
-    mcopy -o -i "$disk" "$ROOT/src/CMD/COMMAND/COMMAND.COM" ::COMMAND.COM
+    mcopy -o -i "$disk" "$COMMAND_IMAGE" ::COMMAND.COM
     mcopy -o -i "$disk" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" ::HIMEM.SYS
     mcopy -o -i "$disk" "$prefix.com" ::I2EOWNER.COM
     # Remove only our probe outputs from the disposable copy, never the input.
