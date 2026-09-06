@@ -86,6 +86,39 @@ def rounded(value: int) -> int:
     return (value + 15) & ~15
 
 
+def provider_ownership(path: Path, end: int) -> list[tuple[str, int, int, str]]:
+    """Partition the original image by conversion boundary, not future size."""
+    addresses = {}
+    for line in path.read_text(encoding="latin-1").splitlines():
+        match = PROCEDURE_RE.match(line) or LABEL_RE.match(line)
+        if match:
+            addresses[match[1]] = int(match[2], 16)
+    boundaries = [
+        ("Public/device/private-peer entries and bootstrap state", 0, "low interface redesign"),
+        ("Dispatch, common returns, XMS 2/3 adapters", addresses["xms_control"], "split caller frame from backend"),
+        ("HMA ownership", addresses["xms_hma_request"], "one authoritative bootstrap/high binding"),
+        ("A20 policy and physical/BIOS backends", addresses["xms_global_enable"], "low transition binding"),
+        ("EMB services including reallocating copy", addresses["xms_query_free"], "high data and copy binding"),
+        ("Move descriptor validation", addresses["xms_move"], "real-pointer translation"),
+        ("UMB services", addresses["xms_umb_request"], "shared peer/API data binding"),
+        ("Move address resolution", addresses["resolve_move_address"], "high handle-data binding"),
+        ("BIOS copy and descriptor construction", addresses["copy_move_blocks"], "replace on coordinated 386 path"),
+        ("Physical-address helper and alignment", addresses["kb_to_physical"], "high service helper"),
+        ("Firmware descriptor data", addresses["move_gdt"], "standalone BIOS backend only"),
+        ("Handle and free-space helpers", addresses["validate_handle"], "high allocator-data binding"),
+        ("end", end, ""),
+    ]
+    descriptor_start, descriptor_end = bios_descriptor_span(path)
+    if addresses["move_gdt"] != descriptor_start or addresses["validate_handle"] != descriptor_end:
+        raise ValueError("provider descriptor boundary mismatch")
+    result = []
+    for (owner, start, binding), (_, stop, _) in zip(boundaries, boundaries[1:]):
+        if not 0 <= start < stop <= end:
+            raise ValueError(f"unordered provider ownership range: {owner}")
+        result.append((owner, start, stop, binding))
+    return result
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("listing", type=Path, help="JWasm -Sa listing for HIMEM.ASM")
@@ -148,6 +181,17 @@ def main() -> int:
     print("this is nested in the inventory above, not additional code or savings.")
     print(f"The first split retains these descriptors and the {handles[0] - umb_count}-byte")
     print("UMB table low for the private register/unregister entry points.")
+
+    print("\n## Coordinated-provider conversion boundaries\n")
+    print("Existing linked bytes, not the size or low release of a new provider.\n")
+    print("| Original owner | Range | Bytes | Required binding/change |")
+    print("| --- | --- | ---: | --- |")
+    for owner, start, stop, binding in provider_ownership(args.listing, umb_count):
+        print(f"| {owner} | `{start:04X}h..{stop:04X}h` | {stop - start:,} | {binding} |")
+    print("\nSelected handles and UMB records are the separate data owners above.")
+    print("Reallocation calls the copy backend too; replacing only public Move")
+    print("leaves the allocator dependent on BIOS. Low gates, protected copy code,")
+    print("selectors and transition frames still require their own linked budget.")
 
     if errors:
         print("\n## Census errors\n")

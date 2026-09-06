@@ -463,7 +463,7 @@ contract cannot meet the complete budget; it is not another parallel prototype.
 
 For the joint destination budget, prefer locked extended memory for combined
 manager services and option-sized tables, preserving HMA for DOS/BIOS/shell
-services and buffers. The present 1,672-byte HIMEM service/data inventory plus
+services and buffers. The historical 1,672-byte HIMEM service/data inventory plus
 1,904-byte EMM table inventory totals 3,576 bytes, below the selected relocation
 tail's 17,149 unconsumed bytes. That is capacity evidence only: the HIMEM code
 is not yet a protected service object, option maxima require more pages, and
@@ -2519,6 +2519,24 @@ disable A20: perform final disable/firmware work through a low transition path,
 never while depending on an extended-memory continuation. Budget the saved
 caller frame and authoritative A20 counters, including failure returns, before
 claiming a linked low-provider size.
+
+`make test-himem-residency` now emits an exhaustive twelve-range conversion
+census for the 2,301 fixed bytes, separate from option-sized records. It splits
+the old 335-byte HMA/A20 group into 68 bytes of HMA ownership and 267 bytes of
+A20 policy/backends. The 285-byte move-helper group contains 95 bytes of
+address resolution, 127 of BIOS copy/descriptor construction, 15 of physical
+conversion/alignment and 48 of firmware descriptors. These are current linked
+boundaries, not future high objects or low-size promises. Three host tests
+check ordering, complete coverage, missing boundaries and descriptor layout.
+
+Importantly, `xms_reallocate:realloc_move` also calls `copy_move_blocks` after
+preparing shared move state and publishes the new handle base/length only
+after successful copying. The new protected copy binding must serve both
+Move and reallocation, preserve this failure ordering and preserve the
+caller's live handle-table pointer. Replacing only the public Move entry
+leaves a BIOS-dependent allocator. The final budget must replace the old
+127-byte backend and its 48-byte descriptors with measured protected code,
+not count their removal as savings without charging the replacement.
 
 `tests/xms_emm_mode_probe.asm` now locks a 1 KiB XMS allocation before changing
 EMM modes ON -> OFF -> AUTO -> ON. In each mode it takes and releases an
