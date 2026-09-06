@@ -1992,6 +1992,43 @@ The remaining front includes 421 bytes of bootstrap query/staging/forwarding,
 161 bytes of UMB import guard/state and 137 bytes of owner completion. Retire
 the complete boot transaction next. Freeze/retarget must remain callable when
 the old stage has been overwritten; completion must return low before release.
+
+**Next partition: loader-owned, non-moving bootstrap administration.** Do not
+split bind/restore into another staged body while keeping retarget low. The
+four-mode trial `out/emm-init-phases-r6sr4j6u/` retained 2,736 HIMEM bytes:
+only 48 fewer, because the replacement gate and duplicated checks consumed
+most of the retirement. That source change was discarded; it was not composed
+or promoted. The selected candidate and its measurements above are unchanged.
+
+Use SYSINIT-owned temporary storage for the complete administrative code image,
+separate from EMM's moving LAST image and its canonical allocator stage.
+`SYSCONF.ASM:ProviderOffer/ProviderResume` already execute in `SYSINITSEG` outside
+the moved provider; `ProviderMove` freezes the allocator before overwriting it.
+The new storage would hold code, not a second authoritative handle/UMB owner.
+
+1. Before the first stage bind, negotiate and validate a bounded SYSINIT scratch
+   range. Copy the administrative image while the original is still intact;
+   reject overlaps, insufficient capacity and duplicate installation. Price
+   peak conventional INIT use as well as final residue. Do not assume an 8 KiB
+   buffer fits SYSINIT's linked segment without checking its map.
+2. Execute bind/freeze/retarget/restore and owner completion from that stable
+   image, with DS selecting canonical low policy and the selected allocator
+   stage owning records. Audit every CS-relative reference and near/public
+   call; a copied XMS public entry must not make its snapshot authoritative.
+3. Retain one small low administrative gate. After confirmed completion and
+   return from the temporary image, revoke it before SYSINIT storage is freed.
+   Later private calls must reject without dereferencing the old address.
+   A frozen restore must reject before reading an overwritten allocator stage.
+4. Remove the whole low staging/completion bodies and pack the final pair.
+   The current inventories charge 353 staging bytes and 137 completion bytes;
+   replacement gates, state and negotiation are not free. Calculate their
+   actual linked cost before accepting this partition.
+5. Qualify both the phase loader and composed BIOS: cancellation before and
+   after preparation, stale bind/root, freeze/retarget, live imports, lost
+   replies, and calls after administrative revocation/storage overwrite.
+   Then require a composed gain over the selected control. A safe small-step
+   partition that still misses this gate is not the intended achievement.
+
 These are inventories, not promised savings: permanent guards,
 publication state and return paths must be separated and charged. Retire the
 remaining boot-only bodies and pack the retained pair before claiming success.
