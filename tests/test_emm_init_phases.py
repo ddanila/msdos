@@ -72,6 +72,32 @@ class InitPhaseTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "stack boundary"):
             check_phases(rows, "ON", split=True, activation_stack=True)
 
+    def test_lifecycle_terminal_state(self):
+        for mode in ("ON", "OFF", "AUTO", "RAM"):
+            for rejected in (False, True):
+                for stack in (False, True):
+                    base = self.trace(mode)
+                    def clone(record, stage):
+                        return record[:2] + bytes([stage]) + record[3:]
+                    prepared = clone(base[:13], 9)
+                    terminal = clone(base[:13], 10) if rejected else base[-13:]
+                    data = base[:13] + prepared
+                    if stack:
+                        data += clone(prepared, 12)
+                    data += terminal if rejected else base[13:]
+                    if stack:
+                        data += clone(terminal, 13)
+                    data += clone(terminal, 15)
+                    flags = dict(split=True, rejected=rejected,
+                                 activation_stack=stack, lifecycle=True)
+                    rows = parse_trace(data, **flags)
+                    check_phases(rows, mode, **flags)
+                    with self.assertRaises(ValueError):
+                        parse_trace(data[:-13] + clone(terminal, 16), **flags)
+                    rows[-1]["int15"] = "changed"
+                    with self.assertRaisesRegex(ValueError, "lifecycle"):
+                        check_phases(rows, mode, **flags)
+
 
 if __name__ == "__main__":
     unittest.main()

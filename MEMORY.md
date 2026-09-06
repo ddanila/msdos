@@ -435,13 +435,37 @@ the normal binary remains byte-identical. The test stack is discardable, not a
 new permanent stack or a validated minimum capacity.
 
 These remain internal near entries with prepared DGROUP state, not a published
-loader ABI. The adapter still resumes synchronously. Before exposing them,
-add single-use lifecycle checks and explicit activate/cancel operations:
-`FinishProvider` is shared reporting/finalization code, **not** a safe public
-cancellation API when invoked arbitrarily. Reject duplicate activation and
-cancellation after publication without freeing live backing. A final-base move,
-bootstrap XMS ownership, callback versioning and the complete low/high budget
-remain unimplemented; independent return frames alone prove no memory saving.
+loader ABI. The adapter still resumes synchronously. The development split now
+enforces a single-use boot lifecycle: cold → preparing → prepared, then either
+activating → active or cancelling → cancelled. Initialization errors enter a
+terminal failed state; the adapter owns preparation-error cleanup. Only a
+prepared owner may activate or cancel. Invalid transitions return ERROR/CF
+before touching allocation, publication or message state. `CancelProvider` is
+the explicit cancellation entry; `FinishProvider` is private shared reporting
+and finalization, not an exported operation. This is a single-threaded boot
+contract whose entries and state expire with the discardable LAST segment,
+not a concurrent or post-install service API.
+
+The `--lifecycle` capture exercises activation/cancellation before preparation,
+duplicate preparation, and all three entries after activation or cancellation.
+It checks ERROR/CF, unchanged lifecycle/message state and terminal CPU/vector
+state. Combined with `--activation-stack --poison-request`, all four modes pass
+in `out/emm-init-phases-7oagwte2/`; adding `--reject-prepared` passes with the XMS
+pool restored in `out/emm-init-phases-1s229ans/`. A deliberately invalid witness
+(`--bad-lifecycle-control`) emits stage 16 instead of success stage 15 and is
+rejected in `out/emm-init-phases-b9z3urwn/`. The activation image also passes
+`tests/test_emm386_qemu.sh`, including the no-HIMEM fallback allocator and full
+API/runtime-command suite (`emm-api.log`). Eight host tests pass. The normal
+EMM386 binary remains byte-identical. These checks do not prove rollback from
+every partial activation failure or preservation of every cached client entry.
+
+A final-base move, bootstrap XMS ownership, callback versioning and the complete
+low/high budget remain unimplemented. The next architectural deliverable is a
+loader/provider transaction that releases the original low allocation into the
+application free block, with complete high owners and a measured retained low
+boundary. Lifecycle guards and independent return frames are prerequisites,
+not memory savings or completion of that deliverable. Keep BIOS and COMMAND
+in the joint budget; do not substitute additional byte-harvesting work.
 
 ##### Whole-system placement rules
 

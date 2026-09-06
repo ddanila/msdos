@@ -11,11 +11,14 @@ import tempfile
 import capture_drdos_memory as capture
 
 
-def parse_trace(data, *, split=False, rejected=False, activation_stack=False):
+def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
+                lifecycle=False):
     order = ([1, 9, 10] if rejected else
              [1, 9, *range(2, 9)] if split else list(range(1, 9)))
     if activation_stack:
         order = order[:2] + [12] + order[2:] + [13]
+    if lifecycle:
+        order.append(15)
     if len(data) != len(order) * 13:
         raise ValueError("incomplete or unexpected initialization trace")
     result = []
@@ -30,7 +33,12 @@ def parse_trace(data, *, split=False, rejected=False, activation_stack=False):
     return result
 
 
-def check_phases(rows, mode, *, split=False, rejected=False, activation_stack=False):
+def check_phases(rows, mode, *, split=False, rejected=False, activation_stack=False,
+                 lifecycle=False):
+    if lifecycle:
+        if any(rows[-1][key] != rows[-2][key] for key in ("pe", "int15", "int67")):
+            raise ValueError("rejected lifecycle calls changed terminal machine state")
+        rows = rows[:-1]
     if activation_stack:
         for first, second in ((rows[1], rows[2]), (rows[-2], rows[-1])):
             if any(first[key] != second[key] for key in ("pe", "int15", "int67")):
@@ -60,6 +68,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image", type=Path)
     parser.add_argument("--split-prepare", action="store_true")
+    parser.add_argument("--lifecycle", action="store_true",
+                        help="exercise invalid calls before prepare, after prepare and after completion")
+    parser.add_argument("--bad-lifecycle-control", action="store_true",
+                        help="invalidate the lifecycle witness; this run must fail")
     parser.add_argument("--activation-stack", action="store_true",
                         help="resume on a separate guarded stack with BP cleared")
     parser.add_argument("--bad-stack-control", action="store_true",
@@ -70,6 +82,10 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.bad_lifecycle_control:
+        args.lifecycle = True
+    if args.lifecycle:
+        args.split_prepare = True
     if args.bad_pool_control:
         args.reject_prepared = True
     if args.reject_prepared:
@@ -90,6 +106,10 @@ def main():
     trace_defines = "-DEMM_INIT_PHASE_TRACE"
     if args.split_prepare:
         trace_defines += " -DEMM_SPLIT_PREPARE"
+    if args.lifecycle:
+        trace_defines += " -DEMM_PROVIDER_LIFECYCLE"
+    if args.bad_lifecycle_control:
+        trace_defines += " -DEMM_PROVIDER_BAD_LIFECYCLE"
     if args.poison_request:
         trace_defines += " -DEMM_POISON_INIT_REQUEST"
     if args.activation_stack:
@@ -140,9 +160,11 @@ def main():
             raise RuntimeError(f"guest did not finish {mode}: {process.returncode}")
         records[mode] = parse_trace(trace.read_bytes(), split=args.split_prepare,
                                    rejected=args.reject_prepared,
-                                   activation_stack=args.activation_stack)
+                                   activation_stack=args.activation_stack,
+                                   lifecycle=args.lifecycle)
         check_phases(records[mode], mode, split=args.split_prepare,
-                     rejected=args.reject_prepared, activation_stack=args.activation_stack)
+                     rejected=args.reject_prepared, activation_stack=args.activation_stack,
+                     lifecycle=args.lifecycle)
         print(mode, json.dumps(records[mode]), flush=True)
     if capture.sha256(args.image) != image_hash:
         raise RuntimeError("input image changed")
@@ -152,6 +174,7 @@ def main():
         split_prepare=args.split_prepare, rejected=args.reject_prepared,
         poison_request=args.poison_request,
         activation_stack=args.activation_stack,
+        lifecycle=args.lifecycle,
         emulator=capture.qemu_identity(), records=records), indent=2) + "\n")
 
 
