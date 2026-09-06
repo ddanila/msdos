@@ -6,10 +6,39 @@ import unittest
 from pathlib import Path
 
 from capture_emm_init_phases import check_phases, parse_trace, strip_capacity_records, parse_bootstrap_layout, parse_post_boot, parse_umb_receipt
-from capture_emm_init_phases import parse_private_umb_receipt, parse_umb_handoff
+from capture_emm_init_phases import parse_private_umb_receipt, parse_umb_handoff, parse_live_umb_import
 
 
 class InitPhaseTests(unittest.TestCase):
+    def test_live_umb_import_receipt(self):
+        for mode in ("ON", "OFF", "AUTO", "RAM"):
+            result = parse_live_umb_import(b"UL" + struct.pack("<3H", 0xa000, 0xa001, 2), mode=mode)
+            self.assertEqual(result["segments"], [0xa000, 0xa001])
+            self.assertTrue(result["released_through_high_owner"])
+            self.assertEqual(result["backing_accessed"], mode == "RAM")
+            self.assertEqual(result["payload_verified"], mode == "RAM")
+        for first, second, blocks in ((0xa000, 0xa000, 2), (0xb000, 0xa000, 2),
+                                      (0x9fff, 0xa001, 2), (0xa000, 0xf000, 2),
+                                      (0xa000, 0xa001, 1)):
+            with self.subTest(values=(first, second, blocks)), self.assertRaises(ValueError):
+                parse_live_umb_import(b"UL" + struct.pack("<3H", first, second, blocks), mode="RAM")
+        for data in (b"UL", b"UL" + b"\0" * 7, b"UH" + struct.pack("<3H", 0xa000, 0xa001, 2)):
+            with self.assertRaises(ValueError):
+                parse_live_umb_import(data, mode="ON")
+        with self.assertRaises(ValueError):
+            parse_live_umb_import(b"UL" + struct.pack("<3H", 0xa000, 0xa001, 2), mode="other")
+
+    def test_live_umb_probe_requires_an_installed_shared_owner(self):
+        script = Path(__file__).with_name("capture_emm_init_phases.py")
+        for options, message in ((["--umb-live-import", "--reject-prepared"],
+                                  "UMB handoff fault controls require an installed provider"),
+                                 (["--bad-umb-import-bits", "--umb-owner"],
+                                  "public handoff and independent private owner probes are separate")):
+            result = subprocess.run([sys.executable, str(script), "missing.img", *options],
+                                    capture_output=True, text=True)
+            self.assertEqual(result.returncode, 2)
+            self.assertIn(message, result.stderr)
+
     def test_public_umb_handoff_receipt(self):
         for mode in ("ON", "OFF", "AUTO", "RAM"):
             records = 2 if mode == "RAM" else 0

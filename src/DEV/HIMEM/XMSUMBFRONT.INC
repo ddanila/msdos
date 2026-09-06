@@ -6,6 +6,11 @@ ifndef HIMEM_AUTHORITATIVE_OWNER_TEST
         .err <UMB handoff requires the paired authoritative provider>
 endif
 umb_remote_state db 0
+ifdef HIMEM_UMB_DEFER_TEST
+; Test-only boot latch. The guest creates real public allocations under the
+; original owner, then clears this latch before requesting normal handoff.
+umb_remote_defer db 1
+endif
 umb_remote_busy db 0
 umb_remote_op dw 0
 umb_remote_dx dw 0
@@ -50,6 +55,10 @@ umb_remote proc near
         mov [umb_remote_op],ax
         mov [umb_remote_dx],dx
         mov [umb_remote_bx],bx
+ifdef HIMEM_UMB_DEFER_TEST
+        cmp [umb_remote_defer],0
+        jne umb_remote_unavailable
+endif
         mov ax,XCP_QUERY
         int 15h
         cmp ax,XCP_REPLY

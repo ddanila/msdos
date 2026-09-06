@@ -1634,12 +1634,29 @@ stack-guard addition). These are ownership tests, not VC parity captures.
 poisoned-owner test (`djzqm1k0`, guest 35). The eight-handle cancelled-provider
 control (`9d0xog62`) retains local authority and passes all four modes.
 
+**Live pre-import allocations:** `--umb-live-import` holds the test front local
+until the guest allocates two one-paragraph blocks through the cached public
+XMS entry. It checks their original allocated records, permits normal handoff,
+poisons the retired table, then verifies busy unregister, successful release of
+both original segments, duplicate-release rejection and restored free capacity.
+RAM mode additionally writes different 16-byte patterns into the actual
+allocated backing and verifies them after transfer; synthetic addresses in
+ON/OFF/AUTO are never dereferenced. The final receipt still reports one import.
+
+All four modes pass in `out/emm-init-phases-jvc8jw9a/`. Live allocations also
+survive lost-import-reply recovery (`zuloe5sf`) and confirmed pre-commit refusal
+with DOS low/128 handles (`a2zrgjcm`, same prefix). Clearing imported allocation
+bits with `--bad-umb-import-bits` fails busy-unregister validation (`poqtrj81`,
+guest 35). The non-deferred handoff regression (`574oq4n2`) remains byte-identical
+for HIMEM, EMM and the guest probe. The defer latch and corruption path are
+test-only; these checks do not add a public handoff API or free mapping backing.
+
 This front is **not the final low layout**: it adds 480 rounded HIMEM bytes
 (3,344 versus 2,864); EMM remains 2,128. The paired census charges its 457-byte
 transport/state/version region separately, plus 18 peer-entry bytes and five
 additional alignment bytes. Original low UMB services/storage remain charged
 for bootstrap/fallback, and normal binaries remain byte-identical. Next, qualify
-service-reply ambiguity, live pre-import allocations, reset/backing rollback and
+service-reply ambiguity, reset/backing rollback and
 the complete provider's packed boot/permanent partition; do not promote these
 tests as reclaimed memory or full asynchronous/foreign-provider compatibility.
 

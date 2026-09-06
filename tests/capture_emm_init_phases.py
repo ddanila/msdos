@@ -75,6 +75,18 @@ def parse_umb_handoff(data, *, mode):
                 retired_low_poisoned=True, backing_released=False)
 
 
+def parse_live_umb_import(data, *, mode):
+    if len(data) != 8:
+        raise ValueError("missing live UMB import witness")
+    tag, first, second, blocks = struct.unpack("<2s3H", data)
+    if (tag != b"UL" or blocks != 2 or first >= second
+            or mode not in ("ON", "OFF", "AUTO", "RAM")
+            or not 0xa000 <= first < 0xf000 or not 0xa000 <= second < 0xf000):
+        raise ValueError("invalid live UMB import witness")
+    return dict(segments=[first, second], paragraphs_each=1, released_through_high_owner=True,
+                backing_accessed=mode == "RAM", payload_verified=mode == "RAM")
+
+
 def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
                 lifecycle=False, loader=False, rebase=False, table_layout=False,
                 bootstrap_owner=False, authoritative_owner=False, rebase_rejected=False,
@@ -268,6 +280,10 @@ def main():
                         help="exercise the installed high XUMB publication and services")
     parser.add_argument("--umb-handoff", action="store_true",
                         help="route public and peer UMB calls through one high owner")
+    parser.add_argument("--umb-live-import", action="store_true",
+                        help="preserve public UMB allocations made before ownership handoff")
+    parser.add_argument("--bad-umb-import-bits", action="store_true",
+                        help="negative control: clear live allocation bits during import")
     parser.add_argument("--umb-lost-import-reply", action="store_true",
                         help="require receipt recovery after a committed import loses its reply")
     parser.add_argument("--umb-refused-import", action="store_true",
@@ -318,6 +334,10 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.bad_umb_import_bits:
+        args.umb_live_import = True
+    if args.umb_live_import:
+        args.umb_handoff = True
     if args.umb_lost_import_reply and args.umb_refused_import:
         parser.error("pre-commit refusal and lost committed reply are separate controls")
     if args.umb_lost_import_reply or args.umb_refused_import or args.bad_umb_low_owner:
@@ -401,7 +421,7 @@ def main():
             or ((args.umb_owner or args.umb_handoff) and args.loader_bad_version)):
         parser.error("private UMB owner requires an installed authoritative provider")
     if args.reject_prepared and (args.umb_lost_import_reply or args.umb_refused_import
-                                or args.bad_umb_low_owner):
+                                or args.bad_umb_low_owner or args.umb_live_import):
         parser.error("UMB handoff fault controls require an installed provider")
     capture.require_tools()
     if args.authoritative_owner:
@@ -428,6 +448,8 @@ def main():
         trace_defines += " -DEMM_UMB_OWNER_LOST_IMPORT_REPLY"
     if args.umb_refused_import:
         trace_defines += " -DEMM_UMB_OWNER_REFUSE_FIRST_IMPORT"
+    if args.bad_umb_import_bits:
+        trace_defines += " -DEMM_UMB_OWNER_CLEAR_ALLOCATED_TEST"
     if args.authoritative_owner:
         trace_defines += (" -DEMM_XMS_COPY_TEST -DEMM_XMS_OWNER_TEST"
                           " -DEMM_AUTHORITATIVE_OWNER_TEST -DEMM_XMS_OWNER_TRACE")
@@ -503,6 +525,7 @@ def main():
                         f"-Fl={work / 'HIMEM.LST'}",
                         *(["-DHIMEM_UMB_LEGACY_BOUND_TEST"] if args.bad_umb_bound else []),
                         *(["-DHIMEM_UMB_HANDOFF_TEST"] if args.umb_handoff else []),
+                        *(["-DHIMEM_UMB_DEFER_TEST"] if args.umb_live_import else []),
                         *(["-DHIMEM_UMB_HANDOFF_LOCAL_TEST"] if args.bad_umb_low_owner else []),
                         *(["-DHIMEM_BOOTSTRAP_STAGE_TEST"] if args.stage_bootstrap else []),
                         *(["-DHIMEM_BOOTSTRAP_BAD_LAYOUT"] if args.bad_bootstrap_layout else []),
@@ -545,6 +568,9 @@ def main():
                     umb_defines += ["-DUMB_LOST_IMPORT_REPLY"]
                 if args.umb_refused_import:
                     umb_defines += ["-DUMB_REFUSED_IMPORT"]
+                if args.umb_live_import:
+                    umb_defines += ["-DUMB_LIVE_IMPORT",
+                                    f"-DUMB_DEFER_OFFSET={symbols['umb_remote_defer'][0]}"]
         subprocess.run(["nasm", "-f", "bin", f"-DEMM_MARK_DELTA={mark_delta}",
                         *(["-DUMB_OWNER_TEST"] if args.umb_owner else []),
                         *umb_defines, f"-I{capture.ROOT}/",
@@ -604,6 +630,9 @@ def main():
             trace_data = trace_data[:-4]
             post_boot[mode] = parse_post_boot(trace_data[-10:], expected)
             trace_data = trace_data[:-10]
+            if args.umb_live_import:
+                post_boot[mode]["live_umb_import"] = parse_live_umb_import(trace_data[-8:], mode=mode)
+                trace_data = trace_data[:-8]
             if args.umb_handoff and not args.reject_prepared:
                 post_boot[mode]["umb_handoff"] = parse_umb_handoff(trace_data[-8:], mode=mode)
                 trace_data = trace_data[:-8]
@@ -671,6 +700,8 @@ def main():
         umb_coalesce=args.umb_coalesce,
         umb_owner=args.umb_owner,
         umb_handoff=args.umb_handoff,
+        umb_live_import=args.umb_live_import,
+        bad_umb_import_bits=args.bad_umb_import_bits,
         umb_lost_import_reply=args.umb_lost_import_reply,
         umb_refused_import=args.umb_refused_import,
         bad_umb_low_owner=args.bad_umb_low_owner,

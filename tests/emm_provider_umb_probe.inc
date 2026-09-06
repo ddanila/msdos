@@ -1,4 +1,5 @@
-; Exercise allocator metadata only; never access the offered UMB addresses.
+; Exercise allocator metadata. Only the live-import RAM control accesses
+; actually allocated UMB backing; synthetic ranges are never dereferenced.
 ; Real registered ranges are used when available. Otherwise a temporary
 ; two-range registration tests the same peer/public owner in OFF/cancel modes.
 %macro UMB_CALL 0
@@ -21,21 +22,7 @@
     popf
 %endif
 %endmacro
-check_umb_owner:
-    mov ax,4310h
-    int 2fh
-    mov [umb_entry],bx
-    mov [umb_entry+2],es
-    mov es,[himem_segment]
-    mov si,UMB_GUARD_OFFSET
-    mov di,umb_guard
-    mov cx,48
-.save:
-    mov al,[es:si]
-    mov [di],al
-    inc si
-    inc di
-    loop .save
+%macro UMB_IMPORT_FAILURE_CHECK 0
 %ifdef UMB_LOST_IMPORT_REPLY
 %define UMB_IMPORT_FAILURE 1
 %endif
@@ -66,6 +53,39 @@ check_umb_owner:
     cmp byte [es:UMB_STATE_OFFSET],0
     jne umb_failed             ; confirmed uncommitted; original owner unfreezes
 %endif
+%endmacro
+%macro UMB_ALLOCATE_PAIR 0
+    mov dx,1
+    mov ah,10h
+    UMB_CALL
+    cmp ax,1
+    jne umb_failed
+    mov [umb_first],bx
+    mov dx,1
+    mov ah,10h
+    UMB_CALL
+    cmp ax,1
+    jne umb_failed
+    mov [umb_second],bx
+%endmacro
+check_umb_owner:
+    mov ax,4310h
+    int 2fh
+    mov [umb_entry],bx
+    mov [umb_entry+2],es
+    mov es,[himem_segment]
+    mov si,UMB_GUARD_OFFSET
+    mov di,umb_guard
+    mov cx,48
+.save:
+    mov al,[es:si]
+    mov [di],al
+    inc si
+    inc di
+    loop .save
+%ifndef UMB_LIVE_IMPORT
+    UMB_IMPORT_FAILURE_CHECK
+%endif
     call umb_largest
     or dx,dx
     jnz .have_ranges
@@ -80,6 +100,58 @@ check_umb_owner:
     cmp dx,2
     jb umb_failed
     mov [umb_before],dx
+%ifdef UMB_LIVE_IMPORT
+    UMB_ALLOCATE_PAIR
+    mov es,[himem_segment]
+    cmp byte [es:UMB_STATE_OFFSET],0
+    jne umb_failed
+    cmp byte [es:UMB_DEFER_OFFSET],1
+    jne umb_failed
+    mov ax,[umb_first]
+    call umb_check_low_allocated
+    mov ax,[umb_second]
+    call umb_check_low_allocated
+    cmp byte [umb_synthetic],0
+    jne .live_payload_ready
+    push es
+    mov es,[umb_first]
+    xor di,di
+    mov cx,16
+    mov al,5ah
+    cld
+    rep stosb
+    mov es,[umb_second]
+    xor di,di
+    mov cx,16
+    mov al,0a5h
+    rep stosb
+    pop es
+.live_payload_ready:
+    mov byte [es:UMB_DEFER_OFFSET],0
+    UMB_IMPORT_FAILURE_CHECK
+    call umb_largest          ; import the existing allocations, not an empty pool
+    mov es,[himem_segment]
+    cmp byte [es:UMB_STATE_OFFSET],2
+    jne umb_failed
+    cmp byte [umb_synthetic],0
+    jne .live_payload_checked
+    push es
+    mov es,[umb_first]
+    xor di,di
+    mov cx,16
+    mov al,5ah
+    cld
+    repe scasb
+    jne umb_failed
+    mov es,[umb_second]
+    xor di,di
+    mov cx,16
+    mov al,0a5h
+    repe scasb
+    jne umb_failed
+    pop es
+.live_payload_checked:
+%endif
 %ifdef UMB_HANDOFF_TEST
     ; Retired low count/records must no longer drive either public or peer
     ; operations. Never touch the UMB backing addresses themselves.
@@ -90,18 +162,9 @@ check_umb_owner:
     cld
     rep stosb
 %endif
-    mov dx,1
-    mov ah,10h
-    UMB_CALL
-    cmp ax,1
-    jne umb_failed
-    mov [umb_first],bx
-    mov dx,1
-    mov ah,10h
-    UMB_CALL
-    cmp ax,1
-    jne umb_failed
-    mov [umb_second],bx
+%ifndef UMB_LIVE_IMPORT
+    UMB_ALLOCATE_PAIR
+%endif
     mov ax,0e702h              ; live allocations must prevent peer rollback
     int 2fh
     or ax,ax
@@ -164,7 +227,39 @@ check_umb_owner:
 %ifdef UMB_HANDOFF_TEST
     call umb_handoff_receipt
 %endif
+%ifdef UMB_LIVE_IMPORT
+    mov dx,0e9h
+    mov al,'U'
+    out dx,al
+    mov al,'L'
+    out dx,al
+    mov ax,[umb_first]
+    call word_out
+    mov ax,[umb_second]
+    call word_out
+    mov ax,2
+    call word_out
+%endif
     ret
+%ifdef UMB_LIVE_IMPORT
+umb_check_low_allocated:
+    mov si,UMB_GUARD_OFFSET-128
+    mov cx,[es:si-2]
+    or cx,cx
+    jz umb_failed
+    cmp cx,32
+    ja umb_failed
+.find:
+    cmp [es:si],ax
+    je .found
+    add si,4
+    loop .find
+    jmp umb_failed
+.found:
+    cmp word [es:si+2],8001h
+    jne umb_failed
+    ret
+%endif
 %ifdef UMB_HANDOFF_TEST
 umb_handoff_receipt:
     mov es,[himem_segment]

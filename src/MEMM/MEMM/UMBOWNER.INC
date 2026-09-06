@@ -70,6 +70,16 @@ ENDIF
         pop ds
         pop es
         jc umb_owner_bad
+IFDEF EMM_UMB_OWNER_CLEAR_ALLOCATED_TEST
+        mov si,offset umb_blocks
+        mov cx,[umb_count]
+        jcxz umb_owner_corrupt_done
+umb_owner_corrupt_live:
+        and word ptr [si+2],NOT UMB_ALLOCATED
+        add si,UMB_BLOCK_SIZE
+        loop umb_owner_corrupt_live
+umb_owner_corrupt_done:
+ENDIF
         mov [XmsUmbActive],1
         inc [XmsUmbImports]
 IFDEF EMM_UMB_OWNER_LOST_IMPORT_REPLY
