@@ -302,6 +302,10 @@ test-xms-public-copy-qemu:
 	python3 tests/test_xms_copy_windows_qemu.py --public-api --mapped
 	python3 tests/test_xms_copy_windows_qemu.py --public-api --mapped --alias-overlap
 	python3 tests/test_xms_copy_windows_qemu.py --public-api --mode AUTO --fail-after-map
+	python3 tests/test_xms_copy_windows_qemu.py --public-api --mode OFF --dos-high
+	python3 tests/test_xms_copy_windows_qemu.py --public-api --mode AUTO --dos-high
+	python3 tests/test_xms_copy_windows_qemu.py --public-api --mapped --dos-high
+	python3 tests/test_xms_copy_windows_qemu.py --public-api --mode AUTO --dos-high --fail-after-map
 
 test-emm-xms-owner-qemu:
 	python3 tests/test_emm_xms_owner_qemu.py

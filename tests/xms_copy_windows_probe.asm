@@ -2,6 +2,15 @@ bits 16
 org 100h
     push cs
     pop ds
+    ; Repository-signed query: CONFIG text alone does not prove high residency.
+    mov ax,580eh
+    mov cx,4d55h
+    mov si,2142h
+    mov di,0a55ah
+    int 21h
+    jc residency_failed
+    cmp ax,EXPECT_HMA
+    jne residency_failed
     mov ax,3567h
     int 21h
     mov ax,[es:18]
@@ -46,6 +55,9 @@ org 100h
     jb .fill
     mov al,'A'
     call checkpoint
+%ifdef HMA_ENDPOINT
+    call hma_endpoint_test
+%endif
 %ifndef PUBLIC_COPY
     ; Rejected requests must not poison a later valid transaction.
     mov eax,[physical]
@@ -368,6 +380,55 @@ copy:
     popf
     ret
 %ifdef PUBLIC_COPY
+%ifdef HMA_ENDPOINT
+hma_endpoint_test:
+    mov ax,1236h
+    mov cx,64
+    int 2fh
+    test ax,ax
+    jz failed
+    mov ax,es
+    cmp ax,0ffffh
+    jne failed
+    mov [hma_offset],di
+    mov si,source
+    mov cx,64
+    cld
+    rep movsb
+    movzx eax,word [hma_offset]
+    add eax,0ffff0h
+    mov [packet_source],eax
+    mov eax,[physical]
+    mov [packet_dest],eax
+    mov dword [packet_length],64
+    call copy
+    jc failed
+    mov ax,0ffffh
+    mov es,ax
+    mov di,[hma_offset]
+    xor ax,ax
+    mov cx,64
+    rep stosb
+    mov eax,[packet_source]
+    xchg eax,[packet_dest]
+    mov [packet_source],eax
+    call copy
+    jc failed
+    mov ax,0ffffh
+    mov es,ax
+    mov si,source
+    mov di,[hma_offset]
+    mov cx,64
+    repe cmpsb
+    jne failed
+%ifdef BAD_HMA_DATA
+    xor byte [es:di-1],1 ; host must detect this after the guest comparison passed
+%endif
+    push cs
+    pop es
+    mov dword [packet_length],8192
+    ret
+%endif
 public_reallocate_test:
     mov dx,[block]
     mov ah,0dh
@@ -542,6 +603,10 @@ mode_failed:
     mov al,'m'
     out 0e9h,al
     jmp failed
+residency_failed:
+    mov al,'h'
+    out 0e9h,al
+    jmp failed
 reject:
     call copy
     jnc failed
@@ -571,6 +636,9 @@ witness_signature db 'XWPROBE!'
 physical dd 0
 ems_frame dw 0
 ems_handle dw 0
+%ifdef HMA_ENDPOINT
+hma_offset dw 0
+%endif
 %ifdef ALIAS_OVERLAP
 alias_status dw 0
 alias_error db 0

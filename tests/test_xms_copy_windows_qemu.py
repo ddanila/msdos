@@ -24,6 +24,11 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--image", type=Path, default=ROOT / "out/floppy.img")
     parser.add_argument("--mode", choices=("ON", "OFF", "AUTO"), default="ON")
+    parser.add_argument("--dos-high", action="store_true", help="boot DOS in the HMA")
+    parser.add_argument("--wrong-residency", action="store_true",
+                        help="negative control: require the opposite live DOS residency")
+    parser.add_argument("--bad-hma-data", action="store_true",
+                        help="negative control: corrupt the allocated HMA payload after guest verification")
     parser.add_argument("--public-api", action="store_true",
                         help="pair development HIMEM with the protected backend through XMS Move")
     parser.add_argument("--bypass-public-backend", action="store_true",
@@ -49,6 +54,9 @@ def main():
     parser.add_argument("--bypass-aliases", action="store_true",
                         help="negative control: omit whole-range alias checking")
     args = parser.parse_args()
+    hma_endpoint = args.dos_high and args.public_api and not (args.fail_after_map or args.alias_overlap)
+    if args.bad_hma_data and not hma_endpoint:
+        parser.error("--bad-hma-data requires a successful public DOS-high endpoint case")
     if args.mode != "ON" and args.mapped:
         parser.error("EMS-mapped tests require ON; inactive modes test physical service entry")
     if args.leave_active and args.mode == "ON":
@@ -121,6 +129,9 @@ def main():
     probe = work / "probe.com"
     subprocess.run(["nasm", "-f", "bin", *(["-DEXPECT_MAP_FAILURE"] if args.fail_after_map else []),
                     f"-DEXPECT_MODE={dict(ON=0, OFF=1, AUTO=3)[args.mode]}",
+                    f"-DEXPECT_HMA={int(args.dos_high != args.wrong_residency)}",
+                    *(["-DHMA_ENDPOINT"] if hma_endpoint else []),
+                    *(["-DBAD_HMA_DATA"] if args.bad_hma_data else []),
                     *(["-DPUBLIC_COPY"] if args.public_api else []),
                     *(["-DWRONG_DATA"] if args.bad_data else []),
                     *(["-DMAPPED_ENDPOINT"] if args.mapped else []),
@@ -142,7 +153,8 @@ def main():
     install(himem, "HIMEM.SYS")
     install(probe, "PROBE.COM")
     install("-", "CONFIG.SYS", ("DEVICE=HIMEM.SYS /TESTMEM:OFF\r\n"
-                               f"DEVICE=EMM386.EXE 1024 {args.mode} M5\r\n").encode("ascii"))
+                               f"DEVICE=EMM386.EXE 1024 {args.mode} M5\r\n"
+                               f"DOS={'HIGH' if args.dos_high else 'LOW'}\r\n").encode("ascii"))
     install("-", "AUTOEXEC.BAT", b"@ECHO OFF\r\nPROBE.COM\r\n")
     # The private build uses the production NoBugMode selector layout.
     selectors = (ROOT / "src/MEMM/MEMM/VDMSEL.INC").read_text()
@@ -151,6 +163,8 @@ def main():
     assert re.search(r"MBTAR_GSEL\s+equ\s+RCODEA_GSEL\+20h", selectors)
     endpoint, debug = work / "qmp", work / "debug.bin"
     report = dict(passed=False, mode=args.mode, fail_after_map=args.fail_after_map, core_bytes=code_size,
+                  dos_high=args.dos_high, wrong_residency=args.wrong_residency,
+                  hma_endpoint=hma_endpoint, bad_hma_data=args.bad_hma_data,
                   public_api=args.public_api, bypass_public_backend=args.bypass_public_backend,
                   leave_active=args.leave_active, inactive_entry_bytes=inactive_size,
                   real_return_adapter_bytes=return_size,
@@ -222,6 +236,12 @@ def main():
                 base, frame, witness_offset = matches[0]
                 ranges = [ram[base+start:base+start+8192] for start in (4093, 16391)]
                 expected_data = bytes((n & 255) ^ (n >> 8) ^ 0x5a for n in range(8192))
+                hma_offset = struct.unpack_from("<H", ram, witness_offset + 16)[0] if hma_endpoint else None
+                if hma_endpoint and phase != "A":
+                    if not 0x10 <= hma_offset <= 0xffc0:
+                        raise ValueError("HMA endpoint lacks a valid allocated range")
+                    if ram[0xffff0+hma_offset:0xffff0+hma_offset+64] != expected_data[:64]:
+                        raise ValueError("public HMA round trip did not reach physical HMA storage")
                 expected_ranges = [expected_data, expected_data]
                 if args.mapped and not (args.deny_later_page or args.alias_overlap):
                     expected_ranges[0] = bytes(value ^ 255 for value in expected_data)
@@ -289,7 +309,8 @@ def main():
                     if (args.deny_later_page and phase == "N"
                             and client_hashes != report["checkpoints"][-1]["client_hashes"]):
                         raise ValueError("later-page rejection wrote mapped destination bytes")
-                row = dict(phase=phase, cr0=cr0, windows=windows, descriptors=ram[gdt+0x70:gdt+0x80].hex(),
+                row = dict(phase=phase, cr0=cr0, hma_offset=hma_offset,
+                           windows=windows, descriptors=ram[gdt+0x70:gdt+0x80].hex(),
                            physical_block_base=base, range_hashes=hashes, client_frames=client_frames,
                            client_hashes=client_hashes)
                 report["checkpoints"].append(row)

@@ -3002,13 +3002,39 @@ failure case retains standalone HIMEM and fails in
 `out/xms-copy-windows-pet16wv9/`, proving that the injected failure is observed
 only when the public call actually reaches the new backend.
 
-This matrix uses the DOS-low 32-MiB fixture. DOS-high composition,
-public error-code parity, failure during relocating reallocation, full register
+The matrix now covers DOS LOW/HIGH in the 32-MiB fixture as described below.
+Composition with the selected memory-saving BIOS/table build, public error-code
+parity, failure during relocating reallocation, full register
 and far-descriptor contracts, forced A20/activation failures, and nested-call
 ownership remain qualification work. The packet still uses shared HIMEM move
 state; do not treat it as reentrant. These tests establish both real public copy
 consumers of the protected service, not the final coordinated provider or a
 conventional-memory gain.
+
+**DOS-high and HMA endpoint coverage:** `--dos-high` installs explicit
+`DOS=HIGH`; the default now installs explicit `DOS=LOW`. Before testing, the
+guest uses the repository-signed 580Eh query to require actual residency, not
+merely the requested CONFIG setting. `--wrong-residency` reverses that assertion
+and fails with `h!` in `out/xms-copy-windows-s53yixcz/`.
+
+Successful public DOS-high cases also reserve 64 bytes from DOS's private HMA
+allocator and copy HMA -> XMS -> HMA through public function 0Bh. The guest
+clears the HMA destination between transfers and verifies the returned bytes;
+host snapshots independently check the payload at physical `FFFF0h + offset`.
+The allocation is test-only and remains reserved until the disposable guest
+reboots; it is not credited as free HMA or conventional memory. The captured
+range starts at `FFFF:C5D3`, separately from live kernel/cache/shell storage.
+
+OFF, idle AUTO and active mapped cases pass with the HMA endpoint and forced
+reallocation: `out/xms-copy-windows-p5zqlnzd/`,
+`out/xms-copy-windows-tlgxbcb5/`, and `out/xms-copy-windows-uz_m6wk2/`.
+DOS-high AUTO also passes injected copy failure in
+`out/xms-copy-windows-pvdypyah/`. These variants are included in
+`make test-xms-public-copy-qemu`. `--bad-hma-data` corrupts one allocated byte
+after the guest comparison; the independent host check rejects it in
+`out/xms-copy-windows-smnijtud/`. The explicit DOS-low control still passes in
+`out/xms-copy-windows-su5k5jmk/`. This extends residency/address coverage, not
+forced physical A20-failure, nested-call, or production handoff qualification.
 
 The census also now distinguishes handle zero's conventional physical pages
 from locked XMS backing: `_total_pages` includes both. It checks the ordered
