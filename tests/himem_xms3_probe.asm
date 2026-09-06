@@ -41,6 +41,9 @@ start:
 
     mov ah,08h
     call far [entry]
+    mov byte [step],'q'
+    or bl,bl
+    jnz fail
     mov byte [step],'e'
     movzx ebx,ax
     cmp ebx,[largest]
@@ -58,6 +61,14 @@ start:
     cmp ax,1
     jne fail
     mov [handle],dx
+
+    ; Allocation moves the gap scanner's base to 0080h. That scratch value
+    ; must not leak into BL as a false "function not implemented" status.
+    mov byte [step],'Q'
+    mov ah,08h
+    call far [entry]
+    or bl,bl
+    jnz fail
 
     mov ah,8eh
     mov dx,[handle]
@@ -127,6 +138,29 @@ start:
     jnz fail
     mov byte [step],'l'
     cmp bl,0a2h
+    jne fail
+
+    ; Exhaust the pool and check the documented no-free-memory status.
+    mov byte [step],'X'
+    mov ah,08h
+    call far [entry]
+    mov ah,09h
+    call far [entry]
+    cmp ax,1
+    jne fail
+    mov [handle],dx
+    mov ah,08h
+    call far [entry]
+    or ax,ax
+    jnz fail
+    or dx,dx
+    jnz fail
+    cmp bl,0a0h
+    jne fail
+    mov ah,0ah
+    mov dx,[handle]
+    call far [entry]
+    cmp ax,1
     jne fail
 
     mov dx,pass_message

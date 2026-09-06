@@ -3111,27 +3111,32 @@ The supported memory surface includes:
   free-memory, allocate, handle-information, and resize calls;
 - EMM386 EMS-only default mode plus `RAM` and `NOEMS` UMB modes.
 
-## Open compatibility observation: Windows 95 setup with HIMEM / DOS=HIGH
+## Resolved compatibility observation: Windows 95 setup with HIMEM / DOS=HIGH
 
-The 2026-09-05 Windows 95 OEM installation trial exposed an unresolved loader
+The 2026-09-05 Windows 95 OEM installation trial exposed a loader
 observation. With `FILES=60`, `BUFFERS=30`,
 `DEVICE=A:\HIMEM.SYS /TESTMEM:OFF`, and `DOS=HIGH`, `SETUP /IS` reported
 `Insufficient extended memory to run Windows in standard mode.` Removing both
 the HIMEM device line and `DOS=HIGH` allowed the graphical loader to start;
 the no-HIMEM path subsequently completed installation.
 
-This is **not a confirmed HIMEM or DOS=HIGH root cause**, nor a resolved memory
-issue. The observation used base `e148ff1` before the failed-open cleanup fix
+That initial observation did not isolate a HIMEM or DOS=HIGH root cause.
+It used base `e148ff1` before the failed-open cleanup fix
 in `07fe16d` and before the intervening BIOS/HMA changes through `e1d9bdf`.
 Passing the focused DOS regressions on the newer state did not retest this
 Windows loader case. The successful no-HIMEM installation does not qualify
 the HIMEM/HMA path.
 
-The memory-work follow-up is to compare no HIMEM, HIMEM with DOS=LOW, and
-HIMEM with DOS=HIGH on pristine clones with the corrected kernel, recording
-XMS discovery/version, free memory, allocation, and locking before invoking
-the same loader. See [Windows 95 setup findings](tests/WINDOWS95-SETUP.md)
-for the environment, configuration, evidence boundaries, and retest plan.
+The 2026-09-06 comparison on `2fe0b98` reproduced the failure and isolated two
+HIMEM defects: function 08h leaked allocator scratch data into BL's public
+status, and an XMS move crossing a 64 KiB offset boundary used the end offset's
+high word when resolving its start address. Both are now corrected, with
+Windows-independent status/exhaustion and crossing-read/write regressions.
+Normal Windows 95 Setup (without `/IS`) then completed under HIMEM + DOS=HIGH,
+booted to its desktop, and shut down cleanly, with all 37 staged source files
+unchanged. See [Windows 95 setup findings](tests/WINDOWS95-SETUP.md) for pinned
+build evidence, regression commands, and scope. This is VM installation
+acceptance, not a physical-hardware or endurance claim.
 
 ## Arena invariants
 
