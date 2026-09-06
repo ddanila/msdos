@@ -711,6 +711,15 @@ SWAP_AREA_TABLE  label byte                                                     
         I_am    SPECIAL_VERSION,WORD,<0>         ;AN006; used by INT 2F 47H
         I_am    FAKE_COUNT,<255>                 ;AN008; fake version count
 
+        ; Public real-mode SETVER consumers require one stable low owner.
+        ; Do not allocate this table over discarded DOSINIT storage or expose
+        ; the unused HMA copy of the retained prefix.
+        PUBLIC SetverResidentTable,SetverResidentEnd
+SetverResidentTable LABEL BYTE
+        INCLUDE SETVER62.INC
+        DB (640-($-SetverResidentTable)) DUP(0)
+SetverResidentEnd LABEL BYTE
+
 TABLE   ENDS
 
 

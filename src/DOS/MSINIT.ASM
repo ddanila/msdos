@@ -33,6 +33,7 @@ include fastopen.inc
 	I_need	FastOpenTable,BYTE	 ; table for FASTOPEN
 	I_need	FETCHI_TAG,WORD 	 ; TAG CHECK
 	I_need	Special_Entries,WORD	 ; address of special entries ;AN007;
+	I_need	SetverResidentTable,BYTE
 	I_need	IFS_DOS_CALL,DWORD	 ; IFS IBMDOS CALL entry      ;AN000;
 	I_need	HASHINITVAR,WORD	 ; hash table variables       ;AN000;
 	I_need	Packet_Temp,WORD	 ; used for initial Hash table;AN000;
@@ -108,11 +109,8 @@ SETFINDPB:
 ;;	MOV	WORD PTR ES:[DI.buf_prev],DI  ;;;1/19/88
 
 ;;	POP	ES
-	MOV	SI,OFFSET DOSGROUP:Version_Fake_Table ;MS.;AN007;move special
-	MOV	DI,ES:[Special_Entries] 	      ;MS.;AN007;entries
-	MOV	CX,ES:[Temp_Var]		      ;MS.;AN007;
-	CLD
-	REP	MOVSB				      ;MS.;AN007;
+	; SETVER defaults are initialized in the retained TABLE image. There is
+	; no transient-to-resident copy over the discarded DOSINIT workspace.
 
 	ASSUME	ES:DOSGroup
 
@@ -355,11 +353,7 @@ TRUEDPBAD:
 	MOV	AX,-1
 	STOSW			; End of list
 
-	MOV	[Special_Entries],BP ;MS.;AN007 save starting address of Special entries
-	; The transient workspace has 640 bytes before the remaining SYSINIT code.
-	; This holds the complete 550-byte retail table and several local entries.
-	MOV	[Temp_Var],SETVER_TABLE_CAPACITY
-	ADD	BP,SETVER_TABLE_CAPACITY
+	MOV	[Special_Entries],OFFSET DOSGROUP:SetverResidentTable
 
 
 	ADD	BP,15		; True start of free space (round up to segment)
@@ -647,11 +641,6 @@ INITSTACK LABEL BYTE
 ;fake_count: ff means the version will be reset when Abort or Exec is encountered
 ;	     n means the version will be reset after n DOS version calls are issued
 ;
-SETVER_TABLE_CAPACITY EQU 640
-Version_Fake_Table:			    ;AN007  starting address for special
-	INCLUDE SETVER62.INC
-	DB	(SETVER_TABLE_CAPACITY-($-Version_Fake_Table)) dup(0)
-
 MEMSTRT LABEL	WORD
 MSINI002E label byte
 ADJFAC	EQU	MEMSTRT-SYSBUF

@@ -63,8 +63,8 @@ NOEXEC	EQU	TRUE
 NOEXEC	EQU	FALSE
 	ENDIF
 
-DOSSIZE EQU	0A000H
-;dossize equ	 0C000H 	;J.K. for the debugging version of IBMDOS.
+; Include the entire linked initialization tail, not a fixed 40 KiB prefix.
+INCLUDE DOSCOPY.INC
 
 .xlist
 ;	INCLUDE dossym.INC

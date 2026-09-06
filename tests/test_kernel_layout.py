@@ -50,6 +50,14 @@ def main() -> None:
     )
 
     low_end = map_offset(kernel_map, "DOS_LOW_GATE_END")
+    setver_start = map_offset(kernel_map, "SetverResidentTable")
+    setver_end = map_offset(kernel_map, "SetverResidentEnd")
+    assert setver_end - setver_start == 640 and setver_end <= low_end, (
+        "the complete SETVER table must have a retained low owner"
+    )
+    copy_include = (ROOT / "src/BIOS/DOSCOPY.INC").read_text()
+    copy_bytes = int(re.search(r"DOSSIZE EQU (\d+)", copy_include)[1])
+    assert copy_bytes == (len(kernel) + 1) & ~1, "SYSINIT truncates the linked kernel"
     sysbuf = map_offset(kernel_map, "SYSBUF")
     error_start = map_offset(kernel_map, "I21_MAP_E_TAB")
     error_end = map_offset(kernel_map, "ErrMap24End")

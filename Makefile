@@ -152,7 +152,7 @@ $(INC_DIR)/MSDATA.OBJ: $(INC_DIR)/MSDATA.ASM $(INC_DIR)/MS_DATA.ASM $(DOS_DIR)/M
 $(INC_DIR)/MSDOSME.OBJ: $(INC_DIR)/MSDOSME.ASM $(DOS_DIR)/DOSMES.ASM $(DOS_DIR)/MSDOS.CL1
 	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "MSDOSME.ASM,MSDOSME.OBJ;"
 
-$(INC_DIR)/MSTABLE.OBJ: $(INC_DIR)/MSTABLE.ASM
+$(INC_DIR)/MSTABLE.OBJ: $(INC_DIR)/MSTABLE.ASM $(DOS_DIR)/MS_TABLE.ASM $(INC_DIR)/SETVER62.INC
 	cd $(INC_DIR) && $(MASM) "$(AFLAGS) -I. -ID:\\TOOLS\\INC -I..\\DOS" "MSTABLE.ASM,MSTABLE.OBJ;"
 
 include mk/bios.mk
@@ -289,6 +289,7 @@ test-high-cds-composition:
 	python3 tests/test_umb_subpage_composition.py --high-cds
 
 test-dos-bios-residency: dos bios
+	python3 tests/test_dos_copy_size.py
 	python3 tests/test_hma_layout_budget.py
 	python3 tests/report_dos_bios_residency.py --check \
 		src/DOS/MSDOS.MAP src/BIOS/msBIO.map

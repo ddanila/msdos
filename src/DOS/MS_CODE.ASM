@@ -639,8 +639,14 @@ Procedure   INT2F_etcetera,NEAR
 	; Returns ES:DI -> length-prefixed entries and CX = table capacity.
 	entry	DOSGetVersionTable
 	MOV	DI,CS:[Special_Entries]
-	PUSH	CS
-	POP	ES
+	PUSH	AX
+	MOV	AX,CS
+	CMP	CS:[hma_resident],0
+	JE	short setver_owner_ready
+	MOV	AX,CS:[hma_low_segment]
+setver_owner_ready:
+	MOV	ES,AX
+	POP	AX
 	MOV	CX,640
 	return
 EndProc INT2F_etcetera

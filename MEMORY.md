@@ -13,35 +13,35 @@ conventional bytes in the controlled DR-DOS 6 matrix. This is placement
 evidence, not a further 12,800-byte local opportunity: our buffers and kernel
 are already high.
 
-The normal fixed image leaves 610,256 conventional bytes and 49,104 free UMB
-bytes. Development BIOS/table relocation leaves 614,448 and 47,904, versus
-retail's 618,736 and 47,888. Its 4,192-byte gain comprises 3,008 bytes of BIOS
-reclamation and 1,184 bytes of FILES/FCB placement; promotion remains gated by
+The pre-SETVER-repair normal snapshot left 610,256 conventional bytes and 49,104
+free UMB bytes. Its development BIOS/table relocation left 614,448 and 47,904,
+versus retail's 618,736 and 47,888. That 4,192-byte gain comprises 3,008 bytes
+of BIOS reclamation and 1,184 bytes of FILES/FCB placement; promotion remains gated by
 compatibility tests. The framed DR-DOS FILES=20 capture leaves 628,352
 conventional bytes but only 16,032 free UMB bytes. Resource and device-topology
 differences remain; that result does not prove our two floors achievable by
 copying its UMB policy.
 
-The newer combined fine-UMB development fixture retains 614,448 conventional
-bytes and exposes 52,000 free UMB bytes. Its 4,112-byte margin over retail is
+With the retained SETVER table repaired, the combined fine-UMB fixture retains
+613,808 conventional bytes and exposes 52,000 free UMB bytes. Its 4,112-byte
+margin over retail is
 now a measured destination budget for complete DOS-data placement, not a
 conventional-memory gain. It remains development-only; see the combined VC
 checkpoint below for evidence and scope.
 
 Adding complete CDS placement to that fine-mapping fixture now leaves
-**616,752 conventional bytes and 49,680 free UMB bytes**. The conventional gap
-to retail is 1,984 bytes, with a 1,792-byte UMB margin. This is a measured
+**616,112 conventional bytes and 49,680 free UMB bytes**. The conventional gap
+to retail is 2,624 bytes, with a 1,792-byte UMB margin. This is a measured
 development result, not production promotion or completion of the DR-DOS-style
 layout. The COMMAND critical-body reclamation variant remains separate.
 
 Execution order (supersedes older implementation queues below):
 
-**Blocking ownership defect:** SETVER's 640-byte table is not intact in the
-normal low fixture, and its high-mode public pointer aliases the development
-BIOS HMA payload. Repair and qualify this owner before further reclamation or
-promotion; the passing high ASSIGN run omitted its compatibility mapping.
-See the SETVER ownership investigation below. Existing memory totals are
-measurements, not proof that all requested features survived placement.
+**Correctness prerequisite:** SETVER now has an intact 640-byte low owner in
+normal low/high and rebased high-CDS probes. Its repair costs 640 conventional
+bytes in the composed fixture; previous totals did not preserve equivalent
+SETVER behavior. Native ASSIGN's version check and full high-mode reset and
+consumer qualification remain open. See the SETVER ownership section below.
 
 1. Complete the joint resident-layout checkpoint below before extending any
    individual relocation prototype. Preserve pending access-boundary work as
@@ -54,10 +54,10 @@ measurements, not proof that all requested features survived placement.
 3. Budget the remaining BIOS services and DOS state together. Assign each
    allocation one authoritative owner, low/HMA/UMB destination, access contract,
    fallback, and net reclaimable conventional span. Development retains 5,152
-   BIOS bytes and a 4,992-byte kernel prefix; these inventories are not promised
+   BIOS bytes and a 5,632-byte kernel prefix; these inventories are not promised
    savings. Public A20-off pointers cannot automatically become HMA pointers.
 4. Share HMA capacity between BIOS, state, buffers, and COMMAND. At fifteen
-   buffers, the calculated normal post-COMMAND tail is 15,533 bytes and the development
+   buffers, the calculated normal post-COMMAND tail is 14,877 bytes and the development
    BIOS reservation costs 5,220 more. Coarse development has only 16 bytes of
    free-UMB margin; combined fine mapping raises this to 4,112, and CDS placement
    consumes 2,320 of those bytes, leaving 1,792. Charge new
@@ -73,7 +73,7 @@ are historical evidence, not the execution queue.
 
 The next design checkpoint is a single post-boot resident layout and net budget
 covering BIOS, DOS state, COMMAND, and the memory-manager interfaces. It must
-account for at least the remaining 1,984-byte development-to-retail conventional
+account for at least the remaining 2,624-byte development-to-retail conventional
 gap while preserving the UMB floor and requested resources; candidate inventory
 alone does not meet that budget. Count gateway, alignment, cache displacement,
 and retained-copy costs, and prove that released low ranges join the largest
@@ -95,21 +95,21 @@ differences, not independently reclaimable allocations:
 
 | Contribution | Conventional deficit, bytes |
 | --- | ---: |
-| DOS/BIOS and remaining system layout, excluding the two memory managers | -1,168 |
+| DOS/BIOS and remaining system layout, excluding the two memory managers | -528 |
 | HIMEM | 1,488 |
 | EMM386 | -240 |
 | COMMAND owner span | 880 |
 | Conventional ceiling / EBDA | 1,024 |
-| **Total** | **1,984** |
+| **Total** | **2,624** |
 
 Do not turn this into five byte-harvesting quotas. A bulk placement change can
 outperform a retail component and cover another owner's excess. The next
 design must identify actual released intervals, their replacement gateways,
 and where each live allocation goes. The current development HMA capacity is
-10,313 bytes after COMMAND and the BIOS reservation, whereas
+9,657 bytes after COMMAND and the BIOS reservation, whereas
 free UMB has 1,792 bytes of margin after CDS placement. Capacity is not a predicted saving:
 moving a public table into HMA may be invalid, and a retained low duplicate
-saves nothing. An additional 1,984 net bytes would meet retail; exceeding it
+saves nothing. An additional 2,624 net bytes would meet retail; exceeding it
 requires a further measured placement budget.
 
 The DR-DOS comparison also needs the combined HIMEM/EMM386 ownership, not
@@ -133,20 +133,20 @@ relocates BIOS services, FILES/FCBs and CDS.
 
 | Matched accounting boundary | Combined development | Framed OpenDOS 7.01 | Difference |
 | --- | ---: | ---: | ---: |
-| System start to COMMAND start | 19,072 | 10,416 | 8,656 |
+| System start to COMMAND start | 19,712 | 10,416 | 9,296 |
 | COMMAND start to VC start | 3,984 | 1,312 | 2,672 |
-| Largest conventional block | 616,752 | 628,080 | -11,328 |
+| Largest conventional block | 616,112 | 628,080 | -11,968 |
 | Free UMB | 49,680 | 47,584 | 2,096 |
 
 Both captures retain the 639 KiB ceiling and the same VC footprint between
-owner boundaries. Thus the 11,328-byte conventional difference is below VC,
+owner boundaries. Thus the 11,968-byte conventional difference is below VC,
 not video recovery or EBDA relocation. Matching accounting boundaries does
 not imply equivalent device topology or resource semantics. OpenDOS also
 misses the retail UMB floor by 304 bytes and its framed reset gate failed.
 Normalize those conditions before treating its largest block as an acceptance
 target. The retail floor remains mandatory, not the architectural endpoint.
 
-Evidence: `out/umb-fine-composition-btuoykt7/results.json` and
+Evidence: `out/umb-fine-composition-ofbr6_go/results.json` and
 `out/opendos-framed-placement-evidence/emm-frame-{mem,vc}.txt`; reproduction
 commands and pinned inputs are in the development CDS and OpenDOS sections.
 This reconciliation reuses those captures; it is not a fresh runtime matrix.
@@ -192,10 +192,10 @@ of the following owners, not a sequence of independently attractive savings:
 | Owner | Starting evidence | Required design decision |
 | --- | --- | --- |
 | DOS BIOS | Development retains 5,152 low bytes; disk body already moved | Partition stable device/interrupt/DMA state from high service bodies; identify exact released intervals |
-| DOS kernel and dynamic state | 4,992-byte low prefix; FILES/FCB and CDS relocation already counted | Repair the 640-byte SETVER table owner; qualify upper CDS consumers and budget interrupt stacks and remaining public/private state |
+| DOS kernel and dynamic state | 5,632-byte low prefix, including the repaired SETVER owner; FILES/FCB and CDS relocation already counted | Qualify upper CDS consumers and budget interrupt stacks and remaining public/private state |
 | Combined memory managers | 6,480 low bytes; first split has 3,576 gross candidate bytes | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback |
 | COMMAND | 3,984-byte owner span versus OpenDOS's 1,312 | Separate environment/PSP and asynchronous entry state from movable resident handlers; preserve reload contracts |
-| Shared high storage | 10,313 calculated development HMA bytes; 1,792-byte UMB margin after CDS | Reserve destinations once across all owners; account for locked XMS, alignment and displaced buffers |
+| Shared high storage | 9,657 calculated development HMA bytes; 1,792-byte UMB margin after CDS | Reserve destinations once across all owners; account for locked XMS, alignment and displaced buffers |
 
 For each proposed object, record its current range, destination, live callers,
 address and A20 contract, low gateway cost, initialization/rollback behavior,
@@ -204,11 +204,11 @@ not copied payload sizes. Include UMB and XMS costs in the same budget. Public
 tables cannot be moved merely because high space exists; retained low mirrors
 do not count as reclamation.
 
-The checkpoint passes only when the combined net budget covers at least 1,984
+The checkpoint passes only when the combined net budget covers at least 2,624
 bytes while retaining the 47,888-byte free-UMB floor and configured resources.
 That is the retail acceptance threshold, not a ceiling on the design: identify
 further whole-object opportunities toward the OpenDOS result without promising
-its 11,328-byte lead over combined development as locally reclaimable storage. Resolve
+its 11,968-byte lead over combined development as locally reclaimable storage. Resolve
 boot-medium/device-topology differences before adopting its totals as a target.
 
 Then implement and validate complete object moves. Indexed accessors are a
@@ -217,21 +217,79 @@ accessor-only commits neither satisfy this checkpoint nor improve the memory
 score. Keep correctness repairs separate from savings claims. The checkpoint
 is currently **open**; the existing candidate census is not a complete layout.
 
+#### Architectural investigation: establish the minimum low interface
+
+Do not resume instruction shrinking as the route to the DR-DOS result. Vendor
+documentation describes coordinated HMA/UMB relocation of complete DOS
+components; the controlled HIDOS transitions above demonstrate it. Later DPMS
+provides extended-memory execution for participating residents, but is not
+loaded in our bare-system comparison and does not explain its result. See
+Novell's [memory-management application note, pp. 5–10](https://ftp.zx.net.nz/pub/archive/novell/doc/app_notes/9310_Managing_Memory_in_a_DOS_Workstation_using_Novell_DOS_7.pdf).
+
+The repaired combined fixture has this conventional ownership ledger. The
+system total is the measured `0070h..0540h` owner-to-owner interval, not the
+sum of nested MEM rows:
+
+| Owner | Low bytes | Next architectural decision |
+| --- | ---: | --- |
+| BIOS | 5,152 | Retain device/interrupt and firmware-facing anchors; identify whole remaining service bodies and their return contracts |
+| DOS prefix | 5,632 | Separate public state from private workspace, constants and handlers; do not presume all near pointers can become HMA pointers |
+| HIMEM plus EMM386 | 6,480 | Design their combined low entry/transition interface and authoritative high service/data owners; preserve standalone and third-party providers |
+| Remaining system/arena span | 2,448 | Attribute runtime allocations and overhead before promising reclamation |
+| **System before COMMAND** | **19,712** | Compare with OpenDOS's 10,416 only after resource/topology normalization |
+| COMMAND to VC | 3,984 | Design the complete resident handler, state and reload interface; OpenDOS's corresponding span is 1,312 |
+
+The kernel's linked prefix contains 1,072 CONSTANTS, 1,783 DATA, 2,602 TABLE,
+157 CODE and four entry/alignment bytes. Segment membership is not a complete
+code/data classification: TABLE also contains a trampoline. Nevertheless,
+compacting the CODE segment cannot materially remove the retained prefix.
+`DOSMAC.INC:context` derives the DOS data segment from SS; direct CS accesses,
+public pointers and low/high mirrored state must be audited separately.
+
+Required deliverables, in order:
+
+1. Pin one corrected local image and both vendor images with the same boot
+   medium, drive topology, resources, environment and EMS frame. Record VC
+   spans after other probes exit; retain vendor MEM and public API evidence
+   separately. Do not mix old installed managers with current linker maps.
+2. Attribute the remaining 2,448 system bytes and the complete manager cost
+   across conventional, UMB and extended memory. OpenDOS's 1,200-byte device
+   row and 800-byte UMB owner do not locate all its protected state. Use
+   documented configuration changes and public allocation reports, never
+   binary reconstruction, to bound what remains unknown.
+3. Classify every local object by external visibility, A20/interrupt/DMA
+   requirements and initialization lifetime. Choose one authoritative owner:
+   stable real-mode storage for escaped public pointers; HMA for eligible
+   services/private state; locked extended storage for protected-mode objects.
+   Specify fallback and reentrancy before changing accesses.
+4. Produce one packed destination layout, charging the existing 9,657-byte
+   HMA tail and 1,792-byte UMB margin only once. Repacking the current high copy
+   of low state may free HMA capacity, but cannot itself free conventional
+   memory. Subtract all gates, stacks, mirrors and arena overhead; identify
+   the exact low intervals that will coalesce with the largest free block.
+5. Implement and validate whole-object moves against that layout. Keep the
+   47,888-byte UMB floor, requested resources, A20-off clients, DOS-low/286
+   fallback, redirects, nested execution and reset as acceptance gates.
+
+Retail is the floor, not a component-size quota. The 11,968-byte OpenDOS lead
+is the difference to explain, not an approved savings budget. Optional video
+recovery and the bounded 1 KiB EBDA step cannot explain this below-VC gap.
+
 #### Reproducible shared HMA capacity
 
 `tests/report_dos_bios_residency.py` now composes the successful early BIOS
 reservation, fixed cache and permanent COMMAND allocation from the build
-manifest and linker maps. The current sequence is `0010h..9A80h` DOS,
-`9A80h..AEE4h` BIOS, `AEE4h..CE18h` cache, and `CE18h..D7A7h` COMMAND.
-The unassigned tail is **10,313 bytes**, ending at the `FFF0h` safety boundary.
-The former 10,169-byte estimate was 144 bytes too small; this correction
-creates no new free conventional memory and is not a runtime HMA probe.
+manifest and linker maps. The repaired sequence is `0010h..9D10h` DOS,
+`9D10h..B174h` BIOS, `B174h..D0A8h` cache, and `D0A8h..DA37h` COMMAND.
+The unassigned tail is **9,657 bytes**, ending at the `FFF0h` safety boundary.
+The previous 10,313-byte tail predates the SETVER repair; the linked high image
+grew by 656 bytes including alignment. This is capacity, not a runtime HMA probe.
 
 ```sh
 python3 tests/report_dos_bios_residency.py --check --tail-body \
-  --boot-manifest out/umb-fine-composition-btuoykt7/bios-cds/low.json \
+  --boot-manifest out/umb-fine-composition-ofbr6_go/bios-cds/low.json \
   --command-map src/CMD/COMMAND/COMMAND.MAP \
-  src/DOS/MSDOS.MAP out/umb-fine-composition-btuoykt7/bios-cds/msBIO.map
+  src/DOS/MSDOS.MAP out/umb-fine-composition-ofbr6_go/bios-cds/msBIO.map
 ```
 
 Use maps from the selected build, not another prototype. The manifest is
@@ -239,18 +297,17 @@ checked against its IO.SYS; linked capacity still assumes successful boot
 activation and shell relocation. The model deliberately supports only the
 fifteen-buffer, 512-byte-sector profile; mixed-cache capacity needs runtime
 accounting. Tail-body boot fixtures include this composed census for the fixed
-profile. Seven local budget tests cover ordering, single charging, exact fit,
-overflow, invalid sizes and the current composed boundary.
-Local `test_hma_qemu.sh` passes its normal high/low, tail-address, A20-return
+profile. Eight local budget tests cover ordering, single charging, exact fit,
+overflow, invalid sizes and both pre-repair and repaired composed boundaries.
+Before this repair, local `test_hma_qemu.sh` passed its normal high/low, tail-address, A20-return
 and EXEC checks. The early/rebased/compacted high-CDS `emm-high` fixture also
-passes with the composed census (`out/bios-low-boot-_iwk9bjx/`). This validates
+passes after the repair with the composed census (`out/bios-low-boot-jojlgoir/`). This validates
 report integration, not a new development HMA runtime-address probe or the
 still-open whole-resident-layout checkpoint.
 
-#### Blocking SETVER ownership investigation
+#### SETVER ownership repair and remaining qualification
 
-The DOS-low ASSIGN failure is not stale media: IO.SYS, MSDOS.SYS, COMMAND.COM
-and ASSIGN.COM on `out/floppy.img` match their local build hashes. The retail
+The original DOS-low ASSIGN failure was reproduced with matched build inputs. The retail
 compatibility table includes `ASSIGN.COM 5.00`; ASSIGN's rebuilt message loader
 instead compares AH=30h's reported version against 6.22. A byte-identical
 version probe returns 6.22 as REFVER.COM and 5.00 as ASSIGN.COM in DOS-low.
@@ -259,7 +316,7 @@ Deleting the compatibility entry would hide the conflict, not fix parity.
 There is a more serious placement defect. `capture_setver_placement.py` makes
 a private image copy, runs identical read-only probes under those two names,
 and compares the public table's complete 640 bytes against compiled defaults.
-It performs no SETVER edits. Current observations:
+It performs no SETVER edits. Pre-repair observations:
 
 | Fixture | AX=1231h table | First differing table byte | REFVER / ASSIGN version |
 | --- | --- | --- | --- |
@@ -270,32 +327,56 @@ The high address lies inside the live BIOS reservation `FFFF:9A80..AEE4`.
 The existing editing suite on that high fixture stops at its first edit with
 `General failure writing drive A`; its normal low run reports a full table
 and prints corrupt tail entries. These editing runs are separate evidence
-from the read-only comparison. Neither configuration qualifies SETVER.
+from the read-only comparison. Neither old configuration qualified SETVER.
 
-The source exposes the ownership mismatch: `MSINIT.ASM` places and initializes
-the table beyond SYSBUF; `DOS_HMA_RELOCATE` copies only offsets below SYSBUF;
-`DOSGetVersionTable` returns CS plus the old near offset; and EXEC's scanner
-also assumes the table belongs to CS. This explains the high alias. The exact
-writer/lifetime boundary corrupting the low tail remains to be isolated.
+The old source exposed the ownership mismatch: `MSINIT.ASM` placed the table
+beyond SYSBUF, outside `DOS_HMA_RELOCATE`'s copy; `DOSGetVersionTable` returned
+CS plus the old near offset; EXEC's scanner also assumed the table belonged to
+CS. This explains the high alias. The low
+failure is a loader truncation, not an unidentified later writer: the old
+template started at `9F03h`, but SYSINIT copied only `A000h` bytes. Exactly
+`FDh` table bytes survived, matching the first mismatch in the runtime probe.
 
-Next: identify the complete table's live allocation and first overwriter;
-give all 640 bytes one retained low/UMB owner, or another explicitly safe
-public-pointer contract; update EXEC, SETVER and its startup driver together.
-Account for its destination and reclamation in the joint budget rather than
-pretending these bytes were already preserved. Then resolve native ASSIGN's
-version check without removing the retail mapping, and rerun default-table,
-edit, persistence, nested EXEC, high/low and reset cases. The earlier high-CDS
-utility results cover those paths but not equivalent SETVER behavior.
+The repair retains the complete initialized table at `SetverResidentTable` in
+the low TABLE segment. AX=1231h selects the authoritative low segment, including
+after development rebasing; EXEC scans that same owner. The unused HMA copy
+is not published. SYSINIT's copy bound is now generated from the complete
+linked MSDOS.SYS, rounded to an even MOVSW count, rather than fixed at 40 KiB.
+Normal and private BIOS builds depend on that generated bound. The boot-test
+harness installs the current kernel and shell alongside its private IO.SYS,
+preventing stale deployment binaries from being tested against new maps.
+
+Read-only checks now pass all 640 defaults and report 6.22 / 5.00 under the
+two probe names:
+
+| Repaired fixture | Public table owner | Evidence directory |
+| --- | --- | --- |
+| Normal DOS-low | `0268:0E4E` | `out/setver-placement-hi6qs3dn/` |
+| Normal DOS-high | `0268:0E4E` | `out/setver-placement-l73szezh/` |
+| Rebased high-CDS | `01AB:0E4E` | `out/setver-placement-37s267rk/` |
+
+Local copy-bound (four cases), kernel-layout and HMA-budget (eight cases)
+checks pass. The SETVER editing suite passes with both repaired normal input
+images; its later reboot phase replaces CONFIG.SYS with a DOS-low startup,
+so this is not an all-high reset/persistence qualification. The composed
+fine-UMB/CDS matrix passes with 616,112 conventional and 49,680 UMB bytes
+(`out/umb-fine-composition-ozww81et/results.json`). The low table costs 640
+bytes versus the invalid old fixture; it is a correctness cost, not a saving.
+
+Next: resolve native ASSIGN's version check without removing its retail
+mapping; qualify nested execution, high-mode persistence/reset and the upper
+CDS consumers with that mapping intact. Earlier high-CDS utility passes are
+not equivalent evidence because ASSIGN's mapping was missing in high mode.
 
 ```sh
-python3 tests/capture_setver_placement.py --check out/floppy.img
+python3 tests/capture_setver_placement.py --check out/setver-owner.IdRfwB/low.img
 python3 tests/capture_setver_placement.py --check --preserve-config \
-  out/bios-low-boot-_iwk9bjx/emm-high.img
+  out/bios-low-boot-jojlgoir/emm-high.img
 ```
 
-Both checks currently reject the layout. Reports, input hashes, startup config
-and serial traces are retained in `out/setver-placement-4toy98_w/` and
-`out/setver-placement-p8fjjsrk/`; the editing failures are in
+The old failing reports, input hashes, startup config and serial traces are
+retained in `out/setver-placement-4toy98_w/` and
+`out/setver-placement-p8fjjsrk/`; the old editing failures are in
 `out/high-cds-c9ogjjfw/setver-{low,high}-failure.log`. The recorder exits zero
 without `--check` when evidence capture completes; this is not a passing gate.
 

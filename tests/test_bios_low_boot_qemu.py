@@ -268,7 +268,12 @@ def main():
         if args.emm386_image:
             subprocess.run(["mcopy", "-o", "-i", str(image), str(args.emm386_image), "::EMM386.EXE"],
                            env=env, check=True)
-        for source, destination in ((scratch / "IO.SYS", "IO.SYS"), (probe, "LOWBOOT.COM")):
+        # Generated offsets/residency use these current maps, not the possibly
+        # older kernel/shell on the reusable deployment image.
+        for source, destination in ((scratch / "IO.SYS", "IO.SYS"),
+                                    (ROOT / "src/DOS/MSDOS.SYS", "MSDOS.SYS"),
+                                    (ROOT / "src/CMD/COMMAND/COMMAND.COM", "COMMAND.COM"),
+                                    (probe, "LOWBOOT.COM")):
             subprocess.run(["mcopy", "-o", "-i", str(image), str(source), f"::{destination}"],
                            env=env, check=True)
         if args.rebase:

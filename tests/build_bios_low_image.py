@@ -7,6 +7,7 @@ import json
 import runpy
 import re
 import subprocess
+import sys
 
 from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
@@ -32,6 +33,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         raise ValueError("invalid development reservation ceiling")
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=True)
+    run([sys.executable, ROOT / "tools/gen_dos_copy_size.py",
+         ROOT / "src/DOS/MSDOS.SYS", output / "DOSCOPY.INC"], ROOT)
     embedded = None
     if early:
         from build_bios_high_payload import build as build_high

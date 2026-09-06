@@ -21,10 +21,15 @@ class HmaBudgetTests(unittest.TestCase):
     def test_exact_fit(self):
         self.assertEqual(hma_layout(0xFF00, 0xF0)[-2][1:], (0xFFF0, 0xFFF0))
 
-    def test_fixed_development_budget(self):
+    def test_pre_setver_development_budget(self):
         rows = hma_layout(0x9A80, 15 * (512 + 20) + 8, 5220, 2447)
         self.assertEqual(rows[-2][1:], (0xD7A7, 0xFFF0))
         self.assertEqual(rows[-2][2] - rows[-2][1], 10313)
+
+    def test_retained_setver_development_budget(self):
+        rows = hma_layout(0x9D10, 15 * (512 + 20) + 8, 5220, 2447)
+        self.assertEqual(rows[-2][1:], (0xDA37, 0xFFF0))
+        self.assertEqual(rows[-2][2] - rows[-2][1], 9657)
 
     def test_overflow_in_each_stage(self):
         for buffers, bios, command in ((0, 241, 0), (241, 0, 0), (0, 0, 241)):

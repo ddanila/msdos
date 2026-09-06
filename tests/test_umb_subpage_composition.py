@@ -75,7 +75,9 @@ def main():
         results=results), indent=2) + "\n")
     assert results["retail"]["largest"] == 618736, results["retail"]
     assert results["retail"]["upper_free"] == 47888, results["retail"]
-    assert results["coarse"]["largest"] == 614448, results["coarse"]
+    # The authoritative retained SETVER table costs 640 bytes versus the
+    # earlier fixture whose public table was not intact in high mode.
+    assert results["coarse"]["largest"] == 613808, results["coarse"]
     assert results["coarse"]["upper_free"] == 47904, results["coarse"]
     assert results["fine"]["largest"] == results["coarse"]["largest"], results
     assert results["fine"]["upper_free"] - results["coarse"]["upper_free"] == 4096, results

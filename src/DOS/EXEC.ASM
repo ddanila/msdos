@@ -1011,8 +1011,7 @@ Procedure    Scan_Special_Entries,near	;AN000;MS.
 	DEC    CX			;AN007;MS. cx= name length
 	MOV    DI,CS:[Special_Entries]	;AN007;MS. es:di -> addr of special entries
 	CALL   Reset_Version		;AN008;MS.
-	PUSH   CS			;AN007;MS.
-	POP    ES			;AN007;MS.
+	context ES			; retained-low table; SS is the DOS data owner
 Getentries:				;AN007;MS.
 	MOV    AL,ES:[DI]		;AN007;MS. end of list
 	OR     AL,AL			;AN007;MS.
