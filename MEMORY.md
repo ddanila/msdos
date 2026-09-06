@@ -2567,6 +2567,25 @@ the guest rejects an accidentally shared CS. This proves segment/frame binding,
 not HMA residency, A20-off entry or nested firmware safety. Complete table/body
 placement, low entry gates and final-break reclamation remain in the joint design.
 
+**HMA entry qualification:** `make test-bios-dispatch-hma-qemu` runs the same
+decoder in DOS-owned HMA on QEMU pc/486 with standalone HIMEM and DOS=HIGH.
+The fixture reserves 101 bytes (93 code, six bindings, two sentinel bytes),
+rebases the three explicit CS-relative metadata operands, and poisons the
+entire low staging block with HLT bytes. Before each of seven requests it
+disables A20 through port 92h and verifies the high/low alias; the shared
+`BIOS_DEVICE_ENTRY` gate calls the real `BIOS_HMA_ROM_RESTORE` before tail entry.
+Both valid and invalid low completion paths verify restored A20 as well as
+the existing register/frame assertions. The low alias is read, never overwritten.
+
+The positive boot passes in `out/bios-dispatch-hma-ak9v_yif/`. Omitting the
+restore reaches the post-install startup marker but never completes
+(`out/bios-dispatch-hma-6kulz24t/`); the harness terminates QEMU after 20 seconds.
+Use `--image` or `FLOPPY_IMAGE` to select the base floppy; the harness installs
+current normal DOS/BIOS/HIMEM into a private copy and retains input hashes,
+startup files and trace. Normal binaries remain unchanged. This is an HMA
+decoder/gateway witness, not SYSINIT publication, a relocated BIOS table set,
+286/third-party-provider qualification or reclaimed conventional memory.
+
 The 18-byte error pair also contains mutable `LSTERR`: high
 `MSDSKHIG.INC:MAPERROR` writes that sentinel before scanning through low ES.
 `INTFORMAT`, `INTVERIFY` and `DOREAD` use `DISKSECTOR` after boot, including

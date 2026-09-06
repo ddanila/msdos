@@ -11,6 +11,9 @@ START_L equ 26
 START_H equ 28
 CODE segment para public 'CODE'
 assume cs:CODE
+ifdef HMA_TEST
+include MSBSEG.INC
+endif
 main:
         mov ax,cs
         mov ds,ax
@@ -30,6 +33,11 @@ ifdef SEPARATE_TEST
 ifdef WRONG_ERROR_ENTRY
         mov word ptr es:[BIOS_DISPATCH_ERROR_ENTRY],offset accepted_target
 endif
+endif
+ifdef HMA_TEST
+        call install_hma_decoder
+        mov al,'B'
+        out 0e9h,al
 endif
         ; Ordinary disk request clears stale high-sector state.
         mov word ptr [START_SEC_H],0deadH
@@ -71,12 +79,30 @@ endif
         jne failed
         cmp byte ptr cs:[accepted],4
         jne failed
+ifdef HMA_TEST
+        mov al,'P'
+        out 0e9h,al
+        mov al,10h
+        out 0f4h,al
+        cli
+        hlt
+else
         mov ax,4c00h
         int 21h
+endif
 failed:
+ifdef HMA_TEST
+        mov al,'F'
+        out 0e9h,al
+        mov al,11h
+        out 0f4h,al
+        cli
+        hlt
+else
         mov al,cs:[failure_code]
         mov ah,4ch
         int 21h
+endif
 
 run_request proc near
         mov cs:[saved_sp],sp
@@ -89,6 +115,9 @@ run_request proc near
         mov bp,7777h
         mov ds,bx
         mov es,cx
+ifdef HMA_TEST
+        call force_a20_off
+endif
         std
         call dword ptr cs:[entry_slot]
         cmp sp,cs:[saved_sp]
@@ -128,7 +157,11 @@ device_entry proc far
         push es
         push bx
 ifdef SEPARATE_TEST
+ifdef HMA_TEST
+        jmp dispatch_gate
+else
         jmp dword ptr cs:[decoder]
+endif
 else
         include DISPATCH.INC
 endif
@@ -161,9 +194,15 @@ accepted_target:
         jnz failed
         cmp byte ptr [AUXNUM],2
         jne failed
+ifdef HMA_TEST
+        call check_a20_on
+endif
         inc byte ptr [accepted]
         jmp short completion
 CMDERR:
+ifdef HMA_TEST
+        call check_a20_on
+endif
         inc byte ptr cs:[rejected]
 completion:
         mov byte ptr cs:[failure_code],14
@@ -184,7 +223,9 @@ completion:
 
 entry_slot dw offset device_entry,0
 ifdef SEPARATE_TEST
+ifndef HMA_TEST
 decoder dw offset high_decoder,0
+endif
 endif
 saved_sp dw 0
 expected_dx dw 4321h
@@ -207,6 +248,100 @@ packet db 30,3,4
         dw offset buffer,0,123,4321h
         dw 0,0,5678h,1234h
 buffer db 0
+ifdef HMA_TEST
+; Same retained-low tail-entry macro and E705h restore used by the BIOS.
+BIOS_DEVICE_ENTRY 0,dispatch_gate,decoder,high_decoder
+ifdef OMIT_A20_RESTORE
+BIOS_HMA_ROM_RESTORE:
+        ret
+else
+        include HIGHROM.INC
+endif
+hma_sentinel dw 0
+low_alias_value dw 0
+install_hma_decoder proc near
+        mov ax,1236h
+        mov cx,offset high_end+2
+        int 2fh
+        or ax,ax
+        jz failed
+        mov ax,es
+        cmp ax,0ffffh
+        jne failed
+        mov bx,di
+        mov word ptr [decoder],di
+        add word ptr [decoder],offset high_decoder
+        mov word ptr [decoder+2],0ffffh
+        ; The three instruction operands name metadata in the copied block.
+        ; Low-owner offsets and the low completion pointer must NOT be rebased.
+        mov ax,seg HIGHCODE
+        mov ds,ax
+        assume ds:HIGHCODE
+        add word ptr [BIOS_DISPATCH_DATA_FIXUP1],bx
+        add word ptr [BIOS_DISPATCH_DATA_FIXUP2],bx
+        add word ptr [BIOS_DISPATCH_ERROR_FIXUP],bx
+        xor si,si
+        mov cx,offset high_end
+        cld
+        rep movsb
+        push cs
+        pop ds
+        assume ds:CODE
+        mov [hma_sentinel],di
+        push ds
+        xor ax,ax
+        mov ds,ax
+        mov si,di
+        sub si,16
+        mov ax,[si]
+        pop ds
+        mov [low_alias_value],ax
+        not ax
+        mov es:[di],ax
+        ; No low staging copy may accidentally satisfy the dispatch witness.
+        mov ax,seg HIGHCODE
+        mov es,ax
+        xor di,di
+        mov al,0f4h
+        mov cx,offset high_end
+        rep stosb
+        ret
+install_hma_decoder endp
+force_a20_off proc near
+        push ax
+        push bx
+        push ds
+        in al,92h
+        and al,0fdh
+        out 92h,al
+        mov ax,0ffffh
+        mov ds,ax
+        mov bx,cs:[hma_sentinel]
+        mov ax,[bx]
+        cmp ax,cs:[low_alias_value]
+        jne failed
+        pop ds
+        pop bx
+        pop ax
+        ret
+force_a20_off endp
+check_a20_on proc near
+        push ax
+        push bx
+        push ds
+        mov ax,0ffffh
+        mov ds,ax
+        mov bx,cs:[hma_sentinel]
+        mov ax,cs:[low_alias_value]
+        not ax
+        cmp [bx],ax
+        jne failed
+        pop ds
+        pop bx
+        pop ax
+        ret
+check_a20_on endp
+endif
 CODE ends
 ifdef SEPARATE_TEST
 HIGHCODE segment para public 'HIGHCODE'
@@ -216,6 +351,7 @@ BIOS_DISPATCH_ERROR_ENTRY dw offset CMDERR,0
 high_decoder:
 BIOS_DISPATCH_SEPARATE equ 1
         include DISPATCH.INC
+high_end label byte
 HIGHCODE ends
 endif
 STACKSEG segment para stack 'STACK'

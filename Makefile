@@ -375,6 +375,10 @@ test-dos-bios-residency: dos bios
 	python3 tests/report_dos_bios_residency.py --check \
 		src/DOS/MSDOS.MAP src/BIOS/msBIO.map
 
+.PHONY: test-bios-dispatch-hma-qemu
+test-bios-dispatch-hma-qemu:
+	python3 tests/test_bios_dispatch_hma_qemu.py
+
 .PHONY: test-bios-service-crossings
 test-bios-service-crossings: bios
 	python3 tests/test_bios_service_crossings.py

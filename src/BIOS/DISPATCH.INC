@@ -6,8 +6,12 @@
 ; Tables, patches and completion entries stay
 ; low for this binding stage. Caller must establish A20 and a conventional
 ; stack before tail-entering; this include neither publishes nor activates it.
+; *_FIXUP labels identify the three CS-relative metadata operands. A loader
+; copying to another offset in the code segment rebases those words by the
+; copy delta, not the low table/data offsets or completion pointer contents.
 IFDEF BIOS_DISPATCH_SEPARATE
         push word ptr cs:[BIOS_DISPATCH_LOW_SEGMENT]
+BIOS_DISPATCH_DATA_FIXUP1 equ $-2
         pop es
         mov es:[AUXNUM],al
         lds bx,es:[PTRSAV]
@@ -50,6 +54,7 @@ IFDEF BIOS_DISPATCH_SEPARATE
         ; No extra return address survives: CMDERR consumes the original
         ; device frame, including the caller's saved ES and DS.
         jmp dword ptr cs:[BIOS_DISPATCH_ERROR_ENTRY]
+BIOS_DISPATCH_ERROR_FIXUP equ $-2
 DISPATCH_VALID_COMMAND:
 ELSE
         cmp al,cs:[si]
@@ -62,6 +67,7 @@ ENDIF
         les di,dword ptr ds:[bx].TRANS
 IFDEF BIOS_DISPATCH_SEPARATE
         push word ptr cs:[BIOS_DISPATCH_LOW_SEGMENT]
+BIOS_DISPATCH_DATA_FIXUP2 equ $-2
 ELSE
         push cs
 ENDIF
