@@ -311,6 +311,10 @@ test-xms-public-copy-qemu:
 	python3 tests/test_xms_copy_windows_qemu.py --public-api --mode OFF --backend-capability features
 
 .PHONY: test-xms-reallocation-qemu
+.PHONY: test-xms-allocator-owner-qemu
+test-xms-allocator-owner-qemu:
+	python3 tests/test_xms_allocator_owner_qemu.py
+
 test-xms-reallocation-qemu:
 	python3 tests/test_xms_copy_windows_qemu.py --public-api --mode OFF --reject-reallocation
 	python3 tests/test_xms_copy_windows_qemu.py --public-api --mode OFF --dos-high --reject-reallocation

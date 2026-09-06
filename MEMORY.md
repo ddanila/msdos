@@ -449,6 +449,40 @@ instruction-harvesting tranche or a completed high-resident manager.
 
 ##### Combined-provider decision: include boot-time reclamation
 
+**Shared allocator service boundary:** `src/DEV/HIMEM/XMSALLOC.INC` now contains
+the allocation/lock/info/reallocation services; `XMSHANDLE.INC` contains their
+handle validation and free-space scans. HIMEM includes them at their original
+linked positions. Both normal HIMEM and the paired protected-copy HIMEM remain
+byte-identical, and the build tracks both includes. This is code sharing for
+the future high owner, not a second allocator or a conventional-memory saving.
+
+The service's data contract is an explicit DS owner containing the handle
+records, handle limit, pool bound and move workspace. Near return adapters and
+the physical-address/copy hooks are supplied by the embedding module; the copy
+hook must preserve DS/SI and return CF. No allocator instruction needs CS-relative
+mutable data or a hardware/interrupt entry. The public dispatcher, XMS 3.x
+adapters, HMA/A20 policy, UMB registration and boot publication remain separate.
+
+`make test-xms-allocator-owner-qemu` executes the **same includes** with protected
+CS at 00200000h, DS at 00210000h and SS at 00220000h. The managed test pool is
+separate from those owners. The bootstrap poisons the code owner's data copy;
+host register/RAM snapshots require the distinct high selectors and untouched
+poison, validate released handle records, and compare all 32 KiB of original
+and relocated payload against an independent pattern. The guest covers
+allocation, locking, failed relocation, retry, locked-free rejection and release.
+`--wrong-owner` selects the poisoned code data alias and fails.
+
+Evidence: `out/xms-allocator-owner-xuvdujyt/`; the wrong-owner control fails in
+`out/xms-allocator-owner-bwzu2h52/`. This isolated layout links 312 service bytes
+and 243 helper bytes, excluding embedding adapters, copy backend, state and
+stack. Its shorter branch layout is not a saving from normal HIMEM's existing
+319+243-byte inventory. The fixture supplies a flat protected copy hook and
+does not install the service into EMM, exercise an XMS public frame, or transfer
+existing handles. Those contracts must be connected to the separately tested
+protected-copy entry before reclaiming any low state or code. Existing public
+DOS-high relocation/failure and mapped-copy regressions pass in
+`out/xms-copy-windows-dhz3obrc/` and `out/xms-copy-windows-u1gszc5q/`.
+
 **Allocator failure boundary:** `ALLOCMEM.ASM:XMSAlloc` now permits the
 historical INT 15h allocation path only when INT 2Fh/4300h reports no XMS
 provider. Once a provider is present, insufficient capacity, allocation/lock
