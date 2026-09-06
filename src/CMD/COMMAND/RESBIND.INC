@@ -45,4 +45,7 @@ SHELL_BINDING_SLOTS MACRO action
     action contc_entry_ds
     action contc_body_ds
     action pipeoff_ds
+ IFDEF COMMAND_HIGH_RESIDENT
+    action diskmsg_ds
+ ENDIF
 ENDM

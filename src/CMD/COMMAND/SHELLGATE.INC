@@ -1,6 +1,17 @@
 ; Stable published entries for the development whole-resident-shell layout.
-; Initially these five-byte far jumps target the original low service body.
-; They do not enable A20 or make a high target safe by themselves.
+; Initially the far jumps target the low fallback service body. Whole-resident
+; builds prepend a retained A20 restore call before entering the high copy.
+IFDEF COMMAND_HIGH_RESIDENT
+ IFNDEF COMMAND_RESIDENT_BINDING
+    .ERR <whole shell requires resident bindings>
+ ENDIF
+ IFDEF COMMAND_CRITICAL_SPLIT
+    .ERR <whole shell and independent critical split are mutually exclusive>
+ ENDIF
+ IFDEF COMMAND_CRITICAL_RECLAIM
+    .ERR <whole shell and independent critical reclaim are mutually exclusive>
+ ENDIF
+ENDIF
 SHELL_ENTRY_LIST MACRO action
     action lodcom,LODCOM
     action contc,CONTC
@@ -10,6 +21,13 @@ SHELL_ENTRY_LIST MACRO action
     action exec,EXT_EXEC
     action remcheck,TREMCHECK
     action diskmsg,READ_DISK_PROC
+ IFDEF COMMAND_HIGH_RESIDENT
+    action lodcom1,LODCOM1
+    action endinit,ENDINIT
+    action loadcom,shell_loadcom_far
+    action chksum,shell_chksum_far
+    action rprint,shell_rprint_far
+ ENDIF
 ENDM
 
 SHELL_ENTRY_ALIAS MACRO slot,target
@@ -33,6 +51,24 @@ SHELL_BRIDGE_LIST MACRO action
     action kanj,hma_test_kanj_high
     action getmsg,shell_getmsg_fallback
     action dispmsg,shell_dispmsg_fallback
+ IFDEF COMMAND_HIGH_RESIDENT
+    action int21,shell_int21_low
+    action int2f,shell_int2f_low
+ ENDIF
+ENDM
+
+SHELL_INT MACRO vector
+ IFDEF COMMAND_HIGH_RESIDENT
+    IF vector EQ 2fh
+        call shell_int2f_bridge
+    ELSEIF vector EQ 21h
+        call shell_int21_bridge
+    ELSE
+        .ERR <unsupported whole-shell interrupt vector>
+    ENDIF
+ ELSE
+    int vector
+ ENDIF
 ENDM
 
 SHELL_FAR_TRANSFER MACRO opcode,slot,target

@@ -211,17 +211,28 @@ def whole_owner_inventory(bios_low: int, command_data_start: int,
 
     Deliberately include BIOS anchors and all shell state: this asks whether
     existing source bytes alone exhaust the shared destination. Exclude shell
-    PSP/stack and already-high catalogs/code. Binding expansion, alignment,
+    PSP and already-high catalogs/code; the pre-retirement layout also excludes
+    its interleaved stack. Binding expansion, alignment,
     gateways and additional private DOS state are NOT priced by this check.
     A positive remainder is not acceptance or conventional-memory credit.
     """
     code_end = require(command_symbols, "RES_CODE_END")
     state_end = require(command_symbols, "resmsgend")
     low_end = require(command_symbols, "resident_catalog_start")
-    if not 0x100 <= code_end <= command_data_start <= state_end <= low_end:
-        raise ValueError("whole-shell inventory has reversed ownership boundaries")
     if bios_low <= 0 or not 0 <= hma_tail <= 0xFFE0:
         raise ValueError("invalid BIOS allocation or shared HMA tail")
+    if "shell_high_active" in command_symbols:
+        if not 0x100 <= command_data_start <= state_end <= low_end < code_end:
+            raise ValueError("retired whole-shell inventory has reversed boundaries")
+        inventory = {
+            "Entire selected low BIOS (including anchors and padding)": bios_low,
+            "Retained COMMAND entries and stack (excluding PSP)": command_data_start - 0x100,
+            "Entire remaining COMMAND state (including message runtime)": low_end - command_data_start,
+        }
+        inventory["Unpriced expansion headroom (may be negative)"] = hma_tail - sum(inventory.values())
+        return inventory
+    if not 0x100 <= code_end <= command_data_start <= state_end <= low_end:
+        raise ValueError("whole-shell inventory has reversed ownership boundaries")
     inventory = {
         "Entire selected low BIOS (including anchors and padding)": bios_low,
         "Entire remaining COMMAND code": code_end - 0x100,
@@ -418,6 +429,9 @@ def main() -> int:
         if min(catalog_bytes, code_bytes) < 0:
             raise ValueError("COMMAND high allocation has reversed boundaries")
         command_bytes = catalog_bytes + code_bytes
+        if "SHELLCODE" in command_segments:
+            command_bytes += (require(command_symbols, "RES_CODE_END")
+                              - require(command_symbols, "shell_service_start"))
     if args.buffers < 1:
         errors.append("buffer count must be positive")
     if args.sector_size < 128 or args.sector_size > 0xFFFF - buffer_header:
@@ -776,7 +790,7 @@ def main() -> int:
         for owner, size in inventory.items():
             print(f"| {owner} | {size:,} |")
         print("\nThis charges the entire low BIOS, including objects that must stay low,")
-        print("and all shell code/state except its PSP and stack. Existing high owners")
+        print("and remaining shell code/state (the retired layout also counts its low stack). Existing high owners")
         print("remain fully charged; no duplicate HMA prefix is treated as disposable.")
         print("The remainder is NOT a gateway allowance or a linked relocation budget:")
         print("bindings, new low/high support, alignment and additional DOS-state moves")

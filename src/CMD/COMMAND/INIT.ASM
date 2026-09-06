@@ -47,6 +47,11 @@ ENDM
 	EXTRN	hma_sysdispmsg_gateway:byte
 CODERES ENDS
 
+IFDEF COMMAND_HIGH_RESIDENT
+EXTRN shell_high_active:BYTE
+EXTRN shell_service_start:BYTE,RES_CODE_END:BYTE
+ENDIF
+
 DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	abort_char:byte 	;AN000;
 	EXTRN	append_state:word	;AN042;
@@ -1107,10 +1112,20 @@ EnvMaximum:
 GOTENVIR:
 	MOV	TrnMvFlg, 1			; Indicate that transient has been moved
 	PUSH	ES
+	IFDEF COMMAND_HIGH_RESIDENT
+	push cs
+	call near ptr shell_gate_loadcom
+	ELSE
 	invoke	LOADCOM
+	ENDIF
 	POP	ES
 
+	IFDEF COMMAND_HIGH_RESIDENT
+	push cs
+	call near ptr shell_gate_chksum
+	ELSE
 	INVOKE	CHKSUM				; Compute the checksum
+	ENDIF
 	MOV	[SUM],DX			; Save it
 
 	CMP	BYTE PTR [PRDATTM],0		;eg
@@ -1368,7 +1383,11 @@ DRV0:						; Reset APPEND state
 	mov	bx,Append_state 		;AN042;     back to the original state
 	int	2fh				;AN042;
 	pop	ds				;AN042; get data segment back
+	IFDEF COMMAND_HIGH_RESIDENT
+	JMP near ptr shell_gate_endinit
+	ELSE
 	JMP	ENDINIT 			;G Finish initializing
+	ENDIF
 
 ;
 ;	Get length of string pointed to by DS:SI.  Length includes NULL.
@@ -1426,7 +1445,12 @@ print_message:
 ;AD054; POP	DX				;AC000; restore registers
 ;AD054; POP	CX				;AC000;
 ;AD054; POP	BX				;AC000;
+	IFDEF COMMAND_HIGH_RESIDENT
+	push cs
+	call near ptr shell_gate_rprint
+	ELSE
 	invoke	rprint				;AC054;
+	ENDIF
 
 	POP	ES				;AN000;
 	POP	DS				;AN000;
@@ -1743,6 +1767,9 @@ setup_for_messages	endp			;AN060;
 ; the catalog as part of its larger resident message range.  Allocation
 ; failure (including DOS=LOW) deliberately retains the original low catalog.
 
+IFDEF COMMAND_HIGH_RESIDENT
+shell_high_destination DW 0         ; initialization-only copy destination
+ENDIF
 relocate_resident_catalogs proc near
 	push	ax
 	push	bx
@@ -1752,10 +1779,22 @@ relocate_resident_catalogs proc near
 	push	di
 	push	es
 
+	IFDEF COMMAND_HIGH_RESIDENT
+	; Whole service execution requires an A20-safe low return provider.
+	; Reject before the monotonic HMA reservation, retaining the low layout.
+	mov ax,0e705h
+	int 2fh
+	cmp ax,0e7ffh
+	jne resident_catalogs_low
+	ENDIF
 	mov	cx,offset resgroup:dataresend
 	sub	cx,offset resgroup:resident_catalog_start
 	add	cx,offset resgroup:hma_code_end
 	sub	cx,offset resgroup:hma_code_start
+	IFDEF COMMAND_HIGH_RESIDENT
+	add cx,offset resgroup:RES_CODE_END
+	sub cx,offset resgroup:shell_service_start
+	ENDIF
 	mov	ax,DOS_HMA_TAIL_ALLOC
 	int	2fh
 	or	ax,ax
@@ -1789,6 +1828,9 @@ relocate_resident_catalogs proc near
 	mov	cx,offset resgroup:hma_code_end
 	sub	cx,offset resgroup:hma_code_start
 	rep	movsb
+	IFDEF COMMAND_HIGH_RESIDENT
+	mov cs:[shell_high_destination],di
+	ENDIF
 	pop	di
 
 	; Preserve the exact near entry ABI in every fallback image.  Only after
@@ -1837,6 +1879,37 @@ relocate_resident_catalogs proc near
 	mov	word ptr cs:[hma_sysdispmsg_gateway+3],es
 	mov	byte ptr cs:[hma_sysdispmsg_gateway+5],0c3h
 	mov	byte ptr cs:[hma_sysdispmsg_gateway],09ah
+	IFDEF COMMAND_HIGH_RESIDENT
+	; Copy only after binding all outgoing gateways to retained owners.
+	push di
+	mov di,cs:[shell_high_destination]
+	mov si,offset resgroup:shell_service_start
+	mov cx,offset resgroup:RES_CODE_END
+	sub cx,si
+	cld
+	rep movsb
+	mov bx,cs:[shell_high_destination]
+	sub bx,offset resgroup:shell_service_start
+SHELL_GATE_PUBLISH MACRO slot,target
+	add word ptr cs:[shell_gate_&slot&_segment-2],bx
+	mov word ptr cs:[shell_gate_&slot&_segment],es
+ENDM
+	SHELL_ENTRY_LIST SHELL_GATE_PUBLISH
+	mov byte ptr cs:[shell_high_active],1
+	IFDEF COMMAND_HIGH_RESIDENT_POISON
+	; No retired service may execute after publication, even before SETBLOCK.
+	push es
+	push cs
+	pop es
+	mov di,offset resgroup:shell_service_start
+	mov cx,offset resgroup:RES_CODE_END
+	sub cx,di
+	mov al,0f4h
+	rep stosb
+	pop es
+	ENDIF
+	pop di
+	ENDIF
 	IFDEF COMMAND_CRITICAL_RECLAIM
 	; The complete body was bound before vector publication and copied with
 	; HMACODE. Activate it before the common permanent break releases its

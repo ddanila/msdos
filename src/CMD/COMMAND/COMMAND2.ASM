@@ -11,6 +11,9 @@ NAME	COMMAND2
 	INCLUDE resmsg.equ		;AN000;
 	INCLUDE RESBIND.INC
 	INCLUDE SHELLGATE.INC
+IFDEF COMMAND_HIGH_RESIDENT
+EXTRN shell_int21_bridge:NEAR,shell_int2f_bridge:NEAR
+ENDIF
 .LIST
 .CREF
 
@@ -58,6 +61,11 @@ DATARES SEGMENT PUBLIC BYTE
 	EXTRN	VERVAL:WORD
 DATARES ENDS
 
+IFDEF COMMAND_HIGH_RESIDENT
+SHELLCODE SEGMENT PUBLIC BYTE
+SHELLCODE ENDS
+ENDIF
+
 HMACODE SEGMENT PUBLIC BYTE
 HMACODE ENDS
 
@@ -104,12 +112,20 @@ TRANEXT	ENDS
 TRANTAIL	SEGMENT PUBLIC PARA
 TRANTAIL	ENDS
 
+	IFDEF COMMAND_HIGH_RESIDENT
+RESGROUP GROUP CODERES,DATARES,SHELLCODE,HMACODE,MSGOPT,BATARENA,BATSEG,ENVARENA,ENVIRONMENT,INIT,TAIL
+	ELSE
 RESGROUP  GROUP CODERES,DATARES,HMACODE,MSGOPT,BATARENA,BATSEG,ENVARENA,ENVIRONMENT,INIT,TAIL
+	ENDIF
 TRANGROUP GROUP TRANCODE,TRANDATA,TRANSPACE,TRANEXT,TRANTAIL
 
 ; START OF RESIDENT PORTION
 
+	IFDEF COMMAND_HIGH_RESIDENT
+SHELLCODE SEGMENT PUBLIC BYTE
+	ELSE
 CODERES 	SEGMENT PUBLIC BYTE	;AC000;
+	ENDIF
 
 	PUBLIC	CHKSUM
 	PUBLIC	endinit
@@ -187,7 +203,7 @@ FATALRET2:
 	MOV	WORD PTR CS:[PDB_Exit+2],AX
 	ENDIF
 	MOV	AX,(EXIT SHL 8) 	; Return to lower level
-	INT	int_command
+	SHELL_INT	int_command
 
 RET_2E:
 	SHELL_OWNER_SEG DS,ret2e_ds
@@ -195,10 +211,10 @@ ASSUME	DS:RESGROUP,ES:NOTHING,SS:NOTHING
 	MOV	[SINGLECOM],0		; Turn off singlecom
 	MOV	ES,[RES_TPA]
 	MOV	AH,DEALLOC
-	INT	int_command		; Free up space used by transient
+	SHELL_INT	int_command		; Free up space used by transient
 	MOV	BX,[SAVE_PDB]
 	MOV	AH,SET_CURRENT_PDB
-	INT	int_command		; Current process is user
+	SHELL_INT	int_command		; Current process is user
 	MOV	AX,[RETCODE]
 	CMP	[EXTCOM],0
 	JNZ	GOTECODE
@@ -231,11 +247,11 @@ ASSUME	DS:NOTHING,ES:NOTHING,SS:NOTHING
 ASSUME DS:RESGROUP
 	ENDIF
 	MOV	AH,GET_CURRENT_PDB
-	INT	int_command		; Get user's header
+	SHELL_INT	int_command		; Get user's header
 	MOV	[SAVE_PDB],BX
 	MOV	AH,SET_CURRENT_PDB
 	SHELL_OWNER_REG BX,0bbh,int2e_bx
-	INT	int_command		; Current process is me
+	SHELL_INT	int_command		; Current process is me
 	MOV	[SINGLECOM],81H
 	MOV	[EXTCOM],1		; Make sure this case forced
 
@@ -248,7 +264,7 @@ ASSUME DS:RESGROUP
 	jz	lodcom1 		; if internal, memory already allocated
 	mov	bx,0ffffh
 	MOV	AH,ALLOC
-	INT	int_command
+	SHELL_INT	int_command
 	CALL	SetSize
 	ADD	AX,20H
 	CMP	BX,AX			; Is less than 512 byte buffer worth it?
@@ -266,7 +282,7 @@ EndProc SetSize
 
 MEMOK:
 	MOV	AH,ALLOC
-	INT	int_command
+	SHELL_INT	int_command
 	JC	BADMEMERRJ		; Memory arenas probably trashed
 	MOV	[EXTCOM],0		; Flag not to ALLOC again
 	MOV	[RES_TPA], AX		; Save current TPA segment
@@ -306,7 +322,7 @@ ASSUME	DS:RESGROUP
 	CMP	AX,-1
 	JZ	NOSETVER
 	MOV	AH,SET_VERIFY_ON_WRITE	; AL has correct value
-	INT	int_command
+	SHELL_INT	int_command
 NOSETVER:
 	CMP	[SINGLECOM],-1
 	JNZ	NOSNG
@@ -328,7 +344,7 @@ ALSO_BOGUS:
 	JMP	SHORT CHKSAME
 HAVCOM:
 	MOV	AX,CHAR_OPER SHL 8
-	INT	int_command
+	SHELL_INT	int_command
 	MOV	[RSWITCHAR],DL
 	CMP	DL,'/'
 	JNZ	USESLASH
@@ -362,7 +378,7 @@ REMCHECK:
 	SaveReg <AX,BX>
 	MOV	BX,AX
 	MOV	AX,(IOCTL SHL 8) + 8
-	INT	21h
+	SHELL_INT	21h
 	jnc	RCcont			; If an error occurred, assume the media
 	or	ax,ax			;  is NON-removable.
 					;  AX contains the non-zero error code
@@ -391,21 +407,21 @@ HEADFIX:
 	CMP	CL,DL
 	JZ	CHK1			; Stdin matches
 	MOV	AH,CLOSE
-	INT	int_command
+	SHELL_INT	int_command
 	MOV	DS:[PDB_JFN_Table],CL	; Restore stdin
 CHK1:
 	INC	BX
 	CMP	CH,DH			; Stdout matches
 	JZ	CHKOTHERHAND
 	MOV	AH,CLOSE
-	INT	int_command
+	SHELL_INT	int_command
 	MOV	DS:[PDB_JFN_Table+1],CH ; Restore stdout
 CHKOTHERHAND:
 	ADD	BX,4			; Skip 2,3,4
 	MOV	CX,FilPerProc - 5	; Already done 0,1,2,3,4
 CLOSELOOP:
 	MOV	AH,CLOSE
-	INT	int_command
+	SHELL_INT	int_command
 	INC	BX
 	LOOP	CLOSELOOP
 	push	ds			;AN020; save data segment
@@ -414,7 +430,7 @@ CLOSELOOP:
 	jnz	append_fix_end		;AN030; no - just exit
 	mov	ax,AppendSetState	;AN020; Set the state of Append
 	mov	bx,Append_state 	;AN020;     back to the original state
-	int	2fh			;AN020;
+	SHELL_INT	2fh			;AN020;
 	mov	append_flag,0		;AN020; Set append flag to invalid
 append_fix_end: 			;AN030;
 	cmp	[rsrc_xa_seg],no_xa_seg ;AN030; Is there any active XA segment?
@@ -422,7 +438,7 @@ append_fix_end: 			;AN030;
 	push	es			;AN030; Yes - deallocate it
 	mov	es,rsrc_xa_seg		;AN030;
 	mov	ax,(Dealloc SHL 8)	;AN030; Deallocate memory call
-	int	int_command		;AN030;
+	SHELL_INT	int_command		;AN030;
 	pop	es			;AN030;
 	mov	[rsrc_xa_seg],no_xa_seg ;AN030; reset to no segment
 xa_fix_end:
@@ -439,7 +455,7 @@ ASSUME	DS:NOTHING,ES:NOTHING,SS:NOTHING
 	SHELL_OWNER_SEG ES,savhand_es
 	ENDIF
 	MOV	AH,GET_CURRENT_PDB
-	INT	int_command		; Get user's header
+	SHELL_INT	int_command		; Get user's header
 	MOV	DS,BX
 	LDS	BX,DS:[PDB_JFN_POINTER] ; get pointer to JFN table...
 	MOV	AX,WORD PTR DS:[BX]
@@ -470,7 +486,7 @@ RESTHAND:
 	PUSH	BX			; Restore stdin, stdout to user
 	PUSH	AX
 	MOV	AH,GET_CURRENT_PDB
-	INT	int_command		; Point to user's header
+	SHELL_INT	int_command		; Point to user's header
 	MOV	AX,[HANDLE01]
 	MOV	DS,BX
 ASSUME DS:NOTHING
@@ -499,7 +515,7 @@ getcomdsk4:
 	cmp	[cpdrv],0		;g is there a drive in the comspec?
 	jnz	users_drive		;g yes - use it
 	mov	ah,Get_default_drive	;g use default drive
-	int	21h			;g
+	SHELL_INT	21h			;g
 	add	al,"A"                  ;g convert to ascii
 	mov	[cpdrv],al		;g put in message to print out
 
@@ -523,16 +539,16 @@ endif
 ; flush world and get raw input
 GetRawFlushedByte:
 	MOV	AX,(STD_CON_INPUT_FLUSH SHL 8) OR RAW_CON_INPUT
-	INT	int_command		; Get char without testing or echo
+	SHELL_INT	int_command		; Get char without testing or echo
 	MOV	AX,(STD_CON_INPUT_FLUSH SHL 8) + 0
-	INT	int_command
+	SHELL_INT	int_command
 	return
 
 LOADCOM:				; Load in transient
 	INC	BP			; Flag command read
 	MOV	DX,OFFSET RESGROUP:COMSPEC
 	MOV	AX,OPEN SHL 8
-	INT	int_command		; Open COMMAND.COM
+	SHELL_INT	int_command		; Open COMMAND.COM
 	JNC	READCOM
 	CMP	AX,error_too_many_open_files
 	JNZ	TRYDOOPEN
@@ -548,7 +564,7 @@ READCOM:
 	MOV	DX,OFFSET RESGROUP:TRANSTART
 	XOR	CX,CX			; Seek loc
 	MOV	AX,LSEEK SHL 8
-	INT	int_command
+	SHELL_INT	int_command
 	JC	WRONGCOM1
 	MOV	CX,OFFSET TRANGROUP:TRANSPACEEND - 100H
 
@@ -557,14 +573,14 @@ READCOM:
 ASSUME	DS:NOTHING
 	MOV	DX,100H
 	MOV	AH,READ
-	INT	int_command
+	SHELL_INT	int_command
 	POP	DS
 ASSUME	DS:RESGROUP
 WRONGCOM1:
 	PUSHF
 	PUSH	AX
 	MOV	AH,CLOSE
-	INT	int_command		; Close COMMAND.COM
+	SHELL_INT	int_command		; Close COMMAND.COM
 	POP	AX
 	POPF
 	JC	WRONGCOM		; If error on READ
@@ -598,13 +614,13 @@ SETVECT:				; Set useful vectors
 	MOV	AX,(SET_INTERRUPT_VECTOR SHL 8) OR 22H
 	MOV	WORD PTR DS:[PDB_EXIT],DX
 	MOV	WORD PTR DS:[PDB_EXIT+2],DS
-	INT	int_command
+	SHELL_INT	int_command
 	MOV	DX,OFFSET RESGROUP:SHELL_ENTRY_CONTC
 	INC	AL
-	INT	int_command
+	SHELL_INT	int_command
 	MOV	DX,OFFSET RESGROUP:SHELL_ENTRY_DSKERR
 	INC	AL
-	INT	int_command
+	SHELL_INT	int_command
 	return
 
 
@@ -637,7 +653,7 @@ ENDINIT:
 	mov	bx,envsiz		;eg get size of environment in paragraphs
 	push	es			;eg save environment - just to make sure
 	mov	ah,SETBLOCK		;eg
-	int	int_command		;eg
+	SHELL_INT	int_command		;eg
 	pop	es			;eg
 
 noreset:
@@ -646,7 +662,11 @@ noreset:
 	pop	ds			;g
 	jmp	lodcom			;g allocate transient
 
+	IFDEF COMMAND_HIGH_RESIDENT
+SHELLCODE ENDS
+	ELSE
 CODERES ENDS
+	ENDIF
 
 ; This TAIL segment is used to produce a PARA aligned label in the resident
 ; group which is the location where the transient segments will be loaded

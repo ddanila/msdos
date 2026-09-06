@@ -9,6 +9,9 @@ start:
     sti
     mov ds, ax
     mov es, ax
+%ifdef EXPECT_WHOLE_SHELL
+    call check_whole_shell
+%endif
 %ifdef EXPECT_SHELL_GATES
     call check_shell_gates
 %endif
@@ -37,6 +40,9 @@ start:
     call run_command
     mov dx, external_file
     call check_file
+%ifdef EXPECT_WHOLE_SHELL
+    call check_whole_shell
+%endif
 %ifdef EXPECT_SHELL_GATES
     call check_shell_gates
 %endif
@@ -86,6 +92,35 @@ run_command:
     cmp [return_ss], ax
     jne fail
     ret
+
+%ifdef EXPECT_WHOLE_SHELL
+check_whole_shell:
+    push es
+    mov bx,[16h]
+    mov es,bx
+    cmp byte [es:SHELL_HIGH_ACTIVE],EXPECT_HMA
+    jne fail
+%if EXPECT_HMA
+    mov dx,0ffffh
+    mov ax,[es:SHELL_HIGH_FIRST_SEG-2]
+    sub ax,SHELL_HIGH_FIRST_TARGET
+%else
+    mov dx,bx
+    xor ax,ax
+%endif
+    SHELL_HIGH_CHECK_GATES
+    dec bx
+    mov es,bx
+%if EXPECT_HMA
+    cmp word [es:3],SHELL_HIGH_LOW_PARAGRAPHS
+    jne fail
+%else
+    cmp word [es:3],SHELL_HIGH_LOW_PARAGRAPHS
+    jbe fail
+%endif
+    pop es
+    ret
+%endif
 
 %ifdef EXPECT_SHELL_GATES
 check_shell_gates:

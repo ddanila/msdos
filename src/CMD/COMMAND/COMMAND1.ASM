@@ -363,6 +363,11 @@ DATARES SEGMENT PUBLIC BYTE
 	EXTRN	SINGLECOM:WORD
 DATARES ENDS
 
+IFDEF COMMAND_HIGH_RESIDENT
+SHELLCODE SEGMENT PUBLIC BYTE
+SHELLCODE ENDS
+ENDIF
+
 HMACODE SEGMENT PUBLIC BYTE
 HMACODE ENDS
 
@@ -404,7 +409,11 @@ TRANEXT	ENDS
 TRANTAIL	SEGMENT PUBLIC PARA
 TRANTAIL	ENDS
 
+	IFDEF COMMAND_HIGH_RESIDENT
+RESGROUP GROUP CODERES,DATARES,SHELLCODE,HMACODE,MSGOPT,BATARENA,BATSEG,ENVARENA,ENVIRONMENT,INIT,TAIL
+	ELSE
 RESGROUP  GROUP CODERES,DATARES,HMACODE,MSGOPT,BATARENA,BATSEG,ENVARENA,ENVIRONMENT,INIT,TAIL
+	ENDIF
 TRANGROUP GROUP TRANCODE,TRANDATA,TRANSPACE,TRANEXT,TRANTAIL
 
 	INCLUDE envdata.asm
@@ -443,12 +452,45 @@ shell_gate_start LABEL BYTE
 SHELL_GATE_EMIT MACRO slot,target
 	PUBLIC shell_gate_&slot,shell_gate_&slot&_segment
 shell_gate_&slot LABEL BYTE
+	IFDEF COMMAND_HIGH_RESIDENT
+	call shell_restore_a20
+	ENDIF
 	db 0eah
 	dw offset resgroup:target
 shell_gate_&slot&_segment dw 0
 ENDM
 	SHELL_ENTRY_LIST SHELL_GATE_EMIT
+	IFDEF COMMAND_HIGH_RESIDENT
+	INCLUDE SHELLLOW.INC
+CODERES ENDS
+SHELLCODE SEGMENT PUBLIC BYTE
+	ENDIF
 shell_service_start LABEL BYTE
+IFDEF COMMAND_HIGH_RESIDENT
+PUBLIC shell_int21_bridge,shell_int2f_bridge
+EXTRN LOADCOM:NEAR,CHKSUM:NEAR,RPRINT:NEAR,ENDINIT:NEAR
+PUBLIC shell_loadcom_far,shell_chksum_far,shell_rprint_far
+shell_loadcom_far PROC FAR
+    call LOADCOM
+    retf
+shell_loadcom_far ENDP
+shell_chksum_far PROC FAR
+    call CHKSUM
+    retf
+shell_chksum_far ENDP
+shell_rprint_far PROC FAR
+    call RPRINT
+    retf
+shell_rprint_far ENDP
+shell_int21_bridge PROC NEAR
+    SHELL_FAR_TRANSFER 09ah,int21,shell_int21_low
+    ret
+shell_int21_bridge ENDP
+shell_int2f_bridge PROC NEAR
+    SHELL_FAR_TRANSFER 09ah,int2f,shell_int2f_low
+    ret
+shell_int2f_bridge ENDP
+ENDIF
 	ENDIF
 
 ;
@@ -514,20 +556,20 @@ EXT_EXEC_HIGH:
 	push	di
 	push	bp
 	mov	ax,5800h
-	int	int_command
+	SHELL_INT	int_command
 	mov	SHELL_EXEC_STATE:[LOADHIGH_SAVED_STRATEGY],ax
 	mov	ax,5802h
-	int	int_command
+	SHELL_INT	int_command
 	mov	SHELL_EXEC_STATE:[LOADHIGH_SAVED_LINK],al
 	mov	cx,4d55h
 	mov	si,2142h
 	mov	di,0a55ah
 	mov	ax,5808h
-	int	int_command
+	SHELL_INT	int_command
 	mov	SHELL_EXEC_STATE:[LOADHIGH_SAVED_FILTER],ax
 	mov	bx,SHELL_EXEC_STATE:[LOADHIGH_REGION_MASK]
 	mov	ax,5807h
-	int	int_command
+	SHELL_INT	int_command
 	cmp	byte ptr SHELL_EXEC_STATE:[LOADHIGH_SHRINK],0
 	je	short EXT_EXEC_PROFILE_READY
 	mov	bp,SHELL_EXEC_STATE:[LOADHIGH_REGION_MASK]
@@ -546,7 +588,7 @@ EXT_EXEC_LIMIT_LOOP:
 	push	di
 	mov	di,0a55ah
 	mov	ax,580ah
-	int	int_command
+	SHELL_INT	int_command
 	pop	di
 EXT_EXEC_LIMIT_NEXT:
 	shr	bp,1
@@ -556,10 +598,10 @@ EXT_EXEC_LIMIT_NEXT:
 EXT_EXEC_PROFILE_READY:
 	mov	bx,1
 	mov	ax,5803h
-	int	int_command
+	SHELL_INT	int_command
 	mov	bx,0080h			; upper memory first, then conventional
 	mov	ax,5801h
-	int	int_command
+	SHELL_INT	int_command
 	pop	bp
 	pop	di
 	pop	si
@@ -572,7 +614,7 @@ EXT_EXEC_CALL:
 	pop ds
 	ENDIF
 	push	dx				;AN000; save the command name offset
-	INT	int_command			; Do the EXEC
+	SHELL_INT	int_command			; Do the EXEC
 	pop	dx				;AN000; restore the command name offset
 	pushf
 	IFDEF COMMAND_RESIDENT_BINDING
@@ -607,7 +649,7 @@ EXT_EXEC_RESTORE_LIMIT_LOOP:
 	push	di
 	mov	di,0a55ah
 	mov	ax,580ah
-	int	int_command
+	SHELL_INT	int_command
 	pop	di
 EXT_EXEC_RESTORE_LIMIT_NEXT:
 	shr	bp,1
@@ -620,14 +662,14 @@ EXT_EXEC_LIMITS_RESTORED:
 	mov	si,2142h
 	mov	di,0a55ah
 	mov	ax,5807h
-	int	int_command
+	SHELL_INT	int_command
 	mov	bx,SHELL_EXEC_STATE:[LOADHIGH_SAVED_STRATEGY]
 	mov	ax,5801h
-	int	int_command
+	SHELL_INT	int_command
 	xor	bx,bx
 	mov	bl,SHELL_EXEC_STATE:[LOADHIGH_SAVED_LINK]
 	mov	ax,5803h
-	int	int_command
+	SHELL_INT	int_command
 	pop	bp
 	pop	di
 	pop	si
@@ -647,7 +689,7 @@ EXT_EXEC_RESTORED:
 EXEC_WAIT:
 	SHELL_OWNER_SEG DS,exec_wait_ds
 	MOV	AH,WAITPROCESS			;AC000; Get errorlevel
-	INT	int_command			; Get the return code
+	SHELL_INT	int_command			; Get the return code
 	MOV	[RETCODE],AX
 ;
 ; We need to test to see if we can reload the transient.  THe external command
@@ -734,7 +776,7 @@ ASSUME	DS:RESGROUP
 	JNZ	NoReset
 	PUSH	AX
 	MOV	AH,DISK_RESET
-	INT	int_command			; Reset disks in case files were open
+	SHELL_INT	int_command			; Reset disks in case files were open
 	POP	AX
 NoReset:
 ;
@@ -759,7 +801,7 @@ ClearBatch:
 	MOV	ES,[BATCH]			; get batch segment
 	mov	di,batfile			;AN000; get offset of batch file name
 	mov	ax,mult_shell_brk		;AN000; does the SHELL want this terminated?
-	int	2fh				;AN000; call the SHELL
+	SHELL_INT	2fh				;AN000; call the SHELL
 	cmp	al,shell_action 		;AN000; does shell want this batch?
 	jz	shell_bat_cont			;AN000; yes - keep it
 
@@ -769,14 +811,14 @@ ClearBatch:
 	push	es				;G
 	mov	es,bx				;G yes - free it up...
 	MOV	AH,DEALLOC			;G
-	INT	21H				;G
+	SHELL_INT	21H				;G
 	pop	es				;G restore to batch segment
 
 no_bat_for:
 	mov	cl,ES:[batechoflag]		;G get old echo flag
 	MOV	BX,ES:[BATLAST] 		;G get old batch segment
 	MOV	AH,DEALLOC			; free it up...
-	INT	21H
+	SHELL_INT	21H
 	MOV	[BATCH],BX			;G get ready to deallocate next batch
 	DEC	NEST				;G Is there another batch file?
 	JNZ	CLEARBATCH			;G Keep going until no batch file
@@ -843,5 +885,9 @@ NoPipePop:
 	ENDIF
 	RestoreReg  <AX>
 	return
+	IFDEF COMMAND_HIGH_RESIDENT
+SHELLCODE ENDS
+	ELSE
 CODERES ENDS
+	ENDIF
 	END	PROGSTART

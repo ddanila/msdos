@@ -17,6 +17,9 @@ DEBUG = 0				; NEED TO SET IT TO WHAT IT IS IN DOSSYM.INC
 	INCLUDE comequ.asm
 	INCLUDE RESBIND.INC
 	INCLUDE SHELLGATE.INC
+IFDEF COMMAND_HIGH_RESIDENT
+EXTRN shell_int21_bridge:NEAR,shell_int2f_bridge:NEAR
+ENDIF
 	include resmsg.equ		;AN000;
 .list
 .cref
@@ -52,7 +55,7 @@ CRITICAL_INT MACRO vector,entryname
  IFDEF COMMAND_CRITICAL_SPLIT
 	call critical_&entryname&_bridge
  ELSE
-	int vector
+	SHELL_INT vector
  ENDIF
 ENDM
 
@@ -140,7 +143,11 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 DATARES ENDS
 
 
+	IFDEF COMMAND_HIGH_RESIDENT
+SHELLCODE SEGMENT PUBLIC BYTE
+	ELSE
 CODERES SEGMENT PUBLIC BYTE
+	ENDIF
 
 	EXTRN	GETCOMDSK2:NEAR
 
@@ -168,7 +175,7 @@ ASKEND:
 	MOV	DX,ENDBATMES			;AC000; get batch terminate question
 	CALL	RPRINT
 	MOV	AX,(STD_CON_INPUT_FLUSH SHL 8)+STD_CON_INPUT
-	INT	21H
+	SHELL_INT	21H
 	call	in_char_xlat			;g change to upper case
 	CMP	AL,no_char
 	retz					; carry is clear => no free
@@ -242,7 +249,7 @@ critical_terminate_low:
 	mov	ax,[PARENT]
 	mov	word ptr ds:[PDB_Parent_PID],ax
 	mov	ax,(Exit SHL 8) OR 255
-	int	21H
+	SHELL_INT	21H
 critical_dead_low:
 	jmp	critical_dead_low
 	CRITICAL_WRAPPER CRLF
@@ -252,15 +259,19 @@ critical_dead_low:
 	CRITICAL_WRAPPER IN_CHAR_XLAT
 	CRITICAL_WRAPPER ResPipeOff
 critical_int21_low PROC FAR
-	int 21h
+	SHELL_INT 21h
 	retf
 critical_int21_low ENDP
 critical_int2f_low PROC FAR
-	int 2fh
+	SHELL_INT 2fh
 	retf
 critical_int2f_low ENDP
 	IFDEF COMMAND_CRITICAL_RECLAIM
+	IFDEF COMMAND_HIGH_RESIDENT
+SHELLCODE ENDS
+	ELSE
 CODERES ENDS
+	ENDIF
 HMACODE SEGMENT PUBLIC BYTE
 ASSUME CS:RESGROUP,DS:RESGROUP
 	PUBLIC hma_code_start
@@ -669,7 +680,11 @@ FATERR:
 critical_body_end LABEL BYTE
 	IFDEF COMMAND_CRITICAL_RECLAIM
 HMACODE ENDS
+IFDEF COMMAND_HIGH_RESIDENT
+SHELLCODE SEGMENT PUBLIC BYTE
+ELSE
 CODERES SEGMENT PUBLIC BYTE
+ENDIF
 ASSUME CS:RESGROUP,DS:RESGROUP
 	ENDIF
 	ENDIF
@@ -754,7 +769,7 @@ RPRINT2:
 	MOV	DL,AL
 	MOV	AH,STD_CON_OUTPUT
 	clc					; set ok flag
-	INT	21H
+	SHELL_INT	21H
 
 RPRINT3:
 	POP	AX
@@ -791,7 +806,11 @@ in_char_xlat_high:
 
 in_char_xlat	endp
 
+IFDEF COMMAND_HIGH_RESIDENT
+SHELLCODE ENDS
+ELSE
 CODERES ENDS
+ENDIF
 
 ; This self-contained body remains in the low fallback image, but permanent
 ; DOS-high COMMAND copies it to DOS-owned HMA and releases the original.
@@ -841,7 +860,11 @@ hma_in_char_xlat_end:
 hma_in_char_xlat_body endp
 HMACODE ENDS
 
+IFDEF COMMAND_HIGH_RESIDENT
+SHELLCODE SEGMENT PUBLIC BYTE
+ELSE
 CODERES SEGMENT PUBLIC BYTE
+ENDIF
 ASSUME CS:RESGROUP,DS:RESGROUP
 ;---------------------- DBCS lead byte check. this is resident code ; 3/3/KK
 
@@ -859,7 +882,11 @@ test_kanj_high:
 	call	dword ptr SHELL_TEXT_STATE:[hma_test_kanj_entry]
 	ret
 
+IFDEF COMMAND_HIGH_RESIDENT
+SHELLCODE ENDS
+ELSE
 CODERES ENDS
+ENDIF
 
 HMACODE SEGMENT PUBLIC BYTE
 ASSUME CS:RESGROUP,DS:RESGROUP
@@ -907,7 +934,11 @@ hma_test_kanj_body endp
 
 HMACODE ENDS
 
+IFDEF COMMAND_HIGH_RESIDENT
+SHELLCODE SEGMENT PUBLIC BYTE
+ELSE
 CODERES SEGMENT PUBLIC BYTE
+ENDIF
 ASSUME CS:RESGROUP,DS:RESGROUP
 
 
@@ -943,7 +974,7 @@ assume	ds:resgroup, es:nothing
 	mov	dl,set_critical_msg		;AN000; set up critical error message address
 	mov	di,crit_msg_off 		;AN000; old offset of critical messages
 	mov	es,crit_msg_seg 		;AN000; old segment of critical messages
-	int	2fh				;AN000; go set it
+	SHELL_INT	2fh				;AN000; go set it
 
 	ret
 
@@ -999,7 +1030,11 @@ SYSDISPMSG endp
 PUBLIC		RES_CODE_END			;AN000;
 RES_CODE_END	LABEL	BYTE			;AN000;
 
+IFDEF COMMAND_HIGH_RESIDENT
+SHELLCODE ENDS
+ELSE
 CODERES ENDS
+ENDIF
 
 HMACODE SEGMENT PUBLIC BYTE
 ASSUME CS:RESGROUP,DS:RESGROUP,ES:RESGROUP

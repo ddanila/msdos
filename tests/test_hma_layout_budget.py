@@ -18,6 +18,21 @@ class HmaBudgetTests(unittest.TestCase):
     def test_whole_bios_shell_inventory(self):
         self.assertEqual(self.whole_inventory(), [5152, 2451, 800, 1174])
 
+    def test_retired_shell_counts_retained_entries_stack_and_state_once(self):
+        symbols = dict(RES_CODE_END=0x1480, resmsgend=0x45A,
+                       resident_catalog_start=0x540, shell_high_active=0x16B)
+        self.assertEqual(self.whole_inventory(bios_low=3232, command_data_start=0x220,
+                                              command_symbols=symbols, hma_tail=4422),
+                         [3232, 288, 800, 102])
+        with self.assertRaises(ValueError):
+            self.whole_inventory(command_symbols=symbols, command_data_start=0x220,
+                                 hma_tail=-1)
+
+    def test_retired_shell_shared_budget(self):
+        rows = hma_layout(0x9D60, 7988, 7744, 5078)
+        self.assertEqual(rows[-2][1:], (0xEEAA, 0xFFF0))
+        self.assertEqual(rows[-2][2] - rows[-2][1], 4422)
+
     def test_whole_inventory_excludes_shell_stack_and_psp(self):
         # Growing only the excluded stack shifts the data and break together.
         symbols = dict(RES_CODE_END=0xA93, resmsgend=0xD52,

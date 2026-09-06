@@ -242,12 +242,20 @@ READ_DISK_PROC PROC FAR 				     ;;AN003;;
 	MOV	BP,AX					     ;;AN003;; Save message number
 	MOV	AX,DOS_EXTENDED_OPEN			     ;;AN003;; Set INT 21 function
 	LEA	SI,RESGROUP:COMSPEC			     ;;AN003;; Get addressibilty to COMMAND.COM
+IFDEF COMMAND_HIGH_RESIDENT
+    SHELL_OWNER_SEG DS,diskmsg_ds
+ELSE
 	PUSH	CS					     ;;AN003;;
 	POP	DS					     ;;AN003;;
+ENDIF
 	MOV	DI,-1					     ;;AN003;; No extended attribute list
 	MOV	BX,NO_CRIT_OPEN 			     ;;AN003;; Don't generate critical error
 	MOV	DX,NOT_EX_FAIL_EX_OPEN			     ;;AN003;; Open Flag
+	IFDEF COMMAND_HIGH_RESIDENT
+	SHELL_INT	21H					     ;;AN003;; Open the file
+	ELSE
 	INT	21H					     ;;AN003;; Open the file
+	ENDIF
 	POP	DI					     ;;AN003;; Retreive LSEEK pointer
 							     ;;AN003;; Error ?
 ;	$IF	NC,LONG 				     ;;AN003;;	No,
@@ -259,7 +267,11 @@ $MXL1:
 	  MOV	  AX,DOS_LSEEK_FILE			     ;;AN003;;	 LSEEK to the errors
 	  XOR	  CX,CX 				     ;;AN003;;	   Value has been set by COMMAND.COM
 	  MOV	  DX,DI 				     ;;AN003;;
+	  IFDEF COMMAND_HIGH_RESIDENT
+	  SHELL_INT	  21H					     ;;AN003;;	 LSEEK the file
+	  ELSE
 	  INT	  21H					     ;;AN003;;	 LSEEK the file
+	  ENDIF
 	  POP	  DX					     ;;AN003;; Retreive LSEEK pointer
 							     ;;AN003;;	 Error ?
 ;	  $IF	  NC					     ;;AN003;;	  No,
@@ -274,7 +286,11 @@ $MDO3:
 	      MOV     AH,DOS_READ_BYTE			     ;;AN003;;	   Read
 	      MOV     CX,$M_TEMP_BUF_SZ 		     ;;AN003;;	     the first part of the header
 	      LEA     DX,$M_RT.$M_TEMP_BUF		     ;;AN003;;	       into the temp buffer
+	      IFDEF COMMAND_HIGH_RESIDENT
+	      SHELL_INT     21H				     ;;AN003;;	   Read it
+	      ELSE
 	      INT     21H				     ;;AN003;;	   Read it
+	      ENDIF
 	      MOV     DI,DX				     ;;AN003;;
 	      POP     AX				     ;;AN003;;
 	      POP     CX				     ;;AN003;;
@@ -328,11 +344,19 @@ $MEN6:
 	      XOR     CX,CX				     ;;AN003;;	 Value has been set by COMMAND.COM
 	      ADD     DX,$M_CLASS_ID_SZ 		     ;;AN003;;	 Add offset of first header
 	      ADD     DX,WORD PTR $M_RT.$M_TEMP_BUF[SI]+2    ;;AN003;;	 Add offset from msg structure
+	      IFDEF COMMAND_HIGH_RESIDENT
+	      SHELL_INT     21H				     ;;AN003;;	 LSEEK the file
+	      ELSE
 	      INT     21H				     ;;AN003;;	 LSEEK the file
+	      ENDIF
 	      MOV     AH,DOS_READ_BYTE			     ;;AN003;;	   Read
 	      MOV     CX,$M_TEMP_BUF_SZ 		     ;;AN003;;	     the message
 	      LEA     DX,$M_RT.$M_TEMP_BUF		     ;;AN003;;	       into the temp buffer
+	      IFDEF COMMAND_HIGH_RESIDENT
+	      SHELL_INT     21H				     ;;AN003;;	   Read it
+	      ELSE
 	      INT     21H				     ;;AN003;;	   Read it
+	      ENDIF
 	      MOV     DI,DX				     ;;AN003;;	       into the temp buffer
 	      PUSH    DS				     ;;AN003;;	       into the temp buffer
 	      POP     ES				     ;;AN003;;	       into the temp buffer
@@ -342,7 +366,11 @@ $MIF16:
 $MIF2:
 	  PUSHF 					     ;;AN003;;	   Close file handle
 	  MOV	  AH,DOS_CLOSE_FILE			     ;;AN003;;	   Close file handle
+	  IFDEF COMMAND_HIGH_RESIDENT
+	  SHELL_INT	  21H					     ;;AN003;;
+	  ELSE
 	  INT	  21H					     ;;AN003;;
+	  ENDIF
 	  $M_POPF					     ;;AN003;;
 ;	$ENDIF						     ;;AN003;; Yes there was an error,
 $MIF1:

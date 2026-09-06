@@ -14,7 +14,53 @@ Report UMB and application XMS costs alongside the gain. Complete BIOS and
 COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
-The current **packed BIOS retirement candidate** is measured at
+The current **BIOS + whole-shell service retirement candidate** measures
+**622,160 conventional / 49,680 free UMB bytes**: **2,288 conventional bytes
+recovered** versus the identical BIOS/provider composition with normal COMMAND,
+**4,224 above the selected development control**, and **3,424 above retail**.
+Application XMS remains **6,798,336 bytes** (5,120 below the development control);
+the shell move adds no UMB or XMS cost. This is an opt-in experimental layout,
+not production promotion.
+
+COMMAND's permanent low allocation falls from **3,632 to 1,344 bytes**.
+The complete 2,623-byte linked service body follows the low data/catalog segment,
+is copied once, then its old range is released together with the catalog and
+previous message-code fallback. The checked build poisons the old service before
+SETBLOCK. Thirteen retained gates cover published interrupts, transient calls,
+CTTY's constructed LODCOM1 return and initializer calls made after shrinking.
+Disk-message lookup uses the retained data segment, not relocated CS. Low
+interrupt-return wrappers restore A20 before returning to the high service;
+unsupported-provider, DOS-low, child and /MSG layouts retain their low fallback.
+
+The current shared HMA budget is **40,272 DOS + 7,744 BIOS + 7,988 buffers +
+5,078 COMMAND = 61,082 bytes**, leaving **4,422 bytes** at `EEAAh..FFF0h`.
+The shell charge includes its previous 2,447-byte owner, eight binding-fallback
+bytes and the 2,623-byte service; do not add
+that owner again or reuse the preceding 7,053-byte remainder.
+
+Evidence: `out/command-high-retirement-79nhzn8t/`. The paired fresh captures
+change only COMMAND; CONFIG.SYS, AUTOEXEC.BAT, BIOS, DOS, managers and VC are
+checked unchanged. Local tests cover poisoned high startup/critical errors,
+DOS-low fallback, child and /MSG startup, INT 2Eh internal/external execution,
+and LOADHIGH regions/minima/shrinking/fallback/restoration with DOS=HIGH.
+Guest checks verify all 13 gate destinations and the exact low MCB boundary
+before and after execution; wrong-stack negative controls must fail. Linked
+checks reject relative branches escaping the copied service. Default COMMAND
+remains byte-identical; the prior binding regression and 37 binding/HMA-budget
+unit tests also pass. Reproduce with:
+
+```sh
+python3 tests/test_command_high_resident_qemu.py out/umb-fine-composition-l1byzj6z/input-paired.img
+```
+
+**Still open:** the complete **800-byte low state partition**, asynchronous/A20
+fault and reset qualification, remaining BIOS mixed state/services and the other
+low owners below. This service retirement does not complete shell code/state
+placement. Next, classify and move eligible state against the remaining shared
+4,422 bytes, preserve the low PSP/stack and published pointer contracts, then
+measure the next composed gain; do not replace this with more copy-only milestones.
+
+The preceding **packed BIOS retirement candidate**, with normal COMMAND, is measured at
 **619,872 conventional / 49,680 free UMB bytes** in
 `out/umb-fine-composition-l1byzj6z/`: **1,920 bytes recovered** versus the
 bootstrap-retirement candidate below, **1,936 above the composed control**, and
@@ -39,7 +85,7 @@ entries remain bound for 96-TPI/init callers. All four media boot-patch sites
 receive the selected 96-TPI policy before publication. Old bodies are poisoned and released.
 This is an opt-in experimental layout, not production promotion.
 
-The shared HMA charge is now 40,272 DOS + 7,744 BIOS + 7,988 buffers +
+That BIOS-only checkpoint's shared HMA charge is 40,272 DOS + 7,744 BIOS + 7,988 buffers +
 2,447 COMMAND = **58,451 bytes**, leaving **7,053 bytes** at
 `E463h..FFF0h`. Media retirement adds 1,086 HMA bytes. This replaces the
 6,658/5,220-byte BIOS reservations in older ledgers; do not add them together
@@ -87,10 +133,9 @@ state/services and complete COMMAND placement against the same shared budget;
 reaching retail is not permission to stop at an arbitrary paragraph target. Broader provider failure/reset
 qualification remains open.
 
-Next implementation focus is the complete COMMAND resident code/state owner,
-using the shared 7,053-byte HMA remainder. Preserve its low PSP and asynchronous
-entry contracts, retire the eligible low bodies/state, and measure the composed
-gain. Remaining BIOS qualification and mixed low owners are still in scope.
+The whole-shell service retirement above supersedes this checkpoint's COMMAND
+code-placement task. Complete state placement, BIOS qualification and mixed low
+owners remain in scope; its current shared budget is the 4,422-byte remainder.
 
 Reproduce the composed measurement with:
 
