@@ -66,7 +66,7 @@ are historical evidence, not the execution queue.
 
 The next design checkpoint is a single post-boot resident layout and net budget
 covering BIOS, DOS state, COMMAND, and the memory-manager interfaces. It must
-account for at least the remaining 4,288-byte development-to-retail conventional
+account for at least the remaining 1,984-byte development-to-retail conventional
 gap while preserving the UMB floor and requested resources; candidate inventory
 alone does not meet that budget. Count gateway, alignment, cache displacement,
 and retained-copy costs, and prove that released low ranges join the largest
@@ -82,32 +82,93 @@ DOS/COMMAND placement, not a reason for further EMM386 instruction shrinking.
 The cold-boot comparison is usable placement evidence; the new warm-reset
 comparison fails and remains explicitly unqualified (details below).
 
-The development-to-retail residual reconciles as follows; these are accounting
+The combined fine-UMB/CDS development-to-retail residual reconciles as follows;
+these are accounting
 differences, not independently reclaimable allocations:
 
 | Contribution | Conventional deficit, bytes |
 | --- | ---: |
-| DOS/BIOS and remaining system layout, excluding the two memory managers | 1,136 |
+| DOS/BIOS and remaining system layout, excluding the two memory managers | -1,168 |
 | HIMEM | 1,488 |
 | EMM386 | -240 |
 | COMMAND owner span | 880 |
 | Conventional ceiling / EBDA | 1,024 |
-| **Total** | **4,288** |
+| **Total** | **1,984** |
 
 Do not turn this into five byte-harvesting quotas. A bulk placement change can
 outperform a retail component and cover another owner's excess. The next
 design must identify actual released intervals, their replacement gateways,
 and where each live allocation goes. The current development HMA capacity is
 approximately 10,169 bytes after COMMAND and the BIOS reservation, whereas
-free UMB has only 16 bytes of margin. Capacity is not a predicted saving:
+free UMB has 1,792 bytes of margin after CDS placement. Capacity is not a predicted saving:
 moving a public table into HMA may be invalid, and a retained low duplicate
-saves nothing. An additional 4,288 net bytes would meet retail; exceeding it
+saves nothing. An additional 1,984 net bytes would meet retail; exceeding it
 requires a further measured placement budget.
 
 The DR-DOS comparison also needs the combined HIMEM/EMM386 ownership, not
 EMM386 alone. OpenDOS's integrated provider is a measured placement lead, not proof
 that merging our providers removes their summed allocations. Keep third-party
 XMS support and the 286 path when evaluating a shared-provider design.
+
+### DR-DOS reassessment: explain the resident boundary, not the byte deficit
+
+The saved framed OpenDOS 7.01 map places 28,464 kernel bytes, 3,968 BIOS
+service bytes, 5,296 COMMAND bytes and 7,980 buffer bytes in HMA. It reports
+9,092 HMA bytes still free. Its low BIOS region is 2,304 bytes and its COMMAND
+program allocation is 496 bytes; the complete COMMAND owner span is 1,312.
+These are runtime-reported categories, not reconstructed implementation details.
+
+The controlled HIDOS transition moves a whole DOS-state allocation: 12,800
+conventional bytes in DR-DOS 6, including buffers, versus 5,008 in OpenDOS,
+where buffers are already high. Do not count those gains again locally: our
+kernel and buffers are high, and the combined development fixture already
+relocates BIOS services, FILES/FCBs and CDS.
+
+| Matched accounting boundary | Combined development | Framed OpenDOS 7.01 | Difference |
+| --- | ---: | ---: | ---: |
+| System start to COMMAND start | 19,072 | 10,416 | 8,656 |
+| COMMAND start to VC start | 3,984 | 1,312 | 2,672 |
+| Largest conventional block | 616,752 | 628,080 | -11,328 |
+| Free UMB | 49,680 | 47,584 | 2,096 |
+
+Both captures retain the 639 KiB ceiling and the same VC footprint between
+owner boundaries. Thus the 11,328-byte conventional difference is below VC,
+not video recovery or EBDA relocation. Matching accounting boundaries does
+not imply equivalent device topology or resource semantics. OpenDOS also
+misses the retail UMB floor by 304 bytes and its framed reset gate failed.
+Normalize those conditions before treating its largest block as an acceptance
+target. The retail floor remains mandatory, not the architectural endpoint.
+
+Evidence: `out/umb-fine-composition-btuoykt7/results.json` and
+`out/opendos-framed-placement-evidence/emm-frame-{mem,vc}.txt`; reproduction
+commands and pinned inputs are in the development CDS and OpenDOS sections.
+This reconciliation reuses those captures; it is not a fresh runtime matrix.
+The vendor [optimization guide](https://bitsavers.computerhistory.org/pdf/novell/dr_dos/DR_DOS_6.0_Optimization_and_Configuration_Tips_199109.pdf)
+documents DOS-state relocation, and [Novell's configuration guidance](https://support.novell.com/techcenter/articles/ana19930406.html)
+confirms that DR-DOS EMM386 includes the XMS manager. No DR-DOS source or
+disassembly is permitted.
+
+The next investigation must answer three architectural questions together:
+
+1. Why does our development BIOS retain 5,152 low bytes against OpenDOS's
+   reported 2,304? Use the existing local census to distinguish required
+   device/interrupt/DMA state from complete movable services. The difference
+   is a research lead, not 2,848 promised reclaimable bytes.
+2. What actually requires conventional residency in our combined 6,480-byte
+   XMS/EMS interface? OpenDOS exposes a 1,200-byte low installed-device range
+   and an 800-byte UMB allocation, but these do not locate all manager state.
+   Attribute the remaining storage through public runtime evidence and audit
+   our own ownership contracts. Provider integration alone proves no saving;
+   keep the standalone HIMEM, third-party XMS and 286 paths.
+3. What is the minimum complete resident COMMAND interface? Design the high
+   service body, low asynchronous entry/state and reload contract together,
+   not as repeated critical-handler paragraph reductions.
+
+Budget these with remaining DOS state in one layout before another relocation
+tranche. HMA capacity is shared; scarce UMB is needed by public real-mode data.
+Each moved object must release a coalescing low interval after charging gates,
+alignment and retained state. Reject designs that merely copy payload high or
+meet retail by reducing requested resources. EBDA remains a finishing step.
 
 ### Required checkpoint: one complete resident layout
 
@@ -124,10 +185,10 @@ of the following owners, not a sequence of independently attractive savings:
 | Owner | Starting evidence | Required design decision |
 | --- | --- | --- |
 | DOS BIOS | Development retains 5,152 low bytes; disk body already moved | Partition stable device/interrupt/DMA state from high service bodies; identify exact released intervals |
-| DOS kernel and dynamic state | 4,992-byte low prefix; FILES/FCB relocation already counted | Identify authoritative public-pointer owners versus private HMA-safe state; include CDS and interrupt stacks explicitly |
+| DOS kernel and dynamic state | 4,992-byte low prefix; FILES/FCB and CDS relocation already counted | Identify authoritative public-pointer owners versus private HMA-safe state; qualify upper CDS consumers and include interrupt stacks explicitly |
 | Combined memory managers | 6,480 low bytes; first split has 3,576 gross candidate bytes | Specify low A20/real-mode gates, high service/data objects, transition stacks and third-party-XMS fallback |
 | COMMAND | 3,984-byte owner span versus OpenDOS's 1,312 | Separate environment/PSP and asynchronous entry state from movable resident handlers; preserve reload contracts |
-| Shared high storage | About 10,169 development HMA bytes; 16-byte UMB margin | Reserve destinations once across all owners; account for locked XMS, alignment and displaced buffers |
+| Shared high storage | About 10,169 development HMA bytes; 1,792-byte UMB margin after CDS | Reserve destinations once across all owners; account for locked XMS, alignment and displaced buffers |
 
 For each proposed object, record its current range, destination, live callers,
 address and A20 contract, low gateway cost, initialization/rollback behavior,
@@ -136,11 +197,11 @@ not copied payload sizes. Include UMB and XMS costs in the same budget. Public
 tables cannot be moved merely because high space exists; retained low mirrors
 do not count as reclamation.
 
-The checkpoint passes only when the combined net budget covers at least 4,288
+The checkpoint passes only when the combined net budget covers at least 1,984
 bytes while retaining the 47,888-byte free-UMB floor and configured resources.
 That is the retail acceptance threshold, not a ceiling on the design: identify
 further whole-object opportunities toward the OpenDOS result without promising
-its 13,632-byte lead over development as locally reclaimable storage. Resolve
+its 11,328-byte lead over combined development as locally reclaimable storage. Resolve
 boot-medium/device-topology differences before adopting its totals as a target.
 
 Then implement and validate complete object moves. Indexed accessors are a
@@ -150,6 +211,10 @@ score. Keep correctness repairs separate from savings claims. The checkpoint
 is currently **open**; the existing candidate census is not a complete layout.
 
 #### Candidate layout A: manager objects plus the whole shell service body
+
+This candidate was budgeted against the earlier 614,448-byte BIOS/table
+fixture, before fine UMB and CDS placement. Its component ceilings remain
+unvalidated; use the current joint budget above for subsequent decisions.
 
 This is a **retail-floor candidate**, not the complete DR-DOS-style layout.
 Its proposed 4,816-byte gain would still leave 8,816 bytes between development
@@ -448,8 +513,9 @@ Warm-reset reconstruction and retry-without-reservation-leak remain gates.
 
 #### Whole-system accounting and the missing placement tier
 
-The fixed development capture (`out/dma-mask-memory.vvVmy0/development.md`)
-puts COMMAND at 05A8h, after a 21,376-byte span starting at 0070h. Combining
+The combined fine-UMB/CDS capture
+(`out/umb-fine-composition-btuoykt7/results.json`, `fine-cds`)
+puts COMMAND at 0518h, after a 19,072-byte span starting at 0070h. Combining
 the linked BIOS/kernel inventories with the installed resource sizes gives:
 
 | Low owner | Bytes | Architectural treatment to evaluate |
@@ -457,27 +523,32 @@ the linked BIOS/kernel inventories with the installed resource sizes gives:
 | Selected BIOS | 5,152 | Stable device/DMA entries and state low; complete service bodies high |
 | Kernel prefix | 4,992 | Public-pointer interfaces low; explicitly owned private state high |
 | HIMEM and EMM386 | 6,480 | Small low interfaces; service bodies in HMA and protected tables in locked XMS |
-| LASTDRIVE/CDS | 2,288 | Public real-mode data: UMB candidate, not an automatic HMA candidate |
 | Interrupt stacks | 1,840 | Separate asynchronous entry/stack contract; do not move SS into HMA |
 | Sector transfer area | 512 | Retain low for firmware/legacy-device transfers |
-| Unassigned reconciliation remainder | 112 | Arena/alignment accounting to locate; no saving assumed |
-| **System-to-COMMAND span** | **21,376** | No overlapping component rows |
+| Unassigned reconciliation remainder | 96 | Arena/alignment accounting to locate; no saving assumed |
+| **System-to-COMMAND span** | **19,072** | No overlapping component rows |
 
-FILES/FCBS are already upper in this development capture and must not be
+FILES/FCBS and the complete CDS allocation are already upper and must not be
 added again. COMMAND's separate owner span is 3,984 bytes; its permanent
-program allocation is 3,632. The 112-byte remainder is a subtraction from
+program allocation is 3,632. The 96-byte remainder is a subtraction from
 the measured span, not a newly discovered disposable allocation.
 
-This makes the architectural limitation explicit: keeping CDS and interrupt
-stacks low freezes 4,128 bytes before considering any BIOS, kernel or manager
-interfaces. It is a safe initial prototype boundary, **not proof that this
-storage must remain conventional in the final design**. UMB addresses preserve
+The 1,840-byte interrupt-stack allocation remains low. That is a safe initial
+prototype boundary, **not proof that this storage must remain conventional
+in the final design**. It exceeds the current 1,792-byte free-UMB margin even
+before new arena overhead, so moving it requires another jointly budgeted
+destination or release. CDS has already consumed 2,320 upper bytes; its
+2,304-byte conventional gain is not available again. UMB addresses preserve
 ordinary real-mode segment addressing without an A20 dependency; HMA does not.
-Moving either object still requires its complete public-pointer, interrupt,
+Moving stacks and accepting high CDS still require their public-pointer, interrupt,
 DMA/backing and fallback contract. Never reduce LASTDRIVE or stack capacity
 to make the comparison fit.
 
-There is a concrete untested UMB-discovery lead. The framed OpenDOS raw map
+The following records the original UMB-discovery hypothesis; the development
+fine-mapping and CDS results below supersede its untested status and old
+capacity limits. It remains useful for the ownership and exclusion contract.
+
+The framed OpenDOS raw map
 starts upper RAM at CB00h, including an 800-byte manager allocation, and places
 the EMS frame at CC00h. Our fixed `EMM386 RAM M5` image starts its upper arena
 at CC00h and places the frame at D000h. In our sources,
