@@ -42,7 +42,8 @@ normal low/high and rebased high-CDS probes. Its repair costs 640 conventional
 bytes in the composed fixture; previous totals did not preserve equivalent
 SETVER behavior. Native ASSIGN/JOIN now use the true-version API, and the
 refreshed quick high-CDS matrix passes with their mappings intact. High-mode
-SETVER persistence now passes cold and in-process QMP-reset gates; broader
+SETVER persistence now passes cold and in-process QMP-reset gates; GRAFTABL and
+EXE2BIN also pass with their retail mappings intact. Broader
 consumer and hardware qualification remain open.
 See the SETVER ownership section below.
 
@@ -396,12 +397,12 @@ fine-UMB/CDS matrix passes with 616,112 conventional and 49,680 UMB bytes
 (`out/umb-fine-composition-ozww81et/results.json`). The low table costs 640
 bytes versus the invalid old fixture; it is a correctness cost, not a saving.
 
-Native ASSIGN and JOIN now opt into `MSG_TRUE_DOS_VERSION`: their message
+Native ASSIGN, JOIN, GRAFTABL and EXE2BIN opt into `MSG_TRUE_DOS_VERSION`: their message
 loader compares AX=3306h's true major/minor version against the existing
 expected 6.22. The helper preserves BX/DX on successful version checks, rejects an
 unsupported true-version API, and leaves other message-service clients on
-their original reported-version path. `ASSIGN.COM 5.00` and `JOIN.EXE 5.00`
-remain in the retail table; the kernel's reported-version behavior is unchanged.
+their original reported-version path. The four corresponding retail 5.00
+mappings remain in the table; the kernel's reported-version behavior is unchanged.
 
 The old ASSIGN/JOIN binaries fail ten functional checks on the repaired low
 fixture with `Incorrect DOS version`. Repairing ASSIGN alone leaves five JOIN
@@ -410,16 +411,35 @@ failures; repairing both passes all 49 low-mode checks. Logs are retained in
 passes all fifteen cases (`out/high-cds-xes8a10m/`), including 50 utility checks
 in upper mode, 50 in allocation fallback, and deliberate rejection of the low
 fallback as upper. Its I/O/reset and cache-negative cases pass as well. This
-replaces the earlier utility passes that lacked intact high-mode mappings;
-it does not cover the full A..Y LASTDRIVE sweep on this revision. SETVER
-editing persistence has its own gate below.
+replaces the earlier utility passes that lacked intact high-mode mappings.
+The repaired-kernel full matrix subsequently completed all 40 cases in
+`out/high-cds-166jbowx/`, including LASTDRIVE A..Z, I/O, allocation fallback,
+cache boundary/negative controls and ASSIGN/SUBST/JOIN. This extends the
+recorded quick-matrix baseline, not later manager-relocation qualification.
+SETVER editing persistence has its own gate below.
 
 The utility harness accepts `ASJ_ASSIGN_IMAGE` and `ASJ_JOIN_IMAGE` to install
 fresh binaries only in its private boot image. The high-CDS matrix selects
 those local builds explicitly, and its make target builds both utilities.
-Native BACKUP, GRAFTABL and other rebuilt names covered by the retail table
-still need a version-check audit; no blanket compatibility claim follows
-from the ASSIGN/JOIN repair. Further nested-execution, SHARE and redirector
+GRAFTABL.COM and EXE2BIN.EXE also matched retail 5.00 entries and rejected
+the native 6.22 kernel through their old reported-version checks. Before the
+fix, GRAFTABL's font installation failed and the combined SHARE/NLSFUNC/
+EXE2BIN suite had seven EXE2BIN failures (`Incorrect DOS version`). With the
+true-version opt-in, GRAFTABL installs/replaces the exact 437/850 font tables,
+and the combined suite passes all 20 checks in both DOS-low and DOS-high.
+The EXE2BIN checks include exact BIN/COM payloads, relocation, invalid executable
+rejection and operand errors. Installed utility binaries were compared with
+their current builds; both private input configurations and the retail table
+were preserved. Logs are in `out/setver-native-audit.BAEqDU/`.
+The read-only high-mode SETVER check also matches all 640 default bytes in
+both probes and retains the 6.22/5.00 reported-version distinction
+(`out/setver-placement-y0b8r34b/`).
+
+EDLIN, BACKUP and RECOVER are shipped as `.COM` files, whereas their retail
+table entries name `.EXE` files. Their intermediate EXEs are not the shipped
+commands; no version-check change is needed merely because those names appear
+in the table. The audit does not qualify third-party consumers of other retail
+entries. Further nested-execution, SHARE and redirector
 consumer checks remain gates before promotion. This
 repair changes no fixed-boot memory saving or destination budget.
 The fresh Z fixture also passes the complete read-only SETVER comparison and
@@ -4039,11 +4059,10 @@ HMA ownership/fallback/A20/EXEC, internal structures, asynchronous callbacks,
 FILESYS/IFSFUNC, system/process APIs, memory-manager address phases, warm reboot,
 and the 286/386/486 hardware matrix pass locally.
 
-The combined SHARE/NLSFUNC/EXE2BIN test passes its SHARE/NLSFUNC checks but has
-seven EXE2BIN failures after the forced rebuild (`Incorrect DOS version`).
-The same rebuilt utilities fail identically with the pre-change kernel copied
-from `out/emm-control-dispatch.img`; this is a separate unresolved utility/build
-issue, not a claimed passing gate for this milestone.
+The seven EXE2BIN version failures originally observed here were later traced
+to its retail SETVER mapping, not kernel table placement. The native true-version
+repair and passing DOS-low/high checks are recorded in the SETVER ownership
+section; they do not retroactively qualify untested relocation consumers.
 
 ### DR-DOS clean-room adoption register
 

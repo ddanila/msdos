@@ -23,6 +23,8 @@ Title	E2BINIT(EXE2BIN)
 ;*****************************************************************************
 
 
+; Keep EXE2BIN.EXE's retail 5.00 mapping; use the actual native DOS version.
+MSG_TRUE_DOS_VERSION EQU 1
 INCLUDE SYSMSG.INC
 MSG_UTILNAME <EXE2BIN>							;AN000;
 
