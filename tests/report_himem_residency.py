@@ -11,7 +11,7 @@ import re
 
 
 SYMBOL_RE = re.compile(
-    r"^(\w+)\s+(?:\.\s*)+(?:Byte(?:\[(\d+)\])?|D?Word)\s+([0-9A-F]+)h\s+_TEXT\s*$",
+    r"^(\w+)\s+(?:\.\s*)+(?:Byte(?:\[(\d+)\])?|D?Word(?:\[\d+\])?)\s+([0-9A-F]+)h\s+_TEXT\s*$",
     re.IGNORECASE,
 )
 NUMBER_RE = re.compile(
@@ -123,6 +123,10 @@ def check_bootstrap_layout(numbers, procedures, handle_count):
         if not start <= procedures[name] < handles:
             raise ValueError(f"bootstrap procedure outside tail: {name}")
     for name in PERMANENT_PROCEDURES:
+        if "xms_bootstrap_dispatch" in procedures and name.startswith("xms_gate_"):
+            if name in procedures:
+                raise ValueError("superseded per-service handle wrapper still exists")
+            continue
         if moved_move and name in ("xms_owner_handle", "copy_move_blocks"):
             continue
         if umb_tail and name in umb_tail:
@@ -130,6 +134,8 @@ def check_bootstrap_layout(numbers, procedures, handle_count):
         if not 0 <= procedures[name] < start:
             raise ValueError(f"permanent entry in bootstrap tail: {name}")
     staging = ("private_bootstrap_stage", "xms_stage_forward")
+    if "xms_bootstrap_dispatch" in procedures and not 0 <= procedures["xms_bootstrap_dispatch"] < start:
+        raise ValueError("bootstrap dispatch guard is not permanent")
     if any(name in procedures for name in staging):
         for name in staging:
             if not 0 <= procedures[name] < start:
@@ -149,6 +155,10 @@ def bootstrap_layout(path, handle_count):
         if match:
             procedures[match[1]] = int(match[2], 16)
     result = check_bootstrap_layout(numbers, procedures, handle_count)
+    if "xms_bootstrap_dispatch" in procedures:
+        if not (result["permanent_bytes"] <= symbols["bootstrap_handle_table"][0]
+                and symbols["bootstrap_handle_table"][0] + 16 <= numbers["HIMEM_HANDLES_OFFSET"]):
+            raise ValueError("local handle dispatch table is not in the bootstrap tail")
     if "bootstrap_umb_service" in procedures:
         if not (result["permanent_bytes"] <= symbols["umb_count"][0]
                 and symbols["umb_blocks"][0] == symbols["umb_count"][0] + 2
@@ -185,7 +195,7 @@ def paired_front_ownership(path, handle_count):
         ]
     boundaries += [
         ("High allocator transport", addresses["xms_remote_owned"], "separate one-time import from permanent high dispatch"),
-        ("Handle translation and gates", addresses.get("xms_owner_handle", addresses.get("xms_gate_query")), "high authority with no low handle mirror"),
+        ("Handle translation and gates", addresses.get("xms_bootstrap_dispatch", addresses.get("xms_owner_handle", addresses.get("xms_gate_query"))), "high authority with no low handle mirror"),
         ("Public Move validation", addresses["xms_move"], "bind real caller pointers and reject before writes"),
         ("UMB allocation and coalescing", addresses["xms_umb_request"], "move with registered table and peer operations, not independently"),
         ("Move address translation", addresses["resolve_move_address"], "share high handle lookup and physical address validation"),
@@ -232,6 +242,11 @@ def paired_front_ownership(path, handle_count):
     if "bootstrap_remote_owned" in addresses:
         boundaries = [("High allocator gate", start, "permanent freeze/publication guard; import body is bootstrap-only")
                       if name == "High allocator transport" else (name, start, contract)
+                      for name, start, contract in boundaries]
+    if "xms_bootstrap_dispatch" in addresses:
+        boundaries = [("Shared bootstrap handle dispatch", start,
+                       "one lifetime gate; local target table is bootstrap-only")
+                      if name == "Handle translation and gates" else (name, start, contract)
                       for name, start, contract in boundaries]
     if "bootstrap_umb_import" in addresses:
         boundaries = [("UMB import gate and publication state", start,

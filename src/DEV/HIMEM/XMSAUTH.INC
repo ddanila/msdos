@@ -361,6 +361,31 @@ endif
 
 ; Public entries stay in the permanent prefix. Bootstrap bodies are reached
 ; only before high ownership is attempted and can then be discarded together.
+ifdef HIMEM_COMMON_XMS_TEST
+; The public dispatcher already supplies AX=08h..0Fh. One lifetime gate owns
+; all bootstrap handle calls; there is no permanent wrapper per local body.
+xms_bootstrap_dispatch proc near
+        push ax
+        call xms_remote_owned
+        jc bootstrap_dispatch_local
+        add sp,2
+        ret
+bootstrap_dispatch_local:
+        pop ax
+ifdef HIMEM_BOOTSTRAP_STAGE_TEST
+        cmp word ptr [bootstrap_stage_entry+2],0
+        je @F
+        mov ah,al
+        call xms_stage_forward
+        ret
+@@:
+endif
+        mov si,ax
+        sub si,8
+        shl si,1
+        jmp word ptr cs:[bootstrap_handle_table+si]
+xms_bootstrap_dispatch endp
+else
 XMS_FRONT macro entry_name, bootstrap_target, operation
         local local_owner
 entry_name proc near
@@ -390,3 +415,4 @@ endm
         XMS_FRONT xms_gate_unlock,xms_unlock,0dh
         XMS_FRONT xms_gate_info,xms_handle_info,0eh
         XMS_FRONT xms_gate_reallocate,xms_reallocate,0fh
+endif

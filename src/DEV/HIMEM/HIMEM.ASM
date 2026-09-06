@@ -465,8 +465,13 @@ xms_table:
         dw      xms_global_enable, xms_global_disable
         dw      xms_local_enable, xms_local_disable, xms_a20_query
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+ifdef HIMEM_COMMON_XMS_TEST
+        dw      xms_bootstrap_dispatch, xms_bootstrap_dispatch, xms_bootstrap_dispatch, xms_move
+        dw      xms_bootstrap_dispatch, xms_bootstrap_dispatch, xms_bootstrap_dispatch, xms_bootstrap_dispatch
+else
         dw      xms_gate_query, xms_gate_allocate, xms_gate_free, xms_move
         dw      xms_gate_lock, xms_gate_unlock, xms_gate_info, xms_gate_reallocate
+endif
 else
         dw      xms_query_free, xms_allocate, xms_free, xms_move
         dw      xms_lock, xms_unlock, xms_handle_info, xms_reallocate
@@ -528,7 +533,12 @@ else
         .386
 xms_query_any_free proc near
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+ifdef HIMEM_COMMON_XMS_TEST
+        mov     ax,8
+        call    xms_bootstrap_dispatch
+else
         call    xms_gate_query
+endif
 else
 ifdef HIMEM_PROTECTED_OWNER_TEST
 ifndef HIMEM_OWNER_QUERY_2_ONLY
@@ -577,7 +587,12 @@ xms_allocate_any proc near
         shr     eax, 16
         jnz     xms_no_memory
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+ifdef HIMEM_COMMON_XMS_TEST
+        mov     ax,9
+        jmp     xms_bootstrap_dispatch
+else
         jmp     xms_gate_allocate
+endif
 else
         jmp     xms_allocate
 endif
@@ -586,7 +601,12 @@ xms_allocate_any endp
 xms_extended_handle_info proc near
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
         push cx
+ifdef HIMEM_COMMON_XMS_TEST
+        mov ax,0eh
+        call xms_bootstrap_dispatch
+else
         call xms_gate_info
+endif
         pop cx
         or ax,ax
         jz short xms3_remote_info_done
@@ -617,7 +637,12 @@ xms_reallocate_any proc near
         shr     eax, 16
         jnz     xms_no_memory
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
+ifdef HIMEM_COMMON_XMS_TEST
+        mov     ax,0fh
+        jmp     xms_bootstrap_dispatch
+else
         jmp     xms_gate_reallocate
+endif
 else
         jmp     xms_reallocate
 endif
@@ -888,6 +913,8 @@ ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
         db (16-(($-device_header) MOD 16)) MOD 16 dup (0)
 bootstrap_owner_start label byte
 ifdef HIMEM_COMMON_XMS_TEST
+bootstrap_handle_table dw xms_query_free,xms_allocate,xms_free,bootstrap_move
+        dw xms_lock,xms_unlock,xms_handle_info,xms_reallocate
         include XMSIMPORTBODY.INC
         include XMSUMBIMPORT.INC
         include XMSMOVEBODY.INC

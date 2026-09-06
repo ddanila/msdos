@@ -14,11 +14,13 @@ class BootstrapLayoutTests(unittest.TestCase):
             "umb_remote_sequence . . DWord 00001234h _TEXT",
             "umb_remote_recovered . . Word 00001238h _TEXT",
             "umb_remote_packet . . Byte[24] 0000123Ah _TEXT",
+            "bootstrap_handle_table . . Word[4] 00002000h _TEXT",
         ))
         symbols, _ = parse_symbols(path)
         self.assertEqual(symbols["umb_remote_sequence"][0], 0x1234)
         self.assertEqual(symbols["umb_remote_recovered"][0], 0x1238)
         self.assertEqual(symbols["umb_remote_packet"], (0x123a, 24))
+        self.assertEqual(symbols["bootstrap_handle_table"][0], 0x2000)
 
     def setUp(self):
         self.numbers = dict(HIMEM_PERMANENT_BYTES=2048, HIMEM_BOOTSTRAP_CODE_BYTES=1024,
@@ -97,6 +99,16 @@ class BootstrapLayoutTests(unittest.TestCase):
                              ("umb_remote_send", 512), ("umb_remote", 2304)):
             with self.subTest(name=name), self.assertRaises(ValueError):
                 check_bootstrap_layout(self.numbers, dict(procedures, **{name: offset}), 32)
+
+    def test_shared_dispatch_replaces_individual_permanent_wrappers(self):
+        procedures = {name: offset for name, offset in self.procedures.items()
+                      if not name.startswith("xms_gate_")}
+        procedures["xms_bootstrap_dispatch"] = 512
+        check_bootstrap_layout(self.numbers, procedures, 32)
+        with self.assertRaises(ValueError):
+            check_bootstrap_layout(self.numbers, dict(procedures, xms_bootstrap_dispatch=2304), 32)
+        with self.assertRaises(ValueError):
+            check_bootstrap_layout(self.numbers, dict(procedures, xms_gate_query=768), 32)
 
 
 class PairedFrontTests(unittest.TestCase):
