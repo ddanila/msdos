@@ -21,6 +21,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--image", type=Path, default=ROOT / "out/msdos622-vc405-current-memory.img")
     parser.add_argument("--retail", type=Path, default=ROOT / "out/msdos622-original-vc405.img")
+    parser.add_argument("--high-cds", action="store_true", help="also measure complete CDS upper placement")
     args = parser.parse_args()
     for path in (args.image, args.retail):
         if not path.is_file():
@@ -34,6 +35,9 @@ def main():
     build_bios(work / "bios", early=True, tail_body=True, rebase=True, compact=True)
     binaries = {"coarse": build_emm(work / "emm-coarse", False),
                 "fine": build_emm(work / "emm-fine", True, "-DUMB_SUBPAGE_MAPPING")}
+    if args.high_cds:
+        build_bios(work / "bios-cds", early=True, tail_body=True, rebase=True, compact=True, high_cds=True)
+        binaries["fine-cds"] = binaries["fine"]
     assert binaries["coarse"].read_bytes() == (ROOT / "src/MEMM/MEMM/EMM386.EXE").read_bytes()
     env = dict(os.environ, MTOOLS_SKIP_CHECK="1", MTOOLS_NO_VFAT="1")
     inputs = {}
@@ -42,7 +46,7 @@ def main():
         shutil.copyfile(args.image, image)
         spec = f"{image}@@{partition_offset(image)}"
         files = {
-            "IO.SYS": work / "bios/IO.SYS",
+            "IO.SYS": work / ("bios-cds/IO.SYS" if name == "fine-cds" else "bios/IO.SYS"),
             "MSDOS.SYS": ROOT / "src/DOS/MSDOS.SYS",
             "COMMAND.COM": ROOT / "src/CMD/COMMAND/COMMAND.COM",
             "DOS/COMMAND.COM": ROOT / "src/CMD/COMMAND/COMMAND.COM",
@@ -62,7 +66,7 @@ def main():
     for name, image in inputs.items():
         results[name] = parse_capture(*capture(name, image.resolve(), work, probe))
         print(f"Captured {name}: {results[name]['largest']} conventional, {results[name]['upper_free']} UMB", flush=True)
-    for name in ("coarse", "fine"):
+    for name in binaries:
         (work / f"{name}-vs-retail.md").write_text(
             report(results[name], results["retail"], sha(config), sha(vc)) + "\n")
     (work / "results.json").write_text(json.dumps(dict(
@@ -75,6 +79,11 @@ def main():
     assert results["coarse"]["upper_free"] == 47904, results["coarse"]
     assert results["fine"]["largest"] == results["coarse"]["largest"], results
     assert results["fine"]["upper_free"] - results["coarse"]["upper_free"] == 4096, results
+    if args.high_cds:
+        assert results["fine-cds"]["largest"] - results["fine"]["largest"] == 2304, results
+        assert results["fine"]["upper_free"] - results["fine-cds"]["upper_free"] == 2320, results
+        assert results["fine-cds"]["upper_free"] >= results["retail"]["upper_free"], results
+        print("PASS: complete CDS move reclaims 2304 conventional bytes within the retail UMB floor", flush=True)
     print("PASS: combined layout retains conventional memory and gains 4096 free UMB bytes", flush=True)
 
 

@@ -28,13 +28,19 @@ now a measured destination budget for complete DOS-data placement, not a
 conventional-memory gain. It remains development-only; see the combined VC
 checkpoint below for evidence and scope.
 
+Adding complete CDS placement to that fine-mapping fixture now leaves
+**616,752 conventional bytes and 49,680 free UMB bytes**. The conventional gap
+to retail is 1,984 bytes, with a 1,792-byte UMB margin. This is a measured
+development result, not production promotion or completion of the DR-DOS-style
+layout. The COMMAND critical-body reclamation variant remains separate.
+
 Execution order (supersedes older implementation queues below):
 
 1. Complete the joint resident-layout checkpoint below before extending any
    individual relocation prototype. Preserve pending access-boundary work as
-   preparation, not as a memory-saving result. Include the separate 4 KiB UMB
-   eligibility investigation below: the current 16 KiB discovery granularity
-   may be hiding a destination for complete public DOS-data allocations.
+   preparation, not as a memory-saving result. Include measured fine-UMB and
+   CDS placement in the joint budget; do not count the newly consumed UMB
+   capacity again or replace remaining compatibility gates with size checks.
 2. Finish acceptance of the bulk BIOS/table relocation, including SHARE and
    redirector consumers. Distinguish pre-existing low-mode failures from
    relocation regressions; neither is a passing acceptance result.
@@ -46,7 +52,8 @@ Execution order (supersedes older implementation queues below):
 4. Share HMA capacity between BIOS, state, buffers, and COMMAND. At fifteen
    buffers, the calculated normal post-COMMAND tail is 15,389 bytes and the development
    BIOS reservation costs 5,220 more. Coarse development has only 16 bytes of
-   free-UMB margin; combined fine mapping raises this to 4,112. Charge new
+   free-UMB margin; combined fine mapping raises this to 4,112, and CDS placement
+   consumes 2,320 of those bytes, leaving 1,792. Charge new
    allocations and their arena overhead against the selected variant's budget.
 5. Revisit COMMAND as a complete resident-handler/state and reload-interface
    redesign after the system placement budget. Keep isolated HIMEM/EMM386
@@ -681,18 +688,55 @@ Repeat with `--umb-span 32` for the larger allocation.
 That boot fixture uses automatic frame placement; the separate VC checkpoint
 retains the fixed `RAM M5` configuration. Keep those scopes distinct.
 
-The next complete DOS-data object is the 2,288-byte LASTDRIVE=Z CDS array.
-`SYSINIT1:BUF1` already replaces temporary CDS ownership with a newly allocated
-array, publishes SYSI_CDS/NCDS and initializes it through FOOSET before stack
-allocation. Evaluate high placement at this existing ownership transition,
-not a late move after applications can cache the final pointer. Include its
-DEVMARK, upper arena header, authoritative SYSI_CDS and any cached THISCDS
-binding, DPB links, low allocation rewind, and allocation-failure fallback.
-The new margin can cover the array's payload, but only linked/runtime boundary
-checks may establish its full cost and coalesced conventional gain. Preserve
-all LASTDRIVE values and test redirector, SUBST/JOIN and DPB consumers before
-promotion. Do not keep the entire CDS array low merely because it cannot use
-HMA, or count its payload as a saving before its former low span is released.
+CDS placement uses SYSINIT1:BUF1's existing transition from temporary CDSs to
+its final FOOSET-initialized array, before stack allocation. The implementation
+and measured ownership costs follow.
+
+##### Development whole-CDS placement
+
+`BIOS_HIGH_CDS` implements this transition after FOOSET initializes the final
+array. It validates the newly allocated span, obtains an upper-only allocation,
+restores the caller's allocation policy and UMB-link state, then copies the
+complete array and DEVMARK. Publication updates SYSI_CDS and a THISCDS cache
+that still addresses this array, marks the upper arena system-owned, and
+rewinds the low allocation cursor before stacks are constructed. No live low
+duplicate is retained. The builder obtains the THISCDS offset from the current
+DOS map rather than hard-coding an internal address.
+
+DOS=LOW, absent UMBs and rejected allocation retain the normal low array and
+its boundary. `BIOS_CDS_FAIL_ALLOC` exercises allocation failure. The normal
+BIOS image remains byte-identical without the development flag.
+
+| Fixed fine-UMB VC image | Before CDS placement | With CDS placement |
+| --- | ---: | ---: |
+| Largest conventional block | 614,448 | 616,752 |
+| Free UMB | 52,000 | 49,680 |
+| Conventional gap to retail | 4,288 | 1,984 |
+| UMB margin above retail | 4,112 | 1,792 |
+
+The **2,304-byte conventional gain** comprises the 2,288-byte LASTDRIVE=Z array
+and its 16-byte DEVMARK. Upper placement costs 2,320 bytes including its MCB.
+Thus the whole old allocation joins the largest block; the payload is not
+being mistaken for net savings. The system-to-COMMAND span is now 19,072 bytes,
+only 80 above retail; COMMAND's separate 880-byte span difference and the
+1,024-byte ceiling difference explain the remaining 1,984 bytes. These are
+accounting differences, not three byte-harvesting quotas.
+
+Reproduce with `make test-high-cds-qemu test-high-cds-composition`. The first
+target checks every LASTDRIVE letter A..Z (respecting the physical-drive
+minimum), public CDS count/location and exact system-owned allocation size,
+system/FCB and public DPB/device-graph probes, 12/32 KiB upper I/O with EMS/DMA
+and reset, allocation failure across reset, and bare-low/HIMEM-low/HIMEM-high
+fallbacks. `--quick` on its Python runner skips A..Y, not compatibility gates.
+The VC target retains both no-CDS controls and retail with unchanged startup
+configuration and VC binary.
+
+Promotion remains open: qualify SUBST/JOIN and redirector consumers on the
+actual high-CDS image, deliberately exercise cached-pointer rebasing, test
+policy-restoration failure, and complete the fine-UMB and BIOS compatibility
+gates. The observed framed OpenDOS block is still 11,328 bytes larger, subject
+to the comparison caveats above. Continue the whole-system architecture work;
+retail is the acceptance floor, not proof of a DR-DOS-equivalent resident layout.
 
 #### Retained BIOS partition
 

@@ -70,6 +70,9 @@ def main():
     parser.add_argument("--buffers", type=int, default=15, help="verify actual configured buffer count (requires --rebase)")
     parser.add_argument("--files", type=int, default=20, help="FILES count for table-placement tests (8..255)")
     parser.add_argument("--fail-table-allocation", action="store_true", help="force the development UMB allocation to fail")
+    parser.add_argument("--high-cds", action="store_true", help="relocate the complete final CDS allocation to UMB")
+    parser.add_argument("--fail-cds-allocation", action="store_true")
+    parser.add_argument("--lastdrive", default="Z", choices=list("ABCDEFGHIJKLMNOPQRSTUVWXYZ"))
     parser.add_argument("--upper-access-control", action="store_true", help="require rejection of a corrupted table snapshot after EMS cleanup")
     parser.add_argument("--share", action="store_true", help="run SHARE/NLSFUNC compatibility contracts before the table probes")
     parser.add_argument("--ansi-high", action="store_true", help="exercise real DEVICEHIGH ANSI residency and low fallback")
@@ -87,6 +90,12 @@ def main():
     parser.add_argument("--fcb-keep", type=int, choices=(0, 1), default=0,
                         help="FCBS=4 keep count; 1 prevents SHARE replacing the boot cache")
     args = parser.parse_args()
+    if args.high_cds and not args.rebase:
+        parser.error("--high-cds requires --rebase")
+    if args.fail_cds_allocation and not args.high_cds:
+        parser.error("--fail-cds-allocation requires --high-cds")
+    if args.lastdrive != "Z" and not args.rebase:
+        parser.error("--lastdrive requires --rebase")
     if args.emm386_image and not args.emm386_image.is_file():
         parser.error("--emm386-image must name an existing file")
     if args.reverse_umb_backing and (not args.umb_read or args.emm386_image):
@@ -137,7 +146,8 @@ def main():
         args.emm386_image = fixture / "MEMM/MEMM/EMM386.EXE"
         print(f"Diagnostic EMM386 (reversed backing): {args.emm386_image}", flush=True)
     manifest = build(scratch, early=args.early, tail_body=args.tail_body, scan=args.scan, rebase=args.rebase, compact=args.compact,
-                     reservation_limit=0x10 if args.fail_reservation else 0xfff0, fail_tables=args.fail_table_allocation)
+                     reservation_limit=0x10 if args.fail_reservation else 0xfff0, fail_tables=args.fail_table_allocation,
+                     high_cds=args.high_cds, fail_cds=args.fail_cds_allocation)
     high_manifest = build_high(scratch / "high", scratch)
     if args.rebase:
         layout = scratch / "public-layout.bin"
@@ -190,7 +200,7 @@ def main():
     if args.rebase:
         # Exercise CONFIG parsing after the pointer move, including its cached
         # DOS NLS/DBCS table addresses. Default values would hide lost directives.
-        variants = {name: (high, config + f"LASTDRIVE=Z\r\nFILES={args.files}\r\nFCBS=4,{args.fcb_keep}\r\nBUFFERS={args.buffers}\r\n")
+        variants = {name: (high, config + f"LASTDRIVE={args.lastdrive}\r\nFILES={args.files}\r\nFCBS=4,{args.fcb_keep}\r\nBUFFERS={args.buffers}\r\n")
                     for name, (high, config) in variants.items()}
     if ansi_enabled:
         directive = "DEVICEHIGH" if args.ansi_high else "DEVICE"
@@ -211,7 +221,9 @@ def main():
         options = ["-DACTIVATE_HIGH"] if name.startswith("live-") else []
         if args.rebase:
             options.append(f"-DEXPECT_REBASE={int(high and not args.fail_reservation)}")
-            options.append("-DEXPECT_CDS=26")
+            options.append(f"-DEXPECT_CDS={max(2, ord(args.lastdrive) - ord('A') + 1)}")
+            if args.high_cds:
+                options.append(f"-DEXPECT_CDS_UPPER={int(name == 'emm-high' and not args.fail_cds_allocation)}")
             options.append(f"-DEXPECT_BUFFERS={args.buffers}")
             fields = dict(zip(names, values))
             sft_paras = ((args.files - 5) * fields['SF_ENTRY_SIZE'] + fields['SFTABLE'] + 15) // 16 + 1

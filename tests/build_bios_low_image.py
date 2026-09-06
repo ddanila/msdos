@@ -12,7 +12,11 @@ from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False):
+def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False):
+    if high_cds and not rebase:
+        raise ValueError("high CDS requires the development rebased layout")
+    if fail_cds and not high_cds:
+        raise ValueError("CDS allocation failure requires high CDS")
     if fail_tables and not rebase:
         raise ValueError("table allocation failure control requires rebasing")
     if compact and not rebase:
@@ -31,6 +35,9 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         if rebase:
             _, dos_symbols = parse_map(ROOT / "src/DOS/MSDOS.MAP")
             dos_symbols = {name.upper(): value for name, value in dos_symbols.items()}
+            if high_cds:
+                (output / "CDSUPPER_DEFS.INC").write_text(
+                    f"CDS_THISCDS EQU {dos_symbols['THISCDS']}\n")
             names = {"LOW_OWNER": "HMA_LOW_SEGMENT", "LOW_END": "DOS_LOW_GATE_END",
                      "INDOS": "INDOS", "DRIVER_ENTRY": "HMA_DRIVER_TRAMPOLINE_ENTRY",
                      "LOW_DPBS": "HMA_LOW_DPBS", "CDSCOUNT": "CDSCOUNT", "CDSADDR": "CDSADDR",
@@ -112,6 +119,10 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         options += " -DBIOS_BOOT_SCAN=1"
     if rebase:
         options += " -DBIOS_BOOT_REBASE=1"
+    if high_cds:
+        options += " -DBIOS_HIGH_CDS=1"
+    if fail_cds:
+        options += " -DBIOS_CDS_FAIL_ALLOC=1"
     if fail_tables:
         options += " -DBIOS_TABLES_FAIL_ALLOC=1"
     if compact:
@@ -162,7 +173,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
                 "sha256": hashlib.sha256(image).hexdigest(), "symbols": symbols,
                 "high_slot_words": sorted(slot_words), "early_boot_installer": early,
                 "reservation_limit": reservation_limit, "tail_body": tail_body,
-                "pointer_census": scan, "low_prefix_rebase": rebase, "arena_compaction": compact}
+                "pointer_census": scan, "low_prefix_rebase": rebase, "arena_compaction": compact,
+                "high_cds": high_cds, "fail_cds": fail_cds}
     if early:
         # Init-segment growth must not invalidate any embedded low operands.
         for name, value in seed["symbols"].items():
@@ -188,6 +200,9 @@ if __name__ == "__main__":
     parser.add_argument("--scan", action="store_true", help="capture activation-time ownership on QEMU debug port")
     parser.add_argument("--rebase", action="store_true", help="move and poison the old low DOS prefix")
     parser.add_argument("--compact", action="store_true", help="coalesce the first-HIMEM boot allocation after rebasing")
+    parser.add_argument("--high-cds", action="store_true")
+    parser.add_argument("--fail-cds-allocation", action="store_true")
     args = parser.parse_args()
     build(args.output, early=args.early, tail_body=args.tail_body,
-          scan=args.scan, rebase=args.rebase, compact=args.compact)
+          scan=args.scan, rebase=args.rebase, compact=args.compact,
+          high_cds=args.high_cds, fail_cds=args.fail_cds_allocation)

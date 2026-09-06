@@ -19,6 +19,32 @@ org 100h
 %define CHECK_RAW_DISK
 %endif
 start:
+%ifdef EXPECT_CDS_UPPER
+    mov ah,52h
+    int 21h
+    mov al,[es:bx+PUB_SYSI_NCDS]
+    cmp al,EXPECT_CDS
+    jne fail
+    les di,[es:bx+PUB_SYSI_CDS]
+    or di,di
+    jnz fail
+    mov ax,es
+%if EXPECT_CDS_UPPER
+    cmp ax,0a000h
+    jb fail
+    cmp ax,0f000h
+    jae fail
+    sub ax,2                   ; CDS follows a DEVMARK and an upper MCB
+    mov es,ax
+    cmp word [es:1],8
+    jne fail
+    cmp word [es:3],(EXPECT_CDS * PUB_CURDIRLEN + 15) / 16 + 1
+    jne fail
+%else
+    cmp ax,0a000h
+    jae fail
+%endif
+%endif
 %ifdef EXPECT_CDS
     mov ah,19h
     int 21h

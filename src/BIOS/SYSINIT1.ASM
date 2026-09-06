@@ -1700,6 +1700,12 @@ $$IF16:
 ;------------------------------------------------------------------------------
 BUF1:
 	INVOKE	ROUND
+	IFDEF BIOS_HIGH_CDS
+	push	ax
+	mov	ax,cs:[MemHi]
+	mov	cs:[CdsLowStart],ax
+	pop	ax
+	ENDIF
 	push	ax				;AN005;
 	mov	ax, DEVMARK_CDS 		;AN005;='L'
 	call	SetDevMark			;AN005;
@@ -1727,6 +1733,9 @@ GOTNCDS:
 ASSUME	DS:NOTHING
 	LES	DI,ES:[DI.SYSI_CDS]
 	CALL	FOOSET
+	IFDEF BIOS_HIGH_CDS
+	call	MoveBootCdsUpper
+	ENDIF
 
 ;------------------------------------------------------------------------------
 ; Allocate Space for Internal Stack
@@ -2574,6 +2583,9 @@ DoEMS	endp
 ; maximum-sector conventional area remains for legacy block-driver transfers.
 	IFDEF BIOS_BOOT_REBASE
 	INCLUDE TABLEUMB.INC
+	IFDEF BIOS_HIGH_CDS
+	INCLUDE CDSUPPER.INC
+	ENDIF
 	ENDIF
 
 Set_HMA_Buffers proc near

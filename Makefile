@@ -281,6 +281,13 @@ test-umb-subpage-mapping-qemu:
 test-umb-subpage-composition:
 	python3 tests/test_umb_subpage_composition.py
 
+.PHONY: test-high-cds-qemu test-high-cds-composition
+test-high-cds-qemu:
+	python3 tests/test_high_cds_qemu.py
+
+test-high-cds-composition:
+	python3 tests/test_umb_subpage_composition.py --high-cds
+
 test-dos-bios-residency: dos bios
 	python3 tests/report_dos_bios_residency.py --check \
 		src/DOS/MSDOS.MAP src/BIOS/msBIO.map

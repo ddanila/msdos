@@ -104,7 +104,7 @@ check_public_graph:
     cmp ax,dx
     jne fail
 %endif
-    cmp byte [es:bx+PUB_SYSI_NCDS],26
+    cmp byte [es:bx+PUB_SYSI_NCDS],EXPECT_CDS
     jne fail
     xor cx,cx
     mov cl,[es:bx+PUB_SYSI_NUMIO]
