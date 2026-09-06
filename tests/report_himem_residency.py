@@ -114,11 +114,14 @@ def check_bootstrap_layout(numbers, procedures, handle_count):
     moved_move = "bootstrap_move" in procedures
     move_tail = ("bootstrap_move", "resolve_move_address", "copy_move_blocks", "kb_to_physical") if moved_move else ()
     import_tail = ("bootstrap_remote_owned",) if "bootstrap_remote_owned" in procedures else ()
-    for name in (*BOOTSTRAP_PROCEDURES, *move_tail, *import_tail):
+    umb_tail = ("bootstrap_umb_service", "xms_umb_request", "xms_umb_release") if "bootstrap_umb_service" in procedures else ()
+    for name in (*BOOTSTRAP_PROCEDURES, *move_tail, *import_tail, *umb_tail):
         if not start <= procedures[name] < handles:
             raise ValueError(f"bootstrap procedure outside tail: {name}")
     for name in PERMANENT_PROCEDURES:
         if moved_move and name in ("xms_owner_handle", "copy_move_blocks"):
+            continue
+        if umb_tail and name in umb_tail:
             continue
         if not 0 <= procedures[name] < start:
             raise ValueError(f"permanent entry in bootstrap tail: {name}")
@@ -135,13 +138,19 @@ def check_bootstrap_layout(numbers, procedures, handle_count):
 
 
 def bootstrap_layout(path, handle_count):
-    _, numbers = parse_symbols(path)
+    symbols, numbers = parse_symbols(path)
     procedures = {}
     for line in path.read_text(encoding="latin-1").splitlines():
         match = PROCEDURE_RE.match(line)
         if match:
             procedures[match[1]] = int(match[2], 16)
-    return check_bootstrap_layout(numbers, procedures, handle_count)
+    result = check_bootstrap_layout(numbers, procedures, handle_count)
+    if "bootstrap_umb_service" in procedures:
+        if not (result["permanent_bytes"] <= symbols["umb_count"][0]
+                and symbols["umb_blocks"][0] == symbols["umb_count"][0] + 2
+                and symbols["umb_blocks"][0] + 128 <= numbers["HIMEM_HANDLES_OFFSET"]):
+            raise ValueError("canonical UMB records are not in the bootstrap tail")
+    return result
 
 
 def paired_front_ownership(path, handle_count):
@@ -179,7 +188,7 @@ def paired_front_ownership(path, handle_count):
         ("Protected copy entry", addresses["copy_move_blocks"], "preserve OFF/AUTO transition and unavailable-backend failure"),
         ("Physical address helper", addresses["kb_to_physical"], "service helper, not an independently budgeted relocation"),
         ("UMB records", addresses["umb_count"], "one authoritative register/allocate/unregister table"),
-        ("Front alignment", addresses["umb_blocks"] + symbols["umb_blocks"][1], "charge final packing, not a payload owner"),
+        ("Front alignment", addresses.get("himem_front_end", addresses["umb_blocks"] + symbols["umb_blocks"][1]), "charge final packing, not a payload owner"),
         ("end", layout["permanent_bytes"], ""),
     ]
     if "umb_remote_state" in addresses:
@@ -204,13 +213,24 @@ def paired_front_ownership(path, handle_count):
                                   "shared input snapshot, serialization and sequenced results"))
         name, start, _ = boundaries[index + 1]
         boundaries[index + 1] = (name, start, "bootstrap-only owner; common peer input uses the shared frame")
+    for symbol, name in (("umb_boot_import_tries", "Bootstrap owner completion"),
+                         ("umb_local_call", "Bootstrap UMB gate")):
+        if symbol in addresses:
+            index = next(i for i, row in enumerate(boundaries) if row[0] == "UMB records")
+            boundaries.insert(index, (name, addresses[symbol], "retain lifetime checks; bootstrap body/state are separately owned"))
     already_retired = set()
+    if "bootstrap_umb_service" in addresses:
+        already_retired |= {"Private UMB registration", "UMB allocation and coalescing", "UMB records"}
+        boundaries = [("Private UMB gates", start, "public wrapper; local bodies and records belong to bootstrap")
+                      if name == "Private UMB registration" else (name, start, contract)
+                      for name, start, contract in boundaries
+                      if name not in {"UMB allocation and coalescing", "UMB records"}]
     if "bootstrap_remote_owned" in addresses:
         boundaries = [("High allocator gate", start, "permanent freeze/publication guard; import body is bootstrap-only")
                       if name == "High allocator transport" else (name, start, contract)
                       for name, start, contract in boundaries]
     if "bootstrap_move" in addresses:
-        already_retired = {"Public Move validation", "Move address translation",
+        already_retired |= {"Public Move validation", "Move address translation",
                            "Protected copy entry", "Physical address helper"}
         boundaries = [("Public Move gate", start, "bootstrap/high lifetime selection; never enter retired storage")
                       if name == "Public Move validation" else (name, start, contract)

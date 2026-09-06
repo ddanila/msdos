@@ -42,28 +42,6 @@ import_gate_call:
         jc import_gate_call_unavailable
         add sp,4
         pop bp
-ifdef HIMEM_AUTHORITATIVE_POISON_TEST
-        cmp [owner_query_active],2
-        jne import_gate_done
-ifdef HIMEM_BOOTSTRAP_STAGE_TEST
-        cmp [bootstrap_detached],0
-        jne import_gate_done
-endif
-        ; No frame remains in the original tail when it is poisoned here.
-        push ax
-        push es
-        push ds
-        pop es
-        mov di,offset bootstrap_owner_start
-        mov cx,[handle_limit]
-        imul cx,HANDLE_SIZE
-        add cx,offset handles-offset bootstrap_owner_start
-        mov al,0f4h
-        cld
-        rep stosb
-        pop es
-        pop ax
-endif
 import_gate_done:
         popf
         clc

@@ -86,6 +86,10 @@ XCP_STAGE_RETARGET equ 0e709h
 ; calls return 8Eh without accessing the stage or attempting high publication.
 ; Successful E709h retarget or pre-publication E708h restore clears the freeze.
 XCP_STAGE_FREEZE equ 0e70ah
+; Finish both common owners before the loader releases LAST. Same signature,
+; version and DI=0 as layout discovery; AX=layout reply only after both owners
+; are confirmed. Failed/unknown publication retains the stage and returns 0.
+XCP_BOOTSTRAP_FINISH equ 0e70bh
 ; OWNER_QUERY uses AH=87h, ES:SI -> 'XOWN', then word version=1, handle
 ; limit, pool KiB, output largest/total KiB, then up to 128 five-byte records.
 ; The trusted development peer backs the full 654-byte packet below its

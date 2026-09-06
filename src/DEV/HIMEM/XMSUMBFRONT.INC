@@ -45,7 +45,12 @@ endif
         mov ax,10h
         call umb_remote
         jnc umb_gate_done
+ifdef HIMEM_COMMON_XMS_TEST
+        mov ax,10h
+        jmp umb_local_call
+else
         jmp xms_umb_request
+endif
 umb_gate_request endp
 umb_gate_release proc near
 ifdef HIMEM_UMB_HANDOFF_LOCAL_TEST
@@ -55,7 +60,12 @@ endif
         mov ax,11h
         call umb_remote
         jnc umb_gate_done
+ifdef HIMEM_COMMON_XMS_TEST
+        mov ax,11h
+        jmp umb_local_call
+else
         jmp xms_umb_release
+endif
 umb_gate_release endp
 umb_gate_done:
         ret
@@ -146,7 +156,19 @@ umb_remote_confirm_high:
         jne umb_remote_prepare_failed
         cmp word ptr [umb_remote_packet+14],1
         jne umb_remote_prepare_failed
+ifdef HIMEM_COMMON_XMS_TEST
+        push es
+ifdef HIMEM_BOOTSTRAP_STAGE_TEST
+        cmp word ptr [bootstrap_stage_entry+2],0
+        je @F
+        mov es,word ptr [bootstrap_stage_entry+2]
+@@:
+endif
+        mov ax,es:[umb_count]
+        pop es
+else
         mov ax,[umb_count]
+endif
         cmp word ptr [umb_remote_packet+12],ax
         jne umb_remote_prepare_failed
         mov [umb_remote_state],2
@@ -298,10 +320,38 @@ umb_remote_send proc near
 ifdef HIMEM_UMB_RESULTS_TEST
         mov word ptr [umb_remote_packet+8],0
 endif
+ifdef HIMEM_COMMON_XMS_TEST
+        push es
+        push di
+        push cx
+ifdef HIMEM_BOOTSTRAP_STAGE_TEST
+        cmp word ptr [bootstrap_stage_entry+2],0
+        je @F
+        mov es,word ptr [bootstrap_stage_entry+2]
+@@:
+endif
+        mov si,offset umb_remote_packet
+        mov di,si
+        mov cx,24
+        cld
+        rep movsb
+endif
         mov si,offset umb_remote_packet
         mov ah,87h
 ifdef HIMEM_COMMON_XMS_TEST
         call xms_common_send
+        pushf
+        mov si,offset umb_remote_packet
+        mov cx,24
+@@:
+        mov al,es:[si]
+        mov [si],al
+        inc si
+        loop @B
+        popf
+        pop cx
+        pop di
+        pop es
 else
         int 15h
 endif

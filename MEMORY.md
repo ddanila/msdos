@@ -14,6 +14,14 @@ Report UMB and application XMS costs alongside the gain. Complete BIOS and
 COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
+The current UMB-bootstrap retirement candidate is measured at
+**617,136 conventional / 49,680 free UMB bytes** in
+`out/umb-fine-composition-_1kck3uo/`. It recovers 304 conventional bytes from
+the previous paired candidate, but remains 800 below the selected control and
+1,600 below retail; its additional application-XMS cost remains 5,120 bytes.
+This does **not** meet the delivery gate. Finish provider retirement and packing,
+then demonstrate the joint BIOS/COMMAND placement in that same composed image.
+
 The selected composed development control (complete high EMM tables plus fine
 UMB mapping and high CDS) leaves **617,936 conventional bytes and 49,680 free
 UMB bytes**. Retail leaves 618,736 and 47,888: the remaining conventional gap
@@ -1905,23 +1913,23 @@ unstaged run also tests return-before-poison in the original image. Forcing the
 retired handle route fails with guest 35. Seventeen layout and 35 parser tests
 pass, and the older non-common cancellation fixture still passes.
 
-**Composed provider measurement:** `out/umb-fine-composition-aexbt86k/`
+**Composed provider measurement:** `out/umb-fine-composition-_1kck3uo/`
 boots the paired provider with the development BIOS, complete high EMM tables,
 fine UMB mapping, high CDS and unchanged COMMAND/configuration/VC 4.05.
 All six captures complete, including freshly reproduced control and retail.
 
 | Fixed-config measurement | Selected control | Paired candidate | Retail 6.22 |
 | --- | ---: | ---: | ---: |
-| VC largest conventional block | 617,936 | 616,832 | 618,736 |
+| VC largest conventional block | 617,936 | 617,136 | 618,736 |
 | VC free UMB | 49,680 | 49,680 | 47,888 |
-| Low HIMEM + EMM allocation | 4,656 | 5,760 | 5,232 |
+| Low HIMEM + EMM allocation | 4,656 | 5,456 | 5,232 |
 | Free XMS reported by MEM | 6,803,456 | 6,798,336 | Not compared here |
 
-The candidate loses **1,104 conventional bytes**, exactly its additional low
+The candidate loses **800 conventional bytes**, exactly its additional low
 manager allocation, and **5,120 application XMS bytes** versus the control.
-It is **1,904 conventional bytes below retail**. Compared with the preceding
-paired capture (`out/umb-fine-composition-itgrgqh7/`), import-body retirement
-recovers **128 actual VC conventional bytes**, with unchanged free UMB and XMS.
+It is **1,600 conventional bytes below retail**. Compared with the preceding
+paired capture (`out/umb-fine-composition-aexbt86k/`), UMB-bootstrap retirement
+recovers **304 actual VC conventional bytes**, with unchanged free UMB and XMS.
 This is still an integrated negative
 result, not promotion or a new preferred image. Retiring and packing the
 remaining provider storage must beat that measured cost; BIOS/COMMAND gains
@@ -1935,15 +1943,35 @@ python3 tests/capture_emm_init_phases.py floppy.img --common-xms-entry --dos-hig
 python3 tests/test_umb_subpage_composition.py --paired-provider out/emm-init-phases-<reported-id>
 ```
 
-The measured input fixture is `out/emm-init-phases-w1gwvmdr/`. Composition checks
+The measured input fixture is `out/emm-init-phases-ii4z6xm7/`. Composition checks
 its binary hashes, normal capacity, four-mode completion and absence of fault
 controls; it pins the BIOS loader fixups to that exact provider. Normal build
 outputs and CI settings remain unchanged. Full reset/failure qualification and
 the joint BIOS/COMMAND placement are still open.
 
-#### Next provider candidate: UMB owner and bootstrap transaction together
+#### Remaining provider work: UMB owner and bootstrap transaction together
 
-Do not stop at moving the UMB allocator body. The current linked front contains
+The candidate now places the local UMB allocator, peer-operation bodies
+and canonical records in the bootstrap tail. The loader confirms both handle
+and UMB ownership before clearing the stage pointer and releasing that storage.
+The four-mode physical-reclamation fixture, `out/emm-init-phases-ii4z6xm7/`,
+retains 3,264 HIMEM + 2,192 EMM = **5,456 low bytes**, with a 2,016-byte bootstrap
+tail at 32 handles. The composed capture above confirms the 304-byte release.
+Refused import (`y0cddom2`), DOS-low/128-handle live allocations with lost import
+reply (`y3kqnn2b`), and unstaged unknown service outcome (`s7ho44wa`, same phase
+artifact prefix) pass all four modes. The live-import bitmap negative fails
+with guest 35; non-common staged cancellation (`s9tsbex5`) passes all four.
+Eighteen layout, 35 phase-parser and four composition-input tests pass; normal
+standalone binaries remain byte-identical. Full failure/reset qualification is
+still open; this is not production promotion.
+
+The remaining front still includes 421 bytes of bootstrap query/staging/
+forwarding, 486 bytes of UMB handoff transport/state and 137 bytes of owner
+completion. These are inventories, not promised savings: permanent guards,
+publication state and return paths must be separated and charged. Retire the
+remaining boot-only bodies and pack the retained pair before claiming success.
+
+Do not stop at moving the UMB allocator body. The preceding linked front contained
 214 bytes of private UMB registration/wrappers, 277 of allocation/coalescing,
 416 of import transport/state and 130 of records: **1,037 bytes altogether**.
 Even deleting all four groups without charging replacement interfaces leaves
@@ -1952,7 +1980,7 @@ above** the selected 4,656-byte manager pair. This optimistic conditional subtra
 achievable layout or a bound on other designs. It establishes that UMB-only
 retirement cannot, by itself, close the measured 1,104-byte regression.
 
-Include the remaining bootstrap transaction in the same candidate: its current
+Include the remaining bootstrap transaction in the same candidate: its
 layout query, staging transaction and forwarding groups total another 421
 bytes, but freeze/rejection interfaces must survive. Price the replacement
 interfaces and final paragraph boundaries before implementing that partition.
@@ -1965,9 +1993,9 @@ The required lifetime change is concrete:
    local allocator and peer call must use the staged records and code; an
    original/staged mirror is not a second authoritative owner.
 2. Confirm both handle and UMB imports before releasing their shared stage.
-   `XMSIMPORTBODY.INC` currently clears the stage pointer after the handle reply,
-   and `BOOTXMS.INC:BootOwnerVerify` poisons the stage at that point. Neither is
-   a valid whole-provider release boundary while UMB ownership can remain low.
+   The candidate does this through the loader's bootstrap-finish call;
+   handle import alone no longer clears the stage pointer. Preserve this joint
+   release boundary when retiring the remaining initialization bodies.
 3. Move the live-UMB qualification into activation: allocate and fill real UMBs
    after backing registration but before import, then check their identity,
    contents and busy-unregister behavior after import. Retaining a pointer into

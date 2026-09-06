@@ -159,8 +159,18 @@ IFNDEF EMM_REJECT_PREPARED
         mov ax,1
         call BootOwnerReceipt
         call BootOwnerReceipt
+IFDEF EMM_COMMON_XMS_TEST
+        mov [boot_owner_step],18
+        mov ax,XCP_BOOTSTRAP_FINISH
+        mov cx,XCP_LAYOUT_SIGNATURE
+        mov si,XCP_LAYOUT_VERSION
+        xor di,di
+        int 2fh
+        cmp ax,XCP_LAYOUT_REPLY
+        jne BootOwnerFail
+ENDIF
 IFDEF EMM_BOOTSTRAP_STAGE_TEST
-        ; A committed high owner must no longer read the temporary copy.
+        ; Both common owners are confirmed before discarding their stage.
         mov dx,[boot_stage_segment]
         mov ax,XCP_STAGE_RESTORE
         mov cx,XCP_LAYOUT_SIGNATURE

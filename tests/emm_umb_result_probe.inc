@@ -190,6 +190,7 @@ umb_pending_probe:
     inc si
     inc di
     loop .check
+%ifndef UMB_BOOTSTRAP_RETIRED
     mov si,UMB_GUARD_OFFSET-130
     mov cx,130
 .poison:
@@ -197,6 +198,7 @@ umb_pending_probe:
     jne umb_failed
     inc si
     loop .poison
+%endif
     mov eax,[ur_sequence]
     cmp eax,[es:UMB_SEQUENCE_OFFSET]
     jne umb_failed

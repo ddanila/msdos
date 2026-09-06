@@ -656,6 +656,16 @@ def main():
                         procedures[match[1]] = int(match[2], 16)
                 umb_defines += ["-DCOMMON_PUBLIC_MOVE",
                                 f"-DMOVE_RESOLVER_OFFSET={procedures['resolve_move_address']}"]
+                if "bootstrap_umb_service" in procedures:
+                    umb_defines += ["-DUMB_BOOTSTRAP_RETIRED"]
+                umb_defines += [f"-DUMB_BOOT_TRIES_OFFSET={symbols['umb_boot_import_tries'][0]}",
+                                f"-DUMB_BOOT_EXPECT_TRIES={3 if args.umb_refused_import else 2 if args.umb_lost_import_reply else 1}"]
+                if args.umb_live_import:
+                    umb_defines += ["-DUMB_BOOT_LIVE_IMPORT",
+                                    f"-DUMB_BOOT_FIRST_OFFSET={symbols['umb_boot_first'][0]}",
+                                    f"-DUMB_BOOT_SECOND_OFFSET={symbols['umb_boot_second'][0]}",
+                                    f"-DUMB_BOOT_BEFORE_OFFSET={symbols['umb_boot_before'][0]}",
+                                    f"-DUMB_BOOT_SYNTHETIC_OFFSET={symbols['umb_boot_synthetic'][0]}"]
                 if "bootstrap_move" in procedures:
                     # The loader now overwrites that tail with EMM, or import
                     # poisons it. Never corrupt the replacement resident owner.

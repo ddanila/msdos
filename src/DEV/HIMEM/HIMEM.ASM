@@ -156,6 +156,10 @@ multiplex_handler proc far
         je      private_relocate
         cmp     ax, 0e705h
         je      private_force_a20
+ifdef HIMEM_COMMON_XMS_TEST
+        cmp     ax,XCP_BOOTSTRAP_FINISH
+        je      private_bootstrap_finish
+endif
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
         cmp     ax, XCP_LAYOUT_QUERY
         je      private_bootstrap_layout
@@ -252,7 +256,12 @@ endif
         call    umb_remote
         jnc     private_done
 endif
+ifdef HIMEM_COMMON_XMS_TEST
+        mov ax,12h
+        call umb_local_call
+else
         HIMEM_UMB_REGISTER
+endif
 private_done:
         pop     es
         pop     ds
@@ -284,7 +293,12 @@ endif
         pop     dx
         jnc     private_unregister_done
 endif
+ifdef HIMEM_COMMON_XMS_TEST
+        mov ax,13h
+        call umb_local_call
+else
         HIMEM_UMB_UNREGISTER
+endif
 private_unregister_done:
         pop     ds
         pop     si
@@ -834,7 +848,9 @@ else
         include XMSMOVEBODY.INC
 endif
 
+ifndef HIMEM_COMMON_XMS_TEST
         include XMSUMB.INC
+endif
 
 ifndef HIMEM_COMMON_XMS_TEST
         include XMSMOVEHELP.INC
@@ -853,14 +869,21 @@ ifdef HIMEM_UMB_HANDOFF_TEST
 ifdef HIMEM_COMMON_XMS_TEST
         include XMSBIND.INC
         include XMSFRAME.INC
+        include XMSBOOTFINISH.INC
+        include XMSUMBGATE.INC
 endif
 ; After commitment the retired table is temporary peer-registration input,
 ; never an authoritative low mirror. The preceding word supplies its version.
+ifndef HIMEM_COMMON_XMS_TEST
 umb_peer_version dw 1
 endif
+endif
+ifndef HIMEM_COMMON_XMS_TEST
 umb_count       dw      0
 umb_blocks      db      MAX_UMB_BLOCKS * UMB_BLOCK_SIZE dup (0)
 umb_blocks_end label byte
+endif
+himem_front_end label byte
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
         db (16-(($-device_header) MOD 16)) MOD 16 dup (0)
 bootstrap_owner_start label byte
@@ -868,6 +891,7 @@ ifdef HIMEM_COMMON_XMS_TEST
         include XMSIMPORTBODY.INC
         include XMSMOVEBODY.INC
         include XMSMOVEHELP.INC
+        include XMSUMBBODY.INC
 endif
 bootstrap_copy_move proc near
         HIMEM_BIOS_COPY
@@ -876,6 +900,11 @@ bootstrap_copy_move endp
         HIMEM_BIOS_GDT
         include XMSALLOC.INC
         include XMSHANDLE.INC
+endif
+ifdef HIMEM_COMMON_XMS_TEST
+umb_count       dw      0
+umb_blocks      db      MAX_UMB_BLOCKS * UMB_BLOCK_SIZE dup (0)
+umb_blocks_end label byte
 endif
 handles         db      MAX_HANDLES * HANDLE_SIZE dup (0)
 resident_end label byte

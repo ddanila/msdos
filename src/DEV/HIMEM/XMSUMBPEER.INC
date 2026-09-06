@@ -1,6 +1,6 @@
 ; DS owns UMB state; ES:SI points to the registration packet. Callers supply
 ; saved-register and private_done/private_unregister_done return adapters.
-HIMEM_UMB_REGISTER macro
+HIMEM_UMB_REGISTER macro return_label:=<private_done>
 ifdef UMB_TEST_REJECT
         jmp     short private_bad
 endif
@@ -46,13 +46,13 @@ private_copy:
         loop    private_copy
         mov     ax, 1
         xor     bx, bx
-        jmp     short private_done
+        jmp     short return_label
 private_bad:
         xor     ax, ax
         mov     bl, 1
 endm
 
-HIMEM_UMB_UNREGISTER macro
+HIMEM_UMB_UNREGISTER macro return_label:=<private_unregister_done>
         mov     si, offset umb_blocks
         mov     cx, [umb_count]
         jcxz    short private_unregister_clear
@@ -65,7 +65,7 @@ private_unregister_clear:
         mov     [umb_count], cx
         mov     ax, 1
         xor     bx, bx
-        jmp     short private_unregister_done
+        jmp     short return_label
 private_unregister_busy:
         xor     ax, ax
         mov     bl, 2

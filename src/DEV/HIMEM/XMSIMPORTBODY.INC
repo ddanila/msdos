@@ -70,7 +70,7 @@ ifdef HIMEM_BOOTSTRAP_STAGE_TEST
         mov [owner_largest],ax
         mov [owner_bx],bx
         mov [owner_total],dx
-        mov word ptr [bootstrap_stage_entry+2],0
+        ; UMB ownership may still be local: the finish gate releases the stage.
         push ds
         pop es
 endif

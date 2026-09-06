@@ -79,6 +79,7 @@ check_umb_owner:
     mov [umb_entry],bx
     mov [umb_entry+2],es
     mov es,[himem_segment]
+%ifndef UMB_BOOTSTRAP_RETIRED
     mov si,UMB_GUARD_OFFSET
     mov di,umb_guard
     mov cx,48
@@ -88,8 +89,29 @@ check_umb_owner:
     inc si
     inc di
     loop .save
+%endif
+%ifdef COMMON_PUBLIC_MOVE
+    cmp byte [es:UMB_STATE_OFFSET],2
+    jne umb_failed
+    cmp byte [es:UMB_BOOT_TRIES_OFFSET],UMB_BOOT_EXPECT_TRIES
+    jne umb_failed
+%else
 %ifndef UMB_LIVE_IMPORT
     UMB_IMPORT_FAILURE_CHECK
+%endif
+%endif
+%ifdef UMB_BOOT_LIVE_IMPORT
+    mov ax,[es:UMB_BOOT_FIRST_OFFSET]
+    mov [umb_first],ax
+    mov ax,[es:UMB_BOOT_SECOND_OFFSET]
+    mov [umb_second],ax
+    mov ax,[es:UMB_BOOT_BEFORE_OFFSET]
+    mov [umb_before],ax
+    mov al,[es:UMB_BOOT_SYNTHETIC_OFFSET]
+    mov [umb_synthetic],al
+    cmp byte [es:UMB_DEFER_OFFSET],0
+    jne umb_failed
+    jmp .live_payload_imported
 %endif
     call umb_largest
     or dx,dx
@@ -135,6 +157,7 @@ check_umb_owner:
     mov byte [es:UMB_DEFER_OFFSET],0
     UMB_IMPORT_FAILURE_CHECK
     call umb_largest          ; import the existing allocations, not an empty pool
+.live_payload_imported:
     mov es,[himem_segment]
     cmp byte [es:UMB_STATE_OFFSET],2
     jne umb_failed
@@ -168,6 +191,7 @@ check_umb_owner:
     jne umb_failed
 %endif
 %ifdef UMB_HANDOFF_TEST
+%ifndef UMB_BOOTSTRAP_RETIRED
     ; Retired low count/records must no longer drive either public or peer
     ; operations. Never touch the UMB backing addresses themselves.
     mov es,[himem_segment]
@@ -176,6 +200,7 @@ check_umb_owner:
     mov al,0a5h
     cld
     rep stosb
+%endif
 %endif
 %ifdef UMB_SERVICE_RECEIPTS
     call umb_result_fault_probe
@@ -212,6 +237,7 @@ check_umb_owner:
     call umb_largest
     cmp dx,[umb_before]
     jne umb_failed
+%ifndef UMB_BOOTSTRAP_RETIRED
     mov es,[himem_segment]
     mov si,UMB_GUARD_OFFSET
     mov di,umb_guard
@@ -223,6 +249,7 @@ check_umb_owner:
     inc si
     inc di
     loop .check
+%endif
     cmp byte [umb_synthetic],0
     je .done
     mov ax,0e702h
@@ -305,6 +332,7 @@ umb_check_low_allocated:
 %endif
 %ifdef UMB_HANDOFF_TEST
 umb_handoff_receipt:
+%ifndef UMB_BOOTSTRAP_RETIRED
     mov es,[himem_segment]
     mov si,UMB_GUARD_OFFSET-130
     mov cx,130
@@ -313,6 +341,8 @@ umb_handoff_receipt:
     jne umb_failed
     inc si
     loop .poison
+%endif
+    mov es,[himem_segment]
     cmp byte [es:UMB_STATE_OFFSET],2
     jne umb_failed
     push cs

@@ -79,6 +79,16 @@ class BootstrapLayoutTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             check_bootstrap_layout(self.numbers, dict(procedures, xms_remote_owned=2304), 32)
 
+    def test_complete_umb_body_must_be_outside_permanent_front(self):
+        moved = ("bootstrap_umb_service", "xms_umb_request", "xms_umb_release")
+        procedures = dict(self.procedures)
+        procedures.update({name: 2304 + i * 16 for i, name in enumerate(moved)})
+        check_bootstrap_layout(self.numbers, procedures, 32)
+        for name in moved:
+            for offset in (512, 3072):
+                with self.subTest(name=name, offset=offset), self.assertRaises(ValueError):
+                    check_bootstrap_layout(self.numbers, dict(procedures, **{name: offset}), 32)
+
 
 class PairedFrontTests(unittest.TestCase):
     def test_transplant_scenario_retains_transport_and_unknown_gate_costs(self):
