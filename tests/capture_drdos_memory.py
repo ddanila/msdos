@@ -335,7 +335,17 @@ def write_startup(
     return config, autoexec
 
 
-def capture(image: Path, label: str, work: Path) -> tuple[Path, str, str]:
+def hard_disk_args(hard_disk: Path | None) -> list[str]:
+    if hard_disk is None:
+        return []
+    # Each emulator invocation gets a disposable overlay; never write the
+    # user's comparison disk, including during the guest warm-reset pass.
+    path = str(hard_disk.resolve()).replace(",", ",,")
+    return ["-drive", f"if=ide,index=0,format=raw,file={path},snapshot=on"]
+
+
+def capture(image: Path, label: str, work: Path,
+            hard_disk: Path | None = None) -> tuple[Path, str, str]:
     qmp = work / f"{label}.qmp"
     screen = work / f"{label}-screen.log"
     command = [
@@ -343,6 +353,7 @@ def capture(image: Path, label: str, work: Path) -> tuple[Path, str, str]:
         "-machine", "pc", "-cpu", "486", "-m", "8",
         "-drive", f"if=floppy,index=0,format=raw,file={image},cache=writethrough",
         "-boot", "a", "-qmp", f"unix:{qmp},server=on,wait=off", "-no-reboot",
+        *hard_disk_args(hard_disk),
     ]
     process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     try:
@@ -379,6 +390,7 @@ def capture_public_interfaces(
     work: Path,
     probe: Path,
     qexit: Path,
+    hard_disk: Path | None = None,
 ) -> str:
     image = work / f"{label}-interfaces.ima"
     autoexec = work / f"{label}-interfaces.bat"
@@ -395,6 +407,7 @@ def capture_public_interfaces(
         "-drive", f"if=floppy,index=0,format=raw,file={image},cache=writethrough",
         "-boot", "a", "-no-reboot",
         "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
+        *hard_disk_args(hard_disk),
     ]
     try:
         subprocess.run(
@@ -450,6 +463,7 @@ def capture_warm_public_interfaces(
     probe: Path,
     qexit: Path,
     warmboot: Path,
+    hard_disk: Path | None = None,
 ) -> tuple[str, str]:
     image = work / f"{label}-interfaces-warm.ima"
     autoexec = work / f"{label}-interfaces-warm.bat"
@@ -482,6 +496,7 @@ def capture_warm_public_interfaces(
         "-boot", "a", "-qmp", f"unix:{qmp},server=on,wait=off",
         "-serial", f"file:{serial}",
         "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
+        *hard_disk_args(hard_disk),
     ]
     process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
@@ -724,6 +739,7 @@ def report(
     emulator: str,
     probe_hash: str,
     common: list[str] | None = None,
+    hard_disk_sha256: str | None = None,
 ) -> str:
     if common is None:
         common = common_settings()
@@ -738,6 +754,8 @@ def report(
         f"- Public memory probe SHA-256: `{probe_hash}`",
         f"- Emulator: `{emulator}`",
         "- Hardware: QEMU `pc`, 486 CPU, 8 MiB RAM; default firmware",
+        (f"- Additional IDE disk SHA-256: `{hard_disk_sha256}`; disposable snapshot per invocation"
+         if hard_disk_sha256 else "- No IDE disk attached"),
         "- Capture command fixes `-machine pc -cpu 486 -m 8`, floppy boot, "
         "writethrough caching, and no reboot", "",
         "| Variant | Largest block | Total free | System span | COMMAND span | Free UMB | Free HMA | INT 12h | EBDA |",
@@ -752,7 +770,7 @@ def report(
         )
     lines.extend([
         "", "Common settings: " + ", ".join(f"`{line}`" for line in common) + ".",
-        "Historical numeric expectations apply only to the default settings and pinned media.",
+        "Historical numeric expectations apply only to default settings, pinned media and no attached IDE disk.",
         "", "## Startup matrix", "",
     ])
     for name, config in variants.items():
@@ -834,6 +852,8 @@ def main() -> None:
     parser.add_argument("--files", type=int, default=30)
     parser.add_argument("--stack-size", type=int, default=256, help="bytes per stack; count remains nine")
     parser.add_argument("--environment", type=int, default=512, help="COMMAND /E allocation in bytes")
+    parser.add_argument("--hard-disk", type=Path,
+                        help="attach an existing IDE disk through disposable snapshots; still boot floppy")
     parser.add_argument(
         "--evidence-dir",
         type=Path,
@@ -850,6 +870,9 @@ def main() -> None:
         help="capture only the named variant; repeat for multiple focused cases",
     )
     args = parser.parse_args()
+    if args.hard_disk and not args.hard_disk.is_file():
+        parser.error("--hard-disk must name an existing image file")
+    disk_hash = sha256(args.hard_disk) if args.hard_disk else None
     try:
         common = common_settings(args.files, args.stack_size, args.environment)
     except ValueError as error:
@@ -893,7 +916,7 @@ def main() -> None:
             install_file(image, autoexec, "AUTOEXEC.BAT")
             configured_image = work / f"{name}-configured.ima"
             shutil.copyfile(image, configured_image)
-            screen, mem, ceiling = capture(image, name, work)
+            screen, mem, ceiling = capture(image, name, work, args.hard_disk)
             if args.evidence_dir:
                 shutil.copyfile(config, args.evidence_dir / f"{name}-config.sys")
                 shutil.copyfile(autoexec, args.evidence_dir / f"{name}-autoexec.bat")
@@ -904,7 +927,7 @@ def main() -> None:
                 )
             results[name] = parse(screen, mem, ceiling)
             interface_output = capture_public_interfaces(
-                configured_image, name, work, public_probe, qexit
+                configured_image, name, work, public_probe, qexit, args.hard_disk
             )
             results[name]["interfaces"] = parse_public_interfaces(interface_output)
             if args.evidence_dir:
@@ -913,7 +936,7 @@ def main() -> None:
                 )
             if name in {"emm-hibuffers", "emm-frame"}:
                 before_output, after_output = capture_warm_public_interfaces(
-                    configured_image, name, work, public_probe, qexit, warmboot
+                    configured_image, name, work, public_probe, qexit, warmboot, args.hard_disk
                 )
                 before = parse_public_interfaces(before_output)
                 after = parse_public_interfaces(after_output)
@@ -930,13 +953,15 @@ def main() -> None:
                                if before_semantics.get(key) != after_semantics.get(key)}
                     warm_failures.append(f"{name}: {changed}")
                 results[name]["warm_reboot"] = {"before": before, "after": after}
-        if identities_match:
+        if identities_match and args.hard_disk is None:
             validate_known_results(release, results, common)
+        if args.hard_disk and sha256(args.hard_disk) != disk_hash:
+            raise RuntimeError("attached source disk changed during capture")
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(
             report(
                 results, args.media, vc_hash, release, variants, disk_md5,
-                qemu_identity(), probe_hash, common,
+                qemu_identity(), probe_hash, common, disk_hash,
             ),
             encoding="utf-8",
         )

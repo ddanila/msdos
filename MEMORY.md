@@ -119,7 +119,7 @@ XMS support and the 286 path when evaluating a shared-provider design.
 
 ### DR-DOS reassessment: explain the resident boundary, not the byte deficit
 
-The saved framed OpenDOS 7.01 map places 28,464 kernel bytes, 3,968 BIOS
+The saved floppy-only framed OpenDOS 7.01 map places 28,464 kernel bytes, 3,968 BIOS
 service bytes, 5,296 COMMAND bytes and 7,980 buffer bytes in HMA. It reports
 9,092 HMA bytes still free. Its low BIOS region is 2,304 bytes and its COMMAND
 program allocation is 496 bytes; the complete COMMAND owner span is 1,312.
@@ -131,25 +131,29 @@ where buffers are already high. Do not count those gains again locally: our
 kernel and buffers are high, and the combined development fixture already
 relocates BIOS services, FILES/FCBs and CDS.
 
-| Matched accounting boundary | Combined development | Framed OpenDOS 7.01 | Difference |
+| Matched accounting boundary | Combined development | Framed OpenDOS 7.01, IDE attached | Difference |
 | --- | ---: | ---: | ---: |
-| System start to COMMAND start | 19,712 | 10,416 | 9,296 |
+| System start to COMMAND start | 19,712 | 10,448 | 9,264 |
 | COMMAND start to VC start | 3,984 | 1,312 | 2,672 |
-| Largest conventional block | 616,112 | 628,080 | -11,968 |
+| Largest conventional block | 616,112 | 628,048 | -11,936 |
 | Free UMB | 49,680 | 47,584 | 2,096 |
 
 Both captures retain the 639 KiB ceiling and the same VC footprint between
-owner boundaries. Thus the 11,968-byte conventional difference is below VC,
+owner boundaries. Thus the 11,936-byte conventional difference is below VC,
 not video recovery or EBDA relocation. Matching accounting boundaries does
-not imply equivalent device topology or resource semantics. OpenDOS also
+not imply equivalent boot-medium or resource semantics. Attaching the fixed
+IDE disk to OpenDOS costs just 32 conventional bytes; its device map expands
+from A:–B: to A:–C:. This removes the missing-disk variable, not the remaining
+floppy- versus hard-disk-boot difference. OpenDOS also
 misses the retail UMB floor by 304 bytes and its framed reset gate failed.
 Normalize those conditions before treating its largest block as an acceptance
 target. The retail floor remains mandatory, not the architectural endpoint.
 
 Evidence: `out/umb-fine-composition-ofbr6_go/results.json` and
-`out/opendos-framed-placement-evidence/emm-frame-{mem,vc}.txt`; reproduction
+`out/opendos-hard-disk-placement-evidence/emm-frame-{mem,vc}.txt`; reproduction
 commands and pinned inputs are in the development CDS and OpenDOS sections.
-This reconciliation reuses those captures; it is not a fresh runtime matrix.
+The OpenDOS disk-attachment comparison is a fresh controlled capture; the
+local numbers reuse the repaired combined fixture.
 The vendor [optimization guide](https://bitsavers.computerhistory.org/pdf/novell/dr_dos/DR_DOS_6.0_Optimization_and_Configuration_Tips_199109.pdf)
 documents DOS-state relocation, and [Novell's configuration guidance](https://support.novell.com/techcenter/articles/ana19930406.html)
 confirms that DR-DOS EMM386 includes the XMS manager. No DR-DOS source or
@@ -210,7 +214,7 @@ The checkpoint passes only when the combined net budget covers at least 2,624
 bytes while retaining the 47,888-byte free-UMB floor and configured resources.
 That is the retail acceptance threshold, not a ceiling on the design: identify
 further whole-object opportunities toward the OpenDOS result without promising
-its 11,968-byte lead over combined development as locally reclaimable storage. Resolve
+its 11,936-byte lead over combined development as locally reclaimable storage. Resolve
 boot-medium/device-topology differences before adopting its totals as a target.
 
 Then implement and validate complete object moves. Indexed accessors are a
@@ -240,7 +244,7 @@ sum of nested MEM rows:
 | Sector transfer area | 512 | Keep firmware/DMA-safe storage; HMA cache residency does not eliminate this allocation |
 | Interrupt-stack subsystem | 1,840 | Evaluate a complete real-mode-addressable owner, including handlers and pool, against the shared UMB budget |
 | Suballocation and MCB boundaries | 96 | Four 16-byte DEVMARKs plus system and leading COMMAND MCBs; no unexplained remainder |
-| **System before COMMAND** | **19,712** | Compare with OpenDOS's 10,416 only after resource/topology normalization |
+| **System before COMMAND** | **19,712** | Compare with IDE-attached OpenDOS's 10,448 only after remaining boot/resource normalization |
 | COMMAND to VC | 3,984 | Design the complete resident handler, state and reload interface; OpenDOS's corresponding span is 1,312 |
 
 The kernel's linked prefix contains 1,072 CONSTANTS, 1,783 DATA, 2,602 TABLE,
@@ -276,7 +280,7 @@ Required deliverables, in order:
    47,888-byte UMB floor, requested resources, A20-off clients, DOS-low/286
    fallback, redirects, nested execution and reset as acceptance gates.
 
-Retail is the floor, not a component-size quota. The 11,968-byte OpenDOS lead
+Retail is the floor, not a component-size quota. The 11,936-byte OpenDOS lead
 is the difference to explain, not an approved savings budget. Optional video
 recovery and the bounded 1 KiB EBDA step cannot explain this below-VC gap.
 
@@ -4090,6 +4094,55 @@ and A20 recovery calls, EMS table consumers, initialization rollback and third-
 party-provider fallback before assigning any net saving. Retain the standalone
 286 HIMEM path. Integration alone is not a saving; low copies must actually be
 released and joined to the application's largest block.
+
+#### OpenDOS hard-disk topology control
+
+The optional `--hard-disk` attaches an existing IDE image through a fresh
+QEMU snapshot for each VC, public-interface and reset invocation. The guest
+still boots the vendor floppy. The source disk is hashed before and after
+the complete capture; writes are confined to disposable overlays. Media/VC
+identity checks remain mandatory; floppy-only numeric expectations do not
+apply to this changed hardware profile. Nineteen parser/harness tests include
+snapshot argument and report-identity checks.
+
+With the fixed retail comparison HDD attached, the framed OpenDOS capture
+changes as follows; all DOS resource directives and vendor binaries remain
+the same:
+
+| Measurement | Floppy only | Floppy boot plus IDE disk |
+| --- | ---: | ---: |
+| VC largest conventional block | 628,080 | 628,048 |
+| System-to-COMMAND span | 10,416 | 10,448 |
+| COMMAND span | 1,312 | 1,312 |
+| Free UMB | 47,584 | 47,584 |
+| Low BIOS region | 2,304 | 2,304 |
+| Free XMS | 6,922,240 | 6,922,240 |
+| MEM-reported free HMA | 9,092 | 10,628 |
+
+The vendor device map expands from A:–B: to A:–C:. The 32-byte conventional
+cost is measured, but is not assigned to a proprietary internal structure.
+This bounds the missing-disk explanation: it does not account for the
+remaining **11,936-byte** advantage over the repaired local combined fixture.
+Boot medium and resource semantics are still not fully normalized.
+
+The HMA report is not a new relocation result. Listed COMMAND, BIOS, kernel
+and fifteen-buffer addresses/sizes remain unchanged; the free range still
+starts at `FFFF:B47C`, but its reported length increases by 1,536 bytes. The
+reason for that accounting change is unresolved. Do not use it to infer
+freed low memory or an externally allocatable HMA block.
+
+The warm-reset gate still fails: HMA request error changes from 91h to 81h,
+and the largest free XMS UMB falls from 47,584 to 9,840 bytes. Cold placement
+evidence is retained despite that nonzero exit; reset compatibility is not
+qualified. The attached source disk hash is unchanged.
+
+```sh
+python3 tests/capture_drdos_memory.py DODL701.EXE \
+  out/msdos622-original-vc405.img out/opendos-hard-disk-placement.md \
+  --variant emm-frame --files 20 --stack-size 128 \
+  --hard-disk out/msdos622-original-vc405.img \
+  --evidence-dir out/opendos-hard-disk-placement-evidence
+```
 
 #### Primary result: DR-DOS 6.0
 

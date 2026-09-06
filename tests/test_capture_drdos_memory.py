@@ -50,6 +50,24 @@ DRDOS_PUBLIC_MEMORY_END
 
 
 class CaptureParserTest(unittest.TestCase):
+    def test_disk_attachment_is_opt_in_and_snapshot_backed(self) -> None:
+        self.assertEqual(CAPTURE.hard_disk_args(None), [])
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary).resolve()
+            args = CAPTURE.hard_disk_args(root / "example,disk.img")
+            self.assertEqual(args, ["-drive",
+                f"if=ide,index=0,format=raw,file={root}/example,,disk.img,snapshot=on"])
+
+    def test_report_identifies_attached_disk(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            media = Path(temporary) / "media"
+            media.write_bytes(b"fixture")
+            report = CAPTURE.report({}, media, "vc", "test", {}, None, "qemu", "probe",
+                                    hard_disk_sha256="disk-identity")
+        self.assertIn("Additional IDE disk SHA-256: `disk-identity`", report)
+        self.assertIn("disposable snapshot per invocation", report)
+        self.assertNotIn("No IDE disk attached", report)
+
     def test_extended_pools_are_not_summed(self) -> None:
         summary = CAPTURE.parse_memory_summary(
             "│ Extended          │ 7,208,960 (7,040K) │ 0 (0K) │\n"
