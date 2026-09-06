@@ -1,6 +1,26 @@
 ; Exercise allocator metadata only; never access the offered UMB addresses.
 ; Real registered ranges are used when available. Otherwise a temporary
 ; two-range registration tests the same peer/public owner in OFF/cancel modes.
+%macro UMB_CALL 0
+%ifdef UMB_HANDOFF_TEST
+    push ax
+    smsw ax
+    and ax,1
+    mov [umb_pe],al
+    pop ax
+%endif
+    call far [umb_entry]
+%ifdef UMB_HANDOFF_TEST
+    pushf
+    push ax
+    smsw ax
+    and ax,1
+    cmp al,[umb_pe]
+    jne umb_failed
+    pop ax
+    popf
+%endif
+%endmacro
 check_umb_owner:
     mov ax,4310h
     int 2fh
@@ -16,6 +36,36 @@ check_umb_owner:
     inc si
     inc di
     loop .save
+%ifdef UMB_LOST_IMPORT_REPLY
+%define UMB_IMPORT_FAILURE 1
+%endif
+%ifdef UMB_REFUSED_IMPORT
+%define UMB_IMPORT_FAILURE 1
+%endif
+%ifdef UMB_IMPORT_FAILURE
+    mov dx,0ffffh
+    mov ah,10h
+    UMB_CALL
+    or ax,ax
+    jnz umb_failed
+    cmp bl,8eh
+    jne umb_failed
+    mov es,[himem_segment]
+    cmp byte [es:UMB_STATE_OFFSET],1
+    jne umb_failed
+%endif
+%ifdef UMB_REFUSED_IMPORT
+    mov dx,0ffffh
+    mov ah,10h
+    UMB_CALL
+    or ax,ax
+    jnz umb_failed
+    cmp bl,8eh
+    jne umb_failed
+    mov es,[himem_segment]
+    cmp byte [es:UMB_STATE_OFFSET],0
+    jne umb_failed             ; confirmed uncommitted; original owner unfreezes
+%endif
     call umb_largest
     or dx,dx
     jnz .have_ranges
@@ -30,15 +80,25 @@ check_umb_owner:
     cmp dx,2
     jb umb_failed
     mov [umb_before],dx
+%ifdef UMB_HANDOFF_TEST
+    ; Retired low count/records must no longer drive either public or peer
+    ; operations. Never touch the UMB backing addresses themselves.
+    mov es,[himem_segment]
+    mov di,UMB_GUARD_OFFSET-130
+    mov cx,130
+    mov al,0a5h
+    cld
+    rep stosb
+%endif
     mov dx,1
     mov ah,10h
-    call far [umb_entry]
+    UMB_CALL
     cmp ax,1
     jne umb_failed
     mov [umb_first],bx
     mov dx,1
     mov ah,10h
-    call far [umb_entry]
+    UMB_CALL
     cmp ax,1
     jne umb_failed
     mov [umb_second],bx
@@ -50,17 +110,17 @@ check_umb_owner:
     jne umb_failed
     mov dx,[umb_first]
     mov ah,11h
-    call far [umb_entry]
+    UMB_CALL
     cmp ax,1
     jne umb_failed
     mov dx,[umb_second]
     mov ah,11h
-    call far [umb_entry]
+    UMB_CALL
     cmp ax,1
     jne umb_failed
     mov dx,[umb_second]        ; duplicate/interior release must be rejected
     mov ah,11h
-    call far [umb_entry]
+    UMB_CALL
     or ax,ax
     jnz umb_failed
     cmp bl,0b2h
@@ -89,6 +149,11 @@ check_umb_owner:
     or dx,dx
     jnz umb_failed
 .done:
+%ifdef UMB_LOW_FALLBACK_TEST
+    mov es,[himem_segment]
+    cmp byte [es:UMB_STATE_OFFSET],0
+    jne umb_failed
+%endif
     mov dx,0e9h
     mov al,'U'
     out dx,al
@@ -96,11 +161,64 @@ check_umb_owner:
     out dx,al
     mov al,[umb_synthetic]
     out dx,al
+%ifdef UMB_HANDOFF_TEST
+    call umb_handoff_receipt
+%endif
     ret
+%ifdef UMB_HANDOFF_TEST
+umb_handoff_receipt:
+    mov es,[himem_segment]
+    mov si,UMB_GUARD_OFFSET-130
+    mov cx,130
+.poison:
+    cmp byte [es:si],0a5h
+    jne umb_failed
+    inc si
+    loop .poison
+    cmp byte [es:UMB_STATE_OFFSET],2
+    jne umb_failed
+    push cs
+    pop es
+    mov si,umb_receipt_packet
+    mov ah,87h
+    int 15h
+    jc umb_failed
+    cmp word [umb_receipt_packet+10],1
+    jne umb_failed
+    cmp word [umb_receipt_packet+14],1
+    jne umb_failed
+    mov ax,[umb_receipt_packet+12]
+    cmp ax,32
+    ja umb_failed
+    cmp byte [umb_synthetic],0
+    je .real
+    or ax,ax
+    jnz umb_failed
+    jmp .emit
+.real:
+    or ax,ax
+    jz umb_failed
+.emit:
+    mov dx,0e9h
+    mov al,'U'
+    out dx,al
+    mov al,'H'
+    out dx,al
+    mov ax,[umb_receipt_packet+10]
+    call word_out
+    mov ax,[umb_receipt_packet+14]
+    call word_out
+    mov ax,[umb_receipt_packet+12]
+    call word_out
+    ret
+umb_receipt_packet db 'XUMB'
+    dw 1,0,0,0,0,0,0ffffh,0ffffh
+umb_pe db 0
+%endif
 umb_largest:
     mov dx,0ffffh
     mov ah,10h
-    call far [umb_entry]
+    UMB_CALL
     or ax,ax
     jnz umb_failed
     cmp bl,0b0h

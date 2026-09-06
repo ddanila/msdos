@@ -1599,9 +1599,49 @@ the private packet to the ROM descriptor-copy service and faults. The
 and restores the original mode. The linked private endpoint/helpers/state cost
 927 high bytes; the added routing raises this fixture's rounded EMM low span
 from 2,112 to 2,128 bytes, with HIMEM unchanged at 2,864. Normal HIMEM/EMM
-binaries remain byte-identical. No low UMB owner is released: actual public/peer
-handoff, backing authority, ambiguous-commit recovery and reset qualification
-remain the next protocol work, within the complete-provider layout checkpoint.
+binaries remain byte-identical. Public/peer integration is the opt-in step below;
+neither this endpoint nor its private probe releases low storage or mapping backing.
+
+**Public/peer UMB handoff:** `HIMEM_UMB_HANDOFF_TEST` routes XMS 10h/11h and
+private E701h/E702h through the same installed high table. Before capability is
+available, the original low services remain authoritative. The serialized front
+checks an inactive receipt, freezes low mutations before explicit import, and
+dispatches the requested service only after confirmed commitment. It rejects
+reentry without replacing the in-flight packet. A lost import reply leaves the
+front frozen; a later non-mutating receipt either confirms the same single
+import or proves non-commit and unfreezes the unchanged low owner. Failed
+mutating services are returned as errors, never automatically replayed.
+
+The retained low table becomes bounded temporary input for peer registration,
+not a refreshed allocator mirror. Complete physical release still needs a
+different boot/scratch layout. Registration preserves the peer's AX/BL status
+contract; HMA/A20 and physical mapping ownership are unchanged.
+
+`capture_emm_init_phases.py --reclaim-bootstrap --high-tables --dos-high
+--umb-handoff` passes all four modes in `out/emm-init-phases-45sb4y9m/`.
+The probe poisons all 130 retired count/record bytes after registration, then
+allocates/releases through the cached public entry, checks busy and final peer
+unregister, and verifies one high import and unchanged low poison. RAM uses
+real registered ranges; other modes use synthetic metadata without accessing
+its addresses. It checks public entry/exit PE mode and the 128-byte caller-stack
+guard. DOS-low/128-handle coverage is `out/emm-init-phases-eeqco_tx/` (before the
+stack-guard addition). These are ownership tests, not VC parity captures.
+
+`--umb-lost-import-reply` confirms commit without reimport (`mdi5lafp`);
+`--umb-refused-import` confirms non-commit before allowing a later import
+(`p1q8nii1`). Both complete all four modes, with the same directory prefix.
+`--bad-umb-low-owner` deliberately selects the retired allocator and fails the
+poisoned-owner test (`djzqm1k0`, guest 35). The eight-handle cancelled-provider
+control (`9d0xog62`) retains local authority and passes all four modes.
+
+This front is **not the final low layout**: it adds 480 rounded HIMEM bytes
+(3,344 versus 2,864); EMM remains 2,128. The paired census charges its 457-byte
+transport/state/version region separately, plus 18 peer-entry bytes and five
+additional alignment bytes. Original low UMB services/storage remain charged
+for bootstrap/fallback, and normal binaries remain byte-identical. Next, qualify
+service-reply ambiguity, live pre-import allocations, reset/backing rollback and
+the complete provider's packed boot/permanent partition; do not promote these
+tests as reclaimed memory or full asynchronous/foreign-provider compatibility.
 
 ##### Whole-system placement rules
 

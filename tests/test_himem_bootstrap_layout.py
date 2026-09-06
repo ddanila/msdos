@@ -48,13 +48,15 @@ class BootstrapLayoutTests(unittest.TestCase):
 
 
 class PairedFrontTests(unittest.TestCase):
-    def report(self, *, staged=True, bad=None, alignment=10):
+    def report(self, *, staged=True, handoff=False, bad=None, alignment=10):
         names = ["strategy", "multiplex_handler", "private_register", "int15_handler",
                  "xms_control", "xms_hma_request", "xms_global_enable", "private_bootstrap_layout"]
         if staged:
             names += ["private_bootstrap_stage", "xms_stage_forward"]
         names += ["xms_remote_owned", "xms_owner_handle", "xms_move", "xms_umb_request",
                   "resolve_move_address", "copy_move_blocks", "kb_to_physical"]
+        if handoff:
+            names += ["umb_remote_state"]
         addresses = {name: (i + 1) * 16 for i, name in enumerate(names)}
         if bad:
             addresses[bad] = 1
@@ -82,6 +84,16 @@ class PairedFrontTests(unittest.TestCase):
     def test_reordered_boundary_rejected(self):
         with self.assertRaises(ValueError):
             self.report(bad="xms_umb_request")
+
+    def test_handoff_is_not_charged_to_address_helper(self):
+        rows = self.report(handoff=True)["front"]
+        by_name = {row["owner"]: row for row in rows}
+        self.assertEqual(by_name["Physical address helper"]["bytes"], 16)
+        self.assertEqual(by_name["UMB handoff transport and publication state"]["bytes"], 16)
+        self.assertIn("not a live mirror", by_name["UMB records"]["contract"])
+        self.assertEqual(sum(row["bytes"] for row in rows), rows[-1]["end"])
+        with self.assertRaises(ValueError):
+            self.report(handoff=True, bad="umb_remote_state")
 
     def test_zero_alignment_and_overrun(self):
         self.assertEqual(self.report(alignment=0)["front"][-1]["bytes"], 0)

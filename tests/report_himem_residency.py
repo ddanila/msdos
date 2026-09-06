@@ -177,6 +177,14 @@ def paired_front_ownership(path, handle_count):
         ("Front alignment", addresses["umb_blocks"] + symbols["umb_blocks"][1], "charge final packing, not a payload owner"),
         ("end", layout["permanent_bytes"], ""),
     ]
+    if "umb_remote_state" in addresses:
+        index = next(i for i, row in enumerate(boundaries) if row[0] == "UMB records")
+        boundaries.insert(index, ("UMB handoff transport and publication state",
+                                   addresses["umb_remote_state"],
+                                   "public/peer high owner; retain bootstrap fallback until packed release"))
+        name, start, _ = boundaries[index + 1]
+        boundaries[index + 1] = (name, start,
+                                "bootstrap owner before commit; transient peer input afterward, not a live mirror")
     rows = []
     for (owner, start, contract), (_, end, _) in zip(boundaries, boundaries[1:]):
         if not 0 <= start <= end <= layout["permanent_bytes"]:

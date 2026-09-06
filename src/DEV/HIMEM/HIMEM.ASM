@@ -238,6 +238,11 @@ private_register:
         pop     es
         push    cs
         pop     ds
+ifdef HIMEM_UMB_HANDOFF_TEST
+        mov     ax,12h
+        call    umb_remote
+        jnc     private_done
+endif
         HIMEM_UMB_REGISTER
 private_done:
         pop     es
@@ -255,6 +260,13 @@ private_unregister:
         push    ds
         push    cs
         pop     ds
+ifdef HIMEM_UMB_HANDOFF_TEST
+        push    dx
+        mov     ax,13h
+        call    umb_remote
+        pop     dx
+        jnc     private_unregister_done
+endif
         HIMEM_UMB_UNREGISTER
 private_unregister_done:
         pop     ds
@@ -386,7 +398,11 @@ else
         dw      xms_query_free, xms_allocate, xms_free, xms_move
         dw      xms_lock, xms_unlock, xms_handle_info, xms_reallocate
 endif
+ifdef HIMEM_UMB_HANDOFF_TEST
+        dw      umb_gate_request, umb_gate_release
+else
         dw      xms_umb_request, xms_umb_release
+endif
 
 xms_success:
         mov     ax, 1
@@ -992,6 +1008,12 @@ endif
 ; Keep variable-capacity XMS handles at the end of the resident image. The
 ; initialization break includes only /NUMHANDLES= records; the full table is
 ; still present in the load image for the documented maximum.
+ifdef HIMEM_UMB_HANDOFF_TEST
+        include XMSUMBFRONT.INC
+; After commitment the retired table is temporary peer-registration input,
+; never an authoritative low mirror. The preceding word supplies its version.
+umb_peer_version dw 1
+endif
 umb_count       dw      0
 umb_blocks      db      MAX_UMB_BLOCKS * UMB_BLOCK_SIZE dup (0)
 umb_blocks_end label byte

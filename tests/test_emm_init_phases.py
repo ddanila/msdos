@@ -6,10 +6,26 @@ import unittest
 from pathlib import Path
 
 from capture_emm_init_phases import check_phases, parse_trace, strip_capacity_records, parse_bootstrap_layout, parse_post_boot, parse_umb_receipt
-from capture_emm_init_phases import parse_private_umb_receipt
+from capture_emm_init_phases import parse_private_umb_receipt, parse_umb_handoff
 
 
 class InitPhaseTests(unittest.TestCase):
+    def test_public_umb_handoff_receipt(self):
+        for mode in ("ON", "OFF", "AUTO", "RAM"):
+            records = 2 if mode == "RAM" else 0
+            result = parse_umb_handoff(b"UH" + struct.pack("<3H", 1, 1, records), mode=mode)
+            self.assertTrue(result["public_handoff"])
+            self.assertTrue(result["retired_low_poisoned"])
+            self.assertFalse(result["backing_released"])
+        for active, imports, records in ((0, 1, 0), (1, 2, 0), (1, 1, 1), (1, 1, 33)):
+            with self.subTest(values=(active, imports, records)), self.assertRaises(ValueError):
+                parse_umb_handoff(b"UH" + struct.pack("<3H", active, imports, records), mode="ON")
+        for data in (b"", b"UH", b"UP" + struct.pack("<3H", 1, 1, 0)):
+            with self.assertRaises(ValueError):
+                parse_umb_handoff(data, mode="ON")
+        with self.assertRaises(ValueError):
+            parse_umb_handoff(b"UH" + struct.pack("<3H", 1, 1, 0), mode="RAM")
+
     def test_private_umb_requires_installed_provider(self):
         script = Path(__file__).with_name("capture_emm_init_phases.py")
         for option in ("--reject-prepared", "--loader-bad-rebase", "--loader-bad-version"):

@@ -47,6 +47,13 @@ umb_owner_allocate:
 umb_owner_import:
         cmp [XmsUmbActive],0
         jne umb_owner_bad
+IFDEF EMM_UMB_OWNER_REFUSE_FIRST_IMPORT
+        cmp [XmsUmbRefused],0
+        jne umb_owner_import_allowed
+        mov [XmsUmbRefused],1
+        jmp umb_owner_bad
+umb_owner_import_allowed:
+ENDIF
         ; Swap explicit owners: DS client, ES high destination. BP retains
         ; the client packet offset; the staging helper preserves registers.
         push ds
@@ -65,6 +72,9 @@ umb_owner_import:
         jc umb_owner_bad
         mov [XmsUmbActive],1
         inc [XmsUmbImports]
+IFDEF EMM_UMB_OWNER_LOST_IMPORT_REPLY
+        jmp umb_owner_bad        ; committed, but low caller sees transport failure
+ENDIF
         jmp short umb_owner_receipt
 umb_owner_register:
         mov si,es:[bp+16]
@@ -124,6 +134,9 @@ umb_high_unregister endp
 include XMSUMB.INC
 include XMSUMBSTATE.INC
 XmsUmbActive db 0
+IFDEF EMM_UMB_OWNER_REFUSE_FIRST_IMPORT
+XmsUmbRefused db 0
+ENDIF
 XmsUmbImports dw 0
 umb_count dw 0
 umb_blocks db MAX_UMB_BLOCKS*UMB_BLOCK_SIZE dup (0)
