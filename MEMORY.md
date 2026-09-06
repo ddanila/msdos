@@ -14,7 +14,7 @@ Report UMB and application XMS costs alongside the gain. Complete BIOS and
 COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
-The latest composed development fixture (complete high EMM tables plus fine
+The selected composed development control (complete high EMM tables plus fine
 UMB mapping and high CDS) leaves **617,936 conventional bytes and 49,680 free
 UMB bytes**. Retail leaves 618,736 and 47,888: the remaining conventional gap
 is **800 bytes**, with **1,792 bytes of UMB margin**. This is not production
@@ -1866,6 +1866,39 @@ lost-reply recovery (`zx083x81`, same artifact prefix) pass all four modes.
 The census charges the common frame separately from binding; 35 parser and
 14 layout tests pass. Remaining bootstrap bodies/storage and complete-provider
 packing, followed by composed VC acceptance, are still required.
+
+**Composed provider measurement:** `out/umb-fine-composition-8ykppkdb/`
+boots the paired provider with the development BIOS, complete high EMM tables,
+fine UMB mapping, high CDS and unchanged COMMAND/configuration/VC 4.05.
+All six captures complete, including freshly reproduced control and retail.
+
+| Fixed-config measurement | Selected control | Paired candidate | Retail 6.22 |
+| --- | ---: | ---: | ---: |
+| VC largest conventional block | 617,936 | 616,320 | 618,736 |
+| VC free UMB | 49,680 | 49,680 | 47,888 |
+| Low HIMEM + EMM allocation | 4,656 | 6,272 | 5,232 |
+| Free XMS reported by MEM | 6,803,456 | 6,798,336 | Not compared here |
+
+The candidate loses **1,616 conventional bytes**, exactly its additional low
+manager allocation, and **5,120 application XMS bytes** versus the control.
+It is **2,416 conventional bytes below retail**. This is an integrated negative
+result, not promotion or a new preferred image. Retiring and packing the
+remaining provider storage must beat that measured cost; BIOS/COMMAND gains
+must be demonstrated in the same image, not added from separate experiments.
+The XMS figures are the preceding MEM snapshot, not VC allocation rows.
+
+Reproduce using a current completed provider fixture:
+
+```sh
+python3 tests/capture_emm_init_phases.py floppy.img --common-xms-entry --dos-high --reclaim-bootstrap --high-tables --fine-umbs
+python3 tests/test_umb_subpage_composition.py --paired-provider out/emm-init-phases-<reported-id>
+```
+
+The measured input fixture is `out/emm-init-phases-5fy4ue8f/`. Composition checks
+its binary hashes, normal capacity, four-mode completion and absence of fault
+controls; it pins the BIOS loader fixups to that exact provider. Normal build
+outputs and CI settings remain unchanged. Full reset/failure qualification and
+the joint BIOS/COMMAND placement are still open.
 
 ##### Whole-system placement rules
 

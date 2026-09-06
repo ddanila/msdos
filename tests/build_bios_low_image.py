@@ -13,7 +13,9 @@ from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False):
+def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False, paired_provider=None):
+    if paired_provider is not None and not (early and rebase and compact):
+        raise ValueError("paired provider requires the early rebased/compacted composition")
     if characters and not dispatch:
         raise ValueError("character owner requires far dispatch tables")
     cache_cases = {"first": 1, "last": 2, "past-end": 3, "foreign": 4}
@@ -35,6 +37,9 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         raise ValueError("invalid development reservation ceiling")
     output = output.resolve()
     output.mkdir(parents=True, exist_ok=True)
+    if paired_provider is not None:
+        from emm_loader_rebase import include as rebase_include
+        (output / "PROVIDERFIXUPS.INC").write_text(rebase_include(Path(paired_provider).read_bytes()))
     run([sys.executable, ROOT / "tools/gen_dos_copy_size.py",
          ROOT / "src/DOS/MSDOS.SYS", output / "DOSCOPY.INC"], ROOT)
     embedded = None
@@ -123,6 +128,9 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         ("BINDINGS", "LOW_CALLS", "DEVICE_ENTRIES", "INTERRUPT_ENTRIES", "RESULT_HELPERS"))
     if early:
         options += f" -I{output} -DBIOS_SERVICE_BOOT=1 -DBIOS_BOOT_POISON=1"
+    if paired_provider is not None:
+        options += (" -DBIOS_DYNAMIC_STAGING -DBIOS_DEFER_PROVIDER -DPROVIDER_REBASE"
+                    " -DBIOS_STAGE_PROVIDER -DBIOS_PROVIDER_DOWN")
     if tail_body:
         options += " -DBIOS_SERVICE_TAIL_BODY=1"
     if dispatch:
@@ -202,6 +210,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
             raise ValueError("early link changed the embedded high payload")
         manifest["embedded_payload_bytes"] = final_high["bytes"]
     manifest["upper_dos_tables"] = rebase
+    manifest["paired_provider_sha256"] = (hashlib.sha256(Path(paired_provider).read_bytes()).hexdigest()
+                                          if paired_provider is not None else None)
     manifest["cds_cache_case"] = cds_cache_case
     manifest["cds_cache_negative"] = cds_cache_negative
     manifest["force_table_allocation_failure"] = fail_tables

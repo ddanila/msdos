@@ -351,6 +351,8 @@ def main():
                         help="report the complete table owner and final driver break")
     parser.add_argument("--high-tables", action="store_true",
                         help="relocate the complete EMM table owner into locked extended memory")
+    parser.add_argument("--fine-umbs", action="store_true",
+                        help="include fine UMB discovery/mapping for composed-image qualification")
     parser.add_argument("--handles", type=int, choices=range(2, 256), metavar="2..255",
                         help="request an explicit EMS handle capacity")
     parser.add_argument("--altregs", type=int, choices=range(0, 255), metavar="0..254",
@@ -495,6 +497,8 @@ def main():
     build = work / "MEMM/MEMM"
     original = capture.sha256(capture.ROOT / "src/MEMM/MEMM/EMM386.EXE")
     trace_defines = "-DEMM_INIT_PHASE_TRACE"
+    if args.fine_umbs:
+        trace_defines += " -DUMB_SUBPAGE_DISCOVERY -DUMB_SUBPAGE_MAPPING"
     if args.common_xms_entry:
         trace_defines += " -DEMM_COMMON_XMS_TEST"
     if args.bad_common_binding == "guard":
@@ -561,6 +565,11 @@ def main():
     if args.bad_pool_control:
         trace_defines += " -DEMM_PREPARE_BAD_POOL"
     for define in ("", trace_defines):
+        if args.fine_umbs:
+            subprocess.run([str(capture.ROOT / "bin/jwasm-masm"),
+                            f"-Mx -t -DI386 -DNoBugMode -DNOHIMEM {define} -I. -I..\\EMM",
+                            "PPAGE.ASM,PPAGE.OBJ;"], cwd=build, check=True,
+                           stdout=subprocess.DEVNULL)
         if args.authoritative_owner:
             for name in ("MOVEB", "RRTRAP"):
                 options = (f"-Mx -t -DI386 -DNoBugMode -DNOHIMEM {define}"
@@ -730,6 +739,11 @@ def main():
             raise RuntimeError(f"guest did not finish {mode}: {process.returncode}")
         trace_data = strip_capacity_records(trace.read_bytes(), handles=args.handles,
                                              altregs=args.altregs)
+        if args.fine_umbs and mode == "RAM":
+            line, separator, trace_data = trace_data.partition(b"\n")
+            if (not separator or not line.startswith(b"UMB_FINE=") or len(line) != 29
+                    or any(c not in b"0123456789ABCDEF" for c in line[9:])):
+                raise ValueError("missing or malformed fine UMB discovery witness")
         if args.loader:
             expected = 0 if args.reject_prepared else 1
             if not trace_data.endswith(b"DO" + struct.pack("<H", expected)):
@@ -848,6 +862,7 @@ def main():
         command_sha256=capture.sha256(capture.ROOT / "src/CMD/COMMAND/COMMAND.COM")
             if args.authoritative_owner else None,
         high_tables=args.high_tables, table_layout=args.table_layout,
+        fine_umbs=args.fine_umbs,
         handles=args.handles, altregs=args.altregs,
         switch_altregs=args.switch_altregs,
         installed_owner_counts=owner_counts,
