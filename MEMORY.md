@@ -2547,6 +2547,26 @@ plus existing 61-byte padding), **not 234 released conventional bytes**. Put
 required low gates/state into that capacity only after their linked layout is
 known; subtract any replacement support once in the joint low-owner budget.
 
+**Shared request-decoder binding:** `MSBIO1.ASM` now includes `DISPATCH.INC`
+for the complete request-decoding body after its nine-register save. Normal
+IO.SYS remains byte-identical. The separate-code expansion takes an explicit
+low-data segment and far invalid-command completion entry. It reads the current
+low table (including boot patches), preserves disk/non-disk sector semantics,
+then tail-transfers to the selected low target without leaving a return frame.
+That target may be an existing high-service gate. Tables and completion bodies
+have not moved, and this expansion is not yet activated by SYSINIT.
+The separate fixture emits 93 decoder bytes plus six binding bytes; this
+excludes tables, low entry/return support and the service bodies themselves.
+
+`tests/test_bios_dispatch.py` executes the same source in ordinary and genuinely
+separate code segments, checking packet/transfer registers, disk high-word
+clearing, extended sectors, non-disk preservation, table updates, invalid
+commands 11/80h/FFh and all nine saved registers plus stack depth. Stale-table
+and wrong-error-entry controls fail. The test linker disables segment packing;
+the guest rejects an accidentally shared CS. This proves segment/frame binding,
+not HMA residency, A20-off entry or nested firmware safety. Complete table/body
+placement, low entry gates and final-break reclamation remain in the joint design.
+
 The 18-byte error pair also contains mutable `LSTERR`: high
 `MSDSKHIG.INC:MAPERROR` writes that sentinel before scanning through low ES.
 `INTFORMAT`, `INTVERIFY` and `DOREAD` use `DISKSECTOR` after boot, including

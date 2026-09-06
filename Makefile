@@ -370,6 +370,7 @@ test-dos-bios-residency: dos bios
 	python3 tests/test_hma_layout_budget.py
 	python3 tests/test_bios_character_partition.py
 	python3 tests/test_bios_core_partition.py
+	python3 tests/test_bios_dispatch.py
 	python3 tests/test_dos_swap_contract.py
 	python3 tests/report_dos_bios_residency.py --check \
 		src/DOS/MSDOS.MAP src/BIOS/msBIO.map
