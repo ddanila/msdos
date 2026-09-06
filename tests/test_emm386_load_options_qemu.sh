@@ -64,7 +64,22 @@ for case_spec in 'ON|ON|EMM386 Active\.' \
     fi
 done
 
-echo "EMM386 driver-load ON/OFF/AUTO and W= options passed"
+# These three fixtures differ only in initial execution mode. The probe has
+# identical code/PSP/environment in each and reports a successfully allocated,
+# overwritten and released block, not just a linked stack address.
+reference_paras=$(tr -d '\r' < "$OUT/emm386-load-ON.log" | sed -n 's/^EMM386_FREE_PARAS=\([0-9A-F]\{4\}\)$/\1/p')
+if [[ -z "$reference_paras" ]]; then
+    echo 'FAIL: ON allocation measurement missing' >&2
+    exit 1
+fi
+for case_name in OFF AUTO; do
+    actual_paras=$(tr -d '\r' < "$OUT/emm386-load-${case_name}.log" | sed -n 's/^EMM386_FREE_PARAS=\([0-9A-F]\{4\}\)$/\1/p')
+    if [[ "$actual_paras" != "$reference_paras" ]]; then
+        echo "FAIL: $case_name free paragraphs $actual_paras differ from ON $reference_paras" >&2
+        exit 1
+    fi
+done
+echo "EMM386 driver-load ON/OFF/AUTO and W= options passed; equal allocatable paragraphs $reference_paras"
 
 handle_com="$OUT/emm386-handle.com"
 boot_img="$OUT/floppy-emm386-handle.img"

@@ -883,6 +883,33 @@ driver/API/command suite. A source-order guard rejects moving compaction after
 the mode request again. These are local emulator gates, not hardware or complete
 high-owner qualification; CI remains disabled.
 
+Paired allocation measurement now confirms an application-usable improvement
+in the load-option fixture (QEMU 486, 4 MiB, DOS-low, no separately loaded HIMEM,
+default 256 KiB EMS, identical probe/environment). This is **not** the preceding
+1 MiB EMS/standalone-HIMEM snapshot or the fixed VC/RAM comparison:
+
+| Initial mode | Pre-fix allocated bytes | Fixed allocated bytes | Gain |
+| --- | ---: | ---: | ---: |
+| ON | 582,000 | 582,000 | 0 |
+| OFF | 564,256 | 582,000 | 17,744 |
+| AUTO | 564,256 | 582,000 | 17,744 |
+
+The overwrite probe reports the paragraph count only after successfully
+allocating, filling and releasing the block. Counts are `8E17h` for all fixed
+modes and pre-fix ON, versus `89C2h` for pre-fix OFF/AUTO. The load suite now
+requires equal ON/OFF/AUTO counts. The saved old driver still passes the
+overwrite and mode/API probes but **fails** this new allocation-equality gate;
+the fixed driver passes the full suite. Thus boot/API success alone did not
+detect the lost application memory. No 111,744-byte free-memory gain is claimed
+from the earlier descriptor movement.
+
+Paired logs are in `out/emm-mode-gain.4Fpeke/{old,new}-{ON,OFF,AUTO}.log`.
+The tested driver hashes are `676d283c324664e4d202cc89e9dc8fcb484c7883f5edb52c157b3b1370f3252f`
+(old) and `40e71928669620ddc87a34053ccfdde37539ffbd6d9fc4e6c1de640f355b3eaf`
+(fixed). Both disposable inputs derive from the same repaired DOS image;
+the harness replaces CONFIG.SYS/AUTOEXEC.BAT and installs identical probes.
+The RAM-mode OpenDOS comparison and complete joint-layout goal remain unchanged.
+
 #### Boot reservation and reclamation contract
 
 The source order supplies an early integration point; a late HMA copy would

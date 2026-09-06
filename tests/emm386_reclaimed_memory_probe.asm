@@ -19,6 +19,7 @@ org 100h
     test bx, bx
     jz failed
     mov si, bx
+    mov [paragraphs], bx
     mov ah, 48h
     int 21h
     jc failed
@@ -43,6 +44,23 @@ org 100h
     mov ah, 49h
     int 21h
     jc failed
+    mov dx, size_label
+    mov ah, 09h
+    int 21h
+    mov bx, [paragraphs]
+    mov cx, 4
+.hex:
+    rol bx, 4
+    mov dl, bl
+    and dl, 15
+    add dl, '0'
+    cmp dl, '9'
+    jbe .emit
+    add dl, 7
+.emit:
+    mov ah, 02h
+    int 21h
+    loop .hex
     mov dx, passed
     mov ah, 09h
     int 21h
@@ -58,7 +76,9 @@ failed:
     mov ax, 4c01h
     int 21h
 owner dw 0
-passed db 'EMM386_RECLAIM_OVERWRITE_PASS',13,10,'$'
+paragraphs dw 0
+size_label db 'EMM386_FREE_PARAS=','$'
+passed db 13,10,'EMM386_RECLAIM_OVERWRITE_PASS',13,10,'$'
 failure db 'EMM386_RECLAIM_OVERWRITE_FAIL',13,10,'$'
 times 256 db 0
 stack_end:
