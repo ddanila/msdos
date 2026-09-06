@@ -15,7 +15,7 @@ from pathlib import Path
 
 from build_bios_low_image import ROOT, build, run
 from build_bios_high_payload import build as build_high
-from build_bios_activation_fixture import write_fixture
+from build_bios_activation_fixture import write_fixture, CHARACTER_TARGETS
 
 
 def run_warm_reset(command, log, stream, qmp_path):
@@ -60,6 +60,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--early", action="store_true", help="activate during SYSINIT, before buffers and COMMAND")
     parser.add_argument("--dispatch", action="store_true", help="install high decoder/tables and poison low originals")
+    parser.add_argument("--characters", action="store_true", help="bind complete high console/serial/printer/clock bodies")
     parser.add_argument("--tail-body", action="store_true", help="test last-linked fallback service layout")
     parser.add_argument("--scan", action="store_true", help="record activation-time pointer candidates on debug port")
     parser.add_argument("--rebase", action="store_true", help="move and poison the old low DOS prefix")
@@ -145,6 +146,8 @@ def main():
         parser.error("--fail-reservation requires --early")
     if args.dispatch and not args.early:
         parser.error("--dispatch requires --early")
+    if args.characters and not args.dispatch:
+        parser.error("--characters requires --dispatch")
     if (args.scan or args.rebase) and not (args.early and args.tail_body):
         parser.error("--scan/--rebase requires --early --tail-body")
     if args.compact and not args.rebase:
@@ -164,11 +167,11 @@ def main():
              "memm"], ROOT)
         args.emm386_image = fixture / "MEMM/MEMM/EMM386.EXE"
         print(f"Diagnostic EMM386 (reversed backing): {args.emm386_image}", flush=True)
-    manifest = build(scratch, early=args.early, tail_body=args.tail_body, dispatch=args.dispatch, scan=args.scan, rebase=args.rebase, compact=args.compact,
+    manifest = build(scratch, early=args.early, tail_body=args.tail_body, dispatch=args.dispatch, characters=args.characters, scan=args.scan, rebase=args.rebase, compact=args.compact,
                      reservation_limit=0x10 if args.fail_reservation else 0xfff0, fail_tables=args.fail_table_allocation,
                      high_cds=args.high_cds, fail_cds=args.fail_cds_allocation,
                      cds_cache_case=args.cds_cache_case, cds_cache_negative=args.cds_cache_negative)
-    high_manifest = build_high(scratch / "high", scratch, dispatch=args.dispatch)
+    high_manifest = build_high(scratch / "high", scratch, dispatch=args.dispatch, characters=args.characters)
     if args.rebase:
         layout = scratch / "public-layout.bin"
         run([ROOT / "bin/jwasm-bin", f"-I{ROOT / 'src/INC'}", f"-Fo{layout}",
@@ -218,6 +221,27 @@ def main():
         with (scratch / "low-defs.inc").open("a") as stream:
             for name in ("DSKTBL", "BIOS_DEVICE_TABLES_END", "BIOS_COLD_DISPATCH_START", "BIOS_COLD_DISPATCH_END"):
                 stream.write(f"{name} equ {manifest['symbols'][name]}\n")
+    if args.characters:
+        symbols, exports = manifest["symbols"], high_manifest["exports"]
+        with (scratch / "low-defs.inc").open("a") as stream:
+            stream.write(f"CHAR_DISPATCH_SLOT equ {symbols['BIOS_HIGH_DISPATCH_ENTRY']}\n")
+            stream.write(f"CHAR_DISPATCH_OFFSET equ {exports['BIOS_DISPATCH_START']}\n")
+        binary = (scratch / "MSBIO.BIN").read_bytes()
+        targets = {symbols[name]: exports[name] for name in CHARACTER_TARGETS}
+        checks = []
+        for table, maximum in (("CONTBL", 10), ("AUXTBL", 10), ("TIMTBL", 9), ("PRNTBL", 24)):
+            start = symbols[table]
+            for index in range(maximum + 1):
+                offset = start + 1 + 2 * index
+                low_target = int.from_bytes(binary[offset:offset + 2], "little")
+                if low_target in targets:
+                    high_offset = exports["BIOS_DISPATCH_TABLES"] + 2 * (start - symbols["DSKTBL"]) + 2 + 4 * index
+                    checks += ["mov dx,bx", f"add dx,{targets[low_target]}",
+                               f"cmp [es:bx+{high_offset}],dx", "jne fail",
+                               f"cmp word [es:bx+{high_offset + 2}],0ffffh", "jne fail"]
+        if len(checks) != 19 * 6:
+            raise ValueError("complete character command publication changed")
+        (scratch / "character-check.inc").write_text("\n".join(checks) + "\n")
     (scratch / "low-slots.inc").write_text(
         "dw " + ",".join(map(str, manifest["high_slot_words"])) + "\n")
     variants = {

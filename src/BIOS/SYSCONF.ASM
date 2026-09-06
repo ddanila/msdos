@@ -3061,7 +3061,13 @@ DeviceHighBytesToParagraphs ENDP
 ; each region that has a minimum for the duration of the driver transaction.
 DeviceHighApplyProfile PROC NEAR
 	cmp	cs:[DeviceHighRegionExplicit],0
+	IFDEF BIOS_SERVICE_BOOT
+	jne	short DeviceHighApplyBegin
+	jmp	DeviceHighApplyDone
+DeviceHighApplyBegin:
+	ELSE
 	je	short DeviceHighApplyDone
+	ENDIF
 	push	ax
 	push	bx
 	push	cx
@@ -3881,7 +3887,11 @@ $$DO76:
 	    call   Print		;AN000;   and Show messages and end the search loop.
 	    call   Error_Line		;AN006;
 ;	$ORELSE 			;AN000;
+	IFDEF BIOS_SERVICE_BOOT
+	JMP $$SR76
+	ELSE
 	JMP SHORT $$SR76
+	ENDIF
 $$IF76:
 	    cmp    ax, $P_RC_EOL	;AN000; End of Line?
 ;	$LEAVE	   E			;AN000;  then end the $ENDLOOP

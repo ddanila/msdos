@@ -52,13 +52,20 @@ def run(command, cwd):
         raise RuntimeError(result.stdout + result.stderr)
 
 
-def build(output, low_directory=None, *, dispatch=False):
+def build(output, low_directory=None, *, dispatch=False, characters=False):
+    if characters and not dispatch:
+        raise ValueError("complete character group requires far dispatch tables")
     output.mkdir(parents=True, exist_ok=True)
     low_directory = Path(low_directory) if low_directory is not None else ROOT / "src/BIOS"
     low_map = low_directory / "msBIO.map"
     _, low_symbols = parse_map(low_map)
     low_symbols = {name.upper(): value for name, value in low_symbols.items()}
     slot_targets = dict(SLOT_TARGETS)
+    if characters:
+        slot_targets.update({"BIOS_CHAR_LOW_SEGMENT": (2, "resident low BIOS segment"),
+                             "BIOS_CHAR_GETDX_OFFSET": (2, "GETDX")})
+        slot_targets.update({f"BIOS_CHAR_INT{number}": (4, f"BIOS_HMA_INT{number}")
+                             for number in ("14", "15", "16", "17", "1A", "29")})
     if dispatch:
         slot_targets.update({"BIOS_DISPATCH_LOW_SEGMENT": (2, "resident low BIOS segment"),
                              "BIOS_DISPATCH_ERROR_ENTRY": (4, "CMDERR"),
@@ -81,6 +88,13 @@ def build(output, low_directory=None, *, dispatch=False):
                  f"HIGHDISP.ASM,{dispatch_object};"], ROOT / "src/BIOS")
             objects.append(dispatch_object)
             listings.append(dispatch_listing)
+        if characters:
+            for module in ("MSCON", "MSAUX", "MSLPT", "MSCLOCK", "HIGHCHAR"):
+                char_object, char_listing = scratch / f"{module}.obj", scratch / f"{module}.lst"
+                run([ROOT / "bin/jwasm-masm", f"-I. -I../INC -DBIOS_CHAR_HIGH=1 -Fl{char_listing}",
+                     f"{module}.ASM,{char_object};"], ROOT / "src/BIOS")
+                objects.append(char_object)
+                listings.append(char_listing)
         for line in "\n".join(path.read_text(encoding="latin-1") for path in listings).splitlines():
             match = re.match(r"^([\w$]+)\s+(?:\.\s+)*\s*(.*?)\s+External\s*$", line)
             if match:
@@ -88,11 +102,15 @@ def build(output, low_directory=None, *, dispatch=False):
                 externals[name.upper()] = 4 if description.startswith("DWord") else 2
         if not externals:
             raise ValueError("no external symbols parsed from isolated listing")
+        group_definitions = {"RDEXIT", "BIOS_CHAR_EXIT", "BIOS_CHAR_BUSY", "BIOS_CHAR_CMDERR",
+                             "BIOS_CHAR_ERRCNT", "BIOS_CHAR_ERREXIT", "BIOS_CHAR_GETDX",
+                             "BIOS_CHAR_BINTOBCD", "BIOS_CHAR_DAYCNTTODAY"} if characters else set()
         slots = {name: size for name, size in externals.items()
-                 if name.startswith(("BIOS_SERVICE_", "BIOS_LOW_", "BIOS_DISPATCH_"))}
+                 if name.startswith(("BIOS_SERVICE_", "BIOS_LOW_", "BIOS_DISPATCH_", "BIOS_CHAR_"))
+                 and name not in group_definitions}
         if slots != {name: spec[0] for name, spec in slot_targets.items()}:
             raise ValueError("runtime imports changed; review slot widths and target contracts")
-        low = {name: low_symbols[name] for name in externals if name not in slots}
+        low = {name: low_symbols[name] for name in externals if name not in slots and name not in group_definitions}
         definitions = [".8086"]
         for name, value in sorted(low.items()):
             definitions += [f"PUBLIC {name}", f"{name} EQU {value}"]
@@ -155,7 +173,7 @@ def build(output, low_directory=None, *, dispatch=False):
             if rebase(data, relocations, origin) != expected:
                 raise ValueError(f"offset-fixup model disagrees with linker at {origin:04x}")
         manifest = {"installed": False, "runtime_bindings_required": True,
-                    "dispatch": dispatch, "table_bytes": table_bytes,
+                    "dispatch": dispatch, "characters": characters, "table_bytes": table_bytes,
                     "low_table_bytes": low_table_bytes, "far_tables": dispatch,
                     "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data),
                     "service_bytes": symbols["BIOS_SERVICE_END"],
@@ -273,5 +291,6 @@ if __name__ == "__main__":
     parser.add_argument("--low-directory", type=Path,
                         help="bind to this matching msBIO.map, MSBIO.BIN and IO.SYS set")
     parser.add_argument("--dispatch", action="store_true", help="include complete decoder and device tables")
+    parser.add_argument("--characters", action="store_true", help="link the complete character/clock service owner")
     args = parser.parse_args()
-    build(args.output.resolve(), args.low_directory, dispatch=args.dispatch)
+    build(args.output.resolve(), args.low_directory, dispatch=args.dispatch, characters=args.characters)

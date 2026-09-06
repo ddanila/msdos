@@ -9,7 +9,7 @@
 ;==============================================================================
 
 	itest=0
-	INCLUDE MSGROUP.INC	;DEFINE CODE SEGMENT
+	INCLUDE CHARSEG.INC	;normal or shared high character owner
 	INCLUDE JUMPMAC.INC
 	INCLUDE MSEQU.INC
 	INCLUDE MSMACRO.INC
@@ -81,7 +81,7 @@ CHRIN	PROC	NEAR
 ;SB	AH already contains the keyboard read function number
 ;SB		1 LOC
 
-	int	16h
+	CHAR_INTERRUPT 16h
 ;SB34CON000**************************************************************
 ALT10:
 	OR	AX,AX			;CHECK FOR NON-KEY AFTER BREAK
@@ -151,7 +151,7 @@ RD1:
 ;SB	 2 LOCS
 
 	mov	ah,KEYSTS_Func
-	int	16h
+	CHAR_INTERRUPT 16h
 ;SB34CON002**************************************************************
 	JZ	NOCHR
 	JMP	GOTCHR
@@ -171,7 +171,7 @@ NOCHR:
 	MOV	AX,4100H		; WAIT ON AN EXTERNAL EVENT
 ;	MOV	BX,0300H		; NO TIMEOUT
 ;	MOV	DX,60H			; LOOK AT I/O PORT 60H
-	INT	15H			; CALL ROM FOR SYSTEM WAIT
+	CHAR_INTERRUPT 15h		; CALL ROM FOR SYSTEM WAIT
 	MESSAGE FTESTCON,<"OUT OF WAIT. AX IS ">
 	MNUM	FTESTCON,AX
 	MESSAGE FTESTCON,<CR,LF>
@@ -187,7 +187,7 @@ GOTCHR:
 ;SB		2 LOCS
 
 	mov	ah,KEYRD_Func
-	int	16h
+	CHAR_INTERRUPT 16h
 ;SB34CON004**************************************************************
 	JUMP	CON$RDND		;AND GET A REAL STATUS
 NOTBRK:
@@ -232,12 +232,12 @@ FLLOOP:
 ;SB33012****************************************************************
 			 ;SB	; Is there a char there?
 	mov	AH, 1	 ;SB	; command code for check status
-	int	16h	 ;SB	; call rom-bios keyboard routine
+	CHAR_INTERRUPT 16h	 ; call rom-bios keyboard routine
 ;SB33012****************************************************************
 	JZ	FLDONE
 ;SB33013****************************************************************
 	xor	AH, AH	 ;SB	; if zf is nof set, get character
-	int	16h	 ;SB	; call rom-bios to get character
+	CHAR_INTERRUPT 16h	 ; call rom-bios to get character
 ;SB33013****************************************************************
 	JMP	FLLOOP
 FLDONE:
@@ -254,13 +254,14 @@ CON$WRIT:
 CON$LP:
 	MOV	AL,ES:[DI]		;GET CHAR
 	INC	DI
-	INT	CHROUT			;OUTPUT CHAR
+	CHAR_INTERRUPT CHROUT		;OUTPUT CHAR
 	LOOP	CON$LP			;REPEAT UNTIL ALL THROUGH
 	JUMP	EXIT
 ;-----------------------------------------------
 ;
 ;	BREAK KEY HANDLING
 ;
+	IFNDEF BIOS_CHAR_HIGH
 	PUBLIC CBREAK
 CBREAK:
 	MOV	CS:ALTAH,3		;INDICATE BREAK KEY SET
@@ -268,6 +269,7 @@ CBREAK:
 	PUBLIC INTRET
 INTRET:
 	IRET
+	ENDIF
 
 ;------------------------------------------------------------------------------
 ;J.K. 4/29/86 - CONSOLE GENERIC IOCTL SUPPORT FOR DOS 3.3.

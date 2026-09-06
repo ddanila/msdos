@@ -2577,8 +2577,9 @@ The emitted dependencies select the following group contract:
 **Dispatch design decision:** extend the installed high command-table format
 to carry low/high target selection for the complete group, rather than adding
 a permanent low stub for each character-service entry. The development far-table
-dispatcher below now implements target selection; character bodies still remain
-low. Preserve each
+dispatcher below now implements target selection; the optional complete high
+character owner below publishes service copies but retains the low originals.
+Preserve each
 service's original low SI identity, handler-entry flags and completion frame.
 Charge the expanded tables/decoder and common firmware-return support in HMA
 and low memory respectively before claiming a net release. Bind ALTAH, AUXBUF,
@@ -2782,6 +2783,50 @@ request and the old decoder/tables poisoned. It passes in
 `out/bios-dispatch-hma-ai438zck/`; `--stale-table` fails with exit 35/trace BF
 in `out/bios-dispatch-hma-79oxeggo/`. The target checks cover the existing register/flag/frame
 contracts and all completion policies, not actual relocated character services.
+
+**Complete high character owner (development):** `--characters` with
+`--early --tail-body --dispatch` now compiles MSCON, MSAUX, MSLPT and MSCLOCK
+from the same sources as normal IO.SYS, through `CHARSEG.INC`. One high segment
+retains the direct AUX-to-console RDEXIT transfer. `HIGHCHAR.ASM` supplies common
+completion tail exits, GETDX and boot-selected clock-helper bindings; firmware
+calls use the qualified low interrupt gates. No per-service low entry stubs
+are added. SYSINIT publishes all 19 applicable command entries, covering 15
+distinct service targets, as high far pointers after preparing the owner.
+
+The group adds **960 HMA bytes** (876 service code, 56 shared bindings/code,
+28 runtime-slot bytes), raising the BIOS reservation to **6,658 bytes** and
+leaving a calculated **8,139-byte** shared tail with normal COMMAND and fifteen
+buffers. Low BIOS remains **5,200 bytes**: low bodies, FLUSH's incoming near
+call from MSBIO2, the TimeToTicks callback and clock conversion helpers are
+still retained. This is real high service execution/publication, **not low
+reclamation or production promotion**. Keep these incoming contracts in the
+complete layout; do not poison the whole old group merely because dispatch
+entries now point high. The selected comparison remains 617,936 conventional
+bytes without this opt-in group.
+
+Printer output explicitly accesses low retry/request state while DS addresses
+the caller's buffer. Clock helper slots require explicit DS operands in the
+shared bridge: implicit CS selection broke rebased boot in
+`out/bios-low-boot-eoufig47/`. The corrected operands have a linked-byte guard;
+all six high-payload tests and the crossing/residency suites pass. Independent
+link origins verify the group's internal relocations; normal IO.SYS stays
+byte-identical.
+
+Reproduce with a current boot image:
+
+```sh
+FLOPPY_IMAGE=<image> python3 tests/test_bios_low_boot_qemu.py --early --tail-body --dispatch --characters
+FLOPPY_IMAGE=<image> python3 tests/test_bios_low_boot_qemu.py --early --tail-body --dispatch --characters --rebase --compact --high-cds --warm-reset --mode emm-high
+```
+
+Bare-low, HIMEM-low/high and EMM-high pass in `out/bios-low-boot-ncku7nv8/`;
+rebased/high-CDS warm reset passes in `out/bios-low-boot-v3ce1i4y/`. The guest
+checks every high command binding against its expected linked target. Forced
+reservation fallback passes in `out/bios-low-boot-x1cr6yau/` (before the
+high-only helper operand correction). These are boot, file-I/O and existing
+public-contract tests, not exhaustive keyboard/printer/serial/clock command
+coverage. Complete device-request and asynchronous-callback qualification,
+low repacking/release and the joint BIOS/COMMAND/provider design remain open.
 
 The 18-byte error pair also contains mutable `LSTERR`: high
 `MSDSKHIG.INC:MAPERROR` writes that sentinel before scanning through low ES.

@@ -2,6 +2,11 @@
 import re
 from build_bios_low_image import ROOT
 
+CHARACTER_TARGETS = ("CON$READ", "CON$RDND", "CON$FLSH", "CON$WRIT",
+                     "AUX$READ", "AUX$RDND", "AUX$FLSH", "AUX$WRIT", "AUX$WRST",
+                     "PRN$WRIT", "PRN$STAT", "PRN$TILBUSY", "PRN$GENIOCTL",
+                     "TIM$READ", "TIM$WRIT")
+
 
 def write_fixture(output, low, high):
     symbols, exports = low["symbols"], high["exports"]
@@ -76,8 +81,15 @@ def write_fixture(output, low, high):
             delta = exports["BIOS_DISPATCH_TABLES"] + 2 * (start - symbols["DSKTBL"])
             bind_low += [f"mov si,{start}", "mov di,bx", f"add di,{delta}",
                          "xor ax,ax", "lodsb", "stosw", f"mov cx,{maximum + 1}",
-                         f"activation_far_{name}:", "lodsw", "stosw", "mov ax,70h", "stosw",
-                         f"loop activation_far_{name}"]
+                         f"activation_far_{name}:", "lodsw", "mov dx,70h"]
+            if high.get("characters"):
+                for index, target in enumerate(CHARACTER_TARGETS):
+                    bind_low += [f"cmp ax,{symbols[target]}", f"jne activation_char_{name}_{index}",
+                                 "mov ax,bx", f"add ax,{exports[target]}", "mov dx,0ffffh",
+                                 f"jmp activation_target_{name}", f"activation_char_{name}_{index}:"]
+            bind_low += [f"activation_target_{name}:", "stosw", "mov ax,dx", "stosw",
+                         "dec cx", f"jz activation_far_done_{name}", f"jmp activation_far_{name}",
+                         f"activation_far_done_{name}:"]
         bind_low += ["pop es", "pop ds"]
         # Development witness: any stale decoder/table access must fail.
         for start, end, fill in (("DSKTBL", "BIOS_DEVICE_TABLES_END", "0a5h"),

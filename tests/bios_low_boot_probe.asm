@@ -110,6 +110,17 @@ start:
 %endif
     cmp byte [es:ACTIVE_OFFSET],EXPECT_ACTIVE
     jne fail
+%ifdef CHAR_DISPATCH_SLOT
+%if EXPECT_ACTIVE
+    mov bx,[es:CHAR_DISPATCH_SLOT]
+    sub bx,CHAR_DISPATCH_OFFSET
+    mov ax,0ffffh
+    mov es,ax
+%include "character-check.inc"
+    mov ax,70h
+    mov es,ax
+%endif
+%endif
 %ifdef BIOS_COLD_DISPATCH_START
 %if EXPECT_ACTIVE
     mov di,DSKTBL

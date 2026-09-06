@@ -45,7 +45,7 @@
 
 ;;Ver 3.30 modification ---------------------------
 	itest=0
-	INCLUDE MSGROUP.INC	;DEFINE CODE SEGMENT
+	INCLUDE CHARSEG.INC	;normal or shared high character owner
 	INCLUDE JUMPMAC.INC
 	INCLUDE MSMACRO.INC
 
@@ -213,7 +213,7 @@ AUXOP	PROC	NEAR
 				;AH=FUNCTION CODE
 				;0=INIT, 1=SEND, 2=RECEIVE, 3=STATUS
 	call	GETDX		; have DX point to proper card
-	int	14h		; call rom-bios for status
+	CHAR_INTERRUPT 14h	; call rom-bios for status
 	ret
 AUXOP	ENDP
 

@@ -8,6 +8,29 @@ from build_bios_high_payload import build, offset_fixups, rebase, boot_policy, p
 
 
 class PayloadTests(unittest.TestCase):
+    def test_complete_character_owner_links_without_low_completion_aliases(self):
+        from build_bios_low_image import build as build_low
+        from build_bios_activation_fixture import CHARACTER_TARGETS
+        with tempfile.TemporaryDirectory(prefix="msdos-high-characters-test-") as scratch:
+            directory = Path(scratch)
+            build_low(directory, dispatch=True)
+            base = build(directory / "base", directory, dispatch=True)
+            report = build(directory / "characters", directory, dispatch=True, characters=True)
+            self.assertEqual(report["bytes"] - base["bytes"], 960)
+            self.assertEqual(len(report["runtime_slots"]), 32)
+            self.assertEqual(report["verified_origins"], [0, 1, 16, 0x123, 0x4000])
+            for name in (*CHARACTER_TARGETS, "RDEXIT", "BIOS_CHAR_EXIT", "BIOS_CHAR_GETDX"):
+                self.assertIn(name, report["exports"])
+                self.assertNotIn(name, report["low_bindings"])
+            self.assertIn("HAVECMOSCLOCK", report["low_bindings"])
+            self.assertIn("BINTOBCD", report["low_bindings"])
+            payload = (directory / "characters/bios-high.bin").read_bytes()
+            for entry, slot in (("BIOS_CHAR_BINTOBCD", "BINTOBCD"),
+                                ("BIOS_CHAR_DAYCNTTODAY", "DAYCNTTODAY")):
+                offset = report["exports"][entry]
+                # FF /6 direct PUSH through DS, not an inferred CS override.
+                self.assertEqual(payload[offset:offset + 4], b"\xff\x36" + report["low_bindings"][slot].to_bytes(2, "little"))
+
     def test_complete_dispatch_owner_and_independent_origins(self):
         with tempfile.TemporaryDirectory(prefix="msdos-high-dispatch-test-") as scratch:
             directory = Path(scratch)

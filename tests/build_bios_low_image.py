@@ -13,7 +13,9 @@ from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False):
+def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False):
+    if characters and not dispatch:
+        raise ValueError("character owner requires far dispatch tables")
     cache_cases = {"first": 1, "last": 2, "past-end": 3, "foreign": 4}
     if cds_cache_case is not None and (not high_cds or cds_cache_case not in cache_cases):
         raise ValueError("CDS cache case requires high CDS and a known case")
@@ -39,7 +41,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
     if early:
         from build_bios_high_payload import build as build_high
         from build_bios_activation_fixture import write_fixture
-        seed = build(output, tail_body=tail_body, dispatch=dispatch)
+        seed = build(output, tail_body=tail_body, dispatch=dispatch, characters=characters)
         if rebase:
             _, dos_symbols = parse_map(ROOT / "src/DOS/MSDOS.MAP")
             dos_symbols = {name.upper(): value for name, value in dos_symbols.items()}
@@ -84,7 +86,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
                             "PERMANENT_END": seed["symbols"]["BIOS_PERMANENT_END"]}
             (output / "BIOSSCAN_DEFS.INC").write_text("".join(
                 f"SCAN_{name} EQU {value}\n" for name, value in scan_symbols.items()))
-        high = build_high(output / "high", output, dispatch=dispatch)
+        high = build_high(output / "high", output, dispatch=dispatch, characters=characters)
         write_fixture(output, seed, high)
         for source, target in (("defs", "DEFS"), ("preflight", "PREFLIGHT"),
                                ("bind-high", "BIND_HIGH"), ("bind-low", "BIND_LOW"),
@@ -186,7 +188,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
     manifest = {"activated": False, "reclaimed_bytes": 0,
                 "sha256": hashlib.sha256(image).hexdigest(), "symbols": symbols,
                 "high_slot_words": sorted(slot_words), "early_boot_installer": early,
-                "reservation_limit": reservation_limit, "tail_body": tail_body, "dispatch": dispatch,
+                "reservation_limit": reservation_limit, "tail_body": tail_body, "dispatch": dispatch, "characters": characters,
                 "pointer_census": scan, "low_prefix_rebase": rebase, "arena_compaction": compact,
                 "high_cds": high_cds, "fail_cds": fail_cds}
     if early:
@@ -195,7 +197,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
             if name in high["low_bindings"] or name.startswith("BIOS_") or name == "DSKTBL":
                 if symbols[name] != value:
                     raise ValueError(f"early link moved embedded low binding: {name}")
-        final_high = build_high(output / "high", output, dispatch=dispatch)
+        final_high = build_high(output / "high", output, dispatch=dispatch, characters=characters)
         if (output / "high/bios-high.bin").read_bytes() != embedded:
             raise ValueError("early link changed the embedded high payload")
         manifest["embedded_payload_bytes"] = final_high["bytes"]
@@ -214,6 +216,7 @@ if __name__ == "__main__":
     parser.add_argument("--early", action="store_true", help="embed the early installer and poison old code after activation")
     parser.add_argument("--tail-body", action="store_true", help="link the fallback body after retained BIOS code")
     parser.add_argument("--dispatch", action="store_true", help="include complete high decoder and device tables")
+    parser.add_argument("--characters", action="store_true", help="bind the complete high character service owner")
     parser.add_argument("--scan", action="store_true", help="capture activation-time ownership on QEMU debug port")
     parser.add_argument("--rebase", action="store_true", help="move and poison the old low DOS prefix")
     parser.add_argument("--compact", action="store_true", help="coalesce the first-HIMEM boot allocation after rebasing")
@@ -222,7 +225,7 @@ if __name__ == "__main__":
     parser.add_argument("--cds-cache-case", choices=("first", "last", "past-end", "foreign"))
     parser.add_argument("--cds-cache-negative", action="store_true")
     args = parser.parse_args()
-    build(args.output, early=args.early, tail_body=args.tail_body, dispatch=args.dispatch,
+    build(args.output, early=args.early, tail_body=args.tail_body, dispatch=args.dispatch, characters=args.characters,
           scan=args.scan, rebase=args.rebase, compact=args.compact,
           high_cds=args.high_cds, fail_cds=args.fail_cds_allocation,
           cds_cache_case=args.cds_cache_case, cds_cache_negative=args.cds_cache_negative)

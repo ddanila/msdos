@@ -24,7 +24,7 @@
 
 
 	itest=0
-	INCLUDE MSGROUP.INC	;DEFINE CODE SEGMENT
+	INCLUDE CHARSEG.INC	;normal or shared high character owner
 	INCLUDE MSMACRO.INC
 
 	EXTRN EXIT:NEAR
@@ -38,6 +38,12 @@
 
 ;;Rev 3.30 Modification ------------------------------------------------
 ; variables for real time clock setting
+	IFDEF BIOS_CHAR_HIGH
+	EXTRN HaveCMOSClock:BYTE
+BinToBCD TEXTEQU <BIOS_CHAR_BINTOBCD>
+DaycntToDay TEXTEQU <BIOS_CHAR_DAYCNTTODAY>
+	EXTRN BIOS_CHAR_BINTOBCD:NEAR, BIOS_CHAR_DAYCNTTODAY:NEAR
+	ELSE
 	public	HaveCMOSClock
 HaveCMOSClock	db	0	;set by MSINIT.
 	public	month_tab
@@ -57,6 +63,7 @@ DaycntToDay	dw	0	;should point to Daycnt_to_day in MSINIT
 
 	public	TimeToTicks
 TimeToTicks	dw	Time_To_Ticks
+	ENDIF
 
 ;;End of Modification ------------------------------------------------
 
@@ -95,7 +102,7 @@ TIM$WRIT PROC	NEAR
 	mov	dl,0			;DL = 0 (ST) or 1 (DST)
 	cli				;turn off timer
 	mov	ah,03h			;set RTC time
-	int	1Ah			;call rom bios clock routine
+	CHAR_INTERRUPT 1ah		;call rom bios clock routine
 	sti
 
 ;;End of Modification
@@ -107,7 +114,7 @@ No_CMOS_1:
 				;CX:DX now has time in ticks
 	cli			; Turn off timer
 	mov	AH, 1		; command is set time in clock
-	int	1Ah		; call rom-bios clock routines
+	CHAR_INTERRUPT 1ah	; call rom-bios clock routines
 	pop	[DAYCNT]
 	sti
 ;CMOS clock -------------------------------------
@@ -116,7 +123,7 @@ No_CMOS_1:
 	call	DaycntToDay	; convert to BCD format
 	cli			; Turn off timer
 	mov	AH,05h		; set RTC date
-	int	1Ah		; call rom-bios clock routines
+	CHAR_INTERRUPT 1ah	; call rom-bios clock routines
 	sti
 ;------------------------------------------------
 
@@ -194,7 +201,7 @@ TIME_TO_TICKS ENDP
 TIM$READ PROC	NEAR
 				; read the clock
 	xor	AH, AH		; set command to read clock
-	int	1Ah		; call rom-bios to get time
+	CHAR_INTERRUPT 1ah	; call rom-bios to get time
 
 	or	al,al		; check for a new day
 	jz	noroll1 	; if al=0 then don't reset day count

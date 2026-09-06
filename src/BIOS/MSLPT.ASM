@@ -11,7 +11,7 @@
 ;AN001 - P156 KBMLPT device driver's retry logic.                  8/18/87 J.K.
 ;==============================================================================
 	itest=0
-	INCLUDE MSGROUP.INC	;DEFINE CODE SEGMENT
+	INCLUDE CHARSEG.INC	;normal or shared high character owner
 	INCLUDE MSEQU.INC
 	INCLUDE MSMACRO.INC
 	INCLUDE DEVSYM.INC
@@ -143,7 +143,7 @@ PRNSTAT PROC	NEAR
 	mov	AH, 2			; set command for get status  ;SB ;3.30*
 PRNOP:								      ;SB ;3.30*
 	call	GETDX			; determine which printer     ;SB ;3.30*
-	int	17h			; call ROM-BIOS printer routine ;SB;3.30*
+	CHAR_INTERRUPT 17h		; call ROM-BIOS printer routine
 
 ;SB33037**********************************************************************
 
@@ -198,9 +198,9 @@ PRN$TILBLOOP:
 	PUSH	CX
 	PUSH	BX
 	XOR	BX,BX
-	MOV	BL,CS:[PRINTDEV]
+	CHAR_LOW_LOAD BL,<[PRINTDEV]>
 	SHL	BX,1
-	MOV	CX,CS:WAIT_COUNT[BX]	; WAIT COUNT TIMES TO COME READY
+	CHAR_LOW_LOAD CX,<WAIT_COUNT[BX]>	; WAIT COUNT TIMES TO COME READY
 	POP	BX
 PRN$GETSTAT:
 	CALL	PRNSTAT 		; GET STATUS
@@ -216,7 +216,7 @@ PRN$GETSTAT:
 	LOOP	PRN$TILBLOOP		; GO FOR MORE
 PRN$B:
 	POP	DS
-	LDS	BX,CS:[PTRSAV]
+	CHAR_REQUEST
 	ASSUME	DS:NOTHING
 	SUB	WORD PTR [BX].COUNT,CX	;# OF SUCCESSFUL I/O'S
 	JMP	EXIT
@@ -227,7 +227,7 @@ PRN$BPERR PROC	NEAR
 	POP	CX
 PRN$BERR:
 	POP	DS
-	LDS	BX,CS:[PTRSAV]
+	CHAR_REQUEST
 	ASSUME	DS:NOTHING
 
 	SUB	WORD PTR [BX].COUNT,CX	;# OF SUCCESSFUL I/O'S
