@@ -32,10 +32,19 @@ remains 6,798,336 bytes, **5,120 below the control**; UMB remains unchanged.
 Retirement layout/link tests and composed VC boot pass. Warm-reset boot passes
 in `out/bios-low-boot-n4r3xw4z/`; forced high-reservation failure retains working
 fallback bodies in all four boot modes in `out/bios-low-boot-kq0v04jb/`.
-These checks do not exhaust device-request semantics or directly qualify the
-retained TimeToTicks near callback with A20 disabled. Finish those checks before
-promotion. Then settle remaining BIOS mixed state/services and complete COMMAND
-placement against the same shared budget; reaching retail is not permission
+The direct TimeToTicks near callback now passes four exact time conversions in
+low fallback, poisoned high and compacted high layouts. The high cases prove
+A20 is off through physical aliasing before entry and restored afterward;
+SP, DS, ES, SI, DI and BP survive. Removing the installed gate's A20-restoring
+call reaches the A20-off marker but cannot complete the first callback. This
+is a 486/HIMEM-only qualification, not a paired-provider or suspend/resume test.
+Reproduce with `python3 tests/test_bios_clock_callback_qemu.py`; evidence is
+`out/bios-clock-callback-ohfqqa_8/`. The probe temporarily replaces and restores
+the loader entry as its same-segment near caller, with interrupts masked;
+it adds no resident production gateway. Full device-request semantics remain
+open. Finish those checks before promotion, then settle remaining BIOS mixed
+state/services and complete COMMAND placement against the same shared budget;
+reaching retail is not permission
 to stop at an arbitrary paragraph target. Broader provider failure/reset
 qualification remains open.
 
