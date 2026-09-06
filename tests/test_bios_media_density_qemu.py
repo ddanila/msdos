@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Qualify density fallback in a pinned retired-media clock-test fixture."""
+"""Qualify density fallback or extended IDs in a pinned retired-media fixture."""
 import argparse
 import hashlib
 import json
@@ -17,6 +17,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("fixture", type=Path,
                         help="completed test_bios_clock_callback_qemu.py --pack-headers --retire-media output")
+    parser.add_argument("--extended-bpb", action="store_true", help="test requested, classic and unrequested volume IDs")
     args = parser.parse_args()
     work = Path(tempfile.mkdtemp(prefix="bios-media-density-", dir=ROOT / "out"))
     print(f"Evidence: {work}", flush=True)
@@ -25,15 +26,18 @@ def main():
                     ROOT / "tests/bios_media_layout.asm"], check=True, capture_output=True)
     names = ("SIZE", "BYTEPERSEC", "SECPERCLUS", "RESSEC", "CFAT", "CDIR", "DRVLIM",
              "MEDIAD", "CSECFAT", "SECLIM", "HDLIM", "HIDSEC_L", "HIDSEC_H", "DRVLIM_H",
-             "FLAGS", "FORMFACTOR", "FCHANGELINE", "FF96TPI")
+             "FLAGS", "FORMFACTOR", "FCHANGELINE", "FF96TPI", "VOL_SERIAL", "VOLID", "FILESYS_ID")
     fields = dict(zip(names, struct.unpack(f"<{len(names)}H", layout.read_bytes())))
     proof = json.loads((args.fixture / "results.json").read_text())
     env = dict(os.environ, MTOOLS_SKIP_CHECK="1", MTOOLS_NO_VFAT="1")
     results = {}
-    for name, parent, active, compact, omit in (("fallback", "fallback", False, False, False),
-                                               ("high-poisoned", "high-poisoned", True, False, False),
-                                               ("high-compacted", "high-compacted", True, True, False),
-                                               ("missing-unwind", "high-poisoned", True, False, True)):
+    parents = (("fallback", False, False), ("high-poisoned", True, False), ("high-compacted", True, True))
+    modes = (("extended", 1), ("classic", 2), ("unrequested", 3)) if args.extended_bpb else (("density", 0),)
+    cases = [(parent + "-" + mode, parent, active, compact, False, id_mode)
+             for parent, active, compact in parents for mode, id_mode in modes]
+    cases.append(("missing-id-copy" if args.extended_bpb else "missing-unwind",
+                  "high-poisoned", True, False, True, 1 if args.extended_bpb else 0))
+    for name, parent, active, compact, omit, id_mode in cases:
         source = args.fixture / parent
         low = json.loads((source / "low.json").read_text())
         high = json.loads((source / "high/bios-high.json").read_text())
@@ -62,7 +66,17 @@ def main():
                            EXPECT_POISON=int(active and not compact), OLD_START=symbols["CON$READ"],
                            OLD_SIZE=symbols["BIOS_SERVICE_END"]-symbols["CON$READ"],
                            GETBP_ENTRY=symbols["GETBP"], HIGH_GETBP=symbols["BIOS_HIGH_GETBP"],
-                           HIGH_GETBP_OFFSET=exports["GETBP"], HIGH_UNWIND_OFFSET=unwind, OMIT_UNWIND=int(omit),
+                           HIGH_GETBP_OFFSET=exports["GETBP"], HIGH_UNWIND_OFFSET=unwind,
+                           OMIT_UNWIND=int(omit and not id_mode), OMIT_ID_COPY=int(omit and bool(id_mode)),
+                           ID_MODE=id_mode, EXPECTED_READS=1 if id_mode else 2,
+                           ID_FLAG=symbols["SET_ID_FLAG"],
+                           EXPECTED_ID_FLAG=2 if id_mode == 1 else 1 if id_mode == 2 else 0,
+                           HIGH_ID_COPY_OFFSET=exports["MOV_MEDIA_IDS"], ID_COPY_OPCODE=payload[exports["MOV_MEDIA_IDS"]],
+                           EXT_SIGNATURE=0 if id_mode == 2 else 0x29,
+                           SECTOR_SIGNATURE=symbols["EXT_BOOT_SIG"]-symbols["DISKSECTOR"],
+                           SECTOR_SERIAL=symbols["BOOT_SERIAL_L"]-symbols["DISKSECTOR"],
+                           SECTOR_LABEL=symbols["BOOT_VOLUME_LABEL"]-symbols["DISKSECTOR"],
+                           SECTOR_FILESYSTEM=symbols["BOOT_SYSTEM_ID"]-symbols["DISKSECTOR"],
                            PATCH_OFFSET=patch_offset,
                            PATCH_DISPLACEMENT=int.from_bytes(patch_image[patch_offset+1:patch_offset+3], "little"))
         (directory / "media-defs.inc").write_text("".join(f"{k} equ {v}\n" for k, v in definitions.items()))
@@ -87,8 +101,15 @@ def main():
             code, output = None, (error.stdout or b"") + (error.stderr or b"")
         (directory / "qemu.log").write_bytes(output)
         trace = debug.read_bytes() if debug.exists() else b""
-        passed = (trace == b"BD12" and code != 33) if omit else (trace == b"BD12P" and code == 33)
+        expected = b"BD1" if id_mode else b"BD12"
+        if omit and id_mode:
+            passed = trace == expected + b"\x20" and code == 35
+        elif omit:
+            passed = trace == expected and code != 33
+        else:
+            passed = trace == expected + b"P" and code == 33
         results[name] = dict(passed=passed, exit_code=code, trace=trace.hex(), negative_control=omit,
+                             id_mode=id_mode, density_call_forced=not bool(id_mode),
                              emulator=subprocess.check_output(["qemu-system-i386", "--version"], text=True).splitlines()[0],
                              command=command, inputs={str(p): hashlib.sha256(p.read_bytes()).hexdigest()
                                                       for p in (image, probe, source / "low.json", source / "high/bios-high.json",

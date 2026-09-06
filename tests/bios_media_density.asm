@@ -1,5 +1,6 @@
-; Exercise installed GETBP with a private, external BDS and synthetic read-only
-; INT 13h results: invalid boot sector, then F9 FAT media. No disk is modified.
+; Exercise installed GETBP with a private BDS and synthetic read-only INT 13h
+; results: invalid-boot/F9 fallback or a valid BPB with optional extended IDs.
+; No disk is modified.
 bits 16
 org 100h
 %include "media-defs.inc"
@@ -10,6 +11,14 @@ start:
     cld
     mov ax,70h
     mov es,ax
+%if ID_MODE
+    mov al,[es:ID_FLAG]
+    mov [saved_id_flag],al
+    mov byte [es:ID_FLAG],1
+%if ID_MODE = 3
+    mov byte [es:ID_FLAG],0
+%endif
+%endif
     cmp byte [es:ACTIVE],EXPECT_ACTIVE
     jne fail
 %if EXPECT_POISON
@@ -32,6 +41,7 @@ start:
     mov byte [es:0],0e8h
     mov word [es:1],GETBP_ENTRY-3
     mov byte [es:3],0cbh
+%if !ID_MODE
     ; Boot may purge this call for the detected ROM. Select the compiled
     ; density branch explicitly for this bounded test, then restore it.
     mov bx,PATCH_OFFSET
@@ -63,6 +73,7 @@ start:
     mov word [es:bx+1],PATCH_DISPLACEMENT
     mov ax,70h
     mov es,ax
+%endif
 %if OMIT_UNWIND
     mov bx,[es:HIGH_GETBP]
     sub bx,HIGH_GETBP_OFFSET
@@ -78,6 +89,18 @@ start:
     mov byte [es:bx+2],090h
     pop es
 %endif
+%if OMIT_ID_COPY
+    mov bx,[es:HIGH_GETBP]
+    sub bx,HIGH_GETBP_OFFSET
+    add bx,HIGH_ID_COPY_OFFSET
+    push es
+    mov ax,0ffffh
+    mov es,ax
+    cmp byte [es:bx],ID_COPY_OPCODE
+    jne fail
+    mov byte [es:bx],0c3h
+    pop es
+%endif
     xor ax,ax
     mov es,ax
     mov ax,[es:13h*4]
@@ -91,6 +114,22 @@ start:
     mov byte [bds+B_CFAT],2
     mov word [bds+B_FLAGS],B_FCHANGELINE
     mov byte [bds+B_FORMFACTOR],B_FF96TPI
+%if ID_MODE
+    push ds
+    pop es
+    mov di,bds+B_VOL_SERIAL
+    mov ax,0cccch
+    stosw
+    stosw
+    mov di,bds+B_VOLID
+    mov cx,12
+    mov al,0a5h
+    rep stosb
+    mov di,bds+B_FILESYS_ID
+    mov cx,9
+    mov al,05ah
+    rep stosb
+%endif
     mov ax,1234h
     mov es,ax
     mov bx,5678h
@@ -124,7 +163,7 @@ start:
     mov bx,cs
     cmp ax,bx
     jne fail
-    cmp byte [reads],2
+    cmp byte [reads],EXPECTED_READS
     jne fail
     mov byte [stage],3
 %macro check_word 2
@@ -150,6 +189,52 @@ start:
     check_word HIDSEC_L,0
     check_word HIDSEC_H,0
     check_word DRVLIM_H,0
+%if ID_MODE
+    mov byte [stage],32
+    push ds
+    pop es
+%if ID_MODE = 1
+    cmp word [bds+B_VOL_SERIAL],0c3d4h
+    jne fail
+    cmp word [bds+B_VOL_SERIAL+2],0a1b2h
+    jne fail
+    mov si,volume_label
+    mov di,bds+B_VOLID
+    mov cx,11
+    repe cmpsb
+    jne fail
+    mov si,filesystem_id
+    mov di,bds+B_FILESYS_ID
+    mov cx,8
+    repe cmpsb
+    jne fail
+%else
+    cmp word [bds+B_VOL_SERIAL],0cccch
+    jne fail
+    cmp word [bds+B_VOL_SERIAL+2],0cccch
+    jne fail
+    mov di,bds+B_VOLID
+    mov cx,11
+    mov al,0a5h
+    repe scasb
+    jne fail
+    mov di,bds+B_FILESYS_ID
+    mov cx,8
+    mov al,05ah
+    repe scasb
+    jne fail
+%endif
+    cmp byte [bds+B_VOLID+11],0a5h
+    jne fail
+    cmp byte [bds+B_FILESYS_ID+8],05ah
+    jne fail
+    mov ax,70h
+    mov es,ax
+    cmp byte [es:ID_FLAG],EXPECTED_ID_FLAG
+    jne fail
+    mov al,[saved_id_flag]
+    mov [es:ID_FLAG],al
+%endif
     push ds
     pop es
     mov di,guard_before
@@ -162,12 +247,14 @@ start:
     mov ax,05a5ah
     repe scasw
     jne fail
+%if !ID_MODE
     mov es,[patch_segment]
     mov bx,[patch_address]
     mov al,[patch_saved]
     mov [es:bx],al
     mov ax,[patch_saved+1]
     mov [es:bx+1],ax
+%endif
     xor ax,ax
     mov es,ax
     mov ax,[old13]
@@ -214,9 +301,35 @@ read_hook:
     xor ax,ax
     rep stosw
     pop cx
+%if ID_MODE
+    cmp cl,1
+    jne fail
+    mov word [es:bx],03cebh
+    mov byte [es:bx+2],090h
+    push ds
+    push cs
+    pop ds
+    mov si,synthetic_bpb
+    lea di,[bx+11]
+    mov cx,synthetic_bpb_end-synthetic_bpb
+    rep movsb
+    mov byte [es:bx+SECTOR_SIGNATURE],EXT_SIGNATURE
+    mov word [es:bx+SECTOR_SERIAL],0c3d4h
+    mov word [es:bx+SECTOR_SERIAL+2],0a1b2h
+    lea di,[bx+SECTOR_LABEL]
+    mov si,volume_label
+    mov cx,11
+    rep movsb
+    lea di,[bx+SECTOR_FILESYSTEM]
+    mov si,filesystem_id
+    mov cx,8
+    rep movsb
+    pop ds
+%else
     cmp cl,2
     jne .done
     mov byte [es:bx],0f9h
+%endif
 .done:
 %if EXPECT_ACTIVE
     ; Return with A20 off; the actual retained firmware-return gate must
@@ -254,6 +367,19 @@ saved_entry times 16 db 0
 saved_sp dw 0
 reads db 0
 stage db 0
+saved_id_flag db 0
+volume_label db 'MEDIA TEST '
+filesystem_id db 'FAT12   '
+synthetic_bpb:
+    dw 512
+    db 1
+    dw 1
+    db 2
+    dw 224,2400
+    db 0f9h
+    dw 7,15,2
+    dd 0,0
+synthetic_bpb_end:
 patch_address dw 0
 patch_segment dw 0
 patch_saved times 3 db 0

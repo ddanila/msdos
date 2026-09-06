@@ -61,10 +61,16 @@ and compacted high pass; high firmware returns prove A20-off through aliasing.
 Removing HIDENSITY's stack unwind prevents completion. The probe explicitly
 selects and restores the compiled density call because this fixture's detected
 ROM policy normally purges it; this does not qualify native ROM detection.
-Evidence: `out/bios-media-density-06_3wiex/`. Reproduce with
+Evidence: `out/bios-media-density-e6rj5isx/`. Reproduce with
 `python3 tests/test_bios_media_density_qemu.py out/bios-clock-callback-7kgb1mcs`.
-Mutable media IDs, older ROM policy selection and nested media-error paths
-remain open; boot/file-I/O and linker checks do not exhaust those branches.
+Adding `--extended-bpb` qualifies valid BPBs with requested extended IDs,
+classic signatures and unrequested IDs across the same three layouts. Exact
+serial/11-byte label/8-byte filesystem copies and untouched boundary bytes
+pass; classic/unrequested cases preserve IDs. Skipping the high copy routine
+is detected. The ten-case evidence is `out/bios-media-density-_o_d1l_b/`.
+These are controlled GETBP calls with an external BDS, not complete public
+device/IOCTL or real-media coverage. Native ROM policy selection and nested
+media-error paths remain open.
 The direct TimeToTicks near callback now passes four exact time conversions in
 low fallback, poisoned high and compacted high layouts. The high cases prove
 A20 is off through physical aliasing before entry and restored afterward;
@@ -80,6 +86,11 @@ open. Finish those checks before promotion, then settle remaining BIOS mixed
 state/services and complete COMMAND placement against the same shared budget;
 reaching retail is not permission to stop at an arbitrary paragraph target. Broader provider failure/reset
 qualification remains open.
+
+Next implementation focus is the complete COMMAND resident code/state owner,
+using the shared 7,053-byte HMA remainder. Preserve its low PSP and asynchronous
+entry contracts, retire the eligible low bodies/state, and measure the composed
+gain. Remaining BIOS qualification and mixed low owners are still in scope.
 
 Reproduce the composed measurement with:
 
