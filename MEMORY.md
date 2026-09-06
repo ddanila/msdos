@@ -4147,6 +4147,63 @@ split must release real low allocations while preserving all configured
 handle/map capacities and fallback paths; comparing executable sizes or
 device rows alone cannot justify it.
 
+#### OpenDOS RAM-size control: high cost scales, low interface does not
+
+Fresh provider pairs at 4, 8, 16 and 32 MiB use the same configuration as the
+preceding experiment. Each provider's CONFIG.SYS is byte-identical across all
+four RAM sizes. Media, VC, CPU, firmware selection and floppy-only topology
+are unchanged; no vendor source or disassembly is used.
+
+| Installed RAM, MiB | HIMEM free XMS, bytes | EMM386 free XMS, bytes | EMM386 additional cost, KiB |
+| --- | ---: | ---: | ---: |
+| 4 | 2,949,120 | 2,670,592 | 272 |
+| 8 | 7,143,424 | 6,856,704 | 280 |
+| 16 | 15,532,032 | 15,228,928 | 296 |
+| 32 | 32,309,248 | 31,973,376 | 328 |
+
+Vendor MEM and public XMS AH=08h/DX agree on every total. The additional cost
+fits `264 KiB + 2 KiB * installed_MiB` at these four points. This empirical
+fit does not identify a 264 KiB object or prove the structure responsible for
+the slope. Fixed UMB backing and RAM-dependent manager overhead are consistent
+with it; code size cannot be inferred from the pool subtraction.
+
+All four pairs retain exactly the earlier conventional, UMB and HMA figures:
+HIMEM/EMM386 system spans 18,512/14,272, VC largest blocks 620,000/624,224,
+free UMB 0/117,968, and free HMA 9,092 bytes. COMMAND remains 1,312 bytes and
+the ceiling 639 KiB. The small low manager interface therefore survives an
+eightfold RAM increase while the extra cost is paid in extended memory.
+This strengthens the case for authoritative high manager data, not further
+low record-width reductions. It does not establish the vendor's private ABI.
+
+Distinguish total XMS from the largest allocatable XMS block: at 32 MiB the
+EMM386 probe reports AX=3F80h (16,256 KiB largest) and DX=79F8h (31,224 KiB
+total). A local high-storage design must validate a suitable locked allocation,
+not just a sufficiently large free total. The cause of this vendor limit or
+fragmentation is not established by AH=08h alone.
+
+The capture tool's `--memory-mib` option defaults to 8 and accepts 4..64.
+The same setting reaches VC, public-probe and reset boots; changed RAM disables
+only the old numeric baseline assertions, not media identity checks. Twenty-three
+local tests pass, including boot-command propagation and report identity.
+These eight runtime variants are cold provider controls; they do not qualify
+the separate framed reset failure.
+
+Reports and raw evidence are `out/opendos-ram{4,8,16,32}-placement.md` and
+the corresponding `-placement-evidence/` directories. Reproduce each pair with
+the command below, changing the RAM argument and output names together:
+
+```sh
+python3 tests/capture_drdos_memory.py DODL701.EXE \
+  out/msdos622-original-vc405.img out/opendos-ram16-placement.md \
+  --files 20 --stack-size 128 --variant himem-high --variant emm-high \
+  --memory-mib 16 --evidence-dir out/opendos-ram16-placement-evidence
+```
+
+Next, vary documented manager capacities independently of installed RAM and
+map our own locked-XMS ownership. The remaining unknown is which high owners
+and entry contracts produce the low boundary, not whether the manager has a
+substantial high-memory cost.
+
 #### OpenDOS 7.01 framed follow-up: cold placement, reset failure
 
 The pinned OpenDOS binary distribution and VC 4.05 were booted under QEMU

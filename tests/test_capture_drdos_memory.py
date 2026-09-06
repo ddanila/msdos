@@ -5,6 +5,7 @@ from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 
 SCRIPT = Path(__file__).with_name("capture_drdos_memory.py")
@@ -50,6 +51,51 @@ DRDOS_PUBLIC_MEMORY_END
 
 
 class CaptureParserTest(unittest.TestCase):
+    def test_memory_setting_is_bounded_and_default_unchanged(self) -> None:
+        self.assertEqual(CAPTURE.hardware_args(),
+                         ["-machine", "pc", "-cpu", "486", "-m", "8"])
+        for size in (4, 16, 32, 64):
+            self.assertEqual(CAPTURE.hardware_args(size)[-2:], ["-m", str(size)])
+        for size in (0, 3, 65):
+            with self.assertRaises(ValueError):
+                CAPTURE.hardware_args(size)
+
+    def test_all_boot_paths_receive_memory_setting(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            image = root / "input.ima"
+            image.write_bytes(b"test")
+            cases = (
+                (CAPTURE.capture, (image, "vc", root), "Popen"),
+                (CAPTURE.capture_public_interfaces,
+                 (image, "public", root, image, image), "run"),
+                (CAPTURE.capture_warm_public_interfaces,
+                 (image, "warm", root, image, image, image), "Popen"),
+            )
+            for function, args, launcher in cases:
+                with self.subTest(function=function.__name__), \
+                     patch.object(CAPTURE, "install_file"), \
+                     patch.object(CAPTURE.subprocess, launcher,
+                                  side_effect=RuntimeError("launch intercepted")) as launch:
+                    with self.assertRaisesRegex(RuntimeError, "launch intercepted"):
+                        function(*args, memory_mib=32)
+                    command = launch.call_args.args[0]
+                    self.assertEqual(command[command.index("-m") + 1], "32")
+
+    def test_report_records_selected_ram(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            media = Path(temporary) / "media"
+            media.write_bytes(b"fixture")
+            report = CAPTURE.report({}, media, "vc", "test", {}, None, "qemu", "probe",
+                                    memory_mib=32)
+        self.assertIn("32 MiB RAM", report)
+        self.assertIn("-machine pc -cpu 486 -m 32", report)
+        self.assertNotIn("- Hardware: QEMU `pc`, 486 CPU, 8 MiB RAM", report)
+
+    def test_changed_ram_does_not_use_historical_expectations(self) -> None:
+        CAPTURE.validate_known_results("Digital Research DR-DOS 6.0",
+                                       {"emm-frame": {}}, memory_mib=16)
+
     def test_disk_attachment_is_opt_in_and_snapshot_backed(self) -> None:
         self.assertEqual(CAPTURE.hard_disk_args(None), [])
         with tempfile.TemporaryDirectory() as temporary:

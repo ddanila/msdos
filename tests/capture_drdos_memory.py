@@ -344,13 +344,19 @@ def hard_disk_args(hard_disk: Path | None) -> list[str]:
     return ["-drive", f"if=ide,index=0,format=raw,file={path},snapshot=on"]
 
 
+def hardware_args(memory_mib: int = 8) -> list[str]:
+    if not 4 <= memory_mib <= 64:
+        raise ValueError("--memory-mib must be in 4..64 for this comparison")
+    return ["-machine", "pc", "-cpu", "486", "-m", str(memory_mib)]
+
+
 def capture(image: Path, label: str, work: Path,
-            hard_disk: Path | None = None) -> tuple[Path, str, str]:
+            hard_disk: Path | None = None, memory_mib: int = 8) -> tuple[Path, str, str]:
     qmp = work / f"{label}.qmp"
     screen = work / f"{label}-screen.log"
     command = [
         "qemu-system-i386", "-display", "none", "-monitor", "none",
-        "-machine", "pc", "-cpu", "486", "-m", "8",
+        *hardware_args(memory_mib),
         "-drive", f"if=floppy,index=0,format=raw,file={image},cache=writethrough",
         "-boot", "a", "-qmp", f"unix:{qmp},server=on,wait=off", "-no-reboot",
         *hard_disk_args(hard_disk),
@@ -391,6 +397,7 @@ def capture_public_interfaces(
     probe: Path,
     qexit: Path,
     hard_disk: Path | None = None,
+    memory_mib: int = 8,
 ) -> str:
     image = work / f"{label}-interfaces.ima"
     autoexec = work / f"{label}-interfaces.bat"
@@ -403,7 +410,7 @@ def capture_public_interfaces(
     install_file(image, autoexec, "AUTOEXEC.BAT")
     command = [
         "qemu-system-i386", "-display", "none", "-monitor", "none",
-        "-machine", "pc", "-cpu", "486", "-m", "8",
+        *hardware_args(memory_mib),
         "-drive", f"if=floppy,index=0,format=raw,file={image},cache=writethrough",
         "-boot", "a", "-no-reboot",
         "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
@@ -464,6 +471,7 @@ def capture_warm_public_interfaces(
     qexit: Path,
     warmboot: Path,
     hard_disk: Path | None = None,
+    memory_mib: int = 8,
 ) -> tuple[str, str]:
     image = work / f"{label}-interfaces-warm.ima"
     autoexec = work / f"{label}-interfaces-warm.bat"
@@ -491,7 +499,7 @@ def capture_warm_public_interfaces(
     qmp.unlink(missing_ok=True)
     command = [
         "qemu-system-i386", "-display", "none", "-monitor", "none",
-        "-machine", "pc", "-cpu", "486", "-m", "8",
+        *hardware_args(memory_mib),
         "-drive", f"if=floppy,index=0,format=raw,file={image},cache=writethrough",
         "-boot", "a", "-qmp", f"unix:{qmp},server=on,wait=off",
         "-serial", f"file:{serial}",
@@ -711,9 +719,10 @@ def comparison_identities_match(
 
 
 def validate_known_results(
-    release: str, results: dict[str, dict[str, Any]], common: list[str] | None = None
+    release: str, results: dict[str, dict[str, Any]], common: list[str] | None = None,
+    memory_mib: int = 8,
 ) -> None:
-    if release != "Digital Research DR-DOS 6.0" or (
+    if memory_mib != 8 or release != "Digital Research DR-DOS 6.0" or (
         common is not None and common != common_settings()
     ):
         return
@@ -740,6 +749,7 @@ def report(
     probe_hash: str,
     common: list[str] | None = None,
     hard_disk_sha256: str | None = None,
+    memory_mib: int = 8,
 ) -> str:
     if common is None:
         common = common_settings()
@@ -753,10 +763,10 @@ def report(
         f"- VC 4.05 SHA-256: `{vc_hash}`",
         f"- Public memory probe SHA-256: `{probe_hash}`",
         f"- Emulator: `{emulator}`",
-        "- Hardware: QEMU `pc`, 486 CPU, 8 MiB RAM; default firmware",
+        f"- Hardware: QEMU `pc`, 486 CPU, {memory_mib} MiB RAM; default firmware",
         (f"- Additional IDE disk SHA-256: `{hard_disk_sha256}`; disposable snapshot per invocation"
          if hard_disk_sha256 else "- No IDE disk attached"),
-        "- Capture command fixes `-machine pc -cpu 486 -m 8`, floppy boot, "
+        f"- Capture command fixes `-machine pc -cpu 486 -m {memory_mib}`, floppy boot, "
         "writethrough caching, and no reboot", "",
         "| Variant | Largest block | Total free | System span | COMMAND span | Free UMB | Free HMA | INT 12h | EBDA |",
         "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
@@ -770,7 +780,7 @@ def report(
         )
     lines.extend([
         "", "Common settings: " + ", ".join(f"`{line}`" for line in common) + ".",
-        "Historical numeric expectations apply only to default settings, pinned media and no attached IDE disk.",
+        "Historical numeric expectations apply only to default settings, 8 MiB RAM, pinned media and no attached IDE disk.",
         "", "## Startup matrix", "",
     ])
     for name, config in variants.items():
@@ -852,6 +862,8 @@ def main() -> None:
     parser.add_argument("--files", type=int, default=30)
     parser.add_argument("--stack-size", type=int, default=256, help="bytes per stack; count remains nine")
     parser.add_argument("--environment", type=int, default=512, help="COMMAND /E allocation in bytes")
+    parser.add_argument("--memory-mib", type=int, default=8,
+                        help="installed RAM in MiB (4..64); historical baseline is 8")
     parser.add_argument("--hard-disk", type=Path,
                         help="attach an existing IDE disk through disposable snapshots; still boot floppy")
     parser.add_argument(
@@ -875,6 +887,7 @@ def main() -> None:
     disk_hash = sha256(args.hard_disk) if args.hard_disk else None
     try:
         common = common_settings(args.files, args.stack_size, args.environment)
+        hardware_args(args.memory_mib)
     except ValueError as error:
         parser.error(str(error))
     require_tools()
@@ -916,7 +929,7 @@ def main() -> None:
             install_file(image, autoexec, "AUTOEXEC.BAT")
             configured_image = work / f"{name}-configured.ima"
             shutil.copyfile(image, configured_image)
-            screen, mem, ceiling = capture(image, name, work, args.hard_disk)
+            screen, mem, ceiling = capture(image, name, work, args.hard_disk, args.memory_mib)
             if args.evidence_dir:
                 shutil.copyfile(config, args.evidence_dir / f"{name}-config.sys")
                 shutil.copyfile(autoexec, args.evidence_dir / f"{name}-autoexec.bat")
@@ -927,7 +940,7 @@ def main() -> None:
                 )
             results[name] = parse(screen, mem, ceiling)
             interface_output = capture_public_interfaces(
-                configured_image, name, work, public_probe, qexit, args.hard_disk
+                configured_image, name, work, public_probe, qexit, args.hard_disk, args.memory_mib
             )
             results[name]["interfaces"] = parse_public_interfaces(interface_output)
             if args.evidence_dir:
@@ -936,7 +949,8 @@ def main() -> None:
                 )
             if name in {"emm-hibuffers", "emm-frame"}:
                 before_output, after_output = capture_warm_public_interfaces(
-                    configured_image, name, work, public_probe, qexit, warmboot, args.hard_disk
+                    configured_image, name, work, public_probe, qexit, warmboot,
+                    args.hard_disk, args.memory_mib
                 )
                 before = parse_public_interfaces(before_output)
                 after = parse_public_interfaces(after_output)
@@ -954,14 +968,14 @@ def main() -> None:
                     warm_failures.append(f"{name}: {changed}")
                 results[name]["warm_reboot"] = {"before": before, "after": after}
         if identities_match and args.hard_disk is None:
-            validate_known_results(release, results, common)
+            validate_known_results(release, results, common, args.memory_mib)
         if args.hard_disk and sha256(args.hard_disk) != disk_hash:
             raise RuntimeError("attached source disk changed during capture")
         args.report.parent.mkdir(parents=True, exist_ok=True)
         args.report.write_text(
             report(
                 results, args.media, vc_hash, release, variants, disk_md5,
-                qemu_identity(), probe_hash, common, disk_hash,
+                qemu_identity(), probe_hash, common, disk_hash, args.memory_mib,
             ),
             encoding="utf-8",
         )
