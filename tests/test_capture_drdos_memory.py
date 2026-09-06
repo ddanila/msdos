@@ -50,6 +50,18 @@ DRDOS_PUBLIC_MEMORY_END
 
 
 class CaptureParserTest(unittest.TestCase):
+    def test_extended_pools_are_not_summed(self) -> None:
+        summary = CAPTURE.parse_memory_summary(
+            "│ Extended          │ 7,208,960 (7,040K) │ 0 (0K) │\n"
+            "│ Extended via XMS  │ --------          │ 6,922,240 (6,760K) │\n"
+            "│ EMS               │ 6,914,048 (6,752K) │ 6,914,048 (6,752K) │\n")
+        self.assertEqual(summary["Extended"], {"total": 7208960, "free": 0})
+        self.assertEqual(summary["Extended via XMS"], {"total": None, "free": 6922240})
+        self.assertEqual(summary["EMS"]["free"], 6914048)
+
+    def test_missing_pool_is_not_zero(self) -> None:
+        self.assertEqual(CAPTURE.parse_memory_summary(""), {})
+
     def test_startup_resource_settings_are_explicit(self) -> None:
         settings = CAPTURE.common_settings(files=20, stack_size=128, environment=256)
         with tempfile.TemporaryDirectory() as temporary:

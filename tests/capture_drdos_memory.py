@@ -614,6 +614,21 @@ def public_interface_semantics(parsed: dict[str, Any]) -> dict[str, tuple[int, .
     return semantics
 
 
+def parse_memory_summary(mem: str) -> dict[str, dict[str, int | None]]:
+    """Keep vendor pool totals/free values separate; XMS and EMS can overlap."""
+    result = {}
+    for kind in ("Conventional", "Upper", "High", "Extended", "Extended via XMS", "EMS"):
+        match = re.search(rf"^│ {re.escape(kind)}\s+│([^│]+)│([^│]+)│", mem, re.MULTILINE)
+        if not match:
+            continue
+        values = []
+        for cell in match.groups():
+            value = re.match(r"\s*([0-9][0-9,]*)\s+\(", cell)
+            values.append(int(value[1].replace(",", "")) if value else None)
+        result[kind] = dict(total=values[0], free=values[1])
+    return result
+
+
 def parse(screen_path: Path, mem: str, ceiling: str) -> dict[str, Any]:
     screen = screen_path.read_text(encoding="utf-8")
     rows = parse_vc_rows(screen)
@@ -650,6 +665,7 @@ def parse(screen_path: Path, mem: str, ceiling: str) -> dict[str, Any]:
         "upper_free": upper_free,
         "hma_free": available("High"),
         "total_free": available("Conventional") + available("Upper"),
+        "memory_summary": parse_memory_summary(mem),
         "int12": int(ceiling_match.group(1), 16),
         "bda": int(ceiling_match.group(2), 16),
         "ebda": int(ceiling_match.group(3), 16),
@@ -759,7 +775,23 @@ def report(
                 f"{owner['bytes']:,} | {owner['owner']} |"
             )
         lines.append("")
-    lines.extend(["## Public memory interfaces", ""])
+    lines.extend([
+        "## Extended-memory cost", "",
+        "Vendor MEM summary values describe pools, not identified code/data allocations.",
+        "XMS and EMS availability can describe the same backing memory: do not add them.",
+        "A reduction in free XMS can include UMB backing, manager state, alignment and reservations.",
+        "An unreported total is not zero. Public XMS queries below provide an independent API view.", "",
+        "| Variant | Pool | Reported total bytes | Reported free bytes |",
+        "| --- | --- | ---: | ---: |",
+    ])
+    for name, data in results.items():
+        for pool, values in data.get("memory_summary", {}).items():
+            if pool not in {"Extended", "Extended via XMS", "EMS"}:
+                continue
+            total, free = (f"{values[key]:,}" if values[key] is not None else "unreported"
+                           for key in ("total", "free"))
+            lines.append(f"| {name} | {pool} | {total} | {free} |")
+    lines.extend(["", "## Public memory interfaces", ""])
     for name, data in results.items():
         interfaces = data["interfaces"]
         lines.extend([

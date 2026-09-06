@@ -164,8 +164,10 @@ The next investigation must answer three architectural questions together:
 2. What actually requires conventional residency in our combined 6,480-byte
    XMS/EMS interface? OpenDOS exposes a 1,200-byte low installed-device range
    and an 800-byte UMB allocation, but these do not locate all manager state.
-   Attribute the remaining storage through public runtime evidence and audit
-   our own ownership contracts. Provider integration alone proves no saving;
+   The controlled provider switch below recovers 4,240 low system bytes while
+   reducing free XMS by 280 KiB and creating UMBs. Attribute that cost through
+   public runtime evidence and audit our own ownership contracts.
+   Provider integration alone proves no saving;
    keep the standalone HIMEM, third-party XMS and 286 paths.
 3. What is the minimum complete resident COMMAND interface? Design the high
    service body, low asynchronous entry/state and reload contract together,
@@ -3974,6 +3976,62 @@ remain separate experiments. This OpenDOS pass validates the tooling and shows
 that the later EMM386 design no longer spends the 28 KiB UMB used by DR-DOS 6;
 the actual DR-DOS 6 comparison follows.
 
+#### OpenDOS provider tradeoff: small low interface, nonzero high cost
+
+A fresh controlled OpenDOS 7.01 pair uses the same pinned media, QEMU `pc`,
+486, 8 MiB, floppy-only hardware, FILES=20, FCBS=4,0, LASTDRIVE=Z,
+STACKS=9,128 and `/E:512`. Both retain `DOS=HIGH`, `HIDOS=OFF` and
+`BUFFERS=15`. Only `DEVICE=HIMEM.SYS` versus
+`DEVICE=EMM386.EXE /FRAME=NONE` changes. No source or disassembly is used.
+
+| Measurement | Standalone HIMEM | Integrated EMM386 | Change |
+| --- | ---: | ---: | ---: |
+| System-to-COMMAND span | 18,512 | 14,272 | -4,240 |
+| VC largest block | 620,000 | 624,224 | +4,224 |
+| COMMAND owner span | 1,312 | 1,312 | 0 |
+| Free UMB (VC) | 0 | 117,968 | +117,968 |
+| Free HMA (MEM) | 9,092 | 9,092 | 0 |
+| Reported extended-memory total | 7,208,960 | 7,208,960 | 0 |
+| Free XMS (MEM and public AH=08h/DX) | 7,143,424 | 6,856,704 | -286,720 |
+
+The low installed-device rows change from 5,440 to 1,200 bytes, exactly
+matching the system-span reduction. VC's own-to-free span is unchanged; the
+free range ends one paragraph earlier with EMM386's upper-arena system link,
+so its largest-block gain is 16 bytes smaller. The UMB map reports
+an 800-byte EMM386 allocation, but the simultaneous **280 KiB reduction in
+free XMS** demonstrates that these small visible rows are not the complete
+memory cost. This is an externally observable placement tradeoff, not evidence
+that the entire implementation occupies 1,200 or 2,000 bytes.
+
+The XMS delta includes the new UMB backing as well as manager storage,
+alignment and reservations. It must not be labelled 280 KiB of code, or
+subtracted from the low footprint as a saving. The reports do not identify
+each protected allocation. Both configurations have EMS disabled; in framed
+captures XMS and EMS can describe the same backing pool and must not be added.
+The 4,240-byte within-OpenDOS gain is not a prediction for our already different
+HIMEM/EMM386 pair. Hard-disk topology and boot-medium normalization against
+our fixed image remain open.
+
+`capture_drdos_memory.py` now retains the vendor pool summary separately from
+owner rows and public register results. Missing pool totals remain unreported,
+not zero. Seventeen media-independent tests cover the parser and existing
+capture contracts. Raw evidence and the generated report are in
+`out/opendos-manager-placement-evidence/` and
+`out/opendos-manager-placement.md`. Reproduce with:
+
+```sh
+python3 tests/capture_drdos_memory.py DODL701.EXE \
+  out/msdos622-original-vc405.img out/opendos-manager-placement.md \
+  --files 20 --stack-size 128 --variant himem-high --variant emm-high \
+  --evidence-dir out/opendos-manager-placement-evidence
+```
+
+Design implication: budget the combined low interface and complete high
+owners together, including lost application XMS capacity. The next local
+split must release real low allocations while preserving all configured
+handle/map capacities and fallback paths; comparing executable sizes or
+device rows alone cannot justify it.
+
 #### OpenDOS 7.01 framed follow-up: cold placement, reset failure
 
 The pinned OpenDOS binary distribution and VC 4.05 were booted under QEMU
@@ -4000,10 +4058,10 @@ conventional memory. EMS 4.0 and XMS 3.0 are present in the framed probe.
 This narrows an important design uncertainty: a DR-DOS-family system can
 retain its large ordinary conventional block with EMS and nearly the retail
 UMB floor, without DR-DOS 6's 28 KiB manager UMB cost. The local development
-system-to-COMMAND span is 10,960 bytes larger and its COMMAND span is 2,672
-bytes larger, exactly accounting for the 13,632-byte conventional difference.
+system-to-COMMAND span is now 9,296 bytes larger and its COMMAND span is 2,672
+bytes larger, exactly accounting for the 11,968-byte conventional difference.
 Boot medium, device topology and resource semantics remain incompletely
-normalized; this is not a promise of 13,632 local reclaimable bytes.
+normalized; this is not a promise of 11,968 local reclaimable bytes.
 
 **Warm-reset gate failed in both new cases.** The whole-HMA request changes
 from error 91h before reset to 81h afterward. The largest XMS UMB query loses
