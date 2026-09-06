@@ -3,6 +3,30 @@ bits 16
 org 100h
     push cs
     pop ds
+%ifdef LEGACY_KERNEL
+    ; Do not issue the new callback from this probe: on the old kernel its
+    ; legacy form is a write. SYSINIT must have rejected capability safely.
+    mov ax,4310h
+    int 2fh
+    cmp bx,ORIGINAL_ENTRY
+    jne failed
+    mov ax,es
+    cmp ax,[es:INITIAL_SEGMENT]
+    jne failed
+    mov [cached],bx
+    mov [cached+2],es
+    mov ah,7
+    call far [cached]
+    cmp ax,1
+    ja failed
+    test bl,bl
+    jnz failed
+    mov ah,30h
+    int 21h
+    cmp al,6
+    jne failed
+    jmp passed
+%endif
     xor di,di
     call exchange
 %ifdef DOS_LOW
@@ -14,6 +38,15 @@ org 100h
     call exchange
     test ax,ax
     jnz failed
+%ifdef SHIFTED_ENTRY
+    mov ax,4310h
+    int 2fh
+    cmp bx,ORIGINAL_ENTRY
+    jne failed
+    mov ax,es
+    cmp ax,[es:INITIAL_SEGMENT]
+    jne failed
+%endif
     jmp passed
 %else
     cmp ax,1
@@ -27,6 +60,12 @@ org 100h
     mov ax,es
     cmp ax,[original+2]
     jne failed
+%ifdef SHIFTED_ENTRY
+    cmp bx,REBASED_ENTRY
+    jne failed
+    cmp ax,[es:INITIAL_SEGMENT]
+    je failed
+%endif
     mov bx,bridge
     cmp bx,[original]
     jne .offset_different

@@ -2318,6 +2318,11 @@ CFH_save:
 	int	2fh
 	or	ax,ax
 	jz	CFH_restore
+	; Establish the full-entry contract before relocating DPBs or DOS/HIMEM.
+	; An old kernel interprets 1234h as a segment write, so probe with the
+	; already cached provider segment: unsupported discovery is harmless.
+	call	CFH_CheckCache
+	jc	CFH_restore
 	les	bx,cs:[DOSINFO]
 	cmp	byte ptr es:[bx.SYSI_NUMIO],0
 	je	CFH_restore
@@ -2398,10 +2403,23 @@ CFH_save:
 	mov	word ptr ds:[02fh*4+2],dx
 	mov	word ptr ds:[015h*4+2],dx
 	sti
-	; DOS cached HIMEM's XMS entry before this resident copy moved. Its offset
-	; is unchanged, but the segment must follow the compacted driver.
+	; Rediscover the entry from the relocated provider, including its offset.
+	mov	ax,4310h
+	int	2fh
+	mov	dx,es
+	IFDEF BIOS_XMS_ENTRY_LEGACY_TEST
+	xor	cx,cx
+	ELSE
+	mov	cx,584dh
+	mov	si,1
+	mov	di,1
+	ENDIF
 	mov	ax,1234h
 	int	2fh
+	IFNDEF BIOS_XMS_ENTRY_LEGACY_TEST
+	cmp	ax,1
+	jne	CFH_CacheFatal
+	ENDIF
 	IFDEF BIOS_SERVICE_BOOT
 	call	BiosBootActivate
 	ENDIF
@@ -2417,6 +2435,58 @@ CFH_restore:
 	pop	ax
 	ret
 CompactFirstHimem ENDP
+
+; Only the first repository HIMEM is accepted. This is not a general provider
+; relocation callback, and the saved entry remains boot-private state.
+CFH_CheckCache PROC NEAR
+	push	di
+	mov	ax,4310h
+	int	2fh
+	mov	dx,es
+	cmp	dx,word ptr cs:[ENTRY_POINT+2]
+	jne	short CFH_CacheBad
+	mov	cs:[CFH_SourceOffset],bx
+	mov	cx,584dh
+	mov	si,1
+	xor	di,di
+	mov	ax,1234h
+	int	2fh
+	cmp	ax,1
+	jne	short CFH_CacheBad
+	cmp	dx,word ptr cs:[ENTRY_POINT+2]
+	jne	short CFH_CacheBad
+	cmp	bx,cs:[CFH_SourceOffset]
+	jne	short CFH_CacheBad
+	pop	di
+	clc
+	ret
+CFH_CacheBad:
+	pop	di
+	stc
+	ret
+CFH_CheckCache ENDP
+CFH_SourceOffset dw 0
+
+; The old ranges have already been overwritten here. Do not continue boot
+; with a stale cache if the preflighted commit unexpectedly rejects.
+CFH_CacheFatal:
+	push	cs
+	pop	ds
+	mov	si,offset CFH_CacheError
+	cld
+CFH_CachePrint:
+	lodsb
+	or	al,al
+	jz	short CFH_CacheHalt
+	mov	ah,0eh
+	mov	bx,7
+	int	10h
+	jmp	short CFH_CachePrint
+CFH_CacheHalt:
+	cli
+	hlt
+	jmp	short CFH_CacheHalt
+CFH_CacheError db 'XMS entry handoff failed',13,10,0
 	IFDEF BIOS_SERVICE_BOOT
 	INCLUDE BOOTBIOS.INC
 	ENDIF

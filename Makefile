@@ -315,6 +315,7 @@ test-xms-public-copy-qemu:
 .PHONY: test-xms-entry-handoff-qemu
 test-xms-entry-handoff-qemu:
 	python3 tests/test_xms_entry_handoff_qemu.py
+	python3 tests/test_xms_entry_handoff_qemu.py --shifted-entry
 
 .PHONY: test-xms-owner-query-qemu
 test-xms-owner-query-qemu:

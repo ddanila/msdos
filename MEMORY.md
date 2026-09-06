@@ -36,7 +36,7 @@ passed; its old coarse-size assertion failed as expected. The updated
 `check_results` validates the saved complete capture without repeating boots.
 
 The full cached-XMS-entry callback adds 80 HMA kernel bytes, with no low-boundary
-change. The current full capture, `out/umb-fine-composition-7ls6fq8a/`, passes
+change. The current full capture, `out/umb-fine-composition-aii93_1x/`, passes
 all five-image assertions and retains the conventional/UMB totals above.
 
 The DR-DOS reassessment changes the implementation criterion: justify every
@@ -125,7 +125,7 @@ low remainder or a violated UMB floor. Its low partition is specific to the
 fixed high-CDS fixture (512-byte transfer area and STACKS=9,128); different
 resources require a new audited partition, not an automatic residual bucket.
 It does not infer boot identity from equal sizes or prove relocation safety.
-The fresh five-image run in `out/umb-fine-composition-7ls6fq8a/` passes this
+The fresh five-image run in `out/umb-fine-composition-aii93_1x/` passes this
 gate and reproduces the current totals. Twelve owner-accounting tests include
 stale maps/managers, missing or duplicate owners, incorrect free extents and
 the pre-table control; the normal DOS/BIOS census and HMA-budget tests pass.
@@ -654,7 +654,7 @@ or permission to bypass the joint linked-size budget.
 The boot audit establishes why the current hook cannot simply accept another
 device name. `SYSCONF.ASM:CompactFirstHimem` checks the literal `HIMEM$` header,
 then copies the used boot allocation, directly rewrites the INT 15h/2Fh segment
-words and refreshes DOS's cached XMS segment through 1234h. Development
+words and refreshes DOS's full cached XMS entry through signed 1234h. Development
 `BiosBootActivate` runs afterward. The legacy `DOS_HMA_REBASE_XMS` form changes
 only the segment. Its signed extension below can refresh the full entry, but
 does not make the HIMEM-only relocation algorithm general. EMM `INIT.ASM` has already built descriptors,
@@ -680,6 +680,34 @@ the updated kernel, including A20 recovery and EXEC. This callback updates
 only DOS's cached pointer. The driver-return path still uses E705h for A20
 recovery; public vectors, escaped client entries, active call frames and provider
 ownership must be handled separately by the coordinated installation.
+
+**SYSINIT integration:** after preparing HMA ownership but before moving DPBs,
+DOS or HIMEM, `CompactFirstHimem` now checks the signed cache protocol and
+requires DOS's cache to match the discovered repository HIMEM entry. The probe
+passes the current provider segment in DX: on an old kernel's segment-write
+implementation, discovery therefore leaves the cached segment unchanged.
+Unsupported capability skips this early compaction; HMA preparation is not
+rolled back by this check.
+
+After copying HIMEM and repairing vector segments, SYSINIT rediscovers its
+entry and commits both words. An unexpected post-copy rejection prints a
+diagnostic and halts: the old ranges are already overwritten, so continuing
+with the stale cache is unsafe. This is not a post-copy rollback mechanism.
+All new normal-loader code/state is discardable SYSINIT storage; normal HIMEM
+is byte-identical, and conventional/UMB/HMA budgets are unchanged.
+
+The handoff target now also runs `--shifted-entry`: development HIMEM changes
+its advertised offset when its segment moves and rejects the old offset.
+The guest requires actual segment movement, the newly linked offset in DOS's
+cache, and a working call through that cache. Normal and shifted runs pass in
+`out/xms-entry-handoff-24qmb242/` and `out/xms-entry-handoff-lcmtaes0/`.
+`--shifted-entry --legacy-loader` fails with a stale offset in
+`out/xms-entry-handoff-k92t9sa9/`. An old-kernel control using
+`--shifted-entry --old-kernel <image> --legacy-kernel-fallback` boots in both
+DOS-high/low modes without moving HIMEM (`out/xms-entry-handoff-o01ua95w/`).
+The HMA/A20/EXEC suite and full composition also pass. The first-HIMEM/header
+restriction is unchanged; coordinated-provider prepare/activate/rollback and
+reclamation remain open.
 
 Use a two-phase, repository-private loader contract, before subsequent drivers
 or applications can cache the final public entries:

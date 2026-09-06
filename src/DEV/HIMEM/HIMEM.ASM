@@ -77,6 +77,9 @@ move_address_classes dd 0
 endif
 move_offset_error db    0
 highest_page   dw      0
+ifdef HIMEM_SHIFT_ENTRY_TEST
+initial_segment dw 0
+endif
 ifdef HIMEM_PROTECTED_OWNER_TEST
 ; Temporary transport snapshot, not a second allocator or reclaimed low owner.
 owner_query_active db 0
@@ -160,6 +163,15 @@ multiplex_installed:
         iret
 multiplex_entry:
         mov     bx, offset xms_control
+ifdef HIMEM_SHIFT_ENTRY_TEST
+        push    ax
+        mov     ax,cs
+        cmp     ax,cs:[initial_segment]
+        je      short multiplex_original_entry
+        mov     bx,offset xms_rebased_control
+multiplex_original_entry:
+        pop     ax
+endif
         push    cs
         pop     es
         iret
@@ -313,6 +325,17 @@ int15_chain:
 int15_handler endp
 
 xms_control proc far
+ifdef HIMEM_SHIFT_ENTRY_TEST
+        push    ax
+        mov     ax,cs
+        cmp     ax,cs:[initial_segment]
+        pop     ax
+        je      short xms_control_body
+        xor     ax,ax                   ; old entry is invalid after relocation
+        mov     bl,ERR_GENERAL
+        retf
+xms_control_body::
+endif
         mov     word ptr cs:[caller_ds], ds
         mov     word ptr cs:[caller_si], si
         cmp     ah, 088h
@@ -398,6 +421,11 @@ xms_extended_return:
         pop     si
         retf
 xms_control endp
+ifdef HIMEM_SHIFT_ENTRY_TEST
+xms_rebased_control proc far
+        jmp     xms_control_body
+xms_rebased_control endp
+endif
 
 xms_table:
         dw      xms_version, xms_hma_request, xms_hma_release
@@ -1222,6 +1250,9 @@ option_buffer   db      40 dup (0)
 test_address    dd      0
 test_remaining dw      0
 initialize proc near
+ifdef HIMEM_SHIFT_ENTRY_TEST
+        mov     [initial_segment],cs
+endif
 ifdef DEBUG
         mov     al, 'A'
         call    debug_mark
