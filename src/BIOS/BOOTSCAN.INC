@@ -11,6 +11,8 @@ BiosScan PROC NEAR
         push dx
         push si
         push ds
+        EXTRN HmaServiceProbe:NEAR
+        call HmaServiceProbe
         cld
         mov ax,0ffffh
         mov ds,ax

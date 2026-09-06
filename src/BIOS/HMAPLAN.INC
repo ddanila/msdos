@@ -61,3 +61,42 @@ HmaPlanDone:
         popf
         ret
 FreezeHmaCachePlan ENDP
+
+; AX = service bytes, BX = caller-verified free HMA cursor, CX = later shell
+; reservation. CF clear: DX = candidate service end. CF set: DX unchanged.
+; Preserve AX/BX/CX/SI and all other registers. Never publish or write HMA.
+        PUBLIC PreflightHmaService
+PreflightHmaService PROC NEAR
+        push ax
+        push si
+        mov si,dx
+        cmp cs:[HmaPlanValid],1
+        jne HmaServiceFail
+        or ax,ax
+        jz HmaServiceFail
+        cmp bx,10h
+        jb HmaServiceFail
+        mov dx,bx
+        add dx,ax
+        jc HmaServiceFail
+        mov ax,dx
+        add ax,cs:[HmaPlanCacheBytes]
+        jc HmaServiceFail
+        add ax,cx
+        jc HmaServiceFail
+        cmp ax,0fff0h
+        ja HmaServiceFail
+        pop si
+        pop ax
+        clc
+        ret
+HmaServiceFail:
+        mov dx,si
+        pop si
+        pop ax
+        stc
+        ret
+PreflightHmaService ENDP
+        IFDEF BIOS_BOOT_SCAN
+        INCLUDE ../../tests/hma_boot_preflight.inc
+        ENDIF

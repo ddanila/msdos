@@ -413,8 +413,26 @@ def main():
                         expected.update(HMAPLANCACHEBYTES=0, HMAPLANVALID=0)
                     if plan != expected:
                         raise RuntimeError(f"frozen boot cache plan mismatch: {plan} != {expected}")
+                    cursor = value("HMABIOSEND")
+                    probe_offset = manifest["symbols"]["HMASERVICEPROBERESULTS"] - init_base - offset
+                    if not 0 <= probe_offset <= len(data) - 15:
+                        raise ValueError("HMA service results outside SYSINIT snapshot")
+                    probes = [struct.unpack_from("<BH", data, probe_offset + index * 3)
+                              for index in range(5)]
+                    valid = bool(plan["HMAPLANVALID"])
+                    candidate_fits = valid and cursor + 1672 + plan["HMAPLANCACHEBYTES"] + 4898 <= 0xfff0
+                    wanted = [(0, cursor + 1672) if candidate_fits else (1, 0xdead),
+                              (1, 0xdead), (1, 0xdead),
+                              (0, 0x11) if valid else (1, 0xdead), (1, 0xdead)]
+                    if probes != wanted:
+                        raise RuntimeError(f"HMA service preflight mismatch: {probes} != {wanted}")
+                    _, dos_symbols = parse_map(ROOT / "src/DOS/MSDOS.MAP")
+                    if cursor != dos_symbols["SYSBUF"] + manifest["embedded_payload_bytes"]:
+                        raise RuntimeError("preflight changed the committed BIOS cursor")
                     (scratch / (name + "-hma-plan.json")).write_text(json.dumps(plan, indent=2) + "\n")
                     print(f"PASS immutable HMA cache plan: {plan}", flush=True)
+                    (scratch / (name + "-hma-preflight.json")).write_text(json.dumps(probes) + "\n")
+                    print(f"PASS HMA service preflight: {probes}", flush=True)
             elif scan_path.read_bytes():
                 raise RuntimeError("inactive boot unexpectedly recorded an activation census")
 

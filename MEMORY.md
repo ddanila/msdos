@@ -1022,6 +1022,26 @@ cache low or shrinking it. The HMA budget helper now models both new service
 owners explicitly and tests this counterexample. It is an offline design
 check, not an implemented early allocator or completed joint-layout gate.
 
+`HMAPLAN.INC:PreflightHmaService` now implements the non-mutating capacity
+check in the development SYSINIT. AX supplies service bytes, BX a
+caller-verified free HMA cursor, and CX the remaining shell reservation.
+Success returns the candidate service end in DX with CF clear; failure sets
+CF and preserves DX. It requires a valid frozen cache plan and checks zero
+requests, the HMA origin, every word addition and the `FFF0h` safety boundary.
+It does not enable A20, establish ownership, copy data, change the cursor or
+reduce a resident break. The eventual installer still owns those contracts.
+
+Scan-only boot probes execute this actual assembly, not the host budget model.
+They accept the 1,672-byte service plus 4,898 shell bytes with 15 buffers,
+reject it with 29, reject zero/overflow requests, accept an exact total fit,
+and reject one byte beyond it. An invalid frozen plan rejects every request.
+The committed BIOS cursor stays at `SYSBUF + embedded_payload_bytes` throughout.
+Evidence is in `out/bios-low-boot-0xx62i_d/` (EMM/15),
+`out/bios-low-boot-pohl02t0/` (HIMEM/29), and
+`out/bios-low-boot-seaxon6q/` (invalid), including `*-hma-preflight.json`.
+The same `--scan --buffers-before-himem` commands above run these checks.
+All probe code/data is excluded unless `BIOS_BOOT_SCAN` is defined.
+
 ### Development placement budget: remaining BIOS is not another disk body
 
 #### Whole-system accounting and the missing placement tier
