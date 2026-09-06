@@ -24,6 +24,28 @@ from report_himem_residency import parse_symbols
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def startup_config(handle_count=32, mode="RAM"):
+    if handle_count not in (32, 48) or mode not in ("RAM", "ON", "OFF", "AUTO"):
+        raise ValueError("unsupported live-owner fixture configuration")
+    return (f"DEVICE=A:\\HIMEM.SYS /TESTMEM:OFF /NUMHANDLES={handle_count}\r\n"
+            f"DEVICE=A:\\EMM386.EXE 1024 {mode} M5\r\n").encode("ascii")
+
+
+def verify_mode(ram, emm_segment, symbols, mode):
+    expected = {"RAM": (True, False), "ON": (True, False),
+                "OFF": (False, False), "AUTO": (False, True)}
+    if mode not in expected:
+        raise ValueError("unsupported mode")
+    by_name = {symbol.name: symbol for symbol in symbols}
+    flags = {}
+    for name in ("Active_Status", "Auto_Mode"):
+        symbol = by_name[name]
+        flags[name] = ram[(emm_segment + symbol.paragraph) * 16 + symbol.offset]
+    if tuple(bool(flags[name]) for name in ("Active_Status", "Auto_Mode")) != expected[mode]:
+        raise ValueError(f"initial mode was not retained at capture: {mode}: {flags}")
+    return flags
+
+
 def descriptor(data):
     if len(data) != 8:
         raise ValueError("descriptor must contain eight bytes")
@@ -100,6 +122,7 @@ def verify_owners(ram, gdt_base, cr3, emm_segment, xms_segment, segments, symbol
     return dict(xms=block, ems_pool_bytes=total_pages * 16384, relocation_start=tail,
                 relocation_end=end, cr3=cr3, descriptors=desc, budget=budget,
                 low_tables=dict(start=data_start, end=data_end, size=data_end-data_start),
+                table_to_stack_gap=desc["stack"]["base"] - data_end,
                 table_counts=counts,
                 unused_start=tail + budget["page_request"] + budget["text_request"],
                 unused_end=end)
@@ -110,6 +133,8 @@ def main():
     parser.add_argument("image", type=Path, help="our repaired DOS floppy image")
     parser.add_argument("--himem-handles", type=int, choices=(32, 48), default=32,
                         help="shift the manager load address without changing its EMS capacities")
+    parser.add_argument("--mode", choices=("RAM", "ON", "OFF", "AUTO"), default="RAM",
+                        help="isolate initial-mode effects on table and stack placement")
     args = parser.parse_args()
     subprocess.run(["make", "memm", "test-himem-residency"], cwd=ROOT, check=True,
                    stdout=subprocess.DEVNULL)
@@ -129,8 +154,7 @@ def main():
     install(emm, "EMM386.EXE")
     install(himem, "HIMEM.SYS")
     install(probe, "OWNERS.COM")
-    config = (f"DEVICE=A:\\HIMEM.SYS /TESTMEM:OFF /NUMHANDLES={args.himem_handles}\r\n"
-              "DEVICE=A:\\EMM386.EXE 1024 RAM M5\r\n").encode("ascii")
+    config = startup_config(args.himem_handles, args.mode)
     install("-", "CONFIG.SYS", config)
     install("-", "AUTOEXEC.BAT", b"@ECHO OFF\r\nCTTY AUX\r\nOWNERS.COM\r\n")
     qmp_path = work / "qmp"
@@ -169,12 +193,15 @@ def main():
     himem_symbols, himem_numbers = parse_symbols(ROOT / "out/himem-residency.lst")
     if [himem_numbers[name] for name in ("HANDLE_LOCK", "HANDLE_BASE", "HANDLE_LENGTH", "HANDLE_SIZE")] != [0, 1, 3, 5]:
         raise ValueError("HIMEM handle record layout changed")
-    result = verify_owners((work / "ram.bin").read_bytes(),
+    ram = (work / "ram.bin").read_bytes()
+    emm_segment = int(re.search(r"EMM_SEG=([0-9A-F]{4})", trace)[1], 16)
+    result = verify_owners(ram,
         int(re.search(r"GDT=\s*([0-9a-fA-F]+)", registers)[1], 16),
         int(re.search(r"CR3=([0-9a-fA-F]+)", registers)[1], 16),
-        int(re.search(r"EMM_SEG=([0-9A-F]{4})", trace)[1], 16),
+        emm_segment,
         int(re.search(r"XMS_SEG=([0-9A-F]{4})", trace)[1], 16),
         segments, symbols, himem_symbols["handles"][0], args.himem_handles)
+    result["mode_flags"] = verify_mode(ram, emm_segment, symbols, args.mode)
     if result["ems_pool_bytes"] != 1048576:
         raise ValueError(f"fixed profile was not installed: {result}")
     result["inputs"] = {str(path): hashlib.sha256(path.read_bytes()).hexdigest()

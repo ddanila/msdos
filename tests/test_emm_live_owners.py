@@ -4,11 +4,35 @@ import struct
 import unittest
 from pathlib import Path
 
-from capture_emm_live_owners import descriptor, verify_owners
+from capture_emm_live_owners import descriptor, startup_config, verify_mode, verify_owners
 from report_emm386_residency import Segment, Symbol, relocation_budget
 
 
 class LiveOwnerTest(unittest.TestCase):
+    def test_mode_configs_and_rejection(self):
+        for mode in ("RAM", "ON", "OFF", "AUTO"):
+            config = startup_config(48, mode).decode("ascii")
+            self.assertIn("/NUMHANDLES=48\r\n", config)
+            self.assertIn(f"1024 {mode} M5\r\n", config)
+            self.assertEqual(config.count("DEVICE="), 2)
+        for handles, mode in ((31, "RAM"), (32, "ON\r\nDOS=LOW")):
+            with self.assertRaises(ValueError):
+                startup_config(handles, mode)
+
+    def test_live_mode_not_just_requested_config(self):
+        symbols = [Symbol(0x20, offset, name, "fixture") for offset, name in
+                   ((0x82, "Active_Status"), (0x83, "Auto_Mode"))]
+        for mode, flags in (("RAM", (255, 0)), ("ON", (255, 0)),
+                            ("OFF", (0, 0)), ("AUTO", (0, 1))):
+            with self.subTest(mode=mode):
+                ram = bytearray(0x3000)
+                ram[0x2282:0x2284] = bytes(flags)
+                self.assertEqual(list(verify_mode(ram, 0x200, symbols, mode).values()),
+                                 list(flags))
+                ram[0x2282] ^= 255
+                with self.assertRaisesRegex(ValueError, "not retained"):
+                    verify_mode(ram, 0x200, symbols, mode)
+
     def test_selector_contract_matches_production_build(self):
         root = Path(__file__).resolve().parents[1]
         source = (root / "src/MEMM/MEMM/VDMSEL.INC").read_text(encoding="latin-1")

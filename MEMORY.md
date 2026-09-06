@@ -807,6 +807,56 @@ and VC's largest block for each replacement; pointer publication alone is not
 reclamation. Preserve the already-counted development BIOS/FILES gains and
 charge all three objects against one HMA/XMS/UMB budget.
 
+#### Mode-independent manager publication is required
+
+Fresh live-owner captures expose a boot-order constraint: `INIT.ASM` calls
+`RelocateText`, enters virtual mode, applies `initial_mode` through `ELIM_Entry`,
+then calls `CompactVData`. The latter returns without relocating tables or the
+transition stack when `Active_Status` is zero. Consequently idle AUTO and OFF
+do not use the same compact low layout as ON, despite already having relocated
+protected code and the same locked-XMS allocation.
+
+The controlled `1024 ON/OFF/AUTO M5` fixtures share the same binaries, 31
+physical windows, 64 EMS pages, H=64, A=7 and D=1. No RAM/UMB option is mixed
+into this three-way comparison. Physical addresses from our own guest:
+
+| Initial mode | Live active / AUTO flags | Table range | Table bytes | Transition-stack base | Table-end-to-stack gap |
+| --- | --- | --- | ---: | --- | ---: |
+| ON | FFh / 00h | `D3EFh..DD18h` | 2,345 | `DD20h` | 8 |
+| OFF | 00h / 00h | `11B36h..1245Fh` | 2,345 | `291A0h` | 93,505 |
+| AUTO, idle | 00h / 01h | `11B36h..1245Fh` | 2,345 | `291A0h` | 93,505 |
+
+All three have a 512-byte transition stack, a single once-locked 1,100 KiB XMS
+allocation at `110000h`, CR3 at `211000h`, and protected code at `21A430h`.
+The stack bases differ by 111,744 bytes. This is a placement observation, not
+a measured VC gain or permission to reclaim that entire interval. The RAM
+control remains separate: its UMB policy yields 28 windows and 2,278 table
+bytes, so it cannot be used as the equal-capacity ON comparator.
+
+The joint manager design must decouple **object residency** from **current
+execution mode**. Reserve and initialize a candidate owner before publication;
+complete selector/root publication and low-stack repacking at a point with no
+live protected frame; apply the requested final ON/OFF/AUTO state afterward,
+or prove an equally safe mode-independent commit. Failure must retain the
+complete old owner and installed boundary. Do not merely remove the active
+check: first verify all real-mode continuations, initialization references and
+later OFF-to-ON/AUTO activation after the old ranges have been overwritten.
+This requirement applies to the existing low-copy layout as well as the
+proposed high table object. It does not explain the fixed RAM fixture's
+remaining OpenDOS gap, where compaction already occurs.
+
+`capture_emm_live_owners.py --mode ON|OFF|AUTO|RAM` verifies live mode flags,
+not just CONFIG.SYS text, and records table-to-stack distance. Seven host tests
+include changed-mode rejection. Reports and raw snapshots are in
+`out/emm-live-owners-qvqo9e75/` (ON), `out/emm-live-owners-aj6pggg0/` (OFF),
+`out/emm-live-owners-2n21o35h/` (AUTO), and
+`out/emm-live-owners-raaofb27/` (RAM). Reproduce with:
+
+```sh
+python3 tests/capture_emm_live_owners.py \
+  out/setver-native-audit.BAEqDU/low.img --mode AUTO
+```
+
 #### Boot reservation and reclamation contract
 
 The source order supplies an early integration point; a late HMA copy would
