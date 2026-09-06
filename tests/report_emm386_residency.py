@@ -178,6 +178,14 @@ def high_data_capacity(payload: int, unused: int) -> dict[str, int]:
             "extra_pages": (shortfall + 4095) // 4096}
 
 
+def table_offset_budget(origin: int, payload: int) -> dict[str, int]:
+    """Word roots AND the exclusive _emm_brk must fit; capacity alone is insufficient."""
+    if not 0 <= origin <= 0xffff or not 0 < payload <= 0xffff:
+        raise ValueError("invalid table origin or payload")
+    end = origin + payload
+    return {"origin": origin, "end": end, "overflow": max(0, end - 0xffff)}
+
+
 def symbol_offset(symbols: list[Symbol], name: str, paragraph: int) -> int:
     matches = [
         symbol.offset
@@ -563,6 +571,21 @@ def main() -> int:
     print("\nExtra pages are a proposed reservation top-up, not stolen EMS backing.")
     print("The combined maximum is a sizing bound, not a proven bootable hardware profile.")
     print("Low gates/selectors, failure fallback and runtime publication remain unqualified.\n")
+    vdata_origin = (by_name["VDATA"].paragraph - by_name["_DATA"].paragraph) * 16
+    vdata_origin += symbol_offset(symbols, "vdata_begin", by_name["VDATA"].paragraph)
+    print("## Table address window (exclusive word break)\n")
+    print("| Profile and addressing | Origin | End | Bytes beyond FFFFh |")
+    print("| --- | ---: | ---: | ---: |")
+    for profile, origin, payload in (
+        ("Selected current initialization", vdata_origin, cursor - static_end),
+        ("Combined maxima at current origin", vdata_origin, maximum_dynamic),
+        ("Combined maxima, proposed object-relative owner", 0, maximum_dynamic),
+    ):
+        window = table_offset_budget(origin, payload)
+        print(f"| {profile} | {origin:,} | {window['end']:,} | {window['overflow']:,} |")
+    print("\nAn overflowing sizing bound is not a supported-machine boot claim.")
+    print("The proposed high owner must normalize all roots, including current FRS,")
+    print("and preflight staging before writes; a later high copy cannot repair wrap.\n")
     aligned_stack = (cursor + 15) & ~15
     if aligned_stack > cursor:
         runtime_ranges.append(Range(cursor, aligned_stack, "installed stack alignment"))

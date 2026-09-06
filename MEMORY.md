@@ -1444,6 +1444,50 @@ as well as service code; conventional, UMB and HMA costs remain separate.
 
 ### Combined manager split: source-audited prototype boundary
 
+#### High table address and selector decision
+
+Use an **object-relative table owner starting at offset zero**, with one new
+persistent ring-0 data selector. Keep the low DGROUP scalar state and existing
+transition-stack selector separate. Do not bias a high descriptor base merely
+to preserve the old DGROUP offsets: that preserves the old address-window
+limit and obscures which object each root addresses.
+
+`EMMINIT.ASM` currently computes its initial table origin from
+`seg VDATA - seg DGROUP` plus `vdata_begin`, giving 19,206 in the current map.
+The combined arithmetic maximum occupies 48,383 bytes; it fits the 49,152-byte
+VDATA allocation but its exclusive end would be 67,589, **2,054 beyond the
+word-sized break limit**. An object-relative end is only 48,383. This is an
+addressing constraint on the proposed all-capacity design, not proof that the
+combined maxima can boot on the current 24-bit-memory hardware profile.
+`make test-emm-relocation-budget` now reports both allocation capacity and
+offset-window capacity, with exact-boundary and overflow tests.
+
+Normalize every table root, including `CurRegSet` and `FRS_array`, by the same
+original `_save_map` origin at commit. Preserve table contents: rebase roots,
+not the mapping/index values, names or allocation flags in records. Keep scalar
+counts/flags low. Helpers must select the table owner explicitly for loads,
+stores and string operations while preserving the caller's low DS/stack and
+external buffers. Zero-based roots are offsets, not a null-owner sentinel;
+use explicit publication state to distinguish low fallback from high ownership.
+
+Append the dedicated selector after `USER1_GSEL` rather than reusing VM, block
+move, OEM or EMS scratch selectors. `VDMSEL.INC` makes the proposed appended
+slot `00B0h` in production and `0110h` in the debugger layout. `TABDEF.ASM`
+ends the current GDT immediately after USER1, so this costs eight descriptor
+bytes before segment/alignment effects; it does not shift existing selector
+values. Actual low allocation cost and the changed PAGESEG reservation model
+must be measured when linked. These selectors are a design decision, not yet
+declared or installed.
+
+Preflight the initialization staging window **before writing tables**. A late
+copy into a valid high owner cannot repair an earlier 16-bit wrap. For an
+otherwise supported capacity that does not fit the old staging origin, build
+through a separate staging segment/object-relative initialization path; do not
+silently reduce H=/A=/EMS capacities to fit. Publish roots/selector only after
+copy and bounds validation, then repack the retained low stack before applying
+the final mode. Preserve a complete low fallback for configurations that fit it;
+do not claim fallback for a layout whose address window was never valid.
+
 #### Existing locked-XMS backing, before another allocation
 
 The compiled `NOHIMEM` path in `ALLOCMEM.ASM:XMSAlloc` requests one locked

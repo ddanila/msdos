@@ -5,10 +5,24 @@ import unittest
 
 from report_emm386_residency import (
     Segment, Symbol, dynamic_table_sizes, high_data_capacity, relocation_budget,
+    table_offset_budget,
 )
 
 
 class RelocationBudgetTest(unittest.TestCase):
+    def test_object_size_and_address_window_are_distinct(self):
+        self.assertEqual(table_offset_budget(19206, 48383),
+                         {"origin": 19206, "end": 67589, "overflow": 2054})
+        self.assertEqual(table_offset_budget(0, 48383)["overflow"], 0)
+        self.assertEqual(table_offset_budget(19206, 1904)["overflow"], 0)
+
+    def test_exclusive_word_break_and_invalid_origins(self):
+        self.assertEqual(table_offset_budget(1, 65534)["overflow"], 0)
+        self.assertEqual(table_offset_budget(1, 65535)["overflow"], 1)
+        for origin, size in ((-1, 1), (65536, 1), (0, 0), (0, 65536)):
+            with self.subTest(origin=origin, size=size), self.assertRaises(ValueError):
+                table_offset_budget(origin, size)
+
     def test_default_and_maximum_table_objects(self):
         default = sum(size for size, _ in dynamic_table_sizes(64, 7, 64, 6, 0, 1))
         maximum = sum(size for size, _ in dynamic_table_sizes(255, 254, 2048, 52, 20, 16))
