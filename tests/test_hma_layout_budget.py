@@ -7,6 +7,30 @@ from report_dos_bios_residency import hma_layout
 
 
 class HmaBudgetTests(unittest.TestCase):
+    def test_joint_candidate_reserves_cache_and_both_service_owners(self):
+        rows = hma_layout(0x9D10, 7988, 5220, 2447,
+                          manager_bytes=1672, shell_service_bytes=2451)
+        self.assertEqual(rows[2][1:], (0xB174, 0xB7FC))
+        self.assertEqual(rows[3][2] - rows[3][1], 7988)
+        self.assertEqual(rows[-3][1:], (0xE0BF, 0xEA52))
+        self.assertEqual(rows[-2][2] - rows[-2][1], 5534)
+        self.assertTrue(all(a[2] == b[1] for a, b in zip(rows, rows[1:])))
+
+    def test_joint_services_cannot_silently_displace_larger_cache(self):
+        # 29 buffers still use one hash bucket. Current placement fits;
+        # the joint candidate must reject its new reservations, not shrink cache.
+        cache = 29 * (512 + 20) + 8
+        self.assertEqual(hma_layout(0x9D10, cache, 5220, 2447)[-2][2]
+                         - hma_layout(0x9D10, cache, 5220, 2447)[-2][1], 2209)
+        with self.assertRaises(ValueError):
+            hma_layout(0x9D10, cache, 5220, 2447,
+                       manager_bytes=1672, shell_service_bytes=2451)
+
+    def test_negative_proposed_service_sizes(self):
+        for kwargs in ({"manager_bytes": -1}, {"shell_service_bytes": -1}):
+            with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
+                hma_layout(0x9D10, 7988, 5220, 2447, **kwargs)
+
     def test_contiguous_byte_granular_placement(self):
         rows = hma_layout(0x9900, 7988, 5220, 2447)
         self.assertTrue(all(a[2] == b[1] for a, b in zip(rows, rows[1:])))

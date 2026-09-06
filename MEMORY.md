@@ -952,6 +952,45 @@ future protected-mode provider will make its HMA services callable. EMM386's
 own table relocation must separately complete before its INIT break is final.
 Warm-reset reconstruction and retry-without-reservation-leak remain gates.
 
+The shared cursor needs an **immutable cache plan before the normal device
+pass**. `SYSCONF.ASM:Multi_Try_Buff` already parses BUFFERS during pass zero,
+and `TryB` publishes its result to `Buffers`, `H_Buffers` and `Buffer_Slash_X`.
+Snapshot the completed prescan at `SYSINIT1.ASM:BootConfigReady`, before the
+first `inc Multi_Pass_Id`/`Multi_Pass` pair. Do not read the mutable `Buffers`
+value at `CompactFirstHimem`: for `BUFFERS=15`, HIMEM, then `BUFFERS=29`, the
+normal pass has temporarily overwritten the final prescan value with 15.
+The frozen plan must follow the selected menu/organized configuration and be
+invalidated for bypass, uncertain interactive selection or parsing failure.
+
+`SingleBufferSize` is established from `SYSI_MAXSEC` plus the buffer header
+before CONFIG processing; the block-driver path rejects a sector size above
+`SYSI_MAXSEC`. Budget against that bound, not an assumed 512-byte sector.
+Default buffer selection and failed `/X` handling occur later in `EndFile` and
+can depend on installed drives/EMS. Keep the new manager reservation disabled
+for unresolved plans until their conservative cache bounds and fallback policy
+are implemented. This leaves those configurations on the existing supported
+layout; it must not reduce their requested buffers or other resources.
+
+The checked fixed-profile candidate has this **proposed** HMA placement:
+
+| Object | HMA offsets | Bytes |
+| --- | --- | ---: |
+| Existing kernel | `0010h..9D10h` | 40,192 |
+| Existing development BIOS | `9D10h..B174h` | 5,220 |
+| New HIMEM service/data candidate | `B174h..B7FCh` | 1,672 |
+| Reserved fifteen-buffer cache | `B7FCh..D730h` | 7,988 |
+| Existing COMMAND high payload | `D730h..E0BFh` | 2,447 |
+| New complete shell body candidate | `E0BFh..EA52h` | 2,451 |
+| Remaining support/alignment capacity | `EA52h..FFF0h` | 5,534 |
+
+Gate code, fixups and any additional retained high state must fit the final
+row; the candidate sizes are not yet linked high objects. With 29 buffers,
+the current layout still fits and leaves 2,209 HMA bytes, but this candidate
+overflows. Reject its additional reservations rather than silently moving the
+cache low or shrinking it. The HMA budget helper now models both new service
+owners explicitly and tests this counterexample. It is an offline design
+check, not an implemented early allocator or completed joint-layout gate.
+
 ### Development placement budget: remaining BIOS is not another disk body
 
 #### Whole-system accounting and the missing placement tier

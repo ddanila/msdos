@@ -94,19 +94,27 @@ def character_partition(symbols: dict[str, int]) -> list[tuple[str, int, int, st
 
 
 def hma_layout(sysbuf: int, buffer_bytes: int, bios_bytes: int = 0,
-               command_bytes: int = 0) -> list[tuple[str, int, int]]:
+               command_bytes: int = 0, *, manager_bytes: int = 0,
+               shell_service_bytes: int = 0) -> list[tuple[str, int, int]]:
     """Successful fixed-cache placement; not a prediction of low reclamation.
 
     BOOTBIOS reserves at SYSBUF, SYSINIT builds the cache next, and COMMAND
     uses the byte-granular DOS_HMA_TAIL_ALLOC. No paragraph rounding applies.
+    Optional manager/shell bodies model the proposed joint layout, not installed
+    objects. They do not borrow space from the supplied cache reservation.
     """
     if not 0x10 <= sysbuf <= 0xFFF0:
         raise ValueError("SYSBUF is outside usable HMA")
     rows = [("DOS high image", 0x10, sysbuf)]
     cursor = sysbuf
-    for name, size in (("Development BIOS reservation", bios_bytes),
-                       ("Hash plus buffer slots", buffer_bytes),
-                       ("COMMAND catalogs and high code", command_bytes)):
+    objects = [("Development BIOS reservation", bios_bytes)]
+    if manager_bytes:
+        objects.append(("Proposed early HIMEM service/data", manager_bytes))
+    objects.extend((("Hash plus buffer slots", buffer_bytes),
+                    ("COMMAND catalogs and high code", command_bytes)))
+    if shell_service_bytes:
+        objects.append(("Proposed whole shell service body", shell_service_bytes))
+    for name, size in objects:
         if size < 0 or cursor + size > 0xFFF0:
             raise ValueError(f"{name} does not fit below the HMA safety tail")
         rows.append((name, cursor, cursor + size))
