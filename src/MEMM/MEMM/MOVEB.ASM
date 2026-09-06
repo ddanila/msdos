@@ -221,6 +221,7 @@ Move_Block_Core proc near
 	mov	ds,ax			; DS = DGROUP
 	mov	[MB_Stat],0		; init status of move block to OK.
 	mov	[MB_ParityOwned],0
+	mov	[Toggle_st],0
 ;
 ; check word count field
 ;
@@ -346,14 +347,6 @@ MB_moved:
 	mov	ax,VDMD_GSEL		; get data selector
 	mov	ds,ax			; DS = DGROUP
 
-; restore a20 state to what it was before this routine
-;
-	test	[toggle_st],0ffh	; do we need to toggle the a20 back?
-	jz	a20_restored		; N: skip toggling
-	call	togl_a20		; Y: else toggle the A20 line
-a20_restored:
-	mov	[toggle_st],0		; clear this flag
-
 	jmp	MB_Exit
 Move_Block_Core endp
 
@@ -362,8 +355,16 @@ Move_Block_Core endp
 ;
 MB_Exit proc	near
 ;
-;  reset NMI handler
+; Restore virtual A20 on every completion, including selector rejection and
+; the parity-handler exit. The protected continuation remains above the HMA
+; alias window; togl_a20 changes its page mappings, not the physical gate.
 ;
+	cmp	[Toggle_st],0
+	je	MB_A20_Restored
+	call	togl_a20
+	mov	[Toggle_st],0
+MB_A20_Restored:
+; Reset only the NMI handler acquired by this call.
 
 	cmp	[MB_ParityOwned],0
 	je	MB_leave		; early validation never acquired this vector

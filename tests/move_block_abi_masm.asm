@@ -1,4 +1,5 @@
-; Execute the production adapter/epilogue with a simulated copy completion.+; This tests the near-call ABI only, not protected copying, NMI or A20.
+; Execute the production adapter/epilogue with a simulated copy completion.
+; This tests the near-call ABI only, not protected copying, NMI or A20.
 .model tiny
 .386
 .code
@@ -11,6 +12,7 @@ start:
     mov byte ptr [MB_Stat],0
 next_case:
     mov byte ptr [restore_calls],0
+    mov byte ptr [toggle_calls],0
     mov [saved_sp],sp
     mov word ptr [client_flags],0201h
     mov bp,offset client_flags
@@ -55,6 +57,10 @@ check_preserved:
     mov al,[owned_case]
     cmp al,[restore_calls]
     jne failed
+    cmp al,[toggle_calls]
+    jne failed
+    cmp byte ptr [Toggle_st],0
+    jne failed
     call Move_Block
     cmp sp,[saved_sp]
     jne failed
@@ -72,6 +78,10 @@ case_done:
     mov al,[owned_case]
     shl al,1
     cmp al,[restore_calls]
+    jne failed
+    cmp al,[toggle_calls]
+    jne failed
+    cmp byte ptr [Toggle_st],0
     jne failed
     inc byte ptr [MB_Stat]
     cmp byte ptr [MB_Stat],4
@@ -106,12 +116,17 @@ Move_Block_Core proc near
     push di
     mov al,[owned_case]
     mov [MB_ParityOwned],al
+    mov [Toggle_st],al
     jmp MB_Exit
 Move_Block_Core endp
 Rest_Par_Vect proc near
     inc byte ptr [restore_calls]
     ret
 Rest_Par_Vect endp
+togl_a20 proc near
+    inc byte ptr [toggle_calls]
+    ret
+togl_a20 endp
 POP_EAX macro
     pop eax
 endm
@@ -127,6 +142,8 @@ MB_Stat db 0
 MB_ParityOwned db 0
 owned_case db 0
 restore_calls db 0
+Toggle_st db 0
+toggle_calls db 0
 saved_sp dw 0
 client_flags dw 0
 end start

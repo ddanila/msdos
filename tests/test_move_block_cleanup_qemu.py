@@ -22,13 +22,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--image", type=Path, default=ROOT / "out/floppy.img")
     parser.add_argument("--emm386", type=Path, default=ROOT / "src/MEMM/MEMM/EMM386.EXE")
+    parser.add_argument("--a20-off", action="store_true",
+                        help="enter with virtual A20 disabled and verify all 16 alias pages")
     args = parser.parse_args()
     work = Path(tempfile.mkdtemp(prefix="move-block-cleanup-", dir=ROOT / "out"))
     print(f"Evidence: {work}", flush=True)
     image = work / "boot.img"
     shutil.copyfile(args.image, image)
     probe = work / "probe.com"
-    subprocess.run(["nasm", "-f", "bin", str(ROOT / "tests/move_block_cleanup_probe.asm"),
+    subprocess.run(["nasm", "-f", "bin", *(["-DA20_OFF"] if args.a20_off else []),
+                    str(ROOT / "tests/move_block_cleanup_probe.asm"),
                     "-o", str(probe)], check=True)
     env = dict(os.environ, MTOOLS_SKIP_CHECK="1", MTOOLS_NO_VFAT="1")
     def install(source, target, data=None):
@@ -48,7 +51,7 @@ def main():
         "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
     ], stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     rows = []
-    report = dict(passed=False, checkpoints=rows, inputs={
+    report = dict(passed=False, a20_off=args.a20_off, checkpoints=rows, inputs={
         str(path): hashlib.sha256(path.read_bytes()).hexdigest()
         for path in (args.image, args.emm386, ROOT / "src/DEV/HIMEM/HIMEM.SYS", probe)},
         emulator=subprocess.check_output(["qemu-system-i386", "--version"], text=True).splitlines()[0])
@@ -61,9 +64,9 @@ def main():
         with socket.socket(socket.AF_UNIX) as connection:
             connection.connect(str(endpoint))
             qmp = QMP(connection)
-            for index, phase in enumerate("ABCDEF"):
+            for index, phase in enumerate("ABCDEFGH"):
                 deadline = time.monotonic() + 30
-                expected = b"ABCDEF"[:index + 1]
+                expected = b"ABCDEFGH"[:index + 1]
                 while True:
                     trace = debug.read_bytes() if debug.exists() else b""
                     if trace == expected:
@@ -93,10 +96,13 @@ def main():
                         raise ValueError("IDT page is absent")
                     return (pte & ~4095) + (linear & 4095)
                 descriptor = bytes(ram[physical(idt + 16 + n)] for n in range(8))
-                rows.append(dict(phase=phase, idt=idt, nmi=descriptor.hex()))
+                aliases = [physical(0x100000 + n * 4096) for n in range(16)]
+                rows.append(dict(phase=phase, idt=idt, nmi=descriptor.hex(), a20_pages=aliases))
                 (work / "result.json").write_text(json.dumps(report, indent=2) + "\n")
                 if not descriptor[5] & 128 or descriptor.hex() != rows[0]["nmi"]:
                     raise ValueError(f"NMI ownership changed at phase {phase}: {rows}")
+                if aliases != rows[0]["a20_pages"] or (args.a20_off and aliases != list(range(0, 65536, 4096))):
+                    raise ValueError(f"virtual A20 mappings changed at phase {phase}: {aliases}")
                 qmp.call("cont")
                 qmp.call("send-key", {"keys": [{"type": "qcode", "data": "spc"}], "hold-time": 1})
             if process.wait(timeout=10) != 33:
@@ -112,7 +118,7 @@ def main():
                 process.wait()
         (work / "qemu.log").write_bytes(process.stderr.read())
         (work / "result.json").write_text(json.dumps(report, indent=2) + "\n")
-    print("PASS: count/source/destination rejection and successful copy preserve NMI ownership")
+    print("PASS: validation/selector rejection and successful copy preserve NMI and virtual A20")
 
 
 if __name__ == "__main__":

@@ -276,6 +276,7 @@ test-move-block-abi-qemu:
 .PHONY: test-move-block-cleanup-qemu
 test-move-block-cleanup-qemu: memm
 	python3 tests/test_move_block_cleanup_qemu.py
+	python3 tests/test_move_block_cleanup_qemu.py --a20-off
 
 .PHONY: test-emm-xms-owner-qemu
 test-emm-xms-owner-qemu:

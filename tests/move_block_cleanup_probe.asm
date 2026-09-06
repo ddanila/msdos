@@ -10,6 +10,11 @@ org 100h
     mov bx,target
     mov di,target_desc
     call set_base
+%ifdef A20_OFF
+    in al,92h
+    and al,0fch
+    out 92h,al
+%endif
     mov al,'A'
     call checkpoint
     mov cx,8001h
@@ -44,6 +49,18 @@ org 100h
     mov cx,8001h
     call reject
     mov al,'F'
+    call checkpoint
+    ; These reject after parity installation and temporary A20 enable.
+    mov byte [source_desc+5],98h ; execute-only: not readable by VERR
+    mov cx,8
+    call reject
+    mov al,'G'
+    call checkpoint
+    mov byte [source_desc+5],93h
+    mov byte [target_desc+5],91h ; read-only: not writable by VERW
+    mov cx,8
+    call reject
+    mov al,'H'
     call checkpoint
     mov ax,10h
     jmp finish
