@@ -53,6 +53,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image", type=Path)
     parser.add_argument("--split-prepare", action="store_true")
+    parser.add_argument("--poison-request", action="store_true",
+                        help="erase saved INIT request registers during activation")
     parser.add_argument("--reject-prepared", action="store_true")
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
@@ -60,6 +62,8 @@ def main():
     if args.bad_pool_control:
         args.reject_prepared = True
     if args.reject_prepared:
+        args.split_prepare = True
+    if args.poison_request:
         args.split_prepare = True
     capture.require_tools()
     image_hash = capture.sha256(args.image)
@@ -71,6 +75,8 @@ def main():
     trace_defines = "-DEMM_INIT_PHASE_TRACE"
     if args.split_prepare:
         trace_defines += " -DEMM_SPLIT_PREPARE"
+    if args.poison_request:
+        trace_defines += " -DEMM_POISON_INIT_REQUEST"
     if args.reject_prepared:
         trace_defines += " -DEMM_REJECT_PREPARED"
     if args.bad_pool_control:
@@ -124,6 +130,7 @@ def main():
         input_sha256=image_hash, normal_emm_sha256=original,
         trace_emm_sha256=capture.sha256(build / "EMM386.EXE"),
         split_prepare=args.split_prepare, rejected=args.reject_prepared,
+        poison_request=args.poison_request,
         emulator=capture.qemu_identity(), records=records), indent=2) + "\n")
 
 

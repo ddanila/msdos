@@ -401,12 +401,25 @@ prepared return, cleanup and rejection of changed boundaries.
 
 This is preparation for the selected coordinated-provider design, not another
 resident-code relocation or a completed provider transaction. Next make the
-activation request/frame state explicit so the loader can resume it after
-establishing the final low base; do not retain a pointer to the expired INIT
-stack. Bootstrap XMS integration, live-handle transfer, descriptor rebinding,
+activation control flow resumable so the loader can invoke it after establishing
+the final low base; do not retain a pointer to the expired INIT stack.
+Bootstrap XMS integration, live-handle transfer, descriptor rebinding,
 post-publication failure handling and the joint linked-size budget remain open.
 The cleanup witness proves pool-size restoration for this early cancellation,
 not arbitrary failures or preservation of independently held client handles.
+
+The development path now saves the SYSINIT request's far address in
+`prepare_request` before preparation. Both initial and final break writes use
+that explicit address instead of recovering DS/BX from the original BP frame.
+`--poison-request` erases those two saved register slots during activation and
+restores them only for the adapter's return to its caller. All four modes pass
+in `out/emm-init-phases-lf59nmla/`, including the EMM API/runtime-command suite
+(`emm-api.log`). Combining it with `--reject-prepared` passes all four cleanup
+cases in `out/emm-init-phases-0hl60suu/`. The normal binary remains unchanged.
+This removes request-address dependence on the old frame, not the adapter's
+control-flow dependence. `prepare_request` borrows the loader's packet; a real
+handoff must keep it valid through commit or provide an explicit replacement,
+and retain initialization storage until activation/cancellation finishes.
 
 ##### Whole-system placement rules
 

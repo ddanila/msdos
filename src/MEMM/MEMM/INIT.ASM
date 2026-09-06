@@ -295,6 +295,9 @@ page_id_temp	db	0
 umb_mode	db	0	; RAM or NOEMS requested paging-backed UMBs
 noems_mode	db	0	; NOEMS suppresses the EMS page frame
 initial_mode	db	0h	; 0 => ON, 1 => OFF, 2 => AUTO
+ifdef EMM_SPLIT_PREPARE
+prepare_request dd 0             ; borrowed SYSINIT packet, not an INIT stack slot
+endif
 ifdef EMM_REJECT_PREPARED
 prepare_xms_entry dd 0
 prepare_xms_largest dw 0
@@ -410,6 +413,10 @@ Init_MEMM386	proc	far
 	push	ds		; BP+2
 	push	es		; BP+0
 	mov	bp,sp
+ifdef EMM_SPLIT_PREPARE
+        mov word ptr cs:[prepare_request],bx
+        mov word ptr cs:[prepare_request+2],ds
+endif
 ;
 ;  set up DS = DGROUP and ES:BX to request header
 ;
@@ -433,6 +440,12 @@ ifdef EMM_SPLIT_PREPARE
         call PrepareProvider
         jc IE_exit
         INIT_PHASE 9
+ifdef EMM_POISON_INIT_REQUEST
+        ; Test only: activation must not recover the request from saved DS/BX.
+        ; Restore the adapter's saved registers at IE_leave, even on failure.
+        mov word ptr ss:[bp+2],0
+        mov word ptr ss:[bp+10],0
+endif
 ifdef EMM_REJECT_PREPARED
         or [msg_flag],MEM_ERR_MSG
         jmp IE_exit
@@ -626,9 +639,13 @@ IE_chkbase:
 ;   set driver break addr in Init Request Header
 ;
 IE_setbrk:
+ifdef EMM_SPLIT_PREPARE
+        les bx,cs:[prepare_request]
+else
 	mov	bx,[bp+2]		; get entry DS from stack
 	mov	es,bx
 	mov	bx,[bp+10]		; ES:BX pts to req hdr
+endif
 	mov	ax,[driver_end] 	; get brk addr offset
 	mov	ES:[bx.BRK_OFF],ax	; set it
 	mov	ax,[driver_end+2]	; get brk addr segment
@@ -699,9 +716,13 @@ IE_initial_mode_done:
 	INIT_PHASE 7
 	; CompactVData may lower the resident break after the request header was
 	; first populated. Publish the final value returned to SYSINIT.
+ifdef EMM_SPLIT_PREPARE
+        les bx,cs:[prepare_request]
+else
 	mov	bx,[bp+2]
 	mov	es,bx
 	mov	bx,[bp+10]
+endif
 	mov	ax,[driver_end]
 	mov	es:[bx.BRK_OFF],ax
 	mov	ax,[driver_end+2]
@@ -827,6 +848,14 @@ skip_dig_adj:
 	xor	ax,ax			; NO errors
 ;
 IE_leave:
+ifdef EMM_POISON_INIT_REQUEST
+        push ax
+        mov ax,word ptr cs:[prepare_request+2]
+        mov ss:[bp+2],ax
+        mov ax,word ptr cs:[prepare_request]
+        mov ss:[bp+10],ax
+        pop ax
+endif
 	pop	es
 	pop	ds
 	pop	di
