@@ -1312,6 +1312,38 @@ python3 tests/report_emm386_residency.py --check \
 
 #### First split and retained interfaces
 
+The current dispatcher no longer has the historical protected-service bitmap
+or retained real-mode query bodies described in older delivery sections.
+`EMM.ASM:EMM_rLink` sends supported slots 40h..5Dh, excluding 49h/4Ah, through
+the protected dispatcher. Idle AUTO enters virtual mode for the request;
+`_AutoUpdate` returns it to real mode when only internal handle zero remains.
+Explicit OFF rejects those supported slots with 81h before entering services;
+reserved slots return 84h. Low control uses retained mode flags and handle
+count, not an exposed pointer to the proposed high table object.
+
+This materially simplifies the high-data contract: ordinary EMS queries do
+not require a second low table copy merely because their caller entered in
+real mode. DMA traps likewise reach the table owner from protected mode.
+Initialization still builds the low object first, and EMMP's alternate-set
+code still directly resolves FRS_array/CurRegSet. Those ownership conversions,
+selector setup, transition ordering and failure handling remain necessary.
+
+`tests/emm386_owner_mode_probe.asm` checks the repository driver's signature
+before using its private mode-control entry. In a disposable QEMU fixture it
+verifies idle AUTO after eleven query calls, active AUTO while an application
+handle exists, return to idle after release, and rejection of every supported
+slot in explicit OFF without a mode change. It restores the starting control
+mode before the existing driver/API/command suite continues. This checks mode
+state at API return; the protected path itself is established by the source
+audit, not inferred solely from that returned state.
+
+The full `tests/test_emm386_qemu.sh` passes with the freshly built manager
+installed in a private copy of the repaired DOS-low image. A negative probe
+compiled with `EXPECT_IDLE_STATUS=2` rejects the actual idle state and exits
+through the failure path; it does not produce a passing marker. Evidence is in
+`out/emm-owner-mode.Tr8wGp/{pass,negative}.log`. This is a current-dispatch
+baseline, not a high-VDATA or DOS-high/third-party-XMS acceptance result.
+
 The fixed profile installs 2,592 HIMEM plus 3,888 EMM386 bytes. The checked
 HIMEM listing now partitions every fixed byte by service; reproduce with
 `make test-himem-residency`. EMM386's existing census supplies the other half:

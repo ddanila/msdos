@@ -56,7 +56,7 @@ start:
     jb fail
 
     ; Internal handle zero is always present.  Keep the far-buffer 4C/4D pair
-    ; covered here as retained-low neighbors while AUTO remains idle.
+    ; covered through protected services while AUTO returns to idle.
     xor dx, dx
     mov ah, 4ch
     int 67h
@@ -82,7 +82,7 @@ start:
     jb fail
 
     ; Attribute query runs protected from inactive AUTO.  Following it with a
-    ; retained-low mappable-address query proves the temporary return is clean.
+    ; protected mappable-address query exercises another temporary transition.
     xor dx, dx
     mov ax, 5202h
     int 67h
