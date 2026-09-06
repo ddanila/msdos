@@ -211,6 +211,58 @@ explicit, rather than a smaller version of every existing low routine.
 
 ### Required checkpoint: one complete resident layout
 
+#### Reassessment decision: choose owners before spending the HMA tail
+
+The controlled vendor transitions establish bulk relocation, not a proprietary
+compression trick: DR-DOS 6 gains 40,480 conventional bytes from kernel/BIOS/
+shell high placement and 12,800 more from upper DOS data. Its 28,672-byte upper
+manager is too expensive for our framed UMB floor. OpenDOS's provider switch
+instead saves 4,240 low system bytes while costing 280 KiB of additional XMS
+at 8 MiB RAM, including upper-memory backing and unidentified overhead. Its
+low interface remains constant across the measured 4..32 MiB range. Do not
+infer the vendor's protected objects from those totals or attribute the bare
+system result to optional DPMS. The controlled evidence is recorded below.
+
+Use three residency tiers in the proposed complete layout:
+
+| Tier | Authoritative objects | Design requirement |
+| --- | --- | --- |
+| Conventional/UMB, ordinary real-mode addresses | Public DOS/device structures, firmware transfer storage, asynchronous entries and required stacks | Keep exported pointers usable with A20 off; spend UMB only within the shared floor |
+| DOS-owned HMA | Kernel and BIOS services, resident shell body, eligible private state and buffers | Budget all owners together; explicit low data/stack bindings and A20-safe external returns |
+| Locked extended memory, 386 provider active | Protected manager services and complete option-sized tables | Publish selector-owned storage and release low originals; account for XMS backing, transitions and OFF/AUTO behavior |
+
+Standalone HIMEM/286 and third-party XMS remain supported layouts, not reasons
+to force the 386 provider's complete implementation into HMA. Compare the
+existing standalone-HIMEM HMA candidate with a coordinated 386-provider design
+before reserving that capacity permanently. Provider integration is not yet
+implemented and does not itself establish a saving: our
+`ALLOCMEM.ASM:XMSAlloc` currently obtains and locks EMM386's backing through the
+installed XMS provider. Moving that provider behind its own consumer requires
+an explicit bootstrap, ownership handoff and failure path, not recursive XMS
+allocation or an independent second extended-memory allocator.
+
+The kernel's high image also needs an ownership decision. The current
+`MS_CODE.ASM:DOS_HMA_RELOCATE` copies `0010h..SYSBUF` at unchanged offsets,
+including the retained prefix. `MSDOS.MAP` places `DOS_LOW_GATE_END` at
+`15F2h` and `SYSBUF` at `9D10h`: the copied prefix is 5,602 HMA bytes, distinct
+from its 5,632-byte rounded conventional allocation. **That entire high range
+is not proven unused.** For example, `INT2F_etcetera` reads
+`CS:[Special_Entries]` at linked offset `006Bh`, and relocation patches both
+copies of `JShare`. Conversely, SETVER explicitly requires its authoritative
+low table. Classify these bindings before repacking either image; removing a
+high duplicate creates destination capacity, not conventional savings. Do not
+count 5,602 bytes as available or overwrite the prefix wholesale.
+
+The next checkpoint must therefore show both the final low allocation boundary
+and the packed high owner for BIOS, DOS state, managers and COMMAND. Candidate
+A remains a partial, unvalidated retail-floor proposal: its 4,816-byte forecast
+leaves 7,120 bytes of the observed OpenDOS difference unexplained. Keep those
+remaining owners in the design instead of declaring the architecture finished
+at retail parity. Pending HIMEM ABI witnesses are supporting tests, not another
+instruction-harvesting tranche or a completed high-resident manager.
+
+#### Layout contract
+
 DR-DOS's portable lesson is a small conventional interface backed by complete
 high-resident objects. Its ordinary measured advantage does not require video
 memory recovery or EBDA relocation. HMA is shared among kernel, BIOS, shell
@@ -4978,26 +5030,11 @@ not as proof that the same conventional result satisfies both local floors.
 
 #### Adoption priorities from the measured design
 
-The measurements change emphasis but do not justify copying DR-DOS placement
-blindly:
-
-1. **Give DOS state a packed high-placement ladder.** DR-DOS gains 12,800
-   conventional bytes by putting DOS state in a UMB, then moves buffers to HMA
-   to recover most of that UMB. Locally, place HMA-safe state in proved DOS-owned
-   HMA slack first, use relocation-safe XMS storage where callbacks permit it,
-   and use deterministic UMB placement only within the measured 1,216-byte UMB
-   advantage over retail. Fall back transactionally when a tier is unavailable.
-2. **Keep COMMAND as a measured secondary tranche.** DR-DOS 6 proves a shell
-   can retain 4,992 bytes in HMA and operate with a 1,264-byte conventional
-   span. The first local relocation is complete, leaving only 880 bytes above
-   retail; resume the harder asynchronous handler redesign after DOS placement.
-3. **Keep the small-gateway EMM386 architecture, but stop harvesting it.**
-   Spending DR-DOS 6's 28,672 UMB bytes would violate the retail free-UMB floor.
-   The local 3,888-byte EMM386 owner is already smaller than retail, so further
-   work needs an architectural relocation or a measured post-placement reason.
-4. **Keep low-memory, video-memory, and EBDA recovery separate.** Neither
-   measured ordinary DR-DOS result uses them. They cannot explain the advantage
-   and must remain optional or bounded finishing work.
+Follow the current joint-layout checkpoint above, not the historical order of
+individual component savings. Kernel, buffers and development FILES/FCB/CDS
+placement are already counted. Compare complete manager, BIOS/DOS and shell
+owners together; retail is the floor, not the endpoint. Video-memory and EBDA
+recovery remain separate from the ordinary below-VC difference.
 
 #### Optional policies and compatibility boundary
 
