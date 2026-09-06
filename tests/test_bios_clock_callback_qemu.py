@@ -16,6 +16,7 @@ from build_bios_low_image import ROOT, build
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--pack-headers", action="store_true", help="qualify the packed low device-header layout")
+    parser.add_argument("--retire-media", action="store_true", help="qualify the retired media/BPB layout")
     args = parser.parse_args()
     subprocess.run(["make", "dos", "bios", "cmd_command", str(ROOT / "src/DEV/HIMEM/HIMEM.SYS")],
                    cwd=ROOT, check=True)
@@ -33,7 +34,7 @@ def main():
         directory = work / name
         low = build(directory, early=True, tail_body=True, dispatch=True,
                     characters=True, retire_characters=True, rebase=compact,
-                    compact=compact, pack_headers=args.pack_headers,
+                    compact=compact, pack_headers=args.pack_headers, retire_media=args.retire_media,
                     reservation_limit=0xfff0 if active else 0x10)
         symbols = low["symbols"]
         binary = (directory / "MSBIO.BIN").read_bytes()

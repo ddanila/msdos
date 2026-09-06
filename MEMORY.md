@@ -15,10 +15,10 @@ COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
 The current **packed BIOS retirement candidate** is measured at
-**619,056 conventional / 49,680 free UMB bytes** in
-`out/umb-fine-composition-z6_gx7l2/`: **1,104 bytes recovered** versus the
-bootstrap-retirement candidate below, **1,120 above the composed control**, and
-**320 above retail**. The low BIOS allocation falls from 5,152 to 4,048 bytes.
+**619,872 conventional / 49,680 free UMB bytes** in
+`out/umb-fine-composition-l1byzj6z/`: **1,920 bytes recovered** versus the
+bootstrap-retirement candidate below, **1,936 above the composed control**, and
+**1,136 above retail**. The low BIOS allocation falls from 5,152 to 3,232 bytes.
 The old console/serial/printer/clock bodies are placed in the disposable tail,
 poisoned after high publication, and released by the existing low compaction.
 The complete boot device tables also move to that tail; their former space
@@ -31,29 +31,40 @@ decoder joins the disposable tables, and the high far tables directly select
 the seven high disk services. Their redundant low entry stubs and pointer
 slots are no longer emitted. A single cold-path jump preserves the original
 decoder/frame contract before activation or after a rejected reservation.
+Complete media/BPB retirement then recovers **816 bytes**. Its shared source
+includes media checking, BPB construction, ID copying and the density helper;
+the latter discards a return frame and therefore travels with GETBP, not
+through an ordinary low-call bridge. Low GETBP, timer-check and BPB-return
+entries remain bound for 96-TPI/init callers. All four media boot-patch sites
+receive the selected 96-TPI policy before publication. Old bodies are poisoned and released.
 This is an opt-in experimental layout, not production promotion.
 
-The shared HMA charge is now 40,272 DOS + 6,658 BIOS + 7,988 buffers +
-2,447 COMMAND = **57,365 bytes**, leaving **8,139 bytes** at
-`E025h..FFF0h`. This replaces the 5,220-byte BIOS reservation in older ledgers;
-do not count both reservations or reuse their 9,577-byte tail. Application XMS
+The shared HMA charge is now 40,272 DOS + 7,744 BIOS + 7,988 buffers +
+2,447 COMMAND = **58,451 bytes**, leaving **7,053 bytes** at
+`E463h..FFF0h`. Media retirement adds 1,086 HMA bytes. This replaces the
+6,658/5,220-byte BIOS reservations in older ledgers; do not add them together
+or reuse their 8,139/9,577-byte tails. Application XMS
 remains 6,798,336 bytes, **5,120 below the control**; UMB remains unchanged.
 
 Retirement layout/link tests and composed VC boot pass. Packed-header warm-reset
-boot passes in `out/bios-low-boot-v6y7nfv_/`; forced high-reservation failure
+boot passes in `out/bios-low-boot-kj2etbto/`; forced high-reservation failure
 retains working fallback tables/bodies in all four boot modes in
-`out/bios-low-boot-fmo2ynvn/`. The guest checks all 26 high character/disk table
+`out/bios-low-boot-ujfu1rhv/`. The guest checks all 28 high character/disk table
 entries against linked destinations. The linker test checks all 12 device-chain links,
 the fixed VDISK offset and complete retained-core accounting. The source-free
 vendor memory comparison is not proof that private fixed offsets are equivalent.
+Normal IO.SYS remains byte-identical (`0bcd17ac...1a0ccf785`). The unusual
+FAT/density fallback, mutable media IDs, older ROM policies and nested media
+error paths still need targeted runtime qualification; the warm-reset/file-I/O
+probe and linker patch checks do not exhaust those branches.
 The direct TimeToTicks near callback now passes four exact time conversions in
 low fallback, poisoned high and compacted high layouts. The high cases prove
 A20 is off through physical aliasing before entry and restored afterward;
 SP, DS, ES, SI, DI and BP survive. Removing the installed gate's A20-restoring
 call reaches the A20-off marker but cannot complete the first callback. This
 is a 486/HIMEM-only qualification, not a paired-provider or suspend/resume test.
-Reproduce with `python3 tests/test_bios_clock_callback_qemu.py --pack-headers`;
-packed-layout evidence is `out/bios-clock-callback-sip210_2/results.json`.
+Reproduce with `python3 tests/test_bios_clock_callback_qemu.py --pack-headers --retire-media`;
+evidence is `out/bios-clock-callback-7kgb1mcs/results.json` with exact image hashes.
 The probe temporarily replaces and restores
 the loader entry as its same-segment near caller, with interrupts masked;
 it adds no resident production gateway. Full device-request semantics remain
@@ -65,7 +76,7 @@ qualification remains open.
 Reproduce the composed measurement with:
 
 ```sh
-python3 tests/test_umb_subpage_composition.py --paired-provider out/emm-init-phases-q3jatbct --retire-bios-characters --pack-bios-headers
+python3 tests/test_umb_subpage_composition.py --paired-provider out/emm-init-phases-q3jatbct --retire-bios-characters --pack-bios-headers --retire-bios-media
 ```
 
 The preceding bootstrap-retirement candidate is measured at

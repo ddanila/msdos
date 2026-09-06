@@ -52,7 +52,7 @@ def run(command, cwd):
         raise RuntimeError(result.stdout + result.stderr)
 
 
-def build(output, low_directory=None, *, dispatch=False, characters=False):
+def build(output, low_directory=None, *, dispatch=False, characters=False, media=False):
     if characters and not dispatch:
         raise ValueError("complete character group requires far dispatch tables")
     output.mkdir(parents=True, exist_ok=True)
@@ -61,6 +61,13 @@ def build(output, low_directory=None, *, dispatch=False, characters=False):
     _, low_symbols = parse_map(low_map)
     low_symbols = {name.upper(): value for name, value in low_symbols.items()}
     slot_targets = dict(SLOT_TARGETS)
+    if media:
+        for name in ("BIOS_LOW_GETBP", "BIOS_LOW_MEDIA_IDS"):
+            del slot_targets[name]
+        slot_targets.update({f"BIOS_LOW_{slot}": (2, target) for slot, target in
+                             (("MEDIA_CHECK", "MEDIACHECK"), ("MEDIA_SET_VID", "MEDIA_SET_VID"),
+                              ("SET_VOLUME_ID", "SET_VOLUME_ID"),
+                              ("RESET_CHANGED", "ResetChanged"))})
     if characters:
         slot_targets.update({"BIOS_CHAR_LOW_SEGMENT": (2, "resident low BIOS segment"),
                              "BIOS_CHAR_GETDX_OFFSET": (2, "GETDX")})
@@ -76,7 +83,7 @@ def build(output, low_directory=None, *, dispatch=False, characters=False):
         listing = scratch / "body.lst"
         body = scratch / "body.obj"
         run([ROOT / "bin/jwasm-masm",
-             f"-I. -I../INC -DBIOS_SERVICE_ISOLATED=1 -Fl{listing}",
+             f"-I. -I../INC -DBIOS_SERVICE_ISOLATED=1 {'-DBIOS_MEDIA_HIGH=1' if media else ''} -Fl{listing}",
              f"MSDISK.ASM,{body};"], ROOT / "src/BIOS")
         externals = {}
         objects = [body]
@@ -173,10 +180,10 @@ def build(output, low_directory=None, *, dispatch=False, characters=False):
             if rebase(data, relocations, origin) != expected:
                 raise ValueError(f"offset-fixup model disagrees with linker at {origin:04x}")
         manifest = {"installed": False, "runtime_bindings_required": True,
-                    "dispatch": dispatch, "characters": characters, "table_bytes": table_bytes,
+                    "dispatch": dispatch, "characters": characters, "media": media, "table_bytes": table_bytes,
                     "low_table_bytes": low_table_bytes, "far_tables": dispatch,
                     "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data),
-                    "service_bytes": symbols["BIOS_SERVICE_END"],
+                    "service_bytes": symbols["BIOS_MEDIA_SERVICE_END"] if media else symbols["BIOS_SERVICE_END"],
                     "low_map_sha256": hashlib.sha256(low_map.read_bytes()).hexdigest(),
                     "low_image_sha256": hashlib.sha256((low_directory / "IO.SYS").read_bytes()).hexdigest(),
                     "low_bindings": low, "runtime_slots": runtime,
@@ -186,7 +193,11 @@ def build(output, low_directory=None, *, dispatch=False, characters=False):
                     "warning": "Rebase internal offset words and bind every runtime slot before use; low entry gates remain required."}
         low_binary = (low_directory / "MSBIO.BIN").read_bytes()
         patches = {}
-        for start, (end, policy, low_size) in BOOT_PATCHES.items():
+        selected_patches = dict(BOOT_PATCHES)
+        if media:
+            selected_patches.update({f"{name}_PATCH": (f"BIOS_{name}_PATCH_END", "keep_96tpi", size)
+                                     for name, size in (("MEDIA", 10), ("INIT", 3), ("SET", 3), ("GETBP1", 3))})
+        for start, (end, policy, low_size) in selected_patches.items():
             first, last = symbols[start], symbols[end]
             low_first, low_last = low_symbols[start], low_symbols[end]
             if not (0 <= first < last <= manifest["service_bytes"]) or low_last - low_first != low_size:

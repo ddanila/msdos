@@ -13,7 +13,7 @@ from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False, retire_characters=False, pack_headers=False, paired_provider=None):
+def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False, retire_characters=False, pack_headers=False, retire_media=False, paired_provider=None):
     if paired_provider is not None and not (early and rebase and compact):
         raise ValueError("paired provider requires the early rebased/compacted composition")
     if characters and not dispatch:
@@ -22,6 +22,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         raise ValueError("character retirement requires complete high characters and a disposable tail")
     if pack_headers and not retire_characters:
         raise ValueError("header packing requires the retired-character/far-table layout")
+    if retire_media and not pack_headers:
+        raise ValueError("media retirement requires packed headers and direct far dispatch")
     cache_cases = {"first": 1, "last": 2, "past-end": 3, "foreign": 4}
     if cds_cache_case is not None and (not high_cds or cds_cache_case not in cache_cases):
         raise ValueError("CDS cache case requires high CDS and a known case")
@@ -51,7 +53,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         from build_bios_high_payload import build as build_high
         from build_bios_activation_fixture import write_fixture
         seed = build(output, tail_body=tail_body, dispatch=dispatch, characters=characters,
-                     retire_characters=retire_characters, pack_headers=pack_headers)
+                     retire_characters=retire_characters, pack_headers=pack_headers, retire_media=retire_media)
         if rebase:
             _, dos_symbols = parse_map(ROOT / "src/DOS/MSDOS.MAP")
             dos_symbols = {name.upper(): value for name, value in dos_symbols.items()}
@@ -96,7 +98,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
                             "PERMANENT_END": seed["symbols"]["BIOS_PERMANENT_END"]}
             (output / "BIOSSCAN_DEFS.INC").write_text("".join(
                 f"SCAN_{name} EQU {value}\n" for name, value in scan_symbols.items()))
-        high = build_high(output / "high", output, dispatch=dispatch, characters=characters)
+        high = build_high(output / "high", output, dispatch=dispatch, characters=characters, media=retire_media)
         write_fixture(output, seed, high)
         for source, target in (("defs", "DEFS"), ("preflight", "PREFLIGHT"),
                                ("bind-high", "BIND_HIGH"), ("bind-low", "BIND_LOW"),
@@ -145,6 +147,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         options += " -DBIOS_SERVICE_DISPATCH=1"
     if pack_headers:
         options += " -DBIOS_PACK_HEADERS=1"
+    if retire_media:
+        options += " -DBIOS_MEDIA_RETIRED=1"
     if scan:
         options += " -DBIOS_BOOT_SCAN=1"
     if rebase:
@@ -165,6 +169,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         object_options = options
         if tail_body and name == "MSDISK":
             object_options += " -DBIOS_SERVICE_PREFIX_ONLY=1"
+            if retire_media:
+                object_options += " -DBIOS_MEDIA_PREFIX_ONLY=1"
         if retire_characters and name in ("MSCON", "MSCLOCK"):
             object_options += " -DBIOS_CHAR_PREFIX_ONLY=1"
         run([ROOT / "bin/jwasm-masm", object_options,
@@ -187,6 +193,11 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
                 obj = bios / f"{module}.OBJ"
             objects.append(obj)
     if tail_body:
+        if retire_media:
+            media_body = output / "MEDIABODY.OBJ"
+            run([ROOT / "bin/jwasm-masm", options + " -DBIOS_MEDIA_BODY_ONLY=1",
+                 f"MSDISK.ASM,{media_body};"], bios)
+            objects.append(media_body)
         body = output / "BIOBODY.OBJ"
         run([ROOT / "bin/jwasm-masm", options + " -DBIOS_SERVICE_BODY_ONLY=1",
              f"MSDISK.ASM,{body};"], bios)
@@ -219,11 +230,15 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
                 and symbols["END$"] <= symbols["DSKTBL"] < symbols["BIOS_DEVICE_TABLES_END"]
                 <= symbols["BIOS_COLD_DISPATCH_START"] < symbols["BIOS_COLD_DISPATCH_END"] <= symbols["CON$READ"]):
             raise ValueError("packed headers or disposable tables cross their ownership boundary")
+    if retire_media:
+        if not (symbols["CON$READ"] < symbols["MEDIA$CHK"] < symbols["HIDENSITY"] < symbols["BIOS_SERVICE_START"]
+                and all(symbols[name] < symbols["END$"] for name in ("GETBP", "CHECK_TIME_OF_ACCESS", "SETPTRSAV"))):
+            raise ValueError("media bodies must be disposable while escaped low entries remain resident")
     active = symbols["BIOS_SERVICE_ACTIVE"]
     if binary.read_bytes()[active] != 0:
         raise ValueError("development BIOS starts active with unbound targets")
     near_words = {"BIOS_HIGH_SETDRIVE", "BIOS_HIGH_MAPERROR", "BIOS_HIGH_READ_SECTOR", "BIOS_HIGH_TIME_TO_TICKS",
-                  "BIOS_HIGH_CHECKSINGLE"}
+                  "BIOS_HIGH_CHECKSINGLE", "BIOS_HIGH_GETBP", "BIOS_HIGH_CHECK_TIME"}
     slot_words = []
     for name, offset in symbols.items():
         if name.startswith("BIOS_HIGH_"):
@@ -232,6 +247,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
     if not slot_words or any(data[offset:offset + 2] != b"\0\0" for offset in slot_words):
         raise ValueError("inactive high import slots must be zero")
     manifest = {"activated": False, "reclaimed_bytes": 0,
+                "retired_media_bodies": retire_media,
                 "direct_disk_tables": pack_headers,
                 "packed_headers": pack_headers,
                 "retired_character_bodies": retire_characters,
@@ -246,7 +262,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
             if name in high["low_bindings"] or name.startswith("BIOS_") or name == "DSKTBL":
                 if symbols[name] != value:
                     raise ValueError(f"early link moved embedded low binding: {name}")
-        final_high = build_high(output / "high", output, dispatch=dispatch, characters=characters)
+        final_high = build_high(output / "high", output, dispatch=dispatch, characters=characters, media=retire_media)
         if (output / "high/bios-high.bin").read_bytes() != embedded:
             raise ValueError("early link changed the embedded high payload")
         manifest["embedded_payload_bytes"] = final_high["bytes"]
@@ -270,6 +286,7 @@ if __name__ == "__main__":
     parser.add_argument("--characters", action="store_true", help="bind the complete high character service owner")
     parser.add_argument("--retire-characters", action="store_true", help="pack the low character/clock bodies into the disposable tail")
     parser.add_argument("--pack-headers", action="store_true", help="pack low headers into retired device-table space")
+    parser.add_argument("--retire-media", action="store_true", help="retire the complete media/BPB service group")
     parser.add_argument("--scan", action="store_true", help="capture activation-time ownership on QEMU debug port")
     parser.add_argument("--rebase", action="store_true", help="move and poison the old low DOS prefix")
     parser.add_argument("--compact", action="store_true", help="coalesce the first-HIMEM boot allocation after rebasing")
@@ -279,7 +296,7 @@ if __name__ == "__main__":
     parser.add_argument("--cds-cache-negative", action="store_true")
     args = parser.parse_args()
     build(args.output, early=args.early, tail_body=args.tail_body, dispatch=args.dispatch, characters=args.characters,
-          retire_characters=args.retire_characters, pack_headers=args.pack_headers,
+          retire_characters=args.retire_characters, pack_headers=args.pack_headers, retire_media=args.retire_media,
           scan=args.scan, rebase=args.rebase, compact=args.compact,
           high_cds=args.high_cds, fail_cds=args.fail_cds_allocation,
           cds_cache_case=args.cds_cache_case, cds_cache_negative=args.cds_cache_negative)

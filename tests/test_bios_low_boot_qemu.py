@@ -63,6 +63,7 @@ def main():
     parser.add_argument("--characters", action="store_true", help="bind complete high console/serial/printer/clock bodies")
     parser.add_argument("--retire-characters", action="store_true", help="release and poison the old character bodies after high activation")
     parser.add_argument("--pack-headers", action="store_true", help="pack low headers into retired device-table space")
+    parser.add_argument("--retire-media", action="store_true", help="retire the complete media/BPB service group")
     parser.add_argument("--tail-body", action="store_true", help="test last-linked fallback service layout")
     parser.add_argument("--scan", action="store_true", help="record activation-time pointer candidates on debug port")
     parser.add_argument("--rebase", action="store_true", help="move and poison the old low DOS prefix")
@@ -154,6 +155,8 @@ def main():
         parser.error("--retire-characters requires --characters --tail-body")
     if args.pack_headers and not args.retire_characters:
         parser.error("--pack-headers requires --retire-characters")
+    if args.retire_media and not args.pack_headers:
+        parser.error("--retire-media requires --pack-headers")
     if (args.scan or args.rebase) and not (args.early and args.tail_body):
         parser.error("--scan/--rebase requires --early --tail-body")
     if args.compact and not args.rebase:
@@ -177,8 +180,8 @@ def main():
                      reservation_limit=0x10 if args.fail_reservation else 0xfff0, fail_tables=args.fail_table_allocation,
                      high_cds=args.high_cds, fail_cds=args.fail_cds_allocation,
                      cds_cache_case=args.cds_cache_case, cds_cache_negative=args.cds_cache_negative,
-                     retire_characters=args.retire_characters, pack_headers=args.pack_headers)
-    high_manifest = build_high(scratch / "high", scratch, dispatch=args.dispatch, characters=args.characters)
+                     retire_characters=args.retire_characters, pack_headers=args.pack_headers, retire_media=args.retire_media)
+    high_manifest = build_high(scratch / "high", scratch, dispatch=args.dispatch, characters=args.characters, media=args.retire_media)
     if args.rebase:
         layout = scratch / "public-layout.bin"
         run([ROOT / "bin/jwasm-bin", f"-I{ROOT / 'src/INC'}", f"-Fo{layout}",
@@ -239,6 +242,8 @@ def main():
             targets.update({symbols[name]: exports[name] for name in
                             ("DSK$READ", "DSK$WRIT", "DSK$WRITV", "DSK$REM",
                              "GENERIC$IOCTL", "IOCTL$GETOWN", "IOCTL$SETOWN")})
+        if args.retire_media:
+            targets.update({symbols[name]: exports[name] for name in ("MEDIA$CHK", "GET$BPB")})
         checks = []
         tables = [("CONTBL", 10), ("AUXTBL", 10), ("TIMTBL", 9), ("PRNTBL", 24)]
         if manifest.get("direct_disk_tables"):
@@ -253,7 +258,7 @@ def main():
                     checks += ["mov dx,bx", f"add dx,{targets[low_target]}",
                                f"cmp [es:bx+{high_offset}],dx", "jne fail",
                                f"cmp word [es:bx+{high_offset + 2}],0ffffh", "jne fail"]
-        if len(checks) != (26 if manifest.get("direct_disk_tables") else 19) * 6:
+        if len(checks) != (28 if args.retire_media else 26 if manifest.get("direct_disk_tables") else 19) * 6:
             raise ValueError("complete character command publication changed")
         (scratch / "character-check.inc").write_text("\n".join(checks) + "\n")
     (scratch / "low-slots.inc").write_text(

@@ -74,7 +74,8 @@ def require(symbols: dict[str, int], name: str) -> int:
 def character_partition(symbols: dict[str, int]) -> list[tuple[str, int, int, str]]:
     """Partition the character tranche; code inventory is not net relocation gain."""
     if "BIOS_CLOCK_BODY_TICKS" in symbols:
-        boundaries = ("CON$READ", "AUX$READ", "PRN$WRIT", "TIM$WRIT", "BIOS_SERVICE_START")
+        boundaries = ("CON$READ", "AUX$READ", "PRN$WRIT", "TIM$WRIT",
+                      "MEDIA$CHK" if "BIOS_MEDIA_GETBP" in symbols else "BIOS_SERVICE_START")
         points = [require(symbols, name) for name in boundaries]
         if not (require(symbols, "END$") <= points[0]
                 and all(a < b for a, b in zip(points, points[1:]))
@@ -665,6 +666,13 @@ def main() -> int:
         selected_bios_ranges[first:first + 5] = [
             ("Strategy and request dispatch", "BIO001E", "CBREAK"),
             ("Break interrupt and clock state/near gate", "CBREAK", "Set_ID_Flag"),
+        ]
+    if "BIOS_MEDIA_GETBP" in bios_symbols:
+        first = next(i for i, row in enumerate(selected_bios_ranges)
+                     if row[0] == "Disk media state and constants")
+        selected_bios_ranges[first:first + 2] = [
+            ("Disk media state and constants", "Set_ID_Flag", "BIOS_HIGH_SETPTRSAV_ENTRY"),
+            ("Retained media continuation and near-call gates", "BIOS_HIGH_SETPTRSAV_ENTRY", "DISK005S"),
         ]
     print("\n### Selected resident BIOS ownership\n")
     print("| Source range | Bytes | Owner |")

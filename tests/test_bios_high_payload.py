@@ -8,6 +8,36 @@ from build_bios_high_payload import build, offset_fixups, rebase, boot_policy, p
 
 
 class PayloadTests(unittest.TestCase):
+    def test_media_retirement_preserves_boot_patches_and_nonlocal_density_owner(self):
+        from build_bios_low_image import build as build_low
+        from build_bios_activation_fixture import write_fixture
+        with tempfile.TemporaryDirectory(prefix="msdos-media-retirement-test-") as scratch:
+            directory = Path(scratch)
+            low = build_low(directory, tail_body=True, dispatch=True, characters=True,
+                            retire_characters=True, pack_headers=True, retire_media=True)
+            high = build(directory / "high", directory, dispatch=True, characters=True, media=True)
+            write_fixture(directory, low, high)
+            symbols = low["symbols"]
+            for name in ("GETBP", "CHECK_TIME_OF_ACCESS", "SETPTRSAV"):
+                self.assertLess(symbols[name], symbols["END$"])
+            for name in ("MEDIA$CHK", "GET$BPB", "BIOS_MEDIA_GETBP", "HIDENSITY"):
+                self.assertGreaterEqual(symbols[name], symbols["END$"])
+                self.assertLess(symbols[name], symbols["BIOS_SERVICE_START"])
+            self.assertNotIn("BIOS_LOW_GETBP", high["runtime_slots"])
+            self.assertNotIn("BIOS_LOW_MEDIA_IDS", high["runtime_slots"])
+            self.assertNotIn("HIDENSITY", high["low_bindings"])
+            for name, width in (("MEDIA", 10), ("INIT", 3), ("SET", 3), ("GETBP1", 3)):
+                patch = high["boot_patches"][name + "_PATCH"]
+                self.assertEqual(len(bytes.fromhex(patch["low_original"])), width)
+                self.assertEqual(patch["policy"], "keep_96tpi")
+            # Density's non-local stack unwind must remain inside the high
+            # GETBP owner, not an ordinary cross-segment low-call adapter.
+            payload = (directory / "high/bios-high.bin").read_bytes()
+            start = high["exports"]["HIDENSITY"]
+            end = high["exports"]["BIOS_MEDIA_SERVICE_END"]
+            self.assertIn(b"\x83\xc4\x02", payload[start:end])
+            self.assertEqual(len(high["boot_patches"]), 8)
+
     def test_packed_headers_preserve_chain_and_fixed_vdisk_anchor(self):
         from build_bios_low_image import build as build_low
         from report_dos_bios_residency import bios_core_partition, parse_map

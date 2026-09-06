@@ -65,12 +65,15 @@ def main():
                         help="retire the complete low character/clock bodies in the paired image")
     parser.add_argument("--pack-bios-headers", action="store_true",
                         help="retire boot tables and fill their fixed-prefix space with device headers")
+    parser.add_argument("--retire-bios-media", action="store_true", help="retire complete media/BPB bodies in the packed image")
     args = parser.parse_args()
     paired = paired_inputs(args.paired_provider) if args.paired_provider else None
     if args.retire_bios_characters and not paired:
         parser.error("--retire-bios-characters requires --paired-provider")
     if args.pack_bios_headers and not args.retire_bios_characters:
         parser.error("--pack-bios-headers requires --retire-bios-characters")
+    if args.retire_bios_media and not args.pack_bios_headers:
+        parser.error("--retire-bios-media requires --pack-bios-headers")
     if paired:
         args.high_tables = True
     if args.high_tables:
@@ -97,7 +100,8 @@ def main():
         build_bios(work / "bios-paired", early=True, tail_body=True, rebase=True,
                    compact=True, high_cds=True, paired_provider=paired[0],
                    dispatch=args.retire_bios_characters, characters=args.retire_bios_characters,
-                   retire_characters=args.retire_bios_characters, pack_headers=args.pack_bios_headers)
+                   retire_characters=args.retire_bios_characters, pack_headers=args.pack_bios_headers,
+                   retire_media=args.retire_bios_media)
         binaries["paired"] = paired[0]
     assert binaries["coarse"].read_bytes() == (ROOT / "src/MEMM/MEMM/EMM386.EXE").read_bytes()
     env = dict(os.environ, MTOOLS_SKIP_CHECK="1", MTOOLS_NO_VFAT="1")

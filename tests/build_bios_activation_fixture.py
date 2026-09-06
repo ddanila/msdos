@@ -62,6 +62,10 @@ def write_fixture(output, low, high):
                         for name in ("SETDRIVE", "MAPERROR", "READ_SECTOR", "CHECKSINGLE")})
     if low.get("retired_character_bodies"):
         low_targets["BIOS_HIGH_TIME_TO_TICKS"] = ("TIME_TO_TICKS", 2)
+    if low.get("retired_media_bodies"):
+        low_targets["BIOS_HIGH_SETPTRSAV_ENTRY"] = ("SETPTRSAV", 4)
+        low_targets["BIOS_HIGH_GETBP"] = ("GETBP", 2)
+        low_targets["BIOS_HIGH_CHECK_TIME"] = ("CHECK_TIME_OF_ACCESS", 2)
     if not low.get("direct_disk_tables"):
         low_targets.update({slot: (target, 4) for _, _, slot, target in entries})
     if high.get("dispatch"):
@@ -91,6 +95,8 @@ def write_fixture(output, low, high):
             direct_targets = list(CHARACTER_TARGETS) if high.get("characters") else []
             if low.get("direct_disk_tables"):
                 direct_targets += [target for _, _, _, target in entries]
+            if low.get("retired_media_bodies"):
+                direct_targets += ["MEDIA$CHK", "GET$BPB"]
             if direct_targets:
                 for index, target in enumerate(direct_targets):
                     bind_low += [f"cmp ax,{symbols[target]}", f"jne activation_char_{name}_{index}",
