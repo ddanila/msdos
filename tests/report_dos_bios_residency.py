@@ -93,6 +93,50 @@ def character_partition(symbols: dict[str, int]) -> list[tuple[str, int, int, st
     return rows
 
 
+def bios_core_partition(symbols: dict[str, int]) -> list[tuple[str, int, int, str]]:
+    """Partition MSBDATA's mixed owner; no row is a proved relocation saving.
+
+    FDRIVE points six bytes into each BDS (far link, physical/logical drives).
+    Validate that contract against all four records and the following SM92.
+    VDISK's fixed offset prevents deleting earlier bytes from shrinking this
+    prefix unless other retained objects are repacked into the resulting hole.
+    """
+    def at(name: str) -> int:
+        return require(symbols, name)
+    sector_end = at("DISKSECTOR") + 512
+    bds = [at(f"FDRIVE{i}") - 6 for i in range(1, 5)]
+    if bds[0] != sector_end or any(right - left != 100
+            for left, right in zip(bds, bds[1:] + [at("SM92")])):
+        raise ValueError("BIOS sector/BDS layout changed; review four live drive records")
+    if at("VDISK_AREA") != 0x100 or at("CONHEADER") != at("VDISK_AREA") + 110:
+        raise ValueError("fixed VDISK reservation or AUXNUM binding changed")
+    if at("BIO001S") != at("DSKTBL"):
+        raise ValueError("BIOS core no longer starts at its dispatch tables")
+    if at("ERROUT") - at("ERRIN") != at("NUMERR"):
+        raise ValueError("BIOS error-table pair changed")
+    error_end = at("ERROUT") + at("NUMERR")
+    specs = [
+        ("Device dispatch tables and alignment", at("BIO001S"), at("OLD13"), "bind with complete dispatch; fixed-prefix hole if moved alone"),
+        ("Saved INT 13 vectors and request scratch", at("OLD13"), at("NUMBER_OF_SEC") + 1, "retain low interface initially"),
+        ("Padding to fixed VDISK offset", at("NUMBER_OF_SEC") + 1, at("VDISK_AREA"), "packing capacity, not released bytes"),
+        ("VDISK compatibility reservation", at("VDISK_AREA"), at("VDISK_AREA") + 108, "fixed low address"),
+        ("AUX device index and binding", at("VDISK_AREA") + 108, at("CONHEADER"), "retain with GETDX contract"),
+        ("Device headers and embedded control state", at("CONHEADER"), at("NEXT2F_13"), "public real-mode pointers"),
+        ("INT 2F chain and BDS-list roots", at("NEXT2F_13"), at("ACCESSCOUNT"), "public/interrupt-facing anchors"),
+        ("Disk/format request state", at("ACCESSCOUNT"), at("ERRIN"), "rebind with complete disk service"),
+        ("Disk error translation tables", at("ERRIN"), error_end, "private service data; rebind readers"),
+        ("Sector alignment", error_end, at("DISKSECTOR"), "packing only"),
+        ("Firmware sector/bounce buffer", at("DISKSECTOR"), sector_end, "retain DMA-safe storage; not boot-only scratch"),
+        ("Four linked floppy BDS records", sector_end, at("SM92"), "preserve public links and BPB pointers"),
+        ("Media template and character/clock state", at("SM92"), at("BIOS_IOCTL_LOW_START"), "mixed constants and mutable service bindings"),
+    ]
+    if any(start > end for _, start, end, _ in specs):
+        raise ValueError("BIOS core ownership boundaries are reversed")
+    if any(left[2] != right[1] for left, right in zip(specs, specs[1:])):
+        raise ValueError("BIOS core ownership has a gap or overlap")
+    return specs
+
+
 def swap_contract(symbols: dict[str, int]) -> dict[str, int]:
     """Linked public SDA extent, following MSINIT's word-rounded lengths.
 
@@ -598,6 +642,18 @@ def main() -> int:
     print(f"| **Total** | **{selected_bios_total:,}** | selected resident BIOS |")
     if selected_bios_total != selected:
         errors.append("BIOS ownership does not cover the complete selected image")
+
+    print("\n### Core BIOS data placement partition\n")
+    print("| Owner | Range | Bytes | Placement contract |")
+    print("| --- | --- | ---: | --- |")
+    core_rows = bios_core_partition(bios_symbols)
+    for name, start, end, role in core_rows:
+        print(f"| {name} | `{start:04X}h..{end:04X}h` | {end - start:,} | {role} |")
+    print(f"| **Total** | | **{sum(end - start for _, start, end, _ in core_rows):,}** | nested in the core BIOS row above |")
+    print("\nThe VDISK anchor remains at 0100h. Moving earlier tables alone leaves")
+    print("a hole; savings require repacking retained owners and lowering the final")
+    print("resident break. Firmware/DMA storage is not interchangeable with HMA or")
+    print("extended-backed UMB merely because CPU far pointers can address it.")
 
     print("\n### Character-service placement partition\n")
     print("| Owner | Range | Bytes | Initial placement decision |")

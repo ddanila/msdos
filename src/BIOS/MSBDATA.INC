@@ -32,6 +32,7 @@ START$:
 ;	BEWARE - THESE TABLES OVERLAP SOMEWHAT! -C.P.
 ;
 	ODD
+	PUBLIC DSKTBL		; shared dispatch/placement boundary in all builds
 DSKTBL	LABEL	BYTE
 	DB	24			; THIS IS THE SIZE OF THE TABLE YUK!!!!
 	DW	DSK$INIT

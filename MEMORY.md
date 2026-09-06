@@ -2525,6 +2525,42 @@ cover the gap; the census supplies bounds, not that proof.
 
 #### Remaining BIOS: public state and lifecycle boundaries
 
+The checked census now partitions the 1,575-byte `MSBDATA.INC` core instead
+of treating it as one immovable data object:
+
+| Core owner | Bytes | Joint-layout consequence |
+| --- | ---: | --- |
+| Dispatch tables/alignment; saved vectors/request scratch; pre-VDISK padding | 173 + 19 + 61 | Fixed `VDISK_AREA=0100h` means removing tables alone cannot lower the resident break |
+| VDISK reservation and AUX index binding | 108 + 2 | Preserve the fixed reservation and `GETDX` adjacency |
+| Device headers/embedded controls and interrupt/BDS roots | 218 + 8 | Keep ordinary public far pointers and interrupt entries valid |
+| Disk/format state, error tables and sector alignment | 31 + 18 + 3 | Rebind with the complete disk service, not as read-only constants |
+| Firmware sector/bounce buffer | 512 | Live DMA-facing allocation; retain safe backing |
+| Four linked floppy BDS records | 400 | Preserve configured records, links and BPB pointer contracts |
+| Media template and character/clock state | 22 | Mixed private constants and mutable bindings |
+
+The dispatch tables are not immutable: `MSINIT.ASM:PURGE_96TPI` patches
+`TABLE_PATCH`; `MSBIO1.ASM` recognizes disk requests by the table address and
+dispatches through CS-relative entries. A complete high dispatcher must rebind
+both the table identity and its near targets, after applying boot patches.
+Moving it creates at most 234 bytes of early packing capacity (173 table bytes
+plus existing 61-byte padding), **not 234 released conventional bytes**. Put
+required low gates/state into that capacity only after their linked layout is
+known; subtract any replacement support once in the joint low-owner budget.
+
+The 18-byte error pair also contains mutable `LSTERR`: high
+`MSDSKHIG.INC:MAPERROR` writes that sentinel before scanning through low ES.
+`INTFORMAT`, `INTVERIFY` and `DOREAD` use `DISKSECTOR` after boot, including
+ROM transfers and DMA-boundary bounce copies. Neither owner can be discarded
+as initialization data. Sharing the BIOS buffer with DOS's separate transfer
+area remains unproved; moving it to extended-backed UMB does not preserve
+8237 DMA addressing merely because CPU reads still work.
+
+`make test-dos-bios-residency` includes six core-partition tests: exact coverage,
+fixed-prefix hole accounting, repacked tail, missing symbols, changed public
+record contracts and reversed ranges. The normal and saved composed tail-body
+maps pass; exporting the existing `DSKTBL` label for normal-map checks changes
+no IO.SYS bytes. These are layout checks, not new runtime relocation evidence.
+
 Keep the following owners real-mode-addressable in the first joint layout;
 moving them requires a separate proven interface, not merely a high copy.
 
