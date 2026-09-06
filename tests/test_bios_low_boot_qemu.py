@@ -68,6 +68,10 @@ def main():
     parser.add_argument("--fail-reservation", action="store_true", help="force the early capacity check to reject")
     parser.add_argument("--mode", action="append", help="run only this mode; repeat as needed")
     parser.add_argument("--buffers", type=int, default=15, help="verify actual configured buffer count (requires --rebase)")
+    parser.add_argument("--buffers-before-himem", type=int,
+                        help="prepend an overridden BUFFERS line and verify frozen prescan state")
+    parser.add_argument("--invalid-buffer-plan", action="store_true",
+                        help="prepend an invalid BUFFERS line; require ineligible frozen plan")
     parser.add_argument("--files", type=int, default=20, help="FILES count for table-placement tests (8..255)")
     parser.add_argument("--fail-table-allocation", action="store_true", help="force the development UMB allocation to fail")
     parser.add_argument("--high-cds", action="store_true", help="relocate the complete final CDS allocation to UMB")
@@ -92,6 +96,12 @@ def main():
     parser.add_argument("--fcb-keep", type=int, choices=(0, 1), default=0,
                         help="FCBS=4 keep count; 1 prevents SHARE replacing the boot cache")
     args = parser.parse_args()
+    if args.invalid_buffer_plan and args.buffers_before_himem is None:
+        parser.error("--invalid-buffer-plan requires --buffers-before-himem")
+    if args.buffers_before_himem is not None and (
+            not args.scan or not args.rebase or args.fail_reservation
+            or not 1 <= args.buffers_before_himem <= 99):
+        parser.error("--buffers-before-himem requires successful --scan --rebase and count 1..99")
     if args.high_cds and not args.rebase:
         parser.error("--high-cds requires --rebase")
     if args.fail_cds_allocation and not args.high_cds:
@@ -218,6 +228,10 @@ def main():
     if ansi_enabled:
         directive = "DEVICEHIGH" if args.ansi_high else "DEVICE"
         variants = {name: (high, config + f"{directive}=ANSI.SYS\r\n")
+                    for name, (high, config) in variants.items()}
+    if args.buffers_before_himem is not None:
+        prefix = ("BUFFERS=invalid\r\n" if args.invalid_buffer_plan else "")
+        variants = {name: (high, prefix + f"BUFFERS={args.buffers_before_himem}\r\n" + config)
                     for name, (high, config) in variants.items()}
     if not args.early:
         variants["live-himem"] = variants["himem-high"]
@@ -376,6 +390,31 @@ def main():
                 from report_bios_rebase_scan import report
                 report(scan_path, ROOT / "src/DOS/MSDOS.MAP", scratch / "msBIO.map",
                        scratch / (name + "-scan.md"))
+                if args.buffers_before_himem is not None:
+                    from report_bios_rebase_scan import records
+                    from report_dos_bios_residency import parse_map
+                    segments, _ = parse_map(scratch / "msBIO.map")
+                    init = segments["SYSINITSEG"]
+                    init_base = init.paragraph * 16 + init.offset
+                    _, offset, data = records(scan_path.read_bytes())["I"]
+                    def value(symbol, width=2):
+                        start = manifest["symbols"][symbol] - init_base - offset
+                        if not 0 <= start <= len(data) - width:
+                            raise ValueError("boot-plan field outside captured SYSINIT")
+                        return int.from_bytes(data[start:start + width], "little")
+                    plan = {symbol: value(symbol, width) for symbol, width in (
+                        ("HMAPLANBUFFERS", 2), ("HMAPLANSLOTSIZE", 2),
+                        ("HMAPLANCACHEBYTES", 2), ("HMAPLANVALID", 1), ("BUFFERS", 2))}
+                    buckets = 1 if args.buffers < 30 else args.buffers // 15
+                    expected = dict(HMAPLANBUFFERS=args.buffers, HMAPLANSLOTSIZE=532,
+                                    HMAPLANCACHEBYTES=args.buffers * 532 + buckets * 8,
+                                    HMAPLANVALID=1, BUFFERS=args.buffers_before_himem)
+                    if args.invalid_buffer_plan:
+                        expected.update(HMAPLANCACHEBYTES=0, HMAPLANVALID=0)
+                    if plan != expected:
+                        raise RuntimeError(f"frozen boot cache plan mismatch: {plan} != {expected}")
+                    (scratch / (name + "-hma-plan.json")).write_text(json.dumps(plan, indent=2) + "\n")
+                    print(f"PASS immutable HMA cache plan: {plan}", flush=True)
             elif scan_path.read_bytes():
                 raise RuntimeError("inactive boot unexpectedly recorded an activation census")
 

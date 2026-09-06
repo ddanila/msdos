@@ -680,6 +680,9 @@ NODRVSET:
 SkipBootConfig:
 	MOV	Multi_Pass_Id,11
 BootConfigReady:
+	IFDEF BIOS_SERVICE_BOOT
+	call	FreezeHmaCachePlan
+	ENDIF
 	inc	cs:Multi_Pass_Id	;AN027;
 	call	Multi_Pass		;AN027;
 	inc	cs:Multi_Pass_Id	;AN024;
@@ -3273,6 +3276,9 @@ LShare_Ret:					;AN021;
 	ret					;AN021;
 LoadShare	endp				;AN021;
 
+	IFDEF BIOS_SERVICE_BOOT
+	INCLUDE HMAPLAN.INC
+	ENDIF
 SYSINITSEG	ENDS
 	   END
 

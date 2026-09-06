@@ -952,15 +952,18 @@ future protected-mode provider will make its HMA services callable. EMM386's
 own table relocation must separately complete before its INIT break is final.
 Warm-reset reconstruction and retry-without-reservation-leak remain gates.
 
-The shared cursor needs an **immutable cache plan before the normal device
-pass**. `SYSCONF.ASM:Multi_Try_Buff` already parses BUFFERS during pass zero,
+The development build now freezes an **immutable cache plan before the normal
+device pass**. `SYSCONF.ASM:Multi_Try_Buff` parses BUFFERS during pass zero,
 and `TryB` publishes its result to `Buffers`, `H_Buffers` and `Buffer_Slash_X`.
-Snapshot the completed prescan at `SYSINIT1.ASM:BootConfigReady`, before the
+`HMAPLAN.INC:FreezeHmaCachePlan` snapshots the completed prescan at
+`SYSINIT1.ASM:BootConfigReady`, before the
 first `inc Multi_Pass_Id`/`Multi_Pass` pair. Do not read the mutable `Buffers`
 value at `CompactFirstHimem`: for `BUFFERS=15`, HIMEM, then `BUFFERS=29`, the
 normal pass has temporarily overwritten the final prescan value with 15.
-The frozen plan must follow the selected menu/organized configuration and be
-invalidated for bypass, uncertain interactive selection or parsing failure.
+The snapshot follows the selected organized configuration and marks the plan
+ineligible for bypass, interactive stepping, a BUFFERS prescan error, `/X`,
+default/unresolved counts, or word-arithmetic overflow. Its valid bit means
+the cache requirement is known, **not** that an HMA reservation fits.
 
 `SingleBufferSize` is established from `SYSI_MAXSEC` plus the buffer header
 before CONFIG processing; the block-driver path rejects a sector size above
@@ -970,6 +973,34 @@ can depend on installed drives/EMS. Keep the new manager reservation disabled
 for unresolved plans until their conservative cache bounds and fallback policy
 are implemented. This leaves those configurations on the existing supported
 layout; it must not reduce their requested buffers or other resources.
+
+The snapshot records the final count, initialized slot size and complete
+primary-cache bytes, including one eight-byte hash head below 30 buffers and
+`count/15` heads otherwise. All fields and calculation code are discardable
+SYSINIT data/code, enabled only by `BIOS_SERVICE_BOOT`; no reservation or
+resident break changes yet. Normal IO.SYS remains byte-identical after rebuild
+(`34f8c3d4ed5fe15de95d470aff93c52af11e078deb9711a0fc06c7b4ceac4ac2`).
+
+Activation-time SYSINIT snapshots verify both override directions: leading 15,
+final 29 leaves mutable count 15 but frozen count 29/cache 15,436; leading 29,
+final 15 leaves mutable 29 but frozen 15/cache 7,988. The first uses standalone
+HIMEM and the second the current EMM386. An invalid earlier BUFFERS line followed
+by valid directives still boots with the final count but yields valid=0 and
+cache bytes=0. Evidence is in `out/bios-low-boot-i2d6xigu/`,
+`out/bios-low-boot-fdv2tqly/` and `out/bios-low-boot-5aj42rgg/`, including
+`*-hma-plan.json`, raw scans and post-boot resource checks. Reproduce the
+first case with the command below. The multi-bucket 99-buffer case also passes
+with frozen cache bytes 52,716 (`out/bios-low-boot-k50uv3cx/`); valid=1 does
+not grant that request space in HMA.
+
+```sh
+python3 tests/test_bios_low_boot_qemu.py --early --tail-body --rebase --scan \
+  --mode himem-high --buffers 29 --buffers-before-himem 15
+```
+
+Add `--invalid-buffer-plan` for the invalid-prescan control. Bypass, interactive
+menus, `/X` and larger-sector overflow rejection still need dedicated runtime
+qualification before the snapshot drives a resident relocation.
 
 The checked fixed-profile candidate has this **proposed** HMA placement:
 

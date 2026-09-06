@@ -711,6 +711,13 @@ Badop_p 	proc	near		;AN000;
 Badop_p 	endp
 
 Badparm_p	proc	near		;AN007;
+	IFDEF BIOS_SERVICE_BOOT
+	EXTRN HmaPlanParseError:BYTE
+	cmp	cs:Buffer_Pre_Scan,1
+	jne	short HmaPlanParseOK
+	mov	cs:[HmaPlanParseError],1
+HmaPlanParseOK:
+	ENDIF
 ;Show "Bad command or parameters - xxxxxx"
 ;In Badparm_seg, Badparm_off -> xxxxx
 ;
