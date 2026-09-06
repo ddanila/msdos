@@ -476,7 +476,10 @@ def capture_warm_public_interfaces(
     warmboot: Path,
     hard_disk: Path | None = None,
     memory_mib: int = 8,
+    *, restart: str = "reset", memory_maps: bool = False,
 ) -> tuple[str, str]:
+    if restart not in {"reset", "cold", "none"}:
+        raise ValueError("restart must be reset, cold or none")
     image = work / f"{label}-interfaces-warm.ima"
     autoexec = work / f"{label}-interfaces-warm.bat"
     qmp = Path("/tmp") / f"drwarm-{os.getpid()}-{label}.qmp"
@@ -492,11 +495,13 @@ def capture_warm_public_interfaces(
         b"@ECHO OFF\r\n"
         b"IF EXIST WARM.OK GOTO SECOND\r\n"
         b"DRPROBE.COM > BEFORE.TXT\r\n"
+        + (b"MEM /A > BEFORE.MEM\r\n" if memory_maps else b"") +
         b"ECHO READY>WARM.OK\r\n"
         b"CTTY AUX\r\n"
-        b"WARMBOOT.COM\r\n"
+        + (b"GOTO SECOND\r\n" if restart == "none" else b"WARMBOOT.COM\r\n") +
         b":SECOND\r\n"
         b"DRPROBE.COM > AFTER.TXT\r\n"
+        + (b"MEM /A > AFTER.MEM\r\n" if memory_maps else b"") +
         b"QEXIT.COM\r\n"
     )
     install_file(image, autoexec, "AUTOEXEC.BAT")
@@ -512,18 +517,32 @@ def capture_warm_public_interfaces(
     ]
     process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     try:
-        deadline = time.monotonic() + 30
-        while time.monotonic() < deadline:
-            if process.poll() is not None:
-                raise RuntimeError(f"warm-reboot probe exited before reset for {label}")
-            if qmp.exists() and serial.exists() and "WARM_RESET_READY" in serial.read_text(
-                encoding="ascii", errors="replace"
-            ):
-                break
-            time.sleep(0.1)
-        else:
-            raise RuntimeError(f"warm-reboot probe did not reach reset point for {label}")
-        qmp_system_reset(qmp)
+        if restart != "none":
+            deadline = time.monotonic() + 30
+            while time.monotonic() < deadline:
+                if process.poll() is not None:
+                    raise RuntimeError(f"warm-reboot probe exited before reset for {label}")
+                if qmp.exists() and serial.exists() and "WARM_RESET_READY" in serial.read_text(
+                    encoding="ascii", errors="replace"
+                ):
+                    break
+                time.sleep(0.1)
+            else:
+                raise RuntimeError(f"warm-reboot probe did not reach reset point for {label}")
+            if restart == "reset":
+                qmp_system_reset(qmp)
+            else:
+                # Preserve the flushed disk/second-branch marker, but discard
+                # all emulated RAM and device state with a new QEMU process.
+                process.terminate()
+                try:
+                    process.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait()
+                qmp.unlink(missing_ok=True)
+                process = subprocess.Popen(command, stdout=subprocess.DEVNULL,
+                                           stderr=subprocess.DEVNULL)
         try:
             process.wait(timeout=40)
         except subprocess.TimeoutExpired as error:

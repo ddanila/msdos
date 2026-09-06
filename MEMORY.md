@@ -91,8 +91,10 @@ block with an EMS frame and 47,584 free UMB bytes, just 304 below the retail UMB
 floor. Its small manager UMB allocation survives the frame. This makes the
 combined XMS/EMS resident interface a serious architectural candidate alongside
 DOS/COMMAND placement, not a reason for further EMM386 instruction shrinking.
-The cold-boot comparison is usable placement evidence; the new warm-reset
-comparison fails and remains explicitly unqualified (details below).
+The cold-boot comparison is usable placement evidence; the warm-reset
+comparison fails and remains explicitly unqualified. Reset controls now show
+kernel/BIOS/COMMAND falling back from HMA to UMB and buffers becoming low;
+the trigger for losing HMA availability remains open (details below).
 
 The combined fine-UMB/CDS development-to-retail residual reconciles as follows;
 these are accounting
@@ -4890,6 +4892,58 @@ and A20 recovery calls, EMS table consumers, initialization rollback and third-
 party-provider fallback before assigning any net saving. Retain the standalone
 286 HIMEM path. Integration alone is not a saving; low copies must actually be
 released and joined to the application's largest block.
+
+#### Reset controls: whole-component fallback, not an unexplained UMB leak
+
+`tests/investigate_opendos_reset.py` separates three transitions with the same
+pinned media, framed configuration, probe and snapshot IDE disk:
+
+| Transition between public probes | HMA request error | Largest XMS UMB |
+| --- | --- | --- |
+| Same boot, including the CTTY/batch branch | 91h -> 91h | 47,584 -> 47,584 |
+| Fresh QEMU process, preserving flushed disk and WARM.OK branch | 91h -> 91h | 47,584 -> 47,584 |
+| In-process QMP system_reset | 91h -> 81h | 47,584 -> 9,840 |
+
+The reset-only difference reproduces both without extra MEM calls
+(`out/opendos-reset-controls/`) and with vendor `MEM /A` after each public probe
+(`out/opendos-reset-map-controls/`). Repeating the probe and persisting its files
+are therefore insufficient to reproduce it. This isolates an in-process-reset
+dependency, not its cause within QEMU/firmware/vendor initialization.
+
+The MEM maps explain the lost 37,744 UMB bytes:
+
+- The 3,968-byte BIOS and 28,464-byte kernel leave HMA. The upper DOS allocation
+  at DC00h grows from 1,552 to 33,984 bytes: exactly their combined 32,432.
+- The 5,296-byte high COMMAND portion becomes a 5,312-byte upper allocation
+  at E44Ch, including its 16-byte overhead. Together these changes account for
+  all 37,744 bytes; EMM386's reported 1,200-byte low and 800-byte upper owners
+  are unchanged.
+- Fifteen buffers (7,980 reported payload bytes) appear in the low system
+  allocation at `02DC:0000`. That containing allocation grows by 7,472 bytes,
+  and MEM's largest-executable figure falls by the same amount. Do not call
+  the payload size a net loss or assume why the remaining 508 bytes differ.
+  These are MEM measurements with the probe exited, not a new VC capture.
+
+This is additional direct evidence of whole-object placement across memory
+tiers. It is not a passing reset gate: HMA availability changed, UMB capacity
+fell, and low buffers consumed conventional space. The root trigger for the
+HMA failure remains unproven; do not infer a proprietary algorithm or a general
+OpenDOS defect. Our layout needs explicit fallback accounting that cannot
+silently satisfy the conventional target by exhausting UMBs.
+
+Reproduce with an unused output directory:
+
+```sh
+python3 tests/investigate_opendos_reset.py DODL701.EXE \
+  out/msdos622-original-vc405.img out/opendos-reset-map-controls
+```
+
+The diagnostic records each startup sequence, public registers, vendor maps,
+input/probe hashes and emulator identity, and checks the source disk unchanged.
+It reports differences rather than treating them as acceptance successes.
+The ordinary capture's reset gate still rejects changed semantics. All 26
+media-independent capture tests pass; controls cover restart selection,
+probe ordering and optional map capture. No vendor source/disassembly is used.
 
 #### OpenDOS hard-disk topology control
 

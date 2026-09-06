@@ -51,6 +51,33 @@ DRDOS_PUBLIC_MEMORY_END
 
 
 class CaptureParserTest(unittest.TestCase):
+    def test_restart_controls_keep_probe_order_and_optional_maps(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary:
+            root = Path(temporary)
+            image = root / "input.ima"
+            image.write_bytes(b"fixture")
+            for mode in ("none", "cold", "reset"):
+                for maps in (False, True):
+                    with self.subTest(mode=mode, maps=maps), \
+                         patch.object(CAPTURE, "install_file"), \
+                         patch.object(CAPTURE.subprocess, "Popen",
+                                      side_effect=RuntimeError("launch intercepted")):
+                        with self.assertRaisesRegex(RuntimeError, "launch intercepted"):
+                            CAPTURE.capture_warm_public_interfaces(
+                                image, "control", root, image, image, image,
+                                restart=mode, memory_maps=maps)
+                    batch = (root / "control-interfaces-warm.bat").read_text()
+                    self.assertLess(batch.index("BEFORE.TXT"), batch.index("AFTER.TXT"))
+                    self.assertEqual("WARMBOOT.COM" in batch, mode != "none")
+                    self.assertEqual("BEFORE.MEM" in batch, maps)
+                    self.assertEqual("AFTER.MEM" in batch, maps)
+
+    def test_restart_control_rejects_unknown_mode_before_writes(self) -> None:
+        path = Path("unused")
+        with self.assertRaises(ValueError):
+            CAPTURE.capture_warm_public_interfaces(path, "bad", path, path,
+                                                  path, path, restart="unknown")
+
     def test_disk_boot_selects_ide_and_rejects_second_disk(self) -> None:
         with tempfile.TemporaryDirectory() as temporary:
             root = Path(temporary)
