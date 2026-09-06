@@ -91,7 +91,14 @@ ifdef HIGH_TABLES_TEST
         mov ax,0ffffh
         mov es,ax
         mov bx,cs:[high_tables_offset]
+ifdef FAR_TABLES_TEST
+        mov ax,word ptr cs:[decoder]
+        add ax,high_target-high_decoder
+        mov word ptr es:[bx+2*(CONTBL-DSKTBL)+2+16],ax
+        mov word ptr es:[bx+2*(CONTBL-DSKTBL)+4+16],0ffffh
+else
         mov word ptr es:[bx+CONTBL-DSKTBL+1+8],offset alternate
+endif
 else
         mov word ptr cs:[CONTBL+1+8],offset alternate
 endif
@@ -406,6 +413,9 @@ install_hma_decoder proc near
         mov cx,offset high_end+2
 ifdef HIGH_TABLES_TEST
         add cx,BIOS_DEVICE_TABLES_END-DSKTBL
+ifdef FAR_TABLES_TEST
+        add cx,BIOS_DEVICE_TABLES_END-DSKTBL
+endif
 endif
         int 2fh
         or ax,ax
@@ -428,13 +438,23 @@ endif
 ifdef HIGH_TABLES_TEST
         add word ptr [BIOS_DISPATCH_TABLE_SEG_FIXUP],bx
         add word ptr [BIOS_DISPATCH_TABLE_ADD_FIXUP],bx
+ifndef FAR_TABLES_TEST
         add word ptr [BIOS_DISPATCH_TARGET_SEG_FIXUP],bx
+endif
         add word ptr [BIOS_DISPATCH_TARGET_ADD_FIXUP],bx
+ifndef FAR_TABLES_TEST
         add word ptr [BIOS_DISPATCH_TABLE_SUB_FIXUP],bx
+else
+        add word ptr [high_return_fixup],bx
+        mov word ptr [high_service_return+2],cs
+endif
         mov word ptr [BIOS_DISPATCH_TABLE_SEGMENT],0ffffh
         mov ax,bx
         add ax,offset high_end
         sub ax,offset DSKTBL
+ifdef FAR_TABLES_TEST
+        sub ax,offset DSKTBL
+endif
         mov [BIOS_DISPATCH_TABLE_DELTA],ax
 endif
         xor si,si
@@ -446,6 +466,31 @@ endif
         assume ds:CODE
 ifdef HIGH_TABLES_TEST
         mov [high_tables_offset],di
+ifdef FAR_TABLES_TEST
+COPY_FAR_TABLE macro table,maximum
+        local copy_entry
+        mov di,[high_tables_offset]
+        add di,2*(table-DSKTBL)
+        mov si,offset table
+        xor ax,ax
+        lodsb
+        stosw
+        mov cx,maximum+1
+copy_entry:
+        lodsw
+        stosw
+        mov ax,cs
+        stosw
+        loop copy_entry
+endm
+        COPY_FAR_TABLE DSKTBL,24
+        COPY_FAR_TABLE CONTBL,10
+        COPY_FAR_TABLE AUXTBL,10
+        COPY_FAR_TABLE TIMTBL,9
+        COPY_FAR_TABLE PRNTBL,24
+        mov di,[high_tables_offset]
+        add di,2*(BIOS_DEVICE_TABLES_END-DSKTBL)
+else
         mov si,offset DSKTBL
         mov cx,BIOS_DEVICE_TABLES_END-DSKTBL
         rep movsb
@@ -456,6 +501,7 @@ ifdef HIGH_TABLES_TEST
         repe cmpsb
         jne failed
         pop di
+endif
         push es
         push di
         push ds
@@ -530,12 +576,25 @@ BIOS_DISPATCH_LOW_SEGMENT dw 0
 BIOS_DISPATCH_ERROR_ENTRY dw offset CMDERR,0
 ifdef HIGH_TABLES_TEST
 BIOS_DISPATCH_TABLES_HIGH equ 1
+ifdef FAR_TABLES_TEST
+BIOS_DISPATCH_TABLES_FAR equ 1
+endif
 BIOS_DISPATCH_TABLE_SEGMENT dw 0
 BIOS_DISPATCH_TABLE_DELTA dw 0
 endif
 high_decoder:
 BIOS_DISPATCH_SEPARATE equ 1
         include DISPATCH.INC
+ifdef FAR_TABLES_TEST
+high_target:
+        ; Real high target, not a low stub: preserve the complete service ABI.
+        pushf
+        inc byte ptr ds:[alternate_seen]
+        popf
+        jmp dword ptr cs:[high_service_return]
+high_return_fixup equ $-2
+high_service_return dd offset accepted_target
+endif
 high_end label byte
 HIGHCODE ends
 endif

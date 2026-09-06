@@ -13,16 +13,17 @@ class PayloadTests(unittest.TestCase):
             directory = Path(scratch)
             base = build(directory / "base")
             report = build(directory / "dispatch", dispatch=True)
-            self.assertEqual(report["bytes"] - base["bytes"], 308)
-            self.assertEqual(report["table_bytes"], 173)
+            self.assertEqual(report["bytes"] - base["bytes"], 478)
+            self.assertEqual(report["low_table_bytes"], 173)
+            self.assertEqual(report["table_bytes"], 346)
             self.assertEqual(len(report["runtime_slots"]), 24)
-            self.assertEqual(len(report["offset_fixups"]) - len(base["offset_fixups"]), 8)
+            self.assertEqual(len(report["offset_fixups"]) - len(base["offset_fixups"]), 6)
             self.assertEqual(report["verified_origins"], [0, 1, 16, 0x123, 0x4000])
             exports = report["exports"]
-            self.assertEqual(exports["BIOS_DISPATCH_END"] - exports["BIOS_DISPATCH_START"], 125)
+            self.assertEqual(exports["BIOS_DISPATCH_END"] - exports["BIOS_DISPATCH_START"], 122)
             self.assertEqual(exports["BIOS_DISPATCH_TABLES"] + report["table_bytes"], report["bytes"])
             payload = (directory / "dispatch/bios-high.bin").read_bytes()
-            self.assertEqual(payload[exports["BIOS_DISPATCH_TABLES"]:], bytes(173))
+            self.assertEqual(payload[exports["BIOS_DISPATCH_TABLES"]:], bytes(346))
 
     def test_linked_body_and_independent_origins(self):
         with tempfile.TemporaryDirectory(prefix="msdos-high-payload-test-") as scratch:

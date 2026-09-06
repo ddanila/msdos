@@ -40,7 +40,7 @@ def write_fixture(output, low, high):
     for slot in high["runtime_slots"].values():
         if slot["target"] == "high table delta":
             bind_high += ["mov ax,bx", f"add ax,{exports['BIOS_DISPATCH_TABLES']}",
-                          f"sub ax,{symbols['DSKTBL']}", f"mov [es:bx+{slot['offset']}],ax"]
+                          f"sub ax,{2 * symbols['DSKTBL']}", f"mov [es:bx+{slot['offset']}],ax"]
             continue
         special = {"resident low BIOS segment": 0x70, "HMA segment": 0xffff}
         value = special[slot["target"]] if slot["target"] in special else symbols[slot["target"].upper()]
@@ -64,12 +64,21 @@ def write_fixture(output, low, high):
         # Copy AFTER publishing the disk-stub table targets, before ACTIVE.
         # The installer holds CLI across binding, poisoning and activation.
         count = symbols["BIOS_DEVICE_TABLES_END"] - symbols["DSKTBL"]
-        if count != high["table_bytes"] or exports["BIOS_DISPATCH_TABLES"] + count > high["bytes"]:
+        if not high.get("far_tables") or 2 * count != high["table_bytes"] or exports["BIOS_DISPATCH_TABLES"] + 2 * count > high["bytes"]:
             raise ValueError("invalid high device-table reservation")
         bind_low += ["push ds", "push es", "push es", "pop ds",
-                     "mov ax,0ffffh", "mov es,ax", f"mov si,{symbols['DSKTBL']}",
-                     "mov di,bx", f"add di,{exports['BIOS_DISPATCH_TABLES']}",
-                     f"mov cx,{count}", "cld", "rep movsb", "pop es", "pop ds"]
+                     "mov ax,0ffffh", "mov es,ax", "cld"]
+        for name, maximum in (("DSKTBL", 24), ("CONTBL", 10), ("AUXTBL", 10), ("TIMTBL", 9), ("PRNTBL", 24)):
+            start = symbols[name]
+            if not symbols["DSKTBL"] <= start < start + 1 + 2 * (maximum + 1) <= symbols["BIOS_DEVICE_TABLES_END"]:
+                raise ValueError("device table outside source owner")
+            preflight += [f"cmp byte [es:{start}],{maximum}", "jne fail"]
+            delta = exports["BIOS_DISPATCH_TABLES"] + 2 * (start - symbols["DSKTBL"])
+            bind_low += [f"mov si,{start}", "mov di,bx", f"add di,{delta}",
+                         "xor ax,ax", "lodsb", "stosw", f"mov cx,{maximum + 1}",
+                         f"activation_far_{name}:", "lodsw", "stosw", "mov ax,70h", "stosw",
+                         f"loop activation_far_{name}"]
+        bind_low += ["pop es", "pop ds"]
         # Development witness: any stale decoder/table access must fail.
         for start, end, fill in (("DSKTBL", "BIOS_DEVICE_TABLES_END", "0a5h"),
                                  ("BIOS_COLD_DISPATCH_START", "BIOS_COLD_DISPATCH_END", "0f4h")):

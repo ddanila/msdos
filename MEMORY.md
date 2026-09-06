@@ -2576,8 +2576,9 @@ The emitted dependencies select the following group contract:
 
 **Dispatch design decision:** extend the installed high command-table format
 to carry low/high target selection for the complete group, rather than adding
-a permanent low stub for each character-service entry. The current table still
-contains only low near targets; this change is not implemented. Preserve each
+a permanent low stub for each character-service entry. The development far-table
+dispatcher below now implements target selection; character bodies still remain
+low. Preserve each
 service's original low SI identity, handler-entry flags and completion frame.
 Charge the expanded tables/decoder and common firmware-return support in HMA
 and low memory respectively before claiming a net release. Bind ALTAH, AUXBUF,
@@ -2704,18 +2705,18 @@ device-request interface specifies every incoming arithmetic flag.
 **Installed development dispatcher:** `--dispatch` on the early BIOS boot
 harness now embeds `HIGHDISP.ASM` in the existing high disk-service payload.
 SYSINIT binds its low data/error entries and high table segment/delta, patches
-the disk-service targets, then copies all five live command tables to HMA.
+the disk-service targets, then expands all five live command tables into HMA.
 Under the same interrupt-masked publication window it poisons the low tables
 with A5h and the cold decoder with HLT before setting ACTIVE. The low device
 entry restores A20 before transferring to the high decoder. Preparation or
 capacity failure leaves the original low decoder/tables usable.
 
-The payload grows from 5,220 to **5,528 bytes**: 125 decoder, 10 bindings and
-173 table bytes. Eight additional offset fixups are checked against independent
-link origins. The selected low BIOS grows from 5,152 to **5,168 bytes** after
+The current far-target payload grows from 5,220 to **5,698 bytes**: 122 decoder,
+10 bindings and 346 table bytes. Six additional offset fixups are checked against
+independent link origins. The selected low BIOS grows from 5,152 to **5,168 bytes** after
 rounding. The old 76-byte decoder and 173-byte tables are poisoned, **not
 reclaimed**; this is installed execution evidence, not a conventional saving.
-The calculated shared HMA tail with normal COMMAND becomes 9,269 bytes in this
+The calculated shared HMA tail with normal COMMAND becomes 9,099 bytes in this
 variant. The selected 617,936-byte comparison remains the non-dispatch fixture.
 
 Reproduce the installed and fallback matrix with a current boot image:
@@ -2735,6 +2736,28 @@ the 53-test residency suite pass; normal IO.SYS remains byte-identical.
 This does not qualify every character device or third-party table writer.
 Final low repacking/release and the complete BIOS/COMMAND/provider layout
 remain open; do not credit this copy as a second table-relocation saving.
+
+The preceding capture paths qualify the earlier near-target format (5,528
+bytes). Far-target HIMEM/EMM boots pass in `out/bios-low-boot-v2fasixt/`;
+rebased/high-CDS warm reset passes in `out/bios-low-boot-9gakt_k5/`; DOS-low
+and forced-reservation fallback pass in `out/bios-low-boot-_64n7vf2/`. The new
+format doubles low-table-relative offsets: a zero-extended word command bound
+followed by offset:segment targets, preserving padding between tables. SYSINIT
+validates all five original command bounds before publication and initially
+binds targets to the low BIOS segment. Future complete high owners can replace
+individual far entries without new per-service low stubs. The 170-byte HMA
+increase over near tables is charged once; low residency is unchanged.
+
+The shared decoder saves the original low-index ADD flags and SI, translates
+only the lookup address, obtains the far target with LES, then restores SI and
+flags before constructing the tail-transfer frame. DS still selects low BIOS
+state and ES:DI still supplies the caller's transfer buffer at handler entry.
+`test_bios_dispatch_hma_qemu.py --far-tables` exercises low targets and a real
+HMA service target after a live table update, with A20 disabled before each
+request and the old decoder/tables poisoned. It passes in
+`out/bios-dispatch-hma-ai438zck/`; `--stale-table` fails with exit 35/trace BF
+in `out/bios-dispatch-hma-79oxeggo/`. The target checks cover the existing register/flag/frame
+contracts and all completion policies, not actual relocated character services.
 
 The 18-byte error pair also contains mutable `LSTERR`: high
 `MSDSKHIG.INC:MAPERROR` writes that sentinel before scanning through low ES.

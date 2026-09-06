@@ -380,6 +380,7 @@ test-dos-bios-residency: dos bios
 test-bios-dispatch-hma-qemu:
 	python3 tests/test_bios_dispatch_hma_qemu.py
 	python3 tests/test_bios_dispatch_hma_qemu.py --high-tables
+	python3 tests/test_bios_dispatch_hma_qemu.py --far-tables
 
 .PHONY: test-bios-service-crossings
 test-bios-service-crossings: bios

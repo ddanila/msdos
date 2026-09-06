@@ -23,6 +23,7 @@ def main():
                         help="copy the complete command tables high and poison the low originals")
     parser.add_argument("--stale-table", action="store_true",
                         help="negative control: omit the post-publication table update")
+    parser.add_argument("--far-tables", action="store_true", help="dispatch to both low and actual high service targets")
     args = parser.parse_args()
     subprocess.run(["make", "dos", "bios", str(ROOT / "src/DEV/HIMEM/HIMEM.SYS")],
                    cwd=ROOT, check=True)
@@ -31,8 +32,10 @@ def main():
     flags = f"-I{ROOT / 'src/BIOS'} -DSEPARATE_TEST -DHMA_TEST"
     if args.omit_a20_restore:
         flags += " -DOMIT_A20_RESTORE"
-    if args.high_tables:
+    if args.high_tables or args.far_tables:
         flags += " -DHIGH_TABLES_TEST"
+    if args.far_tables:
+        flags += " -DFAR_TABLES_TEST"
     if args.stale_table:
         flags += " -DSTALE_TABLE"
     assembled = subprocess.run([str(ROOT / "bin/jwasm-masm"), flags,
@@ -84,7 +87,7 @@ def main():
     passed = code == 33 and trace == b"BP"
     report = dict(passed=passed, exit_code=code, timed_out=timed_out,
                   trace_hex=trace.hex(), omit_a20_restore=args.omit_a20_restore,
-                  high_tables=args.high_tables,
+                  high_tables=args.high_tables or args.far_tables, far_tables=args.far_tables,
                   stale_table=args.stale_table,
                   cpu="486", ram_mib=8,
                   emulator=subprocess.check_output(["qemu-system-i386", "--version"], text=True).splitlines()[0],

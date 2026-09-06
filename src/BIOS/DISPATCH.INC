@@ -12,6 +12,13 @@
 ; TABLES_HIGH additionally binds TABLE_SEGMENT and TABLE_DELTA. Input SI is
 ; still a low-table identity; only table reads translate it. Publish this
 ; binding after copying all tables and applying the selected boot patches.
+; TABLES_FAR doubles each low-table-relative offset: a word command bound
+; followed by offset:segment entries. Original low SI and ADD flags survive.
+IFDEF BIOS_DISPATCH_TABLES_FAR
+IFNDEF BIOS_DISPATCH_TABLES_HIGH
+        .ERR <far targets require high tables>
+ENDIF
+ENDIF
 IFDEF BIOS_DISPATCH_TABLES_HIGH
 IFNDEF BIOS_DISPATCH_SEPARATE
         .ERR <high tables require the separate decoder binding>
@@ -59,6 +66,9 @@ IFDEF BIOS_DISPATCH_TABLES_HIGH
         push word ptr cs:[BIOS_DISPATCH_TABLE_SEGMENT]
 BIOS_DISPATCH_TABLE_SEG_FIXUP equ $-2
         pop es
+IFDEF BIOS_DISPATCH_TABLES_FAR
+        shl si,1
+ENDIF
         add si,cs:[BIOS_DISPATCH_TABLE_DELTA]
 BIOS_DISPATCH_TABLE_ADD_FIXUP equ $-2
 ENDIF
@@ -90,14 +100,25 @@ IFDEF BIOS_DISPATCH_TABLES_HIGH
         ; Keep the original low-index ADD flags, not the translation's flags.
         ; DI is scratch until LES loads the transfer pointer below.
         pushf
+IFDEF BIOS_DISPATCH_TABLES_FAR
+        push si
+        shl si,1
+ENDIF
         add si,cs:[BIOS_DISPATCH_TABLE_DELTA]
 BIOS_DISPATCH_TARGET_ADD_FIXUP equ $-2
+IFDEF BIOS_DISPATCH_TABLES_FAR
+        les di,dword ptr es:[si+2]
+        pop si
+        popf
+        push es
+ELSE
         mov di,es:[si+1]
         sub si,cs:[BIOS_DISPATCH_TABLE_DELTA]
 BIOS_DISPATCH_TABLE_SUB_FIXUP equ $-2
         popf
         push word ptr cs:[BIOS_DISPATCH_LOW_SEGMENT]
 BIOS_DISPATCH_TARGET_SEG_FIXUP equ $-2
+ENDIF
         push di
 ENDIF
         les di,dword ptr ds:[bx].TRANS

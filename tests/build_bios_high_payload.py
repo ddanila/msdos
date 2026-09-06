@@ -99,7 +99,8 @@ def build(output, low_directory=None, *, dispatch=False):
         definitions += ["BIOSHIGH SEGMENT BYTE PUBLIC 'BIOSHIGH'"]
         for name, size in sorted(slots.items()):
             definitions += [f"PUBLIC {name}", f"{name} {'DD' if size == 4 else 'DW'} 0"]
-        table_bytes = low_symbols["BIOS_DEVICE_TABLES_END"] - low_symbols["DSKTBL"] if dispatch else 0
+        low_table_bytes = low_symbols["BIOS_DEVICE_TABLES_END"] - low_symbols["DSKTBL"] if dispatch else 0
+        table_bytes = 2 * low_table_bytes
         if dispatch:
             if table_bytes <= 0:
                 raise ValueError("invalid complete device-table extent")
@@ -155,6 +156,7 @@ def build(output, low_directory=None, *, dispatch=False):
                 raise ValueError(f"offset-fixup model disagrees with linker at {origin:04x}")
         manifest = {"installed": False, "runtime_bindings_required": True,
                     "dispatch": dispatch, "table_bytes": table_bytes,
+                    "low_table_bytes": low_table_bytes, "far_tables": dispatch,
                     "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data),
                     "service_bytes": symbols["BIOS_SERVICE_END"],
                     "low_map_sha256": hashlib.sha256(low_map.read_bytes()).hexdigest(),
