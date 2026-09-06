@@ -13,6 +13,10 @@ XmsAuthoritativeOwner proc near
         mov ax,VDMCA_GSEL
         mov ds,ax
         mov ax,es:[bx+16]
+        ; Read-only receipt: never import, execute an operation, or dereference
+        ; bootstrap storage. Capability discovery alone cannot prove commit.
+        or ax,ax
+        jz auth_owner_receipt
         cmp ax,8
         jb auth_owner_bad
         cmp ax,15
@@ -103,10 +107,30 @@ auth_owner_existing:
         mov [XmsOwnerResults],ax
         mov [XmsOwnerResults+2],dx
         inc dword ptr [XmsOwnerSnapshot]
+auth_owner_done:
         pop ds
         popad
         clc
         ret
+auth_owner_receipt:
+        xor ax,ax
+        mov al,[XmsOwnerActive]
+IFDEF EMM_XMS_OWNER_BAD_RECEIPT
+        xor ax,1
+ENDIF
+IFDEF EMM_XMS_OWNER_BAD_RECEIPT_ACTIVE
+        xor ax,ax
+ENDIF
+        mov es:[bx+10],ax
+        mov ax,[XmsOwnerImports]
+        mov es:[bx+14],ax
+        xor ax,ax
+        cmp [XmsOwnerActive],0
+        je short auth_receipt_limit
+        mov ax,[handle_limit]
+auth_receipt_limit:
+        mov es:[bx+12],ax
+        jmp short auth_owner_done
 auth_owner_bad:
         pop ds
         popad

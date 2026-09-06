@@ -12,6 +12,12 @@ boot_owner_move dd 1024
 boot_owner_pattern db 1024 dup (0)
 boot_owner_result db 1024 dup (0)
 boot_owner_step db 0
+IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+        include ..\..\INC\XMSCOPYABI.INC
+; Deliberately unusable import metadata: status must not dereference/import it.
+boot_owner_receipt db 'XAUT'
+        dw 3,0ffffh,0ffffh,0,0,0,0,0ffffh
+ENDIF
 
 BootOwnerPrepare proc near
         pushf
@@ -81,6 +87,14 @@ BootOwnerVerify proc near
         pop ds
         assume ds:LAST
         ; Check the cached pre-prepare entry, not just fresh discovery.
+IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+IFNDEF EMM_REJECT_PREPARED
+        mov [boot_owner_step],11
+        xor ax,ax
+        call BootOwnerReceipt
+        call BootOwnerReceipt
+ENDIF
+ENDIF
         mov [boot_owner_step],4
         mov dx,[boot_owner_handle]
         mov ah,0eh
@@ -91,6 +105,14 @@ BootOwnerVerify proc near
         jne BootOwnerFail
         cmp dx,1
         jne BootOwnerFail
+IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+IFNDEF EMM_REJECT_PREPARED
+        mov [boot_owner_step],12
+        mov ax,1
+        call BootOwnerReceipt
+        call BootOwnerReceipt
+ENDIF
+ENDIF
         mov [boot_owner_step],5
         mov dx,[boot_owner_handle]
         mov ah,0ch
@@ -179,6 +201,52 @@ BootOwnerEmit:
         popf
         ret
 BootOwnerVerify endp
+
+IFDEF EMM_AUTHORITATIVE_OWNER_TEST
+; AX expected committed state. Read twice around the first cached-entry call:
+; receipt alone must not import, and repeated receipt must not reimport.
+BootOwnerReceipt proc near
+        pusha
+        push es
+        mov bp,ax
+        mov ax,XCP_QUERY
+        int 15h
+        cmp ax,XCP_REPLY
+        jne BootOwnerFail
+        cmp bx,XCP_SIGNATURE
+        jne BootOwnerFail
+        cmp cx,XCP_VERSION
+        jne BootOwnerFail
+        test dx,XCP_OWNER_RECEIPT
+        jz BootOwnerFail
+        push cs
+        pop es
+        mov si,offset boot_owner_receipt
+        mov word ptr [si+10],0ffffh
+        mov word ptr [si+12],0ffffh
+        mov word ptr [si+14],0ffffh
+        mov ah,87h
+        int 15h
+        jc BootOwnerFail
+        cmp word ptr [boot_owner_receipt+10],bp
+        jne BootOwnerFail
+        cmp word ptr [boot_owner_receipt+14],bp
+        jne BootOwnerFail
+        mov ax,bp
+        shl ax,5               ; fixture uses the default 32-handle owner
+        cmp word ptr [boot_owner_receipt+12],ax
+        jne BootOwnerFail
+        cmp word ptr [boot_owner_receipt+6],0ffffh
+        jne BootOwnerFail
+        cmp word ptr [boot_owner_receipt+8],0ffffh
+        jne BootOwnerFail
+        cmp word ptr [boot_owner_receipt+18],0ffffh
+        jne BootOwnerFail
+        pop es
+        popa
+        ret
+BootOwnerReceipt endp
+ENDIF
 
 BootOwnerFail:
         mov al,'X'

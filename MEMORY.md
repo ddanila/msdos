@@ -587,7 +587,8 @@ is 2,176 bytes; the fixed bootstrap code/data is 768 bytes. With 32 handles,
 the boot allocation ends at offset 3,104, retaining a 928-byte bootstrap tail;
 128 handles retain 1,408 bytes. These are linked sizes of the paired variant,
 not normal HIMEM sizes or reclaimed memory. All of that tail remains allocated.
-The untraced linked owner service occupies 1,248 high code bytes and 671 state bytes,
+The untraced linked owner service, including the read-only commit receipt below,
+occupies 1,292 high code bytes and 671 state bytes,
 excluding existing copy/transition support and retained low bootstrap storage.
 Normal HIMEM and EMM386 binaries remain byte-identical.
 
@@ -1199,6 +1200,31 @@ the actual high commit and survives tail poisoning; cancellation records no
 high commit and keeps the bootstrap client usable. This qualifies the split
 against the existing upward move only, not overlapping downward compaction or
 rollback after ownership publication. Normal binaries remain byte-identical.
+
+**Read-only commitment receipt:** discovery's `XCP_OWNER_ACTIVE` bit advertises
+the service, not whether it has imported an owner. The new
+`XCP_OWNER_RECEIPT` bit advertises `XAUT` operation 00h: AX reports committed
+(0/1), BX the import count, and DX the committed handle capacity (zero before
+commit). This operation ignores import metadata, does not import or dispatch
+an allocator operation, and leaves the allocator's query counters unchanged.
+It uses the existing transport; failure means unknown status, not permission
+to restore a stale allocator. This trusted paired-provider observation is not
+a foreign-owner identity check, rollback protocol or release authorization.
+
+The discardable boot witness reads the receipt twice before and twice after
+the first cached XMS handle-info call. Every query pre-fills outputs with
+sentinels and supplies FFFFh as count, pool and record offset, proving that
+receipt does not require live bootstrap records. It requires 0/0/0 before
+and 1/1/32 after handoff, followed by the existing handle/address/lock/data
+checks. DOS-high with loader rebasing passes ON/OFF/AUTO/RAM in
+`out/emm-init-phases-dt580j6r/`; pre-activation cancellation still passes in
+`out/emm-init-phases-8zohifnb/`. The negative controls
+`--bad-owner-receipt before` and `--bad-owner-receipt after` fail at boot-owner
+steps 11 and 12 respectively (`out/emm-init-phases-xbujh4zg/` and
+`out/emm-init-phases-iyv8lw5c/`). The separate 128-handle public-API/poisoned-tail
+regression passes in `out/xms-copy-windows-_ssosyun/`. The loader does not yet
+use this receipt to release storage; the final-base and rollback contract above
+remains open, with no new conventional-memory gain.
 
 ##### Whole-system placement rules
 

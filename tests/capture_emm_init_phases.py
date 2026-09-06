@@ -175,6 +175,8 @@ def main():
                         help="preserve a locked, filled XMS block across the loader transaction")
     parser.add_argument("--authoritative-owner", action="store_true",
                         help="activate the paired high allocator through the loader callback")
+    parser.add_argument("--bad-owner-receipt", choices=("before", "after"),
+                        help="lie about commit state before or after handoff; must fail")
     parser.add_argument("--dos-high", action="store_true",
                         help="test authoritative handoff with current DOS high and its cached entry")
     parser.add_argument("--bad-bootstrap-owner", action="store_true",
@@ -211,6 +213,10 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.bad_owner_receipt:
+        args.authoritative_owner = True
+        if args.reject_prepared or args.loader_bad_rebase or args.loader_bad_version:
+            parser.error("receipt negative control requires an installed provider")
     if args.dos_high and not args.authoritative_owner:
         parser.error("--dos-high requires --authoritative-owner")
     if args.authoritative_owner:
@@ -280,6 +286,9 @@ def main():
                           " -DEMM_AUTHORITATIVE_OWNER_TEST -DEMM_XMS_OWNER_TRACE")
     if args.dos_high:
         trace_defines += " -DEMM_BOOTSTRAP_EXPECT_HMA"
+    if args.bad_owner_receipt:
+        trace_defines += (" -DEMM_XMS_OWNER_BAD_RECEIPT" if args.bad_owner_receipt == "before"
+                          else " -DEMM_XMS_OWNER_BAD_RECEIPT_ACTIVE")
     if args.bad_bootstrap_owner:
         trace_defines += " -DEMM_BOOTSTRAP_OWNER_BAD"
     if args.table_layout:
@@ -450,6 +459,7 @@ def main():
         loader_rebase=args.loader_rebase,
         bootstrap_owner=args.bootstrap_owner,
         authoritative_owner=args.authoritative_owner, himem_sha256=capture.sha256(himem),
+        bad_owner_receipt=args.bad_owner_receipt,
         dos_high=args.dos_high,
         dos_sha256=capture.sha256(capture.ROOT / "src/DOS/MSDOS.SYS")
             if args.authoritative_owner else None,
