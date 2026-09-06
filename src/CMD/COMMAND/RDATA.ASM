@@ -4,6 +4,7 @@
 TITLE	COMMAND Resident DATA
 
 include comsw.asm
+include SHELLGATE.INC
 .xlist
 .xcref
 include comseg.asm
@@ -20,6 +21,9 @@ initCtrlC   equ     04h 		; already in ^C handler
 Tokenized = FALSE
 
 CODERES 	SEGMENT PUBLIC BYTE	;AC000;
+	IFDEF COMMAND_RESIDENT_BINDING
+	SHELL_ENTRY_LIST SHELL_GATE_EXTERN
+	ENDIF
 	PUBLIC	RSTACK
 	EXTRN	EXT_EXEC:NEAR
 	EXTRN	THEADFIX:NEAR
@@ -572,14 +576,14 @@ COM_FCB2	LABEL	DWORD
 		DW	?
 
 TRANVARS	LABEL	BYTE			; Variables passed to transient
-		DW	OFFSET ResGroup:THEADFIX
+		DW	OFFSET ResGroup:SHELL_ENTRY_THEADFIX
 MYSEG		DW	0			; Put our own segment here
 LTPA		DW	0			; WILL STORE TPA SEGMENT HERE
 RSWITCHAR	DB	"-"
 RDIRCHAR	DB	"/"
-		DW	OFFSET ResGroup:EXT_EXEC
+		DW	OFFSET ResGroup:SHELL_ENTRY_EXT_EXEC
 MYSEG1		DW	?
-		DW	OFFSET ResGroup:TREMCHECK
+		DW	OFFSET ResGroup:SHELL_ENTRY_TREMCHECK
 MYSEG2		DW	0
 ResTest 	DW	0
 RES_TPA 	DW	0			; Original TPA (not rounded to 64K)

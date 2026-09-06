@@ -323,6 +323,7 @@ NAME	COMMAND
 	INCLUDE comequ.asm
 	INCLUDE resmsg.equ		;AN000;
 	INCLUDE RESBIND.INC
+	INCLUDE SHELLGATE.INC
 IFDEF COMMAND_RESIDENT_BINDING
 SHELL_EXEC_STATE TEXTEQU <DS>
 SHELL_CTRL_STATE TEXTEQU <DS>
@@ -433,6 +434,22 @@ RESCOM	LABEL BYTE
 
 PROGSTART:
 	JMP	RESGROUP:CONPROC
+
+	IFDEF COMMAND_RESIDENT_BINDING
+	EXTRN DSKERR:NEAR,INT_2E:NEAR,THEADFIX:NEAR,TREMCHECK:NEAR
+	EXTRN READ_DISK_PROC:FAR
+	PUBLIC shell_gate_start,shell_service_start
+shell_gate_start LABEL BYTE
+SHELL_GATE_EMIT MACRO slot,target
+	PUBLIC shell_gate_&slot,shell_gate_&slot&_segment
+shell_gate_&slot LABEL BYTE
+	db 0eah
+	dw offset resgroup:target
+shell_gate_&slot&_segment dw 0
+ENDM
+	SHELL_ENTRY_LIST SHELL_GATE_EMIT
+shell_service_start LABEL BYTE
+	ENDIF
 
 ;
 ; COMMAND has issued an EXEC system call and it has returned an error.	We

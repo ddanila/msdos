@@ -13,7 +13,7 @@ for variant in normal binding; do
     if [[ "$variant" == binding ]]; then define=-DCOMMAND_RESIDENT_BINDING; fi
     (
         cd "$ROOT/src/CMD/COMMAND"
-        for module in COMMAND1 COMMAND2 RUCODE INIT; do
+        for module in COMMAND1 COMMAND2 RUCODE RDATA INIT; do
             "$ROOT/bin/jwasm-masm" \
                 "-Mx -t $define -I. -I../../INC -I../../DOS -Fl=$build/$module.LST" \
                 "$module.ASM,$build/$module.OBJ;"
@@ -28,10 +28,11 @@ done
 cmp "$RUN/normal/COMMAND.COM" "$ROOT/src/CMD/COMMAND/COMMAND.COM"
 echo 'PASS: default COMMAND binary unchanged'
 python3 "$ROOT/tests/report_command_residency.py" --check --resident-binding \
+    --gate-include "$RUN/gates.inc" \
     --binding-listings "$RUN/binding/COMMAND1.LST" "$RUN/binding/COMMAND2.LST" "$RUN/binding/RUCODE.LST" \
     --switches "$ROOT/src/CMD/COMMAND/comsw.asm" \
     "$RUN/binding/COMMAND.MAP" "$RUN/binding/COMMAND.COM" > "$RUN/residency.md"
-FLOPPY_IMAGE="$INPUT" COMMAND_IMAGE="$RUN/binding/COMMAND.COM" \
+FLOPPY_IMAGE="$INPUT" COMMAND_IMAGE="$RUN/binding/COMMAND.COM" COMMAND_GATE_INCLUDE="$RUN/gates.inc" \
     bash "$ROOT/tests/test_command_int2e_owner_qemu.sh"
 cp "$INPUT" "$RUN/boot.img"
 MTOOLS_SKIP_CHECK=1 MTOOLS_NO_VFAT=1 mcopy -o -i "$RUN/boot.img" \

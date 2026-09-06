@@ -13,11 +13,15 @@ export MTOOLS_SKIP_CHECK=1 MTOOLS_NO_VFAT=1
 qemu-system-i386 --version > "$RUN/emulator.txt"
 shasum -a 256 "$INPUT" "$COMMAND_IMAGE" \
     "$ROOT/src/DEV/HIMEM/HIMEM.SYS" > "$RUN/inputs.sha256"
+if [[ -n "${COMMAND_GATE_INCLUDE:-}" ]]; then
+    shasum -a 256 "$COMMAND_GATE_INCLUDE" >> "$RUN/inputs.sha256"
+fi
 for variant in good wrong-stack; do
 for mode in LOW HIGH; do
     args=(-f bin -DEXPECT_HMA=0)
     if [[ "$mode" == HIGH ]]; then args=(-f bin -DEXPECT_HMA=1); fi
     if [[ "$variant" == wrong-stack ]]; then args+=(-DEXPECT_CALLER_STACK); fi
+    if [[ -n "${COMMAND_GATE_INCLUDE:-}" ]]; then args+=(-p "$COMMAND_GATE_INCLUDE"); fi
     prefix="$RUN/$variant-$mode"
     nasm "${args[@]}" "$ROOT/tests/command_int2e_owner_probe.asm" -o "$prefix.com"
     disk="$prefix.img"

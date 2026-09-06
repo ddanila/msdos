@@ -75,15 +75,15 @@ def rounded(value: int) -> int:
     return (value + 15) & ~15
 
 
-def code_only_envelope(code_end: int, resident_break: int) -> tuple[int, int]:
+def code_only_envelope(code_end: int, resident_break: int, service_start: int = 0x100) -> tuple[int, int]:
     """Optimistic packed low floor and release, before any new support.
 
-    Preserve PSP and every non-code byte; relocate the complete 0100h body.
+    Preserve PSP, any entry block before service_start, and all non-code bytes.
     This is a design bound, not evidence that the body is relocatable.
     """
-    if not 0x100 <= code_end <= resident_break:
+    if not 0x100 <= service_start <= code_end <= resident_break:
         raise ValueError("resident code must follow the PSP and precede the break")
-    low_floor = rounded(resident_break - (code_end - 0x100))
+    low_floor = rounded(resident_break - (code_end - service_start))
     return low_floor, rounded(resident_break) - low_floor
 
 
@@ -91,6 +91,38 @@ BINDING_SLOTS = ("fatal_ds", "fatal_psp", "ret2e_ds", "int2e_es", "int2e_bx",
                  "lodcom_ds", "lodcom_ax", "headfix_ds", "savhand_es", "endinit_ds",
                  "exec_err_ds", "exec_msg_es", "exec_pre_ds", "exec_post_ds", "exec_wait_ds",
                  "critical_es", "critical_ds", "contc_entry_ds", "contc_body_ds", "pipeoff_ds")
+
+GATE_TARGETS = (("lodcom", "lodcom"), ("contc", "CONTC"), ("dskerr", "DSKERR"),
+                ("int2e", "INT_2E"), ("headfix", "THEADFIX"), ("exec", "EXT_EXEC"),
+                ("remcheck", "TREMCHECK"), ("diskmsg", "READ_DISK_PROC"))
+
+
+def check_shell_gates(symbols: dict[str, int], image: bytes) -> None:
+    start = require(symbols, "shell_gate_start")
+    end = require(symbols, "shell_service_start")
+    if start != 0x103 or end - start != 5 * len(GATE_TARGETS):
+        raise ValueError("published gate island must immediately follow the startup jump")
+    constructor = bytearray()
+    for index, (slot, target) in enumerate(GATE_TARGETS):
+        gate = require(symbols, "shell_gate_" + slot)
+        segment = require(symbols, "shell_gate_" + slot + "_segment")
+        destination = require(symbols, target)
+        if not end <= destination < require(symbols, "RES_CODE_END"):
+            raise ValueError("gate target is not in the complete resident service body")
+        expected = b"\xea" + destination.to_bytes(2, "little") + b"\0\0"
+        if (gate != start + index * 5 or segment != gate + 3
+                or image[gate - 0x100:gate - 0x100 + 5] != expected):
+            raise ValueError("published gate lacks its exact five-byte far jump")
+        constructor.extend(b"\x8c\x0e" + segment.to_bytes(2, "little"))
+    init = require(symbols, "shell_gate_constructor")
+    if (init != require(symbols, "CONPROC") + 3 + 4 * len(BINDING_SLOTS)
+            or require(symbols, "shell_gate_constructor_end") != init + len(constructor)
+            or image[init - 0x100:init - 0x100 + len(constructor)] != constructor):
+        raise ValueError("gate constructor must follow owner bindings before publication")
+    for offset, slot in ((0, "headfix"), (8, "exec"), (12, "remcheck")):
+        pos = require(symbols, "TRANVARS") + offset - 0x100
+        if image[pos:pos + 2] != require(symbols, "shell_gate_" + slot).to_bytes(2, "little"):
+            raise ValueError("transient publication bypasses a stable low gate")
 
 
 def check_resident_bindings(symbols: dict[str, int], image: bytes) -> None:
@@ -192,11 +224,15 @@ def main() -> int:
                         help="check the development resident owner operands and constructor")
     parser.add_argument("--binding-listings", nargs=3, type=Path,
                         help="check COMMAND1, COMMAND2 and RUCODE development listings for CS overrides")
+    parser.add_argument("--gate-include", type=Path,
+                        help="write NASM constants for the development live-publication probe")
     parser.add_argument("--critical-split", action="store_true",
                         help="check the development low-entry/body/exit layout (body still low)")
     parser.add_argument("--critical-reclaim", action="store_true",
                         help="check development startup relocation of the body from HMACODE")
     args = parser.parse_args()
+    if args.gate_include and not args.resident_binding:
+        parser.error("--gate-include requires --resident-binding")
     if args.binding_listings:
         if not args.resident_binding:
             parser.error("--binding-listings requires --resident-binding")
@@ -261,9 +297,18 @@ def main() -> int:
         errors.append("cached critical-catalog pointer is not retained in low message state")
     prototype_allowance = 128 if args.critical_split else 0
     if args.resident_binding:
-        prototype_allowance = 80
+        prototype_allowance = 128
         check_resident_bindings(symbols, args.binary.read_bytes())
         check_critical_owner_bindings(symbols, args.binary.read_bytes())
+        check_shell_gates(symbols, args.binary.read_bytes())
+        if args.gate_include:
+            constants = ["%define EXPECT_SHELL_GATES 1",
+                         f"%define SHELL_TRANVARS {require(symbols, 'TRANVARS')}"]
+            for slot, _ in GATE_TARGETS:
+                constants.append(f"%define SHELL_GATE_{slot.upper()} {require(symbols, 'shell_gate_' + slot)}")
+            constants.append("%define SHELL_GATE_TARGETS " + ",".join(
+                str(require(symbols, target)) for _, target in GATE_TARGETS))
+            args.gate_include.write_text("\n".join(constants) + "\n")
     if rounded(resident_catalog_start) > 3632 + prototype_allowance:
         errors.append(f"DOS-high permanent COMMAND exceeds its {3632 + prototype_allowance:,}-byte budget")
     if rounded(hma_code_end) > 6080 + prototype_allowance:
@@ -391,9 +436,14 @@ def main() -> int:
     print(f"| **DOS-high permanent break** | `0000h..{resident_catalog_start:04X}h` | **{resident_catalog_start:,}** | **{rounded(resident_catalog_start):,} paragraph-rounded** |")
     print(f"| Low/failure fallback break | `0000h..{hma_code_end:04X}h` | {hma_code_end:,} | {rounded(hma_code_end):,} paragraph-rounded |")
 
-    low_floor, maximum_release = code_only_envelope(resident_code_end, resident_catalog_start)
+    service_start = require(symbols, "shell_service_start") if args.resident_binding else 0x100
+    low_floor, maximum_release = code_only_envelope(resident_code_end, resident_catalog_start, service_start)
     print("\n## Whole-code relocation bound\n")
-    print(f"Moving all {resident_code_end - 0x100:,} remaining resident code bytes, "
+    if args.resident_binding:
+        print(f"The published low entry block is 40 bytes at 0103h..012Bh; "
+              f"the service body starts at {service_start:04X}h. "
+              "The bound below retains that block and the startup jump.\n")
+    print(f"Moving all {resident_code_end - service_start:,} remaining resident service bytes, "
           f"while retaining the PSP, stack and all mutable state, leaves at least "
           f"{low_floor:,} paragraph-rounded low bytes. The optimistic release is "
           f"at most {maximum_release:,} bytes before new gateways, bindings or stacks.")

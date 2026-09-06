@@ -5,6 +5,7 @@ CMD/**/*.COM
 CMD/**/*.SYS
 CMD/**/*.BIN
 CMD/**/*.INC
+!CMD/COMMAND/SHELLGATE.INC
 CMD/**/*.SKL
 CMD/**/*M.C
 

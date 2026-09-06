@@ -13,6 +13,7 @@ TITLE	COMMAND Initialization
 	INCLUDE comequ.asm
 	include resmsg.equ		;AN000;
 	INCLUDE RESBIND.INC
+	INCLUDE SHELLGATE.INC
 .list
 .cref
 
@@ -30,6 +31,7 @@ SHELL_BIND_EXTERN MACRO slot
 	EXTRN shell_binding_&slot:WORD
 ENDM
 	SHELL_BINDING_SLOTS SHELL_BIND_EXTERN
+	SHELL_ENTRY_LIST SHELL_GATE_EXTERN
 	ENDIF
 	EXTRN	CONTC:NEAR
 	EXTRN	DskErr:NEAR
@@ -255,6 +257,13 @@ SHELL_BIND_INIT MACRO slot
 	mov word ptr [shell_binding_&slot],cs
 ENDM
 	SHELL_BINDING_SLOTS SHELL_BIND_INIT
+	PUBLIC shell_gate_constructor,shell_gate_constructor_end
+shell_gate_constructor LABEL BYTE
+SHELL_GATE_INIT MACRO slot,target
+	mov word ptr [shell_gate_&slot&_segment],cs
+ENDM
+	SHELL_ENTRY_LIST SHELL_GATE_INIT
+shell_gate_constructor_end LABEL BYTE
 	ENDIF
 	IFDEF COMMAND_CRITICAL_SPLIT
 	; Bind while the image is still owned and before any DOS call or vector
@@ -673,7 +682,7 @@ SetPSwitch:
 
 permcomok:
 	INC	[PERMCOM]
-	MOV	WORD PTR [oldTerm],OFFSET RESGROUP:LODCOM
+	MOV	WORD PTR [oldTerm],OFFSET RESGROUP:SHELL_ENTRY_LODCOM
 	MOV	WORD PTR [oldTerm+2],DS
 ;
 ; Make sure that we display the date and time.	If the flag was not
@@ -978,21 +987,21 @@ ARGSDONE:
 	MOV	ES,BX
 	INT	int_command			; Current process is me
 	MOV	DI,PDB_Exit			; Diddle the addresses in my header
-	MOV	AX,OFFSET RESGROUP:LODCOM
+	MOV	AX,OFFSET RESGROUP:SHELL_ENTRY_LODCOM
 	STOSW
 	MOV	AX,DS
 	STOSW
-	MOV	AX,OFFSET RESGROUP:CONTC
+	MOV	AX,OFFSET RESGROUP:SHELL_ENTRY_CONTC
 	STOSW
 	MOV	AX,DS
 	STOSW
-	MOV	AX,OFFSET RESGROUP:DskErr
+	MOV	AX,OFFSET RESGROUP:SHELL_ENTRY_DSKERR
 	STOSW
 	MOV	AX,DS
 	STOSW
 	MOV	WORD PTR DS:[PDB_Parent_PID],DS ; Parent is me forever
 
-	MOV	DX,OFFSET RESGROUP:INT_2E
+	MOV	DX,OFFSET RESGROUP:SHELL_ENTRY_INT_2E
 	MOV	AX,(SET_INTERRUPT_VECTOR SHL 8) OR 02EH
 	INT	int_command			;Set magic interrupt
 	POP	ES				;Remember environment
@@ -1674,7 +1683,7 @@ setup_for_messages	proc	near		;AN060;
 	ENDIF					;AN060;;
 	MOV	AX,DOS_GET_EXT_PARSE_ADD	;AN060;; 2FH Interface
 	MOV	DL,DOS_SET_ADDR 		;AN060;; Set the READ_DISK_PROC address
-	LEA	DI,READ_DISK_PROC		;AN060;;
+	LEA	DI,SHELL_ENTRY_READ_DISK_PROC ; publish the stable callback entry
 	INT	2FH				;AN060;; Private interface
 	jmp	short permcom_end		;AN060; and exit
 

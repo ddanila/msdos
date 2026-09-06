@@ -23,6 +23,9 @@ class EnvelopeTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 code_only_envelope(end, limit)
 
+    def test_stable_low_entries_are_not_reclaimed(self):
+        self.assertEqual(code_only_envelope(0xB0B, 0xEA8, 0x12B), (1232, 2528))
+
 
 if __name__ == "__main__":
     unittest.main()

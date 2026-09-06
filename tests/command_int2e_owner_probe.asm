@@ -9,6 +9,9 @@ start:
     sti
     mov ds, ax
     mov es, ax
+%ifdef EXPECT_SHELL_GATES
+    call check_shell_gates
+%endif
     mov ax, 580eh
     mov cx, 4d55h
     mov si, 2142h
@@ -34,6 +37,9 @@ start:
     call run_command
     mov dx, external_file
     call check_file
+%ifdef EXPECT_SHELL_GATES
+    call check_shell_gates
+%endif
     mov es, [tail_segment]
     mov ah, 49h
     int 21h
@@ -81,6 +87,69 @@ run_command:
     jne fail
     ret
 
+%ifdef EXPECT_SHELL_GATES
+check_shell_gates:
+    mov byte [gate_stage],'1'
+    mov bx,[16h]
+    mov es,bx
+    cmp word [es:0ah],SHELL_GATE_LODCOM
+    jne fail
+    cmp word [es:0eh],SHELL_GATE_CONTC
+    jne fail
+    cmp word [es:12h],SHELL_GATE_DSKERR
+    jne fail
+    cmp [es:0ch],bx
+    jne fail
+    cmp [es:10h],bx
+    jne fail
+    cmp [es:14h],bx
+    jne fail
+    mov byte [gate_stage],'2'
+    cmp word [es:SHELL_TRANVARS],SHELL_GATE_HEADFIX
+    jne fail
+    cmp word [es:SHELL_TRANVARS+8],SHELL_GATE_EXEC
+    jne fail
+    cmp word [es:SHELL_TRANVARS+12],SHELL_GATE_REMCHECK
+    jne fail
+    mov byte [gate_stage],'3'
+    mov di,SHELL_GATE_LODCOM
+    mov si,gate_targets
+    mov cx,8
+.gate:
+    cmp byte [es:di],0eah
+    jne fail
+    lodsw
+    cmp [es:di+1],ax
+    jne fail
+    cmp [es:di+3],bx
+    jne fail
+    add di,5
+    loop .gate
+    mov byte [gate_stage],'4'
+    xor ax,ax
+    mov es,ax
+    cmp word [es:2eh*4],SHELL_GATE_INT2E
+    jne fail
+    cmp [es:2eh*4+2],bx
+    jne fail
+    mov byte [gate_stage],'5'
+    mov ax,122eh
+    mov dl,8
+    int 2fh
+    cmp di,SHELL_GATE_DISKMSG
+    jne fail
+    mov ax,es
+    cmp ax,[16h]
+    jne fail
+    push cs
+    pop es
+    mov byte [gate_stage],'6'
+    ret
+gate_targets dw SHELL_GATE_TARGETS
+gate_status db 'GATE_STAGE='
+gate_stage db '0',13,10,'$'
+%endif
+
 check_file:
     mov ax, 3d00h
     int 21h
@@ -105,6 +174,11 @@ check_file:
     ret
 
 fail:
+%ifdef EXPECT_SHELL_GATES
+    mov dx,gate_status
+    mov ah,09h
+    int 21h
+%endif
     mov dx, failure
     mov ah, 09h
     int 21h

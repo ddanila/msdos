@@ -171,7 +171,7 @@ neither number is the final relocated size. A code-only shell move plus the
 provider and mixed BIOS service/state design rather than stopping at those
 easy-to-name bodies.
 
-`make test-command-residency` checks the linked census and five arithmetic
+`make test-command-residency` checks the linked census and six arithmetic
 tests for the whole-code bound, including paragraph rounding and preservation
 of the PSP. The bound is generated from linker symbols; it proves neither
 relocatability nor a runtime saving. The next shell implementation checkpoint
@@ -1325,8 +1325,9 @@ state updates, restores the transient filename DS before INT 21h, leaves the
 ES:BX parameter block intact, and preserves result flags across restoration.
 The normal build remains byte-identical.
 
-The development resident code grows from 2,451 to 2,531 bytes, and both its
-high-mode low allocation and low-mode fallback grow by 80 rounded bytes.
+The development resident code plus published entries grows from 2,451 to
+2,571 bytes; high-mode low allocation and low-mode fallback grow by 128
+rounded bytes. This includes the 40-byte entry block described below.
 These are relocation-support costs, not savings. The report's explicit
 `--resident-binding` mode checks all twenty operand encodings and their exact
 constructor writes; normal size limits are unchanged. The combined
@@ -1377,20 +1378,53 @@ and initialization handoffs still require relocation design and runtime tests.
 `make test-command-resident-binding-qemu` builds into a private directory,
 checks default binary identity, verifies the linked binding census, then runs
 the INT 2Eh owner matrix, startup/critical ABI suite and complete LOADHIGH suite.
-With the explicit floppy input, `out/command-resident-binding.aMH3w0/`
+With the explicit floppy input, `out/command-resident-binding.JDKhw5/`
 passes all four INT 2Eh cases, all 16 startup checks and LOADHIGH's provider,
 region/minimum/shrink, failure recovery, fallback, errorlevel, Ctrl+C, TSR and
-DOS-high checks. Ten host tests cover missing slots,
+DOS-high checks. Thirteen host tests cover missing slots,
 bad immediates, incomplete constructor bindings and critical-entry ownership
-mutations and the listing guard. Input overrides follow the
+mutations, the listing guard and gate construction/publication. Input overrides follow the
 INT 2Eh command above; no normal COMMAND object or boot image is replaced.
 
-This begins resident code/data separation; it does not establish that the
-whole service body is relocatable. Ctrl+C's downstream service bindings,
-cross-placement near calls, low interrupt/return gates and transient
-far-entry publication still need coordinated conversion. Charge the new
-bindings against the final linked body and low-interface budgets before
-claiming candidate A's ceiling or any released conventional interval.
+##### Stable published shell entries
+
+The binding variant now places eight five-byte far jumps at `0103h..012Bh`,
+immediately after the startup jump. `SHELLGATE.INC` defines this single entry
+list: LODCOM, CONTC, DSKERR, INT_2E, THEADFIX, EXT_EXEC, TREMCHECK and
+READ_DISK_PROC. Initialization binds their target segments after the twenty
+data-owner bindings and before any DOS call. All targets still execute low;
+the entries preserve registers and frames but do **not** enable A20.
+
+PSP initialization, permanent-shell OldTerm, INT 2Eh, the three TRANVARS
+service pointers and the DOS disk-message callback publish these entries.
+`COMMAND2.ASM:SETVECT` must use them too: reload otherwise republishes direct
+body addresses. The first live check rejected that bypass at the PSP boundary
+in `out/command-int2e-owner.InW7sY/`; merely inserting gates and passing startup
+tests did not establish a stable published interface.
+
+The linked census checks all eight encodings, target ranges, contiguous low
+placement, constructor writes and TRANVARS offsets. With a generated gate
+include, the INT 2Eh probe additionally checks the live parent PSP pointers,
+INT 2Eh vector, low gate targets, transient handoff table and DOS's
+`INT 2Fh/122Eh, DL=8` callback before and after internal/external commands.
+The fixed DOS-low/high capture is `out/command-int2e-owner.BnyMuk/`.
+Child EXEC's dynamic termination return is distinct from the parent's stored
+LODCOM pointer; do not require the active INT 22h vector to equal LODCOM while
+a child is running.
+
+The candidate service body is now `012Bh..0B0Bh`, 2,528 bytes. Keeping the
+startup jump, entry block, PSP, stack and all mutable state low leaves an
+optimistic **1,232-byte** packed image before A20/return support, not 1,184.
+The entries are part of the low cost, not reclaimable service payload.
+The original state is still after the code, so no low hole is released yet.
+The 2,528-byte body would leave 7,129 of the shared 9,657 HMA bytes before
+new BIOS/shell support. This is capacity arithmetic, not a final linked high
+layout or measured conventional gain.
+
+Next qualify cross-placement near calls, A20-safe entry/return, initialization
+handoff and activation rollback; then repack the low state and retire the
+original body. Stable publications alone do not make the whole service body
+relocatable or satisfy the complete resident-layout checkpoint.
 
 The returning critical-error gate is now passing after correcting catalog
 ownership. `test-command-critical-abi-qemu` runs a child COM
