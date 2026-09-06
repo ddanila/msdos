@@ -164,7 +164,7 @@ of the 800 state bytes can already be released.
 The existing 2,447-byte high shell allocation is already charged. Adding the
 normal 2,451-byte resident body would consume that much of the shared
 9,657-byte HMA tail, leaving 7,206 bytes for BIOS, moved state and all new
-support. The owner-binding prototype already grows the body by 79 bytes;
+support. The owner-binding prototype already grows the body by 80 bytes;
 neither number is the final relocated size. A code-only shell move plus the
 936-byte BIOS character/clock/helper inventory therefore cannot explain the
 10,064-byte vendor difference, even before costs. Continue the combined
@@ -1310,10 +1310,11 @@ prototype, not independent paragraph-saving quotas.
 
 ##### Development resident low-owner bindings
 
-`COMMAND_RESIDENT_BINDING` introduces nineteen constructor-initialized segment
+`COMMAND_RESIDENT_BINDING` introduces twenty constructor-initialized segment
 operands for COMMAND2's fatal exit, INT 2Eh, reload, handle and environment
 paths, COMMAND1's EXEC/LOADHIGH preparation, restoration and messages, and
-RUCODE's critical-entry ES/DS selections, and CONTC's decision/body DS owners.
+RUCODE's critical-entry ES/DS selections, CONTC's decision/body DS owners and
+the caller-independent ResPipeOff data owner.
 `RESBIND.INC` encodes the owner in MOV immediates, so copied instructions
 retain that value without looking up data through their new CS. CONPROC binds
 all operands before the first DOS call or vector publication. INT 2Eh preserves
@@ -1324,10 +1325,10 @@ state updates, restores the transient filename DS before INT 21h, leaves the
 ES:BX parameter block intact, and preserves result flags across restoration.
 The normal build remains byte-identical.
 
-The development resident code grows from 2,451 to 2,530 bytes, and both its
+The development resident code grows from 2,451 to 2,531 bytes, and both its
 high-mode low allocation and low-mode fallback grow by 80 rounded bytes.
 These are relocation-support costs, not savings. The report's explicit
-`--resident-binding` mode checks all nineteen operand encodings and their exact
+`--resident-binding` mode checks all twenty operand encodings and their exact
 constructor writes; normal size limits are unchanged. The combined
 critical-body/binding variant is not yet qualified or accepted by the report.
 
@@ -1351,25 +1352,42 @@ with separate code, low-owner and caller-data segments. Seven cases exercise
 ignored initialization, special initialization handoff, nested AH=0/1/12/13,
 and normal body entry. They check SS:SP, GPRs, DS/ES, return flags and state
 ownership; downstream initialization/body services are stubs. The passing
-capture is `out/command-contc-entry-d9s6llnr/`; a wrong-owner binding rejects
+capture is `out/command-contc-entry-asuro46q/`; a wrong-owner binding rejects
 with `C!` in `out/command-contc-entry-hq8rxvnj/`. Input/source/probe hashes and
 emulator identity are recorded by the harness. This is an entry ABI witness,
 not actual nested DOS execution, A20-off safety or whole-body relocation.
 
+The same harness now executes ResPipeOff with a foreign caller DS: both an
+inactive and active pipe preserve AX/DS and stack balance, clear only the
+authoritative pipe flag, and pop echo state only for an active pipe. The
+wrong-pipe-owner control rejects with `CCCCCCC!` in
+`out/command-contc-entry-yb7l_kgr/`. RUCODE also uses restored low DS for RemMsg,
+preserves that owner across SYSGETMSG's returned string DS, and resolves its
+high case-conversion/DBCS entry pointers through low DS. Those service bodies
+already require low DS for their other data accesses.
+
+`--binding-listings` checks the assembled COMMAND1/COMMAND2/RUCODE listings
+for CS overrides, including implicit selections from ASSUME and prefixed
+instructions. The current listings pass; the preceding build rejects at
+ResPipeOff's implicit CS access. This is a selected-module regression guard,
+not a disassembler or proof of position-independent code. Near calls to
+separately placed bodies, absolute/far entry publications, A20 transitions
+and initialization handoffs still require relocation design and runtime tests.
+
 `make test-command-resident-binding-qemu` builds into a private directory,
 checks default binary identity, verifies the linked binding census, then runs
 the INT 2Eh owner matrix, startup/critical ABI suite and complete LOADHIGH suite.
-With the explicit floppy input, `out/command-resident-binding.zsjFLO/`
+With the explicit floppy input, `out/command-resident-binding.aMH3w0/`
 passes all four INT 2Eh cases, all 16 startup checks and LOADHIGH's provider,
 region/minimum/shrink, failure recovery, fallback, errorlevel, Ctrl+C, TSR and
-DOS-high checks. Six host tests cover missing slots,
+DOS-high checks. Ten host tests cover missing slots,
 bad immediates, incomplete constructor bindings and critical-entry ownership
-mutations. Input overrides follow the
+mutations and the listing guard. Input overrides follow the
 INT 2Eh command above; no normal COMMAND object or boot image is replaced.
 
 This begins resident code/data separation; it does not establish that the
 whole service body is relocatable. Ctrl+C's downstream service bindings,
-RUCODE's remaining CS-relative consumers, low interrupt/return gates and transient
+cross-placement near calls, low interrupt/return gates and transient
 far-entry publication still need coordinated conversion. Charge the new
 bindings against the final linked body and low-interface budgets before
 claiming candidate A's ceiling or any released conventional interval.

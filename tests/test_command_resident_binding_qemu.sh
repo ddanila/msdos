@@ -28,6 +28,7 @@ done
 cmp "$RUN/normal/COMMAND.COM" "$ROOT/src/CMD/COMMAND/COMMAND.COM"
 echo 'PASS: default COMMAND binary unchanged'
 python3 "$ROOT/tests/report_command_residency.py" --check --resident-binding \
+    --binding-listings "$RUN/binding/COMMAND1.LST" "$RUN/binding/COMMAND2.LST" "$RUN/binding/RUCODE.LST" \
     --switches "$ROOT/src/CMD/COMMAND/comsw.asm" \
     "$RUN/binding/COMMAND.MAP" "$RUN/binding/COMMAND.COM" > "$RUN/residency.md"
 FLOPPY_IMAGE="$INPUT" COMMAND_IMAGE="$RUN/binding/COMMAND.COM" \

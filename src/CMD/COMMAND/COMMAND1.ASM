@@ -807,12 +807,19 @@ public	ResPipeOff
 	assume	ds:nothing,es:nothing
 ResPipeOff:
 	SaveReg <AX>
+	IFDEF COMMAND_RESIDENT_BINDING
+	push ds
+	SHELL_OWNER_SEG DS,pipeoff_ds
+	ENDIF
 	xor	ax,ax
-	xchg	PipeFlag,al
+	xchg	SHELL_CTRL_STATE:[PipeFlag],al
 	or	al,al
 	jz	NoPipePop
-	shr	EchoFlag,1
+	shr	SHELL_CTRL_STATE:[EchoFlag],1
 NoPipePop:
+	IFDEF COMMAND_RESIDENT_BINDING
+	pop ds
+	ENDIF
 	RestoreReg  <AX>
 	return
 CODERES ENDS

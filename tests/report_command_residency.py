@@ -90,7 +90,7 @@ def code_only_envelope(code_end: int, resident_break: int) -> tuple[int, int]:
 BINDING_SLOTS = ("fatal_ds", "fatal_psp", "ret2e_ds", "int2e_es", "int2e_bx",
                  "lodcom_ds", "lodcom_ax", "headfix_ds", "savhand_es", "endinit_ds",
                  "exec_err_ds", "exec_msg_es", "exec_pre_ds", "exec_post_ds", "exec_wait_ds",
-                 "critical_es", "critical_ds", "contc_entry_ds", "contc_body_ds")
+                 "critical_es", "critical_ds", "contc_entry_ds", "contc_body_ds", "pipeoff_ds")
 
 
 def check_resident_bindings(symbols: dict[str, int], image: bytes) -> None:
@@ -122,6 +122,28 @@ def check_critical_owner_bindings(symbols: dict[str, int], image: bytes) -> None
             expected += b"\x26\x88\x26" + require(symbols, "CDEVAT").to_bytes(2, "little")
         if image[start:start + len(expected)] != expected:
             raise ValueError("critical entry lost its explicit low owner or AX preservation")
+
+
+def check_code_owner_listing(listing: str) -> None:
+    """Reject assembled CS overrides, including implicit ASSUME selections.
+
+    This is a guard for the selected service modules, not an x86 decoder or
+    proof that near calls, far publications and state bindings are relocatable.
+    """
+    prefixes = {0x26, 0x2E, 0x36, 0x3E, 0x64, 0x65, 0x66, 0x67, 0xF0, 0xF2, 0xF3}
+    found = False
+    for line in listing.splitlines():
+        match = re.match(r"^\s*[0-9A-F]{4,8}\s+([0-9A-F]{2}(?:[0-9A-F]{2})*)(?=\s|$)", line, re.I)
+        if not match:
+            continue
+        found = True
+        for byte in bytes.fromhex(match[1]):
+            if byte not in prefixes:
+                break
+            if byte == 0x2E:
+                raise ValueError(f"service listing still addresses state through CS: {line.strip()}")
+    if not found:
+        raise ValueError("no assembled bytes found in service listing")
 
 
 def parse_number(value: str) -> int:
@@ -168,11 +190,20 @@ def main() -> int:
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--resident-binding", action="store_true",
                         help="check the development resident owner operands and constructor")
+    parser.add_argument("--binding-listings", nargs=3, type=Path,
+                        help="check COMMAND1, COMMAND2 and RUCODE development listings for CS overrides")
     parser.add_argument("--critical-split", action="store_true",
                         help="check the development low-entry/body/exit layout (body still low)")
     parser.add_argument("--critical-reclaim", action="store_true",
                         help="check development startup relocation of the body from HMACODE")
     args = parser.parse_args()
+    if args.binding_listings:
+        if not args.resident_binding:
+            parser.error("--binding-listings requires --resident-binding")
+        if [path.stem.upper() for path in args.binding_listings] != ["COMMAND1", "COMMAND2", "RUCODE"]:
+            parser.error("supply COMMAND1, COMMAND2 and RUCODE listings in that order")
+        for path in args.binding_listings:
+            check_code_owner_listing(path.read_text(encoding="latin-1"))
     if args.critical_reclaim:
         args.critical_split = True
     if args.resident_binding and args.critical_split:

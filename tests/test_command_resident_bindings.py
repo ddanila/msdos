@@ -4,6 +4,7 @@ import unittest
 
 from report_command_residency import (
     BINDING_SLOTS, check_resident_bindings, check_critical_owner_bindings,
+    check_code_owner_listing,
 )
 
 
@@ -62,6 +63,23 @@ class CriticalBindingTest(unittest.TestCase):
                 image[offset] = replacement
                 with self.assertRaises(ValueError):
                     check_critical_owner_bindings(symbols, image)
+
+
+class ListingTest(unittest.TestCase):
+    def test_explicit_data_owner(self):
+        check_code_owner_listing("0010 3E8606 0000o   xchg ds:[PipeFlag],al")
+
+    def test_implicit_and_prefixed_cs(self):
+        for encoded in ("2E8606", "662E8B06", "F32EA4"):
+            with self.subTest(encoded=encoded), self.assertRaises(ValueError):
+                check_code_owner_listing(f"0010 {encoded} 0000o instruction")
+
+    def test_opcode_immediate_is_not_a_prefix(self):
+        check_code_owner_listing("0010 B82E00 mov ax,002eh")
+
+    def test_missing_bytes(self):
+        with self.assertRaises(ValueError):
+            check_code_owner_listing("ASSUME CS:RESGROUP")
 
 
 if __name__ == "__main__":

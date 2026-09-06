@@ -44,4 +44,5 @@ SHELL_BINDING_SLOTS MACRO action
     action critical_ds
     action contc_entry_ds
     action contc_body_ds
+    action pipeoff_ds
 ENDM

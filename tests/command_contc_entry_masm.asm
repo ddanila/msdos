@@ -16,8 +16,12 @@ start:
     mov [owner_segment],ax
     mov [shell_binding_contc_entry_ds],ax
     mov [shell_binding_contc_body_ds],ax
+    mov [shell_binding_pipeoff_ds],ax
 IFDEF WRONG_OWNER
     mov [shell_binding_contc_entry_ds],cs
+ENDIF
+IFDEF WRONG_PIPE_OWNER
+    mov [shell_binding_pipeoff_ds],cs
 ENDIF
     add ax,20h
     mov [foreign_segment],ax
@@ -123,6 +127,41 @@ passed_case:
     inc byte ptr cs:[case_number]
     cmp byte ptr cs:[case_number],7
     jb next_case
+    mov byte ptr cs:[case_number],0
+pipe_case:
+    mov al,cs:[case_number]
+    mov cs:[owner_pipe],al
+    mov byte ptr cs:[owner_echo],5
+    mov ax,cs:[foreign_segment]
+    mov ds,ax
+    mov cs:[saved_sp],sp
+    mov ax,0A55Ah
+    call ResPipeOff
+    cmp sp,cs:[saved_sp]
+    jne failed
+    cmp ax,0A55Ah
+    jne failed
+    mov ax,ds
+    cmp ax,cs:[foreign_segment]
+    jne failed
+    cmp byte ptr cs:[owner_pipe],0
+    jne failed
+    mov al,5
+    cmp byte ptr cs:[case_number],0
+    je pipe_echo
+    mov al,2
+pipe_echo:
+    cmp al,cs:[owner_echo]
+    jne failed
+    cmp byte ptr cs:[PipeFlag],0A5h
+    jne failed
+    cmp byte ptr cs:[EchoFlag],0A5h
+    jne failed
+    mov al,'P'
+    out 0e9h,al
+    inc byte ptr cs:[case_number]
+    cmp byte ptr cs:[case_number],2
+    jb pipe_case
     mov ax,10h
     jmp done
 failed:
@@ -148,6 +187,17 @@ init_contc_specialcase:
     mov byte ptr cs:[route],1
     iret
 
+SaveReg MACRO regs
+    push regs
+ENDM
+RestoreReg MACRO regs
+    pop regs
+ENDM
+return MACRO
+    ret
+ENDM
+include PIPEOFF.INC
+
 entry dw offset CONTC,0
 owner_segment dw 0
 foreign_segment dw 0
@@ -160,9 +210,13 @@ case_ah db 0FFh,0FFh,0,1,12,13,55h
 case_routes db 0,1,0,2,2,0,3
 ; Same offsets in three distinct segments. CS carries conflicting state.
 InitFlag db initINIT
-db 511 dup (0)
+PipeFlag db 0A5h
+EchoFlag db 0A5h
+db 509 dup (0)
 owner_flag db 0
-db 511 dup (0)
+owner_pipe db 0
+owner_echo db 0
+db 509 dup (0)
 foreign_flag db 0A5h
 db 512 dup (0)
 stack_end label byte
