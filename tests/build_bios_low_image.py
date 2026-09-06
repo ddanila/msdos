@@ -132,7 +132,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
     if tail_body and not early:
         changed += ("MSINIT",)
     options = "-I. -I../INC " + " ".join(f"-DBIOS_SERVICE_{name}=1" for name in
-        ("BINDINGS", "LOW_CALLS", "DEVICE_ENTRIES", "INTERRUPT_ENTRIES", "RESULT_HELPERS"))
+        ("BINDINGS", "LOW_CALLS", "DEVICE_ENTRIES", "INTERRUPT_ENTRIES", "RESULT_HELPERS")
+        if name != "DEVICE_ENTRIES" or not pack_headers)
     if early:
         options += f" -I{output} -DBIOS_SERVICE_BOOT=1 -DBIOS_BOOT_POISON=1"
     if paired_provider is not None:
@@ -215,7 +216,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
             raise ValueError("clock near entry must remain low while its body is disposable")
     if pack_headers:
         if not (symbols["CONHEADER"] < symbols["OLD13"] < symbols["VDISK_AREA"] == 0x100
-                and symbols["END$"] <= symbols["DSKTBL"] < symbols["BIOS_DEVICE_TABLES_END"] <= symbols["CON$READ"]):
+                and symbols["END$"] <= symbols["DSKTBL"] < symbols["BIOS_DEVICE_TABLES_END"]
+                <= symbols["BIOS_COLD_DISPATCH_START"] < symbols["BIOS_COLD_DISPATCH_END"] <= symbols["CON$READ"]):
             raise ValueError("packed headers or disposable tables cross their ownership boundary")
     active = symbols["BIOS_SERVICE_ACTIVE"]
     if binary.read_bytes()[active] != 0:
@@ -230,6 +232,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
     if not slot_words or any(data[offset:offset + 2] != b"\0\0" for offset in slot_words):
         raise ValueError("inactive high import slots must be zero")
     manifest = {"activated": False, "reclaimed_bytes": 0,
+                "direct_disk_tables": pack_headers,
                 "packed_headers": pack_headers,
                 "retired_character_bodies": retire_characters,
                 "sha256": hashlib.sha256(image).hexdigest(), "symbols": symbols,

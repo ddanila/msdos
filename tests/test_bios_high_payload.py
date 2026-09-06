@@ -22,6 +22,10 @@ class PayloadTests(unittest.TestCase):
             self.assertLess(symbols["CONHEADER"], symbols["OLD13"])
             self.assertLess(symbols["NUMBER_OF_SEC"], 0x100)
             self.assertGreaterEqual(symbols["DSKTBL"], symbols["END$"])
+            self.assertGreaterEqual(symbols["BIOS_COLD_DISPATCH_START"], symbols["BIOS_DEVICE_TABLES_END"])
+            self.assertLessEqual(symbols["BIOS_COLD_DISPATCH_END"], symbols["CON$READ"])
+            self.assertNotIn("BIOS_DEVICE_ENTRIES_START", symbols)
+            self.assertNotIn("BIOS_HIGH_READ_ENTRY", symbols)
             names = ("CONHEADER", "AUXDEV2", "PRNDEV2", "TIMDEV", "DSKDEV", "COM1DEV",
                      "LPT1DEV", "LPT2DEV", "LPT3DEV", "COM2DEV", "COM3DEV", "COM4DEV")
             for index, name in enumerate(names):

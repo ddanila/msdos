@@ -235,8 +235,15 @@ def main():
             stream.write(f"CHAR_DISPATCH_OFFSET equ {exports['BIOS_DISPATCH_START']}\n")
         binary = (scratch / "MSBIO.BIN").read_bytes()
         targets = {symbols[name]: exports[name] for name in CHARACTER_TARGETS}
+        if manifest.get("direct_disk_tables"):
+            targets.update({symbols[name]: exports[name] for name in
+                            ("DSK$READ", "DSK$WRIT", "DSK$WRITV", "DSK$REM",
+                             "GENERIC$IOCTL", "IOCTL$GETOWN", "IOCTL$SETOWN")})
         checks = []
-        for table, maximum in (("CONTBL", 10), ("AUXTBL", 10), ("TIMTBL", 9), ("PRNTBL", 24)):
+        tables = [("CONTBL", 10), ("AUXTBL", 10), ("TIMTBL", 9), ("PRNTBL", 24)]
+        if manifest.get("direct_disk_tables"):
+            tables.append(("DSKTBL", 24))
+        for table, maximum in tables:
             start = symbols[table]
             for index in range(maximum + 1):
                 offset = start + 1 + 2 * index
@@ -246,7 +253,7 @@ def main():
                     checks += ["mov dx,bx", f"add dx,{targets[low_target]}",
                                f"cmp [es:bx+{high_offset}],dx", "jne fail",
                                f"cmp word [es:bx+{high_offset + 2}],0ffffh", "jne fail"]
-        if len(checks) != 19 * 6:
+        if len(checks) != (26 if manifest.get("direct_disk_tables") else 19) * 6:
             raise ValueError("complete character command publication changed")
         (scratch / "character-check.inc").write_text("\n".join(checks) + "\n")
     (scratch / "low-slots.inc").write_text(

@@ -26,7 +26,8 @@ def write_fixture(output, low, high):
     for command, stub, slot, target in entries:
         table = symbols["DSKTBL"] + 1 + 2 * int(command)
         preflight += [f"cmp word [es:{table}],{symbols[target]}", "jne fail"]
-        bind_low += [f"mov word [es:{table}],{symbols[stub]}"]
+        if not low.get("direct_disk_tables"):
+            bind_low += [f"mov word [es:{table}],{symbols[stub]}"]
     policies = {}
     for index, patch in enumerate(high["boot_patches"].values()):
         original = bytes.fromhex(patch["low_original"])
@@ -61,7 +62,8 @@ def write_fixture(output, low, high):
                         for name in ("SETDRIVE", "MAPERROR", "READ_SECTOR", "CHECKSINGLE")})
     if low.get("retired_character_bodies"):
         low_targets["BIOS_HIGH_TIME_TO_TICKS"] = ("TIME_TO_TICKS", 2)
-    low_targets.update({slot: (target, 4) for _, _, slot, target in entries})
+    if not low.get("direct_disk_tables"):
+        low_targets.update({slot: (target, 4) for _, _, slot, target in entries})
     if high.get("dispatch"):
         low_targets["BIOS_HIGH_DISPATCH_ENTRY"] = ("BIOS_DISPATCH_START", 4)
     for slot, (target, width) in low_targets.items():
@@ -69,7 +71,8 @@ def write_fixture(output, low, high):
         if width == 4:
             bind_low += [f"mov word [es:{symbols[slot] + 2}],0ffffh"]
     if high.get("dispatch"):
-        # Copy AFTER publishing the disk-stub table targets, before ACTIVE.
+        # Publish far targets before ACTIVE. Older layouts retain low disk
+        # stubs; the packed layout selects the existing high services directly.
         # The installer holds CLI across binding, poisoning and activation.
         count = symbols["BIOS_DEVICE_TABLES_END"] - symbols["DSKTBL"]
         if not high.get("far_tables") or 2 * count != high["table_bytes"] or exports["BIOS_DISPATCH_TABLES"] + 2 * count > high["bytes"]:
@@ -85,8 +88,11 @@ def write_fixture(output, low, high):
             bind_low += [f"mov si,{start}", "mov di,bx", f"add di,{delta}",
                          "xor ax,ax", "lodsb", "stosw", f"mov cx,{maximum + 1}",
                          f"activation_far_{name}:", "lodsw", "mov dx,70h"]
-            if high.get("characters"):
-                for index, target in enumerate(CHARACTER_TARGETS):
+            direct_targets = list(CHARACTER_TARGETS) if high.get("characters") else []
+            if low.get("direct_disk_tables"):
+                direct_targets += [target for _, _, _, target in entries]
+            if direct_targets:
+                for index, target in enumerate(direct_targets):
                     bind_low += [f"cmp ax,{symbols[target]}", f"jne activation_char_{name}_{index}",
                                  "mov ax,bx", f"add ax,{exports[target]}", "mov dx,0ffffh",
                                  f"jmp activation_target_{name}", f"activation_char_{name}_{index}:"]
