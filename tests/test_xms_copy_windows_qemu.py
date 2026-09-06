@@ -24,11 +24,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--image", type=Path, default=ROOT / "out/floppy.img")
     parser.add_argument("--fail-after-map", action="store_true")
+    parser.add_argument("--mapped", action="store_true", help="exercise all mapped endpoint combinations")
+    parser.add_argument("--bypass-mapping", action="store_true",
+                        help="negative control: misclassify the mapped source as physical")
     parser.add_argument("--bad-data", action="store_true",
                         help="negative control: corrupt one returned byte; the run must fail")
     args = parser.parse_args()
     if args.fail_after_map and args.bad_data:
         parser.error("the data control requires a completed copy")
+    if args.fail_after_map and args.mapped or args.bypass_mapping and not args.mapped:
+        parser.error("mapped tests require successful copying; bypass requires --mapped")
     subprocess.run(["make", "memm"], cwd=ROOT, check=True)
     normal = ROOT / "src/MEMM/MEMM/EMM386.EXE"
     normal_hash = hashlib.sha256(normal.read_bytes()).hexdigest()
@@ -52,9 +57,12 @@ def main():
     _, symbols = parse_map(work / "MEMM/EMM386.MAP")
     symbols = {symbol.name: symbol for symbol in symbols}
     code_size = symbols["XmsCopyPhysicalEnd"].offset - symbols["XmsCopyPhysical"].offset
+    client_size = symbols["XmsCopyClientEnd"].offset - symbols["XmsCopyClient"].offset
     probe = work / "probe.com"
     subprocess.run(["nasm", "-f", "bin", *(["-DEXPECT_MAP_FAILURE"] if args.fail_after_map else []),
                     *(["-DWRONG_DATA"] if args.bad_data else []),
+                    *(["-DMAPPED_ENDPOINT"] if args.mapped else []),
+                    *(["-DBYPASS_MAPPING"] if args.bypass_mapping else []),
                     str(ROOT / "tests/xms_copy_windows_probe.asm"), "-o", str(probe)], check=True)
     image = work / "boot.img"
     shutil.copyfile(args.image, image)
@@ -74,6 +82,7 @@ def main():
     assert re.search(r"MBTAR_GSEL\s+equ\s+RCODEA_GSEL\+20h", selectors)
     endpoint, debug = work / "qmp", work / "debug.bin"
     report = dict(passed=False, fail_after_map=args.fail_after_map, core_bytes=code_size,
+                  client_bytes=client_size, mapped=args.mapped, bypass_mapping=args.bypass_mapping,
                   normal_sha256=normal_hash, candidate_sha256=hashlib.sha256(candidate.read_bytes()).hexdigest(),
                   probe_sha256=hashlib.sha256(probe.read_bytes()).hexdigest(), bad_data=args.bad_data,
                   image_sha256=hashlib.sha256(args.image.read_bytes()).hexdigest(),
@@ -96,7 +105,7 @@ def main():
         with socket.socket(socket.AF_UNIX) as connection:
             connection.connect(str(endpoint))
             qmp = QMP(connection)
-            for expected in (b"A", b"AB"):
+            for expected in ((b"A", b"AM", b"AMN", b"AMNB") if args.mapped else (b"A", b"AB")):
                 deadline = time.monotonic() + 30
                 while True:
                     trace = debug.read_bytes() if debug.exists() else b""
@@ -124,14 +133,17 @@ def main():
                         break
                     base = struct.unpack_from("<I", ram, offset + 8)[0]
                     if 0x1000000 <= base <= len(ram) - 32768:
-                        matches.append(base)
+                        matches.append((base, struct.unpack_from("<H", ram, offset + 12)[0]))
                     offset += 1
                 if len(matches) != 1:
                     raise ValueError(f"expected one live high-allocation witness: {matches}")
-                base = matches[0]
+                base, frame = matches[0]
                 ranges = [ram[base+start:base+start+8192] for start in (4093, 16391)]
                 expected_data = bytes((n & 255) ^ (n >> 8) ^ 0x5a for n in range(8192))
-                if phase == "B" and not args.fail_after_map and any(data != expected_data for data in ranges):
+                expected_ranges = [expected_data, expected_data]
+                if args.mapped:
+                    expected_ranges[0] = bytes(value ^ 255 for value in expected_data)
+                if phase in ("N", "B") and not args.fail_after_map and ranges != expected_ranges:
                     raise ValueError("actual high physical RAM does not contain both copied ranges")
                 hashes = [hashlib.sha256(data).hexdigest() for data in ranges]
                 cr3 = int(re.search(r"CR3=([0-9a-fA-F]+)", regs)[1], 16)
@@ -139,8 +151,24 @@ def main():
                 if gdt >= 0xA0000:
                     raise ValueError("expected the installed low GDT")
                 windows = copy_window_candidates(ram, cr3)
+                client_frames = []
+                if phase in ("M", "N"):
+                    if not 0x4000 <= frame <= 0xe800:
+                        raise ValueError("invalid EMS frame witness")
+                    pde = struct.unpack_from("<I", ram, cr3 & ~4095)[0]
+                    if pde & 7 != 7:
+                        raise ValueError("client page directory is not present/user/writable")
+                    for page in range(frame >> 8, (frame >> 8) + 8):
+                        pte = struct.unpack_from("<I", ram, (pde & ~4095) + page * 4)[0]
+                        if pte & 7 != 7:
+                            raise ValueError("mapped EMS endpoint is not present/user/writable")
+                        client_frames.append(pte & ~4095)
+                    if client_frames == list(range(frame << 4, (frame << 4) + 32768, 4096)):
+                        raise ValueError("the witness did not actually remap its endpoints")
+                    if phase == "N" and client_frames != report["checkpoints"][-1]["client_frames"]:
+                        raise ValueError("copying changed the application's EMS mappings")
                 row = dict(phase=phase, windows=windows, descriptors=ram[gdt+0x70:gdt+0x80].hex(),
-                           physical_block_base=base, range_hashes=hashes)
+                           physical_block_base=base, range_hashes=hashes, client_frames=client_frames)
                 report["checkpoints"].append(row)
                 if row["descriptors"] != report["checkpoints"][0]["descriptors"]:
                     raise ValueError("copy descriptors were not restored")
@@ -163,7 +191,7 @@ def main():
                 process.wait()
         (work / "qemu.log").write_bytes(process.stderr.read())
         (work / "result.json").write_text(json.dumps(report, indent=2) + "\n")
-    print(f"PASS: physical-copy windows restored; development core {code_size} bytes")
+    print(f"PASS: copy windows restored; physical core {code_size}, typed-address layer {client_size} bytes")
 
 
 if __name__ == "__main__":

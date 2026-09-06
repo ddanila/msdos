@@ -192,7 +192,8 @@ IFDEF EMM_XMS_COPY_TEST
 	mov	ecx,es:[bx+4]
 	mov	esi,es:[bx+8]
 	mov	edi,es:[bx+12]
-	call	XmsCopyPhysical
+	mov	eax,es:[bx+16] ; bit 0/1: source/destination is client-linear
+	call	XmsCopyClient
 	popad
 	mov	ah,0
 	jnc	MB_Client_Status

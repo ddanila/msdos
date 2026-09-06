@@ -104,6 +104,9 @@ org 100h
     cld
     repe cmpsb
     jne failed
+%ifdef MAPPED_ENDPOINT
+    call mapped_test
+%endif
 %endif
     mov al,'B'
     call checkpoint
@@ -124,6 +127,120 @@ org 100h
     jne failed
     mov ax,10h
     jmp finish
+%ifdef MAPPED_ENDPOINT
+mapped_test:
+    mov ah,41h
+    int 67h
+    test ah,ah
+    jnz failed
+    mov [ems_frame],bx
+    mov bx,2
+    mov ah,43h
+    int 67h
+    test ah,ah
+    jnz failed
+    mov [ems_handle],dx
+    xor bx,bx
+    mov ax,4400h
+    int 67h
+    test ah,ah
+    jnz failed
+    mov dx,[ems_handle]
+    mov bx,1
+    mov ax,4401h
+    int 67h
+    test ah,ah
+    jnz failed
+    xor bx,bx
+.invert:
+    xor byte [source+bx],0ffh
+    inc bx
+    cmp bx,8192
+    jb .invert
+    mov es,[ems_frame]
+    mov si,source
+    mov di,4093
+    mov cx,8192
+    cld
+    rep movsb
+    mov al,'M'
+    call checkpoint
+    mov dword [packet_flags],4
+    call reject ; no implicit acceptance of unknown address classes
+    movzx eax,word [ems_frame]
+    shl eax,4
+    add eax,4093
+    mov [packet_source],eax
+    mov eax,[physical]
+    add eax,4093
+    mov [packet_dest],eax
+    mov dword [packet_flags],1
+%ifdef BYPASS_MAPPING
+    mov dword [packet_flags],0
+%endif
+    call copy
+    jc failed
+    test ah,ah
+    jnz failed
+    mov eax,[packet_dest]
+    mov [packet_source],eax
+    movzx eax,word [ems_frame]
+    shl eax,4
+    add eax,4007h
+    mov [packet_dest],eax
+    mov dword [packet_flags],2
+    call copy
+    jc failed
+    test ah,ah
+    jnz failed
+    call mapped_read
+    ; Also exercise client-to-client copying between different EMS pages.
+    mov ax,[ems_frame]
+    add ax,400h
+    mov es,ax
+    mov di,7
+    mov cx,8192
+    xor ax,ax
+    rep stosb
+    movzx eax,word [ems_frame]
+    shl eax,4
+    add eax,4093
+    mov [packet_source],eax
+    mov dword [packet_flags],3
+    call copy
+    jc failed
+    test ah,ah
+    jnz failed
+    call mapped_read
+    mov al,'N'
+    call checkpoint
+    mov dx,[ems_handle]
+    mov ah,45h
+    int 67h
+    test ah,ah
+    jnz failed
+    mov word [ems_frame],0
+    ret
+mapped_read:
+    mov ax,[ems_frame]
+    add ax,400h
+    push ds
+    mov ds,ax
+    mov si,7
+    push cs
+    pop es
+    mov di,target
+    mov cx,8192
+    cld
+    rep movsb
+    pop ds
+    mov si,source
+    mov di,target
+    mov cx,8192
+    repe cmpsb
+    jne failed
+    ret
+%endif
 copy:
     push cs
     pop es
@@ -156,10 +273,13 @@ reserve dw 0
 block dw 0
 witness_signature db 'XWPROBE!'
 physical dd 0
+ems_frame dw 0
+ems_handle dw 0
 packet db 'XCPY'
 packet_length:
     dd 8192
 packet_source dd 0
 packet_dest dd 0
+packet_flags dd 0
 source times 8192 db 0
 target times 8192 db 0

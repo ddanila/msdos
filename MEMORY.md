@@ -2650,13 +2650,39 @@ truncation; the injected failure leaves those ranges unchanged. A corrupted
 returned byte makes the witness fail.
 
 Run `make test-xms-copy-windows-qemu`, or pass `--image` to its Python helper.
-Normal and injected-failure evidence is in `out/xms-copy-windows-gqpav5zq/` and
-`out/xms-copy-windows-__4zc2ew/`; `--bad-data` fails in
-`out/xms-copy-windows-8j6rm1as/`. The normal EMM386 binary remains unchanged.
+Normal and injected-failure evidence is in `out/xms-copy-windows-4_jfeae3/` and
+`out/xms-copy-windows-8zfq86vc/`. `--bad-data` provides a failing returned-data
+control. The normal EMM386 binary remains unchanged.
 This proves a physical-copy primitive in active mode, not public XMS integration,
-handle-zero translation, OFF/AUTO transitions, runtime busy-owner rejection,
+OFF/AUTO transitions, runtime busy-owner rejection,
 or real exception/NMI unwinding. Those gates and the complete provider's
 linked low/high layout remain open; no conventional saving is claimed.
+
+`XmsCopyClient` adds a 322-byte typed-address layer: flag bits select physical
+or client-linear source/destination independently. For decoded conventional/HMA
+addresses it resolves each 4-KiB page through the installed first page table,
+checks present/user access (and write permission for a destination), and passes
+physical chunks to the same backend. Unknown flags and client ranges outside
+`00000000h..0010FFFFh` are rejected. No client PTE is modified. Its maximum own
+nested stack use is 118 bytes including the physical backend and near return,
+excluding the test adapter and outer trap/provider frames.
+
+The `--mapped` witness maps two separately allocated EMS pages into the frame,
+fills a changed pattern, and exercises mapped-to-physical, physical-to-mapped,
+and mapped-to-mapped copying across 4-KiB boundaries. Host snapshots verify that
+the endpoints really are remapped, that their eight PTE physical targets stay
+unchanged, and that the high XMS destination contains the changed pattern.
+The passing capture is `out/xms-copy-windows-hceophi6/`; deliberately treating
+the mapped source as physical (`--mapped --bypass-mapping`) fails in
+`out/xms-copy-windows-tzfglry6/`. The mapped case is part of
+`make test-xms-copy-windows-qemu`.
+
+This layer is not the complete handle-zero API: the caller must establish A20
+policy and validate the far pointer, ownership and whole-range non-overlap,
+including aliases. Permission checking is per chunk; a later rejected page
+can follow completed chunks. Full-range validation, precise public error
+semantics and stable mappings across asynchronous entry remain required before
+binding it to XMS Move/reallocation. Normal EMM386 remains unchanged.
 
 The census also now distinguishes handle zero's conventional physical pages
 from locked XMS backing: `_total_pages` includes both. It checks the ordered
