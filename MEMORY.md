@@ -342,6 +342,31 @@ instruction-harvesting tranche or a completed high-resident manager.
 
 ##### Combined-provider decision: include boot-time reclamation
 
+**Allocator failure boundary:** `ALLOCMEM.ASM:XMSAlloc` now permits the
+historical INT 15h allocation path only when INT 2Fh/4300h reports no XMS
+provider. Once a provider is present, insufficient capacity, allocation/lock
+failure or an unsupported physical address marks installation as failed.
+Successful partial reservations are unlocked/freed as applicable; no second
+allocator is attempted over the provider's memory. Previously allocation and
+lock failures could reach the no-provider fallback. This is a normal-build
+ownership correction, not integrated XMS or a conventional-memory saving.
+
+`make test-emm-xms-owner-qemu` extracts and executes the actual `AllocMem` and
+`XMSAlloc` procedures against a controlled provider. Seven cases check absent,
+successful, allocation-failing, lock-failing, out-of-range, insufficient-capacity
+and overflowing requests, including exact allocation/cleanup/fallback calls.
+This isolated witness does not prove failed-INIT device-chain/arena cleanup or
+recovery when the provider itself refuses unlock/free. Those remain gates.
+The successful witness is `out/emm-xms-owner-hu2l0hde/`; `--bad-fallback`
+deliberately restores failure-to-fallback behavior and must fail the assertions.
+It fails for the intended fallback calls in `out/emm-xms-owner-v0sifo48/`.
+Fresh high-table ON/OFF/AUTO/RAM boots pass in `out/emm-init-phases-jlhkqc0q/`,
+retaining the same 2,016-byte EMM low spans. That ON image also passes the full
+EMM API/runtime-command suite with its no-HIMEM configuration, preserving the
+legitimate absent-provider path. The new normal EMM386 SHA-256 is
+`f2bae80311506fd54394e8f567a7a324d988575e3c80a736ac126e0269cafa96`;
+earlier byte-identity claims refer to their recorded pre-correction snapshots.
+
 The next manager design must compare a coordinated 386 provider with the
 standalone-HIMEM HMA split, not assume the latter is the final architecture.
 The source audit adds a constraint beyond high-service dispatch: **who releases

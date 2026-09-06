@@ -269,6 +269,10 @@ test-drdos-capture:
 	python3 tests/test_uma_topology.py
 
 .PHONY: test-emm-init-phases
+.PHONY: test-emm-xms-owner-qemu
+test-emm-xms-owner-qemu:
+	python3 tests/test_emm_xms_owner_qemu.py
+
 test-emm-init-phases:
 	python3 tests/test_emm_init_phases.py
 	python3 tests/test_emm_loader_rebase.py
