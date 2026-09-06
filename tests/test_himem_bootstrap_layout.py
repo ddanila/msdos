@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 
 from report_himem_residency import (
     BOOTSTRAP_PROCEDURES, PERMANENT_PROCEDURES, check_bootstrap_layout, paired_front_ownership,
-    parse_symbols,
+    parse_symbols, transplant_counterfactual,
 )
 
 
@@ -61,6 +61,28 @@ class BootstrapLayoutTests(unittest.TestCase):
 
 
 class PairedFrontTests(unittest.TestCase):
+    def test_transplant_scenario_retains_transport_and_unknown_gate_costs(self):
+        for staged in (False, True):
+            for handoff in (False, True):
+                report = self.report(staged=staged, handoff=handoff)
+                scenario = report["transplant_counterfactual"]
+                self.assertEqual(scenario["removed_linked_bytes"] + scenario["retained_linked_bytes"],
+                                 report["layout"]["permanent_bytes"])
+                self.assertIsNone(scenario["replacement_gate_bytes"])
+                self.assertIsNone(scenario["final_low_bytes"])
+                self.assertNotIn("High allocator transport", scenario["removed_groups"])
+                self.assertNotIn("UMB handoff transport and publication state", scenario["removed_groups"])
+                self.assertNotIn("Front alignment", scenario["removed_groups"])
+                self.assertIn("Private UMB registration", scenario["removed_groups"])
+                self.assertEqual("Bootstrap staging transaction" in scenario["removed_groups"], staged)
+
+    def test_transplant_scenario_rejects_missing_and_duplicate_owners(self):
+        rows = self.report()["front"]
+        with self.assertRaises(ValueError):
+            transplant_counterfactual(rows + [rows[0]])
+        with self.assertRaises(ValueError):
+            transplant_counterfactual([r for r in rows if r["owner"] != "UMB records"])
+
     def report(self, *, staged=True, handoff=False, bad=None, alignment=10):
         names = ["strategy", "multiplex_handler", "private_register", "int15_handler",
                  "xms_control", "xms_hma_request", "xms_global_enable", "private_bootstrap_layout"]

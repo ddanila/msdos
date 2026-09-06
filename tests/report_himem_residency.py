@@ -192,8 +192,37 @@ def paired_front_ownership(path, handle_count):
         rows.append(dict(owner=owner, start=start, end=end, bytes=end-start, contract=contract))
     if sum(row["bytes"] for row in rows) != layout["permanent_bytes"]:
         raise ValueError("paired front has unaccounted bytes")
-    return dict(layout=layout, front=rows, projected_low_bytes=None,
+    return dict(layout=layout, front=rows, transplant_counterfactual=transplant_counterfactual(rows),
+                projected_low_bytes=None,
                 projected_release_bytes=None)
+
+
+def transplant_counterfactual(rows):
+    """Price one hypothetical deletion, not relocatability or a final layout.
+
+    Delete complete boot/UMB/Move groups while retaining the present transports
+    and everything else. This deliberately deletes required peer wrappers and
+    scratch too, and charges no replacement gates. It can reject an attractive
+    but insufficient design sequence; it cannot predict its achievable saving.
+    """
+    removed_names = {
+        "Bootstrap layout query", "Bootstrap staging transaction", "Bootstrap forwarding",
+        "Private UMB registration", "UMB allocation and coalescing", "UMB records",
+        "Public Move validation", "Move address translation", "Protected copy entry",
+        "Physical address helper",
+    }
+    optional = {"Bootstrap staging transaction", "Bootstrap forwarding"}
+    by_name = {row["owner"]: row for row in rows}
+    if len(by_name) != len(rows) or (removed_names - optional) - by_name.keys():
+        raise ValueError("incomplete or duplicate transplant accounting groups")
+    removed = [row for row in rows if row["owner"] in removed_names]
+    retained = [row for row in rows if row["owner"] not in removed_names]
+    return dict(removed_groups=[row["owner"] for row in removed],
+                removed_linked_bytes=sum(row["bytes"] for row in removed),
+                retained_linked_bytes=sum(row["bytes"] for row in retained),
+                replacement_gate_bytes=None, final_low_bytes=None,
+                note="Hypothetical deletion with current transports and alignment retained; "
+                     "excludes EMM, high costs and replacement interfaces. Not reclaimable bytes.")
 
 
 def provider_ownership(path: Path, end: int) -> list[tuple[str, int, int, str]]:
@@ -258,6 +287,11 @@ def main() -> int:
                 print(f'| {row["owner"]} | `{row["start"]:04X}..{row["end"]:04X}` | {row["bytes"]} | {row["contract"]} |')
             print(f'\nPermanent front: {report["layout"]["permanent_bytes"]} bytes. '
                   'Bootstrap release must be measured separately; complete provider also includes EMM386.')
+            scenario = report["transplant_counterfactual"]
+            print(f'\nDeleting all inventoried bootstrap, UMB peer/services/records and Move groups '
+                  f'would remove {scenario["removed_linked_bytes"]} linked bytes and leave '
+                  f'{scenario["retained_linked_bytes"]} with the present transports. '
+                  'Replacement interfaces are unpriced; this is not a release or final-size forecast.')
         return 0
 
     symbols, numbers = parse_symbols(args.listing)

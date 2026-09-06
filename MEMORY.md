@@ -221,6 +221,34 @@ Measure final conventional release, free UMB and application XMS together.
 Do not add isolated prototype savings, count poisoned storage as free, or
 start another byte-reduction tranche while this layout remains unqualified.
 
+**Transport-preserving relocation is insufficient:** the linked v2 paired
+front in `out/emm-init-phases-d12lsm2q/` is 3,504 bytes, plus 2,128 low EMM
+bytes. The paired census now prices a deliberately generous counterfactual:
+delete all inventoried bootstrap query/staging/forwarding (421), UMB peer/
+allocator/records (600), and Move/translation/copy/helpers (378), keeping every
+other group unchanged. Removing those 1,399 linked bytes leaves 2,105 HIMEM
++ 2,128 EMM = **4,233 bytes before replacement interfaces**, only 423 below
+the selected composition's 4,656-byte manager pair. It even deletes necessary
+peer wrappers and scratch without charging replacements. This is conditional
+arithmetic, not an achievable size or a bound on other designs; normal build
+and diagnostic costs are distinct. It rules out this sequence as a sufficient
+manager redesign. `--paired --json` records the selected groups and leaves
+replacement/final costs unknown; eleven layout tests cover the accounting.
+
+The next provider interface to design and link is therefore **one registered
+steady-state service entry**, shared by XMS handles, public Move and UMB
+services, with boot import/publication kept separate. Current low handle
+transport/adapters (514 bytes) and UMB transport/state (622) are separate
+experimental mechanisms, not mandatory public ABI. Preserve the cached XMS
+entry and public register/real-pointer contracts through low adapters; perform
+service validation against the authoritative high state. Keep HMA reservation
+and A20 recovery callable low. Do not merely cache a provider pointer and
+remove failure checks: publication must bind its lifetime, mode transitions,
+caller context and result semantics first. Price that complete common entry
+with the existing EMM transition machinery before choosing its packed release
+boundary. The BIOS/COMMAND shared-HMA design remains a parallel requirement;
+the manager interface alone does not explain their vendor differences.
+
 ### Reclamation contract: from placement evidence to a smaller resident system
 
 The DR-DOS evidence establishes whole-component placement, not its private
