@@ -118,20 +118,21 @@ def bios_core_partition(symbols: dict[str, int]) -> list[tuple[str, int, int, st
     if bds[0] != sector_end or any(right - left != 100
             for left, right in zip(bds, bds[1:] + [at("SM92")])):
         raise ValueError("BIOS sector/BDS layout changed; review four live drive records")
-    if at("VDISK_AREA") != 0x100 or at("CONHEADER") != at("VDISK_AREA") + 110:
+    packed = at("CONHEADER") < at("VDISK_AREA")
+    if at("VDISK_AREA") != 0x100 or (not packed and at("CONHEADER") != at("VDISK_AREA") + 110):
         raise ValueError("fixed VDISK reservation or AUXNUM binding changed")
-    if at("BIO001S") != at("DSKTBL"):
+    if not packed and at("BIO001S") != at("DSKTBL"):
         raise ValueError("BIOS core no longer starts at its dispatch tables")
     if at("ERROUT") - at("ERRIN") != at("NUMERR"):
         raise ValueError("BIOS error-table pair changed")
     error_end = at("ERROUT") + at("NUMERR")
     specs = [
-        ("Device dispatch tables and alignment", at("BIO001S"), at("OLD13"), "bind with complete dispatch; fixed-prefix hole if moved alone"),
+        ("Packed device headers and alignment" if packed else "Device dispatch tables and alignment", at("BIO001S"), at("OLD13"), "retained low public headers" if packed else "bind with complete dispatch; fixed-prefix hole if moved alone"),
         ("Saved INT 13 vectors and request scratch", at("OLD13"), at("NUMBER_OF_SEC") + 1, "retain low interface initially"),
         ("Padding to fixed VDISK offset", at("NUMBER_OF_SEC") + 1, at("VDISK_AREA"), "packing capacity, not released bytes"),
         ("VDISK compatibility reservation", at("VDISK_AREA"), at("VDISK_AREA") + 108, "fixed low address"),
-        ("AUX device index and binding", at("VDISK_AREA") + 108, at("CONHEADER"), "retain with GETDX contract"),
-        ("Device headers and embedded control state", at("CONHEADER"), at("NEXT2F_13"), "public real-mode pointers"),
+        ("AUX device index and binding", at("VDISK_AREA") + 108, at("NEXT2F_13") if packed else at("CONHEADER"), "retain with GETDX contract"),
+        *([("Device headers and embedded control state", at("CONHEADER"), at("NEXT2F_13"), "public real-mode pointers")] if not packed else []),
         ("INT 2F chain and BDS-list roots", at("NEXT2F_13"), at("ACCESSCOUNT"), "public/interrupt-facing anchors"),
         ("Disk/format request state", at("ACCESSCOUNT"), at("ERRIN"), "rebind with complete disk service"),
         ("Disk error translation tables", at("ERRIN"), error_end, "private service data; rebind readers"),

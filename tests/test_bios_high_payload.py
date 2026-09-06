@@ -8,6 +8,32 @@ from build_bios_high_payload import build, offset_fixups, rebase, boot_policy, p
 
 
 class PayloadTests(unittest.TestCase):
+    def test_packed_headers_preserve_chain_and_fixed_vdisk_anchor(self):
+        from build_bios_low_image import build as build_low
+        from report_dos_bios_residency import bios_core_partition, parse_map
+        import struct
+        with tempfile.TemporaryDirectory(prefix="msdos-packed-headers-test-") as scratch:
+            directory = Path(scratch)
+            low = build_low(directory, tail_body=True, dispatch=True, characters=True,
+                            retire_characters=True, pack_headers=True)
+            symbols = low["symbols"]
+            binary = (directory / "MSBIO.BIN").read_bytes()
+            self.assertEqual(symbols["VDISK_AREA"], 0x100)
+            self.assertLess(symbols["CONHEADER"], symbols["OLD13"])
+            self.assertLess(symbols["NUMBER_OF_SEC"], 0x100)
+            self.assertGreaterEqual(symbols["DSKTBL"], symbols["END$"])
+            names = ("CONHEADER", "AUXDEV2", "PRNDEV2", "TIMDEV", "DSKDEV", "COM1DEV",
+                     "LPT1DEV", "LPT2DEV", "LPT3DEV", "COM2DEV", "COM3DEV", "COM4DEV")
+            for index, name in enumerate(names):
+                address = symbols[name]
+                self.assertLess(address, symbols["OLD13"])
+                target = symbols[names[index + 1]] if index + 1 < len(names) else 0xffff
+                self.assertEqual(struct.unpack_from("<HH", binary, address), (target, 0x70))
+            _, linked = parse_map(directory / "msBIO.map")
+            rows = bios_core_partition(linked)
+            self.assertEqual(sum(end-start for _, start, end, _ in rows),
+                             symbols["BIOS_IOCTL_LOW_START"] - symbols["BIO001S"])
+
     def test_character_retirement_keeps_low_state_and_clock_hook(self):
         from build_bios_low_image import build as build_low
         from build_bios_activation_fixture import write_fixture

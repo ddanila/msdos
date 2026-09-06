@@ -14,13 +14,18 @@ Report UMB and application XMS costs alongside the gain. Complete BIOS and
 COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
-The current **character-body retirement candidate** is measured at
-**618,688 conventional / 49,680 free UMB bytes** in
-`out/umb-fine-composition-q8kg7dgz/`: **736 bytes recovered** versus the
-bootstrap-retirement candidate below, **752 above the composed control**, and
-**48 below retail**. The low BIOS allocation falls from 5,152 to 4,416 bytes.
+The current **packed BIOS retirement candidate** is measured at
+**618,896 conventional / 49,680 free UMB bytes** in
+`out/umb-fine-composition-tuqn5boo/`: **944 bytes recovered** versus the
+bootstrap-retirement candidate below, **960 above the composed control**, and
+**160 above retail**. The low BIOS allocation falls from 5,152 to 4,208 bytes.
 The old console/serial/printer/clock bodies are placed in the disposable tail,
 poisoned after high publication, and released by the existing low compaction.
+The complete boot device tables also move to that tail; their former space
+below the fixed `0100h` VDISK anchor holds all 12 retained device headers and
+embedded state. This removes the old post-VDISK header allocation. Relative to
+the 618,688-byte character-retirement result, the additional net gain is
+**208 bytes** (218 header bytes less changed alignment), not another high copy.
 This is an opt-in experimental layout, not production promotion.
 
 The shared HMA charge is now 40,272 DOS + 6,658 BIOS + 7,988 buffers +
@@ -29,17 +34,20 @@ The shared HMA charge is now 40,272 DOS + 6,658 BIOS + 7,988 buffers +
 do not count both reservations or reuse their 9,577-byte tail. Application XMS
 remains 6,798,336 bytes, **5,120 below the control**; UMB remains unchanged.
 
-Retirement layout/link tests and composed VC boot pass. Warm-reset boot passes
-in `out/bios-low-boot-n4r3xw4z/`; forced high-reservation failure retains working
-fallback bodies in all four boot modes in `out/bios-low-boot-kq0v04jb/`.
+Retirement layout/link tests and composed VC boot pass. Packed-header warm-reset
+boot passes in `out/bios-low-boot-kbts3jqv/`; forced high-reservation failure
+retains working fallback tables/bodies in all four boot modes in
+`out/bios-low-boot-5sp1c0mh/`. The linker test checks all 12 device-chain links,
+the fixed VDISK offset and complete retained-core accounting. The source-free
+vendor memory comparison is not proof that private fixed offsets are equivalent.
 The direct TimeToTicks near callback now passes four exact time conversions in
 low fallback, poisoned high and compacted high layouts. The high cases prove
 A20 is off through physical aliasing before entry and restored afterward;
 SP, DS, ES, SI, DI and BP survive. Removing the installed gate's A20-restoring
 call reaches the A20-off marker but cannot complete the first callback. This
 is a 486/HIMEM-only qualification, not a paired-provider or suspend/resume test.
-Reproduce with `python3 tests/test_bios_clock_callback_qemu.py`; evidence is
-`out/bios-clock-callback-ohfqqa_8/`. The probe temporarily replaces and restores
+Reproduce with `python3 tests/test_bios_clock_callback_qemu.py --pack-headers`;
+packed-layout evidence is `out/bios-clock-callback-vejzjz0l/`. The probe temporarily replaces and restores
 the loader entry as its same-segment near caller, with interrupts masked;
 it adds no resident production gateway. Full device-request semantics remain
 open. Finish those checks before promotion, then settle remaining BIOS mixed
@@ -51,7 +59,7 @@ qualification remains open.
 Reproduce the composed measurement with:
 
 ```sh
-python3 tests/test_umb_subpage_composition.py --paired-provider out/emm-init-phases-q3jatbct --retire-bios-characters
+python3 tests/test_umb_subpage_composition.py --paired-provider out/emm-init-phases-q3jatbct --retire-bios-characters --pack-bios-headers
 ```
 
 The preceding bootstrap-retirement candidate is measured at

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Qualify the installed clock near hook after whole-body retirement."""
 import hashlib
+import argparse
 import json
 import os
 from pathlib import Path
@@ -13,6 +14,9 @@ from build_bios_low_image import ROOT, build
 
 
 def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--pack-headers", action="store_true", help="qualify the packed low device-header layout")
+    args = parser.parse_args()
     subprocess.run(["make", "dos", "bios", "cmd_command", str(ROOT / "src/DEV/HIMEM/HIMEM.SYS")],
                    cwd=ROOT, check=True)
     work = Path(tempfile.mkdtemp(prefix="bios-clock-callback-", dir=ROOT / "out"))
@@ -29,7 +33,8 @@ def main():
         directory = work / name
         low = build(directory, early=True, tail_body=True, dispatch=True,
                     characters=True, retire_characters=True, rebase=compact,
-                    compact=compact, reservation_limit=0xfff0 if active else 0x10)
+                    compact=compact, pack_headers=args.pack_headers,
+                    reservation_limit=0xfff0 if active else 0x10)
         symbols = low["symbols"]
         binary = (directory / "MSBIO.BIN").read_bytes()
         gate = symbols["TIME_TO_TICKS"]

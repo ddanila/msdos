@@ -62,6 +62,7 @@ def main():
     parser.add_argument("--dispatch", action="store_true", help="install high decoder/tables and poison low originals")
     parser.add_argument("--characters", action="store_true", help="bind complete high console/serial/printer/clock bodies")
     parser.add_argument("--retire-characters", action="store_true", help="release and poison the old character bodies after high activation")
+    parser.add_argument("--pack-headers", action="store_true", help="pack low headers into retired device-table space")
     parser.add_argument("--tail-body", action="store_true", help="test last-linked fallback service layout")
     parser.add_argument("--scan", action="store_true", help="record activation-time pointer candidates on debug port")
     parser.add_argument("--rebase", action="store_true", help="move and poison the old low DOS prefix")
@@ -151,6 +152,8 @@ def main():
         parser.error("--characters requires --dispatch")
     if args.retire_characters and not (args.characters and args.tail_body):
         parser.error("--retire-characters requires --characters --tail-body")
+    if args.pack_headers and not args.retire_characters:
+        parser.error("--pack-headers requires --retire-characters")
     if (args.scan or args.rebase) and not (args.early and args.tail_body):
         parser.error("--scan/--rebase requires --early --tail-body")
     if args.compact and not args.rebase:
@@ -174,7 +177,7 @@ def main():
                      reservation_limit=0x10 if args.fail_reservation else 0xfff0, fail_tables=args.fail_table_allocation,
                      high_cds=args.high_cds, fail_cds=args.fail_cds_allocation,
                      cds_cache_case=args.cds_cache_case, cds_cache_negative=args.cds_cache_negative,
-                     retire_characters=args.retire_characters)
+                     retire_characters=args.retire_characters, pack_headers=args.pack_headers)
     high_manifest = build_high(scratch / "high", scratch, dispatch=args.dispatch, characters=args.characters)
     if args.rebase:
         layout = scratch / "public-layout.bin"

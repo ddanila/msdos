@@ -13,13 +13,15 @@ from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False, retire_characters=False, paired_provider=None):
+def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False, retire_characters=False, pack_headers=False, paired_provider=None):
     if paired_provider is not None and not (early and rebase and compact):
         raise ValueError("paired provider requires the early rebased/compacted composition")
     if characters and not dispatch:
         raise ValueError("character owner requires far dispatch tables")
     if retire_characters and not (characters and tail_body):
         raise ValueError("character retirement requires complete high characters and a disposable tail")
+    if pack_headers and not retire_characters:
+        raise ValueError("header packing requires the retired-character/far-table layout")
     cache_cases = {"first": 1, "last": 2, "past-end": 3, "foreign": 4}
     if cds_cache_case is not None and (not high_cds or cds_cache_case not in cache_cases):
         raise ValueError("CDS cache case requires high CDS and a known case")
@@ -49,7 +51,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         from build_bios_high_payload import build as build_high
         from build_bios_activation_fixture import write_fixture
         seed = build(output, tail_body=tail_body, dispatch=dispatch, characters=characters,
-                     retire_characters=retire_characters)
+                     retire_characters=retire_characters, pack_headers=pack_headers)
         if rebase:
             _, dos_symbols = parse_map(ROOT / "src/DOS/MSDOS.MAP")
             dos_symbols = {name.upper(): value for name, value in dos_symbols.items()}
@@ -140,6 +142,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         options += " -DBIOS_SERVICE_TAIL_BODY=1"
     if dispatch:
         options += " -DBIOS_SERVICE_DISPATCH=1"
+    if pack_headers:
+        options += " -DBIOS_PACK_HEADERS=1"
     if scan:
         options += " -DBIOS_BOOT_SCAN=1"
     if rebase:
@@ -167,6 +171,10 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
     names = ("MSBIO1", "MSCON", "MSAUX", "MSLPT", "MSCLOCK", "MSDISK", "MSBIO2",
              "MSHARD", "MSINIT", "SYSINIT1", "SYSCONF", "SYSINIT2", "SYSIMES")
     objects = [(output if name in changed else bios) / (name + ".OBJ") for name in names]
+    if pack_headers:
+        tables = output / "BOOTDEVT.OBJ"
+        run([ROOT / "bin/jwasm-masm", options, f"BOOTDEVT.ASM,{tables};"], bios)
+        objects.append(tables)
     if retire_characters:
         objects = [obj for obj in objects if obj.stem not in ("MSAUX", "MSLPT")]
         for module in ("MSCON", "MSAUX", "MSLPT", "MSCLOCK"):
@@ -205,6 +213,10 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         if not (symbols["TIME_TO_TICKS"] < symbols["END$"]
                 and symbols["CON$READ"] <= symbols["BIOS_CLOCK_BODY_TICKS"] < symbols["BIOS_SERVICE_START"]):
             raise ValueError("clock near entry must remain low while its body is disposable")
+    if pack_headers:
+        if not (symbols["CONHEADER"] < symbols["OLD13"] < symbols["VDISK_AREA"] == 0x100
+                and symbols["END$"] <= symbols["DSKTBL"] < symbols["BIOS_DEVICE_TABLES_END"] <= symbols["CON$READ"]):
+            raise ValueError("packed headers or disposable tables cross their ownership boundary")
     active = symbols["BIOS_SERVICE_ACTIVE"]
     if binary.read_bytes()[active] != 0:
         raise ValueError("development BIOS starts active with unbound targets")
@@ -218,6 +230,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
     if not slot_words or any(data[offset:offset + 2] != b"\0\0" for offset in slot_words):
         raise ValueError("inactive high import slots must be zero")
     manifest = {"activated": False, "reclaimed_bytes": 0,
+                "packed_headers": pack_headers,
                 "retired_character_bodies": retire_characters,
                 "sha256": hashlib.sha256(image).hexdigest(), "symbols": symbols,
                 "high_slot_words": sorted(slot_words), "early_boot_installer": early,
@@ -253,6 +266,7 @@ if __name__ == "__main__":
     parser.add_argument("--dispatch", action="store_true", help="include complete high decoder and device tables")
     parser.add_argument("--characters", action="store_true", help="bind the complete high character service owner")
     parser.add_argument("--retire-characters", action="store_true", help="pack the low character/clock bodies into the disposable tail")
+    parser.add_argument("--pack-headers", action="store_true", help="pack low headers into retired device-table space")
     parser.add_argument("--scan", action="store_true", help="capture activation-time ownership on QEMU debug port")
     parser.add_argument("--rebase", action="store_true", help="move and poison the old low DOS prefix")
     parser.add_argument("--compact", action="store_true", help="coalesce the first-HIMEM boot allocation after rebasing")
@@ -262,7 +276,7 @@ if __name__ == "__main__":
     parser.add_argument("--cds-cache-negative", action="store_true")
     args = parser.parse_args()
     build(args.output, early=args.early, tail_body=args.tail_body, dispatch=args.dispatch, characters=args.characters,
-          retire_characters=args.retire_characters,
+          retire_characters=args.retire_characters, pack_headers=args.pack_headers,
           scan=args.scan, rebase=args.rebase, compact=args.compact,
           high_cds=args.high_cds, fail_cds=args.fail_cds_allocation,
           cds_cache_case=args.cds_cache_case, cds_cache_negative=args.cds_cache_negative)

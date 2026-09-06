@@ -21,6 +21,7 @@ ERR$EXIT:
 BUS$EXIT endp
 EXITP proc far
         assume ds:CODE
+PUBLIC EXIT$ZER
 EXIT$ZER:
         lds bx,[PTRSAV]
         assume ds:nothing
