@@ -12,6 +12,7 @@ start:
     mov sp,offset stack_end
     mov ds,ax
     mov word ptr [entry+2],ax
+    mov [shell_bridge_init_segment],ax
     add ax,20h
     mov [owner_segment],ax
     mov [shell_binding_contc_entry_ds],ax
@@ -177,6 +178,7 @@ done:
 COMMAND_RESIDENT_BINDING equ 1
 SHELL_CTRL_STATE TEXTEQU <DS>
 include RESBIND.INC
+include SHELLGATE.INC
 include CONTC_FLAGS.INC
 include CONTC_ENTRY.INC
     ; Entry selected shell DS; substitute for the main Ctrl+C body.

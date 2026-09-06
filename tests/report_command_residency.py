@@ -7,6 +7,7 @@ import argparse
 from dataclasses import dataclass
 from pathlib import Path
 import re
+import subprocess
 
 
 SEGMENT_RE = re.compile(
@@ -95,6 +96,44 @@ BINDING_SLOTS = ("fatal_ds", "fatal_psp", "ret2e_ds", "int2e_es", "int2e_bx",
 GATE_TARGETS = (("lodcom", "lodcom"), ("contc", "CONTC"), ("dskerr", "DSKERR"),
                 ("int2e", "INT_2E"), ("headfix", "THEADFIX"), ("exec", "EXT_EXEC"),
                 ("remcheck", "TREMCHECK"), ("diskmsg", "READ_DISK_PROC"))
+
+BRIDGE_TARGETS = (("init", "init_contc_specialcase"), ("xlat", "hma_in_char_xlat_high"),
+                  ("kanj", "hma_test_kanj_high"), ("getmsg", "shell_getmsg_fallback"),
+                  ("dispmsg", "shell_dispmsg_fallback"))
+
+
+def check_relative_service_branches(disassembly: str, start: int, end: int) -> None:
+    for line in disassembly.splitlines():
+        branch = re.match(r"^[0-9A-F]+\s+[0-9A-F]+\s+(?:j\w+|call|loop\w*)\s+(?:near |short )?0x([0-9a-f]+)$", line, re.I)
+        if branch and not start <= int(branch[1], 16) < end:
+            raise ValueError(f"relative service branch escapes the movable body: {line}")
+
+
+def check_shell_bridges(symbols: dict[str, int], image: bytes) -> None:
+    start, end = require(symbols, "shell_service_start"), require(symbols, "RES_CODE_END")
+    constructor = bytearray()
+    for slot, target in BRIDGE_TARGETS:
+        bridge = require(symbols, "shell_bridge_" + slot)
+        segment = require(symbols, "shell_bridge_" + slot + "_segment")
+        opcode = 0xEA if slot == "init" else 0x9A
+        expected = bytes((opcode,)) + require(symbols, target).to_bytes(2, "little") + b"\0\0"
+        if (not start <= bridge <= end - 5 or segment != bridge + 3
+                or image[bridge-0x100:bridge-0xFB] != expected):
+            raise ValueError("outgoing service bridge lacks its bound far transfer")
+        constructor.extend(b"\x8c\x0e" + segment.to_bytes(2, "little"))
+    init = require(symbols, "shell_bridge_constructor")
+    if (init != require(symbols, "shell_gate_constructor_end")
+            or require(symbols, "shell_bridge_constructor_end") != init + len(constructor)
+            or image[init-0x100:init-0x100+len(constructor)] != constructor):
+        raise ValueError("outgoing bridge constructor is incomplete or misplaced")
+    for slot, engine in (("getmsg", "HMA_SYSGETMSG"), ("dispmsg", "HMA_SYSDISPMSG")):
+        wrapper = require(symbols, "shell_" + slot + "_fallback")
+        displacement = (require(symbols, engine) - wrapper - 3) & 0xFFFF
+        if image[wrapper-0x100:wrapper-0xFC] != b"\xe8" + displacement.to_bytes(2, "little") + b"\xcb":
+            raise ValueError("message fallback must adapt a near engine to a far return")
+    decoded = subprocess.run(["ndisasm", "-b16", f"-o{start}", "-"],
+                             input=image[start-0x100:end-0x100], capture_output=True, check=True)
+    check_relative_service_branches(decoded.stdout.decode(), start, end)
 
 
 def check_shell_gates(symbols: dict[str, int], image: bytes) -> None:
@@ -296,11 +335,14 @@ def main() -> int:
             and resident_critical_ptr + 4 <= resident_class_ptrs):
         errors.append("cached critical-catalog pointer is not retained in low message state")
     prototype_allowance = 128 if args.critical_split else 0
+    fallback_allowance = prototype_allowance
     if args.resident_binding:
         prototype_allowance = 128
+        fallback_allowance = 144
         check_resident_bindings(symbols, args.binary.read_bytes())
         check_critical_owner_bindings(symbols, args.binary.read_bytes())
         check_shell_gates(symbols, args.binary.read_bytes())
+        check_shell_bridges(symbols, args.binary.read_bytes())
         if args.gate_include:
             constants = ["%define EXPECT_SHELL_GATES 1",
                          f"%define SHELL_TRANVARS {require(symbols, 'TRANVARS')}"]
@@ -308,11 +350,19 @@ def main() -> int:
                 constants.append(f"%define SHELL_GATE_{slot.upper()} {require(symbols, 'shell_gate_' + slot)}")
             constants.append("%define SHELL_GATE_TARGETS " + ",".join(
                 str(require(symbols, target)) for _, target in GATE_TARGETS))
+            constants.append("%define EXPECT_SHELL_BRIDGES 1")
+            for slot, target in BRIDGE_TARGETS:
+                constants.append(f"%define SHELL_BRIDGE_{slot.upper()} {require(symbols, 'shell_bridge_' + slot)}")
+                constants.append(f"%define SHELL_FALLBACK_{slot.upper()} {require(symbols, target)}")
+            for slot, pointer in (("XLAT", "hma_in_char_xlat_entry"), ("KANJ", "hma_test_kanj_entry")):
+                constants.append(f"%define SHELL_POINTER_{slot} {require(symbols, pointer)}")
+            for slot, engine in (("GETMSG", "HMA_SYSGETMSG"), ("DISPMSG", "HMA_SYSDISPMSG")):
+                constants.append(f"%define SHELL_DELTA_{slot} {require(symbols, engine) - require(symbols, 'hma_in_char_xlat_high')}")
             args.gate_include.write_text("\n".join(constants) + "\n")
     if rounded(resident_catalog_start) > 3632 + prototype_allowance:
         errors.append(f"DOS-high permanent COMMAND exceeds its {3632 + prototype_allowance:,}-byte budget")
-    if rounded(hma_code_end) > 6080 + prototype_allowance:
-        errors.append(f"low/failure COMMAND fallback exceeds its {6080 + prototype_allowance:,}-byte budget")
+    if rounded(hma_code_end) > 6080 + fallback_allowance:
+        errors.append(f"low/failure COMMAND fallback exceeds its {6080 + fallback_allowance:,}-byte budget")
     if not (
         datares_end == data.end <= hma_code_start < hma_code_end
         <= parse_messages == segments["MSGOPT"].start

@@ -39,6 +39,7 @@ def main():
         flags.append(found[0])
     (work / "CONTC_FLAGS.INC").write_text("\n".join(flags) + "\n")
     shutil.copyfile(ROOT / "src/CMD/COMMAND/RESBIND.INC", work / "RESBIND.INC")
+    shutil.copyfile(ROOT / "src/CMD/COMMAND/SHELLGATE.INC", work / "SHELLGATE.INC")
     shutil.copyfile(ROOT / "tests/command_contc_entry_masm.asm", work / "probe.asm")
 
     def run(*cmd, **kwargs):
@@ -75,6 +76,7 @@ def main():
                          for path in (source, work / "RESBIND.INC", work / "probe.asm",
                                       work / "CONTC_ENTRY.INC", work / "CONTC_FLAGS.INC",
                                       work / "PIPEOFF.INC",
+                                      work / "SHELLGATE.INC",
                                       work / "probe.com", args.image)}}
     (work / "result.json").write_text(json.dumps(record, indent=2) + "\n")
     if not passed:

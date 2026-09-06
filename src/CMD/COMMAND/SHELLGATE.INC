@@ -25,3 +25,20 @@ SHELL_GATE_EXTERN MACRO slot,target
     EXTRN shell_gate_&slot:BYTE
     EXTRN shell_gate_&slot&_segment:WORD
 ENDM
+
+; Outgoing service transfers to separately placed initialization/fallback code.
+SHELL_BRIDGE_LIST MACRO action
+    action init,init_contc_specialcase
+    action xlat,hma_in_char_xlat_high
+    action kanj,hma_test_kanj_high
+    action getmsg,shell_getmsg_fallback
+    action dispmsg,shell_dispmsg_fallback
+ENDM
+
+SHELL_FAR_TRANSFER MACRO opcode,slot,target
+    PUBLIC shell_bridge_&slot,shell_bridge_&slot&_segment
+shell_bridge_&slot LABEL BYTE
+    db opcode
+    dw offset resgroup:target
+shell_bridge_&slot&_segment dw 0
+ENDM

@@ -125,6 +125,50 @@ check_shell_gates:
     jne fail
     add di,5
     loop .gate
+%ifdef EXPECT_SHELL_BRIDGES
+    mov byte [gate_stage],'B'
+%macro CHECK_BRIDGE 1
+    cmp byte [es:SHELL_BRIDGE_%1],9ah
+    jne fail
+    cmp word [es:SHELL_BRIDGE_%1+1],ax
+    jne fail
+    cmp word [es:SHELL_BRIDGE_%1+3],dx
+    jne fail
+%endmacro
+%if EXPECT_HMA
+    mov ax,[es:SHELL_POINTER_XLAT]
+    mov dx,[es:SHELL_POINTER_XLAT+2]
+    cmp dx,0ffffh
+    jne fail
+%else
+    mov ax,SHELL_FALLBACK_XLAT
+    mov dx,bx
+%endif
+    CHECK_BRIDGE XLAT
+%if EXPECT_HMA
+    mov ax,[es:SHELL_POINTER_KANJ]
+    mov dx,[es:SHELL_POINTER_KANJ+2]
+    cmp dx,0ffffh
+    jne fail
+%else
+    mov ax,SHELL_FALLBACK_KANJ
+%endif
+    CHECK_BRIDGE KANJ
+%if EXPECT_HMA
+    mov ax,[es:SHELL_POINTER_XLAT]
+    add ax,SHELL_DELTA_GETMSG
+%else
+    mov ax,SHELL_FALLBACK_GETMSG
+%endif
+    CHECK_BRIDGE GETMSG
+%if EXPECT_HMA
+    mov ax,[es:SHELL_POINTER_XLAT]
+    add ax,SHELL_DELTA_DISPMSG
+%else
+    mov ax,SHELL_FALLBACK_DISPMSG
+%endif
+    CHECK_BRIDGE DISPMSG
+%endif
     mov byte [gate_stage],'4'
     xor ax,ax
     mov es,ax

@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """Reject incomplete or misencoded development owner bindings."""
 import unittest
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from report_command_residency import (
     BINDING_SLOTS, check_resident_bindings, check_critical_owner_bindings,
     check_code_owner_listing,
     check_shell_gates, GATE_TARGETS,
+    check_relative_service_branches,
+    check_shell_bridges, BRIDGE_TARGETS,
 )
 
 
@@ -122,6 +126,56 @@ class GateTest(unittest.TestCase):
                 symbols[symbol] += 1
                 with self.assertRaises(ValueError):
                     check_shell_gates(symbols, image)
+
+
+class RelativeBranchTest(unittest.TestCase):
+    def test_internal_edges(self):
+        check_relative_service_branches("00000100 E81000 call 0x113\n"
+                                        "00000113 EBEB jmp short 0x100", 0x100, 0x200)
+
+    def test_outgoing_edges(self):
+        for operation in ("jmp", "call", "jnz", "loop", "jcxz"):
+            for target in (0xFF, 0x200):
+                with self.subTest(operation=operation, target=target), self.assertRaises(ValueError):
+                    check_relative_service_branches(f"00000100 E81000 {operation} 0x{target:x}", 0x100, 0x200)
+
+    def test_far_and_indirect_are_separate_contracts(self):
+        check_relative_service_branches("00000100 9A00030000 call 0x0:0x300\n"
+                                        "00000105 FF1E0003 call word far [0x300]", 0x100, 0x200)
+
+
+class BridgeTest(unittest.TestCase):
+    def fixture(self):
+        symbols, image = GateTest("test_complete").fixture()
+        image.extend(bytes(1024))
+        init = symbols["shell_gate_constructor_end"]
+        symbols.update(shell_bridge_constructor=init, shell_bridge_constructor_end=init+20,
+                       HMA_SYSGETMSG=0x520, HMA_SYSDISPMSG=0x540)
+        for index, (slot, target) in enumerate(BRIDGE_TARGETS):
+            bridge = 0x140 + index * 8
+            destination = (0x650, 0x510, 0x530, 0x580, 0x584)[index]
+            symbols.update({"shell_bridge_" + slot: bridge,
+                            "shell_bridge_" + slot + "_segment": bridge+3, target: destination})
+            image[bridge-0x100:bridge-0xFB] = bytes((0xEA if slot == "init" else 0x9A,)) + destination.to_bytes(2, "little") + b"\0\0"
+            pos = init - 0x100 + index * 4
+            image[pos:pos+4] = b"\x8c\x0e" + (bridge+3).to_bytes(2, "little")
+        for slot, engine in (("getmsg", "HMA_SYSGETMSG"), ("dispmsg", "HMA_SYSDISPMSG")):
+            wrapper = symbols["shell_" + slot + "_fallback"]
+            delta = (symbols[engine] - wrapper - 3) & 0xFFFF
+            image[wrapper-0x100:wrapper-0xFC] = b"\xe8" + delta.to_bytes(2, "little") + b"\xcb"
+        return symbols, image
+
+    def test_complete_encoding(self):
+        with patch("report_command_residency.subprocess.run", return_value=SimpleNamespace(stdout=b"")):
+            check_shell_bridges(*self.fixture())
+
+    def test_wrong_transfer_constructor_or_return(self):
+        for offset in (0x40, 0x49, 0x4B, 0x373, 0x483, 0x487):
+            with self.subTest(offset=offset):
+                symbols, image = self.fixture()
+                image[offset] ^= 1
+                with self.assertRaises(ValueError):
+                    check_shell_bridges(symbols, image)
 
 
 if __name__ == "__main__":

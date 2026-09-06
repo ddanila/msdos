@@ -170,7 +170,7 @@ of the 800 state bytes can already be released.
 The existing 2,447-byte high shell allocation is already charged. Adding the
 normal 2,451-byte resident body would consume that much of the shared
 9,657-byte HMA tail, leaving 7,206 bytes for BIOS, moved state and all new
-support. The owner-binding prototype already grows the body by 80 bytes;
+support. Owner bindings and outgoing transfers already grow the body by 86 bytes;
 neither number is the final relocated size. A code-only shell move plus the
 936-byte BIOS character/clock/helper inventory therefore cannot explain the
 10,080-byte vendor difference, even before costs. Continue the combined
@@ -1332,8 +1332,9 @@ ES:BX parameter block intact, and preserves result flags across restoration.
 The normal build remains byte-identical.
 
 The development resident code plus published entries grows from 2,451 to
-2,571 bytes; high-mode low allocation and low-mode fallback grow by 128
-rounded bytes. This includes the 40-byte entry block described below.
+2,577 bytes; high-mode low allocation grows by 128 rounded bytes and low-mode
+fallback by 144. This includes the 40-byte entry block and eight additional
+fallback-wrapper bytes in HMACODE, described below.
 These are relocation-support costs, not savings. The report's explicit
 `--resident-binding` mode checks all twenty operand encodings and their exact
 constructor writes; normal size limits are unchanged. The combined
@@ -1385,12 +1386,12 @@ and initialization handoffs still require relocation design and runtime tests.
 checks default binary identity, verifies the linked binding census, then runs
 the INT 2Eh owner matrix, startup/critical ABI suite and complete LOADHIGH suite.
 With the explicit floppy input and rebuilt post-merge HIMEM,
-`out/command-resident-binding.QxajmO/`
+`out/command-resident-binding.LX26Ke/`
 passes all four INT 2Eh cases, all 16 startup checks and LOADHIGH's provider,
 region/minimum/shrink, failure recovery, fallback, errorlevel, Ctrl+C, TSR and
-DOS-high checks. Thirteen host tests cover missing slots,
+DOS-high checks. Eighteen host tests cover missing slots,
 bad immediates, incomplete constructor bindings and critical-entry ownership
-mutations, the listing guard and gate construction/publication. Input overrides follow the
+mutations, the listing/branch guards and gate/bridge construction. Input overrides follow the
 INT 2Eh command above; no normal COMMAND object or boot image is replaced.
 
 ##### Stable published shell entries
@@ -1414,21 +1415,42 @@ placement, constructor writes and TRANVARS offsets. With a generated gate
 include, the INT 2Eh probe additionally checks the live parent PSP pointers,
 INT 2Eh vector, low gate targets, transient handoff table and DOS's
 `INT 2Fh/122Eh, DL=8` callback before and after internal/external commands.
-The post-merge DOS-low/high capture is `out/command-int2e-owner.nmvlu9/`.
+The DOS-low/high gate and outgoing-target capture is
+`out/command-int2e-owner.cDU9jr/`.
 Child EXEC's dynamic termination return is distinct from the parent's stored
 LODCOM pointer; do not require the active INT 22h vector to equal LODCOM while
 a child is running.
 
-The candidate service body is now `012Bh..0B0Bh`, 2,528 bytes. Keeping the
+The candidate service body is now `012Bh..0B11h`, 2,534 bytes. Keeping the
 startup jump, entry block, PSP, stack and all mutable state low leaves an
 optimistic **1,232-byte** packed image before A20/return support, not 1,184.
 The entries are part of the low cost, not reclaimable service payload.
 The original state is still after the code, so no low hole is released yet.
-The 2,528-byte body would leave 7,129 of the shared 9,657 HMA bytes before
-new BIOS/shell support. This is capacity arithmetic, not a final linked high
+The 2,534-byte body plus eight new HMACODE wrapper bytes would leave 7,115 of
+the shared 9,657 HMA bytes before new BIOS/shell support. This is capacity
+arithmetic, not a final linked high
 layout or measured conventional gain.
 
-Next qualify cross-placement near calls, A20-safe entry/return, initialization
+Five outgoing transfers are now explicit constructor-bound far instructions:
+the initialization Ctrl+C handoff, case-conversion/DBCS fallbacks and two
+message-service fallbacks. The message wrappers adapt the low near engines to
+far returns without changing their original return ABI. Successful catalog
+relocation replaces message calls with direct high-engine calls and retargets
+both character fallbacks to their copied high owners before the low payload
+is released. The initialization handoff remains valid only during initialization.
+
+The census checks all five transfer encodings, constructor writes and wrapper
+return shapes, then uses `ndisasm` on **our built service body only** to reject
+direct relative branches leaving that range. The prior body rejects at its
+relative initialization jump. Far/indirect transfers and interrupts are
+separate contracts, not proved safe by that range check. Live probes compare
+the character/message targets with their low or high owners before and after
+commands. The pre-retarget prototype fails DOS-high at `GATE_STAGE=B` in
+`out/command-int2e-owner.jC3uPR/`; its relevant linked offsets match the fixed
+build, and DOS-low passes. This detects a stale low fallback even when normal
+startup tests pass without taking that fallback branch.
+
+Next qualify A20-safe entry/return, initialization
 handoff and activation rollback; then repack the low state and retire the
 original body. Stable publications alone do not make the whole service body
 relocatable or satisfy the complete resident-layout checkpoint.

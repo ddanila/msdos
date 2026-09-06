@@ -32,6 +32,10 @@ SHELL_BIND_EXTERN MACRO slot
 ENDM
 	SHELL_BINDING_SLOTS SHELL_BIND_EXTERN
 	SHELL_ENTRY_LIST SHELL_GATE_EXTERN
+SHELL_BRIDGE_EXTERN MACRO slot,target
+	EXTRN shell_bridge_&slot&_segment:WORD
+ENDM
+	SHELL_BRIDGE_LIST SHELL_BRIDGE_EXTERN
 	ENDIF
 	EXTRN	CONTC:NEAR
 	EXTRN	DskErr:NEAR
@@ -264,6 +268,13 @@ SHELL_GATE_INIT MACRO slot,target
 ENDM
 	SHELL_ENTRY_LIST SHELL_GATE_INIT
 shell_gate_constructor_end LABEL BYTE
+	PUBLIC shell_bridge_constructor,shell_bridge_constructor_end
+shell_bridge_constructor LABEL BYTE
+SHELL_BRIDGE_INIT MACRO slot,target
+	mov word ptr [shell_bridge_&slot&_segment],cs
+ENDM
+	SHELL_BRIDGE_LIST SHELL_BRIDGE_INIT
+shell_bridge_constructor_end LABEL BYTE
 	ENDIF
 	IFDEF COMMAND_CRITICAL_SPLIT
 	; Bind while the image is still owned and before any DOS call or vector
@@ -1785,6 +1796,16 @@ relocate_resident_catalogs proc near
 	; six-byte low gateways as CALL FAR immediate; RET.
 	pushf
 	cli
+	IFDEF COMMAND_RESIDENT_BINDING
+	; A successful high copy retires the low fallback payload. Bind the
+	; service body's explicit character fallbacks to the same high owners.
+	mov ax,word ptr [hma_in_char_xlat_entry]
+	mov word ptr cs:[shell_bridge_xlat_segment-2],ax
+	mov word ptr cs:[shell_bridge_xlat_segment],es
+	mov ax,word ptr [hma_test_kanj_entry]
+	mov word ptr cs:[shell_bridge_kanj_segment-2],ax
+	mov word ptr cs:[shell_bridge_kanj_segment],es
+	ENDIF
 	mov	bx,di
 	add	bx,offset resgroup:dataresend
 	sub	bx,offset resgroup:resident_catalog_start

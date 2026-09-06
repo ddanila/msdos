@@ -675,7 +675,11 @@ CONTC	PROC	FAR
 	IFDEF COMMAND_RESIDENT_BINDING
 	pop ds
 	ENDIF
+	IFDEF COMMAND_RESIDENT_BINDING
+	SHELL_FAR_TRANSFER 0eah,init,init_contc_specialcase
+	ELSE
 	jmp	resgroup:init_contc_specialcase ; Yes, go handle it
+	ENDIF
 CmdIret:
 	IFDEF COMMAND_RESIDENT_BINDING
 	pop ds

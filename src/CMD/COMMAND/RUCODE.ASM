@@ -16,6 +16,7 @@ DEBUG = 0				; NEED TO SET IT TO WHAT IT IS IN DOSSYM.INC
 	INCLUDE comseg.asm
 	INCLUDE comequ.asm
 	INCLUDE RESBIND.INC
+	INCLUDE SHELLGATE.INC
 	include resmsg.equ		;AN000;
 .list
 .cref
@@ -778,7 +779,11 @@ assume	ds:resgroup
 in_char_xlat	proc	near
 	cmp	word ptr SHELL_TEXT_STATE:[hma_in_char_xlat_entry+2],0
 	jne	short in_char_xlat_high
+	IFDEF COMMAND_RESIDENT_BINDING
+	SHELL_FAR_TRANSFER 09ah,xlat,hma_in_char_xlat_high
+	ELSE
 	call	hma_in_char_xlat_body
+	ENDIF
 	ret
 in_char_xlat_high:
 	call	dword ptr SHELL_TEXT_STATE:[hma_in_char_xlat_entry]
@@ -794,6 +799,9 @@ HMACODE SEGMENT PUBLIC BYTE
 ASSUME CS:RESGROUP,DS:RESGROUP
 
 PUBLIC hma_code_start,hma_code_end,hma_in_char_xlat_body
+	IFDEF COMMAND_RESIDENT_BINDING
+PUBLIC hma_in_char_xlat_high
+	ENDIF
 	IFNDEF COMMAND_CRITICAL_RECLAIM
 hma_code_start LABEL BYTE
 	ENDIF
@@ -841,7 +849,11 @@ ITESTKANJ:					;AN000;
 TestKanjR:					;AN000;  3/3/KK
 	cmp	word ptr SHELL_TEXT_STATE:[hma_test_kanj_entry+2],0
 	jne	short test_kanj_high
+	IFDEF COMMAND_RESIDENT_BINDING
+	SHELL_FAR_TRANSFER 09ah,kanj,hma_test_kanj_high
+	ELSE
 	call	hma_test_kanj_body
+	ENDIF
 	ret
 test_kanj_high:
 	call	dword ptr SHELL_TEXT_STATE:[hma_test_kanj_entry]
@@ -964,14 +976,24 @@ PUBLIC hma_sysgetmsg_gateway,hma_sysdispmsg_gateway
 
 SYSGETMSG proc near
 hma_sysgetmsg_gateway LABEL BYTE
+	IFDEF COMMAND_RESIDENT_BINDING
+	SHELL_FAR_TRANSFER 09ah,getmsg,shell_getmsg_fallback
+	ret
+	ELSE
 	jmp	HMA_SYSGETMSG
 	db	3 dup (90h)
+	ENDIF
 SYSGETMSG endp
 
 SYSDISPMSG proc near
 hma_sysdispmsg_gateway LABEL BYTE
+	IFDEF COMMAND_RESIDENT_BINDING
+	SHELL_FAR_TRANSFER 09ah,dispmsg,shell_dispmsg_fallback
+	ret
+	ELSE
 	jmp	HMA_SYSDISPMSG
 	db	3 dup (90h)
+	ENDIF
 SYSDISPMSG endp
 
 PUBLIC		RES_CODE_END			;AN000;
@@ -986,6 +1008,21 @@ HMA_MSG_SERVICES EQU 1
 PUBLIC HMA_SYSGETMSG,HMA_SYSDISPMSG
 PUBLIC HMA_SYSGETMSG_RETURN,HMA_SYSDISPMSG_RETURN
 MSG_SERVICES <COMR,NEARmsg,GETmsg,DISPLAYmsg,CHARmsg,NUMmsg> ;AC060; include message services macro
+
+	IFDEF COMMAND_RESIDENT_BINDING
+	; Low fallback retains near message engines. Far calls from a separately
+	; placed service body must return through these wrappers, not RETF-patch
+	; the low engines shared with initialization and nonpermanent shells.
+PUBLIC shell_getmsg_fallback,shell_dispmsg_fallback
+shell_getmsg_fallback proc far
+	call HMA_SYSGETMSG
+	retf
+shell_getmsg_fallback endp
+shell_dispmsg_fallback proc far
+	call HMA_SYSDISPMSG
+	retf
+shell_dispmsg_fallback endp
+	ENDIF
 
 hma_code_end LABEL BYTE
 
