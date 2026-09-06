@@ -1457,6 +1457,34 @@ python3 tests/capture_emm_init_phases.py out/floppy.img \
   --reclaim-bootstrap --high-tables --dos-high
 ```
 
+**UMB ownership boundary repair:** the service audit found that
+`remove_next_umb` stopped its record-shifting loop at `handles`, relying on
+the original adjacency of the two arrays. The paired layout puts bootstrap
+services between them; after downward reclamation the intervening range also
+contains the relocated EMM mark and entry. Coalescing could therefore write
+outside the UMB table even though the boot/allocator handoff probes passed.
+The loop now ends at the explicit `umb_blocks_end` label. The normal layout
+has the same address for both labels, and its HIMEM binary remains identical
+(SHA-256 `45da026e22cda46e34e0f87eff387a8f2434f4d6e72cfe97e8745cf0153ebaa6`).
+
+`--umb-coalesce` exercises two one-paragraph allocations, busy peer unregister,
+release/coalescing, duplicate release rejection and restoration of the largest
+UMB. A 48-byte guard immediately after the record array must remain unchanged.
+RAM uses EMM's registered ranges; ON/OFF/AUTO and cancelled installation use
+a temporary two-range metadata registration, never access those addresses,
+and unregister it afterward. These paths are recorded separately, not counted
+as real UMB availability in OFF mode.
+
+The original-boundary run `out/emm-init-phases-vkmxztni/` fails with guard marker
+`W` and guest exit 35. `--bad-umb-bound` preserves that negative control
+(`out/emm-init-phases-9mpidc5z/`). The corrected high-table/downward DOS-high
+run `out/emm-init-phases-b02zsrs9/` passes all four modes; the 128-handle
+DOS-low run passes in `out/emm-init-phases-jfmx0_u8/`. Eight-handle
+pre-publication cancellation passes in `out/emm-init-phases-ly5e77fj/`.
+This repairs containment, not high UMB ownership or an additional memory gain.
+Future UMB migration must preserve the same complete public/peer lifecycle,
+with array bounds independent of neighboring services and bootstrap storage.
+
 ##### Whole-system placement rules
 
 DR-DOS's portable lesson is a small conventional interface backed by complete

@@ -2,10 +2,21 @@
 import struct
 import unittest
 
-from capture_emm_init_phases import check_phases, parse_trace, strip_capacity_records, parse_bootstrap_layout, parse_post_boot
+from capture_emm_init_phases import check_phases, parse_trace, strip_capacity_records, parse_bootstrap_layout, parse_post_boot, parse_umb_receipt
 
 
 class InitPhaseTests(unittest.TestCase):
+    def test_umb_receipt_and_registration_owner(self):
+        for mode in ("ON", "OFF", "AUTO", "RAM"):
+            for rejected in (False, True):
+                synthetic = mode != "RAM" or rejected
+                data = b"UC" + bytes([synthetic])
+                self.assertEqual(parse_umb_receipt(data, mode=mode, rejected=rejected), synthetic)
+                for bad in (b"", b"W", b"UC", b"UC\2", data + b"x",
+                            b"UC" + bytes([not synthetic])):
+                    with self.assertRaises(ValueError):
+                        parse_umb_receipt(bad, mode=mode, rejected=rejected)
+
     def test_post_boot_allocation(self):
         data = struct.pack("<2s4H", b"MC", 1871, 38983, 179, 265)
         self.assertEqual(parse_post_boot(data, 1), dict(

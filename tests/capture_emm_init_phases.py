@@ -10,7 +10,7 @@ import tempfile
 
 import capture_drdos_memory as capture
 from emm_loader_rebase import include as rebase_include, manifest as rebase_manifest
-from report_himem_residency import bootstrap_layout
+from report_himem_residency import bootstrap_layout, parse_symbols
 
 
 def strip_capacity_records(data, *, handles=None, altregs=None):
@@ -47,6 +47,15 @@ def parse_post_boot(data, expected):
         raise ValueError("invalid post-boot allocation witness")
     return dict(psp_segment=psp, largest_bytes=largest * 16,
                 himem_bytes=himem_size * 16, emm_bytes=emm_size * 16)
+
+
+def parse_umb_receipt(data, *, mode, rejected):
+    if data not in (b"UC\0", b"UC\1"):
+        raise ValueError("missing UMB ownership/coalescing witness")
+    synthetic = bool(data[-1])
+    if synthetic != (mode != "RAM" or rejected):
+        raise ValueError("UMB witness used an unexpected registration owner")
+    return synthetic
 
 
 def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
@@ -236,6 +245,10 @@ def main():
                         help="stage the allocator in owned LAST scratch and poison its original tail")
     parser.add_argument("--reclaim-bootstrap", action="store_true",
                         help="move the prepared provider down into the adjacent bootstrap tail")
+    parser.add_argument("--umb-coalesce", action="store_true",
+                        help="check public UMB/peer lifetime and guard the next resident owner")
+    parser.add_argument("--bad-umb-bound", action="store_true",
+                        help="negative control: let UMB coalescing cross into the next owner")
     parser.add_argument("--skip-stage-retarget", action="store_true",
                         help="negative control: move the stage but leave its private root stale")
     parser.add_argument("--xms-handles", type=int, choices=(8, 32, 128), default=32,
@@ -276,6 +289,10 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.bad_umb_bound:
+        args.umb_coalesce = True
+    if args.umb_coalesce:
+        args.authoritative_owner = True
     if args.reclaim_bootstrap:
         args.stage_bootstrap = True
         args.loader_rebase = True
@@ -429,6 +446,7 @@ def main():
         himem = work / "HIMEM.SYS"
         subprocess.run([str(capture.ROOT / "bin/jwasm-bin"), "-q", "-bin", "-Sa",
                         f"-Fl={work / 'HIMEM.LST'}",
+                        *(["-DHIMEM_UMB_LEGACY_BOUND_TEST"] if args.bad_umb_bound else []),
                         *(["-DHIMEM_BOOTSTRAP_STAGE_TEST"] if args.stage_bootstrap else []),
                         *(["-DHIMEM_BOOTSTRAP_BAD_LAYOUT"] if args.bad_bootstrap_layout else []),
                         "-DHIMEM_PROTECTED_COPY_TEST", "-DHIMEM_PROTECTED_OWNER_TEST",
@@ -458,7 +476,13 @@ def main():
                         "-o", str(capacity_probe)], check=True)
     if args.loader:
         mark_delta = 32 if args.loader_rebase and not (args.reclaim_bootstrap or args.loader_bad_rebase) else 0
+        umb_defines = []
+        if args.umb_coalesce:
+            symbols, _ = parse_symbols(work / "HIMEM.LST")
+            start, size = symbols["umb_blocks"]
+            umb_defines = [f"-DUMB_GUARD_OFFSET={start + size}"]
         subprocess.run(["nasm", "-f", "bin", f"-DEMM_MARK_DELTA={mark_delta}",
+                        *umb_defines, f"-I{capture.ROOT}/",
                         str(capture.ROOT / "tests/emm_provider_owner_probe.asm"),
                         "-o", str(owner_probe)], check=True)
     records = {}
@@ -515,6 +539,10 @@ def main():
             trace_data = trace_data[:-4]
             post_boot[mode] = parse_post_boot(trace_data[-10:], expected)
             trace_data = trace_data[:-10]
+            if args.umb_coalesce:
+                post_boot[mode]["umb_synthetic_registration"] = parse_umb_receipt(
+                    trace_data[-3:], mode=mode, rejected=args.reject_prepared)
+                trace_data = trace_data[:-3]
         records[mode] = parse_trace(trace_data, split=args.split_prepare,
                                    rejected=args.reject_prepared,
                                    activation_stack=args.activation_stack,
@@ -569,6 +597,8 @@ def main():
         bad_bootstrap_layout=args.bad_bootstrap_layout,
         stage_bootstrap=args.stage_bootstrap,
         reclaim_bootstrap=args.reclaim_bootstrap,
+        umb_coalesce=args.umb_coalesce,
+        bad_umb_bound=args.bad_umb_bound,
         skip_stage_retarget=args.skip_stage_retarget,
         xms_handles=args.xms_handles,
         dos_high=args.dos_high,

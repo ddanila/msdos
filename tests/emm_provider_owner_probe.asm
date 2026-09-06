@@ -28,6 +28,10 @@ org 100h
     xor ax,ax
     call mark_size
     mov [himem_paras],ax
+%ifdef UMB_GUARD_OFFSET
+    mov ax,es
+    mov [himem_segment],ax
+%endif
 .emm:
     cmp word [es:si+10],4d45h
     jne .advance
@@ -47,6 +51,9 @@ org 100h
     mov bx,0ffffh               ; malformed/cyclic chain is never an absent owner
 .done:
     mov [owner_count],bx
+%ifdef UMB_GUARD_OFFSET
+    call check_umb_owner
+%endif
     push cs
     pop es
     mov bx,(probe_end-$$+100h+15)/16
@@ -119,5 +126,8 @@ owner_count dw 0
 largest_paras dw 0
 himem_paras dw 0
 emm_paras dw 0
+%ifdef UMB_GUARD_OFFSET
+    %include "tests/emm_provider_umb_probe.inc"
+%endif
     times 128 db 0
 probe_end:

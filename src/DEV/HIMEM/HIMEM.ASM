@@ -1046,7 +1046,13 @@ remove_next_umb proc near
         add     di, UMB_BLOCK_SIZE
 remove_umb_shift:
         add     di, UMB_BLOCK_SIZE
+ifdef HIMEM_UMB_LEGACY_BOUND_TEST
         cmp     di, offset handles
+else
+        ; The authoritative layout inserts bootstrap services before handles.
+        ; Coalescing owns only the UMB records, never the following code/owner.
+        cmp     di, offset umb_blocks_end
+endif
         jae     short remove_umb_done
         mov     bp, word ptr [di]
         mov     word ptr [di-UMB_BLOCK_SIZE], bp
@@ -1197,6 +1203,7 @@ endif
 ; still present in the load image for the documented maximum.
 umb_count       dw      0
 umb_blocks      db      MAX_UMB_BLOCKS * UMB_BLOCK_SIZE dup (0)
+umb_blocks_end label byte
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
         db (16-(($-device_header) MOD 16)) MOD 16 dup (0)
 bootstrap_owner_start label byte
