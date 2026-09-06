@@ -282,7 +282,7 @@ test-umb-subpage-composition:
 	python3 tests/test_umb_subpage_composition.py
 
 .PHONY: test-high-cds-qemu test-high-cds-composition
-test-high-cds-qemu:
+test-high-cds-qemu: $(ASSIGN_OUT) $(JOIN_OUT)
 	python3 tests/test_high_cds_qemu.py
 
 test-high-cds-composition:

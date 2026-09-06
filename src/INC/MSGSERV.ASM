@@ -741,8 +741,27 @@ $M_CHECKSTDOUT ENDP					     ;AN001;
 							     ;;
 $M_VERSION_CHECK PROC NEAR				     ;;AN000;;
 							     ;;
+IFDEF MSG_TRUE_DOS_VERSION
+	  ; Opt-in for native utilities whose retail name has a SETVER mapping.
+	  ; Preserve the message-loader registers and reject pre-DOS-5 hosts
+	  ; where the true-version API is unavailable.
+	  PUSH BX
+	  PUSH DX
+	  MOV AX,3306H
+	  INT 21H
+	  CMP AL,0FFH
+	  JNE SHORT $M_TRUE_VERSION_READY
+	  XOR AX,AX
+	  JMP SHORT $M_TRUE_VERSION_DONE
+$M_TRUE_VERSION_READY:
+	  MOV AX,BX
+$M_TRUE_VERSION_DONE:
+	  POP DX
+	  POP BX
+ELSE
 	  MOV	  AH,DOS_GET_VERSION			     ;;AN000;; Check that version matches VERSIONA.INC
 	  INT	  21H					     ;;AN000;;
+ENDIF
 							     ;;
 	  CMP	  AX,EXPECTED_VERSION			     ;;AN000;; IF DOS_MAJOR is correct
 ;	  $IF	  E					     ;;AN000;;

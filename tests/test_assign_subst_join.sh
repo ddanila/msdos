@@ -36,6 +36,13 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 
 echo "Building test images..."
 cp "$FLOPPY" "$BOOT_IMG"
+# Optional freshly built ASSIGN; leave the supplied baseline image untouched.
+if [[ -n "${ASJ_ASSIGN_IMAGE:-}" ]]; then
+    mcopy -o -i "$BOOT_IMG" "$ASJ_ASSIGN_IMAGE" ::ASSIGN.COM || exit 1
+fi
+if [[ -n "${ASJ_JOIN_IMAGE:-}" ]]; then
+    mcopy -o -i "$BOOT_IMG" "$ASJ_JOIN_IMAGE" ::JOIN.EXE || exit 1
+fi
 nasm -f bin "$REPO_ROOT/tests/qemu_exit.asm" -o "$EXIT_COM"
 mcopy -o -i "$BOOT_IMG" "$EXIT_COM" ::QEXIT.COM
 

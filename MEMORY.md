@@ -40,8 +40,10 @@ Execution order (supersedes older implementation queues below):
 **Correctness prerequisite:** SETVER now has an intact 640-byte low owner in
 normal low/high and rebased high-CDS probes. Its repair costs 640 conventional
 bytes in the composed fixture; previous totals did not preserve equivalent
-SETVER behavior. Native ASSIGN's version check and full high-mode reset and
-consumer qualification remain open. See the SETVER ownership section below.
+SETVER behavior. Native ASSIGN/JOIN now use the true-version API, and the
+refreshed quick high-CDS matrix passes with their mappings intact. Full
+high-mode SETVER persistence and broader consumer qualification remain open.
+See the SETVER ownership section below.
 
 1. Complete the joint resident-layout checkpoint below before extending any
    individual relocation prototype. Preserve pending access-boundary work as
@@ -316,9 +318,9 @@ still-open whole-resident-layout checkpoint.
 
 #### SETVER ownership repair and remaining qualification
 
-The original DOS-low ASSIGN failure was reproduced with matched build inputs. The retail
-compatibility table includes `ASSIGN.COM 5.00`; ASSIGN's rebuilt message loader
-instead compares AH=30h's reported version against 6.22. A byte-identical
+The original DOS-low ASSIGN failure was reproduced with matched build inputs.
+The retail compatibility table includes `ASSIGN.COM 5.00`; the old rebuilt
+message loader compared AH=30h's reported version against 6.22. A byte-identical
 version probe returns 6.22 as REFVER.COM and 5.00 as ASSIGN.COM in DOS-low.
 Deleting the compatibility entry would hide the conflict, not fix parity.
 
@@ -372,10 +374,35 @@ fine-UMB/CDS matrix passes with 616,112 conventional and 49,680 UMB bytes
 (`out/umb-fine-composition-ozww81et/results.json`). The low table costs 640
 bytes versus the invalid old fixture; it is a correctness cost, not a saving.
 
-Next: resolve native ASSIGN's version check without removing its retail
-mapping; qualify nested execution, high-mode persistence/reset and the upper
-CDS consumers with that mapping intact. Earlier high-CDS utility passes are
-not equivalent evidence because ASSIGN's mapping was missing in high mode.
+Native ASSIGN and JOIN now opt into `MSG_TRUE_DOS_VERSION`: their message
+loader compares AX=3306h's true major/minor version against the existing
+expected 6.22. The helper preserves BX/DX on successful version checks, rejects an
+unsupported true-version API, and leaves other message-service clients on
+their original reported-version path. `ASSIGN.COM 5.00` and `JOIN.EXE 5.00`
+remain in the retail table; the kernel's reported-version behavior is unchanged.
+
+The old ASSIGN/JOIN binaries fail ten functional checks on the repaired low
+fixture with `Incorrect DOS version`. Repairing ASSIGN alone leaves five JOIN
+failures; repairing both passes all 49 low-mode checks. Logs are retained in
+`out/assign-true-version.84LIbg/`. The refreshed quick high-CDS matrix also
+passes all fifteen cases (`out/high-cds-xes8a10m/`), including 50 utility checks
+in upper mode, 50 in allocation fallback, and deliberate rejection of the low
+fallback as upper. Its I/O/reset and cache-negative cases pass as well. This
+replaces the earlier utility passes that lacked intact high-mode mappings;
+it does not qualify high-mode SETVER editing persistence or the full A..Y
+LASTDRIVE sweep on this revision.
+
+The utility harness accepts `ASJ_ASSIGN_IMAGE` and `ASJ_JOIN_IMAGE` to install
+fresh binaries only in its private boot image. The high-CDS matrix selects
+those local builds explicitly, and its make target builds both utilities.
+Native BACKUP, GRAFTABL and other rebuilt names covered by the retail table
+still need a version-check audit; no blanket compatibility claim follows
+from the ASSIGN/JOIN repair. Further nested-execution, high-mode persistence,
+SHARE and redirector consumer checks remain gates before promotion. This
+repair changes no fixed-boot memory saving or destination budget.
+The fresh Z fixture also passes the complete read-only SETVER comparison and
+still reports 5.00 under the ASSIGN probe name
+(`out/setver-placement-_dzbza_z/`).
 
 ```sh
 python3 tests/capture_setver_placement.py --check out/setver-owner.IdRfwB/low.img

@@ -65,7 +65,9 @@ def main():
         ("asj-reject-low-as-upper", "allocation-fallback", "upper", True),
     ):
         log = work / f"{name}.log"
-        env = dict(os.environ, FLOPPY_IMAGE=str(fixtures[fixture]), ASJ_CDS_MODE=mode)
+        env = dict(os.environ, FLOPPY_IMAGE=str(fixtures[fixture]), ASJ_CDS_MODE=mode,
+                   ASJ_ASSIGN_IMAGE=str(ROOT / "src/CMD/ASSIGN/ASSIGN.COM"),
+                   ASJ_JOIN_IMAGE=str(ROOT / "src/CMD/JOIN/JOIN.EXE"))
         with log.open("w") as stream:
             result = subprocess.run(["bash", ROOT / "tests/test_assign_subst_join.sh"],
                                     env=env, stdout=stream, stderr=subprocess.STDOUT)

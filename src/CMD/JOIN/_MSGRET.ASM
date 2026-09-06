@@ -17,6 +17,9 @@ title	C	to Message Retriever
 ;
 ;-------------------------------------------------------------------
 
+; Retail SETVER reports 5.00 to JOIN.EXE; keep that mapping and check the
+; actual kernel version for this rebuilt native utility.
+MSG_TRUE_DOS_VERSION EQU 1
 	INCLUDE SYSMSG.INC		;PERMIT SYSTEM MESSAGE HANDLER DEFINITION;AN000;
 
 	MSG_UTILNAME <JOIN>		;IDENTIFY THE COMPONENT 		;AN000;

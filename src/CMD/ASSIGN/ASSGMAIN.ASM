@@ -115,6 +115,10 @@
 page
 DEBUG	=	0
 
+; Retail SETVER deliberately reports 5.00 to ASSIGN.COM. This rebuilt
+; utility requires the native kernel version, not that compatibility view.
+MSG_TRUE_DOS_VERSION EQU 1
+
 .xlist
 BREAK	MACRO	subtitle
 .XLIST
