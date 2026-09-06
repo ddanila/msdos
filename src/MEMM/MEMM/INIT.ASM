@@ -768,6 +768,9 @@ IE_find_error:
 ;  find and allocate logical emm pages
 ;
 IE_alloc:
+ifdef EMM_BOOTSTRAP_OWNER_TEST
+        call BootOwnerPrepare
+endif
 ifdef EMM_REJECT_PREPARED
         pusha
         push es
@@ -1095,6 +1098,9 @@ endif
 	xor	ax,ax			; NO errors
 ;
 IE_leave:
+ifdef EMM_BOOTSTRAP_OWNER_TEST
+        call BootOwnerVerify
+endif
 ifdef EMM_SPLIT_PREPARE
         retn
 else
@@ -2891,6 +2897,9 @@ b2_make_strg:
 b2asc10 endp
 ;
 
+ifdef EMM_BOOTSTRAP_OWNER_TEST
+        include BOOTXMS.INC
+endif
 LAST	ends				; End of segment
 ;
 

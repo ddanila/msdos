@@ -997,6 +997,30 @@ while transferring one allocator's ownership. Maximum-resource, shifted-load,
 warm-reset and combined BIOS/HMA/COMMAND qualification remain open; this witness
 does not implement the high service/table owners or satisfy the joint budget.
 
+**Live bootstrap allocation witness:** `--bootstrap-owner` now allocates and
+locks a 1 KiB XMS block before EMM reserves its backing, then fills all of it
+with a deterministic pattern. After loader activation or cancellation it uses
+the cached pre-prepare XMS entry to verify the same handle, size, lock count,
+physical address and every data byte, then unlocks and frees the test block.
+Its move packets are rebound to the current segment after prepared-image
+relocation. All witness code and buffers are discardable development storage;
+the normal EMM binary is unchanged.
+
+```sh
+python3 tests/capture_emm_init_phases.py out/floppy.img --bootstrap-owner --loader-rebase
+python3 tests/capture_emm_init_phases.py out/floppy.img --bootstrap-owner --loader-rebase --reject-prepared
+```
+
+All four modes pass activation in `out/emm-init-phases-dt2p44zz/` and
+cancellation in `out/emm-init-phases-rdn2t4yk/`. Adding
+`--bad-bootstrap-owner` corrupts the final readback byte and fails with guest
+exit 35 (`out/emm-init-phases-0dew4m_4/`). Sixteen phase-parser tests and three
+relocation-manifest tests pass. This establishes live-client preservation
+across the existing boot transaction, **not allocator ownership transfer**:
+HIMEM still services the cached entry. The next implementation must transfer
+one authoritative allocator and release the old low allocation; a snapshot,
+working high copy or successful upward move cannot satisfy that checkpoint.
+
 ##### Whole-system placement rules
 
 DR-DOS's portable lesson is a small conventional interface backed by complete

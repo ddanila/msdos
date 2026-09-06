@@ -6,6 +6,20 @@ from capture_emm_init_phases import check_phases, parse_trace, strip_capacity_re
 
 
 class InitPhaseTests(unittest.TestCase):
+    def test_bootstrap_owner_record(self):
+        record = struct.pack("<2sHIH", b"XO", 3, 0x110000, 1)
+        rows = parse_trace(self.trace() + record, bootstrap_owner=True)
+        self.assertEqual(rows[-1]["bootstrap_owner"],
+                         dict(handle=3, physical=0x110000, size_kib=1))
+        check_phases(rows, "ON")
+
+    def test_bad_bootstrap_owner_record(self):
+        for record in (b"", b"XF", struct.pack("<2sHIH", b"XO", 0, 0x110000, 1),
+                       struct.pack("<2sHIH", b"XO", 1, 0x90000, 1),
+                       struct.pack("<2sHIH", b"XO", 1, 0x110000, 0)):
+            with self.assertRaises(ValueError):
+                parse_trace(self.trace() + record, bootstrap_owner=True)
+
     def test_capacity_records(self):
         for handles, altregs in ((None, None), (255, None), (None, 0), (255, 254), (2, 0)):
             data = self.trace()

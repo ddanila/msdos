@@ -23,7 +23,19 @@ def strip_capacity_records(data, *, handles=None, altregs=None):
 
 
 def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
-                lifecycle=False, loader=False, rebase=False, table_layout=False):
+                lifecycle=False, loader=False, rebase=False, table_layout=False,
+                bootstrap_owner=False):
+    owner = None
+    if bootstrap_owner:
+        suffix = b"LD" if loader else b""
+        end = len(data) - len(suffix)
+        if end < 10 or (suffix and not data.endswith(suffix)):
+            raise ValueError("missing bootstrap XMS owner witness")
+        tag, handle, physical, size = struct.unpack("<2sHIH", data[end-10:end])
+        if tag != b"XO" or not handle or physical < 0x100000 or size != 1:
+            raise ValueError("invalid bootstrap XMS owner witness")
+        owner = dict(handle=handle, physical=physical, size_kib=size)
+        data = data[:end-10] + suffix
     moved = None
     if rebase:
         if len(data) < 34:
@@ -70,6 +82,8 @@ def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
         result[2]["move"] = moved
     if layout:
         result[order.index(6)]["tables"] = layout
+    if owner:
+        result[-1]["bootstrap_owner"] = owner
     return result
 
 
@@ -145,6 +159,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image", type=Path)
     parser.add_argument("--split-prepare", action="store_true")
+    parser.add_argument("--bootstrap-owner", action="store_true",
+                        help="preserve a locked, filled XMS block across the loader transaction")
+    parser.add_argument("--bad-bootstrap-owner", action="store_true",
+                        help="corrupt the last readback byte; this run must fail")
     parser.add_argument("--table-layout", action="store_true",
                         help="report the complete table owner and final driver break")
     parser.add_argument("--high-tables", action="store_true",
@@ -177,6 +195,10 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.bad_bootstrap_owner:
+        args.bootstrap_owner = True
+    if args.bootstrap_owner:
+        args.loader = True
     if args.high_tables:
         args.table_layout = True
     if args.table_layout and any((args.reject_prepared, args.bad_pool_control,
@@ -226,6 +248,10 @@ def main():
     build = work / "MEMM/MEMM"
     original = capture.sha256(capture.ROOT / "src/MEMM/MEMM/EMM386.EXE")
     trace_defines = "-DEMM_INIT_PHASE_TRACE"
+    if args.bootstrap_owner:
+        trace_defines += " -DEMM_BOOTSTRAP_OWNER_TEST"
+    if args.bad_bootstrap_owner:
+        trace_defines += " -DEMM_BOOTSTRAP_OWNER_BAD"
     if args.table_layout:
         trace_defines += " -DEMM_TABLE_LAYOUT_TRACE"
     if args.high_tables:
@@ -345,7 +371,8 @@ def main():
                                    activation_stack=args.activation_stack,
                                    lifecycle=args.lifecycle,
                                    loader=args.loader and not args.loader_bad_version,
-                                   rebase=args.loader_rebase, table_layout=args.table_layout)
+                                   rebase=args.loader_rebase, table_layout=args.table_layout,
+                                   bootstrap_owner=args.bootstrap_owner)
         if args.table_layout:
             layout = next(row["tables"] for row in records[mode] if "tables" in row)
             if layout["high"] != int(args.high_tables):
@@ -369,6 +396,7 @@ def main():
         lifecycle=args.lifecycle,
         loader=args.loader, loader_bad_version=args.loader_bad_version,
         loader_rebase=args.loader_rebase,
+        bootstrap_owner=args.bootstrap_owner,
         high_tables=args.high_tables, table_layout=args.table_layout,
         handles=args.handles, altregs=args.altregs,
         switch_altregs=args.switch_altregs,
