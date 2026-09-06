@@ -267,6 +267,11 @@ test-drdos-capture:
 	python3 tests/test_capture_drdos_memory.py
 	python3 tests/test_uma_topology.py
 
+# Uses existing built objects; rebuild/deploy explicitly before this isolated fixture.
+.PHONY: test-umb-subpage-discovery-qemu
+test-umb-subpage-discovery-qemu:
+	python3 tests/test_umb_subpage_discovery_qemu.py
+
 test-dos-bios-residency: dos bios
 	python3 tests/report_dos_bios_residency.py --check \
 		src/DOS/MSDOS.MAP src/BIOS/msBIO.map

@@ -573,7 +573,33 @@ accounting, reversed backing, DMA/UMB I/O and warm reset. If finer planning
 fails, retry the original coarse plan transactionally so the new feature does
 not turn an otherwise working UMB installation into no UMBs. Only after those
 gates measure the paired VC/UMB result and spend new capacity on DOS state.
-This contract is not yet implemented; normal discovery remains unchanged.
+The allocation transaction is not yet implemented; normal discovery remains
+unchanged. The development discovery census below implements its first input
+boundary without installing fine mappings.
+
+##### Development guest discovery census
+
+`make test-umb-subpage-discovery-qemu` uses existing built objects and deployed
+floppy media, recompiling only INIT and PPAGE in an isolated fixture. With
+`UMB_SUBPAGE_DISCOVERY`, the common exclusion entry records precise intersecting
+4 KiB slices before rounding for EMS. The diagnostic then applies I=/X=,
+frame and explicit Pn= ownership and emits twenty four-bit masks on debug port
+E9h, one per 16 KiB parent from A000h through EFFFh. The mapper does **not**
+consume these masks. All census state/code is in discardable initialization.
+
+The normal fixture rebuild is required to match the existing EMM386 binary
+byte for byte. Seven QEMU boots pass: RAM M5, NOEMS, frame M4, P4=CC00, X=CB00-CBFF,
+and both orderings of I=CB00-CBFF with X=CB00-CBFF. Each requires successful
+AUTOEXEC completion and checks masks for video, real ROM and firmware RAM.
+The fixed RAM M5 mask is `00000000008F0000FF00`: parent C800h has mask 8,
+meaning only CB00h..CBFFh survives; CC00h and E000h..E7FFh remain full parents.
+X= removes the partial candidate in both argument orders. Changing the frame
+or explicitly owning CC00h removes that parent from the proposed UMB masks.
+
+This ties the host ROM observation to the driver's real discovery path. It
+does not qualify the partial page for live allocation or prove new savings.
+Next implement the mask-aware publication/backing/rollback transaction above,
+including the coarse fallback, then run the I/O and memory-acceptance gates.
 
 #### Retained BIOS partition
 

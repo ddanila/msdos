@@ -313,6 +313,12 @@ umb_dma_limit	dw	0
 umb_registered	db	0
 umb_registration dw	1, 0
 		dw	UMB_PAGE_COUNT dup (0, 0)
+ifdef UMB_SUBPAGE_DISCOVERY
+; Diagnostic only: no fine mask is consumed by the installed mapper yet.
+umb_fine_allowed db     32 dup (0), 48 dup (1)
+umb_fine_masks  db      UMB_PAGE_COUNT dup (0)
+umb_fine_label  db      'UMB_FINE=',0
+endif
 
 	page
 ;******************************************************************************
@@ -1699,6 +1705,9 @@ htoi	endp
 ; and remove them from the EMS mappable-window tables before those tables are
 ; built. The EMS page frame always remains under EMS ownership.
 Prepare_UMB proc near
+ifdef UMB_SUBPAGE_DISCOVERY
+	call	Report_UMB_Subpages
+endif
 	pusha
 	push	es
 	mov	ax,0e700h
@@ -1739,6 +1748,135 @@ PU_done:
 	popa
 	ret
 Prepare_UMB endp
+
+ifdef UMB_SUBPAGE_DISCOVERY
+; Inclusive AX:BX segment bounds; called before exclude_segments rounds them.
+; Preserve all inputs, including DS (DGROUP) and flags.
+public Exclude_UMB_Subpages
+Exclude_UMB_Subpages proc near
+	pushf
+	pusha
+	cmp	ax,bx
+	jb	short EUS_done
+	cmp	ax,0a000h
+	jb	short EUS_done
+	cmp	bx,0f000h
+	jae	short EUS_done
+	cmp	bx,0a000h
+	jae	short EUS_low
+	mov	bx,0a000h
+EUS_low:
+	cmp	ax,0efffh
+	jbe	short EUS_high
+	mov	ax,0efffh
+EUS_high:
+	sub	ax,0a000h
+	sub	bx,0a000h
+	shr	ax,8
+	shr	bx,8
+EUS_clear:
+	mov	cs:umb_fine_allowed[bx],0
+	inc	bx
+	cmp	bx,ax
+	jbe	short EUS_clear
+EUS_done:
+	popa
+	popf
+	ret
+Exclude_UMB_Subpages endp
+
+; Build and report masks only. Existing Prepare/Commit_UMB remain unchanged.
+; Bit n is the nth 4 KiB slice within a 16 KiB UMA parent, starting at A000h.
+Report_UMB_Subpages proc near
+	pushf
+	pusha
+	xor	si,si
+RUS_parent:
+	mov	bx,si
+	shl	bx,2
+	xor	ax,ax
+	mov	dl,1
+	mov	cx,4
+RUS_slice:
+	cmp	cs:umb_fine_allowed[bx],0
+	je	short RUS_next_slice
+	or	al,dl
+RUS_next_slice:
+	shl	dl,1
+	inc	bx
+	loop	RUS_slice
+; Preserve explicit legacy I= semantics, but never include video via this map.
+	cmp	si,8
+	jb	short RUS_reject
+	cmp	cs:umb_includes[si],0
+	je	short RUS_exclusions
+	mov	al,0fh
+RUS_exclusions:
+	cmp	cs:umb_excludes[si],0
+	jne	short RUS_reject
+	mov	dx,si
+	shl	dx,10
+	add	dx,0a000h
+	mov	bx,[PF_Base]
+	cmp	bx,0ffffh
+	je	short RUS_requested
+	cmp	dx,bx
+	jb	short RUS_requested
+	movzx	cx,[_page_frame_pages]
+	shl	cx,10
+	add	bx,cx
+	cmp	dx,bx
+	jb	short RUS_reject
+RUS_requested:
+	xor	bx,bx
+	movzx	cx,cs:[requested_page_count]
+	jcxz	short RUS_store
+RUS_request:
+	cmp	cs:requested_page_ids[bx],3
+	jbe	short RUS_next_request
+	mov	di,bx
+	shl	di,1
+	cmp	dx,cs:requested_page_segments[di]
+	je	short RUS_reject
+RUS_next_request:
+	inc	bx
+	loop	RUS_request
+	jmp	short RUS_store
+RUS_reject:
+	xor	al,al
+RUS_store:
+	mov	cs:umb_fine_masks[si],al
+	inc	si
+	cmp	si,UMB_PAGE_COUNT
+	jb	RUS_parent
+	mov	bx,offset umb_fine_label
+RUS_prefix:
+	mov	al,cs:[bx]
+	inc	bx
+	or	al,al
+	jz	short RUS_masks
+	out	0e9h,al
+	jmp	short RUS_prefix
+RUS_masks:
+	xor	bx,bx
+RUS_hex:
+	mov	al,cs:umb_fine_masks[bx]
+	add	al,'0'
+	cmp	al,'9'
+	jbe	short RUS_emit
+	add	al,7
+RUS_emit:
+	out	0e9h,al
+	inc	bx
+	cmp	bx,UMB_PAGE_COUNT
+	jb	short RUS_hex
+	mov	al,10
+	out	0e9h,al
+	popa
+	popf
+	ret
+Report_UMB_Subpages endp
+endif
 
 ; Reserve one EMS backing page per candidate, install stable PTEs, coalesce the
 ; windows into extents, and commit the complete map to HIMEM. No window remains

@@ -91,6 +91,9 @@ LAST	segment
 	extrn	requested_page_count:byte
 	extrn	requested_page_ids:byte
 	extrn	requested_page_segments:word
+ifdef UMB_SUBPAGE_DISCOVERY
+	extrn	Exclude_UMB_Subpages:near
+endif
 ;
 LAST	ends
 
@@ -494,6 +497,9 @@ exclude_conv_RAM    endp
 ;	ISP (isp). modified from ps2emm sources. 	;
 ;-----------------------------------------------------------------------;
 exclude_segments	proc	near
+ifdef UMB_SUBPAGE_DISCOVERY
+	call	Exclude_UMB_Subpages ; retain precise bounds before EMS rounding
+endif
 ;
 	push	cx
 	push	es
