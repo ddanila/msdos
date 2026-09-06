@@ -496,6 +496,41 @@ instruction reduction. It may supply the missing real-mode destination tier;
 until physical eligibility and end-to-end allocation are proved, credit zero
 conventional or UMB bytes. Keep the retail floor and OpenDOS comparison distinct.
 
+The first physical-topology check now supports the granularity lead without
+qualifying allocation. `tests/capture_uma_topology.py` boots a snapshot of a
+supplied image under QEMU `pc`, 486, 8 MiB, stops the CPU, and records physical
+ROM headers/checksums, each 4 KiB page's hash, PCI devices and the memory tree.
+It does not modify the input image or enable guest mappings. All pages without
+an overlapping ROM header are deliberately labelled **unproven**, including
+uniform zero/FF pages; invalid-checksum headers are retained as warnings.
+
+Local and retail IDE-image captures on QEMU 11.1.1 both show valid ROM payloads
+at C0000h..C99FFh and CA000h..CADFFh. CB000h..CBFFFh is all zero, with no
+overlapping ROM header. The memory tree maps that address to read-only
+`pc.ram` shadow storage, not directly writable RAM or a named MMIO region.
+Thus the source's 16 KiB exclusion loses a header-free 4 KiB tail beside real
+ROMs on the actual comparison hardware. Making it usable still needs separate
+paged backing and a complete reservation/ownership audit; an empty physical
+page is not an approved UMB. A timed snapshot is not proof of successful DOS
+boot or a replacement for the paired VC acceptance run.
+
+A local floppy-image control (`--interface floppy`) reproduces the IDE cases'
+ROM inventory, PCI topology and CB000h page hash. This narrows the boot-medium
+uncertainty for this particular region; it does not normalize all DR-DOS
+resource semantics or establish runtime mapping safety.
+
+Reproduce the read-only topology capture and its parser safety tests:
+
+```sh
+python3 tests/capture_uma_topology.py out/msdos622-original-vc405.img > out/uma-topology-retail.json
+python3 tests/capture_uma_topology.py out/msdos622-vc405-current-memory.img > out/uma-topology-local.json
+make test-drdos-capture
+```
+
+Reports include input hashes and effective QEMU arguments. Physical endpoints
+above are byte addresses, unlike the segment addresses used in the VC maps.
+No DR-DOS memory dump or disassembly is needed for this host-topology check.
+
 #### Retained BIOS partition
 
 Use `report_dos_bios_residency.py --check --tail-body DOS.MAP BIOS.map` for

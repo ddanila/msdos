@@ -265,6 +265,7 @@ test-vc-memory-report:
 
 test-drdos-capture:
 	python3 tests/test_capture_drdos_memory.py
+	python3 tests/test_uma_topology.py
 
 test-dos-bios-residency: dos bios
 	python3 tests/report_dos_bios_residency.py --check \
