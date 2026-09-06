@@ -2,10 +2,28 @@
 import struct
 import unittest
 
-from capture_emm_init_phases import check_phases, parse_trace
+from capture_emm_init_phases import check_phases, parse_trace, strip_capacity_records
 
 
 class InitPhaseTests(unittest.TestCase):
+    def test_capacity_records(self):
+        for handles, altregs in ((None, None), (255, None), (None, 0), (255, 254), (2, 0)):
+            data = self.trace()
+            for tag, count in ((b"HC", handles), (b"AC", altregs)):
+                if count is not None:
+                    data += tag + struct.pack("<H", count)
+            result = strip_capacity_records(data, handles=handles, altregs=altregs)
+            self.assertEqual(result, self.trace())
+            check_phases(parse_trace(result), "ON")
+
+    def test_bad_capacity_records(self):
+        base = self.trace()
+        for tail in (b"", b"HC\xff\x00", b"HC\xff\x00AC\xff\xff",
+                     b"AC\xfe\x00HC\xff\x00", b"HC\x02\x00AC\xfe\x00",
+                     b"HC\xff\x00HC\xff\x00AC\xfe\x00"):
+            with self.assertRaises(ValueError):
+                parse_trace(strip_capacity_records(base + tail, handles=255, altregs=254))
+
     def trace(self, mode="ON"):
         return b"".join(struct.pack("<2sB5H", b"IP", stage,
                                    int(stage >= 6 and (mode in ("ON", "RAM") or stage == 6)),

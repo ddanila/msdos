@@ -2250,6 +2250,23 @@ Full handle-capacity operations, general staging and other promotion gates
 remain open. Original failing images remain in `out/emm-init-phases-oig84nu7/`,
 `out/emm-init-phases-pxo2mkdt/` and `out/emm-init-phases-7dovsagk/`.
 
+**Full handle-slot gate:** explicit `--handles` now runs a public-API probe,
+not just a boot option. It allocates H-1 distinct, nonzero, in-range handles
+using zero-page AX=5A00h requests, checks each page count and the total handle
+count, requires 85h on exhaustion, releases every handle and verifies reuse
+and return to the sole reserved handle zero. Zero-page requests isolate handle
+capacity from available EMS pages. The handle probe runs before the alternate
+set probe; both must finish and return to DOS, and their separate HC/AC records
+must match the requested capacities. Fourteen host tests include absent,
+misordered, duplicate and failed capacity records.
+
+H=255/A=254 with switching passes ON/OFF/AUTO/RAM in
+`out/emm-init-phases-os6048co/` (high tables) and
+`out/emm-init-phases-3vbhye5k/` (low control). H=2/A=0 passes all four modes
+in `out/emm-init-phases-jehj60ed/`. This closes handle-slot exhaustion/reuse,
+not maximum-capacity page-backed data, names, save/restore or general staging.
+No new resident-memory saving is claimed.
+
 ```sh
 python3 tests/capture_emm_init_phases.py out/setver-native-audit.BAEqDU/low.img \
   --high-tables --handles 255 --altregs 254
