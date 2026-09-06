@@ -105,6 +105,9 @@ EMM1_GSEL	equ	RCODEA_GSEL+38h 	; EMM scratch selector
 EMM2_GSEL	equ	RCODEA_GSEL+40h 	; EMM scratch selector
 OEM0_GSEL	equ	RCODEA_GSEL+48h 	; OEM specific selector
 USER1_GSEL	equ	RCODEA_GSEL+50h		; USER data structure
+IFDEF EMM_HIGH_TABLES
+EMMT_GSEL equ USER1_GSEL+8             ; persistent zero-origin table owner
+ENDIF
 
 .list	; end of VDMSEL.INC
 

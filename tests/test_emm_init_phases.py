@@ -17,6 +17,29 @@ class InitPhaseTests(unittest.TestCase):
         for mode in ("ON", "OFF", "AUTO", "RAM"):
             check_phases(parse_trace(self.trace(mode)), mode)
 
+    def test_table_owner_layout(self):
+        for mode in ("ON", "OFF", "AUTO", "RAM"):
+            for high, physical in ((0, 0xD000), (1, 0x160000)):
+                base = self.trace(mode)
+                record = struct.pack("<2sI3H", b"HT", physical, 1961, 0x700, high)
+                rows = parse_trace(base[:78] + record + base[78:], table_layout=True)
+                self.assertEqual(rows[5]["tables"], dict(
+                    physical=physical, bytes=1961, end=0x700, high=high))
+                check_phases(rows, mode)
+
+    def test_invalid_table_owner_layout(self):
+        base = self.trace()
+        good = struct.pack("<2sI3H", b"HT", 0x160000, 1961, 0x700, 1)
+        for record in (b"", good[:-1], good + good,
+                       struct.pack("<2sI3H", b"XX", 0x160000, 1961, 0x700, 1),
+                       struct.pack("<2sI3H", b"HT", 0xD000, 1961, 0x700, 1),
+                       struct.pack("<2sI3H", b"HT", 0x160000, 1961, 0x700, 0),
+                       struct.pack("<2sI3H", b"HT", 0x160000, 0, 0x700, 1),
+                       struct.pack("<2sI3H", b"HT", 0x160000, 1961, 0, 1),
+                       struct.pack("<2sI3H", b"HT", 0x160000, 1961, 0x700, 2)):
+            with self.assertRaises(ValueError):
+                parse_trace(base[:78] + record + base[78:], table_layout=True)
+
     def test_bad_length_and_order(self):
         for data in (b"", self.trace()[:-1], self.trace() + b"x",
                      self.trace().replace(b"IP\x03", b"IP\x02")):

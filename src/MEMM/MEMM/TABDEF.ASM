@@ -148,6 +148,9 @@ GDT_ENTRY	0, 0, 0, D_DATA0		; EMM1 - EMM scratch selector
 GDT_ENTRY	0, 0, 0, D_DATA0		; EMM2 - EMM scratch selector
 GDT_ENTRY	0, 0, 0, D_DATA0		; OEM0 entry
 GDT_ENTRY	0, 0, 0, D_DATA0		; USER1 entry
+IFDEF EMM_HIGH_TABLES
+GDT_ENTRY       0, 0, 0, D_DATA0         ; complete EMM table owner
+ENDIF
 
 	public	GDTLEN
 GDTLEN		equ	$ - gdtstart

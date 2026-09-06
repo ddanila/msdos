@@ -55,6 +55,9 @@
 ;
 	include	vdmseg.inc
 	include emmdef.inc
+IFDEF EMM_HIGH_TABLES
+        include emm386.inc
+ENDIF
 
 FALSE	equ	0
 TRUE	equ	not FALSE
@@ -70,6 +73,9 @@ extrn	xbase_addr_h:byte	; bit 16-24 of address of first byte of emm memory
 extrn	xbase_addr_l:word	; bit  0-15 of address of first byte of emm memory
 extrn	sys_size:word		; number of 16k pages taken away from conv. mem
 extrn	dma_page_limit:word	; requested DOS 5 D= capacity
+IFDEF EMM_HIGH_TABLES
+        extrn msg_flag:word
+ENDIF
 
 LAST	ends
 
@@ -311,6 +317,34 @@ assign_external_store:
 	ret
 assign_external_page_id endp
 
+IFDEF EMM_HIGH_TABLES
+; Conservative complete-table bound before any table writes or reservations.
+; All arithmetic is wide. A separate zero-origin staging path is still needed
+; for capacities whose bound does not fit the legacy DGROUP staging window.
+        public TableStagingBound
+TableStagingBound PROC NEAR
+        push edx
+        movzx eax,[_handle_table_size]
+        imul eax,20
+        movzx edx,[pool_size]
+        shr edx,1
+        add eax,edx
+        movzx edx,[requested_page_count]
+        shl edx,1
+        add eax,edx
+        movzx edx,[dma_page_limit]
+        shl edx,1
+        add eax,edx
+        movzx edx,[_altreg_count]
+        inc edx
+        imul edx,129
+        add eax,edx
+        add eax,64
+        pop edx
+        ret
+TableStagingBound ENDP
+ENDIF
+
 EMM_Init	proc	near
 ;
 	pusha
@@ -344,6 +378,18 @@ else
 	shl	ax,4			; convert into offset from dgroup
 	add	ax,offset VDATA:vdata_begin
 	mov	di,ax
+IFDEF EMM_HIGH_TABLES
+        push edx
+        call TableStagingBound
+        movzx edx,di
+        add eax,edx
+        cmp eax,10000h
+        pop edx
+        jb EMIN_staging_ok
+        or [msg_flag],MEM_ERR_MSG
+        jmp EMIN_exit
+EMIN_staging_ok:
+ENDIF
 
 	mov	[_save_map],di
 	xor	bx,bx
@@ -774,6 +820,7 @@ EMIN_init_frs:
 ;
 ;  leave - no errors
 ;
+EMIN_exit:
 	pop	es
 	pop	ds
 	popa

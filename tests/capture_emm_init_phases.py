@@ -13,7 +13,7 @@ from emm_loader_rebase import include as rebase_include, manifest as rebase_mani
 
 
 def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
-                lifecycle=False, loader=False, rebase=False):
+                lifecycle=False, loader=False, rebase=False, table_layout=False):
     moved = None
     if rebase:
         if len(data) < 34:
@@ -34,6 +34,17 @@ def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
             raise ValueError("missing SYSINIT callback completion")
         data = data[:-2]
         order.insert(2, 17)
+    layout = None
+    if table_layout:
+        position = (order.index(6) + 1) * 13
+        if len(data) < position + 12:
+            raise ValueError("missing table layout")
+        tag, physical, size, end, high = struct.unpack_from("<2sI3H", data, position)
+        if (tag != b"HT" or high not in (0, 1) or not size or not end
+                or bool(physical >= 0x100000) != bool(high)):
+            raise ValueError("invalid table owner layout")
+        layout = dict(physical=physical, bytes=size, end=end, high=high)
+        data = data[:position] + data[position + 12:]
     if len(data) != len(order) * 13:
         raise ValueError("incomplete or unexpected initialization trace")
     result = []
@@ -47,6 +58,8 @@ def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
                            int67=f"{cs67:04X}:{ip67:04X}"))
     if moved:
         result[2]["move"] = moved
+    if layout:
+        result[order.index(6)]["tables"] = layout
     return result
 
 
@@ -122,6 +135,10 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image", type=Path)
     parser.add_argument("--split-prepare", action="store_true")
+    parser.add_argument("--table-layout", action="store_true",
+                        help="report the complete table owner and final driver break")
+    parser.add_argument("--high-tables", action="store_true",
+                        help="relocate the complete EMM table owner into locked extended memory")
     parser.add_argument("--loader", action="store_true",
                         help="return from INIT and resume through a private SYSINIT callback")
     parser.add_argument("--loader-rebase", action="store_true",
@@ -144,6 +161,11 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.high_tables:
+        args.table_layout = True
+    if args.table_layout and any((args.reject_prepared, args.bad_pool_control,
+                                 args.loader_bad_rebase)):
+        parser.error("table layout requires activation")
     if args.loader_bad_rebase:
         args.loader_rebase = True
         args.reject_prepared = True
@@ -184,6 +206,10 @@ def main():
     build = work / "MEMM/MEMM"
     original = capture.sha256(capture.ROOT / "src/MEMM/MEMM/EMM386.EXE")
     trace_defines = "-DEMM_INIT_PHASE_TRACE"
+    if args.table_layout:
+        trace_defines += " -DEMM_TABLE_LAYOUT_TRACE"
+    if args.high_tables:
+        trace_defines += " -DEMM_HIGH_TABLES"
     if args.split_prepare:
         trace_defines += " -DEMM_SPLIT_PREPARE"
     if args.loader:
@@ -205,6 +231,16 @@ def main():
     if args.bad_pool_control:
         trace_defines += " -DEMM_PREPARE_BAD_POOL"
     for define in ("", trace_defines):
+        if args.table_layout:
+            for name in ("EMMINIT", "INITTAB", "SHIPHI", "TABDEF"):
+                subprocess.run([str(capture.ROOT / "bin/jwasm-masm"),
+                                f"-Mx -t -DI386 -DNoBugMode -DNOHIMEM {define} -I. -I..\\EMM",
+                                f"{name}.ASM,{name}.OBJ;"], cwd=build, check=True,
+                               stdout=subprocess.DEVNULL)
+            subprocess.run([str(capture.ROOT / "bin/jwasm-masm"),
+                            f"-Mx -t -DI386 -DNoBugMode -DNOHIMEM {define} -I..\\MEMM",
+                            "EMMSUP.ASM,EMMSUP.OBJ;"], cwd=work / "MEMM/EMM", check=True,
+                           stdout=subprocess.DEVNULL)
         subprocess.run([str(capture.ROOT / "bin/jwasm-masm"),
                         f"-Mx -t -DI386 -DNoBugMode -DNOHIMEM {define} -I. -I..\\EMM",
                         "INIT.ASM,INIT.OBJ;"], cwd=build, check=True,
@@ -269,7 +305,13 @@ def main():
                                    activation_stack=args.activation_stack,
                                    lifecycle=args.lifecycle,
                                    loader=args.loader and not args.loader_bad_version,
-                                   rebase=args.loader_rebase)
+                                   rebase=args.loader_rebase, table_layout=args.table_layout)
+        if args.table_layout:
+            layout = next(row["tables"] for row in records[mode] if "tables" in row)
+            if layout["high"] != int(args.high_tables):
+                raise ValueError("table placement fell back from the requested owner")
+            layout["resident_bytes"] = (
+                layout["end"] - int(records[mode][-1]["int67"].split(":")[0], 16)) * 16
         check_phases(records[mode], mode, split=args.split_prepare,
                      rejected=args.reject_prepared, activation_stack=args.activation_stack,
                      lifecycle=args.lifecycle,
@@ -287,6 +329,7 @@ def main():
         lifecycle=args.lifecycle,
         loader=args.loader, loader_bad_version=args.loader_bad_version,
         loader_rebase=args.loader_rebase,
+        high_tables=args.high_tables, table_layout=args.table_layout,
         installed_owner_counts=owner_counts,
         rebase_manifest=rebase_manifest((build / "EMM386.EXE").read_bytes())
             if args.loader_rebase else None,

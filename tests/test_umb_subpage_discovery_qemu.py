@@ -16,7 +16,7 @@ def run(command, **kwargs):
     return subprocess.run([str(x) for x in command], check=True, **kwargs)
 
 
-def build(work, enabled, extra_flags=""):
+def build(work, enabled, extra_flags="", *, high_tables=False):
     for name in ("MEMM", "EMM"):
         source, dest = ROOT / "src/MEMM" / name, work / name
         dest.mkdir(parents=True)
@@ -27,11 +27,20 @@ def build(work, enabled, extra_flags=""):
     if enabled:
         flags += " -DUMB_SUBPAGE_DISCOVERY"
     flags += " " + extra_flags
+    if high_tables:
+        flags += " -DEMM_HIGH_TABLES"
     with (work / "build.log").open("w") as log:
-        for module in ("INIT", "PPAGE"):
+        modules = ("INIT", "PPAGE")
+        if high_tables:
+            modules += ("EMMINIT", "INITTAB", "SHIPHI", "TABDEF")
+        for module in modules:
             run([ROOT / "bin/jwasm-masm", flags,
                  f"{module}.ASM,{work / 'MEMM' / (module + '.OBJ')};"],
                 cwd=ROOT / "src/MEMM/MEMM", stdout=log, stderr=subprocess.STDOUT)
+        if high_tables:
+            run([ROOT / "bin/jwasm-masm", flags.replace("-I..\\EMM", "-I..\\MEMM"),
+                 f"EMMSUP.ASM,{work / 'EMM/EMMSUP.OBJ'};"],
+                cwd=ROOT / "src/MEMM/EMM", stdout=log, stderr=subprocess.STDOUT)
         run([ROOT / "bin/wlink", "/NOI /PACKDATA:1 @EMM386.LNK"],
             cwd=work / "MEMM", stdout=log, stderr=subprocess.STDOUT)
     return work / "MEMM/EMM386.EXE"

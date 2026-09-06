@@ -91,6 +91,9 @@ PAGESEG ends
 
 
 _DATA	segment
+IFDEF EMM_HIGH_TABLES
+        extrn TableSelector:word
+ENDIF
 	extrn	TEXT_Seg:word		; segment for TEXT
 	extrn	Active_Status:byte
 	extrn	GDT_Seg:word		; segment for GDT
@@ -753,6 +756,118 @@ RT_done:
 	ret
 RelocateText endp
 
+IFDEF EMM_HIGH_TABLES
+TablePhys dd 0
+TableBytes dw 0
+TableOldRoot dw 0
+        public RelocateTables
+RelocateTables PROC NEAR
+        pushad
+        push es
+        mov si,[_save_map]
+        mov [TableOldRoot],si
+        mov cx,[_emm_brk]
+        sub cx,si
+        mov [TableBytes],cx
+        add cx,3
+        jc HighTablesDone
+        call get_buffer
+        jc HighTablesDone
+        sub cx,3
+        add ax,3
+        adc dx,0
+        and ax,0fffch
+        mov word ptr [TablePhys],ax
+        mov word ptr [TablePhys+2],dx
+        push ds
+        pop es
+        mov di,si
+        call moveb
+        jnz HighTablesDone
+        mov es,[GDT_Seg]
+        mov ax,word ptr [TablePhys]
+        mov dx,word ptr [TablePhys+2]
+        xchg ax,dx
+        mov cx,[TableBytes]
+        mov ah,D_DATA0
+        mov bx,EMMT_GSEL
+        call SetSegDesc
+        mov bx,[TableOldRoot]
+        sub [FRS_array],bx
+        sub [CurRegSet],bx
+        sub [_mappable_pages],bx
+        sub [_physical_page_exceptions],bx
+        sub [_save_map],bx
+        sub [_handle_table],bx
+        sub [_Handle_Name_Table],bx
+        sub [_emm_page],bx
+        sub [_emm_free],bx
+        sub [_pft386],bx
+        sub [DMA_Pages],bx
+        mov [TableSelector],EMMT_GSEL
+        ; Prove that no service can continue to use the discarded low table.
+        push ds
+        pop es
+        mov di,[TableOldRoot]
+        mov cx,[TableBytes]
+        mov al,0a5h
+        cld
+        rep stosb
+HighTablesDone:
+        pop es
+        popad
+        ret
+RelocateTables ENDP
+ENDIF
+
+IFDEF EMM_TABLE_LAYOUT_TRACE
+TableLayout db 'HT'
+TableLayoutPhys dd 0
+TableLayoutBytes dw 0
+TableLayoutEnd dw 0
+TableLayoutHigh dw 0
+        public ReportTableLayout
+ReportTableLayout PROC NEAR
+        pushf
+        pushad
+        push ds
+        mov ax,seg DGROUP
+        movzx eax,ax
+        shl eax,4
+        movzx ebx,[_save_map]
+        add eax,ebx
+        mov cx,[_emm_brk]
+        sub cx,[_save_map]
+        mov word ptr [TableLayoutHigh],0
+IFDEF EMM_HIGH_TABLES
+        cmp [TableSelector],EMMT_GSEL
+        jne TableLayoutReady
+        mov eax,[TablePhys]
+        mov cx,[TableBytes]
+        mov word ptr [TableLayoutHigh],1
+TableLayoutReady:
+ENDIF
+        mov [TableLayoutPhys],eax
+        mov [TableLayoutBytes],cx
+        mov ax,word ptr [driver_end+2]
+        mov [TableLayoutEnd],ax
+        push cs
+        pop ds
+        mov si,offset TableLayout
+        mov cx,12
+        mov dx,0e9h
+        cld
+TableLayoutEmit:
+        lodsb
+        out dx,al
+        loop TableLayoutEmit
+        pop ds
+        popad
+        popf
+        ret
+ReportTableLayout ENDP
+ENDIF
+
 ; GoVirtual has now made its final real-mode calls into the trap engine. Reuse
 ; that protected-only low suffix for the selected dynamic VDATA extent.
 	public	CompactVData
@@ -774,6 +889,13 @@ CompactVData proc near
 	shl	ax,4
 	add	ax,offset _TEXT:IOTrap_Tab
 	mov	di,ax
+IFDEF EMM_HIGH_TABLES
+        cmp [TableSelector],EMMT_GSEL
+        jne CV_low_tables
+        mov [_emm_brk],di
+        jmp CV_stack
+CV_low_tables:
+ENDIF
 	mov	si,[_save_map]
 	mov	bx,si
 	sub	bx,di
@@ -796,6 +918,7 @@ CompactVData proc near
 	sub	[_pft386],bx
 	sub	[DMA_Pages],bx
 	sub	[_emm_brk],bx
+CV_stack:
 
 	; The ring-0 stack was originally placed immediately after the dynamic
 	; VDATA break.  Compaction moves that break, so retaining the old stack

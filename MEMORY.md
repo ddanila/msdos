@@ -5,6 +5,62 @@ delivery history belongs in Git; current evidence belongs in the test manifests.
 
 ## Current architectural priority
 
+### Current checkpoint: complete owners, not paragraph targets
+
+The latest composed development fixture (complete high EMM tables plus fine
+UMB mapping and high CDS) leaves **617,984 conventional bytes and 49,680 free
+UMB bytes**. Retail leaves 618,736 and 47,888: the remaining conventional gap
+is **752 bytes**, with **1,792 bytes of UMB margin**. This is not production
+promotion. The 616,112-byte figures below identify the preceding high-CDS
+baseline, before the complete table move; their component ledgers must not be
+mixed with the new result.
+
+The DR-DOS reassessment changes the implementation criterion: justify every
+remaining low owner and design its complete high service, rather than treating
+the retail deficit as a quota for instruction reductions. Controlled DR-DOS 6
+transitions recovered 40,480 conventional bytes from kernel/BIOS/shell placement
+and 12,800 from DOS-data placement. Those gains are not available again here:
+our kernel, buffers and selected BIOS/data owners are already high. The
+source-free vendor controls and their limitations are recorded below.
+
+The current boundary ledger, derived from the composed allocation map and the
+existing disk-booted OpenDOS control, is:
+
+| Low accounting group | Development bytes | OpenDOS bytes | Difference |
+| --- | ---: | ---: | ---: |
+| Installed memory-manager ranges | 4,608 | 1,200 | 3,408 |
+| BIOS/device region | 5,152 | 2,304 | 2,848 |
+| Remaining pre-COMMAND span | 8,080 | 6,944 | 1,136 |
+| Complete COMMAND owner span | 3,984 | 1,312 | 2,672 |
+| **Total below VC** | **21,824** | **11,760** | **10,064** |
+
+These are accounting groups, not equivalent vendor objects or promised savings.
+OpenDOS's 628,048-byte block remains a placement reference: its free UMB is
+304 bytes below retail and its framed warm-reset gate failed. The controlled
+provider switch's 4,240-byte low-system reduction and 280 KiB XMS cost are
+stronger causal evidence than interpreting its 1,200-byte device row as the
+whole manager.
+
+Next implementation selection requires one final resident-layout budget:
+
+1. Design the coordinated XMS/EMS provider's complete high services and low
+   entry/state/transition interface; retain standalone, third-party and 286
+   paths. The high-table prototype below is one owner, not that provider.
+2. Classify the remaining BIOS services and public DOS state by actual access
+   contracts. Keep public A20-off pointers valid; do not copy a live owner high
+   while retaining an unaccounted low mirror.
+3. Budget the whole resident COMMAND body, asynchronous interface and reload
+   state alongside BIOS, rather than reserving HMA independently for each.
+4. Show final low intervals and coalescing release, HMA packing, locked-XMS
+   costs and the UMB floor with unchanged requested resources. EBDA recovery
+   remains a finishing step, not the explanation for the vendor advantage.
+
+Prefer locked extended memory for protected manager owners, HMA for eligible
+DOS/BIOS/shell services, and UMB for eligible real-mode data. Do not begin
+another isolated instruction-shrinking tranche to close the 752-byte retail gap.
+
+### Pre-table baseline and standing compatibility constraints
+
 Maximize the largest conventional block by relocating complete resident
 allocations, not by continuing isolated instruction or paragraph reductions.
 The DR-DOS runtime maps show kernel, BIOS services, shell, and buffers in HMA,
@@ -2026,6 +2082,53 @@ The joint design must consider public-data placement and shared low interfaces
 as well as service code; conventional, UMB and HMA costs remain separate.
 
 ### Combined manager split: source-audited prototype boundary
+
+#### Development complete-table relocation checkpoint
+
+`EMM_HIGH_TABLES` implements the object-relative owner described below. It
+copies the complete dynamic table into the existing locked extended-memory
+reservation, publishes `EMMT_GSEL`, rebases all table roots and switches indexed
+and string accesses to that owner. Scalar state stays low. The old table is
+overwritten with A5h before activation; low compaction releases its span instead
+of retaining a mirror. Allocation/copy failure retains the low selector path.
+Normal builds do not enable this feature.
+
+Matched phase traces measure retained EMM spans of 2,016 bytes in ON, OFF, AUTO
+and RAM, versus 3,952 in the first three low-table controls and 3,888 in RAM.
+In the composed DOS-high RAM fixture this yields **1,872 additional conventional
+bytes with unchanged UMB capacity**. Evidence:
+
+- `out/emm-init-phases-miodpnvw/`: high-table four-mode traces; poisoned originals.
+- `out/emm-init-phases-z4dx3mxu/`: matched low-table controls.
+- `out/umb-fine-composition-vvf106mp/results.json`: composed and retail captures.
+- `out/bios-low-boot-p_czd_kc/emm-high.log`: combined high-CDS, warm-reset and
+  low/upper file-I/O probe using the composed high-table executable.
+
+The full EMM API/runtime-command suite also passes with the high-table ON
+image (`FLOPPY_IMAGE=out/emm-init-phases-miodpnvw/ON.img bash
+tests/test_emm386_qemu.sh`). That suite replaces CONFIG.SYS and exercises its
+no-HIMEM configuration; it is distinct from the composed HIMEM/DOS-high run.
+All 12 phase-parser and three relocation-manifest host tests pass. A normal
+`make memm` retains EMM386 SHA-256
+`40e71928669620ddc87a34053ccfdde37539ffbd6d9fc4e6c1de640f355b3eaf`.
+
+Reproduce the composition and reset qualification with:
+
+```sh
+python3 tests/test_umb_subpage_composition.py --high-tables
+python3 tests/test_bios_low_boot_qemu.py \
+  --early --tail-body --rebase --compact --high-cds --mode emm-high \
+  --warm-reset --umb-read \
+  --emm386-image out/umb-fine-composition-vvf106mp/emm-high-tables/MEMM/EMM386.EXE
+```
+
+Promotion gates remain open. A wide conservative bound now rejects table
+staging that cannot fit the legacy offset window before writing tables, and
+reserves excess tail capacity in the same XMS handle. This is **not** the
+required all-capacity zero-origin staging implementation. Explicit allocation/
+copy-failure fallback, failed-INIT arena accounting, resource maxima, additional
+hardware and combined-provider handoff still require qualification. Do not use
+default-capacity passing tests to claim those contracts complete.
 
 #### High table address and selector decision
 

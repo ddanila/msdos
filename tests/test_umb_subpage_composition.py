@@ -22,7 +22,11 @@ def main():
     parser.add_argument("--image", type=Path, default=ROOT / "out/msdos622-vc405-current-memory.img")
     parser.add_argument("--retail", type=Path, default=ROOT / "out/msdos622-original-vc405.img")
     parser.add_argument("--high-cds", action="store_true", help="also measure complete CDS upper placement")
+    parser.add_argument("--high-tables", action="store_true",
+                        help="also compose the complete EMM table move with fine UMBs and high CDS")
     args = parser.parse_args()
+    if args.high_tables:
+        args.high_cds = True
     for path in (args.image, args.retail):
         if not path.is_file():
             parser.error(f"missing fixed comparison image: {path}")
@@ -38,6 +42,9 @@ def main():
     if args.high_cds:
         build_bios(work / "bios-cds", early=True, tail_body=True, rebase=True, compact=True, high_cds=True)
         binaries["fine-cds"] = binaries["fine"]
+    if args.high_tables:
+        binaries["fine-cds-high-tables"] = build_emm(
+            work / "emm-high-tables", True, "-DUMB_SUBPAGE_MAPPING", high_tables=True)
     assert binaries["coarse"].read_bytes() == (ROOT / "src/MEMM/MEMM/EMM386.EXE").read_bytes()
     env = dict(os.environ, MTOOLS_SKIP_CHECK="1", MTOOLS_NO_VFAT="1")
     inputs = {}
@@ -46,7 +53,7 @@ def main():
         shutil.copyfile(args.image, image)
         spec = f"{image}@@{partition_offset(image)}"
         files = {
-            "IO.SYS": work / ("bios-cds/IO.SYS" if name == "fine-cds" else "bios/IO.SYS"),
+            "IO.SYS": work / ("bios-cds/IO.SYS" if name.startswith("fine-cds") else "bios/IO.SYS"),
             "MSDOS.SYS": ROOT / "src/DOS/MSDOS.SYS",
             "COMMAND.COM": ROOT / "src/CMD/COMMAND/COMMAND.COM",
             "DOS/COMMAND.COM": ROOT / "src/CMD/COMMAND/COMMAND.COM",
@@ -85,6 +92,13 @@ def main():
         assert results["fine-cds"]["largest"] - results["fine"]["largest"] == 2304, results
         assert results["fine"]["upper_free"] - results["fine-cds"]["upper_free"] == 2320, results
         assert results["fine-cds"]["upper_free"] >= results["retail"]["upper_free"], results
+    if args.high_tables:
+        candidate, previous = results["fine-cds-high-tables"], results["fine-cds"]
+        assert candidate["largest"] > previous["largest"], results
+        assert candidate["upper_free"] == previous["upper_free"], results
+        assert candidate["upper_free"] >= results["retail"]["upper_free"], results
+        print(f"PASS: complete EMM tables reclaim {candidate['largest'] - previous['largest']} "
+              "conventional bytes without consuming free UMB", flush=True)
         print("PASS: complete CDS move reclaims 2304 conventional bytes within the retail UMB floor", flush=True)
     print("PASS: combined layout retains conventional memory and gains 4096 free UMB bytes", flush=True)
 

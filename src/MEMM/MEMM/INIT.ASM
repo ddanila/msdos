@@ -174,6 +174,12 @@ _TEXT	ends
 LAST	segment
 	extrn	RelocateText:near
 	extrn	CompactVData:near
+IFDEF EMM_HIGH_TABLES
+        extrn RelocateTables:near
+ENDIF
+IFDEF EMM_TABLE_LAYOUT_TRACE
+        extrn ReportTableLayout:near
+ENDIF
 
 	extrn	VerifyMachine:near
 	extrn	InitMess:byte
@@ -928,6 +934,9 @@ endif
 	endif
 
 	call	RelocateText
+IFDEF EMM_HIGH_TABLES
+        call RelocateTables
+ENDIF
 	INIT_PHASE 5
 	call	FarGoVirtual		;  N: go into virtual mode
 	; Finish resident ownership while activation is established and no
@@ -935,6 +944,9 @@ endif
 	; compaction merely because their final execution mode is inactive.
 	call	CompactVData
 	INIT_PHASE 6
+IFDEF EMM_TABLE_LAYOUT_TRACE
+        call ReportTableLayout
+ENDIF
 	mov	al,[initial_mode]
 	or	al,al
 	jz	short IE_initial_mode_done
