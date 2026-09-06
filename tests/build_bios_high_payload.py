@@ -52,12 +52,18 @@ def run(command, cwd):
         raise RuntimeError(result.stdout + result.stderr)
 
 
-def build(output, low_directory=None):
+def build(output, low_directory=None, *, dispatch=False):
     output.mkdir(parents=True, exist_ok=True)
     low_directory = Path(low_directory) if low_directory is not None else ROOT / "src/BIOS"
     low_map = low_directory / "msBIO.map"
     _, low_symbols = parse_map(low_map)
     low_symbols = {name.upper(): value for name, value in low_symbols.items()}
+    slot_targets = dict(SLOT_TARGETS)
+    if dispatch:
+        slot_targets.update({"BIOS_DISPATCH_LOW_SEGMENT": (2, "resident low BIOS segment"),
+                             "BIOS_DISPATCH_ERROR_ENTRY": (4, "CMDERR"),
+                             "BIOS_DISPATCH_TABLE_SEGMENT": (2, "HMA segment"),
+                             "BIOS_DISPATCH_TABLE_DELTA": (2, "high table delta")})
     with tempfile.TemporaryDirectory(prefix="msdos-high-link-") as scratch:
         scratch = Path(scratch)
         listing = scratch / "body.lst"
@@ -66,7 +72,16 @@ def build(output, low_directory=None):
              f"-I. -I../INC -DBIOS_SERVICE_ISOLATED=1 -Fl{listing}",
              f"MSDISK.ASM,{body};"], ROOT / "src/BIOS")
         externals = {}
-        for line in listing.read_text(encoding="latin-1").splitlines():
+        objects = [body]
+        listings = [listing]
+        if dispatch:
+            dispatch_listing = scratch / "dispatch.lst"
+            dispatch_object = scratch / "dispatch.obj"
+            run([ROOT / "bin/jwasm-masm", f"-I. -Fl{dispatch_listing}",
+                 f"HIGHDISP.ASM,{dispatch_object};"], ROOT / "src/BIOS")
+            objects.append(dispatch_object)
+            listings.append(dispatch_listing)
+        for line in "\n".join(path.read_text(encoding="latin-1") for path in listings).splitlines():
             match = re.match(r"^([\w$]+)\s+(?:\.\s+)*\s*(.*?)\s+External\s*$", line)
             if match:
                 name, description = match.groups()
@@ -74,8 +89,8 @@ def build(output, low_directory=None):
         if not externals:
             raise ValueError("no external symbols parsed from isolated listing")
         slots = {name: size for name, size in externals.items()
-                 if name.startswith(("BIOS_SERVICE_", "BIOS_LOW_"))}
-        if slots != {name: spec[0] for name, spec in SLOT_TARGETS.items()}:
+                 if name.startswith(("BIOS_SERVICE_", "BIOS_LOW_", "BIOS_DISPATCH_"))}
+        if slots != {name: spec[0] for name, spec in slot_targets.items()}:
             raise ValueError("runtime imports changed; review slot widths and target contracts")
         low = {name: low_symbols[name] for name in externals if name not in slots}
         definitions = [".8086"]
@@ -84,6 +99,12 @@ def build(output, low_directory=None):
         definitions += ["BIOSHIGH SEGMENT BYTE PUBLIC 'BIOSHIGH'"]
         for name, size in sorted(slots.items()):
             definitions += [f"PUBLIC {name}", f"{name} {'DD' if size == 4 else 'DW'} 0"]
+        table_bytes = low_symbols["BIOS_DEVICE_TABLES_END"] - low_symbols["DSKTBL"] if dispatch else 0
+        if dispatch:
+            if table_bytes <= 0:
+                raise ValueError("invalid complete device-table extent")
+            definitions += ["PUBLIC BIOS_DISPATCH_TABLES", "BIOS_DISPATCH_TABLES LABEL BYTE",
+                            f"DB {table_bytes} DUP (0)"]
         definitions += ["PUBLIC BIOS_PAYLOAD_END", "BIOS_PAYLOAD_END LABEL BYTE",
                         "BIOSHIGH ENDS", "END"]
         source = scratch / "bindings.asm"
@@ -103,7 +124,7 @@ def build(output, low_directory=None):
             run([ROOT / "bin/jwasm-masm", "", f"{prefix_source},{prefix};"], ROOT)
             run([linker, "format", "raw", "bin", "option", "quiet", "option", "nocaseexact",
                  "option", "nofarcalls", "option", f"map={map_path}", "name", destination,
-                 "file", f"{prefix},{body},{bindings}"], ROOT)
+                 "file", ",".join(map(str, [prefix, *objects, bindings]))], ROOT)
             raw = destination.read_bytes()
             if any(raw[:origin]):
                 raise ValueError("linker prefix changed")
@@ -115,7 +136,7 @@ def build(output, low_directory=None):
                    if (match := re.match(r"^([0-9a-fA-F]{8})[*+]?\s+([\w$]+)\s*$", line))}
         if symbols["BIOS_SERVICE_START"] != 0 or symbols["BIOS_PAYLOAD_END"] != len(data):
             raise ValueError("linker output does not match isolated payload boundaries")
-        runtime = {name: {"offset": symbols[name], "size": size, "target": SLOT_TARGETS[name][1]}
+        runtime = {name: {"offset": symbols[name], "size": size, "target": slot_targets[name][1]}
                    for name, size in slots.items()}
         for slot in runtime.values():
             if any(data[slot["offset"]:slot["offset"] + slot["size"]]):
@@ -133,6 +154,7 @@ def build(output, low_directory=None):
             if rebase(data, relocations, origin) != expected:
                 raise ValueError(f"offset-fixup model disagrees with linker at {origin:04x}")
         manifest = {"installed": False, "runtime_bindings_required": True,
+                    "dispatch": dispatch, "table_bytes": table_bytes,
                     "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data),
                     "service_bytes": symbols["BIOS_SERVICE_END"],
                     "low_map_sha256": hashlib.sha256(low_map.read_bytes()).hexdigest(),
@@ -248,5 +270,6 @@ if __name__ == "__main__":
     parser.add_argument("output", type=Path)
     parser.add_argument("--low-directory", type=Path,
                         help="bind to this matching msBIO.map, MSBIO.BIN and IO.SYS set")
+    parser.add_argument("--dispatch", action="store_true", help="include complete decoder and device tables")
     args = parser.parse_args()
-    build(args.output.resolve(), args.low_directory)
+    build(args.output.resolve(), args.low_directory, dispatch=args.dispatch)

@@ -437,7 +437,24 @@ ENTRY1:
 	PUSH	ES
 	PUSH	BX
 
+	IFDEF BIOS_SERVICE_DISPATCH
+        pushf
+        cmp byte ptr cs:[BIOS_SERVICE_ACTIVE],0
+        je short BIOS_DISPATCH_COLD
+        popf
+        call BIOS_HMA_ROM_RESTORE
+        jmp dword ptr cs:[BIOS_HIGH_DISPATCH_ENTRY]
+BIOS_DISPATCH_COLD:
+        popf
+	ENDIF
+	IFDEF BIOS_SERVICE_DISPATCH
+	PUBLIC BIOS_COLD_DISPATCH_START,BIOS_COLD_DISPATCH_END
+BIOS_COLD_DISPATCH_START LABEL BYTE
+	ENDIF
 	INCLUDE DISPATCH.INC
+	IFDEF BIOS_SERVICE_DISPATCH
+BIOS_COLD_DISPATCH_END LABEL BYTE
+	ENDIF
 DSK$IN	ENDP
 	PAGE
 ;=====================================================
@@ -507,6 +524,10 @@ BIOS_REBASED_TO DW 0
 ; One-way commit after full binding/publication; never clear after reclaiming
 ; the low body unless that body and all original pointers are reconstructed.
 BIOS_SERVICE_ACTIVE DB 0
+	ENDIF
+	IFDEF BIOS_SERVICE_DISPATCH
+	PUBLIC BIOS_HIGH_DISPATCH_ENTRY
+BIOS_HIGH_DISPATCH_ENTRY DD 0
 	ENDIF
 
 ;-----------------------------------------------

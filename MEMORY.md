@@ -2648,7 +2648,7 @@ reaches startup but does not complete (`out/bios-dispatch-hma-wfxarn1o/`);
 the harness terminates QEMU after 20 seconds. The Make target runs both positive
 variants. Normal IO.SYS is byte-identical. Poisoning proves independence from
 the old contents, not a smaller resident break: the fixed VDISK prefix still
-requires joint repacking, and actual SYSINIT table publication remains open.
+requires joint repacking. SYSINIT publication is qualified separately below.
 
 **Handler-entry flags:** table translation must not replace the arithmetic
 flags left by the original `ADD SI,command*2`. The high decoder restores low
@@ -2661,6 +2661,41 @@ separately. The prior decoder fails this check in
 The fix adds 11 high code bytes, already charged in the 308-byte budget.
 This preserves existing internal behavior without claiming that DOS's public
 device-request interface specifies every incoming arithmetic flag.
+
+**Installed development dispatcher:** `--dispatch` on the early BIOS boot
+harness now embeds `HIGHDISP.ASM` in the existing high disk-service payload.
+SYSINIT binds its low data/error entries and high table segment/delta, patches
+the disk-service targets, then copies all five live command tables to HMA.
+Under the same interrupt-masked publication window it poisons the low tables
+with A5h and the cold decoder with HLT before setting ACTIVE. The low device
+entry restores A20 before transferring to the high decoder. Preparation or
+capacity failure leaves the original low decoder/tables usable.
+
+The payload grows from 5,220 to **5,528 bytes**: 125 decoder, 10 bindings and
+173 table bytes. Eight additional offset fixups are checked against independent
+link origins. The selected low BIOS grows from 5,152 to **5,168 bytes** after
+rounding. The old 76-byte decoder and 173-byte tables are poisoned, **not
+reclaimed**; this is installed execution evidence, not a conventional saving.
+The calculated shared HMA tail with normal COMMAND becomes 9,269 bytes in this
+variant. The selected 617,936-byte comparison remains the non-dispatch fixture.
+
+Reproduce the installed and fallback matrix with a current boot image:
+
+```sh
+FLOPPY_IMAGE=<image> python3 tests/test_bios_low_boot_qemu.py --early --tail-body --dispatch
+FLOPPY_IMAGE=<image> python3 tests/test_bios_low_boot_qemu.py --early --tail-body --dispatch --fail-reservation --mode himem-high --mode emm-high
+FLOPPY_IMAGE=<image> python3 tests/test_bios_low_boot_qemu.py --early --tail-body --dispatch --rebase --compact --high-cds --warm-reset --mode emm-high
+```
+
+Standalone-high passes in `out/bios-low-boot-43cox1h_/`; bare-low, HIMEM-low and
+EMM-high in `out/bios-low-boot-ab_jmz2g/`; reservation rejection in
+`out/bios-low-boot-5ha9itaz/`; rebased/high-CDS warm reset in
+`out/bios-low-boot-1_ihczwl/`. The guest checks poisoned originals after success
+and intact cold entry/table bounds after fallback. Five high-payload tests and
+the 53-test residency suite pass; normal IO.SYS remains byte-identical.
+This does not qualify every character device or third-party table writer.
+Final low repacking/release and the complete BIOS/COMMAND/provider layout
+remain open; do not credit this copy as a second table-relocation saving.
 
 The 18-byte error pair also contains mutable `LSTERR`: high
 `MSDSKHIG.INC:MAPERROR` writes that sentinel before scanning through low ES.

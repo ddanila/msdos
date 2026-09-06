@@ -59,6 +59,7 @@ def run_warm_reset(command, log, stream, qmp_path):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--early", action="store_true", help="activate during SYSINIT, before buffers and COMMAND")
+    parser.add_argument("--dispatch", action="store_true", help="install high decoder/tables and poison low originals")
     parser.add_argument("--tail-body", action="store_true", help="test last-linked fallback service layout")
     parser.add_argument("--scan", action="store_true", help="record activation-time pointer candidates on debug port")
     parser.add_argument("--rebase", action="store_true", help="move and poison the old low DOS prefix")
@@ -142,6 +143,8 @@ def main():
         parser.error("--files must be 8..255 and custom counts require --rebase")
     if args.fail_reservation and not args.early:
         parser.error("--fail-reservation requires --early")
+    if args.dispatch and not args.early:
+        parser.error("--dispatch requires --early")
     if (args.scan or args.rebase) and not (args.early and args.tail_body):
         parser.error("--scan/--rebase requires --early --tail-body")
     if args.compact and not args.rebase:
@@ -161,11 +164,11 @@ def main():
              "memm"], ROOT)
         args.emm386_image = fixture / "MEMM/MEMM/EMM386.EXE"
         print(f"Diagnostic EMM386 (reversed backing): {args.emm386_image}", flush=True)
-    manifest = build(scratch, early=args.early, tail_body=args.tail_body, scan=args.scan, rebase=args.rebase, compact=args.compact,
+    manifest = build(scratch, early=args.early, tail_body=args.tail_body, dispatch=args.dispatch, scan=args.scan, rebase=args.rebase, compact=args.compact,
                      reservation_limit=0x10 if args.fail_reservation else 0xfff0, fail_tables=args.fail_table_allocation,
                      high_cds=args.high_cds, fail_cds=args.fail_cds_allocation,
                      cds_cache_case=args.cds_cache_case, cds_cache_negative=args.cds_cache_negative)
-    high_manifest = build_high(scratch / "high", scratch)
+    high_manifest = build_high(scratch / "high", scratch, dispatch=args.dispatch)
     if args.rebase:
         layout = scratch / "public-layout.bin"
         run([ROOT / "bin/jwasm-bin", f"-I{ROOT / 'src/INC'}", f"-Fo{layout}",
@@ -200,7 +203,7 @@ def main():
     # Every named low gate/helper imported by the high payload now exists in
     # this combined image. The owner segment is supplied by the future loader.
     for slot in high_manifest["runtime_slots"].values():
-        if slot["target"] != "resident low BIOS segment":
+        if slot["target"] not in ("resident low BIOS segment", "HMA segment", "high table delta"):
             if slot["target"].upper() not in manifest["symbols"]:
                 raise RuntimeError(f"missing production low binding: {slot['target']}")
     (scratch / "low-defs.inc").write_text(
@@ -211,6 +214,10 @@ def main():
     if args.tail_body:
         with (scratch / "low-defs.inc").open("a") as stream:
             stream.write(f"PERMANENT_END_OFFSET equ {manifest['symbols']['BIOS_PERMANENT_END']}\n")
+    if args.dispatch:
+        with (scratch / "low-defs.inc").open("a") as stream:
+            for name in ("DSKTBL", "BIOS_DEVICE_TABLES_END", "BIOS_COLD_DISPATCH_START", "BIOS_COLD_DISPATCH_END"):
+                stream.write(f"{name} equ {manifest['symbols'][name]}\n")
     (scratch / "low-slots.inc").write_text(
         "dw " + ",".join(map(str, manifest["high_slot_words"])) + "\n")
     variants = {

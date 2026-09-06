@@ -38,7 +38,12 @@ def write_fixture(output, low, high):
                       f"add di,{patch['offset']}", f"mov cx,{patch['size']}", "mov al,90h",
                       "rep stosb", f"activation_keep_{index}:"]
     for slot in high["runtime_slots"].values():
-        value = 0x70 if slot["target"] == "resident low BIOS segment" else symbols[slot["target"].upper()]
+        if slot["target"] == "high table delta":
+            bind_high += ["mov ax,bx", f"add ax,{exports['BIOS_DISPATCH_TABLES']}",
+                          f"sub ax,{symbols['DSKTBL']}", f"mov [es:bx+{slot['offset']}],ax"]
+            continue
+        special = {"resident low BIOS segment": 0x70, "HMA segment": 0xffff}
+        value = special[slot["target"]] if slot["target"] in special else symbols[slot["target"].upper()]
         bind_high += [f"mov word [es:bx+{slot['offset']}],{value}"]
         if slot["size"] == 4:
             bind_high += [f"mov word [es:bx+{slot['offset'] + 2}],70h"]
@@ -49,10 +54,29 @@ def write_fixture(output, low, high):
     low_targets.update({"BIOS_HIGH_" + name: (name, 2)
                         for name in ("SETDRIVE", "MAPERROR", "READ_SECTOR", "CHECKSINGLE")})
     low_targets.update({slot: (target, 4) for _, _, slot, target in entries})
+    if high.get("dispatch"):
+        low_targets["BIOS_HIGH_DISPATCH_ENTRY"] = ("BIOS_DISPATCH_START", 4)
     for slot, (target, width) in low_targets.items():
         bind_low += ["mov ax,bx", f"add ax,{exports[target]}", f"mov [es:{symbols[slot]}],ax"]
         if width == 4:
             bind_low += [f"mov word [es:{symbols[slot] + 2}],0ffffh"]
+    if high.get("dispatch"):
+        # Copy AFTER publishing the disk-stub table targets, before ACTIVE.
+        # The installer holds CLI across binding, poisoning and activation.
+        count = symbols["BIOS_DEVICE_TABLES_END"] - symbols["DSKTBL"]
+        if count != high["table_bytes"] or exports["BIOS_DISPATCH_TABLES"] + count > high["bytes"]:
+            raise ValueError("invalid high device-table reservation")
+        bind_low += ["push ds", "push es", "push es", "pop ds",
+                     "mov ax,0ffffh", "mov es,ax", f"mov si,{symbols['DSKTBL']}",
+                     "mov di,bx", f"add di,{exports['BIOS_DISPATCH_TABLES']}",
+                     f"mov cx,{count}", "cld", "rep movsb", "pop es", "pop ds"]
+        # Development witness: any stale decoder/table access must fail.
+        for start, end, fill in (("DSKTBL", "BIOS_DEVICE_TABLES_END", "0a5h"),
+                                 ("BIOS_COLD_DISPATCH_START", "BIOS_COLD_DISPATCH_END", "0f4h")):
+            if symbols[end] <= symbols[start]:
+                raise ValueError("invalid cold decoder/table range")
+            bind_low += [f"mov di,{symbols[start]}", f"mov cx,{symbols[end] - symbols[start]}",
+                         f"mov al,{fill}", "rep stosb"]
     for name, lines in (("defs", [f"{key} equ {value}" for key, value in definitions.items()]),
                         ("preflight", preflight), ("bind-high", bind_high),
                         ("bind-low", bind_low), ("data", data)):

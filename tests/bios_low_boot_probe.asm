@@ -110,6 +110,26 @@ start:
 %endif
     cmp byte [es:ACTIVE_OFFSET],EXPECT_ACTIVE
     jne fail
+%ifdef BIOS_COLD_DISPATCH_START
+%if EXPECT_ACTIVE
+    mov di,DSKTBL
+    mov cx,BIOS_DEVICE_TABLES_END-DSKTBL
+    mov al,0a5h
+    cld
+    repe scasb
+    jne fail
+    mov di,BIOS_COLD_DISPATCH_START
+    mov cx,BIOS_COLD_DISPATCH_END-BIOS_COLD_DISPATCH_START
+    mov al,0f4h
+    repe scasb
+    jne fail
+%else
+    cmp byte [es:DSKTBL],24
+    jne fail
+    cmp byte [es:BIOS_COLD_DISPATCH_START],0f4h
+    je fail
+%endif
+%endif
 %if EXPECT_ACTIVE
 %ifndef EXPECT_COMPACT
     mov di,SERVICE_START
