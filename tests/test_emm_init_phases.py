@@ -2,10 +2,33 @@
 import struct
 import unittest
 
-from capture_emm_init_phases import check_phases, parse_trace, strip_capacity_records, parse_bootstrap_layout
+from capture_emm_init_phases import check_phases, parse_trace, strip_capacity_records, parse_bootstrap_layout, parse_post_boot
 
 
 class InitPhaseTests(unittest.TestCase):
+    def test_post_boot_allocation(self):
+        data = struct.pack("<2s4H", b"MC", 1871, 38983, 179, 265)
+        self.assertEqual(parse_post_boot(data, 1), dict(
+            psp_segment=1871, largest_bytes=623728, himem_bytes=2864, emm_bytes=4240))
+        for bad in (b"", data[:-1], data + b"x"):
+            with self.assertRaises(ValueError):
+                parse_post_boot(bad, 1)
+        for offset, value in ((2, 0), (2, 0xa000), (4, 0), (4, 0xffff),
+                              (6, 0), (6, 0xffff), (8, 0), (8, 0xffff)):
+            bad = bytearray(data)
+            struct.pack_into("<H", bad, offset, value)
+            with self.assertRaises(ValueError):
+                parse_post_boot(bad, 1)
+        with self.assertRaises(ValueError):
+            parse_post_boot(data, 0)
+        cancelled = data[:-2] + b"\0\0"
+        self.assertEqual(parse_post_boot(cancelled, 0)["emm_bytes"], 0)
+
+    def test_downward_requires_layout_and_loader(self):
+        for options in ({}, dict(rebase=True), dict(rebase=True, authoritative_owner=True)):
+            with self.assertRaises(ValueError):
+                parse_trace(b"", reclaim_bootstrap=True, **options)
+
     def layout(self):
         return struct.pack("<2s6H", b"XL", 0x400, 2240, 3008, 32, 3168, 448)
 
@@ -247,6 +270,25 @@ class InitPhaseTests(unittest.TestCase):
                             **options, rebase_rejected=True)
         with self.assertRaises(ValueError):
             parse_trace(data, rebase_rejected=True)
+
+    def test_downward_delta_comes_from_layout(self):
+        base = self.trace()
+        def record(stage):
+            return base[:2] + bytes([stage]) + base[3:13]
+        owner = struct.pack("<2sHIH", b"XO", 3, 0x110000, 1)
+        for cancelled in (False, True):
+            suffix = b"" if cancelled else struct.pack("<2sI", b"XA", 0x220000)
+            suffix += self.layout() + owner + b"LD"
+            tail = record(17) + (record(10) if cancelled else base[13:]) + suffix
+            flags = dict(split=True, loader=True, rebase=True, rejected=cancelled,
+                         bootstrap_owner=True, authoritative_owner=True, reclaim_bootstrap=True)
+            def sample(new, count):
+                return base[:13] + record(9) + struct.pack("<2s3H", b"RB", 0x500, new, count) + tail
+            rows = parse_trace(sample(0x500 - 58, 8264), **flags)
+            self.assertEqual(rows[2]["move"]["new"], 0x500 - 58)
+            for new, count in ((0x520, 8264), (0x500 - 57, 8264), (0x500 - 58, 58)):
+                with self.assertRaises(ValueError):
+                    parse_trace(sample(new, count), **flags)
 
 
 if __name__ == "__main__":

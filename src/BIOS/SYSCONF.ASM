@@ -2048,6 +2048,9 @@ IFDEF BIOS_DEFER_PROVIDER
 ProviderLoadEnd dw 0
 IFDEF PROVIDER_REBASE
         include PROVIDERFIXUPS.INC
+IFDEF BIOS_PROVIDER_DOWN
+        include PROVIDERDOWN.INC
+ENDIF
 ProviderMoveFailed db 0
 ENDIF
 ; Only advertise to the selected character-device surface; an ordinary EMM
@@ -2137,7 +2140,15 @@ ENDIF
         or ax,0100h             ; standard INIT completion status
         mov word ptr cs:[PACKET+3],ax
         test ax,8000h
+IFDEF BIOS_PROVIDER_DOWN
+        jnz ProviderResumeError
+        call ProviderCommitDown
+        jmp ProviderResumeSuccess
+ProviderResumeError:
+        call ProviderAbortDown
+ELSE
         jz ProviderResumeSuccess
+ENDIF
         ; SET_BREAK uses the break, not STATUS, to recognize aborted INIT.
         ; Do not link a cancelled provider whose initialization storage dies.
         mov word ptr cs:[BREAK_ADDR],0
@@ -2178,12 +2189,20 @@ ProviderMove PROC NEAR
         push ds
         push es
         mov bp,word ptr cs:[ENTRY_POINT+2]
+IFDEF BIOS_PROVIDER_DOWN
+        call ProviderPlanDown
+        jc ProviderMoveBad
+ENDIF
         mov ax,bp
         add ax,PROVIDER_IMAGE_PARAS
         jc ProviderMoveBad
         cmp ax,cs:[ProviderLoadEnd]
         ja ProviderMoveBad
+IFDEF BIOS_PROVIDER_DOWN
+        sub ax,cs:[ProviderReclaimParas]
+ELSE
         add ax,PROVIDER_MOVE_PARAS
+ENDIF
         jc ProviderMoveBad
         cmp ax,cs:[ALLOCLIM]
         jae ProviderMoveBad
@@ -2198,7 +2217,11 @@ ProviderMoveCheck:
         add ax,bp
         cmp es:[di],ax
         jne ProviderMoveBad
+IFDEF BIOS_PROVIDER_DOWN
+        sub ax,cs:[ProviderReclaimParas]
+ELSE
         add ax,PROVIDER_MOVE_PARAS
+ENDIF
         jc ProviderMoveBad
         add si,6
         loop ProviderMoveCheck
@@ -2213,6 +2236,24 @@ IFDEF BIOS_STAGE_PROVIDER
         cmp ax,XCP_LAYOUT_REPLY
         jne ProviderMoveBad
 ENDIF
+IFDEF BIOS_PROVIDER_DOWN
+        xor bx,bx             ; forward copy for the overlapping downward move
+        cld
+ProviderMoveDownCopy:
+        mov ax,bp
+        add ax,bx
+        mov ds,ax
+        sub ax,cs:[ProviderReclaimParas]
+        mov es,ax
+        xor si,si
+        xor di,di
+        mov cx,8
+        rep movsw
+        inc bx
+        cmp bx,PROVIDER_IMAGE_PARAS
+        jb ProviderMoveDownCopy
+        mov cs:[ProviderDownMoved],1
+ELSE
         ; Copy paragraphs backward to support the overlapping upward move.
         mov bx,PROVIDER_IMAGE_PARAS
         cld
@@ -2229,25 +2270,50 @@ ProviderMoveCopy:
         rep movsw
         or bx,bx
         jnz ProviderMoveCopy
+ENDIF
         mov si,offset ProviderFixups
         mov cx,PROVIDER_FIXUP_COUNT
 ProviderMoveFix:
         mov di,cs:[si]
         mov ax,cs:[si+2]
         add ax,bp
+IFDEF BIOS_PROVIDER_DOWN
+        sub ax,cs:[ProviderReclaimParas]
+ELSE
         add ax,PROVIDER_MOVE_PARAS
+ENDIF
         mov es,ax
+IFDEF BIOS_PROVIDER_DOWN
+        mov ax,cs:[ProviderReclaimParas]
+        sub word ptr es:[di],ax
+ELSE
         add word ptr es:[di],PROVIDER_MOVE_PARAS
+ENDIF
         add si,6
         loop ProviderMoveFix
+IFDEF BIOS_PROVIDER_DOWN
+        mov ax,cs:[ProviderReclaimParas]
+        sub word ptr cs:[ENTRY_POINT+2],ax
+        sub word ptr cs:[PACKET+BP_CALLBACK_OFF+2],ax
+        sub cs:[ProviderLoadEnd],ax
+        mov ax,bp
+        add ax,PROVIDER_IMAGE_PARAS
+        sub ax,cs:[ProviderReclaimParas]
+        mov es,ax             ; only the old-exclusive suffix is poisoned
+        mov cx,cs:[ProviderReclaimParas]
+        shl cx,1
+        shl cx,1
+        shl cx,1
+ELSE
         add word ptr cs:[ENTRY_POINT+2],PROVIDER_MOVE_PARAS
         add word ptr cs:[PACKET+BP_CALLBACK_OFF+2],PROVIDER_MOVE_PARAS
         add cs:[ProviderLoadEnd],PROVIDER_MOVE_PARAS
         ; Poison only the old-exclusive prefix, never overlapping destination.
         mov es,bp
+        mov cx,PROVIDER_MOVE_PARAS*8
+ENDIF
         xor di,di
         mov ax,0f4fah
-        mov cx,PROVIDER_MOVE_PARAS*8
         rep stosw
         mov dx,0e9h
         mov al,'R'

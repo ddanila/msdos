@@ -1357,27 +1357,57 @@ fixup precheck (`--loader-bad-rebase`) cancels without a move or freeze in
 `out/emm-init-phases-d7u65daq/`; the parser now distinguishes that `RF` rejection
 from a successful `RB` move. Twenty phase tests cover these trace contracts.
 
-This establishes the staged owner's lifetime across the existing **upward**
-move, not the final placement transaction or asynchronous-client qualification.
-The next loader change must copy downward into the detached tail, relocate the
-device mark, reconcile HIMEM's retained extent and restore the old layout on
-cancellation before accepting a smaller final break. Failures after the copy
-but before successful retarget still require a recovery design; do not resume
-an allocator through an uncertain root. The unchanged public entry, staging,
-final low base and rollback must be qualified together before releasing memory.
+**Downward reclamation (opt-in development):** `--reclaim-bootstrap` enables
+`PROVIDERDOWN.INC`. It accepts only an adjacent HIMEM bootstrap tail, validates
+the original device marks and pinned fixups before freezing, copies the
+prepared EMM image forward into that tail, and retargets the staged allocator.
+Only confirmed activation publishes the smaller HIMEM mark and relocated EMM
+mark. Explicit pre-publication cancellation restores the current bootstrap
+tail and original device header/mark; ordinary failed-INIT handling then
+discards the cancelled EMM allocation. Unqualified activation failures stop
+boot rather than resuming through an uncertain allocator root.
 
-**Unqualified downward-copy worktree:** `--reclaim-bootstrap` and
-`PROVIDERDOWN.INC` attempt the adjacent-tail move and delayed device-mark
-publication. The first saved ON boot (`out/emm-init-phases-vki8m9_m/`) timed out
-with an empty phase trace. It proves neither provider activation nor release;
-do not include this variant in the selected composition or savings ledger.
-Before continuing it, isolate the pre-trace boot failure against the passing
-upward build. Then compare stationary and downward staged variants with the
-same probe: HIMEM/EMM retained marks, later allocation bases and largest free
-block must reconcile, including cancellation. Charge the permanent staging
-front against the non-staged control as well; gross tail removal is not net
-conventional gain. This experiment addresses the loader release contract,
-not the still-open complete-provider or whole-system layout checkpoint.
+The larger SYSINIT witness exposed MSINIT's fixed `SYSIZE=500h` DOS staging
+reservation: the first boot timed out before any phase trace. Private trace
+builds now reassemble MSINIT with the existing `BIOS_DYNAMIC_STAGING` path,
+placing DOS after the actual linked initialization end. Normal BIOS
+reconstruction is still checked before this opt-in change.
+
+The post-boot probe checks driver marks, shrinks its own allocation with its
+stack inside the retained block, and queries the largest free block. The
+32-handle DOS-high controls produce these ON/OFF/AUTO results; RAM retains
+64 fewer EMM bytes and gains the same 64 free bytes in all three variants:
+
+| Paired provider variant | HIMEM retained | EMM retained | Probe PSP | Largest block during probe |
+| --- | ---: | ---: | ---: | ---: |
+| Unstaged authoritative control | 3,168 | 4,240 | `0762h` | 623,424 |
+| Stationary staged control | 3,792 | 4,240 | `0789h` | 622,800 |
+| Downward staged activation | 2,864 | 4,240 | `074Fh` | 623,728 |
+
+The entire 928-byte tail reaches later allocations and the free block; EMM's
+retained size is unchanged. Staging adds 624 permanent bytes, so the net gain
+against the unstaged paired control is **304 bytes**, not 928. This proves a
+whole-tail release mechanism, not the complete provider design or a gain over
+the selected VC composition. Do not shrink the staging front instruction by
+instruction as a substitute for settling the complete high-provider boundary.
+
+Evidence directories under `out/`: stationary `emm-init-phases-z7jox4x3`,
+downward `emm-init-phases-99wmnnzu`, unstaged `emm-init-phases-334kt8ck`.
+Their manifests pin the identical post-boot probe hash. The upward regression
+passes in `emm-init-phases-u469to3b`; its probe explicitly accounts for the
+historical 32-paragraph entry shift inside an unchanged marked allocation.
+Skipping the downward stage retarget (`emm-init-phases-cpv_2iks`) fails with
+guest exit 35 as required, rather than booting through the frozen root.
+Eight-handle cancellation (`3gj2wqv2`) has identical post-boot allocations to
+stationary cancellation (`_3h36xnm`) in all four modes. A 128-handle DOS-low
+downward run (`08zux4oc`) also completes all four modes and retains only the
+2,864-byte HIMEM front. Twenty-three phase/receipt tests, four bootstrap-layout
+tests and three pinned-rebase tests pass.
+
+Remaining qualification includes injected failures around publication/retarget,
+asynchronous clients, warm reset and the composed VC/UMB gate. HMA/A20/UMB
+ownership and the complete BIOS/shell layout remain open. The selected
+617,936-byte conventional / 49,680-byte UMB composition is unchanged.
 
 ##### Whole-system placement rules
 

@@ -37,9 +37,24 @@ def parse_bootstrap_layout(data):
                 retained_bootstrap_bytes=end-permanent, released_bytes=0)
 
 
+def parse_post_boot(data, expected):
+    if len(data) != 10:
+        raise ValueError("missing post-boot allocation witness")
+    tag, psp, largest, himem_size, emm_size = struct.unpack("<2s4H", data)
+    if (tag != b"MC" or not 0 < psp < 0xa000 or not largest
+            or psp + largest >= 0xa000 or not 0 < himem_size < 0xa000
+            or not 0 <= emm_size < 0xa000 or bool(emm_size) != bool(expected)):
+        raise ValueError("invalid post-boot allocation witness")
+    return dict(psp_segment=psp, largest_bytes=largest * 16,
+                himem_bytes=himem_size * 16, emm_bytes=emm_size * 16)
+
+
 def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
                 lifecycle=False, loader=False, rebase=False, table_layout=False,
-                bootstrap_owner=False, authoritative_owner=False, rebase_rejected=False):
+                bootstrap_owner=False, authoritative_owner=False, rebase_rejected=False,
+                reclaim_bootstrap=False):
+    if reclaim_bootstrap and not (rebase and authoritative_owner and loader):
+        raise ValueError("downward move requires loader, rebasing and authoritative layout")
     if rebase_rejected and not (rebase and rejected):
         raise ValueError("rejected move requires rebasing and cancellation")
     if authoritative_owner and not bootstrap_owner:
@@ -78,7 +93,8 @@ def parse_trace(data, *, split=False, rejected=False, activation_stack=False,
         if len(data) < 34:
             raise ValueError("missing prepared-image move")
         tag, old, new, paragraphs = struct.unpack_from("<2s3H", data, 26)
-        if tag != b"RB" or new != old + 32 or paragraphs <= 32:
+        delta = -(owner["layout"]["retained_bootstrap_bytes"] // 16) if reclaim_bootstrap else 32
+        if tag != b"RB" or new != old + delta or paragraphs <= abs(delta):
             raise ValueError("invalid prepared-image move")
         moved = dict(old=old, new=new, paragraphs=paragraphs)
         data = data[:26] + data[34:]
@@ -164,8 +180,8 @@ def check_phases(rows, mode, *, split=False, rejected=False, activation_stack=Fa
 
 
 def build_loader(work, *, rejected=False, bad_version=False, rebase=False, bad_rebase=False,
-                 stage_bootstrap=False):
-    """Private normal-layout BIOS; only SYSCONF opts into the boot handshake."""
+                 stage_bootstrap=False, reclaim_bootstrap=False):
+    """Private BIOS with linked-end DOS staging for the larger SYSINIT witness."""
     bios = work / "BIOS"
     shutil.copytree(capture.ROOT / "src/BIOS", bios)
     original = capture.sha256(capture.ROOT / "src/BIOS/IO.SYS")
@@ -174,6 +190,8 @@ def build_loader(work, *, rejected=False, bad_version=False, rebase=False, bad_r
         options += " -DPROVIDER_REBASE"
         if stage_bootstrap:
             options += " -DBIOS_STAGE_PROVIDER"
+        if reclaim_bootstrap:
+            options += " -DBIOS_PROVIDER_DOWN"
         (bios / "PROVIDERFIXUPS.INC").write_text(rebase_include(
             (work / "MEMM/MEMM/EMM386.EXE").read_bytes(), bad_control=bad_rebase))
     if rejected:
@@ -181,6 +199,13 @@ def build_loader(work, *, rejected=False, bad_version=False, rebase=False, bad_r
     if bad_version:
         options += " -DBIOS_PROVIDER_BAD_VERSION"
     for defines in ("", options):
+        if defines:
+            # The normal MSINIT object reserves a fixed SYSIZE for SYSINIT.
+            # Instrumentation can exceed it before the first provider call.
+            subprocess.run([str(capture.ROOT / "bin/jwasm-masm"),
+                            "-I. -I../INC -DBIOS_DYNAMIC_STAGING",
+                            "MSINIT.ASM,MSINIT.OBJ;"],
+                           cwd=bios, check=True, stdout=subprocess.DEVNULL)
         subprocess.run([str(capture.ROOT / "bin/jwasm-masm"),
                         f"-I. -I../INC {defines}", "SYSCONF.ASM,SYSCONF.OBJ;"],
                        cwd=bios, check=True, stdout=subprocess.DEVNULL)
@@ -209,6 +234,8 @@ def main():
                         help="report a false aligned low boundary; linked reconciliation must fail")
     parser.add_argument("--stage-bootstrap", action="store_true",
                         help="stage the allocator in owned LAST scratch and poison its original tail")
+    parser.add_argument("--reclaim-bootstrap", action="store_true",
+                        help="move the prepared provider down into the adjacent bootstrap tail")
     parser.add_argument("--skip-stage-retarget", action="store_true",
                         help="negative control: move the stage but leave its private root stale")
     parser.add_argument("--xms-handles", type=int, choices=(8, 32, 128), default=32,
@@ -249,6 +276,9 @@ def main():
     parser.add_argument("--bad-pool-control", action="store_true",
                         help="corrupt the cleanup witness; this run must fail")
     args = parser.parse_args()
+    if args.reclaim_bootstrap:
+        args.stage_bootstrap = True
+        args.loader_rebase = True
     if args.skip_stage_retarget:
         args.stage_bootstrap = True
         args.loader_rebase = True
@@ -411,7 +441,7 @@ def main():
         loader_image, loader_hash = build_loader(
             work, rejected=args.reject_prepared, bad_version=args.loader_bad_version,
             rebase=args.loader_rebase, bad_rebase=args.loader_bad_rebase,
-            stage_bootstrap=args.stage_bootstrap)
+            stage_bootstrap=args.stage_bootstrap, reclaim_bootstrap=args.reclaim_bootstrap)
     subprocess.run(["nasm", "-f", "bin", str(capture.QEMU_EXIT_SOURCE),
                     "-o", str(qexit)], check=True)
     owner_probe = work / "OWNER.COM"
@@ -427,10 +457,13 @@ def main():
                         str(capture.ROOT / "tests/emm_altreg_capacity_probe.asm"),
                         "-o", str(capacity_probe)], check=True)
     if args.loader:
-        subprocess.run(["nasm", "-f", "bin", str(capture.ROOT / "tests/emm_provider_owner_probe.asm"),
+        mark_delta = 32 if args.loader_rebase and not (args.reclaim_bootstrap or args.loader_bad_rebase) else 0
+        subprocess.run(["nasm", "-f", "bin", f"-DEMM_MARK_DELTA={mark_delta}",
+                        str(capture.ROOT / "tests/emm_provider_owner_probe.asm"),
                         "-o", str(owner_probe)], check=True)
     records = {}
     owner_counts = {}
+    post_boot = {}
     for mode in ("ON", "OFF", "AUTO", "RAM"):
         image = work / f"{mode}.img"
         shutil.copyfile(args.image, image)
@@ -480,6 +513,8 @@ def main():
                 raise ValueError("unexpected installed EMM device owner count")
             owner_counts[mode] = expected
             trace_data = trace_data[:-4]
+            post_boot[mode] = parse_post_boot(trace_data[-10:], expected)
+            trace_data = trace_data[:-10]
         records[mode] = parse_trace(trace_data, split=args.split_prepare,
                                    rejected=args.reject_prepared,
                                    activation_stack=args.activation_stack,
@@ -488,7 +523,8 @@ def main():
                                    rebase=args.loader_rebase, table_layout=args.table_layout,
                                    bootstrap_owner=args.bootstrap_owner,
                                    authoritative_owner=args.authoritative_owner,
-                                   rebase_rejected=args.loader_bad_rebase)
+                                   rebase_rejected=args.loader_bad_rebase,
+                                   reclaim_bootstrap=args.reclaim_bootstrap)
         if args.authoritative_owner:
             live = records[mode][-1]["bootstrap_owner"]["layout"]
             linked = bootstrap_layout(work / "HIMEM.LST", live["handles"])
@@ -496,6 +532,10 @@ def main():
                     or live["records_offset"] != linked["permanent_bytes"] + linked["bootstrap_code_data_bytes"]
                     or live["boot_end"] != linked["linked_boot_end"]):
                 raise ValueError("runtime bootstrap layout differs from linked owner")
+            reclaimed = args.reclaim_bootstrap and not args.reject_prepared
+            expected_himem = live["permanent_bytes"] if reclaimed else live["boot_end"]
+            if post_boot[mode]["himem_bytes"] != expected_himem:
+                raise ValueError("post-boot HIMEM allocation disagrees with lifetime boundary")
         if args.table_layout:
             layout = next(row["tables"] for row in records[mode] if "tables" in row)
             if layout["high"] != int(args.high_tables):
@@ -525,6 +565,7 @@ def main():
         bad_owner_receipt=args.bad_owner_receipt,
         bad_bootstrap_layout=args.bad_bootstrap_layout,
         stage_bootstrap=args.stage_bootstrap,
+        reclaim_bootstrap=args.reclaim_bootstrap,
         skip_stage_retarget=args.skip_stage_retarget,
         xms_handles=args.xms_handles,
         dos_high=args.dos_high,
@@ -536,6 +577,9 @@ def main():
         handles=args.handles, altregs=args.altregs,
         switch_altregs=args.switch_altregs,
         installed_owner_counts=owner_counts,
+        post_boot=post_boot,
+        owner_probe_sha256=capture.sha256(owner_probe) if args.loader else None,
+        loader_dynamic_staging=bool(loader_image),
         rebase_manifest=rebase_manifest((build / "EMM386.EXE").read_bytes())
             if args.loader_rebase else None,
         normal_bios_sha256=loader_hash,
