@@ -235,7 +235,9 @@ sum of nested MEM rows:
 | BIOS | 5,152 | Retain device/interrupt and firmware-facing anchors; identify whole remaining service bodies and their return contracts |
 | DOS prefix | 5,632 | Separate public state from private workspace, constants and handlers; do not presume all near pointers can become HMA pointers |
 | HIMEM plus EMM386 | 6,480 | Design their combined low entry/transition interface and authoritative high service/data owners; preserve standalone and third-party providers |
-| Remaining system/arena span | 2,448 | Attribute runtime allocations and overhead before promising reclamation |
+| Sector transfer area | 512 | Keep firmware/DMA-safe storage; HMA cache residency does not eliminate this allocation |
+| Interrupt-stack subsystem | 1,840 | Evaluate a complete real-mode-addressable owner, including handlers and pool, against the shared UMB budget |
+| Suballocation and MCB boundaries | 96 | Four 16-byte DEVMARKs plus system and leading COMMAND MCBs; no unexplained remainder |
 | **System before COMMAND** | **19,712** | Compare with OpenDOS's 10,416 only after resource/topology normalization |
 | COMMAND to VC | 3,984 | Design the complete resident handler, state and reload interface; OpenDOS's corresponding span is 1,312 |
 
@@ -252,8 +254,9 @@ Required deliverables, in order:
    medium, drive topology, resources, environment and EMS frame. Record VC
    spans after other probes exit; retain vendor MEM and public API evidence
    separately. Do not mix old installed managers with current linker maps.
-2. Attribute the remaining 2,448 system bytes and the complete manager cost
-   across conventional, UMB and extended memory. OpenDOS's 1,200-byte device
+2. The local 2,448-byte remainder is now fully attributed by the DOS
+   suballocation census below. Next locate the complete manager cost across
+   conventional, UMB and extended memory. OpenDOS's 1,200-byte device
    row and 800-byte UMB owner do not locate all its protected state. Use
    documented configuration changes and public allocation reports, never
    binary reconstruction, to bound what remains unknown.
@@ -683,30 +686,72 @@ Warm-reset reconstruction and retry-without-reservation-leak remain gates.
 
 #### Whole-system accounting and the missing placement tier
 
-The combined fine-UMB/CDS capture
-(`out/umb-fine-composition-btuoykt7/results.json`, `fine-cds`)
-puts COMMAND at 0518h, after a 19,072-byte span starting at 0070h. Combining
+The repaired combined fine-UMB/CDS capture
+(`out/umb-fine-composition-ozww81et/results.json`, `fine-cds`)
+puts COMMAND at 0540h, after a 19,712-byte span starting at 0070h. Combining
 the linked BIOS/kernel inventories with the installed resource sizes gives:
 
 | Low owner | Bytes | Architectural treatment to evaluate |
 | --- | ---: | --- |
 | Selected BIOS | 5,152 | Stable device/DMA entries and state low; complete service bodies high |
-| Kernel prefix | 4,992 | Public-pointer interfaces low; explicitly owned private state high |
+| Kernel prefix | 5,632 | Public-pointer interfaces low; explicitly owned private state high |
 | HIMEM and EMM386 | 6,480 | Small low interfaces; service bodies in HMA and protected tables in locked XMS |
 | Interrupt stacks | 1,840 | Separate asynchronous entry/stack contract; do not move SS into HMA |
 | Sector transfer area | 512 | Retain low for firmware/legacy-device transfers |
-| Unassigned reconciliation remainder | 96 | Arena/alignment accounting to locate; no saving assumed |
-| **System-to-COMMAND span** | **19,072** | No overlapping component rows |
+| DEVMARK and MCB boundaries | 96 | Four suballocation headers, system MCB and leading COMMAND MCB |
+| **System-to-COMMAND span** | **19,712** | No overlapping component rows |
 
 FILES/FCBS and the complete CDS allocation are already upper and must not be
 added again. COMMAND's separate owner span is 3,984 bytes; its permanent
-program allocation is 3,632. The 96-byte remainder is a subtraction from
-the measured span, not a newly discovered disposable allocation.
+program allocation is 3,632. The boundary census below accounts for every byte
+of the former 96-byte reconciliation remainder.
+
+`tests/capture_system_owners.py` runs a read-only conventional MCB/DEVMARK
+probe on a private copy of the HDD fixture, preserving CONFIG.SYS and installed
+binaries. It records input/config/binary hashes, emulator identity and raw
+rows; the host decoder checks parent containment and complete coverage, or
+explicitly retains an unclassified tail. Six local tests include missing,
+oversized, malformed and broken-chain controls. This uses our DOS layout, not
+DR-DOS internals. Reproduce with:
+
+```sh
+python3 tests/test_system_owners.py
+python3 tests/capture_system_owners.py \
+  out/umb-fine-composition-ozww81et/input-fine-cds.img
+```
+
+The repaired fixture's system MCB is at `0312h`, with 8,896 payload bytes.
+Its marked suballocations are:
+
+| DEVMARK | ID | Payload segment | Payload bytes | Owner |
+| --- | --- | --- | ---: | --- |
+| `0313h` | D | `0314h` | 2,592 | HIMEM |
+| `03B6h` | D | `03B7h` | 3,888 | EMM386 |
+| `04AAh` | B | `04ABh` | 512 | HMA buffer transfer area |
+| `04CBh` | S | `04CCh` | 1,840 | Interrupt-stack subsystem |
+
+The four headers add 64 bytes to the 8,832 payload bytes. Including the system
+MCB at `0312h` and leading COMMAND MCB at `053Fh` accounts for the 96-byte
+boundary contribution. Evidence is retained in `out/system-owners-yah6c_za/`.
+The control without high CDS (`out/system-owners-ut5zfzlj/`) adds exactly one
+L suballocation: 2,288 payload bytes plus its 16-byte header. The system MCB
+grows by 2,304 bytes and COMMAND moves accordingly; this independently
+reconciles the existing CDS conventional gain. Probe-process allocations are
+not operands in the VC free-memory comparison.
+
+Source attribution: `SYSINIT1.ASM:Set_HMA_Buffers` allocates the sector-sized
+transfer area and publishes it through AX=1233h. `DoInstallStack` copies
+`Endstackcode=0259h`, rounded to 608 bytes, then allocates
+`9 * (EntrySize=8 + StackSize=128)`, rounded to 1,232 bytes. The resulting
+1,840-byte subsystem includes both handlers and storage, not just spare stack
+bytes. `MSSTACK.INC` switches SS and chains hardware interrupts; any move must
+preserve asynchronous real-mode access and interrupt-sharing headers.
 
 The 1,840-byte interrupt-stack allocation remains low. That is a safe initial
 prototype boundary, **not proof that this storage must remain conventional
-in the final design**. It exceeds the current 1,792-byte free-UMB margin even
-before new arena overhead, so moving it requires another jointly budgeted
+in the final design**. Moving its complete 1,856-byte marked allocation into
+a separate UMB costs 1,872 bytes including the new MCB: 80 more than the
+current 1,792-byte margin. It therefore needs another jointly budgeted
 destination or release. CDS has already consumed 2,320 upper bytes; its
 2,304-byte conventional gain is not available again. UMB addresses preserve
 ordinary real-mode segment addressing without an A20 dependency; HMA does not.
