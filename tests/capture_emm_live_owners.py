@@ -135,6 +135,8 @@ def main():
                         help="shift the manager load address without changing its EMS capacities")
     parser.add_argument("--mode", choices=("RAM", "ON", "OFF", "AUTO"), default="RAM",
                         help="isolate initial-mode effects on table and stack placement")
+    parser.add_argument("--require-compact", action="store_true",
+                        help="reject more than paragraph padding between tables and stack")
     args = parser.parse_args()
     subprocess.run(["make", "memm", "test-himem-residency"], cwd=ROOT, check=True,
                    stdout=subprocess.DEVNULL)
@@ -202,6 +204,8 @@ def main():
         int(re.search(r"XMS_SEG=([0-9A-F]{4})", trace)[1], 16),
         segments, symbols, himem_symbols["handles"][0], args.himem_handles)
     result["mode_flags"] = verify_mode(ram, emm_segment, symbols, args.mode)
+    if args.require_compact and result["table_to_stack_gap"] >= 16:
+        raise ValueError("table-to-stack gap exceeds compact paragraph alignment")
     if result["ems_pool_bytes"] != 1048576:
         raise ValueError(f"fixed profile was not installed: {result}")
     result["inputs"] = {str(path): hashlib.sha256(path.read_bytes()).hexdigest()

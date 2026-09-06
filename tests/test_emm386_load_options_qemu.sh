@@ -22,6 +22,8 @@ done
 export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 exit_com="$OUT/qemu-exit.com"
 nasm -f bin "$REPO_ROOT/tests/qemu_exit_probe.asm" -o "$exit_com"
+nasm -f bin "$REPO_ROOT/tests/emm386_reclaimed_memory_probe.asm" -o "$OUT/emm386-reclaim.com" || exit 1
+nasm -f bin "$REPO_ROOT/tests/emm386_owner_mode_probe.asm" -o "$OUT/emm386-load-owner.com" || exit 1
 for case_spec in 'ON|ON|EMM386 Active\.' \
     'OFF|OFF|EMM386 Inactive\.' \
     'AUTO|AUTO|EMM386 is in Auto mode\.' \
@@ -32,11 +34,15 @@ for case_spec in 'ON|ON|EMM386 Active\.' \
     serial_log="$OUT/emm386-load-${case_name}.log"
     cp "$FLOPPY" "$boot_img"
     mcopy -o -i "$boot_img" "$exit_com" ::QEXIT.COM
+    mcopy -o -i "$boot_img" "$OUT/emm386-reclaim.com" ::RECLAIM.COM
+    mcopy -o -i "$boot_img" "$OUT/emm386-load-owner.com" ::OWNMODE.COM
     printf 'DEVICE=A:\\EMM386.EXE %s\r\n' "$options" \
         | mcopy -o -i "$boot_img" - ::CONFIG.SYS
     {
         printf '@ECHO OFF\r\n'
         printf 'CTTY AUX\r\n'
+        printf 'RECLAIM.COM\r\n'
+        printf 'OWNMODE.COM\r\n'
         printf 'EMM386\r\n'
         printf 'ECHO EMM386_LOAD_OPTION_PASS\r\n'
         printf 'QEXIT.COM\r\n'
@@ -49,7 +55,9 @@ for case_spec in 'ON|ON|EMM386 Active\.' \
         -device isa-debug-exit,iobase=0xf4,iosize=0x04 \
         >"$serial_log" 2>&1 || true
     if ! grep -Eq "$expected" "$serial_log" \
-        || ! grep -q 'EMM386_LOAD_OPTION_PASS' "$serial_log"; then
+        || ! grep -q 'EMM386_LOAD_OPTION_PASS' "$serial_log" \
+        || ! grep -q 'EMM386_RECLAIM_OVERWRITE_PASS' "$serial_log" \
+        || ! grep -q 'EMM386_OWNER_MODE_PASS' "$serial_log"; then
         echo "FAIL: EMM386 driver-load option $options" >&2
         sed -n '1,120p' "$serial_log"
         exit 1

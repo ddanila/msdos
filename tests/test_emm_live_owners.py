@@ -9,6 +9,22 @@ from report_emm386_residency import Segment, Symbol, relocation_budget
 
 
 class LiveOwnerTest(unittest.TestCase):
+    def test_compaction_precedes_requested_initial_mode(self):
+        root = Path(__file__).resolve().parents[1]
+        source = (root / "src/MEMM/MEMM/INIT.ASM").read_text(encoding="latin-1")
+        statements = [line.split(";", 1)[0].strip().lower()
+                      for line in source.splitlines()]
+        statements = [" ".join(line.split()) for line in statements if line]
+        relocate = statements.index("call relocatetext")
+        activate = statements.index("call fargovirtual", relocate)
+        compact = statements.index("call compactvdata", activate)
+        mode = statements.index("mov al,[initial_mode]", activate)
+        publish = statements.index("mov es:[bx.brk_off],ax", mode)
+        self.assertLess(activate, compact)
+        self.assertLess(compact, mode)
+        self.assertLess(mode, publish)
+        self.assertEqual(statements.count("call compactvdata"), 1)
+
     def test_mode_configs_and_rejection(self):
         for mode in ("RAM", "ON", "OFF", "AUTO"):
             config = startup_config(48, mode).decode("ascii")

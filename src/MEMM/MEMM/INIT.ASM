@@ -589,13 +589,16 @@ IE_setbrk:
 
 	call	RelocateText
 	call	FarGoVirtual		;  N: go into virtual mode
+	; Finish resident ownership while activation is established and no
+	; protected frame is live. OFF/idle AUTO must not skip table/stack
+	; compaction merely because their final execution mode is inactive.
+	call	CompactVData
 	mov	al,[initial_mode]
 	or	al,al
 	jz	short IE_initial_mode_done
 	mov	ah,1
 	call	ELIM_Entry
 IE_initial_mode_done:
-	call	CompactVData
 	; CompactVData may lower the resident break after the request header was
 	; first populated. Publish the final value returned to SYSINIT.
 	mov	bx,[bp+2]

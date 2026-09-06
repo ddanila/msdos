@@ -809,11 +809,11 @@ charge all three objects against one HMA/XMS/UMB budget.
 
 #### Mode-independent manager publication is required
 
-Fresh live-owner captures expose a boot-order constraint: `INIT.ASM` calls
+Pre-fix live-owner captures exposed a boot-order constraint: `INIT.ASM` called
 `RelocateText`, enters virtual mode, applies `initial_mode` through `ELIM_Entry`,
-then calls `CompactVData`. The latter returns without relocating tables or the
+then called `CompactVData`. The latter returns without relocating tables or the
 transition stack when `Active_Status` is zero. Consequently idle AUTO and OFF
-do not use the same compact low layout as ON, despite already having relocated
+did not use the same compact low layout as ON, despite already having relocated
 protected code and the same locked-XMS allocation.
 
 The controlled `1024 ON/OFF/AUTO M5` fixtures share the same binaries, 31
@@ -856,6 +856,32 @@ include changed-mode rejection. Reports and raw snapshots are in
 python3 tests/capture_emm_live_owners.py \
   out/setver-native-audit.BAEqDU/low.img --mode AUTO
 ```
+
+The current implementation completes `CompactVData` immediately after
+`FarGoVirtual` returns, before applying `initial_mode`, and publishes the final
+driver break afterward. It retains the relocation/active preconditions inside
+`CompactVData`; it does not blindly enable compaction of an unrelocated image.
+This corrects existing low-object lifecycle ordering, not the proposed high-data
+relocation. The latter and the whole-system layout remain open.
+
+Fresh OFF (`out/emm-live-owners-43v8pxpz/`) and AUTO
+(`out/emm-live-owners-j_saonk0/`) captures both now have tables at
+`D3EFh..DD18h`, the stack at `DD20h`, and eight bytes of alignment, while
+retaining live flags 00h/00h and 00h/01h respectively. The RAM control
+(`out/emm-live-owners-3unrd6a8/`) retains its earlier 2,278-byte table and
+compact stack placement. XMS ownership and table capacities are unchanged.
+Use `--require-compact` to reject a regression to the larger table/stack gap.
+The 111,744-byte stack movement is not yet a paired VC-largest-block gain.
+
+The load-option suite now runs `emm386_reclaimed_memory_probe.asm`, which
+shrinks its own PSP allocation, allocates the largest free conventional block,
+overwrites only that owned block, releases it, and exits. The subsequent owner
+probe checks AUTO entry/query/allocation/free, explicit OFF rejection and
+restoration of the original mode. ON/OFF/AUTO and W= variants pass this
+sequence, as do H=, L=/D= and alternate-register boundary tests and the complete
+driver/API/command suite. A source-order guard rejects moving compaction after
+the mode request again. These are local emulator gates, not hardware or complete
+high-owner qualification; CI remains disabled.
 
 #### Boot reservation and reclamation contract
 
