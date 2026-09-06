@@ -542,6 +542,9 @@ def main():
                 raise ValueError("table placement fell back from the requested owner")
             layout["resident_bytes"] = (
                 layout["end"] - int(records[mode][-1]["int67"].split(":")[0], 16)) * 16
+            if args.loader and (not args.loader_rebase or args.reclaim_bootstrap):
+                if layout["resident_bytes"] != post_boot[mode]["emm_bytes"]:
+                    raise ValueError("table-layout break disagrees with post-boot EMM allocation")
         check_phases(records[mode], mode, split=args.split_prepare,
                      rejected=args.reject_prepared, activation_stack=args.activation_stack,
                      lifecycle=args.lifecycle,

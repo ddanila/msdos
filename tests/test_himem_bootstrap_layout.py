@@ -1,7 +1,8 @@
 import unittest
+from unittest.mock import Mock, patch
 
 from report_himem_residency import (
-    BOOTSTRAP_PROCEDURES, PERMANENT_PROCEDURES, check_bootstrap_layout,
+    BOOTSTRAP_PROCEDURES, PERMANENT_PROCEDURES, check_bootstrap_layout, paired_front_ownership,
 )
 
 
@@ -44,6 +45,48 @@ class BootstrapLayoutTests(unittest.TestCase):
         del procedures["xms_stage_forward"]
         with self.assertRaises(KeyError):
             check_bootstrap_layout(self.numbers, procedures, 32)
+
+
+class PairedFrontTests(unittest.TestCase):
+    def report(self, *, staged=True, bad=None, alignment=10):
+        names = ["strategy", "multiplex_handler", "private_register", "int15_handler",
+                 "xms_control", "xms_hma_request", "xms_global_enable", "private_bootstrap_layout"]
+        if staged:
+            names += ["private_bootstrap_stage", "xms_stage_forward"]
+        names += ["xms_remote_owned", "xms_owner_handle", "xms_move", "xms_umb_request",
+                  "resolve_move_address", "copy_move_blocks", "kb_to_physical"]
+        addresses = {name: (i + 1) * 16 for i, name in enumerate(names)}
+        if bad:
+            addresses[bad] = 1
+        path = Mock()
+        path.read_text.return_value = "\n".join(
+            f"{name} . . P Near {offset:04X} _TEXT" for name, offset in addresses.items())
+        records = (len(names) + 1) * 16
+        symbols = dict(umb_count=(records, 1), umb_blocks=(records + 2, 128))
+        end = records + 130 + alignment
+        with patch("report_himem_residency.parse_symbols", return_value=(symbols, {})), \
+             patch("report_himem_residency.bootstrap_layout", return_value=dict(permanent_bytes=end)):
+            return paired_front_ownership(path, 32)
+
+    def test_complete_partition_with_and_without_staging(self):
+        for staged in (False, True):
+            report = self.report(staged=staged)
+            rows = report["front"]
+            self.assertEqual(sum(row["bytes"] for row in rows), report["layout"]["permanent_bytes"])
+            self.assertEqual(rows[0]["start"], 0)
+            self.assertTrue(all(a["end"] == b["start"] for a, b in zip(rows, rows[1:])))
+            self.assertEqual(any(row["owner"] == "Bootstrap staging transaction" for row in rows), staged)
+            self.assertIsNone(report["projected_release_bytes"])
+            self.assertIsNone(report["projected_low_bytes"])
+
+    def test_reordered_boundary_rejected(self):
+        with self.assertRaises(ValueError):
+            self.report(bad="xms_umb_request")
+
+    def test_zero_alignment_and_overrun(self):
+        self.assertEqual(self.report(alignment=0)["front"][-1]["bytes"], 0)
+        with self.assertRaises(ValueError):
+            self.report(alignment=-1)
 
 
 if __name__ == "__main__":

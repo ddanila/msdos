@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
 from pathlib import Path
 import re
 
@@ -137,6 +139,55 @@ def bootstrap_layout(path, handle_count):
     return check_bootstrap_layout(numbers, procedures, handle_count)
 
 
+def paired_front_ownership(path, handle_count):
+    """Inventory the actual paired front, not the original monolithic order."""
+    symbols, _ = parse_symbols(path)
+    addresses = {name: value[0] for name, value in symbols.items()}
+    for line in path.read_text(encoding="latin-1").splitlines():
+        match = PROCEDURE_RE.match(line) or LABEL_RE.match(line)
+        if match:
+            addresses[match[1]] = int(match[2], 16)
+    layout = bootstrap_layout(path, handle_count)
+    # These contracts classify present bytes; they do not predict gate sizes.
+    boundaries = [
+        ("Header and shared state", 0, "split escaped entries, canonical policy and transfer scratch"),
+        ("Device INIT interface", addresses["strategy"], "stable header; initialization body has boot-only lifetime"),
+        ("Multiplex and private peer entries", addresses["multiplex_handler"], "keep discovery and A20 recovery callable without high dispatch"),
+        ("Private UMB registration", addresses["private_register"], "transfer registration and public allocation state as one owner"),
+        ("INT 15 compatibility entry", addresses["int15_handler"], "retain real-mode chain and reported pool contract"),
+        ("XMS dispatch and adapters", addresses["xms_control"], "preserve cached entry, caller frame and XMS 2/3 outputs"),
+        ("HMA ownership", addresses["xms_hma_request"], "one live reservation bit; HMA is not a second allocator pool"),
+        ("A20 policy and hardware", addresses["xms_global_enable"], "keep transition recovery independent of enabled A20/high services"),
+        ("Bootstrap layout query", addresses["private_bootstrap_layout"], "boot negotiation; retain a defined response after retirement"),
+    ]
+    if "private_bootstrap_stage" in addresses:
+        boundaries += [
+            ("Bootstrap staging transaction", addresses["private_bootstrap_stage"], "boot-only implementation behind stable rejection after commit"),
+            ("Bootstrap forwarding", addresses["xms_stage_forward"], "retire only after all live calls and cancellation end"),
+        ]
+    boundaries += [
+        ("High allocator transport", addresses["xms_remote_owned"], "separate one-time import from permanent high dispatch"),
+        ("Handle translation and gates", addresses["xms_owner_handle"], "high authority with no low handle mirror"),
+        ("Public Move validation", addresses["xms_move"], "bind real caller pointers and reject before writes"),
+        ("UMB allocation and coalescing", addresses["xms_umb_request"], "move with registered table and peer operations, not independently"),
+        ("Move address translation", addresses["resolve_move_address"], "share high handle lookup and physical address validation"),
+        ("Protected copy entry", addresses["copy_move_blocks"], "preserve OFF/AUTO transition and unavailable-backend failure"),
+        ("Physical address helper", addresses["kb_to_physical"], "service helper, not an independently budgeted relocation"),
+        ("UMB records", addresses["umb_count"], "one authoritative register/allocate/unregister table"),
+        ("Front alignment", addresses["umb_blocks"] + symbols["umb_blocks"][1], "charge final packing, not a payload owner"),
+        ("end", layout["permanent_bytes"], ""),
+    ]
+    rows = []
+    for (owner, start, contract), (_, end, _) in zip(boundaries, boundaries[1:]):
+        if not 0 <= start <= end <= layout["permanent_bytes"]:
+            raise ValueError(f"unordered paired front: {owner}")
+        rows.append(dict(owner=owner, start=start, end=end, bytes=end-start, contract=contract))
+    if sum(row["bytes"] for row in rows) != layout["permanent_bytes"]:
+        raise ValueError("paired front has unaccounted bytes")
+    return dict(layout=layout, front=rows, projected_low_bytes=None,
+                projected_release_bytes=None)
+
+
 def provider_ownership(path: Path, end: int) -> list[tuple[str, int, int, str]]:
     """Partition the original image by conversion boundary, not future size."""
     addresses = {}
@@ -176,7 +227,30 @@ def main() -> int:
     parser.add_argument("binary", type=Path, help="HIMEM binary assembled with the listing")
     parser.add_argument("--handles", type=int, default=32)
     parser.add_argument("--check", action="store_true")
+    parser.add_argument("--paired", action="store_true", help="inventory the authoritative paired front")
+    parser.add_argument("--json", action="store_true", help="machine-readable paired inventory")
     args = parser.parse_args()
+    if args.json and not args.paired:
+        parser.error("--json requires --paired")
+    if args.paired:
+        report = paired_front_ownership(args.listing, args.handles)
+        if report["layout"]["linked_boot_end"] >= args.binary.stat().st_size:
+            raise ValueError("paired bootstrap extent exceeds the load image")
+        report["listing_sha256"] = hashlib.sha256(args.listing.read_bytes()).hexdigest()
+        report["binary_sha256"] = hashlib.sha256(args.binary.read_bytes()).hexdigest()
+        report["identity_note"] = "Input hashes identify supplied files; not proof they were assembled together."
+        if args.json:
+            print(json.dumps(report, indent=2))
+        else:
+            print("# Paired HIMEM front ownership\n")
+            print("Present linked bytes and required contracts, not a final layout or savings forecast.\n")
+            print("| Owner | Range | Bytes | Required contract |")
+            print("| --- | --- | ---: | --- |")
+            for row in report["front"]:
+                print(f'| {row["owner"]} | `{row["start"]:04X}..{row["end"]:04X}` | {row["bytes"]} | {row["contract"]} |')
+            print(f'\nPermanent front: {report["layout"]["permanent_bytes"]} bytes. '
+                  'Bootstrap release must be measured separately; complete provider also includes EMM386.')
+        return 0
 
     symbols, numbers = parse_symbols(args.listing)
     required = ("umb_count", "umb_blocks", "handles", "resident_end")

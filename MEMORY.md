@@ -1409,6 +1409,54 @@ asynchronous clients, warm reset and the composed VC/UMB gate. HMA/A20/UMB
 ownership and the complete BIOS/shell layout remain open. The selected
 617,936-byte conventional / 49,680-byte UMB composition is unchanged.
 
+##### Complete paired front: service and lifetime partition
+
+The original HIMEM census assumes monolithic procedure order; it cannot budget
+the reordered authoritative variant. `report_himem_residency.py --paired`
+now partitions its actual linked front and checks complete ordered coverage.
+`--json` retains input hashes and leaves projected final size/release unknown;
+hashing supplied files does not prove that they were assembled together.
+
+The staged 2,864-byte front has this disjoint partition:
+
+| Present owner group | Bytes | Final-design decision |
+| --- | ---: | --- |
+| HMA ownership and A20 policy/hardware | 335 | Keep canonical reservation/counters and reliable low transition recovery; high dispatch must not be needed to enable A20. |
+| UMB peer registration, allocation/coalescing and records | 582 | Design one high UMB owner with public and peer gates, transferring any already allocated blocks. Moving records alone is insufficient. |
+| Public Move, address translation and protected-copy entry/helper | 378 | Share the protected provider's validated copy service while preserving real-pointer, overlap, A20 and OFF/AUTO contracts. |
+| High allocator transport, handle translation and gates | 514 | Separate one-time import from steady-state dispatch; preserve the cached XMS entry without permanent bootstrap machinery. |
+| Bootstrap layout/staging/forwarding | 421 | Give negotiation and transaction bodies an explicit initialization lifetime; retain defined rejection after retirement, not live pointers into discarded code. |
+| Header/state, device/vector entries, dispatcher/adapters and alignment | 634 | Classify public roots and caller state before budgeting a compact common interface; this mixed group is not all indispensable low storage. |
+| **Permanent prototype front** | **2,864** | **Present cost, not a target or minimum.** |
+
+This rejects treating all 2,864 bytes as unavoidable HMA/A20 overhead, but does
+not justify relocating those 335 bytes as the next optimization. The next
+provider design must distinguish **boot transaction**, **permanent low entry**
+and **authoritative high service** for every group, including low gate costs.
+UMB migration needs registration/allocation/unregistration and rollback as one
+contract; the boot-only transaction must remain executable while its original
+allocator storage is being moved. Neither can be solved by reordering labels
+into the already poisoned tail. Standalone/286 support keeps its own backend.
+
+The downward/high-EMM-table combination also completes ON/OFF/AUTO/RAM in
+`out/emm-init-phases-id32ib1w/`. The post-boot marks retain 2,864 HIMEM plus
+2,112 EMM bytes: **4,976 combined low bytes**, excluding device marks.
+This fixture proves that the two ownership changes coexist; it does not
+promote them or establish a benefit over the selected composition's 4,656-byte
+manager group. Its high tables contain 2,153 bytes in ON/OFF/AUTO and 2,086 in
+RAM; those are payload sizes, not total locked-XMS cost. The capture harness
+also reconciles the activation table-break receipt against the post-boot EMM
+mark for stationary/downward layouts. The old upward witness deliberately
+retains its allocation at the old base and is excluded from that equality.
+
+```sh
+python3 tests/report_himem_residency.py \
+  out/emm-init-phases-99wmnnzu/HIMEM.LST \
+  out/emm-init-phases-99wmnnzu/HIMEM.SYS --paired --handles 32
+python3 tests/capture_emm_init_phases.py out/floppy.img \
+  --reclaim-bootstrap --high-tables --dos-high
+```
+
 ##### Whole-system placement rules
 
 DR-DOS's portable lesson is a small conventional interface backed by complete
