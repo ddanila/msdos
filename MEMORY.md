@@ -573,9 +573,9 @@ accounting, reversed backing, DMA/UMB I/O and warm reset. If finer planning
 fails, retry the original coarse plan transactionally so the new feature does
 not turn an otherwise working UMB installation into no UMBs. Only after those
 gates measure the paired VC/UMB result and spend new capacity on DOS state.
-The allocation transaction is not yet implemented; normal discovery remains
-unchanged. The development discovery census below implements its first input
-boundary without installing fine mappings.
+Normal discovery remains unchanged. The development census below implements
+the precise exclusion input, and the separate mapping variant implements the
+transaction with the qualification limits recorded after it.
 
 ##### Development guest discovery census
 
@@ -598,8 +598,47 @@ or explicitly owning CC00h removes that parent from the proposed UMB masks.
 
 This ties the host ROM observation to the driver's real discovery path. It
 does not qualify the partial page for live allocation or prove new savings.
-Next implement the mask-aware publication/backing/rollback transaction above,
-including the coarse fallback, then run the I/O and memory-acceptance gates.
+The separate mapping variant below consumes these masks; this census target
+still tests discovery alone.
+
+##### Development partial-UMB transaction
+
+`UMB_SUBPAGE_MAPPING` (with `UMB_SUBPAGE_DISCOVERY`) reserves whole EMS backing
+pages for nonempty masks, captures original PTEs, writes only selected slices,
+and coalesces those slices into a checked 24-slot publication buffer. Explicit
+Pn= windows rejected by the UMB plan remain EMS-owned, including on fallback.
+All new masks, saved PTEs and publication workspace are initialization-only.
+Failure restores committed slices and backing-page ownership, then retries the
+coarse plan without republishing or reusing discarded initialization state.
+The normal binary remains byte-identical; this is not a distribution default.
+
+`make test-umb-subpage-mapping-qemu` runs both cold and controlled hardware-reset
+fixtures. A normal-object control, fine mapping, reversed backing, failures
+after one/three parent mappings and failure just before publication all pass.
+Each performs 12 KiB upper-buffer file I/O across page/parent boundaries while
+rotating live EMS mappings and programming the DMA test phases. Fine allocation
+starts at CB01h instead of CC01h, so the test actually uses the new slice.
+
+| Fixed RAM M5 probe | Coarse | Fine | Difference |
+| --- | ---: | ---: | ---: |
+| Free UMB before I/O | 49,104 | 53,200 | +4,096 |
+| Free UMB after buffer release and child exit | 49,088 | 53,184 | +4,096 |
+| Free EMS pages out of 16 configured pages | 13 | 12 | -1 (16 KiB backing) |
+
+Before/after values and the C8000h..CAFFFh rolling ROM hash repeat across reset.
+Injected failures reproduce the coarse values and original EMS free-page count,
+not just a successful boot. Both layouts report one less free paragraph after
+the existing I/O lifecycle; compare matching phases and keep that baseline
+arena/coalescing observation open. It is not a fine-mapping loss or saving.
+
+This proves **4 KiB of additional usable UMB in the isolated fixture**, not a
+conventional-memory gain or a new fixed VC score. Still open: actual provider
+registration rejection/teardown, 24-run publication stress, maximum-option and
+broader hardware gates, exact untouched-neighbor PTE checks beyond the ROM hash,
+and composition with BIOS/table placement and the fixed VC image. The staged
+pre-publication failure is not a test of HIMEM rejecting a real registration.
+Only after composition may this capacity fund complete CDS/stack placement;
+do not add it to conventional savings or spend the UMB margin twice.
 
 #### Retained BIOS partition
 

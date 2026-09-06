@@ -312,7 +312,19 @@ umb_dma_base	dd	0
 umb_dma_limit	dw	0
 umb_registered	db	0
 umb_registration dw	1, 0
+ifdef UMB_SUBPAGE_MAPPING
+		dw	24 dup (0, 0)
+umb_coarse_candidates db UMB_PAGE_COUNT dup (0)
+umb_saved_windows db UMB_PAGE_COUNT dup (0)
+umb_active_masks db UMB_PAGE_COUNT dup (0)
+umb_original_ptes dd (UMB_PAGE_COUNT * 4) dup (0)
+umb_fine_attempt db 1
+ifndef UMB_SUBPAGE_DISCOVERY
+	.err <UMB_SUBPAGE_MAPPING requires UMB_SUBPAGE_DISCOVERY>
+endif
+else
 		dw	UMB_PAGE_COUNT dup (0, 0)
+endif
 ifdef UMB_SUBPAGE_DISCOVERY
 ; Diagnostic only: no fine mask is consumed by the installed mapper yet.
 umb_fine_allowed db     32 dup (0), 48 dup (1)
@@ -1722,6 +1734,10 @@ endif
 	mov	bx,0a000h
 	mov	cx,UMB_PAGE_COUNT
 PU_scan:
+ifdef UMB_SUBPAGE_MAPPING
+	mov	al,cs:mappable_segs[si]
+	mov	cs:umb_saved_windows[di],al
+endif
 	cmp	cs:mappable_segs[si],PAGE_MAPPABLE
 	jne	short PU_next
 	mov	ax,[PF_Base]
@@ -1744,6 +1760,33 @@ PU_next:
 	add	bx,0400h
 	loop	PU_scan
 PU_done:
+ifdef UMB_SUBPAGE_MAPPING
+	cmp	cs:[umb_peer],0
+	je	short PU_fine_done
+	xor	di,di
+PU_fine_plan:
+	mov	al,cs:umb_candidates[di]
+	mov	cs:umb_coarse_candidates[di],al
+	mov	al,cs:umb_fine_masks[di]
+	mov	cs:umb_active_masks[di],al
+	or	al,al
+	jz	short PU_fine_skip
+	mov	cs:umb_candidates[di],1
+	mov	cs:mappable_segs[di+UMB_FIRST_PAGE],PAGE_NOT_MAPPABLE
+	jmp	short PU_fine_next
+PU_fine_skip:
+; Explicit EMS owners rejected by the fine plan must remain EMS windows,
+; including during coarse fallback after window tables have been built.
+	mov	cs:umb_candidates[di],0
+	mov	cs:umb_coarse_candidates[di],0
+	mov	al,cs:umb_saved_windows[di]
+	mov	cs:mappable_segs[di+UMB_FIRST_PAGE],al
+PU_fine_next:
+	inc	di
+	cmp	di,UMB_PAGE_COUNT
+	jb	short PU_fine_plan
+PU_fine_done:
+endif
 	pop	es
 	popa
 	ret
@@ -1913,6 +1956,9 @@ CU_reverse_free:
 	jmp	short CU_reverse_free
 CU_reverse_done:
 endif
+ifdef UMB_SUBPAGE_MAPPING
+CU_retry_plan:
+endif
 	xor	si,si
 	mov	dx,0a000h
 	xor	bp,bp			; end segment of previous extent
@@ -1925,7 +1971,11 @@ CU_group_ready:
 	cmp	cs:umb_candidates[si],0
 	je	CU_next
 	cmp	[_free_count],0
+ifdef UMB_SUBPAGE_MAPPING
+	je	CU_rollback
+else
 	je	CU_publish
+endif
 	movzx	eax,si
 	and	ax,7
 	shl	eax,14
@@ -1946,11 +1996,22 @@ CU_group_ready:
 	inc	cs:[umb_backing_count]
 	call	Map_UMB_Page
 	mov	cs:umb_candidates[si],2 ; candidate now has backing installed
+ifdef UMB_SUBPAGE_FAIL_AFTER_MAP
+	cmp	cs:[umb_fine_attempt],0
+	je	short CU_no_fine_fault
+	cmp	cs:[umb_backing_count],UMB_SUBPAGE_FAIL_AFTER_MAP
+	jae	CU_rollback
+CU_no_fine_fault:
+endif
 ifdef UMB_TEST_FAIL_AFTER_MAP
 	cmp	cs:[umb_backing_count],UMB_TEST_FAIL_AFTER_MAP
 	jae	CU_rollback
 endif
 
+ifdef UMB_SUBPAGE_MAPPING
+	call	Append_UMB_Subpage_Extents
+	jc	CU_rollback
+else
 	cmp	bp,dx
 	jne	short CU_new_extent
 	mov	bx,cs:[umb_registration+2]
@@ -1971,12 +2032,17 @@ CU_new_extent:
 CU_extent_done:
 	mov	bp,dx
 	add	bp,0400h
+endif
 CU_next:
 	inc	si
 	add	dx,0400h
 	cmp	si,UMB_PAGE_COUNT
 	jb	CU_scan
 CU_publish:
+ifdef UMB_SUBPAGE_FAIL_BEFORE_PUBLISH
+	cmp	cs:[umb_fine_attempt],0
+	jne	CU_rollback
+endif
 ifdef UMB_TEST_FAIL_BEFORE_PUBLISH
 	jmp	CU_rollback
 endif
@@ -2010,11 +2076,79 @@ CU_restore_next:
 	sub	[_free_top],ax
 	add	[_free_count],ax
 	mov	cs:[umb_backing_count],0
+ifdef UMB_SUBPAGE_MAPPING
+	cmp	cs:[umb_fine_attempt],0
+	je	short CU_done
+	mov	cs:[umb_fine_attempt],0
+	mov	cs:[umb_registration+2],0
+	xor	si,si
+CU_coarse_plan:
+	mov	al,cs:umb_coarse_candidates[si]
+	mov	cs:umb_candidates[si],al
+	or	al,al
+	jz	short CU_coarse_mask
+	mov	al,0fh
+CU_coarse_mask:
+	mov	cs:umb_active_masks[si],al
+	inc	si
+	cmp	si,UMB_PAGE_COUNT
+	jb	short CU_coarse_plan
+	mov	al,'R'
+	out	0e9h,al
+	jmp	CU_retry_plan
+endif
 CU_done:
 	pop	es
 	popa
 	ret
 Commit_UMB endp
+
+ifdef UMB_SUBPAGE_MAPPING
+; DX=parent segment, SI=parent index, BP=previous extent end. Only BP changes.
+; There are at most 24 disjoint 4 KiB runs in C000h..EFFFh.
+Append_UMB_Subpage_Extents proc near
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	mov	al,cs:umb_active_masks[si]
+	mov	cx,4
+ASE_slice:
+	test	al,1
+	jz	short ASE_next
+	mov	bx,cs:[umb_registration+2]
+	cmp	bp,dx
+	jne	short ASE_new
+	dec	bx
+	shl	bx,2
+	add	word ptr cs:umb_registration[bx+6],0100h
+	jmp	short ASE_end
+ASE_new:
+	cmp	bx,24
+	jae	short ASE_failed
+	shl	bx,2
+	mov	word ptr cs:umb_registration[bx+4],dx
+	mov	word ptr cs:umb_registration[bx+6],0100h
+	inc	cs:[umb_registration+2]
+ASE_end:
+	mov	bp,dx
+	add	bp,0100h
+ASE_next:
+	add	dx,0100h
+	shr	al,1
+	loop	ASE_slice
+	clc
+	jmp	short ASE_done
+ASE_failed:
+	stc
+ASE_done:
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	ret
+Append_UMB_Subpage_Extents endp
+endif
 
 ; SI starts an eight-page UMA region (last region may be shorter). Select a
 ; below-16-MiB physical 128 KiB region containing every requested page, at the
@@ -2165,8 +2299,12 @@ RU_done:
 	ret
 Rollback_UMB endp
 
-; AX=EMM backing page, DX=16 KiB UMA segment.
+; AX=EMM backing page, DX=16 KiB UMA segment; development SI indexes its mask.
 Map_UMB_Page proc near
+ifdef UMB_SUBPAGE_MAPPING
+	push	edx
+	push	bp
+endif
 	push	eax
 	push	bx
 	push	cx
@@ -2189,8 +2327,25 @@ Map_UMB_Page proc near
 	shr	di,1
 	shr	di,1
 	mov	cx,4
+ifdef UMB_SUBPAGE_MAPPING
+	mov	bp,si
+	shl	bp,4
+	mov	bl,1
+endif
 MUP_store:
+ifdef UMB_SUBPAGE_MAPPING
+	mov	edx,es:[di]
+	mov	cs:umb_original_ptes[bp],edx
+	test	cs:umb_active_masks[si],bl
+	jz	short MUP_skip_slice
+	mov	es:[di],eax
+MUP_skip_slice:
+	add	di,4
+	add	bp,4
+	shl	bl,1
+else
 	stosd
+endif
 	add	eax,01000h
 	loop	MUP_store
 	pop	es
@@ -2198,11 +2353,19 @@ MUP_store:
 	pop	cx
 	pop	bx
 	pop	eax
+ifdef UMB_SUBPAGE_MAPPING
+	pop	bp
+	pop	edx
+endif
 	ret
 Map_UMB_Page endp
 
-; DX=16 KiB UMA segment. Restore the original identity mapping.
+; DX=16 KiB UMA segment. Normal restores identity; development SI selects
+; the committed slices and their captured original PTEs, including flags.
 Restore_UMB_Page proc near
+ifdef UMB_SUBPAGE_MAPPING
+	push	bp
+endif
 	push	eax
 	push	bx
 	push	cx
@@ -2221,8 +2384,24 @@ Restore_UMB_Page proc near
 	shr	di,1
 	shr	di,1
 	mov	cx,4
+ifdef UMB_SUBPAGE_MAPPING
+	mov	bp,si
+	shl	bp,4
+	mov	bl,1
+endif
 RUP_store:
+ifdef UMB_SUBPAGE_MAPPING
+	test	cs:umb_active_masks[si],bl
+	jz	short RUP_skip_slice
+	mov	eax,cs:umb_original_ptes[bp]
+	mov	es:[di],eax
+RUP_skip_slice:
+	add	di,4
+	add	bp,4
+	shl	bl,1
+else
 	stosd
+endif
 	add	eax,01000h
 	loop	RUP_store
 	pop	es
@@ -2230,6 +2409,9 @@ RUP_store:
 	pop	cx
 	pop	bx
 	pop	eax
+ifdef UMB_SUBPAGE_MAPPING
+	pop	bp
+endif
 	ret
 Restore_UMB_Page endp
 

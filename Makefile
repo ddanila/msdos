@@ -272,6 +272,11 @@ test-drdos-capture:
 test-umb-subpage-discovery-qemu:
 	python3 tests/test_umb_subpage_discovery_qemu.py
 
+.PHONY: test-umb-subpage-mapping-qemu
+test-umb-subpage-mapping-qemu:
+	python3 tests/test_umb_subpage_mapping_qemu.py
+	python3 tests/test_umb_subpage_mapping_qemu.py --warm-reset
+
 test-dos-bios-residency: dos bios
 	python3 tests/report_dos_bios_residency.py --check \
 		src/DOS/MSDOS.MAP src/BIOS/msBIO.map

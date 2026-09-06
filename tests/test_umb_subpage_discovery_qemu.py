@@ -16,7 +16,7 @@ def run(command, **kwargs):
     return subprocess.run([str(x) for x in command], check=True, **kwargs)
 
 
-def build(work, enabled):
+def build(work, enabled, extra_flags=""):
     for name in ("MEMM", "EMM"):
         source, dest = ROOT / "src/MEMM" / name, work / name
         dest.mkdir(parents=True)
@@ -26,6 +26,7 @@ def build(work, enabled):
     flags = "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -I. -I..\\EMM"
     if enabled:
         flags += " -DUMB_SUBPAGE_DISCOVERY"
+    flags += " " + extra_flags
     with (work / "build.log").open("w") as log:
         for module in ("INIT", "PPAGE"):
             run([ROOT / "bin/jwasm-masm", flags,
@@ -42,7 +43,7 @@ def main():
     original = ROOT / "src/MEMM/MEMM/EMM386.EXE"
     baseline = build(work / "normal", False)
     assert baseline.read_bytes() == original.read_bytes(), "normal binary changed"
-    candidate = build(work / "fine", True)
+    candidate = build(work / "fine", True, os.environ.get("UMB_SUBPAGE_FLAGS", ""))
     print(f"Unchanged normal SHA256: {hashlib.sha256(baseline.read_bytes()).hexdigest()}", flush=True)
     exit_com = work / "QEXIT.COM"
     run(["nasm", "-f", "bin", ROOT / "tests/qemu_exit.asm", "-o", exit_com])
