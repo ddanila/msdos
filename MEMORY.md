@@ -2505,11 +2505,32 @@ while serving calls in ON, OFF and idle AUTO, without changing the externally
 reported EMM mode. Do not solve this by retaining a second complete low XMS
 allocator or by disabling supported mode changes.
 
+The source audit also rules out treating the existing HIMEM service body as
+a ready-made protected object. `xms_control` saves the caller's real-mode
+DS:SI; `xms_move` loads that segment directly into ES, and `copy_move_blocks`
+passes CS:move_gdt to BIOS INT 15h/87h. A protected backend needs explicit
+real-address translation for the 16-byte public descriptor and handle-zero
+source/destination pointers, distinct from its own code/data selectors.
+Select a protected copy backend for the coordinated 386 path; retain the
+existing BIOS backend for standalone/286 operation. This is an unimplemented
+design decision, not a reason to weaken Move validation or return semantics.
+Likewise, the existing A20 backend can invoke BIOS INT 15h/24xx and physically
+disable A20: perform final disable/firmware work through a low transition path,
+never while depending on an extended-memory continuation. Budget the saved
+caller frame and authoritative A20 counters, including failure returns, before
+claiming a linked low-provider size.
+
 `tests/xms_emm_mode_probe.asm` now locks a 1 KiB XMS allocation before changing
 EMM modes ON -> OFF -> AUTO -> ON. In each mode it takes and releases an
 additional lock, checks the same physical base, reads back a 16-byte payload
 through XMS Move, and verifies EMM mode again after the XMS calls. It releases
-the original lock and allocation at the end. The signed DOS HMA-state query
+the original lock and allocation at the end. Each Move now receives its
+descriptor through a segment different from CS and a nonzero offset, and
+checks preservation of DS:SI. A negative control corrupts only that external
+descriptor's length while leaving the original valid; the call must fail.
+This distinguishes actual far-descriptor consumption from an accidental
+code-relative lookup, but does not prove protected-mode translation.
+The signed DOS HMA-state query
 asserts actual DOS-low/high residency; a repository EMM signature check guards
 the private mode-control entry. This establishes the existing separate-provider
 contract, not a protected XMS implementation, A20-off entry qualification,
@@ -2525,10 +2546,11 @@ FLOPPY_IMAGE=out/setver-native-audit.BAEqDU/low.img \
 The harness injects the local HIMEM/EMM386 binaries, saves their hashes and
 emulator identity, and retains each disposable image and serial log under
 `out/xms-emm-mode.*`, using QEMU `pc`, 486 and 8 MiB RAM. Both residency cases
-must pass; separate wrong-address and wrong-payload builds must exit through
-failure without a pass marker.
-The six-case baseline passes in `out/xms-emm-mode.Knsnp7/` (two successful
-guests and four expected rejections).
+must pass; separate wrong-address, wrong-payload and wrong-descriptor builds
+must exit through failure without a pass marker. The eight-case far-descriptor
+baseline passes in `out/xms-emm-mode.zBW4Qc/` (two successful guests and six
+expected rejections). The descriptor control checks failure, not the exact
+XMS error code; full error semantics remain part of broader API qualification.
 Future provider activation must additionally preserve pre-existing client
 handles, HMA ownership, UMB registrations, cached entries and rollback, and
 qualify all XMS functions and aliases rather than relying on this small probe.

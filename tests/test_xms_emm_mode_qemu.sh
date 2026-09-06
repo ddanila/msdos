@@ -13,10 +13,11 @@ export MTOOLS_NO_VFAT=1 MTOOLS_SKIP_CHECK=1
 shasum -a 256 "$INPUT" "$ROOT/src/DEV/HIMEM/HIMEM.SYS" \
     "$ROOT/src/MEMM/MEMM/EMM386.EXE" > "$RUN/inputs.sha256"
 qemu-system-i386 --version > "$RUN/emulator.txt"
-for variant in good wrong-address wrong-data; do
+for variant in good wrong-address wrong-data wrong-descriptor; do
     args=(-f bin)
     if [[ "$variant" == wrong-address ]]; then args+=(-DWRONG_ADDRESS); fi
     if [[ "$variant" == wrong-data ]]; then args+=(-DWRONG_DATA); fi
+    if [[ "$variant" == wrong-descriptor ]]; then args+=(-DWRONG_DESCRIPTOR); fi
     for residency in LOW HIGH; do
         prefix="$RUN/$variant-$residency"
         hma=0
@@ -47,4 +48,4 @@ for variant in good wrong-address wrong-data; do
         echo "PASS: $variant DOS=$residency"
     done
 done
-echo "XMS owner survives EMM modes; address/data controls rejected. Evidence: $RUN"
+echo "XMS owner survives EMM modes; address/data/descriptor controls rejected. Evidence: $RUN"
