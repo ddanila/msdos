@@ -63,6 +63,8 @@ initial_segment dw 0
 endif
 ifdef HIMEM_PROTECTED_OWNER_TEST
 ; Temporary transport snapshot, not a second allocator or reclaimed low owner.
+; Common front: 0=local, 1=publication outcome unknown, 2=confirmed reply.
+; Older non-common fronts retain the original Boolean ownership flag.
 owner_query_active db 0
 owner_packet db 'XOWN'
 ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
@@ -863,6 +865,7 @@ ifdef HIMEM_AUTHORITATIVE_OWNER_TEST
         db (16-(($-device_header) MOD 16)) MOD 16 dup (0)
 bootstrap_owner_start label byte
 ifdef HIMEM_COMMON_XMS_TEST
+        include XMSIMPORTBODY.INC
         include XMSMOVEBODY.INC
         include XMSMOVEHELP.INC
 endif

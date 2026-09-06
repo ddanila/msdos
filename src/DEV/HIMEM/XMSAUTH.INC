@@ -177,6 +177,9 @@ endif
 
 xms_remote_owned proc near
 ifdef HIMEM_COMMON_XMS_TEST
+        include XMSIMPORTGATE.INC
+else
+ifdef HIMEM_COMMON_XMS_TEST
 ifdef HIMEM_COMMON_OLD_HANDLE_TEST
         cmp ax,9
         je common_handle_bootstrap
@@ -300,6 +303,7 @@ auth_failed:
         xor dx,dx
         mov bl,ERR_GENERAL
         jmp short auth_return
+endif
 xms_remote_owned endp
 
 ; Move's existing bounds checker consumes SI -> one five-byte record. Fetch

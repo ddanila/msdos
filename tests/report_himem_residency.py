@@ -113,7 +113,8 @@ def check_bootstrap_layout(numbers, procedures, handle_count):
         raise ValueError("invalid contiguous HIMEM bootstrap layout")
     moved_move = "bootstrap_move" in procedures
     move_tail = ("bootstrap_move", "resolve_move_address", "copy_move_blocks", "kb_to_physical") if moved_move else ()
-    for name in (*BOOTSTRAP_PROCEDURES, *move_tail):
+    import_tail = ("bootstrap_remote_owned",) if "bootstrap_remote_owned" in procedures else ()
+    for name in (*BOOTSTRAP_PROCEDURES, *move_tail, *import_tail):
         if not start <= procedures[name] < handles:
             raise ValueError(f"bootstrap procedure outside tail: {name}")
     for name in PERMANENT_PROCEDURES:
@@ -204,6 +205,10 @@ def paired_front_ownership(path, handle_count):
         name, start, _ = boundaries[index + 1]
         boundaries[index + 1] = (name, start, "bootstrap-only owner; common peer input uses the shared frame")
     already_retired = set()
+    if "bootstrap_remote_owned" in addresses:
+        boundaries = [("High allocator gate", start, "permanent freeze/publication guard; import body is bootstrap-only")
+                      if name == "High allocator transport" else (name, start, contract)
+                      for name, start, contract in boundaries]
     if "bootstrap_move" in addresses:
         already_retired = {"Public Move validation", "Move address translation",
                            "Protected copy entry", "Physical address helper"}

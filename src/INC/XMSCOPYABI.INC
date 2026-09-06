@@ -58,6 +58,11 @@ XCP_REQUIRED equ XCP_PHYSICAL OR XCP_CLIENT OR XCP_INACTIVE
 ; DI=selected handle count, CX=paragraph-rounded boot end. BP is preserved.
 ; Wrong signature/version/reserved field returns AX=0. No storage is moved,
 ; frozen, released or granted to the caller. Commitment is a separate receipt.
+; In the common layout the handle-import body is itself bootstrap code. Its
+; permanent gate checks freeze before dereferencing the staged code pointer,
+; passes the canonical low DS, and waits for a far return before poisoning the
+; original tail. An unknown publication cannot re-enter that body or replay a
+; mutation; confirmed calls use the registered native entry instead.
 XCP_LAYOUT_QUERY equ 0e706h
 XCP_LAYOUT_REPLY equ 0e7ffh
 XCP_LAYOUT_SIGNATURE equ 584dh

@@ -27,8 +27,8 @@ ifdef HIMEM_BIND_ALWAYS_DISCOVER_TEST
 endif
         cmp word ptr [xms_bound_entry+2],0
         je common_not_ready
-        cmp [owner_query_active],0
-        je common_not_ready
+        cmp [owner_query_active],2
+        jne common_not_ready
         clc
         ret
 common_not_ready:

@@ -71,6 +71,14 @@ class BootstrapLayoutTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             check_bootstrap_layout(self.numbers, dict(procedures, xms_move=2304), 32)
 
+    def test_import_body_is_bootstrap_but_entry_is_permanent(self):
+        procedures = dict(self.procedures, bootstrap_remote_owned=2304)
+        check_bootstrap_layout(self.numbers, procedures, 32)
+        with self.assertRaises(ValueError):
+            check_bootstrap_layout(self.numbers, dict(procedures, bootstrap_remote_owned=512), 32)
+        with self.assertRaises(ValueError):
+            check_bootstrap_layout(self.numbers, dict(procedures, xms_remote_owned=2304), 32)
+
 
 class PairedFrontTests(unittest.TestCase):
     def test_transplant_scenario_retains_transport_and_unknown_gate_costs(self):

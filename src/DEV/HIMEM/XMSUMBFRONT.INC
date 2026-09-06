@@ -89,8 +89,8 @@ ifdef HIMEM_COMMON_XMS_TEST
         ; adapter. Before both prerequisites exist, keep the bootstrap owner.
         cmp word ptr [xms_bound_entry+2],0
         je umb_remote_unavailable
-        cmp [owner_query_active],0
-        je umb_remote_unavailable
+        cmp [owner_query_active],2
+        jne umb_remote_unavailable
 else
         int 15h
 endif

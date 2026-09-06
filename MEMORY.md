@@ -1887,23 +1887,41 @@ unknown-outcome freeze (`86phpkfw`, same artifact prefix), pass all four modes.
 The retired-route negative fails with guest 35. Sixteen layout and 35 parser
 tests pass; rebuilt standalone binaries remain byte-identical.
 
-**Composed provider measurement:** `out/umb-fine-composition-itgrgqh7/`
+**Bootstrap handle-import retirement:** the common front now executes its
+import body from the original or staged bootstrap image, with DS still
+selecting the permanent front. It returns to the low gate before any original
+tail poisoning. Freeze is checked **before accessing staged code**, because
+the loader can overwrite the old stage before retargeting. Keep that ordering
+when retiring other bootstrap bodies; a guard inside discarded code is too late.
+The common ownership flag distinguishes local (0), unknown publication (1) and
+confirmed reply (2). Unknown or confirmed publication cannot re-enter the
+import body; only the confirmed owner can use native service dispatch.
+
+The four-mode physical-release fixture (`out/emm-init-phases-w1gwvmdr/`) retains
+**3,568 HIMEM bytes** and releases a 1,440-byte bootstrap tail at 32 handles.
+DOS-low/128-handle live-UMB lost-reply recovery (`hq9hzx1e`) and an unstaged
+unknown-result run (`bwqk8aso`, same artifact prefix) pass all four modes; the
+unstaged run also tests return-before-poison in the original image. Forcing the
+retired handle route fails with guest 35. Seventeen layout and 35 parser tests
+pass, and the older non-common cancellation fixture still passes.
+
+**Composed provider measurement:** `out/umb-fine-composition-aexbt86k/`
 boots the paired provider with the development BIOS, complete high EMM tables,
 fine UMB mapping, high CDS and unchanged COMMAND/configuration/VC 4.05.
 All six captures complete, including freshly reproduced control and retail.
 
 | Fixed-config measurement | Selected control | Paired candidate | Retail 6.22 |
 | --- | ---: | ---: | ---: |
-| VC largest conventional block | 617,936 | 616,704 | 618,736 |
+| VC largest conventional block | 617,936 | 616,832 | 618,736 |
 | VC free UMB | 49,680 | 49,680 | 47,888 |
-| Low HIMEM + EMM allocation | 4,656 | 5,888 | 5,232 |
+| Low HIMEM + EMM allocation | 4,656 | 5,760 | 5,232 |
 | Free XMS reported by MEM | 6,803,456 | 6,798,336 | Not compared here |
 
-The candidate loses **1,232 conventional bytes**, exactly its additional low
+The candidate loses **1,104 conventional bytes**, exactly its additional low
 manager allocation, and **5,120 application XMS bytes** versus the control.
-It is **2,032 conventional bytes below retail**. Compared with the preceding
-paired capture (`out/umb-fine-composition-8ykppkdb/`), bootstrap Move retirement
-recovers **384 actual VC conventional bytes**, with unchanged free UMB and XMS.
+It is **1,904 conventional bytes below retail**. Compared with the preceding
+paired capture (`out/umb-fine-composition-itgrgqh7/`), import-body retirement
+recovers **128 actual VC conventional bytes**, with unchanged free UMB and XMS.
 This is still an integrated negative
 result, not promotion or a new preferred image. Retiring and packing the
 remaining provider storage must beat that measured cost; BIOS/COMMAND gains
@@ -1917,7 +1935,7 @@ python3 tests/capture_emm_init_phases.py floppy.img --common-xms-entry --dos-hig
 python3 tests/test_umb_subpage_composition.py --paired-provider out/emm-init-phases-<reported-id>
 ```
 
-The measured input fixture is `out/emm-init-phases-2bvmetyp/`. Composition checks
+The measured input fixture is `out/emm-init-phases-w1gwvmdr/`. Composition checks
 its binary hashes, normal capacity, four-mode completion and absence of fault
 controls; it pins the BIOS loader fixups to that exact provider. Normal build
 outputs and CI settings remain unchanged. Full reset/failure qualification and
