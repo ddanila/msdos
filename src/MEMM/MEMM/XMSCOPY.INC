@@ -139,10 +139,11 @@ XmsCopyPhysicalEnd label near
 
 ; Typed-address layer. EAX bits 0/1 mark ESI/EDI as client-linear addresses;
 ; other endpoints are physical. Caller establishes A20 policy and validates
-; whole-range ownership/non-overlap, including aliases. Client addresses are
+; whole-range ownership. Client addresses are
 ; limited to the conventional/HMA window; each page needs user read/write
 ; permission, checked across both complete ranges before any copy. This does
-; not preflight physical aliases/ownership or make hardware faults atomic.
+; also checks physical aliases, but does not establish ownership or make
+; hardware faults atomic.
 public XmsCopyClient
 XmsCopyClient proc near
     pushf
@@ -187,11 +188,18 @@ ifndef EMM_XMS_COPY_SKIP_PREFLIGHT
     jc XM_Reject
 XM_Check_Dest:
     test ebp,2
-    jz short XM_Next
+    jz short XM_Check_Aliases
     mov eax,edi
     mov edx,7
     call XmsCheckClientRange
     jc XM_Reject
+endif
+XM_Check_Aliases:
+ifndef EMM_XMS_COPY_SKIP_ALIASES
+    call XmsCheckClientAliases
+    jc XM_Reject
+    test eax,eax
+    jz XM_Success ; complete physical identity, including aliased windows
 endif
 XM_Next:
     mov ebx,esi
@@ -281,6 +289,144 @@ XM_Check_Failed:
     stc
     ret
 XmsCheckClientRange endp
+
+; Complete translated-range check. EBP address classes, ESI/EDI endpoints,
+; ECX nonzero length, FS first-page-table alias; ranges/permissions validated.
+; Return EAX=0 for complete physical identity, EAX=1 for disjoint ranges,
+; or CF=1 for any other overlap. All other registers are preserved.
+; Fixed 40-byte frame, no resident scratch owner. The nested disjointness
+; walk is bounded by 272*272 page pairs; latency qualification remains open.
+XA_FLAGS equ -4
+XA_SOURCE equ -8
+XA_DEST equ -12
+XA_LENGTH equ -16
+XA_SCURSOR equ -20
+XA_SLEFT equ -24
+XA_SPHYS equ -28
+XA_SSIZE equ -32
+XA_DCURSOR equ -36
+XA_DLEFT equ -40
+XmsCheckClientAliases proc near
+    pushad
+    mov eax,ebp
+    mov bp,sp
+    sub sp,40
+    mov ss:[bp+XA_FLAGS],eax
+    mov ss:[bp+XA_SOURCE],esi
+    mov ss:[bp+XA_DEST],edi
+    mov ss:[bp+XA_LENGTH],ecx
+    mov ss:[bp+XA_SCURSOR],esi
+    mov ss:[bp+XA_DCURSOR],edi
+    mov ss:[bp+XA_SLEFT],ecx
+    mov ss:[bp+XA_DLEFT],ecx
+XA_Identity:
+    call XA_SourceSpan
+    jc XA_Failed
+    mov ss:[bp+XA_SPHYS],eax
+    mov ss:[bp+XA_SSIZE],ebx
+    call XA_DestSpan
+    jc XA_Failed
+    cmp eax,ss:[bp+XA_SPHYS]
+    jne short XA_Reset
+    cmp ebx,ss:[bp+XA_SSIZE]
+    jbe short XA_IdentityStep
+    mov ebx,ss:[bp+XA_SSIZE]
+XA_IdentityStep:
+    add ss:[bp+XA_SCURSOR],ebx
+    add ss:[bp+XA_DCURSOR],ebx
+    sub ss:[bp+XA_DLEFT],ebx
+    sub ss:[bp+XA_SLEFT],ebx
+    jnz XA_Identity
+    mov dword ptr ss:[bp+28],0 ; saved EAX in PUSHAD frame
+    jmp XA_Passed
+XA_Reset:
+    mov eax,ss:[bp+XA_SOURCE]
+    mov ss:[bp+XA_SCURSOR],eax
+    mov eax,ss:[bp+XA_LENGTH]
+    mov ss:[bp+XA_SLEFT],eax
+XA_SourceNext:
+    call XA_SourceSpan
+    jc XA_Failed
+    mov ss:[bp+XA_SPHYS],eax
+    mov ss:[bp+XA_SSIZE],ebx
+    mov eax,ss:[bp+XA_DEST]
+    mov ss:[bp+XA_DCURSOR],eax
+    mov eax,ss:[bp+XA_LENGTH]
+    mov ss:[bp+XA_DLEFT],eax
+XA_DestNext:
+    call XA_DestSpan
+    jc short XA_Failed
+    mov edx,eax
+    add edx,ebx
+    jc short XA_Failed
+    cmp ss:[bp+XA_SPHYS],edx
+    jae short XA_Disjoint
+    mov edx,ss:[bp+XA_SPHYS]
+    add edx,ss:[bp+XA_SSIZE]
+    jc short XA_Failed
+    cmp eax,edx
+    jb short XA_Failed
+XA_Disjoint:
+    add ss:[bp+XA_DCURSOR],ebx
+    sub ss:[bp+XA_DLEFT],ebx
+    jnz XA_DestNext
+    mov ebx,ss:[bp+XA_SSIZE]
+    add ss:[bp+XA_SCURSOR],ebx
+    sub ss:[bp+XA_SLEFT],ebx
+    jnz XA_SourceNext
+    mov dword ptr ss:[bp+28],1
+XA_Passed:
+    mov sp,bp
+    popad
+    clc
+    ret
+XA_Failed:
+    mov sp,bp
+    popad
+    stc
+    ret
+XA_SourceSpan:
+    mov eax,ss:[bp+XA_SCURSOR]
+    mov ecx,ss:[bp+XA_SLEFT]
+    xor edx,edx
+    test dword ptr ss:[bp+XA_FLAGS],1
+    jz short XA_SourcePhysical
+    mov edx,5
+XA_SourcePhysical:
+    jmp short XmsClientSpan
+XA_DestSpan:
+    mov eax,ss:[bp+XA_DCURSOR]
+    mov ecx,ss:[bp+XA_DLEFT]
+    xor edx,edx
+    test dword ptr ss:[bp+XA_FLAGS],2
+    jz short XA_DestPhysical
+    mov edx,7
+XA_DestPhysical:
+    jmp short XmsClientSpan
+XmsCheckClientAliases endp
+
+; EAX start, ECX remaining, EDX=0 physical or required client permission.
+; Return EAX physical start, EBX contiguous length, CF on invalid mapping.
+XmsClientSpan proc near
+    mov ebx,ecx
+    test edx,edx
+    jz short XA_SpanPhysical
+    mov ebx,eax
+    and ebx,4095
+    neg ebx
+    add ebx,4096
+    cmp ebx,ecx
+    jbe short XA_SpanMapped
+    mov ebx,ecx
+XA_SpanMapped:
+    call XmsResolveClientPage
+    jc short XA_SpanReturn
+XA_SpanPhysical:
+    mov edx,eax
+    add edx,ebx ; also reject a translated exclusive end wrapping at 4 GiB
+XA_SpanReturn:
+    ret
+XmsClientSpan endp
 
 ; FS is the installed first-page-table alias. The caller has bounded EAX to
 ; 00000000h..0010ffffh and retains the provider's present/user PDE zero.

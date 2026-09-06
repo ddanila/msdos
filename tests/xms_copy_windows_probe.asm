@@ -105,6 +105,34 @@ org 100h
     repe cmpsb
     jne failed
 %ifdef MAPPED_ENDPOINT
+%ifndef EXPECT_PAGE_FAILURE
+    ; Native conventional addresses provide mixed physical/client identity
+    ; and overlap controls without assuming the EMS backing's physical base.
+    mov eax,[packet_dest] ; target buffer, just verified against source
+    mov [packet_source],eax
+    mov dword [packet_flags],1
+    call copy
+    jc failed
+    test ah,ah
+    jnz failed
+    mov dword [packet_flags],2
+    call copy
+    jc failed
+    test ah,ah
+    jnz failed
+    mov dword [packet_length],64
+    inc dword [packet_dest]
+    call reject
+    mov dword [packet_flags],1
+    call reject
+    mov si,source
+    mov di,target
+    mov cx,8192
+    cld
+    repe cmpsb
+    jne failed
+    mov dword [packet_length],8192
+%endif
     call mapped_test
 %endif
 %endif
@@ -184,7 +212,17 @@ mapped_test:
     add eax,4007h
     mov [packet_dest],eax
     mov dword [packet_flags],3
-    ; Source bytes 4093..12284 and destination bytes 7..8198 occupy
+%ifdef ALIAS_REVERSE
+    sub dword [packet_source],4086
+    add dword [packet_dest],4086
+%endif
+%ifdef ALIAS_IDENTITY
+    add dword [packet_dest],4086
+%endif
+%ifdef ALIAS_DISJOINT
+    mov dword [packet_length],64
+%endif
+    ; In the default overlap case, source 4093..12284 and destination 7..8198 occupy
     ; overlapping physical storage, despite disjoint client-linear ranges.
     ; Snapshot before checking status so partial writes cannot hide behind CF.
     call copy
@@ -247,9 +285,15 @@ mapped_done:
     mov al,'N'
     call checkpoint
 %ifdef ALIAS_OVERLAP
+%ifdef ALIAS_SUCCESS
+    test word [alias_status],1
+    jnz failed
+    cmp byte [alias_error],0
+%else
     test word [alias_status],1
     jz failed
     cmp byte [alias_error],2
+%endif
     jne failed
 %endif
     mov dx,[ems_handle]

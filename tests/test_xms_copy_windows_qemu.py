@@ -37,6 +37,10 @@ def main():
                         help="with --deny-later-page, reject the destination instead")
     parser.add_argument("--alias-overlap", action="store_true",
                         help="require rejection without writes for overlapping EMS aliases")
+    parser.add_argument("--alias-mode", choices=("overlap", "reverse", "identity", "disjoint"),
+                        default="overlap", help="variant of --alias-overlap")
+    parser.add_argument("--bypass-aliases", action="store_true",
+                        help="negative control: omit whole-range alias checking")
     args = parser.parse_args()
     if args.fail_after_map and args.bad_data:
         parser.error("the data control requires a completed copy")
@@ -50,6 +54,8 @@ def main():
         parser.error("--deny-destination requires --deny-later-page")
     if args.alias_overlap and (not args.mapped or args.deny_later_page or args.bypass_mapping or args.bad_data):
         parser.error("alias overlap requires --mapped without other fault controls")
+    if (args.alias_mode != "overlap" or args.bypass_aliases) and not args.alias_overlap:
+        parser.error("alias mode/bypass requires --alias-overlap")
     subprocess.run(["make", "memm"], cwd=ROOT, check=True)
     normal = ROOT / "src/MEMM/MEMM/EMM386.EXE"
     normal_hash = hashlib.sha256(normal.read_bytes()).hexdigest()
@@ -66,7 +72,9 @@ def main():
     if args.deny_later_page:
         flags += " -DEMM_XMS_COPY_DENY_ALIGNED_PAGE"
     if args.bypass_preflight:
-        flags += " -DEMM_XMS_COPY_SKIP_PREFLIGHT"
+        flags += " -DEMM_XMS_COPY_SKIP_PREFLIGHT -DEMM_XMS_COPY_SKIP_ALIASES"
+    if args.bypass_aliases:
+        flags += " -DEMM_XMS_COPY_SKIP_ALIASES"
     if args.deny_destination:
         flags += " -DEMM_XMS_COPY_DENY_DESTINATION"
     with (work / "build.log").open("w") as log:
@@ -88,6 +96,9 @@ def main():
                     *(["-DEXPECT_PAGE_FAILURE"] if args.deny_later_page else []),
                     *(["-DEXPECT_DEST_PAGE_FAILURE"] if args.deny_destination else []),
                     *(["-DALIAS_OVERLAP"] if args.alias_overlap else []),
+                    *([f"-DALIAS_{args.alias_mode.upper()}"]
+                      if args.alias_overlap and args.alias_mode != "overlap" else []),
+                    *(["-DALIAS_SUCCESS"] if args.alias_mode in ("identity", "disjoint") else []),
                     str(ROOT / "tests/xms_copy_windows_probe.asm"), "-o", str(probe)], check=True)
     image = work / "boot.img"
     shutil.copyfile(args.image, image)
@@ -111,6 +122,7 @@ def main():
                   deny_later_page=args.deny_later_page, bypass_preflight=args.bypass_preflight,
                   deny_destination=args.deny_destination,
                   alias_overlap=args.alias_overlap,
+                  alias_mode=args.alias_mode, bypass_aliases=args.bypass_aliases,
                   normal_sha256=normal_hash, candidate_sha256=hashlib.sha256(candidate.read_bytes()).hexdigest(),
                   probe_sha256=hashlib.sha256(probe.read_bytes()).hexdigest(), bad_data=args.bad_data,
                   image_sha256=hashlib.sha256(args.image.read_bytes()).hexdigest(),
@@ -204,17 +216,32 @@ def main():
                     if args.alias_overlap and client_frames[:4] != client_frames[4:]:
                         raise ValueError("overlap witness lacks identical EMS physical backing")
                     if args.alias_overlap and phase == "N":
+                        src_offset = 7 if args.alias_mode == "reverse" else 4093
+                        dst_offset = 4093 if args.alias_mode in ("reverse", "identity") else 7
+                        length = 64 if args.alias_mode == "disjoint" else 8192
                         report["alias_overlap_observation"] = dict(
                             carry=bool(struct.unpack_from("<H", ram, witness_offset + 16)[0] & 1),
                             error=ram[witness_offset + 18],
-                            source_linear=(frame << 4) + 4093,
-                            destination_linear=(frame << 4) + 0x4007,
-                            length=8192,
+                            source_linear=(frame << 4) + src_offset,
+                            destination_linear=(frame << 4) + 0x4000 + dst_offset,
+                            length=length,
                             physical_pages=client_frames,
                             changed_window_pages=[index for index, (before, after) in enumerate(
                                 zip(report["checkpoints"][-1]["client_hashes"], client_hashes))
                                 if before != after])
+                        if args.alias_mode == "disjoint":
+                            before_ram = (work / "M-ram.bin").read_bytes()
+                            expected_ram = bytearray(before_ram)
+                            for byte in range(length):
+                                source = src_offset + byte
+                                dest = dst_offset + byte
+                                expected_ram[client_frames[dest // 4096] + dest % 4096] = before_ram[
+                                    client_frames[source // 4096] + source % 4096]
+                            if any(ram[page:page+4096] != expected_ram[page:page+4096]
+                                   for page in client_frames):
+                                raise ValueError("disjoint same-page alias copy changed unexpected bytes")
                     if (args.alias_overlap and phase == "N"
+                            and args.alias_mode != "disjoint"
                             and client_hashes != report["checkpoints"][-1]["client_hashes"]):
                         raise ValueError("overlapping EMS aliases modified backing before rejection")
                     if (args.deny_later_page and phase == "N"

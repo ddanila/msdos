@@ -2826,13 +2826,13 @@ OFF/AUTO transitions, runtime busy-owner rejection,
 or real exception/NMI unwinding. Those gates and the complete provider's
 linked low/high layout remain open; no conventional saving is claimed.
 
-`XmsCopyClient` adds a 418-byte typed-address layer: flag bits select physical
+`XmsCopyClient` adds a 770-byte typed-address layer: flag bits select physical
 or client-linear source/destination independently. For decoded conventional/HMA
 addresses it resolves each 4-KiB page through the installed first page table,
 checks present/user access (and write permission for a destination), and passes
 physical chunks to the same backend. Unknown flags and client ranges outside
 `00000000h..0010FFFFh` are rejected. No client PTE is modified. Its maximum own
-nested stack use is 118 bytes including the physical backend and near return,
+nested stack use is 124 bytes including the alias walk and near return,
 excluding the test adapter and outer trap/provider frames.
 
 The `--mapped` witness maps two separately allocated EMS pages into the frame,
@@ -2846,11 +2846,11 @@ the mapped source as physical (`--mapped --bypass-mapping`) fails in
 `make test-xms-copy-windows-qemu`.
 
 This layer is not the complete handle-zero API: the caller must establish A20
-policy and validate the far pointer, ownership and whole-range non-overlap,
-including aliases. Both complete client ranges now receive a page-permission
-preflight before the first copy; the per-chunk checks remain. The walk uses
+policy and validate the far pointer and allocation ownership. Both complete
+client ranges now receive a page-permission preflight before the first copy;
+the per-chunk checks remain. The walk uses
 the same resolver and preserves its inputs, with ordinary interrupts disabled
-through preflight and copying. Whole-range alias/ownership validation, precise
+through preflight and copying. Whole-range allocation ownership, precise
 public error semantics and stable mappings across NMI/fault entry remain
 required before binding it to XMS Move/reallocation. This is not atomic recovery
 from a hardware fault. Normal EMM386 remains unchanged.
@@ -2874,42 +2874,58 @@ rejection `out/xms-copy-windows-tgm20cx9/`, successful mapped transfers
 `out/xms-copy-windows-fparrgmb/`, and mapping-failure cleanup
 `out/xms-copy-windows-iwfix_2j/`. The deliberately bypassed source/destination
 controls fail in `out/xms-copy-windows-phq5dszl/` and
-`out/xms-copy-windows-wnlg8izy/`. The 96-byte growth belongs in the future
+`out/xms-copy-windows-wnlg8izy/`. That permission-only step's 96-byte growth belongs in the future
 protected-provider budget, not the current conventional-memory ledger.
 
-**Open integration gate: overlap between translated ranges.** The opt-in
+**Translated-range overlap: development backend fixed.** The
 `--mapped --alias-overlap` witness maps logical EMS page zero into two frame
 windows. The 8,192-byte source starts at offset 4,093 in the first window;
 the destination starts at offset 7 in the second. Their client-linear ranges
-are disjoint, but their physical ranges overlap by 4,106 bytes. The current
-typed backend returns success (CF clear, AH=0) and changes three physical pages,
+are disjoint, but their physical ranges overlap by 4,106 bytes. The preceding
+typed backend returned success (CF clear, AH=0) and changed three physical pages,
 visible through six aliased window pages. Permission preflight passes because
 all mappings are valid; individual physical chunks do not detect this
-cross-chunk dependence. This violates the desired integration contract, not
-the primitive's existing requirement that its caller already exclude aliases.
+cross-chunk dependence. This violated the desired integration contract; the
+preceding primitive required its caller to exclude aliases.
 
 ```sh
 python3 tests/test_xms_copy_windows_qemu.py --image out/setver-native-audit.BAEqDU/low.img --mapped --alias-overlap
 ```
 
-This command **currently fails** and is intentionally outside the passing
-default target until whole-range alias validation is implemented. Its manifest
+This command now passes and is included in the default target. Its manifest
 records the returned status, both linear addresses, identical physical backing
 and changed window-page indexes; raw M/N snapshots retain the actual bytes.
-Evidence: `out/xms-copy-windows-qvr2pzbs/`. The ordinary mapped regression still
-passes in `out/xms-copy-windows-7bnhsmla/`. No normal binary or memory total changes.
+The failing pre-fix evidence remains `out/xms-copy-windows-qvr2pzbs/`.
+No normal binary or conventional-memory total changes.
 
-Before public Move/reallocation binding, translate complete source and
-destination ranges into physical extents and check intersections across **all**
-extents before writing. Preserve exact self-copy behavior; checking only paired
-pages or rejecting every shared page would mishandle identity and disjoint
-subranges. Mixed physical/client addresses and repeated EMS mappings need the
-same treatment. Budget scratch storage in the protected owner, preserve mappings
-for the whole transaction, and bound interrupt-disabled work; a quadratic page
-walk is not automatically an acceptable final implementation. Acceptance must
-include this witness, exact alias identity, disjoint same-page ranges, both
-overlap directions and unchanged destinations on rejection. Public error
-translation and ownership of physical ranges remain separate gates.
+The backend first compares corresponding translated spans for complete physical
+identity, returning success without copying if they all match. Otherwise it
+checks intersections across every source/destination extent before writing.
+Client extents end at page boundaries; an already-bounded physical endpoint is
+one contiguous extent. Empty intersections, including adjacent and disjoint
+same-page ranges, are allowed. Translated exclusive-end overflow is rejected.
+The walk uses a 40-byte stack frame, not a persistent low or high scratch owner.
+
+Passing evidence: forward overlap `out/xms-copy-windows-hiujmh0f/`, reverse
+overlap `out/xms-copy-windows-pm48xzdn/`, complete alias identity
+`out/xms-copy-windows-2_41ys0u/`, disjoint same-page copying
+`out/xms-copy-windows-i86v1jqj/`, and normal mapped transfers
+`out/xms-copy-windows-muhas2s6/`. The normal mapped probe also checks native
+conventional physical/client identity and overlap in both address-class
+directions. The disjoint witness compares all mapped backing bytes with an
+independent host copy, not just guest status. `--bypass-aliases` restores the
+cross-chunk failure in `out/xms-copy-windows-omofa2gr/`. Permission-failure
+negative controls bypass both preflight walks to reach the old chunk-only path.
+
+**Still required before public integration:** worst-case latency and mapping
+stability qualification. The bounded client window touches at most 272 pages,
+so this fixed-space implementation can visit 73,984 page pairs with interrupts
+disabled. That bound is not an accepted latency result; optimize or replace the
+walk if it violates the provider's interrupt budget, charging any extent index
+to protected storage. Public error translation, physical allocation ownership,
+real fault/NMI unwind and OFF/AUTO entry remain separate gates. The current
+770-byte typed layer and 392-byte physical core are a development inventory,
+not the complete provider or a conventional-memory saving.
 
 The census also now distinguishes handle zero's conventional physical pages
 from locked XMS backing: `_total_pages` includes both. It checks the ordered
