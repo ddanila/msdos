@@ -186,6 +186,27 @@ Each moved object must release a coalescing low interval after charging gates,
 alignment and retained state. Reject designs that merely copy payload high or
 meet retail by reducing requested resources. EBDA remains a finishing step.
 
+The following subtraction prioritizes that investigation. It partitions the
+11,936-byte observed difference; it does **not** identify equivalent vendor
+objects or promise that each difference can be reclaimed:
+
+| Low-memory accounting group | Local bytes | OpenDOS bytes | Difference |
+| --- | ---: | ---: | ---: |
+| Installed memory-manager ranges | 6,480 | 1,200 | 5,280 |
+| Reported BIOS/device region | 5,152 | 2,304 | 2,848 |
+| Remaining pre-COMMAND system span | 8,080 | 6,944 | 1,136 |
+| Complete COMMAND owner span | 3,984 | 1,312 | 2,672 |
+| **Total below VC** | **23,696** | **11,760** | **11,936** |
+
+The vendor manager row is nested in its system allocation; subtract it once,
+not in addition to that allocation. Any unlabelled low manager support remains
+in the vendor remainder. The controlled 4,240-byte provider-switch saving is
+stronger causal evidence than the 5,280-byte cross-system row difference.
+Neither locates all protected manager storage. This is why being smaller than
+retail EMM386 is not a stopping criterion for the combined manager design.
+The required result is a small complete low interface, with high-storage costs
+explicit, rather than a smaller version of every existing low routine.
+
 ### Required checkpoint: one complete resident layout
 
 DR-DOS's portable lesson is a small conventional interface backed by complete
@@ -454,13 +475,14 @@ without `--check` when evidence capture completes; this is not a passing gate.
 
 #### Candidate layout A: manager objects plus the whole shell service body
 
-This candidate was budgeted against the earlier 614,448-byte BIOS/table
-fixture, before fine UMB and CDS placement. Its component ceilings remain
-unvalidated; use the current joint budget above for subsequent decisions.
+This budget uses the repaired combined fine-UMB/CDS fixture: 616,112
+conventional bytes and 49,680 free UMB bytes. Its component ceilings remain
+unvalidated; it is a proposal, not a measured allocation or permission to skip
+the complete resident-layout checkpoint.
 
 This is a **retail-floor candidate**, not the complete DR-DOS-style layout.
-Its proposed 4,816-byte gain would still leave 8,816 bytes between development
-and the observed framed OpenDOS result. Do not stop the architecture audit at
+Its proposed 4,816-byte gain would still leave 7,120 bytes between development
+and the IDE-attached framed OpenDOS result. Do not stop the architecture audit at
 these two component ceilings or treat them as validated implementation sizes.
 
 The current checked COMMAND map provides a concrete complement to manager
@@ -479,21 +501,47 @@ The following are proposed **design ceilings**, not measured new allocations:
 | COMMAND permanent image, including PSP | 3,632 | 2,048 | 1,584 |
 | **Combined** | **10,112** | **5,296** | **4,816** |
 
-Meeting both ceilings would put development's largest block at 619,264 bytes,
-528 above retail, without counting EBDA or another BIOS/table move. The manager
+Meeting both ceilings would put development's largest block at 620,928 bytes,
+2,192 above retail, without counting EBDA or another BIOS/table move. The manager
 ceiling allows 345 bytes above the first split's 2,903-byte retained inventory;
 the shell ceiling allows 867 above its 1,181-byte PSP/stack/state inventory.
 Those allowances must absorb gateways, bindings, alignment and any retained
 service code. If the contracts require more, revise the joint layout rather
-than silently spending the 528-byte margin twice.
+than silently spending the 2,192-byte margin twice.
 
 Proposed destinations are the existing DOS-owned HMA for HIMEM's 1,672-byte
 service/data candidate and COMMAND's 2,451-byte body, and locked extended memory
 behind a protected selector for EMM386's complete 1,904-byte selected table
-object. The 4,123-byte additional HMA payload fits the current calculated 10,313-byte
-tail before relocation support costs; size the final linked high objects and
-XMS/page alignment separately. Existing high BIOS, kernel, buffers and shell
+object. The 4,123-byte additional HMA payload leaves 5,534 bytes of the current
+calculated 9,657-byte tail before relocation support costs; size the final
+linked high objects and XMS/page alignment separately. Existing high BIOS, kernel, buffers and shell
 catalogs remain where they are. No new UMB allocation is budgeted.
+
+The complete low ledger under these ceilings would be:
+
+| Owner | Current bytes | Proposed bytes |
+| --- | ---: | ---: |
+| BIOS | 5,152 | 5,152 |
+| DOS prefix | 5,632 | 5,632 |
+| Combined managers | 6,480 | 3,248 |
+| Sector-transfer area | 512 | 512 |
+| Interrupt-stack subsystem | 1,840 | 1,840 |
+| System suballocation/MCB boundaries | 96 | 96 |
+| COMMAND owner span | 3,984 | 2,400 |
+| **Total below VC** | **23,696** | **18,880** |
+
+The shell row includes its unchanged 352 bytes outside the permanent image.
+HMA payload and low release are different quantities: the proposed 867-byte
+shell and 345-byte manager allowances already reduce the claimed release.
+Charge high-side support separately against the remaining HMA capacity.
+The 1,904-byte EMM table requires a locked, selector-addressable owner; a new
+page allocation would require at least 4,096 bytes before other support.
+Existing XMS slack is not free capacity until its live ranges are verified.
+
+This proposal deliberately leaves BIOS and DOS state unchanged, so it does
+not explain the full OpenDOS result. The next architectural design must also
+resolve their minimum low owners and the shell's remaining mutable state.
+Do not use the provisional retail surplus to end that investigation.
 
 Source-audited implementation constraints still preventing acceptance:
 
@@ -1165,7 +1213,7 @@ The development selected low BIOS is 5,152 bytes, fully partitioned as follows:
 The 3,578-byte fallback disk body is already outside this total. Counting it
 again as a new opportunity would double-count the completed disk placement.
 Even the 837-byte character/clock body plus 126-byte CMOS helpers cannot close
-the remaining 1,984-byte retail gap. Their 963-byte gross inventory precedes gateway
+the remaining 2,624-byte retail gap. Their 963-byte gross inventory precedes gateway
 and alignment costs; it is not a sufficient next architectural milestone.
 
 The placement design must therefore include another substantial owner: eligible
@@ -1200,7 +1248,7 @@ HIMEM listing now partitions every fixed byte by service; reproduce with
 
 This first split has **3,576 linked candidate bytes** before new gateways,
 selectors, alignment and retained state. It is larger than the current retail
-deficit but not a net savings proof, and it cannot explain the 11,328-byte
+deficit but not a net savings proof, and it cannot explain the 11,936-byte
 OpenDOS difference. Keep COMMAND and BIOS in the joint design; do not equate
 manager integration or meeting retail with completing the resident layout.
 
