@@ -47,7 +47,34 @@ provider switch's 4,240-byte low-system reduction and 280 KiB XMS cost are
 stronger causal evidence than interpreting its 1,200-byte device row as the
 whole manager.
 
-Next implementation selection requires one final resident-layout budget:
+Next implementation selection requires one final resident-layout budget.
+The older Candidate layout A below is historical design arithmetic, not the
+current implementation queue: its low-table baseline and independent HIMEM
+HMA reservation must not be carried into the complete-provider design.
+
+The destination contract for that design is:
+
+| Owner | Proposed destination | Low storage that must be justified |
+| --- | --- | --- |
+| Coordinated XMS/EMS services and private tables | Locked extended memory on the 386 path | Public entry points, real-mode/A20 transitions, OFF/AUTO continuation and indispensable state |
+| Remaining BIOS services | Shared DOS-owned HMA where call/return contracts permit | Device headers, escaped request/data pointers, firmware/DMA and interrupt-facing state |
+| Complete resident COMMAND services | Same shared HMA budget | PSP/environment, interrupt entry/return paths, explicit data/stack and reload bindings |
+| Private DOS data | Packed UMB owner only where the UMB floor permits | Public SDA and other escaped real-mode pointers remain valid; no unaccounted low mirror |
+
+This is a destination proposal, not a proved allocation map. The 286 and
+standalone/third-party XMS paths retain their own supported placement and
+fallback; protected-manager placement is not a universal HMA replacement.
+
+Budget the selected fixture's existing HMA allocations once:
+40,192 DOS + 5,220 BIOS + 7,988 buffers + 2,447 COMMAND = 55,847 bytes.
+The remaining `DA37h..FFF0h` interval is 9,657 bytes, excluding the 16-byte
+safety tail. New BIOS and COMMAND bodies, gateways, stacks and alignment must
+fit together there or explicitly replace an existing owner. The 1,792-byte
+UMB margin cannot hold the 1,840-byte interrupt-stack allocation even before
+new arena overhead. Moving objects to extended memory must also report the
+application XMS cost, including page rounding and backing reservations.
+
+Required next design evidence, before another relocation tranche:
 
 1. Design the coordinated XMS/EMS provider's complete high services and low
    entry/state/transition interface; retain standalone, third-party and 286
@@ -61,6 +88,14 @@ Next implementation selection requires one final resident-layout budget:
    costs and the UMB floor with unchanged requested resources. EBDA recovery
    remains a finishing step, not the explanation for the vendor advantage.
 
+Accept the design checkpoint only with linked sizes for every proposed high
+body and low gate, an explicit owner for every remaining low interval, and
+boot publication/rollback plus asynchronous call/return contracts. Unresolved
+sizes remain unknown rather than becoming allowances chosen to beat retail.
+Then implement and test complete owners against the same pinned composition.
+Do not replay the broad vendor matrix: use source-free vendor probes only to
+resolve a specific remaining public contract or memory-cost ambiguity.
+
 Prefer locked extended memory for protected manager owners, HMA for eligible
 DOS/BIOS/shell services, and UMB for eligible real-mode data. Do not begin
 another isolated instruction-shrinking tranche to close the 752-byte retail gap.
@@ -72,7 +107,7 @@ low remainder or a violated UMB floor. Its low partition is specific to the
 fixed high-CDS fixture (512-byte transfer area and STACKS=9,128); different
 resources require a new audited partition, not an automatic residual bucket.
 It does not infer boot identity from equal sizes or prove relocation safety.
-The fresh five-image run in `out/umb-fine-composition-yo28vax7/` passes this
+The fresh five-image run in `out/umb-fine-composition-8twlf0p_/` passes this
 gate and reproduces the current totals. Twelve owner-accounting tests include
 stale maps/managers, missing or duplicate owners, incorrect free extents and
 the pre-table control; the normal DOS/BIOS census and HMA-budget tests pass.
@@ -857,8 +892,9 @@ Required deliverables, in order:
    47,888-byte UMB floor, requested resources, A20-off clients, DOS-low/286
    fallback, redirects, nested execution and reset as acceptance gates.
 
-Retail is the floor, not a component-size quota. The 11,936-byte OpenDOS lead
-is the difference to explain, not an approved savings budget. Optional video
+Retail is the floor, not a component-size quota. The current 10,064-byte
+OpenDOS lead (11,936 in the pre-table ledger) is the difference to explain,
+not an approved savings budget. Optional video
 recovery and the bounded 1 KiB EBDA step cannot explain this below-VC gap.
 
 #### Reproducible shared HMA capacity
@@ -1047,7 +1083,11 @@ without `--check` when evidence capture completes; this is not a passing gate.
 
 #### Candidate layout A: manager objects plus the whole shell service body
 
-This budget uses the repaired combined fine-UMB/CDS fixture: 616,112
+Historical partial proposal, superseded for implementation selection by the
+current complete-provider/BIOS/shell destination contract above. Preserve its
+source-audited access constraints, not its savings forecast or component quotas.
+
+This budget uses the pre-table repaired fine-UMB/CDS fixture: 616,112
 conventional bytes and 49,680 free UMB bytes. Its component ceilings remain
 unvalidated; it is a proposal, not a measured allocation or permission to skip
 the complete resident-layout checkpoint.
