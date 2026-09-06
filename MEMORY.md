@@ -2567,19 +2567,29 @@ the guest rejects an accidentally shared CS. This proves segment/frame binding,
 not HMA residency, A20-off entry or nested firmware safety. Complete table/body
 placement, low entry gates and final-break reclamation remain in the joint design.
 
+The fixture now returns through the actual 47-byte `COMPLETE.INC` body shared
+with MSBIO1, not a stand-in epilogue. Request packets and transfer buffers occupy
+distinct segments, separate from BIOS data and high code. It checks status/count
+results for success (0100h/123), busy (0377h/123), partial error (8105h/100),
+zero-count completion (0100h/0), error without count adjustment (8107h/123) and
+invalid command (8103h/0), with packet guard words and restored caller segments.
+`EXIT$ZER` still requires low BIOS DS on entry; the other completion entries
+reload the far request through CS-owned `PTRSAV`. These low return contracts
+remain part of the complete dispatcher budget; extraction changes no IO.SYS bytes.
+
 **HMA entry qualification:** `make test-bios-dispatch-hma-qemu` runs the same
 decoder in DOS-owned HMA on QEMU pc/486 with standalone HIMEM and DOS=HIGH.
 The fixture reserves 101 bytes (93 code, six bindings, two sentinel bytes),
 rebases the three explicit CS-relative metadata operands, and poisons the
-entire low staging block with HLT bytes. Before each of seven requests it
+entire low staging block with HLT bytes. Before each of eleven requests it
 disables A20 through port 92h and verifies the high/low alias; the shared
 `BIOS_DEVICE_ENTRY` gate calls the real `BIOS_HMA_ROM_RESTORE` before tail entry.
 Both valid and invalid low completion paths verify restored A20 as well as
 the existing register/frame assertions. The low alias is read, never overwritten.
 
-The positive boot passes in `out/bios-dispatch-hma-ak9v_yif/`. Omitting the
+The positive boot passes in `out/bios-dispatch-hma-kxe_cv9o/`. Omitting the
 restore reaches the post-install startup marker but never completes
-(`out/bios-dispatch-hma-6kulz24t/`); the harness terminates QEMU after 20 seconds.
+(`out/bios-dispatch-hma-v_vp0tiq/`); the harness terminates QEMU after 20 seconds.
 Use `--image` or `FLOPPY_IMAGE` to select the base floppy; the harness installs
 current normal DOS/BIOS/HIMEM into a private copy and retains input hashes,
 startup files and trace. Normal binaries remain unchanged. This is an HMA

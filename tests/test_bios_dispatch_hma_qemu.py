@@ -69,6 +69,7 @@ def main():
     inputs = [args.image, ROOT / "src/BIOS/IO.SYS", ROOT / "src/DOS/MSDOS.SYS",
               ROOT / "src/DEV/HIMEM/HIMEM.SYS", ROOT / "src/BIOS/DISPATCH.INC",
               ROOT / "src/BIOS/MSBSEG.INC", ROOT / "src/BIOS/HIGHROM.INC",
+              ROOT / "src/BIOS/COMPLETE.INC",
               ROOT / "tests/bios_dispatch_masm.asm", Path(__file__),
               work / "probe.exe", image, work / "CONFIG.SYS", work / "AUTOEXEC.BAT"]
     passed = code == 33 and trace == b"BP"
