@@ -1,14 +1,11 @@
 # MS-DOS 6.22-compatible system
 
-This is the canonical source, build, test, and release repository for the
-maintained DOS system. It builds on Linux and macOS with custom JWasm and Open
-Watcom. The maintained source lives directly under `src`; the system reports
-DOS 6.22 and implements its UMB/HMA memory surface. The build is fully native
-and open source; it does not execute Microsoft build tools or DOS emulators.
+This repository builds a DOS 6.22-compatible system from maintained sources in
+`src/`. It uses custom JWasm and Open Watcom on Linux and macOS. The production
+build is native and open source; runtime tests use emulators.
 
-Core commands, drivers, installation, Help, and memory services are implemented.
-The composed memory layout is under stabilization; it is not the default
-deployment. See [TODO.md](TODO.md) for priorities and
+Composed memory layouts are experimental and require separate qualification
+from the default deployment. See [TODO.md](TODO.md) for priorities and
 [DOS622_GAPS.md](DOS622_GAPS.md) for compatibility scope and limitations.
 
 ## Requirements
@@ -25,13 +22,14 @@ macOS requires Xcode Command Line Tools and Homebrew:
 
 ```sh
 brew install coreutils git make mtools nasm python qemu
+export PATH="$(brew --prefix coreutils)/libexec/gnubin:$PATH"
 ```
 
 The optional real-BIOS 286 acceptance suite also needs the 86Box cask and its
 separately installed ROM set; see [EMULATION.md](EMULATION.md).
 
-Use `gmake` instead of `make` on macOS when Homebrew installs GNU Make under
-that name.
+The tests require GNU utilities such as `timeout` and `dd`; keep the coreutils
+path above in your test shell. Use `gmake` instead of `make` on macOS.
 
 ## Build and test
 
@@ -44,21 +42,15 @@ make test
 make deploy
 ```
 
-`make test` includes native checks, kvikdos, selected QEMU suites, and coverage
-verifiers. Additional emulator gates are described in
-[EMULATION.md](EMULATION.md). `make distribution` builds the installation disk
+See [tests/COVERAGE.md](tests/COVERAGE.md) for test scope and
+[EMULATION.md](EMULATION.md) for additional emulator gates. Known blockers are
+listed in [TODO.md](TODO.md). `make distribution` builds the installation disk
 set under `out/distribution/`.
 
 The deployed floppy is written to `out/floppy.img`. Boot it interactively with:
 
 ```sh
 ./run-qemu.sh
-```
-
-Run the local IBM AT acceptance suite with:
-
-```sh
-FAIL_ON_SKIP=1 make test-286-acceptance
 ```
 
 ## Documentation

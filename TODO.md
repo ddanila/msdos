@@ -15,4 +15,3 @@
 checks and their remaining validation scope.
 
 Use the local release gates in [ARCHITECTURE.md](ARCHITECTURE.md).
-Automatic CI remains paused. Completed work belongs in Git history.

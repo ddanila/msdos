@@ -46,15 +46,13 @@ passing probe does not establish full compatibility.
 
 ## Validation and measurement
 
-Use the relevant targets in the [Makefile](Makefile), including
-`test-hma-qemu`, `test-xms-umb-transaction-qemu`, `test-dos-bios-residency`,
-`test-command-residency`, and `test-himem-residency`. The placement builders and
-probes expose their fixture arguments through `--help`; rebuild their inputs
-before running them. See [EMULATION.md](EMULATION.md) for backend requirements.
+Use the [Makefile](Makefile) for maintained gates and each fixture's argument
+parser for supported compositions. Rebuild matched inputs before testing; see
+[EMULATION.md](EMULATION.md) for backend requirements.
 
 Keep captures, hashes, maps, and measurements in ignored `out/` artifacts.
 Compare matched hardware, startup files, requested resources, and binaries.
 Report the largest contiguous conventional block, free UMBs, and application
 XMS together; reconcile them with live ownership and linked boundaries.
 Do not count a separate free hole or reduced resource capacity as an equivalent
-gain. Historical byte totals and experiment sequences belong in Git history.
+gain.

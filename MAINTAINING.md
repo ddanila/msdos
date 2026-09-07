@@ -37,10 +37,8 @@ Use moderate QEMU concurrency on small hosts. Timeouts under oversubscription
 do not by themselves establish a build race. Run pristine reproducibility
 builds in separate clean checkouts or sequentially after cleaning.
 
-`make test` includes native, kvikdos, selected QEMU, and manifest checks; it does
-not cover every emulator target. Build first, then run the additional gates
-appropriate to the change. See [tests/COVERAGE.md](tests/COVERAGE.md) and
-[EMULATION.md](EMULATION.md).
+Build before testing and select gates appropriate to the change; see
+[tests/COVERAGE.md](tests/COVERAGE.md) and [EMULATION.md](EMULATION.md).
 
 ## Generated messages and linked layouts
 

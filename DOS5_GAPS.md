@@ -33,8 +33,7 @@ manifest proves every retail behavior or hardware combination.
   through disk 3. Physical storage and removable-media combinations remain
   outside that scope.
 - There is no automated differential runner against genuine DOS 5 media or
-  maintained physical-hardware lab. Host tools support Linux x86-64 and macOS
-  arm64.
+  maintained physical-hardware lab.
 
 An unverified behavior is an evidence gap, not automatically an implementation
 defect. Add a concrete discrepancy here when a source or runtime comparison

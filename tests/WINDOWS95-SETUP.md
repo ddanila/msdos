@@ -1,27 +1,17 @@
 # Windows 95 installer acceptance
 
-This is an opt-in check using user-supplied Windows 95 OEM media. QEMU trials
-have completed normal Typical installation through to desktop and shutdown in
-these separate configurations:
+This opt-in harness uses user-supplied Windows 95 OEM media. Acceptance requires
+normal Typical installation through desktop and shutdown, with staged source
+files unchanged. Qualify each memory/cache configuration and boot image
+separately; focused public regressions do not qualify a full installation.
 
-- runtime SMARTDRV, with no HIMEM;
-- HIMEM with DOS=HIGH, without runtime SMARTDRV.
-
-HIMEM with DOS=LOW has reached graphical Setup; a full installation is not
-qualified. Combined HIMEM/SMARTDRV installation, physical hardware, endurance,
-and continued cache use under Windows protected mode are also unqualified.
-The earlier loader and cache-launch defects are fixed. Source-directory damage
-seen before those fixes did not reproduce in the successful normal installations;
-ScanDisk is not an established outstanding defect.
-
-These are bounded acceptance results, not a claim that every current build or
-memory composition has been retested. Build history and investigation logs
-belong in Git and ignored local artifacts.
+Combined HIMEM/SMARTDRV use, DOS=LOW installation, physical hardware, endurance,
+and continued cache use under Windows protected mode remain validation gaps.
 
 ## Reproduce
 
-Build and deploy first. The harness needs QEMU, mtools, Tesseract, and Python
-`pycdlib`. Run from the repository root with your own ISO and a new output path:
+Build and deploy first. The harness needs QEMU, mtools, Tesseract, Python 3.11+,
+and `pycdlib`. Run from the repository root with your own ISO and a new output path:
 
 ```sh
 uv run --with pycdlib python tests/win95_setup_probe.py \
@@ -44,19 +34,7 @@ capture, and `finish` to stop and compare files. At Setup's restart prompt,
 use `eject floppy0` and `boot_set c`. After Windows powers off, press Enter to
 collect exit status and offline comparisons.
 
-A successful harness exit only means observation completed. Inspect retained
-screens, the report, installed guest, and source comparisons before declaring
-installation successful. Keep media, product identification, VM disks, and
-captures out of Git.
-
-## Public regressions
-
-The Windows-independent tests cover the defects exposed by these trials:
-
-- `test-int21-system-qemu`: repeated failed opens while other handles remain live.
-- `test-himem-xms3-qemu`: legacy free-memory status and exhaustion, plus XMS
-  transfers crossing a 64 KiB offset boundary under LOW/HIGH.
-- `tests/test_smartdrv_dos6_qemu.sh`: bounded cache-hit/miss transfers and
-  resident storage; run with `SMARTDRV_INSTALL_MODE=runtime` for self-installation.
-
-These focused tests do not replace an external-media installation run.
+A successful harness exit does not assert installation success or unchanged
+source files. Inspect the screens, installed guest, and `report.json`, including
+`changed_source_files`, before declaring success. Keep media, product
+identification, VM disks, and captures out of Git.
