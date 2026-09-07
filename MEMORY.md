@@ -718,11 +718,53 @@ the low data, excluding PSP, gates and stack. They are not independent savings.
 | `0333h..033Dh` / 10 | Allocation break and two high character-service entries |
 | `033Dh..036Dh` / 48 | Low reply from the published disk-message reader; preserve external consumers |
 
-The other 285 bytes still need an ownership decision. The next architectural
-inventory is these shared control interfaces together with the remaining BIOS
-services/state, against the same HMA budget; the formatter move does not complete
-either owner. Broader EXEC/reload error substitutions and nested interruptions
-also remain qualification work.
+The next implementation tranche is the **complete 333-byte data owner**, not
+individual COMSPEC or control fields. Evaluate packed UMB placement for this
+real-mode data while retaining the existing high services. This includes the
+48-byte public message reply: unlike HMA, an ordinary UMB pointer does not need
+the HMA-specific buffer normalization that prevented its previous move.
+
+**Joint destination budget, not achieved savings:** 333 bytes need 21 payload
+paragraphs plus one MCB, or **352 UMB bytes**. The current 48,416 free UMB bytes
+would become **48,064**, leaving **176 above retail's floor**. Reducing COMMAND
+from 880 bytes to its existing `0220h` PSP/gate/stack boundary would release at
+most **336 conventional bytes before new retained support costs**. The existing
+3,623-byte HMA tail remains shared with unfinished BIOS placement; neither the
+UMB reservation nor any binding growth is free. No allocation is made yet.
+
+An offset-preserving data selector can be `allocated_segment - 0220h/16`:
+only offsets `0220h..036Dh` belong to that allocation. This avoids rebasing every
+resident/transient data operand. The same trick cannot place this owner in the
+high HMA tail: the required segment would exceed FFFFh. The selector's prefix
+is **not** a PSP, stack, or spare buffer, and must never be accessed as one.
+
+The source establishes why changing `RESSEG` globally is unsafe:
+
+| Consumer | Required owner |
+| --- | --- |
+| `TCODE:TCOMMAND`, `TENV` COMSPEC updates | Movable shell data |
+| `TENV:DISP_ENV`/`FIND` environment lookup | Movable `ENVIRSEG` field, then its environment |
+| `COMMAND2:HEADFIX` | Data for `IO_SAVE`, real PSP for the JFN table |
+| `COMMAND2:SETVECT`, `LODCOM1` stack setup and `HAVCOM` header update | Low gates, real PSP and low stack |
+| `COMMAND2:FATALRET2` | Data for saved parent/termination values; real PSP for their destination |
+| `COMMAND2:ENDINIT` | Data for environment bookkeeping; real PSP for `PDB_environ` publication |
+
+Keep `RESSEG` as the PSP identity; add a distinct data identity to the existing
+resident bindings and transient reload block. Reuse `RESBIND.INC`'s separate
+data/PSP operands rather than introducing another transport layer. Publication
+must update all readers/writers before retiring the low copy, including reload
+after an external program destroys the transient. The UMB's allocation owner
+must be the shell PSP, not its biased data selector.
+
+Acceptance requires one composed candidate that releases and packs the whole
+old data span: poisoned old storage, environment/COMSPEC updates, INT 2Eh with
+a pending command, destructive external/pipeline reloads, EXEC and published
+message pointers, Ctrl-C/critical errors, A20-off and manager ON/OFF/AUTO, and
+child-shell cleanup. UMB absence/exhaustion or rejected publication must retain
+the existing low owner without leaks or changed allocation policy. Preserve
+DOS-low/286 fallback and the retail UMB floor. BIOS firmware/DMA storage remains
+a separate low-address contract; do not fund this move by aliasing its sector
+buffer or declaring the remaining 2,736-byte BIOS wholly movable.
 
 If the canonical COMSPEC path joins high private state, do not use PSP:80h as
 DOS-facing pathname scratch: `COMMAND2.ASM:INT_2E` saves the pending command
