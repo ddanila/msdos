@@ -232,7 +232,8 @@ def hma_layout(sysbuf: int, buffer_bytes: int, bios_bytes: int = 0,
 
 
 def whole_owner_inventory(bios_low: int, command_data_start: int,
-                          command_symbols: dict[str, int], hma_tail: int) -> dict[str, int]:
+                          command_symbols: dict[str, int], hma_tail: int, *,
+                          command_data_upper: bool = False) -> dict[str, int]:
     """Gross BIOS/shell source inventory, not a relocatable-body size bound.
 
     Deliberately include BIOS anchors and all shell state: this asks whether
@@ -247,13 +248,19 @@ def whole_owner_inventory(bios_low: int, command_data_start: int,
     low_end = require(command_symbols, "resident_catalog_start")
     if bios_low <= 0 or not 0 <= hma_tail <= 0xFFE0:
         raise ValueError("invalid BIOS allocation or shared HMA tail")
+    if command_data_upper:
+        if ("shell_high_active" not in command_symbols
+                or require(command_symbols, "shell_data_start") != command_data_start
+                or require(command_symbols, "shell_data_end") != low_end):
+            raise ValueError("upper-data assumption requires the complete linked shell data owner")
     if "shell_high_active" in command_symbols:
         if not 0x100 <= command_data_start <= state_end <= low_end < code_end:
             raise ValueError("retired whole-shell inventory has reversed boundaries")
         inventory = {
             "Entire selected low BIOS (including anchors and padding)": bios_low,
             "Retained COMMAND entries and stack (excluding PSP)": command_data_start - 0x100,
-            "Entire remaining COMMAND data (including retained message data)": low_end - command_data_start,
+            "Remaining low COMMAND data (zero assumes successful upper placement)":
+                0 if command_data_upper else low_end - command_data_start,
         }
         inventory["Unpriced expansion headroom (may be negative)"] = hma_tail - sum(inventory.values())
         return inventory
@@ -266,6 +273,18 @@ def whole_owner_inventory(bios_low: int, command_data_start: int,
     }
     inventory["Unpriced expansion headroom (may be negative)"] = hma_tail - sum(inventory.values())
     return inventory
+
+
+def validate_ioctl_layout(symbols: dict[str, int], *, compact: bool) -> None:
+    """Check full record capacity against the selected build, not a fixed byte count."""
+    start, end = (require(symbols, name) for name in
+                  ("BIOS_IOCTL_LOW_START", "BIOS_IOCTL_LOW_END"))
+    table, media = (require(symbols, name) for name in ("TRACKTABLE", "MEDIATYPE"))
+    record_bytes = 2 if compact else 4
+    if not start <= table < media <= end or media - table != 63 * record_bytes:
+        raise ValueError("persistent track array does not cover exactly 63 selected-layout records")
+    if end - start != 11 + 63 * record_bytes:
+        raise ValueError("IOCTL low-state inventory changed; review non-table owners")
 
 
 def composed_ledger(snapshot: dict, bios_bytes: int, dos_bytes: int) -> dict[str, int]:
@@ -318,11 +337,15 @@ def main() -> int:
                         help="low.json for the linked early BIOS reservation (assume successful activation)")
     parser.add_argument("--command-map", type=Path,
                         help="include this permanent shell's linked catalogs/high body in the HMA budget")
+    parser.add_argument("--command-data-upper", action="store_true",
+                        help="assume successful complete COMMAND data placement in UMB; requires runtime evidence")
     parser.add_argument("--composition", type=Path,
                         help="reconcile a fixed high-CDS composition results.json with these maps")
     parser.add_argument("--variant", default="fine-cds-high-tables",
                         help="selected composition variant (default: fine-cds-high-tables)")
     args = parser.parse_args()
+    if args.command_data_upper and not (args.command_map and args.boot_manifest):
+        parser.error("--command-data-upper requires --command-map and --boot-manifest")
     if (args.boot_manifest or args.command_map) and (args.buffers != 15 or args.sector_size != 512):
         parser.error("composed placement currently requires fifteen 512-byte buffers; "
                      "mixed-cache and larger-sector layouts need runtime accounting")
@@ -438,6 +461,7 @@ def main() -> int:
     hma_slack = hma_limit - hma_buffer_end
     bios_bytes = command_bytes = 0
     retired_clock = False
+    compact_tracks = False
     if args.boot_manifest:
         manifest = json.loads(args.boot_manifest.read_text())
         if not manifest["early_boot_installer"]:
@@ -449,6 +473,7 @@ def main() -> int:
             raise ValueError("boot manifest does not match IO.SYS")
         bios_bytes = manifest["embedded_payload_bytes"]
         retired_clock = manifest.get("retired_clock_conversion", False)
+        compact_tracks = manifest.get("compact_track_layout", False)
         if sysbuf + bios_bytes > manifest["reservation_limit"]:
             raise ValueError("boot reservation would fail at the configured ceiling")
     if args.command_map:
@@ -799,12 +824,15 @@ def main() -> int:
     ioctl_low_end = require(bios_symbols, "BIOS_IOCTL_LOW_END")
     if not (ioctl_low_end == require(bios_symbols, "BIO001E") <= service_start):
         errors.append("IOCTL mutable state is not wholly in the retained low prefix")
-    if ioctl_low_end - ioctl_low_start != 263:
-        errors.append("IOCTL low-state inventory changed; review format capacity")
+    if not args.boot_manifest:
+        compact_tracks = (require(bios_symbols, "MEDIATYPE")
+                          - require(bios_symbols, "TRACKTABLE")) == 126
+    try:
+        validate_ioctl_layout(bios_symbols, compact=compact_tracks)
+    except ValueError as error:
+        errors.append(str(error))
     if not (ioctl_low_start <= require(bios_symbols, "Prev_DX") <= ioctl_low_end - 2):
         errors.append("PS/2 saved drive is not owned by retained low disk state")
-    if require(bios_symbols, "MEDIATYPE") - require(bios_symbols, "TRACKTABLE") != 63 * 4:
-        errors.append("low format descriptor array does not cover 63 sectors")
     io_read = require(bios_symbols, "IOREADJUMPTABLE")
     io_write = require(bios_symbols, "IOWRITEJUMPTABLE")
     if not (service_start <= io_read < io_write < service_end) or io_write - io_read != 17:
@@ -829,9 +857,11 @@ def main() -> int:
         data_start = data_segment.paragraph * 16 + data_segment.offset
         tail = hma_layout(sysbuf, hma_buffer_bytes, bios_bytes, command_bytes)[-2]
         inventory = whole_owner_inventory(selected, data_start, command_symbols,
-                                          tail[2] - tail[1])
+                                          tail[2] - tail[1], command_data_upper=args.command_data_upper)
         print("\n### Whole BIOS/shell source capacity checkpoint\n")
         print(f"Shared HMA tail after existing owners: {tail[2] - tail[1]:,} bytes.\n")
+        if args.command_data_upper:
+            print("Assumes successful complete COMMAND data placement in UMB; a map alone does not prove activation.\n")
         print("| Source inventory | Bytes |")
         print("| --- | ---: |")
         for owner, size in inventory.items():

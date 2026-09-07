@@ -3,10 +3,34 @@
 
 import unittest
 
-from report_dos_bios_residency import hma_layout, whole_owner_inventory
+from report_dos_bios_residency import hma_layout, whole_owner_inventory, validate_ioctl_layout
 
 
 class HmaBudgetTests(unittest.TestCase):
+    def test_ioctl_layout_capacity_and_wrong_manifest(self):
+        for compact, table_bytes in ((False, 252), (True, 126)):
+            symbols = dict(BIOS_IOCTL_LOW_START=100, BIOS_IOCTL_LOW_END=111+table_bytes,
+                           TRACKTABLE=104, MEDIATYPE=104+table_bytes)
+            validate_ioctl_layout(symbols, compact=compact)
+            with self.assertRaises(ValueError):
+                validate_ioctl_layout(symbols, compact=not compact)
+            symbols["MEDIATYPE"] -= 2 if compact else 4
+            with self.assertRaises(ValueError):
+                validate_ioctl_layout(symbols, compact=compact)
+
+    def test_upper_shell_data_requires_explicit_success_assumption(self):
+        symbols = dict(RES_CODE_END=0x1480, resmsgend=0x335,
+                       resident_catalog_start=0x36f, shell_high_active=0x16b,
+                       shell_data_start=0x220, shell_data_end=0x36f)
+        args = dict(bios_low=2608, command_data_start=0x220,
+                    command_symbols=symbols, hma_tail=3411)
+        self.assertEqual(list(whole_owner_inventory(**args).values()), [2608, 288, 335, 180])
+        self.assertEqual(list(whole_owner_inventory(**args, command_data_upper=True).values()),
+                         [2608, 288, 0, 515])
+        symbols["shell_data_end"] -= 1
+        with self.assertRaises(ValueError):
+            whole_owner_inventory(**args, command_data_upper=True)
+
     def whole_inventory(self, **overrides):
         args = dict(bios_low=5152, command_data_start=0xB10,
                     command_symbols=dict(RES_CODE_END=0xA93, resmsgend=0xD42,

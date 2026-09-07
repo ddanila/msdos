@@ -41,9 +41,17 @@ unit/build tests (including all 63 initial pairs), 1.44/2.88 MB floppy formattin
 and subsequent file I/O (`out/bios-track-layout-nqi2t8wb/`), destructive shell
 pipeline/reload (`out/bios-compact-runtime-rx31xevz/`), and A20-off INT 2Eh with
 manager mode requests and negative controls (`out/command-upper-int2e-tbgw0nen/`).
-The default BIOS remains byte-identical. Fault-injected format retries,
-nonstandard sector layouts/sizes and broader hardware qualification remain
-open; the passing standard-format runs do not establish those contracts.
+The default BIOS remains byte-identical. Fault-injected retries also pass on
+both floppy sizes: the test fails the first AH=05h call, overwrites its entire
+descriptor buffer during reset, and compares the regenerated retry byte-for-byte
+before letting firmware proceed. Full formatting and subsequent file I/O finish.
+Evidence: `out/bios-track-layout-l77xaiay/`; deliberately corrupting the saved
+expectation produces the required mismatch in `out/bios-track-layout-rj_u2qtg/`.
+That negative control checks the comparison oracle, not a mutated BIOS path.
+Reproduce with `test_bios_track_layout_qemu.py IMAGE --retry-fault`, adding
+`--bad-expectation` for the oracle control. The private hook uses an interrupt
+return that preserves caller IF/DF, and the manifests pin input hashes.
+Nonstandard sector layouts/sizes and broader hardware qualification remain open.
 
 The preceding **composed retirement control** measures
 **624,880 conventional / 48,416 free UMB bytes**: **6,944 above the selected
@@ -109,6 +117,32 @@ longer retains them low. The current shared HMA budget is **3,411 free bytes**.
 Older whole-source capacity checks include shell data already placed in UMB
 and do not identify which remaining BIOS gates/storage can legally move.
 Use live ownership and composed measurements, not that sum, for final placement.
+
+The census now validates 63 records against the manifest's selected two- or
+four-byte layout. Use `--command-data-upper` only with evidence that publication
+succeeded; compiling that feature alone cannot exclude its DOS-low/failure
+fallback. The current successful composition's source-capacity remainder is
+515 bytes, **not additional free HMA or promised savings**. Regression checks
+cover both layouts, mismatched manifests and explicit shell-placement assumptions.
+
+**Remaining BIOS owner decision:** the 545-byte dispatch row is actually 124
+bytes of request entry/save/dispatch, 47 completion, 18 console output, 6 GETDX,
+6 layout bookkeeping, **266 ROM/A20 return support**, 25 bindings and 53
+interrupt entries. The 273-byte lifecycle row is 64 reboot, 12 disk init,
+60 multiplex/filter/entry, 33 RE_INIT and 104 disk-swap prompt code/text.
+These sums come from the current paired map and the corresponding source
+owners (`MSBIO1`, `LOWBIND`, `HIGHROM`, `HIGHCHARROM`, `MSBIO2`). They are not
+additional allocations. In particular, moving the 266-byte return support to
+HMA would defeat its A20-off return contract. The low prompt owner remains a
+real placement candidate, but it is not a hidden multi-KiB BIOS body.
+
+The next joint decision must separate that prompt owner and cold initialization
+from mandatory public/DMA/reboot entry contracts, then qualify the retained
+COMMAND PSP/gates/stack and upper-data failure paths. Do not present further
+paragraph-sized changes as completion, or remove compatibility paths merely
+because the selected boot did not execute them. The current 2,736-byte OpenDOS
+gap is a whole-system ownership question, not the size of a remaining BIOS
+or COMMAND service body.
 
 **Buffer-sharing decision:** do not alias DOS's 512-byte HMA transfer area to
 BIOS `DISKSECTOR` with the current I/O protocol. This is a source-established
