@@ -66,9 +66,19 @@ Swap-prompt formatting, fault-injected retries and subsequent file I/O pass
 at 1.44/2.88 MB with natural and forced change-line selection
 (`out/bios-track-layout-ll4_5jp5/`, `...-yoj2znxv/`). Composed pipeline/reload
 and A20-off INT 2Eh/manager-mode tests pass (`out/bios-ioctl-runtime-nip99qun/`,
-`out/command-upper-int2e-v4vf67xm/`). PS/2-specific status-reset execution,
-nonstandard sector layouts and full media-change error behavior remain open.
+`out/command-upper-int2e-v4vf67xm/`). Nonstandard sector layouts, real PS/2
+firmware and full media-change error behavior remain open.
 This is a measured complete-owner retirement, not final BIOS promotion.
+
+The installed PS/2 status-reset branch passes controlled AH=08h/15h firmware
+responses, with both first-call success and error. It restores the original
+drive number for AH=01h and preserves the first result's registers, carry and
+stack despite an opposite reset status and clobbered registers. Omitting the
+high `Prev_DX` reload fails the same check. The probe restores its temporary
+model/vector/code changes before reporting and performs no firmware disk I/O.
+Evidence: `out/bios-ps2-status-h8z3l789/`; reproduce with
+`test_bios_ps2_status_qemu.py IMAGE MATCHED_BIOS_DIR`. This qualifies the selected
+branch's state ownership, not PS/2 hardware, and claims no further memory gain.
 
 **Complete shell-stack retirement:** the entire 125-byte resident stack now
 leads COMMAND's existing upper-data owner. The same initialization transaction
@@ -242,8 +252,8 @@ same shared budget, remove obsolete storage and measure their combined release.
 BIOS retains 2,368 low bytes; COMMAND's main allocation retains 432. These are allocations, not
 promised savings: BIOS request/ROM-return gates, public device/BDS pointers and
 DMA-facing storage need explicit low contracts. In particular, the census's
-545-byte strategy/dispatch row includes retained completion and firmware-return
-gates; it is not a 545-byte movable routine. COMMAND's complete data owner
+546-byte strategy/dispatch row includes retained completion and firmware-return
+gates; it is not a 546-byte movable routine. COMMAND's complete data owner
 and stack are already upper, so do not budget their old low copies again.
 A routing-only build or a larger diagnostic
 image does not advance this gate. Older layout ledgers below describe their
@@ -263,10 +273,11 @@ fallback. The current successful composition's source-capacity remainder is
 793 bytes, **not additional free HMA or promised savings**. Regression checks
 cover both layouts, mismatched manifests and explicit shell-placement assumptions.
 
-**Remaining BIOS owner decision:** the 545-byte dispatch row is actually 124
+**Remaining BIOS owner decision:** the 546-byte dispatch row is actually 124
 bytes of request entry/save/dispatch, 47 completion, 18 console output, 6 GETDX,
 6 layout bookkeeping, **266 ROM/A20 return support**, 25 bindings and 53
-interrupt entries. The remaining 169-byte lifecycle row is 64 reboot, 12 disk
+interrupt entries, plus one byte of alignment before `CBREAK`. The remaining
+169-byte lifecycle row is 64 reboot, 12 disk
 init, 60 multiplex/filter/entry and 33 RE_INIT; its former 104-byte prompt owner
 is now retired.
 These sums come from the current paired map and the corresponding source
