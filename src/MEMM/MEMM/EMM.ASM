@@ -132,6 +132,7 @@ _DATA	segment
 
 extrn	Active_Status:byte	; current VDM status
 extrn	Auto_Mode:byte		; current Auto mode status
+extrn	UMB_Active:byte
 ;extrn	_map_known:byte 	; non-zero => I/O map known to a user
 extrn	_handle_count:byte	; number of active EMM handles
 extrn	_regp:word		; pointer to args on stack
@@ -425,6 +426,8 @@ _AutoUpdate	proc	near
 ;
 	cmp	[Auto_Mode],0		;Q: in Auto mode now ?
 	je	short AU_exit 		;  N: exit
+	cmp	[UMB_Active],0		; UMB mappings require paging even without EMS users
+	jne	short AU_handles
 	cmp	[_handle_count],1	;Q: any application handles beyond handle 0?
 	ja	short AU_handles	;  Y: activate if currently off
 	cmp	[Active_Status],0	;  N:Q: already off?

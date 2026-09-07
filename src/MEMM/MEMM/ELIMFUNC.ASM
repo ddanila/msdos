@@ -63,6 +63,8 @@ TRUE	equ	not FALSE
 _DATA	segment
 	extrn	Active_Status:byte
 	extrn	Auto_Mode:byte
+	extrn	UMB_Active:byte
+	extrn	_handle_count:byte
 _DATA	ends
 
 _TEXT	segment
@@ -197,6 +199,15 @@ E_ONOFF proc	far
 	cmp	al,2			;Q: go to auto mode ?
 	je	EOO_AUTO		;  Y: handle AUTO separately
 	ja	EOO_inv			;  N: invalid function
+	cmp	al,1
+	jne	short EOO_change
+	; Retail refuses suspension while upper memory or application EMS is
+	; provided. Reject before changing policy or clearing paging.
+	cmp	[UMB_Active],0
+	jne	EOO_inv
+	cmp	[_handle_count],1
+	ja	EOO_inv
+EOO_change:
 
 	mov	[Auto_Mode],0		; explicit command leaves auto mode
 	cmp	[Active_Status],0	;Q: currently active ?

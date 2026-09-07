@@ -64,6 +64,11 @@ start:
     mov ah, 43h
     call query
     mov [handle], dx
+    ; OFF must not invalidate a live application EMS owner or change AUTO.
+    mov ax,0101h
+    call far [control]
+    jnc failed
+    call check_mode
     mov ah, 42h
     call query
     mov dx, [handle]

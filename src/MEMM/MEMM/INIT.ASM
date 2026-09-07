@@ -63,6 +63,7 @@
 	public	msg_flag
 	public	Active_Status
 	public	Auto_Mode
+	public	UMB_Active
 	public	initial_mode
 	public	dos_version
 	public	TEXT_Seg
@@ -249,6 +250,7 @@ Auto_Mode	db	0h	; non-zero => auto mode
 TEXT_Seg	dw	seg _TEXT	; current segment for _TEXT
 GDT_Seg 	dw	seg GDT 	; current segment for GDT
 TSS_Seg 	dw	seg TSS 	; current segment for TSS
+UMB_Active db 0                  ; published paging-backed upper-memory ranges
 
 _DATA	ends
 
@@ -2498,6 +2500,7 @@ endif
 	cmp	ax,1
 	jne	short CU_rollback
 	mov	cs:[umb_registered],1
+	mov	[UMB_Active],1
 	jmp	short CU_done
 CU_rollback:
 	xor	si,si
@@ -2735,6 +2738,7 @@ RU_restore_next:
 	add	[_free_count],ax
 	mov	cs:[umb_backing_count],0
 	mov	cs:[umb_registered],0
+	mov	[UMB_Active],0
 RU_done:
 	ret
 Rollback_UMB endp

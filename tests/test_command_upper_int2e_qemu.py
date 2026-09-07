@@ -17,13 +17,18 @@ def main():
     parser.add_argument("image", type=Path, help="composed image with packed upper-data COMMAND")
     parser.add_argument("--manager-modes", action="store_true", help="repeat across ON/OFF/AUTO/ON")
     parser.add_argument("--a20-off", action="store_true", help="prove A20 aliasing immediately before INT 2Eh")
+    parser.add_argument("--expect-umb-busy", action="store_true",
+                        help="require safe OFF refusal and active AUTO with published UMBs")
     parser.add_argument("--low-paragraphs", type=int, default=34,
                         help="expected main owner; use 55 for the pre-retirement control")
     args = parser.parse_args()
+    if args.expect_umb_busy and not args.manager_modes:
+        parser.error("--expect-umb-busy requires --manager-modes")
     work = Path(tempfile.mkdtemp(prefix="command-upper-int2e-", dir=ROOT / "out"))
     print(f"Artifacts: {work}", flush=True)
     report = dict(command_sha256=hashlib.sha256(image_file(args.image, "::COMMAND.COM")).hexdigest(),
                   manager_modes=args.manager_modes, a20_off=args.a20_off,
+                  expect_umb_busy=args.expect_umb_busy,
                   low_paragraphs=args.low_paragraphs, results=[])
     cases = ["good", "wrong-stack"] + (["a20-not-disabled"] if args.a20_off else [])
     for label in cases:
@@ -36,6 +41,8 @@ def main():
             defines.append("-DEXPECT_CALLER_STACK")
         if args.manager_modes:
             defines.append("-DEXPECT_MANAGER_MODES")
+        if args.expect_umb_busy:
+            defines.append("-DEXPECT_UMB_BUSY")
         if args.a20_off:
             defines.append("-DEXPECT_A20_OFF")
         if label == "a20-not-disabled":

@@ -65,7 +65,21 @@ mode_next:
     mov al,[manager_modes+bx]
     mov ah,1
     call far [manager_control]
+%ifdef EXPECT_UMB_BUSY
+    pushf
+    pop dx
+    cmp byte [mode_step],1
+    jne .must_accept
+    test dx,1
+    jz fail
+    jmp .policy_checked
+.must_accept:
+    test dx,1
+    jnz fail
+.policy_checked:
+%else
     jc fail
+%endif
     TRACE 'T'
     call check_manager_mode
     TRACE 'Q'
@@ -161,7 +175,11 @@ check_manager_mode:
 manager_control dd 0
 mode_step db 0
 manager_modes db 0,1,2,0
+%ifdef EXPECT_UMB_BUSY
+manager_statuses db 0,0,2,0
+%else
 manager_statuses db 0,1,3,0
+%endif
 manager_signature db 'MICROSOFT EXPANDED MEMORY MANAGER 386'
 manager_signature_end:
 %endif

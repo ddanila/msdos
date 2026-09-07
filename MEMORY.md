@@ -14,11 +14,12 @@ Report UMB and application XMS costs alongside the gain. Complete BIOS and
 COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
-**Latest opt-in COMMAND data candidate:** **625,216 conventional / 48,064 free
+**Latest opt-in composed candidate:** **625,184 conventional / 48,064 free
 UMB / 6,798,336 application XMS bytes**. Complete data retirement and startup
 allocation packing recover **336 bytes in the largest block**, not a separate
-free hole. This is **6,480 above retail** and **7,280 above the development
-control**. Its cost is **352 UMB bytes and 211 retained HMA bytes**; free UMB
+free hole. The manager's safe OFF/AUTO guard then costs **32 conventional
+bytes**, leaving **6,448 above retail** and **7,248 above the development
+control**. The shell move costs **352 UMB bytes and 211 retained HMA bytes**; free UMB
 remains **176 above the retail floor**, and the shared HMA tail has **3,412
 bytes left**. BIOS remains 2,736 low bytes; COMMAND's main low allocation is
 544 bytes. Functional qualification is incomplete; this is not promotion or
@@ -324,26 +325,26 @@ python3 tests/test_bios_clock_retirement_qemu.py out/command-high-retirement-wv3
 
 #### Retired low interrupt-stack pool
 
-The current saved VC comparison narrows the OpenDOS lead to **2,832 bytes**,
+The current saved VC comparison narrows the OpenDOS lead to **2,864 bytes**,
 not the 11,936-byte gap in the older reassessment below:
 
 | Accounting boundary | Current packed candidate | OpenDOS 7.01 IDE capture | Local minus OpenDOS |
 | --- | ---: | ---: | ---: |
-| System start to COMMAND start | 13,696 | 10,448 | +3,248 |
+| System start to COMMAND start | 13,728 | 10,448 | +3,280 |
 | COMMAND start to VC start | 896 | 1,312 | -416 |
 | VC start to first free block | 12,720 | 12,720 | 0 |
-| Largest conventional block | 625,216 | 628,048 | -2,832 |
+| Largest conventional block | 625,184 | 628,048 | -2,864 |
 
 These are allocation spans, not individual program MCB sizes. VC hashes and
 the 639 KiB ceiling match; vendor resource semantics and reset qualification
-still differ. Evidence: `out/command-upper-data-i8bgzrxs/results.json` and
+still differ. Evidence: `out/emm-mode-guard-um9x123d/results.json` and
 `out/opendos-disk-boot-evidence/result.json`. This reconciles saved captures,
 not a new vendor run. COMMAND placement still needs qualification and a final
 state contract, but a large shell allocation no longer explains this gap.
 
-The current system span reconciles as **2,736 BIOS + 5,072 DOS prefix + 4,672
+The current system span reconciles as **2,736 BIOS + 5,072 DOS prefix + 4,704
 managers + 512 transfer area + 608 interrupt handlers/control + 96 arena/mark
-bytes = 13,696**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
+bytes = 13,728**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
 low and the span was 15,392. A public suballocation probe on that pre-pool image
 confirms the four dynamic owners without unclassified gaps:
 `out/system-owners-gz8p6jrj/`. Its AUTOEXEC runs the probe instead of VC;
@@ -775,7 +776,7 @@ not a claim of complete termination-path coverage. The rebuilt composition
 UMB/XMS accounting and destructive-pipeline passes. Normal COMMAND remains
 byte-identical; the fix changes only transient code, not retained HMA size.
 
-**A20 entry qualified; manager transition failure remains:**
+**A20 entry qualified:**
 `out/command-upper-int2e-fughomnq/` passes internal and child-external INT 2Eh
 with A20 aliasing proved immediately before each entry, plus wrong-stack and
 skip-disable negative controls. The probe restores its temporary low alias
@@ -791,18 +792,38 @@ paging-backed UMB contents is therefore the leading hypothesis, not a proven
 COMMAND-only regression. Earlier ON/OFF metadata/allocator tests explicitly
 did not dereference UMBs; they cannot establish this composed contract.
 
-Do not require successful OFF with live upper owners merely to satisfy the
-diagnostic. The archived [Microsoft EMM386 command reference](https://techshelps.github.io/MSDN/DNWIN95/HTML/S6827.HTM)
-conditions suspension on not providing upper-memory access and having no
-application EMS handles. Next: verify retail 6.22's refusal/status behavior,
-then enforce safe OFF rejection and AUTO retention as appropriate in the
-manager, without restoring retired COMMAND mirrors. Check actual UMB data
-and shell execution after rejected transitions, plus successful transitions
-in a composition without upper owners. The current `--manager-modes` run is
-an unsafe-transition diagnostic, not the final compatibility oracle.
+**Corrected OFF/AUTO contract:** retail 6.22 refuses OFF while providing UMBs
+and keeps AUTO active (`out/emm-off-contract-r9scccdn/`). Removing RAM/UMB
+support permits OFF and idle AUTO to return to real mode
+(`out/emm-off-contract-04lfqc1u/`). These are observed retail executions, not
+inferred from the archived [Microsoft reference](https://techshelps.github.io/MSDN/DNWIN95/HTML/S6827.HTM).
+
+`ELIMFUNC:E_ONOFF` now rejects OFF before changing policy when upper ranges
+are published or application EMS handles remain. A retained `UMB_Active` flag
+is set only after successful publication and cleared after successful rollback;
+`EMM:_AutoUpdate` keeps paging active while it is set. No low COMMAND mirror
+or new relocation protocol is introduced. The paired BIOS loader must be
+rebuilt for the changed provider binary, as its relocation contract is matched.
+
+The corrected composed image repeats retail's UMB refusal/active-AUTO behavior
+(`out/emm-off-contract-vqtcto40/`) and no-UMB transitions
+(`out/emm-off-contract-rjek918_/`). The same manager passes packed INT 2Eh
+internal/child-external calls across ON, refused OFF, active AUTO and ON with
+A20-off entry and both negative controls (`out/command-upper-int2e-vevl0dml/`).
+Use `--expect-umb-busy` for this compatibility gate; unconditional OFF success
+is only a diagnostic for a composition without upper owners. The rebuilt
+normal manager also passes the command/API suite, now checking refusal with a
+live EMS handle (`out/emm-mode-native-g0dje0ry/input.img`).
+
+Fresh VC/MEM captures in `out/emm-mode-guard-um9x123d/results.json` measure
+**625,216 -> 625,184 conventional**, unchanged **48,064 UMB** and **6,798,336
+application XMS**. EMM's low allocation grows **2,224 -> 2,256 bytes**; BIOS
+and COMMAND retained sizes are unchanged. The 32-byte charge is a safety fix,
+not a reversal of the shell's 336-byte retirement. Destructive pipelines,
+redirection, child EXEC and environment reload pass on this corrected image.
 
 Remaining before promotion: nested/asynchronous and public-pointer contracts,
-safe manager transitions, allocation-rejection/rollback and 286 coverage. Reconcile
+allocation-rejection/rollback and 286 coverage. Reconcile
 BIOS placement against the remaining shared HMA budget; neither this measured
 gain nor the fallback pipeline check completes that work.
 
@@ -811,6 +832,8 @@ make cmd_command
 python3 tests/test_command_upper_data_qemu.py out/sft-retirement-fx2p__51/input.img
 python3 tests/test_command_upper_int2e_qemu.py out/command-upper-data-zgs86nu2/input.img
 python3 tests/test_command_upper_int2e_qemu.py out/command-upper-data-zgs86nu2/input.img --a20-off
+python3 tests/build_emm_mode_guard.py out/emm-init-phases-lko0z39u --image out/command-upper-data-zgs86nu2/input.img --measure
+python3 tests/test_command_upper_int2e_qemu.py out/emm-mode-guard-um9x123d/input.img --manager-modes --expect-umb-busy --a20-off
 ```
 
 An offset-preserving data selector can be `allocated_segment - 0220h/16`:
