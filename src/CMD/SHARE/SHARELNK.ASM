@@ -19,6 +19,12 @@ include dosseg.asm
 code    SEGMENT BYTE PUBLIC 'code'
         ASSUME  CS:dosgroup
 
+        ; MSDATA includes DOSINIT for the shared DOS layout. SHARE never runs
+        ; that initializer; satisfy its SETVER-table reference without linking
+        ; the kernel's resident TABLE payload into this utility.
+        PUBLIC SetverResidentTable
+SetverResidentTable LABEL BYTE
+
         PUBLIC  IRETT, SWAP_AREA_LEN, Hash_Temp
 IRETT   DW      0
 SWAP_AREA_LEN  DW  0

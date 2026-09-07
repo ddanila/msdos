@@ -44,16 +44,26 @@ CONSTANTS	SEGMENT WORD PUBLIC 'CONST'
 ;   (they use ^Z as EOF on devices) and programs written under the new DOS
 ;   (they use the ZERO flag as EOF).
 
-; Default SFTs for boot up
+; Initial SFT remains live after boot, through SFT_Addr's far pointer. Keep
+; it in the relocated image rather than retaining a stale low duplicate.
+; DOSINIT initializes the linked table before relocation; DOS=LOW retains
+; that same table normally. No second allocation or copy protocol is needed.
 
 Public CONST001S,CONST001E
 CONST001s	label byte
+CONSTANTS ENDS
+HIGH_TABLE SEGMENT BYTE PUBLIC 'HIGH_TABLE'
+PUBLIC SFT001S,SFT001E
+SFT001S label byte
 	PUBLIC	sftabl
 sftabl	LABEL	DWORD			; [SYSTEM] file table
 	DW	-1			; [SYSTEM] link to next table
 	DW	-1			; [SYSTEM] link seg to next table
 	DW	sf_default_number	; [SYSTEM] Number of entries in table
 	DB	sf_default_number DUP ( (SIZE sf_entry) DUP (0)); [SYSTEM]
+SFT001E label byte
+HIGH_TABLE ENDS
+CONSTANTS SEGMENT WORD PUBLIC 'CONST'
 
 ; the next two variables relate to the position of the logical stdout/stdin
 ; cursor.  They are only meaningful when stdin/stdout are assigned to the

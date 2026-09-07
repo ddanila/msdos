@@ -15,8 +15,8 @@ COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
 The current **composed retirement candidate** measures
-**624,576 conventional / 48,416 free UMB bytes**: **6,640 above the selected
-development control**, and **5,840 above retail**. The preceding shell retirement
+**624,880 conventional / 48,416 free UMB bytes**: **6,944 above the selected
+development control**, and **6,144 above retail**. The preceding shell retirement
 recovered **2,752 conventional bytes** versus its identical BIOS/provider
 composition with normal COMMAND; the kernel-table retirement adds **256** and
 packing the initialized BIOS drive graph adds **304**. Upper placement of the
@@ -27,6 +27,9 @@ Retiring AH=08h operations/BDS insertion adds **80 conventional bytes** at a
 **133 HMA-byte cost**, keeping the public records and interrupt-chain filter low.
 The software-reboot correction below then costs **48 conventional bytes**;
 this is a correctness charge, not another memory-saving milestone.
+Retiring the stale initial-SFT low image then recovers **304 conventional
+bytes**, with no HMA, UMB or application-XMS charge. This is an implemented
+retirement step within the joint layout work, not completion of BIOS/COMMAND.
 Application XMS remains **6,798,336 bytes** (5,120 below the development control);
 the shell move adds no UMB or XMS cost. This is an opt-in experimental layout,
 not production promotion.
@@ -98,30 +101,40 @@ reads and retries, plus external-driver calls, without retaining another
 Continue the joint BIOS/COMMAND ownership decision rather than substituting
 that small retirement or unrelated qualification probes for the delivery gate.
 
-**Low-prefix duplication finding:** the initial 301-byte SFT is not proven
-live merely because its storage lies below `DOS_LOW_GATE_END`. In the current
-composition, AH=52h publishes `FFFF:00DC` (five slots, four occupied, 15
-references); the low image at `011B:00DC` still has one occupied slot and three
-references. The additional fifteen-slot table is at `CB02:0000`.
-`DOS_HMA_RELOCATE` redirects `sft_addr` in both data copies to HMA, and
-`TABLEUMB.INC` updates the additional-table link through that public root.
+**Initial-SFT low-copy retirement:** `CONST2.ASM` now places the complete
+five-slot table in `HIGH_TABLE`, beyond the retained-low boundary. DOSINIT
+initializes that linked table before relocation; the existing far-pointer fixup
+publishes its HMA owner. DOS=LOW retains the same table normally. No new copy,
+gateway or allocation protocol is introduced. The rounded DOS prefix falls
+from **5,376 to 5,072 bytes** while the high kernel remains **40,272 bytes**.
 
-The disposable-guest experiment overwrites all 301 low bytes with A5h. Public
-INT 2Fh/1220h and 1216h still resolve stdin into the initial HMA table; DUP and
-CLOSE increment/decrement its reference count while the low copy remains
-poisoned. Subsequent FCB I/O and return through COMMAND pass. Evidence:
-`out/system-owners-4bog9s0f/result.json` and `serial.log`; the read-only comparison
-is `out/system-owners-xf8oi94g/`. No installed binary or source image changes.
+The prerequisite census established a live table at `FFFF:00DC` versus a stale
+boot copy at `011B:00DC`; invalidating all 301 low bytes preserved public
+JFN/SFT lookup, DUP/CLOSE reference updates and subsequent FCB I/O
+(`out/system-owners-4bog9s0f/`). That old low address is not the new layout.
+The retained table now begins at DOSGROUP offset `999Ch`; the current guest
+census confirms `FFFF:999C`, five slots and the unchanged upper successor
+(`out/system-owners-2rdxxft_/result.json`).
 
-Include this duplicate in the **joint retained-layout retirement**, not another
-copy mechanism or standalone table milestone. Removing its low storage still
-requires boot-console/cached-pointer, DOS-low fallback, SHARE/redirector and
-A20-off access qualification, followed by actual prefix packing and composed
-measurement. Its high copy already exists; do not automatically charge another
-301 HMA bytes. No memory saving is booked by this experiment.
+Fresh composed captures in `out/sft-retirement-fx2p__51/results.json` measure
+**624,576 -> 624,880 conventional**, unchanged **48,416 UMB** and **6,798,336
+application XMS**. CONFIG, AUTOEXEC, COMMAND, managers and VC match the control.
+SHARE and IFSFUNC must be relinked because they embed private DOS data offsets;
+the candidate installs both matched utilities. SHARE's otherwise-unused linked
+DOSINIT also needed its missing SETVER-table link placeholder restored.
+FCB I/O, SHARE-backed FCB I/O and public PSP/MCB/LoL/DPB/CDS/SFT/SDA/device-chain
+checks pass in paired high and standalone low modes. Matched IFSFUNC lifecycle
+checks pass low/high (`ifs-low.log`, `ifs-high.log` in the same directory).
+The byte-identical BIOS/kernel/managers/COMMAND composition also passes
+CTTY+STD software reboot (`out/software-reboot-vh77_54a/`) and live-EMS,
+A20-off timer/FCB checks (`out/stack-pool-retirement-3aahjhjb/`).
+
+Paired DOS-low fallback, broader external consumers and final BIOS/COMMAND
+placement remain open. Do not substitute more table harvesting for that work.
 
 ```sh
-python3 tests/capture_system_owners.py out/software-reboot-fix-wk9s16af/input.img --kernel src/DOS/MSDOS.SYS --dos-map src/DOS/MSDOS.MAP --poison-low-sft
+make dos
+python3 tests/test_sft_retirement_qemu.py out/software-reboot-fix-wk9s16af/input.img out/sft-layout-LhnsS31Z/old-MSDOS.MAP
 ```
 
 #### Software-reboot ownership correction
@@ -306,21 +319,21 @@ not the 11,936-byte gap in the older reassessment below:
 
 | Accounting boundary | Current packed candidate | OpenDOS 7.01 IDE capture | Local minus OpenDOS |
 | --- | ---: | ---: | ---: |
-| System start to COMMAND start | 14,000 | 10,448 | +3,552 |
+| System start to COMMAND start | 13,696 | 10,448 | +3,248 |
 | COMMAND start to VC start | 1,232 | 1,312 | -80 |
 | VC start to first free block | 12,720 | 12,720 | 0 |
-| Largest conventional block | 624,576 | 628,048 | -3,472 |
+| Largest conventional block | 624,880 | 628,048 | -3,168 |
 
 These are allocation spans, not individual program MCB sizes. VC hashes and
 the 639 KiB ceiling match; vendor resource semantics and reset qualification
-still differ. Evidence: `out/reboot-fix-memory-bim0fr6y/results.json` and
+still differ. Evidence: `out/sft-retirement-fx2p__51/results.json` and
 `out/opendos-disk-boot-evidence/result.json`. This reconciles saved captures,
 not a new vendor run. COMMAND placement still needs qualification and a final
 state contract, but a large shell allocation no longer explains this gap.
 
-The current system span reconciles as **2,736 BIOS + 5,376 DOS prefix + 4,672
+The current system span reconciles as **2,736 BIOS + 5,072 DOS prefix + 4,672
 managers + 512 transfer area + 608 interrupt handlers/control + 96 arena/mark
-bytes = 14,000**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
+bytes = 13,696**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
 low and the span was 15,392. A public suballocation probe on that pre-pool image
 confirms the four dynamic owners without unclassified gaps:
 `out/system-owners-gz8p6jrj/`. Its AUTOEXEC runs the probe instead of VC;
@@ -7114,9 +7127,9 @@ One UMB owner containing both existing marked allocations costs 1,200
 bytes including its MCB. Against the fixed 49,104-byte free-UMB baseline this
 leaves **47,904 bytes**, just 16 above the 47,888-byte floor. The development
 transaction now reclaims the complete 1,184-byte low span. The embedded first five SFT
-entries retain storage in the kernel prefix; the current runtime census above
-distinguishes that low image from the authoritative HMA table. This budget does
-not include LASTDRIVE.
+entries retained storage in the kernel prefix at this checkpoint; the current
+initial-SFT retirement above removes that duplicate. This budget does not
+include LASTDRIVE.
 
 `TABLEUMB.INC`, enabled only with the development BIOS rebase build, runs after
 FCB initialization and before buffer allocation. Its transaction contract is:

@@ -399,7 +399,7 @@ def main() -> int:
         ("SYSINIT pointers and resident device state", "SYSINITVAR", "HASHINITVAR"),
         ("Buffer and EMS initialization state", "HASHINITVAR", "JShare"),
         ("SHARE compatibility dispatch", "JShare", "MSCT001E"),
-        ("Initial five-slot SFT low image (live owner needs runtime census)", "CONST001S", "CARPOS"),
+        ("Initial SFT low image (retired when zero)", "CONST001S", "CARPOS"),
         ("Console input and editing buffers", "CARPOS", "PFLAG"),
         ("Global flags and network name", "PFLAG", "CritPatch"),
         ("Critical-section patch table", "CritPatch", "SWAP_START"),
@@ -577,11 +577,16 @@ def main() -> int:
         ("INT 24 critical-error metadata", "ERR_TABLE_24", "ErrMap24"),
         ("Device-error translation map", "ErrMap24", "ErrMap24End"),
     ]
+    if "SFT001S" in dos_symbols:
+        high_ranges.append(("Initial five-slot system file table", "SFT001S", "SFT001E"))
+        if require(dos_symbols, "SFT001E") - require(dos_symbols, "SFT001S") != 301:
+            errors.append("initial system file table must retain all five slots")
     if fcb_high:
         high_ranges.append(("FCB character-class table", "FCB001S", "FCB001E"))
         if require(dos_symbols, "FCB001E") - require(dos_symbols, "FCB001S") != 256:
             errors.append("FCB character classification must retain all 256 entries")
-    print("\n### Relocated private tables\n")
+    high_ranges.sort(key=lambda row: require(dos_symbols, row[1]))
+    print("\n### Relocated tables\n")
     print("| Range | Bytes | Owner |")
     print("| ---: | ---: | --- |")
     cursor = high_start
