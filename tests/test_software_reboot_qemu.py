@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 
@@ -22,9 +23,13 @@ def main():
     parser.add_argument("--ctty-aux", action="store_true")
     parser.add_argument("--set-df", action="store_true",
                         help="enter INT 19h with backwards string direction")
+    parser.add_argument("--fatal-error", action="store_true",
+                        help="fault with LIDT and select the installed error dialog's reboot key")
     parser.add_argument("--timeout", type=int, default=60,
                         help="allow both HIMEM memory tests, including under host load")
     args = parser.parse_args()
+    if args.fatal_error and args.profile != "existing":
+        parser.error("--fatal-error requires the existing active-manager profile")
     work = Path(tempfile.mkdtemp(prefix="software-reboot-", dir=ROOT / "out"))
     print(f"Artifacts: {work}", flush=True)
     disk = work / "boot.img"
@@ -48,11 +53,13 @@ def main():
     install(disk, "AUTOEXEC.BAT", autoexec)
     probe = work / "SWBOOT.COM"
     subprocess.run(["nasm", "-f", "bin", *(["-DREBOOT_SET_DF"] if args.set_df else []),
+                    *(["-DREBOOT_FATAL_FAULT"] if args.fatal_error else []),
                     ROOT / "tests/software_reboot_probe.asm",
                     "-o", probe], check=True)
     install(disk, "SWBOOT.COM", probe.read_bytes())
     report = dict(input_sha256=hashlib.sha256(args.image.read_bytes()).hexdigest(),
                   profile=args.profile, ctty_aux=args.ctty_aux, set_df=args.set_df,
+                  fatal_error=args.fatal_error,
                   config=config.decode("ascii"), autoexec=autoexec.decode("ascii"),
                   probe_sha256=hashlib.sha256(probe.read_bytes()).hexdigest())
     command = ["qemu-system-i386", "-machine", "pc", "-cpu", "486", "-m", "8",
@@ -65,8 +72,23 @@ def main():
         ["qemu-system-i386", "--version"], text=True).splitlines()[0]
     started = time.monotonic()
     try:
-        result = subprocess.run(command, stdout=subprocess.PIPE,
-                                stderr=subprocess.STDOUT, timeout=args.timeout)
+        if args.fatal_error:
+            socket = work / "qmp"
+            command += ["-qmp", f"unix:{socket},server=on,wait=off"]
+            with subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT) as guest:
+                try:
+                    subprocess.run([sys.executable, ROOT / "tests/screen_expect.py", socket,
+                                    work / "screen.log", "Reboot (B)?", "b"],
+                                   check=True, timeout=45)
+                    output, _ = guest.communicate(timeout=args.timeout)
+                    result = subprocess.CompletedProcess(command, guest.returncode, output)
+                finally:
+                    if guest.poll() is None:
+                        guest.kill()
+                        guest.communicate()
+        else:
+            result = subprocess.run(command, stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT, timeout=args.timeout)
         code, output = result.returncode, result.stdout
     except subprocess.TimeoutExpired as error:
         code, output = None, error.stdout or b""

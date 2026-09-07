@@ -60,7 +60,11 @@ first:
 %ifdef REBOOT_SET_DF
     std
 %endif
+%ifdef REBOOT_FATAL_FAULT
+    lidt [cs:real_idt]           ; actual privileged fault while EMM is active
+%else
     int 19h
+%endif
 fail:
     mov si,failed
     call debug
@@ -85,3 +89,7 @@ receipt times 8 db 0
 ready db 'SOFTWARE_REBOOT_READY',13,10,0
 passed db 'SOFTWARE_REBOOT_SECOND_BOOT_PASS',13,10,0
 failed db 'SOFTWARE_REBOOT_FAIL',13,10,0
+%ifdef REBOOT_FATAL_FAULT
+real_idt dw 03ffh
+    dd 0
+%endif

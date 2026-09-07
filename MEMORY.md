@@ -76,9 +76,32 @@ not a second boot. All three linked continuation targets are checked below the
 retained boundary, with stale-return and double-POP-BX negative controls.
 Ordinary software second boot with DF set (`out/software-reboot-7c0nnfgm/`),
 pipeline/reload (`out/emm-error-shell-df3yjpp9/`) and A20-off INT 2Eh/manager
-checks (`out/command-upper-int2e-96qjlgex/`) also pass. LOADALL execution,
-exception-only entry contexts and complete fatal-reset lifecycle remain open;
-this is not full error-path qualification or promotion.
+checks (`out/command-upper-int2e-96qjlgex/`) also pass.
+
+The third Continue shape now passes an actual LOADALL VM-bit rejection
+(`out/emm-error-runtime-ng41ea0_/`). The guest's own INT 6 handler handles the
+subsequent real-mode invalid opcode on the selected 486; it requires the exact
+faulting CS:IP and real mode before advancing past the instruction. EAX/EDX,
+ECX/EDI and SP survive. This qualifies the error unwind, not general LOADALL
+emulation. Reproduce with `test_emm_error_continuation_qemu.py IMAGE --standalone
+--fault loadall`.
+
+With VM clear in the supplied LOADALL buffer, the same 486 faults on EMM's
+protected `0F07` instruction, exercising the exception-only dialog. The probe
+checks exception 06, selector 0038h, code 0000 and the reported IP against the
+matched provider bytes; Continue is unavailable and Enter requests reset.
+Evidence: `out/emm-error-runtime-34wx5nf3/`, reporting `0038:00003F17`.
+Use `--fault loadall-exception --provider-map MATCHED_EMM386.MAP`. Other
+exception contexts are not implied by this one nested protected-code fault.
+
+Fatal LIDT/reboot now completes a second DOS boot with live upper owners and
+DF set, both normally and with CTTY AUX (`out/software-reboot-k1q665s3/`,
+`...-94fdyhqk/`). The guest validates and deletes its pre-fault disk receipt;
+both boot markers and exit 33 are required. Reproduce with
+`test_software_reboot_qemu.py IMAGE --fatal-error --set-df [--ctty-aux]`.
+Broader exception stacks, firmware and third-party-hook coverage remain open;
+this is not full error-path qualification or promotion. No memory change is
+claimed by these tests.
 
 **Complete DOS dispatch-table retirement:** the 220-byte INT 21h table/limits
 and 115-byte internal-service table now belong to the existing `HIGH_TABLE`
