@@ -436,7 +436,8 @@ def main() -> int:
         ("Buffer and EMS initialization state", "HASHINITVAR", "JShare"),
         ("SHARE compatibility dispatch", "JShare", "MSCT001E"),
         ("Initial SFT low image (retired when zero)", "CONST001S", "CARPOS"),
-        ("Console input and editing buffers", "CARPOS", "PFLAG"),
+        (("Console cursor positions" if "CONSOLE_WORKSPACE_START" in dos_symbols
+          else "Console input and editing buffers"), "CARPOS", "PFLAG"),
         ("Global flags and network name", "PFLAG", "CritPatch"),
         ("Critical-section patch table", "CritPatch", "SWAP_START"),
         ("Process, error, allocation, and calendar state", "SWAP_START", "DEVCALL"),
@@ -628,6 +629,11 @@ def main() -> int:
         high_ranges.append(("Initial five-slot system file table", "SFT001S", "SFT001E"))
         if require(dos_symbols, "SFT001E") - require(dos_symbols, "SFT001S") != 301:
             errors.append("initial system file table must retain all five slots")
+    if "CONSOLE_WORKSPACE_START" in dos_symbols:
+        high_ranges.append(("Private console editing/input workspace", "CONSOLE_WORKSPACE_START", "CONSOLE_WORKSPACE_END"))
+        if (require(dos_symbols, "CONSOLE_WORKSPACE_END") - require(dos_symbols, "INBUF") != 259
+                or require(dos_symbols, "CONBUF") - require(dos_symbols, "INBUF") != 128):
+            errors.append("console workspace must preserve the complete overlapping buffers")
     if fcb_high:
         high_ranges.append(("FCB character-class table", "FCB001S", "FCB001E"))
         if require(dos_symbols, "FCB001E") - require(dos_symbols, "FCB001S") != 256:

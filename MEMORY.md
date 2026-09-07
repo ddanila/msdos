@@ -27,24 +27,51 @@ The next delivery must include all four, in the same composed candidate:
 4. Local compatibility qualification of the resulting layout. Boundary probes
    and diagnostic builds are supporting evidence, not memory achievements.
 
-**Latest opt-in composed candidate:** **625,632 conventional / 47,936 free
-UMB / 6,798,336 application XMS bytes**, **6,896 above retail** and **7,696
+**Latest opt-in composed candidate:** **625,888 conventional / 47,936 free
+UMB / 6,798,336 application XMS bytes**, **7,152 above retail** and **7,952
 above the development control**. COMMAND data retirement and startup packing
 recover 336 conventional bytes; the safe manager OFF/AUTO guard costs 32;
 compact BIOS track state then recovers 128, and complete swap-prompt retirement
 recovers 96. Complete shell-stack retirement adds **112**, and retiring private
 BIOS IOCTL state adds **144**. Retiring both complete DOS dispatch tables adds
 **336**, without changing the shared HMA budget. Restoring the complete
-real-mode error continuation costs **368 conventional bytes**. These gains
+real-mode error continuation costs **368 conventional bytes**. The complete
+console workspace retirement adds **256**, charging **16 HMA bytes** for its
+corrected idle-clock contract and alignment. These gains
 enlarge the largest block, not a separate free hole. The combined shell data/stack
 move costs 480 UMB and 204 HMA
 bytes; compact track state adds one HMA byte, the swap prompt adds 120,
 and moving private IOCTL state beside its readers saves 26 HMA bytes,
 with no additional UMB/XMS cost. Free UMB remains **48 above the retail floor**,
-with **3,324 HMA bytes left**. BIOS retains **2,368 low bytes**;
+with **3,308 HMA bytes left**. BIOS retains **2,368 low bytes**;
 COMMAND's main low allocation is **432**.
 Functional qualification is incomplete: this is not production promotion or
 completion of BIOS/COMMAND placement.
+
+**Console workspace contract (closing the pending experiment):** keep the
+259-byte `INBUF`/`CONBUF` owner contiguous in `HIGH_TABLE`; long AH=0Ah lines
+intentionally use both areas. Both editing variants select the executing DOS
+segment, and handle reads retain their cursor into that same owner. Cursor
+flags, request packets and clock state remain low. The keyboard idle refresh
+must preserve ES across `READTIME`, whose `SETREAD` selects low ES; packet
+save/restore and the clock-state sentinel must use SS, not high CS. Without
+this correction, characters entered after an idle refresh corrupt the line.
+
+Evidence: `out/dos-console-retirement-bgjhrk8e/` contains paired images, maps,
+hashes and captures: **625,632 -> 625,888**, unchanged UMB/application XMS.
+DOS low becomes **4,480 bytes** (4,467 linked); high image grows by 16 to
+40,288 bytes. Local FCB, SHARE, public-structure and IFS lifecycle checks pass
+HIGH/LOW. Console checks cover a 254-character redirected line, split handle
+reads, CR/LF and backspace editing, including forced idle-clock refresh in
+HIGH/LOW (`out/dos-console-runtime-uq0jpbhf/`). The same forced-refresh test
+rejects the uncorrected relocation (`out/dos-console-runtime-wpvq3z_m/`).
+DBCS runtime and external console/idle-hook coverage remain unqualified.
+
+Reproduce with `make dos`, then `test_dos_dispatch_retirement_qemu.py IMAGE
+OLD_KERNEL_MAP --console-workspace`; run `test_dos_console_workspace_qemu.py
+NEW_IMAGE --kernel-map NEW_MAP --low-bios MATCHED_LOW_BIOS` on its artifacts.
+This closes an in-flight defect; it does **not** satisfy the joint BIOS/COMMAND
+delivery gate or justify selecting another isolated table retirement next.
 
 **Retained EMM386 error continuation:** protected fault capture remains high;
 the dialog, number conversion, keyboard helpers and three caller unwind tails
@@ -357,7 +384,7 @@ named checkpoints; use the figures here for the current candidate.
 
 Use `report_dos_bios_residency.py` with `--tail-body` and the matching `--boot-manifest`, not
 the map alone: cold helpers remain linked but successful activation no
-longer retains them low. The current shared HMA budget is **3,324 free bytes**.
+longer retains them low. The current shared HMA budget is **3,308 free bytes**.
 Older whole-source capacity checks include shell data already placed in UMB
 and do not identify which remaining BIOS gates/storage can legally move.
 Use live ownership and composed measurements, not that sum, for final placement.
@@ -366,7 +393,7 @@ The census now validates 63 records against the manifest's selected two- or
 four-byte layout. Use `--command-data-upper` only with evidence that publication
 succeeded; compiling that feature alone cannot exclude its DOS-low/failure
 fallback. The current successful composition's source-capacity remainder is
-793 bytes, **not additional free HMA or promised savings**. Regression checks
+777 bytes, **not additional free HMA or promised savings**. Regression checks
 cover both layouts, mismatched manifests and explicit shell-placement assumptions.
 
 **Remaining BIOS owner decision:** the 546-byte dispatch row is actually 124
@@ -386,7 +413,7 @@ The next joint decision must separate remaining cold initialization from
 mandatory public/DMA/reboot entry contracts, then qualify the retained
 COMMAND PSP/gates and upper-data/stack failure paths. Do not present further
 paragraph-sized changes as completion, or remove compatibility paths merely
-because the selected boot did not execute them. The current 2,416-byte OpenDOS
+because the selected boot did not execute them. The current 2,160-byte OpenDOS
 gap is a whole-system ownership question, not the size of a remaining BIOS
 or COMMAND service body.
 
@@ -667,26 +694,26 @@ python3 tests/test_bios_clock_retirement_qemu.py out/command-high-retirement-wv3
 
 #### Retired low interrupt-stack pool
 
-The current saved VC comparison narrows the OpenDOS lead to **2,416 bytes**,
+The current saved VC comparison narrows the OpenDOS lead to **2,160 bytes**,
 not the 11,936-byte gap in the older reassessment below:
 
 | Accounting boundary | Current packed candidate | OpenDOS 7.01 IDE capture | Local minus OpenDOS |
 | --- | ---: | ---: | ---: |
-| System start to COMMAND start | 13,392 | 10,448 | +2,944 |
+| System start to COMMAND start | 13,136 | 10,448 | +2,688 |
 | COMMAND start to VC start | 784 | 1,312 | -528 |
 | VC start to first free block | 12,720 | 12,720 | 0 |
-| Largest conventional block | 625,632 | 628,048 | -2,416 |
+| Largest conventional block | 625,888 | 628,048 | -2,160 |
 
 These are allocation spans, not individual program MCB sizes. VC hashes and
 the 639 KiB ceiling match; vendor resource semantics and reset qualification
-still differ. Evidence: `out/emm-mode-guard-0cr_f1tq/results.json` and
+still differ. Evidence: `out/dos-console-retirement-bgjhrk8e/results.json` and
 `out/opendos-disk-boot-evidence/result.json`. This reconciles saved captures,
 not a new vendor run. COMMAND placement still needs qualification and a final
 state contract, but a large shell allocation no longer explains this gap.
 
-The current system span reconciles as **2,368 BIOS + 4,736 DOS prefix + 5,072
+The current system span reconciles as **2,368 BIOS + 4,480 DOS prefix + 5,072
 managers + 512 transfer area + 608 interrupt handlers/control + 96 arena/mark
-bytes = 13,392**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
+bytes = 13,136**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
 low and the span was 15,392. A public suballocation probe on that pre-pool image
 confirms the four dynamic owners without unclassified gaps:
 `out/system-owners-gz8p6jrj/`. Its AUTOEXEC runs the probe instead of VC;

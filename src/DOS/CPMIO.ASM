@@ -145,8 +145,9 @@ no_sys_wait:
 	PUSH	CX			; it may be called by critical handler
 	PUSH	DX			; at that time, DEVCALL is used by
 					; other's READ or WRITE
+	PUSH	ES			; READTIME selects the low request segment
 	PUSH	DS			; save DS = SFT's sgement
-	PUSH	CS			; READTIME must use DS=CS
+	PUSH	SS			; clock state and request remain low
 	POP	DS
 
 	MOV	AX,0			; therefore, we save DEVCALL
@@ -158,13 +159,14 @@ no_sys_wait:
 	PUSH	BX			; the follwing code is to
 	MOV	BX,OFFSET DOSGROUP:DATE_FLAG
 	ADD	BX,2			; check the TAG
-	CMP	word ptr CS:[BX],22642
+	CMP	word ptr SS:[BX],22642
 	JZ	check_ok
 	invoke	DOSINIT 		; should never come here
 check_ok:
 	POP	BX
 
 	POP	DS			; restore DS
+	POP	ES			; restore selected console workspace
 	POP	DX
 	POP	CX
 	POP	BX
@@ -431,7 +433,7 @@ save_packet:
 	MOV	DI,OFFSET DOSGROUP:Packet_Temp	 ;destination
 	MOV	SI,OFFSET DOSGROUP:DEVCALL	 ;source
 set_seg:
-	MOV	AX,CS		; set DS,ES to DOSGROUP
+	MOV	AX,SS		; request and saved packet remain low
 	MOV	DS,AX
 	MOV	ES,AX
 	MOV	CX,11		; 11 words to move

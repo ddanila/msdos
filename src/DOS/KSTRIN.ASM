@@ -15,7 +15,7 @@ Break
 	procedure   $STD_CON_STRING_INPUT,NEAR	 ;System call 10
 ASSUME	DS:NOTHING,ES:NOTHING
 
-	MOV	AX,SS
+	MOV	AX,CS		; private workspace follows executing DOS
 	MOV	ES,AX
 	MOV	SI,DX
 	XOR	CH,CH

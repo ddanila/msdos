@@ -70,8 +70,17 @@ CONSTANTS SEGMENT WORD PUBLIC 'CONST'
 ; console.
 	I_am	CARPOS,BYTE		; [SYSTEM] cursor position in stdin
 	I_am	STARTPOS,BYTE		; [SYSTEM] position of cursor at beginning of buffered input call
+; One private workspace: long AH=0Ah lines intentionally extend INBUF into
+; CONBUF. Keep both contiguous with the selected executing DOS image.
+CONSTANTS ENDS
+HIGH_TABLE SEGMENT BYTE PUBLIC 'HIGH_TABLE'
+PUBLIC CONSOLE_WORKSPACE_START,CONSOLE_WORKSPACE_END
+CONSOLE_WORKSPACE_START LABEL BYTE
 	I_am	INBUF,128		; [SYSTEM] general device input buffer
 	I_am	CONBUF,131		; [SYSTEM] The rest of INBUF and console buffer
+CONSOLE_WORKSPACE_END LABEL BYTE
+HIGH_TABLE ENDS
+CONSTANTS SEGMENT WORD PUBLIC 'CONST'
 
 	I_am	PFLAG,BYTE		; [SYSTEM] printer echoing flag
 	I_am	VERFLG,BYTE		; [SYSTEM] Initialize with verify off

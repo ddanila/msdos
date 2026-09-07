@@ -390,6 +390,8 @@ READCON:
 	DOSAssume   CS,<DS>,"ReadCon"
 	CALL	SWAPCON
 	MOV	SI,[CONTPOS]
+	PUSH	CS
+	POP	DS		; CONBUF belongs to the selected DOS code image
 	OR	SI,SI
 	JNZ	TRANBUF
 	CMP	BYTE PTR [CONBUF],128

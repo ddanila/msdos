@@ -22,7 +22,7 @@ def check_tables(old, new, before, after):
     b = {name.upper(): value for name, value in before.items()}
     a = {name.upper(): value for name, value in after.items()}
     assert b["FOO"] - b["MAXCALL"] == a["DOS_DISPATCH_TABLE_END"] - a["MAXCALL"] == 220
-    assert b["INTERCHAR"] - b["FOO"] == a["DOS_INSTALL_TABLE_END"] - a["FOO"] == 115
+    assert b.get("DOS_INSTALL_TABLE_END", b["INTERCHAR"]) - b["FOO"] == a["DOS_INSTALL_TABLE_END"] - a["FOO"] == 115
     assert old[b["MAXCALL"]:b["MAXCALL"]+2] == new[a["MAXCALL"]:a["MAXCALL"]+2]
     assert old[b["FOO"]+4] == new[a["FOO"]+4] == 55
     assert int.from_bytes(old[b["DTAB"]:b["DTAB"]+2], "little") == b["FOO"]+4
@@ -97,18 +97,28 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image", type=Path)
     parser.add_argument("old_map", type=Path)
+    parser.add_argument("--console-workspace", action="store_true",
+                        help="compare complete private-console workspace retirement after dispatch retirement")
     args = parser.parse_args()
-    work = Path(tempfile.mkdtemp(prefix="dos-dispatch-retirement-", dir=ROOT / "out"))
+    prefix = "dos-console-retirement-" if args.console_workspace else "dos-dispatch-retirement-"
+    work = Path(tempfile.mkdtemp(prefix=prefix, dir=ROOT / "out"))
     print(f"Artifacts: {work}", flush=True)
     old = image_file(args.image, "::MSDOS.SYS")
     new = (ROOT / "src/DOS/MSDOS.SYS").read_bytes()
     _, before = parse_map(args.old_map)
     _, after = parse_map(ROOT / "src/DOS/MSDOS.MAP")
-    assert before["SYSBUF"] == after["SYSBUF"]
-    assert before["DOSINIT"] == after["DOSINIT"]
+    high_growth = after["SYSBUF"] - before["SYSBUF"]
+    assert high_growth == (16 if args.console_workspace else 0)
+    assert after["DOSINIT"] - before["DOSINIT"] == high_growth
     assert after["DOS_LOW_GATE_END"] < after["MAXCALL"] < after["DOS_INSTALL_TABLE_END"] < after["SYSBUF"]
     released = rounded(before["DOS_LOW_GATE_END"]) - rounded(after["DOS_LOW_GATE_END"])
-    assert released == 336
+    assert released == (256 if args.console_workspace else 336)
+    if args.console_workspace:
+        assert before["PFLAG"] - before["INBUF"] == 259
+        assert after["CONSOLE_WORKSPACE_END"] - after["INBUF"] == 259
+        assert after["CONBUF"] - after["INBUF"] == 128
+        assert after["INBUF"] >= after["DOS_LOW_GATE_END"]
+        assert old[before["INBUF"]:before["PFLAG"]] == new[after["INBUF"]:after["CONSOLE_WORKSPACE_END"]]
     targets = check_tables(old, new, before, after)
     shutil.copyfile(args.old_map, work / "old-MSDOS.MAP")
     shutil.copyfile(ROOT / "src/DOS/MSDOS.MAP", work / "MSDOS.MAP")
@@ -154,7 +164,8 @@ def main():
     assert probe(work, candidate, "standalone-low", "LOW", bios=(work / "bios-low/IO.SYS").read_bytes())
     qualify(work, candidate)
     qualify_ifs(work, candidate, work / "bios-low/IO.SYS")
-    results = dict(dispatch_targets=targets, unchanged_sha256=unchanged,
+    results = dict(dispatch_targets=targets, high_image_growth=high_growth,
+                   unchanged_sha256=unchanged,
                    matched_utilities_sha256=utility_hashes,
                    old_kernel_sha256=hashlib.sha256(old).hexdigest(),
                    kernel_sha256=hashlib.sha256(new).hexdigest())
@@ -167,7 +178,7 @@ def main():
     assert results["after"]["upper_free"] == results["before"]["upper_free"]
     assert results["after"]["xms"] is not None
     assert results["after"]["xms"] == results["before"]["xms"]
-    print(f"Composed dispatcher retirement: +{released} conventional bytes", flush=True)
+    print(f"Composed owner retirement: +{released} conventional bytes", flush=True)
 
 
 if __name__ == "__main__":
