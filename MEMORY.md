@@ -818,6 +818,25 @@ fallback pipelines also pass (`out/command-upper-fallback-60155za7/`). The
 pipeline test caught stale case-insensitive `ResSeg` loads in cleanup; all such
 data loads now select the data owner, with a build-time regression check.
 
+**Upper-data failure recovery:** same-size private COMMAND mutations replace
+only the transaction's allocation or shrink INT 21h with STC/NOP. The fresh
+unmodified build first matches the composed shell byte-for-byte. Both forced
+failures retain an **880-byte low shell**, leave **48,416 UMB bytes free** and
+**624,976 conventional bytes free**, with application XMS unchanged. Thus
+shrink rejection after publication restores low bindings and frees the temporary
+352-byte upper allocation; allocation rejection never publishes it.
+
+Evidence: `out/command-upper-failure-ow9ifakf/`. Both paths pass fourteen
+destructive pipeline legs, child execution, redirection, environment/COMSPEC
+reload, and allocation-policy comparison before/after those operations against
+the successful control. A20-off INT 2Eh with manager ON/refused-OFF/AUTO/ON
+also passes on both failure images, including wrong-stack and skip-disable
+controls (`out/command-upper-int2e-ylb_vewx/`, `...-o8kqinww/`). Reproduce with
+`test_command_upper_failure_qemu.py IMAGE`; the mutation offsets and shell hashes
+are recorded. These are injected carry failures, **not actual UMB exhaustion or
+DOS policy-restoration failure tests**. No fault-injection path is added to the
+production shell and no additional memory gain is claimed.
+
 **INT 2Eh / PSP follow-up:** `out/command-upper-int2e-ja0iujvb/` checks a pending
 command tail in a separate allocation, internal and child-external commands,
 caller PSP restoration and return to the parent shell's low stack. It verifies
@@ -877,7 +896,8 @@ not a reversal of the shell's 336-byte retirement. Destructive pipelines,
 redirection, child EXEC and environment reload pass on this corrected image.
 
 Remaining before promotion: nested/asynchronous and public-pointer contracts,
-allocation-rejection/rollback and 286 coverage. Reconcile
+actual exhaustion, policy-restoration failures and 286 coverage. Allocation
+rejection and post-publication shrink rollback now have the bounded tests above. Reconcile
 BIOS placement against the remaining shared HMA budget; neither this measured
 gain nor the fallback pipeline check completes that work.
 

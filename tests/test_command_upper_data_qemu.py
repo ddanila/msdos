@@ -14,7 +14,7 @@ from test_dos_char_retirement_qemu import install
 from test_umb_subpage_composition import xms_summary
 
 
-def check_runtime(work, candidate):
+def check_runtime(work, candidate, *, initial_commands="", extra_commands=""):
     """Exercise the upper owner in the actual manager/BIOS composition."""
     disk = work / "runtime.img"
     shutil.copyfile(candidate, disk)
@@ -23,7 +23,7 @@ def check_runtime(work, candidate):
                     "-o", probe], check=True)
     install(disk, "PIPEIO.COM", probe.read_bytes())
     install(disk, "QEXIT.COM", (ROOT / "out/command-startup-qexit.com").read_bytes())
-    batch = ("@ECHO OFF\r\nCTTY AUX\r\n"
+    batch = ("@ECHO OFF\r\nCTTY AUX\r\n" + initial_commands +
              "SET PACKED=ENVIRONMENT_SURVIVED\r\n"
              "SET COMSPEC=C:\\DOS\\COMMAND.COM\r\n"
              "ECHO PIPE_FIRST|PIPEIO|PIPEIO\r\n"
@@ -34,7 +34,7 @@ def check_runtime(work, candidate):
              "ECHO PIPE_APPEND|PIPEIO|PIPEIO >> PIPE1.OUT\r\n"
              "PIPEIO < PIPE1.OUT | PIPEIO > PIPE2.OUT\r\n"
              "COMMAND /C ECHO PIPE_CHILD_RED|PIPEIO > PIPE3.OUT\r\n"
-             "ECHO %PACKED%\r\nECHO PIPE_RELOAD_CONTINUED\r\nQEXIT.COM\r\n")
+             "ECHO %PACKED%\r\nECHO PIPE_RELOAD_CONTINUED\r\n" + extra_commands + "QEXIT.COM\r\n")
     install(disk, "AUTOEXEC.BAT", batch.encode("ascii"))
     with (work / "runtime.log").open("wb") as log:
         result = subprocess.run(["qemu-system-i386", "-display", "none", "-monitor", "none",
