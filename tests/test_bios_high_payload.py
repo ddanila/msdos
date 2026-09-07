@@ -8,6 +8,37 @@ from build_bios_high_payload import build, offset_fixups, rebase, boot_policy, p
 
 
 class PayloadTests(unittest.TestCase):
+    def test_complete_ioctl_state_is_high_without_low_imports_or_mirror(self):
+        from build_bios_low_image import build as build_low
+        from report_dos_bios_residency import validate_ioctl_layout
+        with tempfile.TemporaryDirectory(prefix="msdos-ioctl-state-") as scratch:
+            directory = Path(scratch)
+            low = build_low(directory, tail_body=True, dispatch=True, characters=True,
+                retire_characters=True, pack_headers=True, retire_media=True,
+                pack_drive_graph=True, retire_clock=True, retire_mux=True,
+                compact_tracks=True, retire_swap=True, retire_ioctl_state=True)
+            high = build(directory / "high", directory, dispatch=True, characters=True,
+                         media=True, retire_clock=True, retire_mux=True)
+            lo, hi = low["symbols"], high["exports"]
+            self.assertEqual(lo["BIOS_IOCTL_LOW_START"], lo["BIOS_IOCTL_LOW_END"])
+            self.assertGreaterEqual(lo["BIOS_IOCTL_STATE_START"], lo["END$"])
+            self.assertEqual(lo["BIOS_IOCTL_STATE_END"] - lo["BIOS_IOCTL_STATE_START"], 137)
+            self.assertEqual(hi["BIOS_IOCTL_STATE_END"] - hi["BIOS_IOCTL_STATE_START"], 137)
+            original = (directory / "MSBIO.BIN").read_bytes()
+            payload = (directory / "high/bios-high.bin").read_bytes()
+            self.assertEqual(original[lo["BIOS_IOCTL_STATE_START"]:lo["BIOS_IOCTL_STATE_END"]],
+                             payload[hi["BIOS_IOCTL_STATE_START"]:hi["BIOS_IOCTL_STATE_END"]])
+            for name in ("PREV_DX", "SECTORSPERTRACK", "TRACKTABLE", "MEDIATYPE",
+                         "MEDIA_SET_FOR_FORMAT", "HAD_FORMAT_ERROR", "TEMPDPT"):
+                self.assertNotIn(name, high["low_bindings"])
+                self.assertIn(name, hi)
+            validate_ioctl_layout(lo, compact=True)
+            broken = dict(lo, BIOS_IOCTL_LOW_END=lo["BIOS_IOCTL_LOW_END"] + 1)
+            with self.assertRaises(ValueError):
+                validate_ioctl_layout(broken, compact=True)
+        with self.assertRaises(ValueError):
+            build_low(Path(scratch), retire_ioctl_state=True, tail_body=True)
+
     def test_change_line_boundary_retains_result_helpers(self):
         from build_bios_low_image import build as build_low
         with tempfile.TemporaryDirectory(prefix="msdos-media-boundary-") as scratch:

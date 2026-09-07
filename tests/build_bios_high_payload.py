@@ -63,11 +63,14 @@ def build(output, low_directory=None, *, dispatch=False, characters=False, media
     _, low_symbols = parse_map(low_map)
     low_symbols = {name.upper(): value for name, value in low_symbols.items()}
     retire_swap = "BIOS_SWAP_BODY_START" in low_symbols
+    retire_ioctl_state = "BIOS_IOCTL_STATE_START" in low_symbols
     if retire_swap and not characters:
         raise ValueError("swap-prompt retirement requires high FLUSH and character return gates")
     track_bytes = low_symbols['MEDIATYPE'] - low_symbols['TRACKTABLE']
     if track_bytes not in (126, 252):
         raise ValueError("unexpected persistent track layout; cannot select matching high reader")
+    if retire_ioctl_state and track_bytes != 126:
+        raise ValueError("high IOCTL state requires separately materialized low DMA descriptors")
     slot_targets = dict(SLOT_TARGETS)
     if retire_swap:
         del slot_targets["BIOS_LOW_SWPDSK"]
@@ -99,6 +102,7 @@ def build(output, low_directory=None, *, dispatch=False, characters=False, media
         run([ROOT / "bin/jwasm-masm",
              f"-I. -I../INC -DBIOS_SERVICE_ISOLATED=1 {'-DBIOS_MEDIA_HIGH=1' if media else ''} "
              f"{'-DBIOS_SWAP_HIGH=1' if retire_swap else ''} "
+             f"{'-DBIOS_IOCTL_HIGH=1' if retire_ioctl_state else ''} "
              f"{'-DBIOS_COMPACT_TRACK_LAYOUT=1' if track_bytes == 126 else ''} -Fl{listing}",
              f"MSDISK.ASM,{body};"], ROOT / "src/BIOS")
         externals = {}
@@ -212,6 +216,7 @@ def build(output, low_directory=None, *, dispatch=False, characters=False, media
             if rebase(data, relocations, origin) != expected:
                 raise ValueError(f"offset-fixup model disagrees with linker at {origin:04x}")
         manifest = {"installed": False, "runtime_bindings_required": True,
+                    "retired_ioctl_state": retire_ioctl_state,
                     "dispatch": dispatch, "characters": characters, "media": media, "table_bytes": table_bytes,
                     "low_table_bytes": low_table_bytes, "far_tables": dispatch,
                     "sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data),

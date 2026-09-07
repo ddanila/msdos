@@ -1,14 +1,19 @@
-; Mutable IOCTL state stays low. Compact layouts retain R,N pairs here and
-; materialize ROM/DMA-facing C,H,R,N descriptors in DISKSECTOR on demand.
+; Complete private IOCTL state, low normally or owned by the high disk service.
+; Compact layouts retain R,N pairs here and materialize ROM/DMA-facing C,H,R,N
+; descriptors in the separate low DISKSECTOR buffer on demand.
 ; Keep code dispatch tables in MSIOCTL.INC, not in this allocation.
 INCLUDE MSIOLIM.INC
+IFDEF BIOS_IOCTL_RELOCATED
+PUBLIC BIOS_IOCTL_STATE_START,BIOS_IOCTL_STATE_END
+BIOS_IOCTL_STATE_START LABEL BYTE
+ELSE
 PUBLIC BIOS_IOCTL_LOW_START, BIOS_IOCTL_LOW_END
+BIOS_IOCTL_LOW_START LABEL BYTE
+ENDIF
 PUBLIC SECTORSPERTRACK, TRACKTABLE, MEDIATYPE
 PUBLIC MEDIA_SET_FOR_FORMAT, Had_Format_Error, TEMPDPT
 PUBLIC Prev_DX
-BIOS_IOCTL_LOW_START LABEL BYTE
-; PS/2 model 30 status-reset drive; authoritative state must stay low even
-; when BLOCK13's service body runs high. BIOS results use the active stack.
+; PS/2 model 30 status-reset drive, shared by BLOCK13's call and reset paths.
 Prev_DX DW ?
 SECTORSPERTRACK DW	36
 IFDEF BIOS_COMPACT_TRACK_LAYOUT
@@ -68,4 +73,8 @@ Had_Format_Error	db	0	; 1 if the previous format operation
 					; failed. - J.K. 7/8/86
 ; Saved disk parameter table pointer, restored after formatting.
 TEMPDPT DD -1
+IFDEF BIOS_IOCTL_RELOCATED
+BIOS_IOCTL_STATE_END LABEL BYTE
+ELSE
 BIOS_IOCTL_LOW_END LABEL BYTE
+ENDIF

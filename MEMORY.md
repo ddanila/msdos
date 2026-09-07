@@ -27,20 +27,48 @@ The next delivery must include all four, in the same composed candidate:
 4. Local compatibility qualification of the resulting layout. Boundary probes
    and diagnostic builds are supporting evidence, not memory achievements.
 
-**Latest opt-in composed candidate:** **625,520 conventional / 47,936 free
-UMB / 6,798,336 application XMS bytes**, **6,784 above retail** and **7,584
+**Latest opt-in composed candidate:** **625,664 conventional / 47,936 free
+UMB / 6,798,336 application XMS bytes**, **6,928 above retail** and **7,728
 above the development control**. COMMAND data retirement and startup packing
 recover 336 conventional bytes; the safe manager OFF/AUTO guard costs 32;
 compact BIOS track state then recovers 128, and complete swap-prompt retirement
-recovers 96. Complete shell-stack retirement adds another **112**. These gains
+recovers 96. Complete shell-stack retirement adds **112**, and retiring private
+BIOS IOCTL state adds **144**. These gains
 enlarge the largest block, not a separate free hole. The combined shell data/stack
 move costs 480 UMB and 204 HMA
-bytes; compact track state adds one HMA byte and the swap prompt adds 120,
+bytes; compact track state adds one HMA byte, the swap prompt adds 120,
+and moving private IOCTL state beside its readers saves 26 HMA bytes,
 with no additional UMB/XMS cost. Free UMB remains **48 above the retail floor**,
-with **3,298 HMA bytes left**. BIOS retains **2,512 low bytes**;
+with **3,324 HMA bytes left**. BIOS retains **2,368 low bytes**;
 COMMAND's main low allocation is **432**.
 Functional qualification is incomplete: this is not production promotion or
 completion of BIOS/COMMAND placement.
+
+**Complete private BIOS IOCTL-state retirement:** `BIOS_RETIRE_IOCTL_STATE`
+moves all 137 bytes (63 R/N pairs, sector count, media/retry flags, saved DPT
+pointer and PS/2 reset-drive scratch) beside their high disk-service readers.
+The old owner is linked only in the disposable cold tail; no low mirror or new
+allocation remains after activation. Set/read/format paths use that same high
+owner. Firmware still receives C/H/R/N descriptors generated in the existing
+low, DMA-safe `DISKSECTOR`; public BDS/DPB pointers and the ROM DPT remain low
+or retain their original far-pointer contracts. High state requires compact
+descriptors—passing the high table directly to firmware is rejected.
+
+The composed image `out/emm-mode-guard-ezqt_as9/input.img` measures
+**625,520 -> 625,664 conventional bytes**, with UMB/XMS unchanged. BIOS falls
+**2,512 -> 2,368 low bytes**. Removing repeated low-segment borrowing outweighs
+the 137 high data bytes: the HMA payload falls **8,107 -> 8,081**, leaving the
+shared tail at `F2F4h..FFF0h`. The native BIOS remains byte-identical.
+
+All 57 BIOS tests pass, including full template equality, no low imports for
+any retired field, empty low-owner bounds and relocation at multiple origins.
+Swap-prompt formatting, fault-injected retries and subsequent file I/O pass
+at 1.44/2.88 MB with natural and forced change-line selection
+(`out/bios-track-layout-ll4_5jp5/`, `...-yoj2znxv/`). Composed pipeline/reload
+and A20-off INT 2Eh/manager-mode tests pass (`out/bios-ioctl-runtime-nip99qun/`,
+`out/command-upper-int2e-v4vf67xm/`). PS/2-specific status-reset execution,
+nonstandard sector layouts and full media-change error behavior remain open.
+This is a measured complete-owner retirement, not final BIOS promotion.
 
 **Complete shell-stack retirement:** the entire 125-byte resident stack now
 leads COMMAND's existing upper-data owner. The same initialization transaction
@@ -211,7 +239,7 @@ python3 tests/test_dos_char_retirement_qemu.py out/command-high-retirement-vj99u
 **Next selection gate:** stop isolated table/paragraph harvesting after this
 completed owner. Resolve the remaining BIOS and COMMAND owners against the
 same shared budget, remove obsolete storage and measure their combined release.
-BIOS retains 2,512 low bytes; COMMAND's main allocation retains 432. These are allocations, not
+BIOS retains 2,368 low bytes; COMMAND's main allocation retains 432. These are allocations, not
 promised savings: BIOS request/ROM-return gates, public device/BDS pointers and
 DMA-facing storage need explicit low contracts. In particular, the census's
 545-byte strategy/dispatch row includes retained completion and firmware-return
@@ -223,7 +251,7 @@ named checkpoints; use the figures here for the current candidate.
 
 Use `report_dos_bios_residency.py` with `--tail-body` and the matching `--boot-manifest`, not
 the map alone: cold helpers remain linked but successful activation no
-longer retains them low. The current shared HMA budget is **3,298 free bytes**.
+longer retains them low. The current shared HMA budget is **3,324 free bytes**.
 Older whole-source capacity checks include shell data already placed in UMB
 and do not identify which remaining BIOS gates/storage can legally move.
 Use live ownership and composed measurements, not that sum, for final placement.
@@ -232,7 +260,7 @@ The census now validates 63 records against the manifest's selected two- or
 four-byte layout. Use `--command-data-upper` only with evidence that publication
 succeeded; compiling that feature alone cannot exclude its DOS-low/failure
 fallback. The current successful composition's source-capacity remainder is
-623 bytes, **not additional free HMA or promised savings**. Regression checks
+793 bytes, **not additional free HMA or promised savings**. Regression checks
 cover both layouts, mismatched manifests and explicit shell-placement assumptions.
 
 **Remaining BIOS owner decision:** the 545-byte dispatch row is actually 124
@@ -251,7 +279,7 @@ The next joint decision must separate remaining cold initialization from
 mandatory public/DMA/reboot entry contracts, then qualify the retained
 COMMAND PSP/gates and upper-data/stack failure paths. Do not present further
 paragraph-sized changes as completion, or remove compatibility paths merely
-because the selected boot did not execute them. The current 2,528-byte OpenDOS
+because the selected boot did not execute them. The current 2,384-byte OpenDOS
 gap is a whole-system ownership question, not the size of a remaining BIOS
 or COMMAND service body.
 
@@ -490,26 +518,26 @@ python3 tests/test_bios_clock_retirement_qemu.py out/command-high-retirement-wv3
 
 #### Retired low interrupt-stack pool
 
-The current saved VC comparison narrows the OpenDOS lead to **2,528 bytes**,
+The current saved VC comparison narrows the OpenDOS lead to **2,384 bytes**,
 not the 11,936-byte gap in the older reassessment below:
 
 | Accounting boundary | Current packed candidate | OpenDOS 7.01 IDE capture | Local minus OpenDOS |
 | --- | ---: | ---: | ---: |
-| System start to COMMAND start | 13,504 | 10,448 | +3,056 |
+| System start to COMMAND start | 13,360 | 10,448 | +2,912 |
 | COMMAND start to VC start | 784 | 1,312 | -528 |
 | VC start to first free block | 12,720 | 12,720 | 0 |
-| Largest conventional block | 625,520 | 628,048 | -2,528 |
+| Largest conventional block | 625,664 | 628,048 | -2,384 |
 
 These are allocation spans, not individual program MCB sizes. VC hashes and
 the 639 KiB ceiling match; vendor resource semantics and reset qualification
-still differ. Evidence: `out/command-upper-data-e0yw4ez3/results.json` and
+still differ. Evidence: `out/emm-mode-guard-ezqt_as9/results.json` and
 `out/opendos-disk-boot-evidence/result.json`. This reconciles saved captures,
 not a new vendor run. COMMAND placement still needs qualification and a final
 state contract, but a large shell allocation no longer explains this gap.
 
-The current system span reconciles as **2,512 BIOS + 5,072 DOS prefix + 4,704
+The current system span reconciles as **2,368 BIOS + 5,072 DOS prefix + 4,704
 managers + 512 transfer area + 608 interrupt handlers/control + 96 arena/mark
-bytes = 13,504**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
+bytes = 13,360**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
 low and the span was 15,392. A public suballocation probe on that pre-pool image
 confirms the four dynamic owners without unclassified gaps:
 `out/system-owners-gz8p6jrj/`. Its AUTOEXEC runs the probe instead of VC;

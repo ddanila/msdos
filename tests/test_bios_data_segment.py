@@ -168,12 +168,15 @@ class DataSegmentTests(unittest.TestCase):
                 self.assertFalse(re.search(r"\bPUSH\s+CS\b", code, re.I), name)
                 if re.search(r"\bBIOS_PUSH_DATA_SEG\b", code):
                     total += 1
-        self.assertEqual(total, 16, "includes compact format-descriptor materialization")
+        self.assertEqual(total, 15, "firmware buffer stays low; track state uses its selected owner")
+        source = (ROOT / "src/BIOS/MSIOCTL.INC").read_text()
+        self.assertEqual(source.count("BIOS_IO_PUSH_SEG"), 1)
 
     def test_remaining_cs_operands_have_explicit_code_or_chain_ownership(self):
         expected = {
             "MSDSKHIG.INC": [],
-            "MSIOCTL.INC": ["CMP AL, CS:[SI]", "CALL CS:[SI]"],
+            "MSIOCTL.INC": ["CMP AL, CS:[SI]", "CALL CS:[SI]",
+                            "MOV CX,CS:SECTORSPERTRACK", "MOV AX,CS:[SI]"],
         }
         for name, allowed in expected.items():
             actual = []

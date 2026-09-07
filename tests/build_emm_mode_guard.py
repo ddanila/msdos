@@ -24,6 +24,7 @@ def main():
     parser.add_argument("--measure", action="store_true", help="capture the paired before/after VC and MEM census")
     parser.add_argument("--compact-tracks", action="store_true", help="retain R,N pairs and materialize firmware format tuples")
     parser.add_argument("--retire-swap", action="store_true", help="retire the complete BIOS disk-swap prompt owner")
+    parser.add_argument("--retire-ioctl-state", action="store_true", help="retire the private low IOCTL/format state owner")
     args = parser.parse_args()
     if args.measure and not args.image:
         parser.error("--measure requires --image")
@@ -55,7 +56,8 @@ def main():
             high_cds=True, dispatch=True, characters=True, retire_characters=True,
             pack_headers=True, retire_media=True, pack_drive_graph=True,
             high_stack_pool=True, retire_clock=True, retire_mux=True,
-            paired_provider=build / "EMM386.EXE", compact_tracks=args.compact_tracks, retire_swap=args.retire_swap)
+            paired_provider=build / "EMM386.EXE", compact_tracks=args.compact_tracks, retire_swap=args.retire_swap,
+            retire_ioctl_state=args.retire_ioctl_state)
         disk = work / "input.img"
         shutil.copyfile(args.image, disk)
         install(disk, "IO.SYS", (work / "bios/IO.SYS").read_bytes())

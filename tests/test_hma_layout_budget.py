@@ -7,6 +7,11 @@ from report_dos_bios_residency import hma_layout, whole_owner_inventory, validat
 
 
 class HmaBudgetTests(unittest.TestCase):
+    def test_private_ioctl_state_retires_low_owner_and_reduces_high_cost(self):
+        rows = hma_layout(0x9D60, 7988, 8081, 5839)
+        self.assertEqual(rows[-2][1:], (0xF2F4, 0xFFF0))
+        self.assertEqual(rows[-2][2] - rows[-2][1], 3324)
+
     def test_complete_upper_stack_and_shared_budget(self):
         rows = hma_layout(0x9D60, 7988, 8107, 5839)
         self.assertEqual(rows[-2][1:], (0xF30E, 0xFFF0))

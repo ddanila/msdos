@@ -79,7 +79,7 @@ def character_partition(symbols: dict[str, int]) -> list[tuple[str, int, int, st
         points = [require(symbols, name) for name in boundaries]
         # Separately linked cold owners follow the clock; they are not clock code.
         points[-1] = min([points[-1]] + [symbols[name] for name in
-                         ("BIOS_SWAP_BODY_START", "BIOS_MUX_BODY") if name in symbols])
+                         ("BIOS_SWAP_BODY_START", "BIOS_MUX_BODY", "BIOS_IOCTL_STATE_START") if name in symbols])
         if not (require(symbols, "END$") <= points[0]
                 and all(a < b for a, b in zip(points, points[1:]))
                 and require(symbols, "CBREAK") < require(symbols, "HaveCMOSClock")
@@ -285,6 +285,13 @@ def validate_ioctl_layout(symbols: dict[str, int], *, compact: bool) -> None:
     """Check full record capacity against the selected build, not a fixed byte count."""
     start, end = (require(symbols, name) for name in
                   ("BIOS_IOCTL_LOW_START", "BIOS_IOCTL_LOW_END"))
+    if "BIOS_IOCTL_STATE_START" in symbols:
+        if start != end or not compact:
+            raise ValueError("retired IOCTL state must leave no low owner and use materialized DMA descriptors")
+        start, end = (require(symbols, name) for name in
+                      ("BIOS_IOCTL_STATE_START", "BIOS_IOCTL_STATE_END"))
+        if start < require(symbols, "END$"):
+            raise ValueError("retired IOCTL fallback state is still retained")
     table, media = (require(symbols, name) for name in ("TRACKTABLE", "MEDIATYPE"))
     record_bytes = 2 if compact else 4
     if not start <= table < media <= end or media - table != 63 * record_bytes:
@@ -837,8 +844,10 @@ def main() -> int:
         validate_ioctl_layout(bios_symbols, compact=compact_tracks)
     except ValueError as error:
         errors.append(str(error))
-    if not (ioctl_low_start <= require(bios_symbols, "Prev_DX") <= ioctl_low_end - 2):
-        errors.append("PS/2 saved drive is not owned by retained low disk state")
+    state_start = bios_symbols.get("BIOS_IOCTL_STATE_START", ioctl_low_start)
+    state_end = bios_symbols.get("BIOS_IOCTL_STATE_END", ioctl_low_end)
+    if not (state_start <= require(bios_symbols, "Prev_DX") <= state_end - 2):
+        errors.append("PS/2 saved drive is outside the complete IOCTL state owner")
     io_read = require(bios_symbols, "IOREADJUMPTABLE")
     io_write = require(bios_symbols, "IOWRITEJUMPTABLE")
     if not (service_start <= io_read < io_write < service_end) or io_write - io_read != 17:

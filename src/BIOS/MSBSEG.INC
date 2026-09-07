@@ -211,7 +211,38 @@ BIOS_LOW_UNARY MACRO operation, address
         ENDIF
 ENDM
 
-; Track descriptors belong to low data, unlike the high IOCTL dispatch table.
+; Private IOCTL state follows the complete high disk owner when selected.
+; Firmware still receives only the separately materialized low DMA buffer.
+BIOS_IO_MEM MACRO operation,address,value,workseg
+ IFDEF BIOS_IOCTL_HIGH
+        operation CS:address,value
+ ELSE
+        BIOS_LOW_MEM operation,<address>,value,workseg
+ ENDIF
+ENDM
+BIOS_IO_READ MACRO operation,result,address,workseg
+ IFDEF BIOS_IOCTL_HIGH
+        operation result,CS:address
+ ELSE
+        BIOS_LOW_READ operation,result,<address>,workseg
+ ENDIF
+ENDM
+BIOS_IO_PUSH_SEG MACRO
+ IFDEF BIOS_IOCTL_HIGH
+        PUSH CS
+ ELSE
+        BIOS_PUSH_DATA_SEG
+ ENDIF
+ENDM
+BIOS_IO_LODSB MACRO
+ IFDEF BIOS_IOCTL_HIGH
+        LODS BYTE PTR CS:[SI]
+ ELSE
+        BIOS_LOW_LODSB
+ ENDIF
+ENDM
+
+; Track descriptors belong to low data unless the complete owner is retired.
 ; Preserve caller DS and FLAGS/DF; LODSB supplies AL and advances SI normally.
 BIOS_LOW_LODSB MACRO
         IFDEF BIOS_SERVICE_SEPARATE_DATA

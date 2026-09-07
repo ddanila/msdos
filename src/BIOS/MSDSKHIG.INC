@@ -1008,7 +1008,7 @@ GOTERR13_br: jmp Goterr13
 ;will issue AH=1 (Read Status) call to reset the buses.
 
 ps2_30_Problem: 			;J.K. 1/30/87; ps2_30 = PS2 Model 30.
-	BIOS_LOW_MEM MOV,<Prev_DX>,DX,DS		;save orignal drive number
+	BIOS_IO_MEM MOV,<Prev_DX>,DX,DS		;save orignal drive number
 	BIOS_ROM_ORIG13			;Do "Read drive parm"
 
 	pushf
@@ -1022,7 +1022,7 @@ ps2_30_Problem: 			;J.K. 1/30/87; ps2_30 = PS2 Model 30.
 	push	ds
 	push	es
 
-	BIOS_LOW_READ MOV,dx,<Prev_DX>,DS		;restore orignal drive
+	BIOS_IO_READ MOV,dx,<Prev_DX>,DS		;restore orignal drive
 	pushf
 	mov	ah, 1			;Read Status.
 	BIOS_ROM_ORIG13			;Reset the bus as a side effect of this call.
