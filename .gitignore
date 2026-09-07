@@ -1,5 +1,7 @@
 /out/
 /.reference/
+/MS-DOS/
+/floppy.img
 /kvikdos/kvikdos-soft
 /*.o
 /*.err

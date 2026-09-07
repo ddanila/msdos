@@ -20,3 +20,8 @@ gs -q -dNOPAUSE -dBATCH -sDEVICE=txtwrite \
 
 Use `.reference/msdos622/users-guide.{pdf,txt}` for the DOS 6.22 manual.
 Genuine DOS and Windows media are external test inputs, not repository fixtures.
+
+An optional `MS-DOS/` checkout is an ignored reference copy of
+[`ddanila/MS-DOS`](https://github.com/ddanila/MS-DOS), not a submodule or build
+input. Maintained source belongs in `src/`. Generated root-level `floppy.img`
+files are also ignored; use `make deploy` to reproduce `out/floppy.img`.

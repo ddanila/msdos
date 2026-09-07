@@ -355,6 +355,8 @@ def main():
                         help="relocate the complete EMM table owner into locked extended memory")
     parser.add_argument("--fine-umbs", action="store_true",
                         help="include fine UMB discovery/mapping for composed-image qualification")
+    parser.add_argument("--table-fallback", choices=("allocation", "copy"),
+                        help="force high-table allocation refusal or partial-copy failure")
     parser.add_argument("--handles", type=int, choices=range(2, 256), metavar="2..255",
                         help="request an explicit EMS handle capacity")
     parser.add_argument("--altregs", type=int, choices=range(0, 255), metavar="0..254",
@@ -439,6 +441,8 @@ def main():
         args.bootstrap_owner = True
     if args.bootstrap_owner:
         args.loader = True
+    if args.table_fallback:
+        args.high_tables = True
     if args.high_tables:
         args.table_layout = True
     if args.table_layout and any((args.reject_prepared, args.bad_pool_control,
@@ -550,6 +554,9 @@ def main():
         trace_defines += " -DEMM_TABLE_LAYOUT_TRACE"
     if args.high_tables:
         trace_defines += " -DEMM_HIGH_TABLES"
+    if args.table_fallback:
+        trace_defines += (" -DEMM_TABLE_ALLOC_FAIL" if args.table_fallback == "allocation"
+                          else " -DEMM_TABLE_COPY_FAIL")
     if args.split_prepare:
         trace_defines += " -DEMM_SPLIT_PREPARE"
     if args.loader:
@@ -829,8 +836,8 @@ def main():
                 raise ValueError("post-boot HIMEM allocation disagrees with lifetime boundary")
         if args.table_layout:
             layout = next(row["tables"] for row in records[mode] if "tables" in row)
-            if layout["high"] != int(args.high_tables):
-                raise ValueError("table placement fell back from the requested owner")
+            if layout["high"] != int(args.high_tables and not args.table_fallback):
+                raise ValueError("table placement differs from the requested high/fallback owner")
             layout["resident_bytes"] = (
                 layout["end"] - int(records[mode][-1]["int67"].split(":")[0], 16)) * 16
             if args.loader and (not args.loader_rebase or args.reclaim_bootstrap):
@@ -888,6 +895,7 @@ def main():
             if args.authoritative_owner else None,
         high_tables=args.high_tables, table_layout=args.table_layout,
         fine_umbs=args.fine_umbs,
+        table_fallback=args.table_fallback,
         handles=args.handles, altregs=args.altregs,
         switch_altregs=args.switch_altregs,
         installed_owner_counts=owner_counts,

@@ -750,7 +750,11 @@ RelocateTables PROC NEAR
         mov [TableBytes],cx
         add cx,3
         jc HighTablesDone
+IFDEF EMM_TABLE_ALLOC_FAIL
+        stc                         ; test-only refusal before consuming storage
+ELSE
         call get_buffer
+ENDIF
         jc HighTablesDone
         sub cx,3
         add ax,3
@@ -761,7 +765,14 @@ RelocateTables PROC NEAR
         push ds
         pop es
         mov di,si
+IFDEF EMM_TABLE_COPY_FAIL
+        shr cx,1                    ; test a partial destination, not just no copy
         call moveb
+        mov al,1
+        or al,al                    ; report failure without publishing new roots
+ELSE
+        call moveb
+ENDIF
         jnz HighTablesDone
         mov es,[GDT_Seg]
         mov ax,word ptr [TablePhys]

@@ -49,3 +49,35 @@ exercising its claimed behavior.
 
 Tests that mutate media must use private copies and honor `FLOPPY_IMAGE` where
 the fixture supports it. Keep the deployed image immutable during a test run.
+
+## Composed memory diagnostics
+
+`make test-hma-qemu` checks low/high DOS operation and A20 recovery. Its
+`hma_low_return_probe.asm` fixture also builds with `XMS3_RETURN` to check that
+the ECX result survives a successful low dispatcher return and that failed
+A20 restoration unwinds through the low frame. Each run keeps private artifacts
+under `out/hma-qemu.*` and accepts `FLOPPY_IMAGE`.
+
+Run `python3 tests/capture_emm_init_phases.py out/floppy.img --table-fallback allocation` and
+the same command with `--table-fallback copy` to exercise high-table allocation
+refusal and a partial destination copy. Both require the table owner to remain
+low; the fault-injection defines are absent from the production build. Use
+`--high-tables` without a fault option for the successful relocation control.
+Build and deploy the baseline floppy before these captures.
+
+`make test-bios-character-requests-qemu` compares actual installed low/high
+character-device requests while deterministic firmware hooks disable A20.
+`python3 tests/test_bios_character_requests_qemu.py --omit-keyboard-restore`
+is a negative control and must fail. These tests use private floppy copies and
+record request transcripts and input hashes in `out/bios-character-requests-*`.
+
+`python3 tests/test_bios_int19_qemu.py IMAGE BIOS_BUILD_DIR` is a standalone
+diagnostic for a frozen DOS=HIGH hard-disk composition with `STACKS=9,128`.
+The image must contain the BIOS from that build directory and the current
+kernel; retain its matching `low.json` and `msBIO.map`. The probe checks vector
+restoration, then chains through the saved ROM bootstrap entry and requires a
+second boot, stack checks on both boots, and a subsequent FCB operation. It
+temporarily intercepts the saved INT 19h target to inspect the restored vectors;
+use `test_software_reboot_qemu.py` for the unmodified bootstrap-chain control.
+Passing with standalone HIMEM does not qualify the paired-provider and upper
+stack-pool composition. Keep that qualification in [TODO.md](../TODO.md).

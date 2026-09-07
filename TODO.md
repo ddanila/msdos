@@ -2,6 +2,10 @@
 
 1. Stabilize and qualify the composed memory implementation before promotion;
    see [MEMORY.md](MEMORY.md). Further memory optimization is deferred.
+   Qualify `test_bios_int19_qemu.py` on the complete paired-provider and upper
+   stack-pool composition, comparing its temporary bootstrap interception with
+   the unmodified `test_software_reboot_qemu.py` control. See
+   [composed memory diagnostics](tests/COVERAGE.md#composed-memory-diagnostics).
 2. Add missing `EGA.SYS` deletion-mutation evidence to
    `tests/oracle_mutation_coverage.json`; the strict verifier currently rejects it.
 3. Implement retail-compatible DriveSpace, including compressed-volume support

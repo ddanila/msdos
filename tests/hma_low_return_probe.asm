@@ -4,6 +4,12 @@
 bits 16
 org 100h
 
+%ifdef XMS3_RETURN
+%define DISPATCH_SAVED_BYTES 10
+%else
+%define DISPATCH_SAVED_BYTES 12
+%endif
+
 start:
     push cs
     pop ds
@@ -75,8 +81,16 @@ start:
     int 21h
 
 check_frame:
+%ifdef XMS3_RETURN
+    cmp byte [force_failure],0
+    jne .skip_ecx_result
+    cmp ecx,0a1b2c3d4h
+    jne failure
+.skip_ecx_result:
+%else
     cmp cx,1234h
     jne failure
+%endif
     cmp si,2345h
     jne failure
     cmp di,3456h
@@ -95,7 +109,9 @@ low_dispatch:
     push bp
     mov bp,sp
     push word [cs:active_frame]
+%ifndef XMS3_RETURN
     push cx
+%endif
     push si
     push di
     push ds
@@ -107,7 +123,9 @@ dispatch_return:
     pop ds
     pop di
     pop si
+%ifndef XMS3_RETURN
     pop cx
+%endif
     pop word [cs:active_frame]
     pop bp
     retf
@@ -156,7 +174,7 @@ unwind_low:
     ; One low anchor per dispatcher activation; never pop/execute high return
     ; addresses. Production must also prove interrupt/reentrant stack ownership.
     mov sp,[cs:active_frame]
-    sub sp,12
+    sub sp,DISPATCH_SAVED_BYTES
     xor ax,ax
     mov bl,82h
     stc
@@ -194,6 +212,9 @@ simulated_firmware:
     mov byte [observed_off],1
     mov eax,11223344h
     mov edx,55667788h
+%ifdef XMS3_RETURN
+    mov ecx,0a1b2c3d4h        ; XMS 3 query result must survive dispatch return too
+%endif
     stc                     ; firmware error status must survive A20 recovery
     ret
 .restore_failure:
@@ -227,5 +248,9 @@ gate_ptr dw low_gate,0
 high_ptr dd 0
 returned_high db 0
 observed_off db 0
+%ifdef XMS3_RETURN
+pass_message db 'HMA_XMS3_RETURN_PASS',13,10,'$'
+%else
 pass_message db 'HMA_LOW_RETURN_PASS',13,10,'$'
+%endif
 fail_message db 'HMA_LOW_RETURN_FAILURE',13,10,'$'
