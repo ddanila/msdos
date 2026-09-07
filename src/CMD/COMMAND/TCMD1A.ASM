@@ -459,7 +459,7 @@ DoHeader:
 	mov	ax,AppendGetState		;AN020; Get the state of Append
 	int	2fh				;AN020;
 	push	ds				;AN020; save current data segment
-	mov	ds,[resseg]			;AN020; get resident segment
+	mov	ds,[SHELL_DATA_SELECTOR]			;AN020; get resident segment
 	assume	ds:resgroup			;AN020;
 	mov	append_state,bx 		;AN020; save append state
 	mov	append_flag,-1			;AN020; set append flag

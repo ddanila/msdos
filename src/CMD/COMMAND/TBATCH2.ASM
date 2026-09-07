@@ -100,7 +100,7 @@ ASSUME	DS:RESGROUP
 	jnc	bat_read_ok			;AN022; if no error - continue
 	invoke	get_ext_error_number		;AN022; get the error
 	push	ds				;AN022; save local segment
-	mov	ds,[resseg]			;AN022; get resident segment
+	mov	ds,[SHELL_DATA_SELECTOR]			;AN022; get resident segment
 assume	ds:resgroup				;AN022;
 	mov	dx,ax				;AN022; put error in DX
 	invoke	output_batch_name		;AN022; set up to print the error
@@ -134,7 +134,7 @@ SetBufPos:
 
 BatEOFDS:
 	ASSUME	DS:TranGroup
-	MOV	DS,ResSeg
+	MOV	DS,SHELL_DATA_SELECTOR
 	ASSUME	DS:ResGroup
 
 BATEOF:
@@ -203,7 +203,7 @@ IF_NORM:
 ; Turn off any pipes in progress.
 ;
 	push	ds				;AN004; save local DS
-	mov	ds,[resseg]			;AN004; get resident segment
+	mov	ds,[SHELL_DATA_SELECTOR]			;AN004; get resident segment
 	assume	ds:resgroup			;AN004;
 	cmp	[PIPEFILES],0			;AN004; Only turn off if present.
 	jz	IFNoPipe			;AN004; no pipe - continue
@@ -419,7 +419,7 @@ IFTRUE:
 ; lost.
 ;
 	PUSH	DS
-	MOV	DS,ResSeg
+	MOV	DS,SHELL_DATA_SELECTOR
 	ASSUME	DS:RESGROUP
 	MOV	IFFlag,-1
 	POP	DS
@@ -451,7 +451,7 @@ GETNUMLP:
 
 GOTNUM:
 	PUSH	DS
-	MOV	DS,[RESSEG]
+	MOV	DS,[SHELL_DATA_SELECTOR]
 ASSUME	DS:RESGROUP
 	MOV	AH,BYTE PTR [RETCODE]
 	POP	DS
@@ -497,7 +497,7 @@ SHIFT_CSW:
 	int	int_command
 	return
 SHIFT_NORM:
-	MOV	DS,[RESSEG]
+	MOV	DS,[SHELL_DATA_SELECTOR]
 ASSUME	DS:RESGROUP
 	MOV	AX,[BATCH]			; get batch pointer
 	OR	AX,AX				; in batch mode?
@@ -624,7 +624,7 @@ CALL_NORM:
 ;  set call flag to indicate call in progress
 
 	push	ds
-	mov	ds,[resseg]
+	mov	ds,[SHELL_DATA_SELECTOR]
 	ASSUME DS:resgroup,ES:resgroup
 	mov	call_flag, call_in_progress
 	mov	call_batch_flag, call_in_progress
@@ -672,7 +672,7 @@ GOTO_CSW:
 	int	int_command
 	return
 GOTO_NORM:
-	MOV	DS,[RESSEG]
+	MOV	DS,[SHELL_DATA_SELECTOR]
 ASSUME	DS:RESGROUP
 	TEST	[BATCH],-1
 	retz					; If not in batch mode, a nop

@@ -26,6 +26,9 @@ CODERES 	SEGMENT PUBLIC BYTE	;AC000;
 CODERES ENDS
 
 DATARES SEGMENT PUBLIC BYTE
+IFDEF COMMAND_UMB_DATA
+        EXTRN MYSEG:WORD,BATCH:WORD
+ENDIF
 	EXTRN	append_state:word	;AN020;
 	EXTRN	append_flag:byte	;AN020;
 	EXTRN	COMDRV:BYTE
@@ -248,7 +251,14 @@ ASSUME	DS:NOTHING,ES:NOTHING,SS:NOTHING
 	ENDIF
 	MOV	DI,80H
 	MOV	CX,64
+IFDEF COMMAND_UMB_DATA
+        push es
+        mov es,es:[MYSEG]
+ENDIF
 	REP	MOVSW
+IFDEF COMMAND_UMB_DATA
+        pop es
+ENDIF
 	IFDEF COMMAND_RESIDENT_BINDING
 	push es
 	pop ds
@@ -323,6 +333,9 @@ ASSUME	SS:RESGROUP
 	MOV SP,OFFSET RESGROUP:RSTACK
 	MOV	DS,AX
 ASSUME	DS:RESGROUP
+IFDEF COMMAND_UMB_DATA
+        SHELL_OWNER_SEG DS,lodcom_data
+ENDIF
 	CALL	HEADFIX 		; Make sure files closed stdin and stdout restored
 	XOR	BP,BP			; Flag command ok
 	MOV	AX,-1
@@ -368,7 +381,14 @@ USESLASH:
 	SUB	CX,SI
 	REP	MOVSB			; Transfer INFO to transient
 	MOV	AX,[MEMSIZ]
+IFDEF COMMAND_UMB_DATA
+        push es
+        mov es,[MYSEG]
+        mov word ptr es:[PDB_block_len],ax
+        pop es
+ELSE
 	MOV	WORD PTR DS:[PDB_block_len],AX	; Adjust my own header
+ENDIF
 
 ; Just a public label so this spot can be found easily.
 tjmp:
@@ -408,22 +428,38 @@ THEADFIX PROC	FAR
 THEADFIX ENDP
 
 HEADFIX:
+IFDEF COMMAND_UMB_DATA
+        push es
+        mov es,[MYSEG]
+ENDIF
 	CALL	SETVECT
 	XOR	BX,BX			; Clean up header
 	MOV	CX,[IO_SAVE]
+IFDEF COMMAND_UMB_DATA
+        mov dx,word ptr es:[PDB_JFN_Table]
+ELSE
 	MOV	DX,WORD PTR DS:[PDB_JFN_Table]
+ENDIF
 	CMP	CL,DL
 	JZ	CHK1			; Stdin matches
 	MOV	AH,CLOSE
 	SHELL_INT	int_command
+IFDEF COMMAND_UMB_DATA
+        mov es:[PDB_JFN_Table],cl
+ELSE
 	MOV	DS:[PDB_JFN_Table],CL	; Restore stdin
+ENDIF
 CHK1:
 	INC	BX
 	CMP	CH,DH			; Stdout matches
 	JZ	CHKOTHERHAND
 	MOV	AH,CLOSE
 	SHELL_INT	int_command
+IFDEF COMMAND_UMB_DATA
+        mov es:[PDB_JFN_Table+1],ch
+ELSE
 	MOV	DS:[PDB_JFN_Table+1],CH ; Restore stdout
+ENDIF
 CHKOTHERHAND:
 	ADD	BX,4			; Skip 2,3,4
 	MOV	CX,FilPerProc - 5	; Already done 0,1,2,3,4
@@ -451,6 +487,9 @@ append_fix_end: 			;AN030;
 	mov	[rsrc_xa_seg],no_xa_seg ;AN030; reset to no segment
 xa_fix_end:
 	pop	ds			;AN020; get data segment back
+IFDEF COMMAND_UMB_DATA
+        pop es
+ENDIF
 	return
 
 SAVHAND:
@@ -469,7 +508,14 @@ ASSUME	DS:NOTHING,ES:NOTHING,SS:NOTHING
 	MOV	AX,WORD PTR DS:[BX]
 	IFDEF COMMAND_RESIDENT_BINDING
 	MOV	ES:[HANDLE01],AX
+IFDEF COMMAND_UMB_DATA
+        push es
+        mov es,es:[MYSEG]
+ENDIF
 	MOV	AL,ES:[PDB_JFN_Table+2]
+IFDEF COMMAND_UMB_DATA
+        pop es
+ENDIF
 	ELSE
 	MOV	[HANDLE01],AX		; Save user's stdin, stdout
 	MOV	AL,CS:[PDB_JFN_Table+2] ; get COMMAND stderr
@@ -628,6 +674,10 @@ CHK:
 	return
 
 SETVECT:				; Set useful vectors
+IFDEF COMMAND_UMB_DATA
+        push ds
+        mov ds,[MYSEG]
+ENDIF
 	MOV	DX,OFFSET RESGROUP:SHELL_ENTRY_LODCOM
 	MOV	AX,(SET_INTERRUPT_VECTOR SHL 8) OR 22H
 	MOV	WORD PTR DS:[PDB_EXIT],DX
@@ -639,6 +689,9 @@ SETVECT:				; Set useful vectors
 	MOV	DX,OFFSET RESGROUP:SHELL_ENTRY_DSKERR
 	INC	AL
 	SHELL_INT	int_command
+IFDEF COMMAND_UMB_DATA
+        pop ds
+ENDIF
 	return
 
 
@@ -653,7 +706,15 @@ ENDINIT:
 	SHELL_OWNER_SEG DS,endinit_ds
 	ASSUME	DS:RESGROUP
 	mov	cx,usedenv		;g get number of bytes to move
+IFDEF COMMAND_UMB_DATA
+        push ds
+        SHELL_OWNER_SEG DS,endinit_env_state
+        mov ax,[ENVIRSEG]
+        pop ds
+        mov es,ax
+ELSE
 	mov	es,envirseg		;g get target environment segment
+ENDIF
 
 	ASSUME	ES:NOTHING
 	mov	DS:[PDB_environ],es	;g put new environment in my header	   ;AM067;
@@ -675,10 +736,98 @@ ENDINIT:
 	pop	es			;eg
 
 noreset:
+IFDEF COMMAND_UMB_DATA
+        SHELL_OWNER_SEG DS,endinit_flag_state
+        ASSUME DS:RESGROUP
+        ; INIT no longer executes and the environment has its final size.
+        ; Fill the retired data hole before AUTOEXEC creates further owners.
+        call shell_pack_startup
+ENDIF
 	mov	InitFlag,FALSE		;AC042; Turn off init flag
 	pop	es			;g
 	pop	ds			;g
 	jmp	lodcom			;g allocate transient
+
+IFDEF COMMAND_UMB_DATA
+; Only the successful upper-data layout needs packing. No retained copy or
+; new low workspace: the startup batch and environment keep their own owners.
+shell_pack_startup proc near
+        mov ax,ds
+        cmp ax,[MYSEG]
+        je shell_pack_done
+        mov ax,5800h
+        SHELL_INT int_command
+        jc shell_pack_done
+        push ax
+        xor bx,bx                  ; conventional first fit
+        mov ax,5801h
+        SHELL_INT int_command
+        jc shell_pack_restore
+        mov si,offset resgroup:BATCH
+        call shell_pack_owner
+        mov si,offset resgroup:ENVIRSEG
+        call shell_pack_owner
+shell_pack_restore:
+        pop bx
+        mov ax,5801h
+        SHELL_INT int_command
+shell_pack_done:
+        ret
+shell_pack_startup endp
+
+; DS:SI is the sole startup data pointer. Copy before publishing, then free
+; the old block. A failed allocation leaves the existing owner unchanged.
+shell_pack_owner proc near
+        mov dx,[si]
+        or dx,dx
+        jz shell_pack_owner_done
+        mov ax,dx
+        dec ax
+        mov es,ax
+        mov ax,es:[1]
+        cmp ax,[MYSEG]
+        jne shell_pack_owner_done
+        mov bx,es:[3]
+        cmp bx,1000h
+        jae shell_pack_owner_done
+        push bx
+        mov ah,48h
+        SHELL_INT int_command
+        pop cx
+        jc shell_pack_owner_done
+        mov es,ax
+        cmp ax,dx
+        jae shell_pack_discard
+        push si
+        push ds
+        mov ds,dx
+        xor si,si
+        xor di,di
+        shl cx,1
+        shl cx,1
+        shl cx,1                 ; paragraphs to words
+        cld
+        rep movsw
+        pop ds
+        pop si
+        pushf
+        cli
+        mov [si],es
+        cmp si,offset resgroup:ENVIRSEG
+        jne shell_pack_published
+        mov ax,es
+        mov es,[MYSEG]
+        mov es:[PDB_environ],ax
+shell_pack_published:
+        popf
+        mov es,dx
+shell_pack_discard:
+        mov ah,49h
+        SHELL_INT int_command
+shell_pack_owner_done:
+        ret
+shell_pack_owner endp
+ENDIF
 
 	IFDEF COMMAND_HIGH_RESIDENT
 SHELLCODE ENDS

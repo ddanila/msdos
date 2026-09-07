@@ -127,7 +127,7 @@ ASSUME	CS:TRANGROUP,DS:NOTHING,ES:NOTHING,SS:NOTHING
 SINGLETEST:
 	ASSUME	DS:NOTHING
 	push	ds
-	MOV	DS,ResSeg
+	MOV	DS,SHELL_DATA_SELECTOR
 	ASSUME	DS:ResGroup
 	CMP	[SINGLECOM],0
 	JZ	TestDone
@@ -142,7 +142,7 @@ SETREST1:
 	MOV	AL,1
 SETREST:
 	PUSH	DS
-	MOV	DS,[RESSEG]
+	MOV	DS,[SHELL_DATA_SELECTOR]
 ASSUME	DS:RESGROUP
 	MOV	[RESTDIR],AL
 	POP	DS
@@ -162,7 +162,7 @@ PIPEDEL:
 	assume	ds:nothing
 	push	ds
 	PUSH	DX
-	mov	ds,ResSeg
+	mov	ds,SHELL_DATA_SELECTOR
 	assume	ds:ResGroup
 	mov	DX,OFFSET RESGROUP:PIPE1	; Clean up in case ^C
 	MOV	AH,UNLINK
@@ -201,7 +201,7 @@ tcommandj:
 
 PIPEPROCSTRT:
 ASSUME	DS:TRANGROUP,ES:TRANGROUP
-	MOV	DS,[RESSEG]
+	MOV	DS,[SHELL_DATA_SELECTOR]
 ASSUME	DS:RESGROUP
 	INC	[PIPEFILES]			; Flag that the pipe files exist
 	MOV	AH,Get_Default_Drive		; Get current drive
@@ -258,8 +258,16 @@ PIPEERRJ:
 no_pipeerr:
 	MOV	BX,AX
 	MOV	AL,0FFH
+IFDEF COMMAND_UMB_DATA
+        push es
+        mov es,[MYSEG]
+	XCHG	AL,ES:[BX.PDB_JFN_Table]
+	MOV	ES:[PDB_JFN_Table],AL		; Redirect
+        pop es
+ELSE
 	XCHG	AL,[BX.PDB_JFN_Table]
 	MOV	DS:[PDB_JFN_Table],AL		; Redirect
+ENDIF
 
 FIRSTPIPE:
 	MOV	DI,OFFSET TRANGROUP:COMBUF + 2
@@ -320,8 +328,16 @@ IsPipe2:
 	JC	PIPEERRJ			; Lost the file
 	MOV	BX,AX
 	MOV	AL,0FFH
+IFDEF COMMAND_UMB_DATA
+        push es
+        mov es,[MYSEG]
+	XCHG	AL,ES:[BX.PDB_JFN_Table]
+	MOV	ES:[PDB_JFN_Table+1],AL
+        pop es
+ELSE
 	XCHG	AL,[BX.PDB_JFN_Table]
 	MOV	DS:[PDB_JFN_Table+1],AL
+ENDIF
 	XCHG	DX,[INPIPEPTR]			; Swap for next element of pipe
 	MOV	[OUTPIPEPTR],DX
 	JMP	SHORT PIPECOM
@@ -374,6 +390,9 @@ ASSUME	DS:TRANGROUP,ES:TRANGROUP
 
 DATINIT PROC	FAR
 	mov	cs:[resseg],ds			; SetInitFlag needs resseg initialized
+IFDEF COMMAND_UMB_DATA
+        mov cs:[RESDATA],ds        ; initial date/time call precedes data publication
+ENDIF
 	PUSH	ES
 	PUSH	DS				; Going to use the previous stack
 	MOV	AX,CS				; Set up the appropriate segment registers
@@ -617,7 +636,7 @@ TIMERR:
 ; Set the special flag in the INIT flag to the value in CX.
 ;
 SetInitFlag:
-	mov	ds,[RESSEG]
+	mov	ds,[SHELL_DATA_SELECTOR]
 assume ds:resgroup
 	and	InitFlag,NOT initSpecial
 	or	InitFlag,cL
@@ -629,7 +648,7 @@ Public	PipeOff
 PipeOff:
 	ASSUME	DS:NOTHING,ES:NOTHING
 	SaveReg <DS,AX>
-	MOV	DS,ResSeg
+	MOV	DS,SHELL_DATA_SELECTOR
 	ASSUME	DS:RESGroup
 	XOR	AL,AL
 	XCHG	PipeFlag,AL

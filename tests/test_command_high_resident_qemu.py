@@ -9,6 +9,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -153,15 +154,26 @@ def check_entry_mutation(work, high, floppy, env, symbols):
         raise AssertionError("wrong-DS TCOMMAND mutation was not detected")
 
 
-def build(work, high):
+def build(work, high, *, upper_data=False):
+    if upper_data and not high:
+        raise ValueError("upper data requires the complete high shell")
     work.mkdir()
     for path in SOURCE.glob("*.OBJ"):
         shutil.copyfile(path, work / path.name)
     shutil.copyfile(SOURCE / "COMMAND.LNK", work / "COMMAND.LNK")
     defines = ("-DCOMMAND_RESIDENT_BINDING -DCOMMAND_HIGH_RESIDENT "
                "-DCOMMAND_HIGH_RESIDENT_POISON") if high else ""
+    if upper_data:
+        defines += " -DCOMMAND_UMB_DATA"
+    modules = ("COMMAND1", "COMMAND2", "RUCODE", "RDATA", "INIT", "TCMD2B", "TMISC1", "TPIPE", "TDATA", "TCODE", "TENV")
+    if upper_data:
+        modules = re.findall(r"([A-Z0-9]+)\.OBJ", (SOURCE / "COMMAND.LNK").read_text())
+        for module in modules:
+            source = (SOURCE / (module + ".ASM")).read_text()
+            assert not re.search(r"(?im)^\s*mov\s+(?:ds|es)\s*,\s*(?:cs:)?\[?resseg\b", source), (
+                module, "transient data load still selects the PSP")
     with (work / "build.log").open("w") as log:
-        for module in ("COMMAND1", "COMMAND2", "RUCODE", "RDATA", "INIT", "TCMD2B", "TMISC1", "TPIPE", "TDATA", "TCODE", "TENV"):
+        for module in modules:
             run([ROOT / "bin/jwasm-masm",
                  f"-Mx -t {defines} -I. -I../../INC -I../../DOS -Fl={work / module}.LST",
                  f"{module}.ASM,{work / module}.OBJ;"], cwd=SOURCE, stdout=log, stderr=log)

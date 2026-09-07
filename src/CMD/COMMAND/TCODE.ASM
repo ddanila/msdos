@@ -145,7 +145,7 @@ SETDRV:
 ;
 
 TCOMMAND:
-	MOV	DS,CS:[RESSEG]		; callers may still have resident DS selected
+	MOV	DS,CS:[SHELL_DATA_SELECTOR]		; callers may still have resident DS selected
 ASSUME	DS:RESGROUP
 	MOV	[LOADHIGH_PENDING],0
 	MOV	AX,-1
@@ -197,7 +197,7 @@ ASSUME	ES:TRANGROUP,DS:TRANGROUP		;AC000;
 	invoke	SETSTDOUTOFF			;AN026; turn off critical error on STDOUT
 	mov	append_exec,0			;AN041; set internal append state off
 
-	MOV	DS,[RESSEG]
+	MOV	DS,[SHELL_DATA_SELECTOR]
 ASSUME	DS:RESGROUP
 
 	MOV	[UCOMBUF],COMBUFLEN		; Init UCOMBUF
@@ -272,7 +272,7 @@ SAVSIZ:
 
 GotSize:
 	MOV	[BYTCNT],AX			; Max no. of bytes that can be buffered
-	MOV	DS,[RESSEG]			; All batch work must use resident seg.
+	MOV	DS,[SHELL_DATA_SELECTOR]			; All batch work must use resident seg.
 ASSUME	DS:RESGROUP
 
 	TEST	[ECHOFLAG],1
@@ -363,6 +363,10 @@ ISNOBAT:
 	JZ	REGCOM
 	MOV	SI,-1
 	XCHG	SI,[SINGLECOM]
+IFDEF COMMAND_UMB_DATA
+        push ds
+        mov ds,[MYSEG]            ; SINGLECOM addresses the actual PSP tail
+ENDIF
 	MOV	DI,OFFSET TRANGROUP:COMBUF + 2
 	XOR	CX,CX
 
@@ -373,6 +377,9 @@ SINGLELOOP:
 	CMP	AL,0DH
 	JNZ	SINGLELOOP
 	DEC	CX
+IFDEF COMMAND_UMB_DATA
+        pop ds
+ENDIF
 	CMP	[KEEPCOM],0
 	JZ	SINGLE_READY
 	MOV	[SINGLECOM],0
@@ -574,7 +581,7 @@ externalj1:
 	jmp	external
 
 nullcom:
-	MOV	DS,[RESSEG]
+	MOV	DS,[SHELL_DATA_SELECTOR]
 ASSUME	DS:RESGROUP
 	TEST	[BATCH], -1			;G Are we in a batch file?
 	JZ	nosetflag			;G only set flag if in batch

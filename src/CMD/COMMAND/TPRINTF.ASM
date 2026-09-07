@@ -287,7 +287,7 @@ print_err:
 
 not_stderr:
 	mov	ax,print_err_flag		;AN026;get extended error number back
-	mov	es,[resseg]			; No, set up for error, load the
+	mov	es,[SHELL_DATA_SELECTOR]			; No, set up for error, load the
 assume	es:resgroup				;  right error msg, and jmp to cerror.
 	test	PipeFlag,-1
 	jz	go_to_error

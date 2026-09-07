@@ -243,7 +243,7 @@ add_name_ret:
 ; pieces necessary to reread in the info.  First, skip all delimiters
 ;
 	invoke	ScanOff
-	mov	es,[resseg]			;  comspec var in the resident
+	mov	es,[SHELL_DATA_SELECTOR]			;  comspec var in the resident
 	assume	es:resgroup
 ;
 ; Keep the canonical reload path in resident state.
@@ -298,7 +298,7 @@ CopyDone:
 	ret
 
 DISP_ENV:
-	MOV	DS,[RESSEG]
+	MOV	DS,[SHELL_DATA_SELECTOR]
 ASSUME	DS:RESGROUP
 	MOV	DS,[ENVIRSEG]
 ASSUME	DS:NOTHING
@@ -378,7 +378,7 @@ FIND_NAME_IN_environment:
 FIND:
 	CLD
 	CALL	COUNT0				; CX = LENGTH OF NAME
-	MOV	ES,[RESSEG]
+	MOV	ES,[SHELL_DATA_SELECTOR]
 ASSUME	ES:RESGROUP
 	MOV	ES,[ENVIRSEG]
 ASSUME	ES:NOTHING
@@ -479,7 +479,7 @@ GETARG:
 ; there is NO double NULL, merely a string that is empty.
 ;
 SCAN_DOUBLE_NULL:
-	MOV	ES,[RESSEG]
+	MOV	ES,[SHELL_DATA_SELECTOR]
 ASSUME	ES:RESGROUP
 	MOV	ES,[ENVIRSEG]
 ASSUME	ES:NOTHING
@@ -507,7 +507,7 @@ TESTKANJ:
 	push	ds				;AN000;  3/3/KK
 	push	si				;AN000;  3/3/KK
 	push	ax				;AN000;  3/3/KK
-	mov	ds,cs:[resseg]			;AN000;  Get resident segment
+	mov	ds,cs:[SHELL_DATA_SELECTOR]			;AN000;  Get resident segment
 	assume	ds:resgroup			;AN000;
 	lds	si,dbcs_vector_addr		;AN000;  get DBCS vector
 ktlop:						;AN000;  3/3/KK
@@ -561,7 +561,7 @@ upconv	proc	near				;AN000;
 	sub	al,80h				;AN000;  only upper 128 chars in table
 	push	ds				;AN000;
 	push	bx				;AN000;
-	mov	ds,[resseg]			;AN000;  get resident data segment
+	mov	ds,[SHELL_DATA_SELECTOR]			;AN000;  get resident data segment
 assume	ds:resgroup				;AN000;
 	lds	bx,dword ptr fucase_addr+1	;AN000;  get table address
 	add	bx,2				;AN000;  skip over first word
@@ -592,7 +592,7 @@ STORE_CHAR:
 	PUSH	BX
 	PUSH	ES				;AN056;
 	PUSH	DS				;AN056; Save local DS
-	MOV	DS,[RESSEG]			;AN056; Get resident segment
+	MOV	DS,[SHELL_DATA_SELECTOR]			;AN056; Get resident segment
 	ASSUME	DS:RESGROUP			;AN056;
 	MOV	ES,[ENVIRSEG]			;AN056; Get environment segment
 	ASSUME	ES:NOTHING			;AN056;
@@ -632,7 +632,7 @@ ENVSIZ_OK:
 ENVNOSET:
 	PUSHF
 	PUSH	ES
-	MOV	ES,[RESSEG]
+	MOV	ES,[SHELL_DATA_SELECTOR]
 	invoke	ALLOC_TPA
 	POP	ES
 	POPF
@@ -676,7 +676,7 @@ ASSUME	DS:TRANGROUP
 
 RESTUDIR1:
 	PUSH	DS
-	MOV	DS,[RESSEG]
+	MOV	DS,[SHELL_DATA_SELECTOR]
 ASSUME	DS:RESGROUP
 	CMP	[RESTDIR],0
 	POP	DS

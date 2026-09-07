@@ -14,7 +14,17 @@ Report UMB and application XMS costs alongside the gain. Complete BIOS and
 COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
-The current **composed retirement candidate** measures
+**Latest opt-in COMMAND data candidate:** **625,216 conventional / 48,064 free
+UMB / 6,798,336 application XMS bytes**. Complete data retirement and startup
+allocation packing recover **336 bytes in the largest block**, not a separate
+free hole. This is **6,480 above retail** and **7,280 above the development
+control**. Its cost is **352 UMB bytes and 211 retained HMA bytes**; free UMB
+remains **176 above the retail floor**, and the shared HMA tail has **3,412
+bytes left**. BIOS remains 2,736 low bytes; COMMAND's main low allocation is
+544 bytes. Functional qualification is incomplete; this is not promotion or
+completion of BIOS/COMMAND placement. See the packing checkpoint below.
+
+The preceding **composed retirement control** measures
 **624,880 conventional / 48,416 free UMB bytes**: **6,944 above the selected
 development control**, and **6,144 above retail**. The preceding shell retirement
 recovered **2,752 conventional bytes** versus its identical BIOS/provider
@@ -314,19 +324,19 @@ python3 tests/test_bios_clock_retirement_qemu.py out/command-high-retirement-wv3
 
 #### Retired low interrupt-stack pool
 
-The current saved VC comparison narrows the OpenDOS lead to **3,472 bytes**,
+The current saved VC comparison narrows the OpenDOS lead to **2,832 bytes**,
 not the 11,936-byte gap in the older reassessment below:
 
 | Accounting boundary | Current packed candidate | OpenDOS 7.01 IDE capture | Local minus OpenDOS |
 | --- | ---: | ---: | ---: |
 | System start to COMMAND start | 13,696 | 10,448 | +3,248 |
-| COMMAND start to VC start | 1,232 | 1,312 | -80 |
+| COMMAND start to VC start | 896 | 1,312 | -416 |
 | VC start to first free block | 12,720 | 12,720 | 0 |
-| Largest conventional block | 624,880 | 628,048 | -3,168 |
+| Largest conventional block | 625,216 | 628,048 | -2,832 |
 
 These are allocation spans, not individual program MCB sizes. VC hashes and
 the 639 KiB ceiling match; vendor resource semantics and reset qualification
-still differ. Evidence: `out/sft-retirement-fx2p__51/results.json` and
+still differ. Evidence: `out/command-upper-data-i8bgzrxs/results.json` and
 `out/opendos-disk-boot-evidence/result.json`. This reconciles saved captures,
 not a new vendor run. COMMAND placement still needs qualification and a final
 state contract, but a large shell allocation no longer explains this gap.
@@ -707,7 +717,7 @@ placement. Next, classify and move eligible state against the remaining shared
 3,623 bytes, preserve the low PSP/stack and published pointer contracts, then
 measure the next composed gain; do not replace this with more copy-only milestones.
 
-**Remaining shell data ownership:** the current linked ranges below partition
+**Shell data ownership:** the control's linked ranges below partition
 the low data, excluding PSP, gates and stack. They are not independent savings.
 
 | Linked range / bytes | Contract for the next state move |
@@ -718,22 +728,53 @@ the low data, excluding PSP, gates and stack. They are not independent savings.
 | `0333h..033Dh` / 10 | Allocation break and two high character-service entries |
 | `033Dh..036Dh` / 48 | Low reply from the published disk-message reader; preserve external consumers |
 
-The next implementation tranche is the **complete 333-byte data owner**, not
-individual COMSPEC or control fields. Evaluate packed UMB placement for this
+The implementation tranche covers the **complete 333-byte data owner**, not
+individual COMSPEC or control fields. It uses packed UMB placement for this
 real-mode data while retaining the existing high services. This includes the
 48-byte public message reply: unlike HMA, an ordinary UMB pointer does not need
 the HMA-specific buffer normalization that prevented its previous move.
 
-**Joint destination budget, not achieved savings:** 333 bytes need 21 payload
-paragraphs plus one MCB, or **352 UMB bytes**. The current 48,416 free UMB bytes
-would become **48,064**, leaving **176 above retail's floor**. Reducing COMMAND
-from 880 bytes to its existing `0220h` PSP/gate/stack boundary would release at
-most **336 conventional bytes before new retained support costs**. The existing
-3,623-byte HMA tail remains shared with unfinished BIOS placement; neither the
-UMB reservation nor any binding growth is free. No allocation is made yet.
+**Joint destination budget:** 333 bytes need 21 payload paragraphs plus one
+MCB, or **352 UMB bytes**. The added two-byte data selector fits that payload.
+The measured HMA and conventional costs, including retained support code, are
+recorded below; BIOS placement shares the remaining HMA tail.
+
+**Implemented packing checkpoint (`COMMAND_UMB_DATA`, opt-in):** the complete
+data owner, including its new two-byte data selector, occupies 335 bytes in a
+336-byte UMB payload. Successful publication retires the old low allocation;
+the PSP, gates and stack remain low. ENDINIT packs the startup batch and
+environment only after initialization stops executing and the environment has
+its final size. It publishes their new pointers before freeing the old blocks.
+Normal COMMAND remains byte-identical. The existing high payload grows from
+5,635 to **5,846 HMA bytes**; no second live low data copy is retained.
+
+Fresh paired VC/MEM captures in `out/command-upper-data-i8bgzrxs/results.json`
+measure **624,880 -> 625,216 conventional**, **48,416 -> 48,064 free UMB**, and
+unchanged **6,798,336 application XMS**. The main low owner is 544 bytes,
+followed immediately by the 48-byte batch and 160-byte environment allocations
+and their arena headers. All 336 released bytes extend the largest block.
+The test rejects a smaller gain or a stranded conventional hole: shrinking
+without packing produced only +96, trapping 224 bytes plus an arena header.
+
+The same composed candidate passes fourteen destructive external pipeline
+legs, child COMMAND execution, overwrite/append/input redirection, SET COMSPEC
+and an environment update surviving transient reload. Ordinary HIGH/LOW floppy
+fallback pipelines also pass (`out/command-upper-fallback-60155za7/`). The
+pipeline test caught stale case-insensitive `ResSeg` loads in cleanup; all such
+data loads now select the data owner, with a build-time regression check.
+
+Remaining before promotion: the full asynchronous/public-pointer, INT 2Eh,
+manager/A20, allocation-rejection/rollback and 286 matrix below. Reconcile
+BIOS placement against the remaining shared HMA budget; neither this measured
+gain nor the fallback pipeline check completes that work.
+
+```sh
+make cmd_command
+python3 tests/test_command_upper_data_qemu.py out/sft-retirement-fx2p__51/input.img
+```
 
 An offset-preserving data selector can be `allocated_segment - 0220h/16`:
-only offsets `0220h..036Dh` belong to that allocation. This avoids rebasing every
+only offsets `0220h..036Fh` belong to that allocation. This avoids rebasing every
 resident/transient data operand. The same trick cannot place this owner in the
 high HMA tail: the required segment would exceed FFFFh. The selector's prefix
 is **not** a PSP, stack, or spare buffer, and must never be accessed as one.

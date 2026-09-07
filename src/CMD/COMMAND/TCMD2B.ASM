@@ -217,10 +217,18 @@ ICLLOOP:					; Close basic handles
 	INT	int_command
 
 RESRET:
-	MOV	DS,[RESSEG]
+	MOV	DS,[SHELL_DATA_SELECTOR]
 ASSUME	DS:RESGROUP
+IFDEF COMMAND_UMB_DATA
+        push [MYSEG]
+        push es
+        mov es,[MYSEG]
+        mov ax,word ptr es:[PDB_JFN_Table]
+        pop es
+ELSE
 	PUSH	DS
 	MOV	AX,WORD PTR DS:[PDB_JFN_Table]	; Get new 0 and 1
+ENDIF
 	MOV	[IO_SAVE],AX
 	IFDEF COMMAND_HIGH_RESIDENT
 	MOV AX,OFFSET RESGROUP:shell_gate_lodcom1
@@ -535,7 +543,7 @@ EXIT_CSW:
 	return
 EXIT_NORM:
 	push	ds				;AN000; save data segment
-	mov	ds,[resseg]			;AN000; get resident data segment
+	mov	ds,[SHELL_DATA_SELECTOR]			;AN000; get resident data segment
 
 assume	ds:resgroup				;AN000;
 
@@ -560,7 +568,7 @@ no_reset:					;AN045;
 
 assume	ds:trangroup				;AN000;
 
-	MOV	ES,[RESSEG]
+	MOV	ES,[SHELL_DATA_SELECTOR]
 
 assume	es:resgroup
 

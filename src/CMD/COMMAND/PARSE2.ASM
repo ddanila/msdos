@@ -165,7 +165,7 @@ parseline:
 ; reloaded.
 
 	push	ds
-	mov	ds,[RESSEG]
+	mov	ds,[SHELL_DATA_SELECTOR]
 	assume	ds:resgroup
 	cmp	FORFLAG,0
 	pop	ds

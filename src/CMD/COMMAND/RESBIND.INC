@@ -25,6 +25,11 @@ shell_binding_&slot DW 0
 ENDM
 
 SHELL_BINDING_SLOTS MACRO action
+ IFDEF COMMAND_UMB_DATA
+    action lodcom_data
+    action endinit_env_state
+    action endinit_flag_state
+ ENDIF
     action fatal_ds
     action fatal_psp
     action ret2e_ds

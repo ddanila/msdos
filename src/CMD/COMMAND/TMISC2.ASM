@@ -192,7 +192,7 @@ ASSUME	DS:NOTHING,ES:NOTHING,SS:NOTHING
 	PUSH	AX
 	PUSH	BX
 	PUSH	CX
-	MOV	DS,[RESSEG]
+	MOV	DS,[SHELL_DATA_SELECTOR]
 ASSUME	DS:RESGROUP
 
 	CMP	[PIPEFLAG],0
@@ -232,8 +232,16 @@ ASSUME	DS:RESGROUP
 ; Mega sleaze!! We move the SFN from the new handle spot into the old stdin
 ; spot.  We invalidate the new JFN we got.
 ;
+IFDEF COMMAND_UMB_DATA
+        push es
+        mov es,[MYSEG]
+	XCHG	AL,ES:[BX.PDB_JFN_Table]
+	MOV	ES:[PDB_JFN_Table],AL
+        pop es
+ELSE
 	XCHG	AL,[BX.PDB_JFN_Table]
 	MOV	DS:[PDB_JFN_Table],AL
+ENDIF
 
 	return
 ;
@@ -317,7 +325,7 @@ REOUTEXISTS:
 	jnz	reout_0_length			;AN017; No - file must be 0 length
 
 	cmp	one_char_val,01ah		;AN011; Was char an eof mark?
-	mov	DS,[resseg]			;AN011; Get resident segment back
+	mov	DS,[SHELL_DATA_SELECTOR]			;AN011; Get resident segment back
 	assume	DS:Resgroup			;AN011;
 	JNZ	SET_REOUT			;AN011; No, just continue
 	MOV	AX,(LSEEK SHL 8) OR 1		;AN011; EOF mark found
@@ -327,7 +335,7 @@ REOUTEXISTS:
 	JMP	SHORT SET_REOUT
 
 reout_0_length: 				;AN017; We have a 0 length file
-	mov	DS,[resseg]			;AN017; Get resident segment back
+	mov	DS,[SHELL_DATA_SELECTOR]			;AN017; Get resident segment back
 	assume	DS:Resgroup			;AN017;
 	MOV	AX,(LSEEK SHL 8)		;AN017; Move to beginning of file
 	XOR	CX,CX				;AN017; Offset is 0
@@ -364,8 +372,16 @@ SET_REOUT:
 ; spot.  We invalidate the new JFN we got.
 ;
 	MOV	AL,0FFH
+IFDEF COMMAND_UMB_DATA
+        push es
+        mov es,[MYSEG]
+	XCHG	AL,ES:[BX.PDB_JFN_Table]
+	MOV	ES:[PDB_JFN_Table+1],AL
+        pop es
+ELSE
 	XCHG	AL,[BX.PDB_JFN_Table]
 	MOV	DS:[PDB_JFN_Table+1],AL
+ENDIF
 
 NOREOUT:
 	return

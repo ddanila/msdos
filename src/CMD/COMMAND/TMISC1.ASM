@@ -149,7 +149,7 @@ externalj:
 
 fndcom: 					; search the internal command table
 	push	es
-	mov	es,[RESSEG]
+	mov	es,[SHELL_DATA_SELECTOR]
 	cmp	byte ptr es:[LOADHIGH_PENDING],0
 	pop	es
 	jne	externalj
@@ -255,7 +255,7 @@ Cmd_done:
     push    cs					; g  restore data segment
     pop     ds					; g
     push    ds					; g  save data segment
-    mov     ds,[resseg] 			; g  get segment containing call flag
+    mov     ds,[SHELL_DATA_SELECTOR] 			; g  get segment containing call flag
     ASSUME  ds:resgroup
     cmp     call_flag, call_in_progress 	; G  Is a call in progress?
     mov     call_flag, 0			; G  Either way, reset flag
@@ -336,15 +336,22 @@ NeoExecute:
 	MOV	ES,[TRAN_TPA]
 	MOV	AH,DEALLOC
 	INT	int_command			; Now running in "free" space
-	MOV	ES,[RESSEG]
+	MOV	ES,[SHELL_DATA_SELECTOR]
 ASSUME	ES:RESGROUP
 	INC	[EXTCOM]			; Indicate external command
 	MOV	[RESTDIR],0			; Since USERDIR1 is in transient, insure
 						;  this flag value for re-entry to COMMAND
+IFDEF COMMAND_UMB_DATA
+        push es
+        mov es,es:[MYSEG]
+ENDIF
 	MOV	DI,FCB
 	MOV	SI,DI
 	MOV	CX,052H 			; moving (100h-5Ch)/2 = 80h-2Eh
 	REP	MOVSW				; Transfer parameters to resident header
+IFDEF COMMAND_UMB_DATA
+        pop es
+ENDIF
 	MOV	DX,OFFSET TRANGROUP:EXECPATH
 	MOV	BX,OFFSET RESGROUP:EXEC_BLOCK
 	MOV	AX,EXEC SHL 8
@@ -359,14 +366,18 @@ ENDIF
 ; trashed.  Move the stack (also in free space) to allocated space because
 ; since EXEC restores the stack, somebody may trash what is on the stack.
 ;
+IFDEF COMMAND_UMB_DATA
+        mov cx,es:[MYSEG]
+ELSE
 	MOV	CX,ES
+ENDIF
 	MOV	SS,CX
 	MOV	SP,OFFSET RESGROUP:RSTACK
 	JMP	[EXEC_ADDR]			; Jmp to the EXEC in the resident
 
 BADCOM:
 	push	es
-	mov	es,[RESSEG]
+	mov	es,[SHELL_DATA_SELECTOR]
 	cmp	byte ptr es:[LOADHIGH_PENDING],0
 	pop	es
 	je	short badcom_standard
@@ -388,7 +399,7 @@ CERROR:
 ; upper-first/conventional-fallback allocation policy while the child runs.
 LOADHIGH:
 	push	bp
-	mov	es,[RESSEG]
+	mov	es,[SHELL_DATA_SELECTOR]
 	mov	byte ptr es:[LOADHIGH_PENDING],1
 	mov	word ptr es:[LOADHIGH_REGION_MASK],0ffffh
 	mov	byte ptr es:[LOADHIGH_SHRINK],0
@@ -570,7 +581,7 @@ loadhigh_operand_measured:
 	jmp	DOCOM1
 
 loadhigh_bad_region:
-	mov	es,[RESSEG]
+	mov	es,[SHELL_DATA_SELECTOR]
 	mov	byte ptr es:[LOADHIGH_PENDING],0
 	pop	bp
 	push	cs
@@ -591,7 +602,7 @@ PRESCAN:					; Cook the input buffer
 ASSUME	DS:TRANGROUP,ES:TRANGROUP
 
 	XOR	CX,CX
-	MOV	ES,[RESSEG]
+	MOV	ES,[SHELL_DATA_SELECTOR]
 ASSUME	ES:RESGROUP
 	MOV	SI,OFFSET TRANGROUP:COMBUF+2
 	MOV	DI,SI

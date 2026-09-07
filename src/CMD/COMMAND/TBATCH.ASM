@@ -646,7 +646,7 @@ Procedure   Free_TPA,NEAR
 ASSUME	DS:TRANGROUP,ES:RESGROUP
 
 	PUSH	ES
-	MOV	ES,[RESSEG]
+	MOV	ES,[SHELL_DATA_SELECTOR]
 	MOV	ES,[RES_TPA]
 	MOV	AH,DEALLOC
 	INT	int_command			; Make lots of free memory
@@ -665,7 +665,7 @@ Procedure   Alloc_TPA,NEAR
 ASSUME DS:TRANGROUP,ES:RESGROUP
 
 	PUSH	ES
-	MOV	ES,[RESSEG]
+	MOV	ES,[SHELL_DATA_SELECTOR]
 	MOV	BX,0FFFFH			; Re-allocate the transient
 	MOV	AH,ALLOC
 	INT	int_command
@@ -763,7 +763,7 @@ ASSUME	DS:TRANGROUP, ES:NOTHING
 ; Batch parameters are read with ES set to segment of resident part
 ;
 
-	MOV	ES,[RESSEG]
+	MOV	ES,[SHELL_DATA_SELECTOR]
 ASSUME	ES:RESGROUP
 	cmp	es:[call_batch_flag],call_in_progress ;AN043; If in CALL,
 	jz	skip_ioset			;AN043;   redirection was already set up
@@ -889,7 +889,7 @@ ASSUME	ES:NOTHING
 	MOV	ES:[BatType],BatchType		; signal batch file type
 	MOV	ES:[batlast],ax 		;G save segment of last batch file
 	push	DS				;G
-	mov	DS,[resseg]			;G set to resident data
+	mov	DS,[SHELL_DATA_SELECTOR]			;G set to resident data
 ASSUME	DS:RESGROUP
 	xor	ax,ax				;G
 	mov	bl,forflag			;G get the current FOR state
@@ -1033,8 +1033,8 @@ Procedure   BatchOff
 	SaveReg <AX,ES>
 	PUSH	DS				;G
 	PUSH	BX				;G
-	MOV	ES,ResSeg
-	MOV	DS,ResSeg			;G
+	MOV	ES,SHELL_DATA_SELECTOR
+	MOV	DS,SHELL_DATA_SELECTOR			;G
 	ASSUME	ES:ResGroup,DS:Resgroup 	;G
 	MOV	AX,Batch			; Free the batch segment
 	OR	AX,AX

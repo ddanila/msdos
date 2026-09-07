@@ -459,6 +459,10 @@ FORMATDATA ENDS
 DATARES SEGMENT PUBLIC BYTE
 	ENDIF
 
+IFDEF COMMAND_UMB_DATA
+PUBLIC shell_data_start,shell_data_end,MYDATASEG
+shell_data_start LABEL BYTE
+ENDIF
 RemMsg		DD	?			;Pointer to message in error 15
 ErrType 	DB	?			; Error message style, 0=old, 1=new
 
@@ -606,6 +610,9 @@ MYSEG1		DW	?
 MYSEG2		DW	0
 ResTest 	DW	0
 RES_TPA 	DW	0			; Original TPA (not rounded to 64K)
+IFDEF COMMAND_UMB_DATA
+MYDATASEG DW 0                     ; independent of MYSEG/HEADCALL's PSP identity
+ENDIF
 TranVarEnd	LABEL	BYTE
 
 olderrno	dw	?
@@ -620,6 +627,9 @@ hma_test_kanj_entry dd 0
 	PUBLIC shell_message_reply
 shell_message_reply DB COMMAND_MSG_TEMP_BUF_SZ DUP(?)
 	ENDIF
+IFDEF COMMAND_UMB_DATA
+shell_data_end LABEL BYTE
+ENDIF
 
 .xlist
 .xcref

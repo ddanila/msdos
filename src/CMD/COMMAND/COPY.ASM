@@ -396,7 +396,7 @@ CHKSWTCHES:
 	MOV	AH,GET_VERIFY_ON_WRITE
 	INT	int_command			; Get current setting
 	PUSH	DS
-	MOV	DS,[RESSEG]
+	MOV	DS,[SHELL_DATA_SELECTOR]
 ASSUME	DS:RESGROUP
 	XOR	AH,AH
 	MOV	[VERVAL],AX			; Save current setting
@@ -754,7 +754,7 @@ get_src_xa:
 	pushf					;AN000; save flags
 	mov	[src_xa_seg], AX		;AN000; save new segment
 	push	ds				;AN030; get resident segment
-	mov	ds,[resseg]			;AN030;   and save copy of xa
+	mov	ds,[SHELL_DATA_SELECTOR]			;AN030;   and save copy of xa
 	assume	ds:resgroup			;AN030;   segment in resident
 	mov	[rsrc_xa_seg],ax		;AN030;   in case user breaks
 	pop	ds				;AN030;   out or has critical
@@ -1081,7 +1081,7 @@ Deallocate_Src_XA  proc    near 		;AN030;
 	pop	es				;AN030;
 	mov	[src_xa_seg],no_xa_seg		;AN030; reset to no segment
 	push	ds				;AN030; reinitialize resident
-	mov	ds,[resseg]			;AN030;   copy of xa segment
+	mov	ds,[SHELL_DATA_SELECTOR]			;AN030;   copy of xa segment
 	assume	ds:resgroup			;AN030;
 	mov	[rsrc_xa_seg],no_xa_seg 	;AN030; reset to no segment
 	pop	ds				;AN030;

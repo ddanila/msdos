@@ -85,6 +85,9 @@ ENDM
 ENDIF
 
 DATARES 	SEGMENT PUBLIC BYTE	;AC000;
+IFDEF COMMAND_UMB_DATA
+        EXTRN MYSEG:WORD
+ENDIF
 	EXTRN	abort_char:byte
 	EXTRN	badfat_block:byte	;AC000;
 	EXTRN	badfat_subst:byte	;AC000;
@@ -618,7 +621,14 @@ ASSUME	DS:RESGROUP
 	ELSE
 	call	reset_msg_pointers		;AN000; reset critical & parse message addresses
 	mov	ax,[PARENT]			; Load real parent PID
+IFDEF COMMAND_UMB_DATA
+        push es
+        mov es,[MYSEG]
+        mov word ptr es:[PDB_Parent_PID],ax
+        pop es
+ELSE
 	mov	word ptr ds:[PDB_Parent_PID],ax ; Put it back where it belongs
+ENDIF
 	mov	ax,(Exit SHL 8) OR 255
 	CRITICAL_INT 21h,int21
 	ENDIF

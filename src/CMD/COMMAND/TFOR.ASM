@@ -66,7 +66,7 @@ FORTERM:
 	push	cs				;AN037;
 	pop	es				;AN037;
 	call	ForOff
-	mov	ds,ResSeg
+	mov	ds,SHELL_DATA_SELECTOR
 ASSUME	DS:RESGROUP
 	CMP	[SINGLECOM],0FF00H
 	JNZ	BATCRLF
@@ -281,7 +281,7 @@ for_made_com:					; finished all the <command> args
 	not	CL				; compute and record command length
 	mov	[COMBUF+1], CL
 
-	mov	DS, [RESSEG]
+	mov	DS, [SHELL_DATA_SELECTOR]
 assume	DS:resgroup
 
 	test	[ECHOFLAG],1			; shall we echo this <command>, dearie?
@@ -356,7 +356,7 @@ FOR_CSW:
 	int	int_command
 	return
 FOR_NORM:
-	mov	ES, [RESSEG]
+	mov	ES, [SHELL_DATA_SELECTOR]
 assume	ES:resgroup
 
 	cmp	ForFlag,0			; is another one already running?
@@ -551,7 +551,7 @@ ASSUME	DS:TRANGROUP,ES:TRANGROUP
 
 FORNESTERR:
 	PUSH	DS
-	MOV	DS,[RESSEG]
+	MOV	DS,[SHELL_DATA_SELECTOR]
 ASSUME	DS:RESGROUP
 	MOV	DX,OFFSET TRANGROUP:FORNESTMES_ptr
 	CMP	[SINGLECOM],0FF00H
@@ -569,7 +569,7 @@ PUBLIC ForOff
 ForOff:
 	assume DS:NOTHING,ES:NOTHING
 	SaveReg <AX,ES>
-	mov	es,ResSeg
+	mov	es,SHELL_DATA_SELECTOR
 	assume	es:ResGroup
 	mov	AX,ForPtr
 	or	ax,ax

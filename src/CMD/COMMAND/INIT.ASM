@@ -103,6 +103,9 @@ DATARES 	SEGMENT PUBLIC BYTE	;AC000;
 	EXTRN	MYSEG:WORD		;AC000;
 	EXTRN	MYSEG1:WORD
 	EXTRN	MYSEG2:WORD
+IFDEF COMMAND_UMB_DATA
+        EXTRN MYDATASEG:WORD,shell_data_start:BYTE,shell_data_end:BYTE
+ENDIF
 	EXTRN	nest:word
 	EXTRN	number_subst:byte	;AN000;
 	EXTRN	OldTerm:DWORD
@@ -494,6 +497,9 @@ TPASET:
 	MOV	[MYSEG1],DS			; These 3 variables are used as part of
 	MOV	[MYSEG2],DS			;  3 long ptrs that the transient will
 	MOV	[MYSEG],DS			;  use to call resident routines.
+IFDEF COMMAND_UMB_DATA
+        mov [MYDATASEG],ds
+ENDIF
 	MOV	[MEMSIZ],AX			; Needed for execing other programs
 ;
 ; Compute maximum size of environment
@@ -1398,6 +1404,9 @@ DRV0:						; Reset APPEND state
 	int	2fh				;AN042;
 	pop	ds				;AN042; get data segment back
 	IFDEF COMMAND_HIGH_RESIDENT
+        IFDEF COMMAND_UMB_DATA
+        call relocate_shell_data
+        ENDIF
 	JMP near ptr shell_gate_endinit
 	ELSE
 	JMP	ENDINIT 			;G Finish initializing
@@ -2076,6 +2085,10 @@ resident_catalogs_low:
 	pop	ax
 	ret
 relocate_resident_catalogs endp
+
+IFDEF COMMAND_UMB_DATA
+        INCLUDE STATEINIT.INC
+ENDIF
 
 ; ****************************************************************
 ; *
