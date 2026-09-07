@@ -498,6 +498,7 @@ def main() -> int:
     table_segment = dos_segments["TABLE"]
     table_start = table_segment.paragraph * 16 + table_segment.offset
     table_end = table_start + table_segment.size
+    fcb_high = require(dos_symbols, "FCB001S") >= low_gate
     table_ranges: list[tuple[str, int | str, int | str]] = [
         ("Version and calendar constants", table_start, "MAXCALL"),
         ("INT 21 dispatch table", "MAXCALL", "FOO"),
@@ -513,9 +514,9 @@ def main() -> int:
         ("Absolute-disk map and HMA driver trampoline", "MSC001S", "DMES002S"),
         ("Country, case-folding, and DOS messages", "DMES002S", "CREAT001S"),
         ("Create-mode lookup table", "CREAT001S", "DEV001S"),
-        ("Device-character lookup table", "DEV001S", "FCB001S"),
-        ("FCB character-class table", "FCB001S", "FCB001E"),
-        ("EXEC launch pointers", "FCB001E", "SRVC001S"),
+        ("Device-character lookup table", "DEV001S", "DEV001E"),
+        *([] if fcb_high else [("FCB character-class table", "FCB001S", "FCB001E")]),
+        ("EXEC launch pointers", "DEV001E" if fcb_high else "FCB001E", "SRVC001S"),
         ("Server-call dispatch table", "SRVC001S", table_end),
     ]
     print("\n### Retained TABLE ownership\n")
@@ -545,7 +546,11 @@ def main() -> int:
         ("INT 24 critical-error metadata", "ERR_TABLE_24", "ErrMap24"),
         ("Device-error translation map", "ErrMap24", "ErrMap24End"),
     ]
-    print("\n### Relocated private error tables\n")
+    if fcb_high:
+        high_ranges.append(("FCB character-class table", "FCB001S", "FCB001E"))
+        if require(dos_symbols, "FCB001E") - require(dos_symbols, "FCB001S") != 256:
+            errors.append("FCB character classification must retain all 256 entries")
+    print("\n### Relocated private tables\n")
     print("| Range | Bytes | Owner |")
     print("| ---: | ---: | --- |")
     cursor = high_start

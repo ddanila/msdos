@@ -187,7 +187,7 @@ VolidChck:				;AN000;
 	INC	SI			 ;AN000;; next char
 	JMP	SHORT FCBScango 	 ;AN000;
 notkanj2:				 ;AN000;
-	XLAT	ES:CharType		 ;AN000;;get bits
+	XLAT	CS:CharType		 ; private table follows the executing kernel
 	TEST	AL,fFCB 		 ;AN000;
 	JZ	BadPack 		 ;AN000;
 NextCh: 				 ;AN000;
@@ -203,7 +203,7 @@ FCBScanE:				;AN000;
 	LODSB				;AN000;; second kanji byte
 	jmp	short NextChE		;AN000;
 notkanj3:				;AN000;
-	XLAT	ES:CharType		;AN000;; get bits
+	XLAT	CS:CharType
 	TEST	AL,fFCB 		;AN000;
 	JZ	BadPack 		;AN000;
 NextChE:				;AN000;
@@ -214,7 +214,7 @@ NextChE:				;AN000;
 	MOV	CX,11
 	SaveReg <SI>			; back over name, ext
 FCBScan:LODSB				; get a byte
-	XLAT	ES:CharType		; get bits
+	XLAT	CS:CharType
 	TEST	AL,fFCB
 	JZ	BadPack
 NextCh: LOOP	FCBScan

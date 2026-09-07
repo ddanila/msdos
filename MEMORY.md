@@ -14,13 +14,50 @@ Report UMB and application XMS costs alongside the gain. Complete BIOS and
 COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
-The current **BIOS + whole-shell service retirement candidate** measures
-**622,624 conventional / 49,680 free UMB bytes**: **2,752 conventional bytes
-recovered** versus the identical BIOS/provider composition with normal COMMAND,
-**4,688 above the selected development control**, and **3,888 above retail**.
+The current **BIOS + whole-shell + private FCB-table retirement candidate** measures
+**622,880 conventional / 49,680 free UMB bytes**: **4,944 above the selected
+development control**, and **4,144 above retail**. The preceding shell retirement
+recovered **2,752 conventional bytes** versus its identical BIOS/provider
+composition with normal COMMAND; the kernel-table retirement adds **256**.
 Application XMS remains **6,798,336 bytes** (5,120 below the development control);
 the shell move adds no UMB or XMS cost. This is an opt-in experimental layout,
 not production promotion.
+
+The complete 256-byte FCB character-class table now lives after the low kernel
+boundary in `HIGH_TABLE`. Existing FCB readers use executing CS; TransFCB's
+remaining ES-based lookups now do too. ES still selects low DOS state for its
+other accesses. There is no new copy mechanism or retained low table allocation:
+the rounded DOS prefix shrinks from **5,632 to 5,376 bytes**, while the existing
+40,272-byte high kernel image and shared HMA remainder remain unchanged.
+
+Evidence: `out/dos-char-retirement-6mtsgffd/`. Fresh VC/MEM captures compare
+622,624 against 622,880; only the kernel and its rebuilt, compatible BIOS change.
+CONFIG.SYS, AUTOEXEC.BAT, COMMAND, managers and VC are checked byte-identical.
+All 256 table entries match the previous table. FCB create/open/read/write,
+rename/search/delete, parsing and JFN checks pass high and standalone low.
+A same-size mutation restoring the obsolete ES selector fails FCB creation.
+Both the frozen pre-retirement and new paired-provider images exit with debug
+status 35 before the probe under DOS=LOW; this is not new to the table move.
+The passing standalone-low test uses an inactive BIOS without the managers.
+**Paired-provider DOS-low fallback remains unqualified.** DBCS source readers
+are updated, but this native non-DBCS run does not qualify DBCS execution.
+
+```sh
+make dos
+python3 tests/test_dos_char_retirement_qemu.py out/command-high-retirement-vj99uzvm/input-high.img out/dos-char-retirement.Ffw8gH/old-MSDOS.MAP
+```
+
+**Next selection gate:** stop isolated table/paragraph harvesting after this
+completed owner. Resolve the remaining BIOS and COMMAND owners against the
+same shared budget, remove obsolete storage and measure their combined release.
+BIOS retains 3,232 low bytes; COMMAND retains 880. These are allocations, not
+promised savings: BIOS request/ROM-return gates, public device/BDS pointers and
+DMA-facing storage need explicit low contracts. In particular, the census's
+545-byte strategy/dispatch row includes retained completion and firmware-return
+gates; it is not a 545-byte movable routine. COMMAND's remaining 333-byte data
+partition is classified below. A routing-only build or a larger diagnostic
+image does not advance this gate. Older layout ledgers below describe their
+named checkpoints; use the figures here for the current candidate.
 
 COMMAND's permanent low allocation falls from **3,632 to 880 bytes**.
 The complete 2,661-byte linked service body follows the releasable data/catalog segment,

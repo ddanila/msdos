@@ -27,9 +27,9 @@ include dosseg.asm
 
 TableLook   equ -1
 
-Table	Segment
+HIGH_TABLE Segment BYTE PUBLIC 'HIGH_TABLE'
 Zero	label byte
-Table	ENDS
+HIGH_TABLE ENDS
 
 CODE	SEGMENT BYTE PUBLIC  'CODE'
 	ASSUME	SS:DOSGROUP,CS:DOSGROUP
@@ -276,7 +276,9 @@ ChType	Macro	ch,bits
 	db	bits
 	ENDM
 
-Table	SEGMENT
+; Private classification data follows the retained low boundary. Every reader
+; selects the executing kernel's CS, so DOS=LOW and DOS=HIGH share one owner.
+HIGH_TABLE SEGMENT BYTE PUBLIC 'HIGH_TABLE'
 	PUBLIC	CharType
 Public FCB001S,FCB001E
 FCB001S  label byte
@@ -330,7 +332,7 @@ CharType    DB	256 dup (-1)
 	ChType	" ", <LOW (NOT (     fChk+fDelim+fSpChk))>
 	ChType	255, -1
 FCB001E label byte
-Table	ENDS
+HIGH_TABLE ENDS
 ENDIF
 ;
 ; Get a byte from [SI], convert it to upper case, and compare for delimiter.
