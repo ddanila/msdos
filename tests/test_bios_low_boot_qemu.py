@@ -64,6 +64,8 @@ def main():
     parser.add_argument("--retire-characters", action="store_true", help="release and poison the old character bodies after high activation")
     parser.add_argument("--pack-headers", action="store_true", help="pack low headers into retired device-table space")
     parser.add_argument("--retire-media", action="store_true", help="retire the complete media/BPB service group")
+    parser.add_argument("--pack-drive-graph", action="store_true", help="qualify packed descriptors and the selected-size overflow pool")
+    parser.add_argument("--stale-bds-control", action="store_true", help="require rejection of a BPB pointer to a retired template")
     parser.add_argument("--tail-body", action="store_true", help="test last-linked fallback service layout")
     parser.add_argument("--scan", action="store_true", help="record activation-time pointer candidates on debug port")
     parser.add_argument("--rebase", action="store_true", help="move and poison the old low DOS prefix")
@@ -157,6 +159,10 @@ def main():
         parser.error("--pack-headers requires --retire-characters")
     if args.retire_media and not args.pack_headers:
         parser.error("--retire-media requires --pack-headers")
+    if args.pack_drive_graph and not args.retire_media:
+        parser.error("--pack-drive-graph requires --retire-media")
+    if args.stale_bds_control and (not args.pack_drive_graph or args.warm_reset or args.stale_cds_control):
+        parser.error("--stale-bds-control requires packing without reset or another stale-pointer control")
     if (args.scan or args.rebase) and not (args.early and args.tail_body):
         parser.error("--scan/--rebase requires --early --tail-body")
     if args.compact and not args.rebase:
@@ -180,7 +186,8 @@ def main():
                      reservation_limit=0x10 if args.fail_reservation else 0xfff0, fail_tables=args.fail_table_allocation,
                      high_cds=args.high_cds, fail_cds=args.fail_cds_allocation,
                      cds_cache_case=args.cds_cache_case, cds_cache_negative=args.cds_cache_negative,
-                     retire_characters=args.retire_characters, pack_headers=args.pack_headers, retire_media=args.retire_media)
+                     retire_characters=args.retire_characters, pack_headers=args.pack_headers, retire_media=args.retire_media,
+                     pack_drive_graph=args.pack_drive_graph)
     high_manifest = build_high(scratch / "high", scratch, dispatch=args.dispatch, characters=args.characters, media=args.retire_media)
     if args.rebase:
         layout = scratch / "public-layout.bin"
@@ -226,16 +233,22 @@ def main():
         f"SLOT_WORD_COUNT equ {len(manifest['high_slot_words'])}\n")
     if args.tail_body:
         with (scratch / "low-defs.inc").open("a") as stream:
-            stream.write(f"PERMANENT_END_OFFSET equ {manifest['symbols']['BIOS_PERMANENT_END']}\n")
+            stream.write(f"%define PERMANENT_END_OFFSET {manifest['symbols']['BIOS_PERMANENT_END']}\n")
+    if args.pack_drive_graph:
+        with (scratch / "low-defs.inc").open("a") as stream:
+            for target, source in (("ROOT", "START_BDS"), ("COUNT", "DRVMAX"),
+                                   ("BPBS", "DSKDRVS"), ("POOL", "COMPACTDPBSTORAGE"),
+                                   ("TEMPLATES", "BIOS_BDS_TEMPLATES_START")):
+                stream.write(f"%define PACKED_GRAPH_{target} {manifest['symbols'][source]}\n")
     if args.dispatch:
         with (scratch / "low-defs.inc").open("a") as stream:
             for name in ("DSKTBL", "BIOS_DEVICE_TABLES_END", "BIOS_COLD_DISPATCH_START", "BIOS_COLD_DISPATCH_END"):
-                stream.write(f"{name} equ {manifest['symbols'][name]}\n")
+                stream.write(f"%define {name} {manifest['symbols'][name]}\n")
     if args.characters:
         symbols, exports = manifest["symbols"], high_manifest["exports"]
         with (scratch / "low-defs.inc").open("a") as stream:
-            stream.write(f"CHAR_DISPATCH_SLOT equ {symbols['BIOS_HIGH_DISPATCH_ENTRY']}\n")
-            stream.write(f"CHAR_DISPATCH_OFFSET equ {exports['BIOS_DISPATCH_START']}\n")
+            stream.write(f"%define CHAR_DISPATCH_SLOT {symbols['BIOS_HIGH_DISPATCH_ENTRY']}\n")
+            stream.write(f"%define CHAR_DISPATCH_OFFSET {exports['BIOS_DISPATCH_START']}\n")
         binary = (scratch / "MSBIO.BIN").read_bytes()
         targets = {symbols[name]: exports[name] for name in CHARACTER_TARGETS}
         if manifest.get("direct_disk_tables"):
@@ -316,7 +329,9 @@ def main():
         if args.warm_reset:
             options.append("-DWARM_RESET")
         upper_control = args.upper_access_control and name == "emm-high"
-        negative = name == "live-stale-entry" or (args.stale_cds_control and high) or upper_control
+        negative = name == "live-stale-entry" or (args.stale_cds_control and high) or upper_control or args.stale_bds_control
+        if args.stale_bds_control:
+            options.append("-DSTALE_BDS_CONTROL")
         if upper_control:
             options.append("-DUPPER_ACCESS_CONTROL")
         if name == "live-stale-entry":
@@ -410,6 +425,9 @@ def main():
         if args.stale_cds_control and high:
             if b"BIOS_PUBLIC_CONTROL_READY" not in result or b"BIOS_LOW_BOOT_FAIL" not in result:
                 raise RuntimeError(f"stale CDS control did not reach explicit rejection: {log}")
+        if args.stale_bds_control:
+            if b"BIOS_PACKED_GRAPH_CONTROL_READY" not in result or b"BIOS_LOW_BOOT_FAIL" not in result:
+                raise RuntimeError(f"stale BPB control did not reach explicit rejection: {log}")
         if upper_control:
             for marker in (b"BIOS_UPPER_CONTROL_READY", b"BIOS_UPPER_CONTROL_CLEAN", b"BIOS_LOW_BOOT_FAIL"):
                 if marker not in result:

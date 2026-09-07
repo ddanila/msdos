@@ -101,8 +101,30 @@ far BDS can be appended and detached via INT 2Fh/0801h; FCB I/O then passes in
 both the poisoned high and standalone-low layouts. The residency census agrees
 with the linked and captured one-disk boundary.
 
-**Still required:** mini-disk and >6-drive cases, failed HMA reservation,
-full public DPB/CDS/SFT cache checks across I/O, A20/EMS stress and reset.
+**Qualification:** the floppy-boot matrix now checks the packed BDS/BPB/pool
+boundary and public DPB/CDS/SFT graph both before and after file/buffer I/O.
+Forced BIOS HMA-reservation rejection passes with standalone HIMEM DOS-high;
+the bare DOS-low control also passes (`out/bios-low-boot-7mb2yme1/`). HIMEM and EMM386
+pass the full probe on both sides of a QMP hardware reset, including SDA,
+32 KiB low/upper file I/O and, with EMM386, EMS interleaving, DMA-register
+programming and A20-off upper-table access (`out/bios-low-boot-wef_8j66/`).
+These use the deployment managers and normal COMMAND, not the paired shell
+composition. The exact composed image separately boots VC, resets through the
+BIOS boot screen and boots VC again: `out/bios-descriptors-3ovznbd8/` confirms
+the live graph, **2,928-byte BIOS**, and **880-byte COMMAND with high placement
+active**. This is hardware-reset coverage, not the software INT 19h path.
+
+The low-boot harness's conditional checks now receive NASM `%define`s, not
+assembler `equ`s: `%ifdef` did not enable those earlier permanent-boundary,
+far-dispatch and cold-table checks. A deliberately stale BPB pointer is now
+explicitly rejected after `BIOS_PACKED_GRAPH_CONTROL_READY`
+(`out/bios-low-boot-ttvyhojl/`); the unpacked control also passes the corrected
+guards (`out/bios-low-boot-b2v1cqzr/`). Inspect poison only while its source
+allocation is reserved; after compaction, check live owners and bindings rather
+than demand that another owner's memory still contain poison.
+
+**Still required:** mini-disk and >6-drive cases, software INT 19h reset,
+and full I/O/failure/A20-interruption qualification in the paired composition.
 The unchanged `CompactFirstHimem` guard rejects more than six drives; these
 captures do not qualify that larger graph or the paired-provider DOS-low path.
 Malformed/overlapping graphs fail closed before publication. Do not promote
@@ -123,6 +145,16 @@ graphs; it must not be reused as proof of translated UMB accessibility.
 make bios
 python3 tests/test_bios_drive_graph_qemu.py out/dos-char-retirement-6mtsgffd/input-new.img
 ```
+
+Qualification uses `tests/test_bios_low_boot_qemu.py` with
+`--early --tail-body --dispatch --characters --retire-characters --pack-headers
+--retire-media --pack-drive-graph --rebase --compact`. Add
+`--fail-reservation --mode bare-low --mode himem-high` for rejection,
+`--stale-bds-control --mode himem-high` for the negative control, or
+`--high-cds --warm-reset --mode himem-high --mode emm-high --umb-read --umb-ems
+--umb-span 32` for reset/I/O. For the exact composed image, run
+`tests/capture_bios_descriptor_graph.py` with its image, matching BIOS directory
+and DOS map, plus `--reset --command-map` naming the matching high COMMAND map.
 
 #### Retained COMMAND layout
 

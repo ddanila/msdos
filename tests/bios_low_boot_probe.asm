@@ -123,6 +123,9 @@ start:
 %endif
 %ifdef BIOS_COLD_DISPATCH_START
 %if EXPECT_ACTIVE
+%ifndef EXPECT_COMPACT
+    ; Poison is a witness only while the source allocation is still reserved.
+    ; After compaction these addresses can belong to another resident owner.
     mov di,DSKTBL
     mov cx,BIOS_DEVICE_TABLES_END-DSKTBL
     mov al,0a5h
@@ -134,6 +137,7 @@ start:
     mov al,0f4h
     repe scasb
     jne fail
+%endif
 %else
     cmp byte [es:DSKTBL],24
     jne fail
@@ -207,6 +211,9 @@ start:
     int 21h
     jc fail
     mov bx,ax
+%ifdef PACKED_GRAPH_ROOT
+    call check_packed_graph
+%endif
 %ifdef EXPECT_REBASE
     call check_public_graph
 %endif
@@ -231,6 +238,12 @@ start:
     jne fail
 %ifdef EXPECT_BUFFERS
     call stress_buffer_io
+%endif
+%ifdef PACKED_GRAPH_ROOT
+    call check_packed_graph
+%ifdef EXPECT_REBASE
+    call check_public_graph
+%endif
 %endif
     mov ah,3eh
     int 21h
@@ -341,6 +354,9 @@ warm_ready db 'BIOS_WARM_RESET_READY',13,10,'$'
 %endif
 slots:
 %include "low-slots.inc"
+%ifdef PACKED_GRAPH_ROOT
+%include "bios_packed_graph.inc"
+%endif
 %ifdef EXPECT_REBASE
 %include "bios_public_graph.inc"
 %include "bios_ctrlc_probe.inc"
