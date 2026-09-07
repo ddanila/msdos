@@ -9,6 +9,9 @@ start:
     sti
     mov ds, ax
     mov es, ax
+%ifdef EXPECT_LOW_PARAGRAPHS
+    call check_low_owner
+%endif
 %ifdef EXPECT_WHOLE_SHELL
     call check_whole_shell
 %endif
@@ -40,6 +43,9 @@ start:
     call run_command
     mov dx, external_file
     call check_file
+%ifdef EXPECT_LOW_PARAGRAPHS
+    call check_low_owner
+%endif
 %ifdef EXPECT_WHOLE_SHELL
     call check_whole_shell
 %endif
@@ -92,6 +98,21 @@ run_command:
     cmp [return_ss], ax
     jne fail
     ret
+
+%ifdef EXPECT_LOW_PARAGRAPHS
+check_low_owner:
+    push es
+    mov bx,[16h]
+    mov ax,bx
+    dec ax
+    mov es,ax
+    cmp [es:1],bx
+    jne fail
+    cmp word [es:3],EXPECT_LOW_PARAGRAPHS
+    jne fail
+    pop es
+    ret
+%endif
 
 %ifdef EXPECT_WHOLE_SHELL
 check_whole_shell:

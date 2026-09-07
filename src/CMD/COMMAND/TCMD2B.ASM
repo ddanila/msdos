@@ -572,12 +572,31 @@ assume	ds:trangroup				;AN000;
 
 assume	es:resgroup
 
+IFDEF COMMAND_UMB_DATA
+        ; Saved termination state belongs to shell data; its destination is
+        ; the real PSP, never the unowned prefix of the biased UMB selector.
+        push ds
+        push es
+        pop ds
+        ASSUME DS:RESGROUP
+        mov es,ds:[MYSEG]
+        mov ax,ds:[PARENT]
+        mov word ptr es:[PDB_Parent_PID],ax
+        mov ax,word ptr ds:OldTerm
+        mov word ptr es:[PDB_Exit],ax
+        mov ax,word ptr ds:OldTerm+2
+        mov word ptr es:[PDB_Exit+2],ax
+        pop ds
+        ASSUME DS:TRANGROUP
+        mov es,[SHELL_DATA_SELECTOR]
+ELSE
 	MOV	AX,[PARENT]
 	MOV	WORD PTR ES:[PDB_Parent_PID],AX
 	MOV	AX,WORD PTR OldTerm
 	MOV	WORD PTR ES:[PDB_Exit],AX
 	MOV	AX,WORD PTR OldTerm+2
 	MOV	WORD PTR ES:[PDB_Exit+2],AX
+ENDIF
 
 	PUSH	ES
 	MOV	ES,[TRAN_TPA]

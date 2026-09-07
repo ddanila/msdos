@@ -763,14 +763,27 @@ fallback pipelines also pass (`out/command-upper-fallback-60155za7/`). The
 pipeline test caught stale case-insensitive `ResSeg` loads in cleanup; all such
 data loads now select the data owner, with a build-time regression check.
 
-Remaining before promotion: the full asynchronous/public-pointer, INT 2Eh,
-manager/A20, allocation-rejection/rollback and 286 matrix below. Reconcile
+**INT 2Eh / PSP follow-up:** `out/command-upper-int2e-ja0iujvb/` checks a pending
+command tail in a separate allocation, internal and child-external commands,
+caller PSP restoration and return to the parent shell's low stack. It verifies
+the 544-byte low shell owner before/after and rejects a deliberately wrong
+caller-stack expectation. Sentinel output files prevent stale-file passes.
+The EXIT source audit also corrected process-header stores to use the real
+PSP while reading saved termination state from the upper data owner; this is
+not a claim of complete termination-path coverage. The rebuilt composition
+(`out/command-upper-data-zgs86nu2/`) repeats the 336-byte gain, unchanged
+UMB/XMS accounting and destructive-pipeline passes. Normal COMMAND remains
+byte-identical; the fix changes only transient code, not retained HMA size.
+
+Remaining before promotion: nested/asynchronous and public-pointer contracts,
+manager/A20, allocation-rejection/rollback and 286 coverage below. Reconcile
 BIOS placement against the remaining shared HMA budget; neither this measured
 gain nor the fallback pipeline check completes that work.
 
 ```sh
 make cmd_command
 python3 tests/test_command_upper_data_qemu.py out/sft-retirement-fx2p__51/input.img
+python3 tests/test_command_upper_int2e_qemu.py out/command-upper-data-zgs86nu2/input.img
 ```
 
 An offset-preserving data selector can be `allocated_segment - 0220h/16`:
