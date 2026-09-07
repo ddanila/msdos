@@ -27,14 +27,15 @@ The next delivery must include all four, in the same composed candidate:
 4. Local compatibility qualification of the resulting layout. Boundary probes
    and diagnostic builds are supporting evidence, not memory achievements.
 
-**Latest opt-in composed candidate:** **626,000 conventional / 47,936 free
-UMB / 6,798,336 application XMS bytes**, **7,264 above retail** and **8,064
+**Latest opt-in composed candidate:** **625,632 conventional / 47,936 free
+UMB / 6,798,336 application XMS bytes**, **6,896 above retail** and **7,696
 above the development control**. COMMAND data retirement and startup packing
 recover 336 conventional bytes; the safe manager OFF/AUTO guard costs 32;
 compact BIOS track state then recovers 128, and complete swap-prompt retirement
 recovers 96. Complete shell-stack retirement adds **112**, and retiring private
 BIOS IOCTL state adds **144**. Retiring both complete DOS dispatch tables adds
-**336**, without changing the shared HMA budget. These gains
+**336**, without changing the shared HMA budget. Restoring the complete
+real-mode error continuation costs **368 conventional bytes**. These gains
 enlarge the largest block, not a separate free hole. The combined shell data/stack
 move costs 480 UMB and 204 HMA
 bytes; compact track state adds one HMA byte, the swap prompt adds 120,
@@ -44,6 +45,40 @@ with **3,324 HMA bytes left**. BIOS retains **2,368 low bytes**;
 COMMAND's main low allocation is **432**.
 Functional qualification is incomplete: this is not production promotion or
 completion of BIOS/COMMAND placement.
+
+**Retained EMM386 error continuation:** protected fault capture remains high;
+the dialog, number conversion, keyboard helpers and three caller unwind tails
+now have one linked low owner. The mode switch returns explicitly to that owner,
+not a retired high caller offset. `ExitPIer`, `CTRErr` and `Em386_Err` provide
+retained continuation addresses; their old post-error tails are removed. The
+LOADALL tail restores the saved BX/AX words in order. PIC masks are FFh during
+firmware dialog calls, not the former zero masks that enabled every IRQ.
+
+Continue is offered only without published paging-backed UMBs or application
+EMS handles, matching the existing OFF safety boundary. With either resource
+live, the dialog permits reboot only; it never returns to the shell's unmapped
+upper stack/data. This does not turn off the ordinary manager or suppress the
+fault. The byte-sized EMS handle count is checked as a byte.
+
+Paired evidence: `out/emm-mode-guard-0cr_f1tq/input.img` and `results.json`,
+**626,000 -> 625,632 conventional**, unchanged UMB/XMS and HMA budget.
+EMM386 grows **2,256 -> 2,624 low bytes**. This is charged correctness retention,
+not a new saving. The frozen provider reconstructs byte-identically before the
+change; all unrelated boot components remain pinned. Reproduce with
+`build_emm_mode_guard.py FROZEN --error-continuation --image IMAGE --compact-tracks
+--retire-swap --retire-ioctl-state --measure`.
+
+Actual LIDT and MOV CR2 faults pass Continue without upper owners, checking
+EAX/EDX, SP and real mode (`out/emm-error-runtime-sge21dc_/`, `...-sd6pvnw6/`).
+The composed UMB case and a standalone allocated-EMS case reject C and accept
+the reboot key (`...-8sjjmzqx/`, `...-d3yk3cag/`); these observe a reset request,
+not a second boot. All three linked continuation targets are checked below the
+retained boundary, with stale-return and double-POP-BX negative controls.
+Ordinary software second boot with DF set (`out/software-reboot-7c0nnfgm/`),
+pipeline/reload (`out/emm-error-shell-df3yjpp9/`) and A20-off INT 2Eh/manager
+checks (`out/command-upper-int2e-96qjlgex/`) also pass. LOADALL execution,
+exception-only entry contexts and complete fatal-reset lifecycle remain open;
+this is not full error-path qualification or promotion.
 
 **Complete DOS dispatch-table retirement:** the 220-byte INT 21h table/limits
 and 115-byte internal-service table now belong to the existing `HIGH_TABLE`
@@ -328,7 +363,7 @@ The next joint decision must separate remaining cold initialization from
 mandatory public/DMA/reboot entry contracts, then qualify the retained
 COMMAND PSP/gates and upper-data/stack failure paths. Do not present further
 paragraph-sized changes as completion, or remove compatibility paths merely
-because the selected boot did not execute them. The current 2,048-byte OpenDOS
+because the selected boot did not execute them. The current 2,416-byte OpenDOS
 gap is a whole-system ownership question, not the size of a remaining BIOS
 or COMMAND service body.
 
@@ -409,11 +444,11 @@ The debugger caught SeaBIOS `LIDT` at `F000:CF48` entering `ErrHndlr` as a
 privileged-operation error (`out/reboot-error-entry-lk16xtb0/`). That error
 path switches to real mode and returns into retired low `_TEXT`; its low bytes
 do not match the high continuation. The garbled prompt was therefore not
-evidence of a failed second-boot loader. **General fatal/exception reporting
-still needs its own retained continuation fix**; avoiding this reboot trigger
-does not qualify that path.
+evidence of a failed second-boot loader. Avoiding this reboot trigger did not
+qualify general fatal/exception reporting. The newer retained-continuation
+checkpoint above repairs its missing owner; broader error-path gates remain.
 
-**Required complete error-path repair:** the current owner audit narrows this
+**Pre-repair error-path audit:** the owner audit narrowed this
 to a real-mode lifetime problem, not insufficient HMA capacity. In the pinned
 provider map, `_TEXT:ErrHndlr` is `53E5h`, while retained `_TEXT` ends at
 `IOTrap_Tab=01A2h`. `RetRealHigh` jumps to retained `RetRealResume`, restores
@@ -451,7 +486,9 @@ Also audit the dialog's zero PIC-mask writes, BIOS callbacks and NMI policy.
 Required evidence is privileged-fault Continue without live upper owners,
 exception reboot, live-UMB/EMS safety, A20/stack preservation, and a new composed
 memory census charging the retained owner. This repair precedes promotion;
-the 626,000-byte candidate remains unqualified for these error paths.
+the 626,000-byte pre-repair candidate remains unqualified for these error paths.
+The retained-continuation checkpoint above implements this owner split and
+records the narrower runtime coverage now established; remaining gates still apply.
 
 The corrected composition is `out/software-reboot-fix-wk9s16af/input.img`, with
 matching `bios/` and `MEMM/MEMM/` maps. Ordinary second boot passes in paired
@@ -607,26 +644,26 @@ python3 tests/test_bios_clock_retirement_qemu.py out/command-high-retirement-wv3
 
 #### Retired low interrupt-stack pool
 
-The current saved VC comparison narrows the OpenDOS lead to **2,048 bytes**,
+The current saved VC comparison narrows the OpenDOS lead to **2,416 bytes**,
 not the 11,936-byte gap in the older reassessment below:
 
 | Accounting boundary | Current packed candidate | OpenDOS 7.01 IDE capture | Local minus OpenDOS |
 | --- | ---: | ---: | ---: |
-| System start to COMMAND start | 13,024 | 10,448 | +2,576 |
+| System start to COMMAND start | 13,392 | 10,448 | +2,944 |
 | COMMAND start to VC start | 784 | 1,312 | -528 |
 | VC start to first free block | 12,720 | 12,720 | 0 |
-| Largest conventional block | 626,000 | 628,048 | -2,048 |
+| Largest conventional block | 625,632 | 628,048 | -2,416 |
 
 These are allocation spans, not individual program MCB sizes. VC hashes and
 the 639 KiB ceiling match; vendor resource semantics and reset qualification
-still differ. Evidence: `out/dos-dispatch-retirement-zhq5bamj/results.json` and
+still differ. Evidence: `out/emm-mode-guard-0cr_f1tq/results.json` and
 `out/opendos-disk-boot-evidence/result.json`. This reconciles saved captures,
 not a new vendor run. COMMAND placement still needs qualification and a final
 state contract, but a large shell allocation no longer explains this gap.
 
-The current system span reconciles as **2,368 BIOS + 4,736 DOS prefix + 4,704
+The current system span reconciles as **2,368 BIOS + 4,736 DOS prefix + 5,072
 managers + 512 transfer area + 608 interrupt handlers/control + 96 arena/mark
-bytes = 13,024**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
+bytes = 13,392**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
 low and the span was 15,392. A public suballocation probe on that pre-pool image
 confirms the four dynamic owners without unclassified gaps:
 `out/system-owners-gz8p6jrj/`. Its AUTOEXEC runs the probe instead of VC;

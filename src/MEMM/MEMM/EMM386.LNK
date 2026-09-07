@@ -14,6 +14,8 @@ extpool+
 vdminit+
 ..\emm\emmlib.lib+
 retreal+
+errhndlr+
+ekbd+
 rrtrap+
 a20trap+
 oemproc+
@@ -53,8 +55,7 @@ em286ll+
 em386ll+
 moveb+
 maplin+
-errhndlr+
-ekbd+
+errhndhi+
 initdeb+
 mapdma+
 oemprothi+

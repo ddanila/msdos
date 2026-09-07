@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Rebuild mode-policy modules against a frozen composed manager build."""
+"""Rebuild selected runtime owners against a frozen composed manager build."""
 import argparse
 import hashlib
 import json
@@ -17,6 +17,32 @@ DEFINES = ("-DEMM_INIT_PHASE_TRACE -DUMB_SUBPAGE_DISCOVERY -DUMB_SUBPAGE_MAPPING
     "-DEMM_HIGH_TABLES -DEMM_SPLIT_PREPARE -DEMM_DEFER_PROVIDER -DPROVIDER_REBASE")
 
 
+def check_error_owner(directory):
+    from report_emm386_residency import parse_map
+    segments, symbols = parse_map(directory / "EMM386.MAP")
+    text = next(segment for segment in segments if segment.name == "_TEXT")
+    names = {symbol.name: symbol.offset for symbol in symbols if symbol.paragraph == text.paragraph}
+    boundary = names["IOTrap_Tab"]
+    assert names["ErrReal"] < names["ErrRealEnd"] <= names["egetc"] < names["WaitKBD"] < boundary
+    assert names["ErrHndlr"] >= boundary
+    binary = (directory / "EMM386.EXE").read_bytes()
+    header = int.from_bytes(binary[8:10], "little") * 16
+    code = binary[header + text.paragraph * 16:][:text.size]
+    for target, destination in (("ErrReal", "RetRealHigh"),
+                                ("ErrResumeAXDX", "ErrHndlr"),
+                                ("ErrResumeEAX", "ErrHndlr"),
+                                ("ErrResumeLoadall", "ErrHndlr")):
+        assert names[target] < boundary
+        pattern = b"\x68" + names[target].to_bytes(2, "little") + b"\xe9"
+        matches = [at for at in range(len(code) - 5) if code[at:at+4] == pattern
+                   and (at + 6 + int.from_bytes(code[at+4:at+6], "little", signed=True)) & 0xffff
+                   == names[destination]]
+        assert len(matches) == 1, (target, matches)
+        assert matches[0] >= boundary, (target, "protected capture/caller unexpectedly retained low")
+    at = names["ErrResumeLoadall"]
+    assert code[at:at+8] == bytes.fromhex("5b58665f66596658")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("frozen", type=Path)
@@ -25,6 +51,8 @@ def main():
     parser.add_argument("--compact-tracks", action="store_true", help="retain R,N pairs and materialize firmware format tuples")
     parser.add_argument("--retire-swap", action="store_true", help="retire the complete BIOS disk-swap prompt owner")
     parser.add_argument("--retire-ioctl-state", action="store_true", help="retire the private low IOCTL/format state owner")
+    parser.add_argument("--error-continuation", action="store_true",
+                        help="rebuild the complete retained fatal-dialog and caller continuations")
     args = parser.parse_args()
     if args.measure and not args.image:
         parser.error("--measure requires --image")
@@ -36,22 +64,36 @@ def main():
     original = (build / "EMM386.EXE").read_bytes()
     with (work / "build.log").open("w") as log:
         for fresh in (False, True):
-            for module in ("INIT", "EMM", "ELIMFUNC"):
+            modules = (("EMMMES", "VMINST", "EM386LL", "ERRHNDLR", "EKBD")
+                       if args.error_continuation else ("INIT", "EMM", "ELIMFUNC"))
+            for module in modules:
                 if fresh:
                     shutil.copyfile(ROOT / f"src/MEMM/MEMM/{module}.ASM", build / f"{module}.ASM")
                 flags = DEFINES if module == "INIT" else ""
+                if fresh and args.error_continuation and module == "ERRHNDLR":
+                    flags = "-DERRHNDLR_LOW_ONLY"
                 subprocess.run([ROOT / "bin/jwasm-masm",
                     f"-Mx -t -DI386 -DNoBugMode -DNOHIMEM {flags} -I. -I../EMM",
                     f"{module}.ASM,{module}.OBJ;"], cwd=build, stdout=log, stderr=log, check=True)
+            if fresh and args.error_continuation:
+                shutil.copyfile(ROOT / "src/MEMM/MEMM/EMM386.LNK", build / "EMM386.LNK")
+                subprocess.run([ROOT / "bin/jwasm-masm",
+                    "-Mx -t -DI386 -DNoBugMode -DNOHIMEM -DERRHNDLR_HIGH_ONLY -I. -I../EMM",
+                    "ERRHNDLR.ASM,ERRHNDHI.OBJ;"], cwd=build, stdout=log, stderr=log, check=True)
             subprocess.run([ROOT / "bin/wlink", "/NOI /PACKDATA:1 @EMM386.LNK"],
                            cwd=build, stdout=log, stderr=log, check=True)
             if not fresh:
                 assert (build / "EMM386.EXE").read_bytes() == original, "frozen reconstruction changed"
+    if args.error_continuation:
+        check_error_owner(build)
     print(build / "EMM386.EXE", flush=True)
     print(hashlib.sha256((build / "EMM386.EXE").read_bytes()).hexdigest(), flush=True)
     if args.image:
         from build_bios_low_image import build as build_bios
+        from capture_vc_memory_comparison import image_file
         from test_dos_char_retirement_qemu import install
+        if args.error_continuation:
+            assert image_file(args.image, "::DOS/EMM386.EXE") == original, "image/frozen provider mismatch"
         build_bios(work / "bios", early=True, tail_body=True, rebase=True, compact=True,
             high_cds=True, dispatch=True, characters=True, retire_characters=True,
             pack_headers=True, retire_media=True, pack_drive_graph=True,

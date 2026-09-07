@@ -52,6 +52,7 @@
 	public	POE_Mess
 	public	POE_Num
 	public	POE_Len
+	public POE_ContinueLen
 	public	EXCPE_Mess
 	public	EXCPE_Num
 	public	EXCPE_CS
@@ -186,8 +187,10 @@ POE_Mess	db	CR,LF
 		db	BEL
 		db	"EMM386 privileged error #"
 POE_Num		db	"xx -",CR,LF
-		db	"Continue (C) or reboot (B)? "
+		db	"Reboot (B)? "
 POE_Len		=	$-POE_Mess
+		db	"Continue (C)? "
+POE_ContinueLen = $-POE_Mess
 
 EXCPE_Mess	db	CR,LF
 		db	BEL

@@ -1314,10 +1314,9 @@ ExitPIer:
 	pop	es
 	assume	es:DGROUP
 	mov	ax, PrivErr		; privileged error
-	call	ErrHndlr		; If the user want's to continue
-	pop	ax
-	pop	dx
-	jmp	JumpReal		; we return and go unwind the stack
+	extrn ErrResumeAXDX:near
+	push OFFSET _TEXT:ErrResumeAXDX
+	jmp ErrHndlr
 Not_ProtIns1:
 	jmp	BadVmTrap
 
@@ -1547,9 +1546,9 @@ CTRErr:
 	sub	[bp.VTFOE+VMTF_EIP],3	; VM CS:IP = faulting instruction
 	pop	es
 	assume	es:DGROUP
-	call	ErrHndlr		; If we return here, the user wants to
-	POP_EAX 			; continue in real mode... so go unwind
-	jmp	JumpReal		; the stack and let him continue
+	extrn ErrResumeEAX:near
+	push OFFSET _TEXT:ErrResumeEAX
+	jmp ErrHndlr
 Not_MovCDTR:
 	jmp	BadVmTrap
 

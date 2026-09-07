@@ -365,19 +365,9 @@ Em386_Err	proc	near
 	push	bx
 	mov	ax, PrivErr
 	mov	bx, Err3LL
-	call	ErrHndlr
-	pop	bx
-	pop	bx
-;
-;  continue client in real mode
-;
-	POP_EDI		; restore used regs
-	POP_ECX
-	POP_EAX
-			; stack back to VmFault exit condition
-
-	jmp	JumpReal	; "jump" to real mode and continue interrupted
-				;    code.
+	extrn ErrResumeLoadall:near
+	push OFFSET _TEXT:ErrResumeLoadall
+	jmp ErrHndlr
 
 Em386_Err	endp
 ;

@@ -49,7 +49,12 @@
 ;  	Public Declarations
 ;******************************************************************************
 ;
-	public	ErrHndlr		; Display message and continue or reboot
+	IFNDEF ERRHNDLR_LOW_ONLY
+	public ErrHndlr
+	ENDIF
+	IFNDEF ERRHNDLR_HIGH_ONLY
+	public ErrReal,ErrResumeAXDX,ErrResumeEAX,ErrResumeLoadall,ErrRealEnd
+	ENDIF
 ;******************************************************************************
 ;  	Externs
 ;******************************************************************************
@@ -57,12 +62,21 @@ _TEXT	segment
 	extrn	RetRealHigh:near	; return to real mode
 	extrn	egetc:near		; get keyboard character
 	extrn	WaitKBD:near		; wait for keyboard ready
+	IFDEF ERRHNDLR_HIGH_ONLY
+	extrn ErrReal:near
+	ENDIF
 _TEXT	ends
+
+R_CODE segment
+	extrn JumpReal:far
+R_CODE ends
 
 _DATA	segment
 	extrn	POE_Mess:byte		; privileged operation error
 	extrn	POE_Num:byte 		; where to put error code
 	extrn	POE_Len:abs		; length of message
+	extrn POE_ContinueLen:abs
+	extrn UMB_Active:byte, _handle_count:byte
 	extrn	EXCPE_Mess:byte		; exception error message
 	extrn	EXCPE_Num:byte		; where to put error code
 	extrn	EXCPE_CS:byte		; where to put CS
@@ -84,7 +98,7 @@ romdata	ends
 MASTER   	=	0A1H		; Master interrupt i/o port
 SLAVE        	=	021H		; Slave interrupt i/o port
 NMI     	=	070H		; Non-Maskable interrupt i/o port
-DIS_MSTSLV  	=	00H		; Value to write to disable master/slave
+DIS_MSTSLV  	=	0FFH		; mask every IRQ while firmware may enable IF
 DIS_NMI         =	080H		; Value to write to disable NMI
 ENA_NMI		=	008H		; Value to write to enable NMI
 	OPTION NOKEYWORD:<C ENTER>	;JWASM: free C (C-conv kw) + ENTER (instr) used as scan-code constants
@@ -100,6 +114,10 @@ CPOSN		=	5*256+0		; cursor position to write
 ;		LOCAL DATA     
 ;******************************************************************************
 _DATA	segment
+	IFDEF ERRHNDLR_HIGH_ONLY
+	extrn GPsavERR:word,GPsavEIP:dword,GPsavCS:word
+	ELSE
+	public GPsavERR,GPsavEIP,GPsavCS
 masterp		db	0		; save master port value
 slavep		db	0		; save slave port value
 boot		label	byte		; fault record is dead before these
@@ -108,6 +126,7 @@ mode		label	byte		; dialog values are written
 GPsavEIP	dd	0		; GP fault EIP save
 GPsavCS		dw	0		; GP fault CS save
 continue	equ	boot+1
+	ENDIF
 
 _DATA	ends
 ;	
@@ -131,6 +150,7 @@ _DATA	ends
 ;******************************************************************************
 _TEXT	segment
 	ASSUME	CS:_TEXT, DS:DGROUP, ES:DGROUP
+	IFNDEF ERRHNDLR_LOW_ONLY
 ErrHndlr	proc	near
 ;
 ; save fault infos
@@ -150,7 +170,14 @@ ErrHndlr	proc	near
 	out	NMI,al			; RetRealHigh requires both IRQs and NMI disabled
 	pop	eax
 
-	call	RetRealHigh		; return to real mode
+	; RetRealHigh's RET must land in the retained real-mode owner, never
+	; after this protected-only entry or in a retired caller continuation.
+	push OFFSET _TEXT:ErrReal
+	jmp RetRealHigh
+ErrHndlr endp
+	ENDIF
+	IFNDEF ERRHNDLR_HIGH_ONLY
+ErrReal proc near
 ;
 	push	ax
 	push	bx
@@ -180,7 +207,13 @@ kbdbusy:
 	mov	ax,bx			; error number in ax
 	call	b2asc10			; convert to ascii
 	mov	[boot],B		; key to boot
-	mov	[continue],C		; key to continue
+	mov	[continue],0ffh		; paging-backed owners cannot survive Continue
+	cmp	[UMB_Active],0
+	jne	short skip_exc
+	cmp	[_handle_count],1
+	ja	short skip_exc
+	mov	[continue],C
+	mov	cx,POE_ContinueLen
 	jmp	skip_exc		; skip exception stuff
 excep:
 	mov	bp,offset DGROUP:EXCPE_Mess	; n: load up exception error
@@ -262,7 +295,24 @@ err_cont:
 	pop	bx
 	pop	ax
 	ret
-ErrHndlr	endp
+ErrReal	endp
+
+; These replace the retired callers' post-error tails. Each arrives only
+; after real-mode restoration and must preserve its original stack shape.
+ErrResumeAXDX:
+	pop ax
+	pop dx
+	jmp FAR PTR JumpReal
+ErrResumeEAX:
+	pop eax
+	jmp FAR PTR JumpReal
+ErrResumeLoadall:
+	pop bx
+	pop ax
+	pop edi
+	pop ecx
+	pop eax
+	jmp FAR PTR JumpReal
 
 page
 ;******************************************************************************
@@ -352,6 +402,8 @@ b2asc16_skip:
 	ret
 
 b2asc16 endp
+ErrRealEnd label byte
+	ENDIF
 
 _TEXT	ENDS
 	END
