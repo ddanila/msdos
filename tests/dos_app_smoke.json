@@ -1,0 +1,180 @@
+{
+  "packages": [
+    {
+      "id": "4dos",
+      "item": "4DOS5A_ZIP",
+      "file": "4DOS5A.ZIP",
+      "format": "nested-zip",
+      "sha256": "55a0280faf4e5624d57e0cd499e03763d68559c3db625fda826ba259fe077dc6"
+    },
+    {
+      "id": "qedit",
+      "item": "QEDIT3C_ZIP",
+      "file": "QEDIT3C.ZIP",
+      "format": "zip",
+      "sha256": "7259cc7b212012beb6e9d17ed22f550f0f181abf8a9bf9392dce9e9d808d1f2c"
+    },
+    {
+      "id": "pack",
+      "item": "compact_202403",
+      "file": "COMPACT.zip",
+      "format": "zip",
+      "subdir": "COMPACT",
+      "sha256": "1ae5a05d63f5d405944619ab50b1809ad7c39d393157c6965928245cba90bb07"
+    },
+    {
+      "id": "nc",
+      "item": "norton-commander-3.0-for-dos",
+      "file": "Norton Commander 3.0 for DOS.zip",
+      "format": "zip",
+      "sha256": "04596bd980e8d8f91d140ef7dbeeec8a6f38577ea84b5238e486eb3d64f16290"
+    },
+    {
+      "id": "dn",
+      "item": "dosnav151",
+      "file": "DosNav.IMA",
+      "format": "floppy",
+      "exclude": [
+        "System Volume Information"
+      ],
+      "sha256": "847e3d5c1a5004cc90a1389fa9a9fad3edcd9a87e05e363269295528f97edfae"
+    },
+    {
+      "id": "pkzip",
+      "item": "PKZ204G_EXE",
+      "file": "PKZ204G.EXE",
+      "format": "zip",
+      "sha256": "004b48f1cdfe0f31888d213e94ae3997aa5fc02bed8a2d75addaf34ae02d1024"
+    },
+    {
+      "id": "4dos6",
+      "item": "4dos-6.01",
+      "file": "4dos601.zip",
+      "format": "zip",
+      "sha256": "9e229c8a7da115275fe07d44b2cdbf07b5de9b3c143fba074b0e0aeba1aebb72"
+    }
+  ],
+  "programs": [
+    {
+      "id": "4dos",
+      "name": "4DOS 5.0",
+      "package": "4dos",
+      "command": "4DOS.COM",
+      "features": "EXEC, environment, conventional allocation, EMS/XMS/disk swapping, shell and filesystem services",
+      "expect": [
+        "4DOS 5.0",
+        ">"
+      ]
+    },
+    {
+      "id": "qedit",
+      "name": "QEdit Advanced 3.0C",
+      "package": "qedit",
+      "command": "Q.EXE SAMPLE.TXT",
+      "features": "memory allocation, file handles, seek/read, directory and console services",
+      "expect": [
+        "DOS application startup comparison",
+        "<*** End of File ***>"
+      ]
+    },
+    {
+      "id": "nc",
+      "name": "Norton Commander 3.0",
+      "package": "nc",
+      "command": "NC.EXE",
+      "features": "overlay loading, allocation, drive/directory enumeration, attributes and timestamps",
+      "expect": [
+        "ncmain   exe",
+        "10Quit"
+      ]
+    },
+    {
+      "id": "dn",
+      "name": "DOS Navigator 1.51",
+      "package": "dn",
+      "command": "DN.COM",
+      "features": "overlays, memory management, drive/directory enumeration, DOS metadata",
+      "expect": [
+        "No files selected",
+        "F10 Menu"
+      ]
+    },
+    {
+      "id": "pkzip",
+      "name": "PKZIP 2.04g",
+      "package": "pkzip",
+      "command": "PKZIP.EXE",
+      "features": "executable loading, allocation and DOS console; startup only",
+      "expect": [
+        "Version 2.04g",
+        "any other key to quit help."
+      ]
+    },
+    {
+      "id": "arj",
+      "name": "ARJ 2.50",
+      "package": "pack",
+      "command": "ARJ.EXE",
+      "features": "executable loading, allocation and DOS console; startup only",
+      "expect": [
+        "ARJ",
+        "Usage"
+      ]
+    },
+    {
+      "id": "lha",
+      "name": "LHA 2.13",
+      "package": "pack",
+      "command": "LHA.EXE",
+      "features": "executable loading, allocation and DOS console; startup only",
+      "expect": [
+        "LHA",
+        "Usage"
+      ]
+    },
+    {
+      "id": "pklite",
+      "name": "PKLITE 1.15",
+      "package": "pack",
+      "command": "PKLITE.EXE",
+      "features": "compressed executable startup, allocation and DOS console; startup only",
+      "expect": [
+        "PKLITE",
+        "Usage"
+      ]
+    },
+    {
+      "id": "4dos-exec",
+      "name": "4DOS 5.0 launches PKZIP 2.04g",
+      "package": "4dos",
+      "command": "4DOS.COM /C C:\\APPS\\PKZIP\\PKZIP.EXE -ex SMOKE.ZIP SAMPLE.TXT",
+      "features": "one small child-process smoke: EXEC, shell swap-out/restore, allocation, file create/write/close",
+      "expect": [
+        "APP_RETURN_4dos-exec",
+        "SAMPLE.TXT"
+      ],
+      "verify_zip": "SMOKE.ZIP"
+    },
+    {
+      "id": "4dos6",
+      "name": "4DOS 6.01A",
+      "package": "4dos6",
+      "command": "4DOS.COM",
+      "features": "shell startup, allocation, environment, EMS/XMS/disk swapping",
+      "expect": [
+        "Welcome to 4DOS!",
+        "C:\\APPS\\4DOS6>"
+      ],
+      "actions": [
+        {
+          "after": "Proceed with installation (Y/N)?",
+          "keys": "n"
+        },
+        {
+          "after": "Press any key to exit to the 4DOS prompt",
+          "keys": "ret"
+        }
+      ]
+    }
+  ]
+}

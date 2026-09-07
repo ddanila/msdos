@@ -1,0 +1,13 @@
+{
+  "default": {
+    "passed": false,
+    "affected": true,
+    "exit_code": 35
+  },
+  "nochain": {
+    "passed": true,
+    "affected": false,
+    "exit_code": 33
+  },
+  "qemu_version": "QEMU emulator version 11.1.1"
+}

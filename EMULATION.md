@@ -49,3 +49,13 @@ Retest those with matched images and their own success/fallback probes; see
 A DOSBox-X stall alone does not establish a product defect; compare a real-BIOS
 backend. Emulators do not prove every chipset, A20 controller, physical storage
 or printer device, Weitek coprocessor, or timing-sensitive peripheral.
+
+## DOS applications and TCG chaining
+
+For application comparisons, use the
+[external DOS startup runner](tests/DOS-APP-SMOKE.md). It disables TCG block
+chaining to avoid a demonstrated 16-bit near-CALL IP-wrap error. Different DOS
+memory layouts can expose or hide this emulator defect, so a startup difference
+alone does not establish an operating-system bug. Run
+`make test-qemu-near-call-wrap` to check the emulator and its workaround;
+`--require-default` on the Python diagnostic requires chaining itself to pass.

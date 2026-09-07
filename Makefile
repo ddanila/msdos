@@ -1225,3 +1225,12 @@ test-dos-async-interrupt-qemu: deploy
 clean:
 	git clean -fXq -- src 2>/dev/null || true
 	rm -f $(FLOPPY) $(OUT)/serial.log
+
+.PHONY: test-dos-app-smoke test-qemu-near-call-wrap
+# Optional external-media comparison; genuine DOS is not a repository fixture.
+test-dos-app-smoke: deploy
+	@test -n "$(RETAIL_DOS_IMAGE)" || { echo 'Set RETAIL_DOS_IMAGE to a stock DOS 6.22 FAT16 hard disk'; exit 1; }
+	python3 tests/capture_dos_app_smoke.py --retail-image "$(RETAIL_DOS_IMAGE)"
+
+test-qemu-near-call-wrap: deploy
+	python3 tests/test_qemu_near_call_wrap.py

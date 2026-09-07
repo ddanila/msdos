@@ -81,3 +81,13 @@ temporarily intercepts the saved INT 19h target to inspect the restored vectors;
 use `test_software_reboot_qemu.py` for the unmodified bootstrap-chain control.
 Passing with standalone HIMEM does not qualify the paired-provider and upper
 stack-pool composition. Keep that qualification in [TODO.md](../TODO.md).
+
+## External DOS applications
+
+The [DOS application startup comparison](DOS-APP-SMOKE.md) uses pinned archive.org
+packages and a genuine DOS 6.22 image, compares application screen witnesses and
+video attributes, and retains raw differences and binary hashes. Its manifest
+lists selection rationale; it does not claim measured interrupt coverage or deep
+application validation. The independent near-CALL probe checks the emulator
+workaround needed for reliable comparisons. Both runners have optional Makefile
+targets; external media is not required by the default test suite.
