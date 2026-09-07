@@ -1,6 +1,12 @@
 ; Local COMMAND contract, not a claim that INT 2Eh preserves all registers.
 bits 16
 org 100h
+%macro TRACE 1
+    push ax
+    mov al,%1
+    out 0e9h,al
+    pop ax
+%endmacro
 start:
     cli
     mov ax, cs
@@ -35,6 +41,35 @@ start:
     int 21h
     jc fail
     mov [tail_segment], ax
+%ifdef EXPECT_MANAGER_MODES
+    mov ax,3567h
+    int 21h
+    mov di,20
+    mov si,manager_signature
+    mov cx,manager_signature_end-manager_signature
+    cld
+    repe cmpsb
+    jne fail
+    mov ax,[es:18]
+    mov [manager_control],ax
+    mov [manager_control+2],es
+mode_next:
+    TRACE 'M'
+    push ax
+    mov al,[mode_step]
+    add al,'0'
+    out 0e9h,al
+    pop ax
+    xor bx,bx
+    mov bl,[mode_step]
+    mov al,[manager_modes+bx]
+    mov ah,1
+    call far [manager_control]
+    jc fail
+    TRACE 'T'
+    call check_manager_mode
+    TRACE 'Q'
+%endif
     mov word [command_source], internal
     call run_command
     mov dx, internal_file
@@ -43,6 +78,12 @@ start:
     call run_command
     mov dx, external_file
     call check_file
+%ifdef EXPECT_MANAGER_MODES
+    call check_manager_mode
+    inc byte [mode_step]
+    cmp byte [mode_step],4
+    jb mode_next
+%endif
 %ifdef EXPECT_LOW_PARAGRAPHS
     call check_low_owner
 %endif
@@ -63,6 +104,7 @@ start:
     jmp exit_guest
 
 run_command:
+    TRACE 'C'
     mov es, [tail_segment]
     xor di, di
     mov si, [command_source]
@@ -72,6 +114,10 @@ run_command:
     mov [caller_sp], sp
     push es
     pop ds
+%ifdef EXPECT_A20_OFF
+    call a20_off_begin
+    TRACE 'A'
+%endif
     xor si, si
     int 2eh
     ; The implementation returns CS:IP, but leaves its resident stack selected.
@@ -84,6 +130,10 @@ run_command:
     sti
     mov ds, ax
     mov es, ax
+    TRACE 'R'
+%ifdef EXPECT_A20_OFF
+    call a20_restore
+%endif
     mov ah, 51h
     int 21h
     mov ax, cs
@@ -98,6 +148,84 @@ run_command:
     cmp [return_ss], ax
     jne fail
     ret
+
+%ifdef EXPECT_MANAGER_MODES
+check_manager_mode:
+    xor ax,ax
+    call far [manager_control]
+    xor bx,bx
+    mov bl,[mode_step]
+    cmp ah,[manager_statuses+bx]
+    jne fail
+    ret
+manager_control dd 0
+mode_step db 0
+manager_modes db 0,1,2,0
+manager_statuses db 0,1,3,0
+manager_signature db 'MICROSOFT EXPANDED MEMORY MANAGER 386'
+manager_signature_end:
+%endif
+
+%ifdef EXPECT_A20_OFF
+; Disposable emulator fixture. FFFF:FFF0 is the reserved HMA safety tail.
+; Touch its low alias only with IRQs masked, restoring that word before entry
+; because it can belong to COMMAND's transient allocation during INT 2Eh.
+a20_off_begin:
+    cli
+    push ax
+    push ds
+    push es
+    xor ax,ax
+    mov ds,ax
+    mov ax,0ffffh
+    mov es,ax
+    mov ax,[0ffe0h]
+    mov [cs:a20_low_save],ax
+    mov ax,[es:0fff0h]
+    mov [cs:a20_high_save],ax
+    mov byte [cs:a20_saved],1
+    mov word [es:0fff0h],05678h
+    mov word [0ffe0h],01234h
+    in al,92h
+    and al,0fch
+%ifndef A20_SKIP_DISABLE
+    out 92h,al
+%endif
+    mov ax,[es:0fff0h]
+    push ax
+    mov ax,[cs:a20_low_save]
+    mov [0ffe0h],ax
+    pop ax
+    cmp ax,01234h
+    pop es
+    pop ds
+    pop ax
+    jne fail
+    ; No interrupt window or DOS call between the alias proof and INT 2Eh.
+    ret
+
+a20_restore:
+    push ax
+    push es
+    in al,92h
+    and al,0feh
+    or al,2
+    out 92h,al
+    cmp byte [cs:a20_saved],0
+    je .done
+    mov ax,0ffffh
+    mov es,ax
+    mov ax,[cs:a20_high_save]
+    mov [es:0fff0h],ax
+    mov byte [cs:a20_saved],0
+.done:
+    pop es
+    pop ax
+    ret
+a20_low_save dw 0
+a20_high_save dw 0
+a20_saved db 0
+%endif
 
 %ifdef EXPECT_LOW_PARAGRAPHS
 check_low_owner:
@@ -274,6 +402,13 @@ check_file:
     ret
 
 fail:
+    TRACE 'F'
+    push cs
+    pop ds
+%ifdef EXPECT_A20_OFF
+    call a20_restore
+    sti
+%endif
 %ifdef EXPECT_SHELL_GATES
     mov dx,gate_status
     mov ah,09h

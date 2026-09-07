@@ -775,8 +775,34 @@ not a claim of complete termination-path coverage. The rebuilt composition
 UMB/XMS accounting and destructive-pipeline passes. Normal COMMAND remains
 byte-identical; the fix changes only transient code, not retained HMA size.
 
+**A20 entry qualified; manager transition failure remains:**
+`out/command-upper-int2e-fughomnq/` passes internal and child-external INT 2Eh
+with A20 aliasing proved immediately before each entry, plus wrong-stack and
+skip-disable negative controls. The probe restores its temporary low alias
+before entry and uses only the reserved HMA safety word. This covers the
+current active-manager composition, not all manager modes or nested interrupts.
+
+The explicit ON/OFF diagnostic (`out/command-upper-int2e-320vtfav/`) returns
+success from OFF and its status query, then stalls inside the first INT 2Eh.
+The pre-retirement control (`out/command-upper-int2e-rcz4ofsr/`, 55-paragraph
+shell) instead returns a file-creation error after OFF. Neither qualifies.
+`ELIMFUNC:E_ONOFF` calls `RRProc`; `RETREAL:RetRealHigh` clears paging. Losing
+paging-backed UMB contents is therefore the leading hypothesis, not a proven
+COMMAND-only regression. Earlier ON/OFF metadata/allocator tests explicitly
+did not dereference UMBs; they cannot establish this composed contract.
+
+Do not require successful OFF with live upper owners merely to satisfy the
+diagnostic. The archived [Microsoft EMM386 command reference](https://techshelps.github.io/MSDN/DNWIN95/HTML/S6827.HTM)
+conditions suspension on not providing upper-memory access and having no
+application EMS handles. Next: verify retail 6.22's refusal/status behavior,
+then enforce safe OFF rejection and AUTO retention as appropriate in the
+manager, without restoring retired COMMAND mirrors. Check actual UMB data
+and shell execution after rejected transitions, plus successful transitions
+in a composition without upper owners. The current `--manager-modes` run is
+an unsafe-transition diagnostic, not the final compatibility oracle.
+
 Remaining before promotion: nested/asynchronous and public-pointer contracts,
-manager/A20, allocation-rejection/rollback and 286 coverage below. Reconcile
+safe manager transitions, allocation-rejection/rollback and 286 coverage. Reconcile
 BIOS placement against the remaining shared HMA budget; neither this measured
 gain nor the fallback pipeline check completes that work.
 
@@ -784,6 +810,7 @@ gain nor the fallback pipeline check completes that work.
 make cmd_command
 python3 tests/test_command_upper_data_qemu.py out/sft-retirement-fx2p__51/input.img
 python3 tests/test_command_upper_int2e_qemu.py out/command-upper-data-zgs86nu2/input.img
+python3 tests/test_command_upper_int2e_qemu.py out/command-upper-data-zgs86nu2/input.img --a20-off
 ```
 
 An offset-preserving data selector can be `allocated_segment - 0220h/16`:
