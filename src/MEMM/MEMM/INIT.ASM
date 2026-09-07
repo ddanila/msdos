@@ -162,6 +162,7 @@ extrn XmsBindingReady:byte
 ENDIF
 extrn	EMM_rEntry:near 	; int67h patch code
 extrn	i15_Old:word		; old int15 vector
+extrn i19_Entry:far,i19_Old:dword
 extrn	ELIM_Entry:far		; installed ON/OFF/AUTO control
 R_CODE	ends
 
@@ -1074,6 +1075,18 @@ skip_dig_adj:
 	ASSUME	DS:R_CODE
 	mov	[i15_Old],bx			; save old IP
 	mov	[i15_Old+2],es			; save old CS
+	; Publish reboot only after successful activation, with IRQs still masked.
+	; Keep the original DOS/firmware chain, never a pointer to the retired TEXT.
+	push es
+	xor ax,ax
+	mov es,ax
+	mov ax,es:[19h*4]
+	mov word ptr [i19_Old],ax
+	mov ax,es:[19h*4+2]
+	mov word ptr [i19_Old+2],ax
+	mov word ptr es:[19h*4],offset R_CODE:i19_Entry
+	mov es:[19h*4+2],ds
+	pop es
 	popf					; restore IF
 	mov	ax,seg DGROUP
 	mov	ds,ax				; DS -> dgroup

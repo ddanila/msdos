@@ -338,6 +338,21 @@ _TEXT	ends				    ; end of segment
 R_CODE	segment
 	assume	cs:R_CODE, ds:DGROUP, es:DGROUP, ss:DGROUP
 ;
+; Firmware bootstrap may execute LIDT/LGDT. Leave V86 before passing INT 19h
+; to DOS/ROM, using the same retained port-trap unwind as RRProc. An INT entry
+; already masks IRQs; no DOS/XMS calls may reactivate the manager afterward.
+	public i19_Entry,i19_Old
+i19_Old dd 0
+i19_Entry proc far
+	push ax
+	mov al,RR84_Value
+	out 84h,al
+	mov al,RR85_Value
+	out 85h,al
+	pop ax
+	jmp dword ptr cs:[i19_Old]
+i19_Entry endp
+;
 ;******************************************************************************
 ;			L O C A L   D A T A   A R E A
 ;******************************************************************************

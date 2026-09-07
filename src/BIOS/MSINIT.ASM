@@ -379,6 +379,29 @@ INIT	PROC	NEAR
 	MOV	WORD PTR DS:[13H*4],OFFSET BLOCK13
 	MOV	DS:[13H*4+2],CS
 ;
+; Preserve pre-installation service vectors, before CONFIG drivers can publish
+; pointers into storage that the next software boot will overwrite.
+;
+	PUSH BX
+	PUSH CX
+	PUSH SI
+	MOV SI,OFFSET Int19BootVectors
+	MOV CX,3
+SaveBootManagerVectors:
+	XOR BX,BX
+	MOV BL,CS:[SI+4]
+	SHL BX,1
+	SHL BX,1
+	MOV AX,DS:[BX]
+	MOV CS:[SI],AX
+	MOV AX,DS:[BX+2]
+	MOV CS:[SI+2],AX
+	ADD SI,5
+	LOOP SaveBootManagerVectors
+	POP SI
+	POP CX
+	POP BX
+;
 ; PRESERVE ORIGINAL INT 19 VECTOR
 ;
 	MOV	AX,DS:[19H*4]

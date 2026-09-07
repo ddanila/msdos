@@ -7,6 +7,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import tempfile
+import time
 
 from build_bios_low_image import ROOT
 from capture_vc_memory_comparison import image_file, partition_offset
@@ -19,7 +20,10 @@ def main():
     parser.add_argument("--profile", choices=("existing", "bare-low", "himem-high"),
                         default="existing")
     parser.add_argument("--ctty-aux", action="store_true")
-    parser.add_argument("--timeout", type=int, default=20)
+    parser.add_argument("--set-df", action="store_true",
+                        help="enter INT 19h with backwards string direction")
+    parser.add_argument("--timeout", type=int, default=60,
+                        help="allow both HIMEM memory tests, including under host load")
     args = parser.parse_args()
     work = Path(tempfile.mkdtemp(prefix="software-reboot-", dir=ROOT / "out"))
     print(f"Artifacts: {work}", flush=True)
@@ -43,11 +47,12 @@ def main():
     autoexec += b"SWBOOT.COM\r\n"
     install(disk, "AUTOEXEC.BAT", autoexec)
     probe = work / "SWBOOT.COM"
-    subprocess.run(["nasm", "-f", "bin", ROOT / "tests/software_reboot_probe.asm",
+    subprocess.run(["nasm", "-f", "bin", *(["-DREBOOT_SET_DF"] if args.set_df else []),
+                    ROOT / "tests/software_reboot_probe.asm",
                     "-o", probe], check=True)
     install(disk, "SWBOOT.COM", probe.read_bytes())
     report = dict(input_sha256=hashlib.sha256(args.image.read_bytes()).hexdigest(),
-                  profile=args.profile, ctty_aux=args.ctty_aux,
+                  profile=args.profile, ctty_aux=args.ctty_aux, set_df=args.set_df,
                   config=config.decode("ascii"), autoexec=autoexec.decode("ascii"),
                   probe_sha256=hashlib.sha256(probe.read_bytes()).hexdigest())
     command = ["qemu-system-i386", "-machine", "pc", "-cpu", "486", "-m", "8",
@@ -58,6 +63,7 @@ def main():
     report["command"] = command
     report["qemu_version"] = subprocess.check_output(
         ["qemu-system-i386", "--version"], text=True).splitlines()[0]
+    started = time.monotonic()
     try:
         result = subprocess.run(command, stdout=subprocess.PIPE,
                                 stderr=subprocess.STDOUT, timeout=args.timeout)
@@ -67,6 +73,7 @@ def main():
     (work / "serial.log").write_bytes(output)
     trace = (work / "debug.log").read_bytes()
     report.update(exit_code=code, timeout_seconds=args.timeout,
+                  elapsed_seconds=round(time.monotonic() - started, 3),
                   first_boots=trace.count(b"SOFTWARE_REBOOT_READY"),
                   second_boots=trace.count(b"SOFTWARE_REBOOT_SECOND_BOOT_PASS"),
                   failure=b"SOFTWARE_REBOOT_FAIL" in trace)

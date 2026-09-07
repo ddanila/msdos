@@ -15,8 +15,8 @@ COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
 The current **composed retirement candidate** measures
-**624,624 conventional / 48,416 free UMB bytes**: **6,688 above the selected
-development control**, and **5,888 above retail**. The preceding shell retirement
+**624,576 conventional / 48,416 free UMB bytes**: **6,640 above the selected
+development control**, and **5,840 above retail**. The preceding shell retirement
 recovered **2,752 conventional bytes** versus its identical BIOS/provider
 composition with normal COMMAND; the kernel-table retirement adds **256** and
 packing the initialized BIOS drive graph adds **304**. Upper placement of the
@@ -25,6 +25,8 @@ leaving **528 above retail's free-UMB floor**. Retiring the complete low clock
 conversion owner adds **128 conventional bytes** at a net **109 HMA-byte cost**.
 Retiring AH=08h operations/BDS insertion adds **80 conventional bytes** at a
 **133 HMA-byte cost**, keeping the public records and interrupt-chain filter low.
+The software-reboot correction below then costs **48 conventional bytes**;
+this is a correctness charge, not another memory-saving milestone.
 Application XMS remains **6,798,336 bytes** (5,120 below the development control);
 the shell move adds no UMB or XMS cost. This is an opt-in experimental layout,
 not production promotion.
@@ -58,7 +60,7 @@ python3 tests/test_dos_char_retirement_qemu.py out/command-high-retirement-vj99u
 **Next selection gate:** stop isolated table/paragraph harvesting after this
 completed owner. Resolve the remaining BIOS and COMMAND owners against the
 same shared budget, remove obsolete storage and measure their combined release.
-BIOS retains 2,720 low bytes; COMMAND retains 880. These are allocations, not
+BIOS retains 2,736 low bytes; COMMAND retains 880. These are allocations, not
 promised savings: BIOS request/ROM-return gates, public device/BDS pointers and
 DMA-facing storage need explicit low contracts. In particular, the census's
 545-byte strategy/dispatch row includes retained completion and firmware-return
@@ -69,9 +71,9 @@ named checkpoints; use the figures here for the current candidate.
 
 Use `report_dos_bios_residency.py` with the matching `--boot-manifest`, not
 the map alone: cold helpers remain linked but successful activation no
-longer retains them low. The whole-source capacity check charges 2,720 BIOS +
+longer retains them low. The whole-source capacity check charges 2,736 BIOS +
 288 shell entries/stack + 333 shell data against 3,623 HMA bytes, leaving
-**282 bytes before unpriced changes**. This is neither reclaimable memory nor
+**266 bytes before unpriced changes**. This is neither reclaimable memory nor
 a final placement proof; the runtime comparison remains authoritative.
 
 **Buffer-sharing decision:** do not alias DOS's 512-byte HMA transfer area to
@@ -96,48 +98,64 @@ reads and retries, plus external-driver calls, without retaining another
 Continue the joint BIOS/COMMAND ownership decision rather than substituting
 that small retirement or unrelated qualification probes for the delivery gate.
 
-#### Software-reboot ownership gate
+#### Software-reboot ownership correction
 
-The frozen candidate does not complete an ordinary software `INT 19h` reboot
-with memory managers. A new public-API-only probe creates and flushes a disk
-receipt, invokes `INT 19h` without hooking vectors, then validates/deletes the
-receipt on the second boot. Acceptance requires both boot markers and guest
-exit 33; a timeout is failure, not a second-boot receipt. Inputs containing a
-receipt are rejected before execution.
+The preceding 624,624-byte candidate failed ordinary `INT 19h` with managers;
+retail completed the same second-boot probe. Two distinct contracts were missing:
 
-On the same QEMU 11.1.1 / 486 / 8 MiB IDE profile, with matching CONFIG and
-probe bytes, the results are:
+- BIOS must restore pre-installation INT 15h/2Fh/67h service vectors before the
+  loader overwrites DOS/manager owners. `MSINIT` now captures those three
+  pointers; `MSBIO2:INT19` restores them with the existing hardware-vector loop
+  and clears DF. STACKS still owns its original fourteen vector receipts.
+- EMM386 must leave V86 before chaining to the BIOS bootstrap. Its retained
+  `RRTRAP:i19_Entry` now uses the existing return-real port handshake, preserves
+  AX, and chains directly to the captured DOS/firmware entry. INIT publishes
+  this hook only after successful activation; there is no subsequent DOS/XMS
+  call that could reactivate the manager before the firmware handoff.
 
-| Configuration | Current candidate | Retail 6.22 |
-| --- | --- | --- |
-| Bare DOS=LOW, no managers | Second boot passes | Second boot passes |
-| HIMEM only, DOS=HIGH | Times out after first marker | Second boot passes |
-| HIMEM + EMM386, DOS=HIGH,UMB | Times out after first marker | Second boot passes |
+The debugger caught SeaBIOS `LIDT` at `F000:CF48` entering `ErrHndlr` as a
+privileged-operation error (`out/reboot-error-entry-lk16xtb0/`). That error
+path switches to real mode and returns into retired low `_TEXT`; its low bytes
+do not match the high continuation. The garbled prompt was therefore not
+evidence of a failed second-boot loader. **General fatal/exception reporting
+still needs its own retained continuation fix**; avoiding this reboot trigger
+does not qualify that path.
 
-Each result repeats with and without `CTTY AUX`. Paired evidence without CTTY:
-`out/software-reboot-e5yolxiz/` (candidate), `out/software-reboot-pk8rr7sc/`
-(retail). Substituting retail HIMEM or normal COMMAND in the candidate's
-HIMEM-only case still fails at 40 seconds (`kqo2vj7q` and `hqvtav27`, under
-`out/software-reboot-`). Neither an EMM-only explanation, the diagnostic vector
-checker, nor shell high placement alone explains the failure.
+The corrected composition is `out/software-reboot-fix-wk9s16af/input.img`, with
+matching `bios/` and `MEMM/MEMM/` maps. Ordinary second boot passes in paired
+RAM mode, HIMEM-only HIGH, and bare LOW, both normally and with CTTY AUX plus
+DF set on entry. Paired ON/OFF/AUTO also pass with DF set. Evidence includes
+`out/software-reboot-7jc33t80/`, `235nw7va`, `be9_gbug`, `geam_chs`, `cn_1fcki`,
+`vgmtqch8`, `5p922_xk`, `3v103j7g`, and `q4rxg_la` (same directory prefix).
+The public-API probe flushes a disk receipt, invokes unmodified INT 19h, and
+validates/deletes the receipt on the second boot. Both markers and guest exit
+33 are required; stale input receipts are rejected. The limit is 60 seconds:
+two HIMEM `/TESTMEM:ON` boots take about 20 seconds, making the former 20-second
+limit unreliable under load. A timeout alone cannot localize a failure.
 
-**Bounded experiment, not an accepted fix:** capture pre-installation INT
-15h/2Fh/67h vectors in BIOS initialization and restore them through the reboot
-loop. This makes the HIMEM-only second boot pass (`out/software-reboot-2q3mbkgf/`),
-but the paired case still fails (`o4t2yaei`). Capturing the fourteen hardware
-vectors before CONFIG drivers, instead of replacing those receipts during
-STACKS installation, also fails the paired case (`azwpt8hc`). The latter source
-patch and linked image are retained in `out/bios-boot-irq-vectors-3ifjc3ii/`;
-neither experiment is in production sources. The next diagnostic target is
-the paired manager/firmware handoff and live interrupt owners before the second
-boot overwrites them—not another COMMAND move. Do not equate vector restoration
-or QMP hardware-reset success with software-reboot qualification. No memory
-saving or promotion credit is assigned to these tests.
+Same-size controls separately omit service-vector cleanup and EMM's real-mode
+exit. Both reach the first marker but fail the second; the matched positive
+passes (`out/software-reboot-guards-8eb3niyy/`). Default STACKS=9,128 nested
+entries, FCB I/O and A20-off timer callbacks with live EMS mappings still pass
+(`out/stack-pool-retirement-mvjad5_j/`). Broader reset/media/third-party-hook
+coverage, paired DOS-low qualification and final BIOS/COMMAND placement remain
+open; this is not promotion.
+
+Fresh matched VC/MEM captures (`out/reboot-fix-memory-bim0fr6y/`) charge **16
+BIOS + 32 EMM386 conventional bytes**: **624,624 -> 624,576**, with unchanged
+**48,416 UMB / 6,798,336 application XMS**. BIOS is **2,736**, EMM386 **2,224**,
+HIMEM **2,448**, COMMAND **880** bytes; HMA payload sizes are unchanged. Only
+BIOS and EMM386 differ between the compared images. The old two-object provider
+reconstruction is byte-identical before applying the source changes
+(`out/reboot-provider-control-dxfegohk/`). A fresh source-based paired-provider
+ON/OFF/AUTO/RAM lifecycle run also passes (`out/emm-init-phases-lko0z39u/`)
+and produces the identical corrected EMM386 used in the memory comparison.
 
 ```sh
-python3 tests/test_software_reboot_qemu.py out/bios-mux-retirement-rr2vha88/input-retired.img
-python3 tests/test_software_reboot_qemu.py out/msdos622-original-vc405.img
-# Add --profile himem-high or --profile bare-low; repeat with --ctty-aux.
+make memm bios
+python3 tests/test_software_reboot_qemu.py out/software-reboot-fix-wk9s16af/input.img --set-df
+python3 tests/test_software_reboot_guards_qemu.py out/software-reboot-fix-wk9s16af/input.img out/software-reboot-fix-wk9s16af/bios out/software-reboot-fix-wk9s16af/MEMM/MEMM
+# Also select --profile himem-high or bare-low, and --ctty-aux.
 ```
 
 #### Retired block-driver multiplex operations
@@ -257,26 +275,26 @@ python3 tests/test_bios_clock_retirement_qemu.py out/command-high-retirement-wv3
 
 #### Retired low interrupt-stack pool
 
-The current saved VC comparison narrows the OpenDOS lead to **3,424 bytes**,
+The current saved VC comparison narrows the OpenDOS lead to **3,472 bytes**,
 not the 11,936-byte gap in the older reassessment below:
 
 | Accounting boundary | Current packed candidate | OpenDOS 7.01 IDE capture | Local minus OpenDOS |
 | --- | ---: | ---: | ---: |
-| System start to COMMAND start | 13,952 | 10,448 | +3,504 |
+| System start to COMMAND start | 14,000 | 10,448 | +3,552 |
 | COMMAND start to VC start | 1,232 | 1,312 | -80 |
 | VC start to first free block | 12,720 | 12,720 | 0 |
-| Largest conventional block | 624,624 | 628,048 | -3,424 |
+| Largest conventional block | 624,576 | 628,048 | -3,472 |
 
 These are allocation spans, not individual program MCB sizes. VC hashes and
 the 639 KiB ceiling match; vendor resource semantics and reset qualification
-still differ. Evidence: `out/bios-mux-retirement-rr2vha88/results.json` and
+still differ. Evidence: `out/reboot-fix-memory-bim0fr6y/results.json` and
 `out/opendos-disk-boot-evidence/result.json`. This reconciles saved captures,
 not a new vendor run. COMMAND placement still needs qualification and a final
 state contract, but a large shell allocation no longer explains this gap.
 
-The current system span reconciles as **2,720 BIOS + 5,376 DOS prefix + 4,640
+The current system span reconciles as **2,736 BIOS + 5,376 DOS prefix + 4,672
 managers + 512 transfer area + 608 interrupt handlers/control + 96 arena/mark
-bytes = 13,952**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
+bytes = 14,000**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
 low and the span was 15,392. A public suballocation probe on that pre-pool image
 confirms the four dynamic owners without unclassified gaps:
 `out/system-owners-gz8p6jrj/`. Its AUTOEXEC runs the probe instead of VC;

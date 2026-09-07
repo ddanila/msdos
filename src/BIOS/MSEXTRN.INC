@@ -10,6 +10,7 @@
 ;==============================================================================
 
 	EXTRN	ORIG13:DWORD,ORIG19:DWORD
+	EXTRN Int19BootVectors:BYTE
 	EXTRN	COM2DEV:WORD,COM1DEV:WORD
 	EXTRN	COM4DEV:WORD,COM3DEV:WORD
 	EXTRN	LPT3DEV:WORD,LPT2DEV:WORD,LPT1DEV:WORD

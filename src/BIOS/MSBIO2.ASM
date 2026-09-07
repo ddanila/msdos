@@ -91,6 +91,16 @@ Int19OLD&AA	dd	-1		;Orignal hardware int. vectors for INT 19h.
 	DB	AA&H			;Interrupt number for compact restore loop.
 	ENDM
 
+	PUBLIC Int19BootVectors
+; Captured before DOS/HIMEM/EMM386 hook these services. Their low owners may
+; be overwritten by the loader, so a software reboot cannot retain the hooks.
+Int19BootVectors LABEL BYTE
+	IRP AA,<15,2F,67>
+	DD -1
+	DB AA&H
+	ENDM
+Int19VectorsEnd LABEL BYTE
+
 	EVENB
 	PUBLIC	DSKDRVS
 DSKDRVS DW	FDRIVE1
@@ -127,11 +137,12 @@ CompactDpbStorage DB 4 * 33 DUP (0)
 ;  IT DOES NOT "BOOTSTRAP" THE MACHINE.  IT LEAVES MEMORY ALMOST UNTOUCHED.
 ;  SINCE THE BIOS_INIT CODE ASSUMES THAT CERTAIN INTERRUPT VECTORS POINT TO
 ;  THE ROM_BIOS  WE MUST "UNHOOK" THEM BEFORE ISSUING THE ACTUAL INT_19.
-;  CURRENTLY THE ONLY VECTORS THAT NEED TO BE UNHOOKED ARE INT_19, INT_13,
-;  AND THE HARDWARE INTERRUPTS.
+;  Restore INT 19h/13h, installed stack vectors and pre-boot memory-manager
+;  service vectors. A virtual-mode manager must leave V86 before chaining here.
 ;
 	PUBLIC	INT19
 INT19	PROC	FAR
+	CLD			; callers need not enter with forward string direction
 	XOR	AX,AX
 	MOV	DS,AX
 	assume	ds:nothing
@@ -142,11 +153,11 @@ INT19	PROC	FAR
 	MOV	DS:[13H*4+2],ES
 
 ;Stacks code has changed these hardware interrupt vectors
-;STKINIT in SYSINIT1 initializes each Int19OLDxx value. Entries that have not
-;been installed retain their FFFFh segment sentinel and are skipped.
+; STKINIT initializes the fourteen hardware-vector records; INIT captures the
+; three service-vector records. Uninstalled stack entries keep their sentinel.
 INT19VECS:
 	MOV	SI,OFFSET Int19OLD02
-	MOV	CX,14
+	MOV	CX,(Int19VectorsEnd-Int19OLD02)/5
 INT19VECLOOP:
 	LODSW	WORD PTR CS:[SI]
 	XCHG	AX,DI

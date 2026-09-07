@@ -57,6 +57,9 @@ first:
     int 21h
     mov si,ready
     call debug
+%ifdef REBOOT_SET_DF
+    std
+%endif
     int 19h
 fail:
     mov si,failed
