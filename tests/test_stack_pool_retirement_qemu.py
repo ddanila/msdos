@@ -17,7 +17,7 @@ from test_dos_char_retirement_qemu import install
 from test_umb_subpage_composition import xms_summary
 
 
-def shape_checks(source, bios, work):
+def shape_checks(source, bios, work, controlled=False):
     """Use frozen composed binaries, changing only STACKS and probe startup."""
     assert image_file(source, "::IO.SYS") == (bios / "IO.SYS").read_bytes()
     manifest = json.loads((bios / "low.json").read_text())
@@ -33,6 +33,8 @@ def shape_checks(source, bios, work):
     # back intact. The other pools fit without changing configured resources.
     for count, size, upper in ((8, 32, True), (9, 128, True), (8, 512, True),
                                (64, 32, True), (64, 128, True), (64, 512, False)):
+        if controlled and size != 32:
+            continue
         upper = upper and enabled
         name = f"{count}-{size}"
         directory = work / name
@@ -41,7 +43,8 @@ def shape_checks(source, bios, work):
             f"%define EXPECT_UPPER {int(upper)}\n%define EXPECT_DOS_HIGH 1\n"
             "%define STACK_SHAPE_TRACE 1\n"
             f"%define STACK_COUNT {count}\n%define STACK_SIZE {size}\n"
-            f"%define ENTRY_OFFSET {symbols['INT08']}\n%define OLD_SLOT {symbols['OLD08']}\n")
+            f"%define ENTRY_OFFSET {symbols['INT08']}\n%define OLD_SLOT {symbols['OLD08']}\n"
+            + ("%define POOL_CONTROLLED_RESEED 1\n" if controlled else ""))
         image = directory / "probe.img"
         shutil.copyfile(source, image)
         updated, replacements = re.subn(rb"(?im)^STACKS=[^\r\n]*", f"STACKS={count},{size}".encode(), config)
@@ -65,10 +68,13 @@ def shape_checks(source, bios, work):
         debug = (directory / "debug.log").read_bytes()
         passed = (result.returncode == 33 and debug.count(b"STACK_POOL_NESTED_PASS") == 2
                   and b"STACK_POOL_FAIL" not in debug and b"INT21_FCB_PASS" in result.stdout)
+        passed = passed and debug.count(b"STACK_POOL_CONTROLLED_RESEED") == (2 if controlled else 0)
         results[name] = dict(count=count, size=size, upper=upper, passed=passed, exit_code=result.returncode,
+            controlled_marker_repair=controlled,
             pool_bytes=(count*(size+8)+15)//16*16, nested_visits=count if passed else None,
             image_sha256=hashlib.sha256(image.read_bytes()).hexdigest())
-        print(f"{'PASS' if passed else 'FAIL'} STACKS={count},{size}: expected {'upper' if upper else 'low'}, artifacts {directory}", flush=True)
+        scope = "controlled marker repair" if controlled else "unmodified markers"
+        print(f"{'PASS' if passed else 'FAIL'} STACKS={count},{size}: {scope}, expected {'upper' if upper else 'low'}, artifacts {directory}", flush=True)
     (work / "shapes.json").write_text(json.dumps(dict(results=results,
         source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),
         bios_sha256=hashlib.sha256((bios / "IO.SYS").read_bytes()).hexdigest()), indent=2) + "\n")
@@ -139,14 +145,17 @@ def main():
     parser.add_argument("image", type=Path, help="packed BIOS/high-COMMAND composition before pool placement")
     parser.add_argument("--fallback-only", action="store_true", help="qualify standalone DOS-low and absent-UMB paths")
     parser.add_argument("--shapes-bios", type=Path, help="qualify STACKS bounds using this matching frozen BIOS build")
+    parser.add_argument("--controlled-stacks", action="store_true", help="diagnostic 32-byte handler test after explicit marker repair; not boot qualification")
     args = parser.parse_args()
     if args.fallback_only and args.shapes_bios:
         parser.error("choose fallback or shape qualification")
+    if args.controlled_stacks and not args.shapes_bios:
+        parser.error("--controlled-stacks requires --shapes-bios")
     work = Path(tempfile.mkdtemp(prefix="stack-pool-retirement-", dir=ROOT / "out"))
     print(f"Artifacts: {work}", flush=True)
     assert image_file(args.image, "::MSDOS.SYS") == (ROOT / "src/DOS/MSDOS.SYS").read_bytes()
     if args.shapes_bios:
-        shape_checks(args.image, args.shapes_bios, work)
+        shape_checks(args.image, args.shapes_bios, work, args.controlled_stacks)
         return
     if args.fallback_only:
         fallback_checks(args.image, work)

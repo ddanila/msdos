@@ -113,6 +113,20 @@ start:
     pushf
     cli
     shape_step '3'
+%ifdef POOL_CONTROLLED_RESEED
+%if STACK_SIZE != 32
+%error Controlled marker repair is only for the diagnosed 32-byte profile
+%endif
+    ; Diagnostic only: require the specific pre-existing ROM overwrite, then
+    ; repair just that marker before using our bounded successor with IF=0.
+    ; This must never replace the unmodified-boot shape test.
+    mov es,[cs:pool_seg]
+    cmp word [es:STACK_COUNT*8+(STACK_COUNT-1)*STACK_SIZE-2],0
+    jne fail
+    mov si,reseed_message
+    call debug
+    mov word [es:STACK_COUNT*8+(STACK_COUNT-1)*STACK_SIZE-2],(STACK_COUNT-2)*8
+%endif
 %ifdef POOL_BAD_BACKLINK
     mov si,negative_ready
     call debug
@@ -280,6 +294,9 @@ seen times STACK_COUNT dw 0
 passed db 'STACK_POOL_NESTED_PASS',13,10,0
 failed db 'STACK_POOL_FAIL',13,10,0
 negative_ready db 'STACK_POOL_BAD_BACKLINK_READY',13,10,0
+%ifdef POOL_CONTROLLED_RESEED
+reseed_message db 'STACK_POOL_CONTROLLED_RESEED',13,10,0
+%endif
 %ifdef STACK_SHAPE_TRACE
 stage db '0'
 %endif

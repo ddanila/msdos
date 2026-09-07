@@ -196,12 +196,26 @@ window—no DR-DOS binary or source. Reproduce with:
 python3 tests/capture_stack_pool_write.py out/stack-pool-retirement-ukv727m6/8-32/probe.img
 ```
 
-Next separate the controlled handler's 32-byte contract from this platform's
-firmware demand: measure the complete successor-chain depth and qualify small
-stacks with a bounded successor. Any controlled reinitialization must be labeled
-as such and must not turn the failing unmodified-boot shape tests green. Default
-128-byte and tested 512-byte profiles remain passing; no pool-size or memory
-accounting change is made to work around the firmware writes.
+**Controlled 32-byte handler check:** both 8- and 64-stack configurations pass
+in upper (`out/stack-pool-retirement-ibbfx727/`) and low
+(`out/stack-pool-retirement-wmn4dtrd/`) placement with a bounded successor.
+With IRQs masked, the probe first requires the specific zeroed marker observed
+above, reports `STACK_POOL_CONTROLLED_RESEED`, and repairs only that word.
+It then validates the complete pool, nests through every configured stack and
+checks markers and SS:SP/register restoration. Both calls bracketing FCB I/O
+must report the repair and pass. This isolates the handler's stack demand;
+it is not successful 32-byte boot or asynchronous-firmware qualification.
+
+```sh
+python3 tests/test_stack_pool_retirement_qemu.py out/stack-pool-retirement-hmjvgcxp/input-upper.img --shapes-bios out/stack-pool-retirement-hmjvgcxp/upper --controlled-stacks
+```
+
+The unmodified-boot probe remains byte-identical and its failures remain open.
+Complete successor-chain depth and other-firmware behavior are still unknown.
+Default 128-byte and tested 512-byte profiles remain passing; no pool-size or
+memory-accounting change is made to work around the firmware writes. Continue
+default-profile A20/EMS and asynchronous qualification before spending more
+memory-layout effort on this separately diagnosed small-stack platform limit.
 
 **Still unqualified:** paired-provider DOS-low, 286 and policy-restoration-failure
 paths, remaining configured shapes (including the failing 32-byte cases), exhaustion and clobbered-entry recovery,
