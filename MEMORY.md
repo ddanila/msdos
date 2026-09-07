@@ -423,6 +423,22 @@ as one owner or count the 33 bytes as a separate delivery milestone. Likewise,
 `TIM_DRV`, `DPT`, `SPSAV` and `DAYCNT` cross disk/media/clock paths; moving the
 whole mixed row needs those bindings, not just its steady-state disk reader.
 
+**Remaining BIOS audit, at pause:** the 49-byte `ACCESSCOUNT..ERROUT+NUMERR`
+range in `MSBDATA.INC` is not one uniformly high-only owner. `MS96TPI.INC`
+uses `TIM_DRV` in media-change handling, and its optional INT 13h error hook
+writes `FLAGBITS` before calling `SET_CHANGED_DL`, which walks the public BDS
+graph. That hook is outside the fixed one-hard-disk retained boundary: this is
+a cross-profile constraint, not evidence that it executed in the measured
+image. Any relocation must distinguish the selected live readers from optional
+and inactive-layout readers, preserving their state contracts.
+
+`HIGHROM.INC` also retains distinct direct-interrupt, explicit-vector,
+mutable-vector, tail-chain and near-helper entry contracts. Similar return
+sequences do not prove that an entire gate is obsolete. No BIOS state or gate
+was retired by this audit, and no additional saving is booked. Resume with the
+remaining BIOS reader/lifetime decision against the joint ledger; do not
+restart COMMAND migration or pursue isolated epilogue/paragraph savings.
+
 Use `report_dos_bios_residency.py` with `--tail-body` and the matching `--boot-manifest`, not
 the map alone: cold helpers remain linked but successful activation no
 longer retains them low. The current shared HMA budget is **3,308 free bytes**.
