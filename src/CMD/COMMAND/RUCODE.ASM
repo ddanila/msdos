@@ -177,9 +177,9 @@ ASKEND:
 	MOV	AX,(STD_CON_INPUT_FLUSH SHL 8)+STD_CON_INPUT
 	SHELL_INT	21H
 	call	in_char_xlat			;g change to upper case
-	CMP	AL,no_char
+	SHELL_FORMAT_REF <CMP AL,SHELL_FORMAT_SEG no_char>,0
 	retz					; carry is clear => no free
-	CMP	AL,yes_char
+	SHELL_FORMAT_REF <CMP AL,SHELL_FORMAT_SEG yes_char>,0
 	JNZ	ASKEND
 	stc					; carry set => free batch
 	return
@@ -204,14 +204,19 @@ ASSUME	DS:NOTHING,ES:NOTHING,SS:NOTHING
 	IFDEF COMMAND_RESIDENT_BINDING
 	; The interrupted driver's DS remains live until its name is copied.
 	; Select the shell destination independently of this code's CS.
-	SHELL_OWNER_SEG ES,critical_es
-	MOV	ES:[CDEVAT],AH
+	IFDEF COMMAND_HIGH_RESIDENT
+	push cs
+	pop es
 	ELSE
-	MOV	[CDEVAT],AH
+	SHELL_OWNER_SEG ES,critical_es
+	ENDIF
+	SHELL_FORMAT_REF <MOV ES:[CDEVAT],AH>,0
+	ELSE
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG [CDEVAT],AH>,0
 	PUSH	CS
 	POP	ES
 	ENDIF
-	MOV	DI,OFFSET RESGROUP:DEVENAM
+	SHELL_FORMAT_REF <MOV DI,OFFSET RESGROUP:DEVENAM>,0
 	MOV	CX,8
 	ADD	SI,SDEVNAME			; Suck up device name (even on Block)
 	REP	MOVSB
@@ -286,10 +291,10 @@ critical_body_start:
 	MOV	CRIT_ERR_INFO,AH		;G save so we know if R,I,F are valid
 
 	ADD	AL,'A'                          ; Compute drive letter (even on character)
-	MOV	[DRVLET],AL
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG [DRVLET],AL>,0
 	TEST	AH,80H				; Check if hard disk error
 	JZ	NOHARDE
-	TEST	[CDEVAT],DEVTYP SHR 8
+	SHELL_FORMAT_REF <TEST SHELL_FORMAT_SEG [CDEVAT],DEVTYP SHR 8>,1
 	JNZ	NOHARDE
 	JMP	FATERR
 
@@ -427,7 +432,7 @@ NormalError:
 ;AD054; MOV	DI,WORD PTR [DI+MESBAS] 	; Get pointer to error message
 	add	DI,error_write_protect		;AN054;
 	XCHG	DI,DX				; May need DX later
-	MOV	DISP_CLASS,EXT_CRLF_CLASS	;AN054; printing extended error class
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG DISP_CLASS,EXT_CRLF_CLASS>,1 ;AN054; printing extended error class
 	CRITICAL_CALL	RPRINT				; Print error type
 
 CheckErrType:
@@ -451,25 +456,25 @@ ContOld:
 	POP	DS				; restore resident COMMAND data access
 	ENDIF
 
-	TEST	[CDEVAT],DEVTYP SHR 8
+	SHELL_FORMAT_REF <TEST SHELL_FORMAT_SEG [CDEVAT],DEVTYP SHR 8>,1
 	JZ	BLKERR
 	MOV	DX,DEVEMES			;AC000; get message number for device message
-	MOV	DEVE_OP_OFF,SI			;AN000; put address of read/write in subst block
-	MOV	DEVE_OP_SEG,BX
-	MOV	AL,DEVEMES_SUBST		;AN000; get number of substitutions
-	MOV	NUMBER_SUBST,AL 		;AN000;
-	MOV	SI,OFFSET RESGROUP:DEVEMES_BLOCK;AN000; get address of subst block
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG DEVE_OP_OFF,SI>,0 ;AN000; put address of read/write in subst block
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG DEVE_OP_SEG,BX>,0
+	SHELL_FORMAT_REF <MOV AL,SHELL_FORMAT_SEG DEVEMES_SUBST>,0 ;AN000; get number of substitutions
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,AL>,0 ;AN000;
+	SHELL_FORMAT_REF <MOV SI,OFFSET RESGROUP:DEVEMES_BLOCK>,0 ;AN000; get address of subst block
 
 	CRITICAL_CALL	RPRINT				;AC000; print the message
 	JMP	SHORT ASK			; Don't ralph on COMMAND
 
 BLKERR:
 	MOV	DX,DRVNUM			;AN000; get drive message number
-	MOV	DRVNUM_OP_OFF,SI		;AN000; put address of read/write in subst block
-	MOV	DRVNUM_OP_SEG,BX
-	MOV	AL,DRVNUM_SUBST 		;AN000; get number of substitutions
-	MOV	NUMBER_SUBST,AL 		;AN000;
-	MOV	SI,OFFSET RESGROUP:DRVNUM_BLOCK ;AN000; get address of subst block
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG DRVNUM_OP_OFF,SI>,0 ;AN000; put address of read/write in subst block
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG DRVNUM_OP_SEG,BX>,0
+	SHELL_FORMAT_REF <MOV AL,SHELL_FORMAT_SEG DRVNUM_SUBST>,0 ;AN000; get number of substitutions
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,AL>,0 ;AN000;
+	SHELL_FORMAT_REF <MOV SI,OFFSET RESGROUP:DRVNUM_BLOCK>,0 ;AN000; get address of subst block
 	CRITICAL_CALL	RPRINT
 	CMP	[LOADING],0
 	JZ	ASK
@@ -484,24 +489,34 @@ ASK:
 	cmp	[ERRCD_24],15			; Wait! Error 15 has an extra message
 	jne	Not15
 	PUSH	CX
+	IFDEF COMMAND_HIGH_RESIDENT
+	push ds
+	push cs
+	pop es
+	ELSE
 	push	ds
 	pop	es
+	ENDIF
 	lds	si,[RemMsg]
 assume	ds:nothing
 	push	di
-	mov	di,offset resgroup:VolName
+	SHELL_FORMAT_REF <mov di,offset resgroup:VolName>,0
 	mov	cx,16				;AC000; extra message volume name & serial number
 	cld					; just in case!
 	rep	movsb
 	pop	di
-	push	es
-	pop	ds
+	IFDEF COMMAND_HIGH_RESIDENT
+	pop ds
+	ELSE
+	push es
+	pop ds
+	ENDIF
 	POP	CX
 assume	ds:resgroup
 	mov	dx,Err15Mes			;AC000; get message number
-	MOV	AL,ERR15MES_SUBST		;AN000; get number of substitutions
-	MOV	NUMBER_SUBST,AL 		;AN000;
-	MOV	SI,OFFSET RESGROUP:ERR15MES_BLOCK ;AN000; get address of subst block
+	SHELL_FORMAT_REF <MOV AL,SHELL_FORMAT_SEG ERR15MES_SUBST>,0 ;AN000; get number of substitutions
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,AL>,0 ;AN000;
+	SHELL_FORMAT_REF <MOV SI,OFFSET RESGROUP:ERR15MES_BLOCK>,0 ;AN000; get address of subst block
 	CRITICAL_CALL	RPRINT
 
 ; PRINT OUT ABORT, RETRY, IGNORE, FAIL MESSAGE.  ONLY PRINT OUT OPTIONS
@@ -555,24 +570,24 @@ notkanj:					;AN000;  3/3/KK
 	MOV	AH,0				; Return code for ignore
 	TEST	CRIT_ERR_INFO,IGNORE_ALLOWED	;G is IGNORE allowed?
 	JZ	USER_RETRY			;G
-	CMP	AL,ignore_char			; Ignore?
+	SHELL_FORMAT_REF <CMP AL,SHELL_FORMAT_SEG ignore_char>,0 ; Ignore?
 	JZ	EEXITJ
 
 USER_RETRY:
 	INC	AH				; return code for retry
 	TEST	CRIT_ERR_INFO,RETRY_ALLOWED	;G is RETRY allowed?
 	JZ	USER_ABORT			;G
-	CMP	AL,retry_char			; Retry?
+	SHELL_FORMAT_REF <CMP AL,SHELL_FORMAT_SEG retry_char>,0 ; Retry?
 	JZ	EEXITJ
 
 USER_ABORT:
 	INC	AH				; return code for abort - always allowed
-	CMP	AL,abort_char			; Abort?
+	SHELL_FORMAT_REF <CMP AL,SHELL_FORMAT_SEG abort_char>,0 ; Abort?
 	JZ	abort_process			;G  exit user program
 	INC	AH				;G  return code for fail
 	TEST	CRIT_ERR_INFO,FAIL_ALLOWED	;G is FAIL allowed?
 	JZ	ASKJ				;G
-	CMP	AL,fail_char			;G fail?
+	SHELL_FORMAT_REF <CMP AL,SHELL_FORMAT_SEG fail_char>,0 ;G fail?
 	JZ	EEXITJ				;G
 
 ASKJ:
@@ -652,9 +667,9 @@ RESTHD:
 
 FATERR:
 	MOV	DX,BADFAT			;AC000;
-	MOV	AL,BADFAT_SUBST 		;AN000; get number of substitutions
-	MOV	NUMBER_SUBST,AL 		;AN000;
-	MOV	SI,OFFSET RESGROUP:BADFAT_BLOCK ;AN000; get address of subst block
+	SHELL_FORMAT_REF <MOV AL,SHELL_FORMAT_SEG BADFAT_SUBST>,0 ;AN000; get number of substitutions
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,AL>,0 ;AN000;
+	SHELL_FORMAT_REF <MOV SI,OFFSET RESGROUP:BADFAT_BLOCK>,0 ;AN000; get address of subst block
 	CRITICAL_CALL	RPRINT
 
 	IF	Tokenized
@@ -722,14 +737,22 @@ if NOT tokenized
 	PUSH	CX				;AC000; save CX register
 	PUSH	DX				;AC000; save DX register
 	MOV	AX,DX				;AC000; get message number
-	MOV	DH,DISP_CLASS			;AC000; get display class
+	SHELL_FORMAT_REF <MOV DH,SHELL_FORMAT_SEG DISP_CLASS>,0 ;AC000; get display class
 	MOV	DL,NO_CONT_FLAG 		;AN000; set control flags off
 	MOV	BX,NO_HANDLE_OUT		;AC000; set message handler to use function 1-12
 	XOR	CH,CH				;AC000; clear upper part of cx
-	MOV	CL,NUMBER_SUBST 		;AC000; set number of substitutions
+	SHELL_FORMAT_REF <MOV CL,SHELL_FORMAT_SEG NUMBER_SUBST>,0 ;AC000; set number of substitutions
+	IFDEF COMMAND_HIGH_RESIDENT
+	push ds
+	push cs
+	pop ds
+	ENDIF
 	CALL	SYSDISPMSG			;AC000; display the message
-	MOV	DISP_CLASS,UTIL_MSG_CLASS	;AC000; reset display class
-	MOV	NUMBER_SUBST,NO_SUBST		;AC000; reset number of substitutions
+	IFDEF COMMAND_HIGH_RESIDENT
+	pop ds
+	ENDIF
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG DISP_CLASS,UTIL_MSG_CLASS>,1 ;AC000; reset display class
+	SHELL_FORMAT_REF <MOV SHELL_FORMAT_SEG NUMBER_SUBST,NO_SUBST>,1 ;AC000; reset number of substitutions
 	POP	DX				;AC000; restore registers
 	POP	CX				;AC000;
 	POP	BX				;AC000;
@@ -997,6 +1020,7 @@ INCLUDE SYSMSG.INC				;AN000; include message services
 COMMAND_RESIDENT_CLASSES EQU 5		; match the resident message table in RDATA
 MSG_UTILNAME <COMMAND>				;AN000; define utility name
 
+COMMAND_FMT_SERVICE EQU 1
 MSG_SERVICES <COMR,NEARmsg,DISK_PROC>
 
 ; Child, DOS-low, allocation-failure, and /MSG shells retain the original
@@ -1006,6 +1030,10 @@ PUBLIC SYSGETMSG,SYSDISPMSG
 PUBLIC hma_sysgetmsg_gateway,hma_sysdispmsg_gateway
 
 SYSGETMSG proc near
+	IFDEF COMMAND_HIGH_RESIDENT
+	push cs
+	pop ds
+	ENDIF
 hma_sysgetmsg_gateway LABEL BYTE
 	IFDEF COMMAND_RESIDENT_BINDING
 	SHELL_FAR_TRANSFER 09ah,getmsg,shell_getmsg_fallback

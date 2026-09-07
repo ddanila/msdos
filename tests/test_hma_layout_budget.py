@@ -57,6 +57,16 @@ class HmaBudgetTests(unittest.TestCase):
         rows = hma_layout(0x9D60, 7988, 7744, 5288)
         self.assertEqual(rows[-2][1:], (0xEF7C, 0xFFF0))
 
+    def test_formatter_retirement_charges_low_reply_and_high_bindings(self):
+        symbols = dict(RES_CODE_END=0x14CC, resmsgend=0x333,
+                       resident_catalog_start=0x36D, shell_high_active=0x16B)
+        self.assertEqual(self.whole_inventory(bios_low=3232, command_data_start=0x220,
+                                              command_symbols=symbols, hma_tail=3879),
+                         [3232, 288, 333, 26])
+        rows = hma_layout(0x9D60, 7988, 7744, 5621)
+        self.assertEqual(rows[-2][1:], (0xF0C9, 0xFFF0))
+        self.assertEqual(((0x464+15)&~15)-((0x36D+15)&~15), 256)
+
     def test_whole_inventory_excludes_shell_stack_and_psp(self):
         # Growing only the excluded stack shifts the data and break together.
         symbols = dict(RES_CODE_END=0xA93, resmsgend=0xD52,

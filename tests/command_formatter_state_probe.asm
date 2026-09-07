@@ -29,11 +29,23 @@ start:
     cmp word [es:3],EXPECT_LOW_PARAGRAPHS
     jne failure
 %endif
+%ifdef LOW_MESSAGE_REPLY
+    call check_disk_reply
+%endif
 %ifdef BAD_SERIAL_OFFSET
     mov es,[16h]
-    mov ax,[es:BAD_SERIAL_OFFSET]
+    mov bx,BAD_SERIAL_OFFSET
+%ifdef PIPE_BINDING
+    add bx,[es:PIPE_BINDING]
+    sub bx,LOW_PIPE_TEXT
+    mov ax,0ffffh
+    mov es,ax
+%endif
+    mov [mutation_off],bx
+    mov [mutation_seg],es
+    mov ax,[es:bx]
     mov [saved_offset],ax
-    sub word [es:BAD_SERIAL_OFFSET],2
+    sub word [es:bx],2
     mov byte [patched],1
 %endif
 .request:
@@ -106,13 +118,49 @@ failure:
     mov ax,4c01h
     int 21h
 
+%ifdef LOW_MESSAGE_REPLY
+check_disk_reply:
+    mov ax,122eh
+    mov dl,8
+    int 2fh
+    mov [disk_reader],di
+    mov [disk_reader+2],es
+    mov ax,122eh
+    xor dx,dx
+    int 2fh
+    mov ax,es
+    cmp ax,1                    ; COMMAND's disk-backed class sentinel
+    jne failure
+    mov ax,83
+    call far [disk_reader]
+    jc failure
+    mov ax,es
+    cmp ax,[16h]                ; public reply must remain in low parent
+    jne failure
+    cmp di,LOW_MESSAGE_REPLY
+    jne failure
+    cmp byte [es:di],14
+    jne failure
+    mov ah,30h                  ; low caller may issue DOS calls before use
+    int 21h
+    mov di,LOW_MESSAGE_REPLY+1
+    mov si,expected_reply
+    mov cx,14
+    cld
+    repe cmpsb
+    jne failure
+    ret
+disk_reader dd 0
+expected_reply db 'Fail on INT 24'
+%endif
+
 restore:
 %ifdef BAD_SERIAL_OFFSET
     cmp byte [patched],0
     je .vector
-    mov es,[16h]
+    les bx,[mutation_off]
     mov ax,[saved_offset]
-    mov [es:BAD_SERIAL_OFFSET],ax
+    mov [es:bx],ax
 .vector:
 %endif
     push ds
@@ -143,6 +191,8 @@ saved_sp dw 0
 saved_ss dw 0
 saved_handles dw 0
 saved_offset dw 0
+mutation_off dw 0
+mutation_seg dw 0
 patched db 0
 queries dw 0
 expected_queries dw 1

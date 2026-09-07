@@ -12,6 +12,37 @@ IFDEF COMMAND_HIGH_RESIDENT
     .ERR <whole shell and independent critical reclaim are mutually exclusive>
  ENDIF
 ENDIF
+; The successful high image rebases these operand words once, in its private
+; copy, before publication. Records are cold initialization data, not residents.
+; tail counts encoded immediate bytes after the displacement. Linked and guest
+; checks validate each recorded word against the shared formatter destination.
+SHELL_FORMAT_REF MACRO statement,tail:=<0>
+ LOCAL operand_end
+ statement
+ IFDEF COMMAND_HIGH_RESIDENT
+operand_end LABEL BYTE
+  IFDEF HMA_MSG_SERVICES
+HMACODE ENDS
+  ELSE
+SHELLCODE ENDS
+  ENDIF
+SHELLFIX SEGMENT PUBLIC WORD
+ dw offset resgroup:operand_end-2-tail
+SHELLFIX ENDS
+  IFDEF HMA_MSG_SERVICES
+HMACODE SEGMENT PUBLIC BYTE
+  ELSE
+SHELLCODE SEGMENT PUBLIC BYTE
+  ENDIF
+ ENDIF
+ENDM
+
+IFDEF COMMAND_HIGH_RESIDENT
+ SHELL_FORMAT_SEG TEXTEQU <cs:>
+ELSE
+ SHELL_FORMAT_SEG TEXTEQU <>
+ENDIF
+
 SHELL_ENTRY_LIST MACRO action
     action lodcom,LODCOM
     action contc,CONTC

@@ -40,7 +40,9 @@ SHELL_BINDING_SLOTS MACRO action
     action exec_pre_ds
     action exec_post_ds
     action exec_wait_ds
+ IFNDEF COMMAND_HIGH_RESIDENT
     action critical_es
+ ENDIF
     action critical_ds
     action contc_entry_ds
     action contc_body_ds

@@ -15,15 +15,15 @@ COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
 The current **BIOS + whole-shell service retirement candidate** measures
-**622,368 conventional / 49,680 free UMB bytes**: **2,496 conventional bytes
+**622,624 conventional / 49,680 free UMB bytes**: **2,752 conventional bytes
 recovered** versus the identical BIOS/provider composition with normal COMMAND,
-**4,432 above the selected development control**, and **3,632 above retail**.
+**4,688 above the selected development control**, and **3,888 above retail**.
 Application XMS remains **6,798,336 bytes** (5,120 below the development control);
 the shell move adds no UMB or XMS cost. This is an opt-in experimental layout,
 not production promotion.
 
-COMMAND's permanent low allocation falls from **3,632 to 1,136 bytes**.
-The complete 2,623-byte linked service body follows the low data/catalog segment,
+COMMAND's permanent low allocation falls from **3,632 to 880 bytes**.
+The complete 2,661-byte linked service body follows the releasable data/catalog segment,
 is copied once, then its old range is released together with the catalog and
 previous message-code fallback. The checked build poisons the old service before
 SETBLOCK. Thirteen retained gates cover published interrupts, transient calls,
@@ -42,26 +42,40 @@ Packing the complete 95-byte copyright notice into discardable MSGOPT then
 recovers **96 more conventional bytes**. The attribution remains unchanged in
 COMMAND.COM, with the same number of copies; none occupies the retained low or
 live high image. Normal builds remain byte-identical. The notice was incorrectly
-counted as runtime state: the remaining low data is **580 bytes**, not 675.
-This cold-owner correction adds no HMA allocation or runtime gateway.
+counted as runtime state. That correction adds no HMA allocation or runtime gateway.
+
+The **295-byte formatter owner** (162 bytes of substitution/response data plus
+133 bytes of generated runtime) now moves high and its old range is poisoned
+and released. Operand words and seven internal far arguments are rebound before
+publication; resident control/PSP access stays low. Fixup records are discarded
+initialization data. Interrupts remain masked through code/state publication.
+After charging 38 additional high service bytes and a separate **48-byte low
+disk-message reply**, this recovers **256 conventional bytes** versus the
+1,136-byte shell checkpoint. The remaining low data is **333 bytes**.
+
+The reply is a caller-facing interface, not a mirror of formatter state:
+READ_DISK_PROC serves transient and other DOS message clients. `HANDLE.ASM`'s
+`Align_Buffer` wraps HMA segments, and returning high text changes the low caller's
+access contract. Keep file reads and returned text low; private numeric scratch
+remains high. The low stack does not grow. Normal COMMAND remains byte-identical.
 
 The current shared HMA budget is **40,272 DOS + 7,744 BIOS + 7,988 buffers +
-5,288 COMMAND = 61,292 bytes**, leaving **4,212 bytes** at `EF7Ch..FFF0h`.
+5,621 COMMAND = 61,625 bytes**, leaving **3,879 bytes** at `F0C9h..FFF0h`.
 The shell charge includes its previous 2,447-byte owner, eight binding-fallback
-bytes, the 2,623-byte service and 210-byte pipeline owner; do not add
-those owners again or reuse the preceding 7,053/4,422/4,293-byte remainders.
+bytes, the 2,661-byte service, 210-byte pipeline owner and 295-byte formatter;
+do not add those owners again or reuse the preceding HMA remainders.
 
-Evidence: `out/command-high-retirement-9nkb38pt/`. The paired fresh captures
+Evidence: `out/command-high-retirement-vj99uzvm/`. The paired fresh captures
 change only COMMAND; CONFIG.SYS, AUTOEXEC.BAT, BIOS, DOS, managers and VC are
 checked unchanged. Local tests cover poisoned high startup/critical errors,
 DOS-low fallback, child and /MSG startup, INT 2Eh internal/external execution,
 and LOADHIGH regions/minima/shrinking/fallback/restoration with DOS=HIGH.
-Guest checks verify all 13 gate destinations, the pipeline far binding and the exact low MCB boundary
+Guest checks verify all 13 gates, every recorded formatter operand, the pipeline binding and exact low MCB boundary
 before and after execution; wrong-stack negative controls must fail. Linked
 checks reject relative branches escaping the copied service. Native and isolated
 normal builds match; normal COMMAND also receives the shared TCOMMAND entry
 correction described below, without changing its resident allocation. The binding
-regression and 40 binding/HMA-budget unit tests pass. Pipeline tests overwrite all
+regression and 41 binding/HMA-budget unit tests pass. Pipeline tests overwrite all
 extra conventional allocation in fourteen external filter executions per mode,
 check exact overwrite/append and input-redirection file contents, up to three
 filters and a child shell, and verify temporary-file cleanup in DOS-high and
@@ -73,11 +87,11 @@ make cmd_command
 python3 tests/test_command_high_resident_qemu.py out/umb-fine-composition-l1byzj6z/input-paired.img
 ```
 
-**Still open:** the remaining **580-byte low data partition**, asynchronous/A20
+**Still open:** the remaining **333-byte low data partition**, asynchronous/A20
 fault and reset qualification, remaining BIOS mixed state/services and the other
 low owners below. This service retirement does not complete shell code/state
 placement. Next, classify and move eligible state against the remaining shared
-4,212 bytes, preserve the low PSP/stack and published pointer contracts, then
+3,879 bytes, preserve the low PSP/stack and published pointer contracts, then
 measure the next composed gain; do not replace this with more copy-only milestones.
 
 **Remaining shell data ownership:** the current linked ranges below partition
@@ -85,21 +99,17 @@ the low data, excluding PSP, gates and stack. They are not independent savings.
 
 | Linked range / bytes | Contract for the next state move |
 | --- | --- |
-| `0220h..02C2h` / 162 | Formatter substitution records, their local arguments and response characters; RUCODE reads/writes these during critical errors |
-| `02C2h..0385h` / 195 | Error/control, interrupt return, saved process, COMSPEC and LOADHIGH state; preserve resident/transient and asynchronous access contracts |
-| `0385h..03B1h` / 44 | Pipeline control, DOS-facing names and high text binding; DOS still receives low filenames |
-| `03B1h..03D5h` / 36 | EXEC block and transient reload bindings; preserve the low PSP/EXEC interface |
-| `03D5h..03DFh` / 10 | Allocation break and two high character-service entries |
-| `03DFh..0464h` / 133 | Generated message runtime (`$M_RES_ADDRS`), including class pointers and scratch |
+| `0220h..02E3h` / 195 | Error/control, interrupt return, saved process, COMSPEC and LOADHIGH state; preserve resident/transient and asynchronous access contracts |
+| `02E3h..030Fh` / 44 | Pipeline control, DOS-facing names and high text binding; DOS still receives low filenames |
+| `030Fh..0333h` / 36 | EXEC block and transient reload bindings; preserve the low PSP/EXEC interface |
+| `0333h..033Dh` / 10 | Allocation break and two high character-service entries |
+| `033Dh..036Dh` / 48 | Low reply from the published disk-message reader; preserve external consumers |
 
-The next coherent formatter candidate is **162 + 133 = 295 bytes**. RPRINT
-supplies substitution state to SYSDISPMSG, whose generated engine addresses
-`$M_RT2` through DS; INIT also initializes/rebases its class and critical pointers.
-Move these contracts together, rebind both **offsets and segments**, and retain
-no permanent low mirror. Selecting `FFFFh` alone cannot preserve the old offsets.
-Test real substitution/critical-error paths, reload and nested interruption before
-releasing the old data. The other 285 bytes still need an ownership decision;
-this audit neither declares them all immovable nor completes BIOS placement.
+The other 285 bytes still need an ownership decision. The next architectural
+inventory is these shared control interfaces together with the remaining BIOS
+services/state, against the same HMA budget; the formatter move does not complete
+either owner. Broader EXEC/reload error substitutions and nested interruptions
+also remain qualification work.
 
 The formatter baseline now checks wrong-volume label/serial and character-device
 substitutions on both poisoned high and DOS-low layouts. A controlled AH=59h
@@ -108,9 +118,11 @@ label padding, both hexadecimal serial halves and device-name output must match.
 The probe checks active layout/low MCB, foreign stack/segments, input-record guards
 and redirected handle restoration. Misbinding the serial high-word offset produces
 `ABCD-ABCD` instead of `1234-ABCD` and is detected. Evidence:
-`out/command-high-retirement-9nkb38pt/formatter-results.json`; reproduction is
-included in the whole-shell command above. This qualifies controlled formatter
-calls, not real wrong-volume media, nested interruption or an additional memory gain.
+`out/command-high-retirement-vj99uzvm/formatter-results.json`. A low caller also
+obtains READ_DISK_PROC through INT 2Fh/122Eh, reads message 83, checks the reply
+lies in the parent low allocation and verifies its text after another DOS call.
+Reproduction is included above. These are controlled formatter/API calls, not
+real wrong-volume media or nested-interruption qualification.
 
 **Pipeline reload contract:** PRESCAN must save the final output path and append
 flag before any external leg; LASTPIPE restores them to transient scratch only
@@ -197,7 +209,7 @@ qualification remains open.
 
 The whole-shell service retirement above supersedes this checkpoint's COMMAND
 code-placement task. Complete state placement, BIOS qualification and mixed low
-owners remain in scope; its current shared budget is the 4,212-byte remainder.
+owners remain in scope; its current shared budget is the 3,879-byte remainder.
 
 Historical BIOS-only reproduction (requires that checkpoint's pinned normal
 COMMAND binary). The current native COMMAND includes the TCOMMAND correction;
@@ -531,8 +543,8 @@ is a research reference, not a substitute for our compatibility gates.
 
 This is the normal-layout baseline audit. Its offsets, 800-byte low-data inventory
 and earlier HMA arithmetic are not the current retired layout; use the checkpoint
-above for achieved release and remaining capacity. Pipeline text is now high,
-while the other access contracts below still constrain further state placement.
+above for achieved release and remaining capacity. Pipeline and formatter owners
+are now high; the surviving low interfaces still constrain further placement.
 
 The checked normal COMMAND map retains 2,451 code bytes, a 256-byte PSP,
 125-byte stack and 800 bytes of data in its 3,632-byte low image. That data
@@ -586,12 +598,10 @@ neither number is the final relocated size. A code-only shell move plus the
 provider and mixed BIOS service/state design rather than stopping at those
 easy-to-name bodies.
 
-`make test-command-residency` checks the linked census and six arithmetic
-tests for the whole-code bound, including paragraph rounding and preservation
-of the PSP. The bound is generated from linker symbols; it proves neither
-relocatability nor a runtime saving. The next shell implementation checkpoint
-is one linked low-state/gateway and high-service layout, including the
-INT 22h/23h/24h/2Eh, transient-reload and A20 return contracts.
+`make test-command-residency` checks the normal linked census and arithmetic
+bound, including paragraph rounding and preservation of the PSP. That bound
+proves neither relocatability nor a runtime saving; use the current checkpoint
+above for the measured retired layout and remaining qualification.
 
 ### Pre-table baseline and standing compatibility constraints
 

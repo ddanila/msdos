@@ -211,6 +211,14 @@ DATARES SEGMENT PUBLIC BYTE
 
 
 
+	IFDEF COMMAND_HIGH_RESIDENT
+DATARES ENDS
+FORMATDATA SEGMENT PUBLIC BYTE
+resident_catalog_start LABEL BYTE
+	PUBLIC formatter_data_start,formatter_data_end
+formatter_data_start LABEL BYTE
+	ENDIF
+
 IF Tokenized
 MESADD	LABEL WORD
 	DW	OFFSET ResGroup:NEWLIN		;"0"
@@ -446,6 +454,11 @@ no_char 	db	"N"
 ;
 ENDIF
 
+	IFDEF COMMAND_HIGH_RESIDENT
+FORMATDATA ENDS
+DATARES SEGMENT PUBLIC BYTE
+	ENDIF
+
 RemMsg		DD	?			;Pointer to message in error 15
 ErrType 	DB	?			; Error message style, 0=old, 1=new
 
@@ -601,6 +614,12 @@ RESMSGEND	DW	0			;AN000;; holds offset of msg end (end of resident)
 
 hma_in_char_xlat_entry dd 0
 hma_test_kanj_entry dd 0
+	IFDEF COMMAND_HIGH_RESIDENT
+; READ_DISK_PROC publishes its result to transient and other DOS message
+; clients. Keep this reply low; private numeric formatter scratch is high.
+	PUBLIC shell_message_reply
+shell_message_reply DB COMMAND_MSG_TEMP_BUF_SZ DUP(?)
+	ENDIF
 
 .xlist
 .xcref
@@ -615,12 +634,20 @@ ASSUME DS:RESGROUP,ES:RESGROUP,CS:RESGROUP
 COMMAND_RESIDENT_CLASSES EQU 5		; $M_MAKE_COMR builds classes A through E
 MSG_UTILNAME <COMMAND>				;AN000; define utility name
 
+	IFDEF COMMAND_HIGH_RESIDENT
+DATARES ENDS
+FORMATDATA SEGMENT PUBLIC BYTE
+	ENDIF
 MSG_SERVICES <COMR,MSGDATA>
 
 resident_class_ptrs EQU $M_RT2.$M_CLASS_ADDRS
 resident_critical_ptr EQU $M_RT2.$M_CRIT_COMMAND
 
+	IFDEF COMMAND_HIGH_RESIDENT
+formatter_data_end LABEL BYTE
+	ELSE
 resident_catalog_start LABEL BYTE
+	ENDIF
 	IFDEF COMMAND_HIGH_RESIDENT
 ; Private pipeline text travels with the high allocation. DOS-facing names
 ; and control fields stay low; there is no retained low text mirror.
@@ -638,7 +665,11 @@ MSG_SERVICES <COMMAND.CDH> 		; get relocatable critical error messages
 
 DATARESEND		LABEL	BYTE		;AC060; end of resident portion if /msg not used
 
+	IFDEF COMMAND_HIGH_RESIDENT
+FORMATDATA ENDS
+	ELSE
 DATARES ENDS
+	ENDIF
 
 MSGOPT SEGMENT PUBLIC BYTE
 ASSUME DS:RESGROUP,ES:RESGROUP,CS:RESGROUP

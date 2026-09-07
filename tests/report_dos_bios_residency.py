@@ -227,7 +227,7 @@ def whole_owner_inventory(bios_low: int, command_data_start: int,
         inventory = {
             "Entire selected low BIOS (including anchors and padding)": bios_low,
             "Retained COMMAND entries and stack (excluding PSP)": command_data_start - 0x100,
-            "Entire remaining COMMAND state (including message runtime)": low_end - command_data_start,
+            "Entire remaining COMMAND data (including retained message data)": low_end - command_data_start,
         }
         inventory["Unpriced expansion headroom (may be negative)"] = hma_tail - sum(inventory.values())
         return inventory

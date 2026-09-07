@@ -46,6 +46,16 @@ ENDM
 	EXTRN	hma_sysgetmsg_gateway:byte
 	EXTRN	hma_sysdispmsg_gateway:byte
 CODERES ENDS
+	IFDEF COMMAND_HIGH_RESIDENT
+SHELLFIX SEGMENT PUBLIC WORD
+	EXTRN shell_format_fixups:WORD
+	PUBLIC shell_format_fixups_end
+shell_format_fixups_end LABEL WORD
+SHELLFIX ENDS
+FORMATDATA SEGMENT PUBLIC BYTE
+	EXTRN formatter_data_start:BYTE,formatter_data_end:BYTE
+FORMATDATA ENDS
+	ENDIF
 
 IFDEF COMMAND_HIGH_RESIDENT
 EXTRN shell_high_active:BYTE
@@ -1812,8 +1822,8 @@ relocate_resident_catalogs proc near
 	rep	movsb				; DS is RESGROUP, ES is the HMA destination
 
 	; The next byte is the HMA entry for the independently linked code body.
-	; Its internal relative branches survive the copy; its data references
-	; continue to use COMMAND's resident DS.
+	; Internal relative branches survive the copy. Control data stays low;
+	; whole-shell formatter references are rebound below before publication.
 	IFDEF COMMAND_CRITICAL_RECLAIM
 	mov	ax,di
 	add	ax,offset resgroup:hma_in_char_xlat_high
@@ -1892,6 +1902,37 @@ relocate_resident_catalogs proc near
 	sub cx,si
 	cld
 	rep movsb
+	; Rebase formatter operand words in the two private code copies. The
+	; unchanged fallback encodings remain valid until the final low release.
+	push si
+	push dx
+	; DI currently follows the copied service; recover the saved catalog base.
+	mov bx,sp
+	mov dx,ss:[bx+4]
+	sub dx,offset resgroup:formatter_data_start
+	mov si,offset resgroup:shell_format_fixups
+shell_format_fixup_next:
+	cmp si,offset resgroup:shell_format_fixups_end
+	jae short shell_format_fixup_done
+	lodsw
+	mov bx,ax
+	mov ax,[bx]
+	add ax,dx
+	cmp bx,offset resgroup:hma_code_start
+	jae short shell_format_fixup_hma
+	add bx,cs:[shell_high_destination]
+	sub bx,offset resgroup:shell_service_start
+	jmp short shell_format_fixup_store
+shell_format_fixup_hma:
+	add bx,dx
+	add bx,offset resgroup:dataresend
+	sub bx,offset resgroup:hma_code_start
+shell_format_fixup_store:
+	mov es:[bx],ax
+	jmp short shell_format_fixup_next
+shell_format_fixup_done:
+	pop dx
+	pop si
 	mov bx,cs:[shell_high_destination]
 	sub bx,offset resgroup:shell_service_start
 SHELL_GATE_PUBLISH MACRO slot,target
@@ -1927,7 +1968,9 @@ ENDM
 	mov	word ptr cs:[critical_dispatch+3],es
 	mov	byte ptr cs:[critical_dispatch],0eah
 	ENDIF
+	IFNDEF COMMAND_HIGH_RESIDENT
 	popf
+	ENDIF
 
 	IFDEF COMMAND_HIGH_RESIDENT
 	; The pipeline parser uses this far buffer only after initialization.
@@ -1970,6 +2013,53 @@ next_resident_class:
 	mov	word ptr [resident_critical_ptr],di
 	mov	word ptr [resident_critical_ptr+2],es
 	popf
+	IFDEF COMMAND_HIGH_RESIDENT
+	; Copy the now-rebased runtime cache together with its substitution owner.
+	pushf
+	cli
+	push di				; public critical-catalog pointer
+	sub di,offset resgroup:critical_msg_start
+	add di,offset resgroup:resident_catalog_start
+	push di
+	mov si,offset resgroup:formatter_data_start
+	mov cx,offset resgroup:formatter_data_end
+	sub cx,si
+	rep movsb
+	pop di
+	mov dx,di
+	sub dx,offset resgroup:formatter_data_start
+FORMAT_ARGUMENT MACRO slot
+	mov bx,offset resgroup:slot
+	add bx,dx
+	add word ptr es:[bx-2],dx
+	mov word ptr es:[bx],es
+ENDM
+	FORMAT_ARGUMENT DRVNUM_OP_SEG2
+	FORMAT_ARGUMENT DEVE_OP_SEG2
+	FORMAT_ARGUMENT ERR15_OP_SEG
+	FORMAT_ARGUMENT ERR15_OP_SEG2
+	FORMAT_ARGUMENT ERR15_OP_SEG3
+	FORMAT_ARGUMENT BADFAT_OP_SEG
+	FORMAT_ARGUMENT COMPRMT1_SEG2
+	IFDEF COMMAND_HIGH_RESIDENT_POISON
+	push di
+	push es
+	push ds
+	pop es
+	mov di,offset resgroup:formatter_data_start
+	mov cx,offset resgroup:formatter_data_end
+	sub cx,di
+	mov al,0f4h
+	rep stosb
+	pop es
+	pop di
+	ENDIF
+	pop di				; restore public critical-catalog pointer
+	popf
+	; Complete the outer publication transaction only after code, private
+	; state, argument pointers and the old-state poison agree on one owner.
+	popf
+	ENDIF
 	mov	ax,(multdos shl 8 or message_2f)
 	mov	dl,set_critical_msg
 	int	2fh				; publish the relocated far pointer

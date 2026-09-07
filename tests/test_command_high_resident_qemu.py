@@ -83,8 +83,13 @@ def check_formatter_state(work, floppy, env, symbols):
         defines = [f"-DSHELL_HIGH_ACTIVE={symbols['shell_high_active']}",
                    f"-DEXPECT_ACTIVE={int(mode == 'HIGH')}",
                    f"-DEXPECT_LOW_PARAGRAPHS={(symbols['resident_catalog_start']+15)//16}"]
+        if "shell_message_reply" in symbols:
+            defines.append(f"-DLOW_MESSAGE_REPLY={symbols['shell_message_reply']}")
         if negative:
             defines.append(f"-DBAD_SERIAL_OFFSET={symbols['ERR15_OP_SEG2']-2}")
+            if "formatter_data_start" in symbols:
+                defines.extend([f"-DPIPE_BINDING={symbols['PIPEBASE']}",
+                                f"-DLOW_PIPE_TEXT={symbols['PIPESTR']}"])
         run(["nasm", "-f", "bin", *defines,
              ROOT / "tests/command_formatter_state_probe.asm", "-o", probe])
         disk = work / f"{name}.img"
@@ -181,6 +186,22 @@ def main():
         entry = entry_symbols["TCOMMAND"] - 0x100
         assert command.read_bytes()[entry:entry+3] == b"\x2e\x8e\x1e", "TCOMMAND must select resident DS through CS"
     segments, symbols = parse_map(work / "high/COMMAND.MAP")
+    retired_data = segments.get("FORMATDATA", segments["DATARES"])
+    formatter_fixups = []
+    if "FORMATDATA" in segments:
+        binary = high.read_bytes()
+        assert symbols["formatter_data_end"]-symbols["formatter_data_start"] == 295
+        assert segments["DATARES"].end == symbols["resident_catalog_start"]
+        assert symbols["shell_format_fixups"] == segments["SHELLFIX"].start
+        assert symbols["shell_format_fixups_end"] == segments["SHELLFIX"].end
+        for site in range(symbols["shell_format_fixups"], symbols["shell_format_fixups_end"], 2):
+            operand = int.from_bytes(binary[site-0x100:site-0xfe], "little")
+            assert (segments["SHELLCODE"].start <= operand < segments["HMACODE"].end-1), operand
+            target = int.from_bytes(binary[operand-0x100:operand-0xfe], "little")
+            assert symbols["formatter_data_start"] <= target < symbols["formatter_data_end"], (operand, target)
+            formatter_fixups.append((operand, target))
+        assert formatter_fixups and len({operand for operand, _ in formatter_fixups}) == len(formatter_fixups)
+        assert symbols["shell_message_reply"]+48 == symbols["resident_catalog_start"]
     notice = (b"MS DOS Version 6.22 (C)Copyright 1988 Microsoft Corp"
               b"Licensed Material - Property of Microsoft  ")
     copyright_start, copyright_end = (symbols["resident_copyright_start"],
@@ -190,7 +211,7 @@ def main():
     assert high.read_bytes().count(notice) == normal.read_bytes().count(notice)
     assert notice not in high.read_bytes()[:segments["HMACODE"].end-0x100]
     start, end = symbols["shell_service_start"], symbols["RES_CODE_END"]
-    assert segments["DATARES"].end == start
+    assert retired_data.end == start
     assert segments["SHELLCODE"].start == start and segments["SHELLCODE"].end == end
     assert segments["HMACODE"].start == end
     body = high.read_bytes()[start - 0x100:end - 0x100]
@@ -212,12 +233,24 @@ def main():
     for segment, target in targets:
         constants.extend((f"cmp word [es:{segment}],dx", "jne fail", "mov cx,ax",
                           f"add cx,{target}", f"cmp word [es:{segment-2}],cx", "jne fail"))
-    pipe_delta = start - (segments["DATARES"].end-symbols["resident_catalog_start"]
+    pipe_delta = start - (retired_data.end-symbols["resident_catalog_start"]
                           +segments["HMACODE"].size)
+    pipe_delta += symbols["PIPESTR"]-symbols["resident_catalog_start"]
     constants.extend((f"cmp word [es:{symbols['PIPESEG']}],dx", "jne fail",
                       "%if EXPECT_HMA", "mov cx,ax", f"add cx,{pipe_delta}",
                       "%else", f"mov cx,{symbols['PIPESTR']}", "%endif",
                       f"cmp word [es:{symbols['PIPEBASE']}],cx", "jne fail"))
+    if formatter_fixups:
+        data_delta = start - (retired_data.end-symbols["resident_catalog_start"]
+                             +segments["HMACODE"].size) - symbols["formatter_data_start"]
+        constants.extend(("%if EXPECT_HMA", "push es", "push bx", "mov es,dx"))
+        for operand, target in formatter_fixups:
+            code_delta = (0 if operand < symbols["hma_code_start"] else
+                          start-segments["HMACODE"].size-symbols["hma_code_start"])
+            constants.extend(("mov bx,ax", f"add bx,{operand+code_delta}",
+                              "mov cx,ax", f"add cx,{target+data_delta}",
+                              "cmp word [es:bx],cx", "jne fail"))
+        constants.extend(("pop bx", "pop es", "%endif"))
     constants.append("%endmacro")
     gate_include = work / "high-gates.inc"
     gate_include.write_text("\n".join(constants)+"\n")
@@ -267,7 +300,7 @@ def main():
     (work / "results.json").write_text(json.dumps(dict(
         source_image_sha256=sha(args.image), input_sha256=inputs,
         command_sha256={"normal": sha(normal), "high": sha(high)},
-        command_hma_bytes=(segments["DATARES"].end-symbols["resident_catalog_start"]
+        command_hma_bytes=(retired_data.end-symbols["resident_catalog_start"]
                            +segments["HMACODE"].size+end-start),
         service_bytes=end-start, low_break=(symbols["resident_catalog_start"]+15)&~15,
         results=results), indent=2)+"\n")
