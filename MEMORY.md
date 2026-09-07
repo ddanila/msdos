@@ -14,6 +14,19 @@ Report UMB and application XMS costs alongside the gain. Complete BIOS and
 COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
+The next delivery must include all four, in the same composed candidate:
+
+1. A final BIOS/COMMAND ownership ledger separating mandatory low contracts,
+   high/upper owners and discarded initialization. Do not count already-retired
+   mirrors again or budget entire mixed census rows as movable code.
+2. Retirement of the superseded active-layout paths and storage, followed by
+   packing of the retained allocations. Preserve required inactive/failure
+   fallbacks; coexistence in the linked file is not necessarily live duplication.
+3. Paired largest-block, free-UMB, application-XMS and HMA measurements with
+   matching configuration and tools, charging every gateway and alignment cost.
+4. Local compatibility qualification of the resulting layout. Boundary probes
+   and diagnostic builds are supporting evidence, not memory achievements.
+
 **Latest opt-in composed candidate:** **625,408 conventional / 48,064 free
 UMB / 6,798,336 application XMS bytes**, **6,672 above retail** and **7,472
 above the development control**. COMMAND data retirement and startup packing
@@ -74,9 +87,23 @@ boundary, and the actual STATIC_CONFIGURE operand. All 56 BIOS tests pass;
 the default BIOS and the experimental HMA payload remain byte-identical.
 Fresh paired captures in `out/emm-mode-guard-dyrynbs2/` preserve **625,408
 conventional / 48,064 UMB / 6,798,336 application XMS bytes**. This corrects the
-linked ownership contract. Combined swap-prompt/format-retry tests also pass
-at both floppy sizes (`out/bios-track-layout-i1azvmyk/`); full change-line-enabled runtime/error-path
-qualification remains open and is not proved by the selected comparison.
+linked ownership contract. The ordinary QEMU floppy tests select **no change-line
+support** (`FHAVE96=0`, 2,512 resident bytes); formatting alone cannot qualify
+the other boundary.
+
+A private same-size mutation of STATIC_CONFIGURE selects change-line support
+before packing. The corrected image retains **3,472 BIOS bytes** and preserves
+all 66 bytes of the two result helpers, compared directly with its matched
+linked image. Combined swap-prompt/format-retry tests pass at both floppy sizes
+(`out/bios-track-layout-y762qt0u/`). The preceding image retains only **3,376**
+bytes and fails that byte-preservation check (`out/bios-track-layout-7ck_gw57/`),
+even though formatting completes. This establishes runtime storage ownership,
+not execution of all media-change/error paths or natural hardware detection;
+those remain open. No additional memory saving is claimed.
+
+Reproduce with `test_bios_track_layout_qemu.py IMAGE --bios-directory MATCHED_BIOS_DIR
+--force-change-line --swap-prompt --retry-fault`. Omit `--force-change-line` to
+observe the naturally selected layout. Only private test-image copies change.
 
 **Compact BIOS track-state checkpoint:** `BIOS_COMPACT_TRACK_LAYOUT` retains
 all 63 sector-ID/size pairs (126 bytes), replacing the 252-byte C/H/R/N table.
