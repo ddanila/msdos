@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
@@ -14,6 +15,64 @@ from capture_vc_memory_comparison import capture, image_file, parse_capture
 from report_dos_bios_residency import parse_map
 from test_dos_char_retirement_qemu import install
 from test_umb_subpage_composition import xms_summary
+
+
+def shape_checks(source, bios, work):
+    """Use frozen composed binaries, changing only STACKS and probe startup."""
+    assert image_file(source, "::IO.SYS") == (bios / "IO.SYS").read_bytes()
+    manifest = json.loads((bios / "low.json").read_text())
+    enabled = manifest["high_stack_pool"] and not manifest["fail_stack_pool"]
+    segments, symbols = parse_map(bios / "msBIO.map")
+    init = segments["SYSINITSEG"].paragraph * 16 + segments["SYSINITSEG"].offset
+    symbols = {k.upper(): v - init for k, v in symbols.items()}
+    assert symbols["ENDSTACKCODE"] == 0x259
+    config = image_file(source, "::CONFIG.SYS")
+    assert b"DOS=HIGH" in config.upper()
+    results = {}
+    # The pinned topology has no 33,280-byte UMB: the maximum pool must fall
+    # back intact. The other pools fit without changing configured resources.
+    for count, size, upper in ((8, 32, True), (9, 128, True), (8, 512, True),
+                               (64, 32, True), (64, 128, True), (64, 512, False)):
+        upper = upper and enabled
+        name = f"{count}-{size}"
+        directory = work / name
+        directory.mkdir()
+        (directory / "stack-defs.inc").write_text(
+            f"%define EXPECT_UPPER {int(upper)}\n%define EXPECT_DOS_HIGH 1\n"
+            "%define STACK_SHAPE_TRACE 1\n"
+            f"%define STACK_COUNT {count}\n%define STACK_SIZE {size}\n"
+            f"%define ENTRY_OFFSET {symbols['INT08']}\n%define OLD_SLOT {symbols['OLD08']}\n")
+        image = directory / "probe.img"
+        shutil.copyfile(source, image)
+        updated, replacements = re.subn(rb"(?im)^STACKS=[^\r\n]*", f"STACKS={count},{size}".encode(), config)
+        assert replacements <= 1
+        if not replacements:
+            updated = config.rstrip(b"\r\n") + f"\r\nSTACKS={count},{size}\r\n".encode()
+        install(image, "CONFIG.SYS", updated)
+        for asm, target in (("stack_pool_probe.asm", "STACKCHK.COM"),
+                            ("int21_fcb_probe.asm", "I21FCB.COM"), ("qemu_exit.asm", "QEXIT.COM")):
+            subprocess.run(["nasm", "-f", "bin", "-DNO_DEBUG_EXIT=1", f"-I{directory}/",
+                ROOT / "tests" / asm, "-o", directory / target], check=True)
+            install(image, target, (directory / target).read_bytes())
+        install(image, "AUTOEXEC.BAT", b"@ECHO OFF\r\nCTTY AUX\r\nSTACKCHK.COM\r\n"
+                b"I21FCB.COM\r\nSTACKCHK.COM\r\nQEXIT.COM\r\n")
+        result = subprocess.run(["qemu-system-i386", "-machine", "pc", "-cpu", "486", "-m", "8",
+            "-display", "none", "-monitor", "none", "-serial", "stdio", "-no-reboot", "-boot", "c",
+            "-debugcon", f"file:{directory / 'debug.log'}", "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
+            "-drive", f"if=ide,index=0,format=raw,file={image},cache=writethrough"],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=40)
+        (directory / "probe.log").write_bytes(result.stdout)
+        debug = (directory / "debug.log").read_bytes()
+        passed = (result.returncode == 33 and debug.count(b"STACK_POOL_NESTED_PASS") == 2
+                  and b"STACK_POOL_FAIL" not in debug and b"INT21_FCB_PASS" in result.stdout)
+        results[name] = dict(count=count, size=size, upper=upper, passed=passed, exit_code=result.returncode,
+            pool_bytes=(count*(size+8)+15)//16*16, nested_visits=count if passed else None,
+            image_sha256=hashlib.sha256(image.read_bytes()).hexdigest())
+        print(f"{'PASS' if passed else 'FAIL'} STACKS={count},{size}: expected {'upper' if upper else 'low'}, artifacts {directory}", flush=True)
+    (work / "shapes.json").write_text(json.dumps(dict(results=results,
+        source_sha256=hashlib.sha256(source.read_bytes()).hexdigest(),
+        bios_sha256=hashlib.sha256((bios / "IO.SYS").read_bytes()).hexdigest()), indent=2) + "\n")
+    assert all(row["passed"] for row in results.values()), work / "shapes.json"
 
 
 def fallback_checks(source, work):
@@ -79,10 +138,16 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image", type=Path, help="packed BIOS/high-COMMAND composition before pool placement")
     parser.add_argument("--fallback-only", action="store_true", help="qualify standalone DOS-low and absent-UMB paths")
+    parser.add_argument("--shapes-bios", type=Path, help="qualify STACKS bounds using this matching frozen BIOS build")
     args = parser.parse_args()
+    if args.fallback_only and args.shapes_bios:
+        parser.error("choose fallback or shape qualification")
     work = Path(tempfile.mkdtemp(prefix="stack-pool-retirement-", dir=ROOT / "out"))
     print(f"Artifacts: {work}", flush=True)
     assert image_file(args.image, "::MSDOS.SYS") == (ROOT / "src/DOS/MSDOS.SYS").read_bytes()
+    if args.shapes_bios:
+        shape_checks(args.image, args.shapes_bios, work)
+        return
     if args.fallback_only:
         fallback_checks(args.image, work)
         return

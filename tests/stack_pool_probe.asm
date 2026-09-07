@@ -3,6 +3,18 @@
 bits 16
 org 100h
 %include "stack-defs.inc"
+%ifndef STACK_COUNT
+%define STACK_COUNT 9
+%endif
+%ifndef STACK_SIZE
+%define STACK_SIZE 128
+%endif
+%define POOL_PARAS ((STACK_COUNT * (8 + STACK_SIZE) + 15) / 16)
+%macro shape_step 1
+%ifdef STACK_SHAPE_TRACE
+    mov byte [cs:stage],%1
+%endif
+%endmacro
 start:
 %ifdef EXPECT_DOS_HIGH
     push ds
@@ -17,6 +29,7 @@ start:
     je fail
 %endif
 %endif
+    shape_step '1'
     mov ah,52h
     int 21h
     mov bp,[es:bx-2]
@@ -54,18 +67,19 @@ start:
     loop .arena
     jmp fail
 .found:
+    shape_step '2'
 %if EXPECT_UPPER
     cmp word [es:3],38             ; low handler/control only, no low pool
 %else
-    cmp word [es:3],115
+    cmp word [es:3],38+POOL_PARAS
 %endif
     jne fail
     mov [cs:code_seg],ax
     mov [cs:handler+2],ax
     mov es,ax
-    cmp word [es:2],9
+    cmp word [es:2],STACK_COUNT
     jne fail
-    cmp word [es:6],128
+    cmp word [es:6],STACK_SIZE
     jne fail
     cmp word [es:8],0
     jne fail
@@ -78,13 +92,13 @@ start:
     mov es,ax
     cmp word [es:1],8
     jne fail
-    cmp word [es:3],78
+    cmp word [es:3],POOL_PARAS+1
     jne fail
     inc ax
     mov es,ax
     cmp byte [es:0],'S'
     jne fail
-    cmp word [es:3],77
+    cmp word [es:3],POOL_PARAS
     jne fail
     inc ax
     cmp [es:1],ax
@@ -98,13 +112,15 @@ start:
 %endif
     pushf
     cli
+    shape_step '3'
 %ifdef POOL_BAD_BACKLINK
     mov si,negative_ready
     call debug
     mov es,[cs:pool_seg]
-    mov word [es:72+128-2],0ffffh
+    mov word [es:STACK_COUNT*8+STACK_SIZE-2],0ffffh
 %endif
     call check_pool
+    shape_step '4'
     mov es,[cs:code_seg]
     mov ax,[es:OLD_SLOT]
     mov [cs:successor],ax
@@ -120,6 +136,7 @@ start:
     mov es,ax
     pushf
     call far [cs:handler]
+    shape_step '5'
     cmp ax,1234h
     jne fail
     cmp bp,5678h
@@ -136,7 +153,7 @@ start:
     jne fail
     cmp word [cs:depth],0
     jne fail
-    cmp word [cs:visits],9
+    cmp word [cs:visits],STACK_COUNT
     jne fail
     call check_pool
     mov es,[cs:code_seg]
@@ -168,7 +185,7 @@ nested:
     jae fail
 .recurse:
     inc word [cs:depth]
-    cmp word [cs:depth],9
+    cmp word [cs:depth],STACK_COUNT
     je .return
     pushf
     call far [cs:handler]
@@ -181,22 +198,38 @@ nested:
 check_pool:
     mov es,[cs:pool_seg]
     xor bx,bx
-    mov dx,72+128-2
-    mov cx,9
+    mov dx,STACK_COUNT*8+STACK_SIZE-2
+    mov cx,STACK_COUNT
 .entry:
+    shape_step 'A'
     cmp byte [es:bx],0
     jne fail
+    shape_step 'B'
     cmp [es:bx+6],dx
     jne fail
     mov di,dx
+    shape_step 'C'
     cmp [es:di],bx
     jne fail
     add bx,8
-    add dx,128
+    add dx,STACK_SIZE
     loop .entry
     ret
 
 fail:
+%ifdef STACK_SHAPE_TRACE
+    mov al,[cs:stage]
+    out 0e9h,al
+    mov ax,[cs:visits]
+    call shape_hex
+    mov ax,bx
+    call shape_hex
+    cmp byte [cs:stage],'C'
+    jne .no_marker
+    mov ax,[es:di]
+    call shape_hex
+.no_marker:
+%endif
     mov si,failed
     call debug
     mov ax,11h
@@ -204,6 +237,28 @@ fail:
     cli
     hlt
     jmp fail
+%ifdef STACK_SHAPE_TRACE
+shape_hex:
+    mov cx,4
+.digit:
+    rol ax,1
+    rol ax,1
+    rol ax,1
+    rol ax,1
+    mov dx,ax
+    and al,0fh
+    add al,'0'
+    cmp al,'9'
+    jbe .out
+    add al,7
+.out:
+    out 0e9h,al
+    mov ax,dx
+    loop .digit
+    mov al,' '
+    out 0e9h,al
+    ret
+%endif
 debug:
     mov al,[cs:si]
     inc si
@@ -221,7 +276,10 @@ original_sp dw 0
 original_ss dw 0
 depth dw 0
 visits dw 0
-seen times 9 dw 0
+seen times STACK_COUNT dw 0
 passed db 'STACK_POOL_NESTED_PASS',13,10,0
 failed db 'STACK_POOL_FAIL',13,10,0
 negative_ready db 'STACK_POOL_BAD_BACKLINK_READY',13,10,0
+%ifdef STACK_SHAPE_TRACE
+stage db '0'
+%endif

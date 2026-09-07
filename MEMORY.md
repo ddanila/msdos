@@ -152,8 +152,35 @@ the nested/I/O and corrupted-back-pointer controls and the exact conventional,
 UMB and XMS totals above, including allocation rejection. Its BIOS high payload
 is byte-identical to the preceding candidate; no new memory gain is claimed.
 
+**Configured pool bounds:** the frozen composed upper-pool image and its
+unchanged low-pool control both pass `STACKS=9,128`, `8,512`, `64,128` and
+`64,512`, including every configured nested stack before/after FCB I/O.
+The 64-by-512 pool is 33,280 bytes and cannot fit in this topology's largest
+UMB; the candidate retains it completely low. The other passing shapes use
+upper pools in the candidate. These are configuration checks, not additional
+memory-comparison gains or permission to change the fixed profile.
+
+`8,32` and `64,32` **fail in both layouts**. Before any probe-driven nested
+call, the next-to-highest stack's back-pointer is zero instead of its entry
+offset: `0030h` (entry 6) or `01F0h` (entry 62). The probe verifies count, size,
+allocation bounds and DOS-high residency first. This is observed pre-existing
+marker damage, not proof of which writer caused it or a relocation regression.
+Next trace the installed interrupt chain's actual stack use and writes during
+startup; distinguish handler overhead from firmware/manager successors. Do not
+hide this by increasing the requested size or accepting damaged markers.
+
+Evidence: `out/stack-pool-retirement-rjjhk3kl/` (candidate) and
+`out/stack-pool-retirement-ukv727m6/` (control). Each `shapes.json` retains all
+six outcomes; the runner exits unsuccessfully while either 32-byte case fails.
+The default nine-stack probe still assembles byte-identically. Reproduce with:
+
+```sh
+python3 tests/test_stack_pool_retirement_qemu.py out/stack-pool-retirement-hmjvgcxp/input-upper.img --shapes-bios out/stack-pool-retirement-hmjvgcxp/upper
+python3 tests/test_stack_pool_retirement_qemu.py out/stack-pool-retirement-hmjvgcxp/input-control.img --shapes-bios out/stack-pool-retirement-hmjvgcxp/control
+```
+
 **Still unqualified:** paired-provider DOS-low, 286 and policy-restoration-failure
-paths, other configured counts/sizes, exhaustion and clobbered-entry recovery,
+paths, remaining configured shapes (including the failing 32-byte cases), exhaustion and clobbered-entry recovery,
 A20-off/EMS-remapping stress, and software INT 19h reset. Upper backing must
 remain valid throughout interrupts and provider transitions. The nested probe
 substitutes a successor with IRQs masked; it is not asynchronous IRQ/NMI stress.
