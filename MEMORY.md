@@ -42,10 +42,12 @@ CONFIG.SYS, AUTOEXEC.BAT, COMMAND, managers and VC are checked byte-identical.
 All 256 table entries match the previous table. FCB create/open/read/write,
 rename/search/delete, parsing and JFN checks pass high and standalone low.
 A same-size mutation restoring the obsolete ES selector fails FCB creation.
-Both the frozen pre-retirement and new paired-provider images exit with debug
-status 35 before the probe under DOS=LOW; this is not new to the table move.
-The passing standalone-low test uses an inactive BIOS without the managers.
-**Paired-provider DOS-low fallback remains unqualified.** DBCS source readers
+Both the frozen pre-retirement and new paired-provider images originally exited
+with debug status 35 before the probe under DOS=LOW. This was the pinned
+provider's DOS-high-only witness, not evidence of a table-retirement regression;
+the corrected paired boot/FCB fixture is described below. The original passing
+standalone-low test used an inactive BIOS without the managers.
+**Full DOS-low fallback qualification remains open.** DBCS source readers
 are updated, but this native non-DBCS run does not qualify DBCS execution.
 
 ```sh
@@ -113,7 +115,7 @@ reserved queries, returned BDS roots, foreign and shared-physical BDS insertion
 (restoring links/flags), invalid request dispatch and its legacy AL=04h alias.
 High A20-off entry and unrelated XMS discovery pass; a high-only wrong link
 writer fails. Forced inactive fallbacks pass with standalone HIMEM in DOS-high
-and DOS-low, not the still-unqualified paired-provider DOS-low configuration.
+and DOS-low; these runs do not qualify paired-provider DOS-low.
 The byte-identical BIOS passes hardware-reset boot with valid BDS/DPB graphs
 and an 880-byte active shell (`out/bios-descriptors-_4wbapis/`), clock conversion,
 and nested stacks/FCB with A20-off timer/EMS callbacks plus negative controls
@@ -126,6 +128,36 @@ BIOS/COMMAND state contract remain open; this does not finish joint placement.
 
 ```sh
 python3 tests/test_bios_mux_retirement_qemu.py out/bios-clock-retirement-kfcz9os1/input-retired.img
+```
+
+#### Paired DOS-low fixture contract
+
+The pinned EMM386 contains `BOOTXMS.INC:BootOwnerVerify` compiled with
+`EMM_BOOTSTRAP_EXPECT_HMA` (`capture_emm_init_phases.py --dos-high`). Its step 10
+requires the signed INT 2Fh/AX=1234h DOS HMA-cache query to succeed and return the
+cached XMS entry. DOS intentionally returns AX=0 when it does not own HMA.
+Changing CONFIG.SYS to DOS=LOW therefore produces **`XF 0Ah`, exit 35** by design,
+before COMMAND. Do not infer a provider activation failure from that exit.
+
+`test_paired_dos_low_qemu.py --low-witness` makes a same-size diagnostic variant
+of the exact pinned provider: step 10 requires AX=0 and does not compare DX:BX
+after that rejected query. All other ownership, cached-XMS, data and handle
+checks remain. The helper pins the complete input hash and instruction sequence;
+it changes no provider service, relocation, resident boundary or resource count.
+This is test-fixture adaptation, **not a production fix or new memory gain**.
+The eventual source-built DOS-low qualification must use an appropriate witness,
+not silently weaken `EMM_BOOTSTRAP_EXPECT_HMA` or change DOS's cache contract.
+
+Paired boot/FCB pass in LOW (`out/paired-dos-low-7c80y8cx/`) and HIGH
+(`out/paired-dos-low-ev8l9ro7/`). Both mismatched witnesses fail at step 10:
+`out/paired-dos-low-hmhaa84_/` and `out/paired-dos-low-j814ywdk/`.
+These checks do not establish complete fallback, reset, IRQ/A20 or API qualification.
+
+```sh
+python3 tests/test_paired_dos_low_qemu.py out/bios-mux-retirement-rr2vha88/input-retired.img --low-witness
+python3 tests/test_paired_dos_low_qemu.py out/bios-mux-retirement-rr2vha88/input-retired.img --mode HIGH
+python3 tests/test_paired_dos_low_qemu.py out/bios-mux-retirement-rr2vha88/input-retired.img --expect-witness-failure
+python3 tests/test_paired_dos_low_qemu.py out/bios-mux-retirement-rr2vha88/input-retired.img --mode HIGH --low-witness --expect-witness-failure
 ```
 
 #### Retired clock conversion owner
@@ -379,7 +411,7 @@ This qualifies the real-timer/pool/EMS entry scenario on the pinned 486/QEMU
 composition, not general high-service entry or provider teardown. No DOS binary,
 resident allocation or memory-comparison total changes.
 
-**Still unqualified:** paired-provider DOS-low, 286 and policy-restoration-failure
+**Still unqualified:** full paired-provider DOS-low fallback, 286 and policy-restoration-failure
 paths, remaining configured shapes (including the failing 32-byte cases), exhaustion and clobbered-entry recovery,
 other A20/IRQ/NMI/provider-transition stress, and software INT 19h
 reset. Upper backing must remain valid throughout those transitions. The

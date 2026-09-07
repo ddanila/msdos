@@ -99,9 +99,9 @@ def main():
         subprocess.run(["nasm", "-f", "bin", ROOT / "tests" / source,
                         "-o", work / target], check=True)
     assert probe(work, candidate, "high", "HIGH")
-    # Qualify the standalone kernel's DOS-low path separately. The experimental
-    # paired provider exits before the probe with DOS=LOW; its fallback remains
-    # outside this focused table-retirement qualification.
+    # Qualify the standalone kernel's DOS-low path separately. The pinned paired
+    # provider has a DOS-high-only boot witness; test_paired_dos_low_qemu.py
+    # checks the mode-specific paired fixture outside this focused table test.
     build(work / "bios-low")
     assert probe(work, candidate, "low", "LOW", bios=(work / "bios-low/IO.SYS").read_bytes())
     # Decode the linked routine, selecting instruction boundaries, not a byte
