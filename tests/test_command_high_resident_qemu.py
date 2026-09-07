@@ -131,6 +131,14 @@ def main():
         entry = entry_symbols["TCOMMAND"] - 0x100
         assert command.read_bytes()[entry:entry+3] == b"\x2e\x8e\x1e", "TCOMMAND must select resident DS through CS"
     segments, symbols = parse_map(work / "high/COMMAND.MAP")
+    notice = (b"MS DOS Version 6.22 (C)Copyright 1988 Microsoft Corp"
+              b"Licensed Material - Property of Microsoft  ")
+    copyright_start, copyright_end = (symbols["resident_copyright_start"],
+                                      symbols["resident_copyright_end"])
+    assert segments["MSGOPT"].start <= copyright_start < copyright_end <= segments["MSGOPT"].end
+    assert high.read_bytes()[copyright_start-0x100:copyright_end-0x100] == notice
+    assert high.read_bytes().count(notice) == normal.read_bytes().count(notice)
+    assert notice not in high.read_bytes()[:segments["HMACODE"].end-0x100]
     start, end = symbols["shell_service_start"], symbols["RES_CODE_END"]
     assert segments["DATARES"].end == start
     assert segments["SHELLCODE"].start == start and segments["SHELLCODE"].end == end
@@ -213,6 +221,10 @@ def main():
         service_bytes=end-start, low_break=(symbols["resident_catalog_start"]+15)&~15,
         results=results), indent=2)+"\n")
     assert results["high"]["largest"] > results["normal"]["largest"]
+    _, normal_symbols = parse_map(work / "normal/COMMAND.MAP")
+    normal_low = (normal_symbols["resident_catalog_start"]+15)&~15
+    high_low = (symbols["resident_catalog_start"]+15)&~15
+    assert results["high"]["largest"] - results["normal"]["largest"] == normal_low - high_low
     assert results["high"]["upper_free"] == results["normal"]["upper_free"]
     assert results["high"]["xms"] == results["normal"]["xms"]
     print("PASS: poisoned service retirement produces a composed gain without UMB/XMS cost", flush=True)

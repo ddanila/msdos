@@ -196,7 +196,15 @@ ELSE							     ;;AN000;;
 ENDIF							     ;;AN000;;
       $M_RES_ADDRS <>					     ;;AN000;; Resident addresses
 							     ;;
-      include COPYRIGH.INC				     ;;AN001;; Include Copyright 1988 Microsoft
+      IFDEF COMMAND_HIGH_RESIDENT
+        IF COMR
+; RDATA emits the unchanged notice in MSGOPT, outside permanent low state.
+        ELSE
+          include COPYRIGH.INC
+        ENDIF
+      ELSE
+        include COPYRIGH.INC
+      ENDIF
 							     ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ENDIF						     ;;AN000;; END of include of Data table

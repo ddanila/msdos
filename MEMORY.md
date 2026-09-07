@@ -15,14 +15,14 @@ COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
 The current **BIOS + whole-shell service retirement candidate** measures
-**622,272 conventional / 49,680 free UMB bytes**: **2,400 conventional bytes
+**622,368 conventional / 49,680 free UMB bytes**: **2,496 conventional bytes
 recovered** versus the identical BIOS/provider composition with normal COMMAND,
-**4,336 above the selected development control**, and **3,536 above retail**.
+**4,432 above the selected development control**, and **3,632 above retail**.
 Application XMS remains **6,798,336 bytes** (5,120 below the development control);
 the shell move adds no UMB or XMS cost. This is an opt-in experimental layout,
 not production promotion.
 
-COMMAND's permanent low allocation falls from **3,632 to 1,232 bytes**.
+COMMAND's permanent low allocation falls from **3,632 to 1,136 bytes**.
 The complete 2,623-byte linked service body follows the low data/catalog segment,
 is copied once, then its old range is released together with the catalog and
 previous message-code fallback. The checked build poisons the old service before
@@ -38,7 +38,12 @@ Its two transient consumers use one far binding; DOS-facing filenames, PSP and
 EXEC parameters remain low. There is no retained low text mirror. This recovers
 another **112 conventional bytes** beyond service retirement's 1,344-byte low
 allocation, after charging the new four-byte binding and paragraph rounding.
-The remaining low state is **675 bytes**, not the original 800.
+Packing the complete 95-byte copyright notice into discardable MSGOPT then
+recovers **96 more conventional bytes**. The attribution remains unchanged in
+COMMAND.COM, with the same number of copies; none occupies the retained low or
+live high image. Normal builds remain byte-identical. The notice was incorrectly
+counted as runtime state: the remaining low data is **580 bytes**, not 675.
+This cold-owner correction adds no HMA allocation or runtime gateway.
 
 The current shared HMA budget is **40,272 DOS + 7,744 BIOS + 7,988 buffers +
 5,288 COMMAND = 61,292 bytes**, leaving **4,212 bytes** at `EF7Ch..FFF0h`.
@@ -46,7 +51,7 @@ The shell charge includes its previous 2,447-byte owner, eight binding-fallback
 bytes, the 2,623-byte service and 210-byte pipeline owner; do not add
 those owners again or reuse the preceding 7,053/4,422/4,293-byte remainders.
 
-Evidence: `out/command-high-retirement-p9uv376r/`. The paired fresh captures
+Evidence: `out/command-high-retirement-9nkb38pt/`. The paired fresh captures
 change only COMMAND; CONFIG.SYS, AUTOEXEC.BAT, BIOS, DOS, managers and VC are
 checked unchanged. Local tests cover poisoned high startup/critical errors,
 DOS-low fallback, child and /MSG startup, INT 2Eh internal/external execution,
@@ -56,7 +61,7 @@ before and after execution; wrong-stack negative controls must fail. Linked
 checks reject relative branches escaping the copied service. Native and isolated
 normal builds match; normal COMMAND also receives the shared TCOMMAND entry
 correction described below, without changing its resident allocation. The binding
-regression and 39 binding/HMA-budget unit tests pass. Pipeline tests overwrite all
+regression and 40 binding/HMA-budget unit tests pass. Pipeline tests overwrite all
 extra conventional allocation in fourteen external filter executions per mode,
 check exact overwrite/append and input-redirection file contents, up to three
 filters and a child shell, and verify temporary-file cleanup in DOS-high and
@@ -68,12 +73,33 @@ make cmd_command
 python3 tests/test_command_high_resident_qemu.py out/umb-fine-composition-l1byzj6z/input-paired.img
 ```
 
-**Still open:** the remaining **675-byte low state partition**, asynchronous/A20
+**Still open:** the remaining **580-byte low data partition**, asynchronous/A20
 fault and reset qualification, remaining BIOS mixed state/services and the other
 low owners below. This service retirement does not complete shell code/state
 placement. Next, classify and move eligible state against the remaining shared
 4,212 bytes, preserve the low PSP/stack and published pointer contracts, then
 measure the next composed gain; do not replace this with more copy-only milestones.
+
+**Remaining shell data ownership:** the current linked ranges below partition
+the low data, excluding PSP, gates and stack. They are not independent savings.
+
+| Linked range / bytes | Contract for the next state move |
+| --- | --- |
+| `0220h..02C2h` / 162 | Formatter substitution records, their local arguments and response characters; RUCODE reads/writes these during critical errors |
+| `02C2h..0385h` / 195 | Error/control, interrupt return, saved process, COMSPEC and LOADHIGH state; preserve resident/transient and asynchronous access contracts |
+| `0385h..03B1h` / 44 | Pipeline control, DOS-facing names and high text binding; DOS still receives low filenames |
+| `03B1h..03D5h` / 36 | EXEC block and transient reload bindings; preserve the low PSP/EXEC interface |
+| `03D5h..03DFh` / 10 | Allocation break and two high character-service entries |
+| `03DFh..0464h` / 133 | Generated message runtime (`$M_RES_ADDRS`), including class pointers and scratch |
+
+The next coherent formatter candidate is **162 + 133 = 295 bytes**. RPRINT
+supplies substitution state to SYSDISPMSG, whose generated engine addresses
+`$M_RT2` through DS; INIT also initializes/rebases its class and critical pointers.
+Move these contracts together, rebind both **offsets and segments**, and retain
+no permanent low mirror. Selecting `FFFFh` alone cannot preserve the old offsets.
+Test real substitution/critical-error paths, reload and nested interruption before
+releasing the old data. The other 285 bytes still need an ownership decision;
+this audit neither declares them all immovable nor completes BIOS placement.
 
 **Pipeline reload contract:** PRESCAN must save the final output path and append
 flag before any external leg; LASTPIPE restores them to transient scratch only
@@ -492,13 +518,14 @@ is a research reference, not a substitute for our compatibility gates.
 
 ### Whole-shell design bound: code relocation alone is insufficient
 
-This is the normal-layout baseline audit. Its offsets, 800-byte state inventory
+This is the normal-layout baseline audit. Its offsets, 800-byte low-data inventory
 and earlier HMA arithmetic are not the current retired layout; use the checkpoint
 above for achieved release and remaining capacity. Pipeline text is now high,
 while the other access contracts below still constrain further state placement.
 
 The checked normal COMMAND map retains 2,451 code bytes, a 256-byte PSP,
-125-byte stack and 800 bytes of mutable state in its 3,632-byte low image.
+125-byte stack and 800 bytes of data in its 3,632-byte low image. That data
+includes 95 bytes of copyright text, not mutable runtime state.
 Even moving **all** that code with zero new low support leaves a packed,
 paragraph-rounded image of 1,184 bytes: at most 2,448 conventional bytes
 released. The selected fixture's other shell allocations total 352 bytes,
@@ -507,7 +534,7 @@ code-only policy. That is still 224 bytes above OpenDOS's 1,312-byte span,
 before gateways, bindings or additional stacks. This comparison does not
 establish equivalent environment/resource semantics or a mandatory local target.
 
-Consequently the whole-shell design must classify its 800 mutable bytes as
+Consequently the whole-shell design must classify its 800 data bytes as
 well as code: formatter/critical-error state, shell control, pipe hand-off,
 and EXEC/reload state. Keep the PSP and externally referenced asynchronous
 state low unless a compatible access contract is demonstrated. Do not choose
@@ -522,7 +549,7 @@ linked ranges partition the 800 bytes; they are not five independent moves.
 | `0BC3h..0C76h` / 179 | `COMMAND1.ASM:CONTC`, EXEC/LOADHIGH and transient code share control flags; includes COMSPEC and saved message pointers | Keep the low control interface initially; moving private fields requires rebinding resident **and transient** consumers |
 | `0C76h..0D1Ah` / 164 | `TMISC1.ASM:PRESCANEND` copies the pipeline into resident storage; `TPIPE.ASM:PIPEPROC` passes its names to DOS as DS:DX | Pipeline storage must survive child EXEC. Retain DOS-facing names low initially; a high pipeline parser needs explicit data selection and low transfer storage, not a low mirror of the whole group |
 | `0D1Ah..0D42h` / 40 | `TMISC1.ASM:EXECUTE` passes ES:BX pointing at EXEC_BLOCK, switches SS to the resident segment, and uses the resident PSP; `COMMAND2.ASM:HAVCOM` copies TRANVARS into the transient | Retain the EXEC/PSP interface low. Rebuild the copied far entry bindings when services move; changing only the resident DS is insufficient |
-| `0D42h..0E30h` / 238 | `RDATA.ASM` contains RESMSGEND, two high-service entry pointers, then generated COMR message data used by `RUCODE.ASM` | Separate the 10 bytes of break/entry bindings from the 228-byte generated runtime before considering high formatter state; catalogs are already high |
+| `0D42h..0E30h` / 238 | `RDATA.ASM` contains RESMSGEND, two high-service entry pointers, then generated COMR message data used by `RUCODE.ASM` | Separate 10 bytes of break/entry bindings, 133 bytes of generated runtime and 95 bytes of cold copyright text; catalogs are already high |
 
 Two entry constraints govern the whole-shell prototype. Normal `CONTC` tests
 `InitFlag` through CS before establishing DS; its nested path also inspects

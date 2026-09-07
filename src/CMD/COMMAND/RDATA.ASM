@@ -643,6 +643,15 @@ DATARES ENDS
 MSGOPT SEGMENT PUBLIC BYTE
 ASSUME DS:RESGROUP,ES:RESGROUP,CS:RESGROUP
 
+	IFDEF COMMAND_HIGH_RESIDENT
+; Preserve the complete attribution in the file without retaining cold text
+; in low DATARES or charging it to the live HMA message owner.
+	PUBLIC resident_copyright_start, resident_copyright_end
+resident_copyright_start LABEL BYTE
+include COPYRIGH.INC
+resident_copyright_end LABEL BYTE
+	ENDIF
+
 PARSE_MSG_START 	LABEL	BYTE		;AN000; start of parse error messages
 
 MSG_SERVICES <COMR,COMMAND.CLC> 		;AN000; get parse error messages
