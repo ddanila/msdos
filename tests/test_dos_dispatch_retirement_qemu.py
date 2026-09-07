@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 import shutil
 import subprocess
 import tempfile
@@ -37,6 +38,59 @@ def check_tables(old, new, before, after):
         assert names, (old_at, new_at, old_target, new_target)
         targets.append(dict(old_offset=old_at, new_offset=new_at, target_names=names))
     return targets
+
+
+def qualify_ifs(work, candidate, low_bios):
+    """Exercise internal-service consumers without replacing the boot drive."""
+    for source, name in (("config_ifs_driver.asm", "TESTIFS.SYS"),
+                         ("ifsfunc_filesys_probe.asm", "IFSPROBE.COM"),
+                         ("qemu_exit.asm", "QEXIT.COM")):
+        subprocess.run(["nasm", "-f", "bin", ROOT / "tests" / source,
+                        "-o", work / name], check=True)
+    commands = ["@ECHO OFF", "CTTY AUX", "PATH C:\\DOS"]
+    expected = []
+    for command, label, rejected in (
+        ("IFSFUNC NAMES=256", "RANGE", True),
+        ("IFSFUNC NAMES=1 NAMES=2", "REPEAT", True),
+        ("IFSFUNC NAMES=7", "INSTALL", False),
+        ("FILESYS D: TESTIFS", "ATTACH", False),
+        ("FILESYS D: TESTIFS", "DUPLICATE", True),
+        ("FILESYS E: NOIFS", "UNKNOWN", True),
+        ("FILESYS D:", "STATUS", False),
+        ("FILESYS D: /D", "DETACH", False),
+        ("FILESYS D: /D", "REPEAT_DETACH", True),
+        ("FILESYS D:", "EMPTY", False),
+        ("IFSPROBE.COM", "COUNTERS", False),
+    ):
+        good, bad = ("", "NOT ") if rejected else ("NOT ", "")
+        commands.extend((command, f"IF {bad}ERRORLEVEL 1 ECHO IFS_{label}_FAILED",
+                         f"IF {good}ERRORLEVEL 1 ECHO IFS_{label}_PASS"))
+        expected.append(f"IFS_{label}_PASS".encode())
+    commands.extend(("ECHO IFS_DONE", "QEXIT.COM"))
+    for mode in ("HIGH", "LOW"):
+        disk = work / f"ifs-{mode}.img"
+        shutil.copyfile(candidate, disk)
+        config = image_file(candidate, "::CONFIG.SYS")
+        if mode == "LOW":
+            install(disk, "IO.SYS", low_bios.read_bytes())
+            config = b"DOS=LOW\r\nFILES=30\r\nBUFFERS=15\r\nLASTDRIVE=Z\r\n"
+        install(disk, "CONFIG.SYS", config.rstrip() + b"\r\nIFS=C:\\TESTIFS.SYS\r\n")
+        for name in ("TESTIFS.SYS", "IFSPROBE.COM", "QEXIT.COM"):
+            install(disk, name, (work / name).read_bytes())
+        install(disk, "AUTOEXEC.BAT", ("\r\n".join(commands) + "\r\n").encode())
+        result = subprocess.run([
+            "qemu-system-i386", "-machine", "pc", "-cpu", "486", "-m", "8",
+            "-display", "none", "-monitor", "none", "-serial", "stdio", "-boot", "c",
+            "-no-reboot", "-drive", f"if=ide,format=raw,file={disk}",
+            "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04"],
+            capture_output=True, timeout=40)
+        output = result.stdout + result.stderr
+        (work / f"ifs-{mode}.log").write_bytes(output)
+        assert result.returncode == 33 and b"IFS_DONE" in output, output
+        assert b"_FAILED" not in output and all(marker in output for marker in expected), output
+        assert re.search(rb"D:\s+TESTIFS(?:\s|$)", output), output
+        assert b"No entries found" in output, output
+        print(f"IFSFUNC/FILESYS {mode}: PASS", flush=True)
 
 
 def main():
@@ -99,6 +153,7 @@ def main():
     build(work / "bios-low")
     assert probe(work, candidate, "standalone-low", "LOW", bios=(work / "bios-low/IO.SYS").read_bytes())
     qualify(work, candidate)
+    qualify_ifs(work, candidate, work / "bios-low/IO.SYS")
     results = dict(dispatch_targets=targets, unchanged_sha256=unchanged,
                    matched_utilities_sha256=utility_hashes,
                    old_kernel_sha256=hashlib.sha256(old).hexdigest(),

@@ -67,6 +67,16 @@ Destructive pipeline/reload and environment checks pass on the same image
 joint residency census pass.
 The repeat run `out/dos-dispatch-retirement-wqdq_jy3/` also verifies matched
 SHARE/IFSFUNC field offsets and reproduces the gain; all 27 HMA-budget tests pass.
+IFSFUNC/FILESYS lifecycle checks now run in the retirement harness. The composed
+HIGH and standalone LOW boots pass installation, attach/status/detach, invalid
+options, duplicate/unknown/repeated-detach rejection and exact driver callback
+counts (`out/dos-dispatch-ifs-eopdpb4k/`). Tests attach D:, leaving boot drive C:
+untouched. This uses a controlled IFS driver, not a complete network redirector.
+COMMAND allocation/shrink rejection also passes on this kernel
+(`out/command-upper-failure-mg18nvqz/`): low fallback costs 448 conventional
+bytes, returns all 480 upper-owner/MCB bytes, preserves XMS and allocation
+policy, and survives destructive pipeline/reload checks. These qualify the
+retired layout; they claim no additional memory gain or full fallback coverage.
 Reproduce with `make dos`, then `test_dos_dispatch_retirement_qemu.py IMAGE
 OLD_KERNEL_MAP`. This retires a complete kernel owner; it does not finish
 BIOS/COMMAND placement, qualify every internal service or establish paired
