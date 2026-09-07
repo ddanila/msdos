@@ -175,11 +175,149 @@ start:
     mov [es:OLD_SLOT],ax
     mov ax,[cs:successor+2]
     mov [es:OLD_SLOT+2],ax
+%ifdef POOL_ASYNC_TIMER
+    call timer_check
+    call check_pool
+%endif
     popf
     mov si,passed
     call debug
     mov ax,4c00h
     int 21h
+
+%ifdef POOL_ASYNC_TIMER
+timer_check:
+%ifdef POOL_TIMER_WRONG_OWNER
+    mov si,timer_negative
+    call debug
+%endif
+    ; The original INT 08h successor is restored. Observe BIOS INT 1Ch without
+    ; replacing the firmware chain or manually invoking the timer interrupt.
+    mov ah,41h
+    int 67h
+    or ah,ah
+    jnz fail
+    mov [cs:timer_frame],bx
+    mov bx,4
+    mov ah,43h
+    int 67h
+    or ah,ah
+    jnz fail
+    mov [cs:timer_ems_handle],dx
+    cli
+    xor ax,ax
+    mov es,ax
+    mov ax,[es:1ch*4]
+    mov [cs:old_timer],ax
+    mov ax,[es:1ch*4+2]
+    mov [cs:old_timer+2],ax
+    mov word [es:1ch*4],timer_observe
+    mov [es:1ch*4+2],cs
+.page:
+    mov bx,[cs:timer_page]
+    mov dx,[cs:timer_ems_handle]
+    mov ax,4400h
+    int 67h
+    or ah,ah
+    jnz fail
+    cli
+    mov es,[cs:timer_frame]
+    mov ax,[cs:timer_page]
+    add ax,0a500h
+    mov [es:0],ax
+    mov ax,[cs:timer_count]
+    add ax,4
+    mov [cs:timer_target],ax
+.wait:
+    sti
+    hlt
+    cli
+    mov ax,[cs:timer_target]
+    cmp [cs:timer_count],ax
+    jb .wait
+    mov es,[cs:timer_frame]
+    mov ax,[cs:timer_page]
+    add ax,0a500h
+    cmp [es:0],ax
+    jne fail
+    call check_pool
+    inc word [cs:timer_page]
+    cmp word [cs:timer_page],4
+    jb .page
+    xor ax,ax
+    mov es,ax
+    mov ax,[cs:old_timer]
+    mov [es:1ch*4],ax
+    mov ax,[cs:old_timer+2]
+    mov [es:1ch*4+2],ax
+    xor bx,bx
+.verify_page:
+    push bx
+    mov dx,[cs:timer_ems_handle]
+    mov ax,4400h
+    int 67h
+    pop bx
+    or ah,ah
+    jnz fail
+    mov es,[cs:timer_frame]
+    mov ax,bx
+    add ax,0a500h
+    cmp [es:0],ax
+    jne fail
+    inc bx
+    cmp bx,4
+    jb .verify_page
+    mov bx,0ffffh
+    mov dx,[cs:timer_ems_handle]
+    mov ax,4400h
+    int 67h
+    or ah,ah
+    jnz fail
+    mov dx,[cs:timer_ems_handle]
+    mov ah,45h
+    int 67h
+    or ah,ah
+    jnz fail
+    cli
+    cmp byte [cs:timer_bad],0
+    jne fail
+    mov si,timer_passed
+    call debug
+    ret
+timer_observe:
+    pushf
+    push ax
+    mov ax,ss
+%ifdef POOL_TIMER_WRONG_OWNER
+    inc ax
+%endif
+    cmp ax,[cs:pool_seg]
+    jne .bad
+    mov ax,sp
+    cmp ax,STACK_COUNT*8
+    jb .bad
+    cmp ax,STACK_COUNT*(8+STACK_SIZE)
+    jae .bad
+    jmp short .count
+.bad:
+    mov byte [cs:timer_bad],1
+.count:
+    inc word [cs:timer_count]
+    pop ax
+    popf
+    jmp far [cs:old_timer]
+old_timer dd 0
+timer_count dw 0
+timer_target dw 0
+timer_page dw 0
+timer_frame dw 0
+timer_ems_handle dw 0
+timer_bad db 0
+timer_passed db 'STACK_POOL_ASYNC_TIMER_EMS_PASS',13,10,0
+%ifdef POOL_TIMER_WRONG_OWNER
+timer_negative db 'STACK_POOL_TIMER_NEGATIVE_READY',13,10,0
+%endif
+%endif
 
 nested:
     push ax

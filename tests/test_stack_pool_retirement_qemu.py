@@ -17,7 +17,7 @@ from test_dos_char_retirement_qemu import install
 from test_umb_subpage_composition import xms_summary
 
 
-def shape_checks(source, bios, work, controlled=False):
+def shape_checks(source, bios, work, controlled=False, async_timer=False):
     """Use frozen composed binaries, changing only STACKS and probe startup."""
     assert image_file(source, "::IO.SYS") == (bios / "IO.SYS").read_bytes()
     manifest = json.loads((bios / "low.json").read_text())
@@ -35,6 +35,8 @@ def shape_checks(source, bios, work, controlled=False):
                                (64, 32, True), (64, 128, True), (64, 512, False)):
         if controlled and size != 32:
             continue
+        if async_timer and (count,size) != (9,128):
+            continue
         upper = upper and enabled
         name = f"{count}-{size}"
         directory = work / name
@@ -44,7 +46,8 @@ def shape_checks(source, bios, work, controlled=False):
             "%define STACK_SHAPE_TRACE 1\n"
             f"%define STACK_COUNT {count}\n%define STACK_SIZE {size}\n"
             f"%define ENTRY_OFFSET {symbols['INT08']}\n%define OLD_SLOT {symbols['OLD08']}\n"
-            + ("%define POOL_CONTROLLED_RESEED 1\n" if controlled else ""))
+            + ("%define POOL_CONTROLLED_RESEED 1\n" if controlled else "")
+            + ("%define POOL_ASYNC_TIMER 1\n" if async_timer else ""))
         image = directory / "probe.img"
         shutil.copyfile(source, image)
         updated, replacements = re.subn(rb"(?im)^STACKS=[^\r\n]*", f"STACKS={count},{size}".encode(), config)
@@ -59,20 +62,41 @@ def shape_checks(source, bios, work, controlled=False):
             install(image, target, (directory / target).read_bytes())
         install(image, "AUTOEXEC.BAT", b"@ECHO OFF\r\nCTTY AUX\r\nSTACKCHK.COM\r\n"
                 b"I21FCB.COM\r\nSTACKCHK.COM\r\nQEXIT.COM\r\n")
-        result = subprocess.run(["qemu-system-i386", "-machine", "pc", "-cpu", "486", "-m", "8",
+        command = ["qemu-system-i386", "-machine", "pc", "-cpu", "486", "-m", "8",
             "-display", "none", "-monitor", "none", "-serial", "stdio", "-no-reboot", "-boot", "c",
             "-debugcon", f"file:{directory / 'debug.log'}", "-device", "isa-debug-exit,iobase=0xf4,iosize=0x04",
-            "-drive", f"if=ide,index=0,format=raw,file={image},cache=writethrough"],
+            "-drive", f"if=ide,index=0,format=raw,file={image},cache=writethrough"]
+        result = subprocess.run(command,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, timeout=40)
         (directory / "probe.log").write_bytes(result.stdout)
         debug = (directory / "debug.log").read_bytes()
         passed = (result.returncode == 33 and debug.count(b"STACK_POOL_NESTED_PASS") == 2
                   and b"STACK_POOL_FAIL" not in debug and b"INT21_FCB_PASS" in result.stdout)
         passed = passed and debug.count(b"STACK_POOL_CONTROLLED_RESEED") == (2 if controlled else 0)
+        passed = passed and debug.count(b"STACK_POOL_ASYNC_TIMER_EMS_PASS") == (2 if async_timer else 0)
         results[name] = dict(count=count, size=size, upper=upper, passed=passed, exit_code=result.returncode,
             controlled_marker_repair=controlled,
+            async_timer=async_timer,
+            ems_pages=4 if async_timer else 0,
             pool_bytes=(count*(size+8)+15)//16*16, nested_visits=count if passed else None,
             image_sha256=hashlib.sha256(image.read_bytes()).hexdigest())
+        if async_timer and passed:
+            negative_image = directory / "negative.img"
+            shutil.copyfile(image, negative_image)
+            subprocess.run(["nasm", "-f", "bin", "-DPOOL_TIMER_WRONG_OWNER=1", f"-I{directory}/",
+                ROOT / "tests/stack_pool_probe.asm", "-o", directory / "BADTIMER.COM"], check=True)
+            install(negative_image, "STACKCHK.COM", (directory / "BADTIMER.COM").read_bytes())
+            negative_command = [arg.replace(str(image),str(negative_image)).replace(
+                str(directory/'debug.log'),str(directory/'negative-debug.log')) for arg in command]
+            negative = subprocess.run(negative_command, stdout=subprocess.PIPE,
+                                      stderr=subprocess.STDOUT, timeout=40)
+            (directory / "negative.log").write_bytes(negative.stdout)
+            trace = (directory / "negative-debug.log").read_bytes()
+            rejected = (negative.returncode == 35 and b"STACK_POOL_TIMER_NEGATIVE_READY" in trace
+                        and b"STACK_POOL_FAIL" in trace and b"STACK_POOL_ASYNC_TIMER_EMS_PASS" not in trace)
+            results[name]["wrong_timer_owner_rejected"] = rejected
+            passed = passed and rejected
+            results[name]["passed"] = passed
         scope = "controlled marker repair" if controlled else "unmodified markers"
         print(f"{'PASS' if passed else 'FAIL'} STACKS={count},{size}: {scope}, expected {'upper' if upper else 'low'}, artifacts {directory}", flush=True)
     (work / "shapes.json").write_text(json.dumps(dict(results=results,
@@ -146,16 +170,19 @@ def main():
     parser.add_argument("--fallback-only", action="store_true", help="qualify standalone DOS-low and absent-UMB paths")
     parser.add_argument("--shapes-bios", type=Path, help="qualify STACKS bounds using this matching frozen BIOS build")
     parser.add_argument("--controlled-stacks", action="store_true", help="diagnostic 32-byte handler test after explicit marker repair; not boot qualification")
+    parser.add_argument("--async-timer", action="store_true", help="observe real firmware timer callbacks with live EMS remapping on the default pool")
     args = parser.parse_args()
     if args.fallback_only and args.shapes_bios:
         parser.error("choose fallback or shape qualification")
     if args.controlled_stacks and not args.shapes_bios:
         parser.error("--controlled-stacks requires --shapes-bios")
+    if args.async_timer and (not args.shapes_bios or args.controlled_stacks):
+        parser.error("--async-timer requires --shapes-bios without controlled repair")
     work = Path(tempfile.mkdtemp(prefix="stack-pool-retirement-", dir=ROOT / "out"))
     print(f"Artifacts: {work}", flush=True)
     assert image_file(args.image, "::MSDOS.SYS") == (ROOT / "src/DOS/MSDOS.SYS").read_bytes()
     if args.shapes_bios:
-        shape_checks(args.image, args.shapes_bios, work, args.controlled_stacks)
+        shape_checks(args.image, args.shapes_bios, work, args.controlled_stacks, args.async_timer)
         return
     if args.fallback_only:
         fallback_checks(args.image, work)

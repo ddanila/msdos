@@ -214,14 +214,31 @@ The unmodified-boot probe remains byte-identical and its failures remain open.
 Complete successor-chain depth and other-firmware behavior are still unknown.
 Default 128-byte and tested 512-byte profiles remain passing; no pool-size or
 memory-accounting change is made to work around the firmware writes. Continue
-default-profile A20/EMS and asynchronous qualification before spending more
+default-profile A20 and broader asynchronous qualification before spending more
 memory-layout effort on this separately diagnosed small-stack platform limit.
+
+**Real timer with live EMS mappings:** the default 9-by-128 pool passes in both
+upper (`out/stack-pool-retirement-kcvw1cm9/`) and low
+(`out/stack-pool-retirement-76910_7k/`) placement. The probe restores the original
+INT 08h successor, observes the firmware's INT 1Ch callback, and waits with
+STI/HLT for at least four real callbacks under each of four EMS page mappings.
+Every callback must have SS equal to the configured pool segment and SP inside
+the pool. Per-page data and pool markers survive; all four pages are remapped
+and rechecked before unmapping/freeing the temporary handle. The original
+INT 1Ch vector is restored. Both runs bracketing FCB I/O must pass, without any
+marker repair. Wrong-observed-SS controls explicitly fail after their negative
+marker in both layouts. This is timer/EMS coverage, not forced A20-off, other
+IRQ/NMI, nested asynchronous-interrupt or provider-transition coverage.
+
+```sh
+python3 tests/test_stack_pool_retirement_qemu.py out/stack-pool-retirement-hmjvgcxp/input-upper.img --shapes-bios out/stack-pool-retirement-hmjvgcxp/upper --async-timer
+```
 
 **Still unqualified:** paired-provider DOS-low, 286 and policy-restoration-failure
 paths, remaining configured shapes (including the failing 32-byte cases), exhaustion and clobbered-entry recovery,
-A20-off/EMS-remapping stress, and software INT 19h reset. Upper backing must
-remain valid throughout interrupts and provider transitions. The nested probe
-substitutes a successor with IRQs masked; it is not asynchronous IRQ/NMI stress.
+A20-off and broader IRQ/NMI/provider-transition stress, and software INT 19h
+reset. Upper backing must remain valid throughout those transitions. The
+controlled nested probe and the real-timer test above have distinct scopes.
 Do not reduce STACKS or other resources, or promote this opt-in layout, to avoid
 these gates.
 
