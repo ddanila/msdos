@@ -9,16 +9,6 @@ TITLE	ANSI Console device CON$INIT routine
 ;    THIS PROCEDURE PERFORMS ALL NECESSARY INITIALIZATION ROUTINES
 ;  FOR ANSI.SYS.
 ;
-;  THIS ROUTINE WAS SPLIT FROM THE ORIGINAL ANSI.ASM SOURCE FILE
-;  FOR RELEASE 4.00 OF DOS.  ALL CHANGED LINES HAVE BEEN MARKED WITH
-;  WGR. NEW PROCS HAVE BEEN MARKED AS SUCH.
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;AN001; P1767 VIDEO_MODE_TABLE not initialized correctly	   10/16/87 J.K.
-;AN002; P2617 Order dependecy problem with Display.sys		   11/23/87 J.K.
-;AN003; D479  An option to disable the extended keyboard functions 02/12/88 J.K.
-;AN004; D493 New INIT request structure for error message	   02/25/88 J.K.
-;-------------------------------------------------------------------------------
 
 INCLUDE    ANSI.INC		   ; WGR equates and strucs
 .XLIST

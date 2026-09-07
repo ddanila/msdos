@@ -6,10 +6,6 @@
  *
  *    MODULE:	EMM40.C - EMM 4.0 functions code.
  *
- *    VERSION:	0.00
- *
- *    DATE:	Feb 25, 1987
- *
  *******************************************************************************
  *     FUNCTIONAL DESCRIPTION
  *

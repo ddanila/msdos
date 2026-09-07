@@ -10,19 +10,6 @@
 ;
 ;  Module:	EKBD - basic keyboard handler for error handler routine
 ;
-;  Date :	June 10,1986
-;
-;******************************************************************************
-;
-;  CHANGES:
-;
-;    DATE     REVISION			DESCRIPTION
-;  --------   --------	 ------------------------------------------------------
-;  06/10/86   Original
-;  06/28/86   0.02	 Name change from MEMM386 to MEMM
-;  07/06/86   0.04	 Changed assumes to DGROUP
-;
-;******************************************************************************
 ;
 ;  Functional description:  Return keyboard code while ignoring any break
 ;			    or command codes.

@@ -1,4 +1,3 @@
-;---Revised 8-17-84 FOR KBX	(ADDED ADDITIONAL KEYBOARD FLAG - KB_FLAG_3)
 ;----------------------------------------
 ;	 0286 INTERRUPT LOCATIONS (READ):
 ;----------------------------------------

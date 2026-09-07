@@ -241,15 +241,12 @@ PARSE_PARMS_START:
 	PUSH	CS
 	POP	ES
 	LEA	DI,PARMS		; ES:DI := Parms control block
-;(deleted ;AN001;) XOR DX,DX		; CX,DX must be zero for the
 	XOR	CX,CX			; Initially, CX should be zero
 	MOV	AX,0			; No error yet
 ;-------------------------------------------------------------------------------
 ; Parse FIRST argument
 ;-------------------------------------------------------------------------------
-;(deleted ;AN001;) CALL SYSPARSE	; Get one argument from the command line
 	CALL	CALL_SYSPARSE		; Get one argument from the command line
-;(deleted ;AN001;) MOV BX,DX		; BX := Offset of result block
 .WHILE <AX EQ RC_NO_ERROR>		; While there is no error
 ;-------------------------------------------------------------------------------
 ; Get the argument:
@@ -277,10 +274,7 @@ PARSE_PARMS_START:
 ;-------------------------------------------------------------------------------
 ; Parse next argument:
 ;-------------------------------------------------------------------------------
-;(deleted ;AN001;) XOR DX,DX		;
-;(deleted ;AN001;) CALL SYSPARSE	; Get one argument from the command line
 	CALL	CALL_SYSPARSE		; Get one argument from the command line
-;(deleted ;AN001;) MOV BX,DX		; ES:BX := Offset of result block
 .ENDWHILE
 ;-------------------------------------------------------------------------------
 ; Check for error, select and display an error message
@@ -297,8 +291,6 @@ PARSE_PARMS_START:
 	MOV	CX,1			;   1 substitution in this message
 	MOV	BYTE PTR [SI],0 	; PUT NUL AT END OF THIS PARM
 	LEA	SI,SUBLIST		;   DS:[SI]:="Invalid parm" Substitution;AN000; list
-;(deleted ;AN001;) LES DX,ES:[BX+4]	;   ES:DX := Offset of offending parm.
-;(deleted ;AN001;) MOV [SI]+2,DX	;   Store offset to this offender in the
 	MOV	[SI]+4,ES		;    substitution list control block
 	MOV	AX,INVALID_PARM 	;   AL := 'Invalid parameter' msg number
    .WHEN <AL EQ RC_INVLD_COMBINATION>	; When RC = Invalid combination of parms

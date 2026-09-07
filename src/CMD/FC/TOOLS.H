@@ -1,10 +1,6 @@
 /*
  *  tools.h - Header file for accessing TOOLS.LIB routines
  *  includes stdio.h and ctype.h
- *
- *   4/14/86  dl added U_* flags for upd return values
- *
- *	31-Jul-1986 mz	Add Connect definitions
  */
 
 #define TRUE	-1

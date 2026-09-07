@@ -7,21 +7,8 @@
 ;.SALL
 
 
-;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป
-;บ											  บ
-
-;  AC001 - P3976: Need to have all pieces of messages in MODE.SKL so have to
-;		  implement the SYSGETMSG method of getting addressability to
-;		  the pieces.  This means that the code does a SYSGETMSG call
-;		  which returns a pointer (DS:SI) to the message piece.  The
-;		  address is then put in the sublist block for the message
-;		  being issued.
-
-;  AN002 - P4011: Need to close all open handles before terminating and staying
-;		  resident so don't eat into the total available handles for the
-;		  system.
-;บ											  บ
-;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ
+; Close all open handles before staying resident to avoid exhausting the
+; system handle table.
 
 INCLUDE  SYSMSG.INC
 

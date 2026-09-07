@@ -17,24 +17,11 @@ DATARES ENDS
 
 break <Path.Asm>
 ;----------------------------------------------------------------------------
-;    PATH.ASM contains the routines to perform pathname incovation.  Path and
-;    Parse share a temporary buffer and argv[] definitions.  <Path_Search>,
-;    given a pathname, attempts to find a corresponding executable or batch
-;    file on disk.  Directories specified in the user's search path will be
-;    searched for a matching file, if a match is not found in the current
-;    directory and if the pathname is actually only an MSDOS filename.
-;    <Path_Search> assumes that the parsed command name can be found in
-;    argv[0] -- in other words, <Parseline> should be executed prior to
-;    <Path_Search>.  Alternatively, the command name and appropriate
-;    information could be placed in argv[0], or <Path_Search> could be
-;    (easily) modified to make no assumptions about where its input is found.
-;    Please find enclosed yet another important routine, <Save_Args>, which
-;    places the entire arg/argv[]/argbuf structure on a piece of newly
-;    allocated memory.	This is handy for for-loop processing, and anything
-;    else that wants to save the whole shebang and then process other command
-;    lines.
-;
-; Alan L, OS/MSDOS				    August 15, 1983
+; Parse and Path share a temporary buffer and argv[] definitions.
+; Path_Search uses the parsed command name in argv[0], so run Parseline first.
+; It searches the current directory, then PATH for bare filenames.
+; Save_Args copies the argument state into allocated memory so FOR loops
+; can parse nested command lines without losing their own arguments.
 ;
 ; ENTRY:
 ;   <Path_Search>:	    argv[0].

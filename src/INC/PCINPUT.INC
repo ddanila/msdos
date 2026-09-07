@@ -2,11 +2,6 @@
 PAGE
 ;-----------------------------------------------------------------------------+
 ;									      :
-; Source...: PCINPUT.INC						      :
-; Created..: 01-01-82							      :
-; Standards: 01-07-86							      :
-; Revised..: 11-17-87							      :
-; Version..: PC DOS							      :
 ; Called as: FAR, NEAR or INT						      :
 ; Public as: INPUT							      :
 ;									      :

@@ -1,22 +1,4 @@
 
-;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป
-;บ											  บ
-
-;  AX001 - P3976: Need to have all pieces of messages in MODE.SKL so have to
-;		  implement the SYSGETMSG method of getting addressability to
-;		  the pieces.  This means that the code does a SYSGETMSG call
-;		  which returns a pointer (DS:SI) to the message piece.  The
-;		  address is then put in the sublist block for the message
-;		  being issued.
-
-;  AC002 - P3258: PS/2 only COM parameters were being allowed on non-PS/2
-;		  machines.  Added checks for baud=19200, parity=mark or space,
-;		  data=5 or 6, stop=1.5 for both keyword and positional forms
-;		  in MODEPARSE.ASM.  Had to enlarge the possible parm size for
-;		  "Function not supported on this computer - ?????????????"
-
-;บ											  บ
-;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ
 
 
 ;ษอออออออออออออออออออออออออออออออ  P U B L I C S  ออออออออออออออออออออออออออออออออออออออออป

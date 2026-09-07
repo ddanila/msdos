@@ -51,54 +51,6 @@
 ;	   involved.  A unique volume serial number is ignored
 ;	   for the comparison of the first sector.
 
-; INCLUDED FILES:
-;	   PATHMAC.INC - PATHGEN MACRO
-;	   INCLUDE DCMPMACR.INC 	   ;(FORMERLY CALLED MACRO.DEF)
-;	   INCLUDE DISKCOMP.EQU 	   ;EQUATES
-
-; INTERNAL REFERENCES:
-;    ROUTINES:
-;	 BEGIN - entry point from DOS
-;	 SET_LOGICAL_DRIVE - set log. drive letter as owner of drive
-;	 COMP - compare the diskette image
-;	 TEST_REPEAT - see if user wants to compare another
-;	 READ_SOURCE - read from first drive as much as possible
-;	 CHECK_SOURCE - determine first diskette type
-;	 READ_A_SECTOR - use IOCTL read to get a sector
-;	 CALC_TRACK_SIZE - find mem size to hold one track
-;	 CHECK_MEMORY_SIZE - be sure enuf memory to compare 1 track
-;	 COMP_TARGET - compare memory data with secon diskette
-;	 CHECK_TARGET - compare second disk boot record
-;	 SET_DRV_PARM - request IOCTL to set device parm
-;	 COMP_TRACK - read and compare specified track
-;	 SWAP_DRIVE - setup for diskette swapping
-;	 READ_TRACK - read a track to memory
-;	 READ_OP - IOCTL to read a track
-;	 SET_FOR_THE_OLD - use pre 2.0 BPB
-;	 SET_TRACKLAYOUT - determine sectors per track
-;	 GENERIC_IOCTL - perform specified IOCTL function
-;	 EXTENDED_ERROR_HANDLER - determine and service extended errors
-;	 SET_DRV_PARM_DEF - set drive parms via IOCTL
-;
-;	 VOLSER - during compare of first sector, avoid vol ser #
-;	 SENDMSG - passes parms to regs and invokes the system message routine.
-
-;    DATA AREAS:
-;	PSP - Contains the DOS command line parameters.
-;	WORKAREA - Temporary storage
-
-; EXTERNAL REFERENCES:
-;    ROUTINES:
-;	SYSDISPMSG - Uses the MSG parm lists to construct the messages
-;		 on STDOUT.
-;	SYSLOADMSG - Loads messages, makes them accessable.
-;	SYSPARSE - Processes the DOS Command line, finds parms.
-
-;    DATA AREAS:
-;	 DCOMPSM.SAL - Defines the control blocks that describe the messages
-;	 DCOMPPAR.SAL - Defines the control blocks that describe the
-;		DOS Command line parameters.
-
 ; Preserve the module order in the link response file: it defines the COM layout.
 ;
 ; COPYRIGHT: The following notice is found in the OBJ code generated from
@@ -463,7 +415,6 @@ numberOfSectors      dw  ?
 TAddress_off	     dw  ?
 TAddress_seg	     dw  ?
 
-;(deleted ;AN011;) MEDIA_ID_BUFFER A_MEDIA_ID_INFO <> ;BUFFER FOR GET/SET MEDIA ID
 DISKCOMP_HELP_STR DB "Compares the contents of two floppy disks.",0Dh,0Ah
 		  DB 0Dh,0Ah
 		  DB "DISKCOMP [d1:] [d2:] [/1] [/8]",0Dh,0Ah
@@ -1969,24 +1920,6 @@ VOLSER PROC NEAR		   ;VERIFY FIRST SECTOR, IGNORING VOL SER #
    PUSH  CX			   ;SAVE CALLER'S REGS
    PUSH  SI			   ;
    PUSH  DI			   ;
-;(deleted ;AN011;)   PUSH  DS			     ;SAVE BUFFER OF FIRST DISKETTE
-
-;(deleted ;AN011;)   PUSH  CS			     ;RESTORE ADDRESSABILITY TO COMMON SEG
-;(deleted ;AN011;)   POP   DS			     ; TO ACCESS GET MEDIA ID BUFFER AREA
-;(deleted ;AN011;)   ASSUME DS:CSEG
-
-;(deleted ;AN011;);		 ISSUE GET MEDIA ID FROM SOURCE
-;(deleted ;AN011;)   MOV   BH,0 		     ;BH=0, RES
-;(deleted ;AN011;)   MOV   BL,SOURCE_DRIVE	     ;BL=DRIVE NUM (A:=1, B:=2, ETC.)
-;(deleted ;AN011;)   MOV   DX,OFFSET MEDIA_ID_BUFFER ;DS:DX=BUFFER
-;(deleted ;AN011;)   DOSCALL GSET_MEDIA_ID,GET_ID    ;(6900H) GET MEDIA ID
-;(deleted ;AN011;)				     ;CARRY SET ON ERROR (OLD STYLE BOOT RECORD)
-;(deleted ;AN011;)   POP   DS			     ;RESTORE THIS BACK TO BUFFER OF FIRST DISKETTE
-;(deleted ;AN011;)   ASSUME DS:NOTHING		     ; LIKE IT WAS AT ENTRY TO THIS PROC
-
-;(deleted ;AN011;)   $IF   NC			     ;IF THERE IS NO PROBLEM
-;(deleted ;AN011;)				     ; THEN THIS DISKETTE HAS A VOL SER #
-
    PUSH  BX
    LEA	 BX,DS:[DI].EXT_BOOT_BPB   ;AN011;POINT TO BPB PORTION OF BOOT RECORD
    MOV	 AL,DS:[BX].EBPB_MEDIADESCRIPTOR ;AN011;GET TYPE OF MEDIA

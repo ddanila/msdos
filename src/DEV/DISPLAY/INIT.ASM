@@ -2,26 +2,13 @@ PAGE	,132
 TITLE	DOS - CON Code Page Switching Device Driver (INIT)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-;  FILENAME:	 INIT.ASM
-;  PROGRAM:	 DISPLAY.SYS (Load module)
-;  LINK PROCEDURE:  Linkk
 ;  INSTALLATION:
 ;
 ;  This is the routine used to initialize the DOS CPS
 ;  (Code Page Switching) device driver.  It is linked into the
 ;  DISPLAY.SYS file at the very end.
 ;
-;  PSEUDO CODE:
-;		  INIT PROC
-;
-;		      not specified yet....patience is a virtue!!!
-;
-;		  INIT ENDP
-;
-;
 ;	    (C)Copyright 1988 Microsoft
-;
-;  DATE:    August 28, 1986
 ;
 IF1					;
 	%OUT .COMPILING:     INIT.ASM

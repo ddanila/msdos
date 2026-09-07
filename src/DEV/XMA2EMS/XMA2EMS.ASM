@@ -1,48 +1,11 @@
 
 PAGE	85,132				;Set for 5182 Pageprinter
 					;85 lines per page, 132 col per line
-					;(formerly 60,132)
 
-;ษออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออป
-;บ									  บ
-;บ  This is the new version of the XMA2EMS driver for DOS 3.3.		  บ
-;บ  It contains the following revisions and code flags: 		  บ
-;บ									  บ
-;บ     @RH0 - Correct scrolling problem 				  บ
-;บ     @RH1 - Expand table to 32M					  บ
-;บ     @RH2 - Real Mode support (XMA/A card)				  บ
-;บ     @RH3 - Memory Expansion Option (MXO a.k.a. XMO) support		  บ
-;บ     @RH4 - LIM 4.0 support						  บ
-;บ     @RH5 - Multicard support 					  บ
-;บ     @RH6 - WSP interfaces						  บ
-;บ     @RH7 - 386 XMA Emulator support					  บ
-;บ     @RH8 - Make driver reentrant					  บ
-;บ									  บ
-;บ	AN007	P5134	- Provide variable planar size support. 	  บ
-;บ			  Modify linked list to forward link vs. the	  บ
-;บ			  reverse linked list.				  บ
-;บ									  บ
-;บ	AN008	P5150	- Fix incorrect access of slot 0 when no	  บ
-;บ			  Catskill/Holster card is in slot 0.		  บ
-;บ									  บ
-;วฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤฤถ
-;บ     It should be noted that certain EMS calls will alter the contents  บ
-;บ  of the translate table pointer for any supported memory cards or	  บ
-;บ  emulators (i.e. MXO, XMA, XMA/A cards, 80386 XMA emulator).	 	  บ
-;บ  Therefore, software that writes to the translate table(s) has the	  บ
-;บ  responsiblity of keeping the integrity of the TT pointer.  For	  บ
-;บ  example, programs should disable interrupts between setting the	  บ
-;บ  TT pointer and writing the TT data.  This will prevent: An interrupt  บ
-;บ  occurring between the two, control going to another application	  บ
-;บ  that makes an EMS call and thus screws up the TT ptr.  The EMS calls  บ
-;บ  that do this are:							  บ
-;บ	 Function #   EMS Call						  บ
-;บ	   5	       Map logical to physical page			  บ
-;บ	   8, 15/0     Save (Get) mapping array 			  บ
-;บ	   9, 15/1     Restore (Set) mapping array			  บ
-;บ	   15/2        Get and Set mapping array			  บ
-;บ									  บ
-;ศออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออออผ
+; EMS mapping and mapping-array calls can alter the hardware translate-table
+; pointer. Disable interrupts between setting the pointer and writing data
+; so an intervening EMS call cannot redirect the write. This applies to
+; functions 5, 8, 9, and 15 subfunctions 0, 1, and 2.
 
 ;XMA2EMS provides a Lotus/Intel/Microsoft Expanded Memory (EMS) interface
 ;for the IBM Expanded Memory Adapter (XMA).

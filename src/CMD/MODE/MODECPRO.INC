@@ -68,21 +68,3 @@
 	IF1
 	    %OUT INCLUDE MODECPRO.INC ;MODULE PROLOGUE
 	ENDIF
-
-;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป
-;บ											  บ
-
-;  AX001 - P3976: Need to have all pieces of messages in MODE.SKL so have to
-;		  implement the SYSGETMSG method of getting addressability to
-;		  the pieces.  This means that the code does a SYSGETMSG call
-;		  which returns a pointer (DS:SI) to the message piece.  The
-;		  address is then put in the sublist block for the message
-;		  being issued.
-
-;  AX002 - P4576  Segments were being trashed before calling message services
-;		  because device type was wrong on IOCTL call because ES was
-;		  zero when using CMPSB in SET_DEV_TYPE and no match was made.
-
-;บ											  บ
-;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ
-

@@ -8,211 +8,14 @@
 ;data in a buffer , then move the information into a buffer
 ;area specified by DOS.
 ;d:NLSFUNC {path}
-;									 *
-;CHECKINSTALL:								 *
-;CheckRequest proc							 *
-;	  If installed previously					 *
-;	     report back error already installed and exit		 *
-;	  otherwise  goto install					 *
-;Checkrequest endp							 *
-;*************************************************************************
-;				NEW CODE				 *
-;*************************************************************************
 subttl get extended country data
 page
+; Functions 1 and 3 load country/code-page tables into DOS; function 1 also
+; selects the device code page. Functions 2 and 4 return country data to
+; the caller, with function 4 adapting the older INT 21h/38h format.
+; Country-table requests use BX=code page, DX=country, CX=size.
+; Extended-information requests select the information type in BP.
 ;
-;***************************************
-;*  Process_Path Procedure	       *
-;***************************************
-;*  CALL SYSLOADMSG		       *
-;*  Do DOS Version check	       *
-;*  If ne X.X then (carry set)		*
-;*   CALL SYSDISPLAY_MSG	       *
-;*   DISPLAY_MSG(Message number 001)   *
-;*    (001 - Incorrect DOS Version)    *
-;*    (Class 3 - Utility Msg)	       *
-;*   exit			       *
-;*  else			       *
-;*   Establish addressability	       *
-;*   to command line parms (DS:SI)     *
-;*   Establish addressability to PARM  *
-;*   control block	   (ES:DI)     *
-;*				       *
-;*     Call SYSPARSE for filename      *
-;*     GET Parse Block results	       *
-;*     IF PARSE_ERROR		       *
-;*	  CALL SYSDISPLAY_MSG (Class 2)*
-;*	  DISPLAY_MSG = PARSE_NUM      *
-;*     ELSE			       *
-;*	  SUCCESSFUL_PARSE (0 or -1)   *
-;*     ENDIFELSE		       *
-;*     GET_PARSE_RESULTS Path_Spec     *
-;*     IF No path exist then	       *
-;*	  assume current directory     *
-;*	  assume default filename      *
-;*     ENDIF			       *
-;*     IF No Drive exist then	       *
-;*	  Use Current Drive	       *
-;*     ENDIF			       *
-;*     IF No filename exist then       *
-;*	  assume default filename      *
-;*	  and concatenate with drive   *
-;*     ENDIF			       *
-;*     CHECK_PATH		       *
-;*     IF PATH EXIST THAN	       *
-;*	  INSTALL_NLS	(NLS_RESCODE)  *
-;*     ENDIF			       *
-;*     ELSE NOT PATH_EXIST THAN        *
-;*	  GET_PARSE_RESULTS (Class 3)  *
-;*	  PASS_TO_MSGTXT (Message 003) *
-;*	  (File not found %1)	       *
-;*	  ERR_CODE SET TO 2	       *
-;*	  EXIT			       *
-;*     ENDIFELSE		       *
-;*				       *
-;*  INSTALL_NLS 		       *
-;*	  CHECK INSTALL FLAG	       *
-;*	  IF INSTALLED		       *
-;*	     (Class 3)		       *
-;*	     PASS_TO_MGSTXT (Msg 002)  *
-;*	     %1 already installed      *
-;*	  ELSE			       *
-;*	     HOOK IN CODE	       *
-;*	     TERMINATE & STAY RESIDENT *
-;*	  ENDIFELSE		       *
-;*				       *
-;*				       *
-;*   EXIT			       *
-;*	 CHECK FOR ERRORCODE	       *
-;*	 exit to DOS		       *
-;***************************************
-;
-;INSTALL:
-;	  Get the current 2f handler in the chain
-;	  make it the next install my handler in the
-;	  beginning of the the chain using get interrupt (25)
-;	  and set interrupt (35); Once in the chain
-;	  terminate and stay resident.
-;
-;DOS NEEDS ME.......
-;
-;Install Dos Interface Logic
-;     Dos issues Call Install
-;	     Establish residency
-;	  If Mult Id is mine	(* NLSFUNC*)
-;	     CheckInstall Status to see if installed or not
-;	  otherwise
-;	     jump to the next 2f handler
-;CheckInstall
-;	  If not installed returns
-;	  If installed program is executed  (*NLSFUNC resident portion *)
-;*******************************************************************************
-;
-;Program Logic
-;
-;     Check to make sure not reserved DOS number in the al
-;
-;     Go establish which function is to be performed
-;
-;Sel_Func proc
-;	  mov FUNC_CODE,al
-;	  case
-;	     function code = 0
-;	     function code = 1
-;	     function code = 2
-;	     function code = 3
-;	     function code = 4
-;	  otherwise error_routine
-;	  return
-;Sel_Func endp
-
-
-;funcode0 proc
-;INSTALL     NLSFUNC must be installed in mem
-;	     return 0FFh that I am installed
-;funcode0 endp
-
-;funcode1 proc
-;	    (* Means Set codepage and "select" device drivers*)
-;	    same at funcode 3 plus device drivers are invoked with the
-;	    specified code page.
-;funcode1 endp
-
-;funcode2 proc
-;	   (* Get_extended_country info issued by DOS not in buffer*)
-;	    BP = info_type
-;	    call trans_Cty_Data Proc
-;	    return
-;funcode2 endp
-
-;funcode3 proc
-;	    (* Means Set codepage *)
-;	    On entry DOS gives me the CODEP in BX & the CC in DX,SIZE in CX
-;	     Search for Country.sys file on disk
-;	    if file is found	  }BUFFER will exist in code 320 (can be altered)
-;		the control buffer = 64 bytes of the buffer
-;		the data buffer = 256 bytes of the buffer
-;	     call Trans_Cty_Data Proc
-;	    otherwise return an error flag
-;	     return
-;funcode3 endp
-
-
-;funcode4 proc
-;	   (* Get_extended_country info - old 38 call*)
-;	    set flag and same as funcode 2
-;	    data returned slightly Revised
-;funcode4 endp
-
-;	   ****************************
-;	    if selected is FUNCTION 1, 3
-;	       PassDOS_Data(*ES:DI*)
-;	    otherwise FUNCTION 2, 4
-;	       Get the INFO ID
-;	       Flag that it is function 2
-;	       PassUserData(*ES:DI*)
-;	    mov NO_ERRORS to ERROR_FLAG
-;	    ****************************
-;Trans_Cty_Data Proc
-;	     Open file(Dos call back 38)
-;	     Do an LSEEK to move CTY_INFO into NLSFUNC control buffer 39
-;	     Do an LSEEK to move tables into NLSFUNC data buffer 39
-;	    if R/W pointer ok on Disk
-;	     Read the file(Dos call back 38)
-;	     Check to see if it is FUNCTION 1 or FUNCTION 2
-;	       Flag if FUNCTION 2
-;	       if FUNCTION 2
-;		Search for user specified INFO ID
-;		until found or report back error to DOS & exit
-;		if INFO ID is found
-;		   godo move the data and set the counter to zero (entry value)
-;
-;
-;
-;
-;MOVE_DATA:    Manage transfer from disk to buffer
-;	       Check to see if entire entry can fit in to the data
-;	       buffer if not read the maximum allowed into buffer
-;	       Check to see what is left to read; read until no more
-;	       Search for appropriate field in the DOS INFO
-;		if found move in info until complete
-;		   get the next entry until number of entries is 0
-;		otherwise
-;		   report to DOS error and exit
-;	     loop back to read file until (all entries are Obtained) or (EOF)
-;	     Close file handle (Dos call back 40)
-;	    otherwise mov 05h to error_flag & jump to error_routine
-;
-;	    return
-;Trans ENDP
-;
-;
-;Error_routine	proc
-;	     mov al,error_flag
-;	     return
-;error_routine	endp
-;*******************************************************************************
-;**********************************INTRO****************************************
 subttl	Revision History
 page
 subttl macros
@@ -229,13 +32,6 @@ POPALL	     macro   reg1,reg2,reg3			;used to restore all
 		pop reg1
 	      endm
 
-;SHOWERR       macro   msg,len_msg
-;		 mov	 ah,40h
-;		 mov	 bx,2
-;		 lea	 dx,msg 			 ;displays error msgs
-;		 mov	 cx,len_msg
-;		 int	 21h
-;		endm
 
 
 EXTRN		SYSPARSE:NEAR
@@ -275,9 +71,6 @@ GET_CTY_INFO	 equ	4
 
 INVALID_FUNCTION equ	1		     ;=J
 INVALID_DATA	 equ	13		     ;=L
-;FILE_NOT_FOUND  equ	2		     ;=J(=L no longer explicitly used)
-;TAB		  equ	 9
-;CR		  equ	 13
 PAD_CHAR	 equ	' '
 BAD_INVOKE	 equ	65		     ;=E
 UPCASE_A	 equ	'A'

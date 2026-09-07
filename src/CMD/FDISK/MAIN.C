@@ -47,11 +47,6 @@
 /*         the surface of the disk                             */
 /*                                                             */
 /* P.S. - To whoever winds up maintaining this, I will         */
-/*        apoligize in advance. I had just learned 'C' when    */
-/*        writing this, so out of ignorance of the finer points*/
-/*        of the langauge I did a lot of things by brute force.*/
-/*        Hope this doesn't mess you up too much - MT 5/20/86  */
-/******************** END OF SPECIFICATIONS ********************/
 
 #include <dos.h>                                                        /* AN000 */
 #include <fdisk.h>                                                      /* AN000 */

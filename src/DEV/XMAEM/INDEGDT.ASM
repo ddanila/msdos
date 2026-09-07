@@ -51,15 +51,6 @@ COMMENT #
 *                                                                             *
 * CONTROL BLOCKS  : INDEDAT - System data structures                          *
 *                                                                             *
-* CHANGE ACTIVITY :                                                           *
-*                                                                             *
-* $MOD(INDEGDT) COMP(LOAD) PROD(3270PC) :                                     *
-*                                                                             *
-* $D0=D0004700 410 870530 D : NEW FOR RELEASE 1.1                             *
-* $P1=P0000293 410 870731 D : LIMIT LINES TO 80 CHARACTERS                    *
-* $P2=P0000312 410 870804 D : CHANGE COMPONENT FROM MISC TO LOAD              *
-* $P3=P0000410 410 870918 D : RELOCATE DATA AREAS TO MAKE ROOM FOR BIT MAP    *
-*                                                                             *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #
 

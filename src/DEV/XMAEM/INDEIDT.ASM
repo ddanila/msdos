@@ -50,14 +50,6 @@ COMMENT #
 *                                                                             *
 * CONTROL BLOCKS  : INDEDAT                                                   *
 *                                                                             *
-* CHANGE ACTIVITY :                                                           *
-*                                                                             *
-* $MOD(INDEIDT) COMP(LOAD) PROD(3270PC) :                                     *
-*                                                                             *
-* $D0=D0004700 410 870530 D : NEW FOR RELEASE 1.1                             *
-* $P1=P0000312 410 870803 D : CHANGE COMPONENT FROM MISC TO LOAD              *
-* $P2=P0000xxx 120 880517 D : HANDLE INT 0D FROM V86 TASK, I.E., OPTICAL DISK *
-*                                                                             *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #
 

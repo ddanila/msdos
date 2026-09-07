@@ -9,8 +9,6 @@ title	C	to Message Retriever
 ;			sysloadmsg(&inregs,&outregs);
 ;			sysgetmsg(&inregs,&outregs);
 ;			sysdispmsg(&inregs,&outregs);
-;	DATE:		5-21-87
-;	Modified:	6/18/87
 ;-------------------------------------------------------------------
 	INCLUDE SYSMSG.INC		;PERMIT SYSTEM MESSAGE HANDLER DEFINITION
 	MSG_UTILNAME <ATTRIB>		;IDENTIFY THE COMPONENT
@@ -33,7 +31,6 @@ DGROUP	GROUP	CONST, _BSS, _DATA
 _DATA	segment
 .XLIST
 .XCREF
-;	MSG_SERVICES <MSGDATA>		;DATA AREA FOR THE MESSAGE HANDLER
 	MSG_SERVICES <MSGDATA>		;DATA AREA FOR THE MESSAGE HANDLER
 .LIST
 .CREF

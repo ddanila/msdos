@@ -65,17 +65,14 @@ NEWLIN:
 entry   GETCH
         invoke  $STD_CON_INPUT_NO_ECHO
 GOTCH:
-;
-; Brain-damaged TP ignored ^F in case his BIOS did not flush the
-; input queue.
-;
+; Ignore ^F left in the input queue by BIOS implementations that do not flush it.
         CMP     AL,"F"-"@"
         JZ      GETCH
 ;
 ; If the leading char is the function-key lead byte
 ;
         CMP     AL,[ESCCHAR]
-        JZ      ESCape          ;change reserved keyword DBM 5-7-87
+        JZ      ESCape
 ;
 ; Rubout and ^H are both destructive backspaces.
 ;
@@ -139,7 +136,7 @@ BUFFUL:
         invoke  OUTT
         JMP     SHORT GETCH
 
-ESCape:                         ;change reserved keyword DBM 5-7-87
+ESCape:
         transfer    OEMFunctionKey      ; let the OEM's handle the key dispatch
 
 ENDLIN:

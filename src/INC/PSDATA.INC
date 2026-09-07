@@ -83,7 +83,6 @@ $P_Plus 	   equ	"+"
 $P_Minus	   equ	"-"
 $P_Rparen	   equ	")"
 $P_Lparen	   equ	"("
-;(deleted ;AN025;) $P_SQuote	      equ  "'"
 $P_DQuote	   equ	'"'
 $P_NULL 	   equ	0
 $P_TAB		   equ	9
@@ -477,9 +476,6 @@ $P_FileSp_Char	   db	'[]|<>+=;"'     ;AN000; delimitter of file spec
 $P_FileSp_Len	   equ	$-$P_FileSp_Char
 ENDIF					;AN000;(of FileSW)
 ; (tm05) IF	   QusSW		;AN000;(Check if quoted string is supported)
-;(deleted ;AN025;) IF		      QusSW+CmpxSW	   ; (tm05) ;AN000;(Check if quoted string is supported)
-;(deleted ;AN025;) $P_SorD_Quote      db   0		   ;AN000; keep double or single quote
-;(deleted ;AN025;) ENDIF				   ;AN000;(of QueSW)
 IF		   KeySW		;AN029; if keywords supported
 $P_count_to_eol    dw	0		;AN029; count of chars not including EOL
 ;	REGISTER EQUATES - SPECIAL USAGE FOR REGISTERS

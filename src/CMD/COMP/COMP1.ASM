@@ -101,25 +101,6 @@
 ;
 ; EFFECTS: Files are not altered.  A Message will show result of compare.
 ;
-; INTERNAL REFERENCES:
-;    ROUTINES: none
-;
-;    DATA AREAS:
-;	PSP - Contains the DOS command line parameters.
-;	WORKAREA - Temporary storage
-;
-; EXTERNAL REFERENCES:
-;    ROUTINES:
-;	SYSDISPMSG - Uses the MSG parm lists to construct the messages
-;		 on STDOUT.
-;	SYSLOADMSG - Loads messages, makes them accessable.
-;	SYSPARSE - Processes the DOS Command line, finds parms.
-;
-;    DATA AREAS:
-;	 COMPSM.SAL - Defines the control blocks that describe the messages
-;	 COMPPAR.SAL - Defines the control blocks that describe the
-;		DOS Command line parameters.
-;
 ; Preserve the module order in the link response file: it defines the COM layout.
 ;
 ; COPYRIGHT: The following notice is found in the OBJ code generated from

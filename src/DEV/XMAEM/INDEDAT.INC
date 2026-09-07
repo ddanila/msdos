@@ -31,14 +31,6 @@ COMMENT #
 * EXTERNAL                                                                    *
 * REFERENCES      : None                                                      *
 *                                                                             *
-* CHANGE ACTIVITY :                                                           *
-*                                                                             *
-* $MAC(INDEDAT) COMP(LOAD) PROD(3270PC) :                                     *
-*                                                                             *
-* $D0=D0004700 410 870529 D : NEW FOR WSP RELEASE 1.1                         *
-* $P1=P0000311 410 870804 D : RENAME MODULES'S LIBRARY FILE TYPE TO "INC"     *
-* $P2=P0000410 410 870918 D : RELOCATE DATA TO MAKE ROOM FOR I/O BIT MAP      *
-*                                                                             *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #
 

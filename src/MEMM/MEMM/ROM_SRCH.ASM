@@ -12,24 +12,6 @@
 ;
 ;  Module:	ROM_SRCH - search for option ROMS and RAM
 ;
-;  Date	:	June 5,1986
-;
-;  Authors:	SP, BT
-;
-;******************************************************************************
-;
-;  CHANGES:
-;
-;    DATE     REVISION			DESCRIPTION
-;  --------   --------   ------------------------------------------------------
-;  06/05/86   Original   Adapted from ROM code
-;  06/25/86   0.02	 Fixed upd_map.
-;  06/26/86   0.02	 Fixed upd_map (again) and ram_srch
-;  06/28/86   0.02	 Name changed from MEMM386 to MEMM
-;  07/06/86   0.04	 changed assume to DGROUP
-;  08/01/88		 Updated to identify mappable segs between C000 and E000
-;
-;******************************************************************************
 	page
 ;******************************************************************************
 ;

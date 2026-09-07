@@ -5,15 +5,6 @@
 INCLUDE STRUC.INC		 ;macro library for 'struc'
 .LIST
 
-;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป
-;บ											  บ
-;  AC000 - P3200: Was displaying a message that Sam Nunn had deleted from the
-;		  USA.MSG file because it looked like a common message.  Now
-;		  I use a different (better) message.  It was "Invalid paramters",
-;		  is now "Function not supported - ????".
-
-;บ											  บ
-;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ
 SIGNITURE SEGMENT AT 0C000H
 	ORG	0
 SIGWORD DW	?			;SIGNITURE OF THE EGA IS STORED HERE IF THE CARD IS PRESENT

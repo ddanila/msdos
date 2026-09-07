@@ -46,12 +46,6 @@ COMMENT #
 *                                                                             *
 * CONTROL BLOCKS  : None                                                      *
 *                                                                             *
-* CHANGE ACTIVITY :                                                           *
-*                                                                             *
-* $MOD(INDEMAUS) COMP(LOAD) PROD(3270PC) :                                    *
-*                                                                             *
-* $D0=D0004700 410 870629 D : NEW FOR RELEASE 1.1                             *
-*                                                                             *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #
 

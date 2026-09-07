@@ -1,59 +1,8 @@
-;
-;	To follow the standard interrupt sharing scheme, MSSTACK.ASM	       ;3.30
-;	has been modified.  This initialization routine also has to	       ;3.30
-;	be modified because for the interrupt level 7 and 15, FirstFlag        ;3.30
-;	should be set to signal that this interrupt handler is the	       ;3.30
-;	first handler hooked to this interrupt vector.			       ;3.30
-;	We determine this by looking at the instruction pointed by	       ;3.30
-;	this vector.  If it is IRET, then this handler should be the	       ;3.30
-;	first one.  In our case, only the interrupt vector 77h is the	       ;3.30
-;	interrupt level 15. (We don't hook interrupt level 7.)                 ;3.30
-; 9/10/1986 							       ;3.30
-;	The followings are mainly due to M.R.T; PTM fix of P886 12/3/86;3.30
-;	Some design changes are needed to the above interrupt sharing	       ;3.30
-;	method.  The above sharing scheme assumes that 1). Interrupt	       ;3.30
-;	sharing is NEVER done on levels that have BIOS support. 2). "Phantom"  ;3.30
-;	interrupts would only be generated on levels 7 and 15.		       ;3.30
-;	These assumptions are not true any more. We have to use the FirstFlag  ;3.30
-;	for EVERY level of interrupt.  We will set the firstFlag on the following;3.30
-;	conditions:							       ;3.30
-;	 a.	 if the CS portion of the vector is 0000, then "first"         ;3.30
-;	 b. else if CS:IP points to valid shared header, then NOT "first"      ;3.30
-;	 c. else if CS:IP points to an IRET, then "first"                      ;3.30
-;	 d. else if CS:IP points to DUMMY, then "first"                        ;3.30
-;	where DUMMY is - the CS portion must be F000, and the IP portion must  ;3.30
-;	be equal to the value at F000:FF01. This location is the initial value ;3.30
-;	from VECTOR_TABLE for interrupt 7, one of the preserved addresses in all;3.30
-;	the BIOSes for all of the machines.				       ;3.30
-;									       ;3.30
-;	System design group requests BIOS to handle the phantom interrupts.    ;3.30
-;									       ;3.30
-;	The "Phantom" interrupt is an illegal interrupt such as an interrupt   ;3.30
-;	produced by the bogus adapter card even without interrupt request is   ;3.30
-;	set.  More specifically, 1). The 8259 has a feature when running in    ;3.30
-;	edge triggered mode to latch a pulse and present the interrupt when    ;3.30
-;	the processor indicates interrupt acknowledge (INTA).  The interrupt   ;3.30
-;	pulse was exist at the time of INTA to get a "phantom" interrupt.      ;3.30
-;	2). or, this is caused by adapter cards placing a glitch on the        ;3.30
-;	interrupt line. 						       ;3.30
-;									       ;3.30
-;	To handle those "phantom" interrupts, the main stack code will check   ;3.30
-;	the own FirstFlag, and if it is not "first" (which means the forward   ;3.30
-;	pointer points to the legal shared interrupt handler), then pass the   ;3.30
-;	control.  If it is the first, then the following action should be      ;3.30
-;	taken.	We don't have to implement skack logic in this case.           ;3.30
-;									       ;3.30
-;	To implement this logic, we rather choose a simple method.	       ;3.30
-;	If ont of the above "FirstFlag" conditions is met, we are not          ;3.30
-;	going to hook this interrupt vector.  The reason is if the original    ;3.30
-;	vector points to "IRET" and do nothing, we don't need                  ;3.30
-;	to implement the stack logic for it.  This will simplify implementation;3.30
-;	while maintaining compatibility with the old version of DOS.	       ;3.30
-;	This implies that in the main stack code, there might be a stack code  ;3.30
-;	that will never be used, a dead code.				       ;3.30
-;									       ;3.30
-; 12/3/86								       ;3.30
-									       ;3.30
+; Shared IRQs need stack switching only when a real handler owns the vector.
+; Leave null-segment, IRET, and BIOS dummy vectors alone so the BIOS can
+; handle spurious interrupts. The BIOS dummy entry is F000:[FF01h].
+; A shared interrupt header identifies an owner that must be chained.
+
 ;In - CS, DS -> sysinitseg, ES -> relocated stack code & data.		       ;3.30
 									       ;3.30
 	PAGE								       ;3.30

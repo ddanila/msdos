@@ -7,27 +7,8 @@
 ;.SALL
 
 
-;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป
-;บ											  บ
-;  AC000 - P2944: Was displaying the lines and column settings for CON even
-;		  though couldn't get them when ANSI.SYS isn't loaded.  Now
-;		  check if ANSI loaded before trying to display the settings.
+; Query console geometry only after confirming ANSI.SYS is installed.
 
-;  AC002 - P3331: ES was getting zeroed, which caused problems later in MODECP.
-
-;  AC003 - P3541: The retry status routine was assuming different format than
-;		  the retry type byte was in.  I fixed the status checking
-;		  routine.
-
-;  AX004 - P3982: The screen was being cleared after the "Unable to shift
-;		  screen ..." message.
-
-;  AC005 - P4934: The multiplex number for ANSI.SYS was changed due to a
-;     5/20/88	  conflict with a Microsoft product that has already been
-;		  shipped.
-
-;บ											  บ
-;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ
 ;ษออออออออออออออออออออออออออออออออ  M A C R O S  อออออออออออออออออออออออออออออออออออออออออป
 ;บ											  บ
 GET_EXTENDED_ERROR   MACRO

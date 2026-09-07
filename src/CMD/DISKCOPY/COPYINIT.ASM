@@ -97,13 +97,6 @@
 	    %OUT    COMPONENT=DISKCOPY, MODULE=COPYINIT.SAL
 	ENDIF
 
-;DATE:	 9-22-83
-;TIME:	 8:00 PM
-;DATE:	 10-30-84 - chk_para routine added. many parts are modified to
-;	 permit DISKCOPY /1, DISKCOPY D: /1 cases. Restore diskbase
-;	 before return to DOS when invalid DOS version occurs.
-;DATE:	 3-27-85  MAIN PARTS OF DISKCOPY PROGRAM HAS BEEN REWRITTEN
-;	 TO USE NEW IOCTL FUNCTION CALLS - READ, WRITE AND FORMAT.
 
 	INCLUDE DCPYMACR.INC
 	INCLUDE PATHMAC.INC		;AN015;PATHGEN MACRO

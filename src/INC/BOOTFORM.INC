@@ -1,8 +1,5 @@
 	%OUT BOOTFORM.INC...
-;****************************************************************************
-;AN000; - Structure of the Extended IBMBOOT record for DOS -. J.K.
-;AN001; - D304 Include PHYDRV, CURHD to the header structure	 11/09/87 J.K.
-;****************************************************************************
+; Extended boot record structures.
 
 BOOT_SIZE		 EQU	 512
 EXT_BOOT_SIGNATURE	 EQU	 41		;Extended boot signature

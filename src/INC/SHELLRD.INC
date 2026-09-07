@@ -1,15 +1,6 @@
 ;
 PAGE
-;-----------------------------------------------------------------------------+
-;									      :
-; Name: 		 SHELLRD.INC					      :
-;									      :
-; Description:		 Include file for SHELLRD.ASM			      :
-;									      :
-; Revised:		 04-21-88					      :
-;									      :
-;-----------------------------------------------------------------------------+
-;
+; Panel initialization and shell display helpers.
 PAGE
 ;-----------------------------------------------------------------------------+
 ;									      :
@@ -23,14 +14,6 @@ PAGE
 ;									      :
 ; Exit: 		ES:DI = Address of initialized PCGRAPH parameter      :
 ;				block.					      :
-;									      :
-; Entry point:		INIT_GTEXT					      :
-;									      :
-; Notes:		None.						      :
-;									      :
-; Internal references:	None.						      :
-;									      :
-; External references:	None.						      :
 ;									      :
 ;-----------------------------------------------------------------------------+
 ;

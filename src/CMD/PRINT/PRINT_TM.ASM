@@ -5,16 +5,6 @@
 
 BREAK			<Transient Messages>
 
-;
-;	DOS PRINT
-;
-;	Transient Service code
-;
-;	02/13/84	MAU	Fixed bug with BadCanMes
-;
-;	05/20/87	FJG	Change format to new Message Service
-;				Routines/Parse code
-;
 
 
 OPTION NOKEYWORD:<ADDR NAME>	;JWASM: free reserved ADDR/NAME -- macro name + parameter

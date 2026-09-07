@@ -1,36 +1,7 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;
-;
-;	CASERVIC.ASM
-;
-;
-;
-;	CAS SERVICES....FROM TSUISRD.ASM
-;
-;
-;	DATE:	 MAY 15, 1987
-;
-;
-;
-;	;AN004;  for PTM 1064 temporary fix until the CASSFAR.LIB
-;		 is fixed.  The HELP routines of CAS, zero out the
-;		 frequency value.
-;
-;	;AN005;  The help text comes up blank.	No checking was done
-;		 for invalid helps (HRD_ERROR & HRD_DOSERROR).	Now,
-;		 there is checking added to PCHLPRD_CALL!
-;
-;	;AN006;  for PTM 1756 - added error checking for wrong diskette
-;		 when help accessed. JW
-;
-;	;AN007;  for PTM 1810 - during a help request processing, any error
-;		 caused a problem because the manage_help routine would
-;		 try to remove a help panel which had not been displayed.
-;
-;	;AN008;  for PTM 2191 - added code to display selected option when
-;		 selection is made by numeric input.
-;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; CAS service wrappers.
+; CAS help routines clear the tone frequency; restore it after help.
+; On help-read errors, do not remove a panel that was never displayed.
+
 .ALPHA
 	INCLUDE    STRUC.INC
 	INCLUDE    MACROS.INC

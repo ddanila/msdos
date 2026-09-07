@@ -10,17 +10,7 @@ TITLE MODELENG.ASM - VARIOUS SERVICE ROUTINES
 .LIST
 ;.SALL
 
-;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป
-;บ											  บ
-
-;  AX001 - P4031: Was allowing rate and delay settings on ATs that did not have
-;		  the functionality in the BIOS.  Have to check specifically for
-;		  a date of 11/15/85 or later.
-
-;  AX002 - P4543: Add VAIL and SNOWMASS to legal choices for 19200 baud
-
-;บ											  บ
-;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ
+; AT typematic rate/delay support requires a BIOS dated 11/15/85 or later.
 
 
 

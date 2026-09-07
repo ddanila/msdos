@@ -7,9 +7,7 @@ title	C	to PARSER interface
 ;			the DOS parser
 ;	CALLING FORMAT:
 ;			parse(&inregs,&outregs);
-;	DATE:		5-21-87
 ;-------------------------------------------------------------------
-;	extrn	sysparse:far
 	public	_parse
 ;-------------------------------------------------------------------
 FarSW	equ	0			; make sysparse be a NEAR proc

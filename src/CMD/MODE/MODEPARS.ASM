@@ -7,36 +7,8 @@
 ;.SALL
 
 
-;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป
-;บ											  บ
-
-;  AC001 - P3259: When "/STATUS" was only parameter was returning "Invalid
-;		  number of parameters".  When "/STATUS" was first parameter
-;		  the device name was not being recognized.
-
-;  AC002 - P3258, PS/2 only COM parameters were being allowed on non-PS/2
-;	   P3540: machines.  Added checks for baud=19200, parity=mark or space,
-;		  data=5 or 6, stop=1.5 for both keyword and positional forms.
-
-;  AC003 - P3451: Wasn't treating semicolons as a valid blank-like delimeter.
-
-
-;  AC004 - P3456: /STAT wasn't included in all checks for valid forms of /STATUS.
-;		  "BW" and "CO" were being accepted as valid parms.
-
-;  AC005 - P3796: PRN /STA returned "Invalid parameter -" when worked OK for
-;		  LPT1.
-
-;  AC006 - P3932: Was issuing "Invalid parameter - ???" for switches that are
-;		  not valid, now issue "Invalid switch - ???".
-
-;  AC007 - P3931: "CON SEL=850" acts like a status request, should return
-;		  "Invalid number of parameters" because user forgot "CP".
-
-;  AX008 - P5183: Was denying 19200 baud on PS/2 model 30s and 25s and VAILs.
-
-;บ											  บ
-;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ
+; Hardware-specific COM options must be checked in both keyword and
+; positional forms. Treat semicolons as blank-like delimiters.
 
 
 

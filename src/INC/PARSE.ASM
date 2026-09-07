@@ -350,12 +350,6 @@ $P_Key_Not_Found:
 	mov	psdata_seg:$P_RC,$P_Not_In_Key ;AC034; here no CONTROL for the keyword has
 $P_Return_to_Caller0:			;AN000; not been found, means error.
 
-;(deleted ;AN024;)	 mov	 bx,es:[bx-2]		 ;AN000; (tm13) backup bx
-
-;(deleted ;AN024;)	 mov	 al,$P_String		 ;AN000; Set
-;(deleted ;AN024;)	 mov	 ah,$P_No_Tag		 ;AN000;     result
-;(deleted ;AN024;)	 call	 $P_Fill_Result 	 ;AN000;	    buffer
-
 $P_Return_to_Caller:
 	pop	bp
 	pop	di

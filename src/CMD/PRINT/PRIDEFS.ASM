@@ -17,49 +17,10 @@ title	DOS Print Utility
 ;	 because  PRINT  in the timer form is generic.	It can be given
 ;	 the name of any currently installed character	device	as  the
 ;	 "printer",  this  makes  it  portable  to  devices  which  are
-;	 installed by the user even in the hardware case.  It could  be
-;	 Revised to use a buffer empty interrupt (no code is given for
-;	 this case), if this is done the PROMPT and BADMES messages and
-;	 their associated  code should be removed as PRINT will then be
-;	 device specific.
+;	 installed by the user even in the hardware case.
 ;
-;	V1.00	07/03/82
-;	V2.00	07/05/83	A.R.
-;		New INT 2FH interface, Pathnames, context switch.
-;	V2.50	09/14/83	M.A.U
-;		Turned it back to a print
-;		11/21/83	M.A.U
-;		Repaired bug in file cancel code
-;		11/28/83	M.A.U
-;		Added int 23 and 24 handlers to transient.
-;		01/27/84	M.A.U
-;		Allways checks for valid drive.
-;	V3.00	02/03/84	M.A.U
-;		Partitioned so as to assemble on a PC
-;		By the by, it is V3.00 now.
-;		05/23/85	K.G.S
-;		Chains into INT19 (bootstrap) to unhook
-;		INT_1C (timer) and INT_15 (AT's Wait On Event)
-;
-
-
-;	Aaron's rambling:
-;
-; BEWARE ALL YEE WHO ENTER HERE.
-;    PRINT is an amazingly complex program.  MS-DOS versions below 3.00 are
-;    NOT re-entrant, this means that this utility is basically not a
-;    possibility.  It gets by on the fact that it is written by the same
-;    person who wrote the OS.  Since you are not that person, you must be very
-;    careful about making any modification to this utility.  There are a
-;    number of things which may seem to be unnecessary on first examination.
-;    BEWARE, almost every line of code is there for a very good reason.  The
-;    order of things is very carefully chosen.	PRINT is full of potential
-;    windows, make sure that you do not open one by careless modification.  Do
-;    not look for a lot of help from the comments, a complete explanation
-;    would probably fill a book.  A succesful modifier will have an in-depth
-;    knowledge of the internal function of MS-DOS, and of the PRINT utility
-;    itself through in depth study of the comments AND the code.
-
+; DOS calls from the spooler must respect DOS reentrancy and interrupt
+; ordering; changes can expose interrupt windows during context switches.
 
 subttl	General Definition
 page

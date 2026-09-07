@@ -19,14 +19,6 @@ COMMENT #
 *                                                                             *
 * CONTROL BLOCKS  : None                                                      *
 *                                                                             *
-* CHANGE ACTIVITY :                                                           *
-*                                                                             *
-* $MAC(INDEMSUS) COMP(LOAD) PROD(3270PC) :                                    *
-*                                                                             *
-* $D0=D0004700 410 870722 D : NEW FOR RELEASE 1.1                             *
-* $P1=P0000311 410 870804 D : RENAME MODULE'S LIBRARY FILE TYPE TO "INC"      *
-* $P2=P0036900 110 870826 D : CHG MSG NO. INDXE003                            *
-*                                                                             *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #
 

@@ -90,13 +90,6 @@ COMMENT #
 *                                                                             *
 * CONTROL BLOCKS  : INDEDAT.INC                                               *
 *                                                                             *
-* CHANGE ACTIVITY :                                                           *
-*                                                                             *
-* $MOD(INDEEMU) COMP(LOAD) PROD(3270PC) :                                     *
-*                                                                             *
-* $D0=D0004700 410 870523 D : NEW FOR RELEASE 1.1                             *
-* $P1=P0000312 410 870804 D : CLEAN UP WARNING MESSAGES                       *
-*                                                                             *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #
 

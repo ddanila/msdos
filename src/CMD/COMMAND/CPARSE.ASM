@@ -74,28 +74,9 @@ SWCOUNT EQU	6			; Must agree with length of switch_list
 ;	CX, SI, AX, BH, DX and the Carry Flag				;	;
 ;									;
 ; -----------------------------------------------------------------------;
-;---------------
-; Modifications to cparse:  recognition of right and left parentheses
-; as integral tokens, and removal of automatic upper-case conversion code.
-;
-; Both modifications were installed in the course of adding a coherent
-; command-line parser to COMMAND.COM which builds a UNIX-style argv[]/argc
-; structure for command-line arguments.  This parser relies on cparse to
-; recognize individual tokens.
-;
-; To process for-loops correctly, parentheses must therefore be
-; recognized as tokens.  The upper-case conversion code was removed so
-; that commands (such as for and echo) would be able to use the "original"
-; text of the command line.
-;
-; Note also the modification to prevent the automatic conversion of colons
-; into spaces WITHIN THE SOURCE TEXT!
-;
-; Also note that BP is also clobbered if cparse recognizes any switches
-; on the command line.
-;
-; Alan L, OS/MSDOS				    14 August 1983
-;---------------
+; Parentheses are separate tokens for FOR loops. Preserve original case for
+; FOR and ECHO, and do not replace colons in the source text with spaces.
+; Recognizing command-line switches also clobbers BP.
 
 CPARSE:
 ASSUME	DS:TRANGROUP,ES:TRANGROUP

@@ -4,18 +4,7 @@
 
 BREAK			<Resident Portion Messages>
 
-;
-;	DOS PRINT
-;
-;	Resident Portion Messages
-;
-;	02/15/84	MAU	Created as a separate link module
-;				from the include file. should
-;				always be linked first!!
-;
-;	05/20/87	FJG	Change format to new Message Service
-;				Routines
-;
+; Link the resident message module first.
 
 CodeR			Segment public para
 

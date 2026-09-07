@@ -132,35 +132,6 @@ TITLE	XCOPY	WITH FULL MEMORY USE
 ;    insufficient memory
 ;    incorrect DOS version
 ;
-;
-; INTERNAL REFERENCES:
-;
-;    ROUTINES:
-;
-;
-;    DATA AREAS:
-;
-;
-; EXTERNAL REFERENCES:
-;
-;    ROUTINES:
-;
-;
-;    DATA AREAS:
-;
-;
-; NOTES: This module should be processed with the SALUT pre-processor
-;	 with the re-alignment not requested, as:
-;
-;		SALUT XCOPY,NUL,;
-;
-;	 To assemble these modules, the sequential
-;	 ordering of segments may be used.
-;
-;	 For LINK instructions:
-;		link  profile ..\lib
-;
-;
 ;     Label: "DOS XCOPY Utility"
 ;	     "Version 4.00 (C) Copyright 1988 Microsoft"
 ;	     "Licensed Material - Program Property of Microsoft"

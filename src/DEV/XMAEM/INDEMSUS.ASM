@@ -46,13 +46,6 @@ COMMENT #
 *									      *
 * CONTROL BLOCKS  : None						      *
 *									      *
-* CHANGE ACTIVITY :							      *
-*									      *
-* $MOD(INDEMSUS) COMP(LOAD) PROD(3270PC) :				      *
-*									      *
-* $D0=D0004700 410 870629 D : NEW FOR RELEASE 1.1			      *
-* $P1=P0000311 410 870805 D : RENAME MODULE TO INDEMSUS 		      *
-*									      *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #
 

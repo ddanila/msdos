@@ -1,13 +1,4 @@
-/*  */
-/*----------------------------------------------------------------------+
-|									|
-| This file contains the structures and defines that are needed to use	|
-| the parser from a C program.						|
-|									|
-|									|
-| Date: 	6-19-87 						|
-|									|
-+----------------------------------------------------------------------*/
+/* C interface definitions for the DOS message retriever. */
 
 /* Standard reserved DOS handles					     */
 

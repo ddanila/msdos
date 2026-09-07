@@ -36,7 +36,7 @@ OLD13	label	DWORD
 	db	'5986'                  ;J.K. 11/7/86 Secrete Code for DOS 3.30 IBMBIO.
 	  PUBLIC ORIG13
 ORIG13	label	DWORD
-	db	'21',0,0                ;J.K. 11/8/86 This is my employee serial # !!!
+	db	'21',0,0
 
 	EVENB
 	PUBLIC	PTRSAV

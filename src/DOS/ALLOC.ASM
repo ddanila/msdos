@@ -61,12 +61,11 @@ arena_free_process_loop:
 	PUSH    ES
 	POP     DS
 	CMP     DS:[arena_owner],BX     ; is block owned by pid?
-	JNZ     arena_free_next         ; no, skip to next
+	JNZ     arena_free_next
 	MOV     DS:[arena_owner],DI     ; yes... free him
 
 arena_free_next:
 	CMP     BYTE PTR DS:[DI],arena_signature_end
-					; end of road, Jack?
 	JNZ     arena_free_continue
 	CMP     [ArenaFreeDomain],0
 	JNZ     arena_free_done
@@ -99,8 +98,8 @@ EndProc arena_free_process
 ;
 	procedure   arena_next,NEAR
 	ASSUME  DS:NOTHING,ES:NOTHING
-	MOV     AX,DS                   ; AX <- current block
-	ADD     AX,DS:[arena_size]      ; AX <- AX + current block length
+	MOV     AX,DS
+	ADD     AX,DS:[arena_size]
 	INC     AX                      ; remember that header!
 ; Fall through to check_signature.
 EndProc arena_next
@@ -112,14 +111,12 @@ EndProc arena_next
 ;
 	procedure   check_signature,NEAR
 	ASSUME  DS:NOTHING,ES:NOTHING
-	MOV     ES,AX                   ; ES <- AX
+	MOV     ES,AX
 	CMP     BYTE PTR ES:[DI],arena_signature_normal
-					; IF next signature = not_end THEN
-	retz                            ;   GOTO ok
+	retz
 	CMP     BYTE PTR ES:[DI],arena_signature_end
-					; IF next signature = end then
-	retz                            ;   GOTO ok
-	STC                             ; set error
+	retz
+	STC
 	return
 
 EndProc Check_signature
@@ -133,20 +130,19 @@ EndProc Check_signature
 	procedure   Coalesce,NEAR
 	ASSUME  DS:NOTHING,ES:NOTHING
 	CMP     BYTE PTR DS:[DI],arena_signature_end
-					; IF current signature = END THEN
-	retz                            ;   GOTO ok
+	retz
 	CALL    arena_next              ; ES, AX <- next block, Carry set if error
-	retc                            ; IF no error THEN GOTO check
+	retc
 
 coalesce_check:
 	CMP     ES:[arena_owner],DI
-	retnz                           ; IF next block isnt free THEN return
-	MOV     CX,ES:[arena_size]      ; CX <- next block size
+	retnz
+	MOV     CX,ES:[arena_size]
 	INC     CX                      ; CX <- CX + 1 (for header size)
-	ADD     DS:[arena_size],CX      ; current size <- current size + CX
+	ADD     DS:[arena_size],CX
 	MOV     CL,ES:[DI]              ; move up signature
 	MOV     DS:[DI],CL
-	JMP     coalesce                ; try again
+	JMP     coalesce
 EndProc Coalesce
 
 SUBTTL $Alloc - allocate space in memory

@@ -4,15 +4,6 @@ TITLE MODECOM.ASM - RS232 SUPPORT FOR THE MODE COMMAND
 INCLUDE STRUC.INC
 .LIST
 
-;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป
-;บ											  บ
-;  AC000 - P2852: Loading resident code trashed CX which was used as a shift
-;		  count.
-
-;  AC001 - P3540: PS/2 only parms other than baud not being treated properly.
-
-;บ											  บ
-;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ
 DISPLAY MACRO	MESSAGE
 	MOV	DX,OFFSET MESSAGE
 	CALL	PRINTF
@@ -23,13 +14,6 @@ ABORT	MACRO
 ENDM
 ;------------------------------------------------------------------------
 INCLUDE  common.stc	   ;contains the following structure
-;parm_list_entry   STRUC		   ;used by parse_parameters and invoke
-;parm_type	      DB       bogus
-;item_tag	      DB       0FFH
-;value1 	      DW       bogus	   ;used only for filespecs and code page numbers
-;value2 	      DW       bogus	   ;used only for filespecs and code page numbers
-;keyword_switch_ptr   DW       0
-;parm_list_entry   ENDS
 ;ษอออออออออออออออออออออออออออออออ E Q U A T E S ออออออออออออออออออออออออออออออออออออออออป
 ;บ											บ
 

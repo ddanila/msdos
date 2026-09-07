@@ -20,9 +20,6 @@ break <Parse.Asm>
 ;   also contains extra information provided by cparse about each token
 ;   <Parseline> should be executed prior to <Path_Search>
 ;
-; Alan L, OS/MSDOS				    August 15, 1983
-;
-;
 ; ENTRY:
 ;   <Parseline>:	    command line in COMTAB.
 ; EXIT:

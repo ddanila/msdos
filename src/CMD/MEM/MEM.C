@@ -17,29 +17,6 @@
 |               MEM /DEBUG                                              |
 |                       - Used to display a detailed DOS memory map.    |
 |                                                                       |
-|       AN001 - PTM P2914 -> This PTM relates to MEM's ability to report|
-|                            the accurate total byte count for EM       |
-|                            memory.                                    |
-|                                                                       |
-|       AN002 - PTM P3477 -> MEM was displaying erroneous base memory   |
-|                            information for "Total" and "Available"    |
-|                            memory.  This was due to incorrect logic   |
-|                            for RAM carving.                           |
-|                                                                       |
-|       AN003 - PTM P3912 -> MEM messages do not conform to spec.       |
-|               PTM P3989                                               |
-|                                                                       |
-|               Date: 1/28/88                                           |
-|                                                                       |
-|       AN004 - PTM P4510 -> MEM does not give correct DOS size.        |
-|                                                                       |
-|               Date: 4/27/88                                           |
-|                                                                       |
-|       AN005 - PTM P4957 -> MEM does not give correct DOS size for     |
-|                            programs loaded into high memory.          |
-|                                                                       |
-|               Date: 6/07/88                                           |
-|                                                                       |
 +----------------------------------------------------------------------*/
 
 /*���������������������������������������������������������������������������*/

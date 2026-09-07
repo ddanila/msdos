@@ -9,16 +9,6 @@
  *		Function declarations to provide strong type checking
  *		on arguments to DOS 4.0 function calls
  *
- *	Major Modifications 04/28/86 by S. S.
- *	Major Modifications 04/30/86 by K. D.
- *	Minor Modifications 04/30/86 by S. S. (DosTimerAsync/Start)
- *	Major Modifications 05/01/86 by S. S. (fix Sems,add Queues)
- *	Minor Modifications 05/14/86 by K. D. (DosFileLocks)
- *	Minor Modifications 05/16/86 by S. S. (NLS routines)
- *	Minor Modifications 05/20/86 by S. S. (Get/SetPrty,CreateThread)
- *	Minor Modifications 05/20/86 by S. S. (add DosSetVector)
- *	Minor Modifications 06/02/86 by S. S. (GetHugeShift, MuxSemWait)
- *	Major Modifications 06/03/86 by S. S. (Mouse calls)
  */
 
 

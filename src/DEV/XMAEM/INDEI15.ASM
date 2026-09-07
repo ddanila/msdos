@@ -98,16 +98,6 @@ COMMENT #
 *                                                                             *
 * CONTROL BLOCKS  : INDEDAT.INC                                               *
 *                                                                             *
-* CHANGE ACTIVITY :                                                           *
-*                                                                             *
-* $MOD(INDEI15) COMP(LOAD) PROD(3270PC) :                                     *
-*                                                                             *
-* $D0=D0004700 410 870603 D : NEW FOR RELEASE 1.1                             *
-* $P1=P0000293 410 870731 D : LIMIT LINES TO 80 CHARACTERS                    *
-* $P2=P0000312 410 870804 D : CLEAN UP WARNING MESSAGES                       *
-* $D1=D0007100 410 870817 D : CHANGE TO EMULATE XMA 2                         *
-* $P3=P0000xxx 120 880331 D : MOVE FUNCTION 88H HANDLING TO INDE15H           *
-*                                                                             *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #
 

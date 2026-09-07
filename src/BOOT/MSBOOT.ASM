@@ -1,32 +1,6 @@
 	Page 60,132 ;	    SCCSID = @(#)msboot.asm	    1.1 85/05/13
 TITLE BOOT	SECTOR 1 OF TRACK 0 - BOOT LOADER
 
-;   Rev 1.0 ChrisP, AaronR and others.	2.0 format boot
-;
-;   Rev 3.0 MarkZ   PC/AT enhancements
-;		    2.50 in label
-;   Rev 3.1 MarkZ   3.1 in label due to vagaries of SYSing to IBM drive D's
-;		    This resulted in the BPB being off by 1.  So we now trust
-;		    2.0 and 3.1 boot sectors and disbelieve 3.0.
-;
-;   Rev 3.2 LeeAc   Modify layout of extended BPB for >32M support
-;		    Move PHYDRV to 3rd byte from end of sector
-;		    so that it won't have to be moved again
-;		    FORMAT and SYS count on PHYDRV being in a known location
-;
-;   Rev. 3.3 D.C. L. Changed Sec 9 EOT field from 15 to 18. May 29, 1986.
-;
-;   Rev 3.31 MarkT  The COUNT value has a bogus check (JBE????) to determine
-;		    if we've loaded in all the sectors of IBMBIO. This will
-;		    cause too big of a load if the sectors per track is high
-;		    enough, causing either a stack overflow or the boot code
-;		    to be overwritten.
-;
-;   Rev 4.00 J. K.  For DOS 4.00 Modified to handle the extended BPB, and
-;		    32 bit sector number calculation to enable the primary
-;		    partition be started beyond 32 MB boundary.
-;
-;
 ; The ROM in the IBM PC starts the boot process by performing a hardware
 ; initialization and a verification of all external devices.  If all goes
 ; well, it will then load from the boot drive the sector from track 0, head 0,
@@ -314,76 +288,7 @@ Do_While:
 	loop	Do_While
 
 
-;	 MOV	 AX,BiosFS		 ; get file size
-;	 XOR	 DX,DX			 ; presume < 64K
-;	 DIV	 ByteSec		 ; convert to sectors
-;	 INC	 AL			 ; reading in one more can't hurt
-;	 MOV	 COUNT,AL		 ; Store running count
-;	 MOV	 AX,BIOS$		 ; get logical sector of beginning of BIOS
-;	 MOV	 BIOSAV,AX		 ; store away for real bios later
-;	 MOV	 BX,BioOff		 ; Load address from BIOSSEG
-;
-; Main read-in loop.
-;   ES:BX points to area to read.
-;   Count is the number of sectors remaining.
-;   BIOS$ is the next logical sector number to read
-;
-;LOOPRD:
-;	 MOV	 AX,BIOS$		 ; Starting sector
-;	 CALL	 DODIV
-;
-; CurHD is the head for this next disk request
-; CurTrk is the track for this next request
-; CurSec is the beginning sector number for this request
-;
-; Compute the number of sectors that we may be able to read in a single ROM
-; request.
-;
-;	 MOV	 AX,SECLIM
-;	 SUB	 AL,CURSEC
-;	 INC	 AX
-;
-; AX is the number of sectors that we may read.
-;
 
-;
-;New code for Rev 3.31
-;*****************************************************************************
-
-;	 CMP	 COUNT,AL	   ;Is sectors we can read more than we need?
-;	 JAE	 GOT_SECTORS	   ;No, it is okay
-;	 MOV	 AL,COUNT	   ;Yes, only read in what is left
-
-;GOT_SECTORS:
-
-;*****************************************************************************
-;End of change
-;
-
-
-;	 PUSH	 AX
-;	 CALL	 DOCALL
-;	 POP	 AX
-;	 JB	 RERROR 		 ; If errors report and go to ROM BASIC
-;	 SUB	 COUNT,AL		 ; Are we finished?
-;
-;Old code replaced by Rev 3.3
-;********************************************************************
-;	JBE	DISKOK			; Yes -- transfer control to the DOS
-;********************************************************************
-;New code for Rev 3.3
-;
-
-;	 JZ	 DISKOK 		 ; Yes -- transfer control to the DOS
-
-;********************************************************************
-;End of change
-;
-;	 ADD	 BIOS$,AX		 ; increment logical sector position
-;	 MUL	 ByteSec		 ; determine next offset for read
-;	 ADD	 BX,AX			 ; (BX)=(BX)+(SI)*(Bytes per sector)
-;	 JMP	 LOOPRD 		 ; Get next track
-;
 ; IBMINIT requires the following input conditions:
 ;
 ;   DL = INT 13 drive number we booted from
@@ -433,39 +338,6 @@ DivOverFlow:
 EndWR:
 	ret
 
-;
-;J.K.We don't have space for the following full 32 bit division.
-; convert a logical sector into Track/sector/head.  AX has the logical
-; sector number
-; J.K. DX;AX has the sector number.
-;DODIV:
-;	push	ax
-;	mov	ax,dx
-;	 xor	 dx,dx
-;	 div	 SecLim
-;	 mov	 Temp_H,ax
-;	 pop	 ax
-;	 div	 SecLim 		 ;J.K.Temp_H;AX = total tracks, DX=sector
-;	 INC	 DL			 ;Since we assume SecLim < 255 (a byte), DH =0.
-;					 ;Cursec is 1-based.
-;	 MOV	 CURSEC, DL		 ;save it
-;	 push	 ax
-;	 mov	 ax,Temp_H
-;	 XOR	 DX,DX
-;	 DIV	 HDLIM
-;	 mov	 Temp_H,ax
-;	 pop	 ax
-;	 div	 HdLim			 ;J.K.Temp_H;AX=total cyliners,DX=head
-;	 MOV	 CURHD,DL		 ;Also, Hdlim < 255.
-;	 cmp	 Temp_H,0
-;	 ja	 TooBigToHandle
-;	 cmp	 ax, 1024
-;	 ja	 TooBigToHandle
-;	 MOV	 CURTRK,AX
-;ENDWR:  RET
-;TooBigToHandle:
-;	 stc
-;	 ret
 
 ;
 ; Issue one read request.  ES:BX have the transfer address, AL is the number
@@ -502,16 +374,7 @@ if Free LT 0
 endif
 
 	org	origin + (cbSec - 2)
-;	 org	 origin + (cbSec - 5)
-
-;Warning!! Do not change the position of following unless
-;Warning!! you change BOOTFORM.INC (in COMMON subdirectory) file.
-;Format should set this EOT value for IBMBOOT.
-;FEOT	 db	 12h			 ;AN000; set by FORMAT. AN004;Use SecLim in BPB instead.
-; FORMAT and SYS count on CURHD,PHYDRV being right here
-;J.K. CURHD has been deleted since it is not being used by anybody.
-;CURHD	 DB	 ?			 ;AN001;Unitialized (J.K. Maybe don't need this).
-;PHYDRV  db	 0			 ;AN000;moved into the header part.
+; Keep the boot signature at the final two bytes of the sector.
 ; Boot sector signature
 	db	55h,0aah
 

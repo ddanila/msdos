@@ -21,19 +21,8 @@ page	58,132
 ;	This is a PC/AT keyboard driver capable of running
 ;	in protected mode. It does not require any ROM support.
 ;
-;	The major modifications are:
-;
-;		- Remove foreign tables, use US only
-;		- Hard code machine type rather than looking in ROM
-;		- hard code BeepFreq, BeepDur
-;		- removed KeyVector, put read-only data in CS
-;		- removed Accent stuff, which had code writes
-;		- removed code writes in foreign kbd
-;		- removed INT 15h sysreq and post
-;		- removed T&SR stuff, added buffer read routine "getc"
-;		- made it polled, removed all interrupt stuff
-;		- changed "data" segment to "romdata"
-;
+; The debugger polls a US keyboard with a fixed machine type and no ROM
+; services, interrupt handlers, or writes to the code segment.
 ;
 ;	Copyright 1985 by Microsoft Corporation
 ;

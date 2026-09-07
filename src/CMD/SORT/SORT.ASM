@@ -30,10 +30,6 @@ TITLE   SORT FILTER FOR DOS
 ;*         Insufficient memory to allocate SORT buffer
 ;*         Invalid parameter
 ;*
-;*   INTERNAL REFERENCES:
-;*         Main
-;*
-;*   SOURCE HISTORY:
         PAGE   ;
 ;-------------------------
 ;---    Macro definitions

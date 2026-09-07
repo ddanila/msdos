@@ -6,16 +6,6 @@ INCLUDE STRUC.INC
 .SALL
 
 
-;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป
-;บ											  บ
-;  AX001 - P3976: Need to have all pieces of messages in MODE.SKL so have to
-;		  implement the SYSGETMSG method of getting addressability to
-;		  the pieces.  This means that the code does a SYSGETMSG call
-;		  which returns a pointer (DS:SI) to the message piece.  The
-;		  address is then put in the sublist block for the message
-;		  being issued.
-;บ											  บ
-;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ
 
 
 

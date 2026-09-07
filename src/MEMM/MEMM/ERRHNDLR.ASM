@@ -10,21 +10,6 @@
 ;
 ;    Module:	ErrHndlr - Recover from exception and priveledged operation errors
 ;
-;    Authors:	Brad Tate    
-;
-;******************************************************************************
-;
-;  CHANGES:
-;
-;    DATE     REVISION			DESCRIPTION
-;  --------   --------   ------------------------------------------------------
-;  06/06/86   Original 
-;  06/28/86   0.02	Name changed from MEMM386 to MEMM
-;  06/28/86   0.02	Removed STI at end of ErrHndlr
-;  06/28/86   0.02	Changed error # display to leading zeroes
-;  07/06/86   0.04	Changed assume to DGROUP
-;
-;******************************************************************************
 	page
 ;******************************************************************************
 ;

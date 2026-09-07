@@ -44,23 +44,6 @@ BREAK			<Transient Portion>
 ;  OUTPUT:	All parameters specified are updated. Files are submitted to
 ;		the resident component for printing.
 ;
-;  REGISTERS USED: T.B.D.
-;  (NOT RESTORED)
-;
-;  LINKAGE:	LINK - TRANSIENT
-;
-;  NORMAL	-
-;  EXIT:
-;
-;  ERROR	-
-;  EXIT:
-;
-;  EXTERNAL	-
-;  REFERENCES:
-;
-;  CHANGE	03/11/87 - Major restructureing of TRANSIENT - F. G.
-;  LOG:
-;
 ;******************* END OF SPECIFICATIONS *************************************
 ;******************** START - PSEUDOCODE ***************************************
 ;

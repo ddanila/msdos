@@ -2,9 +2,6 @@ PAGE	,132
 TITLE	DOS - CONSOLE Code Page Switching Device Driver
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;
-;  FILENAME:	 DISPLAY.ASM
-;  PROGRAM:	 DISPLAY.SYS (Main module)
-;  LINK PROCEDURE:  Linkk
 ;  INSTALLATION:
 ;
 ;  This routine is structured as a DOS Device Driver.

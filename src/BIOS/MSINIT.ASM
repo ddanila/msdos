@@ -13,14 +13,14 @@
 
 ; THE FOLLOWING LABEL DEFINES THE END OF THE AT ROM PATCH.  THIS IS USED AT
 ; CONFIGURATION TIME.
-;J.K. 10/2/86 Waring!!! This code will be dynamically relocated by MSINIT.
+; MSINIT dynamically relocates this code.
 
 	PUBLIC	ENDATROM		;NOT REFERENCES EXTERNALLY, BUT
 					; JUST TO CAUSE ENTRY IN LINK MAP
 ENDATROM LABEL	BYTE
 
 ;CMOS Clock setting support routines used by MSCLOCK.
-;J.K. 10/2/86 Waring!!! This code will be dynamically relocated by MSINIT.
+; MSINIT dynamically relocates this code.
 
 	EXTRN	month_tab:byte
 
@@ -41,7 +41,7 @@ ENDATROM LABEL	BYTE
 ; POWERED ON AFTER SUSPENSION. IT READS THE REAL TIME CLOCK AND
 ; RESETS THE SYSTEM TIME AND DATE, AND THEN IRETS.
 
-;J.K. 10/2/86 Waring!!! This code will be dynamically relocated by MSINIT.
+; MSINIT dynamically relocates this code.
 
 INT6C	PROC	FAR
 	PUSH	CS

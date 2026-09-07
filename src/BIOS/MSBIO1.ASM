@@ -1,31 +1,6 @@
 
 	PAGE	,132			;
 	TITLE	MSBIO1.asm - BIOS
-;==============================================================================
-COMMENT *
-THE LINK STEP IS PERFORMED BY USING THE FOLLOWING "NEW.ARF" FILE:
-msbio1+
-msSTACK+
-MsCON+
-msAUX+
-msLPT+
-msCLOCK+
-msdISK+
-msBIO2+
-C:\BIO2\OLDOBJ\disk+
-C:\BIO2\OLDOBJ\msinit+
-C:\BIO2\OLDOBJ\sysinit1+
-C:\BIO2\OLDOBJ\sysinit2+
-C:\BIO2\OLDOBJ\sysimes,msbio,/M;
-
-THE FOLLOWING IS A BATCH FILE THAT CAN BE USED TO CREATE THE IBMBIO.COM
-WHERE "LOCSCR" IS A FILE THAT JUST HAS THE NUMBER, 70:
-
-link @NEW.ARF
-exe2bin ibmbio ibmbio.com <C:\BIO2\Locscr
-del ibmbio.exe
-(END OF COMMENT)*
-
 ;***For testing purposes, set the TEST flag to 1. Otherwise reset it.
 
 iTEST=0

@@ -138,15 +138,6 @@ COMMENT #
 *                                                                             *
 * CONTROL BLOCKS  : INDEDAT.INC - system data structures                      *
 *                                                                             *
-* CHANGE ACTIVITY :                                                           *
-*                                                                             *
-* $MOD(INDEXMA) COMP(LOAD) PROD(3270PC) :                                     *
-*                                                                             *
-* $D0=D0004700 410 870530 D : NEW FOR RELEASE 1.1                             *
-* $P1=P0000293 410 870731 D : LIMIT LINES TO 80 CHARACTERS                    *
-* $P2=P0000312 410 870804 D : CHANGE COMPONENT FROM MISC TO LOAD              *
-* $D1=D0007100 410 870810 D : CHANGE TO EMULATE XMA 2                         *
-*                                                                             *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #
 

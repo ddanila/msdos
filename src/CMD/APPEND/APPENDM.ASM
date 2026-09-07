@@ -1,9 +1,4 @@
 page	60,120
-;      @@04 07/30/86 Fix second APPEND hang		 PTM P0000053
-;      @@05 08/13/86 Fix bad parm message		PTM P0000125
-;      @@10 08/28/86 Change message for @@05		PTM P0000291
-;      @@11 09/10/86 Support message profile and make
-;		     msg length variable.	R.G. PTM P0000479
 cseg	segment public para 'CODE'
 	assume	cs:cseg
 

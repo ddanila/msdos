@@ -2,16 +2,8 @@
 
 /*  MAPDMA.C   - Ensures DMA Xfer area is physically contiguous. Swaps pages 
  *               if necessary.
- *
- *  Date    Author      Comments
-    8/12/88 JHB         updated comments, checking for sufficient pages
-                        available in DMA_Pages[] before remappping
-
-    8/18/88 JHB         if incoming parameters appear to be wrong or
-                        if any unmapped page found in the transfer area assume 
-                        the Address and Count registers do not have valid values
-                        and hence return without swapping pages.
-                        Removed IFDEF DEBUG code
+ * Invalid address/count registers or unmapped transfer pages must leave
+ * mappings unchanged; the DMA registers may not yet contain valid values.
  */
 
 #define HEX4K           0x1000

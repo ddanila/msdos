@@ -7,15 +7,6 @@
 .LIST
 ;.SALL
 
-;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป
-;บ											  บ
-;  AC000 - P2852: Infinite retry check at beginning of INT 14 handler was using
-;		  wrong bit pattern.
-
-;  AC001 - P5148: retry_flag was addressing the wrong segment
-
-;บ											  บ
-;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ
 
 ;ษออออออออออออออออออออออออออออออออ  M A C R O S  อออออออออออออออออออออออออออออออออออออออออป
 ;บ											  บ

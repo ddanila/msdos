@@ -14,10 +14,6 @@ title	Limited assembler to C interface
 ;		ES:DI points to the buffer area where the table data
 ;		will be copied
 ;
-;	CALLING FORMAT:
-;
-;	DATE:		7-16-87
-;
 ;-------------------------------------------------------------------
 
 

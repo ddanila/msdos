@@ -7,25 +7,8 @@ INCLUDE STRUC.INC
 
 INCLUDE  COMMON.STC	;definitions of message sublist blocks
 
-;ษออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออป
-;บ											  บ
-;  AC000 - P3200: Was displaying a message that Sam Nunn had deleted from the
-;		  USA.MSG file because it looked like a common message.  Now
-;		  I use a different (better) message.  It was "Invalid paramters",
-;		  is now "Function not supported - ????".
-
-;  AX001 - P3976: Need to have all pieces of messages in MODE.SKL so have to
-;		  implement the SYSGETMSG method of getting addressability to
-;		  the pieces.  This means that the code does a SYSGETMSG call
-;		  which returns a pointer (DS:SI) to the message piece.  The
-;		  address is then put in the sublist block for the message
-;		  being issued.
-
-;  AX002 - P5159: Need to use get extended country call (6523) to get the yes
-;     7-14-88	  no answer
-
-;บ											  บ
-;ศออออออออออออออออออออออออออออออออ  P R O L O G  อออออออออออออออออออออออออออออออออออออออออผ
+; Message fragments come from SYSGETMSG and are passed through sublists.
+; Use the extended country service for localized yes/no responses.
 
 ;ษออออออออออออออออออออออออออออออออ  M A C R O S  อออออออออออออออออออออออออออออออออออออออออป
 ;บ											  บ

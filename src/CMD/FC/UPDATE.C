@@ -4,9 +4,6 @@
  * specification of missing parameters.
  * the parts are: ^{[~:]#:}{%#</|\>}{[~.]#}{.[~./\:]}$
  * maximum size of MAXPATHLEN (80) bytes
- *
- *   4/14/86  dl use U_ flags
- *
  */
 
 #include <string.h>

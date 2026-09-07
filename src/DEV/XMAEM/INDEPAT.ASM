@@ -45,12 +45,6 @@ COMMENT #
 *                                                                             *
 * CONTROL BLOCKS  : None                                                      *
 *                                                                             *
-* CHANGE ACTIVITY :                                                           *
-*                                                                             *
-* $MOD(INDEPAT) COMP(LOAD) PROD(3270PC) :                                     *
-*                                                                             *
-* $P0=P0000489 410 871002 D : NEW FOR WSP VERSION 1.1                         *
-*                                                                             *
 * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 #
 

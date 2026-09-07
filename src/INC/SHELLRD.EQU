@@ -1,15 +1,6 @@
 ;
 PAGE
-;-----------------------------------------------------------------------------+
-;									      :
-; Name: 	SHELLRD.EQU						      :
-;									      :
-; Description:	Common internal shell equates				      :
-;									      :
-; Revised:	05-05-88						      :
-;									      :
-;-----------------------------------------------------------------------------+
-;
+; Common internal shell equates.
 ; Pull down selection to dither (1 bit = 1 selection line)
 ;
 DIT_L1	       EQU  0000000000000001B	     ;Pull down selection 1		   ;DITHER

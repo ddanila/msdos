@@ -6,18 +6,6 @@ TITLE   CONDEV  FANCY CONSOLE DRIVER
 ;       ADDRESSES FOR I/O
 ;
 ;:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-;------------------------------------------------------------------------------
-;AN000; New functionality in DOS 4.00
-;AN001; GHG fix scrolling flashes on Mod 25/30's
-;AN002; P1767 VIDEO_MODE_TABLE not initialized correctly           10/16/87 J.K.
-;AN003; D375 /X needs to be supported by ANSI sequence also        12/14/87 J.K.
-;AN004; D397 /L option for Enforcing number of lines               12/17/87 J.K.
-;AN005; D479  An option to disable the extended keyboard functions 02/12/88 J.K.
-;AN006; P4241 AN001 fix be Revised to fix this problem            04/20/88 J.K.
-;AN007; P4532 Scrolling has a snow for CGA adapter                 04/27/88 J.K.
-;AN008; P4533 In mode Dh, Eh, Fh, 10h and 13h, Scrolling not working 04/27/88 J.K.
-;AN009; P4766 In mode 11h, and 12h erase display leaves bottom 5   05/24/88 F.G.
-;------------------------------------------------------------------------------
 
 TRUE     EQU 0FFFFh
 FALSE    EQU 0
