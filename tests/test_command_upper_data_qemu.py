@@ -58,6 +58,8 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image", type=Path)
     parser.add_argument("--binary", type=Path, help="reuse an already built upper-data COMMAND")
+    parser.add_argument("--minimum-gain", type=int, default=336,
+                        help="required largest-block gain against the selected input (112 for stack retirement)")
     args = parser.parse_args()
     work = Path(tempfile.mkdtemp(prefix="command-upper-data-", dir=ROOT / "out"))
     print(f"Artifacts: {work}", flush=True)
@@ -87,10 +89,12 @@ def main():
         results[name]["xms"] = xms_summary(serial.read_text(encoding="latin-1"))
         print(f"{name}: {results[name]}", flush=True)
         (work / "results.json").write_text(json.dumps(results, indent=2) + "\n")
-    # Retiring 21 low paragraphs must extend the largest block, not leave
-    # a smaller main owner with the released bytes trapped in an arena hole.
+    # Retirement must extend the largest block, not leave released bytes
+    # trapped in an arena hole. Keep the selected comparison explicit.
     gain = results["after"]["largest"] - results["before"]["largest"]
-    assert gain >= 336, f"incomplete COMMAND packing: largest-block gain {gain}, need 336"
+    results["minimum_gain"] = args.minimum_gain
+    assert args.minimum_gain > 0
+    assert gain >= args.minimum_gain, f"incomplete COMMAND packing: largest-block gain {gain}, need {args.minimum_gain}"
     # MEM lists MCB segments: the reserved region starts one paragraph below
     # the reported conventional ceiling, even when EBDA makes it less than A000.
     conventional = [row for row in results["after"]["mem_rows"]

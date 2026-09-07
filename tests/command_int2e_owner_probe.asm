@@ -138,6 +138,7 @@ run_command:
     ; Do not pop anything from that stack or assume DS still belongs to us.
     cli
     mov [cs:return_ss], ss
+    mov [cs:return_sp], sp
     mov ax, cs
     mov ss, ax
     mov sp, [cs:caller_sp]
@@ -157,7 +158,34 @@ run_command:
 %ifdef EXPECT_CALLER_STACK
     mov ax, cs
 %else
+%ifdef EXPECT_UPPER_STACK_START
+    push es
+    mov ax,[return_ss]
+    cmp ax,0a000h
+    jb fail
+    add ax,EXPECT_UPPER_STACK_START / 16
+    jc fail
+    dec ax
+    mov es,ax
+    cmp byte [es:0],'M'
+    je .stack_mcb
+    cmp byte [es:0],'Z'
+    jne fail
+.stack_mcb:
+    mov ax,[16h]
+    cmp [es:1],ax
+    jne fail
+    cmp word [es:3],EXPECT_UPPER_PARAGRAPHS
+    jne fail
+    cmp word [return_sp],EXPECT_UPPER_STACK_START
+    jb fail
+    cmp word [return_sp],EXPECT_UPPER_STACK_END
+    ja fail
+    pop es
+    ret
+%else
     mov ax, [16h]
+%endif
 %endif
     cmp [return_ss], ax
     jne fail
@@ -446,6 +474,7 @@ tail_segment dw 0
 command_source dw 0
 caller_sp dw 0
 return_ss dw 0
+return_sp dw 0
 internal:
     db internal_end-internal-2
     db 'ECHO OWNER_OK>I2EINT.TXT',13

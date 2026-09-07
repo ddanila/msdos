@@ -10,6 +10,7 @@ import tempfile
 
 from capture_vc_memory_comparison import ROOT, image_file
 from test_dos_char_retirement_qemu import install
+from report_command_residency import parse_map
 
 
 def main():
@@ -21,7 +22,18 @@ def main():
                         help="require safe OFF refusal and active AUTO with published UMBs")
     parser.add_argument("--low-paragraphs", type=int, default=34,
                         help="expected main owner; use 55 for the pre-retirement control")
+    parser.add_argument("--upper-stack-map", type=Path,
+                        help="matched COMMAND.MAP: require returned stack inside the shell-owned upper allocation")
     args = parser.parse_args()
+    stack_defines = []
+    if args.upper_stack_map:
+        assert args.upper_stack_map.with_suffix(".COM").read_bytes() == image_file(args.image, "::COMMAND.COM")
+        _, symbols = parse_map(args.upper_stack_map)
+        start, end = symbols["shell_data_start"], symbols["rstack"]
+        assert end - start == 125, "complete resident stack must lead the upper owner"
+        upper_bytes = ((symbols["shell_data_end"] + 15) & ~15) - (start & ~15)
+        stack_defines = [f"-DEXPECT_UPPER_STACK_START={start}", f"-DEXPECT_UPPER_STACK_END={end}",
+                         f"-DEXPECT_UPPER_PARAGRAPHS={upper_bytes // 16}"]
     if args.expect_umb_busy and not args.manager_modes:
         parser.error("--expect-umb-busy requires --manager-modes")
     work = Path(tempfile.mkdtemp(prefix="command-upper-int2e-", dir=ROOT / "out"))
@@ -29,14 +41,14 @@ def main():
     report = dict(command_sha256=hashlib.sha256(image_file(args.image, "::COMMAND.COM")).hexdigest(),
                   manager_modes=args.manager_modes, a20_off=args.a20_off,
                   expect_umb_busy=args.expect_umb_busy,
-                  low_paragraphs=args.low_paragraphs, results=[])
+                  low_paragraphs=args.low_paragraphs, upper_stack_defines=stack_defines, results=[])
     cases = ["good", "wrong-stack"] + (["a20-not-disabled"] if args.a20_off else [])
     for label in cases:
         negative = label != "good"
         disk = work / (label + ".img")
         shutil.copyfile(args.image, disk)
         probe = work / (label + ".com")
-        defines = ["-DEXPECT_HMA=1", f"-DEXPECT_LOW_PARAGRAPHS={args.low_paragraphs}"]
+        defines = ["-DEXPECT_HMA=1", f"-DEXPECT_LOW_PARAGRAPHS={args.low_paragraphs}", *stack_defines]
         if label == "wrong-stack":
             defines.append("-DEXPECT_CALLER_STACK")
         if args.manager_modes:

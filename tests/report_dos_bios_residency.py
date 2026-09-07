@@ -259,9 +259,12 @@ def whole_owner_inventory(bios_low: int, command_data_start: int,
     if "shell_high_active" in command_symbols:
         if not 0x100 <= command_data_start <= state_end <= low_end < code_end:
             raise ValueError("retired whole-shell inventory has reversed boundaries")
+        upper_stack = command_data_upper and command_symbols.get("rstack", 0) > command_data_start
+        entry_label = ("Retained COMMAND entries (excluding PSP; stack in UMB)" if upper_stack
+                       else "Retained COMMAND entries and stack (excluding PSP)")
         inventory = {
             "Entire selected low BIOS (including anchors and padding)": bios_low,
-            "Retained COMMAND entries and stack (excluding PSP)": command_data_start - 0x100,
+            entry_label: command_data_start - 0x100,
             "Remaining low COMMAND data (zero assumes successful upper placement)":
                 0 if command_data_upper else low_end - command_data_start,
         }
@@ -870,7 +873,8 @@ def main() -> int:
         for owner, size in inventory.items():
             print(f"| {owner} | {size:,} |")
         print("\nThis charges the entire low BIOS, including objects that must stay low,")
-        print("and remaining shell code/state (the retired layout also counts its low stack). Existing high owners")
+        print("and remaining shell code/state. Each linked owner is counted once; upper")
+        print("data/stack is excluded only under the explicit activation assumption. High owners")
         print("remain fully charged; no duplicate HMA prefix is treated as disposable.")
         print("The remainder is NOT a gateway allowance or a linked relocation budget:")
         print("bindings, new low/high support, alignment and additional DOS-state moves")

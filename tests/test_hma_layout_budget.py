@@ -7,6 +7,17 @@ from report_dos_bios_residency import hma_layout, whole_owner_inventory, validat
 
 
 class HmaBudgetTests(unittest.TestCase):
+    def test_complete_upper_stack_and_shared_budget(self):
+        rows = hma_layout(0x9D60, 7988, 8107, 5839)
+        self.assertEqual(rows[-2][1:], (0xF30E, 0xFFF0))
+        self.assertEqual(rows[-2][2] - rows[-2][1], 3298)
+        symbols = dict(RES_CODE_END=0x15a8, resmsgend=0x335,
+                       resident_catalog_start=0x36f, shell_high_active=0x16b,
+                       shell_data_start=0x1a3, shell_data_end=0x36f, rstack=0x220)
+        result = whole_owner_inventory(2512, 0x1a3, symbols, 3298, command_data_upper=True)
+        self.assertEqual(list(result.values()), [2512, 163, 0, 623])
+        self.assertIn("Retained COMMAND entries (excluding PSP; stack in UMB)", result)
+
     def test_ioctl_layout_capacity_and_wrong_manifest(self):
         for compact, table_bytes in ((False, 252), (True, 126)):
             symbols = dict(BIOS_IOCTL_LOW_START=100, BIOS_IOCTL_LOW_END=111+table_bytes,

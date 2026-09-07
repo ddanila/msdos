@@ -58,7 +58,10 @@ def main():
     original = command.read_bytes()
     assert original == image_file(args.image, "::COMMAND.COM"), "fresh shell differs from pinned composition"
     assert original == image_file(args.image, "::DOS/COMMAND.COM")
-    segments, _ = parse_map(command.with_suffix(".MAP"))
+    segments, symbols = parse_map(command.with_suffix(".MAP"))
+    low_bytes = (symbols["shell_data_start"] + 15) & ~15
+    fallback_bytes = (symbols["shell_data_end"] + 15) & ~15
+    upper_bytes = fallback_bytes - (symbols["shell_data_start"] & ~15)
     listing = (work / "build/INIT.LST").read_text(encoding="latin-1")
     block = listing.split("relocate_shell_data proc near", 1)[1].split("relocate_shell_data endp", 1)[0]
     sites = {}
@@ -81,7 +84,9 @@ def main():
     subprocess.run(["nasm", "-f", "bin", ROOT / "tests/memory_ceiling_probe.asm", "-o", ceiling], check=True)
     policy = work / "POLICY.COM"
     subprocess.run(["nasm", "-f", "bin", ROOT / "tests/command_allocation_policy.asm", "-o", policy], check=True)
-    report = dict(input_sha256=hashlib.sha256(args.image.read_bytes()).hexdigest(), results={})
+    report = dict(input_sha256=hashlib.sha256(args.image.read_bytes()).hexdigest(),
+                  low_bytes=low_bytes, fallback_bytes=fallback_bytes, upper_bytes=upper_bytes,
+                  results={})
     cases = ("success", "link-reject") if args.policy_rejection else ("success", *sites)
     for label in cases:
         directory = work / label
@@ -110,14 +115,14 @@ def main():
         (work / "results.json").write_text(json.dumps(report, indent=2) + "\n")
         if label != "success":
             control = report["results"]["success"]
-            assert result["largest"] == control["largest"] - 336, "wrong low fallback allocation"
-            assert result["upper_free"] == control["upper_free"] + 352, "temporary upper owner leaked"
+            assert result["largest"] == control["largest"] - (fallback_bytes - low_bytes), "wrong low fallback allocation"
+            assert result["upper_free"] == control["upper_free"] + upper_bytes + 16, "temporary upper owner leaked"
             assert result["xms"] == control["xms"]
             assert result["allocation_policy"] == control["allocation_policy"], "policy not restored"
         else:
             shell_rows = [row for row in result["mem_rows"] if row["name"] == "COMMAND"]
-            assert shell_rows[0]["size"] == 544, "control retained the old low data owner"
-            assert [row["size"] for row in shell_rows if row["segment"] >= result["ceiling"]] == [336], "control did not publish upper data"
+            assert shell_rows[0]["size"] == low_bytes, "control retained the old low owner"
+            assert [row["size"] for row in shell_rows if row["segment"] >= result["ceiling"]] == [upper_bytes], "control did not publish upper owner"
             assert result["largest"] >= 618736 and result["upper_free"] >= 47888
         print(f"{label}: PASS", flush=True)
     if args.policy_rejection and len(recovery_sites) == 2:

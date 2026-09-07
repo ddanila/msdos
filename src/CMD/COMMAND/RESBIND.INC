@@ -26,7 +26,6 @@ ENDM
 
 SHELL_BINDING_SLOTS MACRO action
  IFDEF COMMAND_UMB_DATA
-    action lodcom_data
     action endinit_env_state
     action endinit_flag_state
  ENDIF

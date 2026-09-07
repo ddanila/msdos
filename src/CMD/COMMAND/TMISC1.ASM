@@ -366,11 +366,7 @@ ENDIF
 ; trashed.  Move the stack (also in free space) to allocated space because
 ; since EXEC restores the stack, somebody may trash what is on the stack.
 ;
-IFDEF COMMAND_UMB_DATA
-        mov cx,es:[MYSEG]
-ELSE
 	MOV	CX,ES
-ENDIF
 	MOV	SS,CX
 	MOV	SP,OFFSET RESGROUP:RSTACK
 	JMP	[EXEC_ADDR]			; Jmp to the EXEC in the resident

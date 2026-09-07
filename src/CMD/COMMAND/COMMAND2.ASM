@@ -333,9 +333,6 @@ ASSUME	SS:RESGROUP
 	MOV SP,OFFSET RESGROUP:RSTACK
 	MOV	DS,AX
 ASSUME	DS:RESGROUP
-IFDEF COMMAND_UMB_DATA
-        SHELL_OWNER_SEG DS,lodcom_data
-ENDIF
 	CALL	HEADFIX 		; Make sure files closed stdin and stdout restored
 	XOR	BP,BP			; Flag command ok
 	MOV	AX,-1
@@ -718,6 +715,9 @@ ENDIF
 
 	ASSUME	ES:NOTHING
 	mov	DS:[PDB_environ],es	;g put new environment in my header	   ;AM067;
+IFDEF COMMAND_UMB_DATA
+        push ds                        ; INIT state is low, unlike the stack
+ENDIF
 	mov	ds,oldenv		;g source environment segment		   ;AM067;
 	ASSUME	DS:NOTHING							   ;AM067;
 	xor	si,si			;g set up offsets to start of segments	   ;AM067;
@@ -727,6 +727,10 @@ ENDIF
 	xor	ax,ax			;g					   ;AM067;
 	stosb				;g make sure there are double 0 at end	   ;AM067;
 
+IFDEF COMMAND_UMB_DATA
+        pop ds
+        ASSUME DS:RESGROUP
+ENDIF
 	cmp	resetenv,1		;eg Do we need to setblock to env end?
 	jnz	noreset 		;eg no - we already did it
 	mov	bx,envsiz		;eg get size of environment in paragraphs

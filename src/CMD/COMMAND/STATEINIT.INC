@@ -1,5 +1,5 @@
-; One initialization transaction: publish the complete upper data owner, then
-; shrink the old resident allocation. No second live low copy is retained.
+; One initialization transaction: publish the complete upper data/stack owner,
+; switch the live stack, then shrink low. No second live low copy is retained.
 ; Called at DRV0, before ENDINIT releases the memory covering initialization.
 shell_data_allocation dw 0
 shell_data_strategy dw 0
@@ -24,6 +24,9 @@ relocate_shell_data proc near
         mov ax,cs
         cmp bx,ax
         jne shell_data_done          ; the allocation owner must be this PSP
+        mov dx,ss
+        cmp dx,ax
+        jne shell_data_done          ; only this resident stack can be copied
         mov ax,5800h
         int 21h
         jc shell_data_done
@@ -96,6 +99,10 @@ shell_data_restore_policy:
         cld
         rep movsb
         call shell_data_publish
+        ; Same offsets in the biased selector: the copied live frames retain
+        ; SP and return addresses. Switch before SETBLOCK can free the old stack.
+        mov ss,ax
+        mov sp,sp
         push cs
         pop es
         mov bx,offset resgroup:shell_data_start+15
@@ -140,6 +147,10 @@ shell_data_rollback:
         mov ax,cs
         mov [MYDATASEG],ax
         call shell_data_publish
+        ; The allocation is still intact and now has the current stack frames.
+        ; Leave the upper stack before freeing its allocation.
+        mov ss,ax
+        mov sp,sp
 shell_data_free:
         cmp word ptr [shell_data_allocation],0
         je shell_data_recover_policy
@@ -193,7 +204,7 @@ shell_data_done:
 relocate_shell_data endp
 shell_data_policy_message db 13,10,'COMMAND memory-policy recovery failed. Restart required.',13,10,'$'
 
-; AX is the biased data selector. Existing PSP/stack/code identities stay low.
+; AX is the biased data/stack selector. PSP and executable gates stay low.
 shell_data_publish proc near
         push bx
         push di
@@ -211,7 +222,7 @@ ENDM
         SHELL_DATA_BIND ret2e_ds
         SHELL_DATA_BIND int2e_es
         SHELL_DATA_BIND lodcom_ds
-        SHELL_DATA_BIND lodcom_data
+        SHELL_DATA_BIND lodcom_ax
         SHELL_DATA_BIND headfix_ds
         SHELL_DATA_BIND savhand_es
         SHELL_DATA_BIND endinit_env_state
