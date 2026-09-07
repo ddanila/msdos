@@ -13,7 +13,9 @@ from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False, retire_characters=False, pack_headers=False, retire_media=False, paired_provider=None):
+def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False, retire_characters=False, pack_headers=False, retire_media=False, paired_provider=None, pack_drive_graph=False):
+    if pack_drive_graph and not (tail_body and retire_media):
+        raise ValueError("drive graph packing requires the complete retired BIOS layout")
     if paired_provider is not None and not (early and rebase and compact):
         raise ValueError("paired provider requires the early rebased/compacted composition")
     if characters and not dispatch:
@@ -53,7 +55,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         from build_bios_high_payload import build as build_high
         from build_bios_activation_fixture import write_fixture
         seed = build(output, tail_body=tail_body, dispatch=dispatch, characters=characters,
-                     retire_characters=retire_characters, pack_headers=pack_headers, retire_media=retire_media)
+                     retire_characters=retire_characters, pack_headers=pack_headers, retire_media=retire_media,
+                     pack_drive_graph=pack_drive_graph)
         if rebase:
             _, dos_symbols = parse_map(ROOT / "src/DOS/MSDOS.MAP")
             dos_symbols = {name.upper(): value for name, value in dos_symbols.items()}
@@ -149,6 +152,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         options += " -DBIOS_PACK_HEADERS=1"
     if retire_media:
         options += " -DBIOS_MEDIA_RETIRED=1"
+    if pack_drive_graph:
+        options += " -DBIOS_PACK_DRIVE_GRAPH=1"
     if scan:
         options += " -DBIOS_BOOT_SCAN=1"
     if rebase:
@@ -182,6 +187,10 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         tables = output / "BOOTDEVT.OBJ"
         run([ROOT / "bin/jwasm-masm", options, f"BOOTDEVT.ASM,{tables};"], bios)
         objects.append(tables)
+    if pack_drive_graph:
+        descriptors = output / "BOOTBDS.OBJ"
+        run([ROOT / "bin/jwasm-masm", options, f"BOOTBDS.ASM,{descriptors};"], bios)
+        objects.append(descriptors)
     if retire_characters:
         objects = [obj for obj in objects if obj.stem not in ("MSAUX", "MSLPT")]
         for module in ("MSCON", "MSAUX", "MSLPT", "MSCLOCK"):
@@ -234,6 +243,12 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         if not (symbols["CON$READ"] < symbols["MEDIA$CHK"] < symbols["HIDENSITY"] < symbols["BIOS_SERVICE_START"]
                 and all(symbols[name] < symbols["END$"] for name in ("GETBP", "CHECK_TIME_OF_ACCESS", "SETPTRSAV"))):
             raise ValueError("media bodies must be disposable while escaped low entries remain resident")
+    if pack_drive_graph:
+        if not (symbols["END$"] <= symbols["BIOS_BDS_TEMPLATES_START"]
+                < symbols["BIOS_BDS_TEMPLATES_END"] <= symbols["CON$READ"]
+                and symbols["BIOS_BDS_TEMPLATES_END"] - symbols["BIOS_BDS_TEMPLATES_START"] == 600
+                and symbols["COMPACTDPBSTORAGE"] + 2 == symbols["DISK005E"]):
+            raise ValueError("drive templates must be disposable; only the pool pointer remains static")
     active = symbols["BIOS_SERVICE_ACTIVE"]
     if binary.read_bytes()[active] != 0:
         raise ValueError("development BIOS starts active with unbound targets")
@@ -247,6 +262,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
     if not slot_words or any(data[offset:offset + 2] != b"\0\0" for offset in slot_words):
         raise ValueError("inactive high import slots must be zero")
     manifest = {"activated": False, "reclaimed_bytes": 0,
+                "packed_drive_graph": pack_drive_graph,
                 "retired_media_bodies": retire_media,
                 "direct_disk_tables": pack_headers,
                 "packed_headers": pack_headers,
@@ -287,6 +303,7 @@ if __name__ == "__main__":
     parser.add_argument("--retire-characters", action="store_true", help="pack the low character/clock bodies into the disposable tail")
     parser.add_argument("--pack-headers", action="store_true", help="pack low headers into retired device-table space")
     parser.add_argument("--retire-media", action="store_true", help="retire the complete media/BPB service group")
+    parser.add_argument("--pack-drive-graph", action="store_true", help="retain only the initialized drive graph and selected-size DPB pool")
     parser.add_argument("--scan", action="store_true", help="capture activation-time ownership on QEMU debug port")
     parser.add_argument("--rebase", action="store_true", help="move and poison the old low DOS prefix")
     parser.add_argument("--compact", action="store_true", help="coalesce the first-HIMEM boot allocation after rebasing")
@@ -297,6 +314,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     build(args.output, early=args.early, tail_body=args.tail_body, dispatch=args.dispatch, characters=args.characters,
           retire_characters=args.retire_characters, pack_headers=args.pack_headers, retire_media=args.retire_media,
+          pack_drive_graph=args.pack_drive_graph,
           scan=args.scan, rebase=args.rebase, compact=args.compact,
           high_cds=args.high_cds, fail_cds=args.fail_cds_allocation,
           cds_cache_case=args.cds_cache_case, cds_cache_negative=args.cds_cache_negative)

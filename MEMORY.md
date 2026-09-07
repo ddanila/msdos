@@ -14,11 +14,12 @@ Report UMB and application XMS costs alongside the gain. Complete BIOS and
 COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
-The current **BIOS + whole-shell + private FCB-table retirement candidate** measures
-**622,880 conventional / 49,680 free UMB bytes**: **4,944 above the selected
-development control**, and **4,144 above retail**. The preceding shell retirement
+The current **composed retirement candidate** measures
+**623,184 conventional / 49,680 free UMB bytes**: **5,248 above the selected
+development control**, and **4,448 above retail**. The preceding shell retirement
 recovered **2,752 conventional bytes** versus its identical BIOS/provider
-composition with normal COMMAND; the kernel-table retirement adds **256**.
+composition with normal COMMAND; the kernel-table retirement adds **256** and
+packing the initialized BIOS drive graph adds **304**.
 Application XMS remains **6,798,336 bytes** (5,120 below the development control);
 the shell move adds no UMB or XMS cost. This is an opt-in experimental layout,
 not production promotion.
@@ -50,7 +51,7 @@ python3 tests/test_dos_char_retirement_qemu.py out/command-high-retirement-vj99u
 **Next selection gate:** stop isolated table/paragraph harvesting after this
 completed owner. Resolve the remaining BIOS and COMMAND owners against the
 same shared budget, remove obsolete storage and measure their combined release.
-BIOS retains 3,232 low bytes; COMMAND retains 880. These are allocations, not
+BIOS retains 2,928 low bytes; COMMAND retains 880. These are allocations, not
 promised savings: BIOS request/ROM-return gates, public device/BDS pointers and
 DMA-facing storage need explicit low contracts. In particular, the census's
 545-byte strategy/dispatch row includes retained completion and firmware-return
@@ -59,9 +60,9 @@ partition is classified below. A routing-only build or a larger diagnostic
 image does not advance this gate. Older layout ledgers below describe their
 named checkpoints; use the figures here for the current candidate.
 
-#### Next complete allocation: initialized BIOS drive graph
+#### Packed initialized BIOS drive graph
 
-Read-only captures of the current candidate establish the live BDS/DPB counts:
+The pre-packing captures established the live BDS/DPB counts:
 
 | Boot configuration | Retained BDS storage | Live BDS storage | Retained / live BIOS overflow DPBs | Unrounded surplus |
 | --- | ---: | ---: | ---: | ---: |
@@ -73,29 +74,39 @@ to DOS and are excluded from the BIOS figures. The first hard-disk census row
 also contains two non-descriptor bytes, which must not be counted as BDS space.
 Evidence: `out/bios-descriptors-dhpe9bvb/graph.json` (one disk) and
 `out/bios-descriptors-l0ed28hu/graph.json` (two). Both graphs terminate and
-match DRVMAX and logical drive order. **No allocation was released by this
-inspection; the measured conventional checkpoint remains 622,880 bytes.**
+match DRVMAX and logical drive order. These source surpluses exclude pointer
+and paragraph costs; they are not the measured gain.
 
-Prefer packing this whole initialized owner within the existing early-boot
-transaction before attempting its UMB placement:
+`BIOS_PACK_DRIVE_GRAPH` now places all six templates in the disposable tail.
+MSINIT validates count, ordering, segment ownership and source/destination
+separation, then packs the actual linked records after the selected clock/ROM
+additions. It rebuilds START_BDS, internal far links and every active DSKDRVS
+BPB pointer before DOS or CONFIG clients can cache them. Fake A/B entries get
+their logical indices. The old 600-byte template range is poisoned immediately
+and excluded from the high-layout resident break, not retained as a mirror.
 
-1. Put descriptor templates in the disposable BIOS tail. After drive discovery,
-   pack the actual linked records, including fake A/B aliases; preserve every
-   detected drive rather than hard-coding the three-drive comparison profile.
-2. Rebuild START_BDS, internal far links and the complete DSKDRVS BPB-pointer
-   array before DOS builds DPBs or CONFIG drivers can cache these addresses.
-   Size BIOS overflow DPBs from the detected count and publish their destination
-   to `CompactInitialDpbs`; retain DOS's existing two-record allocation.
-3. Include this packed graph, overflow pool and clock/ROM-selected additions in
-   MSINIT's final resident break. Charge alignment and any new retained pointer.
-   Poison/release old templates through the existing high-layout retirement.
-4. Keep normal builds unchanged and preserve failed-HMA/DOS-low fallback.
-   Validate one/two hard disks, fake A/B aliases, external BDS insertion and
-   mini-disk handling, public BPB/DPB/CDS pointers, I/O and reset. The current
-   `CompactFirstHimem` guard rejects more than six drives; do not silently remove
-   that guard or claim the larger graph is qualified by these captures.
-5. Measure the resulting composed conventional gain with unchanged requested
-   resources and UMB/XMS. The 299/266 figures are source surplus, not net savings.
+The overflow DPB allocation contains `max(0, DRVMAX-2)` records; DOS keeps its
+existing two records. One retained two-byte offset replaces the fixed 132-byte
+BIOS pool and is consumed by `CompactInitialDpbs`. No high service, transport,
+UMB allocation or locked-XMS allocation is added. Normal BIOS and the unpacked
+composed control remain byte-identical.
+
+Evidence: `out/bios-graph-retirement-u_62ta5g/`. Fresh VC/MEM captures change
+only IO.SYS and measure **622,880 -> 623,184**, with unchanged free UMB/XMS.
+The one-disk BIOS shrinks **3,232 -> 2,928 bytes** after all alignment and the
+pool-pointer cost. Live graph/MCB checks also cover two disks (**3,072 BIOS
+bytes**) and no floppy controller (fake A/B). They verify contiguous BDS records,
+all BPB pointers, the packed overflow DPBs and exact resident boundary. A private
+far BDS can be appended and detached via INT 2Fh/0801h; FCB I/O then passes in
+both the poisoned high and standalone-low layouts. The residency census agrees
+with the linked and captured one-disk boundary.
+
+**Still required:** mini-disk and >6-drive cases, failed HMA reservation,
+full public DPB/CDS/SFT cache checks across I/O, A20/EMS stress and reset.
+The unchanged `CompactFirstHimem` guard rejects more than six drives; these
+captures do not qualify that larger graph or the paired-provider DOS-low path.
+Malformed/overlapping graphs fail closed before publication. Do not promote
+this experimental layout from the narrow passing configurations alone.
 
 Why not simply copy the graph to UMB now: `CompactFirstHimem` invokes
 `BiosBootActivate` on HIMEM's initialization return, before EMM386 is loaded;
@@ -109,8 +120,8 @@ The census reads physical conventional RAM and intentionally rejects UMB/HMA
 graphs; it must not be reused as proof of translated UMB accessibility.
 
 ```sh
-python3 tests/capture_bios_descriptor_graph.py out/dos-char-retirement-6mtsgffd/input-new.img out/dos-char-retirement-6mtsgffd/bios out/dos-char-retirement-6mtsgffd/MSDOS.MAP
-# Repeat with --two-disks; both drives use disposable QEMU snapshots.
+make bios
+python3 tests/test_bios_drive_graph_qemu.py out/dos-char-retirement-6mtsgffd/input-new.img
 ```
 
 #### Retained COMMAND layout

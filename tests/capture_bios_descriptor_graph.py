@@ -27,6 +27,7 @@ def main():
     parser.add_argument("bios", type=Path, help="matching isolated BIOS build directory")
     parser.add_argument("dos_map", type=Path, help="map with matching MSDOS.SYS alongside")
     parser.add_argument("--two-disks", action="store_true")
+    parser.add_argument("--no-floppy", action="store_true", help="exercise fake A/B without a default FDC")
     args = parser.parse_args()
     assert image_file(args.image, "::IO.SYS") == (args.bios / "IO.SYS").read_bytes()
     assert image_file(args.image, "::MSDOS.SYS") == args.dos_map.with_suffix(".SYS").read_bytes()
@@ -39,18 +40,24 @@ def main():
     command = ["qemu-system-i386", "-machine", "pc", "-cpu", "486", "-m", "8",
                "-display", "none", "-monitor", "none", "-serial", "none",
                "-qmp", f"unix:{socket},server=on,wait=off", "-no-reboot", "-boot", "c"]
+    if args.no_floppy:
+        command += ["-nodefaults", "-vga", "std"]
     for index in range(2 if args.two_disks else 1):
         command += ["-drive", f"if=ide,index={index},format=raw,file={args.image.resolve()},snapshot=on"]
     process = subprocess.Popen(command, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE)
     try:
-        subprocess.run([sys.executable, ROOT / "tests/screen_expect.py", socket,
-                        work / "screen.log", "1Help", "hmp:stop"], check=True, timeout=90)
-        qmp = QMPConnection(str(socket))
         try:
-            answer = qmp.human_cmd(f'pmemsave 0 1048576 "{work / "memory.bin"}"')
-            assert not answer.strip(), answer
+            subprocess.run([sys.executable, ROOT / "tests/screen_expect.py", socket,
+                            work / "screen.log", "1Help", "hmp:stop"], check=True, timeout=45)
         finally:
-            qmp.close()
+            qmp = QMPConnection(str(socket))
+            try:
+                qmp.human_cmd("stop")
+                (work / "registers.log").write_text(qmp.human_cmd("info registers"))
+                answer = qmp.human_cmd(f'pmemsave 0 1048576 "{work / "memory.bin"}"')
+                assert not answer.strip(), answer
+            finally:
+                qmp.close()
     finally:
         process.terminate()
         try:
@@ -96,7 +103,8 @@ def main():
     assert [row["drive"] for row in dpbs] == list(range(count))
     assert count == (4 if args.two_disks else 3), count
     record = dict(image_sha256=hashlib.sha256(args.image.read_bytes()).hexdigest(),
-                  two_disks=args.two_disks, bios_low_segment=0x70, dos_low_segment=low_dos,
+                  two_disks=args.two_disks, no_floppy=args.no_floppy,
+                  bios_low_segment=0x70, dos_low_segment=low_dos,
                   bds=bds, dpbs=dpbs, live_bds_bytes=100 * count,
                   live_bios_overflow_dpb_bytes=max(0, count - 2) * 33,
                   warning="Read-only census; no source allocation was released.")

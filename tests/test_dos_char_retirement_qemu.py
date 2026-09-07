@@ -25,7 +25,7 @@ def install(image, name, data):
     assert image_file(image, "::" + name) == data
 
 
-def probe(work, source, name, mode, kernel=None, bios=None):
+def probe(work, source, name, mode, kernel=None, bios=None, before=b""):
     image = work / f"fcb-{name}.img"
     shutil.copyfile(source, image)
     config = image_file(image, "::CONFIG.SYS")
@@ -40,7 +40,7 @@ def probe(work, source, name, mode, kernel=None, bios=None):
         install(image, "IO.SYS", bios)
     install(image, "I21FCB.COM", (work / "I21FCB.COM").read_bytes())
     install(image, "QEXIT.COM", (work / "QEXIT.COM").read_bytes())
-    install(image, "AUTOEXEC.BAT", b"@ECHO OFF\r\nCTTY AUX\r\nI21FCB.COM\r\nQEXIT.COM\r\n")
+    install(image, "AUTOEXEC.BAT", b"@ECHO OFF\r\nCTTY AUX\r\n" + before + b"I21FCB.COM\r\nQEXIT.COM\r\n")
     result = subprocess.run([
         "qemu-system-i386", "-display", "none", "-monitor", "none",
         "-machine", "pc", "-cpu", "486", "-m", "8",

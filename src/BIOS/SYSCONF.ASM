@@ -2717,10 +2717,19 @@ CFH_CacheError db 'XMS entry handoff failed',13,10,0
 	ENDIF
 
 ; Move the built-in DPBs out of SYSBUF before DOS reclaims its old tail. DOS
-; reserves BP:DI for the first two records; DX:CompactDpbStorage holds up to
-; four overflow records. The public DPB chain and CDS pointers may therefore
-; span the two resident segments without consuming six BIOS-side records.
+; reserves BP:DI for the first two records. DX owns the BIOS overflow pool:
+; four static records normally, or the selected-size pool whose offset MSINIT
+; publishes in CompactDpbStorage. The public DPB/CDS graph spans both owners.
 CompactInitialDpbs PROC NEAR
+	IFDEF BIOS_PACK_DRIVE_GRAPH
+	.ERRNZ DPBSIZ-33
+	push	ds
+	mov	ds,dx
+	mov	bx,offset CODE:CompactDpbStorage
+	mov	ax,word ptr ds:[bx]
+	mov	cs:[CompactOverflowOffset],ax
+	pop	ds
+	ENDIF
 	push	bp
 	mov	bx,di
 	les	di,cs:[DOSINFO]
@@ -2748,7 +2757,11 @@ CompactDpbLowCount:
 	mul	cl
 	mov	cx,ax
 	mov	es,dx
+	IFDEF BIOS_PACK_DRIVE_GRAPH
+	mov	di,cs:[CompactOverflowOffset]
+	ELSE
 	mov	di,offset CODE:CompactDpbStorage
+	ENDIF
 	rep	movsb
 CompactDpbCopied:
 
@@ -2770,13 +2783,22 @@ CompactDpbCopied:
 	mov	di,cx
 	cmp	al,2
 	je	short CompactDpbLowLast
+	IFDEF BIOS_PACK_DRIVE_GRAPH
+	mov	cx,cs:[CompactOverflowOffset]
+	mov	word ptr es:[di.DPB_NEXT_DPB],cx
+	ELSE
 	mov	word ptr es:[di.DPB_NEXT_DPB],offset CODE:CompactDpbStorage
+	ENDIF
 	mov	word ptr es:[di.DPB_NEXT_DPB+2],dx
 
 	; Link the BIOS-side overflow records and terminate the final one.
 	sub	al,2
 	mov	es,dx
+	IFDEF BIOS_PACK_DRIVE_GRAPH
+	mov	di,cs:[CompactOverflowOffset]
+	ELSE
 	mov	di,offset CODE:CompactDpbStorage
+	ENDIF
 CompactDpbOverflowLink:
 	dec	al
 	jz	short CompactDpbLastLink
@@ -2810,13 +2832,20 @@ CompactDpbCdsLoop:
 	add	si,DPBSIZ
 	jmp	short CompactDpbCdsLoop
 CompactDpbCdsOverflow:
+	IFDEF BIOS_PACK_DRIVE_GRAPH
+	mov	si,cs:[CompactOverflowOffset]
+	ELSE
 	mov	si,offset CODE:CompactDpbStorage
+	ENDIF
 	mov	ax,dx
 	jmp	short CompactDpbCdsLoop
 CompactDpbCdsDone:
 	pop	bp
 	ret
 CompactInitialDpbs ENDP
+	IFDEF BIOS_PACK_DRIVE_GRAPH
+CompactOverflowOffset DW 0
+	ENDIF
 
 ; INTERLNK is the DOS 6 driver whose DEVICE form prefers a UMB unless /LOW is
 ; present. ES:SI addresses the ASCIIZ filename and INIT tail. Return carry set

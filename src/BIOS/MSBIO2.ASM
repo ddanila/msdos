@@ -108,10 +108,15 @@ MINI_DISK_BPB_PTRS DB 40 dup (?)   ;J.K. 4/7/86 - memory reserved for Mini disk.
 	PUBLIC	INT_2F_NEXT
 INT_2F_NEXT DD	   ?
 
-; DOS already reserves low storage for the first two BIOS drive DPBs. Keep only
-; the four possible overflow records here, outside the disposable SYSINIT image.
+; DOS owns the first two BIOS drive DPBs. The normal layout reserves four
+; overflow records; the packed layout retains only their published pool offset.
 PUBLIC  CompactDpbStorage
+	IFDEF BIOS_PACK_DRIVE_GRAPH
+; MSINIT publishes the offset of the selected-size overflow allocation.
+CompactDpbStorage DW 0
+	ELSE
 CompactDpbStorage DB 4 * 33 DUP (0)
+	ENDIF
 
 	PATHEND 005,DISK
 ; = = = = = = = = = = = = = = = = = = = =
@@ -423,41 +428,11 @@ HARDDRV DB	80H			;PHYSICAL DRIVE NUMBER OF FIRST HARDFILE
 ;**********************************************************************
 ;	"HDRIVE" IS A HARD DISK WITH 512 BYTE SECTORS
 ;*********************************************************************
-	EVENB
-	PUBLIC	BDSH
-BDSH	DW	-1			;LINK TO NEXT STRUCTURE
-	DW	CODE
-	DB	80			;INT 13 DRIVE NUMBER
-	DB	"C"                     ;LOGICAL DRIVE LETTER
-	PUBLIC	HDRIVE
-HDRIVE:
-	DW	512
-	DB	1			;SECTORS/ALLOCATION UNIT
-	DW	1			;RESERVED SECTORS FOR DOS
-	DB	2			;NO. OF ALLOCATION TABLES
-	DW	16			;NUMBER OF DIRECTORY ENTRIES
-	DW	0000			;NUMBER OF SECTORS (AT 512 BYTES EACH)
-	DB	11111000B		;MEDIA DESCRIPTOR
-	DW	1			;NUMBER OF FAT SECTORS
-	DW	00			;SECTOR LIMIT
-	DW	00			;HEAD LIMIT
-	DW	00			;HIDDEN SECTOR COUNT(low)
-	dw	00			;AN000;  Hidden Sector (high)
-	dw	00			;AN000;  Number of Sectors (low)
-	dw	00			;AN000;  Number of Sectors (high)
-	DB	0			; TRUE => BIGFAT
-OPCNTH	DW	0			;OPEN REF. COUNT
-	DB	3			;FORM FACTOR
-FLAGSH	DW	0020H			;VARIOUS FLAGS
-;	DB	9 DUP (0)		;RESERVED FOR FUTURE USE
-	DW	40			; NUMBER OF CYLINDERS
-RECBPBH DB	31 DUP (?)		; RECOMMENDED BPB FOR DRIVE
-TRACKH	DB	-1			;LAST TRACK ACCESSED ON THIS DRIVE
-TIM_LOH DW	-1			;KEEP THESE TWO CONTIGUOUS (?)
-TIM_HIH DW	-1
-VOLIDH	DB	"NO NAME    ",0         ;AN000; VOLUME ID FOR THIS DISK
-VolSerH dd	0	      ;AN000; Current volume serial number from Boot record
-SysIDH	db	"FAT12   " ,0 ;AN000; Current file system id from Boot record
+	IFDEF BIOS_PACK_DRIVE_GRAPH
+	EXTRN BDSH:WORD,HDRIVE:BYTE
+	ELSE
+	INCLUDE BDSHARD1.INC
+	ENDIF
 
 ;
 ; END OF SINGLE HARD DISK SECTION
@@ -468,41 +443,11 @@ ENDONEHARD LABEL BYTE
 ;	"DRIVEX " IS AN EXTRA TYPE OF DRIVE USUALLY RESERVED FOR AN
 ;	ADDITIONAL HARD FILE
 ;*********************************************************************
-	EVENB
-	PUBLIC	BDSX
-BDSX	DW	-1			;LINK TO NEXT STRUCTURE
-	DW	CODE
-	DB	81			;INT 13 DRIVE NUMBER
-	DB	"D"                     ;LOGICAL DRIVE LETTER
-	PUBLIC	DRIVEX
-DRIVEX:
-	DW	512
-	DB	00			;SECTORS/ALLOCATION UNIT
-	DW	1			;RESERVED SECTORS FOR DOS
-	DB	2			;NO. OF ALLOCATION TABLES
-	DW	0000			;NUMBER OF DIRECTORY ENTRIES
-	DW	0000			;NUMBER OF SECTORS (AT 512 BYTES EACH)
-	DB	11111000B		;MEDIA DESCRIPTOR
-	DW	0000			;NUMBER OF FAT SECTORS
-	DW	00			;SECTOR LIMIT
-	DW	00			;HEAD LIMIT
-	DW	00			;HIDDEN SECTOR COUNT (low)
-	dw	00			;AN000;  Hidden Sector (high)
-	dw	00			;AN000;  Number of Sectors (low)
-	dw	00			;AN000;  Number of Sectors (high)
-	DB	0			; TRUE => BIGFAT
-OPCNTD	DW	0			;OPEN REF. COUNT
-	DB	3			;FORM FACTOR
-FLAGSD	DW	0020H			;VARIOUS FLAGS
-;	DB	9 DUP (0)		;RESERVED FOR FUTURE USE
-	DW	40			; NUMBER OF CYLINDERS
-RECBPBD DB	31 DUP (?)		; RECOMMENDED BPB FOR DRIVE
-TRACKD	DB	-1			;LAST TRACK ACCESSED ON THIS DRIVE
-TIM_LOD DW	-1			;KEEP THESE TWO CONTIGUOUS (?)
-TIM_HID DW	-1
-VOLIDD	DB	"NO NAME    ",0         ;AN000; VOLUME ID FOR THIS DISK
-VolSerD dd	0	      ;AN000; Current volume serial number from Boot record
-SysIDD	db	"FAT12   " ,0 ;AN000; Current file system id from Boot record
+	IFDEF BIOS_PACK_DRIVE_GRAPH
+	EXTRN BDSX:WORD,DRIVEX:BYTE
+	ELSE
+	INCLUDE BDSHARD2.INC
+	ENDIF
 
 ;
 ; END OF SECTION FOR TWO HARD DISKS

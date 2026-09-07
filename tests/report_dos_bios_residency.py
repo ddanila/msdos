@@ -116,9 +116,15 @@ def bios_core_partition(symbols: dict[str, int]) -> list[tuple[str, int, int, st
         return require(symbols, name)
     sector_end = at("DISKSECTOR") + 512
     bds = [at(f"FDRIVE{i}") - 6 for i in range(1, 5)]
-    if bds[0] != sector_end or any(right - left != 100
-            for left, right in zip(bds, bds[1:] + [at("SM92")])):
+    packed_graph = "BIOS_BDS_TEMPLATES_START" in symbols
+    first = at("BIOS_BDS_TEMPLATES_START") if packed_graph else sector_end
+    end = at("BDSH") if packed_graph else at("SM92")
+    if bds[0] != first or any(right - left != 100
+            for left, right in zip(bds, bds[1:] + [end])):
         raise ValueError("BIOS sector/BDS layout changed; review four live drive records")
+    if packed_graph and (at("SM92") != sector_end
+                         or at("BIOS_BDS_TEMPLATES_END") - first != 600):
+        raise ValueError("packed BIOS must retire all six descriptor templates")
     packed = at("CONHEADER") < at("VDISK_AREA")
     if at("VDISK_AREA") != 0x100 or (not packed and at("CONHEADER") != at("VDISK_AREA") + 110):
         raise ValueError("fixed VDISK reservation or AUXNUM binding changed")
@@ -139,7 +145,7 @@ def bios_core_partition(symbols: dict[str, int]) -> list[tuple[str, int, int, st
         ("Disk error translation tables", at("ERRIN"), error_end, "private service data; rebind readers"),
         ("Sector alignment", error_end, at("DISKSECTOR"), "packing only"),
         ("Firmware sector/bounce buffer", at("DISKSECTOR"), sector_end, "retain DMA-safe storage; not boot-only scratch"),
-        ("Four linked floppy BDS records", sector_end, at("SM92"), "preserve public links and BPB pointers"),
+        *([] if packed_graph else [("Four linked floppy BDS records", sector_end, at("SM92"), "preserve public links and BPB pointers")]),
         ("Media template and character/clock state", at("SM92"), at("BIOS_IOCTL_LOW_START"), "mixed constants and mutable service bindings"),
     ]
     if any(start > end for _, start, end, _ in specs):
@@ -322,7 +328,10 @@ def main() -> int:
         errors.append("DOS low gateway does not precede SYSBUF")
     if dos_last.paragraph * 16 != sysbuf:
         errors.append("DOS LAST segment no longer begins at SYSBUF")
-    if any(left[1] >= right[1] for left, right in zip(bios_boundaries, bios_boundaries[1:])):
+    if any(left[1] > right[1] or (left[1] == right[1] and not (
+            "BIOS_BDS_TEMPLATES_START" in bios_symbols
+            and (left[0], right[0]) == ("ENDONEHARD", "ENDTWOHARD")))
+           for left, right in zip(bios_boundaries, bios_boundaries[1:])):
         errors.append("BIOS selectable resident boundaries are not ordered")
     if bios_boundaries[-1][1] > bios_code.size:
         errors.append("BIOS selectable resident boundary exceeds CODE")
@@ -641,6 +650,13 @@ def main() -> int:
     bcd_size = bin_to_bcd_end - bin_to_bcd
     after_day = selected + day_size
     selected = rounded(after_day + bcd_size)
+    clock_end = selected
+    packed_graph_bytes = 0
+    if "BIOS_BDS_TEMPLATES_START" in bios_symbols:
+        # Fixed comparison: fake/physical A and B plus one hard disk. DOS owns
+        # the first two DPBs; the selected BIOS owns only the third.
+        packed_graph_bytes = 3 * 100 + 33
+        selected = rounded(selected + packed_graph_bytes)
     if selected > 8160:
         errors.append("selected resident BIOS exceeds the 8,160-byte ceiling")
     print("\n### Fixed comparison selection\n")
@@ -649,7 +665,9 @@ def main() -> int:
     print("| --- | ---: | ---: | ---: |")
     print(f"| One-hard-disk base (`ENDONEHARD`) | — | {require(bios_symbols, 'ENDONEHARD'):,} | `{selected_base:04X}h` |")
     print(f"| `Daycnt_to_day` | `{selected_base:04X}h` | {day_size:,} | `{after_day:04X}h` |")
-    print(f"| `Bin_to_bcd` | `{after_day:04X}h` | {bcd_size:,} | `{selected:04X}h` |")
+    print(f"| `Bin_to_bcd` | `{after_day:04X}h` | {bcd_size:,} | `{clock_end:04X}h` |")
+    if packed_graph_bytes:
+        print(f"| Packed initialized BDS graph and overflow DPB | `{clock_end:04X}h` | {packed_graph_bytes} | `{selected:04X}h` |")
     print(f"| **Selected resident BIOS** | — | — | **{selected:,} bytes** |")
 
     selected_bios_ranges: list[tuple[str, int | str, int | str]] = [
@@ -669,7 +687,7 @@ def main() -> int:
         ("BIOS model and saved-vector state", "DISK005S", "DISK005E"),
         ("Reboot, block-driver multiplex and disk lifecycle services", "DISK005E", "CLK001S"),
         ("Clock swap state", "CLK001S", "ENDFLOPPY"),
-        ("First hard-disk descriptor", "ENDFLOPPY", "ENDONEHARD"),
+        ("Hard-disk count/state" if packed_graph_bytes else "First hard-disk descriptor", "ENDFLOPPY", "ENDONEHARD"),
     ]
     if args.tail_body:
         # The original disk body is outside the permanent low image. Its
@@ -707,6 +725,9 @@ def main() -> int:
         print(f"| `{start:04X}h..{end:04X}h` | {size:,} | {owner} |")
     print(f"| relocated `Daycnt_to_day` | {day_size:,} | CMOS day conversion |")
     print(f"| relocated `Bin_to_bcd` | {bcd_size:,} | CMOS BCD conversion |")
+    if packed_graph_bytes:
+        print(f"| packed initialized graph | {packed_graph_bytes} | three BDS records and one BIOS overflow DPB |")
+        selected_bios_total += packed_graph_bytes
     selected_padding = selected - (selected_bios_total + day_size + bcd_size)
     print(f"| loader paragraph alignment | {selected_padding:,} | static and relocated-piece padding |")
     selected_bios_total += day_size + bcd_size + selected_padding
