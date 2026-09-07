@@ -60,6 +60,73 @@ partition is classified below. A routing-only build or a larger diagnostic
 image does not advance this gate. Older layout ledgers below describe their
 named checkpoints; use the figures here for the current candidate.
 
+#### Next whole allocation: interrupt-stack pool
+
+The current saved VC comparison narrows the OpenDOS lead to **4,864 bytes**,
+not the 11,936-byte gap in the older reassessment below:
+
+| Accounting boundary | Current packed candidate | OpenDOS 7.01 IDE capture | Local minus OpenDOS |
+| --- | ---: | ---: | ---: |
+| System start to COMMAND start | 15,392 | 10,448 | +4,944 |
+| COMMAND start to VC start | 1,232 | 1,312 | -80 |
+| VC start to first free block | 12,720 | 12,720 | 0 |
+| Largest conventional block | 623,184 | 628,048 | -4,864 |
+
+These are allocation spans, not individual program MCB sizes. VC hashes and
+the 639 KiB ceiling match; vendor resource semantics and reset qualification
+still differ. Evidence: `out/bios-graph-retirement-u_62ta5g/results.json` and
+`out/opendos-disk-boot-evidence/result.json`. This reconciles saved captures,
+not a new vendor run. COMMAND placement still needs qualification and a final
+state contract, but a large shell allocation no longer explains this gap.
+
+The current system span reconciles as **2,928 BIOS + 5,376 DOS prefix + 4,640
+managers + 512 transfer area + 1,840 interrupt-stack subsystem + 96 arena/mark
+bytes = 15,392**. A fresh public suballocation probe on the pinned image confirms
+the four dynamic owners without unclassified gaps:
+`out/system-owners-gz8p6jrj/`. Its AUTOEXEC runs the probe instead of VC;
+the conventional-block comparison above remains the VC capture.
+
+**Selection:** move the complete interrupt-stack entry table and pool to UMB,
+leaving its existing handlers/control low. The previous whole-subsystem UMB
+rejection was too coarse: `MSSTACK.INC` already selects the pool through
+`CS:[STACKS+2]`, accesses its eight-byte entries through ES, and switches SS
+to that segment. `STKINIT.INC` initializes the pool through `STACK_ADDR`.
+No HMA stack, new interrupt transport, or reduced STACKS setting is required.
+
+The packed image's post-reset dump (`out/bios-descriptors-3ovznbd8/memory.bin`)
+has handler/control segment `03BEh`, pool `03E4h:0000`, count 9 and size 128.
+All nine entries are free and their stack-end back-pointers match. The linked
+`Endstackcode=0259h` rounds to **608 bytes**; the pool contains 72 entry bytes
+and 1,152 stack bytes, rounded to **1,232 bytes**. Existing code and pool are
+already separate segments; this is an allocation-placement change.
+
+Implementation and acceptance:
+
+1. In `SYSINIT1.ASM:DoInstallStack`, allocate the complete rounded pool upper
+   before `StackInit` publishes interrupt vectors. Keep the 608-byte code/control
+   and its low S mark. Allocate an upper system-owned block with its own S mark;
+   do not advance the low cursor for a successful upper pool. There must be no
+   retained low pool or steady-state copying path.
+2. Restore UMB-link/allocation policy before publication. On absent UMBs,
+   DOS-low, rejected allocation or failed policy restoration, retain the existing
+   low allocation path; never publish a partially initialized pool. Preserve
+   configured count/size, exhaustion behavior and the 286/no-EMM path.
+3. Check entries/back-pointers, actual interrupt stack switches, nested distinct
+   stacks, exhaustion/corruption handling and original SS:SP restoration. Exercise
+   A20-off entry, EMS remapping, hardware reset and software INT 19h restoration.
+   Upper backing must stay valid throughout interrupts and provider transitions;
+   merely observing an upper far pointer is not qualification.
+4. Measure the same packed BIOS/high-COMMAND/provider image. The **projection**
+   is +1,232 conventional, -1,264 UMB (pool + S mark + MCB), no HMA/XMS change:
+   **624,416 conventional / 48,416 free UMB**, leaving 528 above retail's UMB floor.
+   Verify marks, ownership and packed low boundary; reject a copy-only result.
+
+This supersedes the older indivisible-stack destination restriction, not the
+BIOS/COMMAND completion gates. Keep their published pointers, firmware/DMA
+buffers and asynchronous entries valid. Finish the remaining ownership and
+fallback qualification against the same 3,879-byte HMA budget; do not resume
+isolated shell-byte reductions to explain a system-allocation difference.
+
 #### Packed initialized BIOS drive graph
 
 The pre-packing captures established the live BDS/DPB counts:
