@@ -62,6 +62,28 @@ partition is classified below. A routing-only build or a larger diagnostic
 image does not advance this gate. Older layout ledgers below describe their
 named checkpoints; use the figures here for the current candidate.
 
+**Buffer-sharing decision:** do not alias DOS's 512-byte HMA transfer area to
+BIOS `DISKSECTOR` with the current I/O protocol. This is a source-established
+lifetime conflict, not just an untested DMA concern:
+
+1. `DOS/DEV.ASM:HMA_BUFFER_BEGIN` copies an HMA write into the low transfer
+   area before calling the block driver. That payload must survive until the
+   driver finishes, including its retries.
+2. `BIOS/MSDSKHIG.INC:DISKIO` calls the removable-media latch check before
+   transferring the payload. `MS96TPI.INC:CHECKROM` can call `GETBP`, which
+   reads the boot sector (and, when needed, FAT) into `DISKSECTOR`.
+3. The error path has the same overlap: `DSKERR` calls `CHECKIO`; a change-line
+   error with open files can rebuild the BPB and then allow a retry. Sharing
+   the allocations would replace pending write data with media metadata.
+
+A fixed-disk-only successful capture cannot qualify this change. Any future
+single-buffer design must preserve the write payload across these internal
+reads and retries, plus external-driver calls, without retaining another
+512-byte low copy. Keep both allocations for now; no saving is booked. The
+33-byte `RE_INIT` cold routine is also not the next standalone memory milestone.
+Continue the joint BIOS/COMMAND ownership decision rather than substituting
+that small retirement or unrelated qualification probes for the delivery gate.
+
 #### Retired low interrupt-stack pool
 
 The current saved VC comparison narrows the OpenDOS lead to **3,632 bytes**,
