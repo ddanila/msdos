@@ -14,17 +14,50 @@ Report UMB and application XMS costs alongside the gain. Complete BIOS and
 COMMAND placement still requires one shared HMA budget; it is not deferred
 by manager-interface progress.
 
-**Latest opt-in composed candidate:** **625,312 conventional / 48,064 free
-UMB / 6,798,336 application XMS bytes**, **6,576 above retail** and **7,376
+**Latest opt-in composed candidate:** **625,408 conventional / 48,064 free
+UMB / 6,798,336 application XMS bytes**, **6,672 above retail** and **7,472
 above the development control**. COMMAND data retirement and startup packing
 recover 336 conventional bytes; the safe manager OFF/AUTO guard costs 32;
-compact BIOS track state then recovers 128. These gains enlarge the largest
+compact BIOS track state then recovers 128, and complete swap-prompt retirement
+recovers 96. These gains enlarge the largest
 block, not a separate free hole. The shell move costs 352 UMB and 211 HMA
-bytes; compact track state adds one HMA byte and no UMB/XMS cost. Free UMB
-remains **176 above the retail floor**, with **3,411 HMA bytes left**.
-BIOS retains **2,608 low bytes**; COMMAND's main low allocation is **544**.
+bytes; compact track state adds one HMA byte and the swap prompt adds 120,
+with no additional UMB/XMS cost. Free UMB remains **176 above the retail floor**,
+with **3,291 HMA bytes left**. BIOS retains **2,512 low bytes**;
+COMMAND's main low allocation is **544**.
 Functional qualification is incomplete: this is not production promotion or
 completion of BIOS/COMMAND placement.
+
+**Complete swap-prompt retirement:** `BIOS_RETIRE_SWAP` moves the complete
+104-byte `SWPDSK`/`WRMSG`/message owner into the disposable cold tail and binds
+its high counterpart directly to the already-high disk service and `FLUSH`.
+There is no retained low mirror or new low gateway. Prompt text belongs to
+high CS; `FLUSH` still receives low BIOS DS for `ALTAH`. Output keeps the
+original direct `OUTCHR` contract rather than invoking a potentially hooked
+INT 29h; the existing conventional vector gate restores A20 on return.
+
+The paired image `out/emm-mode-guard-wzl84pvy/input.img` measures
+**625,312 -> 625,408 conventional bytes** with UMB/XMS unchanged. BIOS falls
+**2,608 -> 2,512**, and its HMA payload grows **7,987 -> 8,107**. The default
+BIOS is byte-identical. All 55 BIOS tests pass, including exact cold-owner
+retirement and high `FLUSH` binding. Logical-B formatting on one physical
+floppy exercises the prompt, keyboard acknowledgement and subsequent file I/O
+at both 1.44 and 2.88 MB (`out/bios-track-layout-zosz6ak1/`). Destructive shell
+pipelines and A20-off INT 2Eh/manager-mode checks also pass
+(`out/bios-swap-runtime-ooive69a/`, `out/command-upper-int2e-su4faukv/`).
+Combined prompt/format-retry fault tests pass (`out/bios-track-layout-eqvc5js9/`),
+as do shell allocation/shrink rejection, policy and leak checks on this same
+composition (`out/command-upper-failure-vvhqgxe7/`).
+These runs do not qualify all prompt-time firmware/interrupt behavior or
+inactive fallback shapes; final BIOS placement remains open.
+
+The preceding composed control reaches the prompt but times out after its
+acknowledgement (`out/bios-track-layout-0ynlljb4/`, `...-glhy8_y_/`). Its retained
+`SWPDSK` at `086Bh` still calls low `FLUSH` at `2C68h`, beyond the `2859h` cold
+boundary; that target no longer has a retained allocation. The new group removes
+that stale call as well as the low prompt storage. A timeout alone does not
+pinpoint the stopped instruction, but the source/link contract is invalid.
+Reproduce the prompt path with `test_bios_track_layout_qemu.py IMAGE --swap-prompt`.
 
 **Compact BIOS track-state checkpoint:** `BIOS_COMPACT_TRACK_LAYOUT` retains
 all 63 sector-ID/size pairs (126 bytes), replacing the 252-byte C/H/R/N table.
@@ -102,7 +135,7 @@ python3 tests/test_dos_char_retirement_qemu.py out/command-high-retirement-vj99u
 **Next selection gate:** stop isolated table/paragraph harvesting after this
 completed owner. Resolve the remaining BIOS and COMMAND owners against the
 same shared budget, remove obsolete storage and measure their combined release.
-BIOS retains 2,608 low bytes; COMMAND's main allocation retains 544. These are allocations, not
+BIOS retains 2,512 low bytes; COMMAND's main allocation retains 544. These are allocations, not
 promised savings: BIOS request/ROM-return gates, public device/BDS pointers and
 DMA-facing storage need explicit low contracts. In particular, the census's
 545-byte strategy/dispatch row includes retained completion and firmware-return
@@ -113,7 +146,7 @@ named checkpoints; use the figures here for the current candidate.
 
 Use `report_dos_bios_residency.py` with `--tail-body` and the matching `--boot-manifest`, not
 the map alone: cold helpers remain linked but successful activation no
-longer retains them low. The current shared HMA budget is **3,411 free bytes**.
+longer retains them low. The current shared HMA budget is **3,291 free bytes**.
 Older whole-source capacity checks include shell data already placed in UMB
 and do not identify which remaining BIOS gates/storage can legally move.
 Use live ownership and composed measurements, not that sum, for final placement.
@@ -122,25 +155,26 @@ The census now validates 63 records against the manifest's selected two- or
 four-byte layout. Use `--command-data-upper` only with evidence that publication
 succeeded; compiling that feature alone cannot exclude its DOS-low/failure
 fallback. The current successful composition's source-capacity remainder is
-515 bytes, **not additional free HMA or promised savings**. Regression checks
+491 bytes, **not additional free HMA or promised savings**. Regression checks
 cover both layouts, mismatched manifests and explicit shell-placement assumptions.
 
 **Remaining BIOS owner decision:** the 545-byte dispatch row is actually 124
 bytes of request entry/save/dispatch, 47 completion, 18 console output, 6 GETDX,
 6 layout bookkeeping, **266 ROM/A20 return support**, 25 bindings and 53
-interrupt entries. The 273-byte lifecycle row is 64 reboot, 12 disk init,
-60 multiplex/filter/entry, 33 RE_INIT and 104 disk-swap prompt code/text.
+interrupt entries. The remaining 169-byte lifecycle row is 64 reboot, 12 disk
+init, 60 multiplex/filter/entry and 33 RE_INIT; its former 104-byte prompt owner
+is now retired.
 These sums come from the current paired map and the corresponding source
 owners (`MSBIO1`, `LOWBIND`, `HIGHROM`, `HIGHCHARROM`, `MSBIO2`). They are not
 additional allocations. In particular, moving the 266-byte return support to
-HMA would defeat its A20-off return contract. The low prompt owner remains a
-real placement candidate, but it is not a hidden multi-KiB BIOS body.
+HMA would defeat its A20-off return contract. There is no hidden multi-KiB
+BIOS body in either of these rows.
 
-The next joint decision must separate that prompt owner and cold initialization
-from mandatory public/DMA/reboot entry contracts, then qualify the retained
+The next joint decision must separate remaining cold initialization from
+mandatory public/DMA/reboot entry contracts, then qualify the retained
 COMMAND PSP/gates/stack and upper-data failure paths. Do not present further
 paragraph-sized changes as completion, or remove compatibility paths merely
-because the selected boot did not execute them. The current 2,736-byte OpenDOS
+because the selected boot did not execute them. The current 2,640-byte OpenDOS
 gap is a whole-system ownership question, not the size of a remaining BIOS
 or COMMAND service body.
 
@@ -379,26 +413,26 @@ python3 tests/test_bios_clock_retirement_qemu.py out/command-high-retirement-wv3
 
 #### Retired low interrupt-stack pool
 
-The current saved VC comparison narrows the OpenDOS lead to **2,736 bytes**,
+The current saved VC comparison narrows the OpenDOS lead to **2,640 bytes**,
 not the 11,936-byte gap in the older reassessment below:
 
 | Accounting boundary | Current packed candidate | OpenDOS 7.01 IDE capture | Local minus OpenDOS |
 | --- | ---: | ---: | ---: |
-| System start to COMMAND start | 13,600 | 10,448 | +3,152 |
+| System start to COMMAND start | 13,504 | 10,448 | +3,056 |
 | COMMAND start to VC start | 896 | 1,312 | -416 |
 | VC start to first free block | 12,720 | 12,720 | 0 |
-| Largest conventional block | 625,312 | 628,048 | -2,736 |
+| Largest conventional block | 625,408 | 628,048 | -2,640 |
 
 These are allocation spans, not individual program MCB sizes. VC hashes and
 the 639 KiB ceiling match; vendor resource semantics and reset qualification
-still differ. Evidence: `out/emm-mode-guard-8a_tib1b/results.json` and
+still differ. Evidence: `out/emm-mode-guard-wzl84pvy/results.json` and
 `out/opendos-disk-boot-evidence/result.json`. This reconciles saved captures,
 not a new vendor run. COMMAND placement still needs qualification and a final
 state contract, but a large shell allocation no longer explains this gap.
 
-The current system span reconciles as **2,608 BIOS + 5,072 DOS prefix + 4,704
+The current system span reconciles as **2,512 BIOS + 5,072 DOS prefix + 4,704
 managers + 512 transfer area + 608 interrupt handlers/control + 96 arena/mark
-bytes = 13,600**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
+bytes = 13,504**. Before pool and clock retirement, the stack subsystem retained 1,840 bytes
 low and the span was 15,392. A public suballocation probe on that pre-pool image
 confirms the four dynamic owners without unclassified gaps:
 `out/system-owners-gz8p6jrj/`. Its AUTOEXEC runs the probe instead of VC;

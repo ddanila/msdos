@@ -8,6 +8,34 @@ from build_bios_high_payload import build, offset_fixups, rebase, boot_policy, p
 
 
 class PayloadTests(unittest.TestCase):
+    def test_swap_prompt_retires_whole_low_owner_and_uses_high_flush(self):
+        from build_bios_low_image import build as build_low
+        from report_dos_bios_residency import selected_bios_layout, parse_map
+        with tempfile.TemporaryDirectory(prefix="msdos-swap-retirement-") as scratch:
+            sizes = []
+            for retired in (False, True):
+                directory = Path(scratch) / str(retired)
+                low = build_low(directory, tail_body=True, dispatch=True, characters=True,
+                    retire_characters=True, pack_headers=True, retire_media=True,
+                    pack_drive_graph=True, retire_clock=True, retire_mux=True,
+                    compact_tracks=True, retire_swap=retired)
+                high = build(directory / "high", directory, dispatch=True, characters=True,
+                             media=True, retire_clock=True, retire_mux=True)
+                symbols = low["symbols"]
+                _, linked_symbols = parse_map(directory / "msBIO.map")
+                sizes.append((selected_bios_layout(linked_symbols, retired_clock=True)["end"], high["bytes"]))
+                if retired:
+                    self.assertLessEqual(symbols["END$"], symbols["SWPDSK"])
+                    self.assertEqual(symbols["BIOS_SWAP_BODY_END"] - symbols["BIOS_SWAP_BODY_START"], 104)
+                    self.assertNotIn("BIOS_LOW_SWPDSK", high["runtime_slots"])
+                    self.assertNotIn("SWPDSK", high["low_bindings"])
+                    self.assertNotIn("FLUSH", high["low_bindings"])
+                    self.assertIn("SWPDSK", high["exports"])
+                    self.assertIn("FLUSH", high["exports"])
+                    self.assertEqual(high["runtime_slots"]["BIOS_SWAP_OUTCHR_OFFSET"]["target"], "OUTCHR")
+            self.assertEqual(sizes[0][0] - sizes[1][0], 96)
+            self.assertEqual(sizes[1][1] - sizes[0][1], 120)
+
     def test_compact_tracks_preserve_all_63_sector_pairs(self):
         from build_bios_low_image import build as build_low
         with tempfile.TemporaryDirectory(prefix="msdos-compact-tracks-") as scratch:

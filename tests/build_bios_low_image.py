@@ -13,7 +13,9 @@ from build_bios_high_payload import ROOT, run
 from report_dos_bios_residency import parse_map
 
 
-def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False, retire_characters=False, pack_headers=False, retire_media=False, paired_provider=None, pack_drive_graph=False, high_stack_pool=False, fail_stack_pool=False, retire_clock=False, retire_mux=False, compact_tracks=False):
+def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, scan=False, rebase=False, compact=False, fail_tables=False, high_cds=False, fail_cds=False, cds_cache_case=None, cds_cache_negative=False, dispatch=False, characters=False, retire_characters=False, pack_headers=False, retire_media=False, paired_provider=None, pack_drive_graph=False, high_stack_pool=False, fail_stack_pool=False, retire_clock=False, retire_mux=False, compact_tracks=False, retire_swap=False):
+    if retire_swap and not (tail_body and characters and retire_characters):
+        raise ValueError("swap-prompt retirement requires the complete high character owner and cold tail")
     if retire_mux and not (retire_characters and pack_drive_graph):
         raise ValueError("multiplex retirement requires the complete packed BIOS layout")
     if retire_clock and not (retire_characters and pack_drive_graph):
@@ -65,7 +67,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         seed = build(output, tail_body=tail_body, dispatch=dispatch, characters=characters,
                      retire_characters=retire_characters, pack_headers=pack_headers, retire_media=retire_media,
                      pack_drive_graph=pack_drive_graph, retire_clock=retire_clock, retire_mux=retire_mux,
-                     compact_tracks=compact_tracks)
+                     compact_tracks=compact_tracks, retire_swap=retire_swap)
         if rebase:
             _, dos_symbols = parse_map(ROOT / "src/DOS/MSDOS.MAP")
             dos_symbols = {name.upper(): value for name, value in dos_symbols.items()}
@@ -169,6 +171,8 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         options += " -DBIOS_RETIRE_MUX=1"
     if compact_tracks:
         options += " -DBIOS_COMPACT_TRACK_LAYOUT=1"
+    if retire_swap:
+        options += " -DBIOS_RETIRE_SWAP=1"
     if scan:
         options += " -DBIOS_BOOT_SCAN=1"
     if rebase:
@@ -220,6 +224,10 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
             else:
                 obj = bios / f"{module}.OBJ"
             objects.append(obj)
+    if retire_swap:
+        swap_body = output / "BIOSSWAP.OBJ"
+        run([ROOT / "bin/jwasm-masm", options, f"BIOSSWAP.ASM,{swap_body};"], bios)
+        objects.append(swap_body)
     if retire_mux:
         mux_body = output / "BIOSMUX.OBJ"
         run([ROOT / "bin/jwasm-masm", options, f"BIOSMUX.ASM,{mux_body};"], bios)
@@ -254,6 +262,10 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
         if not (symbols["END$"] <= symbols["BIOS_MUX_BODY"]
                 < symbols["BIOS_MUX_BODY_END"] <= symbols["BIOS_SERVICE_END"]):
             raise ValueError("cold multiplex owner is outside the released/poisoned tail")
+    if retire_swap:
+        if not (symbols["END$"] <= symbols["BIOS_SWAP_BODY_START"]
+                < symbols["BIOS_SWAP_BODY_END"] <= symbols["BIOS_SERVICE_END"]):
+            raise ValueError("cold swap-prompt owner is not wholly in the disposable tail")
     if retire_characters:
         if not (symbols["END$"] <= symbols["CON$READ"] < symbols["AUX$READ"]
                 < symbols["PRN$WRIT"] < symbols["TIM$WRIT"] < symbols["BIOS_SERVICE_START"]):
@@ -295,6 +307,7 @@ def build(output, *, early=False, reservation_limit=0xfff0, tail_body=False, sca
                 "retired_clock_conversion": retire_clock,
                 "retired_mux": retire_mux,
                 "compact_track_layout": compact_tracks,
+                "retired_swap_prompt": retire_swap,
                 "direct_disk_tables": pack_headers,
                 "packed_headers": pack_headers,
                 "retired_character_bodies": retire_characters,
@@ -338,6 +351,7 @@ if __name__ == "__main__":
     parser.add_argument("--retire-mux", action="store_true", help="retire the low AH=08h operation/BDS owner")
     parser.add_argument("--retire-clock", action="store_true", help="retire the low clock-conversion owner")
     parser.add_argument("--compact-tracks", action="store_true", help="retain sector ID/size pairs and materialize firmware format descriptors")
+    parser.add_argument("--retire-swap", action="store_true", help="retire the complete low disk-swap prompt owner")
     parser.add_argument("--scan", action="store_true", help="capture activation-time ownership on QEMU debug port")
     parser.add_argument("--rebase", action="store_true", help="move and poison the old low DOS prefix")
     parser.add_argument("--compact", action="store_true", help="coalesce the first-HIMEM boot allocation after rebasing")
@@ -351,7 +365,7 @@ if __name__ == "__main__":
     build(args.output, early=args.early, tail_body=args.tail_body, dispatch=args.dispatch, characters=args.characters,
           retire_characters=args.retire_characters, pack_headers=args.pack_headers, retire_media=args.retire_media,
           pack_drive_graph=args.pack_drive_graph,
-          retire_clock=args.retire_clock, retire_mux=args.retire_mux, compact_tracks=args.compact_tracks,
+          retire_clock=args.retire_clock, retire_mux=args.retire_mux, compact_tracks=args.compact_tracks, retire_swap=args.retire_swap,
           scan=args.scan, rebase=args.rebase, compact=args.compact,
           high_cds=args.high_cds, fail_cds=args.fail_cds_allocation,
           high_stack_pool=args.high_stack_pool, fail_stack_pool=args.fail_stack_pool,

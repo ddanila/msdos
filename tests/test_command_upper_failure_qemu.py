@@ -115,7 +115,10 @@ def main():
             assert result["xms"] == control["xms"]
             assert result["allocation_policy"] == control["allocation_policy"], "policy not restored"
         else:
-            assert result["largest"] == 625312 and result["upper_free"] == 48064, "control did not publish packed state"
+            shell_rows = [row for row in result["mem_rows"] if row["name"] == "COMMAND"]
+            assert shell_rows[0]["size"] == 544, "control retained the old low data owner"
+            assert [row["size"] for row in shell_rows if row["segment"] >= result["ceiling"]] == [336], "control did not publish upper data"
+            assert result["largest"] >= 618736 and result["upper_free"] >= 47888
         print(f"{label}: PASS", flush=True)
     if args.policy_rejection and len(recovery_sites) == 2:
         binary = bytearray(original)

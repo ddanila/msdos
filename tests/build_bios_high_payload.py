@@ -62,10 +62,17 @@ def build(output, low_directory=None, *, dispatch=False, characters=False, media
     low_map = low_directory / "msBIO.map"
     _, low_symbols = parse_map(low_map)
     low_symbols = {name.upper(): value for name, value in low_symbols.items()}
+    retire_swap = "BIOS_SWAP_BODY_START" in low_symbols
+    if retire_swap and not characters:
+        raise ValueError("swap-prompt retirement requires high FLUSH and character return gates")
     track_bytes = low_symbols['MEDIATYPE'] - low_symbols['TRACKTABLE']
     if track_bytes not in (126, 252):
         raise ValueError("unexpected persistent track layout; cannot select matching high reader")
     slot_targets = dict(SLOT_TARGETS)
+    if retire_swap:
+        del slot_targets["BIOS_LOW_SWPDSK"]
+        slot_targets["BIOS_SERVICE_VECTOR_GATE"] = (4, "BIOS_HMA_VECTOR")
+        slot_targets["BIOS_SWAP_OUTCHR_OFFSET"] = (2, "OUTCHR")
     if retire_mux:
         slot_targets["BIOS_LOW_DSKIN_ENTRY"] = (4, "DSK$IN")
     if media:
@@ -91,6 +98,7 @@ def build(output, low_directory=None, *, dispatch=False, characters=False, media
         body = scratch / "body.obj"
         run([ROOT / "bin/jwasm-masm",
              f"-I. -I../INC -DBIOS_SERVICE_ISOLATED=1 {'-DBIOS_MEDIA_HIGH=1' if media else ''} "
+             f"{'-DBIOS_SWAP_HIGH=1' if retire_swap else ''} "
              f"{'-DBIOS_COMPACT_TRACK_LAYOUT=1' if track_bytes == 126 else ''} -Fl{listing}",
              f"MSDISK.ASM,{body};"], ROOT / "src/BIOS")
         externals = {}
@@ -116,6 +124,12 @@ def build(output, low_directory=None, *, dispatch=False, characters=False, media
                  f"BIOSMUX.ASM,{mux_object};"], ROOT / "src/BIOS")
             objects.append(mux_object)
             listings.append(mux_listing)
+        if retire_swap:
+            swap_object, swap_listing = scratch / "swap.obj", scratch / "swap.lst"
+            run([ROOT / "bin/jwasm-masm", f"-I. -I../INC -DBIOS_SWAP_HIGH=1 -Fl{swap_listing}",
+                 f"BIOSSWAP.ASM,{swap_object};"], ROOT / "src/BIOS")
+            objects.append(swap_object)
+            listings.append(swap_listing)
         for line in "\n".join(path.read_text(encoding="latin-1") for path in listings).splitlines():
             match = re.match(r"^([\w$]+)\s+(?:\.\s+)*\s*(.*?)\s+External\s*$", line)
             if match:
@@ -128,8 +142,10 @@ def build(output, low_directory=None, *, dispatch=False, characters=False, media
                              "BIOS_CHAR_BINTOBCD", "BIOS_CHAR_DAYCNTTODAY"} if characters else set()
         if retire_mux:
             group_definitions.add("INSTALL_BDS")
+        if retire_swap:
+            group_definitions.update(("SWPDSK", "FLUSH"))
         slots = {name: size for name, size in externals.items()
-                 if name.startswith(("BIOS_SERVICE_", "BIOS_LOW_", "BIOS_DISPATCH_", "BIOS_CHAR_"))
+                 if name.startswith(("BIOS_SERVICE_", "BIOS_LOW_", "BIOS_DISPATCH_", "BIOS_CHAR_", "BIOS_SWAP_"))
                  and name not in group_definitions}
         if slots != {name: spec[0] for name, spec in slot_targets.items()}:
             raise ValueError("runtime imports changed; review slot widths and target contracts")

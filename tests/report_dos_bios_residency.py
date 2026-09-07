@@ -77,6 +77,9 @@ def character_partition(symbols: dict[str, int]) -> list[tuple[str, int, int, st
         boundaries = ("CON$READ", "AUX$READ", "PRN$WRIT", "TIM$WRIT",
                       "MEDIA$CHK" if "BIOS_MEDIA_GETBP" in symbols else "BIOS_SERVICE_START")
         points = [require(symbols, name) for name in boundaries]
+        # Separately linked cold owners follow the clock; they are not clock code.
+        points[-1] = min([points[-1]] + [symbols[name] for name in
+                         ("BIOS_SWAP_BODY_START", "BIOS_MUX_BODY") if name in symbols])
         if not (require(symbols, "END$") <= points[0]
                 and all(a < b for a, b in zip(points, points[1:]))
                 and require(symbols, "CBREAK") < require(symbols, "HaveCMOSClock")
